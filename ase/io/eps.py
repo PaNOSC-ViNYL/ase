@@ -3,7 +3,7 @@ from math import sqrt
 
 import numpy as npy
 
-from ase.util import rotate
+from ase.utils import rotate
 from ase.data import cpk_colors, covalent_radii
 
 

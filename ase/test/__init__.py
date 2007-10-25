@@ -30,7 +30,7 @@ def test(verbosity=1):
             continue
         ts.addTest(ScriptTestCase(filename=test))
 
-    from ase.util import devnull
+    from ase.utils import devnull
     sys.stdout = devnull
     
     ttr = unittest.TextTestRunner(verbosity=verbosity)

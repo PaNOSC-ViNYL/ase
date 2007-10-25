@@ -39,7 +39,7 @@ def read(filename, index=-1):
     raise RuntimeError('That can *not* happen!')
 
 
-def write(fileobj, images, format=None):
+def write(fileobj, images, format=None, **kwargs):
     if isinstance(fileobj, str):
         filename = fileobj
         fileobj = open(fileobj, 'w')
@@ -65,7 +65,7 @@ def write(fileobj, images, format=None):
     except ImportError:
         raise TypeError('Unknown format: "%s".' % format)
     
-    write(filename, images)
+    write(filename, images, **kwargs)
 
 
 def string2index(string):

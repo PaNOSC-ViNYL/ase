@@ -1,9 +1,10 @@
 import os
 import pickle
+
 from ase.calculators import SinglePointCalculator
 from ase.atoms import Atoms
 from ase.parallel import rank
-from ase.util import devnull
+from ase.utils import devnull
 
 
 class PickleTrajectory:
