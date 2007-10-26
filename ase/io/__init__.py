@@ -1,6 +1,8 @@
 from tarfile import is_tarfile
 from zipfile import is_zipfile
 
+from ase.atoms import Atoms
+
 
 def read(filename, index=-1):
     p = filename.rfind('@')
@@ -14,7 +16,7 @@ def read(filename, index=-1):
         from gpaw import Calculator
         atoms = Calculator(filename, txt=None).get_atoms()
         atoms.SetCalculator()
-        return atoms
+        return Atoms(atoms)
     
     if type == 'xyz':
         from ase.io.xyz import read_xyz
@@ -36,6 +38,12 @@ def read(filename, index=-1):
         from ase.io.dacapo import read_dacapo_text
         return read_dacapo_text(filename)
 
+    if type == 'dacapo':
+        from Dacapo import Calculator
+        atoms = Calculator.ReadAtoms(filename)
+        atoms.SetCalculator()
+        return Atoms(atoms)
+    
     raise RuntimeError('That can *not* happen!')
 
 
