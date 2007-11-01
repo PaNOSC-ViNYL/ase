@@ -132,7 +132,7 @@ class Atoms(object):
     def set_calculator(self, calc):
         if hasattr(calc, '_SetListOfAtoms'):
             from ase.old import OldASECalculatorWrapper
-            calc = OldASECalculatorWrapper(calc)
+            calc = OldASECalculatorWrapper(calc, self)
         self.calc = calc
 
     def get_calculator(self):
@@ -336,7 +336,29 @@ class Atoms(object):
             self.arrays[name] = a[mask]
 
     def __imul__(self, m):
-        pass
+        if isinstance(m, int):
+            m = (m, m, m)
+        M = npy.product(m)
+        n = len(self)
+        
+        for name, a in self.arrays.items():
+            self.arrays[name] = npy.tile(a, (M,) + (1,) * (len(a.shape) - 1))
+
+        positions = self.arrays['positions']
+        i0 = 0
+        for m0 in range(m[0]):
+            for m1 in range(m[1]):
+                for m2 in range(m[2]):
+                    i1 = i0 + n
+                    positions[i0:i1] += npy.dot((m0, m1, m2), self.cell)
+                    i0 = i1
+        self.cell = npy.array([m[c] * self.cell[c] for c in range(3)])
+        return self
+
+    def __mul__(self, m):
+        atoms = self.copy()
+        atoms *= m
+        return atoms
 
     def _get_positions(self):
         return self.arrays['positions']

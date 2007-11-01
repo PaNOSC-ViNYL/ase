@@ -6,6 +6,8 @@ import numpy as npy
 class DevNull:
     def write(self, string): pass
     def flush(self): pass
+    def tell(self): return 0
+    def close(self): pass
 
 devnull = DevNull()
 

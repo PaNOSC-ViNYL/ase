@@ -43,12 +43,53 @@ class OldASEListOfAtomsWrapper:
         return npy.array(self.atoms.GetBoundaryConditions(), bool)
 
 
-class OldASECalculatorWrapper:
-    def __init__(self, calc):
-        self.calc = calc
+class ListOfAtoms:
+    def __init__(self, atoms):
+        self.atoms = atoms
+        from Numeric import array
+        self.array = array
+        
+    def GetCartesianPositions(self):
+        return self.array(self.atoms.get_positions())
+    
+    def GetAtomicNumbers(self):
+        return self.array(self.atoms.get_atomic_numbers())
+    
+    def GetUnitCell(self):
+        return self.array(self.atoms.get_cell())
+    
+    def GetBoundaryConditions(self):
+        return tuple(self.atoms.get_pbc())
 
-    def get_potential_energy(self):
+    def GetTags(self):
+        return self.array(self.atoms.get_tags())
+
+    def GetMagneticMoments(self):
+        magmoms = self.atoms.get_magnetic_moments()
+        if magmoms is None:
+            magmoms = npy.zeros(len(self))
+        return self.array(magmoms)
+
+    def GetCount(self):
+        return 0
+    
+    def __len__(self):
+        return len(self.atoms)
+
+    def SetCalculator(self, calc):
+        calc._SetListOfAtoms(self)
+    
+class OldASECalculatorWrapper:
+    def __init__(self, calc, atoms):
+        self.calc = calc
+        self.atoms = ListOfAtoms(atoms)
+        self.atoms.SetCalculator(calc)
+        
+    def get_potential_energy(self, atoms):
         return self.calc.GetPotentialEnergy()
+
+    def get_forces(self, atoms):
+        return self.calc.GetCartesianForces()
 
     def get_number_of_bands(self):
         return self.calc.GetNumberOfBands()

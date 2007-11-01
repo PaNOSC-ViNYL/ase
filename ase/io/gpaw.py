@@ -1,6 +1,8 @@
 import numpy as npy
 
 from ase.atoms import Atom, Atoms
+from ase.calculators import SinglePointCalculator
+
 
 def read_gpaw_text(fileobj, index=-1):
     if isinstance(fileobj, str):
@@ -44,9 +46,10 @@ def read_gpaw_text(fileobj, index=-1):
         if len(images) > 0 and e is None:
             break
 
+        if e is not None or f is not None:
+            atoms.set_calculator(SinglePointCalculator(e, f, None, atoms))
+
         images.append(atoms)
-        energies.append(e)
-        forces.append(f)
         lines = lines[i:]
         
-    return images# XXX , energies, forces, {}
+    return images

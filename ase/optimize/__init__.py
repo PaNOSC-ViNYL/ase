@@ -30,7 +30,7 @@ class Optimizer:
 
     def run(self, fmax=0.05, steps=100000000):
         self.fmax = fmax
-        for step in range(steps):
+        for step in xrange(steps):
             f = self.atoms.get_forces()
             self.log(f, step)
             if self.converged(f):

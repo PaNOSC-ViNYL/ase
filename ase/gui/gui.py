@@ -74,6 +74,7 @@ ui_info = """\
       <menuitem action='Constraints'/>
       <menuitem action='DFT'/>
       <menuitem action='NEB'/>
+      <menuitem action='BulkModulus'/>
       <menuitem action='DOS'/>
       <menuitem action='Wannier'/>
     </menu>
@@ -182,6 +183,9 @@ class GUI(View, Status):
             ('NEB', None, 'NE_B', None,
              '',
              self.NEB),
+            ('BulkModulus', None, 'B_ulk Modulus', None,
+             '',
+             self.bulk_modulus),
             ('DOS', None, 'DOS ...', None,
              '',
              self.xxx),
@@ -309,6 +313,10 @@ class GUI(View, Status):
     def NEB(self, action):
         from ase.gui.neb import NudgedElasticBand
         NudgedElasticBand(self.images)
+        
+    def bulk_modulus(self, action):
+        from ase.gui.bulk_modulus import BulkModulus
+        BulkModulus(self.images)
         
     def open(self, button=None, filenames=None):
         if filenames == None:

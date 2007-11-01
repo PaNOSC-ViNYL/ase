@@ -28,7 +28,6 @@ class FixBondLength:
         self.indices = [a1, a2]
 
     def adjust_positions(self, positions, newpositions):
-        print '-'
         p1, p2 = positions[self.indices]
         d = p2 - p1
         p = sqrt(npy.dot(d, d))
@@ -37,7 +36,6 @@ class FixBondLength:
         q = sqrt(npy.dot(d, d))
         d *= 0.5 * (p - q) / q
         positions[self.indices] = (q1 - d, q2 + d)
-        print p, q
 
     def adjust_forces(self, positions, forces):
         d = npy.subtract.reduce(positions[self.indices])
