@@ -1,64 +1,40 @@
 from ase.atoms import Atoms
-from ase.data import cpk_colors, covalent_radii, symbols
+from ase.data import cpk_colors, covalent_radii, chemical_symbols
 
-def write_py(fileobj, atoms):
+def write_pov(fileobj, atoms):
     if isinstance(fileobj, str):
         fileobj = open(fileobj, 'w')
 
+    if isinstance(atoms, (list, tuple)):
+        atoms = atoms[-1]
+        
     fileobj.write("""\
-//EXAMPLE OF SPHERE
-
-//Files with predefined colors and textures
 #include "colors.inc"
-#include "glass.inc"
-#include "golds.inc"
-#include "metals.inc"
-#include "stones.inc"
-#include "woods.inc"
-
-//Place the camera
+#include "finish.inc"
 camera {
-  sky <0,0,1>           //Don't change this
-  direction <-1,0,0>    //Don't change this  
-  right <-4/3,0,0>      //Don't change this
-  location <30,10,1.5> //Camera location
-  look_at <0,0,0>     //Where camera is pointing
-  angle 15      //Angle of the view--increase to see more, decrease to see less
+  location <0,0,15>
+  look_at <0,0,0>
 }
-
-//Ambient light to "brighten up" darker pictures
-global_settings { ambient_light White }
-
-//Place a light--you can have more than one!
 light_source {
-  <10,-10,20>   //Change this if you want to put the light at a different point
-  color White*2         //Multiplying by 2 doubles the brightness
+  <10,-10,20>
+  color White*2
 }
-
-//Set a background color
 background { color White }
-
-//Create a "floor"
-//plane {
-//  <0,0,1>, 0            //This represents the plane 0x+0y+z=0
-//  texture { T_Silver_3A }       //The texture comes from the file "metals.inc"
-//}
-
-//Sphere with specified center point and radius
-//The texture comes from the file "stones.inc""""
+#default { finish { phong 0.7 } }
+"""
                   )
     numbers = atoms.get_atomic_numbers()
     done = {}
     for Z in numbers:
         if Z not in done:
-            symbol = symbols[Z]
-            fileobj.write('#define C_%s ' % symbol +
-                          'color rgb <%.2f, %.2f, %.2f>\n' %
+            symbol = chemical_symbols[Z]
+            fileobj.write('#declare C_%s = ' % symbol +
+                          'texture{pigment{rgb <%.2f, %.2f, %.2f>}}\n' %
                           tuple(cpk_colors[Z]))
-            fileobj.write('#define R_%s %.2f\n' % (symbol, covalent_radii[Z]))
+            fileobj.write('#declare R_%s = %.2f;\n' % (symbol, covalent_radii[Z]))
             done[Z] = True
 
     for Z, p in zip(numbers, atoms.get_positions()):
-        symbol = symbols[Z]
+        symbol = chemical_symbols[Z]
         fileobj.write('sphere{<%.2f, %.2f, %.2f>, ' % tuple(p) +
-                      'R_%s C_%s}\n' % (symbol, symbol))
+                      'R_%s texture{C_%s}}\n' % (symbol, symbol))
