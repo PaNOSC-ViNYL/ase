@@ -48,6 +48,7 @@ class ListOfAtoms:
         self.atoms = atoms
         from Numeric import array
         self.array = array
+        self.count = 0
         
     def GetCartesianPositions(self):
         return self.array(self.atoms.get_positions())
@@ -71,7 +72,8 @@ class ListOfAtoms:
         return self.array(magmoms)
 
     def GetCount(self):
-        return 0
+        self.count += 1
+        return self.count
     
     def __len__(self):
         return len(self.atoms)
@@ -89,7 +91,10 @@ class OldASECalculatorWrapper:
         return self.calc.GetPotentialEnergy()
 
     def get_forces(self, atoms):
-        return self.calc.GetCartesianForces()
+        return npy.array(self.calc.GetCartesianForces())
+
+    def get_stress(self, atoms):
+        return npy.array(self.calc.GetStress())
 
     def get_number_of_bands(self):
         return self.calc.GetNumberOfBands()

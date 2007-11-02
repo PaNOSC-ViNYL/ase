@@ -1,6 +1,9 @@
 import sys
 import pickle
+from math import sqrt
 from os.path import isfile
+
+from ase.parallel import rank
 
 import numpy as npy
 
@@ -8,7 +11,6 @@ import numpy as npy
 class Optimizer:
     def __init__(self, atoms, restart, logfile):
         self.atoms = atoms
-        dir(atoms)
         self.restart = restart
 
         if restart is None or not isfile(restart):
@@ -16,7 +18,9 @@ class Optimizer:
         else:
             self.read()
 
-        if isinstance(logfile, str):
+        if rank > 0:
+            logfile = None
+        elif isinstance(logfile, str):
             if logfile == '-':
                 logfile = sys.stdout
             else:
@@ -45,16 +49,16 @@ class Optimizer:
         return (forces**2).sum(axis=1).max() < self.fmax**2
 
     def log(self, forces, step):
-        if self.log is None:
+        if self.logfile is None:
             return
-        fmax = (forces**2).sum(axis=1).max()
+        fmax = sqrt((forces**2).sum(axis=1).max())
         e = self.atoms.get_potential_energy()
         name = self.__class__.__name__
         self.logfile.write('%s: %3d %15.6f %12.4f\n' % (name, step, e, fmax))
         self.logfile.flush()
         
     def dump(self, data):
-        if self.restart is not None:
+        if rank == 0 and self.restart is not None:
             pickle.dump(data, open(self.restart, 'wb'), protocol=2)
 
     def load(self):
