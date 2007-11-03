@@ -8,88 +8,71 @@ from ase.data import cpk_colors, covalent_radii
 
 
 class EPS:
+    scale0 = 50.0
     def __init__(self, atoms,
                  rotation='', show_unit_cell=False, radii=None,
                  bbox=None):
-        self.atoms = atoms
-        numbers = atoms.get_atomic_numbers()
-        self.colors = cpk_colors[numbers]
+        self.numbers = atoms.get_atomic_numbers()
+        self.colors = cpk_colors[self.numbers]
 
         if radii == None:
-            radii = covalent_radii[numbers]
+            radii = covalent_radii[self.numbers]
             
         natoms = len(atoms)
 
         if isinstance(rotation, str):
             rotation = rotate(rotation)
 
-        N = 0
-        D = npy.zeros((3, 3))
-
+        A = atoms.get_cell()
         if show_unit_cell:
-            A = atoms.get_cell()
-            nn = []
-            for c in range(3):
-                d = sqrt((A[c]**2).sum())
-                n = max(2, int(d / 0.3))
-                nn.append(n)
-                N += 4 * n
-
-            X = npy.empty((N + natoms, 3))
-            T = npy.empty(N, int)
-
-            n1 = 0
-            for c in range(3):
-                n = nn[c]
-                dd = A[c] / (4 * n - 2)
-                D[c] = dd
-                P = npy.arange(1, 4 * n + 1, 4)[:, None] * dd
-                T[n1:] = c
-                for i, j in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-                    n2 = n1 + n
-                    X[n1:n2] = P + i * A[(c + 1) % 3] + j * A[(c + 2) % 3]
-                    n1 = n2
-            assert n2 == N
+            L, T, D = self.cell_to_lines(A)
+            C = npy.empty((2, 2, 2, 3))
+            for c1 in range(2):
+                for c2 in range(2):
+                    for c3 in range(2):
+                        C[c1, c2, c3] = npy.dot([c1, c2, c3], A)
+            C.shape = (8, 3)
+            C = npy.dot(C, rotation)
         else:
-            X = npy.empty((natoms, 3))
+            L = npy.empty((0, 3))
             T = None
+            D = None
+            C = None
 
+        nlines = len(L)
 
-        X[N:] = atoms.get_positions()
+        X = npy.empty((natoms + nlines, 3))
+        R = atoms.get_positions()
+        X[:natoms] = R
+        X[natoms:] = L
 
-        R = X[N:]
         r2 = radii**2
-        for n in range(N):
+        for n in range(nlines):
             d = D[T[n]]
-            if ((((R - X[n] - d)**2).sum(1) < r2) &
-                (((R - X[n] + d)**2).sum(1) < r2)).any():
+            if ((((R - L[n] - d)**2).sum(1) < r2) &
+                (((R - L[n] + d)**2).sum(1) < r2)).any():
                 T[n] = -1
 
         X = npy.dot(X, rotation)
-        D = npy.dot(D, rotation)[:, :2]
+        R = X[:natoms]
 
+        scale = self.scale0
         if bbox is None:
+            X1 = (R - radii[:, None]).min(0) 
+            X2 = (R + radii[:, None]).max(0) 
+            print X1, X2
             if show_unit_cell == 2:
-                P = X[:, :2].copy()
-                M = N
-            else:
-                P = X[N:, :2].copy()
-                M = 0
-            P[M:] -= radii[:, None]
-            P1 = P.min(0) 
-            P[M:] += 2 * radii[:, None]
-            P2 = P.max(0)
-            C = (P1 + P2) / 2
-            S = 1.05 * (P2 - P1)
-            scale = 50.0
+                X1 = npy.minimum(X1, C.min(0))
+                X2 = npy.maximum(X2, C.max(0))
+                print X1, X2
+            M = (X1 + X2) / 2
+            S = 1.05 * (X2 - X1)
             w = scale * S[0]
             if w > 500:
                 w = 500
                 scale = w / S[0]
             h = scale * S[1]
-            offset = npy.array([scale * C[0] - w / 2,
-                                scale * C[1] - h / 2,
-                                0.0])
+            offset = npy.array([scale * M[0] - w / 2, scale * M[1] - h / 2, 0])
         else:
             scale = 50.0
             w = (bbox[2] - bbox[0]) * scale
@@ -102,14 +85,49 @@ class EPS:
         X *= scale
         X -= offset
         X[:, 1] = h - X[:, 1]
-        D[:, 1] = -D[:, 1]
 
-        self.indices = X[:, 2].argsort()
+        if nlines > 0:
+            D = npy.dot(D, rotation)[:, :2] * scale
+            D[:, 1] = -D[:, 1]
+        
+        if C is not None:
+            C *= scale
+            C -= offset
+            C[:, 1] = h - C[:, 1]
+
         self.X = X
         self.D = D
         self.T = T
-        self.N = N
+        self.C = C
+        self.natoms = natoms
         self.d = 2 * scale * radii
+
+    def cell_to_lines(self, A):
+        nlines = 0
+        nn = []
+        for c in range(3):
+            d = sqrt((A[c]**2).sum())
+            n = max(2, int(d / 0.3))
+            nn.append(n)
+            nlines += 4 * n
+
+        X = npy.empty((nlines, 3))
+        T = npy.empty(nlines, int)
+        D = npy.zeros((3, 3))
+
+        n1 = 0
+        for c in range(3):
+            n = nn[c]
+            dd = A[c] / (4 * n - 2)
+            D[c] = dd
+            P = npy.arange(1, 4 * n + 1, 4)[:, None] * dd
+            T[n1:] = c
+            for i, j in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+                n2 = n1 + n
+                X[n1:n2] = P + i * A[(c + 1) % 3] + j * A[(c + 2) % 3]
+                n1 = n2
+
+        return X, T, D
 
     def write(self, filename):
         self.filename = filename
@@ -151,17 +169,18 @@ class EPS:
         # Write the figure
         line = self.line
         arc = self.renderer.draw_arc
-        for a in self.indices:
+        indices = self.X[:, 2].argsort()
+        for a in indices:
             x, y = self.X[a, :2]
-            if a < self.N:
+            if a < self.natoms:
+                da = self.d[a]
+                arc(self.gc, tuple(self.colors[a]), x, y, da, da, 0, 360, 0)
+            else:
+                a -= self.natoms
                 c = self.T[a]
                 if c != -1:
                     hx, hy = self.D[c]
                     line(self.gc, x - hx, y - hy, x + hx, y + hy)
-            else:
-                a -= self.N
-                da = self.d[a]
-                arc(self.gc, tuple(self.colors[a]), x, y, da, da, 0, 360, 0)
 
     def write_trailer(self):
         self.fd.write('end\n')

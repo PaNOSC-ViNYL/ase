@@ -28,7 +28,6 @@ import numpy as npy
 import gtk
 from ase.gui.view import View
 from ase.gui.status import Status
-#from ase.gui.write import write_to_file
 from ase.gui.widgets import pack, help, Help
 from ase.gui.languages import translate as _
 
@@ -413,7 +412,12 @@ class GUI(View, Status):
         
         chooser.destroy()
 
-        write_to_file(filename, self.images, suffix, images, self)
+        bbox = npy.empty(4)
+        #bbox[:2] = self.offset[:2]
+        #bbox[2:] = bbox[:2] + (self.w, self.h)
+        #bbox /= self.scale
+
+        write_to_file(filename, rotations, show, bboxself.images, suffix, images, self)
         
     def exit(self, button, event=None):
         gtk.main_quit()

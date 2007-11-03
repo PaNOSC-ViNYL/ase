@@ -1,6 +1,6 @@
 import locale
 
-from gpaw.gui.languages.en import translation as default_translation
+from ase.gui.languages.en import translation as default_translation
 
 
 def translate(text):

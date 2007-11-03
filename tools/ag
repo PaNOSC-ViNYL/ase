@@ -55,6 +55,13 @@ parser.add_option('--read-pickled-data-from-file',
 
 opt, args = parser.parse_args()
 
+try:
+    import ase
+except ImportError:
+    import sys
+    from os.path import dirname, join, pardir
+    sys.path.append(join(dirname(__file__), pardir))
+
 from ase.gui.images import Images
 from ase.atoms import Atoms
 images = Images()

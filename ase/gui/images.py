@@ -7,8 +7,6 @@ from ase.atoms import Atoms
 from ase.calculators import SinglePointCalculator
 from ase.io import read, write
 
-covalent_radii = npy.array([r or 2.0 for r in covalent_radii])
-
 
 class Images:
     def __init__(self, images=None):
@@ -133,7 +131,7 @@ class Images:
             for R in self.P[1:]:
                 self.dynamic |= (R0 != R).any(1)
 
-    def write(self, filename, rotations, show_unit_cell):
+    def write(self, filename, rotations, show_unit_cell, bbox=None):
         indices = range(self.nimages)
         p = filename.rfind('@')
         if p != -1:
@@ -147,10 +145,10 @@ class Images:
         suffix = filename.split('.')[-1]
         if suffix not in ['traj', 'xyz', 'py', 'eps', 'png']:
             suffix = 'traj'
-
-        write(filename, images)
-        #, self, suffix, indices,
-        #              rotations=rotations, show_unit_cell=show_unit_cell)
+        
+        write(filename, images, 
+              rotation=rotations, show_unit_cell=show_unit_cell,
+              bbox=bbox)
 
     def get_atoms(self, frame):
         atoms = Atoms(positions=self.P[frame],
