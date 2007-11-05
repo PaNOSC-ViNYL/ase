@@ -144,11 +144,9 @@ def read_trajectory(filename, index=-1):
     traj = PickleTrajectory(filename, mode='r')
 
     if isinstance(index, int):
-        indices = [index]
+        return traj[index]
     else:
-        indices = range(len(traj))[index]
-
-    return [traj[i] for i in indices]
+        return [traj[i] for i in range(len(traj))[index]]
 
 def write_trajectory(filename, images):
     traj = PickleTrajectory(filename, mode='w')

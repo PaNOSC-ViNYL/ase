@@ -52,4 +52,4 @@ def read_gpaw_text(fileobj, index=-1):
         images.append(atoms)
         lines = lines[i:]
         
-    return images
+    return images[index]
