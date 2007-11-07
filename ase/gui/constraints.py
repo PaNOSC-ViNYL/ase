@@ -29,14 +29,14 @@ class Constraints(gtk.Window):
         self.gui = gui
 
     def selected(self, button):
-        self.gui.atoms.dynamic = ~self.gui.atoms.selected
+        self.gui.images.dynamic = ~self.gui.images.selected
         self.gui.draw()
 
     def immobile(self, button):
-        self.gui.atoms.set_dynamic()
+        self.gui.images.set_dynamic()
         self.gui.draw()
 
     def clear(self, button):
-        self.gui.atoms.dynamic[:] = True
+        self.gui.images.dynamic[:] = True
         self.gui.draw()
 

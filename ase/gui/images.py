@@ -129,7 +129,7 @@ class Images:
             self.dynamic = npy.zeros(self.natoms, bool)
             R0 = self.P[0]
             for R in self.P[1:]:
-                self.dynamic |= (R0 != R).any(1)
+                self.dynamic |= (npy.abs(R - R0) > 1.0e-10).any(1)
 
     def write(self, filename, rotations, show_unit_cell, bbox=None):
         indices = range(self.nimages)
