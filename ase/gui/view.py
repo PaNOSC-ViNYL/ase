@@ -166,7 +166,7 @@ class View:
         self.draw()
 
     def draw(self, status=True):
-        self.pixmap.draw_rectangle(self.black_gc, True, 0, 0,
+        self.pixmap.draw_rectangle(self.white_gc, True, 0, 0,
                                    self.width, self.height)
         X = npy.dot(self.X, self.scale * self.rotation) - self.offset
         n = self.images.natoms
@@ -209,7 +209,7 @@ class View:
                     arc(black_gc, False, A[a, 0], A[a, 1], ra, ra, 0,23040)
             else:
                 a -= n
-                line(self.white_gc, X1[a, 0], X1[a, 1], X2[a, 0], X2[a, 1])
+                line(black_gc, X1[a, 0], X1[a, 1], X2[a, 0], X2[a, 1])
 
         if self.ui.get_widget('/MenuBar/ViewMenu/ShowAxes').get_active():
             self.draw_axes()
@@ -217,7 +217,7 @@ class View:
         if self.images.nimages > 1:
             self.draw_frame_number()
             
-        self.drawing_area.window.draw_drawable(self.black_gc, self.pixmap,
+        self.drawing_area.window.draw_drawable(self.white_gc, self.pixmap,
                                                0, 0, 0, 0,
                                                self.width, self.height)
 
@@ -236,7 +236,7 @@ class View:
                   ((-4, 5,0), (4, 5,0)))
         L = (L + (20, self.height - 20, 0)).round().astype(int)
         line = self.pixmap.draw_line
-        colors = ([self.white_gc] * 3 +
+        colors = ([self.black_gc] * 3 +
                   [self.red] * 2 + [self.green] * 2 + [self.blue] * 3)
         for i in L[:,1,2].argsort():
             (a,b),(c,d) = L[i, :, :2]
@@ -265,7 +265,7 @@ class View:
         n = str(self.frame)
         x = self.width - 3 - 8 * len(n)
         y = self.height - 27
-        color = self.white_gc
+        color = self.black_gc
         line = self.pixmap.draw_line
         for c in n:
             bars = View.bars[View.digits[int(c)]]
@@ -317,7 +317,7 @@ class View:
         C = self.C
         if self.button == 1:
             window = self.drawing_area.window
-            window.draw_drawable(self.black_gc, self.pixmap,
+            window.draw_drawable(self.white_gc, self.pixmap,
                                  0, 0, 0, 0,
                                  self.width, self.height)
             x0, y0 = C.round().astype(int)
@@ -367,7 +367,7 @@ class View:
             self.blue = self.drawing_area.window.new_gc(
                 self.colormap.alloc_color(0, 0, 54456), line_width=2)
             self.selected_gc = self.drawing_area.window.new_gc(
-                self.colormap.alloc_color(62345, 54456, 2234),
+                self.colormap.alloc_color(0, 16456, 0),
                 line_width=3)
             
         x, y, self.width, self.height = drawing_area.get_allocation()
@@ -383,7 +383,7 @@ class View:
     # Redraw the screen from the backing pixmap
     def expose_event(self, drawing_area, event):
         x , y, width, height = event.area
-        gc = self.black_gc
+        gc = self.white_gc
         drawing_area.window.draw_drawable(gc, self.pixmap,
                                           x, y, x, y, width, height)
 

@@ -1,3 +1,7 @@
+from math import pi, cos, sin, sqrt
+
+import numpy as npy
+
 from ase.atoms import Atoms
 
 
@@ -8,6 +12,7 @@ def read_xyz(fileobj, index=-1):
     lines = fileobj.readlines()
     L1 = lines[0].split()
     if len(L1) == 1:
+        cell = line2cell(lines[1])
         del lines[:2]
         natoms = int(L1[0])
     else:
@@ -20,10 +25,33 @@ def read_xyz(fileobj, index=-1):
             symbol, x, y, z = line.split()
             symbols.append(symbol)
             positions.append([float(x), float(y), float(z)])
-        images.append(Atoms(symbols=symbols, positions=positions))
+        if len(lines) > natoms + 2:
+            newcell = line2cell(lines[natoms + 1])
+            if newcell is not None:
+                cell = newcell
+        images.append(Atoms(symbols=symbols, positions=positions, cell=cell))
         del lines[:natoms + 2]
     return images[index]
 
+def line2cell(line):
+    x = line.split()
+    print x
+    if len(x) != 7:
+        return None
+    try:
+        a, b, c = [float(z) for z in x[1:4]]
+        A, B, C = [float(z) * pi / 180 for z in x[4:]]
+    except ValueError:
+        return None
+    cell = npy.zeros((3, 3))
+    cell[0, 0] = a
+    cell[1, 0] = b * cos(C)
+    cell[1, 1] = b * sin(C)
+    x = c * cos(B)
+    y = (c * cos(A) - x * cos(C)) / sin(C)
+    z = sqrt(c**2 - x**2 - y**2)
+    cell[2] = (x, y, z)
+    return cell
 
 def write_xyz(fileobj, images):
     if isinstance(fileobj, str):
