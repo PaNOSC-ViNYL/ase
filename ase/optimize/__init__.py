@@ -18,7 +18,7 @@ class Optimizer:
         else:
             self.read()
 
-        if rank > 0:
+        if rank != 0:
             logfile = None
         elif isinstance(logfile, str):
             if logfile == '-':

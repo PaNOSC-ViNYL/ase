@@ -1,4 +1,4 @@
-from math import pi, cos, sin, sqrt
+from math import pi, cos, sin, sqrt, acos
 
 import numpy as npy
 
@@ -63,6 +63,14 @@ def write_xyz(fileobj, images):
     symbols = images[0].get_chemical_symbols()
     natoms = len(symbols)
     for atoms in images:
-        fileobj.write('%d\n\n' % natoms)
+        fileobj.write('%d\nUnitCell:' % natoms)
+        cell = atoms.get_cell()
+        A = [npy.linalg.norm(a) for a in cell]
+        for c1 in range(3):
+            c2 = (c1 + 1) % 3
+            c3 = (c1 + 2) % 3
+            A.append(180 / pi *
+                     acos(npy.dot(cell[c2], cell[c3]) / A[c2] / A[c3]))
+        fileobj.write((' %.6f' * 6) % tuple(A) + '\n')
         for s, (x, y, z) in zip(symbols, atoms.get_positions()):
             fileobj.write('%-2s %22.15f %22.15f %22.15f\n' % (s, x, y, z))

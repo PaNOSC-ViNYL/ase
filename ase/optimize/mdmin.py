@@ -12,7 +12,7 @@ class MDMin(Optimizer):
 
     def initialize(self):
         self.v = None
-        self.dt = 0.01
+        self.dt = 0.2
 
     def read(self):
         self.v, self.dt = self.load()

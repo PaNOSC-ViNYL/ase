@@ -142,7 +142,7 @@ class View:
         
     def focus(self, x=None):
         if (self.images.natoms == 0 and not
-            self.ui.get_widget("/MenuBar/ViewMenu/ShowUnitCell").get_active()):
+            self.ui.get_widget('/MenuBar/ViewMenu/ShowUnitCell').get_active()):
             self.scale = 1.0
             self.offset = npy.zeros(3)
             self.draw()
@@ -399,10 +399,9 @@ class View:
                       (filename, filename))
 
         elif name == 'RasMol':
-            from ase.gui.write import write_to_file
             fd, filename = tempfile.mkstemp('.xyz', 'g2-')
             os.close(fd)
-            write_to_file(filename, self.images, 'xyz', [self.frame])
+            self.images.write(filename)
             os.system('(rasmol -xyz %s &); (sleep 5; rm %s) &' %
                       (filename, filename))
 

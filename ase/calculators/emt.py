@@ -80,6 +80,20 @@ class EMT:
 
     def get_forces(self, atoms):
         self.update(atoms)
+        p = atoms.positions
+        p0 = p.copy()
+        eps = 0.0001
+        for a in range(len(p)):
+            for c in range(3):
+                p[a, c] += eps
+                self.calculate(atoms)
+                de = self.energy
+                p[a, c] -= 2 * eps
+                self.calculate(atoms)
+                de -= self.energy
+                p[a, c] += eps
+                self.forces[a, c] = -de / (2 * eps)
+        p[:] = p0
         return self.forces
 
     def get_stress(self, atoms):

@@ -5,7 +5,7 @@ import numpy as npy
 from ase.data import covalent_radii
 from ase.atoms import Atoms
 from ase.calculators import SinglePointCalculator
-from ase.io import read, write
+from ase.io import read, write, string2index
 
 
 class Images:
@@ -131,12 +131,12 @@ class Images:
             for R in self.P[1:]:
                 self.dynamic |= (npy.abs(R - R0) > 1.0e-10).any(1)
 
-    def write(self, filename, rotations, show_unit_cell, bbox=None):
+    def write(self, filename, rotations='', show_unit_cell=False, bbox=None):
         indices = range(self.nimages)
         p = filename.rfind('@')
         if p != -1:
-            filename = filename[:p]
             indices = indices[string2index(filename[p + 1:])]
+            filename = filename[:p]
             if isinstance(indices, int):
                 indices = [indices]
 

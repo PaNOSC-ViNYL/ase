@@ -393,31 +393,22 @@ class GUI(View, Status):
                 self.xxx()
                 continue
                 
-            if self.images.nimages == 1 or button.get_active():
-                images = [self.image]
-            else:
-                images = range(self.images.nimages)
-                slice = entry.get_text()
-                images = eval('images[%s]' % slice)
-                if isinstance(images, int):
-                    images = [images]
-                if len(images) == 0:
-                    self.xxx(message1='Empty selection!',
-                             message2='Press Help-button for help.')
-                    continue
+            if self.images.nimages > 1 and not button.get_active():
+                filename += '@' + entry.get_text()
 
-            # Does filename exist?
+            # Does filename exist?  XXX
             
             break
         
         chooser.destroy()
 
         bbox = npy.empty(4)
-        #bbox[:2] = self.offset[:2]
-        #bbox[2:] = bbox[:2] + (self.w, self.h)
-        #bbox /= self.scale
-
-        write_to_file(filename, rotations, show, bboxself.images, suffix, images, self)
+        bbox[:2] = self.offset[:2]
+        bbox[2:] = bbox[:2] + (self.width, self.height)
+        bbox /= self.scale
+        suc = self.ui.get_widget('/MenuBar/ViewMenu/ShowUnitCell').get_active()
+        self.images.write(filename, self.rotation,
+                          show_unit_cell=suc, bbox=bbox)
         
     def exit(self, button, event=None):
         gtk.main_quit()
