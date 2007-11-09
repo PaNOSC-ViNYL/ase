@@ -47,13 +47,7 @@ def read(filename, index=-1):
     raise RuntimeError('That can *not* happen!')
 
 
-def write(fileobj, images, format=None, **kwargs):
-    if isinstance(fileobj, str):
-        filename = fileobj
-        fileobj = open(fileobj, 'w')
-    else:
-        filename = None
-
+def write(filename, images, format=None, **kwargs):
     if format is None:
         if filename is not None:
             suffix = filename.split('.')[-1]
@@ -63,7 +57,7 @@ def write(fileobj, images, format=None, **kwargs):
 
     if format == 'xyz':
         from ase.io.xyz import write_xyz
-        write_xyz(fileobj, images)
+        write_xyz(filename, images)
         return
 
     format = {'traj': 'trajectory', 'nc': 'netcdf'}.get(format, format)
