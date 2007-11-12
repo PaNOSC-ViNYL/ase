@@ -1,5 +1,7 @@
 import numpy as npy
 
+from ase.data import chemical_symbols
+
 
 class OldASEListOfAtomsWrapper:
     def __init__(self, atoms):
@@ -30,7 +32,7 @@ class OldASEListOfAtomsWrapper:
     def get_masses(self):
         return npy.array(self.atoms.GetMasses())
     
-    def get_magmoms(self):
+    def get_magnetic_moments(self):
         return npy.array(self.atoms.GetMagneticMoments())
     
     def get_charges(self):
@@ -78,9 +80,25 @@ class ListOfAtoms:
     def __len__(self):
         return len(self.atoms)
 
+    def __getitem__(self, i):
+        return OldASEAtom(self.GetAtomicNumbers()[i])
+    
     def SetCalculator(self, calc):
         calc._SetListOfAtoms(self)
-    
+
+class OldASEAtom:
+    def __init__(self, Z):
+        self.s = chemical_symbols[Z]
+        self.Z = Z
+    def GetChemicalSymbol(self):
+        return self.s
+    def GetAtomicNumber(self):
+        return self.Z
+    def GetMagneticMoment(self):
+        return 0.0 # XXXXX
+    def GetTag(self):
+        return 0
+
 class OldASECalculatorWrapper:
     def __init__(self, calc, atoms):
         self.calc = calc
