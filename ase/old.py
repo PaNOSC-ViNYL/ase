@@ -45,73 +45,33 @@ class OldASEListOfAtomsWrapper:
         return npy.array(self.atoms.GetBoundaryConditions(), bool)
 
 
-class ListOfAtoms:
-    def __init__(self, atoms):
-        self.atoms = atoms
-        from Numeric import array
-        self.array = array
-        self.count = 0
-        
-    def GetCartesianPositions(self):
-        return self.array(self.atoms.get_positions())
-    
-    def GetAtomicNumbers(self):
-        return self.array(self.atoms.get_atomic_numbers())
-    
-    def GetUnitCell(self):
-        return self.array(self.atoms.get_cell())
-    
-    def GetBoundaryConditions(self):
-        return tuple(self.atoms.get_pbc())
-
-    def GetTags(self):
-        return self.array(self.atoms.get_tags())
-
-    def GetMagneticMoments(self):
-        magmoms = self.atoms.get_magnetic_moments()
-        if magmoms is None:
-            magmoms = npy.zeros(len(self))
-        return self.array(magmoms)
-
-    def GetCount(self):
-        self.count += 1
-        return self.count
-    
-    def __len__(self):
-        return len(self.atoms)
-
-    def __getitem__(self, i):
-        return OldASEAtom(self.GetAtomicNumbers()[i])
-    
-    def SetCalculator(self, calc):
-        calc._SetListOfAtoms(self)
-
-class OldASEAtom:
-    def __init__(self, Z):
-        self.s = chemical_symbols[Z]
-        self.Z = Z
-    def GetChemicalSymbol(self):
-        return self.s
-    def GetAtomicNumber(self):
-        return self.Z
-    def GetMagneticMoment(self):
-        return 0.0 # XXXXX
-    def GetTag(self):
-        return 0
-
 class OldASECalculatorWrapper:
     def __init__(self, calc, atoms):
         self.calc = calc
-        self.atoms = ListOfAtoms(atoms)
+        from ASE import Atom, ListOfAtoms
+        from Numeric import array
+        numbers = atoms.get_atomic_numbers()
+        positions = atoms.get_positions()
+        
+        self.atoms = ListOfAtoms([Atom(Z=numbers[a], position=positions[a])
+                                  for a in range(len(atoms))],
+                                 cell=array(atoms.get_cell()),
+                                 periodic=tuple(atoms.get_pbc()))
         self.atoms.SetCalculator(calc)
         
     def get_potential_energy(self, atoms):
+        from Numeric import array
+        # XXXX what about the cell?
+        self.atoms.SetCartesianPositions(array(atoms.get_positions()))
         return self.calc.GetPotentialEnergy()
 
     def get_forces(self, atoms):
+        from Numeric import array
+        self.atoms.SetCartesianPositions(array(atoms.get_positions()))
         return npy.array(self.calc.GetCartesianForces())
 
     def get_stress(self, atoms):
+        # XXXX
         return npy.array(self.calc.GetStress())
 
     def get_number_of_bands(self):
