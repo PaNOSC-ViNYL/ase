@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 """
 husk:
-Exit*2?
+Exit*2?  remove pylab.show()
 close button
 DFT
 ADOS
-units?
 grey-out stuff after one second: vmd, rasmol, ...
 Show with ...
 rasmol: set same rotation as ag

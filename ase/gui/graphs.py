@@ -55,11 +55,12 @@ class Graphs(gtk.Window):
 
         data = self.gui.images.graph(expr)
         
-        import pylab
         import matplotlib
+        matplotlib.interactive(True)
         matplotlib.use('GTK')
-
+        import pylab
         pylab.ion()
+
         x = 2.5
         self.gui.graphs.append(pylab.figure(figsize=(x * 2.5**0.5, x)))
         i = self.gui.frame
@@ -80,7 +81,7 @@ class Graphs(gtk.Window):
                 pylab.plot(data[0], data[j])
                 pylab.plot([data[0, i]], [data[j, i]], 'o')
         pylab.title(expr)
-        pylab.show()
+        #pylab.show()
 
     python = plot
 

@@ -58,7 +58,7 @@ class PickleTrajectory:
 
         if atoms.get_calculator() is not None:
             d['energy'] = atoms.get_potential_energy()
-            d['forces'] = atoms.get_forces()
+            d['forces'] = atoms.get_forces(apply_constraints=False)
             try:
                 d['stress'] = atoms.get_stress()
             except NotImplementedError:
