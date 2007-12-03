@@ -222,8 +222,8 @@ class Atoms(object):
             newpositions = npy.asarray(newpositions, float)
             for constraint in self.constraints:
                 constraint.adjust_positions(positions, newpositions)
-        else:
-            positions[:] = newpositions
+                
+        positions[:] = newpositions
 
     def get_positions(self):
         return self.arrays['positions'].copy()

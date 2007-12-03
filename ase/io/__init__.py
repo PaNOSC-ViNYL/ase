@@ -15,7 +15,7 @@ def read(filename, index=-1):
     if type.startswith('gpw'):
         from gpaw import Calculator
         atoms = Calculator(filename, txt=None).get_atoms()
-        atoms.SetCalculator()
+        atoms.SetCalculator(None)
         return Atoms(atoms)
     
     if type == 'xyz':
@@ -41,7 +41,7 @@ def read(filename, index=-1):
     if type == 'dacapo':
         from Dacapo import Calculator
         atoms = Calculator.ReadAtoms(filename)
-        atoms.SetCalculator()
+        atoms.SetCalculator(None)
         return Atoms(atoms)
     
     raise RuntimeError('That can *not* happen!')
