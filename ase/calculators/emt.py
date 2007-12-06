@@ -6,10 +6,13 @@ from ase.data import atomic_numbers, chemical_symbols
 from ase.units import Bohr
 
 
-#                    E0     s0    V0     eta2    kappa   lambda  n0
-#                    eV     bohr  eV     bohr^-1 bohr^-1 bohr^-1 bohr^-3
-parameters = {'Cu': (-3.51, 2.67, 2.476, 1.652,  2.740,  1.906,  0.00910),
-              'Ag': (-2.96, 3.01, 2.132, 1.652,  2.790,  1.892,  0.00547)}
+parameters = {
+#          E0     s0    V0     eta2    kappa   lambda  n0
+#          eV     bohr  eV     bohr^-1 bohr^-1 bohr^-1 bohr^-3
+    'Cu': (-3.51, 2.67, 2.476, 1.652,  2.740,  1.906,  0.00910, 'fcc'),
+    'Ag': (-2.96, 3.01, 2.132, 1.652,  2.790,  1.892,  0.00547, 'fcc'),
+    'H': (-1.21,  3.01, 2.132, 1.652,  2.790,  1.892,  0.00547, 'fcc'),
+    'N':  (-4.97, 1.18, 0.132, 2.652,  3.790,  2.892,  0.01222, 'dimer')}
 
 beta = 1.809#(16 * pi / 3)**(1.0 / 3) / 2**0.5
 eta1 = 0.5 / Bohr
@@ -36,11 +39,21 @@ class EMT:
                 x = eta2 * beta * s0
                 gamma1 = 0.0
                 gamma2 = 0.0
-                for i, n in enumerate([12, 6, 24, 8]):
-                    r = s0 * beta * sqrt(i + 1)
+                if p[7] == 'fcc':
+                    for i, n in enumerate([12, 6, 24, 8]):
+                        r = s0 * beta * sqrt(i + 1)
+                        x = n / (12 * (1.0 + exp(acut * (r - rc))))
+                        gamma1 += x * exp(-eta2 * (r - beta * s0))
+                        gamma2 += x * exp(-kappa / beta * (r - beta * s0))
+                elif p[7] == 'dimer':
+                    r = s0 * beta
+                    n = 1
                     x = n / (12 * (1.0 + exp(acut * (r - rc))))
                     gamma1 += x * exp(-eta2 * (r - beta * s0))
                     gamma2 += x * exp(-kappa / beta * (r - beta * s0))
+                else:
+                    raise RuntimeError
+                    
                 self.par[Z] = {'E0': p[0],
                                's0': s0,
                                'V0': p[2],
@@ -63,6 +76,7 @@ class EMT:
                 
         self.forces = npy.empty((len(atoms), 3))
         self.sigma1 = npy.empty(len(atoms))
+        self.deds = npy.empty(len(atoms))
                     
     def update(self, atoms):
         if (self.energy is None or
@@ -78,10 +92,11 @@ class EMT:
         self.update(atoms)
         return self.energy
 
-    def get_forces(self, atoms):
+    def get_numeric_forces(self, atoms):
         self.update(atoms)
         p = atoms.positions
         p0 = p.copy()
+        forces = npy.empty_like(p)
         eps = 0.0001
         for a in range(len(p)):
             for c in range(3):
@@ -92,10 +107,14 @@ class EMT:
                 self.calculate(atoms)
                 de -= self.energy
                 p[a, c] += eps
-                self.forces[a, c] = -de / (2 * eps)
+                forces[a, c] = -de / (2 * eps)
         p[:] = p0
-        return self.forces
+        return forces
 
+    def get_forces(self, atoms):
+        self.update(atoms)
+        return self.forces
+    
     def get_stress(self, atoms):
         raise NotImplementedError
     
@@ -120,6 +139,7 @@ class EMT:
         
         self.energy = 0.0
         self.sigma1[:] = 0.0
+        self.forces[:] = 0.0
         
         N1, N2, N3 = N
         natoms = len(atoms)
@@ -140,21 +160,90 @@ class EMT:
                             r = sqrt(npy.dot(d, d))
                             if r < p1['rc']:
                                 Z2 = self.numbers[a2]
-                                self.interact(a1, r, p1, ksi[Z2])
+                                self.interact1(a1, a2, d, r, p1, ksi[Z2])
+                                
         for a in range(natoms):
             Z = self.numbers[a]
             p = self.par[Z]
-            ds = -log(self.sigma1[a] / 12) / (beta * p['eta2'])
+            try:
+                ds = -log(self.sigma1[a] / 12) / (beta * p['eta2'])
+            except OverflowError:
+                self.deds[a] = 0.0
+                self.energy -= p['E0']
+                continue
             x = p['lambda'] * ds
-            self.energy += (p['E0'] * ((1 + x) * exp(-x) - 1) +
-                            6 * p['V0'] * exp(-p['kappa'] * ds))
+            y = exp(-x)
+            z = 6 * p['V0'] * exp(-p['kappa'] * ds)
+            self.deds[a] = ((x * y * p['E0'] * p['lambda'] + p['kappa'] * z) /
+                            (self.sigma1[a] * beta * p['eta2']))
+            e = p['E0'] * ((1 + x) * y - 1) + z
+            self.energy += p['E0'] * ((1 + x) * y - 1) + z
 
-    def interact(self, a, r, p, ksi):
-        theta = 1.0 / (1.0 + exp(acut * (r - p['rc'])))
-        self.energy -= (0.5 * p['V0'] *
-                        exp(-p['kappa'] * (r / beta - p['s0'])) *
-                        ksi * theta / p['gamma2'])
-        self.sigma1[a] += (exp(-p['eta2'] * (r - beta * p['s0'])) *
-                           ksi * theta / p['gamma1'])
+        for i1 in range(-N1, N1 + 1):
+            for i2 in range(-N2, N2 + 1):
+                for i3 in range(-N3, N3 + 1):
+                    C = npy.dot((i1, i2, i3), self.cell)
+                    Q = R + C
+                    c = (i1 == 0 and i2 == 0 and i3 == 0)
+                    for a1 in range(natoms):
+                        Z1 = self.numbers[a1]
+                        p1 = self.par[Z1]
+                        ksi = self.ksi[Z1]
+                        for a2 in range(natoms):
+                            if c and a2 == a1:
+                                continue
+                            d = Q[a2] - R[a1]
+                            r = sqrt(npy.dot(d, d))
+                            if r < p1['rc']:
+                                Z2 = self.numbers[a2]
+                                self.interact2(a1, a2, d, r, p1, ksi[Z2])
+
+    def interact1(self, a1, a2, d, r, p, ksi):
+        x = exp(acut * (r - p['rc']))
+        theta = 1.0 / (1.0 + x)
+        y = (0.5 * p['V0'] * exp(-p['kappa'] * (r / beta - p['s0'])) *
+             ksi / p['gamma2'] * theta)
+        self.energy -= y
+        f = y * (p['kappa'] / beta + acut * theta * x) * d / r
+        self.forces[a1] += f
+        self.forces[a2] -= f
+        self.sigma1[a1] += (exp(-p['eta2'] * (r - beta * p['s0'])) *
+                            ksi * theta / p['gamma1'])
+
+    def interact2(self, a1, a2, d, r, p, ksi):
+        x = exp(acut * (r - p['rc']))
+        theta = 1.0 / (1.0 + x)
+        y = (exp(-p['eta2'] * (r - beta * p['s0'])) *
+             ksi / p['gamma1'] * theta * self.deds[a1])
+        f = y * (p['eta2'] + acut * theta * x) * d / r
+        self.forces[a1] -= f
+        self.forces[a2] += f
 
 
+class ASAP:
+    def __init__(self):
+        self.atoms = None
+        
+    def get_potential_energy(self, atoms):
+        self.update(atoms)
+        return self.atoms.GetPotentialEnergy()
+
+    def get_forces(self, atoms):
+        self.update(atoms)
+        return self.atoms.GetCartesianForces()
+
+    def update(self, atoms):
+        from Numeric import array
+        from ASE import ListOfAtoms, Atom
+        if self.atoms is None:
+            self.atoms = ListOfAtoms([Atom(Z=Z, position=array(position))
+                                      for Z, position in
+                                      zip(atoms.get_atomic_numbers(),
+                                          atoms.positions)],
+                                     cell=array(atoms.get_cell()),
+                                     periodic=tuple(atoms.get_pbc()))
+        else:
+            self.atoms.SetCartesianPositions(array(atoms.positions))
+                                     
+        
+    
