@@ -8,7 +8,7 @@ from ase.data import cpk_colors, covalent_radii
 
 
 class EPS:
-    scale0 = 50.0
+    scale0 = 20.0
     def __init__(self, atoms,
                  rotation='', show_unit_cell=False, radii=None,
                  bbox=None):

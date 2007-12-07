@@ -15,6 +15,7 @@ class PNG(EPS):
                                      (round(y1), round(y2)), identity)
         self.line = line
         self.gc = GraphicsContextBase()
+        self.gc.set_linewidth(2)
 
     def write_trailer(self):
         self.renderer._renderer.write_png(self.filename)
