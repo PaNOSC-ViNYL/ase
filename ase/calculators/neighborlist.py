@@ -1,5 +1,14 @@
 class NeighborList:
-    def __init__(self, atoms, cutoffs, skin=0.3):
+    def __init__(self, cutoffs, skin=0.3):
+        self.cutoffs = dict([(Z, rc + skin) for Z, rc in cutoffs.items()])
+        self.skin = skin
+        
+    def update(self, atoms):
+        if (self.positions is None or
+            ((atoms.positions - self.positions)**2).max() > self.skin**2):
+            self.build(atoms)
+
+    def build(self, atoms):
         positions = atoms.get_positions()
         self.pbc = atoms.get_pbc()
         self.cell = atoms.get_cell()
@@ -19,3 +28,6 @@ class NeighborList:
                 N.append(0)
 
         R = npy.dot(scaled, self.cell)
+
+    def neighbors(self, a):
+        return self.nbors[a], displ

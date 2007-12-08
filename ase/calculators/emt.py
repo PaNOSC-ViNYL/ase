@@ -42,7 +42,7 @@ class EMT:
                 if p[7] == 'fcc':
                     for i, n in enumerate([12, 6, 24, 8]):
                         r = s0 * beta * sqrt(i + 1)
-                        x = n / (12 * (1.0 + exp(acut * (r - rc))))
+                        x = n / (12 * (1.0 + exp(acut * (r - rc)))) # ???? not zero at rc!!!! XXXX
                         gamma1 += x * exp(-eta2 * (r - beta * s0))
                         gamma2 += x * exp(-kappa / beta * (r - beta * s0))
                 elif p[7] == 'dimer':
