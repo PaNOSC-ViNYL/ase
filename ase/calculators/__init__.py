@@ -1,7 +1,7 @@
 import numpy as npy
 
 from ase.calculators.lj import LennardJones
-from ase.calculators.emt import EMT
+from ase.calculators.emt import EMT, ASAP
 
 
 class SinglePointCalculator:

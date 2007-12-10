@@ -2,9 +2,10 @@ import numpy as npy
 
 
 class NEB:
-    def __init__(self, images, k=0.1):
+    def __init__(self, images, k=0.1, climb=False):
         self.images = images
         self.k = k
+        self.climb = climb
         self.natoms = len(images[0])
         self.nimages = len(images)
 
@@ -37,17 +38,30 @@ class NEB:
         forces = npy.empty((self.nimages * self.natoms, 3))
 
         forces[:self.natoms] = self.images[0].get_forces()
-
+        imax = max([(self.images[i].get_potential_energy(), i)
+                    for i in range(self.nimages)])[1]
         n1 = self.natoms
         tangent1 = positions[1] - positions[0]
         for i in range(1, self.nimages - 1):
             n2 = n1 + self.natoms
             tangent2 = positions[i + 1] - positions[i]
-            tt = npy.vdot(tangent2, tangent2)
+            if i < imax:
+                tangent = tangent2
+            elif i > imax:
+                tangent = tangent1
+            else:
+                tangent = tangent1 + tangent2
+                
+            tt = npy.vdot(tangent, tangent)
             f = self.images[i].get_forces()
-            ft = npy.vdot(f, tangent2)
-            f -= ft / tt * tangent2
-            f += npy.vdot(tangent1 - tangent2, tangent2) * self.k * tangent2
+            ft = npy.vdot(f, tangent)
+            if i == imax and self.climb:
+                f -= 2 * ft / tt * tangent
+            else:
+                f -= ft / tt * tangent
+                f += (npy.vdot(tangent1 - tangent2, tangent) * self.k / tt *
+                      tangent)
+                
             forces[n1:n2] = f
             n1 = n2
             tangent1 = tangent2

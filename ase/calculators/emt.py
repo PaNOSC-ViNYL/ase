@@ -230,18 +230,21 @@ class ASAP:
 
     def get_forces(self, atoms):
         self.update(atoms)
-        return self.atoms.GetCartesianForces()
+        return npy.array(self.atoms.GetCartesianForces())
+
+    def get_stress(self, atoms):
+        self.update(atoms)
+        return npy.array(self.atoms.GetStress())
 
     def update(self, atoms):
         from Numeric import array
-        from ASE import ListOfAtoms, Atom
+        from Asap import ListOfAtoms, EMT as AsapEMT
         if self.atoms is None:
-            self.atoms = ListOfAtoms([Atom(Z=Z, position=array(position))
-                                      for Z, position in
-                                      zip(atoms.get_atomic_numbers(),
-                                          atoms.positions)],
+            self.atoms = ListOfAtoms(positions=array(atoms.positions),
                                      cell=array(atoms.get_cell()),
                                      periodic=tuple(atoms.get_pbc()))
+            self.atoms.SetAtomicNumbers(array(atoms.get_atomic_numbers()))
+            self.atoms.SetCalculator(AsapEMT())
         else:
             self.atoms.SetCartesianPositions(array(atoms.positions))
                                      

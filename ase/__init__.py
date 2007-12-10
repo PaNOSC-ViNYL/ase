@@ -8,7 +8,7 @@ from ase.optimize.mdmin import MDMin
 from ase.optimize.qn import QuasiNewton
 from ase.md import VelocityVerlet
 from ase.constraints import *
-from ase.calculators import LennardJones, EMT
+from ase.calculators import LennardJones, EMT, ASAP
 from ase.neb import NEB
 from ase.geometry import distance
 from ase.visualize import *
