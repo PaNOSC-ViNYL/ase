@@ -5,6 +5,7 @@ from ase.io import read, write
 from ase.io.trajectory import PickleTrajectory
 from ase.dft import STM, monkhorst_pack
 from ase.optimize.mdmin import MDMin
+from ase.optimize.fire import FIRE
 from ase.optimize.qn import QuasiNewton
 from ase.md import VelocityVerlet
 from ase.constraints import *
