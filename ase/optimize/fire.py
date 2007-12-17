@@ -34,9 +34,10 @@ class FIRE(Optimizer):
         if self.v is None:
             self.v = npy.zeros((len(atoms), 3))
         else:
-            vf = npy.vdot(self.v, f)
+            vf = npy.vdot(f,self.v)
+#            self.v = (1.0-self.a)*self.v+self.a*f/npy.sqrt(npy.vdot(f,f)*npy.vdot(self.v,self.v))
             if vf > 0.0:
-                self.v = (1.0-self.a)*self.v+self.a*f/npy.sqrt(npy.vdot(f,f)*npy.vdot(self.v,self.v))
+                self.v = (1.0-self.a)*self.v + self.a*f / npy.sqrt(npy.vdot(f,f)) * npy.sqrt(npy.vdot(self.v,self.v))
                 if self.Nsteps > self.Nmin:
                     self.dt = min(self.dt*self.finc,self.dtmax)
                     self.a *= self.fa
@@ -59,6 +60,7 @@ class FIRE(Optimizer):
 #                    self.Nsteps += 1
 
             self.v += self.dt * f
+#            self.v += 0.5*self.dt * f
             dr = self.dt*self.v
             if npy.sqrt(npy.vdot(dr,dr))>self.maxmove:
                 dr = self.maxmove*dr/npy.sqrt(npy.vdot(dr,dr))
