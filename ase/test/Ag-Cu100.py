@@ -12,12 +12,12 @@ initial *= (5, 5, 1)  # 5x5 (100) surface-cell
 h0 = 2.0
 initial += Atom('Ag', (d / 2, d / 2, h0))
 
-if 1:
+if 0:
     view(initial)
 
 # Make band:
-images = [initial.copy() for i in range(7)]
-neb = NEB(images)
+images = [initial.copy() for i in range(6)]
+neb = NEB(images, climb=True)
 
 # Set constraints and calculator:
 constraint = FixAtoms(range(len(initial) - 1))
@@ -40,10 +40,10 @@ for image in images:
 
 traj = PickleTrajectory('mep.traj', 'w')
 
-#dyn = MDMin(neb, dt=0.1)
+dyn = MDMin(neb, dt=0.1)
 dyn = QuasiNewton(neb)
-dyn.attach(neb.writer(traj))
-dyn.run(fmax=0.01, steps=205)
+#dyn.attach(neb.writer(traj))
+dyn.run(fmax=0.01, steps=40)
 
 for image in images:
     print image.positions[-1], image.get_potential_energy()

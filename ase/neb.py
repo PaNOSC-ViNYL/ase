@@ -59,7 +59,7 @@ class NEB:
                 f -= 2 * ft / tt * tangent
             else:
                 f -= ft / tt * tangent
-                f += (npy.vdot(tangent1 - tangent2, tangent) * self.k / tt *
+                f -= (npy.vdot(tangent1 - tangent2, tangent) * self.k / tt *
                       tangent)
                 
             forces[n1:n2] = f
@@ -67,7 +67,6 @@ class NEB:
             tangent1 = tangent2
 
         forces[-self.natoms:] = self.images[-1].get_forces()
-
         return forces
 
     def get_potential_energy(self):
