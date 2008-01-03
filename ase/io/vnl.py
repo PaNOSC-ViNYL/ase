@@ -16,7 +16,7 @@ def ac(shape, typecode, data, endian):
         x.shape = shape
         
     if npy.LittleEndian != endian: 
-        return x.byteswapped() 
+        return x.byteswap() 
     else: 
         return x 
 

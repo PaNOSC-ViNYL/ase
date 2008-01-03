@@ -355,6 +355,8 @@ class Atoms(object):
         self.cell = npy.array([m[c] * self.cell[c] for c in range(3)])
         return self
 
+    repeat = __imul__
+    
     def __mul__(self, m):
         atoms = self.copy()
         atoms *= m

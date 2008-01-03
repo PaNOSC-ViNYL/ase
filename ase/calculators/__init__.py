@@ -39,3 +39,13 @@ class SinglePointCalculator:
             raise NotImplementedError
         return self.stress
 
+
+def numeric_force(atoms, a, i, d=0.001):
+    p0 = atoms.positions[a, i]
+    atoms.positions[a, i] += d
+    eplus = atoms.GetPotentialEnergy()
+    atoms.positions[a, i] -= 2 * d
+    eminus = atoms.GetPotentialEnergy()
+    atoms.positions[a, i] = p0
+    return (eminus - eplus) / (2 * d)
+
