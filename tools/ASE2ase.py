@@ -1,5 +1,8 @@
+#!/usr/bin/env python
 import sys
 lines = open(sys.argv[1]).readlines()
+open(sys.argv[1] + '.bak', 'w').write(''.join(lines))
+f = open(sys.argv[1], 'w')
 
 first = True
 for i in range(len(lines)):
@@ -25,15 +28,15 @@ while 1:
     i = t.find('.')
     if i == -1:
         break
-    sys.stdout.write(t[:i + 1])
+    f.write(t[:i + 1])
     t = t[i + 1:]
     if t[0].isupper() and t[1].islower():
         j = t.find('(')
         if j != -1 and t[2: j].isalpha():
             for k in range(j):
                 if t[k].isupper() and k > 0:
-                    sys.stdout.write('_')
-                sys.stdout.write(t[k].lower())
+                    f.write('_')
+                f.write(t[k].lower())
             t = t[j:]
 
-sys.stdout.write(t)
+f.write(t)
