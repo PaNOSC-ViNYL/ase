@@ -422,24 +422,51 @@ class Atoms(object):
     """
 
 
-def string2symbols(string):
+def string2symbols(s):
     """Convert string to list of chemical symbols."""
-    symbols = []
-    n = 0
-    for i in range(len(string)):
-        c = string[i]
-        if c.isupper():
-            if n > 0:
-                symbols.extend(symbols[-1:] * (n - 1))
-                n = 0
-            symbols.append(c)
-        elif c.islower():
-            symbols[-1] += c
-        elif c.isdigit():
-            n = 10 * n + int(c)
-    if n > 0:
-        symbols.extend(symbols[-1:] * (n - 1))
-    return symbols
+    n = len(s)
+
+    if n == 0:
+        return []
+    
+    c = s[0]
+    
+    if c.isdigit():
+        i = 1
+        while i < n and s[i].isdigit():
+            i += 1
+        return int(s[:i]) * string2symbols(s[i:])
+
+    if c == '(':
+        p = 0
+        for i, c in enumerate(s):
+            if c == '(':
+                p += 1
+            elif c == ')':
+                p -= 1
+                if p == 0:
+                    break
+        j = i + 1
+        while j < n and s[j].isdigit():
+            j += 1
+        if j > i + 1:
+            m = int(s[i + 1:j])
+        else:
+            m = 1
+        return m * string2symbols(s[1:i]) + string2symbols(s[j:])
+
+    if c.isupper():
+        i = 1
+        if 1 < n and s[1].islower():
+            i += 1
+        j = i
+        while j < n and s[j].isdigit():
+            j += 1
+        if j > i:
+            m = int(s[i:j])
+        else:
+            m = 1
+        return m * [s[:i]] + string2symbols(s[j:])
 
 def string2vector(v):
     if isinstance(v, str):
