@@ -369,10 +369,12 @@ class Atoms(object):
 
     def center(self, vacuum=None):
         """Center atoms in unit cell"""
-        pos = self.arrays['positions']
+        p = self.arrays['positions']
+        p0 = p.min(0)
+        p1 = p.max(0)
         if vacuum is not None:
-            self.cell = npy.diag(pos.ptp(0) + 2 * npy.asarray(vacuum))
-        pos += 0.5 * self.cell.sum(0) - pos.mean(0)
+            self.cell = npy.diag(p1 - p0 + 2 * npy.asarray(vacuum))
+        p += 0.5 * (self.cell.sum(0) - p0 - p1)
 
     def get_center_of_mass(self):
         m = self.arrays.get('masses')
