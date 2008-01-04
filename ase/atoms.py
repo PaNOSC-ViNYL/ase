@@ -1,5 +1,7 @@
+from math import cos, sin
+
 import numpy as npy
-from ase.data import atomic_numbers, chemical_symbols
+from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 
     
 class Atom:
@@ -199,7 +201,7 @@ class Atoms(object):
                 else:
                     newmasses.append(m)
             masses = newmasses
-        self.set_array(masses, 'masses', int)
+        self.set_array(masses, 'masses', float)
 
     def get_masses(self):
         return self.arrays.get('masses')
@@ -362,6 +364,44 @@ class Atoms(object):
         atoms *= m
         return atoms
 
+    def translate(self, displacement):
+        self.arrays['positions'] += displacement
+
+    def center(self, vacuum=None):
+        """Center atoms in unit cell"""
+        pos = self.arrays['positions']
+        if vacuum is not None:
+            self.cell = npy.diag(pos.ptp(0) + 2 * npy.asarray(vacuum))
+        pos += 0.5 * self.cell.sum(0) - pos.mean(0)
+
+    def get_center_of_mass(self):
+        m = self.arrays.get('masses')
+        if m is None:
+            m = atomic_masses[self.arrays['numbers']]
+        return npy.dot(m, self.arrays['positions']) / m.sum()
+
+    def rotate(self, v, a=None):
+        norm = npy.linalg.norm
+        v = string2vector(v)
+        if a is None:
+            a = norm(v)
+        if isinstance(a, (float, int)):
+            v /= norm(v)
+            c = cos(a)
+            s = sin(a)
+        else:
+            v2 = string2vector(a)
+            v /= norm(v)
+            v2 /= norm(v2)
+            c = npy.dot(v, v2)
+            v = npy.cross(v, v2)
+            s = norm(v)
+            v /= s
+        p = self.arrays['positions']
+        p[:] = (c * p - 
+                npy.cross(p, s * v) + 
+                npy.outer(npy.dot(p, v), (1.0 - c) * v))
+
     def _get_positions(self):
         return self.arrays['positions']
     
@@ -399,6 +439,14 @@ def string2symbols(string):
         symbols.extend(symbols[-1:] * (n - 1))
     return symbols
 
+def string2vector(v):
+    if isinstance(v, str):
+        if v[0] == '-':
+            return -string2vector(v[1:])
+        w = npy.zeros(3)
+        w['xyz'.index(v)] = 1.0
+        return w
+    return npy.asarray(v, float)
 
 def default(data, dflt):
     """Helper function for setting default values."""
