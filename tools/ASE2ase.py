@@ -24,7 +24,8 @@ def convert(filename):
                      ('GetBoundaryConditions', 'get_pbc'),
                      ('GetCartesianForces', 'get_forces'),
                      ('ListOfAtoms', 'Atoms'),
-                     ('periodic', 'pbc')]:
+                     ('periodic', 'pbc'),
+                     ('Numeric', 'numpy')]:
         t = t.replace(old, new)
 
     t2 = ''

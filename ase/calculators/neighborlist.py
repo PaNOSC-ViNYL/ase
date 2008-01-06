@@ -2,7 +2,8 @@ class NeighborList:
     def __init__(self, cutoffs, skin=0.3):
         self.cutoffs = dict([(Z, rc + skin) for Z, rc in cutoffs.items()])
         self.skin = skin
-        
+        self.nupdates = 0
+
     def update(self, atoms):
         if (self.positions is None or
             ((atoms.positions - self.positions)**2).max() > self.skin**2):
