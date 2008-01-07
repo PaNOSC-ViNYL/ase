@@ -19,12 +19,14 @@ if sys.version_info < (2, 3, 0, 'final', 0):
     raise SystemExit, 'Python 2.3 or later is required!'
 
 packages = ['ase',
+            'ase.io',
             'ase.md',
             'ase.dft',
+            'ase.gui',
             'ase.test',
             'ase.examples',
             'ase.optimize',
-            'ase.calculator']
+            'ase.calculators']
 
 # set the version number 
 version = '3.0.0'
@@ -35,10 +37,10 @@ setup(name = 'python-ase',
       url='http://www.fysik.dtu.dk/Campos/ase',
       maintainer='CAMd',
       maintainer_email='camd@fysik.dtu.dk',
-      license='...',
+      license='GPL',
       platforms=['linux'],
       packages=packages,
-      scripts=['ase/tools/...']
+      scripts=['tools/ag'],
       long_description=long_description)
 
 

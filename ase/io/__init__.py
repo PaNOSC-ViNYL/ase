@@ -15,8 +15,8 @@ def read(filename, index=-1):
     if type.startswith('gpw'):
         from gpaw import Calculator
         atoms = Calculator(filename, txt=None).get_atoms()
-        atoms.SetCalculator(None)
-        return Atoms(atoms)
+        atoms.set_calculator(None)
+        return atoms
     
     if type == 'xyz':
         from ase.io.xyz import read_xyz
@@ -31,7 +31,7 @@ def read(filename, index=-1):
         return read_netcdf(filename, index)
 
     if type == 'gpaw-text':
-        from ase.io.gpaw import read_gpaw_text
+        from ase.io.gpawtext import read_gpaw_text
         return read_gpaw_text(filename, index)
 
     if type == 'dacapo-text':

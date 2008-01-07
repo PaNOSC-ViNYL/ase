@@ -437,4 +437,4 @@ class GUI(View, Status):
 
 def wiki(widget):
     import webbrowser
-    webbrowser.open('https://wiki.fysik.dtu.dk/gpaw/G2')
+    webbrowser.open('https://wiki.fysik.dtu.dk/ase/GUI')
