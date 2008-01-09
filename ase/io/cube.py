@@ -26,7 +26,7 @@ def write_cube(fileobj, atoms, data=None):
     for i in range(3):
         n = data.shape[i]
         d = cell[i] / n / Bohr
-        fileobj.write('%5d%12.6f%12.6f%12.6f\n' % (n, a[0], a[1], a[2]))
+        fileobj.write('%5d%12.6f%12.6f%12.6f\n' % (n, d[0], d[1], d[2]))
 
     positions = atoms.get_positions() / Bohr
     numbers = atoms.get_atomic_numbers()
@@ -34,7 +34,7 @@ def write_cube(fileobj, atoms, data=None):
         fileobj.write('%5d%12.6f%12.6f%12.6f%12.6f\n' % (Z, 0.0, x, y, z)) 
 
     for dyz in data:
-        for dz in datayz:
+        for dz in dyz:
             for i, d in enumerate(dz):
                 fileobj.write('%e ' % d)
                 if i % 6 == 5:
@@ -51,9 +51,9 @@ def read_cube(fileobj, index=-1, read_data=False):
     axes = ['XYZ'.index(s[0]) for s in readline().split()[2::3]]
     natoms = int(readline().split()[0])
 
-    cell = npy.empty(3, 3))
+    cell = npy.empty((3, 3))
     shape = []
-    from i in range(3):
+    for i in range(3):
         n, x, y, z = [float(s) for s in readline()]
         cell[i] = n * Bohr * npy.array([x, y, z])
         shape.append(n)

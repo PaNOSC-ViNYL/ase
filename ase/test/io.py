@@ -20,4 +20,4 @@ else:
 
 w = ['xyz', 'cube', 'png', 'eps']
 for format in rw + w:
-    write('io-test.x', atoms, format=)
+    write('io-test.x', atoms, format=format)

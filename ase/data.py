@@ -265,7 +265,7 @@ covalent_radii = npy.array([
 
 # CPK colors in units of RGB values:
 cpk_colors = npy.array([ 
-(1.000,1.000,1.000) ,# None
+(1.000,0.000,0.000) ,# None
 (1.000,1.000,1.000) ,# H
 (1.000,0.753,0.796) ,# He
 (0.698,0.133,0.133) ,# Li

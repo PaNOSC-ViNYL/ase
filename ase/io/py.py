@@ -14,7 +14,6 @@ def write_py(fileobj, images):
         fileobj.write('images = [')
 
     symbols = images[0].get_chemical_symbols()
-    for s in 
     natoms = len(symbols)
     for atoms in images:
         fileobj.write('%d\n\n' % natoms)
