@@ -26,7 +26,8 @@ packages = ['ase',
             'ase.test',
             'ase.examples',
             'ase.optimize',
-            'ase.calculators']
+            'ase.calculators',
+            'ase.gui.languages']
 
 # set the version number 
 version = '3.0.0'
