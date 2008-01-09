@@ -104,13 +104,7 @@ class Atoms(object):
             pbc = False
         self.set_pbc(pbc)
 
-        if constraints is None:
-            self.constraints = []
-        else:
-            if isinstance(constraints, (list, tuple)):
-                self.constraints = constraints
-            else:
-                self.constraints = [constraints]
+        self.set_constraints(constraints)
                 
         self.set_calculator(calculator)
 
@@ -140,6 +134,15 @@ class Atoms(object):
     def get_calculator(self):
         return self.calc
 
+    def set_constraints(self, constraints=None):
+        if constraints is None:
+            self.constraints = []
+        else:
+            if isinstance(constraints, (list, tuple)):
+                self.constraints = constraints
+            else:
+                self.constraints = [constraints]
+    
     def set_cell(self, cell, fix=False):
         cell = npy.array(cell, float)
         if cell.shape == (3,):
