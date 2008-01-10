@@ -340,6 +340,11 @@ class Atoms(object):
         for name, a in self.arrays.items():
             self.arrays[name] = a[mask]
 
+    def pop(self, i=-1):
+        atom = self[i]
+        del self[i]
+        return atom
+    
     def __imul__(self, m):
         if isinstance(m, int):
             m = (m, m, m)
