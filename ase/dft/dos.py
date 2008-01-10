@@ -9,17 +9,16 @@ class DOS:
 
         self.npts = npts
         
-        self.w_k = calc.get_ibz_k_point_weights()
+        self.w_k = calc.get_k_point_weights()
 
         if width is None:
             self.width = calc.get_electronic_temperature()
+            if self.width == 0:
+                self.width = 0.1
         else:
             self.width = width
 
-        if calc.get_spin_polarized():
-            self.nspins = 2
-        else:
-            self.nspins = 1
+        self.nspins = calc.get_number_of_spins()
 
         self.e_skn = npy.array([[calc.get_eigenvalues(kpt=k, spin=s)
                                  for k in range(len(self.w_k))]
@@ -54,7 +53,7 @@ class DOS:
             else:
                 spin = 0
         
-        dos = npy.zeros(self.npts, npy.Float)
+        dos = npy.zeros(self.npts)
         for w, e_n in zip(self.w_k, self.e_skn[spin]):
             for e in e_n:
                 dos += w * self.delta(e)

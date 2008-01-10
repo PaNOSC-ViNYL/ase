@@ -368,7 +368,7 @@ class Atoms(object):
         return atoms
 
     def translate(self, displacement):
-        self.arrays['positions'] += displacement
+        self.arrays['positions'] += npy.array(displacement)
 
     def center(self, vacuum=None):
         """Center atoms in unit cell"""

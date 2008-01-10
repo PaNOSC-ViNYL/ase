@@ -1,5 +1,6 @@
 import numpy as npy
 from ase.dft.stm import STM
+from ase.dft.dos import DOS
 
 
 def monkhorst_pack(size):

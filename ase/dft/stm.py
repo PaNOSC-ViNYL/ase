@@ -7,9 +7,9 @@ class STM:
     def __init__(self, atoms, symmetries=None):
         calc = atoms.get_calculator()
         self.nbands = calc.get_number_of_bands()
-        self.weights = calc.get_kpoint_weights()
+        self.weights = calc.get_k_point_weights()
         self.nkpts = len(self.weights)
-        self.nspins = calc.get_number_of_spin()
+        self.nspins = calc.get_number_of_spins()
         self.eigs = npy.array([[calc.get_eigenvalues(k, s)
                                 for k in range(self.nkpts)]
                                for s in range(self.nspins)])
