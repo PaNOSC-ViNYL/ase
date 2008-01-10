@@ -11,7 +11,7 @@ def NudgedElasticBand(images):
     R = images.P[:, :natoms]
     E = images.E
     F = images.F[:, :natoms]
-    
+
     n = images.nimages
     Efit = npy.empty((n - 1) * 20 + 1)
     Sfit = npy.empty((n - 1) * 20 + 1)

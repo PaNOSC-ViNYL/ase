@@ -4,7 +4,15 @@ import numpy as npy
 
 
 class FixAtoms:
-    def __init__(self, indices):
+    def __init__(self, indices=None, mask=None):
+        if indices is None and mask is None:
+            raise ValuError('Use "indices" or "mask".')
+        if indices is not None and mask is not None:
+            raise ValuError('Use only one of "indices" and "mask".')
+
+        if mask is not None:
+            indices = npy.arange(len(mask))[npy.asarray(mask, bool)]
+
         self.fixed = npy.array(indices)
 
     def adjust_positions(self, old, new):

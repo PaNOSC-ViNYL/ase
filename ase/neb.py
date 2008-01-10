@@ -78,6 +78,9 @@ class NEB:
     def writer(self, trajectory):
         return NEBTrajectoryWriter(self, trajectory).write
 
+    def write(self, trajectory):
+        NEBTrajectoryWriter(self, trajectory).write()
+
 
 class NEBTrajectoryWriter:
     def __init__(self, neb, traj):

@@ -104,7 +104,7 @@ class Atoms(object):
             pbc = False
         self.set_pbc(pbc)
 
-        self.set_constraints(constraints)
+        self.set_constraint(constraints)
                 
         self.set_calculator(calculator)
 
@@ -134,7 +134,7 @@ class Atoms(object):
     def get_calculator(self):
         return self.calc
 
-    def set_constraints(self, constraints=None):
+    def set_constraint(self, constraints=None):
         if constraints is None:
             self.constraints = []
         else:

@@ -24,7 +24,7 @@ constraint = FixAtoms(range(len(initial) - 1))
 for image in images:
     #image.set_calculator(ASAP())
     image.set_calculator(EMT())
-    image.constraints.append(constraint)
+    image.set_constraint(constraint)
 
 # Displace last image:
 images[-1].positions[-1] += (d, 0, 0)
