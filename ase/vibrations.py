@@ -33,6 +33,7 @@ class Vibrations:
                     self.atoms.positions[a, i] = p[a, i] + sign * self.delta
                     forces = self.atoms.get_forces()
                     pickle.dump(forces.ravel(), fd)
+                    fd.close()
                     self.atoms.positions[a, i] = p[a, i]
         self.atoms.set_positions(p)
 
@@ -103,12 +104,14 @@ class Vibrations:
     def write_mode(self, n, kT=units.kB * 300, nimages=30):
         mode = self.get_mode(n) * sqrt(kT / self.hnu[n])
         p = self.atoms.positions.copy()
-        print p
         n %= 3 * len(self.indices)
         traj = PickleTrajectory('%s.%d.traj' % (self.name, n), 'w')
+        calc = self.atoms.get_calculator()
+        self.atoms.set_calculator()
         for x in npy.linspace(0, 2 * pi, nimages, endpoint=False):
             self.atoms.set_positions(p + sin(x) * mode)
             traj.write(self.atoms)
             ## -calc XXXXX
         self.atoms.set_positions(p)
+        self.atoms.set_calculator(calc)
         traj.close()

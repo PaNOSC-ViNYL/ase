@@ -125,7 +125,7 @@ class Atoms(object):
         
         self.arrays[name] = a
     
-    def set_calculator(self, calc):
+    def set_calculator(self, calc=None):
         if hasattr(calc, '_SetListOfAtoms'):
             from ase.old import OldASECalculatorWrapper
             calc = OldASECalculatorWrapper(calc, self)

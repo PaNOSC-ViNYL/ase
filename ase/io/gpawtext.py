@@ -35,13 +35,15 @@ def read_gpaw_text(fileobj, index=-1):
             line = lines[i + 9]
             assert line.startswith('Zero Kelvin:')
             e = float(line.split()[-1])
-        if i + 15 < len(lines) and lines[i + 15].startswith('forces'):
-            f = []
-            for i in range(i + 15, i + 15 + len(atoms)):
-                x, y, z = lines[i].split('[')[1][:-2].split()
-                f.append((float(x), float(y), float(z)))
-        else:
+        try:
+            i = lines.index('Forces in eV/Ang:\n')
+        except ValueError:
             f = None
+        else:
+            f = []
+            for i in range(i + 1, i + 1 + len(atoms)):
+                x, y, z = lines[i].split()[-3:]
+                f.append((float(x), float(y), float(z)))
 
         if len(images) > 0 and e is None:
             break

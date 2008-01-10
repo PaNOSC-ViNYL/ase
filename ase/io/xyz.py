@@ -35,7 +35,6 @@ def read_xyz(fileobj, index=-1):
 
 def line2cell(line):
     x = line.split()
-    print x
     if len(x) != 7:
         return None
     try:

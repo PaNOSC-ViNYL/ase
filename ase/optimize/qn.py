@@ -36,7 +36,7 @@ class QuasiNewton(Optimizer):
 
     def update(self, r, f):
         if self.H is None:
-            self.H = npy.eye(3 * len(self.atoms)) * 12.0
+            self.H = npy.eye(3 * len(self.atoms)) * 120.0
             return
         dr = r - self.r0
         df = f - self.f0
