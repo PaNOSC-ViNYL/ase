@@ -375,14 +375,24 @@ class Atoms(object):
     def translate(self, displacement):
         self.arrays['positions'] += npy.array(displacement)
 
-    def center(self, vacuum=None):
+    def center(self, vacuum=None, axis=None):
         """Center atoms in unit cell"""
         p = self.arrays['positions']
         p0 = p.min(0)
         p1 = p.max(0)
-        if vacuum is not None:
-            self.cell = npy.diag(p1 - p0 + 2 * npy.asarray(vacuum))
-        p += 0.5 * (self.cell.sum(0) - p0 - p1)
+        if axis is None:
+            if vacuum is not None:
+                self.cell = npy.diag(p1 - p0 + 2 * npy.asarray(vacuum))
+            p += 0.5 * (self.cell.sum(0) - p0 - p1)
+        else:
+            c = self.cell.copy()
+            c.flat[::4] = 0.0
+            if c.any():
+                raise ValueError('Unit cell must be orthorhobmic!')
+            
+            if vacuum is not None:
+                self.cell[axis] = p1[axis] - p0[axis] + 2 * vacuum
+            p[:, axis] += 0.5 * (self.cell[axis] - p0[axis] - p1[axis])
 
     def get_center_of_mass(self):
         m = self.arrays.get('masses')
