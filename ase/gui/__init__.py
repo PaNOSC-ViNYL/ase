@@ -4,11 +4,13 @@ import tempfile
 
 import numpy as npy
 
+from ase.io.trajectory import write_trajectory
+
+
 def gui(atoms):
-    fd, filename = tempfile.mkstemp('.pckl', 'ag-')
+    fd, filename = tempfile.mkstemp('.traj', 'ag-')
+    os.close(fd)
     if not isinstance(atoms, list):
         atoms = [atoms]
-    os.write(fd, pickle.dumps(atoms))
-    os.close(fd)
-    os.system('(ag --read-pickled-data-from-file %s &); (sleep 5; rm %s) &' %
-              (filename, filename))
+    write_trajectory(filename, atoms)
+    os.system('(ag %s &); (sleep 5; rm %s) &' % (filename, filename))

@@ -50,8 +50,8 @@ parser.add_option('--aneb',
 parser.add_option('--interpolate',
                   type='int', metavar='N',
                   help='Interpolate N images between 2 given images.')
-parser.add_option('--read-pickled-data-from-file',
-                  type='string', help=SUPPRESS_HELP)
+#parser.add_option('--read-pickled-data-from-file',
+#                  type='string', help=SUPPRESS_HELP)
 
 opt, args = parser.parse_args()
 
@@ -69,15 +69,11 @@ images = Images()
 if opt.aneb:
     opt.image_number = '-1'
 
-if opt.read_pickled_data_from_file is not None:
-    import pickle
-    images.initialize(pickle.load(open(opt.read_pickled_data_from_file)))
-else:    
-    if len(args) > 0:
-        from ase.io import string2index
-        images.read(args, string2index(opt.image_number))
-    else:
-        images.initialize([Atoms()])
+if len(args) > 0:
+    from ase.io import string2index
+    images.read(args, string2index(opt.image_number))
+else:
+    images.initialize([Atoms()])
 
 if opt.interpolate:
     images.interpolate(opt.interpolate)
