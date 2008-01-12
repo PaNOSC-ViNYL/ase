@@ -19,7 +19,7 @@ def write_cube(fileobj, atoms, data=None):
     fileobj.write('%5d%12.6f%12.6f%12.6f\n' % (natoms, 0.0, 0.0, 0.0))
 
     if data is None:
-        data = [[[]]]
+        data = [[[1.0]]]
     data = npy.asarray(data, float)
     
     cell = atoms.get_cell()

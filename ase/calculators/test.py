@@ -64,21 +64,21 @@ class TestCalculator:
                 phase = npy.exp(pi * 2j * npy.dot(self.ibzk, (i, j, 0)))
                 self.psi += phase[:, None, None, None] * phi
 
-    def get_wave_function_array(self, n=0, k=0, s=0):
-        assert s == 0 and n == 0
-        return self.psi[k]
+    def get_pseudo_wave_function(self, band=0, kpt=0, spin=0):
+        assert spin == 0 and band == 0
+        return self.psi[kpt]
 
-    def get_eigenvalues(self, k=0, s=0):
-        assert s == 0
-        return self.eps[k]
+    def get_eigenvalues(self, kpt=0, spin=0):
+        assert spin == 0
+        return self.eps[kpt]
 
     def get_number_of_bands(self):
         return 1
 
-    def get_kpoint_weights(self):
+    def get_k_point_weights(self):
         return self.weights
 
-    def get_number_of_spin(self):
+    def get_number_of_spins(self):
         return 1
 
     def get_fermi_level(self):

@@ -83,7 +83,7 @@ class OldASECalculatorWrapper:
     def get_number_of_spin(self):
         return 1 + int(self.calc.GetSpinPolarized())
 
-    def get_eigenvalues(self, k=0, s=0):
+    def get_eigenvalues(self, kpt=0, spin=0):
         return npy.array(self.calc.GetEigenvalues(k, s))
 
     def get_fermi_level(self):

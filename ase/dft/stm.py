@@ -31,7 +31,7 @@ class STM:
         for s in range(self.nspins):
             for k in range(self.nkpts):
                 for n in range(self.nbands):
-                    psi = self.calc.get_wave_function_array(n, k, s)
+                    psi = self.calc.get_pseudo_wave_function(n, k, s)
                     if ldos is None:
                         ldos = npy.zeros_like(psi)
                     f = exp(-(self.eigs[s, k, n] / width)**2) * self.weights[k]

@@ -20,4 +20,5 @@ else:
 
 w = ['xyz', 'cube', 'png', 'eps']
 for format in rw + w:
+    print format
     write('io-test.x', atoms, format=format)
