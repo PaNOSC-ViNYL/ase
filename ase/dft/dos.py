@@ -20,7 +20,7 @@ class DOS:
 
         self.nspins = calc.get_number_of_spins()
 
-        self.e_skn = npy.array([[calc.get_eigenvalues(kpt=k, spin=s)
+        self.e_skn = npy.array([[calc.get_eigenvalues(k=k, s=s)
                                  for k in range(len(self.w_k))]
                                 for s in range(self.nspins)])
 

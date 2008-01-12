@@ -392,7 +392,7 @@ class Atoms(object):
             
             if vacuum is not None:
                 self.cell[axis] = p1[axis] - p0[axis] + 2 * vacuum
-            p[:, axis] += 0.5 * (self.cell[axis] - p0[axis] - p1[axis])
+            p[:, axis] += 0.5 * (self.cell[axis, axis] - p0[axis] - p1[axis])
 
     def get_center_of_mass(self):
         m = self.arrays.get('masses')
