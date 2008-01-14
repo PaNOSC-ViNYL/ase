@@ -3,6 +3,7 @@ from math import pi, cos, sin, sqrt, acos
 import numpy as npy
 
 from ase.atoms import Atoms
+from ase.parallel import paropen
 
 
 def read_xyz(fileobj, index=-1):
@@ -54,7 +55,7 @@ def line2cell(line):
 
 def write_xyz(fileobj, images):
     if isinstance(fileobj, str):
-        fileobj = open(fileobj, 'w')
+        fileobj = paropen(fileobj, 'w')
 
     if not isinstance(images, (list, tuple)):
         images = [images]

@@ -2,11 +2,12 @@ import numpy as npy
 
 from ase.atoms import Atoms
 from ase.units import Bohr
+from ase.parallel import paropen
 
 
 def write_cube(fileobj, atoms, data=None):
     if isinstance(fileobj, str):
-        fileobj = open(fileobj, 'w')
+        fileobj = paropen(fileobj, 'w')
         
     if isinstance(atoms, list):
         assert len(atoms) == 1
