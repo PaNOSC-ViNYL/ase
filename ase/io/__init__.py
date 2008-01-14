@@ -7,8 +7,12 @@ from ase.atoms import Atoms
 def read(filename, index=-1):
     p = filename.rfind('@')
     if p != -1:
-        index = string2index(filename[p + 1:])
-        filename = filename[:p]
+        try:
+            index = string2index(filename[p + 1:])
+        except ValueError:
+            pass
+        else:
+            filename = filename[:p]
         
     type = filetype(filename)
 
@@ -25,6 +29,10 @@ def read(filename, index=-1):
     if type == 'traj':
         from ase.io.trajectory import read_trajectory
         return read_trajectory(filename, index)
+
+    if type == 'cube':
+        from ase.io.cube import read_cube
+        return read_cube(filename, index)
 
     if type == 'nc':
         from ase.io.netcdf import read_netcdf

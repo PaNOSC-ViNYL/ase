@@ -39,7 +39,6 @@ def write_cube(fileobj, atoms, data=None):
                 fileobj.write('%e ' % d)
                 if i % 6 == 5:
                     fileobj.write('\n')
-                fileobj.write('\n')
 
 
 def read_cube(fileobj, index=-1, read_data=False):
@@ -54,7 +53,7 @@ def read_cube(fileobj, index=-1, read_data=False):
     cell = npy.empty((3, 3))
     shape = []
     for i in range(3):
-        n, x, y, z = [float(s) for s in readline()]
+        n, x, y, z = [float(s) for s in readline().split()]
         cell[i] = n * Bohr * npy.array([x, y, z])
         shape.append(n)
         

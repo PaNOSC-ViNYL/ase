@@ -135,10 +135,15 @@ class Images:
         indices = range(self.nimages)
         p = filename.rfind('@')
         if p != -1:
-            indices = indices[string2index(filename[p + 1:])]
-            filename = filename[:p]
-            if isinstance(indices, int):
-                indices = [indices]
+            try:
+                slice = string2index(filename[p + 1:])
+            except ValueError:
+                pass
+            else:
+                indices = indices[slice]
+                filename = filename[:p]
+                if isinstance(indices, int):
+                    indices = [indices]
 
         images = [self.get_atoms(i) for i in indices]
 
