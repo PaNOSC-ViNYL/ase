@@ -3,48 +3,6 @@ from ase.atoms import Atoms
 from ase.calculators import SinglePointCalculator
 
 
-class LOA:
-    def __init__(self, images):
-        self.set_atoms(images[0])
-
-    def __len__(self):
-        return len(self.atoms)
-    
-    def set_atoms(self, atoms):
-        self.atoms = atoms
-        
-    def GetPotentialEnergy(self):
-        return self.atoms.get_potential_energy()
-
-    def GetCartesianForces(self):
-        return self.atoms.get_forces()
-
-    def GetUnitCell(self):
-        return self.atoms.get_cell()
-
-    def GetAtomicNumbers(self):
-        return self.atoms.get_atomic_numbers()
-
-    def GetCartesianPositions(self):
-        return self.atoms.get_positions()
-
-    def GetBoundaryConditions(self):
-        return self.atoms.get_pbc()
-    
-
-def write_netcdf(filename, images):
-    from ASE.Trajectories.NetCDFTrajectory import NetCDFTrajectory
-
-    if not isinstance(images, (list, tuple)):
-        images = [images]
-        
-    loa = LOA(images)
-    traj = NetCDFTrajectory(filename, loa)
-    for atoms in images:
-        loa.set_atoms(atoms)
-        traj.Update()
-    traj.Close()
-
 def read_netcdf(filename, index=-1):
     nc = NetCDFFile(filename)
     dims = nc.dimensions
@@ -96,3 +54,47 @@ def read_netcdf(filename, index=-1):
         images.append(atoms)
         
     return images
+
+
+class LOA:
+    def __init__(self, images):
+        self.set_atoms(images[0])
+
+    def __len__(self):
+        return len(self.atoms)
+    
+    def set_atoms(self, atoms):
+        self.atoms = atoms
+        
+    def GetPotentialEnergy(self):
+        return self.atoms.get_potential_energy()
+
+    def GetCartesianForces(self):
+        return self.atoms.get_forces()
+
+    def GetUnitCell(self):
+        return self.atoms.get_cell()
+
+    def GetAtomicNumbers(self):
+        return self.atoms.get_atomic_numbers()
+
+    def GetCartesianPositions(self):
+        return self.atoms.get_positions()
+
+    def GetBoundaryConditions(self):
+        return self.atoms.get_pbc()
+    
+
+def write_netcdf(filename, images):
+    from ASE.Trajectories.NetCDFTrajectory import NetCDFTrajectory
+
+    if not isinstance(images, (list, tuple)):
+        images = [images]
+        
+    loa = LOA(images)
+    traj = NetCDFTrajectory(filename, loa)
+    for atoms in images:
+        loa.set_atoms(atoms)
+        traj.Update()
+    traj.Close()
+
