@@ -4,9 +4,14 @@ import tempfile
 from ase.io.xyz import write_xyz
 from ase.io.cube import write_cube
 from ase.io.plt import write_plt
+import ase.parallel as parallel
 
 
 def view(atoms, data=None, viewer=None):
+    # Ignore for parallel calculations:
+    if parallel.size != 1:
+        return
+
     viewers = ['ase.gui', 'gopenmol', 'vmd', 'rasmol', 'nanolab']
     if viewer is not None:
         viewer = viewer.lower()

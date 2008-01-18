@@ -20,7 +20,7 @@ class STM:
         self.ldos = None
         self.symmetries = symmetries or []
                                
-    def calculate_ldos(self, width=None):
+    def calculate_ldos(self, width=None, bias=0.0):
         if self.ldos is not None and width == self.width:
             return
 
@@ -34,7 +34,8 @@ class STM:
                     psi = self.calc.get_pseudo_wave_function(n, k, s)
                     if ldos is None:
                         ldos = npy.zeros_like(psi)
-                    f = exp(-(self.eigs[s, k, n] / width)**2) * self.weights[k]
+                    f = (exp(-((self.eigs[s, k, n] - bias) / width)**2) *
+                         self.weights[k])
                     ldos += f * (psi * npy.conj(psi)).real
 
         if 0 in self.symmetries:

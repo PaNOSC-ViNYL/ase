@@ -9,13 +9,13 @@ def read_gpaw_text(fileobj, index=-1):
         fileobj = open(fileobj)
 
     lines = fileobj.readlines()
-    i = lines.index('Unit Cell:\n')
-    cell = [float(line.split()[2]) for line in lines[i + 3:i + 6]]
     images = []
     energies = []
     forces = []
     while True:
         try:
+            i = lines.index('Unit Cell:\n')
+            cell = [float(line.split()[2]) for line in lines[i + 3:i + 6]]
             i = lines.index('Positions:\n')
         except ValueError:
             break

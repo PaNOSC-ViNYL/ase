@@ -10,7 +10,9 @@ def BulkModulus(images):
     fit = npy.poly1d(npy.polyfit(v**-(1.0 / 3), images.E, 3))
     fit1 = npy.polyder(fit, 1)
     fit2 = npy.polyder(fit1, 1)
-    t = npy.roots(fit1)[0]
+    for t in npy.roots(fit1):
+        if t > 0 and fit2(t) > 0:
+            break
     v0 = t**-3
     e0 = fit(t)
     B = t**5 * fit2(t) / 9 / kJ * 1.0e24  # Gpa

@@ -111,7 +111,6 @@ class Vibrations:
         for x in npy.linspace(0, 2 * pi, nimages, endpoint=False):
             self.atoms.set_positions(p + sin(x) * mode)
             traj.write(self.atoms)
-            ## -calc XXXXX
         self.atoms.set_positions(p)
         self.atoms.set_calculator(calc)
         traj.close()

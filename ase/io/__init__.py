@@ -47,10 +47,8 @@ def read(filename, index=-1):
         return read_dacapo_text(filename)
 
     if type == 'dacapo':
-        from Dacapo import Calculator
-        atoms = Calculator.ReadAtoms(filename)
-        atoms.SetCalculator(None)
-        return Atoms(atoms)
+        from ase.io.dacapo import read_dacapo
+        return read_dacapo(filename)
     
     raise RuntimeError('That can *not* happen!')
 
@@ -99,12 +97,7 @@ def filetype(filename):
 
     fileobj = open(filename)
     if fileobj.read(3) == 'CDF':
-        try:
-            from Scientific.IO.NetCDF import NetCDFFile
-        except ImportError:
-            raise ImportError("This is a netCDF file, but I can't figure "
-                              'out what kind without Scientific.IO.NetCDF'
-                              'installed')
+        from ase.io.pupynere import NetCDFFile
         nc = NetCDFFile(filename)
         if 'number_of_dynamic_atoms' in nc.dimensions:
             return 'dacapo'

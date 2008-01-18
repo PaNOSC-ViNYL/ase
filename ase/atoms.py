@@ -26,6 +26,20 @@ class Atom:
     
 
 class Atoms(object):
+    """Objecs representing a collection of atoms.
+
+    The Atoms object can represent an isolated molecule, or a
+    periodically repeated structure.  It may have a unit cell and
+    there may be periodic boundary conditions along any of the three
+    unit cell axes.
+
+    The information about the atoms (atomic numbers and position) is
+    stored in ndarrays.  Optionally, there can be information about
+    tags, momenta, masses, magnetic moments and charges.
+
+    In order to calculate energies, forces and stresses, a calculator
+    object has to attached to the atoms object."""
+
     def __init__(self, atoms=None,
                  symbols=None, numbers=None, positions=None,
                  tags=None, momenta=None, masses=None,
@@ -33,6 +47,60 @@ class Atoms(object):
                  cell=None, pbc=None,
                  constraints=None,
                  calculator=None):
+        """Construct Atoms object.
+
+        Parameters
+        ----------
+        atoms : list of Atom objects
+            Example:  [Atom('Ne', (x, y, z), ...].
+        symbols : string (formula) or list of strings
+            Examples:  'H2O', 'COPt12', ['H', 'H', 'O'].
+        numbers : list of integers
+            Atomic numbers (use only one of symbols/numbers).
+        positions : list of xyz-positions
+            Atomic positions.  Anything that can be converted to an
+            ndarray of shape (n, 3) will do: [(x1,y1,z1), (x2,y2,z2),
+            ...].
+        tags : list of integers
+        momenta: list of xyz-momenta
+        masses : list of floats
+        magmoms: list of floats
+            Magnetic moments
+        charges : list of floats
+        cell : 3x3 matrix
+            Unit cell vectors.  Can also be given as just three
+            numbers for orthorhombic cells.  Default value: [1, 1, 1].
+        pbc : one or three booleans
+            Periodic boundary conditions flags.  Examples: True,
+            False, 0, 1, (1, 1, 0), (True, False, False).  Default
+            value: False.
+        calculator : calculator object
+            
+        Examples
+        --------
+        These three are equivalent:
+
+        >>> d = 1.104  # N2 bondlength
+        >>> a = Atoms(symbols='N2', positions=[(0,0,0),(0,0,d)])
+        >>> a = Atoms(numbers=[7,7], positions=[(0,0,0),(0,0,d)])
+        >>> a = Atoms([Atom('N',(0,0,0)), Atom('N',(0,0,d)])
+
+        FCC gold:
+
+        >>> a = 4.05  # Gold lattice constant
+        >>> b = a / 2
+        >>> fcc = Atoms([Atom('Au')],
+        ...             cell=[(0,b,b),(b,0,b),(b,b,0)],
+        ...             pbs=True)
+
+        Hydrogen wire:
+        
+        >>> d = 0.9  # H-H distance
+        >>> L = 7.0
+        >>> h = Atoms(symbols='H', positions=[(0,L/2,L/2)],
+        ...           cell=(d, L, L),
+        ...           pbc=(1,0,0))
+        """
 
         if atoms is not None:
             if hasattr(atoms, 'GetUnitCell'):
@@ -271,8 +339,7 @@ class Atoms(object):
         return self.calc.get_stress(self)
     
     def copy(self):
-        atoms = Atoms(cell=self.cell, pbc=self.pbc,
-                      constraints=[c.copy() for c in self.constraints])
+        atoms = Atoms(cell=self.cell, pbc=self.pbc)
 
         atoms.arrays = {}
         for name, a in self.arrays.items():
@@ -310,10 +377,6 @@ class Atoms(object):
             a[n1:] = a2
             self.set_array(a, name)
 
-        #elif other is self:
-        #    other = self.copy()
-        #self.constraint.extend(other.constraints)  XXX
-
         return self
 
     extend = __iadd__
@@ -325,8 +388,7 @@ class Atoms(object):
         if isinstance(i, int):
             i = [i]
 
-        atoms = Atoms(cell=self.cell, pbc=self.pbc,
-                      constraints=[c[i] for c in self.constraints])#XXX
+        atoms = Atoms(cell=self.cell, pbc=self.pbc)
 
         atoms.arrays = {}
         for name, a in self.arrays.items():

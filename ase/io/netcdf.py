@@ -1,8 +1,7 @@
-from Scientific.IO.NetCDF import NetCDFFile
-
+from ase.io.pupynere import NetCDFFile
 from ase.atoms import Atoms
 from ase.calculators import SinglePointCalculator
-# numpy/Numeric? XXXXX
+
 
 class LOA:
     def __init__(self, images):
@@ -80,7 +79,6 @@ def read_netcdf(filename, index=-1):
     if isinstance(index, int):
         indices = [index]
     else:
-        print index
         indices = range(nimages)[index]
 
     images = []
