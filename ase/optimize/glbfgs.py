@@ -28,29 +28,30 @@ class GLBFGS(Optimizer):
         self.dim = 3
 #        self.min = 'line'
 
-    def sign(self,a):
-        if(a<0.0): return -1.0
+    def sign(self,w):
+        if(w<0.0): return -1.0
         return 1.0
 
     def step(self, f):
         atoms = self.atoms
         self.ni = atoms.nimages-2
-        try: atoms.imax
-        except: atoms.imax=0
-        if(not self.ni):atoms.imax=1
-
+       # try: atoms.imax
+       # except: atoms.imax=0
+       # if(not self.ni):atoms.imax=1
+        g = open('out','w')
         atoms.r = npy.zeros((self.ni, atoms.natoms, self.dim), 'd')
         for i in range(1, atoms.nimages-1):
             atoms.r[i-1] = atoms.images[i].get_positions()
+        print >> g,'atoms.r',atoms.r
         atoms.f = npy.zeros((self.ni, atoms.natoms, self.dim), 'd')
         for i in range(1, atoms.nimages-1):
             atoms.f[i-1] = atoms.images[i].get_forces()
+        print >> g,'atoms.f',atoms.f
         try: atoms.start
         except:atoms.start=0
         if(not atoms.start):
             atoms.start = 1
             atoms.a = npy.zeros(self.memory+1, 'd')
-#            self.ptmp = copy.deepcopy(atoms)
             self.ptmp = atoms
             self.maxstep = npy.sqrt(self.maxstep * self.ni)
             atoms.lbfgsinit = 0
@@ -59,6 +60,7 @@ class GLBFGS(Optimizer):
         if(not atoms.lbfgsinit):
             atoms.lbfgsinit = 1
             atoms.Ho = npy.ones((self.ni, atoms.natoms, self.dim), 'd')
+            if (not self.min=='line'):atoms.Ho = atoms.Ho * self.alpha
             atoms.ITR = 1
             atoms.s = [1.]
             atoms.y = [1.]
@@ -66,6 +68,7 @@ class GLBFGS(Optimizer):
         else:
             a1 = abs (npy.vdot(atoms.f, atoms.f_old))
             a2 = npy.vdot(atoms.f_old, atoms.f_old)
+            print 'a1,a2 created',a1,a2
             if(self.min=='line'):
                 if(a1<=0.5* a2 and a2!=0):
                     reset_flag = 0
@@ -74,13 +77,17 @@ class GLBFGS(Optimizer):
             else:
                 reset_flag = 0
             if(reset_flag==0):
-                ITR = atoms.ITR
+                g1 = open('out1','w')
+                g2 = open('out2','w')
+                print >> g1,'atoms.r',atoms.r
+                print >> g2,'atoms.r_old',atoms.r_old
+                ITR = atoms.ITR#correctly generated
                 if(ITR > self.memory):
                     atoms.s.pop(1)
                     atoms.y.pop(1)
                     atoms.rho.pop(1)
                     ITR=self.memory
-                atoms.s.append(atoms.r - atoms.r_old)
+                atoms.s.append(atoms.r - atoms.r_old)#!!atoms.r is not updating
         # boundry cond
         #        for i in range(atoms.ni):
         #            if(method=='min'):i=0
@@ -98,6 +105,7 @@ class GLBFGS(Optimizer):
                 atoms.s = [1.]
                 atoms.y = [1.]
                 atoms.rho = [1.]
+       
         atoms.r_old = atoms.r.copy()
         atoms.f_old = atoms.f.copy()
 
@@ -110,9 +118,7 @@ class GLBFGS(Optimizer):
             k = (BOUND-j)
             atoms.a[k] = atoms.rho[k] * npy.vdot(atoms.s[k], q)
             q -= atoms.a[k] * atoms.y[k]
-
         d = atoms.Ho * q # no needed cause Ho is idenity matrix
-
         for j in range(1,BOUND):
             B = atoms.rho[j] * npy.vdot(atoms.y[j], d)
             d= d + atoms.s[j] * (atoms.a[j] - B)
