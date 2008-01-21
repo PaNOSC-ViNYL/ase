@@ -176,6 +176,75 @@ class Atoms(object):
                 
         self.set_calculator(calculator)
 
+    def set_calculator(self, calc=None):
+        """Attach calculator object."""
+        if hasattr(calc, '_SetListOfAtoms'):
+            from ase.old import OldASECalculatorWrapper
+            calc = OldASECalculatorWrapper(calc, self)
+        self.calc = calc
+
+    def get_calculator(self):
+        """Get currently attached calculator object."""
+        return self.calc
+
+    def set_constraint(self, constraints=None):
+        if constraints is None:
+            self.constraints = []
+        else:
+            if isinstance(constraints, (list, tuple)):
+                self.constraints = constraints
+            else:
+                self.constraints = [constraints]
+    
+    def set_cell(self, cell, fix=False):
+        """Set unit cell vectors.
+
+        Parameters
+        ----------
+        cell : 
+            Unit cell.  A 3x3 matrix (the three unit cell vectors) or
+            just three numbers for an orthorhombic cell.
+        fix : boolean
+            Fix atomic positions or move atoms reletive to unit cell.
+            Default behavior is to move the atoms (fix=False).
+
+        Examples
+        --------
+        Two equivalent ways to define an orthorhombic cell:
+        
+        >>> a.set_cell([a, b, c])
+        >>> a.set_cell([(a, 0, 0), (0, b, 0), (0, 0, c)])
+
+        FCC unit cell:
+
+        >>> a.set_cell([(0, b, b), (b, 0, b), (b, b, 0)])
+        """
+
+        cell = npy.array(cell, float)
+        if cell.shape == (3,):
+            cell = npy.diag(cell)
+        elif cell.shape != (3, 3):
+            raise ValueError('Cell must be length 3 sequence or '
+                             '3x3 matrix!')
+        if not fix:
+            M = npy.linalg.solve(self.cell, cell)
+            self.arrays['positions'][:] = npy.dot(self.arrays['positions'], M)
+        self.cell = cell
+
+    def get_cell(self):
+        """Get the three unit cell vectors as an 3x3 ndarray."""
+        return self.cell.copy()
+
+    def set_pbc(self, pbc):
+        """Set periodic boundary condition flags."""
+        if isinstance(pbc, int):
+            pbc = (pbc,) * 3
+        self.pbc = npy.array(pbc, bool)
+        
+    def get_pbc(self):
+        """Get periodic boundary condition flags."""
+        return self.pbc.copy()
+
     def new_array(self, name, a, dtype=None):
         if dtype is not None:
             a = npy.array(a, dtype)
@@ -193,53 +262,6 @@ class Atoms(object):
         
         self.arrays[name] = a
     
-    def set_calculator(self, calc=None):
-        if hasattr(calc, '_SetListOfAtoms'):
-            from ase.old import OldASECalculatorWrapper
-            calc = OldASECalculatorWrapper(calc, self)
-        self.calc = calc
-
-    def get_calculator(self):
-        return self.calc
-
-    def set_constraint(self, constraints=None):
-        if constraints is None:
-            self.constraints = []
-        else:
-            if isinstance(constraints, (list, tuple)):
-                self.constraints = constraints
-            else:
-                self.constraints = [constraints]
-    
-    def set_cell(self, cell, fix=False):
-        cell = npy.array(cell, float)
-        if cell.shape == (3,):
-            cell = npy.diag(cell)
-        elif cell.shape != (3, 3):
-            raise ValueError('Cell must be length 3 sequence or '
-                             '3x3 matrix!')
-        if not fix:
-            M = npy.linalg.solve(self.cell, cell)
-            self.arrays['positions'][:] = npy.dot(self.arrays['positions'], M)
-        self.cell = cell
-
-    def get_cell(self):
-        return self.cell.copy()
-
-    def set_pbc(self, pbc):
-        if isinstance(pbc, int):
-            pbc = (pbc,) * 3
-        self.pbc = npy.array(pbc, bool)
-        
-    def get_pbc(self):
-        return self.pbc.copy()
-
-    def get_atomic_numbers(self):
-        return self.arrays['numbers']
-
-    def get_chemical_symbols(self):
-        return [chemical_symbols[Z] for Z in self.arrays['numbers']]
-
     def set_array(self, a, name, dtype=None):
         b = self.arrays.get(name)
         if b is None:
@@ -250,6 +272,14 @@ class Atoms(object):
                 del self.arrays[name]
             else:
                 b[:] = a
+
+    def get_atomic_numbers(self):
+        """Get ndarray of all atomic numbers."""
+        return self.arrays['numbers']
+
+    def get_chemical_symbols(self):
+        """Getlist of chemical symbols."""
+        return [chemical_symbols[Z] for Z in self.arrays['numbers']]
 
     def set_tags(self, tags):
         self.set_array(tags, 'tags', int)
@@ -435,6 +465,11 @@ class Atoms(object):
         return atoms
 
     def translate(self, displacement):
+        """Translate atomic positions.
+
+        The displacement argument can be a float an xyz vector or an
+        nx3 array (where n is the number of atoms)."""
+
         self.arrays['positions'] += npy.array(displacement)
 
     def center(self, vacuum=None, axis=None):
