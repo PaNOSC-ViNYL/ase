@@ -109,7 +109,10 @@ class Atoms(object):
 
             elif isinstance(atoms, (list, tuple)):
                 # Get data from a list or tuple of Atom objects:
-                data = zip(*[atom.get_data() for atom in atoms])
+                if len(atoms) == 0:
+                    data = []  # Python2.3 doesn't like zip(*[])
+                else:
+                    data = zip(*[atom.get_data() for atom in atoms])
                 atoms = Atoms(None, None, *data)
                 
             # Get data from another Atoms object:

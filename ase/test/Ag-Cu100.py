@@ -31,7 +31,8 @@ images[-1].positions[-1] += (d, 0, 0)
 #images[-1].positions[-1] += (d, d, 0)
 
 # Relax height of Ag atom for initial and final states:
-dyn1 = QuasiNewton(images[0])
+dyn1 = GLBFGS(images[0])
+
 dyn1.run(fmax=0.01)
 dyn2 = QuasiNewton(images[-1])
 dyn2.run(fmax=0.01)
