@@ -2,4 +2,4 @@
 Python ASE
 ==========
 
-Webpage: http://www.fysik.dtu.dk/campos/ASE
+Webpage: http://wiki.fysik.dtu.dk/ase
