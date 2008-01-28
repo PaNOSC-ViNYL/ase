@@ -49,3 +49,23 @@ def numeric_force(atoms, a, i, d=0.001):
     atoms.positions[a, i] = p0
     return (eminus - eplus) / (2 * d)
 
+
+class TestPotential:
+    def get_forces(self, atoms):
+        E = 0.0
+        R = atoms.positions
+        F = npy.zeros_like(R)
+        for a, r in enumerate(R):
+            D = R - r
+            x = (D**2).sum(1) - 1.0
+            E += npy.vdot(x, x)
+            F -= x[:, None] * D
+        self.energy = 0.25 * E
+        return F
+
+    def get_potential_energy(self, atoms):
+        self.get_forces(atoms)
+        return self.energy
+
+    def get_stress(self, atoms):
+        raise NotImplementedError

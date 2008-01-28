@@ -291,7 +291,7 @@ class Atoms(object):
         return self.arrays.get('tags')
 
     def set_momenta(self, momenta):
-        self.set_array(momenta, 'momenta', int)
+        self.set_array(momenta, 'momenta', float)
 
     def get_momenta(self):
         return self.arrays.get('momenta')
@@ -501,6 +501,26 @@ class Atoms(object):
         return npy.dot(m, self.arrays['positions']) / m.sum()
 
     def rotate(self, v, a=None):
+        """Rotate atoms.
+
+        Rotate the angle a around the vector v.  If a is not given,
+        the length of v is used as the angle.  If a is a vector, then
+        v is rotated into a.  The point (0, 0, 0) is always fixed.
+        Vectors can also be strings: 'x', '-x', 'y', ... .
+
+        Examples
+        --------
+        Rotate 90 degrees around the z-axis, so that the x-axis is
+        rotated into the y-axis:
+
+        >>> a = pi / 2
+        >>> atoms.rotate('z', a)
+        >>> atoms.rotate((0, 0, 1), a)
+        >>> atoms.rotate('-z', -a)
+        >>> atoms.rotate((0, 0, a))
+        >>> atoms.rotate('x', 'y')
+        """
+
         norm = npy.linalg.norm
         v = string2vector(v)
         if a is None:

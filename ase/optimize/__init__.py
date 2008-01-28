@@ -8,15 +8,9 @@ from ase.parallel import rank
 import numpy as npy
 
 
-class Optimizer:
-    def __init__(self, atoms, restart, logfile):
+class Dynamics:
+    def __init__(self, atoms, logfile):
         self.atoms = atoms
-        self.restart = restart
-
-        if restart is None or not isfile(restart):
-            self.initialize()
-        else:
-            self.read()
 
         if rank != 0:
             logfile = None
@@ -27,10 +21,26 @@ class Optimizer:
                 logfile = open(logfile, 'a')
         self.logfile = logfile
         
-        self.callbacks = []
+        self.observers = []
 
-    def attach(self, callback):
-        self.callbacks.append(callback)
+    def attach(self, function, interval=1, *args, **kwargs):
+        self.observers.append((function, interval, args, kwargs))
+
+    def call_observers(self, step):
+        for function, interval, args, kwargs in self.observers:
+            if (step + 1) % interval == 0:
+                function(*args, **kwargs)
+
+
+class Optimizer(Dynamics):
+    def __init__(self, atoms, restart, logfile):
+        Dynamics.__init__(self, atoms, logfile)
+        self.restart = restart
+
+        if restart is None or not isfile(restart):
+            self.initialize()
+        else:
+            self.read()
 
     def run(self, fmax=0.05, steps=100000000):
         self.fmax = fmax
@@ -40,8 +50,7 @@ class Optimizer:
             if self.converged(f):
                 return
             self.step(f)
-            for callback in self.callbacks:
-                callback()
+            self.call_observers(step)
 
     def converged(self, forces=None):
         if forces is None:

@@ -1,29 +1,17 @@
 import numpy as npy
 
+from ase.md import MolecularDynamics
 
-class VelocityVerlet:
+
+class VelocityVerlet(MolecularDynamics):
     def __init__(self, atoms):
-        self.atoms = atoms
-        self.callbacks = []
-
-    def attach(self, callback):
-        self.callbacks.append(callback)
-
-    def run(self, dt=0.01, steps=10000000000000):
-        self.step = 0
-        for x in self.iter():
-            for callback in self.callbacks:
-                callback()
-            self.step += 1
-            if self.step == steps:
-                break
+        MolecularDynamics.__init__(self, atoms)
             
-    def iter(self):
+    def step(self, f, dt, m):
         atoms = self.atoms
-        b = self.dt * (atoms.masses**-1)[:, npy.newaxis]
-        atoms.set_momenta(atoms.momenta() + 0.5 * self.dt * atoms.forces())
-        while True:
-            atoms.set_positions(atoms.positions() + self.dt * atoms.momenta())
-            yield None
-            
-            atoms.set_momenta(atoms.momenta() + self.dt * atoms.forces())
+        p = self.atoms.get_momenta()
+        p += 0.5 * dt * f
+        self.atoms.set_positions(self.atoms.positions + dt * p / m)
+        f = self.atoms.get_forces()
+        atoms.set_momenta(p + 0.5 * dt * f)
+        return f
