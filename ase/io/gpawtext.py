@@ -10,8 +10,6 @@ def read_gpaw_text(fileobj, index=-1):
 
     lines = fileobj.readlines()
     images = []
-    energies = []
-    forces = []
     while True:
         try:
             i = lines.index('Unit Cell:\n')
