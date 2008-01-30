@@ -8,6 +8,7 @@ import numpy as npy
 import ase.units as units
 from ase.data import atomic_masses
 from ase.io.trajectory import PickleTrajectory
+from ase.parallel import rank, barrier
 
 
 class Vibrations:
@@ -29,11 +30,14 @@ class Vibrations:
                                                    'xyz'[i], ' +-'[sign])
                     if isfile(filename):
                         continue
-                    fd = open(filename, 'w')
+                    barrier()
+                    if rank == 0:
+                        fd = open(filename, 'w')
                     self.atoms.positions[a, i] = p[a, i] + sign * self.delta
                     forces = self.atoms.get_forces()
-                    pickle.dump(forces.ravel(), fd)
-                    fd.close()
+                    if rank == 0:
+                        pickle.dump(forces.ravel(), fd)
+                        fd.close()
                     self.atoms.positions[a, i] = p[a, i]
         self.atoms.set_positions(p)
 
