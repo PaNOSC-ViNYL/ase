@@ -23,8 +23,6 @@ def write_cube(fileobj, atoms, data=None):
     cell = atoms.get_cell()
     shape = npy.array(data.shape)
 
-    fileobj.write('%5d' % len(atoms))
-
     corner = npy.zeros(3)
     for i in range(3):
         if shape[i] % 2 == 1:
