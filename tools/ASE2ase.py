@@ -23,18 +23,26 @@ def convert(filename):
                      ('GetUnitCell', 'get_cell'),
                      ('GetBoundaryConditions', 'get_pbc'),
                      ('GetCartesianForces', 'get_forces'),
+                     ('GetCartesianVelocities', 'get_velocities'),
+                     ('SetCartesianVelocities', 'set_velocities'),
+                     ('GetCartesianMomenta', 'get_momenta'),
+                     ('SetCartesianMomenta', 'set_momenta'),
                      ('ListOfAtoms', 'Atoms'),
                      ('periodic', 'pbc'),
-                     ('Numeric', 'numpy')]:
+                     ('.Converge(', '.run('),
+                     ('Numeric', 'numpy'):
+                     ('numpyal', 'Numerical')]:
         t = t.replace(old, new)
 
     t2 = ''
     while 1:
         i = t.find('.')
         if i == -1:
-            break
-        t2 += t[:i + 1]
-        t = t[i + 1:]
+            i = t.find('def ')
+            if i == -1:
+                break
+        t2 += t[:i + 4]
+        t = t[i + 4:]
         if t[0].isupper() and t[1].islower():
             j = t.find('(')
             if j != -1 and t[2: j].isalpha():
