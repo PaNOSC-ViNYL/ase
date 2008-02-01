@@ -27,9 +27,14 @@ class Images:
         self.pbc = images[0].get_pbc()
         warning = False
         for i, atoms in enumerate(images):
+            natomsi = len(atoms)
+            if (natomsi != self.natoms or
+                (atoms.get_atomic_numbers() != self.Z).any()):
+                raise RuntimeError('Can not handle different images with ' +
+                                   'different numbers of atoms or different ' +
+                                   'kinds of atoms!')
             self.P[i] = atoms.get_positions()
             self.A[i] = atoms.get_cell()
-            assert (atoms.get_atomic_numbers() == self.Z).all()
             if (atoms.get_pbc() != self.pbc).any():
                 warning = True
             try:
