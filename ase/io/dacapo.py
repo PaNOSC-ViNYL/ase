@@ -32,10 +32,11 @@ def read_dacapo(filename):
     dims = nc.dimensions
     vars = nc.variables
 
-    atoms = Atoms(positions=vars['DynamicAtomPositions'][-1],
+    cell = vars['UnitCell'][-1]
+    atoms = Atoms(positions=npy.dot(vars['DynamicAtomPositions'][-1], cell),
                   symbols=[(a + b).strip() 
                            for a, b in vars['DynamicAtomSpecies'][:]],
-                  cell=vars['UnitCell'][-1],
+                  cell=cell,
                   magmoms=vars['InitialAtomicMagneticMoment'][:],
                   tags=vars['AtomTags'][:],
                   pbc=True)
