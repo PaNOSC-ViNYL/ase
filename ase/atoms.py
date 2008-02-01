@@ -542,6 +542,21 @@ class Atoms(object):
                 npy.cross(p, s * v) + 
                 npy.outer(npy.dot(p, v), (1.0 - c) * v))
 
+    def rattle(self, stdev=0.001, seed=42):
+        """Randomly displace atoms.
+
+        This method adds random displacements to the atomic positions,
+        taking a possible constraint into account.  The random numbers are
+        drawn from a normal distribution of standard deviation stdev.
+
+        For a parallel calculation, it is important to use the same
+        seed on all processors!  """
+        
+        rs = npy.random.RandomState(seed)
+        positions = self.arrays['positions']
+        self.set_positions(positions +
+                           rs.normal(scale=stdev, size=positions.shape))
+        
     def _get_positions(self):
         return self.arrays['positions']
     
