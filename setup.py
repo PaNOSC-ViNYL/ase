@@ -26,6 +26,7 @@ packages = ['ase',
             'ase.test',
             'ase.examples',
             'ase.optimize',
+            'ase.visualize',
             'ase.calculators',
             'ase.gui.languages']
 
