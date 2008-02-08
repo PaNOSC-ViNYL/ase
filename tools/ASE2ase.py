@@ -30,7 +30,7 @@ def convert(filename):
                      ('ListOfAtoms', 'Atoms'),
                      ('periodic', 'pbc'),
                      ('.Converge(', '.run('),
-                     ('Numeric', 'numpy'):
+                     ('Numeric', 'numpy'),
                      ('numpyal', 'Numerical')]:
         t = t.replace(old, new)
 
