@@ -8,8 +8,8 @@ from ase.io.trajectory import write_trajectory
 
 
 def gui(atoms):
-    if not isinstance(atoms, list):
-        atoms = [atoms]
+    #if not isinstance(atoms, list):
+    #    atoms = [atoms]
     filename = tempfile.mktemp('.traj', 'ag-')
     calc = atoms.get_calculator()
     atoms.set_calculator(None)
