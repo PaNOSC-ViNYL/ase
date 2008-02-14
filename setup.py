@@ -30,8 +30,8 @@ packages = ['ase',
             'ase.calculators',
             'ase.gui.languages']
 
-# set the version number 
-version = '3.0.0'
+# Get the current version number:
+execfile('ase/version.py')
 
 setup(name = 'python-ase',
       version=version,
@@ -44,5 +44,3 @@ setup(name = 'python-ase',
       packages=packages,
       scripts=['tools/ag', 'tools/ASE2ase.py'],
       long_description=long_description)
-
-
