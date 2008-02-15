@@ -15,8 +15,11 @@ def write_cube(fileobj, atoms, data=None):
 
     if data is None:
         data = [[[1.0]]]
-    data = npy.asarray(data, float)
-    
+    data = npy.asarray(data)
+
+    if data.dtype == complex:
+        data = npy.abs(data)
+
     fileobj.write('cube file from ase\n')
     fileobj.write('OUTER LOOP: X, MIDDLE LOOP: Y, INNER LOOP: Z\n')
 
@@ -65,8 +68,10 @@ def read_cube(fileobj, index=-1, read_data=False):
     shape = []
     for i in range(3):
         n, x, y, z = [float(s) for s in readline().split()]
-        cell[i] = n * Bohr * npy.array([x, y, z]) + corner
         shape.append(n)
+        if n % 2 == 1:
+            n += 1
+        cell[i] = n * Bohr * npy.array([x, y, z])
         
     numbers = npy.empty(natoms, int)
     positions = npy.empty((natoms, 3))

@@ -383,6 +383,27 @@ class Atoms(object):
     def __len__(self):
         return len(self.arrays['positions'])
 
+    def __repr__(self):
+        if len(self) < 20:
+            symbols = ''.join(self.get_chemical_symbols())
+        else:
+            symbols = ''.join([chemical_symbols[Z] 
+                               for Z in self.arrays['numbers'][:15]]) + '...'
+        s = "Atoms(symbols='%s', " % symbols
+        for name in self.arrays:
+            if name == 'numbers':
+                continue
+            s += '%s=..., ' % name
+        s += 'cell=%s, ' % self.cell.tolist()
+        s += 'pbc=%s, ' % self.pbc.tolist()
+        if len(self.constraints) == 1:
+            s += 'constraints=%s, ' % repr(self.constraints[0])
+        if len(self.constraints) > 1:
+            s += 'constraints=%s, ' % repr(self.constraints)
+        if self.calc is not None:
+            s += 'calc=%s(...), ' % self.calc.__class__.__name__
+        return s[:-2] + ')'
+
     def __add__(self, other):
         atoms = self.copy()
         atoms += other
@@ -620,6 +641,7 @@ def string2symbols(s):
         else:
             m = 1
         return m * [s[:i]] + string2symbols(s[j:])
+
 
 def string2vector(v):
     if isinstance(v, str):

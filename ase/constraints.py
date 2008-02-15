@@ -4,8 +4,31 @@ import numpy as npy
 
 
 class FixAtoms:
+    """Constraint object for fixing some chosen atoms."""
     def __init__(self, indices=None, mask=None):
-        """ """
+        """Constrain chosen atoms.
+
+        Parameters
+        ----------
+        indices : list of int
+           Indices for those atoms that should be constrained.
+        mask : list of bool
+           One boolean per atom indicating if the atom should be
+           constrained or not.
+           
+        Examples
+        --------
+        Fix all Copper atoms:
+
+        >>> c = FixAtoms(mask=[s == 'Cu' for s in atoms.get_chemical_symbols()])
+        >>> atoms.set_constraint(c)
+
+        Fix all atoms with z-coordinate less than 1.0 Angstrom:
+
+        >>> c = FixAtoms(mask=atoms.positions[:, 2] < 1.0)
+        >>> atoms.set_constraint(c)
+        """
+
         if indices is None and mask is None:
             raise ValuError('Use "indices" or "mask".')
         if indices is not None and mask is not None:
@@ -28,6 +51,17 @@ class FixAtoms:
         else:
             return FixAtoms(indices=self.index.copy())
     
+    def __repr__(self):
+        if self.index.dtype == bool:
+            return 'FixAtoms(mask=%s)' % ints2string(self.index.astype(int))
+        return 'FixAtoms(indices=%s)' % ints2string(self.index)
+
+def ints2string(x, threshold=10):
+    """Convert ndarray of ints to string."""
+    if len(x) <= threshold:
+        return str(x.tolist())
+    return str(x[:threshold].tolist())[:-1] + ', ...]'
+
 
 class FixBondLength:
     """Constraint object for fixing a bond length."""
@@ -53,3 +87,6 @@ class FixBondLength:
 
     def copy(self):
         return FixBondLength(*self.indices)
+
+    def __repr__(self):
+        return 'FixBondLength(%d, %d)' % tuple(self.indices)
