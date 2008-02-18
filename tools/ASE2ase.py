@@ -29,6 +29,7 @@ def convert(filename):
                      ('SetCartesianMomenta', 'set_momenta'),
                      ('ListOfAtoms', 'Atoms'),
                      ('periodic', 'pbc'),
+                     ('pbcity', 'periodicity'),
                      ('.Converge(', '.run('),
                      ('Numeric', 'numpy'),
                      ('numpyal', 'Numerical')]:
@@ -37,12 +38,14 @@ def convert(filename):
     t2 = ''
     while 1:
         i = t.find('.')
+        n = 1
         if i == -1:
+            n = 4
             i = t.find('def ')
             if i == -1:
                 break
-        t2 += t[:i + 4]
-        t = t[i + 4:]
+        t2 += t[:i + n]
+        t = t[i + n:]
         if t[0].isupper() and t[1].islower():
             j = t.find('(')
             if j != -1 and t[2: j].isalpha():

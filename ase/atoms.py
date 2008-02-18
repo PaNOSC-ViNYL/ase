@@ -62,11 +62,15 @@ class Atoms(object):
             ndarray of shape (n, 3) will do: [(x1,y1,z1), (x2,y2,z2),
             ...].
         tags : list of integers
+            Special purpose tags.
         momenta: list of xyz-momenta
+            Momenta for all atoms.
         masses : list of floats
+            Atomic masses in atomic units
         magmoms: list of floats
             Magnetic moments
         charges : list of floats
+            Atomic charges.
         cell : 3x3 matrix
             Unit cell vectors.  Can also be given as just three
             numbers for orthorhombic cells.  Default value: [1, 1, 1].
@@ -75,7 +79,9 @@ class Atoms(object):
             False, 0, 1, (1, 1, 0), (True, False, False).  Default
             value: False.
         calculator : calculator object
-            
+            Used to attach a calculator for calulating energies and atomic
+            forces.
+
         Examples
         --------
         These three are equivalent:
@@ -137,12 +143,13 @@ class Atoms(object):
 
         self.arrays = {}
         
-        if positions is None:
-            positions = npy.empty((0, 3))
-            
         if symbols is None:
             if numbers is None:
-                numbers = npy.zeros(len(positions), int)
+                if positions is None:
+                    natoms = 0
+                else:
+                    natoms = len(positions)
+                numbers = npy.zeros(natoms, int)
             self.new_array('numbers', numbers, int)
         else:
             if numbers is not None:
@@ -159,6 +166,8 @@ class Atoms(object):
                         numbers.append(s)
                 self.new_array('numbers', numbers, int)
 
+        if positions is None:
+            positions = npy.zeros((len(self.arrays['numbers']), 3))
         self.new_array('positions', positions, float)
 
         self.set_tags(default(tags, 0))
@@ -512,7 +521,7 @@ class Atoms(object):
                 raise ValueError('Unit cell must be orthorhobmic!')
             
             if vacuum is not None:
-                self.cell[axis] = p1[axis] - p0[axis] + 2 * vacuum
+                self.cell[axis, axis] = p1[axis] - p0[axis] + 2 * vacuum
             p[:, axis] += 0.5 * (self.cell[axis, axis] - p0[axis] - p1[axis])
 
     def get_center_of_mass(self):
