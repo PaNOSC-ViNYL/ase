@@ -34,41 +34,37 @@ class GLBFGS(Optimizer):
 
     def step(self, f):
         atoms = self.atoms
-        self.ni = atoms.nimages-2
+       # self.ni = atoms.nimages-2
        # try: atoms.imax
        # except: atoms.imax=0
        # if(not self.ni):atoms.imax=1
-        g = open('out','w')
-        atoms.r = npy.zeros((self.ni, atoms.natoms, self.dim), 'd')
-        for i in range(1, atoms.nimages-1):
-            atoms.r[i-1] = atoms.images[i].get_positions()
-        print >> g,'atoms.r',atoms.r
-        atoms.f = npy.zeros((self.ni, atoms.natoms, self.dim), 'd')
-        for i in range(1, atoms.nimages-1):
-            atoms.f[i-1] = atoms.images[i].get_forces()
-        print >> g,'atoms.f',atoms.f
-        try: atoms.start
-        except:atoms.start=0
-        if(not atoms.start):
-            atoms.start = 1
-            atoms.a = npy.zeros(self.memory+1, 'd')
+        self.r = npy.zeros((atoms.nimages * atoms.natoms, self.dim), 'd')
+        for i in range(0, atoms.nimages):
+            self.r = atoms.get_positions()
+        self.f = npy.zeros((atoms.nimages * atoms.natoms, self.dim), 'd')
+        for i in range(0, atoms.nimages):
+            self.f = atoms.get_forces()
+        try: self.start
+        except:self.start=0
+        if(not self.start):
+            self.start = 1
+            self.a = npy.zeros(self.memory+1, 'd')
             self.ptmp = atoms
-            self.maxstep = npy.sqrt(self.maxstep * self.ni)
-            atoms.lbfgsinit = 0
-        try: atoms.lbfgsinit
-        except:atoms.lbfgsinit=0
-        if(not atoms.lbfgsinit):
-            atoms.lbfgsinit = 1
-            atoms.Ho = npy.ones((self.ni, atoms.natoms, self.dim), 'd')
-            if (not self.min=='line'):atoms.Ho = atoms.Ho * self.alpha
-            atoms.ITR = 1
-            atoms.s = [1.]
-            atoms.y = [1.]
-            atoms.rho = [1.]
+            self.maxstep = npy.sqrt(self.maxstep * atoms.nimages)
+            self.lbfgsinit = 0
+        try: self.lbfgsinit
+        except:self.lbfgsinit=0
+        if(not self.lbfgsinit):
+            self.lbfgsinit = 1
+            self.Ho = npy.ones((atoms.nimages * atoms.natoms, self.dim), 'd')
+            if (not self.min=='line'):self.Ho = self.Ho * self.alpha
+            self.ITR = 1
+            self.s = [1.]
+            self.y = [1.]
+            self.rho = [1.]
         else:
-            a1 = abs (npy.vdot(atoms.f, atoms.f_old))
-            a2 = npy.vdot(atoms.f_old, atoms.f_old)
-            print 'a1,a2 created',a1,a2
+            a1 = abs (npy.vdot(self.f, self.f_old))
+            a2 = npy.vdot(self.f_old, self.f_old)
             if(self.min=='line'):
                 if(a1<=0.5* a2 and a2!=0):
                     reset_flag = 0
@@ -77,89 +73,85 @@ class GLBFGS(Optimizer):
             else:
                 reset_flag = 0
             if(reset_flag==0):
-                g1 = open('out1','w')
-                g2 = open('out2','w')
-                print >> g1,'atoms.r',atoms.r
-                print >> g2,'atoms.r_old',atoms.r_old
-                ITR = atoms.ITR#correctly generated
+                ITR = self.ITR#correctly generated
                 if(ITR > self.memory):
-                    atoms.s.pop(1)
-                    atoms.y.pop(1)
-                    atoms.rho.pop(1)
+                    self.s.pop(1)
+                    self.y.pop(1)
+                    self.rho.pop(1)
                     ITR=self.memory
-                atoms.s.append(atoms.r - atoms.r_old)#!!atoms.r is not updating
+                self.s.append(self.r - self.r_old)#!!self.r is not updating
         # boundry cond
         #        for i in range(atoms.ni):
         #            if(method=='min'):i=0
         #            try:
-        #                DBC(atoms.s[ITR][i],atoms.p[i].Box) #need to make matrix for box
+        #                DBC(self.s[ITR][i],atoms.p[i].Box) #need to make matrix for box
         #            except: 
         #                print "Box not found."
         #             if(method=='min'):break
-                atoms.y.append(-(atoms.f-atoms.f_old))
-                atoms.rho.append(1/npy.vdot(atoms.y[ITR],atoms.s[ITR]))
-                atoms.ITR += 1
+                self.y.append(-(self.f-self.f_old))
+                self.rho.append(1/npy.vdot(self.y[ITR],self.s[ITR]))
+                self.ITR += 1
             else:
 #        print 'reset image',i
-                atoms.ITR = 1
-                atoms.s = [1.]
-                atoms.y = [1.]
-                atoms.rho = [1.]
+                self.ITR = 1
+                self.s = [1.]
+                self.y = [1.]
+                self.rho = [1.]
        
-        atoms.r_old = atoms.r.copy()
-        atoms.f_old = atoms.f.copy()
+        self.r_old = self.r.copy()
+        self.f_old = self.f.copy()
 
-        if(atoms.ITR <= self.memory):
-            BOUND = atoms.ITR
+        if(self.ITR <= self.memory):
+            BOUND = self.ITR
         else:
             BOUND = self.memory
-        q = -1.0*atoms.f
+        q = -1.0*self.f
         for j in range(1,BOUND):
             k = (BOUND-j)
-            atoms.a[k] = atoms.rho[k] * npy.vdot(atoms.s[k], q)
-            q -= atoms.a[k] * atoms.y[k]
-        d = atoms.Ho * q # no needed cause Ho is idenity matrix
+            self.a[k] = self.rho[k] * npy.vdot(self.s[k], q)
+            q -= self.a[k] * self.y[k]
+        d = self.Ho * q # no needed cause Ho is idenity matrix 
         for j in range(1,BOUND):
-            B = atoms.rho[j] * npy.vdot(atoms.y[j], d)
-            d= d + atoms.s[j] * (atoms.a[j] - B)
+            B = self.rho[j] * npy.vdot(self.y[j], d)
+            d= d + self.s[j] * (self.a[j] - B)
 
         d = -1.0 * d
-        if(not self.min=='line'): atoms.d = d
-        atoms.du = d / npy.sqrt(npy.vdot(d, d))
+        if(not self.min=='line'): self.d = d
+        self.du = d / npy.sqrt(npy.vdot(d, d))
         if(self.min=='line'):
 
       # Finite difference step using temporary point
-            self.ptmp.r = atoms.r.copy()
+            self.ptmp.r = self.r.copy()
             self.ptmp.imax = atoms.imax
 #   must be turned on if tanset is commented
 #        self.ptmp.p[i].N=atoms.p[i].N.copy()
 
-            self.ptmp.r += (atoms.du * self.dR)
+            self.ptmp.r += (self.du * self.dR)
 
       # put back in points
-            for i in range(1,atoms.nimages-1):
+            for i in range(0,atoms.nimages):
                 self.ptmp.images[i].r = self.ptmp.r[i-1]
                 self.ptmp.images[i].f=self.ptmp.images[i].get_forces()
 
         else:
     # use the Hessian Matrix to predict the min
-            if(abs(npy.sqrt(atoms.d * atoms.d).sum()) > self.maxstep):
-                atoms.d = atoms.du * self.maxstep
-            atoms.r += atoms.d
-
+            if(abs(npy.sqrt(self.d * self.d).sum()) > self.maxstep):
+                self.d = self.du * self.maxstep
+            self.r += self.d
+            atoms.set_positions(self.r)
         if(self.min=='line'):
      # force projections on a small stepa
 #            if(method=='neb' or method=='str' ):
 #                self.ptmp.tangentset()# if commented copy N above
 #                self.ptmp.project()
       # put force in big vector
-            self.ptmp.f = npy.zeros((self.ni, atoms.natoms, self.dim), 'd')
-            for i in range(1,atoms.nimages-1):
+            self.ptmp.f = npy.zeros((atoms.nimages * atoms.natoms, self.dim), 'd')
+            for i in range(0,atoms.nimages):
                 self.ptmp.f[i-1] = self.ptmp.images[i].f
 
       # Decide how much to move along the line du
-            Fp1=npy.vdot(atoms.f, atoms.du)
-            Fp2=npy.vdot(self.ptmp.f, atoms.du)
+            Fp1=npy.vdot(self.f, self.du)
+            Fp2=npy.vdot(self.ptmp.f, self.du)
             CR=(Fp1 - Fp2) / self.dR
             if(CR < 0.0):
                 print "negcurve"
@@ -176,8 +168,8 @@ class GLBFGS(Optimizer):
                 else:
                     RdR += self.dR * 0.5
       # move to the next space
-            atoms.r += (atoms.du * RdR)
+            self.r += (self.du * RdR)
 
     # put back in points
-        for i in range(1,atoms.nimages-1):
-            atoms.images[i].r=atoms.r[i-1]
+        for i in range(0,atoms.nimages):
+            atoms.images[i].r=self.r[i-1]
