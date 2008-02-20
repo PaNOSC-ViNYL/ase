@@ -55,7 +55,7 @@ def svnversion(version):
             asedir = path.join(asedir, path.pardir)
         # version.py can be called from any place so we need to specify asedir
         output = get_svnversion(asedir)
-        if (output != '') and (output != svnrevision):
+        if (output != '') and (output != svnrevision) and (output != 'exported'):
             # output the current svn revision number into ase/svnrevision.py
             svnrevision = output
         version = version+'.'+svnrevision
