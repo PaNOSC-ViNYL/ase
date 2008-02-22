@@ -41,7 +41,8 @@ def read_dacapo(filename):
                   tags=vars['AtomTags'][:],
                   pbc=True)
 
-    calc = SinglePointCalculator(vars['TotalEnergy'].getValue(),
+#    calc = SinglePointCalculator(vars['TotalEnergy'].getValue(),
+    calc = SinglePointCalculator(vars['TotalEnergy'][-1],
                                  vars['DynamicAtomForces'][-1], None, atoms)
     atoms.set_calculator(calc)
         
