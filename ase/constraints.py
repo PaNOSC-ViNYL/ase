@@ -90,3 +90,44 @@ class FixBondLength:
 
     def __repr__(self):
         return 'FixBondLength(%d, %d)' % tuple(self.indices)
+
+
+class Filter:
+    """Subset filter class."""
+    def __init__(self, atoms, indices=None, mask=None):
+        """Filter atoms.
+
+        This filter can be used to hide degrees of freedom in an Atoms
+        object.
+
+        Parameters
+        ----------
+        indices : list of int
+           Indices for those atoms that should be constrained.
+        mask : list of bool
+           One boolean per atom indicating if the atom should be
+           constrained or not.
+        """
+
+        self.atoms = atoms
+
+        if indices is None and mask is None:
+            raise ValuError('Use "indices" or "mask".')
+        if indices is not None and mask is not None:
+            raise ValuError('Use only one of "indices" and "mask".')
+
+        if mask is not None:
+            self.index = npy.asarray(mask, bool)
+        else:
+            self.index = npy.asarray(indices, int)
+
+    def get_positions(self):
+        return self.atoms.get_positions()[self.index]
+
+    def set_positions(self, positions):
+        pos = self.atoms.get_positions()
+        pos[self.index] = positions
+        self.atoms.set_positions(positions)
+
+    def get_forces(self):
+        return self.atoms.get_forces()[self.index]
