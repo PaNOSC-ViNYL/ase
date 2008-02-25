@@ -10,7 +10,8 @@ def write_cube(fileobj, atoms, data=None):
         fileobj = paropen(fileobj, 'w')
         
     if isinstance(atoms, list):
-        assert len(atoms) == 1
+        if len(atoms) > 1:
+            raise ValueError('Can only write one configuration to a cube file!')
         atoms = atoms[0]
 
     if data is None:

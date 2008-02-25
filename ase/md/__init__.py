@@ -9,6 +9,16 @@ class MolecularDynamics(Dynamics):
         Dynamics.__init__(self, atoms, logfile=None)
 
     def run(self, dt, steps=50):
+        """Integrate equation of motion.
+
+        Parameters
+        ----------
+        dt: float
+            Time step.
+        steps: int
+            Number of steps (defaults to 50).
+        """
+        
         m = self.atoms.get_masses()
         if m is None:
             m = atomic_masses[self.atoms.get_atomic_numbers()]
