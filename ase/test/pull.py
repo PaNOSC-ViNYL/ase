@@ -1,7 +1,7 @@
 from ase import *
 
-Cu = Atoms(positions=[(0, 0, 0)],
-           symbols='Cu',
+Cu = Atoms('Cu',
+           positions=[(0, 0, 0)],
            pbc=(1, 0, 0),
            calculator=EMT())
 traj = PickleTrajectory('Cu.traj', 'w')

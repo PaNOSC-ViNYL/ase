@@ -1,7 +1,7 @@
 from ase import *
 a = 3.6
 b = a / 2
-fcc = Atoms(symbols='Cu', positions=[(0, 0, 0)],
+fcc = Atoms('Cu', positions=[(0, 0, 0)],
             cell=[(0, b, b), (b, 0, b), (b, b, 0)],
             pbc=1)
 fcc *= (2, 1, 1)

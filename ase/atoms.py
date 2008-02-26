@@ -40,8 +40,8 @@ class Atoms(object):
     In order to calculate energies, forces and stresses, a calculator
     object has to attached to the atoms object."""
 
-    def __init__(self, atoms=None,
-                 symbols=None, numbers=None, positions=None,
+    def __init__(self, symbols=None,
+                 numbers=None, positions=None,
                  tags=None, momenta=None, masses=None,
                  magmoms=None, charges=None,
                  cell=None, pbc=None,
@@ -51,10 +51,10 @@ class Atoms(object):
 
         Parameters
         ----------
-        atoms : list of Atom objects
-            Example:  [Atom('Ne', (x, y, z), ...].
         symbols : string (formula) or list of strings
-            Examples:  'H2O', 'COPt12', ['H', 'H', 'O'].
+            Can be a string formula, a list of symbols or a list of
+            Atom objects.  Examples: 'H2O', 'COPt12', ['H', 'H', 'O'],
+            [Atom('Ne', (x, y, z), ...].
         numbers : list of integers
             Atomic numbers (use only one of symbols/numbers).
         positions : list of xyz-positions
@@ -87,7 +87,7 @@ class Atoms(object):
         These three are equivalent:
 
         >>> d = 1.104  # N2 bondlength
-        >>> a = Atoms(symbols='N2', positions=[(0,0,0),(0,0,d)])
+        >>> a = Atoms('N2', positions=[(0,0,0),(0,0,d)])
         >>> a = Atoms(numbers=[7,7], positions=[(0,0,0),(0,0,d)])
         >>> a = Atoms([Atom('N',(0,0,0)), Atom('N',(0,0,d)])
 
@@ -95,32 +95,33 @@ class Atoms(object):
 
         >>> a = 4.05  # Gold lattice constant
         >>> b = a / 2
-        >>> fcc = Atoms([Atom('Au')],
+        >>> fcc = Atoms('Au',
         ...             cell=[(0,b,b),(b,0,b),(b,b,0)],
-        ...             pbs=True)
+        ...             pbc=True)
 
         Hydrogen wire:
         
         >>> d = 0.9  # H-H distance
         >>> L = 7.0
-        >>> h = Atoms(symbols='H', positions=[(0,L/2,L/2)],
+        >>> h = Atoms('H', positions=[(0,L/2,L/2)],
         ...           cell=(d, L, L),
         ...           pbc=(1,0,0))
         """
 
-        if atoms is not None:
-            if hasattr(atoms, 'GetUnitCell'):
-                from ase.old import OldASEListOfAtomsWrapper
-                atoms = OldASEListOfAtomsWrapper(atoms)
+        atoms = None
 
-            elif isinstance(atoms, (list, tuple)):
-                # Get data from a list or tuple of Atom objects:
-                if len(atoms) == 0:
-                    data = []  # Python2.3 doesn't like zip(*[])
-                else:
-                    data = zip(*[atom.get_data() for atom in atoms])
-                atoms = Atoms(None, None, *data)
+        if hasattr(symbols, 'GetUnitCell'):
+            from ase.old import OldASEListOfAtomsWrapper
+            atoms = OldASEListOfAtomsWrapper(symbols)
+            symbols = None
+        elif (isinstance(symbols, (list, tuple)) and
+              len(symbols) > 0 and isinstance(symbols[0], Atom)):
+            # Get data from a list or tuple of Atom objects:
+            data = zip(*[atom.get_data() for atom in symbols])
+            atoms = Atoms(None, *data)
+            symbols = None    
                 
+        if atoms is not None:
             # Get data from another Atoms object:
             if symbols is None and numbers is None:
                 numbers = atoms.get_atomic_numbers()

@@ -1,7 +1,7 @@
 from ase import *
 from ase.vibrations import Vibrations
 
-n2 = Atoms(symbols='N2',
+n2 = Atoms('N2',
            positions=[(0, 0, 0), (0, 0, 1.1)],
            calculator=EMT())
 QuasiNewton(n2).run(fmax=0.01)

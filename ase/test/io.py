@@ -3,8 +3,8 @@ from ase import *
 a = 5.0
 d = 1.9
 c = a / 2
-atoms = Atoms(positions=[(c, c, 0), (c, c, d)],
-              symbols='AuH',
+atoms = Atoms('AuH',
+              positions=[(c, c, 0), (c, c, d)],
               cell=(a, a, 2 * d),
               pbc=(0, 0, 1))
 atoms *= (1, 1, 2)

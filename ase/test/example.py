@@ -1,13 +1,13 @@
 from ase import *
 
-atoms = Atoms(positions=[(0, 0, 0),
+atoms = Atoms('H7',
+              positions=[(0, 0, 0),
                          (1, 0, 0),
                          (0, 1, 0),
                          (1, 1, 0),
                          (0, 2, 0),
                          (1, 2, 0),
                          (0.5, 0.5, 1)],
-              symbols='H7',
               constraints=[FixAtoms(range(6))],
               calculator=LennardJones())
 

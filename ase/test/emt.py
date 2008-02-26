@@ -3,8 +3,8 @@ from ase import *
 
 a = 3.60
 b = a / 2
-cu = Atoms(positions=[(0, 0, 0)],
-           symbols='Cu',
+cu = Atoms('Cu',
+           positions=[(0, 0, 0)],
            cell=[(0, b, b),
                  (b, 0, b),
                  (b, b, 0)],
@@ -37,7 +37,7 @@ A = npy.array([(0, b, b),
 R = npy.zeros((2, 3))
 for i in range(1, 2):
     R[i] = i * A[2] / 6
-print (Atoms(positions=R, symbols='Cu2',
+print (Atoms('Cu2', positions=R,
              pbc=1, cell=A, calculator=EMT()).get_potential_energy() - 2 * e0) / 2
 
 A = npy.array([(0, b, b),
@@ -46,7 +46,7 @@ A = npy.array([(0, b, b),
 R = npy.zeros((3, 3))
 for i in range(1, 3):
     R[i] = i * A[2] / 10
-print (Atoms(positions=R, symbols='Cu3',
+print (Atoms('Cu3', positions=R,
              pbc=1, cell=A, calculator=EMT()).get_potential_energy() - 3 * e0) / 2
 
 A = npy.array([(0, b, b),
@@ -55,6 +55,6 @@ A = npy.array([(0, b, b),
 R = npy.zeros((3, 3))
 for i in range(1, 3):
     R[i] = i * A[2]
-print (Atoms(positions=R, symbols='Cu3',
+print (Atoms('Cu3', positions=R,
              pbc=(1, 1, 0), cell=A, calculator=EMT()).get_potential_energy() - 3 * e0) / 2
 

@@ -2,7 +2,7 @@ from ase import *
 
 # Distance between Cu atoms on a (100) surface:
 d = 3.6 / sqrt(2)
-initial = Atoms(symbols='Cu',
+initial = Atoms('Cu',
                 positions=[(0, 0, 0)],
                 cell=(d, d, 1.0),
                 pbc=(True, True, False))
