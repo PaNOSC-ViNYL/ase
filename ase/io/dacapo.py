@@ -21,7 +21,30 @@ def read_dacapo_text(fileobj):
             break
         Z, x, y, z = words[2:6]
         atoms.append(Atom(int(Z), [float(x), float(y), float(z)]))
-    return Atoms(atoms, cell=cell.tolist())
+
+    atoms = Atoms(atoms, cell=cell.tolist())
+
+    try:
+        i = lines.index(
+            ' DFT:  CPU time                           Total energy\n')
+    except ValueError:
+        pass
+    else:
+        column = lines[i + 3].split().index('selfcons') - 1
+        try:
+            i2 = lines.index(' ANALYSIS PART OF CODE\n', i)
+        except ValueError:
+            pass
+        else:
+            while i2 > i:
+                if lines[i2].startswith(' DFT:'):
+                    break
+                i2 -= 1
+            energy = float(lines[i2].split()[column])
+            atoms.set_calculator(SinglePointCalculator(energy, None, None,
+                                                       atoms))
+
+    return atoms
 
 
 

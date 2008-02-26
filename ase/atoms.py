@@ -3,27 +3,12 @@ from math import cos, sin
 import numpy as npy
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 
-    
-class Atom:
-    def __init__(self, symbol, position=(0, 0, 0),
-                 tag=None, magmom=None, mass=None,
-                 momentum=None, charge=None):
-        if isinstance(symbol, str):
-            self.number = atomic_numbers[symbol]
-        else:
-            self.number = symbol
-        self.position = position
-        self.tag = tag
-        self.momentum = momentum
-        self.mass = mass
-        self.magmom = magmom
-        self.charge = charge
+"""Definition of the Atoms class.
 
-    def get_data(self):
-        return (self.number, self.position,
-                self.tag, self.momentum, self.mass,
-                self.magmom, self.charge)
-    
+This module defines the central object in the ASE package: the Atoms
+object.
+"""
+
 
 class Atoms(object):
     """Objecs representing a collection of atoms.
@@ -45,7 +30,7 @@ class Atoms(object):
                  tags=None, momenta=None, masses=None,
                  magmoms=None, charges=None,
                  cell=None, pbc=None,
-                 constraints=None,
+                 constraint=None,
                  calculator=None):
         """Construct Atoms object.
 
@@ -139,8 +124,8 @@ class Atoms(object):
                 cell = atoms.get_cell()
             if pbc is None:
                 pbc = atoms.get_pbc()
-            if constraints is None:
-                constraints = [c.copy() for c in atoms.constraints]
+            if constraint is None:
+                constraint = [c.copy() for c in atoms.constraints]
 
         self.arrays = {}
         
@@ -185,7 +170,7 @@ class Atoms(object):
             pbc = False
         self.set_pbc(pbc)
 
-        self.set_constraint(constraints)
+        self.set_constraint(constraint)
                 
         self.set_calculator(calculator)
 
@@ -200,14 +185,14 @@ class Atoms(object):
         """Get currently attached calculator object."""
         return self.calc
 
-    def set_constraint(self, constraints=None):
-        if constraints is None:
+    def set_constraint(self, constraint=None):
+        if constraint is None:
             self.constraints = []
         else:
-            if isinstance(constraints, (list, tuple)):
-                self.constraints = constraints
+            if isinstance(constraint, (list, tuple)):
+                self.constraints = constraint
             else:
-                self.constraints = [constraints]
+                self.constraints = [constraint]
     
     def set_cell(self, cell, fix=False):
         """Set unit cell vectors.
@@ -367,11 +352,11 @@ class Atoms(object):
     def get_total_energy(self):
         return self.get_potential_energy() + self.get_kinetic_energy()
 
-    def get_forces(self, apply_constraints=True):
+    def get_forces(self, apply_constraint=True):
         if self.calc is None:
             raise RuntimeError('Atoms object has no calculator.')
         forces = self.calc.get_forces(self)
-        if apply_constraints:
+        if apply_constraint:
             for constraint in self.constraints:
                 constraint.adjust_forces(self.arrays['positions'], forces)
         return forces
@@ -407,11 +392,11 @@ class Atoms(object):
         s += 'cell=%s, ' % self.cell.tolist()
         s += 'pbc=%s, ' % self.pbc.tolist()
         if len(self.constraints) == 1:
-            s += 'constraints=%s, ' % repr(self.constraints[0])
+            s += 'constraint=%s, ' % repr(self.constraints[0])
         if len(self.constraints) > 1:
-            s += 'constraints=%s, ' % repr(self.constraints)
+            s += 'constraint=%s, ' % repr(self.constraints)
         if self.calc is not None:
-            s += 'calc=%s(...), ' % self.calc.__class__.__name__
+            s += 'calculator=%s(...), ' % self.calc.__class__.__name__
         return s[:-2] + ')'
 
     def __add__(self, other):
@@ -588,24 +573,46 @@ class Atoms(object):
         self.set_positions(positions +
                            rs.normal(scale=stdev, size=positions.shape))
         
+    def distance(self, a1, a2, mic=False):
+        """Return distance between two atoms.
+
+        Use mic=True to use the Minimum Image Convention.
+        """
+
+        R = self.arrays['positions']
+        d = R[a1] - R[a2]
+        if mic:
+            raise NotImplemented  # XXX
+        return npy.linalg.norm(d)
+    
     def _get_positions(self):
         return self.arrays['positions']
     
     positions = property(_get_positions)
 
-    #e = property(get_potential_energy)
-    #c = property(get_cell, set_cell)
-    #p = property(get_pbc, set_pbc)
 
-    """
-    center, repeat
+class Atom:
+    """Helper class for backward compatibility with old ASE code."""
+    def __init__(self, symbol, position=(0, 0, 0),
+                 tag=None, magmom=None, mass=None,
+                 momentum=None, charge=None):
+        if isinstance(symbol, str):
+            self.number = atomic_numbers[symbol]
+        else:
+            self.number = symbol
+        self.position = position
+        self.tag = tag
+        self.momentum = momentum
+        self.mass = mass
+        self.magmom = magmom
+        self.charge = charge
 
-    tag, magmom, mass, momentum
+    def get_data(self):
+        return (self.number, self.position,
+                self.tag, self.momentum, self.mass,
+                self.magmom, self.charge)
 
-    add,
-    """
-
-
+    
 def string2symbols(s):
     """Convert string to list of chemical symbols."""
     n = len(s)

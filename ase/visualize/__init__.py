@@ -1,4 +1,5 @@
 import os
+import pickle
 import tempfile
 
 from ase.io.xyz import write_xyz
@@ -20,8 +21,14 @@ def view(atoms, data=None, viewer=None):
     for viewer in viewers:
         try:
             if viewer == 'ase.gui':
-                from ase.gui import gui
-                gui(atoms)
+                from ase.io.trajectory import write_trajectory
+                filename = tempfile.mktemp('.traj', 'ag-')
+                calc = atoms.get_calculator()
+                atoms.set_calculator(None)
+                write_trajectory(filename, atoms)
+                atoms.set_calculator(calc)
+                os.system('(ag %s &); (sleep 15; rm %s) &' %
+                          (filename, filename))
                 break
             if viewer == 'gopenmol':
                 fd, filename = tempfile.mkstemp('.xyz', 'ag-')

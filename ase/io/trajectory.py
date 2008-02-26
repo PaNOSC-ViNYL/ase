@@ -58,7 +58,7 @@ class PickleTrajectory:
 
         if atoms.get_calculator() is not None:
             d['energy'] = atoms.get_potential_energy()
-            d['forces'] = atoms.get_forces(apply_constraints=False)
+            d['forces'] = atoms.get_forces(apply_constraint=False)
             try:
                 d['stress'] = atoms.get_stress()
             except NotImplementedError:
@@ -101,7 +101,7 @@ class PickleTrajectory:
                           momenta=d['momenta'],
                           tags=self.tags,
                           pbc=self.pbc,
-                          constraints=[c.copy() for c in self.constraints])
+                          constraint=[c.copy() for c in self.constraints])
             if 'energy' in d:
                 calc = SinglePointCalculator(
                     d['energy'], d['forces'], d['stress'], atoms)

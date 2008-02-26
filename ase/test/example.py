@@ -8,7 +8,7 @@ atoms = Atoms('H7',
                          (0, 2, 0),
                          (1, 2, 0),
                          (0.5, 0.5, 1)],
-              constraints=[FixAtoms(range(6))],
+              constraint=[FixAtoms(range(6))],
               calculator=LennardJones())
 
 traj = PickleTrajectory('H.traj', 'w', atoms)

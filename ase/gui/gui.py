@@ -1,24 +1,21 @@
-#!/usr/bin/env python
-"""
-husk:
-Exit*2?  remove pylab.show()
-close button
-DFT
-ADOS
-grey-out stuff after one second: vmd, rasmol, ...
-Show with ...
-rasmol: set same rotation as ag
-Graphs: save, Python, 3D
-start from python (interactive mode?)
-ascii-art option (colored)
-option -o (output) and -f (force overwrite)
-surfacebuilder
-screen-dump
-icon
-ag-community-server
-translate option: record all translations, and check for missing translations.
-"""
 
+# husk:
+# Exit*2?  remove pylab.show()
+# close button
+# DFT
+# ADOS
+# grey-out stuff after one second: vmd, rasmol, ...
+# Show with ...
+# rasmol: set same rotation as ag
+# Graphs: save, Python, 3D
+# start from python (interactive mode?)
+# ascii-art option (colored)
+# option -o (output) and -f (force overwrite)
+# surfacebuilder
+# screen-dump
+# icon
+# ag-community-server
+# translate option: record all translations, and check for missing translations.
 import os
 import sys
 

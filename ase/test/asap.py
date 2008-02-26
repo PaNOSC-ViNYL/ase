@@ -8,6 +8,6 @@ except ImportError:
 else:
     a = Atoms('Cu2', positions=[(0, 0, 0), (0, 0, 2.7)],
               calculator=ASAP())
-    print distance(a, 0, 1), a.get_potential_energy()
+    print a.distance(0, 1), a.get_potential_energy()
     QuasiNewton(a).run(0.01)
-    print distance(a, 0, 1), a.get_potential_energy()
+    print a.distance(0, 1), a.get_potential_energy()

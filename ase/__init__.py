@@ -11,6 +11,5 @@ from ase.md.verlet import VelocityVerlet
 from ase.constraints import *
 from ase.calculators import LennardJones, EMT, ASAP
 from ase.neb import NEB
-from ase.geometry import distance
 from ase.visualize import *
 del atoms # XXX

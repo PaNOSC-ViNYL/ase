@@ -3,9 +3,18 @@ import numpy as npy
 from ase.calculators.lj import LennardJones
 from ase.calculators.emt import EMT, ASAP
 
+"""Interfaces to different ASE compatible force-calculators."""
 
 class SinglePointCalculator:
+    """Special calculator for a single configuration.
+
+    Used to remember the energy, force and stress for a given
+    configuration.  If the positions, atomic numbers, unit cell
+    boundary conditions are changed, then asking for
+    energy/forces/stresses will raise an exception."""
+    
     def __init__(self, energy, forces, stress, atoms):
+        """Save energy, forces and stresses for the current configuration."""
         self.energy = energy
         self.forces = forces
         self.stress = stress
@@ -41,6 +50,7 @@ class SinglePointCalculator:
 
 
 def numeric_force(atoms, a, i, d=0.001):
+    """Evaluate forces usinf finite difference formula."""
     p0 = atoms.positions[a, i]
     atoms.positions[a, i] += d
     eplus = atoms.get_potential_energy()
