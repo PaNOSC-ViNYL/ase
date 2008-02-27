@@ -1,9 +1,10 @@
+"""Interfaces to different ASE compatible force-calculators."""
+
 import numpy as npy
 
 from ase.calculators.lj import LennardJones
 from ase.calculators.emt import EMT, ASAP
 
-"""Interfaces to different ASE compatible force-calculators."""
 
 class SinglePointCalculator:
     """Special calculator for a single configuration.

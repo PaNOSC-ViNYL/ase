@@ -1,3 +1,5 @@
+"""Effective medium theory potential."""
+
 from math import sqrt, exp, log, pi
 
 import numpy as npy
@@ -5,7 +7,6 @@ import numpy as npy
 from ase.data import atomic_numbers, chemical_symbols
 from ase.units import Bohr
 
-"""Effective medium theory potential."""
 
 parameters = {
 #          E0     s0    V0     eta2    kappa   lambda  n0

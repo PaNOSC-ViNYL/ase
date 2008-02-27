@@ -1,13 +1,13 @@
-from math import cos, sin
-
-import numpy as npy
-from ase.data import atomic_numbers, chemical_symbols, atomic_masses
-
 """Definition of the Atoms class.
 
 This module defines the central object in the ASE package: the Atoms
 object.
 """
+
+from math import cos, sin
+
+import numpy as npy
+from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 
 
 class Atoms(object):
@@ -99,6 +99,9 @@ class Atoms(object):
             from ase.old import OldASEListOfAtomsWrapper
             atoms = OldASEListOfAtomsWrapper(symbols)
             symbols = None
+        elif isinstance(symbols, Atoms):
+            atoms = symbols
+            symbols = None    
         elif (isinstance(symbols, (list, tuple)) and
               len(symbols) > 0 and isinstance(symbols[0], Atom)):
             # Get data from a list or tuple of Atom objects:
