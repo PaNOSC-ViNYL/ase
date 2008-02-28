@@ -61,8 +61,9 @@ class Vibrations:
                 r += 1
         H += H.copy().T
         self.H = H
-        m = self.atoms.get_masses()
-        if m is None:
+        try:
+            m = self.atoms.get_masses()
+        except KeyError:
             m = atomic_masses[self.atoms.get_atomic_numbers()]
         self.im = npy.repeat(m[self.indices]**-0.5, 3)
         Q = npy.diag(self.im)

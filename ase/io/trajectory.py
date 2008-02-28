@@ -52,9 +52,14 @@ class PickleTrajectory:
         if len(self.offsets) == 0:
             self.write_header(atoms)
 
+        try:
+            momenta = atoms.get_momenta()
+        except KeyError:
+            momenta = None
+            
         d = {'positions': atoms.get_positions(),
              'cell': atoms.get_cell(),
-             'momenta': atoms.get_momenta()}
+             'momenta': momenta}
 
         if atoms.get_calculator() is not None:
             d['energy'] = atoms.get_potential_energy()
@@ -71,9 +76,13 @@ class PickleTrajectory:
 
     def write_header(self, atoms):
         self.fd.write('PickleTrajectory')
+        try:
+            tags = atoms.get_tags()
+        except KeyError:
+            tags = None
         d = {'pbc': atoms.get_pbc(),
              'numbers': atoms.get_atomic_numbers(),
-             'tags': atoms.get_tags(),
+             'tags': tags,
              'constraints': atoms.constraints}
         pickle.dump(d, self.fd, protocol=-1)
         self.header_written = True

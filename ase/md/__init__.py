@@ -19,14 +19,17 @@ class MolecularDynamics(Dynamics):
             Number of steps (defaults to 50).
         """
         
-        m = self.atoms.get_masses()
-        if m is None:
+        try:
+            m = self.atoms.get_masses()
+        except KeyError:
             m = atomic_masses[self.atoms.get_atomic_numbers()]
         m = m.reshape((-1, 1))
 
         f = self.atoms.get_forces()
 
-        if self.atoms.get_momenta() is None:
+        try:
+            self.atoms.get_momenta()
+        except KeyError:
             self.atoms.set_momenta(npy.zeros_like(f))
 
         for step in xrange(steps):

@@ -116,13 +116,25 @@ class Atoms(object):
             if positions is None:
                 positions = atoms.get_positions()
             if tags is None:
-                tags = atoms.get_tags()
+                try:
+                    tags = atoms.get_tags()
+                except KeyError:
+                    pass
             if momenta is None:
-                momenta = atoms.get_momenta()
+                try:
+                    momenta = atoms.get_momenta()
+                except KeyError:
+                    pass
             if magmoms is None:
-                magmoms = atoms.get_magnetic_moments()
+                try:
+                    magmoms = atoms.get_magnetic_moments()
+                except KeyError:
+                    pass
             if masses is None:
-                masses = atoms.get_masses()
+                try:
+                    masses = atoms.get_masses()
+                except KeyError:
+                    pass
             if cell is None:
                 cell = atoms.get_cell()
             if pbc is None:
@@ -263,7 +275,7 @@ class Atoms(object):
         
         self.arrays[name] = a
     
-    def set_array(self, a, name, dtype=None):
+    def set_array(self, name, a, dtype=None):
         b = self.arrays.get(name)
         if b is None:
             if a is not None:
@@ -283,16 +295,16 @@ class Atoms(object):
         return [chemical_symbols[Z] for Z in self.arrays['numbers']]
 
     def set_tags(self, tags):
-        self.set_array(tags, 'tags', int)
+        self.set_array('tags', tags, int)
         
     def get_tags(self):
-        return self.arrays.get('tags')
+        return self.arrays['tags']
 
     def set_momenta(self, momenta):
-        self.set_array(momenta, 'momenta', float)
+        self.set_array('momenta', momenta, float)
 
     def get_momenta(self):
-        return self.arrays.get('momenta')
+        return self.arrays['momenta']
 
     def set_masses(self, masses):
         if isinstance(masses, (list, tuple)):
@@ -303,22 +315,22 @@ class Atoms(object):
                 else:
                     newmasses.append(m)
             masses = newmasses
-        self.set_array(masses, 'masses', float)
+        self.set_array('masses', masses, float)
 
     def get_masses(self):
-        return self.arrays.get('masses')
+        return self.arrays['masses']
 
     def set_magnetic_moments(self, magmoms):
-        self.set_array(magmoms, 'magmoms', float)
+        self.set_array('magmoms', magmoms, float)
 
     def get_magnetic_moments(self):
-        return self.arrays.get('magmoms')
+        return self.arrays['magmoms']
     
     def set_charges(self, charges):
-        self.set_array(charges, 'charges', int)
+        self.set_array('charges', charges, int)
 
     def get_charges(self):
-        return self.arrays.get('charges')
+        return self.arrays['charges']
 
     def set_positions(self, newpositions):
         positions = self.arrays['positions']
@@ -427,7 +439,7 @@ class Atoms(object):
                 continue
             a = npy.zeros((n1 + n2,) + a2.shape[1:], a2.dtype)
             a[n1:] = a2
-            self.set_array(a, name)
+            self.set_array(name, a)
 
         return self
 
