@@ -12,6 +12,12 @@ def read_netcdf(filename, index=-1):
     numbers = vars['AtomicNumbers'][:]
     pbc = vars['BoundaryConditions'][:]
     cell = vars['UnitCell']
+    tags = vars['Tags'][:]
+    if not tags.any():
+        tags = None
+    magmoms = vars['MagneticMoments'][:]
+    if not magmoms.any():
+        magmoms = None
 
     nimages = positions.shape[0]
 
@@ -44,7 +50,8 @@ def read_netcdf(filename, index=-1):
         atoms = Atoms(positions=positions[i],
                       numbers=numbers,
                       cell=cell[i],
-                      pbc=pbc)
+                      pbc=pbc,
+                      tags=tags, magmoms=magmoms)
 
         if attach_calculator:
             calc = SinglePointCalculator(energy[i], forces[i], stress[i],
