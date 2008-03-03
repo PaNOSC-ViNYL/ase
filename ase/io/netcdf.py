@@ -53,7 +53,7 @@ def read_netcdf(filename, index=-1):
             
         images.append(atoms)
         
-    return images
+    return images[index]
 
 
 class LOA:
