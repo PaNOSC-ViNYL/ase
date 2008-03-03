@@ -450,7 +450,15 @@ class Atoms(object):
 
     def __getitem__(self, i):
         if isinstance(i, int):
-            i = [i]
+            args = []
+            for name in ['tags', 'magmoms', 'masses', 'momenta', 'charges']:
+                if name in self.arrays:
+                    args.append(self.arrays[name][i])
+                else:
+                    args.append(None)
+            return Atom(self.arrays['numbers'][i],
+                        self.arrays['positions'][i],
+                        *args)
 
         atoms = Atoms(cell=self.cell, pbc=self.pbc)
 
@@ -613,8 +621,10 @@ class Atom:
                  momentum=None, charge=None):
         if isinstance(symbol, str):
             self.number = atomic_numbers[symbol]
+            self.symbol = symbol
         else:
             self.number = symbol
+            self.symbol = chemical_symbols[symbol]
         self.position = position
         self.tag = tag
         self.momentum = momentum
