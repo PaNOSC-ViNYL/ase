@@ -157,15 +157,7 @@ class Atoms(object):
                 raise ValueError(
                     'Use only one of "symbols" and "numbers".')
             else:
-                if isinstance(symbols, str):
-                    symbols = string2symbols(symbols)
-                numbers = []
-                for s in symbols:
-                    if isinstance(s, str):
-                        numbers.append(atomic_numbers[s])
-                    else:
-                        numbers.append(s)
-                self.new_array('numbers', numbers, int)
+                self.new_array('numbers', symbols2numbers(symbols), int)
 
         if positions is None:
             positions = npy.zeros((len(self.arrays['numbers']), 3))
@@ -286,9 +278,14 @@ class Atoms(object):
             else:
                 b[:] = a
 
+    def set_atomic_numbers(self, numbers):
+        self.set_array('numbers', numbers, int)
+
     def get_atomic_numbers(self):
-        """Get ndarray of all atomic numbers."""
         return self.arrays['numbers']
+
+    def set_chemical_symbols(self, symbols):
+        self.set_array('numbers', symbols2numbers(symbols), int)
 
     def get_chemical_symbols(self):
         """Getlist of chemical symbols."""
@@ -684,6 +681,16 @@ def string2symbols(s):
             m = 1
         return m * [s[:i]] + string2symbols(s[j:])
 
+def symbols2numbers(symbols):
+    if isinstance(symbols, str):
+        symbols = string2symbols(symbols)
+    numbers = []
+    for s in symbols:
+        if isinstance(s, str):
+            numbers.append(atomic_numbers[s])
+        else:
+            numbers.append(s)
+    return numbers
 
 def string2vector(v):
     if isinstance(v, str):
