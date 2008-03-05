@@ -11,7 +11,7 @@ from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 
 
 class Atoms(object):
-    """Objecs representing a collection of atoms.
+    """Object representing a collection of atoms.
 
     The Atoms object can represent an isolated molecule, or a
     periodically repeated structure.  It may have a unit cell and
@@ -26,7 +26,7 @@ class Atoms(object):
     object has to attached to the atoms object."""
 
     def __init__(self, symbols=None,
-                 numbers=None, positions=None,
+                 positions=None, numbers=None,
                  tags=None, momenta=None, masses=None,
                  magmoms=None, charges=None,
                  cell=None, pbc=None,
@@ -59,7 +59,7 @@ class Atoms(object):
         cell : 3x3 matrix
             Unit cell vectors.  Can also be given as just three
             numbers for orthorhombic cells.  Default value: [1, 1, 1].
-        pbc : one or three booleans
+        pbc : one or three bool
             Periodic boundary conditions flags.  Examples: True,
             False, 0, 1, (1, 1, 0), (True, False, False).  Default
             value: False.
@@ -72,9 +72,9 @@ class Atoms(object):
         These three are equivalent:
 
         >>> d = 1.104  # N2 bondlength
-        >>> a = Atoms('N2', positions=[(0,0,0),(0,0,d)])
+        >>> a = Atoms('N2', [(0,0,0),(0,0,d)])
         >>> a = Atoms(numbers=[7,7], positions=[(0,0,0),(0,0,d)])
-        >>> a = Atoms([Atom('N',(0,0,0)), Atom('N',(0,0,d)])
+        >>> a = Atoms([Atom('N', (0,0,0)), Atom('N', (0,0,d)])
 
         FCC gold:
 
@@ -90,7 +90,7 @@ class Atoms(object):
         >>> L = 7.0
         >>> h = Atoms('H', positions=[(0,L/2,L/2)],
         ...           cell=(d, L, L),
-        ...           pbc=(1,0,0))
+        ...           pbc=(1, 0, 0))
         """
 
         atoms = None
@@ -209,7 +209,7 @@ class Atoms(object):
         cell : 
             Unit cell.  A 3x3 matrix (the three unit cell vectors) or
             just three numbers for an orthorhombic cell.
-        fix : boolean
+        fix : bool
             Fix atomic positions or move atoms reletive to unit cell.
             Default behavior is to move the atoms (fix=False).
 
@@ -608,7 +608,8 @@ class Atoms(object):
     def _get_positions(self):
         return self.arrays['positions']
     
-    positions = property(_get_positions)
+    positions = property(_get_positions, doc='Attribute for direct ' +
+                         'manipulation of the positions.')
 
 
 class Atom:
@@ -641,7 +642,7 @@ class Atom:
 
         >>> a = Atom('O', charge=-2)
         >>> b = Atom(8, charge=-2)
-        >>> c = Atom('H', position=(1, 2, 3), magmom=1)
+        >>> c = Atom('H', (1, 2, 3), magmom=1)
         >>> print a.charge, a.position
         -2, (0, 0, 0)
         >>> print c.position
@@ -664,7 +665,7 @@ class Atom:
         self.charge = charge
 
     def get_data(self):
-        return (self.number, self.position,
+        return (self.position, self.number,
                 self.tag, self.momentum, self.mass,
                 self.magmom, self.charge)
 
