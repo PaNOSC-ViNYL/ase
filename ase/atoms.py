@@ -36,25 +36,25 @@ class Atoms(object):
 
         Parameters
         ----------
-        symbols : string (formula) or list of strings
+        symbols : str (formula) or list of str
             Can be a string formula, a list of symbols or a list of
             Atom objects.  Examples: 'H2O', 'COPt12', ['H', 'H', 'O'],
             [Atom('Ne', (x, y, z), ...].
-        numbers : list of integers
+        numbers : list of int
             Atomic numbers (use only one of symbols/numbers).
         positions : list of xyz-positions
             Atomic positions.  Anything that can be converted to an
             ndarray of shape (n, 3) will do: [(x1,y1,z1), (x2,y2,z2),
             ...].
-        tags : list of integers
+        tags : list of int
             Special purpose tags.
         momenta: list of xyz-momenta
             Momenta for all atoms.
-        masses : list of floats
-            Atomic masses in atomic units
-        magmoms: list of floats
-            Magnetic moments
-        charges : list of floats
+        masses : list of float
+            Atomic masses in atomic units.
+        magmoms: list of float
+            Magnetic moments.
+        charges : list of float
             Atomic charges.
         cell : 3x3 matrix
             Unit cell vectors.  Can also be given as just three
@@ -612,10 +612,44 @@ class Atoms(object):
 
 
 class Atom:
-    """Helper class for backward compatibility with old ASE code."""
+    """Class for representing a single atom."""
     def __init__(self, symbol, position=(0, 0, 0),
-                 tag=None, magmom=None, mass=None,
-                 momentum=None, charge=None):
+                 tag=None, momentum=None, mass=None,
+                 magmom=None, charge=None):
+        """Construct Atom object.
+
+        Parameters
+        ----------
+        symbol : str or int
+            Can be a chemical symbol (str) or an atomic number (int).
+        position : sequence of 3 floats
+            Atomi position.
+        tag : int
+            Special purpose tag.
+        momentum: sequence of 3 floats
+            Momentum for atom.
+        mass : float
+            Atomic mass in atomic units.
+        magmom: float
+            Magnetic moment.
+        charge : float
+            Atomic charge.
+
+        Examples
+        --------
+        The first two are equivalent:
+
+        >>> a = Atom('O', charge=-2)
+        >>> b = Atom(8, charge=-2)
+        >>> c = Atom('H', position=(1, 2, 3), magmom=1)
+        >>> print a.charge, a.position
+        -2, (0, 0, 0)
+        >>> print c.position
+        (1, 2, 3)
+        >>> print b.symbol
+        'O'
+        
+        """
         if isinstance(symbol, str):
             self.number = atomic_numbers[symbol]
             self.symbol = symbol
