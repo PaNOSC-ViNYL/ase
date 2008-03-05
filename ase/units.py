@@ -25,6 +25,6 @@ kcal = 4.184 * kJ
 mol = _Nav
 Rydberg = 0.5 * Hartree
 
-fs = 100 * sqrt(_amu / _e)
+fs = 1e-5 * sqrt(_e / _amu)
 
 kB = _k / _e
