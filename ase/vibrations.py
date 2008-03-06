@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+"""Vibrational modes."""
+
 import pickle
 from math import sin, pi, sqrt
 from os import remove
@@ -12,7 +16,53 @@ from ase.parallel import rank, barrier
 
 
 class Vibrations:
-    def __init__(self, atoms=None, indices=None, name='vib', delta=0.01):
+    """Class for calculating vibrational modes using finite difference."""
+    def __init__(self, atoms, indices=None, name='vib', delta=0.01):
+        """Create Vibrations object.
+
+        Parameters
+        ==========
+        atoms: Atoms object
+            The atoms to work on.
+        indices: list of int
+            List of indices of atoms to vibrate.  Default behavior is
+            to vibrate all atoms.
+        name: str
+            Name to use for files.
+        delta: float
+            Magnitude of displacements.
+
+        Example
+        =======
+
+        >>> from ase import *
+        >>> from ase.vibrations import Vibrations
+        >>> n2 = Atoms('N2', [(0, 0, 0), (0, 0, 1.1)],
+        ...            calculator=EMT())
+        >>> QuasiNewton(n2).run(fmax=0.01)
+        QuasiNewton:   0        0.042171       2.9357
+        QuasiNewton:   1        0.016313       1.6546
+        QuasiNewton:   2        0.000131       0.1534
+        QuasiNewton:   3        0.000000       0.0093
+        >>> vib = Vibrations(n2)
+        >>> vib.run()
+        >>> vib.summary()
+        ---------------------
+          #    meV     cm^-1
+        ---------------------
+          0    1.7i     13.5i
+          1    1.7i     13.5i
+          2    0.0i      0.0i
+          3    0.0       0.0 
+          4    0.0       0.0 
+          5  232.8    1877.9 
+        ---------------------
+        Zero-point energy: 0.116 eV
+        
+        >>> vib.write_mode(-1)  # write last mode to trajectory file
+
+        """
+        
 	self.atoms = atoms
         if indices is None:
             indices = range(len(atoms))
@@ -22,6 +72,12 @@ class Vibrations:
         self.H = None
 
     def run(self):
+        """Run the vibration calculations.
+
+        This will calculate the forces for 6 dislpacements per atom
+        ±x, ±y, ±z.  Only those calculations that are not already done
+        will be started."""
+        
         p = self.atoms.positions.copy()
         for a in self.indices:
             for i in range(3):
@@ -69,15 +125,19 @@ class Vibrations:
         Q = npy.diag(self.im)
         omega2, modes = npy.linalg.eigh(npy.dot(Q, npy.dot(H, Q)))
         self.modes = modes.T.copy()
+
+        # Conversion factor:
         s = units._hbar * 1e10 / sqrt(units._e * units._amu)
         self.hnu = s * omega2.astype(complex)**0.5
 
     def get_energies(self):
+        """Get vibration energies in eV."""
         if self.H is None:
             self.read()
         return self.hnu
 
     def get_frequencies(self):
+        """Get vibration frequencies in cm^-1."""
         s = 0.01 * units._e / units._c / units._hplanck
         return s * self.get_energies()
 
@@ -107,6 +167,7 @@ class Vibrations:
         return mode
 
     def write_mode(self, n, kT=units.kB * 300, nimages=30):
+        """Write mode to trajectory file."""
         mode = self.get_mode(n) * sqrt(kT / self.hnu[n])
         p = self.atoms.positions.copy()
         n %= 3 * len(self.indices)
