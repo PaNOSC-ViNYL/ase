@@ -1,4 +1,5 @@
 from ase import *
+from ase.vibrations import Vibrations
 
 # Distance between Cu atoms on a (100) surface:
 d = 3.6 / sqrt(2)
@@ -52,3 +53,11 @@ dyn.run(fmax=0.05)
 
 for image in images:
     print image.positions[-1], image.get_potential_energy()
+
+a = images[0]
+vib = Vibrations(a, [4])
+vib.run()
+print vib.get_frequencies()
+vib.summary()
+print vib.get_mode(-1)
+vib.write_mode(-1, nimages=20)

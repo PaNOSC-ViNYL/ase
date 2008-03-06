@@ -92,7 +92,7 @@ class Vibrations:
                     self.atoms.positions[a, i] = p[a, i] + sign * self.delta
                     forces = self.atoms.get_forces()
                     if rank == 0:
-                        pickle.dump(forces.ravel(), fd)
+                        pickle.dump(forces, fd)
                         fd.close()
                     self.atoms.positions[a, i] = p[a, i]
         self.atoms.set_positions(p)
@@ -112,8 +112,9 @@ class Vibrations:
         for a in self.indices:
             for i in 'xyz':
                 name = '%s.%d%s' % (self.name, a, i)
-                H[r] = (pickle.load(open(name + '-.pckl')) -
-                        pickle.load(open(name + '+.pckl'))) / (4 * self.delta)
+                fminus = pickle.load(open(name + '-.pckl'))[self.indices]
+                fplus = pickle.load(open(name + '+.pckl'))[self.indices]
+                H[r] = (fminus - fplus).ravel() / (4 * self.delta)
                 r += 1
         H += H.copy().T
         self.H = H
