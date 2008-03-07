@@ -4,7 +4,21 @@ from zipfile import is_zipfile
 from ase.atoms import Atoms
 
 
-def read(filename, index=-1):
+def read(filename, index=-1, format=None):
+    """Read Atoms object(s) from file.
+
+    Parameters
+    ==========
+    filename: str
+        Name of the file to read from.
+    index: int or slice
+        If the file contains several configurations, the last configuration
+        will be returned by default.  Use index=n to get configuration
+        number n (counting from zero).
+    format: str
+        Used to specify the file-format.  If not given, the file-format
+        will be guessed by the `filetype` function.
+    """
     p = filename.rfind('@')
     if p != -1:
         try:
@@ -13,40 +27,41 @@ def read(filename, index=-1):
             pass
         else:
             filename = filename[:p]
-        
-    type = filetype(filename)
 
-    if type.startswith('gpw'):
+    if format is None:
+        format = filetype(filename)
+
+    if format.startswith('gpw'):
         from gpaw import Calculator
         atoms = Calculator(filename, txt=None).get_atoms()
         atoms.set_calculator(None)
         return atoms
     
-    if type == 'xyz':
+    if format == 'xyz':
         from ase.io.xyz import read_xyz
         return read_xyz(filename, index)
 
-    if type == 'traj':
+    if format == 'traj':
         from ase.io.trajectory import read_trajectory
         return read_trajectory(filename, index)
 
-    if type == 'cube':
+    if format == 'cube':
         from ase.io.cube import read_cube
         return read_cube(filename, index)
 
-    if type == 'nc':
+    if format == 'nc':
         from ase.io.netcdf import read_netcdf
         return read_netcdf(filename, index)
 
-    if type == 'gpaw-text':
+    if format == 'gpaw-text':
         from ase.io.gpawtext import read_gpaw_text
         return read_gpaw_text(filename, index)
 
-    if type == 'dacapo-text':
+    if format == 'dacapo-text':
         from ase.io.dacapo import read_dacapo_text
         return read_dacapo_text(filename)
 
-    if type == 'dacapo':
+    if format == 'dacapo':
         from ase.io.dacapo import read_dacapo
         return read_dacapo(filename)
     
@@ -54,6 +69,19 @@ def read(filename, index=-1):
 
 
 def write(filename, images, format=None, **kwargs):
+    """Write Atoms object(s) to file.
+
+    Parameters
+    ==========
+    filename: str
+        Name of the file to write to.
+    images: Atoms object or list of Atoms objects
+        A single Atoms object or a list of Atoms objects.
+    format: str
+        Used to specify the file-format.  If not given, the file-format
+        will be taken from suffix of the filename.
+    """
+    
     if format is None:
         if filename is not None:
             suffix = filename.split('.')[-1]
@@ -92,6 +120,24 @@ def string2index(string):
 
 
 def filetype(filename):
+    """Try to guess the type of the file.
+
+    Known formats:
+
+    =========================  ===========
+    format                     short name
+    =========================  ===========
+    GPAW restart-file          gpw
+    Dacapo netCDF output file  dacapo
+    Old ASE netCDF trajectory  nc
+    Virtual Nano Lab file      vnl
+    ASE pickle trajectory      traj
+    GPAW text output           gpaw-text
+    CUBE file                  cube
+    Dacapo text output         dacapo-text
+    XYZ-file                   xyz
+    =========================  ===========
+    """
     if is_tarfile(filename):
         return 'gpw-tar'
 
@@ -119,13 +165,13 @@ def filetype(filename):
 
     if lines[0].startswith('PickleTrajectory'):
         return 'traj'
-    
-    if lines[1] == '  ___ ___ ___ _ _ _  \n':
-        return 'gpaw-text'
 
     if lines[1].startswith('OUTER LOOP:'):
         return 'cube'
     
+    if '  ___ ___ ___ _ _ _  \n' in lines:
+        return 'gpaw-text'
+
     if (' &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n'
         in lines[:90]):
         return 'dacapo-text'
