@@ -113,9 +113,10 @@ class OldASECalculatorWrapper:
 
     def get_wannier_localization_matrix(self, nbands, dirG, kpoint,
                                         nextkpoint, G_I, spin):
-        print type(nbands)
-        return self.calc.GetWannierLocalizationMatrix(nbands, dirG, kpoint,
-                                                      nextkpoint, G_I, spin)
+        from Numeric import array, Float
+        return npy.array(self.calc.GetWannierLocalizationMatrix(
+            array(G_I, Float), nbands, array(dirG, Float), kpoint,
+            nextkpoint, spin))
     
     def initial_wannier(self, initialwannier, kpointgrid, fixedstates,
                         edf, spin):
