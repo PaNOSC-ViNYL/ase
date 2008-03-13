@@ -24,7 +24,10 @@ kJ = 1000.0 / _e
 kcal = 4.184 * kJ
 mol = _Nav
 Rydberg = 0.5 * Hartree
+Ry = Rydberg
+Ha = Hartree
 
-fs = 1e-5 * sqrt(_e / _amu)
+second = 1e10 * sqrt(_e / _amu)
+fs = 1e-15 * second
 
 kB = _k / _e
