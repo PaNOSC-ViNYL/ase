@@ -32,7 +32,11 @@ def convert(filename):
                      ('pbcity', 'periodicity'),
                      ('.Converge(', '.run('),
                      ('Numeric', 'numpy'),
-                     ('numpyal', 'Numerical')]:
+                     ('numpyal', 'Numerical'),
+                     ('GetCartesianPosition()', 'position'),
+                     ('GetTag()', 'tag'),
+                     ('GetMagneticMoment()', 'magmom'),
+                     ]:
         t = t.replace(old, new)
 
     t2 = ''
