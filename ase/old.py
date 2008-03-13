@@ -44,30 +44,40 @@ class OldASEListOfAtomsWrapper:
     def get_pbc(self):
         return npy.array(self.atoms.GetBoundaryConditions(), bool)
 
+    def __len__(self):
+        return len(self.atoms)
+
 
 class OldASECalculatorWrapper:
-    def __init__(self, calc, atoms):
+    def __init__(self, calc, atoms=None):
         self.calc = calc
-        from ASE import Atom, ListOfAtoms
-        from Numeric import array
-        numbers = atoms.get_atomic_numbers()
-        positions = atoms.get_positions()
-        
-        self.atoms = ListOfAtoms([Atom(Z=numbers[a], position=positions[a])
-                                  for a in range(len(atoms))],
-                                 cell=array(atoms.get_cell()),
-                                 periodic=tuple(atoms.get_pbc()))
-        self.atoms.SetCalculator(calc)
-        
+        self.atoms = calc.GetListOfAtoms()
+
+        if self.atoms is None:
+            from ASE import Atom, ListOfAtoms
+            from Numeric import array, Float
+            
+            numbers = atoms.get_atomic_numbers()
+            positions = atoms.get_positions()
+            self.atoms = ListOfAtoms(
+                [Atom(Z=numbers[a], position=positions[a])
+                 for a in range(len(atoms))],
+                cell=array(atoms.get_cell(), Float),
+                periodic=tuple(atoms.get_pbc()))
+            self.atoms.SetCalculator(calc)
+
+    def get_atoms(self):
+        return OldASEListOfAtomsWrapper(self.atoms)
+            
     def get_potential_energy(self, atoms):
-        from Numeric import array
+        from Numeric import array, Float
         # XXXX what about the cell?
-        self.atoms.SetCartesianPositions(array(atoms.get_positions()))
+        self.atoms.SetCartesianPositions(array(atoms.get_positions(), Float))
         return self.calc.GetPotentialEnergy()
 
     def get_forces(self, atoms):
-        from Numeric import array
-        self.atoms.SetCartesianPositions(array(atoms.get_positions()))
+        from Numeric import array, Float
+        self.atoms.SetCartesianPositions(array(atoms.get_positions(), Float))
         return npy.array(self.calc.GetCartesianForces())
 
     def get_stress(self, atoms):
@@ -80,19 +90,47 @@ class OldASECalculatorWrapper:
     def get_kpoint_weights(self):
         return npy.array(self.calc.GetIBZKPointWeights())
 
-    def get_number_of_spin(self):
+    def get_number_of_spins(self):
         return 1 + int(self.calc.GetSpinPolarized())
 
     def get_eigenvalues(self, kpt=0, spin=0):
-        return npy.array(self.calc.GetEigenvalues(k, s))
+        return npy.array(self.calc.GetEigenvalues(kpt, spin))
 
     def get_fermi_level(self):
         return self.calc.GetFermiLevel()
 
-    def get_wave_function_array(self, n=0, k=0, s=0):
+    def get_number_of_grid_points(self):
+        return self.get_pseudo_wave_function(0, 0, 0).shape
+
+    def get_pseudo_wave_function(self, n=0, k=0, s=0):
         return npy.array(self.calc.GetWaveFunctionArray(n, k, s))
 
+    def get_bz_k_points(self):
+        return npy.array(self.calc.GetBZKPoints())
 
+    def get_ibz_k_points(self):
+        return npy.array(self.calc.GetIBZKPoints())
+
+    def get_wannier_localization_matrix(self, nbands, dirG, kpoint,
+                                        nextkpoint, G_I, spin):
+        print type(nbands)
+        return self.calc.GetWannierLocalizationMatrix(nbands, dirG, kpoint,
+                                                      nextkpoint, G_I, spin)
+    
+    def initial_wannier(self, initialwannier, kpointgrid, fixedstates,
+                        edf, spin):
+        # Use initial guess to determine U and C
+        init = self.calc.InitialWannier(initialwannier, self.atoms, kpointgrid)
+        waves = [self.calc.GetWaveFunction(band, kpt, spin)
+                 for kpt in len(self.calc.GetBZKPoints())
+                 for band in self.calc.GetNumberOfBands()]
+        init.SetupMMatrix(waves, self.calc.GetBZKPoints())
+        c, U = init.GetListOfCoefficientsAndRotationMatrices(
+            (self.calc.GetNumberOfBands(), fixedstates, edf))
+        U = npy.array(U)
+        for k in len(c):
+            c[k] = npy.array(c[k])
+        return c, U
 
                          
 # Some day we will turn on this message:
