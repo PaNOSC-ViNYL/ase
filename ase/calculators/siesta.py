@@ -102,10 +102,13 @@ class Siesta:
             name = symbol + '.vps'
             found = False
             for path in pppaths:
-                if isfile(join(path, name)) or islink(join(path, name)):
+                filename = join(path, name)
+                if isfile(filename) or islink(filename):
                     found = True
-                    if path != '.' and not isfile(name):
-                        os.symlink(join(path, name), name)
+                    if path != '.':
+                        if islink(name) or isfile(name):
+                            os.remove(name)
+                        os.symlink(filename, name)
             if not found:
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
 
