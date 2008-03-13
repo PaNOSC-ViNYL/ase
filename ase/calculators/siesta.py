@@ -1,6 +1,7 @@
 """ASE interface to SIESTA."""
 
 import os
+from os.path import join, isfile, islink
 
 import numpy as npy
 
@@ -10,9 +11,19 @@ from ase.data import chemical_symbols
 class Siesta:
     """Class for doing SIESTA calculations.
 
+    The default parameters are very close to those that the SIESTA
+    Fortran code would use.  These are the exceptions::
+    
+      calc = Siesta(label='siesta', xc='LDA', pulay=5, mix=0.1)
+
+    Use the set_fdf method to set extra FDF parameters::
+    
+      calc.set_fdf('PAO.EnergyShift', 0.01 * Rydberg)
+
     """
     def __init__(self, label='siesta', xc='LDA', kpts=None, nbands=None,
                  width=None, meshcutoff=None, charge=None,
+                 pulay=5, mix=0.1,
                  basis=None):
         """Construct SIESTA-calculator object.
 
@@ -25,8 +36,20 @@ class Siesta:
             Exchange-correlation functional.  Must be one of LDA, PBE,
             revPBE, RPBE.
         kpts: list of three int
-            ...
-
+            Monkhost-Pack sampling.
+        nbands: int
+            Number of bands.
+        width: float
+            Fermi-distribution width in eV.
+        meshcutoff: float
+            Cutoff energy in eV for grid.
+        charge: float
+            Total charge of the system.
+        pulay: int
+            Number of old densities to use for Pulay mixing.
+        mix: float
+            Mixing parameter between zero and one for density mixing.
+            
         Examples
         ========
         Use default values:
@@ -36,21 +59,23 @@ class Siesta:
         >>> e = h.get_potential_energy()
         
         """
-        self.label = label
+        
+        self.label = label#################### != out
         self.xc = xc
         self.kpts = kpts
         self.nbands = nbands
         self.width = width
         self.meshcutoff = meshcutoff
         self.charge = charge
+        self.pulay = pulay
+        self.mix = mix
         self.basis = basis
     
-        self.etotal = None
-        self.efree = None
+        self.converged = False
         self.fdf = {}
 
     def update(self, atoms):
-        if (self.etotal is None or
+        if (not self.converged or
             len(self.numbers) != len(atoms) or
             (self.numbers != atoms.get_atomic_numbers()).any()):
             self.initialize(atoms)
@@ -60,6 +85,32 @@ class Siesta:
               (self.cell != atoms.get_cell()).any()):
             self.calculate(atoms)
 
+    def initialize(self, atoms):
+        self.numbers = atoms.get_atomic_numbers().copy()
+        self.species = []
+        for Z in self.numbers:
+            if Z not in self.species:
+                self.species.append(Z)
+
+        if 'SIESTA_PP_PATH' in os.environ:
+            pppaths = os.environ['SIESTA_PP_PATH'].split(':')
+        else:
+            pppaths = []
+
+        for Z in self.species:
+            symbol = chemical_symbols[Z]
+            name = symbol + '.vps'
+            found = False
+            for path in pppaths:
+                if isfile(join(path, name)) or islink(join(path, name)):
+                    found = True
+                    if path != '.' and not isfile(name):
+                        os.symlink(join(path, name), name)
+            if not found:
+                raise RuntimeError('No pseudopotential for %s!' % symbol)
+
+        self.converged = False
+        
     def get_potential_energy(self, atoms, force_consistent=False):
         self.update(atoms)
 
@@ -77,31 +128,34 @@ class Siesta:
         self.update(atoms)
         return self.stress.copy()
 
-    def initialize(self, atoms):
-        pass
-    
     def calculate(self, atoms):
+        self.positions = atoms.get_positions().copy()
+        self.cell = atoms.get_cell().copy()
+        self.pbc = atoms.get_pbc().copy()
+        
         self.write_fdf(atoms)
 
-        siesta = os.environ.get('SIESTA_SCRIPT', 'siesta_2.0')
-        error = os.system('%s < %s.fdf > %s.txt' %
-                          (siesta, self.label, self.label))
-        if error != 0:
-            raise RuntimeError('Siesta exited with error code: %d.' % error)
+        siesta = os.environ['SIESTA_SCRIPT']
+        locals = {'label': self.label}
+        execfile(siesta, {}, locals)
+        exitcode = locals['exitcode']
+        if exitcode != 0:
+            raise RuntimeError(('Siesta exited with exit code: %d.  ' +
+                                'Check %s.txt for more information.') %
+                               (exitcode, self.label))
         
         self.read()
 
-    def fdf(self, key, value):
+        self.converged = True
+        
+    def set_fdf(self, key, value):
         """Set FDF parameter."""
         self.fdf[key] = value
                 
     def write_fdf(self, atoms):
         """Write input parameters to fdf-file."""
-        self.positions = atoms.get_positions().copy()
-        self.numbers = atoms.get_atomic_numbers().copy()
-        self.cell = atoms.get_cell().copy()
-        self.pbc = atoms.get_pbc().copy()
-        
+        fh = open(self.label + '.fdf', 'w')
+
         fdf = {
             'SystemLabel': self.label,
             'AtomicCoordinatesFormat': 'Ang',
@@ -111,7 +165,11 @@ class Siesta:
             'NetCharge': self.charge,
             'ElectronicTemperature': self.width,
             'NumberOfEigenStates': self.nbands,
-            #'kgrid_cutoff': (Bohr, ''),??
+            'DM.UseSaveDM': self.converged,
+            'PAO.BasisSize': self.basis,
+            'SolutionMethod': 'diagon',
+            'DM.NumberPulay': self.pulay,
+            'DM.MixingWeight': self.mix
             }
         
         if self.xc != 'LDA':
@@ -125,86 +183,104 @@ class Siesta:
         else:
             if magmoms is not None and magmoms.any():
                 fdf['SpinPolarized'] = True
+                fh.write('%block InitSpin\n')
+                for n, M in enumerate(magmoms):
+                    if M != 0:
+                        fh.write('%d %.14f\n' % (n + 1, M))
+                fh.write('%endblock InitSpin\n')
         
-        species = {}
-        n = 0
-        for Z in self.numbers:
-            if Z not in species:
-                n += 1
-                species[Z] = n
-        fdf['Number_of_species'] = n
-
-        #'user-basis': bool,
-        #'PAO.BasisSize': ('standard',),
-        #'PAO.BasisType': ('split',),
-        #'PAO.EnergyShift': (Ry, 'eV'),
-        #'PAO.SplitNorm': float,
+        fdf['Number_of_species'] = len(self.species)
 
         fdf.update(self.fdf)
 
-        f = open(self.label + '.fdf', 'w')
         for key, value in fdf.items():
             if value is None:
                 continue
+
+            if isinstance(value, list):
+                fh.write('%block %s\n' % key)
+                for line in value:
+                    fh.write(' '.join(['%s' % x for x in line]) + '\n')
+                fh.write('%endblock %s\n' % key)
+
             unit = keys_with_units.get(fdfify(key))
             if unit is None:
-                f.write('%s %s\n' % (key, value))
+                fh.write('%s %s\n' % (key, value))
             else:
-                f.write('%s %f %s\n' % (key, value, unit))
+                if 'fs**2' in unit:
+                    value /= fs**2
+                elif 'fs' in unit:
+                    value /= fs
+                fh.write('%s %f %s\n' % (key, value, unit))
 
-        f.write('%block LatticeVectors\n')
+        fh.write('%block LatticeVectors\n')
         for v in self.cell:
-            f.write('%.14f %.14f %.14f\n' %  tuple(v))
-        f.write('%endblock\n')
+            fh.write('%.14f %.14f %.14f\n' %  tuple(v))
+        fh.write('%endblock LatticeVectors\n')
 
-        f.write('%block Chemical_Species_label\n')
-        species = [(n, Z) for Z, n in species.items()]
-        species.sort()
-        for n, Z in species:
-            f.write('%d %s %s\n' % (n, Z, chemical_symbols[Z]))
-        f.write('%endblock\n')
+        fh.write('%block Chemical_Species_label\n')
+        for n, Z in enumerate(self.species):
+            fh.write('%d %s %s\n' % (n + 1, Z, chemical_symbols[Z]))
+        fh.write('%endblock Chemical_Species_label\n')
 
-        f.write('%block AtomicCoordinatesAndAtomicSpecies\n')
+        fh.write('%block AtomicCoordinatesAndAtomicSpecies\n')
         for pos, Z in zip(self.positions, self.numbers):
-            f.write('%.14f %.14f %.14f' %  tuple(pos))
-            f.write(' %d\n' % Z)
-        f.write('%endblock\n')
-        f.close()
+            fh.write('%.14f %.14f %.14f' %  tuple(pos))
+            fh.write(' %d\n' % (self.species.index(Z) + 1))
+        fh.write('%endblock AtomicCoordinatesAndAtomicSpecies\n')
+
+        if self.kpts is not None:
+            fh.write('%block kgrid_Monkhorst_Pack\n')
+            for i in range(3):
+                for j in range(3):
+                    if i == j:
+                        fh.write('%d ' % self.kpts[i])
+                    else:
+                        fh.write('0 ')
+                fh.write('%.1f\n' % ((self.kpts[i] + 1) % 2) * 0.5)
+            fh.write('%endblock kgrid_Monkhorst_Pack\n')
+            
+        fh.close()
         
     def read(self):
         """Read results from SIESTA's text-output file."""
-        lines = iter(open(self.label + '.txt', 'r').readlines())
+        text = open(self.label + '.txt', 'r').read().lower()
+        assert 'error' not in text
+        lines = iter(text.split('\n'))
 
         # Get the number of grid points used:
         for line in lines:
-            if line.startswith('InitMesh: MESH ='):
+            if line.startswith('initmesh: mesh ='):
                 self.grid = [int(word) for word in line.split()[3:8:2]]
                 break
 
         # Stress:
         for line in lines:
-            if line.startswith('siesta: Stress tensor (total) (eV/Ang**3):'):
+            if line.startswith('siesta: stress tensor (total) (ev/ang**3):'):
                 self.stress = npy.empty((3, 3))
                 for i in range(3):
                     self.stress[i] = [float(word)
                                       for word in lines.next().split()]
                 break
+        else:
+            raise RuntimeError
 
         # Energy:
         for line in lines:
-            if line.startswith('siesta: Etot    ='):
+            if line.startswith('siesta: etot    ='):
                 self.etotal = float(line.split()[-1])
                 self.efree = float(lines.next().split()[-1])
                 break
+        else:
+            raise RuntimeError
 
         # Forces:
-        for line in lines:
-            if line.startswith('siesta: Atomic forces (eV/Ang):'):
-                self.forces = npy.empty((len(self.numbers), 3))
-                for force in self.forces:
-                    force[:] = [float(word)
-                                for word in lines.next().split()[-3:]]
-                break
+        lines = open(self.label + '.FA', 'r').readlines()
+        assert int(lines[0]) == len(self.numbers)
+        assert len(lines) == len(self.numbers) + 1
+        self.forces = npy.array([[float(word)
+                                  for word in line.split()[1:4]]
+                                 for line in lines[1:]])
         
 
 def fdfify(key):
@@ -232,8 +308,8 @@ keys_with_units = {
     'mdmaxforcetol': 'eV/Ang',
     'mdmaxstresstol': 'eV/Ang**3',
     'mdlengthtimestep': 'fs',
-    #'mdinitialtemperature': (K, ,????
-    #'mdtargettemperature': (K, '',????
+    'mdinitialtemperature': 'eV',
+    'mdtargettemperature': 'eV',
     'mdtargetpressure': 'eV/Ang**3',
     'mdnosemass': 'eV*fs**2',
     'mdparrinellorahmanmass': 'eV*fs**2',
@@ -244,3 +320,4 @@ keys_with_units = {
     'rcspatial': 'Ang',
     'kgridcutoff': 'Ang',
     'latticeconstant': 'Ang'}
+
