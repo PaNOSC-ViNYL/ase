@@ -240,7 +240,7 @@ class Siesta:
                         fh.write('%d ' % self.kpts[i])
                     else:
                         fh.write('0 ')
-                fh.write('%.1f\n' % ((self.kpts[i] + 1) % 2) * 0.5)
+                fh.write('%.1f\n' % (((self.kpts[i] + 1) % 2) * 0.5))
             fh.write('%endblock kgrid_Monkhorst_Pack\n')
             
         fh.close()
