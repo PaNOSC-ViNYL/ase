@@ -19,6 +19,8 @@ def convert(filename):
 
     for old, new in [('GetCartesianPositions', 'get_positions'),
                      ('SetCartesianPositions', 'set_positions'),
+                     ('GetScaledPositions', 'get_scaled_positions'),
+                     ('SetScaledPositions', 'set_scaled_positions'),
                      ('SetUnitCell', 'set_cell'),
                      ('GetUnitCell', 'get_cell'),
                      ('GetBoundaryConditions', 'get_pbc'),
@@ -34,8 +36,13 @@ def convert(filename):
                      ('Repeat', 'repeat'),
                      ('Numeric', 'numpy'),
                      ('numpyal', 'Numerical'),
+                     ('GetAtomicNumber()', 'number'),
+                     ('GetChemicalSymbol()', 'symbol'),
                      ('GetCartesianPosition()', 'position'),
                      ('GetTag()', 'tag'),
+                     ('GetCharge()', 'charge'),
+                     ('GetMass()', 'mass'),
+                     ('GetCartesianMomentum()', 'momentum'),
                      ('GetMagneticMoment()', 'magmom'),
                      ]:
         t = t.replace(old, new)
