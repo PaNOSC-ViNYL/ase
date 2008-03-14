@@ -1,6 +1,6 @@
 from ase import *
-m=Atoms('H2')
-a=m[0]
+m = Atoms('H2')
+a = m[0]
 b = Atom('H')
 for c in [a, b]:
     assert c.x == 0
@@ -23,3 +23,7 @@ for a in m:
     if a.symbol == 'H':
         a.z = 0.75
 assert m.distance(0, 1) == 0.75
+a = m.pop()
+m += a
+del m[:1]
+print m

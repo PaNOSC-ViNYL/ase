@@ -479,6 +479,7 @@ class Atoms(object):
 
     def pop(self, i=-1):
         atom = self[i]
+        atom.cut()
         del self[i]
         return atom
     

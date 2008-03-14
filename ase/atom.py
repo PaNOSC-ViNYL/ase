@@ -84,6 +84,23 @@ class Atom(object):
         self.index = index
         self.atoms = atoms
 
+    def get_data(self):
+        return (self.position, self.number,
+                self.tag, self.momentum, self.mass,
+                self.magmom, self.charge)
+
+    def cut(self):
+        data = self.get_data()
+        self.index = None
+        self.atoms = None
+        (self._position,
+         self._number,
+         self._tag,
+         self._momentum,
+         self._mass,
+         self._magmom,
+         self._charge) = data
+        
     def _get(self, name):
         if self.atoms is None:
             return getattr(self, '_' + name)
@@ -152,8 +169,3 @@ class Atom(object):
     x = property(_getx, _setx, doc='X-coordiante')
     y = property(_gety, _sety, doc='Y-coordiante')
     z = property(_getz, _setz, doc='Z-coordiante')
-
-    def get_data(self):
-        return (self.position, self.number,
-                self.tag, self.momentum, self.mass,
-                self.magmom, self.charge)
