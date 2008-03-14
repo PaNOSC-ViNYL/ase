@@ -31,6 +31,7 @@ def convert(filename):
                      ('periodic', 'pbc'),
                      ('pbcity', 'periodicity'),
                      ('.Converge(', '.run('),
+                     ('Repeat', 'repeat'),
                      ('Numeric', 'numpy'),
                      ('numpyal', 'Numerical'),
                      ('GetCartesianPosition()', 'position'),
