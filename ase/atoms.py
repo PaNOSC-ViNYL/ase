@@ -305,8 +305,16 @@ class Atoms(object):
     def get_momenta(self):
         return self.arrays['momenta']
 
-    def set_masses(self, masses):
-        if isinstance(masses, (list, tuple)):
+    def set_masses(self, masses=None):
+        """Set atomic masses.
+
+        The array masses should contain the a list masses.  If not
+        masses argument is given or if any elements of the masses list
+        are None, then standard values are set."""
+        
+        if masses is None:
+            masses = atomic_masses[self.arrays['numbers']]
+        elif isinstance(masses, (list, tuple)):
             newmasses = []
             for m, Z in zip(masses, self.arrays['numbers']):
                 if m is None:
