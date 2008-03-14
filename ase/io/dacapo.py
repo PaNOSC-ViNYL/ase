@@ -1,7 +1,8 @@
 import numpy as npy
 
 from ase.calculators import SinglePointCalculator
-from ase.atoms import Atom, Atoms
+from ase.atom import Atom
+from ase.atoms import Atoms
 
 
 def read_dacapo_text(fileobj):

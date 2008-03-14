@@ -1,7 +1,8 @@
 """Atomic Simulation Environment."""
 
 from numpy import *
-from ase.atoms import Atom, Atoms
+from ase.atom import Atom
+from ase.atoms import Atoms
 from ase.units import *
 from ase.io import read, write
 from ase.io.trajectory import PickleTrajectory

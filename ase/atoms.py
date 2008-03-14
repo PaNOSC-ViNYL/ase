@@ -7,6 +7,8 @@ object.
 from math import cos, sin
 
 import numpy as npy
+
+from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 
 
@@ -447,15 +449,11 @@ class Atoms(object):
 
     def __getitem__(self, i):
         if isinstance(i, int):
-            args = []
-            for name in ['tags', 'magmoms', 'masses', 'momenta', 'charges']:
-                if name in self.arrays:
-                    args.append(self.arrays[name][i])
-                else:
-                    args.append(None)
-            return Atom(self.arrays['numbers'][i],
-                        self.arrays['positions'][i],
-                        *args)
+            natoms = len(self)
+            if i < -natoms or i >= natoms:
+                raise IndexError('Index out of range.')
+
+            return Atom(atoms=self, index=i)
 
         atoms = Atoms(cell=self.cell, pbc=self.pbc)
 
@@ -487,9 +485,9 @@ class Atoms(object):
 
         positions = self.arrays['positions']
         i0 = 0
-        for m0 in range(m[0]):
+        for m2 in range(m[2]):
             for m1 in range(m[1]):
-                for m2 in range(m[2]):
+                for m0 in range(m[0]):
                     i1 = i0 + n
                     positions[i0:i1] += npy.dot((m0, m1, m2), self.cell)
                     i0 = i1
@@ -605,71 +603,37 @@ class Atoms(object):
             raise NotImplemented  # XXX
         return npy.linalg.norm(d)
     
+
+    def get_scaled_positions(self):
+        """Get positions relative to unit cell.
+
+        Atoms outside the unit cell will be wrapped into the cell in
+        those directions with periodic boundary conditions so that the
+        scaled coordinates are beween zero and one."""
+
+        scaled = npy.linalg.solve(self.cell.T, self.arrays['positions'].T).T
+        for i in range(3):
+            if self.pbc[i]:
+                scaled[:, i] %= 1.0
+        return scaled
+
+    def set_scaled_positions(self, scaled):
+        """Set positions relative to unit cell."""
+        self.arrays['positions'][:] = npy.dot(scaled, self.cell)
+
     def _get_positions(self):
         return self.arrays['positions']
     
     positions = property(_get_positions, doc='Attribute for direct ' +
                          'manipulation of the positions.')
 
-
-class Atom:
-    """Class for representing a single atom."""
-    def __init__(self, symbol, position=(0, 0, 0),
-                 tag=None, momentum=None, mass=None,
-                 magmom=None, charge=None):
-        """Construct Atom object.
-
-        Parameters
-        ----------
-        symbol : str or int
-            Can be a chemical symbol (str) or an atomic number (int).
-        position : sequence of 3 floats
-            Atomi position.
-        tag : int
-            Special purpose tag.
-        momentum: sequence of 3 floats
-            Momentum for atom.
-        mass : float
-            Atomic mass in atomic units.
-        magmom: float
-            Magnetic moment.
-        charge : float
-            Atomic charge.
-
-        Examples
-        --------
-        The first two are equivalent:
-
-        >>> a = Atom('O', charge=-2)
-        >>> b = Atom(8, charge=-2)
-        >>> c = Atom('H', (1, 2, 3), magmom=1)
-        >>> print a.charge, a.position
-        -2, (0, 0, 0)
-        >>> print c.position
-        (1, 2, 3)
-        >>> print b.symbol
-        'O'
-        
-        """
-        if isinstance(symbol, str):
-            self.number = atomic_numbers[symbol]
-            self.symbol = symbol
-        else:
-            self.number = symbol
-            self.symbol = chemical_symbols[symbol]
-        self.position = position
-        self.tag = tag
-        self.momentum = momentum
-        self.mass = mass
-        self.magmom = magmom
-        self.charge = charge
-
-    def get_data(self):
-        return (self.position, self.number,
-                self.tag, self.momentum, self.mass,
-                self.magmom, self.charge)
-
+    def _get_numbers(self):
+        return self.arrays['numbers']
     
+    numbers = property(_get_numbers, doc='Attribute for direct ' +
+                       'manipulation of the atomic numbers.')
+
+        
 def string2symbols(s):
     """Convert string to list of chemical symbols."""
     n = len(s)
