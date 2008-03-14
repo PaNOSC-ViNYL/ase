@@ -120,17 +120,19 @@ class OldASECalculatorWrapper:
     
     def initial_wannier(self, initialwannier, kpointgrid, fixedstates,
                         edf, spin):
+        from Numeric import array, Int        
         # Use initial guess to determine U and C
-        init = self.calc.InitialWannier(initialwannier, self.atoms, kpointgrid)
-        waves = [self.calc.GetWaveFunction(band, kpt, spin)
-                 for kpt in len(self.calc.GetBZKPoints())
-                 for band in self.calc.GetNumberOfBands()]
+        init = self.calc.InitialWannier(initialwannier, self.atoms,
+                                        array(kpointgrid, Int))
+        waves = [[self.calc.GetWaveFunction(band, kpt, spin)
+                  for band in xrange(self.calc.GetNumberOfBands())]
+                 for kpt in xrange(len(self.calc.GetBZKPoints()))]
         init.SetupMMatrix(waves, self.calc.GetBZKPoints())
         c, U = init.GetListOfCoefficientsAndRotationMatrices(
             (self.calc.GetNumberOfBands(), fixedstates, edf))
         U = npy.array(U)
-        for k in len(c):
-            c[k] = npy.array(c[k])
+        for ck in c:
+            ck[:] = npy.array(ck)
         return c, U
 
                          
