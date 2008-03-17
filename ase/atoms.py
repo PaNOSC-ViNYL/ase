@@ -305,14 +305,14 @@ class Atoms(object):
     def get_momenta(self):
         return self.arrays['momenta']
 
-    def set_masses(self, masses=None):
+    def set_masses(self, masses='defaults'):
         """Set atomic masses.
 
-        The array masses should contain the a list masses.  If not
-        masses argument is given or if any elements of the masses list
-        are None, then standard values are set."""
+        The array masses should contain the a list masses.  In case
+        the masses argument is not given or for those elements of the
+        masses list that are None, standard values are set."""
         
-        if masses is None:
+        if masses == 'defaults':
             masses = atomic_masses[self.arrays['numbers']]
         elif isinstance(masses, (list, tuple)):
             newmasses = []
@@ -405,7 +405,7 @@ class Atoms(object):
             symbols = ''.join(self.get_chemical_symbols())
         else:
             symbols = ''.join([chemical_symbols[Z] 
-                               for Z in self.arrays['numbers'][:15]]) + '...'
+                               for Z in self.arrays['numbers'][:15]]) + '[...]'
         s = "Atoms(symbols='%s', " % symbols
         for name in self.arrays:
             if name == 'numbers':
@@ -479,7 +479,7 @@ class Atoms(object):
 
     def pop(self, i=-1):
         atom = self[i]
-        atom.cut()
+        atom.cut_reference_to_atoms()
         del self[i]
         return atom
     

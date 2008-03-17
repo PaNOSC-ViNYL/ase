@@ -64,10 +64,27 @@ class Atom(object):
         >>> c.symbol = 'Li'
         >>> c.number
         3
+
+        If the atom object belongs to an Atoms object, then assigning
+        values to the atom attributes will change the corresponding
+        arrays of the atoms object:
+
+        >>> OH = Atoms('OH')
+        >>> OH[0].charge = -1
+        >>> OH.get_charges()
+        array([-1.,  0.])
+
+        Another example:
+
+        >>> for atom in bulk:
+        ...     if atom.symbol = 'Ni':
+        ...         atom.magmom = 0.7
         
+
         """
 
         if atoms is None:
+            # This atom is not part of any Atoms object:
             if isinstance(symbol, str):
                 self._number = atomic_numbers[symbol]
                 self._symbol = symbol
@@ -84,12 +101,29 @@ class Atom(object):
         self.index = index
         self.atoms = atoms
 
+    def __repr__(self):
+        s = "Atoms('%s', %s" % (self.symbol, self.position.tolist())
+        for attr in ['tag', 'momentum', 'mass', 'magmom', 'charge']:
+            value = getattr(self, attr)
+            if value is not None:
+                print attr, value
+                if isinstance(value, npy.ndarray):
+                    value = value.tolist()
+                s += ', %s=%s' % (attr, value)
+        if self.atoms is None:
+            s += ')'
+        else:
+            s += ', atoms=..., index=%d)' % self.index
+        return s
+
     def get_data(self):
+        """Helper method."""
         return (self.position, self.number,
                 self.tag, self.momentum, self.mass,
                 self.magmom, self.charge)
 
-    def cut(self):
+    def cut_reference_to_atoms(self):
+        """Cut reference to atoms object."""
         data = self.get_data()
         self.index = None
         self.atoms = None
@@ -100,6 +134,7 @@ class Atom(object):
          self._mass,
          self._magmom,
          self._charge) = data
+        self._symbol = chemical_symbols[self._number]
         
     def _get(self, name):
         if self.atoms is None:
