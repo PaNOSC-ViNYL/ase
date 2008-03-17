@@ -1,6 +1,16 @@
 import numpy as npy
-
+import Numeric as num
 from ase.data import chemical_symbols
+
+def npy2num(a, typecode=num.Float):
+    return num.array(a, typecode)
+if num.__version__ <= '23.8':
+    #def npy2num(a, typecode=num.Float):
+    #    return num.array(a.tolist(), typecode)
+    def npy2num(a, typecode=num.Float):
+        b = num.fromstring(a.tostring(), typecode)
+        b.shape = a.shape
+        return b
 
 
 class OldASEListOfAtomsWrapper:
@@ -55,14 +65,13 @@ class OldASECalculatorWrapper:
 
         if self.atoms is None:
             from ASE import Atom, ListOfAtoms
-            from Numeric import array, Float
             
             numbers = atoms.get_atomic_numbers()
             positions = atoms.get_positions()
             self.atoms = ListOfAtoms(
                 [Atom(Z=numbers[a], position=positions[a])
                  for a in range(len(atoms))],
-                cell=array(atoms.get_cell(), Float),
+                cell=npy2num(atoms.get_cell()),
                 periodic=tuple(atoms.get_pbc()))
             self.atoms.SetCalculator(calc)
 
@@ -70,14 +79,12 @@ class OldASECalculatorWrapper:
         return OldASEListOfAtomsWrapper(self.atoms)
             
     def get_potential_energy(self, atoms):
-        from Numeric import array, Float
         # XXXX what about the cell?
-        self.atoms.SetCartesianPositions(array(atoms.get_positions(), Float))
+        self.atoms.SetCartesianPositions(npy2num(atoms.get_positions()))
         return self.calc.GetPotentialEnergy()
 
     def get_forces(self, atoms):
-        from Numeric import array, Float
-        self.atoms.SetCartesianPositions(array(atoms.get_positions(), Float))
+        self.atoms.SetCartesianPositions(npy2num(atoms.get_positions()))
         return npy.array(self.calc.GetCartesianForces())
 
     def get_stress(self, atoms):
@@ -113,17 +120,15 @@ class OldASECalculatorWrapper:
 
     def get_wannier_localization_matrix(self, nbands, dirG, kpoint,
                                         nextkpoint, G_I, spin):
-        from Numeric import array, Float
         return npy.array(self.calc.GetWannierLocalizationMatrix(
-            array(G_I, Float), nbands, array(dirG, Float), kpoint,
+            npy2num(G_I, num.Int), nbands, npy2num(dirG, num.Int), kpoint,
             nextkpoint, spin))
     
     def initial_wannier(self, initialwannier, kpointgrid, fixedstates,
                         edf, spin):
-        from Numeric import array, Int        
         # Use initial guess to determine U and C
         init = self.calc.InitialWannier(initialwannier, self.atoms,
-                                        array(kpointgrid, Int))
+                                        npy2num(kpointgrid, num.Int))
         waves = [[self.calc.GetWaveFunction(band, kpt, spin)
                   for band in xrange(self.calc.GetNumberOfBands())]
                  for kpt in xrange(len(self.calc.GetBZKPoints()))]
