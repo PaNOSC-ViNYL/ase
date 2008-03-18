@@ -99,7 +99,6 @@ def calculate_weights(cell_cc):
 
 def random_orthogonal_matrix(dim, seed=None, real=False):
     """ Generate a random orthogonal matrix"""
-
     if seed is not None:
         npy.random.seed(seed)
 
@@ -109,10 +108,9 @@ def random_orthogonal_matrix(dim, seed=None, real=False):
 
     if real:
         return gram_schmidt(H)
-
     else: 
         val, vec = npy.linalg.eig(H)
-        return npy.dot(vec.T * npy.exp(1.j * val), vec.conj())
+        return npy.dot(vec * npy.exp(1.j * val), dag(vec.conj))
 
 
 class Wannier:
@@ -313,7 +311,6 @@ class Wannier:
     def get_functional_value(self): 
         """Calculate Tr[|ZI|^2]=sum(I)sum(n) w_i|Z_(i)_nn|^2, where w_i
         are weights."""
-        #self.update()
         a_d = npy.sum(npy.abs(self.Z_dww.diagonal(0, 1, 2))**2, axis=1)
         return npy.dot(a_d, self.weight_d).real
 
@@ -322,7 +319,6 @@ class Wannier:
 
         pos =  L/2pi * Im(ln(Za))
         """
-
         return npy.dot(self.largeunitcell_cc.T / (2 * pi),
                        npy.log(self.Z_dww[:3].diagonal(0, 1, 2)).imag)
 
@@ -331,7 +327,6 @@ class Wannier:
 
         radius = sum() abs(L/2pi ln abs(Z*Zt))
         """
-
         return npy.dot(self.largeunitcell_cc.diagonal() / (2 * pi),
                        abs(npy.log(abs(self.Z_dww[:3].diagonal(0, 1, 2))**2)))
     
@@ -473,7 +468,6 @@ class Localize:
         lambda_k^T=c_k^d G_k
         where c are the coefficients and G is the gradient of the
         spread functional wrt. the c_k"""
-
         G_lag = []
         for L, coeff, Gcoeff in zip(self.wannier.edf_k,
                                     self.wannier.C_kul,
