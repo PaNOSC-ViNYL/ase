@@ -110,7 +110,7 @@ def random_orthogonal_matrix(dim, seed=None, real=False):
         return gram_schmidt(H)
     else: 
         val, vec = npy.linalg.eig(H)
-        return npy.dot(vec * npy.exp(1.j * val), dag(vec)
+        return npy.dot(vec * npy.exp(1.j * val), dag(vec))
 
 
 class Wannier:
