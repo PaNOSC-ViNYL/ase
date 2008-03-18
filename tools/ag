@@ -37,8 +37,10 @@ parser.add_option('-o', '--output', metavar='FILE',
 parser.add_option('-g', '--graph',
                   metavar='EXPR',
                   help='Plot x,y1,y2,... graph from configurations or '
-                  'data to sdtout in terminal mode.  Use the '
-                  'symbols: i, s, d, fmax, e, R, E and F.')
+                  'write data to sdtout in terminal mode.  Use the '
+                  'symbols: i, s, d, fmax, e, A, R, E and F.  See '
+                  'https://wiki.fysik.dtu.dk/ase3k/GUI#plotting-data '
+                  'for more details.')
 parser.add_option('-t', '--terminal',
                   action='store_true',
                   default=False,
