@@ -121,17 +121,24 @@ class OldASECalculatorWrapper:
     def get_wannier_localization_matrix(self, nbands, dirG, kpoint,
                                         nextkpoint, G_I, spin):
         return npy.array(self.calc.GetWannierLocalizationMatrix(
-            npy2num(G_I, num.Int), nbands, npy2num(dirG, num.Int), kpoint,
-            nextkpoint, spin))
+            G_I=G_I.tolist(), nbands=nbands, dirG=dirG.tolist(),
+            kpoint=kpoint, nextkpoint=nextkpoint, spin=spin))
     
     def initial_wannier(self, initialwannier, kpointgrid, fixedstates,
                         edf, spin):
         # Use initial guess to determine U and C
         init = self.calc.InitialWannier(initialwannier, self.atoms,
                                         npy2num(kpointgrid, num.Int))
-        waves = [[self.calc.GetWaveFunction(band, kpt, spin)
-                  for band in xrange(self.calc.GetNumberOfBands())]
-                 for kpt in xrange(len(self.calc.GetBZKPoints()))]
+
+##         waves = [[self.calc.GetWaveFunction(band, kpt, spin)
+##                   for band in xrange(self.calc.GetNumberOfBands())]
+##                  for kpt in xrange(len(self.calc.GetBZKPoints()))]
+
+        states = self.calc.GetElectronicStates()
+        waves = [[state.GetWaveFunction()
+                  for state in states.GetStatesKPoint(k, spin)]
+                 for k in self.calc.GetIBZKPoints()] 
+
         init.SetupMMatrix(waves, self.calc.GetBZKPoints())
         c, U = init.GetListOfCoefficientsAndRotationMatrices(
             (self.calc.GetNumberOfBands(), fixedstates, edf))

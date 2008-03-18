@@ -122,7 +122,8 @@ class Wannier:
                  numberofbands=None,
                  occupationenergy=0,
                  numberoffixedstates=None,
-                 spin=0): 
+                 spin=0,
+                 dtype=complex): 
 
         calc = wrap(calc)
         self.nwannier = numberofwannier
@@ -135,10 +136,12 @@ class Wannier:
         self.largeunitcell_cc = npy.transpose(self.unitcell_cc.T *self.kptgrid)
         self.weight_d, self.Gdir_dc = calculate_weights(self.largeunitcell_cc)
         self.Ndir = len(self.weight_d) # Number of directions
-        if self.Nk == 1:
-            self.dtype = float
-        else:
-            self.dtype = complex
+        # Dacapo's initial wannier makes complex rotations even with 1 k-point
+        self.dtype = dtype
+##         if self.Nk == 1:
+##             self.dtype = float
+##         else:
+##             self.dtype = complex
         
         if numberofbands is not None:
             self.nbands = numberofbands
@@ -277,7 +280,7 @@ class Wannier:
         # reciprocal lattice vectors we are going to search for,
         # including K0=0
         alldir_dc = npy.array([[0,0,0],[1,0,0],[0,1,0],[0,0,1],
-                               [1,1,0],[1,0,1],[0,1,1]])
+                               [1,1,0],[1,0,1],[0,1,1]], int)
         for k0_c in alldir_dc:
             for k1 in range(self.Nk):
                 if npy.linalg.norm(
@@ -326,11 +329,11 @@ class Wannier:
     def get_radii(self):
         """Calculate the Wannier radii
 
-        radius = sum()-L/2pi ln abs(ln(Z*Zt))
+        radius = sum() abs(L/2pi ln abs(Z*Zt))
         """
 
-        return -npy.dot(self.largeunitcell_cc.diagonal() / (2 * pi),
-                        npy.log(abs(self.Z_dww[:3].diagonal(0, 1, 2))**2))
+        return npy.dot(self.largeunitcell_cc.diagonal() / (2 * pi),
+                       abs(npy.log(abs(self.Z_dww[:3].diagonal(0, 1, 2))**2)))
     
     def get_spectral_weight_of_wannier_function(self, w):
         return abs(self.V_knw[:, :, w])**2 / self.Nk
@@ -363,7 +366,8 @@ class Wannier:
         print 'Spread:', d[index]           
 
     def localize(self, step=0.25, tolerance=1.0e-08):
-        maxi = MDmin(self) # = SteepestDescent(self)
+        #maxi = SteepestDescent(self)
+        maxi = MDmin(self)
         print 'Localize with step =', step, 'and tolerance =', tolerance
         maxi.run(step=step, tolerance=tolerance)
 
@@ -521,10 +525,9 @@ class Localize:
             # Copy to make contiguous. Needed? XXX
             H = npy.conj(A * 1.j).copy()
             epsilon, Z = npy.linalg.eigh(H)
-            # Z contains the eigenvectors as ROWS and epsilon the eigenvalues.
-            # Suppose U contains eigenvectors as columns, i.e. Z=U^T
-            # Since H=iA, dU = exp(-A)=exp(iH)=UDU^d=Z^T D Z^*
-            dU = npy.dot(Z.T * npy.exp(1.j * epsilon), Z.conj())
+            # Z contains the eigenvectors as COLUMNS.
+            # Since H=iA, dU = exp(-A)=exp(iH) = ZDZ^d
+            dU = npy.dot(Z * npy.exp(1.j * epsilon), dag(Z))
             U[:] = npy.dot(U, dU)            
        
     def update_coefficient_matrix(self, dX):
@@ -557,9 +560,6 @@ class Localize:
 
 
 class SteepestDescent(Localize): 
-    def __init__(self, wannier):
-        Localize.__init__(self, wannier)
-
     def run(self, step=0.005, tolerance=1.0e-6):
         fvalueold = 0.
         fvalue = fvalueold + 10
@@ -574,9 +574,6 @@ class SteepestDescent(Localize):
 
 
 class MDmin(Localize): 
-    def __init__(self, wannier):
-        Localize.__init__(self, wannier)
-
     def run(self, step=0.25, tolerance=1.0e-6,
             updaterot=True, updatecoeff=True):
         t = - time()
