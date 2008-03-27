@@ -9,7 +9,7 @@ from time import time
 from math import sqrt, pi
 import cPickle as pickle
 from ase.parallel import paropen
-from ase.old import OldASEListOfAtomsWrapper, OldASECalculatorWrapper
+from ase.old import OldASECalculatorWrapper
 
 
 def wrap(calc):

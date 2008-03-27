@@ -239,7 +239,7 @@ class Atoms(object):
         self.cell = cell
 
     def get_cell(self):
-        """Get the three unit cell vectors as an 3x3 ndarray."""
+        """Get the three unit cell vectors as a 3x3 ndarray."""
         return self.cell.copy()
 
     def set_pbc(self, pbc):

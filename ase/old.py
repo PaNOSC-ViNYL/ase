@@ -21,6 +21,11 @@ class OldASEListOfAtomsWrapper:
     def get_positions(self):
         return npy.array(self.atoms.GetCartesianPositions())
 
+    def get_calculator(self):
+        calc = self.atoms.GetCalculator()
+        if calc is not None:
+            return OldASECalculatorWrapper(calc)
+
     def get_potential_energy(self):
         return self.atoms.GetPotentialEnergy()
 
@@ -56,6 +61,20 @@ class OldASEListOfAtomsWrapper:
 
     def __len__(self):
         return len(self.atoms)
+
+    def copy(self):
+        from ase.atoms import Atoms
+        return Atoms(positions=self.get_positions(),
+                     numbers=self.get_atomic_numbers(),
+                     tags=self.get_tags(),
+                     momenta=self.get_momenta(),
+                     masses=self.get_masses(),
+                     magmoms=self.get_magnetic_moments(),
+                     charges=self.get_charges(),
+                     cell=self.get_cell(),
+                     pbc=self.get_pbc(),
+                     constraint=None,
+                     calculator=None) # Don't copy the calculator
 
 
 class OldASECalculatorWrapper:

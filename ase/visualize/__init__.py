@@ -6,12 +6,17 @@ from ase.io.xyz import write_xyz
 from ase.io.cube import write_cube
 from ase.io.plt import write_plt
 import ase.parallel as parallel
+from ase.old import OldASEListOfAtomsWrapper
 
 
 def view(atoms, data=None, viewer=None):
     # Ignore for parallel calculations:
     if parallel.size != 1:
         return
+
+    if hasattr(atoms, 'GetUnitCell'):
+        # Convert old ASE ListOfAtoms to new style.
+        atoms = OldASEListOfAtomsWrapper(atoms).copy()
 
     viewers = ['ase.gui', 'gopenmol', 'vmd', 'rasmol', 'nanolab']
     if viewer is not None:
