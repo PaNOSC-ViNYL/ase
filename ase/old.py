@@ -80,8 +80,11 @@ class OldASEListOfAtomsWrapper:
 class OldASECalculatorWrapper:
     def __init__(self, calc, atoms=None):
         self.calc = calc
-        self.atoms = calc.GetListOfAtoms()
-
+        try:
+            self.atoms = calc.GetListOfAtoms()
+        except AttributeError:
+            self.atoms = None
+            
         if self.atoms is None:
             from ASE import Atom, ListOfAtoms
             
