@@ -20,22 +20,24 @@ def count(nl, atoms):
         d += (((R[i] + dot(offsets, cell) - R[a])**2).sum(1)**0.5).sum()
     return d, c
 
-for p1 in range(2):
-    for p2 in range(2):
-        for p3 in range(2):
-            print p1, p2, p3
-            atoms.set_pbc((p1, p2, p3))
-            nl = NeighborList(atoms.numbers * 0.2 + 0.5, 0.0)
-            nl.update(atoms)
-            d, c = count(nl, atoms)
-            i, o = nl.get_neighbors(0)
-            atoms2 = atoms.repeat((p1 + 1, p2 + 1, p3 + 1))
-            nl2 = NeighborList(atoms2.numbers * 0.2 + 0.5, 0.0)
-            nl2.update(atoms2)
-            d2, c2 = count(nl2, atoms2)
-            c2.shape = (-1, 10)
-            dd = d * (p1 + 1) * (p2 + 1) * (p3 + 1) - d2
-            print dd
-            print c2 - c
-            assert abs(dd) < 1e-11
-            assert not (c2 - c).any()
+for sorted in [False, True]:
+    for p1 in range(2):
+        for p2 in range(2):
+            for p3 in range(2):
+                print p1, p2, p3
+                atoms.set_pbc((p1, p2, p3))
+                nl = NeighborList(atoms.numbers * 0.2 + 0.5,
+                                  skin=0.0, sorted=sorted)
+                nl.update(atoms)
+                d, c = count(nl, atoms)
+                atoms2 = atoms.repeat((p1 + 1, p2 + 1, p3 + 1))
+                nl2 = NeighborList(atoms2.numbers * 0.2 + 0.5,
+                                   skin=0.0, sorted=sorted)
+                nl2.update(atoms2)
+                d2, c2 = count(nl2, atoms2)
+                c2.shape = (-1, 10)
+                dd = d * (p1 + 1) * (p2 + 1) * (p3 + 1) - d2
+                print dd
+                print c2 - c
+                assert abs(dd) < 1e-10
+                assert not (c2 - c).any()

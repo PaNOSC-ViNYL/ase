@@ -4,9 +4,10 @@ import numpy as npy
 
 
 class NeighborList:
-    def __init__(self, cutoffs, skin=0.3):
-        self.cutoffs = cutoffs + skin
+    def __init__(self, cutoffs, skin=0.3, sorted=False):
+        self.cutoffs = npy.asarray(cutoffs) + skin
         self.skin = skin
+        self.sorted = sorted
         self.nupdates = 0
 
     def update(self, atoms):
@@ -71,5 +72,32 @@ class NeighborList:
                         self.displacements[a] = npy.concatenate(
                             (self.displacements[a], disp))
 
+        if self.sorted:
+            for a, i in enumerate(self.neighbors):
+                j = i[i < a]
+                offsets = self.displacements[a][i < a]
+                for b, offset in zip(j, offsets):
+                    self.neighbors[b] = npy.concatenate(
+                        (self.neighbors[b], [a]))
+                    self.displacements[b] = npy.concatenate(
+                            (self.displacements[b], [-offset]))
+                self.neighbors[a] = self.neighbors[a][i >= a]
+                self.displacements[a] = self.displacements[a][i >= a]
+                
+        self.nupdates += 1
+
     def get_neighbors(self, a):
+        """Return neighbors of atom number a.
+
+        A list of indices and offsets to neighboring atoms is
+        returned.  The positions of the neighbor atoms can be
+        calculated like this::
+
+          indices, offsets = nl.get_neighbors(42)
+          for i, offset in zip(indices, offsets):
+              print atoms.positions[i] + dot(offset, atoms.get_cell())
+
+        Notice that if get_neighbors(a) gives atom b as a neighbor,
+        then get_neighbors(b) will not return a as a neighbor!  """
+        
         return self.neighbors[a], self.displacements[a]
