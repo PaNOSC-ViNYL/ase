@@ -14,7 +14,10 @@ class PickleTrajectory:
         self.open(filename, mode)
         
     def open(self, filename, mode):
-        if mode in 'ar':
+        if mode == 'r':
+            self.fd = open(filename, mode + 'b')
+            self.read_header()
+        elif mode == 'a':
             self.fd = open(filename, mode + 'b+')
             self.read_header()
         elif mode == 'w':
