@@ -15,4 +15,4 @@ from ase.constraints import *
 from ase.calculators import LennardJones, EMT, ASAP
 from ase.neb import NEB
 from ase.visualize import *
-del atoms # XXX
+#del atoms # XXX

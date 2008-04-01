@@ -1,4 +1,7 @@
-"""ASE interface to SIESTA."""
+"""This module defines an ASE interface to SIESTA_.
+
+.. _siesta: siesta.org
+"""
 
 import os
 from os.path import join, isfile, islink
@@ -11,7 +14,7 @@ from ase.data import chemical_symbols
 class Siesta:
     """Class for doing SIESTA calculations.
 
-    The default parameters are very close to those that the SIESTA
+    The default parameters are very close to those that the SIESTA_
     Fortran code would use.  These are the exceptions::
     
       calc = Siesta(label='siesta', xc='LDA', pulay=5, mix=0.1)
