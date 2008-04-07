@@ -309,15 +309,22 @@ class Wannier:
         self.Z_dww = self.Z_dkww.sum(axis=1) / self.Nk
 
     def get_functional_value(self): 
-        """Calculate Tr[|ZI|^2]=sum(I)sum(n) w_i|Z_(i)_nn|^2, where w_i
-        are weights."""
+        """Calculate functional value.
+
+        ::
+
+          Tr[|ZI|^2]=sum(I)sum(n) w_i|Z_(i)_nn|^2,
+
+        where w_i are weights."""
         a_d = npy.sum(npy.abs(self.Z_dww.diagonal(0, 1, 2))**2, axis=1)
         return npy.dot(a_d, self.weight_d).real
 
     def get_centers(self):
         """Calculate the Wannier centers
 
-        pos =  L/2pi * Im(ln(Za))
+        ::
+        
+          pos =  L/2pi * Im(ln(Za))
         """
         return npy.dot(self.largeunitcell_cc.T / (2 * pi),
                        npy.log(self.Z_dww[:3].diagonal(0, 1, 2)).imag)
@@ -422,13 +429,17 @@ class Localize:
     def get_coefficient_gradients(self):
         """Calculate the gradient for a change of coefficients
 
-        Gamma-point:
+        Gamma-point::
+        
           dRho/da^*_{i,j} = sum(I) [[Z_0 V diag(Z^*)+Z_0^d V diag(Z)] U^d]_{N+i,N+j}
+          
         where diag(Z) is a square,diagonal matrix with Z_nn in the diagonal.
 
-        k-points:
+        k-points::
+        
           dRho/da^*_{k,i,j} = sum(I) [[(Z_0)_{k} V_{k'} diag(Z^*) + (Z_0_{k''})^d V_{k''} diag(Z)] U_k^d]_{N+i,N+j}
-        where k'=k+dk and k=k''+dk
+
+        where k'=k+dk and k=k''+dk.
         """
         Nb = self.wannier.nbands
         M_k = self.wannier.fixedstates_k
@@ -481,10 +492,12 @@ class Localize:
     def get_rotation_gradients(self):
         """ Calculate the gradient for a rotation A_kij:
 
-       Gamma-point:
+        Gamma-point::
+       
            dRho/dA_{i,j} = sum(I) Z_ji(Z_jj^*-Z_ii^*)-Z_ij^*(Z_ii-Z_jj)
 
-        k-point:
+        k-point::
+        
            dRho/dA_{k,i,j} = sum(I) sum(k')
                  + Z_jj Z_kk',ij^* - Z_ii Z_k'k,ij^*
                  - Z_ii^* Z_kk',ji + Z_jj^* Z_k'k,ji

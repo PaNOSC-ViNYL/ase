@@ -405,7 +405,7 @@ class Atoms(object):
             symbols = ''.join(self.get_chemical_symbols())
         else:
             symbols = ''.join([chemical_symbols[Z] 
-                               for Z in self.arrays['numbers'][:15]]) + '[...]'
+                               for Z in self.arrays['numbers'][:15]]) + '...'
         s = "Atoms(symbols='%s', " % symbols
         for name in self.arrays:
             if name == 'numbers':

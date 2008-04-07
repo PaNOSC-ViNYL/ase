@@ -38,6 +38,8 @@ def test(verbosity=1):
     sys.stdout = devnull
     
     ttr = unittest.TextTestRunner(verbosity=verbosity)
-    ttr.run(ts)
+    result = ttr.run(ts)
 
     sys.stdout = sys.__stdout__
+
+    return results

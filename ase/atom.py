@@ -93,7 +93,9 @@ class Atom(object):
                 self._symbol = chemical_symbols[symbol]
             self._position = npy.asarray(position, float)
             self._tag = tag
-            self._momentum = npy.asarray(momentum, float)
+            if momentum is not None:
+                momentum = npy.asarray(momentum, float)
+            self._momentum = momentum
             self._mass = mass
             self._magmom = magmom
             self._charge = charge
