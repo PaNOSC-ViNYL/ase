@@ -303,7 +303,7 @@ class Atoms(object):
         self.set_array('momenta', momenta, float)
 
     def get_momenta(self):
-        return self.arrays['momenta']
+        return self.arrays['momenta'].copy()
 
     def set_masses(self, masses='defaults'):
         """Set atomic masses.

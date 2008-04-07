@@ -11,6 +11,7 @@ from ase.optimize.mdmin import MDMin
 from ase.optimize.fire import FIRE
 from ase.optimize.qn import QuasiNewton
 from ase.md.verlet import VelocityVerlet
+from ase.md.langevin import Langevin
 from ase.constraints import *
 from ase.calculators import LennardJones, EMT, ASAP
 from ase.neb import NEB
