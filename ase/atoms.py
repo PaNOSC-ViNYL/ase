@@ -637,7 +637,11 @@ class Atoms(object):
     def _get_positions(self):
         return self.arrays['positions']
     
-    positions = property(_get_positions, doc='Attribute for direct ' +
+    def _set_positions(self, pos):
+        self.arrays['positions'][:] = pos
+    
+    positions = property(_get_positions, _set_positions,
+                         doc='Attribute for direct ' +
                          'manipulation of the positions.')
 
     def _get_numbers(self):
