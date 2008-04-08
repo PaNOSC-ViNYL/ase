@@ -1,14 +1,8 @@
-.. sidebar:: Quick Links
-
-  * :ref:`examples`
-  * :ref:`glossary`
-
-
 Contents
 ========
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    index
    intro
@@ -27,8 +21,12 @@ Contents
 Indices and tables
 ==================
 
+* Manual: ase.pdf_
 * :ref:`glossary`
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
 
+
+
+.. _ase.pdf:  ase.pdf

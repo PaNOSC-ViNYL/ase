@@ -8,9 +8,9 @@ import tempfile
 
 def build():
     if os.system('svn export ' +
-                 'https://svn.fysik.dtu.dk/projects/ase3000/trunk ase3') != 0:
+                 'https://svn.fysik.dtu.dk/projects/ase/trunk ase') != 0:
         raise RuntimeError('Checkout of ASE failed!')
-    os.chdir('ase3')
+    os.chdir('ase')
     if os.system('python setup.py install --home=.') != 0:
         raise RuntimeError('Installation failed!')
 
@@ -28,7 +28,7 @@ def build():
 
     if os.system('epydoc --docformat restructuredtext --parse-only ' +
                  '--name ASE ' +
-                 '--url http://wiki.fysik.dtu.dk/stuff/ase/sphinx ' +
+                 '--url http://web2.fysik.dtu.dk/ase ' +
                  '--show-imports --no-frames -v ase >& epydoc.out') != 0:
         raise RuntimeError('Epydoc failed!')
 
@@ -46,5 +46,8 @@ def build():
     os.chdir('.build')
     if os.system('make ase.pdf') != 0:
         raise RuntimeError('pdflatex failed!')
+
+    assert os.system('mv ../../html epydoc;' +
+                     'mv ../../dist/python-ase-3.0.0.tar.gz .') == 0
     
 build()

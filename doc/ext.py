@@ -31,32 +31,37 @@ def epydoc_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     else:
         ref = '.'.join(components) + '-module.html'
 
-    ref = 'https://wiki.fysik.dtu.dk/stuff/ase/' + ref
+    ref = 'https://web2.fysik.dtu.dk/ase/epydoc/' + ref
     set_classes(options)
     node = nodes.reference(rawtext, 'Epydoc:' + text,
                            refuri=ref,
                            **options)
     return [node], []
 
-def fix_sidebar():
-    print 'fixing sidebars...',
-    for docname, name in [('index', 'News'), ('contents', 'Quick Links')]:
-        t = open('.build/%s.html' % docname).read()
-        i1 = t.find('<div class="container">')
-        if i1 != -1:
-            print docname,
-            i2 = t.index('</div>', i1)
-            i3 = t.index('<div class="sidebarwrapper">', i2)
-            i4 = t.index('<h3>This Page</h3>', i3)
-            t = (t[:i1] + t[i2 + 6:i3] + '<div class="sidebarwrapper">' +
-                 ('<h4>%s</h4>' % name) + 
-                 t[i1 + 23:i2] + t[i4:])
-            open('.build/%s.html' % docname, 'w').write(t)
-    print
-
 def setup(app):
     app.add_role('svn', svn_role)
     app.add_role('epydoc', epydoc_role)
-    import atexit
-    atexit.register(fix_sidebar)
+    #import atexit
+    #atexit.register(fix_sidebar)
+
+"""
+def fix_sidebar():
+    print 'fixing sidebars...',
+    for docname in ['index', 'contents']:
+        t = open('.build/%s.html' % docname).read()
+        i1 = t.find('<p class="first sidebar-title">')
+        if i1 != -1:
+            print docname,
+            i0 = t.find('<div class="sidebar">')
+            i1b = t.find('</p>', i1)
+            name = t[i1 + 31:i1b]
+            i2 = t.index('</div>', i1)
+            i3 = t.index('<div class="sidebarwrapper">', i2)
+            i4 = t.index('<h3>This Page</h3>', i3)
+            t = (t[:i0] + t[i2 + 6:i3] + '<div class="sidebarwrapper">' +
+                 ('<h4>%s</h4>' % name) + 
+                 t[i1b + 5:i2] + t[i4:])
+            open('.build/%s.html' % docname, 'w').write(t)
+    print
+"""
     

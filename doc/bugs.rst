@@ -22,7 +22,7 @@ We do not guarantee to fix all bugs, but we will do our best.
 
 
 Known bugs
-==========
+----------
 
 * ...
 * ...

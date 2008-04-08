@@ -34,11 +34,19 @@ Installation
 Get the source code from svn::
 
   $ cd
-  $ svn checkout https://svn.fysik.dtu.dk/projects/ase3000/trunk ase3k
+  $ svn checkout https://svn.fysik.dtu.dk/projects/ase/trunk ase
+  $ cd ase
+	
+or from this tarfile (python-ase-3.0.0.tar.gz_)::
+
+  $ cd
+  $ tar xtzf python-ase-3.0.0.tar.gz
+  $ cd python-ase-3.0.0
+
+.. _python-ase-3.0.0.tar.gz: python-ase-3.0.0.tar.gz
 
 If you have root-access, you do this::
 
-  $ cd ase3k
   $ python setup.py install
 
 If you don't have root-access, you must put the directory
