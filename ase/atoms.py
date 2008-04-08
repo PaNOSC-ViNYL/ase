@@ -165,6 +165,8 @@ class Atoms(object):
             positions = npy.zeros((len(self.arrays['numbers']), 3))
         self.new_array('positions', positions, float)
 
+        self.set_constraint(constraint)
+                
         self.set_tags(default(tags, 0))
         self.set_momenta(default(momenta, (0.0, 0.0, 0.0)))
         self.set_masses(default(masses, None))
@@ -179,8 +181,6 @@ class Atoms(object):
             pbc = False
         self.set_pbc(pbc)
 
-        self.set_constraint(constraint)
-                
         self.set_calculator(calculator)
 
     def set_calculator(self, calc=None):
@@ -300,6 +300,10 @@ class Atoms(object):
         return self.arrays['tags']
 
     def set_momenta(self, momenta):
+        if len(self.constraints) > 0 and momenta is not None:
+            momenta = npy.array(momenta)  # modify a copy
+            for constraint in self.constraints:
+                constraint.adjust_forces(self.arrays['positions'], momenta)
         self.set_array('momenta', momenta, float)
 
     def get_momenta(self):
