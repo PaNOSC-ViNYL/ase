@@ -21,7 +21,7 @@ def wrap(calc):
 
 def dag(a):
     """Return Hermitian conjugate of input"""
-    return a.T.conj()
+    return npy.conj(a.T)
 
 
 def gram_schmidt(U, order=None):

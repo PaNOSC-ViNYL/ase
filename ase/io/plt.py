@@ -13,7 +13,7 @@ def write_plt(filename, atoms, data):
         cell = c.diagonal()
         c.flat[::4] = 0.0
         if c.any():
-            raise ValueError('Unit cell must be orthorhobmic!')
+            raise ValueError('Unit cell must be orthorhombic!')
 
     f = open(filename, 'w')
     npy.array([3, 4], npy.int32).tofile(f)
