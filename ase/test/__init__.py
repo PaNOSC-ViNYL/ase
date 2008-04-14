@@ -24,10 +24,11 @@ class ScriptTestCase(unittest.TestCase):
         return "ScriptTestCase(filename='%s')" % self.filename
 
 
-def test(verbosity=1):
+def test(verbosity=1, dir=None):
     ts = unittest.TestSuite()
-    print __path__,'***************'
-    tests = glob(__path__[0] + '/*.py')
+    if dir is None:
+        dir = __path__[0]
+    tests = glob(dir + '/*.py')
     tests.sort()
     for test in tests:
         if test.endswith('__init__.py'):

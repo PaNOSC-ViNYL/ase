@@ -19,7 +19,7 @@ def build():
     # Run test-suite:
     os.mkdir('test')
     os.chdir('test')
-    results = test(verbosity=2)
+    results = test(verbosity=2, dir='../ase/test')
     if len(results.failures) > 0 or len(results.errors) > 0:
         raise RuntimeError('Testsuite failed!')
 
