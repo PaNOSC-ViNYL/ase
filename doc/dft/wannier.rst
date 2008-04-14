@@ -1,6 +1,7 @@
 Maximally localized Wannier functions
 -------------------------------------
 
+.. default-role math
 
 
 
@@ -10,17 +11,17 @@ how to construct the Wannier orbitals using the class **Wannier**.
 
 Band structure and orbital analysis, based on the
 set of localized Wannier orbitals are discussed in the chapter
-`band structure analysis`.
+`band structure analysis`_.
 
 For the theory behind this method see the paper
-`Partly Occupied Wannier Functions`,
+`Partly Occupied Wannier Functions`_,
 Thygesen, Hansen and Jacobsen, Phys. Rev. Lett, Vol.94, 26405 (2005).
 
 
 The class Wannier
 `````````````````
 
-A simple initialization of the class `Wannier` looks like this::
+A simple initialization of the :class:`Wannier` looks like this::
 
 
      >>> from ASE.Utilities.Wannier import Wannier
@@ -45,7 +46,7 @@ For examples of how to use the **Wannier** class, see the `Wannier tutorial`_.
    but rather a larger unit cell defined by repeating the original
    unit cell by the number of **k**-points in each direction.
    We will refer to this unit cell as the large unit cell.
-   Note that for a gamma-point calculation the large unit cell
+   Note that for a :math:`\Gamma`-point calculation the large unit cell
    coinsides with the original unit cell.
    The large unitcell defines also the periodicity of the Wannier
    orbitals.
@@ -67,7 +68,7 @@ Below is the full list of keyword arguments:
 
 ``numberofwannier``: Number of Wannier orbitals.
   The number of Wannier orbitals to be constructed
-  must be <= `numberofbands`.
+  must be <= ``numberofbands``.
 
 ``calculator``: Calculator holding the eigenstates, the unit cell and
   providing the method GetWannierLocalizationMatrix.
@@ -90,13 +91,13 @@ Below is the full list of keyword arguments:
 ``numberoffixedstates``: Fix the number of states to be included in
   the internal localization space starting from the lowest eigenstate.
   This keyword provides another way of specifying how many
-  states should be included, and overrides `occupationenergy` if
+  states should be included, and overrides ``occupationenergy`` if
   this is also set. Default is None meaning that
-  the number of fixed states is set by the `occupationenergy`
+  the number of fixed states is set by the ``occupationenergy``
   keyword.
 
 ``initialwannier``: Setup an initial set of Wannier orbitals.
-  `initialwannier` can  set up a  starting guess for the Wannier functions.
+  *initialwannier* can  set up a  starting guess for the Wannier functions.
   This is important to speed up convergence in particular for large systems
   For transition elements with **d** electrons you will always find 5 highly
   localized **d**-orbitals centered at the atom.
@@ -131,12 +132,12 @@ Below is the full list of keyword arguments:
    valence states, corresponding to the 12 valence electrons.
 
 
-Below is a list of the most important methods of the class `Wannier`:
+Below is a list of the most important methods of the :class:`Wannier`:
 
 ``Localize(step=0.5,tolerance=1.0e-08)``: Perform the localization of the
   Wannier orbitals. This method will localize the Wannier orbitals, i.e will try to
   maximize the localization functional. If the functional value is not increasing
-  decrease the `step` size from the default value 0.5.
+  decrease the *step* size from the default value 0.5.
 
 ``GetWannierFunctionDOS(n,energies,width)``: Get projected density of states for WF.
   Returns the projected density of states (PDOS) for Wannier function n. The calculation
@@ -146,8 +147,8 @@ Below is a list of the most important methods of the class `Wannier`:
 ``WriteWannierFunctionDOSToNetCDFFile(filename,n,energies,width)``:
   Same as GetWannierFunctionDOS, but writes the output to a NetCDF file.
 
-``GetElectronicState(wannierindex,repeat=None)``: Returns an `ElectronicState` instance
-  corresponding to the Wannier orbital with index `wannierindex`. The keyword repeat can be
+``GetElectronicState(wannierindex,repeat=None)``: Returns an ``ElectronicState`` instance
+  corresponding to the Wannier orbital with index *wannierindex*. The keyword repeat can be
   a list of 3 integers [n1,n2,n3], specifying how many times the unit cell is repeated
   along the unit cell basis vectors.
 
@@ -156,7 +157,7 @@ Below is a list of the most important methods of the class `Wannier`:
 
 ``TranslateAllWannierFunctionsToCell(cell)``: Move all Wannier orbitals to a specific unit cell.
   There exists an arbitrariness  in the positions of the Wannier orbitals relative to the
-  unit cell. This method can move all orbitals to the unit cell specified by `cell`.
+  unit cell. This method can move all orbitals to the unit cell specified by *cell*.
   For a gamma-point calculation, this has no effect. For
   a **k**-point calculation the periodicity of the orbitals are given by the large unit cell
   defined by repeating the original unitcell by the number of **k**-points in each direction.
@@ -165,18 +166,18 @@ Below is a list of the most important methods of the class `Wannier`:
   the orbitals to the cell [2,2,2].
   In this way the pbc boundary conditions will not be noticed.
 
-``WriteCube(wannierindex,filename,repeat=(7,7,7),real=False)``: Write a `Cube` formatted file.
-  A `Cube` formatted file is written for the given wannier index.
-  `repeat` can be used to repeat the unitcell, this is only relevant for calculations using
+``WriteCube(wannierindex,filename,repeat=(7,7,7),real=False)``: Write a :ref:`Cube` formatted file.
+  A Cube formatted file is written for the given wannier index.
+  *repeat* can be used to repeat the unitcell, this is only relevant for calculations using
   **k**-points. In this case ``repeat``, will default be
   the number of **k**-points in each directions, i.e for a 11x11x11
   **k**-point set, repeat will be (11x11x11). This cell size represents the
   periodicity of the Wannier orbitals.
 
   Localized Wannier functions can often be chosen to be real.
-  If the keyword `real` is set to `True`, the complex Wannier function will be transformed
+  If the keyword *real* is set to *True*, the complex Wannier function will be transformed
   into a real one by multiplication be a suitable phase factor.
-  In VMD you can use this to add two `isosurfaces` using  +- isosurface value, to get an
+  In VMD you can use this to add two *isosurfaces* using  +- isosurface value, to get an
   approximation for the sign of the Wannier function.
 
 ``Save/ReadZIBlochMatrix(filename)``: Save and read ZI bloch matrix.

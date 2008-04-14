@@ -25,6 +25,3 @@ News
 
 
 .. _CAMd: http://www.camd.dtu.dk
-
-
-.. asdfkj  :latex-math:`a+b^2 + sin(x_2^{n+1})`.

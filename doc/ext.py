@@ -5,7 +5,7 @@ from docutils import nodes, utils
 from docutils.parsers.rst.roles import set_classes
 
 def svn_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
-    ref = 'https://trac.fysik.dtu.dk/projects/ase/browser/trunk/' + text
+    ref = 'http://trac.fysik.dtu.dk/projects/ase/browser/trunk/' + text
     set_classes(options)
     node = nodes.reference(rawtext, text, refuri=ref,
                            **options)
@@ -31,7 +31,7 @@ def epydoc_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     else:
         ref = '.'.join(components) + '-module.html'
 
-    ref = 'https://web2.fysik.dtu.dk/ase/epydoc/' + ref
+    ref = 'http://web2.fysik.dtu.dk/ase/epydoc/' + ref
     set_classes(options)
     node = nodes.reference(rawtext, 'Epydoc:' + text,
                            refuri=ref,

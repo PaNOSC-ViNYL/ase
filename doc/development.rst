@@ -49,3 +49,25 @@ here_ for details).
 
 .. _here: http://www.python.org/doc/current/lib/module-rlcompleter.html
 
+
+
+
+------------
+Using Sphinx
+------------
+
+::
+ 
+  <Directory "/var/www/html/ase">
+    AllowOverride All
+  </Directory>
+
+  AddType application/xhtml+xml .html
+
+
+
+Test: :math:`a+b^2 + sin(x_2^{n+1})`.
+
+.. math::
+
+   \frac{1}{1+x^2}
