@@ -17,7 +17,7 @@ def build():
     from ase.test import test
 
     # Run test-suite:
-    results = test(verbosity=2, dir='../ase/test')
+    results = test(verbosity=2, dir='ase/test')
     if len(results.failures) > 0 or len(results.errors) > 0:
         raise RuntimeError('Testsuite failed!')
 
