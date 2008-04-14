@@ -166,7 +166,7 @@ Below is a list of the most important methods of the :class:`Wannier`:
   the orbitals to the cell [2,2,2].
   In this way the pbc boundary conditions will not be noticed.
 
-``WriteCube(wannierindex,filename,repeat=(7,7,7),real=False)``: Write a :ref:`Cube` formatted file.
+``WriteCube(wannierindex,filename,repeat=(7,7,7),real=False)``: Write a Cube formatted file.
   A Cube formatted file is written for the given wannier index.
   *repeat* can be used to repeat the unitcell, this is only relevant for calculations using
   **k**-points. In this case ``repeat``, will default be

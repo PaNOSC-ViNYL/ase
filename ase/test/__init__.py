@@ -26,6 +26,7 @@ class ScriptTestCase(unittest.TestCase):
 
 def test(verbosity=1):
     ts = unittest.TestSuite()
+    print __path__,'***************'
     tests = glob(__path__[0] + '/*.py')
     tests.sort()
     for test in tests:
