@@ -17,14 +17,11 @@ def build():
     from ase.test import test
 
     # Run test-suite:
-    os.mkdir('test')
-    os.chdir('test')
     results = test(verbosity=2, dir='../ase/test')
     if len(results.failures) > 0 or len(results.errors) > 0:
         raise RuntimeError('Testsuite failed!')
 
     # Generate tar-file:
-    os.chdir('..')
     assert os.system('python setup.py sdist') == 0
 
     if os.system('epydoc --docformat restructuredtext --parse-only ' +
