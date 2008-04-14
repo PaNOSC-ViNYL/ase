@@ -13,7 +13,6 @@ class ScriptTestCase(unittest.TestCase):
             execfile(self.filename, {})
         except KeyboardInterrupt:
             raise RuntimeError('Keyboard interrupt')
-        #execfile(self.filename)
 
     def id(self):
         return self.filename

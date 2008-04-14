@@ -13,12 +13,13 @@ def build():
     os.chdir('ase')
     if os.system('python setup.py install --home=.') != 0:
         raise RuntimeError('Installation failed!')
+    sys.path.insert(0, 'lib/python')
+    from ase.test import test
 
     # Run test-suite:
     os.mkdir('test')
     os.chdir('test')
-    from ase.test import test
-    results = test()
+    results = test(verbosity=2)
     if len(results.failures) > 0 or len(results.errors) > 0:
         raise RuntimeError('Testsuite failed!')
 
