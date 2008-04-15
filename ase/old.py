@@ -80,12 +80,13 @@ class OldASEListOfAtomsWrapper:
 class OldASECalculatorWrapper:
     def __init__(self, calc, atoms=None):
         self.calc = calc
-        try:
-            self.atoms = calc.GetListOfAtoms()
-        except AttributeError:
-            self.atoms = None
             
-        if self.atoms is None:
+        if atoms is None:
+            try:
+                self.atoms = calc.GetListOfAtoms()
+            except AttributeError:
+                self.atoms = None
+        else:
             from ASE import Atom, ListOfAtoms
             
             numbers = atoms.get_atomic_numbers()
@@ -151,10 +152,6 @@ class OldASECalculatorWrapper:
         # Use initial guess to determine U and C
         init = self.calc.InitialWannier(initialwannier, self.atoms,
                                         npy2num(kpointgrid, num.Int))
-
-##         waves = [[self.calc.GetWaveFunction(band, kpt, spin)
-##                   for band in xrange(self.calc.GetNumberOfBands())]
-##                  for kpt in xrange(len(self.calc.GetBZKPoints()))]
 
         states = self.calc.GetElectronicStates()
         waves = [[state.GetWaveFunction()
