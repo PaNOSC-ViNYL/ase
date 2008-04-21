@@ -389,25 +389,11 @@ class View:
 
     def external_viewer(self, action):
         name = action.get_name()
-        if name == 'XMakeMol':
-            from ase.gui.write import write_to_file
-            fd, filename = tempfile.mkstemp('.xyz', 'g2-')
-            os.close(fd)
-            write_to_file(filename, self.images, 'xyz',
-                          range(self.images.nimages))
-            os.system('(xmakemol -f %s &); (sleep 5; rm %s) &' %
-                      (filename, filename))
-
-        elif name == 'RasMol':
-            fd, filename = tempfile.mkstemp('.xyz', 'g2-')
-            os.close(fd)
-            self.images.write(filename)
-            os.system('(rasmol -xyz %s &); (sleep 5; rm %s) &' %
-                      (filename, filename))
-
-        elif name == 'VMD':
-            from ase.gui.write import write_to_file
-            fd, filename = tempfile.mkstemp('.xyz', 'g2-')
-            os.close(fd)
-            write_to_file(filename, self.images, 'xyz', [self.frame])
-            os.system('(vmd %s &); (sleep 5; rm %s) &' % (filename, filename))
+        command = {'XMakeMol': 'xmakemol -f',
+                   'RasMol':'rasmol -xyz',
+                   'VMD': 'vmd'}[name]
+        fd, filename = tempfile.mkstemp('.xyz', 'ase.gui-')
+        os.close(fd)
+        self.images.write(filename)
+        os.system('(%s %s &); (sleep 5; rm %s) &' %
+                  (command, filename, filename))
