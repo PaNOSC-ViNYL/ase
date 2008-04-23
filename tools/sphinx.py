@@ -34,14 +34,13 @@ def build():
         raise RuntimeError('Warning(s) from epydoc!')
 
     os.chdir('doc')
-    os.mkdir('.static')
-    os.mkdir('.build')
-    if os.system('sphinx-build . .build') != 0:
+    os.mkdir('_build')
+    if os.system('sphinx-build . _build') != 0:
         raise RuntimeError('Sphinx failed!')
 
-    if os.system('sphinx-build -b latex . .build') != 0:
+    if os.system('sphinx-build -b latex . _build') != 0:
         raise RuntimeError('Sphinx failed!')
-    os.chdir('.build')
+    os.chdir('_build')
     if os.system('make ase.pdf') != 0:
         raise RuntimeError('pdflatex failed!')
 
