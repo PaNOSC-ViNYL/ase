@@ -8,7 +8,7 @@ Contents
    intro
    overview
    download
-   modules
+   ase/ase
    examples/examples
    python
    numpy
