@@ -202,3 +202,20 @@ or::
   import stuff as st
   print st.f(1, 2)
   print st.C(1).M(2)
+
+
+
+readline
+--------
+
+Be sure to have these lines in your personal ``.pythonrc`` file::
+
+  import rlcompleter
+  import readline
+  readline.parse_and_bind("tab: complete")
+
+and point the ``PYTHONSTARTUP`` environment variable at it (see
+here_ for details).
+
+
+.. _here: http://www.python.org/doc/current/lib/module-rlcompleter.html

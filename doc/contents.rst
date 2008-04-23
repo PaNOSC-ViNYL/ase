@@ -13,8 +13,9 @@ Contents
    python
    numpy
    bugs
-   development
+   development/development
    glossary
+
 
 
 
