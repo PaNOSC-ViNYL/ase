@@ -1,6 +1,4 @@
 from docutils import nodes
-from docutils.parsers.rst import Directive
-from docutils.parsers.rst import directives
 from docutils.writers.html4css1 import HTMLTranslator
 from sphinx.latexwriter import LaTeXTranslator
 
@@ -23,26 +21,51 @@ def math_role(role, rawtext, text, lineno, inliner,
     node['mathml_tree'] = mathml_tree
     return [node], []
 
-class math_directive(Directive):
-    has_content = True
-    def run(self): 
-        latex = ' '.join(self.content)
+
+try:
+    from docutils.parsers.rst import Directive
+except ImportError:
+    # Register directive the old way:
+    from docutils.parsers.rst.directives import _directives
+    def math_directive(name, arguments, options, content, lineno,
+                       content_offset, block_text, state, state_machine):
+        latex = ''.join(content)
         try:
             mathml_tree = parse_latex_math(latex, inline=False)
         except SyntaxError, msg:
-            error = self.state_machine.reporter.error(
-                msg, nodes.literal_block(self.block_text, self.block_text),
-                line=self.lineno)
+            error = state_machine.reporter.error(
+                msg, nodes.literal_block(block_text, block_text), line=lineno)
             return [error]
-        node = latex_math(self.block_text)
+        node = latex_math(block_text)
         node['latex'] = latex
         node['mathml_tree'] = mathml_tree
         return [node]
+    math_directive.arguments = None
+    math_directive.options = {}
+    math_directive.content = 1
+    _directives['math'] = math_directive
+else:
+    class math_directive(Directive):
+        has_content = True
+        def run(self): 
+            latex = ' '.join(self.content)
+            try:
+                mathml_tree = parse_latex_math(latex, inline=False)
+            except SyntaxError, msg:
+                error = self.state_machine.reporter.error(
+                    msg, nodes.literal_block(self.block_text, self.block_text),
+                    line=self.lineno)
+                return [error]
+            node = latex_math(self.block_text)
+            node['latex'] = latex
+            node['mathml_tree'] = mathml_tree
+            return [node]
+    from docutils.parsers.rst import directives
+    directives.register_directive('math', math_directive)
 
 def setup(app):
     app.add_node(latex_math)
     app.add_role('math', math_role)
-    directives.register_directive('math', math_directive)
 
     # Add visit/depart methods to HTML-Translator:
     def visit_latex_math_html(self, node):
