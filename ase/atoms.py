@@ -471,7 +471,7 @@ class Atoms(object):
 
         atoms.arrays = {}
         for name, a in self.arrays.items():
-            atoms.arrays[name] = a[i]
+            atoms.arrays[name] = a[i].copy()
             
         return atoms
 
