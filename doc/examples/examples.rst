@@ -12,5 +12,5 @@ Examples
 .. toctree::
 
    bader
-
+   neb
 

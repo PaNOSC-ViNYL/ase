@@ -41,7 +41,9 @@ Example of use::
   initial = read('A.xyz')
   final = read('B.xyz')
   # Make a band:
-  images = [initial] + [initial.copy() for i in range(3)] + [final]
+  images = [initial]
+  images += [initial.copy() for i in range(3)]
+  images += [final]
   neb = NEB(images)
   # Interpolate linearly the potisions of the three middle images:
   neb.interpolate()
@@ -52,21 +54,29 @@ Example of use::
   optimizer = QuasiNewton(neb)
   optimizer.run(fmax=0.04)
 
-Notice the use of :meth:`NEB.interpolate` method to get a good
+Notice the use of :meth:`interpolate` method to get a good
 initial guess for the path from A to B.
 
 .. method:: interpolate()
 
    Interpolate path linearly from initial to final state.
 
+.. seealso::
 
-XXX How to optimize
+   :mod:`optimize`:
+        Information about energy minimization (optimization).
 
-XXX How to set calculators, constraints
+   :mod:`calculators`:
+        How to use calculators.
 
-XXX See also ...
+   :ref:`examples`:
+        * :ref:`example1`
+        * :ref:`example2`
 
-XXX Trajectories?
+Trajectories
+============
+
+XXX
 
 
 Climbing image
@@ -81,7 +91,6 @@ location of the climbing image; thus in general the climbing image is not
 turned on until some iterations have been run without it (generally 20% to 50%
 of the total number of iterations).
 
+To use the climbing image NEB method, instantiate the NEB object like this::
 
-
-
-
+  neb = NEB(images, climb=True)

@@ -1,5 +1,5 @@
-.. module::  ase.calculators
-   :synopsis: Energy, forces, stress calculators.
+.. module::  calculators
+   :synopsis: Energy, force, stress calculators.
 
 Calculators
 ===========

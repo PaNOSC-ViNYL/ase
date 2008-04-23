@@ -2,8 +2,8 @@
    :synopsis: ASE module
 
 
-Modules
-=======
+Modules in ASE
+==============
 
 .. toctree::
    :maxdepth: 2
@@ -15,6 +15,7 @@ Modules
    optimize
    visualize
    calculators/calculators
+   neb
    vibrations
    md
    dft/dft
