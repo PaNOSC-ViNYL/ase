@@ -10,11 +10,12 @@ may do a complete quantum-mechanical calculation, or may use a simpler
 (semi-)empirical potential.
 
 
+
 News
 ----
 
 * Thursday April 24 will be ASE documentation-day.  Ten people from
-  CAMd/CINF will do a "doc-sprint" from 9 to 16.  (17 Apr 2008)
+  CAMd/Cinf will do a "doc-sprint" from 9 to 16.  (17 Apr 2008)
 
 * The new ASE-3.0 Sphinx_ page is now up and running!  (2 Apr 2008)
 

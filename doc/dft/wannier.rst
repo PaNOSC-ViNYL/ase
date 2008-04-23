@@ -11,10 +11,10 @@ how to construct the Wannier orbitals using the class **Wannier**.
 
 Band structure and orbital analysis, based on the
 set of localized Wannier orbitals are discussed in the chapter
-`band structure analysis`_.
+band structure analysis XXX
 
 For the theory behind this method see the paper
-`Partly Occupied Wannier Functions`_,
+Partly Occupied Wannier Functions XXX
 Thygesen, Hansen and Jacobsen, Phys. Rev. Lett, Vol.94, 26405 (2005).
 
 
@@ -40,7 +40,7 @@ For examples of how to use the **Wannier** class, see the `Wannier tutorial`_.
 
 .. _Wannier tutorial: http://www.fysik.dtu.dk/campos/ASE/tut/wannier.html
 
-.. note::
+.. tip::
    For a calculation using **k**-points the relevant unit cell for
    eg. visualization of the Wannier orbitals is not the original unit cell,
    but rather a larger unit cell defined by repeating the original
