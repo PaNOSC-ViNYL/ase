@@ -38,7 +38,8 @@ R = npy.zeros((2, 3))
 for i in range(1, 2):
     R[i] = i * A[2] / 6
 print (Atoms('Cu2', positions=R,
-             pbc=1, cell=A, calculator=EMT()).get_potential_energy() - 2 * e0) / 2
+             pbc=1, cell=A,
+             calculator=EMT()).get_potential_energy() - 2 * e0) / 2
 
 A = npy.array([(0, b, b),
                (b, 0, b),
@@ -47,7 +48,8 @@ R = npy.zeros((3, 3))
 for i in range(1, 3):
     R[i] = i * A[2] / 10
 print (Atoms('Cu3', positions=R,
-             pbc=1, cell=A, calculator=EMT()).get_potential_energy() - 3 * e0) / 2
+             pbc=1, cell=A,
+             calculator=EMT()).get_potential_energy() - 3 * e0) / 2
 
 A = npy.array([(0, b, b),
                (b, 0, b),
@@ -56,5 +58,6 @@ R = npy.zeros((3, 3))
 for i in range(1, 3):
     R[i] = i * A[2]
 print (Atoms('Cu3', positions=R,
-             pbc=(1, 1, 0), cell=A, calculator=EMT()).get_potential_energy() - 3 * e0) / 2
+             pbc=(1, 1, 0), cell=A,
+             calculator=EMT()).get_potential_energy() - 3 * e0) / 2
 

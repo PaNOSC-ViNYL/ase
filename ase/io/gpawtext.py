@@ -14,14 +14,16 @@ def read_gpaw_text(fileobj, index=-1):
         try:
             i = lines.index('Unit Cell:\n')
             cell = [float(line.split()[2]) for line in lines[i + 3:i + 6]]
+            pbc = [line.split()[1] == 'yes' for line in lines[i + 3:i + 6]]
         except ValueError:
             pass
 
         try:
             i = lines.index('Positions:\n')
         except ValueError:
-            pass
-        atoms = Atoms(cell=cell)
+            break
+
+        atoms = Atoms(cell=cell, pbc=pbc)
         for line in lines[i + 1:]:
             words = line.split()
             if len(words) != 5:
@@ -48,7 +50,6 @@ def read_gpaw_text(fileobj, index=-1):
                 x, y, z = lines[i].split()[-3:]
                 f.append((float(x), float(y), float(z)))
 
-##        print 'index, e=', index, e, len(f)
         if len(images) > 0 and e is None:
             break
 

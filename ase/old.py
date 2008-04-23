@@ -1,5 +1,9 @@
 import numpy as npy
-import Numeric as num
+try:
+    import Numeric as num
+except ImportError:
+    pass
+
 from ase.data import chemical_symbols
 
 def npy2num(a, typecode=num.Float):
