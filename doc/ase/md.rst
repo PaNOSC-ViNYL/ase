@@ -67,6 +67,8 @@ temperature is likely to rise significantly.
 Velocity Verlet dynamics
 ------------------------
 
+.. module:: md.verlet
+
 .. class:: VelocityVerlet(atoms, timestep)
 
 
@@ -94,7 +96,12 @@ introduced into the Hamiltonian.
 Langevin dynamics
 -----------------
 
-The ``Langevin`` module implements Langevin dynamics, where a (small)
+.. module:: md.langevin
+
+.. class:: Langevin(atoms, timestep, temperature, friction)
+
+
+The Langevin class implements Langevin dynamics, where a (small)
 friction term and a fluctuating force are added to Newton's second law
 which is then integrated numerically.  The temperature of the heat
 bath and magnitude of the friction is specified by the user, the
@@ -121,10 +128,10 @@ the friction are 0.01-0.02 atomic units.
 
 ::
 
-  from ase.units import kB
+  from ase.units import kB, fs
   from ase.md.langevin import Langevin
   # Room temperature simulation
-  dyn = Langevin(atoms, 5*femtosecond, kB*300, 0.002)
+  dyn = Langevin(atoms, 5*fs, kB*300, 0.002)
 
 Both the friction and the temperature can be replaced with arrays
 giving per-atom values.  This is mostly useful for the friction, where
@@ -143,3 +150,118 @@ view one can regard Nosé-Hoover dynamics as adding a friction term to
 Newton's second law, but dynamically changing the friction coefficient
 to move the system towards the desired temperature.  Typically the
 "friction coefficient" will fluctuate around zero.
+
+Nosé-Hoover dynamics is not implemented as a separate class, but is a
+special case of NPT dynamics.
+
+
+Constant NPT simulations (the isothermal-isobaric ensemble)
+===========================================================
+
+**XXXX Not implemented in the new ASE yet!**
+
+.. module:: md.npt
+
+.. class:: NPT(atoms, timestep, temperature, externalstress, ttime, pfactor, mask=None) 
+
+Dynamics with constant pressure (or optionally, constant stress) and
+constant temperature (NPT or N,stress,T ensemble).  It uses the
+combination of Nosé-Hoover and Parrinello-Rahman dynamics proposed by
+Melchionna et al. [1] and later modified by Melchionna [2].  The
+differential equations are integrated using a centered difference
+method [3].  Details of the implementation are available in the
+document NPTdynamics.tex, distributed with the module.
+
+The dynamics object is called with the following parameters:
+
+*atoms*:
+  The list of atoms.
+
+*timestep*:
+  The timestep in units matching eV, Å, u.
+
+*temperature*:
+  The desired temperature in eV.
+
+*externalstress*:
+  The external stress in eV/Å^3.  Either a symmetric
+  3x3 tensor, a 6-vector representing the same, or a scalar
+  representing the pressure.  Note that the stress is positive in
+  tension whereas the pressure is positive in compression: giving a
+  scalar p is equivalent to giving the tensor (-p. -p, -p, 0, 0, 0).
+
+*ttime*:
+  Characteristic timescale of the thermostat.  Set to None to
+  disable the thermostat.
+
+*pfactor*:
+  A constant in the barostat differential equation.  If a
+  characteristic barostat timescale of ptime is desired, set pfactor
+  to ptime^2 * B (where B is the Bulk Modulus).  Set to None to
+  disable the barostat.  Typical metallic bulk moduli are of the order
+  of 100 GPa or 0.6 eV/Å^3.
+
+*mask=None*:
+  Optional argument.  A tuple of three integers (0 or 1),
+  indicating if the system can change size along the three Cartesian
+  axes.  Set to (1,1,1) or None to allow a fully flexible
+  computational box.  Set to (1,1,0) to disallow elongations along the
+  z-axis etc.
+
+Useful parameter values:
+
+* The same *timestep* can be used as in Verlet dynamics, i.e. 5 fs is fine
+  for bulk copper.
+
+* The *ttime* and *pfactor* are quite critical[4], too small values may
+  cause instabilites and/or wrong fluctuations in T / p.  Too
+  large values cause an oscillation which is slow to die.  Good
+  values for the characteristic times seem to be 25 fs for *ttime*,
+  and 75 fs for *ptime* (used to calculate pfactor), at least for
+  bulk copper with 15000-200000 atoms.  But this is not well
+  tested, it is IMPORTANT to monitor the temperature and
+  stress/pressure fluctuations.
+
+It has the following methods:
+
+.. method:: NPT.Run(n)``:
+
+  Perform n timesteps.
+
+.. method:: NPT.Initialize()``:
+
+  Estimates the dynamic variables for time=-1 to start the
+  algorithm.  This is automatically called before the first timestep.
+
+.. method:: NPT.SetStress()``:
+
+  Set the external stress.  Use with care.  It is
+  preferable to set the right value when creating the object.
+
+.. method:: NPT.SetMask()``:
+
+  Change the mask.  Use with care, as you may "freeze" a
+  fluctuation in the strain rate.
+
+.. method:: NPT.GetGibbsFreeEnergy()``:
+
+  Gibbs free energy is supposed to be
+  preserved by this dynamics.  This is mainly intended as a diagnostic
+  tool.
+
+References:
+
+[1] S. Melchionna, G. Ciccotti and B. L. Holian, Molecular Physics
+78, p. 533 (1993).
+
+[2] S. Melchionna, Physical Review E 61, p. 6165 (2000).
+
+[3] B. L. Holian, A. J. De Groot, W. G. Hoover, and C. G. Hoover,
+Physical Review A 41, p. 4552 (1990).
+
+[4] F. D. Di Tolla and M. Ronchetti, Physical Review E 48, p. 1726 (1993).
+
+.. seealso::
+    
+   The automatic documentation: :epydoc:`ase.md`
+
