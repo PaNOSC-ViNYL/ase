@@ -6,7 +6,7 @@ The ``STMTool`` class generates Tersoff-Hamann STM topographs.
 Here is how you could make a STM picture from the
 `GPAW`_ code, assuming you have allready generated
 the the Al100.gpw GPAW restart file,
-(see the `STM tutorial` for a full description):
+(see the :ref:`STM tutorial<stm-tutorial>` for a full description):
 
 
 >>> from ASE.Utilities.ElectronicStates import ElectronicStates
