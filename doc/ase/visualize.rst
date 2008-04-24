@@ -17,12 +17,13 @@ are an instance of the :class:`Atoms` class, simply by doing
 RasMol
 ------
 
-You can use RasMol to visualize your system by specifying
+You can use the `RasMol`_ program to visualize your system by specifying
 
   >>> view(atoms, viewer='rasmol')
 
 XXX
 
+.. _RasMol: http://openrasmol.org/
 
 VMD
 ---
