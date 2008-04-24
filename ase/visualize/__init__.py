@@ -24,7 +24,7 @@ def view(atoms, data=None, viewer=None):
         if oldase:
             atoms = OldASEListOfAtomsWrapper(atoms).copy()
         else:
-            raise RuntimeError('conversion to old ASE no available')
+            raise RuntimeError('conversion to old ASE not available')
 
     viewers = ['ase.gui', 'gopenmol', 'vmd', 'rasmol', 'nanolab']
     if viewer is not None:
