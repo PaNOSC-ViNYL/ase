@@ -13,8 +13,7 @@ from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 
 
 class Atoms(object):
-    """Object representing a collection of atoms.
-
+    """
     The Atoms object can represent an isolated molecule, or a
     periodically repeated structure.  It may have a unit cell and
     there may be periodic boundary conditions along any of the three
@@ -25,52 +24,43 @@ class Atoms(object):
     tags, momenta, masses, magnetic moments and charges.
 
     In order to calculate energies, forces and stresses, a calculator
-    object has to attached to the atoms object."""
+    object has to attached to the atoms object.
 
-    def __init__(self, symbols=None,
-                 positions=None, numbers=None,
-                 tags=None, momenta=None, masses=None,
-                 magmoms=None, charges=None,
-                 cell=None, pbc=None,
-                 constraint=None,
-                 calculator=None):
-        """Construct Atoms object.
+        Parameters:
 
-        Parameters
-        ----------
-        symbols : str (formula) or list of str
+        symbols: str (formula) or list of str
             Can be a string formula, a list of symbols or a list of
             Atom objects.  Examples: 'H2O', 'COPt12', ['H', 'H', 'O'],
             [Atom('Ne', (x, y, z), ...].
-        numbers : list of int
+        numbers: list of int
             Atomic numbers (use only one of symbols/numbers).
-        positions : list of xyz-positions
+        positions: list of xyz-positions
             Atomic positions.  Anything that can be converted to an
             ndarray of shape (n, 3) will do: [(x1,y1,z1), (x2,y2,z2),
             ...].
-        tags : list of int
+        tags: list of int
             Special purpose tags.
         momenta: list of xyz-momenta
             Momenta for all atoms.
-        masses : list of float
+        masses: list of float
             Atomic masses in atomic units.
         magmoms: list of float
             Magnetic moments.
-        charges : list of float
+        charges: list of float
             Atomic charges.
-        cell : 3x3 matrix
+        cell: 3x3 matrix
             Unit cell vectors.  Can also be given as just three
             numbers for orthorhombic cells.  Default value: [1, 1, 1].
-        pbc : one or three bool
+        pbc: one or three bool
             Periodic boundary conditions flags.  Examples: True,
             False, 0, 1, (1, 1, 0), (True, False, False).  Default
             value: False.
-        calculator : calculator object
+        calculator: calculator object
             Used to attach a calculator for calulating energies and atomic
             forces.
 
-        Examples
-        --------
+        Examples:
+
         These three are equivalent:
 
         >>> d = 1.104  # N2 bondlength
@@ -94,6 +84,14 @@ class Atoms(object):
         ...           cell=(d, L, L),
         ...           pbc=(1, 0, 0))
         """
+
+    def __init__(self, symbols=None,
+                 positions=None, numbers=None,
+                 tags=None, momenta=None, masses=None,
+                 magmoms=None, charges=None,
+                 cell=None, pbc=None,
+                 constraint=None,
+                 calculator=None):
 
         atoms = None
 
