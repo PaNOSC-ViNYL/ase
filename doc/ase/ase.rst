@@ -17,6 +17,7 @@ Modules in ASE
    optimize
    visualize
    calculators/calculators
+   constraints
    neb
    vibrations
    md
