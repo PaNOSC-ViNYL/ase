@@ -1,13 +1,15 @@
+.. module:: test
+
 ================
 Testing the code
 ================
 
 All additions and modifications to ASE should be tested.
 
-Test scripts should be put in the ASE/Tests directory. In this directoory there is a script test.py, that will run all scripts present in both the ASE/Tests and ASE/Examples directories.
+Test scripts should be put in the :svn:`ase/test` directory. The scripts in this directory mat be run by using the script :svn:`tools/testase.py` or by using:
 
-The module ASE.Utilities.Tests contains usefull tools for writing tests.
+.. function:: test.test(verbosity=1, dir=None)
+    
+    Runs the test scripts in :svn:`ase/test`.
 
 Important: When you fix a bug, add a test to the test suite checking that it is truly fixed. Bugs sometimes come back, do not give it a second chance!
-
-:svn:`ase/test`
