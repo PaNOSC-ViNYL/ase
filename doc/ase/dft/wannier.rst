@@ -40,7 +40,9 @@ For examples of how to use the **Wannier** class, see the `Wannier tutorial`_.
 
 .. _Wannier tutorial: http://www.fysik.dtu.dk/campos/ASE/tut/wannier.html
 
-.. tip::
+XXX tip:
+
+.. note::
    For a calculation using **k**-points the relevant unit cell for
    eg. visualization of the Wannier orbitals is not the original unit cell,
    but rather a larger unit cell defined by repeating the original

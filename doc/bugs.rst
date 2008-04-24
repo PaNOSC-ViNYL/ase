@@ -28,5 +28,5 @@ Known bugs
 * ...
 
 
-.. _mailing list: https://listserv.fysik.dtu.dk/mailman/listinfo/campos-devel
+.. _mailing list: http://listserv.fysik.dtu.dk/mailman/listinfo/campos-devel
 .. _bug tracking system: http://trac.fysik.dtu.dk/projects/ase

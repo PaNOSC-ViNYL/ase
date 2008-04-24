@@ -82,7 +82,7 @@ create many files, so run the tests in a new directory::
 If any of the tests fail, then let us know on the `mailing list`_.
 
 
-.. _mailing list: https://lists.berlios.de/mailman/listinfo/gridpaw-developer
+.. _mailing list: http://lists.berlios.de/mailman/listinfo/gridpaw-developer
 
 
 .. index:: License, GPL

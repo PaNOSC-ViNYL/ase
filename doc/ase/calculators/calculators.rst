@@ -29,7 +29,7 @@ MMTK     The Molecular Modeling Toolkit (work in progress)
 
 .. _Asap: http://wiki.fysik.dtu.dk/Asap
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
-.. _GPAW: https://wiki.fysik.dtu.dk/gpaw
+.. _GPAW: http://wiki.fysik.dtu.dk/gpaw
 
 
 Tools for building new calculators
