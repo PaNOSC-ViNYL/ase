@@ -2,4 +2,4 @@
 Atomization energy
 ==================
 
-XXX
+.. literalinclude:: ../../tutorials/N2.py

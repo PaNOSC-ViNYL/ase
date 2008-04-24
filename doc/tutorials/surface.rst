@@ -2,4 +2,4 @@
 Nitrogen on ruthenium
 =====================
 
-XXX
+.. literalinclude:: ../../tutorials/N2Ru.py

@@ -8,5 +8,10 @@ Tutorials
    :maxdepth: 3
 
    atomization
-   nitrogen_on_ruthenium
+   surface
+   relax
+   dissociation
+   dissociation2
+   aneb
+   association
    stm-tutorial
