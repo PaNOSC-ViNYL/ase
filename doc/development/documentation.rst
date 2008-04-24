@@ -39,7 +39,8 @@ that first::
 Then :command:`cd` to the :file:`doc` directory and build the html-pages::
 
   $ cd doc
-  $ sphinx-build . .build
+  $ mkdir _build
+  $ sphinx-build . _build
 
 Make your changes to the ``.rst`` files, run the
 :command:`sphinx-build` again, check the results and if things look
