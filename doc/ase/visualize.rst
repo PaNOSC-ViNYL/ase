@@ -6,7 +6,7 @@ Visualization
 
 This provides an interface to various visualization tools, such as RasMol, VMD, VTK...
 If no viewer is specified, a simple built-in viewer is opened. You can plot your ``atoms``, which 
-are an instance of the :class:`Atoms` class, simply by doing
+is an :class:`Atoms` object, simply by doing
 
 .. highlight:: python
 
