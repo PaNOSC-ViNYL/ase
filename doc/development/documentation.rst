@@ -119,7 +119,7 @@ To make the mode auto load for relevant file extension, you can write something 
         (append '(("\\.rst$" . rst-mode)
                   ("\\.rest$" . rst-mode)) auto-mode-alist))
 
-.. reStructuredText extension_ http://docutils.sourceforge.net/tools/editors/emacs/rst.el
+.. _reStructuredText extension: http://docutils.sourceforge.net/tools/editors/emacs/rst.el
 
 How does it work?
 =================
