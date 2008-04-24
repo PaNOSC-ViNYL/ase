@@ -33,7 +33,7 @@ def epydoc_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
 
     ref = 'http://web2.fysik.dtu.dk/ase/epydoc/' + ref
     set_classes(options)
-    node = nodes.reference(rawtext, 'Epydoc:' + text,
+    node = nodes.reference(rawtext, components[-1],
                            refuri=ref,
                            **options)
     return [node], []
