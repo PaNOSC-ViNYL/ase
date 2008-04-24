@@ -69,7 +69,7 @@ or your :file:`~/.cshrc` file::
 Run the tests
 =============
 
-Make sure that everything works by running the test suite.  This will
+Make sure that everything works by running the :mod:`test suite<test>`.  This will
 create many files, so run the tests in a new directory::
 	
   $ cd
