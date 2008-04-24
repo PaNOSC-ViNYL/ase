@@ -10,6 +10,7 @@ Modules in ASE
 
    atoms
    atom
+   units
    io
    gui
    lattice

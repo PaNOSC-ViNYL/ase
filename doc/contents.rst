@@ -10,6 +10,7 @@ Contents
    download
    ase/ase
    examples/examples
+   tutorials/tutorials
    python
    numpy
    bugs
