@@ -2,8 +2,6 @@
 Setting up crystals and surfaces
 ================================
 
-.. module:: lattice
-
 .. contents::
 
 
@@ -16,11 +14,87 @@ Setting up crystals and surfaces
 Easy setup of surfaces
 ======================
 
-XXX To be written (and implemented)
+.. module:: lattice.surface
+
+
+**XXX To be implemented!**
+
+A number of utility functions are (will be XXXX) provided to set up
+the most common surfaces.  In general, all surfaces can be set up with
+the general `Crystal structures`_ modules documented below, but these
+utility functions make common tasks easier.
+
+All these modules create slabs with an orthogonal unit cell, suitable
+for use with `GPAW <https://wiki.fysik.dtu.dk/gpaw>`_.  In many cases,
+it may be possible to create smaller unit cells with non-orthogonal
+unit cells (for use with dacapo) using the general `Crystal
+structures`_ modules.
+
+
+Example
+-------
+
+To setup an Al(111) surface with a hydrogen atom adsorbed in an op-top
+position::
+
+    from ase.lattice.surface import *
+    atoms = FCC111(size=(2,2,3), vacuum=10, adsorbate=('H', 'ontop'))
+
+This will produce a slab 2x2x3 times the minimal possible size, with a
+(111) surface in the z direction, and [1,-1,0] and [1,1,-2] directions
+along the x and y axes, respectively.  A 10Å vacuum layer is added,
+and a hydrogen atom is adsorbed in an on-top position.
+
+Defined utility functions
+-------------------------
+
+All the functions in this module take the same arguments:
+
+*size*:
+  A tuple giving the system size in units of the minimal possible unit
+  cell consistent with periodic boundary conditions along all three
+  directions.
+
+*vacuum*:
+  Add a vacuum layer (specified in Å).
+
+*adsorbate*: 
+  A tuple containing the adsorbate and the adsorption site.
+  The adsorbate is either a string with a chemical symbol (for an
+  atomic adsorbate) or an :class:`~ase.atoms.Atoms` object (for
+  molecular adsorbates).  In the later case, the first atom (number 0)
+  of the adsorbate is placed in the specified site, it is the
+  responsability of the user to make sure that the molecule is
+  oriented correctly (e.g. that atom 0 has the lowest z coordinate).
+  The adsorbtion site can be a string or a tuple of three miller indices
+  indicating the position of the adsorbate.  XXXX REWRITE when it works!
+
+
+.. function:: FCC001(size, vacuum=None, adsorbate=None)
+
+  Defines an FCC 001 surface.  Supported adsorption sites: 'optop',
+  'bridge', 'hollow'.
+
+.. function:: FCC110(size, vacuum=None, adsorbate=None)
+	      FCC111(size, vacuum=None, adsorbate=None)
+	      BCC001(size, vacuum=None, adsorbate=None)
+              BCC110(size, vacuum=None, adsorbate=None)
+	      BCC111(size, vacuum=None, adsorbate=None)
+	      HCP0001(size, vacuum=None, adsorbate=None)
+
+
+Adding new utility functions
+----------------------------
+
+If you need other surfaces than the ones above, the easiest is to look
+in the source file surface.py, and adapt one of the existing
+functions.  PLEASE
 
 
 Crystal structures
 ==================
+
+.. module:: lattice
 
 Modules for creating crystal structures are found in
 :mod:`lattice`.  Most Bravais lattices are implemented, as
