@@ -55,7 +55,7 @@ configuration file. For a ``cshrc`` shell, this will do it:
 SIESTA Calculator
 ================= 
 
-Before defining a SIESTA calculator, the corresponding module should be imported
+Before defining a :mod:`Siesta` calculator, the corresponding module should be imported
 as following
 
 .. highlight:: python
