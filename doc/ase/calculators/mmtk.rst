@@ -39,3 +39,7 @@ MMTK calculator:
 
   >>> atoms = MMTKListOfAtoms(universe)
   >>> atoms.set_calculator(MMTK())
+
+
+Examples
+--------
