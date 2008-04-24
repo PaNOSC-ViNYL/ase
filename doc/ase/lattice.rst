@@ -7,6 +7,11 @@ Setting up crystals and surfaces
 .. contents::
 
 
+.. warning::
+
+   These modules are in the process of being ported to the new ase,
+   and may not work yet.  XXXXX
+
 
 Easy setup of surfaces
 ======================
