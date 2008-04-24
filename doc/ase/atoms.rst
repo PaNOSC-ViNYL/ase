@@ -39,12 +39,39 @@ array([[2., 0., 0.],
 	    [2., 2., 0.]])
 
 The :class:`~ase.atoms.Atoms` object holds a unit cell which by
-default is the 3x3 unit matrix. The cell can be set using the
-:epydoc:`ase.atoms.Atoms.set_cell` method
+default is the 3x3 unit matrix as can be seen from
 
-The :epydoc:`ase.atoms.Atoms.set_pbc` method specifies whether periodic
-boundary conditions are to be used in the directions of the three
-vectors of the unit cell. With the default unit cell
+>>> a.get_cell()
+array([[ 1.,  0.,  0.],
+       [ 0.,  1.,  0.],
+       [ 0.,  0.,  1.]])
+
+
+ The cell can be defined or changed using the
+ :epydoc:`ase.atoms.Atoms.set_cell` method. Changing the unit cell
+ does per default not move the atoms:
+
+>>> a.set_cell(2*identity(3))
+>>> a.get_cell()
+array([[ 2.,  0.,  0.],
+       [ 0.,  2.,  0.],
+       [ 0.,  0.,  2.]])
+>>> a.get_positions()
+array([[ 2.,  0.,  0.],
+       [ 1.,  1.,  0.],
+       [ 2.,  2.,  0.]])
+
+However if we set fix=False the atomic positions are scaled with the unit cell:
+
+>>> a.set_cell(identity(3), fix=False)
+>>> a.get_positions()
+array([[ 1. ,  0. ,  0. ],
+       [ 0.5,  0.5,  0. ],
+       [ 1. ,  1. ,  0. ]])
+
+The :epydoc:`ase.atoms.Atoms.set_pbc` method specifies whether
+periodic boundary conditions are to be used in the directions of the
+three vectors of the unit cell. With the default unit cell
 [(1,0,0),(0,1,0),(0,0,1)] a slab calculation with periodic boundary
 conditions in x and y and free boundary condtions in z is obatined
 through
@@ -80,63 +107,4 @@ temperature. More about this can be found for the different
 :mod:`calculators` XXX Is get_potential_energy well defined for the
 different calculators ? XXX
 
-More examples of manipulating atomic positions
---------------------------------------------------
-
-We will end up with a one layer slab with one adatom
-
-Define the slab atoms:
-
->>> from ase import *
->>> atoms = Atoms([Atom('Ni', (0, 0, 0)),
-...                      Atom('Ni', (0.45, 0, 0)),
-...                      Atom('Ni', (0, 0.5, 0)),
-...                      Atom('Ni', (0.5, 0.5, 0))])
-
-
-Have a look at the individual atoms:
-
->>> atoms[0]
-Atom('Ni', [0.0, 0.0, 0.0], atoms=..., index=0)
->>> atoms[1]
-Atom('Ni', [0.45, 0.0, 0.0], atoms=..., index=1)
->>> atoms[2]
-Atom('Ni', [0.0, 0.5, 0.0], atoms=..., index=2)
->>> atoms[3]
-Atom('Ni', [0.5, 0.5, 0.0], atoms=..., index=3)
-
-Let us assume we forgot how many atoms we set up:
-
->>> atoms[4]
-Traceback (most recent call last):
-File "<stdin>", line 1, in ?
-IndexError: list index out of range
-
-Wrong because we only have four atoms
-
->>> len(atoms)
-4
-
-Change the position of the 2nd atom in the list
-
->>> atoms[1].set_position((0.5,0,0))
->>> atoms.get_positions()
-array([[ 0. ,  0. ,  0. ],
-       [ 0.5,  0. ,  0. ],
-       [ 0. ,  0.5,  0. ],
-       [ 0.5,  0.5,  0. ]])
-
-What is the unit cell so far?
-
->>> atoms.get_cell()
-array([[ 1.,  0.,  0.],
-       [ 0.,  1.,  0.],
-       [ 0.,  0.,  1.]])
-
-Now, setup a p(2x2) cell in a hexagonal surface.
-"a" is the fcc lattice constant, the cell is 10 layers high:
-
-
-
-
-
+More information about how to manipulate 
