@@ -67,11 +67,7 @@ as following
 The default parameters are very close to those that the SIESTA Fortran code uses.  
 These are the exceptions:
 
-.. highlight:: python
-
-::
-
-  >>> calc = Siesta(label='siesta', xc='LDA', pulay=5, mix=0.1)
+.. class:: Siesta(label='siesta', xc='LDA', pulay=5, mix=0.1)
     
 A detailed list of all the keywords for the calculator is the following
 
