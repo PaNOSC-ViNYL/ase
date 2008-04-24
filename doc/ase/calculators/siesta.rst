@@ -43,7 +43,7 @@ to match your installation of SIESTA:
 
 A directory containing the pseudopotential files (.vps) is also needed, and it 
 is to be included in the environment variable ``SIESTA_PP_PATH`` in your shell 
-configuratin file. For a ``cshrc`` shell, this will do it:
+configuration file. For a ``cshrc`` shell, this will do it:
 
 .. highlight:: bash
  
