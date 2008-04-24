@@ -1,6 +1,9 @@
 MMTK
 ====
 
+MMTK Calculator
+---------------
+
 The Molecular Modelling Toolkit (MMTK) by Konrad Hinsen is a powerful program library for 
 molecular simulation.
 
