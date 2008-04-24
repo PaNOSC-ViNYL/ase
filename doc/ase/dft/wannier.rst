@@ -232,8 +232,7 @@ Hamiltonian matrix **H**. Definition and physical meaning of the term
 
 The methods are described below:
 
-``H_rot,U,eigenvalues =
-  HamiltonianTools.SubDiagonalize(h,listofindices)``: This methods
+``H_rot,U,eigenvalues = HamiltonianTools.SubDiagonalize(h,listofindices)``: This methods
   diagonalize the Hamiltonian `h` within the subspace spanned by the
   basis functions (Wannier functions) speficied in the list
   `listofindices`. This can be used to e.g. to obtain renormalized

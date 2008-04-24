@@ -21,3 +21,4 @@ Modules in ASE
    vibrations
    md
    dft/dft
+   data
