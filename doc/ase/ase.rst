@@ -12,6 +12,7 @@ Modules in ASE
    atom
    io
    gui
+   lattice
    optimize
    visualize
    calculators/calculators
