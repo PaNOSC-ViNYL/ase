@@ -17,6 +17,8 @@ are an instance of the :class:`Atoms` class, simply by doing
 RasMol
 ------
 
+You can use RasMol to visualize your system by specifying
+
   >>> view(atoms, viewer='rasmol')
 
 XXX
@@ -24,6 +26,10 @@ XXX
 
 VMD
 ---
+
+You can use RasMol to visualize your system by specifying
+
+  >>> view(atoms, viewer='vmd')
 
 XXX
 
@@ -37,6 +43,17 @@ visualization. For more information on VTK, go to the `vtk homepage`_.
 XXX
 
 .. _vtk homepage: http://public.kitware.com/VTK/
+
+
+gOpenMol
+--------
+
+You can use RasMol to visualize your system by specifying
+
+  >>> view(atoms, viewer='gopenmol')
+
+XXX
+
 
 PovrayPlotter
 -------------
