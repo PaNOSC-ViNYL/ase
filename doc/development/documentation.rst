@@ -33,7 +33,7 @@ Using Sphinx
 If you don't already have your own copy of the ASE package, then get
 that first::
 
-  $ svn chockout https://svn.fysik.dtu.dk/projects/ase/trunk ase
+  $ svn checkout https://svn.fysik.dtu.dk/projects/ase/trunk ase
   $ cd ase
 
 Then :command:`cd` to the :file:`doc` directory and build the html-pages::
