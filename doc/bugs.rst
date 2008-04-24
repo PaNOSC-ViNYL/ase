@@ -1,12 +1,12 @@
 Bugs!
 =====
 
-Bug report
-----------
-
 If you find a bug in the CAMPOS software, please report it to the
 developers so it can be fixed.  We need that feedback from the
 community to maintain the quality of the code.
+
+Bug report
+----------
 
 * If you are unsure if it is a real bug, or a usage problem, it is
   probably best to report the problem on the CAMPOS `Mailing
