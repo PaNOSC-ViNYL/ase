@@ -104,11 +104,10 @@ class Atom(object):
         self.atoms = atoms
 
     def __repr__(self):
-        s = "Atoms('%s', %s" % (self.symbol, self.position.tolist())
+        s = "Atom('%s', %s" % (self.symbol, list(self.position))
         for attr in ['tag', 'momentum', 'mass', 'magmom', 'charge']:
             value = getattr(self, attr)
             if value is not None:
-                print attr, value
                 if isinstance(value, npy.ndarray):
                     value = value.tolist()
                 s += ', %s=%s' % (attr, value)
@@ -168,41 +167,41 @@ class Atom(object):
                 array[self.index] = value
                 self.atoms.new_array(plural, array)
 
-    def _getsymbol(self): return self._get('symbol')
-    def _getnumber(self): return self._get('number')
-    def _getposition(self): return self._get('position')
-    def _gettag(self): return self._get('tag')
-    def _getmomentum(self): return self._get('momentum')
-    def _getmass(self): return self._get('mass')
-    def _getmagmom(self): return self._get('magmom')
-    def _getcharge(self): return self._get('charge')
+    def get_symbol(self): return self._get('symbol')
+    def get_number(self): return self._get('number')
+    def get_position(self): return self._get('position')
+    def get_tag(self): return self._get('tag')
+    def get_momentum(self): return self._get('momentum')
+    def get_mass(self): return self._get('mass')
+    def get_magmom(self): return self._get('magmom')
+    def get_charge(self): return self._get('charge')
 
-    def _setsymbol(self, symbol): self._set('symbol', symbol)
-    def _setnumber(self, number): self._set('number', number)
-    def _setposition(self, position): self._set('position', position)
-    def _settag(self, tag): self._set('tag', tag)
-    def _setmomentum(self, momentum): self._set('momentum', momentum)
-    def _setmass(self, mass): self._set('mass', mass)
-    def _setmagmom(self, magmom): self._set('magmom', magmom)
-    def _setcharge(self, charge): self._set('charge', charge)
+    def set_symbol(self, symbol): self._set('symbol', symbol)
+    def set_number(self, number): self._set('number', number)
+    def set_position(self, position): self._set('position', position)
+    def set_tag(self, tag): self._set('tag', tag)
+    def set_momentum(self, momentum): self._set('momentum', momentum)
+    def set_mass(self, mass): self._set('mass', mass)
+    def set_magmom(self, magmom): self._set('magmom', magmom)
+    def set_charge(self, charge): self._set('charge', charge)
 
-    symbol = property(_getsymbol, _setsymbol, doc='Chemical symbol')
-    number = property(_getnumber, _setnumber, doc='Atomic number')
-    position = property(_getposition, _setposition, doc='XYZ-coordinates')
-    tag = property(_gettag, _settag, doc='Integer tag')
-    momentum = property(_getmomentum, _setmomentum, doc='XYZ-momentum')
-    mass = property(_getmass, _setmass, doc='Atomic mass')
-    magmom = property(_getmagmom, _setmagmom, doc='Magnetic moment')
-    charge = property(_getcharge, _setcharge, doc='Atomic Charge')
+    symbol = property(get_symbol, set_symbol, doc='Chemical symbol')
+    number = property(get_number, set_number, doc='Atomic number')
+    position = property(get_position, set_position, doc='XYZ-coordinates')
+    tag = property(get_tag, set_tag, doc='Integer tag')
+    momentum = property(get_momentum, set_momentum, doc='XYZ-momentum')
+    mass = property(get_mass, set_mass, doc='Atomic mass')
+    magmom = property(get_magmom, set_magmom, doc='Magnetic moment')
+    charge = property(get_charge, set_charge, doc='Atomic Charge')
 
-    def _getx(self): return self.position[0]
-    def _gety(self): return self.position[1]
-    def _getz(self): return self.position[2]
+    def get_x(self): return self.position[0]
+    def get_y(self): return self.position[1]
+    def get_z(self): return self.position[2]
     
-    def _setx(self, x): self.position[0] = x
-    def _sety(self, y): self.position[1] = y
-    def _setz(self, z): self.position[2] = z
+    def set_x(self, x): self.position[0] = x
+    def set_y(self, y): self.position[1] = y
+    def set_z(self, z): self.position[2] = z
 
-    x = property(_getx, _setx, doc='X-coordiante')
-    y = property(_gety, _sety, doc='Y-coordiante')
-    z = property(_getz, _setz, doc='Z-coordiante')
+    x = property(get_x, set_x, doc='X-coordiante')
+    y = property(get_y, set_y, doc='Y-coordiante')
+    z = property(get_z, set_z, doc='Z-coordiante')
