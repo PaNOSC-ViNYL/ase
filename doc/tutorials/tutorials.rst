@@ -9,3 +9,4 @@ Tutorials
 
    atomization
    nitrogen_on_ruthenium
+   stm-tutorial
