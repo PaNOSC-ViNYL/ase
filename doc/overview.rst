@@ -9,7 +9,7 @@ This section gives a quick overview of what ASE can do.  For more details:
 * Browse the `source code`_ online.
 
 
-.. _source code: http://trac.fysik.dtu.dk/projects/gpaw/browser/trunk
+.. _source code: http://trac.fysik.dtu.dk/projects/ase/browser/trunk
 
 
 -----
