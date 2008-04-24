@@ -1,8 +1,9 @@
-Vibration analysis
+.. module:Vibration analysis
 ------------------
 
-You can calculate the vibrational modes of a Atoms in the
-harmonic approximation using the Using the
+You can calculate the vibrational modes of a an
+:class:`~ase.atoms.Atoms` object in the harmonic approximation using
+the :class:`~ase.vibration.Vibrations`.
 
 For example, assuming you have a Atoms called atoms with an
 attached calculator, you can use the module like  this:

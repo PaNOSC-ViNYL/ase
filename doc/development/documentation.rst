@@ -76,7 +76,7 @@ We have a couple of extensions to Sphinx:
 .. role:: math
 
    This role is for inline LaTex-style math.  Example:
-   ``:math:`\sin(x_n^2)``` gives you :math:`\sin(x_n^2)`.
+   ``:math:`\sin(x_n^2)``` gives you XXX.
 
 .. directive:: math
 
@@ -88,7 +88,7 @@ We have a couple of extensions to Sphinx:
 
    gives you:
 
-   .. math::
+   ::
 
       \frac{1}{1+x^2}
 

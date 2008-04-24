@@ -103,7 +103,7 @@ the *repeated* unit cell.
    but rather a larger unit cell defined by repeating the original
    unit cell by the number of **k**-points in each direction.
    We will refer to this unit cell as the large unit cell.
-   Note that for a :math:`\Gamma`-point calculation the large unit cell
+   Note that for a Gamma-point calculation the large unit cell
    coinsides with the original unit cell.
    The large unitcell defines also the periodicity of the Wannier
    orbitals.
