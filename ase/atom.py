@@ -1,7 +1,4 @@
-"""Definition of the Atom class.
-
-This module defines the Atom object.
-"""
+"""This module defines the Atom object."""
 
 import numpy as npy
 
@@ -20,33 +17,26 @@ data = {'symbol':   ('symbols',   str,   ()  ),
         }
 
 class Atom(object):
-    """Class for representing a single atom."""
-    def __init__(self, symbol='X', position=(0, 0, 0),
-                 tag=None, momentum=None, mass=None,
-                 magmom=None, charge=None,
-                 atoms=None, index=None):
-        """Construct Atom object.
+    """Class for representing a single atom.
 
-        Parameters
-        ----------
-        symbol : str or int
+        Parameters:
+
+        symbol: str or int
             Can be a chemical symbol (str) or an atomic number (int).
-        position : sequence of 3 floats
+        position: sequence of 3 floats
             Atomi position.
-        tag : int
+        tag: int
             Special purpose tag.
         momentum: sequence of 3 floats
             Momentum for atom.
-        mass : float
+        mass: float
             Atomic mass in atomic units.
         magmom: float
             Magnetic moment.
-        charge : float
+        charge: float
             Atomic charge.
 
-        Examples
-        --------
-        The first two atoms are equivalent:
+        Examples:
 
         >>> a = Atom('O', charge=-2)
         >>> b = Atom(8, charge=-2)
@@ -82,7 +72,10 @@ class Atom(object):
         
 
         """
-
+    def __init__(self, symbol='X', position=(0, 0, 0),
+                 tag=None, momentum=None, mass=None,
+                 magmom=None, charge=None,
+                 atoms=None, index=None):
         if atoms is None:
             # This atom is not part of any Atoms object:
             if isinstance(symbol, str):
