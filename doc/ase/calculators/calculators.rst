@@ -13,6 +13,7 @@ forces and/or stresses.
 
    emt
    siesta
+   mmtk
 
 
 Other calculators
@@ -23,7 +24,6 @@ Other calculators
 Asap_    Highly efficient EMT code (written in C++)
 GPAW_    Grid-based real-space PAW code
 Dacapo_  A planewave ultra-soft pseudopotential code
-MMTK     The Molecular Modeling Toolkit (work in progress)
 =======  =================================================
   
 
