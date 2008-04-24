@@ -17,6 +17,8 @@ are an instance of the :class:`Atoms` class, simply by doing
 RasMol
 ------
 
+  >>> view(atoms, viewer='rasmol')
+
 XXX
 
 
