@@ -57,7 +57,7 @@ Example of use::
 Notice the use of :meth:`interpolate` method to get a good
 initial guess for the path from A to B.
 
-.. method:: interpolate()
+.. method:: NEB.interpolate()
 
    Interpolate path linearly from initial to final state.
 
