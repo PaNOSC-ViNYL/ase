@@ -101,6 +101,25 @@ the ``:math:`` part like here: ```\sin(x_n^2)```.
 
 .. _epydoc:  http://epydoc.sf.net
 
+reStructedText in emacs
+=======================
+
+For people using emacs, the `reStructuredText extension`_ is highly
+recommended. The intallation procedure is described in the top of the
+file, but for most people, it is enough to place it in your emacs load
+path (typically ``.emacs.d/``) and add the line::
+
+  (require 'rst)
+
+somewhere in your ``.emacs`` file.
+
+To make the mode auto load for relevant file extension, you can write something like::
+
+  (setq auto-mode-alist
+        (append '(("\\.rst$" . rst-mode)
+                  ("\\.rest$" . rst-mode)) auto-mode-alist))
+
+.. reStructuredText extension_ http://docutils.sourceforge.net/tools/editors/emacs/rst.el
 
 How does it work?
 =================
