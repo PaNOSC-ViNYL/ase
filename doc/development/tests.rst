@@ -10,3 +10,4 @@ The module ASE.Utilities.Tests contains usefull tools for writing tests.
 
 Important: When you fix a bug, add a test to the test suite checking that it is truly fixed. Bugs sometimes come back, do not give it a second chance!
 
+:svn:`ase/test`
