@@ -24,9 +24,9 @@ We do not guarantee to fix all bugs, but we will do our best.
 Known bugs
 ----------
 
-* ...
-* ...
+A list of known bugs (tickets) is on our `Trac`_
 
 
 .. _mailing list: http://listserv.fysik.dtu.dk/mailman/listinfo/campos-devel
 .. _bug tracking system: https://trac.fysik.dtu.dk/projects/ase/wiki/TracTickets
+.. _Trac: https://trac.fysik.dtu.dk/projects/ase/report/1
