@@ -1,87 +1,68 @@
+.. module: wannier
+
+=====================================
 Maximally localized Wannier functions
--------------------------------------
-
-.. default-role math
-
-
+=====================================
 
 Wannier functions are maximally localized orbitals
 constructed from a set of extended eigenstates. This page describes
-how to construct the Wannier orbitals using the class **Wannier**.
+how to construct the Wannier orbitals using the class :class:`Wannier`.
 
-Band structure and orbital analysis, based on the
-set of localized Wannier orbitals are discussed in the chapter
-band structure analysis XXX
+This page is organized as follows:
 
-For the theory behind this method see the paper
-Partly Occupied Wannier Functions XXX
-Thygesen, Hansen and Jacobsen, Phys. Rev. Lett, Vol.94, 26405 (2005).
+* `The Wannier class`_ : A description of how the Wannier class is
+  used, and the methods defined within.
+* `Band structure and orbital analysis`_ : A description of how to
+  analyse the band structure using localized Wannier orbitals.
 
-
-The class Wannier
-`````````````````
-
-A simple initialization of the :class:`Wannier` looks like this::
+For the theory behind this method see the paper "Partly Occupied
+Wannier Functions" Thygesen, Hansen and Jacobsen, Phys. Rev. Lett,
+Vol. **94**, 26405 (2005).
 
 
-     >>> from ASE.Utilities.Wannier import Wannier
-     >>> atoms = Calculator.read_atoms('ethylene.nc')
-     >>> calc = atoms.get_calculator()
-     >>> wannier = Wannier(numberofwannier=6,calculator=calc)
+The Wannier class
+=================
 
+The class is accessed by::
 
-The first argument to the Wannier constructor must be the
-number of Wannier functions to be constructed, in this case 6.
-The next argument is a calculator containing all the information about
-the electronic structure calculation, i.e. number of bands, k-points,
-wavefunctions and so on.
+  from ase.dft.wannier import Wannier
 
-For examples of how to use the **Wannier** class, see the `Wannier tutorial`_.
+The basic initialization is::
 
-.. _Wannier tutorial: http://www.fysik.dtu.dk/campos/ASE/tut/wannier.html
+  Wannier(numberofwannier,
+          calc,
+          numberofbands=None,
+          occupationenergy=0,
+          numberoffixedstates=None,
+          spin=0)
 
-XXX tip:
+The required arguments are:
 
-.. note::
-   For a calculation using **k**-points the relevant unit cell for
-   eg. visualization of the Wannier orbitals is not the original unit cell,
-   but rather a larger unit cell defined by repeating the original
-   unit cell by the number of **k**-points in each direction.
-   We will refer to this unit cell as the large unit cell.
-   Note that for a :math:`\Gamma`-point calculation the large unit cell
-   coinsides with the original unit cell.
-   The large unitcell defines also the periodicity of the Wannier
-   orbitals.
+* ``numberofwannier`` this is the number of Wannier functions you wish
+  to construct. This must be at least half the number of electrons in
+  the system and at most equal to the number of bands in the
+  calculation.
+* ``calc`` this is a converged DFT calculator class, containing all
+  the information about the electronic structure calculation,
+  i.e. number of bands, k-points, wavefunctions and so on. The
+  calculator you are using *must* provide the method
+  ``get_wannier_localization_matrix``.
 
-.. note::
-   For calculations using **k**-points, make sure that the
-   gamma-point is included in the **k**-point grid. Moreover you must shift all
-   **k**-points by a small amount (but not less than 2e-5 in) in e.g. the x direction, before performing
-   the Dacapo calculation. If this is not done the symmetry program in
-   Dacapo will use time-reversal symmetry to reduce the number of
-   **k**-points by a factor 2. The shift can be performed like this::
+You can also specify ``numberofbands`` as a smaller number than the
+number of bands in the calculator. This is usefull if you do not
+believe the highest bands of your calculation are well converged. This
+value defaults to the number of bands in the calculation.
 
-                kpoints = calc.get_b_z_k_points()
-                kpoints[:,0] += 2e-5
-                calc.set_b_z_k_points(kpoints)
+The ``spin`` keyword is used to specify the spin channel. The Wannier
+code treats each spin channel independently.
 
-
-Below is the full list of keyword arguments:
-
-``numberofwannier``: Number of Wannier orbitals.
-  The number of Wannier orbitals to be constructed
-  must be <= ``numberofbands``.
-
-``calculator``: Calculator holding the eigenstates, the unit cell and
-  providing the method GetWannierLocalizationMatrix.
-
-``numberofbands``: Total number of bands defining the external
-  localization space.
-  This number is optional. It must be <= the
-  total number of bands in the DFT calculation. Default is the total
-  number of bands used in the DFT calculation.
-
-``spin``: Select specific spin for a spin-polarized calculation (0 or 1).
+The standard Wannier transformation is a unitary rotation of bloch
+states thus conserving the eigen energies of the system. This class
+allows for construction of *partly* occupied Wannier funcions. In this
+scheme, the transformation is a unitary rotationbelow some energy,
+uses a dynamically optimized linearcombination of the remaining
+orbitals, to improve localization. To control this behaviour you can
+use one of the two mutually exlusive keywords:
 
 ``occupationenergy``: Eigenstates below this energy are included in
   the internal localization space. In practice this means that all
@@ -97,6 +78,43 @@ Below is the full list of keyword arguments:
   this is also set. Default is None meaning that
   the number of fixed states is set by the ``occupationenergy``
   keyword.
+
+Below is a list of the most important methods of the :class:`Wannier`:
+
+* initialize(calc, initialwannier=None, seed=None, bloch=False)
+* localize(step=0.25, tolerance=1.0e-08)
+* dump(file)
+* load(file)
+* get_function(calc, index)
+* get_centers()
+* get_radii()
+* get_wannier_function_dos(calc, n, energies, width)
+
+Must are obvious: ``dump`` / ``load`` saves and loads the rotation-,
+coefficient-, and wannier localization matrices. ``get_centers`` and
+``get_radii`` returns the centers and radii of the Wannier
+functions. The ``get_function`` returns an array with the funcion
+values of the indicated Wannier function on a grid with the size of
+the *repeated* unit cell.
+
+.. note::
+   For a calculation using **k**-points the relevant unit cell for
+   eg. visualization of the Wannier orbitals is not the original unit cell,
+   but rather a larger unit cell defined by repeating the original
+   unit cell by the number of **k**-points in each direction.
+   We will refer to this unit cell as the large unit cell.
+   Note that for a :math:`\Gamma`-point calculation the large unit cell
+   coinsides with the original unit cell.
+   The large unitcell defines also the periodicity of the Wannier
+   orbitals.
+
+The ``get_wannier_function_dos(n, energies, width)`` Returns the
+projected density of states (PDOS) for Wannier function ``n``. The
+calculation is performed over the energy grid specified in
+energies. The PDOS is produced as a sum of Gaussians centered at the
+points of the energy grid and with the specified width.
+
+The ``initialize`` method has a few keywords worth mentioning:
 
 ``initialwannier``: Setup an initial set of Wannier orbitals.
   *initialwannier* can  set up a  starting guess for the Wannier functions.
@@ -119,94 +137,128 @@ Below is the full list of keyword arguments:
 
      initialwannier = [[[0.5,0.5,0.5],0,0.5]]
 
-  places an **s** orbital with radius 0.5 Angstroms at the position (0.5,0.5,0.5)
-  in scaled coordinates of the unit cell.
+  places an **s** orbital with radius 0.5 Angstroms at the position
+  (0.5,0.5,0.5) in scaled coordinates of the unit cell.
 
-.. note::
-   For the ethylene molecule (12 valence electrons)  we assume that we
-   have the Dacapo output file ethylene.nc:
+``seed``: Is the seed for any randomly generated initial rotations.
 
-     >>> atoms = Calculator.read_atoms('ethylene.nc')
-     >>> calc = atoms.get_calculator()
-     >>> wannier = Wannier(numberofwannier=6,calculator=calc)
-
-   This will construct 6 Wannier orbitals using the 6 occupied
-   valence states, corresponding to the 12 valence electrons.
+``bloch``: if ``True``, sets the initial guess for the rotation matrix
+to be identity, i.e. the Bloch states are used.
 
 
-Below is a list of the most important methods of the :class:`Wannier`:
-
-``Localize(step=0.5,tolerance=1.0e-08)``: Perform the localization of the
-  Wannier orbitals. This method will localize the Wannier orbitals, i.e will try to
-  maximize the localization functional. If the functional value is not increasing
-  decrease the *step* size from the default value 0.5.
-
-``GetWannierFunctionDOS(n,energies,width)``: Get projected density of states for WF.
-  Returns the projected density of states (PDOS) for Wannier function n. The calculation
-  is performed over the energy grid specified in energies. The PDOS is produced as a sum
-  of Gaussians centered at the points of the energy grid and with the specified width.
-
-``WriteWannierFunctionDOSToNetCDFFile(filename,n,energies,width)``:
-  Same as GetWannierFunctionDOS, but writes the output to a NetCDF file.
-
-``GetElectronicState(wannierindex,repeat=None)``: Returns an ``ElectronicState`` instance
-  corresponding to the Wannier orbital with index *wannierindex*. The keyword repeat can be
-  a list of 3 integers [n1,n2,n3], specifying how many times the unit cell is repeated
-  along the unit cell basis vectors.
-
-``GetCentersAsAtoms``: Returns a Atoms object with the Wannier centers.
-  The chemical element is set to 'X'.
-
-``TranslateAllWannierFunctionsToCell(cell)``: Move all Wannier orbitals to a specific unit cell.
-  There exists an arbitrariness  in the positions of the Wannier orbitals relative to the
-  unit cell. This method can move all orbitals to the unit cell specified by *cell*.
-  For a gamma-point calculation, this has no effect. For
-  a **k**-point calculation the periodicity of the orbitals are given by the large unit cell
-  defined by repeating the original unitcell by the number of **k**-points in each direction.
-  In this case it is usefull to move the orbitals away from the boundaries of the large cell
-  before plotting them. For a bulk calculation with, say 10x10x10 **k** points, one could move
-  the orbitals to the cell [2,2,2].
-  In this way the pbc boundary conditions will not be noticed.
-
-``WriteCube(wannierindex,filename,repeat=(7,7,7),real=False)``: Write a Cube formatted file.
-  A Cube formatted file is written for the given wannier index.
-  *repeat* can be used to repeat the unitcell, this is only relevant for calculations using
-  **k**-points. In this case ``repeat``, will default be
-  the number of **k**-points in each directions, i.e for a 11x11x11
-  **k**-point set, repeat will be (11x11x11). This cell size represents the
-  periodicity of the Wannier orbitals.
-
-  Localized Wannier functions can often be chosen to be real.
-  If the keyword *real* is set to *True*, the complex Wannier function will be transformed
-  into a real one by multiplication be a suitable phase factor.
-  In VMD you can use this to add two *isosurfaces* using  +- isosurface value, to get an
-  approximation for the sign of the Wannier function.
-
-``Save/ReadZIBlochMatrix(filename)``: Save and read ZI bloch matrix.
-  These methods save and restore the localization matrix generated from the initial
-  set of bloch function. This can save time, since the ZI matrix must be provided each time
-  a localization is performed. If a ZI matrix is not read from file, it will be calculated.
-
-``Save/ReadRotation(filename)``:
-  These methods can be used to save and restore the unitary matrices used to produce a set
-  of Wannier functions. The method produces two files: filename_rot.pickle and
-  filename_coeff.pickle.
+``TranslateAllWannierFunctionsToCell(cell)``: XXX This has not been
+moved from the old ASE yet! Move all Wannier orbitals to a specific
+unit cell.  There exists an arbitrariness in the positions of the
+Wannier orbitals relative to the unit cell. This method can move all
+orbitals to the unit cell specified by *cell*.  For a gamma-point
+calculation, this has no effect. For a **k**-point calculation the
+periodicity of the orbitals are given by the large unit cell defined
+by repeating the original unitcell by the number of **k**-points in
+each direction.  In this case it is usefull to move the orbitals away
+from the boundaries of the large cell before plotting them. For a bulk
+calculation with, say 10x10x10 **k** points, one could move the
+orbitals to the cell [2,2,2].  In this way the pbc boundary conditions
+will not be noticed.
 
 
-.. note::
+For examples of how to use the **Wannier** class, see the `Wannier tutorial`_.
 
-   You can save your localized Wannier orbital like this::
+.. _Wannier tutorial: http://www.fysik.dtu.dk/campos/ASE/tut/wannier.html
 
-     >>> wannier = Wannier(..)
-     >>> wannier.save_z_i_bloch_matrix('fe_bloch.pickle')
-     >>> wannier.localize(tolerance=0.000001)
-     >>> wannier.save_rotation('fe')
 
-   and read them in again like this::
+.. note:: For calculations using **k**-points, make sure that the
+   gamma-point is included in the **k**-point grid. Moreover you must
+   shift all **k**-points by a small amount (but not less than 2e-5
+   in) in e.g. the x direction, before performing the Dacapo
+   calculation. If this is not done the symmetry program in Dacapo
+   will use time-reversal symmetry to reduce the number of
+   **k**-points by a factor 2. The shift can be performed like this::
 
-     >>> wannier = Wannier(..)
-     >>> wannier.read_z_i_bloch_matrix('fe_bloch.pickle')
-     >>> wannier.read_rotation('fe')
-     >>> wannier.localize(tolerance=0.000001)
+                kpoints = calc.get_b_z_k_points()
+                kpoints[:,0] += 2e-5
+                calc.set_b_z_k_points(kpoints)
 
-   Localize should now converge in one step.
+
+Band structure and orbital analysis
+===================================
+
+XXX Not moved from the old ASE yet!
+
+The class `HoppingParameters` can generate a band structure using the
+set of Wannier orbitals.
+
+An instance of `HoppingParameters` is initialized like this::
+
+   >>> from ASE.Utilities.Wannier import HoppingParameters
+   >>> hop = HoppingParameters(wannier,cutoff)
+
+
+The cutoff distance truncates the Wannier orbitals at the specified
+distance. This distance should be smaller than half the length of
+large unitcell. The truncation is necessary because the Wannier
+functions will always be periodic (with a periodicity given by the
+large cell), and thus in order to describe completely localized
+orbitals the WFs must be truncated.
+
+`HoppingParameters` have the following methods:
+
+``GetHoppingParameter(R,n,m)``: Returns the matrix element
+  <n,0|H|m,R>, where (n,0) is Wannier function number n in unit cell
+  0=[0,0,0], and (m,R) and m is Wannier function number m in unit cell
+  R=[n1,n2,n3] where n1,n2,n3 are integers.
+
+``WriteBandDiagramToNetCDFFile(filename,npoints,kpt1,kpt2)``: Write a
+  band diagram to file.  A band structure plot is written to file
+  `filename`. There will be `npoints` **k**-points distributed
+  uniformly along the line connecting `kpt1` and `kpt2` in the
+  BZ. Each coordinate of `kpt1` and `kpt2` should be between -0.5 and
+  0.5.
+
+``GetWFHamiltonian()``: The Hamiltonian matrix in the basis of the
+  Wannier orbitals are returned.  We will refer to this Hamiltonian as
+  **H** in that follows. The Hamiltonian refers to the large unit
+  cell, and its dimension is therefore (N_w*N_k)x(N_w*N_k), where N_w
+  is the number of Wannier functions in a unit cell and N_k is the
+  number of **k** points. Periodic boundary conditions are imposed on
+  the boundaries of the large cell.
+
+The module `HamiltonianTools` have a number of useful methods for
+analysing problems in terms of the Wannier functions and the
+Hamiltonian matrix **H**. Definition and physical meaning of the term
+`group-orbital` (see below) can be found in the paper PRL 94,036807
+(2005).  The module is imported like this::
+
+   >>> from ASE.Utilities.Wannier import HamiltonianTools
+
+The methods are described below:
+
+``H_rot,U,eigenvalues =
+  HamiltonianTools.SubDiagonalize(h,listofindices)``: This methods
+  diagonalize the Hamiltonian `h` within the subspace spanned by the
+  basis functions (Wannier functions) speficied in the list
+  `listofindices`. This can be used to e.g. to obtain renormalized
+  molecular orbitals for a molecule adsobed on a surface, by
+  diagonalizing `h` within the subspace spanned by the Wannier
+  functions centered at the molecule. `H_rot` will be the transformed
+  Hamiltonian matrix, `U` is the unitary matrix that relates `H_rot`
+  to the original `h`, and `eigenvalues` are the eigenvalues
+  (energies) in the diagonalized subspace.
+
+``HamiltonianTools.GetCouplingToGroupOrbital(h,index)``: Returns the
+  coupling matrix element between a basis function (Wannier function
+  or renormalized orbital - see method above) and its so-called group
+  orbital.
+
+``H_cut=HamiltonianTools.CutCoupling(h,indexlist)``: Returns the
+  matrix `h` with all couplings involving the basis functions
+  specified in the list `indexlist` set to zero.
+
+``specfunctions=HamiltonianTools.GetSpectralFunction(listoforbitals,hamiltonian,listofenergies,width)``:
+Returns the projected density of states (PDOS) for the orbitals
+specified in `listoforbitals`. Each entity in `listoforbitals` can be
+an integer (the index of a basis function) or a normalized list of
+coordinates, depending on whether one wants the PDOS for a specific
+basis function or a linear- combination of such. `hamiltonian` is a
+Hamiltonian matrix, `listofenergies` is a Python array with an energy
+grid on which the PDOS is returned, and `width` sets the smearing
+scale of the PDOS.
