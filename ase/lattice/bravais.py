@@ -6,6 +6,7 @@ This is a base class for numerous classes setting up pieces of crystal.
 import math
 import numpy as np
 from ase.atoms import Atoms
+import ase.data
 
 class Bravais:
     """Bravais lattice factory.
@@ -73,7 +74,7 @@ class Bravais:
 
     def align(self):
         "Align the first axis along x-axis and the second in the x-y plane."
-        degree = 180/pi
+        degree = 180/np.pi
         if self.debug >= 2:
             print "Basis before alignment:"
             print self.basis
@@ -81,52 +82,52 @@ class Bravais:
             # First basis vector along y axis - rotate 90 deg along z
             t = np.array([[0, -1, 0],
                           [1, 0, 0],
-                          [0, 0, 1]], Float)
-            self.basis = matrixmultiply(self.basis, t)
+                          [0, 0, 1]], np.float)
+            self.basis = np.dot(self.basis, t)
             transf = t
             if self.debug >= 2:
                 print "Rotating -90 degrees around z axis for numerical stability."
                 print self.basis
         else:
-            transf = identity(3, Float)
-        assert abs(determinant(transf) - 1) < 1e-6
+            transf = np.identity(3, np.float)
+        assert abs(np.linalg.det(transf) - 1) < 1e-6
         # Rotate first basis vector into xy plane
         theta = math.atan2(self.basis[0,2], self.basis[0,0])
-        t = np.array([[cos(theta), 0, -sin(theta)],
+        t = np.array([[np.cos(theta), 0, -np.sin(theta)],
                       [         0, 1, 0          ],
-                      [sin(theta), 0, cos(theta) ]])
-        self.basis = matrixmultiply(self.basis, t)
-        transf = matrixmultiply(transf, t)
+                      [np.sin(theta), 0, np.cos(theta) ]])
+        self.basis = np.dot(self.basis, t)
+        transf = np.dot(transf, t)
         if self.debug >= 2:
             print "Rotating %f degrees around y axis." % (-theta*degree,)
             print self.basis
-        assert abs(determinant(transf) - 1) < 1e-6
+        assert abs(np.linalg.det(transf) - 1) < 1e-6
         # Rotate first basis vector to point along x axis
         theta = math.atan2(self.basis[0,1], self.basis[0,0])
-        t = np.array([[cos(theta), -sin(theta), 0],
-                      [sin(theta),  cos(theta), 0],
+        t = np.array([[np.cos(theta), -np.sin(theta), 0],
+                      [np.sin(theta),  np.cos(theta), 0],
                       [         0,           0, 1]])
-        self.basis = matrixmultiply(self.basis, t)
-        transf = matrixmultiply(transf, t)
+        self.basis = np.dot(self.basis, t)
+        transf = np.dot(transf, t)
         if self.debug >= 2:
             print "Rotating %f degrees around z axis." % (-theta*degree,)
             print self.basis
-        assert abs(determinant(transf) - 1) < 1e-6
+        assert abs(np.linalg.det(transf) - 1) < 1e-6
         # Rotate second basis vector into xy plane
         theta = math.atan2(self.basis[1,2], self.basis[1,1])
         t = np.array([[1, 0, 0],
-                      [0, cos(theta), -sin(theta)],
-                      [0, sin(theta),  cos(theta)]])
-        self.basis = matrixmultiply(self.basis, t)
-        transf = matrixmultiply(transf, t)
+                      [0, np.cos(theta), -np.sin(theta)],
+                      [0, np.sin(theta),  np.cos(theta)]])
+        self.basis = np.dot(self.basis, t)
+        transf = np.dot(transf, t)
         if self.debug >= 2:
             print "Rotating %f degrees around x axis." % (-theta*degree,)
             print self.basis
-        assert abs(determinant(transf) - 1) < 1e-6
+        assert abs(np.linalg.det(transf) - 1) < 1e-6
         # Now we better rotate the atoms as well
-        self.atoms = matrixmultiply(self.atoms, transf)
+        self.atoms = np.dot(self.atoms, transf)
         # ... and rotate miller_basis
-        self.miller_basis = matrixmultiply(self.miller_basis, transf)
+        self.miller_basis = np.dot(self.miller_basis, transf)
         
     def make_list_of_atoms(self):
         "Repeat the unit cell."
@@ -138,32 +139,32 @@ class Bravais:
         e2 = []
         for i in xrange(self.size[0]):
             offset = self.basis[0] * i
-            a2.append(self.atoms + offset[NewAxis,:])
+            a2.append(self.atoms + offset[np.newaxis,:])
             e2.append(self.elements)
-        atoms = concatenate(a2)
-        elements = concatenate(e2)
+        atoms = np.concatenate(a2)
+        elements = np.concatenate(e2)
         a2 = []
         e2 = []
         for j in xrange(self.size[1]):
             offset = self.basis[1] * j
-            a2.append(atoms + offset[NewAxis,:])
+            a2.append(atoms + offset[np.newaxis,:])
             e2.append(elements)
-        atoms = concatenate(a2)
-        elements = concatenate(e2)
+        atoms = np.concatenate(a2)
+        elements = np.concatenate(e2)
         a2 = []
         e2 = []
         for k in xrange(self.size[2]):
             offset = self.basis[2] * k
-            a2.append(atoms + offset[NewAxis,:])
+            a2.append(atoms + offset[np.newaxis,:])
             e2.append(elements)
-        atoms = concatenate(a2)
-        elements = concatenate(e2)
+        atoms = np.concatenate(a2)
+        elements = np.concatenate(e2)
         del a2, e2
         assert len(atoms) == nrep * len(self.atoms)
         basis = np.array([[self.size[0],0,0],
                        [0,self.size[1],0],
                        [0,0,self.size[2]]])
-        basis = matrixmultiply(basis, self.basis)
+        basis = np.dot(basis, self.basis)
         # None should be replaced, and memory should be freed.
         lattice = Lattice(positions=atoms, cell=basis, numbers=elements,
                        pbc=self.periodic)
@@ -175,7 +176,7 @@ class Bravais:
         # The types that can be converted to Elements: integers and strings
         if self.element_basis is None:
             if isinstance(element, type("string")):
-                self.atomicnumber = data.atomic_numbers[element]
+                self.atomicnumber = ase.data.atomic_numbers[element]
             else:
                 # Let's hope it is an atomic number or something compatible.
                 self.atomicnumber = element
@@ -183,7 +184,7 @@ class Bravais:
             self.atomicnumber = []
             for e in element:
                 if isinstance(e, type("string")):
-                    self.atomicnumber.append(data.atomic_numbers[e])
+                    self.atomicnumber.append(ase.data.atomic_numbers[e])
                 else:
                     # Let's hope it is an atomic number or something compatible.
                     self.atomicnumber.append(e)
@@ -191,9 +192,9 @@ class Bravais:
         
     def convert_to_natural_basis(self):
         "Convert directions and miller indices to the natural basis."
-        self.directions = matrixmultiply(self.directions, self.inverse_basis)
+        self.directions = np.dot(self.directions, self.inverse_basis)
         if self.bravais_basis is not None:
-            self.natural_bravais_basis = matrixmultiply(self.bravais_basis,
+            self.natural_bravais_basis = np.dot(self.bravais_basis,
                                                         self.inverse_basis)
         for i in (0,1,2):
             self.directions[i] = reduceindex(self.directions[i])
@@ -204,7 +205,7 @@ class Bravais:
                                                 self.directions[k]))
         
     def calc_num_atoms(self):
-        v = int(round(abs(determinant(self.directions))))
+        v = int(round(abs(np.linalg.det(self.directions))))
         if self.bravais_basis is None:
             return v
         else:
@@ -217,8 +218,8 @@ class Bravais:
         # in the real unit cell by put_atom().
         self.natoms = self.calc_num_atoms()
         self.nput = 0
-        self.atoms = np.zeros((self.natoms,3), Float)
-        self.elements = np.zeros(self.natoms, Int)
+        self.atoms = np.zeros((self.natoms,3), np.float)
+        self.elements = np.zeros(self.natoms, np.int)
         self.farpoint = farpoint = sum(self.directions)
         #printprogress = self.debug and (len(self.atoms) > 250)
         percent = 0
@@ -230,8 +231,8 @@ class Bravais:
                     vect = (i * self.directions[0] +
                             j * self.directions[1] +
                             k * self.directions[2])
-                    if dot(vect,vect) > sqrad:
-                        sqrad = dot(vect,vect)
+                    if np.dot(vect,vect) > sqrad:
+                        sqrad = np.dot(vect,vect)
         del i,j,k
         # Loop along first crystal axis (i)
         for (istart, istep) in ((0,1), (-1,-1)):
@@ -258,7 +259,7 @@ class Bravais:
                                     nk += 1
                                     nj += 1
                                 # Is k too high?
-                                if dot(point,point) > sqrad:
+                                if np.dot(point,point) > sqrad:
                                     assert not self.inside(point)
                                     kcont = False
                                 k += kstep
@@ -279,18 +280,18 @@ class Bravais:
 
     def inside(self, point):
         "Is a point inside the unit cell?"
-        return (dot(self.miller[0], point) >= 0 and
-                dot(self.miller[0], point - self.farpoint) < 0 and
-                dot(self.miller[1], point) >= 0 and
-                dot(self.miller[1], point - self.farpoint) < 0 and
-                dot(self.miller[2], point) >= 0 and
-                dot(self.miller[2], point - self.farpoint) < 0)
+        return (np.dot(self.miller[0], point) >= 0 and
+                np.dot(self.miller[0], point - self.farpoint) < 0 and
+                np.dot(self.miller[1], point) >= 0 and
+                np.dot(self.miller[1], point - self.farpoint) < 0 and
+                np.dot(self.miller[2], point) >= 0 and
+                np.dot(self.miller[2], point - self.farpoint) < 0)
 
     def put_atom(self, point):
         "Place an atom given its integer coordinates."
         if self.bravais_basis is None:
             # No basis - just place a single atom
-            pos = matrixmultiply(point, self.crystal_basis)
+            pos = np.dot(point, self.crystal_basis)
             if self.debug >= 2:
                 print ("Placing an atom at (%d,%d,%d) ~ (%.3f, %.3f, %.3f)."
                        % (tuple(point) + tuple(pos)))
@@ -299,7 +300,7 @@ class Bravais:
             self.nput += 1
         else:
             for i, offset in enumerate(self.natural_bravais_basis):
-                pos = matrixmultiply(point + offset, self.crystal_basis)
+                pos = np.dot(point + offset, self.crystal_basis)
                 if self.debug >= 2:
                     print ("Placing an atom at (%d+%f, %d+%f, %d+%f) ~ (%.3f, %.3f, %.3f)."
                            % (point[0], offset[0], point[1], offset[1],
@@ -345,7 +346,7 @@ class Bravais:
         self.directions = np.array(directions)
         self.miller = np.array(miller)
         # Check for left-handed coordinate system
-        if determinant(self.directions) < 0:
+        if np.linalg.det(self.directions) < 0:
             print "WARNING: Creating a left-handed coordinate system!"
             self.miller = -self.miller
             self.handedness = -1
@@ -356,7 +357,7 @@ class Bravais:
             (j,k) = self.other[i]
             m = reduceindex(self.handedness *
                             cross(self.directions[j], self.directions[k]))
-            if sum(not_equal(m, self.miller[i])):
+            if sum(np.not_equal(m, self.miller[i])):
                 print "ERROR: Miller index %s is inconsisten with directions %d and %d" % (i,j,k)
                 print "Miller indices:"
                 print str(self.miller)
@@ -377,7 +378,7 @@ class MillerInfo:
     """Mixin class to provide information about Miller indices."""
     def miller_to_direction(self, miller):
 	"""Returns the direction corresponding to a given Miller index."""
-        return matrixmultiply(miller, self.millerbasis)
+        return np.dot(miller, self.millerbasis)
 
 class Lattice(Atoms, MillerInfo):
     """List of atoms initially containing a regular lattice of atoms.
@@ -410,7 +411,7 @@ def reduceindex(M):
         M = M/h
         g = gcd(M[0], M[1])
         h = gcd(g, M[2])
-    if dot(oldM, M) > 0:
+    if np.dot(oldM, M) > 0:
         return M
     else:
         return -M

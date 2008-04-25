@@ -9,6 +9,7 @@ The following lattice creators are defined:
 
 from ase.lattice.bravais import Bravais
 import numpy as np
+from ase.data import reference_states as _refstate
 
 class SimpleCubicFactory(Bravais):
     "A factory for creating simple cubic lattices."
@@ -33,18 +34,18 @@ class SimpleCubicFactory(Bravais):
     
     def get_lattice_constant(self):
         "Get the lattice constant of an element with cubic crystal structure."
-        if self.element.crystal_structure['symmetry'].lower() != self.xtal_name:
+        if _refstate[self.atomicnumber]['symmetry'].lower() != self.xtal_name:
             raise ValueError, (("Cannot guess the %s lattice constant of"
                                 + " an element with crystal structure %s.")
                                % (self.xtal_name,
-                                  self.element.crystal_structure['symmetry']))
-        return self.element.crystal_structure['a']    
+                                  _refstate[self.atomicnumber]['symmetry']))
+        return _refstate[self.atomicnumber]['a']    
 
     def make_crystal_basis(self):
         "Make the basis matrix for the crystal unit cell and the system unit cell."
         self.crystal_basis = (self.latticeconstant * self.basis_factor
                               * self.int_basis)
-        self.miller_basis = self.latticeconstant * Numeric.identity(3)
+        self.miller_basis = self.latticeconstant * np.identity(3)
         self.basis = np.dot(self.directions, self.crystal_basis)
         self.check_basis_volume()
 
@@ -54,7 +55,7 @@ class SimpleCubicFactory(Bravais):
         cellsize = self.atoms_in_unit_cell
         if self.bravais_basis is not None:
             cellsize *= len(self.bravais_basis)
-        vol2 = (self.CalcNAtoms() * self.latticeconstant**3 / cellsize)
+        vol2 = (self.calc_num_atoms() * self.latticeconstant**3 / cellsize)
         assert abs(vol1-vol2) < 1e-5
 
 SimpleCubic = SimpleCubicFactory()
