@@ -1,4 +1,6 @@
-.. module:Vibration analysis
+.. module:: vibrations
+
+Vibration analysis
 ------------------
 
 You can calculate the vibrational modes of a an
