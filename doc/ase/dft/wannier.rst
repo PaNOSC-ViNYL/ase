@@ -4,19 +4,51 @@
 Maximally localized Wannier functions
 =====================================
 
-Wannier functions are maximally localized orbitals
-constructed from a set of extended eigenstates. This page describes
-how to construct the Wannier orbitals using the class :class:`Wannier`.
+This page describes how to construct the Wannier orbitals using the class :class:`Wannier`.The page is organized as follows:
 
-This page is organized as follows:
-
+* `Introduction`_: A short summary of the basic theory.
 * `The Wannier class`_ : A description of how the Wannier class is
   used, and the methods defined within.
 * `Band structure and orbital analysis`_ : A description of how to
   analyse the band structure using localized Wannier orbitals.
 
+Introduction
+============
+
+The point of Wannier functions is the transform the extended Bloch
+eigenstates of a DFT calculation, into a smaller set of states
+designed to facilitate the analysis of e.g. chemical bonding. This is
+achived by designing the Wannier functions to be localized in real
+space instead of energy (which would be the eigen states).
+
+The standard Wannier transformation is a unitary rotation of the Bloch
+states. This implies that the Wannier functions (WF) span the same
+Hilbert space as the Bloch states, i.e. they have the same eigenvalue
+spectrum, and the original Bloch states can all be exactly reproduced
+from a linear combination of the WF. For maximally localized Wannier
+functions (MLWF), the unitary transformation is chosen such that the
+spread of the resulting WF is minimized.
+
+The standard choice is to make a unitary transformation of the
+occupied bands only, thus resulting in as many WF as there are
+occupied bands. If you make a rotation using more bands, the
+localization will be improved, but the number of wannier functions
+increase, thus making orbital based analysis harder.
+
+The class defined here allows for construction of *partly* occupied
+MLWF. In this scheme the transformation is still a unitary rotation
+for the lowest states (the *fixed space*), but it uses a dynamically
+optimized linear combination of the remaining orbitals (the *active
+space*) to improve localization. This implies that e.g. the
+eigenvalues of the Bloch states contained in the fixed space can be
+exactly reproduced by the resulting WF, whereas the largest
+eigenvalues of the WF will not necessarily correspond to any "real"
+eigenvalues (this is irrelevant, as the fixed space is usually chosen
+large enough, i.e. high enough above the fermilevel, that the
+remaining DFT eigenvalues are meaningless anyway).
+
 For the theory behind this method see the paper "Partly Occupied
-Wannier Functions" Thygesen, Hansen and Jacobsen, Phys. Rev. Lett,
+Wannier Functions" Thygesen, Hansen and Jacobsen, *Phys. Rev. Lett*,
 Vol. **94**, 26405 (2005).
 
 
@@ -38,57 +70,61 @@ The basic initialization is::
 
 The required arguments are:
 
-* ``numberofwannier`` this is the number of Wannier functions you wish
-  to construct. This must be at least half the number of electrons in
+``numberofwannier``: The number of Wannier functions you wish to construct.
+
+  This must be at least half the number of electrons in
   the system and at most equal to the number of bands in the
   calculation.
-* ``calc`` this is a converged DFT calculator class, containing all
-  the information about the electronic structure calculation,
-  i.e. number of bands, k-points, wavefunctions and so on. The
-  calculator you are using *must* provide the method
+
+``calc``: A converged DFT calculator class.
+
+  A calculator containing all the information about the electronic
+  structure calculation, i.e. number of bands, k-points, wavefunctions
+  and so on. The calculator you are using *must* provide the method
   ``get_wannier_localization_matrix``.
 
-You can also specify ``numberofbands`` as a smaller number than the
-number of bands in the calculator. This is usefull if you do not
-believe the highest bands of your calculation are well converged. This
-value defaults to the number of bands in the calculation.
+The optional arguments are:
 
-The ``spin`` keyword is used to specify the spin channel. The Wannier
-code treats each spin channel independently.
+``numberofbands``: Bands to include in localization.
 
-The standard Wannier transformation is a unitary rotation of bloch
-states thus conserving the eigen energies of the system. This class
-allows for construction of *partly* occupied Wannier funcions. In this
-scheme, the transformation is a unitary rotationbelow some energy,
-uses a dynamically optimized linearcombination of the remaining
-orbitals, to improve localization. To control this behaviour you can
-use one of the two mutually exlusive keywords:
+  You can specify ``numberofbands`` as a smaller number than the
+  number of bands in the calculator. This is usefull if you do not
+  believe the highest bands of your calculation are well
+  converged. This value defaults to the number of bands in the
+  calculation.
 
-``occupationenergy``: Eigenstates below this energy are included in
-  the internal localization space. In practice this means that all
-  eigenstates below this energy can be exactly reproduced in terms of
-  the resulting Wannier functions.
-  The energy is relative to the Fermi-level, and 0 is default (all
-  occupied states are included in the localization space).
+``spin``: The spin channel to be considered.
 
-``numberoffixedstates``: Fix the number of states to be included in
-  the internal localization space starting from the lowest eigenstate.
-  This keyword provides another way of specifying how many
-  states should be included, and overrides ``occupationenergy`` if
-  this is also set. Default is None meaning that
-  the number of fixed states is set by the ``occupationenergy``
+  The Wannier code treats each spin channel independently.
+
+``occupationenergy``: Maximal energy of the fixed part of Hilbert space.
+
+  Eigenstates below this energy are included in the *fixed space*. In
+  practice this means that all eigenstates below this energy can be
+  exactly reproduced in terms of the resulting Wannier functions.  The
+  energy is relative to the Fermi-level, and 0 is default (all
+  occupied states are included in the fixed space).
+
+``numberoffixedstates``: Number of states in the fixed part of Hilbert space.
+  
+  Fix the number of states to be included in the fixed space, starting
+  from the lowest eigenstate.  This keyword provides another way of
+  specifying how many states should be fixed, and overrides
+  ``occupationenergy`` if this is also set. Default is None meaning
+  that the number of fixed states is set by the ``occupationenergy``
   keyword.
 
 Below is a list of the most important methods of the :class:`Wannier`:
 
-* initialize(calc, initialwannier=None, seed=None, bloch=False)
-* localize(step=0.25, tolerance=1.0e-08)
-* dump(file)
-* load(file)
-* get_function(calc, index)
-* get_centers()
-* get_radii()
-* get_wannier_function_dos(calc, n, energies, width)
+* ``initialize(calc, initialwannier=None, seed=None, bloch=False)``
+* ``localize(step=0.25, tolerance=1.0e-08)``
+* ``dump(file)``
+* ``load(file)``
+* ``get_function(calc, index)``
+* ``get_centers()``
+* ``get_radii()``
+* ``get_wannier_function_dos(calc, n, energies, width)``
+* ``TranslateAllWannierFunctionsToCell(cell)`` XXX
 
 Must are obvious: ``dump`` / ``load`` saves and loads the rotation-,
 coefficient-, and wannier localization matrices. ``get_centers`` and
@@ -96,6 +132,74 @@ coefficient-, and wannier localization matrices. ``get_centers`` and
 functions. The ``get_function`` returns an array with the funcion
 values of the indicated Wannier function on a grid with the size of
 the *repeated* unit cell.
+
+The more advanced methods are described below:
+
+.. confval:: get_wannier_function_dos(n, energies, width)
+
+  Returns the projected density of states (PDOS) for Wannier function
+  ``n``. The calculation is performed over the energy grid specified
+  in energies. The PDOS is produced as a sum of Gaussians centered at
+  the points of the energy grid and with the specified width.
+
+.. confval:: initialize(calc, initialwannier=None, seed=None, bloch=False)
+
+  The ``initialize`` method has a few keywords worth mentioning:
+
+  ``initialwannier``: Setup an initial set of Wannier orbitals.
+
+    *initialwannier* can set up a starting guess for the Wannier
+    functions.  This is important to speed up convergence in
+    particular for large systems For transition elements with **d**
+    electrons you will always find 5 highly localized **d**-orbitals
+    centered at the atom.  Placing 5 **d**-like orbitals with a radius
+    of 0.4 Angstroms and center at atom no. 7, and 3 **p**-like
+    orbitals with a radius of 0.4 Angstroms and center at atom no. 27
+    looks like this::
+
+       initialwannier = [[[7],2,0.4],[[27],1,0.4]]
+
+    Placing only the l=2, m=-2 and m=-1 orbitals at atom no. 7 looks
+    like this::
+
+       initialwannier = [[[7],2,-2,0.4],[[7],2,-1,0.4]]
+
+    I.e. if you do not specify the m quantum number all allowed values
+    are used.  Instead of placing an orbital at an atom, you can place
+    it at a specified position. For example the following::
+
+       initialwannier = [[[0.5,0.5,0.5],0,0.5]]
+
+    places an **s** orbital with radius 0.5 Angstroms at the position
+    (0.5,0.5,0.5) in scaled coordinates of the unit cell.
+
+  ``seed``: The seed used for any randomly generated initial rotations.
+
+  ``bloch``: Use Bloch states for initial guess
+    
+    If ``True``, sets the initial guess for the rotation matrix to be
+    identity, i.e. the Bloch states are used.
+
+
+.. confval:: TranslateAllWannierFunctionsToCell(cell)
+
+  XXX This has not been moved from the old ASE yet! Move all Wannier
+  orbitals to a specific unit cell.  There exists an arbitrariness in
+  the positions of the Wannier orbitals relative to the unit
+  cell. This method can move all orbitals to the unit cell specified
+  by ``cell``.  For a gamma-point calculation, this has no effect. For
+  a **k**-point calculation the periodicity of the orbitals are given
+  by the large unit cell defined by repeating the original unitcell by
+  the number of **k**-points in each direction.  In this case it is
+  usefull to move the orbitals away from the boundaries of the large
+  cell before plotting them. For a bulk calculation with, say 10x10x10
+  **k** points, one could move the orbitals to the cell [2,2,2].  In
+  this way the pbc boundary conditions will not be noticed.
+
+
+For examples of how to use the **Wannier** class, see the `Wannier tutorial`_.
+
+.. _Wannier tutorial: http://www.fysik.dtu.dk/campos/ASE/tut/wannier.html
 
 .. note::
    For a calculation using **k**-points the relevant unit cell for
@@ -107,64 +211,6 @@ the *repeated* unit cell.
    coinsides with the original unit cell.
    The large unitcell defines also the periodicity of the Wannier
    orbitals.
-
-The ``get_wannier_function_dos(n, energies, width)`` Returns the
-projected density of states (PDOS) for Wannier function ``n``. The
-calculation is performed over the energy grid specified in
-energies. The PDOS is produced as a sum of Gaussians centered at the
-points of the energy grid and with the specified width.
-
-The ``initialize`` method has a few keywords worth mentioning:
-
-``initialwannier``: Setup an initial set of Wannier orbitals.
-  *initialwannier* can  set up a  starting guess for the Wannier functions.
-  This is important to speed up convergence in particular for large systems
-  For transition elements with **d** electrons you will always find 5 highly
-  localized **d**-orbitals centered at the atom.
-  Placing 5 **d**-like orbitals with a radius of
-  0.4 Angstroms and center at atom no. 7, and 3 **p**-like orbitals with a
-  radius of 0.4 Angstroms and center at atom no. 27 looks like this::
-
-     initialwannier = [[[7],2,0.4],[[27],1,0.4]]
-
-  Placing only the l=2, m=-2 and m=-1 orbitals at atom no. 7 looks like this::
-
-     initialwannier = [[[7],2,-2,0.4],[[7],2,-1,0.4]]
-
-  I.e. if you do not specify the m quantum number all allowed values are used.
-  Instead of placing an orbital at an atom, you can place it at a specified
-  position. For example the following::
-
-     initialwannier = [[[0.5,0.5,0.5],0,0.5]]
-
-  places an **s** orbital with radius 0.5 Angstroms at the position
-  (0.5,0.5,0.5) in scaled coordinates of the unit cell.
-
-``seed``: Is the seed for any randomly generated initial rotations.
-
-``bloch``: if ``True``, sets the initial guess for the rotation matrix
-to be identity, i.e. the Bloch states are used.
-
-
-``TranslateAllWannierFunctionsToCell(cell)``: XXX This has not been
-moved from the old ASE yet! Move all Wannier orbitals to a specific
-unit cell.  There exists an arbitrariness in the positions of the
-Wannier orbitals relative to the unit cell. This method can move all
-orbitals to the unit cell specified by *cell*.  For a gamma-point
-calculation, this has no effect. For a **k**-point calculation the
-periodicity of the orbitals are given by the large unit cell defined
-by repeating the original unitcell by the number of **k**-points in
-each direction.  In this case it is usefull to move the orbitals away
-from the boundaries of the large cell before plotting them. For a bulk
-calculation with, say 10x10x10 **k** points, one could move the
-orbitals to the cell [2,2,2].  In this way the pbc boundary conditions
-will not be noticed.
-
-
-For examples of how to use the **Wannier** class, see the `Wannier tutorial`_.
-
-.. _Wannier tutorial: http://www.fysik.dtu.dk/campos/ASE/tut/wannier.html
-
 
 .. note:: For calculations using **k**-points, make sure that the
    gamma-point is included in the **k**-point grid. Moreover you must
