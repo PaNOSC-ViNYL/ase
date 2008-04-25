@@ -14,11 +14,11 @@ appending constraints directly to the atoms object. See the
 Constraints can also be applied via filters, which acts as a wrapper
 around an atoms object. A typical use case will look like this::
 
-   -------------       --------       ----------
-  |             |     |        |     |          |
-  | ListOfAtoms |<----| Filter |<----| Dynamics |
-  |             |     |        |     |          |
-   -------------       --------       ----------
+   -------       --------       ----------
+  |       |     |        |     |          |
+  | Atoms |<----| Filter |<----| Dynamics |
+  |       |     |        |     |          |
+   -------       --------       ----------
 
 and in Python this would be::
 
