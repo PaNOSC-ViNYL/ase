@@ -71,13 +71,11 @@ The basic initialization is::
 The required arguments are:
 
 ``numberofwannier``: The number of Wannier functions you wish to construct.
-
   This must be at least half the number of electrons in
   the system and at most equal to the number of bands in the
   calculation.
 
 ``calc``: A converged DFT calculator class.
-
   A calculator containing all the information about the electronic
   structure calculation, i.e. number of bands, k-points, wavefunctions
   and so on. The calculator you are using *must* provide the method
@@ -86,7 +84,6 @@ The required arguments are:
 The optional arguments are:
 
 ``numberofbands``: Bands to include in localization.
-
   You can specify ``numberofbands`` as a smaller number than the
   number of bands in the calculator. This is usefull if you do not
   believe the highest bands of your calculation are well
@@ -94,11 +91,9 @@ The optional arguments are:
   calculation.
 
 ``spin``: The spin channel to be considered.
-
   The Wannier code treats each spin channel independently.
 
 ``occupationenergy``: Maximal energy of the fixed part of Hilbert space.
-
   Eigenstates below this energy are included in the *fixed space*. In
   practice this means that all eigenstates below this energy can be
   exactly reproduced in terms of the resulting Wannier functions.  The
@@ -106,7 +101,6 @@ The optional arguments are:
   occupied states are included in the fixed space).
 
 ``numberoffixedstates``: Number of states in the fixed part of Hilbert space.
-  
   Fix the number of states to be included in the fixed space, starting
   from the lowest eigenstate.  This keyword provides another way of
   specifying how many states should be fixed, and overrides
@@ -116,38 +110,15 @@ The optional arguments are:
 
 Below is a list of the most important methods of the :class:`Wannier`:
 
-* ``initialize(calc, initialwannier=None, seed=None, bloch=False)``
-* ``localize(step=0.25, tolerance=1.0e-08)``
-* ``dump(file)``
-* ``load(file)``
-* ``get_function(calc, index)``
-* ``get_centers()``
-* ``get_radii()``
-* ``get_wannier_function_dos(calc, n, energies, width)``
-* ``TranslateAllWannierFunctionsToCell(cell)`` XXX
+.. function:: initialize(calc, initialwannier=None, seed=None, bloch=False)
 
-Must are obvious: ``dump`` / ``load`` saves and loads the rotation-,
-coefficient-, and wannier localization matrices. ``get_centers`` and
-``get_radii`` returns the centers and radii of the Wannier
-functions. The ``get_function`` returns an array with the funcion
-values of the indicated Wannier function on a grid with the size of
-the *repeated* unit cell.
-
-The more advanced methods are described below:
-
-.. confval:: get_wannier_function_dos(n, energies, width)
-
-  Returns the projected density of states (PDOS) for Wannier function
-  ``n``. The calculation is performed over the energy grid specified
-  in energies. The PDOS is produced as a sum of Gaussians centered at
-  the points of the energy grid and with the specified width.
-
-.. confval:: initialize(calc, initialwannier=None, seed=None, bloch=False)
-
-  The ``initialize`` method has a few keywords worth mentioning:
+  This method initializes the class, and should always be called, if
+  the calculation is not restarted from file (using the method
+  ``load``).
+  
+  The keywords are described below
 
   ``initialwannier``: Setup an initial set of Wannier orbitals.
-
     *initialwannier* can set up a starting guess for the Wannier
     functions.  This is important to speed up convergence in
     particular for large systems For transition elements with **d**
@@ -176,41 +147,67 @@ The more advanced methods are described below:
   ``seed``: The seed used for any randomly generated initial rotations.
 
   ``bloch``: Use Bloch states for initial guess
-    
     If ``True``, sets the initial guess for the rotation matrix to be
     identity, i.e. the Bloch states are used.
 
+.. function:: localize(step=0.25, tolerance=1.0e-08)
 
-.. confval:: TranslateAllWannierFunctionsToCell(cell)
+.. function:: dump(file)
 
-  XXX This has not been moved from the old ASE yet! Move all Wannier
-  orbitals to a specific unit cell.  There exists an arbitrariness in
-  the positions of the Wannier orbitals relative to the unit
-  cell. This method can move all orbitals to the unit cell specified
-  by ``cell``.  For a gamma-point calculation, this has no effect. For
-  a **k**-point calculation the periodicity of the orbitals are given
-  by the large unit cell defined by repeating the original unitcell by
-  the number of **k**-points in each direction.  In this case it is
-  usefull to move the orbitals away from the boundaries of the large
-  cell before plotting them. For a bulk calculation with, say 10x10x10
-  **k** points, one could move the orbitals to the cell [2,2,2].  In
-  this way the pbc boundary conditions will not be noticed.
+   Save the rotation-, coefficient-, and wannier localization matrices
+   to indicated ``file`` (string).
+
+.. function:: load(file)
+
+   Load the rotation-, coefficient-, and wannier localization matrices
+   from indicated ``file`` (string).
+
+.. function:: get_function(calc, index)
+
+   Returns an array with the funcion values of the indicated Wannier
+   function on a grid with the size of the *repeated* unit cell.
+   
+   For a calculation using **k**-points the relevant unit cell for
+   eg. visualization of the Wannier orbitals is not the original unit
+   cell, but rather a larger unit cell defined by repeating the
+   original unit cell by the number of **k**-points in each direction.
+   We will refer to this unit cell as the large unit cell.  Note that
+   for a Gamma-point calculation the large unit cell coinsides with
+   the original unit cell.  The large unitcell defines also the
+   periodicity of the Wannier orbitals.
+
+.. function:: get_centers()
+
+.. function:: get_radii()
+
+.. function:: get_wannier_function_dos(n, energies, width)
+
+  Returns the projected density of states (PDOS) for Wannier function
+  ``n``. The calculation is performed over the energy grid specified
+  in energies. The PDOS is produced as a sum of Gaussians centered at
+  the points of the energy grid and with the specified width.
+
+.. function:: TranslateAllWannierFunctionsToCell(cell)
+
+  XXX This has not been moved from the old ASE yet!
+
+  Move all Wannier orbitals to a specific unit cell.  There exists an
+  arbitrariness in the positions of the Wannier orbitals relative to
+  the unit cell. This method can move all orbitals to the unit cell
+  specified by ``cell``.  For a gamma-point calculation, this has no
+  effect. For a **k**-point calculation the periodicity of the
+  orbitals are given by the large unit cell defined by repeating the
+  original unitcell by the number of **k**-points in each direction.
+  In this case it is usefull to move the orbitals away from the
+  boundaries of the large cell before plotting them. For a bulk
+  calculation with, say 10x10x10 **k** points, one could move the
+  orbitals to the cell [2,2,2].  In this way the pbc boundary
+  conditions will not be noticed.
 
 
 For examples of how to use the **Wannier** class, see the `Wannier tutorial`_.
 
 .. _Wannier tutorial: http://www.fysik.dtu.dk/campos/ASE/tut/wannier.html
-
-.. note::
-   For a calculation using **k**-points the relevant unit cell for
-   eg. visualization of the Wannier orbitals is not the original unit cell,
-   but rather a larger unit cell defined by repeating the original
-   unit cell by the number of **k**-points in each direction.
-   We will refer to this unit cell as the large unit cell.
-   Note that for a Gamma-point calculation the large unit cell
-   coinsides with the original unit cell.
-   The large unitcell defines also the periodicity of the Wannier
-   orbitals.
 
 .. note:: For calculations using **k**-points, make sure that the
    gamma-point is included in the **k**-point grid. Moreover you must

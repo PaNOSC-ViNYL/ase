@@ -106,18 +106,21 @@ reStructedText in emacs
 
 For people using emacs, the `reStructuredText extension`_ is highly
 recommended. The intallation procedure is described in the top of the
-file, but for most people, it is enough to place it in your emacs load
-path (typically ``.emacs.d/``) and add the line::
+file, but for most people, it is enough to place it in your emacs
+load-path (typically ``.emacs.d/``) and add the line::
 
   (require 'rst)
 
 somewhere in your ``.emacs`` file.
 
-To make the mode auto load for relevant file extension, you can write something like::
+To make the mode auto load for relevant file extension, you can write
+something like::
 
   (setq auto-mode-alist
         (append '(("\\.rst$" . rst-mode)
                   ("\\.rest$" . rst-mode)) auto-mode-alist))
+
+In your ``.emacs`` file.
 
 .. _reStructuredText extension: http://docutils.sourceforge.net/tools/editors/emacs/rst.el
 
