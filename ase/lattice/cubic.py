@@ -39,7 +39,7 @@ class SimpleCubicFactory(Bravais):
                                 + " an element with crystal structure %s.")
                                % (self.xtal_name,
                                   _refstate[self.atomicnumber]['symmetry']))
-        return _refstate[self.atomicnumber]['a']    
+        return _refstate[self.atomicnumber]['a'].copy()
 
     def make_crystal_basis(self):
         "Make the basis matrix for the crystal unit cell and the system unit cell."
