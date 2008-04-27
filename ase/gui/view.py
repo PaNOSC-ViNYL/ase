@@ -137,6 +137,9 @@ class View:
     def toggle_show_axes(self, action):
         self.draw()
 
+    def toggle_show_rotation(self, action):
+        print self.rotation
+
     def repeat_window(self, menuitem):
         Repeat(self)
         

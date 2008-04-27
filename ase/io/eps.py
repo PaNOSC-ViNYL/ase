@@ -8,14 +8,16 @@ from ase.data import cpk_colors, covalent_radii
 
 
 class EPS:
-    scale0 = 20.0
+    scale = 20.0
     def __init__(self, atoms,
                  rotation='', show_unit_cell=False, radii=None,
-                 bbox=None):
+                 bbox=None, colors=None):
         self.numbers = atoms.get_atomic_numbers()
-        self.colors = cpk_colors[self.numbers]
+        self.colors = colors
+        if colors is None:
+            self.colors = cpk_colors[self.numbers]
 
-        if radii == None:
+        if radii is None:
             radii = covalent_radii[self.numbers]
             
         natoms = len(atoms)
@@ -32,7 +34,7 @@ class EPS:
                     for c3 in range(2):
                         C[c1, c2, c3] = npy.dot([c1, c2, c3], A)
             C.shape = (8, 3)
-            C = npy.dot(C, rotation)
+            C = npy.dot(C, rotation) # Unit cell vertices
         else:
             L = npy.empty((0, 3))
             T = None
@@ -56,15 +58,13 @@ class EPS:
         X = npy.dot(X, rotation)
         R = X[:natoms]
 
-        scale = self.scale0
+        scale = self.scale
         if bbox is None:
             X1 = (R - radii[:, None]).min(0) 
             X2 = (R + radii[:, None]).max(0) 
-            print X1, X2
-            if show_unit_cell == 2:
+            if show_unit_cell == 1:
                 X1 = npy.minimum(X1, C.min(0))
                 X2 = npy.maximum(X2, C.max(0))
-                print X1, X2
             M = (X1 + X2) / 2
             S = 1.05 * (X2 - X1)
             w = scale * S[0]
@@ -74,7 +74,7 @@ class EPS:
             h = scale * S[1]
             offset = npy.array([scale * M[0] - w / 2, scale * M[1] - h / 2, 0])
         else:
-            scale = 50.0
+            #scale = 50.0
             w = (bbox[2] - bbox[0]) * scale
             h = (bbox[3] - bbox[1]) * scale
             offset = npy.array([bbox[0], bbox[1], 0]) * scale

@@ -52,6 +52,7 @@ ui_info = """\
     <menu action='ViewMenu'>
       <menuitem action='ShowUnitCell'/>
       <menuitem action='ShowAxes'/>
+      <menuitem action='ShowRotation'/>
       <separator/>
       <menuitem action='Repeat'/>
       <menuitem action='Focus'/>
@@ -200,7 +201,11 @@ class GUI(View, Status):
             ('ShowAxes', None, 'Show _axes', '<control>A',
              'Bold',
              self.toggle_show_axes,
-             True)])
+             True),
+            ('ShowRotation', None, 'Show rotation', None,
+             'Bold',
+             self.toggle_show_rotation,
+             False)])
         self.ui = ui = gtk.UIManager()
         ui.insert_action_group(actions, 0)
         self.window.add_accel_group(ui.get_accel_group())
@@ -347,6 +352,7 @@ class GUI(View, Status):
                              ('Python script', 'py'),
                              ('VNL file', 'vnl'),
                              ('Portable Network Graphics', 'png'),
+                             ('Persistance of Vision', 'pov'),
                              ('Encapsulated PostScript', 'eps')]:
             if suffix is None:
                 name = _(name)
