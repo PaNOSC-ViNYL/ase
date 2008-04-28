@@ -25,11 +25,13 @@ the general `Crystal structures`_ modules documented below, but these
 utility functions make common tasks easier.
 
 All these modules create slabs with an orthogonal unit cell, suitable
-for use with `GPAW <https://wiki.fysik.dtu.dk/gpaw>`_.  In many cases,
+for use with GPAW_.  In many cases,
 it may be possible to create smaller unit cells with non-orthogonal
 unit cells (for use with dacapo) using the general `Crystal
 structures`_ modules.
 
+
+.. _GPAW: http://wiki.fysik.dtu.dk/gpaw
 
 Example
 -------

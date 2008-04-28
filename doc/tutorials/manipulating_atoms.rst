@@ -77,16 +77,16 @@ array([[ 0.        ,  0.        ,  0.        ],
 Plot the whole system by bringing up the :mod:`gui`:
 
 >>> view(atoms)
-    :width: 100
 
 .. image:: a1.png
+   :scale: 35
 
 Within the viewer (called :mod:`ag <gui>` or :mod:`ase.gui <gui>`) it
 is possible to repeat the unit cell in all three directions (using the
 :menuselection:`Repeat --> View` window).
 
 .. image:: a2.png
-   :width: 300
+   :scale: 35
 
 We now add an adatom.  Since the supercell is now declared as the unit
 cell for our atoms we can either add the atom using its cartesian
@@ -101,4 +101,4 @@ coordinates. We try the latter:
 Using the :mod:`gui`, the structure now looks like this:
 
 .. image:: a3.png
-   :width: 300
+   :scale: 35

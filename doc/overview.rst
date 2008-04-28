@@ -312,7 +312,7 @@ be followed during or after the run::
   dyn.attatch(traj.write)
   dyn.run(fmax=0.05)
   
-Use the command ``ag H2O.traj`` to see what is going on (more here: ase.gui_).
+Use the command ``ag H2O.traj`` to see what is going on.
 
 The ``attach`` method takes an optional argument ``interval=n`` that can
 be used to tell the structure optimizer object to write the
@@ -480,15 +480,13 @@ Use the ``view`` function to visualize the atoms::
 
   view(atoms)
 
-This will pop up an `ase.gui`_ window.  Alternative viewers can be used
+This will pop up an :mod:`gui` window.  Alternative viewers can be used
 by specifying the optional keyword ``virwer=...`` - use one of
 'ase.gui', 'gopenmol', 'vmd', or 'rasmol'.  The VMD viewer can take an
 optional ``data`` argument to show 3D data::
 
   view(atoms, viewer='VMD', data=array)
 
-
-.. _ase.gui: :mod:`ase.gui`
 
 
 VTK

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-
+import os
+from os.path import join
+from stat import ST_MTIME
 from docutils import nodes, utils
-
 from docutils.parsers.rst.roles import set_classes
 
 def svn_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
@@ -43,7 +44,33 @@ def setup(app):
     app.add_role('epydoc', epydoc_role)
     #import atexit
     #atexit.register(fix_sidebar)
+    create_png_files()
 
+def create_png_files():
+    for dirpath, dirnames, filenames in os.walk('.'):
+        for filename in filenames:
+            if filename.endswith('.py'):
+                path = join(dirpath, filename)
+                line = open(path).readline()
+                if line.startswith('# creates:'):
+                    t0 = os.stat(path)[ST_MTIME]
+                    run = False
+                    for file in line.split()[2:]:
+                        try:
+                            t = os.stat(join(dirpath, file))[ST_MTIME]
+                        except OSError:
+                            run = True
+                            break
+                        else:
+                            if t < t0:
+                                run = True
+                                break
+                    if run:
+                        print 'running:', join(dirpath, filename)
+                        os.system('cd %s; python %s' % (dirpath, filename))
+        if '.svn' in dirnames:
+            dirnames.remove('.svn')
+            
 """
 def fix_sidebar():
     print 'fixing sidebars...',
