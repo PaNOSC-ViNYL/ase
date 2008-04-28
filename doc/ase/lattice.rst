@@ -212,33 +212,17 @@ given as named arguments.
   tuple (a scalar for cubic lattices).  Distances are given in
   Angstrom, angles in degrees. 
 
-  =============  =================
-  Structure      Lattice constants
-  =============  =================
-  Cubic          'a'
-
-                 a
-
-  Tetragonal     'a', 'c' or 'c/a'
-
-                 (a, c)
-
-  Orthorhombic   'a', 'b' or 'b/a', 'c' or 'c/a'
-
-                 (a, b, c)
-
-  Triclinic      'a', 'b' or 'b/a', 'c' or 'c/a', 'alpha', 'beta', 'gamma'
-
-                 (a, b, c, alpha, beta, gamma)
-
-  Monoclinic     'a', 'b' or 'b/a', 'c' or 'c/a', 'alpha'
-
-                 (a, b, c, alpha)
-
-  Hexagonal      'a', 'c' or 'c/a'
-
-                 (a, c)
-  =============  =================
+  =============  =================  ==========================================
+  Structure      Lattice constants  Names
+  =============  =================  ==========================================
+  Cubic          a                  'a'
+  Tetragonal     a, c               'a', 'c' or 'c/a'
+  Orthorhombic   a, b, c            'a', 'b' or 'b/a', 'c' or 'c/a'
+  Triclinic      a, b, c, alpha,    'a', 'b' or 'b/a', 'c' or
+                 beta, gamma        'c/a', 'alpha', 'beta', 'gamma'
+  Monoclinic     a, b, c, alpha     'a', 'b' or 'b/a', 'c' or 'c/a', 'alpha'
+  Hexagonal      a, c               'a', 'c' or 'c/a'
+  =============  =================  ==========================================
   
   Example:
 

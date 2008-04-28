@@ -1,6 +1,5 @@
-
 Manipulating atoms
---------------------------------------------------
+------------------
 
 We will set up a one layer slab of Ni atoms with one Ni adatom.
 
@@ -8,9 +7,9 @@ Define the slab atoms:
 
 >>> from ase import *
 >>> atoms = Atoms([Atom('Ni', (0, 0, 0)),
-...                      Atom('Ni', (0.45, 0, 0)),
-...                      Atom('Ni', (0, 0.5, 0)),
-...                      Atom('Ni', (0.5, 0.5, 0))])
+...                Atom('Ni', (0.45, 0, 0)),
+...                Atom('Ni', (0, 0.5, 0)),
+...                Atom('Ni', (0.5, 0.5, 0))])
 
 Have a look at the individual atoms:
 
@@ -37,7 +36,7 @@ Wrong because we only have four atoms
 
 Change the position of the 2nd atom in the list
 
->>> atoms[1].set_position((0.5,0,0))
+>>> atoms[1].x = 0.5
 >>> atoms.get_positions()
 array([[ 0. ,  0. ,  0. ],
        [ 0.5,  0. ,  0. ],
@@ -60,10 +59,10 @@ Now, setup a p(2x2) cell in a hexagonal surface.
 ...       (1/sqrt(2.)*a, sqrt(3./2.)*a, 0),
 ...       (0, 0, 10*sqrt(3.)/3.*a)]
 >>> cell
-(5.0204581464244864, 0, 0),
+[(5.0204581464244864, 0, 0),
 (2.5102290732122432, 4.3478442934401409, 0),
 (0, 0, 20.495934556231713)]
->>> atoms.set_cell(cell,fix=False)
+>>> atoms.set_cell(cell, fix=False)
 
 The argument fix=False indicates that the atomic positions should be
 scaled with the unit cell. The default is "fix=True" indicating that
@@ -75,21 +74,19 @@ array([[ 0.        ,  0.        ,  0.        ],
        [ 1.25511454,  2.17392215,  0.        ],
        [ 3.76534361,  2.17392215,  0.        ]])
 
-Plot the whole system by bringing up the :epydoc:`ase.gui` :
+Plot the whole system by bringing up the :mod:`gui`:
 
 >>> view(atoms)
+    :width: 100
 
-.. image:: ase_gui.tiff
-   	   :width: 300
+.. image:: a1.png
 
-Within the viewer it is possible to repeat the unit cell in all three
-directions (using the Repeat item in the View menu) . It is also
-possible to start other viewers. By selecting the RasMol item in the
-View menu rasmol pops up and you can get the following view of the
-atomic structure:
+Within the viewer (called :mod:`ag <gui>` or :mod:`ase.gui <gui>`) it
+is possible to repeat the unit cell in all three directions (using the
+:menuselection:`Repeat --> View` window).
 
-.. image:: rasmol.tiff
-          :width: 300
+.. image:: a2.png
+   :width: 300
 
 We now add an adatom.  Since the supercell is now declared as the unit
 cell for our atoms we can either add the atom using its cartesian
@@ -101,8 +98,7 @@ coordinates. We try the latter:
 >>> atoms.append(Atom('Ni', (1/6., 1/6., .1)))  
 >>> atoms.set_cell(cell, fix=False)  # Set the unit cell and scale back
 
-Using the :epydoc:`ase.gui` and rasmol the structure now looks like
+Using the :mod:`gui`, the structure now looks like this:
 
-.. image:: rasmol_adatom.tiff
-      :width: 300
-
+.. image:: a3.png
+   :width: 300

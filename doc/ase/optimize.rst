@@ -54,7 +54,8 @@ be followed during or after the run::
   dyn.attatch(traj.write)
   dyn.run(fmax=0.05)
   
-Use the command ``ag H2O.traj`` to see what is going on (more here: ase.gui_).
+Use the command ``ag H2O.traj`` to see what is going on (more here:
+:mod:`gui`).
 
 The ``attach`` method takes an optional argument ``interval=n`` that can
 be used to tell the structure optimizer object to write the
