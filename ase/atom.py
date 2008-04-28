@@ -107,7 +107,7 @@ class Atom(object):
         if self.atoms is None:
             s += ')'
         else:
-            s += ', atoms=..., index=%d)' % self.index
+            s += ', index=%d)' % self.index
         return s
 
     def get_data(self):
