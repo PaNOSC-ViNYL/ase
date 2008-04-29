@@ -1,3 +1,5 @@
+.. _devel:
+
 ASE development
 ===============
 

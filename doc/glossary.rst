@@ -14,5 +14,5 @@ Glossary
   ndarray
     NumPy's *n*-dimensional array.
 
-  GPL
+  GNU General Public License
     ... XXX

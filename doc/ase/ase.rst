@@ -29,8 +29,9 @@ Quick links:
 
    * :ref:`overview`
    * :epydoc:`ase`
-   * Source code: :svn:`
-`
+   * Source code: :svn:``
+
+
 
 List of all modules
 ===================

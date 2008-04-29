@@ -1,6 +1,6 @@
-==================
-Nudge elastic band
-==================
+===================
+Nudged elastic band
+===================
 
 .. module:: neb
    :synopsis: Nudged Elastic Band method.
@@ -33,7 +33,7 @@ The NEB class
 
 This module defines one class:
 
-.. class:: NEB(images, [k=0.1], [climb=False])
+.. class:: NEB(images, k=0.1, climb=False)
 
 Example of use::
 
@@ -70,8 +70,11 @@ initial guess for the path from A to B.
         How to use calculators.
 
    :ref:`examples`:
+
         * :ref:`example1`
         * :ref:`example2`
+
+
 
 Trajectories
 ============
