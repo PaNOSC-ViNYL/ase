@@ -4,12 +4,8 @@ Setting up crystals and surfaces
 
 .. contents::
 
-
-.. warning::
-
-   These modules are in the process of being ported to the new ase,
-   and may not work yet.  XXXXX
-
+**Note: These modules are under development.  The general modules are
+available now, but the "easy setup" modules are not yet ready.**
 
 Easy setup of surfaces
 ======================
@@ -17,7 +13,11 @@ Easy setup of surfaces
 .. module:: lattice.surface
 
 
-**XXX To be implemented!**
+.. warning::
+
+   These modules are in the process of being developed, and are not
+   yet available.
+
 
 A number of utility functions are (will be XXXX) provided to set up
 the most common surfaces.  In general, all surfaces can be set up with
@@ -104,6 +104,8 @@ Crystal structures
 
 .. module:: lattice
 
+**Note: Modules in this section are available now!**
+
 Modules for creating crystal structures are found in
 :mod:`lattice`.  Most Bravais lattices are implemented, as
 are a few important lattices with a basis.  The modules can create
@@ -112,7 +114,35 @@ lattices with any orientation (see below).
 Example
 -------
 
-XXXX
+To set up a slab of FCC copper with the [1,-1,0] direction along the
+x-axis, [1,1,-2] along the y-axis and [1,1,1] along the z-axis, use::
+
+  from ase.lattice.cubic import FaceCenteredCubic
+  atoms = FaceCenteredCubic(directions=[[1,-1,0], [1,1,-2], [1,1,1]],
+                            size=(2,2,3), element="Cu", pbc=(1,1,0))
+
+The minimal unit cell is repeated 2*2*3 times.  The lattice constant
+is taken from the database of lattice constants in data.py.  There are
+periodic boundary conditions along the x and y axis, but free boundary
+conditions along the z axis. Since the three directions are
+perpendicular, a (111) surface is created.
+
+To set up a slab of BCC copper with [100] along the first axis, [010]
+along the second axis, and [111] along the third axis use (note: the
+axes are not perpendicular, the unit cell becomes slanted and will not
+be suitable for GPAW)::
+
+  from ase.lattice.cubic import BodyCenteredCubic
+  atoms = BodyCenteredCubic(directions=[[1,0,0], [0,1,0], [1,1,1]],
+                            size=(2,2,3), element="Cu", pbc=(1,1,0),
+			    latticeconstant=4.0)
+
+Since BCC is not the natural crystal structure for Cu, a lattice
+constant has to be specified.  Note that since the repeat directions
+of the unit cell are not orthogonal, the Miller indices of the
+surfaces will *not* be the same as the Miller indices of the axes.
+The indices of the surfaces in this example will be (1,0,-1), (0,1,-1)
+and (0,0,1).
 
 
 Available crystal lattices

@@ -40,10 +40,10 @@ class Bravais:
     
     def __call__(self, directions=(None,None,None), miller=(None,None,None),
                  size=(1,1,1), element=None, latticeconstant=None,
-                 periodic=True, align=True, debug=0):
+                 pbc=True, align=True, debug=0):
         "Create a lattice."
         self.size = size
-        self.periodic = periodic
+        self.pbc = pbc
         self.debug = debug
         self.process_element(element)
         self.find_directions(directions, miller)
@@ -167,7 +167,7 @@ class Bravais:
         basis = np.dot(basis, self.basis)
         # None should be replaced, and memory should be freed.
         lattice = Lattice(positions=atoms, cell=basis, numbers=elements,
-                       pbc=self.periodic)
+                          pbc=self.pbc)
         lattice.millerbasis = self.miller_basis
         return lattice
         
