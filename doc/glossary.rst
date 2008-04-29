@@ -13,3 +13,6 @@ Glossary
 
   ndarray
     NumPy's *n*-dimensional array.
+
+  GPL
+    ... XXX

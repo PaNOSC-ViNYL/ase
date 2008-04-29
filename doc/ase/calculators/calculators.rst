@@ -27,7 +27,7 @@ MMTK     Library for molecular siulations
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
 
-Siesta and MMTK modules are ASE wrappers, and are not mantained by CAMd.
+Siesta and MMTK modules are ASE wrappers, and are not mantained by CAMd XXX.
 
 EMT is a pure python implementation of an Effective Medium calculator.
 

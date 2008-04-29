@@ -2,9 +2,6 @@
 Download and install ASE
 ========================
 
-.. contents
-
-
 
 Requirements for ASE
 ====================
@@ -18,8 +15,9 @@ The following packages are required for basic ASE functionality:
 .. _NumPy: http://www.scipy.org/NumPy
 
 
-It is highly recommended (but not required) to install also Matplotlib_
-and pygtk_.  These two may already be installed on your system.
+It is highly recommended (but not required) to install also
+Matplotlib_ and pygtk_.  Most likely, some or all of these are already
+be installed on your system.
 
 
 .. _Matplotlib: http://matplotlib.sourceforge.net
@@ -33,13 +31,13 @@ Installation
 
 Get the source code from svn::
 
-  $ cd
+  $ cd $HOME
   $ svn checkout https://svn.fysik.dtu.dk/projects/ase/trunk ase
   $ cd ase
 	
 or from this tarfile (python-ase-3.0.0.tar.gz_)::
 
-  $ cd
+  $ cd $HOME
   $ tar xtzf python-ase-3.0.0.tar.gz
   $ cd python-ase-3.0.0
 
@@ -49,19 +47,28 @@ If you have root-access, you do this::
 
   $ python setup.py install
 
-If you don't have root-access, you must put the directory
-:file:`$HOME/ase3k` in your :envvar:`PYTHONPATH` environment variable,
-and the directory :file:`$HOME/ase3k/tools` in your :envvar:`PATH`
-environment variable.  Do this permanently in your :file:`~/.bashrc`
-file::
+.. note::
 
-  export PYTHONPATH=$HOME/ase3k:$PYTHONPATH
-  export PATH=$PATH:$HOME/ase3k/tools
+   If you don't have root-access, you do this::
+   
+     $ python setup.py install --home=$HOME
+   
+   Then, put the directory
+   :file:`$HOME/ase` in your :envvar:`PYTHONPATH` environment variable,
+   and the directory :file:`$HOME/ase/tools` in your :envvar:`PATH`
+   environment variable.  Do this permanently in your :file:`~/.bashrc`
+   file::
+   
+     export PYTHONPATH=$HOME/ase:$PYTHONPATH
+     export PATH=$PATH:$HOME/ase/tools
+   
+   or your :file:`~/.cshrc` file::
+   
+     setenv PYTHONPATH ${HOME}/ase:${PYTHONPATH}
+     setenv PATH ${PATH}:${HOME}/ase/tools
 
-or your :file:`~/.cshrc` file::
+   Instead of :envvar:`HOME`, you may use any other directory.
 
-  setenv PYTHONPATH ${HOME}/ase3k:${PYTHONPATH}
-  setenv PATH ${PATH}:${HOME}/ase3k/tools
 
 
 .. index:: test
@@ -69,10 +76,11 @@ or your :file:`~/.cshrc` file::
 Run the tests
 =============
 
-Make sure that everything works by running the :mod:`test suite<test>`.  This will
-create many files, so run the tests in a new directory::
+Make sure that everything works by running the :mod:`test
+suite<test>`.  This will create many files, so run the tests in a new
+directory::
 	
-  $ cd
+  $ cd /tmp
   $ mkdir testase
   $ cd testase
   $ testase.py
@@ -89,6 +97,8 @@ If any of the tests fail, then let us know on the `mailing list`_.
 
 License
 =======
+
+XXX put this in a file!
 
 The CAMPOS Atomic Simulation Environment is released under the GNU
 Public License version 2.  See the file LICENSE which accompanies the
