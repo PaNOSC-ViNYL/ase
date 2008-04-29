@@ -21,7 +21,7 @@ The different properties of an atom can generally be obtained with a
 
 >>> a1.set_position([1,0,0])
 >>> a1.get_position()
-[1,0,0]
+[1,0,0] XXX ndarray?
 
 The full definition of the parameters for the atom object is as follows:
 
@@ -29,9 +29,9 @@ The full definition of the parameters for the atom object is as follows:
 
 .. seealso::
 
-   :mod:`atoms` :
-   More information about how to use atoms
+   :mod:`atoms`:
+     More information about how to use atoms
 
-   :mod:`calculators`
-   Information about how to calculate forces and energies of atoms.
+   :mod:`calculators`:
+     Information about how to calculate forces and energies of atoms.
 

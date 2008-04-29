@@ -19,7 +19,7 @@ class Atoms(object):
     there may be periodic boundary conditions along any of the three
     unit cell axes.
 
-    The information about the atoms (atomic numbers and position) is
+    Information about the atoms (atomic numbers and position) is
     stored in ndarrays.  Optionally, there can be information about
     tags, momenta, masses, magnetic moments and charges.
 
@@ -32,12 +32,12 @@ class Atoms(object):
             Can be a string formula, a list of symbols or a list of
             Atom objects.  Examples: 'H2O', 'COPt12', ['H', 'H', 'O'],
             [Atom('Ne', (x, y, z), ...].
-        numbers: list of int
-            Atomic numbers (use only one of symbols/numbers).
         positions: list of xyz-positions
             Atomic positions.  Anything that can be converted to an
             ndarray of shape (n, 3) will do: [(x1,y1,z1), (x2,y2,z2),
             ...].
+        numbers: list of int
+            Atomic numbers (use only one of symbols/numbers).
         tags: list of int
             Special purpose tags.
         momenta: list of xyz-momenta
@@ -55,6 +55,8 @@ class Atoms(object):
             Periodic boundary conditions flags.  Examples: True,
             False, 0, 1, (1, 1, 0), (True, False, False).  Default
             value: False.
+        constraint: constraint object(s)
+            Used for applying constraint during structure optimization.
         calculator: calculator object
             Used to attach a calculator for calulating energies and atomic
             forces.

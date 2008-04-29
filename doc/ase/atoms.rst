@@ -9,24 +9,24 @@ Working with the methods of :class:`~ase.atoms.Atoms`
 ---------------------------------------------------------
 
 Like with a single :class:`~ase.atoms.Atom` the properties of a collection of atoms
-can be accessed and changed with "get-" and "set-"methods. For example
+can be accessed and changed with get- and set-methods. For example
 the positions of the atoms can be addressed as
 
->>> a=Atoms('N3',[(0,0,0),(1,0,0),(0,0,1)])
+>>> a = Atoms('N3', [(0, 0, 0), (1, 0, 0), (0, 0, 1)])
 >>> a.get_positions()
 array([[ 0.,  0.,  0.],
        [ 1.,  0.,  0.],
-       [0., 0., 1].])
->>> a.set_positions([(2,0,0),(0,2,2),(2,2,0)])
+       [ 0.,  0.,  1.]])
+>>> a.set_positions([(2, 0, 0), (0, 2, 2), (2, 2, 0)])
 >>> a.get_positions()
 array([[ 2.,  0.,  0.],
        [ 0.,  2.,  2.],
-       [2., 2., 0.]])
+       [ 2.,  2.,  0.]])
 
 It is also possible to work directly with the attribute "position" for
 a single atom or "positions" for several atoms. Here we change the
-position of the 2nd atom (which has count number 1 because python
-starts with zero):
+position of the 2nd atom (which has count number 1 because Python
+starts at zero):
 
 >>> a[1].position=(1,1,0)
 >>> a.get_positions()
@@ -47,11 +47,11 @@ array([[ 1.,  0.,  0.],
        [ 0.,  0.,  1.]])
 
 
- The cell can be defined or changed using the
- :epydoc:`ase.atoms.Atoms.set_cell` method. Changing the unit cell
- does per default not move the atoms:
+The cell can be defined or changed using the
+:epydoc:`ase.atoms.Atoms.set_cell` method. Changing the unit cell
+does per default not move the atoms:
 
->>> a.set_cell(2*identity(3))
+>>> a.set_cell(2 * identity(3))
 >>> a.get_cell()
 array([[ 2.,  0.,  0.],
        [ 0.,  2.,  0.],
@@ -76,13 +76,13 @@ three vectors of the unit cell. With the default unit cell
 conditions in x and y and free boundary condtions in z is obatined
 through
 
->>> a.set_pbc((True,True,False))
+>>> a.set_pbc((True, True, False))
 
 A calculator can be attached to the atoms with the purpose
 of calculating energies and forces on the atoms. ASE works with many
 different :mod:`calculators`.
 
-A calculator object "calc" is attached to the atoms like this:
+A calculator object *calc* is attached to the atoms like this:
 
 >>> a.set_calculator(calc)
 
@@ -99,7 +99,7 @@ potential energy is that the atoms might also have a kinetic energy
 
 >>> a.get_kinetic_energy()
 
-In case of a DFT calculator it is up to the user to check exactly what
+In case of a DFT calculator, it is up to the user to check exactly what
 the :epydoc:`ase.atoms.Atoms.get_potential_energy` method returns. For
 example it may be the result of a calculation with a finite
 temperature smearing of the occupation numbers extrapolated to zero

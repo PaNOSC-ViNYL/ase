@@ -14,7 +14,8 @@ except:
 else:
     oldase = True
 
-def view(atoms, data=None, viewer=None):
+def view(atoms, data=None, viewer=None, repeat=None):
+    print repeat
     # Ignore for parallel calculations:
     if parallel.size != 1:
         return
@@ -26,7 +27,7 @@ def view(atoms, data=None, viewer=None):
         else:
             raise RuntimeError('conversion to old ASE not available')
 
-    viewers = ['ase.gui', 'gopenmol', 'vmd', 'rasmol', 'nanolab']
+    viewers = ['ase.gui', 'gopenmol', 'vmd', 'rasmol']
     if viewer is not None:
         viewer = viewer.lower()
         viewers.remove(viewer)
@@ -40,8 +41,13 @@ def view(atoms, data=None, viewer=None):
                 atoms.set_calculator(None)
                 write_trajectory(filename, atoms)
                 atoms.set_calculator(calc)
-                os.system('(ag %s &); (sleep 15; rm %s) &' %
-                          (filename, filename))
+                if repeat is None:
+                    option = ''
+                else:
+                    option = '--repeat=%d,%d,%d ' % tuple(repeat)
+                print option
+                os.system('(ag %s%s &); (sleep 15; rm %s) &' %
+                          (option, filename, filename))
                 break
             if viewer == 'gopenmol':
                 fd, filename = tempfile.mkstemp('.xyz', 'ag-')

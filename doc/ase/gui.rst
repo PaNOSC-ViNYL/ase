@@ -9,13 +9,12 @@ ASE-GUI
 =======
 
 
-Quick introduction
-==================
-
 Files
 -----
 
 AG can read the following types of files:
+
+XXX ref to io
 
 * ASE trajectory files
 * XYZ files
@@ -47,12 +46,12 @@ used.  Instead of the Python syntax ``list[start:stop:step]``, you use
   $ ag x.traj@::2     # every second image
 
 If you want to select the same range from many files, the you can use
-the ``-n`` or ``--image-number`` option::
+the option:`-n` or :option:`--image-number` option::
 
   $ ag -n -1 *.traj   # last image from all files
   $ ag -n 0 *.traj    # first image from all files
 
-.. note::
+.. tip::
 
   Type :program:`ag -h` for a description of all command line options.
 
@@ -66,6 +65,7 @@ Writing files
 
 Possible formats are: ``traj``, ``xyz``, ``eps`` and ``png``. 
 
+XXX ref to io: pos, py, pckl
 
 Plotting data
 -------------
@@ -74,7 +74,7 @@ Plot the energy relative to the energy of the first image as a
 function of the distance between atom 0 and 5::
 
   $ ag -g "d(0,5),e-E[0]" x.traj
-  $ ag -t -p "d(0,5),e-E[0]" x.traj > x.dat  # No GUI, write data to stdout
+  $ ag -t -g "d(0,5),e-E[0]" x.traj > x.dat  # No GUI, write data to stdout
 
 These are the symbols that can be used:
 
@@ -97,6 +97,7 @@ Interactive use
 AG can also be launched directly from a Python script or interactive session:
 
 >>> from ase import *
+>>> atoms = ...
 >>> view(atoms)
 
 

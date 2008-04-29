@@ -24,6 +24,8 @@ the most common surfaces.  In general, all surfaces can be set up with
 the general `Crystal structures`_ modules documented below, but these
 utility functions make common tasks easier.
 
+XXX no special treatment for GPAW - that can be done in GPAW's code
+
 All these modules create slabs with an orthogonal unit cell, suitable
 for use with GPAW_.  In many cases,
 it may be possible to create smaller unit cells with non-orthogonal
@@ -40,12 +42,14 @@ To setup an Al(111) surface with a hydrogen atom adsorbed in an op-top
 position::
 
     from ase.lattice.surface import *
-    atoms = FCC111(size=(2,2,3), vacuum=10, adsorbate=('H', 'ontop'))
+    atoms = fcc111(size=(2,2,3), vacuum=10, adsorbate=('H', 'ontop', 1.5))
 
 This will produce a slab 2x2x3 times the minimal possible size, with a
 (111) surface in the z direction, and [1,-1,0] and [1,1,-2] directions
-along the x and y axes, respectively.  A 10Å vacuum layer is added,
-and a hydrogen atom is adsorbed in an on-top position.
+along the x and y axes, respectively.  A 10 Å vacuum layer is added,
+and a hydrogen atom is adsorbed in an on-top position 1.5 Å above the
+top layer.
+
 
 Defined utility functions
 -------------------------
@@ -71,18 +75,20 @@ All the functions in this module take the same arguments:
   The adsorbtion site can be a string or a tuple of three miller indices
   indicating the position of the adsorbate.  XXXX REWRITE when it works!
 
+  XXX height of adsorbate as third element in tuple?
 
-.. function:: FCC001(size, vacuum=None, adsorbate=None)
+
+.. function:: fcc001(size, vacuum=None, adsorbate=None)
 
   Defines an FCC 001 surface.  Supported adsorption sites: 'optop',
   'bridge', 'hollow'.
 
-.. function:: FCC110(size, vacuum=None, adsorbate=None)
-	      FCC111(size, vacuum=None, adsorbate=None)
-	      BCC001(size, vacuum=None, adsorbate=None)
-              BCC110(size, vacuum=None, adsorbate=None)
-	      BCC111(size, vacuum=None, adsorbate=None)
-	      HCP0001(size, vacuum=None, adsorbate=None)
+.. function:: fcc110(size, vacuum=None, adsorbate=None)
+	      fcc111(size, vacuum=None, adsorbate=None)
+	      bcc001(size, vacuum=None, adsorbate=None)
+              bcc110(size, vacuum=None, adsorbate=None)
+	      bcc111(size, vacuum=None, adsorbate=None)
+	      hcp0001(size, vacuum=None, adsorbate=None)
 
 
 Adding new utility functions
@@ -100,7 +106,7 @@ Crystal structures
 
 Modules for creating crystal structures are found in
 :mod:`lattice`.  Most Bravais lattices are implemented, as
-are a few important lattice with a basis.  The modules can create
+are a few important lattices with a basis.  The modules can create
 lattices with any orientation (see below).
 
 Example
@@ -160,7 +166,7 @@ with a basis):
   examples allowing you to define new such lattices.  Currenly, the
   following are defined
 
-  - ``B1`` = ``NaC``l = ``Rocksalt``
+  - ``B1`` = ``NaCl`` = ``Rocksalt``
   - ``B2`` = ``CsCl``
   - ``B3`` = ``ZnS`` = ``Zincblende``
   - ``L1_2`` = ``AuCu3``
@@ -199,7 +205,8 @@ given as named arguments.
   high-index directions are specified, the fundamental repeat unit may
   be large.
 
-``element``:
+
+``symbol`` XXX changed from ``element``: 
   The element, specified by the atomic number (an integer), by the
   atomic symbol (i.e. "Au") or by an object returned by
   ASE.ChemicalElements.Element().  For compounds, a tuple or list of
@@ -215,15 +222,15 @@ given as named arguments.
   Angstrom, angles in degrees. 
 
   =============  =================  ==========================================
-  Structure      Lattice constants  Names
+  Structure      Lattice constants  Dictionary-keys
   =============  =================  ==========================================
   Cubic          a                  'a'
-  Tetragonal     a, c               'a', 'c' or 'c/a'
-  Orthorhombic   a, b, c            'a', 'b' or 'b/a', 'c' or 'c/a'
-  Triclinic      a, b, c, alpha,    'a', 'b' or 'b/a', 'c' or
-                 beta, gamma        'c/a', 'alpha', 'beta', 'gamma'
-  Monoclinic     a, b, c, alpha     'a', 'b' or 'b/a', 'c' or 'c/a', 'alpha'
-  Hexagonal      a, c               'a', 'c' or 'c/a'
+  Tetragonal     (a, c)             'a', 'c' or 'c/a'
+  Orthorhombic   (a, b, c)          'a', 'b' or 'b/a', 'c' or 'c/a'
+  Triclinic      (a, b, c, alpha,   'a', 'b' or 'b/a', 'c' or
+                 beta, gamma)       'c/a', 'alpha', 'beta', 'gamma'
+  Monoclinic     (a, b, c, alpha)   'a', 'b' or 'b/a', 'c' or 'c/a', 'alpha'
+  Hexagonal      (a, c)             'a', 'c' or 'c/a'
   =============  =================  ==========================================
   
   Example:
@@ -252,15 +259,17 @@ interlacing FCC lattices, so it can be seen as a face-centered cubic
 lattice with a two-atom basis.  The Diamond object could be defined like
 this::
 
-  from lattice.cubic import FaceCenteredCubicFactory
+  from ase.lattice.cubic import FaceCenteredCubicFactory
   class DiamondFactory(FaceCenteredCubicFactory):
-      "A factory for creating diamond lattices."
-      xtal_name = "diamond"
-      bravais_basis = [[0,0,0], [0.25, 0.25, 0.25]]
+      """A factory for creating diamond lattices."""
+      xtal_name = 'diamond'
+      bravais_basis = [[0, 0, 0], [0.25, 0.25, 0.25]]
     
   Diamond = DiamondFactory()
 
 
+
+XXX Too deep nesting of sections here?
 
 Lattices with more than one element
 ```````````````````````````````````
@@ -317,4 +326,4 @@ use the simple cubic lattice with a larger basis::
   B1 = NaCl = Rocksalt = NaClFactory()
 
 More examples can be found in the file
-``ASE/Utilities/Lattice/Compounds.py``.
+XXX ``ASE/Utilities/Lattice/Compounds.py``.
