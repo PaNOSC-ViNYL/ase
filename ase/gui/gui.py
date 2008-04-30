@@ -52,7 +52,6 @@ ui_info = """\
     <menu action='ViewMenu'>
       <menuitem action='ShowUnitCell'/>
       <menuitem action='ShowAxes'/>
-      <menuitem action='ShowRotation'/>
       <separator/>
       <menuitem action='Repeat'/>
       <menuitem action='Focus'/>
@@ -201,11 +200,7 @@ class GUI(View, Status):
             ('ShowAxes', None, 'Show _axes', '<control>A',
              'Bold',
              self.toggle_show_axes,
-             True),
-            ('ShowRotation', None, 'Show rotation', None,
-             'Bold',
-             self.toggle_show_rotation,
-             False)])
+             True)])
         self.ui = ui = gtk.UIManager()
         ui.insert_action_group(actions, 0)
         self.window.add_accel_group(ui.get_accel_group())
@@ -349,6 +344,7 @@ class GUI(View, Status):
                              ('XYZ file', 'xyz'),
                              ('ASE trajectory', 'traj'),
                              ('PDB file', 'pdb'),
+                             ('Gaussian cube file', 'cube'),
                              ('Python script', 'py'),
                              ('VNL file', 'vnl'),
                              ('Portable Network Graphics', 'png'),
@@ -397,6 +393,8 @@ class GUI(View, Status):
                 
             if self.images.nimages > 1 and not button.get_active():
                 filename += '@' + entry.get_text()
+            elif button.get_active():
+                filename += '@%d' % self.frame
 
             # Does filename exist?  XXX
             
