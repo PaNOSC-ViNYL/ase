@@ -5,7 +5,11 @@ import numpy as npy
 
 class STM:
     def __init__(self, atoms, symmetries=None):
-        calc = atoms.get_calculator()
+        if isinstance(atoms, Atoms):
+            calc = atoms.get_calculator()
+        else:
+            calc = atoms
+            atoms = calc.get_atoms()
         self.nbands = calc.get_number_of_bands()
         self.weights = calc.get_k_point_weights()
         self.nkpts = len(self.weights)
@@ -21,7 +25,7 @@ class STM:
         self.symmetries = symmetries or []
                                
     def calculate_ldos(self, width=None, bias=0.0):
-        if self.ldos is not None and width == self.width:
+        if self.ldos is not None and width == self.width and bias == self.bias:
             return
 
         if width is None:
@@ -52,22 +56,27 @@ class STM:
             
         self.ldos = ldos
         self.width = width
+        self.bias = bias
 
-    def get_averaged_current(self, z, width=None):
-        self.calculate_ldos(width)
+    #def save_ldos(self, filename='ldos.pckl'):
+        
+
+    def get_averaged_current(self, z, width=None, bias=0.0):
+        self.calculate_ldos(width, bias)
         nz = self.ldos.shape[2]
 
         # Find grid point:
         n = z / self.cell[2, 2] * nz
         dn = n - npy.floor(n)
         n = int(n) % nz
+        print n,dn
 
         # Average and do linear interpolation:
         return ((1 - dn) * self.ldos[:, :, n].mean() +
                 dn *       self.ldos[:, :, (n + 1) % nz].mean())
     
-    def scan(self, current, z=None, width=None):
-        self.calculate_ldos(width)
+    def scan(self, current, z=None, width=None, bias=0.0):
+        self.calculate_ldos(width, bias)
 
         L = self.cell[2, 2]
         if z is None:
@@ -86,8 +95,9 @@ class STM:
         heights.shape = self.ldos.shape[:2]
         return heights
     
-    def linescan(self, current, p1, p2, npoints=None, z=None, width=None):
-        self.calculate_ldos(width)
+    def linescan(self, current, p1, p2, npoints=None, z=None, 
+                 width=None, bias=0.0):
+        self.calculate_ldos(width, bias)
 
         L = self.cell[2, 2]
         if z is None:
@@ -131,13 +141,20 @@ class STM:
 def find_height(array, current, z, n, nz, h):
     c1 = array[n]
     sign = cmp(c1, current)
-    while True:
+    m = 0
+    while m < nz:
         n = (n + sign) % nz
         z += sign * h
         c2 = array[n]
         if cmp(c2, current) != sign:
             break
         c1 = c2
+        m += 1
+
+    if m == nz:
+        print z, n, nz, h, current, array
+        raise RuntimeError('Tip crash!')
+
     return z - sign * h * (current - c2) / (c1 - c2), z, n
 
                 
