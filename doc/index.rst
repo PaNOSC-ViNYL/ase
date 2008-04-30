@@ -22,7 +22,7 @@ MMTK_            Library for molecular siulations (work in progress)
 ===============  ===================================================
   
 
-Trac_, :svn:`SVN <>`, :epydoc:`API <>`, :ref:`devel`, ASE3.pdf_
+Trac_, :svn:`SVN <>`, :epydoc:`API <ase>`, :ref:`devel`, ASE3.pdf_
 
 
 .. _ASE3.pdf: ASE3.pdf

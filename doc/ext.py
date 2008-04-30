@@ -13,9 +13,24 @@ def svn_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     return [node], []
 
 def epydoc_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
+    print
+    print rawtext
+    print text
+    print
+
+    name = None
+    if text[-1] == '>':
+        i = text.index('<')
+        name = text[:i - 1]
+        text = text[i + 1:-1]
+        
     components = text.split('.')
     if components[0] != 'ase':
         components.insert(0, 'ase')
+
+    if name is None:
+        name = components[-1]
+        
     try:
         for n in range(2, len(components) + 1):
             module = __import__('.'.join(components[:n]))
@@ -34,7 +49,7 @@ def epydoc_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
 
     ref = 'http://web2.fysik.dtu.dk/ase/epydoc/' + ref
     set_classes(options)
-    node = nodes.reference(rawtext, components[-1],
+    node = nodes.reference(rawtext, name,
                            refuri=ref,
                            **options)
     return [node], []
