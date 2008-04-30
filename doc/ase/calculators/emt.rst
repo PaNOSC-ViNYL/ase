@@ -1,11 +1,20 @@
 .. module::  ase.calculators.emt
    :synopsis: Energy, forces, stress calculators.
 
-EMT
-===
+==========================
+Pure Python EMT calculator
+==========================
 
-Pure Python EMT calculator (included with ASE).
+The EMT potential is included in the ASE package in order to have a
+simple calculator that can be used for quick demonstrations and
+tests.
 
-A calculator is a black box that can take atomic numbers and atomic
-positions from an :class:`Atoms` object and calculate energy and/or
-forces and/or stresses.
+.. warning::
+
+   If you want to do a real application using EMT, you should used the
+   *much* more efficient implementation in the :class:`ASAP`
+   calculator.
+
+XXX parameters for Cu, Ni, ...
+
+XXX how to add parameters for more elements?

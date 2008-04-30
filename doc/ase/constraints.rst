@@ -28,33 +28,49 @@ You must supply either the indices of the atoms that should be fixed
 or a mask. The mask is a list of booleans, one for each atom, being true
 if the atoms should be kept fixed.
 
-Example of use::
+Example of use:
 
-  >>> from ase import FixAtoms
-  >>> c = FixAtoms(mask=[s == 'Cu' for s in atoms.get_chemical_symbols()])
-  >>> atoms.set_constraint(c)
+>>> c = FixAtoms(mask=[a.symbol == 'Cu' for a in atoms])
+>>> atoms.set_constraint(c)
 
-This will fix the positions of all the Cu atoms in all the
-dynamics/minimazations.
+This will fix the positions of all the Cu atoms in a
+simulation.
 
 
 The FixBondLength class
 =======================
 
 This class is used to fix the distance between two atoms specified by
-their indices (a1 and a2)
+their indices (*a1* and *a2*)
 
 .. class:: FixBondLength(a1, a2)
 
 Example of use::
 
-  >>> from ase import FixBondLength
   >>> c = FixBondLength(0, 1)
   >>> atoms.set_constraint(c)
 
 In this example the distance between the distance between the atoms
 with indices 0 and 1 will be fixed in all following dynamics and/or
-minimizations performed on the atoms object.
+minimizations performed on the *atoms* object.
+
+.. method:: set_bond_length(atoms, distance, fix='center')
+
+   Use this method to change the bond length between the two atoms.
+
+Example:
+
+  c.set_bond_length(atoms, 1.2, fix='first')
+
+This will will adjust the position of the second atoms to get a
+bond length of 1.2 Å.  The *fix* keyword must be ``'first'``,
+``'second'`` or ``'center'``.
+
+This method is useful for finding minimum energy barriers for
+reactions where the path can be described well by a single bond
+length (see the :ref:`mep` tutorial.
+
+
 
 Combining constraints
 =====================
@@ -63,7 +79,6 @@ It is possible to supply several constraints on an atoms object. For
 example one may wish to keep the distance between two nitrogen atoms
 fixed while relaxing it on a fixed ruthenium surface::
 
-  >>> from ase import Atoms,FixAtoms,FixBondLength
   >>> pos = [[0.00000, 0.00000,  9.17625],
   ...        [0.00000, 0.00000, 10.27625],
   ...        [1.37715, 0.79510,  5.00000],
@@ -77,12 +92,49 @@ fixed while relaxing it on a fixed ruthenium surface::
   ...               cell=unitcell,
   ...               pbc=[True,True,False])
 
-  >>> c_fa = FixAtoms(mask=[s == 'Ru' for s in atoms.get_chemical_symbols()])
-  >>> c_fb = FixBondLength(0, 1)
-  >>> atoms.set_constraint([c_fa, c_fb])
+  >>> fa = FixAtoms(mask=[a.symbol == 'Ru' for a in atoms])
+  >>> fb = FixBondLength(0, 1)
+  >>> atoms.set_constraint([fa, fb])
 
 When applying more than one constraint they are passed as a list in
-the set_constraint method.
+the :meth:`set_constraint` method, and they will be applied one after
+the other.
+
+
+
+Making your own constraint class
+================================
+
+A constraint class must have these two methods:
+
+.. method:: adjust_positions(oldpositions, newpositions)
+
+   Adjust the *newpositions* array inplace.
+
+.. method:: adjust_forces(positions, forces)
+
+   Adjust the *forces* array inplace.
+
+
+A simple example::
+
+  import numpy as np
+  class MyConstraint:
+      """Constrain an atom to move along a given direction only."""
+      def __init__(self, a, direction):
+          self.a = a
+          self.dir = direction / sqrt(np.dot(direction, direction))
+  
+      def adjust_positions(self, oldpositions, newpositions):
+          step = newpositions[self.a] - oldpositions[self.a]
+          step = np.dot(step, self.dir)
+          newpositions[self.a] = oldpositions[self.a] + step * self.dir
+  
+      def adjust_forces(self, positions, forces):
+          forces[self.a] = self.dir * np.dot(forces[self.a], self.dir)
+
+
+
 
 The Filter class
 ================
@@ -102,9 +154,6 @@ and in Python this would be::
   >>> filter = Filter(atoms, ...)
   >>> dyn = Dynamics(filter, ...)
 
-Currently only one filter is implemented. See the description of
-:class:`~constraints.Filter` below.
-
 
 This class hides some of the atoms in an Atoms object.
 
@@ -123,12 +172,12 @@ Example of use::
   ...             symbols='OH2')
   >>> f1 = Filter(atoms, indices=[1, 2])
   >>> f2 = Filter(atoms, mask=[0, 1, 1])
-  >>> f3 = Filter(atoms, mask=[s == 'H' for s in atoms.get_chemical_symbols()])
+  >>> f3 = Filter(atoms, mask=[a.Z == 1 for a in atoms])
   >>> f1.get_positions()
   [[ 0.773  0.6    0.   ]
    [-0.773  0.6    0.   ]]
 
-In all three filters (f1, f2 and f3) only the hydrogen atoms are made
-visible. When asking for the positions only the positions of the
+In all three filters only the hydrogen atoms are made
+visible.  When asking for the positions only the positions of the
 hydrogen atoms are returned.
 

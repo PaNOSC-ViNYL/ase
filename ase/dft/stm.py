@@ -2,6 +2,8 @@ from math import exp, sqrt
 
 import numpy as npy
 
+from ase.atoms import Atoms
+
 
 class STM:
     def __init__(self, atoms, symmetries=None):

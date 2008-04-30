@@ -1,3 +1,5 @@
+.. module:: siesta
+
 ======
 SIESTA
 ======
@@ -7,107 +9,89 @@ Introduction
 
 .. _SIESTA: http://www.uam.es/departamentos/ciencias/fismateriac/siesta/
 
-`SIESTA`_ is a density-functional method for very large systems based on atomic 
-orbital (LCAO) basis sets written in Fortran. ASE provides an interface to 
-the original code. 
+SIESTA_ is a density-functional theory code for very large systems based on atomic 
+orbital (LCAO) basis sets.
 
-Requirements
-============
 
-A script named ``run_siesta.py`` must be included in the ``SIESTA_SCRIPT`` 
-variable of your shell configuration file.
-For a ``cshrc`` shell, it reads for example 
+
+Environment variables
+=====================
+
+You need to write a script called :file:`run_siesta.py` containing
+something like this::
+
+  import os
+  siesta = 'siesta_2.0'
+  exitcode = os.system('%s < %s.fdf > %s.txt' % (siesta, label, label))
+
+The environment variable :envvar:`SIESTA_SCRIPT` must point to that file.
+
+A directory containing the pseudopotential files :file:`.vps` is also
+needed, and it is to be put in the environment variable
+:envvar:`SIESTA_PP_PATH`.
+
+Set both environment variables in your in your shell configuration file:
 
 .. highlight:: bash
  
 ::
 
-  $ setenv SIESTA_SCRIPT ../run_siesta.py`` for a cshrc shell 
-
-The ``run_siesta.py`` script should contain the following, properly modified 
-to match your installation of SIESTA:
+  $ export SIESTA_SCRIPT=$HOME/siesta/run_siesta.py
+  $ export SIESTA_PP_PATH=$HOME/mypps
 
 .. highlight:: python
 
-::
-  
-  import os
-  nodename = os.uname()[1].split('.')[0]
-  if nodename in ['thul', 'svol'] or nodename[0] in 'tu':
-      siesta = 'siesta_2.0_serial'
-  elif nodename[0] == 'q':
-      siesta = 'siesta_2.0-4_serial_version'
-  else:
-      siesta = 'siesta_2.0'
-  exitcode = os.system('%s < %s.fdf > %s.txt' % (siesta, label, label))
-
-A directory containing the pseudopotential files (.vps) is also needed, and it 
-is to be included in the environment variable ``SIESTA_PP_PATH`` in your shell 
-configuration file. For a ``cshrc`` shell, this will do it:
-
-.. highlight:: bash
- 
-::
-
-  $ setenv SIESTA_PP_PATH $HOME/your_pseudopotential_dir
 
 
 SIESTA Calculator
 ================= 
 
-Before defining a :mod:`Siesta` calculator, the corresponding module should be imported
-as following
-
-.. highlight:: python
-
-::
-
-  >>> from ase.calculators import Siesta
-
-The default parameters are very close to those that the SIESTA Fortran code uses.  
-These are the exceptions:
+The default parameters are very close to those that the SIESTA Fortran
+code uses.  These are the exceptions:
 
 .. class:: Siesta(label='siesta', xc='LDA', pulay=5, mix=0.1)
     
-A detailed list of all the keywords for the calculator is the following
+Here is a detailed list of all the keywords for the calculator:
 
-=================== ==========  ==============  =================================================
-keyword             type        default value   description
-=================== ==========  ==============  =================================================
-``kpts``             ``list``          1          Monkhorst-Pack k-point sampling
-``nbands``           ``int``          None        Number of bands 
-``meshcutoff``       ``float``        None        Mesh cut-off energy in eV 
-``basis``            ``str``          None        Type of basis set ('sz', 'dz', 'szp', 'dzp') 
-``xc``               ``str``          'LDA'       Exchange-correlation functional.
-``pulay``            ``int``          5           Number of old densities to use for Pulay mixing
-``mix``              ``float``        0.1         Pulay mixing weight 
-``width``            ``float``        None        Fermi-distribution width in eV
-``charge``           ``float``        None        Total charge of the system
-``label``            ``str``          'siesta'    Name of the output file
-=================== ==========  ==============  =================================================
+============== ========= ============= =====================================
+keyword        type      default value description
+============== ========= ============= =====================================
+``kpts``       ``list``  ``[1,1,1]``   Monkhorst-Pack k-point sampling
+``nbands``     ``int``   ``None``      Number of bands 
+``meshcutoff`` ``float`` ``None``      Mesh cut-off energy in eV 
+``basis``      ``str``   ``None``      Type of basis set ('sz', 'dz', 'szp',
+                                       'dzp') 
+``xc``         ``str``   ``'LDA'``     Exchange-correlation functional.
+``pulay``      ``int``   ``5``         Number of old densities to use for
+                                       Pulay mixing
+``mix``        ``float`` ``0.1``       Pulay mixing weight 
+``width``      ``float`` ``None``      Fermi-distribution width in eV
+``charge``     ``float`` ``None``      Total charge of the system
+``label``      ``str``   ``'siesta'``  Name of the output file
+============== ========= ============= =====================================
+
+A value of ``None`` means that SIESTA's default value is used.
+
 
 
 Extra FDF parameters
 ====================
 
 The SIESTA code reads the input parameters for any calculation from a 
-``.fdf`` file. This means that you can set parameters by manually setting 
-entries in this input ``.fdf`` file. This is done by the syntax
+:file:`.fdf` file. This means that you can set parameters by manually setting 
+entries in this input :fdf:`.fdf` file. This is done by the syntax:
 
-.. highlight:: python
+>>> calc.set_fdf('name_of_the_entry', value)
 
-::
+For example, the ``EnergyShift`` can be set using
 
-  >>> calc.set_fdf('name_of_the_entry', value)
+>>> calc.set_fdf('PAO.EnergyShift', 0.01 * Rydberg)
 
-For example, the EnergyShift can be set using
+The complete list of the FDF entries can be found in the official `SIESTA
+manual`_.
 
-  >>> calc.set_fdf('PAO.EnergyShift', 0.01 * Rydberg)
+.. _SIESTA manual: http://www.uam.es/departamentos/ciencias/fismateriac/siesta
 
-.. _manual: http://www.uam.es/departamentos/ciencias/fismateriac/siesta/
-
-The complete list of the FDF entries can be found in the SIESTA
-official `manual`_.
 
 
 Customized basis-set
@@ -122,14 +106,16 @@ basis for Au. Since the valence states are 6s and 5d, we will have
 3 zeta orbitals for l=0 and 3 for l=2 plus 3 polarization orbitals
 for l=1. The basis can be defined by
 
-  >>> value = [['Au',2,'split',0.00],  #label, num. of l-shells,type,charge
-  >>>         [0,3,'P',3],             #l,nzeta,'P'(opt):pol.functions,npolzeta
-  >>>         [0.00,0.00,0.00],        #rc of basis functions for each zeta function
-  >>>                                  #0.00  => rc determined by PAO.EnergyShift
-  >>>         [2,3],                   #l,nzeta
-  >>>         [0.00,0.00,0.00]]        #rc
+**XXX I don't think this works!**
 
-  >>> calc.set_fdf('PAO.Basis',value=value)
+>>> value = [['Au',2,'split',0.00],  #label, num. of l-shells,type,charge
+>>>         [0,3,'P',3],             #l,nzeta,'P'(opt):pol.functions,npolzeta
+>>>         [0.00,0.00,0.00],        #rc of basis functions for each zeta function
+>>>                                  #0.00  => rc determined by PAO.EnergyShift
+>>>         [2,3],                   #l,nzeta
+>>>         [0.00,0.00,0.00]]        #rc
+
+>>> calc.set_fdf('PAO.Basis',value=value)
 
 
 Pseudopotentials
@@ -145,31 +131,32 @@ contributed pseudopotentials is also available there.
 You can also find an on-line pseudopotential `generator`_ from the
 OCTOPUS code.
 
+
+
 Example
 =======
 
 Here is an example of how to calculate the total energy for bulk Silicon,
 using a double-zeta basis generated by specifying a given energy-shift
         
-  >>> from ase import *
-  >>> from ase.calculators.siesta import *
-  >>> 
-  >>> a0 = 5.43
-  >>> bulk = Atoms([Atom('Si', (0,    0,     0)),
-  >>>               Atom('Si', (0.25, 0.25, 0.25))],
-  >>>              pbc=True)
-  >>> b = a0/2.
-  >>> bulk.set_cell([(0, b, b),
-  >>>                (b, 0, b),
-  >>>                (b, b, 0)])
-  >>> 
-  >>> calc = Siesta(label='Si',
-  >>>               xc='PBE',
-  >>>               meshcutoff=200 * Ry,
-  >>>               basis='dz',
-  >>>               mix=0.01,
-  >>>               kpts=[10,10,10])
-  >>>  
-  >>> calc.set_fdf('PAO.EnergyShift', 0.01 * Ry)
-  >>> bulk.set_calculator(calc)
-  >>> e = bulk.get_potential_energy()
+  from ase import *
+  
+  a0 = 5.43
+  bulk = Atoms([Atom('Si', (0,    0,     0)),
+                Atom('Si', (0.25, 0.25, 0.25))],
+               pbc=True)
+  b = a0 / 2
+  bulk.set_cell([(0, b, b),
+                 (b, 0, b),
+                 (b, b, 0)], move_atoms=True)
+  
+  calc = Siesta(label='Si',
+                xc='PBE',
+                meshcutoff=200 * Ry,
+                basis='dz',
+                mix=0.01,
+                kpts=[10, 10, 10])
+   
+  calc.set_fdf('PAO.EnergyShift', 0.01 * Ry)
+  bulk.set_calculator(calc)
+  e = bulk.get_potential_energy()
