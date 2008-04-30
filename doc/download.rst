@@ -16,11 +16,11 @@ The following packages are required for basic ASE functionality:
 
 
 It is highly recommended (but not required) to install also
-Matplotlib_ and pygtk_.  Most likely, some or all of these are already
+matplotlib_ and pygtk_.  Most likely, some or all of these are already
 be installed on your system.
 
 
-.. _Matplotlib: http://matplotlib.sourceforge.net
+.. _matplotlib: http://matplotlib.sourceforge.net
 .. _pygtk: http://www.pygtk.org
 
 

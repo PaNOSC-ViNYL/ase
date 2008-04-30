@@ -1,5 +1,4 @@
-.. module:: tutorials
-   :synopsis: ASE Tutorials
+.. _tutorials:
 
 Tutorials
 =========

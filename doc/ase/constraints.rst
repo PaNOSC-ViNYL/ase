@@ -1,33 +1,15 @@
+.. module:: constraints
+   :synopsis: Constraining some degrees of freedom
+
 ===========
 Constraints
 ===========
 
-.. module:: constraints
-   :synopsis: Constraining some degrees of freedom
 
 When performing minimizations or dynamics one may wish to keep some
 degrees of freedom in the system fixed. One way of doing this is by
-appending constraints directly to the atoms object. See the
-:class:`~constraints.FixAtoms` and
-:class:`~constraints.FixBondLength` classes for examples on that.
+attaching constraint object(s) directly to the atoms object.
 
-Constraints can also be applied via filters, which acts as a wrapper
-around an atoms object. A typical use case will look like this::
-
-   -------       --------       ----------
-  |       |     |        |     |          |
-  | Atoms |<----| Filter |<----| Dynamics |
-  |       |     |        |     |          |
-   -------       --------       ----------
-
-and in Python this would be::
-
-  >>> atoms = Atoms(...)
-  >>> filter = Filter(atoms, ...)
-  >>> dyn = Dynamics(filter, ...)
-
-Currently only one filter is implemented. See the description of
-:class:`~constraints.Filter` below.
 
 The FixAtoms class
 ==================
@@ -35,6 +17,12 @@ The FixAtoms class
 This class is used for fixing some of the atoms.
 
 .. class:: FixAtoms(indices=None, mask=None)
+
+
+
+**XXX positive or negative mask???**
+
+
 
 You must supply either the indices of the atoms that should be fixed
 or a mask. The mask is a list of booleans, one for each atom, being true
@@ -98,6 +86,25 @@ the set_constraint method.
 
 The Filter class
 ================
+
+Constraints can also be applied via filters, which acts as a wrapper
+around an atoms object. A typical use case will look like this::
+
+   -------       --------       ----------
+  |       |     |        |     |          |
+  | Atoms |<----| Filter |<----| Dynamics |
+  |       |     |        |     |          |
+   -------       --------       ----------
+
+and in Python this would be::
+
+  >>> atoms = Atoms(...)
+  >>> filter = Filter(atoms, ...)
+  >>> dyn = Dynamics(filter, ...)
+
+Currently only one filter is implemented. See the description of
+:class:`~constraints.Filter` below.
+
 
 This class hides some of the atoms in an Atoms object.
 

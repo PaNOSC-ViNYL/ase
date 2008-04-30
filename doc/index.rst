@@ -1,7 +1,6 @@
 Atomic Simulation Environment
 =============================
 
-
 The Atomic Simulation Environment (ASE) is the common part of the
 simulation tools developped at CAMd_.  ASE provides Python_ modules
 for manipulating atoms, analyzing simulations, visualization etc.
@@ -23,12 +22,16 @@ MMTK_            Library for molecular siulations (work in progress)
 ===============  ===================================================
   
 
+Trac_, :svn:`SVN <>`, :epydoc:`API <>`, :ref:`devel`, ASE3.pdf_
+
+
+.. _ASE3.pdf: ASE3.pdf
 .. _Asap: http://wiki.fysik.dtu.dk/Asap
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
 .. _MMTK: http://dirac.cnrs-orleans.fr/MMTK
 .. _Python: http://www.python.org
-
+.. _Trac: http://trac.fysik.dtu.dk/projects/ase/report/1
 
 
 News

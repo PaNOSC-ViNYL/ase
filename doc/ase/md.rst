@@ -4,8 +4,6 @@ Molecular dynamics
 
 .. module:: md
 
-.. contents::
-
 Typical computer simulations involve moving the atoms around, either
 to optimize a structure (energy minimization) or to do molecular
 dynamics.    This chapter discusses molecular dynamics,
@@ -20,10 +18,13 @@ numerically.  A typical molecular dynamics simulation will use the
 you perform dynamics by calling its ``Run(n)`` method, ``n`` is the
 number of time steps you want performed::
 
-  from ase.md.verlet import VelocityVerlet
-  dyn = VelocityVerlet(atoms, 5.0*femtosecond)
+  dyn = VelocityVerlet(atoms, 5.0 * femtosecond)
   dyn.run(1000)
 
+
+**XXX Should the constructor or the run method take the timestep?????**
+
+  
 A number of different algorithms can be used to perform molecular
 dynamics, with slightly different results.  
 
@@ -128,10 +129,8 @@ the friction are 0.01-0.02 atomic units.
 
 ::
 
-  from ase.units import kB, fs
-  from ase.md.langevin import Langevin
   # Room temperature simulation
-  dyn = Langevin(atoms, 5*fs, kB*300, 0.002)
+  dyn = Langevin(atoms, 5 * fs, kB * 300, 0.002)
 
 Both the friction and the temperature can be replaced with arrays
 giving per-atom values.  This is mostly useful for the friction, where
@@ -263,5 +262,5 @@ Physical Review A 41, p. 4552 (1990).
 
 .. seealso::
     
-   The automatic documentation: :epydoc:`ase.md`
+   The :term:`API` documentation: :epydoc:`ase.md`
 

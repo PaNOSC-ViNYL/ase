@@ -16,19 +16,3 @@ Contents
    bugs
    development/development
    glossary
-
-
-
-
-Indices and tables
-==================
-
-* Manual: ase.pdf_
-* :ref:`glossary`
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
-
-
-.. _ase.pdf:  ase.pdf

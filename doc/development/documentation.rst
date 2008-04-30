@@ -4,19 +4,21 @@ Writing documentation
 
 
 We use the Sphinx_ tool to generate the ASE documentation (both HTML
-and PDF).  The documetation is stored in SVN as text files in the
+and PDF_).  The documetation is stored in SVN as text files in the
 :svn:`doc` directory using the reStructuredText_ markup language.
 
 
 
 .. _reStructuredText: http://docutils.sf.net/rst.html
 .. _Sphinx: http://sphinx.pocoo.org
+.. _PDF: ../ASE2.pdf
 
 
 Installing Docutils and Sphinx
 ==============================
 
-The reStructuredText_ parser the Sphinx needs is part of the Docutils_ project.  So, we need to install docutils and sphinx::
+The reStructuredText_ parser that Sphinx needs, is part of the Docutils_
+project.  So, we need to install docutils and sphinx::
 
   XXX
   XXX
@@ -29,6 +31,10 @@ Using Sphinx
 ============
 
 .. highlight:: bash
+
+
+First, you should take a look at the documentation for Sphinx_ and
+reStructuredText_.
 
 If you don't already have your own copy of the ASE package, then get
 that first::
@@ -43,12 +49,12 @@ Then :command:`cd` to the :file:`doc` directory and build the html-pages::
   $ sphinx-build . _build
 
 Make your changes to the ``.rst`` files, run the
-:command:`sphinx-build` again, check the results and if things look
-ok, commit::
+:command:`sphinx-build` command again, check the results and if things
+looks ok, commit::
 
   $ emacs index.rst
-  $ sphinx-build . .build
-  $ firefox .build/index.html
+  $ sphinx-build . _build
+  $ firefox _build/index.html
   $ svn ci -m "..." index.rst
 
 

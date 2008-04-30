@@ -16,9 +16,9 @@ Executing Python code
 You can execute Python code interactively by starting the interpreter
 like this::
 
-  [hugo@cpu1 hugo]$ python
-  Python 2.2.1 (#1, Aug 30 2002, 12:15:30)
-  [GCC 3.2 20020822 (Red Hat Linux Rawhide 3.2-4)] on linux2
+  $ python
+  Python 2.5.1 (r251:54863, Mar  7 2008, 04:10:12) 
+  [GCC 4.1.3 20070929 (prerelease) (Ubuntu 4.1.2-16ubuntu2)] on linux2
   Type "help", "copyright", "credits" or "license" for more information.
   >>> print 'hello'
   hello
@@ -26,12 +26,12 @@ like this::
 You can also put the ``print 'hello'`` line in a file (``hello.py``)
 and execute it as a Python script::
 
-  [hugo@cpu1 hugo]$ python hello.py
+  $ python hello.py
   hello
 
 Or like this::
 
-  [hugo@cpu1 hugo]$ python -i hello.py
+  $ python -i hello.py
   hello
   >>> print 'hi!'
   hi!
@@ -40,7 +40,28 @@ Finally, you can put ``#!/usr/bin/env python`` in the first line of
 the ``hello.py`` file, make it executable (``chmod +x hello.py``) and
 execute it like any other executable.
 
+.. tip::
 
+   For interactive Python sessions, it is very convenient to have a
+   personal ``.pythonrc`` file::
+
+     import rlcompleter
+     import readline
+     readline.parse_and_bind("tab: complete")
+     from ase import *
+
+   and point the :envvar:`PYTHONSTARTUP` environment variable at it (see
+   here_ for details).
+
+
+   .. _here: http://www.python.org/doc/current/lib/module-rlcompleter.html
+
+
+.. tip::
+
+   For an even better interactive experience, use ipython_.
+
+   .. _ipython: http://ipython.scipy.org
 
 
 
@@ -86,7 +107,8 @@ inplace.  Objects of types ``list`` and ``dict`` are *mutable* - all
 the other types listed in the table are *immutable*, which means that
 once an object has been created, it can not change.
 
-.. note::
+.. tip::
+
    List and dictionary objects *can* change.  Variables in
    Python are references to objects.  This is demonstrated here:
 
@@ -99,29 +121,10 @@ once an object has been created, it can not change.
    ['q', 'w', 'e']
 
 
+.. note::
 
-Numeric Python
---------------
-
-ASE makes heavy use of an extension to Python called `Numeric
-Python`_.  The ``Numeric`` module defines an ``array`` type that can
-hold large arrays of uniform multidimensional numeric data.  An
-``array`` is similar to a ``list`` or a ``tuple``, but it is a lot
-more powerful and efficient.
-
-.. _Numeric:
-.. _Numeric Python: http://numpy.sf.net
-
->>> import Numeric as num
->>> a = num.zeros((3, 2), num.Float)
->>> a[:, 1] = 1
->>> a[1] = 2
->>> a
-array([[ 0.,  1.],
-       [ 2.,  2.],
-       [ 0.,  1.]])
->>> a.shape
-(3, 2)
+   Another very important type is the :term:`ndarray` type described
+   here: :ref:`numpy`.
 
 
 
@@ -156,24 +159,24 @@ A function is defined like this:
 >>> f(1, 2)
 5
 
-A class is defined like this:
+A :term:`class` is defined like this:
 
 >>> class C:
 ...     def __init__(self, x):
 ...         self.x = x
-...     def M(self, y):
+...     def m(self, y):
 ...         return f(self.x, y)
 ...
 
-The ``__init__()`` function is called a *constructor*.  You can think
+The ``__init__()`` function is called a :term:`constructor`.  You can think
 of a class as a template for creating user defined objects:
 
 >>> o = C(1)
->>> o.M(2)
+>>> o.m(2)
 5
 
-Here we just called the method ``M`` of the object ``o`` (``o`` is an
-instance of the class ``C``).
+Here we just called the term:`method` ``m`` of the object ``o`` (``o`` is an
+:term:`instance` of the class ``C``).
 
 
 
@@ -189,33 +192,25 @@ of code::
 
   from stuff import f, C
   print f(1, 2)
-  print C(1).M(2)
+  print C(1).m(2)
 
 or::
 
   import stuff
   print stuff.f(1, 2)
-  print stuff.C(1).M(2)
+  print stuff.C(1).m(2)
 
 or::
 
   import stuff as st
   print st.f(1, 2)
-  print st.C(1).M(2)
+  print st.C(1).m(2)
 
 
+Python will look for ``stuff.py`` in these directories:
 
-readline
---------
+1) current working directory
+2) directories listed in your :envvar:`PYTHONPATH`
+3) Python's own system directory (typically :dir:`/usr/lib/python2.5`)
 
-Be sure to have these lines in your personal ``.pythonrc`` file::
-
-  import rlcompleter
-  import readline
-  readline.parse_and_bind("tab: complete")
-
-and point the ``PYTHONSTARTUP`` environment variable at it (see
-here_ for details).
-
-
-.. _here: http://www.python.org/doc/current/lib/module-rlcompleter.html
+and import the first one found.

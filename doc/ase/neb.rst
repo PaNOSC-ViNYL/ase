@@ -40,7 +40,7 @@ Example of use::
   # Read initial and final states:
   initial = read('A.xyz')
   final = read('B.xyz')
-  # Make a band:
+  # Make a band consisting of 5 images:
   images = [initial]
   images += [initial.copy() for i in range(3)]
   images += [final]
@@ -54,7 +54,7 @@ Example of use::
   optimizer = QuasiNewton(neb)
   optimizer.run(fmax=0.04)
 
-Notice the use of :meth:`interpolate` method to get a good
+Notice the use of the :meth:`interpolate` method to get a good
 initial guess for the path from A to B.
 
 .. method:: NEB.interpolate()
@@ -69,10 +69,10 @@ initial guess for the path from A to B.
    :mod:`calculators`:
         How to use calculators.
 
-   :ref:`examples`:
+   :ref:`tutorials`:
 
-        * :ref:`example1`
-        * :ref:`example2`
+        * :ref:`neb1`
+        * :ref:`neb2`
 
 
 
