@@ -6,18 +6,19 @@ from docutils import nodes, utils
 from docutils.parsers.rst.roles import set_classes
 
 def svn_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
+    if text[-1] == '>':
+        i = text.index('<')
+        name = text[:i - 1]
+        text = text[i + 1:-1]
+    else:
+        name = text
     ref = 'http://trac.fysik.dtu.dk/projects/ase/browser/trunk/' + text
     set_classes(options)
-    node = nodes.reference(rawtext, text, refuri=ref,
+    node = nodes.reference(rawtext, name, refuri=ref,
                            **options)
     return [node], []
 
 def epydoc_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
-    print
-    print rawtext
-    print text
-    print
-
     name = None
     if text[-1] == '>':
         i = text.index('<')
