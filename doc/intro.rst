@@ -1,3 +1,4 @@
+============
 Introduction
 ============
 
@@ -47,3 +48,13 @@ Open to participation
 
 
 .. _Python: http://www.python.org
+
+
+
+
+.. _ml:
+
+Mailing lists
+=============
+
+XXX  campos, ase, checkins, ???

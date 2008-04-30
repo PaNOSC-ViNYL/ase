@@ -9,10 +9,11 @@ Contents
    overview
    download
    ase/ase
-   examples/examples
    tutorials/tutorials
    python
    numpy
+   oldase
    bugs
+   faq
    development/development
    glossary

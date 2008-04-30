@@ -68,7 +68,7 @@ bond length of 1.2 Å.  The *fix* keyword must be ``'first'``,
 
 This method is useful for finding minimum energy barriers for
 reactions where the path can be described well by a single bond
-length (see the :ref:`mep` tutorial.
+length (see the :ref:`mep2` tutorial).
 
 
 

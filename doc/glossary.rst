@@ -11,6 +11,12 @@ Glossary
   ASE
     Atomic Simulation Environment.
 
+  Class
+    XXX
+
+  Constructor
+    XXX
+
   DFT
     Density Functional Theory.
 
@@ -22,6 +28,12 @@ Glossary
 
   GPL
     See :term:`GNU General Public License`
+
+  HF
+    Hartree-Fock approximation XXX ...
+
+  Instance
+    XXX
 
   ndarray
     :term:`NumPy`'s *n*-dimensional array.  See :ref:`numpy`.

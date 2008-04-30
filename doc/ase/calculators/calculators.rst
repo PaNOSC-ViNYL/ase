@@ -84,4 +84,3 @@ text output-file.
    .. autoclass:: ase.calculators.neighborlist.NeighborList
 
    For details, see :epydoc:`ase.calculators.neighborlist.NeighborList`.
-

@@ -1,4 +1,5 @@
 .. module:: data
+
 ===============
 The data module
 ===============
