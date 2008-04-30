@@ -50,12 +50,14 @@ def convert(filename):
     t2 = ''
     while 1:
         i = t.find('.')
-        n = 1
-        if i == -1:
+        i2 = t.find('def ')
+        if 0 <= i < i2:
+            n = 1
+        elif i2 != -1:
             n = 4
-            i = t.find('def ')
-            if i == -1:
-                break
+            i = i2
+        else:
+            break
         t2 += t[:i + n]
         t = t[i + n:]
         if t[0].isupper() and t[1].islower():
