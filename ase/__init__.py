@@ -13,7 +13,11 @@ from ase.optimize.qn import QuasiNewton
 from ase.md.verlet import VelocityVerlet
 from ase.md.langevin import Langevin
 from ase.constraints import *
-from ase.calculators import LennardJones, EMT, ASAP
+from ase.calculators import LennardJones, EMT, ASAP, Siesta
 from ase.neb import NEB
 from ase.visualize import *
-#del atoms # XXX
+from ase.data import *
+
+import numpy as np
+#import scipy as sp
+#import matplotlib.pyplot as plt
