@@ -4,6 +4,7 @@ import numpy as npy
 
 from ase.calculators.lj import LennardJones
 from ase.calculators.emt import EMT, ASAP
+from ase.calculators.siesta import Siesta
 
 
 class SinglePointCalculator:
