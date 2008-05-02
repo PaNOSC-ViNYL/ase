@@ -38,7 +38,7 @@ def build():
     if os.system('sphinx-build . _build') != 0:
         raise RuntimeError('Sphinx failed!')
 
-    if 1:
+    if 0:
         if os.system('sphinx-build -b latex . _build') != 0:
             raise RuntimeError('Sphinx failed!')
         os.chdir('_build')

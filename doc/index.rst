@@ -20,10 +20,10 @@ Supported :mod:`calculators`:
 Trac_, :svn:`SVN <>`, :epydoc:`API <ase>`, :ref:`devel`, ASE3.pdf_, :ref:`ml`.
 
 
-.. |gpaw| image:: gpaw.png
+.. |gpaw| image:: http://wiki.fysik.dtu.dk/wiki/images/gpaw.png
    :height: 44
    :target: http://wiki.fysik.dtu.dk/gpaw
-.. |siesta| image:: logo-233x125.png
+.. |siesta| image:: http://www.uam.es/departamentos/ciencias/fismateriac/siesta/logo-233x125.png
    :height: 44
    :target: ase/calculators/ase.html
 

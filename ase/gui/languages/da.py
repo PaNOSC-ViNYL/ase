@@ -28,6 +28,7 @@ u"""Symboler:
 <c>e</c>:\t\tenergi
 <c>fmax</c>:\tmaximum kræft
 <c>fave</c>:\tmiddel kræft
+<c>R[n,0-2]</c>:\tposition af atom nummer <c>n</c> 
 <c>d(n<sub>1</sub>,n<sub>1</sub>)</c>:\tafstand mellem to atomer
 <c>i</c>:\t\tnuværende billede nummer
 <c>E[i]</c>:\t\tenergi af billede nummer <c>i</c>

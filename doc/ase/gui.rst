@@ -83,6 +83,7 @@ e           energy
 fmax        maximum force
 fave        average force
 d(n1,n2)    distance between two atoms
+R[n,0-2]    position of atom number n
 i           current image number
 E[i]        energy of image number i
 F[n,0-2]    force on atom number n

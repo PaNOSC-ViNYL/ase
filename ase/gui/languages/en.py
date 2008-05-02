@@ -7,6 +7,7 @@ translation = {
 <c>e</c>:\t\tenergy
 <c>fmax</c>:\tmaximum force
 <c>fave</c>:\t\taverage force
+<c>R[n,0-2]</c>:\tposition of atom number <c>n</c> 
 <c>d(n<sub>1</sub>,n<sub>1</sub>)</c>:\tdistance between two atoms
 <c>i</c>:\t\tcurrent image number
 <c>E[i]</c>:\t\tenergy of image number <c>i</c>
