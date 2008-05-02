@@ -123,8 +123,7 @@ class Vibrations:
         except KeyError:
             m = atomic_masses[self.atoms.get_atomic_numbers()]
         self.im = npy.repeat(m[self.indices]**-0.5, 3)
-        Q = npy.diag(self.im)
-        omega2, modes = npy.linalg.eigh(npy.dot(Q, npy.dot(H, Q)))
+        omega2, modes = npy.linalg.eigh(self.im[:, None] * H * self.im)
         self.modes = modes.T.copy()
 
         # Conversion factor:
