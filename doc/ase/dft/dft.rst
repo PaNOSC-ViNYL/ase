@@ -1,3 +1,5 @@
+.. module:: dft
+
 Density Functional Theory
 =========================
 

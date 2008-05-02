@@ -1,4 +1,4 @@
-.. module:: ase.io
+.. module:: io
    :synopsis: File input-output module
 
 

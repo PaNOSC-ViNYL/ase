@@ -28,8 +28,8 @@ Quick links:
 .. seealso::
 
    * :ref:`overview`
-   * :epydoc:`ase`
-   * Source code: :svn:``
+   * :epydoc:`Automatically generates documentation <ase>` (:term:`API`)
+   * :svn:`Source code <>`
 
 
 

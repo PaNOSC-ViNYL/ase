@@ -54,7 +54,7 @@ Example of use::
   optimizer = QuasiNewton(neb)
   optimizer.run(fmax=0.04)
 
-Notice the use of the :meth:`interpolate` method to get a good
+Notice the use of the :meth:`~NEB.interpolate` method to get a good
 initial guess for the path from A to B.
 
 .. method:: NEB.interpolate()

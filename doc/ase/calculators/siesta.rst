@@ -7,10 +7,11 @@ SIESTA
 Introduction
 ============
 
-.. _SIESTA: http://www.uam.es/departamentos/ciencias/fismateriac/siesta/
+SIESTA_ is a density-functional theory code for very large systems
+based on atomic orbital (LCAO) basis sets.
 
-SIESTA_ is a density-functional theory code for very large systems based on atomic 
-orbital (LCAO) basis sets.
+
+.. _SIESTA: http://www.uam.es/departamentos/ciencias/fismateriac/siesta/
 
 
 

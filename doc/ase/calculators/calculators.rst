@@ -1,6 +1,7 @@
 .. module::  calculators
    :synopsis: Energy, force and stress calculators.
 
+===========
 Calculators
 ===========
 
@@ -32,15 +33,17 @@ Dacapo_          A planewave ultra-soft pseudopotential code  :term:`DFT`
 
 The calculators can be divided in three groups:
 
-* GPAW, Asap, and Dacapo have their own native ASE interfaces.
+1) GPAW, Asap, and Dacapo have their own native ASE interfaces.
 
-* SIESTA and MMTK have Python wrappers in the ASE package, but the
-  actual codes are not part of ASE.
+2) SIESTA and MMTK have Python wrappers in the ASE package, but the
+   actual codes are not part of ASE.
 
-* EMT is a pure python implementation of the Effective Medium Theory
-  potential and it is included in the ASE package.
+3) EMT is a pure python implementation of the Effective Medium Theory
+   potential and it is included in the ASE package.
 
 
+Documentation for group 2 and 3 calculators
+===========================================
 
 .. toctree::
 
@@ -75,7 +78,6 @@ will simply write the fdf input-file, start the SIESTA Fortran
 program, and finally read the energy, forces and stresses from the
 text output-file.
 
-
 .. hint::
 
    The :class:`EMT` potential and the GPAW_ DFT calculator both make
@@ -83,4 +85,8 @@ text output-file.
 
    .. autoclass:: ase.calculators.neighborlist.NeighborList
 
-   For details, see :epydoc:`ase.calculators.neighborlist.NeighborList`.
+   For details, see the API for the
+   :epydoc:`ase.calculators.neighborlist.NeighborList` class.
+
+
+.. _SIESTA: http://www.uam.es/departamentos/ciencias/fismateriac/siesta/

@@ -15,6 +15,8 @@ tests.
    *much* more efficient implementation in the :class:`ASAP`
    calculator.
 
+.. class:: EMT()
+
 XXX parameters for Cu, Ni, ...
 
 XXX how to add parameters for more elements?

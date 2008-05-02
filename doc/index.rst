@@ -1,3 +1,4 @@
+=============================
 Atomic Simulation Environment
 =============================
 
@@ -5,37 +6,37 @@ The Atomic Simulation Environment (ASE) is the common part of the
 simulation tools developped at CAMd_.  ASE provides Python_ modules
 for manipulating atoms, analyzing simulations, visualization etc.
 
-Calculators interfaced to ASE:
+Supported :mod:`calculators`:
 
-=======  ===========================================
-GPAW_    Real-space PAW code
-Asap_    Effective Medium Theory (EMT) potential
-Dacapo_  A planewave ultra-soft pseudopotential code
-=======  ===========================================
+.. list-table::
 
-ASE has built-in wrappers for using:
-
-===============  ===================================================
-:class:`Siesta`  LCAO pseudopotential code
-:class:`EMT`     Simple Python EMT potential
-MMTK_            Library for molecular siulations (work in progress)
-===============  ===================================================
-  
+  * - |gpaw|
+    - |siesta|
+  * - Dacapo_
+    - Asap_   
+  * - :class:`~ase.calculators.emt.EMT`
+    - 
 
 Trac_, :svn:`SVN <>`, :epydoc:`API <ase>`, :ref:`devel`, ASE3.pdf_, :ref:`ml`.
 
 
+.. |gpaw| image:: gpaw.png
+   :height: 44
+   :target: http://wiki.fysik.dtu.dk/gpaw
+.. |siesta| image:: logo-233x125.png
+   :height: 44
+   :target: ase/calculators/ase.html
+
 .. _ASE3.pdf: ASE3.pdf
-.. _Asap: http://wiki.fysik.dtu.dk/Asap
+.. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
-.. _GPAW: http://wiki.fysik.dtu.dk/gpaw
 .. _MMTK: http://dirac.cnrs-orleans.fr/MMTK
 .. _Python: http://www.python.org
 .. _Trac: http://trac.fysik.dtu.dk/projects/ase/report/1
 
 
 News
-----
+====
 
 * Thursday April 24 will be ASE documentation-day.  Ten people from
   CAMd/Cinf will do a "doc-sprint" from 9 to 16.  (17 Apr 2008)

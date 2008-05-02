@@ -1,7 +1,7 @@
 Bugs!
 =====
 
-If you find a bug in the CAMPOS software, please report it to the
+If you find a bug in the ASE software, please report it to the
 developers so it can be fixed.  We need that feedback from the
 community to maintain the quality of the code.
 
