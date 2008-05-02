@@ -151,11 +151,6 @@ class Images:
                     indices = [indices]
 
         images = [self.get_atoms(i) for i in indices]
-
-        suffix = filename.split('.')[-1]
-        if suffix not in ['traj', 'xyz', 'py', 'eps', 'png']:
-            suffix = 'traj'
-        
         write(filename, images, 
               rotation=rotations, show_unit_cell=show_unit_cell,
               bbox=bbox)
