@@ -23,7 +23,8 @@ Quick links:
     - :mod:`md`
   * - :mod:`dft`
     - :mod:`data`
-    - 
+    - :mod:`constraints`
+
 
 .. seealso::
 

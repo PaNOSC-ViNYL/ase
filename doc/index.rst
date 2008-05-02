@@ -8,16 +8,18 @@ for manipulating atoms, analyzing simulations, visualization etc.
 
 Supported :mod:`calculators`:
 
-.. list-table::
+   |gpaw| |siesta|
 
-  * - |gpaw|
-    - |siesta|
-  * - Dacapo_
-    - Asap_   
-  * - :class:`~ase.calculators.emt.EMT`
-    - 
+   Dacapo_ Asap_ :class:`~ase.calculators.emt.EMT`
 
-Trac_, :svn:`SVN <>`, :epydoc:`API <ase>`, :ref:`devel`, ASE3.pdf_, :ref:`ml`.
+
+Links:
+Trac_
+:svn:`SVN <>`
+:epydoc:`API <ase>`
+:ref:`devel <devel>`
+ASE3.pdf_
+:ref:`ml`
 
 
 .. |gpaw| image:: http://wiki.fysik.dtu.dk/wiki/images/gpaw.png
@@ -25,7 +27,7 @@ Trac_, :svn:`SVN <>`, :epydoc:`API <ase>`, :ref:`devel`, ASE3.pdf_, :ref:`ml`.
    :target: http://wiki.fysik.dtu.dk/gpaw
 .. |siesta| image:: http://www.uam.es/departamentos/ciencias/fismateriac/siesta/logo-233x125.png
    :height: 44
-   :target: ase/calculators/ase.html
+   :target: ase/calculators/siesta.html
 
 .. _ASE3.pdf: ASE3.pdf
 .. _Asap: http://wiki.fysik.dtu.dk/asap
