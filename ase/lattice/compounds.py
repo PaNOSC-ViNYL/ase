@@ -2,6 +2,7 @@
 
 These lattice creators are mainly intended as examples for how to build you
 own.  The following crystal structures are defined:
+
     B1 = NaCl = Rocksalt
     B2 = CsCl
     B3 = ZnS = Zincblende
