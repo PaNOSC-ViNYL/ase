@@ -14,21 +14,26 @@ del initial[0]
 images = [initial] + [initial.copy() for i in range(6)]
 images[-1].positions[0] = (0, 0, 0)
 for image in images:
+    #image.set_calculator(EMT())
     image.set_calculator(ASAP())
-    #image.constraints.append(FixAtoms([27]))
 
-for image in [images[0], images[-1]]:
-    QuasiNewton(image).run(fmax=0.01)
-neb = NEB(images)
-neb.interpolate()
+try:
+    import Asap
+except ImportError:
+    pass
+else:
+    for image in [images[0], images[-1]]:
+        QuasiNewton(image).run(fmax=0.01)
+    neb = NEB(images)
+    neb.interpolate()
 
-for a in images:
-    print a.positions[0], a.get_potential_energy()
+    for a in images:
+        print a.positions[0], a.get_potential_energy()
 
-traj = PickleTrajectory('mep1.traj', 'w')
-dyn = MDMin(neb, dt=0.1)
-#dyn = QuasiNewton(neb)
-dyn.attach(neb.writer(traj))
-print dyn.run(fmax=0.01, steps=25)
-for a in images:
-    print a.positions[0], a.get_potential_energy()
+    traj = PickleTrajectory('mep1.traj', 'w')
+    dyn = MDMin(neb, dt=0.1)
+    #dyn = QuasiNewton(neb)
+    dyn.attach(neb.writer(traj))
+    print dyn.run(fmax=0.01, steps=25)
+    for a in images:
+        print a.positions[0], a.get_potential_energy()
