@@ -13,20 +13,12 @@ Supported :mod:`calculators`:
    Dacapo_ Asap_ :class:`~ase.calculators.emt.EMT`
 
 
-Links:
-Trac_
-:svn:`SVN <>`
-:epydoc:`API <ase>`
-:ref:`devel <devel>`
-ASE3.pdf_
-:ref:`ml`
 
-
-.. |gpaw| image:: http://wiki.fysik.dtu.dk/wiki/images/gpaw.png
-   :height: 44
+.. |gpaw| image:: _static/gpaw.png
+   :height: 50
    :target: http://wiki.fysik.dtu.dk/gpaw
-.. |siesta| image:: http://www.uam.es/departamentos/ciencias/fismateriac/siesta/logo-233x125.png
-   :height: 44
+.. |siesta| image:: _static/siesta.png
+   :height: 50
    :target: ase/calculators/siesta.html
 
 .. _ASE3.pdf: ASE3.pdf

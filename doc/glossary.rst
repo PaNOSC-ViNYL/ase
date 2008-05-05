@@ -19,11 +19,14 @@ Glossary
   Constructor
     XXX
 
+  docstring
+    XXX
+
   DFT
     Density Functional Theory.
 
   EMT
-    Effective Medium Theory
+    Effective Medium Theory.
 
   GNU General Public License
     ... XXX

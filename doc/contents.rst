@@ -3,7 +3,6 @@ Contents
 ========
 
 .. toctree::
-   :maxdepth: 1
 
    index
    intro

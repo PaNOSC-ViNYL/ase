@@ -1,7 +1,9 @@
+.. module:: atom
+
 The Atom object
 ===============
 
-ASE defines a python class called ``Atom`` to setup and handle atoms
+ASE defines a python class called :class:`Atom` to setup and handle atoms
 in electronic structure and molecular simulations. From a python
 script, atoms can be created like this:
 
@@ -10,7 +12,11 @@ script, atoms can be created like this:
 >>> a2 = Atom('H', (1.3, 0, 0), mass=2)
 >>> a3 = Atom(position=(0, 0, 0), Z=14)  # same is a1
 
-The first argument to the constructor of an ``Atom`` object is the
+
+.. class:: Atom(symbol='X', position=(0, 0, 0), tag=None, momentum=None, mass=None, magmom=None, charge=None, atoms=None, index=None)
+
+
+The first argument to the constructor of an :class:`Atom` object is the
 chemical symbol, and the second argument is the position.  The
 position can be any numerical sequence of length three.  The
 properties of an atom can also be set using keywords like it is done
@@ -23,11 +29,11 @@ The different properties of an atom can generally be obtained with a
 >>> a1.get_position()
 [1,0,0] XXX ndarray?
 
-The full definition of the parameters for the atom object is as follows:
-
-   .. autoclass:: ase.atom.Atom
 
 .. seealso::
+
+   :epydoc:`atom.Atom`:
+     All the details!
 
    :mod:`atoms`:
      More information about how to use atoms

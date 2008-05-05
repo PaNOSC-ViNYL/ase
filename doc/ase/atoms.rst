@@ -1,14 +1,15 @@
+.. module:: atoms
+
 The Atoms object
 ================
 
-.. automodule:: ase.atoms
 
-.. autoclass:: Atoms
+.. class:: Atoms
 
-Working with the methods of :class:`~ase.atoms.Atoms`
----------------------------------------------------------
+Working with the methods of Atoms objects
+-----------------------------------------
 
-Like with a single :class:`~ase.atoms.Atom` the properties of a collection of atoms
+Like with a single :class:`~atom.Atom` the properties of a collection of atoms
 can be accessed and changed with get- and set-methods. For example
 the positions of the atoms can be addressed as
 

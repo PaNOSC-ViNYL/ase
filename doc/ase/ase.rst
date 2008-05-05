@@ -9,21 +9,21 @@ Quick links:
 
 .. list-table::
 
-  * - :mod:`Atoms`
-    - :mod:`Atom`
-    - :mod:`units`
-  * - :mod:`io`
-    - :mod:`gui`
-    - :mod:`lattice`
-  * - :mod:`optimize`
-    - :mod:`visualize`
+  * - :mod:`atom`
+    - :mod:`atoms`
     - :mod:`calculators`
-  * - :mod:`neb`
-    - :mod:`vibrations`
-    - :mod:`md`
-  * - :mod:`dft`
+  * - :mod:`constraints`
+    - :mod:`dft`
     - :mod:`data`
-    - :mod:`constraints`
+  * - :mod:`gui`
+    - :mod:`io`
+    - :mod:`lattice`
+  * - :mod:`md`
+    - :mod:`neb`
+    - :mod:`optimize`
+  * - :mod:`units`
+    - :mod:`vibrations`
+    - :mod:`visualize`
 
 
 .. seealso::
