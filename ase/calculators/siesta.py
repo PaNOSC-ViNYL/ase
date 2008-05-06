@@ -27,7 +27,7 @@ class Siesta:
     def __init__(self, label='siesta', xc='LDA', kpts=None, nbands=None,
                  width=None, meshcutoff=None, charge=None,
                  pulay=5, mix=0.1,
-                 basis=None):
+                 basis=None, ghosts=[]):
         """Construct SIESTA-calculator object.
 
         Parameters
@@ -73,6 +73,7 @@ class Siesta:
         self.pulay = pulay
         self.mix = mix
         self.basis = basis
+        self.ghosts = ghosts
     
         self.converged = False
         self.fdf = {}
@@ -91,7 +92,9 @@ class Siesta:
     def initialize(self, atoms):
         self.numbers = atoms.get_atomic_numbers().copy()
         self.species = []
-        for Z in self.numbers:
+        for a, Z in enumerate(self.numbers):
+            if a in self.ghosts:
+                Z = -Z
             if Z not in self.species:
                 self.species.append(Z)
 
@@ -101,7 +104,7 @@ class Siesta:
             pppaths = []
 
         for Z in self.species:
-            symbol = chemical_symbols[Z]
+            symbol = chemical_symbols[abs(Z)]
             name = symbol + '.vps'
             found = False
             for path in pppaths:
@@ -226,11 +229,15 @@ class Siesta:
 
         fh.write('%block Chemical_Species_label\n')
         for n, Z in enumerate(self.species):
-            fh.write('%d %s %s\n' % (n + 1, Z, chemical_symbols[Z]))
+            fh.write('%d %s %s\n' % (n + 1, Z, chemical_symbols[abs(Z)]))
         fh.write('%endblock Chemical_Species_label\n')
 
         fh.write('%block AtomicCoordinatesAndAtomicSpecies\n')
+        a = 0
         for pos, Z in zip(self.positions, self.numbers):
+            if a in self.ghosts:
+                Z = -Z
+            a += 1
             fh.write('%.14f %.14f %.14f' %  tuple(pos))
             fh.write(' %d\n' % (self.species.index(Z) + 1))
         fh.write('%endblock AtomicCoordinatesAndAtomicSpecies\n')
