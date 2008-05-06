@@ -62,7 +62,7 @@ class EPS:
         if bbox is None:
             X1 = (R - radii[:, None]).min(0) 
             X2 = (R + radii[:, None]).max(0) 
-            if show_unit_cell == 1:
+            if show_unit_cell == 2:
                 X1 = npy.minimum(X1, C.min(0))
                 X2 = npy.maximum(X2, C.max(0))
             M = (X1 + X2) / 2
