@@ -5,6 +5,8 @@ from ase.utils import rotate, irotate
 
 
 class Rotate(gtk.Window):
+    update = True
+    
     def __init__(self, gui):
         gtk.Window.__init__(self)
         angles = irotate(gui.rotation)
@@ -26,12 +28,15 @@ class Rotate(gtk.Window):
         self.gui = gui
 
     def change(self, adjustment):
-        x, y, z = [float(a.value) for a in self.rotate]
-        self.gui.rotation = rotate('%fx,%fy,%fz' % (x, y, z))
-        self.gui.set_coordinates()
+        if self.update:
+            x, y, z = [float(a.value) for a in self.rotate]
+            self.gui.rotation = rotate('%fx,%fy,%fz' % (x, y, z))
+            self.gui.set_coordinates()
         return True
         
     def update_angles(self, button):
         angles = irotate(self.gui.rotation)
+        self.update = False
         for r, a in zip(self.rotate, angles):
             r.value = a
+        self.update = True

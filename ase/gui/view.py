@@ -11,7 +11,8 @@ import numpy as npy
 
 from ase.data import cpk_colors
 from ase.gui.repeat import Repeat
-from ase.gui.rotate import Rotate, rotate
+from ase.gui.rotate import Rotate
+from ase.utils import rotate
 
 
 class View:
