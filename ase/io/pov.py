@@ -30,8 +30,10 @@ class POVRAY(EPS):
     default_settings = {
         # x, y is the image plane, z is *out* of the screen
         'display'      : True,  # Display while rendering
+        'pause'        : True,  # Pause when done rendering (only if display)
+        'transparent'  : True,  # Transparent background
         'canvas_width' : None,  # Width of canvas in pixels
-        'canvas_height': None, # Height of canvas in pixels 
+        'canvas_height': None,  # Height of canvas in pixels 
         'camera_dist'  : 10.,   # Distance from camera to image plane
         'camera_type'  : 'orthographic', # perspective, ultra_wide_angle
         'point_lights' : [],             # [[loc1, color1], [loc2, color2],...]
@@ -65,18 +67,18 @@ class POVRAY(EPS):
         else:
             ini = open(filename + '.ini', 'w').write
         ini('Input_File_Name=%s\n' % filename)
-        ini('Output_to_File=true\n')
+        ini('Output_to_File=True\n')
         ini('Output_File_Type=N\n')
-        ini('Output_Alpha=true\n')
+        ini('Output_Alpha=%s\n' % self.transparent)
         ini('; if you adjust Height, and width, you must preserve the ratio\n')
         ini('; Width / Height = %s\n' % repr(ratio))
         ini('Width=%s\n' % self.canvas_width)
         ini('Height=%s\n' % (self.canvas_width / ratio))
-        ini('Antialias=true\n')
+        ini('Antialias=True\n')
         ini('Antialias_Threshold=0.1\n')
-        ini('Display=%s\n' % ['false', 'true'][self.display])
-        ini('Pause_When_Done=false\n')
-        ini('Verbose=false\n')
+        ini('Display=%s\n' % self.display)
+        ini('Pause_When_Done=%s\n' % self.pause)
+        ini('Verbose=False\n')
         del ini
 
         # Produce the .pov file
