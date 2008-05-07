@@ -1,26 +1,37 @@
-from math import sin, cos, pi
+#!/usr/bin/env python
+import gtk
+from ase.gui.widgets import pack
+from ase.utils import rotate, irotate
 
-import numpy as npy
 
+class Rotate(gtk.Window):
+    def __init__(self, gui):
+        gtk.Window.__init__(self)
+        angles = irotate(gui.rotation)
+        self.set_title('Rotate')
+        vbox = gtk.VBox()
+        pack(vbox, gtk.Label('Rotation angles:'))
+        self.rotate = [gtk.Adjustment(value=a, lower=-360, upper=360,
+                                      step_incr=1, page_incr=10)
+                       for a in angles]
+        pack(vbox, [gtk.SpinButton(a, climb_rate=0, digits=1)
+                    for a in self.rotate])
+        for r in self.rotate:
+            r.connect('value-changed', self.change)
+        button = pack(vbox, gtk.Button('Update'))
+        button.connect('clicked', self.update_angles)
+        self.add(vbox)
+        vbox.show()
+        self.show()
+        self.gui = gui
 
-def rotate(rotations, rotation=npy.diag([1.0, -1, 1])):
-    if rotations == '':
-        return rotation
-    
-    for i, a in [('xyz'.index(s[-1]), float(s[:-1]) / 180 * pi)
-                 for s in rotations.split(',')]:
-        s = sin(a)
-        c = cos(a)
-        if i == 0:
-            rotation = npy.dot(rotation, [( 1,  0,  0),
-                                          ( 0,  c, -s),
-                                          ( 0,  s,  c)])
-        elif i == 1:
-            rotation = npy.dot(rotation, [( c,  0, -s),
-                                          ( 0,  1,  0),
-                                          ( s,  0,  c)])
-        else:
-            rotation = npy.dot(rotation, [( c, -s,  0),
-                                          ( s,  c,  0),
-                                          (-0,  0,  1)])
-    return rotation
+    def change(self, adjustment):
+        x, y, z = [float(a.value) for a in self.rotate]
+        self.gui.rotation = rotate('%fx,%fy,%fz' % (x, y, z))
+        self.gui.set_coordinates()
+        return True
+        
+    def update_angles(self, button):
+        angles = irotate(self.gui.rotation)
+        for r, a in zip(self.rotate, angles):
+            r.value = a

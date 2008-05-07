@@ -11,7 +11,7 @@ import numpy as npy
 
 from ase.data import cpk_colors
 from ase.gui.repeat import Repeat
-from ase.gui.rotate import rotate
+from ase.gui.rotate import Rotate, rotate
 
 
 class View:
@@ -139,6 +139,9 @@ class View:
 
     def repeat_window(self, menuitem):
         Repeat(self)
+
+    def rotate_window(self, menuitem):
+        Rotate(self)
         
     def focus(self, x=None):
         if (self.images.natoms == 0 and not

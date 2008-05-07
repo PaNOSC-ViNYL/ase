@@ -54,13 +54,14 @@ ui_info = """\
       <menuitem action='ShowAxes'/>
       <separator/>
       <menuitem action='Repeat'/>
+      <menuitem action='Rotate'/>
       <menuitem action='Focus'/>
       <menuitem action='ZoomIn'/>
       <menuitem action='ZoomOut'/>
       <menuitem action='Settings'/>
-        <menuitem action='VMD'/>
-        <menuitem action='RasMol'/>
-        <menuitem action='XMakeMol'/>
+      <menuitem action='VMD'/>
+      <menuitem action='RasMol'/>
+      <menuitem action='XMakeMol'/>
     </menu>
     <menu action='ToolsMenu'>
       <menuitem action='Graphs'/>
@@ -139,6 +140,9 @@ class GUI(View, Status):
             ('Repeat', None, 'Repeat ...', None,
              '',
              self.repeat_window),
+            ('Rotate', None, 'Rotate ...', None,
+             '',
+             self.rotate_window),
             ('Focus', gtk.STOCK_ZOOM_FIT, 'Focus', 'F',
              '',
              self.focus),
