@@ -26,7 +26,7 @@ class EPS:
             rotation = rotate(rotation)
 
         A = atoms.get_cell()
-        if show_unit_cell:
+        if show_unit_cell > 0:
             L, T, D = self.cell_to_lines(A)
             C = npy.empty((2, 2, 2, 3))
             for c1 in range(2):

@@ -1,3 +1,8 @@
+"""
+Module for povray file format support.
+
+See http://www.povray.org/ for details on the format.
+"""
 import numpy as npy
 
 from ase.io.eps import EPS
@@ -22,22 +27,37 @@ def pc(array):
 
 class POVRAY(EPS):
     scale = 1.
+    default_settings = {
+        # x, y is the image plane, z is *out* of the screen
+        'display'      : True,  # Display while rendering
+        'canvas_width' : None,  # Width of canvas in pixels
+        'canvas_height': None, # Height of canvas in pixels 
+        'camera_dist'  : 10.,   # Distance from camera to image plane
+        'camera_type'  : 'orthographic', # perspective, ultra_wide_angle
+        'point_lights' : [],             # [[loc1, color1], [loc2, color2],...]
+        'area_light'   : [(2., 3., 40.) ,# location
+                          'White',       # color
+                          .7, .7, 3, 3], # width, height, Nlamps_x, Nlamps_y
+        'background'   : 'White',        # color
+        }
+
+    def __init__(self, atoms, **parameters):
+        for k, v in self.default_settings.items():
+            setattr(self, k, parameters.pop(k, v))
+        EPS.__init__(self, atoms, **parameters)
+
     def cell_to_lines(self, A):
         return npy.empty((0, 3)), None, None
 
-    def write(self, filename):
-        # Scene setup. Should perhaps be moved to input keywords
-        # x, y is the image plane, z is *out* of the screen
-        display = True # Display while rendering
+    def write(self, filename, **settings):
         ratio = float(self.w) / self.h
-        canvas_width = 640
-        camera_dist = 10. # z
-        camera_type = 'orthographic'# perspective,orthographic,ultra_wide_angle
-        point_lights = []           # [[loc1, color1], [loc2, color2], ...]
-        area_light = [(1., 2., 50.),# location
-                      'White',      # color
-                      .7, .7, 4, 4] # width, height, Nlamps_x, Nlamps_y
-        background = 'White'        # color
+        if self.canvas_width is None:
+            if self.canvas_height is None:
+                self.canvas_width = min(self.w * 15, 640)
+            else:
+                self.canvas_width = self.canvas_height * ratio
+        elif self.canvas_height is not None:
+            raise RuntimeError, "Can't set *both* width and height!"
 
         # Produce the .ini file
         if filename.endswith('.pov'):
@@ -50,12 +70,12 @@ class POVRAY(EPS):
         ini('Output_Alpha=true\n')
         ini('; if you adjust Height, and width, you must preserve the ratio\n')
         ini('; Width / Height = %s\n' % repr(ratio))
-        ini('Width=%i\n' % canvas_width)
-        ini('Height=%i\n' % int(round(canvas_width / ratio)))
+        ini('Width=%s\n' % self.canvas_width)
+        ini('Height=%s\n' % (self.canvas_width / ratio))
         ini('Antialias=true\n')
         ini('Antialias_Threshold=0.1\n')
-        ini('Display=%s\n' % ['false', 'true'][display])
-        ini('Pause_When_Done=true\n')
+        ini('Display=%s\n' % ['false', 'true'][self.display])
+        ini('Pause_When_Done=false\n')
         ini('Verbose=false\n')
         del ini
 
@@ -65,21 +85,28 @@ class POVRAY(EPS):
         w('#include "finish.inc"\n')
         w('\n')
         w('global_settings {assumed_gamma 1 max_trace_level 6}\n')
-        w('background {%s}\n' % pc(background))
-        w('camera {%s\n' % camera_type)
-        w('  right %.2f*x up %.2f*y direction z\n' % (self.w, self.h))
-        w('  location <0,0,%.2f> look_at <0,0,0>}\n' % camera_dist)
-        for loc, rgb in point_lights:
+        w('background {%s}\n' % pc(self.background))
+        w('camera {%s\n' % self.camera_type)
+        w('  right -%.2f*x up %.2f*y direction z\n' % (self.w, self.h))
+        w('  location <0,0,%.2f> look_at <0,0,0>}\n' % self.camera_dist)
+        for loc, rgb in self.point_lights:
             w('light_source {%s %s}\n' % (pa(loc), pc(rgb)))
 
-        if area_light is not None:
-            w('light_source {%s %s\n' % (pa(area_light[0]), pc(area_light[1])))
-            w('  area_light <%.2f, 0, 0>, <0, %.2f, 0>, %i, %i\n' % tuple(
-                area_light[2:6]))
+        if self.area_light is not None:
+            loc, color, width, height, nx, ny = self.area_light
+            w('light_source {%s %s\n' % (pa(loc), pc(color)))
+            w('  area_light <%.2f, 0, 0>, <0, %.2f, 0>, %i, %i\n' % (
+                width, height, nx, ny))
             w('  adaptive 1 jitter}\n')
 
         w('\n')
         w('#declare simple = finish {phong 0.7}\n')
+        w('#declare vmd = finish {'
+          'ambient .0 '
+          'diffuse .65 '
+          'phong 0.1 '
+          'phong_size 40. '
+          'specular 0.500 }\n')
         w('#declare jmol = finish {'
           'ambient .2 '
           'diffuse .6 '
@@ -95,13 +122,18 @@ class POVRAY(EPS):
           'roughness 0.04 '
           'reflection 0.15}\n')
         w('#declare ase3 = finish {'
-          'ambient .2 '
-          'brilliance 3 '
+          'ambient .15 '
+          'brilliance 2 '
           'diffuse .6 '
           'metallic '
-          'specular .7 '
+          'specular 1. '
           'roughness .001 '
-          'reflection .02}\n')
+          'reflection .0}\n')
+        w('#declare glass = finish {' # Use filter 0.7
+          'ambient .05 '
+          'diffuse .3 '
+          'specular 1. '
+          'roughness .001}\n')
         w('\n')
         w('#macro atom(LOC, R, COL, FIN)\n')
         w('  sphere{LOC, R texture{pigment{COL} finish{FIN}}}\n')
@@ -120,17 +152,17 @@ class POVRAY(EPS):
                     w('cylinder {')
                     for i in range(2):
                         j.insert(c, i)
-                        x, y, z = self.C[tuple(j)]
+                        w(pa(self.C[tuple(j)]) + ', ')
                         del j[c]
-                        w(pa([-x, y, z]) + ', ')
                     w('%0.3f pigment {Black}}\n' % 0.05)
 
         # Draw atoms
         a = 0
-        for (x, y, z), dia, color in zip(self.X, self.d, self.colors):
+        for loc, dia, color in zip(self.X, self.d, self.colors):
             w('atom(%s, %.2f, %s, %s) // #%i \n' % (
-                pa((-x, y, z)), dia / 2., pc(color), 'ase3', a))
+                pa(loc), dia / 2., pc(color), 'ase3', a))
             a += 1
+
 
 def write_pov(filename, atoms, **parameters):
     if isinstance(atoms, list):
