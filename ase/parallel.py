@@ -2,6 +2,13 @@ import sys
 import time
 import atexit
 
+def paropen(name, mode='r', buffering=0):
+    """MPI-safe version of open function."""
+    if rank > 0 and mode[0] != 'r':
+        name = '/dev/null'
+    return open(name, mode, buffering)
+
+
 # Check for special MPI-enabled Python interpreters:
 if '_gpaw' in sys.modules:
     # http://wiki.fysik.dtu.dk/gpaw
@@ -21,13 +28,6 @@ else:
     size = 1
     def barrier():
         pass
-
-
-def paropen(name, mode='r', buffering=0):
-    """MPI-safe version of open function."""
-    if rank > 0 and mode[0] != 'r':
-        name = '/dev/null'
-    return open(name, mode, buffering)
 
 
 def register_parallel_cleanup_function():
