@@ -63,7 +63,8 @@ Writing files
 
   $ ag -n -1 a*.traj -o new.traj
 
-Possible formats are: ``traj``, ``xyz``, ``eps`` and ``png``. 
+Possible formats are: ``traj``, ``xyz``, ``cube``, ``eps``, ``png``,
+``pdb``, and ``pov``.
 
 XXX ref to io: pos, py, pckl
 

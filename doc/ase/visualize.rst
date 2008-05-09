@@ -6,59 +6,41 @@ Visualization
 .. automodule:: ase.visualize
 .. autofunction:: view
 
-This provides an interface to various visualization tools, such as RasMol, VMD, VTK...
-If no viewer is specified, a simple built-in viewer is opened. You can plot your ``atoms``, which 
-is an :class:`Atoms` object, simply by doing
-
-.. highlight:: python
-
-::
+This provides an interface to various visualization tools, such as
+`ase.gui`_, RasMol_, VMD_, VTK_, or gOpenMol_. The default viewer is
+the ase.gui, described in the :mod:`gui` module. The simplest
+invocation is::
 
   >>> view(atoms)
 
-RasMol
-------
+where ``atoms`` is any :class:`Atoms` object.  Alternative viewers can
+be used by specifying the optional keyword ``viewer=...`` - use one of
+'ase.gui', 'gopenmol', 'vmd', or 'rasmol'.  The VMD viewer can take an
+optional ``data`` argument to show 3D data::
 
-You can use the `RasMol`_ program to visualize your system by specifying
+  >>> view(atoms, viewer='VMD', data=array)
 
-  >>> view(atoms, viewer='rasmol')
+If you do not wish to open an interactive gui, but rather visualize
+your structure by dumping directly to a grphics file; you can use the
+``write`` command of the :mod:`io` module, which can write 'eps',
+'png', and 'pov' files directly, like this::
 
-XXX
+  >>> write('image.png', atoms)
 
+.. _ase.gui: gui.html
 .. _RasMol: http://openrasmol.org/
-
-VMD
----
-
-You can use RasMol to visualize your system by specifying
-
-  >>> view(atoms, viewer='vmd')
-
-XXX
-
-
-VTK
----
-
-The Visualization ToolKit (VTK) is an open source, freely available software system for 3D 
-visualization. For more information on VTK, go to the `vtk homepage`_.
-
-XXX
-
-.. _vtk homepage: http://public.kitware.com/VTK/
-
-
-gOpenMol
---------
-
-You can use RasMol to visualize your system by specifying
-
-  >>> view(atoms, viewer='gopenmol')
-
-XXX
+.. _VMD: http://www.ks.uiuc.edu/Research/vmd/
+.. _VTK: http://public.kitware.com/VTK/
+.. _gOpenMol: http://www.csc.fi/gopenmol/
 
 
 PovrayPlotter
+-------------
+
+XXX
+
+
+PrimiPlotter
 -------------
 
 XXX

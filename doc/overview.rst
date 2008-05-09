@@ -392,8 +392,8 @@ Use the ``view`` function to visualize the atoms::
 
   view(atoms)
 
-This will pop up an :mod:`gui` window.  Alternative viewers can be used
-by specifying the optional keyword ``virwer=...`` - use one of
+This will pop up a :mod:`gui` window.  Alternative viewers can be used
+by specifying the optional keyword ``viewer=...`` - use one of
 'ase.gui', 'gopenmol', 'vmd', or 'rasmol'.  The VMD viewer can take an
 optional ``data`` argument to show 3D data::
 
