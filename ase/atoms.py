@@ -87,6 +87,8 @@ class Atoms(object):
         ...           pbc=(1, 0, 0))
         """
 
+    __slots__ = ['arrays', 'cell', 'pbc', 'calc', 'constraints']
+
     def __init__(self, symbols=None,
                  positions=None, numbers=None,
                  tags=None, momenta=None, masses=None,

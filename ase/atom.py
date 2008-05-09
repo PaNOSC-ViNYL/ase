@@ -72,6 +72,10 @@ class Atom(object):
         
 
         """
+
+    __slots__ = ['_number', '_symbol', '_position', '_tag', '_momentum',
+                 '_mass', '_magmom', '_charge', 'atoms', 'index']
+
     def __init__(self, symbol='X', position=(0, 0, 0),
                  tag=None, momentum=None, mass=None,
                  magmom=None, charge=None,
@@ -84,10 +88,10 @@ class Atom(object):
             else:
                 self._number = symbol
                 self._symbol = chemical_symbols[symbol]
-            self._position = npy.asarray(position, float)
+            self._position = npy.array(position, float)
             self._tag = tag
             if momentum is not None:
-                momentum = npy.asarray(momentum, float)
+                momentum = npy.array(momentum, float)
             self._momentum = momentum
             self._mass = mass
             self._magmom = magmom
@@ -171,7 +175,8 @@ class Atom(object):
 
     def set_symbol(self, symbol): self._set('symbol', symbol)
     def set_number(self, number): self._set('number', number)
-    def set_position(self, position): self._set('position', position)
+    def set_position(self, position):
+        self._set('position', npy.array(position, float))
     def set_tag(self, tag): self._set('tag', tag)
     def set_momentum(self, momentum): self._set('momentum', momentum)
     def set_mass(self, mass): self._set('mass', mass)
@@ -198,3 +203,4 @@ class Atom(object):
     x = property(get_x, set_x, doc='X-coordiante')
     y = property(get_y, set_y, doc='Y-coordiante')
     z = property(get_z, set_z, doc='Z-coordiante')
+
