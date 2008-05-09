@@ -27,7 +27,6 @@ class QuasiNewton(Optimizer):
         dr = npy.dot(V, npy.dot(f, V) / npy.fabs(omega)).reshape((-1, 3))
         #dr = solve(self.H, f).reshape((-1, 3))
         steplengths = (dr**2).sum(1)**0.5
-        
         dr /= npy.maximum(steplengths / self.maxstep, 1.0).reshape(-1, 1)
         atoms.set_positions(r + dr)
         self.r0 = r.flat.copy()
@@ -36,7 +35,7 @@ class QuasiNewton(Optimizer):
 
     def update(self, r, f):
         if self.H is None:
-            self.H = npy.eye(3 * len(self.atoms)) * 120.0
+            self.H = npy.eye(3 * len(self.atoms)) * 70.0
             return
         dr = r - self.r0
         df = f - self.f0

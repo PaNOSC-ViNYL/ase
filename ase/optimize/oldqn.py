@@ -7,7 +7,7 @@ Quasi-Newton algorithm
 
 __docformat__ = 'reStructuredText'
 
-import Numpy as np
+import numpy as np
 import weakref,time,sys
 
 from ase import *
@@ -113,7 +113,7 @@ class GoodOldQuasiNewton(Optimizer):
 
 	self.atoms = atoms
 
-	n = len(self.atoms.get_generalized_positions())
+	n = len(self.atoms) * 3
 	if radius is None: 
 		self.radius = 0.05*np.sqrt(n)/10.0
 	else:
@@ -135,6 +135,8 @@ class GoodOldQuasiNewton(Optimizer):
 
 	self.t0 = time.time() 
 
+    def initialize(self):pass
+
     def write_log(self,text):
 	self.logfile.write(text + '\n')
 	self.logfile.flush()
@@ -153,7 +155,7 @@ class GoodOldQuasiNewton(Optimizer):
 
     def set_default_hessian(self): 
         # set unit matrix
-        n = len(self.atoms.get_generalized_positions())
+        n = len(self.atoms) * 3
   	hessian = np.zeros((n,n)) 
         for i in range(n): 
 			hessian[i][i] = self.diagonal
@@ -203,7 +205,6 @@ class GoodOldQuasiNewton(Optimizer):
 	if self.verbosity: 
 		print 'hessian ',self.hessian
 
-        self.write_hessian(self.hessianfilename)
 
 	
     def update_hessian_bfgs(self,pos,G): 
@@ -212,7 +213,7 @@ class GoodOldQuasiNewton(Optimizer):
 	dpos  = pos - self.oldpos
 	absdpos = np.sqrt(np.dot(dpos, dpos))
 	dotg  = np.dot(dgrad,dpos) 
-	tvec  = np.matrixmultiply(dpos,self.hessian)
+	tvec  = np.dot(dpos,self.hessian)
 	dott  = np.dot(dpos,tvec)
 	if (abs(dott)>self.eps) and (abs(dotg)>self.eps): 
 		for i in range(n): 
@@ -231,7 +232,7 @@ class GoodOldQuasiNewton(Optimizer):
 		return
 
         dotg  = np.dot(dgrad,dpos) 
-        tvec  = dgrad-np.matrixmultiply(dpos,self.hessian)
+        tvec  = dgrad-np.dot(dpos,self.hessian)
         tvecdot = np.dot(tvec,tvec)
         tvecdpos = np.dot(tvec,dpos) 
         ddot = tvecdpos/absdpos
@@ -254,7 +255,7 @@ class GoodOldQuasiNewton(Optimizer):
 	if absdpos<self.eps: 
 		return
         dotg  = np.dot(dgrad,dpos)                                                                         
-        tvec  = dgrad-np.matrixmultiply(dpos,self.hessian)                                                 
+        tvec  = dgrad-np.dot(dpos,self.hessian)                                                 
         tvecdot = np.dot(tvec,tvec)                                                                        
         tvecdpos = np.dot(tvec,dpos)                                                                       
         ddot = tvecdpos/absdpos                                                                             
@@ -273,15 +274,14 @@ class GoodOldQuasiNewton(Optimizer):
 
 
 
-    def _Step(self):
+    def step(self, f):
         """ Do one QN step
         """
 
-	pos = self.atoms.get_generalized_positions()
-        G = -self.atoms.get_generalized_forces()
+	pos = self.atoms.get_positions().ravel()
+        G = -self.atoms.get_forces().ravel()
 	energy = self.atoms.get_potential_energy()
 
-        self.funcEvals +=1
 
 	self.write_iteration(energy,G)
 
@@ -299,7 +299,7 @@ class GoodOldQuasiNewton(Optimizer):
 
 		if (energy-self.oldenergy)>de:
 			self.write_log('reject step')
-			self.atoms.set_generalized_positions(self.oldpos)
+			self.atoms.set_positions(self.oldpos.reshape((-1, 3)))
 			G = self.oldG
 			energy = self.oldenergy
 			self.radius *= 0.5
@@ -346,7 +346,7 @@ class GoodOldQuasiNewton(Optimizer):
         for i in range(n): 
 		step += D[i]*V[i]
 
-	pos = self.atoms.get_generalized_positions()
+	pos = self.atoms.get_positions().ravel()
 	pos += step
 
 	energy_estimate = self.get_energy_estimate(D,Gbar,b) 
@@ -354,7 +354,7 @@ class GoodOldQuasiNewton(Optimizer):
 	self.gbar_estimate = self.get_gbar_estimate(D,Gbar,b)
 	self.old_gbar = Gbar
 
-	self.atoms.set_generalized_positions(pos)
+	self.atoms.set_positions(pos.reshape((-1, 3)))
 
 
 
@@ -443,15 +443,4 @@ class GoodOldQuasiNewton(Optimizer):
 	self.write_log('Force prediction factor ' + str(f))
 	return f
 
-    def write_iteration(self,energy,G):
-	t = time.localtime()
-	if self.funcEvals<=1:
-		# write headline for the keyword QN
-		self.WriteLog('QN:  quasi-Newton minimization started %s'%(time.asctime()))
-		self.WriteLog('QN:    iter    time        energy      max force  radius')
-		
-        self.WriteLog("QN:    %3d  %3d:%02d:%02d %14.6f    %6.3f    %6.3f"%
-		      (self.funcEvals,t[3],t[4],t[5],energy,max(abs(G)),self.radius))
-
-
-
+    def write_iteration(self,energy,G):pass
