@@ -1,11 +1,13 @@
 import numpy as npy
 
+from ase.parallel import world, rank
 
 class NEB:
-    def __init__(self, images, k=0.1, climb=False):
+    def __init__(self, images, k=0.1, climb=False, parallel=False):
         self.images = images
         self.k = k
         self.climb = climb
+        self.parallel = parallel
         self.natoms = len(images[0])
         self.nimages = len(images)
 
@@ -17,9 +19,9 @@ class NEB:
             self.images[i].set_positions(pos1 + i * d)
 
     def get_positions(self):
-        positions = npy.empty((self.nimages * self.natoms, 3))
+        positions = npy.empty(((self.nimages - 2) * self.natoms, 3))
         n1 = 0
-        for image in self.images:
+        for image in self.images[1:-1]:
             n2 = n1 + self.natoms
             positions[n1:n2] = image.get_positions()
             n1 = n2
@@ -27,24 +29,31 @@ class NEB:
 
     def set_positions(self, positions):
         n1 = 0
-        for image in self.images:
+        for image in self.images[1:-1]:
             n2 = n1 + self.natoms
             image.set_positions(positions[n1:n2])
             n1 = n2
         
     def get_forces(self):
-        positions = self.get_positions()
-        positions.shape = (self.nimages, self.natoms, 3)
-        forces = npy.empty((self.nimages * self.natoms, 3))
+        images = self.images
 
-        forces[:self.natoms] = self.images[0].get_forces()
-        imax = max([(self.images[i].get_potential_energy(), i)
-                    for i in range(self.nimages)])[1]
-        n1 = self.natoms
-        tangent1 = positions[1] - positions[0]
+        forces = npy.empty(((self.nimages - 2), self.natoms, 3))
+
+        energies = [image.get_potential_energy() for image in images[1:-1]]
+        imax = 1 + npy.argsort(energies)[-1]
+
+        if not self.parallel:
+            for i in range(1, self.nimages - 1):
+                forces[i - 1] = images[i].get_forces()
+        else:
+            i = rank // (self.nimages - 2) + 1
+            forces[i - 1] = images[i].get_forces()
+            for i in range(1, self.nimages - 1):
+                world.broadcast(forces[i], (i - 1) * size // (self.nimages - 2))
+
+        tangent1 = images[1].get_positions() - images[0].get_positions()
         for i in range(1, self.nimages - 1):
-            n2 = n1 + self.natoms
-            tangent2 = positions[i + 1] - positions[i]
+            tangent2 = images[i + 1].get_positions() - images[i].get_positions()
             if i < imax:
                 tangent = tangent2
             elif i > imax:
@@ -53,27 +62,25 @@ class NEB:
                 tangent = tangent1 + tangent2
                 
             tt = npy.vdot(tangent, tangent)
-            f = self.images[i].get_forces()
+            f = forces[i - 1]
             ft = npy.vdot(f, tangent)
             if i == imax and self.climb:
                 f -= 2 * ft / tt * tangent
             else:
                 f -= ft / tt * tangent
-                f -= (npy.vdot(tangent1 - tangent2, tangent) * self.k / tt *
-                      tangent)
+                f -= (npy.vdot(tangent1 - tangent2, tangent) *
+                      self.k / tt * tangent)
                 
-            forces[n1:n2] = f
-            n1 = n2
             tangent1 = tangent2
 
-        forces[-self.natoms:] = self.images[-1].get_forces()
-        return forces
+        return forces.reshape((-1, 3))
 
     def get_potential_energy(self):
-        return max([image.get_potential_energy() for image in self.images])
+        return max([image.get_potential_energy() 
+                    for image in self.images[1:-1]])
 
     def __len__(self):
-        return self.nimages * self.natoms
+        return (self.nimages - 2) * self.natoms
 
     def writer(self, trajectory):
         return NEBTrajectoryWriter(self, trajectory).write

@@ -26,6 +26,7 @@ else:
     # This is a standard Python interpreter:
     rank = 0
     size = 1
+    world = None
     def barrier():
         pass
 
