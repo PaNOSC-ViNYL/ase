@@ -57,6 +57,12 @@ looks ok, commit::
   $ firefox _build/index.html
   $ svn ci -m "..." index.rst
 
+To build a pdf-file, you do this::
+
+  $ sphinx-build -b latex . _build
+  $ cd _build
+  $ make ase.pdf
+
 
 
 Extensions to Sphinx
