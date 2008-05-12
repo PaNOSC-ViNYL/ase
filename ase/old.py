@@ -3,18 +3,19 @@ try:
     import Numeric as num
 except ImportError:
     pass
-
+else:
+    def npy2num(a, typecode=num.Float):
+        return num.array(a, typecode)
+    if num.__version__ <= '23.8':
+        #def npy2num(a, typecode=num.Float):
+        #    return num.array(a.tolist(), typecode)
+        def npy2num(a, typecode=num.Float):
+            b = num.fromstring(a.tostring(), typecode)
+            b.shape = a.shape
+            return b
+    
 from ase.data import chemical_symbols
 
-def npy2num(a, typecode=num.Float):
-    return num.array(a, typecode)
-if num.__version__ <= '23.8':
-    #def npy2num(a, typecode=num.Float):
-    #    return num.array(a.tolist(), typecode)
-    def npy2num(a, typecode=num.Float):
-        b = num.fromstring(a.tostring(), typecode)
-        b.shape = a.shape
-        return b
 
 
 class OldASEListOfAtomsWrapper:
@@ -169,15 +170,3 @@ class OldASECalculatorWrapper:
         for ck in c:
             ck[:] = npy.array(ck)
         return c, U
-
-                         
-# Some day we will turn on this message:
-if 0: 
-    from os import env
-    if 'NO_OLD_ASE_MESSAGE' not in env:
-        print """\
-Please consider converting your script to use the new ase
-module - it's real simple:
-
-  http://wiki.fysik.dtu.dk/ase/Converting_from_old_ASE
-"""

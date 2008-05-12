@@ -33,7 +33,7 @@ def read(filename, index=-1, format=None):
 
     if format.startswith('gpw'):
         from gpaw import Calculator
-        atoms = Calculator(filename, txt=None).get_atoms()
+        atoms = Calculator(filename, txt=None, idiotproof=False).get_atoms()
         atoms.set_calculator(None)
         return atoms
     
