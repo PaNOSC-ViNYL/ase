@@ -76,7 +76,7 @@ ui_info = """\
     </menu>
     <menu action='HelpMenu'>
       <menuitem action='About'/>
-      <menuitem action='Wiki'/>
+      <menuitem action='Webpage'/>
       <menuitem action='Debug'/>
     </menu>
   </menubar>
@@ -194,7 +194,7 @@ class GUI(View, Status):
             ('About', None, '_About', None,
              None,
              self.about),
-            ('Wiki', gtk.STOCK_HELP, 'Wiki ...', None, None, wiki),
+            ('Webpage', gtk.STOCK_HELP, 'Webpage ...', None, None, webpage),
             ('Debug', None, 'Debug ...', None, None, self.debug)])
         actions.add_toggle_actions([
             ('ShowUnitCell', None, 'Show _unit cell', '<control>U',
@@ -440,6 +440,6 @@ class GUI(View, Status):
         else:
             dialog.run()
 
-def wiki(widget):
+def webpage(widget):
     import webbrowser
-    webbrowser.open('https://wiki.fysik.dtu.dk/ase/GUI')
+    webbrowser.open('https://web2.fysik.dtu.dk/ase/ase/gui.html')
