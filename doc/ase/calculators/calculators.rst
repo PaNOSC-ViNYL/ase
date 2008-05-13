@@ -1,4 +1,4 @@
-.. module::  calculators
+.. module:: calculators
    :synopsis: Energy, force and stress calculators.
 
 ===========

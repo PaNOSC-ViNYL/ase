@@ -1,3 +1,6 @@
+.. module:: ase.dft.stm
+
+
 STMTool
 -------
 

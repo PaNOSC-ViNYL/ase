@@ -1,4 +1,5 @@
-.. module: wannier
+.. module:: ase.dft.wannier
+   :synopsis: Maximally localized Wannier functions
 
 =====================================
 Maximally localized Wannier functions
