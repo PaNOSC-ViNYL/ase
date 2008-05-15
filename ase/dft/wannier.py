@@ -73,7 +73,7 @@ def get_kpoint_dimensions(kpts):
 
 
 def calculate_weights(cell_cc):
-    """ Weights are used for non-cubic cells, see PRB61,10040"""
+    """ Weights are used for non-cubic cells, see PRB **61**, 10040"""
     alldirs_dc = npy.array([[1, 0, 0], [0, 1, 0], [0, 0, 1],
                             [1, 1, 0], [1, 0, 1], [0, 1, 1]], dtype=int)
     g = npy.dot(cell_cc, cell_cc.T)
@@ -386,10 +386,10 @@ class Wannier:
         calc = wrap(calc)
 
         # Default size of plotting cell is the one corresponding to k-points.
-        N1, N2, N3 = self.kpointgrid
+        N1, N2, N3 = self.kptgrid
 
         dim = calc.get_number_of_grid_points()
-        largedim = dim * repeat
+        largedim = dim * [N1, N2, N3]
         
         wanniergrid = npy.zeros(largedim, dtype=complex)
         for k, kpt_c in enumerate(self.kpt_kc):
@@ -401,13 +401,14 @@ class Wannier:
 
             wan_G = npy.zeros(dim, self.dtype)
             for n, coeff in enumerate(vec_n):
-                wan_G += coeff * calc.get_pseudo_wave_function(n, k, self.spin)
+                wan_G += coeff * calc.get_pseudo_wave_function(n, k, self.spin,
+                                                               pad=True)
 
             # Distribute the small wavefunction over large cell:
             for n1 in range(N1):
                 for n2 in range(N2):
                     for n3 in range(N3):
-                        e = exp(2.j * pi * npy.dot([n1, n2, n3], kpt_c))
+                        e = npy.exp(2.j * pi * npy.dot([n1, n2, n3], kpt_c))
                         wanniergrid[n1 * dim[0]:(n1 + 1) * dim[0],
                                     n2 * dim[1]:(n2 + 1) * dim[1],
                                     n3 * dim[2]:(n3 + 1) * dim[2]] += e * wan_G

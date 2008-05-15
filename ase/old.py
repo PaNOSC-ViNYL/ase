@@ -135,7 +135,7 @@ class OldASECalculatorWrapper:
         return self.calc.GetFermiLevel()
 
     def get_number_of_grid_points(self):
-        return self.get_pseudo_wave_function(0, 0, 0).shape
+        return npy.array(self.get_pseudo_wave_function(0, 0, 0).shape)
 
     def get_pseudo_wave_function(self, n=0, k=0, s=0):
         return npy.array(self.calc.GetWaveFunctionArray(n, k, s))
