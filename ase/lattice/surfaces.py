@@ -6,11 +6,12 @@ add vacuum layers and add adsorbates.
 """
 
 from ase.lattice.cubic import FaceCenteredCubic
+from ase.lattice.hexagonal import HexagonalClosedPacked
 import numpy as np
 import ase
 
 def FCC001(element, size=(1,1,1), latticeconstant=None):
-    """FCC(001) surface with <110> directions along the x and y axis.
+    """FCC(001) surface with <110> directions along the x and y axes.
 
     Supported special adsorption sites: 'ontop', 'bridge' and 'hollow'.
     """
@@ -19,6 +20,49 @@ def FCC001(element, size=(1,1,1), latticeconstant=None):
     a._addsorbate_info = {'_size': size[:2], 'ontop': (0.5,0.5),
                           'bridge': (1.0,0.5), 'hollow': (1.0,1.0)}
     return a
+
+def FCC111(element, size=(1,1,1), latticeconstant=None):
+    """FCC(111) surface with <110> and <112> directions along the x and y axes.
+
+    Supported special adsorption sites: 'ontop', 'bridge', 'fcc' and 'hcp'.
+
+    The unit cell contains six atoms.
+    """
+    a = FaceCenteredCubic(directions=[[1,-1,0],[1,1,-2], [1,1,1]], size=size,
+                          element=element, latticeconstant=latticeconstant)
+    a._addsorbate_info = {'_size': size[:2], 'ontop': (1.0/2, 1.0/6),
+                          'bridge': (1.0/4, 5.0/12), 'fcc': (1/2.0, 1/2.0),
+                          'hcp': (0, 1/3.0)}
+    return a
+
+def FCC110(element, size=(1,1,1), latticeconstant=None):
+    """FCC(110) surface with <110> and <001> directions along the x and y axes.
+
+    Supported special adsorption sites: 'ontop', 'shortbridge' and
+    'longbridge'.
+
+    The unit cell contains two atoms.
+    """
+    a = FaceCenteredCubic(directions=[[-1,1,0],[0,0,1], [1,1,0]], size=size,
+                          element=element, latticeconstant=latticeconstant)
+    a._addsorbate_info = {'_size': size[:2], 'ontop': (1.0/2, 1.0/2),
+                          'shortbridge': (1, 1.0/2), 
+                          'longbridge': (1.0/2, 1)}
+    return a
+
+def HCP0001(element, size=(1,1,1), latticeconstant=None):
+    """HCP(0001) surface with [2,-1,-1,0] and [0,1,-1,0] directions along the x and y axes.
+
+    Supported special adsorption sites: XXXX
+
+    The unit cell contains two atoms.
+    """
+    a = HexagonalClosedPacked(directions=[[2,-1,-1,0], [0,1,-1,0], [0,0,0,1]],
+                              size=size, element=element,
+                              latticeconstant=latticeconstant)
+    a._addsorbate_info = {'_size': size[:2]}
+    return a
+
 
 def AddVacuum(atoms, vacuum):
     """Add vacuum layer to the atoms.
@@ -39,8 +83,21 @@ def AddVacuum(atoms, vacuum):
     uc[2] *= newlength/length
     atoms.set_cell(uc, fix=True)
 
-def AddAdsorbate(atoms, adsorbate, height, position):
+def AddAdsorbate(atoms, adsorbate, height, position, offset=None):
     """Add an adsorbate to a surface.
+
+    This function adds an adsorbate to a slab.  If the slab is
+    produced by one of the utility functions in ase.lattice.setup, it
+    is possible to specify the position of the adsorbate by a keyword
+    (the supported keywords depend on which function was used to
+    create the atoms).
+
+    If the adsorbate is a molecule, the first atom (number 0) is
+    adsorbed to the surface, and it is the responsability of the user
+    to orient the adsorbate in a sensible way.
+
+    This function can be called multiple times to add more than one
+    adsorbate.
 
     Parameters:
 
@@ -57,12 +114,16 @@ def AddAdsorbate(atoms, adsorbate, height, position):
         two numbers or as a keyword (if the surface is produced by one
         of the functions in ase.lattice.surfaces).
 
-    If the adsorbate is a molecule, the first atom is adsorbed to the
-    surface, and it is the responsability of the user to orient the
-    adsorbate in a sensible way.
+    offset (default: None): Offsets the adsorbate by a number of unit
+        cells.  Can only be used if the atoms were produced by one of
+        the functions in ase.lattice.surfaces.  Mostly useful when
+        adding more than one adsorbate.
 
-    This function can be called multiple times to add more than one
-    adsorbate.
+    Note that position is given in absolute xy coordinates (or as a
+    keyword), whereas offset is specified in unit cells.  This can be
+    used to give the positions in units of the unit cell by specifying
+    position=(0,0) and using the offset instead.
+    
     """
     if isinstance(position, type("string")):
         # A keyword
@@ -79,6 +140,9 @@ def AddAdsorbate(atoms, adsorbate, height, position):
     else:
         position = np.array(position)
 
+    if offset is not None:
+        position += np.array(offset, np.float) / np.array(info['_size'])
+        
     # Get the surface z-coordinate.  Must use a stored value if an
     # adsorbate has already been added by a previous call to this
     # function.
