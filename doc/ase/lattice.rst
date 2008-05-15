@@ -16,11 +16,10 @@ to a surface.  In general, all surfaces can be set up with
 the `general crystal structures`_ modules documented below, but these
 utility functions make common tasks easier.
 
-All these modules create slabs with an orthogonal unit cell, suitable
-for use with GPAW_.  In many cases, it may be possible to create
-smaller unit cells with non-orthogonal unit cells (for use with
-dacapo) using the `general crystal structures`_ modules.
-
+Most of these modules create slabs with the smallest possible
+non-orthogonal unit cell.  If the optional parameter *orthogonal* is
+given, the smalled possible orthogonal unit cell is used (creating a
+larger unit cell, but one that is suitable for use with GPAW_).
 
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
 
@@ -32,8 +31,8 @@ position::
 
     from ase.lattice.surface import *
     atoms = fcc111('Al', size=(2,2,3))
-    AddVacuum(atoms, 10.0)
-    AddAdsorbate(atoms, 'H', 1.5, 'ontop')
+    add_vacuum(atoms, 10.0)
+    add_adsorbate(atoms, 'H', 1.5, 'ontop')
 
 This will produce a slab 2x2x3 times the minimal possible size, with a
 (111) surface in the z direction, and [1,-1,0] and [1,1,-2] directions
@@ -57,20 +56,26 @@ All the functions setting up surfaces take the same arguments.
 *latticeconstant*: 
   (optional) The lattice constant.  If specified, it overrides the
   expermental lattice constant of the element.  Must be specified if
-  setting up a crystal structure different from the one found in nature.
+  setting up a crystal structure different from the one found in
+  nature.
+
+*orthogonal*:
+  (optional, not supported by all functions). If specified and true,
+  forces the creation of a unit cell with orthogonal basis vectors.
+  If the default is such a unit cell, this argument is not supported.
 
 Each function defines a number of standard adsorbtion sites that can
 later be used when adding an adsorbate with
-:func:`lattice.surface.AddAdsorbate`.
+:func:`lattice.surface.add_adsorbate`.
 
 
 The following functions are provided
 ````````````````````````````````````
 
-.. autofunction:: ase.lattice.surface.FCC001
-.. autofunction:: ase.lattice.surface.FCC111
-.. autofunction:: ase.lattice.surface.FCC110
-.. autofunction:: ase.lattice.surface.HCP0001
+.. autofunction:: ase.lattice.surface.fcc001
+.. autofunction:: ase.lattice.surface.fcc111
+.. autofunction:: ase.lattice.surface.fcc110
+.. autofunction:: ase.lattice.surface.hcp0001
 
 
 Adding new utility functions
@@ -87,8 +92,8 @@ Adding vacuum and adsorbates
 After a slab has been created, a vacuum layer can be added.  It is
 also possible to add one or more adsorbates.
 
-.. autofunction:: ase.lattice.surface.AddVacuum
-.. autofunction:: ase.lattice.surface.AddAdsorbate
+.. autofunction:: ase.lattice.surface.add_vacuum
+.. autofunction:: ase.lattice.surface.add_adsorbate
 
 
 General crystal structures
@@ -101,7 +106,7 @@ Modules for creating crystal structures are found in the module
 are a few important lattices with a basis.  The modules can create
 lattices with any orientation (see below).  These modules can be used
 to create surfaces with any crystal structure and any orientation by
-later adding a vacuum layer with :func:`lattice.surface.AddVacuum`.
+later adding a vacuum layer with :func:`lattice.surface.add_vacuum`.
 
 Example
 -------

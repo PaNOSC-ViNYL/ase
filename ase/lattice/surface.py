@@ -10,32 +10,59 @@ from ase.lattice.hexagonal import HexagonalClosedPacked
 import numpy as np
 import ase
 
-def FCC001(symbol, size=(1,1,1), latticeconstant=None):
+def fcc001(symbol, size=(1,1,1), latticeconstant=None, orthogonal=False):
     """FCC(001) surface with <110> directions along the x and y axes.
 
     Supported special adsorption sites: 'ontop', 'bridge' and 'hollow'.
+
+    If the optional parameter `orthogonal` is true, an orthogonal
+    unit cell containing two atoms is produced, otherwise a smaller
+    one-atom unit cell with a tilted z-axis is produced.
     """
-    a = FaceCenteredCubic(directions=[[1,-1,0], [1,1,0],[0,0,1]], size=size,
-                          symbol=symbol, latticeconstant=latticeconstant)
-    a._addsorbate_info = {'_size': size[:2], 'ontop': (0.5,0.5),
+    if orthogonal:
+        a = FaceCenteredCubic(directions=[[1,-1,0], [1,1,0],[0,0,1]], size=size,
+                              symbol=symbol, latticeconstant=latticeconstant)
+    else:
+        a = FaceCenteredCubic(directions=[[1,-1,0], [1,1,0],[1,0,1]], size=size,
+                              symbol=symbol, latticeconstant=latticeconstant)
+    a._addsorbate_info = {'ontop': (0.5,0.5),
                           'bridge': (1.0,0.5), 'hollow': (1.0,1.0)}
     return a
+        
 
-def FCC111(symbol, size=(1,1,1), latticeconstant=None):
-    """FCC(111) surface with <110> and <112> directions along the x and y axes.
+def fcc111(symbol, size=(1,1,1), latticeconstant=None, orthogonal=False):
+    """FCC(111) surface.
 
     Supported special adsorption sites: 'ontop', 'bridge', 'fcc' and 'hcp'.
 
-    The unit cell contains six atoms.
-    """
-    a = FaceCenteredCubic(directions=[[1,-1,0],[1,1,-2], [1,1,1]], size=size,
-                          symbol=symbol, latticeconstant=latticeconstant)
-    a._addsorbate_info = {'_size': size[:2], 'ontop': (1.0/2, 1.0/6),
-                          'bridge': (1.0/4, 5.0/12), 'fcc': (1/2.0, 1/2.0),
-                          'hcp': (0, 1/3.0)}
-    return a
+    If the optional parameter `orthogonal` is true, an orthogonal unit
+    cell containing six atoms is produced with <110> and <112>
+    directions along the x and y axes.
 
-def FCC110(symbol, size=(1,1,1), latticeconstant=None):
+    If the optional parameter `orthogonal` is false (the default), a
+    unit cell containing one atom is produced, with <110> directions
+    along all three axes.
+    """
+    if orthogonal:
+        a = FaceCenteredCubic(directions=[[1,-1,0],[1,1,-2], [1,1,1]],
+                              size=size, symbol=symbol,
+                              latticeconstant=latticeconstant)
+        a._addsorbate_info = {'ontop': (1.0/2, 1.0/6),
+                              'bridge': (1.0/4, 5.0/12), 'fcc': (1/2.0, 1/2.0),
+                              'hcp': (0, 1/3.0)}
+        return a
+    else:
+        a = FaceCenteredCubic(directions=[[0,1,1],[1,0,1], [1,1,0]],
+                              size=size, symbol=symbol,
+                              latticeconstant=latticeconstant)
+        offset = (size[2]-1) / 3.0
+        a._addsorbate_info = {'ontop': (0.0 + offset, 0.0 + offset),
+                              'bridge': (1.0/2 + offset, 1.0/2 + offset),
+                              'fcc': (1.0/3 + offset, 1.0/3 + offset),
+                              'hcp': (2.0/3 + offset, 2.0/3 + offset)}
+        return a
+
+def fcc110(symbol, size=(1,1,1), latticeconstant=None):
     """FCC(110) surface with <110> and <001> directions along the x and y axes.
 
     Supported special adsorption sites: 'ontop', 'shortbridge' and
@@ -45,26 +72,39 @@ def FCC110(symbol, size=(1,1,1), latticeconstant=None):
     """
     a = FaceCenteredCubic(directions=[[-1,1,0],[0,0,1], [1,1,0]], size=size,
                           symbol=symbol, latticeconstant=latticeconstant)
-    a._addsorbate_info = {'_size': size[:2], 'ontop': (1.0/2, 1.0/2),
-                          'shortbridge': (1, 1.0/2), 
+    a._addsorbate_info = {'ontop': (1.0/2, 1.0/2), 'shortbridge': (1, 1.0/2), 
                           'longbridge': (1.0/2, 1)}
     return a
 
-def HCP0001(symbol, size=(1,1,1), latticeconstant=None):
-    """HCP(0001) surface with [2,-1,-1,0] and [0,1,-1,0] directions along the x and y axes.
+def hcp0001(symbol, size=(1,1,1), latticeconstant=None, orthogonal=False):
+    """HCP(0001) surface.
+
+    If the optional parameter `orthogonal` is true, an orthogonal unit
+    cell containing six atoms is produced, with [2,-1,-1,0] and
+    [0,1,-1,0] directions along the x and y axes.
+
+    If the optional parameter `orthogonal` is false (the default), a
+    unit cell containing two atoms is produced, [2,-1,-1,0] and
+    [1,1,-2,0] directions along the x and y axes, and a [0001]
+    direction along the z axis.
 
     Supported special adsorption sites: XXXX
-
-    The unit cell contains two atoms.
     """
-    a = HexagonalClosedPacked(directions=[[2,-1,-1,0], [0,1,-1,0], [0,0,0,1]],
-                              size=size, symbol=symbol,
-                              latticeconstant=latticeconstant)
-    a._addsorbate_info = {'_size': size[:2]}
+    if orthogonal:
+        a = HexagonalClosedPacked(directions=[[2,-1,-1,0], [0,1,-1,0],
+                                              [0,0,0,1]],
+                                  size=size, symbol=symbol,
+                                  latticeconstant=latticeconstant)
+    else:
+        a = HexagonalClosedPacked(directions=[[2,-1,-1,0], [1,1,-2,0],
+                                              [0,0,0,1]],
+                                  size=size, symbol=symbol,
+                                  latticeconstant=latticeconstant)
+    a._addsorbate_info = {}
     return a
 
 
-def AddVacuum(atoms, vacuum):
+def add_vacuum(atoms, vacuum):
     """Add vacuum layer to the atoms.
 
     Parameters:
@@ -83,7 +123,7 @@ def AddVacuum(atoms, vacuum):
     uc[2] *= newlength/length
     atoms.set_cell(uc, fix=True)
 
-def AddAdsorbate(atoms, adsorbate, height, position, offset=None):
+def add_adsorbate(atoms, adsorbate, height, position, offset=None):
     """Add an adsorbate to a surface.
 
     This function adds an adsorbate to a slab.  If the slab is
@@ -115,9 +155,7 @@ def AddAdsorbate(atoms, adsorbate, height, position, offset=None):
         of the functions in ase.lattice.surfaces).
 
     offset (default: None): Offsets the adsorbate by a number of unit
-        cells.  Can only be used if the atoms were produced by one of
-        the functions in ase.lattice.surfaces.  Mostly useful when
-        adding more than one adsorbate.
+        cells. Mostly useful when adding more than one adsorbate.
 
     Note that position is given in absolute xy coordinates (or as a
     keyword), whereas offset is specified in unit cells.  This can be
@@ -135,13 +173,13 @@ def AddAdsorbate(atoms, adsorbate, height, position, offset=None):
             pos = info[position]
         except KeyError:
             raise TypeError, "Adsorption site "+position+" not supported."
-        size = np.array(info['_size'])
+        size = atoms._addsorbate_info_size
         position = np.array(pos)/size
     else:
         position = np.array(position)
 
     if offset is not None:
-        position += np.array(offset, np.float) / np.array(info['_size'])
+        position += np.array(offset, np.float) / atoms._addsorbate_info_size
         
     # Get the surface z-coordinate.  Must use a stored value if an
     # adsorbate has already been added by a previous call to this

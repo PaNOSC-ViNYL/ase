@@ -169,6 +169,8 @@ class Bravais:
         lattice = Lattice(positions=atoms, cell=basis, numbers=elements,
                           pbc=self.pbc)
         lattice.millerbasis = self.miller_basis
+        # Add info for lattice.surface.AddAdsorbate
+        lattice._addsorbate_info_size = np.array(self.size[:2])
         return lattice
         
     def process_element(self, element):
