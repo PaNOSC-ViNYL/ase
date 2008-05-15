@@ -1,8 +1,8 @@
-.. module:: optimize
-
 ======================
 Structure optimization
 ======================
+.. module:: optimize
+   :synopsis: Structure Optimization
 
 There are currently 4 different optimization algorithms available:
 ``QuasiNewton``, ``MDMin``, ``FIRE``, and ``GLBFGS``.
@@ -23,6 +23,8 @@ All optimizer classes have the following structure::
 
 QuasiNewton
 -----------
+.. module:: optimize.qn
+   :synopsis: Quasi-Newton
 
 The ``QuasiNewton`` object is one of the minimizers in the ASE
 package.  Let's try to use it to optimize the structure of a water
@@ -69,16 +71,19 @@ Restart ...
 
 LBFGS
 -----
+.. module:: optimize.lbfgs
 
 ...
 
 FIRE
 ----
+.. module:: optimize.fire
 
 ...
 
 MDMin
 -----
+.. module:: optimize.mdmin
 
 The MDmin algorithm is a modification of the usual velocity-Verlet
 molecular dynamics algorithm.  Newtons second law is solved

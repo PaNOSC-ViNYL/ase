@@ -4,9 +4,9 @@
 
 File input and output
 =====================
-.. automodule:: ase.io
 
-The ``io`` module has two basic methods: ``read`` and ``write``, both of which are accessed by either::
+The ``io`` module has two basic methods: ``read`` and ``write``, both
+of which are accessed by either::
 
   >>> from ase import *
 

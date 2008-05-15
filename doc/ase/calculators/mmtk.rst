@@ -1,4 +1,4 @@
-.. module:: mmtk
+.. module:: calculators.mmtk
 
 ===========================
 Molecular Modelling Toolkit

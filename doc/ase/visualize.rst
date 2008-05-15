@@ -3,14 +3,14 @@
 Visualization
 =============
 
-.. automodule:: ase.visualize
-.. autofunction:: view
+.. function:: view(atoms, data=None, viewer=None, repeat=None)
 
 This provides an interface to various visualization tools, such as
 `ase.gui`_, RasMol_, VMD_, VTK_, or gOpenMol_. The default viewer is
 the ase.gui, described in the :mod:`gui` module. The simplest
 invocation is::
 
+  >>> from ase import view
   >>> view(atoms)
 
 where ``atoms`` is any :class:`Atoms` object.  Alternative viewers can

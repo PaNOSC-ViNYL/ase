@@ -1,4 +1,6 @@
 .. module:: dft
+   :synopsis: Tools specific to DFT calculators
+
 
 Density Functional Theory
 =========================

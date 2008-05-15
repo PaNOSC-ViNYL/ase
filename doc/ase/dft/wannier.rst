@@ -1,4 +1,4 @@
-.. module:: ase.dft.wannier
+.. module:: dft.wannier
    :synopsis: Maximally localized Wannier functions
 
 =====================================
@@ -58,7 +58,7 @@ The Wannier class
 
 The class is accessed by::
 
-  from ase.dft.wannier import Wannier
+  from ase.dft import Wannier
 
 The basic initialization is::
 

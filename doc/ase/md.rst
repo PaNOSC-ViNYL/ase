@@ -3,6 +3,7 @@ Molecular dynamics
 ==================
 
 .. module:: md
+   :synopsis: Molecular Dynamics
 
 Typical computer simulations involve moving the atoms around, either
 to optimize a structure (energy minimization) or to do molecular

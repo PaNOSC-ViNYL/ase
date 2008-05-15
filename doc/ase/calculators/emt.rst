@@ -1,5 +1,5 @@
-.. module::  ase.calculators.emt
-   :synopsis: Energy, forces, stress calculators.
+.. module::  calculators.emt
+   :synopsis: Effective Medium Theory
 
 ==========================
 Pure Python EMT calculator

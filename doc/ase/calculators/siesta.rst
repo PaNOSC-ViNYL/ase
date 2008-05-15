@@ -1,4 +1,4 @@
-.. module:: siesta
+.. module:: calculators.siesta
 
 ======
 SIESTA

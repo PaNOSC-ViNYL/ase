@@ -1,4 +1,4 @@
-.. module:: ase.dft.stm
+.. module:: dft.stm
 
 
 STMTool
