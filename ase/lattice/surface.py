@@ -10,18 +10,18 @@ from ase.lattice.hexagonal import HexagonalClosedPacked
 import numpy as np
 import ase
 
-def FCC001(element, size=(1,1,1), latticeconstant=None):
+def FCC001(symbol, size=(1,1,1), latticeconstant=None):
     """FCC(001) surface with <110> directions along the x and y axes.
 
     Supported special adsorption sites: 'ontop', 'bridge' and 'hollow'.
     """
     a = FaceCenteredCubic(directions=[[1,-1,0], [1,1,0],[0,0,1]], size=size,
-                          element=element, latticeconstant=latticeconstant)
+                          symbol=symbol, latticeconstant=latticeconstant)
     a._addsorbate_info = {'_size': size[:2], 'ontop': (0.5,0.5),
                           'bridge': (1.0,0.5), 'hollow': (1.0,1.0)}
     return a
 
-def FCC111(element, size=(1,1,1), latticeconstant=None):
+def FCC111(symbol, size=(1,1,1), latticeconstant=None):
     """FCC(111) surface with <110> and <112> directions along the x and y axes.
 
     Supported special adsorption sites: 'ontop', 'bridge', 'fcc' and 'hcp'.
@@ -29,13 +29,13 @@ def FCC111(element, size=(1,1,1), latticeconstant=None):
     The unit cell contains six atoms.
     """
     a = FaceCenteredCubic(directions=[[1,-1,0],[1,1,-2], [1,1,1]], size=size,
-                          element=element, latticeconstant=latticeconstant)
+                          symbol=symbol, latticeconstant=latticeconstant)
     a._addsorbate_info = {'_size': size[:2], 'ontop': (1.0/2, 1.0/6),
                           'bridge': (1.0/4, 5.0/12), 'fcc': (1/2.0, 1/2.0),
                           'hcp': (0, 1/3.0)}
     return a
 
-def FCC110(element, size=(1,1,1), latticeconstant=None):
+def FCC110(symbol, size=(1,1,1), latticeconstant=None):
     """FCC(110) surface with <110> and <001> directions along the x and y axes.
 
     Supported special adsorption sites: 'ontop', 'shortbridge' and
@@ -44,13 +44,13 @@ def FCC110(element, size=(1,1,1), latticeconstant=None):
     The unit cell contains two atoms.
     """
     a = FaceCenteredCubic(directions=[[-1,1,0],[0,0,1], [1,1,0]], size=size,
-                          element=element, latticeconstant=latticeconstant)
+                          symbol=symbol, latticeconstant=latticeconstant)
     a._addsorbate_info = {'_size': size[:2], 'ontop': (1.0/2, 1.0/2),
                           'shortbridge': (1, 1.0/2), 
                           'longbridge': (1.0/2, 1)}
     return a
 
-def HCP0001(element, size=(1,1,1), latticeconstant=None):
+def HCP0001(symbol, size=(1,1,1), latticeconstant=None):
     """HCP(0001) surface with [2,-1,-1,0] and [0,1,-1,0] directions along the x and y axes.
 
     Supported special adsorption sites: XXXX
@@ -58,7 +58,7 @@ def HCP0001(element, size=(1,1,1), latticeconstant=None):
     The unit cell contains two atoms.
     """
     a = HexagonalClosedPacked(directions=[[2,-1,-1,0], [0,1,-1,0], [0,0,0,1]],
-                              size=size, element=element,
+                              size=size, symbol=symbol,
                               latticeconstant=latticeconstant)
     a._addsorbate_info = {'_size': size[:2]}
     return a

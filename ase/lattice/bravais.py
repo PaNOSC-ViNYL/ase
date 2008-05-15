@@ -39,13 +39,13 @@ class Bravais:
     element_basis = None
     
     def __call__(self, directions=(None,None,None), miller=(None,None,None),
-                 size=(1,1,1), element=None, latticeconstant=None,
+                 size=(1,1,1), symbol=None, latticeconstant=None,
                  pbc=True, align=True, debug=0):
         "Create a lattice."
         self.size = size
         self.pbc = pbc
         self.debug = debug
-        self.process_element(element)
+        self.process_element(symbol)
         self.find_directions(directions, miller)
         if self.debug:
             self.print_directions_and_miller()
