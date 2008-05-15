@@ -4,33 +4,22 @@ Setting up crystals and surfaces
 
 .. contents::
 
-**Note: These modules are under development.  The general modules are
-available now, but the "easy setup" modules are not yet ready.**
 
 Easy setup of surfaces
 ======================
 
 .. module:: lattice.surface
 
-
-.. warning::
-
-   These modules are in the process of being developed, and are not
-   yet available.
-
-
-A number of utility functions are (will be XXXX) provided to set up
-the most common surfaces.  In general, all surfaces can be set up with
-the general `Crystal structures`_ modules documented below, but these
+A number of utility functions are provided to set up
+the most common surfaces, to add vacuum layers, and to add adsorbated
+to a surface.  In general, all surfaces can be set up with
+the `general crystal structures`_ modules documented below, but these
 utility functions make common tasks easier.
 
-XXX no special treatment for GPAW - that can be done in GPAW's code
-
 All these modules create slabs with an orthogonal unit cell, suitable
-for use with GPAW_.  In many cases,
-it may be possible to create smaller unit cells with non-orthogonal
-unit cells (for use with dacapo) using the general `Crystal
-structures`_ modules.
+for use with GPAW_.  In many cases, it may be possible to create
+smaller unit cells with non-orthogonal unit cells (for use with
+dacapo) using the `general crystal structures`_ modules.
 
 
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
@@ -42,7 +31,9 @@ To setup an Al(111) surface with a hydrogen atom adsorbed in an op-top
 position::
 
     from ase.lattice.surface import *
-    atoms = fcc111(size=(2,2,3), vacuum=10, adsorbate=('H', 'ontop', 1.5))
+    atoms = fcc111('Al', size=(2,2,3))
+    AddVacuum(atoms, 10.0)
+    AddAdsorbate(atoms, 'H', 1.5, 'ontop')
 
 This will produce a slab 2x2x3 times the minimal possible size, with a
 (111) surface in the z direction, and [1,-1,0] and [1,1,-2] directions
@@ -50,66 +41,67 @@ along the x and y axes, respectively.  A 10 Å vacuum layer is added,
 and a hydrogen atom is adsorbed in an on-top position 1.5 Å above the
 top layer.
 
+Utility functions for setting up surfaces
+-----------------------------------------
 
-Defined utility functions
--------------------------
+All the functions setting up surfaces take the same arguments.
 
-All the functions in this module take the same arguments:
+*symbol*:
+  The chemical symbol of the element to use.
 
 *size*:
   A tuple giving the system size in units of the minimal possible unit
   cell consistent with periodic boundary conditions along all three
   directions.
 
-*vacuum*:
-  Add a vacuum layer (specified in Å).
+*latticeconstant*: 
+  (optional) The lattice constant.  If specified, it overrides the
+  expermental lattice constant of the element.  Must be specified if
+  setting up a crystal structure different from the one found in nature.
 
-*adsorbate*: 
-  A tuple containing the adsorbate and the adsorption site.
-  The adsorbate is either a string with a chemical symbol (for an
-  atomic adsorbate) or an :class:`~ase.atoms.Atoms` object (for
-  molecular adsorbates).  In the later case, the first atom (number 0)
-  of the adsorbate is placed in the specified site, it is the
-  responsability of the user to make sure that the molecule is
-  oriented correctly (e.g. that atom 0 has the lowest z coordinate).
-  The adsorbtion site can be a string or a tuple of three miller indices
-  indicating the position of the adsorbate.  XXXX REWRITE when it works!
-
-  XXX height of adsorbate as third element in tuple?
+Each function defines a number of standard adsorbtion sites that can
+later be used when adding an adsorbate with
+:func:`lattice.surface.AddAdsorbate`.
 
 
-.. function:: fcc001(size, vacuum=None, adsorbate=None)
+The following functions are provided
+````````````````````````````````````
 
-  Defines an FCC 001 surface.  Supported adsorption sites: 'optop',
-  'bridge', 'hollow'.
-
-.. function:: fcc110(size, vacuum=None, adsorbate=None)
-	      fcc111(size, vacuum=None, adsorbate=None)
-	      bcc001(size, vacuum=None, adsorbate=None)
-              bcc110(size, vacuum=None, adsorbate=None)
-	      bcc111(size, vacuum=None, adsorbate=None)
-	      hcp0001(size, vacuum=None, adsorbate=None)
+.. autofunction:: ase.lattice.surface.FCC001
+.. autofunction:: ase.lattice.surface.FCC111
+.. autofunction:: ase.lattice.surface.FCC110
+.. autofunction:: ase.lattice.surface.HCP0001
 
 
 Adding new utility functions
-----------------------------
+````````````````````````````
 
 If you need other surfaces than the ones above, the easiest is to look
 in the source file surface.py, and adapt one of the existing
-functions.  PLEASE
+functions.  **Please** contribute any such function that you make
+either by cheking it into SVN or by mailing it to the developers.
+
+Adding vacuum and adsorbates
+----------------------------
+
+After a slab has been created, a vacuum layer can be added.  It is
+also possible to add one or more adsorbates.
+
+.. autofunction:: ase.lattice.surface.AddVacuum
+.. autofunction:: ase.lattice.surface.AddAdsorbate
 
 
-Crystal structures
-==================
+General crystal structures
+==========================
 
 .. module:: lattice
 
-**Note: Modules in this section are available now!**
-
-Modules for creating crystal structures are found in
+Modules for creating crystal structures are found in the module
 :mod:`lattice`.  Most Bravais lattices are implemented, as
 are a few important lattices with a basis.  The modules can create
-lattices with any orientation (see below).
+lattices with any orientation (see below).  These modules can be used
+to create surfaces with any crystal structure and any orientation by
+later adding a vacuum layer with :func:`lattice.surface.AddVacuum`.
 
 Example
 -------
@@ -119,7 +111,7 @@ x-axis, [1,1,-2] along the y-axis and [1,1,1] along the z-axis, use::
 
   from ase.lattice.cubic import FaceCenteredCubic
   atoms = FaceCenteredCubic(directions=[[1,-1,0], [1,1,-2], [1,1,1]],
-                            size=(2,2,3), element="Cu", pbc=(1,1,0))
+                            size=(2,2,3), symbol="Cu", pbc=(1,1,0))
 
 The minimal unit cell is repeated 2*2*3 times.  The lattice constant
 is taken from the database of lattice constants in data.py.  There are
@@ -134,7 +126,7 @@ be suitable for GPAW)::
 
   from ase.lattice.cubic import BodyCenteredCubic
   atoms = BodyCenteredCubic(directions=[[1,0,0], [0,1,0], [1,1,1]],
-                            size=(2,2,3), element="Cu", pbc=(1,1,0),
+                            size=(2,2,3), symbol="Cu", pbc=(1,1,0),
 			    latticeconstant=4.0)
 
 Since BCC is not the natural crystal structure for Cu, a lattice
@@ -236,10 +228,9 @@ given as named arguments.
   be large.
 
 
-``symbol`` XXX changed from ``element``: 
-  The element, specified by the atomic number (an integer), by the
-  atomic symbol (i.e. "Au") or by an object returned by
-  ASE.ChemicalElements.Element().  For compounds, a tuple or list of
+``symbol``
+  The element, specified by the atomic number (an integer) or by the
+  atomic symbol (i.e. "Au").  For compounds, a tuple or list of
   elements should be given.
 
 ``latticeconstant``:
@@ -299,8 +290,6 @@ this::
 
 
 
-XXX Too deep nesting of sections here?
-
 Lattices with more than one element
 ```````````````````````````````````
 
@@ -356,4 +345,4 @@ use the simple cubic lattice with a larger basis::
   B1 = NaCl = Rocksalt = NaClFactory()
 
 More examples can be found in the file
-XXX ``ASE/Utilities/Lattice/Compounds.py``.
+``ase/lattice/compounds.py``.
