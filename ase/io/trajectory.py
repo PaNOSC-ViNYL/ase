@@ -55,9 +55,9 @@ class PickleTrajectory:
         if len(self.offsets) == 0:
             self.write_header(atoms)
 
-        try:
+        if atoms.has('momenta'):
             momenta = atoms.get_momenta()
-        except KeyError:
+        else:
             momenta = None
             
         d = {'positions': atoms.get_positions(),
@@ -79,9 +79,9 @@ class PickleTrajectory:
 
     def write_header(self, atoms):
         self.fd.write('PickleTrajectory')
-        try:
+        if atoms.has('tags'):
             tags = atoms.get_tags()
-        except KeyError:
+        else:
             tags = None
         d = {'pbc': atoms.get_pbc(),
              'numbers': atoms.get_atomic_numbers(),

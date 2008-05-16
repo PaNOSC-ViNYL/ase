@@ -56,7 +56,10 @@ class OldASEListOfAtomsWrapper:
         return npy.array(self.atoms.GetMagneticMoments())
     
     def get_charges(self):
-        return None
+        return npy.zeros(len(self))
+
+    def has(self, name):
+        return True
     
     def get_cell(self):
         return npy.array(self.atoms.GetUnitCell())

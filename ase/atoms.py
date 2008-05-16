@@ -119,26 +119,16 @@ class Atoms(object):
                 numbers = atoms.get_atomic_numbers()
             if positions is None:
                 positions = atoms.get_positions()
-            if tags is None:
-                try:
-                    tags = atoms.get_tags()
-                except KeyError:
-                    pass
-            if momenta is None:
-                try:
-                    momenta = atoms.get_momenta()
-                except KeyError:
-                    pass
-            if magmoms is None:
-                try:
-                    magmoms = atoms.get_magnetic_moments()
-                except KeyError:
-                    pass
-            if masses is None:
-                try:
-                    masses = atoms.get_masses()
-                except KeyError:
-                    pass
+            if tags is None and atoms.has('tags'):
+                tags = atoms.get_tags()
+            if momenta is None and atoms.has('momenta'):
+                momenta = atoms.get_momenta()
+            if magmoms is None and atoms.has('magmoms'):
+                magmoms = atoms.get_magnetic_moments()
+            if masses is None and atoms.has('masses'):
+                masses = atoms.get_masses()
+            if charges is None and atoms.has('charges'):
+                charges = atoms.get_charges()
             if cell is None:
                 cell = atoms.get_cell()
             if pbc is None:
@@ -282,6 +272,13 @@ class Atoms(object):
             else:
                 b[:] = a
 
+    def has(self, name):
+        """Check for existance of array.
+
+        name must be one of: 'tags', 'momenta', 'masses', 'magmoms',
+        'charges'."""
+        return name in self.arrays
+    
     def set_atomic_numbers(self, numbers):
         self.set_array('numbers', numbers, int)
 
@@ -299,7 +296,10 @@ class Atoms(object):
         self.set_array('tags', tags, int)
         
     def get_tags(self):
-        return self.arrays['tags']
+        if 'tags' in self.arrays:
+            return self.arrays['tags'].copy()
+        else:
+            return npy.zeros(len(self), int)
 
     def set_momenta(self, momenta):
         if len(self.constraints) > 0 and momenta is not None:
@@ -309,8 +309,11 @@ class Atoms(object):
         self.set_array('momenta', momenta, float)
 
     def get_momenta(self):
-        return self.arrays['momenta'].copy()
-
+        if 'momenta' in self.arrays:
+            return self.arrays['momenta'].copy()
+        else:
+            return npy.zeros((len(self), 3))
+        
     def set_masses(self, masses='defaults'):
         """Set atomic masses.
 
@@ -331,19 +334,28 @@ class Atoms(object):
         self.set_array('masses', masses, float)
 
     def get_masses(self):
-        return self.arrays['masses']
-
+        if 'masses' in self.arrays:
+            return self.arrays['masses'].copy()
+        else:
+            return atomic_masses[self.arrays['numbers']]
+        
     def set_magnetic_moments(self, magmoms):
         self.set_array('magmoms', magmoms, float)
 
     def get_magnetic_moments(self):
-        return self.arrays['magmoms']
-    
+        if 'magmoms' in self.arrays:
+            return self.arrays['magmoms'].copy()
+        else:
+            return npy.zeros(len(self))
+
     def set_charges(self, charges):
         self.set_array('charges', charges, int)
 
     def get_charges(self):
-        return self.arrays['charges']
+        if 'charges' in self.arrays:
+            return self.arrays['charges'].copy()
+        else:
+            return npy.zeros(len(self))
 
     def set_positions(self, newpositions):
         positions = self.arrays['positions']
@@ -617,7 +629,6 @@ class Atoms(object):
         if mic:
             raise NotImplemented  # XXX
         return npy.linalg.norm(d)
-    
 
     def get_scaled_positions(self):
         """Get positions relative to unit cell.

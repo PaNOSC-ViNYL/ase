@@ -185,18 +185,14 @@ class Siesta:
             fdf['xc.functional'] = 'GGA'
             fdf['xc.authors'] = self.xc
 
-        try:
-            magmoms = atoms.get_magnetic_moments()
-        except KeyError:
-            pass
-        else:
-            if magmoms is not None and magmoms.any():
-                fdf['SpinPolarized'] = True
-                fh.write('%block InitSpin\n')
-                for n, M in enumerate(magmoms):
-                    if M != 0:
-                        fh.write('%d %.14f\n' % (n + 1, M))
-                fh.write('%endblock InitSpin\n')
+        magmoms = atoms.get_magnetic_moments()
+        if magmoms.any():
+            fdf['SpinPolarized'] = True
+            fh.write('%block InitSpin\n')
+            for n, M in enumerate(magmoms):
+                if M != 0:
+                    fh.write('%d %.14f\n' % (n + 1, M))
+            fh.write('%endblock InitSpin\n')
         
         fdf['Number_of_species'] = len(self.species)
 
