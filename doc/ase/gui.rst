@@ -46,7 +46,7 @@ used.  Instead of the Python syntax ``list[start:stop:step]``, you use
   $ ag x.traj@::2     # every second image
 
 If you want to select the same range from many files, the you can use
-the option:`-n` or :option:`--image-number` option::
+the :option:`-n` or :option:`--image-number` option::
 
   $ ag -n -1 *.traj   # last image from all files
   $ ag -n 0 *.traj    # first image from all files
