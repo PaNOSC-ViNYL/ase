@@ -7,7 +7,7 @@ Glossary
 
   API 
     Application Programming Interface.  Automatically generated
-    documentation from :term:`docstrings` in the source code using Epydoc_.
+    documentation from :term:`docstring`\ s in the source code using Epydoc_.
     See :epydoc:`here <ase>`.
 
   ASE

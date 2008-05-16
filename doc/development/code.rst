@@ -50,7 +50,8 @@ Conventions`_ PEPs, summarized, clarified, and extended as follows:
   for production code.
 
 * Use 'single quotes' for string literals, and """triple double
-  quotes""" for docstrings.  Double quotes are OK for something like ``"don't"``.
+  quotes""" for :term:`docstring`\ s.  Double quotes are OK for
+  something like ``"don't"``.
 
 .. _Style Guide for Python Code: http://www.python.org/peps/pep-0008.html
 .. _Docstring Conventions: http://www.python.org/peps/pep-0257.html

@@ -21,7 +21,6 @@ Supported :mod:`calculators`:
    :height: 50
    :target: ase/calculators/siesta.html
 
-.. _ASE3.pdf: ASE3.pdf
 .. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
 .. _MMTK: http://dirac.cnrs-orleans.fr/MMTK

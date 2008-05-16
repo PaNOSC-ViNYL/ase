@@ -6,7 +6,7 @@ Visualization
 .. function:: view(atoms, data=None, viewer=None, repeat=None)
 
 This provides an interface to various visualization tools, such as
-`ase.gui`_, RasMol_, VMD_, VTK_, or gOpenMol_. The default viewer is
+:mod:`ase.gui <gui>`, RasMol_, VMD_, VTK_, or gOpenMol_. The default viewer is
 the ase.gui, described in the :mod:`gui` module. The simplest
 invocation is::
 
@@ -27,7 +27,6 @@ your structure by dumping directly to a grphics file; you can use the
 
   >>> write('image.png', atoms)
 
-.. _ase.gui: gui.html
 .. _RasMol: http://openrasmol.org/
 .. _VMD: http://www.ks.uiuc.edu/Research/vmd/
 .. _VTK: http://public.kitware.com/VTK/

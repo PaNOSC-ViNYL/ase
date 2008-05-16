@@ -38,11 +38,11 @@ def build():
     if os.system('sphinx-build . _build') != 0:
         raise RuntimeError('Sphinx failed!')
 
-    if 0:
+    if 1:
         if os.system('sphinx-build -b latex . _build') != 0:
             raise RuntimeError('Sphinx failed!')
         os.chdir('_build')
-        if os.system('make ase.pdf') != 0:
+        if os.system('make ase-manual.pdf') != 0:
             raise RuntimeError('pdflatex failed!')
     else:
         os.chdir('_build')

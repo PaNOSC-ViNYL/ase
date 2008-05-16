@@ -123,7 +123,8 @@ latex_paper_size = 'a4'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
-latex_documents = [('contents', 'ase.tex', 'ASE Doc', 'CAMd', 'manual')]
+latex_documents = [('contents', 'ase-manual.tex', 'ASE Manual',
+                    'CAMd', 'manual')]
 
 # Additional stuff for the LaTeX preamble.
 latex_preamble = '\usepackage{amsmath}'

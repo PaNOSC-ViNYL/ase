@@ -11,7 +11,7 @@ and PDF_).  The documetation is stored in SVN as text files in the
 
 .. _reStructuredText: http://docutils.sf.net/rst.html
 .. _Sphinx: http://sphinx.pocoo.org
-.. _PDF: ../ASE2.pdf
+.. _PDF: ../ase-manual.pdf
 
 
 Installing Docutils and Sphinx
@@ -61,7 +61,7 @@ To build a pdf-file, you do this::
 
   $ sphinx-build -b latex . _build
   $ cd _build
-  $ make ase.pdf
+  $ make ase-manual.pdf
 
 
 
