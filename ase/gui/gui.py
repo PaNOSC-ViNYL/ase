@@ -395,10 +395,11 @@ class GUI(View, Status):
                 self.xxx()
                 continue
                 
-            if self.images.nimages > 1 and not button.get_active():
-                filename += '@' + entry.get_text()
-            elif button.get_active():
-                filename += '@%d' % self.frame
+            if self.images.nimages > 1:
+                if button.get_active():
+                    filename += '@%d' % self.frame
+                else:
+                    filename += '@' + entry.get_text()
 
             # Does filename exist?  XXX
             
