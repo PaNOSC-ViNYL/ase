@@ -13,7 +13,7 @@ cu = Atoms('Cu',
 e0 = cu.get_potential_energy()
 print e0
 
-cu.set_cell(cu.get_cell() * 1.001)
+cu.set_cell(cu.get_cell() * 1.001, scale_atoms=True)
 e1 = cu.get_potential_energy()
 V = a**3 / 4
 B = 2 * (e1 - e0) / 0.003**2 / V * 160.2
@@ -24,7 +24,7 @@ for i in range(4):
     A = npy.array([(x, b, b+x),
                    (b, 0, b),
                    (b, b, 0)])
-    cu.set_cell(A)
+    cu.set_cell(A, scale_atoms=True)
     e = cu.get_potential_energy() - e0
     if i == 0:
         print i, e

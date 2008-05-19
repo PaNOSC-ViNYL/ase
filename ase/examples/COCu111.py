@@ -10,7 +10,7 @@ fcc111 = Atoms('Cu',
                      (d / 2, y / 3, -a / sqrt(3))],
                pbc=True)
 slab = fcc111 * (2, 2, 4)
-slab.set_cell([2 * d, 2 * y, 1], fix=True)
+slab.set_cell([2 * d, 2 * y, 1])
 slab.set_pbc((1, 1, 0))
 slab.set_calculator(EMT())
 Z = slab.get_positions()[:, 2]

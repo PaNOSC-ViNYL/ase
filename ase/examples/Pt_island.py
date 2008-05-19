@@ -12,7 +12,7 @@ initial = Atoms(symbols='Pt',
 initial *= (7, 8, 6)  # 5x5 (100) surface-cell
 cell = initial.get_cell()
 cell[2] = (0, 0, 22)
-initial.set_cell(cell,fix = True)
+initial.set_cell(cell)
 #initial.set_pbc((True,True,False))
 # Approximate height of Ag atom on Cu(100) surfece:
 h0 = 2.2373

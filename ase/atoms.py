@@ -167,7 +167,7 @@ class Atoms(object):
 
         if cell is None:
             cell = npy.eye(3)
-        self.set_cell(cell, fix=True)
+        self.set_cell(cell)
 
         if pbc is None:
             pbc = False
@@ -195,7 +195,7 @@ class Atoms(object):
             else:
                 self.constraints = [constraint]
     
-    def set_cell(self, cell, fix=False):
+    def set_cell(self, cell, scale_atoms=False, fix=None):
         """Set unit cell vectors.
 
         Parameters
@@ -203,9 +203,9 @@ class Atoms(object):
         cell : 
             Unit cell.  A 3x3 matrix (the three unit cell vectors) or
             just three numbers for an orthorhombic cell.
-        fix : bool
-            Fix atomic positions or move atoms reletive to unit cell.
-            Default behavior is to move the atoms (fix=False).
+        scale_atoms : bool
+            Fix atomic positions or move atoms with the unit cell?
+            Default behavior is to *not* move the atoms (scale_atoms=False).
 
         Examples
         --------
@@ -219,13 +219,16 @@ class Atoms(object):
         >>> a.set_cell([(0, b, b), (b, 0, b), (b, b, 0)])
         """
 
+        if fix is not None:
+            raise TypeError('Please use scale_atoms=%s' % (not fix))
+
         cell = npy.array(cell, float)
         if cell.shape == (3,):
             cell = npy.diag(cell)
         elif cell.shape != (3, 3):
             raise ValueError('Cell must be length 3 sequence or '
                              '3x3 matrix!')
-        if not fix:
+        if scale_atoms:
             M = npy.linalg.solve(self.cell, cell)
             self.arrays['positions'][:] = npy.dot(self.arrays['positions'], M)
         self.cell = cell

@@ -121,7 +121,7 @@ def add_vacuum(atoms, vacuum):
     length = np.sqrt(np.dot(uc[2],uc[2]))
     newlength = length + vacuum/costheta
     uc[2] *= newlength/length
-    atoms.set_cell(uc, fix=True)
+    atoms.set_cell(uc)
 
 def add_adsorbate(atoms, adsorbate, height, position, offset=None):
     """Add an adsorbate to a surface.
