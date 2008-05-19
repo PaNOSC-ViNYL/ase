@@ -1,3 +1,5 @@
+"""Molecular Dynamics."""
+
 import numpy as npy
 
 from ase.optimize import Dynamics
@@ -5,6 +7,7 @@ from ase.data import atomic_masses
 
 
 class MolecularDynamics(Dynamics):
+    """Base-class for all MD classes."""
     def __init__(self, atoms):
         Dynamics.__init__(self, atoms, logfile=None)
 
@@ -29,4 +32,4 @@ class MolecularDynamics(Dynamics):
 
         for step in xrange(steps):
             f = self.step(f, dt)
-            self.call_observers(step)
+            self.call_observers()

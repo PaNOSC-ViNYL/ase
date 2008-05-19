@@ -1,3 +1,5 @@
+"""Structure optimization. """
+
 import sys
 import pickle
 from math import sqrt
@@ -9,6 +11,7 @@ import numpy as npy
 
 
 class Dynamics:
+    """Base-class for all MD and structure optimization classes."""
     def __init__(self, atoms, logfile):
         self.atoms = atoms
 
@@ -22,17 +25,27 @@ class Dynamics:
         self.logfile = logfile
         
         self.observers = []
+        self.nsteps = 0
+
+    def get_number_of_steps(self):
+        return self.nsteps
 
     def attach(self, function, interval=1, *args, **kwargs):
+        """Attach callback function.
+
+        At every *interval* steps, call *function* with arguments
+        *args* and keyword arguments *kwargs*."""
+
         self.observers.append((function, interval, args, kwargs))
 
-    def call_observers(self, step):
+    def call_observers(self):
         for function, interval, args, kwargs in self.observers:
-            if (step + 1) % interval == 0:
+            if self.nsteps % interval == 0:
                 function(*args, **kwargs)
 
 
 class Optimizer(Dynamics):
+    """Base-class for all structure optimization classes."""
     def __init__(self, atoms, restart, logfile):
         Dynamics.__init__(self, atoms, logfile)
         self.restart = restart
@@ -43,27 +56,38 @@ class Optimizer(Dynamics):
             self.read()
 
     def run(self, fmax=0.05, steps=100000000):
+        """Run structure optimization algorithm.
+
+        This method will return when the forces on all individual
+        atoms are less than *fmax* or when the number of steps exceeds
+        *steps*."""
+
         self.fmax = fmax
-        for step in xrange(steps):
-            f = self.atoms.get_forces()
-            self.log(f, step)
+        step = 0
+        f = self.atoms.get_forces()
+        while step < steps:
+            self.log(f)
             if self.converged(f):
                 return
             self.step(f)
-            self.call_observers(step)
+            self.nsteps += 1
+            step += 1
+            f = self.atoms.get_forces()
+            self.call_observers()
 
     def converged(self, forces=None):
         if forces is None:
             forces = self.atoms.get_forces()
         return (forces**2).sum(axis=1).max() < self.fmax**2
 
-    def log(self, forces, step):
+    def log(self, forces):
         if self.logfile is None:
             return
         fmax = sqrt((forces**2).sum(axis=1).max())
         e = self.atoms.get_potential_energy()
         name = self.__class__.__name__
-        self.logfile.write('%s: %3d %15.6f %12.4f\n' % (name, step, e, fmax))
+        self.logfile.write('%s: %3d %15.6f %12.4f\n' %
+                           (name, self.nsteps, e, fmax))
         self.logfile.flush()
         
     def dump(self, data):
