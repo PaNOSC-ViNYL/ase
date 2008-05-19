@@ -11,7 +11,8 @@ translation = {
 <c>d(n<sub>1</sub>,n<sub>1</sub>)</c>:\tdistance between two atoms
 <c>i</c>:\t\tcurrent image number
 <c>E[i]</c>:\t\tenergy of image number <c>i</c>
-<c>F[n,0-2]</c>:\tforce on atom number <c>n</c> 
+<c>F[n,0-2]</c>:\tforce on atom number <c>n</c>
+<c>M[n]</c>:\t\tmagnetic moment of atom number <c>n</c> 
 <c>A[0-2,0-2]</c>:\tunit-cell basis vectors 
 <c>s</c>:\t\tpath length""",
 

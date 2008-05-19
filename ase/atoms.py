@@ -343,10 +343,13 @@ class Atoms(object):
         self.set_array('magmoms', magmoms, float)
 
     def get_magnetic_moments(self):
-        if 'magmoms' in self.arrays:
-            return self.arrays['magmoms'].copy()
-        else:
-            return npy.zeros(len(self))
+        try:
+            return self.calc.get_magnetic_moments()
+        except:
+            if 'magmoms' in self.arrays:
+                return self.arrays['magmoms'].copy()
+            else:
+                return npy.zeros(len(self))
 
     def set_charges(self, charges):
         self.set_array('charges', charges, int)

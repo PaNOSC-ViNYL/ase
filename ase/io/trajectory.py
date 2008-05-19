@@ -59,10 +59,16 @@ class PickleTrajectory:
             momenta = atoms.get_momenta()
         else:
             momenta = None
+
+        try:
+            magmoms = atoms.get_magnetic_moments()
+        except KeyError:
+            magmoms = None
             
         d = {'positions': atoms.get_positions(),
              'cell': atoms.get_cell(),
-             'momenta': momenta}
+             'momenta': momenta,
+             'magmoms': magmoms}
 
         if atoms.get_calculator() is not None:
             d['energy'] = atoms.get_potential_energy()
@@ -111,6 +117,7 @@ class PickleTrajectory:
                           numbers=self.numbers,
                           cell=d['cell'],
                           momenta=d['momenta'],
+                          magmoms=d['magmoms'],
                           tags=self.tags,
                           pbc=self.pbc,
                           constraint=[c.copy() for c in self.constraints])

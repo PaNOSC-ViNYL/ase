@@ -22,6 +22,7 @@ class Images:
         self.P = npy.empty((self.nimages, self.natoms, 3))
         self.E = npy.empty(self.nimages)
         self.F = npy.empty((self.nimages, self.natoms, 3))
+        self.M = npy.empty((self.nimages, self.natoms))
         self.A = npy.empty((self.nimages, 3, 3))
         self.Z = images[0].get_atomic_numbers()
         self.pbc = images[0].get_pbc()
@@ -45,6 +46,10 @@ class Images:
                 self.F[i] = atoms.get_forces()
             except RuntimeError:
                 self.F[i] = npy.nan
+            try:
+                self.M[i] = atoms.get_magnetic_moments()
+            except KeyError:
+                self.M[i] = npy.nan
 
         if warning:
             print('WARNING: Not all images have the same bondary conditions!')
@@ -113,6 +118,7 @@ class Images:
         for i in range(n):
             R = self.P[i]
             F = self.F[i]
+            M = self.M[i]
             A = self.A[i]
             f = ((F * D)**2).sum(1)**.5
             fmax = max(f)
