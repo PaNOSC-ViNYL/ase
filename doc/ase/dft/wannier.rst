@@ -5,6 +5,9 @@
 Maximally localized Wannier functions
 =====================================
 
+.. default-role:: math
+
+
 This page describes how to construct the Wannier orbitals using the class :class:`Wannier`.The page is organized as follows:
 
 * `Introduction`_: A short summary of the basic theory.
@@ -173,7 +176,7 @@ Below is a list of the most important methods of the :class:`Wannier`:
    cell, but rather a larger unit cell defined by repeating the
    original unit cell by the number of **k**-points in each direction.
    We will refer to this unit cell as the large unit cell.  Note that
-   for a Gamma-point calculation the large unit cell coinsides with
+   for a `\Gamma`-point calculation the large unit cell coinsides with
    the original unit cell.  The large unitcell defines also the
    periodicity of the Wannier orbitals.
 
@@ -195,7 +198,7 @@ Below is a list of the most important methods of the :class:`Wannier`:
   Move all Wannier orbitals to a specific unit cell.  There exists an
   arbitrariness in the positions of the Wannier orbitals relative to
   the unit cell. This method can move all orbitals to the unit cell
-  specified by ``cell``.  For a gamma-point calculation, this has no
+  specified by ``cell``.  For a `\Gamma`-point calculation, this has no
   effect. For a **k**-point calculation the periodicity of the
   orbitals are given by the large unit cell defined by repeating the
   original unitcell by the number of **k**-points in each direction.
@@ -211,7 +214,7 @@ For examples of how to use the **Wannier** class, see the `Wannier tutorial`_.
 .. _Wannier tutorial: http://www.fysik.dtu.dk/campos/ASE/tut/wannier.html
 
 .. note:: For calculations using **k**-points, make sure that the
-   gamma-point is included in the **k**-point grid. Moreover you must
+   `\Gamma`-point is included in the **k**-point grid. Moreover you must
    shift all **k**-points by a small amount (but not less than 2e-5
    in) in e.g. the x direction, before performing the Dacapo
    calculation. If this is not done the symmetry program in Dacapo
@@ -228,10 +231,10 @@ Band structure and orbital analysis
 
 XXX Not moved from the old ASE yet!
 
-The class `HoppingParameters` can generate a band structure using the
+The class HoppingParameters can generate a band structure using the
 set of Wannier orbitals.
 
-An instance of `HoppingParameters` is initialized like this::
+An instance of HoppingParameters is initialized like this::
 
    >>> from ASE.Utilities.Wannier import HoppingParameters
    >>> hop = HoppingParameters(wannier,cutoff)
@@ -244,7 +247,7 @@ functions will always be periodic (with a periodicity given by the
 large cell), and thus in order to describe completely localized
 orbitals the WFs must be truncated.
 
-`HoppingParameters` have the following methods:
+HoppingParameters have the following methods:
 
 ``GetHoppingParameter(R,n,m)``: Returns the matrix element
   <n,0|H|m,R>, where (n,0) is Wannier function number n in unit cell
@@ -253,9 +256,9 @@ orbitals the WFs must be truncated.
 
 ``WriteBandDiagramToNetCDFFile(filename,npoints,kpt1,kpt2)``: Write a
   band diagram to file.  A band structure plot is written to file
-  `filename`. There will be `npoints` **k**-points distributed
-  uniformly along the line connecting `kpt1` and `kpt2` in the
-  BZ. Each coordinate of `kpt1` and `kpt2` should be between -0.5 and
+  *filename*. There will be *npoints* **k**-points distributed
+  uniformly along the line connecting *kpt1* and *kpt2* in the
+  BZ. Each coordinate of *kpt1* and *kpt2* should be between -0.5 and
   0.5.
 
 ``GetWFHamiltonian()``: The Hamiltonian matrix in the basis of the
@@ -266,10 +269,10 @@ orbitals the WFs must be truncated.
   number of **k** points. Periodic boundary conditions are imposed on
   the boundaries of the large cell.
 
-The module `HamiltonianTools` have a number of useful methods for
+The module HamiltonianTools have a number of useful methods for
 analysing problems in terms of the Wannier functions and the
 Hamiltonian matrix **H**. Definition and physical meaning of the term
-`group-orbital` (see below) can be found in the paper PRL 94,036807
+group-orbital (see below) can be found in the paper PRL 94,036807
 (2005).  The module is imported like this::
 
    >>> from ASE.Utilities.Wannier import HamiltonianTools
@@ -277,14 +280,14 @@ Hamiltonian matrix **H**. Definition and physical meaning of the term
 The methods are described below:
 
 ``H_rot,U,eigenvalues = HamiltonianTools.SubDiagonalize(h,listofindices)``: This methods
-  diagonalize the Hamiltonian `h` within the subspace spanned by the
+  diagonalize the Hamiltonian *h* within the subspace spanned by the
   basis functions (Wannier functions) speficied in the list
-  `listofindices`. This can be used to e.g. to obtain renormalized
+  *listofindices*. This can be used to e.g. to obtain renormalized
   molecular orbitals for a molecule adsobed on a surface, by
-  diagonalizing `h` within the subspace spanned by the Wannier
-  functions centered at the molecule. `H_rot` will be the transformed
-  Hamiltonian matrix, `U` is the unitary matrix that relates `H_rot`
-  to the original `h`, and `eigenvalues` are the eigenvalues
+  diagonalizing *h* within the subspace spanned by the Wannier
+  functions centered at the molecule. *H_rot* will be the transformed
+  Hamiltonian matrix, *U* is the unitary matrix that relates *H_rot*
+  to the original *h*, and *eigenvalues* are the eigenvalues
   (energies) in the diagonalized subspace.
 
 ``HamiltonianTools.GetCouplingToGroupOrbital(h,index)``: Returns the
@@ -293,15 +296,18 @@ The methods are described below:
   orbital.
 
 ``H_cut=HamiltonianTools.CutCoupling(h,indexlist)``: Returns the
-  matrix `h` with all couplings involving the basis functions
-  specified in the list `indexlist` set to zero.
+  matrix *h* with all couplings involving the basis functions
+  specified in the list *indexlist* set to zero.
 
 ``specfunctions=HamiltonianTools.GetSpectralFunction(listoforbitals,hamiltonian,listofenergies,width)``:
 Returns the projected density of states (PDOS) for the orbitals
-specified in `listoforbitals`. Each entity in `listoforbitals` can be
+specified in *listoforbitals*. Each entity in *listoforbitals* can be
 an integer (the index of a basis function) or a normalized list of
 coordinates, depending on whether one wants the PDOS for a specific
-basis function or a linear- combination of such. `hamiltonian` is a
-Hamiltonian matrix, `listofenergies` is a Python array with an energy
-grid on which the PDOS is returned, and `width` sets the smearing
+basis function or a linear- combination of such. *hamiltonian* is a
+Hamiltonian matrix, *listofenergies* is a Python array with an energy
+grid on which the PDOS is returned, and *width* sets the smearing
 scale of the PDOS.
+
+
+.. default-role::

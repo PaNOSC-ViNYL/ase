@@ -62,10 +62,10 @@ Now, setup a p(2x2) cell in a hexagonal surface.
 [(5.0204581464244864, 0, 0),
 (2.5102290732122432, 4.3478442934401409, 0),
 (0, 0, 20.495934556231713)]
->>> atoms.set_cell(cell, fix=False)
+>>> atoms.set_cell(cell, scale_atoms=True)
 
-The argument fix=False indicates that the atomic positions should be
-scaled with the unit cell. The default is "fix=True" indicating that
+The argument scale_atoms=True indicates that the atomic positions should be
+scaled with the unit cell. The default is "scale_atoms=False" indicating that
 the cartesian coordinates remain the same when the cell is changed.
 
 >>> atoms.positions
@@ -94,9 +94,9 @@ coordinates in Angstrom or rescale the unit cell and use scaled
 coordinates. We try the latter:
 
 >>> xyzcell=identity(3) # The 3x3 unit matrix
->>> atoms.set_cell(xyzcell, fix=False)  # Set the unit cell and rescale
+>>> atoms.set_cell(xyzcell, scale_atoms=True)  # Set the unit cell and rescale
 >>> atoms.append(Atom('Ni', (1/6., 1/6., .1)))  
->>> atoms.set_cell(cell, fix=False)  # Set the unit cell and scale back
+>>> atoms.set_cell(cell, scale_atoms=True)  # Set the unit cell and scale back
 
 Using the :mod:`gui`, the structure now looks like this:
 

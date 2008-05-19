@@ -1,6 +1,8 @@
 .. module:: ase
    :synopsis: ASE module
 
+.. _ase:
+
 ================================
 Documentation for modules in ASE
 ================================

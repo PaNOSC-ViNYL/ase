@@ -30,11 +30,14 @@ After the import statements, the section starting with a0 = ... defines some maj
                [0.0,        M/sqrt(2.), 0.0],
                [0.0,        0.0,        (vaclay+layers)/2.]]
     
-    atoms.set_cell(a0*array(unitcell),fix=True)
+    atoms.set_cell(a0*array(unitcell))
 
-Now a calculator must be defined, in this tutorial we will make a STM image from both the GPAW real space grid code and from the dacapo planewave code.
+Now a calculator must be defined, in this tutorial we will make a STM
+image from both the GPAW real space grid code and from the dacapo
+planewave code.
 
-For the GPAW code the calculator for the Al(100) surface can be defined like this::
+For the GPAW code the calculator for the Al(100) surface can be
+defined like this::
 
     from gpaw import Calculator
     calc = Calculator(gpts=(20,20,48),nbands=28,

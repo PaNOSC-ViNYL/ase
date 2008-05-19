@@ -88,7 +88,7 @@ We have a couple of extensions to Sphinx:
 .. role:: math
 
    This role is for inline LaTex-style math.  Example:
-   ``:math:`\sin(x_n^2)``` gives you XXX.
+   ``:math:`\sin(x_n^2)``` gives you :math:`\sin(x_n^2)`.
 
 .. directive:: math
 
@@ -100,18 +100,19 @@ We have a couple of extensions to Sphinx:
 
    gives you:
 
-   ::
+   .. math:: \frac{1}{1+x^2}
 
-      \frac{1}{1+x^2}
-
-The implemantation of the math role and directive is here:
-:svn:`doc/mathml.py`.
 
 If you add the line ``.. default-role:: math``, then you can leave out
 the ``:math:`` part like here: ```\sin(x_n^2)```.
 
+The implemantation of the math role and directive is here:
+:svn:`doc/mathpng.py`.
+
 
 .. _epydoc:  http://epydoc.sf.net
+
+
 
 reStructedText in emacs
 =======================

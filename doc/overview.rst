@@ -61,11 +61,11 @@ boundary conditions:
 ``get_cell()``:
   Returns a three by three array.
 
-``set_cell(cell, fix=False)``:
-  Change the size of the unit cell.  If the optional argument ``fix``
-  is ``True`` (defaults to ``False``), then the positons of the atoms
-  are fixed, otherwise the atoms are moved so that their positions
-  relative to the unit cell are kept.
+``set_cell(cell, scale_atoms=False)``: Change the size of the unit
+  cell.  If the optional argument *scale_atoms* is ``True`` (defaults
+  to ``False``), then the positons of the atoms are moved so that
+  their positions relative to the unit cell are kept, otherwise the
+  atomic positions are fixed.
 
 ``get_pbc()``:
   Return periodic boundary condition flags as three booleans.

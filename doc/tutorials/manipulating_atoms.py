@@ -10,15 +10,15 @@ a=3.55
 cell=[(2/sqrt(2.)*a, 0, 0),
       (1/sqrt(2.)*a, sqrt(3./2.)*a, 0),
       (0, 0, 10*sqrt(3.)/3.*a)]
-atoms.set_cell(cell,fix=False)
+atoms.set_cell(cell, scale_atoms=True)
 write('a1.png', atoms, rotation='-73x', show_unit_cell=True)
 a = atoms.repeat((3, 3, 2))
-a.set_cell(atoms.get_cell(), fix=True)
+a.set_cell(atoms.get_cell())
 write('a2.png', a, rotation='-73x', show_unit_cell=True)
 xyzcell=identity(3) # The 3x3 unit matrix
-atoms.set_cell(xyzcell, fix=False)  # Set the unit cell and rescale
+atoms.set_cell(xyzcell, scale_atoms=True)  # Set the unit cell and rescale
 atoms.append(Atom('Ni', (1/6., 1/6., .1)))  
-atoms.set_cell(cell, fix=False)  # Set the unit cell and scale back
+atoms.set_cell(cell, scale_atoms=True)  # Set the unit cell and scale back
 a = atoms.repeat((3, 3, 1))
-a.set_cell(atoms.get_cell(), fix=True)
+a.set_cell(atoms.get_cell())
 write('a3.png', a, show_unit_cell=True)

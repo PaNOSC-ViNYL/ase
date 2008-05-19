@@ -19,7 +19,14 @@ All optimizer classes have the following structure::
   class Optimizer:
       def __init__(self, atoms, restart=None, logfile=None):
       def run(self, fmax=0.05, steps=100000000):
+      def get_number_of_steps():
 
+The convergence criteria is that the force on all individual atoms
+should be less than *fmax*:
+
+.. math:: \max_a |\vec{F_a}| < fmax
+
+   
 
 QuasiNewton
 -----------

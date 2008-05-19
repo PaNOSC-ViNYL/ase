@@ -3,6 +3,7 @@
 The Atoms object
 ================
 
+XXX This page needs more work!
 
 .. class:: Atoms
 
@@ -62,9 +63,10 @@ array([[ 2.,  0.,  0.],
        [ 1.,  1.,  0.],
        [ 2.,  2.,  0.]])
 
-However if we set fix=False the atomic positions are scaled with the unit cell:
+However if we set scale_atoms=True the atomic positions are scaled with
+the unit cell:
 
->>> a.set_cell(identity(3), fix=False)
+>>> a.set_cell(identity(3), scale_atoms=True)
 >>> a.get_positions()
 array([[ 1. ,  0. ,  0. ],
        [ 0.5,  0.5,  0. ],

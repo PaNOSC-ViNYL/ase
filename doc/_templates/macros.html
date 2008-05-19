@@ -2,33 +2,57 @@
       {%- if builder != 'htmlhelp' %}
       <div class="sidebar">
         <div class="sidebarwrapper">
-	  {% if current_page_name in ['index', 'contents'] %}
-            <h3>Links</h3>
-            <ul class="this-page-menu">
-	      <li><a href="intro.html#ml">Mailing list</a></li>
-	      <li><a href="ase-manual.pdf">Manual (pdf)</a></li>
-	      <li><a href="development/development.html">Development</a></li>
-	      <li><a
-      href="http://trac.fysik.dtu.dk/projects/ase/browser/trunk/">Source
-      code (svn)</a></li>
-	      <li><a href="http://trac.fysik.dtu.dk/projects/ase/report/1">Trac</a></li>
-	      <li><a href="http://web2.fysik.dtu.dk/ase/epydoc/ase-module.html">API</a></li>
-
-            </ul>
-          {% else %}
+	  {% if current_page_name not in ['index', 'contents'] %}
             {% if display_toc %}
               <h3>This Page</h3>
               {{ toc }}
             {% endif %}
-            {%- if prev %}
-              <h4>Previous topic</h4>
-              <p class="topless"><a href="{{ prev.link|e }}" title="previous chapter">{{ prev.title }}</a></p>
-            {%- endif %}
-            {%- if next %}
-              <h4>Next topic</h4>
-              <p class="topless"><a href="{{ next.link|e }}" title="next chapter">{{ next.title }}</a></p>
-            {%- endif %}
-            {% endif %}
+          {% endif %}
+          <h3>Links</h3>
+          <ul class="this-page-menu">
+            <li><a href="{{ pathto('intro') }}">
+	      Introduction</a></li>
+            <li><a href="{{ pathto('overview') }}">
+	      Quick overview</a></li>
+            <li><a href="{{ pathto('ase/ase') }}">
+	      Documentation</a></li>
+	    <li><a href="{{ pathto('ase-manual')[:-4] + 'pdf' }}">
+		Manual (pdf)</a></li>
+            <li><a href="{{ pathto('download') }}">
+	      Download</a></li>
+            <li><a href="{{ pathto('tutorials/tutorials') }}">
+	      Tutorials</em></a></li>
+            <li><a href="{{ pathto('python') }}">
+	      Python</em></a></li>
+            <li><a href="{{ pathto('numpy') }}">
+	      NumPy</a></li>
+            <li><a href="{{ pathto('faq') }}">FAQ</a></li>
+            <li><a href="{{ pathto('bugs') }}">Bugs!</a></li>
+            <li><a href="{{ pathto('development/development') }}">
+		Development</a></li>
+            <li><a href="{{ pathto('glossary') }}">Glossary</a></li>
+            <li><a href="{{ pathto('intro') + '#ml' }}">Mailing list</a></li>
+	    <li><a href="http://trac.fysik.dtu.dk/projects/ase/browser/trunk/">
+		Source code (svn)</a></li>
+	    <li><a href="http://trac.fysik.dtu.dk/projects/ase/report/1">
+		Trac</a></li>
+	    <li><a href="http://web2.fysik.dtu.dk/ase/epydoc/ase-module.html">
+		API</a></li>
+          </ul>
+          {%- if prev %}
+            <h4>Previous topic</h4>
+            <p class="topless">
+	      <a href="{{ prev.link|e }}" title="previous chapter">
+		{{ prev.title }}
+	      </a>
+	    </p>
+          {%- endif %}
+          {%- if next %}
+            <h4>Next topic</h4>
+            <p class="topless">
+	    <a href="{{ next.link|e }}" title="next chapter">
+	      {{ next.title }}</a></p>
+          {%- endif %}
           {% if customsidebar %}
           {{ rendertemplate(customsidebar) }}
           {% endif %}

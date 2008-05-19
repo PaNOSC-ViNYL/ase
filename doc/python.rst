@@ -1,8 +1,8 @@
 .. _python:
 
-------
-Python
-------
+---------------
+What is Python?
+---------------
 
 This section will give a very brief introduction to the Python
 language.  For more information on the Python language, go to the
