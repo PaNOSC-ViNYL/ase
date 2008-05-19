@@ -348,7 +348,7 @@ class Atoms(object):
     def get_magnetic_moments(self):
         try:
             return self.calc.get_magnetic_moments()
-        except:
+        except AttributeError:
             if 'magmoms' in self.arrays:
                 return self.arrays['magmoms'].copy()
             else:
