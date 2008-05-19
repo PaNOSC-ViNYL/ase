@@ -39,17 +39,24 @@ class NEB:
 
         forces = npy.empty(((self.nimages - 2), self.natoms, 3))
 
-        energies = [image.get_potential_energy() for image in images[1:-1]]
-        imax = 1 + npy.argsort(energies)[-1]
+        energies = npy.empty(self.nimages - 2)
 
         if not self.parallel:
+            # Do all images - one at a time:
             for i in range(1, self.nimages - 1):
+                energies[i - 1] = images[i].get_potential_energy()
                 forces[i - 1] = images[i].get_forces()
         else:
+            # Parallelize over images:
             i = rank // (self.nimages - 2) + 1
+            energies[i - 1] = images[i].get_potential_energy()
             forces[i - 1] = images[i].get_forces()
             for i in range(1, self.nimages - 1):
-                world.broadcast(forces[i], (i - 1) * size // (self.nimages - 2))
+                root = (i - 1) * size // (self.nimages - 2)
+                world.broadcast(energies[i:i + 1], root)
+                world.broadcast(forces[i], root)
+
+        imax = 1 + npy.argsort(energies)[-1]
 
         tangent1 = images[1].get_positions() - images[0].get_positions()
         for i in range(1, self.nimages - 1):
@@ -76,9 +83,17 @@ class NEB:
         return forces.reshape((-1, 3))
 
     def get_potential_energy(self):
-        return max([image.get_potential_energy() 
-                    for image in self.images[1:-1]])
-
+        return npy.nan
+        """
+        if not self.parallel:
+            return max([image.get_potential_energy() 
+                        for image in self.images[1:-1]])
+        else:
+            i = rank // (self.nimages - 2) + 1
+            forces[i - 1] = images[i].get_forces()
+            for i in range(1, self.nimages - 1):
+                world.broadcast(forces[i], (i - 1) * size // (self.nimages - 2))
+        """
     def __len__(self):
         return (self.nimages - 2) * self.natoms
 
@@ -95,6 +110,7 @@ class NEBTrajectoryWriter:
         self.traj = traj
 
     def write(self):
+        assert not self.neb.parallel
         for image in self.neb.images:
             self.traj.write(image)
 
