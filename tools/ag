@@ -112,6 +112,8 @@ import traceback
 
 try:
     run(opt, args)
+except KeyboardInterrupt:
+    pass
 except Exception:
     traceback.print_exc()
     print """
