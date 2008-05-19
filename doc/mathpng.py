@@ -1,3 +1,9 @@
+import os
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import md5
+    
 from docutils import nodes
 from docutils.writers.html4css1 import HTMLTranslator
 from sphinx.latexwriter import LaTeXTranslator
@@ -68,14 +74,13 @@ def setup(app):
     LaTeXTranslator.visit_latex_math = visit_latex_math_latex
     LaTeXTranslator.depart_latex_math = depart_latex_math_latex
 
-import hashlib,os
 from os.path import isfile
 # LaTeX to HTML translation stuff:
 def latex2html(node, source):
     inline = isinstance(node.parent, nodes.TextElement)
     latex = node['latex']
     print latex
-    name = 'math-' + hashlib.md5(latex).hexdigest()[-10:]
+    name = 'math-' + md5(latex).hexdigest()[-10:]
     if not isfile('_static/%s.png' % name):
         f = open('math.tex', 'w')
         f.write(r"""\documentclass[12pt]{article}
