@@ -69,7 +69,7 @@ class FixBondLength:
         """Fix distance between atoms with indices a1 and a2."""
         self.indices = [a1, a2]
 
-    def adjust_positions(self, old, new):
+    def adjust_positions(self, old, new):        
         p1, p2 = old[self.indices]
         d = p2 - p1
         p = sqrt(npy.dot(d, d))
@@ -83,7 +83,7 @@ class FixBondLength:
         d = npy.subtract.reduce(positions[self.indices])
         d2 = npy.dot(d, d)
         d *= 0.5 * npy.dot(npy.subtract.reduce(forces[self.indices]), d) / d2
-        forces[self.indices] += (d, -d)
+        forces[self.indices] += (-d, d)
 
     def copy(self):
         return FixBondLength(*self.indices)
