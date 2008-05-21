@@ -68,6 +68,8 @@ To build a pdf-file, you do this::
 Extensions to Sphinx
 ====================
 
+.. highlight:: rest
+
 We have a couple of extensions to Sphinx:
 
 .. role:: svn
@@ -137,13 +139,3 @@ In your ``.emacs`` file.
 
 .. _reStructuredText extension: http://docutils.sourceforge.net/tools/editors/emacs/rst.el
 
-How does it work?
-=================
-
-::
- 
-  <Directory "/var/www/html/ase">
-    AllowOverride All
-  </Directory>
-
-  AddType application/xhtml+xml .html

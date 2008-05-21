@@ -56,7 +56,8 @@ class Atoms(object):
             False, 0, 1, (1, 1, 0), (True, False, False).  Default
             value: False.
         constraint: constraint object(s)
-            Used for applying constraint during structure optimization.
+            Used for applying one or more constraints during structure
+            optimization.
         calculator: calculator object
             Used to attach a calculator for calulating energies and atomic
             forces.

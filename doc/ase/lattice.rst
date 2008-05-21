@@ -2,8 +2,6 @@
 Setting up crystals and surfaces
 ================================
 
-.. contents::
-
 
 Easy setup of surfaces
 ======================
@@ -303,7 +301,7 @@ attribute, ``element_basis``, is added, giving which atoms in the
 basis are which element.  If there are four atoms in the basis, and
 element_basis is (0,0,1,0), then the first, second and fourth atoms
 are one element, and the third is the other element.  As an example,
-the AuCu3 structure (also known as L1_2) is defined as::
+the AuCu3 structure (also known as :math:`\mathrm{L}1_2`) is defined as::
 
   # The L1_2 structure is "based on FCC", but is really simple cubic
   # with a basis.
@@ -349,5 +347,4 @@ use the simple cubic lattice with a larger basis::
 
   B1 = NaCl = Rocksalt = NaClFactory()
 
-More examples can be found in the file
-``ase/lattice/compounds.py``.
+More examples can be found in the file :svn:`ase/lattice/compounds.py`.
