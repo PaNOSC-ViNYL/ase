@@ -10,3 +10,13 @@ cu = Atoms('Cu2Ag',
            calculator=EMT())
 e0 = cu.get_potential_energy()
 print e0
+
+d0 = cu.distance(0, 1)
+cu.set_constraint(FixBondLength(0, 1))
+t = PickleTrajectory('cu2ag.traj', 'w', cu)
+qn = QuasiNewton(cu)
+qn.attach(t.write)
+def f(): print cu.distance(0,1)
+qn.attach(f)
+qn.run(fmax=0.01)
+assert abs(cu.distance(0, 1) - d0) < 1e-14
