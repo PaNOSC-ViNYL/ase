@@ -21,7 +21,7 @@ optional ``data`` argument to show 3D data::
   >>> view(atoms, viewer='VMD', data=array)
 
 If you do not wish to open an interactive gui, but rather visualize
-your structure by dumping directly to a grphics file; you can use the
+your structure by dumping directly to a graphics file; you can use the
 ``write`` command of the :mod:`io` module, which can write 'eps',
 'png', and 'pov' files directly, like this::
 

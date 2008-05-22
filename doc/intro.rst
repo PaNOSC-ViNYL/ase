@@ -41,7 +41,7 @@ number of "design goals" as:
   interfaces make it simple to contribute new functionality to ASE.
 
 :Pythonic:
-  It fits nicely into the rest of the Python world, and *it fist your brain*.
+  It fits nicely into the rest of the Python world, and *it fits your brain*.
 
 :Open to participation:
   All of the code in ASE is carrying the :term:`GNU General Public License`
