@@ -50,7 +50,7 @@ class Bravais:
         if self.debug:
             self.print_directions_and_miller()
         self.convert_to_natural_basis()
-        if self.debug:
+        if self.debug >= 2:
             self.print_directions_and_miller(" (natural basis)")
         if latticeconstant is None:
             if self.element_basis is None:

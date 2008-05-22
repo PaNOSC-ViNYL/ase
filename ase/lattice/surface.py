@@ -79,6 +79,9 @@ def fcc110(symbol, size=(1,1,1), latticeconstant=None):
 def hcp0001(symbol, size=(1,1,1), latticeconstant=None, orthogonal=False):
     """HCP(0001) surface.
 
+    The lattice constant, if specified, should be either a tuple (a,c)
+    or a dictionary with keys 'a' and either 'c' or 'c/a'.
+
     If the optional parameter `orthogonal` is true, an orthogonal unit
     cell containing six atoms is produced, with [2,-1,-1,0] and
     [0,1,-1,0] directions along the x and y axes.
