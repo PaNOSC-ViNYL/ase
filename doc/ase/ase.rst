@@ -36,8 +36,7 @@ Quick links:
 
 
 
-List of all modules
-===================
+List of all modules:
 
 .. toctree::
    :maxdepth: 2

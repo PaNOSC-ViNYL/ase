@@ -15,6 +15,7 @@ import sys
 
 # If your extensions are in another directory, add it here.
 #sys.path.append('some/directory')
+sys.path.append('.')
 
 # General configuration
 # ---------------------
