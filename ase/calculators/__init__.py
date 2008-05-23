@@ -15,7 +15,7 @@ class SinglePointCalculator:
     boundary conditions are changed, then asking for
     energy/forces/stresses will raise an exception."""
     
-    def __init__(self, energy, forces, stress, atoms):
+    def __init__(self, energy, forces, stress, magmoms, atoms):
         """Save energy, forces and stresses for the current configuration."""
         self.energy = energy
         self.forces = forces
@@ -24,7 +24,8 @@ class SinglePointCalculator:
         self.numbers = atoms.get_atomic_numbers().copy()
         self.cell = atoms.get_cell().copy()
         self.pbc = atoms.get_pbc().copy()
-        
+        self.magmoms = magmoms
+
     def update(self, atoms):
         if ((self.positions != atoms.get_positions()).any() or
             (self.numbers != atoms.get_atomic_numbers()).any() or
@@ -50,6 +51,16 @@ class SinglePointCalculator:
             raise NotImplementedError
         return self.stress
 
+    def get_spin_polarized(self):
+        return self.magmoms is not None
+
+    def get_magnetic_moments(self, atoms):
+        self.update(atoms)
+        if self.magmoms is not None:
+            return self.magmoms
+        else:
+            return npy.zeros(len(self.positions))
+        
 
 def numeric_force(atoms, a, i, d=0.001):
     """Evaluate forces usinf finite difference formula."""

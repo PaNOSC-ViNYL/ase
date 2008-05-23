@@ -62,8 +62,8 @@ class PickleTrajectory:
 
         d = {'positions': atoms.get_positions(),
              'cell': atoms.get_cell(),
-             'momenta': momenta,
-             'magmoms': atoms.get_magnetic_moments()}
+             'momenta': momenta}
+
 
         if atoms.get_calculator() is not None:
             d['energy'] = atoms.get_potential_energy()
@@ -73,6 +73,12 @@ class PickleTrajectory:
             except NotImplementedError:
                 d['stress'] = None
 
+            try:
+                if atoms.calc.get_spin_polarized():
+                    d['magmoms'] = atoms.get_magnetic_moments()
+            except (NotImplementedError, AttributeError):
+                pass
+            
         if rank == 0:
             pickle.dump(d, self.fd, protocol=-1)
         self.fd.flush()
@@ -122,7 +128,7 @@ class PickleTrajectory:
                           constraint=[c.copy() for c in self.constraints])
             if 'energy' in d:
                 calc = SinglePointCalculator(
-                    d['energy'], d['forces'], d['stress'], atoms)
+                    d['energy'], d['forces'], d['stress'], magmoms, atoms)
                 atoms.set_calculator(calc)
             return atoms
 

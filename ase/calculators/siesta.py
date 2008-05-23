@@ -185,7 +185,7 @@ class Siesta:
             fdf['xc.functional'] = 'GGA'
             fdf['xc.authors'] = self.xc
 
-        magmoms = atoms.get_magnetic_moments()
+        magmoms = atoms.get_initial_magnetic_moments()
         if magmoms.any():
             fdf['SpinPolarized'] = True
             fh.write('%block InitSpin\n')

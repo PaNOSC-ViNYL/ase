@@ -48,7 +48,7 @@ class Images:
                 self.F[i] = npy.nan
             try:
                 self.M[i] = atoms.get_magnetic_moments()
-            except KeyError:
+            except RuntimeError:
                 self.M[i] = npy.nan
 
         if warning:

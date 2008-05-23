@@ -125,7 +125,7 @@ class Atoms(object):
             if momenta is None and atoms.has('momenta'):
                 momenta = atoms.get_momenta()
             if magmoms is None and atoms.has('magmoms'):
-                magmoms = atoms.get_magnetic_moments()
+                magmoms = atoms.get_initial_magnetic_moments()
             if masses is None and atoms.has('masses'):
                 masses = atoms.get_masses()
             if charges is None and atoms.has('charges'):
@@ -344,16 +344,32 @@ class Atoms(object):
             return atomic_masses[self.arrays['numbers']]
         
     def set_magnetic_moments(self, magmoms):
+        """Sets the initial magnetic moments."""
         self.set_array('magmoms', magmoms, float)
 
+    def get_initial_magnetic_moments(self):
+        if 'magmoms' in self.arrays:
+            return self.arrays['magmoms'].copy()
+        else:
+            return npy.zeros(len(self))
+
     def get_magnetic_moments(self):
-        try:
-            return self.calc.get_magnetic_moments()
-        except AttributeError:
-            if 'magmoms' in self.arrays:
-                return self.arrays['magmoms'].copy()
-            else:
-                return npy.zeros(len(self))
+        """Get calculated local magnetic moments."""
+        if self.calc is None:
+            raise RuntimeError('Atoms object has no calculator.')
+        if self.calc.get_spin_polarized():
+            return self.calc.get_magnetic_moments(self)
+        else:
+            return npy.zeros(len(self))
+        
+    def get_magnetic_moment(self):
+        """Get calculated total magnetic moment."""
+        if self.calc is None:
+            raise RuntimeError('Atoms object has no calculator.')
+        if self.calc.get_spin_polarized():
+            return self.calc.get_magnetic_moment(self)
+        else:
+            return 0.0
 
     def set_charges(self, charges):
         self.set_array('charges', charges, int)
