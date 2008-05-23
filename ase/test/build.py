@@ -7,7 +7,7 @@ a+=a
 a.append(Atom('C'))
 a += Atoms([])
 a += Atom('H', magmom=1)
-print a.get_magnetic_moments()
+print a.get_initial_magnetic_moments()
 print a[0].number
 print a[[0,1]].get_atomic_numbers()
 print a[array([1,1,0,0,1], bool)].get_atomic_numbers()
