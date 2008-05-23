@@ -55,7 +55,7 @@ def read_netcdf(filename, index=-1):
 
         if attach_calculator:
             calc = SinglePointCalculator(energy[i], forces[i], stress[i],
-                                         atoms)
+                                         None, atoms) ### Fixme magmoms
             atoms.set_calculator(calc)
             
         images.append(atoms)

@@ -54,7 +54,7 @@ def read_gpaw_text(fileobj, index=-1):
             break
 
         if e is not None or f is not None:
-            atoms.set_calculator(SinglePointCalculator(e, f, None, atoms))
+            atoms.set_calculator(SinglePointCalculator(e, f, None, None, atoms)) ### Fixme magmoms
 
         images.append(atoms)
         lines = lines[i:]
