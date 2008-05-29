@@ -181,15 +181,15 @@ class Wannier:
         for d in range(self.Ndir):
             for k1 in range(self.Nk):
                 k = self.kklst_dk[d].tolist().index(k1)
-                self.invkklst_dk[d, k] = k
+                self.invkklst_dk[d, k1] = k
 
     def initialize(self, calc, initialwannier=None, seed=None, bloch=False):
         calc = wrap(calc)
         Nw = self.nwannier
         Nb = self.nbands
-        self.Z_dww  = npy.empty((self.Ndir, Nw, Nw), self.dtype)
         self.Z_dkww = npy.empty((self.Ndir, self.Nk, Nw, Nw), self.dtype)
         self.Z_dknn = npy.empty((self.Ndir, self.Nk, Nb, Nb), self.dtype)
+        self.V_knw = npy.empty((self.Nk, Nb, Nw), self.dtype)
 
         # Calculate Z matrix for the Bloch states
         for d in range(self.Ndir):
@@ -229,9 +229,7 @@ class Wannier:
                     self.C_kul.append(random_orthogonal_matrix(
                         Nb - N, seed=seed, real=real)[:, :L])
                 else:
-                    self.C_kul.append(npy.array([]))
-        
-        self.V_knw = npy.zeros((self.Nk, Nb, Nw), self.dtype)
+                    self.C_kul.append(npy.array([]))        
         self.update()
 
     def get_k0(self, c): 
@@ -299,12 +297,11 @@ class Wannier:
 
         # Calculate the Zk matrix from the large rotation matrix:
         # Zk = V^d[k] Zbloch V[k1]
-        V_knw = self.V_knw
         for d in range(self.Ndir):
             for k in range(self.Nk):
                 k1 = self.kklst_dk[d, k]
-                self.Z_dkww[d, k] = npy.dot(
-                    dag(V_knw[k]), npy.dot(self.Z_dknn[d, k], V_knw[k1]))
+                self.Z_dkww[d, k] = npy.dot(dag(self.V_knw[k]), npy.dot(
+                    self.Z_dknn[d, k], self.V_knw[k1]))
 
         # Update the new Z matrix
         self.Z_dww = self.Z_dkww.sum(axis=1) / self.Nk
@@ -380,8 +377,13 @@ class Wannier:
         pickle.dump((self.Z_dknn, self.U_kww, self.C_kul), paropen(file, 'w'))
 
     def load(self, file):
+        Nw = self.nwannier
+        Nb = self.nbands
+        self.Z_dkww = npy.empty((self.Ndir, self.Nk, Nw, Nw), self.dtype)
+        self.V_knw = npy.zeros((self.Nk, Nb, Nw), self.dtype)
         self.Z_dknn, self.U_kww, self.C_kul = pickle.load(paropen(file))
         self.update()
+        return self.Z_dknn, self.U_kww, self.C_kul
 
     def translate(self, w, R):
         """Translate the w'th Wannier function
@@ -456,13 +458,13 @@ class Wannier:
                 for n2 in range(-N2, N2 + 1):
                     for n3 in range(-N3, N3 + 1):
                         R = [n1, n2, n3]
-                        if self.GetMinimumDistance(R) < self.couplingradius:
+                        if self.GetMinimumDistance(R) < self.couplingradius:#XX
                             self.R_rc.append(R)
                             self.hop_rww.append(self.get_hopping(R, calc))
                             
         Hk = npy.zeros([self.nwannier, self.nwannier], complex)
         for R, hop_ww in zip(self.R_rc, self.hop_rww):
-            filter = self.distance_array()[R + max] < self.couplingradius
+            filter = self.distance_array()[R + max] < self.couplingradius # XXX
             phase = npy.exp(+2.j * pi * npy.dot(npy.array(R), kpt_c))
             Hk += hop_ww * filter * phase
         return npy.sort(npy.linalg.eigvals(Hk).real)
@@ -611,41 +613,31 @@ class Localize:
             G.append(G_temp.flat)
         return G
 
-    def update_rotation_matrix(self, dX):
-        """ dX is (A, dC) where U->Uexp(-A) and C->C+dC """
-        Nw = self.wannier.nwannier
-        Nk = self.wannier.Nk
-        A_kww = npy.reshape(dX[:Nk * Nw**2], (Nk, Nw, Nw))
-        for U, A in zip(self.wannier.U_kww, A_kww):
-            # Copy to make contiguous. Needed? XXX
-            H = npy.conj(A * 1.j).copy()
-            epsilon, Z = npy.linalg.eigh(H)
-            # Z contains the eigenvectors as COLUMNS.
-            # Since H=iA, dU = exp(-A)=exp(iH) = ZDZ^d
-            dU = npy.dot(Z * npy.exp(1.j * epsilon), dag(Z))
-            U[:] = npy.dot(U, dU)            
-       
-    def update_coefficient_matrix(self, dX):
+    def update(self, dX, updaterot=True, updatecoeff=True):
         """ dX is (A, dC) where U->Uexp(-A) and C->C+dC """
         Nb = self.wannier.nbands
         Nw = self.wannier.nwannier
+        Nk = self.wannier.Nk
         N_k = self.wannier.fixedstates_k
         L_k = self.wannier.edf_k
-        start = 0
-        k = 0
-        for C, N, L in zip(self.wannier.C_kul, N_k, L_k):
-            Ncoeff = L * (Nb - N)
-            deltaC = dX[k * Nw**2 + start: k * Nw**2 + start + Ncoeff]
-            C[:] = gram_schmidt(C + deltaC.reshape(Nb - N, L))
-            start += Ncoeff
-            k += 1
-
-    def update(self, dX, updaterot=True, updatecoeff=True):
-        """ dX is (A, dC) where U->Uexp(-A) and C->C+dC """
         if updaterot:
-            self.update_rotation_matrix(dX)
+            A_kww = npy.reshape(dX[:Nk * Nw**2], (Nk, Nw, Nw))
+            for U, A in zip(self.wannier.U_kww, A_kww):
+                H = npy.conj(A * 1.j).copy()
+                epsilon, Z = npy.linalg.eigh(H)
+                # Z contains the eigenvectors as COLUMNS.
+                # Since H=iA, dU = exp(-A)=exp(iH) = ZDZ^d
+                dU = npy.dot(Z * npy.exp(1.j * epsilon), dag(Z))
+                U[:] = npy.dot(U, dU)
+
         if updatecoeff:
-            self.update_coefficient_matrix(dX)
+            start = 0
+            for C, N, L in zip(self.wannier.C_kul, N_k, L_k):
+                Ncoeff = L * (Nb - N)
+                deltaC = dX[Nk * Nw**2 + start: Nk * Nw**2 + start + Ncoeff]
+                C[:] = gram_schmidt(C + deltaC.reshape(Nb - N, L))
+                start += Ncoeff
+
         self.wannier.update()
         
     def get_gradients(self):
