@@ -17,7 +17,6 @@ else:
 from ase.data import chemical_symbols
 
 
-
 class OldASEListOfAtomsWrapper:
     def __init__(self, atoms):
         self.atoms = atoms
@@ -52,8 +51,11 @@ class OldASEListOfAtomsWrapper:
     def get_masses(self):
         return npy.array(self.atoms.GetMasses())
     
-    def get_magnetic_moments(self):
+    def get_initial_magnetic_moments(self):
         return npy.array(self.atoms.GetMagneticMoments())
+    
+    def get_magnetic_moments(self):
+        return None
     
     def get_charges(self):
         return npy.zeros(len(self))
@@ -170,6 +172,6 @@ class OldASECalculatorWrapper:
         c, U = init.GetListOfCoefficientsAndRotationMatrices(
             (self.calc.GetNumberOfBands(), fixedstates, edf))
         U = npy.array(U)
-        for ck in c:
-            ck[:] = npy.array(ck)
+        for k in range(len(c)):
+            c[k] = npy.array(c[k])
         return c, U

@@ -57,11 +57,11 @@ def get_kpoint_dimensions(kpts):
         return npy.ones(3, int)
     
     tol = 1e-5
-    Nk_c = npy.zeros(3)
+    Nk_c = npy.zeros(3, int)
     for c in range(3):
         # Sort kpoints in ascending order along current axis
         slist = npy.argsort(kpts[:, c])
-        skpts = npy.take(kpts, slist)
+        skpts = npy.take(kpts, slist, axis=0)
 
         # Determine increment between kpoints along current axis
         DeltaK = max([skpts[n + 1, c] - skpts[n, c] for n in range(nkpts - 1)])
@@ -121,17 +121,18 @@ class Wannier:
                  occupationenergy=0,
                  numberoffixedstates=None,
                  spin=0,
-                 dtype=complex): 
+                 dtype=complex):
 
         calc = wrap(calc)
         self.nwannier = numberofwannier
         self.spin = spin
-        self.kpt_kc = calc.get_bz_k_points()
-        assert len(calc.get_bz_k_points()) == len(calc.get_ibz_k_points())
+        self.kpt_kc = calc.get_ibz_k_points()
+        assert len(calc.get_bz_k_points()) == len(self.kpt_kc)
+        
         self.kptgrid = get_kpoint_dimensions(self.kpt_kc)
         self.Nk = len(self.kpt_kc)
         self.unitcell_cc = calc.get_atoms().get_cell()
-        self.largeunitcell_cc = npy.transpose(self.unitcell_cc.T *self.kptgrid)
+        self.largeunitcell_cc = (self.unitcell_cc.T * self.kptgrid).T
         self.weight_d, self.Gdir_dc = calculate_weights(self.largeunitcell_cc)
         self.Ndir = len(self.weight_d) # Number of directions
         # Dacapo's initial wannier makes complex rotations even with 1 k-point
@@ -242,7 +243,7 @@ class Wannier:
 
         # make a sorted list of the kpoint values in this direction
         slist = npy.argsort(self.kpt_kc[:, c])
-        skpoints_kc = npy.take(self.kpt_kc, slist)
+        skpoints_kc = npy.take(self.kpt_kc, slist, axis=0)
 
         # find k0
         k0 = max([skpoints_kc[n + 1, c] - skpoints_kc[n, c]
@@ -268,7 +269,7 @@ class Wannier:
         # setup dist vector to next kpoint
         kdist_c = npy.zeros(3)
         for c in range(3):
-            if Gdir_c[c] > 0:
+            if self.Gdir_dc[dir, c] > 0:
                 kdist_c[c] = self.get_k0(c)
 
         if max(kdist_c) < tol:
@@ -326,8 +327,10 @@ class Wannier:
         
           pos =  L/2pi * Im(ln(Za))
         """
-        return npy.dot(self.largeunitcell_cc.T / (2 * pi),
-                       npy.log(self.Z_dww[:3].diagonal(0, 1, 2)).imag)
+        #scaled = npy.log(self.Z_dww[:3, w, w]).imag / (2 * pi)
+        #cartesian = npy.dot(scaled, self.largeunitcell_cc)
+        return npy.dot(npy.log(self.Z_dww[:3].diagonal(0, 1, 2)).imag.T,
+                       self.largeunitcell_cc / (2 * pi))
 
     def get_radii(self):
         """Calculate the Wannier radii
@@ -379,6 +382,90 @@ class Wannier:
     def load(self, file):
         self.Z_dknn, self.U_kww, self.C_kul = pickle.load(paropen(file))
         self.update()
+
+    def translate(self, w, R):
+        """Translate the w'th Wannier function
+
+        The distance vector R = [n1, n2, n3], is in units of the basis
+        vectors of the small cell.
+        """
+        for kpt_c, U_ww in zip(self.kpt_kc, self.U_kww):
+            U_ww[:, w] *= npy.exp(2.0j * pi * npy.dot(num.array(R), kpt_c))
+        self.update()
+
+    def translate_to_cell(self, w, cell):
+        """Translate the w'th Wannier function to specified cell"""
+        scaled_c = npy.log(self.Z_dww[:3, w, w]).imag / (2 * pi)
+        trans = npy.array(cell) - npy.floor(scaled_c)
+        self.translate_wannier_function(w, trans)
+
+    def translate_all_to_cell(self, cell=[0, 0, 0]):
+        """Translate all Wannier functions to specified cell"""
+        scaled_wc = npy.log(self.Z_dww[:3].diagonal(0, 1, 2)).imag.T / (2 * pi)
+        trans_wc =  npy.array(cell)[None] - npy.floor(scaled_wc)
+        for kpt_c, U_ww in zip(self.kpt_kc, self.U_kww):
+            U_ww *= npy.exp(2.0j * pi * npy.dot(trans_wc, kpt_c))
+        self.update()
+
+    def get_hopping(self, R, calc):
+        """Returns the matrix H(R)_nm=<0,n|H|R,m>.
+
+        ::
+        
+                                1   _   -ik.R 
+          H(R) = <0,n|H|R,m> = --- >_  e      H(k)
+                                Nk  k         
+
+        where R is the cell-distance (in units of the basis vectors of
+        the small cell) and n,m are index of the Wannier functions."""
+
+        H_ww = npy.zeros([self.nwannier, self.nwannier], self.dtype)
+        for k, kpt_c in enumerate(self.kpt_kc):
+            phase = npy.exp(-2.j * pi * npy.dot(npy.array(R), kpt_c))
+            H_ww += self.get_hamiltonian(calc, k) * phase
+        return H_ww / self.Nk
+
+    def get_hamiltonian(self, calc, k=0):
+        """Get Hamiltonian at existing k-vector of index k
+
+        ::
+        
+                  dag
+          H(k) = V    diag(eps )  V
+                  k           k    k
+        """
+        eps_n = calc.get_eigenvalues(kpt=k, spin=self.spin)
+        return npy.dot(dag(self.V_knw[k]) * eps_n, self.V_knw[k])
+
+    def get_hamiltonian_kpoint(self, kpt_c, calc):
+        """Get Hamiltonian at some new arbitrary k-vector
+
+        ::
+        
+                  _   ik.R 
+          H(k) = >_  e     H(R)
+                  R         
+        """
+        max = (self.kptgrid - 1) / 2
+        max += max > 0
+        N1, N2, N3 = max
+        if not hasattr(self, hop_rww):
+            self.R_rc = []
+            self.hop_rww = []
+            for n1 in range(-N1, N1 + 1):
+                for n2 in range(-N2, N2 + 1):
+                    for n3 in range(-N3, N3 + 1):
+                        R = [n1, n2, n3]
+                        if self.GetMinimumDistance(R) < self.couplingradius:
+                            self.R_rc.append(R)
+                            self.hop_rww.append(self.get_hopping(R, calc))
+                            
+        Hk = npy.zeros([self.nwannier, self.nwannier], complex)
+        for R, hop_ww in zip(self.R_rc, self.hop_rww):
+            filter = self.distance_array()[R + max] < self.couplingradius
+            phase = npy.exp(+2.j * pi * npy.dot(npy.array(R), kpt_c))
+            Hk += hop_ww * filter * phase
+        return npy.sort(npy.linalg.eigvals(Hk).real)
 
     def get_function(self, calc, index):
         """Index can be either a single WF or a coordinate vector
