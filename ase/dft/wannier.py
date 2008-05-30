@@ -113,6 +113,41 @@ def random_orthogonal_matrix(dim, seed=None, real=False):
         return npy.dot(vec * npy.exp(1.j * val), dag(vec))
 
 
+def steepest_descent(func, step=0.005, tolerance=1.0e-6, **kwargs):
+    fvalueold = 0.
+    fvalue = fvalueold + 10
+    count=0
+    while abs((fvalue - fvalueold) / fvalue) > tolerance:
+        fvalueold = fvalue
+        dF = func.get_gradients()
+        func.step(dF * step, **kwargs)
+        fvalue = func.get_functional_value()
+        count += 1
+        print 'SteepestDescent: iter=%s, value=%s' % (count, fvalue)
+
+
+def md_min(func, step=0.25, tolerance=1.0e-6, **kwargs):
+        t = - time()
+        fvalueold = 0.
+        fvalue = fvalueold + 10
+        count = 0
+        V = npy.zeros(func.get_gradients().shape, dtype=complex)
+        while abs((fvalue - fvalueold) / fvalue) > tolerance:
+            fvalueold = fvalue
+            dF = func.get_gradients()
+            V *= (dF * V.conj()).real > 0
+	    V += step * dF
+            func.step(V, **kwargs)
+	    fvalue = func.get_functional_value()
+            if fvalue < fvalueold:
+		step *= 0.5
+	    count += 1
+            print 'MDmin: iter=%s, step=%s, value=%s' % (count, step, fvalue)
+        t += time()
+        print '%d iterations in %0.2f seconds (%0.2f ms/iter), endstep = %s'%(
+            count, t, t * 1000. / count, step)
+
+
 class Wannier:
     def __init__(self,
                  numberofwannier,
@@ -306,17 +341,6 @@ class Wannier:
         # Update the new Z matrix
         self.Z_dww = self.Z_dkww.sum(axis=1) / self.Nk
 
-    def get_functional_value(self): 
-        """Calculate functional value.
-
-        ::
-
-          Tr[|ZI|^2]=sum(I)sum(n) w_i|Z_(i)_nn|^2,
-
-        where w_i are weights."""
-        a_d = npy.sum(npy.abs(self.Z_dww.diagonal(0, 1, 2))**2, axis=1)
-        return npy.dot(a_d, self.weight_d).real
-
     def get_centers(self):
         """Calculate the Wannier centers
 
@@ -367,12 +391,6 @@ class Wannier:
         print 'Index:', index
         print 'Spread:', d[index]           
 
-    def localize(self, step=0.25, tolerance=1.0e-08):
-        #maxi = SteepestDescent(self)
-        maxi = MDmin(self)
-        print 'Localize with step =', step, 'and tolerance =', tolerance
-        maxi.run(step=step, tolerance=tolerance)
-
     def dump(self, file):
         pickle.dump((self.Z_dknn, self.U_kww, self.C_kul), paropen(file, 'w'))
 
@@ -380,10 +398,9 @@ class Wannier:
         Nw = self.nwannier
         Nb = self.nbands
         self.Z_dkww = npy.empty((self.Ndir, self.Nk, Nw, Nw), self.dtype)
-        self.V_knw = npy.zeros((self.Nk, Nb, Nw), self.dtype)
+        self.V_knw = npy.empty((self.Nk, Nb, Nw), self.dtype)
         self.Z_dknn, self.U_kww, self.C_kul = pickle.load(paropen(file))
         self.update()
-        return self.Z_dknn, self.U_kww, self.C_kul
 
     def translate(self, w, R):
         """Translate the w'th Wannier function
@@ -506,123 +523,105 @@ class Wannier:
         wanniergrid /= npy.sqrt(self.Nk)
         return wanniergrid
 
+    def localize(self, step=0.25, tolerance=1.0e-08,
+                 updaterot=True, updatecoeff=True):
+        print 'Localize with step =', step, 'and tolerance =', tolerance
+##         maxi = steepest_descent(self, step, tolerance, updaterot=updaterot,
+##                                 updatecoeff=updatecoeff)
+        maxi = md_min(self, step, tolerance, updaterot=updaterot,
+                                updatecoeff=updatecoeff)
 
-class Localize:
-    """
-    The class Localize carries a reference to an instance of class Wannier.
-    It can calculate the gradient of the localization functional wrt.
-    extra degrees of freedom and rotation matrix.
-    """
-    def __init__(self, wannier):
-        self.wannier = wannier
-                        
-    def get_coefficient_gradients(self):
-        """Calculate the gradient for a change of coefficients
+    def get_functional_value(self): 
+        """Calculate the value of the spread functional.
 
-        Gamma-point::
+        ::
+
+          Tr[|ZI|^2]=sum(I)sum(n) w_i|Z_(i)_nn|^2,
+
+        where w_i are weights."""
+        a_d = npy.sum(npy.abs(self.Z_dww.diagonal(0, 1, 2))**2, axis=1)
+        return npy.dot(a_d, self.weight_d).real
+
+    def get_gradients(self):
+        """Determine gradient of the spread functional
+
+        We must minimize the functional::
+
+          Rho_L=Rho- sum_{k,n,m} lambda_{k,nm} <c_{kn}|c_{km}>
+
+        The lagrange multipliers lambda_k are estimated as
+        lambda_k^T = c_k^d G_k where c are the coefficients and G is the
+        gradient of the spread functional wrt. the c_k
         
-          dRho/da^*_{i,j} = sum(I) [[Z_0 V diag(Z^*)+Z_0^d V diag(Z)] U^d]_{N+i,N+j}
-          
-        where diag(Z) is a square,diagonal matrix with Z_nn in the diagonal.
-
-        k-points::
+        The gradient for a rotation A_kij is::
+        
+           dU = dRho/dA_{k,i,j} = sum(I) sum(k')
+                   + Z_jj Z_kk',ij^* - Z_ii Z_k'k,ij^*
+                   - Z_ii^* Z_kk',ji + Z_jj^* Z_k'k,ji
+    
+        The gradient for a change of coefficients is::
         
           dRho/da^*_{k,i,j} = sum(I) [[(Z_0)_{k} V_{k'} diag(Z^*) + (Z_0_{k''})^d V_{k''} diag(Z)] U_k^d]_{N+i,N+j}
 
-        where k'=k+dk and k=k''+dk.
-        """
-        Nb = self.wannier.nbands
-        M_k = self.wannier.fixedstates_k
-        L_k = self.wannier.edf_k
-        Nw = self.wannier.nwannier
-        V_k = self.wannier.V_knw
-        U_k = self.wannier.U_kww
-        k_kd = self.wannier.kklst_dk.T
-        invk_kd = self.wannier.invkklst_dk.T
-        Z0_dk = self.wannier.Z_dknn
-        diagZ_d = self.wannier.Z_dww.diagonal(0, 1, 2)
-        weight_d = self.wannier.weight_d
+        where diag(Z) is a square,diagonal matrix with Z_nn in the diagonal, 
+        k'=k+dk and k=k''+dk.
 
-        G = []
-        nk = 0
-        for M, L, U, k_d, invk_d in zip(M_k, L_k, U_k, k_kd, invk_kd):
-            G_temp = npy.zeros(V_k[0].shape, complex)
-            for Z0_k, diagZ, weight, k1, k2 in zip(Z0_dk, diagZ_d, weight_d,
-                                                   k_d, invk_d):
-                if abs(weight) < 1.0e-6:
-                    continue
-
-                temp = npy.dot(Z0_k[nk], V_k[k1]) * diagZ.conj()
-                temp += npy.dot(dag(Z0_k[k2]), V_k[k2]) * diagZ
-                
-                G_temp += weight * npy.dot(temp, dag(U))
-            # G_temp now has same dimension as V, the gradient is in the
-            # lower-right (Nb-M)xL block
-            G.append(G_temp[M:, Nw - L:])
-            nk += 1
-        return G
-
-    def get_lagrange_coefficient_gradients(self):
-        """ We must minimize the functional:
-        Rho_L=Rho- sum_{k,n,m} lambda_{k,nm} <c_{kn}|c_{km}>
-        The lagrange multipliers lambda_k are estimated as 
-        lambda_k^T=c_k^d G_k
-        where c are the coefficients and G is the gradient of the
-        spread functional wrt. the c_k"""
-        G_lag = []
-        for L, coeff, Gcoeff in zip(self.wannier.edf_k,
-                                    self.wannier.C_kul,
-                                    self.get_coefficient_gradients()):
-            if L > 0:
-                lam = npy.dot(Gcoeff.T, coeff.conj())
-                G = Gcoeff - npy.dot(coeff, lam.T)
-                G_lag.append(G.ravel())
-        return G_lag
-    
-    def get_rotation_gradients(self):
-        """ Calculate the gradient for a rotation A_kij:
-
-        Gamma-point::
-       
-           dRho/dA_{i,j} = sum(I) Z_ji(Z_jj^*-Z_ii^*)-Z_ij^*(Z_ii-Z_jj)
-
-        k-point::
+        Due to the lagrange multipliers (which
         
-           dRho/dA_{k,i,j} = sum(I) sum(k')
-                 + Z_jj Z_kk',ij^* - Z_ii Z_k'k,ij^*
-                 - Z_ii^* Z_kk',ji + Z_jj^* Z_k'k,ji
-    
         """
-        wannier = self.wannier
-        ZIk_dk = wannier.Z_dkww
-        Nw = wannier.nwannier
-        Zii_d = [npy.reshape(npy.repeat(npy.diagonal(Z), Nw), [Nw, Nw])
-                 for Z in wannier.Z_dww]
-        invk_dk = wannier.invkklst_dk
+        Nb = self.nbands
+        Nw = self.nwannier
+        
+        dU = []
+        dC = []
+        for k in range(self.Nk):
+            M = self.fixedstates_k[k]
+            L = self.edf_k[k]
+            U_ww = self.U_kww[k]
+            C_ul = self.C_kul[k]
+            Utemp_ww = npy.zeros([Nw, Nw], complex)
+            Ctemp_nw = npy.zeros((Nb, Nw), complex)
 
-        G = []
-        for k in range(wannier.Nk):
-            G_temp = npy.zeros([Nw, Nw], complex)
-            for d, weight in enumerate(wannier.weight_d):
+            for d, weight in enumerate(self.weight_d):
                 if abs(weight) < 1.0e-6:
                     continue
-                k2 = invk_dk[d, k]
-                temp = Zii_d[d].T * ZIk_dk[d, k].conj()
-                temp -= Zii_d[d] * ZIk_dk[d, k2].conj()
-                G_temp += weight * (temp - dag(temp))
-            G.append(G_temp.flat)
-        return G
 
-    def update(self, dX, updaterot=True, updatecoeff=True):
+                Z_knn = self.Z_dknn[d]
+                diagZ_w = self.Z_dww[d].diagonal()
+                Zii_ww = npy.repeat(diagZ_w, Nw).reshape(Nw, Nw)
+                k1 = self.kklst_dk[d, k]
+                k2 = self.invkklst_dk[d, k]
+                V_knw = self.V_knw
+                Z_kww = self.Z_dkww[d]
+                
+                if L > 0:
+                    Ctemp_nw += weight * npy.dot(
+                        npy.dot(Z_knn[k], V_knw[k1]) * diagZ_w.conj() +
+                        npy.dot(dag(Z_knn[k2]), V_knw[k2]) * diagZ_w,
+                        dag(U_ww))
+
+                temp = Zii_ww.T * Z_kww[k].conj() - Zii_ww * Z_kww[k2].conj()
+                Utemp_ww += weight * (temp - dag(temp))
+            dU.append(Utemp_ww.ravel())
+            if L > 0:
+                # Ctemp now has same dimension as V, the gradient is in the
+                # lower-right (Nb-M) x L block
+                Ctemp_ul = Ctemp_nw[M:, M:]
+                G_ul = Ctemp_ul - npy.dot(npy.dot(C_ul, dag(C_ul)), Ctemp_ul)
+                dC.append(G_ul.ravel())
+
+        return npy.concatenate(dU + dC)
+                        
+    def step(self, dX, updaterot=True, updatecoeff=True):
         """ dX is (A, dC) where U->Uexp(-A) and C->C+dC """
-        Nb = self.wannier.nbands
-        Nw = self.wannier.nwannier
-        Nk = self.wannier.Nk
-        N_k = self.wannier.fixedstates_k
-        L_k = self.wannier.edf_k
+        Nb = self.nbands
+        Nw = self.nwannier
+        Nk = self.Nk
+        N_k = self.fixedstates_k
+        L_k = self.edf_k
         if updaterot:
             A_kww = npy.reshape(dX[:Nk * Nw**2], (Nk, Nw, Nw))
-            for U, A in zip(self.wannier.U_kww, A_kww):
+            for U, A in zip(self.U_kww, A_kww):
                 H = npy.conj(A * 1.j).copy()
                 epsilon, Z = npy.linalg.eigh(H)
                 # Z contains the eigenvectors as COLUMNS.
@@ -632,53 +631,10 @@ class Localize:
 
         if updatecoeff:
             start = 0
-            for C, N, L in zip(self.wannier.C_kul, N_k, L_k):
+            for C, N, L in zip(self.C_kul, N_k, L_k):
                 Ncoeff = L * (Nb - N)
                 deltaC = dX[Nk * Nw**2 + start: Nk * Nw**2 + start + Ncoeff]
                 C[:] = gram_schmidt(C + deltaC.reshape(Nb - N, L))
                 start += Ncoeff
 
-        self.wannier.update()
-        
-    def get_gradients(self):
-        dlag = self.get_lagrange_coefficient_gradients()
-        dU = self.get_rotation_gradients()
-        return npy.concatenate(dU + dlag)
-
-
-class SteepestDescent(Localize): 
-    def run(self, step=0.005, tolerance=1.0e-6):
-        fvalueold = 0.
-        fvalue = fvalueold + 10
-        count=0
-        while abs((fvalue - fvalueold) / fvalue) > tolerance:
-            fvalueold = fvalue
-	    dF = self.get_gradients()
-	    self.update(dF * step)
-	    fvalue = self.wannier.get_functional_value()
-            count += 1
-            print 'SteepestDescent: iter=%s, value=%s' % (count, fvalue)
-
-
-class MDmin(Localize): 
-    def run(self, step=0.25, tolerance=1.0e-6,
-            updaterot=True, updatecoeff=True):
-        t = - time()
-        fvalueold = 0.
-        fvalue = fvalueold + 10
-        count = 0
-        V = npy.zeros(self.get_gradients().shape, dtype=complex)
-        while abs((fvalue - fvalueold) / fvalue) > tolerance:
-            fvalueold = fvalue
-            dF = self.get_gradients()
-            V *= (dF * V.conj()).real > 0
-	    V += step * dF
-            self.update(V, updaterot, updatecoeff)
-	    fvalue = self.wannier.get_functional_value()
-            if fvalue < fvalueold:
-		step *= 0.5
-	    count += 1
-            print 'MDmin: iter=%s, step=%s, value=%s' % (count, step, fvalue)
-        t += time()
-        print '%d iterations in %0.2f seconds (%0.2f ms/iter), endstep = %s'%(
-            count, t, t * 1000. / count, step)
+        self.update()
