@@ -41,6 +41,7 @@ class POVRAY(EPS):
                           'White',       # color
                           .7, .7, 3, 3], # width, height, Nlamps_x, Nlamps_y
         'background'   : 'White',        # color
+        'textures'     : None # Length of atoms list of texture names
         }
 
     def __init__(self, atoms, **parameters):
@@ -161,8 +162,11 @@ class POVRAY(EPS):
         # Draw atoms
         a = 0
         for loc, dia, color in zip(self.X, self.d, self.colors):
+            tex = 'ase3'
+            if self.textures is not None:
+                tex = self.textures[a]
             w('atom(%s, %.2f, %s, %s) // #%i \n' % (
-                pa(loc), dia / 2., pc(color), 'ase3', a))
+                pa(loc), dia / 2., pc(color), tex, a))
             a += 1
 
 
