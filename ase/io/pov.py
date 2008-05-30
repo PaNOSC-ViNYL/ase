@@ -41,7 +41,7 @@ class POVRAY(EPS):
                           'White',       # color
                           .7, .7, 3, 3], # width, height, Nlamps_x, Nlamps_y
         'background'   : 'White',        # color
-        'textures'     : None # Length of atoms list of texture names
+        'textures'     : None, # Length of atoms list of texture names
         }
 
     def __init__(self, atoms, **parameters):
