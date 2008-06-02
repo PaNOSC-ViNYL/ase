@@ -95,10 +95,9 @@ directory::
   ...
        
 
-If any of the tests fail, then let us know on the `mailing list`_.
+If any of the tests fail, then let us know on the :ref:`ml`.
 
 
-.. _mailing list: http://lists.berlios.de/mailman/listinfo/gridpaw-developer
 
 
 .. index:: License, GPL

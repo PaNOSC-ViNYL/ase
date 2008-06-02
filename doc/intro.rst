@@ -63,3 +63,5 @@ Mailing list
 ============
 
 XXX  campos, ase, checkins, ???
+
+.. _mailing list: http://lists.berlios.de/mailman/listinfo/gridpaw-developer
