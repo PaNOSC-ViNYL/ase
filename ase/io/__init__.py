@@ -7,8 +7,6 @@ from ase.atoms import Atoms
 def read(filename, index=-1, format=None):
     """Read Atoms object(s) from file.
 
-    Parameters
-    ==========
     filename: str
         Name of the file to read from.
     index: int or slice
@@ -17,7 +15,24 @@ def read(filename, index=-1, format=None):
         number n (counting from zero).
     format: str
         Used to specify the file-format.  If not given, the file-format
-        will be guessed by the `filetype` function.
+        will be guessed by the *filetype* function.
+
+    Known formats:
+
+    =========================  ===========
+    format                     short name
+    =========================  ===========
+    GPAW restart-file          gpw
+    Dacapo netCDF output file  dacapo
+    Old ASE netCDF trajectory  nc
+    Virtual Nano Lab file      vnl
+    ASE pickle trajectory      traj
+    GPAW text output           gpaw-text
+    CUBE file                  cube
+    Dacapo text output         dacapo-text
+    XYZ-file                   xyz
+    =========================  ===========
+
     """
     p = filename.rfind('@')
     if p != -1:
@@ -71,8 +86,6 @@ def read(filename, index=-1, format=None):
 def write(filename, images, format=None, **kwargs):
     """Write Atoms object(s) to file.
 
-    Parameters
-    ==========
     filename: str
         Name of the file to write to.
     images: Atoms object or list of Atoms objects
@@ -80,6 +93,55 @@ def write(filename, images, format=None, **kwargs):
     format: str
         Used to specify the file-format.  If not given, the file-format
         will be taken from suffix of the filename.
+
+    The accepted output formats:
+  
+    =========================  ===========
+    format                     short name
+    =========================  ===========
+    ASE pickle trajectory      traj
+    CUBE file                  cube
+    XYZ-file                   xyz
+    Protein Data Bank          pdb
+    gOpenMol .plt file         plt  
+    Python script              py
+    Encapsulated Postscript    eps
+    Portable Network Graphics  png
+    Persistance of Vision      pov
+    =========================  ===========
+  
+    The use of additional keywords is format specific.
+  
+    The ``cube`` and ``plt`` formats accept (plt requires it) a ``data``
+    keyword, which can be used to write a 3D array to the file along
+    with the nuclei coordinates.
+  
+    The ``eps``, ``png``, and ``pov`` formats are all graphics formats,
+    and accept the additional keywords::
+  
+      rotation='', show_unit_cell=0, radii=None, bbox=None, colors=None
+  
+    rotation: str
+      The rotation angles, e.g. '45x,70y,90z'
+    show_unit_cell: int
+      Can be 0, 1, 2 to either not show, show, or show all of the unit cell
+    radii: array
+      An array of same length as the list of atoms, indicating the sphere radii
+    bbox: array
+      XXX
+    colors: array
+      An array of same length as the list of atoms, indicating the rgb color
+      code for each atom
+  
+    The ``pov`` accepts the additional keywords:
+    
+    XXX
+  
+    For ``pov`` the elements of the color array can also be strings, or 4,
+    and 5 vectors.
+  
+    XXX
+
     """
     
     if format is None:
@@ -120,26 +182,9 @@ def string2index(string):
 
 
 def filetype(filename):
-    """Try to guess the type of the file.
-
-    Known formats:
-
-    =========================  ===========
-    format                     short name
-    =========================  ===========
-    GPAW restart-file          gpw
-    Dacapo netCDF output file  dacapo
-    Old ASE netCDF trajectory  nc
-    Virtual Nano Lab file      vnl
-    ASE pickle trajectory      traj
-    GPAW text output           gpaw-text
-    CUBE file                  cube
-    Dacapo text output         dacapo-text
-    XYZ-file                   xyz
-    =========================  ===========
-    """
+    """Try to guess the type of the file."""
     if is_tarfile(filename):
-        return 'gpw-tar'
+        return 'gpw'
 
     fileobj = open(filename)
     if fileobj.read(3) == 'CDF':
