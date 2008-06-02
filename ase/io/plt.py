@@ -29,5 +29,7 @@ def write_plt(filename, atoms, data):
             d = L / (n + 1)
             npy.array([d, L - d], npy.float32).tofile(f)
 
+    if data.dtype == complex:
+        data = npy.abs(data)
     data.astype(npy.float32).T.tofile(f)
     f.close()
