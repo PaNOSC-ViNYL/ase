@@ -2,6 +2,7 @@ from tarfile import is_tarfile
 from zipfile import is_zipfile
 
 from ase.atoms import Atoms
+from ase.units import Bohr
 
 
 def read(filename, index=-1, format=None):
@@ -47,11 +48,26 @@ def read(filename, index=-1, format=None):
         format = filetype(filename)
 
     if format.startswith('gpw'):
-        from gpaw import Calculator
-        atoms = Calculator(filename, txt=None, idiotproof=False).get_atoms()
-        atoms.set_calculator(None)
+        import gpaw
+        r = gpaw.io.open(filename, 'r')
+        positions = r.get('CartesianPositions') * Bohr
+        numbers = r.get('AtomicNumbers')
+        cell = r.get('UnitCell') * Bohr
+        pbc = r.get('BoundaryConditions')
+        tags = r.get('Tags')
+        magmoms = r.get('MagneticMoments')
+
+        atoms = Atoms(positions=positions,
+                      numbers=numbers,
+                      cell=cell,
+                      pbc=pbc)
+        if tags.any():
+            atoms.set_tags(tags)
+        if magmoms.any():
+            atoms.set_magnetic_moments(magmoms)
+
         return atoms
-    
+
     if format == 'xyz':
         from ase.io.xyz import read_xyz
         return read_xyz(filename, index)
