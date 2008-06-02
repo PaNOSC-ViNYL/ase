@@ -8,9 +8,8 @@
 ASE-GUI
 =======
 
-.. image:: http://web2.fysik.dtu.dk/ag.png
-   :scale: 25
-   :height: 400
+.. image:: ag.png
+   :height: 200
 
 
 Files
