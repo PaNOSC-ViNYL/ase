@@ -6,6 +6,11 @@ The Atomic Simulation Environment (ASE) is the common part of the
 simulation tools developped at CAMd_.  ASE provides Python_ modules
 for manipulating atoms, analyzing simulations, visualization etc.
 
+.. note::
+
+  The old ASE-2 webpage has moved to http://wiki.fysik.dtu.dk/ase.
+
+
 Supported :mod:`calculators`:
 
    |gpaw| |siesta|
@@ -26,6 +31,8 @@ Supported :mod:`calculators`:
 .. _MMTK: http://dirac.cnrs-orleans.fr/MMTK
 .. _Python: http://www.python.org
 .. _Trac: http://trac.fysik.dtu.dk/projects/ase/report/1
+
+  
 
 
 News

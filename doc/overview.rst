@@ -9,6 +9,7 @@ This section gives a quick overview of what ASE can do.  For more details:
 * Look at the documentation for the individual :mod:`modules <ase>`.
 * See the automatically generated documentation: :epydoc:`ase`.
 * Browse the `source code`_ online.
+* Read the :ref:`tutorials`.
 
 
 .. _source code: http://trac.fysik.dtu.dk/projects/ase/browser/trunk
@@ -21,7 +22,7 @@ Atoms
 The ``Atoms`` object is a collection of atoms.  Here is how to define
 a CO molecule::
 
-  from ase import Atom, Atoms
+  from ase import Atoms
   d = 1.1
   co = Atoms('CO', positions=[(0, 0, 0), (0, 0, d)])
 
@@ -49,9 +50,9 @@ Here, two more optional keyword arguments were used:
   unit cell (a sequence of three sequences of three numbers).  The
   default value is ``[1.0, 1.0, 1.0]``.
 
-``pbc``: Boundary conditions
+``pbc``: Periodic boundary conditions
   The default value is ``False`` - a value of ``True`` would give
-  pbc boundary conditions along all three axes.  It is possible
+  periodic boundary conditions along all three axes.  It is possible
   to give a sequence of three booleans to specify periodicity along
   specific axes.
 
@@ -63,7 +64,7 @@ boundary conditions:
 
 ``set_cell(cell, scale_atoms=False)``: Change the size of the unit
   cell.  If the optional argument *scale_atoms* is ``True`` (defaults
-  to ``False``), then the positons of the atoms are moved so that
+  to ``False``), then the positons of the atoms are scaled so that
   their positions relative to the unit cell are kept, otherwise the
   atomic positions are fixed.
 
@@ -75,13 +76,12 @@ boundary conditions:
 
 Here is how you would do bulk ruthenium (hcp)::
 
-  from math import sqrt
   a = 2.70
   b = a * sqrt(3) / 2
   c = 1.59 * a
   bulk = Atoms('Ru2',
-               positions=[(0,     0,     0    ),
-                          (a / 2, b / 3, c / 2)],
+               [(0,     0,     0    ),
+                (a / 2, b / 3, c / 2)],
                pbc=True,
                cell=[(a,     0, 0),
                      (a / 2, b, 0),
@@ -90,7 +90,7 @@ Here is how you would do bulk ruthenium (hcp)::
 In addition, an ``Atoms`` instance has the following methods:
 ``append``, ``center``, ``copy``, ``distance``, ``extend``,
 ``get_center_of_mass``, ``pop``, ``rattle``, ``repeat``, ``rotate``
-and ``translate``.  See `Atom Manipulations` for more details.
+and ``translate``, XXX.  See :ref:`atommanip` for more details.
 
 
 -----
@@ -111,7 +111,7 @@ units.  To convert to/from other units, use the constants:  ``nm``,
 >>> 300 * kB
 0.025852157076770025
 >>> 0.1 * fs
-0.0010180506973856182
+0.009822693531550318
 
 
 
@@ -124,7 +124,7 @@ function::
 
   write('CO.xyz', co)
 
-This will write a file in the xyz-format.  Other possible formats:
+This will write a file in the xyz-format.  Possible formats:
 
 ========  ===========================
 format    description
@@ -142,7 +142,7 @@ or from the optional ``format`` argument::
 
   write('CO.1', co, format='cube')
 
-Reading from file is done like this::
+Reading from a file is done like this::
 
   co = read('CO.xyz')
 
@@ -150,11 +150,11 @@ Some file-formats can take several configurations (trajectories), and
 the default behavior of the ``read`` function is to return the last
 configuration::
 
+  read('A.traj')      # last configuration
+  read('A.traj', -1)  # same as above
   read('A.traj', 0)   # first configuration
-  read('A.traj', -1)  # last configuration
-  read('A.traj')      # same as above
 
-In addition to the ``xyz``, ``cube``, and ``traj`` formats, ASE can read and understand the following types of files:
+ASE can read and understand the following types of files:
 
 =======  =================================
 format   description
@@ -173,15 +173,14 @@ Gaussian Cube file format
 
 The Gaussian Cube file format describes volumetric data as well as
 atom positions, it originates from the Gaussian software package.  The
-volume data should be a 3 dimensional ndarray describing the
+volume data should be a 3 dimensional :term:`ndarray` describing the
 volumetric data for the unit cell, given in the Atoms object::
 
   write('x.cube', co, data=a)
 
-Here ``a`` is the ndarray.  If the array has complex numbers, then the
+Here *a* is the ndarray.  If the array has complex numbers, then the
 absolute vale is written.  Use::
 
-  from numpy import angle
   write('xp.cube', co, data=angle(a))
 
 to write the phases.
@@ -200,7 +199,7 @@ object and the ndarray.
 Trajectories
 ------------
 
-Molecular trajectories are useful for storing result from molecular
+Molecular trajectories are useful for storing results from molecular
 dynamics runs, structure optimization runs or the configurations along
 a minimum energy path from reactant to product.
 
@@ -213,9 +212,9 @@ a minimum energy path from reactant to product.
 
 This will write 10 configurations to the 'CO.traj' file.  Read it like this::
 
-  traj = PickleTrajectory('CO.traj', 'r')
-  co = traj[-1]
-  co = traj[9]  # same as above
+  traj = PickleTrajectory('CO.traj', 'r')  # read mode
+  co = traj[-1]  # last image
+  co = traj[9]   # same as above
 
 
 
@@ -224,7 +223,7 @@ This will write 10 configurations to the 'CO.traj' file.  Read it like this::
 Calculators
 ----------- 
 
-In order to calculate froces and energies, you need to attach a calculator object to your atoms object:
+In order to calculate forces and energies, you need to attach a calculator object to your atoms object:
 
 >>> co.set_calculator(EMT())
 >>> co.get_potential_energy()
@@ -232,7 +231,7 @@ In order to calculate froces and energies, you need to attach a calculator objec
 >>> co.get_forces()
 array([[  0.        ,   0.        , -16.76090913],
        [  0.        ,   0.        ,  16.76090913]])
->>> co.positions
+>>> co.get_positions()
 array([[ 0. ,  0. ,  0. ],
        [ 0. ,  0. ,  1.1]])
 >>> co.positions[1, 2] = 1.2
@@ -243,7 +242,7 @@ array([[ 0.        ,  0.        ,  1.38699718],
 Here, we used an effective medium theory calculator to calculate
 energies and forces.  There are currently five :mod:`calculators` that
 can be used with ASE: :class:`EMT`, Asap_, GPAW_, Dacapo_,
-:class:`Siesta` (and MMTK - work in progress).
+:class:`Siesta` (Abinit and MMTK - work in progress).
   
 .. _Asap: http://wiki.fysik.dtu.dk/Asap
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
@@ -256,15 +255,18 @@ can be used with ASE: :class:`EMT`, Asap_, GPAW_, Dacapo_,
 The ``ase.data`` module
 -----------------------
 
-This module defines the following variables: ``atomic_masses``, ``atomic_names``, ``chemical_symbols``, ``covalent_radii``, ``cpk_colors`` and  ``reference_states``.  All of these are lists that should be indexed with an atomic number:
+This module defines the following variables: ``atomic_masses``,
+``atomic_names``, ``chemical_symbols``, ``covalent_radii``,
+``cpk_colors`` and ``reference_states``.  All of these are lists that
+should be indexed with an atomic number:
 
->>> from ase.data import *
 >>> atomic_names[92]
 'Uranium'
 >>> atomic_masses[2]
 4.0026000000000002
 
-If you don't know the atomic number of some element, then you can look it up in the ``atomic_numbers`` dictionary:
+If you don't know the atomic number of some element, then you can look
+it up in the ``atomic_numbers`` dictionary:
 
 >>> atomic_numbers['Cu']
 29
@@ -278,7 +280,7 @@ If you don't know the atomic number of some element, then you can look it up in 
 Molecular dynamics
 ------------------
 
-Let us look at an example: Molecular dynamics with a water molecule:
+Let us look at an example: Molecular dynamics with a nitrogen molecule:
 
 >>> from ase import *
 >>> d = 1.1
@@ -305,10 +307,10 @@ Let us look at an example: Molecular dynamics with a water molecule:
 The ``dyn`` object has a method called ``run(dt, steps)`` that takes
 two arguments:  A time step for the
 integration of Newtons equation and the number of steps to take.
-Here, we take 20 steps of length 1 fs.  Since we didn't set any
+Here, we take 10 times 20 steps of length 1.0 fs.  Since we didn't set any
 initial velocities for the nitrogen molecule, the kinetic energy
 starts at 0.0 eV.  Notice also that the total energy is conserved to
-within 0.1 meV at this time step.
+within 0.1 meV for this time step.
 
 
 Initial velocities
@@ -334,12 +336,10 @@ cases.  Let's look at a simple example:  We want to relax the bond
 length of a nitrogen molecule with the first atom fixed at the
 position (0, 0, 0):
 
->>> from ase import *
->>> from ase import *
 >>> d = 1.1
 >>> n2 = Atoms('N2', positions=[(0, 0, 0), (d, 0, 0)],
 ...            calculator=EMT(),
-...      constraint=FixAtoms(indices=[0]))
+...            constraint=FixAtoms(indices=[0]))
 >>> QuasiNewton(n2).run(fmax=0.01)
 QuasiNewton:   0        0.042171       2.9357
 QuasiNewton:   1        0.001205       0.4725
@@ -404,10 +404,10 @@ optional ``data`` argument to show 3D data::
 VTK
 ---
 
-...
+XXX
 
 
 PNG and EPS files
 -----------------
 
-...
+XXX

@@ -9,22 +9,22 @@ Easy setup of surfaces
 .. module:: lattice.surface
 
 A number of utility functions are provided to set up
-the most common surfaces, to add vacuum layers, and to add adsorbated
+the most common surfaces, to add vacuum layers, and to add adsorbates
 to a surface.  In general, all surfaces can be set up with
 the `general crystal structures`_ modules documented below, but these
 utility functions make common tasks easier.
 
 Most of these modules create slabs with the smallest possible
 non-orthogonal unit cell.  If the optional parameter *orthogonal* is
-given, the smalled possible orthogonal unit cell is used (creating a
-larger unit cell, but one that is suitable for use with GPAW_).
+given, the smallest possible orthogonal unit cell is used, possibly creating a
+larger unit cell.
 
-.. _GPAW: http://wiki.fysik.dtu.dk/gpaw
+
 
 Example
 -------
 
-To setup an Al(111) surface with a hydrogen atom adsorbed in an op-top
+To setup an Al(111) surface with a hydrogen atom adsorbed in an on-top
 position::
 
     from ase.lattice.surface import *
@@ -109,18 +109,20 @@ later adding a vacuum layer with :func:`lattice.surface.add_vacuum`.
 Example
 -------
 
+XXX could the *directions* argument have default values?
+
 To set up a slab of FCC copper with the [1,-1,0] direction along the
 x-axis, [1,1,-2] along the y-axis and [1,1,1] along the z-axis, use::
 
   from ase.lattice.cubic import FaceCenteredCubic
   atoms = FaceCenteredCubic(directions=[[1,-1,0], [1,1,-2], [1,1,1]],
-                            size=(2,2,3), symbol="Cu", pbc=(1,1,0))
+                            size=(2,2,3), symbol='Cu', pbc=(1,1,0))
 
 The minimal unit cell is repeated 2*2*3 times.  The lattice constant
-is taken from the database of lattice constants in data.py.  There are
-periodic boundary conditions along the x and y axis, but free boundary
-conditions along the z axis. Since the three directions are
-perpendicular, a (111) surface is created.
+is taken from the database of lattice constants in :mod:`data` module.
+There are periodic boundary conditions along the *x* and *y* axis, but
+free boundary conditions along the *z* axis. Since the three directions
+are perpendicular, a (111) surface is created.
 
 To set up a slab of BCC copper with [100] along the first axis, [010]
 along the second axis, and [111] along the third axis use (note: the

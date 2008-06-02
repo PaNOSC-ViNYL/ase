@@ -26,8 +26,12 @@ be installed on your system.
 .. _pygtk: http://www.pygtk.org
 
 
+
+
 Installation
 ============
+
+.. index:: Installation
 
 .. highlight:: bash
 
@@ -47,7 +51,7 @@ or from this tarfile (python-ase-3.0.0.tar.gz_)::
 
 If you have root-access, you do this::
 
-  $ python setup.py install
+  $ sudo python setup.py install
 
 .. note::
 
@@ -55,11 +59,10 @@ If you have root-access, you do this::
    
      $ python setup.py install --home=$HOME
    
-   Then, put the directory
-   :file:`$HOME/ase` in your :envvar:`PYTHONPATH` environment variable,
-   and the directory :file:`$HOME/ase/tools` in your :envvar:`PATH`
-   environment variable.  Do this permanently in your :file:`~/.bashrc`
-   file::
+   Then, put the directory :file:`$HOME/ase` in your :envvar:`PYTHONPATH`
+   environment variable, and the directory :file:`$HOME/ase/tools` in
+   your :envvar:`PATH` environment variable.  Do this permanently in
+   your :file:`~/.bashrc` file::
    
      export PYTHONPATH=$HOME/ase:$PYTHONPATH
      export PATH=$PATH:$HOME/ase/tools
@@ -68,6 +71,9 @@ If you have root-access, you do this::
    
      setenv PYTHONPATH ${HOME}/ase:${PYTHONPATH}
      setenv PATH ${PATH}:${HOME}/ase/tools
+
+   If you used the tar-file, then replace :file:`$HOME/ase` with
+   :file:`$HOME/python-ase-3.0.0`.
 
    Instead of :envvar:`HOME`, you may use any other directory.
 
@@ -79,7 +85,7 @@ Run the tests
 =============
 
 Make sure that everything works by running the :mod:`test
-suite<test>`.  This will create many files, so run the tests in a new
+suite <test>`.  This will create many files, so run the tests in a new
 directory::
 	
   $ cd /tmp
@@ -103,6 +109,6 @@ License
 XXX put this in a file!
 
 The CAMPOS Atomic Simulation Environment is released under the GNU
-Public License version 2.  See the file LICENSE which accompanies the
-downloaded files, or see the license at GNU's web server at
-http://www.gnu.org/licenses/gpl.html.
+Public License version 2.  See the file :svn:`LICENSE.txt` which
+accompanies the downloaded files, or see the license at GNU's web
+server at http://www.gnu.org/licenses/gpl.html.

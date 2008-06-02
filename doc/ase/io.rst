@@ -5,121 +5,79 @@
 File input and output
 =====================
 
-The ``io`` module has two basic methods: ``read`` and ``write``, both
-of which are accessed by either::
+The :mod:`io` module has two basic functions: :func:`read` and :func:`write`.
+The two methods are described here:
 
-  >>> from ase import *
+.. autofunction:: ase.io.read
+.. autofunction:: ase.io.write
 
-or::
-  
-  >>> from ase.io import read, write
+The :func:`read` function is only designed to retrive the atomic configuration
+from a file, but for the CUBE format you can import the function:
 
-The two methods are described below:
-
-.. function:: read(filename, index=-1, format=None)
-    
-  Read Atoms object(s) from file.
-
-  ::
-
-    filename: str
-        Name of the file to read from.
-    index: int or slice
-        If the file contains several configurations, the last configuration
-        will be returned by default.  Use index=n to get configuration
-        number n (counting from zero).
-    format: str
-        Used to specify the file-format.  If not given, the file-format
-        will be guessed.
-
-  The accepted input formats:
-
-  =========================  ===========
-  format                     short name
-  =========================  ===========
-  GPAW restart-file          gpw
-  Dacapo netCDF output file  dacapo
-  Old ASE netCDF trajectory  nc
-  Virtual Nano Lab file      vnl
-  ASE pickle trajectory      traj
-  GPAW text output           gpaw-text
-  CUBE file                  cube
-  Dacapo text output         dacapo-text
-  XYZ-file                   xyz
-  =========================  ===========
+.. function:: read_cube_data
 
 
-The ``read`` method is only designed to retrive the atom configuration
-from a file, but for the `cube` format you can import read_cube::
-
-  >>> from ase.io.cube import read_cube
-
-which takes the additional keyword flag ``read_data`` which if set to
-``True`` causes ``read_cube`` to return a ``(data, atoms)`` tuple.
-
-.. function:: write(filename, images, format=None, **kwargs)
+which will return a ``(data, atoms)`` tuple::
    
-  Write Atoms object(s) to file.
+  from ase.io.cube import read_cube_data
+  data, atoms = read_cube_data('abc.cube')
 
-  ::
 
-    filename: str
-        Name of the file to write to.
-    images: Atoms object or list of Atoms objects
-        A single Atoms object or a list of Atoms objects.
-    format: str
-        Used to specify the file-format.  If not given, the file-format
-        will be taken from suffix of the filename.
 
-  The accepted output formats:
+Examples
+========
 
-  =========================  ===========
-  format                     short name
-  =========================  ===========
-  Old ASE netCDF trajectory  nc
-  ASE pickle trajectory      traj
-  CUBE file                  cube
-  XYZ-file                   xyz
-  Protein Data Bank          pdb
-  gOpenMol .plt file         plt  
-  Python script              py
+::
 
-  Encapsulated Postscript    eps
-  Portable Network Graphics  png
-  Persistance of Vision      pov
-  =========================  ===========
+  from ase.lattice.surface import *
+  adsorbate = Atoms('CO')
+  adsorbate[1].z = 1.1
+  slab = fcc111('Cu', (2, 2, 3))
+  add_adsorbate(slab, adsorbate, 1.8, 'ontop')
+  add_vacuum(slab, 7.0)
 
-  The use of additional keywords is format specific.
+XXX should we use slab.center instead of add_vacuum?
 
-  The ``cube`` and ``plt`` formats accept (plt requires it) a ``data``
-  keyword, which can be used to write a 3D array to the file along
-  with the nuclei coordinates. The array must be real-valued.
+XXX how is vacuum=7 defined?
 
-  The ``eps``, ``png``, and ``pov`` formats are all graphics formats,
-  and accept the additional keywords::
+XXX should pbc be (1,1,0)?
+ 
+Write PNG image::
 
-    rotation='', show_unit_cell=0, radii=None, bbox=None, colors=None
+  write('slab.png', slab * (3, 3, 1), rotation='10z,-80x')
 
-  ::
+.. image:: io1.png
+   :scale: 35
 
-    rotation: str
-      The rotation angles, e.g. '45x,70y,90z'
-    show_unit_cell: int
-      Can be 0, 1, 2 to either not show, show, or show all of the unit cell
-    radii: array
-      An array of same length as the list of atoms, indicating the sphere radii
-    bbox: array
-      XXX
-    colors: array
-      An array of same length as the list of atoms, indicating the rgb color
-      code for each atom
+Write POVRAY file::
 
-  The ``pov`` accepts the additional keywords:
-  
-  XXX
+  write('slab.pov', slab * (3, 3, 1), rotation='10z,-80x')
 
-  For ``pov`` the elements of the color array can also be strings, or 4,
-  and 5 vectors.
+This will write both a .pov and a .ini file.  Convert to PNG with
+``povray slab.ini``:
 
-  XXX
+.. image:: io2.png
+   :scale: 35
+
+Note that the XYZ-format does not contain information about the unic cell:
+
+>>> write('slab.xyz', slab)
+>>> a = read('slab.xyz')
+>>> a.get_cell()
+array([[ 1.,  0.,  0.],
+       [ 0.,  1.,  0.],
+       [ 0.,  0.,  1.]])
+>>> a.get_pbc()
+array([False, False, False], dtype=bool)
+
+Use ASE's native format for writing all information:
+
+>>> write('slab.traj', slab)
+>>> b = read('slab.traj')
+>>> b.get_cell()
+array([[  5.10531096e+00,  -4.11836034e-16,   1.99569088e-16],
+       [  2.55265548e+00,   4.42132899e+00,   7.11236625e-17],
+       [  8.11559027e+00,   4.68553823e+00,   1.32527034e+01]])
+>>> b.get_pbc()
+array([ True,  True,  True], dtype=bool)
 

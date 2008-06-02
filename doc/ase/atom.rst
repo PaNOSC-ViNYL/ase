@@ -16,18 +16,22 @@ script, atoms can be created like this:
 .. class:: Atom(symbol='X', position=(0, 0, 0), tag=None, momentum=None, mass=None, magmom=None, charge=None, atoms=None, index=None)
 
 
-The first argument to the constructor of an :class:`Atom` object is the
-chemical symbol, and the second argument is the position.  The
-position can be any numerical sequence of length three.  The
-properties of an atom can also be set using keywords like it is done
-in the ``a2`` example.
+The first argument to the constructor of an :class:`Atom` object is
+the chemical symbol, and the second argument is the position in Å
+units (see :mod:`units`).  The position can be any numerical sequence
+of length three.  The properties of an atom can also be set using
+keywords like it is done in the *a2* and *a3* examples above.
 
 The different properties of an atom can generally be obtained with a
 "get-method" and changed with a "set-method". For example for the position of the atom:
 
 >>> a1.set_position([1,0,0])
 >>> a1.get_position()
-[1,0,0] XXX ndarray?
+array([ 1.,  0.,  0.])
+>>> a1.z = 2.5
+>>> a1.position
+array([ 1. ,  0. ,  2.5])
+>>> a2.magmom = 1.0
 
 
 .. seealso::
@@ -36,7 +40,7 @@ The different properties of an atom can generally be obtained with a
      All the details!
 
    :mod:`atoms`:
-     More information about how to use atoms
+     More information about how to use collections of atoms.
 
    :mod:`calculators`:
      Information about how to calculate forces and energies of atoms.

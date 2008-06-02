@@ -1,3 +1,5 @@
+.. _atommanip:
+
 Manipulating atoms
 ------------------
 

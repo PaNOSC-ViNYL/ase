@@ -16,8 +16,7 @@ Contents
 * :ref:`glossary`
 
 
-The complete table of contents
-==============================
+The complete table of contents:
 
 .. toctree::
 

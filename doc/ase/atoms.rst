@@ -7,10 +7,14 @@ XXX This page needs more work!
 
 .. class:: Atoms
 
+   XXX first argument symbols, second argument positions ... :mod:`units` ...
+
+
+
 Working with the methods of Atoms objects
 -----------------------------------------
 
-Like with a single :class:`~atom.Atom` the properties of a collection of atoms
+Like with a single :class:`Atom` the properties of a collection of atoms
 can be accessed and changed with get- and set-methods. For example
 the positions of the atoms can be addressed as
 
@@ -25,22 +29,22 @@ array([[ 2.,  0.,  0.],
        [ 0.,  2.,  2.],
        [ 2.,  2.,  0.]])
 
-It is also possible to work directly with the attribute "position" for
-a single atom or "positions" for several atoms. Here we change the
+It is also possible to work directly with the attribute *position* for
+a single atom or *positions* for several atoms. Here we change the
 position of the 2nd atom (which has count number 1 because Python
 starts at zero):
 
->>> a[1].position=(1,1,0)
+>>> a[1].position=(1, 1, 0)
 >>> a.get_positions()
 array([[2., 0., 0.],
-	    [1., 1., 0.],
-	    [2., 2., 0.]])
+      [1., 1., 0.],
+      [2., 2., 0.]])
 >>> a.positions
 array([[2., 0., 0.],
-	    [1., 1., 0.],
-	    [2., 2., 0.]])
+       [1., 1., 0.],
+       [2., 2., 0.]])
 
-The :class:`~ase.atoms.Atoms` object holds a unit cell which by
+The :class:`Atoms` object holds a unit cell which by
 default is the 3x3 unit matrix as can be seen from
 
 >>> a.get_cell()
@@ -63,7 +67,7 @@ array([[ 2.,  0.,  0.],
        [ 1.,  1.,  0.],
        [ 2.,  2.,  0.]])
 
-However if we set scale_atoms=True the atomic positions are scaled with
+However if we set ``scale_atoms=True`` the atomic positions are scaled with
 the unit cell:
 
 >>> a.set_cell(identity(3), scale_atoms=True)
@@ -74,10 +78,9 @@ array([[ 1. ,  0. ,  0. ],
 
 The :epydoc:`ase.atoms.Atoms.set_pbc` method specifies whether
 periodic boundary conditions are to be used in the directions of the
-three vectors of the unit cell. With the default unit cell
-[(1,0,0),(0,1,0),(0,0,1)] a slab calculation with periodic boundary
-conditions in x and y and free boundary condtions in z is obatined
-through
+three vectors of the unit cell.  A slab calculation with periodic
+boundary conditions in *x* and *y* directions and free boundary
+condtions in the *z* direction is obatined through
 
 >>> a.set_pbc((True, True, False))
 
@@ -109,5 +112,3 @@ temperature smearing of the occupation numbers extrapolated to zero
 temperature. More about this can be found for the different
 :mod:`calculators` XXX Is get_potential_energy well defined for the
 different calculators ? XXX
-
-More information about how to manipulate 

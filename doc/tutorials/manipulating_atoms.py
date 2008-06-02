@@ -11,7 +11,7 @@ cell=[(2/sqrt(2.)*a, 0, 0),
       (1/sqrt(2.)*a, sqrt(3./2.)*a, 0),
       (0, 0, 10*sqrt(3.)/3.*a)]
 atoms.set_cell(cell, scale_atoms=True)
-write('a1.png', atoms, rotation='-73x', show_unit_cell=True)
+write('a1.png', atoms, rotation='-73x', show_unit_cell=2)
 a = atoms.repeat((3, 3, 2))
 a.set_cell(atoms.get_cell())
 write('a2.png', a, rotation='-73x', show_unit_cell=True)

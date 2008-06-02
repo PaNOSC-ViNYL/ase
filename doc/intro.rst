@@ -26,7 +26,7 @@ number of "design goals" as:
 
 :Simplicity in development:
   The ASE defines a set of interfaces for different objects, i.e. an
-  :class:`~ase.atoms.Atoms` object is required to posses a method with the name
+  :class:`Atoms` object is required to posses a method with the name
   :meth:`get_positions` which returns the coordinates of
   the atom. By following a few such standard interfaces it is easy for
   new users to get access to all of the functionality of ASE.
@@ -41,7 +41,10 @@ number of "design goals" as:
   interfaces make it simple to contribute new functionality to ASE.
 
 :Pythonic:
-  It fits nicely into the rest of the Python world, and *it fits your brain*.
+  It fits nicely into the rest of the Python world with heavy
+  use of the popular :term:`NumPy` package for numerical work.  The
+  use of the Python language allows ASE to be used both interactively
+  as well as in scripts.
 
 :Open to participation:
   All of the code in ASE is carrying the :term:`GNU General Public License`

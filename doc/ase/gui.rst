@@ -8,20 +8,16 @@
 ASE-GUI
 =======
 
+.. image:: http://web2.fysik.dtu.dk/ag.png
+   :scale: 25
+   :height: 400
+
 
 Files
 -----
 
-AG can read the following types of files:
-
-XXX ref to io
-
-* ASE trajectory files
-* XYZ files
-* GPAW text files and restart files
-* Dacapo text and nc-files
-* CUBE files
-* VNL files
+The :program:`ag` program can read all the file formats the ASE's
+:func:`~io.read` function can understand.
 
 .. highlight:: bash
 
@@ -55,6 +51,9 @@ the :option:`-n` or :option:`--image-number` option::
 
   Type :program:`ag -h` for a description of all command line options.
 
+XXX latex shows --image-number as -image-number!
+
+
 
 Writing files
 -------------
@@ -79,7 +78,7 @@ function of the distance between atom 0 and 5::
 
 These are the symbols that can be used:
 
-==========  ==========================
+==========  ================================
 e           energy
 fmax        maximum force
 fave        average force
@@ -88,28 +87,34 @@ R[n,0-2]    position of atom number n
 i           current image number
 E[i]        energy of image number i
 F[n,0-2]    force on atom number n
+M[n]        magnetic moment of atom number n
 A[0-2,0-2]  unit-cell basis vectors 
 s           path length
-==========  ==========================
+==========  ================================
 
 
 Interactive use
 ---------------
 
-AG can also be launched directly from a Python script or interactive session:
+The :program:`ag` program can also be launched directly from a Python
+script or interactive session:
 
 >>> from ase import *
 >>> atoms = ...
 >>> view(atoms)
 
+or
+
+>>> view(atoms, repeat=(3, 3, 2))
 
 
-NEB and ANEB calculations
+
+
+NEB calculations
 =========================
 
 Use :menuselection:`Tools --> NEB`  to plot energy barrier.
 
 ::
   
-  $ ag --aneb *.traj
   $ ag --interpolate 3 initial.xyz final.xyz -o interpolated_path.traj

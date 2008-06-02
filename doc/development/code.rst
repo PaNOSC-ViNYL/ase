@@ -2,6 +2,24 @@
 Writing code
 ============
 
+Importing modules
+=================
+
+We distinguish between scripts and code.  In scripts, like the ones
+found in the examples and tutorials, we use::
+
+  from ase import *
+
+which gives us the most used symbols.
+
+I code, like the implementation of ASE, we should *not* use the
+``import *`` syntax.  Import everthing explicitly from exactly the
+place where it's defined::
+
+  from ase.io import read, write
+
+
+
 Python Coding Conventions
 =========================
 
