@@ -168,7 +168,7 @@ class Images:
                       pbc=self.pbc)
         atoms.set_calculator(SinglePointCalculator(self.E[frame],
                                                    self.F[frame],
-                                                   None, atoms))
+                                                   None, None, atoms))
         return atoms
                            
     def delete(self, i):
