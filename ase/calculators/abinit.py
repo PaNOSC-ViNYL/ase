@@ -169,11 +169,26 @@ class Abinit:
         """Write input parameters to files-file."""
         fh = open(self.label + '.files', 'w')
 
+        import getpass
+        #find a suitable default scratchdir (should be writeable!)
+        username=getpass.getuser()
+
+        if os.access("/scratch/"+username,os.W_OK):
+                scratch = "/scratch/"+username
+        elif os.access("/scratch/",os.W_OK):
+                scratch = "/scratch/"
+        else:
+                if os.access(os.curdir,os.W_OK):
+                        scratch = os.curdir #if no /scratch use curdir
+                else:
+                        raise IOError,"No suitable scratch directory and no write access to current dir"
+
         fh.write('%s\n' % (self.label+'.in')) # input
         fh.write('%s\n' % (self.label+'.txt')) # output
         fh.write('%s\n' % (self.label+'i')) # input
         fh.write('%s\n' % (self.label+'o')) # output
-        fh.write('%s\n' % (self.label)) # label
+        # scratch files
+        fh.write('%s\n' % (os.path.join(scratch, self.label+'.abinit')))
         # Provide the psp files
         for ppp in self.ppp_list:
             fh.write('%s\n' % (ppp)) # psp file path
