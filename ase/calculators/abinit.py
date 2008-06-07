@@ -119,8 +119,8 @@ class Abinit:
                 filename = join(path, name)
                 if isfile(filename) or islink(filename):
                     found = True
+                    self.ppp_list.append(filename)
                     break
-            self.ppp_list.append(filename)
             if not found:
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
 
