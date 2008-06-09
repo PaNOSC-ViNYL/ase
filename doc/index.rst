@@ -13,7 +13,7 @@ for manipulating atoms, analyzing simulations, visualization etc.
 
 Supported :mod:`calculators`:
 
-   |gpaw| |siesta|
+   |gpaw| |abinit| |siesta|
 
    Dacapo_ Asap_ :class:`~ase.calculators.emt.EMT`
 
@@ -22,6 +22,9 @@ Supported :mod:`calculators`:
 .. |gpaw| image:: _static/gpaw.png
    :height: 50
    :target: http://wiki.fysik.dtu.dk/gpaw
+.. |abinit| image:: _static/abinit.org.png
+   :height: 50
+   :target: ase/calculators/abinit.html
 .. |siesta| image:: _static/siesta.png
    :height: 50
    :target: ase/calculators/siesta.html
@@ -37,6 +40,8 @@ Supported :mod:`calculators`:
 
 News
 ====
+
+* An experimental abinit interface released (9 June 2008).
 
 * Thursday April 24 will be ASE documentation-day.  Ten people from
   CAMd/Cinf will do a "doc-sprint" from 9 to 16.  (17 Apr 2008)

@@ -207,9 +207,7 @@ class Abinit:
             #'SystemLabel': self.label,
             #'LatticeConstant': 1.0,
             'natom': len(atoms),
-            'ecut': str(self.meshcutoff)+' eV', # defaul Ha
             'charge': self.charge,
-            #'ElectronicTemperature': self.width,
             'nband': self.nbands,
             #'DM.UseSaveDM': self.converged,
             #'PAO.BasisSize': self.basis,
@@ -217,6 +215,13 @@ class Abinit:
             'npulayit': self.pulay, # default 7
             'diemix': self.mix
             }
+
+        if self.meshcutoff is not None:
+            inp['ecut'] = str(self.meshcutoff)+' eV' # default Ha
+
+        if self.width is not None:
+            inp['tsmear'] = str(self.width)+' eV' # default Ha
+            fh.write('occopt 3 \# Fermi-Dirac smearing\n')
 
         inp['ixc'] = { # default 1
             'LDA':     7,
