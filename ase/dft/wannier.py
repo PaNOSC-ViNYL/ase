@@ -218,23 +218,25 @@ class Wannier:
                 k = self.kklst_dk[d].tolist().index(k1)
                 self.invkklst_dk[d, k1] = k
 
-    def initialize(self, calc, initialwannier=None, seed=None, bloch=False):
+
+    def initialize(self, calc, first=True, initialwannier=None,
+                   seed=None, bloch=False):
         calc = wrap(calc)
         Nw = self.nwannier
         Nb = self.nbands
-        self.Z_dkww = npy.empty((self.Ndir, self.Nk, Nw, Nw), self.dtype)
-        self.Z_dknn = npy.empty((self.Ndir, self.Nk, Nb, Nb), self.dtype)
-        self.V_knw = npy.empty((self.Nk, Nb, Nw), self.dtype)
 
-        # Calculate Z matrix for the Bloch states
-        for d in range(self.Ndir):
-            for k in range(self.Nk):                
-                # get next kpoint K1 and reciprocal lattice vector K0
-                # given kpoint K that fulfills the criteria : K1-K+K0=Gdir
-                k1, k0_c = self.get_next_kpoint(d, k)
-                self.Z_dknn[d, k] = calc.get_wannier_localization_matrix(
-                    nbands=Nb, dirG=self.Gdir_dc[d], kpoint=k,
-                    nextkpoint=k1, G_I=k0_c, spin=self.spin)
+        if first:
+            self.Z_dkww = npy.empty((self.Ndir, self.Nk, Nw, Nw), self.dtype)
+            self.Z_dknn = npy.empty((self.Ndir, self.Nk, Nb, Nb), self.dtype)
+            self.V_knw = npy.empty((self.Nk, Nb, Nw), self.dtype)
+            for d in range(self.Ndir):
+                for k in range(self.Nk):                
+                    # get next kpoint K1 and reciprocal lattice vector K0
+                    # given kpoint K that fulfills the criteria : K1-K+K0=Gdir
+                    k1, k0_c = self.get_next_kpoint(d, k)
+                    self.Z_dknn[d, k] = calc.get_wannier_localization_matrix(
+                        nbands=Nb, dirG=self.Gdir_dc[d], kpoint=k,
+                        nextkpoint=k1, G_I=k0_c, spin=self.spin)
 
         # Initialize rotation and coefficient matrices
         if bloch is True:
@@ -471,17 +473,17 @@ class Wannier:
         if not hasattr(self, hop_rww):
             self.R_rc = []
             self.hop_rww = []
-            for n1 in range(-N1, N1 + 1):
-                for n2 in range(-N2, N2 + 1):
-                    for n3 in range(-N3, N3 + 1):
+            for n1 in xrange(-N1, N1 + 1):
+                for n2 in xrange(-N2, N2 + 1):
+                    for n3 in xrange(-N3, N3 + 1):
                         R = [n1, n2, n3]
-                        if self.GetMinimumDistance(R) < self.couplingradius:#XX
+                        if self.get_min_distance(R) < self.couplingradius: #XXX
                             self.R_rc.append(R)
                             self.hop_rww.append(self.get_hopping(R, calc))
                             
-        Hk = npy.zeros([self.nwannier, self.nwannier], complex)
+        Hk = npy.zeros([self.nwannier, self.nwannier], self.dtype)
         for R, hop_ww in zip(self.R_rc, self.hop_rww):
-            filter = self.distance_array()[R + max] < self.couplingradius # XXX
+            filter = self.distances(R) < self.couplingradius # XXX
             phase = npy.exp(+2.j * pi * npy.dot(npy.array(R), kpt_c))
             Hk += hop_ww * filter * phase
         return npy.sort(npy.linalg.eigvals(Hk).real)
@@ -497,7 +499,7 @@ class Wannier:
         dim = calc.get_number_of_grid_points()
         largedim = dim * [N1, N2, N3]
         
-        wanniergrid = npy.zeros(largedim, dtype=complex)
+        wanniergrid = npy.zeros(largedim, dtype=self.dtype)
         for k, kpt_c in enumerate(self.kpt_kc):
             # The coordinate vector of wannier functions
             if type(index) == int:
@@ -511,9 +513,9 @@ class Wannier:
                                                                pad=True)
 
             # Distribute the small wavefunction over large cell:
-            for n1 in range(N1):
-                for n2 in range(N2):
-                    for n3 in range(N3):
+            for n1 in xrange(N1):
+                for n2 in xrange(N2):
+                    for n3 in xrange(N3):
                         e = npy.exp(2.j * pi * npy.dot([n1, n2, n3], kpt_c))
                         wanniergrid[n1 * dim[0]:(n1 + 1) * dim[0],
                                     n2 * dim[1]:(n2 + 1) * dim[1],
@@ -545,14 +547,6 @@ class Wannier:
     def get_gradients(self):
         """Determine gradient of the spread functional
 
-        We must minimize the functional::
-
-          Rho_L=Rho- sum_{k,n,m} lambda_{k,nm} <c_{kn}|c_{km}>
-
-        The lagrange multipliers lambda_k are estimated as
-        lambda_k^T = c_k^d G_k where c are the coefficients and G is the
-        gradient of the spread functional wrt. the c_k
-        
         The gradient for a rotation A_kij is::
         
            dU = dRho/dA_{k,i,j} = sum(I) sum(k')
@@ -561,26 +555,33 @@ class Wannier:
     
         The gradient for a change of coefficients is::
         
-          dRho/da^*_{k,i,j} = sum(I) [[(Z_0)_{k} V_{k'} diag(Z^*) + (Z_0_{k''})^d V_{k''} diag(Z)] U_k^d]_{N+i,N+j}
+          dRho/da^*_{k,i,j} = sum(I) [[(Z_0)_{k} V_{k'} diag(Z^*) +
+                                       (Z_0_{k''})^d V_{k''} diag(Z)] *
+                                       U_k^d]_{N+i,N+j}
 
         where diag(Z) is a square,diagonal matrix with Z_nn in the diagonal, 
-        k'=k+dk and k=k''+dk.
+        k' = k + dk and k = k'' + dk.
 
-        Due to the lagrange multipliers (which
-        
+        The extra degrees of freedom chould be kept orthonormal to the fixed
+        space, thus we introduce lagrange multipliers, and minimize instead::
+
+            Rho_L=Rho- sum_{k,n,m} lambda_{k,nm} <c_{kn}|c_{km}>
+
+        for this reason the coefficient gradients should be multiplied
+        by (1 - c c^d).
         """
         Nb = self.nbands
         Nw = self.nwannier
         
         dU = []
         dC = []
-        for k in range(self.Nk):
+        for k in xrange(self.Nk):
             M = self.fixedstates_k[k]
             L = self.edf_k[k]
             U_ww = self.U_kww[k]
             C_ul = self.C_kul[k]
-            Utemp_ww = npy.zeros([Nw, Nw], complex)
-            Ctemp_nw = npy.zeros((Nb, Nw), complex)
+            Utemp_ww = npy.zeros([Nw, Nw], self.dtype)
+            Ctemp_nw = npy.zeros((Nb, Nw), self.dtype)
 
             for d, weight in enumerate(self.weight_d):
                 if abs(weight) < 1.0e-6:
