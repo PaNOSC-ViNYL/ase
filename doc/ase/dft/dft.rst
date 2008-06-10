@@ -10,3 +10,4 @@ Density Functional Theory
 
    wannier
    stm
+   bader
