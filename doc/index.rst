@@ -22,7 +22,7 @@ Supported :mod:`calculators`:
 .. |gpaw| image:: _static/gpaw.png
    :height: 50
    :target: http://wiki.fysik.dtu.dk/gpaw
-.. |abinit| image:: _static/abinit.org.png
+.. |abinit| image:: _static/abinit.png
    :height: 50
    :target: ase/calculators/abinit.html
 .. |siesta| image:: _static/siesta.png

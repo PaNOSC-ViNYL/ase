@@ -90,7 +90,7 @@ describing which Bader volume it belongs to.
 
 The plot below shows the dividing surfaces of the Hydrogen Bader volumes.
 
-.. image:: ../../_static/water_divide_surf.png
+.. image:: water_divide_surf.png
    :height: 200
 
 
