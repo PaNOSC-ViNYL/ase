@@ -14,17 +14,21 @@ class PickleTrajectory:
         self.open(filename, mode)
         
     def open(self, filename, mode):
+        self.fd = filename
         if mode == 'r':
-            self.fd = open(filename, mode + 'b')
+            if isinstance(filename, str):
+                self.fd = open(filename, mode + 'b')
             self.read_header()
         elif mode == 'a':
-            self.fd = open(filename, mode + 'b+')
+            if isinstance(filename, str):
+                self.fd = open(filename, mode + 'b+')
             self.read_header()
         elif mode == 'w':
             if rank == 0:
-                if os.path.isfile(filename):
-                    os.rename(filename, filename + '.bak')
-                self.fd = open(filename, 'wb')
+                if isinstance(filename, str):
+                    if os.path.isfile(filename):
+                        os.rename(filename, filename + '.bak')
+                    self.fd = open(filename, 'wb')
             else:
                 self.fd = devnull
         else:
@@ -179,6 +183,10 @@ def write_trajectory(filename, images):
         images = [images]
         
     for atoms in images:
+        calc = atoms.get_calculator()
+        # XXX check if calculator has energies,forces,stresses
+        atoms.set_calculator(None)
         traj.write(atoms)
+        atoms.set_calculator(calc)
 
     traj.close()

@@ -1,10 +1,7 @@
 import os
-import pickle
 import tempfile
 
-from ase.io.xyz import write_xyz
-from ase.io.cube import write_cube
-from ase.io.plt import write_plt
+from ase.io import write
 import ase.parallel as parallel
 
 try:
@@ -14,7 +11,7 @@ except:
 else:
     oldase = True
 
-def view(atoms, data=None, viewer=None, repeat=None):
+def view(atoms, data=None, viewer='ag', repeat=None):
     # Ignore for parallel calculations:
     if parallel.size != 1:
         return
@@ -26,48 +23,33 @@ def view(atoms, data=None, viewer=None, repeat=None):
         else:
             raise RuntimeError('conversion to old ASE not available')
 
-    viewers = ['ase.gui', 'gopenmol', 'vmd', 'rasmol']
-    if viewer is not None:
-        viewer = viewer.lower()
-        viewers.remove(viewer)
-        viewers.insert(0, viewer)
-    for viewer in viewers:
-        try:
-            if viewer == 'ase.gui':
-                from ase.io.trajectory import write_trajectory
-                filename = tempfile.mktemp('.traj', 'ag-')
-                calc = atoms.get_calculator()
-                atoms.set_calculator(None)
-                write_trajectory(filename, atoms)
-                atoms.set_calculator(calc)
-                if repeat is None:
-                    option = ''
-                else:
-                    option = '--repeat=%d,%d,%d ' % tuple(repeat)
-                os.system('(ag %s%s &); (sleep 15; rm %s) &' %
-                          (option, filename, filename))
-                break
-            if viewer == 'gopenmol':
-                fd, filename = tempfile.mkstemp('.xyz', 'ag-')
-                os.close(fd)
-                write_xyz(filename, atoms)
-                if data is not None:
-                    write_plt('data.plt', atoms, data)
-                os.system('(rungOpenMol %s &); (sleep 5; rm %s) &' %
-                          (filename, filename))
-                break
-            if viewer == 'vmd':
-                fd, filename = tempfile.mkstemp('.cube', 'ag-')
-                os.close(fd)
-                write_cube(filename, atoms, data)
-                os.system('(vmd %s &); (sleep 5; rm %s) &' %
-                          (filename, filename))
-                break
-        except:
-            pass
+    if viewer == 'ag':
+        format = 'traj'
+        if repeat is None:
+            command = 'ag'
+        else:
+            command = 'ag --repeat=%d,%d,%d' % tuple(repeat)
+            repeat = None
+    elif viewer == 'vmd':
+        format = 'cube'
+        command = 'vmd'
+    elif viewer == 'rasmol':
+        format = 'pdb'
+        command = 'rasmol -pdb'
+    elif viewer == 'xmakemol':
+        format = 'xyz'
+        command = 'xmakemol -f'
+    elif viewer == 'gopenmol':
+        format = 'xyz'
+        command = 'rungOpenMol'
+    else:
+        raise RuntimeError('Unknown viewer: ' + viewer)
 
-
-#def g2():
-#    pass
-
-#def vmd, rasmol, xmakemol
+    fd, filename = tempfile.mkstemp('.' + format, 'ase-')
+    fd = os.fdopen(fd, 'w')
+    if repeat is not None:
+        atoms = atoms.repeat()
+    write(fd, atoms, format=format, data=data)
+    fd.close()
+    os.system('%s %s &' % (command, filename))
+    os.system('(sleep 60; rm %s) &' % filename)
