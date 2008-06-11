@@ -21,7 +21,7 @@ recommended to check for convergnce in this parameter (which should
 usually by smaller than the default value).
 
 The program takes cube input files. It does *not* support units, and
-assumes atomic units for the density (Bohr^-3/2).
+assumes atomic units for the density (Bohr^-3).
 
 All ase dft calculators have a ``get_pseudo_density`` method, which
 can be used to get the density. A simple python script for making a
