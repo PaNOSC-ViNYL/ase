@@ -142,8 +142,22 @@ class OldASECalculatorWrapper:
     def get_number_of_grid_points(self):
         return npy.array(self.get_pseudo_wave_function(0, 0, 0).shape)
 
-    def get_pseudo_wave_function(self, n=0, k=0, s=0):
-        return npy.array(self.calc.GetWaveFunctionArray(n, k, s))
+    def get_pseudo_wave_function(self, n=0, k=0, s=0, pad=True):
+        kpt = self.get_bz_k_points()[k]
+        state = self.calc.GetElectronicStates().GetState(band=n, spin=s,
+                                                         kptindex=k)
+
+        # Get wf, without bolch phase (Phase = True doesn't do anything!)
+        wave = state.GetWavefunctionOnGrid(phase=False)
+
+        # Add bloch phase if this is not the Gamma point
+        if npy.all(kpt == 0):
+            return wave
+        coord = state.GetCoordinates()
+        phase = coord[0] * kpt[0] + coord[1] * kpt[1] + coord[2] * kpt[2]
+        return npy.array(wave) * npy.exp(-2.j * npy.pi * phase) # sign! XXX
+
+        #return npy.array(self.calc.GetWaveFunctionArray(n, k, s)) # No phase!
 
     def get_bz_k_points(self):
         return npy.array(self.calc.GetBZKPoints())
