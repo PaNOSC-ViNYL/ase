@@ -6,7 +6,7 @@ Henkelman *et. al* have implemented a fast and robust algorithm for
 calculating the electronic charges on individual atoms in molecules or
 crystals, based on the Bader partitioning scheme [Bader]_. In that
 method, the analysis is based purely on the electron density. The
-partitioning of the density is determined according its zero-flux
+partitioning of the density is determined according to its zero-flux
 surfaces. Details of their implementation can be found in [Tang]_. The
 program is freely available at
 http://theory.cm.utexas.edu/henkelman/research/bader/ where you will
@@ -47,7 +47,9 @@ Some calculators (e.g. gpaw) also have a method called
 Example: The water molecule
 ---------------------------
 
-The following example shows how to do Bader analysis for a water molecule::
+The following example shows how to do Bader analysis for a water molecule.
+
+First do a ground state calculation, and save the density as a cube file::
 
   from ase import *
   from gpaw import Calculator
@@ -61,12 +63,12 @@ The following example shows how to do Bader analysis for a water molecule::
   rho = calc.get_all_electron_density(gridrefinement=4, pad=True) * Bohr**3
   write('water_density.cube', atoms, data=rho)
 
-We can then analyse the density cube file by running (use `bader -h`
-for a description of the possible options)::
+Then analyse the density cube file by running (use `bader -h` for a
+description of the possible options)::
 
   $ bader -p all_atom -p atom_index water_density.cube
 
-Which will produce a number of files. The `ACF.dat` file, contains a
+This will produce a number of files. The `ACF.dat` file, contains a
 summary of the Bader analysis::
 
   |   #         X           Y           Z        CHARGE     MIN DIST
@@ -88,9 +90,11 @@ specific Bader volume).
 `AtIndex.dat` is a cube file with an integer value at each grid point,
 describing which Bader volume it belongs to.
 
-The plot below shows the dividing surfaces of the Hydrogen Bader volumes.
+The plot below shows the dividing surfaces of the Hydrogen Bader
+volumes. This was achieved by plotting a contour surface of
+`AtIndex.dat` at an isovalue of 1.5.
 
 .. image:: water_divide_surf.png
-   :height: 200
+   :height: 220
 
 
