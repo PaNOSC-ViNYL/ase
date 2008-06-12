@@ -126,7 +126,7 @@ def steepest_descent(func, step=0.005, tolerance=1.0e-6, **kwargs):
         print 'SteepestDescent: iter=%s, value=%s' % (count, fvalue)
 
 
-def md_min(func, step=0.25, tolerance=1.0e-6, **kwargs):
+def md_min(func, step=0.25, tolerance=1.0e-6, verbose=True, **kwargs):
         t = - time()
         fvalueold = 0.
         fvalue = fvalueold + 10
@@ -142,7 +142,8 @@ def md_min(func, step=0.25, tolerance=1.0e-6, **kwargs):
             if fvalue < fvalueold:
 		step *= 0.5
 	    count += 1
-            print 'MDmin: iter=%s, step=%s, value=%s' % (count, step, fvalue)
+            if verbose:
+                print 'MDmin: iter=%s, step=%s, value=%s' % (count,step,fvalue)
         t += time()
         print '%d iterations in %0.2f seconds (%0.2f ms/iter), endstep = %s'%(
             count, t, t * 1000. / count, step)
@@ -228,7 +229,7 @@ class Wannier:
         if first:
             self.Z_dkww = npy.empty((self.Ndir, self.Nk, Nw, Nw), self.dtype)
             self.Z_dknn = npy.empty((self.Ndir, self.Nk, Nb, Nb), self.dtype)
-            self.V_knw = npy.empty((self.Nk, Nb, Nw), self.dtype)
+            self.V_knw = npy.zeros((self.Nk, Nb, Nw), self.dtype)
             for d in range(self.Ndir):
                 for k in range(self.Nk):                
                     # get next kpoint K1 and reciprocal lattice vector K0
@@ -331,6 +332,8 @@ class Wannier:
             self.V_knw[k, :N] = self.U_kww[k,:N]
             if N < self.nwannier:
                 self.V_knw[k, N:] = npy.dot(self.C_kul[k], self.U_kww[k, N:])
+##             else:
+##                 self.V_knw[k, N:] = 0.0
 
         # Calculate the Zk matrix from the large rotation matrix:
         # Zk = V^d[k] Zbloch V[k1]
@@ -348,17 +351,17 @@ class Wannier:
 
         ::
         
-          pos =  L/2pi * Im(ln(Za))
+          pos =  L / 2pi * phase(diag(Z))
         """
-        #scaled = npy.log(self.Z_dww[:3, w, w]).imag / (2 * pi)
+        #scaled = npy.angle(self.Z_dww[:3, w, w]) / (2 * pi)
         #cartesian = npy.dot(scaled, self.largeunitcell_cc)
-        return npy.dot(npy.log(self.Z_dww[:3].diagonal(0, 1, 2)).imag.T,
+        return npy.dot(npy.angle(self.Z_dww[:3].diagonal(0, 1, 2)).T,
                        self.largeunitcell_cc / (2 * pi))
 
     def get_radii(self):
         """Calculate the Wannier radii
 
-        radius = sum() abs(L/2pi ln abs(Z*Zt))
+        radius = sum abs(L/2pi ln abs diag(Z * Z^d))
         """
         return npy.dot(self.largeunitcell_cc.diagonal() / (2 * pi),
                        abs(npy.log(abs(self.Z_dww[:3].diagonal(0, 1, 2))**2)))
@@ -400,7 +403,7 @@ class Wannier:
         Nw = self.nwannier
         Nb = self.nbands
         self.Z_dkww = npy.empty((self.Ndir, self.Nk, Nw, Nw), self.dtype)
-        self.V_knw = npy.empty((self.Nk, Nb, Nw), self.dtype)
+        self.V_knw = npy.zeros((self.Nk, Nb, Nw), self.dtype)
         self.Z_dknn, self.U_kww, self.C_kul = pickle.load(paropen(file))
         self.update()
 
@@ -411,18 +414,19 @@ class Wannier:
         vectors of the small cell.
         """
         for kpt_c, U_ww in zip(self.kpt_kc, self.U_kww):
-            U_ww[:, w] *= npy.exp(2.0j * pi * npy.dot(num.array(R), kpt_c))
+            U_ww[:, w] *= npy.exp(2.0j * pi * npy.dot(npy.array(R), kpt_c))
         self.update()
 
     def translate_to_cell(self, w, cell):
         """Translate the w'th Wannier function to specified cell"""
-        scaled_c = npy.log(self.Z_dww[:3, w, w]).imag / (2 * pi)
+        scaled_c = npy.angle(self.Z_dww[:3, w, w]) * self.kptgrid / (2 *pi)
         trans = npy.array(cell) - npy.floor(scaled_c)
-        self.translate_wannier_function(w, trans)
+        self.translate(w, trans)
 
     def translate_all_to_cell(self, cell=[0, 0, 0]):
         """Translate all Wannier functions to specified cell"""
-        scaled_wc = npy.log(self.Z_dww[:3].diagonal(0, 1, 2)).imag.T / (2 * pi)
+        scaled_wc = npy.angle(self.Z_dww[:3].diagonal(0, 1, 2)).T  * \
+                    self.kptgrid / (2 * pi)
         trans_wc =  npy.array(cell)[None] - npy.floor(scaled_wc)
         for kpt_c, U_ww in zip(self.kpt_kc, self.U_kww):
             U_ww *= npy.exp(2.0j * pi * npy.dot(trans_wc, kpt_c))
@@ -458,6 +462,17 @@ class Wannier:
         eps_n = calc.get_eigenvalues(kpt=k, spin=self.spin)
         return npy.dot(dag(self.V_knw[k]) * eps_n, self.V_knw[k])
 
+    def dist(self, R):
+        Nw = self.Nwannier
+        cen = self.get_center()
+        r1 = npy.reshape(cen.repeat(Nwannier),[Nw, Nw, 3])
+        r2 = cen.copy()
+        for i in range(3):
+            r2 += self.unitcell[i] * R[i]
+
+        r2 = npy.swapaxes(npy.reshape(r2.repeat(Nw), [Nw, Nw, 3]), 0, 1)
+        return npy.sqrt(npy.sum((r1-r2)**2, axis=-1))
+
     def get_hamiltonian_kpoint(self, kpt_c, calc):
         """Get Hamiltonian at some new arbitrary k-vector
 
@@ -488,13 +503,15 @@ class Wannier:
             Hk += hop_ww * filter * phase
         return npy.sort(npy.linalg.eigvals(Hk).real)
 
-    def get_function(self, calc, index):
+    def get_function(self, calc, index, repeat=None):
         """Index can be either a single WF or a coordinate vector
         in terms of the WFs."""
         calc = wrap(calc)
 
         # Default size of plotting cell is the one corresponding to k-points.
-        N1, N2, N3 = self.kptgrid
+        if repeat is None:
+            repeat = self.kptgrid
+        N1, N2, N3 = repeat
 
         dim = calc.get_number_of_grid_points()
         largedim = dim * [N1, N2, N3]
@@ -515,8 +532,8 @@ class Wannier:
             # Distribute the small wavefunction over large cell:
             for n1 in xrange(N1):
                 for n2 in xrange(N2):
-                    for n3 in xrange(N3):
-                        e = npy.exp(2.j * pi * npy.dot([n1, n2, n3], kpt_c))
+                    for n3 in xrange(N3): # sign?
+                        e = npy.exp(-2.j * pi * npy.dot([n1, n2, n3], kpt_c))
                         wanniergrid[n1 * dim[0]:(n1 + 1) * dim[0],
                                     n2 * dim[1]:(n2 + 1) * dim[1],
                                     n3 * dim[2]:(n3 + 1) * dim[2]] += e * wan_G
@@ -524,6 +541,16 @@ class Wannier:
         # Normalization
         wanniergrid /= npy.sqrt(self.Nk)
         return wanniergrid
+
+    def write_cube(self, calc, index, fname, repeat=None):
+        from ase.io.cube import write_cube
+        calc = wrap(calc)
+
+        # Default size of plotting cell is the one corresponding to k-points.
+        if repeat is None:
+            repeat = self.kptgrid
+        atoms = calc.get_atoms() * repeat
+        write_cube(fname, atoms, data=self.get_function(calc, index, repeat))
 
     def localize(self, step=0.25, tolerance=1.0e-08,
                  updaterot=True, updatecoeff=True):
