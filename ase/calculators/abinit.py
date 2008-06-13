@@ -221,7 +221,7 @@ class Abinit:
 
         if self.width is not None:
             inp['tsmear'] = str(self.width)+' eV' # default Ha
-            fh.write('occopt 3 \# Fermi-Dirac smearing\n')
+            fh.write('occopt 3 # Fermi-Dirac smearing\n')
 
         inp['ixc'] = { # default 1
             'LDA':     7,
@@ -309,6 +309,7 @@ class Abinit:
 
         fh.write('#Definition of the SCF procedure\n')
         fh.write('toldfe 1.0d-06\n')
+        fh.write('chkexit 1 # abinit.exit file in the running directory terminates after the current SCF\n')
 
         fh.close()
 
