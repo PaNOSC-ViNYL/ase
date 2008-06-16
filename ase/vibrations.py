@@ -10,59 +10,65 @@ from os.path import isfile
 import numpy as npy
 
 import ase.units as units
-from ase.data import atomic_masses
 from ase.io.trajectory import PickleTrajectory
 from ase.parallel import rank, barrier
 
 
 class Vibrations:
-    """Class for calculating vibrational modes using finite difference."""
+    """Class for calculating vibrational modes using finite difference.
+
+    The vibrational modes are calculated from a finite difference
+    approximation of the Hessian matrix.
+
+    The :meth:`summary`, *get_energies()* and *get_frequencies()*
+    methods all take an optional *method* keyword.  Use
+    method='Frederiksen' to use the method described in:
+
+      T. Frederiksen, M. Paulsson, M. Brandbyge, A. P. Jauho:
+      "Inelastic transport theory from first-principles: methodology
+      and applications for nanoscale devices", 
+      Phys. Rev. B 75, 205413 (2007) 
+
+    :atoms: Atoms object
+        The atoms to work on.
+    :indices: list of int
+        List of indices of atoms to vibrate.  Default behavior is
+        to vibrate all atoms.
+    :name: str
+        Name to use for files.
+    :delta: float
+        Magnitude of displacements.
+
+    Example:
+
+    >>> from ase import *
+    >>> from ase.vibrations import Vibrations
+    >>> n2 = Atoms('N2', [(0, 0, 0), (0, 0, 1.1)],
+    ...            calculator=EMT())
+    >>> QuasiNewton(n2).run(fmax=0.01)
+    QuasiNewton:   0        0.042171       2.9357
+    QuasiNewton:   1        0.016313       1.6546
+    QuasiNewton:   2        0.000131       0.1534
+    QuasiNewton:   3        0.000000       0.0093
+    >>> vib = Vibrations(n2)
+    >>> vib.run()
+    >>> vib.summary()
+    ---------------------
+      #    meV     cm^-1
+    ---------------------
+      0    1.7i     13.5i
+      1    1.7i     13.5i
+      2    0.0i      0.0i
+      3    0.0       0.0 
+      4    0.0       0.0 
+      5  232.8    1877.9 
+    ---------------------
+    Zero-point energy: 0.116 eV
+    
+    >>> vib.write_mode(-1)  # write last mode to trajectory file
+
+    """
     def __init__(self, atoms, indices=None, name='vib', delta=0.01):
-        """Create Vibrations object.
-
-        Parameters
-        ==========
-        atoms: Atoms object
-            The atoms to work on.
-        indices: list of int
-            List of indices of atoms to vibrate.  Default behavior is
-            to vibrate all atoms.
-        name: str
-            Name to use for files.
-        delta: float
-            Magnitude of displacements.
-
-        Example
-        =======
-
-        >>> from ase import *
-        >>> from ase.vibrations import Vibrations
-        >>> n2 = Atoms('N2', [(0, 0, 0), (0, 0, 1.1)],
-        ...            calculator=EMT())
-        >>> QuasiNewton(n2).run(fmax=0.01)
-        QuasiNewton:   0        0.042171       2.9357
-        QuasiNewton:   1        0.016313       1.6546
-        QuasiNewton:   2        0.000131       0.1534
-        QuasiNewton:   3        0.000000       0.0093
-        >>> vib = Vibrations(n2)
-        >>> vib.run()
-        >>> vib.summary()
-        ---------------------
-          #    meV     cm^-1
-        ---------------------
-          0    1.7i     13.5i
-          1    1.7i     13.5i
-          2    0.0i      0.0i
-          3    0.0       0.0 
-          4    0.0       0.0 
-          5  232.8    1877.9 
-        ---------------------
-        Zero-point energy: 0.116 eV
-        
-        >>> vib.write_mode(-1)  # write last mode to trajectory file
-
-        """
-        
 	self.atoms = atoms
         if indices is None:
             indices = range(len(atoms))
@@ -105,23 +111,25 @@ class Vibrations:
                     if isfile(name):
                         remove(name)
         
-    def read(self):
+    def read(self, method='standard'):
+        self.method = method.lower()
+        assert self.method in ['standard', 'frederiksen']
         n = 3 * len(self.indices)
         H = npy.empty((n, n))
         r = 0
         for a in self.indices:
             for i in 'xyz':
                 name = '%s.%d%s' % (self.name, a, i)
-                fminus = pickle.load(open(name + '-.pckl'))[self.indices]
-                fplus = pickle.load(open(name + '+.pckl'))[self.indices]
-                H[r] = (fminus - fplus).ravel() / (4 * self.delta)
+                fminus = pickle.load(open(name + '-.pckl'))
+                fplus = pickle.load(open(name + '+.pckl'))
+                if self.method == 'frederiksen':
+                    fminus[a] += -fminus.sum(0)
+                    fplus[a] += -fplus.sum(0)
+                H[r] = (fminus - fplus)[self.indices].ravel() / (4 * self.delta)
                 r += 1
         H += H.copy().T
         self.H = H
-        try:
-            m = self.atoms.get_masses()
-        except KeyError:
-            m = atomic_masses[self.atoms.get_atomic_numbers()]
+        m = self.atoms.get_masses()
         self.im = npy.repeat(m[self.indices]**-0.5, 3)
         omega2, modes = npy.linalg.eigh(self.im[:, None] * H * self.im)
         self.modes = modes.T.copy()
@@ -130,19 +138,19 @@ class Vibrations:
         s = units._hbar * 1e10 / sqrt(units._e * units._amu)
         self.hnu = s * omega2.astype(complex)**0.5
 
-    def get_energies(self):
+    def get_energies(self, method='standard'):
         """Get vibration energies in eV."""
-        if self.H is None:
-            self.read()
+        if self.H is None or method.lower() != self.method:
+            self.read(method)
         return self.hnu
 
-    def get_frequencies(self):
+    def get_frequencies(self, method='standard'):
         """Get vibration frequencies in cm^-1."""
         s = 0.01 * units._e / units._c / units._hplanck
-        return s * self.get_energies()
+        return s * self.get_energies(method)
 
-    def summary(self):
-        hnu = self.get_energies()
+    def summary(self, method='standard'):
+        hnu = self.get_energies(method)
         s = 0.01 * units._e / units._c / units._hplanck
         print '---------------------'
         print '  #    meV     cm^-1'
