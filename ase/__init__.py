@@ -17,6 +17,7 @@ from ase.calculators import LennardJones, EMT, ASAP, Siesta
 from ase.neb import NEB
 from ase.visualize import *
 from ase.data import *
+from ase.data.molecules import molecule
 
 import numpy as np
 #import scipy as sp
