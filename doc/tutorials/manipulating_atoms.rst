@@ -2,8 +2,9 @@
 
 Manipulating atoms
 ------------------
+**XXX rewrite this:  use fcc111() function and do some relaxation ...**
 
-We will set up a one layer slab of Ni atoms with one Ni adatom.
+We will set up a one layer slab of Ni atoms with one Ag adatom.
 
 Define the slab atoms:
 
@@ -53,24 +54,23 @@ array([[ 1.,  0.,  0.],
        [ 0.,  0.,  1.]])
 
 Now, setup a p(2x2) cell in a hexagonal surface.
-"a" is the fcc lattice constant, the cell is 10 layers high:
+Here, *a* is the fcc lattice constant, the cell is 10 layers high:
 
->>> from math import sqrt
->>> a=3.55
->>> cell=[(2/sqrt(2.)*a, 0, 0),
-...       (1/sqrt(2.)*a, sqrt(3./2.)*a, 0),
-...       (0, 0, 10*sqrt(3.)/3.*a)]
+>>> a = 3.55
+>>> cell = [(2/sqrt(2.)*a, 0, 0),
+...         (1/sqrt(2.)*a, sqrt(3./2.)*a, 0),
+...         (0, 0, 10*sqrt(3.)/3.*a)]
 >>> cell
 [(5.0204581464244864, 0, 0),
 (2.5102290732122432, 4.3478442934401409, 0),
 (0, 0, 20.495934556231713)]
 >>> atoms.set_cell(cell, scale_atoms=True)
 
-The argument scale_atoms=True indicates that the atomic positions should be
-scaled with the unit cell. The default is "scale_atoms=False" indicating that
+The argument *scale_atoms=True* indicates that the atomic positions should be
+scaled with the unit cell. The default is *scale_atoms=False* indicating that
 the cartesian coordinates remain the same when the cell is changed.
 
->>> atoms.positions
+>>> atoms.get_positions()
 array([[ 0.        ,  0.        ,  0.        ],
        [ 2.51022907,  0.        ,  0.        ],
        [ 1.25511454,  2.17392215,  0.        ],
@@ -100,7 +100,9 @@ coordinates. We try the latter:
 >>> atoms.append(Atom('Ni', (1/6., 1/6., .1)))  
 >>> atoms.set_cell(cell, scale_atoms=True)  # Set the unit cell and scale back
 
-Using the :mod:`gui`, the structure now looks like this:
+The structure now looks like this:
+
+>>> view(atoms)
 
 .. image:: a3.png
    :scale: 35

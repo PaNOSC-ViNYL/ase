@@ -7,25 +7,20 @@ Molecular dynamics
 
 Typical computer simulations involve moving the atoms around, either
 to optimize a structure (energy minimization) or to do molecular
-dynamics.    This chapter discusses molecular dynamics,
-energy minimization algorithms will be discussed in the next chapter XXX.
+dynamics.  This chapter discusses molecular dynamics, energy
+minimization algorithms will be discussed in the :mod:`optimize`
+section.
 
-
-The dynamics is an object that operate on the atoms by moving them
+A molecular dynamics object will operate on the atoms by moving them
 according to their forces - it integrates Newton's second law
 numerically.  A typical molecular dynamics simulation will use the
 `Velocity Verlet dynamics`_.  You create the
 :class:`VelocityVerlet` object, giving it the atoms and a time step, and then
-you perform dynamics by calling its ``Run(n)`` method, ``n`` is the
-number of time steps you want performed::
+you perform dynamics by calling its :meth:`run` method::
 
-  dyn = VelocityVerlet(atoms, 5.0 * femtosecond)
-  dyn.run(1000)
+  dyn = VelocityVerlet(atoms, 5.0 * fs)
+  dyn.run(1000)  # take 1000 steps
 
-
-**XXX Should the constructor or the run method take the timestep?????**
-
-  
 A number of different algorithms can be used to perform molecular
 dynamics, with slightly different results.  
 
@@ -89,7 +84,7 @@ Constant NVT simulations (the canonical ensemble)
 Since Newton's second law conserves energy and not temperature,
 simulations at constant temperature will somehow involve coupling the
 system to a heat bath.  This cannot help being somewhat artificial.
-Two different approaches are possible within the ASE.  In Langevin
+Two different approaches are possible within ASE.  In Langevin
 dynamics, each atom is coupled to a heat bath through a fluctuating
 force and a friction term.  In Nosé-Hoover dynamics, a term
 representing the heat bath through a single degree of freedom is
@@ -127,6 +122,8 @@ will not give exactly the same trajectory.
 When the ``Langevin`` object is created, you must specify a time step,
 a temperature (in energy units) and a friction.  Typical values for
 the friction are 0.01-0.02 atomic units.
+
+XXX should we use ASE units here?
 
 ::
 
@@ -170,15 +167,15 @@ combination of Nosé-Hoover and Parrinello-Rahman dynamics proposed by
 Melchionna et al. [1] and later modified by Melchionna [2].  The
 differential equations are integrated using a centered difference
 method [3].  Details of the implementation are available in the
-document NPTdynamics.tex, distributed with the module.
+document XXX NPTdynamics.tex, distributed with the module.
 
 The dynamics object is called with the following parameters:
 
 *atoms*:
-  The list of atoms.
+  The atoms object.
 
 *timestep*:
-  The timestep in units matching eV, Å, u.
+  The timestep in units matching eV, Å, u.  Use the *fs* constant.
 
 *temperature*:
   The desired temperature in eV.

@@ -10,6 +10,8 @@ The setup for the atoms in the Al(100) in a 2x2 unitcell is described below.
 
 After the import statements, the section starting with a0 = ... defines some major variables in the script ; this is not at all required, but increases the readability and reusability of the script. The part starting at atoms=Atoms(..) illustrates a three-fold python loop that iteratively builds up the slab in a layerwise fashion::
 
+    XXX use fcc001 function.
+
     from ase import *
     from numpy import sqrt,array
     a0     = 4.05         # cubic fcc lattice constant

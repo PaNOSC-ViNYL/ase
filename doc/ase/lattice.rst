@@ -2,6 +2,7 @@
 Setting up crystals and surfaces
 ================================
 
+.. default-role:: math
 
 Easy setup of surfaces
 ======================
@@ -125,13 +126,11 @@ free boundary conditions along the *z* axis. Since the three directions
 are perpendicular, a (111) surface is created.
 
 To set up a slab of BCC copper with [100] along the first axis, [010]
-along the second axis, and [111] along the third axis use (note: the
-axes are not perpendicular, the unit cell becomes slanted and will not
-be suitable for GPAW)::
+along the second axis, and [111] along the third axis use::
 
   from ase.lattice.cubic import BodyCenteredCubic
   atoms = BodyCenteredCubic(directions=[[1,0,0], [0,1,0], [1,1,1]],
-                            size=(2,2,3), symbol="Cu", pbc=(1,1,0),
+                            size=(2,2,3), symbol='Cu', pbc=(1,1,0),
 			    latticeconstant=4.0)
 
 Since BCC is not the natural crystal structure for Cu, a lattice
@@ -204,7 +203,7 @@ with a basis):
 Usage
 -----
 
-The lattice objects are called with a number of aguments specifying
+The lattice objects are called with a number of arguments specifying
 e.g. the size and orientation of the lattice.  All arguments should be
 given as named arguments.
 
@@ -235,7 +234,7 @@ given as named arguments.
 
 ``symbol``
   The element, specified by the atomic number (an integer) or by the
-  atomic symbol (i.e. "Au").  For compounds, a tuple or list of
+  atomic symbol (i.e. 'Au').  For compounds, a tuple or list of
   elements should be given.
 
 ``latticeconstant``:
@@ -247,17 +246,17 @@ given as named arguments.
   tuple (a scalar for cubic lattices).  Distances are given in
   Angstrom, angles in degrees. 
 
-  =============  =================  ==========================================
-  Structure      Lattice constants  Dictionary-keys
-  =============  =================  ==========================================
-  Cubic          a                  'a'
-  Tetragonal     (a, c)             'a', 'c' or 'c/a'
-  Orthorhombic   (a, b, c)          'a', 'b' or 'b/a', 'c' or 'c/a'
-  Triclinic      (a, b, c, alpha,   'a', 'b' or 'b/a', 'c' or
-                 beta, gamma)       'c/a', 'alpha', 'beta', 'gamma'
-  Monoclinic     (a, b, c, alpha)   'a', 'b' or 'b/a', 'c' or 'c/a', 'alpha'
-  Hexagonal      (a, c)             'a', 'c' or 'c/a'
-  =============  =================  ==========================================
+  =============  ===================  ========================================
+  Structure      Lattice constants    Dictionary-keys
+  =============  ===================  ========================================
+  Cubic          a                    'a'
+  Tetragonal     (a, c)               'a', 'c' or 'c/a'
+  Orthorhombic   (a, b, c)            'a', 'b' or 'b/a', 'c' or 'c/a'
+  Triclinic      (a, b, c, `\alpha`,  'a', 'b' or 'b/a', 'c' or
+                 `\beta`, `\gamma`)   'c/a', 'alpha', 'beta', 'gamma'
+  Monoclinic     (a, b, c, alpha)     'a', 'b' or 'b/a', 'c' or 'c/a', 'alpha'
+  Hexagonal      (a, c)               'a', 'c' or 'c/a'
+  =============  ===================  ========================================
   
   Example:
 
@@ -303,7 +302,7 @@ attribute, ``element_basis``, is added, giving which atoms in the
 basis are which element.  If there are four atoms in the basis, and
 element_basis is (0,0,1,0), then the first, second and fourth atoms
 are one element, and the third is the other element.  As an example,
-the AuCu3 structure (also known as :math:`\mathrm{L}1_2`) is defined as::
+the AuCu3 structure (also known as `\mathrm{L}1_2`) is defined as::
 
   # The L1_2 structure is "based on FCC", but is really simple cubic
   # with a basis.
@@ -350,3 +349,5 @@ use the simple cubic lattice with a larger basis::
   B1 = NaCl = Rocksalt = NaClFactory()
 
 More examples can be found in the file :svn:`ase/lattice/compounds.py`.
+
+.. default-role::

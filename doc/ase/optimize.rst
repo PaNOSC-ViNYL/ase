@@ -54,13 +54,13 @@ molecule.  We start with the experimental geometry::
   QuasiNewton:   4       -0.128045       0.8479
   QuasiNewton:   5       -0.132312       0.0397
 
+XXX What is a trajectory file?
+
 When doing structure optimization, it is useful to write the
 trajectory to a file, so that the progress of the optimization run can
 be followed during or after the run::
 
-  traj = PickleTrajectory('H2O.traj', 'w', water)
-  dyn = QuasiNewton(water)
-  dyn.attatch(traj.write)
+  dyn = QuasiNewton(water, trajectory='H2O.traj')
   dyn.run(fmax=0.05)
   
 Use the command ``ag H2O.traj`` to see what is going on (more here:
@@ -102,11 +102,10 @@ momentum is set to zero.  Unlike a "real" molecular dynamics, the
 masses of the atoms are not used, instead all masses are set to one.
 
 The MDmin algorithm exists in two flavors, one where each atom is
-tested and stopped individually (QuickMinAtomByAtom in the old ASE),
-and one where all coordinates are treated as one long vector, and all
-momenta are set to zero if the dotproduct between the momentum vector
-and force vector (both of length 3N) is zero (QuickMinAllCoordinates
-in the old ASE).  This module implements the latter version.
+tested and stopped individually, and one where all coordinates are
+treated as one long vector, and all momenta are set to zero if the
+dotproduct between the momentum vector and force vector (both of
+length 3N) is zero.  This module implements the latter version.
 
 Although the algorithm is primitive, it performs very well because it
 takes advantage of the physics of the problem.  Once the system is so

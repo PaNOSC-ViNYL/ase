@@ -1,5 +1,6 @@
 .. module:: dft.stm
 
+**XXX This page needs more work!**
 
 STMTool
 -------

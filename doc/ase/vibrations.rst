@@ -7,22 +7,8 @@ You can calculate the vibrational modes of a an
 :class:`~ase.atoms.Atoms` object in the harmonic approximation using
 the :class:`~ase.vibration.Vibrations`.
 
-For example, assuming you have a Atoms called atoms with an
-attached calculator, you can use the module like  this:
-
->>> from ASE.Utilities.VibrationalCalculation import *
-
->>> vib=VibrationalCalculation(filetoken='CO_vib',
-...                            atoms=loa,
-...                            freeatoms=[0,1],
-...                            displacements=[0.05] * 2,
-...                            method=0)
-
->>> vib.run_calculations()
-
->>> vib.print_frequencies()
-
->>> print 'Zero-point energy = %1.2f eV' % vib.get_zero_point_energy()
+.. autoclass:: ase.vibrations.Vibrations
+   :members:
 
 filetoken is a string that is prefixed to the names of all the files
 created. atoms is a Atoms that is either at a

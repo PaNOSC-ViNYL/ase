@@ -5,6 +5,8 @@ Nudged elastic band
 .. module:: neb
    :synopsis: Nudged Elastic Band method.
 
+.. default-role:: math
+
 The Nudged Elastic Band method is a technique for finding transition paths
 (and corresponding energy barriers) between given initial and final states.
 The method involves constructing a "chain" of "replicas" or "images" of the
@@ -38,8 +40,8 @@ This module defines one class:
 Example of use::
 
   # Read initial and final states:
-  initial = read('A.xyz')
-  final = read('B.xyz')
+  initial = read('A.traj')
+  final = read('B.traj')
   # Make a band consisting of 5 images:
   images = [initial]
   images += [initial.copy() for i in range(3)]
@@ -48,10 +50,10 @@ Example of use::
   # Interpolate linearly the potisions of the three middle images:
   neb.interpolate()
   # Set calculators:
-  for image in images:
+  for image in images[1:4]:
       image.set_calculator(MyCalculator(...))
   # Optimize:
-  optimizer = QuasiNewton(neb)
+  optimizer = QuasiNewton(neb, trajectory='A2B.traj')
   optimizer.run(fmax=0.04)
 
 Notice the use of the :meth:`~NEB.interpolate` method to get a good
@@ -60,6 +62,10 @@ initial guess for the path from A to B.
 .. method:: NEB.interpolate()
 
    Interpolate path linearly from initial to final state.
+
+Note also that only the internal images (not the endpoints) need have
+calculators attached.
+
 
 .. seealso::
 
@@ -75,11 +81,83 @@ initial guess for the path from A to B.
         * :ref:`neb2`
 
 
+.. note::
+
+  If there are `M` images and each image has `N` atoms, then the NEB
+  object behaves like one big Atoms object with `MN` atoms, so its
+  :meth:`get_positions` method will return a `MN \times 3` array.
+
 
 Trajectories
 ============
 
-XXX
+The line::
+
+  optimizer = QuasiNewton(neb, trajectory='A2B.traj')
+
+will write all images to one file.  The Trajector object knows about
+NEB calculations, so it will write `M` images with `N` atoms at every
+iteration and not one big configuration containing `MN` atoms.
+
+The result of the latest iteration can now be analysed with this
+command: :command:`ag A2B.traj@-5`.
+
+For the example above, you can write the images to individual
+trajectory files like this::
+
+  for i in range(1, 4):
+      qn.attach(PickleTrajectory('A2B-%d.traj' % d, 'w', images[i])
+
+The result of the latest iteration can be analysed like this:
+
+.. highlight:: bash
+
+::
+
+  $ ag A.traj A2B-?.traj B.traj -n -1 
+
+.. highlight:: python
+
+
+Restarting
+==========
+
+Restart the calculation like this::
+
+  images = read('A2B.traj@-5:')
+
+
+
+Parallelization over images
+===========================
+
+Some calculators can parallelize over the images of a NEB calculation.
+The script will have to be run with an MPI-enabled Python interpreter
+like GPAW_'s gpaw-python_.  All images exist on all processors, but
+only some of them have a calculator attached::
+
+  from ase.parallel import rank, size
+  # Number of internal images:
+  n = len(images) - 2
+  j = rank * n // size
+  for i, image in enumerate(images[1:-1]):
+      if i == j:
+          image.set_calculator(EMT())
+
+Create the NEB object with ``NEB(images, parallel=True)`` and let the
+master processes write the images::
+
+  if rank % (size // n) == 0:
+      traj = PickleTrajectory('neb%d.traj' % j, 'w', images[1 + j],
+                              master=True)
+      optimizer.attach(traj)
+
+For a complete example using GPAW_, see the here_.
+
+.. _GPAW: http://wiki.fysik.dtu.dk/gpaw
+.. _gpaw-python: http://wiki.fysik.dtu.dk/gpaw/Parallel_Runs
+.. _here: http://wiki.fysik.dtu.dk/gpaw/NEB
+
 
 
 Climbing image
@@ -97,3 +175,6 @@ of the total number of iterations).
 To use the climbing image NEB method, instantiate the NEB object like this::
 
   neb = NEB(images, climb=True)
+
+
+.. default-role::

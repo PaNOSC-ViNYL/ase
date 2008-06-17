@@ -7,9 +7,9 @@ Links to NumPy's webpage:
 
 * `Numpy example list`_
 * `Numpy functions by category`_
+* http://mentat.za.net/numpy/refguide
 
 XXX link to numpy-book
-XXX link to new numpy documentation-effort
 
 
 .. _Numpy example list: http://www.scipy.org/Numpy_Example_List_With_Doc

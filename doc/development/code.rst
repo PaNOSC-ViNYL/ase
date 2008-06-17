@@ -75,7 +75,7 @@ Conventions`_ PEPs, summarized, clarified, and extended as follows:
 .. _Docstring Conventions: http://www.python.org/peps/pep-0257.html
 .. _Docutils project: http://docutils.sourceforge.net/docs/dev/policies.html#python-coding-conventions
 
-.. note:: attention XXX
+.. attention::
 
    Thus spake the Lord: Thou shalt indent with four spaces. No more, no less.
    Four shall be the number of spaces thou shalt indent, and the number of thy

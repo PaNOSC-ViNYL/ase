@@ -50,23 +50,11 @@ Example of use::
   >>> c = FixBondLength(0, 1)
   >>> atoms.set_constraint(c)
 
-In this example the distance between the distance between the atoms
+In this example the distance between the atoms
 with indices 0 and 1 will be fixed in all following dynamics and/or
 minimizations performed on the *atoms* object.
 
-.. method:: set_bond_length(atoms, distance, fix='center')
-
-   Use this method to change the bond length between the two atoms.
-
-Example:
-
-  c.set_bond_length(atoms, 1.2, fix='first')
-
-This will will adjust the position of the second atoms to get a
-bond length of 1.2 Å.  The *fix* keyword must be ``'first'``,
-``'second'`` or ``'center'``.
-
-This method is useful for finding minimum energy barriers for
+This constraint is useful for finding minimum energy barriers for
 reactions where the path can be described well by a single bond
 length (see the :ref:`mep2` tutorial).
 

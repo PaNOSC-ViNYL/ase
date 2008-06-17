@@ -112,7 +112,7 @@ or
 NEB calculations
 =========================
 
-Use :menuselection:`Tools --> NEB`  to plot energy barrier.
+Use :menuselection:`Tools --> NEB` to plot energy barrier.
 
 ::
   

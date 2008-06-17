@@ -83,7 +83,7 @@ type         description            example
 ``tuple``    tuple                  ``(1, 'hmm', 2.0)``
 ``list``     list                   ``[1, 'hmm', 2.0]``
 ``dict``     dictionary             ``{'a': 7.0, 23: True}``
-``file``     file                   ``file('stuff.dat', 'w')``
+``file``     file                   ``open('stuff.dat', 'w')``
 ===========  =====================  ==========================
 
 A ``dict`` object is mapping from keys to values:
@@ -109,7 +109,7 @@ inplace.  Objects of types ``list`` and ``dict`` are *mutable* - all
 the other types listed in the table are *immutable*, which means that
 once an object has been created, it can not change.
 
-.. tip::
+.. note::
 
    List and dictionary objects *can* change.  Variables in
    Python are references to objects.  This is demonstrated here:
@@ -143,7 +143,7 @@ a
 7
 
 The ``things`` object could be any sequence.  Strings, tuples, lists,
-dictionaries, Numeric arrays and files are sequences.
+dictionaries, ndarrays and files are sequences.
 
 
 
@@ -177,7 +177,7 @@ of a class as a template for creating user defined objects:
 >>> o.m(2)
 5
 
-Here we just called the term:`method` ``m`` of the object ``o`` (``o`` is an
+Here we just called the :term:`method` ``m`` of the object ``o`` (``o`` is an
 :term:`instance` of the class ``C``).
 
 

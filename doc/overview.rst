@@ -223,21 +223,6 @@ This will write 10 configurations to the 'CO.traj' file.  Read it like this::
 Calculators
 ----------- 
 
-In order to calculate forces and energies, you need to attach a calculator object to your atoms object:
-
->>> co.set_calculator(EMT())
->>> co.get_potential_energy()
--0.1577706320763923
->>> co.get_forces()
-array([[  0.        ,   0.        , -16.76090913],
-       [  0.        ,   0.        ,  16.76090913]])
->>> co.get_positions()
-array([[ 0. ,  0. ,  0. ],
-       [ 0. ,  0. ,  1.1]])
->>> co.positions[1, 2] = 1.2
->>> co.get_forces()
-array([[ 0.        ,  0.        ,  1.38699718],
-       [ 0.        ,  0.        , -1.38699718]])
 
 Here, we used an effective medium theory calculator to calculate
 energies and forces.  There are currently five :mod:`calculators` that

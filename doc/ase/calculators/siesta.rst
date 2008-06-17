@@ -31,7 +31,7 @@ A directory containing the pseudopotential files :file:`.vps` is also
 needed, and it is to be put in the environment variable
 :envvar:`SIESTA_PP_PATH`.
 
-Set both environment variables in your in your shell configuration file:
+Set both environment variables in your shell configuration file:
 
 .. highlight:: bash
  

@@ -5,8 +5,33 @@
 Calculators
 ===========
 
-For ASE, a calculator is a black box that can take atomic numbers and atomic
-positions from an :class:`Atoms` object and calculate the energy and forces and sometimes also stresses.
+For ASE, a calculator is a black box that can take atomic numbers and
+atomic positions from an :class:`Atoms` object and calculate the
+energy and forces and sometimes also stresses.
+
+In order to calculate forces and energies, you need to attach a
+calculator object to your atoms object:
+
+>>> a = read('molecule.xyz')
+>>> e = a.get_potential_energy()
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/home/jjmo/ase/ase/atoms.py", line 399, in get_potential_energy
+    raise RuntimeError('Atoms object has no calculator.')
+RuntimeError: Atoms object has no calculator.
+>>> from ase.calculators import Abinit
+>>> calc = Abinit(...)
+>>> a.set_calculator(calc)
+>>> e = a.get_potential_energy()
+>>> print e
+-42.0
+
+Here, we used the :meth:`Atoms.set_calculator` method to attach an instance
+of the :class:`Abinit` class and then we asked for the energy.
+
+Alternatively, a calculator can be attached like this::
+
+  atoms = Atoms(..., calculator=Siesta())
 
 
 Supported calculators
@@ -55,17 +80,12 @@ Documentation for group 2 and 3 calculators
 
 
 
-Using calculators
-=================
+Calculator interface
+====================
 
-A calculator can be attached to an :class:`Atoms` object like this::
+All calculators must have the following interface:
 
-  atoms = Atoms(..., calculator=Siesta())
-
-or like this::
-
-  atoms = Atoms(...)
-  atoms.set_calculator(Siesta())
+.. autoclass:: calculators.Calculator
 
 
 

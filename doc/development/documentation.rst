@@ -89,12 +89,12 @@ We have a couple of extensions to Sphinx:
 
 .. role:: math
 
-   This role is for inline LaTex-style math.  Example:
+   This role is for inline LaTeX-style math.  Example:
    ``:math:`\sin(x_n^2)``` gives you :math:`\sin(x_n^2)`.
 
 .. directive:: math
 
-   Write displayed LaTex-style math.  Example::
+   Write displayed LaTeX-style math.  Example::
 
      .. math::
 
@@ -108,7 +108,7 @@ We have a couple of extensions to Sphinx:
 If you add the line ``.. default-role:: math``, then you can leave out
 the ``:math:`` part like here: ```\sin(x_n^2)```.
 
-The implemantation of the math role and directive is here:
+The implementation of the math role and directive is here:
 :svn:`doc/mathpng.py`.
 
 

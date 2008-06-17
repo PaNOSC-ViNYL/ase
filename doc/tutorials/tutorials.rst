@@ -3,6 +3,9 @@
 Tutorials
 =========
 
+Most of the tutorials will use the :class:`EMT` potential, but any
+other calculator could be plugged in instead.
+
 .. toctree::
    :maxdepth: 3
 
@@ -15,3 +18,4 @@ Tutorials
    aneb
    association
    stm-tutorial
+ 
