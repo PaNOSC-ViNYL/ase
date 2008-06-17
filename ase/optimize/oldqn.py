@@ -96,14 +96,14 @@ from ase.optimize import Optimizer
 
 class GoodOldQuasiNewton(Optimizer):
 
-    def __init__(self, atoms, restart=None, logfile='-',
+    def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
 		 fmax=None, converged=None,
 		hessianupdate='BFGS',hessian=None,forcemin=True,
                 verbosity=None,maxradius=None,
                 diagonal=20.,radius=None,
 		transitionstate = False):
 	    
-        Optimizer.__init__(self, atoms, restart, logfile)
+        Optimizer.__init__(self, atoms, restart, logfile, trajectory)
 
 	self.eps = 1e-12
 	self.hessianupdate = hessianupdate

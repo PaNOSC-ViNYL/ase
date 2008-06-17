@@ -13,10 +13,7 @@ for image in images:
 for a in neb.images:
     print a.positions[-1], a.get_potential_energy()
 
-traj = PickleTrajectory('mep.traj', 'w')
-#dyn = MDMin(neb, dt=0.1)
-dyn = QuasiNewton(neb)
-dyn.attach(neb.writer(traj))
+dyn = QuasiNewton(neb, trajectory='mep.traj')
 print dyn.run(fmax=0.01, steps=25)
 for a in neb.images:
     print a.positions[-1], a.get_potential_energy()

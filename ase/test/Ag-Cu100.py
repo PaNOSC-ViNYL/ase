@@ -43,12 +43,9 @@ neb.interpolate()
 for image in images:
     print image.positions[-1], image.get_potential_energy()
 
-traj = PickleTrajectory('mep.traj', 'w')
-
 #dyn = MDMin(neb, dt=0.4)
 #dyn = FIRE(neb, dt=0.4)
-dyn = QuasiNewton(neb)
-dyn.attach(neb.writer(traj))
+dyn = QuasiNewton(neb, trajectory='mep.traj')
 dyn.run(fmax=0.05)
 
 for image in images:

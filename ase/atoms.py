@@ -88,7 +88,8 @@ class Atoms(object):
         ...           pbc=(1, 0, 0))
         """
 
-    __slots__ = ['arrays', 'cell', 'pbc', 'calc', 'constraints']
+    __slots__ = ['arrays', 'cell', 'pbc', 'calc', 'constraints',
+                 'addsorbate_info']
 
     def __init__(self, symbols=None,
                  positions=None, numbers=None,
@@ -175,6 +176,8 @@ class Atoms(object):
         self.set_pbc(pbc)
 
         self.set_calculator(calculator)
+
+        self.addsorbate_info = {}
 
     def set_calculator(self, calc=None):
         """Attach calculator object."""
@@ -572,7 +575,7 @@ class Atoms(object):
             c = self.cell.copy()
             c.flat[::4] = 0.0
             if c.any():
-                raise ValueError('Unit cell must be orthorhobmic!')
+                raise NotImplementedError('Unit cell must be orthorhombic!')
             
             if vacuum is not None:
                 self.cell[axis, axis] = p1[axis] - p0[axis] + 2 * vacuum
@@ -641,17 +644,31 @@ class Atoms(object):
         self.set_positions(positions +
                            rs.normal(scale=stdev, size=positions.shape))
         
-    def distance(self, a1, a2, mic=False):
+    def get_distance(self, a0, a1, mic=False):
         """Return distance between two atoms.
 
         Use mic=True to use the Minimum Image Convention.
         """
 
         R = self.arrays['positions']
-        d = R[a1] - R[a2]
+        D = R[a1] - R[a0]
         if mic:
             raise NotImplemented  # XXX
-        return npy.linalg.norm(d)
+        return npy.linalg.norm(D)
+
+    def set_distance(self, a0, a1, distance, fix=0.5):
+        """Set the distance between two atoms.
+
+        Set the distance between atoms *a0* and *a1* to *distance*.
+        By default, the center of the two atoms will be fixed.  Use
+        *fix=0* to fix the first atom, *fix=1* to fix the second
+        atom and *fix=0.5* (default) to fix the center of the bond."""
+
+        R = self.arrays['positions']
+        D = R[a1] - R[a0]
+        x = 1.0 - distance / npy.linalg.norm(D)
+        R[a0] += (x * fix) * D
+        R[a1] -= (x * (1.0 - fix)) * D
 
     def get_scaled_positions(self):
         """Get positions relative to unit cell.
@@ -670,6 +687,121 @@ class Atoms(object):
         """Set positions relative to unit cell."""
         self.arrays['positions'][:] = npy.dot(scaled, self.cell)
 
+    def identical_to(self, other):
+        """Check for identity of two atoms object.
+
+        Identity means: same positions, atomic numbers, unit cell and
+        periodic boundary conditions."""
+
+        a = self.arrays
+        b = other.arrays
+        return (len(self) == len(other) and
+                (a['positions'] == b['positions']).any() and
+                (a['numbers'] == b['numbers']).any() and
+                (self.cell == other.cell).any() and
+                (self.pbc == other.pbc).any())
+
+    def add_adsorbate(self, adsorbate, height, position=(0, 0), offset=None):
+        """Add an adsorbate to a surface.
+    
+        This function adds an adsorbate to a slab.  If the slab is
+        produced by one of the utility functions in ase.lattice.surface, it
+        is possible to specify the position of the adsorbate by a keyword
+        (the supported keywords depend on which function was used to
+        create the atoms).
+    
+        If the adsorbate is a molecule, the first atom (number 0) is
+        adsorbed to the surface, and it is the responsability of the user
+        to orient the adsorbate in a sensible way.
+    
+        This function can be called multiple times to add more than one
+        adsorbate.
+    
+        Parameters:
+    
+        atoms: The surface onto which the adsorbate should be added.
+    
+        adsorbate:  The adsorbate. Must be one of the following three types:
+            A string containing the chemical symbol for a single atom.
+            An atom object.
+            An atoms object (for a molecular adsorbate).
+    
+        height: Height above the surface.
+    
+        position: The x-y position of the adsorbate, either as a tuple of
+            two numbers or as a keyword (if the surface is produced by one
+            of the functions in ase.lattice.surfaces).
+    
+        offset (default: None): Offsets the adsorbate by a number of unit
+            cells. Mostly useful when adding more than one adsorbate.
+    
+        Note *position* is given in absolute xy coordinates (or as
+        a keyword), whereas offset is specified in unit cells.  This
+        can be used to give the positions in units of the unit cell by
+        using *offset* instead.
+        
+        """
+        info = self.addsorbate_info
+
+        
+        pos = npy.array([0.0, 0.0])  # (x, y) part
+        spos = npy.array([0.0, 0.0]) # part relative to unit cell
+        if offset is not None:
+            spos += offset / info['size']
+
+        if isinstance(position, str):
+            # A site-name:
+            if 'sites' not in info:
+                raise TypeError('If the atoms are not made by an ' +
+                                'ase.lattice.surface function, ' +
+                                'position cannot be a name.')
+            if position not in info['sites']:
+                raise TypeError('Adsorption site %s not supported.' % position)
+            spos += info['sites'][position] / info['size']
+        else:
+            pos += position
+    
+        pos += npy.dot(spos, self.cell[:2, :2])
+    
+        # Convert the adsorbate to an Atoms object
+        if isinstance(adsorbate, Atoms):
+            ads = adsorbate
+        elif isinstance(adsorbate, Atom):
+            ads = Atoms([adsorbate])
+        else:
+            # Hope it is a useful string or something like that
+            ads = Atoms(adsorbate)
+    
+        # Get the z-coordinate:
+        try:
+            a = info['top layer atom index']
+        except KeyError:
+            a = self.positions[:, 2].argmax()
+            info['top layer atom index']= a
+        z = self.positions[a, 2] + height
+
+        # Move adsorbate into position
+        ads.translate([pos[0], pos[1], z] - ads.positions[0])
+    
+        # Attach the adsorbate
+        self.extend(ads)
+    
+    def add_vacuum(self, vacuum, axis=2):
+        """Add vacuum layer to the atoms.
+    
+        vacuum: The thickness of the vacuum layer.
+        """
+        if axis != 2:
+            raise NotImplementedError
+
+        uc = self.cell
+        normal = np.cross(uc[0], uc[1])
+        costheta = np.dot(normal, uc[2]) / np.sqrt(np.dot(normal, normal) *
+                                                   np.dot(uc[2], uc[2]))
+        length = np.sqrt(np.dot(uc[2], uc[2]))
+        newlength = length + vacuum / costheta
+        uc[2] *= newlength / length
+    
     def _get_positions(self):
         return self.arrays['positions']
     

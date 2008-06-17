@@ -3,9 +3,10 @@ import copy
 from ase.optimize import Optimizer
 from ase.neb import *
 class GLBFGS(Optimizer):
-    def __init__(self, atoms, restart=None, logfile='-', maxstep=None, dR=None,
+    def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
+                 maxstep=None, dR=None,
                  memory=None, alpha=None, min='line'):
-        Optimizer.__init__(self, atoms, restart, logfile)
+        Optimizer.__init__(self, atoms, restart, logfile, trajectory)
 
         if maxstep is not None:
             self.maxstep = maxstep

@@ -162,8 +162,8 @@ class Bravais:
         del a2, e2
         assert len(atoms) == nrep * len(self.atoms)
         basis = np.array([[self.size[0],0,0],
-                       [0,self.size[1],0],
-                       [0,0,self.size[2]]])
+                          [0,self.size[1],0],
+                          [0,0,self.size[2]]])
         basis = np.dot(basis, self.basis)
         # None should be replaced, and memory should be freed.
         lattice = Lattice(positions=atoms, cell=basis, numbers=elements,

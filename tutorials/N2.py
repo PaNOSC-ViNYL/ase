@@ -1,7 +1,6 @@
 from ase import *
 
-atom = Atoms('N')
-atom.set_calculator(EMT())
+atom = Atoms('N', calculator=EMT())
 e_atom = atom.get_potential_energy()
 
 d = 1.1

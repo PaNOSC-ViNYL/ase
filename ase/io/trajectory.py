@@ -5,13 +5,21 @@ from ase.calculators import SinglePointCalculator
 from ase.atoms import Atoms
 from ase.parallel import rank
 from ase.utils import devnull
+from ase.neb import NEB
 
 
 class PickleTrajectory:
-    def __init__(self, filename, mode='r', atoms=None):
+    def __init__(self, filename, mode='r', atoms=None, master=None,
+                 write_first_image=True):
         self.set_atoms(atoms)
         self.offsets = []
+        if master is None:
+            master = (rank == 0)
+        self.master = master
         self.open(filename, mode)
+
+        if write_first_image and atoms is not None:
+            self.write()
         
     def open(self, filename, mode):
         self.fd = filename
@@ -24,7 +32,7 @@ class PickleTrajectory:
                 self.fd = open(filename, mode + 'b+')
             self.read_header()
         elif mode == 'w':
-            if rank == 0:
+            if self.master:
                 if isinstance(filename, str):
                     if os.path.isfile(filename):
                         os.rename(filename, filename + '.bak')
@@ -35,7 +43,7 @@ class PickleTrajectory:
             raise ValueError('mode must be "r", "w" or "a".')
 
     def set_atoms(self, atoms=None):
-        if atoms is not None and not hasattr(atoms, 'get_atomic_numbers'):
+        if atoms is not None and not hasattr(atoms, 'get_positions'):
             raise TypeError('"atoms" argument is not an Atoms object.')
         self.atoms = atoms
 
@@ -55,6 +63,12 @@ class PickleTrajectory:
     def write(self, atoms=None):
         if atoms is None:
             atoms = self.atoms
+
+        if isinstance(atoms, NEB):
+            neb = atoms
+            for image in neb.images:
+                self.write(image)
+            return
 
         if len(self.offsets) == 0:
             self.write_header(atoms)
@@ -83,7 +97,7 @@ class PickleTrajectory:
             except (NotImplementedError, AttributeError):
                 pass
             
-        if rank == 0:
+        if self.master:
             pickle.dump(d, self.fd, protocol=-1)
         self.fd.flush()
         self.offsets.append(self.fd.tell())
@@ -177,15 +191,24 @@ def read_trajectory(filename, index=-1):
         return [traj[i] for i in range(len(traj))[index]]
 
 def write_trajectory(filename, images):
+    """Write image(s) to trajectory.
+
+    Write also energy, forces, and stress if they are already
+    calculated."""
+
     traj = PickleTrajectory(filename, mode='w')
 
     if not isinstance(images, (list, tuple)):
         images = [images]
         
     for atoms in images:
+        # Avoid potentially expensive calculations:
         calc = atoms.get_calculator()
-        # XXX check if calculator has energies,forces,stresses
-        atoms.set_calculator(None)
+        if (calc is not None and
+            (not hasattr(calc, 'calculation_required') or
+             calc.calculation_required(atoms, ['energy', 'forces', 'stress']))):
+            atoms.set_calculator(None)
+        
         traj.write(atoms)
         atoms.set_calculator(calc)
 

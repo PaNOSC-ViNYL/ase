@@ -5,8 +5,9 @@ from ase.optimize import Optimizer
 
 
 class QuasiNewton(Optimizer):
-    def __init__(self, atoms, restart=None, logfile='-', maxstep=None):
-        Optimizer.__init__(self, atoms, restart, logfile)
+    def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
+                 maxstep=None):
+        Optimizer.__init__(self, atoms, restart, logfile, trajectory)
 
         if maxstep is not None:
             self.maxstep = maxstep

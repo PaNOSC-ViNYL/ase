@@ -1,6 +1,7 @@
 import numpy as npy
 
-from ase.parallel import world, rank
+from ase.parallel import world, rank, size
+
 
 class NEB:
     def __init__(self, images, k=0.1, climb=False, parallel=False):
@@ -48,13 +49,13 @@ class NEB:
                 forces[i - 1] = images[i].get_forces()
         else:
             # Parallelize over images:
-            i = rank // (self.nimages - 2) + 1
+            i = rank * (self.nimages - 2) // size + 1
             energies[i - 1] = images[i].get_potential_energy()
             forces[i - 1] = images[i].get_forces()
             for i in range(1, self.nimages - 1):
                 root = (i - 1) * size // (self.nimages - 2)
-                world.broadcast(energies[i:i + 1], root)
-                world.broadcast(forces[i], root)
+                world.broadcast(energies[i - 1:i], root)
+                world.broadcast(forces[i - 1], root)
 
         imax = 1 + npy.argsort(energies)[-1]
 
@@ -96,22 +97,3 @@ class NEB:
         """
     def __len__(self):
         return (self.nimages - 2) * self.natoms
-
-    def writer(self, trajectory):
-        return NEBTrajectoryWriter(self, trajectory).write
-
-    def write(self, trajectory):
-        NEBTrajectoryWriter(self, trajectory).write()
-
-
-class NEBTrajectoryWriter:
-    def __init__(self, neb, traj):
-        self.neb = neb
-        self.traj = traj
-
-    def write(self):
-        assert not self.neb.parallel
-        for image in self.neb.images:
-            self.traj.write(image)
-
-    

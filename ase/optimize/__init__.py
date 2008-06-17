@@ -5,14 +5,28 @@ import pickle
 from math import sqrt
 from os.path import isfile
 
-from ase.parallel import rank
-
 import numpy as npy
+
+from ase.parallel import rank
+from ase.io.trajectory import PickleTrajectory
 
 
 class Dynamics:
-    """Base-class for all MD and structure optimization classes."""
-    def __init__(self, atoms, logfile):
+    """Base-class for all MD and structure optimization classes.
+
+    Dynamics(atoms, logfile)
+
+    atoms: Atoms object
+        The Atoms object to operate on
+    logfile: file object or str
+        If *logfile* is a string, a file with that name will be opened.
+        Use '-' for stdout.
+    trajectory: Trajectory object or str
+        Attach trajectory object.  If *trajectory* is a string a
+        PickleTrajectory will be constructed.  Use *None* for no
+        trajectory.
+    """
+    def __init__(self, atoms, logfile, trajectory):
         self.atoms = atoms
 
         if rank != 0:
@@ -27,6 +41,11 @@ class Dynamics:
         self.observers = []
         self.nsteps = 0
 
+        if trajectory is not None:
+            if isinstance(trajectory, str):
+                trajectory = PickleTrajectory(trajectory, 'w', atoms)
+            self.attach(trajectory)
+
     def get_number_of_steps(self):
         return self.nsteps
 
@@ -36,6 +55,8 @@ class Dynamics:
         At every *interval* steps, call *function* with arguments
         *args* and keyword arguments *kwargs*."""
 
+        if not callable(function):
+            function = function.write
         self.observers.append((function, interval, args, kwargs))
 
     def call_observers(self):
@@ -46,8 +67,22 @@ class Dynamics:
 
 class Optimizer(Dynamics):
     """Base-class for all structure optimization classes."""
-    def __init__(self, atoms, restart, logfile):
-        Dynamics.__init__(self, atoms, logfile)
+    def __init__(self, atoms, restart, logfile, trajectory):
+        """Structure optimizer object.
+
+        atoms: Atoms object
+            The Atoms object to relax.
+        restart: str
+            Filename for restart file.  Default value is *None*.
+        logfile: file object or str
+            If *logfile* is a string, a file with that name will be opened.
+            Use '-' for stdout.
+        trajectory: Trajectory object or str
+            Attach trajectory object.  If *trajectory* is a string a
+            PickleTrajectory will be constructed.  Use *None* for no
+            trajectory.
+        """
+        Dynamics.__init__(self, atoms, logfile, trajectory)
         self.restart = restart
 
         if restart is None or not isfile(restart):
@@ -76,6 +111,7 @@ class Optimizer(Dynamics):
             self.call_observers()
 
     def converged(self, forces=None):
+        """Did the optimization converge?"""
         if forces is None:
             forces = self.atoms.get_forces()
         return (forces**2).sum(axis=1).max() < self.fmax**2

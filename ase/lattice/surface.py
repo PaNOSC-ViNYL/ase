@@ -5,10 +5,15 @@ add vacuum layers and add adsorbates.
 
 """
 
+from math import sqrt
+
+import numpy as np
+
 from ase.lattice.cubic import FaceCenteredCubic
 from ase.lattice.hexagonal import HexagonalClosedPacked
-import numpy as np
 import ase
+from ase.data import reference_states, atomic_numbers
+
 
 def fcc001(symbol, size=(1,1,1), latticeconstant=None, orthogonal=False):
     """FCC(001) surface with <110> directions along the x and y axes.
@@ -28,18 +33,50 @@ def fcc001(symbol, size=(1,1,1), latticeconstant=None, orthogonal=False):
     a._addsorbate_info = {'ontop': (0.5,0.5),
                           'bridge': (1.0,0.5), 'hollow': (1.0,1.0)}
     return a
-        
+
+
+def fcc001b(symbol, size=(1,1,1), latticeconstant=None):
+    """FCC(001) surface with <110> directions along the x and y axes.
+
+    Supported special adsorption sites: 'ontop', 'bridge' and 'hollow'.
+
+    If the optional parameter *orthogonal* is true, an orthogonal
+    unit cell containing two atoms is produced, otherwise a smaller
+    one-atom unit cell with a tilted z-axis is produced.
+    """
+    Z = atomic_numbers[symbol]
+    if latticeconstant is None:
+        sym = reference_states[Z]['symmetry'].lower()
+        if sym != 'fcc':
+            raise ValueError
+        latticeconstant = reference_states[Z]['a']
+
+    b = latticeconstant / sqrt(2)
+    c = latticeconstant / 2
+    atoms = ase.Atoms(symbol, pbc=(1, 1, 0), cell=(b, b, c)).repeat(size)
+    n = size[0] * size[1]  # number of atoms in one layer
+    p = atoms.positions.reshape((size[2], n, 3))
+    p[-2::-2, :, :2] += b / 2
+    tags = np.empty((size[2], n), int)
+    tags[:] = np.arange(size[2], 0, -1)[:, np.newaxis]
+    atoms.set_tags(tags.ravel())
+    atoms.addsorbate_info['size'] = np.array([size[0], size[1]])
+    atoms.addsorbate_info['sites'] = {'ontop': (0, 0),
+                                      'bridge': (0.5, 0),
+                                      'hollow': (0.5, 0.5)}
+    return atoms
+
 
 def fcc111(symbol, size=(1,1,1), latticeconstant=None, orthogonal=False):
     """FCC(111) surface.
 
     Supported special adsorption sites: 'ontop', 'bridge', 'fcc' and 'hcp'.
 
-    If the optional parameter `orthogonal` is true, an orthogonal unit
+    If the optional parameter *orthogonal* is true, an orthogonal unit
     cell containing six atoms is produced with <110> and <112>
     directions along the x and y axes.
 
-    If the optional parameter `orthogonal` is false (the default), a
+    If the optional parameter *orthogonal* is false (the default), a
     unit cell containing one atom is produced, with <110> directions
     along all three axes.
     """
@@ -82,11 +119,11 @@ def hcp0001(symbol, size=(1,1,1), latticeconstant=None, orthogonal=False):
     The lattice constant, if specified, should be either a tuple (a,c)
     or a dictionary with keys 'a' and either 'c' or 'c/a'.
 
-    If the optional parameter `orthogonal` is true, an orthogonal unit
+    If the optional parameter *orthogonal* is true, an orthogonal unit
     cell containing six atoms is produced, with [2,-1,-1,0] and
     [0,1,-1,0] directions along the x and y axes.
 
-    If the optional parameter `orthogonal` is false (the default), a
+    If the optional parameter *orthogonal* is false (the default), a
     unit cell containing two atoms is produced, [2,-1,-1,0] and
     [1,1,-2,0] directions along the x and y axes, and a [0001]
     direction along the z axis.
@@ -200,14 +237,13 @@ def add_adsorbate(atoms, adsorbate, height, position, offset=None):
     if isinstance(adsorbate, ase.Atoms):
         ads = adsorbate
     elif isinstance(adsorbate, ase.Atom):
-        ads = ase.Atoms(symbols=[adsorbate])
+        ads = ase.Atoms([adsorbate])
     else:
         # Hope it is a useful string or something like that
-        ads = ase.Atoms(symbols=adsorbate, positions=np.array([[0.0,0.0,0.0]]))
+        ads = ase.Atoms(adsorbate)
 
     # Move adsorbate into position
-    translation = adsorbtionsite - ads.get_positions()[0]
-    ads.set_positions(translation + ads.get_positions())
+    ads.translate(adsorbtionsite - ads.positions[0])
 
     # Attach the adsorbate
     atoms.extend(ads)

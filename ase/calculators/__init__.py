@@ -6,6 +6,20 @@ from ase.calculators.lj import LennardJones
 from ase.calculators.emt import EMT, ASAP
 from ase.calculators.siesta import Siesta
 
+class Calculator:
+    def get_potential_energy(self, atoms):
+        return 0.0
+    
+    def calculation_required(self, atoms, quantities):
+        """Check if a calculation is required.
+
+        Check if the quantities in the *quantities* list have already
+        been calculated for the atomic configuration *atoms*.  The
+        quantities can be one or more of: 'energy', 'forces',
+        'stress'."""
+
+        return False
+
 
 class SinglePointCalculator:
     """Special calculator for a single configuration.
@@ -13,24 +27,24 @@ class SinglePointCalculator:
     Used to remember the energy, force and stress for a given
     configuration.  If the positions, atomic numbers, unit cell
     boundary conditions are changed, then asking for
-    energy/forces/stresses will raise an exception."""
+    energy/forces/stress will raise an exception."""
     
     def __init__(self, energy, forces, stress, magmoms, atoms):
         """Save energy, forces and stresses for the current configuration."""
         self.energy = energy
         self.forces = forces
         self.stress = stress
-        self.positions = atoms.get_positions().copy()
-        self.numbers = atoms.get_atomic_numbers().copy()
-        self.cell = atoms.get_cell().copy()
-        self.pbc = atoms.get_pbc().copy()
         self.magmoms = magmoms
+        self.atoms = atoms.copy()
+
+    def calculation_required(self, atoms, quantities):
+        ok = self.atoms.identical_to(atoms)
+        return (ok and 
+                not ('forces' in quantities and self.forces is None) and
+                not ('energy' in quantities and self.energy is None))
 
     def update(self, atoms):
-        if ((self.positions != atoms.get_positions()).any() or
-            (self.numbers != atoms.get_atomic_numbers()).any() or
-            (self.cell != atoms.get_cell()).any() or
-            (self.pbc != atoms.get_pbc()).any()):
+        if not self.atoms.identical_to(atoms):
             raise RuntimeError('Energy, forces and strees no longer correct.')
 
     def get_potential_energy(self, atoms):

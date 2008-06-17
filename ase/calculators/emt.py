@@ -97,6 +97,17 @@ class EMT:
               (self.pbc != atoms.get_pbc()).any() or
               (self.cell != atoms.get_cell()).any()):
             self.calculate(atoms)
+
+    def calculation_required(self, atoms, quantities):
+        if len(quantities) == 0:
+            return False
+
+        return (self.energy is None or
+                len(self.numbers) != len(atoms) or
+                (self.numbers != atoms.get_atomic_numbers()).any() or
+                (self.positions != atoms.get_positions()).any() or
+                (self.pbc != atoms.get_pbc()).any() or
+                (self.cell != atoms.get_cell()).any())
                 
     def get_potential_energy(self, atoms):
         self.update(atoms)

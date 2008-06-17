@@ -3,7 +3,6 @@ from ase import *
 co = Atoms([Atom('C', (0, 0, 0)),
             Atom('O', (0, 0, 1.2))])
 traj = PickleTrajectory('1.traj', 'w', co)
-traj.write()
 for i in range(5):
     co.positions[:, 2] += 0.1
     traj.write()

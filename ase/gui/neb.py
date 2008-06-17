@@ -22,7 +22,7 @@ def NudgedElasticBand(images):
 
     import pylab
     import matplotlib
-    matplotlib.use('GTK')
+    #matplotlib.use('GTK')
 
     pylab.ion()
     x = 2.95

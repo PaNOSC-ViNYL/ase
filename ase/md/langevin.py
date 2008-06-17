@@ -32,12 +32,12 @@ class Langevin(MolecularDynamics):
 
     This dynamics accesses the atoms using Cartesian coordinates."""
     
-    def __init__(self, atoms, temperature, friction, fixcm=True):
-        MolecularDynamics.__init__(self, atoms)
+    def __init__(self, atoms, timestep, temperature, friction, fixcm=True,
+                 trajectory=None):
+        MolecularDynamics.__init__(self, atoms, timestep, trajectory)
         self.temp = temperature
         self.frict = friction
         self.fixcm = fixcm  # will the center of mass be held fixed?
-        self.dt = None
 
     def set_temperature(self, temperature):
         self.temp = temperature
@@ -47,8 +47,8 @@ class Langevin(MolecularDynamics):
         self.frict = friction
         self.updatevars()
 
-    def updatevars(self, dt):
-        self.dt = dt
+    def updatevars(self):
+        dt = self.dt
         # If the friction is an array some other constants must be arrays too.
         self._localfrict = hasattr(self.frict, 'shape')
         lt = self.frict * dt
@@ -87,10 +87,7 @@ class Langevin(MolecularDynamics):
         self.pmcor = pmcor
         self.cnst = cnst
 
-    def step(self, f, dt):
-        if dt != self.dt:
-            self.updatevars(dt)
-
+    def step(self, f):
         atoms = self.atoms
         p = self.atoms.get_momenta()
 
