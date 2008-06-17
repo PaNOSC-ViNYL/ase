@@ -136,6 +136,11 @@ class EPS:
         self.write_trailer()
 
     def write_header(self):
+        import matplotlib
+        if matplotlib.__version__ <= '0.8':
+            raise RuntimeError('Your version of matplotlib (%s) is too old' %
+                               matplotlib.__version__)
+
         from matplotlib.backends.backend_ps import RendererPS, \
              GraphicsContextPS, psDefs
 
