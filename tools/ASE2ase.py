@@ -19,6 +19,8 @@ def convert(filename):
 
     for old, new in [('GetCartesianPositions', 'get_positions'),
                      ('SetCartesianPositions', 'set_positions'),
+                     ('GetPotentialEnergy', 'get_potential_energy'),
+                     ('SetCalculator', 'set_calculator'),
                      ('GetScaledPositions', 'get_scaled_positions'),
                      ('SetScaledPositions', 'set_scaled_positions'),
                      ('SetUnitCell', 'set_cell'),
