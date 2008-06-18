@@ -29,14 +29,14 @@ class Vibrations:
       and applications for nanoscale devices", 
       Phys. Rev. B 75, 205413 (2007) 
 
-    :atoms: Atoms object
+    atoms: Atoms object
         The atoms to work on.
-    :indices: list of int
+    indices: list of int
         List of indices of atoms to vibrate.  Default behavior is
         to vibrate all atoms.
-    :name: str
+    name: str
         Name to use for files.
-    :delta: float
+    delta: float
         Magnitude of displacements.
 
     Example:
