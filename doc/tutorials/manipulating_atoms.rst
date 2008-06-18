@@ -80,14 +80,14 @@ Plot the whole system by bringing up the :mod:`gui`:
 
 >>> view(atoms)
 
-.. image:: a1.png
+.. image:: ../_static/a1.png
    :scale: 35
 
 Within the viewer (called :mod:`ag <gui>` or :mod:`ase.gui <gui>`) it
 is possible to repeat the unit cell in all three directions (using the
 :menuselection:`Repeat --> View` window).
 
-.. image:: a2.png
+.. image:: ../_static/a2.png
    :scale: 35
 
 We now add an adatom.  Since the supercell is now declared as the unit
@@ -104,5 +104,5 @@ The structure now looks like this:
 
 >>> view(atoms)
 
-.. image:: a3.png
+.. image:: ../_static/a3.png
    :scale: 35

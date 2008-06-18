@@ -73,7 +73,7 @@ def create_png_files():
                     run = False
                     for file in line.split()[2:]:
                         try:
-                            t = os.stat(join(dirpath, file))[ST_MTIME]
+                            t = os.stat(join('_static', file))[ST_MTIME]
                         except OSError:
                             run = True
                             break
@@ -84,27 +84,8 @@ def create_png_files():
                     if run:
                         print 'running:', join(dirpath, filename)
                         os.system('cd %s; python %s' % (dirpath, filename))
+                        for file in line.split()[2:]:
+                            os.rename(join(dirpath, file),
+                                      join('_static', file))
         if '.svn' in dirnames:
             dirnames.remove('.svn')
-            
-"""
-def fix_sidebar():
-    print 'fixing sidebars...',
-    for docname in ['index', 'contents']:
-        t = open('.build/%s.html' % docname).read()
-        i1 = t.find('<p class="first sidebar-title">')
-        if i1 != -1:
-            print docname,
-            i0 = t.find('<div class="sidebar">')
-            i1b = t.find('</p>', i1)
-            name = t[i1 + 31:i1b]
-            i2 = t.index('</div>', i1)
-            i3 = t.index('<div class="sidebarwrapper">', i2)
-            i4 = t.index('<h3>This Page</h3>', i3)
-            t = (t[:i0] + t[i2 + 6:i3] + '<div class="sidebarwrapper">' +
-                 ('<h4>%s</h4>' % name) + 
-                 t[i1b + 5:i2] + t[i4:])
-            open('.build/%s.html' % docname, 'w').write(t)
-    print
-"""
-    

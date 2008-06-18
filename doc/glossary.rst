@@ -19,7 +19,7 @@ Glossary
   Constructor
     XXX
 
-  docstring
+  Docstring
     XXX
 
   DFT
@@ -45,6 +45,9 @@ Glossary
 
   NumPy
     XXX   See :ref:`numpy`.
+
+  Method
+    XXX
 
   Python
     XXX :ref:`python`.
