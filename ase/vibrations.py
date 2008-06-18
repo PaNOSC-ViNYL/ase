@@ -20,7 +20,7 @@ class Vibrations:
     The vibrational modes are calculated from a finite difference
     approximation of the Hessian matrix.
 
-    The :meth:`summary`, *get_energies()* and *get_frequencies()*
+    The *summary*, *get_energies()* and *get_frequencies()*
     methods all take an optional *method* keyword.  Use
     method='Frederiksen' to use the method described in:
 

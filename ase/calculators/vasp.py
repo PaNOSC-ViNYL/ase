@@ -33,7 +33,7 @@ class Vasp:
     """Class for doing Vasp calculations.
 
     The default parameters are very close to those that the VASP
-    Fortran code would use.  These are the exceptions::
+    Fortran code would use.  These are the exceptions: XXX ???
 
     Use the set_inp method to set extra INPUT parameters::
 
