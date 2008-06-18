@@ -4,13 +4,14 @@ from glob import glob
 
 
 class ScriptTestCase(unittest.TestCase):
-    def __init__(self, methodname='testfile', filename=None):
+    def __init__(self, methodname='testfile', filename=None, display=True):
         unittest.TestCase.__init__(self, methodname)
         self.filename = filename
+        self.display = display
         
     def testfile(self):
         try:
-            execfile(self.filename, {})
+            execfile(self.filename, {'display': self.display})
         except KeyboardInterrupt:
             raise RuntimeError('Keyboard interrupt')
 
@@ -24,7 +25,7 @@ class ScriptTestCase(unittest.TestCase):
         return "ScriptTestCase(filename='%s')" % self.filename
 
 
-def test(verbosity=1, dir=None):
+def test(verbosity=1, dir=None, display=True):
     ts = unittest.TestSuite()
     if dir is None:
         dir = __path__[0]
@@ -33,7 +34,11 @@ def test(verbosity=1, dir=None):
     for test in tests:
         if test.endswith('__init__.py'):
             continue
-        ts.addTest(ScriptTestCase(filename=test))
+        if test.endswith('COCu111.py'):
+            lasttest = test
+            continue
+        ts.addTest(ScriptTestCase(filename=test, display=display))
+    ts.addTest(ScriptTestCase(filename=lasttest, display=display))
 
     from ase.utils import devnull
     sys.stdout = devnull
