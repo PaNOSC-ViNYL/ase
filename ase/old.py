@@ -101,8 +101,9 @@ class OldASECalculatorWrapper:
             
             numbers = atoms.get_atomic_numbers()
             positions = atoms.get_positions()
+            magmoms = atoms.get_initial_magnetic_moments()
             self.atoms = ListOfAtoms(
-                [Atom(Z=numbers[a], position=positions[a])
+                [Atom(Z=numbers[a], position=positions[a], magmom=magmoms[a])
                  for a in range(len(atoms))],
                 cell=npy2num(atoms.get_cell()),
                 periodic=tuple(atoms.get_pbc()))
