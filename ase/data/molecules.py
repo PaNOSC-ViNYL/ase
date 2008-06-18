@@ -3,6 +3,7 @@ The following contains a database of small molecules
 
 Data for the G2 database are from
 Raghavachari, Redfern, and Pople, J. Chem. Phys. Vol. 106, 1063 (1997).
+See http://chemistry.anl.gov/compmat/comptherm.htm for the original files.
 
 All numbers are experimental values, except for coordinates, which are
 MP2(full)/6-31G(d) optimized geometries
@@ -25,7 +26,7 @@ Data for extra systems are from CCCBDB: http://srdata.nist.gov/cccbdb/
 from ase.atoms import Atoms, string2symbols
 
 atoms = ['H','Li','Be','B','C','N','O','F','Na','Mg','Al','Si','P','S','Cl']
-molecules = ['Be2','LiH','BeH','CH','CH2_s3B1d','CH2_s1A1d','CH3','CH4','NH','NH2','NH3','OH','H2O','HF','SiH2_s1A1d','SiH2_s3B1d','SiH3','SiH4','PH2','PH3','SH2','HCl','Li2','LiF','C2H2','C2H4','C2H6','CN','HCN','CO','HCO','H2CO','CH3OH','N2','N2H4','NO','O2','H2O2','F2','CO2','Na2','Si2','P2','S2','Cl2','NaCl','SiO','CS','SO','ClO','ClF','Si2H6','CH3Cl','CH3SH','HOCl','SO2','BF3','BCl3','AlF3','AlCl3','CF4','CCl4','OCS','CS2','COF2','SiF4','SiCl4','N2O','ClNO','NF3','PF3','O3','F2O','ClF3','C2F4','C2Cl4','CF3CN','C3H4_C3v','C3H4_D2d','C3H4_C2v','C3H6_Cs','C3H6_D3h','C3H8','C4H6x','C4H6xx','C4H6xxx','C4H6xxxx','C4H6xxxxx','C4H8x','C4H8xx','C4H10x','C4H10xx','C5H8','C6H6','H2CF2','HCF3','H2CCl2','HCCl3','H3CNH2','CH3CN','CH3NO2','CH3ONO','CH3SiH3','HCOOH','HCOOCH3','CH3CONH2','CH2NHCH2','NCCN','C2H6NH','CH3CH2NH2','H2CCO','CH2OCH2','CH3CHO','OCHCHO','CH3CH2OH','CH3OCH3','CH2SCH2','C2H6SO','CH3CH2SH','CH3SCH3','H2CCHF','CH3CH2Cl','H2CCHCl','H2CCHCN','CH3COCH3','CH3COOH','CH3COF','CH3COCl','C3H7Cl','C2H6CHOH','CH3CH2OCH3','C3H9N','C4H4O','C4H4S','C4H4NH','C5H5N','H2','SH','CCH','C2H3','CH3CO','H2COH','CH3O','CH3CH2O','CH3S','C2H5','C3H7','C3H9C','NO2','Butadiene_1_2','Isoprene','Cyclopentane','n_Pentane','Neopentane','Cyclohexadiene_1_3','Cyclohexadiene_1_4','Cyclohexane','n_Hexane','Methyl_pentane_3','Toluene','n_Heptane','Cyclooctatetraene','n_Octane','Naphthalene','Azulene','Methyl_acetate','t_Butanol','Aniline','Phenol','Divinyl_ether','Tetrahydrofuran','Cyclopentanone','Benzoquinone_1_4','Pyrimidine','Dimethyl_sulfone','Chlorobenzene','Succinonitrile','Pyrazine','Acetyl_acetylene','Crotonaldehyde','Acetic_anhydride','Dihydrothiophene_2_5','Methyl_propanenitrile_2','Methyl_ethyl_ketone','Isobutyraldehyde','dioxane_1_4','Tetrahydrothiophene','t_Butyl_chloride','n_Butyl_chloride','Tetrahydropyrrole','Nitrobutane_2','Diethyl_ether','Dimethoxy_ethane_1_1','t_Butanethiol','Diethyl_disulfide','t_Butylamine','Tetramethylsilane','Methyl_thiophene','N_methyl_pyrrole','Tetrahydropyran','Diethyl_ketone','Isopropyl_acetate','Tetrahydrothiopyran','Piperidine','t_Butyl_methyl_ether','Difluorobenzene_1_3','Difluorobenzene_1_4','Fluorobenzene','Diisopropyl_ether','PF5','SF6','P4_Td','SO3_D3h','SCl2','POCl3','PCl5','SO2Cl2','PCl3','S2Cl2','SiCl2_1A1','CF3Cl','C2F6','CF3_radical','Phenyl_radical']
+molecules = ['Be2','LiH','BeH','CH','CH2_s3B1d','CH2_s1A1d','CH3','CH4','NH','NH2','NH3','OH','H2O','HF','SiH2_s1A1d','SiH2_s3B1d','SiH3','SiH4','PH2','PH3','SH2','HCl','Li2','LiF','C2H2','C2H4','C2H6','CN','HCN','CO','HCO','H2CO','CH3OH','N2','N2H4','NO','O2','H2O2','F2','CO2','Na2','Si2','P2','S2','Cl2','NaCl','SiO','CS','SO','ClO','ClF','Si2H6','CH3Cl','CH3SH','HOCl','SO2','BF3','BCl3','AlF3','AlCl3','CF4','CCl4','OCS','CS2','COF2','SiF4','SiCl4','N2O','ClNO','NF3','PF3','O3','F2O','ClF3','C2F4','C2Cl4','CF3CN','C3H4_C3v','C3H4_D2d','C3H4_C2v','C3H6_Cs','C3H6_D3h','C3H8','butadiene','2-butyne','methylenecyclopropane','bicyclobutane','cyclobutene','cyclobutane','isobutene','trans-butane','isobutane','C5H8','C6H6','H2CF2','HCF3','H2CCl2','HCCl3','H3CNH2','CH3CN','CH3NO2','CH3ONO','CH3SiH3','HCOOH','HCOOCH3','CH3CONH2','CH2NHCH2','NCCN','C2H6NH','CH3CH2NH2','H2CCO','CH2OCH2','CH3CHO','OCHCHO','CH3CH2OH','CH3OCH3','CH2SCH2','C2H6SO','CH3CH2SH','CH3SCH3','H2CCHF','CH3CH2Cl','H2CCHCl','H2CCHCN','CH3COCH3','CH3COOH','CH3COF','CH3COCl','C3H7Cl','C2H6CHOH','CH3CH2OCH3','C3H9N','C4H4O','C4H4S','C4H4NH','C5H5N','H2','SH','CCH','C2H3','CH3CO','H2COH','CH3O','CH3CH2O','CH3S','C2H5','C3H7','C3H9C','NO2','Butadiene_1_2','Isoprene','Cyclopentane','n_Pentane','Neopentane','Cyclohexadiene_1_3','Cyclohexadiene_1_4','Cyclohexane','n_Hexane','Methyl_pentane_3','Toluene','n_Heptane','Cyclooctatetraene','n_Octane','Naphthalene','Azulene','Methyl_acetate','t_Butanol','Aniline','Phenol','Divinyl_ether','Tetrahydrofuran','Cyclopentanone','Benzoquinone_1_4','Pyrimidine','Dimethyl_sulfone','Chlorobenzene','Succinonitrile','Pyrazine','Acetyl_acetylene','Crotonaldehyde','Acetic_anhydride','Dihydrothiophene_2_5','Methyl_propanenitrile_2','Methyl_ethyl_ketone','Isobutyraldehyde','dioxane_1_4','Tetrahydrothiophene','t_Butyl_chloride','n_Butyl_chloride','Tetrahydropyrrole','Nitrobutane_2','Diethyl_ether','Dimethoxy_ethane_1_1','t_Butanethiol','Diethyl_disulfide','t_Butylamine','Tetramethylsilane','Methyl_thiophene','N_methyl_pyrrole','Tetrahydropyran','Diethyl_ketone','Isopropyl_acetate','Tetrahydrothiopyran','Piperidine','t_Butyl_methyl_ether','Difluorobenzene_1_3','Difluorobenzene_1_4','Fluorobenzene','Diisopropyl_ether','PF5','SF6','P4_Td','SO3_D3h','SCl2','POCl3','PCl5','SO2Cl2','PCl3','S2Cl2','SiCl2_1A1','CF3Cl','C2F6','CF3','Phenyl']
 extra = molecules[:1] # The extra systems
 g1 = molecules[1:56]  # The g1 molecules
 g2 = molecules[1:149] # The g2 molecules
@@ -107,6 +108,16 @@ data = {
     'magmom': 1,
     'enthalpy': 28.59,
     'thermal correction': 1.10},
+'Be2': {
+    'description': "Diatomic Beryllium",
+    'name': "Be_2",
+    'enthalpy': 155.1,
+    'ZPE': 1.0000,
+    'thermal correction': 5.0600,
+    'symbols': 'BeBe',
+    'magmoms': None,
+    'positions': [[ 0.  ,  0.  ,  1.0106],
+                  [ 0.  ,  0.  , -1.0106]]},
 'LiH': {
     'description': "Lithium hydride (LiH), C*v symm.",
     'name': "LiH",
@@ -1075,7 +1086,7 @@ data = {
                   [-0.883619,  1.304234, -0.904405],
                   [-0.883619, -1.304234, -0.904405],
                   [ 0.883619, -1.304234, -0.904405]]},
-'C4H6x': {
+'butadiene': {
     'description': "Trans-1,3-butadiene (C4H6), C2h symm.",
     'name': "CH_2CHCHCH_2 (butadiene)",
     'enthalpy': 26.3,
@@ -1093,7 +1104,7 @@ data = {
                   [-1.553503,  0.13364 ,  0.      ],
                   [ 0.321132, -2.313116,  0.      ],
                   [-1.527617, -2.317443,  0.      ]]},
-'C4H6xx': {
+'2-butyne': {
     'description': "Dimethylacetylene (2-butyne, C4H6), D3h symm (eclipsed).",
     'name': "C_4H_6 (2-butyne)",
     'enthalpy': 34.8,
@@ -1111,7 +1122,7 @@ data = {
                   [ 0.      ,  1.020696, -2.464562],
                   [ 0.883949, -0.510348, -2.464562],
                   [-0.883949, -0.510348, -2.464562]]},
-'C4H6xxx': {
+'methylenecyclopropane': {
     'description': "Methylenecyclopropane (C4H6), C2v symm.",
     'name': "C_4H_6 (methylene cyclopropane)",
     'enthalpy': 47.9,
@@ -1129,7 +1140,7 @@ data = {
                   [-0.912794,  1.271789, -1.239303],
                   [ 0.      , -0.926908,  2.20564 ],
                   [ 0.      ,  0.926908,  2.20564 ]]},
-'C4H6xxxx': {
+'bicyclobutane': {
     'description': "Bicyclo[1.1.0]butane (C4H6), C2v symm.",
     'name': "C_4H_6 (bicyclobutane)",
     'enthalpy': 51.9,
@@ -1147,7 +1158,7 @@ data = {
                   [ 0.      , -2.077375, -0.227668],
                   [ 1.41441 ,  0.      , -1.161626],
                   [-1.41441 ,  0.      , -1.161626]]},
-'C4H6xxxxx': {
+'cyclobutene': {
     'description': "Cyclobutene (C4H6), C2v symm.",
     'name': "C_4H_6 (cyclobutene)",
     'enthalpy': 37.4,
@@ -1165,7 +1176,7 @@ data = {
                   [ 0.88931 , -1.239242, -1.142591],
                   [ 0.88931 ,  1.239242, -1.142591],
                   [-0.88931 ,  1.239242, -1.142591]]},
-'C4H8x': {
+'cyclobutane': {
     'description': "Cyclobutane (C4H8), D2d symm.",
     'name': "C_4H_8 (cyclobutane)",
     'enthalpy': 6.8,
@@ -1185,7 +1196,7 @@ data = {
                   [-1.342921,  0.      , -1.20752 ],
                   [ 1.986858,  0.      ,  0.450077],
                   [ 1.342921,  0.      , -1.20752 ]]},
-'C4H8xx': {
+'isobutene': {
     'description': "Isobutene (C4H8), Single bonds trans, C2v symm.",
     'name': "C_4H_8 (isobutene)",
     'enthalpy': -4.0,
@@ -1205,9 +1216,9 @@ data = {
                   [ 0.      , -2.153042, -0.031588],
                   [-0.880211, -1.323542, -1.329592],
                   [ 0.880211, -1.323542, -1.329592]]},
-'C4H10x': {
+'trans-butane': {
     'description': "Trans-butane (C4H10), C2h symm.",
-    'name': "C_4H_10 (trans butane)",
+    'name': "C_4H_{10} (trans butane)",
     'enthalpy': -30.0,
     'ZPE': 81.3980,
     'thermal correction': 4.2633,
@@ -1227,9 +1238,9 @@ data = {
                   [ 1.247707, -0.07266 ,  0.877569],
                   [-1.247707,  0.07266 , -0.877569],
                   [-1.247707,  0.07266 ,  0.877569]]},
-'C4H10xx': {
+'isobutane': {
     'description': "Isobutane (C4H10), C3v symm.",
-    'name': "C_4H_10 (isobutane)",
+    'name': "C_4H_{10} (isobutane)",
     'enthalpy': -32.1,
     'ZPE': 81.1050,
     'thermal correction': 4.2282,
@@ -2112,7 +2123,7 @@ data = {
     'ZPE': 71.7833,
     'thermal correction': 4.6662,
     'symbols': 'CCCCHHHHHHHHH',
-    'magmoms': [ 1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+    'magmoms': [1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
     'positions': [[ 0.      ,  0.      ,  0.191929],
                   [ 0.      ,  1.478187, -0.020866],
                   [ 1.280147, -0.739093, -0.020866],
@@ -2160,11 +2171,28 @@ def get_atomization_energy(name):
 
 def molecule(name):
     """Create molecule."""
-    if name not in molecules:
+    if name not in extra and name not in g2:
         raise NotImplementedError('System %s not in database.' % name)
     d = data[name]
     return Atoms(d['symbols'], d['positions'], magmoms=d['magmoms'])
 
+def latex(name):
+    """Convert name to LaTeX"""
+    s = '$'
+    last = False
+    for i in name:
+        if i.isalpha():
+            if not last:
+                s = s + r'\rm{'
+                last = True
+        elif last:
+            s = s + '}'
+            last = False
+        s = s + i
+    if i.isalpha():
+        s = s + '}'
+    s = s.replace(' ', r'\ ') + '$'
+    return s
 
 if __name__ == '__main__':
     from gpaw.testing.atomization_data import atomization_vasp
