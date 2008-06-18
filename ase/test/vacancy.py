@@ -30,10 +30,8 @@ else:
     for a in images:
         print a.positions[0], a.get_potential_energy()
 
-    traj = PickleTrajectory('mep1.traj', 'w')
-    dyn = MDMin(neb, dt=0.1)
+    dyn = MDMin(neb, dt=0.1, trajectory='mep1.traj')
     #dyn = QuasiNewton(neb)
-    dyn.attach(neb.writer(traj))
     print dyn.run(fmax=0.01, steps=25)
     for a in images:
         print a.positions[0], a.get_potential_energy()
