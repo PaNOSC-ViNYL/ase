@@ -159,10 +159,20 @@ class Wannier:
                  spin=0,
                  dtype=complex):
 
+        # Bloch phase sign convention
+        sign = -1
+        try:
+            from Dacapo import Dacapo
+        except ImportError:
+            pass
+        else:
+            if isinstance(calc, Dacapo):
+                sign = +1
+            
         calc = wrap(calc)
         self.nwannier = numberofwannier
         self.spin = spin
-        self.kpt_kc = calc.get_ibz_k_points()
+        self.kpt_kc = sign * calc.get_ibz_k_points()
         assert len(calc.get_bz_k_points()) == len(self.kpt_kc)
         
         self.kptgrid = get_kpoint_dimensions(self.kpt_kc)
@@ -552,13 +562,13 @@ class Wannier:
         atoms = calc.get_atoms() * repeat
         write_cube(fname, atoms, data=self.get_function(calc, index, repeat))
 
-    def localize(self, step=0.25, tolerance=1.0e-08,
+    def localize(self, step=0.25, tolerance=1.0e-08, verbose=True,
                  updaterot=True, updatecoeff=True):
         print 'Localize with step =', step, 'and tolerance =', tolerance
 ##         maxi = steepest_descent(self, step, tolerance, updaterot=updaterot,
 ##                                 updatecoeff=updatecoeff)
-        maxi = md_min(self, step, tolerance, updaterot=updaterot,
-                                updatecoeff=updatecoeff)
+        maxi = md_min(self, step, tolerance, verbose=verbose,
+                      updaterot=updaterot, updatecoeff=updatecoeff)
 
     def get_functional_value(self): 
         """Calculate the value of the spread functional.
