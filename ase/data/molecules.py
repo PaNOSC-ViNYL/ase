@@ -26,11 +26,11 @@ Data for extra systems are from CCCBDB: http://srdata.nist.gov/cccbdb/
 from ase.atoms import Atoms, string2symbols
 
 atoms = ['H','Li','Be','B','C','N','O','F','Na','Mg','Al','Si','P','S','Cl']
-molecules = ['Be2','LiH','BeH','CH','CH2_s3B1d','CH2_s1A1d','CH3','CH4','NH','NH2','NH3','OH','H2O','HF','SiH2_s1A1d','SiH2_s3B1d','SiH3','SiH4','PH2','PH3','SH2','HCl','Li2','LiF','C2H2','C2H4','C2H6','CN','HCN','CO','HCO','H2CO','CH3OH','N2','N2H4','NO','O2','H2O2','F2','CO2','Na2','Si2','P2','S2','Cl2','NaCl','SiO','CS','SO','ClO','ClF','Si2H6','CH3Cl','CH3SH','HOCl','SO2','BF3','BCl3','AlF3','AlCl3','CF4','CCl4','OCS','CS2','COF2','SiF4','SiCl4','N2O','ClNO','NF3','PF3','O3','F2O','ClF3','C2F4','C2Cl4','CF3CN','C3H4_C3v','C3H4_D2d','C3H4_C2v','C3H6_Cs','C3H6_D3h','C3H8','butadiene','2-butyne','methylenecyclopropane','bicyclobutane','cyclobutene','cyclobutane','isobutene','trans-butane','isobutane','C5H8','C6H6','H2CF2','HCF3','H2CCl2','HCCl3','H3CNH2','CH3CN','CH3NO2','CH3ONO','CH3SiH3','HCOOH','HCOOCH3','CH3CONH2','CH2NHCH2','NCCN','C2H6NH','CH3CH2NH2','H2CCO','CH2OCH2','CH3CHO','OCHCHO','CH3CH2OH','CH3OCH3','CH2SCH2','C2H6SO','CH3CH2SH','CH3SCH3','H2CCHF','CH3CH2Cl','H2CCHCl','H2CCHCN','CH3COCH3','CH3COOH','CH3COF','CH3COCl','C3H7Cl','C2H6CHOH','CH3CH2OCH3','C3H9N','C4H4O','C4H4S','C4H4NH','C5H5N','H2','SH','CCH','C2H3','CH3CO','H2COH','CH3O','CH3CH2O','CH3S','C2H5','C3H7','C3H9C','NO2','Butadiene_1_2','Isoprene','Cyclopentane','n_Pentane','Neopentane','Cyclohexadiene_1_3','Cyclohexadiene_1_4','Cyclohexane','n_Hexane','Methyl_pentane_3','Toluene','n_Heptane','Cyclooctatetraene','n_Octane','Naphthalene','Azulene','Methyl_acetate','t_Butanol','Aniline','Phenol','Divinyl_ether','Tetrahydrofuran','Cyclopentanone','Benzoquinone_1_4','Pyrimidine','Dimethyl_sulfone','Chlorobenzene','Succinonitrile','Pyrazine','Acetyl_acetylene','Crotonaldehyde','Acetic_anhydride','Dihydrothiophene_2_5','Methyl_propanenitrile_2','Methyl_ethyl_ketone','Isobutyraldehyde','dioxane_1_4','Tetrahydrothiophene','t_Butyl_chloride','n_Butyl_chloride','Tetrahydropyrrole','Nitrobutane_2','Diethyl_ether','Dimethoxy_ethane_1_1','t_Butanethiol','Diethyl_disulfide','t_Butylamine','Tetramethylsilane','Methyl_thiophene','N_methyl_pyrrole','Tetrahydropyran','Diethyl_ketone','Isopropyl_acetate','Tetrahydrothiopyran','Piperidine','t_Butyl_methyl_ether','Difluorobenzene_1_3','Difluorobenzene_1_4','Fluorobenzene','Diisopropyl_ether','PF5','SF6','P4_Td','SO3_D3h','SCl2','POCl3','PCl5','SO2Cl2','PCl3','S2Cl2','SiCl2_1A1','CF3Cl','C2F6','CF3','Phenyl']
-extra = molecules[:1] # The extra systems
-g1 = molecules[1:56]  # The g1 molecules
-g2 = molecules[1:149] # The g2 molecules
-g3 = molecules[1:224] # The g3 molecules
+molecules = ['Be2','C60','LiH','BeH','CH','CH2_s3B1d','CH2_s1A1d','CH3','CH4','NH','NH2','NH3','OH','H2O','HF','SiH2_s1A1d','SiH2_s3B1d','SiH3','SiH4','PH2','PH3','SH2','HCl','Li2','LiF','C2H2','C2H4','C2H6','CN','HCN','CO','HCO','H2CO','CH3OH','N2','N2H4','NO','O2','H2O2','F2','CO2','Na2','Si2','P2','S2','Cl2','NaCl','SiO','CS','SO','ClO','ClF','Si2H6','CH3Cl','CH3SH','HOCl','SO2','BF3','BCl3','AlF3','AlCl3','CF4','CCl4','OCS','CS2','COF2','SiF4','SiCl4','N2O','ClNO','NF3','PF3','O3','F2O','ClF3','C2F4','C2Cl4','CF3CN','C3H4_C3v','C3H4_D2d','C3H4_C2v','C3H6_Cs','C3H6_D3h','C3H8','butadiene','2-butyne','methylenecyclopropane','bicyclobutane','cyclobutene','cyclobutane','isobutene','trans-butane','isobutane','C5H8','C6H6','H2CF2','HCF3','H2CCl2','HCCl3','H3CNH2','CH3CN','CH3NO2','CH3ONO','CH3SiH3','HCOOH','HCOOCH3','CH3CONH2','CH2NHCH2','NCCN','C2H6NH','CH3CH2NH2','H2CCO','CH2OCH2','CH3CHO','OCHCHO','CH3CH2OH','CH3OCH3','CH2SCH2','C2H6SO','CH3CH2SH','CH3SCH3','H2CCHF','CH3CH2Cl','H2CCHCl','H2CCHCN','CH3COCH3','CH3COOH','CH3COF','CH3COCl','C3H7Cl','C2H6CHOH','CH3CH2OCH3','C3H9N','C4H4O','C4H4S','C4H4NH','C5H5N','H2','SH','CCH','C2H3','CH3CO','H2COH','CH3O','CH3CH2O','CH3S','C2H5','C3H7','C3H9C','NO2','Butadiene_1_2','Isoprene','Cyclopentane','n_Pentane','Neopentane','Cyclohexadiene_1_3','Cyclohexadiene_1_4','Cyclohexane','n_Hexane','Methyl_pentane_3','Toluene','n_Heptane','Cyclooctatetraene','n_Octane','Naphthalene','Azulene','Methyl_acetate','t_Butanol','Aniline','Phenol','Divinyl_ether','Tetrahydrofuran','Cyclopentanone','Benzoquinone_1_4','Pyrimidine','Dimethyl_sulfone','Chlorobenzene','Succinonitrile','Pyrazine','Acetyl_acetylene','Crotonaldehyde','Acetic_anhydride','Dihydrothiophene_2_5','Methyl_propanenitrile_2','Methyl_ethyl_ketone','Isobutyraldehyde','dioxane_1_4','Tetrahydrothiophene','t_Butyl_chloride','n_Butyl_chloride','Tetrahydropyrrole','Nitrobutane_2','Diethyl_ether','Dimethoxy_ethane_1_1','t_Butanethiol','Diethyl_disulfide','t_Butylamine','Tetramethylsilane','Methyl_thiophene','N_methyl_pyrrole','Tetrahydropyran','Diethyl_ketone','Isopropyl_acetate','Tetrahydrothiopyran','Piperidine','t_Butyl_methyl_ether','Difluorobenzene_1_3','Difluorobenzene_1_4','Fluorobenzene','Diisopropyl_ether','PF5','SF6','P4_Td','SO3_D3h','SCl2','POCl3','PCl5','SO2Cl2','PCl3','S2Cl2','SiCl2_1A1','CF3Cl','C2F6','CF3','Phenyl']
+extra = molecules[:2] # The extra systems
+g1 = molecules[2:57]  # The g1 molecules
+g2 = molecules[2:150] # The g2 molecules
+g3 = molecules[2:225] # The g3 molecules
 
 data = {
 'H': {
@@ -118,6 +118,74 @@ data = {
     'magmoms': None,
     'positions': [[ 0.  ,  0.  ,  1.0106],
                   [ 0.  ,  0.  , -1.0106]]},
+'C60': {
+    'description': "Buckminsterfullerene, I*h symm.",
+    'name': "C_{60}",
+    # The Buckyball has two degrees of freedom, the C-C bond, and the C=C bond.
+    # This is an LDA-gpaw relaxed structure with bond lengths 1.437 and 1.385.
+    # Experimentally, the two bond lengths are 1.45 and 1.40 Angstrom.
+    'symbols': 'C60',
+    'magmoms': None,
+    'positions': [[ 9.55758291043,  8.08076851591, 10.21090050694],
+                  [10.45502692012,  7.65180617487,  9.17397875322],
+                  [ 8.67583058302,  7.17821152393, 10.78027336205],
+                  [10.43825849578,  6.33560493437,  8.74537415796],
+                  [10.53531207169,  6.03664555121,  7.34424964329],
+                  [10.56884985428,  8.71720205143,  8.21789415510],
+                  [10.66350856024,  8.42926403323,  6.86743502448],
+                  [10.64588567163,  7.06399123311,  6.42353638247],
+                  [ 6.89930341142,  8.85325379742, 10.75205213511],
+                  [ 7.81459323184,  9.78908842007, 10.16147654565],
+                  [ 7.32173010388,  7.57052733338, 11.05257599798],
+                  [ 9.12017929940,  9.41176378405,  9.89691925811],
+                  [ 9.74284986654,  9.80367427141,  8.66290404088],
+                  [ 7.08636806428, 10.57619888633,  9.20626188238],
+                  [ 7.68816021695, 10.95334416983,  8.01854698920],
+                  [ 9.04250468477, 10.56335001877,  7.74161244913],
+                  [ 5.22154817510,  6.64822012183, 10.21404641407],
+                  [ 4.78528855074,  7.97962564791,  9.89712168039],
+                  [ 6.46923546798,  6.44790691230, 10.78068029608],
+                  [ 5.60587796210,  9.06210166206, 10.16368340098],
+                  [ 5.72114075234, 10.12980844318,  9.20813119450],
+                  [ 4.04890663307,  7.92429254400,  8.66437091644],
+                  [ 4.15944067740,  8.95149493973,  7.74355317621],
+                  [ 5.01136145893, 10.07546810495,  8.02004131900],
+                  [ 6.84686662544,  4.51432835187,  9.33798093074],
+                  [ 5.55295376596,  4.72119670438,  8.74873923687],
+                  [ 7.29596309195,  5.36122130006, 10.33783318300],
+                  [ 4.75824051166,  5.77152261489,  9.17692161731],
+                  [ 4.03131705133,  6.55904180068,  8.22047695595],
+                  [ 5.65219570132,  4.42484725793,  7.34629369644],
+                  [ 4.95189745670,  5.18442010693,  6.42496395087],
+                  [ 4.12596943166,  6.27092187901,  6.86999205371],
+                  [ 9.52321097543,  5.39947912673,  9.33620302423],
+                  [ 9.05924951767,  4.51913729721,  8.29966995308],
+                  [ 8.66045318804,  5.81116384702, 10.33833930788],
+                  [ 7.74328997365,  4.08896594913,  8.29971394337],
+                  [ 7.00656567915,  4.03491713666,  7.06938914191],
+                  [ 9.68339333007,  4.91265547414,  7.06784512593],
+                  [ 8.97376328671,  4.85837053100,  5.87971926809],
+                  [ 7.60852275644,  4.41197832500,  5.88168838037],
+                  [ 5.13730316496,  6.90724177812,  4.87692010284],
+                  [ 5.57469055057,  5.57620846833,  5.19090356498],
+                  [ 6.88031533898,  5.19905453530,  4.92643965225],
+                  [ 6.01903758441,  7.80987368571,  4.30771263452],
+                  [ 5.17139938003,  9.58864372999,  5.75162073117],
+                  [ 4.25642129789,  8.65245258964,  6.34237522889],
+                  [ 4.23977854304,  7.33626015034,  5.91378746012],
+                  [ 6.03425106140,  9.17693456833,  4.74958626657],
+                  [ 7.84771002223, 10.47406906557,  5.74992981686],
+                  [ 6.95127282454, 10.89938713414,  6.78822298220],
+                  [ 5.63532471517, 10.46901764112,  6.78815130443],
+                  [ 7.39866999941,  9.62705322361,  4.75020515567],
+                  [ 9.47325056858,  8.34018629256,  4.87389670263],
+                  [ 9.93657284202,  9.21687957267,  5.91099389498],
+                  [ 9.14168856576, 10.26717382852,  6.33912389930],
+                  [ 8.22551989103,  8.54045681739,  4.30741880232],
+                  [ 7.79563282305,  6.13499931419,  4.33589909849],
+                  [ 9.08908236366,  5.92614974797,  4.92417870021],
+                  [ 9.90955995282,  7.00875245945,  5.19074755485],
+                  [ 7.37317803264,  7.41774873577,  4.03550550567]]},
 'LiH': {
     'description': "Lithium hydride (LiH), C*v symm.",
     'name': "LiH",
