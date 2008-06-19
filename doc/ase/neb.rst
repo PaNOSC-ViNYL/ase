@@ -77,6 +77,7 @@ calculators attached.
 
    :ref:`tutorials`:
 
+        * :ref:`diffusion_tutorial`
         * :ref:`neb1`
         * :ref:`neb2`
 
@@ -100,7 +101,7 @@ NEB calculations, so it will write `M` images with `N` atoms at every
 iteration and not one big configuration containing `MN` atoms.
 
 The result of the latest iteration can now be analysed with this
-command: :command:`ag A2B.traj@-5`.
+command: :command:`ag A2B.traj@-5:`.
 
 For the example above, you can write the images to individual
 trajectory files like this::
@@ -126,6 +127,23 @@ Restart the calculation like this::
 
   images = read('A2B.traj@-5:')
 
+
+
+Climbing image
+==============
+
+The "climbing image" variation involves designating a specific image to behave
+differently to the rest of the chain: it feels no spring forces, and the
+component of the potential force parallel to the chain is reversed, such that
+it moves towards the saddle point. This depends on the adjacent images
+providing a reasonably good approximation of the correct tangent at the
+location of the climbing image; thus in general the climbing image is not
+turned on until some iterations have been run without it (generally 20% to 50%
+of the total number of iterations).
+
+To use the climbing image NEB method, instantiate the NEB object like this::
+
+  neb = NEB(images, climb=True)
 
 
 Parallelization over images
@@ -157,24 +175,5 @@ For a complete example using GPAW_, see the here_.
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
 .. _gpaw-python: http://wiki.fysik.dtu.dk/gpaw/Parallel_Runs
 .. _here: http://wiki.fysik.dtu.dk/gpaw/NEB
-
-
-
-Climbing image
-==============
-
-The "climbing image" variation involves designating a specific image to behave
-differently to the rest of the chain: it feels no spring forces, and the
-component of the potential force parallel to the chain is reversed, such that
-it moves towards the saddle point. This depends on the adjacent images
-providing a reasonably good approximation of the correct tangent at the
-location of the climbing image; thus in general the climbing image is not
-turned on until some iterations have been run without it (generally 20% to 50%
-of the total number of iterations).
-
-To use the climbing image NEB method, instantiate the NEB object like this::
-
-  neb = NEB(images, climb=True)
-
 
 .. default-role::

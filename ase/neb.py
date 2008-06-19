@@ -1,3 +1,5 @@
+from math import sqrt
+
 import numpy as npy
 
 from ase.parallel import world, rank, size
@@ -97,3 +99,57 @@ class NEB:
         """
     def __len__(self):
         return (self.nimages - 2) * self.natoms
+
+
+def fit(images):
+    E = [i.get_potential_energy() for i in images]
+    F = [i.get_forces() for i in images]
+    R = [i.get_positions() for i in images]
+    return fit0(E, F, R)
+
+def fit0(E, F, R):
+    E = npy.array(E) - E[0]
+    n = len(E)
+    Efit = npy.empty((n - 1) * 20 + 1)
+    Sfit = npy.empty((n - 1) * 20 + 1)
+
+    s = [0]
+    for i in range(n - 1):
+        s.append(s[-1] + sqrt(((R[i + 1] - R[i])**2).sum()))
+
+    lines = []
+    for i in range(n):
+        if i == 0:
+            d = R[1] - R[0]
+            ds = 0.5 * s[1]
+        elif i == n - 1:
+            d = R[-1] - R[-2]
+            ds = 0.5 * (s[-1] - s[-2])
+        else:
+            d = R[i + 1] - R[i - 1]
+            ds = 0.25 * (s[i + 1] - s[i - 1])
+
+        d = d / sqrt((d**2).sum())
+        dEds = -(F[i] * d).sum()
+        x = npy.linspace(s[i] - ds, s[i] + ds, 3)
+        y = E[i] + dEds * (x - s[i])
+        lines.append((x, y))
+
+        if i > 0:
+            s0 = s[i - 1]
+            s1 = s[i]
+            x = npy.linspace(s0, s1, 20, endpoint=False)
+            c = npy.linalg.solve(npy.array([(1, s0,   s0**2,     s0**3),
+                                            (1, s1,   s1**2,     s1**3),
+                                            (0,  1,  2 * s0, 3 * s0**2),
+                                            (0,  1,  2 * s1, 3 * s1**2)]),
+                                 npy.array([E[i - 1], E[i], dEds0, dEds]))
+            y = c[0] + x * (c[1] + x * (c[2] + x * c[3]))
+            Sfit[(i - 1) * 20:i * 20] = x
+            Efit[(i - 1) * 20:i * 20] = y
+        
+        dEds0 = dEds
+
+    Sfit[-1] = s[-1]
+    Efit[-1] = E[-1]
+    return s, E, Sfit, Efit, lines

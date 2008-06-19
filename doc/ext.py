@@ -67,7 +67,10 @@ def create_png_files():
         for filename in filenames:
             if filename.endswith('.py'):
                 path = join(dirpath, filename)
-                line = open(path).readline()
+                lines = open(path).readlines()
+                line = lines[0]
+                if 'coding: utf-8' in line:
+                    line = lines[1]
                 if line.startswith('# creates:'):
                     t0 = os.stat(path)[ST_MTIME]
                     run = False
@@ -85,6 +88,7 @@ def create_png_files():
                         print 'running:', join(dirpath, filename)
                         os.system('cd %s; python %s' % (dirpath, filename))
                         for file in line.split()[2:]:
+                            print dirpath, file
                             os.rename(join(dirpath, file),
                                       join('_static', file))
         if '.svn' in dirnames:

@@ -9,6 +9,7 @@ other calculator could be plugged in instead.
 .. toctree::
    :maxdepth: 3
 
+   neb/diffusion
    manipulating_atoms
    atomization
    surface
