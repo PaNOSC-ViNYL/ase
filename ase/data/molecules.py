@@ -2262,6 +2262,22 @@ def latex(name):
     s = s.replace(' ', r'\ ') + '$'
     return s
 
+def rest(name):
+    """Convert name to reStructureText."""
+    s = ''
+    while name:
+        c = name[0]
+        if c == '_':
+            s += r'\ :sub:`%s`\ ' % name[1]
+            name = name[2:]
+        elif c == '^':
+            s += r'\ :sup:`%s`\ ' % name[1]
+            name = name[2:]
+        else:
+            s += c
+            name = name[1:]
+    return s
+    
 if __name__ == '__main__':
     from gpaw.testing.atomization_data import atomization_vasp
     for name in g1:
