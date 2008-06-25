@@ -37,6 +37,9 @@ class Bravais:
     # from the other three.  Leave as None if all atoms are of the
     # same type.
     element_basis = None
+
+    # How small numbers should be considered zero in the unit cell?
+    chop_tolerance = 1e-10
     
     def __call__(self, directions=(None,None,None), miller=(None,None,None),
                  size=(1,1,1), symbol=None, latticeconstant=None,
@@ -165,6 +168,12 @@ class Bravais:
                           [0,self.size[1],0],
                           [0,0,self.size[2]]])
         basis = np.dot(basis, self.basis)
+        
+        # Tiny elements should be replaced by zero.  The cutoff is
+        # determined by chop_tolerance which is a class attribute.
+        basis = np.where(np.abs(basis) < self.chop_tolerance,
+                         0.0, basis)
+                         
         # None should be replaced, and memory should be freed.
         lattice = Lattice(positions=atoms, cell=basis, numbers=elements,
                           pbc=self.pbc)
