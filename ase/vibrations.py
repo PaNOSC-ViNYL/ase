@@ -80,9 +80,12 @@ class Vibrations:
     def run(self):
         """Run the vibration calculations.
 
-        This will calculate the forces for 6 dislpacements per atom
+        This will calculate the forces for 6 displacements per atom
         ±x, ±y, ±z.  Only those calculations that are not already done
-        will be started."""
+        will be started. Be aware that an interrupted calculation may
+        produce an empty file (ending with .pckl), which must be deleted
+        before restarting the job. Otherwise the forces will not be
+        calculated for that displacement."""
         
         p = self.atoms.positions.copy()
         for a in self.indices:
