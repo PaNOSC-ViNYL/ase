@@ -2263,7 +2263,7 @@ def latex(name):
     return s
 
 def rest(name):
-    """Convert name to reStructureText."""
+    """Convert name to reStructuredText."""
     s = ''
     while name:
         c = name[0]
