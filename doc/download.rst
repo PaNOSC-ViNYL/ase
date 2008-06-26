@@ -45,39 +45,35 @@ or from this tarfile (python-ase-3.0.0.tar.gz_)::
 
   $ cd $HOME
   $ tar xtzf python-ase-3.0.0.tar.gz
-  $ cd python-ase-3.0.0
+  $ mv python-ase-3.0.0 ase
+  $ cd ase
 
 .. _python-ase-3.0.0.tar.gz: python-ase-3.0.0.tar.gz
 
-If you have root-access, you do this::
+If you have root-permissions, you do this::
 
   $ sudo python setup.py install
 
-.. note::
 
-   If you don't have root-access, you do this::
+No root-permissions
+-------------------
    
-     $ python setup.py install --home=$HOME
-   
-   Then, put the directory :file:`$HOME/ase` in your :envvar:`PYTHONPATH`
-   environment variable, and the directory :file:`$HOME/ase/tools` in
-   your :envvar:`PATH` environment variable.  Do this permanently in
-   your :file:`~/.bashrc` file::
-   
-     export PYTHONPATH=$HOME/ase:$PYTHONPATH
-     export PATH=$PATH:$HOME/ase/tools
-   
-   or your :file:`~/.cshrc` file::
-   
-     setenv PYTHONPATH ${HOME}/ase:${PYTHONPATH}
-     setenv PATH ${PATH}:${HOME}/ase/tools
+Put the directory :file:`$HOME/ase` in your :envvar:`PYTHONPATH`
+environment variable, and the directory :file:`$HOME/ase/tools` in
+your :envvar:`PATH` environment variable.  Do this permanently in
+your :file:`~/.bashrc` file::
 
-   If you used the tar-file, then replace :file:`$HOME/ase` with
-   :file:`$HOME/python-ase-3.0.0`.
+  export PYTHONPATH=$HOME/ase:$PYTHONPATH
+  export PATH=$PATH:$HOME/ase/tools
 
-   Instead of :envvar:`HOME`, you may use any other directory.
+or your :file:`~/.cshrc` file::
 
+  setenv PYTHONPATH ${HOME}/ase:${PYTHONPATH}
+  setenv PATH ${PATH}:${HOME}/ase/tools
 
+Instead of :envvar:`HOME`, you may use any other directory.
+
+  
 
 .. index:: test
 
@@ -89,8 +85,6 @@ suite <test>`.  This will create many files, so run the tests in a new
 directory::
 	
   $ cd /tmp
-  $ mkdir testase
-  $ cd testase
   $ testase.py
   ...
        
