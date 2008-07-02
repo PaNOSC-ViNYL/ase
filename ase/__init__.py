@@ -13,7 +13,7 @@ from ase.optimize.qn import QuasiNewton
 from ase.md.verlet import VelocityVerlet
 from ase.md.langevin import Langevin
 from ase.constraints import *
-from ase.calculators import LennardJones, EMT, ASAP, Siesta
+from ase.calculators import LennardJones, EMT, ASAP, Siesta, Dacapo
 from ase.neb import NEB
 from ase.visualize import *
 from ase.data import *
