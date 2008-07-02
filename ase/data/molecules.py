@@ -2239,6 +2239,8 @@ def get_atomization_energy(name):
 
 def molecule(name):
     """Create molecule."""
+    if name in atoms:
+        return  Atoms(name, magmoms=[data[name]['magmom']])
     if name not in extra and name not in g2:
         raise NotImplementedError('System %s not in database.' % name)
     d = data[name]
