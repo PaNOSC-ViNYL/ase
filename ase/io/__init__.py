@@ -96,6 +96,10 @@ def read(filename, index=-1, format=None):
         from ase.io.dacapo import read_dacapo
         return read_dacapo(filename)
     
+    if format == 'xsf':
+        from ase.io.xsf import read_xsf
+        return read_xsf(filename, index)
+
     raise RuntimeError('That can *not* happen!')
 
 
@@ -236,4 +240,9 @@ def filetype(filename):
     if (' &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n'
         in lines[:90]):
         return 'dacapo-text'
+
+    for word in ['ANIMSTEPS', 'CRYSTAL', 'SLAB', 'POLYMER', 'MOLECULE']:
+        if lines[0].startswith(word):
+            return 'xsf'
+        
     return 'xyz'
