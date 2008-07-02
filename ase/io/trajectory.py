@@ -206,7 +206,8 @@ def write_trajectory(filename, images):
         calc = atoms.get_calculator()
         if (calc is not None and
             (not hasattr(calc, 'calculation_required') or
-             calc.calculation_required(atoms, ['energy', 'forces', 'stress']))):
+             calc.calculation_required(atoms,
+                                       ['energy', 'forces', 'stress']))):
             atoms.set_calculator(None)
         
         traj.write(atoms)
