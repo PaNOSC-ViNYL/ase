@@ -57,12 +57,20 @@ def read_dacapo(filename):
     vars = nc.variables
 
     cell = vars['UnitCell'][-1]
+    try:
+        magmoms = vars['InitialAtomicMagneticMoment'][:]
+    except KeyError:
+        magmoms = None
+    try:
+        tags = vars['AtomTags'][:]
+    except KeyError:
+        tags = None
     atoms = Atoms(positions=npy.dot(vars['DynamicAtomPositions'][-1], cell),
                   symbols=[(a + b).strip() 
                            for a, b in vars['DynamicAtomSpecies'][:]],
                   cell=cell,
-                  magmoms=vars['InitialAtomicMagneticMoment'][:],
-                  tags=vars['AtomTags'][:],
+                  magmoms=magmoms,
+                  tags=tags,
                   pbc=True)
 
 #    calc = SinglePointCalculator(vars['TotalEnergy'].getValue(),
