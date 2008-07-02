@@ -113,16 +113,18 @@ class OldASECalculatorWrapper:
         return OldASEListOfAtomsWrapper(self.atoms)
             
     def get_potential_energy(self, atoms):
-        # XXXX what about the cell?
         self.atoms.SetCartesianPositions(npy2num(atoms.get_positions()))
+        self.atoms.SetUnitCell(npy2num(atoms.get_cell()), fix=True)
         return self.calc.GetPotentialEnergy()
 
     def get_forces(self, atoms):
         self.atoms.SetCartesianPositions(npy2num(atoms.get_positions()))
+        self.atoms.SetUnitCell(npy2num(atoms.get_cell()), fix=True)
         return npy.array(self.calc.GetCartesianForces())
 
     def get_stress(self, atoms):
-        # XXXX
+        self.atoms.SetCartesianPositions(npy2num(atoms.get_positions()))
+        self.atoms.SetUnitCell(npy2num(atoms.get_cell()), fix=True)
         return npy.array(self.calc.GetStress())
 
     def get_number_of_bands(self):
