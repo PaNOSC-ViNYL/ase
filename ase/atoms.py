@@ -701,6 +701,9 @@ class Atoms(object):
                 (self.cell == other.cell).any() and
                 (self.pbc == other.pbc).any())
 
+    def get_volume(self):
+        return abs(npy.linalg.det(self.cell))
+    
     def add_adsorbate(self, adsorbate, height, position=(0, 0), offset=None):
         """Add an adsorbate to a surface.
     
