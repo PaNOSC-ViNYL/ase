@@ -39,9 +39,8 @@ class SinglePointCalculator:
 
     def calculation_required(self, atoms, quantities):
         ok = self.atoms.identical_to(atoms)
-        return (ok and 
-                not ('forces' in quantities and self.forces is None) and
-                not ('energy' in quantities and self.energy is None))
+        return ('forces' in quantities and (self.forces is None or not ok) or
+                ('energy' in quantities and (self.energy is None or not ok)))
 
     def update(self, atoms):
         if not self.atoms.identical_to(atoms):
