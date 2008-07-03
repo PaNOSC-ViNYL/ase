@@ -20,16 +20,54 @@ def restart(filename, **kwargs):
     return atoms, calc
 
 class Dacapo:
-    def __init__(self, filename=None, **kwargs):
-        from Dacapo import Dacapo
+    def __init__(self, filename=None, stay_alive=False, stress=False,
+                 **kwargs):
+
+        self.kwargs = kwargs
+        self.stay_alive = stay_alive
+        self.stress = stress
+        
         if filename is not None:
+            from Dacapo import Dacapo
             self.loa = Dacapo.ReadAtoms(filename, **kwargs)
             self.calc = self.loa.GetCalculator()
         else:
-            self.calc = Dacapo(**kwargs)
             self.loa = None
-            
+            self.calc = None
+
+        self.pps = []
+        
+    def set_pp(self, Z, path):
+        self.pps.append((Z, path))
+
+    def set_txt(self, txt):
+        if self.calc is None:
+            self.kwargs['txtout'] = txt
+        else:
+            self.calc.SetTxtFile(txt)
+
+    def set_nc(self, nc):
+        if self.calc is None:
+            self.kwargs['out'] = nc
+        else:
+            self.calc.SetNetCDFFile(nc)
+
     def update(self, atoms):
+        from Dacapo import Dacapo
+        if self.calc is None:
+            if 'nbands' not in self.kwargs:
+                n = sum([valence[atom.symbol] for atom in atoms])
+                self.kwargs['nbands'] = int(n * 0.65) + 4
+            self.calc = Dacapo(**self.kwargs)
+            if self.stay_alive:
+                self.calc.StayAliveOn()
+            else:
+                self.calc.StayAliveOff()
+            if self.stress:
+                self.calc.CalculateStress()
+            for Z, path in self.pps:
+                self.calc.SetPseudoPotential(Z, path)
+
         if self.loa is None:
             from ASE import Atom, ListOfAtoms
             numbers = atoms.get_atomic_numbers()
@@ -61,6 +99,15 @@ class Dacapo:
         self.update(atoms)
         return np.array(self.calc.GetStress())
 
+    def calculation_required(self, atoms, quantities):
+        if self.calc is None:
+            return True
+
+        if not atoms.identical_to(self.get_atoms().copy()):
+            return True
+
+        return False
+        
     def get_number_of_bands(self):
         return self.calc.GetNumberOfBands()
 
@@ -129,3 +176,8 @@ class Dacapo:
         for k in range(len(c)):
             c[k] = np.array(c[k])
         return c, U
+
+valence = {
+    'H': 1,
+    'Li': 1,
+    'B': 3}
