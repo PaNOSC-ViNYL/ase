@@ -30,6 +30,7 @@ def read(filename, index=-1, format=None):
     ASE pickle trajectory      traj
     GPAW text output           gpaw-text
     CUBE file                  cube
+    XCrySDen Structure File    xsf  
     Dacapo text output         dacapo-text
     XYZ-file                   xyz
     =========================  ===========
@@ -123,6 +124,7 @@ def write(filename, images, format=None, **kwargs):
     CUBE file                  cube
     XYZ-file                   xyz
     Protein Data Bank          pdb
+    XCrySDen Structure File    xsf  
     gOpenMol .plt file         plt  
     Python script              py
     Encapsulated Postscript    eps
@@ -203,11 +205,15 @@ def string2index(string):
 
 def filetype(filename):
     """Try to guess the type of the file."""
+    fileobj = open(filename)
+    s3 = fileobj.read(3)
+    if len(s3) == 0:
+        raise IOError('Empty file: ' + filename)
+    
     if is_tarfile(filename):
         return 'gpw'
 
-    fileobj = open(filename)
-    if fileobj.read(3) == 'CDF':
+    if s3 == 'CDF':
         from ase.io.pupynere import NetCDFFile
         nc = NetCDFFile(filename)
         if 'number_of_dynamic_atoms' in nc.dimensions:
