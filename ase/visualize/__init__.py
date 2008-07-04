@@ -11,7 +11,7 @@ except:
 else:
     oldase = True
 
-def view(atoms, data=None, viewer='ag', repeat=None):
+def view(atoms, data=None, viewer='ag', repeat=None, block=False):
     # Ignore for parallel calculations:
     if parallel.size != 1:
         return
@@ -51,5 +51,8 @@ def view(atoms, data=None, viewer='ag', repeat=None):
         atoms = atoms.repeat()
     write(fd, atoms, format=format, data=data)
     fd.close()
-    os.system('%s %s &' % (command, filename))
+    if block:
+        os.system('%s %s' % (command, filename))
+    else:
+        os.system('%s %s &' % (command, filename))
     os.system('(sleep 60; rm %s) &' % filename)
