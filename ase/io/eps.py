@@ -4,7 +4,8 @@ from math import sqrt
 import numpy as npy
 
 from ase.utils import rotate
-from ase.data import cpk_colors, covalent_radii
+from ase.data import covalent_radii
+from ase.data.colors import jmol_colors
 
 
 class EPS:
@@ -15,7 +16,7 @@ class EPS:
         self.numbers = atoms.get_atomic_numbers()
         self.colors = colors
         if colors is None:
-            self.colors = cpk_colors[self.numbers]
+            self.colors = jmol_colors[self.numbers]
 
         if radii is None:
             radii = covalent_radii[self.numbers]

@@ -9,7 +9,7 @@ from math import cos, sin, sqrt
 
 import numpy as npy
 
-from ase.data import cpk_colors
+from ase.data.colors import jmol_colors
 from ase.gui.repeat import Repeat
 from ase.gui.rotate import Rotate
 from ase.utils import rotate
@@ -17,7 +17,7 @@ from ase.utils import rotate
 
 class View:
     def __init__(self, vbox, rotations):
-        self.colors = [None] * (len(cpk_colors) + 1)
+        self.colors = [None] * (len(jmol_colors) + 1)
         self.nselected = 0
         self.rotation = rotate(rotations)
         
@@ -81,7 +81,7 @@ class View:
         alloc = self.colormap.alloc_color
         for z in self.images.Z:
             if self.colors[z] is None:
-                c, p, k = cpk_colors[z]
+                c, p, k = jmol_colors[z]
                 self.colors[z] = new(alloc(int(65535 * c),
                                            int(65535 * p),
                                            int(65535 * k)))
