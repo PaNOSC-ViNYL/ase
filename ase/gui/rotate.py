@@ -22,6 +22,9 @@ class Rotate(gtk.Window):
             r.connect('value-changed', self.change)
         button = pack(vbox, gtk.Button('Update'))
         button.connect('clicked', self.update_angles)
+        pack(vbox, gtk.Label('Note:\nYou can rotate freely\n'
+                             'with the mouse, by holding\n'
+                             'down mouse botton 2.'))
         self.add(vbox)
         vbox.show()
         self.show()

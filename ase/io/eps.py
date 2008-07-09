@@ -20,6 +20,8 @@ class EPS:
 
         if radii is None:
             radii = covalent_radii[self.numbers]
+        elif type(radii) is float:
+            radii = covalent_radii[self.numbers] * radii
             
         natoms = len(atoms)
 

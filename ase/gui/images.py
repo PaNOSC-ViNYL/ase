@@ -58,7 +58,10 @@ class Images:
         self.nselected = 0
         self.set_dynamic()
         self.repeat = npy.ones(3, int)
-        self.r = covalent_radii[self.Z] * 0.89
+        self.set_radii(0.89)
+
+    def set_radii(self, scale):
+        self.r = covalent_radii[self.Z] * scale
                 
     def read(self, filenames, index=-1):
         images = []

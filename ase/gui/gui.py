@@ -26,6 +26,7 @@ from ase.gui.view import View
 from ase.gui.status import Status
 from ase.gui.widgets import pack, help, Help
 from ase.gui.languages import translate as _
+from ase.gui.settings import Settings
 
 
 ui_info = """\
@@ -154,7 +155,7 @@ class GUI(View, Status):
              self.zoom),
             ('Settings', gtk.STOCK_PREFERENCES, 'Settings ...', None,
              '',
-             self.xxx),
+             self.settings),
             ('VMD', None, 'VMD', None,
              '',
              self.external_viewer),
@@ -259,6 +260,9 @@ class GUI(View, Status):
         self.offset = x * (self.offset + center) - center
         self.draw()
 
+    def settings(self, menuitem):
+        Settings(self)
+        
     def scroll(self, window, event):
         dxdy = {gtk.keysyms.Up:    ( 0, -1),
                 gtk.keysyms.Down:  ( 0, +1),
