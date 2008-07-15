@@ -95,9 +95,10 @@ class Atoms(object):
                  'addsorbate_info']
 
     def __init__(self, symbols=None,
-                 positions=None, scaled_positions=None, numbers=None,
+                 positions=None, numbers=None,
                  tags=None, momenta=None, masses=None,
                  magmoms=None, charges=None,
+                 scaled_positions=None,
                  cell=None, pbc=None,
                  constraint=None,
                  calculator=None):
