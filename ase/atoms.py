@@ -36,6 +36,9 @@ class Atoms(object):
             Atomic positions.  Anything that can be converted to an
             ndarray of shape (n, 3) will do: [(x1,y1,z1), (x2,y2,z2),
             ...].
+        scaled_positions: list of scaled-positions
+            Like positions, but given in units of the unit cell.
+            Can not be set at the same time as positions.
         numbers: list of int
             Atomic numbers (use only one of symbols/numbers).
         tags: list of int
@@ -92,7 +95,7 @@ class Atoms(object):
                  'addsorbate_info']
 
     def __init__(self, symbols=None,
-                 positions=None, numbers=None,
+                 positions=None, scaled_positions=None, numbers=None,
                  tags=None, momenta=None, masses=None,
                  magmoms=None, charges=None,
                  cell=None, pbc=None,
@@ -117,6 +120,8 @@ class Atoms(object):
                 
         if atoms is not None:
             # Get data from another Atoms object:
+            if scaled_positions is not None:
+                raise NotImplementedError
             if symbols is None and numbers is None:
                 numbers = atoms.get_atomic_numbers()
             if positions is None:
@@ -155,28 +160,31 @@ class Atoms(object):
             else:
                 self.new_array('numbers', symbols2numbers(symbols), int)
 
+        if cell is None:
+            cell = npy.eye(3)
+        self.set_cell(cell)
+
         if positions is None:
-            positions = npy.zeros((len(self.arrays['numbers']), 3))
+            if scaled_positions is None:
+                positions = npy.zeros((len(self.arrays['numbers']), 3))
+            else:
+                positions = npy.dot(scaled_positions, self.cell)
+        else:
+            if scaled_positions is not None:
+                raise RuntimeError, 'Both scaled and cartesian positions set!'
         self.new_array('positions', positions, float)
 
         self.set_constraint(constraint)
-                
         self.set_tags(default(tags, 0))
         self.set_momenta(default(momenta, (0.0, 0.0, 0.0)))
         self.set_masses(default(masses, None))
         self.set_magnetic_moments(default(magmoms, 0.0))
         self.set_charges(default(charges, 0.0))
-
-        if cell is None:
-            cell = npy.eye(3)
-        self.set_cell(cell)
-
         if pbc is None:
             pbc = False
         self.set_pbc(pbc)
 
         self.set_calculator(calculator)
-
         self.addsorbate_info = {}
 
     def set_calculator(self, calc=None):
