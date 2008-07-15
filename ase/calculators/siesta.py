@@ -203,20 +203,20 @@ class Siesta:
                 continue
 
             if isinstance(value, list):
-                fh.write('%block %s\n' % key)
+                fh.write('%%block %s\n' % key)
                 for line in value:
                     fh.write(' '.join(['%s' % x for x in line]) + '\n')
-                fh.write('%endblock %s\n' % key)
-
-            unit = keys_with_units.get(fdfify(key))
-            if unit is None:
-                fh.write('%s %s\n' % (key, value))
+                fh.write('%%endblock %s\n' % key)
             else:
-                if 'fs**2' in unit:
-                    value /= fs**2
-                elif 'fs' in unit:
-                    value /= fs
-                fh.write('%s %f %s\n' % (key, value, unit))
+                unit = keys_with_units.get(fdfify(key))
+                if unit is None:
+                    fh.write('%s %s\n' % (key, value))
+                else:
+                    if 'fs**2' in unit:
+                        value /= fs**2
+                    elif 'fs' in unit:
+                        value /= fs
+                    fh.write('%s %f %s\n' % (key, value, unit))
 
         fh.write('%block LatticeVectors\n')
         for v in self.cell:
@@ -248,7 +248,7 @@ class Siesta:
                         fh.write('0 ')
                 fh.write('%.1f\n' % (((self.kpts[i] + 1) % 2) * 0.5))
             fh.write('%endblock kgrid_Monkhorst_Pack\n')
-            
+        
         fh.close()
         
     def read(self):
