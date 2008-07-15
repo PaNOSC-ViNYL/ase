@@ -52,10 +52,11 @@ The following example shows how to do Bader analysis for a water molecule.
 First do a ground state calculation, and save the density as a cube file::
 
   from ase import *
-  from gpaw import Calculator
-  from gpaw.testing.g2 import get_g2
+  from gpaw import *
 
-  atoms = get_g2('H2O', [7.5, 9, 9])
+  atoms = molecule('H2O')
+  atoms.set_cell([7.5, 9, 9])
+  atoms.center()
   calc = Calculator(h=.17, xc='PBE')
   atoms.set_calculator(calc)
   atoms.get_potential_energy()
