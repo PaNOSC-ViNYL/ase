@@ -11,7 +11,7 @@ atoms *= (1, 1, 2)
 images = [atoms.copy(), atoms.copy()]
 
 r = ['xyz', 'traj', 'cube']
-w = r + ['pdb', 'png', 'eps']
+w = r + ['pdb', 'png', 'eps', 'xsf']
 for format in w:
     print format
     write('io-test.1', atoms, format=format)
