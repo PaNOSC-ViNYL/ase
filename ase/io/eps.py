@@ -170,25 +170,32 @@ class EPS:
         self.fd.write('%d %d 0 0 clipbox\n' % (self.w, self.h))
 
         self.renderer = RendererPS(self.w, self.h, self.fd)
-        self.gc = GraphicsContextPS()
-        self.line = self.renderer.draw_line
         
     def write_body(self):
-        # Write the figure
-        line = self.line
-        arc = self.renderer.draw_arc
+        try:
+            from matplotlib.path import Path
+        except ImportError:
+            Path = None
+            from matplotlib.patches import Circle, Polygon
+        else:
+            from matplotlib.patches import Circle, PathPatch
+
         indices = self.X[:, 2].argsort()
         for a in indices:
-            x, y = self.X[a, :2]
+            xy = self.X[a, :2]
             if a < self.natoms:
-                da = self.d[a]
-                arc(self.gc, tuple(self.colors[a]), x, y, da, da, 0, 360, 0)
+                circle = Circle(xy, self.d[a] / 2, facecolor=self.colors[a])
+                circle.draw(self.renderer)
             else:
                 a -= self.natoms
                 c = self.T[a]
                 if c != -1:
-                    hx, hy = self.D[c]
-                    line(self.gc, x - hx, y - hy, x + hx, y + hy)
+                    hxy = self.D[c]
+                    if Path is None:
+                        line = Polygon((xy + hxy, xy - hxy))
+                    else:
+                        line = PathPatch(Path((xy + hxy, xy - hxy)))
+                    line.draw(self.renderer)
 
     def write_trailer(self):
         self.fd.write('end\n')
