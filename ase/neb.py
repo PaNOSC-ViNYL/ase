@@ -13,6 +13,7 @@ class NEB:
         self.parallel = parallel
         self.natoms = len(images[0])
         self.nimages = len(images)
+        self.emax = npy.nan
 
     def interpolate(self):
         pos1 = self.images[0].get_positions()
@@ -60,10 +61,12 @@ class NEB:
                 world.broadcast(forces[i - 1], root)
 
         imax = 1 + npy.argsort(energies)[-1]
-
+        self.emax = energies[imax - 1]
+        
         tangent1 = images[1].get_positions() - images[0].get_positions()
         for i in range(1, self.nimages - 1):
-            tangent2 = images[i + 1].get_positions() - images[i].get_positions()
+            tangent2 = (images[i + 1].get_positions() -
+                        images[i].get_positions())
             if i < imax:
                 tangent = tangent2
             elif i > imax:
@@ -86,17 +89,8 @@ class NEB:
         return forces.reshape((-1, 3))
 
     def get_potential_energy(self):
-        return npy.nan
-        """
-        if not self.parallel:
-            return max([image.get_potential_energy() 
-                        for image in self.images[1:-1]])
-        else:
-            i = rank // (self.nimages - 2) + 1
-            forces[i - 1] = images[i].get_forces()
-            for i in range(1, self.nimages - 1):
-                world.broadcast(forces[i], (i - 1) * size // (self.nimages - 2))
-        """
+        return self.emax
+
     def __len__(self):
         return (self.nimages - 2) * self.natoms
 
