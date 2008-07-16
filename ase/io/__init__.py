@@ -147,8 +147,9 @@ def write(filename, images, format=None, **kwargs):
       The rotation angles, e.g. '45x,70y,90z'
     show_unit_cell: int
       Can be 0, 1, 2 to either not show, show, or show all of the unit cell
-    radii: array
-      An array of same length as the list of atoms, indicating the sphere radii
+    radii: array / float
+      An array of same length as the list of atoms indicating the sphere radii.
+      A single float specifies a uniform scaling of the default covalent radii.
     bbox: array
       XXX
     colors: array
