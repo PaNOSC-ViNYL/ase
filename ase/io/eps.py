@@ -9,10 +9,9 @@ from ase.data.colors import jmol_colors
 
 
 class EPS:
-    scale = 20.0
     def __init__(self, atoms,
                  rotation='', show_unit_cell=False, radii=None,
-                 bbox=None, colors=None):
+                 bbox=None, colors=None, scale=20):
         self.numbers = atoms.get_atomic_numbers()
         self.colors = colors
         if colors is None:
@@ -61,7 +60,6 @@ class EPS:
         X = npy.dot(X, rotation)
         R = X[:natoms]
 
-        scale = self.scale
         if bbox is None:
             X1 = (R - radii[:, None]).min(0) 
             X2 = (R + radii[:, None]).max(0) 

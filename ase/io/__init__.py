@@ -141,7 +141,8 @@ def write(filename, images, format=None, **kwargs):
     The ``eps``, ``png``, and ``pov`` formats are all graphics formats,
     and accept the additional keywords::
   
-      rotation='', show_unit_cell=0, radii=None, bbox=None, colors=None
+      rotation='', show_unit_cell=0, radii=None, bbox=None, colors=None,
+      scale=20
   
     rotation: str
       The rotation angles, e.g. '45x,70y,90z'
@@ -155,7 +156,9 @@ def write(filename, images, format=None, **kwargs):
     colors: array
       An array of same length as the list of atoms, indicating the rgb color
       code for each atom
-  
+    scale: int
+      Number of pixels per Angstrom.
+      
     The ``pov`` accepts the additional keywords:
     
     XXX
