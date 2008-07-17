@@ -1,9 +1,9 @@
 from ase import *
-from ase.lattice.surface import fcc001b as fcc001
+from ase.lattice.surface import fcc100
 
 # 2x2-Al(001) surface with 3 layers and an
 # Au atom adsorbed in a hollow site:
-slab = fcc001('Al', size=(2, 2, 3))
+slab = fcc100('Al', size=(2, 2, 3))
 slab.add_adsorbate('Au', 1.7, 'hollow')
 slab.center(axis=2, vacuum=4.0)
 
