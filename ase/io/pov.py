@@ -44,10 +44,10 @@ class POVRAY(EPS):
         'textures'     : None, # Length of atoms list of texture names
         }
 
-    def __init__(self, atoms, **parameters):
+    def __init__(self, atoms, scale=1.0, **parameters):
         for k, v in self.default_settings.items():
             setattr(self, k, parameters.pop(k, v))
-        EPS.__init__(self, atoms, **parameters)
+        EPS.__init__(self, atoms, scale=scale, **parameters)
 
     def cell_to_lines(self, A):
         return npy.empty((0, 3)), None, None
