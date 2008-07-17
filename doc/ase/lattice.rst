@@ -34,7 +34,7 @@ This will produce a slab 2x2x3 times the minimal possible size, with a
 and a hydrogen atom is adsorbed in an on-top position 1.5 Å above the
 top layer.
 
-The atoms in the slab will tags set to the layer number: First layer
+The atoms in the slab will have tags set to the layer number: First layer
 atoms will have tag=1, second layer atoms will have tag=2, and so on.
 Addsorbates get tag=0:
 
