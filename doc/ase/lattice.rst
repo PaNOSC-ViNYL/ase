@@ -25,15 +25,24 @@ Example
 To setup an Al(111) surface with a hydrogen atom adsorbed in an on-top
 position::
 
-    from ase.lattice.surface import *
-    atoms = fcc111('Al', size=(2,2,3), vacuum=10.0)
-    add_adsorbate(atoms, 'H', 1.5, 'ontop')
+  from ase.lattice.surface import *
+  slab = fcc111('Al', size=(2,2,3), vacuum=10.0)
+  add_adsorbate(slab, 'H', 1.5, 'ontop')
 
 This will produce a slab 2x2x3 times the minimal possible size, with a
 (111) surface in the z direction.  A 10 Å vacuum layer is added,
 and a hydrogen atom is adsorbed in an on-top position 1.5 Å above the
 top layer.
 
+The atoms in the slab will tags set to the layer number: First layer
+atoms will have tag=1, second layer atoms will have tag=2, and so on.
+Addsorbates get tag=0:
+
+>>> print atoms.get_tags()
+[3 3 3 3 2 2 2 2 1 1 1 1 0]
+
+This can be useful for setting up :mod:`constraints` (see
+:ref:`diffusion_tutorial`).
 
 
 Utility functions for setting up surfaces

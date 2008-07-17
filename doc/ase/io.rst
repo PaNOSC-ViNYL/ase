@@ -33,12 +33,8 @@ Examples
   adsorbate = Atoms('CO')
   adsorbate[1].z = 1.1
   slab = fcc111('Cu', (2, 2, 3))
-  add_adsorbate(slab, adsorbate, 1.8, 'ontop')
-  add_vacuum(slab, 7.0)
+  add_adsorbate(slab, adsorbate, 1.8, 'ontop', vacuum=7.0)
 
-XXX should we use slab.center instead of add_vacuum?
-
-XXX how is vacuum=7 defined?
 
 XXX should pbc be (1,1,0)?
  
