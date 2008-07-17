@@ -85,7 +85,7 @@ Calculator interface
 
 All calculators must have the following interface:
 
-.. autoclass:: calculators.Calculator
+.. autoclass:: ase.calculators.Calculator
 
 
 
