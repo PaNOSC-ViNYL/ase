@@ -4,6 +4,8 @@ Setting up crystals and surfaces
 
 .. default-role:: math
 
+
+
 Easy setup of surfaces
 ======================
 
@@ -15,11 +17,6 @@ to a surface.  In general, all surfaces can be set up with
 the `general crystal structures`_ modules documented below, but these
 utility functions make common tasks easier.
 
-Most of these modules create slabs with the smallest possible
-non-orthogonal unit cell.  If the optional parameter *orthogonal* is
-given, the smallest possible orthogonal unit cell is used, possibly creating a
-larger unit cell.
-
 
 
 Example
@@ -29,15 +26,15 @@ To setup an Al(111) surface with a hydrogen atom adsorbed in an on-top
 position::
 
     from ase.lattice.surface import *
-    atoms = fcc111('Al', size=(2,2,3))
-    add_vacuum(atoms, 10.0)
+    atoms = fcc111('Al', size=(2,2,3), vacuum=10.0)
     add_adsorbate(atoms, 'H', 1.5, 'ontop')
 
 This will produce a slab 2x2x3 times the minimal possible size, with a
-(111) surface in the z direction, and [1,-1,0] and [1,1,-2] directions
-along the x and y axes, respectively.  A 10 Å vacuum layer is added,
+(111) surface in the z direction.  A 10 Å vacuum layer is added,
 and a hydrogen atom is adsorbed in an on-top position 1.5 Å above the
 top layer.
+
+
 
 Utility functions for setting up surfaces
 -----------------------------------------
@@ -48,15 +45,22 @@ All the functions setting up surfaces take the same arguments.
   The chemical symbol of the element to use.
 
 *size*:
-  A tuple giving the system size in units of the minimal possible unit
-  cell consistent with periodic boundary conditions along all three
-  directions.
+  A tuple giving the system size in units of the minimal unit cell.
 
-*latticeconstant*: 
+*a*: 
   (optional) The lattice constant.  If specified, it overrides the
   expermental lattice constant of the element.  Must be specified if
   setting up a crystal structure different from the one found in
   nature.
+
+*c*: 
+  (optional) Extra HCP lattice constant.  If specified, it overrides the
+  expermental lattice constant of the element.  Can be specified if
+  setting up a crystal structure different from the one found in
+  nature and an ideal `c/a` ratio is not wanted (`c/a=(8/3)^{1/3}`).
+
+*vacuum*:
+  The thickness of the vacuum layer.  Default value is zero.
 
 *orthogonal*:
   (optional, not supported by all functions). If specified and true,
@@ -71,10 +75,57 @@ later be used when adding an adsorbate with
 The following functions are provided
 ````````````````````````````````````
 
-.. autofunction:: ase.lattice.surface.fcc001
-.. autofunction:: ase.lattice.surface.fcc111
-.. autofunction:: ase.lattice.surface.fcc110
-.. autofunction:: ase.lattice.surface.hcp0001
+.. function:: ase.lattice.surface.fcc100(symbol, size, a=None, vacuum=0.0)
+.. function:: ase.lattice.surface.fcc110(symbol, size, a=None, vacuum=0.0)
+.. function:: ase.lattice.surface.bcc100(symbol, size, a=None, vacuum=0.0)
+
+These allways give orthorhombic cells:
+
+======  ========
+fcc100  |fcc100|
+fcc110  |fcc110|
+bcc100  |bcc100|
+======  ========
+
+
+.. function:: ase.lattice.surface.fcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
+.. function:: ase.lattice.surface.bcc110(symbol, size, a=None, vacuum=0.0, orthogonal=False)
+.. function:: ase.lattice.surface.bcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
+.. function:: ase.lattice.surface.hcp0001(symbol, size, a=None, c=None, vacuum=0.0, orthogonal=False)
+
+These can give both non-orthorhombic and orthorhombic cells:
+
+=======  =========  ==========
+fcc111   |fcc111|   |fcc111o|
+bcc110   |bcc110|   |bcc110o|
+bcc111   |bcc111|   |bcc111o|
+hcp0001  |hcp0001|  |hcp0001o|
+=======  =========  ==========
+
+The adsorption sites are marked with:
+
+=======  ========  =====  =====  ========  ===========  ==========
+ontop    hollow    fcc    hcp    bridge    shortbridge  longbridge
+|ontop|  |hollow|  |fcc|  |hcp|  |bridge|  |bridge|     |bridge|
+=======  ========  =====  =====  ========  ===========  ==========
+
+.. |ontop|    image:: ../_static/ontop-site.png
+.. |hollow|   image:: ../_static/hollow-site.png
+.. |fcc|      image:: ../_static/fcc-site.png
+.. |hcp|      image:: ../_static/hcp-site.png
+.. |bridge|   image:: ../_static/bridge-site.png
+.. |fcc100|   image:: ../_static/fcc100.png
+.. |fcc110|   image:: ../_static/fcc110.png
+.. |bcc100|   image:: ../_static/bcc100.png
+.. |fcc111|   image:: ../_static/fcc111.png
+.. |bcc110|   image:: ../_static/bcc110.png
+.. |bcc111|   image:: ../_static/bcc111.png
+.. |hcp0001|  image:: ../_static/hcp0001.png
+.. |fcc111o|  image:: ../_static/fcc111o.png
+.. |bcc110o|  image:: ../_static/bcc110o.png
+.. |bcc111o|  image:: ../_static/bcc111o.png
+.. |hcp0001o| image:: ../_static/hcp0001o.png
+
 
 
 Adding new utility functions
@@ -82,17 +133,18 @@ Adding new utility functions
 
 If you need other surfaces than the ones above, the easiest is to look
 in the source file surface.py, and adapt one of the existing
-functions.  **Please** contribute any such function that you make
+functions.  *Please* contribute any such function that you make
 either by cheking it into SVN or by mailing it to the developers.
 
-Adding vacuum and adsorbates
-----------------------------
+Adding adsorbates
+-----------------
 
 After a slab has been created, a vacuum layer can be added.  It is
 also possible to add one or more adsorbates.
 
-.. autofunction:: ase.lattice.surface.add_vacuum
 .. autofunction:: ase.lattice.surface.add_adsorbate
+
+
 
 
 General crystal structures

@@ -14,16 +14,17 @@ Quick links:
   * - :mod:`atom`
     - :mod:`atoms`
     - :mod:`calculators`
-  * - :mod:`constraints`
-    - :mod:`dft`
+    - :mod:`constraints`
+  * - :mod:`dft`
     - :mod:`data`
-  * - :mod:`gui`
+    - :mod:`gui`
     - :mod:`io`
-    - :mod:`lattice`
-  * - :mod:`md`
+  * - :mod:`lattice`
+    - :mod:`md`
     - :mod:`neb`
     - :mod:`optimize`
-  * - :mod:`units`
+  * - :mod:`~lattice.surface`
+    - :mod:`units`
     - :mod:`vibrations`
     - :mod:`visualize`
 
@@ -31,7 +32,7 @@ Quick links:
 .. seealso::
 
    * :ref:`overview`
-   * :epydoc:`Automatically generates documentation <ase>` (:term:`API`)
+   * :epydoc:`Automatically generated documentation <ase>` (:term:`API`)
    * :svn:`Source code <>`
 
 
