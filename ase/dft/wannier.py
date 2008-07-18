@@ -9,15 +9,7 @@ from time import time
 from math import sqrt, pi
 import cPickle as pickle
 from ase.parallel import paropen
-from ase.old import OldASECalculatorWrapper
 
-
-def wrap(calc):
-    """Convert old ASE calculators to new style."""
-    if hasattr(calc, 'get_atoms'):
-        return calc
-    return OldASECalculatorWrapper(calc)
-    
 
 def dag(a):
     """Return Hermitian conjugate of input"""
@@ -169,7 +161,6 @@ class Wannier:
             if isinstance(calc, Dacapo):
                 sign = +1
             
-        calc = wrap(calc)
         self.nwannier = numberofwannier
         self.spin = spin
         self.kpt_kc = sign * calc.get_ibz_k_points()
@@ -232,7 +223,6 @@ class Wannier:
 
     def initialize(self, calc, first=True, initialwannier=None,
                    seed=None, bloch=False):
-        calc = wrap(calc)
         Nw = self.nwannier
         Nb = self.nbands
 
@@ -356,17 +346,17 @@ class Wannier:
         # Update the new Z matrix
         self.Z_dww = self.Z_dkww.sum(axis=1) / self.Nk
 
-    def get_centers(self):
+    def get_centers(self, scaled=False):
         """Calculate the Wannier centers
 
         ::
         
           pos =  L / 2pi * phase(diag(Z))
         """
-        #scaled = npy.angle(self.Z_dww[:3, w, w]) / (2 * pi)
-        #cartesian = npy.dot(scaled, self.largeunitcell_cc)
-        return npy.dot(npy.angle(self.Z_dww[:3].diagonal(0, 1, 2)).T,
-                       self.largeunitcell_cc / (2 * pi))
+        coord_wc = npy.angle(self.Z_dww[:3].diagonal(0, 1, 2)).T / (2 * pi)
+        if not scaled:
+            coord_wc = npy.dot(coord_wc, self.largeunitcell_cc)
+        return coord_wc
 
     def get_radii(self):
         """Calculate the Wannier radii
@@ -380,7 +370,6 @@ class Wannier:
         return abs(self.V_knw[:, :, w])**2 / self.Nk
 
     def get_wannier_function_dos(self, calc, n, energies, width):
-        calc = wrap(calc)
         spec_kn = self.get_spectral_weight_of_wannier_function(n)
         dos = npy.zeros(len(energies))
         for k, spec_n in enumerate(spec_kn):
@@ -516,7 +505,6 @@ class Wannier:
     def get_function(self, calc, index, repeat=None):
         """Index can be either a single WF or a coordinate vector
         in terms of the WFs."""
-        calc = wrap(calc)
 
         # Default size of plotting cell is the one corresponding to k-points.
         if repeat is None:
@@ -554,7 +542,6 @@ class Wannier:
 
     def write_cube(self, calc, index, fname, repeat=None):
         from ase.io.cube import write_cube
-        calc = wrap(calc)
 
         # Default size of plotting cell is the one corresponding to k-points.
         if repeat is None:
