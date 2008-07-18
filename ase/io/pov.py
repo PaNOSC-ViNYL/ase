@@ -34,7 +34,7 @@ class POVRAY(EPS):
         'transparent'  : True,  # Transparent background
         'canvas_width' : None,  # Width of canvas in pixels
         'canvas_height': None,  # Height of canvas in pixels 
-        'camera_dist'  : 10.,   # Distance from camera to image plane
+        'camera_dist'  : 50.,   # Distance from camera to image plane
         'camera_type'  : 'orthographic', # perspective, ultra_wide_angle
         'point_lights' : [],             # [[loc1, color1], [loc2, color2],...]
         'area_light'   : [(2., 3., 40.) ,# location

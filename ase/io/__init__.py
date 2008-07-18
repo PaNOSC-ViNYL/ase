@@ -145,9 +145,9 @@ def write(filename, images, format=None, **kwargs):
       scale=20
   
     rotation: str
-      The rotation angles, e.g. '45x,70y,90z'
+      The rotation angles, e.g. '45x,70y,90z'.
     show_unit_cell: int
-      Can be 0, 1, 2 to either not show, show, or show all of the unit cell
+      Can be 0, 1, 2 to either not show, show, or show all of the unit cell.
     radii: array / float
       An array of same length as the list of atoms indicating the sphere radii.
       A single float specifies a uniform scaling of the default covalent radii.
@@ -155,7 +155,7 @@ def write(filename, images, format=None, **kwargs):
       XXX
     colors: array
       An array of same length as the list of atoms, indicating the rgb color
-      code for each atom
+      code for each atom.
     scale: int
       Number of pixels per Angstrom.
       
