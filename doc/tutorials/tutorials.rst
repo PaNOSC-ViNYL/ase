@@ -10,6 +10,7 @@ other calculator could be plugged in instead.
    :maxdepth: 3
 
    neb/diffusion
+   eos/eos
    manipulating_atoms
    atomization
    surface

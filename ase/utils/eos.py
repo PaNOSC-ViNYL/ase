@@ -58,6 +58,12 @@ class EquationOfState:
         return self.v0, self.e0, self.B
 
     def plot(self, filename=None, show=None):
+        """Plot fitted energy curve.
+
+        Uses Matplotlib to plot the energy curve.  Use *show=True* to
+        show the figure and *filename='abc.png'* or
+        *filename='abc.eps'* to saev to figure to a file."""
+        
         import matplotlib.pyplot as plt
 
         if self.v0 is None:

@@ -25,8 +25,12 @@ Quick links:
     - :mod:`optimize`
   * - :mod:`~lattice.surface`
     - :mod:`units`
+    - :mod:`utils`
     - :mod:`vibrations`
-    - :mod:`visualize`
+  * - :mod:`visualize`
+    -
+    -
+    -
 
 
 .. seealso::
@@ -57,3 +61,4 @@ List of all modules:
    md
    dft/dft
    data
+   utils
