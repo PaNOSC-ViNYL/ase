@@ -2,11 +2,18 @@
 from math import sqrt
 
 import numpy as npy
+
 from ase.units import kJ
+from ase.utils.eos import EquationOfState
 
 
 def BulkModulus(images):
     v = npy.array([abs(npy.linalg.det(A)) for A in images.A])
+    import matplotlib.pyplot as plt
+    plt.ion()
+    EquationOfState(v, images.E).plot()
+
+"""
     fit = npy.poly1d(npy.polyfit(v**-(1.0 / 3), images.E, 3))
     fit1 = npy.polyder(fit, 1)
     fit2 = npy.polyder(fit1, 1)
@@ -33,3 +40,4 @@ def BulkModulus(images):
     pylab.ylabel(u'energy [eV]')
     pylab.title(u'E: %.3f eV, V: %.3f Å^3, B: %.3f GPa' % (e0, v0, B))
     pylab.show()
+"""
