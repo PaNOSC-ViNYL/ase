@@ -1,6 +1,6 @@
 from ase import *
 from ase.utils.eos import *
-configs = read('Ag.traj@0:4')  # read 5 configurations
+configs = read('Ag.traj@0:5')  # read 5 configurations
 # Extract volumes and energies:
 volumes = [ag.get_volume() for ag in configs]
 energies = [ag.get_potential_energy() for ag in configs]
