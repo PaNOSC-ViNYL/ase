@@ -10,7 +10,8 @@ First, do a bulk calculation for different lattice constants:
 
 This will write a trajectory file containing five configurations of
 FCC silver for five different lattice constans.  Now, analyse the
-result with this script:
+result with the :class:`~ase.utils.eos.EquationOfState` class and this
+script:
 
 .. literalinclude:: eos2.py
 

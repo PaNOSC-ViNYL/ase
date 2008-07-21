@@ -62,7 +62,7 @@ class EquationOfState:
 
         Uses Matplotlib to plot the energy curve.  Use *show=True* to
         show the figure and *filename='abc.png'* or
-        *filename='abc.eps'* to saev to figure to a file."""
+        *filename='abc.eps'* to save the figure to a file."""
         
         import matplotlib.pyplot as plt
 

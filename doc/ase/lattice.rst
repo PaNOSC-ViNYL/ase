@@ -84,9 +84,9 @@ later be used when adding an adsorbate with
 The following functions are provided
 ````````````````````````````````````
 
-.. function:: ase.lattice.surface.fcc100(symbol, size, a=None, vacuum=0.0)
-.. function:: ase.lattice.surface.fcc110(symbol, size, a=None, vacuum=0.0)
-.. function:: ase.lattice.surface.bcc100(symbol, size, a=None, vacuum=0.0)
+.. function:: fcc100(symbol, size, a=None, vacuum=0.0)
+.. function:: fcc110(symbol, size, a=None, vacuum=0.0)
+.. function:: bcc100(symbol, size, a=None, vacuum=0.0)
 
 These allways give orthorhombic cells:
 
@@ -97,10 +97,10 @@ bcc100  |bcc100|
 ======  ========
 
 
-.. function:: ase.lattice.surface.fcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
-.. function:: ase.lattice.surface.bcc110(symbol, size, a=None, vacuum=0.0, orthogonal=False)
-.. function:: ase.lattice.surface.bcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
-.. function:: ase.lattice.surface.hcp0001(symbol, size, a=None, c=None, vacuum=0.0, orthogonal=False)
+.. function:: fcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
+.. function:: bcc110(symbol, size, a=None, vacuum=0.0, orthogonal=False)
+.. function:: bcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
+.. function:: hcp0001(symbol, size, a=None, c=None, vacuum=0.0, orthogonal=False)
 
 These can give both non-orthorhombic and orthorhombic cells:
 
