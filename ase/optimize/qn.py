@@ -1,4 +1,4 @@
-import numpy as npy
+import numpy as np
 from numpy.linalg import eigh, solve
 
 from ase.optimize import Optimizer
@@ -25,10 +25,10 @@ class QuasiNewton(Optimizer):
         f = f.reshape(-1)
         self.update(r.flat, f)
         omega, V = eigh(self.H)
-        dr = npy.dot(V, npy.dot(f, V) / npy.fabs(omega)).reshape((-1, 3))
+        dr = np.dot(V, np.dot(f, V) / np.fabs(omega)).reshape((-1, 3))
         #dr = solve(self.H, f).reshape((-1, 3))
         steplengths = (dr**2).sum(1)**0.5
-        dr /= npy.maximum(steplengths / self.maxstep, 1.0).reshape(-1, 1)
+        dr /= np.maximum(steplengths / self.maxstep, 1.0).reshape(-1, 1)
         atoms.set_positions(r + dr)
         self.r0 = r.flat.copy()
         self.f0 = f.copy()
@@ -36,11 +36,16 @@ class QuasiNewton(Optimizer):
 
     def update(self, r, f):
         if self.H is None:
-            self.H = npy.eye(3 * len(self.atoms)) * 70.0
+            self.H = np.eye(3 * len(self.atoms)) * 70.0
             return
         dr = r - self.r0
+
+        if np.abs(dr).max() < 1e-7:
+            # Same configuration again (maybe a restart):
+            return
+        
         df = f - self.f0
-        a = npy.dot(dr, df)
-        dg = npy.dot(self.H, dr)
-        b = npy.dot(dr, dg)
-        self.H -= npy.outer(df, df) / a + npy.outer(dg, dg) / b
+        a = np.dot(dr, df)
+        dg = np.dot(self.H, dr)
+        b = np.dot(dr, dg)
+        self.H -= np.outer(df, df) / a + np.outer(dg, dg) / b
