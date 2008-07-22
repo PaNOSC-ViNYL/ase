@@ -86,6 +86,18 @@ Calculator interface
 All calculators must have the following interface:
 
 .. autoclass:: ase.calculators.Calculator
+   :members:
+
+
+Electronic structure calculators
+================================
+
+These calculators have wave functions, electron densities, eigenvalues
+and many other quantities.  Therefore, it makes sense to have a set of
+standard methods for accessing those quantities:
+
+.. autoclass:: ase.calculators.DFTCalculator
+   :members:
 
 
 

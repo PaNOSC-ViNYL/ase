@@ -117,14 +117,13 @@ class Optimizer(Dynamics):
         return (forces**2).sum(axis=1).max() < self.fmax**2
 
     def log(self, forces):
-        if self.logfile is None:
-            return
         fmax = sqrt((forces**2).sum(axis=1).max())
         e = self.atoms.get_potential_energy()
-        name = self.__class__.__name__
-        self.logfile.write('%s: %3d %15.6f %12.4f\n' %
-                           (name, self.nsteps, e, fmax))
-        self.logfile.flush()
+        if self.logfile is not None:
+            name = self.__class__.__name__
+            self.logfile.write('%s: %3d %15.6f %12.4f\n' %
+                               (name, self.nsteps, e, fmax))
+            self.logfile.flush()
         
     def dump(self, data):
         if rank == 0 and self.restart is not None:
