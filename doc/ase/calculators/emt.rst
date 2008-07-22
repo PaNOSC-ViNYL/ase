@@ -1,4 +1,4 @@
-.. module::  calculators.emt
+.. module::  emt
    :synopsis: Effective Medium Theory
 
 ==========================

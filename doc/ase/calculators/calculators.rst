@@ -6,7 +6,7 @@ Calculators
 ===========
 
 For ASE, a calculator is a black box that can take atomic numbers and
-atomic positions from an :class:`Atoms` object and calculate the
+atomic positions from an :class:`~atoms.Atoms` object and calculate the
 energy and forces and sometimes also stresses.
 
 In order to calculate forces and energies, you need to attach a
@@ -26,8 +26,9 @@ RuntimeError: Atoms object has no calculator.
 >>> print e
 -42.0
 
-Here, we used the :meth:`Atoms.set_calculator` method to attach an instance
-of the :class:`Abinit` class and then we asked for the energy.
+Here, we used the :meth:`~ase.atoms.Atoms.set_calculator` method to attach
+an instance of the :class:`~abinit.Abinit` class and then
+we asked for the energy.
 
 Alternatively, a calculator can be attached like this::
 
@@ -45,10 +46,10 @@ GPAW_            Grid-based real-space PAW code               :term:`DFT`,
                                                               :term:`HF`
 Asap_            Highly efficient EMT code (written in C++)   :term:`EMT`
 Dacapo_          A planewave ultra-soft pseudopotential code  :term:`DFT`
-:class:`EMT`     Effective Medium Theory calculator           :term:`EMT`
-:class:`Abinit`  A planewave pseudopotential code             :term:`DFT`
-:class:`Siesta`  LCAO pseudopotential code                    :term:`DFT`
-:class:`MMTK`    XXX Library for molecular simulations 
+:mod:`emt`       Effective Medium Theory calculator           :term:`EMT`
+:mod:`abinit`    A planewave pseudopotential code             :term:`DFT`
+:mod:`siesta`    LCAO pseudopotential code                    :term:`DFT`
+:mod:`mmtk`      XXX Library for molecular simulations 
 ===============  ===========================================  ============
   
 
@@ -107,7 +108,7 @@ Building new calculators
 Adding an ASE interface to your favorite force-calculator can be very
 simple.  Take a look at the Python wrapper we have in the ASE code for
 using the SIESTA_ code with ASE: :svn:`ase/calculators/siesta.py`.
-Here, a :class:`Siesta` class is defined.  An instance of this class
+Here, a :class:`~siesta.Siesta` class is defined.  An instance of this class
 will simply write the fdf input-file, start the SIESTA Fortran
 program, and finally read the energy, forces and stresses from the
 text output-file.
@@ -121,6 +122,5 @@ text output-file.
 
    For details, see the API for the
    :epydoc:`ase.calculators.neighborlist.NeighborList` class.
-
 
 .. _SIESTA: http://www.uam.es/departamentos/ciencias/fismateriac/siesta/

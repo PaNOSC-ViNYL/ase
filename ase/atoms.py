@@ -13,9 +13,10 @@ from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 
 
 class Atoms(object):
-    """
+    """Atoms object.
+    
     The Atoms object can represent an isolated molecule, or a
-    periodically repeated structure.  It may have a unit cell and
+    periodically repeated structure.  It has a unit cell and
     there may be periodic boundary conditions along any of the three
     unit cell axes.
 
@@ -26,70 +27,70 @@ class Atoms(object):
     In order to calculate energies, forces and stresses, a calculator
     object has to attached to the atoms object.
 
-        Parameters:
+    Parameters:
 
-        symbols: str (formula) or list of str
-            Can be a string formula, a list of symbols or a list of
-            Atom objects.  Examples: 'H2O', 'COPt12', ['H', 'H', 'O'],
-            [Atom('Ne', (x, y, z), ...].
-        positions: list of xyz-positions
-            Atomic positions.  Anything that can be converted to an
-            ndarray of shape (n, 3) will do: [(x1,y1,z1), (x2,y2,z2),
-            ...].
-        scaled_positions: list of scaled-positions
-            Like positions, but given in units of the unit cell.
-            Can not be set at the same time as positions.
-        numbers: list of int
-            Atomic numbers (use only one of symbols/numbers).
-        tags: list of int
-            Special purpose tags.
-        momenta: list of xyz-momenta
-            Momenta for all atoms.
-        masses: list of float
-            Atomic masses in atomic units.
-        magmoms: list of float
-            Magnetic moments.
-        charges: list of float
-            Atomic charges.
-        cell: 3x3 matrix
-            Unit cell vectors.  Can also be given as just three
-            numbers for orthorhombic cells.  Default value: [1, 1, 1].
-        pbc: one or three bool
-            Periodic boundary conditions flags.  Examples: True,
-            False, 0, 1, (1, 1, 0), (True, False, False).  Default
-            value: False.
-        constraint: constraint object(s)
-            Used for applying one or more constraints during structure
-            optimization.
-        calculator: calculator object
-            Used to attach a calculator for calulating energies and atomic
-            forces.
+    symbols: str (formula) or list of str
+        Can be a string formula, a list of symbols or a list of
+        Atom objects.  Examples: 'H2O', 'COPt12', ['H', 'H', 'O'],
+        [Atom('Ne', (x, y, z), ...].
+    positions: list of xyz-positions
+        Atomic positions.  Anything that can be converted to an
+        ndarray of shape (n, 3) will do: [(x1,y1,z1), (x2,y2,z2),
+        ...].
+    scaled_positions: list of scaled-positions
+        Like positions, but given in units of the unit cell.
+        Can not be set at the same time as positions.
+    numbers: list of int
+        Atomic numbers (use only one of symbols/numbers).
+    tags: list of int
+        Special purpose tags.
+    momenta: list of xyz-momenta
+        Momenta for all atoms.
+    masses: list of float
+        Atomic masses in atomic units.
+    magmoms: list of float
+        Magnetic moments.
+    charges: list of float
+        Atomic charges.
+    cell: 3x3 matrix
+        Unit cell vectors.  Can also be given as just three
+        numbers for orthorhombic cells.  Default value: [1, 1, 1].
+    pbc: one or three bool
+        Periodic boundary conditions flags.  Examples: True,
+        False, 0, 1, (1, 1, 0), (True, False, False).  Default
+        value: False.
+    constraint: constraint object(s)
+        Used for applying one or more constraints during structure
+        optimization.
+    calculator: calculator object
+        Used to attach a calculator for calulating energies and atomic
+        forces.
 
-        Examples:
+    Examples:
 
-        These three are equivalent:
+    These three are equivalent:
 
-        >>> d = 1.104  # N2 bondlength
-        >>> a = Atoms('N2', [(0, 0, 0), (0, 0, d)])
-        >>> a = Atoms(numbers=[7, 7], positions=[(0, 0, 0), (0, 0, d)])
-        >>> a = Atoms([Atom('N', (0, 0, 0)), Atom('N', (0, 0, d)])
+    >>> d = 1.104  # N2 bondlength
+    >>> a = Atoms('N2', [(0, 0, 0), (0, 0, d)])
+    >>> a = Atoms(numbers=[7, 7], positions=[(0, 0, 0), (0, 0, d)])
+    >>> a = Atoms([Atom('N', (0, 0, 0)), Atom('N', (0, 0, d)])
 
-        FCC gold:
+    FCC gold:
 
-        >>> a = 4.05  # Gold lattice constant
-        >>> b = a / 2
-        >>> fcc = Atoms('Au',
-        ...             cell=[(0, b, b), (b, 0, b), (b, b, 0)],
-        ...             pbc=True)
+    >>> a = 4.05  # Gold lattice constant
+    >>> b = a / 2
+    >>> fcc = Atoms('Au',
+    ...             cell=[(0, b, b), (b, 0, b), (b, b, 0)],
+    ...             pbc=True)
 
-        Hydrogen wire:
-        
-        >>> d = 0.9  # H-H distance
-        >>> L = 7.0
-        >>> h = Atoms('H', positions=[(0, L / 2, L / 2)],
-        ...           cell=(d, L, L),
-        ...           pbc=(1, 0, 0))
-        """
+    Hydrogen wire:
+    
+    >>> d = 0.9  # H-H distance
+    >>> L = 7.0
+    >>> h = Atoms('H', positions=[(0, L / 2, L / 2)],
+    ...           cell=(d, L, L),
+    ...           pbc=(1, 0, 0))
+    """
 
     __slots__ = ['arrays', 'cell', 'pbc', 'calc', 'constraints',
                  'adsorbate_info']
@@ -213,8 +214,8 @@ class Atoms(object):
     def set_cell(self, cell, scale_atoms=False, fix=None):
         """Set unit cell vectors.
 
-        Parameters
-        ----------
+        Parameters:
+
         cell : 
             Unit cell.  A 3x3 matrix (the three unit cell vectors) or
             just three numbers for an orthorhombic cell.
@@ -222,8 +223,8 @@ class Atoms(object):
             Fix atomic positions or move atoms with the unit cell?
             Default behavior is to *not* move the atoms (scale_atoms=False).
 
-        Examples
-        --------
+        Examples:
+
         Two equivalent ways to define an orthorhombic cell:
         
         >>> a.set_cell([a, b, c])
@@ -606,8 +607,8 @@ class Atoms(object):
         v is rotated into a.  The point (0, 0, 0) is always fixed.
         Vectors can also be strings: 'x', '-x', 'y', ... .
 
-        Examples
-        --------
+        Examples:
+
         Rotate 90 degrees around the z-axis, so that the x-axis is
         rotated into the y-axis:
 

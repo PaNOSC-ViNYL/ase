@@ -5,16 +5,11 @@ The Atoms object
 
 XXX This page needs more work!
 
-.. class:: Atoms
-
-   XXX first argument symbols, second argument positions ... :mod:`units` ...
-
-
 
 Working with the methods of Atoms objects
 -----------------------------------------
 
-Like with a single :class:`Atom` the properties of a collection of atoms
+Like with a single :class:`atom.Atom` the properties of a collection of atoms
 can be accessed and changed with get- and set-methods. For example
 the positions of the atoms can be addressed as
 
@@ -112,3 +107,9 @@ temperature smearing of the occupation numbers extrapolated to zero
 temperature. More about this can be found for the different
 :mod:`calculators` XXX Is get_potential_energy well defined for the
 different calculators ? XXX
+
+
+.. autoclass:: ase.atoms.Atoms
+   :members:
+
+

@@ -1,4 +1,4 @@
-.. module:: calculators.abinit
+.. module:: abinit
 
 ======
 ABINIT
