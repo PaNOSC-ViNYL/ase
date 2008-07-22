@@ -39,6 +39,9 @@ class FixAtoms:
         else:
             self.index = npy.asarray(indices, int)
 
+        if self.index.ndim != 1:
+            raise ValueError('Wrong argument to FixAtoms class!')
+
     def adjust_positions(self, old, new):
         new[self.index] = old[self.index]
 
