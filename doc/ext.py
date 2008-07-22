@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import types
 from os.path import join
 from stat import ST_MTIME
 from docutils import nodes, utils
@@ -39,10 +40,10 @@ def epydoc_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
         for component in components[1:n]:
             module = getattr(module, component)
             ref = '.'.join(components[:n])
-            if isinstance(module, type):
-                ref += '-class.html'
-            else:
-                ref += '-module.html'
+        if isinstance(module, (type, types.ClassType)):
+            ref += '-class.html'
+        else:
+            ref += '-module.html'
         if n < len(components):
             ref += '#' + components[-1]
     else:
