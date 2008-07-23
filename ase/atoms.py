@@ -203,6 +203,10 @@ class Atoms(object):
         return self.calc
 
     def set_constraint(self, constraint=None):
+        """Apply one or more constrains.
+
+        The *constraint* argument must be one constraint object or a
+        list of constraint objects."""
         if constraint is None:
             self.constraints = []
         else:
@@ -299,22 +303,27 @@ class Atoms(object):
         return name in self.arrays
     
     def set_atomic_numbers(self, numbers):
+        """Set atomic numbers."""
         self.set_array('numbers', numbers, int)
 
     def get_atomic_numbers(self):
+        """Get integer array of atomic numbers."""
         return self.arrays['numbers']
 
     def set_chemical_symbols(self, symbols):
+        """Set chemical symbols."""
         self.set_array('numbers', symbols2numbers(symbols), int)
 
     def get_chemical_symbols(self):
-        """Getlist of chemical symbols."""
+        """Get list of chemical symbol strings."""
         return [chemical_symbols[Z] for Z in self.arrays['numbers']]
 
     def set_tags(self, tags):
+        """Set tags for all atoms."""
         self.set_array('tags', tags, int)
         
     def get_tags(self):
+        """Get integer array of tags."""
         if 'tags' in self.arrays:
             return self.arrays['tags'].copy()
         else:
