@@ -26,8 +26,8 @@ number of "design goals" as:
 
 :Simplicity in development:
   The ASE defines a set of interfaces for different objects, i.e. an
-  :class:`Atoms` object is required to posses a method with the name
-  :meth:`get_positions` which returns the coordinates of
+  :class:`~ase.atoms.Atoms` object is required to posses a method with the name
+  :meth:`~ase.atoms.Atoms.get_positions` which returns the coordinates of
   the atom. By following a few such standard interfaces it is easy for
   new users to get access to all of the functionality of ASE.
 
@@ -62,6 +62,12 @@ number of "design goals" as:
 Mailing list
 ============
 
-XXX  campos, ase, checkins, ???
+There is a mailing list for discussing ASE: 
 
-.. _mailing list: http://lists.berlios.de/mailman/listinfo/gridpaw-developer
+* subscribe_
+* archives_
+* search_
+
+.. _subscribe: https://listserv.fysik.dtu.dk/mailman/listinfo/ase-users
+.. _archives: https://listserv.fysik.dtu.dk/pipermail/ase-users
+.. _search: https://listserv.fysik.dtu.dk/pipermail/ase-users
