@@ -330,6 +330,7 @@ class Atoms(object):
             return npy.zeros(len(self), int)
 
     def set_momenta(self, momenta):
+        """Set momenta."""
         if len(self.constraints) > 0 and momenta is not None:
             momenta = npy.array(momenta)  # modify a copy
             for constraint in self.constraints:
@@ -337,6 +338,7 @@ class Atoms(object):
         self.set_array('momenta', momenta, float)
 
     def get_momenta(self):
+        """Get array of momenta."""
         if 'momenta' in self.arrays:
             return self.arrays['momenta'].copy()
         else:
@@ -362,16 +364,18 @@ class Atoms(object):
         self.set_array('masses', masses, float)
 
     def get_masses(self):
+        """Get array of masses."""
         if 'masses' in self.arrays:
             return self.arrays['masses'].copy()
         else:
             return atomic_masses[self.arrays['numbers']]
         
     def set_magnetic_moments(self, magmoms):
-        """Sets the initial magnetic moments."""
+        """Set the initial magnetic moments."""
         self.set_array('magmoms', magmoms, float)
 
     def get_initial_magnetic_moments(self):
+        """Get array of initial magnetic moments."""
         if 'magmoms' in self.arrays:
             return self.arrays['magmoms'].copy()
         else:
@@ -396,15 +400,18 @@ class Atoms(object):
             return 0.0
 
     def set_charges(self, charges):
+        """Set charges."""
         self.set_array('charges', charges, int)
 
     def get_charges(self):
+        """Get array of charges."""
         if 'charges' in self.arrays:
             return self.arrays['charges'].copy()
         else:
             return npy.zeros(len(self))
 
     def set_positions(self, newpositions):
+        """Set positions."""
         positions = self.arrays['positions']
         if self.constraints:
             newpositions = npy.asarray(newpositions, float)
@@ -414,20 +421,24 @@ class Atoms(object):
         positions[:] = newpositions
 
     def get_positions(self):
+        """Get array of positions."""
         return self.arrays['positions'].copy()
 
     def get_potential_energy(self):
+        """Calculate potential energy."""
         if self.calc is None:
             raise RuntimeError('Atoms object has no calculator.')
         return self.calc.get_potential_energy(self)
 
     def get_kinetic_energy(self):
+        """Get the kinetic energy."""
         momenta = self.arrays.get('momenta')
         if momenta is None:
             return 0.0
         return 0.5 * npy.vdot(momenta, self.get_velocities())
 
     def get_velocities(self):
+        """Get array of velocities."""
         momenta = self.arrays.get('momenta')
         if momenta is None:
             return None
@@ -437,9 +448,16 @@ class Atoms(object):
         return momenta / m.reshape(-1, 1)
     
     def get_total_energy(self):
+        """Get the total energy - potential plus kinetic energy."""
         return self.get_potential_energy() + self.get_kinetic_energy()
 
     def get_forces(self, apply_constraint=True):
+        """Calculate atomic forces.
+
+        Ask the attached calculator to calculate the forces and apply
+        constraints.  Use *apply_constraint=False* to get the raw
+        forces."""
+
         if self.calc is None:
             raise RuntimeError('Atoms object has no calculator.')
         forces = self.calc.get_forces(self)
@@ -449,11 +467,13 @@ class Atoms(object):
         return forces
 
     def get_stress(self):
+        """Calculate stress tensor."""
         if self.calc is None:
             raise RuntimeError('Atoms object has no calculator.')
         return self.calc.get_stress(self)
     
     def copy(self):
+        """Return a copy."""
         atoms = Atoms(cell=self.cell, pbc=self.pbc)
 
         atoms.arrays = {}
@@ -491,7 +511,8 @@ class Atoms(object):
         atoms += other
         return atoms
 
-    def __iadd__(self, other):
+    def extend(self, other):
+        """Extend atoms object by appending atoms from *other*."""
         if isinstance(other, Atom):
             other = Atoms([other])
             
@@ -515,9 +536,10 @@ class Atoms(object):
 
         return self
 
-    extend = __iadd__
+    __iadd__ = extend
 
     def append(self, atom):
+        """"Append atom to end."""
         self.extend(Atoms([atom]))
 
     def __getitem__(self, i):
@@ -543,6 +565,7 @@ class Atoms(object):
             self.arrays[name] = a[mask]
 
     def pop(self, i=-1):
+        """Remove and return atom at index *i* (default last)."""
         atom = self[i]
         atom.cut_reference_to_atoms()
         del self[i]
@@ -568,12 +591,18 @@ class Atoms(object):
         self.cell = npy.array([m[c] * self.cell[c] for c in range(3)])
         return self
 
-    def __mul__(self, m):
+    def repeat(self, rep):
+        """Create new repeated atoms object.
+
+        The *rep* argument should be a sequence of three positive
+        integers like *(2,3,1)* or a single integer (*r*) equivalent
+        to *(r,r,r)*."""
+
         atoms = self.copy()
-        atoms *= m
+        atoms *= rep
         return atoms
 
-    repeat = __mul__
+    __mul__ = repeat
     
     def translate(self, displacement):
         """Translate atomic positions.
@@ -603,17 +632,19 @@ class Atoms(object):
             p[:, axis] += 0.5 * (self.cell[axis, axis] - p0[axis] - p1[axis])
 
     def get_center_of_mass(self):
+        """Get the center of mass."""
         m = self.arrays.get('masses')
         if m is None:
             m = atomic_masses[self.arrays['numbers']]
         return npy.dot(m, self.arrays['positions']) / m.sum()
 
-    def rotate(self, v, a=None):
+    def rotate(self, v, a=None, center=(0, 0, 0)):
         """Rotate atoms.
 
-        Rotate the angle a around the vector v.  If a is not given,
-        the length of v is used as the angle.  If a is a vector, then
-        v is rotated into a.  The point (0, 0, 0) is always fixed.
+        Rotate the angle *a* around the vector *v*.  If *a* is not
+        given, the length of *v* is used as the angle.  If *a* is a
+        vector, then *v* is rotated into *a*.  The point at *center*
+        is fixed.  Use *center='COM'* to fix the center of mass.
         Vectors can also be strings: 'x', '-x', 'y', ... .
 
         Examples:
@@ -645,10 +676,15 @@ class Atoms(object):
             v = npy.cross(v, v2)
             s = norm(v)
             v /= s
-        p = self.arrays['positions']
-        p[:] = (c * p - 
-                npy.cross(p, s * v) + 
-                npy.outer(npy.dot(p, v), (1.0 - c) * v))
+        
+        if isinstance(center, str) and center.lower() == 'com':
+            center = self.get_center_of_mass()
+
+        p = self.arrays['positions'] - center
+        self.arrays['positions'][:] = (c * p - 
+                                       npy.cross(p, s * v) + 
+                                       npy.outer(npy.dot(p, v), (1.0 - c) * v) +
+                                       center)
 
     def rattle(self, stdev=0.001, seed=42):
         """Randomly displace atoms.
@@ -723,6 +759,7 @@ class Atoms(object):
                 (self.pbc == other.pbc).any())
 
     def get_volume(self):
+        """Get volume of unit cell."""
         return abs(npy.linalg.det(self.cell))
     
     def _get_positions(self):

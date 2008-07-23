@@ -26,7 +26,6 @@ def pc(array):
         return 'rgbft <%.2f, %.2f, %.2f, %.2f, %.2f>' % tuple(array)
 
 class POVRAY(EPS):
-    scale = 1.
     default_settings = {
         # x, y is the image plane, z is *out* of the screen
         'display'      : True,  # Display while rendering

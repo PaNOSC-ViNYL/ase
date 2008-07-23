@@ -66,7 +66,7 @@ There is a mailing list for discussing ASE:
 
 * subscribe_
 * archives_
-* search_
+* search_ XXX how?
 
 .. _subscribe: https://listserv.fysik.dtu.dk/mailman/listinfo/ase-users
 .. _archives: https://listserv.fysik.dtu.dk/pipermail/ase-users
