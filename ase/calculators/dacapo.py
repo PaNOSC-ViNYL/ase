@@ -6,10 +6,12 @@ try:
     import Numeric as num
 except ImportError:
     pass
-    
-def np2num(a, typecode=num.Float):
+
+def np2num(a, typecode=None):
     if num.__version__ > '23.8':
         return num.array(a, typecode)
+    if typecode is None:
+        typecode = num.Float
     b = num.fromstring(a.tostring(), typecode)
     b.shape = a.shape
     return b
