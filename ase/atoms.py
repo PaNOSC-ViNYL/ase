@@ -32,7 +32,7 @@ class Atoms(object):
     symbols: str (formula) or list of str
         Can be a string formula, a list of symbols or a list of
         Atom objects.  Examples: 'H2O', 'COPt12', ['H', 'H', 'O'],
-        [Atom('Ne', (x, y, z), ...].
+        [Atom('Ne', (x, y, z)), ...].
     positions: list of xyz-positions
         Atomic positions.  Anything that can be converted to an
         ndarray of shape (n, 3) will do: [(x1,y1,z1), (x2,y2,z2),
