@@ -14,6 +14,8 @@ for name, a in zip('ITF', images[::2]):
     write('diffusion-%s.pov' % name, a, show_unit_cell=True, pause=False)
     os.system('povray diffusion-%s.ini' % name)
 s, E, Sfit, Efit, lines = fit(images)
+import matplotlib
+matplotlib.use('Agg')
 import pylab as plt
 plt.figure(figsize=(4.5, 3))
 plt.plot(s, E, 'o')
