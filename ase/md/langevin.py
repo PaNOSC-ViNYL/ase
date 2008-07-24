@@ -38,7 +38,8 @@ class Langevin(MolecularDynamics):
         self.temp = temperature
         self.frict = friction
         self.fixcm = fixcm  # will the center of mass be held fixed?
-
+        self.updatevars()
+        
     def set_temperature(self, temperature):
         self.temp = temperature
         self.updatevars()
@@ -91,8 +92,8 @@ class Langevin(MolecularDynamics):
         atoms = self.atoms
         p = self.atoms.get_momenta()
 
-        random1 = standard_normal((len(atoms), 3))
-        random2 = standard_normal((len(atoms), 3))
+        random1 = standard_normal(size=(len(atoms), 3))
+        random2 = standard_normal(size=(len(atoms), 3))
         
         rrnd = self.sdpos * random1
         prnd = (self.sdmom * self.pmcor * random1 +
