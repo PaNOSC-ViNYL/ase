@@ -430,6 +430,11 @@ class Atoms(object):
             raise RuntimeError('Atoms object has no calculator.')
         return self.calc.get_potential_energy(self)
 
+    def get_potential_energies(self):
+        if self.calc is None:
+            raise RuntimeError('Atoms object has no calculator.')
+        return self.calc.get_potential_energies(self)
+
     def get_kinetic_energy(self):
         """Get the kinetic energy."""
         momenta = self.arrays.get('momenta')
@@ -471,6 +476,11 @@ class Atoms(object):
         if self.calc is None:
             raise RuntimeError('Atoms object has no calculator.')
         return self.calc.get_stress(self)
+    
+    def get_stresses(self):
+        if self.calc is None:
+            raise RuntimeError('Atoms object has no calculator.')
+        return self.calc.get_stresses(self)
     
     def copy(self):
         """Return a copy."""
