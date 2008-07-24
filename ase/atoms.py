@@ -431,6 +431,11 @@ class Atoms(object):
         return self.calc.get_potential_energy(self)
 
     def get_potential_energies(self):
+        """Calculate the potential energies of all the atoms.
+
+        Only available with calculators supporting per-atom energies
+        (e.g. classical potentials).
+        """
         if self.calc is None:
             raise RuntimeError('Atoms object has no calculator.')
         return self.calc.get_potential_energies(self)
@@ -478,6 +483,12 @@ class Atoms(object):
         return self.calc.get_stress(self)
     
     def get_stresses(self):
+        """Calculate the stress-tensor of all the atoms.
+
+        Only available with calculators supporting per-atom energies and
+        stresses (e.g. classical potentials).  Even for such calculators
+        there is a certain arbitrariness in defining per-atom stresses.
+        """
         if self.calc is None:
             raise RuntimeError('Atoms object has no calculator.')
         return self.calc.get_stresses(self)
