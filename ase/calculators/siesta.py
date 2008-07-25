@@ -106,15 +106,24 @@ class Siesta:
         for Z in self.species:
             symbol = chemical_symbols[abs(Z)]
             name = symbol + '.vps'
+            name1 = symbol + '.psf'
             found = False
             for path in pppaths:
                 filename = join(path, name)
+                filename1 = join(path,name1)
                 if isfile(filename) or islink(filename):
                     found = True
                     if path != '.':
                         if islink(name) or isfile(name):
                             os.remove(name)
                         os.symlink(filename, name)
+
+                elif isfile(filename1) or islink(filename1):
+                    found = True
+                    if path != '.':
+                        if islink(name1) or isfile(name1):
+                            os.remove(name1)
+                        os.symlink(filename1, name1)
             if not found:
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
 
