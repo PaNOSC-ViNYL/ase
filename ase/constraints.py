@@ -1,6 +1,6 @@
 from math import sqrt
 
-import numpy as npy
+import numpy as np
 
 
 class FixAtoms:
@@ -35,9 +35,9 @@ class FixAtoms:
             raise ValuError('Use only one of "indices" and "mask".')
 
         if mask is not None:
-            self.index = npy.asarray(mask, bool)
+            self.index = np.asarray(mask, bool)
         else:
-            self.index = npy.asarray(indices, int)
+            self.index = np.asarray(indices, int)
 
         if self.index.ndim != 1:
             raise ValueError('Wrong argument to FixAtoms class!')
@@ -75,17 +75,17 @@ class FixBondLength:
     def adjust_positions(self, old, new):        
         p1, p2 = old[self.indices]
         d = p2 - p1
-        p = sqrt(npy.dot(d, d))
+        p = sqrt(np.dot(d, d))
         q1, q2 = new[self.indices]
         d = q2 - q1
-        q = sqrt(npy.dot(d, d))
+        q = sqrt(np.dot(d, d))
         d *= 0.5 * (p - q) / q
         new[self.indices] = (q1 - d, q2 + d)
 
     def adjust_forces(self, positions, forces):
-        d = npy.subtract.reduce(positions[self.indices])
-        d2 = npy.dot(d, d)
-        d *= 0.5 * npy.dot(npy.subtract.reduce(forces[self.indices]), d) / d2
+        d = np.subtract.reduce(positions[self.indices])
+        d2 = np.dot(d, d)
+        d *= 0.5 * np.dot(np.subtract.reduce(forces[self.indices]), d) / d2
         forces[self.indices] += (-d, d)
 
     def copy(self):
@@ -141,9 +141,9 @@ class Filter:
             raise ValuError('Use only one of "indices" and "mask".')
 
         if mask is not None:
-            self.index = npy.asarray(mask, bool)
+            self.index = np.asarray(mask, bool)
         else:
-            self.index = npy.asarray(indices, int)
+            self.index = np.asarray(indices, int)
 
     def get_positions(self):
         return self.atoms.get_positions()[self.index]
