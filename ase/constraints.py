@@ -95,6 +95,27 @@ class FixBondLength:
         return 'FixBondLength(%d, %d)' % tuple(self.indices)
 
 
+class FixedPlane:
+    """Constrain an atom *a* to move in a given plane only.
+
+    The plane is defined by its normal: *direction*."""
+    
+    def __init__(self, a, direction):
+        self.a = a
+        self.dir = np.asarray(direction) / sqrt(np.dot(direction, direction))
+
+    def adjust_positions(self, oldpositions, newpositions):
+        step = newpositions[self.a] - oldpositions[self.a]
+        x = np.dot(step, self.dir)
+        newpositions[self.a] = oldpositions[self.a] + step - x * self.dir
+
+    def adjust_forces(self, positions, forces):
+        forces[self.a] -= self.dir * np.dot(forces[self.a], self.dir)
+
+    def copy(self):
+        return FixedPlane(self.a, self.dir)
+
+
 class Filter:
     """Subset filter class."""
     def __init__(self, atoms, indices=None, mask=None):
