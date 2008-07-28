@@ -9,7 +9,8 @@ from ase.utils.eos import EquationOfState
 
 def BulkModulus(images):
     v = npy.array([abs(npy.linalg.det(A)) for A in images.A])
-    import matplotlib.pyplot as plt
+    #import matplotlib.pyplot as plt
+    import pylab as plt
     plt.ion()
     EquationOfState(v, images.E).plot()
 

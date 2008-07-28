@@ -64,7 +64,8 @@ class EquationOfState:
         show the figure and *filename='abc.png'* or
         *filename='abc.eps'* to save the figure to a file."""
         
-        import matplotlib.pyplot as plt
+        #import matplotlib.pyplot as plt
+        import pylab as plt
 
         if self.v0 is None:
             self.fit()
