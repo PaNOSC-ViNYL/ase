@@ -560,7 +560,7 @@ class Atoms(object):
     __iadd__ = extend
 
     def append(self, atom):
-        """"Append atom to end."""
+        """Append atom to end."""
         self.extend(Atoms([atom]))
 
     def __getitem__(self, i):
