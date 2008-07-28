@@ -8,8 +8,13 @@ This section will give a very brief introduction to the Python
 language.  For more information on the Python language, go to the
 `Python homepage`_.
 
-.. _Python homepage: http://www.python.org
+.. seealso::
 
+   * Recipes_
+
+
+.. _Python homepage: http://www.python.org
+.. _Recipes: http://code.activestate.com/recipes/langs/python
 
 
 Executing Python code
