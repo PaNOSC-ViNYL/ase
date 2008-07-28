@@ -60,13 +60,21 @@ class Dacapo:
             if 'nbands' not in self.kwargs:
                 n = sum([valence[atom.symbol] for atom in atoms])
                 self.kwargs['nbands'] = int(n * 0.65) + 4
+
+            magmoms = atoms.get_initial_magnetic_moments()
+            if magmoms.any():
+                self.kwargs['spinpol'] = True
+
             self.calc = Dacapo(**self.kwargs)
+
             if self.stay_alive:
                 self.calc.StayAliveOn()
             else:
                 self.calc.StayAliveOff()
+
             if self.stress:
                 self.calc.CalculateStress()
+
             for Z, path in self.pps:
                 self.calc.SetPseudoPotential(Z, path)
 
@@ -182,6 +190,9 @@ class Dacapo:
 valence = {
 'H':   1,
 'B':   3,
+'C':   4,
+'N':   5,
+'O':   6,
 'Li':  1,
 'Na':  1,
 'K':   9,
