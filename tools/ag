@@ -117,6 +117,7 @@ except KeyboardInterrupt:
 except Exception:
     traceback.print_exc()
     print """
-An exception occurred!  Please report the issue to jensj@fysik.dtu.dk
-- thanks!  Please also report this if it was a user error, so that a
-better error message can be provided next time."""
+An exception occurred!  Please report the issue to
+ase-users@listserv.fysik.dtu.dk - thanks!  Please also report this if
+it was a user error, so that a better error message can be provided
+next time."""
