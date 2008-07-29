@@ -27,6 +27,16 @@ project.  So, we need to install docutils and sphinx::
 .. _Docutils: http://docutils.sf.net
 
 
+Other requirements
+==================
+
+When building the documentation, a number of png-files are generated.
+For that to work, you need the following installed:
+
+* matplotlib
+* povray
+
+
 Using Sphinx
 ============
 
