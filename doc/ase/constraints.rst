@@ -59,6 +59,14 @@ reactions where the path can be described well by a single bond
 length (see the :ref:`mep2` tutorial).
 
 
+The FixedPlane class
+====================
+
+.. autoclass:: ase.constraints.FixedPlane
+
+Example of use: :ref:`constraints_diffusion_tutorial`.
+
+
 
 Combining constraints
 =====================

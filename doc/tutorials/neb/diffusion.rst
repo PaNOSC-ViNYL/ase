@@ -1,8 +1,8 @@
 .. _diffusion_tutorial:
 
-=========================================
-Diffusion of gold atom on Al(100) surface
-=========================================
+===============================================
+Diffusion of gold atom on Al(100) surface (NEB)
+===============================================
 
 First, set up the initial and final states:
 
@@ -11,7 +11,6 @@ First, set up the initial and final states:
 .. literalinclude:: diffusion1.py
 
 .. note::  Notice how the tags are used to select the constrained atoms
-   ...  XXX
 
 Now, do the NEB calculation:
 
@@ -19,6 +18,20 @@ Now, do the NEB calculation:
 
 |ts| |barrier|
 
+.. note::
+
+   For this reaction, the reaction coordinate is very simple: The
+   *x*-coordinate of the Au atom.  In such cases, the NEB method is
+   overkill, and a simple constraint method should be used like in this
+   tutorial: :ref:`constraints_diffusion_tutorial`.
+
+.. seealso::
+
+   * :mod:`neb`
+   * :mod:`constraints`
+   * :ref:`constraints_diffusion_tutorial`
+   * :func:`~lattice.surface.fcc100`
+   
 
 
 .. |initial| image:: ../../_static/diffusion-I.png

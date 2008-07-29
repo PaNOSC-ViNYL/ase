@@ -115,6 +115,9 @@ class FixedPlane:
     def copy(self):
         return FixedPlane(self.a, self.dir)
 
+    def __repr__(self):
+        return 'FixedPlane(%d, %s)' % (self.a, self.dir.tolist())
+
 
 class Filter:
     """Subset filter class."""
