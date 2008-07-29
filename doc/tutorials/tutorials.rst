@@ -3,8 +3,8 @@
 Tutorials
 =========
 
-Most of the tutorials will use the :class:`EMT` potential, but any
-other calculator could be plugged in instead.
+Most of the tutorials will use the :mod:`EMT <emt>` potential, but any
+other :mod:`Calculator <calculators>` could be plugged in instead.
 
 .. toctree::
    :maxdepth: 3

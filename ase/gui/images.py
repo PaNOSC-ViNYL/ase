@@ -43,7 +43,7 @@ class Images:
             except RuntimeError:
                 self.E[i] = npy.nan
             try:
-                self.F[i] = atoms.get_forces(apply_constraints=False)
+                self.F[i] = atoms.get_forces(apply_constraint=False)
             except RuntimeError:
                 self.F[i] = npy.nan
             try:
