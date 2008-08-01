@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 from numpy.linalg import eigh, solve
 
@@ -7,13 +8,23 @@ from ase.optimize import Optimizer
 class QuasiNewton(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  maxstep=None):
+        """Quasi-Newton optimizer.
+
+        Use *maxstep* to set the maximum distance an atom can move per
+        iteration (default value is 0.04 Å)."""
+        
         Optimizer.__init__(self, atoms, restart, logfile, trajectory)
 
         if maxstep is not None:
+            if maxstep > 1.0:
+                raise ValueError('You are using a much too large value for ' +
+                                 'the maximum step size: %.1f Å' % maxstep)
             self.maxstep = maxstep
 
     def initialize(self):
         self.H = None
+        self.r0 = None
+        self.f0 = None
         self.maxstep = 0.04
 
     def read(self):
@@ -49,3 +60,16 @@ class QuasiNewton(Optimizer):
         dg = np.dot(self.H, dr)
         b = np.dot(dr, dg)
         self.H -= np.outer(df, df) / a + np.outer(dg, dg) / b
+
+    def replay_trajectory(self, traj):
+        """Initialize hessian from old trajectory."""
+        if isinstance(traj, str):
+            traj = PickleTrajectory(traj, 'r')
+        r0, f0 = self.r0, self.f0
+        self.H = None
+        for atoms in traj:
+            self.update(atoms.get_positions().ravel(),
+                        atoms.get_forces().ravel())
+        self.r0, self.f0 = r0, f0
+
+            
