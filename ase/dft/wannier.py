@@ -149,7 +149,7 @@ class Wannier:
                  occupationenergy=0,
                  numberoffixedstates=None,
                  spin=0,
-                 dtype=complex):
+                 dtype=None):
 
         # Bloch phase sign convention
         sign = -1
@@ -173,11 +173,12 @@ class Wannier:
         self.weight_d, self.Gdir_dc = calculate_weights(self.largeunitcell_cc)
         self.Ndir = len(self.weight_d) # Number of directions
         # Dacapo's initial wannier makes complex rotations even with 1 k-point
+        if dtype is None:
+            if sign == -1 and self.Nk == 1:
+                dtype = float
+            else:
+                dtype = complex
         self.dtype = dtype
-##         if self.Nk == 1:
-##             self.dtype = float
-##         else:
-##             self.dtype = complex
         
         if numberofbands is not None:
             self.nbands = numberofbands
@@ -366,6 +367,16 @@ class Wannier:
         return npy.dot(self.largeunitcell_cc.diagonal() / (2 * pi),
                        abs(npy.log(abs(self.Z_dww[:3].diagonal(0, 1, 2))**2)))
     
+    def get_radii2(self):
+        """Calculate the Wannier radii
+
+                      --  /  L \ 2       2
+        radius**2 = - >   | --- |   ln |Z| 
+                      --d \ 2pi /
+        """
+        return -npy.dot(self.largeunitcell_cc.diagonal()**2 / (2 * pi)**2,
+                        npy.log(abs(self.Z_dww[:3].diagonal(0, 1, 2))**2))
+
     def get_spectral_weight_of_wannier_function(self, w):
         return abs(self.V_knw[:, :, w])**2 / self.Nk
 
