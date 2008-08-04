@@ -370,9 +370,11 @@ class Wannier:
     def get_radii2(self):
         """Calculate the Wannier radii
 
-                      --  /  L \ 2       2
-        radius**2 = - >   | --- |   ln |Z| 
-                      --d \ 2pi /
+        ::
+          
+                        --  /  L  \ 2       2
+          radius**2 = - >   | --- |   ln |Z| 
+                        --d \ 2pi /
         """
         return -npy.dot(self.largeunitcell_cc.diagonal()**2 / (2 * pi)**2,
                         npy.log(abs(self.Z_dww[:3].diagonal(0, 1, 2))**2))
