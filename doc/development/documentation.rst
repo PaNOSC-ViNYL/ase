@@ -129,6 +129,8 @@ The implementation of the math role and directive is here:
 reStructedText in emacs
 =======================
 
+.. highlight:: common-lisp
+
 For people using emacs, the `reStructuredText extension`_ is highly
 recommended. The intallation procedure is described in the top of the
 file, but for most people, it is enough to place it in your emacs
