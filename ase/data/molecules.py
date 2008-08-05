@@ -2237,14 +2237,14 @@ def get_atomization_energy(name):
         ae += h - dh
     return ae
 
-def molecule(name):
+def molecule(name, **kwargs):
     """Create molecule."""
     if name in atoms:
         return  Atoms(name, magmoms=[data[name]['magmom']])
     if name not in extra and name not in g2:
         raise NotImplementedError('System %s not in database.' % name)
     d = data[name]
-    return Atoms(d['symbols'], d['positions'], magmoms=d['magmoms'])
+    return Atoms(d['symbols'], d['positions'], magmoms=d['magmoms'], **kwargs)
 
 def latex(name):
     """Convert name to LaTeX"""
