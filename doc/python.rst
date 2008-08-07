@@ -5,16 +5,19 @@ What is Python?
 ---------------
 
 This section will give a very brief introduction to the Python
-language.  For more information on the Python language, go to the
-`Python homepage`_.
+language.
 
 .. seealso::
 
-   * Recipes_
+   * The Python_ home page.
+   * Python Recipes_.
+   * Try a `Python quick reference card`_ or a `different reference card`_.
 
 
-.. _Python homepage: http://www.python.org
 .. _Recipes: http://code.activestate.com/recipes/langs/python
+.. _Python quick reference card: http://www.limsi.fr/Individu/pointal/python/pqrc
+.. _different reference card: http://rgruet.free.fr/
+.. _Python: http://www.python.org
 
 
 Executing Python code
