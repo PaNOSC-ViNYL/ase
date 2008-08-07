@@ -5,7 +5,7 @@ Atomization energy
 The following script will calculate the atomization energy of a
 nitrogen molecule:
 
- .. literalinclude:: ../../tutorials/N2.py
+ .. literalinclude:: N2.py
 
 First, an ``Atoms`` object containing one nitrogen is created and a
 fast EMT calculator is attached to it simply as an argument. The total
