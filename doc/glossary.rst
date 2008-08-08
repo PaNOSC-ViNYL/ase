@@ -50,7 +50,7 @@ Glossary
     XXX
 
   Python
-    XXX :ref:`python`.
+    XXX :ref:`python_info`.
 
 
 

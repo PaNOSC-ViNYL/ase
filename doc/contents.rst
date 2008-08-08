@@ -7,7 +7,7 @@ Contents
 * :ref:`Documentation for modules in ASE <ase>`
 * :ref:`Download and installation instructions <download>`
 * :ref:`tutorials`
-* :ref:`python`
+* :ref:`python_info`
 * :ref:`numpy`
 * :ref:`faq`
 * :ref:`bugs`

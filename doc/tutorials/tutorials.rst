@@ -15,9 +15,7 @@ other :mod:`Calculator <calculators>` could be plugged in instead.
    manipulating_atoms
    atomization
    surface
-   relax
    dissociation
-   dissociation2
    aneb
    association
    stm-tutorial
