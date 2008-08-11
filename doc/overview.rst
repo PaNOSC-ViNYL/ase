@@ -1,4 +1,4 @@
-.. _overview:
+. _overview:
 
 ================
 A quick overview
@@ -20,77 +20,143 @@ Atoms
 -----
 
 The ``Atoms`` object is a collection of atoms.  Here is how to define
-a CO molecule::
+a N2 molecule by directly specifying the position of two nitrogen
+atoms::
 
   from ase import Atoms
-  d = 1.1
-  co = Atoms('CO', positions=[(0, 0, 0), (0, 0, d)])
+  d = 1.10
+  molecule = Atoms('2N', positions=[(0., 0., 0.), (0., 0., d)])
 
-Here, the first argument specifies the type of the atoms and we used
-the ``positions`` keywords to specify their positions.  Other
-possible keywords are: ``numbers``, ``tags``, ``momenta``, ``masses``,
-``magmoms`` and ``charges``.
+You can also build crystals using, for example, the lattice module
+which returns ``Atoms`` objects corresponding to common crystal
+structures. Let us make a Cu (111) surface::
 
-Here is how you could make an infinite gold wire with a bond length of
-2.9 Å::
+  from ase.lattice.surface import *
+  slab = fcc111('Cu', size=(4,4,2), vacuum=10.0)
 
-  from ase import *
-  d = 2.9
-  L = 10.0
-  wire = Atoms('Au',
-               positions=[(L / 2, L / 2, 0)],
-               cell=(L, L, d),
-               pbc=(0, 0, 1))
 
-Here, two more optional keyword arguments were used:
 
-``cell``: Unit cell size
-  This can be a sequence of three numbers for
-  an orthorhombic unit cell or three by three numbers for a general
-  unit cell (a sequence of three sequences of three numbers).  The
-  default value is ``[1.0, 1.0, 1.0]``.
+-----------
+Calculators
+----------- 
 
-``pbc``: Periodic boundary conditions
-  The default value is ``False`` - a value of ``True`` would give
-  periodic boundary conditions along all three axes.  It is possible
-  to give a sequence of three booleans to specify periodicity along
-  specific axes.
+There are currently five :mod:`calculators` that can be used with ASE:
+:class:`EMT`, Asap_, GPAW_, Dacapo_, :class:`Siesta` (Abinit and MMTK
+- work in progress).
+  
+.. _Asap: http://wiki.fysik.dtu.dk/Asap
+.. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
+.. _GPAW: http://wiki.fysik.dtu.dk/gpaw
 
-You can also use the following methods to work with the unit cell and the
-boundary conditions:
+In this overview we use an effective medium theory (EMT) calculator,
+as it is very fast and hence useful for getting started.
 
-``get_cell()``:
-  Returns a three by three array.
+We can attach a calculator to the previously created ``Atoms`` objects::
 
-``set_cell(cell, scale_atoms=False)``: Change the size of the unit
-  cell.  If the optional argument *scale_atoms* is ``True`` (defaults
-  to ``False``), then the positons of the atoms are scaled so that
-  their positions relative to the unit cell are kept, otherwise the
-  atomic positions are fixed.
+  from ase import EMT
+  slab.set_calculator(EMT())
+  molecule.set_calculator(EMT()) 
 
-``get_pbc()``:
-  Return periodic boundary condition flags as three booleans.
+and use it to calculate the total energies for the systems by using
+the ``get_potential_energy`` method from the ``Atoms`` class::
 
-``set_pbc()``:
-  Set the periodic boundary condition flag.
+  e_slab = slab.get_potential_energy()
+  e_N2 = molecule.get_potential_energy()
 
-Here is how you would do bulk ruthenium (hcp)::
 
-  a = 2.70
-  b = a * sqrt(3) / 2
-  c = 1.59 * a
-  bulk = Atoms('Ru2',
-               [(0,     0,     0    ),
-                (a / 2, b / 3, c / 2)],
-               pbc=True,
-               cell=[(a,     0, 0),
-                     (a / 2, b, 0),
-                     (0,     0, c)])
+--------------------
+Structure relaxation
+--------------------
 
-In addition, an ``Atoms`` instance has the following methods:
-``append``, ``center``, ``copy``, ``distance``, ``extend``,
-``get_center_of_mass``, ``pop``, ``rattle``, ``repeat``, ``rotate``
-and ``translate``, XXX.  See :ref:`atommanip` for more details.
+Let's use the ``QuasiNewton`` minimizer to optimize the structure of
+the N2 molecule adsorbed on the Cu surface. First add the adsorbate to
+the Cu slab, for example in the on-top position::
+  
+  h = 1.85
+  add_adsorbate(slab, molecule, h, 'ontop')
+
+In order to speed up the relaxation, let us keep the Cu atoms fixed in
+the slab by using the ``FixAtoms`` constraint. Only the N2 molecule is
+then allowed to relax to the equilibrium structure::
+
+  constraint = FixAtoms(mask=[a.symbol != 'N' for a in slab])
+  slab.set_constraint(constraint)
+
+Now attach the ``QuasiNewton`` minimizer to the system and save the
+trajectory file. Run the minimizer with the convergence criteria that
+the force on all atoms should be less than some ``fmax``::
+
+  dyn = QuasiNewton(slab, trajectory='ontop.traj')
+  dyn.run(fmax=0.05)
+
+
+------------
+Input-output
+------------
+
+Writing the atomic positions to a file is done with the ``write``
+function::
+
+  write('slab.xyz', slab)
+
+This will write a file in the xyz-format.  Possible formats are:
+
+========  ===========================
+format    description
+========  ===========================
+``xyz``   Simple xyz-format
+``cube``  Gaussian cube file
+``pdb``   Protein data bank file
+``traj``  ASE's own trajectory format
+``py``    Python script
+========  ===========================
+
+Reading from a file is done like this::
+
+  slab_from_file = read('slab.xyz')
+
+If the file contains several configurations, the default behavior of
+the ``read`` function is to return the last configuration. However, we
+can load a specific configuration by doing::
+
+  read('slab.traj')      # last configuration
+  read('slab.traj', -1)  # same as above
+  read('slab.traj', 0)   # first configuration
+
+
+-------------
+Visualization
+-------------
+
+The simplest way to visualize the atoms is the ``view`` function::
+
+  view(slab)
+
+This will pop up a :mod:`gui` window.  Alternative viewers can be used
+by specifying the optional keyword ``viewer=...`` - use one of
+'ase.gui', 'gopenmol', 'vmd', or 'rasmol'.  The VMD viewer can take an
+optional ``data`` argument to show 3D data::
+
+  view(slab, viewer='VMD', data=array)
+
+
+------------------
+Molecular dynamics
+------------------
+
+Let us look at the nitrogen molecule as an example of molecular
+dynamics with the ``VelocityVerlet`` algorithm. We first create the
+:class:`VelocityVerlet` object giving it the molecule and the time
+step for the integration of Newton's law. We then perform the dynamics
+by calling its :meth:`run` methodand giving it the number of steps to
+take::
+
+  dyn = VelocityVerlet(molecule, dt=1.0 * fs)
+  for i in range(10):
+     pot = molecule.get_potential_energy()
+     kin = molecule.get_kinetic_energy()
+     print '%2d: %.5f eV, %.5f eV, %.5f eV' % (i, pot + kin, pot, kin)
+     dyn.run(steps=20)
 
 
 -----
@@ -112,127 +178,6 @@ units.  To convert to/from other units, use the constants:  ``nm``,
 0.025852157076770025
 >>> 0.1 * fs
 0.009822693531550318
-
-
-
-------------
-Input-output
-------------
-
-Writing the atomic positions to a file is done with the ``write``
-function::
-
-  write('CO.xyz', co)
-
-This will write a file in the xyz-format.  Possible formats:
-
-========  ===========================
-format    description
-========  ===========================
-``xyz``   Simple xyz-format
-``cube``  Gaussian cube file
-``pdb``   Protein data bank file
-``traj``  ASE's own trajectory format
-``py``    Python script
-========  ===========================
-
-
-The ``write`` function will choose the format from the given filename
-or from the optional ``format`` argument::
-
-  write('CO.1', co, format='cube')
-
-Reading from a file is done like this::
-
-  co = read('CO.xyz')
-
-Some file-formats can take several configurations (trajectories), and
-the default behavior of the ``read`` function is to return the last
-configuration::
-
-  read('A.traj')      # last configuration
-  read('A.traj', -1)  # same as above
-  read('A.traj', 0)   # first configuration
-
-ASE can read and understand the following types of files:
-
-=======  =================================
-format   description
-=======  =================================
-``nc``   Old ASE-2 NetCDF trajectory files
-``gpw``  GPAW restart files
-``txt``  GPAW text output
-``nc``   Dacapo NetCDF output
-``out``  Dacapo text output
-=======  =================================
-
-
-
-Gaussian Cube file format
--------------------------
-
-The Gaussian Cube file format describes volumetric data as well as
-atom positions, it originates from the Gaussian software package.  The
-volume data should be a 3 dimensional :term:`ndarray` describing the
-volumetric data for the unit cell, given in the Atoms object::
-
-  write('x.cube', co, data=a)
-
-Here *a* is the ndarray.  If the array has complex numbers, then the
-absolute vale is written.  Use::
-
-  write('xp.cube', co, data=angle(a))
-
-to write the phases.
-
-Reading back in the data from a cube file is done like this::
-
-  from ase.io.cube import read_cube_data
-  co, a = read_cube_data('x.cube')
-
-As can be seen, the ``read_cube_data`` function returns both the atoms
-object and the ndarray.
-
-
-
-
-Trajectories
-------------
-
-Molecular trajectories are useful for storing results from molecular
-dynamics runs, structure optimization runs or the configurations along
-a minimum energy path from reactant to product.
-
-::
-
-  traj = PickleTrajectory('CO.traj', 'w', co)
-  for i in range(10):
-      # do something to the CO molecule
-      traj.write()
-
-This will write 10 configurations to the 'CO.traj' file.  Read it like this::
-
-  traj = PickleTrajectory('CO.traj', 'r')  # read mode
-  co = traj[-1]  # last image
-  co = traj[9]   # same as above
-
-
-
-
------------
-Calculators
------------ 
-
-
-Here, we used an effective medium theory calculator to calculate
-energies and forces.  There are currently five :mod:`calculators` that
-can be used with ASE: :class:`EMT`, Asap_, GPAW_, Dacapo_,
-:class:`Siesta` (Abinit and MMTK - work in progress).
-  
-.. _Asap: http://wiki.fysik.dtu.dk/Asap
-.. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
-.. _GPAW: http://wiki.fysik.dtu.dk/gpaw
-
 
 
 
@@ -261,55 +206,37 @@ it up in the ``atomic_numbers`` dictionary:
 
 
 
-------------------
-Molecular dynamics
-------------------
-
-Let us look at an example: Molecular dynamics with a nitrogen molecule:
-
->>> from ase import *
->>> d = 1.1
->>> n2 = Atoms('N2', positions=[(0, 0, 0), (d, 0, 0)],
-...            calculator=EMT())
->>> dyn = VelocityVerlet(n2)
->>> for i in range(10):
-...     pot = n2.get_potential_energy()
-...     kin = n2.get_kinetic_energy()
-...     print '%2d: %.5f eV, %.5f eV, %.5f eV' % (i, pot + kin, pot, kin)
-...     dyn.run(dt=1.0 * fs, steps=20)
-... 
- 0: 0.04217 eV, 0.04217 eV, 0.00000 eV
- 1: 0.04216 eV, 0.02159 eV, 0.02057 eV
- 2: 0.04216 eV, 0.00009 eV, 0.04206 eV
- 3: 0.04216 eV, 0.01637 eV, 0.02580 eV
- 4: 0.04217 eV, 0.04045 eV, 0.00171 eV
- 5: 0.04217 eV, 0.03297 eV, 0.00920 eV
- 6: 0.04216 eV, 0.00585 eV, 0.03631 eV
- 7: 0.04216 eV, 0.00497 eV, 0.03718 eV
- 8: 0.04217 eV, 0.03392 eV, 0.00825 eV
- 9: 0.04217 eV, 0.03804 eV, 0.00413 eV
-
-The ``dyn`` object has a method called ``run(dt, steps)`` that takes
-two arguments:  A time step for the
-integration of Newtons equation and the number of steps to take.
-Here, we take 10 times 20 steps of length 1.0 fs.  Since we didn't set any
-initial velocities for the nitrogen molecule, the kinetic energy
-starts at 0.0 eV.  Notice also that the total energy is conserved to
-within 0.1 meV for this time step.
 
 
-Initial velocities
-------------------
-
-...
 
 
-More advanced MD algorithms
----------------------------
-
-...
 
 
+
+Gaussian Cube file format
+-------------------------
+
+The Gaussian Cube file format describes volumetric data as well as
+atom positions, it originates from the Gaussian software package.  The
+volume data should be a 3 dimensional :term:`ndarray` describing the
+volumetric data for the unit cell, given in the Atoms object::
+
+  write('x.cube', co, data=a)
+
+Here *a* is the ndarray.  If the array has complex numbers, then the
+absolute vale is written.  Use::
+
+  write('xp.cube', co, data=angle(a))
+
+to write the phases.
+
+Reading back in the data from a cube file is done like this::
+
+  from ase.io.cube import read_cube_data
+  co, a = read_cube_data('x.cube')
+
+As can be seen, the ``read_cube_data`` function returns both the atoms
+object and the ndarray.
 
 
 -----------
@@ -365,34 +292,3 @@ You construct the constraint  like this::
 This will fix the distance between atoms number 5 and 6.
 
 
-
-
-
-
--------------
-Visualization
--------------
-
-Use the ``view`` function to visualize the atoms::
-
-  view(atoms)
-
-This will pop up a :mod:`gui` window.  Alternative viewers can be used
-by specifying the optional keyword ``viewer=...`` - use one of
-'ase.gui', 'gopenmol', 'vmd', or 'rasmol'.  The VMD viewer can take an
-optional ``data`` argument to show 3D data::
-
-  view(atoms, viewer='VMD', data=array)
-
-
-
-VTK
----
-
-XXX
-
-
-PNG and EPS files
------------------
-
-XXX
