@@ -267,7 +267,7 @@ class ASAP:
             self.atoms.SetAtomicNumbers(array(atoms.get_atomic_numbers()))
             self.atoms.SetCalculator(AsapEMT())
         else:
+            self.atoms.SetUnitCell(array(atoms.get_cell()), fix=True)
             self.atoms.SetCartesianPositions(array(atoms.positions))
-                                     
         
     
