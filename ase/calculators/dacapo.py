@@ -95,8 +95,10 @@ class Dacapo:
             self.loa.SetUnitCell(np2num(atoms.get_cell()), fix=True)
             
     def get_atoms(self):
-        return OldASEListOfAtomsWrapper(self.loa)
-            
+        atoms = OldASEListOfAtomsWrapper(self.loa).copy()
+        atoms.set_calculator(self)
+        return atoms
+    
     def get_potential_energy(self, atoms):
         self.update(atoms)
         return self.calc.GetPotentialEnergy()
@@ -107,7 +109,8 @@ class Dacapo:
 
     def get_stress(self, atoms):
         self.update(atoms)
-        return np.array(self.calc.GetStress())
+        stress = np.array(self.calc.GetStress())
+        return stress.ravel()[[0, 4, 8, 5, 2, 1]]
 
     def calculation_required(self, atoms, quantities):
         if self.calc is None:
