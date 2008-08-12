@@ -37,6 +37,7 @@ def build():
     os.mkdir('_build')
     if os.system('sphinx-build . _build') != 0:
         raise RuntimeError('Sphinx failed!')
+    os.system('cd _build; cp _static/searchtools.js .')
 
     if 1:
         if os.system('sphinx-build -b latex . _build') != 0:
