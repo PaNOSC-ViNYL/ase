@@ -1,4 +1,4 @@
-. _overview:
+.. _overview:
 
 ================
 A quick overview
@@ -41,14 +41,15 @@ Calculators
 ----------- 
 
 There are currently five :mod:`calculators` that can be used with ASE:
-:class:`EMT`, Asap_, GPAW_, Dacapo_, :class:`Siesta` (Abinit and MMTK
-- work in progress).
+:mod:`~calculators.emt`, Asap_, GPAW_, Dacapo_,
+:mod:`~calculators.siesta` (Abinit and MMTK - work in
+progress).
   
 .. _Asap: http://wiki.fysik.dtu.dk/Asap
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
 
-In this overview we use an effective medium theory (EMT) calculator,
+In this overview we use the effective medium theory (EMT) calculator,
 as it is very fast and hence useful for getting started.
 
 We can attach a calculator to the previously created
@@ -70,23 +71,22 @@ the :meth:`~ase.atoms.Atoms.get_potential_energy` method from the
 Structure relaxation
 --------------------
 
-Let's use the :class:`~ase.optimize.qn.QuasiNewton` minimizer to
-optimize the structure of the N2 molecule adsorbed on the Cu
-surface. First add the adsorbate to the Cu slab, for example in the
-on-top position::
+Let's use the :mod:`QuasiNewton <optimize.qn>` minimizer to optimize the
+structure of the N2 molecule adsorbed on the Cu surface. First add the
+adsorbate to the Cu slab, for example in the on-top position::
   
   h = 1.85
   add_adsorbate(slab, molecule, h, 'ontop')
 
 In order to speed up the relaxation, let us keep the Cu atoms fixed in
-the slab by using :class:`~ase.constraints.FixAtoms` from the 
-:mod:`~ase.constraints` module. Only the N2 molecule is then allowed to relax to the
-equilibrium structure::
+the slab by using :class:`~constraints.FixAtoms` from the
+:mod:`~ase.constraints` module. Only the N2 molecule is then allowed
+to relax to the equilibrium structure::
 
   constraint = FixAtoms(mask=[a.symbol != 'N' for a in slab])
   slab.set_constraint(constraint)
 
-Now attach the :class:`~ase.optimize.qn.QuasiNewton` minimizer to the
+Now attach the :mod:`QuasiNewton <optimize.qn>` minimizer to the
 system and save the trajectory file. Run the minimizer with the
 convergence criteria that the force on all atoms should be less than
 some ``fmax``::
@@ -100,7 +100,7 @@ Input-output
 ------------
 
 Writing the atomic positions to a file is done with the
-:func:`~ase/io/__init__` function::
+:func:`~ase.io.write` function::
 
   write('slab.xyz', slab)
 
@@ -121,8 +121,9 @@ Reading from a file is done like this::
   slab_from_file = read('slab.xyz')
 
 If the file contains several configurations, the default behavior of
-the ``read`` function is to return the last configuration. However, we
-can load a specific configuration by doing::
+the :func:`~ase.io.write` function is to return the last
+configuration. However, we can load a specific configuration by
+doing::
 
   read('slab.traj')      # last configuration
   read('slab.traj', -1)  # same as above
@@ -133,7 +134,8 @@ can load a specific configuration by doing::
 Visualization
 -------------
 
-The simplest way to visualize the atoms is the ``view`` function::
+The simplest way to visualize the atoms is the :func:`~visualize.view`
+function::
 
   view(slab)
 
@@ -150,10 +152,11 @@ Molecular dynamics
 ------------------
 
 Let us look at the nitrogen molecule as an example of molecular
-dynamics with the ``VelocityVerlet`` algorithm. We first create the
-:class:`VelocityVerlet` object giving it the molecule and the time
+dynamics with the :class:`VelocityVerlet <md.verlet.VelocityVerlet>`
+algorithm. We first create the :class:`VelocityVerlet
+<md.verlet.VelocityVerlet>` object giving it the molecule and the time
 step for the integration of Newton's law. We then perform the dynamics
-by calling its :meth:`run` methodand giving it the number of steps to
+by calling its :meth:`run` method and giving it the number of steps to
 take::
 
   dyn = VelocityVerlet(molecule, dt=1.0 * fs)
@@ -214,86 +217,5 @@ it up in the ``atomic_numbers`` dictionary:
 
 
 
-
-
-
-
-Gaussian Cube file format
--------------------------
-
-The Gaussian Cube file format describes volumetric data as well as
-atom positions, it originates from the Gaussian software package.  The
-volume data should be a 3 dimensional :term:`ndarray` describing the
-volumetric data for the unit cell, given in the Atoms object::
-
-  write('x.cube', co, data=a)
-
-Here *a* is the ndarray.  If the array has complex numbers, then the
-absolute vale is written.  Use::
-
-  write('xp.cube', co, data=angle(a))
-
-to write the phases.
-
-Reading back in the data from a cube file is done like this::
-
-  from ase.io.cube import read_cube_data
-  co, a = read_cube_data('x.cube')
-
-As can be seen, the ``read_cube_data`` function returns both the atoms
-object and the ndarray.
-
-
------------
-Constraints
------------
-
-Applying constraints to the atomic positions can be useful in many
-cases.  Let's look at a simple example:  We want to relax the bond
-length of a nitrogen molecule with the first atom fixed at the
-position (0, 0, 0):
-
->>> d = 1.1
->>> n2 = Atoms('N2', positions=[(0, 0, 0), (d, 0, 0)],
-...            calculator=EMT(),
-...            constraint=FixAtoms(indices=[0]))
->>> QuasiNewton(n2).run(fmax=0.01)
-QuasiNewton:   0        0.042171       2.9357
-QuasiNewton:   1        0.001205       0.4725
-QuasiNewton:   2        0.000009       0.0396
-QuasiNewton:   3        0.000000       0.0006
->>> print n2.get_positions()
-[[ 0.          0.          0.        ]
- [ 1.12958567  0.          0.        ]]
-
-It's also possible to attach a constraint to an ``Atoms`` object using
-the ``set_constraint()`` method.  These three are euivalent::
-
-  n2.set_constraint(FixAtoms(indices=[0]))
-  n2.set_constraint(FixAtoms(mask=[True, False]))
-  n2.set_constraint(FixAtoms(mask=[1, 0]))
-
-
-Fix atoms
----------
-
-We have just seen how to use the ``FixAtoms`` constraint.  Use
-``mask=[...]`` where the list contains one boolean flag for each atom
-indicating wheter this atom should be fixed or free (use 1 or ``True``
-to fix the atoms and 0 or ``False`` for atoms free to move).
-Alternatively, use ``indices=[...]``, where the list contains the
-indices ofthe atoms that should be fixed - as always in Python code,
-the first atoms has index zero.
-
-Fix a bond length
------------------
-
-The ``FixBondLength`` constraint can fix a distance between two atoms.
-You construct the constraint  like this::
-
-  constraint = FixBondLength(5, 6)
-  molecule.set_constraint(constraint)
-
-This will fix the distance between atoms number 5 and 6.
 
 
