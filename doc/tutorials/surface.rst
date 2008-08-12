@@ -5,9 +5,17 @@ Nitrogen on ruthenium
 In this tutorial we calculate the adsorption energy of a nitrogen
 molecule on a ruthenium surface. This is done by calculating the total
 energy for the isolated slab and for the isolated molecule. The
-adsorbate is then added to the salb and the total energy for this
-composite system is calculated. The adsorption energy is obtained as
-the sum of the isolated energies minus the energy of the composite
-system.
+adsorbate is then added to the slab and relaxed, and the total energy
+for this composite system is calculated. The adsorption energy is
+obtained as the sum of the isolated energies minus the energy of the
+composite system.
 
-.. literalinclude:: ../../tutorials/N2Ru.py
+.. literalinclude:: N2Cu.py
+
+You can view the a picture of the system after the relaxation by typing::
+
+  view(slab)  
+
+|slab|
+
+.. |slab| image:: surface.png
