@@ -76,7 +76,7 @@ class LeadSelfEnergy:
 
         h_im = self.h_im
         s_im = self.s_im
-        z = self.energy + self.eta
+        z = self.energy + self.eta * 1.j
             
         tau_im = z * s_im - h_im
         a_im = linalg.solve(self.get_ginv(),tau_im)
