@@ -34,10 +34,10 @@ Now, do the NEB calculation:
    
 
 
-.. |initial| image:: ../../_static/diffusion-I.png
-.. |final| image:: ../../_static/diffusion-F.png
-.. |ts| image:: ../../_static/diffusion-T.png
-.. |barrier| image:: ../../_static/diffusion-barrier.png
+.. |initial| image:: diffusion-I.png
+.. |final| image:: diffusion-F.png
+.. |ts| image:: diffusion-T.png
+.. |barrier| image:: diffusion-barrier.png
 
 
 Parallelizing over images

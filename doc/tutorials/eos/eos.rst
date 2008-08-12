@@ -27,4 +27,4 @@ A quicker way to do this analysis, is to use the :mod:`gui` tool:
 
 And then choose :menuselection:`Tools --> Bulk modulus`.
 
-.. |eos| image:: ../../_static/Ag-eos.png
+.. |eos| image:: Ag-eos.png

@@ -42,7 +42,7 @@ Write PNG image::
 
   write('slab.png', slab * (3, 3, 1), rotation='10z,-80x')
 
-.. image:: ../_static/io1.png
+.. image:: io1.png
    :scale: 35
 
 Write POVRAY file::
@@ -52,7 +52,7 @@ Write POVRAY file::
 This will write both a .pov and a .ini file.  Convert to PNG with
 ``povray slab.ini``:
 
-.. image:: ../_static/io2.png
+.. image:: io2.png
    :scale: 35
 
 Note that the XYZ-format does not contain information about the unic cell:

@@ -27,7 +27,7 @@ Here is how you could make an infinite gold wire with a bond length of
                cell=(d, L, L),
                pbc=(1, 0, 0))
 
-.. image:: ../_static/Au-wire.png
+.. image:: Au-wire.png
 
 Here, two more optional keyword arguments were used:
 

@@ -18,7 +18,7 @@ tutorial.
 
 Here is a side-view of the path (unit cell repeated twice):
 
-.. image:: ../../_static/diffusion-path.png
+.. image:: diffusion-path.png
 
 
 .. seealso::

@@ -26,7 +26,7 @@ def build():
 
     if os.system('epydoc --docformat restructuredtext --parse-only ' +
                  '--name ASE ' +
-                 '--url http://web2.fysik.dtu.dk/ase ' +
+                 '--url http://wiki.fysik.dtu.dk/ase ' +
                  '--show-imports --no-frames -v ase >& epydoc.out') != 0:
         raise RuntimeError('Epydoc failed!')
 
@@ -38,7 +38,7 @@ def build():
     if os.system('sphinx-build . _build') != 0:
         raise RuntimeError('Sphinx failed!')
 
-    if 1:
+    if 0:
         if os.system('sphinx-build -b latex . _build') != 0:
             raise RuntimeError('Sphinx failed!')
         os.chdir('_build')

@@ -118,22 +118,22 @@ ontop    hollow    fcc    hcp    bridge    shortbridge  longbridge
 |ontop|  |hollow|  |fcc|  |hcp|  |bridge|  |bridge|     |bridge|
 =======  ========  =====  =====  ========  ===========  ==========
 
-.. |ontop|    image:: ../_static/ontop-site.png
-.. |hollow|   image:: ../_static/hollow-site.png
-.. |fcc|      image:: ../_static/fcc-site.png
-.. |hcp|      image:: ../_static/hcp-site.png
-.. |bridge|   image:: ../_static/bridge-site.png
-.. |fcc100|   image:: ../_static/fcc100.png
-.. |fcc110|   image:: ../_static/fcc110.png
-.. |bcc100|   image:: ../_static/bcc100.png
-.. |fcc111|   image:: ../_static/fcc111.png
-.. |bcc110|   image:: ../_static/bcc110.png
-.. |bcc111|   image:: ../_static/bcc111.png
-.. |hcp0001|  image:: ../_static/hcp0001.png
-.. |fcc111o|  image:: ../_static/fcc111o.png
-.. |bcc110o|  image:: ../_static/bcc110o.png
-.. |bcc111o|  image:: ../_static/bcc111o.png
-.. |hcp0001o| image:: ../_static/hcp0001o.png
+.. |ontop|    image:: ontop-site.png
+.. |hollow|   image:: hollow-site.png
+.. |fcc|      image:: fcc-site.png
+.. |hcp|      image:: hcp-site.png
+.. |bridge|   image:: bridge-site.png
+.. |fcc100|   image:: fcc100.png
+.. |fcc110|   image:: fcc110.png
+.. |bcc100|   image:: bcc100.png
+.. |fcc111|   image:: fcc111.png
+.. |bcc110|   image:: bcc110.png
+.. |bcc111|   image:: bcc111.png
+.. |hcp0001|  image:: hcp0001.png
+.. |fcc111o|  image:: fcc111o.png
+.. |bcc110o|  image:: bcc110o.png
+.. |bcc111o|  image:: bcc111o.png
+.. |hcp0001o| image:: hcp0001o.png
 
 
 

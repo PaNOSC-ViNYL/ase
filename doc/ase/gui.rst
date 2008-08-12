@@ -8,7 +8,7 @@
 ASE-GUI
 =======
 
-.. image:: ../_static/ag.png
+.. image:: ag.png
    :height: 200
 
 

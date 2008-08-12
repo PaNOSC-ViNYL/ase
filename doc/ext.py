@@ -49,7 +49,7 @@ def epydoc_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     else:
         ref = '.'.join(components) + '-module.html'
 
-    ref = 'http://web2.fysik.dtu.dk/ase/epydoc/' + ref
+    ref = 'http://wiki.fysik.dtu.dk/ase/epydoc/' + ref
     set_classes(options)
     node = nodes.reference(rawtext, name,
                            refuri=ref,
@@ -77,7 +77,7 @@ def create_png_files():
                     run = False
                     for file in line.split()[2:]:
                         try:
-                            t = os.stat(join('_static', file))[ST_MTIME]
+                            t = os.stat(join(dirpath, file))[ST_MTIME]
                         except OSError:
                             run = True
                             break
@@ -90,7 +90,7 @@ def create_png_files():
                         os.system('cd %s; python %s' % (dirpath, filename))
                         for file in line.split()[2:]:
                             print dirpath, file
-                            os.rename(join(dirpath, file),
-                                      join('_static', file))
+                            #os.rename(join(dirpath, file),
+                            #          join('_static', file))
         if '.svn' in dirnames:
             dirnames.remove('.svn')
