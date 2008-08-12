@@ -1,6 +1,7 @@
 # creates: io1.png io2.png
 from ase import *
 from ase.lattice.surface import *
+from ase.io.pov import povpng
 adsorbate = Atoms('CO')
 adsorbate[1].z = 1.1
 slab = fcc111('Cu', (2, 2, 3), vacuum=7.0)
@@ -8,8 +9,7 @@ add_adsorbate(slab, adsorbate, 1.8, 'ontop')
 
 #view(slab)
 write('io1.png', slab * (3, 3, 1), rotation='10z,-80x')
-write('io2.pov', slab * (3, 3, 1), rotation='10z,-80x', pause=False)
-os.system('povray io2.ini')
+povpng('io2.png', slab * (3, 3, 1), rotation='10z,-80x')
 write('slab.xyz', slab)
 a = read('slab.xyz')
 a.get_cell()

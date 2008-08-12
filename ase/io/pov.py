@@ -3,6 +3,8 @@ Module for povray file format support.
 
 See http://www.povray.org/ for details on the format.
 """
+import os
+
 import numpy as npy
 
 from ase.io.eps import EPS
@@ -174,3 +176,9 @@ def write_pov(filename, atoms, **parameters):
         assert len(atoms) == 1
         atoms = atoms[0]
     POVRAY(atoms, **parameters).write(filename)
+
+def povpng(filename, atoms, **parameters):
+    write_pov(filename[:-4] + '.pov', atoms,
+              pause=False, transparent=False, display=False,
+              **parameters)
+    os.system('povray %s.ini' % filename[:-4])
