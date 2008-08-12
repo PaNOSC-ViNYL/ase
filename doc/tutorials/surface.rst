@@ -12,10 +12,8 @@ composite system.
 
 .. literalinclude:: N2Cu.py
 
-You can view the a picture of the system after the relaxation by typing::
+Here is a picture of the system after the relaxation::
 
   view(slab)  
 
-|slab|
-
-.. |slab| image:: surface.png
+.. image:: surface.png
