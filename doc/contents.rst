@@ -26,6 +26,7 @@ The complete table of contents:
    download
    ase/ase
    tutorials/tutorials
+   exercises/exercises	
    python
    numpy
    oldase
