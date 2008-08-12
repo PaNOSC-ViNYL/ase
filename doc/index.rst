@@ -8,7 +8,7 @@ for manipulating atoms, analyzing simulations, visualization etc.
 
 .. note::
 
-  The old ASE-2 webpage has moved to http://wiki.fysik.dtu.dk/ase.
+  The old ASE-2 webpage has moved to http://wiki.fysik.dtu.dk/ase2.
 
 
 Supported :mod:`calculators`:
@@ -20,13 +20,10 @@ Supported :mod:`calculators`:
 
 
 .. |gpaw| image:: _static/gpaw.png
-   :height: 50
    :target: http://wiki.fysik.dtu.dk/gpaw
 .. |abinit| image:: _static/abinit.png
-   :height: 50
    :target: ase/calculators/abinit.html
 .. |siesta| image:: _static/siesta.png
-   :height: 50
    :target: ase/calculators/siesta.html
 
 .. _Asap: http://wiki.fysik.dtu.dk/asap

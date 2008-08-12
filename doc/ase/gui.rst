@@ -9,7 +9,7 @@ ASE-GUI
 =======
 
 .. image:: ag.png
-   :height: 200
+   :height: 200 pt
 
 
 Files

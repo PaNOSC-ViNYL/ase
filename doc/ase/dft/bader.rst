@@ -96,6 +96,6 @@ volumes. This was achieved by plotting a contour surface of
 `AtIndex.dat` at an isovalue of 1.5.
 
 .. image:: water_divide_surf.png
-   :height: 220
+   :height: 220 pt
 
 
