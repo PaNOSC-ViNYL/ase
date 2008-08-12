@@ -158,3 +158,62 @@ class Filter:
 
     def get_forces(self):
         return self.atoms.get_forces()[self.index]
+
+
+class StrainFilter:
+    """Modify the supercell while keeping the scaled positions fixed.
+
+    Presents the strain of the supercell as the generalized positions,
+    and the global stress tensor (times the volume) as the generalized
+    force.
+
+    This filter can be used to relax the unit cell until the stress is zero.
+
+    The stress and strain are presented as 6-vectors, the order of the
+    components follow the standard engingeering practice: xx, yy, zz,
+    yz, xz, xy.  
+    
+    """
+    def __init__(self, atoms, mask=None):
+        """Create a filter applying a homogeneous strain to a list of atoms.
+
+        The first argument, atoms, is the atoms object.
+
+        The optional second argument, mask, is a list of six booleans,
+        indicating which of the six independent components of the
+        strain that are allowed to become non-zero.  It defaults to
+        [1,1,1,1,1,1].
+        
+        """
+        
+        self.atoms = atoms
+        self.strain = np.zeros(6)
+
+        if mask is None:
+            self.mask = np.ones(6)
+        else:
+            self.mask = np.array(mask)
+
+        self.origcell = atoms.get_cell()
+        
+    def get_positions(self):
+        return self.strain.reshape((2, 3))
+
+    def set_positions(self, new):
+        new = new.ravel() * self.mask
+        eps = np.array([[1.0 + new[0], 0.5 * new[5], 0.5 * new[4]],
+                        [0.5 * new[5], 1.0 + new[1], 0.5 * new[3]],
+                        [0.5 * new[4], 0.5 * new[3], 1.0 + new[2]]])
+
+        self.atoms.set_cell(np.dot(self.origcell, eps), scale_atoms=True)
+        self.strain[:] = new
+
+    def get_forces(self):
+        stress = self.atoms.get_stress()
+        return -self.atoms.get_volume() * (stress * self.mask).reshape((2, 3))
+
+    def get_potential_energy(self):
+        return self.atoms.get_potential_energy()
+
+    def __len__(self):
+        return 2
