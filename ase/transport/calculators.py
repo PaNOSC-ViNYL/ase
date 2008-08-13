@@ -1,7 +1,7 @@
 from ase.transport.transmission import Transmission
 from ase.transport.selfenergy import LeadSelfEnergy
 from ase.transport.greensfunction import GreensFunction
-from ase.transport.tools import subdiagonalize, cutcoupling, tri2full
+from ase.transport.tools import subdiagonalize, cutcoupling, tri2full, dagger
 import numpy as npy
 
 class TransportCalculator:
@@ -18,9 +18,11 @@ class TransportCalculator:
                                  's2' : None,
                                  'h' : None,
                                  's' : None,
-                                 'eta1' : 1.0e-4,
-                                 'eta2' : 1.0e-4,
-                                 'eta': 1.0e-4}
+                                 'align_bf' : None,
+                                 'eta1' : 1.0e-3,
+                                 'eta2' : 1.0e-3,
+                                 'eta': 1.0e-3,
+                                 'verbose' : False}
 
         self.trans = Transmission()
         self.initialized =  False
@@ -34,16 +36,20 @@ class TransportCalculator:
             p['pl1'] = pl
             p['pl2'] = pl
         p.update(kwargs)
+
+        if 'pdos' in p:
+            self.trans.set(pdos=p['pdos'])
         
         if p['h1'] != None and p['h2'] !=None and p['h'] != None:
-            self.initialize() #XXX more advanced log would be nice
-               
+            self.initialize() #XXX more advanced log would be nicea
 
-            
+               
         
     def initialize(self):
-        print "initializing calculator..."
         p = self.input_parameters
+        self.verbose = p['verbose']
+        if self.verbose:
+            print "initializing calculator..."
         self.energies = p['energies']
         pl1 = p['pl1']
         pl2 = p['pl2']
@@ -72,9 +78,17 @@ class TransportCalculator:
 
         h_mm = p['h'][pl1:-pl2,pl1:-pl2]
         s_mm = p['s'][pl1:-pl2,pl1:-pl2]
+        align_bf = p['align_bf']
+        
+        if align_bf != None:
+            diff = (h_mm[align_bf,align_bf] - h1_ii[align_bf,align_bf]) / s_mm[align_bf,align_bf]
+            if self.verbose:
+                print "Alligning scattering H to left lead H. diff=", diff
+            h_mm -= diff * s_mm
+
         self.h_pp = p['h']
         self.s_pp = p['s']
-
+        #setup lead self-energies
         sigma1 = LeadSelfEnergy((h1_ii,s1_ii), 
                                 (h1_ij,s1_ij),
                                 (h1_im,s1_im),
@@ -86,17 +100,32 @@ class TransportCalculator:
                                 p['eta2'])
 
         self.selfenergies = [sigma1,sigma2]
-        self.gf = GreensFunction(selfenergies=[sigma1,sigma2],
+        #setup scattering green's function
+        self.gf = GreensFunction(selfenergies=self.selfenergies,
                                  h_mm=h_mm,
                                  s_mm=s_mm,
                                  eta = p['eta'])
         self.gf.initialize()
+        #setup the basic transmission calculator 
         self.trans.set(energies=self.energies,
                        greensfunction = self.gf,
-                       selfenergies = self.selfenergies)
-        #self.trans.initialize()
+                       selfenergies = self.selfenergies,
+                       verbose=p['verbose'])
+        
         self.initialized = True
- 
+
+    def print_pl_convergence(self):
+        p = self.input_parameters
+        pl1 = p['pl1']
+        pl2 = p['pl2']
+        for l in range(2):
+            h_ii = self.selfenergies[l].h_ii
+            s_ii = self.selfenergies[l].s_ii
+            ha_ii = self.gf.h_mm[:pl1,:pl1]
+            sa_ii = self.gf.s_mm[:pl1,:pl1]
+            c1 = npy.abs(h_ii-ha_ii).max()
+            c2 = npy.abs(s_ii-sa_ii).max()
+            print "Conv %i: (h,s)=%.2e, %2.e" % (l,c1,c2)
 
     def get_transmission(self):
         if not self.trans.uptodate:
@@ -130,8 +159,10 @@ class TransportCalculator:
         bfs += p['pl1']
         h_pp = p['h']
         s_pp = p['s']
-        ht_pp,st_pp,c_pp,e_p = subdiagonalize(h_pp,s_pp,bfs)
-        return ht_pp, st_pp, c_pp, e_p
+        ht_pp, st_pp, c_pp, e_p = subdiagonalize(h_pp, s_pp, bfs)
+        c_pp = npy.take(c_pp,bfs,axis=0)
+        c_pp = npy.take(c_pp,bfs,axis=1)
+        return ht_pp, st_pp, e_p, c_pp
 
     def cutcoupling_bfs(self,bfs):
         bfs = npy.array(bfs)
@@ -139,14 +170,8 @@ class TransportCalculator:
         bfs += p['pl1']
         h_pp = p['h'].copy()
         s_pp = p['s'].copy()
-        cutcoupling(h_pp,s_pp,bfs)
+        cutcoupling(h_pp, s_pp, bfs)
         return h_pp, s_pp
         
-        
-        
-        
-        
-        
-        
-        
-
+    def get_left_channels(self,energy,n):
+        return self.trans.get_left_channels(energy,n)
