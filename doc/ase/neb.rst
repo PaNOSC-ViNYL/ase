@@ -173,7 +173,7 @@ master processes write the images::
 For a complete example using GPAW_, see the here_.
 
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
-.. _gpaw-python: http://wiki.fysik.dtu.dk/gpaw/Parallel_Runs
-.. _here: http://wiki.fysik.dtu.dk/gpaw/NEB
+.. _gpaw-python: https://wiki.fysik.dtu.dk/gpaw/documentation/manual.html#parallel-calculations
+.. _here: https://wiki.fysik.dtu.dk/gpaw/tutorials/neb/neb.html
 
 .. default-role::
