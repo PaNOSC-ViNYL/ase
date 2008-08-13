@@ -2,6 +2,12 @@ from ase.transport.calculators import TransportCalculator
 from ase.transport.tools import tri2full
 import numpy as npy
 
+def write(fname,xs,ys):
+    fd = open(fname,'w')
+    for x,y in zip(xs,ys):
+        print >> fd, x, y
+    fd.close()
+
 
 H_lead = npy.zeros([4,4])
 
@@ -38,32 +44,23 @@ H_scat[4,3] = 0.2
 
 pl = 2
 energies = npy.arange(-3,3,0.02)
-#print "creating"
-#calc = TransportCalculator()
-#print "setting pl"
-#calc.set(pl=pl)
-#print "setting h" 
-#calc.set(h=H_scat)
-#print "setting h1"
-#calc.set(h1=H_lead)
-#print "setting h2"
-#calc.set(h2=H_lead)
-#print "setting energies"
-#calc.set(energies=energies)
 calc = TransportCalculator(pl=pl,
                            h=H_scat,
                            h1=H_lead,
                            h2=H_lead,
                            energies=energies)
-#print "setting pdos"
+
 calc.trans.set(pdos=[0,1])
 #save the original hamiltonian before working on it
 h = calc.h_pp.copy()
 s = calc.s_pp.copy()
-#"print calculating T"
+
 T = calc.get_transmission()
 dos = calc.get_dos()
 pdos = calc.get_pdos()
+write('T.dat',calc.energies,T)
+write('pdos0.dat', calc.energies,pdos[0])
+write('pdos1.dat', calc.energies,pdos[1])
 
 #subdiagonalize
 ha, sa, u, eps = calc.subdiagonalize_bfs([0,1])
@@ -71,6 +68,8 @@ calc.set(h=ha,s=sa)
 Ta = calc.get_transmission()
 dosa = calc.get_dos()
 pdosa = calc.get_pdos()
+print eps
+print npy.abs(T-Ta).max()
 
 #remove coupling
 hb, sb = calc.cutcoupling_bfs([0])
