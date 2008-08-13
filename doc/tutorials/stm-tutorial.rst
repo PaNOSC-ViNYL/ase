@@ -4,59 +4,32 @@
 Tutorial: STM images - Al(100)
 ==============================
 
-The STM is a revolutionary experimental surface probe that has provided direct local insight into the surface electronic structure. Sometimes the interpretation of STM topographs are not straightforward and therefore theoretically modeled STM images may resolve conflicting possibilities and point to an underlying atomistic model. The CAMPOS code includes python modules for generating Tersoff-Hamann STM topographs. Using this functionality requires VTK installed. The STM code is illustrated here for a Al(100) in a 2x2 unit cell.
+The STM is a revolutionary experimental surface probe that has
+provided direct local insight into the surface electronic
+structure. Sometimes the interpretation of STM topographs are not
+straightforward and therefore theoretically modeled STM images may
+resolve conflicting possibilities and point to an underlying atomistic
+model. The CAMPOS code includes python modules for generating
+Tersoff-Hamann STM topographs. The STM code is illustrated here for a
+Al(100) in a 2x2 unit cell.
 
-The setup for the atoms in the Al(100) in a 2x2 unitcell is described below.
+Let's make the Al(100) fcc surface by using the :mod:`lattice` module::
 
-After the import statements, the section starting with a0 = ... defines some major variables in the script ; this is not at all required, but increases the readability and reusability of the script. The part starting at atoms=Atoms(..) illustrates a three-fold python loop that iteratively builds up the slab in a layerwise fashion::
-
-    XXX use fcc001 function.
-
-    from ase import *
-    from numpy import sqrt,array
-    a0     = 4.05         # cubic fcc lattice constant
-    N      = 2            # repetition along x
-    M      = 2            # repetition along y
-    layers = 2            # slab layers
-    electronsperatom = 3
-    vaclay = 5            # interlayer dist = a0/2
-    
-    atoms   = Atoms([],pbc=True)
-    for n in range(layers):
-        for i in range(N):
-            for j in range(M):
-                scaledpos = [(i+(n%2)/2.)/sqrt(2.),(j+(n%2)/2.)/sqrt(2.),-n/2.]
-                atoms.append(Atom('Al', a0*array(scaledpos)))
-     
-    unitcell = [[N/sqrt(2.), 0.0,        0.0],
-               [0.0,        M/sqrt(2.), 0.0],
-               [0.0,        0.0,        (vaclay+layers)/2.]]
-    
-    atoms.set_cell(a0*array(unitcell))
+  from ase.lattice.surface import *
+  atoms = fcc100('Al', size=(2,2,2))
 
 Now a calculator must be defined, in this tutorial we will make a STM
-image from both the GPAW real space grid code and from the dacapo
-planewave code.
+image from the GPAW calculator.
 
 For the GPAW code the calculator for the Al(100) surface can be
 defined like this::
 
-    from gpaw import Calculator
-    calc = Calculator(gpts=(20,20,48),nbands=28,
-                      kpts=(4,4,1),out='Al100.out')
-    atoms.set_calculator(calc)
-    energy = atoms.get_potential_energy() 
-    calc.write('Al100.gpw')
-
-The calculator for the dacapo code is similar::
-
-    from Dacapo import Dacapo
-    calc = Dacapo(planewavecutoff = 150,nbands = 28,
-                  kpts=(4,4,1),xc = 'LDA',
-                  usesymm=True,
-                  out = 'Al100.nc',txtout = 'Al100.txt')
-    atoms.SetCalculator(calc)
-    energy = atoms.GetPotentialEnergy()
+  from gpaw import GPAW
+  calc = GPAW(gpts=(20,20,48),nbands=28,
+  	kpts=(4,4,1),out='Al100.out')
+  atoms.set_calculator(calc)
+  energy = atoms.get_potential_energy() 
+  calc.write('Al100.gpw')
 
 
 3D Visualization
