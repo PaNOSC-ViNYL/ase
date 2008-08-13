@@ -447,4 +447,4 @@ class GUI(View, Status):
 
 def webpage(widget):
     import webbrowser
-    webbrowser.open('https://web2.fysik.dtu.dk/ase/ase/gui.html')
+    webbrowser.open('https://wiki.fysik.dtu.dk/ase/ase/gui.html')
