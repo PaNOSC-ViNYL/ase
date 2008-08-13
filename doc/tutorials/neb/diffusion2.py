@@ -11,6 +11,7 @@ for i in range(3):
     image.set_calculator(EMT())
     image.set_constraint(constraint)
     images.append(image)
+
 images.append(final)
 
 neb = NEB(images)
