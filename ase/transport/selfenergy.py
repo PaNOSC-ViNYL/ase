@@ -4,7 +4,7 @@ from ase.transport.tools import dagger, tri2full, lambda_from_self_energy
 
 class LeadSelfEnergy:
     
-    def __init__(self,hs_dii,hs_dij,hs_dim,eta=1.0e-4,energy=None):
+    def __init__(self, hs_dii, hs_dij, hs_dim, eta=1.0e-4, energy=None):
         self.h_ii = hs_dii[0] #onsite principal layer
         self.s_ii = hs_dii[1] 
         self.h_ij = hs_dij[0] #coupling between principal layers
@@ -12,26 +12,10 @@ class LeadSelfEnergy:
         self.h_im = hs_dim[0] #coupling to the central region
         self.s_im = hs_dim[1]
         self.eta = eta
-        self.nbf = self.h_im.shape[1]
+        self.nbf = self.h_im.shape[1] #nbf for the scattering region
         self.sigma_mm = npy.empty((self.nbf,self.nbf), npy.complex)
-        self.conv = 1.0e-3
-        self.energy = None
-
-    def get_hs_2pl_matrix(self):
-        nbf = self.nbf
-        h2pl = npy.zeros((2 * nbf,2 * nbf),npy.complex)
-        s2pl = npy.zeros((2 * nbf,2 * nbf),npy.complex)
-        h2pl[:nbf,:nbf] = self.h_ii
-        h2pl[nbf:,nbf:] = self.h_ii
-        h2pl[:nbf,nbf:2*nbf] = self.h_ij
-        tri2full(h2pl,'U')
-
-        s2pl[:nbf,:nbf] = self.s_ii
-        s2pl[nbf:,nbf:] = self.s_ii
-        s2pl[:nbf,nbf:2*nbf] = self.s_ij
-        tri2full(s2pl,'U')
-
-        return h2pl,s2pl
+        self.conv = 1.0e-8
+        self.energy = energy
 
     def set_energy(self,energy):
         if self.energy == None:
@@ -41,7 +25,7 @@ class LeadSelfEnergy:
             self.energy = energy
             self.uptodate = False
     
-    def get_ginv(self):
+    def get_sgf_inv(self):
         """The inverse of the retarded surface GF""" 
         h_ii = self.h_ii
         s_ii = self.s_ii
@@ -73,21 +57,23 @@ class LeadSelfEnergy:
 
     def update(self):
         """Force and update"""
-
         h_im = self.h_im
         s_im = self.s_im
-        z = self.energy + self.eta * 1.j
-            
-        tau_im = z * s_im - h_im
-        a_im = linalg.solve(self.get_ginv(),tau_im)
-        tau_mi = z * dagger(s_im) - dagger(h_im)
+        z = self.energy + self.eta * 1.0j
+        
+        #tau_im = z * s_im - h_im
+        tau_im = z * s_im
+        tau_im -= h_im
+        a_im = linalg.solve(self.get_sgf_inv(), tau_im)
+        #tau_mi = z * dagger(s_im) - dagger(h_im)
+        tau_mi = z * dagger(s_im)
+        tau_mi -= dagger(h_im)
         self.sigma_mm[:] = npy.dot(tau_mi,a_im)
         self.uptodate = True
 
     def get_matrix(self):
         if not self.uptodate:
             self.update()
-        
         return self.sigma_mm
        
     def get_lambda_matrix(self):
@@ -95,5 +81,19 @@ class LeadSelfEnergy:
             self.update()
         return lambda_from_self_energy(self.sigma_mm)
         
-        
-        
+#    def get_hs_2pl_matrix(self):
+#        nbf = self.nbf
+#        h2pl = npy.zeros((2 * nbf,2 * nbf),npy.complex)
+#        s2pl = npy.zeros((2 * nbf,2 * nbf),npy.complex)
+#        h2pl[:nbf,:nbf] = self.h_ii
+#        h2pl[nbf:,nbf:] = self.h_ii
+#        h2pl[:nbf,nbf:2*nbf] = self.h_ij
+#        tri2full(h2pl,'U')
+
+#        s2pl[:nbf,:nbf] = self.s_ii
+#        s2pl[nbf:,nbf:] = self.s_ii
+#        s2pl[:nbf,nbf:2*nbf] = self.s_ij
+#        tri2full(s2pl,'U')
+#
+#        return h2pl,s2pl
+#
