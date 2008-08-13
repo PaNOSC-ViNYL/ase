@@ -2,19 +2,21 @@ import numpy as npy
 la = npy.linalg
 from math import sqrt
 
-def tri2full(M,UL='L'):
+def tri2full(M, UL='L'):
     """UP='L' => fill upper triangle from lower triangle
        such that M=M^d"""
     nbf = len(M)
-    if UL=='L':
-        for i in range(nbf-1):
-            M[i,i:] = M[i:,i].conjugate()
-    elif UL=='U':
-        for i in range(nbf-1):
-            M[i:,i] = M[i,i:].conjugate()
+    if UL == 'L':
+        for i in range(nbf - 1):
+            M[i,i:] = M[i:, i].conjugate()
+    elif UL == 'U':
+        for i in range(nbf - 1):
+            M[i:,i] = M[i, i:].conjugate()
 
 
 def dagger(matrix, copy=1):
+    """return npy.conj(matrix.T)"""
+
     # First change the axis: (Does not allocate a new array)
     matrix_t = matrix.swapaxes(0,1)
     if copy: # Allocate space for new array
@@ -24,7 +26,9 @@ def dagger(matrix, copy=1):
         #npy.multiply(matrix_conj.imag,-1,matrix_conj.imag)
     return matrix_t
 
-def lambda_from_self_energy(self_energy,copy=1):
+def lambda_from_self_energy(self_energy, copy=1):
+    """return 1.j * (sigma - dagger(sigma))"""
+
     if copy:
         lambda_lead = self_energy.copy()
     else:

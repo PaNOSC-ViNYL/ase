@@ -13,7 +13,7 @@ class LeadSelfEnergy:
         self.s_im = hs_dim[1]
         self.eta = eta
         self.nbf = self.h_im.shape[1] #nbf for the scattering region
-        self.sigma_mm = npy.empty((self.nbf,self.nbf), npy.complex)
+        self.sigma_mm = npy.empty((self.nbf, self.nbf), complex)
         self.conv = 1.0e-8
         self.energy = energy
 
@@ -21,7 +21,7 @@ class LeadSelfEnergy:
         if self.energy == None:
             self.energy = energy
             self.uptodate = False
-        elif abs(self.energy-energy) > 1.0e-12:
+        elif abs(self.energy - energy) > 1.0e-12:
             self.energy = energy
             self.uptodate = False
     
@@ -41,11 +41,11 @@ class LeadSelfEnergy:
         delta = self.conv + 1
         n = 0
         while (delta > self.conv):
-            a = linalg.solve(v_11,v_01)
-            b = linalg.solve(v_11,v_10)
-            v_01_dot_b = npy.dot(v_01,b)
+            a = linalg.solve(v_11, v_01)
+            b = linalg.solve(v_11, v_10)
+            v_01_dot_b = npy.dot(v_01, b)
             v_00 -= v_01_dot_b
-            v_11 -= npy.dot(v_10,a) 
+            v_11 -= npy.dot(v_10, a) 
             v_11 -= v_01_dot_b
             v_01 = -npy.dot(v_01,a)
             v_10 = -npy.dot(v_10,b)

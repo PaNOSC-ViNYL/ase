@@ -6,7 +6,7 @@ import numpy as npy
 
 class TransportCalculator:
 
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
         
         self.input_parameters = {'energies': None,
                                  'pl': None,
@@ -29,7 +29,7 @@ class TransportCalculator:
         self.set(**kwargs)
         #self.initialize()
 
-    def set(self,**kwargs):
+    def set(self, **kwargs):
         p = self.input_parameters
         if 'pl' in kwargs: #using pl=pl1=pl2
             pl = kwargs['pl']
@@ -40,11 +40,9 @@ class TransportCalculator:
         if 'pdos' in p:
             self.trans.set(pdos=p['pdos'])
         
-        if p['h1'] != None and p['h2'] !=None and p['h'] != None:
+        if p['h1'] != None and p['h2'] != None and p['h'] != None:
             self.initialize() #XXX more advanced log would be nicea
 
-               
-        
     def initialize(self):
         p = self.input_parameters
         self.verbose = p['verbose']
@@ -60,10 +58,10 @@ class TransportCalculator:
         if p['s'] == None:
             p['s'] = npy.identity(len(p['h']))
             
-        h1_ii = p['h1'][:pl1,:pl1]
-        h1_ij = p['h1'][:pl1,pl1:2*pl1]
-        s1_ii = p['s1'][:pl1,:pl1]
-        s1_ij = p['s1'][:pl1,pl1:2*pl1]
+        h1_ii = p['h1'][:pl1, :pl1]
+        h1_ij = p['h1'][:pl1, pl1:2*pl1]
+        s1_ii = p['s1'][:pl1, :pl1]
+        s1_ij = p['s1'][:pl1, pl1:2*pl1]
 
         h2_ii = p['h2'][:pl2,:pl2]
         h2_ij = p['h2'][pl2:2*pl2,:pl2]
@@ -89,17 +87,17 @@ class TransportCalculator:
         self.h_pp = p['h']
         self.s_pp = p['s']
         #setup lead self-energies
-        sigma1 = LeadSelfEnergy((h1_ii,s1_ii), 
-                                (h1_ij,s1_ij),
-                                (h1_im,s1_im),
+        sigma1 = LeadSelfEnergy((h1_ii, s1_ii), 
+                                (h1_ij, s1_ij),
+                                (h1_im, s1_im),
                                 p['eta1'])
         
-        sigma2 = LeadSelfEnergy((h2_ii,s2_ii), 
-                                (h2_ij,s2_ij),
-                                (h2_im,s2_im),
+        sigma2 = LeadSelfEnergy((h2_ii, s2_ii), 
+                                (h2_ij, s2_ij),
+                                (h2_im, s2_im),
                                 p['eta2'])
 
-        self.selfenergies = [sigma1,sigma2]
+        self.selfenergies = [sigma1, sigma2]
         #setup scattering green's function
         self.gf = GreensFunction(selfenergies=self.selfenergies,
                                  h_mm=h_mm,
@@ -153,7 +151,7 @@ class TransportCalculator:
             self.trans.update()
         return self.trans.pdos_ne
 
-    def subdiagonalize_bfs(self,bfs):
+    def subdiagonalize_bfs(self, bfs):
         bfs = npy.array(bfs)
         p = self.input_parameters
         bfs += p['pl1']
@@ -164,7 +162,7 @@ class TransportCalculator:
         c_pp = npy.take(c_pp,bfs,axis=1)
         return ht_pp, st_pp, e_p, c_pp
 
-    def cutcoupling_bfs(self,bfs):
+    def cutcoupling_bfs(self, bfs):
         bfs = npy.array(bfs)
         p = self.input_parameters
         bfs += p['pl1']

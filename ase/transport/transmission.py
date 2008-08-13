@@ -4,7 +4,7 @@ from ase.transport.tools import dagger
 
 class Transmission:
 
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
         
         self.input_parameters = {'energies' : None,
                                  'greensfunction' : None,
@@ -18,7 +18,7 @@ class Transmission:
         self.set(**kwargs)
         self.initialized = False
 
-    def set(self,**kwargs):
+    def set(self, **kwargs):
         p = self.input_parameters
         p.update(kwargs)
         self.uptodate = False
@@ -70,8 +70,8 @@ class Transmission:
             gf.update()
         lambda1_mm = self.selfenergies[0].get_lambda_matrix()
         lambda2_mm = self.selfenergies[1].get_lambda_matrix()
-        a_mm = linalg.solve(gf.gf_inv_mm,lambda1_mm)
-        b_mm = linalg.solve(dagger(gf.gf_inv_mm),lambda2_mm)
+        a_mm = linalg.solve(gf.gf_inv_mm, lambda1_mm)
+        b_mm = linalg.solve(dagger(gf.gf_inv_mm), lambda2_mm)
         T_mm = npy.dot(a_mm,b_mm)
         return T_mm 
         
@@ -80,7 +80,7 @@ class Transmission:
         nchan = len(self.eigenchannels_ne)
         #self.T_e[e] = npy.trace(T_mm).real
         t_n = linalg.eigvals(T_mm).real
-        self.eigenchannels_ne[:,e] = npy.sort(t_n)[-nchan:]
+        self.eigenchannels_ne[:, e] = npy.sort(t_n)[-nchan:]
         self.T_e[e] = npy.sum(t_n)
    
     def calculate_transmission(self,e):
