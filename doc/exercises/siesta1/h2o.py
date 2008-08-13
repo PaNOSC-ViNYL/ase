@@ -1,5 +1,4 @@
 from ase import *
-from gpaw import Calculator
 
 # Set up a H2O molecule by specifying atomic positions
 h2o = Atoms(symbols='H2O',
@@ -31,5 +30,3 @@ for e_s in e_shifts:
     E = h2o.get_potential_energy()
     traj.write()
     print "%.2f %.4f" % (e_s,E)
-
-

@@ -41,9 +41,14 @@ In particular, you should look at:
 * Radius of each of the orbitals
 * Shape of the orbitals
 
-You should obtain plots like
+You should obtain plots like the following ones:
 
-.. image:: ener.png
+|en| |dist| |ang|
+
+.. |en| image:: ener.png
+.. |dist| image:: distance.png
+.. |ang| image:: angle.png
+
 
 Try to answer these questions:
 
