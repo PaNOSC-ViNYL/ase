@@ -47,7 +47,7 @@ def normalize_rot(c,s):
     """normalize column vectors so that <c[:,i]|s|c[:,i]> = 1 """
     for i in xrange(c.shape[0]):
         v = c[:,i]
-        norm = 1.0/sqrt(npy.dot(v.conj(),npy.dot(s,v)))
+        norm = 1.0 / sqrt(npy.dot(v.conj(),npy.dot(s,v)))
         c[:,i] *= norm
 
 def subdiagonalize(h_ii,s_ii,index_j):
