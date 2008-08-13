@@ -52,7 +52,11 @@ class GreensFunction:
                 selfenergy.update()
             sigmas_mm.append(selfenergy.sigma_mm)
         
-        self.gf_inv_mm[:] = z*self.s_mm - self.h_mm - npy.sum(sigmas_mm,axis=0)
+        #self.gf_inv_mm[:] = z*self.s_mm - self.h_mm - npy.sum(sigmas_mm,axis=0)
+        self.gf_inv_mm[:] = self.s_mm
+        self.gf_inv_mm *= z
+        self.gf_inv_mm -= self.h_mm
+        self.gf_inv_mm -= npy.sum(sigmas_mm,axis=0)
         self.uptodate = True
 
     def get_inv_matrix(self):
@@ -63,18 +67,5 @@ class GreensFunction:
     def get_matrix(self):
         if not self.uptodate:
             self.update()
-
         return linalg.inv(self.g_inv_mm)
 
-            
-
-    
-        
-        
-
-    
-
-
-
-    
-    
