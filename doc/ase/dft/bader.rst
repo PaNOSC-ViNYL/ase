@@ -61,7 +61,7 @@ First do a ground state calculation, and save the density as a cube file::
   atoms.set_calculator(calc)
   atoms.get_potential_energy()
 
-  rho = calc.get_all_electron_density(gridrefinement=4, pad=True) * Bohr**3
+  rho = calc.get_all_electron_density(gridrefinement=4) * Bohr**3
   write('water_density.cube', atoms, data=rho)
 
 Then analyse the density cube file by running (use `bader -h` for a
