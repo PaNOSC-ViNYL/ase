@@ -16,7 +16,7 @@ Files
 -----
 
 The :program:`ag` program can read all the file formats the ASE's
-:func:`~io.read` function can understand.
+:func:`~ase.io.read` function can understand.
 
 .. highlight:: bash
 
