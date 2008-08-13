@@ -12,7 +12,8 @@ class Transmission:
                                  'transmission' : True,
                                  'eigenchannels' : 0,
                                  'dos' : True,
-                                 'pdos' : []}
+                                 'pdos' : [],
+                                 'verbose': False}
 
         self.set(**kwargs)
         self.initialized = False
@@ -25,6 +26,7 @@ class Transmission:
         
     def initialize(self):
         p = self.input_parameters
+        self.verbose = p['verbose']
         self.energies = p['energies']
         self.nepts = len(self.energies)
         self.selfenergies = p['selfenergies']
@@ -47,6 +49,8 @@ class Transmission:
 
         p = self.input_parameters
         for e in range(self.nepts):
+            if self.verbose:
+                print "%i out of %i" % (e+1, self.nepts)
             if p['transmission']:
                 if p['eigenchannels'] > 0:
                     self.calculate_transmission_and_eigenchannels(e)
@@ -103,24 +107,35 @@ class Transmission:
         a_m = (npy.diagonal(sgfs_mm) * (1.0 / npy.diagonal(s_mm))).imag
         a_m *= -1.0 / npy.pi
         self.pdos_ne[:,e] = npy.take(a_m,bfs) 
-        
-        
-#    def get_transmission(self):
-#        self.input_parameters['transmission'] = True
-#        if not self.uptodate:
-#            self.update()
-#            self.uptodate = True
-#        return self.T_e
+       
+    def get_left_channels(self,energy,n=1):
+        la = npy.linalg
+        gf = self.greensfunction
+        gf.set_energy(energy)
+        if not gf.uptodate:
+            gf.update()
+        h_mm = gf.h_mm
+        s_mm = gf.s_mm
+        s_s_i, s_s_ii = la.eig(s_mm)
+        s_s_i = npy.abs(s_s_i)
+        s_s_sqrt_i = npy.sqrt(s_s_i)#sqrt of eigenvalues  
+        s_s_sqrt_ii = npy.dot(s_s_ii * s_s_sqrt_i,dagger(s_s_ii))
+        s_s_isqrt_ii = npy.dot(s_s_ii / s_s_sqrt_i,dagger(s_s_ii))
+        g_inv_ii = gf.gf_inv_mm
+        lambda_l_ii = gf.selfenergies[0].get_lambda_matrix()
+        lambda_r_ii = gf.selfenergies[1].get_lambda_matrix()
+        lambdab_r_ii = npy.dot(npy.dot(s_s_isqrt_ii,lambda_r_ii),s_s_isqrt_ii)
+        g_s_ii = la.inv(g_inv_ii)
+        a_l_ii = npy.dot(npy.dot(g_s_ii,lambda_l_ii),dagger(g_s_ii))
+        ab_l_ii = npy.dot(npy.dot(s_s_sqrt_ii,a_l_ii),s_s_sqrt_ii)
+        lambda_i, u_ii = la.eig(ab_l_ii)
+        ut_ii = npy.sqrt(lambda_i / (2.0 * npy.pi)) * u_ii
+        m_ii = 2 * npy.pi * npy.dot(npy.dot(dagger(ut_ii),lambdab_r_ii),ut_ii)
+        T_i,c_in = la.eig(m_ii)
+        T_i = npy.abs(T_i)
+        channels = npy.argsort(-T_i)[:n]
+        c_in = npy.take(c_in,channels,axis=1)
+        T_n = npy.take(T_i,channels)
+        v_in = npy.dot(npy.dot(s_s_isqrt_ii,ut_ii),c_in)
 
-#    def get_dos(self):
-#        self.input_parameters['dos'] = True
-#        if not self.uptodate:
-#            self.update()
-#            self.uptodate = True
-#        return self.dos_e
-   
-#    def get_eigenchannels(self):
-#        if not self.uptodate:
-#            self.update()
-#            self.uptodate = True
-#        return self.eigenchannels_ne
+        return T_n, v_in
