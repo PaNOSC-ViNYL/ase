@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 from ase import *
 
-# Read in the geometry from a xyz file, set the cell and center
+# Read in the geometry from a xyz file, set the cell, boundary conditions and center
 atoms = read('geom.xyz')
 atoms.set_cell([7.66348,7.66348,7.66348*2])
 atoms.set_pbc((1,1,1))
 atoms.center()
 
-# Set the magnetic moments
+# Set the magnetic moments of the hydrogen atoms along the z-direction
 p = atoms.get_momenta()
 p[0,2]=-1.5
 p[1,2]=-1.5
