@@ -54,5 +54,6 @@ ase.transport.calculators) which makes no requirement on the origin of
 these five matrices.
 
 For an example of how to use the :mod:`transport` module, see the GPAW
-exercise on `electron transport
-<wiki.fysik.dtu.dk/gpaw/exercises/transport/transport.html>`.
+exercise on `electron transport`_
+
+.. _electron transport: http://wiki.fysik.dtu.dk/gpaw/exercises/transport/transport.html
