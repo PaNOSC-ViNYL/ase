@@ -20,10 +20,11 @@ e_shifts = [0.01,0.1,0.2,0.3,0.4,0.5]
 # Run the relaxation for each energy shift, and print out the
 # corresponding total energy
 for e_s in e_shifts:
-    calc = Siesta('h2o',basis='SZ',meshcutoff=200.0*Ry,mix=0.5,pulay=4)
-    calc.set_fdf('PAO.EnergyShift',e_s * eV)
-    calc.set_fdf('PAO.SplitNorm',0.15)
-    calc.set_fdf('DM.UseSaveDM','Y')
+    calc = Siesta('h2o',meshcutoff=200.0*Ry,mix=0.5,pulay=4)
+    calc.set_fdf('PAO.EnergyShift', e_s * eV)  #Basis set definition
+    calc.set_fdf('PAO.SplitNorm', 0.15)        #Basis set definition
+    calc.set_fdf('PAO.BasisSize', 'SZ')        #Basis set definition
+    calc.set_fdf('DM.UseSaveDM', 'Y')
     h2o.set_calculator(calc)
     dyn = QuasiNewton(h2o)
     dyn.run(fmax=0.02)
