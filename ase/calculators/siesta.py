@@ -27,7 +27,8 @@ class Siesta:
     def __init__(self, label='siesta', xc='LDA', kpts=None, nbands=None,
                  width=None, meshcutoff=None, charge=None,
                  pulay=5, mix=0.1,
-                 basis=None, ghosts=[]):
+                 basis=None, ghosts=[],
+                 write_fdf=True):
         """Construct SIESTA-calculator object.
 
         Parameters
@@ -52,7 +53,9 @@ class Siesta:
             Number of old densities to use for Pulay mixing.
         mix: float
             Mixing parameter between zero and one for density mixing.
-            
+        write_fdf: bool
+            Use write_fdf=False to use your own fdf-file.
+
         Examples
         ========
         Use default values:
@@ -74,6 +77,7 @@ class Siesta:
         self.mix = mix
         self.basis = basis
         self.ghosts = ghosts
+        self.write_fdf_file = write_fdf
     
         self.converged = False
         self.fdf = {}
@@ -150,8 +154,9 @@ class Siesta:
         self.positions = atoms.get_positions().copy()
         self.cell = atoms.get_cell().copy()
         self.pbc = atoms.get_pbc().copy()
-        
-        self.write_fdf(atoms)
+
+        if self.write_fdf_file:
+            self.write_fdf(atoms)
 
         siesta = os.environ['SIESTA_SCRIPT']
         locals = {'label': self.label}
