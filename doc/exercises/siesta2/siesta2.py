@@ -17,11 +17,11 @@ atoms.set_momenta(p)
 atoms.set_constraint(FixAtoms(indices=range(18,38)))
 
 # Set the calculator and attach it to the system
-calc = Siesta('si001_h2_siesta.txt',basis='SZ',xc='PBE',meshcutoff=50*Ry)
+calc = Siesta('si001+h2',basis='SZ',xc='PBE',meshcutoff=50*Ry)
 atoms.set_calculator(calc)
 
 # Set the VelocityVerlet algorithm and run it
-traj = PickleTrajectory('si001_h2_siesta.traj','w',atoms)
+traj = PickleTrajectory('si001+h2.traj','w',atoms)
 dyn = VelocityVerlet(atoms,dt=1.0 * fs,trajectory=traj)
 dyn.run(steps=100)
 
