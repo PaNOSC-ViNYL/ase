@@ -192,13 +192,14 @@ class Bravais:
                 # Let's hope it is an atomic number or something compatible.
                 self.atomicnumber = element
         else:
-            self.atomicnumber = []
+            atomicnumber = []
             for e in element:
                 if isinstance(e, type("string")):
-                    self.atomicnumber.append(ase.data.atomic_numbers[e])
+                    atomicnumber.append(ase.data.atomic_numbers[e])
                 else:
                     # Let's hope it is an atomic number or something compatible.
                     self.atomicnumber.append(e)
+            self.atomicnumber = [atomicnumber[i] for i in self.element_basis]
             assert len(self.atomicnumber) == len(self.bravais_basis)
         
     def convert_to_natural_basis(self):
