@@ -9,8 +9,8 @@ atoms.center()
 
 # Set initial velocities for hydrogen atoms along the z-direction
 p = atoms.get_momenta()
-p[0,2]= -0.2 * Bohr / fs
-p[1,2]= -0.2 * Bohr / fs
+p[0,2]= -1.5
+p[1,2]= -1.5
 atoms.set_momenta(p)
 
 # Keep some atoms fixed during the simulation
