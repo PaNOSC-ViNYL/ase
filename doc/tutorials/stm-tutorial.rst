@@ -25,11 +25,11 @@ For the GPAW code the calculator for the Al(100) surface can be
 defined like this::
 
   from gpaw import GPAW
-  calc = GPAW(gpts=(20,20,48),nbands=28,
-  	kpts=(4,4,1),out='Al100.out')
+  calc = GPAW(gpts=(28,28,20),nbands=28,
+  	kpts=(4,4,1),txt='Al100.out')
   atoms.set_calculator(calc)
   energy = atoms.get_potential_energy() 
-  calc.write('Al100.gpw')
+  calc.write('Al100.gpw', 'all')
 
 
 Linescans
@@ -39,7 +39,9 @@ In this section we will make simulated STM linescans and contour plot
 using matplotlib. First initialize the :class:`STM` object and get the
 averaged current along the z-direction::
 
+  from ase import STM
   stm = STM(atoms, symmetries=[0, 1, 2])
+  z = 2.5
   c = stm.get_averaged_current(z)
 
 From the current we make a scan to get a 2D array of constant current
