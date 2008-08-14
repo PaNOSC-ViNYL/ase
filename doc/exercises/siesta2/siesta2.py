@@ -7,10 +7,10 @@ atoms.set_cell([7.66348,7.66348,7.66348*2])
 atoms.set_pbc((1,1,1))
 atoms.center()
 
-# Set the magnetic moments of the hydrogen atoms along the z-direction
+# Set initial velocities for hydrogen atoms along the z-direction
 p = atoms.get_momenta()
-p[0,2]=-1.5
-p[1,2]=-1.5
+p[0,2]= -0.2 * Bohr / fs
+p[1,2]= -0.2 * Bohr / fs
 atoms.set_momenta(p)
 
 # Keep some atoms fixed during the simulation
@@ -24,3 +24,4 @@ atoms.set_calculator(calc)
 traj = PickleTrajectory('si001_h2_siesta.traj','w',atoms)
 dyn = VelocityVerlet(atoms,dt=1.0 * fs,trajectory=traj)
 dyn.run(steps=100)
+
