@@ -32,46 +32,27 @@ defined like this::
   calc.write('Al100.gpw')
 
 
-3D Visualization
-==========================
+Linescans
+=========
 
-XXX
+In this section we will make simulated STM linescans and contour plot
+using matplotlib. First initialize the :class:`STM` object and get the
+averaged current along the z-direction::
 
-Now a ElectronicStates object must be defined from the output files. This can be done like this for the GPAW code::
+  stm = STM(atoms, symmetries=[0, 1, 2])
+  c = stm.get_averaged_current(z)
 
-    from ASE.Utilities.ElectronicStates import ElectronicStates
-    electronicstates = ElectronicStates(filename = 'Al100.nc')
+From the current we make a scan to get a 2D array of constant current
+heights::
 
-and for the dacapo code::
+  h = stm.scan(c)
 
-    from Dacapo.ElectronicStates import ElectronicStates
-    electronicstates = ElectronicStates(filename='Al100.nc')
+Finally we make a contour plot::
 
-dacapo must import its own version of the ElectronicStates class, while the GPAW code can use the generic ASE version.
+  import pylab as p
+  p.contourf(h, 40)
+  p.hot()
+  p.colorbar()
+  p.show()	
+  
 
-Now generate the STMTool object from the electronicstates object::
-
-    from  ASE.Utilities.STMTool import STMTool
-    stm = GetSTMTool(electronicstates,contourvalue=1.0e-6, channel="s", normalaxis=2)
-
-The initialization is done with three keyword arguments (keyword=actualvalue) - more options are possible, see section STMTool in the manual.
-
-The most important options are:
-
-contourvalue
-    XXX
-channel
-    XXX
-normalaxis
-    XXX
-smoothfactor
-    XXX
-
-Linescans and matplotlib
-==========================
-
-In this section we will make simulated STM linescans and contour plot using matplotlib.
-
-The example below make a contour plot and a linescan plot. The position of the linescan is plotted on the contour plot. The simulated linescans are made using the STMLineScan class:
-
-XXX
