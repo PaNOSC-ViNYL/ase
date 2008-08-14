@@ -40,11 +40,12 @@ The Hamiltonian can thus be decomposed as:
 
 where `H_{L/R}` describes the left/right principal layer, and `H_C`
 the central region. `V_{L/R}` is the coupling between principal
-layers, *and* from the principal layers into the central region. The
+layers, *and* from the principal layers into the central region.  The
 central region must contain at least one principal layer on each side,
 and more if the potential has not converged to its bulk value at this
 size. The central region is assumed to be big enough that there is no
-direct coupling between the two leads.
+direct coupling between the two leads. The principal layer must be so
+big that there is only coupling between nearest neighbor layers.
 
 Having defined `H_{L/R}`, `V_{L/R}`, and `H_C`, the elastic
 transmission function can be determined using the Nonequilibrium
