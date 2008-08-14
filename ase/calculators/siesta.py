@@ -219,7 +219,7 @@ class Siesta:
             if isinstance(value, list):
                 fh.write('%%block %s\n' % key)
                 for line in value:
-                    fh.write(' '.join(['%s' % x for x in line]) + '\n')
+                    fh.write(line + '\n')
                 fh.write('%%endblock %s\n' % key)
             else:
                 unit = keys_with_units.get(fdfify(key))
