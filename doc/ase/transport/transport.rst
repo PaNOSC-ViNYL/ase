@@ -48,7 +48,7 @@ direct coupling between the two leads.
 
 Having defined `H_{L/R}`, `V_{L/R}`, and `H_C`, the elastic
 transmission function can be determined using the Nonequilibrium
-Green's Function (NEGF) method.  This is achieved by the class
+Green Function (NEGF) method.  This is achieved by the class
 :class:`~ase.transport.calculators.TransportCalculator` (in
 ase.transport.calculators) which makes no requirement on the origin of
 these five matrices.
@@ -57,3 +57,5 @@ For an example of how to use the :mod:`transport` module, see the GPAW
 exercise on `electron transport`_
 
 .. _electron transport: http://wiki.fysik.dtu.dk/gpaw/exercises/transport/transport.html
+
+.. default-role::
