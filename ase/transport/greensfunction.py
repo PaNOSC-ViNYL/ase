@@ -1,6 +1,4 @@
 import numpy as npy
-import numpy.linalg as linalg
-from ase.transport.tools import lambda_from_self_energy, dagger, tri2full
 
 class GreensFunction:
     
@@ -67,5 +65,32 @@ class GreensFunction:
     def get_matrix(self):
         if not self.uptodate:
             self.update()
-        return linalg.inv(self.g_inv_mm)
+        return npy.linalg.inv(self.g_inv_mm)
 
+## class GreenFunction:
+##     """Equilibrium retarded Green function."""
+    
+##     def __init__(self, H, S=1, selfenergies=[], eta=1e-4):
+##         self.H = H
+##         self.S = S
+##         self.selfenergies = selfenergies
+##         self.eta = eta
+
+##         setlf.energy = None
+##         self.Ginv = npy.empty_like(H)
+
+##     def __call__(self, energy, inverse=False):
+##         if energy != self.energy:
+##             self.energy = energy
+##             self.Ginv[:] = (energy + self.eta * 1.j) * self.S - self.H
+
+##             for selfenergy in self.selfenergies:
+##                 selfenergy.set_energy(energy)
+##                 if not selfenergy.uptodate:
+##                     selfenergy.update()
+##                 self.Ginv -= selfenergy.sigma_mm
+
+##         if inverse:
+##             return self.Ginv
+##         else:
+##             return npy.linalg.inv(self.Ginv)
