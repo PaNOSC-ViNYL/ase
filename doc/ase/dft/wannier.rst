@@ -8,7 +8,8 @@ Maximally localized Wannier functions
 .. default-role:: math
 
 
-This page describes how to construct the Wannier orbitals using the class :class:`Wannier`.The page is organized as follows:
+This page describes how to construct the Wannier orbitals using the
+class :class:`Wannier`. The page is organized as follows:
 
 * `Introduction`_: A short summary of the basic theory.
 * `The Wannier class`_ : A description of how the Wannier class is

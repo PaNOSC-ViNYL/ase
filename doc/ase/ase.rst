@@ -28,7 +28,7 @@ Quick links:
     - :mod:`utils`
     - :mod:`vibrations`
   * - :mod:`visualize`
-    -
+    - :mod:`transport`
     -
     -
 
@@ -60,5 +60,6 @@ List of all modules:
    vibrations
    md
    dft/dft
+   transport/transport
    data
    utils
