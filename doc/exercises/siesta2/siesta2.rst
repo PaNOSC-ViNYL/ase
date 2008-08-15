@@ -43,7 +43,8 @@ Then simply open the file using VMD::
 
   $ vmd si.xyz
 
-and set Graphics/Representations properly to get a nice picture.
+and set Graphics/Representations from the main menu in order to get a
+nice picture.
 
 You can also try to repeat the simulation with a different
 :mod:`dynamics <md>`. For instance you can model a canonical ensemble
