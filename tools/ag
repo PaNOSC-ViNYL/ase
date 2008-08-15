@@ -38,8 +38,8 @@ parser.add_option('-g', '--graph',
                   metavar='EXPR',
                   help='Plot x,y1,y2,... graph from configurations or '
                   'write data to sdtout in terminal mode.  Use the '
-                  'symbols: i, s, d, fmax, e, A, R, E and F.  See '
-                  'https://wiki.fysik.dtu.dk/ase3k/GUI#plotting-data '
+                  'symbols: i, s, d, fmax, e, ekin, A, R, E and F.  See '
+                  'https://wiki.fysik.dtu.dk/ase/ase/gui.html#plotting-data '
                   'for more details.')
 parser.add_option('-t', '--terminal',
                   action='store_true',
