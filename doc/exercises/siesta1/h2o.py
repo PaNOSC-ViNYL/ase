@@ -7,6 +7,9 @@ h2o = Atoms(symbols='H2O',
                        (0.000000,  -0.007702,  -0.000001)],
             pbc=(1,1,1))
 
+# View the atoms if you want
+#view(h2o)
+
 # Center the molecule in the cell with some vacuum around
 h2o.center(vacuum=6.)
 
