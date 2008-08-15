@@ -30,6 +30,7 @@ packages = ['ase',
             'ase.examples',
             'ase.optimize',
             'ase.visualize',
+            'ase.transport',
             'ase.calculators',
             'ase.gui.languages']
 
