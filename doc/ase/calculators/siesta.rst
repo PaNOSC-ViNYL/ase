@@ -11,7 +11,7 @@ SIESTA_ is a density-functional theory code for very large systems
 based on atomic orbital (LCAO) basis sets.
 
 
-.. _SIESTA: http://www.uam.es/departamentos/ciencias/fismateriac/siesta/
+.. _SIESTA: http://www.uam.es/siesta/
 
 
 
@@ -107,14 +107,12 @@ basis for Au. Since the valence states are 6s and 5d, we will have
 3 zeta orbitals for l=0 and 3 for l=2 plus 3 polarization orbitals
 for l=1. The basis can be defined by
 
-**XXX I don't think this works!**
-
->>> value = [['Au',2,'split',0.00],  #label, num. of l-shells,type,charge
->>>         [0,3,'P',3],             #l,nzeta,'P'(opt):pol.functions,npolzeta
->>>         [0.00,0.00,0.00],        #rc of basis functions for each zeta function
->>>                                  #0.00  => rc determined by PAO.EnergyShift
->>>         [2,3],                   #l,nzeta
->>>         [0.00,0.00,0.00]]        #rc
+>>> value = ["""Au   2   split  0.00  #label, num. of l-shells,type,charge
+>>>         0   3   P    3            #l,nzeta,'P'(opt):pol.functions,npolzeta
+>>>         0.00   0.00   0.00        #rc of basis functions for each zeta function
+>>>                                   #0.00  => rc determined by PAO.EnergyShift
+>>>         2   3                     #l,nzeta
+>>>         0.00   0.00   0.00"""]    #rc
 
 >>> calc.set_fdf('PAO.Basis',value=value)
 
