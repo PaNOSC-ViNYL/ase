@@ -21,6 +21,7 @@ class Images:
         self.filenames = filenames
         self.P = npy.empty((self.nimages, self.natoms, 3))
         self.E = npy.empty(self.nimages)
+        self.K = npy.empty(self.nimages)
         self.F = npy.empty((self.nimages, self.natoms, 3))
         self.M = npy.empty((self.nimages, self.natoms))
         self.A = npy.empty((self.nimages, 3, 3))
@@ -42,6 +43,7 @@ class Images:
                 self.E[i] = atoms.get_potential_energy()
             except RuntimeError:
                 self.E[i] = npy.nan
+            self.K[i] = atoms.get_kinetic_energy()
             try:
                 self.F[i] = atoms.get_forces(apply_constraint=False)
             except RuntimeError:
@@ -127,6 +129,7 @@ class Images:
             fmax = max(f)
             fave = f.mean()
             e = E[i]
+            ekin = self.K[i]
             data = eval(code)
             if i == 0:
                 m = len(data)

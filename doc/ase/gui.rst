@@ -79,6 +79,7 @@ These are the symbols that can be used:
 
 ==========  ================================
 e           energy
+ekin        kinetic energy
 fmax        maximum force
 fave        average force
 d(n1,n2)    distance between two atoms

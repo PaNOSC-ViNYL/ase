@@ -5,6 +5,7 @@ translation = {
 'Help for plot ...':
 """Symbols:
 <c>e</c>:\t\tenergy
+<c>ekin</c>:\tkinetic energy
 <c>fmax</c>:\tmaximum force
 <c>fave</c>:\t\taverage force
 <c>R[n,0-2]</c>:\tposition of atom number <c>n</c> 
