@@ -31,16 +31,19 @@ energies during the dynamics by doing::
   $ ag si001+h2.traj -g i,e,e+ekin
 
 Check that the total energy is a conserved quantity in this
-microcanonical simulation.In order to get a better picture you can
-open VMD from the ``View`` menu and repeat the unit cell along the x
-and y directions. Also try to visualize the atoms in the
-ball-and-sticks fashion.
+microcanonical simulation.
 
-.. note::
+In order to get a better picture you can use VMD to visualize the
+bonds in the surface slab. To do this, you need a ``.xyz`` file that
+you can write using :command:`ag`::
 
-  You can repeat your structure directly from the command line by
-  typing :command:`ag si001+h2.traj -r 2,2,1`. This will repeat it 2
-  times along x and y and just once along the z direction.
+  $ ag si001+h2.traj -o si.xyz -r 2,2,1
+
+Then simply open the file using VMD::
+
+  $ vmd si.xyz
+
+and set Graphics/Representations properly to get a nice picture.
 
 You can also try to repeat the simulation with a different
 :mod:`dynamics <md>`. For instance you can model a canonical ensemble

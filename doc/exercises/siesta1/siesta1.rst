@@ -67,7 +67,7 @@ Try to answer these questions:
 
 1. What is the best basis set that you have found? Why?
 2. How do the results compare with experiment?  
-3. What do you consider a reasonable basis for the molecule, if you need an accuracy in the geometry of about 1%??  
+3. What do you consider a reasonable basis for the molecule, if you need an accuracy in the geometry of about 1%?  
 4. In order to assess convergence with respect to basis set size, should you compare the results with the experimental ones, or with those of a converged basis set calculation?
 
 
