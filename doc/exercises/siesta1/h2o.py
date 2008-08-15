@@ -26,7 +26,7 @@ for e_s in e_shifts:
     calc.set_fdf('PAO.BasisSize', 'SZ')        #Basis set definition
     calc.set_fdf('DM.UseSaveDM', 'Y')
     h2o.set_calculator(calc)
-    dyn = QuasiNewton(h2o)
+    dyn = QuasiNewton(h2o, trajectory='h2o.traj')
     dyn.run(fmax=0.02)
     E = h2o.get_potential_energy()
     traj.write()

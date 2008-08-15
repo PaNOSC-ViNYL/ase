@@ -18,6 +18,8 @@ atoms.set_constraint(FixAtoms(indices=range(18,38)))
 
 # Set the calculator and attach it to the system
 calc = Siesta('si001+h2',basis='SZ',xc='PBE',meshcutoff=50*Ry)
+calc.set_fdf('PAO.EnergyShift', 0.25 * eV) 
+calc.set_fdf('PAO.SplitNorm', 0.15)       
 atoms.set_calculator(calc)
 
 # Set the VelocityVerlet algorithm and run it
