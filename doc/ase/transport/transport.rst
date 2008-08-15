@@ -19,7 +19,7 @@ There is a central region (blue atoms plus the molecule) connected to
 two semi-infinite leads constructed by infinitely repeated *principal
 layers* (red atoms). The entire structure may be periodic in the
 transverse direction, which can be effectively sampled using
-**k**-points.
+**k**-points (yellowish atoms).
 
 The system is described by a Hamiltonian matrix which must be
 represented in terms of a localized basis set such that each element
