@@ -99,9 +99,7 @@ If any of the tests fail, then let us know on the :ref:`ml`.
 License
 =======
 
-XXX put this in a file!
-
 The CAMPOS Atomic Simulation Environment is released under the GNU
-Public License version 2.  See the file :svn:`LICENSE.txt` which
+Public License version 2.  See the file :svn:`LICENSE` which
 accompanies the downloaded files, or see the license at GNU's web
 server at http://www.gnu.org/licenses/gpl.html.

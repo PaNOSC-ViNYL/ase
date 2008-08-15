@@ -3,7 +3,7 @@ Atomic Simulation Environment
 =============================
 
 The Atomic Simulation Environment (ASE) is the common part of the
-simulation tools developped at CAMd_.  ASE provides Python_ modules
+simulation tools developed at CAMd_.  ASE provides Python_ modules
 for manipulating atoms, analyzing simulations, visualization etc.
 
 .. note::
@@ -15,7 +15,7 @@ Supported :mod:`calculators`:
 
    |gpaw| |abinit| |siesta|
 
-   Dacapo_ Asap_ :class:`~ase.calculators.emt.EMT`
+   Dacapo_ Asap_ :mod:`EMT <emt>`
 
 
 

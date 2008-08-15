@@ -41,4 +41,9 @@ it up in the :data:`atomic_numbers` dictionary:
 Molecular data
 ==============
 
-XXX Move G2-database from GPAW to ASE
+The G2-database is available in the :mod:`molecules` module.
+
+Example::
+
+>>> from ase.data.molecules import molecule
+>>> atoms = molecule('H2O')

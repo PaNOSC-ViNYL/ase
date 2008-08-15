@@ -62,9 +62,8 @@ Writing files
   $ ag -n -1 a*.traj -o new.traj
 
 Possible formats are: ``traj``, ``xyz``, ``cube``, ``pdb``, ``eps``,
-``png``, and ``pov``.
-
-XXX ref to io: pos, py, pckl
+``png``, and ``pov``.  For details, see the :mod:`~ase.io` module
+documentation.
 
 Plotting data
 -------------

@@ -8,9 +8,7 @@ Links to NumPy's webpage:
 * `Numpy example list`_
 * `Numpy functions by category`_
 * http://mentat.za.net/numpy/refguide
-
-XXX link to numpy-book
-
+* `Numpy guide book <http://www.tramy.us/>`_
 
 .. _Numpy example list: http://www.scipy.org/Numpy_Example_List_With_Doc
 .. _Numpy functions by category:
@@ -37,4 +35,8 @@ array([[ 0.,  1.],
 >>> a.ndim
 2
 
-XXX ``from ase import *``: np, array, zeros
+
+All functions from the ``numpy`` module's namespace are available in
+the ASE namespace as well - thus, ``from ase import *`` will import
+``array``, ``zeros`` and so on.  The numpy module will furthermore be
+aliased as ``np``.

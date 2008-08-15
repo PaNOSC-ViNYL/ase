@@ -85,7 +85,7 @@ Conventions`_ PEPs, summarized, clarified, and extended as follows:
                                           Georg Brandl
 
 
-General advise
+General advice
 ==============
 
  * Get rid of as many ``break`` and ``continue`` statements as possible.

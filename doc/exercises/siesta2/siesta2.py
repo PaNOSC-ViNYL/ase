@@ -23,7 +23,6 @@ calc.set_fdf('PAO.SplitNorm', 0.15)
 atoms.set_calculator(calc)
 
 # Set the VelocityVerlet algorithm and run it
-traj = PickleTrajectory('si001+h2.traj','w',atoms)
-dyn = VelocityVerlet(atoms,dt=1.0 * fs,trajectory=traj)
+dyn = VelocityVerlet(atoms,dt=1.0 * fs,trajectory='si001+h2.traj')
 dyn.run(steps=100)
 

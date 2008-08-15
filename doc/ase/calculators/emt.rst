@@ -17,6 +17,5 @@ tests.
 
 .. class:: EMT()
 
-XXX parameters for Cu, Ni, ...
-
-XXX how to add parameters for more elements?
+Right now, the only supported elements are: Ni, C, Pt, Ag, H, Al, O,
+N, Au, Pd, Cu.

@@ -171,8 +171,6 @@ later adding a vacuum layer with :func:`lattice.surface.add_vacuum`.
 Example
 -------
 
-XXX could the *directions* argument have default values?
-
 To set up a slab of FCC copper with the [1,-1,0] direction along the
 x-axis, [1,1,-2] along the y-axis and [1,1,1] along the z-axis, use::
 

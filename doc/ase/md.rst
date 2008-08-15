@@ -71,7 +71,7 @@ Velocity Verlet dynamics
 
 ``VelocityVerlet`` is the only dynamics implementing the NVE ensemble.
 It requires two arguments, the atoms and the time step.  Choosing
-a two large time step will immediately be obvious, as the energy will
+a too large time step will immediately be obvious, as the energy will
 increase with time, often very rapidly.
 
 Example: XXXX
