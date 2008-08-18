@@ -27,8 +27,10 @@ molecule to find its equilibrium structure.
 .. literalinclude:: h2o.py
 
 Run the script using three different basis sets: single-Z (SZ),
-double-Z (DZ) and double-Z plus polarization (DZP). The bases are
-defined in the script through these three lines::
+double-Z (DZ) and double-Z plus polarization (DZP). Run it in
+different directories for each basis set, since the run will produce a
+large amount of output files. The bases are defined in the script
+through these three lines::
 
   calc.set_fdf('PAO.BasisSize','SZ')
   calc.set_fdf('PAO.EnergyShift',e_s * eV)
