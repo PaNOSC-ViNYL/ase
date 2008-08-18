@@ -15,26 +15,26 @@ h2o.center(vacuum=6.)
 e_shifts = [0.01,0.1,0.2,0.3,0.4,0.5]
 
 # Run the relaxation for each energy shift, and print out the
-# corresponding total energy
+# corresponding total energy, bond length and angle
 for e_s in e_shifts:
     calc = Siesta('h2o',meshcutoff=200.0*Ry,mix=0.5,pulay=4)
-    calc.set_fdf('PAO.EnergyShift', e_s * eV)
+    calc.set_fdf('PAO.EnergyShift', e_s * eV)    
     calc.set_fdf('PAO.SplitNorm', 0.15)
     calc.set_fdf('PAO.BasisSize', 'SZ')
     calc.set_fdf('DM.UseSaveDM', 'Y')
     h2o.set_calculator(calc)
-    dyn = QuasiNewton(h2o, trajectory='h2o-%s.traj' % e_s)
-    dyn.run(fmax=0.02)
+    dyn = QuasiNewton(h2o, trajectory='h2o_%s.traj' % e_s)  # Make a -traj file named 'h2o_current_shift.traj'      
+    dyn.run(fmax=0.02)      # Perform the relaxation      
     E = h2o.get_potential_energy()
-    print "E_shift  Energy"       # Print E_shifts and total energy      
-    print "%.2f %.4f" % (e_s,E)
+    print " "               # Make the output more readable      
+    print "E_shift: %.2f" %e_s       
+    print "----------------"
+    print "Total Energy: %.4f" % E       # Print total energy      
     d = h2o.get_distance(0,2)
-    print "E_shift  Bond length"  # Print E_shifts and bond length      
-    print "%.2f %.4f" % (e_s,d)
+    print "Bond length: %.4f" % d        # Print bond length      
     p = h2o.positions
     d1 = p[0]-p[2]
     d2 = p[1]-p[2]
     r = npy.dot(d1,d2) / (npy.linalg.norm(d1)*npy.linalg.norm(d2))
     angle = npy.arccos(r) / npy.pi * 180
-    print "E_shift  Bond angle"   # Print E_shifts and bond angle      
-    print "%.2f %.4f" % (e_s,angle)
+    print "Bond angle: %.4f" % angle      # Print bond angle      
