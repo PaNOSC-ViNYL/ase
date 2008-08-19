@@ -45,14 +45,23 @@ In particular, you should look at:
 * Total energy
 * Bond lenghts at the relaxed structure
 * Bond angles at the relaxed structure
-* CPU time
+* Execution time
 * Radius of each of the orbitals
 * Shape of the orbitals
 
-The output file ``h2o.txt`` will contain information about the
-run. You can visualize both the static atoms and the relaxation
-trajectory using the the ASE :mod:`gui`. For example you can visualize
-the relaxation trajectory from the command line by doing::
+The script will print bond lengths and angles, total energy plus the
+wall time for each energy shift.  The radii of the orbitals from the
+last run can be found in the file ``h2o.txt`` along with miscellaneous
+other informations.  Orbital shapes from the last run are stored in
+the ``ORB.*`` files, which contain the value of the orbitals
+versus radius. (Note that the standard way to plot the orbitals
+is to multiply the orbital by :math:`r^l`).
+
+
+You can visualize both the static atoms and
+the relaxation trajectory using the the ASE :mod:`gui`. For example
+you can visualize the relaxation trajectory from the command line by
+doing::
 
   $ ag h2o_0.1.traj
 
@@ -120,4 +129,11 @@ Tip 2: You can look at the shape of the orbitals by plotting the contents of the
 
 Tip 3: You will find a lot of information on the run in the ``.txt`` output file
 
-Tip 4: In ``ag`` you can select View-->VMD to start the VMD viewer. There you can change the atom representation to what you feel is more convenient. Do that by selecting Graphics-->Representation in the top bar.
+Tip 4: In ``ag`` you can select :menuselection:`View --> VMD` to start
+the VMD viewer. There you can change the atom representation to what
+you feel is more convenient. Do that by selecting
+:menuselection:`Graphics --> Representations` in the top bar.
+
+Tip 5: SIESTA will store basis functions in ``ORB.*`` files.  These files can be plotted using the :command:`xmgrace` command on the GBAR like this::
+
+  $ xmgrace ORB.S1.1.O ORB.S2.1.O
