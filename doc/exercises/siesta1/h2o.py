@@ -25,7 +25,7 @@ for e_s in e_shifts:
     calc.set_fdf('PAO.EnergyShift', e_s * eV)    
     calc.set_fdf('PAO.SplitNorm', 0.15)
     calc.set_fdf('PAO.BasisSize', 'SZ')
-    calc.set_fdf('DM.UseSaveDM', 'Y')
+    #calc.set_fdf('DM.UseSaveDM', 'Y')
     h2o.set_calculator(calc)
     dyn = QuasiNewton(h2o, trajectory='h2o_%s.traj' % e_s)  # Make a -traj file named 'h2o_current_shift.traj'      
     dyn.run(fmax=0.02)      # Perform the relaxation      
