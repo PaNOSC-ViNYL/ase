@@ -110,7 +110,10 @@ class Dacapo:
     def get_stress(self, atoms):
         self.update(atoms)
         stress = np.array(self.calc.GetStress())
-        return stress.ravel()[[0, 4, 8, 5, 2, 1]]
+        if stress.ndim == 2:
+            return stress.ravel()[[0, 4, 8, 5, 2, 1]]
+        else:
+            return stress
 
     def calculation_required(self, atoms, quantities):
         if self.calc is None:
