@@ -41,14 +41,12 @@ Get the source code from svn::
   $ svn checkout https://svn.fysik.dtu.dk/projects/ase/trunk ase
   $ cd ase
 	
-or from this tarfile (python-ase-3.0.0.402.tar.gz_)::
+or from this tarfile (`<python-ase-3.0.0.507.tar.gz>`_)::
 
   $ cd $HOME
-  $ tar xtzf python-ase-3.0.0.402.tar.gz
-  $ mv python-ase-3.0.0.402.tar.gz ase
+  $ tar xtzf python-ase-3.0.0.507.tar.gz
+  $ mv python-ase-3.0.0.507.tar.gz ase
   $ cd ase
-
-.. _python-ase-3.0.0.402.tar.gz: python-ase-3.0.0.402.tar.gz
 
 If you have root-permissions, you do this::
 
