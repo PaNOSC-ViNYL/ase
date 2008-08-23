@@ -49,9 +49,6 @@ the boundary conditions: :meth:`~ase.atoms.Atoms.set_pbc`,
 and :meth:`~ase.atoms.Atoms.get_pbc`.
 
 
-
-
-
 Working with the array methods of Atoms objects
 ===============================================
 

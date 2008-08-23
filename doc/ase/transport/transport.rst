@@ -49,10 +49,38 @@ big that there is only coupling between nearest neighbor layers.
 
 Having defined `H_{L/R}`, `V_{L/R}`, and `H_C`, the elastic
 transmission function can be determined using the Nonequilibrium
-Green Function (NEGF) method.  This is achieved by the class
+Green Function (NEGF) method.  This is achieved by the class:
 :class:`~ase.transport.calculators.TransportCalculator` (in
 ase.transport.calculators) which makes no requirement on the origin of
 these five matrices.
+
+.. class:: ase.transport.calculators.TransportCalculator(energies, h, h1, h2, s=None, s1=None, s2=None, align_bf=False)
+
+  Determine transport properties of device sandwiched between
+  semi-infinite leads using nonequillibrium Green function methods.
+
+  energies is the energy grid on which the transport properties should
+  be determined.
+
+  h1 (h2) is a matrix representation of the Hamiltonian of two
+  principal layers of the left (right) lead, and the coupling between
+  such layers.
+
+  h is a matrix representation of the Hamiltonian of the scattering
+  region. This must include at least on lead principal layer on each
+  side. The coupling in (out) of the scattering region is assumed to
+  be identical to the coupling between left (right) principal layers.
+
+  s, s1, and s2 are the overlap matrices corresponding to h, h1, and
+  h2. Default is the identity operator.
+
+  If align_bf is True, the onsite elements of the Hamiltonians will be
+  shifted to a common fermi level.
+
+
+This module is stand-alone in the sense that it makes no requirement
+on the origin of these five matrices. They can be model Hamiltonians
+or derived from different kinds of electronic structure codes.
 
 For an example of how to use the :mod:`transport` module, see the GPAW
 exercise on `electron transport`_
