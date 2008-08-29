@@ -1,47 +1,65 @@
 from ase.transport.transmission import Transmission
 from ase.transport.selfenergy import LeadSelfEnergy
-from ase.transport.greensfunction import GreensFunction
+from ase.transport.greenfunction import GreenFunction
 from ase.transport.tools import subdiagonalize, cutcoupling, tri2full, dagger
 import numpy as npy
 
 class TransportCalculator:
+    """Determine transport properties of device sandwiched between
+    semi-infinite leads using nonequillibrium Green function methods.
+    """
 
     def __init__(self, **kwargs):
+        """args=(energies, h, h1, h2, s=None, s1=None, s2=None, align_bf=None)
+        
+        energies is the energy grid on which the transport properties should
+        be determined.
+        
+        h1 (h2) is a matrix representation of the Hamiltonian of two
+        principal layers of the left (right) lead, and the coupling between
+        such layers.
+        
+        h is a matrix representation of the Hamiltonian of the scattering
+        region. This must include at least on lead principal layer on each
+        side. The coupling in (out) of the scattering region is assumed to
+        be identical to the coupling between left (right) principal layers.
+
+        s, s1, and s2 are the overlap matrices corresponding to h, h1, and
+        h2. Default is the identity operator.
+        
+        align_bf specifies the principal layer basis index used to
+        align the fermi levels of the lead and scattering regions.
+        """
         
         self.input_parameters = {'energies': None,
-                                 'pl': None,
-                                 'pl1' : None,
-                                 'pl2' : None,
-                                 'h1' : None,
-                                 'h2' : None,
-                                 's1' : None,
-                                 's2' : None,
-                                 'h' : None,
-                                 's' : None,
-                                 'align_bf' : None,
-                                 'eta1' : 1.0e-3,
-                                 'eta2' : 1.0e-3,
-                                 'eta': 1.0e-3,
-                                 'verbose' : False}
+                                 'h': None,
+                                 'h1': None,
+                                 'h2': None,
+                                 's': None,
+                                 's1': None,
+                                 's2': None,
+                                 'align_bf': None,
+                                 'eta1': 1e-3,
+                                 'eta2': 1e-3,
+                                 'eta': 1e-3,
+                                 'verbose': False}
 
         self.trans = Transmission()
         self.initialized =  False
         self.set(**kwargs)
-        #self.initialize()
 
     def set(self, **kwargs):
         p = self.input_parameters
-        if 'pl' in kwargs: #using pl=pl1=pl2
-            pl = kwargs['pl']
-            p['pl1'] = pl
-            p['pl2'] = pl
         p.update(kwargs)
 
+        self.pl1 = len(p['h1']) / 2
+        self.pl2 = len(p['h2']) / 2
+        assert p['h'] is not None
+        
         if 'pdos' in p:
             self.trans.set(pdos=p['pdos'])
         
-        if p['h1'] != None and p['h2'] != None and p['h'] != None:
-            self.initialize() #XXX more advanced log would be nicea
+        self.initialize()
 
     def initialize(self):
         p = self.input_parameters
@@ -49,8 +67,8 @@ class TransportCalculator:
         if self.verbose:
             print "initializing calculator..."
         self.energies = p['energies']
-        pl1 = p['pl1']
-        pl2 = p['pl2']
+        pl1 = self.pl1
+        pl2 = self.pl2
         if p['s1'] == None:
             p['s1'] = npy.identity(len(p['h1']))
         if p['s2'] == None:
@@ -79,7 +97,8 @@ class TransportCalculator:
         align_bf = p['align_bf']
         
         if align_bf != None:
-            diff = (h_mm[align_bf,align_bf] - h1_ii[align_bf,align_bf]) / s_mm[align_bf,align_bf]
+            diff = (h_mm[align_bf, align_bf] - h1_ii[align_bf, align_bf]) \
+                   / s_mm[align_bf, align_bf]
             if self.verbose:
                 print "Alligning scattering H to left lead H. diff=", diff
             h_mm -= diff * s_mm
@@ -98,32 +117,32 @@ class TransportCalculator:
                                 p['eta2'])
 
         self.selfenergies = [sigma1, sigma2]
-        #setup scattering green's function
-        self.gf = GreensFunction(selfenergies=self.selfenergies,
-                                 h_mm=h_mm,
-                                 s_mm=s_mm,
-                                 eta = p['eta'])
-        self.gf.initialize()
+        #setup scattering green function
+        self.gf = GreenFunction(selfenergies=self.selfenergies,
+                                H=h_mm,
+                                S=s_mm,
+                                eta = p['eta'])
+
         #setup the basic transmission calculator 
         self.trans.set(energies=self.energies,
-                       greensfunction = self.gf,
-                       selfenergies = self.selfenergies,
+                       greenfunction=self.gf,
+                       selfenergies=self.selfenergies,
                        verbose=p['verbose'])
         
         self.initialized = True
 
     def print_pl_convergence(self):
         p = self.input_parameters
-        pl1 = p['pl1']
-        pl2 = p['pl2']
+        pl1 = self.pl1
+        pl2 = self.pl2
         for l in range(2):
             h_ii = self.selfenergies[l].h_ii
             s_ii = self.selfenergies[l].s_ii
-            ha_ii = self.gf.h_mm[:pl1,:pl1]
-            sa_ii = self.gf.s_mm[:pl1,:pl1]
-            c1 = npy.abs(h_ii-ha_ii).max()
-            c2 = npy.abs(s_ii-sa_ii).max()
-            print "Conv %i: (h,s)=%.2e, %2.e" % (l,c1,c2)
+            ha_ii = self.gf.H[:pl1, :pl1]
+            sa_ii = self.gf.overlap()[:pl1, :pl1]
+            c1 = npy.abs(h_ii - ha_ii).max()
+            c2 = npy.abs(s_ii - sa_ii).max()
+            print "Conv %i: (h,s)=%.2e, %2.e" % (l, c1, c2)
 
     def get_transmission(self):
         if not self.trans.uptodate:
@@ -154,22 +173,22 @@ class TransportCalculator:
     def subdiagonalize_bfs(self, bfs):
         bfs = npy.array(bfs)
         p = self.input_parameters
-        bfs += p['pl1']
+        bfs += self.pl1
         h_pp = p['h']
         s_pp = p['s']
         ht_pp, st_pp, c_pp, e_p = subdiagonalize(h_pp, s_pp, bfs)
-        c_pp = npy.take(c_pp,bfs,axis=0)
-        c_pp = npy.take(c_pp,bfs,axis=1)
+        c_pp = npy.take(c_pp, bfs, axis=0)
+        c_pp = npy.take(c_pp, bfs, axis=1)
         return ht_pp, st_pp, e_p, c_pp
 
     def cutcoupling_bfs(self, bfs):
         bfs = npy.array(bfs)
         p = self.input_parameters
-        bfs += p['pl1']
+        bfs += self.pl1
         h_pp = p['h'].copy()
         s_pp = p['s'].copy()
         cutcoupling(h_pp, s_pp, bfs)
         return h_pp, s_pp
         
-    def get_left_channels(self,energy,n):
-        return self.trans.get_left_channels(energy,n)
+    def get_left_channels(self, energy, n):
+        return self.trans.get_left_channels(energy, n)
