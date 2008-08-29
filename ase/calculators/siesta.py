@@ -26,7 +26,7 @@ class Siesta:
     """
     def __init__(self, label='siesta', xc='LDA', kpts=None, nbands=None,
                  width=None, meshcutoff=None, charge=None,
-                 pulay=5, mix=0.1,
+                 pulay=5, mix=0.1, maxiter=120,
                  basis=None, ghosts=[],
                  write_fdf=True):
         """Construct SIESTA-calculator object.
@@ -75,6 +75,7 @@ class Siesta:
         self.charge = charge
         self.pulay = pulay
         self.mix = mix
+        self.maxiter = maxiter
         self.basis = basis
         self.ghosts = ghosts
         self.write_fdf_file = write_fdf
@@ -192,7 +193,8 @@ class Siesta:
             'PAO.BasisSize': self.basis,
             'SolutionMethod': 'diagon',
             'DM.NumberPulay': self.pulay,
-            'DM.MixingWeight': self.mix
+            'DM.MixingWeight': self.mix,
+            'MaxSCFIterations' : self.maxiter
             }
         
         if self.xc != 'LDA':
