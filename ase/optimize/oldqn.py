@@ -138,8 +138,9 @@ class GoodOldQuasiNewton(Optimizer):
     def initialize(self):pass
 
     def write_log(self,text):
-	self.logfile.write(text + '\n')
-	self.logfile.flush()
+        if self.logfile is not None:
+	    self.logfile.write(text + '\n')
+	    self.logfile.flush()
 
     def set_max_radius(self, maxradius):
 		self.maxradius = maxradius
