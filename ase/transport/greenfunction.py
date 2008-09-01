@@ -14,8 +14,12 @@ class GreenFunction:
     def __call__(self, energy, inverse=False):
         if energy != self.energy:
             self.energy = energy
-            self.Ginv[:] = energy + self.eta * 1.j
-            if self.S is not None:
+            z = energy + self.eta * 1.j
+            if self.S is None:
+                self.Ginv[:] = 0.0
+                self.Ginv.flat[::len(self.S)+1] = z
+            else:
+                self.Ginv[:] = z
                 self.Ginv *= self.S
             self.Ginv -= self.H
             for selfenergy in self.selfenergies:
