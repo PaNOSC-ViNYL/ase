@@ -18,7 +18,7 @@ numerically.  A typical molecular dynamics simulation will use the
 :class:`VelocityVerlet` object, giving it the atoms and a time step, and then
 you perform dynamics by calling its :meth:`run` method::
 
-  dyn = VelocityVerlet(atoms, 5.0 * fs)
+  dyn = VelocityVerlet(atoms, 5.0 * units.fs)
   dyn.run(1000)  # take 1000 steps
 
 A number of different algorithms can be used to perform molecular
@@ -74,7 +74,7 @@ It requires two arguments, the atoms and the time step.  Choosing
 a too large time step will immediately be obvious, as the energy will
 increase with time, often very rapidly.
 
-Example: XXXX
+Example: See the tutorial :ref:`md_tutorial`.
 
 
 
@@ -123,12 +123,10 @@ When the ``Langevin`` object is created, you must specify a time step,
 a temperature (in energy units) and a friction.  Typical values for
 the friction are 0.01-0.02 atomic units.
 
-XXX should we use ASE units here?
-
 ::
 
   # Room temperature simulation
-  dyn = Langevin(atoms, 5 * fs, kB * 300, 0.002)
+  dyn = Langevin(atoms, 5 * units.fs, units.kB * 300, 0.002)
 
 Both the friction and the temperature can be replaced with arrays
 giving per-atom values.  This is mostly useful for the friction, where
@@ -175,7 +173,7 @@ The dynamics object is called with the following parameters:
   The atoms object.
 
 *timestep*:
-  The timestep in units matching eV, Å, u.  Use the *fs* constant.
+  The timestep in units matching eV, Å, u.  Use the *units.fs* constant.
 
 *temperature*:
   The desired temperature in eV.

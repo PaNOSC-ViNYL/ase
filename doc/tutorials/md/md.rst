@@ -1,10 +1,14 @@
+.. _md_tutorial:
+
 ==================
 Molecular dynamics
 ==================
 
-Note that these examples *can* be used without Asap installed, then
-the ase.EMT calculator (implemented in Python) is used, but nearly
-superhuman patience is required.
+.. note::
+
+  These examples *can* be used without Asap installed, then
+  the ase.EMT calculator (implemented in Python) is used, but nearly
+  superhuman patience is required.
 
 Here we demonstrate now simple molecular dynamics is performed.  A
 crystal is set up, the atoms are given momenta corresponding to a
