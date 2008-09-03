@@ -9,6 +9,7 @@ other :mod:`Calculator <calculators>` could be plugged in instead.
 .. toctree::
    :maxdepth: 3
 
+   md/md
    neb/diffusion
    constraints/diffusion
    eos/eos

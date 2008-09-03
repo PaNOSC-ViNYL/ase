@@ -23,4 +23,5 @@ class MolecularDynamics(Dynamics):
 
         for step in xrange(steps):
             f = self.step(f)
+            self.nsteps += 1
             self.call_observers()
