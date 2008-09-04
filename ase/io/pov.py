@@ -30,15 +30,16 @@ def pc(array):
 class POVRAY(EPS):
     default_settings = {
         # x, y is the image plane, z is *out* of the screen
-        'display'      : True,  # Display while rendering
-        'pause'        : True,  # Pause when done rendering (only if display)
-        'transparent'  : True,  # Transparent background
-        'canvas_width' : None,  # Width of canvas in pixels
-        'canvas_height': None,  # Height of canvas in pixels 
-        'camera_dist'  : 50.,   # Distance from camera to image plane
+        'display'      : True, # Display while rendering
+        'pause'        : True, # Pause when done rendering (only if display)
+        'transparent'  : True, # Transparent background
+        'canvas_width' : None, # Width of canvas in pixels
+        'canvas_height': None, # Height of canvas in pixels 
+        'camera_dist'  : 50.,  # Distance from camera to front atom
+        'image_plane'  : None, # Distance from front atom to image plane
         'camera_type'  : 'orthographic', # perspective, ultra_wide_angle
         'point_lights' : [],             # [[loc1, color1], [loc2, color2],...]
-        'area_light'   : [(2., 3., 40.) ,# location
+        'area_light'   : [(2., 3., 40.), # location
                           'White',       # color
                           .7, .7, 3, 3], # width, height, Nlamps_x, Nlamps_y
         'background'   : 'White',        # color
@@ -54,6 +55,7 @@ class POVRAY(EPS):
         return npy.empty((0, 3)), None, None
 
     def write(self, filename, **settings):
+        # Determine canvas width and height
         ratio = float(self.w) / self.h
         if self.canvas_width is None:
             if self.canvas_height is None:
@@ -62,6 +64,14 @@ class POVRAY(EPS):
                 self.canvas_width = self.canvas_height * ratio
         elif self.canvas_height is not None:
             raise RuntimeError, "Can't set *both* width and height!"
+
+        # Distance to image plane from camera
+        if self.image_plane is None:
+            if self.camera_type == 'orthographic':
+                self.image_plane = 1 - self.camera_dist
+            else:
+                self.image_plane = 0
+        self.image_plane += self.camera_dist
 
         # Produce the .ini file
         if filename.endswith('.pov'):
@@ -91,7 +101,8 @@ class POVRAY(EPS):
         w('global_settings {assumed_gamma 1 max_trace_level 6}\n')
         w('background {%s}\n' % pc(self.background))
         w('camera {%s\n' % self.camera_type)
-        w('  right -%.2f*x up %.2f*y direction z\n' % (self.w, self.h))
+        w('  right -%.2f*x up %.2f*y\n' % (self.w, self.h))
+        w('  direction %.2f*z\n' % self.image_plane)
         w('  location <0,0,%.2f> look_at <0,0,0>}\n' % self.camera_dist)
         for loc, rgb in self.point_lights:
             w('light_source {%s %s}\n' % (pa(loc), pc(rgb)))
