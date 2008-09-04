@@ -5,7 +5,7 @@ from ase.lattice.cubic import FaceCenteredCubic
 from ase.md.velocitydistribution import *
 from ase.md.langevin import *
 
-from asap3 import EMT
+from asap3 import EMT   # Way too slow with ase.EMT !
 size = 10
 
 T = 1500 # Kelvin
