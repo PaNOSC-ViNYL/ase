@@ -6,17 +6,17 @@ from ase.md.velocitydistribution import *
 from ase.md.verlet import *
 
 # Use Asap for a huge performance increase if it is installed
-useAsap = True
+useAsap = False
 
 if useAsap:
     from asap3 import EMT
     size = 10
 else:
-    size = 4
+    size = 3
     
 # Set up a crystal
 atoms = FaceCenteredCubic(directions=[[1,0,0],[0,1,0],[0,0,1]], symbol="Cu",
-                          size=(8,8,8), pbc=True)
+                          size=(size,size,size), pbc=True)
 
 # Describe the interatomic interactions with the Effective Medium Theory
 atoms.set_calculator(EMT())
