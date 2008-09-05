@@ -57,7 +57,8 @@ class Graphs(gtk.Window):
         
         import matplotlib
         matplotlib.interactive(True)
-        matplotlib.use('GTK', warn=False)
+        matplotlib.use('GTK')
+        #matplotlib.use('GTK', warn=False)# Not avail. in 0.91 (it is in 0.98)
         import pylab
         pylab.ion()
 
