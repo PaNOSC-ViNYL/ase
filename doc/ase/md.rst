@@ -27,7 +27,7 @@ dynamics, with slightly different results.
 Choosing the time step
 ======================
 
-Al the dynamics objects need a time step.  Choosing it too small will
+All the dynamics objects need a time step.  Choosing it too small will
 waste computer time, choosing it too large will make the dynamics
 unstable, typically the energy increases dramatically (the system
 "blows up").  If the time step is only a little to large, the lack of
