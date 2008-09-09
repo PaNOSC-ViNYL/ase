@@ -106,8 +106,7 @@ class FixedPlane:
 
     def adjust_positions(self, oldpositions, newpositions):
         step = newpositions[self.a] - oldpositions[self.a]
-        x = np.dot(step, self.dir)
-        newpositions[self.a] = oldpositions[self.a] + step - x * self.dir
+        newpositions[self.a] -= self.dir * np.dot(step, self.dir)
 
     def adjust_forces(self, positions, forces):
         forces[self.a] -= self.dir * np.dot(forces[self.a], self.dir)
@@ -117,6 +116,30 @@ class FixedPlane:
 
     def __repr__(self):
         return 'FixedPlane(%d, %s)' % (self.a, self.dir.tolist())
+
+
+class FixedLine:
+    """Constrain an atom *a* to move on a given line only.
+
+    The line is defined by its *direction*."""
+    
+    def __init__(self, a, direction):
+        self.a = a
+        self.dir = np.asarray(direction) / sqrt(np.dot(direction, direction))
+
+    def adjust_positions(self, oldpositions, newpositions):
+        step = newpositions[self.a] - oldpositions[self.a]
+        x = np.dot(step, self.dir)
+        newpositions[self.a] = oldpositions[self.a] + x * self.dir
+
+    def adjust_forces(self, positions, forces):
+        forces[self.a] = self.dir * np.dot(forces[self.a], self.dir)
+
+    def copy(self):
+        return FixedLine(self.a, self.dir)
+
+    def __repr__(self):
+        return 'FixedLine(%d, %s)' % (self.a, self.dir.tolist())
 
 
 class Filter:
