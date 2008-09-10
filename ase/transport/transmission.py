@@ -9,8 +9,9 @@ class Transmission:
                                  'selfenergies': None,
                                  'transmission': True,
                                  'eigenchannels': 0,
-                                 'dos': True,
+                                 'dos': False,
                                  'pdos': [],
+                                 'logfile': None,
                                  'verbose': False}
 
         self.set(**kwargs)
@@ -23,6 +24,11 @@ class Transmission:
         self.initialized = False #XXX smarter logic needed!
         
     def initialize(self):
+        logfile = self.input_parameters['logfile']
+        self.logfile = logfile
+        if self.logfile != None:
+            self.logfile = open(logfile, 'w')
+
         p = self.input_parameters
         self.verbose = p['verbose']
         self.energies = p['energies']
@@ -54,6 +60,9 @@ class Transmission:
                     self.calculate_transmission_and_eigenchannels(e)
                 else:
                     self.calculate_transmission(e)
+                if self.logfile!=None:
+                    print >> self.logfile, e, self.T_e[e]
+                    self.logfile.flush()
             if p['dos']:
                 self.calculate_dos(e)
             if p['pdos'] != []:
