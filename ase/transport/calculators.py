@@ -42,6 +42,7 @@ class TransportCalculator:
                                  'eta1': 1e-3,
                                  'eta2': 1e-3,
                                  'eta': 1e-3,
+                                 'logfile': None,
                                  'verbose': False}
 
         self.trans = Transmission()
@@ -127,6 +128,7 @@ class TransportCalculator:
         self.trans.set(energies=self.energies,
                        greenfunction=self.gf,
                        selfenergies=self.selfenergies,
+                       logfile=p['logfile'],
                        verbose=p['verbose'])
         
         self.initialized = True
@@ -151,6 +153,7 @@ class TransportCalculator:
 
     def get_dos(self):
         if not self.trans.uptodate:
+            self.set(dos=True)
             self.trans.update()
         return self.trans.dos_e
 
