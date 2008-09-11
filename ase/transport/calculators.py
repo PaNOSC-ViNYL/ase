@@ -21,11 +21,14 @@ class TransportCalculator:
         
         h is a matrix representation of the Hamiltonian of the scattering
         region. This must include at least on lead principal layer on each
-        side. The coupling in (out) of the scattering region is assumed to
-        be identical to the coupling between left (right) principal layers.
-
+        side. The coupling in (out) of the scattering region is by 
+        default assumed to be identical to the coupling between left (right) 
+        principal layers. However, these couplings can also be
+        specified explicitly through hc1 and hc2. 
+        
         s, s1, and s2 are the overlap matrices corresponding to h, h1, and
-        h2. Default is the identity operator.
+        h2. Default is the identity operator. sc1 and sc2 are the overlap
+        matrices corresponding to the optional couplings hc1 and hc2.
         
         align_bf specifies the principal layer basis index used to
         align the fermi levels of the lead and scattering regions.
@@ -38,6 +41,10 @@ class TransportCalculator:
                                  's': None,
                                  's1': None,
                                  's2': None,
+                                 'hc1' : None,
+                                 'hc2' : None,
+                                 'sc1' : None,
+                                 'sc2' :None,
                                  'align_bf': None,
                                  'eta1': 1e-3,
                                  'eta2': 1e-3,
@@ -87,16 +94,44 @@ class TransportCalculator:
         s2_ii = p['s2'][:pl2,:pl2]
         s2_ij = p['s2'][pl2:2*pl2,:pl2]
 
-        h1_im = p['h'][:pl1,pl1:-pl2]
-        s1_im = p['s'][:pl1,pl1:-pl2]
+        #h1_im = p['h'][:pl1,pl1:-pl2]
+        #s1_im = p['s'][:pl1,pl1:-pl2]
 
-        h2_im = p['h'][-pl1:,pl1:-pl2]
-        s2_im = p['s'][-pl1:,pl1:-pl2]
+        #h2_im = p['h'][-pl1:,pl1:-pl2]
+        #s2_im = p['s'][-pl1:,pl1:-pl2]
 
-        h_mm = p['h'][pl1:-pl2,pl1:-pl2]
-        s_mm = p['s'][pl1:-pl2,pl1:-pl2]
-        align_bf = p['align_bf']
+        #h_mm = p['h'][pl1:-pl2,pl1:-pl2]
+        #s_mm = p['s'][pl1:-pl2,pl1:-pl2]
         
+        h_mm = p['h']
+        s_mm = p['s']
+        
+        if p['hc1'] is None:
+            nbf = len(h_mm)
+            h1_im = npy.zeros((pl1, nbf), complex)
+            s1_im = npy.zeros((pl1, nbf), complex)
+            h1_im[:pl1, :pl1] = h1_ij
+            s1_im[:pl1, :pl1] = s1_ij
+        else:
+            h1_im = p['hc1']
+            if p['sc1'] is not None:
+                s1_im = p['sc1']
+            else:
+                s1_im = npy.zeros(h2_im.shape, complex)
+
+        if p['hc2'] is None:
+            h2_im = npy.zeros((pl2, nbf), complex)
+            s2_im = npy.zeros((pl2, nbf), complex)
+            h2_im[-pl2:, -pl2:] = h2_ij
+            s2_im[-pl2:, -pl2:] = s2_ij
+        else:
+            h2_im = p['hc2']
+            if p['sc2'] is not None:
+                s2_im[:] = p['sc2']
+            else:
+                s2_im = npy.zeros(h2_im.shape, complex)
+
+        align_bf = p['align_bf']
         if align_bf != None:
             diff = (h_mm[align_bf, align_bf] - h1_ii[align_bf, align_bf]) \
                    / s_mm[align_bf, align_bf]
@@ -136,15 +171,14 @@ class TransportCalculator:
     def print_pl_convergence(self):
         p = self.input_parameters
         pl1 = self.pl1
-        pl2 = self.pl2
-        for l in range(2):
-            h_ii = self.selfenergies[l].h_ii
-            s_ii = self.selfenergies[l].s_ii
-            ha_ii = self.gf.H[:pl1, :pl1]
-            sa_ii = self.gf.overlap()[:pl1, :pl1]
-            c1 = npy.abs(h_ii - ha_ii).max()
-            c2 = npy.abs(s_ii - sa_ii).max()
-            print "Conv %i: (h,s)=%.2e, %2.e" % (l, c1, c2)
+        
+        h_ii = self.selfenergies[0].h_ii
+        s_ii = self.selfenergies[0].s_ii
+        ha_ii = self.gf.H[:pl1, :pl1]
+        sa_ii = self.gf.S[:pl1, :pl1]
+        c1 = npy.abs(h_ii - ha_ii).max()
+        c2 = npy.abs(s_ii - sa_ii).max()
+        print "Conv (h,s)=%.2e, %2.e" % (c1, c2)
 
     def get_transmission(self):
         if not self.trans.uptodate:
@@ -176,7 +210,6 @@ class TransportCalculator:
     def subdiagonalize_bfs(self, bfs):
         bfs = npy.array(bfs)
         p = self.input_parameters
-        bfs += self.pl1
         h_pp = p['h']
         s_pp = p['s']
         ht_pp, st_pp, c_pp, e_p = subdiagonalize(h_pp, s_pp, bfs)
@@ -187,7 +220,6 @@ class TransportCalculator:
     def cutcoupling_bfs(self, bfs):
         bfs = npy.array(bfs)
         p = self.input_parameters
-        bfs += self.pl1
         h_pp = p['h'].copy()
         s_pp = p['s'].copy()
         cutcoupling(h_pp, s_pp, bfs)
