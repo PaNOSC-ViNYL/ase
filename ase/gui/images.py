@@ -57,6 +57,7 @@ class Images:
             print('WARNING: Not all images have the same bondary conditions!')
             
         self.selected = npy.zeros(self.natoms, bool)
+        self.visible = npy.ones(self.natoms, bool)
         self.nselected = 0
         self.set_dynamic()
         self.repeat = npy.ones(3, int)
@@ -107,6 +108,7 @@ class Images:
         self.dynamic = dynamic
         self.natoms = natoms * N
         self.selected = npy.zeros(natoms * N, bool)
+        self.visible = npy.ones(natoms * N, bool)
         self.nselected = 0
         
     def graph(self, expr):

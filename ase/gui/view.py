@@ -194,10 +194,12 @@ class View:
         black_gc = self.black_gc
         dynamic = self.images.dynamic
         selected = self.images.selected
+        visible = self.images.visible
         for a in self.indices:
             if a < n:
                 ra = d[a]
-                arc(colors[Z[a]], True, A[a, 0], A[a, 1], ra, ra, 0, 23040)
+                if visible[a]:
+                    arc(colors[Z[a]], True, A[a, 0], A[a, 1], ra, ra, 0, 23040)
                 if not dynamic[a]:
                     R1 = int(0.14644 * ra)
                     R2 = int(0.85355 * ra)
@@ -209,7 +211,7 @@ class View:
                          A[a, 0] + R1, A[a, 1] + R2)
                 if selected[a]:
                     arc(selected_gc, False, A[a, 0], A[a, 1], ra, ra, 0,23040)
-                else:
+                elif visible[a]:
                     arc(black_gc, False, A[a, 0], A[a, 1], ra, ra, 0,23040)
             else:
                 a -= n
