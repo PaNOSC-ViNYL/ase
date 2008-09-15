@@ -19,7 +19,7 @@ def dag(a):
 def gram_schmidt(U, order=None):
     """Orthogonalize according to the Gram-Schmidt procedure.
     
-    U is an NxM matrix containing M vectors as its columns.
+    U is an N x M matrix containing M vectors as its columns.
     These will be orthogonalized using the order specified in the list 'order'
 
     Warning: The values of the original matrix is changed, return is just for
@@ -90,7 +90,7 @@ def calculate_weights(cell_cc):
 
 
 def random_orthogonal_matrix(dim, seed=None, real=False):
-    """ Generate a random orthogonal matrix"""
+    """Generate a random orthogonal matrix"""
     if seed is not None:
         npy.random.seed(seed)
 
@@ -139,6 +139,38 @@ def md_min(func, step=0.25, tolerance=1.0e-6, verbose=True, **kwargs):
         t += time()
         print '%d iterations in %0.2f seconds (%0.2f ms/iter), endstep = %s'%(
             count, t, t * 1000. / count, step)
+
+
+def rotation_from_projection(proj_nw, fixed):
+    """Determine rotation and coefficient matrices from projections
+    
+    proj_nw = <psi_n|p_w>
+    psi_n: eigenstates
+    p_w: localized function
+    
+    Nb (n) = Number of bands
+    Nw (w) = Number of wannier functions
+    M  (f) = Number of fixed states
+    L  (l) = Number of extra degrees of freedom
+    U  (u) = Number of non-fixed states
+    """
+
+    Nb, Nw = proj_nw.shape
+    M = fixed
+    L = Nw - M
+
+    U_ww = npy.empty((Nw, Nw), dtype=proj_nw.dtype)
+    U_ww[:M] = proj_nw[:M]
+
+    if L > 0:
+        proj_uw = proj_nw[M:]
+        eig_u, C_uu = npy.linalg.eigh(npy.dot(proj_uw, dag(proj_uw)))
+        C_ul = C_uu[:, :-L-1:-1]
+        U_ww[M:] = npy.dot(dag(C_ul), proj_uw)
+    else:
+        C_ul = npy.empty((Nb - M, 0))
+
+    return U_ww, C_ul
 
 
 class Wannier:
