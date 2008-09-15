@@ -117,7 +117,7 @@ class TransportCalculator:
             if p['sc1'] is not None:
                 s1_im = p['sc1']
             else:
-                s1_im = npy.zeros(h2_im.shape, complex)
+                s1_im = npy.zeros(h1_im.shape, complex)
 
         if p['hc2'] is None:
             h2_im = npy.zeros((pl2, nbf), complex)
