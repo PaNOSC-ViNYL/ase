@@ -71,8 +71,10 @@ class TransportCalculator:
                 self.initialized = False
                 self.uptodate = False
                 break
-            if key in ['energies', 'eigenchannels', 'dos', 'pdos']:
+            elif key in ['energies', 'eigenchannels', 'dos', 'pdos']:
                 self.uptodate = False
+            elif key not in self.input_parameters:
+                raise KeyError
 
         self.input_parameters.update(kwargs)
         log = self.input_parameters['logfile']
@@ -235,8 +237,6 @@ class TransportCalculator:
         """Get ``n`` first eigenchannels."""
         self.initialize()
         self.update()
-        if n > self.input_parameters['eigenchannels']:
-            self.set(eigenchannels=n)
         if n is None:
             n = self.input_parameters['eigenchannels']
         return self.eigenchannels_ne[:n]
