@@ -36,7 +36,7 @@ class Settings(gtk.Window):
         self.gui = gui
 
     def change(self, adjustment):
-        self.gui.set_radii(float(self.scale.value))
+        self.gui.images.set_radii(float(self.scale.value))
         self.gui.draw()
         return True
 
