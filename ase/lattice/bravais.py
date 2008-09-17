@@ -328,6 +328,9 @@ class Bravais:
         "Find missing directions and miller indices from the specified ones."
         directions = list(directions)
         miller = list(miller)
+        # If no directions etc are specified, use a sensible default.
+        if directions == [None, None, None] and miller == [None, None, None]:
+            directions = [[1,0,0], [0,1,0], [0,0,1]]
         # Now fill in missing directions and miller indices.  This is an
         # iterative process.
         change = 1

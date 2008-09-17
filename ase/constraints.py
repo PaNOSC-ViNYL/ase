@@ -190,7 +190,10 @@ class StrainFilter:
     and the global stress tensor (times the volume) as the generalized
     force.
 
-    This filter can be used to relax the unit cell until the stress is zero.
+    This filter can be used to relax the unit cell until the stress is
+    zero.  If MDMin is used for this, the timestep (dt) to be used
+    depends on the system size. 0.01/x where x is a typical dimension
+    seems like a good choice.
 
     The stress and strain are presented as 6-vectors, the order of the
     components follow the standard engingeering practice: xx, yy, zz,
