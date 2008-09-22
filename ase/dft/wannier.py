@@ -187,10 +187,12 @@ class Wannier:
         sign = -1
         try:
             from Dacapo import Dacapo
+            from ase.calculators.dacapo import Dacapo as AseDacapo
+            
         except ImportError:
             pass
         else:
-            if isinstance(calc, Dacapo):
+            if isinstance(calc, Dacapo) or isinstance(calc, AseDacapo):
                 sign = +1
             
         self.nwannier = numberofwannier
