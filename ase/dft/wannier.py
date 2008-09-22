@@ -9,6 +9,7 @@ from time import time
 from math import sqrt, pi
 import cPickle as pickle
 from ase.parallel import paropen
+from ase.calculators.dacapo import Dacapo
 
 
 def dag(a):
@@ -185,15 +186,8 @@ class Wannier:
 
         # Bloch phase sign convention
         sign = -1
-        try:
-            from Dacapo import Dacapo
-            from ase.calculators.dacapo import Dacapo as AseDacapo
-            
-        except ImportError:
-            pass
-        else:
-            if isinstance(calc, Dacapo) or isinstance(calc, AseDacapo):
-                sign = +1
+        if isinstance(calc, Dacapo):
+            sign = +1
             
         self.nwannier = numberofwannier
         self.spin = spin
