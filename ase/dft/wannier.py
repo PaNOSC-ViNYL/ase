@@ -181,8 +181,7 @@ class Wannier:
                  numberofbands=None,
                  occupationenergy=0,
                  numberoffixedstates=None,
-                 spin=0,
-                 dtype=None):
+                 spin=0):
 
         # Bloch phase sign convention
         sign = -1
@@ -200,14 +199,7 @@ class Wannier:
         self.largeunitcell_cc = (self.unitcell_cc.T * self.kptgrid).T
         self.weight_d, self.Gdir_dc = calculate_weights(self.largeunitcell_cc)
         self.Ndir = len(self.weight_d) # Number of directions
-        # Dacapo's initial wannier makes complex rotations even with 1 k-point
-        if dtype is None:
-            if sign == -1 and self.Nk == 1:
-                dtype = float
-            else:
-                dtype = complex
-        self.dtype = dtype
-        
+
         if numberofbands is not None:
             self.nbands = numberofbands
         else:
@@ -256,9 +248,9 @@ class Wannier:
         Nb = self.nbands
 
         if first:
-            self.Z_dkww = npy.empty((self.Ndir, self.Nk, Nw, Nw), self.dtype)
-            self.Z_dknn = npy.empty((self.Ndir, self.Nk, Nb, Nb), self.dtype)
-            self.V_knw = npy.zeros((self.Nk, Nb, Nw), self.dtype)
+            self.Z_dkww = npy.empty((self.Ndir, self.Nk, Nw, Nw), complex)
+            self.Z_dknn = npy.empty((self.Ndir, self.Nk, Nb, Nb), complex)
+            self.V_knw = npy.zeros((self.Nk, Nb, Nw), complex)
             for d in range(self.Ndir):
                 for k in range(self.Nk):                
                     # get next kpoint K1 and reciprocal lattice vector K0
@@ -271,13 +263,13 @@ class Wannier:
         # Initialize rotation and coefficient matrices
         if bloch is True:
             # Set U and C to pick the lowest Bloch states
-            self.U_kww = npy.zeros((self.Nk, Nw, Nw), self.dtype)
+            self.U_kww = npy.zeros((self.Nk, Nw, Nw), complex)
             self.C_kul = []
             for U, N, L in zip(self.U_kww, self.fixedstates_k, self.edf_k):
-                U[:] = npy.identity(Nw, self.dtype)
+                U[:] = npy.identity(Nw, complex)
                 if L > 0:
                     self.C_kul.append(
-                        npy.identity(Nb - N, self.dtype)[:, :L])
+                        npy.identity(Nb - N, complex)[:, :L])
                 else:
                     self.C_kul.append([])
         elif initialwannier is not None:
@@ -287,14 +279,13 @@ class Wannier:
                 self.edf_k, self.spin)
         else:
             # Set U and C to random (orthogonal) matrices
-            self.U_kww = npy.zeros((self.Nk, Nw, Nw), self.dtype)
+            self.U_kww = npy.zeros((self.Nk, Nw, Nw), complex)
             self.C_kul = []
-            real = (self.dtype == float)
             for U, N, L in zip(self.U_kww, self.fixedstates_k, self.edf_k):
-                U[:] = random_orthogonal_matrix(Nw, seed, real)
+                U[:] = random_orthogonal_matrix(Nw, seed, real=False)
                 if L > 0:
                     self.C_kul.append(random_orthogonal_matrix(
-                        Nb - N, seed=seed, real=real)[:, :L])
+                        Nb - N, seed=seed, real=False)[:, :L])
                 else:
                     self.C_kul.append(npy.array([]))        
         self.update()
@@ -396,7 +387,7 @@ class Wannier:
                        abs(npy.log(abs(self.Z_dww[:3].diagonal(0, 1, 2))**2)))
     
     def get_radii2(self):
-        """Calculate the Wannier radii
+        """Calculate the Wannier spread
 
         ::
           
@@ -426,7 +417,7 @@ class Wannier:
             gauss[i] = npy.exp(-exponent) / (sqrt(pi) * width)
         return gauss
 
-    def get_max_spread(self, directions=[0,1,2]):
+    def get_max_spread(self, directions=[0, 1, 2]):
         """Returns the index of the most delocalized Wannier function
         together with the value of the spread functional"""
         d = npy.zeros(self.nwannier)
@@ -442,8 +433,8 @@ class Wannier:
     def load(self, file):
         Nw = self.nwannier
         Nb = self.nbands
-        self.Z_dkww = npy.empty((self.Ndir, self.Nk, Nw, Nw), self.dtype)
-        self.V_knw = npy.zeros((self.Nk, Nb, Nw), self.dtype)
+        self.Z_dkww = npy.empty((self.Ndir, self.Nk, Nw, Nw), complex)
+        self.V_knw = npy.zeros((self.Nk, Nb, Nw), complex)
         self.Z_dknn, self.U_kww, self.C_kul = pickle.load(paropen(file))
         self.update()
 
@@ -454,7 +445,7 @@ class Wannier:
         vectors of the small cell.
         """
         for kpt_c, U_ww in zip(self.kpt_kc, self.U_kww):
-            U_ww[:, w] *= npy.exp(2.0j * pi * npy.dot(npy.array(R), kpt_c))
+            U_ww[:, w] *= npy.exp(2.j * pi * npy.dot(npy.array(R), kpt_c))
         self.update()
 
     def translate_to_cell(self, w, cell):
@@ -469,7 +460,7 @@ class Wannier:
                     self.kptgrid / (2 * pi)
         trans_wc =  npy.array(cell)[None] - npy.floor(scaled_wc)
         for kpt_c, U_ww in zip(self.kpt_kc, self.U_kww):
-            U_ww *= npy.exp(2.0j * pi * npy.dot(trans_wc, kpt_c))
+            U_ww *= npy.exp(2.j * pi * npy.dot(trans_wc, kpt_c))
         self.update()
 
     def get_hopping(self, R, calc):
@@ -484,7 +475,7 @@ class Wannier:
         where R is the cell-distance (in units of the basis vectors of
         the small cell) and n,m are index of the Wannier functions."""
 
-        H_ww = npy.zeros([self.nwannier, self.nwannier], self.dtype)
+        H_ww = npy.zeros([self.nwannier, self.nwannier], complex)
         for k, kpt_c in enumerate(self.kpt_kc):
             phase = npy.exp(-2.j * pi * npy.dot(npy.array(R), kpt_c))
             H_ww += self.get_hamiltonian(calc, k) * phase
@@ -502,16 +493,16 @@ class Wannier:
         eps_n = calc.get_eigenvalues(kpt=k, spin=self.spin)
         return npy.dot(dag(self.V_knw[k]) * eps_n, self.V_knw[k])
 
-    def dist(self, R):
+    def distances(self, R):
         Nw = self.Nwannier
         cen = self.get_center()
-        r1 = npy.reshape(cen.repeat(Nwannier),[Nw, Nw, 3])
+        r1 = cen.repeat(Nwannier).reshape(Nw, Nw, 3)
         r2 = cen.copy()
         for i in range(3):
             r2 += self.unitcell[i] * R[i]
 
-        r2 = npy.swapaxes(npy.reshape(r2.repeat(Nw), [Nw, Nw, 3]), 0, 1)
-        return npy.sqrt(npy.sum((r1-r2)**2, axis=-1))
+        r2 = npy.swapaxes(r2.repeat(Nw).reshape(Nw, Nw, 3), 0, 1)
+        return npy.sqrt(npy.sum((r1 - r2)**2, axis=-1))
 
     def get_hamiltonian_kpoint(self, kpt_c, calc):
         """Get Hamiltonian at some new arbitrary k-vector
@@ -522,6 +513,8 @@ class Wannier:
           H(k) = >_  e     H(R)
                   R         
         """
+        # self.get_min_distance() and self.couplingradius missing
+        raise NotImplementedError
         max = (self.kptgrid - 1) / 2
         max += max > 0
         N1, N2, N3 = max
@@ -536,7 +529,7 @@ class Wannier:
                             self.R_rc.append(R)
                             self.hop_rww.append(self.get_hopping(R, calc))
                             
-        Hk = npy.zeros([self.nwannier, self.nwannier], self.dtype)
+        Hk = npy.zeros([self.nwannier, self.nwannier], complex)
         for R, hop_ww in zip(self.R_rc, self.hop_rww):
             filter = self.distances(R) < self.couplingradius # XXX
             phase = npy.exp(+2.j * pi * npy.dot(npy.array(R), kpt_c))
@@ -555,7 +548,7 @@ class Wannier:
         dim = calc.get_number_of_grid_points()
         largedim = dim * [N1, N2, N3]
         
-        wanniergrid = npy.zeros(largedim, dtype=self.dtype)
+        wanniergrid = npy.zeros(largedim, dtype=complex)
         for k, kpt_c in enumerate(self.kpt_kc):
             # The coordinate vector of wannier functions
             if type(index) == int:
@@ -563,7 +556,7 @@ class Wannier:
             else:   
                 vec_n = npy.dot(self.V_knw[k], index)
 
-            wan_G = npy.zeros(dim, self.dtype)
+            wan_G = npy.zeros(dim, complex)
             for n, coeff in enumerate(vec_n):
                 wan_G += coeff * calc.get_pseudo_wave_function(n, k, self.spin,
                                                                pad=True)
@@ -645,8 +638,8 @@ class Wannier:
             L = self.edf_k[k]
             U_ww = self.U_kww[k]
             C_ul = self.C_kul[k]
-            Utemp_ww = npy.zeros([Nw, Nw], self.dtype)
-            Ctemp_nw = npy.zeros((Nb, Nw), self.dtype)
+            Utemp_ww = npy.zeros((Nw, Nw), complex)
+            Ctemp_nw = npy.zeros((Nb, Nw), complex)
 
             for d, weight in enumerate(self.weight_d):
                 if abs(weight) < 1.0e-6:
@@ -686,12 +679,12 @@ class Wannier:
         N_k = self.fixedstates_k
         L_k = self.edf_k
         if updaterot:
-            A_kww = npy.reshape(dX[:Nk * Nw**2], (Nk, Nw, Nw))
+            A_kww = dX[:Nk * Nw**2].reshape(Nk, Nw, Nw)
             for U, A in zip(self.U_kww, A_kww):
-                H = npy.conj(A * 1.j).copy()
+                H = -1.j * A.conj()
                 epsilon, Z = npy.linalg.eigh(H)
                 # Z contains the eigenvectors as COLUMNS.
-                # Since H=iA, dU = exp(-A)=exp(iH) = ZDZ^d
+                # Since H = iA, dU = exp(-A) = exp(iH) = ZDZ^d
                 dU = npy.dot(Z * npy.exp(1.j * epsilon), dag(Z))
                 U[:] = npy.dot(U, dU)
 
