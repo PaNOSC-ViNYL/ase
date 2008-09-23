@@ -17,6 +17,12 @@ def dag(a):
     return npy.conj(a.T)
 
 
+def normalize(U):
+    """Normalize columns of U."""
+    for col in U.T:
+        col /= npy.sqrt(npy.dot(col.conj(), col))
+
+
 def gram_schmidt(U, order=None):
     """Orthogonalize according to the Gram-Schmidt procedure.
     
@@ -39,6 +45,19 @@ def gram_schmidt(U, order=None):
             col -= project(U[:, order[i2]], col)
         col /= npy.sqrt(npy.dot(col.conj(), col))
     return U
+
+
+def lowdin(U, S=None):
+    """Orthogonalize according to the Lowdin procedure.
+    
+    U is an N x M matrix containing M vectors as its columns.
+    S is the overlap Matrix.
+    """
+    if S is None:
+        S = npy.dot(dag(U), U)
+    eig, rot = npy.linalg.eigh(S)
+    rot = npy.dot(rot / npy.sqrt(eig), dag(rot))
+    return npy.dot(U, rot)
 
 
 def get_kpoint_dimensions(kpts):
@@ -129,12 +148,12 @@ def md_min(func, step=0.25, tolerance=1.0e-6, verbose=True, **kwargs):
             fvalueold = fvalue
             dF = func.get_gradients()
             V *= (dF * V.conj()).real > 0
-	    V += step * dF
+            V += step * dF
             func.step(V, **kwargs)
-	    fvalue = func.get_functional_value()
+            fvalue = func.get_functional_value()
             if fvalue < fvalueold:
-		step *= 0.5
-	    count += 1
+                step *= 0.5
+            count += 1
             if verbose:
                 print 'MDmin: iter=%s, step=%s, value=%s' % (count,step,fvalue)
         t += time()
@@ -142,7 +161,7 @@ def md_min(func, step=0.25, tolerance=1.0e-6, verbose=True, **kwargs):
             count, t, t * 1000. / count, step)
 
 
-def rotation_from_projection(proj_nw, fixed):
+def rotation_from_projection(proj_nw, fixed, ortho=True):
     """Determine rotation and coefficient matrices from projections
     
     proj_nw = <psi_n|p_w>
@@ -170,6 +189,12 @@ def rotation_from_projection(proj_nw, fixed):
         U_ww[M:] = npy.dot(dag(C_ul), proj_uw)
     else:
         C_ul = npy.empty((Nb - M, 0))
+
+    normalize(C_ul)
+    if ortho:
+        U_ww = lowdin(U_ww)
+    else:
+        normalize(U_ww)
 
     return U_ww, C_ul
 
