@@ -14,7 +14,7 @@ from optparse import OptionParser, SUPPRESS_HELP
 parser = OptionParser(usage='%prog [options] [file[, file2, ...]]',
                       version='%prog 0.1',
                       description='See the online manual ' +
-                      '(https://wiki.fysik.dtu.dk/gpaw/G2) ' +
+                      '(https://wiki.fysik.dtu.dk/ase/ase/gui.html) ' +
                       'for more information.')
 parser.add_option('-n', '--image-number',
                   default=':', metavar='NUMBER',
