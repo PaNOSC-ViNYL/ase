@@ -19,7 +19,7 @@ class Constraints(gtk.Window):
         b = pack(vbox, [gtk.Button(_('Constrain')),
                         gtk.Label(_(' immobile atoms:'))])[0]
         b.connect('clicked', self.immobile)
-        b = pack(vbox, gtk.Button('Clear constraint'))
+        b = pack(vbox, gtk.Button('Clear constraints'))
         b.connect('clicked', self.clear)
         close = pack(vbox, gtk.Button(_('Close')))
         close.connect('clicked', lambda widget: self.destroy())

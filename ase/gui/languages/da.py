@@ -25,7 +25,7 @@ kombination med [ctrl] tasten""",
 
 'Help for plot ...':
 u"""Symboler:
-<c>e</c>:\t\tenergi
+<c>e</c>:\t\tpotentiel energi
 <c>ekin</c>:\tkinetisk energi
 <c>fmax</c>:\tmaximum kræft
 <c>fave</c>:\tmiddel kræft
