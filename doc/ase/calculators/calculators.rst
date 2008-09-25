@@ -113,14 +113,18 @@ will simply write the fdf input-file, start the SIESTA Fortran
 program, and finally read the energy, forces and stresses from the
 text output-file.
 
-.. hint::
-
-   The :class:`EMT` potential and the GPAW_ DFT calculator both make
-   use of ASE's built-in neighbor-list class:
-
-   .. autoclass:: ase.calculators.neighborlist.NeighborList
-
-   For details, see the API for the
-   :epydoc:`ase.calculators.neighborlist.NeighborList` class.
 
 .. _SIESTA: http://www.uam.es/departamentos/ciencias/fismateriac/siesta/
+
+
+
+Building neighbor-lists
+=======================
+
+The :class:`EMT` potential and the GPAW_ DFT calculator both make
+use of ASE's built-in neighbor-list class:
+
+.. autoclass:: ase.calculators.neighborlist.NeighborList
+   :members:
+
+

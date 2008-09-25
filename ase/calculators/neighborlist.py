@@ -4,6 +4,26 @@ import numpy as npy
 
 
 class NeighborList:
+    """Neighbor list object.
+
+    :Parameters:
+      cutoffs: list of float
+          List of cutoff radii - one for each atom.
+      skin: float
+          If no atom has moved more than the skin-distance since the
+          last call to the ``update()`` method, then the neighbor list
+          can be reused.  This will save some expensive rebuilds of
+          the list, but extra neighbors outside the cutoff will be
+          returned.
+
+    Example::
+
+      nl = NeighborList([2.3, 1.7])
+      nl.update()
+      indices, offsets = nl.get_neighbors(0)
+      
+    """
+    
     def __init__(self, cutoffs, skin=0.3, sorted=False):
         self.cutoffs = npy.asarray(cutoffs) + skin
         self.skin = skin
@@ -11,6 +31,7 @@ class NeighborList:
         self.nupdates = 0
 
     def update(self, atoms):
+        """Make sure the list is up to date."""
         if self.nupdates == 0:
             self.build(atoms)
             return True
@@ -24,6 +45,7 @@ class NeighborList:
         return False
     
     def build(self, atoms):
+        """Build the list."""
         self.positions = atoms.get_positions()
         pbc = atoms.get_pbc()
         self.cell = atoms.get_cell()
@@ -98,6 +120,6 @@ class NeighborList:
               print atoms.positions[i] + dot(offset, atoms.get_cell())
 
         Notice that if get_neighbors(a) gives atom b as a neighbor,
-        then get_neighbors(b) will not return a as a neighbor!  """
+        then get_neighbors(b) will not return a as a neighbor!"""
         
         return self.neighbors[a], self.displacements[a]
