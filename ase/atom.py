@@ -190,7 +190,7 @@ class Atom(object):
     momentum = property(get_momentum, set_momentum, doc='XYZ-momentum')
     mass = property(get_mass, set_mass, doc='Atomic mass')
     magmom = property(get_magmom, set_magmom, doc='Magnetic moment')
-    charge = property(get_charge, set_charge, doc='Atomic Charge')
+    charge = property(get_charge, set_charge, doc='Atomic charge')
 
     def get_x(self): return self.position[0]
     def get_y(self): return self.position[1]

@@ -401,7 +401,7 @@ class Atoms(object):
 
     def set_charges(self, charges):
         """Set charges."""
-        self.set_array('charges', charges, int)
+        self.set_array('charges', charges, float)
 
     def get_charges(self):
         """Get array of charges."""
