@@ -6,15 +6,14 @@ import numpy as npy
 class NeighborList:
     """Neighbor list object.
 
-    :Parameters:
-      cutoffs: list of float
-          List of cutoff radii - one for each atom.
-      skin: float
-          If no atom has moved more than the skin-distance since the
-          last call to the ``update()`` method, then the neighbor list
-          can be reused.  This will save some expensive rebuilds of
-          the list, but extra neighbors outside the cutoff will be
-          returned.
+    cutoffs: list of float
+        List of cutoff radii - one for each atom.
+    skin: float
+        If no atom has moved more than the skin-distance since the
+        last call to the ``update()`` method, then the neighbor list
+        can be reused.  This will save some expensive rebuilds of
+        the list, but extra neighbors outside the cutoff will be
+        returned.
 
     Example::
 
