@@ -36,7 +36,6 @@ class EMT:
     def __init__(self):
         self.energy = None
         if self.disabled:
-            #print >>sys.stderr, self.disabled
             print >>sys.stderr, """
             ase.EMT has been disabled by Asap.  Most likely, you
             intended to use Asap's EMT calculator, but accidentally
