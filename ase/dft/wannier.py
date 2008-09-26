@@ -7,7 +7,7 @@
 import numpy as npy
 from time import time
 from math import sqrt, pi
-import cPickle as pickle
+from pickle import dump, load
 from ase.parallel import paropen
 from ase.calculators.dacapo import Dacapo
 
@@ -20,44 +20,27 @@ def dag(a):
 def normalize(U):
     """Normalize columns of U."""
     for col in U.T:
-        col /= npy.sqrt(npy.dot(col.conj(), col))
+        col /= npy.linalg.norm(col)
 
 
-def gram_schmidt(U, order=None):
-    """Orthogonalize according to the Gram-Schmidt procedure.
-    
-    U is an N x M matrix containing M vectors as its columns.
-    These will be orthogonalized using the order specified in the list 'order'
-
-    Warning: The values of the original matrix is changed, return is just for
-    convenience.
-    """
-    def project(a, b):
-        """Return the projection of b onto a."""
-        return a * (npy.dot(a.conj(), b) / npy.dot(a.conj(), a))
-
-    if order is None:
-        order = range(U.shape[1])
-
-    for i, m in enumerate(order):
-        col = U[:, m]
-        for i2 in range(i):
-            col -= project(U[:, order[i2]], col)
-        col /= npy.sqrt(npy.dot(col.conj(), col))
-    return U
+def gram_schmidt(U):
+    """Orthonormalize columns of U according to the Gram-Schmidt procedure."""
+    for i, col in enumerate(U.T):
+        for col2 in U.T[:i]:
+            col -= col2 * npy.dot(col2.conj(), col)
+        col /= npy.linalg.norm(col)
 
 
 def lowdin(U, S=None):
-    """Orthogonalize according to the Lowdin procedure.
+    """Orthonormalize columns of U according to the Lowdin procedure.
     
-    U is an N x M matrix containing M vectors as its columns.
-    S is the overlap Matrix.
+    If the overlap matrix is know, it can be specified in S.
     """
     if S is None:
         S = npy.dot(dag(U), U)
     eig, rot = npy.linalg.eigh(S)
     rot = npy.dot(rot / npy.sqrt(eig), dag(rot))
-    return npy.dot(U, rot)
+    U[:] = npy.dot(U, rot)
 
 
 def get_kpoint_dimensions(kpts):
@@ -82,6 +65,21 @@ def get_kpoint_dimensions(kpts):
         if DeltaK > tol: Nk_c[c] = int(round(1. / DeltaK))
         else: Nk_c[c] = 1
     return Nk_c
+
+
+def neighbor_k_search(k_c, G_c, kpt_kc, tol=1e-4):
+    # search for k1 (in kpt_kc) and k0 (in alldir), such that
+    # k1 - k - G + k0 = 0
+    alldir_dc = npy.array([[0,0,0],[1,0,0],[0,1,0],[0,0,1],
+                           [1,1,0],[1,0,1],[0,1,1]], int)
+    for k0_c in alldir_dc:
+        for k1, k1_c in enumerate(kpt_kc):
+            if npy.linalg.norm(k1_c - k_c - G_c + k0_c) < tol:
+                return k1, k0_c
+
+    print 'Wannier: Did not find matching kpoint for kpt=', k_c
+    print 'Probably non-uniform k-point grid'
+    raise NotImplementedError
 
 
 def calculate_weights(cell_cc):
@@ -119,13 +117,14 @@ def random_orthogonal_matrix(dim, seed=None, real=False):
     npy.multiply(.5, H, H)
 
     if real:
-        return gram_schmidt(H)
+        gram_schmidt(H)
+        return H
     else: 
         val, vec = npy.linalg.eig(H)
         return npy.dot(vec * npy.exp(1.j * val), dag(vec))
 
 
-def steepest_descent(func, step=0.005, tolerance=1.0e-6, **kwargs):
+def steepest_descent(func, step=0.005, tolerance=1e-6, **kwargs):
     fvalueold = 0.
     fvalue = fvalueold + 10
     count=0
@@ -138,8 +137,8 @@ def steepest_descent(func, step=0.005, tolerance=1.0e-6, **kwargs):
         print 'SteepestDescent: iter=%s, value=%s' % (count, fvalue)
 
 
-def md_min(func, step=0.25, tolerance=1.0e-6, verbose=True, **kwargs):
-        t = - time()
+def md_min(func, step=0.25, tolerance=1e-6, verbose=True, **kwargs):
+        t = -time()
         fvalueold = 0.
         fvalue = fvalueold + 10
         count = 0
@@ -192,7 +191,7 @@ def rotation_from_projection(proj_nw, fixed, ortho=True):
 
     normalize(C_ul)
     if ortho:
-        U_ww = lowdin(U_ww)
+        lowdin(U_ww)
     else:
         normalize(U_ww)
 
@@ -200,21 +199,21 @@ def rotation_from_projection(proj_nw, fixed, ortho=True):
 
 
 class Wannier:
-    def __init__(self,
-                 numberofwannier,
-                 calc,
-                 numberofbands=None,
-                 occupationenergy=0,
-                 numberoffixedstates=None,
-                 spin=0):
+    def __init__(self, nwannier, calc,
+                 nbands=None,
+                 occupationenergy=None,
+                 fixedstates=None,
+                 spin=0,
+                 verbose=True):
 
         # Bloch phase sign convention
         sign = -1
         if isinstance(calc, Dacapo):
             sign = +1
             
-        self.nwannier = numberofwannier
+        self.nwannier = nwannier
         self.spin = spin
+        self.verbose = verbose
         self.kpt_kc = sign * calc.get_ibz_k_points()
         assert len(calc.get_bz_k_points()) == len(self.kpt_kc)
         
@@ -225,47 +224,70 @@ class Wannier:
         self.weight_d, self.Gdir_dc = calculate_weights(self.largeunitcell_cc)
         self.Ndir = len(self.weight_d) # Number of directions
 
-        if numberofbands is not None:
-            self.nbands = numberofbands
+        if nbands is not None:
+            self.nbands = nbands
         else:
             self.nbands = calc.get_number_of_bands()
 
-        if numberoffixedstates is not None:
-            self.fixedstates_k = numberoffixedstates
-            self.edf_k = (npy.array(self.Nk * [numberofwannier])
-                          - numberoffixedstates)
+        if occupationenergy is None:
+            if fixedstates is None:
+                self.fixedstates_k = npy.array([nwannier] * self.Nk, int)
+            else:
+                if type(fixedstates) is int:
+                    fixedstates = [fixedstates] * self.Nk
+                self.fixedstates_k = npy.array(fixedstates, int)
         else:
             # Setting number of fixed states and EDF from specified energy.
             # All states below this energy (relative to Fermi level) are fixed.
             occupationenergy += calc.get_fermi_level()
-            fixedstates = []
-            extradof = []
-            for k in range(self.Nk):
-                count = 0
-                for eig in calc.get_eigenvalues(k, spin):
-                    if eig < occupationenergy and count < self.nwannier:
-                        count += 1
-                fixedstates.append(count)
-                extradof.append(self.nwannier - count)
-            self.fixedstates_k = fixedstates
-            self.edf_k = extradof
-            print "Wannier: Fixed states            :", fixedstates
-            print "Wannier: Extra degrees of freedom:", extradof
+            self.fixedstates_k = npy.array(
+                [calc.get_eigenvalues(k, spin).searchsorted(occupationenergy)
+                 for k in range(self.Nk)], int)
+        self.edf_k = self.nwannier - self.fixedstates_k
+        if verbose:
+            print 'Wannier: Fixed states            : %s' % self.fixedstates_k
+            print 'Wannier: Extra degrees of freedom: %s' % self.edf_k
 
-        # Set the list of neighboring k-points
-        self.kklst_dk = npy.zeros((self.Ndir, self.Nk), dtype=int)
-        for d in range(self.Ndir):
-            for k in range(self.Nk):
-                k1, k0_c = self.get_next_kpoint(d, k)
-                self.kklst_dk[d, k] = k1
+        # Set the list of neighboring k-points k1, and the "wrapping" k0,
+        # such that k1 - k - G + k0 = 0
+        #
+        # Example: kpoints = (-0.375,-0.125,0.125,0.375), dir=0
+        # G = [0.25,0,0]
+        # k=0.375, k1= -0.375 : -0.375-0.375-0.25 => k0=[1,0,0]
+        #
+        # For a gamma point calculation k1 = k = 0,  k0 = [1,0,0] for dir=0
+        if self.Nk == 1:
+            self.kklst_dk = npy.zeros((self.Ndir, 1), int)
+            self.k0_dkc = self.Gdir_dc.reshape(-1, 1, 3)
+        else:
+            self.kklst_dk = npy.empty((self.Ndir, self.Nk), int)
+            self.k0_dkc = npy.empty((self.Ndir, self.Nk, 3), int)
+
+            # Distance between kpoints
+            kdist_c = npy.empty(3)
+            for c in range(3):
+                # make a sorted list of the kpoint values in this direction
+                slist = npy.argsort(self.kpt_kc[:, c])
+                skpoints_kc = npy.take(self.kpt_kc, slist, axis=0)
+                kdist_c[c] = max([skpoints_kc[n + 1, c] - skpoints_kc[n, c]
+                                  for n in range(self.Nk - 1)])               
+
+            for d, Gdir_c in enumerate(self.Gdir_dc):
+                for k, k_c in enumerate(self.kpt_kc):
+                    # setup dist vector to next kpoint
+                    G_c = npy.where(Gdir_c > 0, kdist_c, 0)
+                    if max(G_c) < 1e-4:
+                        self.kklst_dk[d, k] = k
+                        self.k0_dkc[d, k] = Gdir_c
+                    else:
+                        self.kklst_dk[d, k], self.k0_dkc[d, k] = \
+                                       neighbor_k_search(k_c, G_c, self.kpt_kc)
 
         # Set the inverse list of neighboring k-points
-        self.invkklst_dk = npy.zeros((self.Ndir, self.Nk), dtype=int)
+        self.invkklst_dk = npy.empty((self.Ndir, self.Nk), int)
         for d in range(self.Ndir):
             for k1 in range(self.Nk):
-                k = self.kklst_dk[d].tolist().index(k1)
-                self.invkklst_dk[d, k1] = k
-
+                self.invkklst_dk[d, k1] = self.kklst_dk[d].tolist().index(k1)
 
     def initialize(self, calc, first=True, initialwannier=None,
                    seed=None, bloch=False):
@@ -276,25 +298,24 @@ class Wannier:
             self.Z_dkww = npy.empty((self.Ndir, self.Nk, Nw, Nw), complex)
             self.Z_dknn = npy.empty((self.Ndir, self.Nk, Nb, Nb), complex)
             self.V_knw = npy.zeros((self.Nk, Nb, Nw), complex)
-            for d in range(self.Ndir):
-                for k in range(self.Nk):                
-                    # get next kpoint K1 and reciprocal lattice vector K0
-                    # given kpoint K that fulfills the criteria : K1-K+K0=Gdir
-                    k1, k0_c = self.get_next_kpoint(d, k)
+            for d, dirG in enumerate(self.Gdir_dc):
+                for k in range(self.Nk):
+                    k1 = self.kklst_dk[d, k]
+                    k0_c = self.k0_dkc[d, k]
                     self.Z_dknn[d, k] = calc.get_wannier_localization_matrix(
-                        nbands=Nb, dirG=self.Gdir_dc[d], kpoint=k,
-                        nextkpoint=k1, G_I=k0_c, spin=self.spin)
+                        nbands=Nb, dirG=dirG, kpoint=k, nextkpoint=k1,
+                        G_I=k0_c, spin=self.spin)
 
         # Initialize rotation and coefficient matrices
         if bloch is True:
             # Set U and C to pick the lowest Bloch states
             self.U_kww = npy.zeros((self.Nk, Nw, Nw), complex)
             self.C_kul = []
-            for U, N, L in zip(self.U_kww, self.fixedstates_k, self.edf_k):
+            for U, M, L in zip(self.U_kww, self.fixedstates_k, self.edf_k):
                 U[:] = npy.identity(Nw, complex)
                 if L > 0:
                     self.C_kul.append(
-                        npy.identity(Nb - N, complex)[:, :L])
+                        npy.identity(Nb - M, complex)[:, :L])
                 else:
                     self.C_kul.append([])
         elif initialwannier is not None:
@@ -306,79 +327,23 @@ class Wannier:
             # Set U and C to random (orthogonal) matrices
             self.U_kww = npy.zeros((self.Nk, Nw, Nw), complex)
             self.C_kul = []
-            for U, N, L in zip(self.U_kww, self.fixedstates_k, self.edf_k):
+            for U, M, L in zip(self.U_kww, self.fixedstates_k, self.edf_k):
                 U[:] = random_orthogonal_matrix(Nw, seed, real=False)
                 if L > 0:
                     self.C_kul.append(random_orthogonal_matrix(
-                        Nb - N, seed=seed, real=False)[:, :L])
+                        Nb - M, seed=seed, real=False)[:, :L])
                 else:
                     self.C_kul.append(npy.array([]))        
         self.update()
 
-    def get_k0(self, c): 
-        """ find distance to next kpoint, along one of the three reciprocal
-        lattice vectors """
-        # For a gamma-point calculation
-        if self.Nk == 1:
-            return 0.0
-
-        # make a sorted list of the kpoint values in this direction
-        slist = npy.argsort(self.kpt_kc[:, c])
-        skpoints_kc = npy.take(self.kpt_kc, slist, axis=0)
-
-        # find k0
-        k0 = max([skpoints_kc[n + 1, c] - skpoints_kc[n, c]
-                    for n in range(self.Nk - 1)])
-        return k0
-
-    def get_next_kpoint(self, dir, k):
-        """find the 'next' kpoint from kpt in the dir direction and the
-        corresponding vector for the resulting pair. 
-
-        This can also be written as K1-K-Gdir+K0=0
-        Example: kpoints = (-0.375,-0.125,0.125,0.375), dir=0
-        Gdir = [0.25,0,0]
-        K=0.375, K1= -0.375 : -0.375-0.375-0.25 => K0=[1,0,0]
-
-        For a gamma point calculation K1=K=0,  K0 = [1,0,0] for dir=0
-        """
-        tol = 1e-4
-
-        if self.Nk == 1:
-            return k, self.Gdir_dc[dir]
-
-        # setup dist vector to next kpoint
-        kdist_c = npy.zeros(3)
-        for c in range(3):
-            if self.Gdir_dc[dir, c] > 0:
-                kdist_c[c] = self.get_k0(c)
-
-        if max(kdist_c) < tol:
-            return k, self.Gdir_dc[dir]
-
-        # now search for K1-K-Gdir+K0=0
-        # reciprocal lattice vectors we are going to search for,
-        # including K0=0
-        alldir_dc = npy.array([[0,0,0],[1,0,0],[0,1,0],[0,0,1],
-                               [1,1,0],[1,0,1],[0,1,1]], int)
-        for k0_c in alldir_dc:
-            for k1 in range(self.Nk):
-                if npy.linalg.norm(
-                    self.kpt_kc[k1] - self.kpt_kc[k] - kdist_c + k0_c) < tol:
-                    return k1, k0_c
-
-        print 'Wannier: Did not find matching kpoint for kpt=', self.kpt_kc[k]
-        print 'Probably non-uniform k-point grid'
-        raise NotImplementedError
-
     def update(self):
         # Update large rotation matrix V (from rotation U and coeff C)
-        for k, N in enumerate(self.fixedstates_k):
-            self.V_knw[k, :N] = self.U_kww[k,:N]
-            if N < self.nwannier:
-                self.V_knw[k, N:] = npy.dot(self.C_kul[k], self.U_kww[k, N:])
+        for k, M in enumerate(self.fixedstates_k):
+            self.V_knw[k, :M] = self.U_kww[k, :M]
+            if M < self.nwannier:
+                self.V_knw[k, M:] = npy.dot(self.C_kul[k], self.U_kww[k, M:])
 ##             else:
-##                 self.V_knw[k, N:] = 0.0
+##                 self.V_knw[k, M:] = 0.0
 
         # Calculate the Zk matrix from the large rotation matrix:
         # Zk = V^d[k] Zbloch V[k1]
@@ -398,21 +363,21 @@ class Wannier:
         
           pos =  L / 2pi * phase(diag(Z))
         """
-        coord_wc = npy.angle(self.Z_dww[:3].diagonal(0, 1, 2)).T / (2 * pi)
+        coord_wc = npy.angle(self.Z_dww[:3].diagonal(0, 1, 2)).T / (2 * pi) % 1
         if not scaled:
             coord_wc = npy.dot(coord_wc, self.largeunitcell_cc)
         return coord_wc
 
     def get_radii(self):
-        """Calculate the Wannier radii
+        """Calculate the Wannier radii.
 
         radius = sum abs(L/2pi ln abs diag(Z * Z^d))
         """
         return npy.dot(self.largeunitcell_cc.diagonal() / (2 * pi),
                        abs(npy.log(abs(self.Z_dww[:3].diagonal(0, 1, 2))**2)))
     
-    def get_radii2(self):
-        """Calculate the Wannier spread
+    def get_spreads(self):
+        """Calculate the spread of the Wannier functions.
 
         ::
           
@@ -420,29 +385,25 @@ class Wannier:
           radius**2 = - >   | --- |   ln |Z| 
                         --d \ 2pi /
         """
-        return -npy.dot(self.largeunitcell_cc.diagonal()**2 / (2 * pi)**2,
+        r2 = -npy.dot(self.largeunitcell_cc.diagonal()**2 / (2 * pi)**2,
                         npy.log(abs(self.Z_dww[:3].diagonal(0, 1, 2))**2))
+        return npy.sqrt(r2)
 
-    def get_spectral_weight_of_wannier_function(self, w):
+    def get_spectral_weight(self, w):
         return abs(self.V_knw[:, :, w])**2 / self.Nk
 
-    def get_wannier_function_dos(self, calc, n, energies, width):
-        spec_kn = self.get_spectral_weight_of_wannier_function(n)
+    def get_pdos(self, calc, w, energies, width):
+        spec_kn = self.get_spectral_weight(w)
         dos = npy.zeros(len(energies))
         for k, spec_n in enumerate(spec_kn):
             eig_n = calc.get_eigenvalues(k=kpt, s=self.spin)
             for weight, eig in zip(spec_n, eig):
-                dos += weight * self.get_gaussian(energies, eig, width)
+                # Add gaussian centered at the eigenvalue
+                x = ((energies - center) / width)**2
+                dos += weight * npy.exp(-x.clip(0., 40.)) / (sqrt(pi) * width)
         return dos
 
-    def get_gaussian(self, energies, center, width):
-        gauss = npy.zeros(len(energies))
-        for i in range(len(energies)):
-            exponent = min(20, ((energies[i] - center)/width)**2)
-            gauss[i] = npy.exp(-exponent) / (sqrt(pi) * width)
-        return gauss
-
-    def get_max_spread(self, directions=[0, 1, 2]):
+    def max_spread(self, directions=[0, 1, 2]):
         """Returns the index of the most delocalized Wannier function
         together with the value of the spread functional"""
         d = npy.zeros(self.nwannier)
@@ -453,14 +414,14 @@ class Wannier:
         print 'Spread:', d[index]           
 
     def dump(self, file):
-        pickle.dump((self.Z_dknn, self.U_kww, self.C_kul), paropen(file, 'w'))
+        dump((self.Z_dknn, self.U_kww, self.C_kul), paropen(file, 'w'))
 
     def load(self, file):
         Nw = self.nwannier
         Nb = self.nbands
         self.Z_dkww = npy.empty((self.Ndir, self.Nk, Nw, Nw), complex)
         self.V_knw = npy.zeros((self.Nk, Nb, Nw), complex)
-        self.Z_dknn, self.U_kww, self.C_kul = pickle.load(paropen(file))
+        self.Z_dknn, self.U_kww, self.C_kul = load(paropen(file))
         self.update()
 
     def translate(self, w, R):
@@ -475,7 +436,7 @@ class Wannier:
 
     def translate_to_cell(self, w, cell):
         """Translate the w'th Wannier function to specified cell"""
-        scaled_c = npy.angle(self.Z_dww[:3, w, w]) * self.kptgrid / (2 *pi)
+        scaled_c = npy.angle(self.Z_dww[:3, w, w]) * self.kptgrid / (2 * pi)
         trans = npy.array(cell) - npy.floor(scaled_c)
         self.translate(w, trans)
 
@@ -599,21 +560,38 @@ class Wannier:
         wanniergrid /= npy.sqrt(self.Nk)
         return wanniergrid
 
-    def write_cube(self, calc, index, fname, repeat=None):
+    def write_cube(self, calc, index, fname, repeat=None, real=True):
         from ase.io.cube import write_cube
 
         # Default size of plotting cell is the one corresponding to k-points.
         if repeat is None:
             repeat = self.kptgrid
         atoms = calc.get_atoms() * repeat
-        write_cube(fname, atoms, data=self.get_function(calc, index, repeat))
+        func = self.get_function(calc, index, repeat)
 
-    def localize(self, step=0.25, tolerance=1.0e-08, verbose=True,
+        # Handle separation of complex wave into real parts
+        if real:
+            if self.Nk == 1:
+                func *= npy.exp(-1.j * npy.angle(func.max()))
+                assert max(abs(func.imag).flat) < 1e-6
+                func = func.real
+            else:
+                func = abs(func)
+        else:
+            phase_fname = fname.split('.')
+            phase_fname.insert(1, 'phase')
+            phase_fname = '.'.join(phase_fname)
+            write_cube(phase_fname, atoms, data=npy.angle(func))
+            func = abs(func)
+
+        write_cube(fname, atoms, data=func)
+
+    def localize(self, step=0.25, tolerance=1e-08,
                  updaterot=True, updatecoeff=True):
         print 'Localize with step =', step, 'and tolerance =', tolerance
 ##         maxi = steepest_descent(self, step, tolerance, updaterot=updaterot,
 ##                                 updatecoeff=updatecoeff)
-        maxi = md_min(self, step, tolerance, verbose=verbose,
+        maxi = md_min(self, step, tolerance, verbose=self.verbose,
                       updaterot=updaterot, updatecoeff=updatecoeff)
 
     def get_functional_value(self): 
@@ -698,10 +676,9 @@ class Wannier:
                         
     def step(self, dX, updaterot=True, updatecoeff=True):
         """ dX is (A, dC) where U->Uexp(-A) and C->C+dC """
-        Nb = self.nbands
         Nw = self.nwannier
         Nk = self.Nk
-        N_k = self.fixedstates_k
+        M_k = self.fixedstates_k
         L_k = self.edf_k
         if updaterot:
             A_kww = dX[:Nk * Nw**2].reshape(Nk, Nw, Nw)
@@ -715,10 +692,13 @@ class Wannier:
 
         if updatecoeff:
             start = 0
-            for C, N, L in zip(self.C_kul, N_k, L_k):
-                Ncoeff = L * (Nb - N)
+            for C, unocc, L in zip(self.C_kul, self.nbands - M_k, L_k):
+                if L == 0 or unocc == 0:
+                    continue
+                Ncoeff = L * unoccc
                 deltaC = dX[Nk * Nw**2 + start: Nk * Nw**2 + start + Ncoeff]
-                C[:] = gram_schmidt(C + deltaC.reshape(Nb - N, L))
+                C += deltaC.reshape(unocc, L)
+                gram_schmidt(C)
                 start += Ncoeff
 
         self.update()
