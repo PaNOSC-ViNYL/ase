@@ -507,17 +507,25 @@ class Atoms(object):
         return len(self.arrays['positions'])
 
     def __repr__(self):
-        if len(self) < 20:
-            symbols = ''.join(self.get_chemical_symbols())
+        num = self.get_atomic_numbers()
+        N = len(num)
+        if N <= 60:
+            # Distinct atomic numbers in num:
+            dis = npy.concatenate(([0], npy.arange(1, N)[num[1:] != num[:-1]]))
+            repeat = npy.append(dis[1:], N) - dis
+            symbols = ''.join([chemical_symbols[num[d]] + str(r) * (r != 1)
+                               for r, d in zip(repeat, dis)])
         else:
-            symbols = ''.join([chemical_symbols[Z] 
-                               for Z in self.arrays['numbers'][:15]]) + '...'
+            symbols = ''.join([chemical_symbols[Z] for Z in num[:15]]) + '...'
         s = "Atoms(symbols='%s', " % symbols
         for name in self.arrays:
             if name == 'numbers':
                 continue
             s += '%s=..., ' % name
-        s += 'cell=%s, ' % self.cell.tolist()
+        if abs(self.cell - npy.diag(self.cell.diagonal())).sum() < 1e-12:
+            s += 'cell=%s, ' % self.cell.diagonal().tolist()
+        else:
+            s += 'cell=%s, ' % self.cell.tolist()            
         s += 'pbc=%s, ' % self.pbc.tolist()
         if len(self.constraints) == 1:
             s += 'constraint=%s, ' % repr(self.constraints[0])
