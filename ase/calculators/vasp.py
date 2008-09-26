@@ -368,9 +368,16 @@ class Vasp:
                     incar.write(' '+key.upper()+' = %s\n' % p[key])
         if self.spinpol:
             incar.write(' ispin = 2\n'.upper())
+            # Write out initial magnetic moments
             magmom = atoms.get_initial_magnetic_moments()
+            list = [[1, magmom[0]]]
+            for n in range(1, len(magmom)):
+                if magmom[n] == magmom[n-1]:
+                    list[-1][0] += 1
+                else:
+                    list.append([1, magmom[n]])
             incar.write(' magmom = '.upper())
-            [incar.write('%.4f ' % mom) for mom in magmom]
+            [incar.write('%i*%.4f ' % (mom[0], mom[1])) for mom in list]
             incar.write('\n')
         incar.close()
 
