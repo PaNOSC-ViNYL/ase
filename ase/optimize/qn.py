@@ -64,8 +64,11 @@ class QuasiNewton(Optimizer):
     def replay_trajectory(self, traj):
         """Initialize hessian from old trajectory."""
         if isinstance(traj, str):
+            from ase.io.trajectory import PickleTrajectory
             traj = PickleTrajectory(traj, 'r')
         r0, f0 = self.r0, self.f0
+        self.r0 = self.atoms.get_positions().ravel()
+        self.f0 = self.atoms.get_forces().ravel()
         self.H = None
         for atoms in traj:
             self.update(atoms.get_positions().ravel(),
