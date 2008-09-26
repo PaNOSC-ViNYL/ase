@@ -141,6 +141,53 @@ class FixedLine:
     def __repr__(self):
         return 'FixedLine(%d, %s)' % (self.a, self.dir.tolist())
 
+class fix_cartesian:
+    "Fix an atom in the directions of the cartesian coordinates."
+    def __init__(self, a, mask=[1,1,1]):
+        self.a=a
+        self.mask = -(np.array(mask)-1)
+    
+    def adjust_positions(self, old, new):
+        step = new - old
+        step[self.a] *= self.mask
+        new = old + step
+
+    def adjust_forces(self, positions, forces):
+        forces[self.a] *= self.mask
+
+    def copy(self):
+        return fix_cartesian(self.a, self.mask)
+
+    def __repr__(self):
+        return 'FixCartesian(indice=%s mask=%s)' % (self.a, self.mask)
+
+class fix_scaled:
+    "Fix an atom in the directions of the unit vectors."
+    def __init__(self, cell, a, mask=[1,1,1]):
+        self.cell = cell
+        self.a = a
+        self.mask = np.array(mask)
+
+    def adjust_positions(self, old, new):
+        scaled_old = np.dot(old, np.linalg.inv(self.cell))
+        scaled_new = np.dot(new, np.linalg.inv(self.cell))
+        for n in range(3):
+            if self.mask[n]:
+                scaled_new[self.a, n] = scaled_old[self.a, n]
+        new[self.a] = np.dot(scaled_new, self.cell)[self.a]
+
+    def adjust_forces(self, positions, forces):
+        scaled_forces = np.dot(forces, np.linalg.inv(self.cell))
+        scaled_forces[self.a] *= -(self.mask-1)
+        forces[self.a] = np.dot(scaled_forces, self.cell)[self.a]
+
+    def copy(self):
+        return fix_scaled(self.cell ,self.a, self.mask)
+
+    def __repr__(self):
+        return 'FixScaled(indice=%s mask=%s)' % (self.a, self.mask)
+
+
 
 class Filter:
     """Subset filter class."""

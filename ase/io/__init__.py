@@ -101,6 +101,10 @@ def read(filename, index=-1, format=None):
         from ase.io.xsf import read_xsf
         return read_xsf(filename, index)
 
+    if format == 'vasp':
+        from ase.io.vasp import read_vasp
+        return read_vasp(filename)
+    
     raise RuntimeError('That can *not* happen!')
 
 
