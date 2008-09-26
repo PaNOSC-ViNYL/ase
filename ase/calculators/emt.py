@@ -3,6 +3,7 @@
 from math import sqrt, exp, log, pi
 
 import numpy as npy
+import sys
 
 from ase.data import atomic_numbers, chemical_symbols
 from ase.units import Bohr
@@ -30,9 +31,27 @@ acut = 50.0
 class EMT:
 
     acut = 5.9
+    disabled = False  # Set to a message to disable (asap does this).
     
     def __init__(self):
         self.energy = None
+        if self.disabled:
+            #print >>sys.stderr, self.disabled
+            print >>sys.stderr, """
+            ase.EMT has been disabled by Asap.  Most likely, you
+            intended to use Asap's EMT calculator, but accidentally
+            imported ase's EMT calculator after Asap's.  This could
+            happen if your script contains the lines
+              from asap3 import *
+              from ase import *
+            Swap the two lines to solve the problem.
+
+            In the UNLIKELY event that you actually wanted to use
+            ase.EMT although asap3 is loaded into memory, please
+            reactivate it with the command
+              ase.EMT.disabled = False
+            """
+            raise RuntimeError("ase.EMT has been disabled.  See message printed above.")
         
     def initialize(self, atoms):
         self.par = {}
