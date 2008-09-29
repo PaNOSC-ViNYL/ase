@@ -509,7 +509,9 @@ class Atoms(object):
     def __repr__(self):
         num = self.get_atomic_numbers()
         N = len(num)
-        if N <= 60:
+        if N == 0:
+            symbols = ''
+        elif N <= 60:
             # Distinct atomic numbers in num:
             dis = npy.concatenate(([0], npy.arange(1, N)[num[1:] != num[:-1]]))
             repeat = npy.append(dis[1:], N) - dis
