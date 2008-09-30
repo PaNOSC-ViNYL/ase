@@ -86,6 +86,7 @@ keys = [
     'lscalapack', # switch off scaLAPACK
     'lscalu',     # switch of LU decomposition
     'lasync',     # overlap communcation with calculations
+    'addgrid',    # finer grid for augmentation charge density
     # 'NBLOCK' and KBLOCK       inner block; outer block
     # 'NPACO' and APACO         distance and nr. of slots for P.C.
     # 'WEIMIN, EBREAK, DEPER    special control tags
