@@ -31,3 +31,6 @@ second = 1e10 * sqrt(_e / _amu)
 fs = 1e-15 * second
 
 kB = _k / _e
+
+Pascal = (1 / _e) / 1e30  # J/m^3
+GPa = 1e9 * Pascal
