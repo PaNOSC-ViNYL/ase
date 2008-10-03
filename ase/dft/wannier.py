@@ -267,7 +267,7 @@ class Wannier:
             kdist_c = npy.empty(3)
             for c in range(3):
                 # make a sorted list of the kpoint values in this direction
-                slist = npy.argsort(self.kpt_kc[:, c])
+                slist = npy.argsort(self.kpt_kc[:, c], kind='mergesort')
                 skpoints_kc = npy.take(self.kpt_kc, slist, axis=0)
                 kdist_c[c] = max([skpoints_kc[n + 1, c] - skpoints_kc[n, c]
                                   for n in range(self.Nk - 1)])               
@@ -695,7 +695,7 @@ class Wannier:
             for C, unocc, L in zip(self.C_kul, self.nbands - M_k, L_k):
                 if L == 0 or unocc == 0:
                     continue
-                Ncoeff = L * unoccc
+                Ncoeff = L * unocc
                 deltaC = dX[Nk * Nw**2 + start: Nk * Nw**2 + start + Ncoeff]
                 C += deltaC.reshape(unocc, L)
                 gram_schmidt(C)
