@@ -20,4 +20,5 @@ other :mod:`Calculator <calculators>` could be plugged in instead.
    aneb
    association
    stm-tutorial
+   wannier/wannier
  

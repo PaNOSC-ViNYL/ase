@@ -459,7 +459,7 @@ class Wannier:
                                 Nk  k         
 
         where R is the cell-distance (in units of the basis vectors of
-        the small cell) and n,m are index of the Wannier functions."""
+        the small cell) and n,m are indices of the Wannier functions."""
 
         H_ww = npy.zeros([self.nwannier, self.nwannier], complex)
         for k, kpt_c in enumerate(self.kpt_kc):
@@ -573,7 +573,7 @@ class Wannier:
         if real:
             if self.Nk == 1:
                 func *= npy.exp(-1.j * npy.angle(func.max()))
-                assert max(abs(func.imag).flat) < 1e-6
+                assert max(abs(func.imag).flat) < 1e-3
                 func = func.real
             else:
                 func = abs(func)
