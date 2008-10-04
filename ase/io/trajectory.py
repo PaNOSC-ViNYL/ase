@@ -119,9 +119,6 @@ class PickleTrajectory:
     def close(self):
         self.fd.close()
 
-    def __del__(self):
-        self.close()
-        
     def __getitem__(self, i=-1):
         N = len(self.offsets)
         if 0 <= i < N:
