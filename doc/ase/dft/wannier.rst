@@ -14,8 +14,6 @@ class :class:`Wannier`. The page is organized as follows:
 * `Introduction`_: A short summary of the basic theory.
 * `The Wannier class`_ : A description of how the Wannier class is
   used, and the methods defined within.
-* `Band structure and orbital analysis`_ : A description of how to
-  analyse the band structure using localized Wannier orbitals.
 
 Introduction
 ============
