@@ -124,7 +124,7 @@ def random_orthogonal_matrix(dim, seed=None, real=False):
         return npy.dot(vec * npy.exp(1.j * val), dag(vec))
 
 
-def steepest_descent(func, step=0.005, tolerance=1e-6, **kwargs):
+def steepest_descent(func, step=.005, tolerance=1e-6, **kwargs):
     fvalueold = 0.
     fvalue = fvalueold + 10
     count=0
@@ -137,26 +137,29 @@ def steepest_descent(func, step=0.005, tolerance=1e-6, **kwargs):
         print 'SteepestDescent: iter=%s, value=%s' % (count, fvalue)
 
 
-def md_min(func, step=0.25, tolerance=1e-6, verbose=True, **kwargs):
+def md_min(func, step=.25, tolerance=1e-6, verbose=False, **kwargs):
+    if verbose:
+        print 'Localize with step =', step, 'and tolerance =', tolerance
         t = -time()
-        fvalueold = 0.
-        fvalue = fvalueold + 10
-        count = 0
-        V = npy.zeros(func.get_gradients().shape, dtype=complex)
-        while abs((fvalue - fvalueold) / fvalue) > tolerance:
-            fvalueold = fvalue
-            dF = func.get_gradients()
-            V *= (dF * V.conj()).real > 0
-            V += step * dF
-            func.step(V, **kwargs)
-            fvalue = func.get_functional_value()
-            if fvalue < fvalueold:
-                step *= 0.5
-            count += 1
-            if verbose:
-                print 'MDmin: iter=%s, step=%s, value=%s' % (count,step,fvalue)
+    fvalueold = 0.
+    fvalue = fvalueold + 10
+    count = 0
+    V = npy.zeros(func.get_gradients().shape, dtype=complex)
+    while abs((fvalue - fvalueold) / fvalue) > tolerance:
+        fvalueold = fvalue
+        dF = func.get_gradients()
+        V *= (dF * V.conj()).real > 0
+        V += step * dF
+        func.step(V, **kwargs)
+        fvalue = func.get_functional_value()
+        if fvalue < fvalueold:
+            step *= 0.5
+        count += 1
+        if verbose:
+            print 'MDmin: iter=%s, step=%s, value=%s' % (count, step, fvalue)
+    if verbose:
         t += time()
-        print '%d iterations in %0.2f seconds (%0.2f ms/iter), endstep = %s'%(
+        print '%d iterations in %0.2f seconds (%0.2f ms/iter), endstep = %s' %(
             count, t, t * 1000. / count, step)
 
 
@@ -200,11 +203,14 @@ def rotation_from_projection(proj_nw, fixed, ortho=True):
 
 class Wannier:
     def __init__(self, nwannier, calc,
+                 file=None,
                  nbands=None,
-                 occupationenergy=None,
+                 fixedenergy=None,
                  fixedstates=None,
                  spin=0,
-                 verbose=True):
+                 initialwannier='random',
+                 seed=None,
+                 verbose=False):
 
         # Bloch phase sign convention
         sign = -1
@@ -229,7 +235,7 @@ class Wannier:
         else:
             self.nbands = calc.get_number_of_bands()
 
-        if occupationenergy is None:
+        if fixedenergy is None:
             if fixedstates is None:
                 self.fixedstates_k = npy.array([nwannier] * self.Nk, int)
             else:
@@ -239,9 +245,9 @@ class Wannier:
         else:
             # Setting number of fixed states and EDF from specified energy.
             # All states below this energy (relative to Fermi level) are fixed.
-            occupationenergy += calc.get_fermi_level()
+            fixedenergy += calc.get_fermi_level()
             self.fixedstates_k = npy.array(
-                [calc.get_eigenvalues(k, spin).searchsorted(occupationenergy)
+                [calc.get_eigenvalues(k, spin).searchsorted(fixedenergy)
                  for k in range(self.Nk)], int)
         self.edf_k = self.nwannier - self.fixedstates_k
         if verbose:
@@ -258,10 +264,10 @@ class Wannier:
         # For a gamma point calculation k1 = k = 0,  k0 = [1,0,0] for dir=0
         if self.Nk == 1:
             self.kklst_dk = npy.zeros((self.Ndir, 1), int)
-            self.k0_dkc = self.Gdir_dc.reshape(-1, 1, 3)
+            k0_dkc = self.Gdir_dc.reshape(-1, 1, 3)
         else:
             self.kklst_dk = npy.empty((self.Ndir, self.Nk), int)
-            self.k0_dkc = npy.empty((self.Ndir, self.Nk, 3), int)
+            k0_dkc = npy.empty((self.Ndir, self.Nk, 3), int)
 
             # Distance between kpoints
             kdist_c = npy.empty(3)
@@ -278,9 +284,9 @@ class Wannier:
                     G_c = npy.where(Gdir_c > 0, kdist_c, 0)
                     if max(G_c) < 1e-4:
                         self.kklst_dk[d, k] = k
-                        self.k0_dkc[d, k] = Gdir_c
+                        k0_dkc[d, k] = Gdir_c
                     else:
-                        self.kklst_dk[d, k], self.k0_dkc[d, k] = \
+                        self.kklst_dk[d, k], k0_dkc[d, k] = \
                                        neighbor_k_search(k_c, G_c, self.kpt_kc)
 
         # Set the inverse list of neighboring k-points
@@ -289,25 +295,30 @@ class Wannier:
             for k1 in range(self.Nk):
                 self.invkklst_dk[d, k1] = self.kklst_dk[d].tolist().index(k1)
 
-    def initialize(self, calc, first=True, initialwannier=None,
-                   seed=None, bloch=False):
         Nw = self.nwannier
         Nb = self.nbands
-
-        if first:
-            self.Z_dkww = npy.empty((self.Ndir, self.Nk, Nw, Nw), complex)
+        self.Z_dkww = npy.empty((self.Ndir, self.Nk, Nw, Nw), complex)
+        self.V_knw = npy.zeros((self.Nk, Nb, Nw), complex)
+        if file is None:
             self.Z_dknn = npy.empty((self.Ndir, self.Nk, Nb, Nb), complex)
-            self.V_knw = npy.zeros((self.Nk, Nb, Nw), complex)
             for d, dirG in enumerate(self.Gdir_dc):
                 for k in range(self.Nk):
                     k1 = self.kklst_dk[d, k]
-                    k0_c = self.k0_dkc[d, k]
+                    k0_c = k0_dkc[d, k]
                     self.Z_dknn[d, k] = calc.get_wannier_localization_matrix(
                         nbands=Nb, dirG=dirG, kpoint=k, nextkpoint=k1,
                         G_I=k0_c, spin=self.spin)
+        self.initialize(file=file, initialwannier=initialwannier,
+                        calc=calc, seed=seed)
 
-        # Initialize rotation and coefficient matrices
-        if bloch is True:
+    def initialize(self, file=None, initialwannier='random',
+                   calc=None, seed=None):
+        Nw = self.nwannier
+        Nb = self.nbands
+
+        if file is not None:
+            self.Z_dknn, self.U_kww, self.C_kul = load(paropen(file))
+        elif initialwannier == 'bloch':
             # Set U and C to pick the lowest Bloch states
             self.U_kww = npy.zeros((self.Nk, Nw, Nw), complex)
             self.C_kul = []
@@ -318,12 +329,7 @@ class Wannier:
                         npy.identity(Nb - M, complex)[:, :L])
                 else:
                     self.C_kul.append([])
-        elif initialwannier is not None:
-            # Use initial guess to determine U and C
-            self.C_kul, self.U_kww = calc.initial_wannier(
-                initialwannier, self.kptgrid, self.fixedstates_k,
-                self.edf_k, self.spin)
-        else:
+        elif initialwannier == 'random':
             # Set U and C to random (orthogonal) matrices
             self.U_kww = npy.zeros((self.Nk, Nw, Nw), complex)
             self.C_kul = []
@@ -334,7 +340,15 @@ class Wannier:
                         Nb - M, seed=seed, real=False)[:, :L])
                 else:
                     self.C_kul.append(npy.array([]))        
+        else:
+            # Use initial guess to determine U and C
+            self.C_kul, self.U_kww = calc.initial_wannier(
+                initialwannier, self.kptgrid, self.fixedstates_k,
+                self.edf_k, self.spin)
         self.update()
+
+    def save(self, file):
+        dump((self.Z_dknn, self.U_kww, self.C_kul), paropen(file, 'w'))
 
     def update(self):
         # Update large rotation matrix V (from rotation U and coeff C)
@@ -342,8 +356,7 @@ class Wannier:
             self.V_knw[k, :M] = self.U_kww[k, :M]
             if M < self.nwannier:
                 self.V_knw[k, M:] = npy.dot(self.C_kul[k], self.U_kww[k, M:])
-##             else:
-##                 self.V_knw[k, M:] = 0.0
+            # else: self.V_knw[k, M:] = 0.0
 
         # Calculate the Zk matrix from the large rotation matrix:
         # Zk = V^d[k] Zbloch V[k1]
@@ -413,17 +426,6 @@ class Wannier:
         print 'Index:', index
         print 'Spread:', d[index]           
 
-    def dump(self, file):
-        dump((self.Z_dknn, self.U_kww, self.C_kul), paropen(file, 'w'))
-
-    def load(self, file):
-        Nw = self.nwannier
-        Nb = self.nbands
-        self.Z_dkww = npy.empty((self.Ndir, self.Nk, Nw, Nw), complex)
-        self.V_knw = npy.zeros((self.Nk, Nb, Nw), complex)
-        self.Z_dknn, self.U_kww, self.C_kul = load(paropen(file))
-        self.update()
-
     def translate(self, w, R):
         """Translate the w'th Wannier function
 
@@ -449,6 +451,17 @@ class Wannier:
             U_ww *= npy.exp(2.j * pi * npy.dot(trans_wc, kpt_c))
         self.update()
 
+    def distances(self, R):
+        Nw = self.nwannier
+        cen = self.get_centers()
+        r1 = cen.repeat(Nw).reshape(Nw, Nw, 3)
+        r2 = cen.copy()
+        for i in range(3):
+            r2 += self.unitcell_cc[i] * R[i]
+
+        r2 = npy.swapaxes(r2.repeat(Nw).reshape(Nw, Nw, 3), 0, 1)
+        return npy.sqrt(npy.sum((r1 - r2)**2, axis=-1))
+
     def get_hopping(self, R, calc):
         """Returns the matrix H(R)_nm=<0,n|H|R,m>.
 
@@ -459,12 +472,13 @@ class Wannier:
                                 Nk  k         
 
         where R is the cell-distance (in units of the basis vectors of
-        the small cell) and n,m are indices of the Wannier functions."""
-
+        the small cell) and n,m are indices of the Wannier functions.
+        """
         H_ww = npy.zeros([self.nwannier, self.nwannier], complex)
         for k, kpt_c in enumerate(self.kpt_kc):
             phase = npy.exp(-2.j * pi * npy.dot(npy.array(R), kpt_c))
             H_ww += self.get_hamiltonian(calc, k) * phase
+        #print npy.linalg.eigvalsh(H_ww / self.Nk).real
         return H_ww / self.Nk
 
     def get_hamiltonian(self, calc, k=0):
@@ -479,17 +493,6 @@ class Wannier:
         eps_n = calc.get_eigenvalues(kpt=k, spin=self.spin)
         return npy.dot(dag(self.V_knw[k]) * eps_n, self.V_knw[k])
 
-    def distances(self, R):
-        Nw = self.Nwannier
-        cen = self.get_center()
-        r1 = cen.repeat(Nwannier).reshape(Nw, Nw, 3)
-        r2 = cen.copy()
-        for i in range(3):
-            r2 += self.unitcell[i] * R[i]
-
-        r2 = npy.swapaxes(r2.repeat(Nw).reshape(Nw, Nw, 3), 0, 1)
-        return npy.sqrt(npy.sum((r1 - r2)**2, axis=-1))
-
     def get_hamiltonian_kpoint(self, kpt_c, calc):
         """Get Hamiltonian at some new arbitrary k-vector
 
@@ -499,28 +502,25 @@ class Wannier:
           H(k) = >_  e     H(R)
                   R         
         """
-        # self.get_min_distance() and self.couplingradius missing
-        raise NotImplementedError
+##         The cutoff distance truncates the Wannier orbitals at the
+##         specified distance. This distance should be smaller than half
+##         the length of large unitcell. The truncation is necessary
+##         because the Wannier functions will always be periodic (with a
+##         periodicity given by the large cell), and thus in order to
+##         describe completely localized orbitals the WFs must be
+##         truncated.
         max = (self.kptgrid - 1) / 2
         max += max > 0
         N1, N2, N3 = max
-        if not hasattr(self, hop_rww):
-            self.R_rc = []
-            self.hop_rww = []
-            for n1 in xrange(-N1, N1 + 1):
-                for n2 in xrange(-N2, N2 + 1):
-                    for n3 in xrange(-N3, N3 + 1):
-                        R = [n1, n2, n3]
-                        if self.get_min_distance(R) < self.couplingradius: #XXX
-                            self.R_rc.append(R)
-                            self.hop_rww.append(self.get_hopping(R, calc))
-                            
         Hk = npy.zeros([self.nwannier, self.nwannier], complex)
-        for R, hop_ww in zip(self.R_rc, self.hop_rww):
-            filter = self.distances(R) < self.couplingradius # XXX
-            phase = npy.exp(+2.j * pi * npy.dot(npy.array(R), kpt_c))
-            Hk += hop_ww * filter * phase
-        return npy.sort(npy.linalg.eigvals(Hk).real)
+        for n1 in xrange(-N1, N1 + 1):
+            for n2 in xrange(-N2, N2 + 1):
+                for n3 in xrange(-N3, N3 + 1):
+                    R = npy.array([n1, n2, n3], float)
+                    hop_ww = self.get_hopping(R, calc)
+                    phase = npy.exp(+2.j * pi * npy.dot(R, kpt_c))
+                    Hk += hop_ww * phase
+        return Hk
 
     def get_function(self, calc, index, repeat=None):
         """Index can be either a single WF or a coordinate vector
@@ -573,7 +573,7 @@ class Wannier:
         if real:
             if self.Nk == 1:
                 func *= npy.exp(-1.j * npy.angle(func.max()))
-                assert max(abs(func.imag).flat) < 1e-3
+                if 0: assert max(abs(func.imag).flat) < 1e-4
                 func = func.real
             else:
                 func = abs(func)
@@ -588,11 +588,8 @@ class Wannier:
 
     def localize(self, step=0.25, tolerance=1e-08,
                  updaterot=True, updatecoeff=True):
-        print 'Localize with step =', step, 'and tolerance =', tolerance
-##         maxi = steepest_descent(self, step, tolerance, updaterot=updaterot,
-##                                 updatecoeff=updatecoeff)
-        maxi = md_min(self, step, tolerance, verbose=self.verbose,
-                      updaterot=updaterot, updatecoeff=updatecoeff)
+         md_min(self, step, tolerance, verbose=self.verbose,
+                updaterot=updaterot, updatecoeff=updatecoeff)
 
     def get_functional_value(self): 
         """Calculate the value of the spread functional.
