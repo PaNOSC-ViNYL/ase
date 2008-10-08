@@ -46,12 +46,7 @@ def write_cube(fileobj, atoms, data=None):
     for Z, (x, y, z) in zip(numbers, positions):
         fileobj.write('%5d%12.6f%12.6f%12.6f%12.6f\n' % (Z, 0.0, x, y, z)) 
 
-    for dyz in data:
-        for dz in dyz:
-            for i, d in enumerate(dz):
-                fileobj.write('%e ' % d)
-                if i % 6 == 5:
-                    fileobj.write('\n')
+    data.tofile(fileobj, sep='\n', format='%e')
 
 
 def read_cube(fileobj, index=-1, read_data=False):
