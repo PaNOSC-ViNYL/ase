@@ -3,7 +3,8 @@ from gpaw import GPAW
 
 kpts = monkhorst_pack((13, 1, 1))
 kpts[:, 0] += 1e-5
-calc = GPAW(h=.2, xc='PBE', kpts=kpts, nbands=12, txt='poly.txt')
+calc = GPAW(h=.21, xc='PBE', kpts=kpts, nbands=12, txt='poly.txt',
+            eigensolver='cg', convergence={'bands': 9})
 
 CC = 1.38
 CH = 1.094
