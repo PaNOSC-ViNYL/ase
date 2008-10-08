@@ -6,6 +6,9 @@ import glob
 import trace
 import tempfile
 
+tmpdir = tempfile.mkdtemp(prefix='ase-')
+os.chdir(tmpdir)
+
 def build():
     if os.system('svn export ' +
                  'https://svn.fysik.dtu.dk/projects/ase/trunk ase') != 0:
@@ -17,7 +20,7 @@ def build():
     from ase.test import test
 
     # Run test-suite:
-    results = test(verbosity=2, dir='ase/test')
+    results = test(verbosity=2, dir='ase/test', display=False)
     if len(results.failures) > 0 or len(results.errors) > 0:
         raise RuntimeError('Testsuite failed!')
 
@@ -35,7 +38,7 @@ def build():
 
     os.chdir('doc')
     os.mkdir('_build')
-    if os.system('sphinx-build . _build') != 0:
+    if os.system('PYTHONPATH=%s/ase sphinx-build . _build' % tmpdir) != 0:
         raise RuntimeError('Sphinx failed!')
     os.system('cd _build; cp _static/searchtools.js .')
 
@@ -52,4 +55,15 @@ def build():
     assert os.system('mv ../../html epydoc;' +
                      'mv ../../dist/python-ase-3.0.0.tar.gz .') == 0
     
+tarfiledir = None
+if len(sys.argv) == 2:
+    tarfiledir = sys.argv[1]
+    try:
+        os.remove(tarfiledir + '/ase-webpages.tar.gz')
+    except OSError:
+        pass
+
 build()
+    
+if tarfiledir is not None:
+    os.system('cd ..; tar czf %s/ase-webpages.tar.gz _build' % tarfiledir)
