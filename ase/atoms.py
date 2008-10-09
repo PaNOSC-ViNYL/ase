@@ -174,7 +174,7 @@ class Atoms(object):
         else:
             if scaled_positions is not None:
                 raise RuntimeError, 'Both scaled and cartesian positions set!'
-        self.new_array('positions', positions, float)
+        self.new_array('positions', positions, float, (3,))
 
         self.set_constraint(constraint)
         self.set_tags(default(tags, 0))
@@ -267,7 +267,11 @@ class Atoms(object):
         """Get periodic boundary condition flags."""
         return self.pbc.copy()
 
-    def new_array(self, name, a, dtype=None):
+    def new_array(self, name, a, dtype=None, shape=None):
+        """Add new array.
+
+        If *shape* is not *None*, the shape of *a* will be checked."""
+        
         if dtype is not None:
             a = npy.array(a, dtype)
         else:
@@ -281,18 +285,31 @@ class Atoms(object):
                 raise ValueError('Array has wrong length: %d != %d.' %
                                  (len(a), len(b)))
             break
+
+        if shape is not None and a.shape[1:] != shape:
+            raise ValueError('Array has wrong shape %s != %s.' %
+                             (a.shape, (a.shape[0:1] + shape)))
         
         self.arrays[name] = a
     
-    def set_array(self, name, a, dtype=None):
+    def set_array(self, name, a, dtype=None, shape=None):
+        """Update array.
+
+        If *shape* is not *None*, the shape of *a* will be checked.
+        If *a* is *None*, then the array is deleted."""
+        
         b = self.arrays.get(name)
         if b is None:
             if a is not None:
-                self.new_array(name, a, dtype)
+                self.new_array(name, a, dtype, shape)
         else:
             if a is None:
                 del self.arrays[name]
             else:
+                a = npy.asarray(a)
+                if a.shape != b.shape:
+                    raise ValueError('Array has wrong shape %s != %s.' %
+                                     (a.shape, b.shape))
                 b[:] = a
 
     def has(self, name):
@@ -304,7 +321,7 @@ class Atoms(object):
     
     def set_atomic_numbers(self, numbers):
         """Set atomic numbers."""
-        self.set_array('numbers', numbers, int)
+        self.set_array('numbers', numbers, int, ())
 
     def get_atomic_numbers(self):
         """Get integer array of atomic numbers."""
@@ -312,7 +329,7 @@ class Atoms(object):
 
     def set_chemical_symbols(self, symbols):
         """Set chemical symbols."""
-        self.set_array('numbers', symbols2numbers(symbols), int)
+        self.set_array('numbers', symbols2numbers(symbols), int, ())
 
     def get_chemical_symbols(self):
         """Get list of chemical symbol strings."""
@@ -320,7 +337,7 @@ class Atoms(object):
 
     def set_tags(self, tags):
         """Set tags for all atoms."""
-        self.set_array('tags', tags, int)
+        self.set_array('tags', tags, int, ())
         
     def get_tags(self):
         """Get integer array of tags."""
@@ -335,7 +352,7 @@ class Atoms(object):
             momenta = npy.array(momenta)  # modify a copy
             for constraint in self.constraints:
                 constraint.adjust_forces(self.arrays['positions'], momenta)
-        self.set_array('momenta', momenta, float)
+        self.set_array('momenta', momenta, float, (3,))
 
     def get_momenta(self):
         """Get array of momenta."""
@@ -361,7 +378,7 @@ class Atoms(object):
                 else:
                     newmasses.append(m)
             masses = newmasses
-        self.set_array('masses', masses, float)
+        self.set_array('masses', masses, float, ())
 
     def get_masses(self):
         """Get array of masses."""
@@ -372,7 +389,7 @@ class Atoms(object):
         
     def set_magnetic_moments(self, magmoms):
         """Set the initial magnetic moments."""
-        self.set_array('magmoms', magmoms, float)
+        self.set_array('magmoms', magmoms, float, ())
 
     def get_initial_magnetic_moments(self):
         """Get array of initial magnetic moments."""
@@ -401,7 +418,7 @@ class Atoms(object):
 
     def set_charges(self, charges):
         """Set charges."""
-        self.set_array('charges', charges, float)
+        self.set_array('charges', charges, float, ())
 
     def get_charges(self):
         """Get array of charges."""
@@ -418,7 +435,7 @@ class Atoms(object):
             for constraint in self.constraints:
                 constraint.adjust_positions(positions, newpositions)
                 
-        positions[:] = newpositions
+        self.set_array('positions', newpositions, shape=(3,))
 
     def get_positions(self):
         """Get array of positions."""
