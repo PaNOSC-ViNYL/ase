@@ -5,7 +5,7 @@ from gpaw import restart
 atoms, calc = restart('poly.gpw', txt=None)
 
 # Make wannier functions using (one) extra degree of freedom
-wan = Wannier(nwannier=6, calc=calc, fixedenergy=1.5, file='poly.pickle')
+wan = Wannier(nwannier=6, calc=calc, fixedenergy=1.5)
 wan.localize()
 wan.save('poly.pickle')
 wan.translate_all_to_cell((2, 0, 0))
