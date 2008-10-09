@@ -17,10 +17,10 @@ ef = calc.get_fermi_level()
 f = open('KSbands.txt', 'w')
 for k, kpt_c in enumerate(calc.get_ibz_k_points()):
     for eps in calc.get_eigenvalues(kpt=k):
-        print >> fks, kpt_c[0], eps - ef
+        print >> f, kpt_c[0], eps - ef
 
 # Print Wannier bandstructure
 f = open('WANbands.txt', 'w')
 for k in linspace(-.5, .5, 100):
-    for eps in linalg.eigvalsh(wan.get_hamiltonian_kpoint([k, 0, 0], calc))
-        print >> f, k, eps.real - ef
+    for eps in linalg.eigvalsh(wan.get_hamiltonian_kpoint([k, 0, 0])).real:
+        print >> f, k, eps - ef

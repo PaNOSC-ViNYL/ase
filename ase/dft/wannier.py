@@ -207,46 +207,8 @@ class Wannier:
     Find the set of maximally localized Wannier functions using the
     spread functional of Marzari and Vanderbilt (PRB 56, 1997 page
     12847).
-
-    Required arguments:
-
-      ``nwannier``: The number of Wannier functions you wish to construct.
-        This must be at least half the number of electrons in the system
-        and at most equal to the number of bands in the calculation.
-
-      ``calc``: A converged DFT calculator class.
-        If ``file`` arg. is not provided, the calculator *must* provide the
-        method ``get_wannier_localization_matrix``, and contain the
-        wavefunctions (save files with only the density is not enough).
-        If the localization matrix is read from file, this is not needed,
-        unless `get_function` or `write_cube` is called.
-      
-    Optional arguments:
-
-      ``nbands``: Bands to include in localization.
-        The number of bands considered by Wannier can be smaller than the
-        number of bands in the calculator. This is useful if the highest
-        bands of the DFT calculation are not well converged.
-
-      ``spin``: The spin channel to be considered.
-        The Wannier code treats each spin channel independently.
-
-      ``fixedenergy`` / ``fixedstates``: Fixed part of Heilbert space.
-        Determine the fixed part of Hilbert space by either a maximal energy
-        *or* a number of bands (possibly a list for multiple k-points).
-        Default is None meaning that the number of fixed states is equated
-        to ``nwannier``.
-
-      ``file``: Read localization and rotation matrices from this file.
-
-      ``initialwannier``: Initial guess for Wannier rotation matrix.
-        Can be 'bloch' to start from the Bloch states, 'random' to be
-        randomized, or a list passed to calc.get_initial_wannier.
-
-      ``seed``: Seed for random ``initialwannier``.
-
-      ``verbose``: True / False level of verbosity.
     """
+
     def __init__(self, nwannier, calc,
                  file=None,
                  nbands=None,
@@ -256,7 +218,47 @@ class Wannier:
                  initialwannier='random',
                  seed=None,
                  verbose=False):
+        """
+        Required arguments:
 
+          ``nwannier``: The number of Wannier functions you wish to construct.
+            This must be at least half the number of electrons in the system
+            and at most equal to the number of bands in the calculation.
+
+          ``calc``: A converged DFT calculator class.
+            If ``file`` arg. is not provided, the calculator *must* provide the
+            method ``get_wannier_localization_matrix``, and contain the
+            wavefunctions (save files with only the density is not enough).
+            If the localization matrix is read from file, this is not needed,
+            unless `get_function` or `write_cube` is called.
+          
+        Optional arguments:
+
+          ``nbands``: Bands to include in localization.
+            The number of bands considered by Wannier can be smaller than the
+            number of bands in the calculator. This is useful if the highest
+            bands of the DFT calculation are not well converged.
+
+          ``spin``: The spin channel to be considered.
+            The Wannier code treats each spin channel independently.
+
+          ``fixedenergy`` / ``fixedstates``: Fixed part of Heilbert space.
+            Determine the fixed part of Hilbert space by either a maximal
+            energy *or* a number of bands (possibly a list for multiple
+            k-points).
+            Default is None meaning that the number of fixed states is equated
+            to ``nwannier``.
+
+          ``file``: Read localization and rotation matrices from this file.
+
+          ``initialwannier``: Initial guess for Wannier rotation matrix.
+            Can be 'bloch' to start from the Bloch states, 'random' to be
+            randomized, or a list passed to calc.get_initial_wannier.
+
+          ``seed``: Seed for random ``initialwannier``.
+
+          ``verbose``: True / False level of verbosity.
+          """
         # Bloch phase sign convention
         sign = -1
         if isinstance(calc, Dacapo):
@@ -400,7 +402,6 @@ class Wannier:
         dump((self.Z_dknn, self.U_kww, self.C_kul), paropen(file, 'w'))
 
     def update(self):
-        """Internal method for updaten rotation matrices."""
         # Update large rotation matrix V (from rotation U and coeff C)
         for k, M in enumerate(self.fixedstates_k):
             self.V_knw[k, :M] = self.U_kww[k, :M]
@@ -645,6 +646,7 @@ class Wannier:
         return wanniergrid
 
     def write_cube(self, index, fname, repeat=None, real=True):
+        """Dump specified Wannier function to a cube file"""
         from ase.io.cube import write_cube
 
         # Default size of plotting cell is the one corresponding to k-points.
@@ -672,8 +674,9 @@ class Wannier:
 
     def localize(self, step=0.25, tolerance=1e-08,
                  updaterot=True, updatecoeff=True):
-         md_min(self, step, tolerance, verbose=self.verbose,
-                updaterot=updaterot, updatecoeff=updatecoeff)
+        """Optimize rotation to give maximal localization"""
+        md_min(self, step, tolerance, verbose=self.verbose,
+               updaterot=updaterot, updatecoeff=updatecoeff)
 
     def get_functional_value(self): 
         """Calculate the value of the spread functional.
@@ -687,31 +690,31 @@ class Wannier:
         return npy.dot(a_d, self.weight_d).real
 
     def get_gradients(self):
-        """Determine gradient of the spread functional
-
-        The gradient for a rotation A_kij is::
+        # Determine gradient of the spread functional.
+        # 
+        # The gradient for a rotation A_kij is::
+        # 
+        #    dU = dRho/dA_{k,i,j} = sum(I) sum(k')
+        #            + Z_jj Z_kk',ij^* - Z_ii Z_k'k,ij^*
+        #            - Z_ii^* Z_kk',ji + Z_jj^* Z_k'k,ji
+        # 
+        # The gradient for a change of coefficients is::
+        # 
+        #   dRho/da^*_{k,i,j} = sum(I) [[(Z_0)_{k} V_{k'} diag(Z^*) +
+        #                                (Z_0_{k''})^d V_{k''} diag(Z)] *
+        #                                U_k^d]_{N+i,N+j}
+        # 
+        # where diag(Z) is a square,diagonal matrix with Z_nn in the diagonal, 
+        # k' = k + dk and k = k'' + dk.
+        # 
+        # The extra degrees of freedom chould be kept orthonormal to the fixed
+        # space, thus we introduce lagrange multipliers, and minimize instead::
+        # 
+        #     Rho_L=Rho- sum_{k,n,m} lambda_{k,nm} <c_{kn}|c_{km}>
+        # 
+        # for this reason the coefficient gradients should be multiplied
+        # by (1 - c c^d).
         
-           dU = dRho/dA_{k,i,j} = sum(I) sum(k')
-                   + Z_jj Z_kk',ij^* - Z_ii Z_k'k,ij^*
-                   - Z_ii^* Z_kk',ji + Z_jj^* Z_k'k,ji
-    
-        The gradient for a change of coefficients is::
-        
-          dRho/da^*_{k,i,j} = sum(I) [[(Z_0)_{k} V_{k'} diag(Z^*) +
-                                       (Z_0_{k''})^d V_{k''} diag(Z)] *
-                                       U_k^d]_{N+i,N+j}
-
-        where diag(Z) is a square,diagonal matrix with Z_nn in the diagonal, 
-        k' = k + dk and k = k'' + dk.
-
-        The extra degrees of freedom chould be kept orthonormal to the fixed
-        space, thus we introduce lagrange multipliers, and minimize instead::
-
-            Rho_L=Rho- sum_{k,n,m} lambda_{k,nm} <c_{kn}|c_{km}>
-
-        for this reason the coefficient gradients should be multiplied
-        by (1 - c c^d).
-        """
         Nb = self.nbands
         Nw = self.nwannier
         
@@ -756,7 +759,7 @@ class Wannier:
         return npy.concatenate(dU + dC)
                         
     def step(self, dX, updaterot=True, updatecoeff=True):
-        """ dX is (A, dC) where U->Uexp(-A) and C->C+dC """
+        # dX is (A, dC) where U->Uexp(-A) and C->C+dC
         Nw = self.nwannier
         Nk = self.Nk
         M_k = self.fixedstates_k

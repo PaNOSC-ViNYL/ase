@@ -11,7 +11,6 @@ pl.plot(k, eps, 'ro', label='DFT', ms=9)
 k, eps = pl.load('WANbands.txt', unpack=True)
 pl.plot(k, eps, 'k.', label='Wannier')
 
-
 pl.plot([-.5, .5], [1, 1], 'k:', label='_nolegend_')
 pl.text(-.5, 1, 'fixedenergy', ha='left', va='bottom')
 pl.axis('tight')
