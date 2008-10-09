@@ -2,4 +2,9 @@
 Partly occupied Wannier Functions
 =================================
 
-.. .. literalinclude:: ../../tutorials/N2Ru-Association.py
+.. literalinclude:: benzene.py
+.. literalinclude:: wannier_benzene.py
+.. literalinclude:: plot_spectral_weight.py
+.. literalinclude:: polyacetylene.py
+.. literalinclude:: wannier_polyacetylene.py
+.. literalinclude:: plot_band_structure.py

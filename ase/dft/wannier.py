@@ -202,6 +202,51 @@ def rotation_from_projection(proj_nw, fixed, ortho=True):
 
 
 class Wannier:
+    """Maximally localized Wannier Functions
+
+    Find the set of maximally localized Wannier functions using the
+    spread functional of Marzari and Vanderbilt (PRB 56, 1997 page
+    12847).
+
+    Required arguments:
+
+      ``nwannier``: The number of Wannier functions you wish to construct.
+        This must be at least half the number of electrons in the system
+        and at most equal to the number of bands in the calculation.
+
+      ``calc``: A converged DFT calculator class.
+        If ``file`` arg. is not provided, the calculator *must* provide the
+        method ``get_wannier_localization_matrix``, and contain the
+        wavefunctions (save files with only the density is not enough).
+        If the localization matrix is read from file, this is not needed,
+        unless `get_function` or `write_cube` is called.
+      
+    Optional arguments:
+
+      ``nbands``: Bands to include in localization.
+        The number of bands considered by Wannier can be smaller than the
+        number of bands in the calculator. This is useful if the highest
+        bands of the DFT calculation are not well converged.
+
+      ``spin``: The spin channel to be considered.
+        The Wannier code treats each spin channel independently.
+
+      ``fixedenergy`` / ``fixedstates``: Fixed part of Heilbert space.
+        Determine the fixed part of Hilbert space by either a maximal energy
+        *or* a number of bands (possibly a list for multiple k-points).
+        Default is None meaning that the number of fixed states is equated
+        to ``nwannier``.
+
+      ``file``: Read localization and rotation matrices from this file.
+
+      ``initialwannier``: Initial guess for Wannier rotation matrix.
+        Can be 'bloch' to start from the Bloch states, 'random' to be
+        randomized, or a list passed to calc.get_initial_wannier.
+
+      ``seed``: Seed for random ``initialwannier``.
+
+      ``verbose``: True / False level of verbosity.
+    """
     def __init__(self, nwannier, calc,
                  file=None,
                  nbands=None,
@@ -312,6 +357,10 @@ class Wannier:
         self.initialize(file=file, initialwannier=initialwannier, seed=seed)
 
     def initialize(self, file=None, initialwannier='random', seed=None):
+        """Re-initialize current rotation matrix.
+
+        Keywords are identical to those of the constructor.
+        """
         Nw = self.nwannier
         Nb = self.nbands
 
@@ -347,9 +396,11 @@ class Wannier:
         self.update()
 
     def save(self, file):
+        """Save information on localization and rotation matrices to file."""
         dump((self.Z_dknn, self.U_kww, self.C_kul), paropen(file, 'w'))
 
     def update(self):
+        """Internal method for updaten rotation matrices."""
         # Update large rotation matrix V (from rotation U and coeff C)
         for k, M in enumerate(self.fixedstates_k):
             self.V_knw[k, :M] = self.U_kww[k, :M]
@@ -405,6 +456,13 @@ class Wannier:
         return abs(self.V_knw[:, :, w])**2 / self.Nk
 
     def get_pdos(self, w, energies, width):
+        """Projected density of states (PDOS).
+
+        Returns the (PDOS) for Wannier function ``w``. The calculation
+        is performed over the energy grid specified in energies. The
+        PDOS is produced as a sum of Gaussians centered at the points
+        of the energy grid and with the specified width.
+        """
         spec_kn = self.get_spectral_weight(w)
         dos = npy.zeros(len(energies))
         for k, spec_n in enumerate(spec_kn):
@@ -442,7 +500,22 @@ class Wannier:
         self.translate(w, trans)
 
     def translate_all_to_cell(self, cell=[0, 0, 0]):
-        """Translate all Wannier functions to specified cell"""
+        """Translate all Wannier functions to specified cell.
+
+        Move all Wannier orbitals to a specific unit cell.  There
+        exists an arbitrariness in the positions of the Wannier
+        orbitals relative to the unit cell. This method can move all
+        orbitals to the unit cell specified by ``cell``.  For a
+        `\Gamma`-point calculation, this has no effect. For a
+        **k**-point calculation the periodicity of the orbitals are
+        given by the large unit cell defined by repeating the original
+        unitcell by the number of **k**-points in each direction.  In
+        this case it is usefull to move the orbitals away from the
+        boundaries of the large cell before plotting them. For a bulk
+        calculation with, say 10x10x10 **k** points, one could move
+        the orbitals to the cell [2,2,2].  In this way the pbc
+        boundary conditions will not be noticed.
+        """
         scaled_wc = npy.angle(self.Z_dww[:3].diagonal(0, 1, 2)).T  * \
                     self.kptgrid / (2 * pi)
         trans_wc =  npy.array(cell)[None] - npy.floor(scaled_wc)
@@ -499,6 +572,8 @@ class Wannier:
                   _   ik.R 
           H(k) = >_  e     H(R)
                   R         
+
+        Warning: This method moves all Wannier functions to cell (0, 0, 0)
         """
         if self.verbose:
             print 'Translating all Wannier functions to cell (0, 0, 0)'
@@ -517,8 +592,23 @@ class Wannier:
         return Hk
 
     def get_function(self, index, repeat=None):
-        """Index can be either a single WF or a coordinate vector
-        in terms of the WFs."""
+        """Get Wannier function on grid.
+
+        Returns an array with the funcion values of the indicated Wannier
+        function on a grid with the size of the *repeated* unit cell.
+       
+        For a calculation using **k**-points the relevant unit cell for
+        eg. visualization of the Wannier orbitals is not the original unit
+        cell, but rather a larger unit cell defined by repeating the
+        original unit cell by the number of **k**-points in each direction.
+        Note that for a `\Gamma`-point calculation the large unit cell
+        coinsides with the original unit cell.
+        The large unitcell also defines the periodicity of the Wannier
+        orbitals.
+
+        ``index`` can be either a single WF or a coordinate vector in terms
+        of the WFs.
+        """
 
         # Default size of plotting cell is the one corresponding to k-points.
         if repeat is None:

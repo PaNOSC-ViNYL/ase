@@ -4,7 +4,6 @@ from gpaw import restart
 atoms, calc = restart('benzene.gpw', txt=None)
 wan = Wannier(nwannier=18, calc=calc, fixedstates=15, file='wan18.pickle')
 
-
 import pylab as pl
 weight_n = pl.sum(abs(wan.V_knw[0])**2, 1)
 N = len(weight_n)
