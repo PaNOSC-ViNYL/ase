@@ -14,19 +14,22 @@ class NeighborList:
         can be reused.  This will save some expensive rebuilds of
         the list, but extra neighbors outside the cutoff will be
         returned.
+    self_interaction: bool
+        Should an atom return itself as a neighbor?
 
     Example::
 
       nl = NeighborList([2.3, 1.7])
-      nl.update()
+      nl.update(atoms)
       indices, offsets = nl.get_neighbors(0)
       
     """
     
-    def __init__(self, cutoffs, skin=0.3, sorted=False):
+    def __init__(self, cutoffs, skin=0.3, sorted=False, self_interaction=True):
         self.cutoffs = npy.asarray(cutoffs) + skin
         self.skin = skin
         self.sorted = sorted
+        self.self_interaction = self_interaction
         self.nupdates = 0
 
     def update(self, atoms):
@@ -71,6 +74,8 @@ class NeighborList:
         natoms = len(atoms)
         indices = npy.arange(natoms)
 
+        self.nneighbors = 0
+        self.nneighbors0 = 0
         self.neighbors = [npy.empty(0, int) for a in range(natoms)]
         self.displacements = [npy.empty((0, 3), int) for a in range(natoms)]
         for n1 in range(0, N[0] + 1):
@@ -84,7 +89,12 @@ class NeighborList:
                         i = indices[(d**2).sum(1) <
                                     (self.cutoffs + self.cutoffs[a])**2]
                         if n1 == 0 and n2 == 0 and n3 == 0:
-                            i = i[i >= a]
+                            if self.self_interaction:
+                                i = i[i >= a]
+                            else:
+                                i = i[i > a]
+                            self.nneighbors0 += len(i)
+                        self.nneighbors += len(i)
                         self.neighbors[a] = npy.concatenate(
                             (self.neighbors[a], i))
                         disp = npy.empty((len(i), 3), int)
