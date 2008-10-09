@@ -218,6 +218,7 @@ class Wannier:
             sign = +1
             
         self.nwannier = nwannier
+        self.calc = calc
         self.spin = spin
         self.verbose = verbose
         self.kpt_kc = sign * calc.get_ibz_k_points()
@@ -308,11 +309,9 @@ class Wannier:
                     self.Z_dknn[d, k] = calc.get_wannier_localization_matrix(
                         nbands=Nb, dirG=dirG, kpoint=k, nextkpoint=k1,
                         G_I=k0_c, spin=self.spin)
-        self.initialize(file=file, initialwannier=initialwannier,
-                        calc=calc, seed=seed)
+        self.initialize(file=file, initialwannier=initialwannier, seed=seed)
 
-    def initialize(self, file=None, initialwannier='random',
-                   calc=None, seed=None):
+    def initialize(self, file=None, initialwannier='random', seed=None):
         Nw = self.nwannier
         Nb = self.nbands
 
@@ -342,7 +341,7 @@ class Wannier:
                     self.C_kul.append(npy.array([]))        
         else:
             # Use initial guess to determine U and C
-            self.C_kul, self.U_kww = calc.initial_wannier(
+            self.C_kul, self.U_kww = self.calc.initial_wannier(
                 initialwannier, self.kptgrid, self.fixedstates_k,
                 self.edf_k, self.spin)
         self.update()
@@ -405,11 +404,11 @@ class Wannier:
     def get_spectral_weight(self, w):
         return abs(self.V_knw[:, :, w])**2 / self.Nk
 
-    def get_pdos(self, calc, w, energies, width):
+    def get_pdos(self, w, energies, width):
         spec_kn = self.get_spectral_weight(w)
         dos = npy.zeros(len(energies))
         for k, spec_n in enumerate(spec_kn):
-            eig_n = calc.get_eigenvalues(k=kpt, s=self.spin)
+            eig_n = self.calc.get_eigenvalues(k=kpt, s=self.spin)
             for weight, eig in zip(spec_n, eig):
                 # Add gaussian centered at the eigenvalue
                 x = ((energies - center) / width)**2
@@ -462,7 +461,7 @@ class Wannier:
         r2 = npy.swapaxes(r2.repeat(Nw).reshape(Nw, Nw, 3), 0, 1)
         return npy.sqrt(npy.sum((r1 - r2)**2, axis=-1))
 
-    def get_hopping(self, R, calc):
+    def get_hopping(self, R):
         """Returns the matrix H(R)_nm=<0,n|H|R,m>.
 
         ::
@@ -477,11 +476,10 @@ class Wannier:
         H_ww = npy.zeros([self.nwannier, self.nwannier], complex)
         for k, kpt_c in enumerate(self.kpt_kc):
             phase = npy.exp(-2.j * pi * npy.dot(npy.array(R), kpt_c))
-            H_ww += self.get_hamiltonian(calc, k) * phase
-        #print npy.linalg.eigvalsh(H_ww / self.Nk).real
+            H_ww += self.get_hamiltonian(k) * phase
         return H_ww / self.Nk
 
-    def get_hamiltonian(self, calc, k=0):
+    def get_hamiltonian(self, k=0):
         """Get Hamiltonian at existing k-vector of index k
 
         ::
@@ -490,10 +488,10 @@ class Wannier:
           H(k) = V    diag(eps )  V
                   k           k    k
         """
-        eps_n = calc.get_eigenvalues(kpt=k, spin=self.spin)
+        eps_n = self.calc.get_eigenvalues(kpt=k, spin=self.spin)
         return npy.dot(dag(self.V_knw[k]) * eps_n, self.V_knw[k])
 
-    def get_hamiltonian_kpoint(self, kpt_c, calc):
+    def get_hamiltonian_kpoint(self, kpt_c):
         """Get Hamiltonian at some new arbitrary k-vector
 
         ::
@@ -502,13 +500,9 @@ class Wannier:
           H(k) = >_  e     H(R)
                   R         
         """
-##         The cutoff distance truncates the Wannier orbitals at the
-##         specified distance. This distance should be smaller than half
-##         the length of large unitcell. The truncation is necessary
-##         because the Wannier functions will always be periodic (with a
-##         periodicity given by the large cell), and thus in order to
-##         describe completely localized orbitals the WFs must be
-##         truncated.
+        if self.verbose:
+            print 'Translating all Wannier functions to cell (0, 0, 0)'
+        self.translate_all_to_cell()
         max = (self.kptgrid - 1) / 2
         max += max > 0
         N1, N2, N3 = max
@@ -517,12 +511,12 @@ class Wannier:
             for n2 in xrange(-N2, N2 + 1):
                 for n3 in xrange(-N3, N3 + 1):
                     R = npy.array([n1, n2, n3], float)
-                    hop_ww = self.get_hopping(R, calc)
+                    hop_ww = self.get_hopping(R)
                     phase = npy.exp(+2.j * pi * npy.dot(R, kpt_c))
                     Hk += hop_ww * phase
         return Hk
 
-    def get_function(self, calc, index, repeat=None):
+    def get_function(self, index, repeat=None):
         """Index can be either a single WF or a coordinate vector
         in terms of the WFs."""
 
@@ -531,7 +525,7 @@ class Wannier:
             repeat = self.kptgrid
         N1, N2, N3 = repeat
 
-        dim = calc.get_number_of_grid_points()
+        dim = self.calc.get_number_of_grid_points()
         largedim = dim * [N1, N2, N3]
         
         wanniergrid = npy.zeros(largedim, dtype=complex)
@@ -544,8 +538,8 @@ class Wannier:
 
             wan_G = npy.zeros(dim, complex)
             for n, coeff in enumerate(vec_n):
-                wan_G += coeff * calc.get_pseudo_wave_function(n, k, self.spin,
-                                                               pad=True)
+                wan_G += coeff * self.calc.get_pseudo_wave_function(
+                    n, k, self.spin, pad=True)
 
             # Distribute the small wavefunction over large cell:
             for n1 in xrange(N1):
@@ -560,14 +554,14 @@ class Wannier:
         wanniergrid /= npy.sqrt(self.Nk)
         return wanniergrid
 
-    def write_cube(self, calc, index, fname, repeat=None, real=True):
+    def write_cube(self, index, fname, repeat=None, real=True):
         from ase.io.cube import write_cube
 
         # Default size of plotting cell is the one corresponding to k-points.
         if repeat is None:
             repeat = self.kptgrid
-        atoms = calc.get_atoms() * repeat
-        func = self.get_function(calc, index, repeat)
+        atoms = self.calc.get_atoms() * repeat
+        func = self.get_function(index, repeat)
 
         # Handle separation of complex wave into real parts
         if real:
