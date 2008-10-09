@@ -45,6 +45,7 @@ def read_vasp(filename='CONTCAR'):
             atomtypes=file_potcar.atom_types()
     # Set atomic positions
     atoms=Atoms()
+
     for ikind in nlist(poscon[0]):
         for nb in nlist(poscon[0][ikind][0:])[::3]:
             atoms.append(Atom(atomtypes[ikind], poscon[0][ikind][nb:nb+3]))
@@ -166,10 +167,9 @@ class ReadPOSCAR:
         input=file.readlines()
         file.close()
         scale= atof(input[1])
-        file.close()
         unitcell=[]
         for i in range(2,5):
-            unitcell.append([float(x) for x in input[i].split()])
+            unitcell.append([scale*float(x) for x in input[i].split()])
         return unitcell
 
     def cartesian(self):
@@ -284,7 +284,7 @@ class ReadPOTCAR:
     Directory can be specified, default is current directory.
     """
     def __init__(self,dir='./'):
-        self._file_ = open(os.path.join(dir, 'POTCAR'),'w')
+        self._file_ = os.path.join(dir, 'POTCAR')
 
     def atom_types(self):
         """Method that returns list of atomtypes."""
@@ -294,7 +294,7 @@ class ReadPOTCAR:
         atomtypes=[]
         for line in lines:
             if re.search('TITEL',line):
-                atomtypes.append(line.split()[3])
+                atomtypes.append(split(split(line.split()[3],'_')[0],'.')[0])
         return atomtypes
 
 class ReadOUTCAR:
@@ -302,7 +302,6 @@ class ReadOUTCAR:
 
     Directory can be specified, default is current directory.
     """
-
     def __init__(self,dir='./'):
         
         self._file_ = os.path.join(dir, 'OUTCAR')
@@ -315,7 +314,7 @@ class ReadOUTCAR:
         atomtypes=[]
         for line in lines:
             if re.search('TITEL',line):
-                atomtypes.append(line.split()[3])
+                atomtypes.append(split(split(line.split()[3],'_')[0],'.')[0])
         return atomtypes
 
 def element_string(list):

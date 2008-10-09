@@ -4,6 +4,7 @@ from zipfile import is_zipfile
 from ase.atoms import Atoms
 from ase.units import Bohr
 
+from os.path import split
 
 def read(filename, index=-1, format=None):
     """Read Atoms object(s) from file.
@@ -258,5 +259,12 @@ def filetype(filename):
     for word in ['ANIMSTEPS', 'CRYSTAL', 'SLAB', 'POLYMER', 'MOLECULE']:
         if lines[0].startswith(word):
             return 'xsf'
-        
+
+    for word in ['POSCAR', 'CONTCAR']:
+        dir_v, filename_v = split(filename) 
+        if word == filename_v[0:6]:
+            return 'vasp'
+        elif word == filename_v[0:7]:
+            return 'vasp'    
+
     return 'xyz'
