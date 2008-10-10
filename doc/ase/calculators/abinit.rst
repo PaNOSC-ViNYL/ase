@@ -110,6 +110,7 @@ Example
 
 Here is an example of how to calculate the total energy for bulk Silicon::
         
+  #!/usr/bin/env python
   from ase import *
   from ase.calculators.abinit import Abinit
   
