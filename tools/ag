@@ -52,6 +52,10 @@ parser.add_option('--aneb',
 parser.add_option('--interpolate',
                   type='int', metavar='N',
                   help='Interpolate N images between 2 given images.')
+parser.add_option('-b', '--bonds',
+                  action='store_true',
+                  default=False,
+                  help='Draw bonds between atoms.')
 #parser.add_option('--read-pickled-data-from-file',
 #                  type='string', help=SUPPRESS_HELP)
 
@@ -105,7 +109,7 @@ def run(opt, args):
                 print
     else:
         from ase.gui.gui import GUI
-        gui = GUI(images, opt.rotations, opt.show_unit_cell)
+        gui = GUI(images, opt.rotations, opt.show_unit_cell, opt.bonds)
         gui.run(opt.graph)
 
 import traceback

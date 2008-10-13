@@ -53,6 +53,7 @@ ui_info = """\
     <menu action='ViewMenu'>
       <menuitem action='ShowUnitCell'/>
       <menuitem action='ShowAxes'/>
+      <menuitem action='ShowBonds'/>
       <separator/>
       <menuitem action='Repeat'/>
       <menuitem action='Rotate'/>
@@ -84,7 +85,8 @@ ui_info = """\
 </ui>"""
 
 class GUI(View, Status):
-    def __init__(self, images, rotations='', show_unit_cell=True):
+    def __init__(self, images, rotations='', show_unit_cell=True,
+                 show_bonds=False):
         self.images = images
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         #self.window.set_icon(gtk.gdk.pixbuf_new_from_file('guiase.png'))
@@ -205,7 +207,11 @@ class GUI(View, Status):
             ('ShowAxes', None, 'Show _axes', '<control>A',
              'Bold',
              self.toggle_show_axes,
-             True)])
+             True),
+            ('ShowBonds', None, 'Show _bonds', '<control>B',
+             'Bold',
+             self.toggle_show_bonds,
+             show_bonds)])
         self.ui = ui = gtk.UIManager()
         ui.insert_action_group(actions, 0)
         self.window.add_accel_group(ui.get_accel_group())

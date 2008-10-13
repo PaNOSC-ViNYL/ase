@@ -65,6 +65,8 @@ Possible formats are: ``traj``, ``xyz``, ``cube``, ``pdb``, ``eps``,
 ``png``, and ``pov``.  For details, see the :mod:`~ase.io` module
 documentation.
 
+
+
 Plotting data
 -------------
 
@@ -92,6 +94,7 @@ s           path length
 ==========  ================================
 
 
+
 Interactive use
 ---------------
 
@@ -110,7 +113,7 @@ or
 
 
 NEB calculations
-=========================
+----------------
 
 Use :menuselection:`Tools --> NEB` to plot energy barrier.
 

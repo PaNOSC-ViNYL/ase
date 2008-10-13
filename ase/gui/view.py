@@ -27,8 +27,8 @@ class View:
         self.drawing_area.connect('button_release_event', self.release)
         self.drawing_area.connect('motion-notify-event', self.move)
         # Signals used to handle backing pixmap:
-        self.drawing_area.connect("expose_event", self.expose_event)
-        self.drawing_area.connect("configure_event", self.configure_event)
+        self.drawing_area.connect('expose_event', self.expose_event)
+        self.drawing_area.connect('configure_event', self.configure_event)
         self.drawing_area.set_events(gtk.gdk.BUTTON_PRESS_MASK |
                                      gtk.gdk.BUTTON_RELEASE_MASK |
                                      gtk.gdk.BUTTON_MOTION_MASK |
@@ -39,11 +39,12 @@ class View:
         self.frame = None
         
     def set_coordinates(self, frame=None, focus=None):
-        #if frame is None:
-        #    frame = self.frame
+        if frame is None:
+            frame = self.frame
         self.make_box()
+        self.bind(frame)
         n = self.images.natoms
-        self.X = npy.empty((n + len(self.B1), 3))
+        self.X = npy.empty((n + len(self.B1) + len(self.bonds), 3))
         #self.X[n:] = npy.dot(self.B1, self.images.A[frame])
         #self.B = npy.dot(self.B2, self.images.A[frame])
         self.set_frame(frame, focus=focus, init=True)
@@ -56,16 +57,34 @@ class View:
 
         if init or frame != self.frame:
             A = self.images.A
+            nc = len(self.B1)
+            nb = len(self.bonds)
+            
             if init or (A[frame] != A[self.frame]).any():
-                self.X[n:] = npy.dot(self.B1, A[frame])
-                self.B = npy.dot(self.B2, A[frame])
+                self.X[n:n + nc] = npy.dot(self.B1, A[frame])
+                self.B = npy.empty((nc + nb, 3))
+                self.B[:nc] = npy.dot(self.B2, A[frame])
+
+            if nb > 0:
+                P = self.images.P[frame]
+                Af = self.images.repeat[:, npy.newaxis] * A[frame]
+                a = P[self.bonds[:, 0]]
+                b = P[self.bonds[:, 1]] + npy.dot(self.bonds[:, 2:], Af) - a
+                d = (b**2).sum(1)**0.5
+                r = 0.65 * self.images.r
+                x0 = (r[self.bonds[:, 0]] / d).reshape((-1, 1))
+                x1 = (r[self.bonds[:, 1]] / d).reshape((-1, 1))
+                self.X[n + nc:] = a + b * x0
+                b *= 1.0 - x0 - x1
+                b[self.bonds[:, 2:].any(1)] *= 0.5
+                self.B[nc:] = self.X[n + nc:] + b
+
             filenames = self.images.filenames
             filename = filenames[frame]
             if self.frame is None or filename != filenames[self.frame]:
                 if filename is None:
                     filename = 'ase.gui'
                 self.window.set_title(filename)
-                
                 
         self.frame = frame
 
@@ -132,11 +151,46 @@ class View:
         self.B1.shape = (-1, 3)
         self.B2.shape = (-1, 3)
 
+    def bind(self, frame):
+        if not self.ui.get_widget('/MenuBar/ViewMenu/ShowBonds'
+                                  ).get_active():
+            self.bonds = npy.empty((0, 5), int)
+            return
+        
+        from ase.atoms import Atoms
+        from ase.calculators.neighborlist import NeighborList
+        nl = NeighborList(self.images.r * 1.5, skin=0, self_interaction=False)
+        nl.update(Atoms(positions=self.images.P[frame],
+                        cell=(self.images.repeat[:, npy.newaxis] *
+                              self.images.A[frame]),
+                        pbc=self.images.pbc))
+        nb = nl.nneighbors + nl.npbcneighbors
+        self.bonds = npy.empty((nb, 5), int)
+        if nb == 0:
+            return
+        
+        n1 = 0
+        for a in range(self.images.natoms):
+            indices, offsets = nl.get_neighbors(a)
+            n2 = n1 + len(indices)
+            self.bonds[n1:n2, 0] = a
+            self.bonds[n1:n2, 1] = indices
+            self.bonds[n1:n2, 2:] = offsets
+            n1 = n2
+
+        i = self.bonds[:n2, 2:].any(1)
+        self.bonds[n2:, 0] = self.bonds[i, 1]
+        self.bonds[n2:, 1] = self.bonds[i, 0]
+        self.bonds[n2:, 2:] = -self.bonds[i, 2:]
+
     def toggle_show_unit_cell(self, action):
         self.set_coordinates()
         
     def toggle_show_axes(self, action):
         self.draw()
+
+    def toggle_show_bonds(self, action):
+        self.set_coordinates()
 
     def repeat_window(self, menuitem):
         Repeat(self)
@@ -183,7 +237,11 @@ class View:
         X1 = X[n:, :2].round().astype(int)
         X2 = (npy.dot(self.B, self.scale * self.rotation) -
               self.offset).round().astype(int)
-        r = self.images.r * self.scale
+
+        if self.ui.get_widget('/MenuBar/ViewMenu/ShowBonds').get_active():
+            r = self.images.r * (0.65 * self.scale)
+        else:
+            r = self.images.r * self.scale
         A = (P - r[:, None]).round().astype(int)
         d = (2 * r).round().astype(int)
         selected_gc = self.selected_gc

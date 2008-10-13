@@ -75,7 +75,7 @@ class NeighborList:
         indices = npy.arange(natoms)
 
         self.nneighbors = 0
-        self.nneighbors0 = 0
+        self.npbcneighbors = 0
         self.neighbors = [npy.empty(0, int) for a in range(natoms)]
         self.displacements = [npy.empty((0, 3), int) for a in range(natoms)]
         for n1 in range(0, N[0] + 1):
@@ -93,13 +93,13 @@ class NeighborList:
                                 i = i[i >= a]
                             else:
                                 i = i[i > a]
-                            self.nneighbors0 += len(i)
                         self.nneighbors += len(i)
                         self.neighbors[a] = npy.concatenate(
                             (self.neighbors[a], i))
                         disp = npy.empty((len(i), 3), int)
                         disp[:] = (n1, n2, n3)
                         disp += offsets[i] - offsets[a]
+                        self.npbcneighbors += disp.any(1).sum()
                         self.displacements[a] = npy.concatenate(
                             (self.displacements[a], disp))
 
