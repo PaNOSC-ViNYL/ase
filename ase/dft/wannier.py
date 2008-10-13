@@ -230,7 +230,7 @@ class Wannier:
             method ``get_wannier_localization_matrix``, and contain the
             wavefunctions (save files with only the density is not enough).
             If the localization matrix is read from file, this is not needed,
-            unless `get_function` or `write_cube` is called.
+            unless ``get_function`` or ``write_cube`` is called.
           
         Optional arguments:
 

@@ -1,8 +1,7 @@
 from ase import *
 from gpaw import GPAW
 
-kpts = monkhorst_pack((13, 1, 1))
-kpts[:, 0] += 1e-5
+kpts = monkhorst_pack((13, 1, 1)) + [1e-5, 0, 0]
 calc = GPAW(h=.21, xc='PBE', kpts=kpts, nbands=12, txt='poly.txt',
             eigensolver='cg', convergence={'bands': 9})
 

@@ -69,7 +69,7 @@ Usual invocation::
   wan = Wannier(nwannier=18, calc=calc, fixedstates=15, file='file.pickle')
 
   # Write a cube file
-  wan.write_cube(index=5, fname='wannierfuncion5.cube')
+  wan.write_cube(index=5, fname='wannierfunction5.cube')
   
 For examples of how to use the **Wannier** class, see the `Wannier tutorial`_.
 
@@ -104,18 +104,19 @@ In Dacapo, the inialwannier keyword can be a list as described below:
        initialwannier = [[[0.5,0.5,0.5],0,0.5]]
 
     places an **s** orbital with radius 0.5 Angstroms at the position
-    (0.5,0.5,0.5) in scaled coordinates of the unit cell.
+    (0.5, 0.5, 0.5) in scaled coordinates of the unit cell.
 
 .. note:: For calculations using **k**-points, make sure that the
-   `\Gamma`-point is included in the **k**-point grid. Moreover you must
+   `\Gamma`-point is included in the **k**-point grid.
+   The Wannier module does not support **k**-point reduction by symmetry, so
+   you must use the ``usesymm=False`` keyword in the calc, and
    shift all **k**-points by a small amount (but not less than 2e-5
-   in) in e.g. the x direction, before performing the Dacapo
-   calculation. If this is not done the symmetry program in Dacapo
-   will use time-reversal symmetry to reduce the number of
-   **k**-points by a factor 2. The shift can be performed like this::
+   in) in e.g. the x direction, before performing the calculation.
+   If this is not done the symmetry program will still use time-reversal
+   symmetry to reduce the number of **k**-points by a factor 2.
+   The shift can be performed like this::
 
-                kpoints = calc.get_b_z_k_points()
-                kpoints[:,0] += 2e-5
-                calc.set_b_z_k_points(kpoints)
+     from ase import *
+     kpts = monkhorst_pack((15, 9, 9)) + [2e-5, 0, 0]
 
 .. default-role::
