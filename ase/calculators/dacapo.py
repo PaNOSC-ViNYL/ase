@@ -127,7 +127,7 @@ class Dacapo:
     def get_number_of_bands(self):
         return self.calc.GetNumberOfBands()
 
-    def get_kpoint_weights(self):
+    def get_k_point_weights(self):
         return np.array(self.calc.GetIBZKPointWeights())
 
     def get_number_of_spins(self):
@@ -142,10 +142,10 @@ class Dacapo:
     def get_number_of_grid_points(self):
         return np.array(self.get_pseudo_wave_function(0, 0, 0).shape)
 
-    def get_pseudo_density(self, s=0):
+    def get_pseudo_density(self, spin=0):
         return np.array(self.calc.GetDensityArray(s))
     
-    def get_pseudo_wave_function(self, n=0, k=0, s=0, pad=True):
+    def get_pseudo_wave_function(self, band=0, kpt=0, spin=0, pad=True):
         kpt = self.get_bz_k_points()[k]
         state = self.calc.GetElectronicStates().GetState(band=n, spin=s,
                                                          kptindex=k)
