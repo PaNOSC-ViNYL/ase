@@ -4,19 +4,12 @@ import numpy as npy
 
 
 class DOS:
-    def __init__(self, calc, width=None, window=None, npts=201):
+    def __init__(self, calc, width=0.1, window=None, npts=201):
         """Electronic Density Of States object"""
 
         self.npts = npts
         
         self.w_k = calc.get_k_point_weights()
-
-        if width is None:
-            self.width = calc.get_electronic_temperature()
-            if self.width == 0:
-                self.width = 0.1
-        else:
-            self.width = width
 
         self.nspins = calc.get_number_of_spins()
 
