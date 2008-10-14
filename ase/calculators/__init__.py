@@ -110,7 +110,7 @@ class DFTCalculator(Calculator):
         return np.zeros((40, 40, 40))
 
     def get_pseudo_wave_function(self, band=0, kpt=0, spin=0, broadcast=True,
-                                 pad=False):
+                                 pad=True):
         """Return pseudo-wave-function array."""
         return np.zeros((40, 40, 40))
 
