@@ -8,15 +8,12 @@ class DOS:
         """Electronic Density Of States object"""
 
         self.npts = npts
-        
+        self.width = width
         self.w_k = calc.get_k_point_weights()
-
         self.nspins = calc.get_number_of_spins()
-
         self.e_skn = npy.array([[calc.get_eigenvalues(kpt=k, spin=s)
                                  for k in range(len(self.w_k))]
                                 for s in range(self.nspins)])
-
         self.e_skn -= calc.get_fermi_level()
 
         if window is None:
