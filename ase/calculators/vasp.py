@@ -87,6 +87,7 @@ keys = [
     'lscalu',     # switch of LU decomposition
     'lasync',     # overlap communcation with calculations
     'addgrid',    # finer grid for augmentation charge density
+    'lplane',     # parallelisation over the FFT grid
     # 'NBLOCK' and KBLOCK       inner block; outer block
     # 'NPACO' and APACO         distance and nr. of slots for P.C.
     # 'WEIMIN, EBREAK, DEPER    special control tags
@@ -131,7 +132,7 @@ class Vasp:
             raise ValueError(
                 '%s not supported for xc! use one of: PW91, LDA or PBE.' %
                 kwargs['xc'])
-        
+
         self.positions = None
         self.nbands = self.incar_parameters['nbands']
         self.atoms = None
