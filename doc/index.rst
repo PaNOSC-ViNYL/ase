@@ -38,6 +38,8 @@ Supported :mod:`calculators`:
 News
 ====
 
+* Asap_ version 3.0.2 released (15. October 2008).
+
 * An experimental abinit interface released (9 June 2008).
 
 * Thursday April 24 will be ASE documentation-day.  Ten people from
@@ -47,7 +49,6 @@ News
 
 * A beta version of the new ASE-3.0 will be used for the
   electronic structure course at CAMd_.  (10 Jan 2008)
-
 
 
 .. _Sphinx: http://sphinx.pocoo.org
