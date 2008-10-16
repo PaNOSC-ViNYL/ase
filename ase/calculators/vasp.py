@@ -168,6 +168,8 @@ class Vasp:
         self.all_symbols = atoms.get_chemical_symbols()
         self.natoms = len(atoms)
         self.spinpol = atoms.get_initial_magnetic_moments().any()
+        #if self.spinpol == False:
+           
         # Determine the number of atoms of each atomic species
         # sorted after atomic species
 
@@ -192,6 +194,7 @@ class Vasp:
         # Check is the necessary POTCAR files exists and
         # create a list of their paths.
         xc = '/'
+        print 'p[xc]',p['xc']
         if p['xc'] == 'PW91':
             xc = '_gga/'
         elif p['xc'] == 'PBE':
@@ -203,13 +206,14 @@ class Vasp:
         self.ppp_list = []
         for symbol in self.symbols:
             try:
-                name = xc+symbol + '_' + p['setups'][symbol]
+                name = 'potpaw'+xc.upper()+symbol + p['setups'][symbol]
             except (TypeError, KeyError):
                 name = 'potpaw' + xc.upper() + symbol
             name += '/POTCAR'
             found = False
             for path in pppaths:
                 filename = join(path, name)
+                print 'filename', filename
                 if isfile(filename) or islink(filename):
                     found = True
                     self.ppp_list.append(filename)
@@ -229,9 +233,9 @@ class Vasp:
         If the directory does not exist it will be created.
         """
         positions = atoms.get_positions()
+        ase.io.write('POSCAR', self.atoms_sorted, format='vasp')
         self.write_incar(atoms)
         self.write_potcar()
-        ase.io.write('POSCAR', self.atoms_sorted, format='vasp')
         self.write_kpoints()
 
         stderr = sys.stderr
