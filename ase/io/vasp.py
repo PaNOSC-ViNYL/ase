@@ -12,11 +12,26 @@ import re
 def nlist(x):
     return range(len(x))
 
+# Define 'all' and 'any' methods to make the code compatible
+# with more versions of Python.
+def all(iterable):
+    for element in iterable:
+        if not element:
+            return False
+        return True
+
+def any(iterable):
+    for element in iterable:
+        if element:
+            return True
+        return False
+
 def read_vasp(filename='CONTCAR'):
-    """
-    Reads unitcell, atom positions (only Direct is implemented at the 
-    moment) and constraints from the CONTCAR file and atomtypes 
-    from the POTCAR file.
+    """Import POSCAR/CONTCAR type file.
+
+    Reads unitcell, atom positions and constraints from the POSCAR/CONTCAR
+    file and tries to read atom types from POSCAR/CONTCAR header, if this fails
+    the atom types are read from OUTCAR or POTCAR file.
     """
  
     import os
@@ -70,12 +85,12 @@ def read_vasp(filename='CONTCAR'):
         atoms.set_constraint(constraints)
     return atoms
 
-def write_vasp(filename, atoms, label='', cart=1, dir='', sort=None):
+def write_vasp(filename, atoms, label='', direct=None, dir='', sort=None):
         """Method to write VASP position (POSCAR/CONTCAR) files.
 
         Writes label, scalefactor, unitcell, # of various kinds of atoms,
-        positions in scaled coordinates (Direct) and constraints on file
-        POSCAR. Current directory is default and default label is: The 
+        positions in cartesian or scaled coordinates (Direct), and constraints
+        to file. Cartesian coordiantes is default and default label is the 
         atomic species, e.g. 'C N H Cu'.
         """
         
@@ -108,10 +123,10 @@ def write_vasp(filename, atoms, label='', cart=1, dir='', sort=None):
         ucell=atoms.get_cell()
         
         # Write atom positions in scaled or cartesian coordinates
-        if cart:
-            coord = atoms.get_positions()
-        else:
+        if direct:
             coord = atoms.get_scaled_positions()
+        else:
+            coord = atoms.get_positions()
         con=[]
         constr=atoms.constraints
         if constr:
@@ -128,7 +143,7 @@ def write_vasp(filename, atoms, label='', cart=1, dir='', sort=None):
         outfile.label(label)
         outfile.unit_cell(ucell)
         outfile.atom_types(atomlist)
-        outfile.coordinates_constraints(coord, con, cart)
+        outfile.coordinates_constraints(coord, con, direct)
         outfile.close()
 
 class ReadPOSCAR:
@@ -258,17 +273,17 @@ class WritePOSCAR:
            str = str+'  %i' % atomlist[ikind]
         self._file_.write(str+'\n')
 
-    def coordinates_constraints(self, coord, con, cart):
+    def coordinates_constraints(self, coord, con, direct):
         """Method that writes the atom coordinates from the list 'coord' 
            with 16 decimal places and the constraints from the 
            list 'con'.
         """
         if con != []:
            self._file_.write('Selective dynamics\n')
-        if cart :
-            self._file_.write('Cartesian\n')
-        else:
+        if direct :
             self._file_.write('Direct\n')
+        else:
+            self._file_.write('Cartesian\n')
         for iatom in nlist(coord):
            string='  %.16f %.16f %.16f' %  tuple(coord[iatom])
            if con != []:
