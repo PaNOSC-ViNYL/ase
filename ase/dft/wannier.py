@@ -187,7 +187,7 @@ def rotation_from_projection(proj_nw, fixed, ortho=True):
     if L > 0:
         proj_uw = proj_nw[M:]
         eig_u, C_uu = npy.linalg.eigh(npy.dot(proj_uw, dag(proj_uw)))
-        C_ul = C_uu[:, :-L-1:-1]
+        C_ul = C_uu.take(npy.argsort(-eig_u.real)[:L], axis=1)
         U_ww[M:] = npy.dot(dag(C_ul), proj_uw)
     else:
         C_ul = npy.empty((Nb - M, 0))
