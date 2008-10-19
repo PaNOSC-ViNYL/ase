@@ -30,7 +30,7 @@ something like this::
 The environment variable :envvar:`VASP_SCRIPT` must point to that file.
 
 A directory containing the pseudopotential directories :dir:`potpaw` 
-(LDA XC) :dir:`potpaw_GGA*` (PW91 XC) and :dir:`potpaw_PBE` (PBE XC)
+(LDA XC) :dir:`potpaw_GGA` (PW91 XC) and :dir:`potpaw_PBE` (PBE XC)
 is also needed, and it is to be put in the environment variable
 :envvar:`VASP_PP_PATH`.
 
@@ -41,7 +41,7 @@ Set both environment variables in your shell configuration file:
 ::
 
   $ export VASP_SCRIPT=$HOME/vasp/run_vasp.py
-  $ export SIESTA_PP_PATH=$HOME/vasp/mypps
+  $ export VASP_PP_PATH=$HOME/vasp/mypps
 
 .. highlight:: python
 
