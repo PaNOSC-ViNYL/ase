@@ -54,45 +54,36 @@ The default setting used by the VASP interface is
 
 .. class:: Vasp(restart=None, xc='PW91', setups=None, kpts=(1,1,1), gamma=None)
 
-A value of ``None`` means that VASP's default value is used.
-
-.. note::
-
-   For the parameters xc and kpts no predefined value in VASP exists, 
-   and the default value of the interface will therefore be used if
-   the user doesn't specify any value.
-
-
 Below follows a list with a selection of parameters
 
-===============  =========  ===================  =============================
-keyword          type       default value        description
-===============  =========  ===================  =============================
-``restart``	 ``bool``   None		 Restart old calculation or
-		 	    			 use ASE for post-processing
-``xc``           ``str``    ``'PW91'``		 XC-functional
-``setups``	 ``str``    None		 Additional setup option
-``kpts``         *seq*      `\Gamma`-point       **k**-point sampling
-``gamma``	 ``bool``   None		 `\Gamma`-point centered 
-		 	    			 **k**-point sampling
-``prec``	 ``str``			 Accuracy of calculation
-``encut``	 ``float``			 Kinetic energy cutoff
-``ediff``	 ``float``			 Convergence break condition
-		 				 for SC-loop.
-``nbands``       ``int``    	                 Number of bands
-``algo``	 ``str``			 Electronic minimization 
-		 				 algorithm
-``ismear``	 ``int``			 Type of smearing
-``sigma``        ``float``			 Width of smearing
-``nelm``         ``int``                         Maximum number of
-                                                 SC-iterations
-===============  =========  ===================  =============================
+==============  =========  ==============  ============================
+keyword         type       default value   description
+==============  =========  ==============  ============================
+``restart``	 ``bool``   None	   Restart old calculation or
+		 	    		   use ASE for post-processing
+``xc``           ``str``    ``'PW91'``	   XC-functional
+``setups``	 ``str``    None	   Additional setup option
+``kpts``         *seq*      `\Gamma`-point **k**-point sampling
+``gamma``	 ``bool``   None	   `\Gamma`-point centered 
+		 	    		   **k**-point sampling
+``prec``	 ``str``		   Accuracy of calculation
+``encut``	 ``float``		   Kinetic energy cutoff
+``ediff``	 ``float``		   Convergence break condition
+		 			   for SC-loop.
+``nbands``       ``int``    	           Number of bands
+``algo``	 ``str``		   Electronic minimization 
+		 			   algorithm
+``ismear``	 ``int``		   Type of smearing
+``sigma``        ``float``		   Width of smearing
+``nelm``         ``int``                   Maximum number of
+                                           SC-iterations
+==============  =========  ==============  ============================
 
 *seq*: A sequence of three ``int``'s.
 
 For parameters in the list without default value given, VASP will set 
-the default value. A complete list of (INCAR) parameters and default 
-values can be found in the official `VASP manual`_.
+the default value. Most of the parameters used in the VASP INCAR file 
+are allowed keywords. See the official `VASP manual`_ for more details.
 
 .. _VASP manual: http://cms.mpi.univie.ac.at/vasp/vasp/vasp.html
 
@@ -105,7 +96,7 @@ values can be found in the official `VASP manual`_.
    >>> calc.set(prec='Accurate', ediff=1E-5)
 
    This would set the precision to Accurate and the break condition for 
-   the electronic SC-loop to ``1E-5``.
+   the electronic SC-loop to ``1E-5`` eV.
 
 
 
