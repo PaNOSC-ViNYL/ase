@@ -33,7 +33,7 @@ class TestCalculator:
                         weights.append(4 * w)
                     else:
                         weights.append(8 * w)
-        assert sum(weights) == 1.0
+        assert abs(sum(weights) - 1.0) < 1e-12
         self.bzk = npy.array(bzk)
         self.ibzk = npy.array(ibzk)
         self.weights = npy.array(weights)
