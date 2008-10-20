@@ -192,4 +192,4 @@ def povpng(filename, atoms, **parameters):
     write_pov(filename[:-4] + '.pov', atoms,
               transparent=False, display=False,
               **parameters)
-    os.system('povray %s.ini' % filename[:-4])
+    os.system('povray %s.ini 2> /dev/null' % filename[:-4])
