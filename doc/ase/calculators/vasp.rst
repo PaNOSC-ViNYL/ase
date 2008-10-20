@@ -54,8 +54,6 @@ The default setting used by the VASP interface is
 
 .. class:: Vasp(restart=None, xc='PW91', setups=None, kpts=(1,1,1), gamma=None)
 
-and 
-
 A value of ``None`` means that VASP's default value is used.
 
 .. note::
@@ -92,9 +90,9 @@ keyword          type       default value        description
 
 *seq*: A sequence of three ``int``'s.
 
-For parameters without default value given, VASP will set the default
-value. A complete list of (INCAR) parameters and default values can be 
-found in the official `VASP manual`_.
+For parameters in the list without default value given, VASP will set 
+the default value. A complete list of (INCAR) parameters and default 
+values can be found in the official `VASP manual`_.
 
 .. _VASP manual: http://cms.mpi.univie.ac.at/vasp/vasp/vasp.html
 
