@@ -9,5 +9,6 @@ Density Functional Theory
    :maxdepth: 2
 
    wannier
+   dos
    stm
    bader
