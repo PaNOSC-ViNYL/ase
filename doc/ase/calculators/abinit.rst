@@ -58,14 +58,14 @@ Here is a detailed list of all the keywords for the calculator:
 keyword        type      default value     description
 ============== ========= ================  =====================================
 ``kpts``       ``list``  ``[1,1,1]``       Monkhorst-Pack k-point sampling
-``nbands``     ``int``   ``None``          Number of bands 
-``ecut``       ``float`` ``None``          Planewave cutoff energy in eV
+``nbands``     ``int``   ``None``          Number of bands (default: 1)
+``ecut``       ``float`` ``None``          Planewave cutoff energy in eV (default: None)
 ``xc``         ``str``   ``'LDA'``         Exchange-correlation functional.
 ``pulay``      ``int``   ``5``             Number of old densities to use for
                                            Pulay mixing
 ``mix``        ``float`` ``0.1``           Pulay mixing weight 
-``width``      ``float`` ``0.04 Hartree``  Fermi-distribution width in eV
-``charge``     ``float`` ``0``             Total charge of the system
+``width``      ``float`` ``None``          Fermi-distribution width in eV (default: 0.04 Ha)
+``charge``     ``float`` ``None``          Total charge of the system (default: 0)
 ``label``      ``str``   ``'abinit'``      Name of the output file
 ============== ========= ================  =====================================
 

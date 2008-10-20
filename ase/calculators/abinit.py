@@ -26,10 +26,10 @@ class Abinit:
       calc.set_inp('nstep', 30)
 
     """
-    def __init__(self, label='abinit', xc='LDA', kpts=None, nbands=None,
+    def __init__(self, label='abinit', xc='LDA', kpts=None, nbands=1,
                  width=0.04*Hartree, ecut=None, charge=0,
-                 pulay=5, mix=0.1,
-                 basis=None, ghosts=[]):
+                 pulay=5, mix=0.1
+                 ):
         """Construct ABINIT-calculator object.
 
         Parameters
@@ -44,11 +44,13 @@ class Abinit:
             Monkhost-Pack sampling.
         nbands: int
             Number of bands.
+            Default is 1.
         width: float
             Fermi-distribution width in eV.
             Default is 0.04 Hartree.
         ecut: float
             Planewave cutoff energy in eV.
+            No default.
         charge: float
             Total charge of the system.
             Default is 0.
@@ -76,8 +78,6 @@ class Abinit:
         self.charge = charge
         self.pulay = pulay
         self.mix = mix
-        self.basis = basis
-        self.ghosts = ghosts
 
         self.converged = False
         self.inp = {}
@@ -97,8 +97,6 @@ class Abinit:
         self.numbers = atoms.get_atomic_numbers().copy()
         self.species = []
         for a, Z in enumerate(self.numbers):
-            if a in self.ghosts:
-                Z = -Z
             if Z not in self.species:
                 self.species.append(Z)
 
@@ -212,7 +210,6 @@ class Abinit:
             'charge': self.charge,
             'nband': self.nbands,
             #'DM.UseSaveDM': self.converged,
-            #'PAO.BasisSize': self.basis,
             #'SolutionMethod': 'diagon',
             'npulayit': self.pulay, # default 7
             'diemix': self.mix
@@ -299,8 +296,6 @@ class Abinit:
         fh.write('xangst\n')
         a = 0
         for pos, Z in zip(self.positions, self.numbers):
-            if a in self.ghosts:
-                Z = -Z
             a += 1
             fh.write('%.14f %.14f %.14f\n' %  tuple(pos))
 
