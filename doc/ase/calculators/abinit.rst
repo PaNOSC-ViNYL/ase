@@ -54,24 +54,30 @@ code uses.  These are the exceptions:
     
 Here is a detailed list of all the keywords for the calculator:
 
-============== ========= ============= =====================================
-keyword        type      default value description
-============== ========= ============= =====================================
-``kpts``       ``list``  ``[1,1,1]``   Monkhorst-Pack k-point sampling
-``nbands``     ``int``   ``None``      Number of bands 
-``meshcutoff`` ``float`` ``None``      Planewave/grid cutoff energy in eV
-``xc``         ``str``   ``'LDA'``     Exchange-correlation functional.
-``pulay``      ``int``   ``5``         Number of old densities to use for
-                                       Pulay mixing
-``mix``        ``float`` ``0.1``       Pulay mixing weight 
-``width``      ``float`` ``None``      Fermi-distribution width in eV
-``charge``     ``float`` ``None``      Total charge of the system
-``label``      ``str``   ``'abinit'``  Name of the output file
-============== ========= ============= =====================================
+============== ========= ================  =====================================
+keyword        type      default value     description
+============== ========= ================  =====================================
+``kpts``       ``list``  ``[1,1,1]``       Monkhorst-Pack k-point sampling
+``nbands``     ``int``   ``None``          Number of bands 
+``ecut``       ``float`` ``None``          Planewave cutoff energy in eV
+``xc``         ``str``   ``'LDA'``         Exchange-correlation functional.
+``pulay``      ``int``   ``5``             Number of old densities to use for
+                                           Pulay mixing
+``mix``        ``float`` ``0.1``           Pulay mixing weight 
+``width``      ``float`` ``0.04 Hartree``  Fermi-distribution width in eV
+``charge``     ``float`` ``0``             Total charge of the system
+``label``      ``str``   ``'abinit'``      Name of the output file
+============== ========= ================  =====================================
 
 A value of ``None`` means that ABINIT's default value is used.
 
+**Warning**: abinit does not specify a default value for
+``Planewave cutoff energy in eV`` - you need to set one as in the example at thebottom of the page, otherwise calculation will fail.
 
+**Warning**: calculations wihout k-points are not parallelized by default
+and will fail! To enable band paralellization specify ``Number of BanDs in a BLOCK`` 
+(``nbdblock``) as `Extra parameters`_ -
+see `<http://www.abinit.org/Infos_v5.2/tutorial/lesson_parallelism.html>`_.
 
 Extra parameters
 ================
@@ -125,7 +131,7 @@ Here is an example of how to calculate the total energy for bulk Silicon::
   
   calc = Abinit(label='Si',
                 xc='PBE',
-                meshcutoff=50 * Ry,
+                ecut=50 * Ry,
                 mix=0.01,
                 kpts=[10, 10, 10])
    

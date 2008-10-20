@@ -27,7 +27,7 @@ class Abinit:
 
     """
     def __init__(self, label='abinit', xc='LDA', kpts=None, nbands=None,
-                 width=None, meshcutoff=None, charge=None,
+                 width=0.04*Hartree, ecut=None, charge=0,
                  pulay=5, mix=0.1,
                  basis=None, ghosts=[]):
         """Construct ABINIT-calculator object.
@@ -46,10 +46,12 @@ class Abinit:
             Number of bands.
         width: float
             Fermi-distribution width in eV.
-        meshcutoff: float
-            Planewave/grid cutoff energy in eV.
+            Default is 0.04 Hartree.
+        ecut: float
+            Planewave cutoff energy in eV.
         charge: float
             Total charge of the system.
+            Default is 0.
         pulay: int
             Number of old densities to use for Pulay mixing.
         mix: float
@@ -70,7 +72,7 @@ class Abinit:
         self.kpts = kpts
         self.nbands = nbands
         self.width = width
-        self.meshcutoff = meshcutoff
+        self.ecut = ecut
         self.charge = charge
         self.pulay = pulay
         self.mix = mix
@@ -216,8 +218,8 @@ class Abinit:
             'diemix': self.mix
             }
 
-        if self.meshcutoff is not None:
-            inp['ecut'] = str(self.meshcutoff)+' eV' # default Ha
+        if self.ecut is not None:
+            inp['ecut'] = str(self.ecut)+' eV' # default Ha
 
         if self.width is not None:
             inp['tsmear'] = str(self.width)+' eV' # default Ha
@@ -407,7 +409,7 @@ keys_with_units = {
 #    'zmforcetolangle': 'eV/rad',
 #    'zmmaxdispllength': 'Ang',
 #    'zmmaxdisplangle': 'rad',
-#    'meshcutoff': 'eV',
+#    'ecut': 'eV',
 #    'dmenergytolerance': 'eV',
 #    'electronictemperature': 'eV',
 #    'oneta': 'eV',
