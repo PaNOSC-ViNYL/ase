@@ -5,8 +5,20 @@ import numpy as npy
 
 class DOS:
     def __init__(self, calc, width=0.1, window=None, npts=201):
-        """Electronic Density Of States object"""
+        """Electronic Density Of States object.
 
+        calc: calculator object
+            Any ASE compliant calculator object.
+        width: float
+            Width of guassian smearing.
+        window: tuple of two float
+            Use ``window=(emin, emax)``.  If not specified, a window
+            big enough to hold all the eigenvalues will be used.
+        npts: int
+            Number of points.
+
+        """
+        
         self.npts = npts
         self.width = width
         self.w_k = calc.get_k_point_weights()
@@ -25,6 +37,7 @@ class DOS:
         self.energies = npy.linspace(emin, emax, npts)
 
     def get_energies(self):
+        """Return the array of energies used to sample the DOS."""
         return self.energies
 
     def delta(self, energy):
@@ -33,7 +46,11 @@ class DOS:
         return npy.exp(x) / (sqrt(pi) * self.width)
 
     def get_dos(self, spin=None):
-        """ """
+        """Get array of DOS values.
+
+        The *spin* argument can be 0 or 1 (spin up or down) - if not
+        specified, the total DOS is returned.
+        """
         
         if spin is None:
             if self.nspins == 2:
