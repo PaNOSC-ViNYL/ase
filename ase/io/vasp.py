@@ -4,9 +4,24 @@ to handle VASP simulations. It will only work with ASE-3.0 and later
 versions.
 """
 
-import sys
 import os
-import re
+
+def atomtypes_outpot(vaspdir=''):
+    """Try to retreive chemical symbols from OUTCAR or POTCAR
+    
+    If getting atomtypes from the first line in POSCAR/CONTCAR fails, it might
+    be possible to find the data in OUTCAR or POTCAR, if these files exist.
+
+    vaspdir -- The directory where OUTCAR and POTCAR are found
+
+    """
+    try:
+        file_outcar = ReadOUTCAR(vaspdir)
+        atomtypes = file_outcar.atom_types()
+    except IOError:
+        file_potcar = ReadPOTCAR(vaspdir)
+        atomtypes = file_potcar.atom_types()
+    return atomtypes
 
 def read_vasp(filename='CONTCAR'):
     """Import POSCAR/CONTCAR type file.
@@ -28,7 +43,7 @@ def read_vasp(filename='CONTCAR'):
         f = filename
     else:
         raise TypeError("filename argument must be a string or a file object.")
-
+    vaspdir = os.path.dirname(f.name)
     # First line should contain the atom symbols , eg. "Ag Ge" in
     # the same order
     # as later in the file (and POTCAR for the full vasp run)
@@ -38,12 +53,7 @@ def read_vasp(filename='CONTCAR'):
            if not atype in chemical_symbols:
               raise KeyError
     except KeyError:
-        try:
-            file_outcar = ReadOUTCAR(dir)
-            atomtypes = file_outcar.atom_types()
-        except IOError:
-            file_potcar = ReadPOTCAR(dir)
-            atomtypes = file_potcar.atom_types()
+        atomtypes = atomtypes_outpot(vaspdir)
 
     lattice_constant = float(f.readline())
 
@@ -61,10 +71,11 @@ def read_vasp(filename='CONTCAR'):
     # or in the POTCAR or OUTCAR file
     atom_symbols = []
     numofatoms = f.readline().split()
+    if len(atomtypes) < len(numofatoms):
+        # First line in POSCAR/CONTCAR didn't contain enough symbols.
+        atomtypes = atomtypes_outpot(vaspdir)
     for i, num in enumerate(numofatoms):
         numofatoms[i] = int(num)
-        if (len(atomtypes) < i + 1):
-            atomtypes.append("Unknown")
         [atom_symbols.append(atomtypes[i]) for na in xrange(numofatoms[i])]
 
     # Check if Selective dynamics is switched on
@@ -219,8 +230,8 @@ class ReadPOTCAR:
 
     Directory can be specified, default is current directory.
     """
-    def __init__(self,dir='./'):
-        self._file_ = os.path.join(dir, 'POTCAR')
+    def __init__(self,vaspdir='./'):
+        self._file_ = os.path.join(vaspdir, 'POTCAR')
 
     def atom_types(self):
         """Method that returns list of atomtypes."""
@@ -229,7 +240,7 @@ class ReadPOTCAR:
         file.close()
         atomtypes=[]
         for line in lines:
-            if re.search('TITEL',line):
+            if line.find('TITEL') != -1:
                 atomtypes.append(line.split()[3].split('_')[0].split('.')[0])
         return atomtypes
 
@@ -238,9 +249,9 @@ class ReadOUTCAR:
 
     Directory can be specified, default is current directory.
     """
-    def __init__(self,dir='./'):
+    def __init__(self,vaspdir='./'):
         
-        self._file_ = os.path.join(dir, 'OUTCAR')
+        self._file_ = os.path.join(vaspdir, 'OUTCAR')
 
     def atom_types(self):
         """Method that returns list of atomtypes."""
@@ -249,7 +260,7 @@ class ReadOUTCAR:
         file.close()
         atomtypes=[]
         for line in lines:
-            if re.search('TITEL',line):
+            if line.find('TITEL') != -1:
                 atomtypes.append(line.split()[3].split('_')[0].split('.')[0])
         return atomtypes
 
