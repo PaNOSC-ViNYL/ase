@@ -183,7 +183,7 @@ object.')
     # Create the label
     if label == '':
         for sym, c in sc:
-            label += '%2s' % sym
+            label += '%2s ' % sym
     f.write(label + '\n')
 
     # Write unitcell in real coordinates and adapt to VASP convention 
