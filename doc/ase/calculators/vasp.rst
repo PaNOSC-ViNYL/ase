@@ -59,23 +59,23 @@ Below follows a list with a selection of parameters
 ==============  =========  ==============  ============================
 keyword         type       default value   description
 ==============  =========  ==============  ============================
-``restart``	 ``bool``   None	   Restart old calculation or
-		 	    		   use ASE for post-processing
-``xc``           ``str``    ``'PW91'``	   XC-functional
-``setups``	 ``str``    None	   Additional setup option
-``kpts``         *seq*      `\Gamma`-point **k**-point sampling
-``gamma``	 ``bool``   None	   `\Gamma`-point centered 
-		 	    		   **k**-point sampling
-``prec``	 ``str``		   Accuracy of calculation
-``encut``	 ``float``		   Kinetic energy cutoff
-``ediff``	 ``float``		   Convergence break condition
-		 			   for SC-loop.
-``nbands``       ``int``    	           Number of bands
-``algo``	 ``str``		   Electronic minimization 
-		 			   algorithm
-``ismear``	 ``int``		   Type of smearing
-``sigma``        ``float``		   Width of smearing
-``nelm``         ``int``                   Maximum number of
+``restart``     ``bool``   None            Restart old calculation or
+                                           use ASE for post-processing
+``xc``          ``str``    ``'PW91'``      XC-functional
+``setups``      ``str``    None            Additional setup option
+``kpts``        *seq*      `\Gamma`-point  **k**-point sampling
+``gamma``       ``bool``   None            `\Gamma`-point centered 
+                                           **k**-point sampling
+``prec``        ``str``                    Accuracy of calculation
+``encut``       ``float``                  Kinetic energy cutoff
+``ediff``       ``float``                  Convergence break condition
+                                           for SC-loop.
+``nbands``      ``int``                    Number of bands
+``algo``        ``str``                    Electronic minimization 
+                                           algorithm
+``ismear``      ``int``                    Type of smearing
+``sigma``       ``float``                  Width of smearing
+``nelm``        ``int``                    Maximum number of
                                            SC-iterations
 ==============  =========  ==============  ============================
 
