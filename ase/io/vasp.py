@@ -183,7 +183,7 @@ object.')
     # Create the label
     if label == '':
         for sym, c in sc:
-            label += '%3s' % sym
+            label += '%2s' % sym
     f.write(label + '\n')
 
     # Write unitcell in real coordinates and adapt to VASP convention 
@@ -194,12 +194,12 @@ object.')
     for vec in atoms.get_cell():
         f.write(' ')
         for el in vec:
-            f.write('%22.16f' % el)
+            f.write(' %21.16f' % el)
         f.write('\n')
 
     # Numbers of each atom
     for sym, count in sc:
-        f.write('%4i' % count)
+        f.write(' %3i' % count)
     f.write('\n')
 
     if atoms.constraints:
@@ -212,7 +212,7 @@ object.')
 
     for iatom, atom in enumerate(coord):
         for dcoord in atom:
-            f.write('%20.16f' % dcoord)
+            f.write(' %19.16f' % dcoord)
         if atoms.constraints:
             for flag in sflags[iatom]:
                 if flag:
@@ -235,11 +235,8 @@ class ReadPOTCAR:
 
     def atom_types(self):
         """Method that returns list of atomtypes."""
-        file=open(self._file_,'r')
-        lines=file.readlines()
-        file.close()
         atomtypes=[]
-        for line in lines:
+        for line in open(self._file_, 'r'):
             if line.find('TITEL') != -1:
                 atomtypes.append(line.split()[3].split('_')[0].split('.')[0])
         return atomtypes
@@ -255,11 +252,8 @@ class ReadOUTCAR:
 
     def atom_types(self):
         """Method that returns list of atomtypes."""
-        file=open(self._file_,'r')
-        lines=file.readlines()
-        file.close()
         atomtypes=[]
-        for line in lines:
+        for line in open(self._file_, 'r'):
             if line.find('TITEL') != -1:
                 atomtypes.append(line.split()[3].split('_')[0].split('.')[0])
         return atomtypes
