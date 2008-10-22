@@ -21,7 +21,7 @@ You can plot the result like this::
   plt.show()
 
 .. image:: dos.png
-   :height: 330
+
 
 More details
 ------------
