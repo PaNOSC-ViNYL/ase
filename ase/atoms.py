@@ -801,10 +801,10 @@ class Atoms(object):
         a = self.arrays
         b = other.arrays
         return (len(self) == len(other) and
-                (a['positions'] == b['positions']).any() and
-                (a['numbers'] == b['numbers']).any() and
-                (self.cell == other.cell).any() and
-                (self.pbc == other.pbc).any())
+                (a['positions'] == b['positions']).all() and
+                (a['numbers'] == b['numbers']).all() and
+                (self.cell == other.cell).all() and
+                (self.pbc == other.pbc).all())
 
     def get_volume(self):
         """Get volume of unit cell."""
