@@ -24,7 +24,7 @@ kwargs = { # Keywords that exist for eps, png, and pov
 extra_kwargs = { # For povray files only
 'display'      : False, # Display while rendering
 'pause'        : False, # Pause when done rendering (only if display)
-'transparent'  : True,  # Transparent background
+'transparent'  : False, # Transparent background
 'canvas_width' : None,  # Width of canvas in pixels
 'canvas_height': None,  # Height of canvas in pixels 
 'camera_dist'  : 10.,   # Distance from camera to image plane
@@ -40,7 +40,4 @@ extra_kwargs = { # For povray files only
 # Make graphics files
 write('flat.png', atoms, **kwargs)
 kwargs.update(extra_kwargs)
-write('nice.pov', atoms, **kwargs)
-
-import os; os.system('povray nice.ini')
-
+write('nice.pov', atoms, run_povray=True, **kwargs)

@@ -49,8 +49,9 @@ Write POVRAY file::
 
   write('slab.pov', slab * (3, 3, 1), rotation='10z,-80x')
 
-This will write both a .pov and a .ini file.  Convert to PNG with
-``povray slab.ini``:
+This will write both a ``slab.pov`` and a ``slab.ini`` file.  Convert
+to PNG with the command ``povray slab.ini`` or use the
+``run_povray=True`` option:
 
 .. image:: io2.png
    :scale: 35

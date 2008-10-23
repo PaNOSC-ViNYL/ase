@@ -2,7 +2,6 @@
 # creates:  diffusion-I.png  diffusion-T.png  diffusion-F.png diffusion-barrier.png
 import os
 from ase import *
-from ase.io.pov import povpng
 from ase.neb import fit
 if 1:
     execfile('diffusion1.py')
@@ -12,7 +11,9 @@ for name, a in zip('ITF', images[::2]):
     cell = a.get_cell()
     a = a * (2, 2, 1)
     a.set_cell(cell)
-    povpng('diffusion-%s.png' % name, a, show_unit_cell=True)
+    write('diffusion-%s.png' % name, a, show_unit_cell=True,
+          transparent=False, display=False, run_povray=True)
+
 s, E, Sfit, Efit, lines = fit(images)
 import matplotlib
 matplotlib.use('Agg')

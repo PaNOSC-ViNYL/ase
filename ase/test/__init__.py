@@ -43,7 +43,7 @@ def test(verbosity=1, dir=None, display=True):
     from ase.utils import devnull
     sys.stdout = devnull
     
-    ttr = unittest.TextTestRunner(verbosity=verbosity)
+    ttr = unittest.TextTestRunner(verbosity=verbosity, stream=sys.__stdout__)
     results = ttr.run(ts)
 
     sys.stdout = sys.__stdout__

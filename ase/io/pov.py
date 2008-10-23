@@ -182,14 +182,10 @@ class POVRAY(EPS):
             a += 1
 
 
-def write_pov(filename, atoms, **parameters):
+def write_pov(filename, atoms, run_povray=False, **parameters):
     if isinstance(atoms, list):
         assert len(atoms) == 1
         atoms = atoms[0]
     POVRAY(atoms, **parameters).write(filename)
-
-def povpng(filename, atoms, **parameters):
-    write_pov(filename[:-4] + '.pov', atoms,
-              transparent=False, display=False,
-              **parameters)
-    os.system('povray %s.ini 2> /dev/null' % filename[:-4])
+    if run_povray:
+        os.system('povray %s.ini 2> /dev/null' % filename[:-4])

@@ -47,7 +47,7 @@ def build():
             raise RuntimeError('Sphinx failed!')
         os.chdir('_build')
         #os.system('cd ../..; ln -s doc/_static')
-        if os.system('make ase-manual.pdf') != 0:
+        if os.system('make ase-manual.pdf 2>&1') != 0:
             raise RuntimeError('pdflatex failed!')
     else:
         os.chdir('_build')

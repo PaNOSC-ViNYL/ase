@@ -82,8 +82,6 @@ colors[322:328] = H # Molecule H
 
 
 #write('test.png', large, rotation='-90x,-13y', radii=.9, show_unit_cell=0, colors=colors)
-write('transport_setup.pov', large, rotation='-90x,-13y', radii=1.06, show_unit_cell=0, colors=colors, display=False, transparent=False)
-
-import os
-os.system('povray transport_setup.ini')
-
+write('transport_setup.pov', large, rotation='-90x,-13y', radii=1.06,
+      show_unit_cell=0, colors=colors,
+      display=False, transparent=False, run_povray=True)
