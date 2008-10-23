@@ -86,6 +86,14 @@ class Vibrations:
         produce an empty file (ending with .pckl), which must be deleted
         before restarting the job. Otherwise the forces will not be
         calculated for that displacement."""
+
+        if not isfile(self.name + '.eq.pckl'):
+            if rank == 0:
+                fd = open(self.name + '.eq.pckl', 'w')
+            forces = self.atoms.get_forces()
+            if rank == 0:
+                pickle.dump(forces, fd)
+                fd.close()
         
         p = self.atoms.positions.copy()
         for a in self.indices:
@@ -107,6 +115,9 @@ class Vibrations:
         self.atoms.set_positions(p)
 
     def clean(self):
+        if isfile(self.name + '.eq.pckl'):
+            remove(self.name + '.eq.pckl')
+        
         for a in self.indices:
             for i in 'xyz':
                 for sign in '-+':
@@ -114,21 +125,32 @@ class Vibrations:
                     if isfile(name):
                         remove(name)
         
-    def read(self, method='standard'):
+    def read(self, method='standard', direction='central'):
         self.method = method.lower()
+        self.direction = direction.lower()
         assert self.method in ['standard', 'frederiksen']
+        assert self.direction in ['central', 'forward', 'backward']
+        
         n = 3 * len(self.indices)
         H = npy.empty((n, n))
         r = 0
+        if direction != 'central':
+            feq = pickle.load(open(self.name + '.eq.pckl'))
         for a in self.indices:
             for i in 'xyz':
                 name = '%s.%d%s' % (self.name, a, i)
                 fminus = pickle.load(open(name + '-.pckl'))
                 fplus = pickle.load(open(name + '+.pckl'))
                 if self.method == 'frederiksen':
-                    fminus[a] += -fminus.sum(0)
-                    fplus[a] += -fplus.sum(0)
-                H[r] = (fminus - fplus)[self.indices].ravel() / (4 * self.delta)
+                    fminus[a] -= fminus.sum(0)
+                    fplus[a] -= fplus.sum(0)
+                if self.direction == 'central':
+                    H[r] = .5 * (fminus - fplus)[self.indices].ravel()
+                elif self.direction == 'forward':
+                    H[r] = (feq - fplus)[self.indices].ravel()
+                else: # self.direction == 'backward':
+                    H[r] = (fminus - feq)[self.indices].ravel()
+                H[r] /= 2 * self.delta
                 r += 1
         H += H.copy().T
         self.H = H
@@ -141,19 +163,20 @@ class Vibrations:
         s = units._hbar * 1e10 / sqrt(units._e * units._amu)
         self.hnu = s * omega2.astype(complex)**0.5
 
-    def get_energies(self, method='standard'):
+    def get_energies(self, method='standard', direction='central'):
         """Get vibration energies in eV."""
-        if self.H is None or method.lower() != self.method:
-            self.read(method)
+        if (self.H is None or method.lower() != self.method or
+            direction.lower() != self.direction):
+            self.read(method, direction)
         return self.hnu
 
-    def get_frequencies(self, method='standard'):
+    def get_frequencies(self, method='standard', direction='central'):
         """Get vibration frequencies in cm^-1."""
         s = 0.01 * units._e / units._c / units._hplanck
-        return s * self.get_energies(method)
+        return s * self.get_energies(method, direction)
 
-    def summary(self, method='standard'):
-        hnu = self.get_energies(method)
+    def summary(self, method='standard', direction='central'):
+        hnu = self.get_energies(method, direction)
         s = 0.01 * units._e / units._c / units._hplanck
         print '---------------------'
         print '  #    meV     cm^-1'
