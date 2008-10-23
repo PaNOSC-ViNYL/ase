@@ -16,9 +16,11 @@ class Calculator:
     *get_potential_energy*, *get_forces*, or *get_stress* methods is
     called, the calculator should check if anything has changed since
     the last calculation and only do the calculation if it's really
-    needed.  The Atoms class has a method *identical_to()* that can be
-    used for checking identity: same positions, atomic numbers, unit
-    cell and periodic boundary conditions."""
+    needed.  The Atoms class implements the methods *__eq__* and
+    *__ne__* that can be used for checking identity (using *==* and
+    *!=*): Two sets of atoms are considered identical if they have the
+    same positions, atomic numbers, unit cell and periodic boundary
+    conditions."""
 
     def get_potential_energy(self, atoms=None, force_consistent=False):
         """Return total energy.
@@ -167,12 +169,12 @@ class SinglePointCalculator:
         self.atoms = atoms.copy()
 
     def calculation_required(self, atoms, quantities):
-        ok = self.atoms.identical_to(atoms)
+        ok = self.atoms == atoms
         return ('forces' in quantities and (self.forces is None or not ok) or
                 ('energy' in quantities and (self.energy is None or not ok)))
 
     def update(self, atoms):
-        if not self.atoms.identical_to(atoms):
+        if self.atoms != atoms:
             raise RuntimeError('Energy, forces and strees no longer correct.')
 
     def get_potential_energy(self, atoms):

@@ -731,7 +731,7 @@ class Atoms(object):
         p = self.arrays['positions'] - center
         self.arrays['positions'][:] = (c * p - 
                                        npy.cross(p, s * v) + 
-                                       npy.outer(npy.dot(p, v), (1.0 - c) * v) +
+                                       npy.outer(npy.dot(p, v), (1.0 - c) * v)+
                                        center)
 
     def rattle(self, stdev=0.001, seed=42):
@@ -792,8 +792,8 @@ class Atoms(object):
         """Set positions relative to unit cell."""
         self.arrays['positions'][:] = npy.dot(scaled, self.cell)
 
-    def identical_to(self, other):
-        """Check for identity of two atoms object.
+    def __eq__(self, other):
+        """Check for identity of two atoms objects.
 
         Identity means: same positions, atomic numbers, unit cell and
         periodic boundary conditions."""
@@ -805,6 +805,9 @@ class Atoms(object):
                 (a['numbers'] == b['numbers']).all() and
                 (self.cell == other.cell).all() and
                 (self.pbc == other.pbc).all())
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def get_volume(self):
         """Get volume of unit cell."""

@@ -119,7 +119,7 @@ class Dacapo:
         if self.calc is None:
             return True
 
-        if not atoms.identical_to(self.get_atoms().copy()):
+        if atoms != self.get_atoms():
             return True
 
         return False
