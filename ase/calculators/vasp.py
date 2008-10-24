@@ -316,7 +316,7 @@ class Vasp:
         return 1 + int(self.spinpol)
 
     def get_eigenvalues(self, kpt=0, spin=0):
-        raise NotImplementedError
+        return self.read_eigenvalues(kpt, spin)
 
     def get_fermi_level(self):
         return self.fermi
@@ -517,7 +517,7 @@ class Vasp:
         file.close()
         for line in lines:
             if line.rfind('NBANDS')>-1:
-                return line.split()[-1]
+                return int(line.split()[-1])
 
     def read_convergence(self):
         file = open('OUTCAR', 'r')
@@ -537,6 +537,14 @@ class Vasp:
                     converged = None
         return converged
 
+    def read_eigenvalues(self, kpt=0, spin=0):
+        file = open('EIGENVAL', 'r')
+        lines = file.readlines()
+        file.close()
+        eigs = []
+        for n in range(8+kpt*(self.nbands+2), 8+kpt*(self.nbands+2)+self.nbands):
+            eigs.append(float(lines[n].split()[spin+1]))
+        return np.array(eigs)
 
 # The below functions are used to restart a calculation and are under early constructions
 
