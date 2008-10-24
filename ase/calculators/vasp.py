@@ -442,11 +442,8 @@ class Vasp:
 
     # Methods for reading information from OUTCAR files:
     def read_energy(self):
-        file = open('OUTCAR','r')
-        lines = file.readlines()
-        file.close()
         [energy_free, energy_zero]=[0, 0]
-        for line in lines:
+        for line in open('OUTCAR', 'r'):
             # Free energy
             if line.startswith('  free energy    toten'):
                 energy_free = float(line.split()[-2])
@@ -462,7 +459,6 @@ class Vasp:
         n=0
         for line in lines:
             if line.rfind('TOTAL-FORCE') > -1:
-                #lines.next()
                 forces=[]
                 for i in range(len(atoms)):
                     forces.append(np.array([float(f) for f in lines[n+2+i].split()[3:6]]))
@@ -470,21 +466,15 @@ class Vasp:
         return np.array(forces)[self.resort]
 
     def read_fermi(self):
-        file = open('OUTCAR', 'r')
-        lines = file.readlines()
-        file.close()
         E_f=None
-        for line in lines:
+        for line in open('OUTCAR', 'r'):
             if line.rfind('E-fermi') > -1:
                 E_f=float(line.split()[2])
         return E_f
 
     def read_dipole(self):
-        file = open('OUTCAR', 'r')
-        lines = file.readlines()
-        file.close()
         dipolemoment=np.zeros([1,3])
-        for line in lines:
+        for line in open('OUTCAR', 'r'):
             if line.rfind('dipolmoment') > -1:
                 dipolemoment=np.array([float(f) for f in line.split()[1:4]])
         return dipolemoment
@@ -503,30 +493,21 @@ class Vasp:
         return np.array(magnetic_moments)[self.resort]
 
     def read_magnetic_moment(self):
-        file = open('OUTCAR','r')
-        lines = file.readlines()
-        file.close()
         n=0
-        for line in lines:
+        for line in open('OUTCAR','r'):
             if line.rfind('number of electron  ') > -1:
                 magnetic_moment=float(line.split()[-1])
             n+=1
         return magnetic_moment
 
     def read_nbands(self):
-        file = open('OUTCAR', 'r')
-        lines = file.readlines()
-        file.close()
-        for line in lines:
+        for line in open('OUTCAR', 'r'):
             if line.rfind('NBANDS')>-1:
                 return int(line.split()[-1])
 
     def read_convergence(self):
-        file = open('OUTCAR', 'r')
-        lines = file.readlines()
-        file.close()
         converged = None
-        for line in lines:
+        for line in open('OUTCAR', 'r'):
             if line.rfind('EDIFF  ')>-1:
                 ediff = float(line.split()[2])
             if line.rfind('total energy-change')>-1:
