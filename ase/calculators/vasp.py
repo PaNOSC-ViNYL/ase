@@ -309,13 +309,15 @@ class Vasp:
     def get_number_of_bands(self):
         return self.nbands
 
-    def get_kpoint_weights(self):
-        raise NotImplementedError
+    def get_k_point_weights(self):
+        self.update(self.atoms)
+        return self.read_k_point_weights()
 
     def get_number_of_spins(self):
         return 1 + int(self.spinpol)
 
     def get_eigenvalues(self, kpt=0, spin=0):
+        self.update(self.atoms)
         return self.read_eigenvalues(kpt, spin)
 
     def get_fermi_level(self):
@@ -536,6 +538,15 @@ class Vasp:
                 else:
                     converged = None
         return converged
+
+    def read_k_point_weights(self):
+        file = open('IBZKPT')
+        lines = file.readlines()
+        file.close()
+        kpt_weights = []
+        for n in range(3, len(lines)):
+            kpt_weights.append(int(lines[n].split()[3]))
+        return np.array(kpt_weights)
 
     def read_eigenvalues(self, kpt=0, spin=0):
         file = open('EIGENVAL', 'r')
