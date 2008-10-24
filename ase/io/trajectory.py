@@ -96,6 +96,9 @@ class PickleTrajectory:
                     d['magmoms'] = atoms.get_magnetic_moments()
             except (NotImplementedError, AttributeError):
                 pass
+
+        if 'magmoms' not in d and atoms.has('magmoms'):
+            d['magmoms'] = atoms.get_initial_magnetic_moments()
             
         if self.master:
             pickle.dump(d, self.fd, protocol=-1)
