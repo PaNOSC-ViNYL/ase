@@ -336,7 +336,8 @@ class Vasp:
         raise NotImplementedError
 
     def get_ibz_kpoints(self):
-        raise NotImplementedError
+        self.update(self.atoms)
+        return self.read_ibz_kpoints()
 
     def get_spin_polarized(self):
         return self.spinpol
@@ -519,6 +520,24 @@ class Vasp:
                 else:
                     converged = None
         return converged
+
+    def read_ibz_kpoints(self):
+        lines = open('OUTCAR', 'r').readlines()
+        ibz_kpts = []
+        n = 0
+        i = 0
+        for line in lines:
+            if line.rfind('Following cartesian coordinates')>-1:
+                m = n+2
+                while i==0:
+                    ibz_kpts.append([float(lines[m].split()[p]) for p in range(3)])
+                    m += 1
+                    if lines[m]==' \n':
+                        i = 1
+            if i == 1:
+                continue
+            n += 1
+        return np.array(ibz_kpts)
 
     def read_k_point_weights(self):
         file = open('IBZKPT')
