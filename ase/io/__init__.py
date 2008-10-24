@@ -34,6 +34,7 @@ def read(filename, index=-1, format=None):
     XCrySDen Structure File    xsf  
     Dacapo text output         dacapo-text
     XYZ-file                   xyz
+    VASP POSCAR/CONTCAR file   vasp
     =========================  ===========
 
     """
@@ -128,6 +129,7 @@ def write(filename, images, format=None, **kwargs):
     ASE pickle trajectory      traj
     CUBE file                  cube
     XYZ-file                   xyz
+    VASP POSCAR/CONTCAR file   vasp
     Protein Data Bank          pdb
     XCrySDen Structure File    xsf  
     gOpenMol .plt file         plt  
