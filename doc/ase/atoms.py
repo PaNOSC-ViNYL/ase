@@ -10,7 +10,7 @@ wire *= (6, 1, 1)
 wire.positions[:, 0] -= 2 * d
 wire.cell[0, 0] = d
 #view(wire, block=1)
-write('Au-wire.png', wire,
+write('Au-wire.pov', wire,
       show_unit_cell=2,
       rotation='12x,6y',
       transparent=False, display=False, run_povray=True)
