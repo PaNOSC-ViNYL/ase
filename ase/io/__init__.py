@@ -1,10 +1,11 @@
+import sys
+from os.path import split
 from tarfile import is_tarfile
 from zipfile import is_zipfile
 
 from ase.atoms import Atoms
 from ase.units import Bohr
 
-from os.path import split
 
 def read(filename, index=-1, format=None):
     """Read Atoms object(s) from file.
@@ -178,11 +179,12 @@ def write(filename, images, format=None, **kwargs):
     """
     
     if format is None:
-        if filename is not None:
+        if filename == '-':
+            format = 'xyz'
+            filename = sys.stdout
+        else:
             suffix = filename.split('.')[-1]
             format = {}.get(suffix, suffix)
-        else:
-            format = 'xyz'
 
     if format == 'xyz':
         from ase.io.xyz import write_xyz
