@@ -537,6 +537,7 @@ class Vasp:
             if i == 1:
                 continue
             n += 1
+        ibz_kpts = np.array(ibz_kpts)
         return np.array(ibz_kpts)
 
     def read_k_point_weights(self):
@@ -545,8 +546,10 @@ class Vasp:
         file.close()
         kpt_weights = []
         for n in range(3, len(lines)):
-            kpt_weights.append(int(lines[n].split()[3]))
-        return np.array(kpt_weights)
+            kpt_weights.append(float(lines[n].split()[3]))
+        kpt_weights = np.array(kpt_weights)
+        kpt_weights /= np.sum(kpt_weights)
+        return kpt_weights
 
     def read_eigenvalues(self, kpt=0, spin=0):
         file = open('EIGENVAL', 'r')
