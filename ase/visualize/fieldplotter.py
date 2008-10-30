@@ -32,6 +32,7 @@ class FieldPlotter(_PrimiPlotter):
         in the final plot.
         
         Three possibilities:
+
         'data':        Autoscale using the data on visible atoms.
                        The range goes from the lowest to the highest
                        value present on the atoms.  If only a few atoms

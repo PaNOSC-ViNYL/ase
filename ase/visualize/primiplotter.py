@@ -235,22 +235,22 @@ class PrimiPlotter(PrimiPlotterBase):
     1.  If colors are explicitly set using PrimiPlotter.set_colors(),
         they are used.
 
-    1a. If these colors are specified as a dictionary, the tags
+    2.  If these colors are specified as a dictionary, the tags
         (from atoms.GetTags()) are used as an index into the
         dictionary to get the actual colors of the atoms.
 
-    2.  If a color function has been set using
+    3.  If a color function has been set using
         PrimiPlotter.set_color_function(), it is called with the atoms
         as an argument, and is expected to return an array of colors.
 
-    3.  If the atoms have a get_colors() method, it is used to get the
+    4.  If the atoms have a get_colors() method, it is used to get the
         colors.
 
-    3a. If these colors are specified as a dictionary, the tags
+    5.  If these colors are specified as a dictionary, the tags
         (from atoms.GetTags()) are used as an index into the
         dictionary to get the actual colors of the atoms.
 
-    4.  If all else fails, the atoms will be white.
+    6.  If all else fails, the atoms will be white.
 
     The colors are specified as an array of colors, one color per
     atom.  Each color is either a real number from 0.0 to 1.0,
