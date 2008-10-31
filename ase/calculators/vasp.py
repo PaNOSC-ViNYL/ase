@@ -88,6 +88,13 @@ keys = [
     'lasync',     # overlap communcation with calculations
     'addgrid',    # finer grid for augmentation charge density
     'lplane',     # parallelisation over the FFT grid
+    'lpard',      # evaluate partial (band and/or k-point) decomposed charge density
+    'iband',      # bands to calculate partial charge for
+    'eint',       # energy range to calculate partial charge for
+    'nbmod',      # specifies mode for partial charge calculation
+    'kpuse',      # k-point to calculate partial charge for
+    'lsepb',      # write out partial charge of each band seperately?
+    'lsepk',      # write out partial charge of each k-point seperately?
     # 'NBLOCK' and KBLOCK       inner block; outer block
     # 'NPACO' and APACO         distance and nr. of slots for P.C.
     # 'WEIMIN, EBREAK, DEPER    special control tags
