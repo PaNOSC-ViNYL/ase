@@ -13,18 +13,18 @@ for manipulating atoms, analyzing simulations, visualization etc.
 
 Supported :mod:`calculators`:
 
-   |gpaw| |abinit| |siesta|
-
-   Dacapo_ Asap_ :mod:`EMT <emt>`
-
+   |gpaw| Dacapo_ Asap_ :mod:`EMT <emt>` |abinit| |siesta|
 
 
 .. |gpaw| image:: _static/gpaw.png
    :target: http://wiki.fysik.dtu.dk/gpaw
+   :align: middle
 .. |abinit| image:: _static/abinit.png
    :target: ase/calculators/abinit.html
+   :align: middle
 .. |siesta| image:: _static/siesta.png
    :target: ase/calculators/siesta.html
+   :align: middle
 
 .. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
