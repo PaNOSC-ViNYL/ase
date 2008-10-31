@@ -376,19 +376,25 @@ class Vasp:
         incar.write('INCAR created by Atomic Simulation Environment\n')
         for key, val in p.items():
             if val is not None:
+                incar.write(' '+key.upper()+' = ')
                 # special cases:
-                if key == ('dipol'):
-                    incar.write(' dipol = '.upper())
-                    [incar.write('%.4f ' % dip) for dip in val]
-                    incar.write('\n')
+                if key in ('dipol', 'eint'):
+                    [incar.write('%.4f ' % x) for x in val]
+                elif key in ('iband', 'nbmod', 'kpuse'):
+                    [incar.write('%i ' % x) for x in val]
                 elif key == 'rwigs':
-                    incar.write(' rwigs = '.upper())
                     [incar.write('%.4f ' % rwigs) for rwigs in val]
-                    incar.write('\n')
                     if len(val) != self.natoms:
                         raise RuntimeError('Incorrect number of magnetic moments')
                 else:
-                    incar.write(' '+key.upper()+' = %s\n' % p[key])
+                    if type(val)==type(bool()):
+                        if val:
+                            incar.write('.TRUE.')
+                        else:
+                            incar.write('.FALSE.')
+                    else:
+                        incar.write('%s' % p[key])
+                incar.write('\n')
         if self.spinpol:
             incar.write(' ispin = 2\n'.upper())
             # Write out initial magnetic moments
