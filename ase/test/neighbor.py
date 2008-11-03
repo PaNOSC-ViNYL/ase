@@ -41,3 +41,18 @@ for sorted in [False, True]:
                 print c2 - c
                 assert abs(dd) < 1e-10
                 assert not (c2 - c).any()
+
+h2 = Atoms('H2', positions=[(0, 0, 0), (0, 0, 1)])
+nl = NeighborList([0.5, 0.5], skin=0.1, sorted=True, self_interaction=False)
+assert nl.update(h2)
+assert not nl.update(h2)
+assert (nl.get_neighbors(0)[0] == [1]).all()
+
+h2[1].z += 0.09
+assert not nl.update(h2)
+assert (nl.get_neighbors(0)[0] == [1]).all()
+
+h2[1].z += 0.09
+assert nl.update(h2)
+assert (nl.get_neighbors(0)[0] == []).all()
+assert nl.nupdates == 2
