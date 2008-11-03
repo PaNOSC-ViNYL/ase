@@ -7,7 +7,7 @@ from os.path import isfile
 
 import numpy as npy
 
-from ase.parallel import rank
+from ase.parallel import rank, barrier
 from ase.io.trajectory import PickleTrajectory
 
 
@@ -89,6 +89,7 @@ class Optimizer(Dynamics):
             self.initialize()
         else:
             self.read()
+            barrier()
 
     def run(self, fmax=0.05, steps=100000000):
         """Run structure optimization algorithm.
