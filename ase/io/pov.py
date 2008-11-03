@@ -188,4 +188,6 @@ def write_pov(filename, atoms, run_povray=False, **parameters):
         atoms = atoms[0]
     POVRAY(atoms, **parameters).write(filename)
     if run_povray:
-        os.system('povray %s.ini 2> /dev/null' % filename[:-4])
+        errcode = os.system('povray %s.ini 2> /dev/null' % filename[:-4])
+        if errcode != 0:
+            raise OSError('Povray failed with error code %d' % errcode)
