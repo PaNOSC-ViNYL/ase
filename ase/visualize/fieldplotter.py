@@ -227,8 +227,8 @@ class FieldPlotter(_PrimiPlotter):
             self.log("Autorange using data.  Data range is [%f, %f]"
                      % (minimum, maximum))
         elif self.autorange == "plot":
-            ma = max(numpy.where(background, minimum, datamap).flat)
-            mi = min(numpy.where(background, maximum, datamap).flat)
+            ma = numpy.where(background, minimum, datamap).max()
+            mi = numpy.where(background, maximum, datamap).min()
             datamap = (datamap - mi) / (ma - mi)
             self.log("Autorange using plot.  Data range is [%f, %f]"
                      % (mi, ma))
@@ -238,6 +238,7 @@ class FieldPlotter(_PrimiPlotter):
                                                    - self.range[0])
             datamap = numpy.clip(datamap, 0.0, 1.0)
             self.log("Data range specified by user: [%f, %f]" % self.range)
+        datamap = numpy.where(background, bg, datamap)
         assert datamap.min() >= 0 and datamap.max() <= 1.0
         
         return datamap
