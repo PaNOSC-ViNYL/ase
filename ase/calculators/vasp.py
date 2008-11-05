@@ -347,7 +347,9 @@ class Vasp:
         return self.read_ibz_kpoints()
 
     def get_spin_polarized(self):
-        return self.spinpol
+        if not hasattr(self, 'spinpol'):
+            self.spinpol = self.atoms.get_initial_magnetic_moments().any()
+        return self.spinpol            
 
     def get_magnetic_moment(self, atoms):
         self.update(atoms)
