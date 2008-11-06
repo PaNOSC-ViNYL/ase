@@ -698,12 +698,14 @@ class xdat2traj:
             self.calc = Vasp()
         else:
             self.calc = calc
-        if not hasattr(self.calc, 'sort'):
-            self.calc.sort = self.calc.resort = range(len(self.atoms))
+        if not sort: 
+            if not hasattr(self.calc, 'sort'):
+                self.calc.sort = range(len(self.atoms))
         else:
-            self.calc.resort = range(len(self.sort))
-            for n in range(len(self.resort)):
-                self.resort[self.sort[n]] = n
+            self.calc.sort = sort
+        self.calc.resort = range(len(self.calc.sort))
+        for n in range(len(self.calc.resort)):
+            self.calc.resort[self.calc.sort[n]] = n
         self.out = ase.io.trajectory.PickleTrajectory(self.trajectory, mode='w')
         self.energies = self.calc.read_energy(all=True)[1]
         self.forces = self.calc.read_forces(self.atoms, all=True)
@@ -718,7 +720,7 @@ class xdat2traj:
         for line in lines:
             if iatom == len(self.atoms):
                 if step == 0:
-                    self.out.write_header(self.atoms)
+                    self.out.write_header(self.atoms[self.calc.resort])
                 scaled_pos = np.array(scaled_pos)
                 self.atoms.set_scaled_positions(scaled_pos)
                 d = {'positions': self.atoms.get_positions()[self.calc.resort],
