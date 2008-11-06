@@ -700,11 +700,15 @@ class xdat2traj:
             self.calc = calc
         if not hasattr(self.calc, 'sort'):
             self.calc.sort = self.calc.resort = range(len(self.atoms))
+        else:
+            self.calc.resort = range(len(self.sort))
+            for n in range(len(self.resort)):
+                self.resort[self.sort[n]] = n
         self.out = ase.io.trajectory.PickleTrajectory(self.trajectory, mode='w')
         self.energies = self.calc.read_energy(all=True)[1]
         self.forces = self.calc.read_forces(self.atoms, all=True)
 
-    def read(self):
+    def convert(self):
         lines = open(self.xdatcar).readlines()
 
         del(lines[0:6])
