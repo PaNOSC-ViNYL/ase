@@ -446,23 +446,19 @@ class Vasp:
 
     def write_potcar(self):
         """Write the POTCAR file."""
-        file = open('POTCAR','w')
+        import tempfile
+        potfile = open('POTCAR','w')
         for filename in self.ppp_list:
             if filename.endswith('R'):
-                file_tmp=open(filename,'r')
-                lines=file_tmp.readlines()
-                file_tmp.close()
-                for line in lines:
-                    file.write(line)
+                for line in open(filename, 'r'):
+                    potfile.write(line)
             elif filename.endswith('.Z'):
-                os.system('gunzip -c %s > tmp' % (filename))
-                file_tmp=open('tmp','r')
-                lines=file_tmp.readlines()
+                file_tmp = tempfile.NamedTemporaryFile()
+                os.system('gunzip -c %s > %s' % (filename, file_tmp.name))
+                for line in file_tmp.readlines():
+                    potfile.write(line)
                 file_tmp.close()
-                os.system('rm tmp')
-                for line in lines:
-                    file.write(line)
-        file.close()
+        potfile.close()
 
     # Methods for reading information from OUTCAR files:
     def read_energy(self):
