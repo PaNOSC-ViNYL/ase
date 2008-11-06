@@ -92,7 +92,7 @@ class Atoms(object):
     ...           pbc=(1, 0, 0))
     """
 
-    __slots__ = ['arrays', 'cell', 'pbc', 'calc', 'constraints',
+    __slots__ = ['arrays', 'cell', 'pbc', 'calc', '_constraints',
                  'adsorbate_info']
 
     def __init__(self, symbols=None,
@@ -208,12 +208,21 @@ class Atoms(object):
         The *constraint* argument must be one constraint object or a
         list of constraint objects."""
         if constraint is None:
-            self.constraints = []
+            self._constraints = []
         else:
             if isinstance(constraint, (list, tuple)):
-                self.constraints = constraint
+                self._constraints = constraint
             else:
-                self.constraints = [constraint]
+                self._constraints = [constraint]
+
+    def _get_constraints(self):
+        return self._constraints
+
+    def _del_constraints(self):
+        self._constraints = []
+
+    constraints = property(_get_constraints, set_constraint, _del_constraints,
+                           "Constraints of the atoms.")
     
     def set_cell(self, cell, scale_atoms=False, fix=None):
         """Set unit cell vectors.
@@ -512,12 +521,14 @@ class Atoms(object):
     
     def copy(self):
         """Return a copy."""
+        import copy
         atoms = Atoms(cell=self.cell, pbc=self.pbc)
 
         atoms.arrays = {}
         for name, a in self.arrays.items():
             atoms.arrays[name] = a.copy()
-            
+        atoms.constraints = copy.deepcopy(self.constraints)
+        atoms.adsorbate_info = copy.deepcopy(self.adsorbate_info)
         return atoms
 
     def __len__(self):
