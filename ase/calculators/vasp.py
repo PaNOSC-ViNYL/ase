@@ -139,7 +139,6 @@ class Vasp:
             raise ValueError(
                 '%s not supported for xc! use one of: PW91, LDA or PBE.' %
                 kwargs['xc'])
-
         self.positions = None
         self.nbands = self.incar_parameters['nbands']
         self.atoms = None
@@ -261,7 +260,10 @@ class Vasp:
         sys.stderr = stderr
         if exitcode != 0:
             raise RuntimeError('Vasp exited with exit code: %d.  ' % exitcode)
-        
+
+        atoms_sorted = ase.io.read('CONTCAR', format='vasp')
+        atoms.set_positions(atoms_sorted.get_positions()[self.resort])
+        positions = atoms.get_positions()
         self.positions = positions.copy(atoms)
         self.energy_free, self.energy_zero = self.read_energy()
         self.forces = self.read_forces(atoms)
@@ -461,31 +463,54 @@ class Vasp:
         potfile.close()
 
     # Methods for reading information from OUTCAR files:
-    def read_energy(self):
+    def read_energy(self, all=None):
         [energy_free, energy_zero]=[0, 0]
+        if all:
+            energy_free = []
+            energy_zero = []
         for line in open('OUTCAR', 'r'):
             # Free energy
             if line.startswith('  free energy    toten'):
-                energy_free = float(line.split()[-2])
+                if all:
+                    energy_free.append(float(line.split()[-2]))
+                else:
+                    energy_free = float(line.split()[-2])
             # Extrapolated zero point energy
             if line.startswith('  energy without entropy'):
-                energy_zero = float(line.split()[-1])
+                if all:
+                    energy_zero.append(float(line.split()[-1]))
+                else:
+                    energy_zero = float(line.split()[-1])
         return [energy_free, energy_zero]
 
-    def read_forces(self, atoms):
+    def read_forces(self, atoms, all=False):
+        """Method that reads forces from OUTCAR file.
+
+        If 'all' is switched on, the forces for all ionic steps
+        in the OUTCAR file be returned, in other case only the
+        forces for the last ionic configuration is returned."""
+
         file = open('OUTCAR','r')
         lines = file.readlines()
         file.close()
         n=0
+        if all:
+            all_forces = []
         for line in lines:
             if line.rfind('TOTAL-FORCE') > -1:
                 forces=[]
                 for i in range(len(atoms)):
                     forces.append(np.array([float(f) for f in lines[n+2+i].split()[3:6]]))
+                if all:
+                    all_forces.append(np.array(forces)[self.resort])
             n+=1
-        return np.array(forces)[self.resort]
+        if all:
+            return np.array(all_forces)
+        else:
+            return np.array(forces)[self.resort]
 
     def read_fermi(self):
+        """Method that reads Fermi energy from OUTCAR file"""
         E_f=None
         for line in open('OUTCAR', 'r'):
             if line.rfind('E-fermi') > -1:
@@ -526,6 +551,7 @@ class Vasp:
                 return int(line.split()[-1])
 
     def read_convergence(self):
+        """Method that checks whether a calculation has converged."""
         converged = None
         for line in open('OUTCAR', 'r'):
             if line.rfind('EDIFF  ')>-1:
@@ -644,3 +670,65 @@ class Vasp:
             raise NotImplementedError('Only Monkhorst-Pack and gamma centered grid supported for restart.')
         else:
             raise NotImplementedError('Only Monkhorst-Pack and gamma centered grid supported for restart.')
+
+
+
+import pickle
+
+class xdat2traj:
+    def __init__(self, trajectory=None, atoms=None, poscar=None, 
+                 xdatcar=None, sort=None, calc=None):
+        if not poscar:
+            self.poscar = 'POSCAR'
+        else:
+            self.poscar = poscar
+        if not atoms:
+            self.atoms = ase.io.read(self.poscar, format='vasp')
+        else:
+            self.atoms = atoms
+        if not xdatcar:
+            self.xdatcar = 'XDATCAR'
+        else:
+            self.xdatcar = xdatcar
+        if not trajectory:
+            self.trajectory = 'out.traj'
+        else:
+            self.trajectory = trajectory
+        if not calc:
+            self.calc = Vasp()
+        else:
+            self.calc = calc
+        if not hasattr(self.calc, 'sort'):
+            self.calc.sort = self.calc.resort = range(len(self.atoms))
+        self.out = ase.io.trajectory.PickleTrajectory(self.trajectory, mode='w')
+        self.energies = self.calc.read_energy(all=True)[1]
+        self.forces = self.calc.read_forces(self.atoms, all=True)
+
+    def read(self):
+        lines = open(self.xdatcar).readlines()
+
+        del(lines[0:6])
+        step = 0
+        iatom = 0
+        scaled_pos = []
+        for line in lines:
+            if iatom == len(self.atoms):
+                if step == 0:
+                    self.out.write_header(self.atoms)
+                scaled_pos = np.array(scaled_pos)
+                self.atoms.set_scaled_positions(scaled_pos)
+                d = {'positions': self.atoms.get_positions()[self.calc.resort],
+                     'cell': self.atoms.get_cell(),
+                     'momenta': None,
+                     'energy': self.energies[step],
+                     'forces': self.forces[step],
+                     'stress': None}
+                pickle.dump(d, self.out.fd, protocol=-1)
+                scaled_pos = []
+                iatom = 0
+                step += 1
+            else:
+                
+                iatom += 1
+                scaled_pos.append([float(line.split()[n]) for n in range(3)])
+        self.out.fd.close()
