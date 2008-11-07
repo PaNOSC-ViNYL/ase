@@ -228,18 +228,17 @@ class FixScaled(FixConstraintSingle):
         self.mask = np.array(mask)
 
     def adjust_positions(self, old, new):
-        scaled_old = np.dot(old, np.linalg.inv(self.cell))
-        scaled_new = np.dot(new, np.linalg.inv(self.cell))
+        scaled_old = np.linalg.solve(self.cell.T, old.T).T
+        scaled_new = np.linalg.solve(self.cell.T, new.T).T
         for n in range(3):
             if self.mask[n]:
                 scaled_new[self.a, n] = scaled_old[self.a, n]
         new[self.a] = np.dot(scaled_new, self.cell)[self.a]
 
     def adjust_forces(self, positions, forces):
-        scaled_forces = np.dot(forces, np.linalg.inv(self.cell))
+        scaled_forces = np.linalg.solve(self.cell.T, forces.T).T
         scaled_forces[self.a] *= -(self.mask-1)
         forces[self.a] = np.dot(scaled_forces, self.cell)[self.a]
-
 
     def copy(self):
         return fix_scaled(self.cell ,self.a, self.mask)
