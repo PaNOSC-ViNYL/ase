@@ -608,13 +608,30 @@ class Atoms(object):
                 raise IndexError('Index out of range.')
 
             return Atom(atoms=self, index=i)
-
+        
+        import copy
+        from constraints import FixConstraint
+        
         atoms = Atoms(cell=self.cell, pbc=self.pbc)
-
+        # TODO: Do we need to shuffle indices in adsorbate_info too?
+        atoms.adsorbate_info = self.adsorbate_info
+        
         atoms.arrays = {}
         for name, a in self.arrays.items():
             atoms.arrays[name] = a[i].copy()
-            
+        
+        # Constraints need to be deepcopied, since we need to shuffle
+        # the indices
+        atoms.constraints = copy.deepcopy(self.constraints)
+        condel = []
+        for con in atoms.constraints:
+            if isinstance(con, FixConstraint):
+                try:
+                    con.index_shuffle(i)
+                except IndexError:
+                    condel.append(con)
+        for con in condel:
+            atoms.constraints.remove(con)
         return atoms
 
     def __delitem__(self, i):

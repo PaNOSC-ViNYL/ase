@@ -33,7 +33,7 @@ def read_vasp(filename='CONTCAR'):
  
     import os
     from ase import Atoms, Atom
-    from ase.constraints import FixAtoms, fix_scaled
+    from ase.constraints import FixAtoms, FixScaled
     from ase.data import chemical_symbols
     import numpy as np
 
@@ -115,7 +115,7 @@ def read_vasp(filename='CONTCAR'):
         indices = []
         for ind, sflags in enumerate(selective_flags):
             if sflags.any() and not sflags.all():
-                constraints.append(fix_scaled(atoms.get_cell(), ind, sflags))
+                constraints.append(FixScaled(atoms.get_cell(), ind, sflags))
             elif sflags.all():
                 indices.append(ind)
         if indices:
@@ -134,7 +134,7 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None):
     """
     
     import numpy as np
-    from ase.constraints import FixAtoms, fix_scaled
+    from ase.constraints import FixAtoms, FixScaled
 
     if type(filename) == str:
         f = open(filename, 'w')
@@ -153,7 +153,7 @@ object.')
     if atoms.constraints:
         sflags = np.zeros((len(atoms), 3), dtype=bool)
         for constr in atoms.constraints:
-            if isinstance(constr, fix_scaled):
+            if isinstance(constr, FixScaled):
                 sflags[constr.a] = constr.mask
             elif isinstance(constr, FixAtoms):
                 sflags[constr.index] = [True, True, True]

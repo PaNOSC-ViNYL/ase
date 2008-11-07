@@ -2,8 +2,46 @@ from math import sqrt
 
 import numpy as np
 
+def slice2enlist(s):
+    """Convert a slice object into a list of (new, old) tuples."""
+    if isinstance(s, (list, tuple)):
+        return enumerate(s)
+    if s.step == None:
+        step = 1
+    else:
+        step = s.step
+    return enumerate(range(s.start, s.stop, step))
 
-class FixAtoms:
+class FixConstraint(object):
+    """Base class for classes that fix one or more atoms in some way."""
+
+    def index_shuffle(self, ind):
+        """Change the indices.
+
+        When the ordering of the atoms in the Atoms object changes,
+        this method can be called to shuffle the indices of the
+        constraints.
+
+        ind -- List or tuple of indices.
+
+        """
+        pass
+
+class FixConstraintSingle(FixConstraint):
+    "Base class for classes that fix a single atom."
+
+    def index_shuffle(self, ind):
+        "The atom index must be stored as self.a."
+        newa = -1 # Signal error
+        for new, old in slice2enlist(ind):
+            if old == self.a:
+                newa = new
+                break
+        if newa == -1:
+            raise IndexError('Constraint not part of slice')
+        self.a = newa
+
+class FixAtoms(FixConstraint):
     """Constraint object for fixing some chosen atoms."""
     def __init__(self, indices=None, mask=None):
         """Constrain chosen atoms.
@@ -48,6 +86,19 @@ class FixAtoms:
     def adjust_forces(self, positions, forces):
         forces[self.index] = 0.0
 
+    def index_shuffle(self, ind):
+        # See docstring of superclass
+        if self.index.dtype == bool:
+            self.index = self.index[ind]
+        else:
+            index = []
+            for new, old in slice2enlist(ind):
+                if old in self.index:
+                    index.append(new)
+            if len(index) == 0:
+                raise IndexError('All indices in FixAtoms not part of slice')
+            self.index = np.asarray(index, int)
+
     def copy(self):
         if self.index.dtype == bool:
             return FixAtoms(mask=self.index.copy())
@@ -66,7 +117,7 @@ def ints2string(x, threshold=10):
     return str(x[:threshold].tolist())[:-1] + ', ...]'
 
 
-class FixBondLength:
+class FixBondLength(FixConstraint):
     """Constraint object for fixing a bond length."""
     def __init__(self, a1, a2):
         """Fix distance between atoms with indices a1 and a2."""
@@ -95,7 +146,7 @@ class FixBondLength:
         return 'FixBondLength(%d, %d)' % tuple(self.indices)
 
 
-class FixedPlane:
+class FixedPlane(FixConstraintSingle):
     """Constrain an atom *a* to move in a given plane only.
 
     The plane is defined by its normal: *direction*."""
@@ -118,7 +169,7 @@ class FixedPlane:
         return 'FixedPlane(%d, %s)' % (self.a, self.dir.tolist())
 
 
-class FixedLine:
+class FixedLine(FixConstraintSingle):
     """Constrain an atom *a* to move on a given line only.
 
     The line is defined by its *direction*."""
@@ -141,7 +192,7 @@ class FixedLine:
     def __repr__(self):
         return 'FixedLine(%d, %s)' % (self.a, self.dir.tolist())
 
-class fix_cartesian:
+class FixCartesian(FixConstraintSingle):
     "Fix an atom in the directions of the cartesian coordinates."
     def __init__(self, a, mask=[1,1,1]):
         self.a=a
@@ -161,7 +212,15 @@ class fix_cartesian:
     def __repr__(self):
         return 'FixCartesian(indice=%s mask=%s)' % (self.a, self.mask)
 
-class fix_scaled:
+class fix_cartesian(FixCartesian):
+    "Backwards compatibility for FixCartesian."
+    def __init__(self, a, mask=[1,1,1]):
+        import warnings
+        super(fix_cartesian, self).__init__(a, mask)
+        warnings.warn('fix_cartesian is deprecated. Please use FixCartesian' \
+                      ' instead.', DeprecationWarning, stacklevel=2)
+
+class FixScaled(FixConstraintSingle):
     "Fix an atom in the directions of the unit vectors."
     def __init__(self, cell, a, mask=[1,1,1]):
         self.cell = cell
@@ -181,13 +240,20 @@ class fix_scaled:
         scaled_forces[self.a] *= -(self.mask-1)
         forces[self.a] = np.dot(scaled_forces, self.cell)[self.a]
 
+
     def copy(self):
         return fix_scaled(self.cell ,self.a, self.mask)
 
     def __repr__(self):
         return 'FixScaled(indice=%s mask=%s)' % (self.a, self.mask)
 
-
+class fix_scaled(FixScaled):
+    "Backwards compatibility for FixScaled."
+    def __init__(self, cell, a, mask=[1,1,1]):
+        import warnings
+        super(fix_scaled, self).__init__(cell, a, mask)
+        warnings.warn('fix_scaled is deprecated. Please use FixScaled ' \
+                      'instead.', DeprecationWarning, stacklevel=2)
 
 class Filter:
     """Subset filter class."""
