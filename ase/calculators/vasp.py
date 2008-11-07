@@ -671,6 +671,32 @@ class Vasp:
         else:
             raise NotImplementedError('Only Monkhorst-Pack and gamma centered grid supported for restart.')
 
+    def read_charge_density(self, filename='CHG'):
+        """Read CHG or CHGCAR file.
+        
+        TODO: If CHG contains charge density from multiple steps, only
+        the first step is read. We should read all the steps, or only
+        the last one.
+        
+        """
+        import ase.io.vasp as aiv
+        f = open(filename)
+        atoms = aiv.read_vasp(f)
+        f.readline()
+        ng = f.readline().split()
+        ng = (int(ng[0]), int(ng[1]), int(ng[2]))
+        chg = np.empty(ng)
+        # VASP writes charge density as
+        # WRITE(IU,FORM) (((C(NX,NY,NZ),NX=1,NGXC),NY=1,NGYZ),NZ=1,NGZC)
+        # Fortran nested implied do loops; innermost index fastest
+        # First, just read it in
+        for zz in range(chg.shape[2]):
+            for yy in range(chg.shape[1]):
+                chg[:, yy, zz] = np.fromfile(f, count = \
+                        chg.shape[0], sep=' ')
+        f.close()
+        chg /= atoms.get_volume()
+        return chg
 
 
 import pickle
