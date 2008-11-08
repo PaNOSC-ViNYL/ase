@@ -207,7 +207,7 @@ class FixCartesian(FixConstraintSingle):
         forces[self.a] *= self.mask
 
     def copy(self):
-        return fix_cartesian(self.a, self.mask)
+        return FixCartesian(self.a, self.mask)
 
     def __repr__(self):
         return 'FixCartesian(indice=%s mask=%s)' % (self.a, self.mask)
@@ -241,7 +241,7 @@ class FixScaled(FixConstraintSingle):
         forces[self.a] = np.dot(scaled_forces, self.cell)[self.a]
 
     def copy(self):
-        return fix_scaled(self.cell ,self.a, self.mask)
+        return FixScaled(self.cell ,self.a, self.mask)
 
     def __repr__(self):
         return 'FixScaled(indice=%s mask=%s)' % (self.a, self.mask)
