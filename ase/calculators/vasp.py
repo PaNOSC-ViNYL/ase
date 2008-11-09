@@ -673,30 +673,40 @@ class Vasp:
 
     def read_charge_density(self, filename='CHG'):
         """Read CHG or CHGCAR file.
+
+        Returns list of (atoms, chg) tuples.
         
-        TODO: If CHG contains charge density from multiple steps, only
-        the first step is read. We should read all the steps, or only
-        the last one.
-        
+        If CHG contains charge density from multiple steps all the
+        steps are read and returned. By default VASP writes out the
+        charge density every 10 steps.
+
         """
         import ase.io.vasp as aiv
         f = open(filename)
-        atoms = aiv.read_vasp(f)
-        f.readline()
-        ng = f.readline().split()
-        ng = (int(ng[0]), int(ng[1]), int(ng[2]))
-        chg = np.empty(ng)
-        # VASP writes charge density as
-        # WRITE(IU,FORM) (((C(NX,NY,NZ),NX=1,NGXC),NY=1,NGYZ),NZ=1,NGZC)
-        # Fortran nested implied do loops; innermost index fastest
-        # First, just read it in
-        for zz in range(chg.shape[2]):
-            for yy in range(chg.shape[1]):
-                chg[:, yy, zz] = np.fromfile(f, count = \
-                        chg.shape[0], sep=' ')
+        nchg = []
+        while True:
+            try:
+                atoms = aiv.read_vasp(f)
+            except ValueError, e:
+                # Probably an empty line, or we tried to read the 
+                # augmentation occupancies in CHGCAR
+                break 
+            f.readline()
+            ng = f.readline().split()
+            ng = (int(ng[0]), int(ng[1]), int(ng[2]))
+            chg = np.empty(ng)
+            # VASP writes charge density as
+            # WRITE(IU,FORM) (((C(NX,NY,NZ),NX=1,NGXC),NY=1,NGYZ),NZ=1,NGZC)
+            # Fortran nested implied do loops; innermost index fastest
+            # First, just read it in
+            for zz in range(chg.shape[2]):
+                for yy in range(chg.shape[1]):
+                    chg[:, yy, zz] = np.fromfile(f, count = chg.shape[0],
+                                                 sep=' ')
+            chg /= atoms.get_volume()
+            nchg.append((atoms, chg))
         f.close()
-        chg /= atoms.get_volume()
-        return chg
+        return nchg
 
 
 import pickle
