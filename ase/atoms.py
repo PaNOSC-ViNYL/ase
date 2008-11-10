@@ -602,6 +602,18 @@ class Atoms(object):
         self.extend(Atoms([atom]))
 
     def __getitem__(self, i):
+        """Return a subset of the atoms.
+
+        i -- scalar integer, list of integers, or slice object
+        describing which atoms to return.
+
+        If i is a scalar, return an Atom object. If i is a list or a
+        slice, return an Atoms object with the same cell, pbc, and
+        other associated info as the original Atoms object. The
+        indices of the constraints will be shuffled so that they match
+        the indexing in the subset returned.
+
+        """
         if isinstance(i, int):
             natoms = len(self)
             if i < -natoms or i >= natoms:
