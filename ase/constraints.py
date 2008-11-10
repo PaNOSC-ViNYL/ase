@@ -25,7 +25,7 @@ class FixConstraint(object):
         ind -- List or tuple of indices.
 
         """
-        pass
+        raise NotImplementedError
 
 class FixConstraintSingle(FixConstraint):
     "Base class for classes that fix a single atom."
@@ -139,6 +139,17 @@ class FixBondLength(FixConstraint):
         d *= 0.5 * np.dot(np.subtract.reduce(forces[self.indices]), d) / d2
         forces[self.indices] += (-d, d)
 
+    def index_shuffle(self, ind):
+        'Shuffle the indices of the two atoms in this constraint'
+        newa = [-1, -1] # Signal error
+        for new, old in slice2enlist(ind):
+            for i, a in enumerate(self.indices):
+                if old == a:
+                    newa[i] = new
+        if newa[0] == -1 or newa[1] == -1:
+            raise IndexError('Constraint not part of slice')
+        self.indices = newa
+    
     def copy(self):
         return FixBondLength(*self.indices)
 
