@@ -37,12 +37,11 @@ def read_vasp(filename='CONTCAR'):
     from ase.data import chemical_symbols
     import numpy as np
 
-    if type(filename) == str:
+    if isinstance(filename, str):
         f = open(filename)
-    elif type(filename) == file:
+    else: # Assume it's a file-like object
         f = filename
-    else:
-        raise TypeError("filename argument must be a string or a file object.")
+
     vaspdir = os.path.dirname(f.name)
     # First line should contain the atom symbols , eg. "Ag Ge" in
     # the same order
@@ -136,13 +135,10 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None):
     import numpy as np
     from ase.constraints import FixAtoms, FixScaled
 
-    if type(filename) == str:
+    if isinstance(filename, str):
         f = open(filename, 'w')
-    elif type(filename) == file:
-        f = file
-    else:
-        raise TypeError('filename argument must be either a string or a file \
-object.')
+    else: # Assume it's a 'file-like object'
+        f = filename
     
     # Write atom positions in scaled or cartesian coordinates
     if direct:
