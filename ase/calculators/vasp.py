@@ -708,6 +708,36 @@ class Vasp:
         f.close()
         return nchg
 
+    def write_charge_density(self, chgs, filename='CHG'):
+        """Write VASP charge density in CHG format
+
+        Note that the CHGCAR format is not supported, since the PAW
+        1-center occupancies in that file are not handled.
+
+        chgs -- list of (atoms, chg) tuples, where the atoms object
+        specifies the atomic positions for that charge density image.
+
+        """
+        import ase.io.vasp as aiv
+        f = open(filename, 'w')
+        for atoms, chg in chgs:
+            aiv.write_vasp(f, atoms)
+            f.write('\n')
+            for dim in chg.shape:
+                f.write(' %4i' % dim)
+            f.write('\n')
+            chg *= atoms.get_volume()
+            n = 0
+            for zz in range(chg.shape[2]):
+                for yy in range(chg.shape[1]):
+                    for xx in range(chg.shape[0]):
+                        f.write(' %#11.5G' % chg[xx, yy, zz])
+                        n += 1
+                        if n % 10 == 0:
+                            # Write 10 values per line
+                            f.write('\n')
+        f.close()
+
 
 import pickle
 
