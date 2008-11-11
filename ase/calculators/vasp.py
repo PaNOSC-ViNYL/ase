@@ -773,4 +773,17 @@ class xdat2traj:
                 
                 iatom += 1
                 scaled_pos.append([float(line.split()[n]) for n in range(3)])
+
+        # Write also the last image
+        # I'm sure there is also more clever fix...
+        scaled_pos = np.array(scaled_pos)
+        self.atoms.set_scaled_positions(scaled_pos)
+        d = {'positions': self.atoms.get_positions()[self.calc.resort],
+             'cell': self.atoms.get_cell(),
+             'momenta': None,
+             'energy': self.energies[step],
+             'forces': self.forces[step],
+             'stress': None}
+        pickle.dump(d, self.out.fd, protocol=-1)
+
         self.out.fd.close()
