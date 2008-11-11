@@ -470,13 +470,13 @@ class Vasp:
             energy_zero = []
         for line in open('OUTCAR', 'r'):
             # Free energy
-            if line.startswith('  free energy    toten'):
+            if line.startswith('  free  energy   toten'):
                 if all:
                     energy_free.append(float(line.split()[-2]))
                 else:
                     energy_free = float(line.split()[-2])
             # Extrapolated zero point energy
-            if line.startswith('  energy without entropy'):
+            if line.startswith('  energy  without entropy'):
                 if all:
                     energy_zero.append(float(line.split()[-1]))
                 else:
