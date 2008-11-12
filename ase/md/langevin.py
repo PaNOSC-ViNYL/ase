@@ -48,6 +48,10 @@ class Langevin(MolecularDynamics):
         self.frict = friction
         self.updatevars()
 
+    def set_timestep(self, timestep):
+        self.dt = timestep
+        self.updatevars()
+
     def updatevars(self):
         dt = self.dt
         # If the friction is an array some other constants must be arrays too.
