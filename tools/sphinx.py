@@ -43,8 +43,11 @@ def build():
     os.system('cd _build; cp _static/searchtools.js .')
 
     if 1:
-        if os.system('sphinx-build -b latex . _build') != 0:
+        if os.system('sphinx-build -b latex . _build 2> error') != 0:
             raise RuntimeError('Sphinx failed!')
+        os.system(
+            'grep -v "WARNING: unusable reference target found" error 1>&2')
+        
         os.chdir('_build')
         #os.system('cd ../..; ln -s doc/_static')
         if os.system('make ase-manual.pdf 2>&1') != 0:
