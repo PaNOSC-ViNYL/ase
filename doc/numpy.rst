@@ -36,7 +36,11 @@ array([[ 0.,  1.],
 2
 
 
-All functions from the ``numpy`` module's namespace are available in
-the ASE namespace as well - thus, ``from ase import *`` will import
-``array``, ``zeros`` and so on.  The numpy module will furthermore be
-aliased as ``np``.
+.. note::
+
+  When you do ``from ase import *``, you will get the ``np`` alias
+  automatically, so there is no need to do a ``import numpy as np``
+  also.  Try this:
+
+  >>> from ase import *
+  >>> dir(np)

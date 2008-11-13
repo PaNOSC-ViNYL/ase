@@ -21,6 +21,6 @@ for k, kpt_c in enumerate(calc.get_ibz_k_points()):
 
 # Print Wannier bandstructure
 f = open('WANbands.txt', 'w')
-for k in linspace(-.5, .5, 100):
-    for eps in linalg.eigvalsh(wan.get_hamiltonian_kpoint([k, 0, 0])).real:
+for k in np.linspace(-.5, .5, 100):
+    for eps in np.linalg.eigvalsh(wan.get_hamiltonian_kpoint([k, 0, 0])).real:
         print >> f, k, eps - ef

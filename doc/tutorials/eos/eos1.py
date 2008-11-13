@@ -7,6 +7,6 @@ ag = Atoms('Ag',
            calculator=EMT())  # use EMT potential
 cell = ag.get_cell()
 traj = PickleTrajectory('Ag.traj', 'w')
-for x in linspace(0.95, 1.05, 5):
+for x in np.linspace(0.95, 1.05, 5):
     ag.set_cell(cell * x, scale_atoms=True)
     traj.write(ag)

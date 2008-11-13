@@ -1,12 +1,11 @@
 # creates: transport_setup.png
 
-import numpy as npy
 from ase import *
 
 a = 3.92 # Experimental lattice constant
-cell = npy.array([[a / sqrt(3),          0.,               0.],
-                  [         0., a / sqrt(2),               0.],
-                  [         0., a / sqrt(8), a * sqrt(3 / 8.)]])
+cell = np.array([[a / sqrt(3),          0.,               0.],
+                 [         0., a / sqrt(2),               0.],
+                 [         0., a / sqrt(8), a * sqrt(3 / 8.)]])
 repeat = (1, 3, 3)
 
 A = Atoms('Pt', pbc=True, positions=[(0., 0., 0.)])
@@ -50,7 +49,7 @@ large.cell[0, 0] += dist - cell[0, 0]
 large.positions[-(9 * 6 + 4):, 0] += dist - cell[0, 0]
 
 tipL, tipR = large.positions[large.get_tags() == 2]
-tipdist = npy.linalg.norm(tipL - tipR)
+tipdist = np.linalg.norm(tipL - tipR)
 
 mol = molecule('C6H6', pbc=True, tags=[3] * 6 + [4] * 6)
 mol.rotate('y', 'x')
@@ -66,7 +65,7 @@ large.set_cell(old)
 
 #view(large)
 
-colors = npy.zeros((len(large), 3))
+colors = np.zeros((len(large), 3))
 colors[:] = [1., 1., .75]
 
 pr = [.7, .1, .1]
