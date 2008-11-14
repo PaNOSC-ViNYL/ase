@@ -39,14 +39,12 @@ Get the source code from svn::
 
   $ cd $HOME
   $ svn checkout https://svn.fysik.dtu.dk/projects/ase/tags/3.0.0 ase
-  $ cd ase
 	
-or from `python-ase-3.0.0.657.tar.gz <tarfile>`_::
+or from python-ase-3.0.0.657.tar.gz_::
 
   $ cd $HOME
   $ tar xtzf python-ase-3.0.0.657.tar.gz
   $ mv python-ase-3.0.0.657 ase
-  $ cd ase
 
 .. note::
 
@@ -58,10 +56,12 @@ or from `python-ase-3.0.0.657.tar.gz <tarfile>`_::
 
 If you have root-permissions, you do this::
 
+  $ cd ase
   $ sudo python setup.py install
 
 
-.. _tarfile: https://wiki.fysik.dtu.dk/ase-files/python-ase-3.0.0.657.tar.gz
+.. _python-ase-3.0.0.657.tar.gz:
+    https://wiki.fysik.dtu.dk/ase-files/python-ase-3.0.0.657.tar.gz
 
 
 No root-permissions
