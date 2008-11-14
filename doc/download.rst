@@ -61,7 +61,7 @@ If you have root-permissions, you do this::
   $ sudo python setup.py install
 
 
-.. _tarfile:: https://wiki.fysik.dtu.dk/ase-files/python-ase-3.0.0.657.tar.gz
+.. _tarfile: https://wiki.fysik.dtu.dk/ase-files/python-ase-3.0.0.657.tar.gz
 
 
 No root-permissions
