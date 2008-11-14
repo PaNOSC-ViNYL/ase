@@ -38,19 +38,30 @@ Installation
 Get the source code from svn::
 
   $ cd $HOME
-  $ svn checkout https://svn.fysik.dtu.dk/projects/ase/trunk ase
+  $ svn checkout https://svn.fysik.dtu.dk/projects/ase/tags/3.0.0 ase
   $ cd ase
 	
-or from this tarfile (`<python-ase-3.0.0.507.tar.gz>`_)::
+or from `python-ase-3.0.0.657.tar.gz <tarfile>`_::
 
   $ cd $HOME
-  $ tar xtzf python-ase-3.0.0.507.tar.gz
-  $ mv python-ase-3.0.0.507.tar.gz ase
+  $ tar xtzf python-ase-3.0.0.657.tar.gz
+  $ mv python-ase-3.0.0.657 ase
   $ cd ase
+
+.. note::
+
+  Alternatively, you can grab the latest development version from
+  `<python-ase-snapshot.tar.gz>`_ or from svn::
+
+    $ svn checkout https://svn.fysik.dtu.dk/projects/ase/trunk ase
+
 
 If you have root-permissions, you do this::
 
   $ sudo python setup.py install
+
+
+.. _tarfile:: https://wiki.fysik.dtu.dk/ase-files/python-ase-3.0.0.657.tar.gz
 
 
 No root-permissions

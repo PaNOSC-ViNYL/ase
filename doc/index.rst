@@ -38,7 +38,9 @@ Supported :mod:`calculators`:
 News
 ====
 
-* Asap_ version 3.0.2 released (15. October 2008).
+* :ref:`ASE version 3.0 <download>` released (13 November 2008).
+
+* Asap_ version 3.0.2 released (15 October 2008).
 
 * An experimental abinit interface released (9 June 2008).
 

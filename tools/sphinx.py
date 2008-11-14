@@ -10,7 +10,7 @@ tmpdir = tempfile.mkdtemp(prefix='ase-')
 os.chdir(tmpdir)
 
 def build():
-    if os.system('svn export ' +
+    if os.system('svn checkout ' +
                  'https://svn.fysik.dtu.dk/projects/ase/trunk ase') != 0:
         raise RuntimeError('Checkout of ASE failed!')
     os.chdir('ase')
@@ -56,7 +56,9 @@ def build():
         os.chdir('_build')
 
     assert os.system('mv ../../html epydoc;' +
-                     'mv ../../dist/python-ase-3.0.0.tar.gz .') == 0
+                     'mv ../../dist/python-ase-*.tar.gz .;' +
+                     'ln -s python-ase-*.tar.gz ' +
+                     'python-ase-snapshot.tar.gz') == 0
     
 tarfiledir = None
 if len(sys.argv) == 2:
