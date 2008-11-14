@@ -92,7 +92,7 @@ class Atoms(object):
     ...           pbc=(1, 0, 0))
     """
 
-    __slots__ = ['arrays', 'cell', 'pbc', 'calc', '_constraints',
+    __slots__ = ['arrays', '_cell', '_pbc', 'calc', '_constraints',
                  'adsorbate_info']
 
     def __init__(self, symbols=None,
@@ -170,7 +170,7 @@ class Atoms(object):
             if scaled_positions is None:
                 positions = npy.zeros((len(self.arrays['numbers']), 3))
             else:
-                positions = npy.dot(scaled_positions, self.cell)
+                positions = npy.dot(scaled_positions, self._cell)
         else:
             if scaled_positions is not None:
                 raise RuntimeError, 'Both scaled and cartesian positions set!'
@@ -258,23 +258,23 @@ class Atoms(object):
             raise ValueError('Cell must be length 3 sequence or '
                              '3x3 matrix!')
         if scale_atoms:
-            M = npy.linalg.solve(self.cell, cell)
+            M = npy.linalg.solve(self._cell, cell)
             self.arrays['positions'][:] = npy.dot(self.arrays['positions'], M)
-        self.cell = cell
+        self._cell = cell
 
     def get_cell(self):
         """Get the three unit cell vectors as a 3x3 ndarray."""
-        return self.cell.copy()
+        return self._cell.copy()
 
     def set_pbc(self, pbc):
         """Set periodic boundary condition flags."""
         if isinstance(pbc, int):
             pbc = (pbc,) * 3
-        self.pbc = npy.array(pbc, bool)
+        self._pbc = npy.array(pbc, bool)
         
     def get_pbc(self):
         """Get periodic boundary condition flags."""
-        return self.pbc.copy()
+        return self._pbc.copy()
 
     def new_array(self, name, a, dtype=None, shape=None):
         """Add new array.
@@ -522,7 +522,7 @@ class Atoms(object):
     def copy(self):
         """Return a copy."""
         import copy
-        atoms = Atoms(cell=self.cell, pbc=self.pbc)
+        atoms = Atoms(cell=self._cell, pbc=self._pbc)
 
         atoms.arrays = {}
         for name, a in self.arrays.items():
@@ -552,11 +552,11 @@ class Atoms(object):
             if name == 'numbers':
                 continue
             s += '%s=..., ' % name
-        if abs(self.cell - npy.diag(self.cell.diagonal())).sum() < 1e-12:
-            s += 'cell=%s, ' % self.cell.diagonal().tolist()
+        if (self._cell - npy.diag(self._cell.diagonal())).any():
+            s += 'cell=%s, ' % self._cell.tolist()            
         else:
-            s += 'cell=%s, ' % self.cell.tolist()            
-        s += 'pbc=%s, ' % self.pbc.tolist()
+            s += 'cell=%s, ' % self._cell.diagonal().tolist()
+        s += 'pbc=%s, ' % self._pbc.tolist()
         if len(self.constraints) == 1:
             s += 'constraint=%s, ' % repr(self.constraints[0])
         if len(self.constraints) > 1:
@@ -624,7 +624,7 @@ class Atoms(object):
         import copy
         from constraints import FixConstraint
         
-        atoms = Atoms(cell=self.cell, pbc=self.pbc)
+        atoms = Atoms(cell=self._cell, pbc=self._pbc)
         # TODO: Do we need to shuffle indices in adsorbate_info too?
         atoms.adsorbate_info = self.adsorbate_info
         
@@ -674,9 +674,9 @@ class Atoms(object):
             for m1 in range(m[1]):
                 for m0 in range(m[0]):
                     i1 = i0 + n
-                    positions[i0:i1] += npy.dot((m0, m1, m2), self.cell)
+                    positions[i0:i1] += npy.dot((m0, m1, m2), self._cell)
                     i0 = i1
-        self.cell = npy.array([m[c] * self.cell[c] for c in range(3)])
+        self._cell = npy.array([m[c] * self._cell[c] for c in range(3)])
         return self
 
     def repeat(self, rep):
@@ -707,17 +707,17 @@ class Atoms(object):
         p1 = p.max(0)
         if axis is None:
             if vacuum is not None:
-                self.cell = npy.diag(p1 - p0 + 2 * npy.asarray(vacuum))
-            p += 0.5 * (self.cell.sum(0) - p0 - p1)
+                self._cell = npy.diag(p1 - p0 + 2 * npy.asarray(vacuum))
+            p += 0.5 * (self._cell.sum(0) - p0 - p1)
         else:
-            c = self.cell.copy()
+            c = self._cell.copy()
             c.flat[::4] = 0.0
             if c.any():
                 raise NotImplementedError('Unit cell must be orthorhombic!')
             
             if vacuum is not None:
-                self.cell[axis, axis] = p1[axis] - p0[axis] + 2 * vacuum
-            p[:, axis] += 0.5 * (self.cell[axis, axis] - p0[axis] - p1[axis])
+                self._cell[axis, axis] = p1[axis] - p0[axis] + 2 * vacuum
+            p[:, axis] += 0.5 * (self._cell[axis, axis] - p0[axis] - p1[axis])
 
     def get_center_of_mass(self):
         """Get the center of mass."""
@@ -822,15 +822,15 @@ class Atoms(object):
         those directions with periodic boundary conditions so that the
         scaled coordinates are beween zero and one."""
 
-        scaled = npy.linalg.solve(self.cell.T, self.arrays['positions'].T).T
+        scaled = npy.linalg.solve(self._cell.T, self.arrays['positions'].T).T
         for i in range(3):
-            if self.pbc[i]:
+            if self._pbc[i]:
                 scaled[:, i] %= 1.0
         return scaled
 
     def set_scaled_positions(self, scaled):
         """Set positions relative to unit cell."""
-        self.arrays['positions'][:] = npy.dot(scaled, self.cell)
+        self.arrays['positions'][:] = npy.dot(scaled, self._cell)
 
     def __eq__(self, other):
         """Check for identity of two atoms objects.
@@ -843,31 +843,50 @@ class Atoms(object):
         return (len(self) == len(other) and
                 (a['positions'] == b['positions']).all() and
                 (a['numbers'] == b['numbers']).all() and
-                (self.cell == other.cell).all() and
-                (self.pbc == other.pbc).all())
+                (self._cell == other.cell).all() and
+                (self._pbc == other.pbc).all())
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def get_volume(self):
         """Get volume of unit cell."""
-        return abs(npy.linalg.det(self.cell))
+        return abs(npy.linalg.det(self._cell))
     
     def _get_positions(self):
+        """Return reference to positions-array for inplace manipulations."""
         return self.arrays['positions']
-    
+
     def _set_positions(self, pos):
+        """Set positions directly, bypassing constraints."""
         self.arrays['positions'][:] = pos
-    
+
     positions = property(_get_positions, _set_positions,
                          doc='Attribute for direct ' +
                          'manipulation of the positions.')
 
-    def _get_numbers(self):
+    def _get_atomic_numbers(self):
+        """Return reference to atomic numbers for inplace manipulations."""
         return self.arrays['numbers']
-    
-    numbers = property(_get_numbers, doc='Attribute for direct ' +
+
+    numbers = property(_get_atomic_numbers, set_atomic_numbers,
+                       doc='Attribute for direct ' +
                        'manipulation of the atomic numbers.')
+
+    def _get_cell(self):
+        """Return reference to unit cell for inplace manipulations."""
+        return self._cell
+    
+    cell = property(_get_cell, set_cell, doc='Attribute for direct ' +
+                       'manipulation of the unit cell.')
+
+    def _get_pbc(self):
+        """Return reference to pbc-flags for inplace manipulations."""
+        return self._pbc
+    
+    pbc = property(_get_pbc, set_pbc,
+                   doc='Attribute for direct manipulation ' +
+                   'of the periodic boundary condition flags.')
 
         
 def string2symbols(s):

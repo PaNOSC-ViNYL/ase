@@ -97,31 +97,6 @@ Here is the full list of all get/set methods:
     - :meth:`~ase.atoms.Atoms.set_velocities`
 
 
-Special attributes
-==================
-
-It is also possible to work directly with the attributes
-:attr:`~ase.atoms.Atoms.positions` and
-:attr:`~ase.atoms.Atoms.numbers`. Here we change the position of the
-2nd atom (which has count number 1 because Python starts counting at
-zero) and the type of the first atom:
-
->>> a.positions[1] = (1, 1, 0)
->>> a.get_positions()
-array([[2., 0., 0.],
-      [1., 1., 0.],
-      [2., 2., 0.]])
->>> a.positions
-array([[2., 0., 0.],
-       [1., 1., 0.],
-       [2., 2., 0.]])
->>> a.numbers
-array([7, 7, 7])
->>> a.numbers[0] = 13
->>> a.get_chemical_symbols()
-['Al', 'N', 'N']
-
-
 Unit cell and boundary conditions
 =================================
 
@@ -164,6 +139,43 @@ boundary conditions in *x* and *y* directions and free boundary
 condtions in the *z* direction is obatined through
 
 >>> a.set_pbc((True, True, False))
+
+
+Special attributes
+==================
+
+It is also possible to work directly with the attributes
+:attr:`~ase.atoms.Atoms.positions`, :attr:`~ase.atoms.Atoms.numbers`,
+:attr:`~ase.atoms.Atoms.pbc` and :attr:`~ase.atoms.Atoms.cell`.  Here
+we change the position of the 2nd atom (which has count number 1
+because Python starts counting at zero) and the type of the first
+atom:
+
+>>> a.positions[1] = (1, 1, 0)
+>>> a.get_positions()
+array([[2., 0., 0.],
+      [1., 1., 0.],
+      [2., 2., 0.]])
+>>> a.positions
+array([[2., 0., 0.],
+       [1., 1., 0.],
+       [2., 2., 0.]])
+>>> a.numbers
+array([7, 7, 7])
+>>> a.numbers[0] = 13
+>>> a.get_chemical_symbols()
+['Al', 'N', 'N']
+
+Check for periodic boundary conditions:
+
+>>> a.pbc  # equivalent to a.get_pbc()
+array([False, False, False], dtype=bool)
+>>> a.pbc.any()
+False
+>>> a.pbc[2] = 1
+>>> a.pbc
+array([False, False,  True], dtype=bool)
+
 
 
 Adding a calculator
