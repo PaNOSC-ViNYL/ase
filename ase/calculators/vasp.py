@@ -726,7 +726,7 @@ class Vasp:
             for dim in chg.shape:
                 f.write(' %4i' % dim)
             f.write('\n')
-            chg *= atoms.get_volume()
+            chg = chg*atoms.get_volume()
             n = 0
             for zz in range(chg.shape[2]):
                 for yy in range(chg.shape[1]):
