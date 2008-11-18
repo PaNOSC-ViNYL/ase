@@ -108,6 +108,10 @@ def read(filename, index=-1, format=None):
         from ase.io.vasp import read_vasp
         return read_vasp(filename)
     
+    if format == 'mol':
+        from ase.io.mol import read_mol
+        return read_mol(filename)
+
     raise RuntimeError('That can *not* happen!')
 
 
@@ -270,5 +274,8 @@ def filetype(filename):
             return 'vasp'
         elif word == filename_v[0:7]:
             return 'vasp'    
+
+    if filename.lower().endswith('.mol'):
+        return 'mol'
 
     return 'xyz'
