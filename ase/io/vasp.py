@@ -70,6 +70,13 @@ def read_vasp(filename='CONTCAR'):
     # or in the POTCAR or OUTCAR file
     atom_symbols = []
     numofatoms = f.readline().split()
+    #vasp5.1 has an additional line which gives the atom types
+    #the following try statement skips this line
+    try:
+        int(numofatoms[0])
+    except ValueError:
+        numofatoms = f.readline().split()
+
     if len(atomtypes) < len(numofatoms):
         # First line in POSCAR/CONTCAR didn't contain enough symbols.
         atomtypes = atomtypes_outpot(vaspdir)
