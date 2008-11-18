@@ -436,14 +436,6 @@ class Wannier:
         return coord_wc
 
     def get_radii(self):
-        """Calculate the Wannier radii.
-
-        radius = sum abs(L/2pi ln abs diag(Z * Z^d))
-        """
-        return npy.dot(self.largeunitcell_cc.diagonal() / (2 * pi),
-                       abs(npy.log(abs(self.Z_dww[:3].diagonal(0, 1, 2))**2)))
-    
-    def get_spreads(self):
         """Calculate the spread of the Wannier functions.
 
         ::
