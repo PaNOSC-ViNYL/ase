@@ -68,9 +68,9 @@ class FixAtoms(FixConstraint):
         """
 
         if indices is None and mask is None:
-            raise ValuError('Use "indices" or "mask".')
+            raise ValueError('Use "indices" or "mask".')
         if indices is not None and mask is not None:
-            raise ValuError('Use only one of "indices" and "mask".')
+            raise ValueError('Use only one of "indices" and "mask".')
 
         if mask is not None:
             self.index = np.asarray(mask, bool)
