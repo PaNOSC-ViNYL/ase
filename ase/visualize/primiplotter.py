@@ -747,7 +747,7 @@ class _PostScriptDevice:
             
     def PSplotArray(self, file, n, data, noshowpage=0):
         assert(len(data.shape) == 3)
-        assert(data.shape[:2] == self.dims)
+        assert(data.shape[0] == self.dims[1] and data.shape[1] == self.dims[0])
         data = clip((256*data).astype(int), 0, 255)
         file.write("%!PS-Adobe-2.0\n")
         file.write("%%Creator: Fieldplotter\n")
