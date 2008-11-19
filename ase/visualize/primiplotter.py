@@ -10,9 +10,9 @@ import sys, os, time, weakref
 
 class PrimiPlotterBase:
     "Base class for PrimiPlotter and Povrayplotter."
-    def set_dimensions(self, dims):
-        "Set the size of the canvas (a 2-tuple)."
-        self.dims = dims
+    #def set_dimensions(self, dims):
+    #    "Set the size of the canvas (a 2-tuple)."
+    #    self.dims = dims
         
     def set_rotation(self, rotation):
         "Set the rotation angles (in degrees)."
@@ -337,6 +337,12 @@ class PrimiPlotter(PrimiPlotterBase):
         device.set_dimensions(self.dims)
         device.set_owner(weakref.proxy(self))
 
+    def set_dimensions(self, dims):
+        "Set the size of the canvas (a 2-tuple)."
+        if self.outputdevice:
+            raise RuntimeError("Cannot set dimensions after an output device has been specified.")
+        self.dims = dims
+        
     def autoscale(self, mode):
         if mode == "on":
             self.autoscale = 1
