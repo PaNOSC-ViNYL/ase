@@ -82,7 +82,7 @@ keyword         type       default value   description
 *seq*: A sequence of three ``int``'s.
 
 For parameters in the list without default value given, VASP will set 
-the default value. Most of the parameters used in the VASP INCAR file 
+the default value. Most of the parameters used in the VASP :file:`INCAR` file 
 are allowed keywords. See the official `VASP manual`_ for more details.
 
 .. _VASP manual: http://cms.mpi.univie.ac.at/vasp/vasp/vasp.html
@@ -99,20 +99,50 @@ are allowed keywords. See the official `VASP manual`_ for more details.
    the electronic SC-loop to ``1E-5`` eV.
 
 
-
 Spin-polarized calculation
 ==========================
 
 If the atoms object has non-zero magnetic moments, a spin-polarized calculation
 will be performed by default.
 
+Here follows an example how to calculate the total magnetic moment of a sodium
+chloride molecule.
+  
+.. literalinclude:: NaCl.py
+
+In this example the initial magnetic moments are assigned to the atoms
+when defining the Atoms object. The calculator will detect that at least
+one of the atoms has a non-zero magnetic moment and a spin-polarized
+calculation will automatically be performed. The ASE generated INCAR file
+will look like:
+
+.. literalinclude:: INCAR_NaCl
+
+
+Restart old calculation
+=======================
+
+To continue an old calculation which has been performed without the interface
+use the ``restart`` parameter when constructing the calculator
+
+>>> calc = Vasp(restart=True)
+
+Then the calculator will read atomic positions from the :file:`CONTCAR` file,
+physical quantities from the :file:`OUTCAR` file, **k**-points from the
+:file:`KPOINTS` file and parameters from the :file:`INCAR` file. 
+
+.. note::
+
+   Only Monkhorst-Pack and \Gamma-centered **k**-point sampling are supported 
+   for restart at the moment. Some ::file::`INCAR` parameters may not be
+   implemented for restart yet. Please report any problems to the ASE mailing
+   list.
 
 
 Post-processing
 ===============
 
-A few words about using the interface for post-processing will appear here.
-
+A few words about post-processing will appear here.
 
 
 Examples
