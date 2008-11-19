@@ -178,20 +178,39 @@ class Vasp:
            
         # Determine the number of atoms of each atomic species
         # sorted after atomic species
-
-        self.symbols = {}
-        for atom in atoms:
+        special_setups = []
+        symbols = {}
+        for m in self.input_parameters['setups']:
+           #print m
+           try : 
+               #special_setup[self.input_parameters['setups'][m]] = int(m)
+               special_setups.append(int(m))
+           except:
+               #print 'setup ' + m + ' is a groups setup'
+               continue
+        #print 'special_setups' , special_setups
+        
+        for m,atom in enumerate(atoms):
             symbol = atom.get_symbol()
-            if not self.symbols.has_key(symbol):
-                self.symbols[symbol] = 1
+            if m in special_setups:
+                pass
             else:
-                self.symbols[symbol] += 1
+                if not symbols.has_key(symbol):
+                    symbols[symbol] = 1
+                else:
+                    symbols[symbol] += 1
+        
+        #building the sorting list
         self.sort = []
+        self.sort.extend(special_setups)
         atomtypes = atoms.get_chemical_symbols()
-        for symbol in self.symbols:
-            for m in range(len(atoms)):
-                if atoms[m].get_symbol() == symbol:
-                    self.sort.append(m)
+        for symbol in symbols:
+            for m,atom in enumerate(atoms):
+                if m in special_setups: 
+                    pass
+                else:
+                    if atom.get_symbol() == symbol:
+                        self.sort.append(m)
         self.resort = range(len(self.sort))
         for n in range(len(self.resort)):
             self.resort[self.sort[n]] = n
@@ -200,7 +219,7 @@ class Vasp:
         # Check is the necessary POTCAR files exists and
         # create a list of their paths.
         xc = '/'
-        print 'p[xc]',p['xc']
+        #print 'p[xc]',p['xc']
         if p['xc'] == 'PW91':
             xc = '_gga/'
         elif p['xc'] == 'PBE':
@@ -210,7 +229,25 @@ class Vasp:
         else:
             pppaths = []
         self.ppp_list = []
-        for symbol in self.symbols:
+        #Setting the pseudopotentials, first special setups and then according to symbols
+        for m in special_setups:
+            name = 'potpaw'+xc.upper() + p['setups'][str(m)] + '/POTCAR'
+            found = False
+            for path in pppaths:
+                filename = join(path, name)
+                #print 'filename', filename
+                if isfile(filename) or islink(filename):
+                    found = True
+                    self.ppp_list.append(filename)
+                    break
+                elif isfile(filename + '.Z') or islink(filename + '.Z'):
+                    found = True
+                    self.ppp_list.append(filename+'.Z')
+                    break
+            if not found:
+                raise RuntimeError('No pseudopotential for %s!' % symbol)    
+        #print 'symbols', symbols 
+        for symbol in symbols:
             try:
                 name = 'potpaw'+xc.upper()+symbol + p['setups'][symbol]
             except (TypeError, KeyError):
@@ -219,7 +256,7 @@ class Vasp:
             found = False
             for path in pppaths:
                 filename = join(path, name)
-                print 'filename', filename
+                #print 'filename', filename
                 if isfile(filename) or islink(filename):
                     found = True
                     self.ppp_list.append(filename)
