@@ -112,6 +112,8 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None):
     
     """
     info = slab.adsorbate_info
+    if info.has_key('cell') == False:
+        info['cell'] = slab.get_cell()[:2,:2]
 
     
     pos = np.array([0.0, 0.0])  # (x, y) part
