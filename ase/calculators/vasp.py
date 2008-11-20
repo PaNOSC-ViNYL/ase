@@ -180,15 +180,16 @@ class Vasp:
         # sorted after atomic species
         special_setups = []
         symbols = {}
-        for m in self.input_parameters['setups']:
-           #print m
-           try : 
-               #special_setup[self.input_parameters['setups'][m]] = int(m)
-               special_setups.append(int(m))
-           except:
-               #print 'setup ' + m + ' is a groups setup'
-               continue
-        #print 'special_setups' , special_setups
+        if self.input_parameters['setups']:
+            for m in self.input_parameters['setups']:
+                #print m
+                try : 
+                    #special_setup[self.input_parameters['setups'][m]] = int(m)
+                    special_setups.append(int(m))
+                except:
+                    #print 'setup ' + m + ' is a groups setup'
+                    continue
+            #print 'special_setups' , special_setups
         
         for m,atom in enumerate(atoms):
             symbol = atom.get_symbol()
