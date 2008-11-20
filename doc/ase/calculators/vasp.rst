@@ -113,8 +113,8 @@ chloride molecule.
 In this example the initial magnetic moments are assigned to the atoms
 when defining the Atoms object. The calculator will detect that at least
 one of the atoms has a non-zero magnetic moment and a spin-polarized
-calculation will automatically be performed. The ASE generated INCAR file
-will look like:
+calculation will automatically be performed. The ASE generated :file:`INCAR`
+file will look like:
 
 .. literalinclude:: INCAR_NaCl
 
@@ -134,7 +134,7 @@ physical quantities from the :file:`OUTCAR` file, **k**-points from the
 .. note::
 
    Only Monkhorst-Pack and \Gamma-centered **k**-point sampling are supported 
-   for restart at the moment. Some ::file::`INCAR` parameters may not be
+   for restart at the moment. Some :file:`INCAR` parameters may not be
    implemented for restart yet. Please report any problems to the ASE mailing
    list.
 
