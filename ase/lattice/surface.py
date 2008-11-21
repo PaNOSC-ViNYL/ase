@@ -112,7 +112,7 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None):
     
     """
     info = slab.adsorbate_info
-    if info.has_key('cell') == False:
+    if 'cell' not in info:
         info['cell'] = slab.get_cell()[:2,:2]
 
     
