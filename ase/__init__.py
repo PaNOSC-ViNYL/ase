@@ -15,8 +15,9 @@ from ase.md.langevin import Langevin
 from ase.constraints import *
 from ase.calculators import LennardJones, EMT, ASAP, Siesta, Dacapo, Vasp
 from ase.neb import NEB
-from ase.visualize import *
-from ase.data import *
+from ase.visualize import view
+from ase.data import chemical_symbols, atomic_numbers, atomic_names, \
+     atomic_masses, covalent_radii, reference_states
 from ase.data.molecules import molecule
 
 import numpy as np

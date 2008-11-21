@@ -1,4 +1,4 @@
-import numpy as npy
+import numpy as np
 
 
 chemical_symbols = ['X',  'H',  'He', 'Li', 'Be',
@@ -51,7 +51,7 @@ atomic_names = [
     'Einsteinium', 'Fermium', 'Mendelevium', 'Nobelium',
     'Lawrencium', 'Unnilquadium', 'Unnilpentium', 'Unnilhexium']
 
-atomic_masses = npy.array([
+atomic_masses = np.array([
    0.00000, # X
    1.00794, # H
    4.00260, # He
@@ -95,7 +95,7 @@ atomic_masses = npy.array([
   91.22400, # Zr
   92.90640, # Nb
   95.94000, # Mo
-   npy.nan, # Tc
+    np.nan, # Tc
  101.07000, # Ru
  102.90550, # Rh
  106.42000, # Pd
@@ -113,7 +113,7 @@ atomic_masses = npy.array([
  140.12000, # Ce
  140.90770, # Pr
  144.24000, # Nd
-   npy.nan, # Pm
+    np.nan, # Pm
  150.36000, # Sm
  151.96500, # Eu
  157.25000, # Gd
@@ -136,28 +136,28 @@ atomic_masses = npy.array([
  204.38300, # Tl
  207.20000, # Pb
  208.98040, # Bi
-   npy.nan, # Po
-   npy.nan, # At
-   npy.nan, # Rn
-   npy.nan, # Fr
+    np.nan, # Po
+    np.nan, # At
+    np.nan, # Rn
+    np.nan, # Fr
  226.02540, # Ra
-   npy.nan, # Ac
+    np.nan, # Ac
  232.03810, # Th
  231.03590, # Pa
  238.02900, # U
  237.04820, # Np
-   npy.nan, # Pu
-   npy.nan, # Am
-   npy.nan, # Cm
-   npy.nan, # Bk
-   npy.nan, # Cf
-   npy.nan, # Es
-   npy.nan, # Fm
-   npy.nan, # Md
-   npy.nan, # No
-   npy.nan]) # Lw
+    np.nan, # Pu
+    np.nan, # Am
+    np.nan, # Cm
+    np.nan, # Bk
+    np.nan, # Cf
+    np.nan, # Es
+    np.nan, # Fm
+    np.nan, # Md
+    np.nan, # No
+    np.nan])# Lw
 
-covalent_radii = npy.array([
+covalent_radii = np.array([
  0.20, # X
  0.32, # H
  0.93, # He
@@ -244,24 +244,24 @@ covalent_radii = npy.array([
  1.46, # Bi
  1.53, # Po
  1.47, # At
- npy.nan, # Rn
- npy.nan, # Fr
- npy.nan, # Ra
- npy.nan, # Ac
+ np.nan, # Rn
+ np.nan, # Fr
+ np.nan, # Ra
+ np.nan, # Ac
  1.65, # Th
- npy.nan, # Pa
+ np.nan, # Pa
  1.42, # U
- npy.nan, # Np
- npy.nan, # Pu
- npy.nan, # Am
- npy.nan, # Cm
- npy.nan, # Bk
- npy.nan, # Cf
- npy.nan, # Es
- npy.nan, # Fm
- npy.nan, # Md
- npy.nan, # No
- npy.nan]) # Lw
+ np.nan, # Np
+ np.nan, # Pu
+ np.nan, # Am
+ np.nan, # Cm
+ np.nan, # Bk
+ np.nan, # Cf
+ np.nan, # Es
+ np.nan, # Fm
+ np.nan, # Md
+ np.nan, # No
+ np.nan]) # Lw
 
 # This data is from Ashcroft and Mermin.
 reference_states = [\
