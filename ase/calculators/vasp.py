@@ -301,7 +301,7 @@ class Vasp:
 
         atoms_sorted = ase.io.read('CONTCAR', format='vasp')
         p=self.incar_parameters
-        if p['ibrion']>-1:
+        if p['ibrion']>-1 and p['nsw']>0:
             atoms.set_positions(atoms_sorted.get_positions()[self.resort])
             positions = atoms.get_positions()
             self.positions = positions.copy(atoms)
