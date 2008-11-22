@@ -19,4 +19,14 @@ def MaxwellBoltzmannDistribution(atoms, temp):
     momenta = _maxwellboltzmanndistribution(atoms.get_masses(), temp)
     atoms.set_momenta(momenta)
 
-
+def Stationary(atoms):
+    "Sets the center-of-mass momentum to zero."
+    p = atoms.get_momenta()
+    p0 = np.sum(p, 0)
+    # We should add a constant velocity, not momentum, to the atoms
+    m = atoms.get_masses()
+    mtot = np.sum(m)
+    v0 = p0/mtot
+    p -= v0*m[:,np.newaxis]
+    atoms.set_momenta(p)
+    

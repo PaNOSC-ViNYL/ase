@@ -11,7 +11,7 @@ class VelocityVerlet(MolecularDynamics):
         atoms = self.atoms
         p = self.atoms.get_momenta()
         p += 0.5 * self.dt * f
-        self.atoms.set_positions(self.atoms.positions +
+        self.atoms.set_positions(self.atoms.get_positions() +
                                  self.dt * p / self.masses)
         f = self.atoms.get_forces()
         atoms.set_momenta(p + 0.5 * self.dt * f)
