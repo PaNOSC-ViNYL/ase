@@ -300,9 +300,11 @@ class Vasp:
             raise RuntimeError('Vasp exited with exit code: %d.  ' % exitcode)
 
         atoms_sorted = ase.io.read('CONTCAR', format='vasp')
-        atoms.set_positions(atoms_sorted.get_positions()[self.resort])
-        positions = atoms.get_positions()
-        self.positions = positions.copy(atoms)
+        p=self.incar_parameters
+        if p['ibrion']>-1:
+            atoms.set_positions(atoms_sorted.get_positions()[self.resort])
+            positions = atoms.get_positions()
+            self.positions = positions.copy(atoms)
         self.energy_free, self.energy_zero = self.read_energy()
         self.forces = self.read_forces(atoms)
         self.dipole = self.read_dipole()
@@ -310,7 +312,6 @@ class Vasp:
         self.atoms = atoms.copy()
         if not self.nbands:
             self.nbands = self.read_nbands()
-        p=self.incar_parameters
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
             if p['lorbit']>=10 or (p['lorbit']!=None and p['rwigs']):
