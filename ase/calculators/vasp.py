@@ -6,7 +6,8 @@ Kitchin.  The path of the directories of the pseudopotentials (potpaw,
 potpaw_GGA, potpaw_PBE, ...) should be set by the environmental flag
 $VASP_PP_PATH. 
 
-The user should also set the environmental flag $VASP_SCRIPT pointing to a python script looking something like:
+The user should also set the environmental flag $VASP_SCRIPT pointing 
+to a python script looking something like:
    import os
    exitcode = os.system('vasp')
 
@@ -731,8 +732,8 @@ class Vasp:
                 # augmentation occupancies in CHGCAR
                 break 
             f.readline()
-            ng = f.readline().split()
-            ng = (int(ng[0]), int(ng[1]), int(ng[2]))
+            ngr = f.readline().split()
+            ng = (int(ngr[0]), int(ngr[1]), int(ngr[2]))
             chg = np.empty(ng)
             # VASP writes charge density as
             # WRITE(IU,FORM) (((C(NX,NY,NZ),NX=1,NGXC),NY=1,NGYZ),NZ=1,NGZC)
@@ -743,7 +744,22 @@ class Vasp:
                     chg[:, yy, zz] = np.fromfile(f, count = chg.shape[0],
                                                  sep=' ')
             chg /= atoms.get_volume()
-            nchg.append((atoms, chg))
+            # Check if the file has a spin-polarized charge density part, and
+            # read it in.
+            # Due to the aumentation occupancies in CHGCAR this only works
+            # for CHG files so far.
+            fl = f.tell()
+            if f.readline().split()==ngr:
+                chgdiff = np.empty(ng)
+                for zz in range(chg.shape[2]):
+                    for yy in range(chg.shape[1]):
+                        chgdiff[:, yy, zz] = np.fromfile(f, count = chgdiff.shape[0],
+                                                     sep=' ')
+                chgdiff /= atoms.get_volume()
+                nchg.append((atoms, chg, chgdiff))
+            else:
+                f.seek(fl)
+                nchg.append((atoms, chg))
         f.close()
         return nchg
 
