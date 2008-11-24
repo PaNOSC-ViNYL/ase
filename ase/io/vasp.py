@@ -130,7 +130,7 @@ def read_vasp(filename='CONTCAR'):
             atoms.set_constraint(constraints)
     return atoms
 
-def write_vasp(filename, atoms, label='', direct=False, sort=None):
+def write_vasp(filename, atoms, label='', direct=False, sort=None, symbol_count = None ):
     """Method to write VASP position (POSCAR/CONTCAR) files.
 
     Writes label, scalefactor, unitcell, # of various kinds of atoms,
@@ -170,18 +170,21 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None):
     else:
         symbols = atoms.get_chemical_symbols()
 
-    # Create a list of (symbol, count) pairs
-    sc = []
-    psym = symbols[0]
-    count = 0
-    for sym in symbols:
-        if sym != psym:
-            sc.append((psym, count))
-            psym = sym
-            count = 1
-        else:
-            count += 1
-    sc.append((psym, count))
+    # Create a list sc of (symbol, count) pairs
+    if symbol_count:
+        sc = symbol_count
+    else:
+        sc = []
+        psym = symbols[0]
+        count = 0
+        for sym in symbols:
+            if sym != psym:
+                sc.append((psym, count))
+                psym = sym
+                count = 1
+            else:
+                count += 1
+        sc.append((psym, count))
 
     # Create the label
     if label == '':
