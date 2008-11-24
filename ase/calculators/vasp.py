@@ -714,11 +714,15 @@ class Vasp:
     def read_charge_density(self, filename='CHG'):
         """Read CHG or CHGCAR file.
 
-        Returns list of (atoms, chg) tuples.
+        Returns list of (atoms, chg, chgdiff*) tuples.
         
         If CHG contains charge density from multiple steps all the
         steps are read and returned. By default VASP writes out the
         charge density every 10 steps.
+
+        * chgdiff is the difference between the spin up charge density and
+        the spin up charge density and is thus only returned for a spin-
+        polarized calculation.
 
         """
         import ase.io.vasp as aiv
@@ -745,16 +749,32 @@ class Vasp:
                                                  sep=' ')
             chg /= atoms.get_volume()
             # Check if the file has a spin-polarized charge density part, and
-            # read it in.
-            # Due to the aumentation occupancies in CHGCAR this only works
-            # for CHG files so far.
+            # if so, read it in.
             fl = f.tell()
-            if f.readline().split()==ngr:
+            # First check if the file has an augmentation charge part (CHGCAR file.)
+            line1 = f.readline()
+            if line1=='':
+                nchg.append((atoms, chg))
+                break
+            elif line1.split()[0]=='augmentation':
+                while True:
+                    line2 = f.readline()
+                    if line2.split()==ngr:
+                        chgdiff = np.empty(ng)
+                        for zz in range(chg.shape[2]):
+                            for yy in range(chg.shape[1]):
+                                chgdiff[:, yy, zz] = np.fromfile(f, count = chgdiff.shape[0],
+                                                                 sep=' ')
+                        chgdiff /= atoms.get_volume()
+                        nchg.append((atoms, chg, chgdiff))
+                    elif line2=='':
+                        break
+            elif line1.split()==ngr:
                 chgdiff = np.empty(ng)
-                for zz in range(chg.shape[2]):
-                    for yy in range(chg.shape[1]):
+                for zz in range(chgdiff.shape[2]):
+                    for yy in range(chgdiff.shape[1]):
                         chgdiff[:, yy, zz] = np.fromfile(f, count = chgdiff.shape[0],
-                                                     sep=' ')
+                                                         sep=' ')
                 chgdiff /= atoms.get_volume()
                 nchg.append((atoms, chg, chgdiff))
             else:
@@ -775,22 +795,24 @@ class Vasp:
         """
         import ase.io.vasp as aiv
         f = open(filename, 'w')
-        for atoms, chg in chgs:
-            aiv.write_vasp(f, atoms)
+        for atoms_chgs in chgs:
+            aiv.write_vasp(f, atoms_chgs[0], direct=True)
             f.write('\n')
-            for dim in chg.shape:
-                f.write(' %4i' % dim)
-            f.write('\n')
-            chg = chg*atoms.get_volume()
-            n = 0
-            for zz in range(chg.shape[2]):
-                for yy in range(chg.shape[1]):
-                    for xx in range(chg.shape[0]):
-                        f.write(' %#11.5G' % chg[xx, yy, zz])
-                        n += 1
-                        if n % 10 == 0:
-                            # Write 10 values per line
-                            f.write('\n')
+            for m in range(1, len(atoms_chgs)):
+                for dim in atoms_chgs[m].shape:
+                    f.write(' %4i' % dim)
+                f.write('\n')
+                atoms_chgs[m][:] *= atoms_chgs[0].get_volume()
+                n = 0
+                for zz in range(atoms_chgs[m].shape[2]):
+                    for yy in range(atoms_chgs[m].shape[1]):
+                        for xx in range(atoms_chgs[m].shape[0]):
+                            f.write(' %#11.5G' % atoms_chgs[m][xx, yy, zz])
+                            n += 1
+                            if n % 10 == 0:
+                                # Write 10 values per line
+                                f.write('\n')
+                atoms_chgs[m][:] /= atoms_chgs[0].get_volume()
         f.close()
 
 
