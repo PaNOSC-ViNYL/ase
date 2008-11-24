@@ -119,6 +119,17 @@ file will look like:
 .. literalinclude:: INCAR_NaCl
 
 
+.. note:: 
+   
+   It is also possible to manually tell the calculator to perform a 
+   spin-polarized calculation:
+
+   >>> calc.set(ispin=2)
+
+   This can be useful for continuation jobs, where the initial magnetic 
+   moment is read from the WAVECAR file.
+
+
 Restart old calculation
 =======================
 
