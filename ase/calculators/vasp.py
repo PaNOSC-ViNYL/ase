@@ -96,6 +96,9 @@ keys = [
     'kpuse',      # k-point to calculate partial charge for
     'lsepb',      # write out partial charge of each band seperately?
     'lsepk',      # write out partial charge of each k-point seperately?
+    'ispin',      # spin-polarized calculation
+    'magmom',     # initial magnetic moments
+    'ispin',      # spin-polarized calculation
     # 'NBLOCK' and KBLOCK       inner block; outer block
     # 'NPACO' and APACO         distance and nr. of slots for P.C.
     # 'WEIMIN, EBREAK, DEPER    special control tags
@@ -457,7 +460,7 @@ class Vasp:
                     else:
                         incar.write('%s' % p[key])
                 incar.write('\n')
-        if self.spinpol:
+        if self.spinpol and not p['ispin']:
             incar.write(' ispin = 2\n'.upper())
             # Write out initial magnetic moments
             magmom = atoms.get_initial_magnetic_moments()[self.sort]
