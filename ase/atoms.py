@@ -149,10 +149,12 @@ class Atoms(object):
         
         if symbols is None:
             if numbers is None:
-                if positions is None:
-                    natoms = 0
-                else:
+                if positions is not None:
                     natoms = len(positions)
+                elif scaled_positions is not None:
+                    natoms = len(scaled_positions)
+                else:
+                    natoms = 0
                 numbers = npy.zeros(natoms, int)
             self.new_array('numbers', numbers, int)
         else:
