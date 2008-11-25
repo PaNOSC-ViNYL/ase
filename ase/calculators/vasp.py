@@ -810,6 +810,8 @@ class Vasp:
         """
         import ase.io.vasp as aiv
         f = open(filename, 'w')
+        if hasattr(chgs[0], 'cell'):
+            chgs = [chgs]
         for atoms_chgs in chgs:
             aiv.write_vasp(f, atoms_chgs[0], direct=True)
             f.write('\n')
