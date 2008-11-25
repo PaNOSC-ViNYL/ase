@@ -782,6 +782,7 @@ class Vasp:
                         chgdiff /= atoms.get_volume()
                         nchg.append((atoms, chg, chgdiff))
                     elif line2=='':
+                        nchg.append((atoms, chg))
                         break
             elif line1.split()==ngr:
                 chgdiff = np.empty(ng)
