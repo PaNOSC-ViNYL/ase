@@ -318,8 +318,7 @@ class Vasp:
         p=self.incar_parameters
         if p['ibrion']>-1 and p['nsw']>0:
             atoms.set_positions(atoms_sorted.get_positions()[self.resort])
-            positions = atoms.get_positions()
-            self.positions = positions.copy(atoms)
+        self.positions = atoms.get_positions()
         self.energy_free, self.energy_zero = self.read_energy()
         self.forces = self.read_forces(atoms)
         self.dipole = self.read_dipole()
