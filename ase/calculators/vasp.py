@@ -6,8 +6,9 @@ Kitchin.  The path of the directories of the pseudopotentials (potpaw,
 potpaw_GGA, potpaw_PBE, ...) should be set by the environmental flag
 $VASP_PP_PATH. 
 
-The user should also set the environmental flag $VASP_SCRIPT pointing 
-to a python script looking something like:
+The user should also set the environmental flag $VASP_SCRIPT pointing
+to a python script looking something like::
+
    import os
    exitcode = os.system('vasp')
 
@@ -600,20 +601,20 @@ class Vasp:
 
     def read_nbands(self):
         for line in open('OUTCAR', 'r'):
-            if line.rfind('NBANDS')>-1:
+            if line.rfind('NBANDS') > -1:
                 return int(line.split()[-1])
 
     def read_convergence(self):
         """Method that checks whether a calculation has converged."""
         converged = None
         for line in open('OUTCAR', 'r'):
-            if line.rfind('EDIFF  ')>-1:
+            if line.rfind('EDIFF  ') > -1:
                 ediff = float(line.split()[2])
             if line.rfind('total energy-change')>-1:
                 split = line.split(':')
                 a = float(split[1].split('(')[0])
                 b = float(split[1].split('(')[1][0:-2])
-                if [abs(a), abs(b)]<[ediff, ediff]:
+                if [abs(a), abs(b)] < [ediff, ediff]:
                     converged = True
                 else:
                     converged = None
