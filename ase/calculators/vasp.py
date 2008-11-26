@@ -733,7 +733,7 @@ class Vasp:
         steps are read and returned. By default VASP writes out the
         charge density every 10 steps.
 
-        * chgdiff is the difference between the spin up charge density and
+        chgdiff is the difference between the spin up charge density and
         the spin up charge density and is thus only returned for a spin-
         polarized calculation.
 
