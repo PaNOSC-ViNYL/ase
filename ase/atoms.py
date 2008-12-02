@@ -365,6 +365,10 @@ class Atoms(object):
                 constraint.adjust_forces(self.arrays['positions'], momenta)
         self.set_array('momenta', momenta, float, (3,))
 
+    def set_velocities(self, velocities):
+        """Set the momenta by specifying the velocities."""
+        self.set_momenta(self.get_masses()[:,npy.newaxis] * velocities)
+        
     def get_momenta(self):
         """Get array of momenta."""
         if 'momenta' in self.arrays:
@@ -484,7 +488,7 @@ class Atoms(object):
         if m is None:
             m = atomic_masses[self.arrays['numbers']]
         return momenta / m.reshape(-1, 1)
-    
+
     def get_total_energy(self):
         """Get the total energy - potential plus kinetic energy."""
         return self.get_potential_energy() + self.get_kinetic_energy()
