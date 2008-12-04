@@ -665,8 +665,8 @@ class Vasp:
         file.readline()
         lines=file.readlines()
         for line in lines:
-            key = line.split()[0].lower()
             try:
+                key = line.split()[0].lower()
                 if key in ['ispin', 'magmom']:
                     continue
                 self.incar_parameters[key]
@@ -675,7 +675,7 @@ class Vasp:
                     for n in range(3):
                         dipol.append(float(line.split()[n+2]))
                     self.incar_parameters[key] = dipol
-                elif key!='':
+                else:
                     try:
                         self.incar_parameters[key] = int(line.split()[2])
                     except ValueError:
@@ -683,8 +683,9 @@ class Vasp:
                             self.incar_parameters[key] = float(line.split()[2])
                         except ValueError:
                             self.incar_parameters[key] = line.split()[2]
-                    self.incar_parameters[key]=line.split()[2]
             except KeyError:
+                continue
+            except IndexError:
                 continue
 
     def read_outcar(self):
