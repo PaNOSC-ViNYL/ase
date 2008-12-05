@@ -11,20 +11,27 @@ class LeadSelfEnergy:
         self.nbf = self.h_im.shape[1] # nbf for the scattering region
         self.eta = eta
         self.energy = None
+        self.bias = 0
         self.sigma_mm = npy.empty((self.nbf, self.nbf), complex)
 
     def __call__(self, energy):
         """Return self-energy (sigma)"""
         if energy != self.energy:
             self.energy = energy
-            z = energy + self.eta * 1.j           
+            z = energy - self.bias + self.eta * 1.j           
             tau_im = z * self.s_im - self.h_im
             a_im = npy.linalg.solve(self.get_sgfinv(energy), tau_im)
             tau_mi = z * dagger(self.s_im) - dagger(self.h_im)
             self.sigma_mm[:] = npy.dot(tau_mi, a_im)
 
         return self.sigma_mm
-    
+
+    def set_hs(self, hs_dii, hs_dij, hs_dim):
+        self.h_ii, self.s_ii = hs_dii 
+        self.h_ij, self.s_ij = hs_dij  
+        self.h_im, self.s_im = hs_dim 
+    def set_bias(self, bias):
+        self.bias = bias
     def get_lambda(self, energy):
         """Return the lambda (aka Gamma) defined by i(S-S^d).
 
@@ -36,7 +43,7 @@ class LeadSelfEnergy:
         
     def get_sgfinv(self, energy):
         """The inverse of the retarded surface Green function""" 
-        z = energy + self.eta * 1.0j
+        z = energy - self.bias + self.eta * 1.0j
         
         v_00 = z * dagger(self.s_ii) - dagger(self.h_ii)
         v_11 = v_00.copy()
