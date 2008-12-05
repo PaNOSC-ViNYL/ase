@@ -24,12 +24,16 @@ class GreenFunction:
             self.Ginv -= self.H
             for selfenergy in self.selfenergies:
                 self.Ginv -= selfenergy(energy)
-
         if inverse:
             return self.Ginv
         else:
             return npy.linalg.inv(self.Ginv)
-
+    def calculate(self, energy, sigma):
+        ginv = energy * self.S - self.H - sigma
+        return npy.linalg.inv(ginv)
+    def set_hs(self, H, S):
+        self.H = H
+        self.S = S
     def dos(self, energy):
         """Total density of states -1/pi Im(Tr(GS))"""
         if self.S is None:
