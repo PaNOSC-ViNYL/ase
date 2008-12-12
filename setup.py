@@ -46,5 +46,5 @@ setup(name = 'python-ase',
       license='GPL',
       platforms=['linux'],
       packages=packages,
-      scripts=['tools/ag', 'tools/ASE2ase.py'],
+      scripts=['tools/ag', 'tools/ASE2ase.py', 'tools/testase.py'],
       long_description=long_description)
