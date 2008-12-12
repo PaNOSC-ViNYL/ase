@@ -2,6 +2,7 @@
 import os
 import types
 from os.path import join
+from sys import executable
 from stat import ST_MTIME
 from docutils import nodes, utils
 from docutils.parsers.rst.roles import set_classes
@@ -87,7 +88,7 @@ def create_png_files():
                                 break
                     if run:
                         print 'running:', join(dirpath, filename)
-                        e = os.system('cd %s; python %s' % (dirpath, filename))
+                        e = os.system('cd %s; %s %s' % (dirpath, executable, filename))
                         if e != 0:
                             raise RuntimeError('FAILED!')
                         for file in line.split()[2:]:
