@@ -35,7 +35,8 @@ For that to work, you need the following installed:
 
 * matplotlib
 * povray
-
+* dvipng
+* AUCTex
 
 Using Sphinx
 ============
