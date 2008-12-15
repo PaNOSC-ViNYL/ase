@@ -740,6 +740,7 @@ class Atoms(object):
         vector, then *v* is rotated into *a*.  The point at *center*
         is fixed.  Use *center='COM'* to fix the center of mass.
         Vectors can also be strings: 'x', '-x', 'y', ... .
+        If both *v* and *a* are vectors: rotate *v* into *a*.
 
         Examples:
 
