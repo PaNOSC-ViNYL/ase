@@ -73,7 +73,7 @@ def irotate(rotation, initial=npy.diag([1.0, -1, 1])):
     cx, sx, rx = givens(a[2, 2], a[1, 2])
     cy, sy, ry = givens(rx, a[0, 2])
     cz, sz, rz = givens(cx * a[1, 1] - sx * a[2, 1],
-                       cy * a[0, 1] - sy * (sx * a[1, 1] + cx * a[2, 1]))
+                        cy * a[0, 1] - sy * (sx * a[1, 1] + cx * a[2, 1]))
     x = degrees(atan2(-sx, cx))
     y = degrees(atan2(-sy, cy))
     z = degrees(atan2(-sz, cz))

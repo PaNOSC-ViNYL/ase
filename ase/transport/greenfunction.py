@@ -15,6 +15,7 @@ class GreenFunction:
         if energy != self.energy:
             self.energy = energy
             z = energy + self.eta * 1.j
+
             if self.S is None:
                 self.Ginv[:] = 0.0
                 self.Ginv.flat[::len(self.S)+1] = z
@@ -22,8 +23,10 @@ class GreenFunction:
                 self.Ginv[:] = z
                 self.Ginv *= self.S
             self.Ginv -= self.H
+
             for selfenergy in self.selfenergies:
                 self.Ginv -= selfenergy(energy)
+
         if inverse:
             return self.Ginv
         else:

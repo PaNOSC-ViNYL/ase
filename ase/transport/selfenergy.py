@@ -30,8 +30,10 @@ class LeadSelfEnergy:
         self.h_ii, self.s_ii = hs_dii 
         self.h_ij, self.s_ij = hs_dij  
         self.h_im, self.s_im = hs_dim 
+
     def set_bias(self, bias):
         self.bias = bias
+
     def get_lambda(self, energy):
         """Return the lambda (aka Gamma) defined by i(S-S^d).
 
