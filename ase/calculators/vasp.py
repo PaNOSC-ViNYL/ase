@@ -100,6 +100,11 @@ keys = [
     'ispin',      # spin-polarized calculation
     'magmom',     # initial magnetic moments
     'ispin',      # spin-polarized calculation
+    'lhfcalc',    # switch to turn on Hartree Fock calculations
+    'hfscreen',   # attribute to change from PBE0 to HSE
+    'aexx',       # Amount of exact/DFT exchange
+    'encutfock',  # FFT grid in the HF related routines 
+    'nkred',      # define sub grid of q-points for HF 
     # 'NBLOCK' and KBLOCK       inner block; outer block
     # 'NPACO' and APACO         distance and nr. of slots for P.C.
     # 'WEIMIN, EBREAK, DEPER    special control tags
