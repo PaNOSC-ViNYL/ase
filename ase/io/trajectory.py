@@ -9,13 +9,18 @@ from ase.neb import NEB
 
 
 class PickleTrajectory:
+    # Per default, write these quantities
+    write_energy=True
+    write_forces=True
+    write_stress=True
+    write_momenta=True
     def __init__(self, filename, mode='r', atoms=None, master=None,
                  write_first_image=True):
-        self.set_atoms(atoms)
         self.offsets = []
         if master is None:
             master = (rank == 0)
         self.master = master
+        self.set_atoms(atoms)
         self.open(filename, mode)
 
         if write_first_image and atoms is not None:
@@ -84,12 +89,17 @@ class PickleTrajectory:
 
 
         if atoms.get_calculator() is not None:
-            d['energy'] = atoms.get_potential_energy()
-            d['forces'] = atoms.get_forces(apply_constraint=False)
-            try:
-                d['stress'] = atoms.get_stress()
-            except NotImplementedError:
-                d['stress'] = None
+            if self.write_energy:
+                d['energy'] = atoms.get_potential_energy()
+            if self.write_forces:
+                assert(self.write_energy)
+                d['forces'] = atoms.get_forces(apply_constraint=False)
+            if self.write_stress:
+                assert(self.write_energy)
+                try:
+                    d['stress'] = atoms.get_stress()
+                except NotImplementedError:
+                    pass
 
             try:
                 if atoms.calc.get_spin_polarized():
@@ -146,7 +156,8 @@ class PickleTrajectory:
                           constraint=[c.copy() for c in self.constraints])
             if 'energy' in d:
                 calc = SinglePointCalculator(
-                    d['energy'], d['forces'], d['stress'], magmoms, atoms)
+                    d.get('energy', None), d.get('forces', None),
+                    d.get('stress', None), magmoms, atoms)
                 atoms.set_calculator(calc)
             return atoms
 
@@ -208,9 +219,9 @@ def write_trajectory(filename, images):
             (not hasattr(calc, 'calculation_required') or
              calc.calculation_required(atoms,
                                        ['energy', 'forces', 'stress']))):
-            atoms.set_calculator(None)
+            traj.write_energy=False
+            traj.write_forces=False
+            traj.write_stress=False
         
         traj.write(atoms)
-        atoms.set_calculator(calc)
-
     traj.close()

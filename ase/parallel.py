@@ -16,6 +16,12 @@ if '_gpaw' in sys.modules:
     rank = world.rank
     size = world.size
     barrier = world.barrier
+elif 'asapparallel3' in sys.modules:
+    # http://wiki.fysik.dtu.dk/Asap
+    from asap3.mpi import world
+    rank = world.rank
+    size = world.size
+    barrier = world.barrier    
 elif 'Scientific_mpi' in sys.modules:
     # 
     from Scientific.MPI import world
