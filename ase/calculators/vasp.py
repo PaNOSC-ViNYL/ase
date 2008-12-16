@@ -329,13 +329,11 @@ class Vasp:
         self.dipole = self.read_dipole()
         self.fermi = self.read_fermi()
         self.atoms = atoms.copy()
-        if not self.nbands:
-            self.nbands = self.read_nbands()
+        self.nbands = self.read_nbands()
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
             if p['lorbit']>=10 or (p['lorbit']!=None and p['rwigs']):
                 self.magnetic_moments = self.read_magnetic_moments(atoms)
-        self.set(nbands=self.nbands)
         self.old_incar_parameters = self.incar_parameters.copy()
         self.old_input_parameters = self.input_parameters.copy()
         self.converged = self.read_convergence()
@@ -438,7 +436,7 @@ class Vasp:
         return self.dipole
 
     def get_number_of_bands(self):
-        return self._nbands
+        return self.nbands
 
     def write_incar(self, atoms, **kwargs):
         p = self.incar_parameters
