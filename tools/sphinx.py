@@ -18,6 +18,7 @@ def build():
         raise RuntimeError('Installation failed!')
     sys.path.insert(0, 'lib/python')
     from ase.test import test
+    from ase.version import version
 
     # Run test-suite:
     results = test(verbosity=2, dir='ase/test', display=False)
@@ -37,6 +38,7 @@ def build():
         raise RuntimeError('Warning(s) from epydoc!')
 
     os.chdir('doc')
+    os.system('sed -i s/snapshot/%s/ download.rst' % version)
     os.mkdir('_build')
     if os.system('PYTHONPATH=%s/ase sphinx-build . _build' % tmpdir) != 0:
         raise RuntimeError('Sphinx failed!')
@@ -56,9 +58,7 @@ def build():
         os.chdir('_build')
 
     assert os.system('mv ../../html epydoc;' +
-                     'mv ../../dist/python-ase-*.tar.gz .;' +
-                     'ln -s python-ase-*.tar.gz ' +
-                     'python-ase-snapshot.tar.gz') == 0
+                     'mv ../../dist/python-ase-%s.tar.gz .' % version) == 0
     
 tarfiledir = None
 if len(sys.argv) == 2:
