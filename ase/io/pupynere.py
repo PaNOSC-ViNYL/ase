@@ -8,8 +8,8 @@ with NetCDF files. The major advantage of ``scipy.io.netcdf`` over other
 modules is that it doesn't require the code to be linked to the NetCDF
 libraries as the other modules do.
 
-The code is based on the `NetCDF file format specification
-<http://www.unidata.ucar.edu/software/netcdf/guide_15.html>`_. A NetCDF
+The code is based on the NetCDF file format specification
+(http://www.unidata.ucar.edu/software/netcdf/guide_15.html). A NetCDF
 file is a self-describing binary format, with a header followed by
 data. The header contains metadata describing dimensions, variables
 and the position of the data in the file, so access can be done in an
