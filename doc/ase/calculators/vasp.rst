@@ -29,8 +29,8 @@ something like this::
 
 The environment variable :envvar:`VASP_SCRIPT` must point to that file.
 
-A directory containing the pseudopotential directories :dir:`potpaw` 
-(LDA XC) :dir:`potpaw_GGA` (PW91 XC) and :dir:`potpaw_PBE` (PBE XC)
+A directory containing the pseudopotential directories :file:`potpaw` 
+(LDA XC) :file:`potpaw_GGA` (PW91 XC) and :file:`potpaw_PBE` (PBE XC)
 is also needed, and it is to be put in the environment variable
 :envvar:`VASP_PP_PATH`.
 

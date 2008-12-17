@@ -221,6 +221,6 @@ Python will look for ``stuff.py`` in these directories:
 
 1) current working directory
 2) directories listed in your :envvar:`PYTHONPATH`
-3) Python's own system directory (typically :dir:`/usr/lib/python2.5`)
+3) Python's own system directory (typically :file:`/usr/lib/python2.5`)
 
 and import the first one found.
