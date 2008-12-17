@@ -18,7 +18,10 @@ if '_gpaw' in sys.modules:
     barrier = world.barrier
 elif 'asapparallel3' in sys.modules:
     # http://wiki.fysik.dtu.dk/Asap
-    from asap3.mpi import world
+    # We cannot import asap3.mpi here, as that creates an import deadlock
+    #from asap3.mpi import world
+    import asapparallel3
+    world = asapparallel3.Communicator()
     rank = world.rank
     size = world.size
     barrier = world.barrier    

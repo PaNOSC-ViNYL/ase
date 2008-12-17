@@ -302,6 +302,16 @@ class Atoms(object):
                              (a.shape, (a.shape[0:1] + shape)))
         
         self.arrays[name] = a
+
+    def get_array(self, name, copy=True):
+        """Get an array.
+
+        Returns a copy unless the optional argument copy is false.
+        """
+        if copy:
+            return self.arrays[name].copy()
+        else:
+            return self.arrays[name]
     
     def set_array(self, name, a, dtype=None, shape=None):
         """Update array.
@@ -540,6 +550,13 @@ class Atoms(object):
     def __len__(self):
         return len(self.arrays['positions'])
 
+    def get_number_of_atoms(self):
+        """Returns the number of atoms.
+
+        Equivalent to len(atoms) in the standard ASE Atoms class.
+        """
+        return len(self)
+    
     def __repr__(self):
         num = self.get_atomic_numbers()
         N = len(num)
