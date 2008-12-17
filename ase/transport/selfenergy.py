@@ -26,11 +26,6 @@ class LeadSelfEnergy:
 
         return self.sigma_mm
 
-    def set_hs(self, hs_dii, hs_dij, hs_dim):
-        self.h_ii, self.s_ii = hs_dii 
-        self.h_ij, self.s_ij = hs_dij  
-        self.h_im, self.s_im = hs_dim 
-
     def set_bias(self, bias):
         self.bias = bias
 
