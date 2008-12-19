@@ -19,15 +19,15 @@ def get_distribution_moment(x, y, order=0):
     For integration, the trapezoid rule is used.
     """
 
-    x = npy.array(x)
-    y = npy.array(y)
+    x = npy.asarray(x)
+    y = npy.asarray(y)
         
     if order==0:
         return npy.trapz(y, x)
-    elif type(order) is int:
+    elif isinstance(order, int):
         return npy.trapz(x**order * y, x) / npy.trapz(y, x)
     elif hasattr(order, '__iter__'):
         return [get_distribution_moment(x, y, n) for n in order]
     else:
-        raise ValueError('Illegal order: %s' % str(order))
+        raise ValueError('Illegal order: %s' % order)
 
