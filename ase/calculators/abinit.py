@@ -283,13 +283,16 @@ class Abinit:
         fh.write('\n')
         fh.write('#Enumerate different atomic species\n')
         fh.write('typat')
+        fh.write('\n')
         self.types = []
         for Z in self.numbers:
             for n, Zs in enumerate(self.species):
                 if Z == Zs:
                     self.types.append(n+1)
-        for type in self.types:
+        for n, type in enumerate(self.types):
             fh.write(' %d' % (type))
+            if n > 1 and ((n % 20) == 1):
+                fh.write('\n')
         fh.write('\n')
 
         fh.write('#Definition of the atoms\n')
