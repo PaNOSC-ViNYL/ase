@@ -1,7 +1,9 @@
+import os
 from ase.data.molecules import molecule
 from ase.io.bader import attach_charges
 
-f = open('ACF.dat', 'w')
+fname = 'ACF.dat'
+f = open(fname, 'w')
 print >> f, """
    #         X           Y           Z        CHARGE     MIN DIST
  ----------------------------------------------------------------
@@ -18,5 +20,9 @@ atoms.set_cell([7.5, 9, 9])
 atoms.center()
 
 attach_charges(atoms)
-print atoms.get_charges()
+attach_charges(atoms, fname)
+os.remove(fname)
+
+for atom in atoms:
+    print 'Atom', atom.symbol, 'Bader charge', atom.charge 
 

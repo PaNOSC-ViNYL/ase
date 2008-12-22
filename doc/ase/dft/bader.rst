@@ -98,8 +98,8 @@ volumes. This was achieved by plotting a contour surface of
 .. image:: water_divide_surf.png
    :height: 220 pt
 
-You can attach the output charges from the bader program for further 
-processing::
+You can attach the output charges from the bader program to the atoms
+for further processing::
 
   from ase import *
   from ase.io.bader import attach_charges
