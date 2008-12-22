@@ -74,7 +74,7 @@ class TransportCalculator:
             elif key in ['energies', 'eigenchannels', 'dos', 'pdos']:
                 self.uptodate = False
             elif key not in self.input_parameters:
-                raise KeyError
+                raise KeyError, '\'%s\' not a vaild keyword' % key
 
         self.input_parameters.update(kwargs)
         log = self.input_parameters['logfile']
@@ -199,7 +199,7 @@ class TransportCalculator:
             else:
                 self.T_e[e] = npy.trace(T_mm).real
 
-            print >> self.log, e, self.T_e[e]
+            print >> self.log, energy, self.T_e[e]
             self.log.flush()
 
             if p['dos']:
@@ -222,6 +222,18 @@ class TransportCalculator:
         c1 = npy.abs(h_ii - ha_ii).max()
         c2 = npy.abs(s_ii - sa_ii).max()
         print 'Conv (h,s)=%.2e, %2.e' % (c1, c2)
+
+    def plot_pl_convergence(self):
+        self.initialize()
+        pl1 = len(self.input_parameters['h1']) / 2       
+        hlead = self.selfenergies[0].h_ii.real.diagonal()
+        hprincipal = self.greenfunction.H.real.diagonal[:pl1]
+
+        import pylab as pl
+        pl.plot(hlead, label='lead')
+        pl.plot(hprincipal, label='principal layer')
+        pl.axis('tight')
+        pl.show()
 
     def get_transmission(self):
         self.initialize()
