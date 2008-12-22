@@ -98,4 +98,20 @@ volumes. This was achieved by plotting a contour surface of
 .. image:: water_divide_surf.png
    :height: 220 pt
 
+You can attach the output charges from the bader program for further 
+processing::
 
+  from ase import *
+  from ase.io.bader import attach_charges
+
+  # define the molecule as above
+  atoms = molecule('H2O')
+  atoms.set_cell([7.5, 9, 9])
+  atoms.center()
+
+  # the next two lines are equivalent (only one needed)
+  attach_charges(atoms)
+  attach_charges(atoms, 'ACF.dat')
+
+  for atom in atoms:
+      print 'Atom', atom.symbol, 'Bader charge', atom.charge
