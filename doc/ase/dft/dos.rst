@@ -22,6 +22,14 @@ You can plot the result like this::
 
 .. image:: dos.png
 
+Calculations involving moments of a DOS distribution may be
+facilitated by the use of :func:`~ase.dft.get_distribution_moment`
+method, as in the following example::
+
+  from ase.dft import get_distribution_moment
+  volume = get_distribution_moment(e,d)
+  center, width = get_distribution_moment(e,d,(1,2))
+
 
 More details
 ------------
@@ -29,3 +37,5 @@ More details
 .. autoclass:: ase.dft.dos.DOS
    :members: get_energies, get_dos
 
+.. automodule:: ase.dft
+   :members: get_distribution_moment
