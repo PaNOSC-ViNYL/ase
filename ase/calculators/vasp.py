@@ -104,7 +104,10 @@ keys = [
     'hfscreen',   # attribute to change from PBE0 to HSE
     'aexx',       # Amount of exact/DFT exchange
     'encutfock',  # FFT grid in the HF related routines 
-    'nkred',      # define sub grid of q-points for HF 
+    'nkred',      # define sub grid of q-points for HF with nkredx=nkredy=nkredz 
+    'nkredx',      # define sub grid of q-points in x direction for HF 
+    'nkredy',      # define sub grid of q-points in y direction for HF 
+    'nkredz',      # define sub grid of q-points in z direction for HF 
     # 'NBLOCK' and KBLOCK       inner block; outer block
     # 'NPACO' and APACO         distance and nr. of slots for P.C.
     # 'WEIMIN, EBREAK, DEPER    special control tags
