@@ -741,6 +741,7 @@ class VaspChargeDensity(object):
         self.chg = []     # Charge density
         self.chgdiff = [] # Charge density difference, if spin polarized
         self.aug = ''     # Augmentation charges, not parsed just a big string
+        self.augdiff = '' # Augmentation charge differece, is spin polarized
         
         # Note that the augmentation charge is not a list, since they
         # are needed only for CHGCAR files which store only a single
@@ -795,6 +796,7 @@ class VaspChargeDensity(object):
         self.chg = []
         self.chgdiff = []
         self.aug = ''
+        self.augdiff = ''
         while True:
             try:
                 atoms = aiv.read_vasp(f)
@@ -817,11 +819,25 @@ class VaspChargeDensity(object):
             if line1=='':
                 break
             elif line1.find('augmentation') != -1:
-                self.aug += line1
-                for line2 in f.readlines():
-                    self.aug += line2
-                break
+                augs = [line1]
+                while True:
+                    line2 = f.readline()
+                    if line2.split() == ngr:
+                        print "hey"
+                        chgdiff = np.empty(ng)
+                        self._read_chg(f, chgdiff, atoms.get_volume())
+                        self.chgdiff.append(chgdiff)
+                    elif line2 == '':
+                        break
+                    else:
+                        augs.append(line2)
+                if len(self.aug) == 0:
+                    self.aug = ''.join(augs)
+                    augs = []
+                else:
+                    self.augdiff = ''.join(augs)
             elif line1.split() == ngr:
+                print "ho"
                 chgdiff = np.empty(ng)
                 self._read_chg(f, chgdiff, atoms.get_volume())
                 self.chgdiff.append(chgdiff)
@@ -874,10 +890,12 @@ class VaspChargeDensity(object):
             f.write('\n')
             vol = self.atoms[ii].get_volume()
             self._write_chg(f, chg, vol, format)
-            if self.is_spin_polarized():
-                self._write_chg(f, self.chgdiff[ii], vol, format)
             if format == 'chgcar':
                 f.write(self.aug)
+            if self.is_spin_polarized():
+                self._write_chg(f, self.chgdiff[ii], vol, format)
+                if format == 'chgcar':
+                    f.write(self.augdiff)
         f.close()
 
 
