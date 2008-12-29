@@ -745,8 +745,8 @@ class VaspChargeDensity(object):
         # Note that the augmentation charge is not a list, since they
         # are needed only for CHGCAR files which store only a single
         # image.
-        
-        self.read(filename)
+        if filename != None:
+            self.read(filename)
 
     def is_spin_polarized(self):
         if len(self.chgdiff) > 0:
