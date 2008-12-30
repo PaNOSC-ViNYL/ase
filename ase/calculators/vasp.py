@@ -823,7 +823,8 @@ class VaspChargeDensity(object):
                 while True:
                     line2 = f.readline()
                     if line2.split() == ngr:
-                        print "hey"
+                        self.aug = ''.join(augs)
+                        augs = []
                         chgdiff = np.empty(ng)
                         self._read_chg(f, chgdiff, atoms.get_volume())
                         self.chgdiff.append(chgdiff)
@@ -836,8 +837,8 @@ class VaspChargeDensity(object):
                     augs = []
                 else:
                     self.augdiff = ''.join(augs)
+                    augs = []
             elif line1.split() == ngr:
-                print "ho"
                 chgdiff = np.empty(ng)
                 self._read_chg(f, chgdiff, atoms.get_volume())
                 self.chgdiff.append(chgdiff)
@@ -875,10 +876,14 @@ class VaspChargeDensity(object):
         """
         import ase.io.vasp as aiv
         if format == None:
-            if filename.lower().find('chgcar') != -1 or len(self.chg) == 1:
-                format = "chgcar"
+            if filename.lower().find('chgcar') != -1:
+                format = 'chgcar'
+            elif filename.lower().find('chg') != -1:
+                format = 'chg'
+            elif len(self.chg) == 1:
+                format = 'chgcar'
             else:
-                format = "chg"
+                format = 'chg'
         f = open(filename, 'w')
         for ii, chg in enumerate(self.chg):
             if format == 'chgcar' and ii != len(self.chg) - 1:
@@ -891,10 +896,12 @@ class VaspChargeDensity(object):
             vol = self.atoms[ii].get_volume()
             self._write_chg(f, chg, vol, format)
             if format == 'chgcar':
+                f.write('\n')
                 f.write(self.aug)
             if self.is_spin_polarized():
                 self._write_chg(f, self.chgdiff[ii], vol, format)
                 if format == 'chgcar':
+                    f.write('\n')
                     f.write(self.augdiff)
         f.close()
 
