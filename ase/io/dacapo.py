@@ -65,7 +65,7 @@ def read_dacapo(filename):
         tags = vars['AtomTags'][:]
     except KeyError:
         tags = None
-    atoms = Atoms(positions=npy.dot(vars['DynamicAtomPositions'][-1], cell),
+    atoms = Atoms(scaled_positions=vars['DynamicAtomPositions'][-1],
                   symbols=[(a + b).strip() 
                            for a, b in vars['DynamicAtomSpecies'][:]],
                   cell=cell,
