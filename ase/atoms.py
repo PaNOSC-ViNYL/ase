@@ -188,8 +188,9 @@ class Atoms(object):
             pbc = False
         self.set_pbc(pbc)
 
-        self.set_calculator(calculator)
         self.adsorbate_info = {}
+
+        self.set_calculator(calculator)
 
     def set_calculator(self, calc=None):
         """Attach calculator object."""
