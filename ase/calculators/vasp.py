@@ -867,11 +867,13 @@ class VaspChargeDensity(object):
                         fobj.write('\n')
 
     def write(self, filename='CHG', format=None):
-        """Write VASP charge density in CHG format
+        """Write VASP charge density in CHG format.
 
-        filename -- Name of file to write to
-        format -- String specifying whether to write in CHGCAR or CHG
-                  format
+        filename: str
+            Name of file to write to.
+        format: str
+            String specifying whether to write in CHGCAR or CHG
+            format.
 
         """
         import ase.io.vasp as aiv
