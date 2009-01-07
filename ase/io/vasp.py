@@ -24,7 +24,7 @@ def atomtypes_outpot(vaspdir=''):
             atomtypes = file_potcar.atom_types()
         except IOError:
             print 'ERROR: Could not determine chemical symbols either from '
-            print 'the input file itself, POTCAR or OUTCAR\n'
+            print 'the input file itself, *POTCAR* or *OUTCAR*\n'
             raise # Rethrow the last exception (probably didn't find POTCAR)
     return atomtypes
 
@@ -242,12 +242,29 @@ class ReadPOTCAR:
     Directory can be specified, default is current directory.
     """
     def __init__(self,vaspdir='./'):
-        self._file_ = os.path.join(vaspdir, 'POTCAR')
+        fn = os.path.join(vaspdir, 'POTCAR')
+        if os.path.exists(fn):
+            self._file = fn
+        else:
+            import glob
+            f = glob.glob(vaspdir + '*POTCAR*')
+            if len(f) > 0:
+                self._file = f[0]
+            else:
+                raise IOError('No file matching *POTCAR* found')
 
     def atom_types(self):
         """Method that returns list of atomtypes."""
         atomtypes=[]
-        for line in open(self._file_, 'r'):
+        if self._file.find('.gz') != -1:
+            import gzip
+            f = gzip.open(self._file)
+        elif self._file.find('.bz2') != -1:
+            import bz2
+            f = bz2.BZ2File(self._file)
+        else:
+            f = open(self._file) 
+        for line in f:
             if line.find('TITEL') != -1:
                 atomtypes.append(line.split()[3].split('_')[0].split('.')[0])
         return atomtypes
@@ -258,13 +275,29 @@ class ReadOUTCAR:
     Directory can be specified, default is current directory.
     """
     def __init__(self,vaspdir='./'):
-        
-        self._file_ = os.path.join(vaspdir, 'OUTCAR')
+        fn = os.path.join(vaspdir, 'OUTCAR')
+        if os.path.exists(fn):
+            self._file = fn
+        else:
+            import glob
+            f = glob.glob(vaspdir + '*OUTCAR*')
+            if len(f) > 0:
+                self._file = f[0]
+            else:
+                raise IOError('No file matching *OUTCAR* found')
 
     def atom_types(self):
         """Method that returns list of atomtypes."""
         atomtypes=[]
-        for line in open(self._file_, 'r'):
+        if self._file.find('.gz') != -1:
+            import gzip
+            f = gzip.open(self._file)
+        elif self._file.find('.bz2') != -1:
+            import bz2
+            f = bz2.BZ2File(self._file)
+        else:
+            f = open(self._file)
+        for line in f:
             if line.find('TITEL') != -1:
                 atomtypes.append(line.split()[3].split('_')[0].split('.')[0])
         return atomtypes
