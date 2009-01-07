@@ -19,8 +19,13 @@ def atomtypes_outpot(vaspdir=''):
         file_outcar = ReadOUTCAR(vaspdir)
         atomtypes = file_outcar.atom_types()
     except IOError:
-        file_potcar = ReadPOTCAR(vaspdir)
-        atomtypes = file_potcar.atom_types()
+        try:
+            file_potcar = ReadPOTCAR(vaspdir)
+            atomtypes = file_potcar.atom_types()
+        except IOError:
+            print 'ERROR: Could not determine chemical symbols either from '
+            print 'the input file itself, POTCAR or OUTCAR\n'
+            raise # Rethrow the last exception (probably didn't find POTCAR)
     return atomtypes
 
 def read_vasp(filename='CONTCAR'):
