@@ -62,7 +62,7 @@ def cutcoupling(h, s, index_n):
         h[:, i] = 0.0
         h[i, :] = 0.0
         h[i, i] = Ei
-##
+
 def fermidistribution(energy, kt):
     #fermi level is fixed to zero
     return 1.0 / (1.0 + npy.exp(energy / kt) )
@@ -75,9 +75,9 @@ def fliplr(a):
     return b
 
 def function_integral(function, intrange, tol = 1.e-6, trace = 0,
-                      arg1=None, arg2=None, arg3=None):
+                      arg1=None, arg2=None):
     #return the integral of the 'function' on 'intrange'    
-    #the function can be a value or a matrix, arg1,arg2,arg3 are the possible
+    #the function can be a value or a matrix, arg1,arg2 are the possible
     #parameters of the function
 
     a = 0.
@@ -123,7 +123,7 @@ def function_integral(function, intrange, tol = 1.e-6, trace = 0,
 
     ns = 0
     ne = 12
-    yns = function.calgfunc(Zxx[ns], arg1, arg2, arg3)
+    yns = function.calgfunc(Zxx[ns], arg1, arg2)
     fcnt = 0
     
 
@@ -133,7 +133,7 @@ def function_integral(function, intrange, tol = 1.e-6, trace = 0,
         Q2pQ0 = yns * (w2[0] - w0[0])
         fcnt = fcnt + 12
         for i in range(1,12):
-            yne = function.calgfunc(Zxx[ns + i], arg1, arg2, arg3)
+            yne = function.calgfunc(Zxx[ns + i], arg1, arg2)
             Q1pQ0 = Q1pQ0 + yne * (w1[i] - w0[i])
             Q2pQ0 = Q2pQ0 + yne * (w2[i] - w0[i])
 
@@ -146,12 +146,12 @@ def function_integral(function, intrange, tol = 1.e-6, trace = 0,
         else:
             thistol = tol
 
-        yne = function.calgfunc(Zxx[ne], arg1, arg2, arg3)
+        yne = function.calgfunc(Zxx[ne], arg1, arg2)
         #Call the recursive core integrator
         Qk, xpk, wpk, fcnt, warn = quadlstep(function, Zxx[ns],
                                             Zxx[ne], yns, yne,
                                             thistol, trace, fcnt,
-                                            hmin[n], arg1, arg2, arg3)
+                                            hmin[n], arg1, arg2)
         if n == 0:
             Q = npy.copy(Qk)
             Xp = xpk[:]
@@ -175,7 +175,7 @@ def function_integral(function, intrange, tol = 1.e-6, trace = 0,
       
     return Q,Xp,Wp,fcnt
 
-def quadlstep(f, Za, Zb, fa, fb, tol, trace, fcnt, hmin, arg1, arg2, arg3):
+def quadlstep(f, Za, Zb, fa, fb, tol, trace, fcnt, hmin, arg1, arg2):
     #Gaussian-Lobatto and Kronrod method
     #QUADLSTEP Recursive core routine for integral
     #input parameters:
@@ -217,7 +217,7 @@ def quadlstep(f, Za, Zb, fa, fb, tol, trace, fcnt, hmin, arg1, arg2, arg3):
     for i in range(len(x)):
         x[i] *= 0.5
         Zx[i] = Za + (Zb-Za) * x[i]
-        y[i] = f.calgfunc(Zx[i], arg1, arg2, arg3)
+        y[i] = f.calgfunc(Zx[i], arg1, arg2)
     #Four point Lobatto quadrature
     s1 = [1.0, 0.0, 5.0, 0.0, 5.0, 0.0, 1.0]
     s2 = [77.0, 432.0, 625.0, 672.0, 625.0, 432.0, 77.0]
@@ -251,18 +251,18 @@ def quadlstep(f, Za, Zb, fa, fb, tol, trace, fcnt, hmin, arg1, arg2, arg3):
     else:
         Q, Xp, Wp, fcnt, warn = quadlstep(f, Za, Zx[0], fa, y[0],
                                            tol, trace, fcnt, hmin,
-                                               arg1, arg2, arg3)
+                                               arg1, arg2)
         for k in range(1, 5):
             Qk, xpk, wpk, fcnt, warnk = quadlstep(f, Zx[k - 1],
                     Zx[k], y[k - 1], y[k], tol, trace, fcnt, hmin,
-                                             arg1, arg2, arg3)
+                                             arg1, arg2)
             Q += Qk
             Xp = Xp[:-1] + xpk
             Wp = Wp[:-1] + [Wp[-1] + wpk[0]] + wpk[1:]
             warn = max(warn, warnk)
         Qk, xpk, wpk, fcnt, warnk = quadlstep(f, Zx[4], Zb, y[4], fb,
                                            tol, trace, fcnt, hmin,
-                                                   arg1, arg2, arg3)
+                                                   arg1, arg2)
         Q += Qk
         Xp = Xp[:-1] + xpk
         Wp = Wp[:-1] + [Wp[-1] + wpk[0]] + wpk[1:]
