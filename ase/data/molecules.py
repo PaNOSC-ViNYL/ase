@@ -3,7 +3,7 @@ The following contains a database of small molecules
 
 Data for the G2 database are from
 Raghavachari, Redfern, and Pople, J. Chem. Phys. Vol. 106, 1063 (1997).
-See http://chemistry.anl.gov/compmat/comptherm.htm for the original files.
+See http://www.cse.anl.gov/Catalysis_and_Energy_Conversion/Computational_Thermochemistry.shtml for the original files.
 
 All numbers are experimental values, except for coordinates, which are
 MP2(full)/6-31G(d) optimized geometries
@@ -2309,7 +2309,11 @@ def rest(name):
     return s
     
 if __name__ == '__main__':
+    # Compare experimental values from the Kresse/VASP article with those from
+    # the Argonne NL homepage
     from gpaw.testing.atomization_data import atomization_vasp
+    print 'Name      Kresse   ANL Diff'
     for name in g1:
-        print '%-9s %6.1f %6.1f' % (name, get_atomization_energy(name),
-                                    atomization_vasp[name][0])
+        anl = get_atomization_energy(name)
+        kresse = atomization_vasp[name][0]
+        print '%-10s %5.1f %5.1f % 3.1f' % (name, kresse, anl, kresse - anl)
