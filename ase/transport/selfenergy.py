@@ -73,7 +73,8 @@ def hartree(D, V_ijkl):
         D = 2 * D
 
     N = len(D)
-    V_H = npy.empty([N, N], complex)
+    dtype = npy.mintypecode([D.dtype.char, V_ijkl.dtype.char])
+    V_H = npy.empty([N, N], dtype)
     for i in range(N):
         for j in range(N):
             V_H[i, j] = npy.dot(V_ijkl[i, :, j, :].ravel(), D.flat)
@@ -87,11 +88,12 @@ def hartree_partial(D, V_ijij, V_ijji, V_iijj, V_iiij, V_ikjk=None):
         D = 2 * D
 
     N = len(D)
-    V_H = npy.empty([N, N], complex)
+    dtype = npy.mintypecode([D.dtype.char, V_ijij.dtype.char])
+    V_H = npy.empty([N, N], dtype)
     if V_iijj is None:
-        V_iijj = npy.zeros([N, N], complex)
+        V_iijj = npy.zeros([N, N], dtype)
     if V_iiij is None:
-        V_iiij = npy.zeros([N, N], complex)
+        V_iiij = npy.zeros([N, N], dtype)
     for i in range(N):
         for j in range(N):
             if i == j:
@@ -119,7 +121,8 @@ def fock(D, V_ijkl):
         return [fock(D[0], V_ijkl), fock(D[1], V_ijkl)]
 
     N = len(D)
-    V_F = npy.empty([N, N], complex)
+    dtype = npy.mintypecode([D.dtype.char, V_ijkl.dtype.char])
+    V_F = npy.empty([N, N], dtype)
     for i in range(N):
         for j in range(N):
             V_F[i, j] = -npy.dot(V_ijkl[i, :, :, j].ravel(), D.flat)
@@ -131,11 +134,12 @@ def fock_partial(D, V_ijij, V_ijji, V_iijj, V_iiij, V_ikjk=None):
         return [GetFockAll(D[0], V_ijkl), GetFockAll(D[1], V_ijkl)]
     
     N = len(D)
-    V_F = npy.empty([N, N], complex)
+    dtype = npy.mintypecode([D.dtype.char, V_ijij.dtype.char])
+    V_F = npy.empty([N, N], dtype)
     if V_iijj is None:
-        V_iijj = npy.zeros([N, N], complex)
+        V_iijj = npy.zeros([N, N], dtype)
     if V_iiij is None:
-        V_iiij = npy.zeros([N, N], complex)
+        V_iiij = npy.zeros([N, N], dtype)
     for i in range(N):
         for j in range(N):
             if i == j:
