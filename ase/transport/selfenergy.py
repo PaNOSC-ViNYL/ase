@@ -1,6 +1,7 @@
 import numpy as npy
 from ase.transport.tools import dagger
 
+
 class LeadSelfEnergy:
     conv = 1e-8 # Convergence criteria for surface Green function
     
@@ -63,3 +64,95 @@ class LeadSelfEnergy:
             n += 1
 
         return v_00
+
+
+def hartree(D, V_ijkl):
+    if type(D) == list:
+        D = D[0] + D[1]
+    else:
+        D = 2 * D
+
+    N = len(D)
+    V_H = npy.empty([N, N], complex)
+    for i in range(N):
+        for j in range(N):
+            V_H[i, j] = npy.dot(V_ijkl[i, :, j, :].ravel(), D.flat)
+    return V_H
+
+
+def hartree_partial(D, V_ijij, V_ijji, V_iijj, V_iiij, V_ikjk=None):
+    if type(D) == list:
+        D = D[0] + D[1]
+    else:
+        D = 2 * D
+
+    N = len(D)
+    V_H = npy.empty([N, N], complex)
+    if V_iijj is None:
+        V_iijj = npy.zeros([N, N], complex)
+    if V_iiij is None:
+        V_iiij = npy.zeros([N, N], complex)
+    for i in range(N):
+        for j in range(N):
+            if i == j:
+                if V_ikjk is not None:
+                    V_H[i, i] = npy.sum(D * V_ikjk[:, :, i])
+                else:
+                    V_H[i, i] = (npy.dot(D.diagonal(), V_ijij[i]) +
+                                 npy.dot(D[i], V_iiij[i]) +
+                                 npy.dot(D[:, i], V_iiij[i].conj()) -
+                                 2 * D[i, i] * V_iiij[i, i])
+            else:
+                V_H[i, j] = (D[i, j] * V_iijj[i, j] +
+                             D[j, i] * V_ijji[i, j] +
+                             D[i, i] * V_iiij[i, j] +
+                             D[j, j] * V_iiij[j, i].conj())
+                if V_ikjk is not None:
+                    V_H[i, j] += (npy.dot(D.diagonal(), V_ikjk[i, j, :]) -
+                                  D[i, i] * V_iiij[i, j] -
+                                  D[j, j] * V_iiij[j, i].conj())
+    return V_H
+
+
+def fock(D, V_ijkl):
+    if type(D) == list:
+        return [fock(D[0], V_ijkl), fock(D[1], V_ijkl)]
+
+    N = len(D)
+    V_F = npy.empty([N, N], complex)
+    for i in range(N):
+        for j in range(N):
+            V_F[i, j] = -npy.dot(V_ijkl[i, :, :, j].ravel(), D.flat)
+    return V_F
+
+
+def fock_partial(D, V_ijij, V_ijji, V_iijj, V_iiij, V_ikjk=None):
+    if type(D) == list:
+        return [GetFockAll(D[0], V_ijkl), GetFockAll(D[1], V_ijkl)]
+    
+    N = len(D)
+    V_F = npy.empty([N, N], complex)
+    if V_iijj is None:
+        V_iijj = npy.zeros([N, N], complex)
+    if V_iiij is None:
+        V_iiij = npy.zeros([N, N], complex)
+    for i in range(N):
+        for j in range(N):
+            if i == j:
+                V_F[i, i] = -(npy.dot(D.diagonal(), V_ijji[i]) +
+                              npy.dot(D[i], V_iiij[i]) +
+                              npy.dot(D[:, i], V_iiij[i].conj()) -
+                              2 * D[i, i] * V_iiij[i, i] +
+                              D[i, i] * V_ijij[i, i] - D[i, i] * V_ijji[i, i])
+            else:
+                V_F[i, j] = -(D[j, i] * V_ijij[i, j] +
+                              D[i, j] * V_iijj[i, j] +
+                              D[i, i] * V_iiij[i, j] +
+                              D[j, j] * V_iiij[j, i].conj())
+                if V_ikjk is not None:
+                    V_F[i, j] -= (
+                        npy.dot(D[:, i], V_ikjk[:, j, i]) -
+                        D[i, i] * V_ikjk[i, j, i] - D[j, i] * V_ikjk[j, j, i] +
+                        npy.dot(D[j, :], V_ikjk[i, :, j]) -
+                        D[j, j] * V_ikjk[i, j, j] - D[j, i] * V_ikjk[i, i, j])
+    return V_F
