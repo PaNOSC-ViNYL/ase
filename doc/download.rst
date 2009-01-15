@@ -17,9 +17,15 @@ The following packages are required for basic ASE functionality:
 .. _NumPy: http://www.scipy.org/NumPy
 
 
-It is highly recommended (but not required) to install also
-matplotlib_ and pygtk_.  Most likely, some or all of these are already
-be installed on your system.
+It is highly recommended (but not required) to install also these two:
+
+3) matplotlib_.
+4) pygtk_.
+
+Matplotlib is needed for :mod:`writing png and eps
+files <io>`, and both packages are needed for ASE's simple GUI (:mod:`gui`).
+Most likely, some or all of these are already be installed on your
+system.
 
 
 .. _matplotlib: http://matplotlib.sourceforge.net
@@ -73,12 +79,12 @@ your :envvar:`PATH` environment variable.  Do this permanently in
 your :file:`~/.bashrc` file::
 
   export PYTHONPATH=$HOME/ase:$PYTHONPATH
-  export PATH=$PATH:$HOME/ase/tools
+  export PATH=$HOME/ase/tools:$PATH
 
 or your :file:`~/.cshrc` file::
 
   setenv PYTHONPATH ${HOME}/ase:${PYTHONPATH}
-  setenv PATH ${PATH}:${HOME}/ase/tools
+  setenv PATH ${HOME}/ase/tools:${PATH}
 
 Instead of :envvar:`HOME`, you may use any other directory.
 
@@ -97,8 +103,15 @@ directory::
   $ testase.py
   ...
        
-
 If any of the tests fail, then let us know on the :ref:`ml`.
+
+.. note::
+
+   If matplotlib_ or pygtk_ is not installed, one of the tests will
+   fail - avoid this with::
+
+     $ testase.py --no-display
+
 
 
 
