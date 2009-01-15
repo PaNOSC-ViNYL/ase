@@ -128,6 +128,11 @@ class netcdf_file(object):
 
     """
     def __init__(self, filename, mode='r', mmap=True):
+        if not __debug__:
+            raise RuntimeError('Current version of pupynere does not ' +
+                               'work with -O option.  We need to update ' +
+                               'to version 1.0.7!')
+
         self.filename = filename
         self.use_mmap = mmap
 
