@@ -45,14 +45,17 @@ class STM:
                     ldos += f * (psi * npy.conj(psi)).real
 
         if 0 in self.symmetries:
+            # (x,y) -> (-x,y)
             ldos[1:] += ldos[:0:-1].copy()
             ldos[1:] *= 0.5
 
         if 1 in self.symmetries:
+            # (x,y) -> (x,-y)
             ldos[:, 1:] += ldos[:, :0:-1].copy()
             ldos[:, 1:] *= 0.5
             
         if 2 in self.symmetries:
+            # (x,y) -> (y,x)
             ldos += ldos.transpose((1, 0, 2)).copy()
             ldos *= 0.5
             
