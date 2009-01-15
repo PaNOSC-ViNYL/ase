@@ -131,7 +131,8 @@ def fock(D, V_ijkl):
 
 def fock_partial(D, V_ijij, V_ijji, V_iijj, V_iiij, V_ikjk=None):
     if type(D) == list:
-        return [GetFockAll(D[0], V_ijkl), GetFockAll(D[1], V_ijkl)]
+        return [fock_partial(D[0], V_ijij, V_ijji, V_iijj, V_iiij, V_ikjk),
+                fock_partial(D[1], V_ijij, V_ijji, V_iijj, V_iiij, V_ikjk)]
     
     N = len(D)
     dtype = npy.mintypecode([D.dtype.char, V_ijij.dtype.char])
