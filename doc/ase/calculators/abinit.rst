@@ -58,21 +58,21 @@ Here is a detailed list of all the keywords for the calculator:
 keyword        type      default value     description
 ============== ========= ================  =====================================
 ``kpts``       ``list``  ``[1,1,1]``       Monkhorst-Pack k-point sampling
-``nbands``     ``int``   ``None``          Number of bands (default: 1)
+``nbands``     ``int``   ``0``             Number of bands (default: 0)
 ``ecut``       ``float`` ``None``          Planewave cutoff energy in eV (default: None)
 ``xc``         ``str``   ``'LDA'``         Exchange-correlation functional.
 ``pulay``      ``int``   ``5``             Number of old densities to use for
                                            Pulay mixing
 ``mix``        ``float`` ``0.1``           Pulay mixing weight 
-``width``      ``float`` ``None``          Fermi-distribution width in eV (default: 0.04 Ha)
-``charge``     ``float`` ``None``          Total charge of the system (default: 0)
+``width``      ``float`` ``0.04 Ha``       Fermi-distribution width in eV (default: 0.04 Ha)
+``charge``     ``float`` ``0``             Total charge of the system (default: 0)
 ``label``      ``str``   ``'abinit'``      Name of the output file
 ============== ========= ================  =====================================
 
 A value of ``None`` means that ABINIT's default value is used.
 
 **Warning**: abinit does not specify a default value for
-``Planewave cutoff energy in eV`` - you need to set one as in the example at thebottom of the page, otherwise calculation will fail.
+``Planewave cutoff energy in eV`` nor ``Number of bands`` - you need to set them as in the example at thei bottom of the page, otherwise calculation will fail.
 
 **Warning**: calculations wihout k-points are not parallelized by default
 and will fail! To enable band paralellization specify ``Number of BanDs in a BLOCK`` 
@@ -130,6 +130,7 @@ Here is an example of how to calculate the total energy for bulk Silicon::
                  (b, b, 0)], scale_atoms=True)
   
   calc = Abinit(label='Si',
+                nbands=8, 
                 xc='PBE',
                 ecut=50 * Ry,
                 mix=0.01,

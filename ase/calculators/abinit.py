@@ -26,7 +26,7 @@ class Abinit:
       calc.set_inp('nstep', 30)
 
     """
-    def __init__(self, label='abinit', xc='LDA', kpts=None, nbands=1,
+    def __init__(self, label='abinit', xc='LDA', kpts=None, nbands=0,
                  width=0.04*Hartree, ecut=None, charge=0,
                  pulay=5, mix=0.1
                  ):
@@ -44,7 +44,7 @@ class Abinit:
             Monkhost-Pack sampling.
         nbands: int
             Number of bands.
-            Default is 1.
+            Default is 0.
         width: float
             Fermi-distribution width in eV.
             Default is 0.04 Hartree.
