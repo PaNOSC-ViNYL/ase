@@ -102,11 +102,11 @@ class HooverNPT(MolecularDynamics):
         Estimates the dynamic variables for time=-1 to start
         the algorithm.   This is automatically called before
         the first timestep.
-    SetStress()
+    set_stress()
         Set the external stress.  Use with care.  It is
         preferable to set the right value when creating the
         object.
-    SetMask()
+    set_mask()
         Change the mask.  Use with care, as you may "freeze"
         a fluctuation in the strain rate.
     get_gibbs_free_energy()
