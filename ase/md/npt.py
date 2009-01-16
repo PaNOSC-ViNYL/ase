@@ -368,8 +368,7 @@ class NPT(MolecularDynamics):
 
     def get_center_of_mass_momentum(self):
         "Get the center of mass momentum."
-        m = self.atoms.get_momenta()
-        return sum(m)
+        return self.atoms.get_momenta().sum(0)
 
     def zero_center_of_mass_momentum(self, verbose=0):
         "Set the center of mass momentum to zero."
