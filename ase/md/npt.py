@@ -32,7 +32,7 @@ from ase.md import MolecularDynamics
 # Delayed imports:  If the trajectory object is reading a special ASAP version
 # of HooverNPT, that class is imported from Asap.Dynamics.NPTDynamics.
 
-class HooverNPT(MolecularDynamics):
+class NPT(MolecularDynamics):
     '''Constant pressure/stress and temperature dynamics.
 
     Combined Nose-Hoover and Parrinello-Rahman dynamics, creating an
@@ -130,7 +130,7 @@ class HooverNPT(MolecularDynamics):
     
     '''
 
-    classname = "HooverNPT"  # Used by the trajectory.
+    classname = "NPT"  # Used by the trajectory.
     def __init__(self, atoms, 
                  timestep, temperature, externalstress, ttime, pfactor,
                  mask=None, trajectory=None):

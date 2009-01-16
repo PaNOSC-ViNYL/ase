@@ -153,8 +153,6 @@ special case of NPT dynamics.
 Constant NPT simulations (the isothermal-isobaric ensemble)
 ===========================================================
 
-**XXXX Not implemented in the new ASE yet!**
-
 .. module:: md.npt
 
 .. class:: NPT(atoms, timestep, temperature, externalstress, ttime, pfactor, mask=None) 
@@ -203,6 +201,7 @@ The dynamics object is called with the following parameters:
   computational box.  Set to (1,1,0) to disallow elongations along the
   z-axis etc.
 
+
 Useful parameter values:
 
 * The same *timestep* can be used as in Verlet dynamics, i.e. 5 fs is fine
@@ -219,26 +218,26 @@ Useful parameter values:
 
 It has the following methods:
 
-.. method:: NPT.Run(n)``:
+.. method:: NPT.run(n)``:
 
   Perform n timesteps.
 
-.. method:: NPT.Initialize()``:
+.. method:: NPT.initialize()``:
 
   Estimates the dynamic variables for time=-1 to start the
   algorithm.  This is automatically called before the first timestep.
 
-.. method:: NPT.SetStress()``:
+.. method:: NPT.set_stress()``:
 
   Set the external stress.  Use with care.  It is
   preferable to set the right value when creating the object.
 
-.. method:: NPT.SetMask()``:
+.. method:: NPT.set_mask()``:
 
   Change the mask.  Use with care, as you may "freeze" a
   fluctuation in the strain rate.
 
-.. method:: NPT.GetGibbsFreeEnergy()``:
+.. method:: NPT.get_gibbs_free_energy()``:
 
   Gibbs free energy is supposed to be
   preserved by this dynamics.  This is mainly intended as a diagnostic
