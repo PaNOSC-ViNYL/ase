@@ -22,10 +22,9 @@ It is highly recommended (but not required) to install also these two:
 3) matplotlib_.
 4) pygtk_.
 
-Matplotlib is needed for :mod:`writing png and eps
-files <io>`, and both packages are needed for ASE's simple GUI (:mod:`gui`).
-Most likely, some or all of these are already be installed on your
-system.
+Matplotlib is needed for :mod:`writing png and eps files <io>`, and
+both packages are needed for ASE's simple GUI (:mod:`gui`).  Some of
+these packages may already be installed on your system.
 
 
 .. _matplotlib: http://matplotlib.sourceforge.net
