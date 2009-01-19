@@ -459,5 +459,5 @@ class View:
         fd, filename = tempfile.mkstemp('.xyz', 'ase.gui-')
         os.close(fd)
         self.images.write(filename)
-        os.system('(%s %s &); (sleep 5; rm %s) &' %
+        os.system('(%s %s &); (sleep 60; rm %s) &' %
                   (command, filename, filename))
