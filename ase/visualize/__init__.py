@@ -23,23 +23,25 @@ def view(atoms, data=None, viewer='ag', repeat=None, block=False):
         else:
             raise RuntimeError('conversion to old ASE not available')
 
-    if viewer == 'ag':
+    vwr = viewer.lower()
+    
+    if vwr == 'ag':
         format = 'traj'
         if repeat is None:
             command = 'ag'
         else:
             command = 'ag --repeat=%d,%d,%d' % tuple(repeat)
             repeat = None
-    elif viewer == 'vmd':
+    elif vwr == 'vmd':
         format = 'cube'
         command = 'vmd'
-    elif viewer == 'rasmol':
+    elif vwr == 'rasmol':
         format = 'pdb'
         command = 'rasmol -pdb'
-    elif viewer == 'xmakemol':
+    elif vwr == 'xmakemol':
         format = 'xyz'
         command = 'xmakemol -f'
-    elif viewer == 'gopenmol':
+    elif vwr == 'gopenmol':
         format = 'xyz'
         command = 'rungOpenMol'
     else:
