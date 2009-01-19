@@ -170,7 +170,7 @@ class Atom(object):
     def get_tag(self): return self._get('tag')
     def get_momentum(self): return self._get('momentum')
     def get_mass(self): return self._get('mass')
-    def get_magmom(self): return self._get('magmom')
+    def get_initial_magnetic_moment(self): return self._get('magmom')
     def get_charge(self): return self._get('charge')
 
     def set_symbol(self, symbol): self._set('symbol', symbol)
@@ -180,7 +180,7 @@ class Atom(object):
     def set_tag(self, tag): self._set('tag', tag)
     def set_momentum(self, momentum): self._set('momentum', momentum)
     def set_mass(self, mass): self._set('mass', mass)
-    def set_magmom(self, magmom): self._set('magmom', magmom)
+    def set_initial_magnetic_moment(self, magmom): self._set('magmom', magmom)
     def set_charge(self, charge): self._set('charge', charge)
 
     symbol = property(get_symbol, set_symbol, doc='Chemical symbol')
@@ -189,7 +189,8 @@ class Atom(object):
     tag = property(get_tag, set_tag, doc='Integer tag')
     momentum = property(get_momentum, set_momentum, doc='XYZ-momentum')
     mass = property(get_mass, set_mass, doc='Atomic mass')
-    magmom = property(get_magmom, set_magmom, doc='Magnetic moment')
+    magmom = property(get_initial_magnetic_moment, set_initial_magnetic_moment,
+                      doc='Initial magnetic moment')
     charge = property(get_charge, set_charge, doc='Atomic charge')
 
     def get_x(self): return self.position[0]

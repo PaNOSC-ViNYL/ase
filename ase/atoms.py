@@ -182,7 +182,7 @@ class Atoms(object):
         self.set_tags(default(tags, 0))
         self.set_momenta(default(momenta, (0.0, 0.0, 0.0)))
         self.set_masses(default(masses, None))
-        self.set_magnetic_moments(default(magmoms, 0.0))
+        self.set_initial_magnetic_moments(default(magmoms, 0.0))
         self.set_charges(default(charges, 0.0))
         if pbc is None:
             pbc = False
@@ -413,9 +413,13 @@ class Atoms(object):
         else:
             return atomic_masses[self.arrays['numbers']]
         
-    def set_magnetic_moments(self, magmoms):
+    def set_initial_magnetic_moments(self, magmoms):
         """Set the initial magnetic moments."""
         self.set_array('magmoms', magmoms, float, ())
+
+    def set_magnetic_moments(self, magmoms):
+        print 'Please use set_initial_magnetic_moments() instead!'
+        self.set_initial_magnetic_moments(magmoms)
 
     def get_initial_magnetic_moments(self):
         """Get array of initial magnetic moments."""

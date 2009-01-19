@@ -78,9 +78,9 @@ Here is the full list of all get/set methods:
   * - :meth:`~ase.atoms.Atoms.get_chemical_symbols`
     - :meth:`~ase.atoms.Atoms.set_chemical_symbols`
   * - :meth:`~ase.atoms.Atoms.get_initial_magnetic_moments`
-    -
+    - :meth:`~ase.atoms.Atoms.set_initial_magnetic_moments`
   * - :meth:`~ase.atoms.Atoms.get_magnetic_moments`
-    - :meth:`~ase.atoms.Atoms.set_magnetic_moments`
+    -
   * - :meth:`~ase.atoms.Atoms.get_masses`
     - :meth:`~ase.atoms.Atoms.set_masses`
   * - :meth:`~ase.atoms.Atoms.get_momenta`
