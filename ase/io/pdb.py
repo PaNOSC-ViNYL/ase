@@ -1,7 +1,30 @@
+from ase.atoms import Atoms
 from ase.parallel import paropen
 
-"""Module to write atoms to the PDB file format"""
+"""Module to read and write atoms in PDB file format"""
 
+
+def read_pdb(fileobj, index=-1):
+    if isinstance(fileobj, str):
+        fileobj = open(fileobj)
+
+    positions = []
+    symbols = []
+    for line in fileobj.readlines():
+        if line.startswith('ATOM'):
+            words = line.split()
+            symbol = ''
+            for s in words[2]:
+                if not s.isdigit():
+                    if len(symbol):
+                        symbol += s.lower()
+                    else:
+                        symbol += s.upper()
+            symbols.append(symbol)
+            positions.append([float(words[4]), 
+                              float(words[5]),
+                              float(words[6])])
+    return Atoms(symbols=symbols, positions=positions)
 
 def write_pdb(fileobj, images):
     """Write images to PDB-file."""

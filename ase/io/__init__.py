@@ -36,6 +36,7 @@ def read(filename, index=-1, format=None):
     Dacapo text output         dacapo-text
     XYZ-file                   xyz
     VASP POSCAR/CONTCAR file   vasp
+    Protein Data Bank          pdb
     =========================  ===========
 
     """
@@ -111,6 +112,10 @@ def read(filename, index=-1, format=None):
     if format == 'mol':
         from ase.io.mol import read_mol
         return read_mol(filename)
+
+    if format == 'pdb':
+        from ase.io.pdb import read_pdb
+        return read_pdb(filename)
 
     raise RuntimeError('That can *not* happen!')
 
@@ -277,5 +282,8 @@ def filetype(filename):
 
     if filename.lower().endswith('.mol'):
         return 'mol'
+
+    if filename.lower().endswith('.pdb'):
+        return 'pdb'
 
     return 'xyz'
