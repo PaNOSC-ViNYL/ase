@@ -5,11 +5,13 @@ Numeric arrays in Python
 
 Links to NumPy's webpage:
 
+* `Numpy and Scipy Documentation`_
+* `Numpy guide book <http://www.tramy.us/numpybook.pdf>`_
 * `Numpy example list`_
 * `Numpy functions by category`_
-* http://mentat.za.net/numpy/refguide
-* `Numpy guide book <http://www.tramy.us/>`_
 
+
+.. _Numpy and Scipy Documentation: http://docs.scipy.org/doc
 .. _Numpy example list: http://www.scipy.org/Numpy_Example_List_With_Doc
 .. _Numpy functions by category:
                         http://www.scipy.org/Numpy_Functions_by_Category
