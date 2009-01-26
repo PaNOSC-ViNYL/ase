@@ -4,6 +4,7 @@ http://www.abinit.org/
 """
 
 import os
+from glob import glob
 from os.path import join, isfile, islink
 
 import numpy as npy
@@ -28,7 +29,7 @@ class Abinit:
     """
     def __init__(self, label='abinit', xc='LDA', kpts=None, nbands=0,
                  width=0.04*Hartree, ecut=None, charge=0,
-                 pulay=5, mix=0.1
+                 pulay=5, mix=0.1, pps='fhi'
                  ):
         """Construct ABINIT-calculator object.
 
@@ -78,6 +79,9 @@ class Abinit:
         self.charge = charge
         self.pulay = pulay
         self.mix = mix
+        self.pps = pps
+        if not pps in ['fhi', 'hgh', 'hgh.sc']:
+            raise RuntimeError('Unexpected PP identifier %s' % pps)
 
         self.converged = False
         self.inp = {}
@@ -110,12 +114,39 @@ class Abinit:
             xcname = 'GGA'
         else:
             xcname = 'LDA'
+
         for Z in self.species:
             symbol = chemical_symbols[abs(Z)]
             number = atomic_numbers[symbol]
-            name = ('%02d' % number) + '-' + symbol + '.' + xcname + '.fhi'
+
+            pps = self.pps
+            if pps == 'fhi':
+                name = '%02d-%s.%s.fhi' % (number, symbol, xcname)
+            elif pps in ('hgh', 'hgh.sc'):
+                hghtemplate = '%d%s.%s.hgh' # E.g. "42mo.6.hgh"
+                # There might be multiple files with different valence
+                # electron counts, so we must choose between
+                # the ordinary and the semicore versions for some elements.
+                #
+                # Therefore we first use glob to get all relevant files,
+                # then pick the correct one afterwards.
+                name = hghtemplate % (number, symbol.lower(), '*')
+            
             found = False
             for path in pppaths:
+                if pps.startswith('hgh'):
+                    filenames = glob(join(path, name))
+                    if not filenames:
+                        continue
+                    assert len(filenames) in [0, 1, 2]
+                    if pps == 'hgh':
+                        selector = min # Lowest possible valence electron count
+                    else:
+                        assert pps == 'hgh.sc'
+                        selector = max # Semicore - highest electron count
+                    Z = selector([int(os.path.split(name)[1].split('.')[1])
+                                  for name in filenames])
+                    name = hghtemplate % (number, symbol.lower(), str(Z))
                 filename = join(path, name)
                 if isfile(filename) or islink(filename):
                     found = True
