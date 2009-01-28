@@ -6,17 +6,18 @@ Visualization
 .. function:: view(atoms, data=None, viewer=None, repeat=None)
 
 This provides an interface to various visualization tools, such as
-:mod:`ase.gui <gui>`, RasMol_, VMD_, VTK_, or gOpenMol_. The default viewer is
-the ase.gui, described in the :mod:`gui` module. The simplest
-invocation is::
+:mod:`ase.gui <gui>`, RasMol_, VMD_, VTK_, gOpenMol_, or
+Avogadro_. The default viewer is the ase.gui, described in the
+:mod:`gui` module. The simplest invocation is::
 
   >>> from ase import view
   >>> view(atoms)
 
 where ``atoms`` is any :class:`Atoms` object.  Alternative viewers can
 be used by specifying the optional keyword ``viewer=...`` - use one of
-'ase.gui', 'gopenmol', 'vmd', or 'rasmol'.  The VMD viewer can take an
-optional ``data`` argument to show 3D data::
+'ase.gui', 'gopenmol', 'vmd', or 'rasmol'.  The VMD and Avogadro
+viewers can take an optional ``data`` argument to show 3D data, such
+as charge density::
 
   >>> view(atoms, viewer='VMD', data=array)
 
@@ -31,6 +32,7 @@ your structure by dumping directly to a graphics file; you can use the
 .. _VMD: http://www.ks.uiuc.edu/Research/vmd/
 .. _VTK: http://public.kitware.com/VTK/
 .. _gOpenMol: http://www.csc.fi/gopenmol/
+.. _Avogadro: http://avogadro.openmolecules.net/
 
 
 PovrayPlotter

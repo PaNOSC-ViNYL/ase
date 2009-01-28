@@ -44,6 +44,9 @@ def view(atoms, data=None, viewer='ag', repeat=None, block=False):
     elif vwr == 'gopenmol':
         format = 'xyz'
         command = 'rungOpenMol'
+    elif vwr == 'avogadro':
+        format = 'cube'
+        command = 'avogadro'
     else:
         raise RuntimeError('Unknown viewer: ' + viewer)
 
