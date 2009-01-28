@@ -70,6 +70,8 @@ class Abinit:
 
         """
 
+        assert nbands > 0 'Error: Number of bands (nbands) not set'
+        assert ecut is not None 'Error: Planewave cutoff energy in eV (ecut) not set'
         self.label = label#################### != out
         self.xc = xc
         self.kpts = kpts
@@ -131,7 +133,7 @@ class Abinit:
                 # Therefore we first use glob to get all relevant files,
                 # then pick the correct one afterwards.
                 name = hghtemplate % (number, symbol.lower(), '*')
-            
+
             found = False
             for path in pppaths:
                 if pps.startswith('hgh'):

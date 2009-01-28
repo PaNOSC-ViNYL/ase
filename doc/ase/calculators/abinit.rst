@@ -72,7 +72,7 @@ keyword        type      default value     description
 A value of ``None`` means that ABINIT's default value is used.
 
 **Warning**: abinit does not specify a default value for
-``Planewave cutoff energy in eV`` nor ``Number of bands`` - you need to set them as in the example at thei bottom of the page, otherwise calculation will fail.
+``Number of bands`` nor ``Planewave cutoff energy in eV`` - you need to set them as in the example at thei bottom of the page, otherwise calculation will fail.
 
 **Warning**: calculations wihout k-points are not parallelized by default
 and will fail! To enable band paralellization specify ``Number of BanDs in a BLOCK`` 
