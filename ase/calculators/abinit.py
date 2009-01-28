@@ -70,8 +70,12 @@ class Abinit:
 
         """
 
-        assert nbands > 0 'Error: Number of bands (nbands) not set'
-        assert ecut is not None 'Error: Planewave cutoff energy in eV (ecut) not set'
+        if not nbands > 0:
+            raise ValueError('Number of bands (nbands) not set')
+
+        if ecut is None:
+            raise ValueError('Planewave cutoff energy in eV (ecut) not set')
+
         self.label = label#################### != out
         self.xc = xc
         self.kpts = kpts
@@ -83,7 +87,7 @@ class Abinit:
         self.mix = mix
         self.pps = pps
         if not pps in ['fhi', 'hgh', 'hgh.sc']:
-            raise RuntimeError('Unexpected PP identifier %s' % pps)
+            raise ValueError('Unexpected PP identifier %s' % pps)
 
         self.converged = False
         self.inp = {}
