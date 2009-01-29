@@ -1,6 +1,5 @@
 import numpy as npy
 from math import sqrt, exp
-import matplotlib
 
 def tri2full(M, UL='L'):
     """UP='L' => fill upper triangle from lower triangle
@@ -269,8 +268,6 @@ def quadlstep(f, Za, Zb, fa, fb, tol, trace, fcnt, hmin, arg1, arg2):
         warn = max(warn, warnk)
     return Q, Xp, Wp, fcnt, warn
 
-
-
 def mytextread0(filename):
     num = 0
     df = file(filename)
@@ -320,8 +317,4 @@ def mytextwrite1(filename, mat):
     for i in range(dim):
         for j in range(dim):
             df.write('%20.20e\n'% mat[i, j])
-    df.close()        
-
-
-  
-#--------
+    df.close()

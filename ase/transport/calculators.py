@@ -22,7 +22,7 @@ class TransportCalculator:
         between such layers.
         
         h is a matrix representation of the Hamiltonian of the
-        scattering region. This must include at least on lead
+        scattering region. This must include at least one lead
         principal layer on each side. The coupling in (out) of the
         scattering region is by default assumed to be identical to the
         coupling between left (right) principal layers.  However,
