@@ -364,5 +364,8 @@ class StrainFilter:
     def get_potential_energy(self):
         return self.atoms.get_potential_energy()
 
+    def has(self, x):
+	    return self.atoms.has(x)
+
     def __len__(self):
         return 2
