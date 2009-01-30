@@ -48,6 +48,7 @@ keys = [
     'ediff',      # stopping-criterion for electronic upd.
     'ediffg',     # stopping-criterion for ionic upd.
     'nsw',        # number of steps for ionic upd.
+    'nfree',      # number of steps per DOF when calculting Hessian using finitite differences
     'ibrion',     # ionic relaxation: 0-MD 1-quasi-New 2-CG
     'isif',       # calculate stress and what to relax
     'iwavpr',     # prediction of wf.: 0-non 1-charg 2-wave 3-comb
