@@ -1,13 +1,12 @@
 from ase.transport.calculators import TransportCalculator
-from ase.transport.tools import tri2full
 import numpy as npy
 
+#Aux. function to write data to a text file.
 def write(fname,xs,ys):
     fd = open(fname,'w')
     for x,y in zip(xs,ys):
         print >> fd, x, y
     fd.close()
-
 
 H_lead = npy.zeros([4,4])
 
@@ -42,48 +41,47 @@ H_scat[2,1] = 0.2
 H_scat[3,4] = 0.2
 H_scat[4,3] = 0.2
 
-pl = 2
 energies = npy.arange(-3,3,0.02)
-calc = TransportCalculator(pl=pl,
-                           h=H_scat,
-                           h1=H_lead,
-                           h2=H_lead,
-                           energies=energies)
+tcalc = TransportCalculator(h=H_scat,
+                            h1=H_lead,
+                            h2=H_lead,
+                            energies=energies)
 
-calc.trans.set(pdos=[0,1])
-#save the original hamiltonian before working on it
-h = calc.h_pp.copy()
-s = calc.s_pp.copy()
+T = tcalc.get_transmission()
+tcalc.set(pdos=[2, 3])
+pdos = tcalc.get_pdos()
 
-T = calc.get_transmission()
-dos = calc.get_dos()
-pdos = calc.get_pdos()
-write('T.dat',calc.energies,T)
-write('pdos0.dat', calc.energies,pdos[0])
-write('pdos1.dat', calc.energies,pdos[1])
+tcalc.set(dos=True)
+dos = tcalc.get_dos()
+
+write('T.dat',tcalc.energies,T)
+write('pdos0.dat', tcalc.energies,pdos[0])
+write('pdos1.dat', tcalc.energies,pdos[1])
 
 #subdiagonalize
-ha, sa, u, eps = calc.subdiagonalize_bfs([0,1])
-calc.set(h=ha,s=sa)
-Ta = calc.get_transmission()
-dosa = calc.get_dos()
-pdosa = calc.get_pdos()
-print eps
-print npy.abs(T-Ta).max()
+h_rot, s_rot, eps, u = tcalc.subdiagonalize_bfs([2, 3])
+tcalc.set(h=h_rot,s=s_rot)
+T_rot = tcalc.get_transmission()
+dos_rot = tcalc.get_dos()
+pdos_rot = tcalc.get_pdos()
+
+write('T_rot.dat', tcalc.energies,T_rot)
+write('pdos0_rot.dat', tcalc.energies, pdos_rot[0])
+write('pdos1_rot.dat', tcalc.energies, pdos_rot[1])
+
+print 'Subspace eigenvalues:', eps
+assert sum(abs(eps-(-0.8, 0.8))) < 2.0e-15, 'Subdiagonalization. error'
+print 'Max deviation of T after the rotation:', npy.abs(T-T_rot).max()
+assert max(abs(T-T_rot)) < 2.0e-15, 'Subdiagonalization. error'
 
 #remove coupling
-hb, sb = calc.cutcoupling_bfs([0])
-calc.set(h=hb,s=sb)
-Tb = calc.get_transmission()
-dosb = calc.get_dos()
-pdosb = calc.get_pdos()
+h_cut, s_cut = tcalc.cutcoupling_bfs([2])
+tcalc.set(h=h_cut, s=s_cut)
+T_cut = tcalc.get_transmission()
+dos_cut = tcalc.get_dos()
+pdos_cut = tcalc.get_pdos()
 
-#revert to the original h,s
-calc.set(h=h,s=s)
-Tc = calc.get_transmission()
-dosc = calc.get_dos()
-pdosc = calc.get_pdos()
+write('T_cut.dat', tcalc.energies, T_cut)
+write('pdos0_cut.dat', tcalc.energies,pdos_cut[0])
+write('pdos1_cut.dat', tcalc.energies,pdos_cut[1])
 
-#import pylab
-#pylab.plot(energies,T)
-#pylab.plot()
