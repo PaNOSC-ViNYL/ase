@@ -20,15 +20,17 @@ def rotate_matrix(h, u):
 
 def get_subspace(matrix, index):
     """Get the subspace spanned by the basis function listed in index"""
-    return npy.take(npy.take(matrix, index, axis=0), index, axis=1)   
-    #return matrix[index, index]
+    return matrix.take(index, 0).take(index, 1)   
 
-def normalize_rot(c, s):
-    """normalize column vectors so that <c[:,i]|s|c[:,i]> = 1 """
-    for i in xrange(c.shape[0]):
-        v = c[:, i]
-        norm = 1.0 / npy.sqrt(npy.dot(v.conj(), npy.dot(s, v)))
-        c[:, i] *= norm
+permute_matrix = get_subspace
+
+def normalize_rot(matrix, S=None):
+    """normalize column vectors so that <matrix[:,i]| S |matrix[:,i]> = 1"""
+    for col in matrix.T:
+        if S is None:
+            col /= npy.linalg.norm(col)
+        else:
+            col /= npy.sqrt(npy.dot(col.conj(), npy.dot(S, col)))
 
 def subdiagonalize(h_ii, s_ii, index_j):
     nb = h_ii.shape[0]
