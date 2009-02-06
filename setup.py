@@ -32,7 +32,8 @@ packages = ['ase',
             'ase.visualize',
             'ase.transport',
             'ase.calculators',
-            'ase.gui.languages']
+            'ase.gui.languages',
+            'ase.calculators.jacapo']
 
 # Get the current version number:
 execfile('ase/version.py')
