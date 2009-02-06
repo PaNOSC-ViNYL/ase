@@ -79,7 +79,7 @@ class OldASEListOfAtomsWrapper:
                      tags=self.get_tags(),
                      momenta=self.get_momenta(),
                      masses=self.get_masses(),
-                     magmoms=self.get_magnetic_moments(),
+                     magmoms=self.get_initial_magnetic_moments(),
                      charges=self.get_charges(),
                      cell=self.get_cell(),
                      pbc=self.get_pbc(),

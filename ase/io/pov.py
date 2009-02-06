@@ -186,6 +186,7 @@ def write_pov(filename, atoms, run_povray=False, **parameters):
     if isinstance(atoms, list):
         assert len(atoms) == 1
         atoms = atoms[0]
+    assert 'scale' not in parameters
     POVRAY(atoms, **parameters).write(filename)
     if run_povray:
         errcode = os.system('povray %s.ini 2> /dev/null' % filename[:-4])
