@@ -96,18 +96,30 @@ def function_integral(function, calcutype):
     if calcutype == 'eqInt':
         intrange = intctrl.eqintpath
         tol = intctrl.eqinttol
-        radius = function.intctrl.eqpath_radius
-        origin = function.intctrl.eqpath_origin
+        if hasattr(function.intctrl, 'eqpath_radius'):
+            radius = function.intctrl.eqpath_radius
+        else:
+            radius = -1
+        if hasattr(function.intctrl, 'eqpath_origin'):
+            origin = function.intctrl.eqpath_origin
+        else:
+            origin = 1000
     elif calcutype == 'neInt':
         intrange = intctrl.neintpath
         tol = intctrl.neinttol
-        radius = function.intctrl.eqpath_radius
-        origin = function.intctrl.eqpath_origin  
+        radius = -1
+        origin = 1000
     elif calcutype == 'locInt':
         intrange = intctrl.locintpath
         tol = intctrl.locinttol
-        radius = function.intctrl.locpath_radius
-        origin = function.intctrl.locpath_origin
+        if hasattr(function.intctrl, 'locpath_radius'):
+            radius = function.intctrl.locpath_radius
+        else:
+            radius = -1
+        if hasattr(function.intctrl, 'locpath_origin'):
+            origin = function.intctrl.locpath_origin
+        else:
+            origin = 1000
     trace = 0    
     a = 0.
     b = 1.
