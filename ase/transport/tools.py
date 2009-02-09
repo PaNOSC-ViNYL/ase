@@ -25,7 +25,13 @@ def get_subspace(matrix, index):
 permute_matrix = get_subspace
 
 def normalize_rot(matrix, S=None):
-    """normalize column vectors so that <matrix[:,i]| S |matrix[:,i]> = 1"""
+    """Normalize column vectors.
+
+    ::
+
+      <matrix[:,i]| S |matrix[:,i]> = 1
+
+    """
     for col in matrix.T:
         if S is None:
             col /= npy.linalg.norm(col)

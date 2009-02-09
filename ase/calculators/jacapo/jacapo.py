@@ -1,7 +1,7 @@
 '''
 python module for ASE2 and Numeric free dacapo
 
-`John Kitchin <mailto::jkitchin@andrew.cmu.edu>`_ December 25, 2008
+John Kitchin <mailto::jkitchin@andrew.cmu.edu> December 25, 2008
 
 This module supports numpy directly.
 

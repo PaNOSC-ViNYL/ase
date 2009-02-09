@@ -5,21 +5,29 @@ from ase.transport.greenfunction import GreenFunction
 
 class STM:
     def __init__(self, h1, s1, h2, s2 ,h10, s10, h20, s20, eta1, eta2, w=0.5):
-        """1: Tip
-           2: Surface
-           h1: Hamiltonian and overlap matrix for the
-               isolated tip calculation
-               Note, h1 should contain (at least) one principal layer.
-           h2: Same as h1 but for the surface
+        """XXX
+        
+        1. Tip
+        2. Surface
+        
+        h1: ndarray
+            Hamiltonian and overlap matrix for the isolated tip
+            calculation.  Note, h1 should contain (at least) one
+            principal layer.
 
-           h10: periodic part of the tip. must include two and only
-                two principal layers.
-           h20: same as h10, but for the surface
+        h2: ndarray
+            Same as h1 but for the surface.
 
-           The s* are the corresponding overlap matrices.
+        h10: ndarray
+            periodic part of the tip. must include two and only
+            two principal layers.
 
-           eta1, and eta 2 are (finite) infinitesimals.
-        """
+        h20: ndarray
+            same as h10, but for the surface
+
+        The s* are the corresponding overlap matrices.  eta1, and eta
+        2 are (finite) infinitesimals.  """
+        
         self.pl1 = len(h10) / 2 #principal layer size for the tip
         self.pl2 = len(h20) / 2 #principal layer size for the surface
         self.h1 = h1 
@@ -101,11 +109,16 @@ class STM:
             self.gft2_emm[e] = gft2_mm
 
     def get_transmission(self, v_12, v_11_2=None, v_22_1=None):
-        """v_12 : coupling between tip and surface 
-           v_11_2 : correction to "on-site" tip elements due to the 
-                    surface (eq.16). Is only included to first order.
-           v_22_1 : corretion to "on-site" surface elements due to he
-                    tip (eq.17). Is only included to first order.
+        """XXX
+
+        v_12:
+            coupling between tip and surface 
+        v_11_2:
+            correction to "on-site" tip elements due to the 
+            surface (eq.16). Is only included to first order.
+        v_22_1:
+            corretion to "on-site" surface elements due to he
+            tip (eq.17). Is only included to first order.
         """
         
         nenergies = len(self.energies)
@@ -137,13 +150,21 @@ class STM:
 
     def get_current(self, bias, v_12, v_11_2=None, v_22_1=None):
         """Very simple function to calculate the current.
-            Asummes zero temperature.
-            bias: bias voltage (V)
-            v_12: coupling between tip and surface.
-            v_11_2: correction to onsite elements of the tip
-                    due to the potential of the surface.
-            v_22_1: correction to onsite elements of the surface
-                    due to the potential of the tip.
+        
+        Asummes zero temperature.
+
+        bias: type? XXX
+            bias voltage (V)
+            
+        v_12: XXX
+            coupling between tip and surface.
+            
+        v_11_2:
+            correction to onsite elements of the tip
+            due to the potential of the surface.
+        v_22_1:
+            correction to onsite elements of the surface
+            due to the potential of the tip.
         """
         energies = self.energies
         T_e = self.get_transmission(v_12, v_11_2, v_22_1)
