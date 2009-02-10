@@ -242,9 +242,15 @@ class netcdf_file(object):
 
             # Sort variables non-recs first, then recs.
             variables = self.variables.items()
-            variables.sort(key=lambda (k, v): v._shape and not v.isrec)
-            variables.reverse()
-            variables = [k for (k, v) in variables]
+            if True: # Backwards compatible with Python versions < 2.4
+                keys = [(v._shape and not v.isrec, k) for k, v in variables]
+                keys.sort()
+                keys.reverse()
+                variables = [k for isrec, k in keys]
+            else: # Python version must be >= 2.4
+                variables.sort(key=lambda (k, v): v._shape and not v.isrec)
+                variables.reverse()
+                variables = [k for (k, v) in variables]
 
             # Set the metadata for all variables.
             for name in variables:
