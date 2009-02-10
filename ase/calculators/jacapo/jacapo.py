@@ -1592,7 +1592,7 @@ class Jacapo:
         status,output = commands.getstatusoutput(cmd)
         if status is 0: #that means it ended fine!
             self.ready = True
-	    self.set_status('finished')
+            self.set_status('finished')
         else:
             print 'Status was not 0'
             print output
@@ -2157,16 +2157,16 @@ class Jacapo:
             some set of 'PZ','VWN','PW91','PBE','revPBE', 'RPBE'
 
         This function returns the self-consistent energy and/or
-	energies associated with various functionals. 
+        energies associated with various functionals. 
         The functionals are currently PZ,VWN,PW91,PBE,revPBE, RPBE.
         The different energies may be useful for calculating improved
-	adsorption energies as in B. Hammer, L.B. Hansen and
-	J.K. Norskov, Phys. Rev. B 59,7413. 
+        adsorption energies as in B. Hammer, L.B. Hansen and
+        J.K. Norskov, Phys. Rev. B 59,7413. 
         Examples: 
         get_xcenergies() #returns all the energies
         get_xcenergies('PBE') # returns the PBE total energy
         get_xcenergies('PW91','PBE','revPBE') # returns a
-	# list of energies in the order asked for
+        # list of energies in the order asked for
         """
         if self.calculation_required():
             self.calculate()
