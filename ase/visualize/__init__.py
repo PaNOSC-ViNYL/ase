@@ -3,13 +3,7 @@ import tempfile
 
 from ase.io import write
 import ase.parallel as parallel
-
-try:
-    from ase.old import OldASEListOfAtomsWrapper
-except:
-    oldase = False
-else:
-    oldase = True
+from ase.old import OldASEListOfAtomsWrapper
 
 def view(atoms, data=None, viewer='ag', repeat=None, block=False):
     # Ignore for parallel calculations:
@@ -18,10 +12,7 @@ def view(atoms, data=None, viewer='ag', repeat=None, block=False):
 
     if hasattr(atoms, 'GetUnitCell'):
         # Convert old ASE ListOfAtoms to new style.
-        if oldase:
-            atoms = OldASEListOfAtomsWrapper(atoms).copy()
-        else:
-            raise RuntimeError('conversion to old ASE not available')
+        atoms = OldASEListOfAtomsWrapper(atoms).copy()
 
     vwr = viewer.lower()
     
