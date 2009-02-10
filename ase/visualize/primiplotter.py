@@ -128,7 +128,7 @@ class PrimiPlotterBase:
             if type(self.colors) == type({}):
                 self.log("Explicit colors dictionary")
                 return _colorsfromdict(self.colors,
-                                       asarray(self.atoms.GetTags(),int))
+                                       asarray(self.atoms.get_tags(),int))
             else:
                 self.log("Explicit colors")
                 return self.colors
@@ -144,7 +144,7 @@ class PrimiPlotterBase:
         if c is not None:
             if type(c) == type({}):
                 self.log("Color dictionary from atoms.get_colors()")
-                return _colorsfromdict(c, asarray(self.atoms.GetTags(),int))
+                return _colorsfromdict(c, asarray(self.atoms.get_tags(),int))
             else:
                 self.log("Colors from atoms.get_colors()")
                 return c
@@ -153,7 +153,7 @@ class PrimiPlotterBase:
         return ones(len(self.atoms), float)
 
     def _getinvisible(self):
-        if self.invisible:
+        if self.invisible is not None:
             inv = self.invisible
         else:
             inv = zeros(len(self.atoms))
@@ -236,7 +236,7 @@ class PrimiPlotter(PrimiPlotterBase):
         they are used.
 
     2.  If these colors are specified as a dictionary, the tags
-        (from atoms.GetTags()) are used as an index into the
+        (from atoms.get_tags()) are used as an index into the
         dictionary to get the actual colors of the atoms.
 
     3.  If a color function has been set using
@@ -247,7 +247,7 @@ class PrimiPlotter(PrimiPlotterBase):
         colors.
 
     5.  If these colors are specified as a dictionary, the tags
-        (from atoms.GetTags()) are used as an index into the
+        (from atoms.get_tags()) are used as an index into the
         dictionary to get the actual colors of the atoms.
 
     6.  If all else fails, the atoms will be white.
