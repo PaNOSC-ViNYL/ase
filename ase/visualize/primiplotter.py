@@ -395,12 +395,12 @@ class PrimiPlotter(PrimiPlotterBase):
 
         self._verb("Sorting.")
         order = argsort(coords[:,2])
-        coords = take(coords, order)
-        radii = take(radii, order)
-        colors = take(colors, order)
-        invisible = take(invisible, order)
+        coords = coords[order]  ### take(coords, order)
+        radii = radii[order]    ### take(radii, order)
+        colors = colors[order]  ### take(colors, order)
+        invisible = invisible[order]  ### take(invisible, order)
         if self.isparallel:
-            id = take(arange(len(coords)), order)
+            id = arange(len(coords))[order] ### take(arange(len(coords)), order)
         else:
             id = None
             
@@ -450,7 +450,7 @@ class PrimiPlotter(PrimiPlotterBase):
                 rn = int(ceil(r))
                 nmask = 2*rn+1
                 mask = (arange(nmask) - rn)**2
-                mask = less(mask[:,NewAxis]+mask[NewAxis,:], r*r).astype(int8)
+                mask = less(mask[:,newaxis]+mask[newaxis,:], r*r).astype(int8)
                 invmask = equal(mask, 0).astype(int8)
                 masks[r] = (mask, invmask, rn)
             window = logical_or(canvas[x-rn:x+rn+1, y-rn:y+rn+1], invmask)
@@ -603,7 +603,7 @@ class ParallelPrimiPlotter(PrimiPlotter):
         ncolmax = ncolmax[0]
         if ncolmax > ncol:
             assert ncol == 1
-            colors = colors[:,NewAxis] + zeros(ncolmax)[NewAxis,:]
+            colors = colors[:,newaxis] + zeros(ncolmax)[newaxis,:]
             ncol = ncolmax
             assert colors.shape == (len(coords), ncol)
         # Now send data from slaves to master
@@ -655,7 +655,7 @@ class ParallelPrimiPlotter(PrimiPlotter):
             # Now all data is on the master
             self._verb("Sorting merged data")
             order = argsort(data[:,2])
-            data = take(data, order)
+            data = data[order]   ### take(data, order)
             coords = data[:,:3]
             radii = data[:,3]
             if data.shape[1] == 5:
