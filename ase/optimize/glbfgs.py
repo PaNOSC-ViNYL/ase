@@ -2,10 +2,11 @@ import numpy as npy
 import copy 
 from ase.optimize import Optimizer
 from ase.neb import *
+f = open('out','w')
 class GLBFGS(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  maxstep=None, dR=None,
-                 memory=None, alpha=None, min='line'):
+                 memory=25, alpha=None, min='line'):
         Optimizer.__init__(self, atoms, restart, logfile, trajectory)
 
         if maxstep is not None:
@@ -27,7 +28,7 @@ class GLBFGS(Optimizer):
         self.memory = 25
         self.alpha = 0.05
         self.dim = 3
-#        self.min = 'line'
+        self.min = 'line'
 
     def sign(self,w):
         if(w<0.0): return -1.0
@@ -35,36 +36,26 @@ class GLBFGS(Optimizer):
 
     def step(self, f):
         atoms = self.atoms
-       # self.ni = atoms.nimages-2
-       # try: atoms.imax
-       # except: atoms.imax=0
-       # if(not self.ni):atoms.imax=1
-        self.r = npy.zeros((atoms.nimages * atoms.natoms, self.dim), 'd')
-        for i in range(0, atoms.nimages):
-            self.r = atoms.get_positions()
-        self.f = npy.zeros((atoms.nimages * atoms.natoms, self.dim), 'd')
-        for i in range(0, atoms.nimages):
-            self.f = atoms.get_forces()
+        self.r = atoms.get_positions()
         try: self.start
         except:self.start=0
         if(not self.start):
             self.start = 1
             self.a = npy.zeros(self.memory+1, 'd')
-            self.ptmp = atoms
-            self.maxstep = npy.sqrt(self.maxstep * atoms.nimages)
+            self.tmp = atoms
             self.lbfgsinit = 0
         try: self.lbfgsinit
         except:self.lbfgsinit=0
         if(not self.lbfgsinit):
             self.lbfgsinit = 1
-            self.Ho = npy.ones((atoms.nimages * atoms.natoms, self.dim), 'd')
+            self.Ho = npy.ones((npy.shape(self.r)[0], self.dim), 'd')
             if (not self.min=='line'):self.Ho = self.Ho * self.alpha
             self.ITR = 1
             self.s = [1.]
             self.y = [1.]
             self.rho = [1.]
         else:
-            a1 = abs (npy.vdot(self.f, self.f_old))
+            a1 = abs (npy.vdot(f, self.f_old))
             a2 = npy.vdot(self.f_old, self.f_old)
             if(self.min=='line'):
                 if(a1<=0.5* a2 and a2!=0):
@@ -81,32 +72,23 @@ class GLBFGS(Optimizer):
                     self.rho.pop(1)
                     ITR=self.memory
                 self.s.append(self.r - self.r_old)#!!self.r is not updating
-        # boundry cond
-        #        for i in range(atoms.ni):
-        #            if(method=='min'):i=0
-        #            try:
-        #                DBC(self.s[ITR][i],atoms.p[i].Box) #need to make matrix for box
-        #            except: 
-        #                print "Box not found."
-        #             if(method=='min'):break
-                self.y.append(-(self.f-self.f_old))
+                self.y.append(-(f-self.f_old))
                 self.rho.append(1/npy.vdot(self.y[ITR],self.s[ITR]))
                 self.ITR += 1
             else:
-#        print 'reset image',i
                 self.ITR = 1
                 self.s = [1.]
                 self.y = [1.]
                 self.rho = [1.]
        
         self.r_old = self.r.copy()
-        self.f_old = self.f.copy()
+        self.f_old = f.copy()
 
         if(self.ITR <= self.memory):
             BOUND = self.ITR
         else:
             BOUND = self.memory
-        q = -1.0*self.f
+        q = -1.0*f
         for j in range(1,BOUND):
             k = (BOUND-j)
             self.a[k] = self.rho[k] * npy.vdot(self.s[k], q)
@@ -122,42 +104,17 @@ class GLBFGS(Optimizer):
         if(self.min=='line'):
 
       # Finite difference step using temporary point
-            self.ptmp.r = self.r.copy()
-            self.ptmp.imax = atoms.imax
-#   must be turned on if tanset is commented
-#        self.ptmp.p[i].N=atoms.p[i].N.copy()
-
-            self.ptmp.r += (self.du * self.dR)
-
-      # put back in points
-            for i in range(0,atoms.nimages):
-                self.ptmp.images[i].r = self.ptmp.r[i-1]
-                self.ptmp.images[i].f=self.ptmp.images[i].get_forces()
-
-        else:
-    # use the Hessian Matrix to predict the min
-            if(abs(npy.sqrt(self.d * self.d).sum()) > self.maxstep):
-                self.d = self.du * self.maxstep
-            self.r += self.d
-            atoms.set_positions(self.r)
-        if(self.min=='line'):
-     # force projections on a small stepa
-#            if(method=='neb' or method=='str' ):
-#                self.ptmp.tangentset()# if commented copy N above
-#                self.ptmp.project()
-      # put force in big vector
-            self.ptmp.f = npy.zeros((atoms.nimages * atoms.natoms, self.dim), 'd')
-            for i in range(0,atoms.nimages):
-                self.ptmp.f[i-1] = self.ptmp.images[i].f
+            tmp_r = self.r.copy()
+            tmp_r += (self.du * self.dR)
+            self.tmp.set_positions(tmp_r)
 
       # Decide how much to move along the line du
-            Fp1=npy.vdot(self.f, self.du)
-            Fp2=npy.vdot(self.ptmp.f, self.du)
+            Fp1=npy.vdot(f, self.du)
+            Fp2=npy.vdot(self.tmp.get_forces(), self.du)
             CR=(Fp1 - Fp2) / self.dR
             if(CR < 0.0):
                 print "negcurve"
                 RdR = self.maxstep
-#        RdR=Fp1*0.1
                 if(abs(RdR) > self.maxstep):
                     RdR = self.sign(RdR) * self.maxstep
             else:
@@ -165,12 +122,13 @@ class GLBFGS(Optimizer):
                 RdR = Fp / CR
                 if(abs(RdR) > self.maxstep):
                     RdR = self.sign(RdR) * self.maxstep
-#          print "max"
                 else:
                     RdR += self.dR * 0.5
       # move to the next space
             self.r += (self.du * RdR)
-
-    # put back in points
-        for i in range(0,atoms.nimages):
-            atoms.images[i].r=self.r[i-1]
+        else:
+    # use the Hessian Matrix to predict the min
+            if(abs(npy.sqrt(npy.vdot(self.d, self.d).sum())) > self.maxstep):
+                self.d = self.du * self.maxstep
+            self.r += self.d
+        atoms.set_positions(self.r)
