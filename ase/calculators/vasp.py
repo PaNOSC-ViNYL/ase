@@ -667,8 +667,8 @@ class Vasp:
 
 # The below functions are used to restart a calculation and are under early constructions
 
-    def read_incar(self):
-        file=open('INCAR', 'r')
+    def read_incar(self, filename='INCAR'):
+        file=open(filename, 'r')
         file.readline()
         lines=file.readlines()
         for line in lines:
@@ -718,8 +718,8 @@ class Vasp:
                 self.magnetic_moments = self.read_magnetic_moments(self.atoms)
         self.set(nbands=self.nbands)
 
-    def read_kpoints(self):
-        file = open('KPOINTS', 'r')
+    def read_kpoints(self, filename='KPOINTS'):
+        file = open(filename, 'r')
         lines = file.readlines()
         file.close()
         type = lines[2].split()[0].lower()[0]
@@ -727,6 +727,7 @@ class Vasp:
             if type=='g':
                 self.set(gamma=True)
             kpts = np.array([int(lines[3].split()[i]) for i in range(3)])
+            self.set(kpts=kpts)
         elif type in ['c', 'k']:
             raise NotImplementedError('Only Monkhorst-Pack and gamma centered grid supported for restart.')
         else:
