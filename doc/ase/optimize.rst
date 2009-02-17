@@ -54,8 +54,6 @@ molecule.  We start with the experimental geometry::
   QuasiNewton:   4       -0.128045       0.8479
   QuasiNewton:   5       -0.132312       0.0397
 
-XXX What is a trajectory file?
-
 When doing structure optimization, it is useful to write the
 trajectory to a file, so that the progress of the optimization run can
 be followed during or after the run::
@@ -64,7 +62,8 @@ be followed during or after the run::
   dyn.run(fmax=0.05)
   
 Use the command ``ag H2O.traj`` to see what is going on (more here:
-:mod:`gui`).
+:mod:`gui`).  The trajectory file can also be accessed using the
+module :mod:`ase.io.trajectory`.
 
 The ``attach`` method takes an optional argument ``interval=n`` that can
 be used to tell the structure optimizer object to write the

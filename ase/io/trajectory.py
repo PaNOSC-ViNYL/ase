@@ -9,6 +9,7 @@ from ase.neb import NEB
 
 
 class PickleTrajectory:
+    "Reads/writes Atoms objects into a .traj file."
     # Per default, write these quantities
     write_energy=True
     write_forces=True
@@ -16,6 +17,46 @@ class PickleTrajectory:
     write_momenta=True
     def __init__(self, filename, mode='r', atoms=None, master=None,
                  write_first_image=True):
+        """A PickleTrajectory can be created in read, write or append mode.
+
+        Parameters:
+
+        filename:
+            The name of the parameter file.  Should end in .traj.
+
+        mode='r':
+            The mode.
+
+            'r' is read mode, the file should already exist, and
+            no atoms argument should be specified.
+
+            'w' is write mode.  If the file already exists, is it
+            renamed by appending .bak to the file name.  The atoms
+            argument specifies the Atoms object to be written to the
+            file, if not given it must instead be given as an argument
+            to the write() method.
+
+            'a' is append mode.  It acts a write mode, except that
+            data is appended to a preexisting file.
+
+        atoms=None:
+            The Atoms object to be written in write or append mode.
+
+        master=None:
+            Controls which process does the actual writing. The
+            default is that process number 0 does this.  If this
+            argument is given, processes where it is True will write.
+
+        write_first_image=True:
+        
+            If this argument is True and atoms is specified, the atoms
+            are written to the file immediately.  This is intended to
+            write the initial configuration in a simulation.  Note
+            that in append mode you probably want to set this to
+            False, as the first configuration is likely to already be
+            in the file.
+        
+        """
         self.offsets = []
         if master is None:
             master = (rank == 0)
@@ -27,6 +68,10 @@ class PickleTrajectory:
             self.write()
         
     def open(self, filename, mode):
+        """Opens the file.
+
+        For internal use only.
+        """
         self.fd = filename
         if mode == 'r':
             if isinstance(filename, str):
@@ -48,6 +93,10 @@ class PickleTrajectory:
             raise ValueError('mode must be "r", "w" or "a".')
 
     def set_atoms(self, atoms=None):
+        """Associate an Atoms object with the trajectory.
+
+        Mostly for internal use.
+        """
         if atoms is not None and not hasattr(atoms, 'get_positions'):
             raise TypeError('"atoms" argument is not an Atoms object.')
         self.atoms = atoms
@@ -66,6 +115,11 @@ class PickleTrajectory:
         self.offsets.append(self.fd.tell())
 
     def write(self, atoms=None):
+        """Write the atoms to the file.
+
+        If the atoms argument is not given, the atoms object specified
+        when creating the trajectory object is used.
+        """
         if atoms is None:
             atoms = self.atoms
 
@@ -130,6 +184,7 @@ class PickleTrajectory:
         self.offsets.append(self.fd.tell())
         
     def close(self):
+        """Close the trajectory file."""
         self.fd.close()
 
     def __getitem__(self, i=-1):

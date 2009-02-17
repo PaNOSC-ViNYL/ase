@@ -42,6 +42,20 @@ All the dynamics objects documented here are sufficiently related to
 have the same optimal time step.
 
 
+File output
+===========
+
+The time evolution of the system can be saved in a trajectory file,
+by creating a trajectory object, and attaching it to the dynamics
+object.  This is documented in the module :mod:`ase.io.trajectory`. 
+
+Unlike the geometry optimization classes, the molecular dynamics
+classes do not support giving a trajectory file name in the
+constructor.  Instead the trajectory must be attached explicitly to
+the dynamics, and it is *stongly recommended* to use the optional
+``interval`` argument, so every time step is not written to the file.
+
+
 Constant NVE simulations (the microcanonical ensemble)
 ======================================================
 

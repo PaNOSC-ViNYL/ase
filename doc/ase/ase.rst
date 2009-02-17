@@ -62,4 +62,5 @@ List of all modules:
    dft/dft
    transport/transport
    data
+   trajectory
    utils
