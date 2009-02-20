@@ -310,6 +310,25 @@ class PrimiPlotter(PrimiPlotterBase):
     file names: use e.g. %03d instead of %3d.  
     """
     def __init__(self, atoms, verbose=0, timing=0, interval=1, initframe=0):
+        """
+
+        Parameters to the constructor:
+
+        atoms: The atoms to be plottet.
+
+        verbose = 0:  Write progress information to stderr.
+
+        timing = 0:  Collect timing information.
+
+        interval = 1: If specified, a plot is only made every
+        interval'th time update() is called.  Deprecated, normally you
+        should use the interval argument when attaching the plotter to
+        e.g. the dynamics.
+
+        initframe = 0: Initial frame number, i.e. the number of the
+        first plot.
+        
+        """
         self.atoms = atoms
         self.outputdevice = []
         self.angles = zeros(3, float)
