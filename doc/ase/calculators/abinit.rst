@@ -111,8 +111,8 @@ A database of user contributed pseudopotentials is also available there.
 
 
 
-Example
-=======
+Example 1
+=========
 
 Here is an example of how to calculate the total energy for bulk Silicon::
         
@@ -138,3 +138,87 @@ Here is an example of how to calculate the total energy for bulk Silicon::
    
   bulk.set_calculator(calc)
   e = bulk.get_potential_energy()
+
+Example 2
+=========
+
+Here is an example of how to calculate band structure of bulk Na (compare the same example
+in gpaw `<https://wiki.fysik.dtu.dk/gpaw/exercises/band_structure/bands.html>`_)::
+
+  #!/usr/bin/env python
+
+  import numpy as npy
+  from ase.calculators.abinit import Abinit
+  from ase import Atoms, Ry
+
+  a = 4.23
+  atoms = Atoms('Na2', cell=(a, a, a), pbc=True,
+                scaled_positions=[[0, 0, 0], [.5, .5, .5]])
+
+  nbands = 3
+  label = 'Na_sc'
+  # Make self-consistent calculation and save results
+  calc = Abinit(label=label,
+                nbands=nbands,
+                xc='PBE',
+                ecut=70 * Ry,
+                width=0.05,
+                kpts=[8, 8, 8])
+
+  # parameters for calculation of band structure
+  # see http://www.abinit.org/Infos_v5.6/tutorial/lesson_3.html#35
+
+  calc.set_inp('ndtset', 2) # two datasets are used
+  calc.set_inp('iscf2', -2) # make a non-self-consistent calculation ;
+  calc.set_inp('getden2', -1) # to take the output density of dataset 1
+  calc.set_inp('kptopt2', -1) # to define one segment in the brillouin Zone
+  nband2 = 7
+  calc.set_inp('nband2', nband2) # use 7 bands in band structure calculation
+  calc.set_inp('ndivk2', 50) # with 51 divisions of the first segment
+  calc.set_inp('kptbounds2', "\n0.5  0.0  0.0\n0.0  0.0  0.0\n0.0  0.5  0.5\n1.0  1.0  1.0\n")
+  calc.set_inp('tolwfr2', 1.0e-12) #
+  calc.set_inp('enunit2', 1) # in order to have eigenenergies in eV (in the second dataset)
+
+  atoms.set_calculator(calc)
+  atoms.get_potential_energy()
+
+  # txt had to be renamed to *.save so abinit does not start *.txtA
+  # in case of of e.g. QuasiNewton relaxation
+  # but here we need to read txt file again
+  from os import rename
+  rename(label+'.txt.save', label+'.txt')
+
+  # Subtract Fermi level from the self-consistent calculation
+  e_fermi = calc.get_fermi_level()
+  assert nbands == calc.get_number_of_bands()
+
+  # Calculate band structure along Gamma-X i.e. from 0 to 0.5
+
+  kpts2 = calc.get_ibz_k_points()
+  nkpts2 = len(kpts2)
+
+  eigs = npy.empty((nband2, nkpts2), float)
+
+  for k in range(nkpts2):
+      eigs[:, k] = calc.get_eigenvalues(kpt=k)
+
+  def plot_save(directory_name, out_prefix):
+      from os.path import exists, sep
+      assert exists(directory_name)
+      import matplotlib
+      matplotlib.use('Agg')
+      from matplotlib import pylab
+
+      pylab.savefig(directory_name + sep + out_prefix +'.png')
+
+  import matplotlib
+  matplotlib.use('Agg')
+  from matplotlib import pylab
+
+  eigs -= e_fermi
+  for n in range(nband2):
+      pylab.plot(kpts2[:, 0], eigs[n], '.m')
+  plot_save(".", label)
+
+  # rename txt file back
+  rename(label+'.txt', label+'.txt.save')
