@@ -172,6 +172,30 @@ class Abinit:
             # Energy extrapolated to zero Kelvin:
             return  (self.etotal + self.efree) / 2
 
+    def get_number_of_bands(self):
+        return self.nbands
+
+    def get_kpts_info(self, kpt=0, spin=0, mode='eigenvalues'):
+        return self.read_kpts_info(kpt, spin, mode)
+
+    def get_k_point_weights(self):
+        return self.get_kpts_info(kpt=0, spin=0, mode='k_point_weights')
+
+    def get_bz_k_points(self):
+        raise NotImplementedError
+
+    def get_ibz_k_points(self):
+        return self.get_kpts_info(kpt=0, spin=0, mode='ibz_k_points')
+
+    def get_fermi_level(self):
+        return self.read_fermi()
+
+    def get_eigenvalues(self, kpt=0, spin=0):
+        return self.get_kpts_info(kpt, spin, 'eigenvalues')
+
+    def get_occupations(self, kpt=0, spin=0):
+        return self.get_kpts_info(kpt, spin, 'occupations')
+
     def get_forces(self, atoms):
         self.update(atoms)
         return self.forces.copy()
@@ -350,6 +374,104 @@ class Abinit:
 
         fh.close()
 
+    def read_fermi(self):
+        """Method that reads Fermi energy in Hartree from the output file
+        and returns it in eV"""
+        E_f=None
+        filename = self.label + '.txt'
+        text = open(filename).read().lower()
+        assert 'ERROR' not in text
+        for line in iter(text.split('\n')):
+            if line.rfind('fermi (or homo) energy (hartree) =') > -1:
+                E_f = float(line.split('=')[1].strip().split()[0])
+        return E_f*Hartree
+
+    def read_kpts_info(self, kpt=0, spin=0, mode='eigenvalues'):
+        """ Returns list of eigenvalues, occupations, kpts weights, or
+        kpts coordinates for given kpt and spin"""
+        # output may look like this (or without occupation entries); 8 entries per line:
+        #
+        #  Eigenvalues (hartree) for nkpt=  20  k points:
+        # kpt#   1, nband=  3, wtk=  0.01563, kpt=  0.0625  0.0625  0.0625 (reduced coord)
+        #  -0.09911   0.15393   0.15393
+        #      occupation numbers for kpt#   1
+        #   2.00000   0.00000   0.00000
+        # kpt#   2, nband=  3, wtk=  0.04688, kpt=  0.1875  0.0625  0.0625 (reduced coord)
+        # ...
+        #
+        assert mode in ['eigenvalues' , 'occupations', 'ibz_k_points', 'k_point_weights'], 'mode not in [\'eigenvalues\' , \'occupations\', \'ibz_k_points\', \'k_point_weights\']'
+        n_entries = 8
+        # number of lines of eigenvalues/occupations for a kpt
+        n_entry_lines = max(1, int(self.nbands/n_entries))
+        #
+        filename = self.label + '.txt'
+        text = open(filename).read().lower()
+        assert 'ERROR' not in text
+        lines = iter(text.split('\n'))
+        text_list = []
+        # find the begining line of eigenvalues
+        contains_eigenvalues = False
+        for line in lines:
+            #if line.rfind('eigenvalues (hartree) for nkpt') > -1: #MDTMP
+            if line.rfind('eigenvalues (   ev  ) for nkpt') > -1:
+                n_kpts = int(line.split('nkpt=')[1].strip().split()[0])
+                contains_eigenvalues = True
+                break
+        # find the end line of eigenvalues starting from linenum
+        for line in lines:
+            text_list.append(line)
+            if not line.strip(): # find a blank line
+                break
+        # remove last (blank) line
+        text_list = text_list[:-1]
+
+        assert contains_eigenvalues, 'No eigenvalues found in the output'
+
+        # join text eigenvalues description with eigenvalues
+        # or occupation numbers for kpt# with occupations
+        contains_occupations = False
+        for line in text_list:
+            if line.rfind('occupation numbers') > -1:
+                contains_occupations = True
+                break
+        if mode == 'occupations':
+            assert contains_occupations, 'No occupations found in the output'
+
+        if contains_occupations:
+            range_kpts = 2*n_kpts
+        else:
+            range_kpts = n_kpts
+        #
+        values_list = []
+        offset = 0
+        for kpt_entry in range(range_kpts):
+            full_line = ''
+            for entry_line in range(n_entry_lines+1):
+                full_line = full_line+str(text_list[offset+entry_line])
+            first_line = text_list[offset]
+            if mode == 'occupations':
+                if first_line.rfind('occupation numbers') > -1:
+                    # extract numbers
+                    full_line = [float(v) for v in full_line.split('#')[1].strip().split()[1:]]
+                    values_list.append(full_line)
+            elif mode in ['eigenvalues', 'ibz_k_points', 'k_point_weights']:
+                if first_line.rfind('reduced coord') > -1:
+                    # extract numbers
+                    if mode == 'eigenvalues':
+                        #full_line = [Hartree*float(v) for v in full_line.split(')')[1].strip().split()[:]] # MDTMP
+                        full_line = [float(v) for v in full_line.split(')')[1].strip().split()[:]]
+                    elif mode == 'ibz_k_points':
+                        full_line = [float(v) for v in full_line.split('kpt=')[1].strip().split('(')[0].split()]
+                    else:
+                        full_line = float(full_line.split('wtk=')[1].strip().split(',')[0].split()[0])
+                    values_list.append(full_line)
+            offset = offset+n_entry_lines+1
+        #
+        if mode in ['occupations', 'eigenvalues']:
+            return npy.array(values_list[kpt])
+        else:
+            return npy.array(values_list)
+
     def read(self):
         """Read results from ABINIT's text-output file."""
         filename = self.label + '.txt'
@@ -426,9 +548,9 @@ class Abinit:
         # and when nameA exists it uses nameB, etc.
         # we need to rename our file
         # (and loose it in case of e.g. QuasiNewton relaxation)!
-        filename_save = filename + '.save'
-        if islink(filename) or isfile(filename):
-            os.rename(filename, filename_save)
+        filename_save = filename + '.save' #MDTMP
+        if islink(filename) or isfile(filename): #MDTMP
+            os.rename(filename, filename_save) #MDTMP
 
 def inpify(key):
     return key.lower().replace('_', '').replace('.', '').replace('-', '')
