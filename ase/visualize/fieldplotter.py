@@ -3,7 +3,6 @@
 from ase.visualize.primiplotter import PostScriptFile, PnmFile, GifFile, JpegFile, X11Window
 from ase.visualize.primiplotter import PrimiPlotter as _PrimiPlotter
 import numpy
-from Scientific.Functions.Interpolation import InterpolatingFunction 
 import time
 
 class FieldPlotter(_PrimiPlotter):
@@ -105,9 +104,7 @@ class FieldPlotter(_PrimiPlotter):
             self.colormode = 3
         else:
             raise ValueError, "Color specification must be Nx2 (grey) or Nx4 (rgb) matrix."
-        self.colorfunction = InterpolatingFunction([colors[:,0],],
-                                                   colors[:,1:])
-
+        self.colorfunction = InterpolatingFunction(colors[:,0], colors[:,1:])
         
     def plot(self, data=None):
         """Create a plot now.  Does not respect the interval timer.
@@ -253,4 +250,23 @@ class FieldPlotter(_PrimiPlotter):
                     x = datamap[i,j]
                     plot[i,j,:] = self.colorfunction(x)
         return plot
+    
+class InterpolatingFunction:
+    def __init__(self, xpoints, ypoints):
+        if len(xpoints) != len(ypoints):
+            raise ValueError, "Length of x and y arrays should be the same."
+        idx = xpoints.argsort()
+        self.xpoints = xpoints[idx]
+        self.ypoints = ypoints[idx]
+    def __call__(self, x):
+        n = self.xpoints.searchsorted(x)
+        if n == 0:
+            return self.ypoints[0]
+        if n == len(self.xpoints):
+            return self.xpoints[-1]
+        x0 = self.xpoints[n-1]
+        x1 = self.xpoints[n]
+        y0 = self.ypoints[n-1]
+        y1 = self.ypoints[n]
+        return y0 + (y1 - y0) / (x1 - x0) * (x - x0)
     
