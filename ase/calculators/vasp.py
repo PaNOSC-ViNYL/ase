@@ -438,6 +438,9 @@ class Vasp:
     def get_number_of_bands(self):
         return self.nbands
 
+    def get_xc_functional(self):
+        return self.input_parameters['xc']
+
     def write_incar(self, atoms, **kwargs):
         """Writes the INCAR file."""
         p = self.incar_parameters
