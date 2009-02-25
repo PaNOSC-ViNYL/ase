@@ -88,6 +88,7 @@ class Vibrations:
         calculated for that displacement."""
 
         if not isfile(self.name + '.eq.pckl'):
+            barrier()
             if rank == 0:
                 fd = open(self.name + '.eq.pckl', 'w')
             forces = self.atoms.get_forces()
