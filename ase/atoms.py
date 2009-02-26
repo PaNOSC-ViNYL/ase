@@ -917,6 +917,20 @@ class Atoms(object):
                    doc='Attribute for direct manipulation ' +
                    'of the periodic boundary condition flags.')
 
+    def get_name(self):
+        """Return a name extracted from the elements."""
+        elements = {}
+        for a in self:
+            try:
+                elements[a.symbol] += 1
+            except:
+                elements[a.symbol] = 1
+        name = ''
+        for element in elements:
+            name += element
+            if elements[element] > 1:
+                name += str(elements[element])
+        return name
         
 def string2symbols(s):
     """Convert string to list of chemical symbols."""
