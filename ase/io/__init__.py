@@ -117,6 +117,10 @@ def read(filename, index=-1, format=None):
         from ase.io.pdb import read_pdb
         return read_pdb(filename)
 
+    if format == 'cif':
+        from ase.io.cif import read_cif
+        return read_cif(filename)
+
     raise RuntimeError('That can *not* happen!')
 
 
@@ -285,5 +289,8 @@ def filetype(filename):
 
     if filename.lower().endswith('.pdb'):
         return 'pdb'
+
+    if filename.lower().endswith('.cif'):
+        return 'cif'
 
     return 'xyz'
