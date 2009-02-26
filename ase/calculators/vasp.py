@@ -855,19 +855,43 @@ class VaspChargeDensity(object):
         Utility function similar to _read_chg but for writing.
 
         """
-        n = 0
-        for zz in range(chg.shape[2]):
-            for yy in range(chg.shape[1]):
-                for xx in range(chg.shape[0]):
-                    if format.lower() == 'chg':
-                        fobj.write(' %#11.5G' % (chg[xx, yy, zz] * volume))
-                        n += 1
-                    else:
-                        fobj.write(' %17.10E' % (chg[xx, yy, zz] * volume))
-                        n += 2
-                    if n % 10 == 0:
-                        # Write 5 or 10 values per line
-                        fobj.write('\n')
+        # Make a 1D copy of chg, must take transpose to get ordering right
+        chgtmp=chg.T.ravel()
+        # Multiply by volume
+        chgtmp=chgtmp*volume
+        # Must be a tuple to pass to string conversion
+        chgtmp=tuple(chgtmp)
+        # CHG format - 10 columns
+        if format.lower() == 'chg':
+            # Write all but the last row
+            for ii in range((len(chgtmp)-1)/10):
+                fobj.write(' %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\
+ %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\n' % chgtmp[ii*10:(ii+1)*10]
+                           )
+            # If the last row contains 10 values then write them without a newline
+            if len(chgtmp)%10==0:
+                fobj.write(' %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\
+ %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G' % chgtmp[len(chgtmp)-10:len(chgtmp)])
+            # Otherwise write fewer columns without a newline
+            else:
+                for ii in range(len(chgtmp)%10):
+                    fobj.write((' %#11.5G') % chgtmp[len(chgtmp)-len(chgtmp)%10+ii])
+        # Other formats - 5 columns
+        else:
+            # Write all but the last row
+            for ii in range((len(chgtmp)-1)/5):
+                fobj.write(' %17.10E %17.10E %17.10E %17.10E %17.10E\n' % chgtmp[ii*5:(ii+1)*5])
+            # If the last row contains 5 values then write them without a newline
+            if len(chgtmp)%5==0:
+                fobj.write(' %17.10E %17.10E %17.10E %17.10E %17.10E' % chgtmp[len(chgtmp)-5:len(chgtmp)])
+            # Otherwise write fewer columns without a newline
+            else:
+                for ii in range(len(chgtmp)%5):
+                    fobj.write((' %17.10E') % chgtmp[len(chgtmp)-len(chgtmp)%5+ii])
+        # Write a newline whatever format it is
+        fobj.write('\n')
+        # Clean up
+        del chgtmp
 
     def write(self, filename='CHG', format=None):
         """Write VASP charge density in CHG format.
@@ -901,13 +925,18 @@ class VaspChargeDensity(object):
             vol = self.atoms[ii].get_volume()
             self._write_chg(f, chg, vol, format)
             if format == 'chgcar':
-                f.write('\n')
                 f.write(self.aug)
             if self.is_spin_polarized():
+                if format == 'chg':
+                    f.write('\n')
+                for dim in chg.shape:
+                    f.write(' %4i' % dim)
                 self._write_chg(f, self.chgdiff[ii], vol, format)
                 if format == 'chgcar':
                     f.write('\n')
                     f.write(self.augdiff)
+            if format == 'chg' and len(self.chg) > 1:
+                f.write('\n')
         f.close()
 
 
