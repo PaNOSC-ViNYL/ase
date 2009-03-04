@@ -747,8 +747,11 @@ class Atoms(object):
                 self._cell[axis, axis] = p1[axis] - p0[axis] + 2 * vacuum
             p[:, axis] += 0.5 * (self._cell[axis, axis] - p0[axis] - p1[axis])
 
-    def get_center_of_mass(self, scaled = None):
-        """Get the center of mass."""
+    def get_center_of_mass(self, scaled = False):
+        """Get the center of mass.
+
+        If scaled=True the center of mass in scaled coordinates
+        is returned."""
         m = self.arrays.get('masses')
         if m is None:
             m = atomic_masses[self.arrays['numbers']]
