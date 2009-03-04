@@ -171,36 +171,48 @@ class InfraRed(Vibrations):
         print 'Maximum force on atom in eqiulibrium: %.4f eV/Å' % self.force_zero
         print
 
-    def write_spectra(self, out='ir-spectra.dat', start=800, end=4000, npts=None, width=4, type='Gaussian', method='standard', direction='central'):
-        """Write out infrared spectrum to file.
+    def get_spectrum(self, start=800, end=4000, npts=None, width=4, type='Gaussian', method='standard', direction='central'):
+        """Get infrared spectrum.
 
+        The method returns wavenumbers in cm^-1 with corresonding absolute infrared intensity.
         Start and end point, and width of the Gaussian/Lorentzian should be given in cm^-1."""
+
         self.type = type.lower()
         assert self.type in ['gaussian', 'lorentzian']
-        if not npts:
-            npts = (end-start)/width*5+1
+        if not npts: 
+            npts = (end-start)/width*10+1
         frequencies = self.get_frequencies(method, direction).real
         intensities=self.intensities
         if type == 'lorentzian':
-            lineshape = 1
             intensities = intensities*width*pi/2.
         else:
-            lineshape = 0
             sigma = width/2./sqrt(2.*log(2.))
         #Make array with spectrum data
-        spectrum=np.zeros(npts,np.float)
+        spectrum = np.empty(npts,np.float)
+        energies = np.empty(npts,np.float)
         ediff = (end-start)/float(npts-1)
-        for i in range(1,npts):
-            energy = end - float(i)*ediff
-            for j in range(len(frequencies)):
-                if lineshape:
-                    spectrum[i] = spectrum[i]+intensities[j]*0.5*width/pi/((energy-frequencies[j])**2+0.25*width**2)
-                else:
-                    spectrum[i] = spectrum[i]+intensities[j]*exp(-(energy-frequencies[j])**2/2./sigma**2)
-        #Write out spectrum in file. First column is just intensities. 
+        energies = np.arange(start, end+ediff, ediff)
+        for i, energy in enumerate(energies):
+            energies[i] = energy
+            if type == 'lorentzian':
+                spectrum[i] = (intensities*0.5*width/pi/((frequencies-energy)**2+0.25*width**2)).sum()
+            else:
+                spectrum[i] = (intensities*np.exp(-(frequencies - energy)**2/2./sigma**2)).sum()
+        return [energies, spectrum]
+
+    def write_spectra(self, out='ir-spectra.dat', start=800, end=4000, npts=None, width=10, type='Gaussian', method='standard', direction='central'):
+        """Write out infrared spectrum to file.
+
+        First column is the wavenumber in cm^-1, the second column the absolute infrared intensities, and
+        the third column the absorbance scaled so that data runs from 1 to 0. Start and end 
+        point, and width of the Gaussian/Lorentzian should be given in cm^-1."""
+        energies, spectrum = self.get_spectrum(start, end, npts, width, type, method, direction)
+
+        #Write out spectrum in file. First column is absolute intensities. 
         #Second column is absorbance scaled so that data runs from 1 to 0
-        spectrumfile = open(out,"w")
-        for i in range(1,npts):
-            energy = end - float(i)*ediff
-            spectrumfile.write("%f %15.5e %15.5e\n" % (energy,spectrum[i],1.-spectrum[i]/spectrum.max()))
-        spectrumfile.close()
+        spectrum2 = 1. - spectrum/spectrum.max()
+        outdata = np.empty([len(energies), 3])
+        outdata.T[0] = energies
+        outdata.T[1] = spectrum
+        outdata.T[2] = spectrum2
+        np.savetxt(out, outdata, fmt='%.3f  %15.5e  %15.5e')
