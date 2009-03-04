@@ -747,12 +747,16 @@ class Atoms(object):
                 self._cell[axis, axis] = p1[axis] - p0[axis] + 2 * vacuum
             p[:, axis] += 0.5 * (self._cell[axis, axis] - p0[axis] - p1[axis])
 
-    def get_center_of_mass(self):
+    def get_center_of_mass(self, scaled = None):
         """Get the center of mass."""
         m = self.arrays.get('masses')
         if m is None:
             m = atomic_masses[self.arrays['numbers']]
-        return npy.dot(m, self.arrays['positions']) / m.sum()
+        com = npy.dot(m, self.arrays['positions']) / m.sum()
+        if scaled:
+            return npy.dot(npy.linalg.inv(self._cell), com)
+        else:
+            return com
 
     def rotate(self, v, a=None, center=(0, 0, 0)):
         """Rotate atoms.
