@@ -342,7 +342,7 @@ class GUI(View, Status):
                 return
             
             
-        self.images.read(filenames)
+        self.images.read(filenames, slice(None))
         self.set_colors()
         self.set_coordinates(self.images.nimages - 1, focus=True)
 
