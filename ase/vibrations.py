@@ -38,6 +38,10 @@ class Vibrations:
         Name to use for files.
     delta: float
         Magnitude of displacements.
+    nfree: int
+        Number of displacements per atom and cartesian coordinate,
+        2 and 4 are supported. Default is 2 which will displace 
+        each atom +delta and -delta for each cartesian coordinate.
 
     Example:
 
@@ -68,14 +72,17 @@ class Vibrations:
     >>> vib.write_mode(-1)  # write last mode to trajectory file
 
     """
-    def __init__(self, atoms, indices=None, name='vib', delta=0.01):
+    def __init__(self, atoms, indices=None, name='vib', delta=0.01, nfree=2):
+        assert nfree in [2, 4]
 	self.atoms = atoms
         if indices is None:
             indices = range(len(atoms))
         self.indices = npy.asarray(indices)
         self.name = name
         self.delta = delta
+        self.nfree = nfree
         self.H = None
+        self.ir = None
 
     def run(self):
         """Run the vibration calculations.
@@ -92,25 +99,36 @@ class Vibrations:
             if rank == 0:
                 fd = open(self.name + '.eq.pckl', 'w')
             forces = self.atoms.get_forces()
+            if self.ir:
+                dipole = self.calc.get_dipole_moment(self.atoms)
             if rank == 0:
-                pickle.dump(forces, fd)
+                if self.ir:
+                    pickle.dump([forces, dipole], fd)
+                else:
+                    pickle.dump(forces, fd)
                 fd.close()
         
         p = self.atoms.positions.copy()
         for a in self.indices:
             for i in range(3):
                 for sign in [-1, 1]:
-                    filename = '%s.%d%s%s.pckl' % (self.name, a,
-                                                   'xyz'[i], ' +-'[sign])
+                    for ndis in range(1, self.nfree/2+1):
+                        filename = '%s.%d%s%s.pckl' % (self.name, a,
+                                                       'xyz'[i], ndis*' +-'[sign])
                     if isfile(filename):
                         continue
                     barrier()
                     if rank == 0:
                         fd = open(filename, 'w')
-                    self.atoms.positions[a, i] = p[a, i] + sign * self.delta
+                    self.atoms.positions[a, i] = p[a, i] + ndis * sign * self.delta
                     forces = self.atoms.get_forces()
+                    if self.ir:
+                        dipole = self.calc.get_dipole_moment(self.atoms)
                     if rank == 0:
-                        pickle.dump(forces, fd)
+                        if self.ir:
+                            pickle.dump([forces, dipole], fd)
+                        else:
+                            pickle.dump(forces, fd)
                         fd.close()
                     self.atoms.positions[a, i] = p[a, i]
         self.atoms.set_positions(p)
@@ -122,9 +140,10 @@ class Vibrations:
         for a in self.indices:
             for i in 'xyz':
                 for sign in '-+':
-                    name = '%s.%d%s%s.pckl' % (self.name, a, i, sign)
-                    if isfile(name):
-                        remove(name)
+                    for ndis in range(1, self.nfree/2+1):
+                        name = '%s.%d%s%s.pckl' % (self.name, a, i, ndis*sign)
+                        if isfile(name):
+                            remove(name)
         
     def read(self, method='standard', direction='central'):
         self.method = method.lower()
@@ -145,8 +164,17 @@ class Vibrations:
                 if self.method == 'frederiksen':
                     fminus[a] -= fminus.sum(0)
                     fplus[a] -= fplus.sum(0)
+                if self.nfree == 4:
+                    fminusminus = pickle.load(open(name + '--.pckl'))
+                    fplusplus = pickle.load(open(name + '++.pckl'))
+                    if self.method == 'frederiksen':
+                        fminusminus[a] -= fminusminus.sum(0)
+                        fplusplus[a] -= fplusplus.sum(0)
                 if self.direction == 'central':
-                    H[r] = .5 * (fminus - fplus)[self.indices].ravel()
+                    if self.nfree == 2:
+                        H[r] = .5 * (fminus - fplus)[self.indices].ravel()
+                    else:
+                        H[r] = H[r] = (-fminusminus+8*fminus-8*fplus+fplusplus)[self.indices].ravel() / 12.0
                 elif self.direction == 'forward':
                     H[r] = (feq - fplus)[self.indices].ravel()
                 else: # self.direction == 'backward':
