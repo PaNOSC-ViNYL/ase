@@ -17,8 +17,9 @@ def read(filename, index=-1, format=None):
         will be returned by default.  Use index=n to get configuration
         number n (counting from zero).
     format: str
-        Used to specify the file-format.  If not given, the file-format
-        will be guessed by the *filetype* function.
+        Used to specify the file-format.  If not given, the
+        file-format will be guessed by the *filetype* function. If
+        it's 'babel', will try to use the OpenBabel library.
 
     Known formats:
 
@@ -121,6 +122,10 @@ def read(filename, index=-1, format=None):
         from ase.io.cif import read_cif
         return read_cif(filename)
 
+    if format == 'babel':
+        from ase.io.babel import read_babel
+        return read_babel(filename, index=index)
+
     raise RuntimeError('That can *not* happen!')
 
 
@@ -132,8 +137,9 @@ def write(filename, images, format=None, **kwargs):
     images: Atoms object or list of Atoms objects
         A single Atoms object or a list of Atoms objects.
     format: str
-        Used to specify the file-format.  If not given, the file-format
-        will be taken from suffix of the filename.
+        Used to specify the file-format.  If not given, the
+        file-format will be taken from suffix of the filename. If
+        given as 'babel', will try to use the OpenBabel library.
 
     The accepted output formats:
   
