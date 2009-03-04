@@ -1,5 +1,5 @@
 import sys
-from os.path import split
+from os.path import basename
 from tarfile import is_tarfile
 from zipfile import is_zipfile
 
@@ -277,12 +277,9 @@ def filetype(filename):
         if lines[0].startswith(word):
             return 'xsf'
 
-    for word in ['POSCAR', 'CONTCAR']:
-        dir_v, filename_v = split(filename) 
-        if word == filename_v[0:6]:
-            return 'vasp'
-        elif word == filename_v[0:7]:
-            return 'vasp'    
+    filename_v = basename(filename) 
+    if 'POSCAR' in filename_v or 'CONTCAR' in filename_v:
+        return 'vasp'    
 
     if filename.lower().endswith('.mol'):
         return 'mol'
