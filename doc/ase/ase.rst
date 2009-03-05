@@ -18,18 +18,18 @@ Quick links:
   * - :mod:`dft`
     - :mod:`data`
     - :mod:`gui`
-    - :mod:`io`
-  * - :mod:`lattice`
+    - :mod:`infrared`
+  * - :mod:`io`
+    - :mod:`lattice`
     - :mod:`md`
     - :mod:`neb`
-    - :mod:`optimize`
-  * - :mod:`~lattice.surface`
+  * - :mod:`optimize`
+    - :mod:`~lattice.surface`
     - :mod:`units`
     - :mod:`utils`
-    - :mod:`vibrations`
-  * - :mod:`visualize`
+  * - :mod:`vibrations`
+    - :mod:`visualize`
     - :mod:`transport`
-    -
     -
 
 
@@ -58,6 +58,7 @@ List of all modules:
    constraints
    neb
    vibrations
+   infrared
    md
    dft/dft
    transport/transport
