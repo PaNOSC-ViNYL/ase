@@ -15,12 +15,6 @@ from ase.io.trajectory import PickleTrajectory
 from ase.parallel import rank, barrier
 from ase.vibrations import Vibrations
 
-# Atomic mass unit to rest mass of electron
-amutome = 1822.888485
-# Conversion factors from atomic units to (D/Angstrom)^2/amu
-# and electron x Angstrom to Debye
-conv = 42055.44331
-qeangtod = 4.803204272
 
 class InfraRed(Vibrations):
     """Class for calculating vibrational modes and infrared intensities
@@ -43,7 +37,7 @@ class InfraRed(Vibrations):
 
     In addition to the methods included in :class:`~ase.vibrations.Vibrations`
     the :class:`~ase.infrared.Infrared` class introduces to new methods;
-    *get_spectrum()* and *write_spectra()*. *The *summary*, *get_energies()*, 
+    *get_spectrum()* and *write_spectra()*. The *summary()*, *get_energies()*, 
     *get_frequencies()*, *get_spectrum()* and *write_spectra()*
     methods all take an optional *method* keyword.  Use
     method='Frederiksen' to use the method described in:
@@ -136,6 +130,8 @@ class InfraRed(Vibrations):
         # Get "static" dipole moment and forces
         name = '%s.eq.pckl' % self.name
         [forces_zero, dipole_zero] = pickle.load(open(name))
+        # Conversion factor from electron x Angstrom to Debye
+        qeangtod = 1E-10*units._e*units._c/1E-21
         self.dipole_zero = (sum(dipole_zero**2)**0.5)*qeangtod
         self.force_zero = max([sum((forces_zero[j])**2)**0.5 for j in self.indices])
 
@@ -180,13 +176,15 @@ class InfraRed(Vibrations):
         self.modes = modes.T.copy()
 
         # Calculate intensities
-        dpdq = np.array([dpdx[j]/sqrt(m[self.indices[j/3]]*amutome) for j in range(ndof)])
+        dpdq = np.array([dpdx[j]/sqrt(m[self.indices[j/3]]*units._amu/units._me) for j in range(ndof)])
         dpdQ = np.dot(dpdq.T, modes)
         dpdQ = dpdQ.T
         intensities = np.array([sum(dpdQ[j]**2) for j in range(ndof)])
         # Conversion factor:
         s = units._hbar * 1e10 / sqrt(units._e * units._amu)
         self.hnu = s * omega2.astype(complex)**0.5
+        # Conversion factor from atomic units to (D/Angstrom)^2/amu.
+        conv = qeangtod**2*units._amu/units._me
         self.intensities = intensities*conv
 
     def summary(self, method='standard', direction='central'):
