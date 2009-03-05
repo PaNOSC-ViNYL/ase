@@ -1,7 +1,7 @@
 
 # -*- coding: utf-8 -*-
 
-"""Infrared spectroscopy"""
+"""Infrared intensities"""
 
 import pickle
 from math import sin, pi, sqrt, exp, log
@@ -27,19 +27,24 @@ class InfraRed(Vibrations):
     using finite difference.
 
     The vibrational modes are calculated from a finite difference
-    approximation of the Hessian matrix and the IR intensities from
+    approximation of the Dynamical matrix and the IR intensities from
     a finite difference approximation of the gradient of the dipole
-    momen. The method is described in:
+    moment. The method is described in:
 
       D. Porezag, M. R. Peterson:
       "Infrared intensities and Raman-scattering activities within
       density-functional theory",
       Phys. Rev. B 54, 7830 (1996)
 
-    The calculator object (calc) linked to the Atoms object (atoms) must have the 
-    attribute: calc.get_dipole_moment(atoms)
+    The calculator object (calc) linked to the Atoms object (atoms) must 
+    have the attribute:
+    
+    >>> calc.get_dipole_moment(atoms)
 
-    The *summary*, *get_energies()* and *get_frequencies()*
+    In addition to the methods included in :class:`~ase.vibrations.Vibrations`
+    the :class:`~ase.infrared.Infrared` class introduces to new methods;
+    *get_spectrum()* and *write_spectra()*. *The *summary*, *get_energies()*, 
+    *get_frequencies()*, *get_spectrum()* and *write_spectra()*
     methods all take an optional *method* keyword.  Use
     method='Frederiksen' to use the method described in:
 
@@ -66,7 +71,40 @@ class InfraRed(Vibrations):
         For example directions = 2 only dipole moment in the z-direction will
         be considered, whereas for directions = [0, 1] only the dipole
         moment in the xy-plane will be considered. Default behavior is to
-        consider the dipole moment in all directions.
+        use the dipole moment in all directions.
+
+    Example:
+    
+    >>> from ase import *
+    >>> from ase.infrared import InfraRed
+    >>> water = read('water.traj')  # read pre-relaxed structure of water molecule
+    >>> calc = Vasp(prec='Accurate',
+    ...             ediff=1E-8,
+    ...             isym=0,
+    ...             idipol=4,       # calculate the total dipole moment
+    ...             dipol=water.get_center_of_mass(scaled=True),
+    ...             ldipol=True)
+    >>> water.set_calculator(calc)
+    >>> ir = InfraRed(water)
+    >>> ir.run()
+    >>> ir.summary()
+    -------------------------------------
+    Mode    Frequency        Intensity
+    #    meV     cm^-1   (D/Å)^2 amu^-1
+    -------------------------------------
+    0   16.9i    136.2i     1.6108
+    1   10.5i     84.9i     2.1682
+    2    5.1i     41.1i     1.7327
+    3    0.3i      2.2i     0.0080
+    4    2.4      19.0      0.1186
+    5   15.3     123.5      1.4956
+    6  195.5    1576.7      1.6437
+    7  458.9    3701.3      0.0284
+    8  473.0    3814.6      1.1812
+    -------------------------------------
+    Zero-point energy: 0.573 eV
+    Static dipole moment: 1.833 D
+    Maximum force on atom in `eqiulibrium`: 0.0026 eV/Å
 
     """
     def __init__(self, atoms, indices=None, name='ir', delta=0.01, nfree=2, directions=None):
@@ -168,7 +206,7 @@ class InfraRed(Vibrations):
         print '-------------------------------------'
         print 'Zero-point energy: %.3f eV' % self.get_zero_point_energy()
         print 'Static dipole moment: %.3f D' % self.dipole_zero
-        print 'Maximum force on atom in eqiulibrium: %.4f eV/Å' % self.force_zero
+        print 'Maximum force on atom in `eqiulibrium`: %.4f eV/Å' % self.force_zero
         print
 
     def get_spectrum(self, start=800, end=4000, npts=None, width=4, type='Gaussian', method='standard', direction='central'):
