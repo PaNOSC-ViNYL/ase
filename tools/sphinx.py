@@ -34,8 +34,9 @@ def build():
                  '--show-imports --no-frames -v ase >& epydoc.out') != 0:
         raise RuntimeError('Epydoc failed!')
 
-    if ' Warning:' in open('epydoc.out').read():
-        raise RuntimeError('Warning(s) from epydoc!')
+    epydoc_errors = open('epydoc.out').read()
+    if ' Warning:' in epydoc_errors:
+        sys.stderr.write(epydoc_errors)
 
     os.chdir('doc')
     os.system('sed -i s/snapshot/%s/ download.rst' % version)
