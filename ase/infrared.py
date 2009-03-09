@@ -36,7 +36,7 @@ class InfraRed(Vibrations):
     >>> calc.get_dipole_moment(atoms)
 
     In addition to the methods included in :class:`~ase.vibrations.Vibrations`
-    the :class:`~ase.infrared.Infrared` class introduces to new methods;
+    the :class:`~ase.infrared.InfraRed` class introduces two new methods;
     *get_spectrum()* and *write_spectra()*. The *summary()*, *get_energies()*, 
     *get_frequencies()*, *get_spectrum()* and *write_spectra()*
     methods all take an optional *method* keyword.  Use
@@ -59,7 +59,7 @@ class InfraRed(Vibrations):
     nfree: int
         Number of displacements per degree of freedom, 2 or 4 are
         supported. Default is 2 which will displace each atom +delta
-        and -delta for each cartesian coordinate.
+        and -delta in each cartesian direction.
     directions: list of int
         Cartesian coordinates to calculate the gradient of the dipole moment in. 
         For example directions = 2 only dipole moment in the z-direction will
