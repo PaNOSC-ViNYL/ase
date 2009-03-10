@@ -35,4 +35,4 @@ kB = _k / _e
 Pascal = (1 / _e) / 1e30  # J/m^3
 GPa = 1e9 * Pascal
 
-Debye = 1E11*_e*_c
+Debye = 1e11 *_e * _c

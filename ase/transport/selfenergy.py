@@ -60,7 +60,7 @@ class LeadSelfEnergy:
             v_01 = -np.dot(v_01, a)
             v_10 = -np.dot(v_10, b)
         
-            delta = np.abs(v_01).max()
+            delta = abs(v_01).max()
             n += 1
 
         return v_00
