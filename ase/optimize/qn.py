@@ -6,8 +6,7 @@ from ase.optimize import Optimizer
 
 
 class QuasiNewton(Optimizer):
-    def __init__(self, atoms, restart='hessian', logfile='-', trajectory=None,
-    #def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
+    def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  maxstep=None):
         """Quasi-Newton optimizer.
 
@@ -19,7 +18,7 @@ class QuasiNewton(Optimizer):
         if maxstep is not None:
             if maxstep > 1.0:
                 raise ValueError('You are using a much too large value for ' +
-                                 'the maximum step size: %.1f' % maxstep)
+                                 'the maximum step size: %.1f Å' % maxstep)
             self.maxstep = maxstep
 
     def initialize(self):
@@ -41,7 +40,6 @@ class QuasiNewton(Optimizer):
         #dr = solve(self.H, f).reshape((-1, 3))
         steplengths = (dr**2).sum(1)**0.5
         dr /= np.maximum(steplengths / self.maxstep, 1.0).reshape(-1, 1)
-        dR = np.vdot(dr,dr)
         atoms.set_positions(r + dr)
         self.r0 = r.flat.copy()
         self.f0 = f.copy()
