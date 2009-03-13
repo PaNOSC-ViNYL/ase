@@ -249,4 +249,8 @@ class InfraRed(Vibrations):
         outdata.T[0] = energies
         outdata.T[1] = spectrum
         outdata.T[2] = spectrum2
-        np.savetxt(out, outdata, fmt='%.3f  %15.5e  %15.5e')
+        fd = open(out, 'w')
+        for row in outdata:
+            fd.write('%.3f  %15.5e  %15.5e \n' % (row[0], row[1], row[2]) )
+        fd.close()
+        #np.savetxt(out, outdata, fmt='%.3f  %15.5e  %15.5e')
