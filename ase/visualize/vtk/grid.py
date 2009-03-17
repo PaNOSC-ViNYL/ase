@@ -3,6 +3,7 @@ import numpy as npy
 
 from vtk import vtkUnstructuredGrid, vtkPoints, vtkIdList, vtkDoubleArray
 from cell import vtkUnitCellModule
+from data import vtkDoubleArrayFromNumPyArray
 
 class vtkAtomicPositions:
     def __init__(self, pos, cell):
@@ -25,7 +26,7 @@ class vtkAtomicPositions:
         self.vtk_pts.SetNumberOfPoints(self.npoints)
 
         for i,pos in enumerate(self.positions):
-            self.vtk_pts.InsertPoint(i,pos[0],pos[1],pos[2])
+            self.vtk_pts.InsertPoint(i,pos[0],pos[1],pos[2]) #TODO XXX use vtkDoubleArrayFromNumPyArray
 
         # Create a VTK unstructured grid of these points
         self.vtk_ugd = vtkUnstructuredGrid()
@@ -79,6 +80,7 @@ class vtkAtomicPositions:
 
         assert vec.dtype == float and vec.shape == (self.npoints,3,)
 
+        """
         # Allocate VTK array for vector data
         vtk_vda = vtkDoubleArray()
         vtk_vda.SetNumberOfValues(self.npoints)
@@ -89,6 +91,12 @@ class vtkAtomicPositions:
         # Transfer vector data to VTK array
         for i,vc in enumerate(vec):
             vtk_vda.InsertTuple3(i,vc[0],vc[1],vc[2])
+        """
+
+        npy2da = vtkDoubleArrayFromNumPyArray(vec)
+        vtk_vda = npy2da.get_output()
+        if name is not None:
+            vtk_vda.SetName(name)
 
         # Add VTK array to VTK point data
         self.vtk_pointdata.AddArray(vtk_vda)
