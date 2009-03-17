@@ -276,13 +276,14 @@ class Filter:
         Parameters
         ----------
         indices : list of int
-           Indices for those atoms that should be constrained.
+           Indices for those atoms that should remain visible.
         mask : list of bool
-           One boolean per atom indicating if the atom should be
-           constrained or not.
+           One boolean per atom indicating if the atom should remain
+           visible or not.
         """
 
         self.atoms = atoms
+        self.constraints = []
 
         if indices is None and mask is None:
             raise ValuError('Use "indices" or "mask".')
@@ -294,16 +295,84 @@ class Filter:
         else:
             self.index = np.asarray(indices, int)
 
+    def get_cell(self):
+        """Returns the computational cell.
+
+        The computational cell is the same as for the original system.
+        """
+        return self.atoms.get_cell()
+    
+    def get_pbc(self):
+        """Returns the periodic boundary conditions.
+
+        The boundary conditions are the same as for the original system.
+        """
+        return self.atoms.get_pbc()
+    
     def get_positions(self):
+        "Return the positions of the visible atoms."
         return self.atoms.get_positions()[self.index]
 
     def set_positions(self, positions):
+        "Set the positions of the visible atoms."
         pos = self.atoms.get_positions()
         pos[self.index] = positions
-        self.atoms.set_positions(positions)
+        self.atoms.set_positions(pos)
+
+    def get_momenta(self):
+        "Return the momenta of the visible atoms."
+        return self.atoms.get_momenta()[self.index]
+
+    def set_momenta(self, momenta):
+        "Set the momenta of the visible atoms."
+        mom = self.atoms.get_momenta()
+        mom[self.index] = momenta
+        self.atoms.set_momenta(mom)
+
+    def get_atomic_numbers(self):
+        "Return the atomic numbers of the visible atoms."
+        return self.atoms.get_atomic_numbers()[self.index]
+
+    def set_atomic_numbers(self, atomic_numbers):
+        "Set the atomic numbers of the visible atoms."
+        z = self.atoms.get_atomic_numbers()
+        z[self.index] = atomic_numbers
+        self.atoms.set_atomic_numbers(z)
+
+    def get_tags(self):
+        "Return the tags of the visible atoms."
+        return self.atoms.get_tags()[self.index]
+
+    def set_tags(self, tags):
+        "Set the tags of the visible atoms."
+        tg = self.atoms.get_tags()
+        tg[self.index] = tags
+        self.atoms.set_tags(tg)
 
     def get_forces(self):
         return self.atoms.get_forces()[self.index]
+
+    def get_masses(self):
+        return self.atoms.get_masses()[self.index]
+
+    def get_potential_energy(self):
+        """Calculate potential energy.
+
+        Returns the potential energy of the full system.
+        """
+        return self.atoms.get_potential_energy()
+
+    def has(self, name):
+        """Check for existance of array."""
+        return self.atoms.has(name)
+
+    def __len__(self):
+        "Return the number of movable atoms."
+        return len(self.index)
+
+    def __getitem__(self, i):
+        "Return an atom."
+        return self.atoms[self.index[i]]
 
 
 class StrainFilter:
