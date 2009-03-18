@@ -1,5 +1,5 @@
 
-import numpy as npy
+import numpy as np
 
 from vtk import vtkDataArray, vtkFloatArray, vtkDoubleArray
 
@@ -34,14 +34,14 @@ class vtkDataArrayFromNumPyArray:
     even in the case of only a single component.
     """
     def __init__(self, data, vtk_class, ctype, buffered=True):
-        if not isinstance(data, npy.ndarray):
-            data = npy.array(data, dtype=ctype)
+        if not isinstance(data, np.ndarray):
+            data = np.array(data, dtype=ctype)
 
         if data.dtype is not ctype:
             data = data.astype(ctype)
 
         if data.ndim == 1:
-            data = data[:, npy.newaxis]
+            data = data[:, np.newaxis]
         elif data.ndim != 2:
             raise ValueError('Data must be a 2D NumPy array.')
 
@@ -93,10 +93,10 @@ class vtkDataArrayFromNumPyArray:
 class vtkFloatArrayFromNumPyArray(vtkDataArrayFromNumPyArray):
     def __init__(self, data):
         vtkDataArrayFromNumPyArray.__init__(self, data, vtkFloatArray,
-                                            npy.ctypeslib.ctypes.c_float)
+                                            np.ctypeslib.ctypes.c_float)
 
 class vtkDoubleArrayFromNumPyArray(vtkDataArrayFromNumPyArray):
     def __init__(self, data):
         vtkDataArrayFromNumPyArray.__init__(self, data, vtkDoubleArray,
-                                            npy.ctypeslib.ctypes.c_double)
+                                            np.ctypeslib.ctypes.c_double)
 

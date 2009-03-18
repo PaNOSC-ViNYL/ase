@@ -1,8 +1,10 @@
 
-import numpy as npy
+import numpy as np
 
-from vtk import vtkProp3D, vtkPolyDataMapper, vtkActor, vtkPointSet, vtkGlyph3D, vtkRenderer
-from sources import vtkCustomGlyphSource
+from vtk import vtkProp3D, vtkPolyDataMapper, vtkActor, vtkPointSet, \
+                vtkGlyph3D, vtkRenderer
+from ase.visualize.vtk.sources import vtkCustomGlyphSource, \
+                                      vtkClampedGlyphSource
 
 class vtkModule:
     def __init__(self, vtk_act, vtk_property=None):
@@ -35,8 +37,12 @@ class vtkPolyDataModule(vtkModule):
         self.vtk_act.SetMapper(self.vtk_dmap)
 
 class vtkGlyphModule(vtkPolyDataModule):
-    def __init__(self, vtk_pointset, glyph_source, clamping=False,
+    def __init__(self, vtk_pointset, glyph_source,
                  scalemode=None, colormode=None):
+        """
+        Clamping normalizes the glyph scaling to within the range [0,1].
+        Setting a scale factor will then scale these by the given factor.
+        """
 
         assert isinstance(vtk_pointset, vtkPointSet)
         assert isinstance(glyph_source, vtkCustomGlyphSource)
@@ -45,7 +51,12 @@ class vtkGlyphModule(vtkPolyDataModule):
         self.vtk_g3d = vtkGlyph3D()
         self.vtk_g3d.SetInput(vtk_pointset)
         self.vtk_g3d.SetSource(glyph_source.get_output())
-        self.vtk_g3d.SetClamping(clamping)
+
+        if isinstance(glyph_source, vtkClampedGlyphSource):
+            self.vtk_g3d.SetClamping(True)
+            self.vtk_g3d.SetRange(glyph_source.get_range())
+        else:
+            self.vtk_g3d.SetScaleFactor(glyph_source.get_scale()) #TODO XXX in glyph source or here?!
 
         if scalemode is 'off':
             self.vtk_g3d.SetScaleModeToDataScalingOff()
@@ -54,7 +65,7 @@ class vtkGlyphModule(vtkPolyDataModule):
         elif scalemode is 'vector':
             self.vtk_g3d.SetScaleModeToScaleByVector()
         elif scalemode is not None:
-            raise ValueError('Inrecognized scale mode \'%s\'.' % scalemode)
+            raise ValueError('Unrecognized scale mode \'%s\'.' % scalemode)
 
         if colormode is 'scale':
             self.vtk_g3d.SetColorModeToColorByScale()
@@ -63,7 +74,7 @@ class vtkGlyphModule(vtkPolyDataModule):
         elif colormode is 'vector':
             self.vtk_g3d.SetColorModeToColorByVector()
         elif colormode is not None:
-            raise ValueError('Inrecognized scale mode \'%s\'.' % scalemode)
+            raise ValueError('Unrecognized scale mode \'%s\'.' % scalemode)
 
         vtkPolyDataModule.__init__(self, self.vtk_g3d, glyph_source.get_property())
 

@@ -3,51 +3,54 @@
 A VTKPlotter can plot a list of atoms and most types of volume data.
 """
 
-import numpy as npy
+import numpy as np
 
 from ase import Atoms
 
-from sources import vtkAtomSource, vtkForceSource, vtkVelocitySource
-from cell import vtkUnitCellModule, vtkAxesModule
-from grid import vtkAtomicPositions
-from module import vtkModuleAnchor, vtkGlyphModule
+from ase.visualize.vtk.sources import vtkAtomSource, vtkForceSource, \
+                                      vtkVelocitySource
+from ase.visualize.vtk.cell import vtkUnitCellModule, vtkAxesModule
+from ase.visualize.vtk.grid import vtkAtomicPositions
+from ase.visualize.vtk.module import vtkModuleAnchor, vtkGlyphModule
 
 class vtkAtoms(vtkModuleAnchor, vtkAtomicPositions):
-    def __init__(self, atoms, scale=0.25):
+    def __init__(self, atoms, scale=0.2):
 
         assert isinstance(atoms, Atoms)
         self.atoms = atoms
+
+        self.scale = scale
 
         vtkModuleAnchor.__init__(self)
         vtkAtomicPositions.__init__(self, self.atoms.get_positions(),
                                     vtkUnitCellModule(self.atoms))
 
-        self.forces = None
-        self.velocities = None
+        self.force = None
+        self.velocity = None
 
         symbols = self.atoms.get_chemical_symbols()
-        for symbol in npy.unique(symbols):
+        for symbol in np.unique(symbols):
             # Construct mask for all atoms with this symbol
-            mask = npy.array(symbols) == symbol
+            mask = np.array(symbols) == symbol
             if mask.all():
                 subset = None
             else:
-                subset = npy.argwhere(mask)
+                subset = np.argwhere(mask)
 
             # Get relevant VTK unstructured grid
             vtk_ugd = self.get_unstructured_grid(subset)
 
             # Create atomic glyph source for this symbol
-            glyph_source = vtkAtomSource(symbol, scale)
+            glyph_source = vtkAtomSource(symbol, self.scale)
 
             # Create glyph module and anchor it
             self.add_module(symbol, vtkGlyphModule(vtk_ugd, glyph_source))
 
     def has_forces(self):
-        return self.forces is not None
+        return self.force is not None
 
     def has_velocities(self):
-        return self.velocities is not None
+        return self.velocity is not None
 
     """
     def get_glyph_source(self, symbol):
@@ -68,26 +71,32 @@ class vtkAtoms(vtkModuleAnchor, vtkAtomicPositions):
             raise RuntimeError('Forces already present.')
 
         # Add forces to VTK unstructured grid as vector data
-        self.add_vector_data(self.atoms.get_forces(), 'forces')
+        vtk_fda = self.add_vector_data(self.atoms.get_forces(), 'force')
+
+        # Calculate max norm of the forces
+        fmax = vtk_fda.GetMaxNorm()
 
         # Get relevant VTK unstructured grid
         vtk_ugd = self.get_unstructured_grid()
 
-        self.forces = vtkGlyphModule(vtk_ugd, vtkForceSource(), clamping=True,
-                                     scalemode='vector', colormode=None)
-        self.add_module('forces', self.forces)
+        self.force = vtkGlyphModule(vtk_ugd, vtkForceSource(fmax, self.scale),
+                                    scalemode='vector')
+        self.add_module('force', self.force)
 
     def add_velocities(self):
         if self.has_velocities():
             raise RuntimeError('Velocities already present.')
 
-        # Add forces to VTK unstructured grid as vector data
-        self.add_vector_data(self.atoms.get_velocities(), 'velocities')
+        # Add velocities to VTK unstructured grid as vector data
+        vtk_vda = self.add_vector_data(self.atoms.get_velocities(), 'velocity')
+
+        # Calculate max norm of the velocities
+        vmax = vtk_vda.GetMaxNorm()
 
         # Get relevant VTK unstructured grid
         vtk_ugd = self.get_unstructured_grid()
 
-        self.velocities = vtkGlyphModule(vtk_ugd, vtkVelocitySource(), clamping=True,
-                                         scalemode='vector', colormode=None)
-        self.add_module('velocities', self.velocities) #TODO XXX active vector clash!
+        self.velocity = vtkGlyphModule(vtk_ugd, vtkVelocitySource(vmax, self.scale),
+                                       scalemode='vector')
+        self.add_module('velocity', self.velocity) #TODO XXX active vector clash!
 

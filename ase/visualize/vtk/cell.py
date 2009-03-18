@@ -1,10 +1,10 @@
 
-import numpy as npy
+import numpy as np
 
 from ase import Atoms
 
 from vtk import vtkOutlineSource, vtkAxesActor, vtkProperty2D, vtkTextProperty
-from module import vtkModule, vtkPolyDataModule
+from ase.visualize.vtk.module import vtkModule, vtkPolyDataModule
 
 class vtkUnitCellModule(vtkPolyDataModule):
     def __init__(self, atoms):
@@ -13,20 +13,20 @@ class vtkUnitCellModule(vtkPolyDataModule):
         cell = atoms.get_cell()
 
         """
-        if not isinstance(cell, npy.ndarray):
-            cell = npy.array(cell)
+        if not isinstance(cell, np.ndarray):
+            cell = np.array(cell)
 
         if cell.shape == (3,):
-            cell = npy.diag(cell)
+            cell = np.diag(cell)
 
         assert cell.dtype == float and cell.shape == (3, 3)
         """
 
         #TODO bounding box with general unit cell?!
-        diagcell = npy.diag(cell.diagonal())
+        diagcell = np.diag(cell.diagonal())
         assert (cell == diagcell).all(), 'Unit cell must be orthogonal'
 
-        self.bbox = npy.array(zip(npy.zeros(3),cell.diagonal())).ravel()
+        self.bbox = np.array(zip(np.zeros(3),cell.diagonal())).ravel()
 
         self.pbc = atoms.get_pbc()
 
@@ -42,10 +42,10 @@ class vtkUnitCellModule(vtkPolyDataModule):
         return self.bbox[1::2]-self.bbox[0::2]
 
     def get_characteristic_length(self):
-        return npy.prod(self.get_size())**(1.0/3.0)
+        return np.prod(self.get_size())**(1.0/3.0)
 
     def get_grid_spacing(self, shape):
-        return self.get_size()/(npy.array(shape)-1.0) #TODO pbc
+        return self.get_size()/(np.array(shape)-1.0) #TODO pbc
 
 # -------------------------------------------------------------------
 
