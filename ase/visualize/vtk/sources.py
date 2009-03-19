@@ -41,7 +41,7 @@ class vtkAtomSource(vtkCustomGlyphSource):
 
         self.vtk_glyph_source.SetPhiResolution(16)
         self.vtk_glyph_source.SetThetaResolution(16)
-        self.vtk_glyph_source.SetRadius(self.radius)
+        self.vtk_glyph_source.SetRadius(0.25*self.radius)
 
 # -------------------------------------------------------------------
 

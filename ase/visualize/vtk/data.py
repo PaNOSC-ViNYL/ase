@@ -1,5 +1,6 @@
 
 import numpy as np
+from numpy.ctypeslib import ctypes
 
 from vtk import vtkDataArray, vtkFloatArray, vtkDoubleArray
 
@@ -24,56 +25,37 @@ class vtkNumPyBuffer:
         else:
             raise RuntimeError('Event not recognized.')
 
-class vtkDataArrayFromNumPyArray:
-    """Class for reading vtkDataArray
+class vtkDataArrayFromNumPyBuffer:
+    def __init__(self, vtk_class, ctype, data=None):
 
-    This class can be used to generate a vtkDataArray from a NumPy array.
-    The NumPy array should be of the form <entries> x <number of components>
-    where 'number of components' indicates the number of components in 
-    each entry in the vtkDataArray. Note that this form is also expected
-    even in the case of only a single component.
-    """
-    def __init__(self, data, vtk_class, ctype, buffered=True):
-        if not isinstance(data, np.ndarray):
-            data = np.array(data, dtype=ctype)
-
-        if data.dtype is not ctype:
-            data = data.astype(ctype)
-
-        if data.ndim == 1:
-            data = data[:, np.newaxis]
-        elif data.ndim != 2:
-            raise ValueError('Data must be a 2D NumPy array.')
+        assert issubclass(ctype, ctypes._SimpleCData)
+        self.ctype = ctype
 
         self.vtk_da = vtk_class()
         assert isinstance(self.vtk_da, vtkDataArray)
-        assert self.vtk_da.GetDataTypeSize() == data.itemsize
+        assert self.vtk_da.GetDataTypeSize() == np.nbytes[self.ctype]
 
-        self.buffered = buffered
-
-        self.read_numpy_array(data)
+        if data is not None:
+            self.read_numpy_array(data)
 
     def read_numpy_array(self, data):
-        """Read vtkDataArray from NumPy array"""
 
-        if self.buffered:
-            self.vtk_da.SetNumberOfComponents(data.shape[-1])
+        if not isinstance(data, np.ndarray):
+            data = np.array(data, dtype=self.ctype)
 
-            # Passing the void* buffer to the C interface does not increase
-            # its reference count, hence the buffer is deleted by Python when
-            # the reference count of the string from tostring reaches zero.
-            # Also, the boolean True tells VTK to save (not delete) the buffer
-            # when the VTK data array is deleted - we want Python to do this.
-            npybuf = vtkNumPyBuffer(data)
-            self.vtk_da.SetVoidArray(npybuf.get_pointer(), len(npybuf), True)
-            self.vtk_da.AddObserver('DeleteEvent', npybuf.notify)
-        else:
-            self.vtk_da.SetNumberOfComponents(data.shape[-1])
-            self.vtk_da.SetNumberOfTuples(data.shape[0])
+        if data.dtype != self.ctype: # NB: "is not" gets it wrong
+            data = data.astype(self.ctype)
 
-            for i, d_c in enumerate(data):
-                for c, d in enumerate(d_c):
-                    self.vtk_da.SetComponent(i, c, d)
+        self.vtk_da.SetNumberOfComponents(data.shape[-1])
+
+        # Passing the void* buffer to the C interface does not increase
+        # its reference count, hence the buffer is deleted by Python when
+        # the reference count of the string from tostring reaches zero.
+        # Also, the boolean True tells VTK to save (not delete) the buffer
+        # when the VTK data array is deleted - we want Python to do this.
+        npybuf = vtkNumPyBuffer(data)
+        self.vtk_da.SetVoidArray(npybuf.get_pointer(), len(npybuf), True)
+        self.vtk_da.AddObserver('DeleteEvent', npybuf.notify)
 
     def get_output(self):
         return self.vtk_da
@@ -89,14 +71,112 @@ class vtkDataArrayFromNumPyArray:
 
         return vtk_da_copy
 
+# -------------------------------------------------------------------
+
+class vtkDataArrayFromNumPyArray(vtkDataArrayFromNumPyBuffer):
+    """Class for reading vtkDataArray from 1D or 2D NumPy array.
+
+    This class can be used to generate a vtkDataArray from a NumPy array.
+    The NumPy array should be of the form <entries> x <number of components>
+    where 'number of components' indicates the number of components in 
+    each entry in the vtkDataArray. Note that this form is also expected
+    even in the case of only a single component.
+    """
+    def __init__(self, vtk_class, ctype, data=None, buffered=True):
+
+        self.buffered = buffered
+
+        vtkDataArrayFromNumPyBuffer.__init__(self, vtk_class, ctype, data)
+
+    def read_numpy_array(self, data):
+        """Read vtkDataArray from NumPy array"""
+
+        if not isinstance(data, np.ndarray):
+            data = np.array(data, dtype=self.ctype)
+
+        if data.dtype != self.ctype: # NB: "is not" gets it wrong
+            data = data.astype(self.ctype)
+
+        if data.ndim == 1:
+            data = data[:, np.newaxis]
+        elif data.ndim != 2:
+            raise ValueError('Data must be a 2D NumPy array.')
+
+        if self.buffered:
+            vtkDataArrayFromNumPyBuffer.read_numpy_array(self, data)
+        else:
+            self.vtk_da.SetNumberOfComponents(data.shape[-1])
+            self.vtk_da.SetNumberOfTuples(data.shape[0])
+
+            for i, d_c in enumerate(data):
+                for c, d in enumerate(d_c):
+                    self.vtk_da.SetComponent(i, c, d)
+
 
 class vtkFloatArrayFromNumPyArray(vtkDataArrayFromNumPyArray):
     def __init__(self, data):
-        vtkDataArrayFromNumPyArray.__init__(self, data, vtkFloatArray,
-                                            np.ctypeslib.ctypes.c_float)
+        vtkDataArrayFromNumPyArray.__init__(self, vtkFloatArray,
+                                            ctypes.c_float, data)
 
 class vtkDoubleArrayFromNumPyArray(vtkDataArrayFromNumPyArray):
     def __init__(self, data):
-        vtkDataArrayFromNumPyArray.__init__(self, data, vtkDoubleArray,
-                                            np.ctypeslib.ctypes.c_double)
+        vtkDataArrayFromNumPyArray.__init__(self, vtkDoubleArray,
+                                            ctypes.c_double, data)
+
+# -------------------------------------------------------------------
+
+class vtkDataArrayFromNumPyMultiArray(vtkDataArrayFromNumPyBuffer):
+    """Class for reading vtkDataArray from a multi-dimensional NumPy array.
+
+    This class can be used to generate a vtkDataArray from a NumPy array.
+    The NumPy array should be of the form <gridsize> x <number of components>
+    where 'number of components' indicates the number of components in 
+    each gridpoint in the vtkDataArray. Note that this form is also expected
+    even in the case of only a single component.
+    """
+    def __init__(self, vtk_class, ctype, data=None, buffered=True):
+
+        self.buffered = buffered
+
+        vtkDataArrayFromNumPyBuffer.__init__(self, vtk_class, ctype, data)
+
+    def read_numpy_array(self, data):
+        """Read vtkDataArray from NumPy array"""
+
+        if not isinstance(data, np.ndarray):
+            data = np.array(data, dtype=self.ctype)
+
+        if data.dtype != self.ctype: # NB: "is not" gets it wrong
+            data = data.astype(self.ctype)
+
+        if data.ndim <=2:
+            raise Warning('Method is inefficient for 1D/2D NumPy arrays. ' +
+                          'Use a vtkDataArrayFromNumPyArray subclass instead.')
+
+        if self.buffered:
+            # This is less than ideal, but will not copy data (uses views).
+            # To get the correct ordering, the grid dimensions have to be
+            # transposed without moving the last dimension (the components).
+            n = data.ndim-1
+            for c in range(n//2):
+                data = data.swapaxes(c,n-1-c)
+
+            vtkDataArrayFromNumPyBuffer.read_numpy_array(self, data)
+        else:
+            self.vtk_da.SetNumberOfComponents(data.shape[-1])
+            self.vtk_da.SetNumberOfTuples(np.prod(data.shape[:-1]))
+
+            for c, d_T in enumerate(data.T):
+                for i, d in enumerate(d_T.flat):
+                    self.vtk_da.SetComponent(i, c, d)
+
+class vtkFloatArrayFromNumPyMultiArray(vtkDataArrayFromNumPyMultiArray):
+    def __init__(self, data):
+        vtkDataArrayFromNumPyMultiArray.__init__(self, vtkFloatArray,
+                                                 ctypes.c_float, data)
+
+class vtkDoubleArrayFromNumPyMultiArray(vtkDataArrayFromNumPyMultiArray):
+    def __init__(self, data):
+        vtkDataArrayFromNumPyMultiArray.__init__(self, vtkDoubleArray,
+                                                 ctypes.c_double, data)
 

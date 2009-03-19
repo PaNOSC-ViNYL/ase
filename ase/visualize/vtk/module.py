@@ -51,12 +51,11 @@ class vtkGlyphModule(vtkPolyDataModule):
         self.vtk_g3d = vtkGlyph3D()
         self.vtk_g3d.SetInput(vtk_pointset)
         self.vtk_g3d.SetSource(glyph_source.get_output())
+        self.vtk_g3d.SetScaleFactor(glyph_source.get_scale())
 
         if isinstance(glyph_source, vtkClampedGlyphSource):
             self.vtk_g3d.SetClamping(True)
             self.vtk_g3d.SetRange(glyph_source.get_range())
-        else:
-            self.vtk_g3d.SetScaleFactor(glyph_source.get_scale()) #TODO XXX in glyph source or here?!
 
         if scalemode is 'off':
             self.vtk_g3d.SetScaleModeToDataScalingOff()

@@ -4,7 +4,8 @@ import numpy as np
 from vtk import vtkPointData, vtkUnstructuredGrid, vtkPoints, vtkIdList, \
                 vtkStructuredPoints
 from ase.visualize.vtk.cell import vtkUnitCellModule
-from ase.visualize.vtk.data import vtkDoubleArrayFromNumPyArray
+from ase.visualize.vtk.data import vtkDoubleArrayFromNumPyArray, \
+                                   vtkDoubleArrayFromNumPyMultiArray
 
 # -------------------------------------------------------------------
 
@@ -179,5 +180,24 @@ class vtkOrthogonalGrid(vtk3DGrid):
 
         assert sca.dtype == float and sca.shape == tuple(self.elements)
 
-        vtk3DGrid.add_scalar_data(self, sca.swapaxes(0,2).ravel(), name)
+        # TODO crude rewrite is crude - possibly use inheritance?
+        #vtk3DGrid.add_scalar_data(self, sca.swapaxes(0,2).ravel(), name)
+
+        # Convert positions to VTK array
+        npy2da = vtkDoubleArrayFromNumPyMultiArray(sca[:,:,:,np.newaxis])
+        vtk_sda = npy2da.get_output()
+        del npy2da
+
+        if name is not None:
+            vtk_sda.SetName(name)
+
+        # Add VTK array to VTK point data
+        self.vtk_pointdata.AddArray(vtk_sda)
+        if name is not None:
+            self.vtk_pointdata.SetActiveScalars(name)
+
+        return vtk_sda
+
+    def add_vector_data(self, vec, name=None):
+        raise NotImplementedError('Coming soon...')
 

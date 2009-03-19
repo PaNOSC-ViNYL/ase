@@ -14,7 +14,7 @@ from ase.visualize.vtk.grid import vtkAtomicPositions
 from ase.visualize.vtk.module import vtkModuleAnchor, vtkGlyphModule
 
 class vtkAtoms(vtkModuleAnchor, vtkAtomicPositions):
-    def __init__(self, atoms, scale=0.2):
+    def __init__(self, atoms, scale=1):
 
         assert isinstance(atoms, Atoms)
         self.atoms = atoms
@@ -80,7 +80,7 @@ class vtkAtoms(vtkModuleAnchor, vtkAtomicPositions):
         vtk_ugd = self.get_unstructured_grid()
 
         self.force = vtkGlyphModule(vtk_ugd, vtkForceSource(fmax, self.scale),
-                                    scalemode='vector')
+                                    scalemode='vector', colormode=None)
         self.add_module('force', self.force)
 
     def add_velocities(self):
@@ -97,6 +97,6 @@ class vtkAtoms(vtkModuleAnchor, vtkAtomicPositions):
         vtk_ugd = self.get_unstructured_grid()
 
         self.velocity = vtkGlyphModule(vtk_ugd, vtkVelocitySource(vmax, self.scale),
-                                       scalemode='vector')
+                                       scalemode='vector', colormode=None)
         self.add_module('velocity', self.velocity) #TODO XXX active vector clash!
 
