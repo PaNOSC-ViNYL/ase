@@ -24,7 +24,7 @@ Topics:
 .. toctree::
 
    code
-   documentation
+   writing_documentation_ase
    tests
    todo
 

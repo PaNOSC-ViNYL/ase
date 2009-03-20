@@ -1,13 +1,12 @@
+.. _writing_documentation_ase:
+
 =====================
 Writing documentation
 =====================
 
-
-We use the Sphinx_ tool to generate the ASE documentation (both HTML
-and PDF_).  The documetation is stored in SVN as text files in the
+We use the Sphinx_ tool to generate the GPAW documentation (both HTML
+and PDF_).  The documentation is stored in SVN as text files in the
 :svn:`doc` directory using the reStructuredText_ markup language.
-
-
 
 .. _reStructuredText: http://docutils.sf.net/rst.html
 .. _Sphinx: http://sphinx.pocoo.org
@@ -18,11 +17,7 @@ Installing Docutils and Sphinx
 ==============================
 
 The reStructuredText_ parser that Sphinx needs, is part of the Docutils_
-project.  So, we need to install docutils and sphinx::
-
-  XXX
-  XXX
-
+project.  So, we need to install docutils and sphinx (version>= 0.5).
 
 .. _Docutils: http://docutils.sf.net
 
@@ -37,6 +32,8 @@ For that to work, you need the following installed:
 * povray
 * dvipng
 * AUCTex
+
+.. _using_sphinx:
 
 Using Sphinx
 ============
@@ -56,7 +53,6 @@ that first::
 Then :command:`cd` to the :file:`doc` directory and build the html-pages::
 
   $ cd doc
-  $ mkdir _build
   $ sphinx-build . _build
 
 Make your changes to the ``.rst`` files, run the
@@ -107,9 +103,7 @@ We have a couple of extensions to Sphinx:
 
    Write displayed LaTeX-style math.  Example::
 
-     .. math::
-
-        \frac{1}{1+x^2}
+     .. math:: \frac{1}{1+x^2}
 
    gives you:
 
@@ -119,8 +113,8 @@ We have a couple of extensions to Sphinx:
 If you add the line ``.. default-role:: math``, then you can leave out
 the ``:math:`` part like here: ```\sin(x_n^2)```.
 
-The implementation of the math role and directive is here:
-:svn:`doc/mathpng.py`.
+Our custom, obsolete, implementation of the math role and directive is here:
+:svn:`doc/mathpng.py`. With sphinx >= 0.5 please use ``sphinx.ext.pngmath``.
 
 
 .. _epydoc:  http://epydoc.sf.net
@@ -151,4 +145,49 @@ something like::
 In your ``.emacs`` file.
 
 .. _reStructuredText extension: http://docutils.sourceforge.net/tools/editors/emacs/rst.el
+
+Updating Sphinx
+===============
+
+Starting a new project with sphinx requires an initial configuration.
+This is achieved by running :command:`sphinx-quickstart`.
+When updating from a very old sphinx you may consider
+generating new configuration files and updating the old files accordingly.
+
+**Note** that the current project is configured up-to-date,
+so if you are "simply" writing the documentation
+you **must** skip the :command:`sphinx-quickstart` step
+and focus on :ref:`using_sphinx`.
+
+Here is how do you setup the GPAW project with sphinx:
+
+ - :command:`cd` to the :file:`doc` directory,
+
+ - run :command:`sphinx-quickstart`
+   and answer the questions (example given for GPAW)::
+
+    > Root path for the documentation [.]:
+
+    > Separate source and build directories (y/N) [n]:
+
+    > Name prefix for templates and static dir [.]: _
+
+    > Project name: GPAW
+    > Author name(s): 2008, CAMd et al.
+  
+    > Project version: 0.5
+    > Project release [0.5]:
+
+    > Source file suffix [.rst]:
+
+    > Name of your master document (without suffix) [index]: contents
+
+    > autodoc: automatically insert docstrings from modules (y/N) [n]: y
+    > doctest: automatically test code snippets in doctest blocks (y/N) [n]:
+    > intersphinx: link between Sphinx documentation of different projects (y/N) [n]: y
+
+   This will create :file:`doc/conf.py` and :file:`doc/contents.rst`.
+   Both these files need to be edited further
+   (:file:`doc/conf.py` may for example include
+   options for ``sphinx.ext.pngmath``)
 
