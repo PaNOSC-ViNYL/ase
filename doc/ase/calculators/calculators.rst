@@ -109,7 +109,7 @@ Building new calculators
 
 Adding an ASE interface to your favorite force-calculator can be very
 simple.  Take a look at the Python wrapper we have in the ASE code for
-using the SIESTA_ code with ASE: :svn:`ase/calculators/siesta.py`.
+using the SIESTA_ code with ASE: :trac:`ase/calculators/siesta.py`.
 Here, a :class:`~siesta.Siesta` class is defined.  An instance of this class
 will simply write the fdf input-file, start the SIESTA Fortran
 program, and finally read the energy, forces and stresses from the

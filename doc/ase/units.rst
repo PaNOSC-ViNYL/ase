@@ -6,7 +6,7 @@ Units
 
 XXX more about units here!
 
-Physical units are defined in the :svn:`ase/units.py` module.  Electron volts
+Physical units are defined in the :trac:`ase/units.py` module.  Electron volts
 (``eV``) and angstroms (``Ang``) are defined as 1.0.  Other units are
 ``nm``, ``Bohr``, ``Hartree`` or ``Ha``, ``kJ``, ``kcal``, ``mol``,
 ``Rydberg`` or ``Ry``, ``second``, ``fs`` and ``kB``.  Example::

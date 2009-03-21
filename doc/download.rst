@@ -121,6 +121,6 @@ License
 =======
 
 The CAMPOS Atomic Simulation Environment is released under the GNU
-Public License version 2.  See the file :svn:`LICENSE` which
+Public License version 2.  See the file :trac:`LICENSE` which
 accompanies the downloaded files, or see the license at GNU's web
 server at http://www.gnu.org/licenses/gpl.html.

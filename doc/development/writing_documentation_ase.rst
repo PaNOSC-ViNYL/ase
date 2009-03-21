@@ -6,7 +6,7 @@ Writing documentation
 
 We use the Sphinx_ tool to generate the GPAW documentation (both HTML
 and PDF_).  The documentation is stored in SVN as text files in the
-:svn:`doc` directory using the reStructuredText_ markup language.
+:trac:`doc` directory using the reStructuredText_ markup language.
 
 .. _reStructuredText: http://docutils.sf.net/rst.html
 .. _Sphinx: http://sphinx.pocoo.org
@@ -85,6 +85,13 @@ We have a couple of extensions to Sphinx:
    ``:svn:`ase/atoms.py```, you
    will get: :svn:`ase/atoms.py`.  The implementation of this role is
    here: :svn:`doc/ext.py`.
+
+**:trac:**
+
+   A role for creating a link to a file in Trac.  If you write
+   ``:trac:`ase/atoms.py```, you
+   will get: :trac:`ase/atoms.py`.  The implementation of this role is
+   here: :trac:`doc/ext.py`.
 
 **:epydoc:**
 

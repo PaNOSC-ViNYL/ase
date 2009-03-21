@@ -14,6 +14,19 @@ def svn_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
         text = text[i + 1:-1]
     else:
         name = text
+    ref = 'http://svn.fysik.dtu.dk/projects/ase/trunk/' + text
+    set_classes(options)
+    node = nodes.reference(rawtext, name, refuri=ref,
+                           **options)
+    return [node], []
+
+def trac_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
+    if text[-1] == '>':
+        i = text.index('<')
+        name = text[:i - 1]
+        text = text[i + 1:-1]
+    else:
+        name = text
     ref = 'http://trac.fysik.dtu.dk/projects/ase/browser/trunk/' + text
     set_classes(options)
     node = nodes.reference(rawtext, name, refuri=ref,
@@ -26,14 +39,14 @@ def epydoc_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
         i = text.index('<')
         name = text[:i - 1]
         text = text[i + 1:-1]
-        
+
     components = text.split('.')
     if components[0] != 'ase':
         components.insert(0, 'ase')
 
     if name is None:
         name = components[-1]
-        
+
     try:
         for n in range(2, len(components) + 1):
             module = __import__('.'.join(components[:n]))
@@ -59,6 +72,7 @@ def epydoc_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
 
 def setup(app):
     app.add_role('svn', svn_role)
+    app.add_role('trac', trac_role)
     app.add_role('epydoc', epydoc_role)
     #import atexit
     #atexit.register(fix_sidebar)

@@ -33,7 +33,7 @@ would be simpler::
 The ASE2ase.py tool
 ===================
 
-Use the :program:`ASE2ase.py` tool (source code :svn:`here <tools/ASE2ase.py>`) to convert old scripts::
+Use the :program:`ASE2ase.py` tool (source code :svn:`tools/ASE2ase.py`) to convert old scripts::
 
   $ ASE2ase.py oldscript.py
   $ diff -u oldscript.py.bak oldscript.py
