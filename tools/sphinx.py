@@ -46,7 +46,8 @@ def build():
     os.system('cd _build; cp _static/searchtools.js .')
 
     if 1:
-        if os.system('sphinx-build -b latex . _build 2> error') != 0:
+        if os.system('PYTHONPATH=%s/ase ' % tmpdir +
+                     'sphinx-build -b latex . _build 2> error') != 0:
             raise RuntimeError('Sphinx failed!')
         os.system(
             'grep -v "WARNING: unusable reference target found" error 1>&2')
