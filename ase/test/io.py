@@ -10,8 +10,8 @@ atoms = Atoms('AuH',
 atoms *= (1, 1, 2)
 images = [atoms.copy(), atoms.copy()]
 
-r = ['xyz', 'traj', 'cube']
-w = r + ['pdb', 'xsf']
+r = ['xyz', 'traj', 'cube', 'pdb']
+w = r + ['xsf']
 try:
     import matplotlib
 except ImportError:
@@ -20,14 +20,19 @@ else:
     w += ['png', 'eps']
     
 for format in w:
-    print format
-    write('io-test.1', atoms, format=format)
+    print format, 'O',
+    fname1 = 'io-test.1.' + format
+    fname2 = 'io-test.2.' + format
+    write(fname1, atoms, format=format)
     if format not in ['cube', 'png', 'eps']:
-        write('io-test.2', images, format=format)
+        write(fname2, images, format=format)
 
     if format in r:
-        a1 = read('io-test.1')
+        print 'I'
+        a1 = read(fname1)
         if format != 'cube':
-            a2 = read('io-test.2')
-            a3 = read('io-test.2', index=0)
-            a4 = read('io-test.2', index=slice(None))
+            a2 = read(fname2)
+            a3 = read(fname2, index=0)
+            a4 = read(fname2, index=slice(None))
+    else:
+        print
