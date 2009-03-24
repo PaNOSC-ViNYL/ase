@@ -52,7 +52,6 @@ def read(filename, index=-1, format=None):
 
     if format is None:
         format = filetype(filename)
-    print ">>>> format =", format
 
     if format.startswith('gpw'):
         import gpaw
