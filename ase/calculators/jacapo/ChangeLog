@@ -1,0 +1,30 @@
+2009-03-24  Lars C Grabow <grabow@fysik.dtu.dk>
+
+        * jacapo.py (__init__, __del__, _set_frame_number, _increment_frame, calculate, execute_external_dynamics, write_nc):
+          stay_alive support was added using a new variable self._frame.
+        (Jacapo.get_potential_energy): Now raises a runtime error if fortran executable didn't finish correctly.
+
+2009-02-05  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (Jacapo.get_charge_density): I had not divided the density array by the volume before. this is fixed now.
+
+2009-02-04  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (Jacapo.get_nbands): v.NumberOfBands was returning a list for some reason. I changed it to return a number
+	(Jacapo.set_fftgrid): fixed error in delete_ncattdimvar. ncfile arg was missing.
+
+2009-02-03  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (Jacapo.read_only_atoms): new ase suggests use set_initial_magnetic moments instead. 
+
+2009-02-02  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (Jacapo.set_fixmagmom): fixed spelling error in FixedMagneticMoment attribute
+	(Jacapo.set_kpts): added capability to specify a list of kpts for band structure calculations.
+
+	* 0.6.4 fixed error in placement of set_psp_database.
+
+2009-02-01  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (Jacapo.get_magnetic_moment): added.
+
