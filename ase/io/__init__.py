@@ -52,6 +52,7 @@ def read(filename, index=-1, format=None):
 
     if format is None:
         format = filetype(filename)
+    print ">>>> format =", format
 
     if format.startswith('gpw'):
         import gpaw
@@ -269,7 +270,7 @@ def filetype(filename):
     if lines[0].startswith('PickleTrajectory'):
         return 'traj'
 
-    if lines[1].startswith('OUTER LOOP:'):
+    if lines[1].startswith('OUTER LOOP:') or filename.lower().endswith('.cube'):
         return 'cube'
     
     if '  ___ ___ ___ _ _ _  \n' in lines:
