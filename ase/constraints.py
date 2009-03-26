@@ -292,10 +292,8 @@ class Filter:
 
         if mask is not None:
             self.index = np.asarray(mask, bool)
-            self.n = self.index.sum()
         else:
             self.index = np.asarray(indices, int)
-            self.n = len(self.index)
 
     def get_cell(self):
         """Returns the computational cell.
@@ -370,7 +368,7 @@ class Filter:
 
     def __len__(self):
         "Return the number of movable atoms."
-        return self.n
+        return len(self.index)
 
     def __getitem__(self, i):
         "Return an atom."
