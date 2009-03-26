@@ -110,7 +110,7 @@ class Atoms(object):
             from ase.old import OldASEListOfAtomsWrapper
             atoms = OldASEListOfAtomsWrapper(symbols)
             symbols = None
-        elif isinstance(symbols, Atoms):
+        elif hasattr(symbols, "get_positions"):
             atoms = symbols
             symbols = None    
         elif (isinstance(symbols, (list, tuple)) and
