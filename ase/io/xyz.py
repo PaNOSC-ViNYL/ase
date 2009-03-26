@@ -32,6 +32,9 @@ def read_xyz(fileobj, index=-1):
 def write_xyz(fileobj, images):
     if isinstance(fileobj, str):
         fileobj = paropen(fileobj, 'w')
+        mustclose = True
+    else:
+        mustclose = False
 
     if not isinstance(images, (list, tuple)):
         images = [images]
@@ -42,3 +45,6 @@ def write_xyz(fileobj, images):
         fileobj.write('%d\n\n' % natoms)
         for s, (x, y, z) in zip(symbols, atoms.get_positions()):
             fileobj.write('%-2s %22.15f %22.15f %22.15f\n' % (s, x, y, z))
+    if mustclose:
+        fileobj.close()
+        
