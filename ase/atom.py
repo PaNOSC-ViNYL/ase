@@ -181,6 +181,11 @@ class Atom(object):
     def set_momentum(self, momentum): self._set('momentum', momentum)
     def set_mass(self, mass): self._set('mass', mass)
     def set_initial_magnetic_moment(self, magmom): self._set('magmom', magmom)
+    def set_magmom(self, magmom):
+        import warnings
+        warnings.warn('set_magmom is deprecated. Please use set_initial_magnetic_moment' \
+                      ' instead.', DeprecationWarning, stacklevel=2)
+        return self.set_initial_magnetic_moment(magmom)
     def set_charge(self, charge): self._set('charge', charge)
 
     symbol = property(get_symbol, set_symbol, doc='Chemical symbol')
