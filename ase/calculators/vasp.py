@@ -452,7 +452,7 @@ class Vasp:
                 # special cases:
                 if key in ('dipol', 'eint'):
                     [incar.write('%.4f ' % x) for x in val]
-                elif key in ('iband', 'nbmod', 'kpuse'):
+                elif key in ('iband', 'kpuse'):
                     [incar.write('%i ' % x) for x in val]
                 elif key == 'rwigs':
                     [incar.write('%.4f ' % rwigs) for rwigs in val]
