@@ -26,7 +26,7 @@ class vtkCustomGlyphSource:
         return self.vtk_glyph_source.GetOutput()
 
 class vtkAtomSource(vtkCustomGlyphSource):
-    def __init__(self, name, scale=1):
+    def __init__(self, name, scale=1, fraction=0.25):
         vtkCustomGlyphSource.__init__(self, scale, vtkSphereSource())
 
         self.number = atomic_numbers[name]
@@ -41,7 +41,7 @@ class vtkAtomSource(vtkCustomGlyphSource):
 
         self.vtk_glyph_source.SetPhiResolution(16)
         self.vtk_glyph_source.SetThetaResolution(16)
-        self.vtk_glyph_source.SetRadius(0.25*self.radius)
+        self.vtk_glyph_source.SetRadius(fraction*self.radius)
 
 # -------------------------------------------------------------------
 

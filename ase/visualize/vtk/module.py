@@ -39,10 +39,6 @@ class vtkPolyDataModule(vtkModule):
 class vtkGlyphModule(vtkPolyDataModule):
     def __init__(self, vtk_pointset, glyph_source,
                  scalemode=None, colormode=None):
-        """
-        Clamping normalizes the glyph scaling to within the range [0,1].
-        Setting a scale factor will then scale these by the given factor.
-        """
 
         assert isinstance(vtk_pointset, vtkPointSet)
         assert isinstance(glyph_source, vtkCustomGlyphSource)
@@ -53,6 +49,8 @@ class vtkGlyphModule(vtkPolyDataModule):
         self.vtk_g3d.SetSource(glyph_source.get_output())
         self.vtk_g3d.SetScaleFactor(glyph_source.get_scale())
 
+        # Clamping normalizes the glyph scaling to within the range [0,1].
+        # Setting a scale factor will then scale these by the given factor.
         if isinstance(glyph_source, vtkClampedGlyphSource):
             self.vtk_g3d.SetClamping(True)
             self.vtk_g3d.SetRange(glyph_source.get_range())

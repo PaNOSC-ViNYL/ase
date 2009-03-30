@@ -52,14 +52,6 @@ class vtkAtoms(vtkModuleAnchor, vtkAtomicPositions):
     def has_velocities(self):
         return self.velocity is not None
 
-    """
-    def get_glyph_source(self, symbol):
-        return self.glyph_sources[symbol]
-
-    def get_point_collection(self, symbol):
-        return self.point_collections[symbol]
-    """
-
     def add_cell(self):
         self.add_module('cell', self.cell)
 

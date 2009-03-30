@@ -38,6 +38,9 @@ def read(filename, index=-1, format=None):
     XYZ-file                   xyz
     VASP POSCAR/CONTCAR file   vasp
     Protein Data Bank          pdb
+    VTK XML Image Data         vti
+    VTK XML Structured Grid    vts
+    VTK XML Unstructured Grid  vtu
     =========================  ===========
 
     """
@@ -52,6 +55,7 @@ def read(filename, index=-1, format=None):
 
     if format is None:
         format = filetype(filename)
+    print ">>>> format =", format
 
     if format.startswith('gpw'):
         import gpaw
@@ -126,6 +130,18 @@ def read(filename, index=-1, format=None):
         from ase.io.babel import read_babel
         return read_babel(filename, index=index)
 
+    if format == 'vti':
+        from ase.io.vtkxml import read_vti
+        return read_vti(filename)
+
+    if format == 'vts':
+        from ase.io.vtkxml import read_vts
+        return read_vts(filename)
+
+    if format == 'vtu':
+        from ase.io.vtkxml import read_vtu
+        return read_vtu(filename)
+
     raise RuntimeError('That can *not* happen!')
 
 
@@ -157,6 +173,9 @@ def write(filename, images, format=None, **kwargs):
     Encapsulated Postscript    eps
     Portable Network Graphics  png
     Persistance of Vision      pov
+    VTK XML Image Data         vti
+    VTK XML Structured Grid    vts
+    VTK XML Unstructured Grid  vtu
     =========================  ===========
   
     The use of additional keywords is format specific.
@@ -170,7 +189,15 @@ def write(filename, images, format=None, **kwargs):
   
       rotation='', show_unit_cell=0, radii=None, bbox=None, colors=None,
       scale=20
-  
+
+    The ``vti``, ``vts`` and ``vtu`` formats are all specifically directed
+    for use with MayaVi, and the latter is designated for visualization of
+    the atoms whereas the two others are intended for volume data. Further,
+    it should be noted that the ``vti`` format is intended for orthogonal
+    unit cells as only the grid-spacing is stored, whereas the ``vts`` format
+    additionally stores the coordinates of each grid point, thus making it
+    useful for volume date in more general unit cells.
+
     rotation: str
       The rotation angles, e.g. '45x,70y,90z'.
     show_unit_cell: int
@@ -212,6 +239,10 @@ def write(filename, images, format=None, **kwargs):
 
     format = {'traj': 'trajectory', 'nc': 'netcdf'}.get(format, format)
     name = 'write_' + format
+
+    if format in ['vti', 'vts', 'vtu']:
+        format = 'vtkxml'
+
     try:
         write = getattr(__import__('ase.io.%s' % format, {}, {}, [name]), name)
     except ImportError:
@@ -259,6 +290,18 @@ def filetype(filename):
         if history == 'Dacapo':
             return 'dacapo'
         raise IOError('Unknown netCDF file!')
+
+    if s3 == '<?x':
+        from ase.io.vtkxml import probe_vtkxml
+        xmltype = probe_vtkxml(filename)
+        if xmltype == 'ImageData':
+            return 'vti'
+        elif xmltype == 'StructuredGrid':
+            return 'vts'
+        elif xmltype == 'UnstructuredGrid':
+            return 'vtu'
+        elif xmltype is not None:
+            raise IOError('Unknown VTK XML file!')
 
     if is_zipfile(filename):
         return 'vnl'
