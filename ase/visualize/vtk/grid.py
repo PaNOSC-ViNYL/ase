@@ -1,15 +1,16 @@
 
 import numpy as np
 
-from vtk import vtkPointData, vtkUnstructuredGrid, vtkPoints, vtkIdList, \
-                vtkStructuredPoints
+from vtk import vtkPointData, vtkDataArray, vtkUnstructuredGrid, vtkPoints, \
+                vtkIdList, vtkStructuredPoints
 from ase.visualize.vtk.cell import vtkUnitCellModule
-from ase.visualize.vtk.data import vtkDoubleArrayFromNumPyArray, \
+from ase.visualize.vtk.data import vtkDataArrayFromNumPyBuffer, \
+                                   vtkDoubleArrayFromNumPyArray, \
                                    vtkDoubleArrayFromNumPyMultiArray
 
 # -------------------------------------------------------------------
 
-class vtk3DGrid:
+class vtkBaseGrid:
     def __init__(self, npoints, cell):
         self.npoints = npoints
 
@@ -38,55 +39,58 @@ class vtk3DGrid:
     def get_number_of_points(self):
         return self.npoints
 
-    def add_scalar_data(self, sca, name=None):
+    def add_scalar_data_array(self, data, name=None, active=True):
 
-        # Make sure sca argument is a valid array
-        if not isinstance(sca, np.ndarray):
-            sca = np.array(sca)
+        # Are we converting from NumPy buffer to VTK array?
+        if isinstance(data, vtkDataArray):
+            vtk_sda = data
+        elif isinstance(data, vtkDataArrayFromNumPyBuffer):
+            vtk_sda = data.get_output()
+        else:
+            raise ValueError('Data is not a valid scalar data array.')
 
-        assert sca.dtype == float and sca.shape == (self.npoints,)
+        del data
 
-        # Convert positions to VTK array
-        npy2da = vtkDoubleArrayFromNumPyArray(sca)
-        vtk_sda = npy2da.get_output()
-        del npy2da
+        assert vtk_sda.GetNumberOfComponents() == 1
+        assert vtk_sda.GetNumberOfTuples() == self.npoints
 
         if name is not None:
             vtk_sda.SetName(name)
 
         # Add VTK array to VTK point data
         self.vtk_pointdata.AddArray(vtk_sda)
-        if name is not None:
+
+        if active:
             self.vtk_pointdata.SetActiveScalars(name)
 
         return vtk_sda
 
-    def add_vector_data(self, vec, name=None):
+    def add_vector_data_array(self, data, name=None, active=True):
 
-        # Make sure vec argument is a valid array
-        if not isinstance(vec, np.ndarray):
-            vec = np.array(vec)
+        # Are we converting from NumPy buffer to VTK array?
+        if isinstance(data, vtkDataArray):
+            vtk_vda = data
+        elif isinstance(data, vtkDataArrayFromNumPyBuffer):
+            vtk_vda = data.get_output()
+        else:
+            raise ValueError('Data is not a valid scalar data array.')
 
-        assert vec.dtype == float and vec.shape == (self.npoints,3,)
-
-        # Convert positions to VTK array
-        npy2da = vtkDoubleArrayFromNumPyArray(vec)
-        vtk_vda = npy2da.get_output()
-        del npy2da
+        del data
 
         if name is not None:
             vtk_vda.SetName(name)
 
         # Add VTK array to VTK point data
         self.vtk_pointdata.AddArray(vtk_vda)
-        if name is not None:
+
+        if active:
             self.vtk_pointdata.SetActiveVectors(name)
 
         return vtk_vda
 
 # -------------------------------------------------------------------
 
-class vtkAtomicPositions(vtk3DGrid):
+class vtkAtomicPositions(vtkBaseGrid):
     def __init__(self, pos, cell):
 
         # Make sure position argument is a valid array
@@ -95,7 +99,7 @@ class vtkAtomicPositions(vtk3DGrid):
 
         assert pos.dtype == float and pos.shape[1:] == (3,)
 
-        vtk3DGrid.__init__(self, len(pos), cell)
+        vtkBaseGrid.__init__(self, len(pos), cell)
 
         # Convert positions to VTK array
         npy2da = vtkDoubleArrayFromNumPyArray(pos)
@@ -111,11 +115,8 @@ class vtkAtomicPositions(vtk3DGrid):
         self.vtk_ugd.SetWholeBoundingBox(self.cell.get_bounding_box())
         self.vtk_ugd.SetPoints(self.vtk_pts)
 
-        # Create a VTK point data set
-        self.vtk_pointdata = self.vtk_ugd.GetPointData()
-        self.vtk_pointdata.SetCopyScalars(False)
-        self.vtk_pointdata.SetCopyVectors(False)
-        self.vtk_pointdata.SetCopyNormals(False)
+        # Extract the VTK point data set
+        self.set_point_data(self.vtk_ugd.GetPointData())
 
     def get_points(self, subset=None):
         if subset is None:
@@ -150,9 +151,33 @@ class vtkAtomicPositions(vtk3DGrid):
 
         return vtk_subugd
 
+    def add_scalar_property(self, data, name=None, active=True):
+
+        # Make sure data argument is a valid array
+        if not isinstance(data, np.ndarray):
+            data = np.array(data)
+
+        assert data.dtype == float and data.shape == (self.npoints,)
+
+        # Convert scalar properties to VTK array
+        npa2da = vtkDoubleArrayFromNumPyArray(data)
+        return vtkBaseGrid.add_scalar_data_array(self, npa2da, name, active)
+
+    def add_vector_property(self, data, name=None, active=True):
+
+        # Make sure data argument is a valid array
+        if not isinstance(data, np.ndarray):
+            data = np.array(data)
+
+        assert data.dtype == float and data.shape == (self.npoints,3,)
+
+        # Convert vector properties to VTK array
+        npa2da = vtkDoubleArrayFromNumPyArray(data)
+        return vtkBaseGrid.add_vector_data_array(self, npa2da, name, active)
+
 # -------------------------------------------------------------------
 
-class vtkOrthogonalGrid(vtk3DGrid):
+class vtkOrthogonalGrid(vtkBaseGrid):
     def __init__(self, elements, cell):
 
         # Make sure element argument is a valid array
@@ -162,7 +187,7 @@ class vtkOrthogonalGrid(vtk3DGrid):
         assert elements.dtype == int and elements.shape == (3,)
         self.elements = elements
 
-        vtk3DGrid.__init__(self, np.prod(self.elements), cell)
+        vtkBaseGrid.__init__(self, np.prod(self.elements), cell)
 
         # Create a VTK grid of structured points
         self.vtk_spts = vtkStructuredPoints()
@@ -170,11 +195,8 @@ class vtkOrthogonalGrid(vtk3DGrid):
         self.vtk_spts.SetDimensions(self.elements)
         self.vtk_spts.SetSpacing(self.get_grid_spacing())
 
-        # Assign the VTK array as point data of the grid
-        self.vtk_pointdata = self.vtk_spts.GetPointData()
-        self.vtk_pointdata.SetCopyScalars(False)
-        self.vtk_pointdata.SetCopyVectors(False)
-        self.vtk_pointdata.SetCopyNormals(False)
+        # Extract the VTK point data set
+        self.set_point_data(self.vtk_spts.GetPointData())
 
     def get_grid_spacing(self):
         return self.cell.get_grid_spacing(self.elements)
@@ -182,50 +204,27 @@ class vtkOrthogonalGrid(vtk3DGrid):
     def get_structured_points(self):
         return self.vtk_spts
 
-    def add_scalar_data(self, sca, name=None):
+    def add_scalar_field(self, data, name=None, active=True):
 
-        # TODO rewrite is crude - possibly use inheritance?
+        # Make sure data argument is a valid array
+        if not isinstance(data, np.ndarray):
+            data = np.array(data)
 
-        # Make sure sca argument is a valid array
-        if not isinstance(sca, np.ndarray):
-            sca = np.array(sca)
+        assert data.dtype == float and data.shape == tuple(self.elements)
 
-        assert sca.dtype == float and sca.shape == tuple(self.elements)
+        # Convert scalar field to VTK array
+        npa2da = vtkDoubleArrayFromNumPyMultiArray(data[...,np.newaxis])
+        return vtkBaseGrid.add_scalar_data_array(self, npa2da, name, active)
 
-        # Convert positions to VTK array
-        npy2da = vtkDoubleArrayFromNumPyMultiArray(sca[:,:,:,np.newaxis])
-        vtk_sda = npy2da.get_output()
-        del npy2da
+    def add_vector_field(self, data, name=None, active=True):
 
-        if name is not None:
-            vtk_sda.SetName(name)
+        # Make sure data argument is a valid array
+        if not isinstance(data, np.ndarray):
+            data = np.array(data)
 
-        # Add VTK array to VTK point data
-        self.vtk_pointdata.AddArray(vtk_sda)
-        if name is not None:
-            self.vtk_pointdata.SetActiveScalars(name)
+        assert data.dtype == float and data.shape == tuple(self.elements)+(3,)
 
-        return vtk_sda
-
-    def add_vector_data(self, vec, name=None):
-
-        # TODO rewrite is crude - possibly use inheritance?
-
-        # Make sure sca argument is a valid array
-        if not isinstance(vec, np.ndarray):
-            vec = np.array(vec)
-
-        assert vec.dtype == float and vec.shape == tuple(self.elements)+(3,)
-
-        # Convert vectors to VTK array
-        npy2da = vtkDoubleArrayFromNumPyMultiArray(vec)
-        vtk_vda = npy2da.get_output()
-        del npy2da
-
-        # Add VTK array to VTK point data
-        self.vtk_pointdata.AddArray(vtk_vda)
-        if name is not None:
-            self.vtk_pointdata.SetActiveScalars(name)
-
-        return vtk_vda
+        # Convert vector field to VTK array
+        npa2da = vtkDoubleArrayFromNumPyMultiArray(data)
+        return vtkBaseGrid.add_vector_data_array(self, npa2da, name, active)
 

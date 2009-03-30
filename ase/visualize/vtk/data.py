@@ -100,7 +100,7 @@ class vtkDataArrayFromNumPyArray(vtkDataArrayFromNumPyBuffer):
         if data.ndim == 1:
             data = data[:, np.newaxis]
         elif data.ndim != 2:
-            raise ValueError('Data must be a 2D NumPy array.')
+            raise ValueError('Data must be a 1D or 2D NumPy array.')
 
         if self.buffered:
             vtkDataArrayFromNumPyBuffer.read_numpy_array(self, data)
@@ -111,7 +111,6 @@ class vtkDataArrayFromNumPyArray(vtkDataArrayFromNumPyBuffer):
             for i, d_c in enumerate(data):
                 for c, d in enumerate(d_c):
                     self.vtk_da.SetComponent(i, c, d)
-
 
 class vtkFloatArrayFromNumPyArray(vtkDataArrayFromNumPyArray):
     def __init__(self, data):
@@ -150,7 +149,7 @@ class vtkDataArrayFromNumPyMultiArray(vtkDataArrayFromNumPyBuffer):
             data = data.astype(self.ctype)
 
         if data.ndim <=2:
-            raise Warning('Method is inefficient for 1D/2D NumPy arrays. ' +
+            raise Warning('This is inefficient for 1D and 2D NumPy arrays. ' +
                           'Use a vtkDataArrayFromNumPyArray subclass instead.')
 
         if self.buffered:

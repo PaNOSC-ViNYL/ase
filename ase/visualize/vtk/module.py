@@ -1,8 +1,8 @@
 
 import numpy as np
 
-from vtk import vtkProp3D, vtkPolyDataMapper, vtkActor, vtkPointSet, \
-                vtkGlyph3D, vtkRenderer
+from vtk import vtkProp3D, vtkPolyDataMapper, vtkActor, vtkLODActor, \
+                vtkPointSet, vtkGlyph3D, vtkRenderer
 from ase.visualize.vtk.sources import vtkCustomGlyphSource, \
                                       vtkClampedGlyphSource
 
@@ -27,10 +27,24 @@ class vtkModule:
 
 # -------------------------------------------------------------------
 
+class vtkLODModule(vtkModule):
+    vtk_actor_class = vtkLODActor
+
+    def get_lod(self):
+        return 100
+
+    def set_actor(self, vtk_act):
+        vtkModule.set_actor(self, vtk_act)
+
+        if isinstance(vtk_act, vtkLODActor):
+            vtk_act.SetNumberOfCloudPoints(self.get_lod())
+
 class vtkPolyDataModule(vtkModule):
+    vtk_actor_class = vtkActor
+
     def __init__(self, vtk_polydata, vtk_property=None):
 
-        vtkModule.__init__(self, vtkActor(), vtk_property)
+        vtkModule.__init__(self, self.vtk_actor_class(), vtk_property)
 
         self.vtk_dmap = vtkPolyDataMapper()
         self.vtk_dmap.SetInputConnection(vtk_polydata.GetOutputPort())

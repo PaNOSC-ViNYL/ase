@@ -61,9 +61,11 @@ class vtkAtoms(vtkModuleAnchor, vtkAtomicPositions):
     def add_forces(self):
         if self.has_forces():
             raise RuntimeError('Forces already present.')
+        elif self.has_velocities():
+            raise NotImplementedError('Can\'t add forces due to velocities.')
 
         # Add forces to VTK unstructured grid as vector data
-        vtk_fda = self.add_vector_data(self.atoms.get_forces(), 'force')
+        vtk_fda = self.add_vector_property(self.atoms.get_forces(), 'force')
 
         # Calculate max norm of the forces
         fmax = vtk_fda.GetMaxNorm()
@@ -78,9 +80,11 @@ class vtkAtoms(vtkModuleAnchor, vtkAtomicPositions):
     def add_velocities(self):
         if self.has_velocities():
             raise RuntimeError('Velocities already present.')
+        elif self.has_forces():
+            raise NotImplementedError('Can\'t add velocities due to forces.')
 
         # Add velocities to VTK unstructured grid as vector data
-        vtk_vda = self.add_vector_data(self.atoms.get_velocities(), 'velocity')
+        vtk_vda = self.add_vector_property(self.atoms.get_velocities(), 'velocity')
 
         # Calculate max norm of the velocities
         vmax = vtk_vda.GetMaxNorm()
@@ -90,5 +94,5 @@ class vtkAtoms(vtkModuleAnchor, vtkAtomicPositions):
 
         self.velocity = vtkGlyphModule(vtk_ugd, vtkVelocitySource(vmax, self.scale),
                                        scalemode='vector', colormode=None)
-        self.add_module('velocity', self.velocity) #TODO XXX active vector clash!
+        self.add_module('velocity', self.velocity)
 
