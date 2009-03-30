@@ -73,7 +73,7 @@ class vtkBaseGrid:
         elif isinstance(data, vtkDataArrayFromNumPyBuffer):
             vtk_vda = data.get_output()
         else:
-            raise ValueError('Data is not a valid scalar data array.')
+            raise ValueError('Data is not a valid vector data array.')
 
         del data
 
