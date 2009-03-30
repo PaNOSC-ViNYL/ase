@@ -38,7 +38,7 @@ Supported :mod:`calculators`:
 News
 ====
 
-* :ref:`ASE version 3.0 <download>` released (13 November 2008).
+* :ref:`ASE version 3.0 <download_and_install>` released (13 November 2008).
 
 * Asap_ version 3.0.2 released (15 October 2008).
 

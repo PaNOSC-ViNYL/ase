@@ -5,7 +5,7 @@ Contents
 * :ref:`Introduction  to ASE - what is it? <intro>`
 * :ref:`A quick demonstration of how to use ASE <overview>`
 * :ref:`Documentation for modules in ASE <ase>`
-* :ref:`Download and installation instructions <download>`
+* :ref:`Download and installation instructions <download_and_install>`
 * :ref:`tutorials`
 * :ref:`python_info`
 * :ref:`numpy`
