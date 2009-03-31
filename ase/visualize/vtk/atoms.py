@@ -1,7 +1,3 @@
-"""An experimental package for making plots during a simulation.
-
-A VTKPlotter can plot a list of atoms and most types of volume data.
-"""
 
 import numpy as np
 
@@ -12,6 +8,8 @@ from ase.visualize.vtk.sources import vtkAtomSource, vtkForceSource, \
 from ase.visualize.vtk.cell import vtkUnitCellModule, vtkAxesModule
 from ase.visualize.vtk.grid import vtkAtomicPositions
 from ase.visualize.vtk.module import vtkModuleAnchor, vtkGlyphModule
+
+# -------------------------------------------------------------------
 
 class vtkAtoms(vtkModuleAnchor, vtkAtomicPositions):
     def __init__(self, atoms, scale=1):

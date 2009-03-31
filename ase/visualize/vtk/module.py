@@ -6,6 +6,8 @@ from vtk import vtkProp3D, vtkPolyDataMapper, vtkActor, vtkLODActor, \
 from ase.visualize.vtk.sources import vtkCustomGlyphSource, \
                                       vtkClampedGlyphSource
 
+# -------------------------------------------------------------------
+
 class vtkModule:
     def __init__(self, vtk_act, vtk_property=None):
 

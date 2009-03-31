@@ -4,6 +4,8 @@ from numpy.ctypeslib import ctypes
 
 from vtk import vtkDataArray, vtkFloatArray, vtkDoubleArray
 
+# -------------------------------------------------------------------
+
 class vtkNumPyBuffer:
     def __init__(self, data):
         self.strbuf = data.tostring()

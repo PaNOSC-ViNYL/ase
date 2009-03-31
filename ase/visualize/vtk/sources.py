@@ -10,6 +10,8 @@ from ase.data.colors import jmol_colors as atomic_colors
 
 avg_radius = np.mean(atomic_radii[np.isfinite(atomic_radii)])
 
+# -------------------------------------------------------------------
+
 class vtkCustomGlyphSource:
     def __init__(self, scale, vtk_glyph_source):
         self.scale = scale
