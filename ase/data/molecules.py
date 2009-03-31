@@ -26,11 +26,10 @@ Data for extra systems are from CCCBDB: http://srdata.nist.gov/cccbdb/
 from ase.atoms import Atoms, string2symbols
 
 atoms = ['H','Li','Be','B','C','N','O','F','Na','Mg','Al','Si','P','S','Cl']
-molecules = ['Be2','C60','LiH','BeH','CH','CH2_s3B1d','CH2_s1A1d','CH3','CH4','NH','NH2','NH3','OH','H2O','HF','SiH2_s1A1d','SiH2_s3B1d','SiH3','SiH4','PH2','PH3','SH2','HCl','Li2','LiF','C2H2','C2H4','C2H6','CN','HCN','CO','HCO','H2CO','CH3OH','N2','N2H4','NO','O2','H2O2','F2','CO2','Na2','Si2','P2','S2','Cl2','NaCl','SiO','CS','SO','ClO','ClF','Si2H6','CH3Cl','CH3SH','HOCl','SO2','BF3','BCl3','AlF3','AlCl3','CF4','CCl4','OCS','CS2','COF2','SiF4','SiCl4','N2O','ClNO','NF3','PF3','O3','F2O','ClF3','C2F4','C2Cl4','CF3CN','C3H4_C3v','C3H4_D2d','C3H4_C2v','C3H6_Cs','C3H6_D3h','C3H8','butadiene','2-butyne','methylenecyclopropane','bicyclobutane','cyclobutene','cyclobutane','isobutene','trans-butane','isobutane','C5H8','C6H6','H2CF2','HCF3','H2CCl2','HCCl3','H3CNH2','CH3CN','CH3NO2','CH3ONO','CH3SiH3','HCOOH','HCOOCH3','CH3CONH2','CH2NHCH2','NCCN','C2H6NH','CH3CH2NH2','H2CCO','CH2OCH2','CH3CHO','OCHCHO','CH3CH2OH','CH3OCH3','CH2SCH2','C2H6SO','CH3CH2SH','CH3SCH3','H2CCHF','CH3CH2Cl','H2CCHCl','H2CCHCN','CH3COCH3','CH3COOH','CH3COF','CH3COCl','C3H7Cl','C2H6CHOH','CH3CH2OCH3','C3H9N','C4H4O','C4H4S','C4H4NH','C5H5N','H2','SH','CCH','C2H3','CH3CO','H2COH','CH3O','CH3CH2O','CH3S','C2H5','C3H7','C3H9C','NO2','Butadiene_1_2','Isoprene','Cyclopentane','n_Pentane','Neopentane','Cyclohexadiene_1_3','Cyclohexadiene_1_4','Cyclohexane','n_Hexane','Methyl_pentane_3','Toluene','n_Heptane','Cyclooctatetraene','n_Octane','Naphthalene','Azulene','Methyl_acetate','t_Butanol','Aniline','Phenol','Divinyl_ether','Tetrahydrofuran','Cyclopentanone','Benzoquinone_1_4','Pyrimidine','Dimethyl_sulfone','Chlorobenzene','Succinonitrile','Pyrazine','Acetyl_acetylene','Crotonaldehyde','Acetic_anhydride','Dihydrothiophene_2_5','Methyl_propanenitrile_2','Methyl_ethyl_ketone','Isobutyraldehyde','dioxane_1_4','Tetrahydrothiophene','t_Butyl_chloride','n_Butyl_chloride','Tetrahydropyrrole','Nitrobutane_2','Diethyl_ether','Dimethoxy_ethane_1_1','t_Butanethiol','Diethyl_disulfide','t_Butylamine','Tetramethylsilane','Methyl_thiophene','N_methyl_pyrrole','Tetrahydropyran','Diethyl_ketone','Isopropyl_acetate','Tetrahydrothiopyran','Piperidine','t_Butyl_methyl_ether','Difluorobenzene_1_3','Difluorobenzene_1_4','Fluorobenzene','Diisopropyl_ether','PF5','SF6','P4_Td','SO3_D3h','SCl2','POCl3','PCl5','SO2Cl2','PCl3','S2Cl2','SiCl2_1A1','CF3Cl','C2F6','CF3','Phenyl']
-extra = molecules[:2] # The extra systems
-g1 = molecules[2:57]  # The g1 molecules
-g2 = molecules[2:150] # The g2 molecules
-g3 = molecules[2:225] # The g3 molecules
+extra = ['Be2','C7NH5','BDA','biphenyl','C60']
+g1 = ['LiH','BeH','CH','CH2_s3B1d','CH2_s1A1d','CH3','CH4','NH','NH2','NH3','OH','H2O','HF','SiH2_s1A1d','SiH2_s3B1d','SiH3','SiH4','PH2','PH3','SH2','HCl','Li2','LiF','C2H2','C2H4','C2H6','CN','HCN','CO','HCO','H2CO','CH3OH','N2','N2H4','NO','O2','H2O2','F2','CO2','Na2','Si2','P2','S2','Cl2','NaCl','SiO','CS','SO','ClO','ClF','Si2H6','CH3Cl','CH3SH','HOCl','SO2']
+g2 = g1 + ['BF3','BCl3','AlF3','AlCl3','CF4','CCl4','OCS','CS2','COF2','SiF4','SiCl4','N2O','ClNO','NF3','PF3','O3','F2O','ClF3','C2F4','C2Cl4','CF3CN','C3H4_C3v','C3H4_D2d','C3H4_C2v','C3H6_Cs','C3H6_D3h','C3H8','butadiene','2-butyne','methylenecyclopropane','bicyclobutane','cyclobutene','cyclobutane','isobutene','trans-butane','isobutane','C5H8','C6H6','H2CF2','HCF3','H2CCl2','HCCl3','H3CNH2','CH3CN','CH3NO2','CH3ONO','CH3SiH3','HCOOH','HCOOCH3','CH3CONH2','CH2NHCH2','NCCN','C2H6NH','CH3CH2NH2','H2CCO','CH2OCH2','CH3CHO','OCHCHO','CH3CH2OH','CH3OCH3','CH2SCH2','C2H6SO','CH3CH2SH','CH3SCH3','H2CCHF','CH3CH2Cl','H2CCHCl','H2CCHCN','CH3COCH3','CH3COOH','CH3COF','CH3COCl','C3H7Cl','C2H6CHOH','CH3CH2OCH3','C3H9N','C4H4O','C4H4S','C4H4NH','C5H5N','H2','SH','CCH','C2H3','CH3CO','H2COH','CH3O','CH3CH2O','CH3S','C2H5','C3H7','C3H9C','NO2']
+g3 = g2 + ['Butadiene_1_2','Isoprene','Cyclopentane','n_Pentane','Neopentane','Cyclohexadiene_1_3','Cyclohexadiene_1_4','Cyclohexane','n_Hexane','Methyl_pentane_3','Toluene','n_Heptane','Cyclooctatetraene','n_Octane','Naphthalene','Azulene','Methyl_acetate','t_Butanol','Aniline','Phenol','Divinyl_ether','Tetrahydrofuran','Cyclopentanone','Benzoquinone_1_4','Pyrimidine','Dimethyl_sulfone','Chlorobenzene','Succinonitrile','Pyrazine','Acetyl_acetylene','Crotonaldehyde','Acetic_anhydride','Dihydrothiophene_2_5','Methyl_propanenitrile_2','Methyl_ethyl_ketone','Isobutyraldehyde','dioxane_1_4','Tetrahydrothiophene','t_Butyl_chloride','n_Butyl_chloride','Tetrahydropyrrole','Nitrobutane_2','Diethyl_ether','Dimethoxy_ethane_1_1','t_Butanethiol','Diethyl_disulfide','t_Butylamine','Tetramethylsilane','Methyl_thiophene','N_methyl_pyrrole','Tetrahydropyran','Diethyl_ketone','Isopropyl_acetate','Tetrahydrothiopyran','Piperidine','t_Butyl_methyl_ether','Difluorobenzene_1_3','Difluorobenzene_1_4','Fluorobenzene','Diisopropyl_ether','PF5','SF6','P4_Td','SO3_D3h','SCl2','POCl3','PCl5','SO2Cl2','PCl3','S2Cl2','SiCl2_1A1','CF3Cl','C2F6','CF3','Phenyl']
 
 data = {
 'H': {
@@ -121,6 +120,7 @@ data = {
 'C7NH5': {
     'description': "Benzonitride",
     'name': "C_7NH_5",
+    # PBE-gpaw relaxed
     'symbols': 'C7NH5',
     'magmoms': None,
     'positions': [[ -1.593581, -1.142601, 0.],
@@ -136,6 +136,56 @@ data = {
                   [  0.301694, -2.173705, 0.],
                   [  0.488716,  2.136782, 0.],
                   [ -1.987765,  2.240495, 0.]]},
+'BDA': {
+    'description': "Benzodiamine",
+    'name': "BDA",
+    # PBE-gpaw relaxed
+    'symbols': 'C6H4N2H4',
+    'magmoms': None,
+    'positions': [[ 0.004212,  1.406347,  0.061073],
+                  [ 1.193490,  0.687096,  0.029481],
+                  [ 1.190824, -0.690400, -0.028344],
+                  [ 0.000295, -1.406191, -0.059503],
+                  [-1.186974, -0.685668, -0.045413],
+                  [-1.185376,  0.690203,  0.009452],
+                  [ 2.147124,  1.219997,  0.064477],
+                  [ 2.141593, -1.227477, -0.054266],
+                  [-2.138408, -1.222814, -0.095050],
+                  [-2.137740,  1.226930,  0.023036],
+                  [-0.006314,  2.776024,  0.186278],
+                  [-0.007340, -2.777839, -0.159936],
+                  [ 0.844710, -3.256543,  0.110098],
+                  [-0.854965, -3.253324,  0.130125],
+                  [ 0.845826,  3.267270, -0.055549],
+                  [-0.854666,  3.254654, -0.092676]]},
+'biphenyl': {
+    'description': "Biphenyl",
+    'name': "biphenyl",
+    # PBE-gpaw relaxed
+    'symbols': 'C6H5C6H5',
+    'magmoms': None,
+    'positions': [[-0.74081, -0.00000, -0.00003],
+                  [-1.46261, -1.20370, -0.00993],
+                  [-2.85531, -1.20350, -0.00663],
+                  [-3.55761, -0.00000, -0.00003],
+                  [-2.85531,  1.20350,  0.00667],
+                  [-1.46261,  1.20370,  0.00997],
+                  [-0.92071, -2.14850,  0.00967],
+                  [-3.38981, -2.15110, -0.00083],
+                  [-4.64571, -0.00000, -0.00003],
+                  [-3.38981,  2.15110,  0.00077],
+                  [-0.92071,  2.14850, -0.00963],
+                  [ 3.55849, -0.00000, -0.00003],
+                  [ 2.85509, -0.86640, -0.83553],
+                  [ 1.46289, -0.87000, -0.83153],
+                  [ 0.73969, -0.00000, -0.00003],
+                  [ 1.46289,  0.87000,  0.83157],
+                  [ 2.85509,  0.86640,  0.83547],
+                  [ 4.64659, -0.00000, -0.00003],
+                  [ 3.39189, -1.53770, -1.50253],
+                  [ 0.91869, -1.53310, -1.50263],
+                  [ 0.91869,  1.53310,  1.50267],
+                  [ 3.39189,  1.53770,  1.50257]]},
 'C60': {
     'description': "Buckminsterfullerene, I*h symm.",
     'name': "C_{60}",
