@@ -208,7 +208,11 @@ class SinglePointCalculator:
         
 
 def numeric_force(atoms, a, i, d=0.001):
-    """Evaluate forces usinf finite difference formula."""
+    """Evaluate force along i'th axis on a'th atom using finite difference.
+
+    This will trigger two calls to get_potential_energy(), with atom a moved
+    plus/minus d in the i'th axial direction, respectively.
+    """
     p0 = atoms.positions[a, i]
     atoms.positions[a, i] += d
     eplus = atoms.get_potential_energy()
@@ -217,6 +221,24 @@ def numeric_force(atoms, a, i, d=0.001):
     atoms.positions[a, i] = p0
     return (eminus - eplus) / (2 * d)
 
+
+def numeric_forces(atoms, indices=None, axes=(0, 1, 2), d=0.001):
+    """Evaluate finite-difference forces on several atoms.
+
+    Returns an array of forces for each specified atomic index and
+    each specified axis, calculated using finite difference on each
+    atom and direction separately.  Array has same shape as if
+    returned from atoms.get_forces(); uncalculated elements are zero.
+
+    Calculates all forces by default."""
+
+    if indices is None:
+        indices = range(len(atoms))
+    F_ai = np.zeros_like(atoms.positions)
+    for a in indices:
+        for i in axes:
+            F_ai[a, i] = numeric_force(atoms, a, i, d)
+    return F_ai
 
 class TestPotential:
     def get_forces(self, atoms):
