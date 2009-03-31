@@ -120,7 +120,6 @@ data = {
 'C7NH5': {
     'description': "Benzonitride",
     'name': "C_7NH_5",
-    # PBE-gpaw relaxed
     'symbols': 'C7NH5',
     'magmoms': None,
     'positions': [[ -1.593581, -1.142601, 0.],
