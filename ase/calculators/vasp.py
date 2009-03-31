@@ -12,6 +12,9 @@ to a python script looking something like::
    import os
    exitcode = os.system('vasp')
 
+Alternatively, user can set the environmental flag $VASP_COMMAND pointing
+to the command use the launch vasp e.g. 'vasp' or 'mpirun -n 16 vasp'
+
 http://cms.mpi.univie.ac.at/vasp/
 
 -Jonas Bjork j.bjork@liverpool.ac.uk
@@ -311,10 +314,16 @@ class Vasp:
         elif isinstance(p['txt'], str):
             sys.stderr = open(p['txt'], 'w')
 
-        vasp = os.environ['VASP_SCRIPT']
-        locals={}
-        execfile(vasp, {}, locals)
-        exitcode = locals['exitcode']
+        if os.environ.has_key('VASP_COMMAND'):
+            vasp = os.environ['VASP_COMMAND']
+            exitcode = os.system(vasp)
+        elif os.environ.has_key('VASP_SCRIPT'):
+            vasp = os.environ['VASP_SCRIPT']
+            locals={}
+            execfile(vasp, {}, locals)
+            exitcode = locals['exitcode']
+        else:
+            raise RuntimeError('Please set either VASP_COMMAND or VASP_SCRIPT environment variable')
         sys.stderr = stderr
         if exitcode != 0:
             raise RuntimeError('Vasp exited with exit code: %d.  ' % exitcode)
@@ -423,7 +432,7 @@ class Vasp:
         
     def get_magnetic_moments(self, atoms):
         p=self.incar_parameters
-        if p['lorbit']>=10 or (p['lorbit']!=None and p['rwigs']):
+        if p['lorbit']>=10 or p['rwigs']:
             self.update(atoms)
             return self.magnetic_moments
         else:
@@ -456,7 +465,7 @@ class Vasp:
                     [incar.write('%i ' % x) for x in val]
                 elif key == 'rwigs':
                     [incar.write('%.4f ' % rwigs) for rwigs in val]
-                    if len(val) != self.natoms:
+                    if len(val) != len(self.symbol_count):
                         raise RuntimeError('Incorrect number of magnetic moments')
                 else:
                     if type(val)==type(bool()):
