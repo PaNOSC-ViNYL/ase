@@ -25,6 +25,7 @@ Topics:
 
    code
    writing_documentation_ase
+   newrelease
    tests
    todo
 
