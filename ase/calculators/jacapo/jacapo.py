@@ -1,13 +1,15 @@
 '''
 python module for ASE2 and Numeric free dacapo
 
-U{John Kitchin<mailto:jkitchin@andrew.cmu.edu>} December 25, 2008
+`John Kitchin <mailto::jkitchin@andrew.cmu.edu>`_ December 25, 2008
 
 This module supports numpy directly.
 
 * ScientificPython2.8 is required
 
  - this is the first version to use numpy by default.
+
+no support for stayalive yet.
 
 see https://wiki.fysik.dtu.dk/stuff/nc/ for dacapo netcdf variable
 documentation
@@ -208,9 +210,6 @@ class Jacapo:
             self._set_frame_number()
             self.set_atoms(self.read_only_atoms(nc))
 
-            # we already have atoms, energy, and forces in nc file. If we change atoms from here, we need to append.
-            self._increment_frame()
-            
             #assume here if you read atoms in, it is ready.
             #later when calculation required is checked
             # a calculation will be run if required.
@@ -593,9 +592,12 @@ class Jacapo:
 
         :Parameters:
 
-         kpts : (n1,n2,n3) or [k1,k2,k3,...]
-           (n1,n2,n3) creates an n1 x n2 x n3 monkhorst-pack grid, [k1,k2,k3,...] creates a kpt-grid based on the kpoints in k1,k2,k3,...
+         kpts : (n1,n2,n3)
+           Creates an n1 x n2 x n3 monkhorst-pack grid
 
+         kpts : [k1,k2,k3,...]
+           Creates a kpt-grid based on the kpoints in k1,k2,k3,...
+        
         eventually I would like to support::
 
           kpts=(3,3,3) #MonkhorstPack grid
@@ -663,6 +665,11 @@ class Jacapo:
             ASE.Atoms instance
           
         '''
+        if hasattr(self,'atoms') and self.atoms is not None:
+            # some atoms already exist. Test if new atoms are different from old atoms.
+            if atoms != self.atoms:
+                # the new atoms are different from the old ones. Start a new frame.
+                self._increment_frame()
         self.atoms = atoms.copy()
         self.write_nc(atoms=atoms)
         
@@ -1330,8 +1337,9 @@ class Jacapo:
                 soft.append(nc.dimensions[sd])
                 hard.append(nc.dimensions[hd])
 
+        nc.close()
         return (soft,hard)
-        
+
     def get_kpts(self):
         'return the kpt grid, not the kpts'
         nc = netCDF(self.nc,'r')
@@ -1710,15 +1718,12 @@ class Jacapo:
                 print output
                 self.ready = False
             del self._dacapo
-        self._increment_frame()
         # directory cleanup has been moved to self.__del__()
 
     def execute_external_dynamics(self,nc=None,txt=None,stoppfile='stop',stopprogram=None):
-        '''
-        Implementation of the stay alive functionality with socket communication between dacapo and python.
-        Known limitations: It is not possible to start 2 independent Dacapo calculators from the same python process,
-        since the python PID is used as identifier for the script[PID].py file.
-        '''
+        """ Implementation of the stay alive functionality with socket communication between dacapo and python.
+            Known limitations: It is not possible to start 2 independent Dacapo calculators from the same python process,
+                               since the python PID is used as identifier for the script[PID].py file."""
         from socket import socket,AF_INET,SOCK_STREAM,timeout
         import tempfile
         import os
@@ -1904,7 +1909,7 @@ s.recv(14)
                     dnatoms = ncf.createDimension('number_of_dynamic_atoms',
                                                   len(atoms)) 
                     dionsteps = ncf.createDimension('number_ionic_steps',None)
-                    self._set_frame_number(1)
+                    self._set_frame_number(0)
                     ncf.close() #nc file must be closed for restart to work correctly
                     self.restart()
                     ncf = netCDF(nc,'a')
@@ -2625,12 +2630,10 @@ s.recv(14)
             
         nc = netCDF(self.get_nc(),'r')
         efp = np.transpose(nc.variables['EffectivePotential'][:][spin])
-        h1 = nc.dimensions['hardgrid_dim1']
-        h2 = nc.dimensions['hardgrid_dim2']
-        h3 = nc.dimensions['hardgrid_dim3']
         nc.close()
+        (softgrid,hardgrid) = self.get_fftgrid()
 
-        x,y,z = self.get_ucgrid((h1,h2,h3))
+        x,y,z = self.get_ucgrid(hardgrid)
         return (x,y,z,efp)
         
     def get_electrostatic_potential(self,spin=0):
@@ -2652,13 +2655,10 @@ s.recv(14)
             
         nc = netCDF(self.get_nc(),'r')
         esp = np.transpose(nc.variables['ElectrostaticPotential'][:][spin])
-        
-        h1 = nc.dimensions['hardgrid_dim1']
-        h2 = nc.dimensions['hardgrid_dim2']
-        h3 = nc.dimensions['hardgrid_dim3']
         nc.close()
+        (softgrid,hardgrid) = self.get_fftgrid()
 
-        x,y,z = self.get_ucgrid((h1,h2,h3))
+        x,y,z = self.get_ucgrid(hardgrid)
         
         return (x,y,z,esp)
     
@@ -2689,13 +2689,10 @@ s.recv(14)
         #it does give units of electrons/ang**3
         vol = self.get_atoms().get_volume()
         cd /= vol
-        
-        h1 = nc.dimensions['hardgrid_dim1']
-        h2 = nc.dimensions['hardgrid_dim2']
-        h3 = nc.dimensions['hardgrid_dim3']
         nc.close()
+        (softgrid,hardgrid) = self.get_fftgrid()
 
-        x,y,z = self.get_ucgrid((h1,h2,h3))
+        x,y,z = self.get_ucgrid(hardgrid)
         return x,y,z,cd
 
     def get_ucgrid(self,dims):
@@ -2731,54 +2728,55 @@ s.recv(14)
         RZ = np.reshape(real[:,2],(n0,n1,n2))
         return (RX, RY, RZ)
 
-    ###Wannier function code, uses legacyASE2
     def get_number_of_grid_points(self):
-        #this is clunky. I think it should be the fft grid shape
-        return np.array(self.get_pseudo_wave_function(0, 0, 0).shape)
+        # needed by ase.dft.wannier
+        (softgrid,hardgrid) = self.get_fftgrid()
+        return np.array(softgrid)
     
-    def get_pseudo_wave_function(self,
-                                 band=0,
-                                 kpt=0,
-                                 spin=0,
-                                 pad=True):
-        '''
-        ase requires the get_pseudo-wave_function method for wannier
-        analysis. I am not sure how this is different than get_wf
-        '''
-        
-        if self.calculation_required():
-            self.calculate()
-
-        from legacyASE2 import get_pseudo_wave_function
-        pwf = get_pseudo_wave_function(self.nc,band,kpt,spin,pad)
-        return pwf
-
     def get_wannier_localization_matrix(self, nbands, dirG, kpoint,
                                         nextkpoint, G_I, spin):
-        
+
         if self.calculation_required():
             self.calculate()
 
-        from legacyASE2 import get_wannier_localization_matrix
-        locmat = get_wannier_localization_matrix(self.nc,nbands, dirG, kpoint,
-                                        nextkpoint, G_I, spin)
+        if not hasattr(self,'wannier'):
+            from ase.calculators.jacapo.wannier import Wannier
+            self.wannier = Wannier(self)
+            self.wannier.set_bands(nbands)
+            self.wannier.set_spin(spin)
+        locmat = self.wannier.get_zi_bloch_matrix(dirG,kpoint,nextkpoint,G_I)
         return locmat
 
-    def initial_wannier(self, initialwannier, kpointgrid, fixedstates,
-                        edf, spin):
-        
+    def initial_wannier(self,
+                        initialwannier,
+                        kpointgrid,
+                        fixedstates,
+                        edf,
+                        spin):
+
+        print "Calling calc.initial_wannier"
         if self.calculation_required():
             self.calculate()
-            
-        from legacyASE2 import initial_wannier
 
-        c,U = initial_wannier(self.nc,
-                              initialwannier,
-                              kpointgrid,
-                              fixedstates,
-                              edf,
-                              spin)
-        return c,U
+        if not hasattr(self,'wannier'):
+            from Jacapo.wannier import Wannier
+            self.wannier = Wannier(self)
+
+        self.wannier.set_data(initialwannier)
+        self.wannier.set_k_point_grid(kpointgrid)
+        self.wannier.set_spin(spin)
+
+        waves = [[self.get_reciprocal_bloch_function(band=band,kpt=kpt,spin=spin)
+                  for band in range(self.get_nbands())]
+                  for kpt in range(len(self.get_ibz_k_points()))]
+
+        self.wannier.setup_m_matrix(waves,self.get_bz_k_points())
+        c, U = self.wannier.get_list_of_coefficients_and_rotation_matrices((self.get_nbands(), fixedstates, edf))
+
+        U = np.array(U)
+        for k in range(len(c)):
+            c[k] = np.array(c[k])
+        return c, U
 
     def get_dipole_moment(self):
         '''
@@ -2809,115 +2807,92 @@ s.recv(14)
         
         raise NotImplementedError
     
-        
-    def get_wave_function(self,
-               band=0,
-               kpt=0,
-               spin=0):
-        '''
-        return the wavefunction'''
+    def get_reciprocal_bloch_function(self,band=0,kpt=0,spin=0):
+        '''return the reciprocal bloch function. Need for Jacapo Wannier class.'''
         if self.calculation_required():
             self.calculate()
 
-        ### leftover ASE2 code!!!
-        # this is very complicated code I haven't figured out yet
-        from legacyASE2 import get_wf
-        wf = np.asarray(get_wf(self.nc,band,kpt,spin))
+        nc = netCDF(self.get_nc(),'r')
 
-        nc = netCDF(self.nc,'r')
+        # read reciprocal bloch function
+        npw = nc.variables['NumberPlaneWavesKpoint'][:]
+        bf = nc.variables['WaveFunction'][kpt,spin,band]
+        wflist = np.zeros(npw[kpt],np.complex)
+        wflist.real = bf[0:npw[kpt],1]
+        wflist.imag = bf[0:npw[kpt],0]
 
-        n1 = nc.dimensions['softgrid_dim1']
-        n2 = nc.dimensions['softgrid_dim2']
-        n3 = nc.dimensions['softgrid_dim3']
+        nc.close()
 
-        x,y,z = self.get_ucgrid((n1,n2,n3))
-        return x,y,z,wf
+        return wflist
 
-###########################################################################
-#### do not delete - I started writing this, but have not finished it #####
-###########################################################################
-##    def get_wf(self,
-##               band=0,
-##               kpt=0,
-##               spin=0):
-##        '''
-##        return the data for a wave function of a single eigenstate
+    def get_reciprocal_fft_index(self,kpt=0):
+        '''return the Wave Function FFT Index'''
+        nc = netCDF(self.get_nc(),'r')
+        recind = nc.variables['WaveFunctionFFTindex'][kpt,:,:]
+        nc.close()
+        return recind
 
-##        kpt is the index of the IBZkpoints
-##        spin is 0 or 1
+    def get_pseudo_wave_function(self,band=0,kpt=0,spin=0,pad=True):
 
-##        the old Dacapo pseudocode is:
+        '''return the pseudo wavefunction'''
+        # pad=True does nothing here.
+        if self.calculation_required():
+            self.calculate()
 
-##        wf = Dacapo.WaveFunction(calc)
-##          read unit cell
-##          get kpoint coordinates from ibzkpoints
-##        wf.ReadFromNetCDFFile()
-##          read number of planewaves
-##          ReadBlochFunction
-##            read ReciprocalBlochFunction
-##              get ncWaveFunction
-##              separate real and imaginary parts in wflist
-##              get softgrid dimensions
-##              get ncWaveFunctionFFTindex
-##            getReciprocalBlochFunctionGrid
-##            SetGridValues(FFT(reciprocalgrid))
-              
-##          get reciprocalblochfunctiongrid
-##        wf.set(band,kpt,spin)
-##        wf.GetReciprocalBlochFunction()
-##        '''
-##        self.calculate()
-##        nc = netCDF(self.get_nc(),'r')
+        ibz = self.get_ibz_kpoints()
 
-##        ibz = self.get_ibzkpoints()
+        #get the reciprocal bloch function
+        wflist = self.get_reciprocal_bloch_function(band=band,kpt=kpt,spin=spin)
+        # wflist == Reciprocal Bloch Function
+ 
+        recind = self. get_reciprocal_fft_index(kpt)
+        (softgrid,hardgrid) = self.get_fftgrid() 
 
-##        #read bloch function
-##        #first read reciprocal bloch function
-##        rbf = nc.variables['WaveFunction'][:][kpt,spin,band]
-##        npw = nc.variables['NumberPlaneWavesKpoint'][:]
+        # GetReciprocalBlochFunctionGrid
+        wfrec = np.zeros((softgrid),np.complex) 
+
+        for i in xrange(len(wflist)):
+            wfrec[recind[0,i]-1,
+                  recind[1,i]-1,
+                  recind[2,i]-1] = wflist[i]
+
+        # calculate Bloch Function
+        wf = wfrec.copy() 
+        dim=wf.shape
+        for i in range(len(dim)):
+            wf=np.fft.fft(wf,dim[i],axis=i)
+
+        #now the phase function to get the bloch phase
+        basis = self.get_atoms().get_cell()
+        kpoint = np.dot(ibz[kpt],basis) #coordinates of relevant kpoint in cartesian coordinates
+        def phasefunction(coor):
+            pf = np.exp(1.0j*np.dot(kpoint,coor))
+            return pf
+
+        # Calculating the Bloch phase at the origin (0,0,0) of the grid
+        origin = np.array([0.,0.,0.])
+        blochphase=phasefunction(origin)
+        spatialshape = wf.shape[-len(basis):]
+        gridunitvectors=np.array(map(lambda unitvector,shape:unitvector/shape,basis,spatialshape))
+
+        for dim in range(len(spatialshape)):
+            # Multiplying with the phase at the origin
+            deltaphase=phasefunction(gridunitvectors[dim])
+            # and calculating phase difference between each point
+            newphase=np.fromfunction(lambda i,phase=deltaphase:phase**i,(spatialshape[dim],))
+            blochphase=np.multiply.outer(blochphase,newphase)
+
+        return blochphase*wf
+
+    def get_wave_function(self,band=0,kpt=0,spin=0):
+        '''return the wave function. This is the pseudo wave function divided by volume.'''
         
-##        wflist = np.zeros(npw[kpt],np.complex)
-##        wflist.real = bf[0:npw[kpt],1]
-##        wflist.imag = bf[0:npw[kpt],0]
+        pwf = self.get_pseudo_wave_function(band=band,kpt=kpt,spin=spin,pad=True)
+        vol = self.get_atoms().get_volume()
+        (softgrid,hardgrid) = self.get_fftgrid()
+        x,y,z = self.get_ucgrid((softgrid))
 
-##        N1 = len(nc.dimensions['softgrid_dim1'])
-##        N2 = len(nc.dimensions['softgrid_dim2'])
-##        N3 = len(nc.dimensions['softgrid_dim3'])
-
-##        wfrec = np.zeros([N1,N2,N3],np.complex)
-
-##        recind = nc.variables['WaveFunctionFFTindex'][:][kpt,:,:]
-##        #ReadBlochFunction line 3
-##        #reciprocal = self.GetReciprocalBlochFunctionGrid()
-
-##        for i in range(len(wflist)):
-##            wfrec[recind[0,i]-1,
-##                  recind[1,i]-1,
-##                  recind[2,i]-1] = wflist[i]
-        
-##        #ReadBlochFunction line 4
-##        #self.SetGridValues(ArrayTools.FFT(reciprocal))
-##        #FFT is a Numeric function
-##        wf = np.fft(wfrec)
-
-##        #now the phase function to get the bloch phase
-##        kpoint = ibz[kpt] #coordinates of relevant kpoint
-##        def phasefunction(coor):
-##            pf = np.exp(1.0j*np.dot(coor,kpoint))
-##            return pf
-
-##        #i am lost here. it is complicate code in WaveFunction.py
-##        #I am pretty sure the origin is always (0,0,0)
-
-##        atoms = self.get_atoms()
-##        vol = atoms.get_volume()
-##        #eventually I want to return data that can be plotted
-##        #in vtk
-##        #return blochphase*blochfunction/sqrt(vol)
-        
-##        nc.close()
-
-
+        return x,y,z,pwf/np.sqrt(vol)
 
     def strip(self):
         '''remove all large memory nc variables not needed for

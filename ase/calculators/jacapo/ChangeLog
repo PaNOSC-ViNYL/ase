@@ -1,3 +1,20 @@
+2009-04-02  Lars C Grabow <grabow@fysik.dtu.dk>
+
+        * jacapo.py (Jacapo.initial_wannier): uses wannier.py instead of legacyASE2.py 
+          (Jacapo.get_wannier_localization_matrix): uses wannier.py instead of legacyASE2.py
+          (Jacapo.get_pseudo_wave_function): new implementation without legacyASE2.py
+          (Jacapo.get_wave_function): new implementation without legacyASE2.py
+          (Jacapo.get_fftgrid): closed open nc file.
+          (Jacapo.set_atoms): fixed the frame pointer bug
+          (Jacapo.calculate): fixed the frame pointer bug
+          (Jacapo.__init__): fixed the frame pointer bug
+          (Jacapo.get_effective_potential): using get_fftgrid() to get hardgrid
+          (Jacapo.get_electrostatic_potential): using get_fftgrid() to get hardgrid
+          (Jacapo.get_charge_density): using get_fftgrid() to get hardgrid
+         * wannier.py: added.
+         * legacyASE2.py: removed.
+         * version.py: changed version number to 0.6.7
+
 2009-03-24  Lars C Grabow <grabow@fysik.dtu.dk>
 
         * jacapo.py (__init__, __del__, _set_frame_number, _increment_frame, calculate, execute_external_dynamics, write_nc):
