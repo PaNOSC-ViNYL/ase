@@ -9,8 +9,6 @@ This module supports numpy directly.
 
  - this is the first version to use numpy by default.
 
-no support for stayalive yet.
-
 see https://wiki.fysik.dtu.dk/stuff/nc/ for dacapo netcdf variable
 documentation
 '''
