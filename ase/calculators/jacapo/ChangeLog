@@ -11,7 +11,7 @@
           (Jacapo.get_effective_potential): using get_fftgrid() to get hardgrid
           (Jacapo.get_electrostatic_potential): using get_fftgrid() to get hardgrid
           (Jacapo.get_charge_density): using get_fftgrid() to get hardgrid
-         * wannier.py: added.
+         * utils/wannier.py: added.
          * legacyASE2.py: removed.
          * version.py: changed version number to 0.6.7
 

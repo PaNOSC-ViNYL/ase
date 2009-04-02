@@ -2737,7 +2737,7 @@ s.recv(14)
             self.calculate()
 
         if not hasattr(self,'wannier'):
-            from ase.calculators.jacapo.wannier import Wannier
+            from utils.wannier import Wannier
             self.wannier = Wannier(self)
             self.wannier.set_bands(nbands)
             self.wannier.set_spin(spin)
@@ -2751,12 +2751,11 @@ s.recv(14)
                         edf,
                         spin):
 
-        print "Calling calc.initial_wannier"
         if self.calculation_required():
             self.calculate()
 
         if not hasattr(self,'wannier'):
-            from Jacapo.wannier import Wannier
+            from utils.wannier import Wannier
             self.wannier = Wannier(self)
 
         self.wannier.set_data(initialwannier)
