@@ -1,7 +1,7 @@
 '''
 python module for ASE2 and Numeric free dacapo
 
-`John Kitchin <mailto::jkitchin@andrew.cmu.edu>`_ December 25, 2008
+U{John Kitchin<mailto:jkitchin@andrew.cmu.edu>} December 25, 2008
 
 This module supports numpy directly.
 
@@ -590,11 +590,8 @@ class Jacapo:
 
         :Parameters:
 
-         kpts : (n1,n2,n3)
-           Creates an n1 x n2 x n3 monkhorst-pack grid
-
-         kpts : [k1,k2,k3,...]
-           Creates a kpt-grid based on the kpoints in k1,k2,k3,...
+         kpts : (n1,n2,n3) or [k1,k2,k3,...] 
+           (n1,n2,n3) creates an n1 x n2 x n3 monkhorst-pack grid, [k1,k2,k3,...] creates a kpt-grid based on the kpoints in k1,k2,k3,... 
         
         eventually I would like to support::
 
@@ -1719,9 +1716,11 @@ class Jacapo:
         # directory cleanup has been moved to self.__del__()
 
     def execute_external_dynamics(self,nc=None,txt=None,stoppfile='stop',stopprogram=None):
-        """ Implementation of the stay alive functionality with socket communication between dacapo and python.
-            Known limitations: It is not possible to start 2 independent Dacapo calculators from the same python process,
-                               since the python PID is used as identifier for the script[PID].py file."""
+        '''
+        Implementation of the stay alive functionality with socket communication between dacapo and python.
+        Known limitations: It is not possible to start 2 independent Dacapo calculators from the same python process,
+        since the python PID is used as identifier for the script[PID].py file.
+        '''
         from socket import socket,AF_INET,SOCK_STREAM,timeout
         import tempfile
         import os
