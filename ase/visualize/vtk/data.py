@@ -4,6 +4,17 @@ from numpy.ctypeslib import ctypes
 
 from vtk import vtkDataArray, vtkFloatArray, vtkDoubleArray
 
+if ctypes is None:
+    class CTypesEmulator:
+        def __init__(self):
+            self._SimpleCData = np.number
+            self.c_float = np.float32
+            self.c_double = np.float64
+    try:
+        import ctypes
+    except ImportError:
+        ctypes = CTypesEmulator()
+
 # -------------------------------------------------------------------
 
 class vtkNumPyBuffer:
