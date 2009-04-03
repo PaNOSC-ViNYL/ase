@@ -33,7 +33,7 @@ class vtkAtoms(vtkModuleAnchor, vtkAtomicPositions):
             if mask.all():
                 subset = None
             else:
-                subset = np.argwhere(mask)
+                subset = np.argwhere(mask).ravel()
 
             # Get relevant VTK unstructured grid
             vtk_ugd = self.get_unstructured_grid(subset)
