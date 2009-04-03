@@ -1,30 +1,37 @@
-from ase.atoms import Atoms
+import numpy as np 
+
+from ase.atoms import Atom, Atoms
 from ase.parallel import paropen
 
 """Module to read and write atoms in PDB file format"""
 
 
 def read_pdb(fileobj, index=-1):
+    """Read PDB files.
+
+    The format is assumed to follow the description given in
+    http://www.wwpdb.org/documentation/format32/sect9.html."""
     if isinstance(fileobj, str):
         fileobj = open(fileobj)
 
-    positions = []
-    symbols = []
+    atoms = Atoms()
     for line in fileobj.readlines():
         if line.startswith('ATOM'):
-            words = line.split()
-            symbol = ''
-            for s in words[2]:
-                if not s.isdigit():
-                    if len(symbol):
-                        symbol += s.lower()
-                    else:
-                        symbol += s.upper()
-            symbols.append(symbol)
-            positions.append([float(words[4]), 
-                              float(words[5]),
-                              float(words[6])])
-    return Atoms(symbols=symbols, positions=positions)
+            try:
+                symbol = line[12:16].strip()
+                # we assume that the second character is a label 
+                # in case that it is upper case
+                if len(symbol) > 1 and symbol[1].isupper():
+                    symbol = symbol[0]
+                words = line[30:55].split()
+                position = np.array([float(words[0]), 
+                                     float(words[1]),
+                                     float(words[2])])
+                atoms.append(Atom(symbol, position))
+            except:
+                pass
+
+    return atoms
 
 def write_pdb(fileobj, images):
     """Write images to PDB-file."""
