@@ -45,14 +45,11 @@ First, you should take a look at the documentation for Sphinx_ and
 reStructuredText_.
 
 If you don't already have your own copy of the ASE package, then get
-that first::
-
-  $ svn checkout https://svn.fysik.dtu.dk/projects/ase/trunk ase
-  $ cd ase
+the :ref:`latest_development_release`.
 
 Then :command:`cd` to the :file:`doc` directory and build the html-pages::
 
-  $ cd doc
+  $ cd ase/doc
   $ sphinx-build . _build
 
 Make your changes to the ``.rst`` files, run the

@@ -2,18 +2,18 @@
 Contents
 ========
 
-* :ref:`Introduction  to ASE - what is it? <intro>`
-* :ref:`A quick demonstration of how to use ASE <overview>`
-* :ref:`Documentation for modules in ASE <ase>`
+* :ref:`Introduction  to ASE - what is it? <overview>`
 * :ref:`Download and installation instructions <download_and_install>`
 * :ref:`tutorials`
-* :ref:`python_info`
-* :ref:`numpy`
+* :ref:`Documentation for modules in ASE <ase>`
 * :ref:`faq`
-* :ref:`bugs`
-* :ref:`devel`
-* :ref:`ase2`
+* :ref:`mailing_lists`
 * :ref:`glossary`
+
+* :ref:`devel`
+* :ref:`bugs`
+
+* :ref:`ase2`
 
 
 The complete table of contents:
@@ -21,16 +21,16 @@ The complete table of contents:
 .. toctree::
 
    index
-   intro
    overview
    download
-   ase/ase
    tutorials/tutorials
-   exercises/exercises	
-   python
-   numpy
-   oldase
-   bugs
+   ase/ase
    faq
-   development/development
    glossary
+   mailinglists
+
+   development/development
+   bugs
+
+   oldase
+

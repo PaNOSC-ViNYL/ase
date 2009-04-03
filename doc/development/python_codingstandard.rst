@@ -1,6 +1,8 @@
-============
-Writing code
-============
+.. _python_codingstandard:
+
+==================
+Coding Conventions
+==================
 
 Importing modules
 =================
@@ -12,18 +14,16 @@ found in the examples and tutorials, we use::
 
 which gives us the most used symbols.
 
-I code, like the implementation of ASE, we should *not* use the
+I code, like the implementation of ASE, we must *not* use the
 ``import *`` syntax.  Import everthing explicitly from exactly the
 place where it's defined::
 
   from ase.io import read, write
 
-
-
 Python Coding Conventions
 =========================
 
-The rules for the ASE code are almost identical
+The rules for the Python part are almost identical
 to those used by the `Docutils project`_:
 
 Contributed code will not be refused merely because it does not
@@ -32,11 +32,13 @@ consistent, clean, and correct, it probably will be accepted.  But
 don't be surprised if the "offending" code gets fiddled over time to
 conform to these conventions.
 
-The ASE project shall follow the generic coding conventions as
+The project shall follow the generic coding conventions as
 specified in the `Style Guide for Python Code`_ and `Docstring
 Conventions`_ PEPs, summarized, clarified, and extended as follows:
 
 * 4 spaces per indentation level.  No hard tabs.
+
+* Avoid introducing `trailing whitespaces <http://www.gnu.org/software/emacs/manual/html_node/emacs/Useless-Whitespace.html>`_.
 
 * Try to use only 7-bit ASCII, no 8-bit strings.
 
@@ -84,10 +86,14 @@ Conventions`_ PEPs, summarized, clarified, and extended as follows:
 
                                           Georg Brandl
 
-
 General advice
 ==============
 
  * Get rid of as many ``break`` and ``continue`` statements as possible.
 
+Writing documentation in the code
+=================================
 
+Here is an example of how to write good docstrings:
+
+  http://projects.scipy.org/numpy/browser/trunk/doc/example.py

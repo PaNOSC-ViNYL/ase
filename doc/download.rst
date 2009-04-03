@@ -70,6 +70,8 @@ Release Date        Retrieve as svn checkout                    Retrieve as tarb
 .. _python-ase-3.0.0.657.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.0.0.657.tar.gz
 
+.. _latest_development_release:
+
 Latest development release
 ==========================
 
@@ -135,7 +137,8 @@ directory (preferably using bash)::
    The last test :trac:`ase/test/COCu111.py` requires closing
    the graphics windows to terminate the whole test-suite.
 
-If any of the tests fail, then let us know on the :ref:`ml` - please send us :file:`testase.log`.
+If any of the tests fail,
+then please send us :file:`testase.log` (see :ref:`bugs`).
 
 .. note::
 
@@ -144,12 +147,3 @@ If any of the tests fail, then let us know on the :ref:`ml` - please send us :fi
 
      $ testase.py --no-display
 
-.. index:: License, GPL
-
-License
-=======
-
-The CAMPOS Atomic Simulation Environment is released under the GNU
-Public License version 2.  See the file :trac:`LICENSE` which
-accompanies the downloaded files, or see the license at GNU's web
-server at http://www.gnu.org/licenses/gpl.html.

@@ -22,10 +22,10 @@
         {%- endfor %}
 
 
-        <li class="right"><a href="{{ pathto('faq') }}" title="Frequently Asked Questions">FAQ</a> |</li>
-        <li class="right"><a href="{{ pathto('download') }}" title="Download and installation">download</a> |</li>
+       <li class="right"><a href="{{ pathto('faq') }}" title="Frequently Asked Questions">FAQ</a> |</li>
+       <li class="right"><a href="{{ pathto('ase/ase') }}" title="Documentation">documentation</a> |</li>
         <li class="right"><a href="{{ pathto('tutorials/tutorials') }}" title="Tutorials">tutorials</a> |</li>
-        <li class="right"><a href="{{ pathto('ase/ase') }}" title="Documentation for ASE modules">documentation</a> |</li>
+        <li class="right"><a href="{{ pathto('download') }}" title="Download and installation">download</a> |</li>
 
         {%- block rootrellink %}
         <a href="{{ pathto('index') }}"><img class="logo" src="{{ pathto('_static/' + logo, 1) }}" alt="Logo" align="absmiddle"/></a>
@@ -44,49 +44,43 @@
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
 
-
+          <h3>ASE</h3>
+          <ul class="this-page-menu">
+            <li><a href="{{ pathto('overview') }}">
+	      Overview</a></li>
+            <li><a href="{{ pathto('download') }}">
+              Download</a></li>
+            <li><a href="{{ pathto('tutorials/tutorials') }}">
+	      Tutorials</em></a></li>
+            <li><a href="{{ pathto('ase/ase') }}">
+              Documentation</a></li>
+            <li><a href="{{ pathto('faq') }}">FAQ</a></li>
+            <li><a href="{{ pathto('glossary') }}">Glossary</a></li>
+            <li><a href="{{ pathto('mailinglists') }}">Mailing lists</a></li>
+            <li><a><p></a></li>
+            <li><a href="{{ pathto('ase-manual')[:-4] + 'pdf' }}">
+              Printable version (pdf)</a></li>
+           </ul>
+           <h3>Development</h3>
+           <ul class="this-page-menu">
+            <li><a href="{{ pathto('development/development') }}">
+              Development</a></li>
+            <li><a href="http://wiki.fysik.dtu.dk/ase/epydoc/ase-module.html">
+              Epydoc</a></li>
+	    <li><a href="http://trac.fysik.dtu.dk/projects/ase/browser/trunk/">
+              Source code (svn)</a></li>
+            <li><a href="{{ pathto('bugs') }}">Bugs!</a></li>
+	    <li><a href="http://trac.fysik.dtu.dk/projects/ase/report/1">
+              Bug Tracker</a></li>
+          </ul>
+          
           {%- block sidebartoc %}
           {%- if display_toc and current_page_name not in ['index', 'contents'] %}
             <h3>This Page</h3>
             {{ toc }}
           {%- endif %}
 
-          <h3>Links</h3>
-          <ul class="this-page-menu">
-            <li><a href="{{ pathto('intro') }}">
-	      Introduction</a></li>
-            <li><a href="{{ pathto('overview') }}">
-	      Quick overview</a></li>
-            <li><a href="{{ pathto('ase/ase') }}">
-	      Documentation</a></li>
-	    <li><a href="{{ pathto('ase-manual')[:-4] + 'pdf' }}">
-		Manual (pdf)</a></li>
-            <li><a href="{{ pathto('download') }}">
-	      Download</a></li>
-            <li><a href="{{ pathto('tutorials/tutorials') }}">
-	      Tutorials</em></a></li>
-            <li><a href="{{ pathto('exercises/exercises') }}">
-	      Exercises</em></a></li>
-            <li><a href="{{ pathto('python') }}">
-	      Python</em></a></li>
-            <li><a href="{{ pathto('numpy') }}">
-	      NumPy</a></li>
-	    <li><a href="http://wiki.fysik.dtu.dk/ase/epydoc/ase-module.html">
-		Epydoc</a></li>
-            <li><a href="{{ pathto('faq') }}">FAQ</a></li>
-            <li><a href="{{ pathto('bugs') }}">Bugs!</a></li>
-            <li><a href="{{ pathto('development/development') }}">
-		Development</a></li>
-            <li><a href="{{ pathto('glossary') }}">Glossary</a></li>
-            <li><a href="{{ pathto('intro') + '#ml' }}">Mailing list</a></li>
-	    <li><a href="http://trac.fysik.dtu.dk/projects/ase/browser/trunk/">
-		Source code (svn)</a></li>
-	    <li><a href="http://trac.fysik.dtu.dk/projects/ase/report/1">
-		Trac</a></li>
-          </ul>
-
           {%- endblock %}
-
 
 
           {%- block sidebarrel %}

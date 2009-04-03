@@ -40,7 +40,7 @@ News
 
 * :ref:`ASE version 3.1.0 <download_and_install>` released (27 March 2009).
 
-* Much improved :mod:`vibrations` module: More accurate and
+* Improved :mod:`vibrations` module: More accurate and
   possibility to calculate :mod:`infrared intensities <infrared>` (13
   March 2009).
 

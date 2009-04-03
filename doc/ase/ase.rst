@@ -35,9 +35,9 @@ Quick links:
 
 .. seealso::
 
-   * :ref:`overview`
+   * :ref:`tutorials`
    * :epydoc:`Automatically generated documentation <ase>` (:term:`API`)
-   * :svn:`Source code <>`
+   * :trac:`Source code <>`
 
 
 
