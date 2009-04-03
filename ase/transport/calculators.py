@@ -1,7 +1,7 @@
 import numpy as npy
 
 from numpy import linalg
-from ase.transport.selfenergy import LeadSelfEnergy
+from ase.transport.selfenergy import LeadSelfEnergy, BoxProbe
 from ase.transport.greenfunction import GreenFunction
 from ase.transport.tools import subdiagonalize, cutcoupling, tri2full, dagger
 
@@ -50,6 +50,7 @@ class TransportCalculator:
                                  'hc2': None,
                                  'sc1': None,
                                  'sc2': None,
+                                 'box': None,
                                  'align_bf': None,
                                  'eta1': 1e-3,
                                  'eta2': 1e-3,
@@ -67,7 +68,7 @@ class TransportCalculator:
         for key in kwargs:
             if key in ['h', 'h1', 'h2', 'hc1', 'hc2',
                        's', 's1', 's2', 'sc1', 'sc2',
-                       'eta', 'eta1', 'eta2', 'align_bf']:
+                       'eta', 'eta1', 'eta2', 'align_bf', 'box']:
                 self.initialized = False
                 self.uptodate = False
                 break
@@ -159,7 +160,13 @@ class TransportCalculator:
                                             (h2_ij, s2_ij),
                                             (h2_im, s2_im),
                                             p['eta2'])]
-
+        box = p['box']
+        if box is not None:
+            print 'Using box probe!'
+            self.selfenergies.append(
+                BoxProbe(eta=box[0], a=box[1], b=box[2], energies=box[3],
+                         S=s_mm, T=0.3))
+        
         #setup scattering green function
         self.greenfunction = GreenFunction(selfenergies=self.selfenergies,
                                            H=h_mm,
