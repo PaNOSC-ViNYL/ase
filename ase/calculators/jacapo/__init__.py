@@ -1,7 +1,9 @@
 import Scientific
+import string
 
 try:
-    if Scientific.__version__ < 2.8:
+    version = string.split(Scientific.__version__,".")
+    if map(int,version) < [2,8]:
         print 'your ScientifPython version is: ',Scientific.__version__ 
         print 'ScientificPython 2.8 or greater required for numpy support in NetCDF'
         raise Exception
