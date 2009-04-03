@@ -41,5 +41,6 @@ Use the :program:`ASE2ase.py` tool (source code :svn:`tools/ASE2ase.py`) to conv
 Check that the differences look OK.  The conversion tool isn't clever
 enough to get everything right, so you will have to do some conversion
 manually also.  If you have any problems doing this, then you should
-not hesitate to contact the :ref:`ASE mailing-list <ml>` and ask for help.
+not hesitate to contact the
+``campos-devel`` mailing list (see :ref:`mailing_lists`) and ask for help.
 
