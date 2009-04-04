@@ -154,43 +154,40 @@ The ``things`` object could be any sequence.  Strings, tuples, lists,
 dictionaries, ndarrays and files are sequences.
 
 
-
-
-
-
 Functions and classes
 ---------------------
 
-A function is defined like this:
+A :term:`function` is defined like this:
 
->>> def f(x, y):
-...     return x + 2 * x * y
-...
->>> f(1, 2)
-5
+>>> def f(x, m=2, n=1):
+...     y =  x + n
+...     return y**m
+
+Here ``f`` is a function, ``x`` is an argument, ``m`` and ``n`` are keywords with default values ``2`` and ``1`` and ``y`` is a variable.
 
 A :term:`class` is defined like this:
 
->>> class C:
-...     def __init__(self, x):
-...         self.x = x
-...     def m(self, y):
-...         return f(self.x, y)
-...
+>>> class A:
+...     def __init__(self, b):
+...         self.c = b
+...     def m(self):
+...         return f(self.c, n=0)
 
 The ``__init__()`` function is called a :term:`constructor`.  You can think
-of a class as a template for creating user defined objects:
+of a class as a template for creating user defined objects.
 
->>> o = C(1)
->>> o.m(2)
-5
+In the class ``A`` ``__init__`` is a constructor, ``c`` is an attribute and ``m`` is a method.
 
-Here we just called the :term:`method` ``m`` of the object ``o`` (``o`` is an
-:term:`instance` of the class ``C``).
+>>> a = A(7)
+>>> a.c
+7
+>>> a.m()
+49
+>>> g = a.m
+>>> g()
+49
 
-
-
-
+Here we make an :term:`instance`/object ``a`` of type ``A`` and ``g`` is a :term:`method` bound to ``a``.
 
 
 Importing modules
