@@ -32,6 +32,8 @@ Download
 
 .. highlight:: bash
 
+.. _latest_stable_release:
+
 Latest stable release
 =====================
 
@@ -81,6 +83,10 @@ The latest revision can be obtained like this::
 
 or from the daily snapshot: `<python-ase-snapshot.tar.gz>`_.
 
+.. note::
+
+   The recommended checkout path is :envvar:`$HOME`.
+
 ============
 Installation
 ============
@@ -120,6 +126,8 @@ If you have root-permissions, you can install ASE system-wide::
 
   $ cd ase
   $ sudo python setup.py install
+
+.. _running_tests:
 
 Run the tests
 =============
