@@ -57,19 +57,19 @@ Qt_ and Tk_ into a highly flexible design platform.
 For visualization purposes within ASE, two different VTK-approaches are
 supported, namely:
 
-**Scripted on-the-fly rendering**
+:Scripted on-the-fly rendering:
 	ASE includes VTK-scripting for easy data visualization using the
 	:mod:`vtk` module. Development is in progress, so you might want to
 	check out the latest development release from SVN 
 	(see :ref:`latest_development_release`).
 
-**Interactive rendering**
+:Interactive rendering:
 	MayaVi_ is an easy-to-use GUI for VTK. With Enthought's traits-based
 	VTK-wrapper (TVTK_), constructing VTK pipelines has been simplified greatly
 	by introducing three basic concepts: data sources, filters and visualization
 	modules. MayaVi also supports the VTK file formats, including the flexible
 	VTK XML, which in ASE can be used to export atomic positions, forces and 
-	volume data using the ``write`` command.
+	volume data using the ``write`` command in the :mod:`io` module.
 
 .. XXX -	`VTK Designer`_ is a visual editor for creating and editing VTK pipelines.
 
