@@ -10,7 +10,16 @@ from ase.visualize.vtk.sources import vtkCustomGlyphSource, \
 
 class vtkModule:
     def __init__(self, vtk_act, vtk_property=None):
+        """Construct basic VTK-representation of a module.
 
+        vtk_act: Instance of vtkActor or subclass thereof
+            A vtkActor represents an entity in a rendering scene.
+
+        vtk_property = None: Instance of vtkProperty or subclass thereof
+            A vtkProperty represents e.g. lighting and other surface
+            properties of a geometric object, in this case the actor.
+
+        """
         self.vtk_act = None
         self.set_actor(vtk_act)
 
@@ -18,13 +27,16 @@ class vtkModule:
             self.set_property(vtk_property)
 
     def set_actor(self, vtk_act):
+        """Set the actor representing this module in a rendering scene."""
         assert isinstance(vtk_act, vtkActor)
         self.vtk_act = vtk_act
 
     def set_property(self, vtk_property):
+        """Set the property of the actor representing this module."""
         self.vtk_act.SetProperty(vtk_property)
 
     def get_actor(self):
+        """Return the actor representing this module in a rendering scene."""
         return self.vtk_act
 
 # -------------------------------------------------------------------
@@ -45,7 +57,19 @@ class vtkPolyDataModule(vtkModule):
     vtk_actor_class = vtkActor
 
     def __init__(self, vtk_polydata, vtk_property=None):
+        """Construct VTK-representation of a module containing polygonals.
 
+        vtk_polydata: Instance of vtkPolyData, subclass thereof or 
+		vtkPolyDataAlgorithm, which produces vtkPolyData as output.
+            A vtkPolyData represents a polygonal data set consisting of
+			point and cell attributes, which can be mapped to graphics
+			primitives for subsequent rendering.
+
+        vtk_property = None: Instance of vtkProperty or subclass thereof
+            A vtkProperty represents e.g. lighting and other surface
+            properties of a geometric object, in this case the polydata.
+
+        """
         vtkModule.__init__(self, self.vtk_actor_class(), vtk_property)
 
         self.vtk_dmap = vtkPolyDataMapper()
@@ -55,7 +79,16 @@ class vtkPolyDataModule(vtkModule):
 class vtkGlyphModule(vtkPolyDataModule):
     def __init__(self, vtk_pointset, glyph_source,
                  scalemode=None, colormode=None):
+        """Construct VTK-representation of a module containing glyphs.
+		These glyphs share a common source, defining their geometrical
+		shape, which is cloned and oriented according to the input data.
 
+		vtk_pointset: Instance of vtkPointSet or subclass thereof
+			A vtkPointSet defines a set of positions, which may then be
+			assigned specific scalar of vector data across the entire set.
+
+		glyph_source: Instance of ~vtk.vtkCustomGlyphSource or subclass thereof
+		"""
         assert isinstance(vtk_pointset, vtkPointSet)
         assert isinstance(glyph_source, vtkCustomGlyphSource)
 

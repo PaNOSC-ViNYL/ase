@@ -14,6 +14,12 @@ by the calculator.
 
 XXX more
 
-
+Representing atoms
+==================
 .. autoclass:: ase.visualize.vtk.atoms.vtkAtoms
+   :inherited-members:
+
+Atom-centered data
+==================
+.. autoclass:: ase.visualize.vtk.module.vtkModule
    :inherited-members:
