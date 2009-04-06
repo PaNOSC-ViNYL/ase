@@ -42,7 +42,7 @@ execfile('ase/version.py')
 setup(name = 'python-ase',
       version=version,
       description='Atomic Simulation Environment',
-      url='http://www.fysik.dtu.dk/Campos/ase',
+      url='https://wiki.fysik.dtu.dk/ase',
       maintainer='CAMd',
       maintainer_email='camd@fysik.dtu.dk',
       license='GPL',
