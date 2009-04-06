@@ -29,8 +29,8 @@ Quick links:
     - :mod:`utils`
   * - :mod:`vibrations`
     - :mod:`visualize`
+    - :mod:`vtk`
     - :mod:`transport`
-    -
 
 
 .. seealso::
@@ -54,6 +54,7 @@ List of all modules:
    lattice
    optimize
    visualize
+   visualize/vtk
    calculators/calculators
    constraints
    neb
