@@ -77,8 +77,6 @@ Release Date        Retrieve as svn checkout                    Retrieve as tarb
 Latest development release
 ==========================
 
-.. _download_snapshot:
-
 The latest revision can be obtained like this::
 
   $ svn checkout https://svn.fysik.dtu.dk/projects/ase/trunk ase

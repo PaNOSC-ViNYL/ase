@@ -61,7 +61,7 @@ supported, namely:
 	ASE includes VTK-scripting for easy data visualization using the
 	:mod:`vtk` module. Development is in progress, so you might want to
 	check out the latest development release from SVN 
-	(see :ref:`Latest development release <download_snapshot>`).
+	(see :ref:`latest_development_release`).
 
 **Interactive rendering**
 	MayaVi_ is an easy-to-use GUI for VTK. With Enthought's traits-based
