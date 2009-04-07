@@ -19,6 +19,13 @@ class vtkAtoms(vtkModuleAnchor, vtkAtomicPositions):
     the list of atoms as an argument to the constructor. Then one or more
     visualization modules can be attached using add_module(name, module).
 
+    Example:
+
+    >>> va = vtkAtoms(atoms)
+    >>> va.add_forces()
+    >>> va.add_axes()
+    >>> XXX va.add_to_renderer(vtk_ren)
+
     """
     def __init__(self, atoms, scale=1):
         """Construct a fundamental VTK-representation of atoms.

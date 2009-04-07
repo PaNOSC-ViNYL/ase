@@ -91,8 +91,31 @@ class vtkBaseGrid:
 # -------------------------------------------------------------------
 
 class vtkAtomicPositions(vtkBaseGrid):
-    def __init__(self, pos, cell):
+    """Provides an interface for adding ``Atoms``-centered data to VTK
+    modules. Atomic positions, e.g. obtained using atoms.get_positions(),
+    constitute an unstructured grid in VTK, to which scalar and vector
+    can be added as point data sets.
 
+    Just like ``Atoms``, instances of ``vtkAtomicPositions`` can be divided
+    into subsets, which makes it easy to select atoms and add properties.
+
+    Example:
+
+    >>> cell = vtkUnitCellModule(atoms)
+    >>> apos = vtkAtomicPositions(atoms.get_positions(), cell)
+    >>> apos.add_scalar_property(atoms.get_charges(), 'charges')
+    >>> apos.add_vector_property(atoms.get_forces(), 'forces')
+
+    """
+    def __init__(self, pos, cell):
+        """Construct basic VTK-representation of a set of atomic positions.
+
+        pos: NumPy array of dtype float and shape ``(n,3)``
+            Cartesian positions of the atoms.
+        cell: Instance of vtkUnitCellModule of subclass thereof
+            Holds information equivalent to that of atoms.get_cell().
+
+        """
         # Make sure position argument is a valid array
         if not isinstance(pos, np.ndarray):
             pos = np.array(pos)
@@ -119,6 +142,12 @@ class vtkAtomicPositions(vtkBaseGrid):
         self.set_point_data(self.vtk_ugd.GetPointData())
 
     def get_points(self, subset=None):
+        """Return (subset of) vtkPoints containing atomic positions.
+
+        subset=None: list of int
+            A list of indices into the atomic positions; ignored if None.
+
+        """
         if subset is None:
             return self.vtk_pts
 
@@ -138,6 +167,12 @@ class vtkAtomicPositions(vtkBaseGrid):
         return vtk_subpts
 
     def get_unstructured_grid(self, subset=None):
+        """Return (subset of) an unstructured grid of the atomic positions.
+
+        subset=None: list of int
+            A list of indices into the atomic positions; ignored if None.
+
+        """
         if subset is None:
             return self.vtk_ugd
 
@@ -152,7 +187,16 @@ class vtkAtomicPositions(vtkBaseGrid):
         return vtk_subugd
 
     def add_scalar_property(self, data, name=None, active=True):
+        """Add VTK-representation of scalar data at the atomic positions.
 
+        data: NumPy array of dtype float and shape ``(n,)``
+            Scalar values corresponding to the atomic positions.
+        name=None: str
+            Unique identifier for the scalar data.
+        active=True: bool
+            Flag indicating whether to use as active scalar data.
+
+        """
         # Make sure data argument is a valid array
         if not isinstance(data, np.ndarray):
             data = np.array(data)
@@ -164,7 +208,16 @@ class vtkAtomicPositions(vtkBaseGrid):
         return vtkBaseGrid.add_scalar_data_array(self, npa2da, name, active)
 
     def add_vector_property(self, data, name=None, active=True):
+        """Add VTK-representation of vector data at the atomic positions.
 
+        data: NumPy array of dtype float and shape ``(n,3)``
+            Vector components corresponding to the atomic positions.
+        name=None: str
+            Unique identifier for the vector data.
+        active=True: bool
+            Flag indicating whether to use as active vector data.
+
+        """
         # Make sure data argument is a valid array
         if not isinstance(data, np.ndarray):
             data = np.array(data)
