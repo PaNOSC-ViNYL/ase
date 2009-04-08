@@ -2,6 +2,7 @@ import numpy as npy
 import copy 
 from ase.optimize import Optimizer
 from ase.neb import *
+import random
 #out = open('forces_bfgs','w')
 #out2 = open('step_bfgs','w')
 #out3 = open('displacement_bfgs','w')
@@ -15,7 +16,8 @@ class LBFGS(Optimizer):
         if maxstep > 1.0:
             raise ValueError(
                              'Wanna fly? I know the calculation is too slow. ' +
-                             'But the maximum step size %.1f' % maxstep +' is too big! \n'+
+                             'But you have to follow the rules.\n'+
+                             '            The maximum step size %.1f' % maxstep +' is too big! \n'+
                              '            Try to set the maximum step size below 0.2.')
         self.maxstep = maxstep
         self.dR = dR
@@ -38,6 +40,13 @@ class LBFGS(Optimizer):
         self.lbfgsinit, self.ITR, self.s, self.y, self.rho, self.r_old, self.f_old = self.load()
 
     def step(self, f):
+        #print f
+        for i in range(len(f)):
+            if(npy.vdot(f[i],f[i])>0):
+                f[i][0]+=random.uniform(10e-4,10e-3)*(-1)**random.randint(0,1)
+                f[i][1]+=random.uniform(10e-4,10e-3)*(-1)**random.randint(0,1)
+                f[i][2]+=random.uniform(10e-4,10e-3)*(-1)**random.randint(0,1)
+        #print f
         self.r = self.atoms.get_positions()
         self.update(self.r, f)
 
@@ -76,19 +85,21 @@ class LBFGS(Optimizer):
                     RdR = self.sign(RdR) * self.maxstep
             else:
                 Fp = (Fp1 + Fp2) * 0.5
+                #Fp = (Fp1 + Fp2) * 0.3
                 RdR = Fp / CR 
                 if(abs(RdR) > self.maxstep):
                     RdR = self.sign(RdR) * self.maxstep
                 else:
                     RdR += self.dR * 0.5
-            dr = self.du * RdR
+                    #RdR += self.dR * 0.3
+            self.d = self.du * RdR####
         else:
         # use the Hessian Matrix to predict the min
             if(abs(npy.sqrt(npy.vdot(self.d, self.d).sum())) > self.maxstep):
-                dr = self.du * self.maxstep
+                self.d = self.du * self.maxstep####
         self.r_old = self.r.copy()
         self.f_old = f.copy()
-        self.r += dr
+        self.r += self.d####
         self.atoms.set_positions(self.r)
 
     def update(self, r, f):
