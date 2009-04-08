@@ -40,13 +40,6 @@ class LBFGS(Optimizer):
         self.lbfgsinit, self.ITR, self.s, self.y, self.rho, self.r_old, self.f_old = self.load()
 
     def step(self, f):
-        #print f
-        for i in range(len(f)):
-            if(npy.vdot(f[i],f[i])>0):
-                f[i][0]+=random.uniform(10e-4,10e-3)*(-1)**random.randint(0,1)
-                f[i][1]+=random.uniform(10e-4,10e-3)*(-1)**random.randint(0,1)
-                f[i][2]+=random.uniform(10e-4,10e-3)*(-1)**random.randint(0,1)
-        #print f
         self.r = self.atoms.get_positions()
         self.update(self.r, f)
 

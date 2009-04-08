@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from numpy.linalg import eigh, solve
-import random
+
 from ase.optimize import Optimizer
 
 
@@ -31,11 +31,6 @@ class QuasiNewton(Optimizer):
         self.H, self.r0, self.f0, self.maxstep = self.load()
 
     def step(self, f):
-        for i in range(len(f)):
-            if(np.vdot(f[i],f[i])>0):
-                f[i][0]+=random.uniform(10e-4,10e-3)*(-1)**random.randint(0,1)
-                f[i][1]+=random.uniform(10e-4,10e-3)*(-1)**random.randint(0,1)
-                f[i][2]+=random.uniform(10e-4,10e-3)*(-1)**random.randint(0,1)
         atoms = self.atoms
         r = atoms.get_positions()
         f = f.reshape(-1)
