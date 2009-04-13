@@ -18,14 +18,6 @@ from ase.visualize.vtk.data import vtkDoubleArrayFromNumPyArray, \
 import gc
 gc.enable()
 
-gc_threshold = (300,5,5) #default is (700,10,10)
-gc_threshold_old = gc.get_threshold()
-gc.set_threshold(*gc_threshold)
-
-gc_flags = gc.DEBUG_LEAK # | gc.DEBUG_STATS
-gc_flags_old = gc.get_debug()
-gc.set_debug(gc_flags)
-
 # -------------------------------------------------------------------
 
 class UTConversionDataArrayNumPy(CustomTestCase):
@@ -48,15 +40,24 @@ class UTConversionDataArrayNumPy(CustomTestCase):
     """
     footprint = 100*1024**2
     verbose = 0
+    gc_threshold = (300,5,5) #default is (700,10,10)
+    gc_flags = gc.DEBUG_LEAK # | gc.DEBUG_STATS
 
     def setUp(self):
         self.mem_ini = MemorySingleton(self.verbose-1)
         self.mem_ref = MemoryStatistics(self.verbose-1)
         self.mem_cur = self.mem_ref.copy()
 
+        self.gc_threshold_old = gc.get_threshold()
+        self.gc_flags_old = gc.get_debug()
+        gc.set_threshold(*self.gc_threshold)
+        gc.set_debug(self.gc_flags)
+
     def tearDown(self):
         gc.collect()
         self.assertEqual(len(gc.garbage),0)
+        gc.set_threshold(*self.gc_threshold_old)
+        gc.set_debug(self.gc_flags_old)
 
     def assertAlmostConsumed(self, bytes, digits=0, key='VmSize'):
         self.mem_cur.update()
@@ -89,7 +90,7 @@ class UTConversionDataArrayNumPy(CustomTestCase):
 
         # Conversion cleanup
         del conv
-        self.assertAlmostConsumed(2*self.footprint, -5) #100kB
+        self.assertAlmostConsumed(2*self.footprint, -5) #100kB -> 140kB sometimes!
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
         if self.verbose>=1: print 'Conversion cleanup=', self.mem_cur-self.mem_ref #DEBUG
 
@@ -239,7 +240,7 @@ class UTDataArrayFromNumPyArray_Scalar(UTConversionDataArrayNumPy):
 
         # NumPy allocation
         data = np.empty(self.shape, np.float)
-        self.assertAlmostConsumed(self.footprint, -4) #10kB
+        self.assertAlmostConsumed(self.footprint, -4) #10kB -> 136kB sometimes!
         self.assertAlmostExceeded(self.footprint, -5) #100kB
         if self.verbose>=1: print 'NumPy allocation=', self.mem_cur-self.mem_ref #DEBUG
 
@@ -381,7 +382,8 @@ class UTDataArrayFromNumPyMultiArray_Vector(UTConversionDataArrayNumPy):
 # -------------------------------------------------------------------
 
 if __name__ == '__main__':
-    testrunner = unittest.TextTestRunner(verbosity=2)
+    import sys
+    testrunner = unittest.TextTestRunner(verbosity=2, stream=sys.stdout)
 
     testcases = [UTDataArrayFromNumPyArray_Scalar, \
                  UTDataArrayFromNumPyArray_Vector, \
@@ -392,5 +394,7 @@ if __name__ == '__main__':
         info = '\n' + test.__name__ + '\n' + test.__doc__.strip('\n') + '\n'
         testsuite = unittest.defaultTestLoader.loadTestsFromTestCase(test)
         testrunner.stream.writeln(info)
-        testrunner.run(testsuite)
+        testresult = testrunner.run(testsuite)
+        if not testresult.wasSuccessful():
+            raise SystemExit(len(testresult.failures))
 

@@ -433,7 +433,8 @@ class UTPolyDataPipeline_PipelineVTK(UTPolyDataPipeline):
 # -------------------------------------------------------------------
 
 if __name__ == '__main__':
-    testrunner = unittest.TextTestRunner(verbosity=2)
+    import sys
+    testrunner = unittest.TextTestRunner(verbosity=2, stream=sys.stdout)
 
     testcases = [UTPolyDataPipeline_PureVTK, UTPolyDataPipeline_PipelineVTK]
 
@@ -441,5 +442,7 @@ if __name__ == '__main__':
         info = '\n' + test.__name__ + '\n' + test.__doc__.strip('\n') + '\n'
         testsuite = unittest.defaultTestLoader.loadTestsFromTestCase(test)
         testrunner.stream.writeln(info)
-        testrunner.run(testsuite)
+        testresult = testrunner.run(testsuite)
+        if not testresult.wasSuccessful():
+            raise SystemExit(len(testresult.failures))
 
