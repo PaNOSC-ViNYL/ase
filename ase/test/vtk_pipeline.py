@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-from ase.visualize.vtk import testvtk
+from ase.visualize.vtk import requirevtk
 
-testvtk()
+requirevtk()
 
 import unittest
 

@@ -383,3 +383,59 @@ class MemorySingleton(MemoryBase, Singleton):
         self.__class__ = MemorySingleton
         return res
 
+# -------------------------------------------------------------------
+
+# Helper functions for leak testing with NumPy arrays
+
+def shapegen(size, ndims, ecc=0.5):
+    """Return a generator of an N-dimensional array shape
+    which approximately contains a given number of elements.
+
+        size:       int or long in [1,inf[
+                    The total number of elements
+        ndims=3:    int in [1,inf[
+                    The number of dimensions
+        ecc=0.5:    float in ]0,1[
+                    The eccentricity of the distribution
+    """
+    assert type(size) in [int,float] and size>=1
+    assert type(ndims) is int and ndims>=1
+    assert type(ecc) in [int,float] and ecc>0 and ecc<1
+
+    for i in range(ndims-1):
+        scale = size**(1.0/(ndims-i))
+        c = round(np.random.uniform((1-ecc)*scale, 1.0/(1-ecc)*scale))
+        size/=c
+        yield c
+    yield round(size)
+
+def shapeopt(maxseed, size, ndims, ecc=0.5):
+    """Return optimal estimate of an N-dimensional array shape
+    which is closest to containing a given number of elements.
+
+        maxseed:    int in [1,inf[
+                    The maximal number of seeds to try
+        size:       int or long in [1,inf[
+                    The total number of elements
+        ndims=3:    int in [1,inf[
+                    The number of dimensions
+        ecc=0.5:    float in ]0,1[
+                    The eccentricity of the distribution
+    """
+    assert type(maxseed) is int and maxseed>=1
+    assert type(size) in [int,float] and size>=1
+    assert type(ndims) is int and ndims>=1
+    assert type(ecc) in [int,float] and ecc>0 and ecc<1
+
+    digits_best = np.inf
+    shape_best = None
+    for seed in range(maxseed):
+        np.random.seed(seed)
+        shape = tuple(shapegen(size, ndims, ecc))
+        digits = np.log10(abs(np.prod(shape)-size))
+        if np.isneginf(digits):
+            return digits, shape
+        elif digits < digits_best:
+            (digits_best, shape_best) = (digits, shape)
+    return digits_best, shape_best
+
