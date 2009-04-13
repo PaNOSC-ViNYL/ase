@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-from ase.visualize.vtk import requirevtk
+from ase.visualize.vtk import requirevtk, probe_vtk_kilobyte
 
 requirevtk()
+vtk_kilobyte = probe_vtk_kilobyte(1024)
 
 import unittest
 from ase.test import CustomTestCase
@@ -253,7 +254,7 @@ class UTDataArrayFromNumPyArray_Scalar(UTConversionDataArrayNumPy):
         # VTK retrieval
         vtk_da = np2da.get_output()
         self.assertTrue(isinstance(vtk_da, vtkDataArray))
-        self.assertAlmostEqual(vtk_da.GetActualMemorySize()*1e3, \
+        self.assertAlmostEqual(vtk_da.GetActualMemorySize()*vtk_kilobyte, \
                                self.footprint, -3) #1kB
         if self.verbose>=1: print 'VTK retrieval=', self.mem_cur-self.mem_ref #DEBUG
 
@@ -291,7 +292,7 @@ class UTDataArrayFromNumPyArray_Vector(UTConversionDataArrayNumPy):
         # VTK retrieval
         vtk_da = np2da.get_output()
         self.assertTrue(isinstance(vtk_da, vtkDataArray))
-        self.assertAlmostEqual(vtk_da.GetActualMemorySize()*1e3, \
+        self.assertAlmostEqual(vtk_da.GetActualMemorySize()*vtk_kilobyte, \
                                self.footprint, -3) #1kB
         if self.verbose>=1: print 'VTK retrieval=', self.mem_cur-self.mem_ref #DEBUG
 
@@ -333,7 +334,7 @@ class UTDataArrayFromNumPyMultiArray_Scalar(UTConversionDataArrayNumPy):
         # VTK retrieval
         vtk_da = np2da.get_output()
         self.assertTrue(isinstance(vtk_da, vtkDataArray))
-        self.assertAlmostEqual(vtk_da.GetActualMemorySize()*1e3, \
+        self.assertAlmostEqual(vtk_da.GetActualMemorySize()*vtk_kilobyte, \
                                self.footprint, -4) #10kB
         if self.verbose>=1: print 'VTK retrieval=', self.mem_cur-self.mem_ref #DEBUG
 
@@ -373,7 +374,7 @@ class UTDataArrayFromNumPyMultiArray_Vector(UTConversionDataArrayNumPy):
         # VTK retrieval
         vtk_da = np2da.get_output()
         self.assertTrue(isinstance(vtk_da, vtkDataArray))
-        self.assertAlmostEqual(vtk_da.GetActualMemorySize()*1e3, \
+        self.assertAlmostEqual(vtk_da.GetActualMemorySize()*vtk_kilobyte, \
                                self.footprint, -4) #10kB
         if self.verbose>=1: print 'VTK retrieval=', self.mem_cur-self.mem_ref #DEBUG
 
