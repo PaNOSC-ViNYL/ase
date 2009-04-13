@@ -16,7 +16,8 @@ class ScriptTestCase(unittest.TestCase):
         
     def testfile(self):
         try:
-            execfile(self.filename, {'display': self.display})
+            execfile(self.filename, {'display': self.display, \
+                                     '__name__': '__main__'})
         except KeyboardInterrupt:
             raise RuntimeError('Keyboard interrupt')
         except NotAvailable, err:
