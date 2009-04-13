@@ -5,6 +5,7 @@ from ase.visualize.vtk import requirevtk
 requirevtk()
 
 import unittest
+from ase.test import CustomTestCase
 import numpy as np
 
 from ase.utils.memory import MemoryStatistics, MemorySingleton, shapeopt
@@ -27,7 +28,7 @@ gc.set_debug(gc_flags)
 
 # -------------------------------------------------------------------
 
-class UTConversionDataArrayNumPy(unittest.TestCase):
+class UTConversionDataArrayNumPy(CustomTestCase):
     """
     Abstract class with test cases for VTK/NumPy data conversion.
 

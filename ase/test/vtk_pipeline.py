@@ -5,6 +5,7 @@ from ase.visualize.vtk import requirevtk
 requirevtk()
 
 import unittest
+from ase.test import CustomTestCase
 
 from vtk import vtkContourFilter, vtkPolyDataNormals, \
                 vtkLinearSubdivisionFilter, vtkPolyDataMapper
@@ -12,7 +13,7 @@ from ase.visualize.vtk.pipeline import vtkPolyDataPipeline
 
 # -------------------------------------------------------------------
 
-class UTPipeline(unittest.TestCase):
+class UTPipeline(CustomTestCase):
     """
     Abstract test case class - TODO."""
 

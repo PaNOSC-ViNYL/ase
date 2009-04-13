@@ -8,6 +8,13 @@ class NotAvailable(SystemExit):
         self.message = message
         self.code = code
 
+if sys.version_info < (2, 4, 0, 'final', 0):
+    class CustomTestCase(unittest.TestCase):
+        assertTrue = unittest.TestCase.failUnless
+        assertFalse = unittest.TestCase.failIf
+else:
+    from unittest import TestCase as CustomTestCase
+
 class ScriptTestCase(unittest.TestCase):
     def __init__(self, methodname='testfile', filename=None, display=True):
         unittest.TestCase.__init__(self, methodname)
