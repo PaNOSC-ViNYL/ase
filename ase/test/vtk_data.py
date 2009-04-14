@@ -382,7 +382,7 @@ class UTDataArrayFromNumPyMultiArray_Vector(UTConversionDataArrayNumPy):
 
 # -------------------------------------------------------------------
 
-if __name__ == '__main__':
+if __name__ in ['__main__', '__builtin__']:
     import sys
     testrunner = unittest.TextTestRunner(verbosity=2, stream=sys.stdout)
 

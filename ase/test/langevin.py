@@ -119,5 +119,5 @@ def test():
             
     output.close()
 
-if __name__ == '__main__':
+if __name__ in ['__main__', '__builtin__']:
     test()
