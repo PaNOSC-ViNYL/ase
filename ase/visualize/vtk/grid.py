@@ -26,9 +26,9 @@ class vtkBaseGrid:
 
         assert isinstance(vtk_pointdata, vtkPointData)
         self.vtk_pointdata = vtk_pointdata
-        self.vtk_pointdata.SetCopyScalars(False)
-        self.vtk_pointdata.SetCopyVectors(False)
-        self.vtk_pointdata.SetCopyNormals(False)
+        #self.vtk_pointdata.SetCopyScalars(False)
+        #self.vtk_pointdata.SetCopyVectors(False)
+        #self.vtk_pointdata.SetCopyNormals(False)
 
     def get_point_data(self):
         if self.vtk_pointdata is None:
