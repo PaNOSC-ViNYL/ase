@@ -40,6 +40,9 @@ Glossary
   Instance
     XXX
 
+  Namespace
+    An abstract container of the current :term:`scope`'s variables.
+
   ndarray
     :term:`NumPy`'s *n*-dimensional array.  See :ref:`numpy`.
 
@@ -52,6 +55,8 @@ Glossary
   Python
     XXX :ref:`python_info`.
 
+  Scope
+    An enclosing context where values and expressions are associated.
 
 
 .. _Epydoc: http://epydoc.sourceforge.net
