@@ -386,7 +386,7 @@ if __name__ in ['__main__', '__builtin__']:
     # We have been imported by test.py, so we should redirect to logfile
     if __name__ == '__builtin__':
         from ase.parallel import paropen
-        f = paropen('vtk_pipeline.log', 'w')
+        f = paropen('vtk_data.log', 'w')
     else:
         from sys import stdout as f
     testrunner = unittest.TextTestRunner(verbosity=2, stream=f)
@@ -401,6 +401,7 @@ if __name__ in ['__main__', '__builtin__']:
         testsuite = unittest.defaultTestLoader.loadTestsFromTestCase(test)
         testrunner.stream.writeln(info)
         testresult = testrunner.run(testsuite)
-        if not testresult.wasSuccessful():
-            raise SystemExit(len(testresult.failures))
+        # Provide feedback on failed tests if imported by test.py
+        if __name__ = '__builtin__' and not testresult.wasSuccessful():
+            raise SystemExit('Test failed. Check vtk_data.log for details.')
 
