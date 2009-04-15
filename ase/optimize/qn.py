@@ -66,16 +66,11 @@ class QuasiNewton(Optimizer):
         if isinstance(traj, str):
             from ase.io.trajectory import PickleTrajectory
             traj = PickleTrajectory(traj, 'r')
-        #r0, f0 = self.r0, self.f0
-        #self.r0 = self.atoms.get_positions().ravel()
-        #self.f0 = self.atoms.get_forces().ravel()
         self.H = None
-        #self.update('Hello', 'World', None, None)##should be fixed
         atoms = traj[0]
         r0 = atoms.get_positions().ravel()
         f0 = atoms.get_forces().ravel()
         for atoms in traj:
-            print '1'
             r = atoms.get_positions().ravel()
             f = atoms.get_forces().ravel()
             self.update(r, f, r0, f0)
@@ -83,11 +78,3 @@ class QuasiNewton(Optimizer):
             f0 = f
         self.r0 = r0
         self.f0 = f0
-                       
-        #self.r0 = self.atoms.get_positions().ravel()
-        #self.f0 = self.atoms.get_forces().ravel()
-        print r0
-        print f0
-        #self.r0, self.f0 = r0, f0
-
-            

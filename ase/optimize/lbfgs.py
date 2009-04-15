@@ -1,4 +1,4 @@
-import numpy as npy
+import numpy as np
 import copy 
 from ase.optimize import Optimizer
 from ase.neb import *
@@ -52,16 +52,16 @@ class LBFGS(Optimizer):
         q = -1.0*f
         for j in range(1,BOUND):
             k = (BOUND-j)
-            self.a[k] = self.rho[k] * npy.vdot(self.s[k], q)
+            self.a[k] = self.rho[k] * np.vdot(self.s[k], q)
             q -= self.a[k] * self.y[k]
         d = self.Ho * q # no needed cause Ho is idenity matrix 
         for j in range(1,BOUND):
-            B = self.rho[j] * npy.vdot(self.y[j], d)
+            B = self.rho[j] * np.vdot(self.y[j], d)
             d= d + self.s[j] * (self.a[j] - B)
         d = -1.0 * d
 
         if(not self.method=='line'): self.d = d
-        self.du = d / npy.sqrt(npy.vdot(d, d))
+        self.du = d / np.sqrt(np.vdot(d, d))
 
         if(self.method=='line'):
         # Finite difference step using temporary point
@@ -69,8 +69,8 @@ class LBFGS(Optimizer):
             tmp_r += (self.du * self.dR)
             self.tmp.set_positions(tmp_r)
         # Decide how much to move along the line du
-            Fp1=npy.vdot(f, self.du)
-            Fp2=npy.vdot(self.tmp.get_forces(), self.du)
+            Fp1=np.vdot(f, self.du)
+            Fp2=np.vdot(self.tmp.get_forces(), self.du)
             CR=(Fp1 - Fp2) / self.dR
             #RdR = Fp1*0.1
             if(CR < 0.0):
@@ -90,7 +90,7 @@ class LBFGS(Optimizer):
             self.d = self.du * RdR####
         else:
         # use the Hessian Matrix to predict the min
-            if(abs(npy.sqrt(npy.vdot(self.d, self.d).sum())) > self.maxstep):
+            if(abs(np.sqrt(np.vdot(self.d, self.d).sum())) > self.maxstep):
                 self.d = self.du * self.maxstep####
         self.r_old = self.r.copy()
         self.f_old = f.copy()
@@ -99,16 +99,16 @@ class LBFGS(Optimizer):
 
     def update(self, r, f):
         self.start = 1
-        self.a = npy.zeros(self.memory+1, 'd')
+        self.a = np.zeros(self.memory+1, 'd')
         self.tmp = self.atoms
-        self.Ho = npy.ones((npy.shape(r)[0], 3), 'd')
+        self.Ho = np.ones((np.shape(r)[0], 3), 'd')
         if (not self.method=='line'):self.Ho = self.Ho * self.alpha
         if(not self.lbfgsinit):
             self.lbfgsinit = 1
         else:
-            #print npy.shape(f),npy.shape(self.f_old)
-            a1 = abs (npy.vdot(f, self.f_old))
-            a2 = npy.vdot(self.f_old, self.f_old)
+            #print np.shape(f),np.shape(self.f_old)
+            a1 = abs (np.vdot(f, self.f_old))
+            a2 = np.vdot(self.f_old, self.f_old)
             if(self.method=='line'):
                 if(a1<=0.5* a2 and a2!=0):
                     reset_flag = 0
@@ -125,7 +125,7 @@ class LBFGS(Optimizer):
                     ITR=self.memory
                 self.s.append(r - self.r_old)
                 self.y.append(-(f-self.f_old))
-                self.rho.append(1/npy.vdot(self.y[ITR],self.s[ITR]))
+                self.rho.append(1/np.vdot(self.y[ITR],self.s[ITR]))
                 self.ITR += 1
             else:
                 self.ITR = 1
@@ -140,8 +140,8 @@ class LBFGS(Optimizer):
             from ase.io.trajectory import PickleTrajectory
             traj = PickleTrajectory(traj, 'r')
         for atoms in traj:
-            r = atoms.get_positions()#.ravel()
-            f = atoms.get_forces()#.ravel()
+            r = atoms.get_positions()
+            f = atoms.get_forces()
             self.update(r, f)
             self.r_old = r
             self.f_old = f
