@@ -1,15 +1,21 @@
 try:
     import vtk
     hasvtk = True
+    hasmpi = hasattr(vtk, 'vtkMPIController')
 except ImportError:
     hasvtk = False
+    hasmpi = False
 
-def requirevtk(code=0):
+def requirevtk(code=0, parallel=False):
     from ase.test import NotAvailable
     if not hasvtk:
         # VTK required but not installed, force termination
         # with exit status determined by the code argument.
         raise NotAvailable('VTK is not installed.', code)
+    if parallel and not hasmpi:
+        # VTK MPI required but not installed, force termination
+        # with exit status determined by the code argument.
+        raise NotAvailable('VTK is not MPI compatible.', code)
 
 def probe_vtk_kilobyte(default=None):
     if not hasvtk:
