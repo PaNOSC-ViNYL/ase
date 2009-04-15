@@ -15,7 +15,7 @@ documentation
 
 __docformat__ = 'restructuredtext'
 
-import exceptions, glob, os, string, time
+import exceptions, glob, os, pickle, string, time
 from Scientific.IO.NetCDF import NetCDFFile as netCDF
 import numpy as np
 import subprocess as sp
@@ -178,9 +178,6 @@ class Jacapo:
             
             if not os.path.exists(nc):
                 raise Exception('you asked for %s, and did not define any parameters, but %s does not exist.' % (nc,nc))
-
-
-
         
         self.set_nc(nc)
         
@@ -381,6 +378,7 @@ class Jacapo:
         s.append('  Kpoint grid         = %s' % str(self.get_kpts()))
         s.append('  Spin-polarized      = %s' % self.get_spin_polarized())
         s.append('  Dipole correction   = %s' % self.get_dipole())
+        s.append('  Constraints         = %s' % str(atoms._get_constraints()))
         s.append('  ---------------------------------')
         nc.close()
         return string.join(s,'\n')            
@@ -667,6 +665,35 @@ class Jacapo:
                 self._increment_frame()
         self.atoms = atoms.copy()
         self.write_nc(atoms=atoms)
+
+        #store constraints if they exist
+        constraints = atoms._get_constraints()
+        if constraints != []:
+            nc = netCDF(self.get_nc(),'a')
+            if 'constraints' not in nc.variables:
+                c = nc.createVariable('constraints','c',('dim1',))
+            else:
+                c = nc.variables['constraints']
+            #we store the pickle string as an attribute of a netcdf variable
+            #because that way we do not have to know how long the string is.
+            #with a character variable you have to specify the dimension of the
+            #string ahead of time.
+            c.data = pickle.dumps(constraints)
+            nc.close()
+        else:
+            # getting here means there where no constraints on the atoms just written
+            #we should check if there are any old constraints left in the ncfile
+            #from a previous atoms, and delete them if so
+            delete_constraints = False
+            nc = netCDF(self.get_nc())
+            if 'constraints' in nc.variables:
+                delete_constraints = True
+            nc.close()
+
+            if delete_constraints:
+                print 'deleting old constraints'
+                self.delete_ncattdimvar(self.nc,
+                                        ncvars=['constraints'])
         
     def set_ft(self,ft):
         '''set the Fermi temperature for occupation smearing
@@ -1496,14 +1523,17 @@ class Jacapo:
         'Return True if calculate is spin-polarized or False if not'
         #self.calculate() #causes recursion error with get_magnetic_moments
         nc = netCDF(self.nc,'r')
-        v = nc.variables['ElectronicBands']
-        if hasattr(v,'SpinPolarization'):
-            if v.SpinPolarization==1:
+        if 'ElectronicBands' in nc.variables:
+            v = nc.variables['ElectronicBands']
+            if hasattr(v,'SpinPolarization'):
+                if v.SpinPolarization==1:
+                    spinpol = False
+                elif v.SpinPolarization==2:
+                    spinpol = True
+            else:
                 spinpol = False
-            elif v.SpinPolarization==2:
-                spinpol = True
         else:
-            spinpol = False
+            spinpol = 'Not defined'
 
         nc.close()
         return spinpol
@@ -2052,6 +2082,12 @@ s.recv(14)
                 #this will reset the calculator
                 pspfile = var.PspotFile
                 self.set_psp(sym,psp=pspfile)
+
+        #get constraints if they exist
+        c = nc.variables.get('constraints',None)
+        if c is not None:
+            constraints = pickle.loads(c.data)
+            atoms.set_constraint(constraints)
                     
         nc.close()
 
