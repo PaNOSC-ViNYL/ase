@@ -449,6 +449,6 @@ if __name__ in ['__main__', '__builtin__']:
         testrunner.stream.writeln(info)
         testresult = testrunner.run(testsuite)
         # Provide feedback on failed tests if imported by test.py
-        if __name__ = '__builtin__' and not testresult.wasSuccessful():
+        if __name__ == '__builtin__' and not testresult.wasSuccessful():
             raise SystemExit('Test failed. Check vtk_pipeline.log for details.')
 
