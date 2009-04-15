@@ -1,3 +1,9 @@
+2009-04-14  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (Jacapo.get_spin_polarized): added variable existence check so that __str__ works if spin-polarization or nbands has not been defined.
+	(read_only_atoms): added reading the constraints from the netcdf file
+	(Jacapo.set_atoms): added support for saving a pickled string of the constraints to the netcdf file.
+
 2009-04-02  Lars C Grabow <grabow@fysik.dtu.dk>
 
         * jacapo.py (Jacapo.initial_wannier): uses wannier.py instead of legacyASE2.py 
