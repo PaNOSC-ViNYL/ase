@@ -383,8 +383,13 @@ class UTDataArrayFromNumPyMultiArray_Vector(UTConversionDataArrayNumPy):
 # -------------------------------------------------------------------
 
 if __name__ in ['__main__', '__builtin__']:
-    import sys
-    testrunner = unittest.TextTestRunner(verbosity=2, stream=sys.stdout)
+    # We have been imported by test.py, so we should redirect to logfile
+    if __name__ == '__builtin__':
+        from ase.parallel import paropen
+        f = paropen('vtk_pipeline.log', 'w')
+    else:
+        from sys import stdout as f
+    testrunner = unittest.TextTestRunner(verbosity=2, stream=f)
 
     testcases = [UTDataArrayFromNumPyArray_Scalar, \
                  UTDataArrayFromNumPyArray_Vector, \
