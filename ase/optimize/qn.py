@@ -34,7 +34,7 @@ class QuasiNewton(Optimizer):
         atoms = self.atoms
         r = atoms.get_positions()
         f = f.reshape(-1)
-        self.update(r.flat, f)
+        self.update(r.flat, f, self.r0, self.f0)
         omega, V = eigh(self.H)
         dr = np.dot(V, np.dot(f, V) / np.fabs(omega)).reshape((-1, 3))
         #dr = solve(self.H, f).reshape((-1, 3))
@@ -45,17 +45,17 @@ class QuasiNewton(Optimizer):
         self.f0 = f.copy()
         self.dump((self.H, self.r0, self.f0, self.maxstep))
 
-    def update(self, r, f):
+    def update(self, r, f, r0, f0):
         if self.H is None:
             self.H = np.eye(3 * len(self.atoms)) * 70.0
             return
-        dr = r - self.r0
+        dr = r - r0
 
         if np.abs(dr).max() < 1e-7:
             # Same configuration again (maybe a restart):
             return
-        
-        df = f - self.f0
+
+        df = f - f0
         a = np.dot(dr, df)
         dg = np.dot(self.H, dr)
         b = np.dot(dr, dg)
@@ -66,13 +66,28 @@ class QuasiNewton(Optimizer):
         if isinstance(traj, str):
             from ase.io.trajectory import PickleTrajectory
             traj = PickleTrajectory(traj, 'r')
-        r0, f0 = self.r0, self.f0
-        self.r0 = self.atoms.get_positions().ravel()
-        self.f0 = self.atoms.get_forces().ravel()
+        #r0, f0 = self.r0, self.f0
+        #self.r0 = self.atoms.get_positions().ravel()
+        #self.f0 = self.atoms.get_forces().ravel()
         self.H = None
+        #self.update('Hello', 'World', None, None)##should be fixed
+        atoms = traj[0]
+        r0 = atoms.get_positions().ravel()
+        f0 = atoms.get_forces().ravel()
         for atoms in traj:
-            self.update(atoms.get_positions().ravel(),
-                        atoms.get_forces().ravel())
-        self.r0, self.f0 = r0, f0
+            print '1'
+            r = atoms.get_positions().ravel()
+            f = atoms.get_forces().ravel()
+            self.update(r, f, r0, f0)
+            r0 = r
+            f0 = f
+        self.r0 = r0
+        self.f0 = f0
+                       
+        #self.r0 = self.atoms.get_positions().ravel()
+        #self.f0 = self.atoms.get_forces().ravel()
+        print r0
+        print f0
+        #self.r0, self.f0 = r0, f0
 
             

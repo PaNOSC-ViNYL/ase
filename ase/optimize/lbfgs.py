@@ -8,7 +8,7 @@ import random
 #out3 = open('displacement_bfgs','w')
 #out4 = open('dpm_tmp_bfgs','w')
 class LBFGS(Optimizer):
-    def __init__(self, atoms, restart='restart_info', logfile='-', trajectory=None,
+    def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  maxstep=0.2, dR=0.1,
                  memory=25, alpha=0.05, method='line'):
         Optimizer.__init__(self, atoms, restart, logfile, trajectory)
@@ -31,6 +31,8 @@ class LBFGS(Optimizer):
         self.s = [1.]
         self.y = [1.]
         self.rho = [1.]
+        self.f_old = None
+        self.r_old = None
 
     def sign(self,w):
         if(w<0.0): return -1.0
@@ -104,6 +106,7 @@ class LBFGS(Optimizer):
         if(not self.lbfgsinit):
             self.lbfgsinit = 1
         else:
+            #print npy.shape(f),npy.shape(self.f_old)
             a1 = abs (npy.vdot(f, self.f_old))
             a2 = npy.vdot(self.f_old, self.f_old)
             if(self.method=='line'):
@@ -130,3 +133,17 @@ class LBFGS(Optimizer):
                 self.y = [1.]
                 self.rho = [1.]
             self.dump((self.lbfgsinit, self.ITR, self.s, self.y, self.rho, self.r_old, self.f_old))
+
+    def replay_trajectory(self, traj):
+        """Initialize hessian from old trajectory."""
+        if isinstance(traj, str):
+            from ase.io.trajectory import PickleTrajectory
+            traj = PickleTrajectory(traj, 'r')
+        for atoms in traj:
+            r = atoms.get_positions()#.ravel()
+            f = atoms.get_forces()#.ravel()
+            self.update(r, f)
+            self.r_old = r
+            self.f_old = f
+        self.r_old = traj[-2].get_positions()
+        self.f_old = traj[-2].get_forces()
