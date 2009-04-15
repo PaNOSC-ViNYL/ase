@@ -1,6 +1,7 @@
 """Atomic Simulation Environment."""
 
 from numpy import *
+from ase.utils import memory
 from ase.atom import Atom
 from ase.atoms import Atoms
 from ase.units import *

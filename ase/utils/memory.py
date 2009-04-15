@@ -85,7 +85,6 @@ class MemoryBase(object, DictMixin):
         """Return a shallow copy of a VM statistics instance.
         D.copy() -> a shallow copy of D"""
         if self.verbose>=1: print 'MemoryBase.copy' #DEBUG
-        #res = self.__class__(self.verbose) #TODO causes unwanted update
         res = object.__new__(self.__class__)
         MemoryBase.__init__(res, self.verbose)
         DictMixin.update(res, self)
@@ -382,6 +381,9 @@ class MemorySingleton(MemoryBase, Singleton):
         res = self.copy()
         self.__class__ = MemorySingleton
         return res
+
+# Make sure singleton is instantiated
+MemorySingleton()
 
 # -------------------------------------------------------------------
 
