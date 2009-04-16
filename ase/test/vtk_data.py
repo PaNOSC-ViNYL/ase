@@ -54,9 +54,18 @@ class UTConversionDataArrayNumPy(CustomTestCase):
         gc.set_threshold(*self.gc_threshold)
         gc.set_debug(self.gc_flags)
 
+        # Try to obtain a clean slate
+        gc.collect()
+        self.gc_count = len(gc.garbage)
+        del gc.garbage[:]
+
     def tearDown(self):
         gc.collect()
-        self.assertEqual(len(gc.garbage),0)
+        self.assertEqual(len(gc.garbage), self.gc_count)
+        if len(gc.garbage)>0:
+            if self.verbose>1: print gc.get_objects() #DEBUG
+            #TODO be pedantic and fail?
+        del gc.garbage[:]
         gc.set_threshold(*self.gc_threshold_old)
         gc.set_debug(self.gc_flags_old)
 
