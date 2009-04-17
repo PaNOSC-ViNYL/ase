@@ -10,7 +10,6 @@ from math import sqrt, pi
 from pickle import dump, load
 from ase.parallel import paropen
 from ase.calculators.dacapo import Dacapo
-from ase.calculators.jacapo.jacapo import Jacapo
 
 
 def dag(a):
@@ -265,8 +264,9 @@ class Wannier:
           """
         # Bloch phase sign convention
         sign = -1
-        if isinstance(calc, Dacapo) or isinstance(calc, Jacapo):
-            print "Using Dacapo or Jacapo"
+        classname = calc.__class__.__name__
+        if classname in ['Dacapo', 'Jacapo']:
+            print 'Using %' % classname
             sign = +1
             
         self.nwannier = nwannier
