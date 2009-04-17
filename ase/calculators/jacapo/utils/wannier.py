@@ -79,7 +79,8 @@ class Translation_Operator:
         translation = np.multiply.outer(translation,self.get_translational_diagonal(2))
         return np.multiply(translation,state)       
 
-def coordinate_array_from_unit_vectors(shape,gridunitvectors,origin=[0,0,0],indexfunction=lambda i,length:i):
+def coordinate_array_from_unit_vectors(shape, gridunitvectors,
+                                       origin=[0, 0, 0], indexfunction=None):
         """
         This method can be used to obtain an array representing the coordinates
         of a space defined by 'gridunitvecors'. 'gridunitvectors' is in turn a
@@ -105,6 +106,10 @@ def coordinate_array_from_unit_vectors(shape,gridunitvectors,origin=[0,0,0],inde
         Note that the output array will be of shape 
         (< *dimension* > ,  < *spatialcoordinates* >).
         """
+        
+        if indexfunction is None:
+            indexfunction = lambda i, length: i
+        
         coordinatelist=[]
         gridunitvectors=np.asarray(gridunitvectors)
         # Looping over the dimensionality of the vectors
@@ -588,7 +593,7 @@ class Wannier:
                test = self.get_orthonormality_factor(c)
                if test>1.0e-3:
                    print "ERROR: Columns of c not orthogonal!"
-
+                   
            U[:N[kpt],:numberoforbitals]=coeffmatrix[kpt][:N[kpt]]
            U[N[kpt]:,:numberoforbitals]=np.dot(dagger(c),coeffmatrix[kpt][N[kpt]:])
            # Perform democratic Lowdin orthogonalization on U[:,numberoforbitals]
