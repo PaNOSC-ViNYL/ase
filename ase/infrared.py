@@ -35,8 +35,8 @@ class InfraRed(Vibrations):
     
     >>> calc.get_dipole_moment(atoms)
 
-    In addition to the methods included in :class:`~ase.vibrations.Vibrations`
-    the :class:`~ase.infrared.InfraRed` class introduces two new methods;
+    In addition to the methods included in the ``Vibrations`` class
+    the ``InfraRed`` class introduces two new methods;
     *get_spectrum()* and *write_spectra()*. The *summary()*, *get_energies()*, 
     *get_frequencies()*, *get_spectrum()* and *write_spectra()*
     methods all take an optional *method* keyword.  Use
