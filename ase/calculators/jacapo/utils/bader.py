@@ -109,11 +109,15 @@ class Bader:
         os.system(cmd)
         
     def write_bader_volume(self,atomlist):
-        '''write bader atom volumes to cube files.
-        atomlist = [0,2] #for example
-           -p sel_bader Write the selected Bader volumes, read from the
+        """write bader atom volumes to cube files.
+
+        ::
+        
+          atomlist = [0,2] #  for example
+          
+        -p sel_bader Write the selected Bader volumes, read from the
         subsequent list of volumes.
-        '''
+        """
         alist = string.join([str(x) for x in atomlist],' ')
         cmd = 'bader -p sel_bader %s %s' % (alist,self.densityfile)
         print cmd

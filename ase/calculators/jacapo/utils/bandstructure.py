@@ -12,24 +12,26 @@ class BandStructure:
                  BZpath=[],
                  npoints=10,
                  outnc='harris.nc'):
-        '''
+        """Headline here ... XXX.
+        
         atoms is an ase.Atoms object with calculator
         attached. Presumably the self-consistent charge density has
         already been calculated, otherwise, it will be.
 
         BZpath is a list of tuples describing the path through the
-        Brillouin zone. The tuples have the form (label, kpt), e.g.
-        [('$\Gamma$',[0.0, 0.0, 0.0]),
-         ('X',[0.0, 0.5, 0.5]),
-         ('L',[0.5, 0.0, 0.0]),
-         ('$\Gamma$',[0.0, 0.0, 0.0])]
+        Brillouin zone. The tuples have the form (label, kpt), e.g. ::
 
-         the label is used in the figure and can include latex markup.
+          [('$\Gamma$',[0.0, 0.0, 0.0]),
+           ('X',[0.0, 0.5, 0.5]),
+           ('L',[0.5, 0.0, 0.0]),
+           ('$\Gamma$',[0.0, 0.0, 0.0])]
+
+        the label is used in the figure and can include latex markup.
 
         npoints is the number of points on each segment. It can either
         be a constant, which is used for every segment, or a list of
         integers that is an integer for each segment.        
-        '''
+        """
 
         self.atoms = atoms
         self.calc = atoms.get_calculator()
