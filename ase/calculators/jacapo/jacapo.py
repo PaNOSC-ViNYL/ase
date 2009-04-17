@@ -1979,7 +1979,7 @@ s.recv(14)
             else:
                 tags = ncf.variables['AtomTags']
 
-            tags[:] = atoms.get_tags()
+            tags[:] = np.array(atoms.get_tags(),np.int32)
 
             if 'InitialAtomicMagneticMoment' not in ncf.variables:
                 mom = ncf.createVariable('InitialAtomicMagneticMoment',
