@@ -21,3 +21,14 @@ equilibrium volume, energy, and bulk modulus for solids:
 .. seealso::  The :ref:`eos` tutorial.
 
 
+
+Symmetry analysis
+=================
+
+http://spglib.sourceforge.net/pyspglibForASE/
+
+
+Phonons
+=======
+
+http://phonopy.sourceforge.net/
