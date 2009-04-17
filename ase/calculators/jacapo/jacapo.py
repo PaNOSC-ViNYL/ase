@@ -671,6 +671,8 @@ class Jacapo:
         if constraints != []:
             nc = netCDF(self.get_nc(),'a')
             if 'constraints' not in nc.variables:
+                if 'dim1' not in nc.dimensions:
+                    nc.createDimension('dim1',1)
                 c = nc.createVariable('constraints','c',('dim1',))
             else:
                 c = nc.variables['constraints']
@@ -1764,6 +1766,7 @@ class Jacapo:
 
         if not nc: nc = self.get_nc()
         if not txt: txt = self.get_txt()
+        tempfile.tempdir=os.curdir
 
         if stopprogram:
                 # write stop file
@@ -2163,10 +2166,10 @@ s.recv(14)
             try:
                 ncvar2[:] = ncvar[:]
             except TypeError:
-                #this exception seems to occur for character variables
-                #that only store their data as attributes
+                #this exception occurs for scalar variables
+                #use getValue and assignValue instead
                 if self.debug > 0: print 'EXCEPTION HAPPENED in delete_NCATTR'
-                pass
+                ncvar2.assignValue(ncvar.getValue())
 
             #and variable attributes
             #print dir(ncvar)
