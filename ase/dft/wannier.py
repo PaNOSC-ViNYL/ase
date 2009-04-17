@@ -10,6 +10,7 @@ from math import sqrt, pi
 from pickle import dump, load
 from ase.parallel import paropen
 from ase.calculators.dacapo import Dacapo
+from ase.calculators.jacapo.jacapo import Jacapo
 
 
 def dag(a):
@@ -264,7 +265,8 @@ class Wannier:
           """
         # Bloch phase sign convention
         sign = -1
-        if isinstance(calc, Dacapo):
+        if isinstance(calc, Dacapo) or isinstance(calc, Jacapo):
+            print "Using Dacapo or Jacapo"
             sign = +1
             
         self.nwannier = nwannier
@@ -285,7 +287,6 @@ class Wannier:
             self.nbands = nbands
         else:
             self.nbands = calc.get_number_of_bands()
-
         if fixedenergy is None:
             if fixedstates is None:
                 self.fixedstates_k = npy.array([nwannier] * self.Nk, int)
@@ -297,6 +298,7 @@ class Wannier:
             # Setting number of fixed states and EDF from specified energy.
             # All states below this energy (relative to Fermi level) are fixed.
             fixedenergy += calc.get_fermi_level()
+            print fixedenergy
             self.fixedstates_k = npy.array(
                 [calc.get_eigenvalues(k, spin).searchsorted(fixedenergy)
                  for k in range(self.Nk)], int)

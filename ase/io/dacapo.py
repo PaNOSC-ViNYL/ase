@@ -73,9 +73,13 @@ def read_dacapo(filename):
                   tags=tags,
                   pbc=True)
 
-#    calc = SinglePointCalculator(vars['TotalEnergy'].getValue(),
-    calc = SinglePointCalculator(vars['TotalEnergy'][-1],
-                                 vars['DynamicAtomForces'][-1], None, None, atoms) ### Fixme magmoms
+    try:
+        energy = vars['TotalEnergy'][-1] 
+        force = vars['DynamicAtomForces'][-1] 
+    except KeyError: 
+        energy = None 
+        force = None 
+    calc = SinglePointCalculator(energy,force,None, None, atoms)  ### Fixme magmoms
     atoms.set_calculator(calc)
         
     return atoms
