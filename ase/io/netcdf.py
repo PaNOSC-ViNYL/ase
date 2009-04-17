@@ -1,3 +1,5 @@
+"""Read and write ASE2's netCDF trajectory files."""
+
 from ase.io.pupynere import NetCDFFile
 from ase.atoms import Atoms
 from ase.calculators import SinglePointCalculator
@@ -60,7 +62,10 @@ def read_netcdf(filename, index=-1):
             
         images.append(atoms)
         
-    return images[index]
+    if isinstance(index, int):
+        return images[0]
+    else:
+        return images
 
 
 class LOA:
