@@ -1,7 +1,15 @@
+import sys
+
 import numpy as npy
 from numpy.random import standard_normal
 
 from ase.md import MolecularDynamics
+
+if '_gpaw' in sys.modules:
+    # http://wiki.fysik.dtu.dk/gpaw
+    from gpaw.mpi import world
+else:
+    world = None
 
 """Langevin dynamics class."""
 
@@ -98,6 +106,10 @@ class Langevin(MolecularDynamics):
 
         random1 = standard_normal(size=(len(atoms), 3))
         random2 = standard_normal(size=(len(atoms), 3))
+
+        if world is not None:
+            world.broadcast(random1, 0)
+            world.broadcast(random2, 0)
         
         rrnd = self.sdpos * random1
         prnd = (self.sdmom * self.pmcor * random1 +
