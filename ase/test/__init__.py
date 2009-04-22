@@ -8,12 +8,34 @@ class NotAvailable(SystemExit):
         self.message = message
         self.code = code
 
+# -------------------------------------------------------------------
+
+# Custom test case/suite for embedding unittests in the test scripts
+
 if sys.version_info < (2, 4, 0, 'final', 0):
     class CustomTestCase(unittest.TestCase):
         assertTrue = unittest.TestCase.failUnless
         assertFalse = unittest.TestCase.failIf
 else:
     from unittest import TestCase as CustomTestCase
+
+from ase.parallel import paropen
+
+class CustomTextTestRunner(unittest.TextTestRunner):
+    def __init__(self, logname, descriptions=1, verbosity=1):
+        self.f = paropen(logname, 'w')
+        unittest.TextTestRunner.__init__(self, self.f, descriptions, verbosity)
+
+    def run(self, test):
+        stderr_old = sys.stderr
+        try:
+            sys.stderr = self.f
+            testresult = unittest.TextTestRunner.run(self, test)
+        finally:
+            sys.stderr = stderr_old
+        return testresult
+
+# -------------------------------------------------------------------
 
 class ScriptTestCase(unittest.TestCase):
     def __init__(self, methodname='testfile', filename=None, display=True):

@@ -5,19 +5,15 @@ from ase.visualize.vtk import requirevtk, probe_vtk_kilobyte
 requirevtk()
 vtk_kilobyte = probe_vtk_kilobyte(1024)
 
-import unittest
-from ase.test import CustomTestCase
 import numpy as np
 
+import sys, unittest, gc
+from ase.test import CustomTestCase, CustomTextTestRunner
 from ase.utils.memory import MemoryStatistics, MemorySingleton, shapeopt
 
 from vtk import vtkDataArray
 from ase.visualize.vtk.data import vtkDoubleArrayFromNumPyArray, \
                                    vtkDoubleArrayFromNumPyMultiArray
-
-# Tweak garbage collection (should be on by default)
-import gc
-gc.enable()
 
 # -------------------------------------------------------------------
 
@@ -405,13 +401,11 @@ class UTDataArrayFromNumPyMultiArray_Vector(UTConversionDataArrayNumPy):
 # -------------------------------------------------------------------
 
 if __name__ in ['__main__', '__builtin__']:
-    # We have been imported by test.py, so we should redirect to logfile
+    # We may have been imported by test.py, if so we should redirect to logfile
     if __name__ == '__builtin__':
-        from ase.parallel import paropen
-        f = paropen('vtk_data.log', 'w')
+        testrunner = CustomTextTestRunner('vtk_data.log', verbosity=2)
     else:
-        from sys import stdout as f
-    testrunner = unittest.TextTestRunner(verbosity=2, stream=f)
+        testrunner = unittest.TextTestRunner(stream=sys.stdout, verbosity=2)
 
     testcases = [UTDataArrayFromNumPyArray_Scalar, \
                  UTDataArrayFromNumPyArray_Vector, \

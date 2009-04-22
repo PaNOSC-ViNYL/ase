@@ -4,8 +4,8 @@ from ase.visualize.vtk import requirevtk
 
 requirevtk()
 
-import unittest
-from ase.test import CustomTestCase
+import sys, unittest
+from ase.test import CustomTestCase, CustomTextTestRunner
 
 from vtk import vtkContourFilter, vtkPolyDataNormals, \
                 vtkLinearSubdivisionFilter, vtkPolyDataMapper
@@ -433,13 +433,11 @@ class UTPolyDataPipeline_PipelineVTK(UTPolyDataPipeline):
 # -------------------------------------------------------------------
 
 if __name__ in ['__main__', '__builtin__']:
-    # We have been imported by test.py, so we should redirect to logfile
+    # We may have been imported by test.py, if so we should redirect to logfile
     if __name__ == '__builtin__':
-        from ase.parallel import paropen
-        f = paropen('vtk_pipeline.log', 'w')
+        testrunner = CustomTextTestRunner('vtk_pipeline.log', verbosity=2)
     else:
-        from sys import stdout as f
-    testrunner = unittest.TextTestRunner(verbosity=2, stream=f)
+        testrunner = unittest.TextTestRunner(stream=sys.stdout, verbosity=2)
 
     testcases = [UTPolyDataPipeline_PureVTK, UTPolyDataPipeline_PipelineVTK]
 
