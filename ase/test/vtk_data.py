@@ -27,17 +27,24 @@ class UTConversionDataArrayNumPy(CustomTestCase):
 
     Leak tests the six possible permutations of deletion order for the
     objects involved in conversion between VTK and NumPy data formats.
-        conv:    The object in charge of the conversion
-        data:    NumPy data with a specific memory footprint
-        vtk_da:  VTK data array with a similar memory footprint 
+
+    Objects:
+
+    conv: instance of vtkDataArrayFromNumPyBuffer of subclass thereof
+        The object in charge of the conversion
+    data: NumPy array
+        NumPy data with a specific memory footprint
+    vtk_da: instance of vtkDataArray of subclass thereof
+        VTK data array with a similar memory footprint
 
     Permutations:
-        Case A: 012 i.e. deletion order is conv, data, vtk_da
-        Case B: 021 i.e. deletion order is conv, vtk_da, data
-        Case C: 102 i.e. deletion order is data, conv, vtk_da
-        Case D: 120 i.e. deletion order is data, vtk_da, conv
-        Case E: 201 i.e. deletion order is vtk_da, conv, data
-        Case F: 210 i.e. deletion order is vtk_da, data, conv
+
+    Case A: 012 i.e. deletion order is conv, data, vtk_da
+    Case B: 021 i.e. deletion order is conv, vtk_da, data
+    Case C: 102 i.e. deletion order is data, conv, vtk_da
+    Case D: 120 i.e. deletion order is data, vtk_da, conv
+    Case E: 201 i.e. deletion order is vtk_da, conv, data
+    Case F: 210 i.e. deletion order is vtk_da, data, conv
     """
     footprint = 100*1024**2
     verbose = 0
@@ -84,11 +91,17 @@ class UTConversionDataArrayNumPy(CustomTestCase):
         #dm = 0 MB, bytes = 100MB       bad
 
     def get_leaktest_scenario(self):
-        """Return a tuple of the conversion objects for leak testing.
-            conv:    The object in charge of the conversion
-            data:    NumPy data with a specific memory footprint
-            vtk_da:  VTK data array with a similar memory footprint 
-        return (conv, data, vtk_da,)"""
+        """Construct the necessary conversion objects for leak testing.
+
+        Returns tuple of the form (conv, data, vtk_da,) where:
+
+        conv: instance of vtkDataArrayFromNumPyBuffer of subclass thereof
+            The object in charge of the conversion
+        data: NumPy array
+            NumPy data with a specific memory footprint
+        vtk_da: instance of vtkDataArray of subclass thereof
+            VTK data array with a similar memory footprint
+        """
 
         raise RuntimeError('Virtual member function.')
 

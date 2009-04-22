@@ -14,13 +14,14 @@ class QuasiNewton(Optimizer):
 
         restart: string
             Pickle file used to store hessian matrix. If set, file with 
-        such a name will be searched and hessian matrix stored will be used,
-        if the file exists.
+            such a name will be searched and hessian matrix stored will
+            be used, if the file exists.
         trajectory: string
             Pickle file used to store trajectory of atomic movement.
         maxstep: float
             Used to set the maximum distance an atom can move per
-        iteration (default value is 0.04 Å)."""
+            iteration (default value is 0.04 Å).
+        """
         
         Optimizer.__init__(self, atoms, restart, logfile, trajectory)
 

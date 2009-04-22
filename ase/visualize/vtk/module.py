@@ -71,8 +71,8 @@ class vtkPolyDataModule(vtkModule):
     def __init__(self, vtk_polydata, vtk_property=None):
         """Construct VTK-representation of a module containing polygonals.
 
-        vtk_polydata: Instance of vtkPolyData, subclass thereof or 
-        vtkPolyDataAlgorithm, which produces vtkPolyData as output.
+        vtk_polydata: Instance of vtkPolyData, subclass thereof or
+            vtkPolyDataAlgorithm, which produces vtkPolyData as output.
             A vtkPolyData represents a polygonal data set consisting of
             point and cell attributes, which can be mapped to graphics
             primitives for subsequent rendering.
