@@ -77,6 +77,9 @@ class vtkBaseGrid:
 
         del data
 
+        assert vtk_vda.GetNumberOfComponents() == 3
+        assert vtk_vda.GetNumberOfTuples() == self.npoints
+
         if name is not None:
             vtk_vda.SetName(name)
 
