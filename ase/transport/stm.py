@@ -72,13 +72,14 @@ class STM:
         #coupling betwen per. and non. per part of the surface
         h2_im = np.zeros((pl2, nbf2), complex)
         s2_im = np.zeros((pl2, nbf2), complex) 
-        h2_im[-pl2:, -pl2:], s1_im[-pl2:, -pl2:] = hs2_dij
+        h2_im[-pl2:, -pl2:], s2_im[-pl2:, -pl2:] = hs2_dij
         hs2_dim = [h2_im, s2_im]
 
         #tip and surface greenfunction 
         self.selfenergy1 = LeadSelfEnergy(hs1_dii, hs1_dij, hs1_dim, self.eta1)
         self.selfenergy2 = LeadSelfEnergy(hs2_dii, hs2_dij, hs2_dim, self.eta2)
-
+        print  self.selfenergy1(3.) 
+        print  self.selfenergy2(3.)
         self.greenfunction1 = GreenFunction(self.h1, self.s1, 
                                             [self.selfenergy1], self.eta1)
         self.greenfunction2 = GreenFunction(self.h2, self.s2, 
