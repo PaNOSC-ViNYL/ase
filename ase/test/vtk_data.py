@@ -66,7 +66,7 @@ class UTConversionDataArrayNumPy(CustomTestCase):
         gc.collect()
         self.assertEqual(len(gc.garbage), self.gc_count)
         if len(gc.garbage)>0:
-            if self.verbose>1: print gc.get_objects() #DEBUG
+            if self.verbose>1: print gc.get_objects()
             #TODO be pedantic and fail?
         del gc.garbage[:]
         gc.set_threshold(*self.gc_threshold_old)
@@ -111,19 +111,19 @@ class UTConversionDataArrayNumPy(CustomTestCase):
         del conv
         self.assertAlmostConsumed(2*self.footprint, -5) #100kB -> 140kB sometimes!
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'Conversion cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'Conversion cleanup=', self.mem_cur-self.mem_ref
 
         # NumPy cleanup
         del data
         self.assertAlmostConsumed(self.footprint, -5) #100kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'NumPy cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'NumPy cleanup=', self.mem_cur-self.mem_ref
 
         # VTK cleanup
         del vtk_da
         self.assertAlmostConsumed(0, -4) #10kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'VTK cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'VTK cleanup=', self.mem_cur-self.mem_ref
 
     def test_deletion_case_b(self):
         # Case B: 021 i.e. deletion order is conv, vtk_da, data
@@ -133,19 +133,19 @@ class UTConversionDataArrayNumPy(CustomTestCase):
         del conv
         self.assertAlmostConsumed(2*self.footprint, -5) #100kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'Conversion cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'Conversion cleanup=', self.mem_cur-self.mem_ref
 
         # VTK cleanup
         del vtk_da
         self.assertAlmostConsumed(self.footprint, -5) #100kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'VTK cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'VTK cleanup=', self.mem_cur-self.mem_ref
 
         # Numpy cleanup
         del data
         self.assertAlmostConsumed(0, -4) #10kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'NumPy cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'NumPy cleanup=', self.mem_cur-self.mem_ref
 
     def test_deletion_case_c(self):
         # Case C: 102 i.e. deletion order is data, conv, vtk_da
@@ -155,19 +155,19 @@ class UTConversionDataArrayNumPy(CustomTestCase):
         del data
         self.assertAlmostConsumed(self.footprint, -5) #100kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'NumPy cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'NumPy cleanup=', self.mem_cur-self.mem_ref
 
         # Conversion cleanup
         del conv
         self.assertAlmostConsumed(self.footprint, -5) #100kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'Conversion cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'Conversion cleanup=', self.mem_cur-self.mem_ref
 
         # VTK cleanup
         del vtk_da
         self.assertAlmostConsumed(0, -4) #10kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'VTK cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'VTK cleanup=', self.mem_cur-self.mem_ref
 
     def test_deletion_case_d(self):
         # Case D: 120 i.e. deletion order is data, vtk_da, conv
@@ -177,19 +177,19 @@ class UTConversionDataArrayNumPy(CustomTestCase):
         del data
         self.assertAlmostConsumed(self.footprint, -5) #100kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'NumPy cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'NumPy cleanup=', self.mem_cur-self.mem_ref
 
         # VTK cleanup
         del vtk_da
         self.assertAlmostConsumed(self.footprint, -5) #100kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'VTK cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'VTK cleanup=', self.mem_cur-self.mem_ref
 
         # Conversion cleanup
         del conv
         self.assertAlmostConsumed(0, -4) #10kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'Conversion cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'Conversion cleanup=', self.mem_cur-self.mem_ref
 
     def test_deletion_case_e(self):
         # Case E: 201 i.e. deletion order is vtk_da, conv, data
@@ -199,19 +199,19 @@ class UTConversionDataArrayNumPy(CustomTestCase):
         del vtk_da
         self.assertAlmostConsumed(2*self.footprint, -5) #100kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'VTK cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'VTK cleanup=', self.mem_cur-self.mem_ref
 
         # Conversion cleanup
         del conv
         self.assertAlmostConsumed(self.footprint, -5) #100kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'Conversion cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'Conversion cleanup=', self.mem_cur-self.mem_ref
 
         # NumPy cleanup
         del data
         self.assertAlmostConsumed(0, -4) #10kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'NumPy cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'NumPy cleanup=', self.mem_cur-self.mem_ref
 
     def test_deletion_case_f(self):
         # Case F: 210 i.e. deletion order is vtk_da, data, conv
@@ -221,19 +221,19 @@ class UTConversionDataArrayNumPy(CustomTestCase):
         del vtk_da
         self.assertAlmostConsumed(2*self.footprint, -5) #100kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'VTK cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'VTK cleanup=', self.mem_cur-self.mem_ref
 
         # NumPy cleanup
         del data
         self.assertAlmostConsumed(self.footprint, -5) #100kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'NumPy cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'NumPy cleanup=', self.mem_cur-self.mem_ref
 
         # Conversion cleanup
         del conv
         self.assertAlmostConsumed(0, -4) #10kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'Conversion cleanup=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'Conversion cleanup=', self.mem_cur-self.mem_ref
 
 # -------------------------------------------------------------------
 
@@ -261,20 +261,20 @@ class UTDataArrayFromNumPyArray_Scalar(UTConversionDataArrayNumPy):
         data = np.empty(self.shape, np.float)
         self.assertAlmostConsumed(self.footprint, -4) #10kB -> 136kB sometimes!
         self.assertAlmostExceeded(self.footprint, -5) #100kB
-        if self.verbose>=1: print 'NumPy allocation=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'NumPy allocation=', self.mem_cur-self.mem_ref
 
         # NumPy to VTK conversion
         np2da = vtkDoubleArrayFromNumPyArray(data)
         self.assertAlmostConsumed(2*self.footprint, -5) #100kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'Conversion=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'Conversion=', self.mem_cur-self.mem_ref
 
         # VTK retrieval
         vtk_da = np2da.get_output()
         self.assertTrue(isinstance(vtk_da, vtkDataArray))
         self.assertAlmostEqual(vtk_da.GetActualMemorySize()*vtk_kilobyte, \
                                self.footprint, -3) #1kB
-        if self.verbose>=1: print 'VTK retrieval=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'VTK retrieval=', self.mem_cur-self.mem_ref
 
         return (np2da, data, vtk_da,)
 
@@ -299,20 +299,20 @@ class UTDataArrayFromNumPyArray_Vector(UTConversionDataArrayNumPy):
         data = np.empty(self.shape, np.float)
         self.assertAlmostConsumed(self.footprint, -4) #10kB
         self.assertAlmostExceeded(self.footprint, -5) #100kB
-        if self.verbose>=1: print 'NumPy allocation=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'NumPy allocation=', self.mem_cur-self.mem_ref
 
         # NumPy to VTK conversion
         np2da = vtkDoubleArrayFromNumPyArray(data)
         self.assertAlmostConsumed(2*self.footprint, -5) #100kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'Conversion=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'Conversion=', self.mem_cur-self.mem_ref
 
         # VTK retrieval
         vtk_da = np2da.get_output()
         self.assertTrue(isinstance(vtk_da, vtkDataArray))
         self.assertAlmostEqual(vtk_da.GetActualMemorySize()*vtk_kilobyte, \
                                self.footprint, -3) #1kB
-        if self.verbose>=1: print 'VTK retrieval=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'VTK retrieval=', self.mem_cur-self.mem_ref
 
         return (np2da, data, vtk_da,)
 
@@ -327,7 +327,7 @@ class UTDataArrayFromNumPyMultiArray_Scalar(UTConversionDataArrayNumPy):
         UTConversionDataArrayNumPy.setUp(self)
         size = self.footprint//np.nbytes[np.float]
         digits, shape = shapeopt(1000, size, ndims=3, ecc=0.3)
-        if self.verbose>=1: print 'digits=%8.3f, shape=%s' % (digits,shape) #DEBUG
+        if self.verbose>=1: print 'digits=%8.3f, shape=%s' % (digits,shape)
         self.shape = shape + (1,)
         self.assertAlmostEqual(np.prod(self.shape)*np.nbytes[np.float], \
                                self.footprint, -4) #10kB
@@ -341,20 +341,20 @@ class UTDataArrayFromNumPyMultiArray_Scalar(UTConversionDataArrayNumPy):
         data = np.empty(self.shape, np.float)
         self.assertAlmostConsumed(self.footprint, -4) #10kB
         self.assertAlmostExceeded(self.footprint, -5) #100kB
-        if self.verbose>=1: print 'NumPy allocation=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'NumPy allocation=', self.mem_cur-self.mem_ref
 
         # NumPy to VTK conversion
         np2da = vtkDoubleArrayFromNumPyMultiArray(data)
         self.assertAlmostConsumed(2*self.footprint, -5) #100kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'Conversion=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'Conversion=', self.mem_cur-self.mem_ref
 
         # VTK retrieval
         vtk_da = np2da.get_output()
         self.assertTrue(isinstance(vtk_da, vtkDataArray))
         self.assertAlmostEqual(vtk_da.GetActualMemorySize()*vtk_kilobyte, \
                                self.footprint, -4) #10kB
-        if self.verbose>=1: print 'VTK retrieval=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'VTK retrieval=', self.mem_cur-self.mem_ref
 
         return (np2da, data, vtk_da,)
 
@@ -367,7 +367,7 @@ class UTDataArrayFromNumPyMultiArray_Vector(UTConversionDataArrayNumPy):
         UTConversionDataArrayNumPy.setUp(self)
         size = self.footprint//np.nbytes[np.float]
         digits, shape = shapeopt(1000, size//3, ndims=3, ecc=0.3)
-        if self.verbose>=1: print 'digits=%8.3f, shape=%s' % (digits,shape) #DEBUG
+        if self.verbose>=1: print 'digits=%8.3f, shape=%s' % (digits,shape)
         self.shape = shape + (3,)
         self.assertAlmostEqual(np.prod(self.shape)*np.nbytes[np.float], \
                                self.footprint, -4) #10kB
@@ -381,20 +381,20 @@ class UTDataArrayFromNumPyMultiArray_Vector(UTConversionDataArrayNumPy):
         data = np.empty(self.shape, np.float)
         self.assertAlmostConsumed(self.footprint, -4) #10kB
         self.assertAlmostExceeded(self.footprint, -5) #100kB
-        if self.verbose>=1: print 'NumPy allocation=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'NumPy allocation=', self.mem_cur-self.mem_ref
 
         # NumPy to VTK conversion
         np2da = vtkDoubleArrayFromNumPyMultiArray(data)
         self.assertAlmostConsumed(2*self.footprint, -5) #100kB
         self.assertAlmostExceeded(2*self.footprint, -6) #1MB
-        if self.verbose>=1: print 'Conversion=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'Conversion=', self.mem_cur-self.mem_ref
 
         # VTK retrieval
         vtk_da = np2da.get_output()
         self.assertTrue(isinstance(vtk_da, vtkDataArray))
         self.assertAlmostEqual(vtk_da.GetActualMemorySize()*vtk_kilobyte, \
                                self.footprint, -4) #10kB
-        if self.verbose>=1: print 'VTK retrieval=', self.mem_cur-self.mem_ref #DEBUG
+        if self.verbose>=1: print 'VTK retrieval=', self.mem_cur-self.mem_ref
 
         return (np2da, data, vtk_da,)
 
