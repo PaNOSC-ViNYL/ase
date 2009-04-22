@@ -878,8 +878,6 @@ class Atoms(object):
         Identity means: same positions, atomic numbers, unit cell and
         periodic boundary conditions."""
 
-        if other==None:
-           return False
         a = self.arrays
         b = other.arrays
         return (len(self) == len(other) and
