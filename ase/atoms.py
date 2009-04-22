@@ -650,7 +650,7 @@ class Atoms(object):
             return Atom(atoms=self, index=i)
         
         import copy
-        from constraints import FixConstraint
+        from ase.constraints import FixConstraint
         
         atoms = Atoms(cell=self._cell, pbc=self._pbc)
         # TODO: Do we need to shuffle indices in adsorbate_info too?
@@ -675,6 +675,8 @@ class Atoms(object):
         return atoms
 
     def __delitem__(self, i):
+        if len(self._constraints) > 0:
+            raise RuntimeError('Remove constraint before deleting atoms.')
         mask = npy.ones(len(self), bool)
         mask[i] = False
         for name, a in self.arrays.items():
@@ -688,6 +690,8 @@ class Atoms(object):
         return atom
     
     def __imul__(self, m):
+        if len(self._constraints) > 0:
+            raise RuntimeError('Remove constraint before modifying atoms.')
         if isinstance(m, int):
             m = (m, m, m)
         M = npy.product(m)

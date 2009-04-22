@@ -16,3 +16,11 @@ dyn = QuasiNewton(atoms, maxstep=0.2)
 dyn.attach(traj.write)
 dyn.run(fmax=0.01, steps=100)
 print dyn.H[-3:,-3:]
+
+try:
+    del atoms[-1]
+except RuntimeError:
+    pass
+else:
+    raise RuntimeError
+
