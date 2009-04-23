@@ -12,6 +12,7 @@ if 1:
 images = read('neb.traj@-5:')
 for name, a in zip('ITF', images[::2]):
     cell = a.get_cell()
+    del a.constraints
     a = a * (2, 2, 1)
     a.set_cell(cell)
     write('diffusion-%s.pov' % name, a, show_unit_cell=True,
