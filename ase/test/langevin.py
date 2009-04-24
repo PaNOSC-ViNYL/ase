@@ -128,4 +128,5 @@ def test(temp, frict):
 if __name__ in ['__main__', '__builtin__']:
     temp = 0.01
     frict = 0.001
-    fitdata, params, temperatures = test(temp, frict)
+    if useasap:
+        fitdata, params, temperatures = test(temp, frict)
