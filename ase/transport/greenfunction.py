@@ -11,7 +11,11 @@ class GreenFunction:
         self.energy = None
         self.Ginv = np.empty(H.shape, complex)
 
-    def __call__(self, energy, inverse=False):
+    def retarded(self, energy, inverse=False):
+        """Get retarded Green function at specified energy.
+
+        If 'inverse' is True, the inverse Green function is returned (faster).
+        """
         if energy != self.energy:
             self.energy = energy
             z = energy + self.eta * 1.j
@@ -25,30 +29,33 @@ class GreenFunction:
             self.Ginv -= self.H
 
             for selfenergy in self.selfenergies:
-                self.Ginv -= selfenergy(energy)
+                self.Ginv -= selfenergy.retarded(energy)
 
         if inverse:
             return self.Ginv
         else:
             return np.linalg.inv(self.Ginv)
 
-    def calculate(self, energy, sigma):
-        ginv = energy * self.S - self.H - sigma
-        return np.linalg.inv(ginv)
+    def apply_retarded(self, energy, X):
+        """Apply retarded Green function to X.
+
+        Returns the matrix product G^r(e) . X
+        """
+        return np.linalg.solve(self.retarded(energy, inverse=True), X)
 
     def dos(self, energy):
         """Total density of states -1/pi Im(Tr(GS))"""
         if self.S is None:
             return -self(energy).imag.trace() / np.pi
         else:
-            GS = np.linalg.solve(self(energy, inverse=True), self.S)
+            GS = self.apply_retarded(energy, self.S)
             return -GS.imag.trace() / np.pi
         
     def pdos(self, energy):
         """Projected density of states -1/pi Im(SGS/S)"""
         if self.S is None:
-            return -self(energy).imag.diagonal() / np.pi
+            return -self.retarded(energy).imag.diagonal() / np.pi
         else:
             S = self.S
-            SGS = np.dot(S, np.linalg.solve(self(energy, inverse=True), S))
+            SGS = np.dot(S, self.apply_retarded(energy, S))
             return -(SGS.diagonal() / S.diagonal()).imag / np.pi

@@ -14,7 +14,7 @@ class LeadSelfEnergy:
         self.bias = 0
         self.sigma_mm = np.empty((self.nbf, self.nbf), complex)
 
-    def __call__(self, energy):
+    def retarded(self, energy):
         """Return self-energy (sigma) evaluated at specified energy."""
         if energy != self.energy:
             self.energy = energy
@@ -78,6 +78,6 @@ class BoxProbe:
         self.energies = energies
         self.S = S
     
-    def __call__(self, energy):
+    def retarded(self, energy):
         return self.selfenergy_e[self.energies.searchsorted(energy)] * self.S
         

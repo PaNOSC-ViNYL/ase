@@ -193,7 +193,7 @@ class TransportCalculator:
             self.eigenchannels_ne = npy.empty((nchan, nepts))
 
         for e, energy in enumerate(self.energies):
-            Ginv_mm = self.greenfunction(energy, inverse=True)
+            Ginv_mm = self.greenfunction.retarded(energy, inverse=True)
             lambda1_mm = self.selfenergies[0].get_lambda(energy)
             lambda2_mm = self.selfenergies[1].get_lambda(energy)
             a_mm = linalg.solve(Ginv_mm, lambda1_mm)
@@ -287,7 +287,7 @@ class TransportCalculator:
         
     def get_left_channels(self, energy, nchan=1):
         self.initialize()
-        g_s_ii = self.greenfunction(energy)
+        g_s_ii = self.greenfunction.retarded(energy)
         lambda_l_ii = self.selfenergies[0].get_lambda(energy)
         lambda_r_ii = self.selfenergies[1].get_lambda(energy)
 
