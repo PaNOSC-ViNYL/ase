@@ -8,6 +8,7 @@ Maxwell-Boltzmann distribution at a given temperature.
 """
 
 import numpy as np
+import sys
 
 # For parallel GPAW simulations, the random velocities should be distributed.
 if '_gpaw' in sys.modules:
