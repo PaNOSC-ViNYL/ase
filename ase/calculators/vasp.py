@@ -949,6 +949,100 @@ class VaspChargeDensity(object):
         f.close()
 
 
+class VaspDos(object):
+    """Class for representing density-of-states produced by VASP
+
+    The energies are in property self.energy
+
+    Site-projected DOS is accesible via the self.site_dos method.
+
+    Total and integrated DOS is accessible as numpy.ndarray's in the
+    properties self.dos and self.integrated_dos.
+
+    The self.efermi property contains the currently set Fermi
+    level. Changing this value shifts the energies.
+    
+    """
+
+    def __init__(self, doscar='DOSCAR', efermi=0.0):
+        """Initialize"""
+        self._efermi = 0.0
+        self.read_doscar(doscar)
+        self.efermi = efermi
+
+    def _set_efermi(self, efermi):
+        """Set the Fermi level."""
+        ef = efermi - self._efermi
+        self._efermi = efermi
+        self._total_dos[0, :] = self._total_dos[0, :] - ef
+        try:
+            self._site_dos[:, 0, :] = self._site_dos[:, 0, :] - ef
+        except IndexError:
+            pass
+
+    def _get_efermi(self):
+        return self._efermi
+
+    efermi = property(_get_efermi, _set_efermi, None, "Fermi energy.")
+
+    def _get_energy(self):
+        """Return the array with the energies."""
+        return self._total_dos[0, :]
+    energy = property(_get_energy, None, None, "Array of energies")
+
+    def site_dos(self, atom, orbital):
+        """Return an NDOSx1 array with dos for the chosen atom and orbital.
+
+        If spin-unpolarized calculation, no phase factors:
+        s = 1, p = 2, d = 3
+        Spin-polarized, no phase factors:
+        s-up = 1, s-down = 2, p-up = 3, p-down = 4, d-up = 5, d-down = 6
+        If phase factors have been calculated, orbitals are
+        s, py, pz, px, dxy, dyz, dz2, dxz, dx2
+        double in the above fashion if spin polarized.
+
+        """
+        return self._site_dos[atom, orbital, :]
+
+    def _get_dos(self):
+        return self._total_dos[1, :]
+    dos = property(_get_dos, None, None, 'Average DOS in cell')
+
+    def _get_integrated_dos(self):
+        return self._total_dos[2, :]
+    integrated_dos = property(_get_integrated_dos, None, None,
+                              'Integrated average DOS in cell')
+
+    def read_doscar(self, fname="DOSCAR"):
+        """Read a VASP DOSCAR file"""
+        f = open(fname)
+        natoms = int(f.readline().split()[0])
+        [f.readline() for nn in range(4)]  # Skip next 4 lines.
+        # First we have a block with total and total integrated DOS
+        ndos = int(f.readline().split()[2])
+        dos = np.empty((ndos, 3))
+        for nd in xrange(ndos):
+            dos[nd] = np.array([float(x) for x in f.readline().split()])
+        self._total_dos = np.array(dos).T
+        # Next we have one block per atom, if INCAR contains the stuff
+        # necessary for generating site-projected DOS
+        dos = []
+        for na in xrange(natoms):
+            line = f.readline()
+            if line == '':
+                # No site-projected DOS
+                break
+            ndos = int(line.split()[2])
+            line = f.readline().split()
+            cdos = np.empty((ndos, len(line)))
+            cdos[0] = np.array(line)
+            for nd in xrange(1, ndos):
+                line = f.readline().split()
+                cdos[nd] = np.array([float(x) for x in line])
+            dos.append(cdos.T)
+        self._site_dos = np.array(dos)
+
+
 import pickle
 
 class xdat2traj:
