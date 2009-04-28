@@ -9,8 +9,17 @@ Maxwell-Boltzmann distribution at a given temperature.
 
 import numpy as np
 
+# For parallel GPAW simulations, the random velocities should be distributed.
+if '_gpaw' in sys.modules:
+    # http://wiki.fysik.dtu.dk/gpaw
+    from gpaw.mpi import world as gpaw_world
+else:
+    gpaw_world = None
+
 def _maxwellboltzmanndistribution(masses, temp):
     xi = np.random.standard_normal((len(masses),3))
+    if gpaw_world is not None:
+        gpaw_world.broadcast(xi, 0)
     momenta = xi * np.sqrt(masses * temp)[:,np.newaxis]
     return momenta
 

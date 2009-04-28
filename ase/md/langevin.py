@@ -1,8 +1,9 @@
-import sys
+"""Langevin dynamics class."""
 
+
+import sys
 import numpy as npy
 from numpy.random import standard_normal
-
 from ase.md import MolecularDynamics
 
 # For parallel GPAW simulations, the random forces should be distributed.
@@ -11,9 +12,6 @@ if '_gpaw' in sys.modules:
     from gpaw.mpi import world as gpaw_world
 else:
     gpaw_world = None
-
-"""Langevin dynamics class."""
-
 
 class Langevin(MolecularDynamics):
     """Langevin (constant N, V, T) molecular dynamics.
