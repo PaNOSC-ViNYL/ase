@@ -22,7 +22,7 @@ class MemoryBase(object, DictMixin):
     Note that VmSize > VmData + VmStk + VmExe + VmLib due to overhead.
     """
 
-    _scale = {'kB':1024.0, 'KB':1024.0, 'mB':1024.0**2, 'MB':1024.0**2}
+    _scale = {'KB':1024.0, 'MB':1024.0**2}
     _keys = ('VmPeak', 'VmLck', 'VmHWM', 'VmRSS', 'VmSize', 'VmData', \
             'VmStk', 'VmExe', 'VmLib', 'VmPTE')
 
@@ -264,24 +264,27 @@ class MemoryStatistics(MemoryBase):
         """Refresh all outdated VM keys by reading /proc/<pid>/status."""
         if self.verbose>=1: print 'MemoryBase.refresh'
 
+        # NB: Linux /proc is for humans; Solaris /proc is for programs!
+        # TODO: Use pipe from 'prstat -p <pid>' or 'pmap -x <pid> 1 1'
+
         # Skip refresh if none are outdated (i.e. nan)
         if not np.isnan(self._values).any():
             if self.verbose>=2: print 'refresh: skipping...'
             return
 
         try:
-            f = open('/proc/%d/status' % os.getpid())
+            f = open('/proc/%d/status' % os.getpid(), 'r')
             for line in f.xreadlines():
-                k,v = line.split(':')
+                k,v = line.decode('ascii').split(':')
 
                 # Only refresh supported keys that are outdated (i.e. nan)
                 if k in self and np.isnan(self[k]):
                     t,s = v.strip().split(None, 1)
                     if self.verbose>=2: print 'refresh: k=%s, t=%s, s=%s' % (k,t,s)
-                    self[k] = float(t)*self._scale[s]
+                    self[k] = float(t)*self._scale[s.upper()]
 
             f.close()
-        except IOError:
+        except (IOError, UnicodeError):
             # Reset on error
             self.clear()
 
