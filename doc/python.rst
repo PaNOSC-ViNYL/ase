@@ -157,7 +157,7 @@ dictionaries, ndarrays and files are sequences.
 Functions and classes
 ---------------------
 
-A :term:`function` is defined like this:
+A function is defined like this:
 
 >>> def f(x, m=2, n=1):
 ...     y =  x + n
