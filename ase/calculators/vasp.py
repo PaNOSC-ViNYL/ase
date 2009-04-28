@@ -957,7 +957,9 @@ class VaspDos(object):
     Site-projected DOS is accesible via the self.site_dos method.
 
     Total and integrated DOS is accessible as numpy.ndarray's in the
-    properties self.dos and self.integrated_dos.
+    properties self.dos and self.integrated_dos. If the calculation is
+    spin polarized, the arrays will be of shape (2, NDOS), else (1,
+    NDOS).
 
     The self.efermi property contains the currently set Fermi
     level. Changing this value shifts the energies.
@@ -1005,11 +1007,17 @@ class VaspDos(object):
         return self._site_dos[atom, orbital, :]
 
     def _get_dos(self):
-        return self._total_dos[1, :]
+        if self._total_dos.shape[0] == 3:
+            return self._total_dos[1, :]
+        elif self._total_dos.shape[0] == 5:
+            return self._total_dos[1:3, :]
     dos = property(_get_dos, None, None, 'Average DOS in cell')
 
     def _get_integrated_dos(self):
-        return self._total_dos[2, :]
+        if self._total_dos.shape[0] == 3:
+            return self._total_dos[2, :]
+        elif self._total_dos.shape[0] == 5:
+            return self._total_dos[3:5, :]
     integrated_dos = property(_get_integrated_dos, None, None,
                               'Integrated average DOS in cell')
 
@@ -1020,9 +1028,9 @@ class VaspDos(object):
         [f.readline() for nn in range(4)]  # Skip next 4 lines.
         # First we have a block with total and total integrated DOS
         ndos = int(f.readline().split()[2])
-        dos = np.empty((ndos, 3))
+        dos = []
         for nd in xrange(ndos):
-            dos[nd] = np.array([float(x) for x in f.readline().split()])
+            dos.append(np.array([float(x) for x in f.readline().split()]))
         self._total_dos = np.array(dos).T
         # Next we have one block per atom, if INCAR contains the stuff
         # necessary for generating site-projected DOS
