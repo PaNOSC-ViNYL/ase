@@ -5,11 +5,12 @@ from numpy.random import standard_normal
 
 from ase.md import MolecularDynamics
 
+# For parallel GPAW simulations, the random forces should be distributed.
 if '_gpaw' in sys.modules:
     # http://wiki.fysik.dtu.dk/gpaw
-    from gpaw.mpi import world
+    from gpaw.mpi import world as gpaw_world
 else:
-    world = None
+    gpaw_world = None
 
 """Langevin dynamics class."""
 
@@ -107,9 +108,9 @@ class Langevin(MolecularDynamics):
         random1 = standard_normal(size=(len(atoms), 3))
         random2 = standard_normal(size=(len(atoms), 3))
 
-        if world is not None:
-            world.broadcast(random1, 0)
-            world.broadcast(random2, 0)
+        if gpaw_world is not None:
+            gpaw_world.broadcast(random1, 0)
+            gpaw_world.broadcast(random2, 0)
         
         rrnd = self.sdpos * random1
         prnd = (self.sdmom * self.pmcor * random1 +
