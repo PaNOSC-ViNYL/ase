@@ -78,9 +78,12 @@ class PickleTrajectory:
                 self.fd = open(filename, mode + 'b')
             self.read_header()
         elif mode == 'a':
+            exists = True
             if isinstance(filename, str):
+                exists = os.path.isfile(filename)
                 self.fd = open(filename, mode + 'b+')
-            self.read_header()
+            if exists:
+                self.read_header()
         elif mode == 'w':
             if self.master:
                 if isinstance(filename, str):
