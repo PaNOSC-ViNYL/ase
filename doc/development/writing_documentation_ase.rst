@@ -31,6 +31,8 @@ For that to work, you need the following installed:
 * matplotlib
 * povray
 * dvipng
+* pdflatex
+* bibtex
 * AUCTex
 
 .. _using_sphinx:
