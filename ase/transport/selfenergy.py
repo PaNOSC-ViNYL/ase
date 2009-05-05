@@ -13,7 +13,7 @@ class LeadSelfEnergy:
         self.energy = None
         self.bias = 0
         self.sigma_mm = np.empty((self.nbf, self.nbf), complex)
-
+    
     def retarded(self, energy):
         """Return self-energy (sigma) evaluated at specified energy."""
         if energy != self.energy:
@@ -35,7 +35,7 @@ class LeadSelfEnergy:
         Here S is the retarded selfenergy, and d denotes the hermitian
         conjugate.
         """
-        sigma_mm = self(energy)
+        sigma_mm = self.retarded(energy)
         return 1.j * (sigma_mm - sigma_mm.T.conj())
         
     def get_sgfinv(self, energy):
