@@ -212,15 +212,16 @@ def write(filename, images, format=None, **kwargs):
     scale: int
       Number of pixels per Angstrom.
       
-    The ``pov`` accepts the additional keywords:
-    
-    XXX
-  
-    For ``pov`` the elements of the color array can also be strings, or 4,
-    and 5 vectors.
-  
-    XXX
+    The ``pov`` format accepts the additional keywords:
 
+    ``run_povray``, ``display``, ``pause``, ``transparent``,
+    ``canvas_width``, ``canvas_height``, ``camera_dist``,
+    ``image_plane``, ``camera_type``, ``point_lights``,
+    ``area_light``, ``background``, ``textures``, ``celllinewidth``
+
+    For ``pov`` the elements of the color array can also be strings, or 4,
+    and 5 vectors for named colors, rgb + filter, and rgb + filter + transmit
+    specification.
     """
     
     if format is None:

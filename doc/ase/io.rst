@@ -78,3 +78,7 @@ array([[  5.10531096e+00,  -4.11836034e-16,   1.99569088e-16],
 >>> b.get_pbc()
 array([ True,  True,  True], dtype=bool)
 
+A script showing all of the povray parameters, and generating the image below, 
+can be found here: :trac:`doc/ase/save_pov.py`
+
+.. image:: NaCl_C6H6.png
