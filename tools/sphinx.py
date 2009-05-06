@@ -25,7 +25,7 @@ def build():
     results = test(verbosity=2, dir='ase/test', display=False, stream=stream)
     stream.close()
     if len(results.failures) > 0 or len(results.errors) > 0:
-        address = 'gridpaw-developer@lists.berlios.de'
+        address = 'ase-developers@listserv.fysik.dtu.dk'
         subject = 'ASE test-suite failed!'
         os.system('mail -s "%s" %s < %s' %
                   (subject, address, 'test-results.txt'))
