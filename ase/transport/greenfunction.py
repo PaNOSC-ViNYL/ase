@@ -36,9 +36,14 @@ class GreenFunction:
         else:
             return np.linalg.inv(self.Ginv)
 
+    def calculate(self, energy, sigma):
+        """XXX is this really needed"""
+        ginv = energy * self.S - self.H - sigma 
+        return np.linalg.inv(ginv)
+
     def apply_retarded(self, energy, X):
         """Apply retarded Green function to X.
-
+        
         Returns the matrix product G^r(e) . X
         """
         return np.linalg.solve(self.retarded(energy, inverse=True), X)
