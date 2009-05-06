@@ -63,7 +63,7 @@ class ScriptTestCase(unittest.TestCase):
         return "ScriptTestCase(filename='%s')" % self.filename
 
 
-def test(verbosity=1, dir=None, display=True):
+def test(verbosity=1, dir=None, display=True, stream=sys.stdout):
     ts = unittest.TestSuite()
     if dir is None:
         dir = __path__[0]
@@ -81,7 +81,7 @@ def test(verbosity=1, dir=None, display=True):
     from ase.utils import devnull
     sys.stdout = devnull
     
-    ttr = unittest.TextTestRunner(verbosity=verbosity, stream=sys.__stdout__)
+    ttr = unittest.TextTestRunner(verbosity=verbosity, stream=stream)
     results = ttr.run(ts)
 
     sys.stdout = sys.__stdout__

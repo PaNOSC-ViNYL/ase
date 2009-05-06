@@ -21,8 +21,15 @@ def build():
     from ase.version import version
 
     # Run test-suite:
-    results = test(verbosity=2, dir='ase/test', display=False)
+    stream = open('test-results.txt', 'w')
+    results = test(verbosity=2, dir='ase/test', display=False, stream=stream)
+    stream.close()
     if len(results.failures) > 0 or len(results.errors) > 0:
+        #address = 'gridpaw-developer@lists.berlios.de'
+        address = 'jensj@fysik.dtu.dk'
+        subject = 'ASE test-suite failed!'
+        os.system('mail -s "%s" %s < %s' %
+                  (subject, address, 'test-results.txt'))
         raise RuntimeError('Testsuite failed!')
 
     # Generate tar-file:
@@ -74,3 +81,4 @@ build()
     
 if tarfiledir is not None:
     os.system('cd ..; tar czf %s/ase-webpages.tar.gz _build' % tarfiledir)
+    os.system('cd; rm -r ' + tmpdir)
