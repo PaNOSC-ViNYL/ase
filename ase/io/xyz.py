@@ -18,7 +18,7 @@ def read_xyz(fileobj, index=-1):
     else:
         natoms = len(lines)
     images = []
-    while len(lines) > 0:
+    while len(lines) >= natoms:
         positions = []
         symbols = []
         for line in lines[:natoms]:
