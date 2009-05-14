@@ -111,6 +111,13 @@ some ``fmax``::
   dyn = QuasiNewton(slab, trajectory='N2Cu.traj')
   dyn.run(fmax=0.05)
 
+.. note::
+
+  The general documentation on
+  :ref:`structure optimizations <structure_optimizations>` contains
+  information about different algorithms, saving the state of an optimizer
+  and other functionality which should be considered when performing
+  expensive relaxations.
 
 ------------
 Input-output
