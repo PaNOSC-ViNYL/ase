@@ -49,8 +49,8 @@ class _LBFGS(Optimizer):
         self.method = method
 
     def initialize(self):
-        self.lbfgsinit = 0
-        self.ITR = 1
+        #self.lbfgsinit = 0
+        self.ITR = None
         self.f_old = None
         self.r_old = None
 
@@ -60,7 +60,7 @@ class _LBFGS(Optimizer):
         return 1.0
 
     def read(self):
-        (self.lbfgsinit, self.ITR, s, y, rho, self.r_old, 
+        (self.ITR, self.s, self.y, self.rho, self.r_old, 
          self.f_old) = self.load()
 
     def step(self, f):
@@ -103,20 +103,17 @@ class _LBFGS(Optimizer):
         self.atoms.set_positions(r)
 
     def update(self, r, f, r_old, f_old):
-        start = 1
         a = np.zeros(self.memory + 1, 'd')
         self.tmp = self.atoms
-        if(not self.lbfgsinit):
-            self.lbfgsinit = 1
-            self.Ho = np.ones((np.shape(r)[0], 3), 'd')
-            if (self.method == 'hess'):
-                self.Ho = self.Ho * self.alpha
+        self.Ho = np.ones((np.shape(r)[0], 3), 'd')
+        if (self.method == 'hess'):
+            self.Ho = self.Ho * self.alpha
+        if(not self.ITR):
             self.ITR = 1
             self.s = [1.]
             self.y = [1.]
             self.rho = [1.]
         else:
-            #print np.shape(f),np.shape(self.f_old)
             a1 = abs (np.vdot(f, f_old))
             a2 = np.vdot(f_old, f_old)
             if(self.method == 'line'):
@@ -142,7 +139,7 @@ class _LBFGS(Optimizer):
                 self.s = [1.]
                 self.y = [1.]
                 self.rho = [1.]
-        self.dump((self.lbfgsinit, self.ITR, self.s, self.y, self.rho, r_old, f_old))
+        self.dump((self.ITR, self.s, self.y, self.rho, r_old, f_old))
 
         r_old = r.copy()
         f_old = f.copy()
