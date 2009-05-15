@@ -7,18 +7,41 @@ import random
 #out2 = open('step_bfgs','w')
 #out3 = open('displacement_bfgs','w')
 #out4 = open('dpm_tmp_bfgs','w')
-class LBFGS(Optimizer):
+
+class _LBFGS(Optimizer):
+    """Limited memory bfgs algorithm. Unlike the bfgs algorithm used in qn.py,
+       the inverse of hessian matrix is updated. 
+
+    Parameters:
+
+    restart:string
+        Pickle file used to store vectors for updating the inverse of hessian 
+    matrix. If set, file with such a name will be searched and information
+    stored will be used, if the file exists.
+    memory: int
+        Number of steps to be stored. Default value is 25.
+    method: string
+        Two methods for determing atomic movement are available. If
+        method = 'line', a line search will be performed to determine the 
+        atomic movement. An extra scf loop for the trail step in each atomic
+        step. And if 
+        method = 'hess', the atomic step will be determined by hessian matrix,
+        which means each atomic step include only one scf loop.
+    """
+
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  maxstep=0.2, dR=0.1,
-                 memory=25, alpha=0.05, method='line'):
+                 memory=25, alpha=0.05, method=None):
         Optimizer.__init__(self, atoms, restart, logfile, trajectory)
 
         if maxstep > 1.0:
             raise ValueError(
                              'Wanna fly? I know the calculation is too slow. ' +
                              'But you have to follow the rules.\n'+
-                             '            The maximum step size %.1f' % maxstep +' is too big! \n'+
-                             '            Try to set the maximum step size below 0.2.')
+                             '            The maximum step size %.1f' % maxstep 
+                             +' is too big! \n'+
+                             '            Try to set the maximum step size'+
+                             ' below 0.2.')
         self.maxstep = maxstep
         self.dR = dR
         self.memory = memory
@@ -32,48 +55,48 @@ class LBFGS(Optimizer):
         self.r_old = None
 
     def sign(self,w):
-        if(w<0.0): return -1.0
+        if(w < 0.0):
+            return -1.0
         return 1.0
 
     def read(self):
-        self.lbfgsinit, self.ITR, s, y, rho, self.r_old, self.f_old = self.load()
+        (self.lbfgsinit, self.ITR, s, y, rho, self.r_old, 
+         self.f_old) = self.load()
 
     def step(self, f):
         r = self.atoms.get_positions()
         self.update(r, f, self.r_old, self.f_old)
 
-        if(not self.method=='line'): dr = self.d
         du = self.d / np.sqrt(np.vdot(self.d, self.d))
+        if(self.method == 'hess'): 
+        # use the Hessian Matrix to predict the min
+            dr = self.d
+            if(abs(np.sqrt(np.vdot(dr, dr).sum())) > self.maxstep):
+                dr = du * self.maxstep
 
-        if(self.method=='line'):
+        elif(self.method == 'line'):
         # Finite difference step using temporary point
             tmp_r = r.copy()
             tmp_r += (du * self.dR)
             self.tmp.set_positions(tmp_r)
         # Decide how much to move along the line du
-            Fp1=np.vdot(f, du)
-            Fp2=np.vdot(self.tmp.get_forces(), du)
-            CR=(Fp1 - Fp2) / self.dR
+            Fp1 = np.vdot(f, du)
+            Fp2 = np.vdot(self.tmp.get_forces(), du)
+            CR = (Fp1 - Fp2) / self.dR
             #RdR = Fp1*0.1
             if(CR < 0.0):
                 print "negcurve"
                 RdR = self.maxstep
-                if(abs(RdR) > self.maxstep):
-                    RdR = self.sign(RdR) * self.maxstep
+                #if(abs(RdR) > self.maxstep):
+                #    RdR = self.sign(RdR) * self.maxstep
             else:
                 Fp = (Fp1 + Fp2) * 0.5
-                #Fp = (Fp1 + Fp2) * 0.3
                 RdR = Fp / CR 
                 if(abs(RdR) > self.maxstep):
                     RdR = self.sign(RdR) * self.maxstep
                 else:
                     RdR += self.dR * 0.5
-                    #RdR += self.dR * 0.3
             dr = du * RdR
-        else:
-        # use the Hessian Matrix to predict the min
-            if(abs(np.sqrt(np.vdot(dr, dr).sum())) > self.maxstep):
-                dr = du * self.maxstep
         self.r_old = r.copy()
         self.f_old = f.copy()
         r += dr
@@ -81,12 +104,13 @@ class LBFGS(Optimizer):
 
     def update(self, r, f, r_old, f_old):
         start = 1
-        a = np.zeros(self.memory+1, 'd')
+        a = np.zeros(self.memory + 1, 'd')
         self.tmp = self.atoms
         if(not self.lbfgsinit):
             self.lbfgsinit = 1
             self.Ho = np.ones((np.shape(r)[0], 3), 'd')
-            if (not self.method=='line'):self.Ho = self.Ho * self.alpha
+            if (self.method == 'hess'):
+                self.Ho = self.Ho * self.alpha
             self.ITR = 1
             self.s = [1.]
             self.y = [1.]
@@ -95,23 +119,23 @@ class LBFGS(Optimizer):
             #print np.shape(f),np.shape(self.f_old)
             a1 = abs (np.vdot(f, f_old))
             a2 = np.vdot(f_old, f_old)
-            if(self.method=='line'):
-                if(a1<=0.5* a2 and a2!=0):
+            if(self.method == 'line'):
+                if(a1 <= 0.5 * a2 and a2 != 0):
                     reset_flag = 0
                 else:
                     reset_flag = 1
             else:
                 reset_flag = 0
-            if(reset_flag==0):
+            if(reset_flag == 0):
                 ITR = self.ITR
                 if(ITR > self.memory):
                     self.s.pop(1)
                     self.y.pop(1)
                     self.rho.pop(1)
-                    ITR=self.memory
+                    ITR = self.memory
                 self.s.append(r - r_old)
-                self.y.append(-(f-f_old))
-                self.rho.append(1/np.vdot(self.y[ITR],self.s[ITR]))
+                self.y.append(-(f - f_old))
+                self.rho.append(1 / np.vdot(self.y[ITR],self.s[ITR]))
                 self.ITR += 1
             else:
                 self.ITR = 1
@@ -126,9 +150,9 @@ class LBFGS(Optimizer):
             BOUND = self.ITR
         else:
             BOUND = self.memory
-        q = -1.0*f
+        q = -1.0 * f
         for j in range(1,BOUND):
-            k = (BOUND-j)
+            k = (BOUND - j)
             a[k] = self.rho[k] * np.vdot(self.s[k], q)
             q -= a[k] * self.y[k]
         d = self.Ho * q 
@@ -153,3 +177,15 @@ class LBFGS(Optimizer):
             f_old = f
         self.r_old = traj[-2].get_positions()
         self.f_old = traj[-2].get_forces()
+
+
+class LineLBFGS(_LBFGS):
+    def __init__(self, *args, **kwargs):
+        kwargs['method'] = 'line'
+        _LBFGS.__init__(self, *args, **kwargs)
+
+class HessLBFGS(_LBFGS):
+    def __init__(self, *args, **kwargs):
+        kwargs['method'] = 'hess'
+        _LBFGS.__init__(self, *args, **kwargs)
+
