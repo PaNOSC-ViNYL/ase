@@ -14,20 +14,21 @@ class _LBFGS(Optimizer):
 
     Parameters:
 
-    restart:string
-        Pickle file used to store vectors for updating the inverse of hessian 
-    matrix. If set, file with such a name will be searched and information
-    stored will be used, if the file exists.
+    restart: string
+        Pickle file used to store vectors for updating the inverse of
+        hessian matrix. If set, file with such a name will be searched
+        and information stored will be used, if the file exists.
+
     memory: int
         Number of steps to be stored. Default value is 25.
+
     method: string
         Two methods for determing atomic movement are available. If
-        method = 'line', a line search will be performed to determine the 
-        atomic movement. An extra scf loop for the trail step in each atomic
-        step. And if 
-        method = 'hess', the atomic step will be determined by hessian matrix,
-        which means each atomic step include only one scf loop.
-    """
+        method = 'line', a line search will be performed to determine
+        the atomic movement. An extra scf loop for the trail step in
+        each atomic step. And if method = 'hess', the atomic step will
+        be determined by hessian matrix, which means each atomic step
+        include only one scf loop.  """
 
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  maxstep=0.2, dR=0.1,
