@@ -342,7 +342,7 @@ class PrimiPlotter(PrimiPlotterBase):
         self.n = initframe
         self.interval = interval
         self.skipnext = 0 # Number of calls to update before anything happens.
-        self.autoscale = 1
+        self.a_scale = 1
         self.relativescale = 1.0
         self.invisible = None
         self.invisibilityfunction = None
@@ -364,9 +364,9 @@ class PrimiPlotter(PrimiPlotterBase):
         
     def autoscale(self, mode):
         if mode == "on":
-            self.autoscale = 1
+            self.a_scale = 1
         elif mode == "off":
-            self.autoscale = 0
+            self.a_scale = 0
         elif mode == "now":
             coords = self._rotate(self.atoms.get_positions())
             radii = self._getradii()
@@ -400,7 +400,7 @@ class PrimiPlotter(PrimiPlotterBase):
         invisible = self._getinvisible()
         coords = self._rotate(self._getpositions())
         radii = self._getradii()
-        if self.autoscale:
+        if self.a_scale:
             self._autoscale(coords,radii)
         scale = self.scale * self.relativescale
         coords = scale * coords
