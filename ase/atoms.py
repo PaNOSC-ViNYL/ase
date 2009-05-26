@@ -814,6 +814,45 @@ class Atoms(object):
                                        npy.outer(npy.dot(p, v), (1.0 - c) * v)+
                                        center)
 
+    def rotate_euler(self, center = (0, 0, 0), phi = 0., \
+                     theta = 0., psi = 0.):
+        """Rotate atoms via Euler angles.
+        
+        See e.g http://mathworld.wolfram.com/EulerAngles.html for explanation.
+        Input arguments:
+        center: The point to rotate about, or center of mass if 'COM'.
+        phi: The 1st rotation angle around z axis.
+        theta: Rotation around x axis.
+        psi: 2nd rotation around z axis.
+        
+        """
+        if isinstance(center, str) and center.lower() == 'com':
+            center = self.get_center_of_mass()
+        else:
+            center = npy.array(center)
+        # First move the molecule to the origin
+        # In contrast to MATLAB, numpy broadcasts the smaller array to the larger
+        # row-wise, so there is no need to play with the Kronecker product.
+        rcoords = self.positions - center
+        # First Euler rotation about z in matrix form
+        D = npy.array(((npy.cos(phi), npy.sin(phi), 0.),
+                       (-npy.sin(phi), npy.cos(phi), 0.),
+                       (0., 0., 1.)))
+        # Second Euler rotation about x:
+        C = npy.array(((1., 0., 0.),
+                       (0., npy.cos(theta), npy.sin(theta)),
+                       (0., -npy.sin(theta), npy.cos(theta))))
+        # Third Euler rotation, 2nd rotation about z:
+        B = npy.array(((npy.cos(psi), npy.sin(psi), 0.),
+                       (-npy.sin(psi), npy.cos(psi), 0.),
+                       (0., 0., 1.)))
+        # Total Euler rotation
+        A = npy.dot(B, npy.dot(C, D))
+        # Do the rotation
+        rcoords = npy.dot(A, npy.transpose(rcoords))
+        # Move back to the rotation point
+        self.positions = npy.transpose(rcoords) + center
+
     def rattle(self, stdev=0.001, seed=42):
         """Randomly displace atoms.
 
