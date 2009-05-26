@@ -877,14 +877,16 @@ class Atoms(object):
 
         Identity means: same positions, atomic numbers, unit cell and
         periodic boundary conditions."""
-
-        a = self.arrays
-        b = other.arrays
-        return (len(self) == len(other) and
-                (a['positions'] == b['positions']).all() and
-                (a['numbers'] == b['numbers']).all() and
-                (self._cell == other.cell).all() and
-                (self._pbc == other.pbc).all())
+        try:
+            a = self.arrays
+            b = other.arrays
+            return (len(self) == len(other) and
+                    (a['positions'] == b['positions']).all() and
+                    (a['numbers'] == b['numbers']).all() and
+                    (self._cell == other.cell).all() and
+                    (self._pbc == other.pbc).all())
+        except AttributeError:
+            return NotImplemented
 
     def __ne__(self, other):
         return not self.__eq__(other)
