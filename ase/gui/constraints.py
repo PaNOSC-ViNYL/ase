@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-import gtk
 from math import sqrt
 
-import numpy as npy
+import gtk
 
 from ase.gui.languages import translate as _
 from ase.gui.widgets import pack, Help

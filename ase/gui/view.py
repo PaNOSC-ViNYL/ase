@@ -7,7 +7,7 @@ import gtk
 import tempfile
 from math import cos, sin, sqrt
 
-import numpy as npy
+import numpy as np
 
 from ase.data.colors import jmol_colors
 from ase.gui.repeat import Repeat
@@ -44,9 +44,9 @@ class View:
         self.make_box()
         self.bind(frame)
         n = self.images.natoms
-        self.X = npy.empty((n + len(self.B1) + len(self.bonds), 3))
-        #self.X[n:] = npy.dot(self.B1, self.images.A[frame])
-        #self.B = npy.dot(self.B2, self.images.A[frame])
+        self.X = np.empty((n + len(self.B1) + len(self.bonds), 3))
+        #self.X[n:] = np.dot(self.B1, self.images.A[frame])
+        #self.B = np.dot(self.B2, self.images.A[frame])
         self.set_frame(frame, focus=focus, init=True)
 
     def set_frame(self, frame=None, focus=False, init=False):
@@ -61,15 +61,15 @@ class View:
             nb = len(self.bonds)
             
             if init or (A[frame] != A[self.frame]).any():
-                self.X[n:n + nc] = npy.dot(self.B1, A[frame])
-                self.B = npy.empty((nc + nb, 3))
-                self.B[:nc] = npy.dot(self.B2, A[frame])
+                self.X[n:n + nc] = np.dot(self.B1, A[frame])
+                self.B = np.empty((nc + nb, 3))
+                self.B[:nc] = np.dot(self.B2, A[frame])
 
             if nb > 0:
                 P = self.images.P[frame]
-                Af = self.images.repeat[:, npy.newaxis] * A[frame]
+                Af = self.images.repeat[:, np.newaxis] * A[frame]
                 a = P[self.bonds[:, 0]]
-                b = P[self.bonds[:, 1]] + npy.dot(self.bonds[:, 2:], Af) - a
+                b = P[self.bonds[:, 1]] + np.dot(self.bonds[:, 2:], Af) - a
                 d = (b**2).sum(1)**0.5
                 r = 0.65 * self.images.r
                 x0 = (r[self.bonds[:, 0]] / d).reshape((-1, 1))
@@ -111,35 +111,35 @@ class View:
         R2 = []
         for c in range(3):
             v = V[c]
-            d = sqrt(npy.dot(v, v))
+            d = sqrt(np.dot(v, v))
             n = max(2, int(d / 0.3))
             h = v / (2 * n - 1)
-            R = npy.arange(n)[:, None] * (2 * h)
+            R = np.arange(n)[:, None] * (2 * h)
             for i, j in [(0, 0), (0, 1), (1, 0), (1, 1)]:
                 R1.append(R + i * V[(c + 1) % 3] + j * V[(c + 2) % 3])
                 R2.append(R1[-1] + h)
-        return npy.concatenate(R1), npy.concatenate(R2)
+        return np.concatenate(R1), np.concatenate(R2)
 
     def make_box(self):
         if not self.ui.get_widget('/MenuBar/ViewMenu/ShowUnitCell'
                                   ).get_active():
-            self.B1 = self.B2 = npy.zeros((0, 3))
+            self.B1 = self.B2 = np.zeros((0, 3))
             return
         
         V = self.images.A[0]
         nn = []
         for c in range(3):
             v = V[c]
-            d = sqrt(npy.dot(v, v))
+            d = sqrt(np.dot(v, v))
             n = max(2, int(d / 0.3))
             nn.append(n)
-        self.B1 = npy.zeros((2, 2, sum(nn), 3))
-        self.B2 = npy.zeros((2, 2, sum(nn), 3))
+        self.B1 = np.zeros((2, 2, sum(nn), 3))
+        self.B2 = np.zeros((2, 2, sum(nn), 3))
         n1 = 0
         for c, n in enumerate(nn):
             n2 = n1 + n
             h = 1.0 / (2 * n - 1)
-            R = npy.arange(n) * (2 * h)
+            R = np.arange(n) * (2 * h)
 
             for i, j in [(0, 0), (0, 1), (1, 0), (1, 1)]:
                 self.B1[i, j, n1:n2, c] = R
@@ -154,18 +154,18 @@ class View:
     def bind(self, frame):
         if not self.ui.get_widget('/MenuBar/ViewMenu/ShowBonds'
                                   ).get_active():
-            self.bonds = npy.empty((0, 5), int)
+            self.bonds = np.empty((0, 5), int)
             return
         
         from ase.atoms import Atoms
         from ase.calculators.neighborlist import NeighborList
         nl = NeighborList(self.images.r * 1.5, skin=0, self_interaction=False)
         nl.update(Atoms(positions=self.images.P[frame],
-                        cell=(self.images.repeat[:, npy.newaxis] *
+                        cell=(self.images.repeat[:, np.newaxis] *
                               self.images.A[frame]),
                         pbc=self.images.pbc))
         nb = nl.nneighbors + nl.npbcneighbors
-        self.bonds = npy.empty((nb, 5), int)
+        self.bonds = np.empty((nb, 5), int)
         if nb == 0:
             return
         
@@ -202,11 +202,11 @@ class View:
         if (self.images.natoms == 0 and not
             self.ui.get_widget('/MenuBar/ViewMenu/ShowUnitCell').get_active()):
             self.scale = 1.0
-            self.offset = npy.zeros(3)
+            self.offset = np.zeros(3)
             self.draw()
             return
         
-        P = npy.dot(self.X, self.rotation)[:, :2]
+        P = np.dot(self.X, self.rotation)[:, :2]
         n = self.images.natoms
         P[:n] -= self.images.r[:, None]
         P1 = P.min(0) 
@@ -218,24 +218,24 @@ class View:
             self.scale = self.height / S[1]
         else:
             self.scale = self.width / S[0]
-        self.offset = npy.array([ self.scale * C[0] - self.width / 2,
-                                  self.scale * C[1] - self.height / 2,
-                                  0.0])
+        self.offset = np.array([self.scale * C[0] - self.width / 2,
+                                self.scale * C[1] - self.height / 2,
+                                0.0])
         self.draw()
 
     def draw(self, status=True):
         self.pixmap.draw_rectangle(self.white_gc, True, 0, 0,
                                    self.width, self.height)
-        X = npy.dot(self.X, self.scale * self.rotation) - self.offset
+        X = np.dot(self.X, self.scale * self.rotation) - self.offset
         n = self.images.natoms
         if n > 0:
             self.center = sum(X[:n]) / n
         else:
-            self.center = npy.array([self.width / 2, self.height / 2, 0.0])
+            self.center = np.array([self.width / 2, self.height / 2, 0.0])
         self.indices = X[:, 2].argsort()
         P = self.P = X[:n, :2]
         X1 = X[n:, :2].round().astype(int)
-        X2 = (npy.dot(self.B, self.scale * self.rotation) -
+        X2 = (np.dot(self.B, self.scale * self.rotation) -
               self.offset).round().astype(int)
 
         if self.ui.get_widget('/MenuBar/ViewMenu/ShowBonds').get_active():
@@ -289,7 +289,7 @@ class View:
             self.status()
 
     def draw_axes(self):
-        L = npy.zeros((10, 2, 3))
+        L = np.zeros((10, 2, 3))
         L[:3, 1] = self.rotation * 15
         L[3:5] = self.rotation[0] * 20
         L[5:7] = self.rotation[1] * 20
@@ -306,24 +306,24 @@ class View:
             (a,b),(c,d) = L[i, :, :2]
             line(colors[i], a,b,c,d)
 
-    digits = npy.array(((1,1,1,1,1,1,0),
-                        (0,1,1,0,0,0,0),
-                        (1,0,1,1,0,1,1),
-                        (1,1,1,1,0,0,1),
-                        (0,1,1,0,1,0,1),
-                        (1,1,0,1,1,0,1),
-                        (1,1,0,1,1,1,1),
-                        (0,1,1,1,0,0,0),
-                        (1,1,1,1,1,1,1),
-                        (0,1,1,1,1,0,1)), bool)
+    digits = np.array(((1,1,1,1,1,1,0),
+                       (0,1,1,0,0,0,0),
+                       (1,0,1,1,0,1,1),
+                       (1,1,1,1,0,0,1),
+                       (0,1,1,0,1,0,1),
+                       (1,1,0,1,1,0,1),
+                       (1,1,0,1,1,1,1),
+                       (0,1,1,1,0,0,0),
+                       (1,1,1,1,1,1,1),
+                       (0,1,1,1,1,0,1)), bool)
 
-    bars = npy.array(((0,2,1,2),
-                      (1,2,1,1),
-                      (1,1,1,0),
-                      (1,0,0,0),
-                      (0,0,0,1),
-                      (0,1,0,2),
-                      (0,1,1,1))) * 5
+    bars = np.array(((0,2,1,2),
+                     (1,2,1,1),
+                     (1,1,1,0),
+                     (1,0,0,0),
+                     (0,0,0,1),
+                     (0,1,0,2),
+                     (0,1,1,1))) * 5
     
     def draw_frame_number(self):
         n = str(self.frame)
@@ -345,7 +345,7 @@ class View:
         
         if event.time < self.t0 + 200:  # 200 ms
             d = self.P - self.C
-            hit = npy.less((d**2).sum(1), (self.scale * self.images.r)**2)
+            hit = np.less((d**2).sum(1), (self.scale * self.images.r)**2)
             for a in self.indices[::-1]:
                 if a < self.images.natoms and hit[a]:
                     if event.state & gtk.gdk.CONTROL_MASK:
@@ -359,10 +359,10 @@ class View:
             self.draw()
         else:
             A = (event.x, event.y)
-            C1 = npy.minimum(A, self.C)
-            C2 = npy.maximum(A, self.C)
-            hit = npy.logical_and(self.P > C1, self.P < C2)
-            indices = npy.compress(hit.prod(1), npy.arange(len(hit)))
+            C1 = np.minimum(A, self.C)
+            C2 = np.maximum(A, self.C)
+            hit = np.logical_and(self.P > C1, self.P < C2)
+            indices = np.compress(hit.prod(1), np.arange(len(hit)))
             if not (event.state & gtk.gdk.CONTROL_MASK):
                 selected[:] = False
             selected[indices] = True
@@ -370,7 +370,7 @@ class View:
 
     def press(self, drawing_area, event):
         self.button = event.button
-        self.C = npy.array((event.x, event.y))
+        self.C = np.array((event.x, event.y))
         self.t0 = event.time
         self.rotation0 = self.rotation
         self.offset0 = self.offset
@@ -406,11 +406,11 @@ class View:
                 b = 0.0
             c = cos(0.01 * t)
             s = -sin(0.01 * t)
-            rotation = npy.array([(c * a * a + b * b, (c - 1) * b * a, s * a),
+            rotation = np.array([(c * a * a + b * b, (c - 1) * b * a, s * a),
                                   ((c - 1) * a * b, c * b * b + a * a, s * b),
                                   (-s * a, -s * b, c)])
-            self.rotation = npy.dot(self.rotation0, rotation)
-            self.offset = npy.dot(self.center0 + self.offset0,
+            self.rotation = np.dot(self.rotation0, rotation)
+            self.offset = np.dot(self.center0 + self.offset0,
                                   rotation) - self.center0
 
         self.draw(status=False)

@@ -1,4 +1,3 @@
-import numpy as npy
 from ase import *
 
 a = 3.6

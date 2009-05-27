@@ -1,5 +1,5 @@
 from ase.transport.calculators import TransportCalculator
-import numpy as npy
+import numpy as np
 
 #Aux. function to write data to a text file.
 def write(fname,xs,ys):
@@ -8,7 +8,7 @@ def write(fname,xs,ys):
         print >> fd, x, y
     fd.close()
 
-H_lead = npy.zeros([4,4])
+H_lead = np.zeros([4,4])
 
 # On-site energies are zero
 for i in range(4):
@@ -24,7 +24,7 @@ for i in range(2):
     H_lead[i,i+2] = 0.2
     H_lead[i+2,i] = 0.2
 
-H_scat = npy.zeros([6,6])
+H_scat = np.zeros([6,6])
 # Principal layers on either side of S
 H_scat[:2,:2] = H_lead[:2,:2]
 H_scat[-2:,-2:] = H_lead[:2,:2]
@@ -41,7 +41,7 @@ H_scat[2,1] = 0.2
 H_scat[3,4] = 0.2
 H_scat[4,3] = 0.2
 
-energies = npy.arange(-3,3,0.02)
+energies = np.arange(-3,3,0.02)
 tcalc = TransportCalculator(h=H_scat,
                             h1=H_lead,
                             h2=H_lead,
@@ -71,7 +71,7 @@ write('pdos1_rot.dat', tcalc.energies, pdos_rot[1])
 
 print 'Subspace eigenvalues:', eps
 assert sum(abs(eps-(-0.8, 0.8))) < 2.0e-15, 'Subdiagonalization. error'
-print 'Max deviation of T after the rotation:', npy.abs(T-T_rot).max()
+print 'Max deviation of T after the rotation:', np.abs(T-T_rot).max()
 assert max(abs(T-T_rot)) < 2.0e-15, 'Subdiagonalization. error'
 
 #remove coupling

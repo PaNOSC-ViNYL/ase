@@ -1,5 +1,5 @@
 from math import exp, pi, sin, sqrt
-import numpy as npy
+import numpy as np
 
 # Table (1) of
 # D. WAASMAIER AND A. KIRFEL, Acta Cryst. (1995). A51, 416-431
@@ -58,7 +58,7 @@ class XrDebye:
                     twopis = 0.
                 else:
                     vrij = a.position - b.position
-                    rij = npy.sqrt(npy.dot(vrij, vrij))
+                    rij = np.sqrt(np.dot(vrij, vrij))
                     twopisr = 2 * pi * s * rij
 
                 I += fa * fb * sinc(twopisr)

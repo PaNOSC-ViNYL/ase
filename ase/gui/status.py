@@ -3,7 +3,7 @@
 from math import sqrt, pi, acos
 
 import gtk
-import numpy as npy
+import numpy as np
 
 from ase.data import chemical_symbols as symbols
 from ase.data import atomic_names as names
@@ -38,7 +38,7 @@ class Status:
 
     def status(self):
         # use where here:  XXX
-        indices = npy.arange(self.images.natoms)[self.images.selected]
+        indices = np.arange(self.images.natoms)[self.images.selected]
         n = len(indices)
         self.nselected = n
         
@@ -54,13 +54,13 @@ class Status:
                     ((indices[0], names[Z[0]], symbols[Z[0]]) + tuple(R[0])))
         elif n == 2:
             D = R[0] - R[1]
-            d = sqrt(npy.dot(D, D))
+            d = sqrt(np.dot(D, D))
             text = u' %s-%s: %.3f Å' % (symbols[Z[0]], symbols[Z[1]], d)
         elif n == 3:
             d = []
             for c in range(3):
                 D = R[c] - R[(c + 1) % 3]
-                d.append(npy.dot(D, D))
+                d.append(np.dot(D, D))
             a = []
             for c in range(3):
                 t1 = 0.5 * (d[c] + d[(c + 1) % 3] - d[(c + 2) % 3])

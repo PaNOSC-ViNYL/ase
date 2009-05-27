@@ -2,7 +2,7 @@
 import gtk
 from math import sqrt
 
-import numpy as npy
+import numpy as np
 
 from ase.gui.languages import translate as _
 from ase.gui.widgets import pack, Help
@@ -33,7 +33,7 @@ class Repeat(gtk.Window):
     def set_unit_cell(self, button):
         self.gui.images.A *= self.gui.images.repeat.reshape((3, 1))
         self.gui.images.E *= self.gui.images.repeat.prod()
-        self.gui.images.repeat = npy.ones(3, int)
+        self.gui.images.repeat = np.ones(3, int)
         for r in self.repeat:
             r.value = 1
         self.gui.set_coordinates()

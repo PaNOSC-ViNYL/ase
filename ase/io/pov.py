@@ -5,7 +5,7 @@ See http://www.povray.org/ for details on the format.
 """
 import os
 
-import numpy as npy
+import numpy as np
 
 from ase.io.eps import EPS
 from ase.data import chemical_symbols
@@ -53,7 +53,7 @@ class POVRAY(EPS):
         EPS.__init__(self, atoms, scale=scale, **parameters)
 
     def cell_to_lines(self, A):
-        return npy.empty((0, 3)), None, None
+        return np.empty((0, 3)), None, None
 
     def write(self, filename, **settings):
         # Determine canvas width and height

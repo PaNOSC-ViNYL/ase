@@ -1,6 +1,6 @@
 from math import pi, sqrt
 
-import numpy as npy
+import numpy as np
 
 
 class DOS:
@@ -23,9 +23,9 @@ class DOS:
         self.width = width
         self.w_k = calc.get_k_point_weights()
         self.nspins = calc.get_number_of_spins()
-        self.e_skn = npy.array([[calc.get_eigenvalues(kpt=k, spin=s)
-                                 for k in range(len(self.w_k))]
-                                for s in range(self.nspins)])
+        self.e_skn = np.array([[calc.get_eigenvalues(kpt=k, spin=s)
+                                for k in range(len(self.w_k))]
+                               for s in range(self.nspins)])
         self.e_skn -= calc.get_fermi_level()
 
         if window is None:
@@ -34,7 +34,7 @@ class DOS:
         else:
             emin, emax = window
 
-        self.energies = npy.linspace(emin, emax, npts)
+        self.energies = np.linspace(emin, emax, npts)
 
     def get_energies(self):
         """Return the array of energies used to sample the DOS."""
@@ -43,7 +43,7 @@ class DOS:
     def delta(self, energy):
         """Return a delta-function centered at 'energy'."""
         x = -((self.energies - energy) / self.width)**2
-        return npy.exp(x) / (sqrt(pi) * self.width)
+        return np.exp(x) / (sqrt(pi) * self.width)
 
     def get_dos(self, spin=None):
         """Get array of DOS values.
@@ -60,7 +60,7 @@ class DOS:
             else:
                 spin = 0
         
-        dos = npy.zeros(self.npts)
+        dos = np.zeros(self.npts)
         for w, e_n in zip(self.w_k, self.e_skn[spin]):
             for e in e_n:
                 dos += w * self.delta(e)

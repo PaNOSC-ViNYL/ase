@@ -1,6 +1,6 @@
 from math import sqrt
 
-import numpy as npy
+import numpy as np
 
 from ase.data import covalent_radii
 from ase.atoms import Atoms
@@ -19,12 +19,12 @@ class Images:
         if filenames is None:
             filenames = [None] * self.nimages
         self.filenames = filenames
-        self.P = npy.empty((self.nimages, self.natoms, 3))
-        self.E = npy.empty(self.nimages)
-        self.K = npy.empty(self.nimages)
-        self.F = npy.empty((self.nimages, self.natoms, 3))
-        self.M = npy.empty((self.nimages, self.natoms))
-        self.A = npy.empty((self.nimages, 3, 3))
+        self.P = np.empty((self.nimages, self.natoms, 3))
+        self.E = np.empty(self.nimages)
+        self.K = np.empty(self.nimages)
+        self.F = np.empty((self.nimages, self.natoms, 3))
+        self.M = np.empty((self.nimages, self.natoms))
+        self.A = np.empty((self.nimages, 3, 3))
         self.Z = images[0].get_atomic_numbers()
         self.pbc = images[0].get_pbc()
         warning = False
@@ -42,25 +42,25 @@ class Images:
             try:
                 self.E[i] = atoms.get_potential_energy()
             except RuntimeError:
-                self.E[i] = npy.nan
+                self.E[i] = np.nan
             self.K[i] = atoms.get_kinetic_energy()
             try:
                 self.F[i] = atoms.get_forces(apply_constraint=False)
             except RuntimeError:
-                self.F[i] = npy.nan
+                self.F[i] = np.nan
             try:
                 self.M[i] = atoms.get_magnetic_moments()
             except RuntimeError:
-                self.M[i] = npy.nan
+                self.M[i] = np.nan
 
         if warning:
             print('WARNING: Not all images have the same bondary conditions!')
             
-        self.selected = npy.zeros(self.natoms, bool)
-        self.visible = npy.ones(self.natoms, bool)
+        self.selected = np.zeros(self.natoms, bool)
+        self.visible = np.ones(self.natoms, bool)
         self.nselected = 0
         self.set_dynamic()
-        self.repeat = npy.ones(3, int)
+        self.repeat = np.ones(3, int)
         self.set_radii(0.89)
 
     def set_radii(self, scale):
@@ -79,15 +79,15 @@ class Images:
 
     def repeat_images(self, repeat):
         n = self.repeat.prod()
-        repeat = npy.array(repeat)
+        repeat = np.array(repeat)
         self.repeat = repeat
         N = repeat.prod()
         natoms = self.natoms // n
-        P = npy.empty((self.nimages, natoms * N, 3))
-        F = npy.empty((self.nimages, natoms * N, 3))
-        Z = npy.empty(natoms * N, int)
-        r = npy.empty(natoms * N)
-        dynamic = npy.empty(natoms * N, bool)
+        P = np.empty((self.nimages, natoms * N, 3))
+        F = np.empty((self.nimages, natoms * N, 3))
+        Z = np.empty(natoms * N, int)
+        r = np.empty(natoms * N)
+        dynamic = np.empty(natoms * N, bool)
         a0 = 0
         for i0 in range(repeat[0]):
             for i1 in range(repeat[1]):
@@ -95,7 +95,7 @@ class Images:
                     a1 = a0 + natoms
                     for i in range(self.nimages):
                         P[i, a0:a1] = (self.P[i, :natoms] +
-                                       npy.dot((i0, i1, i2), self.A[i]))
+                                       np.dot((i0, i1, i2), self.A[i]))
                     F[:, a0:a1] = self.F[:, :natoms]
                     Z[a0:a1] = self.Z[:natoms]
                     r[a0:a1] = self.r[:natoms]
@@ -107,8 +107,8 @@ class Images:
         self.r = r
         self.dynamic = dynamic
         self.natoms = natoms * N
-        self.selected = npy.zeros(natoms * N, bool)
-        self.visible = npy.ones(natoms * N, bool)
+        self.selected = np.zeros(natoms * N, bool)
+        self.visible = np.ones(natoms * N, bool)
         self.nselected = 0
         
     def graph(self, expr):
@@ -118,7 +118,7 @@ class Images:
         def d(n1, n2):
             return sqrt(((R[n1] - R[n2])**2).sum())
         S = self.selected
-        D = self.dynamic[:, npy.newaxis]
+        D = self.dynamic[:, np.newaxis]
         E = self.E
         s = 0.0
         data = []
@@ -135,7 +135,7 @@ class Images:
             data = eval(code)
             if i == 0:
                 m = len(data)
-                xy = npy.empty((m, n))
+                xy = np.empty((m, n))
             xy[:, i] = data
             if i + 1 < n:
                 s += sqrt(((self.P[i + 1] - R)**2).sum())
@@ -143,12 +143,12 @@ class Images:
 
     def set_dynamic(self):
         if self.nimages == 1:
-            self.dynamic = npy.ones(self.natoms, bool)
+            self.dynamic = np.ones(self.natoms, bool)
         else:
-            self.dynamic = npy.zeros(self.natoms, bool)
+            self.dynamic = np.zeros(self.natoms, bool)
             R0 = self.P[0]
             for R in self.P[1:]:
-                self.dynamic |= (npy.abs(R - R0) > 1.0e-10).any(1)
+                self.dynamic |= (np.abs(R - R0) > 1.0e-10).any(1)
 
     def write(self, filename, rotations='', show_unit_cell=False, bbox=None):
         indices = range(self.nimages)
@@ -181,10 +181,10 @@ class Images:
                            
     def delete(self, i):
         self.nimages -= 1
-        P = npy.empty((self.nimages, self.natoms, 3))
-        F = npy.empty((self.nimages, self.natoms, 3))
-        A = npy.empty((self.nimages, 3, 3))
-        E = npy.empty(self.nimages)
+        P = np.empty((self.nimages, self.natoms, 3))
+        F = np.empty((self.nimages, self.natoms, 3))
+        A = np.empty((self.nimages, 3, 3))
+        E = np.empty(self.nimages)
         P[:i] = self.P[:i]
         P[i:] = self.P[i + 1:]
         self.P = P
@@ -204,9 +204,9 @@ class Images:
         assert n % 5 == 0
         levels = n // 5
         n = self.nimages = 2 * levels + 3
-        P = npy.empty((self.nimages, self.natoms, 3))
-        F = npy.empty((self.nimages, self.natoms, 3))
-        E = npy.empty(self.nimages)
+        P = np.empty((self.nimages, self.natoms, 3))
+        F = np.empty((self.nimages, self.natoms, 3))
+        E = np.empty(self.nimages)
         for L in range(levels):
             P[L] = self.P[L * 5]
             P[n - L - 1] = self.P[L * 5 + 4]
@@ -225,10 +225,10 @@ class Images:
     def interpolate(self, m):
         assert self.nimages == 2
         self.nimages = 2 + m
-        P = npy.empty((self.nimages, self.natoms, 3))
-        F = npy.empty((self.nimages, self.natoms, 3))
-        A = npy.empty((self.nimages, 3, 3))
-        E = npy.empty(self.nimages)
+        P = np.empty((self.nimages, self.natoms, 3))
+        F = np.empty((self.nimages, self.natoms, 3))
+        A = np.empty((self.nimages, 3, 3))
+        E = np.empty(self.nimages)
         P[0] = self.P[0]
         F[0] = self.F[0]
         A[0] = self.A[0]

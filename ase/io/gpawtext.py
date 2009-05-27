@@ -1,5 +1,3 @@
-import numpy as npy
-
 from ase.atoms import Atom, Atoms
 from ase.calculators import SinglePointCalculator
 

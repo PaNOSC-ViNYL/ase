@@ -1,4 +1,4 @@
-import numpy as npy
+import numpy as np
 
 
 class LennardJones:
@@ -22,16 +22,16 @@ class LennardJones:
         return self._forces
 
     def get_stress(self, atoms):
-        return npy.zeros((3, 3))
+        return np.zeros((3, 3))
     
     def calculate(self, atoms):
         positions = atoms.get_positions()
         self.energy = 0.0
-        self._forces = npy.zeros((len(atoms), 3))
+        self._forces = np.zeros((len(atoms), 3))
         for i1, p1 in enumerate(positions):
             for i2, p2 in enumerate(positions[:i1]):
                 diff = p2 - p1
-                d2 = npy.dot(diff, diff)
+                d2 = np.dot(diff, diff)
                 c6 = (self.sigma**2 / d2)**3
                 c12 = c6**2
                 self.energy += 4 * self.epsilon * (c12 - c6)

@@ -1,6 +1,6 @@
 from math import pi
 
-import numpy as npy
+import numpy as np
 
 from ase.atoms import Atoms
 
@@ -34,9 +34,9 @@ class TestCalculator:
                     else:
                         weights.append(8 * w)
         assert abs(sum(weights) - 1.0) < 1e-12
-        self.bzk = npy.array(bzk)
-        self.ibzk = npy.array(ibzk)
-        self.weights = npy.array(weights)
+        self.bzk = np.array(bzk)
+        self.ibzk = np.array(ibzk)
+        self.weights = np.array(weights)
 
         # Calculate eigenvalues and wave functions:
         self.init()
@@ -46,22 +46,22 @@ class TestCalculator:
         nbands = 1
 
         V = -1.0
-        self.eps = 2 * V * (npy.cos(2 * pi * self.ibzk[:, 0]) +
-                            npy.cos(2 * pi * self.ibzk[:, 1]))
+        self.eps = 2 * V * (np.cos(2 * pi * self.ibzk[:, 0]) +
+                            np.cos(2 * pi * self.ibzk[:, 1]))
         self.eps.shape = (nibzk, nbands)
 
-        self.psi = npy.zeros((nibzk, 20, 20, 60), complex)
-        phi = npy.empty((2, 2, 20, 20, 60))
-        z = npy.linspace(-1.5, 1.5, 60, endpoint=False)
+        self.psi = np.zeros((nibzk, 20, 20, 60), complex)
+        phi = np.empty((2, 2, 20, 20, 60))
+        z = np.linspace(-1.5, 1.5, 60, endpoint=False)
         for i in range(2):
-            x = npy.linspace(0, 1, 20, endpoint=False) - i
+            x = np.linspace(0, 1, 20, endpoint=False) - i
             for j in range(2):
-                y = npy.linspace(0, 1, 20, endpoint=False) - j
+                y = np.linspace(0, 1, 20, endpoint=False) - j
                 r = (((x[:, None]**2 +
                        y**2)[:, :, None] +
                       z**2)**0.5).clip(0, 1)
                 phi = 1.0 - r**2 * (3.0 - 2.0 * r)
-                phase = npy.exp(pi * 2j * npy.dot(self.ibzk, (i, j, 0)))
+                phase = np.exp(pi * 2j * np.dot(self.ibzk, (i, j, 0)))
                 self.psi += phase[:, None, None, None] * phi
 
     def get_pseudo_wave_function(self, band=0, kpt=0, spin=0):

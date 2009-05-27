@@ -1,6 +1,6 @@
 from math import sqrt
 
-import numpy as npy
+import numpy as np
 
 from ase.parallel import world, rank, size
 
@@ -13,7 +13,7 @@ class NEB:
         self.parallel = parallel
         self.natoms = len(images[0])
         self.nimages = len(images)
-        self.emax = npy.nan
+        self.emax = np.nan
 
     def interpolate(self):
         pos1 = self.images[0].get_positions()
@@ -23,7 +23,7 @@ class NEB:
             self.images[i].set_positions(pos1 + i * d)
 
     def get_positions(self):
-        positions = npy.empty(((self.nimages - 2) * self.natoms, 3))
+        positions = np.empty(((self.nimages - 2) * self.natoms, 3))
         n1 = 0
         for image in self.images[1:-1]:
             n2 = n1 + self.natoms
@@ -41,9 +41,9 @@ class NEB:
     def get_forces(self):
         images = self.images
 
-        forces = npy.empty(((self.nimages - 2), self.natoms, 3))
+        forces = np.empty(((self.nimages - 2), self.natoms, 3))
 
-        energies = npy.empty(self.nimages - 2)
+        energies = np.empty(self.nimages - 2)
 
         if not self.parallel:
             # Do all images - one at a time:
@@ -60,7 +60,7 @@ class NEB:
                 world.broadcast(energies[i - 1:i], root)
                 world.broadcast(forces[i - 1], root)
 
-        imax = 1 + npy.argsort(energies)[-1]
+        imax = 1 + np.argsort(energies)[-1]
         self.emax = energies[imax - 1]
         
         tangent1 = images[1].get_positions() - images[0].get_positions()
@@ -74,14 +74,14 @@ class NEB:
             else:
                 tangent = tangent1 + tangent2
                 
-            tt = npy.vdot(tangent, tangent)
+            tt = np.vdot(tangent, tangent)
             f = forces[i - 1]
-            ft = npy.vdot(f, tangent)
+            ft = np.vdot(f, tangent)
             if i == imax and self.climb:
                 f -= 2 * ft / tt * tangent
             else:
                 f -= ft / tt * tangent
-                f -= (npy.vdot(tangent1 - tangent2, tangent) *
+                f -= (np.vdot(tangent1 - tangent2, tangent) *
                       self.k / tt * tangent)
                 
             tangent1 = tangent2
@@ -102,10 +102,10 @@ def fit(images):
     return fit0(E, F, R)
 
 def fit0(E, F, R):
-    E = npy.array(E) - E[0]
+    E = np.array(E) - E[0]
     n = len(E)
-    Efit = npy.empty((n - 1) * 20 + 1)
-    Sfit = npy.empty((n - 1) * 20 + 1)
+    Efit = np.empty((n - 1) * 20 + 1)
+    Sfit = np.empty((n - 1) * 20 + 1)
 
     s = [0]
     for i in range(n - 1):
@@ -125,19 +125,19 @@ def fit0(E, F, R):
 
         d = d / sqrt((d**2).sum())
         dEds = -(F[i] * d).sum()
-        x = npy.linspace(s[i] - ds, s[i] + ds, 3)
+        x = np.linspace(s[i] - ds, s[i] + ds, 3)
         y = E[i] + dEds * (x - s[i])
         lines.append((x, y))
 
         if i > 0:
             s0 = s[i - 1]
             s1 = s[i]
-            x = npy.linspace(s0, s1, 20, endpoint=False)
-            c = npy.linalg.solve(npy.array([(1, s0,   s0**2,     s0**3),
-                                            (1, s1,   s1**2,     s1**3),
-                                            (0,  1,  2 * s0, 3 * s0**2),
-                                            (0,  1,  2 * s1, 3 * s1**2)]),
-                                 npy.array([E[i - 1], E[i], dEds0, dEds]))
+            x = np.linspace(s0, s1, 20, endpoint=False)
+            c = np.linalg.solve(np.array([(1, s0,   s0**2,     s0**3),
+                                          (1, s1,   s1**2,     s1**3),
+                                          (0,  1,  2 * s0, 3 * s0**2),
+                                          (0,  1,  2 * s1, 3 * s1**2)]),
+                                np.array([E[i - 1], E[i], dEds0, dEds]))
             y = c[0] + x * (c[1] + x * (c[2] + x * c[3]))
             Sfit[(i - 1) * 20:i * 20] = x
             Efit[(i - 1) * 20:i * 20] = y

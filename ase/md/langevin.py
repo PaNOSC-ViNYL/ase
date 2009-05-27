@@ -2,7 +2,7 @@
 
 
 import sys
-import numpy as npy
+import numpy as np
 from numpy.random import standard_normal
 from ase.md import MolecularDynamics
 
@@ -65,12 +65,12 @@ class Langevin(MolecularDynamics):
         self._localfrict = hasattr(self.frict, 'shape')
         lt = self.frict * dt
         masses = self.masses
-        sdpos = dt * npy.sqrt(self.temp / masses * (2.0/3.0 - 0.5 * lt) * lt)
+        sdpos = dt * np.sqrt(self.temp / masses * (2.0/3.0 - 0.5 * lt) * lt)
         sdpos.shape = (-1, 1)
-        sdmom = npy.sqrt(self.temp * masses * 2.0 * (1.0 - lt) * lt)
+        sdmom = np.sqrt(self.temp * masses * 2.0 * (1.0 - lt) * lt)
         sdmom.shape = (-1, 1)
-        pmcor = npy.sqrt(3.0)/2.0 * (1.0 - 0.125 * lt)
-        cnst = npy.sqrt((1.0 - pmcor) * (1.0 + pmcor))
+        pmcor = np.sqrt(3.0)/2.0 * (1.0 - 0.125 * lt)
+        cnst = np.sqrt((1.0 - pmcor) * (1.0 + pmcor))
 
         act0 = 1.0 - lt + 0.5 * lt * lt
         act1 = (1.0 - 0.5 * lt + (1.0/6.0) * lt * lt)
@@ -115,8 +115,8 @@ class Langevin(MolecularDynamics):
                 self.sdmom * self.cnst * random2)
 
         if self.fixcm:
-            rrnd = rrnd - npy.sum(rrnd, 0) / len(atoms)
-            prnd = prnd - npy.sum(prnd, 0) / len(atoms)
+            rrnd = rrnd - np.sum(rrnd, 0) / len(atoms)
+            prnd = prnd - np.sum(prnd, 0) / len(atoms)
             n = len(atoms)
             rrnd *= n / (n - 1.0)
             prnd *= n / (n - 1.0)

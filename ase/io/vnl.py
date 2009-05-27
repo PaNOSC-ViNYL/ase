@@ -1,4 +1,4 @@
-import numpy as npy
+import numpy as np
 
 from ase.atoms import Atoms
 
@@ -8,14 +8,14 @@ class VNL:
         self.data = data
 
 def ac(shape, typecode, data, endian):
-    x = npy.fromstring(data, typecode)
+    x = np.fromstring(data, typecode)
     try:
         x.shape = shape
     except ValueError:
         x = x[::2].copy()
         x.shape = shape
         
-    if npy.LittleEndian != endian: 
+    if np.LittleEndian != endian: 
         return x.byteswap() 
     else: 
         return x 

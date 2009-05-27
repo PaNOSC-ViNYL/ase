@@ -1,4 +1,4 @@
-import numpy as npy
+import numpy as np
 
 from numpy import linalg
 from ase.transport.selfenergy import LeadSelfEnergy, BoxProbe
@@ -100,11 +100,11 @@ class TransportCalculator:
 
         p = self.input_parameters
         if p['s1'] == None:
-            p['s1'] = npy.identity(len(p['h1']))
+            p['s1'] = np.identity(len(p['h1']))
         if p['s2'] == None:
-            p['s2'] = npy.identity(len(p['h2']))
+            p['s2'] = np.identity(len(p['h2']))
         if p['s'] == None:
-            p['s'] = npy.identity(len(p['h']))
+            p['s'] = np.identity(len(p['h']))
             
         h_mm = p['h']
         s_mm = p['s']
@@ -121,8 +121,8 @@ class TransportCalculator:
         
         if p['hc1'] is None:
             nbf = len(h_mm)
-            h1_im = npy.zeros((pl1, nbf), complex)
-            s1_im = npy.zeros((pl1, nbf), complex)
+            h1_im = np.zeros((pl1, nbf), complex)
+            s1_im = np.zeros((pl1, nbf), complex)
             h1_im[:pl1, :pl1] = h1_ij
             s1_im[:pl1, :pl1] = s1_ij
         else:
@@ -130,11 +130,11 @@ class TransportCalculator:
             if p['sc1'] is not None:
                 s1_im = p['sc1']
             else:
-                s1_im = npy.zeros(h1_im.shape, complex)
+                s1_im = np.zeros(h1_im.shape, complex)
 
         if p['hc2'] is None:
-            h2_im = npy.zeros((pl2, nbf), complex)
-            s2_im = npy.zeros((pl2, nbf), complex)
+            h2_im = np.zeros((pl2, nbf), complex)
+            s2_im = np.zeros((pl2, nbf), complex)
             h2_im[-pl2:, -pl2:] = h2_ij
             s2_im[-pl2:, -pl2:] = s2_ij
         else:
@@ -142,7 +142,7 @@ class TransportCalculator:
             if p['sc2'] is not None:
                 s2_im[:] = p['sc2']
             else:
-                s2_im = npy.zeros(h2_im.shape, complex)
+                s2_im = np.zeros(h2_im.shape, complex)
 
         align_bf = p['align_bf']
         if align_bf != None:
@@ -184,13 +184,13 @@ class TransportCalculator:
         nepts = len(self.energies)
         nchan = p['eigenchannels']
         pdos = p['pdos']
-        self.T_e = npy.empty(nepts)
+        self.T_e = np.empty(nepts)
         if p['dos']:
-            self.dos_e = npy.empty(nepts)
+            self.dos_e = np.empty(nepts)
         if pdos != []:
-            self.pdos_ne = npy.empty((len(pdos), nepts))
+            self.pdos_ne = np.empty((len(pdos), nepts))
         if nchan > 0:
-            self.eigenchannels_ne = npy.empty((nchan, nepts))
+            self.eigenchannels_ne = np.empty((nchan, nepts))
 
         for e, energy in enumerate(self.energies):
             Ginv_mm = self.greenfunction.retarded(energy, inverse=True)
@@ -198,13 +198,13 @@ class TransportCalculator:
             lambda2_mm = self.selfenergies[1].get_lambda(energy)
             a_mm = linalg.solve(Ginv_mm, lambda1_mm)
             b_mm = linalg.solve(dagger(Ginv_mm), lambda2_mm)
-            T_mm = npy.dot(a_mm, b_mm)
+            T_mm = np.dot(a_mm, b_mm)
             if nchan > 0:
                 t_n = linalg.eigvals(T_mm).real
-                self.eigenchannels_ne[:, e] = npy.sort(t_n)[-nchan:]
-                self.T_e[e] = npy.sum(t_n)
+                self.eigenchannels_ne[:, e] = np.sort(t_n)[-nchan:]
+                self.T_e[e] = np.sum(t_n)
             else:
-                self.T_e[e] = npy.trace(T_mm).real
+                self.T_e[e] = np.trace(T_mm).real
 
             print >> self.log, energy, self.T_e[e]
             self.log.flush()
@@ -213,8 +213,8 @@ class TransportCalculator:
                 self.dos_e[e] = self.greenfunction.dos(energy)
 
             if pdos != []:
-                self.pdos_ne[:, e] = npy.take(self.greenfunction.pdos(energy),
-                                              pdos)
+                self.pdos_ne[:, e] = np.take(self.greenfunction.pdos(energy),
+                                             pdos)
         
         self.uptodate = True
 
@@ -226,8 +226,8 @@ class TransportCalculator:
         s_ii = self.selfenergies[0].s_ii
         ha_ii = self.greenfunction.H[:pl1, :pl1]
         sa_ii = self.greenfunction.S[:pl1, :pl1]
-        c1 = npy.abs(h_ii - ha_ii).max()
-        c2 = npy.abs(s_ii - sa_ii).max()
+        c1 = np.abs(h_ii - ha_ii).max()
+        c2 = np.abs(s_ii - sa_ii).max()
         print 'Conv (h,s)=%.2e, %2.e' % (c1, c2)
 
     def plot_pl_convergence(self):
@@ -267,18 +267,18 @@ class TransportCalculator:
 
     def subdiagonalize_bfs(self, bfs):
         self.initialize()
-        bfs = npy.array(bfs)
+        bfs = np.array(bfs)
         p = self.input_parameters
         h_pp = p['h']
         s_pp = p['s']
         ht_pp, st_pp, c_pp, e_p = subdiagonalize(h_pp, s_pp, bfs)
-        c_pp = npy.take(c_pp, bfs, axis=0)
-        c_pp = npy.take(c_pp, bfs, axis=1)
+        c_pp = np.take(c_pp, bfs, axis=0)
+        c_pp = np.take(c_pp, bfs, axis=1)
         return ht_pp, st_pp, e_p, c_pp
 
     def cutcoupling_bfs(self, bfs):
         self.initialize()
-        bfs = npy.array(bfs)
+        bfs = np.array(bfs)
         p = self.input_parameters
         h_pp = p['h'].copy()
         s_pp = p['s'].copy()
@@ -292,27 +292,27 @@ class TransportCalculator:
         lambda_r_ii = self.selfenergies[1].get_lambda(energy)
 
         if self.greenfunction.S is None:
-            s_s_qsrt_ii = s_s_isqrt = npy.identity(len(g_s_ii))
+            s_s_qsrt_ii = s_s_isqrt = np.identity(len(g_s_ii))
         else:
             s_mm = self.greenfunction.S
             s_s_i, s_s_ii = linalg.eig(s_mm)
-            s_s_i = npy.abs(s_s_i)
-            s_s_sqrt_i = npy.sqrt(s_s_i) # sqrt of eigenvalues  
-            s_s_sqrt_ii = npy.dot(s_s_ii * s_s_sqrt_i, dagger(s_s_ii))
-            s_s_isqrt_ii = npy.dot(s_s_ii / s_s_sqrt_i, dagger(s_s_ii))
+            s_s_i = np.abs(s_s_i)
+            s_s_sqrt_i = np.sqrt(s_s_i) # sqrt of eigenvalues  
+            s_s_sqrt_ii = np.dot(s_s_ii * s_s_sqrt_i, dagger(s_s_ii))
+            s_s_isqrt_ii = np.dot(s_s_ii / s_s_sqrt_i, dagger(s_s_ii))
 
-        lambdab_r_ii = npy.dot(npy.dot(s_s_isqrt_ii, lambda_r_ii),s_s_isqrt_ii)
-        a_l_ii = npy.dot(npy.dot(g_s_ii, lambda_l_ii), dagger(g_s_ii))
-        ab_l_ii = npy.dot(npy.dot(s_s_sqrt_ii, a_l_ii), s_s_sqrt_ii)
+        lambdab_r_ii = np.dot(np.dot(s_s_isqrt_ii, lambda_r_ii),s_s_isqrt_ii)
+        a_l_ii = np.dot(np.dot(g_s_ii, lambda_l_ii), dagger(g_s_ii))
+        ab_l_ii = np.dot(np.dot(s_s_sqrt_ii, a_l_ii), s_s_sqrt_ii)
         lambda_i, u_ii = linalg.eig(ab_l_ii)
-        ut_ii = npy.sqrt(lambda_i / (2.0 * npy.pi)) * u_ii
-        m_ii = 2 * npy.pi * npy.dot(npy.dot(dagger(ut_ii), lambdab_r_ii),ut_ii)
+        ut_ii = np.sqrt(lambda_i / (2.0 * np.pi)) * u_ii
+        m_ii = 2 * np.pi * np.dot(np.dot(dagger(ut_ii), lambdab_r_ii),ut_ii)
         T_i,c_in = linalg.eig(m_ii)
-        T_i = npy.abs(T_i)
+        T_i = np.abs(T_i)
         
-        channels = npy.argsort(-T_i)[:nchan]
-        c_in = npy.take(c_in, channels, axis=1)
-        T_n = npy.take(T_i, channels)
-        v_in = npy.dot(npy.dot(s_s_isqrt_ii, ut_ii), c_in)
+        channels = np.argsort(-T_i)[:nchan]
+        c_in = np.take(c_in, channels, axis=1)
+        T_n = np.take(T_i, channels)
+        v_in = np.dot(np.dot(s_s_isqrt_ii, ut_ii), c_in)
 
         return T_n, v_in

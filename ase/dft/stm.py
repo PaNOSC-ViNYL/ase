@@ -1,6 +1,6 @@
 from math import exp, sqrt
 
-import numpy as npy
+import numpy as np
 
 from ase.atoms import Atoms
 
@@ -16,9 +16,9 @@ class STM:
         self.weights = calc.get_k_point_weights()
         self.nkpts = len(self.weights)
         self.nspins = calc.get_number_of_spins()
-        self.eigs = npy.array([[calc.get_eigenvalues(k, s)
-                                for k in range(self.nkpts)]
-                               for s in range(self.nspins)])
+        self.eigs = np.array([[calc.get_eigenvalues(k, s)
+                               for k in range(self.nkpts)]
+                              for s in range(self.nspins)])
         self.eigs -= calc.get_fermi_level()
         self.calc = calc
         self.cell = atoms.get_cell()
@@ -39,10 +39,10 @@ class STM:
                 for n in range(self.nbands):
                     psi = self.calc.get_pseudo_wave_function(n, k, s)
                     if ldos is None:
-                        ldos = npy.zeros_like(psi)
+                        ldos = np.zeros_like(psi)
                     f = (exp(-((self.eigs[s, k, n] - bias) / width)**2) *
                          self.weights[k])
-                    ldos += f * (psi * npy.conj(psi)).real
+                    ldos += f * (psi * np.conj(psi)).real
 
         if 0 in self.symmetries:
             # (x,y) -> (-x,y)
@@ -72,7 +72,7 @@ class STM:
 
         # Find grid point:
         n = z / self.cell[2, 2] * nz
-        dn = n - npy.floor(n)
+        dn = n - np.floor(n)
         n = int(n) % nz
         print n,dn
 
@@ -93,7 +93,7 @@ class STM:
 
         ldos = self.ldos.reshape((-1, nz))
 
-        heights = npy.empty(ldos.shape[0])
+        heights = np.empty(ldos.shape[0])
         for i, a in enumerate(ldos):
             heights[i], z, n = find_height(a, current, z, n, nz, h)
 
@@ -113,21 +113,21 @@ class STM:
         h = L / nz
         ldos = self.ldos.reshape((-1, nz))
 
-        p1 = npy.asarray(p1)
-        p2 = npy.asarray(p2)
+        p1 = np.asarray(p1)
+        p2 = np.asarray(p2)
         d = p2 - p1
-        s = sqrt(npy.dot(d, d))
+        s = sqrt(np.dot(d, d))
         
         if npints == None:
             npoints = int(3 * s / h + 2)
 
         cell = self.cell[:2, :2]
-        shape = npy.array(self.ldos.shape[:2], float)
+        shape = np.array(self.ldos.shape[:2], float)
         M = cell.I
-        heights = npy.empty(npoints)
+        heights = np.empty(npoints)
         for i in range(npoints):
             p = p1 + i * d / (npoints - 1)
-            q = npy.dot(M, p) * shape
+            q = np.dot(M, p) * shape
             qi = q.astype(int)
             n0, n1 = qi
             f = q - qi
@@ -137,7 +137,7 @@ class STM:
                  g[0] * f[0] * ldos[n0,     n1 + 1] +
                  f[0] * f[0] * ldos[n0 + 1, n1 + 1])
             heights[i], z, n = find_height(a, current, z, n, nz, h)
-        return npy.linspace(0, s, npoints), heights
+        return np.linspace(0, s, npoints), heights
 
     def cube(self, filename, atoms=None):
         pass

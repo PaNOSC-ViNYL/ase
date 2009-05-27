@@ -2,8 +2,6 @@
 import gtk
 import gobject
 
-import numpy as npy
-
 from ase.gui.languages import translate as _
 from ase.gui.widgets import pack
 

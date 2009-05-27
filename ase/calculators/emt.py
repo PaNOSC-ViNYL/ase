@@ -2,7 +2,7 @@
 
 from math import sqrt, exp, log, pi
 
-import numpy as npy
+import numpy as np
 import sys
 
 from ase.data import atomic_numbers, chemical_symbols
@@ -101,9 +101,9 @@ class EMT:
                 self.ksi[s1][s2] = (p2['n0'] / p1['n0'] *
                                     exp(eta1 * (p1['s0'] - p2['s0'])))
                 
-        self.forces = npy.empty((len(atoms), 3))
-        self.sigma1 = npy.empty(len(atoms))
-        self.deds = npy.empty(len(atoms))
+        self.forces = np.empty((len(atoms), 3))
+        self.sigma1 = np.empty(len(atoms))
+        self.deds = np.empty(len(atoms))
                     
     def update(self, atoms):
         if (self.energy is None or
@@ -135,7 +135,7 @@ class EMT:
         self.update(atoms)
         p = atoms.positions
         p0 = p.copy()
-        forces = npy.empty_like(p)
+        forces = np.empty_like(p)
         eps = 0.0001
         for a in range(len(p)):
             for c in range(3):
@@ -162,19 +162,19 @@ class EMT:
         self.cell = atoms.get_cell().copy()
         self.pbc = atoms.get_pbc().copy()
         
-        icell = npy.linalg.inv(self.cell)
-        scaled = npy.dot(self.positions, icell)
+        icell = np.linalg.inv(self.cell)
+        scaled = np.dot(self.positions, icell)
         N = []
         for i in range(3):
             if self.pbc[i]:
                 scaled[:, i] %= 1.0
                 v = icell[:, i]
-                h = 1 / sqrt(npy.dot(v, v))
+                h = 1 / sqrt(np.dot(v, v))
                 N.append(int(self.rc / h) + 1)
             else:
                 N.append(0)
 
-        R = npy.dot(scaled, self.cell)
+        R = np.dot(scaled, self.cell)
         
         self.energy = 0.0
         self.sigma1[:] = 0.0
@@ -185,7 +185,7 @@ class EMT:
         for i1 in range(-N1, N1 + 1):
             for i2 in range(-N2, N2 + 1):
                 for i3 in range(-N3, N3 + 1):
-                    C = npy.dot((i1, i2, i3), self.cell)
+                    C = np.dot((i1, i2, i3), self.cell)
                     Q = R + C
                     c = (i1 == 0 and i2 == 0 and i3 == 0)
                     for a1 in range(natoms):
@@ -196,7 +196,7 @@ class EMT:
                             if c and a2 == a1:
                                 continue
                             d = Q[a2] - R[a1]
-                            r = sqrt(npy.dot(d, d))
+                            r = sqrt(np.dot(d, d))
                             if r < p1['rc']:
                                 Z2 = self.numbers[a2]
                                 self.interact1(a1, a2, d, r, p1, ksi[Z2])
@@ -221,7 +221,7 @@ class EMT:
         for i1 in range(-N1, N1 + 1):
             for i2 in range(-N2, N2 + 1):
                 for i3 in range(-N3, N3 + 1):
-                    C = npy.dot((i1, i2, i3), self.cell)
+                    C = np.dot((i1, i2, i3), self.cell)
                     Q = R + C
                     c = (i1 == 0 and i2 == 0 and i3 == 0)
                     for a1 in range(natoms):
@@ -232,7 +232,7 @@ class EMT:
                             if c and a2 == a1:
                                 continue
                             d = Q[a2] - R[a1]
-                            r = sqrt(npy.dot(d, d))
+                            r = sqrt(np.dot(d, d))
                             if r < p1['rc']:
                                 Z2 = self.numbers[a2]
                                 self.interact2(a1, a2, d, r, p1, ksi[Z2])
@@ -269,11 +269,11 @@ class ASAP:
 
     def get_forces(self, atoms):
         self.update(atoms)
-        return npy.array(self.atoms.GetCartesianForces())
+        return np.array(self.atoms.GetCartesianForces())
 
     def get_stress(self, atoms):
         self.update(atoms)
-        return npy.array(self.atoms.GetStress())
+        return np.array(self.atoms.GetStress())
 
     def update(self, atoms):
         from Numeric import array

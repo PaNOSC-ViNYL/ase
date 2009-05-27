@@ -1,13 +1,13 @@
-import numpy as npy
+import numpy as np
 from ase.dft.stm import STM
 from ase.dft.dos import DOS
 from ase.dft.wannier import Wannier
 
 
 def monkhorst_pack(size):
-    if npy.less_equal(size, 0).any():
+    if np.less_equal(size, 0).any():
         raise ValueError('Illegal size: %s' % list(size))
-    kpts = npy.indices(size).transpose((1, 2, 3, 0)).reshape((-1, 3))
+    kpts = np.indices(size).transpose((1, 2, 3, 0)).reshape((-1, 3))
     return (kpts + 0.5) / size - 0.5
 
 def get_distribution_moment(x, y, order=0):
@@ -19,13 +19,13 @@ def get_distribution_moment(x, y, order=0):
     For integration, the trapezoid rule is used.
     """
 
-    x = npy.asarray(x)
-    y = npy.asarray(y)
+    x = np.asarray(x)
+    y = np.asarray(y)
         
     if order==0:
-        return npy.trapz(y, x)
+        return np.trapz(y, x)
     elif isinstance(order, int):
-        return npy.trapz(x**order * y, x) / npy.trapz(y, x)
+        return np.trapz(x**order * y, x) / np.trapz(y, x)
     elif hasattr(order, '__iter__'):
         return [get_distribution_moment(x, y, n) for n in order]
     else:

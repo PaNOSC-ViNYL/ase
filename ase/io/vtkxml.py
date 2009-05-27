@@ -1,4 +1,4 @@
-import numpy as npy
+import numpy as np
 #from Numeric import asarray as Numeric_asarray
 
 #from ase.units import Bohr
@@ -23,16 +23,16 @@ def write_vti(filename, atoms, data):
     if data is None:
         raise ValueError('VTK XML Image Data (VTI) format requires data!')
 
-    data = npy.asarray(data)
+    data = np.asarray(data)
 
     if data.dtype == complex:
-        data = npy.abs(data)
+        data = np.abs(data)
 
     cell = atoms.get_cell()
 
-    assert npy.all(cell==npy.diag(cell.diagonal())), 'Unit cell must be orthogonal'
+    assert np.all(cell==np.diag(cell.diagonal())), 'Unit cell must be orthogonal'
 
-    bbox = npy.array(zip(npy.zeros(3),cell.diagonal())).ravel()
+    bbox = np.array(zip(np.zeros(3),cell.diagonal())).ravel()
 
     # Create a VTK grid of structured points
     spts = vtkStructuredPoints()
@@ -43,7 +43,7 @@ def write_vti(filename, atoms, data):
 
     #print 'paw.gd.h_c * Bohr=',paw.gd.h_c * Bohr
     #print 'atoms.cell.diagonal() / data.shape=', cell.diagonal()/data.shape
-    #assert npy.all(paw.gd.h_c * Bohr==cell.diagonal()/data.shape)
+    #assert np.all(paw.gd.h_c * Bohr==cell.diagonal()/data.shape)
 
     #s = paw.wfs.kpt_u[0].psit_nG[0].copy()
     #data = paw.get_pseudo_wave_function(band=0, kpt=0, spin=0, pad=False)
@@ -54,7 +54,7 @@ def write_vti(filename, atoms, data):
     da = vtkDoubleArray()
     da.SetName('scalars')
     da.SetNumberOfComponents(1)
-    da.SetNumberOfTuples(npy.prod(data.shape))
+    da.SetNumberOfTuples(np.prod(data.shape))
 
     for i,d in enumerate(data.swapaxes(0,2).flatten()):
         da.SetTuple1(i,d)
@@ -112,17 +112,17 @@ def write_vtu(filename, atoms, data=None):
     if data is None:
         raise ValueError('VTK XML Unstructured Grid (VTI) format requires data!')
 
-    data = npy.asarray(data)
+    data = np.asarray(data)
 
     if data.dtype == complex:
-        data = npy.abs(data)
+        data = np.abs(data)
     """
 
     cell = atoms.get_cell()
 
-    assert npy.all(cell==npy.diag(cell.diagonal())), 'Unit cell must be orthogonal' #TODO bounding box with general unit cell?!
+    assert np.all(cell==np.diag(cell.diagonal())), 'Unit cell must be orthogonal' #TODO bounding box with general unit cell?!
 
-    bbox = npy.array(zip(npy.zeros(3),cell.diagonal())).ravel()
+    bbox = np.array(zip(np.zeros(3),cell.diagonal())).ravel()
 
     # Create a VTK grid of structured points
     ugd = vtkUnstructuredGrid()

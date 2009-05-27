@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from math import sqrt
 
-import numpy as npy
+import numpy as np
 
 from ase.neb import fit0
 

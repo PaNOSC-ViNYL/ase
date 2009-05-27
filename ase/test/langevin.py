@@ -33,10 +33,10 @@ timestep = 0.5
 
 # Set up atoms in a regular simple-cubic lattice.
 a = 3.5
-atoms = Atoms('Cu4', a * array([[0,0,0],
-                                [0.5, 0.5, 0],
-                                [0.5, 0, 0.5],
-                                [0, 0.5, 0.5]]),
+atoms = Atoms('Cu4', a * np.array([[0,0,0],
+                                   [0.5, 0.5, 0],
+                                   [0.5, 0, 0.5],
+                                   [0, 0.5, 0.5]]),
               cell=(a, a, a))
 atoms *= (1, 5, 5)
 
@@ -96,7 +96,7 @@ def test(temp, frict):
     output.write('&\n')
     assert abs(temp-params[2]) < 0.25*temp, 'Least-squares fit is way off'
     assert nequil*nminor*timestep > 3.0/params[1], 'Equiliberation was too short'
-    fitdata = array(fitdata)
+    fitdata = np.array(fitdata)
 
     print 'Recording statistical data - this takes ten times longer!'
     temperatures = []
@@ -113,7 +113,7 @@ def test(temp, frict):
     output.write('&\n')
     output.close()
 
-    temperatures = array(temperatures)
+    temperatures = np.array(temperatures)
     mean = sum(temperatures) / len(temperatures)
     print 'Mean temperature:', mean, 'eV'
     print

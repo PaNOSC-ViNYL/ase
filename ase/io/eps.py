@@ -1,7 +1,7 @@
 import time
 from math import sqrt
 
-import numpy as npy
+import numpy as np
 
 from ase.utils import rotate
 from ase.data import covalent_radii
@@ -30,22 +30,22 @@ class EPS:
         A = atoms.get_cell()
         if show_unit_cell > 0:
             L, T, D = self.cell_to_lines(A)
-            C = npy.empty((2, 2, 2, 3))
+            C = np.empty((2, 2, 2, 3))
             for c1 in range(2):
                 for c2 in range(2):
                     for c3 in range(2):
-                        C[c1, c2, c3] = npy.dot([c1, c2, c3], A)
+                        C[c1, c2, c3] = np.dot([c1, c2, c3], A)
             C.shape = (8, 3)
-            C = npy.dot(C, rotation) # Unit cell vertices
+            C = np.dot(C, rotation) # Unit cell vertices
         else:
-            L = npy.empty((0, 3))
+            L = np.empty((0, 3))
             T = None
             D = None
             C = None
 
         nlines = len(L)
 
-        X = npy.empty((natoms + nlines, 3))
+        X = np.empty((natoms + nlines, 3))
         R = atoms.get_positions()
         X[:natoms] = R
         X[natoms:] = L
@@ -57,15 +57,15 @@ class EPS:
                 (((R - L[n] + d)**2).sum(1) < r2)).any():
                 T[n] = -1
 
-        X = npy.dot(X, rotation)
+        X = np.dot(X, rotation)
         R = X[:natoms]
 
         if bbox is None:
             X1 = (R - radii[:, None]).min(0) 
             X2 = (R + radii[:, None]).max(0) 
             if show_unit_cell == 2:
-                X1 = npy.minimum(X1, C.min(0))
-                X2 = npy.maximum(X2, C.max(0))
+                X1 = np.minimum(X1, C.min(0))
+                X2 = np.maximum(X2, C.max(0))
             M = (X1 + X2) / 2
             S = 1.05 * (X2 - X1)
             w = scale * S[0]
@@ -73,12 +73,12 @@ class EPS:
                 w = 500
                 scale = w / S[0]
             h = scale * S[1]
-            offset = npy.array([scale * M[0] - w / 2, scale * M[1] - h / 2, 0])
+            offset = np.array([scale * M[0] - w / 2, scale * M[1] - h / 2, 0])
         else:
             #scale = 50.0
             w = (bbox[2] - bbox[0]) * scale
             h = (bbox[3] - bbox[1]) * scale
-            offset = npy.array([bbox[0], bbox[1], 0]) * scale
+            offset = np.array([bbox[0], bbox[1], 0]) * scale
 
         self.w = w
         self.h = h
@@ -88,7 +88,7 @@ class EPS:
         X[:, 1] = h - X[:, 1]
 
         if nlines > 0:
-            D = npy.dot(D, rotation)[:, :2] * scale
+            D = np.dot(D, rotation)[:, :2] * scale
             D[:, 1] = -D[:, 1]
         
         if C is not None:
@@ -112,16 +112,16 @@ class EPS:
             nn.append(n)
             nlines += 4 * n
 
-        X = npy.empty((nlines, 3))
-        T = npy.empty(nlines, int)
-        D = npy.zeros((3, 3))
+        X = np.empty((nlines, 3))
+        T = np.empty(nlines, int)
+        D = np.zeros((3, 3))
 
         n1 = 0
         for c in range(3):
             n = nn[c]
             dd = A[c] / (4 * n - 2)
             D[c] = dd
-            P = npy.arange(1, 4 * n + 1, 4)[:, None] * dd
+            P = np.arange(1, 4 * n + 1, 4)[:, None] * dd
             T[n1:] = c
             for i, j in [(0, 0), (0, 1), (1, 0), (1, 1)]:
                 n2 = n1 + n

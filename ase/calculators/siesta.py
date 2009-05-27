@@ -6,7 +6,7 @@ http://www.uam.es/departamentos/ciencias/fismateriac/siesta
 import os
 from os.path import join, isfile, islink
 
-import numpy as npy
+import numpy as np
 
 from ase.data import chemical_symbols
 
@@ -282,7 +282,7 @@ class Siesta:
         # Stress:
         for line in lines:
             if line.startswith('siesta: stress tensor (total) (ev/ang**3):'):
-                self.stress = npy.empty((3, 3))
+                self.stress = np.empty((3, 3))
                 for i in range(3):
                     self.stress[i] = [float(word)
                                       for word in lines.next().split()]
@@ -303,9 +303,9 @@ class Siesta:
         lines = open(self.label + '.FA', 'r').readlines()
         assert int(lines[0]) == len(self.numbers)
         assert len(lines) == len(self.numbers) + 1
-        self.forces = npy.array([[float(word)
-                                  for word in line.split()[1:4]]
-                                 for line in lines[1:]])
+        self.forces = np.array([[float(word)
+                                 for word in line.split()[1:4]]
+                                for line in lines[1:]])
         
 
 def fdfify(key):

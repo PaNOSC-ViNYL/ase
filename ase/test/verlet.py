@@ -1,6 +1,6 @@
 from ase import *
 from ase.calculators import TestPotential
-seterr(all='raise')
+np.seterr(all='raise')
 a = Atoms('4N', 
           positions=[(0, 0, 0),
                      (1, 0, 0),

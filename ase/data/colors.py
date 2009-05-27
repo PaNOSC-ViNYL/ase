@@ -1,8 +1,8 @@
-import numpy as npy
+import numpy as np
 
 
 # Jmol colors.  See: http://jmol.sourceforge.net/jscolors/#color_U
-jmol_colors = npy.array([
+jmol_colors = np.array([
 (1.000,0.000,0.000) ,# None
 (1.000,1.000,1.000), # H
 (0.851,1.000,1.000), # He
@@ -116,7 +116,7 @@ jmol_colors = npy.array([
 ])
 
 # CPK colors in units of RGB values:
-cpk_colors = npy.array([ 
+cpk_colors = np.array([ 
 (1.000,0.000,0.000) ,# None
 (1.000,1.000,1.000) ,# H
 (1.000,0.753,0.796) ,# He

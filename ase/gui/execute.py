@@ -2,7 +2,7 @@
 import __future__
 import gtk
 
-import numpy as npy
+import numpy as np
 
 from ase.gui.languages import translate as _
 from ase.gui.widgets import pack
@@ -43,7 +43,7 @@ class Execute(gtk.Window):
         A = gui.cell
         S = gui.selected
         if self.selected.get_active():
-            indices = npy.where(S)[0]
+            indices = np.where(S)[0]
         else:
             indices = range(n)
 

@@ -1,6 +1,6 @@
 """This module defines the Atom object."""
 
-import numpy as npy
+import numpy as np
 
 from ase.data import atomic_numbers, chemical_symbols
 
@@ -88,10 +88,10 @@ class Atom(object):
             else:
                 self._number = symbol
                 self._symbol = chemical_symbols[symbol]
-            self._position = npy.array(position, float)
+            self._position = np.array(position, float)
             self._tag = tag
             if momentum is not None:
-                momentum = npy.array(momentum, float)
+                momentum = np.array(momentum, float)
             self._momentum = momentum
             self._mass = mass
             self._magmom = magmom
@@ -105,7 +105,7 @@ class Atom(object):
         for attr in ['tag', 'momentum', 'mass', 'magmom', 'charge']:
             value = getattr(self, attr)
             if value is not None:
-                if isinstance(value, npy.ndarray):
+                if isinstance(value, np.ndarray):
                     value = value.tolist()
                 s += ', %s=%s' % (attr, value)
         if self.atoms is None:
@@ -160,7 +160,7 @@ class Atom(object):
             if plural in self.atoms.arrays:
                 self.atoms.arrays[plural][self.index] = value
             else:
-                array = npy.zeros((len(self.atoms),) + shape, dtype)
+                array = np.zeros((len(self.atoms),) + shape, dtype)
                 array[self.index] = value
                 self.atoms.new_array(plural, array)
 
@@ -176,7 +176,7 @@ class Atom(object):
     def set_symbol(self, symbol): self._set('symbol', symbol)
     def set_number(self, number): self._set('number', number)
     def set_position(self, position):
-        self._set('position', npy.array(position, float))
+        self._set('position', np.array(position, float))
     def set_tag(self, tag): self._set('tag', tag)
     def set_momentum(self, momentum): self._set('momentum', momentum)
     def set_mass(self, mass): self._set('mass', mass)

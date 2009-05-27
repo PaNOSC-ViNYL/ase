@@ -7,7 +7,7 @@ import os
 from glob import glob
 from os.path import join, isfile, islink
 
-import numpy as npy
+import numpy as np
 
 from ase.data import chemical_symbols
 from ase.data import atomic_numbers
@@ -468,9 +468,9 @@ class Abinit:
             offset = offset+n_entry_lines+1
         #
         if mode in ['occupations', 'eigenvalues']:
-            return npy.array(values_list[kpt])
+            return np.array(values_list[kpt])
         else:
-            return npy.array(values_list)
+            return np.array(values_list)
 
     def read(self):
         """Read results from ABINIT's text-output file."""
@@ -501,7 +501,7 @@ class Abinit:
         # sigma(3 3)=  4.02063464E-04  sigma(2 1)=  0.00000000E+00
         for line in lines:
             if line.rfind('cartesian components of stress tensor (hartree/bohr^3)') > -1:
-                self.stress = npy.empty((3, 3))
+                self.stress = np.empty((3, 3))
                 for i in range(3):
                     entries = lines.next().split()
                     self.stress[i,i] = float(entries[2])
@@ -538,8 +538,8 @@ class Abinit:
             if line.rfind('cartesian forces (ev/angstrom) at end:') > -1:
                 forces = []
                 for i in range(len(self.numbers)):
-                    forces.append(npy.array([float(f) for f in lines.next().split()[1:]]))
-                self.forces = npy.array(forces)
+                    forces.append(np.array([float(f) for f in lines.next().split()[1:]]))
+                self.forces = np.array(forces)
                 break
         else:
             raise RuntimeError

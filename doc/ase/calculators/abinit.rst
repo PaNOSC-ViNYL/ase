@@ -147,7 +147,7 @@ in gpaw `<https://wiki.fysik.dtu.dk/gpaw/exercises/band_structure/bands.html>`_)
 
   #!/usr/bin/env python
 
-  import numpy as npy
+  import numpy as np
   from ase.calculators.abinit import Abinit
   from ase import Atoms, Ry
 
@@ -197,7 +197,7 @@ in gpaw `<https://wiki.fysik.dtu.dk/gpaw/exercises/band_structure/bands.html>`_)
   kpts2 = calc.get_ibz_k_points()
   nkpts2 = len(kpts2)
 
-  eigs = npy.empty((nband2, nkpts2), float)
+  eigs = np.empty((nband2, nkpts2), float)
 
   for k in range(nkpts2):
       eigs[:, k] = calc.get_eigenvalues(kpt=k)

@@ -1,5 +1,5 @@
 from math import sin, cos, pi, sqrt
-import numpy as npy
+import numpy as np
 
 from ase.atoms import Atoms, Atom
 from ase.parallel import paropen
@@ -30,13 +30,13 @@ def read_cif(fileobj, index=-1):
     beta = pi * get_key(fileobj, '_cell_angle_beta') / 180
     gamma =  pi * get_key(fileobj, '_cell_angle_gamma') / 180
 
-    va = a * npy.array([1, 0, 0])
-    vb = b * npy.array([cos(gamma), sin(gamma), 0])
+    va = a * np.array([1, 0, 0])
+    vb = b * np.array([cos(gamma), sin(gamma), 0])
     cx = cos(beta)
     cy = (cos(alpha) - cos(beta) * cos(gamma)) / sin(gamma)
     cz = sqrt(1. - cx*cx - cy*cy)
-    vc = c * npy.array([cx, cy, cz])
-    cell = npy.array([va, vb, vc])
+    vc = c * np.array([cx, cy, cz])
+    cell = np.array([va, vb, vc])
 
     atoms = Atoms(cell=cell)
     read = False

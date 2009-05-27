@@ -1,4 +1,3 @@
-import numpy as npy
 from ase.dft import monkhorst_pack
 
 assert [0, 0, 0] in  monkhorst_pack((1, 3, 5)).tolist()

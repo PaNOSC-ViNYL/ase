@@ -1,4 +1,4 @@
-import numpy as npy
+import numpy as np
 try:
     import Numeric as num
 except ImportError:
@@ -23,7 +23,7 @@ class OldASEListOfAtomsWrapper:
         self.constraints = []
 
     def get_positions(self):
-        return npy.array(self.atoms.GetCartesianPositions())
+        return np.array(self.atoms.GetCartesianPositions())
 
     def get_calculator(self):
         calc = self.atoms.GetCalculator()
@@ -34,40 +34,40 @@ class OldASEListOfAtomsWrapper:
         return self.atoms.GetPotentialEnergy()
 
     def get_forces(self):
-        return npy.array(self.atoms.GetCartesianForces())
+        return np.array(self.atoms.GetCartesianForces())
 
     def get_stress(self):
-        return npy.array(self.atoms.GetStress())
+        return np.array(self.atoms.GetStress())
 
     def get_atomic_numbers(self):
-        return npy.array(self.atoms.GetAtomicNumbers())
+        return np.array(self.atoms.GetAtomicNumbers())
 
     def get_tags(self):
-        return npy.array(self.atoms.GetTags())
+        return np.array(self.atoms.GetTags())
     
     def get_momenta(self):
-        return npy.array(self.atoms.GetCartesianMomenta())
+        return np.array(self.atoms.GetCartesianMomenta())
     
     def get_masses(self):
-        return npy.array(self.atoms.GetMasses())
+        return np.array(self.atoms.GetMasses())
     
     def get_initial_magnetic_moments(self):
-        return npy.array(self.atoms.GetMagneticMoments())
+        return np.array(self.atoms.GetMagneticMoments())
     
     def get_magnetic_moments(self):
         return None
     
     def get_charges(self):
-        return npy.zeros(len(self))
+        return np.zeros(len(self))
 
     def has(self, name):
         return True
     
     def get_cell(self):
-        return npy.array(self.atoms.GetUnitCell())
+        return np.array(self.atoms.GetUnitCell())
 
     def get_pbc(self):
-        return npy.array(self.atoms.GetBoundaryConditions(), bool)
+        return np.array(self.atoms.GetBoundaryConditions(), bool)
 
     def __len__(self):
         return len(self.atoms)
@@ -120,30 +120,30 @@ class OldASECalculatorWrapper:
     def get_forces(self, atoms):
         self.atoms.SetCartesianPositions(npy2num(atoms.get_positions()))
         self.atoms.SetUnitCell(npy2num(atoms.get_cell()), fix=True)
-        return npy.array(self.calc.GetCartesianForces())
+        return np.array(self.calc.GetCartesianForces())
 
     def get_stress(self, atoms):
         self.atoms.SetCartesianPositions(npy2num(atoms.get_positions()))
         self.atoms.SetUnitCell(npy2num(atoms.get_cell()), fix=True)
-        return npy.array(self.calc.GetStress())
+        return np.array(self.calc.GetStress())
 
     def get_number_of_bands(self):
         return self.calc.GetNumberOfBands()
 
     def get_kpoint_weights(self):
-        return npy.array(self.calc.GetIBZKPointWeights())
+        return np.array(self.calc.GetIBZKPointWeights())
 
     def get_number_of_spins(self):
         return 1 + int(self.calc.GetSpinPolarized())
 
     def get_eigenvalues(self, kpt=0, spin=0):
-        return npy.array(self.calc.GetEigenvalues(kpt, spin))
+        return np.array(self.calc.GetEigenvalues(kpt, spin))
 
     def get_fermi_level(self):
         return self.calc.GetFermiLevel()
 
     def get_number_of_grid_points(self):
-        return npy.array(self.get_pseudo_wave_function(0, 0, 0).shape)
+        return np.array(self.get_pseudo_wave_function(0, 0, 0).shape)
 
     def get_pseudo_wave_function(self, n=0, k=0, s=0, pad=True):
         kpt = self.get_bz_k_points()[k]
@@ -154,23 +154,23 @@ class OldASECalculatorWrapper:
         wave = state.GetWavefunctionOnGrid(phase=False)
 
         # Add bloch phase if this is not the Gamma point
-        if npy.all(kpt == 0):
+        if np.all(kpt == 0):
             return wave
         coord = state.GetCoordinates()
         phase = coord[0] * kpt[0] + coord[1] * kpt[1] + coord[2] * kpt[2]
-        return npy.array(wave) * npy.exp(-2.j * npy.pi * phase) # sign! XXX
+        return np.array(wave) * np.exp(-2.j * np.pi * phase) # sign! XXX
 
-        #return npy.array(self.calc.GetWaveFunctionArray(n, k, s)) # No phase!
+        #return np.array(self.calc.GetWaveFunctionArray(n, k, s)) # No phase!
 
     def get_bz_k_points(self):
-        return npy.array(self.calc.GetBZKPoints())
+        return np.array(self.calc.GetBZKPoints())
 
     def get_ibz_k_points(self):
-        return npy.array(self.calc.GetIBZKPoints())
+        return np.array(self.calc.GetIBZKPoints())
 
     def get_wannier_localization_matrix(self, nbands, dirG, kpoint,
                                         nextkpoint, G_I, spin):
-        return npy.array(self.calc.GetWannierLocalizationMatrix(
+        return np.array(self.calc.GetWannierLocalizationMatrix(
             G_I=G_I.tolist(), nbands=nbands, dirG=dirG.tolist(),
             kpoint=kpoint, nextkpoint=nextkpoint, spin=spin))
     
@@ -188,7 +188,7 @@ class OldASECalculatorWrapper:
         init.SetupMMatrix(waves, self.calc.GetBZKPoints())
         c, U = init.GetListOfCoefficientsAndRotationMatrices(
             (self.calc.GetNumberOfBands(), fixedstates, edf))
-        U = npy.array(U)
+        U = np.array(U)
         for k in range(len(c)):
-            c[k] = npy.array(c[k])
+            c[k] = np.array(c[k])
         return c, U

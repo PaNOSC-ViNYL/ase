@@ -5,8 +5,6 @@ import pickle
 from math import sqrt
 from os.path import isfile
 
-import numpy as npy
-
 from ase.parallel import rank, barrier
 from ase.io.trajectory import PickleTrajectory
 

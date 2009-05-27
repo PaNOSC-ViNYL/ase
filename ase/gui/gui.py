@@ -19,7 +19,7 @@
 import os
 import sys
 
-import numpy as npy
+import numpy as np
 
 import gtk
 from ase.gui.view import View
@@ -241,7 +241,7 @@ class GUI(View, Status):
         if self.images.nimages > 1:
             self.movie()
 
-        if expr is None and not npy.isnan(self.images.E[0]):
+        if expr is None and not np.isnan(self.images.E[0]):
             expr = 'i, e - E[-1]'
             
         if expr is not None and expr != '' and self.images.nimages > 1:
@@ -417,7 +417,7 @@ class GUI(View, Status):
         
         chooser.destroy()
 
-        bbox = npy.empty(4)
+        bbox = np.empty(4)
         bbox[:2] = self.offset[:2]
         bbox[2:] = bbox[:2] + (self.width, self.height)
         bbox /= self.scale

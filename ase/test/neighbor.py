@@ -1,3 +1,4 @@
+import numpy.random as random
 from ase import *
 from ase.calculators.neighborlist import NeighborList
 
@@ -8,7 +9,7 @@ atoms = Atoms(numbers=range(10),
 atoms.set_scaled_positions(3 * random.random((10, 3)) - 1)
 
 def count(nl, atoms):
-    c = zeros(len(atoms), int)
+    c = np.zeros(len(atoms), int)
     R = atoms.get_positions()
     cell = atoms.get_cell()
     d = 0.0
@@ -17,7 +18,7 @@ def count(nl, atoms):
         for j in i:
             c[j] += 1
         c[a] += len(i)
-        d += (((R[i] + dot(offsets, cell) - R[a])**2).sum(1)**0.5).sum()
+        d += (((R[i] + np.dot(offsets, cell) - R[a])**2).sum(1)**0.5).sum()
     return d, c
 
 for sorted in [False, True]:

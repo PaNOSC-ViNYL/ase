@@ -6,7 +6,7 @@ def test(xyz):
     a2 = rotate(ixyz)
     #print xyz
     #print ixyz
-    #print npy.around(a-a2, 5)
+    #print np.around(a-a2, 5)
     assert abs(a-a2).max() < 1e-10
 
 test('155x,43y,190z')

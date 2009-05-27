@@ -1,6 +1,6 @@
 """Molecular Dynamics."""
 
-import numpy as npy
+import numpy as np
 
 from ase.optimize import Dynamics
 from ase.data import atomic_masses
@@ -19,7 +19,7 @@ class MolecularDynamics(Dynamics):
         f = self.atoms.get_forces()
 
         if not self.atoms.has('momenta'):
-            self.atoms.set_momenta(npy.zeros_like(f))
+            self.atoms.set_momenta(np.zeros_like(f))
 
         for step in xrange(steps):
             f = self.step(f)

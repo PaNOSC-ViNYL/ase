@@ -1,6 +1,5 @@
 """Atomic Simulation Environment."""
 
-from numpy import *
 from ase.utils import memory
 from ase.atom import Atom
 from ase.atoms import Atoms
@@ -21,6 +20,7 @@ from ase.data import chemical_symbols, atomic_numbers, atomic_names, \
      atomic_masses, covalent_radii, reference_states
 from ase.data.molecules import molecule
 
+from math import sqrt, pi
 import numpy as np
 #import scipy as sp
 #import matplotlib.pyplot as plt

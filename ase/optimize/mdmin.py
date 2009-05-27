@@ -1,4 +1,4 @@
-import numpy as npy
+import numpy as np
 
 from ase.optimize import Optimizer
 
@@ -22,15 +22,15 @@ class MDMin(Optimizer):
         atoms = self.atoms
 
         if self.v is None:
-            self.v = npy.zeros((len(atoms), 3))
+            self.v = np.zeros((len(atoms), 3))
         else:
             self.v += 0.5 * self.dt * f
             # Correct velocities:
-            vf = npy.vdot(self.v, f)
+            vf = np.vdot(self.v, f)
             if vf < 0.0:
                 self.v[:] = 0.0
             else:
-                self.v[:] = f * vf / npy.vdot(f, f)
+                self.v[:] = f * vf / np.vdot(f, f)
 
         self.v += 0.5 * self.dt * f
         r = atoms.get_positions()
