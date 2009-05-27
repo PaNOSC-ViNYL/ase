@@ -255,6 +255,7 @@ Other methods
 * :meth:`~ase.atoms.Atoms.center`
 * :meth:`~ase.atoms.Atoms.translate`
 * :meth:`~ase.atoms.Atoms.rotate`
+* :meth:`~ase.atoms.Atoms.rotate_euler`
 * :meth:`~ase.atoms.Atoms.rattle`
 * :meth:`~ase.atoms.Atoms.set_constraint`
 * :meth:`~ase.atoms.Atoms.set_distance`

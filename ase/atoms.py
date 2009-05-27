@@ -814,16 +814,22 @@ class Atoms(object):
                                        npy.outer(npy.dot(p, v), (1.0 - c) * v)+
                                        center)
 
-    def rotate_euler(self, center = (0, 0, 0), phi = 0., \
-                     theta = 0., psi = 0.):
+    def rotate_euler(self, center=(0, 0, 0), phi=0., theta=0., psi=0.):
         """Rotate atoms via Euler angles.
         
         See e.g http://mathworld.wolfram.com/EulerAngles.html for explanation.
-        Input arguments:
-        center: The point to rotate about, or center of mass if 'COM'.
-        phi: The 1st rotation angle around z axis.
-        theta: Rotation around x axis.
-        psi: 2nd rotation around z axis.
+        
+        Parameters:
+        
+        center :
+            The point to rotate about. A sequence of length 3 with the
+            coordinates, or 'COM' to select the center of mass.
+        phi :
+            The 1st rotation angle around the z axis.
+        theta :
+            Rotation around the x axis.
+        psi :
+            2nd rotation around the z axis.
         
         """
         if isinstance(center, str) and center.lower() == 'com':
