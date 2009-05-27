@@ -1,3 +1,6 @@
+# Copyright 2008, 2009 CAMd
+# (see accompanying license files for details).
+
 """Definition of the Atoms class.
 
 This module defines the central object in the ASE package: the Atoms

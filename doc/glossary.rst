@@ -28,12 +28,6 @@ Glossary
   EMT
     Effective Medium Theory.
 
-  GNU General Public License
-    ... XXX
-
-  GPL
-    See :term:`GNU General Public License`
-
   HF
     Hartree-Fock approximation XXX ...
 

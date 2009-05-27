@@ -407,11 +407,11 @@ class View:
             c = cos(0.01 * t)
             s = -sin(0.01 * t)
             rotation = np.array([(c * a * a + b * b, (c - 1) * b * a, s * a),
-                                  ((c - 1) * a * b, c * b * b + a * a, s * b),
-                                  (-s * a, -s * b, c)])
+                                 ((c - 1) * a * b, c * b * b + a * a, s * b),
+                                 (-s * a, -s * b, c)])
             self.rotation = np.dot(self.rotation0, rotation)
             self.offset = np.dot(self.center0 + self.offset0,
-                                  rotation) - self.center0
+                                 rotation) - self.center0
 
         self.draw(status=False)
         

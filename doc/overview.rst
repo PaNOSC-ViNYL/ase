@@ -51,10 +51,10 @@ number of "design goals" as:
 
 :Open to participation:
   The CAMPOS Atomic Simulation Environment is released under the GNU
-  Public License version 2.  See the file :trac:`LICENSE` which
-  accompanies the downloaded files, or see the license at GNU's web
-  server at http://www.gnu.org/licenses/old-licenses/gpl-2.0.html.
-  Everybody is invited to participate in using and :ref:`developing the
-  code <devel>`.
+  Lesser General Public License.  See the files :trac:`COPYING` and
+  :trac:`COPYING.LESSER` which accompany the downloaded files, or see
+  the license at GNU's web server at
+  http://www.gnu.org/copyleft/lgpl.html.  Everybody is invited to
+  participate in using and :ref:`developing the code <devel>`.
 
 .. _Python: http://www.python.org
