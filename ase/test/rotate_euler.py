@@ -1,5 +1,5 @@
 from ase import *
-d = 1.31
+d = 1.14
 a = Atoms([Atom('C', (0, 0, 0)), Atom('O', (d, 0, 0))])
 a.rotate_euler(phi=pi/2, theta=pi/4, psi=pi)
 for p in a[0].position:
