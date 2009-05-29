@@ -284,7 +284,7 @@ class MemoryStatistics(MemoryBase):
                     self[k] = float(t)*self._scale[s.upper()]
 
             f.close()
-        except (IOError, UnicodeError):
+        except (IOError, UnicodeError, ValueError):
             # Reset on error
             self.clear()
 
