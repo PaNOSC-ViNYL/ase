@@ -294,7 +294,7 @@ def center(atoms, axes=(True, True, True)):
 
     The atoms are translated so there is the same amount of free space
     on opposite sides of the unit cell.  This is done by translating
-    the atoms within the unit cell.  Not that the translation is also
+    the atoms within the unit cell.  Note that the translation is also
     done along axes with periodic boundaries, although it has no
     effect.
 
