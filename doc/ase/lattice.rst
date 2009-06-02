@@ -154,6 +154,15 @@ also possible to add one or more adsorbates.
 .. autofunction:: ase.lattice.surface.add_adsorbate
 
 
+Centering the system
+--------------------
+
+The slabs are typically set up with vacuum on one side only.  For GPAW
+calculations with free boundary conditions perpendicular to the
+surface, the vacuum should be distributed on both sides.  This can be
+done by centering the system in the unit cell.
+
+.. autofunction:: ase.lattice.surface.center
 
 
 General crystal structures

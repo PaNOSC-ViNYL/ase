@@ -289,3 +289,36 @@ def surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
     return slab
 
 
+def center(atoms, axes=(True, True, True)):
+    """Center the atoms in the unit cell.
+
+    The atoms are translated so there is the same amount of free space
+    on opposite sides of the unit cell.  This is done by translating
+    the atoms within the unit cell.  Not that the translation is also
+    done along axes with periodic boundaries, although it has no
+    effect.
+
+    This is mainly intended for distributing the vacuum layer for a
+    GPAW calculation.
+
+    Parameters:
+
+    atoms: The Atoms object operated on.  It is modified.
+
+    axes (default: (True, True, True): A 3-sequence indicating if
+    translation should be done along the three axes of the unit cell.
+    """
+    
+    rs = atoms.get_scaled_positions()
+    offset = np.zeros(3, float)
+    for ax in range(3):
+        if not axes[ax]:
+            break
+        bottom = rs[:,ax].min()
+        top = 1.0 - rs[:,ax].max()
+        offset[ax] = 0.5 * (top - bottom)
+    rs += offset
+    print "Offset:", offset
+    atoms.set_scaled_positions(rs)
+    
+        
