@@ -736,7 +736,21 @@ class Atoms(object):
         self.arrays['positions'] += np.array(displacement)
 
     def center(self, vacuum=None, axis=None):
-        """Center atoms in unit cell"""
+        """Center atoms in unit cell.
+
+        Centers the atoms in the unit cell, so there is the same
+        amount of vacuum on all sides.  Currenly only supports
+        orthogonal unit cells.
+
+        Parameters:
+
+        vacuum (default: None): If specified adds the amount of vacuum
+        specified before centering.
+
+        axis (default: None): If specified, only act on the specified
+        axis.  Default: Act on all axes.
+        """
+        # TO DO: Arbitrary unit cells.
         p = self.arrays['positions']
         p0 = p.min(0)
         p1 = p.max(0)

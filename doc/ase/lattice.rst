@@ -160,9 +160,9 @@ Centering the system
 The slabs are typically set up with vacuum on one side only.  For GPAW
 calculations with free boundary conditions perpendicular to the
 surface, the vacuum should be distributed on both sides.  This can be
-done by centering the system in the unit cell.
+done by centering the system in the unit cell using the
+:meth:`~ase.atoms.Atoms.center()` method of the atoms.
 
-.. autofunction:: ase.lattice.surface.center
 
 
 General crystal structures
