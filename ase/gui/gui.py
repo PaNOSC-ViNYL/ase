@@ -230,6 +230,7 @@ class GUI(View, Status):
         vbox.show()
         #self.window.set_events(gtk.gdk.BUTTON_PRESS_MASK)
         self.window.connect('key-press-event', self.scroll)
+        self.window.connect('scroll_event', self.scroll_event)
         self.window.show()
         self.graphs = []
         self.movie_window = None
@@ -259,12 +260,25 @@ class GUI(View, Status):
         if self.movie_window is not None:
             self.movie_window.frame_number.value = i
             
-    def zoom(self, action):
-        x = {'ZoomIn': 1.2, 'ZoomOut':1 / 1.2}[action.get_name()]
+    def _do_zoom(self, x):
+        """Utility method for zooming"""
         self.scale *= x
         center = (0.5 * self.width, 0.5 * self.height, 0)
         self.offset = x * (self.offset + center) - center
         self.draw()
+        
+    def zoom(self, action):
+        """Zoom in/out on keypress or clicking menu item"""
+        x = {'ZoomIn': 1.2, 'ZoomOut':1 / 1.2}[action.get_name()]
+        self._do_zoom(x)
+
+    def scroll_event(self, window, event):
+        """Zoom in/out when using mouse wheel"""
+        if event.direction == gtk.gdk.SCROLL_UP:
+            x = 1.2
+        elif event.direction == gtk.gdk.SCROLL_DOWN:
+            x = 1 / 1.2
+        self._do_zoom(x)
 
     def settings(self, menuitem):
         Settings(self)
