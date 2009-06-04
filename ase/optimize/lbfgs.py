@@ -111,7 +111,8 @@ class _LBFGS(Optimizer):
             self.Ho = self.Ho * self.alpha
         if(not self.ITR):
             self.ITR = 1
-            self.s = [1.]
+            self.s = [1.] # The 0'th element is not actually used
+            # The point is to use 1-indexation
             self.y = [1.]
             self.rho = [1.]
         else:
@@ -175,7 +176,10 @@ class _LBFGS(Optimizer):
             f_old = f
         self.r_old = traj[-2].get_positions()
         self.f_old = traj[-2].get_forces()
-
+        self.s.pop(-1) 
+        self.y.pop(-1)
+        self.rho.pop(-1)
+        self.ITR -= 1
 
 class LineLBFGS(_LBFGS):
     def __init__(self, *args, **kwargs):
