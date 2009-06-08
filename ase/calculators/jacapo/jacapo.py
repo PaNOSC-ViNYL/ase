@@ -1704,6 +1704,29 @@ class Jacapo:
         if self.debug > 0: print 'default calculation required'
         return True
 
+    def get_scratch(self):
+        '''finds an appropriate scratch directory for the calculation'''
+        import getpass
+        username=getpass.getuser()
+
+        if os.environ.has_key('SCRATCH'):
+            scratch_dir=os.environ['SCRATCH']
+            if os.access(scratch_dir,os.W_OK):
+                return scratch_dir
+        elif os.environ.has_key('SCR'):
+            scratch_dir=os.environ['SCR']
+            if os.access(scratch_dir,os.W_OK):
+                return scratch_dir
+        elif os.access('/scratch/'+username,os.W_OK):
+            return '/scratch/'+username
+        elif os.access('/scratch/',os.W_OK):
+            return '/scratch'
+        else:
+            if os.access(os.curdir,os.W_OK):
+                return os.curdir
+            else:
+                raise IOError,"No suitable scratch directory and no write access to current dir"
+
     def calculate(self):
         '''run a calculation.
 
@@ -1726,8 +1749,7 @@ class Jacapo:
             self.set_status('finished')
 
         else:
-            cmd = 'dacapo.run  %(innc)s -out %(txt)s' % {'innc':nc,
-                                                     'txt':txt}
+            cmd = 'dacapo.run  %(innc)s -out %(txt)s -scratch %(scratch)s' % {'innc':nc,'txt':txt, 'scratch':scratch}
 
             if self.debug > 0: print cmd
             # using subprocess instead of commands
@@ -1870,7 +1892,8 @@ s.recv(14)
             scratch_in_nc = tempfile.mktemp()
             os.system('mv '+nc+' '+scratch_in_nc)
             os.system('rm -f '+stoppfile)
-            cmd = 'dacapo.run  %(innc)s %(outnc)s -out %(txt)s' % {'innc':scratch_in_nc,'outnc':nc,'txt':txt}
+            scratch = self.get_scratch()
+            cmd = 'dacapo.run  %(innc)s %(outnc)s -out %(txt)s -scratch %(scratch)s' % {'innc':scratch_in_nc,'outnc':nc,'txt':txt, 'scratch':scratch}
 
             if self.debug > 0: print cmd
             self._dacapo = sp.Popen(cmd,stdout=sp.PIPE,stderr=sp.PIPE,shell=True)
