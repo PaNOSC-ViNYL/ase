@@ -284,13 +284,18 @@ class GUI(View, Status):
         Settings(self)
         
     def scroll(self, window, event):
-        dxdy = {gtk.keysyms.Up:    ( 0, -1),
+        dxdy = {gtk.keysyms.KP_Add: ('zoom', 1.2),
+                gtk.keysyms.KP_Subtract: ('zoom', 1 / 1.2),
+                gtk.keysyms.Up:    ( 0, -1),
                 gtk.keysyms.Down:  ( 0, +1),
                 gtk.keysyms.Right: (+1,  0),
                 gtk.keysyms.Left:  (-1,  0)}.get(event.keyval, None)
         if dxdy is None:
             return
         dx, dy = dxdy
+        if dx == 'zoom':
+            self._do_zoom(dy)
+            return
         d = self.scale * 0.1
         self.offset -= (dx * d, dy * d, 0)
         self.draw()
