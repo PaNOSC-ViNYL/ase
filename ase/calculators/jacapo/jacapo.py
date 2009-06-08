@@ -1709,23 +1709,18 @@ class Jacapo:
         import getpass
         username=getpass.getuser()
 
+        scratch_dirs = []
         if os.environ.has_key('SCRATCH'):
-            scratch_dir=os.environ['SCRATCH']
+            scratch_dirs.append(os.environ['SCRATCH'])
+        if os.environ.has_key('SCR'):
+            scratch_dirs.append(os.environ['SCR'])
+        scratch_dirs.append('/scratch/'+username)
+        scratch_dirs.append('/scratch/')
+        scratch_dirs.append(os.curdir)
+        for scratch_dir in scratch_dirs:
             if os.access(scratch_dir,os.W_OK):
                 return scratch_dir
-        elif os.environ.has_key('SCR'):
-            scratch_dir=os.environ['SCR']
-            if os.access(scratch_dir,os.W_OK):
-                return scratch_dir
-        elif os.access('/scratch/'+username,os.W_OK):
-            return '/scratch/'+username
-        elif os.access('/scratch/',os.W_OK):
-            return '/scratch'
-        else:
-            if os.access(os.curdir,os.W_OK):
-                return os.curdir
-            else:
-                raise IOError,"No suitable scratch directory and no write access to current dir"
+        raise IOError,"No suitable scratch directory and no write access to current dir"
 
     def calculate(self):
         '''run a calculation.
