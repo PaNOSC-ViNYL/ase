@@ -1734,6 +1734,7 @@ class Jacapo:
 
         nc = self.get_nc()
         txt= self.get_txt()
+        scratch = self.get_scratch()
 
         #check that the bands get set
         if self.get_nbands() is None: self.set_nbands() 
