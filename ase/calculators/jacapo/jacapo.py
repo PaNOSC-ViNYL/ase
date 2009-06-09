@@ -297,7 +297,7 @@ class Jacapo:
         
         energy = nc.variables.get('TotalEnergy',None)
         
-        if energy:
+        if energy and energy[:][-1] < 1E36:   # missing values get returned at 9.3E36
             s.append('  Energy = %1.6f eV' % energy[:][-1])
         else:
             s.append('  Energy = None')
@@ -343,8 +343,11 @@ class Jacapo:
                 sym = atom.get_symbol()
                 pos = atom.get_position()
                 tag = atom.get_tag()
-                if forces is not None:
+                if forces is not None and (forces[:][-1][i] < 1E36).all():
                     f = forces[:][-1][i]
+                    # Lars Grabow: this seems to work right for some reason,
+                    # but I would expect this to be the right index order f=forces[-1][i][:]
+                    # frame,atom,direction
                     rmsforce = (np.sum(f**2))**0.5
                 else:
                     rmsforce = None
@@ -431,11 +434,21 @@ class Jacapo:
     def _set_frame_number(self,frame=None):
         if frame is None:
             nc = netCDF(self.nc,'r')
-            if 'DynamicAtomPositions' in nc.variables:
-                frame = nc.variables['DynamicAtomPositions'].shape[0]
+            if 'TotalEnergy' in nc.variables:
+                frame = nc.variables['TotalEnergy'].shape[0]
+                # make sure the last energy is reasonable. Sometime the field is empty if the
+                # calculation ran out of walltime for example. Empty values get returned as 9.6E36.
+                # Dacapos energies should always be negative, so if the energy is > 1E36, there is
+                # definitely something wrong and a restart is required.
+                if nc.variables.get('TotalEnergy',None)[-1] > 1E36:
+                    if self.debug > 1:
+                        print "NC file is incomplete. Restart required"
+                    self.restart()
             else:
                 frame = 1
             nc.close()
+            if self.debug > 1:
+                print "Current frame number is: ",frame-1
         self._frame = frame-1  #netCDF starts counting with 1
 
     def _increment_frame(self):
