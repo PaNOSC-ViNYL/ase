@@ -1813,7 +1813,8 @@ class Jacapo:
                 # Wait for dacapo to acknowledge that netcdf file has been updated, and analysis part of the code
                 # has been terminated. Dacapo sends a signal at the end of call clexit().
                 print "waiting for dacapo to exit..."
-                self.s.settimeout(5.0)  # if dacapo exits with an error, self.s.accept() should time out
+                self.s.settimeout(600.0)  # if dacapo exits with an error, self.s.accept() should time out,
+                                          # but we need to give it enough time to write the wave function to the nc file.
                 try:
                     self._client,self._addr = self.s.accept() # Last mumble before Dacapo dies.
                     os.system("sleep 5")                     # 5 seconds of silence mourning dacapo.
