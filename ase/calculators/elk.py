@@ -54,7 +54,7 @@ class ELK:
             fd.write('%.14f %.14f %.14f\n' % tuple(vec / Bohr))
         fd.write('\n')
 
-        fd.write("sppath\n'%s'\n\n" % os.environ.get['ELK_SPECIES_PATH'])
+        fd.write("sppath\n'%s'\n\n" % os.environ['ELK_SPECIES_PATH'])
 
         species = {}
         symbols = []
