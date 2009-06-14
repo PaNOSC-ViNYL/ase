@@ -16,7 +16,7 @@ class ELK:
             if 'xctype' in kwargs:
                 raise ValueError("You can't use both 'xc' and 'xctype'!")
             else:
-                kwargs['xctype'] = {'LDA': 2,
+                kwargs['xctype'] = {'LDA': 3, # PW92
                                     'PBE': 20,
                                     'REVPBE': 21,
                                     'PBESOL': 22,
