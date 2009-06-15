@@ -12,7 +12,9 @@ from ase.test import CustomTestCase, CustomTextTestRunner
 from ase.utils.memory import MemoryStatistics, MemorySingleton, shapeopt
 
 from vtk import vtkDataArray
-from ase.visualize.vtk.data import vtkDoubleArrayFromNumPyArray, \
+from ase.visualize.vtk.data import vtkFloatArrayFromNumPyArray, \
+                                   vtkDoubleArrayFromNumPyArray, \
+                                   vtkFloatArrayFromNumPyMultiArray, \
                                    vtkDoubleArrayFromNumPyMultiArray
 
 # -------------------------------------------------------------------
@@ -43,6 +45,7 @@ class UTConversionDataArrayNumPy(CustomTestCase):
     Case F: 210 i.e. deletion order is vtk_da, data, conv
     """
     footprint = 100*1024**2
+    dtype = None
     verbose = 0
     gc_threshold = (300,5,5) #default is (700,10,10)
     gc_flags = gc.DEBUG_LEAK # | gc.DEBUG_STATS
@@ -87,6 +90,15 @@ class UTConversionDataArrayNumPy(CustomTestCase):
         #dm = 200 MB, bytes = 100MB     ok
         #dm = 101 MB, bytes = 100MB     ok
         #dm = 0 MB, bytes = 100MB       bad
+
+    def convert_to_vtk_array(self, data):
+        """Convert an ndarray to a VTK data array.
+
+         data: NumPy array
+            NumPy data with a specific memory footprint
+        """
+
+        raise RuntimeError('Virtual member function.')
 
     def get_leaktest_scenario(self):
         """Construct the necessary conversion objects for leak testing.
@@ -250,23 +262,23 @@ class UTDataArrayFromNumPyArray_Scalar(UTConversionDataArrayNumPy):
 
     def setUp(self):
         UTConversionDataArrayNumPy.setUp(self)
-        self.shape = self.footprint//np.nbytes[np.float]
+        self.shape = self.footprint//np.nbytes[self.dtype]
 
     def get_leaktest_scenario(self):
-        self.assertAlmostEqual(np.prod(self.shape)*np.nbytes[np.float], \
+        self.assertAlmostEqual(np.prod(self.shape)*np.nbytes[self.dtype], \
                                self.footprint, -2) #100B
 
         # Update memory reference
         self.mem_ref.update()
 
         # NumPy allocation
-        data = np.empty(self.shape, np.float)
+        data = np.empty(self.shape, self.dtype)
         self.assertAlmostConsumed(self.footprint, self.ctol)
         self.assertAlmostExceeded(self.footprint, self.etol)
         if self.verbose>=1: print 'NumPy allocation=', self.mem_cur-self.mem_ref
 
         # NumPy to VTK conversion
-        np2da = vtkDoubleArrayFromNumPyArray(data)
+        np2da = self.convert_to_vtk_array(data)
         self.assertAlmostConsumed(2*self.footprint, self.ctol)
         self.assertAlmostExceeded(2*self.footprint, self.etol)
         if self.verbose>=1: print 'Conversion=', self.mem_cur-self.mem_ref
@@ -279,6 +291,16 @@ class UTDataArrayFromNumPyArray_Scalar(UTConversionDataArrayNumPy):
         if self.verbose>=1: print 'VTK retrieval=', self.mem_cur-self.mem_ref
 
         return (np2da, data, vtk_da,)
+
+class UTFloatArrayFromNumPyArray_Scalar(UTDataArrayFromNumPyArray_Scalar):
+    __doc__ = UTDataArrayFromNumPyArray_Scalar.__doc__
+    dtype = np.float32
+    convert_to_vtk_array = vtkFloatArrayFromNumPyArray
+
+class UTDoubleArrayFromNumPyArray_Scalar(UTDataArrayFromNumPyArray_Scalar):
+    __doc__ = UTDataArrayFromNumPyArray_Scalar.__doc__
+    dtype = np.float64
+    convert_to_vtk_array = vtkDoubleArrayFromNumPyArray
 
 class UTDataArrayFromNumPyArray_Vector(UTConversionDataArrayNumPy):
     """
@@ -287,24 +309,24 @@ class UTDataArrayFromNumPyArray_Vector(UTConversionDataArrayNumPy):
 
     def setUp(self):
         UTConversionDataArrayNumPy.setUp(self)
-        size = self.footprint//np.nbytes[np.float]
+        size = self.footprint//np.nbytes[self.dtype]
         self.shape = (size//3, 3)
 
     def get_leaktest_scenario(self):
-        self.assertAlmostEqual(np.prod(self.shape)*np.nbytes[np.float], \
+        self.assertAlmostEqual(np.prod(self.shape)*np.nbytes[self.dtype], \
                                self.footprint, -2) #100B
 
         # Update memory reference
         self.mem_ref.update()
 
         # NumPy allocation
-        data = np.empty(self.shape, np.float)
+        data = np.empty(self.shape, self.dtype)
         self.assertAlmostConsumed(self.footprint, self.ctol)
         self.assertAlmostExceeded(self.footprint, self.etol)
         if self.verbose>=1: print 'NumPy allocation=', self.mem_cur-self.mem_ref
 
         # NumPy to VTK conversion
-        np2da = vtkDoubleArrayFromNumPyArray(data)
+        np2da = self.convert_to_vtk_array(data)
         self.assertAlmostConsumed(2*self.footprint, self.ctol)
         self.assertAlmostExceeded(2*self.footprint, self.etol)
         if self.verbose>=1: print 'Conversion=', self.mem_cur-self.mem_ref
@@ -317,6 +339,16 @@ class UTDataArrayFromNumPyArray_Vector(UTConversionDataArrayNumPy):
         if self.verbose>=1: print 'VTK retrieval=', self.mem_cur-self.mem_ref
 
         return (np2da, data, vtk_da,)
+
+class UTFloatArrayFromNumPyArray_Vector(UTDataArrayFromNumPyArray_Vector):
+    __doc__ = UTDataArrayFromNumPyArray_Vector.__doc__
+    dtype = np.float32
+    convert_to_vtk_array = vtkFloatArrayFromNumPyArray
+
+class UTDoubleArrayFromNumPyArray_Vector(UTDataArrayFromNumPyArray_Vector):
+    __doc__ = UTDataArrayFromNumPyArray_Vector.__doc__
+    dtype = np.float64
+    convert_to_vtk_array = vtkDoubleArrayFromNumPyArray
 
 # -------------------------------------------------------------------
 
@@ -327,11 +359,11 @@ class UTDataArrayFromNumPyMultiArray_Scalar(UTConversionDataArrayNumPy):
 
     def setUp(self):
         UTConversionDataArrayNumPy.setUp(self)
-        size = self.footprint//np.nbytes[np.float]
+        size = self.footprint//np.nbytes[self.dtype]
         digits, shape = shapeopt(1000, size, ndims=3, ecc=0.3)
         if self.verbose>=1: print 'digits=%8.3f, shape=%s' % (digits,shape)
         self.shape = shape + (1,)
-        self.assertAlmostEqual(np.prod(self.shape)*np.nbytes[np.float], \
+        self.assertAlmostEqual(np.prod(self.shape)*np.nbytes[self.dtype], \
                                self.footprint, -4) #10kB
 
     def get_leaktest_scenario(self):
@@ -340,13 +372,13 @@ class UTDataArrayFromNumPyMultiArray_Scalar(UTConversionDataArrayNumPy):
         self.mem_ref.update()
 
         # NumPy allocation
-        data = np.empty(self.shape, np.float)
+        data = np.empty(self.shape, self.dtype)
         self.assertAlmostConsumed(self.footprint, self.ctol)
         self.assertAlmostExceeded(self.footprint, self.etol)
         if self.verbose>=1: print 'NumPy allocation=', self.mem_cur-self.mem_ref
 
         # NumPy to VTK conversion
-        np2da = vtkDoubleArrayFromNumPyMultiArray(data)
+        np2da = self.convert_to_vtk_array(data)
         self.assertAlmostConsumed(2*self.footprint, self.ctol)
         self.assertAlmostExceeded(2*self.footprint, self.etol)
         if self.verbose>=1: print 'Conversion=', self.mem_cur-self.mem_ref
@@ -359,6 +391,16 @@ class UTDataArrayFromNumPyMultiArray_Scalar(UTConversionDataArrayNumPy):
         if self.verbose>=1: print 'VTK retrieval=', self.mem_cur-self.mem_ref
 
         return (np2da, data, vtk_da,)
+
+class UTFloatArrayFromNumPyMultiArray_Scalar(UTDataArrayFromNumPyMultiArray_Scalar):
+    __doc__ = UTDataArrayFromNumPyMultiArray_Scalar.__doc__
+    dtype = np.float32
+    convert_to_vtk_array = vtkFloatArrayFromNumPyMultiArray
+
+class UTDoubleArrayFromNumPyMultiArray_Scalar(UTDataArrayFromNumPyMultiArray_Scalar):
+    __doc__ = UTDataArrayFromNumPyMultiArray_Scalar.__doc__
+    dtype = np.float64
+    convert_to_vtk_array = vtkDoubleArrayFromNumPyMultiArray
 
 class UTDataArrayFromNumPyMultiArray_Vector(UTConversionDataArrayNumPy):
     """
@@ -367,11 +409,11 @@ class UTDataArrayFromNumPyMultiArray_Vector(UTConversionDataArrayNumPy):
 
     def setUp(self):
         UTConversionDataArrayNumPy.setUp(self)
-        size = self.footprint//np.nbytes[np.float]
+        size = self.footprint//np.nbytes[self.dtype]
         digits, shape = shapeopt(1000, size//3, ndims=3, ecc=0.3)
         if self.verbose>=1: print 'digits=%8.3f, shape=%s' % (digits,shape)
         self.shape = shape + (3,)
-        self.assertAlmostEqual(np.prod(self.shape)*np.nbytes[np.float], \
+        self.assertAlmostEqual(np.prod(self.shape)*np.nbytes[self.dtype], \
                                self.footprint, -4) #10kB
 
     def get_leaktest_scenario(self):
@@ -380,13 +422,13 @@ class UTDataArrayFromNumPyMultiArray_Vector(UTConversionDataArrayNumPy):
         self.mem_ref.update()
 
         # NumPy allocation
-        data = np.empty(self.shape, np.float)
+        data = np.empty(self.shape, self.dtype)
         self.assertAlmostConsumed(self.footprint, self.ctol)
         self.assertAlmostExceeded(self.footprint, self.etol)
         if self.verbose>=1: print 'NumPy allocation=', self.mem_cur-self.mem_ref
 
         # NumPy to VTK conversion
-        np2da = vtkDoubleArrayFromNumPyMultiArray(data)
+        np2da = self.convert_to_vtk_array(data)
         self.assertAlmostConsumed(2*self.footprint, self.ctol)
         self.assertAlmostExceeded(2*self.footprint, self.etol)
         if self.verbose>=1: print 'Conversion=', self.mem_cur-self.mem_ref
@@ -399,6 +441,16 @@ class UTDataArrayFromNumPyMultiArray_Vector(UTConversionDataArrayNumPy):
         if self.verbose>=1: print 'VTK retrieval=', self.mem_cur-self.mem_ref
 
         return (np2da, data, vtk_da,)
+
+class UTFloatArrayFromNumPyMultiArray_Vector(UTDataArrayFromNumPyMultiArray_Vector):
+    __doc__ = UTDataArrayFromNumPyMultiArray_Vector.__doc__
+    dtype = np.float32
+    convert_to_vtk_array = vtkFloatArrayFromNumPyMultiArray
+
+class UTDoubleArrayFromNumPyMultiArray_Vector(UTDataArrayFromNumPyMultiArray_Vector):
+    __doc__ = UTDataArrayFromNumPyMultiArray_Vector.__doc__
+    dtype = np.float64
+    convert_to_vtk_array = vtkDoubleArrayFromNumPyMultiArray
 
 # -------------------------------------------------------------------
 
@@ -409,10 +461,14 @@ if __name__ in ['__main__', '__builtin__']:
     else:
         testrunner = unittest.TextTestRunner(stream=sys.stdout, verbosity=2)
 
-    testcases = [UTDataArrayFromNumPyArray_Scalar, \
-                 UTDataArrayFromNumPyArray_Vector, \
-                 UTDataArrayFromNumPyMultiArray_Scalar, \
-                 UTDataArrayFromNumPyMultiArray_Vector]
+    testcases = [UTFloatArrayFromNumPyArray_Scalar, \
+                 UTDoubleArrayFromNumPyArray_Scalar, \
+                 UTFloatArrayFromNumPyArray_Vector, \
+                 UTDoubleArrayFromNumPyArray_Vector, \
+                 UTFloatArrayFromNumPyMultiArray_Scalar, \
+                 UTDoubleArrayFromNumPyMultiArray_Scalar, \
+                 UTFloatArrayFromNumPyMultiArray_Vector, \
+                 UTDoubleArrayFromNumPyMultiArray_Vector]
 
     for test in testcases:
         info = '\n' + test.__name__ + '\n' + test.__doc__.strip('\n') + '\n'
