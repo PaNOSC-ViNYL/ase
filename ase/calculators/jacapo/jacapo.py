@@ -258,6 +258,10 @@ class Jacapo:
         ncf.history = 'Dacapo'
         ncf.close()
         
+        # Setting some default values to maintain consistency with ASE2 
+        self.set_convergence()	# automatically sets the ASE2 default values
+        self.set_ft(0.1) 	# default value from ASE2
+        self.set_xc('PW91')	# default xc functional
         self.ready = False
         self._frame = 0
         self.set_nc(ncfile)
