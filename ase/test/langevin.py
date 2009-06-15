@@ -6,8 +6,18 @@ For time reasons, long term temperature average is only calculated with asap.
 """
 
 import time
-from ase import *
-from Scientific.Functions.LeastSquares import leastSquaresFit
+import numpy as np
+from ase import Atoms
+from ase.calculators import EMT, ASAP
+from ase.md.verlet import VelocityVerlet
+from ase.md.langevin import Langevin
+
+try:
+    from Scientific.Functions.LeastSquares import leastSquaresFit
+except ImportError:
+    usescipy = False
+else:
+    usescipy = True
 
 try:
     import Asap
@@ -21,7 +31,7 @@ if useasap:
     nequilprint = 25
     nsteps = 20000
     nprint = 250
-    reltol = 0.02
+    reltol = 0.025
 else:
     nsteps = 2000
     nequil = 500
@@ -52,13 +62,13 @@ perfomance, make sure Asap is installed!"""
     
 # Least-squares fit model during equilibration
 def targetfunc(params, t):
-    return params[0] * exp(-params[1] * t) + params[2]
+    return params[0] * np.exp(-params[1] * t) + params[2]
 
 def test(temp, frict):
     output = file('Langevin.dat', 'w')
     
     # Make a small perturbation of the momenta
-    atoms.set_momenta(1e-6 * random.random([len(atoms), 3]))
+    atoms.set_momenta(1e-6 * np.random.random([len(atoms), 3]))
     print 'Initializing ...'
     predyn = VelocityVerlet(atoms, 0.5)
     predyn.run(2500)
@@ -85,8 +95,7 @@ def test(temp, frict):
         dyn.run(nminor)
         ekin = atoms.get_kinetic_energy() / len(atoms)
         fitdata.append((i*nminor*timestep, 2.0/3.0 * ekin))
-        if i % nequilprint == 0:
-            #(params, chisq) = leastSquaresFit(targetfunc, (a,b,c), fitdata)
+        if usescipy and i % nequilprint == 0:
             (params, chisq) = leastSquaresFit(targetfunc, params, fitdata)
             print '%.6f  T_inf = %.6f (goal: %f), tau = %.2f,  k = %.6f' % \
                   (ekin, params[2], temp, 1.0/params[1], params[0])
