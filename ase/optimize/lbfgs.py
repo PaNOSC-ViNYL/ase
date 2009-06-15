@@ -3,10 +3,6 @@ import copy
 from ase.optimize import Optimizer
 from ase.neb import *
 import random
-#out = open('forces_bfgs','w')
-#out2 = open('step_bfgs','w')
-#out3 = open('displacement_bfgs','w')
-#out4 = open('dpm_tmp_bfgs','w')
 
 class _LBFGS(Optimizer):
     """Limited memory bfgs algorithm. Unlike the bfgs algorithm used in qn.py,
@@ -50,7 +46,6 @@ class _LBFGS(Optimizer):
         self.method = method
 
     def initialize(self):
-        #self.lbfgsinit = 0
         self.ITR = None
         self.f_old = None
         self.r_old = None
@@ -168,18 +163,14 @@ class _LBFGS(Optimizer):
         atoms = traj[0]
         r_old = atoms.get_positions()
         f_old = atoms.get_forces()
-        for atoms in traj:
-            r = atoms.get_positions()
-            f = atoms.get_forces()
+        for i in range(0,len(traj)-1):
+            r = traj[i].get_positions()
+            f = traj[i].get_forces()
             self.update(r, f, r_old, f_old)
             r_old = r
             f_old = f
         self.r_old = traj[-2].get_positions()
         self.f_old = traj[-2].get_forces()
-        self.s.pop(-1) 
-        self.y.pop(-1)
-        self.rho.pop(-1)
-        self.ITR -= 1
 
 class LineLBFGS(_LBFGS):
     def __init__(self, *args, **kwargs):
