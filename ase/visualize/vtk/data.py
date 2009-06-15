@@ -46,7 +46,7 @@ class vtkDataArrayFromNumPyBuffer:
 
         self.vtk_da = vtk_class()
         assert isinstance(self.vtk_da, vtkDataArray)
-        assert self.vtk_da.GetDataTypeSize() == np.nbytes[self.ctype]
+        assert self.vtk_da.GetDataTypeSize() == np.nbytes[np.dtype(self.ctype)]
 
         if data is not None:
             self.read_numpy_array(data)
