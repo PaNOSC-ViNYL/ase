@@ -3,7 +3,16 @@
 
 version = '3.2.0'
 
-from os import popen3, path
+from os import path
+try:
+    from subprocess import Popen, PIPE
+except ImportError:
+    from os import popen3
+else:
+    def popen3(cmd):
+        p = Popen(cmd, shell=True, close_fds=True,
+                  stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        return p.stdin, p.stdout, p.stderr
 
 def write_svnrevision(output):
     f = open(path.join('ase', 'svnrevision.py'),'w')

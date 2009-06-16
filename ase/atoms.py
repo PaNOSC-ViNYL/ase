@@ -957,6 +957,8 @@ class Atoms(object):
         else:
             return not eq
 
+    __hash__ = None
+
     def get_volume(self):
         """Get volume of unit cell."""
         return abs(np.linalg.det(self._cell))

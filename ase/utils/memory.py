@@ -274,14 +274,15 @@ class MemoryStatistics(MemoryBase):
 
         try:
             f = open('/proc/%d/status' % os.getpid(), 'r')
-            for line in f.xreadlines():
-                k,v = line.decode('ascii').split(':')
+            for line in f:
+                k, v = line.decode('ascii').split(':')
 
                 # Only refresh supported keys that are outdated (i.e. nan)
                 if k in self and np.isnan(self[k]):
-                    t,s = v.strip().split(None, 1)
-                    if self.verbose>=2: print 'refresh: k=%s, t=%s, s=%s' % (k,t,s)
-                    self[k] = float(t)*self._scale[s.upper()]
+                    t, s = v.strip().split(None, 1)
+                    if self.verbose >= 2:
+                        print 'refresh: k=%s, t=%s, s=%s' % (k, t, s)
+                    self[k] = float(t) * self._scale[s.upper()]
 
             f.close()
         except (IOError, UnicodeError, ValueError):
