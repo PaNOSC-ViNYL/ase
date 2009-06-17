@@ -360,8 +360,6 @@ class Vasp:
             self.sort = range(len(self.atoms))
             self.resoirt = range(len(self.atoms))
         self.positions = self.atoms.get_positions()
-        self.sort = range(len(self.atoms))
-        self.resort = range(len(self.atoms))
         self.read_incar()
         self.read_outcar()
         self.read_kpoints()
