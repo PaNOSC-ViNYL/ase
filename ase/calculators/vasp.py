@@ -91,6 +91,7 @@ keys = [
     'lelf',       # create ELFCAR
     'lorbit',     # create PROOUT
     'npar',       # parallelization over bands
+    'nsim',       # evaluate NSIM bands simultaneously if using RMM-DIIS
     'lscalapack', # switch off scaLAPACK
     'lscalu',     # switch of LU decomposition
     'lasync',     # overlap communcation with calculations
