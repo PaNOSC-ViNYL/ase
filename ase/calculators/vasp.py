@@ -139,16 +139,7 @@ class Vasp:
 
         self.restart = restart
         if restart:
-            self.atoms = ase.io.read('CONTCAR', format='vasp')
-            self.positions = self.atoms.get_positions()
-            self.sort = range(len(self.atoms))
-            self.resort = range(len(self.atoms))
-            self.read_incar()
-            self.read_outcar()
-            self.read_kpoints()
-            self.old_incar_parameters = self.incar_parameters.copy()
-            self.old_input_parameters = self.input_parameters.copy()
-            self.converged = self.read_convergence()
+            self.restart_load()
             return
 
         if self.input_parameters['xc'] not in ['PW91','LDA','PBE']:
@@ -305,6 +296,7 @@ class Vasp:
         self.write_incar(atoms)
         self.write_potcar()
         self.write_kpoints()
+        self.write_sort_file()
 
         stderr = sys.stderr
         p=self.input_parameters
@@ -344,6 +336,35 @@ class Vasp:
             self.magnetic_moment = self.read_magnetic_moment()
             if p['lorbit']>=10 or (p['lorbit']!=None and p['rwigs']):
                 self.magnetic_moments = self.read_magnetic_moments(atoms)
+        self.old_incar_parameters = self.incar_parameters.copy()
+        self.old_input_parameters = self.input_parameters.copy()
+        self.converged = self.read_convergence()
+
+    def restart_load(self):
+        """Method which is called upon restart."""
+        
+        # Try to read sorting file
+        if os.path.isfile('ase-sort.dat'):
+            self.sort = []
+            self.resort = []
+            file = open('ase-sort.dat', 'r')
+            lines = file.readlines()
+            file.close()
+            for line in lines:
+                data = line.split()
+                self.sort.append(int(data[0]))
+                self.resort.append(int(data[1]))
+            self.atoms = ase.io.read('CONTCAR', format='vasp')[self.resort]
+        else:
+            self.atoms = ase.io.read('CONTCAR', format='vasp')
+            self.sort = range(len(self.atoms))
+            self.resoirt = range(len(self.atoms))
+        self.positions = self.atoms.get_positions()
+        self.sort = range(len(self.atoms))
+        self.resort = range(len(self.atoms))
+        self.read_incar()
+        self.read_outcar()
+        self.read_kpoints()
         self.old_incar_parameters = self.incar_parameters.copy()
         self.old_input_parameters = self.input_parameters.copy()
         self.converged = self.read_convergence()
@@ -533,6 +554,18 @@ class Vasp:
                 file_tmp.close()
         potfile.close()
 
+    def write_sort_file(self):
+        """Writes a sortings file.
+
+        This file contains information about how the atoms are sorted in
+        the first column and how they should be resorted in the second
+        column. It is used for restart purposes to get sorting right
+        when reading in an old calculation to ASE."""
+
+        file = open('ase-sort.dat', 'w')
+        for n in range(len(self.sort)):
+            file.write('%5i %5i \n' % (self.sort[n], self.resort[n]))
+
     # Methods for reading information from OUTCAR files:
     def read_energy(self, all=None):
         [energy_free, energy_zero]=[0, 0]
@@ -624,6 +657,7 @@ class Vasp:
     def read_convergence(self):
         """Method that checks whether a calculation has converged."""
         converged = None
+        # First check electronic convergence
         for line in open('OUTCAR', 'r'):
             if line.rfind('EDIFF  ') > -1:
                 ediff = float(line.split()[2])
@@ -634,7 +668,20 @@ class Vasp:
                 if [abs(a), abs(b)] < [ediff, ediff]:
                     converged = True
                 else:
-                    converged = None
+                    converged = False
+                    continue
+        # Then if ibrion > 0, check whether ionic relaxation condition been fulfilled
+        if self.incar_parameters['ibrion'] > 0:
+            ediffg = self.incar_parameters['ediffg']
+            if ediffg < 0:
+                for force in self.forces:
+                    if np.linalg.norm(force)>=abs(ediffg):
+                        converged = False
+                        continue
+                    else:
+                        converged = True
+            elif self.incar_parameters['ediffg'] > 0:
+                raise NotImplementedError('Method not implemented for ediffg>0')
         return converged
 
     def read_ibz_kpoints(self):
