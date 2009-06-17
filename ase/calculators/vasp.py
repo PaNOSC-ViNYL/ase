@@ -358,7 +358,7 @@ class Vasp:
         else:
             self.atoms = ase.io.read('CONTCAR', format='vasp')
             self.sort = range(len(self.atoms))
-            self.resoirt = range(len(self.atoms))
+            self.resort = range(len(self.atoms))
         self.positions = self.atoms.get_positions()
         self.read_incar()
         self.read_outcar()
