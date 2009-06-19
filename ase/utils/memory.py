@@ -438,10 +438,10 @@ def shapeopt(maxseed, size, ndims, ecc=0.5):
     for seed in range(maxseed):
         np.random.seed(seed)
         shape = tuple(shapegen(size, ndims, ecc))
+        if np.prod(shape) == size:
+            return -np.inf, shape
         digits = np.log10(abs(np.prod(shape)-size))
-        if np.isneginf(digits):
-            return digits, shape
-        elif digits < digits_best:
+        if digits < digits_best:
             (digits_best, shape_best) = (digits, shape)
     return digits_best, shape_best
 
