@@ -54,7 +54,7 @@ class Jacapo:
                  symmetry=None,
                  stress=None,
                  dipole=None,
-                 stay_alive=False,
+                 stay_alive=None,
                  debug=0):
         '''
         Initialize the Jacapo calculator
@@ -190,6 +190,9 @@ class Jacapo:
         # atoms are written. Eventually this has to be revisited when
         # there are multiple xc databases to choose from.
         self.set_psp_database()
+
+        # need to set a default value for stay_alive
+        self.stay_alive = False
         
         # Jacapo('out.nc') should return a calculator with atoms in
         # out.nc attached or initialize out.nc
@@ -236,7 +239,7 @@ class Jacapo:
         if dipole: self.set_dipole()
         if symmetry: self.set_symmetry(symmetry)
         if stress: self.set_stress(stress)
-        self.set_stay_alive(stay_alive)
+        if stay_alive: self.set_stay_alive(stay_alive)
         
         
     def initnc(self,ncfile):
@@ -1817,7 +1820,7 @@ class Jacapo:
                 # Wait for dacapo to acknowledge that netcdf file has been updated, and analysis part of the code
                 # has been terminated. Dacapo sends a signal at the end of call clexit().
                 print "waiting for dacapo to exit..."
-                self.s.settimeout(600.0)  # if dacapo exits with an error, self.s.accept() should time out,
+                self.s.settimeout(1200.0)  # if dacapo exits with an error, self.s.accept() should time out,
                                           # but we need to give it enough time to write the wave function to the nc file.
                 try:
                     self._client,self._addr = self.s.accept() # Last mumble before Dacapo dies.
