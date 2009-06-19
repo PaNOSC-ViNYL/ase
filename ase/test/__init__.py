@@ -51,7 +51,7 @@ class ScriptTestCase(unittest.TestCase):
         except NotAvailable, err:
             # Only non-zero error codes are failures
             if err.code:
-                raise err
+                raise
 
     def id(self):
         return self.filename
