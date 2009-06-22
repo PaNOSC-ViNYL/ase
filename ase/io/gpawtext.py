@@ -45,8 +45,11 @@ def read_gpaw_text(fileobj, index=-1):
         else:
             f = []
             for i in range(ii + 1, ii + 1 + len(atoms)):
-                x, y, z = lines[i].split()[-3:]
-                f.append((float(x), float(y), float(z)))
+                try:
+                    x, y, z = lines[i].split()[-3:]
+                    f.append((float(x), float(y), float(z)))
+                except (ValueError, IndexError), m:
+                    raise IOError('Malformed GPAW log file: %s' % m)
 
         if len(images) > 0 and e is None:
             break
