@@ -41,7 +41,7 @@ Some calculators (e.g. gpaw) also have a method called
 
 .. [Tang]  W. Tang, E. Sanville, G. Henkelman.
            A grid-based Bader analysis algorithm without lattice bias.
-           (under review, 2008).
+           J. Phys.: Compute Mater. 21, 084204 (2009).
 
 
 Example: The water molecule
