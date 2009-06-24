@@ -13,7 +13,7 @@ for manipulating atoms, analyzing simulations, visualization etc.
 
 Supported :mod:`calculators`:
 
-   |gpaw| Dacapo_ Asap_ :mod:`EMT <emt>` |abinit| |siesta|
+   |gpaw| Dacapo_ Asap_ :mod:`EMT <emt>` |abinit| |siesta| |vasp|
 
 
 .. |gpaw| image:: _static/gpaw.png
@@ -24,6 +24,9 @@ Supported :mod:`calculators`:
    :align: middle
 .. |siesta| image:: _static/siesta.png
    :target: ase/calculators/siesta.html
+   :align: middle
+.. |vasp| image:: _static/vasp.png
+   :target: ase/calculators/vasp.html
    :align: middle
 
 .. _Asap: http://wiki.fysik.dtu.dk/asap
