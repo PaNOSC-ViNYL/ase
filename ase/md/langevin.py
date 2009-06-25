@@ -40,11 +40,12 @@ class Langevin(MolecularDynamics):
     This dynamics accesses the atoms using Cartesian coordinates."""
     
     def __init__(self, atoms, timestep, temperature, friction, fixcm=True,
-                 trajectory=None):
+                 trajectory=None, communicator=gpaw_world):
         MolecularDynamics.__init__(self, atoms, timestep, trajectory)
         self.temp = temperature
         self.frict = friction
         self.fixcm = fixcm  # will the center of mass be held fixed?
+        self.communicator = communicator
         self.updatevars()
         
     def set_temperature(self, temperature):
@@ -106,9 +107,9 @@ class Langevin(MolecularDynamics):
         random1 = standard_normal(size=(len(atoms), 3))
         random2 = standard_normal(size=(len(atoms), 3))
 
-        if gpaw_world is not None:
-            gpaw_world.broadcast(random1, 0)
-            gpaw_world.broadcast(random2, 0)
+        if self.communicator is not None:
+            self.communicator.broadcast(random1, 0)
+            self.communicator.broadcast(random2, 0)
         
         rrnd = self.sdpos * random1
         prnd = (self.sdmom * self.pmcor * random1 +

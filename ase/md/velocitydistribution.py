@@ -11,22 +11,24 @@ import numpy as np
 import sys
 
 # For parallel GPAW simulations, the random velocities should be distributed.
+# Uses gpaw world communicator as default, but allow option of 
+# specifying other communicator (for ensemble runs)
 if '_gpaw' in sys.modules:
     # http://wiki.fysik.dtu.dk/gpaw
     from gpaw.mpi import world as gpaw_world
 else:
     gpaw_world = None
 
-def _maxwellboltzmanndistribution(masses, temp):
+def _maxwellboltzmanndistribution(masses, temp, communicator=gpaw_world):
     xi = np.random.standard_normal((len(masses),3))
-    if gpaw_world is not None:
-        gpaw_world.broadcast(xi, 0)
+    if communicator is not None:
+       communicator.broadcast(xi, 0)
     momenta = xi * np.sqrt(masses * temp)[:,np.newaxis]
     return momenta
 
-def MaxwellBoltzmannDistribution(atoms, temp):
+def MaxwellBoltzmannDistribution(atoms, temp, communicator=gpaw_world):
     """Sets the momenta to a Maxwell-Boltzmann distribution."""
-    momenta = _maxwellboltzmanndistribution(atoms.get_masses(), temp)
+    momenta = _maxwellboltzmanndistribution(atoms.get_masses(), temp, communicator)
     atoms.set_momenta(momenta)
 
 def Stationary(atoms):
