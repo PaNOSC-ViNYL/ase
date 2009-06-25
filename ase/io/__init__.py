@@ -1,4 +1,5 @@
 import sys
+import os
 from os.path import basename
 from tarfile import is_tarfile
 from zipfile import is_zipfile
@@ -140,6 +141,14 @@ def read(filename, index=-1, format=None):
     if format == 'vtu':
         from ase.io.vtkxml import read_vtu
         return read_vtu(filename)
+
+    if format == 'iwm':
+        from ase.io.iwm import read_iwm
+        return read_iwm(filename)
+
+    if format == 'Cmdft':
+        from ase.io.cmdft import read_I_info
+        return read_I_info(filename)
 
     raise RuntimeError('That can *not* happen!')
 
@@ -338,5 +347,11 @@ def filetype(filename):
 
     if filename.lower().endswith('.cif'):
         return 'cif'
+
+    if os.path.split(filename)[1] == 'atoms.dat':
+        return 'iwm'
+
+    if filename.endswith('I_info'):
+        return 'Cmdft'
 
     return 'xyz'

@@ -4,7 +4,7 @@ import numpy as np
 from ase.atoms import Atoms, Atom
 from ase.parallel import paropen
 
-"""Module to read and write atoms in PDB file format"""
+"""Module to read and write atoms in cif file format"""
 
 
 def read_cif(fileobj, index=-1):
@@ -55,3 +55,4 @@ def read_cif(fileobj, index=-1):
             atoms.append(Atom(symbol, pos))
 
     return atoms
+
