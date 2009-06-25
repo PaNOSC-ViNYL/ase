@@ -35,6 +35,7 @@ keys = [
     'nbands',     # Number of bands
     'encut',      # Planewave cutoff
     'enaug',      # Density cutoff
+    'ferwe',      # Fixed band occupation
     'ngx',        # FFT mesh for wavefunctions, x
     'ngy',        # FFT mesh for wavefunctions, y
     'ngz',        # FFT mesh for wavefunctions, z
