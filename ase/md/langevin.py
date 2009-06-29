@@ -119,8 +119,8 @@ class Langevin(MolecularDynamics):
             rrnd = rrnd - np.sum(rrnd, 0) / len(atoms)
             prnd = prnd - np.sum(prnd, 0) / len(atoms)
             n = len(atoms)
-            rrnd *= n / (n - 1.0)
-            prnd *= n / (n - 1.0)
+            rrnd *= np.sqrt(n / (n - 1.0))
+            prnd *= np.sqrt(n / (n - 1.0))
 
         atoms.set_positions(atoms.get_positions() +
                             self.c1 * p +
