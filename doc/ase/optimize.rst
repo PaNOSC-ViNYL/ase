@@ -129,7 +129,23 @@ LBFGS
 -----
 .. module:: optimize.lbfgs
 
-...
+The LBFGS is the limited memory version of BFGS algorithm, where 
+the inverse of Hessian matrix is updated instead of the Hessian
+itself. Tow ways exist in the LBFGS class for determining atomic
+step, which are called ``HessLBFGS`` and ``LineLBFGS``. For the 
+first one, both the directions and lengths of the atomic steps 
+are determined by the approximated Hessian matrix. While for the 
+latter one, the approximated Hessian matrix is only used to find 
+out the directions of the line searches and atomic steps, the 
+step lengths are determined by the forces. 
+
+To start a structure optimization with LBFGS algorithm is similar to
+QuasiNewton. A typical optimization should look like::
+
+  dyn = HessLBFGS(system, trajectory='lbfgs.traj', restart='lbfgs.pckl')
+
+where the trajectory and the restart save the trajectory of the 
+optimization and the vectors needed to generate the Hessian Matrix.
 
 FIRE
 ----
