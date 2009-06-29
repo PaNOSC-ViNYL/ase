@@ -28,7 +28,7 @@ class _LBFGS(Optimizer):
 
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  maxstep=0.2, dR=0.1,
-                 memory=25, alpha=0.05, method=None):
+                 memory=25, alpha=0.05, method=None, damping=1.):
         Optimizer.__init__(self, atoms, restart, logfile, trajectory)
 
         if maxstep > 1.0:
@@ -44,6 +44,7 @@ class _LBFGS(Optimizer):
         self.memory = memory
         self.alpha = alpha
         self.method = method
+        self.damping = damping
 
     def initialize(self):
         self.ITR = None
@@ -95,7 +96,7 @@ class _LBFGS(Optimizer):
             dr = du * RdR
         self.r_old = r.copy()
         self.f_old = f.copy()
-        r += dr
+        r += dr * self.damping
         self.atoms.set_positions(r)
 
     def update(self, r, f, r_old, f_old):
