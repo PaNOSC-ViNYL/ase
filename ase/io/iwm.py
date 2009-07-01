@@ -1,10 +1,12 @@
 from math import pi, cos, sin, sqrt, acos
 import numpy as np
 
+from ase.data import chemical_symbols
 from ase.atoms import Atoms
 from ase.parallel import paropen
 
 iwm_symbols = {'1' : 'C',
+               '2' : 'Au',
                '5' : 'Ag'}
 
 def read_iwm(fileobj, index=-1):
@@ -24,7 +26,10 @@ def read_iwm(fileobj, index=-1):
     symbols = []
     for line in lines[:natoms]:
         symbol, mass, x, y, z = line.split()[:5]
-        symbols.append(iwm_symbols[symbol])
+        if symbol in iwm_symbols:
+            symbols.append(iwm_symbols[symbol])
+        else:
+            symbols.append(chemical_symbols[int(symbol)])
         positions.append([float(x), float(y), float(z)])
     
     del(lines[natoms:3 * natoms + 3])
