@@ -146,6 +146,18 @@ class Atom(object):
             else:
                 return None
 
+    def _get_copy(self, name, copy=False):
+        if self.atoms is None:
+            return getattr(self, '_' + name)
+        elif name == 'symbol':
+            return chemical_symbols[self.number]
+        else:
+            plural = data[name][0]
+            if plural in self.atoms.arrays:
+                return self.atoms.arrays[plural][self.index].copy()
+            else:
+                return None
+
     def _set(self, name, value):
         if self.atoms is None:
             setattr(self, '_' + name, value)
@@ -165,34 +177,54 @@ class Atom(object):
                 self.atoms.new_array(plural, array)
 
     def get_symbol(self): return self._get('symbol')
-    def get_number(self): return self._get('number')
-    def get_position(self): return self._get('position')
+    def get_atomic_number(self): return self._get('number')
+    def get_position(self): return self._get_copy('position')
+    def _get_position(self): return self._get('position')
     def get_tag(self): return self._get('tag')
-    def get_momentum(self): return self._get('momentum')
+    def get_momentum(self): return self._get_copy('momentum')
+    def _get_momentum(self): return self._get('momentum')
     def get_mass(self): return self._get('mass')
     def get_initial_magnetic_moment(self): return self._get('magmom')
     def get_charge(self): return self._get('charge')
 
     def set_symbol(self, symbol): self._set('symbol', symbol)
-    def set_number(self, number): self._set('number', number)
+    def set_atomic_number(self, number): self._set('number', number)
     def set_position(self, position):
         self._set('position', np.array(position, float))
     def set_tag(self, tag): self._set('tag', tag)
     def set_momentum(self, momentum): self._set('momentum', momentum)
     def set_mass(self, mass): self._set('mass', mass)
     def set_initial_magnetic_moment(self, magmom): self._set('magmom', magmom)
+    def set_charge(self, charge): self._set('charge', charge)
+
     def set_magmom(self, magmom):
+        "Deprecated, use set_initial_magnetic_moment instead."
         import warnings
         warnings.warn('set_magmom is deprecated. Please use set_initial_magnetic_moment' \
                       ' instead.', DeprecationWarning, stacklevel=2)
         return self.set_initial_magnetic_moment(magmom)
-    def set_charge(self, charge): self._set('charge', charge)
 
+    def get_number(self):
+        "Deprecated, use get_atomic_number instead."
+        import warnings
+        warnings.warn(
+            'get_number is deprecated. Please use get_atomic_number instead.',
+            DeprecationWarning, stacklevel=2)
+        return self.get_atomic_number()
+        
+    def set_number(self, number):
+        "Deprecated, use set_atomic_number instead."
+        import warnings
+        warnings.warn(
+            'set_number is deprecated. Please use set_atomic_number instead.',
+            DeprecationWarning, stacklevel=2)
+        return self.set_atomic_number(number)
+        
     symbol = property(get_symbol, set_symbol, doc='Chemical symbol')
-    number = property(get_number, set_number, doc='Atomic number')
-    position = property(get_position, set_position, doc='XYZ-coordinates')
+    number = property(get_atomic_number, set_atomic_number, doc='Atomic number')
+    position = property(_get_position, set_position, doc='XYZ-coordinates')
     tag = property(get_tag, set_tag, doc='Integer tag')
-    momentum = property(get_momentum, set_momentum, doc='XYZ-momentum')
+    momentum = property(_get_momentum, set_momentum, doc='XYZ-momentum')
     mass = property(get_mass, set_mass, doc='Atomic mass')
     magmom = property(get_initial_magnetic_moment, set_initial_magnetic_moment,
                       doc='Initial magnetic moment')
