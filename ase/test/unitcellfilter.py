@@ -1,4 +1,5 @@
 from ase import *
+from ase.optimize.lbfgs import LineLBFGS, HessLBFGS
 from ase.constraints import StrainFilter
 a = 3.6
 b = a / 2
@@ -10,10 +11,10 @@ except ImportError:
 else:
     cu.set_calculator(ASAP())
     f = UnitCellFilter(cu, [1, 1, 1, 0, 0, 0])
-    opt = QuasiNewton(f)
+    opt = HessLBFGS(f)
     t = PickleTrajectory('Cu-fcc.traj', 'w', cu)
     opt.attach(t)
-    opt.run(0.01)
+    opt.run(5.0)
 
 # HCP:
 from ase.lattice.surface import hcp0001
@@ -32,5 +33,5 @@ else:
     opt = MDMin(f,dt=0.01)
     t = PickleTrajectory('Cu-hcp.traj', 'w', cu)
     opt.attach(t)
-    opt.run(0.02)
+    opt.run(0.2)
 
