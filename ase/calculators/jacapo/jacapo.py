@@ -206,7 +206,11 @@ class Jacapo:
             #delete the bad file
 
             self._set_frame_number()
-            self.set_atoms(self.read_only_atoms(nc))
+
+            #we are reading atoms in, so there is no reason to write them back out.
+            #we do not use self.set_atoms() to avoid writing the atoms back out.
+            self.atoms = self.read_only_atoms(nc)
+            #self.set_atoms(self.read_only_atoms(nc))
 
             #assume here if you read atoms in, it is ready.
             #later when calculation required is checked
@@ -437,6 +441,20 @@ class Jacapo:
 ##            from pw91_psp import defaultpseudopotentials
 
         self.psp = defaultpseudopotentials
+
+        #update teh pspdatabase from the ncfile if it exists
+        if os.path.exists(self.nc):
+            nc = netCDF(self.nc,'r')
+            sym = nc.variables['DynamicAtomSpecies'][:]
+            symbols = [x.tostring().strip() for x in sym]
+            for sym in symbols:
+                vn = 'AtomProperty_%s' % sym
+                if vn in nc.variables:
+                    var = nc.variables[vn]
+                    pspfile = var.PspotFile
+
+                    self.psp[sym] = pspfile
+            nc.close()
 
     def _set_frame_number(self,frame=None):
         if frame is None:
@@ -679,12 +697,16 @@ class Jacapo:
           
         '''
         if hasattr(self,'atoms') and self.atoms is not None:
+            #return if the atoms are the same. no change needs to be made
+            #i am not sure if new constraints would make atoms unequal
+            if atoms == self.atoms:
+                return
             # some atoms already exist. Test if new atoms are different from old atoms.
             if atoms != self.atoms:
                 # the new atoms are different from the old ones. Start a new frame.
                 self._increment_frame()
         self.atoms = atoms.copy()
-        self.write_nc(atoms=atoms)
+        self.write_nc(atoms=atoms) #this makes sure teh ncfile is up to date
 
         #store constraints if they exist
         constraints = atoms._get_constraints()
@@ -2112,20 +2134,6 @@ s.recv(14)
             mom = nc.variables['InitialAtomicMagneticMoment'][:]
             atoms.set_initial_magnetic_moments(mom)
 
-        #save the status here, so it can be reset after the psp changes
-        if hasattr(nc,'status'):
-            status = nc.status
-        else:
-            status = None
-        #pseudopotentials
-        for sym in symbols:
-            vn = 'AtomProperty_%s' % sym
-            if vn in nc.variables:
-                var = nc.variables[vn]
-                #this will reset the calculator
-                pspfile = var.PspotFile
-                self.set_psp(sym,psp=pspfile)
-
         #get constraints if they exist
         c = nc.variables.get('constraints',None)
         if c is not None:
@@ -2133,11 +2141,6 @@ s.recv(14)
             atoms.set_constraint(constraints)
                     
         nc.close()
-
-        if status is not None:
-            self.set_status(status) # reset status
-        else:
-            self.set_status('None') #old ncfiles do not have a status
         
         return atoms
         
