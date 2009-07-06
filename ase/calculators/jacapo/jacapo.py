@@ -2136,6 +2136,8 @@ s.recv(14)
 
         if status is not None:
             self.set_status(status) # reset status
+        else:
+            self.set_status('None') #old ncfiles do not have a status
         
         return atoms
         
