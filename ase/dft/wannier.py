@@ -11,7 +11,7 @@ from pickle import dump, load
 from ase.parallel import paropen
 from ase.calculators.dacapo import Dacapo
 from ase.dft.kpoints import get_monkhorst_shape
-from ase.transport import dagger, normalize
+from ase.transport.tools import dagger, normalize
 
 dag = dagger
 
