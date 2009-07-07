@@ -1,3 +1,4 @@
+import commands, os, string
 from ase import *
 
 class Bader:
