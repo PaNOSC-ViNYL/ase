@@ -27,12 +27,24 @@ position::
 
   from ase.lattice.surface import *
   slab = fcc111('Al', size=(2,2,3), vacuum=10.0)
-  add_adsorbate(slab, 'H', 1.5, 'ontop')
 
 This will produce a slab 2x2x3 times the minimal possible size, with a
-(111) surface in the z direction.  A 10 Å vacuum layer is added,
-and a hydrogen atom is adsorbed in an on-top position 1.5 Å above the
-top layer.
+(111) surface in the z direction.  A 10 Å vacuum layer is added on
+each side.
+
+To set up the same surface with with a hydrogen atom adsorbed in an on-top
+position 1.5 Å above the top layer::
+
+  from ase.lattice.surface import *
+  slab = fcc111('Al', size=(2,2,3))
+  add_adsorbate(slab, 'H', 1.5, 'ontop')
+  slab.center(vacuum=10.0, axis=2)
+
+Note that in this case is is probably not meaningful to use the vacuum
+keyword to fcc111, as we want to leave 10 Å of vacuum *after* the
+adsorbate has been added. Instead, the :meth:`~ase.atoms.Atoms.center` method
+of the :class:`~ase.atoms.Atoms` is used
+to add the vacuum and center the system.
 
 The atoms in the slab will have tags set to the layer number: First layer
 atoms will have tag=1, second layer atoms will have tag=2, and so on.
@@ -68,8 +80,12 @@ All the functions setting up surfaces take the same arguments.
   setting up a crystal structure different from the one found in
   nature and an ideal `c/a` ratio is not wanted (`c/a=(8/3)^{1/3}`).
 
-*vacuum*:
-  The thickness of the vacuum layer.  Default value is zero.
+*vacuum*: 
+  The thickness of the vacuum layer.  The specified amount of
+  vacuum appears on both sides of the slab.  Default value is None,
+  meaning not to add any vacuum.  In that case a "vacuum" layer equal
+  to the interlayer spacing will be present on the upper surface of
+  the slab.  Specify ``vacuum=0.0`` to remove it.
 
 *orthogonal*:
   (optional, not supported by all functions). If specified and true,
@@ -152,16 +168,6 @@ After a slab has been created, a vacuum layer can be added.  It is
 also possible to add one or more adsorbates.
 
 .. autofunction:: ase.lattice.surface.add_adsorbate
-
-
-Centering the system
---------------------
-
-The slabs are typically set up with vacuum on one side only.  For GPAW
-calculations with free boundary conditions perpendicular to the
-surface, the vacuum should be distributed on both sides.  This can be
-done by centering the system in the unit cell using the
-:meth:`~ase.atoms.Atoms.center()` method of the atoms.
 
 
 
@@ -292,7 +298,11 @@ given as named arguments.
   well to allow the module to test for consistency.  Example:
 
   >>> atoms = BodyCenteredCubic(directions=[[1,-1,0],[1,1,-1],[0,0,1]],
-  ...                           miller=[None, None, [1,1,2]], ...)                              
+  ...                           miller=[None, None, [1,1,2]], ...)
+
+  If neither ``directions`` nor ``miller`` are specified, the default
+  is ``directions=[[1,0,0], [0,1,0], [0,0,1]]``.
+
 ``size``:
   A tuple of three numbers, defining how many times the fundamental
   repeat unit is repeated. Default: (1,1,1).  Be aware that if

@@ -744,8 +744,10 @@ class Atoms(object):
 
         Parameters:
 
-        vacuum (default: None): If specified adds the amount of vacuum
-        specified before centering.
+        vacuum (default: None): If specified adjust the amount of
+        vacuum when centering.  If vacuum=10.0 there will
+        thus be 10 Angstrom of vacuum on each side.  Does not work
+        reliably for non-orthogonal unit cells.
 
         axis (default: None): If specified, only act on the specified
         axis.  Default: Act on all axes.
@@ -759,12 +761,14 @@ class Atoms(object):
                 self._cell = np.diag(p1 - p0 + 2 * np.asarray(vacuum))
             p += 0.5 * (self._cell.sum(0) - p0 - p1)
         else:
-            c = self._cell.copy()
-            c.flat[::4] = 0.0
-            if c.any():
-                raise NotImplementedError('Unit cell must be orthorhombic!')
-            
             if vacuum is not None:
+                c = self._cell.copy()
+                axis1 = (axis + 1) % 3
+                axis2 = (axis + 2) % 3
+                if (abs(dot(c[axis], c[axis1])) > 1e-6 or
+                    abs(dot(c[axis], c[axis2])) > 1e-6):
+                    raise NotImplementedError(
+                        'Cannot add vacuum along non-orthogonal axis')
                 self._cell[axis, axis] = p1[axis] - p0[axis] + 2 * vacuum
             p[:, axis] += 0.5 * (self._cell[axis, axis] - p0[axis] - p1[axis])
 

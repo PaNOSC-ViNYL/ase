@@ -14,26 +14,26 @@ from ase.atoms import Atoms
 from ase.data import reference_states, atomic_numbers
 
 
-def fcc100(symbol, size, a=None, vacuum=0.0):
+def fcc100(symbol, size, a=None, vacuum=None):
     """FCC(100) surface.
  
     Supported special adsorption sites: 'ontop', 'bridge', 'hollow'."""
     return surface(symbol, 'fcc', '100', size, a, None, vacuum)
 
-def fcc110(symbol, size, a=None, vacuum=0.0):
+def fcc110(symbol, size, a=None, vacuum=None):
     """FCC(110) surface.
  
     Supported special adsorption sites: 'ontop', 'longbridge',
     'shortbridge','hollow'."""
     return surface(symbol, 'fcc', '110', size, a, None, vacuum)
 
-def bcc100(symbol, size, a=None, vacuum=0.0):
+def bcc100(symbol, size, a=None, vacuum=None):
     """BCC(100) surface.
  
     Supported special adsorption sites: 'ontop', 'bridge', 'hollow'."""
     return surface(symbol, 'bcc', '100', size, a, None, vacuum)
 
-def bcc110(symbol, size, a=None, vacuum=0.0, orthogonal=False):
+def bcc110(symbol, size, a=None, vacuum=None, orthogonal=False):
     """BCC(110) surface.
  
     Supported special adsorption sites: 'ontop', 'longbridge',
@@ -43,7 +43,7 @@ def bcc110(symbol, size, a=None, vacuum=0.0, orthogonal=False):
     for size=(i,j,k) with j even."""
     return surface(symbol, 'bcc', '110', size, a, None, vacuum, orthogonal)
 
-def bcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False):
+def bcc111(symbol, size, a=None, vacuum=None, orthogonal=False):
     """BCC(111) surface.
  
     Supported special adsorption sites: 'ontop'.
@@ -52,7 +52,7 @@ def bcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False):
     for size=(i,j,k) with j even."""
     return surface(symbol, 'bcc', '111', size, a, None, vacuum, orthogonal)
 
-def fcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False):
+def fcc111(symbol, size, a=None, vacuum=None, orthogonal=False):
     """FCC(111) surface.
  
     Supported special adsorption sites: 'ontop', 'bridge', 'fcc' and 'hcp'.
@@ -61,7 +61,7 @@ def fcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False):
     for size=(i,j,k) with j even."""
     return surface(symbol, 'fcc', '111', size, a, None, vacuum, orthogonal)
 
-def hcp0001(symbol, size, a=None, c=None, vacuum=0.0, orthogonal=False):
+def hcp0001(symbol, size, a=None, c=None, vacuum=None, orthogonal=False):
     """HCP(0001) surface.
  
     Supported special adsorption sites: 'ontop', 'bridge', 'fcc' and 'hcp'.
@@ -281,7 +281,8 @@ def surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
 
     slab.set_cell([a * v * n for v, n in zip(cell, size)], scale_atoms=True)
 
-    slab.cell[2, 2] += vacuum
+    if vacuum is not None:
+        slab.center(vacuum=vacuum, axis=2)
     
     slab.adsorbate_info['cell'] = surface_cell
     slab.adsorbate_info['sites'] = sites
