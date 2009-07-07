@@ -279,8 +279,14 @@ Usage
 
 The lattice objects are called with a number of arguments specifying
 e.g. the size and orientation of the lattice.  All arguments should be
-given as named arguments.
+given as named arguments.  At a minimum the ``symbol`` argument must
+be specified.
 
+
+``symbol``
+  The element, specified by the atomic number (an integer) or by the
+  atomic symbol (i.e. 'Au').  For compounds, a tuple or list of
+  elements should be given.  This argument is mandatory.
 
 ``directions`` and/or ``miller``: 
   Specifies the orientation of the
@@ -308,12 +314,6 @@ given as named arguments.
   repeat unit is repeated. Default: (1,1,1).  Be aware that if
   high-index directions are specified, the fundamental repeat unit may
   be large.
-
-
-``symbol``
-  The element, specified by the atomic number (an integer) or by the
-  atomic symbol (i.e. 'Au').  For compounds, a tuple or list of
-  elements should be given.
 
 ``latticeconstant``:
   The lattice constant.  If no lattice constant is

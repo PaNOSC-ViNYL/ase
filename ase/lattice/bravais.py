@@ -41,8 +41,9 @@ class Bravais:
     # How small numbers should be considered zero in the unit cell?
     chop_tolerance = 1e-10
     
-    def __call__(self, directions=(None,None,None), miller=(None,None,None),
-                 size=(1,1,1), symbol=None, latticeconstant=None,
+    def __call__(self, symbol,
+                 directions=(None,None,None), miller=(None,None,None),
+                 size=(1,1,1), latticeconstant=None,
                  pbc=True, align=True, debug=0):
         "Create a lattice."
         self.size = size
@@ -184,21 +185,35 @@ class Bravais:
         
     def process_element(self, element):
         "Extract atomic number from element"
-        # The types that can be converted to Elements: integers and strings
+        # The types that can be elements: integers and strings
         if self.element_basis is None:
             if isinstance(element, type("string")):
                 self.atomicnumber = ase.data.atomic_numbers[element]
-            else:
-                # Let's hope it is an atomic number or something compatible.
+            elif isinstance(element, int):
                 self.atomicnumber = element
+            else:
+                raise TypeError("The symbol argument must be a string or an atomic number.")
         else:
             atomicnumber = []
+            try:
+                if len(element) != max(self.element_basis) + 1:
+                    oops = True
+                else:
+                    oops = False
+            except TypeError:
+                oops = True
+            if oops:
+                raise TypeError(
+                    ("The symbol argument must be a sequence of length %d"
+                         +" (one for each kind of lattice position")
+                        % (max(self.element_basis)+1,))
             for e in element:
                 if isinstance(e, type("string")):
                     atomicnumber.append(ase.data.atomic_numbers[e])
+                elif isinstance(element, int):
+                    atomicnumber.append(e)
                 else:
-                    # Let's hope it is an atomic number or something compatible.
-                    self.atomicnumber.append(e)
+                    raise TypeError("The symbols argument must be a sequence of strings or atomic numbers.")
             self.atomicnumber = [atomicnumber[i] for i in self.element_basis]
             assert len(self.atomicnumber) == len(self.bravais_basis)
         
