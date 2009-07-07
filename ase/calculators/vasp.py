@@ -233,6 +233,7 @@ class Vasp:
         for m in symbols:
             self.symbol_count.append([m,symbols[m]])
         print 'self.symbol_count',self.symbol_count 
+        sys.stdout.flush()
         xc = '/'
         #print 'p[xc]',p['xc']
         if p['xc'] == 'PW91':
