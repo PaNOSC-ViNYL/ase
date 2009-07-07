@@ -10,17 +10,10 @@ from math import sqrt, pi
 from pickle import dump, load
 from ase.parallel import paropen
 from ase.calculators.dacapo import Dacapo
+from ase.dft.kpoints import get_monkhorst_shape
+from ase.transport import dagger, normalize
 
-
-def dag(a):
-    """Return Hermitian conjugate of input"""
-    return np.conj(a.T)
-
-
-def normalize(U):
-    """Normalize columns of U."""
-    for col in U.T:
-        col /= np.linalg.norm(col)
+dag = dagger
 
 
 def gram_schmidt(U):
@@ -41,30 +34,6 @@ def lowdin(U, S=None):
     eig, rot = np.linalg.eigh(S)
     rot = np.dot(rot / np.sqrt(eig), dag(rot))
     U[:] = np.dot(U, rot)
-
-
-def get_kpoint_dimensions(kpts):
-    """Returns number of k-points along each axis of input Monkhorst pack.
-    The set of k-points must not have been symmetry reduced.
-    """
-    nkpts = len(kpts)
-    if nkpts == 1:
-        return np.ones(3, int)
-    
-    tol = 1e-5
-    Nk_c = np.zeros(3, int)
-    for c in range(3):
-        # Sort kpoints in ascending order along current axis
-        slist = np.argsort(kpts[:, c])
-        skpts = np.take(kpts, slist, axis=0)
-
-        # Determine increment between kpoints along current axis
-        DeltaK = max([skpts[n + 1, c] - skpts[n, c] for n in range(nkpts - 1)])
-
-        # Determine number of kpoints as inverse of distance between kpoints
-        if DeltaK > tol: Nk_c[c] = int(round(1. / DeltaK))
-        else: Nk_c[c] = 1
-    return Nk_c
 
 
 def neighbor_k_search(k_c, G_c, kpt_kc, tol=1e-4):
@@ -276,7 +245,7 @@ class Wannier:
         self.kpt_kc = sign * calc.get_ibz_k_points()
         assert len(calc.get_bz_k_points()) == len(self.kpt_kc)
         
-        self.kptgrid = get_kpoint_dimensions(self.kpt_kc)
+        self.kptgrid = get_monkhorst_shape(self.kpt_kc)
         self.Nk = len(self.kpt_kc)
         self.unitcell_cc = calc.get_atoms().get_cell()
         self.largeunitcell_cc = (self.unitcell_cc.T * self.kptgrid).T

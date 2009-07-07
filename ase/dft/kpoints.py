@@ -9,6 +9,28 @@ def monkhorst_pack(size):
     return (kpts + 0.5) / size - 0.5
 
 
+def get_monkhorst_shape(kpts, tol=1e-5):
+    """Return the number of k-points along each axis of input Monkhorst pack.
+
+    The set of k-points must not have been symmetry reduced.
+    """
+    nkpts = len(kpts)
+    if nkpts == 1:
+        return np.ones(3, int)
+    
+    Nk_c = np.zeros(3, int)
+    for c in range(3):
+        # Determine increment between kpoints along current axis
+        DeltaK = max(np.diff(np.sort(kpts[:, c])))
+
+        # Determine number of kpoints as inverse of distance between kpoints
+        if DeltaK > tol:
+            Nk_c[c] = int(round(1. / DeltaK))
+        else:
+            Nk_c[c] = 1
+    return Nk_c
+
+
 def kpoint_convert(cell_cv, skpts_kc=None, ckpts_kv=None):
     """Convert k-points between scaled and cartesian coordinates.
 

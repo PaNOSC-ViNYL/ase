@@ -1,16 +1,26 @@
 import numpy as np
 from math import sqrt, exp
 
-def tri2full(M, UL='L'):
-    """UP='L' => fill upper triangle from lower triangle
-       such that M=M^d"""
-    nbf = len(M)
-    if UL == 'L':
-        for i in range(nbf - 1):
-            M[i, i:] = M[i:, i].conj()
-    elif UL == 'U':
-        for i in range(nbf - 1):
-            M[i:, i] = M[i, i:].conj()
+def tri2full(H_nn, UL='L'):
+    """Fill in values of hermitian matrix.
+
+    Fill values in lower or upper triangle of H_nn based on the opposite
+    triangle, such that the resulting matrix is symmetric/hermitian.
+
+    UL='U' will copy (conjugated) values from upper triangle into the
+    lower triangle.
+
+    UL='L' will copy (conjugated) values from lower triangle into the
+    upper triangle.
+    """
+    N, tmp = H_nn.shape
+    assert N == tmp, 'Matrix must be square'
+    #assert np.isreal(H_nn.diagonal()).all(), 'Diagonal should be real'
+    if UL != 'L':
+        H_nn = H_nn.T
+
+    for n in range(N - 1):
+        H_nn[n, n + 1:] = H_nn[n + 1:, n].conj()
 
 def dagger(matrix):
     return np.conj(matrix.T)
@@ -20,11 +30,12 @@ def rotate_matrix(h, u):
 
 def get_subspace(matrix, index):
     """Get the subspace spanned by the basis function listed in index"""
+    assert matrix.ndim == 2 and matrix.shape[0] == matrix.shape[1]
     return matrix.take(index, 0).take(index, 1)   
 
 permute_matrix = get_subspace
 
-def normalize_rot(matrix, S=None):
+def normalize(matrix, S=None):
     """Normalize column vectors.
 
     ::
@@ -44,7 +55,7 @@ def subdiagonalize(h_ii, s_ii, index_j):
     h_sub_jj = get_subspace(h_ii, index_j)
     s_sub_jj = get_subspace(s_ii, index_j)
     e_j, v_jj = np.linalg.eig(np.linalg.solve(s_sub_jj, h_sub_jj))
-    normalize_rot(v_jj, s_sub_jj) # normalize: <v_j|s|v_j> = 1
+    normalize(v_jj, s_sub_jj) # normalize: <v_j|s|v_j> = 1
     permute_list = np.argsort(e_j.real)
     e_j = np.take(e_j, permute_list)
     v_jj = np.take(v_jj, permute_list, axis=1)
