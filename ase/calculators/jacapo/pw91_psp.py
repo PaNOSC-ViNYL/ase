@@ -17,7 +17,7 @@ defaultpseudopotentials = {'H':'ch_e9g4.pseudo', #  H
                            'Si':'csi_e8ag4.pseudo', #  Si
                            'P':'P_us.pseudo', #  P
                            'S':'S_tm.pseudo', #  S
-                           'Cl':'Cl''Cl_us_gga.pseudo', #  Cl
+                           'Cl':'Cl_us_gga.pseudo', #  Cl
                            'K':'k_us_gga.pseudo', #  K
                            'Ca':'Ca_us_cc_pw91.pseudo', #  Ca
                            'Sc':'Sc_us_cc_pw91.pseudo', #  Sc
