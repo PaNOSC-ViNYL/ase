@@ -49,6 +49,7 @@ keys = [
     'icharg',     # charge: 1-file 2-atom 10-const
     'iniwav',     # initial electr wf. : 0-lowe 1-rand
     'nelm',       #
+    'nelmin',
     'nbands',     #
     'nelmdl',     # nr. of electronic steps
     'ediff',      # stopping-criterion for electronic upd.
