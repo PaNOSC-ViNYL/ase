@@ -1,3 +1,11 @@
+"""
+IO support for the Gaussian cube format.
+
+See the format specifications on:
+http://local.wasp.uwa.edu.au/~pbourke/dataformats/cube/
+"""
+
+
 import numpy as np
 
 from ase.atoms import Atoms
@@ -11,11 +19,12 @@ def write_cube(fileobj, atoms, data=None):
         
     if isinstance(atoms, list):
         if len(atoms) > 1:
-            raise ValueError('Can only write one configuration to a cube file!')
+            raise ValueError('Can only write one configuration '
+                             'to a cube file!')
         atoms = atoms[0]
 
     if data is None:
-        data = [[[1.0]]]
+        data = np.ones((2, 2, 2))
     data = np.asarray(data)
 
     if data.dtype == complex:
@@ -33,8 +42,8 @@ def write_cube(fileobj, atoms, data=None):
             shape[i] += 1
             corner += cell[i] / shape[i] / Bohr
 
-    fileobj.write('%5d%12.6f%12.6f%12.6f\n' % (len(atoms),
-                                               corner[0], corner[1], corner[2]))
+    fileobj.write('%5d%12.6f%12.6f%12.6f\n' % (len(atoms), corner[0],
+                                               corner[1], corner[2]))
 
     for i in range(3):
         n = data.shape[i]
