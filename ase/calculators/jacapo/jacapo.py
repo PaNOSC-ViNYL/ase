@@ -1640,7 +1640,14 @@ class Jacapo:
     def get_valence(self,atoms=None):
         '''return the total number of valence electrons for the
         atoms. valence electrons are read directly from the
-        pseudopotentials.'''
+        pseudopotentials.
+
+        the psp filenames are stored in the ncfile. They may be just
+        the name of the file, in which case the psp may exist in the
+        same directory as the ncfile, or in $DACAPOPATH, or the psp
+        may be defined by an absolute or relative path. This function
+        deals with all these possibilities.
+        '''
         from struct import unpack
         
         #do not use get_atoms() or recursion occurs
@@ -1654,7 +1661,23 @@ class Jacapo:
         totval = 0.0
         for sym in atoms.get_chemical_symbols():
             psp = self.get_psp(sym)
-            fullpsp = os.path.join(dacapopath,psp)
+            
+            if os.path.exists(psp):
+                #the pspfile may be in the current directory
+                #or defined by an absolute path
+                fullpsp = psp
+
+            #let's also see if we can construct an absolute path to a
+            #local or relative path psp.
+            abs_path_to_nc = os.path.abspath(self.get_nc())
+            base,ncfile = os.path.split(abs_path_to_nc)
+            possible_path_to_psp = os.path.join(base,psp)
+            if os.path.exists(possible_path_to_psp):
+                fullpsp = possible_path_to_psp
+                
+            else:
+                #or, it is in the default psp path
+                fullpsp = os.path.join(dacapopath,psp)
             if os.path.exists(fullpsp.strip()):
                 f = open(fullpsp)
                 # read past version numbers and text information
