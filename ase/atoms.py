@@ -765,8 +765,8 @@ class Atoms(object):
                 c = self._cell.copy()
                 axis1 = (axis + 1) % 3
                 axis2 = (axis + 2) % 3
-                if (abs(dot(c[axis], c[axis1])) > 1e-6 or
-                    abs(dot(c[axis], c[axis2])) > 1e-6):
+                if (abs(np.dot(c[axis], c[axis1])) > 1e-6 or
+                    abs(np.dot(c[axis], c[axis2])) > 1e-6):
                     raise NotImplementedError(
                         'Cannot add vacuum along non-orthogonal axis')
                 self._cell[axis, axis] = p1[axis] - p0[axis] + 2 * vacuum
