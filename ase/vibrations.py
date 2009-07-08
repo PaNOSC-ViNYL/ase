@@ -6,6 +6,7 @@ import pickle
 from math import sin, pi, sqrt
 from os import remove
 from os.path import isfile
+import sys
 
 import numpy as np
 
@@ -93,20 +94,24 @@ class Vibrations:
         produce an empty file (ending with .pckl), which must be deleted
         before restarting the job. Otherwise the forces will not be
         calculated for that displacement."""
-
-        if not isfile(self.name + '.eq.pckl'):
+        filename = self.name + '.eq.pckl'
+        if not isfile(filename):
             barrier()
             if rank == 0:
-                fd = open(self.name + '.eq.pckl', 'w')
+                fd = open(filename, 'w')
             forces = self.atoms.get_forces()
             if self.ir:
                 dipole = self.calc.get_dipole_moment(self.atoms)
             if rank == 0:
                 if self.ir:
                     pickle.dump([forces, dipole], fd)
+                    sys.stdout.write('Writing %s, dipole moment = (%.6f %.6f %.6f)\n' % 
+                                             (filename, dipole[0], dipole[1], dipole[2]))
                 else:
                     pickle.dump(forces, fd)
+                    sys.stdout.write('Writing %s\n' % filename)
                 fd.close()
+            sys.stdout.flush()
         
         p = self.atoms.positions.copy()
         for a in self.indices:
@@ -115,22 +120,26 @@ class Vibrations:
                     for ndis in range(1, self.nfree/2+1):
                         filename = '%s.%d%s%s.pckl' % (self.name, a,
                                                        'xyz'[i], ndis*' +-'[sign])
-                    if isfile(filename):
-                        continue
-                    barrier()
-                    if rank == 0:
-                        fd = open(filename, 'w')
-                    self.atoms.positions[a, i] = p[a, i] + ndis * sign * self.delta
-                    forces = self.atoms.get_forces()
-                    if self.ir:
-                        dipole = self.calc.get_dipole_moment(self.atoms)
-                    if rank == 0:
+                        if isfile(filename):
+                            continue
+                        barrier()
+                        if rank == 0:
+                            fd = open(filename, 'w')
+                        self.atoms.positions[a, i] = p[a, i] + ndis * sign * self.delta
+                        forces = self.atoms.get_forces()
                         if self.ir:
-                            pickle.dump([forces, dipole], fd)
-                        else:
-                            pickle.dump(forces, fd)
-                        fd.close()
-                    self.atoms.positions[a, i] = p[a, i]
+                            dipole = self.calc.get_dipole_moment(self.atoms)
+                        if rank == 0:
+                            if self.ir:
+                                pickle.dump([forces, dipole], fd)
+                                sys.stdout.write('Writing %s, dipole moment = (%.6f %.6f %.6f)\n' % 
+                                                 (filename, dipole[0], dipole[1], dipole[2]))
+                            else:
+                                pickle.dump(forces, fd)
+                                sys.stdout.write('Writing %s\n' % filename)
+                            fd.close()
+                        sys.stdout.flush()
+                        self.atoms.positions[a, i] = p[a, i]
         self.atoms.set_positions(p)
 
     def clean(self):
