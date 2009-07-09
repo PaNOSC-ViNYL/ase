@@ -39,6 +39,7 @@ def read(filename, index=-1, format=None):
     XYZ-file                   xyz
     VASP POSCAR/CONTCAR file   vasp
     Protein Data Bank          pdb
+    FHI-aims geometry file     aims
     VTK XML Image Data         vti
     VTK XML Structured Grid    vts
     VTK XML Unstructured Grid  vtu
@@ -142,6 +143,10 @@ def read(filename, index=-1, format=None):
         from ase.io.vtkxml import read_vtu
         return read_vtu(filename)
 
+    if format == 'aims':
+        from ase.io.aims import read_aims
+        return read_aims(filename)
+
     if format == 'iwm':
         from ase.io.iwm import read_iwm
         return read_iwm(filename)
@@ -175,7 +180,8 @@ def write(filename, images, format=None, **kwargs):
     XYZ-file                   xyz
     VASP POSCAR/CONTCAR file   vasp
     Protein Data Bank          pdb
-    XCrySDen Structure File    xsf  
+    XCrySDen Structure File    xsf
+    FHI-aims geometry file     aims
     gOpenMol .plt file         plt  
     Python script              py
     Encapsulated Postscript    eps
@@ -237,6 +243,8 @@ def write(filename, images, format=None, **kwargs):
         if filename == '-':
             format = 'xyz'
             filename = sys.stdout
+        elif 'POSCAR' in filename or 'CONTCAR' in filename:
+            format = 'vasp'
         else:
             suffix = filename.split('.')[-1]
             format = {}.get(suffix, suffix)
@@ -245,12 +253,17 @@ def write(filename, images, format=None, **kwargs):
         from ase.io.xyz import write_xyz
         write_xyz(filename, images)
         return
+    elif format == 'in':
+        format = 'aims'
 
     format = {'traj': 'trajectory', 'nc': 'netcdf'}.get(format, format)
     name = 'write_' + format
 
     if format in ['vti', 'vts', 'vtu']:
         format = 'vtkxml'
+
+    if format is None:
+        format = filetype(filename)
 
     try:
         write = getattr(__import__('ase.io.%s' % format, {}, {}, [name]), name)
@@ -347,6 +360,9 @@ def filetype(filename):
 
     if filename.lower().endswith('.cif'):
         return 'cif'
+
+    if filename.lower().endswith('.in'):
+        return 'aims'
 
     if os.path.split(filename)[1] == 'atoms.dat':
         return 'iwm'
