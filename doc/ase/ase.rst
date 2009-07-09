@@ -46,8 +46,8 @@ List of all modules:
 .. toctree::
    :maxdepth: 2
 
-   atom
    atoms
+   atom
    units
    io
    gui

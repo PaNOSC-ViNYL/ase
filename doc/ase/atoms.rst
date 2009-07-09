@@ -67,7 +67,14 @@ array([[ 2.,  0.,  0.],
        [ 0.,  2.,  2.],
        [ 2.,  2.,  0.]])
 
-Here is the full list of all get/set methods:
+Here is the full list of the get/set methods operating on all the
+atoms at once.  The get methods return an array of quantities, one for
+each atom; the set methods take similar arrays.
+E.g. :meth:`~ase.atoms.Atoms.get_positions` return N * 3 numbers,
+:meth:`~ase.atoms.Atoms.get_atomic_numbers` return N integers.
+
+*These methods return copies of the internal arrays, it is thus safe
+ to modify the returned arrays.*
 
 .. list-table::
 
@@ -89,12 +96,46 @@ Here is the full list of all get/set methods:
     -
   * - :meth:`~ase.atoms.Atoms.get_positions`
     - :meth:`~ase.atoms.Atoms.set_positions`
+  * - :meth:`~ase.atoms.Atoms.get_potential_energies`
+    - 
   * - :meth:`~ase.atoms.Atoms.get_scaled_positions`
     - :meth:`~ase.atoms.Atoms.set_scaled_positions`
+  * - :meth:`~ase.atoms.Atoms.get_stresses`
+    -
   * - :meth:`~ase.atoms.Atoms.get_tags`
     - :meth:`~ase.atoms.Atoms.set_tags`
   * - :meth:`~ase.atoms.Atoms.get_velocities`
     - :meth:`~ase.atoms.Atoms.set_velocities`
+
+There are also a number of get/set methods that operate on quantities
+common to all the atoms or defined for the collection of atoms:
+
+.. list-table::
+
+  * - :meth:`~ase.atoms.Atoms.get_calculator`
+    - :meth:`~ase.atoms.Atoms.set_calculator`
+  * - :meth:`~ase.atoms.Atoms.get_cell`
+    - :meth:`~ase.atoms.Atoms.set_cell`
+  * - :meth:`~ase.atoms.Atoms.get_center_of_mass`
+    - 
+  * - :meth:`~ase.atoms.Atoms.get_kinetic_energy`
+    - 
+  * - :meth:`~ase.atoms.Atoms.get_magnetic_moment`
+    - 
+  * - :meth:`~ase.atoms.Atoms.get_name`
+    - 
+  * - :meth:`~ase.atoms.Atoms.get_number_of_atoms`
+    - 
+  * - :meth:`~ase.atoms.Atoms.get_pbc`
+    - :meth:`~ase.atoms.Atoms.set_pbc`
+  * - :meth:`~ase.atoms.Atoms.get_potential_energy`
+    - 
+  * - :meth:`~ase.atoms.Atoms.get_stress`
+    - 
+  * - :meth:`~ase.atoms.Atoms.get_total_energy`
+    - 
+  * - :meth:`~ase.atoms.Atoms.get_volume`
+    - 
 
 
 Unit cell and boundary conditions
@@ -177,7 +218,6 @@ False
 array([False, False,  True], dtype=bool)
 
 
-
 Adding a calculator
 ===================
 
@@ -212,12 +252,15 @@ temperature.  More about this can be found for the different
 The following methods can only be called if a calculator is present:
 
 * :meth:`~ase.atoms.Atoms.get_potential_energy`
+* :meth:`~ase.atoms.Atoms.get_potential_energies`
 * :meth:`~ase.atoms.Atoms.get_forces`
 * :meth:`~ase.atoms.Atoms.get_stress`
+* :meth:`~ase.atoms.Atoms.get_stresses`
 * :meth:`~ase.atoms.Atoms.get_total_energy`
 * :meth:`~ase.atoms.Atoms.get_magnetic_moments`
 * :meth:`~ase.atoms.Atoms.get_magnetic_moment`
 
+Not all of these methods are supported by all calculators.
 
 
 List-methods

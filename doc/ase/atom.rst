@@ -33,6 +33,31 @@ array([ 1.,  0.,  0.])
 array([ 1. ,  0. ,  2.5])
 >>> a2.magmom = 1.0
 
+Getting an Atom from an Atoms object
+------------------------------------
+
+Indexing an :class:`Atoms` object returns an :class:`Atom` object
+still remembering that it belongs to the collective :class:`Atoms`:
+Modifying it will also change the atoms object:
+
+>>> atoms = ase.data.molecules.molecule("CH4")
+>>> atoms.get_positions()
+array([[ 0.      ,  0.      ,  0.      ],
+       [ 0.629118,  0.629118,  0.629118],
+       [-0.629118, -0.629118,  0.629118],
+       [ 0.629118, -0.629118, -0.629118],
+       [-0.629118,  0.629118, -0.629118]])
+>>> a = atoms[2]
+>>> a
+Atom('H', [-0.62911799999999996, -0.62911799999999996, 0.62911799999999996], index=2)
+>>> a.x = 0
+>>> atoms.get_positions()
+array([[ 0.      ,  0.      ,  0.      ],
+       [ 0.629118,  0.629118,  0.629118],
+       [ 0.      , -0.629118,  0.629118],
+       [ 0.629118, -0.629118, -0.629118],
+       [-0.629118,  0.629118, -0.629118]])
+                                                   
 
 .. seealso::
 
