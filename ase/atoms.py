@@ -527,10 +527,23 @@ class Atoms(object):
         return forces
 
     def get_stress(self):
-        """Calculate stress tensor."""
+        """Calculate stress tensor.
+
+        Returns an array of the six independent components of the
+        symmetric stress tensor, in the traditional order
+        (s_xx, s_yy, s_zz, s_yz, s_xz, s_xy).
+        """
         if self.calc is None:
             raise RuntimeError('Atoms object has no calculator.')
-        return self.calc.get_stress(self)
+        stress = self.calc.get_stress(self)
+        shape = getattr(stress, "shape", None)
+        if shape == (3,3):
+            return np.array([stress[0,0], stress[1,1], stress[2,2],
+                             stress[1,2], stress[0,2], stress[0,1]])
+        else:
+            # Hopefully a 6-vector, but don't check in case some weird
+            # calculator does something else.
+            return stress
     
     def get_stresses(self):
         """Calculate the stress-tensor of all the atoms.
