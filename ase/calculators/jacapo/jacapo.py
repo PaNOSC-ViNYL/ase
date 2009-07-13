@@ -1413,11 +1413,14 @@ class Jacapo:
         if 'BZKpoints' in nc.variables:
             bv = nc.variables['BZKpoints']
             if hasattr(bv,'grid'):
-                return (bv.grid)
+                kpts = (bv.grid)
             else:
-                return len(bv[:])
+                kpts = len(bv[:])
         else:
-            return (1,1,1) #default used in Dacapo
+            kpts = (1,1,1) #default used in Dacapo
+
+        nc.close()
+        return kpts
         
     def get_nbands(self):
         'return the number of bands used in the calculation'
@@ -1702,6 +1705,10 @@ class Jacapo:
 
         quantities is here because of the ase interface.
         '''
+        #provide a way to make no calculation get run
+        if os.environ.get('DACAPO_DRYRUN',None) is not None:
+            return False
+        
         # first, compare if the atoms is the same as the stored atoms
         # if anything has changed, we need to run a calculation
         if self.debug > 0: print 'running calculation_required'
