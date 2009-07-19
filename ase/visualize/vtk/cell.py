@@ -43,6 +43,9 @@ class vtkUnitCellModule(vtkPolyDataModule):
     def get_size(self):
         return self.bbox[1::2]-self.bbox[0::2]
 
+    def get_pbc(self):
+        return self.pbc
+
     def get_characteristic_length(self):
         return np.prod(self.get_size())**(1.0/3.0)
 

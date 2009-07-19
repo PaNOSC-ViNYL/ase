@@ -234,7 +234,7 @@ class vtkAtomicPositions(vtkBaseGrid):
 # -------------------------------------------------------------------
 
 class vtkVolumeGrid(vtkBaseGrid):
-    def __init__(self, elements, cell):
+    def __init__(self, elements, cell, origin=None):
 
         # Make sure element argument is a valid array
         if not isinstance(elements, np.ndarray):
@@ -251,11 +251,16 @@ class vtkVolumeGrid(vtkBaseGrid):
         self.vtk_spts.SetDimensions(self.elements)
         self.vtk_spts.SetSpacing(self.get_grid_spacing())
 
+        if origin is not None:
+            self.vtk_spts.SetOrigin(origin)
+
         # Extract the VTK point data set
         self.set_point_data(self.vtk_spts.GetPointData())
 
     def get_grid_spacing(self):
-        return self.cell.get_size()/(self.elements-1.0) #TODO pbc
+        # Periodic boundary conditions leave out one boundary along an axis
+        # Zero/fixed boundary conditions leave out both boundaries of an axis
+        return self.cell.get_size()/(self.elements+1.0-self.cell.get_pbc())
 
     def get_relaxation_factor(self):
         # The relaxation factor is a floating point value between zero and one.
