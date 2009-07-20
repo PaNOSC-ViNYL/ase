@@ -41,6 +41,8 @@ Supported :mod:`calculators`:
 News
 ====
 
+* ASE has reached `revision 1000`_ (16 July 2009).
+
 * :ref:`ASE version 3.1.0 <download_and_install>` released (27 March 2009).
 
 * Improved :mod:`vibrations` module: More accurate and
@@ -62,5 +64,6 @@ News
   electronic structure course at CAMd_.  (10 Jan 2008)
 
 
+.. _revision 1000: http://www.camd.dtu.dk/Events/Seneste_nyt.aspx?guid={08853DD1-D037-47C8-ACEF-1EA40A88BB6C}
 .. _Sphinx: http://sphinx.pocoo.org
 .. _CAMd: http://www.camd.dtu.dk
