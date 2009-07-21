@@ -107,8 +107,8 @@ class Optimizer(Dynamics):
             self.step(f)
             self.nsteps += 1
             step += 1
-            f = self.atoms.get_forces()
             self.call_observers()
+            f = self.atoms.get_forces()
 
     def converged(self, forces=None):
         """Did the optimization converge?"""
