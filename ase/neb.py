@@ -3,7 +3,7 @@ from math import sqrt
 import numpy as np
 
 from ase.parallel import world, rank, size
-
+from ase.calculators import SinglePointCalculator
 
 class NEB:
     def __init__(self, images, k=0.1, climb=False, parallel=False):
@@ -14,7 +14,8 @@ class NEB:
         self.natoms = len(images[0])
         self.nimages = len(images)
         self.emax = np.nan
-
+        self.energies_ok = False
+ 
     def interpolate(self):
         pos1 = self.images[0].get_positions()
         pos2 = self.images[-1].get_positions()
@@ -32,18 +33,31 @@ class NEB:
         return positions
 
     def set_positions(self, positions):
+        # new positions -> new forces
+        if self.energies_ok:
+            # restore calculators
+            self.set_calculators(self.calculators)
         n1 = 0
         for image in self.images[1:-1]:
             n2 = n1 + self.natoms
             image.set_positions(positions[n1:n2])
             n1 = n2
-        
-    def get_forces(self):
+    
+    def set_calculators(self, calculators):
+        assert(len(calculators) == self.nimages)
+        self.energies_ok = False
+        for i in range(1, self.nimages - 1):
+            self.images[i].set_calculator(calculators[i])   
+
+    def get_energies_and_forces(self):
+        """Evaluate energies and forces and hide the calculators"""
+        if self.energies_ok:
+            return
+
         images = self.images
-
-        forces = np.empty(((self.nimages - 2), self.natoms, 3))
-
-        energies = np.empty(self.nimages - 2)
+        forces = np.zeros(((self.nimages - 2), self.natoms, 3))
+        energies = np.zeros(self.nimages - 2)
+        self.calculators = [None] * self.nimages
 
         if not self.parallel:
             # Do all images - one at a time:
@@ -59,6 +73,28 @@ class NEB:
                 root = (i - 1) * size // (self.nimages - 2)
                 world.broadcast(energies[i - 1:i], root)
                 world.broadcast(forces[i - 1], root)
+        
+        for i in range(1, self.nimages - 1):
+            # hide calculators
+            self.calculators[i] = self.images[i].get_calculator()
+            images[i].set_calculator(
+                SinglePointCalculator(energies[i - 1],
+                                      forces[i - 1],
+                                      None,
+                                      None,
+                                      images[i]))
+        self.energies_ok = True
+       
+    def get_forces(self):
+        self.get_energies_and_forces()
+
+        images = self.images
+        forces = np.empty(((self.nimages - 2), self.natoms, 3))
+        energies = np.empty(self.nimages - 2)
+
+        for i in range(1, self.nimages - 1):
+            energies[i - 1] = images[i].get_potential_energy()
+            forces[i - 1] = images[i].get_forces()
 
         imax = 1 + np.argsort(energies)[-1]
         self.emax = energies[imax - 1]
@@ -86,7 +122,8 @@ class NEB:
                 
             tangent1 = tangent2
 
-        return forces.reshape((-1, 3))
+        self.forces = forces.reshape((-1, 3))
+        return self.forces
 
     def get_potential_energy(self):
         return self.emax
