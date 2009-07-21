@@ -74,7 +74,7 @@ E.g. :meth:`~ase.atoms.Atoms.get_positions` return N * 3 numbers,
 :meth:`~ase.atoms.Atoms.get_atomic_numbers` return N integers.
 
 *These methods return copies of the internal arrays, it is thus safe
- to modify the returned arrays.*
+to modify the returned arrays.*
 
 .. list-table::
 
