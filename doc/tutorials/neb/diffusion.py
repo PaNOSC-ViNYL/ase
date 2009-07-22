@@ -19,6 +19,7 @@ for name, a in zip('ITF', images[::2]):
           transparent=False, display=False, run_povray=True)
 
 s, E, Sfit, Efit, lines = fit(images)
+assert abs(max(Efit) - 0.350) < 1e-3
 plt.figure(figsize=(4.5, 3))
 plt.plot(s, E, 'o')
 plt.plot(Sfit, Efit, 'k-')
@@ -27,4 +28,5 @@ for x, y in lines:
 plt.xlabel(u'path [Å]')
 plt.ylabel(u'energy [eV]')
 plt.title('Maximum: %.3f eV' % max(Efit))
+plt.subplots_adjust(left=0.19, bottom=0.15)
 plt.savefig('diffusion-barrier.png')
