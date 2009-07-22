@@ -129,7 +129,7 @@ class PickleTrajectory:
         if isinstance(atoms, NEB):
             neb = atoms
             neb.get_energies_and_forces()
-            for image in neb.images[1:-1]:
+            for image in neb.images:
                 self.write(image)
             return
 
