@@ -14,6 +14,7 @@ class NEB:
         self.natoms = len(images[0])
         self.nimages = len(images)
         self.emax = np.nan
+        self.calculators = [None] * self.nimages
         self.energies_ok = False
  
     def interpolate(self):
@@ -36,7 +37,7 @@ class NEB:
         # new positions -> new forces
         if self.energies_ok:
             # restore calculators
-            self.set_calculators(self.calculators)
+            self.set_calculators(self.calculators[1:-1])
         n1 = 0
         for image in self.images[1:-1]:
             n2 = n1 + self.natoms
@@ -44,12 +45,24 @@ class NEB:
             n1 = n2
     
     def set_calculators(self, calculators):
-        assert(len(calculators) == self.nimages)
         self.energies_ok = False
-        for i in range(1, self.nimages - 1):
-            self.images[i].set_calculator(calculators[i])   
 
-    def get_energies_and_forces(self):
+        if not isinstance(calculators, list):
+            calculators = [calculators] * self.nimages
+
+        n = len(calculators)
+        if n == self.nimages:
+            for i in range(self.nimages):
+                self.images[i].set_calculator(calculators[i])   
+        elif n == self.nimages - 2:
+            for i in range(1, self.nimages -1):
+                self.images[i].set_calculator(calculators[i-1])   
+        else:
+            raise RuntimeError(
+                'len(calculators)=%d does not fit to len(images)=%d'
+                % (n, self.nimages))
+
+    def get_energies_and_forces(self, all=False):
         """Evaluate energies and forces and hide the calculators"""
         if self.energies_ok:
             return
@@ -57,13 +70,29 @@ class NEB:
         images = self.images
         forces = np.zeros(((self.nimages - 2), self.natoms, 3))
         energies = np.zeros(self.nimages - 2)
-        self.calculators = [None] * self.nimages
+
+        def calculate_and_hide(i):
+            image = self.images[i]
+            calc = image.get_calculator()
+##            print "<calculate_and_hide> i, calc=", i, calc
+            if self.calculators[i] is None:
+                self.calculators[i] = calc
+            if not isinstance(calc, SinglePointCalculator):
+                self.images[i].set_calculator(
+                    SinglePointCalculator(image.get_potential_energy(),
+                                          image.get_forces(),
+                                          None,
+                                          None,
+                                          image))
+
+
+        if all and self.calculators[0] is None:
+            calculate_and_hide(0)
 
         if not self.parallel:
             # Do all images - one at a time:
             for i in range(1, self.nimages - 1):
-                energies[i - 1] = images[i].get_potential_energy()
-                forces[i - 1] = images[i].get_forces()
+                calculate_and_hide(i)
         else:
             # Parallelize over images:
             i = rank * (self.nimages - 2) // size + 1
@@ -74,15 +103,19 @@ class NEB:
                 world.broadcast(energies[i - 1:i], root)
                 world.broadcast(forces[i - 1], root)
         
-        for i in range(1, self.nimages - 1):
-            # hide calculators
-            self.calculators[i] = self.images[i].get_calculator()
-            images[i].set_calculator(
-                SinglePointCalculator(energies[i - 1],
-                                      forces[i - 1],
-                                      None,
-                                      None,
-                                      images[i]))
+            for i in range(1, self.nimages - 1):
+                # hide calculators
+                self.calculators[i] = self.images[i].get_calculator()
+                images[i].set_calculator(
+                    SinglePointCalculator(energies[i - 1],
+                                          forces[i - 1],
+                                          None,
+                                          None,
+                                          images[i]))
+
+        if all and self.calculators[-1] is None:
+            calculate_and_hide(-1)
+
         self.energies_ok = True
        
     def get_forces(self):
