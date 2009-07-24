@@ -48,8 +48,14 @@ class Dynamics:
     def get_number_of_steps(self):
         return self.nsteps
 
-    def attach(self, function, interval=1, append=True,
-               *args, **kwargs):
+    def insert_observer(self, function, position=0, interval=1, 
+                        *args, **kwargs):
+        """Insert an observer."""
+        if not callable(function):
+            function = function.write
+        self.observers.insert(position, (function, interval, args, kwargs))
+
+    def attach(self, function, interval=1, *args, **kwargs):
         """Attach callback function.
 
         At every *interval* steps, call *function* with arguments
@@ -57,10 +63,7 @@ class Dynamics:
 
         if not callable(function):
             function = function.write
-        if append:
-            self.observers.append((function, interval, args, kwargs))
-        else:
-            self.observers.insert(0, (function, interval, args, kwargs))
+        self.observers.append((function, interval, args, kwargs))
 
     def call_observers(self):
         for function, interval, args, kwargs in self.observers:
