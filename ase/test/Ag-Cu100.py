@@ -47,6 +47,7 @@ for image in images:
 #dyn = FIRE(neb, dt=0.4)
 dyn = QuasiNewton(neb, trajectory='mep.traj')
 dyn.run(fmax=0.05)
+neb.set_calculators(neb.get_calculators())
 
 for image in images:
     print image.positions[-1], image.get_potential_energy()

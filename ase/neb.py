@@ -43,8 +43,19 @@ class NEB:
             n2 = n1 + self.natoms
             image.set_positions(positions[n1:n2])
             n1 = n2
+
+    def get_calculators(self):
+        """Return the original calculators."""
+        calculators = []
+        for i, image in enumerate(self.images):
+            if self.calculators[i] is None:
+                calculators.append(image.get_calculator())
+            else:
+                calculators.append(self.calculators[i])
+        return calculators
     
     def set_calculators(self, calculators):
+        """Set new calculators to the images."""
         self.energies_ok = False
 
         if not isinstance(calculators, list):
@@ -70,6 +81,7 @@ class NEB:
         images = self.images
         forces = np.zeros(((self.nimages - 2), self.natoms, 3))
         energies = np.zeros(self.nimages - 2)
+        self.emax = -1.e32
 
         def calculate_and_hide(i):
             image = self.images[i]
@@ -84,6 +96,7 @@ class NEB:
                                           None,
                                           None,
                                           image))
+            self.emax = min(self.emax, image.get_potential_energy())
 
 
         if all and self.calculators[0] is None:
