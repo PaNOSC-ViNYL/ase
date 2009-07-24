@@ -172,7 +172,9 @@ class SinglePointCalculator:
     def calculation_required(self, atoms, quantities):
         ok = self.atoms == atoms
         return ('forces' in quantities and (self.forces is None or not ok) or
-                ('energy' in quantities and (self.energy is None or not ok)))
+                'energy' in quantities and (self.energy is None or not ok) or
+                'stress' in quantities and (self.stress is None or not ok) or
+                'magmoms' in quantities and (self.magmoms is None or not ok))
 
     def update(self, atoms):
         if self.atoms != atoms:
@@ -197,7 +199,7 @@ class SinglePointCalculator:
         return self.stress
 
     def get_spin_polarized(self):
-        return self.magmoms is not None
+        return self.magmoms is not None and self.magmoms.any()
 
     def get_magnetic_moments(self, atoms):
         self.update(atoms)
