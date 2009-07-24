@@ -49,11 +49,14 @@ def read(filename, index=-1, format=None):
     p = filename.rfind('@')
     if p != -1:
         try:
-            index = string2index(filename[p + 1:])
+            index = filename[p + 1:]
         except ValueError:
             pass
         else:
             filename = filename[:p]
+
+    if isinstance(index, str):
+        index = string2index(index)
 
     if format is None:
         format = filetype(filename)
