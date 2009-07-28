@@ -14,9 +14,7 @@ class NEB:
         self.natoms = len(images[0])
         self.nimages = len(images)
         self.emax = np.nan
-        self.calculators = [None] * self.nimages
-        self.energies_ok = False
- 
+
     def interpolate(self):
         pos1 = self.images[0].get_positions()
         pos2 = self.images[-1].get_positions()
@@ -34,15 +32,79 @@ class NEB:
         return positions
 
     def set_positions(self, positions):
-        # new positions -> new forces
-        if self.energies_ok:
-            # restore calculators
-            self.set_calculators(self.calculators[1:-1])
         n1 = 0
         for image in self.images[1:-1]:
             n2 = n1 + self.natoms
             image.set_positions(positions[n1:n2])
             n1 = n2
+        
+    def get_forces(self):
+        """Evaluate and return the forces."""
+        images = self.images
+        forces = np.empty(((self.nimages - 2), self.natoms, 3))
+        energies = np.empty(self.nimages - 2)
+
+        if not self.parallel:
+            # Do all images - one at a time:
+            for i in range(1, self.nimages - 1):
+                energies[i - 1] = images[i].get_potential_energy()
+                forces[i - 1] = images[i].get_forces()
+        else:
+            # Parallelize over images:
+            i = rank * (self.nimages - 2) // size + 1
+            energies[i - 1] = images[i].get_potential_energy()
+            forces[i - 1] = images[i].get_forces()
+            for i in range(1, self.nimages - 1):
+                root = (i - 1) * size // (self.nimages - 2)
+                world.broadcast(energies[i - 1:i], root)
+                world.broadcast(forces[i - 1], root)
+
+        imax = 1 + np.argsort(energies)[-1]
+        self.emax = energies[imax - 1]
+        
+        tangent1 = images[1].get_positions() - images[0].get_positions()
+        for i in range(1, self.nimages - 1):
+            tangent2 = (images[i + 1].get_positions() -
+                        images[i].get_positions())
+            if i < imax:
+                tangent = tangent2
+            elif i > imax:
+                tangent = tangent1
+            else:
+                tangent = tangent1 + tangent2
+                
+            tt = np.vdot(tangent, tangent)
+            f = forces[i - 1]
+            ft = np.vdot(f, tangent)
+            if i == imax and self.climb:
+                f -= 2 * ft / tt * tangent
+            else:
+                f -= ft / tt * tangent
+                f -= (np.vdot(tangent1 - tangent2, tangent) *
+                      self.k / tt * tangent)
+                
+            tangent1 = tangent2
+
+        return forces.reshape((-1, 3))
+
+    def get_potential_energy(self):
+        return self.emax
+
+    def __len__(self):
+        return (self.nimages - 2) * self.natoms
+
+class SingleCalculatorNEB(NEB):
+    def __init__(self, images, k=0.1, climb=False):
+        NEB.__init__(self, images, k, climb, False)
+        self.calculators = [None] * self.nimages
+        self.energies_ok = False
+ 
+    def set_positions(self, positions):
+        # new positions -> new forces
+        if self.energies_ok:
+            # restore calculators
+            self.set_calculators(self.calculators[1:-1])
+        NEB.set_positions(self, positions)
 
     def get_calculators(self):
         """Return the original calculators."""
@@ -102,29 +164,9 @@ class NEB:
         if all and self.calculators[0] is None:
             calculate_and_hide(0)
 
-        if not self.parallel:
-            # Do all images - one at a time:
-            for i in range(1, self.nimages - 1):
-                calculate_and_hide(i)
-        else:
-            # Parallelize over images:
-            i = rank * (self.nimages - 2) // size + 1
-            energies[i - 1] = images[i].get_potential_energy()
-            forces[i - 1] = images[i].get_forces()
-            for i in range(1, self.nimages - 1):
-                root = (i - 1) * size // (self.nimages - 2)
-                world.broadcast(energies[i - 1:i], root)
-                world.broadcast(forces[i - 1], root)
-        
-            for i in range(1, self.nimages - 1):
-                # hide calculators
-                self.calculators[i] = self.images[i].get_calculator()
-                images[i].set_calculator(
-                    SinglePointCalculator(energies[i - 1],
-                                          forces[i - 1],
-                                          None,
-                                          None,
-                                          images[i]))
+        # Do all images - one at a time:
+        for i in range(1, self.nimages - 1):
+            calculate_and_hide(i)
 
         if all and self.calculators[-1] is None:
             calculate_and_hide(-1)
@@ -133,49 +175,7 @@ class NEB:
        
     def get_forces(self):
         self.get_energies_and_forces()
-
-        images = self.images
-        forces = np.empty(((self.nimages - 2), self.natoms, 3))
-        energies = np.empty(self.nimages - 2)
-
-        for i in range(1, self.nimages - 1):
-            energies[i - 1] = images[i].get_potential_energy()
-            forces[i - 1] = images[i].get_forces()
-
-        imax = 1 + np.argsort(energies)[-1]
-        self.emax = energies[imax - 1]
-        
-        tangent1 = images[1].get_positions() - images[0].get_positions()
-        for i in range(1, self.nimages - 1):
-            tangent2 = (images[i + 1].get_positions() -
-                        images[i].get_positions())
-            if i < imax:
-                tangent = tangent2
-            elif i > imax:
-                tangent = tangent1
-            else:
-                tangent = tangent1 + tangent2
-                
-            tt = np.vdot(tangent, tangent)
-            f = forces[i - 1]
-            ft = np.vdot(f, tangent)
-            if i == imax and self.climb:
-                f -= 2 * ft / tt * tangent
-            else:
-                f -= ft / tt * tangent
-                f -= (np.vdot(tangent1 - tangent2, tangent) *
-                      self.k / tt * tangent)
-                
-            tangent1 = tangent2
-
-        self.forces = forces.reshape((-1, 3))
-        return self.forces
-
-    def get_potential_energy(self):
-        return self.emax
-
-    def __len__(self):
-        return (self.nimages - 2) * self.natoms
+        return NEB.get_forces(self)
 
 
 def fit(images):

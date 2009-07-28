@@ -17,7 +17,7 @@ from ase.md.verlet import VelocityVerlet
 from ase.md.langevin import Langevin
 from ase.constraints import *
 from ase.calculators import LennardJones, EMT, ASAP, Siesta, Dacapo, Vasp
-from ase.neb import NEB
+from ase.neb import NEB, SingleCalculatorNEB
 from ase.visualize import view
 from ase.data import chemical_symbols, atomic_numbers, atomic_names, \
      atomic_masses, covalent_radii, reference_states

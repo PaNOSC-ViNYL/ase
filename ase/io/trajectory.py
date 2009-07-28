@@ -128,9 +128,13 @@ class PickleTrajectory:
         if atoms is None:
             atoms = self.atoms
 
-        if isinstance(atoms, NEB):
+        if hasattr(atoms, 'interpolate'):
+            # seems to be a NEB
             neb = atoms
-            neb.get_energies_and_forces(all=True)
+            try:
+                neb.get_energies_and_forces(all=True)
+            except AttributeError:
+                pass
             for image in neb.images:
                 self.write(image)
             return
