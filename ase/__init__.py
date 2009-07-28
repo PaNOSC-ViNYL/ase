@@ -12,7 +12,8 @@ from ase.io.trajectory import PickleTrajectory
 from ase.dft import STM, monkhorst_pack, DOS
 from ase.optimize.mdmin import MDMin
 from ase.optimize.fire import FIRE
-from ase.optimize.qn import QuasiNewton
+from ase.optimize.lbfgs import LBFGS, LineMinimizerLBFGS
+from ase.optimize.bfgs import BFGS
 from ase.md.verlet import VelocityVerlet
 from ase.md.langevin import Langevin
 from ase.constraints import *
@@ -27,3 +28,5 @@ from math import sqrt, pi
 import numpy as np
 #import scipy as sp
 #import matplotlib.pyplot as plt
+
+QuasiNewton = LBFGS

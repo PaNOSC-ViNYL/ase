@@ -6,15 +6,16 @@ Structure optimization
 .. module:: optimize
    :synopsis: Structure Optimization
 
-There are currently 4 different optimization algorithms available:
-``QuasiNewton``, ``MDMin``, ``FIRE``, and ``LBFGS``.
+There are currently 5 different optimization algorithms available:
+``BFGS``, ``LBFGS``, ``LineMinimizerLBFGS``, ``MDMin``, and ``FIRE``.
 
 ``MDMin`` and ``FIRE`` both use Newtonian dynamics with added
-friction, to converge to an energy minimum, whereas ``QuasiNewton``
-uses the forces of consecutive steps to dynamically update a Hessian
-describing the curvature of the potential energy landscape. ``GLBFGS``
-is an experimental optimizer designed for simultaneous update of the
-images along a nudged elastic band trajectory.
+friction, to converge to an energy minimum, whereas the first 3 are of
+the quasi-Newton type, where the forces of consecutive steps are used
+to dynamically update a Hessian describing the curvature of the
+potential energy landscape.  You can use the ``QuasiNewton`` synonym
+for ``LBFGS`` because this algorithm is in many cases the optimal one
+of the three quasi-Newton algorithms.
 
 All optimizer classes have the following structure::
 
@@ -29,37 +30,38 @@ should be less than *fmax*:
 .. math:: \max_a |\vec{F_a}| < fmax
 
 
-QuasiNewton
------------
+BFGS
+----
 .. module:: optimize.qn
    :synopsis: Quasi-Newton
 
-The ``QuasiNewton`` object is one of the minimizers in the ASE
+The ``BFGS`` object is one of the minimizers in the ASE
 package.  Let's try to use it to optimize the structure of a water
 molecule.  We start with the experimental geometry::
 
   from ase import *
+  import numpy as np
   d = 0.9575
   t = pi / 180 * 104.51
   water = Atoms('H2O',
                 positions=[(d, 0, 0),
-                           (d * cos(t), d * sin(t), 0),
+                           (d * np.cos(t), d * np.sin(t), 0),
                            (0, 0, 0)],
                 calculator=EMT())
-  dyn = QuasiNewton(water)
+  dyn = BFGS(water)
   dyn.run(fmax=0.05)
-  QuasiNewton:   0        6.445801      51.6847
-  QuasiNewton:   1        2.418583      27.2946
-  QuasiNewton:   2        0.551767      12.1607
-  QuasiNewton:   3       -0.039301       4.0520
-  QuasiNewton:   4       -0.128045       0.8479
-  QuasiNewton:   5       -0.132312       0.0397
+  BFGS:   0  16:14:26        6.445801      51.6847
+  BFGS:   1  16:14:26        2.418583      27.2946
+  BFGS:   2  16:14:26        0.620874      13.0140
+  BFGS:   3  16:14:26       -0.028619       4.4019
+  BFGS:   4  16:14:26       -0.129349       0.7307
+  BFGS:   5  16:14:26       -0.132320       0.0138
 
 When doing structure optimization, it is useful to write the
 trajectory to a file, so that the progress of the optimization run can
 be followed during or after the run::
 
-  dyn = QuasiNewton(water, trajectory='H2O.traj')
+  dyn = BFGS(water, trajectory='H2O.traj')
   dyn.run(fmax=0.05)
   
 Use the command ``ag H2O.traj`` to see what is going on (more here:
@@ -70,7 +72,7 @@ The ``attach`` method takes an optional argument ``interval=n`` that can
 be used to tell the structure optimizer object to write the
 configuration to the trajectory file only every ``n`` steps.
 
-During a structure optimization, the :class:`QuasiNewton` and
+During a structure optimization, the :class:`BFGS` and
 :class:`LBFGS` optimizers use two quantities to decide where to move
 the atoms on each step:
 
@@ -94,7 +96,7 @@ Aside from the geometry, the Hessian of the previous run can and
 should be retained for the second run.  Use the ``restart`` keyword to
 specify a file in which to save the Hessian::
 
-  dyn = QuasiNewton(system, trajectory='qn.traj', restart='qn.pckl')
+  dyn = BFGS(system, trajectory='qn.traj', restart='qn.pckl')
 
 This will create an optimizer which saves the Hessian to
 :file:`qn.pckl` (using the Python :mod:`pickle` module) on each
@@ -106,7 +108,7 @@ optimization, since it contains the history of all forces and
 positions, and thus whichever information about the Hessian was
 assembled so far::
 
-  dyn = QuasiNewton(system, trajectory='qn.traj')
+  dyn = BFGS(system, trajectory='qn.traj')
   dyn.replay_trajectory('history.traj')
 
 This will read through each iteration stored in :file:`history.traj`,
@@ -121,18 +123,19 @@ The file :file:`history.traj` will then contain all necessary
 information.
 
 When switching between different types of optimizers, e.g. between
-``QuasiNewton`` and ``LBFGS``, the pickle-files specified by the
+``BFGS`` and ``LBFGS``, the pickle-files specified by the
 ``restart`` keyword are not compatible, but the Hessian can still be
 retained by replaying the trajectory as above.
+
 
 LBFGS
 -----
 .. module:: optimize.lbfgs
 
-The LBFGS is the limited memory version of BFGS algorithm, where 
+LBFGS is the limited memory version of the BFGS algorithm, where 
 the inverse of Hessian matrix is updated instead of the Hessian
-itself. Tow ways exist in the LBFGS class for determining atomic
-step, which are called ``HessLBFGS`` and ``LineLBFGS``. For the 
+itself. Two ways exist for determining the atomic
+step: Standard ``LBFGS`` and ``LineMinimizerLBFGS``. For the 
 first one, both the directions and lengths of the atomic steps 
 are determined by the approximated Hessian matrix. While for the 
 latter one, the approximated Hessian matrix is only used to find 
@@ -140,18 +143,31 @@ out the directions of the line searches and atomic steps, the
 step lengths are determined by the forces. 
 
 To start a structure optimization with LBFGS algorithm is similar to
-QuasiNewton. A typical optimization should look like::
+BFGS. A typical optimization should look like::
 
-  dyn = HessLBFGS(system, trajectory='lbfgs.traj', restart='lbfgs.pckl')
+  dyn = LBFGS(system, trajectory='lbfgs.traj', restart='lbfgs.pckl')
 
 where the trajectory and the restart save the trajectory of the 
 optimization and the vectors needed to generate the Hessian Matrix.
+
+.. note::
+
+   In many of the examples, tests, exercises and tutorials,
+   ``QuasiNewton`` is used -- it is a synonym for ``LBFGS``.
+
 
 FIRE
 ----
 .. module:: optimize.fire
 
-...
+Read about this algorithm here:
+
+  | Erik Bitzek, Pekka Koskinen, Franz Gähler, Michael Moseler, and Peter Gumbsch
+  | `Structural Relaxation Made Simple`__
+  | Physical Review Letters, Vol. **97**, 170201 (2006)
+
+__ http://dx.doi.org/10.1103/PhysRevLett.97.170201
+
 
 MDMin
 -----

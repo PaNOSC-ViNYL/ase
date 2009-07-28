@@ -57,6 +57,8 @@ class Movie(gtk.Window):
         self.add(vbox)
         self.set_tip = gtk.Tooltips().set_tip
         self.set_tip(hscale, _('Adjust play time.'))
+        #hscale.set_tooltip_text(_('Adjust play time.'))
+
         vbox.show()
         self.show()
         self.gui = gui

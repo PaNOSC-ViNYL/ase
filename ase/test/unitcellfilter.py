@@ -1,5 +1,5 @@
 from ase import *
-from ase.optimize.lbfgs import LineLBFGS, HessLBFGS
+from ase.optimize.lbfgs import LBFGS
 from ase.constraints import StrainFilter
 a = 3.6
 b = a / 2
@@ -11,7 +11,7 @@ except ImportError:
 else:
     cu.set_calculator(ASAP())
     f = UnitCellFilter(cu, [1, 1, 1, 0, 0, 0])
-    opt = HessLBFGS(f)
+    opt = LBFGS(f)
     t = PickleTrajectory('Cu-fcc.traj', 'w', cu)
     opt.attach(t)
     opt.run(5.0)

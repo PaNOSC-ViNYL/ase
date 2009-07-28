@@ -4,7 +4,7 @@ from ase.optimize import Optimizer
 from ase.neb import *
 import random
 
-class _LBFGS(Optimizer):
+class BaseLBFGS(Optimizer):
     """Limited memory bfgs algorithm. Unlike the bfgs algorithm used in qn.py,
        the inverse of hessian matrix is updated. 
 
@@ -173,13 +173,19 @@ class _LBFGS(Optimizer):
         self.r_old = traj[-2].get_positions()
         self.f_old = traj[-2].get_forces()
 
-class LineLBFGS(_LBFGS):
+class LineMinimizerLBFGS(BaseLBFGS):
     def __init__(self, *args, **kwargs):
         kwargs['method'] = 'line'
-        _LBFGS.__init__(self, *args, **kwargs)
+        BaseLBFGS.__init__(self, *args, **kwargs)
 
-class HessLBFGS(_LBFGS):
+class LBFGS(BaseLBFGS):
     def __init__(self, *args, **kwargs):
         kwargs['method'] = 'hess'
-        _LBFGS.__init__(self, *args, **kwargs)
+        BaseLBFGS.__init__(self, *args, **kwargs)
 
+def LineLBFGS(*args, **kwargs):
+    sys.stderr.write('Please use LineMinimizerLBFGS instead of LineLBFGS!')
+    return LineMinimizerLBFGS(*args, **kwargs)
+def HessLBFGS(*args, **kwargs):
+    sys.stderr.write('Please use LBFGS instead of HessLBFGS!')
+    return LBFGS(*args, **kwargs)

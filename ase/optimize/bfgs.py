@@ -5,10 +5,10 @@ from numpy.linalg import eigh, solve
 from ase.optimize import Optimizer
 
 
-class QuasiNewton(Optimizer):
+class BFGS(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  maxstep=None):
-        """Quasi-Newton optimizer.
+        """BFGS optimizer.
 
         Parameters:
 
