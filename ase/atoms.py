@@ -147,6 +147,8 @@ class Atoms(object):
                 pbc = atoms.get_pbc()
             if constraint is None:
                 constraint = [c.copy() for c in atoms.constraints]
+            if calculator is None:
+                calculator = atoms.get_calculator()
 
         self.arrays = {}
         
