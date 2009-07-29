@@ -106,16 +106,15 @@ class Optimizer(Dynamics):
 
         self.fmax = fmax
         step = 0
-        f = self.atoms.get_forces()
         while step < steps:
+            f = self.atoms.get_forces()
             self.log(f)
+            self.call_observers()
             if self.converged(f):
                 return
             self.step(f)
             self.nsteps += 1
             step += 1
-            self.call_observers()
-            f = self.atoms.get_forces()
 
     def converged(self, forces=None):
         """Did the optimization converge?"""
