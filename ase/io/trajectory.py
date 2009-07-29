@@ -280,10 +280,15 @@ def write_trajectory(filename, images):
     for atoms in images:
         # Avoid potentially expensive calculations:
         calc = atoms.get_calculator()
-        if (calc is not None and
-            (not hasattr(calc, 'calculation_required') or
-             calc.calculation_required(atoms, ['energy', 'forces',
-                                               'stress', 'magmoms']))):
+        if calc is not None:
+            if  hasattr(calc, 'calculation_required'):
+                if calc.calculation_required(atoms, ['energy', 'forces']):
+                    traj.write_energy = False
+                    traj.write_forces = False
+                if calc.calculation_required(atoms, ['stress', 'magmoms']):
+                    traj.write_stress = False
+                    traj.write_magmoms = False
+        else:
             traj.write_energy = False
             traj.write_forces = False
             traj.write_stress = False
