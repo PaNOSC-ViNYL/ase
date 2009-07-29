@@ -178,7 +178,7 @@ class SinglePointCalculator:
 
     def update(self, atoms):
         if self.atoms != atoms:
-            raise RuntimeError('Energy, forces and strees no longer correct.')
+            raise RuntimeError('Energy, forces and stress no longer correct.')
 
     def get_potential_energy(self, atoms):
         self.update(atoms)
