@@ -176,7 +176,7 @@ class LineLBFGS(LineSearchLBFGS):
     def __init__(self, *args, **kwargs):
         if 'method' in kwargs:
             del kwargs['method']
-        sys.stderr.write('Please use LineMinimizerLBFGS instead of LineLBFGS!')
+        sys.stderr.write('Please use LineSearchLBFGS instead of LineLBFGS!')
         LineSearchLBFGS.__init__(self, *args, **kwargs)
 
 class HessLBFGS(LBFGS):
