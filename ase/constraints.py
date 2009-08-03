@@ -364,6 +364,14 @@ class Filter:
         """
         return self.atoms.get_potential_energy()
 
+    def get_calculator(self):
+        """Returns the calculator.
+
+        WARNING: The calculator is unaware of this filter, and sees a
+        different number of atoms.
+        """
+        return self.atoms.get_calculator()
+
     def has(self, name):
         """Check for existance of array."""
         return self.atoms.has(name)
