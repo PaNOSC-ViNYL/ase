@@ -1044,16 +1044,47 @@ class VaspDos(object):
     def site_dos(self, atom, orbital):
         """Return an NDOSx1 array with dos for the chosen atom and orbital.
 
+        atom: int
+            Atom index
+        orbital: int or str
+            Which orbital to plot
+
+        If the orbital is given as an integer:
         If spin-unpolarized calculation, no phase factors:
-        s = 1, p = 2, d = 3
+        s = 0, p = 1, d = 2
         Spin-polarized, no phase factors:
-        s-up = 1, s-down = 2, p-up = 3, p-down = 4, d-up = 5, d-down = 6
+        s-up = 0, s-down = 1, p-up = 2, p-down = 3, d-up = 4, d-down = 5
         If phase factors have been calculated, orbitals are
         s, py, pz, px, dxy, dyz, dz2, dxz, dx2
         double in the above fashion if spin polarized.
 
         """
-        return self._site_dos[atom, orbital, :]
+        # Integer indexing for orbitals starts from 1 in the _site_dos array
+        # since the 0th column contains the energies
+        if isinstance(orbital, int):
+            return self._site_dos[atom, orbital + 1, :]
+        n = self._site_dos.shape[1]
+        if n == 4:
+            norb = {'s':1, 'p':2, 'd':3}
+        elif n == 7:
+            norb = {'s+':1, 's-up':1, 's-':2, 's-down':2,
+                    'p+':3, 'p-up':3, 'p-':4, 'p-down':4,
+                    'd+':5, 'd-up':5, 'd-':6, 'd-down':6}
+        elif n == 10:
+            norb = {'s':1, 'py':2, 'pz':3, 'px':4,
+                    'dxy':5, 'dyz':6, 'dz2':7, 'dxz':8,
+                    'dx2':9}
+        elif n == 19:
+            norb = {'s+':1, 's-up':1, 's-':2, 's-down':2,
+                    'py+':3, 'py-up':3, 'py-':4, 'py-down':4,
+                    'pz+':5, 'pz-up':5, 'pz-':6, 'pz-down':6,
+                    'px+':7, 'px-up':7, 'px-':8, 'px-down':8,
+                    'dxy+':9, 'dxy-up':9, 'dxy-':10, 'dxy-down':10,
+                    'dyz+':11, 'dyz-up':11, 'dyz-':12, 'dyz-down':12,
+                    'dz2+':13, 'dz2-up':13, 'dz2-':14, 'dz2-down':14,
+                    'dxz+':15, 'dxz-up':15, 'dxz-':16, 'dxz-down':16,
+                    'dx2+':17, 'dx2-up':17, 'dx2-':18, 'dx2-down':18}
+        return self._site_dos[atom, norb[orbital.lower()], :]
 
     def _get_dos(self):
         if self._total_dos.shape[0] == 3:
