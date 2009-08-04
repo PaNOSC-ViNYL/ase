@@ -170,7 +170,8 @@ class Vasp:
             (self.input_parameters != self.old_input_parameters) or
             not self.converged
             ):
-            if self.positions.shape != atoms.positions.shape:
+            if (self.positions is None or
+                self.positions.shape != atoms.positions.shape):
                 # Completely new calculation just reusing the same
                 # calculator, so delete any old VASP files found.
                 self.clean()
