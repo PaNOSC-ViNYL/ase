@@ -35,7 +35,7 @@ def read_svnrevision(filename):
 
 def get_svnversion(dir='ase'):
     # try to get the last svn revision number from svnversion
-    cmd = popen3('svnversion -n '+dir)[1] # assert that we are in ase project
+    cmd = popen3('svnversion -cn '+dir)[1] # assert that we are in ase project
     output = cmd.read()
     cmd.close()
     svnrevisionfile = path.join(dir, 'svnrevision.py')
@@ -43,7 +43,7 @@ def get_svnversion(dir='ase'):
     if output.startswith('exported') and path.isfile(svnrevisionfile):
         # read the last svn revision number
         output = read_svnrevision(svnrevisionfile)
-    return output
+    return output.split(':')[-1]
 
 def svnversion(version):
     revision = version # the default output of this function
