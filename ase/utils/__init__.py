@@ -116,10 +116,15 @@ def hsv2rgb(h, s, v):
 
 
 def hsv(array, s=.9, v=.9):
-    # Only scale to 320, and not 360, to avoid minimal, and maximal values
-    # to have the same color.
-    array = (array + array.min()) * 320. / (array.max() - array.min())
-    result = npy.empty((len(array.flat), 3))
+    array = (array + array.min()) * 359. / (array.max() - array.min())
+    result = np.empty((len(array.flat), 3))
     for rgb, h in zip(result, array.flat):
         rgb[:] = hsv2rgb(h, s, v)
-    return npy.reshape(result, array.shape + (3,))
+    return np.reshape(result, array.shape + (3,))
+
+## This code does the same, but requires pylab
+## def cmap(array, name='hsv'):
+##     import pylab
+##     a = (array + array.min()) / array.ptp()
+##     rgba = getattr(pylab.cm, name)(a)
+##     return rgba[:-1] # return rgb only (not alpha) 
