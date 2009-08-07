@@ -19,9 +19,6 @@ def build():
     sys.path.insert(0, 'lib/python')
     from ase.test import test
     from ase.version import version
-    print version
-    import ase
-    print ase.__file__;asdfgh
 
     # Run test-suite:
     stream = open('test-results.txt', 'w')
