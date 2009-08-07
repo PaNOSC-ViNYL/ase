@@ -78,3 +78,48 @@ def irotate(rotation, initial=np.diag([1.0, -1, 1])):
     y = degrees(atan2(-sy, cy))
     z = degrees(atan2(-sz, cz))
     return x, y, z
+
+
+def hsv2rgb(h, s, v):
+    """http://en.wikipedia.org/wiki/HSL_and_HSV
+
+    h (hue) in [0, 360[
+    s (saturation) in [0, 1]
+    v (value) in [0, 1]
+
+    return rgb in range [0, 1]
+    """
+    if v == 0:
+        return 0, 0, 0
+    if s == 0:
+        return v, v, v
+
+    i, f = divmod(h / 60., 1)
+    p = v * (1 - s)
+    q = v * (1 - s * f)
+    t = v * (1 - s * (1 - f))
+
+    if i == 0:
+        return v, t, p
+    elif i == 1:
+        return q, v, p
+    elif i == 2:
+        return p, v, t
+    elif i == 3:
+        return p, q, v
+    elif i == 4:
+        return t, p, v
+    elif i == 5:
+        return v, p, q
+    else:
+        raise RuntimeError, 'h must be in [0, 360]'
+
+
+def hsv(array, s=.9, v=.9):
+    # Only scale to 320, and not 360, to avoid minimal, and maximal values
+    # to have the same color.
+    array = (array + array.min()) * 320. / (array.max() - array.min())
+    result = npy.empty((len(array.flat), 3))
+    for rgb, h in zip(result, array.flat):
+        rgb[:] = hsv2rgb(h, s, v)
+    return npy.reshape(result, array.shape + (3,))
