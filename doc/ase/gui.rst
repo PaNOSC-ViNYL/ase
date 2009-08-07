@@ -2,7 +2,7 @@
    :synopsis: Simple graphical user-interface for ASE.
 
 
-.. index:: gui
+.. index:: gui, ag, ase-gui
 
 =======
 ASE-GUI
