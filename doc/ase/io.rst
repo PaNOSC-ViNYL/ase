@@ -82,3 +82,6 @@ A script showing all of the povray parameters, and generating the image below,
 can be found here: :trac:`doc/ase/save_pov.py`
 
 .. image:: NaCl_C6H6.png
+
+An other example showing how to change colors and textures in pov can
+be found here: :trac:`doc/tutorials/saving_graphics.py`
