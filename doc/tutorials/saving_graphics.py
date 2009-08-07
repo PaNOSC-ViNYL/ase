@@ -11,7 +11,7 @@ from ase.utils import hsv
 colors = hsv(atoms.positions[:, 0])
 
 # Textures
-tex = ['jmol',] * 432 + ['vmd',] * 432+ ['ase3',] * 288
+tex = ['jmol',] * 288 + ['glass',] * 288+ ['ase3',] * 288 + ['vmd',] * 288
 
 
 # keywords
@@ -27,8 +27,7 @@ extra_kwargs = { # For povray files only
 'transparent'  : False, # Transparent background
 'canvas_width' : None,  # Width of canvas in pixels
 'canvas_height': None,  # Height of canvas in pixels 
-'camera_dist'  : 10.,   # Distance from camera to image plane
-'camera_type'  : 'orthographic', # perspective, ultra_wide_angle
+'camera_type'  : 'perspective', # perspective, ultra_wide_angle
 'point_lights' : [],             # [[loc1, color1], [loc2, color2],...]
 'area_light'   : [(2., 3., 40.) ,# location
                   'White',       # color
@@ -37,7 +36,15 @@ extra_kwargs = { # For povray files only
 'textures'     : tex, # Length of atoms list of texture names
 }
 
-# Make graphics files
+# Make flat png file
 write('flat.png', atoms, **kwargs)
+
+# Make the color of the glass beads semi-transparent
+colors2 = np.zeros((1152, 4))
+colors2[:, :3] = colors
+colors2[288: 576, 3] = 0.95
+kwargs['colors'] = colors2
 kwargs.update(extra_kwargs)
+
+# Make the raytraced image
 write('nice.pov', atoms, run_povray=True, **kwargs)
