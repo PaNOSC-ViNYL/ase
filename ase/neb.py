@@ -95,10 +95,42 @@ class NEB:
 
 class SingleCalculatorNEB(NEB):
     def __init__(self, images, k=0.1, climb=False):
+        if isinstance(images, str):
+            # this is a filename
+            from ase.io.trajectory import PickleTrajectory
+            traj = PickleTrajectory(images)
+            images = []
+            for atoms in traj:
+                images.append(atoms)
+            traj.close()
+
         NEB.__init__(self, images, k, climb, False)
         self.calculators = [None] * self.nimages
         self.energies_ok = False
  
+    def interpolate(self, initial=0, final=-1):
+        """Interpolate linearly between initial and final images."""
+        if final < 0:
+            final = self.nimages + final
+        n = final - initial
+        pos1 = self.images[initial].get_positions()
+        pos2 = self.images[final].get_positions()
+        d = (pos2 - pos1) / n
+        for i in range(1, n):
+            self.images[initial + i].set_positions(pos1 + i * d)
+
+    def refine(self, steps=1):
+        """Refine the NEB trajectory."""
+        j = 0
+        n = self.nimages - 1
+        for i in range(n):
+            for k in range(steps):
+                self.images.insert(j + 1, self.images[j].copy())
+                self.calculators.insert(j + 1, None)
+            self.nimages = len(self.images)
+            self.interpolate(j, j + steps + 1)
+            j += steps + 1
+
     def set_positions(self, positions):
         # new positions -> new forces
         if self.energies_ok:
@@ -148,7 +180,6 @@ class SingleCalculatorNEB(NEB):
         def calculate_and_hide(i):
             image = self.images[i]
             calc = image.get_calculator()
-##            print "<calculate_and_hide> i, calc=", i, calc
             if self.calculators[i] is None:
                 self.calculators[i] = calc
             if not isinstance(calc, SinglePointCalculator):
@@ -177,6 +208,13 @@ class SingleCalculatorNEB(NEB):
         self.get_energies_and_forces()
         return NEB.get_forces(self)
 
+    def n(self):
+        return self.nimages
+
+    def write(self, filename):
+        from ase.io.trajectory import PickleTrajectory
+        traj = PickleTrajectory(filename, 'w', self)
+        traj.close()
 
 def fit(images):
     E = [i.get_potential_energy() for i in images]
