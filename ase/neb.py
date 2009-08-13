@@ -119,10 +119,12 @@ class SingleCalculatorNEB(NEB):
         for i in range(1, n):
             self.images[initial + i].set_positions(pos1 + i * d)
 
-    def refine(self, steps=1):
+    def refine(self, steps=1, begin=0, end=-1):
         """Refine the NEB trajectory."""
-        j = 0
-        n = self.nimages - 1
+        if end < 0:
+            end = self.nimages + end
+        j = begin
+        n = end - begin
         for i in range(n):
             for k in range(steps):
                 self.images.insert(j + 1, self.images[j].copy())
