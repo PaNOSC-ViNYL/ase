@@ -60,7 +60,7 @@ def read_aims(filename):
         atoms.set_constraint(fix_cart)
     return atoms
 
-def write_aims(filename, atoms, cell=False):
+def write_aims(filename, atoms, cell=None):
     """Method to write FHI-aims geometry files.
 
     Writes the atoms positions and constraints (only FixAtoms is
@@ -71,13 +71,22 @@ def write_aims(filename, atoms, cell=False):
     from ase.constraints import FixAtoms, FixCartesian
     import numpy as np
 
+    if cell is None:
+        cell = []
+        for b in atoms.get_pbc():
+            cell.append(b)
+    elif type(cell) is bool:
+        cell = [bool, bool, bool]
     fd = open(filename, 'w')
-    if cell:
-        for vector in atoms.get_cell():
+    i = 0
+    for n, vector in enumerate(atoms.get_cell()):
+        if cell[n]:
+            i = 1
             fd.write('lattice_vector ')
             for i in range(3):
                 fd.write('%16.16f ' % vector[i])
             fd.write('\n')
+    if i:
         fd.write('\n')
     fix = []
     fix_cart = {}
