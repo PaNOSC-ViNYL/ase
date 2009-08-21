@@ -42,12 +42,12 @@ class BaseLBFGS(Optimizer):
         self.dR = dR
         self.memory = memory
         self.damping = damping
+        self.Ho = 1.0
 
     def initialize(self):
         self.ITR = None
         self.f_old = None
         self.r_old = None
-        self.Ho = 1.0
 
     def read(self):
         (self.ITR, self.s, self.y, self.rho, self.r_old, 
