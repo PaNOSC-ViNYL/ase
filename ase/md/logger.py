@@ -75,8 +75,6 @@ class MDlogger:
     def close(self):
         if self.ownlogfile:
             self.logfile.close()
-        else:
-            self.logfile.flush()
 
     def __call__(self):
         epot = self.atoms.get_potential_energy()
