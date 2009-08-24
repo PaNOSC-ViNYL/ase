@@ -13,14 +13,16 @@ for manipulating atoms, analyzing simulations, visualization etc.
 
 Supported :mod:`calculators`:
 
-   |gpaw| Dacapo_ Asap_ :mod:`EMT <emt>` |abinit| |siesta| |vasp|
+   |abinit| Asap_ Dacapo_ |elk| :mod:`EMT <emt>` |gpaw| |siesta| |vasp|
 
-
-.. |gpaw| image:: _static/gpaw.png
-   :target: http://wiki.fysik.dtu.dk/gpaw
-   :align: middle
 .. |abinit| image:: _static/abinit.png
    :target: ase/calculators/abinit.html
+   :align: middle
+.. |elk| image:: _static/elk.png
+   :target: http://elk.sourceforge.net/
+   :align: middle
+.. |gpaw| image:: _static/gpaw.png
+   :target: http://wiki.fysik.dtu.dk/gpaw
    :align: middle
 .. |siesta| image:: _static/siesta.png
    :target: ase/calculators/siesta.html
@@ -34,8 +36,6 @@ Supported :mod:`calculators`:
 .. _MMTK: http://dirac.cnrs-orleans.fr/MMTK
 .. _Python: http://www.python.org
 .. _Trac: http://trac.fysik.dtu.dk/projects/ase/report/1
-
-  
 
 
 News

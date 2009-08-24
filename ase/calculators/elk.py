@@ -1,5 +1,7 @@
 import os
 
+import numpy as np
+
 from ase.units import Bohr, Hartree
 
 elk_parameters = {
@@ -35,7 +37,13 @@ class ELK:
         assert os.system('cd %s; elk' % self.dir) == 0
         self.read()
         return self.energy
-    
+
+    def get_forces(self, atoms):
+        return self.forces.copy()
+
+    def get_stress(self, atoms):
+        return self.stress.copy()
+
     def write(self, atoms):
         if not os.path.isdir(self.dir):
             os.mkdir(self.dir)
@@ -75,3 +83,19 @@ class ELK:
     def read(self):
         fd = open('%s/TOTENERGY.OUT' % self.dir, 'r')
         self.energy = float(fd.readlines()[-1]) * Hartree
+        # Forces:
+        INFO_file = '%s/INFO.OUT' % self.dir
+        if os.path.isfile(INFO_file) or os.path.islink(INFO_file):
+            text = open(INFO_file).read().lower()
+            lines = iter(text.split('\n'))
+            forces = []
+            atomnum = 0
+            for line in lines:
+                if line.rfind('total force') > -1:
+                    forces.append(np.array([float(f) for f in line.split(':')[1].split()]))
+                    atomnum =+ 1
+            self.forces = np.array(forces)
+        else:
+            raise RuntimeError
+        # Stress
+        self.stress = np.empty((3, 3))
