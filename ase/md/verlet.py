@@ -4,8 +4,10 @@ from ase.md import MolecularDynamics
 
 
 class VelocityVerlet(MolecularDynamics):
-    def __init__(self, atoms, dt, trajectory=None):
-        MolecularDynamics.__init__(self, atoms, dt, trajectory)
+    def __init__(self, atoms, dt, trajectory=None, logfile=None,
+                 loginterval=None):
+        MolecularDynamics.__init__(self, atoms, dt, trajectory, logfile,
+                                   loginterval)
             
     def step(self, f):
         atoms = self.atoms

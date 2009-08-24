@@ -40,8 +40,10 @@ class Langevin(MolecularDynamics):
     This dynamics accesses the atoms using Cartesian coordinates."""
     
     def __init__(self, atoms, timestep, temperature, friction, fixcm=True,
-                 trajectory=None, communicator=gpaw_world):
-        MolecularDynamics.__init__(self, atoms, timestep, trajectory)
+                 trajectory=None, logfile=None, loginterval=1,
+                 communicator=gpaw_world):
+        MolecularDynamics.__init__(self, atoms, timestep, trajectory,
+                                   logfile, loginterval)
         self.temp = temperature
         self.frict = friction
         self.fixcm = fixcm  # will the center of mass be held fixed?

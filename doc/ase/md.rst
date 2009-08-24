@@ -56,6 +56,40 @@ the dynamics, and it is *stongly recommended* to use the optional
 ``interval`` argument, so every time step is not written to the file.
 
 
+Logging
+=======
+
+A logging mechanism is provided, printing time; total ,potential and
+kinetic energy; and temperature (calculated from the kinetic energy).
+It is enabled by giving the ``logfile`` argument when the dynamics
+object is created, ``logfile`` may be an open file, a filename or the
+string '-' meaning standard output.  Per default, a line is printed
+for each timestep, specifying the ``loginterval`` argument will chance
+this to a more reasonable frequency.
+
+The logging can be customized by explicitly attaching a
+:class:`ase.md.MDlogger` object to the dynamics::
+
+  from ase.md import MDlogger
+  dyn = VelocityVerlet(atoms, dt=2*ase.units.fs)
+  dyn.attach(MDlogger(dyn, atoms, 'md.log', header=False, stress=False,
+             peratom=True, mode="a"), interval=1000)
+
+This example will skip the header line and write energies per atom
+instead of total energies.  The parameters are
+
+  ``header``: Print a header line defining the columns.
+
+  ``stress``: Print the six components of the stress tensor.
+
+  ``peratom``:  Print energy per atom instead of total energy.
+
+  ``mode``:  If 'a', append to existing file, if 'w' overwrite
+  existing file.
+
+Despite appearances, attaching a logger like this does *not* create a
+cyclic reference to the dynamics.
+
 Constant NVE simulations (the microcanonical ensemble)
 ======================================================
 

@@ -133,8 +133,9 @@ class NPT(MolecularDynamics):
     classname = "NPT"  # Used by the trajectory.
     def __init__(self, atoms, 
                  timestep, temperature, externalstress, ttime, pfactor,
-                 mask=None, trajectory=None):
-        MolecularDynamics.__init__(self, atoms, timestep, trajectory)
+                 mask=None, trajectory=None, logfile=None, loginterval=1):
+        MolecularDynamics.__init__(self, atoms, timestep, trajectory,
+                                   logfile, loginterval)
         #self.atoms = atoms
         #self.timestep = timestep
         self.zero_center_of_mass_momentum(verbose=1)
