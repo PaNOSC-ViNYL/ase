@@ -58,6 +58,28 @@ class SimpleCubicFactory(Bravais):
         vol2 = (self.calc_num_atoms() * self.latticeconstant**3 / cellsize)
         assert abs(vol1-vol2) < 1e-5
 
+    def find_directions(self, directions, miller):
+        "Find missing directions and miller indices from the specified ones."
+        directions = list(directions)
+        miller = list(miller)
+        # Process keyword "orthogonal"
+        self.find_ortho(directions)
+        self.find_ortho(miller)
+        Bravais.find_directions(self, directions, miller)
+        
+    def find_ortho(self, idx):
+        "Replace keyword 'ortho' or 'orthogonal' with a direction."
+        for i in range(3):
+            if isinstance(idx[i], str) and (idx[i].lower() == "ortho" or
+                                            idx[i].lower() == "orthogonal"):
+                if self.debug:
+                    print "Calculating orthogonal direction", i
+                    print  idx[i-2], "X", idx[i-1],  
+                idx[i] = reduceindex(cross(idx[i-2], idx[i-1]))
+                if self.debug:
+                    print "=", idx[i]
+                
+
 SimpleCubic = SimpleCubicFactory()
 
 class FaceCenteredCubicFactory(SimpleCubicFactory):
