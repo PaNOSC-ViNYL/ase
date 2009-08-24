@@ -3,6 +3,7 @@
 import weakref
 import sys
 import ase.units as units
+# ase.parallel imported in __init__
 
 class MDlogger:
     """Class for logging molecular dynamics simulations.
@@ -22,6 +23,9 @@ class MDlogger:
     """
     def __init__(self, dyn, atoms, logfile, header=True, stress=False,
                  peratom=False, mode="a"):
+        import ase.parallel
+        if ase.parallel.rank > 0:
+            logfile="/dev/null"  # Only log on master
         if hasattr(dyn, "get_time"):
             self.dyn = weakref.proxy(dyn)
         else:
