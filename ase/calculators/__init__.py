@@ -44,8 +44,8 @@ class Calculator:
 
         Check if the quantities in the *quantities* list have already
         been calculated for the atomic configuration *atoms*.  The
-        quantities can be one or more of: 'energy', 'forces', and
-        'stress'."""
+        quantities can be one or more of: 'energy', 'forces', 'stress',
+        and 'magmoms'."""
         return False
 
     def set_atoms(self, atoms):
