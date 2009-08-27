@@ -98,7 +98,7 @@ class SingleCalculatorNEB(NEB):
     def __init__(self, images, k=0.1, climb=False):
         if isinstance(images, str):
             # this is a filename
-            traj = read(images, '0:-1')
+            traj = read(images, '0:')
             images = []
             for atoms in traj:
                 images.append(atoms)
