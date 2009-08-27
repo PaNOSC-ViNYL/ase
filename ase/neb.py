@@ -4,6 +4,7 @@ import numpy as np
 
 from ase.parallel import world, rank, size
 from ase.calculators import SinglePointCalculator
+from ase.io import read
 
 class NEB:
     def __init__(self, images, k=0.1, climb=False, parallel=False):
@@ -97,12 +98,10 @@ class SingleCalculatorNEB(NEB):
     def __init__(self, images, k=0.1, climb=False):
         if isinstance(images, str):
             # this is a filename
-            from ase.io.trajectory import PickleTrajectory
-            traj = PickleTrajectory(images)
+            traj = read(images, '0:-1')
             images = []
             for atoms in traj:
                 images.append(atoms)
-            traj.close()
 
         NEB.__init__(self, images, k, climb, False)
         self.calculators = [None] * self.nimages

@@ -50,11 +50,14 @@ dyn.run(fmax=0.1)
 neb = SingleCalculatorNEB([initial, final])
 neb.refine(2)
 neb.set_calculators(EMT())
-assert(len(neb.images) == 4)
+assert(neb.n() == 4)
 
 dyn = Optimizer(neb, maxstep=0.04, trajectory='mep_2coarse.traj')
 dyn.run(fmax=0.1)
 #dyn.run(fmax=39.1)
+
+# read from the trajectory
+neb = SingleCalculatorNEB('mep_2coarse.traj@-4:')
 
 # refine in the important region
 neb.refine(2, 1, 3)
