@@ -18,7 +18,7 @@ class PickleTrajectory:
     write_momenta = True
     
     def __init__(self, filename, mode='r', atoms=None, master=None,
-                 write_first_image=True, backup=True):
+                 backup=True):
         """A PickleTrajectory can be created in read, write or append mode.
 
         Parameters:
@@ -49,14 +49,6 @@ class PickleTrajectory:
             default is that process number 0 does this.  If this
             argument is given, processes where it is True will write.
 
-        write_first_image=True:
-            If this argument is True and atoms is specified, the atoms
-            are written to the file immediately.  This is intended to
-            write the initial configuration in a simulation.  Note
-            that in append mode you probably want to set this to
-            False, as the first configuration is likely to already be
-            in the file.
-
         backup=True:
             Use backup=False to disable renaming of an existing file.
         """
@@ -68,9 +60,6 @@ class PickleTrajectory:
         self.set_atoms(atoms)
         self.open(filename, mode)
 
-        if write_first_image and atoms is not None:
-            self.write()
-        
     def open(self, filename, mode):
         """Opens the file.
 
