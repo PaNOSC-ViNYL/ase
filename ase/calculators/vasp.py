@@ -139,6 +139,9 @@ class Vasp:
                                # of Monkhorst-Pack
             }
 
+        self.old_incar_parameters = self.incar_parameters.copy()
+        self.old_input_parameters = self.input_parameters.copy()
+
         self.restart = restart
         if restart:
             self.restart_load()
@@ -148,7 +151,6 @@ class Vasp:
             raise ValueError(
                 '%s not supported for xc! use one of: PW91, LDA or PBE.' %
                 kwargs['xc'])
-        self.positions = None
         self.nbands = self.incar_parameters['nbands']
         self.atoms = None
         self.set(**kwargs)
@@ -163,19 +165,12 @@ class Vasp:
                 raise TypeError('Parameter not defined: ' + key)
 
     def update(self, atoms):
-        if (self.positions is None or
-            self.positions.shape != atoms.positions.shape or
-            (self.positions != atoms.get_positions()).any() or
-            (self.incar_parameters != self.old_incar_parameters) or
-            (self.input_parameters != self.old_input_parameters) or
-            not self.converged
-            ):
-            if (self.positions is None or
-                self.positions.shape != atoms.positions.shape):
+        if self.calculation_required(atoms, ['energy']):
+            if (self.atoms is None or
+                self.atoms.positions.shape != atoms.positions.shape):
                 # Completely new calculation just reusing the same
                 # calculator, so delete any old VASP files found.
                 self.clean()
-            self.initialize(atoms)
             self.calculate(atoms)
 
     def initialize(self, atoms):
@@ -238,7 +233,7 @@ class Vasp:
             self.symbol_count.append([atomtypes[m],1])
         for m in symbols:
             self.symbol_count.append([m,symbols[m]])
-        print 'self.symbol_count',self.symbol_count 
+        #print 'self.symbol_count',self.symbol_count 
         sys.stdout.flush()
         xc = '/'
         #print 'p[xc]',p['xc']
@@ -294,13 +289,13 @@ class Vasp:
         self.setups_changed = None
 
     def calculate(self, atoms):
-        """Generate necessary files in the working directory.
+        """Generate necessary files in the working directory and run VASP.
         
         If the directory does not exist it will be created.
 
         """
-        positions = atoms.get_positions()
         from ase.io.vasp import write_vasp
+        self.initialize(atoms)
         write_vasp('POSCAR', self.atoms_sorted, symbol_count = self.symbol_count)
         self.write_incar(atoms)
         self.write_potcar()
@@ -334,7 +329,6 @@ class Vasp:
         p=self.incar_parameters
         if p['ibrion']>-1 and p['nsw']>0:
             atoms.set_positions(atoms_sorted.get_positions()[self.resort])
-        self.positions = atoms.get_positions()
         self.energy_free, self.energy_zero = self.read_energy()
         self.forces = self.read_forces(atoms)
         self.dipole = self.read_dipole()
@@ -348,6 +342,7 @@ class Vasp:
         self.old_incar_parameters = self.incar_parameters.copy()
         self.old_input_parameters = self.input_parameters.copy()
         self.converged = self.read_convergence()
+        self.stress = self.read_stress()
 
     def restart_load(self):
         """Method which is called upon restart."""
@@ -368,7 +363,6 @@ class Vasp:
             self.atoms = ase.io.read('CONTCAR', format='vasp')
             self.sort = range(len(self.atoms))
             self.resort = range(len(self.atoms))
-        self.positions = self.atoms.get_positions()
         self.read_incar()
         self.read_outcar()
         self.read_kpoints()
@@ -393,6 +387,8 @@ class Vasp:
                 pass
 
     def set_atoms(self, atoms):
+        if (atoms != self.atoms):
+            self.converged = None
         self.atoms = atoms.copy()
 
     def get_atoms(self):
@@ -412,10 +408,25 @@ class Vasp:
         return self.forces
 
     def get_stress(self, atoms):
-        raise NotImplementedError
+        self.update(atoms)
+        return self.stress
 
-    def calculation_required(self,atoms, quantities):
-        raise NotImplementedError
+    def read_stress(self):
+        for line in open('OUTCAR'):
+            if line.find(' Total  ') != -1:
+                stress = np.array(line.split()[1:],
+                                  dtype=float)[[0, 1, 2, 4, 5, 3]]
+        return stress
+
+    def calculation_required(self, atoms, quantities):
+        if (self.atoms != atoms
+            or (self.incar_parameters != self.old_incar_parameters)
+            or (self.input_parameters != self.old_input_parameters)
+            or not self.converged):
+            return True
+        if 'magmom' in quantities:
+            return not hasattr(self, 'magnetic_moment')
+        return False
 
     def get_number_of_bands(self):
         return self.nbands
@@ -635,17 +646,14 @@ class Vasp:
                 dipolemoment=np.array([float(f) for f in line.split()[1:4]])
         return dipolemoment
 
-    def read_magnetic_moments(self,atoms):
-        file = open('OUTCAR', 'r')
-        lines = file.readlines()
-        file.close
-        magnetic_moments=np.zeros(len(atoms))
-        n=0
-        for line in lines:
+    def read_magnetic_moments(self, atoms):
+        magnetic_moments = np.zeros(len(atoms))
+        n = 0
+        for line in open('OUTCAR', 'r'):
             if line.rfind('magnetization (x)') > -1:
-                for m in range(0,len(atoms)):
-                    magnetic_moments[m]=float(lines[n+m+4].split()[4])
-            n+=1
+                for m in range(len(atoms)):
+                    magnetic_moments[m] = float(lines[n + m + 4].split()[4])
+            n += 1
         return np.array(magnetic_moments)[self.resort]
 
     def read_magnetic_moment(self):
