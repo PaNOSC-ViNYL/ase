@@ -149,14 +149,13 @@ physical quantities from the :file:`OUTCAR` file, **k**-points from the
    implemented for restart yet. Please report any problems to the ASE mailing
    list.
 
+The ``restart`` parameter can be used , as the name suggest to continue a job from where a
+previous calculation finished. Furthermore, it can be used to extract data from
+an already performed calculation. For example, to get the total potential energy
+of the sodium chloride molecule in the previous section, without performing any additional
+calculations, in the directory of the previous calculation do:
 
-Post-processing
-===============
-
-A few words about post-processing will appear here.
-
-
-Examples
-========
-
-A few examples will appear here.
+>>> calc = Vasp(restart=True)
+>>> atoms = calc.get_atoms()
+>>> atoms.get_potential_energy()
+-4.7386889999999999
