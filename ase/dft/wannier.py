@@ -490,16 +490,16 @@ class Wannier:
             U_ww *= np.exp(2.j * pi * np.dot(trans_wc, kpt_c))
         self.update()
 
-    def distances(self, R):
-        Nw = self.nwannier
-        cen = self.get_centers()
-        r1 = cen.repeat(Nw).reshape(Nw, Nw, 3)
-        r2 = cen.copy()
-        for i in range(3):
-            r2 += self.unitcell_cc[i] * R[i]
+def distances(self, R):
+    Nw = self.nwannier
+    cen = self.get_centers()
+    r1 = cen.repeat(Nw, axis=0).reshape(Nw, Nw, 3)
+    r2 = cen.copy()
+    for i in range(3):
+        r2 += self.unitcell_cc[i] * R[i]
 
-        r2 = np.swapaxes(r2.repeat(Nw).reshape(Nw, Nw, 3), 0, 1)
-        return np.sqrt(np.sum((r1 - r2)**2, axis=-1))
+    r2 = np.swapaxes(r2.repeat(Nw, axis=0).reshape(Nw, Nw, 3), 0, 1)
+    return np.sqrt(np.sum((r1 - r2)**2, axis=-1))
 
     def get_hopping(self, R):
         """Returns the matrix H(R)_nm=<0,n|H|R,m>.
