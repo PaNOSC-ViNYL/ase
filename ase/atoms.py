@@ -694,7 +694,8 @@ class Atoms(object):
 
     def __delitem__(self, i):
         if len(self._constraints) > 0:
-            raise RuntimeError('Remove constraint before deleting atoms.')
+            raise RuntimeError('Remove constraint using set_constraint() ' +
+                               'before deleting atoms.')
         mask = np.ones(len(self), bool)
         mask[i] = False
         for name, a in self.arrays.items():
