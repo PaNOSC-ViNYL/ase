@@ -1078,6 +1078,8 @@ def string2symbols(s):
         else:
             m = 1
         return m * [s[:i]] + string2symbols(s[j:])
+    else:
+        raise ValueError
 
 def symbols2numbers(symbols):
     if isinstance(symbols, str):
