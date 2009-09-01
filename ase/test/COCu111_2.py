@@ -65,8 +65,3 @@ neb.set_calculators(EMT())
 dyn = Optimizer(neb, maxstep=0.04, trajectory='mep_2fine.traj')
 dyn.run(fmax=0.1)
 assert(len(neb.images) == 8)
-
-if display:
-    import os
-    error = os.system('ag mep_2fine.traj@-8:')
-    assert error == 0
