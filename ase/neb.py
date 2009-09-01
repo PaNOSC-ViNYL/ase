@@ -215,6 +215,7 @@ class SingleCalculatorNEB(NEB):
     def write(self, filename):
         from ase.io.trajectory import PickleTrajectory
         traj = PickleTrajectory(filename, 'w', self)
+        traj.write()
         traj.close()
 
 def fit(images):
