@@ -32,17 +32,45 @@ class ELK:
         self.dir = dir
         self.energy = None
 
-    def get_potential_energy(self, atoms):
+        self.converged = False
+
+    def update(self, atoms):
+        if (not self.converged or
+            len(self.numbers) != len(atoms) or
+            (self.numbers != atoms.get_atomic_numbers()).any()):
+            self.initialize(atoms)
+            self.calculate(atoms)
+        elif ((self.positions != atoms.get_positions()).any() or
+              (self.pbc != atoms.get_pbc()).any() or
+              (self.cell != atoms.get_cell()).any()):
+            self.calculate(atoms)
+
+    def initialize(self, atoms):
+        self.numbers = atoms.get_atomic_numbers().copy()
         self.write(atoms)
-        assert os.system('cd %s; elk' % self.dir) == 0
-        self.read()
+
+    def get_potential_energy(self, atoms):
+        self.update(atoms)
         return self.energy
 
     def get_forces(self, atoms):
+        self.update(atoms)
         return self.forces.copy()
 
     def get_stress(self, atoms):
+        self.update(atoms)
         return self.stress.copy()
+
+    def calculate(self, atoms):
+        self.positions = atoms.get_positions().copy()
+        self.cell = atoms.get_cell().copy()
+        self.pbc = atoms.get_pbc().copy()
+
+        self.initialize(atoms)
+        assert os.system('cd %s; elk' % self.dir) == 0
+        self.read()
+
+        self.converged = True
 
     def write(self, atoms):
         if not os.path.isdir(self.dir):
