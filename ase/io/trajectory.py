@@ -147,7 +147,10 @@ class PickleTrajectory:
                 d['energy'] = atoms.get_potential_energy()
             if self.write_forces:
                 assert self.write_energy
-                d['forces'] = atoms.get_forces(apply_constraint=False)
+                try:
+                    d['forces'] = atoms.get_forces(apply_constraint=False)
+                except NotImplementedError:
+                    pass
             if self.write_stress:
                 assert self.write_energy
                 try:
