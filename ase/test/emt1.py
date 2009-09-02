@@ -13,7 +13,7 @@ print e0
 d0 = cu.get_distance(0, 1)
 cu.set_constraint(FixBondLength(0, 1))
 t = PickleTrajectory('cu2ag.traj', 'w', cu)
-qn = QuasiNewton(cu)
+qn = BFGS(cu)
 qn.attach(t.write)
 def f(): print cu.get_distance(0,1)
 qn.attach(f)
