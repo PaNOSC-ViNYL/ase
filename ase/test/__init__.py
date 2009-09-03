@@ -45,10 +45,8 @@ class ScriptTestCase(unittest.TestCase):
             execfile(self.filename, {'display': self.display})
         except KeyboardInterrupt:
             raise RuntimeError('Keyboard interrupt')
-        except NotAvailable, err:
-            # Only non-zero error codes are failures
-            if err.code:
-                raise
+        except NotAvailable:
+            pass
 
     def id(self):
         return self.filename
