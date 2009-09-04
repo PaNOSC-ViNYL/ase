@@ -14,7 +14,7 @@ friction, to converge to an energy minimum, whereas the first 3 are of
 the quasi-Newton type, where the forces of consecutive steps are used
 to dynamically update a Hessian describing the curvature of the
 potential energy landscape.  You can use the ``QuasiNewton`` synonym
-for ``LBFGS`` because this algorithm is in many cases the optimal one
+for ``BFGS`` because this algorithm is in many cases the optimal one
 of the three quasi-Newton algorithms.
 
 All optimizer classes have the following structure::
@@ -127,6 +127,11 @@ When switching between different types of optimizers, e.g. between
 ``restart`` keyword are not compatible, but the Hessian can still be
 retained by replaying the trajectory as above.
 
+.. note::
+
+   In many of the examples, tests, exercises and tutorials,
+   ``QuasiNewton`` is used -- it is a synonym for ``BFGS``.
+
 
 LBFGS
 -----
@@ -149,11 +154,6 @@ BFGS. A typical optimization should look like::
 
 where the trajectory and the restart save the trajectory of the 
 optimization and the vectors needed to generate the Hessian Matrix.
-
-.. note::
-
-   In many of the examples, tests, exercises and tutorials,
-   ``QuasiNewton`` is used -- it is a synonym for ``LBFGS``.
 
 
 FIRE
