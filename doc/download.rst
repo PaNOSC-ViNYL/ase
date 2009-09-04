@@ -53,12 +53,19 @@ When using svn please set the following variable:
 
    setenv ASE_TAGS https://svn.fysik.dtu.dk/projects/ase/tags/
 
-======= =========== =========================================== =============================
-Release Date        Retrieve as svn checkout                    Retrieve as tarball
-======= =========== =========================================== =============================
- 3.1.0_ Mar 27 2009 ``svn co -r 846 $ASE_TAGS/3.1.0 ase-3.1.0`` python-ase-3.1.0.846.tar.gz_
- 3.0.0_ Nov 13 2008 ``svn co -r 657 $ASE_TAGS/3.0.0 ase-3.0.0`` python-ase-3.0.0.657.tar.gz_
-======= =========== =========================================== =============================
+======= =========== ============================================ =============================
+Release Date        Retrieve as svn checkout                     Retrieve as tarball
+======= =========== ============================================ =============================
+ 3.2.0_ Sep 4 2009  ``svn co -r 1114 $ASE_TAGS/3.2.0 ase-3.2.0`` python-ase-3.2.0.1114.tar.gz_
+ 3.1.0_ Mar 27 2009 ``svn co -r 846 $ASE_TAGS/3.1.0 ase-3.1.0``  python-ase-3.1.0.846.tar.gz_
+ 3.0.0_ Nov 13 2008 ``svn co -r 657 $ASE_TAGS/3.0.0 ase-3.0.0``  python-ase-3.0.0.657.tar.gz_
+======= =========== ============================================ =============================
+
+.. _3.2.0:
+    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.2.0
+
+.. _python-ase-3.2.0.1114.tar.gz:
+    https://wiki.fysik.dtu.dk/ase-files/python-ase-3.2.0.1114.tar.gz
 
 .. _3.1.0:
     https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.1.0
@@ -96,13 +103,13 @@ After downloading create the link to the requested version, e.g.:
 - if retrieved from ``svn``::
 
    $ cd $HOME
-   $ ln -s ase-3.1.0 ase
+   $ ln -s ase-3.2.0 ase
     
 - if retrieved as ``tarball``::
 
    $ cd $HOME
-   $ tar xtzf python-ase-3.1.0.846.tar.gz
-   $ ln -s python-ase-3.1.0.846 ase
+   $ tar xtzf python-ase-3.2.0.1114.tar.gz
+   $ ln -s python-ase-3.2.0.1114 ase
 
 It is sufficient to
 put the directory :file:`$HOME/ase` in your :envvar:`PYTHONPATH`
