@@ -25,10 +25,12 @@ When it is time for a new release of the code, here is what you have to do:
 * Create the tar file::
 
    cd ase-3.1.0
-   python setup.py sdist
+   rm -f ase/svnrevision.py*; python setup.py sdist
 
   Note that the ``tags_revision`` is put into the name of the
-  tar file automatically.
+  tar file automatically. Make sure that you are getting only
+  ``tags_revision`` in the tar file name! Any changes to the source
+  will be reflected as a mixed or modified revision tag!
 
 * Put the tar file on web2 (set it read-able for all)::
 
