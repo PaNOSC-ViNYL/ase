@@ -3,7 +3,10 @@ import unittest
 from glob import glob
 
 class NotAvailable(SystemExit):
-    pass
+    def __init__(self, message, code=0):
+        SystemExit.__init__(self, (message,code,))
+        self.message = message
+        self.code = code
 
 # -------------------------------------------------------------------
 
@@ -45,8 +48,10 @@ class ScriptTestCase(unittest.TestCase):
             execfile(self.filename, {'display': self.display})
         except KeyboardInterrupt:
             raise RuntimeError('Keyboard interrupt')
-        except NotAvailable:
-            pass
+        except NotAvailable, err:
+            # Only non-zero error codes are failures
+            if err.code:
+                raise
 
     def id(self):
         return self.filename
