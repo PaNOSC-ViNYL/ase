@@ -3,9 +3,9 @@ import unittest
 from glob import glob
 
 class NotAvailable(SystemExit):
-    def __init__(self, message, code=0):
-        SystemExit.__init__(self, (message,code,))
-        self.message = message
+    def __init__(self, msg, code=0):
+        SystemExit.__init__(self, (msg,code,))
+        self.msg = msg
         self.code = code
 
 # -------------------------------------------------------------------
