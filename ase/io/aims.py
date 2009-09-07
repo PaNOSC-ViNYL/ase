@@ -38,7 +38,7 @@ def read_aims(filename):
         elif inp[0] == 'lattice_vector':
             floatvect = float(inp[1]), float(inp[2]), float(inp[3])
             cell.append(floatvect)
-        if inp[0] == 'constraint_relaxation':
+        if inp[0] == 'constrain_relaxation':
             if inp[1] == '.true.':
                 fix.append(i)
             elif inp[1] == 'x':
@@ -88,32 +88,32 @@ def write_aims(filename, atoms, cell=None):
             fd.write('\n')
     if i:
         fd.write('\n')
-    fix = []
-    fix_cart = {}
+    fix_cart = np.zeros([len(atoms),3]) # set cartesian constraints for all atoms to none
+
     if atoms.constraints:
         for constr in atoms.constraints:
             if isinstance(constr, FixAtoms):
-                fix = constr.index
+                fix_cart[constr.index] = [1,1,1]
             elif isinstance(constr, FixCartesian):
-                fix_cart[str(constr.a)] = -constr.mask+1
-    fix = np.array(fix)%len(atoms)
+                fix_cart[constr.a] = -constr.mask+1
+
     for i, atom in enumerate(atoms):
         fd.write('atom ')
         for pos in atom.get_position():
             fd.write('%16.16f ' % pos)
         fd.write(atom.symbol)
         fd.write('\n')
-        if i in fix:
-            fd.write('constraint_relaxation .true.\n')
-        else:
-            try:
-                xyz = fix_cart[str(i)]
-                for n in range(3):
-                    if xyz[n]:
-                        fd.write('constraint_relaxation %s\n' % 'xyz'[n])
-            except KeyError:
-                continue
-
+# (1) all coords are constrained:
+        if fix_cart[i].all():
+            fd.write('constrain_relaxation .true.\n')
+# (2) some coords are constrained:
+        elif fix_cart[i].any():
+            xyz = fix_cart[i]
+            for n in range(3):
+                if xyz[n]:
+                    fd.write('constraint_relaxation %s\n' % 'xyz'[n])
+# except KeyError:
+#     continue
 
 def read_energy(filename):
     for line in open(filename, 'r'):
