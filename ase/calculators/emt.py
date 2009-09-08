@@ -206,7 +206,7 @@ class EMT:
             p = self.par[Z]
             try:
                 ds = -log(self.sigma1[a] / 12) / (beta * p['eta2'])
-            except OverflowError:
+            except (OverflowError, ValueError):
                 self.deds[a] = 0.0
                 self.energy -= p['E0']
                 continue
