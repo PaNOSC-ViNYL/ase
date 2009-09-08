@@ -1,8 +1,11 @@
-import numpy as np
+import sys
 import copy 
+
+import numpy as np
+
 from ase.optimize import Optimizer
-from ase.neb import *
-import random
+from ase.neb import *  # XXX What is this?
+
 
 class BaseLBFGS(Optimizer):
     """Limited memory bfgs algorithm. Unlike the bfgs algorithm used in qn.py,
