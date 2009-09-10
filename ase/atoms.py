@@ -802,7 +802,7 @@ class Atoms(object):
         else:
             return com
 
-    def rotate(self, v, a=None, center=(0, 0, 0)):
+    def rotate(self, v, a=None, center=(0, 0, 0), rotate_cell=False):
         """Rotate atoms.
 
         Rotate the angle *a* around the vector *v*.  If *a* is not
@@ -850,7 +850,14 @@ class Atoms(object):
                                        np.cross(p, s * v) + 
                                        np.outer(np.dot(p, v), (1.0 - c) * v)+
                                        center)
-
+        if rotate_cell:
+            rotcell = self.get_cell()
+            if len(rotcell) == 3:
+                rotcell[:] = (c * rotcell - 
+                              np.cross(rotcell, s * v) + 
+                              np.outer(np.dot(rotcell, v), (1.0 - c) * v))
+                self.set_cell(rotcell)
+                
     def rotate_euler(self, center=(0, 0, 0), phi=0.0, theta=0.0, psi=0.0):
         """Rotate atoms via Euler angles.
         
