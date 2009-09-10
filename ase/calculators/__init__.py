@@ -7,7 +7,7 @@ from ase.calculators.emt import EMT, ASAP
 from ase.calculators.siesta import Siesta
 from ase.calculators.dacapo import Dacapo
 from ase.calculators.vasp import Vasp
-
+from ase.calculators.aims import Aims
 
 class Calculator:
     """Class for demonstrating the ASE-calculator interface.
