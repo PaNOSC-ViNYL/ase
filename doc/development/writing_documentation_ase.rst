@@ -4,7 +4,7 @@
 Writing documentation
 =====================
 
-We use the Sphinx_ tool to generate the GPAW documentation (both HTML
+We use the Sphinx_ tool to generate the documentation (both HTML
 and PDF_).  The documentation is stored in SVN as text files in the
 :trac:`doc` directory using the reStructuredText_ markup language.
 
