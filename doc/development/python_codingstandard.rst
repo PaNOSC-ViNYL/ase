@@ -15,7 +15,7 @@ found in the examples and tutorials, we use::
 which gives us the most used symbols.
 
 In code, like the implementation of ASE, we must *not* use the
-``import *`` syntax.  Import everthing explicitly from exactly the
+``import *`` syntax.  Import everything explicitly from exactly the
 place where it's defined::
 
   from ase.io import read, write
