@@ -121,20 +121,13 @@ class Aims(Calculator):
 
     def update(self, atoms):
         if (self.positions is None or
-            (self.positions != atoms.get_positions()).any() or
+            (self.atoms != atoms) or
             (self.float_params != self.old_float_params) or
             (self.string_params != self.old_string_params) or
             (self.int_params != self.old_int_params) or
             (self.input_parameters != self.old_input_parameters)
             ):
-            self.initialize(atoms)
             self.calculate(atoms)
-
-    def initialize(self, atoms):
-        """Initialize an FHI-aims calculation
-
-        Nothing is done here at the moment."""
-        return
 
     def calculate(self, atoms):
         """Generate necessary files in the working directory.
@@ -168,6 +161,8 @@ class Aims(Calculator):
             aims_command = aims_command + self.input_parameters['run_dir'] + '/'
         aims_command = aims_command + self.out
         exitcode = os.system(aims_command)
+        if exitcode != 0:
+            raise RuntimeError('FHI-aims exited with exit code: %d.  ' % exitcode)
 
     def write_control(self):
         """Writes the control.in file."""
