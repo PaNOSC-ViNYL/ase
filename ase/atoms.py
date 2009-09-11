@@ -852,11 +852,10 @@ class Atoms(object):
                                        center)
         if rotate_cell:
             rotcell = self.get_cell()
-            if len(rotcell) == 3:
-                rotcell[:] = (c * rotcell - 
-                              np.cross(rotcell, s * v) + 
-                              np.outer(np.dot(rotcell, v), (1.0 - c) * v))
-                self.set_cell(rotcell)
+            rotcell[:] = (c * rotcell - 
+                          np.cross(rotcell, s * v) + 
+                          np.outer(np.dot(rotcell, v), (1.0 - c) * v))
+            self.set_cell(rotcell)
                 
     def rotate_euler(self, center=(0, 0, 0), phi=0.0, theta=0.0, psi=0.0):
         """Rotate atoms via Euler angles.
