@@ -19,14 +19,14 @@ Development topics
    todo
 
 
-Creating an enrcypted password for SVN access
+Creating an encrypted password for SVN access
 =============================================
 
 Use this cammand::
 
   htpasswd -nm <your-desired-user-name>
 
-and type a good password twice.  The enrcypted password will be
+and type a good password twice.  The encrypted password will be
 printed on the screen.
 
 If you don't have the ``htpasswd`` command, then use Python:
