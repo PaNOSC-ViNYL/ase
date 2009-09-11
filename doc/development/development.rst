@@ -18,3 +18,20 @@ Development topics
    tests
    todo
 
+
+Creating an enrcypted password for SVN access
+=============================================
+
+Use this cammand::
+
+  htpasswd -nm <your-desired-user-name>
+
+and type a good password twice.  The enrcypted password will be
+printed on the screen.
+
+If you don't have the ``htpasswd`` command, then use Python:
+
+>>> import crypt
+>>> passwd = '<your-password>'
+>>> print crypt.crypt(passwd, passwd)
+
