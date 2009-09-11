@@ -14,11 +14,12 @@ found in the examples and tutorials, we use::
 
 which gives us the most used symbols.
 
-I code, like the implementation of ASE, we must *not* use the
+In code, like the implementation of ASE, we must *not* use the
 ``import *`` syntax.  Import everthing explicitly from exactly the
 place where it's defined::
 
   from ase.io import read, write
+
 
 Python Coding Conventions
 =========================
