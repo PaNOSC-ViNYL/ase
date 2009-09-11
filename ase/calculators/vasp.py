@@ -414,8 +414,7 @@ class Vasp:
     def read_stress(self):
         for line in open('OUTCAR'):
             if line.find(' Total  ') != -1:
-                stress = np.array(line.split()[1:],
-                                  dtype=float)[[0, 1, 2, 4, 5, 3]]
+                stress = np.array([float(a) for a in line.split()[1:]])[[0, 1, 2, 4, 5, 3]]
         return stress
 
     def calculation_required(self, atoms, quantities):
