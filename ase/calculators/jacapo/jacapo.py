@@ -1395,7 +1395,7 @@ class Jacapo:
         '''return the type of symmetry used'''
         nc = netCDF(self.nc,'r')
         if 'UseSymmetry' in nc.variables:
-            sym = ncf.variables['UseSymmetry'][:]
+            sym = nc.variables['UseSymmetry'][:]
         else:
             sym = None
             
@@ -1780,8 +1780,15 @@ class Jacapo:
                     nc.close()
                     return True
             else:
+                #legacy calculations do not have a status flag in them.
+                #let us guess that if the TotalEnergy is there
+                #no calculation needs to be run?
+                if 'TotalEnergy' in nc.variables:
+                    runflag = False
+                else:
+                    runflag = True
                 nc.close()
-                return True #if no status run calculation
+                return runflag #if no status run calculation
             nc.close()
             
         #default, a calculation is required
