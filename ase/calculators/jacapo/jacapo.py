@@ -375,7 +375,11 @@ class Jacapo:
                 
         s.append('')
         s.append('  Details:')
-        s.append('  XCfunctional        = %s' %self.get_xc())
+        xc = self.get_xc()
+        if xc is not None:
+            s.append('  XCfunctional        = %s' % self.get_xc())
+        else:
+            s.append('  XCfunctional        = Not defined')
         s.append('  Planewavecutoff     = %i eV' % self.get_pw())
         s.append('  Densitywavecutoff   = %i eV' % self.get_dw())
         ft = self.get_ft()
@@ -1395,7 +1399,7 @@ class Jacapo:
         '''return the type of symmetry used'''
         nc = netCDF(self.nc,'r')
         if 'UseSymmetry' in nc.variables:
-            sym = nc.variables['UseSymmetry'][:]
+            sym = string.join(nc.variables['UseSymmetry'][:],'')
         else:
             sym = None
             
