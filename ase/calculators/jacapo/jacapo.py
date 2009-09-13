@@ -392,6 +392,7 @@ class Jacapo:
         s.append('  Kpoint grid         = %s' % str(self.get_kpts()))
         s.append('  Spin-polarized      = %s' % self.get_spin_polarized())
         s.append('  Dipole correction   = %s' % self.get_dipole())
+        s.append('  Symmetry            = %s' % self.get_symmetry())
         s.append('  Constraints         = %s' % str(atoms._get_constraints()))
         s.append('  ---------------------------------')
         nc.close()
@@ -1389,6 +1390,17 @@ class Jacapo:
 
     def get_stay_alive(self):
         return self.stay_alive
+
+    def get_symmetry(self):
+        '''return the type of symmetry used'''
+        nc = netCDF(self.nc,'r')
+        if 'UseSymmetry' in nc.variables:
+            sym = ncf.variables['UseSymmetry'][:]
+        else:
+            sym = None
+            
+        nc.close()
+        return sym
 
     def get_fftgrid(self):
         'return soft and hard grids'
