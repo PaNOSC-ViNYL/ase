@@ -2,9 +2,12 @@ import numpy as np
 from ase.transport.tools import dagger
 from ase.transport.selfenergy import LeadSelfEnergy
 from ase.transport.greenfunction import GreenFunction
+import time
+from gpaw.mpi import world
+
 
 class STM:
-    def __init__(self, h1, s1, h2, s2 ,h10, s10, h20, s20, eta1, eta2, w=0.5):
+    def __init__(self, h1, s1, h2, s2 ,h10, s10, h20, s20, eta1, eta2, w=0.5, pdos=[], logfile = None):
         """XXX
         
         1. Tip
@@ -41,6 +44,8 @@ class STM:
         self.eta1 = eta1
         self.eta2 = eta2
         self.w = w #asymmetry of the applied bias (0.5=>symmetric)
+        self.pdos = []
+        self.log = logfile
 
     def initialize(self, energies, bias=0):
         """
@@ -55,7 +60,6 @@ class STM:
         nenergies = len(energies)
         pl1, pl2 = self.pl1, self.pl2
         nbf1, nbf2 = len(self.h1), len(self.h2)
-
       
         #periodic part of the tip
         hs1_dii = self.h10[:pl1, :pl1], self.s10[:pl1, :pl1]
@@ -98,6 +102,10 @@ class STM:
         self.gft2_emm = np.zeros((nenergies, nbf2_small, nbf2_small), complex)
  
         for e, energy in enumerate(self.energies):
+            if self.log != None:
+                T = time.localtime()
+                self.log.write(' %d:%02d:%02d, ' % (T[3], T[4], T[5]) +
+                               '%d, %d, %02f\n' % (world.rank, e, energy))
             gft1_mm = self.greenfunction1.retarded(energy)[coupling_list1]
             gft1_mm = np.take(gft1_mm, coupling_list1, axis=1)
 
@@ -106,6 +114,9 @@ class STM:
  
             self.gft1_emm[e] = gft1_mm
             self.gft2_emm[e] = gft2_mm
+
+            if self.log != None:
+                self.log.flush()
 
     def get_transmission(self, v_12, v_11_2=None, v_22_1=None):
         """XXX
