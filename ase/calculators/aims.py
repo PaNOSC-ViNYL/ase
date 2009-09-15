@@ -57,9 +57,11 @@ bool_keys = [
     'MD_clean_rotations',
     'restart_relaxations',
     'use_dipole_correction',
+    'vdw_correction_hirshfeld',
 ]
 
 list_keys = [
+    'hartree_convergence_parameter',
     'k_grid',
     'MD_run',
     'mixer_threshold',
@@ -84,6 +86,7 @@ class Aims(Calculator):
         self.string_params = {}
         self.int_params = {}
         self.bool_params = {}
+        self.s_bool_params = {}
         self.list_params = {}
         self.input_parameters = {}
         for key in float_keys:
@@ -174,25 +177,27 @@ class Aims(Calculator):
         control = open('control.in', 'w')
         for key, val in self.float_params.items():
             if val is not None:
-                control.write('%-25s%5.6f\n' % (key, val))
+                control.write('%-30s%5.6f\n' % (key, val))
         for key, val in self.exp_params.items():
             if val is not None:
-                control.write('%-25s%5.2e\n' % (key, val))
+                control.write('%-30s%5.2e\n' % (key, val))
         for key, val in self.string_params.items():
             if val is not None:
-                control.write('%-25s%s\n' % (key, val))
+                control.write('%-30s%s\n' % (key, val))
         for key, val in self.int_params.items():
             if val is not None:
-                contol.write('%-25s%d\n' % (key, val))
+                contol.write('%-30s%d\n' % (key, val))
         for key, val in self.bool_params.items():
             if val is not None:
-                if val:
-                    control.write('%-25s.true.' % (key))
+                if key == 'vdw_correction_hirshfeld':
+                    control.write('%-30s\n' % (key))
+                elif val:
+                    control.write('%-30s.true.\n' % (key))
                 else:
-                    control.write('%-25s.false.' % (key))
+                    control.write('%-30s.false.\n' % (key))
         for key, val in self.list_params.items():
             if val is not None:
-                control.write('%-25s' % key)
+                control.write('%-30s' % key)
                 for ival in val:
                     control.write(str(ival)+' ')
                 control.write('\n')
