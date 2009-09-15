@@ -102,10 +102,10 @@ class STM:
         self.gft2_emm = np.zeros((nenergies, nbf2_small, nbf2_small), complex)
  
         for e, energy in enumerate(self.energies):
-            if self.log != None:
-                T = time.localtime()
-                self.log.write(' %d:%02d:%02d, ' % (T[3], T[4], T[5]) +
-                               '%d, %d, %02f\n' % (world.rank, e, energy))
+            if self.log != None and world.rank == 0:
+                    T = time.localtime()
+                    self.log.write(' %d:%02d:%02d, ' % (T[3], T[4], T[5]) +
+                                   '%d, %d, %02f\n' % (world.rank, e, energy))
             gft1_mm = self.greenfunction1.retarded(energy)[coupling_list1]
             gft1_mm = np.take(gft1_mm, coupling_list1, axis=1)
 
@@ -115,7 +115,7 @@ class STM:
             self.gft1_emm[e] = gft1_mm
             self.gft2_emm[e] = gft2_mm
 
-            if self.log != None:
+            if self.log != None and world.rank == 0:
                 self.log.flush()
 
     def get_transmission(self, v_12, v_11_2=None, v_22_1=None):
