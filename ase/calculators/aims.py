@@ -84,6 +84,7 @@ class Aims(Calculator):
         self.string_params = {}
         self.int_params = {}
         self.bool_params = {}
+        self.list_params = {}
         self.input_parameters = {}
         for key in float_keys:
             self.float_params[key] = None
@@ -95,6 +96,8 @@ class Aims(Calculator):
             self.int_params[key] = None
         for key in bool_keys:
             self.bool_params[key] = None
+        for key in list_keys:
+            self.list_params[key] = None
         for key in input_keys:
             self.input_parameters[key] = None
         self.positions = None
@@ -114,6 +117,8 @@ class Aims(Calculator):
                 self.int_params[key] = kwargs[key]
             elif self.bool_params.has_key(key):
                 self.bool_params[key] = kwargs[key]
+            elif self.list_params.has_key(key):
+                self.list_params[key] = kwargs[key]
             elif self.input_parameters.has_key(key):
                 self.input_parameters[key] = kwargs[key]
             else:
@@ -185,6 +190,12 @@ class Aims(Calculator):
                     control.write('%-25s.true.' % (key))
                 else:
                     control.write('%-25s.false.' % (key))
+        for key, val in self.list_params.items():
+            if val is not None:
+                control.write('%-25s' % key)
+                for ival in val:
+                    control.write(str(ival)+' ')
+                control.write('\n')
         for key, val in self.input_parameters.items():
             if val is not None:
                 continue
