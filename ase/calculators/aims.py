@@ -144,6 +144,14 @@ class Aims(Calculator):
 
         """
         positions = atoms.get_positions()
+        pbc = atoms.get_pbc()
+        have_lattice_vectors = pbc[0] and pbc[1] and pbc[2]
+        have_k_grid = not self.list_params['k_grid'] == None
+
+        if have_lattice_vectors and not have_k_grid:
+            raise RuntimeError("Found lattice vectors but no k-grid!")
+        if not have_lattice_vectors and have_k_grid:
+            raise RuntimeError("Found k-grid but no lattice vectors!")
         from ase.io.aims import write_aims
         write_aims('geometry.in', atoms)
         self.write_control()

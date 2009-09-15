@@ -20,6 +20,8 @@ def read_aims(filename):
     fix_cart = []
     xyz = np.array([0, 0, 0])
     i = -1
+    n_periodic = -1
+    periodic = np.array([False, False, False])
     for n, line in enumerate(lines):
         inp = line.split()
         if inp == []:
@@ -38,6 +40,8 @@ def read_aims(filename):
         elif inp[0] == 'lattice_vector':
             floatvect = float(inp[1]), float(inp[2]), float(inp[3])
             cell.append(floatvect)
+            n_periodic = n_periodic + 1
+            periodic[n_periodic] = True
         if inp[0] == 'constrain_relaxation':
             if inp[1] == '.true.':
                 fix.append(i)
@@ -52,8 +56,9 @@ def read_aims(filename):
     elif xyz.any():
         fix_cart.append(FixCartesian(i, xyz))
     atoms = Atoms(symbols, positions)
-    if len(cell)==3:
+    if periodic[0] and perioic[1] and periodic[2]:
         atoms.set_cell(cell)
+        atoms.set_pbc(periodic)
     if len(fix):
         atoms.set_constraint([FixAtoms(indices=fix)]+fix_cart)
     else:
