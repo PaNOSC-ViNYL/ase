@@ -355,9 +355,23 @@ class Atoms(object):
         """Set chemical symbols."""
         self.set_array('numbers', symbols2numbers(symbols), int, ())
 
-    def get_chemical_symbols(self):
-        """Get list of chemical symbol strings."""
-        return [chemical_symbols[Z] for Z in self.arrays['numbers']]
+    def get_chemical_symbols(self, reduce=False):
+        """Get list of chemical symbol strings.
+
+        If reduce is True, a single string is returned, where repeated
+        elements have been contracted to a single symbol and a number.
+        E.g. instead of ['C', 'O', 'O', 'H'], the string 'CO2H' is returned.
+        """
+        if not reduce:
+            return [chemical_symbols[Z] for Z in self.arrays['numbers']]
+        else:
+            num = self.get_atomic_numbers()
+            N = len(num)
+            dis = np.concatenate(([0], np.arange(1, N)[num[1:] != num[:-1]]))
+            repeat = np.append(dis[1:], N) - dis
+            symbols = ''.join([chemical_symbols[num[d]] + str(r) * (r != 1)
+                               for r, d in zip(repeat, dis)])
+            return symbols
 
     def set_tags(self, tags):
         """Set tags for all atoms."""
@@ -583,11 +597,7 @@ class Atoms(object):
         if N == 0:
             symbols = ''
         elif N <= 60:
-            # Distinct atomic numbers in num:
-            dis = np.concatenate(([0], np.arange(1, N)[num[1:] != num[:-1]]))
-            repeat = np.append(dis[1:], N) - dis
-            symbols = ''.join([chemical_symbols[num[d]] + str(r) * (r != 1)
-                               for r, d in zip(repeat, dis)])
+            symbols = self.get_chemical_symbols(reduce=True)
         else:
             symbols = ''.join([chemical_symbols[Z] for Z in num[:15]]) + '...'
         s = "Atoms(symbols='%s', " % symbols
