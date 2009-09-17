@@ -351,9 +351,15 @@ class Filter:
         tg[self.index] = tags
         self.atoms.set_tags(tg)
 
-    def get_forces(self):
-        return self.atoms.get_forces()[self.index]
+    def get_forces(self, *args, **kwargs):
+        return self.atoms.get_forces(*args, **kwargs)[self.index]
 
+    def get_stress(self):
+        return self.atoms.get_stress()
+
+    def get_stresses(self):
+        return self.atoms.get_stresses()[self.index]
+    
     def get_masses(self):
         return self.atoms.get_masses()[self.index]
 
