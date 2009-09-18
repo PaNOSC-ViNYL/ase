@@ -108,7 +108,7 @@ After downloading create the link to the requested version, e.g.:
 - if retrieved as ``tarball``::
 
    $ cd $HOME
-   $ tar xtzf python-ase-3.2.0.1121.tar.gz
+   $ tar zxf python-ase-3.2.0.1121.tar.gz
    $ ln -s python-ase-3.2.0.1121 ase
 
 It is sufficient to
