@@ -5,7 +5,7 @@ from ase.md import MolecularDynamics
 
 class VelocityVerlet(MolecularDynamics):
     def __init__(self, atoms, dt, trajectory=None, logfile=None,
-                 loginterval=None):
+                 loginterval=1):
         MolecularDynamics.__init__(self, atoms, dt, trajectory, logfile,
                                    loginterval)
             
