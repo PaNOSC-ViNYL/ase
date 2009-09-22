@@ -56,7 +56,7 @@ def read_aims(filename):
     elif xyz.any():
         fix_cart.append(FixCartesian(i, xyz))
     atoms = Atoms(symbols, positions)
-    if periodic[0] and periodic[1] and periodic[2]:
+    if periodic.all():
         atoms.set_cell(cell)
         atoms.set_pbc(periodic)
     if len(fix):

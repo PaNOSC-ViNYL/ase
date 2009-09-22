@@ -75,11 +75,11 @@ list_keys = [
 input_keys = [
     'run_command',
     'run_dir',
-    'species_dir',     
+    'species_dir',
 ] 
 
 class Aims(Calculator):
-    def __init__(self, output_file = 'aims.out', **kwargs):
+    def __init__(self, output_template = 'aims', track_output = False, **kwargs):
         self.name = 'Aims'
         self.float_params = {}
         self.exp_params = {}
@@ -105,8 +105,10 @@ class Aims(Calculator):
             self.input_parameters[key] = None
         self.positions = None
         self.atoms = None
+        self.run_counts = 0
         self.set(**kwargs)
-        self.out = output_file
+        self.output_template = output_template
+        self.track_output = track_output
 
     def set(self, **kwargs):
         for key in kwargs:
@@ -165,6 +167,11 @@ class Aims(Calculator):
         self.converged = self.read_convergence()
 
     def run(self):
+        if (self.track_output):
+            self.out = self.output_template+str(self.run_counts)+'.out'
+            self.run_counts += 1
+        else:
+            self.out = self.output_template+'.out'            
         if self.input_parameters['run_command']:
             aims_command = self.input_parameters['run_command'] 
         elif os.environ.has_key('AIMS_COMMAND'):
