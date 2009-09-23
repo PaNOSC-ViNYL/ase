@@ -16,6 +16,7 @@ import ase
 float_keys = [
     'charge',
     'charge_mix_param',
+    'hartree_convergence_parameter',
     'ini_linear_mix_param',
     'ini_spin_mix_parma',
     'initial_moment',
@@ -61,9 +62,10 @@ bool_keys = [
 ]
 
 list_keys = [
-    'hartree_convergence_parameter',
     'k_grid',
     'MD_run',
+    'MD_schedule',
+    'MD_segment',
     'mixer_threshold',
     'occupation_type',
     'output',
@@ -79,7 +81,8 @@ input_keys = [
 ] 
 
 class Aims(Calculator):
-    def __init__(self, output_template = 'aims', track_output = False, **kwargs):
+    def __init__(self, output_template = 'aims', track_output = False, 
+    **kwargs):
         self.name = 'Aims'
         self.float_params = {}
         self.exp_params = {}
@@ -146,16 +149,14 @@ class Aims(Calculator):
 
         """
         positions = atoms.get_positions()
-        pbc = atoms.get_pbc()
-        have_lattice_vectors = pbc[0] and pbc[1] and pbc[2]
-        have_k_grid = not self.list_params['k_grid'] == None
-
+        have_lattice_vectors = atoms.get_pbc().any()        
+        have_k_grid = self.list_params['k_grid']
         if have_lattice_vectors and not have_k_grid:
             raise RuntimeError("Found lattice vectors but no k-grid!")
         if not have_lattice_vectors and have_k_grid:
             raise RuntimeError("Found k-grid but no lattice vectors!")
         from ase.io.aims import write_aims
-        write_aims('geometry.in', atoms)
+        write_aims('geometry.in', atoms) 
         self.write_control()
         self.write_species()
         self.run()
@@ -167,7 +168,7 @@ class Aims(Calculator):
         self.converged = self.read_convergence()
 
     def run(self):
-        if (self.track_output):
+        if self.track_output:
             self.out = self.output_template+str(self.run_counts)+'.out'
             self.run_counts += 1
         else:
