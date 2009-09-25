@@ -138,7 +138,7 @@ def function_integral(function, calcutype):
     #Initialize with 13 function evaluations.
     c = (a + b) / 2
     h = (b - a) / 2
-    realmin = 2e-308
+    realmin = 2e-17
 
     s = [.942882415695480, sqrt(2.0/3),
          .641853342345781, 1/sqrt(5.0), .236383199662150]
@@ -213,7 +213,7 @@ def function_integral(function, calcutype):
             Q2pQ0 += yne * (w2[i] - w0[i])
 
         # Increase the tolerance if refinement appears to be effective
-        r = np.abs(Q2pQ0) / np.abs(Q1pQ0 + realmin)
+        r = np.abs(Q2pQ0) / (np.abs(Q1pQ0) + np.abs(realmin))
         dim = np.product(r.shape)
         r = np.sum(r) / dim
         if r > 0 and r < 1:
