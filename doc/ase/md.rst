@@ -68,11 +68,11 @@ for each timestep, specifying the ``loginterval`` argument will chance
 this to a more reasonable frequency.
 
 The logging can be customized by explicitly attaching a
-:class:`ase.md.MDlogger` object to the dynamics::
+:class:`ase.md.MDLogger` object to the dynamics::
 
-  from ase.md import MDlogger
+  from ase.md import MDLogger
   dyn = VelocityVerlet(atoms, dt=2*ase.units.fs)
-  dyn.attach(MDlogger(dyn, atoms, 'md.log', header=False, stress=False,
+  dyn.attach(MDLogger(dyn, atoms, 'md.log', header=False, stress=False,
              peratom=True, mode="a"), interval=1000)
 
 This example will skip the header line and write energies per atom

@@ -5,7 +5,7 @@ import sys
 import ase.units as units
 # ase.parallel imported in __init__
 
-class MDlogger:
+class MDLogger:
     """Class for logging molecular dynamics simulations.
 
     Parameters:

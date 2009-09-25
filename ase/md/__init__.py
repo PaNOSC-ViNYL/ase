@@ -4,7 +4,7 @@ import numpy as np
 
 from ase.optimize import Dynamics
 from ase.data import atomic_masses
-from ase.md.logger import MDlogger
+from ase.md.logger import MDLogger
 
 class MolecularDynamics(Dynamics):
     """Base-class for all MD classes."""
@@ -15,7 +15,7 @@ class MolecularDynamics(Dynamics):
         self.masses = self.atoms.get_masses()
         self.masses.shape = (-1, 1)
         if logfile:
-            self.attach(MDlogger(dyn=self, atoms=atoms, logfile=logfile),
+            self.attach(MDLogger(dyn=self, atoms=atoms, logfile=logfile),
                         interval=loginterval)
 
     def run(self, steps=50):
