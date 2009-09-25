@@ -18,11 +18,12 @@ def read_gpaw_text(fileobj, index=-1):
             pbc = []
             for line in lines[i + 3:i + 6]:
                 words = line.split()
-                if len(words) == 5:
+                if len(words) == 5:  # old format
                     cell.append(float(words[2]))
-                else:
+                    pbc.append(words[1] == 'yes')
+                else:                # new format with GUC
                     cell.append([float(word) for word in words[3:6]])
-                pbc.append(words[1] == 'yes')
+                    pbc.append(words[2] == 'yes')
             
         try:
             i = lines.index('Positions:\n')
