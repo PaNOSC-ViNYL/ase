@@ -648,7 +648,8 @@ class Vasp:
     def read_magnetic_moments(self, atoms):
         magnetic_moments = np.zeros(len(atoms))
         n = 0
-        for line in open('OUTCAR', 'r'):
+        lines = open('OUTCAR', 'r').readlines()
+        for line in lines:
             if line.rfind('magnetization (x)') > -1:
                 for m in range(len(atoms)):
                     magnetic_moments[m] = float(lines[n + m + 4].split()[4])
