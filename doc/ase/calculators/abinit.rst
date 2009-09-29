@@ -67,6 +67,7 @@ keyword        type      default value     description
 ``width``      ``float`` ``0.04 Ha``       Fermi-distribution width in eV (default: 0.04 Ha)
 ``charge``     ``float`` ``0``             Total charge of the system (default: 0)
 ``label``      ``str``   ``'abinit'``      Name of the output file
+``toldfe``     ``float`` ``1.0e-6``        TOLerance on the DiFference of total Energy
 ============== ========= ================  =====================================
 
 A value of ``None`` means that ABINIT's default value is used.
