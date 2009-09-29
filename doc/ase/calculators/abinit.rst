@@ -182,12 +182,6 @@ in gpaw `<https://wiki.fysik.dtu.dk/gpaw/exercises/band_structure/bands.html>`_)
   atoms.set_calculator(calc)
   atoms.get_potential_energy()
 
-  # txt had to be renamed to *.save so abinit does not start *.txtA
-  # in case of of e.g. QuasiNewton relaxation
-  # but here we need to read txt file again
-  from os import rename
-  rename(label+'.txt.save', label+'.txt')
-
   # Subtract Fermi level from the self-consistent calculation
   e_fermi = calc.get_fermi_level()
   assert nbands == calc.get_number_of_bands()
@@ -220,5 +214,3 @@ in gpaw `<https://wiki.fysik.dtu.dk/gpaw/exercises/band_structure/bands.html>`_)
       pylab.plot(kpts2[:, 0], eigs[n], '.m')
   plot_save(".", label)
 
-  # rename txt file back
-  rename(label+'.txt', label+'.txt.save')

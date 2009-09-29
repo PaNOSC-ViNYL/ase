@@ -215,6 +215,14 @@ class Abinit:
 
         abinit = os.environ['ABINIT_SCRIPT']
         locals = {'label': self.label}
+
+        # Now, because (stupidly) abinit when it finds a name it uses nameA
+        # and when nameA exists it uses nameB, etc.
+        # we need to rename our *.txt file to *.txt.bak
+        filename = self.label + '.txt'
+        if islink(filename) or isfile(filename):
+            os.rename(filename, filename+'.bak')
+
         execfile(abinit, {}, locals)
         exitcode = locals['exitcode']
         if exitcode != 0:
@@ -380,7 +388,7 @@ class Abinit:
         E_f=None
         filename = self.label + '.txt'
         text = open(filename).read().lower()
-        assert 'ERROR' not in text
+        assert 'error' not in text
         for line in iter(text.split('\n')):
             if line.rfind('fermi (or homo) energy (hartree) =') > -1:
                 E_f = float(line.split('=')[1].strip().split()[0])
@@ -406,7 +414,7 @@ class Abinit:
         #
         filename = self.label + '.txt'
         text = open(filename).read().lower()
-        assert 'ERROR' not in text
+        assert 'error' not in text
         lines = iter(text.split('\n'))
         text_list = []
         # find the begining line of eigenvalues
@@ -476,7 +484,8 @@ class Abinit:
         """Read results from ABINIT's text-output file."""
         filename = self.label + '.txt'
         text = open(filename).read().lower()
-        assert 'ERROR' not in text
+        assert 'error' not in text
+        assert 'was not enough scf cycles to converge' not in text
         lines = iter(text.split('\n'))
         # some consistency ckecks
         for line in iter(text.split('\n')):
@@ -543,14 +552,6 @@ class Abinit:
                 break
         else:
             raise RuntimeError
-
-        # Now, because (stupidly) abinit when it finds a name it uses nameA
-        # and when nameA exists it uses nameB, etc.
-        # we need to rename our file
-        # (and loose it in case of e.g. QuasiNewton relaxation)!
-        filename_save = filename + '.save' #MDTMP
-        if islink(filename) or isfile(filename): #MDTMP
-            os.rename(filename, filename_save) #MDTMP
 
 def inpify(key):
     return key.lower().replace('_', '').replace('.', '').replace('-', '')
