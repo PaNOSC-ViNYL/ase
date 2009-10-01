@@ -75,7 +75,7 @@ class Vibrations:
     """
     def __init__(self, atoms, indices=None, name='vib', delta=0.01, nfree=2):
         assert nfree in [2, 4]
-	self.atoms = atoms
+        self.atoms = atoms
         if indices is None:
             indices = range(len(atoms))
         self.indices = np.asarray(indices)
