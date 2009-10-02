@@ -379,7 +379,8 @@ class Vasp:
         """
         files = ['CHG', 'CHGCAR', 'POSCAR', 'INCAR', 'CONTCAR', 'DOSCAR',
                  'EIGENVAL', 'IBZKPT', 'KPOINTS', 'OSZICAR', 'OUTCAR', 'PCDAT',
-                 'POTCAR', 'vasprun.xml', 'WAVECAR', 'XDATCAR']
+                 'POTCAR', 'vasprun.xml', 'WAVECAR', 'XDATCAR',
+                 'PROCAR', 'ase-sort.dat']
         for f in files:
             try:
                 os.remove(f)
