@@ -306,17 +306,40 @@ class Siesta:
         self.forces = np.array([[float(word)
                                  for word in line.split()[1:4]]
                                 for line in lines[1:]])
-       
-    def read_hamiltonian(self, filename, is_gamma_only=True, magnus=False):
-        assert not magnus, 'Not implemented' 
+
+    def read_hs(self, filename, is_gamma_only=False, magnus=False):
+        """Read the Hamiltonian and overlap matrix from Siesta in 
+           sparse format. 
+
+        Parameters
+        ==========
+        filename: string
+            The filename should be jobname.HS  
+        is_gamma_only: bool
+            Use is_gamma_only=False for a calculation with k-points.
+        magnus: bool
+            The fileformat was changed by Magnus in Siesta at some
+            point around version 2.xxx. 
+            Use mangus=False, to use the original file format.
+
+        Examples
+        ========
+            >>> calc = Siesta()
+            >>> calc.read_hs('jobname.HS')
+            >>> print calc.dat.fermi_level
+            >>> print 'Number of orbitals: %i' % calc.dat.nuotot 
+        """
+        assert not magnus, 'Not implemented; changes by Magnus to file io' 
+        assert not is_gamma_only, 'Not implemented'
         fileobj = file(filename, 'rb')
         fileobj.seek(0)
-         
         class Dummy(object): pass
         self.dat = dat = Dummy()
+        dat.fermi_level = float(open(filename[:-3] + '.EIG', 'r').readline())
         dat.is_gammay_only = is_gamma_only 
         dat.nuotot, dat.ns, dat.mnh = getrecord(fileobj, 'l')
         nuotot, ns, mnh = dat.nuotot, dat.ns, dat.mnh
+        print 'Number of orbitals found: %i' % nuotot
         dat.numh = numh = np.array([getrecord(fileobj, 'l')
                                     for i in range(nuotot)], 'l')
         dat.maxval = max(numh)
@@ -325,20 +348,21 @@ class Siesta:
         for oi in xrange(1, nuotot):
             listhptr[oi] = listhptr[oi - 1] + numh[oi - 1]
         dat.listh = listh = np.zeros(mnh, 'l')
-
+        
+        print 'Reading sparse info'
         for oi in xrange(nuotot):
             for mi in xrange(numh[oi]):
                 listh[listhptr[oi] + mi] = getrecord(fileobj, 'l')
 
         dat.nuotot_sc = nuotot_sc = max(listh)
-        dat.h_sparse = h_sparse = np.zeros([mnh, ns], float)
+        dat.h_sparse = h_sparse = np.zeros((mnh, ns), float)
         dat.s_sparse = s_sparse = np.zeros(mnh, float)
-
+        print 'Reading H'
         for si in xrange(ns):
             for oi in xrange(nuotot):
                 for mi in xrange(numh[oi]):
                     h_sparse[listhptr[oi] + mi, si] = getrecord(fileobj, 'd')
-
+        print 'Reading S'
         for oi in xrange(nuotot):
             for mi in xrange(numh[oi]):
                 s_sparse[listhptr[oi] + mi] = getrecord(fileobj, 'd')
@@ -346,11 +370,69 @@ class Siesta:
         dat.qtot, dat.temperature = getrecord(fileobj, 'd')
         
         if not is_gamma_only:
+            print 'Reading X'
             dat.xij_sparse = xij_sparse = np.zeros([3, mnh], float)
             for oi in xrange(nuotot):
                 for mi in xrange(numh[oi]):
                     xij_sparse[:, listhptr[oi] + mi] = getrecord(fileobj, 'd')
-         
+
+    def get_hs(self, kpt=(0, 0, 0), spin=0, verbose=False):
+        """Hamiltonian and overlap matrices for an arbitrary k-point.
+        
+        Parameters
+        ==========
+        kpt: listlike of three float 
+            k-point in units of Bohr^-1.  
+        spin: int
+            Spin index with a value of 0 or 1
+        verbose: bool 
+            Use verbose=True to get extra data printed
+
+        Note
+        ====
+        read_hs must be called before get_hs can be called.
+
+        Examples
+        ========
+        
+        >>> calc = Siesta()
+        >>> calc.read_hs('jobname.HS')
+        >>> h1, s1 = calc.get_hs(kpt=(0.0, 0.1, 0.0), spin=0)
+        >>> h2, s2 = calc.get_hs(kpt=(0.1, 0.0, 0.0), spin=0, verbose=True)
+        >>> h1 -= s1 * calc.dat.fermi_level # fermi level is now at 0.
+        
+        
+        """
+        if not hasattr(self, 'dat'):#XXX Crude check if data is avail.
+            print 'Please read in data first using read_hs'
+            return None, None
+        from cmath import exp
+        from ase import Rydberg
+        kpt_c = np.asarray(kpt, float)
+        dat = self.dat
+        h = np.zeros((dat.nuotot, dat.nuotot), complex)
+        s = np.zeros((dat.nuotot, dat.nuotot), complex)
+        h_sparse, s_sparse = dat.h_sparse, dat.s_sparse
+        x_sparse = dat.xij_sparse
+        dot = np.dot
+        numh, listhptr, listh = dat.numh, dat.listhptr, dat.listh
+        indxuo = np.mod(np.arange(dat.nuotot_sc), dat.nuotot)
+        
+        for iuo in xrange(dat.nuotot):
+            if verbose:
+                print 'get_hs: %i out of %i' % (iuo, dat.nuotot)
+            for j in range(numh[iuo]):
+                ind =  listhptr[iuo] + j 
+                jo = listh[ind] - 1
+                juo = indxuo[jo]
+                kx = dot(kpt_c, x_sparse[:, ind])
+                phasef = exp(1.0j * kx)
+                h[iuo, juo] += phasef * h_sparse[ind, spin] 
+                s[iuo, juo] += phasef * s_sparse[ind]       
+
+        h *= complex(Rydberg)
+        return h, s
+
 
 def getrecord(fileobj, dtype):
     import array
