@@ -306,7 +306,68 @@ class Siesta:
         self.forces = np.array([[float(word)
                                  for word in line.split()[1:4]]
                                 for line in lines[1:]])
+       
+    def read_hamiltonian(self, filename, is_gamma_only=True, magnus=False):
+        assert not magnus, 'Not implemented' 
+        fileobj = file(filename, 'rb')
+        fileobj.seek(0)
+         
+        class Dummy(object): pass
+        self.dat = dat = Dummy()
+        dat.is_gammay_only = is_gamma_only 
+        dat.nuotot, dat.ns, dat.mnh = getrecord(fileobj, 'l')
+        nuotot, ns, mnh = dat.nuotot, dat.ns, dat.mnh
+        dat.numh = numh = np.array([getrecord(fileobj, 'l')
+                                    for i in range(nuotot)], 'l')
+        dat.maxval = max(numh)
+        dat.listhptr = listhptr = np.zeros(nuotot, 'l')
+        listhptr[0] = 0
+        for oi in xrange(1, nuotot):
+            listhptr[oi] = listhptr[oi - 1] + numh[oi - 1]
+        dat.listh = listh = np.zeros(mnh, 'l')
+
+        for oi in xrange(nuotot):
+            for mi in xrange(numh[oi]):
+                listh[listhptr[oi] + mi] = getrecord(fileobj, 'l')
+
+        dat.nuotot_sc = nuotot_sc = max(listh)
+        dat.h_sparse = h_sparse = np.zeros([mnh, ns], float)
+        dat.s_sparse = s_sparse = np.zeros(mnh, float)
+
+        for si in xrange(ns):
+            for oi in xrange(nuotot):
+                for mi in xrange(numh[oi]):
+                    h_sparse[listhptr[oi] + mi, si] = getrecord(fileobj, 'd')
+
+        for oi in xrange(nuotot):
+            for mi in xrange(numh[oi]):
+                s_sparse[listhptr[oi] + mi] = getrecord(fileobj, 'd')
+
+        dat.qtot, dat.temperature = getrecord(fileobj, 'd')
         
+        if not is_gamma_only:
+            dat.xij_sparse = xij_sparse = np.zeros([3, mnh], float)
+            for oi in xrange(nuotot):
+                for mi in xrange(numh[oi]):
+                    xij_sparse[:, listhptr[oi] + mi] = getrecord(fileobj, 'd')
+         
+
+def getrecord(fileobj, dtype):
+    import array
+    typetosize = {'l':4, 'f':4, 'd':8}# XXX np.int, np.float32, np.float64
+    assert dtype in typetosize # XXX
+    size = typetosize[dtype]
+    record = array.array('l')
+    trunk = array.array(dtype)
+    record.fromfile(fileobj, 1)
+    nofelements = int(record[-1]) / size
+    trunk.fromfile(fileobj, nofelements)
+    record.fromfile(fileobj, 1)
+    data = np.array(trunk, dtype=dtype)
+    if len(data)==1:
+        data = data[0]
+    return data
+
 
 def fdfify(key):
     return key.lower().replace('_', '').replace('.', '').replace('-', '')
