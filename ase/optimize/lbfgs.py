@@ -1,10 +1,8 @@
 import sys
-import copy 
 
 import numpy as np
 
 from ase.optimize import Optimizer
-from ase.neb import *  # XXX What is this?
 
 
 class BaseLBFGS(Optimizer):
@@ -30,27 +28,21 @@ class BaseLBFGS(Optimizer):
         include only one scf loop.  """
 
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
-                 maxstep=0.2, dR=0.1, memory=25, damping=1.):
-        Optimizer.__init__(self, atoms, restart, logfile, trajectory)
+                 maxstep=None, dR=0.1, memory=25, damping=1.,
+                 initial_hessian=None):
 
-        if maxstep > 1.0:
-            raise ValueError(
-                             'Wanna fly? I know the calculation is too slow. ' +
-                             'But you have to follow the rules.\n'+
-                             '            The maximum step size %.1f' % maxstep 
-                             +' is too big! \n'+
-                             '            Try to set the maximum step size'+
-                             ' below 0.2.')
-        self.maxstep = maxstep
+        if maxstep is None:
+            self.maxstep = np.sqrt(3*len(atoms))*0.04 
+        else:
+            self.maxstep = maxstep
         self.dR = dR
         self.memory = memory
         self.damping = damping
-        self.Ho = 1.0
-
-    def initialize(self):
+        self.Ho = 0.2
         self.ITR = None
         self.f_old = None
         self.r_old = None
+        Optimizer.__init__(self, atoms, restart, logfile, trajectory)
 
     def read(self):
         (self.ITR, self.s, self.y, self.rho, self.r_old, 
@@ -96,7 +88,6 @@ class BaseLBFGS(Optimizer):
                 self.y = [1.]
                 self.rho = [1.]
         self.dump((self.ITR, self.s, self.y, self.rho, r_old, f_old))
-
         r_old = r.copy()
         f_old = f.copy()
         if self.ITR <= self.memory:
@@ -108,7 +99,8 @@ class BaseLBFGS(Optimizer):
             k = (BOUND - j)
             a[k] = self.rho[k] * np.vdot(self.s[k], q)
             q -= a[k] * self.y[k]
-        d = self.Ho * q
+        d = (np.dot(q.reshape(-1), self.Ho)).reshape(-1,3)
+        #d = self.Ho * q
         for j in range(1,BOUND):
             B = self.rho[j] * np.vdot(self.y[j], d)
             d = d + self.s[j] * (a[j] - B)
@@ -119,22 +111,18 @@ class BaseLBFGS(Optimizer):
         if isinstance(traj, str):
             from ase.io.trajectory import PickleTrajectory
             traj = PickleTrajectory(traj, 'r')
-        atoms = traj[0]
-        r_old = atoms.get_positions()
-        f_old = atoms.get_forces()
+        r_old = None
+        f_old = None
         for i in range(0, len(traj) - 1):
             r = traj[i].get_positions()
             f = traj[i].get_forces()
             self.update(r, f, r_old, f_old)
             r_old = r
             f_old = f
-        self.r_old = traj[-2].get_positions()
-        self.f_old = traj[-2].get_forces()
+        self.r_old = r_old
+        self.f_old = f_old
 
 class LBFGS(BaseLBFGS):
-    def initialize(self):
-        BaseLBFGS.initialize(self)
-        self.Ho = 0.05
     
     def determine_step(self, r, f, du):
         # use the Hessian Matrix to predict the min
