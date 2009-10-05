@@ -341,21 +341,22 @@ class Siesta:
         class Dummy: pass
         self._dat = dat = Dummy()
         # Try to read supercell and atom data from a jobname.XV file
-        filename_xv = filename[:-2] + '.XV'
-        if isfile(filename_xv):
-            print 'Reading supercell and atom data from ' + filename_xv
-            fd = open(filename_xv, 'r')
-            dat.cell = np.zeros((3, 3)) # Supercell
-            for a_vec in dat.cell:
-                a_vec[:] = np.array(fd.readline().split()[:3], float)
-            dat.rcell = 2 * np.pi * np.linalg.inv(dat.cell.T)
-            dat.natoms = int(fd.readline().split()[0])
-            dat.symbols = []
-            dat.pos_ac = np.zeros((dat.natoms, 3))
-            for a in range(dat.natoms):
-                line = fd.readline().split()
-                dat.symbols.append(chemical_symbols[int(line[1])])
-                dat.pos_ac[a, :] = [float(line[i]) for i in range(2, 2 + 3)]
+        filename_xv = filename[:-2] + 'XV'
+        print filename_xv
+        assert isfile(filename_xv), 'Missing jobname.XV file'
+        print 'Reading supercell and atom data from ' + filename_xv
+        fd = open(filename_xv, 'r')
+        dat.cell = np.zeros((3, 3)) # Supercell
+        for a_vec in dat.cell:
+            a_vec[:] = np.array(fd.readline().split()[:3], float)
+        dat.rcell = 2 * np.pi * np.linalg.inv(dat.cell.T)
+        dat.natoms = int(fd.readline().split()[0])
+        dat.symbols = []
+        dat.pos_ac = np.zeros((dat.natoms, 3))
+        for a in range(dat.natoms):
+            line = fd.readline().split()
+            dat.symbols.append(chemical_symbols[int(line[1])])
+            dat.pos_ac[a, :] = [float(line[i]) for i in range(2, 2 + 3)]
         # Read in the jobname.HS file
         fileobj = file(filename, 'rb')
         fileobj.seek(0)
@@ -448,8 +449,6 @@ class Siesta:
         indxuo = np.mod(np.arange(dat.nuotot_sc), dat.nuotot)
         
         for iuo in xrange(dat.nuotot):
-            if verbose:
-                print 'get_hs: %i out of %i' % (iuo, dat.nuotot)
             for j in range(numh[iuo]):
                 ind =  listhptr[iuo] + j 
                 jo = listh[ind] - 1
