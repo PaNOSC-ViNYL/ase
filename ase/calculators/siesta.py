@@ -461,10 +461,10 @@ class Siesta:
         h_MM *= complex(Rydberg)
         if remove_pbc is not None:
             direction, basis = remove_pbc
-            d = 'xyz'.index(direction)
             centers_ic = get_bf_centers(dat.symbols, dat.pos_ac, basis)
+            d = 'xyz'.index(direction)
             cutoff = dat.cell[d, d] * 0.5
-            truncate_along_axis(h_MM, s_MM, centers_ic, cutoff)
+            truncate_along_axis(h_MM, s_MM, direction, centers_ic, cutoff)
 
         return h_MM, s_MM
 
@@ -648,7 +648,7 @@ def get_nao(symbol, basis):
     basis: str
         Basis function type.
     """
-    ls = sz_ls[symbol]
+    ls = valence_config[symbol]
     nao = 0
     zeta = {'s':1, 'd':2, 't':3, 'q':4}
     nzeta = zeta[basis[0]]
@@ -669,20 +669,20 @@ def get_nao(symbol, basis):
 def fdfify(key):
     return key.lower().replace('_', '').replace('.', '').replace('-', '')
 
-valens_config = {
-                'H': (0,),
-                'C': (0, 1),
-                'N': (0, 1),
-                'O': (0, 1),
-                'S': (0, 1), 
-                'Li': (0,),
-                'Na': (0,),
-                'Ni': (0, 2),
-                'Cu': (0, 2), 
-                'Pd': (0, 2), 
-                'Ag': (0, 2), 
-                'Pt': (0, 2), 
-                'Au': (0, 2)}
+valence_config = {
+    'H': (0,),
+    'C': (0, 1),
+    'N': (0, 1),
+    'O': (0, 1),
+    'S': (0, 1), 
+    'Li': (0,),
+    'Na': (0,),
+    'Ni': (0, 2),
+    'Cu': (0, 2), 
+    'Pd': (0, 2), 
+    'Ag': (0, 2), 
+    'Pt': (0, 2), 
+    'Au': (0, 2)}
 
 keys_with_units = {
     'paoenergyshift': 'eV',
