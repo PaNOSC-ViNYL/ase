@@ -489,7 +489,6 @@ def getrecord(fileobj, dtype):
 
 def truncate_along_axis(h, s, direction, centers_ic, cutoff):
     """Truncate h and s such along a cartesian axis.
-
     Parameters
     ==========
     h : (N, N) ndarray
@@ -574,6 +573,82 @@ def get_nao(symbol, basis):
     basis: str
         Basis function type.
     """
+    ls = valence_config[symbol]
+    nao = 0
+    zeta = {'s':1, 'd':2, 't':3, 'q':4}
+    nzeta = zeta[basis[0]]
+    is_pol = 'p' in basis
+    for l in ls: 
+        nao += (2 * l + 1) * nzeta
+    if is_pol:
+        l_pol = None
+        l = -1 
+        while l_pol is None:
+            l += 1
+            if not l in ls:
+                l_pol = l
+        nao += 2 * l_pol + 1
+    return nao        
+
+def get_bf_centers(symbols, positions, basis):
+    """Centers of basis functions.
+
+    Parameters
+    ==========
+    symbols: str, (N, ) array_like 
+        chemical symbol for each atom. 
+    positions: float, (N, 3) array_like
+        Positions of the atoms.
+    basis: {str,  dict}
+        Basis set specification as either a string or a dictionary
+
+    Examples
+    ========
+    >>> symbols = ['O', 'H']
+    >>> positions = [(0, 0, 0), (0, 0, 1)]
+    >>> basis = 'sz'
+    >>> print get_bf_centers(symbols, positions, basis)
+    [[0 0 0]
+     [0 0 0]
+     [0 0 0]
+     [0 0 0]
+     [0 0 1]]
+    >>> basis = {'H':'dz', None:'sz'}
+    >>> print get_bf_centers(symbols, positions, basis)
+    [[0 0 0]
+     [0 0 0]
+     [0 0 0]
+     [0 0 0]
+     [0 0 1]
+     [0 0 1]]
+
+    """
+    centers_ic = []
+    dict_basis = False
+    if type(basis)==dict:
+        dict_basis = True
+    for symbol, pos in zip(symbols, positions):
+        if dict_basis:
+            if symbol not in basis:
+                bas = basis[None]
+            else:
+                bas = basis[symbol]
+        else:
+            bas = basis
+        for i in range(get_nao(symbol, bas)):
+            centers_ic.append(pos)
+    return np.asarray(centers_ic)
+
+def get_nao(symbol, basis):
+    """Number of basis functions. 
+
+    Parameters
+    ==========
+    symbol: str
+        The chemical symbol.
+    basis: str
+        Basis function type.
+    """
     ls = sz_ls[symbol]
     nao = 0
     zeta = {'s':1, 'd':2, 't':3, 'q':4}
@@ -595,23 +670,20 @@ def get_nao(symbol, basis):
 def fdfify(key):
     return key.lower().replace('_', '').replace('.', '').replace('-', '')
 
-
-sz_ls = {
-         'H': (0,),
-         'C': (0, 1),
-         'N': (0, 1),
-         'O': (0, 1),
-         'S': (0, 1),
-         'Li': (0, ),
-         'Na': (0, ),
-         'Ni': (0, 2),
-         'Cu': (0, 2),
-         'Pd': (0, 2),
-         'Ag': (0, 2),
-         'Pt': (0, 2), 
-         'Au': (0, 2),
-         }
-
+valens_config = {
+                'H': (0,),
+                'C': (0, 1),
+                'N': (0, 1),
+                'O': (0, 1),
+                'S': (0, 1), 
+                'Li': (0,),
+                'Na': (0,),
+                'Ni': (0, 2),
+                'Cu': (0, 2), 
+                'Pd': (0, 2), 
+                'Ag': (0, 2), 
+                'Pt': (0, 2), 
+                'Au': (0, 2)}
 
 keys_with_units = {
     'paoenergyshift': 'eV',
