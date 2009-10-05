@@ -12,57 +12,56 @@ class TransportCalculator:
     """
 
     def __init__(self, **kwargs):
-        """
+        """Create the transport calculator.
+
         Parameters
         ==========
-        h: float or complex 2-dim array
-            Hamiltonian matrix for the central region.
-        s: float or complex 2-dim array or None
+        h : (N, N) ndarray
+            Hamiltonian matrix for the central region. 
+        s : {None, (N, N) ndarray}, optional
             Overlap matrix for the central region. 
             Use None for an orthonormal basis.
-        h1/h2: float or complex 2-dim array
-            Hamiltonian matrix for lead1/lead2 which
-            should correspond  exactly to two nearest neighbour
-            principal layers.
-        s1/s2: float or complex 2-dim array or None
-            Overlap matrix for lead1/lead2 correspondig
-            to two nearest neigbour principal layers.
-            Use None for an orthonomormal basis.
-        hc1/hc2: float or complex 2-dim array or None.
+        h1 : (N1, N1) ndarray
+            Hamiltonian matrix for lead1.
+        h2 : {None, (N2, N2) ndarray}, optional
+            Hamiltonian matrix for lead2. You may use None if lead1 and lead2 
+            are identical.
+        s1 : {None, (N1, N1) ndarray}, optional
+            Overlap matrix for lead1. Use None for an orthonomormal basis.
+        hc1 : {None, (N1, N) ndarray}, optional
             Hamiltonian coupling matrix between the first principal
-            layer in lead1/lead2 and the central region. 
-            Use None to assume that hc1/hc2 is the same as
-            the coupling matrix elements between neareste neighbour 
-            principal layers in lead1/lead2.
-        sc1/sc2: float or complex 2-dim array or None
+            layer in lead1 and the central region.
+        hc2 : {None, (N2, N} ndarray), optional
+            Hamiltonian coupling matrix between the first principal
+            layer in lead2 and the central region.
+        sc1 : {None, (N1, N) ndarray}, optional  
             Overlap coupling matrix between the first principal
-            layer in lead1/lead2 and the central region. 
-            Use None to assume that sc1/sc2 is the same as
-            the coupling matrix elements between neareste neighbour 
-            principal layers in lead1/lead2.
-         energies: listlike of floats
+            layer in lead1 and the central region.
+        sc2 : {None, (N2, N) ndarray}, optional  
+            Overlap coupling matrix between the first principal
+            layer in lead2 and the central region.
+        energies : {None, array_like}, optional
             Energy points for which calculated transport properties are
             evaluated.
-        eta: float
+        eta : {1.0e-5, float}, optional
             Infinitesimal for the central region Green function. 
-        eta1/eta2: float
+        eta1/eta2 : {1.0e-5, float}, optional
             Infinitesimal for lead1/lead2 Green function.
-        align_bf: int
-            Use align_bf = m to shift the central region 
+        align_bf : {None, int}, optional
+            Use align_bf=m to shift the central region 
             by a constant potential such that the m'th onsite element
             in the central region is alligned to the m'th onsite element
             in lead1 principal layer.
-        logfile: str or None
-            Write progress of a calculation to logfile.
-        eigenchannels: int
+        logfile : {None, str}, optional 
+            Write a logfile.
+        eigenchannels: {0, int}, optional
             Number of eigenchannel transmission coefficients to 
             calculate. 
-        pdos: listlike of ints or None
+        pdos : {None, (N,) array_like}, optional
             Specify which basis functions to calculate the
             projected density of states for.
-        dos: bool or None
-            Use dos = True to calculate the density of states
-            of the central region. 
+        dos : {False, bool}, optional
+            The total density of states of the central region.
         box: XXX
 
         Examples
