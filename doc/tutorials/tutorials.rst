@@ -63,3 +63,18 @@ For more details:
 
 .. _source code: http://trac.fysik.dtu.dk/projects/ase/browser/trunk
 
+Videos
+------
+
+The following video tutorials are avaliable (in `ogg <http://www.xiph.org/ogg/>`_ format):
+
+ - **Overview and Installation of ASE** (duration: ~5min 30sec; size: 18 MB) - en: |oi_en|
+
+.. |oi_en| image:: ../_static/United_States_of_America.png
+   :target: https://wiki.fysik.dtu.dk/ase-files/oi_en.ogg
+   :align: middle
+
+.. |oi_cn| image:: ../_static/China.png
+   :target: https://wiki.fysik.dtu.dk/ase-files/oi_ch.ogg
+   :align: middle
+
