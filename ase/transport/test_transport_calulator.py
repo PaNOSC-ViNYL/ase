@@ -44,7 +44,6 @@ H_scat[4,3] = 0.2
 energies = np.arange(-3,3,0.02)
 tcalc = TransportCalculator(h=H_scat,
                             h1=H_lead,
-                            h2=H_lead,
                             energies=energies)
 
 T = tcalc.get_transmission()
