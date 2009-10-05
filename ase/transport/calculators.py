@@ -7,35 +7,73 @@ from ase.transport.tools import subdiagonalize, cutcoupling, tri2full, dagger
 
 
 class TransportCalculator:
-    """Determine transport properties of device sandwiched between
-    semi-infinite leads using nonequillibrium Green function methods.
+    """Determine transport properties of a device sandwiched between
+    two semi-infinite leads using a Green function method.
     """
 
     def __init__(self, **kwargs):
-        """Bla Bla XXX
-        
-        energies is the energy grid on which the transport properties
-        should be determined.
-        
-        h1 (h2) is a matrix representation of the Hamiltonian of two
-        principal layers of the left (right) lead, and the coupling
-        between such layers.
-        
-        h is a matrix representation of the Hamiltonian of the
-        scattering region. This must include at least one lead
-        principal layer on each side. The coupling in (out) of the
-        scattering region is by default assumed to be identical to the
-        coupling between left (right) principal layers.  However,
-        these couplings can also be specified explicitly through hc1
-        and hc2.
-        
-        s, s1, and s2 are the overlap matrices corresponding to h, h1,
-        and h2. Default is the identity operator. sc1 and sc2 are the
-        overlap matrices corresponding to the optional couplings hc1
-        and hc2.
-        
-        align_bf specifies the principal layer basis index used to
-        align the fermi levels of the lead and scattering regions.
+        """
+        Parameters
+        ==========
+        h: float or complex 2-dim array
+            Hamiltonian matrix for the central region.
+        s: float or complex 2-dim array or None
+            Overlap matrix for the central region. 
+            Use None for an orthonormal basis.
+        h1/h2: float or complex 2-dim array
+            Hamiltonian matrix for lead1/lead2 which
+            should correspond  exactly to two nearest neighbour
+            principal layers.
+        s1/s2: float or complex 2-dim array or None
+            Overlap matrix for lead1/lead2 correspondig
+            to two nearest neigbour principal layers.
+            Use None for an orthonomormal basis.
+        hc1/hc2: float or complex 2-dim array or None.
+            Hamiltonian coupling matrix between the first principal
+            layer in lead1/lead2 and the central region. 
+            Use None to assume that hc1/hc2 is the same as
+            the coupling matrix elements between neareste neighbour 
+            principal layers in lead1/lead2.
+        sc1/sc2: float or complex 2-dim array or None
+            Overlap coupling matrix between the first principal
+            layer in lead1/lead2 and the central region. 
+            Use None to assume that sc1/sc2 is the same as
+            the coupling matrix elements between neareste neighbour 
+            principal layers in lead1/lead2.
+         energies: listlike of floats
+            Energy points for which calculated transport properties are
+            evaluated.
+        eta: float
+            Infinitesimal for the central region Green function. 
+        eta1/eta2: float
+            Infinitesimal for lead1/lead2 Green function.
+        align_bf: int
+            Use align_bf = m to shift the central region 
+            by a constant potential such that the m'th onsite element
+            in the central region is alligned to the m'th onsite element
+            in lead1 principal layer.
+        logfile: str or None
+            Write progress of a calculation to logfile.
+        eigenchannels: int
+            Number of eigenchannel transmission coefficients to 
+            calculate. 
+        pdos: listlike of ints or None
+            Specify which basis functions to calculate the
+            projected density of states for.
+        dos: bool or None
+            Use dos = True to calculate the density of states
+            of the central region. 
+        box: XXX
+
+        Examples
+        ========
+        >>> import numpy as np
+        >>> h = np.array((0,)).reshape((1,1))
+        >>> h1 = np.array((0, -1, -1, 0)).reshape(2,2)
+        >>> energies = np.arange(-3, 3, 0.1)
+        >>> calc = TransportCalculator(h=h, h1=h1, energies=energies)
+        >>> T = calc.get_transmission()
+
         """
         
         # The default values for all extra keywords
@@ -52,9 +90,9 @@ class TransportCalculator:
                                  'sc2': None,
                                  'box': None,
                                  'align_bf': None,
-                                 'eta1': 1e-3,
-                                 'eta2': 1e-3,
-                                 'eta': 1e-3,
+                                 'eta1': 1e-5,
+                                 'eta2': 1e-5,
+                                 'eta': 1e-5,
                                  'logfile': None, # '-',
                                  'eigenchannels': 0,
                                  'dos': False,
@@ -99,13 +137,23 @@ class TransportCalculator:
         print >> self.log, '# Initializing calculator...'
 
         p = self.input_parameters
-        if p['s1'] == None:
-            p['s1'] = np.identity(len(p['h1']))
-        if p['s2'] == None:
-            p['s2'] = np.identity(len(p['h2']))
         if p['s'] == None:
             p['s'] = np.identity(len(p['h']))
-            
+        
+        identical_leads = False
+        if p['h2'] == None:   
+            p['h2'] = p['h1'] # Lead2 is idendical to lead1
+            identical_leads = True
+ 
+        if p['s1'] == None: 
+            p['s1'] = np.identity(len(p['h1']))
+       
+        if p['s2'] == None and not identical_leads:
+            p['s2'] = np.identity(len(p['h2'])) # Orthonormal basis for lead 2
+        else: # Lead2 is idendical to lead1
+            p['s2'] = p['s1']
+
+           
         h_mm = p['h']
         s_mm = p['s']
         pl1 = len(p['h1']) / 2
