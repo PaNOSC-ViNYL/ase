@@ -53,7 +53,8 @@ class TransportCalculator:
             in the central region is alligned to the m'th onsite element
             in lead1 principal layer.
         logfile : {None, str}, optional 
-            Write a logfile.
+            Write a logfile to file with name `logfile`.
+            Use '-' to write to std out.
         eigenchannels: {0, int}, optional
             Number of eigenchannel transmission coefficients to 
             calculate. 
@@ -63,6 +64,10 @@ class TransportCalculator:
         dos : {False, bool}, optional
             The total density of states of the central region.
         box: XXX
+
+        If hc1/hc2 are None, they are assumed to be identical to
+        the coupling matrix elements between neareste neighbor 
+        principal layers in lead1/lead2.
 
         Examples
         ========
