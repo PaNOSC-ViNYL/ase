@@ -150,7 +150,7 @@ class Dacapo:
         state = self.calc.GetElectronicStates().GetState(band=band, spin=spin,
                                                          kptindex=kpt)
 
-        # Get wf, without bolch phase (Phase = True doesn't do anything!)
+        # Get wf, without bloch phase (Phase = True doesn't do anything!)
         wave = state.GetWavefunctionOnGrid(phase=False)
 
         # Add bloch phase if this is not the Gamma point
