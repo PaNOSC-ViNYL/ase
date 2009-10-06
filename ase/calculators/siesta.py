@@ -327,14 +327,14 @@ class Siesta:
 
         Note
         ====
-        Data read in is put in self.dat.
+        Data read in is put in self._dat.
 
         Examples
         ========
             >>> calc = Siesta()
             >>> calc.read_hs('jobname.HS')
-            >>> print calc.dat.fermi_level
-            >>> print 'Number of orbitals: %i' % calc.dat.nuotot 
+            >>> print calc._dat.fermi_level
+            >>> print 'Number of orbitals: %i' % calc._dat.nuotot 
         """
         assert not magnus, 'Not implemented; changes by Magnus to file io' 
         assert not is_gamma_only, 'Not implemented. Only works for k-points.'
@@ -410,7 +410,7 @@ class Siesta:
         Parameters
         ==========
         kpt : {(0, 0, 0), (3,) array_like}, optional
-            k-point in in scaled or absolute coordinates.
+            k-point in scaled or absolute coordinates.
             For the latter the units should be Bohr^-1.
         spin : {0, 1}, optional
             Spin index 
@@ -431,7 +431,7 @@ class Siesta:
         >>> calc = Siesta()
         >>> calc.read_hs('jobname.HS')
         >>> h, s = calc.get_hs((0.0, 0.375, 0.375))
-        >>> h -= s * calc.dat.fermi_level # fermi level is now at 0.0
+        >>> h -= s * calc._dat.fermi_level # fermi level is now at 0.0
         >>> basis = 'szp'
         >>> h, s = calc.get_hs((0.0, 0.375, 0.375), remove_pbc=('x', basis))
         >>> basis = {'Au:'sz}', 'C':'dzp', None:'szp'}
