@@ -342,21 +342,21 @@ class Siesta:
         self._dat = dat = Dummy()
         # Try to read supercell and atom data from a jobname.XV file
         filename_xv = filename[:-2] + 'XV'
-        print filename_xv
-        assert isfile(filename_xv), 'Missing jobname.XV file'
-        print 'Reading supercell and atom data from ' + filename_xv
-        fd = open(filename_xv, 'r')
-        dat.cell = np.zeros((3, 3)) # Supercell
-        for a_vec in dat.cell:
-            a_vec[:] = np.array(fd.readline().split()[:3], float)
-        dat.rcell = 2 * np.pi * np.linalg.inv(dat.cell.T)
-        dat.natoms = int(fd.readline().split()[0])
-        dat.symbols = []
-        dat.pos_ac = np.zeros((dat.natoms, 3))
-        for a in range(dat.natoms):
-            line = fd.readline().split()
-            dat.symbols.append(chemical_symbols[int(line[1])])
-            dat.pos_ac[a, :] = [float(line[i]) for i in range(2, 2 + 3)]
+        #assert isfile(filename_xv), 'Missing jobname.XV file'
+        if isfile(filename_xv):
+            print 'Reading supercell and atom data from ' + filename_xv
+            fd = open(filename_xv, 'r')
+            dat.cell = np.zeros((3, 3)) # Supercell
+            for a_vec in dat.cell:
+                a_vec[:] = np.array(fd.readline().split()[:3], float)
+            dat.rcell = 2 * np.pi * np.linalg.inv(dat.cell.T)
+            dat.natoms = int(fd.readline().split()[0])
+            dat.symbols = []
+            dat.pos_ac = np.zeros((dat.natoms, 3))
+            for a in range(dat.natoms):
+                line = fd.readline().split()
+                dat.symbols.append(chemical_symbols[int(line[1])])
+                dat.pos_ac[a, :] = [float(line[i]) for i in range(2, 2 + 3)]
         # Read in the jobname.HS file
         fileobj = file(filename, 'rb')
         fileobj.seek(0)
@@ -401,7 +401,7 @@ class Siesta:
                     xij_sparse[:, listhptr[oi] + mi] = getrecord(fileobj, 'd')
         fileobj.close()
 
-    def get_hs(self, kpt=(0, 0, 0), spin=0, remove_pbc=None):
+    def get_hs(self, kpt=(0, 0, 0), spin=0, remove_pbc=None, kpt_scaled=True):
         """Hamiltonian and overlap matrices for an arbitrary k-point.
        
         The default values corresponds to the Gamma point for 
@@ -409,15 +409,19 @@ class Siesta:
 
         Parameters
         ==========
-        kpt: {(0, 0, 0), (3,) array_like}, optional
-            k-point in in scaled coordinates.
-        spin: {0, 1}, optional
+        kpt : {(0, 0, 0), (3,) array_like}, optional
+            k-point in in scaled or absolute coordinates.
+            For the latter the units should be Bohr^-1.
+        spin : {0, 1}, optional
             Spin index 
-        remove_pbc: {None, ({'x', 'y', 'z'}, basis)}, optional
+        remove_pbc : {None, ({'x', 'y', 'z'}, basis)}, optional
             Use remove_pbc to truncate h and s along a cartesian
             axis. 
-            `basis`: {str, dict}
+            `basis` : {str, dict}
                 The basis specification as either a string or a dictionary.
+        kpt_scaled : {True, bool}, optional
+            Use kpt_scaled=False if `kpt` is in absolute units (Bohr^-1).
+
         Note
         ====
         read_hs should be called before get_hs gets called.
@@ -439,7 +443,9 @@ class Siesta:
             return None, None
         dot = np.dot
         dat = self._dat            
-        kpt_c = dot(kpt, dat.rcell)
+        kpt_c = np.array(kpt, float)
+        if kpt_scaled:
+            kpt_c = dot(kpt_c, dat.rcell)
 
         h_MM = np.zeros((dat.nuotot, dat.nuotot), complex)
         s_MM = np.zeros((dat.nuotot, dat.nuotot), complex)
@@ -458,14 +464,14 @@ class Siesta:
                 h_MM[iuo, juo] += phasef * h_sparse[ind, spin] 
                 s_MM[iuo, juo] += phasef * s_sparse[ind]
         
-        h_MM *= complex(Rydberg)
         if remove_pbc is not None:
             direction, basis = remove_pbc
             centers_ic = get_bf_centers(dat.symbols, dat.pos_ac, basis)
             d = 'xyz'.index(direction)
             cutoff = dat.cell[d, d] * 0.5
             truncate_along_axis(h_MM, s_MM, direction, centers_ic, cutoff)
-
+        
+        h_MM *= complex(Rydberg)
         return h_MM, s_MM
 
 
@@ -513,55 +519,6 @@ def truncate_along_axis(h, s, direction, centers_ic, cutoff):
         s[i, :] *= mask_i
         s[:, i] *= mask_i
 
-def get_bf_centers(symbols, positions, basis):
-    """Centers of basis functions.
-
-    Parameters
-    ==========
-    symbols: str, (N, ) array_like 
-        chemical symbol for each atom. 
-    positions: float, (N, 3) array_like
-        Positions of the atoms.
-    basis: {str,  dict}
-        Basis set specification as either a string or a dictionary
-
-    Examples
-    ========
-    >>> symbols = ['O', 'H']
-    >>> positions = [(0, 0, 0), (0, 0, 1)]
-    >>> basis = 'sz'
-    >>> print get_bf_centers(symbols, positions, basis)
-    [[0 0 0]
-     [0 0 0]
-     [0 0 0]
-     [0 0 0]
-     [0 0 1]]
-    >>> basis = {'H':'dz', None:'sz'}
-    >>> print get_bf_centers(symbols, positions, basis)
-    [[0 0 0]
-     [0 0 0]
-     [0 0 0]
-     [0 0 0]
-     [0 0 1]
-     [0 0 1]]
-
-    """
-    centers_ic = []
-    dict_basis = False
-    if type(basis)==dict:
-        dict_basis = True
-    for symbol, pos in zip(symbols, positions):
-        if dict_basis:
-            if symbol not in basis:
-                bas = basis[None]
-            else:
-                bas = basis[symbol]
-        else:
-            bas = basis
-        for i in range(get_nao(symbol, bas)):
-            centers_ic.append(pos)
-    return np.asarray(centers_ic)
-
 def get_nao(symbol, basis):
     """Number of basis functions. 
 
@@ -637,34 +594,6 @@ def get_bf_centers(symbols, positions, basis):
         for i in range(get_nao(symbol, bas)):
             centers_ic.append(pos)
     return np.asarray(centers_ic)
-
-def get_nao(symbol, basis):
-    """Number of basis functions. 
-
-    Parameters
-    ==========
-    symbol: str
-        The chemical symbol.
-    basis: str
-        Basis function type.
-    """
-    ls = valence_config[symbol]
-    nao = 0
-    zeta = {'s':1, 'd':2, 't':3, 'q':4}
-    nzeta = zeta[basis[0]]
-    is_pol = 'p' in basis
-    for l in ls: 
-        nao += (2 * l + 1) * nzeta
-    if is_pol:
-        l_pol = None
-        l = -1 
-        while l_pol is None:
-            l += 1
-            if not l in ls:
-                l_pol = l
-        nao += 2 * l_pol + 1
-    return nao        
-
 
 def fdfify(key):
     return key.lower().replace('_', '').replace('.', '').replace('-', '')
