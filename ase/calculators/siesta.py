@@ -417,8 +417,8 @@ class Siesta:
         remove_pbc : {None, ({'x', 'y', 'z'}, basis)}, optional
             Use remove_pbc to truncate h and s along a cartesian
             axis. 
-            `basis` : {str, dict}
-                The basis specification as either a string or a dictionary.
+        basis: {str, dict}
+            The basis specification as either a string or a dictionary.
         kpt_scaled : {True, bool}, optional
             Use kpt_scaled=False if `kpt` is in absolute units (Bohr^-1).
 
@@ -494,17 +494,18 @@ def getrecord(fileobj, dtype):
 
 def truncate_along_axis(h, s, direction, centers_ic, cutoff):
     """Truncate h and s such along a cartesian axis.
-    Parameters
-    ==========
-    h : (N, N) ndarray
+
+    Parameters:
+
+    h: (N, N) ndarray
         Hamiltonian matrix.
-    s : (N, N) ndarray
+    s: (N, N) ndarray
         Overlap matrix.
-    direction : {'x', 'y', 'z'} 
+    direction: {'x', 'y', 'z'} 
         Truncate allong a cartesian axis.
-    centers_ic : (N, 3) ndarray
+    centers_ic: (N, 3) ndarray
         Centers of the basis functions.
-    cutoff : float
+    cutoff: float
         The (direction-axis projected) cutoff distance.
     """
     dtype = h.dtype
