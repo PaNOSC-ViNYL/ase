@@ -500,7 +500,7 @@ class Jacapo:
             vpw = nc.variables['PlaneWaveCutoff']
             vpw.assignValue(pw)
         else:
-            vpw = nc.createVariable('PlaneWaveCutoff','i',('dim1',))
+            vpw = nc.createVariable('PlaneWaveCutoff','f',('dim1',))
             vpw.assignValue(pw)
 
         if 'Density_WaveCutoff' in nc.variables:
@@ -509,7 +509,7 @@ class Jacapo:
             if pw > dw:
                 vdw.assignValue(pw) #make them equal
         else:
-            vdw = nc.createVariable('Density_WaveCutoff','i',('dim1',))
+            vdw = nc.createVariable('Density_WaveCutoff','f',('dim1',))
             vdw.assignValue(pw) 
         nc.close()
         self.restart() #nc dimension change for number_plane_Wave dimension
@@ -1189,7 +1189,7 @@ class Jacapo:
         if 'NetCDFOutputControl' in nc.variables:
             v = nc.variables['NetCDFOutputControl']
         else:
-            v = nc.createVariable('NetCDFOutputControl','c',('dim20',))
+            v = nc.createVariable('NetCDFOutputControl','c',())
 
         if wf is not None: v.PrintWaveFunction = wf
         if cd is not None: v.PrintChargeDensity = cd
@@ -1227,7 +1227,7 @@ class Jacapo:
         if 'PrintAtomProjectedDOS' in nc.variables:
             v = nc.variables['PrintAtomProjectedDOS']
         else:
-            v = nc.createVariable('PrintAtomProjectedDOS','c',('dim20',))
+            v = nc.createVariable('PrintAtomProjectedDOS','c',())
 
         v.EnergyWindow = energywindow
         v.EnergyWidth  = energywidth
@@ -1270,7 +1270,7 @@ class Jacapo:
         if 'Decoupling' in nc.variables:
             v = nc.variables['Decoupling']
         else:
-            v = nc.createVariable('Decoupling','c',('dim20',))
+            v = nc.createVariable('Decoupling','c',())
 
         v.NumberOfGaussians = ngaussians
         v.ECutoff = ecutoff
@@ -1367,7 +1367,7 @@ class Jacapo:
         
         ncf = netCDF(self.get_nc(),'a')
         if 'DipoleCorrection' not in ncf.variables:
-            dip = ncf.createVariable('DipoleCorrection','c',('dim20',))
+            dip = ncf.createVariable('DipoleCorrection','c',())
         else:
             dip = ncf.variables['DipoleCorrection']
         dip.MixingParameter = mixpar
