@@ -96,6 +96,8 @@ class Optimizer(Dynamics):
         else:
             self.read()
             barrier()
+    def initialize(self):
+        pass
 
     def run(self, fmax=0.05, steps=100000000):
         """Run structure optimization algorithm.
