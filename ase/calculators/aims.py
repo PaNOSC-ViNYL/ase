@@ -135,6 +135,7 @@ class Aims(Calculator):
     def update(self, atoms):
         if (self.positions is None or
             (self.atoms != atoms) or
+            (self.atoms != self.old_atoms) or 
             (self.float_params != self.old_float_params) or
             (self.string_params != self.old_string_params) or
             (self.int_params != self.old_int_params) or
@@ -166,6 +167,7 @@ class Aims(Calculator):
         self.old_int_params = self.int_params.copy()
         self.old_input_parameters = self.input_parameters.copy()
         self.converged = self.read_convergence()
+        self.old_atoms = self.atoms.copy()
 
     def run(self):
         if self.track_output:
