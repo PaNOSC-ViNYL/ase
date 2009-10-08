@@ -64,7 +64,8 @@ class TransportCalculator:
         dos : {False, bool}, optional
             The total density of states of the central region.
         box: XXX
-
+            YYY
+            
         If hc1/hc2 are None, they are assumed to be identical to
         the coupling matrix elements between neareste neighbor 
         principal layers in lead1/lead2.
