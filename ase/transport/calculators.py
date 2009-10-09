@@ -50,7 +50,7 @@ class TransportCalculator:
         align_bf : {None, int}, optional
             Use align_bf=m to shift the central region 
             by a constant potential such that the m'th onsite element
-            in the central region is alligned to the m'th onsite element
+            in the central region is aligned to the m'th onsite element
             in lead1 principal layer.
         logfile : {None, str}, optional 
             Write a logfile to file with name `logfile`.
