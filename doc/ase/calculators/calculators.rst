@@ -49,6 +49,8 @@ Dacapo_          A planewave ultra-soft pseudopotential code  :term:`DFT`
 :mod:`emt`       Effective Medium Theory calculator           :term:`EMT`
 :mod:`abinit`    A planewave pseudopotential code             :term:`DFT`
 :mod:`siesta`    LCAO pseudopotential code                    :term:`DFT`
+Turbomole_       Fast atom orbital code                       :term:`DFT`,
+                                                              :term:`HF`
 :mod:`vasp`      Planewave PAW code                           :term:`DFT`
 :mod:`mmtk`      XXX Library for molecular simulations 
 ===============  ===========================================  ============
@@ -57,13 +59,14 @@ Dacapo_          A planewave ultra-soft pseudopotential code  :term:`DFT`
 .. _Asap: http://wiki.fysik.dtu.dk/Asap
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
+.. _Turbomole: http://www.turbomole.com/
 
 
 The calculators can be divided in three groups:
 
 1) GPAW, Asap, and Dacapo have their own native ASE interfaces.
 
-2) ABINIT, SIESTA, VASP and MMTK have Python wrappers in the ASE
+2) ABINIT, SIESTA, TURRBOMOLE, VASP and MMTK have Python wrappers in the ASE
    package, but the actual codes are not part of ASE.
 
 3) EMT is a pure python implementation of the Effective Medium Theory
@@ -78,6 +81,7 @@ Documentation for group 2 and 3 calculators
    emt
    abinit
    siesta
+   turbomole
    vasp
    mmtk
 

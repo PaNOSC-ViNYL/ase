@@ -43,6 +43,7 @@ def read(filename, index=-1, format=None):
     VTK XML Image Data         vti
     VTK XML Structured Grid    vts
     VTK XML Unstructured Grid  vtu
+    TURBOMOLE coord file       (filename==='coord')
     =========================  ===========
 
     """
@@ -158,6 +159,10 @@ def read(filename, index=-1, format=None):
         from ase.io.cmdft import read_I_info
         return read_I_info(filename)
 
+    if format == 'tmol':
+        from ase.io.turbomole import read_turbomole
+        return read_turbomole(filename)
+
     raise RuntimeError('That can *not* happen!')
 
 
@@ -193,6 +198,7 @@ def write(filename, images, format=None, **kwargs):
     VTK XML Image Data         vti
     VTK XML Structured Grid    vts
     VTK XML Unstructured Grid  vtu
+    TURBOMOLE coord file       tmol
     =========================  ===========
   
     The use of additional keywords is format specific.
@@ -258,6 +264,10 @@ def write(filename, images, format=None, **kwargs):
         return
     elif format == 'in':
         format = 'aims'
+    elif format == 'tmol':
+        from ase.io.turbomole import write_turbomole
+        write_turbomole(filename, images)
+        return
 
     format = {'traj': 'trajectory', 'nc': 'netcdf'}.get(format, format)
     name = 'write_' + format
@@ -372,5 +382,8 @@ def filetype(filename):
 
     if filename.endswith('I_info'):
         return 'Cmdft'
+
+    if lines[0].startswith('$coord'):
+        return 'tmol'
 
     return 'xyz'
