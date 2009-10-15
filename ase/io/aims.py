@@ -82,9 +82,7 @@ def write_aims(filename, atoms):
             fd.write('lattice_vector ')
             for i in range(3):
                 fd.write('%16.16f ' % vector[i])
-                fd.write('\n')
-            if i:
-                fd.write('\n')
+            fd.write('\n')
     fix_cart = np.zeros([len(atoms),3]) 
 
     if atoms.constraints:
