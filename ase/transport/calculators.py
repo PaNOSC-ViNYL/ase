@@ -204,7 +204,9 @@ class TransportCalculator:
             print >> self.log, '# Aligning scat. H to left lead H. diff=', diff
             h_mm -= diff * s_mm
 
-        #setup lead self-energies
+        # Setup lead self-energies
+        # All infinitesimals must be > 0 
+        assert np.all(np.array((p['eta'], p['eta1'], p['eta2'])) > 0.0)
         self.selfenergies = [LeadSelfEnergy((h1_ii, s1_ii), 
                                             (h1_ij, s1_ij),
                                             (h1_im, s1_im),
