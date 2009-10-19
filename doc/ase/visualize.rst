@@ -30,7 +30,7 @@ your structure by dumping directly to a graphics file; you can use the
 
 .. _RasMol: http://openrasmol.org/
 .. _VMD: http://www.ks.uiuc.edu/Research/vmd/
-.. _VTK: http://public.kitware.com/VTK/
+.. _VTK: http://www.vtk.org/VTK/project/about.html
 .. _gOpenMol: http://www.csc.fi/gopenmol/
 .. _Avogadro: http://avogadro.openmolecules.net/
 
