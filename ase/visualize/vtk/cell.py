@@ -12,6 +12,8 @@ class vtkUnitCellModule(vtkPolyDataModule):
     def __init__(self, atoms):
 
         assert isinstance(atoms, Atoms)
+        self.pbc = atoms.get_pbc()
+
         cell = atoms.get_cell()
 
         """
@@ -24,15 +26,20 @@ class vtkUnitCellModule(vtkPolyDataModule):
         assert cell.dtype == float and cell.shape == (3, 3)
         """
 
-        #TODO bounding box with general unit cell
-        diagcell = np.diag(cell.diagonal())
-        assert (cell == diagcell).all(), 'Unit cell must be orthogonal'
-
-        self.bbox = np.array(zip(np.zeros(3),cell.diagonal())).ravel()
-
-        self.pbc = atoms.get_pbc()
-
         self.vtk_outline = vtkOutlineSource()
+
+        if (cell - np.diag(cell.diagonal())).any():
+            corners = np.empty((8,3), dtype=float)
+            # edges = [map(int,[(i-1)%2==0,i%4>=2,i>=4]) for i in range(8)]
+            for c,a in enumerate([(0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 1, 0), \
+                                  (0, 0, 1), (1, 0, 1), (0, 1, 1), (1, 1, 1)]):
+                corners[c] = np.dot(a, cell)
+            self.bbox = np.array(zip(np.min(corners, axis=0), \
+                                     np.max(corners, axis=0))).ravel()
+            self.vtk_outline.SetCorners(corners.ravel())
+            self.vtk_outline.SetBoxTypeToOriented()
+        else:
+            self.bbox = np.array(zip(np.zeros(3),cell.diagonal())).ravel()
         self.vtk_outline.SetBounds(self.bbox)
 
         vtkPolyDataModule.__init__(self, self.vtk_outline)
