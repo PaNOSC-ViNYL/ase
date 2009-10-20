@@ -79,7 +79,8 @@ function of the distance between atom 0 and 5::
 These are the symbols that can be used:
 
 ==========  ================================
-e           energy
+e           total energy
+epot        potential energy
 ekin        kinetic energy
 fmax        maximum force
 fave        average force
