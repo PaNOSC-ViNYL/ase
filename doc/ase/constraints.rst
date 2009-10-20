@@ -63,8 +63,10 @@ length (see the :ref:`mep2` tutorial).
 The FixBondLengths class
 =======================
 
-More than one bond length can be fixed by using this class. It is done
-by specifying the indices of the two atoms forming the bond in pairs.
+More than one bond length can be fixed by using this class. Especially
+for cases in which more than one bond length constraint is applied on 
+the same atom. It is done by specifying the indices of the two atoms 
+forming the bond in pairs.
 
 .. class:: FixBondLengths(pairs)
 
