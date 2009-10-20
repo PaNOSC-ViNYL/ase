@@ -46,6 +46,7 @@ GPAW_            Grid-based real-space PAW code               :term:`DFT`,
                                                               :term:`HF`
 Asap_            Highly efficient EMT code (written in C++)   :term:`EMT`
 Dacapo_          A planewave ultra-soft pseudopotential code  :term:`DFT`
+:mod:`jacapo`    Numeric free interface to Dacapo_            :term:`DFT`
 :mod:`emt`       Effective Medium Theory calculator           :term:`EMT`
 :mod:`abinit`    A planewave pseudopotential code             :term:`DFT`
 :mod:`siesta`    LCAO pseudopotential code                    :term:`DFT`
