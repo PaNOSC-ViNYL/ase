@@ -130,8 +130,9 @@ class Images:
             f = ((F * D)**2).sum(1)**.5
             fmax = max(f)
             fave = f.mean()
-            e = E[i]
+            epot = E[i]
             ekin = self.K[i]
+            e = epot + ekin
             data = eval(code)
             if i == 0:
                 m = len(data)
