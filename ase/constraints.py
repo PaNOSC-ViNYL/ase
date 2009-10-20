@@ -116,6 +116,24 @@ def ints2string(x, threshold=10):
         return str(x.tolist())
     return str(x[:threshold].tolist())[:-1] + ', ...]'
 
+class FixBondLengths(FixConstraint):
+    def __init__(self, pairs, iterations=10):
+        self.constraints = [FixBondLength(a1, a2)
+                            for a1, a2 in pairs]
+        self.iterations = iterations
+
+    def adjust_positions(self, old, new):
+        for i in range(self.iterations):
+            for constraint in self.constraints:
+                constraint.adjust_positions(old, new)
+
+    def adjust_forces(self, positions, forces):
+        for i in range(self.iterations):
+            for constraint in self.constraints:
+                constraint.adjust_forces(positions, forces)
+
+    def copy(self):
+        return FixBondLengths([constraint.indices for constraint in self.constraints])
 
 class FixBondLength(FixConstraint):
     """Constraint object for fixing a bond length."""
@@ -195,6 +213,7 @@ class FixedLine(FixConstraintSingle):
         newpositions[self.a] = oldpositions[self.a] + x * self.dir
 
     def adjust_forces(self, positions, forces):
+        print self.a
         forces[self.a] = self.dir * np.dot(forces[self.a], self.dir)
 
     def copy(self):
