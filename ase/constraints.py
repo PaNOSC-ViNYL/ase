@@ -213,7 +213,6 @@ class FixedLine(FixConstraintSingle):
         newpositions[self.a] = oldpositions[self.a] + x * self.dir
 
     def adjust_forces(self, positions, forces):
-        print self.a
         forces[self.a] = self.dir * np.dot(forces[self.a], self.dir)
 
     def copy(self):
