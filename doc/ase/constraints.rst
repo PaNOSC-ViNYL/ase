@@ -59,6 +59,24 @@ reactions where the path can be described well by a single bond
 length (see the :ref:`mep2` tutorial).
 
 
+
+The FixBondLengths class
+=======================
+
+More than one bond length can be fixed by using this class. It is done
+by specifying the indices of the two atoms forming the bond in pairs.
+
+.. class:: FixBondLengths(pairs)
+
+Example of use::
+
+  >>> c = FixBondLengths([[0,1],[0,2]])
+  >>> atoms.set_constraint(c)
+
+Here the distances between atoms with indices 0 and 1 and atoms with 
+indices 0 and 2 will be fixed. The constraint is for the same purpose 
+as the FixBondLength class. 
+
 The FixedPlane class
 ====================
 
