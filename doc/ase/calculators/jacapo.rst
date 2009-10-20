@@ -1,14 +1,15 @@
 .. module::  jacapo
-   :synopsis: Numeric free python interface for Dacapo and ASE
+   :synopsis: ASE python interface for Dacapo
 
 ==========================================================
-Jacapo - Numeric free python interface for Dacapo 
+Jacapo - ASE python interface for Dacapo
 ==========================================================
 
 Introduction
 ============
 
-Jacapo_ is a Numeric free Python interface for Dacapo and fully compatible with ASE.
+Jacapo_ is an ASE interface for Dacapo_ and fully compatible with ASE. It 
+replaces the old Dacapo interface using Numeric python and ASE2.
 The code was originally developed by John Kitchin and detailed documentation
 as well as many examples are available online:
 
@@ -18,11 +19,12 @@ Jacapo is included as an optional calculator in ASE and small differences to the
 above documentation may occur.
 
 .. _Jacapo: http://beowulf.cheme.cmu.edu/jacapo/index.html
+.. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
 
 Jacapo Calculator
 ================= 
 
-The Jacapo calculator is automatically installed with ase and can be imported using:
+The Jacapo calculator is automatically installed with ase and can be imported using::
 
   from ase.calculators.jacapo import *
 
