@@ -762,38 +762,55 @@ class Atoms(object):
         """Center atoms in unit cell.
 
         Centers the atoms in the unit cell, so there is the same
-        amount of vacuum on all sides.  Currenly only supports
-        orthogonal unit cells.
+        amount of vacuum on all sides.
 
         Parameters:
 
         vacuum (default: None): If specified adjust the amount of
-        vacuum when centering.  If vacuum=10.0 there will
-        thus be 10 Angstrom of vacuum on each side.  Does not work
-        reliably for non-orthogonal unit cells.
+        vacuum when centering.  If vacuum=10.0 there will thus be 10
+        Angstrom of vacuum on each side.
 
         axis (default: None): If specified, only act on the specified
         axis.  Default: Act on all axes.
         """
-        # TO DO: Arbitrary unit cells.
-        p = self.arrays['positions']
-        p0 = p.min(0)
-        p1 = p.max(0)
+        # Find the orientations of the faces of the unit cell
+        c = self.get_cell()
+        dirs = np.zeros_like(c)
+        for i in range(3):
+            dirs[i] = np.cross(c[i-1], c[i-2])
+            dirs[i] /= np.sqrt(np.dot(dirs[i], dirs[i])) #Normalize
+            if np.dot(dirs[i], c[i]) < 0.0:      
+                dirs[i] *= -1
+
+        # Now, decide how much each basis vector should be made longer
         if axis is None:
-            if vacuum is not None:
-                self._cell = np.diag(p1 - p0 + 2 * np.asarray(vacuum))
-            p += 0.5 * (self._cell.sum(0) - p0 - p1)
+            axes = (0,1,2)
         else:
+            axes = (axis,)
+        p = self.arrays['positions']
+        longer = np.zeros(3)
+        shift = np.zeros(3)
+        for i in axes:
+            p0 = np.dot(p, dirs[i]).min()
+            p1 = np.dot(p, dirs[i]).max()
+            height = np.dot(c[i], dirs[i])
             if vacuum is not None:
-                c = self._cell.copy()
-                axis1 = (axis + 1) % 3
-                axis2 = (axis + 2) % 3
-                if (abs(np.dot(c[axis], c[axis1])) > 1e-6 or
-                    abs(np.dot(c[axis], c[axis2])) > 1e-6):
-                    raise NotImplementedError(
-                        'Cannot add vacuum along non-orthogonal axis')
-                self._cell[axis, axis] = p1[axis] - p0[axis] + 2 * vacuum
-            p[:, axis] += 0.5 * (self._cell[axis, axis] - p0[axis] - p1[axis])
+                lng = (p1 - p0 + 2*vacuum) - height
+            else:
+                lng = 0.0  # Do not change unit cell size!
+            top = lng + height - p1
+            shf = 0.5 * (top - p0)
+            cosphi = np.dot(c[i], dirs[i]) / np.sqrt(np.dot(c[i], c[i]))
+            longer[i] = lng / cosphi
+            shift[i] = shf / cosphi
+
+        # Now, do it!
+        translation = np.zeros(3)
+        for i in axes:
+            nowlen = np.sqrt(np.dot(c[i], c[i]))
+            self._cell[i] *= 1 + longer[i] / nowlen
+            translation += shift[i] * c[i] / nowlen
+        self.arrays['positions'] += translation
 
     def get_center_of_mass(self, scaled = False):
         """Get the center of mass.
