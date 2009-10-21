@@ -13,13 +13,22 @@ for manipulating atoms, analyzing simulations, visualization etc.
 
 Supported :mod:`calculators`:
 
-   |abinit| Asap_ Dacapo_ |elk| :mod:`EMT <emt>` |gpaw| |siesta| |vasp|
+   |abinit| |Asap| |jacapo| |elk| |EMT| |gpaw| |siesta| |turbomole| |vasp|
 
 .. |abinit| image:: _static/abinit.png
    :target: ase/calculators/abinit.html
    :align: middle
+.. |Asap| image:: _static/asap.png
+   :target: http://wiki.fysik.dtu.dk/asap
+   :align: middle
+.. |jacapo| image:: _static/jacapo.png
+   :target: ase/calculators/jacapo.html
+   :align: middle
 .. |elk| image:: _static/elk.png
    :target: http://elk.sourceforge.net/
+   :align: middle
+.. |EMT| image:: _static/emt.png
+   :target: ase/calculators/emt.html
    :align: middle
 .. |gpaw| image:: _static/gpaw.png
    :target: http://wiki.fysik.dtu.dk/gpaw
@@ -27,12 +36,14 @@ Supported :mod:`calculators`:
 .. |siesta| image:: _static/siesta.png
    :target: ase/calculators/siesta.html
    :align: middle
+.. |turbomole| image:: _static/tm_logo_l.png
+   :target: http://www.turbomole.com
+   :align: middle 
 .. |vasp| image:: _static/vasp.png
    :target: ase/calculators/vasp.html
    :align: middle
 
 .. _Asap: http://wiki.fysik.dtu.dk/asap
-.. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
 .. _MMTK: http://dirac.cnrs-orleans.fr/MMTK
 .. _Python: http://www.python.org
 .. _Trac: http://trac.fysik.dtu.dk/projects/ase/report/1
@@ -69,3 +80,4 @@ News
 .. _revision 1000: http://www.camd.dtu.dk/Events/Seneste_nyt.aspx?guid={08853DD1-D037-47C8-ACEF-1EA40A88BB6C}
 .. _Sphinx: http://sphinx.pocoo.org
 .. _CAMd: http://www.camd.dtu.dk
+
