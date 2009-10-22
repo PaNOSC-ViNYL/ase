@@ -61,7 +61,7 @@ length (see the :ref:`mep2` tutorial).
 
 
 The FixBondLengths class
-=======================
+========================
 
 More than one bond length can be fixed by using this class. Especially
 for cases in which more than one bond length constraint is applied on 
@@ -72,7 +72,7 @@ forming the bond in pairs.
 
 Example of use::
 
-  >>> c = FixBondLengths([[0,1],[0,2]])
+  >>> c = FixBondLengths([[0, 1], [0, 2]])
   >>> atoms.set_constraint(c)
 
 Here the distances between atoms with indices 0 and 1 and atoms with 
