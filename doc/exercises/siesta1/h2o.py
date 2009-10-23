@@ -1,4 +1,5 @@
 from ase import *
+from ase.units import *
 import time
 
 # Set up a H2O molecule by specifying atomic positions

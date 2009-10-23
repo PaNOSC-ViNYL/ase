@@ -1,5 +1,6 @@
 import commands, os, string
 from ase import *
+from ase.units import Bohr
 
 class Bader:
     '''class for running bader analysis and extracting data from it.

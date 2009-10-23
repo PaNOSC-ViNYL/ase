@@ -2294,7 +2294,7 @@ def get_atomization_energy(name):
 
     The atomization energy is returned in kcal/mol = 43.36 meV:
 
-    >>> from ase import *; print kcal / mol
+    >>> from ase.units import *; print kcal / mol
     0.0433641146392
 
     """

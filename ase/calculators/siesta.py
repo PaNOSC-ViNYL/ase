@@ -11,7 +11,7 @@ import array
 import numpy as np
 
 from ase.data import chemical_symbols
-from ase import Rydberg
+from ase.units import Rydberg
 
 
 class Siesta:
