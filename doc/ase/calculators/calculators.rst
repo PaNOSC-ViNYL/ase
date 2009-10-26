@@ -55,6 +55,8 @@ Dacapo_          Old interface to Dacapo_. Requires           :term:`DFT`
 Turbomole_       Fast atom orbital code                       :term:`DFT`,
                                                               :term:`HF`
 :mod:`vasp`      Planewave PAW code                           :term:`DFT`
+:mod:`FHI-aims`  Numeric Atomic Orbital, full potential code  :term:`DFT`,
+                                                              :term:`HF` 
 :mod:`mmtk`      XXX Library for molecular simulations 
 ===============  ===========================================  ============
   
@@ -69,7 +71,7 @@ The calculators can be divided in three groups:
 
 1) GPAW, Asap, Dacapo have their own native ASE interfaces.
 
-2) Jacapo, ABINIT, SIESTA, TURRBOMOLE, VASP and MMTK have Python wrappers in the ASE
+2) Jacapo, ABINIT, SIESTA, TURRBOMOLE, VASP, FHI-aims and MMTK have Python wrappers in the ASE
    package, but the actual codes are not part of ASE.
 
 3) EMT is a pure python implementation of the Effective Medium Theory
@@ -87,6 +89,7 @@ Documentation for group 2 and 3 calculators
    siesta
    turbomole
    vasp
+   FHI-aims
    mmtk
 
 
