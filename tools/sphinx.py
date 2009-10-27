@@ -49,7 +49,7 @@ def build():
     if os.system('PYTHONPATH=%s/ase sphinx-build . _build' % tmpdir) != 0:
         raise RuntimeError('Sphinx failed!')
     os.system('cd _build; cp _static/searchtools.js .; ' +
-              'sed -i s/snapshot/%s/g download.html' % version)
+              'sed -i s/snapshot.tar/%s.tar/ download.html' % version)
 
     if 1:
         if os.system('PYTHONPATH=%s/ase ' % tmpdir +
