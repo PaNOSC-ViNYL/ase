@@ -9,10 +9,10 @@ We will set up a one layer slab of Ni atoms with one Ag adatom.
 Define the slab atoms:
 
 >>> from ase import *
->>> atoms = Atoms([Atom('Ni', (0, 0, 0)),
-...                Atom('Ni', (0.45, 0, 0)),
-...                Atom('Ni', (0, 0.5, 0)),
-...                Atom('Ni', (0.5, 0.5, 0))])
+>>> atoms = Atoms('Ni4', [(0, 0, 0),
+...                       (0.45, 0, 0),
+...                       (0, 0.5, 0),
+...                       (0.5, 0.5, 0)])
 
 Have a look at the individual atoms:
 

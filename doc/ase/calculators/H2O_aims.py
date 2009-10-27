@@ -1,7 +1,7 @@
 from ase import *
 import os
 
-water = Atoms([Atom('H',(1,0,0)),Atom('O',(0,0,0)),Atom('H',(0,1,0))])
+water = Atoms('HOH', [(1,0,0), (0,0,0), (0,1,0)])
 
 calc=Aims(xc='pbe',
           sc_accuracy_etot=1e-6,

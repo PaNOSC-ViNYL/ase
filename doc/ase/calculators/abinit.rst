@@ -122,8 +122,8 @@ Here is an example of how to calculate the total energy for bulk Silicon::
   from ase.calculators.abinit import Abinit
   
   a0 = 5.43
-  bulk = Atoms([Atom('Si', (0,    0,     0)),
-                Atom('Si', (0.25, 0.25, 0.25))],
+  bulk = Atoms('Si2', [(0, 0, 0),
+                       (0.25, 0.25, 0.25)],
                pbc=True)
   b = a0 / 2
   bulk.set_cell([(0, b, b),
