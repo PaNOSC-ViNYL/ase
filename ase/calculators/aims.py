@@ -247,6 +247,8 @@ class Aims(Calculator):
     def get_dipole_moment(self, atoms):
         if self.list_params['output'] is None or 'dipole' not in self.list_params['output']:
             raise RuntimeError('output=[\'dipole\'] has to be set.')
+        elif atoms.get_pbc().any():
+            raise RuntimeError('FHI-aims does not allow this for systems with periodic boundary conditions.')
         self.update(atoms)
         return self.dipole
 
