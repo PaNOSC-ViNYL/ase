@@ -66,14 +66,13 @@ For more details:
 Videos
 ------
 
-The following video tutorials are avaliable (in `ogg
-<http://www.xiph.org/ogg/>`_ format):
+The following video tutorials are available:
 
- - **Overview and Installation of ASE** (duration: ~5min 30sec; size: 18 MB) - en: |oi_en|
+ - **Overview and installation of ASE** (duration: ~5min 30sec; size: 26 MB) - en: |oi_en|
 
 .. |oi_en| image:: ../_static/United_States_of_America.png
-   :target: https://wiki.fysik.dtu.dk/ase-files/oi_en.ogg
+   :target: https://wiki.fysik.dtu.dk/ase-files/oi_en.avi
 
 .. |oi_cn| image:: ../_static/China.png
-   :target: https://wiki.fysik.dtu.dk/ase-files/oi_ch.ogg
+   :target: https://wiki.fysik.dtu.dk/ase-files/oi_ch.avi
 

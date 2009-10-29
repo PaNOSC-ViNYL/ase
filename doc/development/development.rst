@@ -15,6 +15,7 @@ Development topics
    versioncontrol
    python_codingstandard
    writing_documentation_ase
+   making_movies
    newrelease
    tests
    todo
