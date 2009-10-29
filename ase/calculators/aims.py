@@ -244,6 +244,12 @@ class Aims(Calculator):
                 control.write(line)
         control.close()
 
+    def get_dipole_moment(self, atoms):
+        if self.list_params['output'] is None or 'dipole' not in self.list_params['output']:
+            raise RuntimeError('output=[\'dipole\'] has to be set.')
+        self.update(atoms)
+        return self.dipole
+
     def read_energy(self, all=None):
         for line in open(self.out, 'r'):
             if line.rfind('Total energy corrected') > -1:
@@ -272,15 +278,21 @@ class Aims(Calculator):
     def get_stress(self, atoms):
         raise NotImplementedError('Stresses are not currently available in FHI-aims, sorry. ')
 
+    def read_dipole(self, filename='aims.out'):
+        """Method that reads the electric dipole moment from the output file.
+        """
+
+        dipolemoment=np.zeros([1,3])
+        for line in open(filename, 'r'):
+            if line.rfind('Total dipole moment [eAng]') > -1:
+                dipolemoment=np.array([float(f) for f in line.split()[6:10]])
+        return dipolemoment
 
 # methods that should be quickly implemented some time, haven't had time yet:
     def read_fermi(self):
         """Method that reads Fermi energy from output file"""
         return
 
-    def read_dipole(self):
-        dipolemoment = np.array([0, 0, 0])
-        return dipolemoment
 
     def read_magnetic_moment(self):
         return
