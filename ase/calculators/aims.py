@@ -78,6 +78,7 @@ input_keys = [
     'run_command',
     'run_dir',
     'species_dir',
+    'cubes'
 ] 
 
 class Aims(Calculator):
@@ -183,7 +184,6 @@ class Aims(Calculator):
             raise RuntimeError("No specification for running FHI-aims. Aborting!")
         aims_command = aims_command + ' > ' 
         if self.input_parameters['run_dir']:
-            # file exists: run_dir ??? 
             aims_command = aims_command + self.input_parameters['run_dir'] + '/'
         aims_command = aims_command + self.out
         exitcode = os.system(aims_command)
@@ -220,8 +220,9 @@ class Aims(Calculator):
                     control.write(str(ival)+' ')
                 control.write('\n')
         for key, val in self.input_parameters.items():
-            if val is not None:
-                continue
+            if key is  'cubes':
+                if val:
+                    val.write(control)
         control.write('\n')
         control.close()
 
@@ -294,7 +295,6 @@ class Aims(Calculator):
         """Method that reads Fermi energy from output file"""
         return
 
-
     def read_magnetic_moment(self):
         return
 
@@ -304,3 +304,54 @@ class Aims(Calculator):
     def read_eigenvalues(self, kpt=0, spin=0):
         return 
 
+# object to ensure the output of cube files, can be attached to Aims object
+# parameters: 
+#    origin, edges, points = same as in the FHI-aims output
+#    plots: what to print, same names as in FHI-aims 
+class AimsCube():
+    def __init__(self,origin=(0,0,0),
+                 edges=[(0.1,0.0,0.0),(0.0,0.1,0.0),(0.0,0.0,0.1)],
+                 points=(50,50,50),plots=None):
+        self.name   = 'AimsCube'
+        self.origin = origin
+        self.edges  = edges
+        self.points = points
+        self.plots  = plots
+         
+    # returns the number of cube files to output
+    def ncubes(self):
+        if self.plots:
+            number = len(self.plots)
+        else:
+            number = 0
+        return number
+
+    # set any of the parameters ... 
+    def set(self,**kwargs):
+        # NOT IMPLEMENTED AT THE MOMENT!
+        a = 1 
+
+    # in case you forgot one ...
+    def add_plot(self,name):
+        plots += [name]
+
+    # write the necessary output to the already opened control.in
+    def write(self,file):
+        # continue here to write the output, then ensure that the 
+        # cube file is actually attached to the calculator object.        
+        file.write('output cube '+self.plots[0]+'\n')
+        file.write('   cube origin ')
+        for ival in self.origin:
+            file.write(str(ival)+' ')
+        file.write('\n')
+        for i in range(3):
+            file.write('   cube edge '+str(self.points[i])+' ')
+            for ival in self.edges[i]:
+                file.write(str(ival)+' ')
+            file.write('\n')
+        if self.ncubes() > 1:
+            for i in range(self.ncubes()-1):
+                file.write('output cube '+self.plots[i+1]+'\n')
+
+                    
+                

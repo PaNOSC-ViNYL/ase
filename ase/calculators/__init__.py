@@ -7,7 +7,7 @@ from ase.calculators.emt import EMT, ASAP
 from ase.calculators.siesta import Siesta
 from ase.calculators.dacapo import Dacapo
 from ase.calculators.vasp import Vasp
-from ase.calculators.aims import Aims
+from ase.calculators.aims import Aims, AimsCube
 from ase.calculators.turbomole import Turbomole
 
 class Calculator:
