@@ -3,7 +3,7 @@ from ase import *
 from ase.calculators.lj import LennardJones
 from ase.optimize.basin import BasinHopping
 
-N = 13
+N = 7
 R = N**(1./3.)
 pos = np.random.uniform(-R, R, (N, 3))
 s = Atoms('He' + str(N),
@@ -11,7 +11,7 @@ s = Atoms('He' + str(N),
 s.set_calculator(LennardJones())
 
 bh = BasinHopping(s, temperature=100 * kB, dr=0.5)
-bh.run(30)
+bh.run(10)
 
 E, smin = bh.get_minimum()
 view(smin)
