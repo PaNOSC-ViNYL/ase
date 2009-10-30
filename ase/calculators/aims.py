@@ -252,6 +252,15 @@ class Aims(Calculator):
         self.update(atoms)
         return self.dipole
 
+    def read_dipole(self):
+        """Method that reads the electric dipole moment from the output file."""
+
+        dipolemoment=np.zeros([1,3])
+        for line in open(self.out, 'r'):
+            if line.rfind('Total dipole moment [eAng]') > -1:
+                dipolemoment=np.array([float(f) for f in line.split()[6:10]])
+        return dipolemoment
+
     def read_energy(self, all=None):
         for line in open(self.out, 'r'):
             if line.rfind('Total energy corrected') > -1:
@@ -261,7 +270,7 @@ class Aims(Calculator):
         energy_free, energy_zero = F, E0
         return [energy_free, energy_zero]
 
-    def read_forces(self, atoms, filename='aims.out', all=False):
+    def read_forces(self, atoms, all=False):
         """Method that reads forces from the output file.
 
         If 'all' is switched on, the forces for all ionic steps
@@ -279,16 +288,6 @@ class Aims(Calculator):
 
     def get_stress(self, atoms):
         raise NotImplementedError('Stresses are not currently available in FHI-aims, sorry. ')
-
-    def read_dipole(self, filename='aims.out'):
-        """Method that reads the electric dipole moment from the output file.
-        """
-
-        dipolemoment=np.zeros([1,3])
-        for line in open(filename, 'r'):
-            if line.rfind('Total dipole moment [eAng]') > -1:
-                dipolemoment=np.array([float(f) for f in line.split()[6:10]])
-        return dipolemoment
 
 # methods that should be quickly implemented some time, haven't had time yet:
     def read_fermi(self):
