@@ -162,12 +162,17 @@ class Aims(Calculator):
         self.write_control()
         self.write_species()
         self.run()
+        self.converged = self.read_convergence()
+        if not self.converged:
+            os.system("tail -20 "+self.out)
+            raise RuntimeError("FHI-aims did not converge!\n"+
+                               "The last lines of output are printed above "+
+                               "and should give an indication why.")
         self.read(atoms)
         self.old_float_params = self.float_params.copy()
         self.old_string_params = self.string_params.copy()
         self.old_int_params = self.int_params.copy()
         self.old_input_parameters = self.input_parameters.copy()
-        self.converged = self.read_convergence()
         self.old_atoms = self.atoms.copy()
 
     def run(self):
@@ -299,7 +304,12 @@ class Aims(Calculator):
         return
 
     def read_convergence(self):
-        return
+        converged = False
+        lines = open(self.out, 'r').readlines()
+        for n, line in enumerate(lines):
+            if line.rfind('Have a nice day') > -1:
+                converged = True
+        return converged
 
     def read_eigenvalues(self, kpt=0, spin=0):
         return 
