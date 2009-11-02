@@ -100,12 +100,16 @@ keyword                       type
 
 Output options:
 
-============================  ======
+============================  ========
 keyword                       type 
-============================  ======
+============================  ========
 ``output_level``	      str
 ``output``		      list
-============================  ======
+``cubes``                     AimsCube
+============================  ========
+
+See below for a description of the volumetric cube file output
+interface AimsCube
 
 Keywords for accuracy settings:
 
@@ -146,6 +150,32 @@ Note::
 
    >>> calc.set( keyword=value )
 
+Volumetric Data Output
+======================
+
+The class
+
+.. class:: AimsCube(origin=(0,0,0),edges=[(0.1,0.0,0.0),(0.0,0.1,0.0),(0.0,0.0,0.1)],points=(50,50,50),plots=None)
+
+describes an object that takes care of the volumetric
+output requests within FHI-aims. An object of this type can 
+be attached to the main Aims() object as an option. 
+
+The possible arguments for AimsCube are:
+
+============================  ========
+keyword                       type 
+============================  ========
+``origin``		      list
+``edges``		      3x3-array
+``points``		      list
+``plots``		      list
+============================  ========
+
+The possible values for the entry of plots 
+are discussed in detail in the FHI-aims manual, 
+see below for an example.
+
 Example
 =======
 
@@ -154,4 +184,3 @@ the geometry of a water molecule, starting from an extremely
 simplified geometry
 
 .. literalinclude:: H2O_aims.py
-
