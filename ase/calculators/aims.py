@@ -169,6 +169,7 @@ class Aims(Calculator):
                                "The last lines of output are printed above "+
                                "and should give an indication why.")
         self.read(atoms)
+        
         self.old_float_params = self.float_params.copy()
         self.old_string_params = self.string_params.copy()
         self.old_int_params = self.int_params.copy()
@@ -194,6 +195,8 @@ class Aims(Calculator):
         exitcode = os.system(aims_command)
         if exitcode != 0:
             raise RuntimeError('FHI-aims exited with exit code: %d.  ' % exitcode)
+        if self.input_parameters['cubes'] and self.track_output:
+            self.input_parameters['cubes'].move_to_base_name(self.output_template+str(self.run_counts-1))
 
     def write_control(self):
         """Writes the control.in file."""
@@ -314,41 +317,62 @@ class Aims(Calculator):
     def read_eigenvalues(self, kpt=0, spin=0):
         return 
 
-# object to ensure the output of cube files, can be attached to Aims object
-# parameters: 
-#    origin, edges, points = same as in the FHI-aims output
-#    plots: what to print, same names as in FHI-aims 
 class AimsCube:
+    """ object to ensure the output of cube files, can be attached to Aims object"""
     def __init__(self,origin=(0,0,0),
                  edges=[(0.1,0.0,0.0),(0.0,0.1,0.0),(0.0,0.0,0.1)],
                  points=(50,50,50),plots=None):
+        """ parameters: 
+        origin, edges, points = same as in the FHI-aims output
+        plots: what to print, same names as in FHI-aims """
+
         self.name   = 'AimsCube'
         self.origin = origin
         self.edges  = edges
         self.points = points
         self.plots  = plots
          
-    # returns the number of cube files to output
     def ncubes(self):
+        """returns the number of cube files to output """
         if self.plots:
             number = len(self.plots)
         else:
             number = 0
         return number
 
-    # set any of the parameters ... 
     def set(self,**kwargs):
+        """ set any of the parameters ... """
         # NOT IMPLEMENTED AT THE MOMENT!
-        a = 1 
 
-    # in case you forgot one ...
+    def move_to_base_name(self,basename):
+        """ when output tracking is on or the base namem is not standard,
+        this routine will rename add the base to the cube file output for 
+        easier tracking """
+        for plot in self.plots:
+            found = False
+            cube = plot.split()
+            if cube[0] == 'total_density' or cube[0] == 'spin_density' or cube[0] == 'delta_density':
+                found = True
+                old_name = cube[0]+'.cube'
+                new_name = basename+'.'+old_name
+            if cube[0] == 'eigenstate' or cube[0] == 'eigenstate_density':
+                found = True
+                state = int(cube[1])
+                s_state = cube[1]
+                for i in [10,100,1000,10000]:
+                    if state < i:
+                        s_state = '0'+s_state
+                old_name = cube[0]+'_'+s_state+'_spin_1.cube'
+                new_name = basename+'.'+old_name
+            if found:
+                os.system("mv "+old_name+" "+new_name)
+
     def add_plot(self,name):
+        """ in case you forgot one ... """
         plots += [name]
 
-    # write the necessary output to the already opened control.in
     def write(self,file):
-        # continue here to write the output, then ensure that the 
-        # cube file is actually attached to the calculator object.        
+        """ write the necessary output to the already opened control.in """
         file.write('output cube '+self.plots[0]+'\n')
         file.write('   cube origin ')
         for ival in self.origin:
