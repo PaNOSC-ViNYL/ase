@@ -42,6 +42,7 @@ class BasinHopping(Dynamics):
                 # new minimum found
                 self.Emin = En
                 self.rmin = atoms.get_positions()
+                self.call_observers()
 
             accept = np.exp((Eo - En) / self.kT) > np.random.uniform()
             if accept:

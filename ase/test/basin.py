@@ -10,8 +10,10 @@ s = Atoms('He' + str(N),
           positions = pos)
 s.set_calculator(LennardJones())
 
-bh = BasinHopping(s, temperature=100 * kB, dr=0.5)
+bh = BasinHopping(s, 
+                  temperature=100 * kB, dr=0.5, 
+                  trajectory='lowest.traj')
 bh.run(10)
 
 E, smin = bh.get_minimum()
-view(smin)
+#view(smin)
