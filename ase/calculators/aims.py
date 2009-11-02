@@ -318,7 +318,7 @@ class Aims(Calculator):
 # parameters: 
 #    origin, edges, points = same as in the FHI-aims output
 #    plots: what to print, same names as in FHI-aims 
-class AimsCube():
+class AimsCube:
     def __init__(self,origin=(0,0,0),
                  edges=[(0.1,0.0,0.0),(0.0,0.1,0.0),(0.0,0.0,0.1)],
                  points=(50,50,50),plots=None):
