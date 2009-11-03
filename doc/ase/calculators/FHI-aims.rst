@@ -179,8 +179,7 @@ see below for an example.
 Example
 =======
 
-As an example, here is the simplest possible setup to obtain 
-the geometry of a water molecule, starting from an extremely
-simplified geometry
+As an example, here is a possible setup to obtain 
+the geometry of a water molecule:
 
 .. literalinclude:: H2O_aims.py

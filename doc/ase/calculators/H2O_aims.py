@@ -1,5 +1,4 @@
 from ase import *
-import os
 
 water = Atoms('HOH', [(1,0,0), (0,0,0), (0,1,0)])
 
