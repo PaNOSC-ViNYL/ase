@@ -3,6 +3,7 @@ import numpy as np
 from ase.optimize import Dynamics
 from ase.optimize.fire import FIRE
 from ase.units import kB
+from ase.parallel import world
 
 class BasinHopping(Dynamics):
     """Basin hopping algorythm.
@@ -14,12 +15,18 @@ class BasinHopping(Dynamics):
                  optimizer=FIRE,
                  fmax=0.1,
                  dr=.1,
-                 logfile='-', trajectory=None):
+                 logfile='-', 
+                 trajectory=None,
+                 adjust_cm=True):
         Dynamics.__init__(self, atoms, logfile, trajectory)
         self.kT = temperature
         self.optimizer = optimizer
         self.fmax = fmax
         self.dr = dr
+        if adjust_cm:
+            self.cm = atoms.get_center_of_mass()
+        else:
+            self.cm = None
         
     def run(self, steps):
         """Hop the basins for defined number of steps."""
@@ -32,10 +39,7 @@ class BasinHopping(Dynamics):
         self.rmin = ro
 
         for step in range(steps):
-            # displace coordinates
-            disp = np.random.uniform(-1., 1., (len(atoms), 3))
-            rn = ro + self.dr * disp
-            atoms.set_positions(rn)
+            rn = self.move(ro)
  
             En = self.energy(atoms)
             if En < self.Emin:
@@ -54,6 +58,19 @@ class BasinHopping(Dynamics):
                 self.logfile.write('%s: step %d, energy %15.6f, emin %15.6f\n'
                                    % (name, step, En, self.Emin))
                 self.logfile.flush()
+                
+    def move(self, ro):
+        atoms = self.atoms
+        # displace coordinates
+        disp = np.random.uniform(-1., 1., (len(atoms), 3))
+        if world is not None:
+            world.broadcast(disp, 0)
+        rn = ro + self.dr * disp
+        atoms.set_positions(rn)
+        if self.cm is not None:
+            cm = atoms.get_center_of_mass()
+            atoms.translate(self.cm - cm)
+        return atoms.get_positions()
 
     def get_minimum(self):
         self.atoms.set_positions(self.rmin)
