@@ -252,3 +252,27 @@ class Vibrations:
         self.atoms.set_positions(p)
         self.atoms.set_calculator(calc)
         traj.close()
+
+    def write_jmol(self):
+        """Writes file for viewing of the modes with jmol."""
+
+        fd = open(self.name+'.xyz', 'w')
+        symbols = self.atoms.get_chemical_symbols()
+        f = self.get_frequencies()
+        for n in range(3*len(self.atoms)):
+            fd.write('%6d\n' % len(self.atoms))
+            if f[n].imag != 0:
+                c = 'i'
+                f[n] = f[n].imag
+            else:
+                c = ' ' 
+            fd.write('Mode #%d, freqeuency %.1f%s cm^-1' % (n, f[n], c))
+            if self.ir:
+                fd.write(', intensity %.4f (D/Å)^2 amu^-1.\n' % self.intensities[n])
+            else:
+                fd.write('.\n')
+            mode = self.get_mode(n)
+            for i, pos in enumerate(self.atoms.positions):
+                fd.write('%2s %12.5f %12.5f %12.5f %12.5f %12.5f %12.5f \n' % 
+                         (symbols[i], pos[0], pos[1], pos[2], mode[i,0], mode[i,1], mode[i,2]) )
+        fd.close()
