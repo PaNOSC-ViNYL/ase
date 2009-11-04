@@ -1,5 +1,15 @@
-from ase.atoms import Atoms
+"""Atomic structure.
+
+This mudule contains helper functions for setting up nanotubes,
+graphene nanoribbons and simple bulk crystals."""
+
+from math import sqrt
+
 import numpy as np
+
+from ase.atoms import Atoms, string2symbols
+from ase.data import covalent_radii
+
 
 def gcd(m,n):
     while n:
@@ -10,10 +20,10 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
     if n < m:
         m, n = n, m
     nk = 6000
-    sq3 = np.sqrt(3.0)
+    sq3 = sqrt(3.0)
     a = sq3 * bond
     l2 = n * n + m * m + n * m
-    l = np.sqrt(l2)
+    l = sqrt(l2)
     dt = a * l / np.pi
 
     nd = gcd(n ,m)
@@ -25,7 +35,7 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
     nr = (2 * m + n) / ndr
     ns = -(2 * n + m) / ndr
     nt2 = 3 * l2 / ndr / ndr
-    nt = np.floor(np.sqrt(nt2))
+    nt = np.floor(sqrt(nt2))
     nn = 2 * l2 / ndr
 
     ichk = 0
@@ -59,7 +69,7 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
         print 'the symmetry vector is', nnnp, nnnq
 
     lp = nnnp * nnnp + nnnq * nnnq + nnnp * nnnq
-    r = a * np.sqrt(lp)
+    r = a * sqrt(lp)
     c = a * l
     t = sq3 * c / ndr
    
@@ -153,7 +163,7 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
     #This function creates the coordinates for a graphene nanoribbon,
     #n is width, m is length
     
-    b = np.sqrt(3) * C_C / 4
+    b = sqrt(3) * C_C / 4
     arm_unit = Atoms('C4', pbc=(1,0,1), cell = [4 * b,  vacc,  3 * C_C])
     arm_unit.positions = [[0, 0, 0],
                           [b * 2, 0, C_C / 2.],
@@ -202,3 +212,140 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
     atoms.center()
     return atoms
 
+
+def bulk(name, crystalstructure, a=None, covera=None,
+         orthorhombic=False, cubic=False):
+    """Helper function for creating bulk systems.
+
+    name: str
+        Chemical symbol or symbols as in 'MgO' or 'NaCl'.
+    crystalstructure: str
+        Must be one of sc, fcc, bcc, hcp, diamond, zinkblende or
+        rocksalt.
+    a: float
+        Lattice constant.
+    covera: float
+        c/a raitio used for hcp.  Defaults to ideal ratio.
+    orthorhombic: bool
+        Construct orthorhombic unit cell instead of primitive cell
+        which is the default.
+    cubic: bool
+        Construct cubic unit cell.
+    """
+
+    if covera is None:
+        covera = sqrt(8.0 / 3.0)
+        
+    if a is None:
+        a = estimate_lattice_constant(name, crystalstructure, covera)
+
+    x = crystalstructure.lower()
+
+    if orthorhombic and x != 'sc':
+        return _orthorhombic_bulk(name, x, a, covera)
+
+    if cubic and x == 'bcc':
+        return _orthorhombic_bulk(name, x, a, covera)
+
+    if cubic and x != 'sc':
+        return _cubic_bulk(name, x, a)
+    
+    if x == 'sc':
+        atoms = Atoms(name, cell=(a, a, a), pbc=True)
+    elif x == 'fcc':
+        b = a / 2
+        atoms = Atoms(name, cell=[(0, b, b), (b, 0, b), (b, b, 0)], pbc=True)
+    elif x == 'bcc':
+        b = a / 2
+        atoms = Atoms(name, cell=[(-b, b, b), (b, -b, b), (b, b, -b)],
+                      pbc=True)
+    elif x == 'hcp':
+        atoms = Atoms(2 * name,
+                      scaled_positions=[(0, 0, 0),
+                                        (1.0 / 3.0, 1.0 / 3.0, 0.5)],
+                      cell=[(a, 0, 0),
+                            (a / 2, a * sqrt(3) / 2, 0),
+                            (0, 0, covera * a)],
+                      pbc=True)
+    elif x == 'diamond':
+        atoms = bulk(2 * name, 'zincblende', a)
+    elif x == 'zincblende':
+        s1, s2 = string2symbols(name)
+        atoms = bulk(s1, 'fcc', a) + bulk(s2, 'fcc', a)
+        atoms.positions[1] += a / 4
+    elif x == 'rocksalt':
+        s1, s2 = string2symbols(name)
+        atoms = bulk(s1, 'fcc', a) + bulk(s2, 'fcc', a)
+        atoms.positions[1, 0] += a / 2
+    else:
+        raise ValueError('Unknown crystal structure: ' + crystalstructure)
+    
+    return atoms
+
+def estimate_lattice_constant(name, crystalstructure, covera):
+    atoms = bulk(name, crystalstructure, 1.0, covera)
+    v0 = atoms.get_volume()
+    v = 0.0
+    for Z in atoms.get_atomic_numbers():
+        r = covalent_radii[Z]
+        v += 4 * np.pi / 3 * r**3 * 1.5
+    return (v / v0)**(1.0 / 3)
+
+def _orthorhombic_bulk(name, x, a, covera=None):
+    if x == 'fcc':
+        b = a / sqrt(2)
+        atoms = Atoms(2 * name, cell=(b, b, a), pbc=True,
+                      scaled_positions=[(0, 0, 0), (0.5, 0.5, 0.5)])
+    elif x == 'bcc':
+        atoms = Atoms(2 * name, cell=(a, a, a), pbc=True,
+                      scaled_positions=[(0, 0, 0), (0.5, 0.5, 0.5)])
+    elif x == 'hcp':
+        atoms = Atoms(4 * name,
+                      cell=(a, a * sqrt(3), covera * a),
+                      scaled_positions=[(0, 0, 0),
+                                        (0.5, 0.5, 0),
+                                        (0.5, 1.0 / 6.0, 0.5),
+                                        (0, 2.0 / 3.0, 0.5)],
+                      pbc=True)
+    elif x == 'diamond':
+        atoms = orthorhombic_bulk(2 * name, 'zincblende', a)
+    elif x == 'zincblende':
+        s1, s2 = string2symbols(name)
+        b = a / sqrt(2)
+        atoms = Atoms(2 * name, cell=(b, b, a), pbc=True,
+                      scaled_positions=[(0, 0, 0), (0.5, 0, 0.25),
+                                        (0.5, 0.5, 0.5), (0, 0.5, 0.75)])
+    elif x == 'rocksalt':
+        s1, s2 = string2symbols(name)
+        b = a / sqrt(2)
+        atoms = Atoms(2 * name, cell=(b, b, a), pbc=True,
+                      scaled_positions=[(0, 0, 0), (0.5, 0.5, 0),
+                                        (0.5, 0.5, 0.5), (0, 0, 0.5)])
+    else:
+        raise RuntimeError
+    
+    return atoms
+
+def _cubic_bulk(name, x, a):
+    if x == 'fcc':
+        atoms = Atoms(4 * name, cell=(a, a, a), pbc=True,
+                      scaled_positions=[(0, 0, 0), (0, 0.5, 0.5),
+                                        (0.5, 0, 0.5), (0.5, 0.5, 0)])
+    elif x == 'diamond':
+        atoms = cubic_bulk(2 * name, 'zincblende', a)
+    elif x == 'zincblende':
+        atoms = Atoms(4 * name, cell=(a, a, a), pbc=True,
+                      scaled_positions=[(0, 0, 0), (0.25, 0.25, 0.25),
+                                        (0, 0.5, 0.5), (0.25, 0.75, 0.75),
+                                        (0.5, 0, 0.5), (0.75, 0.25, 0.75),
+                                        (0.5, 0.5, 0), (0.75, 0.75, 0.25)])
+    elif x == 'rocksalt':
+        atoms = Atoms(4 * name, cell=(a, a, a), pbc=True,
+                      scaled_positions=[(0, 0, 0), (0.5, 0.5, 0),
+                                        (0, 0.5, 0.5), (0.5, 0, 0.5),
+                                        (0.5, 0, 0.5), (0, 0.5, 0.5),
+                                        (0.5, 0.5, 0), (0, 0, 0)])
+    else:
+        raise RuntimeError
+    
+    return atoms

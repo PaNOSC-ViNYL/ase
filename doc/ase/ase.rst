@@ -24,14 +24,17 @@ Quick links:
     - :mod:`md`
     - :mod:`neb`
   * - :mod:`optimize`
+    - :mod:`parallel`
+    - :mod:`structure`
     - :mod:`~lattice.surface`
-    - :mod:`units`
+  * - :mod:`units`
     - :mod:`utils`
-  * - :mod:`vibrations`
+    - :mod:`vibrations`
     - :mod:`visualize`
-    - :mod:`vtk`
+  * - :mod:`vtk`
     - :mod:`transport`
-
+    -
+    -
 
 .. seealso::
 
@@ -53,6 +56,8 @@ List of all modules:
    gui
    lattice
    optimize
+   parallel
+   structure
    visualize
    visualize/vtk
    calculators/calculators
