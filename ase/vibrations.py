@@ -266,9 +266,9 @@ class Vibrations:
                 f[n] = f[n].imag
             else:
                 c = ' ' 
-            fd.write('Mode #%d, freqeuency %.1f%s cm^-1' % (n, f[n], c))
+            fd.write('Mode #%d, f = %.1f%s cm^-1' % (n, f[n], c))
             if self.ir:
-                fd.write(', intensity %.4f (D/Å)^2 amu^-1.\n' % self.intensities[n])
+                fd.write(', I = %.4f (D/Å)^2 amu^-1.\n' % self.intensities[n])
             else:
                 fd.write('.\n')
             mode = self.get_mode(n)
