@@ -123,8 +123,9 @@ keys = [
 ]
 
 class Vasp:
-    def __init__(self, restart=None, **kwargs):
-
+    def __init__(self, restart=None, output_template='vasp', track_output=False, 
+                 **kwargs):
+        self.name = 'Vasp'
         self.incar_parameters = {}
         for key in keys:
             self.incar_parameters[key] = None
@@ -153,7 +154,10 @@ class Vasp:
                 kwargs['xc'])
         self.nbands = self.incar_parameters['nbands']
         self.atoms = None
+        self.run_counts = 0
         self.set(**kwargs)
+        self.output_template = output_template
+        self.track_output = track_output
 
     def set(self, **kwargs):
         for key in kwargs:
@@ -290,10 +294,13 @@ class Vasp:
 
     def calculate(self, atoms):
         """Generate necessary files in the working directory and run VASP.
-        
-        If the directory does not exist it will be created.
 
+        The method first write VASP input files, then calls the method
+        which executes VASP. When the VASP run is finished energy, forces, 
+        etc. are read from the VASP output.
         """
+        
+        # Write input
         from ase.io.vasp import write_vasp
         self.initialize(atoms)
         write_vasp('POSCAR', self.atoms_sorted, symbol_count = self.symbol_count)
@@ -301,30 +308,11 @@ class Vasp:
         self.write_potcar()
         self.write_kpoints()
         self.write_sort_file()
-
-        stderr = sys.stderr
-        p=self.input_parameters
-        if p['txt'] is None:
-            sys.stderr = devnull
-        elif p['txt'] == '-':
-            pass
-        elif isinstance(p['txt'], str):
-            sys.stderr = open(p['txt'], 'w')
-
-        if os.environ.has_key('VASP_COMMAND'):
-            vasp = os.environ['VASP_COMMAND']
-            exitcode = os.system(vasp)
-        elif os.environ.has_key('VASP_SCRIPT'):
-            vasp = os.environ['VASP_SCRIPT']
-            locals={}
-            execfile(vasp, {}, locals)
-            exitcode = locals['exitcode']
-        else:
-            raise RuntimeError('Please set either VASP_COMMAND or VASP_SCRIPT environment variable')
-        sys.stderr = stderr
-        if exitcode != 0:
-            raise RuntimeError('Vasp exited with exit code: %d.  ' % exitcode)
-
+        
+        # Execute VASP
+        self.run()
+        
+        # Read output
         atoms_sorted = ase.io.read('CONTCAR', format='vasp')
         p=self.incar_parameters
         if p['ibrion']>-1 and p['nsw']>0:
@@ -343,7 +331,37 @@ class Vasp:
         self.old_input_parameters = self.input_parameters.copy()
         self.converged = self.read_convergence()
         self.stress = self.read_stress()
+        
+    def run(self):
+        """Method which explicitely runs VASP."""
 
+        if self.track_output:
+            self.out = self.output_template+str(self.run_counts)+'.out'
+            self.run_counts += 1
+        else:
+            self.out = self.output_template+'.out'
+        stderr = sys.stderr
+        p=self.input_parameters
+        if p['txt'] is None:
+            sys.stderr = devnull
+        elif p['txt'] == '-':
+            pass
+        elif isinstance(p['txt'], str):
+            sys.stderr = open(p['txt'], 'w')
+        if os.environ.has_key('VASP_COMMAND'):
+            vasp = os.environ['VASP_COMMAND']
+            exitcode = os.system('%s > %s' % (vasp, self.out))
+        elif os.environ.has_key('VASP_SCRIPT'):
+            vasp = os.environ['VASP_SCRIPT']
+            locals={}
+            execfile(vasp, {}, locals)
+            exitcode = locals['exitcode']
+        else:
+            raise RuntimeError('Please set either VASP_COMMAND or VASP_SCRIPT environment variable')
+        sys.stderr = stderr
+        if exitcode != 0:
+            raise RuntimeError('Vasp exited with exit code: %d.  ' % exitcode)
+        
     def restart_load(self):
         """Method which is called upon restart."""
         
