@@ -13,9 +13,9 @@ for manipulating atoms, analyzing simulations, visualization etc.
 
 Supported :mod:`calculators`:
 
-   |abinit| |Asap| |jacapo| |elk| |EMT| |gpaw| |siesta| |turbomole| |vasp|
+   |abinit| |Asap| |jacapo| |elk| |EMT| |gpaw| |hotbit|
+   |siesta| |turbomole| |vasp|
    :mod:`FHI-aims <FHI-aims>`
-   `Hotbit <https://trac.cc.jyu.fi/projects/hotbit>`_
 
 .. |abinit| image:: _static/abinit.png
    :target: ase/calculators/abinit.html
@@ -34,6 +34,9 @@ Supported :mod:`calculators`:
    :align: middle
 .. |gpaw| image:: _static/gpaw.png
    :target: http://wiki.fysik.dtu.dk/gpaw
+   :align: middle
+.. |hotbit| image:: _static/hotbit.png
+   :target: https://trac.cc.jyu.fi/projects/hotbit
    :align: middle
 .. |siesta| image:: _static/siesta.png
    :target: ase/calculators/siesta.html
