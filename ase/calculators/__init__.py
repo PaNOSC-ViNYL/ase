@@ -250,9 +250,11 @@ class TestPotential:
         F = np.zeros_like(R)
         for a, r in enumerate(R):
             D = R - r
-            x = (D**2).sum(1) - 1.0
+            d = (D**2).sum(1)**0.5
+            x = d - 1.0
             E += np.vdot(x, x)
-            F -= x[:, None] * D
+            d[a] = 1
+            F -= (x / d)[:, None] * D
         self.energy = 0.25 * E
         return F
 

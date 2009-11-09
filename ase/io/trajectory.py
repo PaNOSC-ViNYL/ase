@@ -107,6 +107,7 @@ class PickleTrajectory:
         self.pbc = d['pbc']
         self.numbers = d['numbers']
         self.tags = d.get('tags')
+        self.masses = d.get('masses')
         self.constraints = d['constraints']
         self.offsets.append(self.fd.tell())
 
@@ -179,9 +180,14 @@ class PickleTrajectory:
             tags = atoms.get_tags()
         else:
             tags = None
+        if atoms.has('masses'):
+            masses = atoms.get_masses()
+        else:
+            masses = None
         d = {'pbc': atoms.get_pbc(),
              'numbers': atoms.get_atomic_numbers(),
              'tags': tags,
+             'masses': masses,
              'constraints': atoms.constraints}
         pickle.dump(d, self.fd, protocol=-1)
         self.header_written = True
@@ -211,6 +217,7 @@ class PickleTrajectory:
                           momenta=d['momenta'],
                           magmoms=magmoms,
                           tags=self.tags,
+                          masses=self.masses,
                           pbc=self.pbc,
                           constraint=[c.copy() for c in self.constraints])
             if 'energy' in d:

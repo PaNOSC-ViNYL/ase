@@ -1,18 +1,22 @@
 from ase import *
 from ase.calculators import TestPotential
 np.seterr(all='raise')
-a = Atoms('4N', 
+a = Atoms('4X',
+          masses=[1, 2, 3, 4],
           positions=[(0, 0, 0),
                      (1, 0, 0),
                      (0, 1, 0),
                      (0.1, 0.2, 0.7)],
           calculator=TestPotential())
 print a.get_forces()
-md = VelocityVerlet(a, dt=0.0005, logfile='-', loginterval=500)
+md = VelocityVerlet(a, dt=0.5 * fs, logfile='-', loginterval=500)
 traj = PickleTrajectory('4N.traj', 'w', a)
 md.attach(traj.write, 100)
-#print md.observers
+e0 = a.get_total_energy()
 md.run(steps=10000)
+del traj
+assert abs(read('4N.traj').get_total_energy() - e0) < 0.0001
+
 qn = QuasiNewton(a)
-qn.attach(traj.write)
-qn.run()
+qn.run(0.001)
+assert abs(a.get_potential_energy() - 1.0) < 0.000002
