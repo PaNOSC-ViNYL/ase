@@ -50,8 +50,12 @@ class EMT:
             reactivate it with the command
               ase.EMT.disabled = False
             """
-            raise RuntimeError("ase.EMT has been disabled.  See message printed above.")
+            raise RuntimeError('ase.EMT has been disabled.  ' +
+                               'See message printed above.')
         
+    def get_spin_polarized(self):
+        return False
+    
     def initialize(self, atoms):
         self.par = {}
         self.rc = 0.0
