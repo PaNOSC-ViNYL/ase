@@ -12,6 +12,7 @@ Development topics
 
 .. toctree::
 
+   contribute
    versioncontrol
    python_codingstandard
    writing_documentation_ase

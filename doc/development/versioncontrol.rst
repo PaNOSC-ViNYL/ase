@@ -1,8 +1,8 @@
 .. _versioncontrol:
 
-=====================
-Using version control
-=====================
+===========================
+Using version control (SVN)
+===========================
 
 The version control system used in ASE development is subversion. A thorough
 subversion manual can be found at http://svnbook.red-bean.com/, here
