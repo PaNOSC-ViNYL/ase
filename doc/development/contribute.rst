@@ -38,7 +38,7 @@ loop is not something we have invented to prevent you from
 contributing - it should be viewed as an opportunity for you to learn
 how to write good code that fits into the ASE codebase.  
 
-After a couple of contributions, we will propable trust you enough to
+After a couple of contributions, we will probably trust you enough to
 add you as a committer.
 
 
