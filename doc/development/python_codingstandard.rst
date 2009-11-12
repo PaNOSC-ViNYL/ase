@@ -39,6 +39,9 @@ Conventions`_ PEPs, summarized, clarified, and extended as follows:
 
 * 4 spaces per indentation level.  No hard tabs.
 
+* Very important:  Read the *Whitespace in Expressions and Statements*
+  section of PEP8_.
+
 * Avoid introducing `trailing whitespaces <http://www.gnu.org/software/emacs/manual/html_node/emacs/Useless-Whitespace.html>`_.
 
 * Try to use only 7-bit ASCII, no 8-bit strings.
@@ -74,6 +77,7 @@ Conventions`_ PEPs, summarized, clarified, and extended as follows:
   quotes""" for :term:`docstring`\ s.  Double quotes are OK for
   something like ``"don't"``.
 
+.. _PEP8:
 .. _Style Guide for Python Code: http://www.python.org/peps/pep-0008.html
 .. _Docstring Conventions: http://www.python.org/peps/pep-0257.html
 .. _Docutils project: http://docutils.sourceforge.net/docs/dev/policies.html#python-coding-conventions
