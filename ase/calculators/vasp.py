@@ -86,6 +86,7 @@ keys = [
     'ldipol',     # potential correction mode
     'amix',       #
     'bmix',       # tags for mixing
+    'lmaxmix',    # 
     'time',       # special control tag
     'lwave',      #
     'lcharg',     #
