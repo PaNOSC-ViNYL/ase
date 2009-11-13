@@ -26,7 +26,7 @@ parameters = {
 
 beta = 1.809#(16 * pi / 3)**(1.0 / 3) / 2**0.5
 eta1 = 0.5 / Bohr
-acut = 50.0
+acut = 25.0  # Use the same value as ASAP XXX
 
 class EMT:
 
