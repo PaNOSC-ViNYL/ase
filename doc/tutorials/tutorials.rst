@@ -26,6 +26,7 @@ other :mod:`Calculator <calculators>` could be plugged in instead.
 
    manipulating_atoms
    atomization
+   lattice_constant
    eos/eos
    dissociation
    aneb

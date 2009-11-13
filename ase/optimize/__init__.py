@@ -6,6 +6,8 @@ import time
 from math import sqrt
 from os.path import isfile
 
+import numpy as np
+
 from ase.parallel import rank, barrier
 from ase.io.trajectory import PickleTrajectory
 
@@ -140,3 +142,47 @@ class Optimizer(Dynamics):
 
     def load(self):
         return pickle.load(open(self.restart))
+
+def fitpoly2(x, y):
+    """Fit multidimensional polynomium to data.
+
+    Fit a second order polynomium in x to values in y.  Return optimal
+    x and the fitted value at that point.  The shape of x should be
+    (number of points, number of dimensions)."""
+    
+    x = np.asarray(x)
+    y = np.asarray(y)
+    N, D = x.shape
+    assert len(y) == N
+    x0 = x.mean(axis=0)
+    dx = x - x0
+    y0 = y.mean()
+    dy = y - y0
+    if D == 1:
+        def f(x1):
+            return (1, x1, x1**2)
+    elif D == 2:
+        def f(x1, x2):
+            return (1, x1, x2, x1**2, x1 * x2, x2**2)
+    elif D == 3:
+        def f(x1, x2, x3):
+            return (1, x1, x2, x3,
+                    x1**2, x2**2, x3**2, x1 * x2, x2 * x3, x1 * x3)
+    else:
+        raise NotImplementedError
+    A = np.array([f(*v) for v in dx]).T
+    sle = np.linalg.solve
+    c = sle(np.inner(A, A), np.dot(A, dy))
+    
+    if D == 1:
+        dx = [-0.5 * c[1] / c[2]]
+    elif D == 2:
+        dx = sle(np.array([(2 * c[3], c[4]),
+                           (c[4], 2 * c[5])]),
+                 np.array([-c[1], -c[2]]))
+    else:
+        dx = sle(np.array([(2 * c[4], c[7], c[9]),
+                           (c[7], 2 * c[5], c[8]),
+                           (c[9], c[8], 2 * c[6])]),
+                 np.array([-c[1], -c[2], -c[3]]))
+    return x0 + dx, np.dot(c, f(*dx)) + y0

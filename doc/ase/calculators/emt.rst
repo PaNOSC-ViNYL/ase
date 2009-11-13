@@ -12,10 +12,12 @@ tests.
 .. warning::
 
    If you want to do a real application using EMT, you should used the
-   *much* more efficient implementation in the :class:`ASAP`
-   calculator.
+   *much* more efficient implementation in the ASAP_ calculator.
 
 .. class:: EMT()
 
 Right now, the only supported elements are: Ni, C, Pt, Ag, H, Al, O,
 N, Au, Pd, Cu.
+
+
+.. _ASAP: http://wiki.fysik.dtu.dk/asap
