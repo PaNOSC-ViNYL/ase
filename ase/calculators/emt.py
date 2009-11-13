@@ -71,9 +71,9 @@ class EMT:
                 gamma1 = 0.0
                 gamma2 = 0.0
                 if p[7] == 'fcc':
-                    for i, n in enumerate([12, 6, 24, 8]):
+                    for i, n in enumerate([12, 6, 24, 12]):
                         r = s0 * beta * sqrt(i + 1)
-                        x = n / (12 * (1.0 + exp(acut * (r - rc)))) # ???? not zero at rc!!!! XXXX
+                        x = n / (12 * (1.0 + exp(acut * (r - rc))))
                         gamma1 += x * exp(-eta2 * (r - beta * s0))
                         gamma2 += x * exp(-kappa / beta * (r - beta * s0))
                 elif p[7] == 'dimer':
@@ -95,8 +95,8 @@ class EMT:
                                'rc': rc,
                                'gamma1': gamma1,
                                'gamma2': gamma2}
-                if rc > self.rc:
-                    self.rc = rc
+                if rc + 0.5 > self.rc:
+                    self.rc = rc + 0.5
 
         self.ksi = {}
         for s1, p1 in self.par.items():
@@ -201,7 +201,7 @@ class EMT:
                                 continue
                             d = Q[a2] - R[a1]
                             r = sqrt(np.dot(d, d))
-                            if r < p1['rc']:
+                            if r < p1['rc'] + 0.5:
                                 Z2 = self.numbers[a2]
                                 self.interact1(a1, a2, d, r, p1, ksi[Z2])
                                 
@@ -237,7 +237,7 @@ class EMT:
                                 continue
                             d = Q[a2] - R[a1]
                             r = sqrt(np.dot(d, d))
-                            if r < p1['rc']:
+                            if r < p1['rc'] + 0.5:
                                 Z2 = self.numbers[a2]
                                 self.interact2(a1, a2, d, r, p1, ksi[Z2])
 
