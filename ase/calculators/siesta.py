@@ -154,6 +154,20 @@ class Siesta:
         self.update(atoms)
         return self.stress.copy()
 
+    def get_dipole_moment(self, atoms):
+        """Returns total dipole moment of the system."""
+        self.update(atoms)
+        return self.dipole
+
+    def read_dipole(self):
+        dipolemoment=np.zeros([1,3])
+        for line in open(self.label + '.txt', 'r'):
+            if line.rfind('Electric dipole (Debye)') > -1:
+                dipolemoment=np.array([float(f) for f in line.split()[5:8]])
+        #debye to e*Ang (the units of VASP)
+        dipolemoment=dipolemoment*0.2081943482534
+        return dipolemoment
+
     def calculate(self, atoms):
         self.positions = atoms.get_positions().copy()
         self.cell = atoms.get_cell().copy()
@@ -171,6 +185,7 @@ class Siesta:
                                 'Check %s.txt for more information.') %
                                (exitcode, self.label))
         
+        self.dipole = self.read_dipole()
         self.read()
 
         self.converged = True

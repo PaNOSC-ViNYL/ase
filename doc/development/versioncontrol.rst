@@ -14,12 +14,31 @@ is a brief overview of the most basic features needed when developing ASE.
 
   This retrieves the code tree from the subversion repository and places it in
   ``ase-svn`` directory
+
+  To test only the ase version in the ``ase-svn`` directory, you need to 
+  set your :envvar:`PYTHONPATH` environment variable ::
+
+    export PYTHONPATH=$HOME/ase-svn (bash)
+
+  or ::
+
+    setenv PYTHONPATH ${HOME}/ase-svn (csh or tcsh)
+
+  assuming that you downloaded ase-svn in your home directory (``$HOME``).
+  In order to write documentation you also need 
+  (in the directory ``ase-svn/doc``) ::
+
+     cd ase-svn
+     python setup.py install
+     cd doc
+     sphinx-build . _build
+  
  
-* Updating the working copy of the code::
+* Updating the working copy of the code (in the directory ``ase-svn``)::
 
     svn update
 
-* Checking the status of the working copy::
+* Checking the status of the working copy (in the directory ``ase-svn``)::
 
     svn stat
 

@@ -52,7 +52,7 @@ Dacapo_          Old interface to Dacapo_. Requires           :term:`DFT`
 :mod:`emt`       Effective Medium Theory calculator           :term:`EMT`
 :mod:`abinit`    A planewave pseudopotential code             :term:`DFT`
 :mod:`siesta`    LCAO pseudopotential code                    :term:`DFT`
-Turbomole_       Fast atom orbital code                       :term:`DFT`,
+:mod:`turbomole` Fast atom orbital code Turbomole_,           :term:`DFT`,
                                                               :term:`HF`
 :mod:`vasp`      Planewave PAW code                           :term:`DFT`
 :mod:`FHI-aims`  Numeric Atomic Orbital, full potential code  :term:`DFT`,

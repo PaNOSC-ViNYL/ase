@@ -100,6 +100,46 @@ class InfraRed(Vibrations):
     Static dipole moment: 1.833 D
     Maximum force on atom in `eqiulibrium`: 0.0026 eV/Å
 
+
+
+    This interface now also works for calculator 'siesta', 
+    (added get_dipole_moment for siesta).
+
+    Example:
+
+    >>> #!/usr/bin/env python
+
+    >>> from ase import *
+    >>> from ase.infrared import InfraRed
+
+    >>> bud = read('bud1.xyz')
+
+    >>> calc = Siesta(label='bud',
+    ...       meshcutoff=250 * Ry,
+    ...       basis='DZP',
+    ...       kpts=[1, 1, 1])
+
+    >>> calc.set_fdf('DM.MixingWeight', 0.08)
+    >>> calc.set_fdf('DM.NumberPulay', 3)
+    >>> calc.set_fdf('DM.NumberKick', 20)
+    >>> calc.set_fdf('DM.KickMixingWeight', 0.15)
+    >>> calc.set_fdf('SolutionMethod',      'Diagon')
+    >>> calc.set_fdf('MaxSCFIterations', 500)
+    >>> calc.set_fdf('PAO.BasisType',  'split')
+    >>> #50 meV = 0.003674931 * Ry
+    >>> calc.set_fdf('PAO.EnergyShift', 0.003674931 * Ry )
+    >>> calc.set_fdf('LatticeConstant', 1.000000 * Ang)
+    >>> calc.set_fdf('WriteCoorXmol',       'T')
+
+    >>> bud.set_calculator(calc)
+
+    >>> ir = InfraRed(bud)
+    >>> ir.run()
+    >>> ir.summary()
+
+
+
+
     """
     def __init__(self, atoms, indices=None, name='ir', delta=0.01, nfree=2, directions=None):
         assert nfree in [2, 4]

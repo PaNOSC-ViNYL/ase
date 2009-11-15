@@ -41,7 +41,7 @@ Supported :mod:`calculators`:
    :target: ase/calculators/siesta.html
    :align: middle
 .. |turbomole| image:: _static/tm_logo_l.png
-   :target: http://www.turbomole.com
+   :target: ase/calculators/turbomole.html
    :align: middle 
 .. |vasp| image:: _static/vasp.png
    :target: ase/calculators/vasp.html
