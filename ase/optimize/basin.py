@@ -58,18 +58,20 @@ class BasinHopping(Dynamics):
                 self.logfile.write('%s: step %d, energy %15.6f, emin %15.6f\n'
                                    % (name, step, En, self.Emin))
                 self.logfile.flush()
-                
+
     def move(self, ro):
         atoms = self.atoms
         # displace coordinates
         disp = np.random.uniform(-1., 1., (len(atoms), 3))
-        if world is not None:
-            world.broadcast(disp, 0)
         rn = ro + self.dr * disp
         atoms.set_positions(rn)
         if self.cm is not None:
             cm = atoms.get_center_of_mass()
             atoms.translate(self.cm - cm)
+        rn = atoms.get_positions()
+        if world is not None:
+            world.broadcast(rn, 0)
+        atoms.set_positions(rn)
         return atoms.get_positions()
 
     def get_minimum(self):
@@ -78,7 +80,7 @@ class BasinHopping(Dynamics):
 
     def energy(self, atoms):
         """Return the energy of the nearest local minimum."""
-        opt = self.optimizer(atoms, logfile=None)
+        opt = self.optimizer(atoms)
         opt.run(fmax=self.fmax)
         return atoms.get_potential_energy()
         
