@@ -134,11 +134,12 @@ def read_aims_output(filename):
         if "Number of atoms" in line:
             inp = line.split()
             n_atoms = int(inp[5])
-        if "Unit cell:" in line:
-            pbc = True
-            for i in range(3):
-                inp = fd.readline().split()
-                cell.append([inp[1],inp[2],inp[3]])
+        if "| Unit cell:" in line:
+            if not pbc:
+                pbc = True
+                for i in range(3):
+                    inp = fd.readline().split()
+                    cell.append([inp[1],inp[2],inp[3]])
         if "Atomic structure:" in line:
             fd.readline()
             atoms = Atoms()
