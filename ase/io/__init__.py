@@ -40,6 +40,7 @@ def read(filename, index=-1, format=None):
     VASP POSCAR/CONTCAR file   vasp
     Protein Data Bank          pdb
     FHI-aims geometry file     aims
+    FHI-aims output file       aims_out
     VTK XML Image Data         vti
     VTK XML Structured Grid    vts
     VTK XML Unstructured Grid  vtu
@@ -150,6 +151,10 @@ def read(filename, index=-1, format=None):
     if format == 'aims':
         from ase.io.aims import read_aims
         return read_aims(filename)
+    
+    if format == 'aims_out':
+        from ase.io.aims import read_aims_output
+        return read_aims_output(filename)
 
     if format == 'iwm':
         from ase.io.iwm import read_iwm
@@ -376,6 +381,9 @@ def filetype(filename):
 
     if filename.lower().endswith('.in'):
         return 'aims'
+
+    if filename.lower().endswith('.out'):
+        return 'aims_out'
 
     if os.path.split(filename)[1] == 'atoms.dat':
         return 'iwm'

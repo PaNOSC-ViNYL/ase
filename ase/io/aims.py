@@ -115,3 +115,56 @@ def read_energy(filename):
         if line.startswith('  | Total energy corrected'):
             E = float(line.split()[-2])
     return E
+
+def read_aims_output(filename):
+    """  Import FHI-aims output files with all data available, i.e. relaxations, 
+    MD information, force information etc etc etc. """
+    from ase import Atoms, Atom 
+    from ase.calculators import SinglePointCalculator
+    fd = open(filename, 'r')
+    cell = []
+    images = []
+    n_periodic = -1
+    f = None
+    pbc = False
+    while True:
+        line = fd.readline()
+        if not line:
+            break
+        if "Number of atoms" in line:
+            inp = line.split()
+            n_atoms = int(inp[5])
+        if "Unit cell:" in line:
+            pbc = True
+            for i in range(3):
+                inp = fd.readline().split()
+                cell.append([inp[1],inp[2],inp[3]])
+        if "Atomic structure:" in line:
+            fd.readline()
+            atoms = Atoms()
+            for i in range(n_atoms):
+                inp = fd.readline().split()
+                atoms.append(Atom(inp[3],(inp[4],inp[5],inp[6]))) 
+        if "Updated atomic structure:" in line:
+            fd.readline()
+            atoms = Atoms()
+            for i in range(n_atoms):
+                inp = fd.readline().split()
+                atoms.append(Atom(inp[4],(inp[1],inp[2],inp[3])))                 
+        if "Total atomic forces" in line:
+            f = []
+            for i in range(n_atoms):
+                inp = fd.readline().split()
+                f.append([float(inp[2]),float(inp[3]),float(inp[4])])
+        if "Total energy corrected" in line:
+            e = float(line.split()[5])
+            atoms.set_calculator(SinglePointCalculator(e,f,None,None,atoms))
+            if pbc:
+                atoms.set_cell(cell)
+                atoms.pbc = True
+            images.append(atoms)
+            e = None
+            f = None    
+    fd.close()
+    return images
+
