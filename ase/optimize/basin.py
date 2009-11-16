@@ -4,6 +4,7 @@ from ase.optimize import Dynamics
 from ase.optimize.fire import FIRE
 from ase.units import kB
 from ase.parallel import world
+from ase.io.trajectory import PickleTrajectory
 
 class BasinHopping(Dynamics):
     """Basin hopping algorythm.
@@ -16,7 +17,9 @@ class BasinHopping(Dynamics):
                  fmax=0.1,
                  dr=.1,
                  logfile='-', 
-                 trajectory=None,
+                 trajectory='lowest.traj',
+                 optimizer_logfile='-',
+                 local_minima_trajectory='local_minima.traj',
                  adjust_cm=True):
         Dynamics.__init__(self, atoms, logfile, trajectory)
         self.kT = temperature
@@ -27,37 +30,50 @@ class BasinHopping(Dynamics):
             self.cm = atoms.get_center_of_mass()
         else:
             self.cm = None
-        
+
+        self.optimizer_logfile = optimizer_logfile
+        self.lm_trajectory = local_minima_trajectory
+        if isinstance(local_minima_trajectory, str):
+            self.lm_trajectory = PickleTrajectory(local_minima_trajectory,
+                                                  'w', atoms)
+
+        self.initialize()
+
+    def initialize(self):
+        self.positions = 0. * self.atoms.get_positions()
+        self.Emin = self.get_energy(self.atoms.get_positions())
+        self.rmin = self.positions
+        self.log(-1, self.Emin, self.Emin)
+                
     def run(self, steps):
         """Hop the basins for defined number of steps."""
 
-        # initialize
-        atoms = self.atoms
-        Eo = self.energy(atoms)
-        ro = atoms.get_positions()
-        self.Emin = Eo
-        self.rmin = ro
-
+        ro = self.positions
+        Eo = self.get_energy(ro)
+ 
         for step in range(steps):
             rn = self.move(ro)
- 
-            En = self.energy(atoms)
+            En = self.get_energy(rn)
+
             if En < self.Emin:
                 # new minimum found
                 self.Emin = En
-                self.rmin = atoms.get_positions()
+                self.rmin = self.atoms.get_positions()
                 self.call_observers()
+            self.log(step, En, self.Emin)
 
             accept = np.exp((Eo - En) / self.kT) > np.random.uniform()
             if accept:
                 ro = rn
                 Eo = En
 
-            if self.logfile is not None:
-                name = self.__class__.__name__
-                self.logfile.write('%s: step %d, energy %15.6f, emin %15.6f\n'
-                                   % (name, step, En, self.Emin))
-                self.logfile.flush()
+    def log(self, step, En, Emin):
+        if self.logfile is None:
+            return
+        name = self.__class__.__name__
+        self.logfile.write('%s: step %d, energy %15.6f, emin %15.6f\n'
+                           % (name, step, En, self.Emin))
+        self.logfile.flush()
 
     def move(self, ro):
         atoms = self.atoms
@@ -78,9 +94,18 @@ class BasinHopping(Dynamics):
         self.atoms.set_positions(self.rmin)
         return self.Emin, self.atoms
 
-    def energy(self, atoms):
+    def get_energy(self, positions):
         """Return the energy of the nearest local minimum."""
-        opt = self.optimizer(atoms)
-        opt.run(fmax=self.fmax)
-        return atoms.get_potential_energy()
-        
+        if np.sometrue(self.positions != positions):
+            self.positions = positions
+            self.atoms.set_positions(positions)
+
+            opt = self.optimizer(self.atoms, logfile=self.optimizer_logfile)
+            opt.run(fmax=self.fmax)
+            if self.lm_trajectory is not None:
+                self.lm_trajectory.write(self.atoms)
+
+            self.energy = self.atoms.get_potential_energy()
+
+        return self.energy
+       
