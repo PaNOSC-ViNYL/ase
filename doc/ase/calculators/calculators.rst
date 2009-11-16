@@ -39,26 +39,26 @@ Supported calculators
 =====================
 
 
-===============  ===========================================  ============
-Code             Description                                  Type
-===============  ===========================================  ============
-GPAW_            Grid-based real-space PAW code               :term:`DFT`,
-                                                              :term:`HF`
-Asap_            Highly efficient EMT code (written in C++)   :term:`EMT`
-:mod:`jacapo`    ASE interface to Dacapo_,                    :term:`DFT`
-                 a planewave ultra-soft pseudopotential code
-Dacapo_          Old interface to Dacapo_. Requires           :term:`DFT`
-                 Numeric python and ASE2.
-:mod:`emt`       Effective Medium Theory calculator           :term:`EMT`
-:mod:`abinit`    A planewave pseudopotential code             :term:`DFT`
-:mod:`siesta`    LCAO pseudopotential code                    :term:`DFT`
-:mod:`turbomole` Fast atom orbital code Turbomole_,           :term:`DFT`,
-                                                              :term:`HF`
-:mod:`vasp`      Planewave PAW code                           :term:`DFT`
-:mod:`FHI-aims`  Numeric Atomic Orbital, full potential code  :term:`DFT`,
-                                                              :term:`HF` 
-:mod:`mmtk`      XXX Library for molecular simulations 
-===============  ===========================================  ============
+================  ===========================================  ============
+Code              Description                                  Type
+================  ===========================================  ============
+GPAW_             Grid-based real-space PAW code               :term:`DFT`,
+                                                               :term:`HF`
+Asap_             Highly efficient EMT code (written in C++)   :term:`EMT`
+:mod:`jacapo`     ASE interface to Dacapo_,                    :term:`DFT`
+                  a planewave ultra-soft pseudopotential code
+Dacapo_           Old interface to Dacapo_. Requires           :term:`DFT`
+                  Numeric python and ASE2.
+:mod:`emt`        Effective Medium Theory calculator           :term:`EMT`
+:mod:`abinit`     A planewave pseudopotential code             :term:`DFT`
+:mod:`siesta`     LCAO pseudopotential code                    :term:`DFT`
+:mod:`turbomole`  Fast atom orbital code Turbomole_,           :term:`DFT`,
+                                                               :term:`HF`
+:mod:`vasp`       Planewave PAW code                           :term:`DFT`
+:mod:`FHI-aims`   Numeric Atomic Orbital, full potential code  :term:`DFT`,
+                                                               :term:`HF` 
+:mod:`mmtk`       XXX Library for molecular simulations 
+================  ===========================================  ============
   
 
 .. _Asap: http://wiki.fysik.dtu.dk/Asap
