@@ -19,24 +19,21 @@ like the :func:`~ase.structure.bulk` function::
   from ase import *
   from ase.structure import bulk
 
-Then we make a good intial guess for `a` and `c`::
+Then we make a good intial guess for `a` and `c` using the FCC nearest
+neighbor distance and the ideal `c/a` ratio::
 
-  a0 = 2.5
+  a0 = 3.52 / sqrt(2)
   c0 = sqrt(8 / 3.0) * a0
 
-We want to try three values for `a` and three for `c`::
-
-  eps = 0.01
-  strains = np.array([1 - eps, 1, 1 + eps])
-
-and put the results in a trajectory::
+and create a trajectory for the results::
 
   traj = PickleTrajectory('Ni.traj', 'w')
 
-Finally, we do the 9 calculations::
+Finally, we do the 12 calculations (four values for `a` and three for `c`)::
 
-  for a in a0 * strains:
-      for c in c0 * strains:
+  eps = 0.01
+  for a in a0 * np.linspace(1 - eps, 1 + eps, 4):
+      for c in c0 * np.linspace(1 - eps, 1 + eps, 3):
           ni = bulk('Ni', 'hcp', a=a, covera=c / a)
           ni.set_calculator(EMT())
           ni.get_potential_energy()
@@ -45,14 +42,6 @@ Finally, we do the 9 calculations::
 
 Analysis
 --------
-
-We fit the energy to this expression:
-
-.. math:: c_0 + c_1 a + c_2 c + c_3 a^2 + c_4 ac + c_5 c^2,
-
-using the function:
-
-.. autofunction:: ase.optimize.fitpoly2
 
 Now, we need to extract the data from the trajectory.  Try this:
 
@@ -64,20 +53,37 @@ array([[ 2.5       ,  0.        ,  0.        ],
        [ 0.        ,  0.        ,  4.        ]])
 
 So, we can get `a` and `c` from ``ni.cell[0, 0]`` and ``ni.cell[2,
-2]``::
+2]``:
 
-  from ase import *
-  from ase.optimize import fitpoly2
-  energies = []
-  aandc = []
-  for atoms in read('Ni.traj@:'):
-      energies.append(atoms.get_potential_energy())
-      a = atoms.cell[0, 0]
-      c = atoms.cell[2, 2]
-      aandc.append((a, c))
+>>> from ase import *
+>>> configs = read('Ni.traj@:')
+>>> energies = [config.get_potential_energy() for config in configs]
+>>> ac = [(config.cell[0, 0], config.cell[2, 2]) for config in configs]
 
-  print fitpoly2(aandc, energies)
+We fit the energy to this expression:
 
-The result is `a=2.468` Å and `c=4.026` Å.  Using those as initial
-guess, you get `a=2.470` Å and `c=4.008` Å which are the correct
-numbers.
+.. math:: c_0 + c_1 a + c_2 c + c_3 a^2 + c_4 ac + c_5 c^2 +
+          c_6 a^3 + c_7 a^2c + c_8 ac^2 + c_9 c^3
+
+>>> from ase.optimize import polyfit
+>>> p = polyfit(ac, energies)
+
+using the function:
+
+.. autofunction:: ase.optimize.polyfit
+
+The minimum can be found using SciPy's fmin_bfgs_
+function:
+
+>>> from scipy.optimize import fmin_bfgs
+>>> a0 = 3.52 / sqrt(2)
+>>> c0 = sqrt(8 / 3.0) * a0
+>>> fmin_bfgs(p, (a0, c0))
+Optimization terminated successfully.
+         Current function value: 0.009926
+         Iterations: 5
+         Function evaluations: 28
+         Gradient evaluations: 7
+array([ 2.46942471,  4.01001332])
+
+.. _fmin_bfgs: http://docs.scipy.org/doc/scipy/reference/optimize.html
