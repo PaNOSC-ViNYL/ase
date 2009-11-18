@@ -33,9 +33,11 @@ exp_keys = [
 ]
 
 string_keys = [
+    'communication_type',
     'KS_method',
     'mixer',
     'output_level',
+    'packed_matrix_format',
     'restart',
     'restart_read_only',
     'restart_write_only',
@@ -52,12 +54,16 @@ int_keys = [
 ]
 
 bool_keys = [
+    'collect_eigenvectors',
     'compute_forces',
     'compute_kinetic',
     'final_forces_cleaned',
     'MD_clean_rotations',
     'restart_relaxations',
+    'squeeze_memory',
+    'use_density_matrix',
     'use_dipole_correction',
+    'use_local_index',
     'vdw_correction_hirshfeld',
 ]
 
