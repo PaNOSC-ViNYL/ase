@@ -2,7 +2,7 @@ try:
     import scipy
 except ImportError:
     from ase.test import NotAvailable
-    raise NotAvailable
+    raise NotAvailable('This test needs scipy module.')
 from ase import *
 from ase.structure import bulk
 a0 = 3.52 / sqrt(2)
