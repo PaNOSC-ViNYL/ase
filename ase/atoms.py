@@ -14,7 +14,6 @@ import numpy as np
 from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 
-
 class Atoms(object):
     """Atoms object.
     
@@ -1074,6 +1073,11 @@ class Atoms(object):
             if elements[element] > 1:
                 name += str(elements[element])
         return name
+
+    def write(self, filename, format=None):
+        """Write yourself to a file."""
+        from ase.io import write
+        write(filename, self, format)
         
 def string2symbols(s):
     """Convert string to list of chemical symbols."""
