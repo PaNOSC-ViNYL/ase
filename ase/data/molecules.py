@@ -21,6 +21,7 @@ ref: Staroverov et al. JCP 119, 12129 (2003)
 ZPE and thermal corrections are estimated from B3LYP geometries and vibrations.
 
 Data for extra systems are from CCCBDB: http://srdata.nist.gov/cccbdb/
+Experimental ionization potentials are also from CCCBDB.
 """
 
 from ase.atoms import Atoms, string2symbols
@@ -36,77 +37,92 @@ data = {
     'name': 'Hydrogen',
     'magmom': 1,
     'enthalpy': 51.63,
-    'thermal correction': 1.01},
+    'thermal correction': 1.01,
+    'ionization energy': 13.60},
 'Li': {
     'name': 'Lithium',
     'magmom': 1,
     'enthalpy': 37.69,
-    'thermal correction': 1.10},
+    'thermal correction': 1.10,
+    'ionization energy': 5.39},
 'Be': {
     'name': 'Beryllium',
     'magmom': 0,
     'enthalpy': 76.48,
-    'thermal correction': 0.46},
+    'thermal correction': 0.46,
+    'ionization energy': 9.32},
 'B': {
     'name': 'Boron',
     'magmom': 1,
     'enthalpy': 136.20,
-    'thermal correction': 0.29},
+    'thermal correction': 0.29,
+    'ionization energy': 8.30},
 'C': {
     'name': 'Carbon',
     'magmom': 2,
     'enthalpy': 169.98,
-    'thermal correction': 0.25},
+    'thermal correction': 0.25,
+    'ionization energy': 11.26},
 'N': {
     'name': 'Nitrogen',
     'magmom': 3,
     'enthalpy': 112.53,
-    'thermal correction': 1.04},
+    'thermal correction': 1.04,
+    'ionization energy': 14.53},
 'O': {
     'name': 'Oxygen',
     'magmom': 2,
     'enthalpy': 58.99,
-    'thermal correction': 1.04},
+    'thermal correction': 1.04,
+    'ionization energy': 13.62},
 'F': {
     'name': 'Fluorine',
     'magmom': 1,
     'enthalpy': 18.47,
-    'thermal correction': 1.05},
+    'thermal correction': 1.05,
+    'ionization energy': 17.42},
 'Na': {
     'name': 'Sodium',
     'magmom': 1,
     'enthalpy': 25.69,
-    'thermal correction': 1.54},
+    'thermal correction': 1.54,
+    'ionization energy': 5.14},
 'Mg': {
     'name': 'Magnesium',
     'magmom': 0,
     'enthalpy': 34.87,
-    'thermal correction': 1.19},
+    'thermal correction': 1.19,
+    'ionization energy': 7.65},
 'Al': {
     'name': 'Aluminium',
     'magmom': 1,
     'enthalpy': 78.23,
-    'thermal correction': 1.08},
+    'thermal correction': 1.08,
+    'ionization energy': 5.99},
 'Si': {
     'name': 'Silicon',
     'magmom': 2,
     'enthalpy': 106.60,
-    'thermal correction': 0.76},
+    'thermal correction': 0.76,
+    'ionization energy': 8.15},
 'P': {
     'name': 'Phosphorus',
     'magmom': 3,
     'enthalpy': 75.42,
-    'thermal correction': 1.28},
+    'thermal correction': 1.28,
+    'ionization energy': 10.49},
 'S': {
     'name': 'Sulfur',
     'magmom': 2,
     'enthalpy': 65.66,
-    'thermal correction': 1.05},
+    'thermal correction': 1.05,
+    'ionization energy': 10.36},
 'Cl': {
     'name': 'Chlorine',
     'magmom': 1,
     'enthalpy': 28.59,
-    'thermal correction': 1.10},
+    'thermal correction': 1.10,
+    'ionization energy': 12.97},
 'Be2': {
     'description': "Diatomic Beryllium",
     'name': "Be_2",
@@ -136,7 +152,9 @@ data = {
                   [  0.488716,  2.136782, 0.],
                   [ -1.987765,  2.240495, 0.]]},
 'BDA': {
-    'description': "Benzodiamine",
+    'description': "1,4-Benzodiamine",
+    # aka p-Aminoaniline; p-Benzenediamine; p-Diaminobenzene;
+    #     p-Phenylenediamine; Paraphenylen-diamine
     'name': "BDA",
     # PBE-gpaw relaxed
     'symbols': 'C6H4N2H4',
@@ -161,6 +179,7 @@ data = {
     'description': "Biphenyl",
     'name': "biphenyl",
     # PBE-gpaw relaxed
+    'ionization energy': 8.16,
     'symbols': 'C6H5C6H5',
     'magmoms': None,
     'positions': [[-0.74081, -0.00000, -0.00003],
@@ -259,6 +278,7 @@ data = {
     'enthalpy': 33.3,
     'ZPE': 2.0149,
     'thermal correction': 2.0783,
+    'ionization energy': 7.90,
     'symbols': 'LiH',
     'magmoms': None,
     'positions': [[ 0.  ,  0.  ,  0.41],
@@ -269,6 +289,7 @@ data = {
     'enthalpy': 81.7,
     'ZPE': 2.9073,
     'thermal correction': 2.0739,
+    'ionization energy': 8.21,
     'symbols': 'BeH',
     'magmoms': [ 1.,  0.],
     'positions': [[ 0.      ,  0.      ,  0.269654],
@@ -279,6 +300,7 @@ data = {
     'enthalpy': 142.5,
     'ZPE': 3.9659,
     'thermal correction': 2.0739,
+    'ionization energy': 10.64,
     'symbols': 'CH',
     'magmoms': [ 1.,  0.],
     'positions': [[ 0.      ,  0.      ,  0.160074],
@@ -289,6 +311,7 @@ data = {
     'enthalpy': 93.7,
     'ZPE': 10.6953,
     'thermal correction': 2.3877,
+    'ionization energy': 10.40,
     'symbols': 'CHH',
     'magmoms': [ 2.,  0.,  0.],
     'positions': [[ 0.      ,  0.      ,  0.110381],
@@ -311,6 +334,7 @@ data = {
     'enthalpy': 35.0,
     'ZPE': 18.3383,
     'thermal correction': 2.5383,
+    'ionization energy': 9.84,
     'symbols': 'CHHH',
     'magmoms': [ 1.,  0.,  0.,  0.],
     'positions': [[ 0.      ,  0.      ,  0.      ],
@@ -323,6 +347,8 @@ data = {
     'enthalpy': -17.9,
     'ZPE': 27.6744,
     'thermal correction': 2.3939,
+    'ionization energy': 12.64,
+    'vertical ionization energy': 13.60,
     'symbols': 'CHHHH',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.      ],
@@ -336,6 +362,8 @@ data = {
     'enthalpy': 85.2,
     'ZPE': 4.5739,
     'thermal correction': 2.0739,
+    'ionization energy': 13.10,
+    'vertical ionization energy': 13.49,
     'symbols': 'NH',
     'magmoms': [ 2.,  0.],
     'positions': [[ 0.      ,  0.      ,  0.129929],
@@ -346,6 +374,8 @@ data = {
     'enthalpy': 45.1,
     'ZPE': 11.7420,
     'thermal correction': 2.3726,
+    'ionization energy': 10.78,
+    'vertical ionization energy': 12.00,
     'symbols': 'NHH',
     'magmoms': [ 1.,  0.,  0.],
     'positions': [[ 0.      ,  0.      ,  0.14169 ],
@@ -357,6 +387,8 @@ data = {
     'enthalpy': -11.0,
     'ZPE': 21.2462,
     'thermal correction': 2.3896,
+    'ionization energy': 10.07,
+    'vertical ionization energy': 10.82,
     'symbols': 'NHHH',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.116489],
@@ -369,6 +401,7 @@ data = {
     'enthalpy': 9.4,
     'ZPE': 5.2039,
     'thermal correction': 2.0739,
+    'ionization energy': 13.02,
     'symbols': 'OH',
     'magmoms': [ 0.5,  0.5],
     'positions': [[ 0.      ,  0.      ,  0.108786],
@@ -379,6 +412,7 @@ data = {
     'enthalpy': -57.8,
     'ZPE': 13.2179,
     'thermal correction': 2.3720,
+    'ionization energy': 12.62,
     'symbols': 'OHH',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.119262],
@@ -390,6 +424,8 @@ data = {
     'enthalpy': -65.1,
     'ZPE': 5.7994,
     'thermal correction': 2.0733,
+    'ionization energy': 16.03,
+    'vertical ionization energy': 16.12,
     'symbols': 'FH',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.093389],
@@ -400,6 +436,7 @@ data = {
     'enthalpy': 65.2,
     'ZPE': 7.1875,
     'thermal correction': 2.3927,
+    'ionization energy': 8.92,
     'symbols': 'SiHH',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.131272],
@@ -422,6 +459,8 @@ data = {
     'enthalpy': 47.9,
     'ZPE': 13.0898,
     'thermal correction': 2.4912,
+    'ionization energy': 8.14,
+    'vertical ionization energy': 8.74,
     'symbols': 'SiHHH',
     'magmoms': [ 1.,  0.,  0.,  0.],
     'positions': [[ 0.      ,  0.      ,  0.079299],
@@ -434,6 +473,8 @@ data = {
     'enthalpy': 8.2,
     'ZPE': 19.2664,
     'thermal correction': 2.5232,
+    'ionization energy': 11.00,
+    'vertical ionization energy': 12.30,
     'symbols': 'SiHHHH',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.      ],
@@ -447,6 +488,7 @@ data = {
     'enthalpy': 33.1,
     'ZPE': 8.2725,
     'thermal correction': 2.3845,
+    'ionization energy': 9.82,
     'symbols': 'PHH',
     'magmoms': [ 1.,  0.,  0.],
     'positions': [[ 0.      ,  0.      ,  0.115396],
@@ -458,6 +500,8 @@ data = {
     'enthalpy': 1.3,
     'ZPE': 14.7885,
     'thermal correction': 2.4203,
+    'ionization energy': 9.87,
+    'vertical ionization energy': 10.95,
     'symbols': 'PHHH',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.124619],
@@ -470,6 +514,8 @@ data = {
     'enthalpy': -4.9,
     'ZPE': 9.3129,
     'thermal correction': 2.3808,
+    'ionization energy': 10.46,
+    'vertical ionization energy': 10.50,
     'symbols': 'SHH',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.102135],
@@ -481,6 +527,7 @@ data = {
     'enthalpy': -22.1,
     'ZPE': 4.1673,
     'thermal correction': 2.0739,
+    'ionization energy': 12.74,
     'symbols': 'ClH',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.07111 ],
@@ -491,6 +538,7 @@ data = {
     'enthalpy': 51.6,
     'ZPE': 0.4838,
     'thermal correction': 2.3086,
+    'ionization energy': 5.11,
     'symbols': 'LiLi',
     'magmoms': None,
     'positions': [[ 0.     ,  0.     ,  1.38653],
@@ -501,6 +549,7 @@ data = {
     'enthalpy': -80.1,
     'ZPE': 1.4019,
     'thermal correction': 2.0990,
+    'ionization energy': 11.30,
     'symbols': 'LiF',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      , -1.174965],
@@ -511,6 +560,8 @@ data = {
     'enthalpy': 54.2,
     'ZPE': 16.6001,
     'thermal correction': 2.4228,
+    'ionization energy': 11.40,
+    'vertical ionization energy': 11.49,
     'symbols': 'CCHH',
     'magmoms': None,
     'positions': [[ 0.     ,  0.     ,  0.60808],
@@ -523,6 +574,8 @@ data = {
     'enthalpy': 12.5,
     'ZPE': 31.5267,
     'thermal correction': 2.5100,
+    'ionization energy': 11.40,
+    'vertical ionization energy': 11.49,
     'symbols': 'CCHHHH',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.66748 ],
@@ -553,6 +606,7 @@ data = {
     'enthalpy': 104.9,
     'ZPE': 3.0183,
     'thermal correction': 2.0739,
+    'ionization energy': 13.60,
     'symbols': 'CN',
     'magmoms': [ 1.,  0.],
     'positions': [[ 0.      ,  0.      , -0.611046],
@@ -563,6 +617,8 @@ data = {
     'enthalpy': 31.5,
     'ZPE': 10.2654,
     'thermal correction': 2.1768,
+    'ionization energy': 13.60,
+    'vertical ionization energy': 13.61,
     'symbols': 'CNH',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      , -0.511747],
@@ -574,6 +630,8 @@ data = {
     'enthalpy': -26.4,
     'ZPE': 3.1062,
     'thermal correction': 2.0739,
+    'ionization energy': 14.01,
+    'vertical ionization energy': 14.01,
     'symbols': 'OC',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.493003],
@@ -584,6 +642,8 @@ data = {
     'enthalpy': 10.0,
     'ZPE': 8.0290,
     'thermal correction': 2.3864,
+    'ionization energy': 8.12,
+    'vertical ionization energy': 9.31,
     'symbols': 'COH',
     'magmoms': [ 1.,  0.,  0.],
     'positions': [[ 0.06256 ,  0.593926,  0.      ],
@@ -595,6 +655,8 @@ data = {
     'enthalpy': -26.0,
     'ZPE': 16.4502,
     'thermal correction': 2.3927,
+    'ionization energy': 10.88,
+    'vertical ionization energy': 10.88,
     'symbols': 'OCHH',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.683501],
@@ -607,6 +669,8 @@ data = {
     'enthalpy': -48.0,
     'ZPE': 31.6635,
     'thermal correction': 2.6832,
+    'ionization energy': 10.84,
+    'vertical ionization energy': 10.96,
     'symbols': 'COHHHH',
     'magmoms': None,
     'positions': [[-0.047131,  0.664389,  0.      ],
@@ -621,6 +685,8 @@ data = {
     'enthalpy': 0.0,
     'ZPE': 3.4243,
     'thermal correction': 2.0733,
+    'ionization energy': 15.58,
+    'vertical ionization energy': 15.58,
     'symbols': 'NN',
     'magmoms': None,
     'positions': [[ 0.     ,  0.     ,  0.56499],
@@ -631,6 +697,8 @@ data = {
     'enthalpy': 22.8,
     'ZPE': 32.9706,
     'thermal correction': 2.6531,
+    'ionization energy': 8.10,
+    'vertical ionization energy': 8.98,
     'symbols': 'NNHHHH',
     'magmoms': None,
     'positions': [[ 0.      ,  0.718959, -0.077687],
@@ -645,6 +713,8 @@ data = {
     'enthalpy': 21.6,
     'ZPE': 2.7974,
     'thermal correction': 2.0745,
+    'ionization energy': 9.26,
+    'vertical ionization energy': 9.26,
     'symbols': 'NO',
     'magmoms': [ 0.6,  0.4],
     'positions': [[ 0.      ,  0.      , -0.609442],
@@ -655,6 +725,8 @@ data = {
     'enthalpy': 0.0,
     'ZPE': 2.3444,
     'thermal correction': 2.0752,
+    'ionization energy': 12.07,
+    'vertical ionization energy': 12.30,
     'symbols': 'OO',
     'magmoms': [ 1.,  1.],
     'positions': [[ 0.      ,  0.      ,  0.622978],
@@ -665,6 +737,8 @@ data = {
     'enthalpy': -32.5,
     'ZPE': 16.4081,
     'thermal correction': 2.6230,
+    'ionization energy': 10.58,
+    'vertical ionization energy': 11.70,
     'symbols': 'OOHH',
     'magmoms': None,
     'positions': [[ 0.      ,  0.734058, -0.05275 ],
@@ -677,6 +751,8 @@ data = {
     'enthalpy': 0.0,
     'ZPE': 1.5179,
     'thermal correction': 2.0915,
+    'ionization energy': 15.70,
+    'vertical ionization energy': 15.70,
     'symbols': 'FF',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.710304],
@@ -687,6 +763,8 @@ data = {
     'enthalpy': -94.1,
     'ZPE': 7.3130,
     'thermal correction': 2.2321,
+    'ionization energy': 13.78,
+    'vertical ionization energy': 13.78,
     'symbols': 'COO',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.      ],
@@ -698,6 +776,7 @@ data = {
     'enthalpy': 34.0,
     'ZPE': 0.2246,
     'thermal correction': 2.4699,
+    'ionization energy': 4.89,
     'symbols': 'NaNa',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  1.576262],
@@ -708,6 +787,7 @@ data = {
     'enthalpy': 139.9,
     'ZPE': 0.7028,
     'thermal correction': 2.2182,
+    'ionization energy': 7.90,
     'symbols': 'SiSi',
     'magmoms': [ 1.,  1.],
     'positions': [[ 0.      ,  0.      ,  1.130054],
@@ -718,6 +798,8 @@ data = {
     'enthalpy': 34.3,
     'ZPE': 1.1358,
     'thermal correction': 2.1235,
+    'ionization energy': 10.53,
+    'vertical ionization energy': 10.62,
     'symbols': 'PP',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.966144],
@@ -728,6 +810,8 @@ data = {
     'enthalpy': 30.7,
     'ZPE': 1.0078,
     'thermal correction': 2.1436,
+    'ionization energy': 9.36,
+    'vertical ionization energy': 9.55,
     'symbols': 'SS',
     'magmoms': [ 1.,  1.],
     'positions': [[ 0.      ,  0.      ,  0.960113],
@@ -738,6 +822,8 @@ data = {
     'enthalpy': 0.0,
     'ZPE': 0.7737,
     'thermal correction': 2.1963,
+    'ionization energy': 11.48,
+    'vertical ionization energy': 11.49,
     'symbols': 'ClCl',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  1.007541],
@@ -748,6 +834,8 @@ data = {
     'enthalpy': -43.6,
     'ZPE': 0.5152,
     'thermal correction': 2.2935,
+    'ionization energy': 9.20,
+    'vertical ionization energy': 9.80,
     'symbols': 'NaCl',
     'magmoms': None,
     'positions': [[ 0.     ,  0.     , -1.45166],
@@ -758,6 +846,7 @@ data = {
     'enthalpy': -24.6,
     'ZPE': 1.7859,
     'thermal correction': 2.0821,
+    'ionization energy': 11.49,
     'symbols': 'SiO',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.560846],
@@ -768,6 +857,7 @@ data = {
     'enthalpy': 66.9,
     'ZPE': 1.8242,
     'thermal correction': 2.0814,
+    'ionization energy': 11.33,
     'symbols': 'CS',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      , -1.123382],
@@ -778,6 +868,7 @@ data = {
     'enthalpy': 1.2,
     'ZPE': 1.6158,
     'thermal correction': 2.0877,
+    'ionization energy': 11.29,
     'symbols': 'OS',
     'magmoms': [ 1.,  1.],
     'positions': [[ 0.      ,  0.      , -1.015992],
@@ -788,6 +879,8 @@ data = {
     'enthalpy': 24.2,
     'ZPE': 1.1923,
     'thermal correction': 2.1172,
+    'ionization energy': 10.89,
+    'vertical ionization energy': 11.01,
     'symbols': 'ClO',
     'magmoms': [ 1.,  0.],
     'positions': [[ 0.      ,  0.      ,  0.514172],
@@ -798,6 +891,8 @@ data = {
     'enthalpy': -13.2,
     'ZPE': 1.1113,
     'thermal correction': 2.1273,
+    'ionization energy': 12.66,
+    'vertical ionization energy': 12.77,
     'symbols': 'FCl',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      , -1.084794],
@@ -808,6 +903,8 @@ data = {
     'enthalpy': 19.1,
     'ZPE': 30.2265,
     'thermal correction': 3.7927,
+    'ionization energy': 9.74,
+    'vertical ionization energy': 10.53,
     'symbols': 'SiSiHHHHHH',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  1.167683],
@@ -825,6 +922,8 @@ data = {
     'ZPE': 23.3013,
     'thermal correction': 2.4956,
     'symbols': 'CClHHH',
+    'ionization energy': 11.26,
+    'vertical ionization energy': 11.29,
     'magmoms': None,
     'positions': [[ 0.      ,  0.      , -1.121389],
                   [ 0.      ,  0.      ,  0.655951],
@@ -837,6 +936,8 @@ data = {
     'enthalpy': -5.5,
     'ZPE': 28.3973,
     'thermal correction': 2.8690,
+    'ionization energy': 9.44,
+    'vertical ionization energy': 9.44,
     'symbols': 'CSHHHH',
     'magmoms': None,
     'positions': [[-0.047953,  1.149519,  0.      ],
@@ -851,6 +952,7 @@ data = {
     'enthalpy': -17.8,
     'ZPE': 8.1539,
     'thermal correction': 2.4416,
+    'ionization energy': 11.12,
     'symbols': 'OHCl',
     'magmoms': None,
     'positions': [[ 0.036702,  1.113517,  0.      ],
@@ -862,6 +964,8 @@ data = {
     'enthalpy': -71.0,
     'ZPE': 4.3242,
     'thermal correction': 2.5245,
+    'ionization energy': 12.35,
+    'vertical ionization energy': 12.50,
     'symbols': 'SOO',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.370268],
@@ -1422,6 +1526,8 @@ data = {
     'enthalpy': 19.7,
     'ZPE': 61.9252,
     'thermal correction': 3.3886,
+    'ionization energy': 9.24,
+    'vertical ionization energy': 9.25,
     'symbols': 'CCCCCCHHHHHH',
     'magmoms': None,
     'positions': [[ 0.      ,  1.395248,  0.      ],
@@ -2111,6 +2217,7 @@ data = {
     'enthalpy': 0.0,
     'ZPE': 6.2908,
     'thermal correction': 2.0739,
+    'ionization energy': 15.43,
     'symbols': 'HH',
     'magmoms': None,
     'positions': [[ 0.      ,  0.      ,  0.368583],
@@ -2285,6 +2392,24 @@ data = {
                   [ 0.      , -1.118122, -0.14537 ]]},
 }
 
+
+def get_ionization_energy(name, vertical=True):
+    """Return the experimental ionization energy.
+
+    If vertical is True, the vertical ionization energy is returned if
+    available.
+    """
+    if name not in data:
+        raise KeyError('System %s not in database.' % name)
+    elif 'ionization energy' not in data[name]:
+        raise KeyError('No data on ionization energy for system %s.' % name)
+    else:
+        if vertical and 'vertical ionization energy' in data[name]:
+            return data[name]['vertical ionization energy']
+        else:
+            return data[name]['ionization energy']
+
+
 def get_atomization_energy(name):
     """Determine extrapolated experimental atomization energy.
 
@@ -2310,6 +2435,7 @@ def get_atomization_energy(name):
         ae += h - dh
     return ae
 
+
 def molecule(name, **kwargs):
     """Create molecule."""
     if name in atoms:
@@ -2322,6 +2448,7 @@ def molecule(name, **kwargs):
     if 'magmoms' not in kwargs:
         kwargs['magmoms'] = d['magmoms']
     return Atoms(d['symbols'], d['positions'], **kwargs)
+
 
 def latex(name):
     """Convert name to LaTeX"""
@@ -2341,6 +2468,7 @@ def latex(name):
     s = s.replace(' ', r'\ ') + '$'
     return s
 
+
 def rest(name):
     """Convert name to reStructuredText."""
     s = ''
@@ -2356,13 +2484,20 @@ def rest(name):
             s += c
             name = name[1:]
     return s
-    
+
+
 if __name__ == '__main__':
     # Compare experimental values from the Kresse/VASP article with those from
-    # the Argonne NL homepage
+    # the Argonne NL homepage    
     from gpaw.testing.atomization_data import atomization_vasp
     print 'Name      Kresse   ANL Diff'
+    err = []
     for name in g1:
         anl = get_atomization_energy(name)
         kresse = atomization_vasp[name][0]
+        err.append(kresse - anl)
         print '%-10s %5.1f %5.1f % 3.1f' % (name, kresse, anl, kresse - anl)
+
+    import numpy as np
+    mae = np.abs(err).mean()
+    print 'MAE:', mae
