@@ -99,13 +99,17 @@ class BasinHopping(Dynamics):
         if np.sometrue(self.positions != positions):
             self.positions = positions
             self.atoms.set_positions(positions)
+ 
+            try:
+                opt = self.optimizer(self.atoms, logfile=self.optimizer_logfile)
+                opt.run(fmax=self.fmax)
+                if self.lm_trajectory is not None:
+                    self.lm_trajectory.write(self.atoms)
 
-            opt = self.optimizer(self.atoms, logfile=self.optimizer_logfile)
-            opt.run(fmax=self.fmax)
-            if self.lm_trajectory is not None:
-                self.lm_trajectory.write(self.atoms)
+                self.energy = self.atoms.get_potential_energy()
 
-            self.energy = self.atoms.get_potential_energy()
-
+            except:
+                self.energy = 1.e32 # the atoms are probably to near to each other
+            
         return self.energy
        
