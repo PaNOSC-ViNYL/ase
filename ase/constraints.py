@@ -10,7 +10,11 @@ def slice2enlist(s):
         step = 1
     else:
         step = s.step
-    return enumerate(range(s.start, s.stop, step))
+    if s.start == None:
+        start = 0
+    else:
+        start = s.start
+    return enumerate(range(start, s.stop, step))
 
 class FixConstraint:
     """Base class for classes that fix one or more atoms in some way."""
