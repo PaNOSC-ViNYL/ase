@@ -13,7 +13,7 @@ for manipulating atoms, analyzing simulations, visualization etc.
 
 Supported :mod:`calculators`:
 
-   |abinit| |Asap| |jacapo| |elk| |EMT| |gpaw| |hotbit|
+   |abinit| |Asap| |jacapo| |elk| |exciting| |EMT| |gpaw| |hotbit|
    |siesta| |turbomole| |vasp| |fhi-aims|
 
 .. |abinit| image:: _static/abinit.png
@@ -28,6 +28,9 @@ Supported :mod:`calculators`:
 .. |elk| image:: _static/elk.png
    :target: http://elk.sourceforge.net/
    :align: middle
+.. |exciting| image:: _static/exciting.png
+   :target: ase/calculators/exciting.html
+   :align: middle   
 .. |EMT| image:: _static/emt.png
    :target: ase/calculators/emt.html
    :align: middle

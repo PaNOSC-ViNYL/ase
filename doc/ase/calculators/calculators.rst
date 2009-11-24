@@ -57,6 +57,8 @@ Dacapo_           Old interface to Dacapo_. Requires           :term:`DFT`
 :mod:`vasp`       Planewave PAW code                           :term:`DFT`
 :mod:`FHI-aims`   Numeric Atomic Orbital, full potential code  :term:`DFT`,
                                                                :term:`HF` 
+:mod:`exciting`   Full Potential LAPW code                     :term:`DFT`,
+                                                               :term:`LAPW`
 :mod:`mmtk`       XXX Library for molecular simulations 
 ================  ===========================================  ============
   
@@ -91,6 +93,7 @@ Documentation for group 2 and 3 calculators
    vasp
    FHI-aims
    mmtk
+   exciting
 
 
 

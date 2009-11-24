@@ -9,6 +9,7 @@ from ase.calculators.dacapo import Dacapo
 from ase.calculators.vasp import Vasp
 from ase.calculators.aims import Aims, AimsCube
 from ase.calculators.turbomole import Turbomole
+from ase.calculators.exciting import Exciting
 
 class Calculator:
     """Class for demonstrating the ASE-calculator interface.

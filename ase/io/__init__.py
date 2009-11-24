@@ -3,7 +3,6 @@ import os
 from os.path import basename
 from tarfile import is_tarfile
 from zipfile import is_zipfile
-
 from ase.atoms import Atoms
 from ase.units import Bohr
 
@@ -45,6 +44,7 @@ def read(filename, index=-1, format=None):
     VTK XML Structured Grid    vts
     VTK XML Unstructured Grid  vtu
     TURBOMOLE coord file       (filename==='coord')
+    exciting input             exi
     =========================  ===========
 
     """
@@ -83,6 +83,10 @@ def read(filename, index=-1, format=None):
             atoms.set_initial_magnetic_moments(magmoms)
 
         return atoms
+
+    if format == 'exi':
+        from ase.io.exciting import read_exciting
+        return read_exciting(filename, index)
 
     if format == 'xyz':
         from ase.io.xyz import read_xyz
@@ -204,6 +208,7 @@ def write(filename, images, format=None, **kwargs):
     VTK XML Structured Grid    vts
     VTK XML Unstructured Grid  vtu
     TURBOMOLE coord file       tmol
+    exciting                   exi
     =========================  ===========
   
     The use of additional keywords is format specific.
@@ -262,6 +267,12 @@ def write(filename, images, format=None, **kwargs):
         else:
             suffix = filename.split('.')[-1]
             format = {}.get(suffix, suffix)
+
+    if format == 'exi':
+        from ase.io.exciting import write_exciting
+        write_exciting(filename, images)
+        return
+
 
     if format == 'xyz':
         from ase.io.xyz import write_xyz
@@ -331,18 +342,7 @@ def filetype(filename):
             return 'dacapo'
         raise IOError('Unknown netCDF file!')
 
-    if s3 == '<?x':
-        from ase.io.vtkxml import probe_vtkxml
-        xmltype = probe_vtkxml(filename)
-        if xmltype == 'ImageData':
-            return 'vti'
-        elif xmltype == 'StructuredGrid':
-            return 'vts'
-        elif xmltype == 'UnstructuredGrid':
-            return 'vtu'
-        elif xmltype is not None:
-            raise IOError('Unknown VTK XML file!')
-
+    
     if is_zipfile(filename):
         return 'vnl'
 
@@ -370,6 +370,9 @@ def filetype(filename):
     if 'POSCAR' in filename_v or 'CONTCAR' in filename_v:
         return 'vasp'    
 
+    if filename.lower().endswith('.exi'):
+        return 'exi'
+    
     if filename.lower().endswith('.mol'):
         return 'mol'
 
@@ -378,7 +381,7 @@ def filetype(filename):
 
     if filename.lower().endswith('.cif'):
         return 'cif'
-
+   
     if filename.lower().endswith('.in'):
         return 'aims'
 
@@ -393,5 +396,16 @@ def filetype(filename):
 
     if lines[0].startswith('$coord'):
         return 'tmol'
+    if s3 == '<?x':
+        from ase.io.vtkxml import probe_vtkxml
+        xmltype = probe_vtkxml(filename)
+        if xmltype == 'ImageData':
+            return 'vti'
+        elif xmltype == 'StructuredGrid':
+            return 'vts'
+        elif xmltype == 'UnstructuredGrid':
+            return 'vtu'
+        elif xmltype is not None:
+            raise IOError('Unknown VTK XML file!')
 
     return 'xyz'
