@@ -9,7 +9,7 @@ elk_parameters = {
     }
 
 class ELK:
-    def __init__(self, dir='.', xc=None, tasks=[0], **kwargs):
+    def __init__(self, dir='.', xc=None, kpts=None, tasks=[0], **kwargs):
         for key, value in kwargs.items():
             if key in elk_parameters:
                 kwargs[key] /= elk_parameters[key]
@@ -24,6 +24,24 @@ class ELK:
                                     'PBESOL': 22,
                                     'WC06': 26,
                                     'AM05': 30}[xc.upper()]
+
+        if kpts is not None:
+            if 'autokpt' in kwargs:
+                if kwargs['autokpt']:
+                    raise ValueError("You can't use both 'kpts' and 'autokpt'!")
+            if 'ngridk' in kwargs:
+                raise ValueError("You can't use both 'kpts' and 'ngridk'!")
+            if 'vkloff' in kwargs:
+                raise ValueError("You can't use both 'kpts' and 'vkloff'!")
+            else:
+                kwargs['ngridk'] = kpts
+                vkloff = []
+                for nk in kpts:
+                    if nk % 2 == 0:  # shift kpoint away from gamma point
+                        vkloff.append(0.5 / nk)
+                    else:
+                        vkloff.append(0)
+                kwargs['vkloff'] = vkloff
 
         kwargs['tasks'] = tasks
 
@@ -115,6 +133,8 @@ class ELK:
         INFO_file = '%s/INFO.OUT' % self.dir
         if os.path.isfile(INFO_file) or os.path.islink(INFO_file):
             text = open(INFO_file).read().lower()
+            assert 'convergence targets achieved' in text
+            assert not 'reached self-consistent loops maximum' in text
             lines = iter(text.split('\n'))
             forces = []
             atomnum = 0
