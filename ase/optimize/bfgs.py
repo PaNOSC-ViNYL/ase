@@ -49,11 +49,23 @@ class BFGS(Optimizer):
         dr = np.dot(V, np.dot(f, V) / np.fabs(omega)).reshape((-1, 3))
         #dr = solve(self.H, f).reshape((-1, 3))
         steplengths = (dr**2).sum(1)**0.5
-        dr /= np.maximum(steplengths / self.maxstep, 1.0).reshape(-1, 1)
+        dr = self.determine_step(dr, steplengths)
         atoms.set_positions(r + dr)
         self.r0 = r.flat.copy()
         self.f0 = f.copy()
         self.dump((self.H, self.r0, self.f0, self.maxstep))
+
+    def determine_step(self, dr, steplengths):
+        """Determine step to take according to maxstep
+        
+        Normalize all steps as the largest step. This way
+        we still move along the eigendirection.
+        """
+        maxsteplength = np.max(steplengths)
+        if maxsteplength >= self.maxstep:
+            dr *= self.maxstep / maxsteplength
+        
+        return dr
 
     def update(self, r, f, r0, f0):
         if self.H is None:
@@ -89,3 +101,14 @@ class BFGS(Optimizer):
 
         self.r0 = r0
         self.f0 = f0
+
+class oldBFGS(BFGS):
+    def determine_step(self, dr, steplengths):
+        """Old BFGS behaviour for scaling step lengths
+
+        This keeps the behaviour of truncating individual steps. Some might
+        depend of this as some absurd kind of stimulated annealing to find the
+        global minimum.
+        """
+        dr /= np.maximum(steplengths / self.maxstep, 1.0).reshape(-1, 1)
+        return dr
