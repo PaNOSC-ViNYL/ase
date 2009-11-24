@@ -94,7 +94,7 @@ from ase.units import Bohr, Hartree
 class Exciting:
     """exciting calculator object."""
    
-    def __init__(self, dir='.', template=None, speciespath='./',
+    def __init__(self, dir='.', template=None, speciespath=None,
                  bin='excitingser', kpts=(1, 1, 1), **kwargs):
         """Exciting calculator object constructor
         
@@ -117,7 +117,8 @@ class Exciting:
         self.dir = dir
         self.energy = None
         self.template = template
-        self.speciespath = speciespath
+        if speciespath is None:
+            self.speciespath = os.environ.get('EXCITING_SPECIES_PATH', './')
         self.converged = False
         self.excitingbinary = bin
         self.groundstate_attributes = kwargs
