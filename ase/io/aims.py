@@ -159,10 +159,10 @@ def read_aims_output(filename):
                 f.append([float(inp[2]),float(inp[3]),float(inp[4])])
         if "Total energy corrected" in line:
             e = float(line.split()[5])
-            atoms.set_calculator(SinglePointCalculator(e,f,None,None,atoms))
             if pbc:
                 atoms.set_cell(cell)
                 atoms.pbc = True
+            atoms.set_calculator(SinglePointCalculator(e,f,None,None,atoms))
             images.append(atoms)
             e = None
             f = None    
