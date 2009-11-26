@@ -16,7 +16,11 @@ class Execute(gtk.Window):
         #self.window.connect('delete_event', self.exit)
         self.set_title('Execute')
         vbox = gtk.VBox()
-        self.cmd1, self.cmd2 = pack(vbox, [gtk.Entry(23),gtk.Entry(23)])
+        pack(vbox, gtk.Label('Global: Use n, N, R, A, S:'))
+        self.cmd1 = pack(vbox, gtk.Entry(43))
+        pack(vbox, gtk.Label('Atoms: Use a, x, y, z, s, Z'))
+        self.cmd2 = pack(vbox, gtk.Entry(43))
+        #self.cmd1, self.cmd2 = pack(vbox, [gtk.Entry(23),gtk.Entry(23)])
         self.cmd1.connect('activate', self.execute)
         self.cmd2.connect('activate', self.execute)
         self.selected = gtk.CheckButton('Only selected atoms')
@@ -37,19 +41,19 @@ class Execute(gtk.Window):
                             __future__.CO_FUTURE_DIVISION)
 
         gui = self.gui
+        images = gui.images
 
-        N = gui.nframes
-        n = gui.natoms
-        A = gui.cell
-        S = gui.selected
+        N = images.nimages
+        n = images.natoms
+        S = images.selected
         if self.selected.get_active():
             indices = np.where(S)[0]
         else:
             indices = range(n)
 
         for i in range(N):
-            R = gui.RR[i]
-            #F =
+            R = images.P[i]
+            A = images.A[i]
             #fmax = sqrt(max((F**2).sum(1))
 
             if cmd1:
@@ -61,7 +65,7 @@ class Execute(gtk.Window):
             for a in indices:
                 x, y, z = R[a]
                 s = S[a]
-                Z = gui.Z[a]
+                Z = images.Z[a]
                 #f =
                 exec code2
                 S[a] = s
