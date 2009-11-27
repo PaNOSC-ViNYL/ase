@@ -94,6 +94,8 @@ or from the daily snapshot: `<python-ase-snapshot.tar.gz>`_.
 
    The recommended checkout path is :envvar:`$HOME`.
 
+.. _installation:
+
 ============
 Installation
 ============
