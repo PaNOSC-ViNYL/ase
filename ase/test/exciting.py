@@ -14,6 +14,8 @@ a = Atoms('N3O',
           [(0, 0, 0), (1, 0, 0), (0, 0, 1), (0.5, 0.5, 0.5)],
           pbc=True)
 
+raise NotAvailable('Problem with lxml module.')
+
 write('geo.exi', a)
 b = read('geo.exi')
 
