@@ -1530,8 +1530,10 @@ class Jacapo:
             raise RuntimeError('Error in calculating the total energy\n' +
                                'Check ascii out file for error messages')
 
-    def get_forces(self, atoms):
+    def get_forces(self, atoms=None):
         """Calculate atomic forces"""
+        if atoms is None:
+            atoms = self.atoms
         if self.calculation_required(atoms):
             if self.debug > 0: print 'calculation required for forces'
             self.calculate()
@@ -2937,7 +2939,8 @@ s.recv(14)
 
         #center_electron_charge has a negative sign due to charge of electron
         dipole_moment = center_nuclear_charge + center_electron_charge
-        
+
+        #I am not sure this is correct yet, so it is raising NotImplemented for now.
         raise NotImplementedError
     
     def get_reciprocal_bloch_function(self,band=0,kpt=0,spin=0):
