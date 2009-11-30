@@ -837,6 +837,40 @@ class Atoms(object):
         else:
             return com
 
+    def get_moments_of_inertia(self):
+        '''Get the moments of inertia
+
+        The three principal moments of inertia are computed from the
+        eigenvalues of the inertial tensor. periodic boundary
+        conditions are ignored. Units of the moments of inertia are
+        amu*angstrom**2.
+        '''
+        
+        com = self.get_center_of_mass()
+        positions = self.get_positions()
+        positions -= com #translate center of mass to origin
+        masses = self.get_masses()
+
+        #initialize elements of the inertial tensor
+        I11 = I22 = I33 = I12 = I13 = I23 = 0.0
+        for i in range(len(self)):
+            x,y,z = positions[i]
+            m = masses[i]
+
+            I11 += m*(y**2 + z**2)
+            I22 += m*(x**2 + z**2)
+            I33 += m*(x**2 + y**2)
+            I12 += -m*x*y
+            I13 += -m*x*z
+            I23 += -m*y*z
+
+        I = np.array([[I11, I12, I13],
+                      [I12, I22, I23],
+                      [I13, I23, I33]])
+
+        evals, evecs = np.linalg.eig(I)
+        return evals
+
     def rotate(self, v, a=None, center=(0, 0, 0), rotate_cell=False):
         """Rotate atoms.
 
