@@ -12,17 +12,17 @@ class Exciting:
         
         Parameters
         ----------
-        dir : string
+        dir: string
             directory in which to excecute exciting
-        template :string
+        template: string
             Path to XSLT templat if it schould be used
             default: none
-        bin :string
+        bin: string
             Path or executable name of exciting 
             default: ``excitingser`` 
-        kpts:integer list length 3
+        kpts: integer list length 3
             Number of kpoints
-        **kwargs : dictionary like
+        kwargs: dictionary like
             list of key value pairs to be converted into groundstate attributes
         
         """
