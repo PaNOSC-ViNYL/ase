@@ -4,7 +4,7 @@
 Structure optimization
 ======================
 
-The optimization algorithms can be rougly devided into local
+The optimization algorithms can be roughly devided into local
 optimization algorithms which find the next local minimum and
 global optimization algorithms that try to find the global
 minimum (a much harder task).
