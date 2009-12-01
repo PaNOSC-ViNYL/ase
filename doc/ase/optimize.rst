@@ -3,6 +3,14 @@
 ======================
 Structure optimization
 ======================
+
+The optimization algorithms can be rougly devided into local
+optimization algorithms which find the next local minimum and
+global optimization algorithms that try to find the global
+minimum (a much harder task).
+
+Local optimization
+==================
 .. module:: optimize
    :synopsis: Structure Optimization
 
@@ -194,3 +202,44 @@ near the minimum that the potential energy surface is approximately
 quadratic it becomes advantageous to switch to a minimization method
 with quadratic convergence, such as `Conjugate Gradient` or `Quasi
 Newton`.
+
+
+
+Global optimization
+===================
+
+There is currently one global optimisation algorithm available.
+
+
+Basin hopping
+=============
+.. module:: optimize.basin
+
+The global optimization algorithm can be used quite similar as a 
+local optimization algorithm::
+
+  from ase import *
+  from ase.optimize.basin import BasinHopping
+
+  bh = BasinHopping(system,               # the system to optimize 
+                    temperature=100 * kB, # 'temperature' to overcome barriers
+                    dr=0.5,               # maximal stepwidth
+	       	    optimizer=LBFGS,      # optimizer to find local minima
+		    fmax=0.1,             # maximal force for the optimizer
+                    )
+
+Read more about this algorithm here:
+
+  | David J. Wales and Jonathan P. K. Doye
+  | `Global Optimization by Basin-Hopping and the Lowest Energy Structures of Lennard-Jones Clusters Containing up to 110 Atoms`__
+  | J. Phys. Chem. A, Vol. **101**, 5111-5116 (1997)
+
+__ http://pubs.acs.org/doi/abs/10.1021/jp970984n
+
+and here:
+
+  | David J. Wales and Harold A. Scheraga
+  | `Global Optimization of Clusters, Crystals, and Biomolecules`__
+  | Science, Vol. **285**, 1368 (1999)
+
+__ http://www.sciencemag.org/cgi/content/abstract/sci;285/5432/1368
