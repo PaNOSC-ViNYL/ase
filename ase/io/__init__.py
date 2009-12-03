@@ -217,12 +217,6 @@ def write(filename, images, format=None, **kwargs):
     keyword, which can be used to write a 3D array to the file along
     with the nuclei coordinates.
   
-    The ``eps``, ``png``, and ``pov`` formats are all graphics formats,
-    and accept the additional keywords::
-  
-      rotation='', show_unit_cell=0, radii=None, bbox=None, colors=None,
-      scale=20
-
     The ``vti``, ``vts`` and ``vtu`` formats are all specifically directed
     for use with MayaVi, and the latter is designated for visualization of
     the atoms whereas the two others are intended for volume data. Further,
@@ -231,32 +225,39 @@ def write(filename, images, format=None, **kwargs):
     additionally stores the coordinates of each grid point, thus making it
     useful for volume date in more general unit cells.
 
-    rotation: str
+    The ``eps``, ``png``, and ``pov`` formats are all graphics formats,
+    and accept the additional keywords:
+
+    rotation: str (default '')
       The rotation angles, e.g. '45x,70y,90z'.
-    show_unit_cell: int
+
+    show_unit_cell: int (default 0)
       Can be 0, 1, 2 to either not show, show, or show all of the unit cell.
-    radii: array / float
+
+    radii: array or float (default 1.0)
       An array of same length as the list of atoms indicating the sphere radii.
       A single float specifies a uniform scaling of the default covalent radii.
-    bbox: array
+
+    bbox: array (default None)
       XXX
-    colors: array
+
+    colors: array (default None)
       An array of same length as the list of atoms, indicating the rgb color
-      code for each atom.
-    scale: int
+      code for each atom. Default is the jmol_colors of ase/data/colors.
+
+    scale: int (default 20)
       Number of pixels per Angstrom.
       
-    The ``pov`` format accepts the additional keywords:
+    For the ``pov`` graphics format, ``scale`` should not be specified.
+    The elements of the color array can additionally be strings, or 4
+    and 5 vectors for named colors, rgb + filter, and rgb + filter + transmit
+    specification. This format accepts the additional keywords:
 
     ``run_povray``, ``display``, ``pause``, ``transparent``,
     ``canvas_width``, ``canvas_height``, ``camera_dist``,
     ``image_plane``, ``camera_type``, ``point_lights``,
     ``area_light``, ``background``, ``textures``, ``celllinewidth``,
     ``bondlinewidth``, ``bondatoms``
-
-    For ``pov`` the elements of the color array can also be strings, or 4,
-    and 5 vectors for named colors, rgb + filter, and rgb + filter + transmit
-    specification.
     """
     
     if format is None:
@@ -267,7 +268,14 @@ def write(filename, images, format=None, **kwargs):
             format = 'vasp'
         else:
             suffix = filename.split('.')[-1]
-            format = {}.get(suffix, suffix)
+            format = {}.get(suffix, suffix) # XXX this does not make sense
+            # Maybe like this:
+##             format = {'traj': 'trajectory',
+##                       'nc': 'netcdf',
+##                       'exi': 'exciting',
+##                       'in': 'aims',
+##                       'tmol': 'turbomole',
+##                       }.get(suffix, suffix)
 
     if format == 'exi':
         from ase.io.exciting import write_exciting
