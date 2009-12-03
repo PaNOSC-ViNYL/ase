@@ -11,17 +11,17 @@ from ase.parallel import paropen
 from ase.units import Bohr
 
 def read_exciting(fileobj, index=-1):
-    """Reads structure from exiting xml file and returns
-    atoms object in a list
+    """Reads structure from exiting xml file.
     
     Parameters
     ----------
-    fileobj : File object
-        Filehandle from which data should be read
+    fileobj: file object
+        Filehandle from which data should be read.
+        
     Other parameters
     ----------------
-    index : integer -1
-        Not used in this implementation
+    index: integer -1
+        Not used in this implementation.
     """
     from lxml import etree as ET
     #parse file into element tree
