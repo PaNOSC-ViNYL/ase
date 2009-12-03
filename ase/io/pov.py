@@ -30,6 +30,25 @@ def pc(array):
         return 'rgbft <%.2f, %.2f, %.2f, %.2f, %.2f>' % tuple(array)
 
 
+def get_bondpairs(atoms, radius=1.1):
+    """Get all pairs of bonding atoms
+
+    Return all pairs of atoms which are closer than radius times the
+    sum of their respective covalent radii.
+    """
+    from ase.data import covalent_radii
+    from ase.calculators.neighborlist import NeighborList
+    cutoffs = radius * covalent_radii[atoms.numbers]
+    nl = NeighborList(cutoffs=cutoffs, self_interaction=False)
+    nl.update(atoms)
+    bondpairs = []
+    for a in range(len(atoms)):
+        indices, offsets = nl.get_neighbors(a)
+        for a2 in indices:
+            bondpairs.append([a, a2])
+    return bondpairs
+
+
 class POVRAY(EPS):
     default_settings = {
         # x, y is the image plane, z is *out* of the screen
