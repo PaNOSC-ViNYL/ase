@@ -45,7 +45,10 @@ def view(atoms, data=None, viewer='ag', repeat=None, block=False):
     fd = os.fdopen(fd, 'w')
     if repeat is not None:
         atoms = atoms.repeat()
-    write(fd, atoms, format=format, data=data)
+    if data is None:
+        write(fd, atoms, format=format)
+    else:
+        write(fd, atoms, format=format, data=data)
     fd.close()
     if block:
         os.system('%s %s' % (command, filename))
