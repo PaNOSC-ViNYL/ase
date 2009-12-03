@@ -13,7 +13,7 @@ for manipulating atoms, analyzing simulations, visualization etc.
 
 Supported :mod:`calculators`:
 
-   |abinit| |Asap| |jacapo| |elk| |exciting| |EMT| |gpaw| |hotbit|
+   |abinit| |Asap| |elk| |exciting| |EMT| |gpaw| |hotbit| |jacapo|
    |siesta| |turbomole| |vasp| |fhi-aims|
 
 .. |abinit| image:: _static/abinit.png
