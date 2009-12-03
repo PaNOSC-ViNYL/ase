@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 
 import numpy as np
@@ -28,17 +29,21 @@ class BaseLBFGS(Optimizer):
         include only one scf loop.  """
 
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
-                 maxstep=None, dR=0.1, memory=25, damping=1.,
-                 initial_hessian=None):
+                 maxstep=None, dR=0.1, memory=200, damping=1.,
+                 initial_hessian=None, alpha=70.):
 
-        if maxstep is None:
-            self.maxstep = np.sqrt(3*len(atoms))*0.04 
-        else:
+        if maxstep is not None:
+            if maxstep > 1.0:
+                raise ValueError('You are using a much too large value for ' +
+                                 'the maximum step size: %.1f Å' % maxstep)
             self.maxstep = maxstep
+        else:
+            self.maxstep = 0.04
         self.dR = dR
-        self.memory = memory
+        self.memory = memory + 1
         self.damping = damping
-        self.Ho = 0.2
+        #self.Ho = 0.1
+        self.Ho = 1.0 / alpha
         self.ITR = None
         self.f_old = None
         self.r_old = None
@@ -78,9 +83,20 @@ class BaseLBFGS(Optimizer):
                     self.y.pop(1)
                     self.rho.pop(1)
                     ITR = self.memory
-                self.s.append(r - r_old)
-                self.y.append(-(f - f_old))
-                self.rho.append(1 / np.vdot(self.y[ITR],self.s[ITR]))
+                stemp = r - r_old
+                ytemp = -(f - f_old)
+                if (ytemp * stemp < 0.0).any():
+                    # Guard against negative eigenmodes!   
+                    # Setting these to 0 is the same as not updating the Hessian
+                    # XXX: Should we rather discard it?
+                    ytemp = np.zeros_like(ytemp)
+                    stemp = np.zeros_like(stemp)
+                    rhotemp = 0.0
+                else:
+                    rhotemp = 1 / np.vdot(ytemp , stemp)
+                self.s.append(stemp)
+                self.y.append(ytemp)
+                self.rho.append(rhotemp)
                 self.ITR += 1
             else:
                 self.ITR = 1
@@ -99,12 +115,13 @@ class BaseLBFGS(Optimizer):
             k = (BOUND - j)
             a[k] = self.rho[k] * np.vdot(self.s[k], q)
             q -= a[k] * self.y[k]
-        d = (np.dot(q.reshape(-1), self.Ho)).reshape(-1,3)
+        d = (q.reshape(-1)* self.Ho).reshape(-1,3)
         #d = self.Ho * q
         for j in range(1,BOUND):
             B = self.rho[j] * np.vdot(self.y[j], d)
             d = d + self.s[j] * (a[j] - B)
         self.d = -1.0 * d
+
 
     def replay_trajectory(self, traj):
         """Initialize hessian from old trajectory."""
@@ -123,12 +140,14 @@ class BaseLBFGS(Optimizer):
         self.f_old = f_old
 
 class LBFGS(BaseLBFGS):
-    
+    """"""
     def determine_step(self, r, f, du):
         # use the Hessian Matrix to predict the min
         dr = self.d
-        if(abs(np.sqrt(np.vdot(dr, dr).sum())) > self.maxstep):
-            dr = du * self.maxstep
+        steplengths = (dr**2).sum(1)**0.5
+        maxsteplength = np.max(steplengths)
+        if maxsteplength >= self.maxstep:
+            dr *= self.maxstep / maxsteplength
         return dr
 
     def check_for_reset(self, a1, a2):
@@ -137,6 +156,9 @@ class LBFGS(BaseLBFGS):
 class LineSearchLBFGS(BaseLBFGS):
     """"""
     def determine_step(self, r, f, du):
+        # We keep the old step determination before we figure 
+        # out what is the best to do.
+        maxstep = self.maxstep * np.sqrt(3 * len(self.atoms))
         # Finite difference step using temporary point
         tmp_r = r.copy()
         tmp_r += (du * self.dR)
@@ -148,14 +170,14 @@ class LineSearchLBFGS(BaseLBFGS):
         #RdR = Fp1*0.1
         if CR < 0.0:
             #print "negcurve"
-            RdR = self.maxstep
-            #if(abs(RdR) > self.maxstep):
-            #    RdR = self.sign(RdR) * self.maxstep
+            RdR = maxstep
+            #if(abs(RdR) > maxstep):
+            #    RdR = self.sign(RdR) * maxstep
         else:
             Fp = (Fp1 + Fp2) * 0.5
             RdR = Fp / CR 
-            if abs(RdR) > self.maxstep:
-                RdR = np.sign(RdR) * self.maxstep
+            if abs(RdR) > maxstep:
+                RdR = np.sign(RdR) * maxstep
             else:
                 RdR += self.dR * 0.5
         return du * RdR
