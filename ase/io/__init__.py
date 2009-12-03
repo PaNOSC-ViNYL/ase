@@ -299,10 +299,8 @@ def write(filename, images, format=None, **kwargs):
     except ImportError:
         raise TypeError('Unknown format: "%s".' % format)
     
-    try:
-        write(filename, images, **kwargs)
-    except TypeError:
-        write(filename, images)
+    write(filename, images, **kwargs)
+
 
 def string2index(string):
     if ':' not in string:
