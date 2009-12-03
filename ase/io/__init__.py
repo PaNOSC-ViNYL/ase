@@ -45,6 +45,7 @@ def read(filename, index=-1, format=None):
     VTK XML Unstructured Grid  vtu
     TURBOMOLE coord file       (filename==='coord')
     exciting input             exi
+    AtomEye configuration      cfg
     =========================  ===========
 
     """
@@ -172,6 +173,10 @@ def read(filename, index=-1, format=None):
         from ase.io.turbomole import read_turbomole
         return read_turbomole(filename)
 
+    if format == 'cfg':
+        from ase.io.cfg import read_cfg
+        return read_cfg(filename)
+
     raise RuntimeError('That can *not* happen!')
 
 
@@ -209,6 +214,7 @@ def write(filename, images, format=None, **kwargs):
     VTK XML Unstructured Grid  vtu
     TURBOMOLE coord file       tmol
     exciting                   exi
+    AtomEye configuration      cfg
     =========================  ===========
   
     The use of additional keywords is format specific.
@@ -395,6 +401,9 @@ def filetype(filename):
     if filename.lower().endswith('.out'):
         return 'aims_out'
 
+    if filename.lower().endswith('.cfg'):
+        return 'cfg'
+        
     if os.path.split(filename)[1] == 'atoms.dat':
         return 'iwm'
 
