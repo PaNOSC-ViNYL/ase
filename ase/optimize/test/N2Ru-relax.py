@@ -1,32 +1,10 @@
-import sys
-
-from ase import Atoms, EMT
+from ase import Atoms, Atom, EMT, molecule
 from ase.constraints import FixAtoms
-from ase.optimize.bfgs import BFGS
-#from ase.optimize.bfgs import oldBFGS
-from ase.optimize.lbfgs import LBFGS
-#from ase.optimize.newlbfgs import newLBFGS
-    
-opt = sys.argv[1]
-maxstep = float(sys.argv[2])
-alpha = float(sys.argv[3])
-if len(sys.argv) > 4:
-    memory = int(sys.argv[4])
-else:
-    memory = 0
-print '%-15s %5s %5s' % ('Optimizer', '#1', '#2')
-if 1:
-    if opt == 'BFGS':
-        QuasiNewton = BFGS
-    elif opt == 'LBFGS':
-        QuasiNewton = LBFGS
+from ase.optimize.test import run_test
 
-    maxstep = None
-    if maxstep is not None:
-        name = opt + '-%.2f' % maxstep
-    else:
-        name = opt
+name = 'N2Ru'
 
+def get_atoms_surf():
     a = 2.70
     c = 1.59 * a
     h = 1.85
@@ -39,23 +17,63 @@ if 1:
                    (a / 2, 3**0.5 * a / 2, 0),
                    (0, 0, 1)])
     slab = slab.repeat((4, 4, 1))
-    slab.set_calculator(EMT())
     mask = [a.tag == 1 for a in slab]
     slab.set_constraint(FixAtoms(mask=mask))
-    dyn0 = QuasiNewton(slab, logfile = name + '-Ru_slab.log', trajectory = name + '-Ru_slab.traj', maxstep = maxstep, alpha = alpha)
-    dyn0.run(fmax=0.05, steps=200)
+    return slab
 
-    e_slab = slab.get_potential_energy()
+def get_atoms_adsorbate():
+    # We need the relaxed slab here! 
+    slab = Atoms([
+        Atom('Cu', [     -1.028468159509163,     -0.432387156877267,     -0.202086055768265]),
+        Atom('Cu', [      0.333333333333333,      0.333333333333333,     -2.146500000000000]),
+        Atom('Cu', [      1.671531840490805,     -0.432387156877287,     -0.202086055768242]),
+        Atom('Cu', [      3.033333333333334,      0.333333333333333,     -2.146500000000000]),
+        Atom('Cu', [      4.371531840490810,     -0.432387156877236,     -0.202086055768261]),
+        Atom('Cu', [      5.733333333333333,      0.333333333333333,     -2.146500000000000]),
+        Atom('Cu', [      7.071531840490944,     -0.432387156877258,     -0.202086055768294]),
+        Atom('Cu', [      8.433333333333335,      0.333333333333333,     -2.146500000000000]),
+        Atom('Cu', [      0.321531840490810,      1.905881433340708,     -0.202086055768213]),
+        Atom('Cu', [      1.683333333333333,      2.671601923551318,     -2.146500000000000]),
+        Atom('Cu', [      3.021531840490771,      1.905881433340728,     -0.202086055768250]),
+        Atom('Cu', [      4.383333333333334,      2.671601923551318,     -2.146500000000000]),
+        Atom('Cu', [      5.721531840490857,      1.905881433340735,     -0.202086055768267]),
+        Atom('Cu', [      7.083333333333333,      2.671601923551318,     -2.146500000000000]),
+        Atom('Cu', [      8.421531840490820,      1.905881433340739,     -0.202086055768265]),
+        Atom('Cu', [      9.783333333333335,      2.671601923551318,     -2.146500000000000]),
+        Atom('Cu', [      1.671531840490742,      4.244150023558601,     -0.202086055768165]),
+        Atom('Cu', [      3.033333333333334,      5.009870513769302,     -2.146500000000000]),
+        Atom('Cu', [      4.371531840490840,      4.244150023558694,     -0.202086055768265]),
+        Atom('Cu', [      5.733333333333333,      5.009870513769302,     -2.146500000000000]),
+        Atom('Cu', [      7.071531840490880,      4.244150023558786,     -0.202086055768352]),
+        Atom('Cu', [      8.433333333333335,      5.009870513769302,     -2.146500000000000]),
+        Atom('Cu', [      9.771531840491031,      4.244150023558828,     -0.202086055768371]),
+        Atom('Cu', [     11.133333333333335,      5.009870513769302,     -2.146500000000000]),
+        Atom('Cu', [      3.021531840490714,      6.582418613776583,     -0.202086055768197]),
+        Atom('Cu', [      4.383333333333334,      7.348139103987287,     -2.146500000000000]),
+        Atom('Cu', [      5.721531840490814,      6.582418613776629,     -0.202086055768203]),
+        Atom('Cu', [      7.083333333333333,      7.348139103987287,     -2.146500000000000]),
+        Atom('Cu', [      8.421531840490985,      6.582418613776876,     -0.202086055768357]),
+        Atom('Cu', [      9.783333333333335,      7.348139103987287,     -2.146500000000000]),
+        Atom('Cu', [     11.121531840490929,      6.582418613776676,     -0.202086055768221]),
+        Atom('Cu', [     12.483333333333334,      7.348139103987287,     -2.146500000000000]),
+    ])
+    mask = [a.position[2] < -1 for a in slab]
+    slab.set_constraint(FixAtoms(mask=mask))
+
+    a = 2.70
+    c = 1.59 * a
+    h = 1.85
+    d = 1.10
     x = slab.positions[0, 2] / (c / 2) * 100
 
     molecule = Atoms('2N', positions=[(0., 0., h),
                                       (0., 0., h + d)])
     molecule.set_calculator(EMT())
-    e_N2 = molecule.get_potential_energy()
     slab.extend(molecule)
+    return slab
 
-    dyn1 = QuasiNewton(slab, logfile = name + '-N2_on_Ru.log', trajectory = name + '-N2_on_Ru.traj', maxstep = maxstep, alpha = alpha)
-    dyn1.run(fmax=0.05, steps=200)
-    print '%-15s %5i %5i' % (opt, dyn0.get_number_of_steps(), dyn1.get_number_of_steps())
+def get_calculator():
+    return EMT()
 
-#print 'Adsorption energy:', e_slab + e_N2 - slab.get_potential_energy()
+run_test(get_atoms_surf, get_calculator, name + '-surf', steps=200)
+run_test(get_atoms_adsorbate, get_calculator, name + '-N2', steps=200)
