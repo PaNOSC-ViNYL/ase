@@ -251,7 +251,8 @@ def write(filename, images, format=None, **kwargs):
     ``run_povray``, ``display``, ``pause``, ``transparent``,
     ``canvas_width``, ``canvas_height``, ``camera_dist``,
     ``image_plane``, ``camera_type``, ``point_lights``,
-    ``area_light``, ``background``, ``textures``, ``celllinewidth``
+    ``area_light``, ``background``, ``textures``, ``celllinewidth``,
+    ``bondlinewidth``, ``bondatoms``
 
     For ``pov`` the elements of the color array can also be strings, or 4,
     and 5 vectors for named colors, rgb + filter, and rgb + filter + transmit
