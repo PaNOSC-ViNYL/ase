@@ -10,9 +10,11 @@ import numpy as np
 from ase.io.eps import EPS
 from ase.data import chemical_symbols
 
+
 def pa(array):
     """Povray array syntax"""
     return '<% 6.2f, % 6.2f, % 6.2f>' % tuple(array)
+
 
 def pc(array):
     """Povray color syntax"""
@@ -26,6 +28,7 @@ def pc(array):
         return 'rgbf <%.2f, %.2f, %.2f, %.2f>' % tuple(array)
     if len(array) == 5: # filter and transmit
         return 'rgbft <%.2f, %.2f, %.2f, %.2f, %.2f>' % tuple(array)
+
 
 class POVRAY(EPS):
     default_settings = {
@@ -45,6 +48,8 @@ class POVRAY(EPS):
         'background'   : 'White',        # color
         'textures'     : None, # Length of atoms list of texture names
         'celllinewidth': 0.05, # Radius of the cylinders representing the cell
+        'bondlinewidth': 0.10, # Radius of the cylinders representing the bonds
+        'bondatoms'    : [], # [[atom1, atom2], ...] pairs of bonding atoms
         }
 
     def __init__(self, atoms, scale=1.0, **parameters):
@@ -150,7 +155,8 @@ class POVRAY(EPS):
           'diffuse .3 '
           'specular 1. '
           'roughness .001}\n')
-        w('#declare Rcell = %.3f;' % self.celllinewidth)
+        w('#declare Rcell = %.3f;\n' % self.celllinewidth)
+        w('#declare Rbond = %.3f;\n' % self.bondlinewidth)
         w('\n')
         w('#macro atom(LOC, R, COL, FIN)\n')
         w('  sphere{LOC, R texture{pigment{COL} finish{FIN}}}\n')
@@ -182,6 +188,19 @@ class POVRAY(EPS):
             w('atom(%s, %.2f, %s, %s) // #%i \n' % (
                 pa(loc), dia / 2., pc(color), tex, a))
             a += 1
+
+        # Draw atom bonds
+        for a, b in self.bondatoms:
+            mid = 0.5 * (self.X[a] + self.X[b])
+            if self.textures is not None:
+                texa = self.textures[a]
+                texb = self.textures[b]
+            else:
+                texa = texb = 'ase3'
+            w('cylinder {%s, %s, Rbond texture{pigment {%s} finish{%s}}}\n' % (
+                pa(self.X[a]), pa(mid), pc(self.colors[a]), texa))
+            w('cylinder {%s, %s, Rbond texture{pigment {%s} finish{%s}}}\n' % (
+                pa(self.X[b]), pa(mid), pc(self.colors[b]), texb))
 
 
 def write_pov(filename, atoms, run_povray=False, **parameters):
