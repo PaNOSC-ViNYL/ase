@@ -5,6 +5,10 @@ from ase.units import Bohr
 class Bader:
     '''class for running bader analysis and extracting data from it.
 
+    The class runs bader, extracts the charge density and outputs it
+    to a cube file. Then you call different functions of the class to
+    extract the charges, volumes, etc...
+
     ACF.dat contains the coordinates of each atom, the charge
     associated with it according to Bader partitioning, percentage of
     the whole according to Bader partitioning and the minimum distance
@@ -20,20 +24,21 @@ class Bader:
     assigned to each atom. These numbers correspond to the number of
     the BvAtxxxx.dat files.
 
-    bader [ -c bader | voronoi ]
-          [ -n bader | voronoi ]
-          [ -b neargrid | ongrid ]
-          [ -r refine_edge_iterations ]
-          [ -ref reference_charge ]
-          [ -p all_atom | all_bader ]
-          [ -p sel_atom | sel_bader ] [volume list]
-          [ -p atom_index | bader_index ]
-          [ -i cube | chgcar ]
-          [ -h ] [ -v ]
-          chargefile
+    The options for the executable are::
+        bader [ -c bader | voronoi ]
+              [ -n bader | voronoi ]
+              [ -b neargrid | ongrid ]
+              [ -r refine_edge_iterations ]
+              [ -ref reference_charge ]
+              [ -p all_atom | all_bader ]
+              [ -p sel_atom | sel_bader ] [volume list]
+              [ -p atom_index | bader_index ]
+              [ -i cube | chgcar ]
+              [ -h ] [ -v ]
+              chargefile
 
-    References
-    -----------
+    References:
+    
     G. Henkelman, A. Arnaldsson, and H. Jonsson, A fast and robust
     algorithm for Bader decomposition of charge density,
     Comput. Mater. Sci. 36 254-360 (2006).
