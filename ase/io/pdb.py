@@ -16,7 +16,7 @@ def read_pdb(fileobj, index=-1):
 
     atoms = Atoms()
     for line in fileobj.readlines():
-        if line.startswith('ATOM'):
+        if line.startswith('ATOM') or line.startswith('HETATM'):
             try:
                 symbol = line[12:16].strip()
                 # we assume that the second character is a label 
