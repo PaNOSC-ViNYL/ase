@@ -157,15 +157,18 @@ def read_aims_output(filename):
             for i in range(n_atoms):
                 inp = fd.readline().split()
                 f.append([float(inp[2]),float(inp[3]),float(inp[4])])
+            e = images[-1].get_potential_energy()
+            atoms.set_calculator(SinglePointCalculator(e,f,None,None,atoms))
+            e = None
+            f = None
         if "Total energy corrected" in line:
             e = float(line.split()[5])
             if pbc:
                 atoms.set_cell(cell)
                 atoms.pbc = True
-            atoms.set_calculator(SinglePointCalculator(e,f,None,None,atoms))
+            atoms.set_calculator(SinglePointCalculator(e,None,None,None,atoms))
             images.append(atoms)
             e = None
-            f = None    
     fd.close()
     return images
 
