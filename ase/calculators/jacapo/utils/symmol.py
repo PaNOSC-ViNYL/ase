@@ -87,13 +87,36 @@ class SYMMOL:
         [Ia, Ib, Ic, degen] =  data.split()
         return [float(Ia), float(Ib), float(Ic), int(degen)]
 
+    def get_symmetry_group_matrices(self):
+        regexp = re.compile(' SYMMETRY GROUP MATRICES')
+        reg2 =  re.compile('^  \d+ CSM')
+        
+        lines = open('symmol.out').readlines()
 
-if __name__ == '__test__':
+        matrices = []
+        types = []
+
+        for i,line in enumerate(lines):
+            if reg2.search(line):
+                fields = line.split()
+                types.append(fields[-1]) #type is at the end
+
+                row1 = [float(x) for x in lines[i+1].split()]
+                row2 = [float(x) for x in lines[i+2].split()]
+                row3 = [float(x) for x in lines[i+3].split()]
+
+                matrices.append(np.array([row1, row2, row3]))
+
+        return (matrices, types)
+                
+        
+
+if __name__ == '__main__':
 
     from ase import *
     from ase.data import molecules
     
-    mol = 'CO2'
+    mol = 'NH3'
     atoms = Atoms(mol,
                 positions = molecules.data[mol]['positions'])
     
@@ -101,31 +124,32 @@ if __name__ == '__test__':
     print sg.get_point_group()
     print sg.get_moments_of_inertia()
     print atoms.get_moments_of_inertia()
+    print sg.get_symmetry_group_matrices()
 
-if __name__ == '__main__':
-    from ase.calculators.jacapo import *
-    from optparse import OptionParser
+##if __name__ == '__main__':
+##    from ase.calculators.jacapo import *
+##    from optparse import OptionParser
 
-    parser = OptionParser(usage='symmol.py ncfile',
-                      version='0.1')
+##    parser = OptionParser(usage='symmol.py ncfile',
+##                      version='0.1')
 
-    parser.add_option('-f',
-                      nargs=0,
-                      help = 'print full output')
+##    parser.add_option('-f',
+##                      nargs=0,
+##                      help = 'print full output')
 
-    parser.add_option('-o',
-                      nargs=1,
-                      help = 'save output in filename')
+##    parser.add_option('-o',
+##                      nargs=1,
+##                      help = 'save output in filename')
 
-    options,args = parser.parse_args()
+##    options,args = parser.parse_args()
     
-    for ncfile in args:       
+##    for ncfile in args:       
 
-        sg = SYMMOL(Jacapo.read_atoms(ncfile),outfile=options.o)
+##        sg = SYMMOL(Jacapo.read_atoms(ncfile),outfile=options.o)
 
-        print sg.get_point_group()
-        print sg.get_moments_of_inertia()
-        if options.f is not None:
-            print sg
+##        print sg.get_point_group()
+##        print sg.get_moments_of_inertia()
+##        if options.f is not None:
+##            print sg
 
  
