@@ -3,7 +3,8 @@ import numpy as np
 from numpy import linalg
 from ase.transport.selfenergy import LeadSelfEnergy, BoxProbe
 from ase.transport.greenfunction import GreenFunction
-from ase.transport.tools import subdiagonalize, cutcoupling, tri2full, dagger
+from ase.transport.tools import subdiagonalize, cutcoupling, tri2full, dagger,\
+    rotate_matrix
 
 
 class TransportCalculator:
@@ -178,24 +179,30 @@ class TransportCalculator:
             s1_im = np.zeros((pl1, nbf), complex)
             h1_im[:pl1, :pl1] = h1_ij
             s1_im[:pl1, :pl1] = s1_ij
+            p['hc1'] = h1_im
+            p['sc1'] = s1_im
         else:
             h1_im = p['hc1']
             if p['sc1'] is not None:
                 s1_im = p['sc1']
             else:
                 s1_im = np.zeros(h1_im.shape, complex)
+                p['sc1'] = s1_im
 
         if p['hc2'] is None:
             h2_im = np.zeros((pl2, nbf), complex)
             s2_im = np.zeros((pl2, nbf), complex)
             h2_im[-pl2:, -pl2:] = h2_ij
             s2_im[-pl2:, -pl2:] = s2_ij
+            p['hc2'] = h2_im
+            p['sc2'] = s2_im
         else:
             h2_im = p['hc2']
             if p['sc2'] is not None:
                 s2_im = p['sc2']
             else:
                 s2_im = np.zeros(h2_im.shape, complex)
+                p['sc2'] = s2_im
 
         align_bf = p['align_bf']
         if align_bf != None:
@@ -320,35 +327,59 @@ class TransportCalculator:
         self.update()
         return self.pdos_ne
 
-    def subdiagonalize_bfs(self, bfs):
+    def subdiagonalize_bfs(self, bfs, apply=False):
         self.initialize()
         bfs = np.array(bfs)
         p = self.input_parameters
         h_mm = p['h']
         s_mm = p['s']
         ht_mm, st_mm, c_mm, e_m = subdiagonalize(h_mm, s_mm, bfs)
-        # Rotate coupling between lead and central region
-        for alpha, sigma in enumerate(self.selfenergies):
-            p['hc%i' % (alpha+1)] = np.dot(sigma.h_im, c_mm)
-            p['sc%i' % (alpha+1)] = np.dot(sigma.s_im, c_mm)
+        if apply:
+            self.uptodate = False
+            h_mm[:] = ht_mm 
+            s_mm[:] = st_mm 
+            # Rotate coupling between lead and central region
+            for alpha, sigma in enumerate(self.selfenergies):
+                sigma.h_im[:] = np.dot(sigma.h_im, c_mm)
+                sigma.s_im[:] = np.dot(sigma.s_im, c_mm)
+        
         c_mm = np.take(c_mm, bfs, axis=0)
         c_mm = np.take(c_mm, bfs, axis=1)
         return ht_mm, st_mm, e_m, c_mm
 
-    def cutcoupling_bfs(self, bfs):
+    def cutcoupling_bfs(self, bfs, apply=False):
         self.initialize()
         bfs = np.array(bfs)
         p = self.input_parameters
         h_pp = p['h'].copy()
         s_pp = p['s'].copy()
         cutcoupling(h_pp, s_pp, bfs)
-        for alpha, sigma in enumerate(self.selfenergies):
-            for m in bfs:
-                sigma.h_im[:, m] = 0.0
-                sigma.s_im[:, m] = 0.0
-            p['hc%i' % (alpha+1)] = sigma.h_im
-            p['sc%i' % (alpha+1)] = sigma.s_im
+        if apply:
+            self.uptodate = False
+            p['h'][:] = h_pp
+            p['s'][:] = s_pp
+            for alpha, sigma in enumerate(self.selfenergies):
+                for m in bfs:
+                    sigma.h_im[:, m] = 0.0
+                    sigma.s_im[:, m] = 0.0
         return h_pp, s_pp
+
+    def lowdin_rotation(self, apply=False):
+        p = self.input_parameters
+        h_mm = p['h']
+        s_mm = p['s']
+        eig, rot_mm = linalg.eigh(s_mm)
+        eig = np.abs(eig)
+        rot_mm = np.dot(rot_mm / np.sqrt(eig), dagger(rot_mm))
+        if apply:
+            self.uptodate = False
+            h_mm[:] = rotate_matrix(h_mm, rot_mm) # rotate C region
+            s_mm[:] = rotate_matrix(s_mm, rot_mm)
+            for alpha, sigma in enumerate(self.selfenergies):
+                sigma.h_im[:] = np.dot(sigma.h_im, rot_mm) # rotate L-C coupl.
+                sigma.s_im[:] = np.dot(sigma.s_im, rot_mm)
+
+        return rot_mm
 
     def get_left_channels(self, energy, nchan=1):
         self.initialize()
