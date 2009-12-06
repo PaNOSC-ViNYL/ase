@@ -193,7 +193,7 @@ class TransportCalculator:
         else:
             h2_im = p['hc2']
             if p['sc2'] is not None:
-                s2_im[:] = p['sc2']
+                s2_im = p['sc2']
             else:
                 s2_im = np.zeros(h2_im.shape, complex)
 
@@ -324,12 +324,20 @@ class TransportCalculator:
         self.initialize()
         bfs = np.array(bfs)
         p = self.input_parameters
-        h_pp = p['h']
-        s_pp = p['s']
-        ht_pp, st_pp, c_pp, e_p = subdiagonalize(h_pp, s_pp, bfs)
-        c_pp = np.take(c_pp, bfs, axis=0)
-        c_pp = np.take(c_pp, bfs, axis=1)
-        return ht_pp, st_pp, e_p, c_pp
+        h_mm = p['h']
+        s_mm = p['s']
+        ht_mm, st_mm, c_mm, e_m = subdiagonalize(h_mm, s_mm, bfs)
+        # XXX Rotate coupling (allows for smaller central regions).
+        sigma1, sigma2 = self.selfenergies
+        p = self.input_parameters
+        p['hc1'] = np.dot(sigma1.h_im, c_mm)
+        p['sc1'] = np.dot(sigma1.s_im, c_mm)
+        p['hc2'] = np.dot(sigma2.h_im, c_mm)
+        p['sc2'] = np.dot(sigma2.s_im, c_mm)
+        # XXX End of rotate coupling
+        c_mm = np.take(c_mm, bfs, axis=0)
+        c_mm = np.take(c_mm, bfs, axis=1)
+        return ht_mm, st_mm, e_m, c_mm
 
     def cutcoupling_bfs(self, bfs):
         self.initialize()
@@ -339,7 +347,7 @@ class TransportCalculator:
         s_pp = p['s'].copy()
         cutcoupling(h_pp, s_pp, bfs)
         return h_pp, s_pp
-        
+
     def get_left_channels(self, energy, nchan=1):
         self.initialize()
         g_s_ii = self.greenfunction.retarded(energy)
