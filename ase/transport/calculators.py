@@ -327,14 +327,10 @@ class TransportCalculator:
         h_mm = p['h']
         s_mm = p['s']
         ht_mm, st_mm, c_mm, e_m = subdiagonalize(h_mm, s_mm, bfs)
-        # XXX Rotate coupling (allows for smaller central regions).
-        sigma1, sigma2 = self.selfenergies
-        p = self.input_parameters
-        p['hc1'] = np.dot(sigma1.h_im, c_mm)
-        p['sc1'] = np.dot(sigma1.s_im, c_mm)
-        p['hc2'] = np.dot(sigma2.h_im, c_mm)
-        p['sc2'] = np.dot(sigma2.s_im, c_mm)
-        # XXX End of rotate coupling
+        # Rotate coupling between lead and central region
+        for alpha, sigma in enumerate(self.selfenergies):
+            p['hc%i' % (alpha+1)] = np.dot(sigma.h_im, c_mm)
+            p['sc%i' % (alpha+1)] = np.dot(sigma.s_im, c_mm)
         c_mm = np.take(c_mm, bfs, axis=0)
         c_mm = np.take(c_mm, bfs, axis=1)
         return ht_mm, st_mm, e_m, c_mm
@@ -346,6 +342,12 @@ class TransportCalculator:
         h_pp = p['h'].copy()
         s_pp = p['s'].copy()
         cutcoupling(h_pp, s_pp, bfs)
+        for alpha, sigma in enumerate(self.selfenergies):
+            for m in bfs:
+                sigma.h_im[:, m] = 0.0
+                sigma.s_im[:, m] = 0.0
+            p['hc%i' % (alpha+1)] = sigma.h_im
+            p['sc%i' % (alpha+1)] = sigma.s_im
         return h_pp, s_pp
 
     def get_left_channels(self, energy, nchan=1):
