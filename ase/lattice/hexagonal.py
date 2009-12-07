@@ -44,6 +44,11 @@ class HexagonalFactory(TriclinicFactory):
             for i in range(3):
                 if obj[i] is not None:
                     (a,b,c,d) = obj[i]
+                    if a + b + c != 0:
+                        raise ValueError(
+                            ("(%d,%d,%d,%d) is not a valid hexagonal Miller " +
+                             "index, as the sum of the first three numbers " +
+                             "should be zero.") % (a,b,c,d))
                     x = 4*a + 2*b
                     y = 2*a + 4*b
                     z = 3*d
