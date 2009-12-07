@@ -30,9 +30,9 @@ def get_atoms():
 def get_calculator():
     calc = GPAW(gpts=(64,64,64), #h=0.18, gives 64x60x60
                 mode = 'lcao', 
-                basis = 'dzp',
-                nbands=-10,
-                xc='RPBE',
+                basis = 'szp',
+                nbands=-5,
+                xc='LDA',
                 width=0.1,
                 mixer=Mixer(beta=0.1, nmaxold=5, weight=50.0),
                 poissonsolver=PoissonSolver(nn='M', relax='GS'),

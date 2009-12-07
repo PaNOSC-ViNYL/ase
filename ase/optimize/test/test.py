@@ -6,7 +6,7 @@ tests = [
     #'C2_Cu100.py', # I don't understand this system
     'CO_Au111.py',
     'N2Ru-relax.py',
-    'nanoparticle.py',
+    'nanoparticle.py', #SLOW
 ]
 
 for test in tests:

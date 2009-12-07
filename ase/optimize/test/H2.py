@@ -19,4 +19,4 @@ def get_calculator_gpaw():
     return calc
 
 run_test(get_atoms, get_calculator_emt, name + '-emt')
-run_test(get_atoms, get_calculator_gpaw, name + '-gpaw')
+run_test(get_atoms, get_calculator_gpaw, name + '-gpaw', exclude=['MDMin'])

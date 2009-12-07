@@ -15,10 +15,17 @@ run_test(get_atoms, get_calculator, 'Hydrogen')
 
 from ase.optimize.bfgs import BFGS
 from ase.optimize.lbfgs import LBFGS
+from ase.optimize.fire import FIRE
+from ase.optimize.mdmin import MDMin
+
+import matplotlib.pyplot as pl
+import numpy as np
 
 optimizers = [
     'BFGS',
     'LBFGS',
+    'FIRE',
+    'MDMin',
 ]
 
 def get_optimizer(optimizer):
@@ -26,19 +33,75 @@ def get_optimizer(optimizer):
         return BFGS
     elif optimizer == 'LBFGS':
         return LBFGS
+    elif optimizer == 'FIRE':
+        return FIRE
+    elif optimizer == 'MDMin':
+        return MDMin
 
 def run_test(get_atoms, get_calculator, name,
-             fmax=0.05, steps = 100):
-    for optimizer in optimizers:
-        logname = name + '-' + optimizer
+             fmax=0.05, steps=100, plot=True, exclude=[]):
 
-        atoms = get_atoms()
-        atoms.set_calculator(get_calculator())
-        opt = get_optimizer(optimizer)
-        relax = opt(atoms,
-                    logfile = logname + '.log',
-                    trajectory = logname + '.traj')
-        relax.run(fmax = fmax, steps = steps)
-        nsteps = relax.get_number_of_steps()
-        E = atoms.get_potential_energy()
-        print '%-15s %-5s %3i %8.3f' % (name, optimizer, nsteps, E)
+    plotter = Plotter(name, fmax)
+    for optimizer in optimizers:
+        if not optimizer in exclude:
+            logname = name + '-' + optimizer
+
+            atoms = get_atoms()
+            atoms.set_calculator(get_calculator())
+            opt = get_optimizer(optimizer)
+            relax = opt(atoms,
+                        logfile = logname + '.log',
+                        trajectory = logname + '.traj')
+        
+            obs = DataObserver(atoms)
+            relax.attach(obs)
+            relax.run(fmax = fmax, steps = steps)
+
+            nsteps = relax.get_number_of_steps()
+            E = atoms.get_potential_energy()
+            print '%-15s %-10s %3i %8.3f' % (name, optimizer, nsteps, E)
+
+            plotter.plot(optimizer, obs.get_E(), obs.get_fmax())
+
+    plotter.save()
+
+class Plotter:
+    def __init__(self, name, fmax):
+        self.name = name
+        self.fmax = fmax
+
+        self.fig = pl.figure()
+        self.axes0 = self.fig.add_subplot(2, 1, 1)
+        self.axes1 = self.fig.add_subplot(2, 1, 2)
+
+    def plot(self, optimizer, E, fmax):
+        self.axes0.plot(E, label = optimizer)
+        self.axes1.plot(fmax)
+
+    def save(self, format='pdf'):
+        self.axes0.legend()
+        self.axes0.set_title(self.name)
+        self.axes0.set_ylabel('E')
+        #self.axes0.set_yscale('log')
+
+        self.axes1.set_xlabel('steps')
+        self.axes1.set_ylabel('fmax')
+        self.axes1.set_yscale('log')
+        self.axes1.axhline(self.fmax, color='k', linestyle='--')
+        self.fig.savefig(self.name + '.' + format)
+
+class DataObserver:
+    def __init__(self, atoms):
+        self.atoms = atoms
+        self.E = []
+        self.fmax = []
+
+    def __call__(self):
+        self.E.append(self.atoms.get_potential_energy())
+        self.fmax.append(np.sqrt((self.atoms.get_forces()**2).sum(axis=1)).max())
+
+    def get_E(self):
+        return np.array(self.E)
+
+    def get_fmax(self):
+        return np.array(self.fmax)
