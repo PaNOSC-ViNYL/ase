@@ -42,7 +42,8 @@ class BasinHopping(Dynamics):
     def initialize(self):
         self.positions = 0. * self.atoms.get_positions()
         self.Emin = self.get_energy(self.atoms.get_positions())
-        self.rmin = self.positions
+        self.rmin = self.atoms.get_positions()
+        self.positions = self.atoms.get_positions()
         self.log(-1, self.Emin, self.Emin)
                 
     def run(self, steps):
@@ -60,6 +61,7 @@ class BasinHopping(Dynamics):
                 self.Emin = En
                 self.rmin = self.atoms.get_positions()
                 self.call_observers()
+                rn = self.rmin
             self.log(step, En, self.Emin)
 
             accept = np.exp((Eo - En) / self.kT) > np.random.uniform()
@@ -91,8 +93,9 @@ class BasinHopping(Dynamics):
         return atoms.get_positions()
 
     def get_minimum(self):
-        self.atoms.set_positions(self.rmin)
-        return self.Emin, self.atoms
+        atoms = self.atoms.copy()
+        atoms.set_positions(self.rmin)
+        return self.Emin, atoms
 
     def get_energy(self, positions):
         """Return the energy of the nearest local minimum."""
@@ -107,9 +110,9 @@ class BasinHopping(Dynamics):
                     self.lm_trajectory.write(self.atoms)
 
                 self.energy = self.atoms.get_potential_energy()
-
             except:
-                self.energy = 1.e32 # the atoms are probably to near to each other
+                # the atoms are probably to near to each other
+                self.energy = 1.e32
             
         return self.energy
        

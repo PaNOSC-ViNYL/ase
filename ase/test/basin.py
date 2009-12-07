@@ -10,10 +10,21 @@ s = Atoms('He' + str(N),
           positions = pos)
 s.set_calculator(LennardJones())
 
+ftraj = 'lowest.traj'
 bh = BasinHopping(s, 
                   temperature=100 * kB, dr=0.5, 
-                  trajectory='lowest.traj')
+                  trajectory=ftraj,
+                  optimizer_logfile=None)
 bh.run(10)
 
-E, smin = bh.get_minimum()
+Emin, smin = bh.get_minimum()
+
+# recalc energy
+smin.set_calculator(LennardJones())
+E = smin.get_potential_energy()
+assert abs(E - Emin) < 1e-15
+smim = read(ftraj)
+E = smin.get_potential_energy()
+assert abs(E - Emin) < 1e-15
+
 #view(smin)
