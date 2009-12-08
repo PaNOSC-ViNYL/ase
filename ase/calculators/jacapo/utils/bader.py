@@ -25,6 +25,7 @@ class Bader:
     the BvAtxxxx.dat files.
 
     The options for the executable are::
+
         bader [ -c bader | voronoi ]
               [ -n bader | voronoi ]
               [ -b neargrid | ongrid ]
