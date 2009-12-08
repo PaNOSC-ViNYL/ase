@@ -65,6 +65,8 @@ def read_cube(fileobj, index=-1, read_data=False):
     readline = fileobj.readline
     readline()
     axes = ['XYZ'.index(s[0]) for s in readline().split()[2::3]]
+    if axes == []:
+        axes = [0, 1, 2]
     line = readline().split()
     natoms = int(line[0])
     corner = [Bohr * float(x) for x in line[1:]]

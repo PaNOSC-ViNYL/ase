@@ -35,6 +35,8 @@ Some calculators (e.g. gpaw) also have a method called
 ``get_all_electron_density``, in which case this is preferable to
 ``get_pseudo_density``.
 
+Note that it is strongly recommended to use version 0.26b or higher of
+the program, and the examples below refer to this version.
 
 .. [Bader] R. F. W. Bader.  Atoms in Molecules: A Quentum Theory.
            Oxford University Press, New York, 1990
@@ -54,14 +56,11 @@ First do a ground state calculation, and save the density as a cube file::
   from ase import *
   from gpaw import *
 
-  atoms = molecule('H2O')
-  atoms.set_cell([7.5, 9, 9])
+  atoms = molecule('H2O', cell=[7.5, 9, 9], calculator=GPAW(h=.17, xc='PBE'))
   atoms.center()
-  calc = Calculator(h=.17, xc='PBE')
-  atoms.set_calculator(calc)
   atoms.get_potential_energy()
 
-  rho = calc.get_all_electron_density(gridrefinement=4) * Bohr**3
+  rho = atoms.calc.get_all_electron_density(gridrefinement=4) * Bohr**3
   write('water_density.cube', atoms, data=rho)
 
 Then analyse the density cube file by running (use `bader -h` for a
@@ -72,15 +71,15 @@ description of the possible options)::
 This will produce a number of files. The `ACF.dat` file, contains a
 summary of the Bader analysis::
 
-  |   #         X           Y           Z        CHARGE     MIN DIST
-  | ----------------------------------------------------------------
-  |   1      7.0865      8.5038      9.0672      9.0852      1.3250
-  |   2      7.0865      9.9461      7.9403      0.4574      0.3159
-  |   3      7.0865      7.0615      7.9403      0.4574      0.3159
-  | ----------------------------------------------------------------
-  |  NUMBER OF ELECTRONS:        9.99999
+  |     #         X           Y           Z        CHARGE     MIN DIST
+  |  -----------------------------------------------------------------
+  |     1      7.0865      8.5038      9.0672      9.1121      1.3250 
+  |     2      7.0865      9.9461      7.9403      0.4440      0.2834 
+  |     3      7.0865      7.0615      7.9403      0.4440      0.2834 
+  |  -----------------------------------------------------------------
+  |    NUMBER OF ELECTRONS:        9.99999
 
-Revealing that 0.5426 electrons have been transfered from each
+Revealing that 0.56 electrons have been transfered from each
 Hydrogen atom to the Oxygen atom.
 
 The `BvAtxxxx.dat` files, are cube files for each Bader volume,
