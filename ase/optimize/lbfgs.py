@@ -85,15 +85,15 @@ class BaseLBFGS(Optimizer):
                     ITR = self.memory
                 stemp = r - r_old
                 ytemp = -(f - f_old)
-                if (ytemp * stemp < -1.0e-9).any():
-                    # Guard against negative eigenmodes!   
-                    # Setting these to 0 is the same as not updating the Hessian
-                    # XXX: Should we rather discard it?
-                    ytemp = np.zeros_like(ytemp)
-                    stemp = np.zeros_like(stemp)
-                    rhotemp = 0.0
-                else:
-                    rhotemp = 1 / np.vdot(ytemp , stemp)
+                #if (ytemp * stemp < -1.0e-9).any():
+                #    # Guard against negative eigenmodes!   
+                #    # Setting these to 0 is the same as not updating the Hessian
+                #    # XXX: Should we rather discard it?
+                #    ytemp = np.zeros_like(ytemp)
+                #    stemp = np.zeros_like(stemp)
+                #    rhotemp = 0.0
+                #else:
+                rhotemp = 1 / np.vdot(ytemp , stemp)
                 self.s.append(stemp)
                 self.y.append(ytemp)
                 self.rho.append(rhotemp)
