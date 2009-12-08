@@ -12,9 +12,11 @@ def get_calculator():
 
 run_test(get_atoms, get_calculator, 'Hydrogen')
 """
+import matplotlib
+matplotlib.rcParams['backend']="PDF"
 
 from ase.optimize.bfgs import BFGS
-from ase.optimize.lbfgs import LBFGS
+from ase.optimize.lbfgs import LBFGS, LineSearchLBFGS
 from ase.optimize.fire import FIRE
 from ase.optimize.mdmin import MDMin
 
@@ -24,6 +26,7 @@ import numpy as np
 optimizers = [
     'BFGS',
     'LBFGS',
+    'LineSearchLBFGS',
     'FIRE',
     'MDMin',
 ]
@@ -33,6 +36,8 @@ def get_optimizer(optimizer):
         return BFGS
     elif optimizer == 'LBFGS':
         return LBFGS
+    elif optimizer == 'LineSearchLBFGS':
+        return LineSearchLBFGS
     elif optimizer == 'FIRE':
         return FIRE
     elif optimizer == 'MDMin':
@@ -59,7 +64,7 @@ def run_test(get_atoms, get_calculator, name,
 
             nsteps = relax.get_number_of_steps()
             E = atoms.get_potential_energy()
-            print '%-15s %-10s %3i %8.3f' % (name, optimizer, nsteps, E)
+            print '%-15s %-15s %3i %8.3f' % (name, optimizer, nsteps, E)
 
             plotter.plot(optimizer, obs.get_E(), obs.get_fmax())
 
