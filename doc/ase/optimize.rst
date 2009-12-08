@@ -212,7 +212,7 @@ There is currently one global optimisation algorithm available.
 
 
 Basin hopping
-=============
+-------------
 .. module:: optimize.basin
 
 The global optimization algorithm can be used quite similar as a 
