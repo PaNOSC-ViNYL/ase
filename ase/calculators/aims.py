@@ -84,12 +84,13 @@ input_keys = [
     'run_command',
     'run_dir',
     'species_dir',
-    'cubes'
+    'cubes',
+    'output_template',
+    'track_output',
 ] 
 
 class Aims(Calculator):
-    def __init__(self, output_template = 'aims', track_output = False, 
-    **kwargs):
+    def __init__(self, **kwargs):
         self.name = 'Aims'
         self.float_params = {}
         self.exp_params = {}
@@ -116,9 +117,9 @@ class Aims(Calculator):
         self.positions = None
         self.atoms = None
         self.run_counts = 0
+        self.input_parameters['output_template']='aims'
+        self.input_parameters['track_output'] = False
         self.set(**kwargs)
-        self.output_template = output_template
-        self.track_output = track_output
 
     def set(self, **kwargs):
         for key in kwargs:
@@ -183,11 +184,11 @@ class Aims(Calculator):
         self.old_atoms = self.atoms.copy()
 
     def run(self):
-        if self.track_output:
-            self.out = self.output_template+str(self.run_counts)+'.out'
+        if self.input_parameters['track_output']:
+            self.out = self.input_parameters['output_template']+str(self.run_counts)+'.out'
             self.run_counts += 1
         else:
-            self.out = self.output_template+'.out'            
+            self.out = self.input_parameters['output_template']+'.out'            
         if self.input_parameters['run_command']:
             aims_command = self.input_parameters['run_command'] 
         elif os.environ.has_key('AIMS_COMMAND'):
@@ -201,8 +202,8 @@ class Aims(Calculator):
         exitcode = os.system(aims_command)
         if exitcode != 0:
             raise RuntimeError('FHI-aims exited with exit code: %d.  ' % exitcode)
-        if self.input_parameters['cubes'] and self.track_output:
-            self.input_parameters['cubes'].move_to_base_name(self.output_template+str(self.run_counts-1))
+        if self.input_parameters['cubes'] and self.input_parameters['track_output']:
+            self.input_parameters['cubes'].move_to_base_name(self.input_parameters['output_template']+str(self.run_counts-1))
 
     def write_control(self):
         """Writes the control.in file."""
