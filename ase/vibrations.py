@@ -240,7 +240,7 @@ class Vibrations:
 
     def write_mode(self, n, kT=units.kB * 300, nimages=30):
         """Write mode to trajectory file."""
-        mode = self.get_mode(n) * sqrt(kT / self.hnu[n])
+        mode = self.get_mode(n) * sqrt(kT / abs(self.hnu[n]))
         p = self.atoms.positions.copy()
         n %= 3 * len(self.indices)
         traj = PickleTrajectory('%s.%d.traj' % (self.name, n), 'w')
