@@ -47,7 +47,7 @@ number of "design goals" that make it:
 - **Open to participation**:
 
   The CAMPOS Atomic Simulation Environment is released under the GNU
-  Lesser General Public License.  See the files :trac:`COPYING` and
+  Lesser General Public License Version 3.  See the files :trac:`COPYING` and
   :trac:`COPYING.LESSER` which accompany the downloaded files, or see
   the license at GNU's web server at
   http://www.gnu.org/copyleft/lgpl.html.  Everybody is invited to
