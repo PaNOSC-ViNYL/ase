@@ -141,15 +141,20 @@ class Aims(Calculator):
                 raise TypeError('Parameter not defined: ' + key)
 
     def update(self, atoms):
+        if self.calculation_required(atoms):
+            self.calculate(atoms)
+
+    def calculation_required(self, atoms):
         if (self.positions is None or
             (self.atoms != atoms) or
             (self.atoms != self.old_atoms) or 
             (self.float_params != self.old_float_params) or
             (self.string_params != self.old_string_params) or
             (self.int_params != self.old_int_params) or
-            (self.input_parameters != self.old_input_parameters)
-            ):
-            self.calculate(atoms)
+            (self.input_parameters != self.old_input_parameters)):
+            return True
+        else:
+            return False
 
     def calculate(self, atoms):
         """Generate necessary files in the working directory.
@@ -195,15 +200,50 @@ class Aims(Calculator):
             aims_command = os.environ['AIMS_COMMAND']
         else:
             raise RuntimeError("No specification for running FHI-aims. Aborting!")
-        aims_command = aims_command + ' > ' 
+        aims_command = aims_command + ' >> ' 
         if self.input_parameters['run_dir']:
             aims_command = aims_command + self.input_parameters['run_dir'] + '/'
         aims_command = aims_command + self.out
+        self.write_parameters()
         exitcode = os.system(aims_command)
         if exitcode != 0:
             raise RuntimeError('FHI-aims exited with exit code: %d.  ' % exitcode)
         if self.input_parameters['cubes'] and self.input_parameters['track_output']:
             self.input_parameters['cubes'].move_to_base_name(self.input_parameters['output_template']+str(self.run_counts-1))
+
+    def write_parameters(self):
+        output = open(self.out,'w')
+        output.write('=======================================================\n')
+        output.write('FHI-aims output file\n')
+        output.write('Created through the Atomic Simulation Environment (ASE)\n\n')
+        output.write('List of parameters used to initialize the calculator:\n')
+        output.write('=======================================================\n')
+        for key, val in self.float_params.items():
+            if val is not None:
+                output.write('%-30s%5.6f\n' % (key, val))        
+        for key, val in self.exp_params.items():
+            if val is not None:
+                output.write('%-30s%5.2e\n' % (key, val))
+        for key, val in self.string_params.items():
+            if val is not None:
+                output.write('%-30s%s\n' % (key, val))
+        for key, val in self.int_params.items():
+            if val is not None:
+                output.write('%-30s%d\n' % (key, val))
+        for key, val in self.bool_params.items():
+            if val is not None:
+                if val:
+                    output.write('%-30s.true.\n' % (key))
+                else:
+                    output.write('%-30s.false.\n' % (key))
+        for key, val in self.input_parameters.items():
+            if key is  'cubes':
+                if val:
+                    val.write(output)
+            elif val:
+                output.write('%-30s%s\n' % (key,val))
+        output.write('=======================================================\n\n')
+        output.close()
 
     def write_control(self):
         """Writes the control.in file."""
