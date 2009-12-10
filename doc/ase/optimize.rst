@@ -203,7 +203,24 @@ quadratic it becomes advantageous to switch to a minimization method
 with quadratic convergence, such as `Conjugate Gradient` or `Quasi
 Newton`.
 
+SciPy optimizers
+----------------
+.. module:: optimize.sciopt
 
+SciPy provides a number of optimizers. An interface module for a couple of
+these have been written for ASE. Most notable are the optimizers SciPyFminBFGS
+and SciPyFminCG. These are called with the regular syntax and can be imported
+as::
+
+  from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
+
+.. autoclass:: ase.optimize.sciopt.SciPyFminBFGS
+.. autoclass:: ase.optimize.sciopt.SciPyFminCG
+
+.. seealso::
+
+  :epydoc:`optimize.sciopt.SciPyFminBFGS`, 
+  :epydoc:`optimize.sciopt.SciPyFminCG`
 
 Global optimization
 ===================
