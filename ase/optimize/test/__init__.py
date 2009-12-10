@@ -19,6 +19,8 @@ from ase.optimize.bfgs import BFGS
 from ase.optimize.lbfgs import LBFGS, LineSearchLBFGS
 from ase.optimize.fire import FIRE
 from ase.optimize.mdmin import MDMin
+from ase.optimize.sciopt import SciPyFminCG
+from ase.optimize.sciopt import SciPyFminBFGS
 
 import matplotlib.pyplot as pl
 import numpy as np
@@ -29,44 +31,51 @@ optimizers = [
     'LineSearchLBFGS',
     'FIRE',
     'MDMin',
+    'SciPyFminCG',
+    'SciPyFminBFGS',
 ]
 
 def get_optimizer(optimizer):
-    if optimizer == 'BFGS':
-        return BFGS
-    elif optimizer == 'LBFGS':
-        return LBFGS
-    elif optimizer == 'LineSearchLBFGS':
-        return LineSearchLBFGS
-    elif optimizer == 'FIRE':
-        return FIRE
-    elif optimizer == 'MDMin':
-        return MDMin
+    if optimizer == 'BFGS': return BFGS
+    elif optimizer == 'LBFGS': return LBFGS
+    elif optimizer == 'LineSearchLBFGS': return LineSearchLBFGS
+    elif optimizer == 'FIRE': return FIRE
+    elif optimizer == 'MDMin': return MDMin
+    elif optimizer == 'SciPyFminCG': return SciPyFminCG
+    elif optimizer == 'SciPyFminBFGS': return SciPyFminBFGS
 
 def run_test(get_atoms, get_calculator, name,
-             fmax=0.05, steps=100, plot=True, exclude=[]):
+             fmax=0.05, steps=100, plot=True):
 
     plotter = Plotter(name, fmax)
     for optimizer in optimizers:
-        if not optimizer in exclude:
-            logname = name + '-' + optimizer
+        note = ''
+        logname = name + '-' + optimizer
 
-            atoms = get_atoms()
-            atoms.set_calculator(get_calculator())
-            opt = get_optimizer(optimizer)
-            relax = opt(atoms,
-                        logfile = logname + '.log',
-                        trajectory = logname + '.traj')
-        
-            obs = DataObserver(atoms)
-            relax.attach(obs)
+        atoms = get_atoms()
+        atoms.set_calculator(get_calculator())
+        opt = get_optimizer(optimizer)
+        relax = opt(atoms,
+                    logfile = logname + '.log',
+                    trajectory = logname + '.traj')
+    
+        obs = DataObserver(atoms)
+        relax.attach(obs)
+        try:
             relax.run(fmax = fmax, steps = steps)
-
-            nsteps = relax.get_number_of_steps()
             E = atoms.get_potential_energy()
-            print '%-15s %-15s %3i %8.3f' % (name, optimizer, nsteps, E)
+        except:
+            note = 'An exception occurred'
+            E = np.nan
 
-            plotter.plot(optimizer, obs.get_E(), obs.get_fmax())
+        nsteps = relax.get_number_of_steps()
+        if hasattr(relax, 'force_calls'):
+            fc = relax.force_calls
+            print '%-15s %-15s %3i %8.3f (%3i) %s' % (name, optimizer, nsteps, E, fc, note)
+        else:
+            print '%-15s %-15s %3i %8.3f       %s' % (name, optimizer, nsteps, E, note)
+
+        plotter.plot(optimizer, obs.get_E(), obs.get_fmax())
 
     plotter.save()
 
@@ -75,7 +84,7 @@ class Plotter:
         self.name = name
         self.fmax = fmax
 
-        self.fig = pl.figure()
+        self.fig = pl.figure(figsize=[12.0, 9.0])
         self.axes0 = self.fig.add_subplot(2, 1, 1)
         self.axes1 = self.fig.add_subplot(2, 1, 2)
 

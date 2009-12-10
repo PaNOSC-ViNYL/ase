@@ -2,11 +2,12 @@ import os
 import ase
 
 tests = [
-    'H2.py',
-    #'C2_Cu100.py', # I don't understand this system
-    'CO_Au111.py',
     'N2Ru-relax.py',
-    'nanoparticle.py', #SLOW
+    'Cu_bulk.py',
+    'CO_Au111.py',
+    'H2.py',
+    'nanoparticle.py', # SLOW
+#    'C2_Cu100.py', # Extremely slow
 ]
 
 for test in tests:
