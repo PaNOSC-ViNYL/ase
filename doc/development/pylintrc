@@ -53,9 +53,23 @@ disable-msg-cat=IR
 #enable-msg=
 
 # Disable the message(s) with the given id(s).
-disable-msg=W0201
+disable-msg=W0142,W0201,W0703,W0704
+#C0112: *Empty docstring*
+#   Used when a module, function, class or method has an empty docstring (it would
+#   be too easy ;).
+#W0142: *Used * or ** magic*
+#   Used when a function or method is called using `*args` or `**kwargs` to
+#   dispatch arguments. This doesn't improve readability and should be used with
+#   care.
 #W0201: *Attribute %r defined outside __init__*
 #   Used when an instance attribute is defined outside the __init__ method.
+#W0703: *Catch "Exception"*
+#   Used when an except catches Exception instances.
+#W0704: *Except doesn't do anything*
+#   Used when an except clause does nothing but "pass" and there is no "else"
+#   clause.
+
+
 
 [REPORTS]
 
