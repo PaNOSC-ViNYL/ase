@@ -63,9 +63,7 @@ class SciPyOptimizer(Optimizer):
         
         This should also be called once before optimization starts, as SciPy
         optimizers only calls it after each iteration, while ase optimizers
-        call it* before as well.
-
-        *something similar
+        call something similar before as well.
         """
         f = self.atoms.get_forces()
         self.log(f)
@@ -168,9 +166,7 @@ class SciPyGradientlessOptimizer(Optimizer):
         
         This should also be called once before optimization starts, as SciPy
         optimizers only calls it after each iteration, while ase optimizers
-        call it* before as well.
-
-        *something similar
+        call something similar before as well.
         """
         # We can't assume that forces are available!
         #f = self.atoms.get_forces()
