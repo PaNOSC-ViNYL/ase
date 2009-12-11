@@ -181,7 +181,7 @@ def surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
 
     if structure == 'hcp' and c is None:
         if reference_states[Z]['symmetry'].lower() == 'hcp':
-            c = reference_states[Z]['a']
+            c = reference_states[Z]['c/a'] * a
         else:
             c = sqrt(8 / 3.0) * a
 
