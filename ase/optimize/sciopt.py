@@ -1,7 +1,12 @@
 import numpy as np
-import scipy.optimize as opt
+try:
+    import scipy.optimize as opt
+except ImportError:
+    pass
 
 from ase.optimize import Optimizer
+
+
 class Converged(Exception):
     pass
 
