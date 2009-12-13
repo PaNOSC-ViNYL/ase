@@ -44,6 +44,7 @@ H_scat[4,3] = 0.2
 energies = np.arange(-3,3,0.02)
 tcalc = TransportCalculator(h=H_scat,
                             h1=H_lead,
+                            eta=0.02,
                             energies=energies)
 
 T = tcalc.get_transmission()
@@ -58,8 +59,7 @@ write('pdos0.dat', tcalc.energies,pdos[0])
 write('pdos1.dat', tcalc.energies,pdos[1])
 
 #subdiagonalize
-h_rot, s_rot, eps, u = tcalc.subdiagonalize_bfs([2, 3])
-tcalc.set(h=h_rot,s=s_rot)
+h_rot, s_rot, eps, u = tcalc.subdiagonalize_bfs([2, 3], apply=True)
 T_rot = tcalc.get_transmission()
 dos_rot = tcalc.get_dos()
 pdos_rot = tcalc.get_pdos()
@@ -74,8 +74,7 @@ print 'Max deviation of T after the rotation:', np.abs(T-T_rot).max()
 assert max(abs(T-T_rot)) < 2.0e-15, 'Subdiagonalization. error'
 
 #remove coupling
-h_cut, s_cut = tcalc.cutcoupling_bfs([2])
-tcalc.set(h=h_cut, s=s_cut)
+h_cut, s_cut = tcalc.cutcoupling_bfs([2], apply=True)
 T_cut = tcalc.get_transmission()
 dos_cut = tcalc.get_dos()
 pdos_cut = tcalc.get_pdos()
