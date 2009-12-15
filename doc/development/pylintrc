@@ -154,7 +154,8 @@ variable-rgx=([a-z_]+[a-z0-9_]*_[A-Za-z0-9]+)|([A-Z_]+[A-Z0-9_]*_[A-Za-z0-9]+)|(
 
 # Regular expression which should only match correct list comprehension /
 # generator expression variable names
-inlinevar-rgx=[a-z_][a-z0-9_]*(inline)?$
+#inlinevar-rgx=[a-z_][a-z0-9_]*(inline)?$
+inlinevar-rgx=([a-z_]+[a-z0-9_]*_[A-Za-z0-9]+)|([A-Z_]+[A-Z0-9_]*_[A-Za-z0-9]+)|([a-z_]+[a-z0-9_]*)|([A-Z_]+[A-Z0-9_]*)$
 
 # Good variable names which should always be accepted, separated by a comma
 good-names=i,j,k,ex,Run,_
@@ -320,7 +321,7 @@ notes=FIXME,XXX,TODO
 max-line-length=78
 
 # Maximum number of lines in a module
-max-module-lines=1000
+max-module-lines=2000
 
 # String used as indentation unit. This is usually " " (4 spaces) or "\t" (1
 # tab).
