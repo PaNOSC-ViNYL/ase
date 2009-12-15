@@ -23,7 +23,7 @@ profile=no
 ignore=.svn
 
 # Pickle collected data for later comparisons.
-persistent=yes
+persistent=no
 
 # Set the cache size for astng objects.
 cache-size=500
@@ -53,7 +53,7 @@ disable-msg-cat=IR
 #enable-msg=
 
 # Disable the message(s) with the given id(s).
-disable-msg=W0142,W0201,W0703,W0704
+disable-msg=W0142,W0201,W0614,W0703,W0704
 #C0112: *Empty docstring*
 #   Used when a module, function, class or method has an empty docstring (it would
 #   be too easy ;).
@@ -63,6 +63,9 @@ disable-msg=W0142,W0201,W0703,W0704
 #   care.
 #W0201: *Attribute %r defined outside __init__*
 #   Used when an instance attribute is defined outside the __init__ method.
+#W0614: *Unused import %s from wildcard import*
+#   Used when an imported module or variable is not used from a 'from X import *'
+#   style import. Already covered by the W0401 wildcard import warning.
 #W0703: *Catch "Exception"*
 #   Used when an except catches Exception instances.
 #W0704: *Except doesn't do anything*
@@ -75,7 +78,7 @@ disable-msg=W0142,W0201,W0703,W0704
 
 # Set the output format. Available formats are text, parseable, colorized, msvs
 # (visual studio) and html
-output-format=text
+output-format=parseable
 
 # Include message's id in output
 include-ids=yes
@@ -103,8 +106,12 @@ comment=no
 #enable-report=
 
 # Disable the report(s) with the given id(s).
-#disable-report=
-
+disable-report=R0001,R0101,R0401,R0402,R0801
+#R0001: Messages by category
+#R0101: Statistics by type
+#R0401: External dependencies
+#R0402: Modules dependencies graph
+#R0801: Duplication
 
 # checks for :
 # * doc strings
@@ -321,6 +328,7 @@ notes=FIXME,XXX,TODO
 max-line-length=78
 
 # Maximum number of lines in a module
+#max-module-lines=1000 XXX
 max-module-lines=2000
 
 # String used as indentation unit. This is usually " " (4 spaces) or "\t" (1
