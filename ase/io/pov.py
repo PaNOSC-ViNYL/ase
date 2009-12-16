@@ -34,8 +34,20 @@ def get_bondpairs(atoms, radius=1.1):
     """Get all pairs of bonding atoms
 
     Return all pairs of atoms which are closer than radius times the
-    sum of their respective covalent radii.
-    """
+    sum of their respective covalent radii.  The pairs are returned as
+    tuples::
+
+      (a, b, (i1, i2, i3))
+
+    so that atoms a bonds to atom b displaced by the vector::
+
+        _     _     _
+      i c + i c + i c ,
+       1 1   2 2   3 3
+
+    where c1, c2 and c3 are the unit cell vectors and i1, i2, i3 are
+    integers."""
+    
     from ase.data import covalent_radii
     from ase.calculators.neighborlist import NeighborList
     cutoffs = radius * covalent_radii[atoms.numbers]
@@ -44,8 +56,8 @@ def get_bondpairs(atoms, radius=1.1):
     bondpairs = []
     for a in range(len(atoms)):
         indices, offsets = nl.get_neighbors(a)
-        for a2 in indices:
-            bondpairs.append([a, a2])
+        bondpairs.extend([(a, a2, offset)
+                          for a2, offset in zip(indices, offsets)])
     return bondpairs
 
 
@@ -209,17 +221,24 @@ class POVRAY(EPS):
             a += 1
 
         # Draw atom bonds
-        for a, b in self.bondatoms:
-            mid = 0.5 * (self.X[a] + self.X[b])
+        for pair in self.bondatoms:
+            if len(pair) == 2:
+                a, b = pair
+                offset = (0, 0, 0)
+            else:
+                a, b, offset = pair
+            R = np.dot(offset, self.A)
+            mida = 0.5 * (self.X[a] + self.X[b] + R)
+            midb = 0.5 * (self.X[a] + self.X[b] - R)
             if self.textures is not None:
                 texa = self.textures[a]
                 texb = self.textures[b]
             else:
                 texa = texb = 'ase3'
             w('cylinder {%s, %s, Rbond texture{pigment {%s} finish{%s}}}\n' % (
-                pa(self.X[a]), pa(mid), pc(self.colors[a]), texa))
+                pa(self.X[a]), pa(mida), pc(self.colors[a]), texa))
             w('cylinder {%s, %s, Rbond texture{pigment {%s} finish{%s}}}\n' % (
-                pa(self.X[b]), pa(mid), pc(self.colors[b]), texb))
+                pa(self.X[b]), pa(midb), pc(self.colors[b]), texb))
 
 
 def write_pov(filename, atoms, run_povray=False, **parameters):

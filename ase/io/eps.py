@@ -96,6 +96,11 @@ class EPS:
             C -= offset
             C[:, 1] = h - C[:, 1]
 
+        A = np.dot(A, rotation)
+        A *= scale
+        A[:, 1] = -A[:, 1]
+
+        self.A = A
         self.X = X
         self.D = D
         self.T = T
