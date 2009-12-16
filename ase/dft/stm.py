@@ -26,8 +26,8 @@ class STM:
         self.ldos = None
         self.symmetries = symmetries or []
                                
-    def calculate_ldos(self, width=None, bias=0.0):
-        if self.ldos is not None and width == self.width and bias == self.bias:
+    def calculate_ldos(self, width=None):
+        if self.ldos is not None and width == self.width:
             return
 
         if width is None:
@@ -40,7 +40,7 @@ class STM:
                     psi = self.calc.get_pseudo_wave_function(n, k, s)
                     if ldos is None:
                         ldos = np.zeros_like(psi)
-                    f = (exp(-((self.eigs[s, k, n] - bias) / width)**2) *
+                    f = (exp(-(self.eigs[s, k, n] / width)**2) *
                          self.weights[k])
                     ldos += f * (psi * np.conj(psi)).real
 
@@ -61,13 +61,12 @@ class STM:
             
         self.ldos = ldos
         self.width = width
-        self.bias = bias
 
     #def save_ldos(self, filename='ldos.pckl'):
         
 
-    def get_averaged_current(self, z, width=None, bias=0.0):
-        self.calculate_ldos(width, bias)
+    def get_averaged_current(self, z, width=None):
+        self.calculate_ldos(width)
         nz = self.ldos.shape[2]
 
         # Find grid point:
@@ -80,8 +79,8 @@ class STM:
         return ((1 - dn) * self.ldos[:, :, n].mean() +
                 dn *       self.ldos[:, :, (n + 1) % nz].mean())
     
-    def scan(self, current, z=None, width=None, bias=0.0):
-        self.calculate_ldos(width, bias)
+    def scan(self, current, z=None, width=None):
+        self.calculate_ldos(width)
 
         L = self.cell[2, 2]
         if z is None:
@@ -100,9 +99,8 @@ class STM:
         heights.shape = self.ldos.shape[:2]
         return heights
     
-    def linescan(self, current, p1, p2, npoints=None, z=None, 
-                 width=None, bias=0.0):
-        self.calculate_ldos(width, bias)
+    def linescan(self, current, p1, p2, npoints=None, z=None, width=None):
+        self.calculate_ldos(width)
 
         L = self.cell[2, 2]
         if z is None:
