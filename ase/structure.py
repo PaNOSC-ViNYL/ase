@@ -308,7 +308,7 @@ def _orthorhombic_bulk(name, x, a, covera=None):
                                         (0, 2.0 / 3.0, 0.5)],
                       pbc=True)
     elif x == 'diamond':
-        atoms = orthorhombic_bulk(2 * name, 'zincblende', a)
+        atoms = _orthorhombic_bulk(2 * name, 'zincblende', a)
     elif x == 'zincblende':
         s1, s2 = string2symbols(name)
         b = a / sqrt(2)
@@ -332,7 +332,7 @@ def _cubic_bulk(name, x, a):
                       scaled_positions=[(0, 0, 0), (0, 0.5, 0.5),
                                         (0.5, 0, 0.5), (0.5, 0.5, 0)])
     elif x == 'diamond':
-        atoms = cubic_bulk(2 * name, 'zincblende', a)
+        atoms = _cubic_bulk(2 * name, 'zincblende', a)
     elif x == 'zincblende':
         atoms = Atoms(4 * name, cell=(a, a, a), pbc=True,
                       scaled_positions=[(0, 0, 0), (0.25, 0.25, 0.25),
