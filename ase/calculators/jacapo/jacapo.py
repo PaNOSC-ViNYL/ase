@@ -2913,9 +2913,68 @@ s.recv(14)
             c[k] = np.array(c[k])
         return c, U
 
+    def get_psp_nuclear_charge(self,psp):
+        '''
+        get the nuclear charge of the atom from teh psp-file.
+
+        This is not the same as the atomic number, nor is it
+        necessarily the negative of the number of valence electrons,
+        since a psp may be an ion. this function is needed to compute
+        centers of ion charge for the dipole moment calculation.
+
+        We read in the valence ion configuration from the psp file and
+        add up the charges in each shell.
+        '''
+        from struct import unpack
+        dacapopath = os.environ.get('DACAPOPATH')
+
+        if os.path.exists(psp):
+            #the pspfile may be in the current directory
+            #or defined by an absolute path
+            fullpsp = psp
+
+        else:
+            #or, it is in the default psp path
+            fullpsp = os.path.join(dacapopath,psp)
+
+        if os.path.exists(fullpsp.strip()):
+            f = open(fullpsp)
+            unpack('>i',f.read(4))[0]
+            for i in range(3):
+                f.read(4)
+            for i in range(3):
+                f.read(4)
+            f.read(8)
+            f.read(20)
+            f.read(8)
+            f.read(8)
+            f.read(8)
+            nvalps = unpack('>i',f.read(4))[0]
+            f.read(4)
+            f.read(8)
+            f.read(8)
+            wwnlps = []
+            for i in range(nvalps):
+                f.read(4)
+                wwnlps.append(unpack('>d',f.read(8))[0])
+                f.read(8)
+            f.close()
+
+        else:
+            raise Exception, "%s does not exist" % fullpsp
+
+        return np.array(wwnlps).sum()
+
     def get_dipole_moment(self):
         '''
-        return dipole moment
+        return dipole moment of unit cell
+
+        Defined by the vector connecting the center of electron charge
+        density to the center of nuclear charge density.
+
+        Units = eV*angstrom
+
+        1 Debye = 0.208194 eV*angstrom
 
         '''
         if self.calculation_required():
@@ -2924,27 +2983,43 @@ s.recv(14)
         atoms = self.get_atoms()
         
         #center of electron charge density
-        x,y,z,density = self.get_charge_density()
-        nelectrons = self.get_valence()
-        #need to integrate \int n(r)rdr/\int n(r)dr
-        center_electron_charge = 0.0
+        x,y,z,cd = self.get_charge_density()
+
+        n1,n2,n3 = cd.shape
+        nelements = n1*n2*n3
+        voxel_volume = atoms.get_volume()/nelements
+        total_electron_charge = -cd.sum()*voxel_volume
+
         
-        #center of positive charge density
-        center_nuclear_charge = np.array([0.0, 0.0, 0.0])
-        
+        electron_density_center = np.array([(cd*x).sum(),
+                                            (cd*y).sum(),
+                                            (cd*z).sum()])
+        electron_density_center *= voxel_volume
+        electron_density_center /= total_electron_charge
+        #we need the - here so the two negatives don't cancel
+        electron_dipole_moment = -electron_density_center*total_electron_charge
+
+        # now the ion charge center
+        psps = self.get_pseudopotentials()
+        ion_charge_center = np.array([0.0, 0.0, 0.0])
+        total_ion_charge = 0.0
         for atom in atoms:
-            nuc_charge = atom.z
+            Z = self.get_psp_nuclear_charge(psps[atom.symbol])
+            total_ion_charge += Z
             pos = atom.get_position()
-            center_nuclear_charge = center_nuclear_charge + nuc_charge*pos
+            ion_charge_center += Z*pos
 
-        #center_electron_charge has a negative sign due to charge of electron
-        dipole_moment = center_nuclear_charge + center_electron_charge
+        ion_charge_center /= total_ion_charge
+        ion_dipole_moment = ion_charge_center*total_ion_charge
 
-        #I am not sure this is correct yet, so it is raising NotImplemented for now.
-        raise NotImplementedError
-    
+        dipole_vector = (ion_dipole_moment + electron_dipole_moment)
+        return dipole_vector
+ 
     def get_reciprocal_bloch_function(self,band=0,kpt=0,spin=0):
-        '''return the reciprocal bloch function. Need for Jacapo Wannier class.'''
+        '''
+        return the reciprocal bloch function.  Need for Jacapo Wannier
+        class.
+        '''
         if self.calculation_required():
             self.calculate()
 
