@@ -44,10 +44,36 @@ array([[ 3.6,  0. ,  0. ],
 Nanotubes
 =========
 
-...
+.. autofunction:: ase.structure.nanotube
+
+examples:
+
+>>> from ase.structure import nanotube
+>>> cnt1 = nanotube(6, 0, length=4)
+>>> cnt2 = nanotube(3, 3, length=6, bond=1.4, symbol='Si')
+
+|cnt1| |cnt2|
+
+.. |cnt1| imag:: cnt1.png
+.. |cnt2| imag:: cnt2.png
 
 
 Graphene nanoribbons
 ====================
 
-...
+.. autofunction:: ase.structure.graphene_nanoribbon
+
+examples:
+
+>>> from ase.structure import graphene_nanoribbon
+>>> gnr1 = graphene_nanoribbon(3, 4, type='armchair')
+>>> gnr2 = graphene_nanoribbon(2, 6, type='zigzag', saturated=True,
+>>>                             C_H=1.1, C_C=1.4, vacc=6.0, 
+>>>                            magnetic=True,initial_mag=1.12)                     
+
+|gnr1| |gnr2|
+
+.. |gnr1| imag:: gnr1.png
+.. |gnr2| imag:: gnr2.png
+
+
