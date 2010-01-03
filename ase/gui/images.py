@@ -166,9 +166,12 @@ class Images:
                     indices = [indices]
 
         images = [self.get_atoms(i) for i in indices]
-        write(filename, images, 
-              rotation=rotations, show_unit_cell=show_unit_cell,
-              bbox=bbox)
+        try:
+            write(filename, images, 
+                  rotation=rotations, show_unit_cell=show_unit_cell,
+                  bbox=bbox)
+        except:
+            write(filename, images)
 
     def get_atoms(self, frame):
         atoms = Atoms(positions=self.P[frame],
