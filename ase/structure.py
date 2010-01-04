@@ -180,9 +180,9 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
         if magnetic:
             mms = np.zeros(m * n * 2)
             for i in edge_index0:
-                mms[i] = initial_mag * factor
+                mms[i] = initial_mag 
             for i in edge_index1:
-                mms[i] = -initial_mag * factor
+                mms[i] = -initial_mag
                
         for i in range(n):
             layer = zz_unit.repeat((1, 1, m))
