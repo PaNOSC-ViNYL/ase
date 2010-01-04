@@ -12,13 +12,13 @@ class Converged(Exception):
 
 class SciPyOptimizer(Optimizer):
     """General interface for SciPy optimizers
-    
+
     Only the call to the optimizer is still needed
     """
-    def __init__(self, atoms, logfile='-', trajectory=None, 
+    def __init__(self, atoms, logfile='-', trajectory=None,
                  callback_always=False, alpha=70.0):
         """Initialize object
-        
+
         Parameters:
 
         callback_always: book
@@ -40,7 +40,7 @@ class SciPyOptimizer(Optimizer):
 
     def x0(self):
         """Return x0 in a way SciPy can use
-        
+
         This class is mostly usable for subclasses wanting to redefine the
         parameters (and the objective function)"""
         return self.atoms.get_positions().reshape(-1)
@@ -65,7 +65,7 @@ class SciPyOptimizer(Optimizer):
 
     def callback(self, x):
         """Callback function to be run after each iteration by SciPy
-        
+
         This should also be called once before optimization starts, as SciPy
         optimizers only calls it after each iteration, while ase optimizers
         call something similar before as well.
@@ -78,10 +78,10 @@ class SciPyOptimizer(Optimizer):
         self.nsteps += 1
 
     def run(self, fmax=0.05, steps=100000000):
-        self.fmax = fmax 
+        self.fmax = fmax
         # As SciPy does not log the zeroth iteration, we do that manually
         self.callback(None)
-        try: 
+        try:
             # Scale the problem as SciPy uses I as initial Hessian.
             self.call_fmin(fmax / self.H0, steps)
         except Converged:
@@ -92,6 +92,9 @@ class SciPyOptimizer(Optimizer):
 
     def load(self):
         pass
+
+    def call_fmin(self, fmax, steps):
+        raise NotImplementedError
 
 class SciPyFminCG(SciPyOptimizer):
     """Non-linear (Polak-Ribiere) conjugate gradient algorithm"""
@@ -105,7 +108,7 @@ class SciPyFminCG(SciPyOptimizer):
                              #epsilon=
                              maxiter=steps,
                              #full_output=1, 
-                             disp=0, 
+                             disp=0,
                              #retall=0, 
                              callback=self.callback
                             )
@@ -113,33 +116,32 @@ class SciPyFminCG(SciPyOptimizer):
 class SciPyFminBFGS(SciPyOptimizer):
     """Quasi-Newton method (Broydon-Fletcher-Goldfarb-Shanno)"""
     def call_fmin(self, fmax, steps):
-        output = opt.fmin_bfgs(self.f, 
+        output = opt.fmin_bfgs(self.f,
                                self.x0(),
-                               fprime=self.fprime, 
+                               fprime=self.fprime,
                                #args=(), 
                                gtol=fmax * 0.1, #Should never be reached
-                               norm=np.inf, 
+                               norm=np.inf,
                                #epsilon=1.4901161193847656e-08, 
-                               maxiter=steps, 
+                               maxiter=steps,
                                #full_output=1, 
-                               disp=0, 
+                               disp=0,
                                #retall=0, 
                                callback=self.callback
                               )
 
-
 class SciPyGradientlessOptimizer(Optimizer):
     """General interface for gradient less SciPy optimizers
-    
+
     Only the call to the optimizer is still needed
 
     Note: If you redefien x0() and f(), you don't even need an atoms object.
     Redefining these also allows you to specify an arbitrary objective
     function.
-    
+
     XXX: This is still a work in progress
     """
-    def __init__(self, atoms, logfile='-', trajectory=None, 
+    def __init__(self, atoms, logfile='-', trajectory=None,
                  callback_always=False):
         """Parameters:
 
@@ -154,7 +156,7 @@ class SciPyGradientlessOptimizer(Optimizer):
 
     def x0(self):
         """Return x0 in a way SciPy can use
-        
+
         This class is mostly usable for subclasses wanting to redefine the
         parameters (and the objective function)"""
         return self.atoms.get_positions().reshape(-1)
@@ -168,7 +170,7 @@ class SciPyGradientlessOptimizer(Optimizer):
 
     def callback(self, x):
         """Callback function to be run after each iteration by SciPy
-        
+
         This should also be called once before optimization starts, as SciPy
         optimizers only calls it after each iteration, while ase optimizers
         call something similar before as well.
@@ -186,7 +188,7 @@ class SciPyGradientlessOptimizer(Optimizer):
         self.ftol = ftol
         # As SciPy does not log the zeroth iteration, we do that manually
         self.callback(None)
-        try: 
+        try:
             # Scale the problem as SciPy uses I as initial Hessian.
             self.call_fmin(xtol, ftol, steps)
         except Converged:
@@ -200,17 +202,17 @@ class SciPyGradientlessOptimizer(Optimizer):
 
 class SciPyFmin(SciPyGradientlessOptimizer):
     """Nelder-Mead Simplex algorithm
-    
+
     Uses only function calls.
 
     XXX: This is still a work in progress
     """
     def call_fmin(self, xtol, ftol, steps):
-        output = opt.fmin(self.f, 
+        output = opt.fmin(self.f,
                           self.x0(),
                           #args=(),
-                          xtol=xtol, 
-                          ftol=ftol, 
+                          xtol=xtol,
+                          ftol=ftol,
                           maxiter=steps,
                           #maxfun=None,
                           #full_output=1,
@@ -230,9 +232,9 @@ class SciPyFminPowell(SciPyGradientlessOptimizer):
         """Parameters:
 
         direc: float
-            How much to change x to initially. Defaults to 0.04. 
+            How much to change x to initially. Defaults to 0.04.
         """
-        direc = kwargs.pop('direc', None)         
+        direc = kwargs.pop('direc', None)
         SciPyGradientlessOptimizer.__init__(self, *args, **kwargs)
 
         if direc is None:
@@ -241,11 +243,11 @@ class SciPyFminPowell(SciPyGradientlessOptimizer):
             self.direc = np.eye(len(self.x0()), dtype=float) * direc
 
     def call_fmin(self, xtol, ftol, steps):
-        output = opt.fmin_powell(self.f, 
+        output = opt.fmin_powell(self.f,
                                  self.x0(),
                                  #args=(),
-                                 xtol=xtol, 
-                                 ftol=ftol, 
+                                 xtol=xtol,
+                                 ftol=ftol,
                                  maxiter=steps,
                                  #maxfun=None,
                                  #full_output=1,
