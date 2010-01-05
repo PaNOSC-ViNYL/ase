@@ -4,13 +4,11 @@ http://www.turbomole.com/
 """
 
 
-import numpy as npy
 import os, sys, string
 
 from ase.data import chemical_symbols
 from ase.units import Hartree, Bohr
 from ase.io.turbomole import write_turbomole
-
 
 import numpy as np
 
@@ -92,7 +90,7 @@ class Turbomole:
         os.system('rm -f energy; touch energy')
 
         #turbomole has no stress
-        self.stress = npy.empty((3, 3))
+        self.stress = np.empty((3, 3))
         
 
     def update(self, atoms):
@@ -214,4 +212,4 @@ class Turbomole:
 
     def read(self):
         """Dummy stress for turbomole"""
-        self.stress = npy.empty((3, 3))
+        self.stress = np.empty((3, 3))
