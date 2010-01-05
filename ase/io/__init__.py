@@ -46,6 +46,7 @@ def read(filename, index=-1, format=None):
     TURBOMOLE coord file       (filename==='coord')
     exciting input             exi
     AtomEye configuration      cfg
+    WIEN2k structure file      struct
     =========================  ===========
 
     """
@@ -138,6 +139,10 @@ def read(filename, index=-1, format=None):
         from ase.io.cif import read_cif
         return read_cif(filename)
 
+    if format == 'struct':
+        from ase.io.struct import read_struct
+        return read_struct(filename)
+
     if format == 'babel':
         from ase.io.babel import read_babel
         return read_babel(filename, index=index)
@@ -216,6 +221,7 @@ def write(filename, images, format=None, **kwargs):
     TURBOMOLE coord file       tmol
     exciting                   exi
     AtomEye configuration      cfg
+    WIEN2k structure file      struct
     =========================  ===========
   
     The use of additional keywords is format specific.
@@ -396,6 +402,9 @@ def filetype(filename):
     if filename.lower().endswith('.cif'):
         return 'cif'
    
+    if filename.lower().endswith('.struct'):
+        return 'struct'
+
     if filename.lower().endswith('.in'):
         return 'aims'
 
