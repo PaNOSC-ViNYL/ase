@@ -54,8 +54,8 @@ examples:
 
 |cnt1| |cnt2|
 
-.. |cnt1| imag:: cnt1.png
-.. |cnt2| imag:: cnt2.png
+.. |cnt1| image:: cnt1.png
+.. |cnt2| image:: cnt2.png
 
 
 Graphene nanoribbons
@@ -73,7 +73,7 @@ examples:
 
 |gnr1| |gnr2|
 
-.. |gnr1| imag:: gnr1.png
-.. |gnr2| imag:: gnr2.png
+.. |gnr1| image:: gnr1.png
+.. |gnr2| image:: gnr2.png
 
 
