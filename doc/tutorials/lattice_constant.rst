@@ -78,12 +78,30 @@ function:
 >>> from scipy.optimize import fmin_bfgs
 >>> a0 = 3.52 / sqrt(2)
 >>> c0 = sqrt(8 / 3.0) * a0
->>> fmin_bfgs(p, (a0, c0))
-Optimization terminated successfully.
-         Current function value: 0.009926
-         Iterations: 5
-         Function evaluations: 28
-         Gradient evaluations: 7
-array([ 2.46942471,  4.01001332])
+>>> a, c = fmin_bfgs(p, (a0, c0))
+Warning: Desired error not necessarily achieveddue to precision loss
+         Current function value: 0.010030
+         Iterations: 7
+         Function evaluations: 425
+         Gradient evaluations: 106
+>>> print a, c
+2.46888950503 4.02027198125
+
+In (often) cases optimization fails, one may use
+another energy expression:
+
+.. math:: c_0 + c_1 a + c_2 c + c_3 a^2 + c_4 c^2
+
+>>> import numpy as np
+>>> sle = np.linalg.solve
+>>> E = np.array(energies)
+>>> A = np.array([(1, x, y, x**2, y**2)
+>>>               for x, y in ac]).T
+>>> C = sle(np.inner(A, A), np.dot(A, E))
+
+>>> a = - C[1] / (2 * C[3])
+>>> c = - C[2] / (2 * C[4])
+>>> print a, c
+2.46465936501 4.00438337976
 
 .. _fmin_bfgs: http://docs.scipy.org/doc/scipy/reference/optimize.html
