@@ -877,7 +877,7 @@ class VaspChargeDensity(object):
         writes out the charge density every 10 steps.
 
         chgdiff is the difference between the spin up charge density
-        and the spin up charge density and is thus only read for a
+        and the spin down charge density and is thus only read for a
         spin-polarized calculation.
 
         aug is the PAW augmentation charges found in CHGCAR. These are
