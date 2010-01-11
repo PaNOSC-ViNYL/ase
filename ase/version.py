@@ -1,7 +1,7 @@
 # Copyright (C) 2003  CAMP
 # Please see the accompanying LICENSE file for further information.
 
-version = '3.3.0'
+version = '3.4.0'
 
 from os import path
 try:
