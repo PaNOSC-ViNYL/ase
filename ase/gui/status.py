@@ -33,7 +33,10 @@ class Status:
         self.label = gtk.Label()
         self.eventbox.add(self.label)
         self.label.show()
-        self.set_tip(self.eventbox, _('Tip for status box ...'))
+        if gtk.ver < (2, 12):
+            self.set_tip(self.eventbox, _('Tip for status box ...'))
+        else:
+            self.eventbox.set_tooltip_text(_('Tip for status box ...'))
         pack(vbox, self.eventbox)
 
     def status(self):

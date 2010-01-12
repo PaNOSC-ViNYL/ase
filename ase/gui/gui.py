@@ -95,7 +95,8 @@ class GUI(View, Status):
         self.window.connect('delete_event', self.exit)
         vbox = gtk.VBox()
         self.window.add(vbox)
-        self.set_tip = gtk.Tooltips().set_tip
+        if gtk.ver < (2, 12):
+            self.set_tip = gtk.Tooltips().set_tip
 
         actions = gtk.ActionGroup("Actions")
         actions.add_actions([
@@ -222,8 +223,6 @@ class GUI(View, Status):
             print 'building menus failed: %s' % msg
 
         vbox.pack_start(ui.get_widget('/MenuBar'), False, False, 0)
-        #ui.get_widget('/MenuBar/FileMenu').set_tooltips(True)
-        #gtk.Tooltips().enable()
         
         View.__init__(self, vbox, rotations)
         Status.__init__(self, vbox)
