@@ -12,7 +12,7 @@ for i in range(3):
     traj = PickleTrajectory('Ni.traj', 'w')
     eps = 0.01
     for a in a0 * np.linspace(1 - eps, 1 + eps, 4):
-        for c in c0 * np.linspace(1 - eps, 1 + eps, 3):
+        for c in c0 * np.linspace(1 - eps, 1 + eps, 4):
             ni = bulk('Ni', 'hcp', a=a, covera=c / a)
             ni.set_calculator(EMT())
             ni.get_potential_energy()
