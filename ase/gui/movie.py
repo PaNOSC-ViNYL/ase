@@ -55,7 +55,7 @@ class Movie(gtk.Window):
         self.time.connect('value-changed', self.new_time)
 
         self.add(vbox)
-        if gtk.ver < (2, 12):
+        if gtk.pygtk_version < (2, 12):
             self.set_tip = gtk.Tooltips().set_tip
             self.set_tip(hscale, _('Adjust play time.'))
         else:

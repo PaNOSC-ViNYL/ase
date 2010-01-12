@@ -95,7 +95,7 @@ class GUI(View, Status):
         self.window.connect('delete_event', self.exit)
         vbox = gtk.VBox()
         self.window.add(vbox)
-        if gtk.ver < (2, 12):
+        if gtk.pygtk_version < (2, 12):
             self.set_tip = gtk.Tooltips().set_tip
 
         actions = gtk.ActionGroup("Actions")

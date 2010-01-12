@@ -33,7 +33,7 @@ class Status:
         self.label = gtk.Label()
         self.eventbox.add(self.label)
         self.label.show()
-        if gtk.ver < (2, 12):
+        if gtk.pygtk_version < (2, 12):
             self.set_tip(self.eventbox, _('Tip for status box ...'))
         else:
             self.eventbox.set_tooltip_text(_('Tip for status box ...'))
