@@ -27,7 +27,7 @@ def fmin_bfgs(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf,
               retall=0, callback=None, maxstep=0.2):
     """Minimize a function using the BFGS algorithm.
 
-    :Parameters:
+    Parameters:
 
       f : callable f(x,*args)
           Objective function to be minimized.
@@ -48,7 +48,7 @@ def fmin_bfgs(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf,
           iteration.  Called as callback(xk), where xk is the
           current parameter vector.
 
-    :Returns: (xopt, {fopt, gopt, Hopt, func_calls, grad_calls, warnflag}, <allvecs>)
+    Returns: (xopt, {fopt, gopt, Hopt, func_calls, grad_calls, warnflag}, <allvecs>)
 
         xopt : ndarray
             Parameters which minimize f, i.e. f(xopt) == fopt.
@@ -79,7 +79,7 @@ def fmin_bfgs(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf,
         retall : bool
             Return a list of results at each iteration if True.
 
-    :Notes:
+    Notes:
 
         Optimize the function, f, whose gradient is given by fprime
         using the quasi-Newton method of Broyden, Fletcher, Goldfarb,
@@ -328,7 +328,7 @@ def line_search(f, myfprime, xk, pk, gfk, old_fval, old_old_fval,
                 args=(), c1=1e-4, c2=0.9, amax=50):
     """Find alpha that satisfies strong Wolfe conditions.
 
-    :Parameters:
+    Parameters:
 
         f : callable f(x,*args)
             Objective function.
@@ -348,7 +348,7 @@ def line_search(f, myfprime, xk, pk, gfk, old_fval, old_old_fval,
         c2 : float
             Parameter for curvature condition rule.
 
-    :Returns:
+    Returns:
 
         alpha0 : float
             Alpha for which ``x_new = x0 + alpha * pk``.
@@ -357,7 +357,7 @@ def line_search(f, myfprime, xk, pk, gfk, old_fval, old_old_fval,
         gc : int
             Number of gradient evaluations made.
 
-    :Notes:
+    Notes:
 
         Uses the line search algorithm to enforce strong Wolfe
         conditions.  See Wright and Nocedal, 'Numerical Optimization',

@@ -28,17 +28,18 @@ class FLEUR:
     get_potential_energy function this class defines the following utility
     functions:
 
-    write_inp              generate the input file `inp`
-    initialize_density     creates the initial density after possible manual
-                           edits of `inp`
-    calculate              convergence the total energy. With fleur, one
-                           specifies always only the number of SCF-iterations
-                           so this function launches the executable several
-                           times and monitors the convergence.
-    relax                  Uses fleur's internal algorithm for structure
-                           optimization. Requires that the proper optimization
-                           parameters (atoms to optimize etc.) are specified
-                           by hand in `inp`
+    write_inp
+        generate the input file `inp`
+    initialize_density
+        creates the initial density after possible manual edits of `inp`
+    calculate
+        convergence the total energy. With fleur, one specifies always
+        only the number of SCF-iterations so this function launches
+        the executable several times and monitors the convergence.
+    relax
+        Uses fleur's internal algorithm for structure
+        optimization. Requires that the proper optimization parameters
+        (atoms to optimize etc.) are specified by hand in `inp`
     
     """
     def __init__(self, xc='LDA', kpts=None, nbands=None, convergence=None,
