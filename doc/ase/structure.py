@@ -11,9 +11,9 @@ for i, a in enumerate([
           show_unit_cell=2, display=False, run_povray=True)
 
 cnt1 = nanotube(6, 0, length=4)
-cnt1.rotate('x', 'z')
+cnt1.rotate('x', 'z', rotate_cell=True)
 cnt2 = nanotube(3, 3, length=6, bond=1.4, symbol='Si')
-cnt2.rotate('x', 'z')
+cnt2.rotate('x', 'z', rotate_cell=True)
 
 for i, a in enumerate([cnt1, cnt2]):
     write('cnt%d.pov' % (i + 1), a,
