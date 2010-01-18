@@ -141,10 +141,10 @@ class Aims(Calculator):
                 raise TypeError('Parameter not defined: ' + key)
 
     def update(self, atoms):
-        if self.calculation_required(atoms):
+        if self.calculation_required(atoms,[]):
             self.calculate(atoms)
 
-    def calculation_required(self, atoms):
+    def calculation_required(self, atoms,quantities):
         if (self.positions is None or
             (self.atoms != atoms) or
             (self.atoms != self.old_atoms) or 
