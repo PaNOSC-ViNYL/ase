@@ -215,7 +215,7 @@ class Aims(Calculator):
         output = open(self.out,'w')
         output.write('=======================================================\n')
         output.write('FHI-aims output file\n')
-        output.write('Created through the Atomic Simulation Environment (ASE)\n\n')
+        output.write('Created using the Atomic Simulation Environment (ASE)\n\n')
         output.write('List of parameters used to initialize the calculator:\n')
         output.write('=======================================================\n')
         for key, val in self.float_params.items():
@@ -236,6 +236,12 @@ class Aims(Calculator):
                     output.write('%-30s.true.\n' % (key))
                 else:
                     output.write('%-30s.false.\n' % (key))
+        for key, val in self.list_params.items():
+            if val is not None:
+                output.write('%-30s' % (key))
+                for sub_value in val:
+                    output.write(str(sub_value)+' ')
+                output.write('\n')
         for key, val in self.input_parameters.items():
             if key is  'cubes':
                 if val:
