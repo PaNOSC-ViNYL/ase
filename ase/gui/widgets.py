@@ -91,3 +91,19 @@ def pack(vbox, widgets, end=False):
         else:
             hbox.pack_start(widget, 0, 0)
     return widgets
+
+class cancel_apply_ok(gtk.HButtonBox):
+    "Widget with Cancel, Apply and OK buttons.  The arguments are callbacks."
+    def __init__(self, cancel, apply, ok):
+        gtk.HButtonBox.__init__(self)
+        cancel_but = gtk.Button(stock=gtk.STOCK_CANCEL)
+        cancel_but.connect('clicked', cancel)
+        apply_but = gtk.Button(stock=gtk.STOCK_APPLY)
+        apply_but.connect('clicked', apply)
+        ok_but = gtk.Button(stock=gtk.STOCK_OK)
+        ok_but.connect('clicked', ok)
+        for w in (cancel_but, apply_but, ok_but):
+            self.pack_start(w, 0, 0)
+            w.show()
+        #self.show_all()
+        

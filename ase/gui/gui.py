@@ -16,6 +16,7 @@
 # icon
 # ag-community-server
 # translate option: record all translations, and check for missing translations.
+
 import os
 import sys
 
@@ -27,6 +28,8 @@ from ase.gui.status import Status
 from ase.gui.widgets import pack, help, Help
 from ase.gui.languages import translate as _
 from ase.gui.settings import Settings
+from ase.gui.bulkcrystal import SetupBulkCrystal
+from ase.gui.surfaceslab import SetupSurfaceSlab
 
 
 ui_info = """\
@@ -76,6 +79,9 @@ ui_info = """\
       <menuitem action='DOS'/>
       <menuitem action='Wannier'/>
     </menu>
+    <menu action='SetupMenu'>
+      <menuitem action='Surface'/>
+    </menu>
     <menu action='HelpMenu'>
       <menuitem action='About'/>
       <menuitem action='Webpage'/>
@@ -104,6 +110,7 @@ class GUI(View, Status):
             ('EditMenu', None, '_Edit'),
             ('ViewMenu', None, '_View'  ),
             ('ToolsMenu', None, '_Tools'),
+            ('SetupMenu', None, '_Setup'),
             ('HelpMenu', None, '_Help'),
             ('Open', gtk.STOCK_OPEN, '_Open', '<control>O',
              'Create a new file',
@@ -195,6 +202,12 @@ class GUI(View, Status):
             ('Wannier', None, 'Wannier ...', None,
              '',
              self.xxx),
+            ('Bulk', None, '_Bulk Crystal', None,
+             "Create a bulk crystal with arbitrary orientation",
+             self.bulk_window),
+            ('Surface', None, '_Surface slab', None,
+             "Create the most common surfaces",
+             self.surface_window),
             ('About', None, '_About', None,
              None,
              self.about),
@@ -443,6 +456,21 @@ class GUI(View, Status):
         self.images.write(filename, self.rotation,
                           show_unit_cell=suc, bbox=bbox)
         
+    def bulk_window(self, menuitem):
+        SetupBulkCrystal(self)
+
+    def surface_window(self, menuitem):
+        SetupSurfaceSlab(self)
+        
+    def new_atoms(self, atoms):
+        "Set a new atoms object."
+        rpt = getattr(self.images, 'repeat', None)
+        self.images.repeat_images(np.ones(3, int))
+        self.images.initialize([atoms])
+        self.images.repeat_images(rpt)
+        self.set_colors()
+        self.set_coordinates(frame=0, focus=True)
+
     def exit(self, button, event=None):
         gtk.main_quit()
         return True
