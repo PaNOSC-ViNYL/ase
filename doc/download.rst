@@ -56,17 +56,17 @@ When using svn please set the following variable:
 ======= =========== ============================================ =============================
 Release Date        Retrieve as svn checkout                     Retrieve as tarball
 ======= =========== ============================================ =============================
- 3.3.0_ Jan 11 2010 ``svn co -r 1376 $ASE_TAGS/3.3.0 ase-3.3.0`` python-ase-3.3.0.1376.tar.gz_
+ 3.3.1_ Jan 11 2010 ``svn co -r 1390 $ASE_TAGS/3.3.1 ase-3.3.1`` python-ase-3.3.1.1390.tar.gz_
  3.2.0_ Sep 4 2009  ``svn co -r 1121 $ASE_TAGS/3.2.0 ase-3.2.0`` python-ase-3.2.0.1121.tar.gz_
  3.1.0_ Mar 27 2009 ``svn co -r 846 $ASE_TAGS/3.1.0 ase-3.1.0``  python-ase-3.1.0.846.tar.gz_
  3.0.0_ Nov 13 2008 ``svn co -r 657 $ASE_TAGS/3.0.0 ase-3.0.0``  python-ase-3.0.0.657.tar.gz_
 ======= =========== ============================================ =============================
 
-.. _3.3.0:
-    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.3.0
+.. _3.3.1:
+    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.3.1
 
-.. _python-ase-3.3.0.1376.tar.gz:
-    https://wiki.fysik.dtu.dk/ase-files/python-ase-3.3.0.1376.tar.gz
+.. _python-ase-3.3.1.1390.tar.gz:
+    https://wiki.fysik.dtu.dk/ase-files/python-ase-3.3.1.1390.tar.gz
 
 .. _3.2.0:
     https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.2.0
@@ -114,13 +114,13 @@ After downloading create the link to the requested version, e.g.:
 - if retrieved from ``svn``::
 
    $ cd $HOME
-   $ ln -s ase-3.3.0 ase
+   $ ln -s ase-3.3.1 ase
     
 - if retrieved as ``tarball``::
 
    $ cd $HOME
-   $ tar zxf python-ase-3.3.0.1376.tar.gz
-   $ ln -s python-ase-3.3.0.1376 ase
+   $ tar zxf python-ase-3.3.1.1390.tar.gz
+   $ ln -s python-ase-3.3.1.1390 ase
 
 It is sufficient to
 put the directory :file:`$HOME/ase` in your :envvar:`PYTHONPATH`
