@@ -74,14 +74,20 @@ class Window(gtk.Window):
         vbox.show()
         self.show()
 
-def pack(vbox, widgets, end=False):
+def pack(vbox, widgets, end=False, bottom=False):
     if not isinstance(widgets, list):
         widgets.show()
-        vbox.pack_start(widgets, 0, 0)
+        if bottom:
+            vbox.pack_end(widgets, 0, 0)
+        else:
+            vbox.pack_start(widgets, 0, 0)
         return widgets
     hbox = gtk.HBox(0, 0)
     hbox.show()
-    vbox.pack_start(hbox, 0, 0)
+    if bottom:
+        vbox.pack_end(hbox, 0, 0)
+    else:
+        vbox.pack_start(hbox, 0, 0)
     for widget in widgets:
         if type(widget) is gtk.Entry:
             widget.set_size_request(widget.get_max_length() * 9, 24)
@@ -107,3 +113,15 @@ class cancel_apply_ok(gtk.HButtonBox):
             w.show()
         #self.show_all()
         
+def oops(message, message2=None):
+    dialog = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
+                               type=gtk.MESSAGE_WARNING,
+                               buttons=gtk.BUTTONS_CLOSE,
+                               message_format=message)
+    try:
+        dialog.format_secondary_text(message2)
+    except AttributeError:
+        print >>sys.stderr, message
+        print >>sys.stderr, message2
+    dialog.connect('response', lambda x, y: dialog.destroy())
+    dialog.show()

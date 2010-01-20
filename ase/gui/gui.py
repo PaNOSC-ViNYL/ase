@@ -28,7 +28,6 @@ from ase.gui.status import Status
 from ase.gui.widgets import pack, help, Help
 from ase.gui.languages import translate as _
 from ase.gui.settings import Settings
-#from ase.gui.bulkcrystal import SetupBulkCrystal
 from ase.gui.surfaceslab import SetupSurfaceSlab
 
 

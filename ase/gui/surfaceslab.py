@@ -5,7 +5,8 @@ This is part of the Visual ASE for teaching (vase) GUI.
 """
 
 import gtk
-from ase.gui.widgets import pack, cancel_apply_ok
+from ase.gui.widgets import pack, cancel_apply_ok, oops
+from ase.gui.pybutton import PyButton
 
 introtext = """\
   Use this dialog to create surface slabs.  Select the element by
@@ -33,6 +34,13 @@ surfaces = [('FCC(100)', 'fcc', True, False, _surf.fcc100),
             ('BCC(111) non-orthogonal', 'bcc', False, True, _surf.bcc111),
             ('BCC(111) orthogonal', 'bcc', True, True, _surf.bcc111),
             ]
+
+py_template = """
+from ase.lattice.surface import %(func)s
+
+atoms = %(func)s(symbol='%(symbol)s', size=%(size)s,
+    a=%(a).3f, vacuum=%(vacuum).3f%(orthoarg)s)
+"""
 
 class SetupSurfaceSlab(gtk.Window):
     """Window for setting up a surface."""
@@ -104,10 +112,12 @@ class SetupSurfaceSlab(gtk.Window):
         pack(vbox, gtk.Label(""))
 
         # Buttons
+        self.pybut = PyButton("Creating a surface slab.")
+        self.pybut.connect('clicked', self.update)
         buts = cancel_apply_ok(cancel=lambda widget: self.destroy(),
                                apply=self.apply,
                                ok=self.ok)
-        pack(vbox, [buts], end=True)
+        pack(vbox, [self.pybut, buts], end=True, bottom=True)
         
         self.add(vbox)
         vbox.show()
@@ -154,18 +164,27 @@ class SetupSurfaceSlab(gtk.Window):
         if not (self.update_element() and struct):
             self.sizelabel.set_text(self.nosize)
             self.atoms = None
+            self.pybut.python = None
             return False
         # Make the atoms
         assert self.legal_element
         structinfo = self.surfinfo[struct]
-        xtra_keywords = {}
+        kw = {}
+        kw2 = {}
         if structinfo[3]:  # Support othogonal keyword?
-            xtra_keywords['orthogonal'] = structinfo[2]
-        self.atoms = structinfo[4](symbol=self.legal_element,
-                                   size=[int(s.value) for s in self.size],
-                                   a=self.lattice_const.value,
-                                   vacuum=self.vacuum.value,
-                                   **xtra_keywords)
+            kw['orthogonal'] = structinfo[2]
+            kw2['orthoarg'] = ', orthogonal='+str(kw['orthogonal'])
+        else:
+            kw2['orthoarg'] = ''
+        kw2['func'] = structinfo[4].__name__
+        kw['symbol'] = self.legal_element
+        kw['size'] = [int(s.value) for s in self.size]
+        kw['a'] = self.lattice_const.value
+        kw['vacuum'] = self.vacuum.value
+        self.atoms = structinfo[4](**kw)
+
+        kw2.update(kw)
+        self.pybut.python = py_template % kw2
         # Find the heights of the unit cell
         h = np.zeros(3)
         uc = self.atoms.get_cell()
@@ -185,39 +204,35 @@ class SetupSurfaceSlab(gtk.Window):
 
     def get_lattice_const(self, *args):
         if not self.update_element():
-            self.oops("Invalid element.")
+            oops("Invalid element.")
             return
         z = ase.atomic_numbers[self.legal_element]
         ref = ase.data.reference_states[z]
         surface = self.structchoice.get_active_text()
         if not surface:
-            self.oops("No structure specified!")
+            oops("No structure specified!")
             return
         struct = self.surfinfo[surface][1]
         if ref is None or ref['symmetry'].lower() != struct:
-            self.oops(struct.upper() + " lattice constant unknown for "
+            oops(struct.upper() + " lattice constant unknown for "
                       + self.legal_element + ".")
             return
         a = ref['a']
         self.lattice_const.set_value(a)
 
     def apply(self, *args):
+        self.update()
         if self.atoms is not None:
             self.gui.new_atoms(self.atoms)
             return True
         else:
-            self.oops("No valid atoms.")
+            oops("No valid atoms.",
+                 "You have not (yet) specified a consistent set of parameters.")
             return False
 
     def ok(self, *args):
         if self.apply():
             self.destroy()
             
-    def oops(self, message):
-        dialog = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
-                                   type=gtk.MESSAGE_WARNING,
-                                   buttons=gtk.BUTTONS_CLOSE,
-                                   message_format=message)
-        dialog.connect('response', lambda x, y: dialog.destroy())
-        dialog.show()
+
         
