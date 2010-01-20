@@ -56,7 +56,7 @@ When using svn please set the following variable:
 ======= =========== ============================================ =============================
 Release Date        Retrieve as svn checkout                     Retrieve as tarball
 ======= =========== ============================================ =============================
- 3.3.1_ Jan 11 2010 ``svn co -r 1390 $ASE_TAGS/3.3.1 ase-3.3.1`` python-ase-3.3.1.1390.tar.gz_
+ 3.3.1_ Jan 20 2010 ``svn co -r 1390 $ASE_TAGS/3.3.1 ase-3.3.1`` python-ase-3.3.1.1390.tar.gz_
  3.2.0_ Sep 4 2009  ``svn co -r 1121 $ASE_TAGS/3.2.0 ase-3.2.0`` python-ase-3.2.0.1121.tar.gz_
  3.1.0_ Mar 27 2009 ``svn co -r 846 $ASE_TAGS/3.1.0 ase-3.1.0``  python-ase-3.1.0.846.tar.gz_
  3.0.0_ Nov 13 2008 ``svn co -r 657 $ASE_TAGS/3.0.0 ase-3.0.0``  python-ase-3.0.0.657.tar.gz_
