@@ -6,8 +6,8 @@ import numpy as np
 import cPickle as pickle
 import new
 
-from clusteratom import ClusterAtom
-import data
+from ase.cluster.clusteratom import ClusterAtom
+import ase.cluster.data as data
 from ase import Atoms
 from ase.data import atomic_numbers, chemical_symbols, reference_states
 from ase.lattice.cubic import SimpleCubic, BodyCenteredCubic, FaceCenteredCubic, Diamond

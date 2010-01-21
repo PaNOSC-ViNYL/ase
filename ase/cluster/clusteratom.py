@@ -1,5 +1,5 @@
 import numpy as np
-import data
+import ase.cluster.data as data
 from ase.atom import Atom, data as olddata
 from ase.data import atomic_numbers, chemical_symbols, reference_states
 
