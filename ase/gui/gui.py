@@ -25,7 +25,7 @@ import numpy as np
 import gtk
 from ase.gui.view import View
 from ase.gui.status import Status
-from ase.gui.widgets import pack, help, Help
+from ase.gui.widgets import pack, help, Help, oops
 from ase.gui.languages import translate as _
 from ase.gui.settings import Settings
 from ase.gui.surfaceslab import SetupSurfaceSlab
@@ -42,7 +42,6 @@ ui_info = """\
       <menuitem action='Quit'/>
     </menu>
     <menu action='EditMenu'>
-      <menuitem action='Select'/>
       <menuitem action='SelectAll'/>
       <menuitem action='Invert'/>
       <menuitem action='SelectConstrained'/>
@@ -72,11 +71,8 @@ ui_info = """\
       <menuitem action='Movie'/>
       <menuitem action='Modify'/>
       <menuitem action='Constraints'/>
-      <menuitem action='DFT'/>
       <menuitem action='NEB'/>
       <menuitem action='BulkModulus'/>
-      <menuitem action='DOS'/>
-      <menuitem action='Wannier'/>
     </menu>
     <menu action='SetupMenu'>
       <menuitem action='Surface'/>
@@ -123,9 +119,6 @@ class GUI(View, Status):
             ('Quit', gtk.STOCK_QUIT, '_Quit', '<control>Q',
              'Quit',
              self.exit),
-            ('Select', None, '_Select ...', None,
-             '',
-             self.xxx),
             ('SelectAll', None, 'Select _all', None,
              '',
              self.select_all),
@@ -195,12 +188,6 @@ class GUI(View, Status):
             ('BulkModulus', None, 'B_ulk Modulus', None,
              '',
              self.bulk_modulus),
-            ('DOS', None, 'DOS ...', None,
-             '',
-             self.xxx),
-            ('Wannier', None, 'Wannier ...', None,
-             '',
-             self.xxx),
             ('Bulk', None, '_Bulk Crystal', None,
              "Create a bulk crystal with arbitrary orientation",
              self.bulk_window),
@@ -477,16 +464,7 @@ class GUI(View, Status):
     def xxx(self, x=None,
             message1='Not implemented!',
             message2='do you really need it?'):
-        dialog = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
-                                   type=gtk.MESSAGE_WARNING,
-                                   buttons=gtk.BUTTONS_CLOSE,
-                                   message_format=_(message1))
-        try:
-            dialog.format_secondary_text(_(message2))
-        except AttributeError:
-            print _(message2)
-        dialog.connect('response', lambda x, y: dialog.destroy())
-        dialog.show()
+        oops(message1, message2)
         
     def about(self, action):
         try:
