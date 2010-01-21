@@ -29,11 +29,6 @@ class Movie(gtk.Window):
                    gtk.Button(stock=gtk.STOCK_GO_FORWARD),
                    gtk.Button(stock=gtk.STOCK_GOTO_LAST)]
 
-        for button in buttons:
-            hboxb = button.child.child
-            label = hboxb.get_children()[1]
-            hboxb.remove(label)
-
         buttons[0].connect('clicked', self.click, -10000000)
         buttons[1].connect('clicked', self.click, -1)
         buttons[2].connect('clicked', self.click, 1)
