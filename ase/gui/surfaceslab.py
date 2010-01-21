@@ -181,7 +181,16 @@ class SetupSurfaceSlab(gtk.Window):
         kw['size'] = [int(s.value) for s in self.size]
         kw['a'] = self.lattice_const.value
         kw['vacuum'] = self.vacuum.value
-        self.atoms = structinfo[4](**kw)
+        # Now create the atoms
+        try:
+            self.atoms = structinfo[4](**kw)
+        except ValueError as e:
+            # The values were illegal - for example some size
+            # constants must be even for some structures.
+            self.pybut.python = None
+            self.atoms = None
+            self.sizelabel.set_text(str(e).replace(".  ", ".\n"))
+            return False
 
         kw2.update(kw)
         self.pybut.python = py_template % kw2
