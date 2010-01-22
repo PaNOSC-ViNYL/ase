@@ -4,7 +4,15 @@ http://www.flapw.de
 """
 
 import os
-from subprocess import Popen, PIPE
+try:
+    from subprocess import Popen, PIPE
+except ImportError:
+    from os import popen3
+else:
+    def popen3(cmd):
+        p = Popen(cmd, shell=True, close_fds=True,
+                  stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        return p.stdin, p.stdout, p.stderr
 import re
 
 import numpy as np
@@ -121,7 +129,6 @@ class FLEUR:
         self.initialize_inp(atoms)
         self.initialize_density()
 
-
     def initialize_inp(self, atoms):
         """Create a inp file"""
         os.chdir(self.workdir)
@@ -154,9 +161,10 @@ class FLEUR:
             fleur_exe = os.environ['FLEUR']
         except KeyError:
             raise RuntimeError('Please set FLEUR')
-        stat = os.system(fleur_exe)
-        if stat != 0:
-            raise RuntimeError('FLEUR exited with a code %d' % stat)
+        cmd = popen3(fleur_exe)[2]
+        stat = cmd.read()
+        if '!' in stat:
+            raise RuntimeError('FLEUR exited with a code %s' % stat)
         os.system("sed -i -e 's/strho=./strho=F/' inp")
 
         os.chdir(self.start_dir)
