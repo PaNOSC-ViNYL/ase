@@ -31,8 +31,6 @@ Use this dialog to create crystalline nanoparticles.
 class SetupNanoparticle(SetupWindow):
     "Window for setting up a nanoparticle."
     families = {'fcc': [(0,0,1), (0,1,1), (1,1,1)]}
-    grey = gtk.gdk.Color(0.7, 0.7, 0.7)
-    black = gtk.gdk.Color(0, 0, 0)
     
     def __init__(self, gui):
         SetupWindow.__init__(self)
