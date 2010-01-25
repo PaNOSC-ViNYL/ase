@@ -265,7 +265,34 @@ def read_trajectory(filename, index=-1):
     if isinstance(index, int):
         return traj[index]
     else:
-        return [traj[i] for i in range(len(traj))[index]]
+        # Here, we try to read only the configurations we need to read
+        # and len(traj) should only be called if we need to as it will
+        # read all configurations!
+
+        # XXX there must be a simpler way?
+        step = index.step or 1
+        if step > 0:
+            start = index.start or 0
+            if start < 0:
+                start += len(traj)
+            stop = index.stop or len(traj)
+            if stop < 0:
+                stop += len(traj)
+        else:
+            if index.start is None:
+                start = len(traj) - 1
+            else:
+                start = index.start
+                if start < 0:
+                    start += len(traj)
+            if index.stop is None:
+                stop = -1
+            else:
+                stop = index.stop
+                if stop < 0:
+                    stop += len(traj)
+                    
+        return [traj[i] for i in range(start, stop, step)]
 
 def write_trajectory(filename, images):
     """Write image(s) to trajectory.
