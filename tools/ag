@@ -4,9 +4,7 @@
 # CAMd (see accompanying license files for details).
  
 from optparse import OptionParser, SUPPRESS_HELP
-import ase.gui.gtkexcepthook
-#ase.gui.gtkexcepthook.feedback = "schiotz@fysik.dtu.dk"
-#ase.gui.gtkexcepthook.smtphost = "mail.fysik.dtu.dk"
+
 
 parser = OptionParser(usage='%prog [options] [file[, file2, ...]]',
                       version='%prog 0.1',
