@@ -29,6 +29,7 @@ from ase.gui.widgets import pack, help, Help, oops
 from ase.gui.languages import translate as _
 from ase.gui.settings import Settings
 from ase.gui.surfaceslab import SetupSurfaceSlab
+from ase.gui.nanoparticle import SetupNanoparticle
 
 
 ui_info = """\
@@ -76,6 +77,7 @@ ui_info = """\
     </menu>
     <menu action='SetupMenu'>
       <menuitem action='Surface'/>
+      <menuitem action='Nanoparticle'/>
     </menu>
     <menu action='HelpMenu'>
       <menuitem action='About'/>
@@ -194,6 +196,9 @@ class GUI(View, Status):
             ('Surface', None, '_Surface slab', None,
              "Create the most common surfaces",
              self.surface_window),
+            ('Nanoparticle', None, '_Nanoparticle', None,
+             "Create a crystalline nanoparticle",
+             self.nanoparticle_window),
             ('About', None, '_About', None,
              None,
              self.about),
@@ -447,6 +452,9 @@ class GUI(View, Status):
 
     def surface_window(self, menuitem):
         SetupSurfaceSlab(self)
+
+    def nanoparticle_window(self, menuitem):
+        SetupNanoparticle(self)
         
     def new_atoms(self, atoms):
         "Set a new atoms object."

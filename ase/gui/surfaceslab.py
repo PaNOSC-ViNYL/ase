@@ -1,12 +1,14 @@
 # encoding: utf-8
 """surfaceslab.py - Window for setting up surfaces
-
-This is part of the Visual ASE for teaching (vase) GUI.
 """
 
 import gtk
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.pybutton import PyButton
+from ase.gui.setupwindow import SetupWindow
+import ase.lattice.surface as _surf
+import ase
+import numpy as np
 
 introtext = """\
   Use this dialog to create surface slabs.  Select the element by
@@ -18,10 +20,6 @@ cases the non-orthogonal unit cell will contain fewer atoms.
   If the structure matches the experimental crystal structure, you can
 look up the lattice constant, otherwise you have to specify it
 yourself."""
-
-import ase.lattice.surface as _surf
-import ase
-import numpy as np
 
 # Name, structure, orthogonal, support-nonorthogonal, function
 surfaces = [('FCC(100)', 'fcc', True, False, _surf.fcc100),
@@ -42,23 +40,17 @@ atoms = %(func)s(symbol='%(symbol)s', size=%(size)s,
     a=%(a).3f, vacuum=%(vacuum).3f%(orthoarg)s)
 """
 
-class SetupSurfaceSlab(gtk.Window):
+class SetupSurfaceSlab(SetupWindow):
     """Window for setting up a surface."""
     def __init__(self, gui):
-        gtk.Window.__init__(self)
+        SetupWindow.__init__(self)
         self.set_title("Surface")
         self.atoms = None
 
         vbox = gtk.VBox()
 
         # Intoductory text
-        pack(vbox, gtk.Label(""))
-        txtframe = gtk.Frame()
-        txtlbl = gtk.Label(introtext)
-        txtframe.add(txtlbl)
-        txtlbl.show()
-        pack(vbox, txtframe)
-        pack(vbox, gtk.Label(""))
+        self.packtext(vbox, introtext)
              
         # Choose the element
         label = gtk.Label("Element: ")
@@ -124,39 +116,7 @@ class SetupSurfaceSlab(gtk.Window):
         self.show()
         self.gui = gui
 
-    def update_element(self, *args):
-        "Called when a new element may have been entered."
-        elem = self.element.get_text()
-        if not elem:
-            self.invalid_element("  No element specified!")
-            return False
-        try:
-            z = int(elem)
-        except ValueError:
-            # Probably a symbol
-            try:
-                z = ase.data.atomic_numbers[elem]
-            except KeyError:
-                self.invalid_element()
-                return False
-        try:
-            symb = ase.data.chemical_symbols[z]
-        except KeyError:
-            self.invalid_element()
-            return False
-        name = ase.data.atomic_names[z]
-        ref = ase.data.reference_states[z]
-        if ref is None:
-            struct = "No crystal structure data"
-        else:
-            struct = ref['symmetry'].lower()
-            if struct == 'fcc' or struct == 'bcc':
-                struct = "%s (a=%.3f Å)" % (struct, ref['a'])
-        
-        txt = "  %s: %s, Z=%i, %s" % (name, symb, z, struct)
-        self.elementinfo.set_text(txt)
-        self.legal_element = symb
-        return True
+    # update_element inherited from SetupWindow
 
     def update(self, *args):
         "Called when something has changed."
@@ -206,10 +166,6 @@ class SetupSurfaceSlab(gtk.Window):
         self.sizelabel.set_text(txt)
         return True
     
-    def invalid_element(self, txt="  ERROR: Invalid element!"):
-        self.legal_element = False
-        self.elementinfo.set_text(txt)
-
     def get_lattice_const(self, *args):
         if not self.update_element():
             oops("Invalid element.")
