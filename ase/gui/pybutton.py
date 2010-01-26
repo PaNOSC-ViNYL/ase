@@ -56,6 +56,7 @@ class PyWindow(gtk.Window):
     "A window displaying Python code."
     def __init__(self, title, time, code):
         gtk.Window.__init__(self)
+        self.set_title("ag: Python code")
         vbox = gtk.VBox()
         lbl = gtk.Label(fr1_template % (title, time))
         lbl.set_alignment(0.0, 0.5)
