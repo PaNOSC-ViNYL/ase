@@ -145,6 +145,11 @@ To use the climbing image NEB method, instantiate the NEB object like this::
 
   neb = NEB(images, climb=True)
 
+.. note::
+
+  Quasi-Newton methods, such as BFGS, are not well suited for climbing image
+  NEB calculations. FIRE have been known to give good results, although
+  convergence is slow.
 
 Parallelization over images
 ===========================
