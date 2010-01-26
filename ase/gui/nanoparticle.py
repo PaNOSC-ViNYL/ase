@@ -34,6 +34,7 @@ atoms = Cluster(symbol='%(element)s', layers=layers, latticeconstant=%(a).5f,
 class SetupNanoparticle(SetupWindow):
     "Window for setting up a nanoparticle."
     families = {'fcc': [(0,0,1), (0,1,1), (1,1,1)]}
+    defaults = {'fcc': [6, 9, 5]}
     
     def __init__(self, gui):
         SetupWindow.__init__(self)
@@ -164,7 +165,8 @@ class SetupNanoparticle(SetupWindow):
         surfaces = self.data_module.lattice[struct]['surface_names']
         # Get the surface families
         families = self.families[struct]
-
+        defaults = self.defaults[struct]
+        
         # Empty array for the gtk.Adjustments for the layer numbers
         self.layers = [None] * len(surfaces)
         self.layer_lbl = [None] * len(surfaces)
@@ -177,8 +179,10 @@ class SetupNanoparticle(SetupWindow):
         
         # Now, make a box for each family of surfaces
         frames = []
-        for i, family in enumerate(families):
-            frames.append(self.make_layer_family(i, family, surfaces))
+        for i in range(len(families)):
+            family = families[i]
+            default = defaults[i]
+            frames.append(self.make_layer_family(i, family, surfaces, default))
         for a in self.layers:
             assert a is not None
 
