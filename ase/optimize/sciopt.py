@@ -10,6 +10,9 @@ from ase.optimize import Optimizer
 class Converged(Exception):
     pass
 
+class OptimizerConvergenceError(Exception):
+    pass
+
 class SciPyOptimizer(Optimizer):
     """General interface for SciPy optimizers
 
@@ -107,11 +110,15 @@ class SciPyFminCG(SciPyOptimizer):
                              norm=np.inf,
                              #epsilon=
                              maxiter=steps,
-                             #full_output=1, 
+                             full_output=1,
                              disp=0,
                              #retall=0, 
                              callback=self.callback
                             )
+        warnflag = output[-1]
+        if warnflag == 2:
+            raise OptimizerConvergenceError('Warning: Desired error not necessarily achieved ' \
+                                            'due to precision loss')
 
 class SciPyFminBFGS(SciPyOptimizer):
     """Quasi-Newton method (Broydon-Fletcher-Goldfarb-Shanno)"""
@@ -124,11 +131,15 @@ class SciPyFminBFGS(SciPyOptimizer):
                                norm=np.inf,
                                #epsilon=1.4901161193847656e-08, 
                                maxiter=steps,
-                               #full_output=1, 
+                               full_output=1,
                                disp=0,
                                #retall=0, 
                                callback=self.callback
                               )
+        warnflag = output[-1]
+        if warnflag == 2:
+            raise OptimizerConvergenceError('Warning: Desired error not necessarily achieved' \
+                                            'due to precision loss')
 
 class SciPyGradientlessOptimizer(Optimizer):
     """General interface for gradient less SciPy optimizers
@@ -199,6 +210,9 @@ class SciPyGradientlessOptimizer(Optimizer):
 
     def load(self):
         pass
+
+    def call_fmin(self, fmax, steps):
+        raise NotImplementedError
 
 class SciPyFmin(SciPyGradientlessOptimizer):
     """Nelder-Mead Simplex algorithm
