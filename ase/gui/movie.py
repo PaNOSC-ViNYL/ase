@@ -62,7 +62,8 @@ class Movie(gtk.Window):
         #gui.m=self
         self.direction = 1
         self.id = None
-
+        gui.register_vulnerable(self)
+        
     def close(self, event):
         self.stop()
 

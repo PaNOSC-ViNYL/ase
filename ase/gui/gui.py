@@ -19,7 +19,7 @@
 
 import os
 import sys
-
+import weakref
 import numpy as np
 
 import gtk
@@ -237,7 +237,8 @@ class GUI(View, Status):
         self.window.show()
         self.graphs = []
         self.movie_window = None
-        
+        self.vulnerable_windows = []
+
     def run(self, expr=None):
         self.set_colors()
         self.set_coordinates(self.images.nimages - 1, focus=True)
@@ -458,12 +459,31 @@ class GUI(View, Status):
         
     def new_atoms(self, atoms):
         "Set a new atoms object."
+        self.zap_vulnerable()
         rpt = getattr(self.images, 'repeat', None)
         self.images.repeat_images(np.ones(3, int))
         self.images.initialize([atoms])
+        self.frame = 0   # Prevent crashes
         self.images.repeat_images(rpt)
         self.set_colors()
         self.set_coordinates(frame=0, focus=True)
+
+    def zap_vulnerable(self):
+        "Delete windows that would break when new_atoms is called."
+        for wref in self.vulnerable_windows:
+            ref = wref()
+            if ref is not None:
+                ref.destroy()
+        self.vulnerable_windows = []
+
+    def register_vulnerable(self, obj):
+        """Register windows that are vulnerable to changing the images.
+
+        Some windows will break if the atoms (and in particular the
+        number of images) are changed.  They can register themselves
+        and be closed when that happens.
+        """
+        self.vulnerable_windows.append(weakref.ref(obj))
 
     def exit(self, button, event=None):
         gtk.main_quit()
