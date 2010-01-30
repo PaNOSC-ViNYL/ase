@@ -282,9 +282,9 @@ class SetupNanoparticle(SetupWindow):
         self.atoms = self.Cluster(self.legal_element, layers=layers,
                                   latticeconstant=lc, symmetry=struct)
         self.pybut.python = py_template % {'element': self.legal_element,
-                                     'layers': str(layers),
-                                     'structure': struct,
-                                     'a': lc}
+                                           'layers': str(layers),
+                                           'structure': struct,
+                                           'a': lc}
         self.makeinfo()
 
     def clearatoms(self):

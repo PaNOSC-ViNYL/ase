@@ -30,6 +30,7 @@ from ase.gui.languages import translate as _
 from ase.gui.settings import Settings
 from ase.gui.surfaceslab import SetupSurfaceSlab
 from ase.gui.nanoparticle import SetupNanoparticle
+from ase.gui.nanotube import SetupNanotube
 
 
 ui_info = """\
@@ -78,6 +79,7 @@ ui_info = """\
     <menu action='SetupMenu'>
       <menuitem action='Surface'/>
       <menuitem action='Nanoparticle'/>
+      <menuitem action='Nanotube'/>
     </menu>
     <menu action='HelpMenu'>
       <menuitem action='About'/>
@@ -199,6 +201,9 @@ class GUI(View, Status):
             ('Nanoparticle', None, '_Nanoparticle', None,
              "Create a crystalline nanoparticle",
              self.nanoparticle_window),
+            ('Nanotube', None, 'Nano_tube', None,
+             "Create a nanotube",
+             self.nanotube_window),
             ('About', None, '_About', None,
              None,
              self.about),
@@ -456,6 +461,9 @@ class GUI(View, Status):
 
     def nanoparticle_window(self, menuitem):
         SetupNanoparticle(self)
+        
+    def nanotube_window(self, menuitem):
+        SetupNanotube(self)
         
     def new_atoms(self, atoms):
         "Set a new atoms object."
