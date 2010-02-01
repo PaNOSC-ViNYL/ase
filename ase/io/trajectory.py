@@ -68,13 +68,13 @@ class PickleTrajectory:
         self.fd = filename
         if mode == 'r':
             if isinstance(filename, str):
-                self.fd = open(filename, mode + 'b')
+                self.fd = open(filename, 'rb')
             self.read_header()
         elif mode == 'a':
             exists = True
             if isinstance(filename, str):
                 exists = os.path.isfile(filename)
-                self.fd = open(filename, mode + 'b+')
+                self.fd = open(filename, 'ab+')
             if exists:
                 self.read_header()
         elif mode == 'w':
@@ -98,6 +98,7 @@ class PickleTrajectory:
         self.atoms = atoms
 
     def read_header(self):
+        self.fd.seek(0)
         try:
             if self.fd.read(len('PickleTrajectory')) != 'PickleTrajectory':
                 raise IOError('This is not a trajectory file!')
