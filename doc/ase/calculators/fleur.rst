@@ -103,5 +103,5 @@ Lattice constant of fcc Ni
 
 .. literalinclude:: fcc_Ni_fleur.py
 
-See the :mod:`equation of states tutorial <eos>` for analysis of the results.
+See the :ref:`equation of states tutorial <eos>` for analysis of the results.
 
