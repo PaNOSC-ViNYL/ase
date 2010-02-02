@@ -11,7 +11,6 @@ import ase.cluster.data as data
 from ase import Atoms
 from ase.data import atomic_numbers, chemical_symbols, reference_states
 from ase.lattice.cubic import SimpleCubic, BodyCenteredCubic, FaceCenteredCubic, Diamond
-from asap3 import FullNeighborList
 
 class Cluster(Atoms):
     _datasyn = {'numbers':       ('number',       int,   ()  ),
@@ -259,6 +258,7 @@ class Cluster(Atoms):
 
     def make_neighborlist(self):
         """Generate a lists with nearest neighbors, types and coordinations"""
+        from asap3 import FullNeighborList
         neighbor_cutoff = data.lattice[self.symmetry]['neighbor_cutoff']
         neighbor_cutoff *= self.lattice_constant
         neighbor_numbers = data.lattice[self.symmetry]['neighbor_numbers']
