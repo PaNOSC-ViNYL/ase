@@ -13,7 +13,7 @@ for manipulating atoms, analyzing simulations, visualization etc.
 
 Supported :mod:`calculators`:
 
-   |abinit| |Asap| |elk| |exciting| |EMT| |fhi-aims| |gpaw| |hotbit| 
+   |abinit| |Asap| |elk| |exciting| |EMT| |fhi-aims| |fleur| |gpaw| |hotbit| 
    |jacapo| |siesta| |turbomole| |vasp| 
 
 .. |abinit| image:: _static/abinit.png
@@ -33,6 +33,9 @@ Supported :mod:`calculators`:
    :align: middle   
 .. |EMT| image:: _static/emt.png
    :target: ase/calculators/emt.html
+   :align: middle
+.. |fleur| image:: _static/fleur.png
+   :target: ase/calculators/fleur.html
    :align: middle
 .. |gpaw| image:: _static/gpaw.png
    :target: http://wiki.fysik.dtu.dk/gpaw
