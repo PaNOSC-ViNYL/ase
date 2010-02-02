@@ -51,7 +51,8 @@ class FLEUR:
     
     """
     def __init__(self, xc='LDA', kpts=None, nbands=None, convergence=None,
-                 width=None, kmax=None, mixer=None, workdir=None):
+                 width=None, kmax=None, mixer=None, maxiter=40, 
+                 maxrelax=20, workdir=None):
 
         """Construct FLEUR-calculator object.
 
@@ -74,6 +75,10 @@ class FLEUR:
         mixer: dictionary
             Mixing parameters imix, alpha, spinf 
             {'imix' : int, 'alpha' : float, 'spinf' : float}
+        maxiter: int
+            Maximum number of SCF iterations
+        maxrelax: int
+            Maximum number of relaxation steps
         workdir: str
             Working directory for the calculation
         """
@@ -83,8 +88,8 @@ class FLEUR:
         self.nbands = nbands
         self.width = width
         self.kmax = kmax
-        self.maxiter = 40
-        self.maxrelax = 20
+        self.maxiter = maxiter
+        self.maxrelax = maxrelax
         self.mixer = mixer
 
         if convergence:
@@ -195,6 +200,9 @@ class FLEUR:
         """Converge a FLEUR calculation to self-consistency.
 
            Input files should be generated before calling this function
+           FLEUR performs always fixed number of SCF steps. This function
+           reduces the number of iterations gradually, however, a minimum
+           of five SCF steps is always performed.
         """
                       
         os.chdir(self.workdir)
