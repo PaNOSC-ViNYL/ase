@@ -21,7 +21,7 @@ set path=($HOME/iso $path)
 
 import math,os,re,string
 
-from Scientific.Geometry import *
+from Scientific.Geometry import Vector
 
 class FINDSYM:
     def __init__(self,atoms,outfile=None):
@@ -79,8 +79,6 @@ class FINDSYM:
             f = open(outfile,'w')
             f.writelines(self.output)
             f.close()
-        else:
-            print string.join(self.output,'')
 
         if os.path.exists('findsym.log'):
             os.remove('findsym.log')

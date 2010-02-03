@@ -1,5 +1,5 @@
-import commands, os, string
-from ase import *
+import commands, os, string, tempfile, shutil
+from ase import write
 from ase.units import Bohr
 
 class Bader:
@@ -60,23 +60,42 @@ class Bader:
 
         #get density and write cube file
         calc = atoms.get_calculator()
-        x,y,z,density = calc.get_charge_density()
-        cubefile = 'charge_density.cube'
-        write(cubefile, atoms,data=density*Bohr**3)
-        self.densityfile = cubefile
-        
-        #cmd to run for bader analysis
-        cmd = 'bader %s' % cubefile
-        status,output = commands.getstatusoutput(cmd)
+        ncfile = calc.get_nc()
+        base,ext = os.path.splitext(ncfile)
 
-        if status != 0:
-            print output
+        x,y,z,density = calc.get_charge_density()
+        cubefile = base + '_charge_density.cube'
+        self.densityfile = cubefile
+
+        if not os.path.exists(cubefile):
+            write(cubefile, atoms,data=density*Bohr**3)
+        
+        #cmd to run for bader analysis. check if output exists so we
+        #don't run this too often.
+        acf_file = base + '_ACF.dat'
+        if not os.path.exists(acf_file):
+            #mk tempdir
+            tempdir = tempfile.mkdtemp()
+            
+            cwd = os.getcwd()
+            os.chdir(tempdir)
+            
+            cmd = 'bader %s' % abscubefile
+            status,output = commands.getstatusoutput(cmd)
+            
+            if status != 0:
+                print output
+
+            shutil.copy2('ACF.dat',os.path.join(cwd,acf_file))
+            
+            os.chdir(cwd)
+            shutil.rmtree(tempdir)
 
         self.charges = []
         self.volumes = []
 
         #now parse the output
-        f = open('ACF.dat','r')
+        f = open(acf_file,'r')
         #skip 2 lines
         f.readline()
         f.readline()

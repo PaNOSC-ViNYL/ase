@@ -166,8 +166,8 @@ class Wannier:
       return self.fftindex
 
    def get_grid_dimensions(self):
-      (soft,hard) = self.calc.get_fftgrid()
-      return soft
+      fftgrids = self.calc.get_fftgrid()
+      return fftgrids['soft']
       
    def get_list_of_wave_functions(self):
       if self.get_spin() == None or self.get_bands() == None:

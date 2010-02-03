@@ -30,7 +30,7 @@ from Scientific.Geometry import *
 from Scientific.IO.FortranFormat import *
 from numpy import *
 
-class SpaceGroup:
+class SGROUP:
 
     def __init__(self,atoms,outfile=None):
 
@@ -175,7 +175,7 @@ if __name__ == '__main__':
     
     for ncfile in args:       
 
-        sg = SpaceGroup(Jacapo.read_atoms(ncfile),outfile=options.o)
+        sg = SGROUP(Jacapo.read_atoms(ncfile),outfile=options.o)
 
         print sg.get_space_group()
     

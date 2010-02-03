@@ -2,6 +2,9 @@
 from optparse import OptionParser
 from ase.calculators.jacapo import *
 from Scientific.IO.NetCDF import NetCDFFile as NetCDF
+import os
+
+os.environ['DACAPO_READONLY'] = 'On'
 
 parser = OptionParser(usage='ncsum',
                       version='0.1')

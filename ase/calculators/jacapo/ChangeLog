@@ -1,3 +1,16 @@
+
+2009-12-21  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (get_dipole_moment): fixed code to actually calculate the dipole moment.
+
+2009-12-08  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py: fixed get_forces for when atoms is None, e.g. when the calculator itself tries to get the forces, not the atoms.
+	(Jacapo.get_pseudopotentials): added this function.
+	(Jacapo.get_ncoutput): added this function.
+	(Jacapo.get_debug): added this function.
+	(_set_electronic_minimization): added all the _set_kw methods
+
 2009-04-14  John Tester  <jkitchin@andrew.cmu.edu>
 
 	* jacapo.py (Jacapo.get_spin_polarized): added variable existence check so that __str__ works if spin-polarization or nbands has not been defined.

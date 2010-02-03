@@ -1,8 +1,8 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from Jacapo import *
-from ase.dft.dos import *
+from ase.calculators.jacapo import *
+from ase.dft.dos import DOS
 
 class BandStructure:
     '''outline of class to facilitate band structure calculations
@@ -119,9 +119,12 @@ class BandStructure:
     def plot(self):
         '''
         Make an interactive band-structure plot.
+
+        clicking on a band will make it thicker and print which band was selected.
         '''
 
         kpoints = self.calc.get_ibz_kpoints()
+        
         eigenvalues = self.calc.get_all_eigenvalues() - self.ef
         #eigenvalues = np.array([self.calc.get_eigenvalues(kpt=i)-self.ef
         #                        for i in range(len(kpoints))])

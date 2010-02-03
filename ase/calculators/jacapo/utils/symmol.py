@@ -87,7 +87,7 @@ class SYMMOL:
         [Ia, Ib, Ic, degen] =  data.split()
         return [float(Ia), float(Ib), float(Ic), int(degen)]
 
-    def get_symmetry_group_matrices(self):
+    def get_symmetry_operators(self):
         regexp = re.compile(' SYMMETRY GROUP MATRICES')
         reg2 =  re.compile('^  \d+ CSM')
         
@@ -111,7 +111,7 @@ class SYMMOL:
                 
         
 
-if __name__ == '__main__':
+if __name__ == '__test__':
 
     from ase import *
     from ase.data import molecules
@@ -124,32 +124,33 @@ if __name__ == '__main__':
     print sg.get_point_group()
     print sg.get_moments_of_inertia()
     print atoms.get_moments_of_inertia()
-    print sg.get_symmetry_group_matrices()
+    print sg.get_symmetry_operators()
 
-##if __name__ == '__main__':
-##    from ase.calculators.jacapo import *
-##    from optparse import OptionParser
+if __name__ == '__main__':
+    from ase.calculators.jacapo import *
+    from optparse import OptionParser
 
-##    parser = OptionParser(usage='symmol.py ncfile',
-##                      version='0.1')
+    parser = OptionParser(usage='symmol.py ncfile',
+                      version='0.1')
 
-##    parser.add_option('-f',
-##                      nargs=0,
-##                      help = 'print full output')
+    parser.add_option('-f',
+                      nargs=0,
+                      help = 'print full output')
 
-##    parser.add_option('-o',
-##                      nargs=1,
-##                      help = 'save output in filename')
+    parser.add_option('-o',
+                      nargs=1,
+                      help = 'save output in filename')
 
-##    options,args = parser.parse_args()
+    options,args = parser.parse_args()
     
-##    for ncfile in args:       
+    for ncfile in args:       
 
-##        sg = SYMMOL(Jacapo.read_atoms(ncfile),outfile=options.o)
+        sy = SYMMOL(Jacapo.read_atoms(ncfile),outfile=options.o)
 
-##        print sg.get_point_group()
-##        print sg.get_moments_of_inertia()
-##        if options.f is not None:
-##            print sg
+        print 'Point group = ',sy.get_point_group()
+        print 'Moments of inertia = ',sy.get_moments_of_inertia()
+        print 'Symmetry operators = ',sy.get_symmetry_operators()
+        if options.f is not None:
+            print sy
 
  
