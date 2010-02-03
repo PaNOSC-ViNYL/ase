@@ -60,8 +60,8 @@ keyword          type       default value   description
 ``xc``           ``str``    ``'LDA'``       XC-functional. Must be one 
                                             of 'LDA', 'PBE', 'RPBE'
 ``kpts``         *seq*      `\Gamma`-point  **k**-point sampling
-``convergence``  *dict*     {'energy' :     Convergence criteria (meV)
-                             0.0001}
+``convergence``  *dict*     ``{'energy':    Convergence criteria (meV)
+                            0.0001}``
 ``width``        ``float``                  Width of Fermi smearing (eV)
 ``kmax``         ``float``                  Plane-wave cut-off (a.u.)
 ``mixer``        *dict*                     Mixing parameters 'imix',
