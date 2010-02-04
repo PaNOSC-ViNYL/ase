@@ -11,10 +11,11 @@ s = Atoms('He' + str(N),
 s.set_calculator(LennardJones())
 
 ftraj = 'lowest.traj'
+traj = PickleTrajectory(ftraj, 'w', s)
 bh = BasinHopping(s, 
                   temperature=100 * kB, dr=0.5, 
-                  trajectory=ftraj,
                   optimizer_logfile=None)
+bh.attach(traj)
 bh.run(10)
 
 Emin, smin = bh.get_minimum()
@@ -23,6 +24,7 @@ Emin, smin = bh.get_minimum()
 smin.set_calculator(LennardJones())
 E = smin.get_potential_energy()
 assert abs(E - Emin) < 1e-15
+traj.close()
 smim = read(ftraj)
 E = smin.get_potential_energy()
 assert abs(E - Emin) < 1e-15
