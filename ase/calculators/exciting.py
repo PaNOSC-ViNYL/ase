@@ -83,6 +83,7 @@ class Exciting:
             os.mkdir(self.dir)
         root = atoms2etree(atoms)
         root.find('structure').attrib['speciespath'] = self.speciespath
+        root.find('structure').attrib['autormt'] = 'false'
         groundstate = ET.SubElement(root, 'groundstate', tforce='true')
         for key, value in self.groundstate_attributes.items():
             groundstate.attrib[key] = str(value)
