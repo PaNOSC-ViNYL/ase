@@ -120,7 +120,7 @@ class Jacapo:
           debug : integer
            debug level. higher sometime means more output
 
-        :Valid kwargs:
+        Valid kwargs:
 
           atoms : ASE.Atoms instance
             atoms is an ase.Atoms object that will be attached
@@ -799,19 +799,19 @@ class Jacapo:
         '''
         set the kpt grid.
 
-        :Parameters:
+        Parameters:
 
-        kpts : (n1,n2,n3) or [k1,k2,k3,...] or one of these
+        kpts: (n1,n2,n3) or [k1,k2,k3,...] or one of these
         chadi-cohen sets:
          
-        cc6_1x1
-        cc12_2x3
-        cc18_sq3xsq3
-        cc18_1x1
-        cc54_sq3xsq3
-        cc54_1x1
-        cc162_sq3xsq3
-        cc162_1x1
+        * cc6_1x1
+        * cc12_2x3
+        * cc18_sq3xsq3
+        * cc18_1x1
+        * cc54_sq3xsq3
+        * cc54_1x1
+        * cc162_sq3xsq3
+        * cc162_1x1
         
         (n1,n2,n3) creates an n1 x n2 x n3 monkhorst-pack grid,
         [k1,k2,k3,...] creates a kpt-grid based on the kpoints
@@ -3796,28 +3796,26 @@ s.recv(14)
         return recind
 
     def get_ensemble_coefficients(self):
-        '''
-        adapted from ASE/dacapo.py
-        def GetEnsembleCoefficients(self):
-            self.Calculate()
-            E = self.GetPotentialEnergy()
-            xc = self.GetNetCDFEntry('EnsembleXCEnergies')
-            Exc = xc[0]
-            exc_c = self.GetNetCDFEntry('EvaluateCorrelationEnergy')
-            exc_e =  self.GetNetCDFEntry('EvaluateExchangeEnergy')
-            exc = exc_c + exc_e
-            if self.GetXCFunctional() == 'RPBE':
-                    Exc = exc[-1][-1]
-
-            E0 = xc[1]       # Fx = 0
-
-            diff0 = xc[2] # - Exc
-            diff1 = xc[3] # - Exc
-            diff2 = xc[4] # - Exc
-            coefs = (E + E0 - Exc,diff0-E0 ,diff1-E0,diff2-E0)
-            print 'ensemble: (%.9f, %.9f, %.9f, %.9f)'% coefs
-            return num.array(coefs)
-        '''
+        # adapted from ASE/dacapo.py
+        # def GetEnsembleCoefficients(self):
+        #     self.Calculate()
+        #     E = self.GetPotentialEnergy()
+        #     xc = self.GetNetCDFEntry('EnsembleXCEnergies')
+        #     Exc = xc[0]
+        #     exc_c = self.GetNetCDFEntry('EvaluateCorrelationEnergy')
+        #     exc_e =  self.GetNetCDFEntry('EvaluateExchangeEnergy')
+        #     exc = exc_c + exc_e
+        #     if self.GetXCFunctional() == 'RPBE':
+        #             Exc = exc[-1][-1]
+        # 
+        #     E0 = xc[1]       # Fx = 0
+        # 
+        #     diff0 = xc[2] # - Exc
+        #     diff1 = xc[3] # - Exc
+        #     diff2 = xc[4] # - Exc
+        #     coefs = (E + E0 - Exc,diff0-E0 ,diff1-E0,diff2-E0)
+        #     print 'ensemble: (%.9f, %.9f, %.9f, %.9f)'% coefs
+        #     return num.array(coefs)
         if self.calculation_required():
             self.calculate()
 
