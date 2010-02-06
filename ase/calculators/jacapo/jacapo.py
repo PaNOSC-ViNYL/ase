@@ -1258,22 +1258,24 @@ class Jacapo:
 
         if not hasattr(self,'psp'):
             self.set_psp_database()
-            
-        self.psp[sym] = psp
-        self.ready = False
-        self.set_status('new')
-        
-        #now we update the netcdf file
-        ncf = netCDF(self.nc,'a')
-        vn = 'AtomProperty_%s' % sym
-        if vn not in ncf.variables:
-            p = ncf.createVariable(vn,'c',('dim20',))
-        else:
-            p = ncf.variables[vn]
 
-        ppath = self.get_psp(sym=sym)
-        p.PspotFile = ppath
-        ncf.close()
+        #only make change if needed
+        if self.psp[sym] != psp:
+            self.psp[sym] = psp
+            self.ready = False
+            self.set_status('new')
+
+            #now we update the netcdf file
+            ncf = netCDF(self.nc,'a')
+            vn = 'AtomProperty_%s' % sym
+            if vn not in ncf.variables:
+                p = ncf.createVariable(vn,'c',('dim20',))
+            else:
+                p = ncf.variables[vn]
+
+            ppath = self.get_psp(sym=sym)
+            p.PspotFile = ppath
+            ncf.close()
 
     def get_pseudopotentials(self):
         'get pseudopotentials set for atoms attached to calculator'
@@ -1423,6 +1425,8 @@ class Jacapo:
         nc = netCDF(self.get_nc(),'a')
         if 'ExternalPotential' in nc.variables:
             v = nc.variables['ExternalPotential']
+            print dir(v)
+            print v.typecode()
         else:
             # I assume here you have the dimensions of potgrid correct
             # and that the soft and hard grids are the same. 
@@ -1442,7 +1446,7 @@ class Jacapo:
                                   ('softgrid_dim1',
                                    'softgrid_dim2',
                                    'softgrid_dim3',))
-        
+        print potgrid.dtype
         v[:] = potgrid
         nc.sync()
         nc.close()
@@ -1985,14 +1989,25 @@ class Jacapo:
         return ft
     
     def get_dipole(self):
-        'return True if the DipoleCorrection was used'
+        'return dictionary of parameters if the DipoleCorrection was used'
         nc = netCDF(self.get_nc(),'r')
+        pars = {}
         if 'DipoleCorrection' in nc.variables:
-            getdip = True
+            v = nc.variables['DipoleCorrection']
+            pars['status'] = True
+            if hasattr(v,'MixingParameter'):
+                pars['mixpar'] = v.MixingParameter
+            if hasattr(v,'InitialValue'):
+                pars['initval'] = v.InitialValue
+            if hasattr(v,'AdditiveDipoleField'):
+                pars['adddipfield'] = v.AdditiveDipoleField
+            if hasattr(v,'DipoleLayerPosition'):
+                pars['position'] = v.DipoleLayerPosition
+            
         else:
-            getdip = False
+            pars = False
         nc.close()
-        return getdip
+        return pars
         
     def get_pw(self):
         'return the planewave cutoff used'
@@ -4057,10 +4072,10 @@ s.recv(14)
 
     def valid_extpot(self, x):
         grids = self.get_fftgrid()
-        if x.shape != grids['soft'].shape:
-            return False
-        else:
+        if (x.shape == np.array(grids['soft'])).all():
             return True
+        else:
+            return False
 
     def valid_ascii_debug(self, x):
         return (x in ['Off', 'MediumLevel', 'HighLevel'])
@@ -4319,6 +4334,39 @@ s.recv(14)
             if x[key] != pars[key]:
                 return True
         return False
+
+    def dipole_changed(self,x):
+        pars = self.get_dipole()
+        if pars is False and x is False:
+            return False
+        elif pars is not False:
+            for key in x:
+                if x[key] != pars[key]:
+                    return True
+            return False
+
+    def extpot_changed(self,x):
+        extpot = self.get_extpot()
+        if (x == extpot).all():
+            return False
+        return True
+
+    def nbands_changed(self,x):
+        if self.get_nbands() == x:
+            return False
+        else:
+            return True
+
+    def pw_changed(self,x):
+        if self.get_pw() == x:
+            return False
+        else:
+            return True
+    def ft_changed(self,x):
+        if self.get_ft() == x:
+            return False
+        else:
+            return True
     
 # shortcut function names
 Jacapo.get_cd = Jacapo.get_charge_density
