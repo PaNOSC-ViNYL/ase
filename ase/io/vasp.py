@@ -6,27 +6,77 @@ Atoms object in VASP POSCAR format.
 
 import os
 
-def atomtypes_outpot(vaspdir=''):
+def get_atomtypes(fname):
+    """Given a file name, get the atomic symbols. 
+
+    The function can get this information from OUTCAR and POTCAR
+    format files.  The files can also be compressed with gzip or
+    bzip2.
+
+    """
+    atomtypes=[]
+    if fname.find('.gz') != -1:
+        import gzip
+        f = gzip.open(fname)
+    elif fname.find('.bz2') != -1:
+        import bz2
+        f = bz2.BZ2File(fname)
+    else:
+        f = open(fname)
+    for line in f:
+        if line.find('TITEL') != -1:
+            atomtypes.append(line.split()[3].split('_')[0].split('.')[0])
+    return atomtypes
+
+def atomtypes_outpot(posfname, numsyms):
     """Try to retreive chemical symbols from OUTCAR or POTCAR
     
     If getting atomtypes from the first line in POSCAR/CONTCAR fails, it might
     be possible to find the data in OUTCAR or POTCAR, if these files exist.
 
-    vaspdir -- The directory where OUTCAR and POTCAR are found
+    posfname -- The filename of the POSCAR/CONTCAR file we're trying to read
+    
+    numsyms -- The number of symbols we must find
 
     """
-    try:
-        file_outcar = ReadOUTCAR(vaspdir)
-        atomtypes = file_outcar.atom_types()
-    except IOError:
+    import os.path as op
+    import glob
+
+    # First check files with exactly same name except POTCAR/OUTCAR instead
+    # of POSCAR/CONTCAR.
+    fnames = [posfname.replace('POSCAR', 'POTCAR').replace('CONTCAR', 
+                                                           'POTCAR')]
+    fnames.append(posfname.replace('POSCAR', 'OUTCAR').replace('CONTCAR',
+                                                               'OUTCAR'))
+    # Try the same but with compressed files
+    fsc = []
+    for fn in fnames:
+        fsc.append(fn + '.gz')
+        fsc.append(fn + '.bz2')
+    for f in fsc:
+        fnames.append(f)
+    # Finally try anything with POTCAR or OUTCAR in the name
+    vaspdir = op.dirname(posfname)
+    fs = glob.glob(vaspdir + '*POTCAR*')
+    for f in fs:
+        fnames.append(f)
+    fs = glob.glob(vaspdir + '*OUTCAR*')
+    for f in fs:
+        fnames.append(f)
+
+    tried = []
+    for fn in fnames:
+        tried.append(fn)
         try:
-            file_potcar = ReadPOTCAR(vaspdir)
-            atomtypes = file_potcar.atom_types()
+            at = get_atomtypes(fn)
+            if len(at) == numsyms:
+                return at
         except IOError:
-            print 'ERROR: Could not determine chemical symbols either from '
-            print 'the input file itself, *POTCAR* or *OUTCAR*\n'
-            raise # Rethrow the last exception (probably didn't find POTCAR)
-    return atomtypes
+            pass
+
+    raise IOError('Could not determine chemical symbols. Tried files ' 
+                  + str(tried))
+
 
 def read_vasp(filename='CONTCAR'):
     """Import POSCAR/CONTCAR type file.
@@ -36,7 +86,6 @@ def read_vasp(filename='CONTCAR'):
     the atom types are read from OUTCAR or POTCAR file.
     """
  
-    import os
     from ase import Atoms, Atom
     from ase.constraints import FixAtoms, FixScaled
     from ase.data import chemical_symbols
@@ -47,7 +96,6 @@ def read_vasp(filename='CONTCAR'):
     else: # Assume it's a file-like object
         f = filename
 
-    vaspdir = os.path.dirname(f.name)
     # First line should contain the atom symbols , eg. "Ag Ge" in
     # the same order
     # as later in the file (and POTCAR for the full vasp run)
@@ -76,16 +124,17 @@ def read_vasp(filename='CONTCAR'):
     except ValueError:
         numofatoms = f.readline().split()
 
-    if len(atomtypes) < len(numofatoms):
+    numsyms = len(numofatoms)
+    if len(atomtypes) < numsyms:
         # First line in POSCAR/CONTCAR didn't contain enough symbols.
-        atomtypes = atomtypes_outpot(vaspdir)
+        atomtypes = atomtypes_outpot(f.name, numsyms)
     else:
         try:
-            for atype in atomtypes[:len(numofatoms)]:
+            for atype in atomtypes[:numsyms]:
                 if not atype in chemical_symbols:
                     raise KeyError
         except KeyError:
-            atomtypes = atomtypes_outpot(vaspdir)
+            atomtypes = atomtypes_outpot(f.name, numsyms)
 
     for i, num in enumerate(numofatoms):
         numofatoms[i] = int(num)
@@ -237,70 +286,3 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None, symbol_count 
 
     if type(filename) == str:
         f.close()
-
-class ReadPOTCAR:
-    """Class that read data from POTCAR file.
-
-    Directory can be specified, default is current directory.
-    """
-    def __init__(self,vaspdir='./'):
-        fn = os.path.join(vaspdir, 'POTCAR')
-        if os.path.exists(fn):
-            self._file = fn
-        else:
-            import glob
-            f = glob.glob(vaspdir + '*POTCAR*')
-            if len(f) > 0:
-                self._file = f[0]
-            else:
-                raise IOError('No file matching *POTCAR* found')
-
-    def atom_types(self):
-        """Method that returns list of atomtypes."""
-        atomtypes=[]
-        if self._file.find('.gz') != -1:
-            import gzip
-            f = gzip.open(self._file)
-        elif self._file.find('.bz2') != -1:
-            import bz2
-            f = bz2.BZ2File(self._file)
-        else:
-            f = open(self._file) 
-        for line in f:
-            if line.find('TITEL') != -1:
-                atomtypes.append(line.split()[3].split('_')[0].split('.')[0])
-        return atomtypes
-
-class ReadOUTCAR:
-    """Class that read data from OUTCAR file. 
-
-    Directory can be specified, default is current directory.
-    """
-    def __init__(self,vaspdir='./'):
-        fn = os.path.join(vaspdir, 'OUTCAR')
-        if os.path.exists(fn):
-            self._file = fn
-        else:
-            import glob
-            f = glob.glob(vaspdir + '*OUTCAR*')
-            if len(f) > 0:
-                self._file = f[0]
-            else:
-                raise IOError('No file matching *OUTCAR* found')
-
-    def atom_types(self):
-        """Method that returns list of atomtypes."""
-        atomtypes=[]
-        if self._file.find('.gz') != -1:
-            import gzip
-            f = gzip.open(self._file)
-        elif self._file.find('.bz2') != -1:
-            import bz2
-            f = bz2.BZ2File(self._file)
-        else:
-            f = open(self._file)
-        for line in f:
-            if line.find('TITEL') != -1:
-                atomtypes.append(line.split()[3].split('_')[0].split('.')[0])
-        return atomtypes
-
