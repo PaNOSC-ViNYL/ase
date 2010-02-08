@@ -2895,7 +2895,7 @@ s.recv(14)
         nc = netCDF(ncfile,'r')
         #some ncfiles do not have atoms in them
         if 'UnitCell' not in nc.variables:
-            print 'UnitCell not found, there are probably no atoms in ',ncfile
+            #print 'UnitCell not found, there are probably no atoms in ',ncfile
             nc.close()
             return None
         
