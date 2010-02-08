@@ -52,12 +52,6 @@ def read_vasp(filename='CONTCAR'):
     # the same order
     # as later in the file (and POTCAR for the full vasp run)
     atomtypes = f.readline().split()
-    try:
-        for atype in atomtypes:
-           if not atype in chemical_symbols:
-              raise KeyError
-    except KeyError:
-        atomtypes = atomtypes_outpot(vaspdir)
 
     lattice_constant = float(f.readline())
 
@@ -85,6 +79,14 @@ def read_vasp(filename='CONTCAR'):
     if len(atomtypes) < len(numofatoms):
         # First line in POSCAR/CONTCAR didn't contain enough symbols.
         atomtypes = atomtypes_outpot(vaspdir)
+    else:
+        try:
+            for atype in atomtypes[:len(numofatoms)]:
+                if not atype in chemical_symbols:
+                    raise KeyError
+        except KeyError:
+            atomtypes = atomtypes_outpot(vaspdir)
+
     for i, num in enumerate(numofatoms):
         numofatoms[i] = int(num)
         [atom_symbols.append(atomtypes[i]) for na in xrange(numofatoms[i])]
