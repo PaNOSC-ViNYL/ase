@@ -1,7 +1,7 @@
 """
-This module contains the class Atoms which extends ase Atoms
-to handle VASP simulations. It will only work with ASE-3.0 and later
-versions.
+This module contains functionality for reading and writing an ASE
+Atoms object in VASP POSCAR format.
+
 """
 
 import os
