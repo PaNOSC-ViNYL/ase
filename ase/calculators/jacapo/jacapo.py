@@ -1771,8 +1771,10 @@ class Jacapo:
         self.ready = False
 
     def _set_external_dipole(self,x):
-        if x is not None:
+        if x is not None and isinstance(x,dict):
             self.set_external_dipole(**x)
+        elif x is not None and isinstance(x,float):
+            self.set_external_dipole(x)
 
     def set_external_dipole(self,
                             value,
@@ -1797,9 +1799,9 @@ class Jacapo:
         if var in nc.variables:
             v = nc.variables[var]
         else:
-            v = nc.createVariable('ExternalDipolePotential','d')
-
-        v.setValue(value)
+            v = nc.createVariable('ExternalDipolePotential','d',())
+        
+        v.assignValue(value)
         if position is not None:
             v.DipoleLayerPosition = position
 
@@ -4146,6 +4148,9 @@ s.recv(14)
     def valid_external_dipole(self, x):
         if x is None:
             return
+        if self.valid_float(x):
+            return True
+        
         valid_keys = ['value','position']
         for key in x:
             if key not in valid_keys:
