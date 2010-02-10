@@ -984,13 +984,13 @@ class Atoms(object):
         bxa /= np.sqrt(np.vdot(bxa,bxa))
         cxb  = np.cross(c,b)
         cxb /= np.sqrt(np.vdot(cxb,cxb))
-        angle = np.arccos(np.vdot(bxa,cxb))
-        # check sign of angle: if (b x a) . c > 0 then add pi
-        if np.vdot(bxa,c) > 1e-20:
-            add = np.pi
-        else:
-            add = 0
-        return angle+add
+        angle = np.vdot(bxa,cxb)
+        # check for numerical trouble due to finite precision:
+        if angle < -1: angle = -1
+        if angle >  1: angle =  1
+        angle = np.arccos(angle)
+        if (np.vdot(bxa,c)) > 0: angle = 2*np.pi-angle
+        return angle
 
     def set_dihedral(self,list,angle,mask=None):
         """
