@@ -76,7 +76,9 @@ def analyse (exctyp, value, tb):
 					assert not name and not scope
 					scope, val = lookup (tstr, frame, lcls)
 					name = tstr
-				if val:
+				if hasattr(val, "shape") and len(val):
+					prev = val
+				elif val:
 					prev = val
 				#print '  found', scope, 'name', name, 'val', val, 'in', prev, 'for token', tstr
 			elif tstr == '.':
