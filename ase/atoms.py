@@ -909,7 +909,7 @@ class Atoms(object):
             c = np.dot(v, v2)
             v = np.cross(v, v2)
             s = norm(v)
-            v /= s
+            if s > 0: v /= s
         
         if isinstance(center, str) and center.lower() == 'com':
             center = self.get_center_of_mass()
