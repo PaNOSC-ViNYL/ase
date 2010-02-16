@@ -13,6 +13,25 @@ def paropen(name, mode='r', buffering=0):
         name = '/dev/null'
     return open(name, mode, buffering)
 
+def parprint(*args, **kwargs):
+    """MPI save print - prints only from master.
+
+    Tries to adopt python 3 behaviour.
+    """
+    if rank > 0:
+        return
+    defaults = { 'end' : '\n',
+                 'file' : sys.stdout }
+    for key in defaults:
+        if not key in kwargs:
+            kwargs[key] = defaults[key]
+    
+    for arg in args[:-1]:
+        print >> kwargs['file'], arg,
+    if kwargs['end'] == '\n':
+        print args[-1]
+    else:
+        print args[-1],
 
 # Check for special MPI-enabled Python interpreters:
 if '_gpaw' in sys.modules:
