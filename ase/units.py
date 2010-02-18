@@ -15,7 +15,7 @@ _k = 1.380658e-23            # Boltzmann constant
 _amu = 1.6605402e-27 
 
 Ang = Angstrom = 1.0
-nm = 0.1
+nm = 10.0
 Bohr = 4e10 * pi * _eps0 * _hbar**2 / _me / _e**2  # Bohr radius
 
 eV = 1.0
