@@ -17,7 +17,6 @@ def write_cfg(f, a):
     f.write('Number of particles = %i\n' % len(a))
     f.write('A = 1.0 Angstrom\n')
     cell = a.get_cell()
-    inv_cell = np.linalg.inv(cell)
     for i in range(3):
         for j in range(3):
             f.write('H0(%1.1i,%1.1i) = %f A\n' % ( i + 1, j + 1, cell[i, j] ))
@@ -50,13 +49,14 @@ def write_cfg(f, a):
                     i += 1
 
     # Distinct elements
+    spos = a.get_scaled_positions()
     for i in a:
         el  = i.get_symbol()
 
         f.write('%f\n' % ase.data.atomic_masses[ase.data.chemical_symbols.index(el)])
         f.write('%s\n' % el)
 
-        x, y, z = np.dot(inv_cell, i.get_position())
+        x, y, z = spos[i.index, :]
         s =  '%e %e %e ' % ( x, y, z )
 
         if type(vels) == np.ndarray:
@@ -187,7 +187,7 @@ def read_cfg(f):
         s  = read_str_key(f, 'auxiliary[%1.1i]' % i, 'auxiliary[%2.2i]' % i)
         auxstrs += [ s[:s.find('[')].strip() ]
 
-    pos      = np.zeros( [ nat, 3 ] )
+    spos     = np.zeros( [ nat, 3 ] )
     masses   = np.zeros( nat )
     syms     = [ '' for i in range(nat) ]
 
@@ -205,7 +205,7 @@ def read_cfg(f):
             syms[i]    = sym
             props      = [ float(x) for x in s ]
 
-            pos[i, :]  = np.dot(cell, props[0:3]) 
+            spos[i, :] = props[0:3]
             off        = 3
             if vels is not None:
                 off         = 6
@@ -221,20 +221,20 @@ def read_cfg(f):
                 
     if vels is None:
         a = ase.Atoms(
-            symbols    = syms,
-            masses     = masses,
-            positions  = pos,
-            cell       = cell,
-            pbc        = True
+            symbols           = syms,
+            masses            = masses,
+            scaled_positions  = spos,
+            cell              = cell,
+            pbc               = True
         )
     else:
         a = ase.Atoms(
-            symbols    = syms,
-            masses     = masses,
-            positions  = pos,
-            momenta    = masses*vels,
-            cell       = cell,
-            pbc        = True
+            symbols           = syms,
+            masses            = masses,
+            scaled_positions  = spos,
+            momenta           = masses*vels,
+            cell              = cell,
+            pbc               = True
         )
 
     i  = 0
