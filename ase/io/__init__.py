@@ -183,7 +183,7 @@ def read(filename, index=-1, format=None):
         from ase.io.cfg import read_cfg
         return read_cfg(filename)
 
-    raise RuntimeError('That can *not* happen!')
+    raise RuntimeError('File format descriptor '+format+' not recognized!')
 
 
 def write(filename, images, format=None, **kwargs):
