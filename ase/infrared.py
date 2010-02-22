@@ -265,7 +265,7 @@ class InfraRed(Vibrations):
         spectrum = np.empty(npts,np.float)
         energies = np.empty(npts,np.float)
         ediff = (end-start)/float(npts-1)
-        energies = np.arange(start, end+ediff, ediff)
+        energies = np.arange(start, end+ediff/2, ediff)
         for i, energy in enumerate(energies):
             energies[i] = energy
             if type == 'lorentzian':
