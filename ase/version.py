@@ -50,36 +50,40 @@ def svnversion(version):
     try:
         # try to get the last svn revision number from ase/svnrevision.py
         from ase.svnrevision import svnrevision
-        # ase is installed, here:
-        from ase import __file__ as f
-        # get the last svn revision number from svnversion ase/ase dir
-        asedir = path.abspath(path.dirname(f))
-        # assert we have ase/svnrevision.py file
-        svnrevisionfile = path.join(asedir, 'svnrevision.py')
-        # we build from exported source (e.g. rpmbuild)
-        assert path.isfile(svnrevisionfile)
-        if path.split(
-            path.abspath(path.join(asedir, path.pardir)))[1] == 'ase':
-            # or from svnversion ase dir
-            asedir = path.join(asedir, path.pardir)
-        # version.py can be called from any place so we need to specify asedir
-        output = get_svnversion(asedir)
-        if (output != '') and (output != svnrevision) and (not output.startswith('exported')):
-            # output the current svn revision number into ase/svnrevision.py
-            svnrevision = output
-        version = version+'.'+svnrevision
-    except:
-        # ase is not installed:
-        # try to get the last svn revision number from svnversion
-        output = get_svnversion()
-        if (output != '') and (not output.startswith('exported')):
-            # svnversion exists:
-            # we are sure to have the write access as what we are doing
-            # is running setup.py now (even during rpmbuild)!
-            # save the current svn revision number into ase/svnrevision.py
-            write_svnrevision(output)
-            svnrevision = output
+        version += '.' + svnrevision
+    except ImportError:
+        try:
+            # ase is installed, here:
+            from ase import __file__ as f
+            # get the last svn revision number from svnversion ase/ase dir
+            asedir = path.abspath(path.dirname(f))
+            # assert we have ase/svnrevision.py file
+            svnrevisionfile = path.join(asedir, 'svnrevision.py')
+            # we build from exported source (e.g. rpmbuild)
+            assert path.isfile(svnrevisionfile)
+            if path.split(
+                path.abspath(path.join(asedir, path.pardir)))[1] == 'ase':
+                # or from svnversion ase dir
+                asedir = path.join(asedir, path.pardir)
+            # version.py can be called from any place so we need to
+            # specify asedir
+            output = get_svnversion(asedir)
+            if (output != '') and (output != svnrevision) and (not output.startswith('exported')):
+                    # output the current svn revision number into ase/svnrevision.py
+                svnrevision = output
             version = version+'.'+svnrevision
+        except:
+            # ase is not installed:
+            # try to get the last svn revision number from svnversion
+            output = get_svnversion()
+            if (output != '') and (not output.startswith('exported')):
+                # svnversion exists:
+                # we are sure to have the write access as what we are doing
+                # is running setup.py now (even during rpmbuild)!
+                # save the current svn revision number into ase/svnrevision.py
+                write_svnrevision(output)
+                svnrevision = output
+                version = version+'.'+svnrevision
     ##
     return version
 
