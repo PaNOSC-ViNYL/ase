@@ -1001,8 +1001,9 @@ class Atoms(object):
         
         example: the following defines a very crude 
         ethane-like molecule and twists one half of it by 30 degrees.
-        atoms = Atoms('HHCCHH',[[-1,1,0],[-1,-1,0],[0,0,0],[1,0,0],[2,1,0],[2,-1,0]])
-        atoms.set_dihedral([1,2,3,4],7*pi/6,mask=[0,0,0,1,1,1])
+
+        >>> atoms = Atoms('HHCCHH',[[-1,1,0],[-1,-1,0],[0,0,0],[1,0,0],[2,1,0],[2,-1,0]])
+        >>> atoms.set_dihedral([1,2,3,4],7*pi/6,mask=[0,0,0,1,1,1])
         """
         # if not provided, set mask to the last atom in the dihedral description
         if mask is None:

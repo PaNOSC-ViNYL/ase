@@ -299,6 +299,9 @@ Other methods
 * :meth:`~ase.atoms.Atoms.translate`
 * :meth:`~ase.atoms.Atoms.rotate`
 * :meth:`~ase.atoms.Atoms.rotate_euler`
+* :meth:`~ase.atoms.Atoms.get_dihedral`
+* :meth:`~ase.atoms.Atoms.set_dihedral`
+* :meth:`~ase.atoms.Atoms.rotate_dihedral`
 * :meth:`~ase.atoms.Atoms.rattle`
 * :meth:`~ase.atoms.Atoms.set_constraint`
 * :meth:`~ase.atoms.Atoms.set_distance`
