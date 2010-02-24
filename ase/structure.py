@@ -213,7 +213,7 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
     return atoms
 
 
-def bulk(name, crystalstructure, a=None, covera=None,
+def bulk(name, crystalstructure, a=None, c=None, covera=None,
          orthorhombic=False, cubic=False):
     """Helper function for creating bulk systems.
 
@@ -224,6 +224,8 @@ def bulk(name, crystalstructure, a=None, covera=None,
         rocksalt.
     a: float
         Lattice constant.
+    c: float
+        Lattice constant.
     covera: float
         c/a raitio used for hcp.  Defaults to ideal ratio.
     orthorhombic: bool
@@ -233,12 +235,18 @@ def bulk(name, crystalstructure, a=None, covera=None,
         Construct cubic unit cell.
     """
 
-    if covera is None:
+    if covera is not None and  c is not None:
+        raise ValueError("Don't specify both c and c/a!")
+    
+    if covera is None and c is None:
         covera = sqrt(8.0 / 3.0)
         
     if a is None:
         a = estimate_lattice_constant(name, crystalstructure, covera)
 
+    if covera is None and c is not None:
+        covera = c / a
+        
     x = crystalstructure.lower()
 
     if orthorhombic and x != 'sc':
