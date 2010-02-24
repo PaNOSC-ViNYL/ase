@@ -220,7 +220,7 @@ def bulk(name, crystalstructure, a=None, covera=None,
     name: str
         Chemical symbol or symbols as in 'MgO' or 'NaCl'.
     crystalstructure: str
-        Must be one of sc, fcc, bcc, hcp, diamond, zinkblende or
+        Must be one of sc, fcc, bcc, hcp, diamond, zincblende or
         rocksalt.
     a: float
         Lattice constant.
