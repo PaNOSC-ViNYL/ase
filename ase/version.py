@@ -14,14 +14,15 @@ else:
                   stdin=PIPE, stdout=PIPE, stderr=PIPE)
         return p.stdin, p.stdout, p.stderr
 
-def write_svnrevision(output):
-    f = open(path.join('ase', 'svnrevision.py'),'w')
+def write_svnrevision(output, asedir='ase'):
+    fname = path.join(asedir, 'svnrevision.py')
+    f = open(fname,'w')
     f.write('svnrevision = "%s"\n' % output)
     f.close()
-    print 'svnrevision = ' +output+' written to ase/svnrevision.py'
+    print 'svnrevision = ' + output + ' written to ' + fname
     # assert svn:ignore property if the installation is under svn control
     # because svnrevision.py has to be ignored by svn!
-    cmd = popen3('svn propset svn:ignore svnrevision.py ase')[1]
+    cmd = popen3('svn propset svn:ignore svnrevision.py ' + asedir)[1]
     output = cmd.read()
     cmd.close()
 
@@ -73,7 +74,7 @@ def svnversion(version):
         # we are sure to have the write access as what we are doing
         # is running setup.py now (even during rpmbuild)!
         # save the current svn revision number into ase/svnrevision.py
-        write_svnrevision(output)
+        write_svnrevision(output, asedir)
         version += '.' + output
     ##
     return version
