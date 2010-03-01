@@ -42,3 +42,43 @@ After a couple of contributions, we will probably trust you enough to
 add you as a committer.
 
 
+Committers
+==========
+
+Here is the list of current committers:
+
+==========  ====================================
+user name   real name
+==========  ====================================
+anro        Anthony Goodrow
+askhl       Ask Hjorth Larsen
+bjork       Jonas Bjork
+carstenr    Carsten Rostgaard
+dlandis     David Landis
+dulak       Marcin Dulak
+getri       George Tritsaris
+grabow      Lars Grabow
+hahansen    Heine Anton Hansen
+hanke       Felix Hanke
+jakobb      Jakob Blomquist
+jblomqvist  Janne Blomqvist
+jensj       Jens Jørgen Mortensen
+jingzhe     Jingzhe Chen
+jkitchin    John Kitchin
+jussie      Jussi Enkovaara
+kwj         Karsten Wedel Jacobsen
+markus      Markus Kaukonen
+miwalter    Michael Walter
+moses       Poul Georg Moses
+mvanin      Marco Vanin
+s032082     Christian Glinsvad
+s042606     Janosch Michael Rauba
+s052580     Troels Kofoed Jacobsen
+schiotz     Jakob Schiotz
+strange     Mikkel Strange
+tjiang      Tao Jiang
+==========  ====================================
+
+..
+
+  epost={'askhl': 'askhl fysik,dtu,dk', 'mvanin': 'mvanin fysik,dtu,dk', 'kwj': 'kwj fysik,dtu,dk', 'grabow': 'grabow fysik,dtu,dk', 'jussie': 'jussi,enkovaara csc,fi', 'dulak': 'dulak fysik,dtu,dk', 'anro': 'anro fysik,dtu,dk', 'bjork': 'J,Bjork liverpool,ac,uk', 'jkitchin': 'jkitchin andrew,cmu,edu', 'jensj': 'jensj fysik,dtu,dk', 'hanke': 'F,Hanke liverpool,ac,uk', 'jingzhe': 'jingzhe fysik,dtu,dk', 'strange': 'strange fysik,dtu,dk', 'schiotz': 'schiotz fysik,dtu,dk', 'moses': 'poulgeorgmoses gmail,com', 's032082': 's032082 fysik,dtu,dk', 'jblomqvist': 'Janne,Blomqvist tkk,fi', 'dlandis': 'dlandis fysik,dtu,dk', 'getri': 'getri fysik,dtu,dk', 's052580': 's052580 fysik,dtu,dk', 's042606': 's042606 fysik,dtu,dk', 'hahansen': 'hahansen fysik,dtu,dk', 'miwalter': 'Michael,Walter fmf,uni-freiburg,de', 'markus': 'markus,kaukonen iki,fi', 'jakobb': 'jakobb fysik,dtu,dk', 'carstenr': 'carstenr fysik,dtu,dk', 'tjiang': 'tjiang fysik,dtu,dk'}
