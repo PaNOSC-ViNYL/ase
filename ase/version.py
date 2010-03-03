@@ -14,15 +14,14 @@ else:
                   stdin=PIPE, stdout=PIPE, stderr=PIPE)
         return p.stdin, p.stdout, p.stderr
 
-def write_svnrevision(output, asedir='ase'):
-    fname = path.join(asedir, 'svnrevision.py')
-    f = open(fname,'w')
+def write_svnrevision(output):
+    f = open(path.join('ase', 'svnrevision.py'),'w')
     f.write('svnrevision = "%s"\n' % output)
     f.close()
-    print 'svnrevision = ' + output + ' written to ' + fname
+    print 'svnrevision = ' +output+' written to ase/svnrevision.py'
     # assert svn:ignore property if the installation is under svn control
     # because svnrevision.py has to be ignored by svn!
-    cmd = popen3('svn propset svn:ignore svnrevision.py ' + asedir)[1]
+    cmd = popen3('svn propset svn:ignore svnrevision.py ase')[1]
     output = cmd.read()
     cmd.close()
 
@@ -51,31 +50,36 @@ def svnversion(version):
     try:
         # try to get the last svn revision number from ase/svnrevision.py
         from ase.svnrevision import svnrevision
-        return version + '.' + svnrevision
-    except ImportError:
-        pass
-    asedir = 'ase'
-    try:
         # ase is installed, here:
         from ase import __file__ as f
         # get the last svn revision number from svnversion ase/ase dir
         asedir = path.abspath(path.dirname(f))
+        # assert we have ase/svnrevision.py file
+        svnrevisionfile = path.join(asedir, 'svnrevision.py')
         # we build from exported source (e.g. rpmbuild)
+        assert path.isfile(svnrevisionfile)
         if path.split(
             path.abspath(path.join(asedir, path.pardir)))[1] == 'ase':
             # or from svnversion ase dir
             asedir = path.join(asedir, path.pardir)
-    except ImportError:
-        pass
-    # try to get the last svn revision number from svnversion
-    output = get_svnversion(asedir)
-    if (output != '') and (not output.startswith('exported')):
-        # svnversion exists:
-        # we are sure to have the write access as what we are doing
-        # is running setup.py now (even during rpmbuild)!
-        # save the current svn revision number into ase/svnrevision.py
-        write_svnrevision(output, asedir)
-        version += '.' + output
+        # version.py can be called from any place so we need to specify asedir
+        output = get_svnversion(asedir)
+        if (output != '') and (output != svnrevision) and (not output.startswith('exported')):
+            # output the current svn revision number into ase/svnrevision.py
+            svnrevision = output
+        version = version+'.'+svnrevision
+    except:
+        # ase is not installed:
+        # try to get the last svn revision number from svnversion
+        output = get_svnversion()
+        if (output != '') and (not output.startswith('exported')):
+            # svnversion exists:
+            # we are sure to have the write access as what we are doing
+            # is running setup.py now (even during rpmbuild)!
+            # save the current svn revision number into ase/svnrevision.py
+            write_svnrevision(output)
+            svnrevision = output
+            version = version+'.'+svnrevision
     ##
     return version
 
