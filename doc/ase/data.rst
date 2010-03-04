@@ -37,7 +37,6 @@ it up in the :data:`atomic_numbers` dictionary:
 1.1699999999999999
 
 
-
 Molecular data
 ==============
 

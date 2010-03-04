@@ -54,10 +54,9 @@ List of all modules:
    units
    io
    gui
-   lattice
+   setup-overview
    optimize
    parallel
-   structure
    visualize
    visualize/vtk
    calculators/calculators

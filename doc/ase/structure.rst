@@ -1,17 +1,14 @@
 .. module:: structure
 
-=================
-Atomic structures
-=================
-
 .. seealso:: 
 
    * The :mod:`lattice` module
    * The :mod:`~lattice.surface` module
 
+.. _bulk-crystal-section:
 
-Bulk crystals
-=============
+Common bulk crystals
+====================
 
 .. autofunction:: ase.structure.bulk
 
@@ -40,6 +37,7 @@ array([[ 3.6,  0. ,  0. ],
 .. |a2| image:: a2.png
 .. |a3| image:: a3.png
 
+.. _nanotubes-section:
 
 Nanotubes
 =========
@@ -57,6 +55,7 @@ examples:
 .. |cnt1| image:: cnt1.png
 .. |cnt2| image:: cnt2.png
 
+.. _nanoribbons-section:
 
 Graphene nanoribbons
 ====================
