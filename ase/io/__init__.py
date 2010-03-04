@@ -140,7 +140,7 @@ def read(filename, index=-1, format=None):
         return read_cif(filename)
 
     if format == 'struct':
-        from ase.io.struct import read_struct
+        from ase.io.wien2k import read_struct
         return read_struct(filename)
 
     if format == 'babel':
@@ -305,6 +305,10 @@ def write(filename, images, format=None, **kwargs):
     elif format == 'tmol':
         from ase.io.turbomole import write_turbomole
         write_turbomole(filename, images)
+        return
+    elif format == 'struct':
+        from ase.io.wien2k import write_struct
+        write_struct(filename, images, **kwargs)
         return
 
     format = {'traj': 'trajectory', 'nc': 'netcdf'}.get(format, format)
