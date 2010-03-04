@@ -31,6 +31,8 @@ surfaces = [('FCC(100)', 'fcc', True, False, _surf.fcc100),
             ('BCC(110) orthogonal', 'bcc', True, True, _surf.bcc110),
             ('BCC(111) non-orthogonal', 'bcc', False, True, _surf.bcc111),
             ('BCC(111) orthogonal', 'bcc', True, True, _surf.bcc111),
+            ('HCP(0001) non-orthogonal', 'hcp', False, True, _surf.hcp0001),
+            ('HCP(0001) orthogonal', 'hcp', True, True, _surf.hcp0001),
             ]
 
 py_template = """
@@ -73,13 +75,34 @@ class SetupSurfaceSlab(SetupWindow):
         self.structchoice.connect('changed', self.update)
 
         # Choose the lattice constant
+        tbl = gtk.Table(2, 3)
         label = gtk.Label("Lattice constant: ")
+        tbl.attach(label, 0, 1, 0, 1)
+        vbox2 = gtk.VBox()          # For the non-HCP stuff
+        self.vbox_hcp = gtk.VBox()  # For the HCP stuff.
         self.lattice_const = gtk.Adjustment(3.0, 0.0, 1000.0, 0.01)
         lattice_box = gtk.SpinButton(self.lattice_const, 10.0, 3)
         lattice_box.numeric = True
+        pack(vbox2, [gtk.Label("a:"), lattice_box, gtk.Label("Å")])
+        tbl.attach(vbox2, 1, 2, 0, 1)
         lattice_button = gtk.Button("Get from database")
-        pack(vbox, [label, lattice_box, lattice_button], end=True)
+        tbl.attach(lattice_button, 2, 3, 0, 1)
+        # HCP stuff
+        self.hcp_ideal = (8.0/3)**(1.0/3)
+        self.lattice_const_c = gtk.Adjustment(self.lattice_const.value * self.hcp_ideal,
+                                              0.0, 1000.0, 0.01)
+        lattice_box_c = gtk.SpinButton(self.lattice_const_c, 10.0, 3)
+        lattice_box_c.numeric = True
+        pack(self.vbox_hcp, [gtk.Label("c:"), lattice_box_c, gtk.Label("Å")])
+        self.hcp_c_over_a_format = "c/a: %.3f (%.1f %% of ideal)"
+        self.hcp_c_over_a_label = gtk.Label(self.hcp_c_over_a_format % (self.hcp_ideal,
+                                                                        100.0))
+        pack(self.vbox_hcp, [self.hcp_c_over_a_label])
+        tbl.attach(self.vbox_hcp, 1, 2, 1, 2)
+        tbl.show_all()
+        pack(vbox, [tbl])
         self.lattice_const.connect('value-changed', self.update)
+        self.lattice_const_c.connect('value-changed', self.update)
         lattice_button.connect('clicked', self.get_lattice_const)
         pack(vbox, gtk.Label(""))
 
@@ -116,11 +139,24 @@ class SetupSurfaceSlab(SetupWindow):
         self.show()
         self.gui = gui
 
+        # Hide the HCP stuff to begin with.
+        self.vbox_hcp.hide_all()
+
     # update_element inherited from SetupWindow
 
     def update(self, *args):
         "Called when something has changed."
         struct = self.structchoice.get_active_text()
+        if struct:
+            structinfo = self.surfinfo[struct]
+            if structinfo[1] == 'hcp':
+                self.vbox_hcp.show_all()
+                ca = self.lattice_const_c.value / self.lattice_const.value
+                self.hcp_c_over_a_label.set_text(self.hcp_c_over_a_format %
+                                                 (ca, 100 * ca / self.hcp_ideal))
+            else:
+                self.vbox_hcp.hide_all()
+        # Abort if element or structure is invalid
         if not (self.update_element() and struct):
             self.sizelabel.set_text(self.nosize)
             self.atoms = None
@@ -128,7 +164,6 @@ class SetupSurfaceSlab(SetupWindow):
             return False
         # Make the atoms
         assert self.legal_element
-        structinfo = self.surfinfo[struct]
         kw = {}
         kw2 = {}
         if structinfo[3]:  # Support othogonal keyword?
@@ -183,6 +218,9 @@ class SetupSurfaceSlab(SetupWindow):
             return
         a = ref['a']
         self.lattice_const.set_value(a)
+        if struct == 'hcp':
+            c = ref['c/a'] * a
+            self.lattice_const_c.set_value(c)
 
     def apply(self, *args):
         self.update()
