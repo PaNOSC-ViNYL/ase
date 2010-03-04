@@ -166,9 +166,15 @@ class SinglePointCalculator:
     def __init__(self, energy, forces, stress, magmoms, atoms):
         """Save energy, forces and stresses for the current configuration."""
         self.energy = energy
-        self.forces = np.array(forces, float)
-        self.stress = np.array(stress, float)
-        self.magmoms = np.array(magmoms, float)
+        if forces is not None:
+            forces = np.array(forces, float)
+        self.forces = forces
+        if stress is not None:
+            stress = np.array(stress, float)
+        self.stress = stress
+        if magmoms is not None:
+            magmoms = np.array(magmoms, float)
+        self.magmoms = magmoms
         self.atoms = atoms.copy()
 
     def calculation_required(self, atoms, quantities):
