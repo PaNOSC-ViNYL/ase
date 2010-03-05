@@ -104,6 +104,8 @@ Here is an example of how to write good docstrings:
   http://projects.scipy.org/numpy/browser/trunk/doc/example.py
 
 
+.. _pylint:
+
 Using pylint to check your code
 ===============================
 

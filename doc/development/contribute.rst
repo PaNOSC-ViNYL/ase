@@ -23,6 +23,7 @@ mailing list::
   $ # do your thing ...
   $ svn diff > patch.txt
 
+Before you send the patch, run pylint on your code (see :ref:`pylint`).
 One of the current committers will look at the patch and give you
 some feedback.  Maybe the patch is fine and the committer will commit
 it to trunk.  There could also be some more work to do like:
