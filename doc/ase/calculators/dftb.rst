@@ -104,5 +104,10 @@ Input file for example 2 (h2o_1.xyz)
 
 .. literalinclude:: h2o_1.xyz
 
+You also need to have generated the file 'dftb_in.hsd', here is and example:
+
+.. literalinclude:: dftb_in.hsd
+
+
 
 
