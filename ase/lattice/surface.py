@@ -250,9 +250,7 @@ def surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
                 positions[-2::-2, ..., :2] += (0.0, 1.0)
             else:
                 positions[-2::-2, ..., :2] += (-0.5, 1.0)
-            sites.update({'shortbridge': (0, 0.5),
-                          'longbridge': (0.5, 0),
-                          'hollow': (0.25, 0.375)})
+            sites.update({'shortbridge': (0, 0.5), 'longbridge': (0.5, 0)})
         elif surf == 'bcc111':
             cell = (sqrt(2), sqrt(1.5), sqrt(3) / 6)
             if orthogonal:
