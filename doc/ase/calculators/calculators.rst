@@ -52,6 +52,7 @@ Dacapo_           Old interface to Dacapo_. Requires           :term:`DFT`
 :mod:`emt`        Effective Medium Theory calculator           :term:`EMT`
 :mod:`abinit`     A planewave pseudopotential code             :term:`DFT`
 :mod:`siesta`     LCAO pseudopotential code                    :term:`DFT`
+:mod:`dftb`       DftbPlus_ DFT based tight binding            :term:`DFT`
 :mod:`turbomole`  Fast atom orbital code Turbomole_,           :term:`DFT`,
                                                                :term:`HF`
 :mod:`vasp`       Planewave PAW code                           :term:`DFT`
@@ -68,6 +69,7 @@ Dacapo_           Old interface to Dacapo_. Requires           :term:`DFT`
 .. _Asap: http://wiki.fysik.dtu.dk/Asap
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
+.. _DftbPlus: http://www.dftb-plus.info/
 .. _Turbomole: http://www.turbomole.com/
 
 
@@ -75,8 +77,8 @@ The calculators can be divided in three groups:
 
 1) GPAW, Asap, Dacapo have their own native ASE interfaces.
 
-2) Jacapo, ABINIT, SIESTA, TURRBOMOLE, VASP, FLEUR, FHI-aims and MMTK have 
-   Python wrappers in the ASE
+2) Jacapo, ABINIT, SIESTA, DftbPlus, TURBOMOLE, VASP, FLEUR, 
+   FHI-aims and MMTK have Python wrappers in the ASE
    package, but the actual codes are not part of ASE.
 
 3) EMT is a pure python implementation of the Effective Medium Theory
@@ -92,6 +94,7 @@ Documentation for group 2 and 3 calculators
    jacapo
    abinit
    siesta
+   dftb
    turbomole
    vasp
    FHI-aims

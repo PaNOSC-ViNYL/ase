@@ -43,10 +43,11 @@ def read(filename, index=-1, format=None):
     VTK XML Image Data         vti
     VTK XML Structured Grid    vts
     VTK XML Unstructured Grid  vtu
-    TURBOMOLE coord file       (filename==='coord')
+    TURBOMOLE coord file       tmol
     exciting input             exi
     AtomEye configuration      cfg
     WIEN2k structure file      struct
+    DftbPlus input file        dftb
     =========================  ===========
 
     """
@@ -183,6 +184,10 @@ def read(filename, index=-1, format=None):
         from ase.io.cfg import read_cfg
         return read_cfg(filename)
 
+    if format == 'dftb':
+        from ase.io.dftb import read_dftb
+        return read_dftb(filename)
+
     raise RuntimeError('File format descriptor '+format+' not recognized!')
 
 
@@ -222,6 +227,7 @@ def write(filename, images, format=None, **kwargs):
     exciting                   exi
     AtomEye configuration      cfg
     WIEN2k structure file      struct
+    DftbPlus input file        dftb
     =========================  ===========
   
     The use of additional keywords is format specific.
@@ -306,10 +312,21 @@ def write(filename, images, format=None, **kwargs):
         from ase.io.turbomole import write_turbomole
         write_turbomole(filename, images)
         return
+<<<<<<< .mine
+    elif format == 'dftb':
+        from ase.io.dftb import write_dftb
+        write_dftb(filename, images)
+        return
     elif format == 'struct':
         from ase.io.wien2k import write_struct
         write_struct(filename, images, **kwargs)
         return
+=======
+    elif format == 'struct':
+        from ase.io.wien2k import write_struct
+        write_struct(filename, images, **kwargs)
+        return
+>>>>>>> .r1456
 
     format = {'traj': 'trajectory', 'nc': 'netcdf'}.get(format, format)
     name = 'write_' + format
@@ -426,6 +443,10 @@ def filetype(filename):
 
     if lines[0].startswith('$coord'):
         return 'tmol'
+
+    if lines[0].startswith('Geometry'):
+        return 'dftb'
+
     if s3 == '<?x':
         from ase.io.vtkxml import probe_vtkxml
         xmltype = probe_vtkxml(filename)

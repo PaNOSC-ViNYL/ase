@@ -13,14 +13,17 @@ for manipulating atoms, analyzing simulations, visualization etc.
 
 Supported :mod:`calculators`:
 
-   |abinit| |Asap| |elk| |exciting| |EMT| |fhi-aims| |fleur| |gpaw| |hotbit| 
-   |jacapo| |siesta| |turbomole| |vasp| 
+   |abinit| |Asap| |dftb| |elk| |exciting| |EMT| |fhi-aims| 
+   |fleur| |gpaw| |hotbit| |jacapo| |siesta| |turbomole| |vasp| 
 
 .. |abinit| image:: _static/abinit.png
    :target: ase/calculators/abinit.html
    :align: middle
 .. |Asap| image:: _static/asap.png
    :target: http://wiki.fysik.dtu.dk/asap
+   :align: middle
+.. |dftb| image:: _static/dftb.png
+   :target: ase/calculators/dftb.html
    :align: middle
 .. |jacapo| image:: _static/jacapo.png
    :target: ase/calculators/jacapo.html
