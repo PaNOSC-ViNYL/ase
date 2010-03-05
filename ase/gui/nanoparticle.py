@@ -20,7 +20,7 @@ When the particle is created, the actual numbers of layers are printed, they
 may be less than specified if a surface is cut of by other surfaces."""
 
 py_template = """
-from ase.cluster.cluster import Cluster
+from ase.cluster import Cluster
 import ase
 
 layers = %(layers)s
@@ -42,8 +42,8 @@ class SetupNanoparticle(SetupWindow):
         self.atoms = None
         import ase.cluster.data
         self.data_module = ase.cluster.data
-        import ase.cluster.cluster
-        self.Cluster = ase.cluster.cluster.Cluster
+        import ase.cluster
+        self.Cluster = ase.cluster.Cluster
         self.no_update = True
         
         vbox = gtk.VBox()

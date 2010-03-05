@@ -1,5 +1,5 @@
 import numpy as np
-import ase.cluster.data as data
+from ase.cluster.data import lattice
 from ase.atom import Atom, data as olddata
 from ase.data import atomic_numbers, chemical_symbols, reference_states
 
@@ -58,7 +58,7 @@ class ClusterAtom(Atom):
             plural, dtype, shape = self._datasyn[name]
             if plural == 'neighbors':
                 symmetry = reference_states[self.number]['symmetry'].lower()
-                shape = (data.lattice[symmetry]['neighbor_count'],)
+                shape = (lattice[symmetry]['neighbor_count'],) # XXXX
 
             if self.atoms.has(plural):
                 self.atoms.arrays[plural][self.index] = value

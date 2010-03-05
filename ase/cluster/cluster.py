@@ -7,7 +7,7 @@ import cPickle as pickle
 import new
 
 from ase.cluster.clusteratom import ClusterAtom
-import ase.cluster.data as data
+from ase.cluster.data import lattice
 from ase import Atoms
 from ase.data import atomic_numbers, chemical_symbols, reference_states
 from ase.lattice.cubic import SimpleCubic, BodyCenteredCubic, FaceCenteredCubic, Diamond
@@ -76,7 +76,7 @@ class Cluster(Atoms):
 
             #Make base crystal based on the found symmetry
             if self.symmetry == 'fcc':
-                if len(layers) != data.lattice[self.symmetry]['surface_count']:
+                if len(layers) != lattice[self.symmetry]['surface_count']:
                     raise Warning('Something is wrong with the defined number of layers!')
 
                 xc = int(np.ceil(layers[1] / 2.0)) + 1
@@ -234,7 +234,7 @@ class Cluster(Atoms):
     def update_neighborlist(self, i=None, new=None, old=None):
         """Updates the neighbor list around atoms that is removed and added."""
 
-        neighbor_mapping = data.lattice[self.symmetry]['neighbor_mapping']
+        neighbor_mapping = lattice[self.symmetry]['neighbor_mapping']
 
         #Add "i" in the new neighbors neighborlists
         if new is not None and i is not None:
@@ -259,10 +259,10 @@ class Cluster(Atoms):
     def make_neighborlist(self):
         """Generate a lists with nearest neighbors, types and coordinations"""
         from asap3 import FullNeighborList
-        neighbor_cutoff = data.lattice[self.symmetry]['neighbor_cutoff']
+        neighbor_cutoff = lattice[self.symmetry]['neighbor_cutoff']
         neighbor_cutoff *= self.lattice_constant
-        neighbor_numbers = data.lattice[self.symmetry]['neighbor_numbers']
-        neighbor_count = data.lattice[self.symmetry]['neighbor_count']
+        neighbor_numbers = lattice[self.symmetry]['neighbor_numbers']
+        neighbor_count = lattice[self.symmetry]['neighbor_count']
 
         get_neighbors = FullNeighborList(neighbor_cutoff, self)
 
@@ -332,7 +332,7 @@ class Cluster(Atoms):
                        % (normal, layers))
 
     def get_layers(self):
-        surface_names = data.lattice[self.symmetry]['surface_names']
+        surface_names = lattice[self.symmetry]['surface_names']
         layers = []
 
         for n in surface_names:
@@ -341,8 +341,8 @@ class Cluster(Atoms):
         return np.array(layers, int)
 
     def set_layers(self, layers):
-        surface_names = data.lattice[self.symmetry]['surface_names']
-        surface_count = data.lattice[self.symmetry]['surface_count']
+        surface_names = lattice[self.symmetry]['surface_names']
+        surface_count = lattice[self.symmetry]['surface_count']
 
         if len(layers) != surface_count:
             raise Warning(('The number of surfaces is not right: %i != %i' %
@@ -354,11 +354,11 @@ class Cluster(Atoms):
     def get_diameter(self):
         """Makes an estimate of the cluster diameter based on the average
         distance between opposit layers"""
-        surface_mapping = data.lattice[self.symmetry]['surface_mapping']
-        surface_names = data.lattice[self.symmetry]['surface_names']
-        surface_numbers = data.lattice[self.symmetry]['surface_numbers']
-        surface_data = data.lattice[self.symmetry]['surface_data']
-        surface_count = data.lattice[self.symmetry]['surface_count']
+        surface_mapping = lattice[self.symmetry]['surface_mapping']
+        surface_names = lattice[self.symmetry]['surface_names']
+        surface_numbers = lattice[self.symmetry]['surface_numbers']
+        surface_data = lattice[self.symmetry]['surface_data']
+        surface_count = lattice[self.symmetry]['surface_count']
 
         d = 0.0
         for s1 in surface_names:
@@ -379,9 +379,9 @@ class Cluster(Atoms):
         neighbors = np.array(neighbors)
         name = tuple((neighbors >= 0).astype(int))
 
-        type_names = data.lattice[self.symmetry]['type_names']
-        type_numbers = data.lattice[self.symmetry]['type_numbers']
-        type_data = data.lattice[self.symmetry]['type_data']
+        type_names = lattice[self.symmetry]['type_names']
+        type_numbers = lattice[self.symmetry]['type_numbers']
+        type_data = lattice[self.symmetry]['type_data']
 
         if name in type_names:
             return type_data[type_numbers[name]]['type']
@@ -480,8 +480,8 @@ class Cluster(Atoms):
         if name is None or surface is None:
             return None
         else:
-            surface_numbers = data.lattice[self.symmetry]['surface_numbers']
-            surface_data = data.lattice[self.symmetry]['surface_data']
+            surface_numbers = lattice[self.symmetry]['surface_numbers']
+            surface_data = lattice[self.symmetry]['surface_data']
 
             if isinstance(surface, tuple):
                 return surface_data[surface_numbers[surface]][name]
