@@ -312,7 +312,6 @@ def write(filename, images, format=None, **kwargs):
         from ase.io.turbomole import write_turbomole
         write_turbomole(filename, images)
         return
-<<<<<<< .mine
     elif format == 'dftb':
         from ase.io.dftb import write_dftb
         write_dftb(filename, images)
@@ -321,12 +320,10 @@ def write(filename, images, format=None, **kwargs):
         from ase.io.wien2k import write_struct
         write_struct(filename, images, **kwargs)
         return
-=======
     elif format == 'struct':
         from ase.io.wien2k import write_struct
         write_struct(filename, images, **kwargs)
         return
->>>>>>> .r1456
 
     format = {'traj': 'trajectory', 'nc': 'netcdf'}.get(format, format)
     name = 'write_' + format
