@@ -31,6 +31,9 @@ atoms = Cluster(symbol='%(element)s', layers=layers, latticeconstant=%(a).5f,
 # atoms = ase.Atoms(atoms)
 """
 
+class attribute_collection:
+    pass
+
 class SetupNanoparticle(SetupWindow):
     "Window for setting up a nanoparticle."
     families = {'fcc': [(0,0,1), (0,1,1), (1,1,1)]}
@@ -80,12 +83,26 @@ class SetupNanoparticle(SetupWindow):
         self.lattice_const.connect('value-changed', self.update)
         pack(vbox, gtk.Label(""))
 
-        # The number of layers
-        pack(vbox, [gtk.Label("Number of layers:")])
-        self.layerbox = gtk.VBox()
-        pack(vbox, self.layerbox)
-        self.make_layer_gui()
+        # Choose specification method
+        label = gtk.Label("Method: ")
+        self.method = gtk.combo_box_new_text()
+        for meth in ("Layer specification", "Wulff construction"):
+            self.method.append_text(meth)
+        self.method.set_active(0)
+        self.method.connect('changed', self.update)
 
+        # The number of layers
+        self.layerbox = gtk.VBox()
+        self.layerdata = attribute_collection()
+        pack(vbox, self.layerbox)
+        self.make_layer_gui(self.layerbox, self.layerdata, 0)
+
+        # The Wulff construction
+        self.wulffbox = gtk.VBox()
+        self.wulffdata = attribute_collection()
+        pack(vbox, self.wulffbox)
+        self.make_layer_gui(self.wulffbox, self.wulffdata, 1)
+        
         # Information
         label1 = gtk.Label("Number of atoms: ")
         self.natoms_label = gtk.Label("-")
@@ -151,13 +168,19 @@ class SetupNanoparticle(SetupWindow):
         a = ref['a']
         self.lattice_const.set_value(a)
 
-    def make_layer_gui(self):
+    def make_layer_gui(self, box, data, method):
         "Make the part of the gui specifying the layers of the particle"
+        if method == 1:
+            return
+        
         # Clear the box
-        children = self.layerbox.get_children()
+        children = box.get_children()
         for c in children:
-            self.layerbox.remove(c)
+            box.remove(c)
         del children
+
+        # Make the label
+        pack(box, [gtk.Label("Number of layers:")])
 
         # Get the crystal structure
         struct = self.structure.get_active_text()
@@ -168,28 +191,29 @@ class SetupNanoparticle(SetupWindow):
         defaults = self.defaults[struct]
         
         # Empty array for the gtk.Adjustments for the layer numbers
-        self.layers = [None] * len(surfaces)
-        self.layer_lbl = [None] * len(surfaces)
-        self.layer_spin = [None] * len(surfaces)
-        self.layer_owner = [None] * len(surfaces)
-        self.layer_label = [None] * len(surfaces)
-        self.famlayers = [None] * len(families)
-        self.infamily = [None] * len(families)
-        self.family_label = [None] * len(families)
+        data.layers = [None] * len(surfaces)
+        data.layer_lbl = [None] * len(surfaces)
+        data.layer_spin = [None] * len(surfaces)
+        data.layer_owner = [None] * len(surfaces)
+        data.layer_label = [None] * len(surfaces)
+        data.famlayers = [None] * len(families)
+        data.infamily = [None] * len(families)
+        data.family_label = [None] * len(families)
         
         # Now, make a box for each family of surfaces
         frames = []
         for i in range(len(families)):
             family = families[i]
             default = defaults[i]
-            frames.append(self.make_layer_family(i, family, surfaces, default))
-        for a in self.layers:
+            frames.append(self.make_layer_family(data, i, family, surfaces,
+                                                 default))
+        for a in data.layers:
             assert a is not None
 
-        pack(self.layerbox, frames)
-        self.layerbox.show_all()
+        pack(box, frames)
+        box.show_all()
 
-    def make_layer_family(self, n, family, surfaces, default=1):
+    def make_layer_family(self, data, n, family, surfaces, default=1):
         """Make a frame box for a single family of surfaces.
 
         The layout is a frame containing a table.  For example
@@ -207,35 +231,35 @@ class SetupNanoparticle(SetupWindow):
         tbl.attach(gtk.SpinButton(famlayers, 0, 0),
                    2, 3, 0, 1)
         tbl.attach(gtk.Label(" "), 0, 1, 1, 2)
-        assert self.famlayers[n] is None
-        self.famlayers[n] = famlayers
-        self.infamily[n] = []
-        self.family_label[n] = gtk.Label("")
-        tbl.attach(self.family_label[n], 1, 2, 0, 1)
+        assert data.famlayers[n] is None
+        data.famlayers[n] = famlayers
+        data.infamily[n] = []
+        data.family_label[n] = gtk.Label("")
+        tbl.attach(data.family_label[n], 1, 2, 0, 1)
         row = 2
         myspin = []
         for i, s in enumerate(surfaces):
             s2 = [abs(x) for x in s]
             s2.sort()
             if tuple(s2) == family:
-                self.infamily[n].append(i)
+                data.infamily[n].append(i)
                 tbl.resize(row+1, 4)
                 lbl = gtk.Label("(%i,%i,%i): " % s)
                 lbl.set_alignment(1, 0.5)
                 tbl.attach(lbl, 0, 1, row, row+1)
                 label = gtk.Label("    ")
                 tbl.attach(label, 1, 2, row, row+1)
-                self.layer_label[i] = label
-                lay = gtk.Adjustment(default, 0, 100, 1)
+                data.layer_label[i] = label
+                lay = gtk.Adjustment(default, -100, 100, 1)
                 lay.connect('value-changed', self.update)
                 spin = gtk.SpinButton(lay, 0, 0)
                 spin.set_sensitive(False)
                 tbl.attach(spin, 2, 3, row, row+1)
-                assert self.layers[i] is None
-                self.layers[i] = lay
-                self.layer_lbl[i] = lbl
-                self.layer_spin[i] = spin
-                self.layer_owner[i] = n
+                assert data.layers[i] is None
+                data.layers[i] = lay
+                data.layer_lbl[i] = lbl
+                data.layer_spin[i] = spin
+                data.layer_owner[i] = n
                 myspin.append(spin)
                 chkbut = gtk.CheckButton()
                 tbl.attach(chkbut, 3, 4, row, row+1)
@@ -252,10 +276,11 @@ class SetupNanoparticle(SetupWindow):
     def toggle_surface(self, widget, number):
         "Toggle whether a layer in a family can be specified."
         active = widget.get_active()
-        self.layer_spin[number].set_sensitive(active)
+        data = self.get_data()
+        data.layer_spin[number].set_sensitive(active)
         if not active:
-            self.layers[number].value = \
-                self.famlayers[self.layer_owner[number]].value
+            data.layers[number].value = \
+                data.famlayers[data.layer_owner[number]].value
         
     def changed_family_layers(self, widget, myspin):
         "Change the number of layers in inactive members of a family."
@@ -268,7 +293,10 @@ class SetupNanoparticle(SetupWindow):
                     adj.value = x
         self.no_update = False
         self.update()
-                    
+
+    def get_data(self):
+        return self.layerdata
+    
     def makeatoms(self, *args):
         "Make the atoms according to the current specification."
         if not self.update_element():
@@ -276,7 +304,7 @@ class SetupNanoparticle(SetupWindow):
             self.makeinfo()
             return False
         assert self.legal_element is not None
-        layers = [int(x.value) for x in self.layers]
+        layers = [int(x.value) for x in self.layerdata.layers]
         struct = self.structure.get_active_text()
         lc = self.lattice_const.value
         self.atoms = self.Cluster(self.legal_element, layers=layers,
@@ -293,11 +321,12 @@ class SetupNanoparticle(SetupWindow):
 
     def makeinfo(self):
         "Fill in information field about the atoms."
+        data = self.get_data()
         if self.atoms is None:
             self.natoms_label.set_label("-")
             self.dia1_label.set_label("-")
             self.dia2_label.set_label("-")
-            for label in self.layer_label+self.family_label:
+            for label in data.layer_label+data.family_label:
                 label.set_text("    ")
         else:
             self.natoms_label.set_label(str(len(self.atoms)))
@@ -311,10 +340,10 @@ class SetupNanoparticle(SetupWindow):
             dia = 2 * (3 * len(self.atoms) * at_vol / (4 * np.pi))**(1.0/3.0)
             self.dia2_label.set_label("%.1f Å" % (dia,))
             actual = self.atoms.get_layers()
-            for i, label in enumerate(self.layer_label):
+            for i, label in enumerate(data.layer_label):
                 label.set_text("%2i " % (actual[i],))
-            for i, label in enumerate(self.family_label):
-                relevant = actual[self.infamily[i]]
+            for i, label in enumerate(data.family_label):
+                relevant = actual[data.infamily[i]]
                 if relevant.min() == relevant.max():
                     label.set_text("%2i " % (relevant[0]))
                 else:
