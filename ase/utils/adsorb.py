@@ -11,6 +11,7 @@ from ase.data import reference_states, atomic_numbers, covalent_radii
 from ase.io import write
 from ase.visualize import view
 from ase.atoms import Atoms, string2symbols
+from ase.data.molecules import molecule
 
 def build():
     p = OptionParser(usage='%prog  [options] [ads@]surf [output file]',
@@ -121,10 +122,11 @@ def build():
 
         name = site + '-' + ads + '@' + name
         symbols = string2symbols(ads)
-        if len(symbols) == 1:
+        nads = len(symbols) 
+        if nads == 1:
             ads = Atoms(ads)
         else:
-            ads = molecules(ads)
+            ads = molecule(ads)
 
         add_adsorbate(slab, ads, 0.0, site)
 
@@ -135,14 +137,14 @@ def build():
         h = opt.height
         if h is None:
             R = slab.positions
-            y = ((R[:-1] - R[-1])**2).sum(1).min()**0.5
+            y = ((R[:-nads] - R[-nads])**2).sum(1).min()**0.5
             print y
             h = (d**2 - y**2)**0.5
             print h
         else:
             assert opt.distance is None
         
-        slab[-1].z += h
+        slab.positions[-nads:, 2] += h
 
     if len(args) == 2:
         write(args[1], slab)
