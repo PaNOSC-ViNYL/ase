@@ -27,6 +27,7 @@ packages = ['ase',
             'ase.test',
             'ase.utils',
             'ase.lattice',
+            'ase.lattice.spacegroup',
             'ase.examples',
             'ase.optimize',
             'ase.visualize',
@@ -35,6 +36,12 @@ packages = ['ase',
             'ase.calculators',
             'ase.gui.languages',
             'ase.calculators.jacapo']
+
+package_dir={'ase': 'ase'}
+
+package_data={'ase': ['lattice/spacegroup/spacegroup.dat']}
+
+
 
 # Get the current version number:
 execfile('ase/version.py')
@@ -48,5 +55,7 @@ setup(name = 'python-ase',
       license='LGPL',
       platforms=['linux'],
       packages=packages,
+      package_dir=package_dir,
+      package_data=package_data,
       scripts=['tools/ag', 'tools/ASE2ase.py', 'tools/testase.py'],
       long_description=long_description)
