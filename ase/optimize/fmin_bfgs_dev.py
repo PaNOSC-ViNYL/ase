@@ -52,12 +52,22 @@ class FMIN_BFGS(Optimizer):
         self.e0 = None
         self.load_restart = False
         self.task = 'START'
+        self.rep_count = 0
 
         Optimizer.__init__(self, atoms, restart, logfile, trajectory)
 
     def read(self):
         self.r0, self.g0, self.e0, self.task, self.H = self.load()
         self.load_restart = True    
+
+    def reset(self):
+        print 'reset'
+        self.H = None
+        self.r0 = None
+        self.g0 = None
+        self.e0 = None
+        self.rep_count = 0
+          
 
     def step(self, f):
         atoms = self.atoms
@@ -66,8 +76,6 @@ class FMIN_BFGS(Optimizer):
         g = -f.reshape(-1) / self.alpha
         self.update(r, g, self.r0, self.g0)
         e = atoms.get_potential_energy() / self.alpha
-        if not self.e0:
-            self.e0 = e + 5000
 
         p = -np.dot(self.H,g)
         ls = LineSearch()
@@ -79,12 +87,18 @@ class FMIN_BFGS(Optimizer):
         #    alpha_k, fc, gc, e, e0, gfkp1 = \
         #             line_search(self.func, self.fprime,r,p,g,
         #                         e,self.e0)
-        if alpha_k is None:
-            # This line search also failed to find a better solution.
-            raise ValueError('Warning: Desired error not necessarily' +
-                             'achieved due to precision loss')
+        if abs(e - self.e0) < 0.000001:
+            self.rep_count += 1
+        else:
+            self.rep_count = 0
 
-        print 'al',alpha_k,fc,gc,e,self.e0,fkp1
+        if (alpha_k is None) or (self.rep_count >= 3):
+            # If the line search fails, reset the Hessian matrix and
+            # start a new line search.
+            self.reset()
+            self.step(f)
+
+
         dr = alpha_k * p
         atoms.set_positions((r+dr).reshape(len(atoms),-1))
         self.r0 = r
@@ -127,7 +141,6 @@ class FMIN_BFGS(Optimizer):
         self.force_calls += 1
         # Remember that forces are minus the gradient!
         # Scale the problem as SciPy uses I as initial Hessian.
-        print 'h0',self.alpha
         return - self.atoms.get_forces().reshape(-1) / self.alpha
 
     def replay_trajectory(self, traj):
@@ -339,7 +352,6 @@ def line_search(f, myfprime, xk, pk, gfk, old_fval, old_old_fval,
             _ls_ingfk = fprime(xk+alpha*pk,*args)  # store for later use
             return np.dot(_ls_ingfk,pk)
 
-    print 'ls2'
 
     alpha0 = 0
     phi0 = old_fval
