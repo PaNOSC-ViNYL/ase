@@ -34,6 +34,7 @@ class Spacegroup(object):
     the given space group. 
 
     Example:
+    
     >>> from spacegroup import Spacegroup
     >>> 
     >>> sg = Spacegroup(225)
@@ -206,6 +207,7 @@ class Spacegroup(object):
         in hkl.
 
         Example:
+
         >>> from spacegroup import Spacegroup
         >>> sg = Spacegroup(225)  # fcc
         >>> sg.equivalent_reflections([[0,0,2]])
@@ -231,24 +233,30 @@ class Spacegroup(object):
 
         Parameters:
 
-        scaled_positions : list | array
+        scaled_positions: list | array
             List of non-equivalent sites given in unit cell coordinates.
         ondublicates : 'keep' | 'replace' | 'warn' | 'error'
             Action if `scaled_positions` contain symmetry-equivalent
             positions:
-                'keep'    - ignore additional symmetry-equivalent positions
-                'replace' - reolace
-                'warn'    - like 'keep', but issue an UserWarning
-                'error'   - raises a SpacegroupValueError
-        symprec : float
+            
+            'keep'
+               ignore additional symmetry-equivalent positions
+            'replace'
+                replace
+            'warn'
+                like 'keep', but issue an UserWarning
+            'error'
+                raises a SpacegroupValueError
+                    
+        symprec: float
             Minimum "distance" betweed two sites in scaled coordinates
             before they are counted as the same site.
 
         Returns:
 
-        sites : array
+        sites: array
             A NumPy array of equivalent sites.
-        kinds : list
+        kinds: list
             A list of integer indices specifying which input site is 
             equivalent to the corresponding returned site.
         """
