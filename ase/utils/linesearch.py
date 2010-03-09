@@ -115,6 +115,7 @@ class LineSearch:
                        gy, finit, fx, fy, stx, sty,
                        stmin, stmax, width, width1)) 
             stp = self.determine_step(stp)
+            return stp, f, g
         else:
             if self.isave[0] == 1:
                 self.bracket = True
