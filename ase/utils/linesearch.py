@@ -17,7 +17,7 @@ class LineSearch:
         self.old_stp = 0
     
     def _line_search(self, func, myfprime, xk, pk, gfk, old_fval, old_old_fval,
-                     maxstep=.2, c1=.23, c2=0.46, xtrapl=1.1, xtrapu=4., stpmax=50, args=()):
+                     maxstep=.2, c1=.23, c2=0.46, xtrapl=1.1, xtrapu=4., stpmax=50., args=()):
 
         self.pk = pk
         self.stpmax = stpmax
@@ -48,7 +48,6 @@ class LineSearch:
             stp,fval,derphi = self.step(alpha1, phi0, derphi0, c1, c2,
                                              self.xtol, 
                                              self.isave, self.dsave)
-            self.old_stp = alpha1
     
             if self.task[:2] == 'FG':
                 alpha1 = stp
@@ -59,6 +58,7 @@ class LineSearch:
                 else: self.fc += len(xk) + 1
                 phi0 = fval
                 derphi0 = np.dot(gval,pk)
+                self.old_stp = alpha1
             else:
                 break
     
@@ -85,7 +85,6 @@ class LineSearch:
                 self.task = 'ERROR: minstep .LT. 0'
             if self.stpmax < self.stpmin:
                 self.task = 'ERROR: maxstep .LT. minstep'
-#            print self.task
             if self.task[:5] == 'ERROR':
    	            return stp, f, g
 
@@ -116,7 +115,6 @@ class LineSearch:
                        gy, finit, fx, fy, stx, sty,
                        stmin, stmax, width, width1)) 
             stp = self.determine_step(stp)
-            return stp, f, g
         else:
             if self.isave[0] == 1:
                 self.bracket = True
@@ -184,6 +182,7 @@ class LineSearch:
                 stx, sty, stp, gx, fx, gy, fy= self.update(stx, fx, gx, sty, 
                                                     fy, gy, stp, f, g, 
                                                     self.bracket, stmin, stmax)
+
 
 #           Decide if a bisection step is needed.
 
@@ -277,7 +276,6 @@ class LineSearch:
 #       and the magnitude of the derivative decreases.
 
         elif abs(gp) < abs(gx):  #case3
-
             self.case = 3
 #           The cubic step is computed only if the cubic tends to infinity
 #           in the direction of the step or if the minimum of the cubic
@@ -368,7 +366,6 @@ class LineSearch:
             stx = stp
             fx = fp
             gx = gp
-
 #       Compute the new step.
 
         stp = self.determine_step(stpf)
@@ -377,8 +374,8 @@ class LineSearch:
 
     def determine_step(self, stp):
         dr = stp - self.old_stp
-        if pymax(self.pk) * dr > self.maxstep:
-            dr /= (pymax(self.pk) * dr / self.maxstep)
+        if abs(pymax(self.pk) * dr) > self.maxstep:
+            dr /= abs((pymax(self.pk) * dr) / self.maxstep)
         stp = self.old_stp + dr
         return stp
 
