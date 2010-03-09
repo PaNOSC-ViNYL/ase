@@ -44,6 +44,7 @@ package_data={'ase': ['lattice/spacegroup/spacegroup.dat']}
 
 
 # Get the current version number:
+execfile('ase/svnversion_io.py')
 execfile('ase/version.py')
 
 setup(name = 'python-ase',
