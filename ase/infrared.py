@@ -12,7 +12,7 @@ import numpy as np
 
 import ase.units as units
 from ase.io.trajectory import PickleTrajectory
-from ase.parallel import rank, barrier
+from ase.parallel import rank, barrier, parprint
 from ase.vibrations import Vibrations
 
 
@@ -228,22 +228,24 @@ class InfraRed(Vibrations):
     def summary(self, method='standard', direction='central'):
         hnu = self.get_energies(method, direction)
         s = 0.01 * units._e / units._c / units._hplanck
-        print '-------------------------------------'
-        print ' Mode    Frequency        Intensity'
-        print '  #    meV     cm^-1   (D/Å)^2 amu^-1'
-        print '-------------------------------------'
+        parprint('-------------------------------------')
+        parprint(' Mode    Frequency        Intensity')
+        parprint('  #    meV     cm^-1   (D/Å)^2 amu^-1')
+        parprint('-------------------------------------')
         for n, e in enumerate(hnu):
             if e.imag != 0:
                 c = 'i'
                 e = e.imag
             else:
                 c = ' '
-            print '%3d %6.1f%s  %7.1f%s  %9.4f' % (n, 1000 * e, c, s * e, c, self.intensities[n])
-        print '-------------------------------------'
-        print 'Zero-point energy: %.3f eV' % self.get_zero_point_energy()
-        print 'Static dipole moment: %.3f D' % self.dipole_zero
-        print 'Maximum force on atom in `eqiulibrium`: %.4f eV/Å' % self.force_zero
-        print
+            parprint('%3d %6.1f%s  %7.1f%s  %9.4f' % 
+                     (n, 1000 * e, c, s * e, c, self.intensities[n]))
+        parprint('-------------------------------------')
+        parprint('Zero-point energy: %.3f eV' % self.get_zero_point_energy())
+        parprint('Static dipole moment: %.3f D' % self.dipole_zero)
+        parprint('Maximum force on atom in `eqiulibrium`: %.4f eV/Å' % 
+                  self.force_zero)
+        parprint()
 
     def get_spectrum(self, start=800, end=4000, npts=None, width=4, type='Gaussian', method='standard', direction='central'):
         """Get infrared spectrum.

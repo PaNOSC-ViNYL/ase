@@ -28,10 +28,14 @@ def parprint(*args, **kwargs):
     
     for arg in args[:-1]:
         print >> kwargs['file'], arg,
-    if kwargs['end'] == '\n':
-        print args[-1]
+    if len(args):
+        last = args[-1]
     else:
-        print args[-1],
+        last = ''
+    if kwargs['end'] == '\n':
+        print last
+    else:
+        print last,
 
 # Check for special MPI-enabled Python interpreters:
 if '_gpaw' in sys.modules:
