@@ -10,7 +10,7 @@ Common surfaces
 A number of utility functions are provided to set up
 the most common surfaces, to add vacuum layers, and to add adsorbates
 to a surface.  In general, all surfaces can be set up with
-the `general crystal structures`_ modules documented below, but these
+the modules described in the section :ref:`general-crystal-section`, but these
 utility functions make common tasks easier.
 
 
