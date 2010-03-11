@@ -23,6 +23,7 @@ packages = ['ase',
             'ase.md',
             'ase.dft',
             'ase.gui',
+            'ase.gui.languages',
             'ase.data',
             'ase.test',
             'ase.utils',
@@ -34,18 +35,19 @@ packages = ['ase',
             'ase.visualize.vtk',
             'ase.transport',
             'ase.calculators',
-            'ase.gui.languages',
             'ase.calculators.jacapo']
 
 package_dir={'ase': 'ase'}
 
 package_data={'ase': ['lattice/spacegroup/spacegroup.dat']}
 
-
-
 # Get the current version number:
-execfile('ase/svnversion_io.py')
-execfile('ase/version.py')
+execfile('ase/svnversion_io.py')  # write ase/svnversion.py and get svnversion
+execfile('ase/version.py')        # get version_base
+if svnversion:
+    version = version_base + '.' + svnversion
+else:
+    version = version_base
 
 setup(name = 'python-ase',
       version=version,
