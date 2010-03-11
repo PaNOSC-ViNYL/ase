@@ -7,7 +7,7 @@ delta = 1e-10
 _debug = None
 
 def wulff_construction(symbol, energies, size, rounding="closest",
-                       symmetry=None, latticeconstant=None, debug=1):
+                       symmetry=None, latticeconstant=None, debug=0):
     """Create a cluster using the Wulff construction.
 
     A cluster is created with approximately the number of atoms
