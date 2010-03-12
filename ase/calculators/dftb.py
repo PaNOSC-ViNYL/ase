@@ -58,10 +58,10 @@ class Dftb:
             True: Do charge self consistent dftb+
             False: No SCC, charges on atoms are not iterated
             
-            Input file for DFTB+ file is
-            'dftb_in.hsd'. Keywords in it are written here or read from an 
-            existing file. The atom positions in file 'dftb_in.hsd' are
-            updated during ASE geometry optimization.
+        Input file for DFTB+ file is 'dftb_in.hsd'. Keywords in it are
+        written here or read from an existing file. The atom positions
+        in file 'dftb_in.hsd' are updated during ASE geometry
+        optimization.
         """
 
 
