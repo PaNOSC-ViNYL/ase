@@ -77,8 +77,8 @@ OpenBabel will not detect the bonds and we have to put them manually::
   # This results in a even larger interatomic distances
   # Therefore we add two double bonds
 
-  bonds = [[0, 1, 2],
-           [1, 2, 2]]
+  bonds = [[0, 1, 2], # Double bond between atom 0 and atom 1
+           [1, 2, 2]] # Double bond between atom 1 and atom 2
   calc = OBForceField(bonds=bonds)
   atoms.set_calculator(calc)
   relax = QuasiNewton(atoms)
