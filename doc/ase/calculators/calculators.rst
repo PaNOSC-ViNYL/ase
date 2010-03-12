@@ -62,6 +62,7 @@ Dacapo_           Old interface to Dacapo_. Requires           :term:`DFT`
                                                                :term:`LAPW`
 :mod:`fleur`      Full Potential LAPW code                     :term:`DFT`,
                                                                :term:`LAPW`
+:mod:`openbabel`  Empirical force fields from OpenBabel 
 :mod:`mmtk`       XXX Library for molecular simulations 
 ================  ===========================================  ============
   
@@ -78,7 +79,7 @@ The calculators can be divided in three groups:
 1) GPAW, Asap, Dacapo have their own native ASE interfaces.
 
 2) Jacapo, ABINIT, SIESTA, DftbPlus, TURBOMOLE, VASP, FLEUR, 
-   FHI-aims and MMTK have Python wrappers in the ASE
+   FHI-aims, OpenBabel and MMTK have Python wrappers in the ASE
    package, but the actual codes are not part of ASE.
 
 3) EMT is a pure python implementation of the Effective Medium Theory
@@ -101,6 +102,7 @@ Documentation for group 2 and 3 calculators
    mmtk
    exciting
    fleur
+   openbabel
 
 
 
