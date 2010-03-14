@@ -18,8 +18,7 @@ def read(filename, index=-1, format=None):
         number n (counting from zero).
     format: str
         Used to specify the file-format.  If not given, the
-        file-format will be guessed by the *filetype* function. If
-        it's 'babel', will try to use the OpenBabel library.
+        file-format will be guessed by the *filetype* function.
 
     Known formats:
 
@@ -144,10 +143,6 @@ def read(filename, index=-1, format=None):
         from ase.io.wien2k import read_struct
         return read_struct(filename)
 
-    if format == 'babel':
-        from ase.io.babel import read_babel
-        return read_babel(filename, index=index)
-
     if format == 'vti':
         from ase.io.vtkxml import read_vti
         return read_vti(filename)
@@ -200,8 +195,7 @@ def write(filename, images, format=None, **kwargs):
         A single Atoms object or a list of Atoms objects.
     format: str
         Used to specify the file-format.  If not given, the
-        file-format will be taken from suffix of the filename. If
-        given as 'babel', will try to use the OpenBabel library.
+        file-format will be taken from suffix of the filename. 
 
     The accepted output formats:
   
