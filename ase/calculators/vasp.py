@@ -803,6 +803,7 @@ class Vasp:
         self.forces = self.read_forces(self.atoms)
         self.dipole = self.read_dipole()
         self.fermi = self.read_fermi()
+        self.stress = self.read_stress()
         self.nbands = self.read_nbands()
         p=self.incar_parameters
         if self.spinpol:
