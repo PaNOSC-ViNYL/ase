@@ -174,5 +174,5 @@ def read_aims_output(filename):
             images.append(atoms)
             e = None
     fd.close()
-    return images
+    return images[-1]
 
