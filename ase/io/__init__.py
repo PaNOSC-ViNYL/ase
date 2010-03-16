@@ -36,6 +36,7 @@ def read(filename, index=-1, format=None):
     Dacapo text output         dacapo-text
     XYZ-file                   xyz
     VASP POSCAR/CONTCAR file   vasp
+    VASP OUTCAR file           vasp_out
     Protein Data Bank          pdb
     FHI-aims geometry file     aims
     FHI-aims output file       aims_out
@@ -126,6 +127,10 @@ def read(filename, index=-1, format=None):
     if format == 'vasp':
         from ase.io.vasp import read_vasp
         return read_vasp(filename)
+    
+    if format == 'vasp_out':
+        from ase.io.vasp import read_vasp_out
+        return read_vasp_out(filename)
     
     if format == 'mol':
         from ase.io.mol import read_mol
@@ -279,6 +284,8 @@ def write(filename, images, format=None, **kwargs):
             filename = sys.stdout
         elif 'POSCAR' in filename or 'CONTCAR' in filename:
             format = 'vasp'
+        elif 'OUTCAR' in filename:
+            format = 'vasp_out'
         else:
             suffix = filename.split('.')[-1]
             format = {}.get(suffix, suffix) # XXX this does not make sense
@@ -402,6 +409,9 @@ def filetype(filename):
     if 'POSCAR' in filename_v or 'CONTCAR' in filename_v:
         return 'vasp'    
 
+    if 'OUTCAR' in filename_v:
+        return 'vasp_out'
+    
     if filename.lower().endswith('.exi'):
         return 'exi'
     
