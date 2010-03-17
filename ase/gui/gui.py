@@ -31,6 +31,8 @@ from ase.gui.settings import Settings
 from ase.gui.surfaceslab import SetupSurfaceSlab
 from ase.gui.nanoparticle import SetupNanoparticle
 from ase.gui.nanotube import SetupNanotube
+from ase.gui.calculator import SetCalculator
+from ase.gui.energyforces import EnergyForces
 
 
 ui_info = """\
@@ -81,6 +83,11 @@ ui_info = """\
       <menuitem action='Nanoparticle'/>
       <menuitem action='Nanotube'/>
     </menu>
+    <menu action='CalculateMenu'>
+      <menuitem action='SetCalculator'/>
+      <separator/>
+      <menuitem action='EnergyForces'/>
+    </menu>
     <menu action='HelpMenu'>
       <menuitem action='About'/>
       <menuitem action='Webpage'/>
@@ -110,6 +117,7 @@ class GUI(View, Status):
             ('ViewMenu', None, '_View'  ),
             ('ToolsMenu', None, '_Tools'),
             ('SetupMenu', None, '_Setup'),
+            ('CalculateMenu', None, '_Calculate'),
             ('HelpMenu', None, '_Help'),
             ('Open', gtk.STOCK_OPEN, '_Open', '<control>O',
              'Create a new file',
@@ -204,6 +212,12 @@ class GUI(View, Status):
             ('Nanotube', None, 'Nano_tube', None,
              "Create a nanotube",
              self.nanotube_window),
+            ('SetCalculator', None, 'Set _Calculator', None,
+             "Set a calculator used in all calculation modules",
+             self.calculator_window),
+            ('EnergyForces', None, '_Energy and Forces', None,
+             "Calculate energy and forces",
+             self.energy_window),
             ('About', None, '_About', None,
              None,
              self.about),
@@ -243,6 +257,7 @@ class GUI(View, Status):
         self.graphs = []
         self.movie_window = None
         self.vulnerable_windows = []
+        self.simulation = {}  # Used by modules on Calculate menu.
 
     def run(self, expr=None):
         self.set_colors()
@@ -464,6 +479,12 @@ class GUI(View, Status):
         
     def nanotube_window(self, menuitem):
         SetupNanotube(self)
+
+    def calculator_window(self, menuitem):
+        SetCalculator(self)
+        
+    def energy_window(self, menuitem):
+        EnergyForces(self)
         
     def new_atoms(self, atoms):
         "Set a new atoms object."
