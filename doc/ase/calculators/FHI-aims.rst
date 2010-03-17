@@ -62,6 +62,7 @@ their use.
 One thing that should be mentioned is that keywords with more than
 one option have been implemented as lists, eg. 
 ``k_grid=(12,12,12)`` or ``relativistic=('atomic_zora','scalar')``. 
+In those cases, specifying a single string containing all the options is also possible. 
 
 None of the keywords have any default within ASE,but do check the defaults
 set by FHI-aims. If there is a keyword that you would 

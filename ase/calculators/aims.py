@@ -239,8 +239,11 @@ class Aims(Calculator):
         for key, val in self.list_params.items():
             if val is not None:
                 output.write('%-30s' % (key))
-                for sub_value in val:
-                    output.write(str(sub_value)+' ')
+                if isinstance(val,str): 
+                    output.write(val)
+                else:
+                    for sub_value in val:
+                        output.write(str(sub_value)+' ')
                 output.write('\n')
         for key, val in self.input_parameters.items():
             if key is  'cubes':
@@ -277,8 +280,11 @@ class Aims(Calculator):
         for key, val in self.list_params.items():
             if val is not None:
                 control.write('%-30s' % key)
-                for ival in val:
-                    control.write(str(ival)+' ')
+                if isinstance(val,str):
+                    control.write(val)
+                else:
+                    for ival in val:
+                        control.write(str(ival)+' ')
                 control.write('\n')
         for key, val in self.input_parameters.items():
             if key is  'cubes':
