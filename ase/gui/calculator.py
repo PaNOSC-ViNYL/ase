@@ -153,7 +153,7 @@ class SetCalculator(SetupWindow):
             oops("No atoms present")
             return False
         self.atoms = Atoms(positions=images.P[0], symbols=images.Z,
-                           cell=images.A[0])
+                           cell=images.A[0], pbc=images.pbc)
         return True
 
     def apply(self, *widget):
@@ -227,7 +227,7 @@ class SetCalculator(SetupWindow):
         return True
 
     def choose_emt(self):
-        emt, provider = self.emt_get()
+        emt, provider, asap3 = self.emt_get()
         if provider is None:
             emt_factory = emt
         else:

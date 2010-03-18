@@ -37,13 +37,12 @@ class EnergyForces(Simulation):
         if not self.setup_atoms():
             return
         e = self.atoms.get_potential_energy()
-        txt = "<b>Potential Energy:</b>\n"
+        txt = "Potential Energy:\n"
         txt += "  %8.3f eV\n\n" % (e,)
         if self.forces.get_active():
-            txt +="<b>Forces:</b>\n"
+            txt +="Forces:\n"
             forces = self.atoms.get_forces()
             for f in forces:
                 txt += "  %8.3f, %8.3f, %8.3f eV/Å\n" % tuple(f)
         self.output.set_text(txt)
-        print "Done"
         

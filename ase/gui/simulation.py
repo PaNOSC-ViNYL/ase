@@ -49,6 +49,6 @@ class Simulation(gtk.Window):
             oops("No atoms present")
             return None
         return Atoms(positions=images.P[0], symbols=images.Z,
-                           cell=images.A[0])
+                     cell=images.A[0], pbc=images.pbc)
 
 
