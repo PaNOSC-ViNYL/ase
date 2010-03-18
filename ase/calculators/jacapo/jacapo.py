@@ -595,17 +595,19 @@ class Jacapo:
         #update the pspdatabase from the ncfile if it exists unless
         #there are no atoms present.
         if hasattr(self,'atoms') and os.path.exists(self.nc):
-            nc = netCDF(self.nc, 'r')
-            sym = nc.variables['DynamicAtomSpecies'][:]
-            symbols = [x.tostring().strip() for x in sym]
-            for sym in symbols:
-                vn = 'AtomProperty_%s' % sym
-                if vn in nc.variables:
-                    var = nc.variables[vn]
-                    pspfile = var.PspotFile
+            try:
+                nc = netCDF(self.nc, 'r')
+                sym = nc.variables['DynamicAtomSpecies'][:]
+                symbols = [x.tostring().strip() for x in sym]
+                for sym in symbols:
+                    vn = 'AtomProperty_%s' % sym
+                    if vn in nc.variables:
+                        var = nc.variables[vn]
+                        pspfile = var.PspotFile
 
-                    self.psp[sym] = pspfile
-            nc.close()
+                        self.psp[sym] = pspfile
+            finally:
+                nc.close()
 
     def _set_frame_number(self, frame=None):
         if frame is None:
@@ -4310,6 +4312,13 @@ s.recv(14)
 
     def ados_changed(self,x):
         ados = self.get_ados()
+
+        #ados may not be defined, and then None is returned
+        if ados is None and x is None:
+            return False
+        else:
+            return True
+        
         for key in x:
             try:
                 if x[key] != ados[key]:
