@@ -73,6 +73,14 @@ emt_parameters = (
 
 class SetCalculator(SetupWindow):
     "Window for selecting a calculator."
+
+    # List the names of the radio button attributes
+    radios = ("none", "lj", "emt")
+    # List the names of the parameter dictionaries
+    paramdicts = ("lj_parameters",)
+    # The name used to store parameters on the gui object
+    classname = "SetCalculator"
+    
     def __init__(self, gui):
         SetupWindow.__init__(self)
         self.set_title("Select calculator")
@@ -82,7 +90,7 @@ class SetCalculator(SetupWindow):
         self.packtext(vbox, introtext)
         
         pack(vbox, [gtk.Label("Calculator:")])
-        
+
         # No calculator (the default)
         self.none_radio = gtk.RadioButton(None, "None")
         pack(vbox, [self.none_radio])
@@ -122,7 +130,7 @@ class SetCalculator(SetupWindow):
         vbox.show()
         self.show()
         self.gui = gui
-        
+        self.load_state()
         
     def pack_line(self, box, radio, setup, info):
         hbox = gtk.HBox()
@@ -157,6 +165,13 @@ class SetCalculator(SetupWindow):
         return True
 
     def apply(self, *widget):
+        if self.do_apply():
+            self.save_state()
+            return True
+        else:
+            return False
+        
+    def do_apply(self):
         nochk = not self.check.get_active()
         if self.none_radio.get_active():
             self.gui.simulation['calc'] = None
@@ -174,6 +189,33 @@ class SetCalculator(SetupWindow):
     def ok(self, *widget):
         if self.apply():
             self.destroy()
+
+    def save_state(self):
+        state = {}
+        for r in self.radios:
+            radiobutton = getattr(self, r+"_radio")
+            if radiobutton.get_active():
+                state["radio"] = r
+        state["emtsetup"] = self.emt_setup.get_active()
+        state["check"] = self.check.get_active()
+        for p in self.paramdicts:
+            if hasattr(self, p):
+                state[p] = getattr(self, p)
+        self.gui.module_state[self.classname] = state
+
+    def load_state(self):
+        try:
+            state = self.gui.module_state[self.classname]
+        except KeyError:
+            return
+        r = state["radio"]
+        radiobutton = getattr(self, r+"_radio")
+        radiobutton.set_active(True)
+        self.emt_setup.set_active(state["emtsetup"])
+        self.check.set_active(state["check"])
+        for p in self.paramdicts:
+            if state.has_key(p):
+                setattr(self, p, state[p])
             
     def lj_check(self):
         try:
@@ -349,6 +391,5 @@ class LJ_Window(gtk.Window):
         params["sigma"] = sigma
         params["modified"] = self.modif.get_active()
         setattr(self.owner, self.attrname, params)
-        print params
         self.destroy()
         

@@ -257,7 +257,8 @@ class GUI(View, Status):
         self.graphs = []
         self.movie_window = None
         self.vulnerable_windows = []
-        self.simulation = {}  # Used by modules on Calculate menu.
+        self.simulation = {}   # Used by modules on Calculate menu.
+        self.module_state = {} # Used by modules to store their state.
 
     def run(self, expr=None):
         self.set_colors()
