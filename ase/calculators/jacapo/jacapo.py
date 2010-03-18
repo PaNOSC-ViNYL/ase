@@ -4015,10 +4015,10 @@ s.recv(14)
         if x.shape == ():
             return False
         #monkhorst-pack
-        elif x.shape == (3,) and (x.dtype == 'int32'):
+        elif x.shape == (3,) and (x.dtype[0:3] == 'int'):
             return True
         #user-defined list
-        elif x.shape[1] == 3 and (x.dtype == 'float64'):
+        elif x.shape[1] == 3 and (x.dtype[0:5] == 'float'):
             return True
         else:
             return False
