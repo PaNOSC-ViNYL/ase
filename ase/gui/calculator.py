@@ -8,6 +8,7 @@ from ase.gui.setupwindow import SetupWindow
 from ase.gui.widgets import pack, oops, cancel_apply_ok
 from ase import Atoms
 from ase.data import chemical_symbols
+import ase
 
 # Asap and GPAW may be imported if selected.
 
@@ -64,6 +65,23 @@ CuZr in A. Paduraru, A. Kenoufi, N. P. Bailey and
 J. Schiøtz, <i>Adv. Eng. Mater.</i> <b>9</b>, 505 (2007).
 """
 
+aseemt_info_txt = """\
+
+The EMT potential is a many-body potential, giving a
+good description of the late transition metals crystalling
+in the FCC crystal structure.  The elements described by the
+main set of EMT parameters are Al, Ni, Cu, Pd, Ag, Pt, and
+Au.  In addition, this implementation allows for the use of
+H, N, O and C adatoms, although the description of these is
+most likely not very good.
+
+<b>This is the ASE implementation of EMT.</b> For large
+simulations the ASAP implementation is more suitable; this
+implementation is mainly to make EMT available when ASAP is
+not installed.
+"""
+
+
 emt_parameters = (
     ("Default (Al, Ni, Cu, Pd, Ag, Pt, Au)", None),
     ("Alternative Cu, Ag and Au", "EMTRasmussenParameters"),
@@ -75,7 +93,7 @@ class SetCalculator(SetupWindow):
     "Window for selecting a calculator."
 
     # List the names of the radio button attributes
-    radios = ("none", "lj", "emt")
+    radios = ("none", "lj", "emt", "aseemt")
     # List the names of the parameter dictionaries
     paramdicts = ("lj_parameters",)
     # The name used to store parameters on the gui object
@@ -114,6 +132,16 @@ class SetCalculator(SetupWindow):
         self.emt_info = InfoButton(emt_info_txt)
         self.pack_line(vbox, self.emt_radio, self.emt_setup, self.emt_info)
 
+        # EMT (ASE implementation)
+        self.aseemt_radio = gtk.RadioButton(
+            self.none_radio, "EMT - Effective Medium Theory (ASE)")
+        self.aseemt_info = InfoButton(aseemt_info_txt)
+        self.pack_line(vbox, self.aseemt_radio, None, self.aseemt_info)
+
+        # GPAW
+        
+        # Buttons etc.
+        pack(vbox, gtk.Label(""))
         buts = cancel_apply_ok(cancel=lambda widget: self.destroy(),
                                apply=self.apply,
                                ok=self.ok)
@@ -183,6 +211,10 @@ class SetCalculator(SetupWindow):
         elif self.emt_radio.get_active():
             if nochk or self.emt_check():
                 self.choose_emt()
+                return True
+        elif self.aseemt_radio.get_active():
+            if nochk or self.aseemt_check():
+                self.choose_aseemt()
                 return True
         return False
 
@@ -277,6 +309,30 @@ class SetCalculator(SetupWindow):
                 return emt(prov())
         self.gui.simulation["calc"] = emt_factory
 
+    def aseemt_check(self):
+        return self.element_check("ASE EMT", ['H', 'Al', 'Cu', 'Ag', 'Au',
+                                              'Ni', 'Pd', 'Pt', 'C', 'N', 'O'])
+
+    def choose_aseemt(self):
+        self.gui.simulation["calc"] = ase.EMT
+        ase.EMT.disabled = False  # In case Asap has been imported.
+
+    def element_check(self, name, elements):
+        "Check that all atoms are allowed"
+        elements = [ase.data.atomic_numbers[s] for s in elements]
+        elements_dict = {}
+        for e in elements:
+            elements_dict[e] = True
+        if not self.get_atoms():
+            return False
+        try:
+            for e in self.atoms.get_atomic_numbers():
+                elements_dict[e]
+        except KeyError:
+            oops("Element %s is not allowed by the '%s' calculator"
+                 % (ase.data.chemical_symbols[e], name))
+            return False
+        return True
     
 class InfoButton(gtk.Button):
     def __init__(self, txt):
