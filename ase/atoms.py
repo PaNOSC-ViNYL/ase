@@ -1245,7 +1245,7 @@ def string2vector(v):
         w = np.zeros(3)
         w['xyz'.index(v)] = 1.0
         return w
-    return np.asarray(v, float)
+    return np.array(v, float)
 
 def default(data, dflt):
     """Helper function for setting default values."""
