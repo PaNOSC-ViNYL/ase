@@ -178,6 +178,35 @@ class FixBondLength(FixConstraint):
     def __repr__(self):
         return 'FixBondLength(%d, %d)' % tuple(self.indices)
 
+class FixedMode(FixConstraint):
+    """Constrain atoms to move along directions orthogonal to
+    a given mode only."""
+
+    def __init__(self,indices,mode):
+        if indices is None:
+            raise ValueError('Use "indices".')
+        if indices is not None:
+            self.index = np.asarray(indices, int)
+        self.mode = (np.asarray(mode) / np.sqrt((mode **2).sum())).reshape(-1)
+
+    def adjust_positions(self, oldpositions, newpositions):
+        newpositions = newpositions.ravel()
+        oldpositions = oldpositions.ravel()
+        step = newpositions - oldpositions
+        newpositions -= self.mode * np.dot(step, self.mode)
+        newpositions = newpositions.reshape(-1,3)
+        oldpositions = oldpositions.reshape(-1,3)
+
+    def adjust_forces(self, positions, forces):
+        forces = forces.ravel()
+        forces -= self.mode * np.dot(forces, self.mode)
+        forces = forces.reshape(-1 ,3)
+
+    def copy(self):
+        return FixedMode(self.index.copy(), self.mode)
+
+    def __repr__(self):
+        return 'FixedMode(%d, %s)' % (ints2string(self.index), self.mode.tolist())
 
 class FixedPlane(FixConstraintSingle):
     """Constrain an atom *a* to move in a given plane only.
