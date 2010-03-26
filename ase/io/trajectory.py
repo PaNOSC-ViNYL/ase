@@ -3,7 +3,7 @@ import pickle
 
 from ase.calculators import SinglePointCalculator
 from ase.atoms import Atoms
-from ase.parallel import rank
+from ase.parallel import rank, barrier
 from ase.utils import devnull
 from ase.neb import NEB
 
@@ -74,9 +74,15 @@ class PickleTrajectory:
             exists = True
             if isinstance(filename, str):
                 exists = os.path.isfile(filename)
-                self.fd = open(filename, 'ab+')
-            if exists:
-                self.read_header()
+                if exists:
+                    self.fd = open(filename, 'rb')
+                    self.read_header()
+                    self.fd.close()
+                barrier()
+                if self.master:
+                    self.fd = open(filename, 'ab+')
+                else:
+                    self.fd = devnull
         elif mode == 'w':
             if self.master:
                 if isinstance(filename, str):
