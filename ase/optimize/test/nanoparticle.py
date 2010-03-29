@@ -1,5 +1,6 @@
 #/usr/bin/env python
-#PBS -l nodes=1:ppn=8:xeon
+#PBS -l nodes=4:ppn=8
+#PBS -l walltime=02:15:00
 
 from ase import Atom, Atoms
 from ase.io import read
@@ -41,4 +42,4 @@ def get_calculator():
                 txt='nanoparticle.txt')
     return calc
 
-run_test(get_atoms, get_calculator, name, fmax=0.01)
+run_test(get_atoms, get_calculator, name, 'GPAW', fmax=0.01)

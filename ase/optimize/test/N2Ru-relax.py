@@ -75,5 +75,5 @@ def get_atoms_adsorbate():
 def get_calculator():
     return EMT()
 
-run_test(get_atoms_surf, get_calculator, name + '-surf', steps=200)
-run_test(get_atoms_adsorbate, get_calculator, name + '-N2', steps=200)
+run_test(get_atoms_surf, get_calculator, name + '-surf', 'EMT', steps=200)
+run_test(get_atoms_adsorbate, get_calculator, name + '-N2', 'EMT', steps=200)

@@ -18,5 +18,5 @@ def get_calculator_gpaw():
     calc = GPAW(xc='PBE',txt=None)
     return calc
 
-run_test(get_atoms, get_calculator_emt, name + '-emt')
-run_test(get_atoms, get_calculator_gpaw, name + '-gpaw', steps=25)
+run_test(get_atoms, get_calculator_emt, name + '-emt', 'EMT')
+run_test(get_atoms, get_calculator_gpaw, name + '-gpaw', 'GPAW', steps=25)

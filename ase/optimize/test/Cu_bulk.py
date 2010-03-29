@@ -13,4 +13,4 @@ def get_atoms():
 def get_calculator():
     return EMT()
 
-run_test(get_atoms, get_calculator, name, fmax=0.02)
+run_test(get_atoms, get_calculator, name, 'EMT', fmax=0.02)

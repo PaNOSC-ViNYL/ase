@@ -1,3 +1,5 @@
+#PBS -l nodes=4:ppn=8
+#PBS -l walltime=13:00:00
 import numpy as np
 from ase import Atoms
 from ase.constraints import FixedPlane, FixAtoms
@@ -88,7 +90,7 @@ def get_atoms():
                     (4.2113,    4.2113,   10.6493)])
     srf.extend(c2)
     srf.pbc=(1, 1, 0)
-    srf.set_cell([ 10.2106, 10.2106, 20.6572],scale_atoms=False) 
+    srf.set_cell([ 10.2106, 10.2106, 20.6572],scale_atoms=False)
 
     mask=[a.index < 32  for a in srf]
     c1 = FixedPlane(-1, (1/np.sqrt(2), 1/np.sqrt(2), 1))
@@ -97,4 +99,4 @@ def get_atoms():
     srf.set_constraint([constraint, c1, c2])
     return srf
 
-run_test(get_atoms, get_calculator, 'C2_Cu100')
+run_test(get_atoms, get_calculator, 'C2_Cu100', 'GPAW (lcao)')
