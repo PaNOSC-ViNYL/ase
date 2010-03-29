@@ -4,11 +4,10 @@ pymin = __builtin__.min
 pymax = __builtin__.max
 
 class LineSearch:
-    def __init__(self, stpmin=1e-8, xtol=1e-14):
+    def __init__(self,  xtol=1e-14):
 
         self.xtol = xtol
         self.task = 'START'
-        self.stpmin = stpmin
         self.isave = np.zeros((2,), np.intc)
         self.dsave = np.zeros((13,), float)
         self.fc = 0
@@ -17,9 +16,11 @@ class LineSearch:
         self.old_stp = 0
     
     def _line_search(self, func, myfprime, xk, pk, gfk, old_fval, old_old_fval,
-                     maxstep=.2, c1=.23, c2=0.46, xtrapl=1.1, xtrapu=4., stpmax=50., args=()):
-
+                     maxstep=.2, c1=.23, c2=0.46, xtrapl=1.1, xtrapu=4., 
+                     stpmax=50., stpmin=1e-8, args=()):
+        self.stpmin = stpmin 
         self.pk = pk
+        p_size = np.sqrt((pk **2).sum())
         self.stpmax = stpmax
         self.xtrapl = xtrapl
         self.xtrapu = xtrapu
@@ -30,6 +31,7 @@ class LineSearch:
         self.gms = np.sqrt(self.dim) * maxstep
         #alpha1 = pymin(maxstep,1.01*2*(phi0-old_old_fval)/derphi0)
         alpha1 = 1.
+        self.no_update = False
 
         if isinstance(myfprime,type(())):
             eps = myfprime[1]
@@ -43,9 +45,10 @@ class LineSearch:
     
         fval = old_fval
         gval = gfk
+        self.steps=[]
 
         while 1:
-            stp,fval,derphi = self.step(alpha1, phi0, derphi0, c1, c2,
+            stp = self.step(alpha1, phi0, derphi0, c1, c2,
                                              self.xtol, 
                                              self.isave, self.dsave)
     
@@ -59,12 +62,14 @@ class LineSearch:
                 phi0 = fval
                 derphi0 = np.dot(gval,pk)
                 self.old_stp = alpha1
+                if self.no_update == True:
+                    break
             else:
                 break
     
         if self.task[:5] == 'ERROR' or self.task[1:4] == 'WARN':
             stp = None  # failed
-        return stp, self.fc, self.gc, fval, old_fval, gval
+        return stp, self.fc, self.gc, fval, old_fval, gval, self.no_update
 
     def step(self, stp, f, g, c1, c2, xtol, isave, dsave):
         if self.task[:5] == 'START':
@@ -86,7 +91,7 @@ class LineSearch:
             if self.stpmax < self.stpmin:
                 self.task = 'ERROR: maxstep .LT. minstep'
             if self.task[:5] == 'ERROR':
-   	            return stp, f, g
+   	            return stp
 
 #			Initialize local variables.
             self.bracket = False
@@ -115,7 +120,8 @@ class LineSearch:
                        gy, finit, fx, fy, stx, sty,
                        stmin, stmax, width, width1)) 
             stp = self.determine_step(stp)
-            return stp, f, g
+            #return stp, f, g
+            return stp
         else:
             if self.isave[0] == 1:
                 self.bracket = True
@@ -150,39 +156,39 @@ class LineSearch:
                 self.save((stage, ginit, gtest, gx, 
                            gy, finit, fx, fy, stx, sty,
                            stmin, stmax, width, width1)) 
-                return stp, f, g
+                #return stp, f, g
+                return stp
 
 #              A modified function is used to predict the step during the
 #              first stage if a lower function value has been obtained but
 #              the decrease is not sufficient.
-            if stage == 1 and f <= fx and f > ftest:
-#               Define the modified function and derivative values.
-                fm =f - stp * gtest
-                fxm = fx - stx * gtest
-                fym = fy - sty * gtest
-                gm = g - gtest
-                gxm = gx - gtest
-                gym = gy - gtest
+            #if stage == 1 and f <= fx and f > ftest:
+#           #    Define the modified function and derivative values.
+            #    fm =f - stp * gtest
+            #    fxm = fx - stx * gtest
+            #    fym = fy - sty * gtest
+            #    gm = g - gtest
+            #    gxm = gx - gtest
+            #    gym = gy - gtest
 
 #               Call step to update stx, sty, and to compute the new step.
-                stx, sty, stp, gx, fx, gy, fy= self.update (stx, fxm, gxm, sty, 
-                                                    fym, gym, stp, fm, gm, 
-                                                    self.bracket, stmin, stmax)
+            #    stx, sty, stp, gxm, fxm, gym, fym = self.update (stx, fxm, gxm, sty, 
+            #                                        fym, gym, stp, fm, gm, 
+            #                                        stmin, stmax)
 
-#               Reset the function and derivative values for f.
+#           #    Reset the function and derivative values for f.
 
-                fx = fxm + stx * gtest
-                fy = fym + sty * gtest
-                gx = gxm + gtest
-                gy = gym + gtest
+            #    fx = fxm + stx * gtest
+            #    fy = fym + sty * gtest
+            #    gx = gxm + gtest
+            #    gy = gym + gtest
 
-            else:
+            #else:
+#           Call step to update stx, sty, and to compute the new step.
 
-#               Call step to update stx, sty, and to compute the new step.
-
-                stx, sty, stp, gx, fx, gy, fy= self.update(stx, fx, gx, sty, 
-                                                    fy, gy, stp, f, g, 
-                                                    self.bracket, stmin, stmax)
+            stx, sty, stp, gx, fx, gy, fy= self.update(stx, fx, gx, sty, 
+                                               fy, gy, stp, f, g, 
+                                               stmin, stmax)
 
 
 #           Decide if a bisection step is needed.
@@ -207,6 +213,8 @@ class LineSearch:
             stp = max(stp, self.stpmin)
             stp = min(stp, self.stpmax)
 
+            if (stx == stp and stp == self.stpmax and stmin > self.stpmax):
+                self.no_update = True
 #           If further progress is not possible, let stp be the best
 #           point obtained during the search.
 
@@ -220,9 +228,9 @@ class LineSearch:
             self.save((stage, ginit, gtest, gx, 
                        gy, finit, fx, fy, stx, sty,
                        stmin, stmax, width, width1)) 
-            return stp, f, g
+            return stp
 
-    def update(self, stx, fx, gx, sty, fy, gy, stp, fp, gp, bracket, 
+    def update(self, stx, fx, gx, sty, fy, gy, stp, fp, gp, 
                stpmin, stpmax):
         sign = gp * (gx / abs(gx))
 
