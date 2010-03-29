@@ -453,7 +453,8 @@ class View:
 
     def external_viewer(self, action):
         name = action.get_name()
-        command = {'XMakeMol': 'xmakemol -f',
+        command = {'Avogadro' : 'avogadro',
+                   'XMakeMol': 'xmakemol -f',
                    'RasMol':'rasmol -xyz',
                    'VMD': 'vmd'}[name]
         fd, filename = tempfile.mkstemp('.xyz', 'ase.gui-')

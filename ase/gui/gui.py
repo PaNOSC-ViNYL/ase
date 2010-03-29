@@ -69,6 +69,7 @@ ui_info = """\
       <menuitem action='VMD'/>
       <menuitem action='RasMol'/>
       <menuitem action='XMakeMol'/>
+      <menuitem action='Avogadro'/>
     </menu>
     <menu action='ToolsMenu'>
       <menuitem action='Graphs'/>
@@ -177,6 +178,9 @@ class GUI(View, Status):
              '',
              self.external_viewer),
             ('XMakeMol', None, 'xmakemol', None,
+             '',
+             self.external_viewer),
+            ('Avogadro', None, 'avogadro', None,
              '',
              self.external_viewer),
             ('Graphs', None, 'Graphs ...', None,
