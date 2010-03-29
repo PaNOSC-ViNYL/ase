@@ -222,6 +222,26 @@ as::
   :epydoc:`optimize.sciopt.SciPyFminBFGS`, 
   :epydoc:`optimize.sciopt.SciPyFminCG`
 
+BFGSLineSearch
+-----
+.. module:: optimize.bfgslinesearch
+
+BFGSLineSearch is the BFGS algorithm with an line search mechanism
+that enforces the step taken fulfills the Wolfe conditions, so that
+the energy and absolute value of the force decrease monotonically. Like
+the lbfgs algorithm the inverse of the Hessian Matrix is updated.
+
+The usage of BFGSLineSearch algorithm is similar to other BFGS type
+algorithms. A typical optimization should look like::
+
+  from ase.optimize.bfgslinesearch import BFGSLineSearch
+
+  dyn = BFGSLineSearch(system, trajectory='bfgs_ls.traj', restart='bfgs_ls.pckl')
+
+where the trajectory and the restart save the trajectory of the
+optimization and the information needed to generate the Hessian Matrix.
+
+
 Global optimization
 ===================
 
@@ -260,3 +280,5 @@ and here:
   | Science, Vol. **285**, 1368 (1999)
 
 __ http://www.sciencemag.org/cgi/content/abstract/sci;285/5432/1368
+
+
