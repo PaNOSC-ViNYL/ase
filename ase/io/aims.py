@@ -106,7 +106,7 @@ def write_aims(filename, atoms):
             xyz = fix_cart[i]
             for n in range(3):
                 if xyz[n]:
-                    fd.write('constraint_relaxation %s\n' % 'xyz'[n])
+                    fd.write('constrain_relaxation %s\n' % 'xyz'[n])
         if atom.charge:
             fd.write('initial_charge %16.6f\n' % atom.charge)
         if atom.magmom:
