@@ -103,12 +103,11 @@ class Vibrations:
         filename = self.name + '.eq.pckl'
         if not isfile(filename):
             barrier()
-            if rank == 0:
-                fd = open(filename, 'w')
             forces = self.atoms.get_forces()
             if self.ir:
                 dipole = self.calc.get_dipole_moment(self.atoms)
             if rank == 0:
+                fd = open(filename, 'w')
                 if self.ir:
                     pickle.dump([forces, dipole], fd)
                     sys.stdout.write('Writing %s, dipole moment = (%.6f %.6f %.6f)\n' % 
@@ -129,13 +128,12 @@ class Vibrations:
                         if isfile(filename):
                             continue
                         barrier()
-                        if rank == 0:
-                            fd = open(filename, 'w')
                         self.atoms.positions[a, i] = p[a, i] + ndis * sign * self.delta
                         forces = self.atoms.get_forces()
                         if self.ir:
                             dipole = self.calc.get_dipole_moment(self.atoms)
                         if rank == 0:
+                            fd = open(filename, 'w')
                             if self.ir:
                                 pickle.dump([forces, dipole], fd)
                                 sys.stdout.write('Writing %s, dipole moment = (%.6f %.6f %.6f)\n' % 
