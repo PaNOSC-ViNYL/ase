@@ -49,6 +49,8 @@ ARGS = string.join(sys.argv[1:],' ')
 
 def RunSerialDacapo(ARGS):
     DACAPOEXE = os.environ.get('DACAPOEXE_SERIAL')
+    if DACAPOEXE is None:
+        raise Exception, 'DACAPOEXE_SERIAL was not found in your environment'
     cmd = string.join([DACAPOEXE,ARGS],' ')
     status = os.system(cmd)
     if status != 0:
