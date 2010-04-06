@@ -56,6 +56,7 @@ List of all modules:
    gui
    setup-overview
    optimize
+   testoptimize
    parallel
    visualize
    visualize/vtk
