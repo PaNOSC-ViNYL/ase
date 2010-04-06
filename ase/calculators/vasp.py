@@ -385,6 +385,7 @@ class Vasp:
         self.read_incar()
         self.read_outcar()
         self.read_kpoints()
+        self.read_potcar()
         self.old_incar_parameters = self.incar_parameters.copy()
         self.old_input_parameters = self.input_parameters.copy()
         self.converged = self.read_convergence()
@@ -826,6 +827,33 @@ class Vasp:
             raise NotImplementedError('Only Monkhorst-Pack and gamma centered grid supported for restart.')
         else:
             raise NotImplementedError('Only Monkhorst-Pack and gamma centered grid supported for restart.')
+    
+    def read_potcar(self):
+        """ Method that reads the Exchange Correlation functional from POTCAR file.
+        """
+        file = open('POTCAR', 'r')
+        lines = file.readlines()
+        file.close()
+
+        # Search for key 'LEXCH' in POTCAR
+        xc_flag = None
+        for line in lines:
+            key = line.split()[0].upper()
+            if key == 'LEXCH':
+                xc_flag = line.split()[-1].upper()
+                break
+
+        if xc_flag is None:
+            raise ValueError('LEXCH flag not found in POTCAR file.')
+
+        # Values of parameter LEXCH and corresponding XC-functional
+        xc_dict = {'PE':'PBE', '91':'PW91', 'CA':'LDA'}
+
+        if xc_flag not in xc_dict.keys():
+            raise ValueError(
+                'Unknown xc-functional flag found in POTCAR, LEXCH=%s' % xc_flag)
+
+        self.input_parameters['xc'] = xc_dict[xc_flag]
 
 
 class VaspChargeDensity(object):
