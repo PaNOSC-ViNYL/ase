@@ -57,9 +57,15 @@ with GGA-PBE-spin parameters. If you need LDA use your own 'dftb_in.hsd'-file.
 Information of periodicity is taken from ase (see example1 below).
 
 
-For example:
-::
-	calc = Dftb(label='o2',write_dftb=True,do_spin_polarized=True,unpaired_electrons=2.0, fermi_temperature=100.0,scc=True)	
+For example::
+
+    calc = Dftb(label='o2',
+                write_dftb=True,
+                do_spin_polarized=True,
+                unpaired_electrons=2.0,
+                fermi_temperature=100.0,
+                scc=True)	
+
 
 Parameters
 ==========
