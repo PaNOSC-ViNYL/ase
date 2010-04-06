@@ -8,7 +8,8 @@ namelist = [d.strip('.csv') for d in dirlist]
 
 f = open('testoptimize.rst', 'w')
 f.write(
-"""
+""".. _optimizer_tests:
+
 ===============
 Optimizer tests
 ===============

@@ -13,8 +13,7 @@ def get_calculator():
 run_test(get_atoms, get_calculator, 'Hydrogen')
 """
 import matplotlib
-#matplotlib.rcParams['backend']="PDF"
-#matplotlib.rcParams['backend']="Agg"
+matplotlib.rcParams['backend']="Agg"
 
 from ase.optimize.bfgs import BFGS
 from ase.optimize.lbfgs import LBFGS, LineSearchLBFGS

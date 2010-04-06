@@ -14,10 +14,11 @@ def get_calculator():
                 nbands = -5,
                 xc='LDA',
                 mode='lcao',
-                txt=None,
+                txt='C2_Cu100.txt',
                 mixer=Mixer(beta=0.1, nmaxold=5, weight=50.0),
                 poissonsolver=PoissonSolver(nn='M', relax='GS'),
                 stencils=(3, 3),
+                maxiter=400,
                 basis=basis)
     return calc
 
