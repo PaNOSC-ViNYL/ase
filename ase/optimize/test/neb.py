@@ -1,7 +1,6 @@
 #/usr/bin/env python
 #PBS -l nodes=4:ppn=8
 #PBS -l walltime=13:00:00
-import development
 from ase import QuasiNewton, FixAtoms, EMT, NEB
 from ase.lattice.surface import fcc100, add_adsorbate
 from ase.optimize.test import run_test
