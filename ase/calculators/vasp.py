@@ -317,7 +317,8 @@ class Vasp:
         atoms_sorted = ase.io.read('CONTCAR', format='vasp')
         p=self.incar_parameters
         if p['ibrion']>-1 and p['nsw']>0:
-            atoms.set_positions(atoms_sorted.get_positions()[self.resort])
+            # Replace entire atoms object with the one read from CONTCAR.
+            atoms.__dict__ = atoms_sorted[self.resort].__dict__
         self.energy_free, self.energy_zero = self.read_energy()
         self.forces = self.read_forces(atoms)
         self.dipole = self.read_dipole()
@@ -434,8 +435,10 @@ class Vasp:
 
     def read_stress(self):
         for line in open('OUTCAR'):
-            if line.find(' Total  ') != -1:
-                stress = np.array([float(a) for a in line.split()[1:]])[[0, 1, 2, 4, 5, 3]]
+            if line.find(' in kB  ') != -1:
+                stress = -np.array([float(a) for a in line.split()[2:]]) \
+                         [[0, 1, 2, 4, 5, 3]] \
+                         * 1e-1 * ase.units.GPa
         return stress
 
     def calculation_required(self, atoms, quantities):
