@@ -1,5 +1,5 @@
 import os
-import pickle
+import cPickle as pickle
 
 from ase.calculators import SinglePointCalculator
 from ase.atoms import Atoms
