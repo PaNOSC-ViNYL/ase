@@ -125,7 +125,7 @@ class Spacegroup(object):
             datafile = get_datafile()
         f = open(datafile, 'r')
         try:
-            _read_datafile(self, spacegroup, f)
+            _read_datafile(self, spacegroup, setting, f)
         finally:
             f.close()
 
@@ -323,36 +323,39 @@ def get_datafile():
 # instance is created.
 #-----------------------------------------------------------------
 
-def _skip_to_blank(f, spacegroup):
+def _skip_to_blank(f, spacegroup, setting):
     """Read lines from f until a blank line is encountered."""
     while True:
         line = f.readline()
         if not line:
             raise SpacegroupNotFoundError(
-                'invalid spacegroup: %s, not found in data base'%spacegroup)
+                'invalid spacegroup %s, setting %i not found in data base' % 
+                ( spacegroup, setting ) )
         if not line.strip():
             break
 
 
-def _skip_to_nonblank(f, spacegroup):
+def _skip_to_nonblank(f, spacegroup, setting):
     """Read lines from f until a nonblank line not starting with a
-    hash (#) is encountered and returns the line."""
+    hash (#) is encountered and returns this and the next line."""
     while True:
-        line = f.readline()
-        if not line:
+        line1 = f.readline()
+        if not line1:
             raise SpacegroupNotFoundError(
-                'invalid spacegroup %s, not found in data base'%spacegroup)
-        line.strip()
-        if line and not line.startswith('#'):
+                'invalid spacegroup %s, setting %i not found in data base' %
+                ( spacegroup, setting ) )
+        line1.strip()
+        if line1 and not line1.startswith('#'):
+            line2 = f.readline()
             break
-    return line
+    return line1, line2
 
 
-def _read_datafile_entry(spg, no, symbol, f):
+def _read_datafile_entry(spg, no, symbol, setting, f):
     """Read space group data from f to spg."""
     spg._no = no
     spg._symbol = symbol.strip()
-    spg._setting = int(f.readline().split()[1])
+    spg._setting = setting
     spg._centrosymmetric = bool(f.readline().split()[1])
     # primitive vectors
     f.readline()
@@ -378,7 +381,7 @@ def _read_datafile_entry(spg, no, symbol, f):
     spg._translations = symop[:,9:]
 
 
-def _read_datafile(spg, spacegroup, f):
+def _read_datafile(spg, spacegroup, setting, f):
     if isinstance(spacegroup, int):
         pass
     elif isinstance(spacegroup, basestring):
@@ -386,15 +389,17 @@ def _read_datafile(spg, spacegroup, f):
     else:
         raise SpacegroupValueError('`spacegroup` must be of type int or str')
     while True:
-        line = _skip_to_nonblank(f, spacegroup)
-        _no,_symbol = line.strip().split(None, 1)
+        line1, line2 = _skip_to_nonblank(f, spacegroup, setting)
+        _no,_symbol = line1.strip().split(None, 1)
+        _setting = int(line2.strip().split()[1])
         _no = int(_no)
         if ((isinstance(spacegroup, int) and _no == spacegroup) or
-            (isinstance(spacegroup, basestring) and _symbol == spacegroup)):
-            _read_datafile_entry(spg, _no, _symbol, f)
+            (isinstance(spacegroup, basestring) and 
+             _symbol == spacegroup)) and _setting == setting:
+            _read_datafile_entry(spg, _no, _symbol, _setting, f)
             break
         else:
-            _skip_to_blank(f, spacegroup)
+            _skip_to_blank(f, spacegroup, setting)
                 
 
 
