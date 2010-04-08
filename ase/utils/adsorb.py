@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Copyright 2010 CAMd
 # (see accompanying license files for details).
  
@@ -28,7 +30,7 @@ def build():
                  choices=['sc', 'fcc', 'bcc', 'hcp'])
     p.add_option('-a', '--lattice-constant', type='float',
                  help='Lattice constant in Angstrom.')
-    p.add_option('--c_over_a', type='float',
+    p.add_option('--c-over-a', type='float',
                  help='c/a ratio.')
     p.add_option('--height', type='float',
                  help='Height of adsorbate over surface.')
@@ -101,7 +103,8 @@ def build():
     elif x == 'hcp':
         if face is None:
             face = '0001'
-        slab = hcp0001(surf, (n, m, opt.layers), a, opt.c_over_a, opt.vacuum)
+        slab = hcp0001(surf, (n, m, opt.layers), a, a * opt.c_over_a,
+                       opt.vacuum)
         r = a / 2
     else:
         raise NotImplementedError
