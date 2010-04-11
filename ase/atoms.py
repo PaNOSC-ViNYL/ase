@@ -13,6 +13,7 @@ import numpy as np
 
 from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
+import ase.units as units
 
 class Atoms(object):
     """Atoms object.
@@ -1094,6 +1095,28 @@ class Atoms(object):
     def set_scaled_positions(self, scaled):
         """Set positions relative to unit cell."""
         self.arrays['positions'][:] = np.dot(scaled, self._cell)
+
+    def get_temperature(self):
+        """Get the temperature. in Kelvin"""
+        ekin = self.get_kinetic_energy() / len(self)
+        return ekin /(1.5*units.kB)
+
+    def get_isotropic_pressure(self, stress):
+        """ get the current calculated pressure, assume isotropic medium.
+            in Bar
+        """
+        if type(stress) == type(1.0) or type(stress) == type(1):
+            return -stress * 1e-5 / units.Pascal
+        elif stress.shape == (3,3):
+            return (-(stress[0, 0] + stress[1, 1] + stress[2, 2]) / 3.0) * \
+                    1e-5 / units.Pascal
+        elif stress.shape == (6,):
+            return (-(stress[0] + stress[1] + stress[2]) / 3.0) * \
+                   1e-5 / units.Pascal
+        else:
+            raise ValueError, "The external stress has the wrong shape."
+
+
 
     def __eq__(self, other):
         """Check for identity of two atoms objects.

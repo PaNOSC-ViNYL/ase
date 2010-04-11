@@ -198,6 +198,42 @@ Nosé-Hoover dynamics is not implemented as a separate class, but is a
 special case of NPT dynamics.
 
 
+Berendsen NVT dynamics
+-----------------------
+.. module:: md.nvtberendsen
+
+.. class:: NVTBerendsen(atoms, timestep, temperature, taut, fixcm)
+
+In Berendsen NVT simulations the velocities are scaled to achieve the desired 
+temperature. The speed of the scaling is determined by the parameter taut.
+
+This method does not result proper NVT sampling but it usually is 
+sufficiently good in practise (with large taut). For discussion see 
+the gromacs manual at www.gromacs.org.
+
+*atoms*:
+    The list of atoms.
+    
+*timestep*:
+    The time step.
+
+*temperature*:
+    The desired temperature, in Kelvin.
+
+*taut*:
+    Time constant for Berendsen temperature coupling.
+
+*fixcm*:
+    If True, the position and momentum of the center of mass is
+    kept unperturbed.  Default: True.
+
+::
+
+  # Room temperature simulation (300K, 0.1 fs time step)
+  dyn = NVTBerendsen(atoms, 0.1 * units.fs, 300, taut=0.5*1000*units.fs)
+
+
+
 Constant NPT simulations (the isothermal-isobaric ensemble)
 ===========================================================
 
@@ -306,4 +342,54 @@ Physical Review A 41, p. 4552 (1990).
 .. seealso::
     
    The :term:`API` documentation: :epydoc:`ase.md`
+
+
+Berendsen NPT dynamics
+-----------------------
+.. module:: md.nptberendsen
+
+.. class:: NPTBerendsen(atoms, timestep, temperature, taut, fixcm, pressure, taup,compressibility)
+
+In Berendsen NPT simulations the velocities are scaled to achieve the desired 
+temperature. The speed of the scaling is determined by the parameter taut.
+
+The atom positions and the simulation cell are scaled in order to achieve 
+the desired pressure. 
+
+This method does not result proper NPT sampling but it usually is 
+sufficiently good in practise (with large taut and taup). For discussion see 
+the gromacs manual at www.gromacs.org. or amber at ambermd.org
+
+*atoms*:
+    The list of atoms.
+    
+*timestep*:
+    The time step.
+
+*temperature*:
+    The desired temperature, in Kelvin.
+
+*taut*:
+    Time constant for Berendsen temperature coupling.
+
+*fixcm*:
+    If True, the position and momentum of the center of mass is
+    kept unperturbed.  Default: True.
+
+*pressure*:
+    The desired pressure, in bar (1 bar = 1e5 Pa).
+
+*taup*:
+    Time constant for Berendsen pressure coupling.
+
+*compressibility*:
+    The compressibility of the material, water 4.57E-5 bar-1, in bar-1
+
+
+::
+
+  # Room temperature simulation (300K, 0.1 fs time step, atmospheric pressure)
+  dyn = NPTBerendsen(atoms, timestep=0.1*units.fs, temperature=300,
+                   taut=0.1*1000*units.fs, pressure = 1.01325,
+                   taup=1.0*1000*units.fs, compressibility=4.57e-5)
 
