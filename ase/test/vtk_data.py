@@ -49,8 +49,8 @@ class UTConversionDataArrayNumPy(CustomTestCase):
     verbose = 0
     gc_threshold = (300,5,5) #default is (700,10,10)
     gc_flags = gc.DEBUG_LEAK # | gc.DEBUG_STATS
-    ctol = -6 #1MB
-    etol = -6 #1MB
+    ctol = -7 #10MB
+    etol = -7 #10MB
 
     def setUp(self):
         self.mem_ini = MemorySingleton(self.verbose-1)
