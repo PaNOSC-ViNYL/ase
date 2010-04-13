@@ -235,7 +235,7 @@ class Wannier:
         sign = -1
         classname = calc.__class__.__name__
         if classname in ['Dacapo', 'Jacapo']:
-            print 'Using %' % classname
+            print 'Using ' + classname
             sign = +1
             
         self.nwannier = nwannier
