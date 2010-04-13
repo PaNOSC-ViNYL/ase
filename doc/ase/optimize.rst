@@ -225,7 +225,7 @@ as::
   :epydoc:`optimize.sciopt.SciPyFminCG`
 
 BFGSLineSearch
------
+--------------
 .. module:: optimize.bfgslinesearch
 
 BFGSLineSearch is the BFGS algorithm with an line search mechanism
