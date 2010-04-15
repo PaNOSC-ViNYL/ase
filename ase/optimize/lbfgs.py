@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import numpy as np
-from ase.optimize import Optimizer
+from ase.optimize.optimize import Optimizer
 from ase.utils.linesearch import LineSearch
 
 class LBFGS(Optimizer):
@@ -13,7 +13,7 @@ class LBFGS(Optimizer):
 
     """
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
-                 maxstep=None, memory=100, damping = 1.0, alpha = 1.0):
+                 maxstep=None, memory=100, damping = 1.0, alpha = 10.0):
         """
         Parameters:
 
