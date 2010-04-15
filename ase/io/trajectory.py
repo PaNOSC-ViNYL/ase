@@ -5,7 +5,6 @@ from ase.calculators import SinglePointCalculator
 from ase.atoms import Atoms
 from ase.parallel import rank, barrier
 from ase.utils import devnull
-from ase.neb import NEB
 
 
 class PickleTrajectory:

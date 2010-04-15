@@ -1,6 +1,6 @@
 import numpy as np
 
-from ase.optimize import Optimizer
+from ase.optimize.optimize import Optimizer
 
 
 class MDMin(Optimizer):

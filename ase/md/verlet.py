@@ -1,6 +1,6 @@
 import numpy as np
 
-from ase.md import MolecularDynamics
+from ase.md.md import MolecularDynamics
 
 
 class VelocityVerlet(MolecularDynamics):

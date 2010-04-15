@@ -36,3 +36,5 @@ Pascal = (1 / _e) / 1e30  # J/m^3
 GPa = 1e9 * Pascal
 
 Debye = 1e11 *_e * _c
+
+del pi, sqrt

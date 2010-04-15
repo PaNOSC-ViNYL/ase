@@ -1,4 +1,9 @@
 from ase import *
+#from ase import Atoms
+#from ase.calculators.emt import EMT
+#from ase.constraints import FixAtoms
+#from ase.optimize import QuasiNewton
+#from ase.neb import NEB
 
 # Distance between Cu atoms on a (111) surface:
 a = 3.6

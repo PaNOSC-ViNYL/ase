@@ -10,7 +10,7 @@ import numpy as np
 from numpy import atleast_1d, eye, mgrid, argmin, zeros, shape, empty, \
      squeeze, vectorize, asarray, absolute, sqrt, Inf, asfarray, isinf
 from ase.utils.linesearch import LineSearch
-from ase.optimize import Optimizer
+from ase.optimize.optimize import Optimizer
 from numpy import arange
 
 

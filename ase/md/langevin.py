@@ -4,7 +4,7 @@
 import sys
 import numpy as np
 from numpy.random import standard_normal
-from ase.md import MolecularDynamics
+from ase.md.md import MolecularDynamics
 
 # For parallel GPAW simulations, the random forces should be distributed.
 if '_gpaw' in sys.modules:

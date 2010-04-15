@@ -1,10 +1,14 @@
-import sys
 import os
+import sys
 from os.path import basename
 from tarfile import is_tarfile
 from zipfile import is_zipfile
+
 from ase.atoms import Atoms
 from ase.units import Bohr
+from ase.io.trajectory import PickleTrajectory
+
+__all__ = ['read', 'write', 'PickleTrajectory']
 
 
 def read(filename, index=-1, format=None):
