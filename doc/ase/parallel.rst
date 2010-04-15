@@ -1,8 +1,8 @@
 .. module:: parallel
 
-====================
-Parallel calcuations
-====================
+=====================
+Parallel calculations
+=====================
 
 .. autofunction:: ase.parallel.paropen
 
