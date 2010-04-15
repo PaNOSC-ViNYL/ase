@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import sys
 import numpy as np
-from ase.optimize.optimize import Optimizer
+from ase.optimize import Optimizer
+from ase.utils.linesearch import LineSearch
 
 class LBFGS(Optimizer):
     """Limited memory BFGS optimizer.
@@ -12,7 +13,7 @@ class LBFGS(Optimizer):
 
     """
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
-                 maxstep=None, memory=100, damping = 1.0, alpha = 70.0):
+                 maxstep=None, memory=100, damping = 1.0, alpha = 1.0):
         """
         Parameters:
 
@@ -73,10 +74,18 @@ class LBFGS(Optimizer):
 
         self.r0 = None
         self.f0 = None
+        self.e0 = None
+        self.task = 'START'
+        self.load_restart = False
+        self.function_calls = 0
+        self.force_calls = 0
+        self.p = None
 
     def read(self):
         """Load saved arrays to reconstruct the Hessian"""
-        self.iteration, self.s, self.y, self.rho, self.r0, self.f0 = self.load()
+        self.iteration, self.s, self.y, self.rho, self.r0, self.f0, self.task \
+        = self.load()
+        self.load_restart = True
 
     def step(self, f):
         """Take a single step
@@ -84,9 +93,10 @@ class LBFGS(Optimizer):
         Use the given forces, update the history and calculate the next step --
         then take it"""
         r = self.atoms.get_positions()
+        p0 = self.p
     
         self.update(r, f, self.r0, self.f0)
-
+        
         s = self.s
         y = self.y
         rho = self.rho
@@ -106,17 +116,20 @@ class LBFGS(Optimizer):
             b = rho[i] * np.dot(y[i], z)
             z += s[i] * (a[i] - b)
 
-        dr = - z.reshape((-1, 3))
+        self.p = - z.reshape((-1, 3))
         ###
 
-        dr = self.determine_step(dr) * self.damping
-        self.atoms.set_positions(r + dr) 
+        g = -f
+        e = self.func(r)
+        self.line_search(r, g, e, p0)
+        dr = (self.alpha_k * self.p).reshape(len(self.atoms),-1)
+        self.atoms.set_positions(r+dr)
         
         self.iteration += 1
         self.dump((self.iteration, self.s, self.y, 
-                   self.rho, self.r0, self.f0))
-        self.r0 = r.copy() 
-        self.f0 = f.copy()
+                   self.rho, self.r0, self.f0, self.task))
+        self.r0 = r
+        self.f0 = -g
 
     def determine_step(self, dr):
         """Determine step to take according to maxstep
@@ -152,6 +165,7 @@ class LBFGS(Optimizer):
             self.y.pop(0)
             self.rho.pop(0)
 
+
     def replay_trajectory(self, traj):
         """Initialize history from old trajectory."""
         if isinstance(traj, str):
@@ -170,6 +184,36 @@ class LBFGS(Optimizer):
             self.iteration += 1
         self.r0 = r0
         self.f0 = f0
+
+    def func(self, x):
+        """Objective function for use of the optimizers"""
+        self.atoms.set_positions(x.reshape(-1, 3))
+        self.function_calls += 1
+        return self.atoms.get_potential_energy()
+
+    def fprime(self, x):
+        """Gradient of the objective function for use of the optimizers"""
+        self.atoms.set_positions(x.reshape(-1, 3))
+        self.force_calls += 1
+        # Remember that forces are minus the gradient!
+        return - self.atoms.get_forces().reshape(-1)
+
+    def line_search(self, r, g, e, p0):
+        self.p = self.p.ravel()
+        p_size = np.sqrt((self.p **2).sum())
+        print p_size, np.shape(p0),np.shape(self.p)
+        if self.nsteps != 0:
+            p0_size = np.sqrt((p0 **2).sum())
+            delta_p = self.p/p_size + p0/p0_size
+        if p_size <= np.sqrt(len(self.atoms) * 1e-10):
+            self.p /= (p_size / np.sqrt(len(self.atoms)*1e-10))
+        g = g.ravel()
+        r = r.ravel()
+        ls = LineSearch()
+        self.alpha_k, e, self.e0, fkp1 = \
+           ls._line_search(self.func, self.fprime, r, self.p, g, e, self.e0,
+                           maxstep=self.maxstep, c1=.23,
+                           c2=.46, stpmax=50.)
 
 class LineSearchLBFGS(LBFGS):
     """Modified version of LBFGS.
