@@ -50,12 +50,12 @@ class Movie(gtk.Window):
         self.time.connect('value-changed', self.new_time)
 
         self.add(vbox)
+
         if gtk.pygtk_version < (2, 12):
             self.set_tip = gtk.Tooltips().set_tip
             self.set_tip(hscale, _('Adjust play time.'))
         else:
             hscale.set_tooltip_text(_('Adjust play time.'))
-
         vbox.show()
         self.show()
         self.gui = gui
@@ -108,3 +108,7 @@ class Movie(gtk.Window):
     def new_time(self, widget):
         if self.id is not None:
             self.play()
+
+if __name__ == '__main__':
+    import os
+    os.system('python gui.py')

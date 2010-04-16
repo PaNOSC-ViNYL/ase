@@ -19,7 +19,13 @@ class View:
     def __init__(self, vbox, rotations):
         self.colors = [None] * (len(jmol_colors) + 1)
         self.nselected = 0
+        self.light_green_markings = 0
         self.rotation = rotate(rotations)
+        # this is a hack, in order to be able to toggle menu actions off/on
+        # without getting into an infinte loop
+        self.menu_change = 0
+    
+        self.atoms_to_rotate = None
         
         self.drawing_area = gtk.DrawingArea()
         self.drawing_area.set_size_request(450, 450)
@@ -186,6 +192,108 @@ class View:
     def toggle_show_unit_cell(self, action):
         self.set_coordinates()
         
+    def reset_tools_modes(self):
+        dummy = self.menu_change
+        self.menu_change = 1
+        self.atoms_to_rotate = None
+        for c_mode in ['Rotate', 'Orient', 'Move']:
+              self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' % c_mode).set_active(False)
+        self.light_green_markings = 0
+        self.menu_change = 0        
+        self.draw()
+        
+                      
+    def toggle_mode(self, mode):
+        self.menu_change = 1
+        i_sum = 0
+        for c_mode in ['Rotate', 'Orient', 'Move']:
+            i_sum += self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' % c_mode).get_active() 
+        if i_sum == 0 or (i_sum == 1 and sum(self.images.selected) == 0):
+            self.reset_tools_modes()
+            return()
+            
+        if i_sum == 2:
+            try:
+                self.images.selected = self.atoms_to_rotate_0.copy()
+            except:
+                self.atoms_to_rotate_0 = self.images.selected.copy()
+        if i_sum == 1:
+            self.atoms_to_rotate_0 = self.images.selected.copy()
+
+        for c_mode in ['Rotate', 'Orient', 'Move']:
+            if c_mode != mode:
+                  self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' % c_mode).set_active(False) 
+        
+        if self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' % mode).get_active():
+            self.atoms_to_rotate_0 = self.images.selected.copy()
+            for i in range(len(self.images.selected)):
+               self.images.selected[i] = False
+            self.light_green_markings = 1
+        else:
+            try: 
+                atr = self.atoms_to_rotate_0
+                for i in range(len(self.images.selected)):
+                    self.images.selected[i] = atr[i]
+            except:
+                pass                
+                
+        self.menu_change = 0
+        self.draw()
+                      
+    def toggle_move_mode(self, action):
+        """
+        Toggles the move mode, where the selected atoms can be moved with the arrow
+        keys and pg up/dn. If the shift key is pressed, the movement will be reduced.
+        
+        The movement will be relative to the current rotation of the coordinate system.
+        
+        The implementation of the move mode is found in the gui.scroll
+        """
+        if not (self.menu_change):
+            self.toggle_mode('Move')
+
+    def toggle_rotate_mode(self, action):
+        """
+        Toggles the rotate mode, where the selected atoms can be rotated with the arrow keys
+        and pg up/dn. If the shift key is pressed, the rotation angle will be reduced.
+        
+        The atoms to be rotated will be marked with light green - and the COM of the selected
+        atoms will be used as the COM of the rotation. This can be changed while rotating the
+        selected atoms.
+        
+        If only two atoms are seleceted, and the number of atoms to be rotated is different from
+        two, the selected atoms will define the axis of rotation.
+        
+        The implementation of the rotate mode is found in the gui.scroll
+        """
+        if not (self.menu_change):
+            self.toggle_mode('Rotate')
+                
+    def toggle_orient_mode(self, action):
+        """
+        Toggle the orientation mode - the orientation of the atoms will be changed
+        according to the arrow keys selected.
+        
+        If nothing is selected, standard directions are x, y and z
+        if two atoms are selected, the standard directions are along their displacement vector
+        if three atoms are selected, the orientation is changed according to the normal of these
+        three vectors.
+        """
+        if not (self.menu_change):
+            self.toggle_mode('Orient')
+        self.orient_normal = np.array([1.0, 0.0, 0.0])
+        sel_pos = []
+        for i, j in enumerate(self.atoms_to_rotate_0):
+            if j: 
+                sel_pos.append(self.R[i])
+        if len(sel_pos) == 2:
+            self.orient_normal = sel_pos[0] - sel_pos[1]
+        if len(sel_pos) == 3:
+            v1 = sel_pos[1] - sel_pos[0]
+            v2 = sel_pos[1] - sel_pos[2]
+            self.orient_normal = np.cross(v1, v2)
+        self.orient_normal /= sum(self.orient_normal ** 2) ** 0.5
+            
     def toggle_show_axes(self, action):
         self.draw()
 
@@ -193,6 +301,7 @@ class View:
         self.set_coordinates()
 
     def repeat_window(self, menuitem):
+        self.reset_tools_modes()
         Repeat(self)
 
     def rotate_window(self, menuitem):
@@ -245,6 +354,7 @@ class View:
         A = (P - r[:, None]).round().astype(int)
         d = (2 * r).round().astype(int)
         selected_gc = self.selected_gc
+
         colors = self.colors
         Z = self.images.Z
         arc = self.pixmap.draw_arc
@@ -258,6 +368,9 @@ class View:
                 ra = d[a]
                 if visible[a]:
                     arc(colors[Z[a]], True, A[a, 0], A[a, 1], ra, ra, 0, 23040)
+                if  self.light_green_markings and self.atoms_to_rotate_0[a]:
+                    arc(self.green, False, A[a, 0]+2, A[a, 1]+2, ra-4, ra-4, 0, 23040)
+
                 if not dynamic[a]:
                     R1 = int(0.14644 * ra)
                     R2 = int(0.85355 * ra)
@@ -268,9 +381,9 @@ class View:
                          A[a, 0] + R2, A[a, 1] + R1,
                          A[a, 0] + R1, A[a, 1] + R2)
                 if selected[a]:
-                    arc(selected_gc, False, A[a, 0], A[a, 1], ra, ra, 0,23040)
+                    arc(selected_gc, False, A[a, 0], A[a, 1], ra, ra, 0, 23040)
                 elif visible[a]:
-                    arc(black_gc, False, A[a, 0], A[a, 1], ra, ra, 0,23040)
+                    arc(black_gc, False, A[a, 0], A[a, 1], ra, ra, 0, 23040)
             else:
                 a -= n
                 line(black_gc, X1[a, 0], X1[a, 1], X2[a, 0], X2[a, 1])
@@ -294,36 +407,36 @@ class View:
         L[3:5] = self.rotation[0] * 20
         L[5:7] = self.rotation[1] * 20
         L[7:] = self.rotation[2] * 20
-        L[3:] += (((-4, 5,0), (4,-5,0)), ((-4,-5,0), ( 4, 5,0)),
-                  ((-4,-5,0), (0, 0,0)), ((-4, 5,0), ( 4,-5,0)),
-                  ((-4,-5,0), (4,-5,0)), (( 4,-5,0), (-4, 5,0)),
-                  ((-4, 5,0), (4, 5,0)))
+        L[3:] += (((-4, 5, 0), (4, -5, 0)), ((-4, -5, 0), (4,  5, 0)), 
+                  ((-4,-5, 0), (0,  0, 0)), ((-4,  5, 0), (4, -5, 0)), 
+                  ((-4,-5, 0), (4, -5, 0)), (( 4, -5, 0), (-4,  5, 0)), 
+                  ((-4, 5, 0), (4,  5, 0)))
         L = (L + (20, self.height - 20, 0)).round().astype(int)
         line = self.pixmap.draw_line
         colors = ([self.black_gc] * 3 +
                   [self.red] * 2 + [self.green] * 2 + [self.blue] * 3)
-        for i in L[:,1,2].argsort():
-            (a,b),(c,d) = L[i, :, :2]
-            line(colors[i], a,b,c,d)
+        for i in L[:, 1, 2].argsort():
+            (a, b), (c, d) = L[i, :, :2]
+            line(colors[i], a, b, c, d)
 
-    digits = np.array(((1,1,1,1,1,1,0),
-                       (0,1,1,0,0,0,0),
-                       (1,0,1,1,0,1,1),
-                       (1,1,1,1,0,0,1),
-                       (0,1,1,0,1,0,1),
-                       (1,1,0,1,1,0,1),
-                       (1,1,0,1,1,1,1),
-                       (0,1,1,1,0,0,0),
-                       (1,1,1,1,1,1,1),
-                       (0,1,1,1,1,0,1)), bool)
+    digits = np.array(((1, 1, 1, 1, 1, 1, 0),
+                       (0, 1, 1, 0, 0, 0, 0),
+                       (1, 0, 1, 1, 0, 1, 1),
+                       (1, 1, 1, 1, 0, 0, 1),
+                       (0, 1, 1, 0, 1, 0, 1),
+                       (1, 1, 0, 1, 1, 0, 1),
+                       (1, 1, 0, 1, 1, 1, 1),
+                       (0, 1, 1, 1, 0, 0, 0),
+                       (1, 1, 1, 1, 1, 1, 1),
+                       (0, 1, 1, 1, 1, 0, 1)), bool)
 
-    bars = np.array(((0,2,1,2),
-                     (1,2,1,1),
-                     (1,1,1,0),
-                     (1,0,0,0),
-                     (0,0,0,1),
-                     (0,1,0,2),
-                     (0,1,1,1))) * 5
+    bars = np.array(((0, 2, 1, 2),
+                     (1, 2, 1, 1),
+                     (1, 1, 1, 0),
+                     (1, 0, 0, 0),
+                     (0, 0, 0, 1),
+                     (0, 1, 0, 2),
+                     (0, 1, 1, 1))) * 5
     
     def draw_frame_number(self):
         n = str(self.frame)
@@ -377,6 +490,7 @@ class View:
         self.center0 = self.center
         
     def move(self, drawing_area, event):
+             
         x, y, state = event.window.get_pointer()
         C = self.C
         if self.button == 1:
@@ -462,3 +576,6 @@ class View:
         self.images.write(filename)
         os.system('(%s %s &); (sleep 60; rm %s) &' %
                   (command, filename, filename))
+
+if __name__ == '__main__':
+    os.system('python gui.py')

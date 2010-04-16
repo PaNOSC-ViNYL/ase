@@ -53,8 +53,12 @@ class Status:
         R = self.R[indices]
 
         if n == 1:
-            text = (u' #%d %s (%s): %.3f Å, %.3f Å, %.3f Å' %
+            tag = self.images.T[indices][0]
+            mom = self.images.M[self.frame][indices]
+            text = (u' #%d %s (%s): %.3f Å, %.3f Å, %.3f Å ' %
                     ((indices[0], names[Z[0]], symbols[Z[0]]) + tuple(R[0])))
+        
+            text+=' tag=%s mom=%1.2f' % (tag, mom)        
         elif n == 2:
             D = R[0] - R[1]
             d = sqrt(np.dot(D, D))
@@ -82,3 +86,7 @@ class Status:
             text = ' ' + formula(Z)
             
         self.label.set_markup(text)
+        
+if __name__ == '__main__':
+    import os
+    os.system('python gui.py')
