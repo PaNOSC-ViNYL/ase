@@ -5,7 +5,7 @@ import numpy as np
 
 import ase.units as units
 from ase.parallel import world
-from ase.md import MolecularDynamics
+from ase.md.md import MolecularDynamics
 
 qH = 0.417
 sigma0 = 3.15061

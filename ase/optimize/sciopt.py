@@ -4,7 +4,7 @@ try:
 except ImportError:
     pass
 
-from ase.optimize import Optimizer
+from ase.optimize.optimize import Optimizer
 
 
 class Converged(Exception):

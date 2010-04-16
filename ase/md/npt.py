@@ -26,7 +26,7 @@ from numpy import *
 import sys
 import time
 import weakref
-from ase.md import MolecularDynamics
+from ase.md.md import MolecularDynamics
 #from ASE.Trajectories.NetCDFTrajectory import NetCDFTrajectory
 
 # Delayed imports:  If the trajectory object is reading a special ASAP version
