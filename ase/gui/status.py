@@ -59,10 +59,14 @@ class Status:
                     ((indices[0], names[Z[0]], symbols[Z[0]]) + tuple(R[0])))
         
             text+=' tag=%s mom=%1.2f' % (tag, mom)        
+            self.ordered_indices = [indices[0]]
         elif n == 2:
             D = R[0] - R[1]
             d = sqrt(np.dot(D, D))
             text = u' %s-%s: %.3f Å' % (symbols[Z[0]], symbols[Z[1]], d)
+            for i in indices:
+                if i not in self.ordered_indices:
+                    self.ordered_indices += [i]
         elif n == 3:
             d = []
             for c in range(3):
@@ -80,8 +84,31 @@ class Status:
                     else:
                         t3 = pi
                 a.append(t3 * 180 / pi)
+            for i in indices:
+                if i not in self.ordered_indices:
+                    self.ordered_indices += [i]
             text = (u' %s-%s-%s: %.1f°, %.1f°, %.1f°' %
                     tuple([symbols[z] for z in Z] + a))
+        elif n == 4:
+            for i in indices:
+                if i not in self.ordered_indices:
+                    self.ordered_indices += [i]
+            R = self.R[self.ordered_indices]
+            Z = self.images.Z[self.ordered_indices]
+            a    = R[1]-R[0]
+            b    = R[2]-R[1]
+            c    = R[3]-R[2]
+            bxa  = np.cross(b,a)
+            bxa /= np.sqrt(np.vdot(bxa,bxa))
+            cxb  = np.cross(c,b)
+            cxb /= np.sqrt(np.vdot(cxb,cxb))
+            angle = np.vdot(bxa,cxb)
+            if angle < -1: angle = -1
+            if angle >  1: angle =  1
+            angle = np.arccos(angle)
+            if (np.vdot(bxa,c)) > 0: angle = 2*np.pi-angle
+            angle = angle*180.0/np.pi
+            text = ( u'%s->%s->%s->%s: %.1f°' % tuple([symbols[z] for z in Z]+[angle]))
         else:
             text = ' ' + formula(Z)
             
