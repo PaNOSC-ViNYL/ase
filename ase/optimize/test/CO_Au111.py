@@ -26,4 +26,4 @@ def get_calculator():
     calc = EMT()
     return calc
 
-run_test(get_atoms, get_calculator, name, 'EMT', steps=200)
+run_test(get_atoms, get_calculator, name, steps=200)

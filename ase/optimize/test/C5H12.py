@@ -47,4 +47,4 @@ def get_calculator():
                 txt='C5H12.txt')
     return calc
 
-run_test(get_atoms, get_calculator, name + '-gpaw', 'GPAW (lcao)')
+run_test(get_atoms, get_calculator, name + '-gpaw')

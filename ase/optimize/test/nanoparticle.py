@@ -42,4 +42,4 @@ def get_calculator():
                 txt='nanoparticle.txt')
     return calc
 
-run_test(get_atoms, get_calculator, name, 'GPAW', fmax=0.05, steps=200)
+run_test(get_atoms, get_calculator, name, fmax=0.05, steps=200)

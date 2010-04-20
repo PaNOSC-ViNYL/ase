@@ -100,4 +100,4 @@ def get_atoms():
     srf.set_constraint([constraint, c1, c2])
     return srf
 
-run_test(get_atoms, get_calculator, 'C2_Cu100', 'GPAW (lcao)')
+run_test(get_atoms, get_calculator, 'C2_Cu100')

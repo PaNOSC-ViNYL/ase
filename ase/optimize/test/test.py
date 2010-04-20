@@ -2,7 +2,7 @@ import os
 import ase
 
 tests = [
-    'N2Ru_relax.py',
+    'N2Cu_relax.py',
     'Cu_bulk.py',
     'CO_Au111.py',
     'H2.py',

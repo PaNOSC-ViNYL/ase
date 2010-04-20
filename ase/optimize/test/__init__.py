@@ -50,10 +50,10 @@ def get_optimizer(optimizer):
     elif optimizer == 'BFGSLineSearch': return BFGSLineSearch
 
 def run_test(get_atoms, get_calculator, name,
-             calculator_name='', fmax=0.05, steps=100, plot=True):
+             fmax=0.05, steps=100, plot=True):
 
     plotter = Plotter(name, fmax)
-    csvwriter = CSVWriter(name, calculator_name)
+    csvwriter = CSVWriter(name)
     for optimizer in optimizers:
         note = ''
         logname = name + '-' + optimizer
@@ -121,9 +121,8 @@ class Plotter:
             self.fig.savefig(self.name + '.' + format)
 
 class CSVWriter:
-    def __init__(self, name, calculator_name):
+    def __init__(self, name):
         self.f = paropen(name + '.csv', 'w')
-        self.f.write('#%s,%s\n'%(name,calculator_name))
 
     def write(self, optimizer, nsteps, E, fc, note=''):
         self.f.write(
