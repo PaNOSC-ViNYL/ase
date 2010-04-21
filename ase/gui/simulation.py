@@ -59,7 +59,7 @@ class Simulation(gtk.Window):
             self.startframe.show()
             if self.start_nth_adj.value >= n:
                 self.start_nth_adj.value = n-1
-            self.start_nth_adj.set_upper(n-1)
+            self.start_nth_adj.upper = n-1
             self.numconfig_label.set_text(self.numconfig_format % (n,))
 
     def getimagenumber(self):
