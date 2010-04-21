@@ -54,7 +54,7 @@ class DefaultProgressIndicator(gtk.Window):
         # Make the cancel button
         self.cancelbut = gtk.Button(stock=gtk.STOCK_CANCEL)
         self.cancelbut.connect('clicked', self.cancel)
-        pack(vbox, [self.cancelbut], end=True, bottom=True)
+        pack(self.globalbox, [self.cancelbut], end=True, bottom=True)
         
     def begin(self, mode=None, algo=None, fmax=None, steps=None):
         self.mode = mode
