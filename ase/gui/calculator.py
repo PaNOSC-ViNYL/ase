@@ -5,6 +5,7 @@ import gtk
 import numpy as np
 from copy import copy
 from ase.gui.setupwindow import SetupWindow
+from ase.gui.progress import DefaultProgressIndicator, GpawProgressIndicator
 from ase.gui.widgets import pack, oops, cancel_apply_ok
 from ase import Atoms
 from ase.data import chemical_symbols
@@ -218,6 +219,7 @@ class SetCalculator(SetupWindow):
         
     def do_apply(self):
         nochk = not self.check.get_active()
+        self.gui.simulation["progress"] = DefaultProgressIndicator()
         if self.none_radio.get_active():
             self.gui.simulation['calc'] = None
             return True
@@ -376,8 +378,9 @@ class SetCalculator(SetupWindow):
             for s in mx_arg_n:
                 mx_args[s] = p[s]
             gpaw_param["mixer"] = mx(**mx_args)
-        print "Calling GPAW with these parameters:"
-        print gpaw_param
+        progress = GpawProgressIndicator()
+        self.gui.simulation["progress"] = progress
+        gpaw_param["txt"] = progress.get_gpaw_stream()
         gpaw_calc = gpaw.GPAW(**gpaw_param)
         def gpaw_factory(calc = gpaw_calc):
             return calc

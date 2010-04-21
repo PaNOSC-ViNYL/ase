@@ -57,7 +57,7 @@ class Images:
                     self.M[i] = atoms.get_initial_magnetic_moments()
                 else:
                   self.M[i] = atoms.get_magnetic_moments()
-            except RuntimeError:
+            except (RuntimeError, AttributeError):
                 self.M[i] = 0.0
                 
             # added support for tags
@@ -77,7 +77,45 @@ class Images:
         self.set_dynamic()
         self.repeat = np.ones(3, int)
         self.set_radii(0.89)
-
+        
+    def prepare_new_atoms(self):
+        "Marks that the next call to append_atoms should clear the images."
+        self.next_append_clears = True
+        
+    def append_atoms(self, atoms, filename=None):
+        "Append an atoms object to the images already stored."
+        assert len(atoms) == self.natoms
+        if self.next_append_clears:
+            i = 0
+        else:
+            i = self.nimages
+        for name in ('P', 'E', 'K', 'F', 'M', 'A'):
+            a = getattr(self, name)
+            newa = np.empty( (i+1,) + a.shape[1:] )
+            if not self.next_append_clears:
+                newa[:-1] = a
+            setattr(self, name, newa)
+        self.next_append_clears = False
+        self.P[i] = atoms.get_positions()
+        self.A[i] = atoms.get_cell()
+        try:
+            self.E[i] = atoms.get_potential_energy()
+        except RuntimeError:
+            self.E[i] = np.nan
+        self.K[i] = atoms.get_kinetic_energy()
+        try:
+            self.F[i] = atoms.get_forces(apply_constraint=False)
+        except RuntimeError:
+            self.F[i] = np.nan
+        try:
+            self.M[i] = atoms.get_magnetic_moments()
+        except (RuntimeError, AttributeError):
+            self.M[i] = np.nan
+        self.nimages = i + 1
+        self.filenames.append(filename)
+        self.set_dynamic()
+        return self.nimages
+        
     def set_radii(self, scale):
         self.r = covalent_radii[self.Z] * scale
                 

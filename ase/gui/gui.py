@@ -43,6 +43,7 @@ from ase.gui.nanoparticle import SetupNanoparticle
 from ase.gui.nanotube import SetupNanotube
 from ase.gui.calculator import SetCalculator
 from ase.gui.energyforces import EnergyForces
+from ase.gui.minimize import Minimize
 
 
 ui_info = """\
@@ -106,6 +107,7 @@ ui_info = """\
       <menuitem action='SetCalculator'/>
       <separator/>
       <menuitem action='EnergyForces'/>
+      <menuitem action='Minimize'/>
     </menu>
     <menu action='HelpMenu'>
       <menuitem action='About'/>
@@ -249,6 +251,9 @@ class GUI(View, Status):
             ('EnergyForces', None, '_Energy and Forces', None,
              "Calculate energy and forces",
              self.energy_window),
+            ('Minimize', None, 'Energy _Minimization', None,
+             "Minimize the energy",
+             self.energy_minimize_window),
             ('About', None, '_About', None,
              None,
              self.about),
@@ -996,6 +1001,9 @@ class GUI(View, Status):
     def energy_window(self, menuitem):
         EnergyForces(self)
         
+    def energy_minimize_window(self, menuitem):
+        Minimize(self)
+        
     def new_atoms(self, atoms, init_magmom=False):
         "Set a new atoms object."
         self.zap_vulnerable()
@@ -1008,6 +1016,12 @@ class GUI(View, Status):
         self.images.repeat_images(rpt)
         self.set_colors()
         self.set_coordinates(frame=0, focus=True)
+
+    def append_atoms(self, atoms):
+        "Set a new atoms object."
+        self.zap_vulnerable()
+        frame = self.images.append_atoms(atoms)
+        self.set_coordinates(frame=frame-1, focus=True)
 
     def zap_vulnerable(self):
         "Delete windows that would break when new_atoms is called."

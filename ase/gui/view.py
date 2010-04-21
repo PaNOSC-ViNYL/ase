@@ -576,6 +576,3 @@ class View:
         self.images.write(filename)
         os.system('(%s %s &); (sleep 60; rm %s) &' %
                   (command, filename, filename))
-
-if __name__ == '__main__':
-    os.system('python gui.py')

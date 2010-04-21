@@ -19,6 +19,62 @@ class Simulation(gtk.Window):
         pack(vbox, txtframe)
         pack(vbox, gtk.Label(""))
 
+    def packimageselection(self, outerbox):
+        "Make the frame for selecting starting config if more than one."
+        self.startframe = gtk.Frame("Select starting configuration:")
+        pack(outerbox, [self.startframe])
+        vbox = gtk.VBox()
+        self.startframe.add(vbox)
+        vbox.show()
+        self.numconfig_format = "There are currently %i configurations loaded."
+        self.numconfig_label = gtk.Label("")
+        pack(vbox, [self.numconfig_label])
+        lbl = gtk.Label("Choose which one to use as the initial configuration")
+        pack(vbox, [lbl])
+        self.start_radio_first = gtk.RadioButton(
+            None, "The first configuration (rerun simulation).")
+        pack(vbox, [self.start_radio_first])
+        self.start_radio_nth = gtk.RadioButton(self.start_radio_first,
+                                               "Configuration number ")
+        self.start_nth_adj = gtk.Adjustment(0, 0, 1, 1)
+        self.start_nth_spin = gtk.SpinButton(self.start_nth_adj, 0, 0)
+        self.start_nth_spin.set_sensitive(False)
+        pack(vbox, [self.start_radio_nth, self.start_nth_spin])
+        self.start_radio_last = gtk.RadioButton(self.start_radio_first,
+            "The last configuration (continue simulation).")
+        self.start_radio_last.set_active(True)
+        pack(vbox, self.start_radio_last)
+        self.start_radio_nth.connect("toggled", self.start_radio_nth_toggled)
+        self.setupimageselection()
+        
+    def start_radio_nth_toggled(self, widget):
+        self.start_nth_spin.set_sensitive(self.start_radio_nth.get_active())
+
+    def setupimageselection(self):
+        "Decide if the start image selection frame should be shown."
+        n = self.gui.images.nimages
+        if n <= 1:
+            self.startframe.hide()
+        else:
+            self.startframe.show()
+            if self.start_nth_adj.value >= n:
+                self.start_nth_adj.value = n-1
+            self.start_nth_adj.set_upper(n-1)
+            self.numconfig_label.set_text(self.numconfig_format % (n,))
+
+    def getimagenumber(self):
+        "Get the image number selected in the start image frame."
+        nmax = self.gui.images.nimages
+        if nmax <= 1:
+            return 0
+        elif self.start_radio_first.get_active():
+            return 0
+        elif self.start_radio_nth.get_active():
+            return self.start_nth_adj.value
+        else:
+            assert self.start_radio_last.get_active()
+            return nmax-1
+
     def makebutbox(self, vbox):
         self.buttons = gtk.HButtonBox()
         runbut = gtk.Button("Run")
@@ -48,7 +104,25 @@ class Simulation(gtk.Window):
         if images.natoms < 1:
             oops("No atoms present")
             return None
-        return Atoms(positions=images.P[0], symbols=images.Z,
-                     cell=images.A[0], pbc=images.pbc)
+        n = self.getimagenumber()
+        return Atoms(positions=images.P[n], symbols=images.Z,
+                     cell=images.A[n], pbc=images.pbc)
 
+    def begin(self, **kwargs):
+        if self.gui.simulation.has_key('progress'):
+            self.gui.simulation['progress'].begin(**kwargs)
+
+    def end(self):
+        if self.gui.simulation.has_key('progress'):
+            self.gui.simulation['progress'].end()
+
+    def prepare_store_atoms(self):
+        "Informs the gui that the next configuration should be the first."
+        self.gui.images.prepare_new_atoms()
+        self.count_steps = 0
+        
+    def store_atoms(self):
+        "Observes the minimization and stores the atoms in the gui."
+        self.gui.append_atoms(self.atoms)
+        self.count_steps += 1
 

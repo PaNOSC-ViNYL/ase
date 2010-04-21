@@ -125,3 +125,7 @@ def oops(message, message2=None):
         print >>sys.stderr, message2
     dialog.connect('response', lambda x, y: dialog.destroy())
     dialog.show()
+
+class AseGuiCancelException(Exception):
+    pass
+        

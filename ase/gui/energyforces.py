@@ -14,6 +14,8 @@ class EnergyForces(Simulation):
         vbox = gtk.VBox()
         self.packtext(vbox,
                       "Calculate potential energy and the force on all atoms")
+        self.packimageselection(vbox)
+        pack(vbox, gtk.Label(""))
         self.forces = gtk.CheckButton("Write forces on the atoms")
         self.forces.set_active(True)
         pack(vbox, [self.forces])
@@ -36,6 +38,7 @@ class EnergyForces(Simulation):
     def run(self, *args):
         if not self.setup_atoms():
             return
+        self.begin()
         e = self.atoms.get_potential_energy()
         txt = "Potential Energy:\n"
         txt += "  %8.3f eV\n\n" % (e,)
@@ -45,4 +48,6 @@ class EnergyForces(Simulation):
             for f in forces:
                 txt += "  %8.3f, %8.3f, %8.3f eV/Å\n" % tuple(f)
         self.output.set_text(txt)
+        self.end()
+        
         
