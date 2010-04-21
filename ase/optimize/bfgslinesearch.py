@@ -150,7 +150,7 @@ class BFGSLineSearch(Optimizer):
                      * dr[np.newaxis, :]
             #self.B = np.linalg.inv(self.H)
             #omega, V = np.linalg.eigh(self.B)
-            eighfile = open('eigh.log','w')
+            #eighfile = open('eigh.log','w')
 
     def func(self, x):
         """Objective function for use of the optimizers"""
