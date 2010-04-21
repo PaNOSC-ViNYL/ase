@@ -90,7 +90,7 @@ def get_hessian_inertia(eigenvalues):
 
 from numpy.linalg import eigh, solve
 
-from ase.optimize import Optimizer
+from ase.optimize.optimize import Optimizer
 
 
 
