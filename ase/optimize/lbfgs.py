@@ -218,7 +218,7 @@ class LBFGS(Optimizer):
                            maxstep=self.maxstep, c1=.23,
                            c2=.46, stpmax=50.)
 
-class LineSearchLBFGS(LBFGS):
+class LBFGSLineSearch(LBFGS):
     """This optimizer uses the LBFGS algorithm, but does a line search that fulfills
     the Wolff conditions.
     """
@@ -309,7 +309,7 @@ class HessLBFGS(LBFGS):
         sys.stderr.write('Please use LBFGS instead of HessLBFGS!')
         LBFGS.__init__(self, *args, **kwargs)
 
-class LineLBFGS(LineSearchLBFGS):
+class LineLBFGS(LBFGSLineSearch):
     """Backwards compatibiliyt class"""
     def __init__(self, *args, **kwargs):
         if 'method' in kwargs:

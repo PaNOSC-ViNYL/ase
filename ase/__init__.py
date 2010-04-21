@@ -18,10 +18,11 @@ from ase.io.trajectory import PickleTrajectory
 from ase.dft import STM, monkhorst_pack, DOS
 from ase.optimize.mdmin import MDMin
 from ase.optimize.lbfgs import HessLBFGS
-from ase.optimize.lbfgs import LineLBFGS
 from ase.optimize.fire import FIRE
-from ase.optimize.lbfgs import LBFGS, LineSearchLBFGS
+from ase.optimize.lbfgs import LBFGS, LBFGSLineSearch
+from ase.optimize.bfgslinesearch import BFGSLineSearch
 from ase.optimize.bfgs import BFGS
+from ase.optimize.oldqn import GoodOldQuasiNewton
 from ase.md.verlet import VelocityVerlet
 from ase.md.langevin import Langevin
 from ase.constraints import *
