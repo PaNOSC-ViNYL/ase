@@ -2,7 +2,7 @@ from ase import Atoms, Atom, EMT, molecule
 from ase.constraints import FixAtoms
 from ase.optimize.test import run_test
 
-name = 'N2Ru'
+name = 'N2Cu'
 
 def get_atoms_surf():
     a = 2.70
