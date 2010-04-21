@@ -69,7 +69,7 @@ class LineSearch:
     
         if self.task[:5] == 'ERROR' or self.task[1:4] == 'WARN':
             stp = None  # failed
-        return stp, self.fc, self.gc, fval, old_fval, gval, self.no_update
+        return stp, fval, old_fval, self.no_update
 
     def step(self, stp, f, g, c1, c2, xtol, isave, dsave):
         if self.task[:5] == 'START':
