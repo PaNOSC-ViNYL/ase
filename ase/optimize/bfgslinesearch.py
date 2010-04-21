@@ -26,7 +26,7 @@ __version__="0.1"
 
 class BFGSLineSearch(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', maxstep=.2,
-                 trajectory=None, c1=1e-4, c2=0.9, alpha=10,stpmax=50.):
+                 trajectory=None, c1=.23, c2=0.46, alpha=10., stpmax=50.):
         """Minimize a function using the BFGS algorithm.
 
         Notes:
@@ -88,15 +88,14 @@ class BFGSLineSearch(Optimizer):
 
         self.p = -np.dot(self.H,g)
         p_size = np.sqrt((self.p **2).sum())
+        print p_size
         if self.nsteps != 0:
             p0_size = np.sqrt((p0 **2).sum())
             delta_p = self.p/p_size + p0/p0_size
         if p_size <= np.sqrt(len(atoms) * 1e-10):
             self.p /= (p_size / np.sqrt(len(atoms)*1e-10))
-        fp=[]
-        gp=[]
         ls = LineSearch()
-        self.alpha_k, fc, gc, e, self.e0, fkp1, self.no_update = \
+        self.alpha_k, e, self.e0, self.no_update = \
            ls._line_search(self.func, self.fprime, r, self.p, g, e, self.e0,
                            maxstep=self.maxstep, c1=self.c1,
                            c2=self.c2, stpmax=self.stpmax)
@@ -149,8 +148,8 @@ class BFGSLineSearch(Optimizer):
             H0 = self.H
             self.H = np.dot(A1, np.dot(self.H, A2)) + rhok * dr[:, np.newaxis] \
                      * dr[np.newaxis, :]
-            self.B = np.linalg.inv(self.H)
-            omega, V = np.linalg.eigh(self.B)
+            #self.B = np.linalg.inv(self.H)
+            #omega, V = np.linalg.eigh(self.B)
             eighfile = open('eigh.log','w')
 
     def func(self, x):
