@@ -8,10 +8,10 @@ from gpaw import GPAW, Mixer
 from gpaw.poisson import PoissonSolver
 
 def get_calculator():
-    basis = 'szp'
-    calc = GPAW(gpts = (64, 64, 128), # ca h=0.25
-                width = 0.1,
-                nbands = -5,
+    basis = 'szp(dzp)'
+    calc = GPAW(gpts=(64, 64, 128), # ca h=0.25
+                width=0.1,
+                nbands=-5,
                 xc='LDA',
                 mode='lcao',
                 txt='C2_Cu100.txt',

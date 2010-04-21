@@ -29,16 +29,16 @@ def get_atoms():
     return atoms
 
 def get_calculator():
-    calc = GPAW(gpts=(64,64,64), #h=0.18, gives 64x60x60
-                mode = 'lcao', 
-                basis = 'szp',
+    calc = GPAW(gpts=(64, 64, 64), #h=0.18, gives 64x60x60
+                mode='lcao', 
+                basis='szp(dzp)',
                 nbands=-5,
                 xc='LDA',
                 width=0.1,
                 mixer=Mixer(beta=0.1, nmaxold=5, weight=50.0),
                 poissonsolver=PoissonSolver(nn='M', relax='GS'),
-                convergence={'energy':1e-4, 'bands':-3},
-                stencils=(3,3),
+                convergence={'energy': 1e-4, 'bands': -3},
+                stencils=(3, 3),
                 txt='nanoparticle.txt')
     return calc
 
