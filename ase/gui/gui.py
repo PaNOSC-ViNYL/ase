@@ -28,6 +28,7 @@
 #TODO: Window for rotation modes and move moves which can be chosen
 #TODO: WHen rotate and move / hide the movie menu
 
+import os
 import weakref
 import numpy as np
 
