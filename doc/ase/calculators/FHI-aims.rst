@@ -20,7 +20,7 @@ The default initialization command for the FHI-aims calculator is
 
 .. class:: Aims(output_template = 'aims', track_output = False)
 
-In order to run a calculation, you ensure that at least the 
+In order to run a calculation, you have to ensure that at least the 
 following ``str`` variables are specified, either in the initialization 
 or as shell variables:
 
