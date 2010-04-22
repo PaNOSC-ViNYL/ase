@@ -20,17 +20,22 @@ The default initialization command for the FHI-aims calculator is
 
 .. class:: Aims(output_template = 'aims', track_output = False)
 
-In order to run a calculation, you MUST to specify at least the 
-following ``str`` variables:
+In order to run a calculation, you ensure that at least the 
+following ``str`` variables are specified, either in the initialization 
+or as shell variables:
 
 ===============  ====================================================
 keyword          description
 ===============  ====================================================
 ``run_command``   The full command required to run FHI-aims from 
 		  a shell, including anything to do with an MPI
-		  wrapper script and the number of tasks
+		  wrapper script and the number of tasks.
+		  An alternative way to set this command is via the 
+		  shell variable ``AIMS_COMMAND``, which is checked
+		  upon initialization and when starting a run. 
 ``species_dir``   Directory where the species defaults are located 
-		  that should be used
+		  that should be used. Can also be specified with 
+		  the system variable ``AIMS_SPECIES_DIR``.
 ``xc``            The minimal physical specification: what kind of 
 		  calculation should be done. 
 ===============  ====================================================

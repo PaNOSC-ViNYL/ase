@@ -114,6 +114,11 @@ class Aims(Calculator):
             self.list_params[key] = None
         for key in input_keys:
             self.input_parameters[key] = None
+        if os.environ.has_key('AIMS_SPECIES_DIR'):
+            self.input_parameters['species_dir'] = os.environ['AIMS_SPECIES_DIR']
+        if os.environ.has_key('AIMS_COMMAND'):
+            self.input_parameters['run_command'] = os.environ['AIMS_COMMAND']
+
         self.positions = None
         self.atoms = None
         self.run_counts = 0
