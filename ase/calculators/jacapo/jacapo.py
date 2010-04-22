@@ -914,6 +914,9 @@ class Jacapo:
 
         #match number of atoms in cell
         lenmatch = len(atoms) == len(self.atoms)
+        if lenmatch is not True:
+            return False #the next two comparisons fail in this case.
+        
         #match positions in cell
         posmatch = (abs(a['positions'] - b['positions']) <= TOL).all()
         #match cell
@@ -1194,6 +1197,7 @@ class Jacapo:
             self.nc = nc
         
         elif os.path.exists(nc):
+            self._set_frame_number()
             self.set_psp_database()
             self.atoms = self.read_only_atoms(nc)
             self.nc = nc
