@@ -314,5 +314,5 @@ class LineLBFGS(LBFGSLineSearch):
     def __init__(self, *args, **kwargs):
         if 'method' in kwargs:
             del kwargs['method']
-        sys.stderr.write('Please use LineSearchLBFGS instead of LineLBFGS!')
-        LineSearchLBFGS.__init__(self, *args, **kwargs)
+        sys.stderr.write('Please use LBFGSLineSearch instead of LineLBFGS!')
+        LBFGSLineSearch.__init__(self, *args, **kwargs)

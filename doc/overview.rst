@@ -50,7 +50,7 @@ number of "design goals" that make it:
   Lesser General Public License version 2.1 or any later version.  See
   the files :trac:`COPYING` and :trac:`COPYING.LESSER` which accompany
   the downloaded files, or see the license at GNU's web server at
-  http://www.gnu.org/licenses/licenses.html.  Everybody is invited to
+  http://www.gnu.org/licenses/.  Everybody is invited to
   participate in using and :ref:`developing the code <devel>`.
 
 .. _Python: http://www.python.org

@@ -9,13 +9,22 @@ optimization algorithms which find the next local minimum and
 global optimization algorithms that try to find the global
 minimum (a much harder task).
 
+
+.. seealso::
+
+    `Performance test
+    <https://wiki.fysik.dtu.dk/gpaw/devel/ase_optimize.html>`_ for all
+    ASE optimizers.
+ 
+
+
 Local optimization
 ==================
 .. module:: optimize
    :synopsis: Structure Optimization
 
 There are currently 5 different optimization algorithms available:
-``BFGS``, ``LBFGS``, ``LineSearchLBFGS``, ``MDMin``, and ``FIRE``.
+``BFGS``, ``LBFGS``, ``LBFGSLineSearch``, ``MDMin``, and ``FIRE``.
 
 ``MDMin`` and ``FIRE`` both use Newtonian dynamics with added
 friction, to converge to an energy minimum, whereas the first 3 are of
@@ -150,7 +159,7 @@ LBFGS
 LBFGS is the limited memory version of the BFGS algorithm, where 
 the inverse of Hessian matrix is updated instead of the Hessian
 itself. Two ways exist for determining the atomic
-step: Standard ``LBFGS`` and ``LineSearchLBFGS``. For the 
+step: Standard ``LBFGS`` and ``LBFGSLineSearch``. For the 
 first one, both the directions and lengths of the atomic steps 
 are determined by the approximated Hessian matrix. While for the 
 latter one, the approximated Hessian matrix is only used to find 

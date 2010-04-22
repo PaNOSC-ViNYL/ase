@@ -16,7 +16,7 @@ import matplotlib
 matplotlib.rcParams['backend']="Agg"
 
 from ase.optimize.bfgs import BFGS
-from ase.optimize.lbfgs import LBFGS, LineSearchLBFGS
+from ase.optimize.lbfgs import LBFGS, LBFGSLineSearch
 from ase.optimize.fire import FIRE
 from ase.optimize.mdmin import MDMin
 from ase.optimize.sciopt import SciPyFminCG
@@ -31,7 +31,7 @@ import numpy as np
 optimizers = [
     'BFGS',
     'LBFGS',
-#    'LineSearchLBFGS',
+    'LBFGSLineSearch',
     'FIRE',
     'MDMin',
     'SciPyFminCG',
@@ -42,7 +42,7 @@ optimizers = [
 def get_optimizer(optimizer):
     if optimizer == 'BFGS': return BFGS
     elif optimizer == 'LBFGS': return LBFGS
-    elif optimizer == 'LineSearchLBFGS': return LineSearchLBFGS
+    elif optimizer == 'LBFGSLineSearch': return LBFGSLineSearch
     elif optimizer == 'FIRE': return FIRE
     elif optimizer == 'MDMin': return MDMin
     elif optimizer == 'SciPyFminCG': return SciPyFminCG
