@@ -939,7 +939,8 @@ class GUI(View, Status):
                              ('VNL file', 'vnl'),
                              ('Portable Network Graphics', 'png'),
                              ('Persistance of Vision', 'pov'),
-                             ('Encapsulated PostScript', 'eps')]:
+                             ('Encapsulated PostScript', 'eps'),
+                             ('FHI-aims geometry input', 'in')]:
             if suffix is None:
                 name = _(name)
             else:

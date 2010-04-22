@@ -75,6 +75,13 @@ def write_aims(filename, atoms):
     from ase.constraints import FixAtoms, FixCartesian
     import numpy as np
 
+    if isinstance(atoms, (list, tuple)):
+        if len(atoms) > 1:
+            raise RuntimeError("Don't know how to save more than "+
+                               "one image to FHI-aims input")
+        else:
+            atoms = atoms[0]
+
     fd = open(filename, 'w')
     i = 0
     if atoms.get_pbc().any():
