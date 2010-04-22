@@ -150,7 +150,8 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
     ChiralAngle = np.arctan((sq3 * n) / (2 * m + n)) / (np.pi * 180)
    
     cell = [Diameter * 2, Diameter * 2, length * t]
-    atoms = Atoms(symbol + str(NumAtom), positions=X, cell=cell)
+    atoms = Atoms(symbol + str(NumAtom), positions=X, cell=cell,
+                  pbc=[False, False, True])
     atoms.center()
     if verbose:
         print 'translation vector =', TransVec
