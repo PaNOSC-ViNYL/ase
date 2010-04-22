@@ -498,7 +498,7 @@ class GUI(View, Status):
         elif atom_orient:
             to_vec  = np.array([dx, dy, dz])
 
-            from rotations import rotate_vec_into_newvec
+            from rot_tools import rotate_vec_into_newvec
             rot_mat = rotate_vec_into_newvec(self.orient_normal, to_vec)
             self.rotation = rot_mat
             
