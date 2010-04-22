@@ -154,8 +154,11 @@ class Aims(Calculator):
             (self.atoms != atoms) or
             (self.atoms != self.old_atoms) or 
             (self.float_params != self.old_float_params) or
+            (self.exp_params != self.old_exp_params) or
             (self.string_params != self.old_string_params) or
             (self.int_params != self.old_int_params) or
+            (self.bool_params != self.old_bool_params) or
+            (self.list_params != self.old_list_params) or
             (self.input_parameters != self.old_input_parameters)):
             return True
         else:
@@ -185,12 +188,18 @@ class Aims(Calculator):
             raise RuntimeError("FHI-aims did not converge!\n"+
                                "The last lines of output are printed above "+
                                "and should give an indication why.")
+
+        self.set_results(atoms)
+
+    def set_results(self,atoms):
         self.read(atoms)
-        
         self.old_float_params = self.float_params.copy()
+        self.old_exp_params = self.exp_params.copy()
         self.old_string_params = self.string_params.copy()
         self.old_int_params = self.int_params.copy()
         self.old_input_parameters = self.input_parameters.copy()
+        self.old_bool_params = self.bool_params.copy()
+        self.old_list_params = self.list_params.copy()
         self.old_atoms = self.atoms.copy()
 
     def run(self):
@@ -276,11 +285,11 @@ class Aims(Calculator):
                 contol.write('%-30s%d\n' % (key, val))
         for key, val in self.bool_params.items():
             if val is not None:
-                if key == 'vdw_correction_hirshfeld':
+                if key == 'vdw_correction_hirshfeld' and val:
                     control.write('%-30s\n' % (key))
                 elif val:
                     control.write('%-30s.true.\n' % (key))
-                else:
+                elif key != 'vdw_correction_hirshfeld':
                     control.write('%-30s.false.\n' % (key))
         for key, val in self.list_params.items():
             if val is not None:
