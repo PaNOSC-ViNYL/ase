@@ -118,7 +118,7 @@ class Simulation(gtk.Window):
 
     def prepare_store_atoms(self):
         "Informs the gui that the next configuration should be the first."
-        self.gui.images.prepare_new_atoms()
+        self.gui.prepare_new_atoms()
         self.count_steps = 0
         
     def store_atoms(self):

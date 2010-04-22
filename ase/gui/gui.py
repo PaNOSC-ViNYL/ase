@@ -304,7 +304,8 @@ class GUI(View, Status):
         self.window.connect('key-press-event', self.scroll)
         self.window.connect('scroll_event', self.scroll_event)
         self.window.show()
-        self.graphs = []
+        self.graphs = []       # List of open pylab windows
+        self.graph_wref = []   # List of weakrefs to Graph objects
         self.movie_window = None
         self.vulnerable_windows = []
         self.simulation = {}   # Used by modules on Calculate menu.
@@ -860,6 +861,20 @@ class GUI(View, Status):
         g = Graphs(self)
         if expr is not None:
             g.plot(expr=expr)
+        self.graph_wref.append(weakref.ref(g))
+
+    def plot_graphs_newatoms(self):
+        "Notify any Graph objects that they should make new plots."
+        new_wref = []
+        found = 0
+        for wref in self.graph_wref:
+            ref = wref()
+            if ref is not None:
+                ref.plot()
+                new_wref.append(wref)  # Preserve weakrefs that still work.
+                found += 1
+        self.graph_wref = new_wref
+        return found
         
     def NEB(self, action):
         from ase.gui.neb import NudgedElasticBand
@@ -1007,7 +1022,7 @@ class GUI(View, Status):
         
     def new_atoms(self, atoms, init_magmom=False):
         "Set a new atoms object."
-        self.zap_vulnerable()
+        self.notify_vulnerable()
         self.reset_tools_modes()
         
         rpt = getattr(self.images, 'repeat', None)
@@ -1018,19 +1033,29 @@ class GUI(View, Status):
         self.set_colors()
         self.set_coordinates(frame=0, focus=True)
 
+    def prepare_new_atoms(self):
+        "Marks that the next call to append_atoms should clear the images."
+        self.images.prepare_new_atoms()
+        
     def append_atoms(self, atoms):
         "Set a new atoms object."
-        self.zap_vulnerable()
+        #self.notify_vulnerable()   # Do this manually after last frame.
         frame = self.images.append_atoms(atoms)
         self.set_coordinates(frame=frame-1, focus=True)
 
-    def zap_vulnerable(self):
-        "Delete windows that would break when new_atoms is called."
+    def notify_vulnerable(self):
+        """Notify windows that would break when new_atoms is called.
+
+        The notified windows may adapt to the new atoms.  If that is not
+        possible, they should delete themselves.
+        """
+        new_vul = []  # Keep weakrefs to objects that still exist.
         for wref in self.vulnerable_windows:
             ref = wref()
             if ref is not None:
-                ref.destroy()
-        self.vulnerable_windows = []
+                new_vul.append(wref)
+                ref.notify_atoms_changed()
+        self.vulnerable_windows = new_vul
 
     def register_vulnerable(self, obj):
         """Register windows that are vulnerable to changing the images.

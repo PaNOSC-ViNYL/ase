@@ -34,7 +34,8 @@ class EnergyForces(Simulation):
         vbox.show()
         self.add(vbox)
         self.show()
-
+        self.gui.register_vulnerable(self)
+        
     def run(self, *args):
         if not self.setup_atoms():
             return
@@ -49,5 +50,7 @@ class EnergyForces(Simulation):
                 txt += "  %8.3f, %8.3f, %8.3f eV/Å\n" % tuple(f)
         self.output.set_text(txt)
         self.end()
-        
-        
+                
+    def notify_atoms_changed(self):
+        "When atoms have changed, check for the number of images."
+        self.setupimageselection()

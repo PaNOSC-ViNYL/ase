@@ -44,6 +44,7 @@ class Minimize(Simulation):
         vbox.show()
         self.add(vbox)
         self.show()
+        self.gui.register_vulnerable(self)
 
     def run(self, *args):
         "User has pressed [Run]: run the minimization."
@@ -92,13 +93,20 @@ class Minimize(Simulation):
                                         gtk.gdk.color_parse('#007700'))
             
         self.end()
+        if self.count_steps:
+            # Notify other windows that atoms have changed.
+            # This also notifies this window!
+            self.gui.notify_vulnerable()
 
         # Open movie window and energy graph
         if self.gui.images.nimages > 1:
             self.gui.movie()
             assert not np.isnan(self.gui.images.E[0])
-            expr = 'i, e - E[-1]'            
-            self.gui.plot_graphs(expr=expr)
+            if not self.gui.plot_graphs_newatoms():
+                expr = 'i, e - E[-1]'            
+                self.gui.plot_graphs(expr=expr)
 
+    def notify_atoms_changed(self):
+        "When atoms have changed, check for the number of images."
         self.setupimageselection()
         

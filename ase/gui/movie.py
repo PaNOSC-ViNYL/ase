@@ -63,6 +63,10 @@ class Movie(gtk.Window):
         self.direction = 1
         self.id = None
         gui.register_vulnerable(self)
+
+    def notify_atoms_changed(self):
+        "Called by gui object when the atoms have changed."
+        self.destroy()
         
     def close(self, event):
         self.stop()
