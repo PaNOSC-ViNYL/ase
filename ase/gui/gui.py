@@ -940,7 +940,8 @@ class GUI(View, Status):
                              ('Portable Network Graphics', 'png'),
                              ('Persistance of Vision', 'pov'),
                              ('Encapsulated PostScript', 'eps'),
-                             ('FHI-aims geometry input', 'in')]:
+                             ('FHI-aims geometry input', 'in'),
+                             ('VASP geometry input', 'POSCAR')]:
             if suffix is None:
                 name = _(name)
             else:
@@ -971,7 +972,9 @@ class GUI(View, Status):
             i = combo.get_active()
             if i == 0:
                 suffix = filename.split('.')[-1]
-                if suffix not in types:
+                if 'POSCAR' in filename:
+                    suffix = 'POSCAR'
+                elif suffix not in types:
                     self.xxx(message1='Unknown output format!',
                              message2='Use one of: ' + ', '.join(types[1:]))
                     continue

@@ -256,6 +256,13 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None, symbol_count 
     else: # Assume it's a 'file-like object'
         f = filename
     
+    if isinstance(atoms, (list, tuple)):
+        if len(atoms) > 1:
+            raise RuntimeError("Don't know how to save more than "+
+                               "one image to VASP input")
+        else:
+            atoms = atoms[0]
+
     # Write atom positions in scaled or cartesian coordinates
     if direct:
         coord = atoms.get_scaled_positions()
