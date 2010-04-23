@@ -455,7 +455,8 @@ class View:
             return
 
         selected = self.images.selected
-        
+        selected_ordered = self.images.selected_ordered
+
         if event.time < self.t0 + 200:  # 200 ms
             d = self.P - self.C
             hit = np.less((d**2).sum(1), (self.scale * self.images.r)**2)
@@ -463,12 +464,21 @@ class View:
                 if a < self.images.natoms and hit[a]:
                     if event.state & gtk.gdk.CONTROL_MASK:
                         selected[a] = not selected[a]
+                        if selected[a]: 
+                            selected_ordered += [a]
+                        elif len(selected_ordered) > 0:
+                            if selected_ordered[-1] == a:
+                                selected_ordered = selected_ordered[:-1]
+                            else:
+                                selected_ordered = []
                     else:
                         selected[:] = False
                         selected[a] = True
+                        selected_ordered = [a]
                     break
             else:
                 selected[:] = False
+                selected_ordered = []
             self.draw()
         else:
             A = (event.x, event.y)
@@ -479,7 +489,16 @@ class View:
             if not (event.state & gtk.gdk.CONTROL_MASK):
                 selected[:] = False
             selected[indices] = True
+            if len(indices) == 1 and indices[0] not in self.images.selected_ordered: 
+                selected_ordered += [indices[0]]
+            elif len(indices) > 1:
+                selected_ordered = []
             self.draw()
+
+        indices = np.arange(self.images.natoms)[self.images.selected]
+        if len(indices) != len(selected_ordered):
+            selected_ordered = []
+        self.images.selected_ordered = selected_ordered
 
     def press(self, drawing_area, event):
         self.button = event.button

@@ -43,6 +43,7 @@ class Status:
     def status(self):
         # use where here:  XXX
         indices = np.arange(self.images.natoms)[self.images.selected]
+        ordered_indices = self.images.selected_ordered
         n = len(indices)
         self.nselected = n
         
@@ -60,17 +61,10 @@ class Status:
                     ((indices[0], names[Z[0]], symbols[Z[0]]) + tuple(R[0])))
         
             text+=' tag=%s mom=%1.2f' % (tag, mom)        
-            self.ordered_indices = [indices[0]]
         elif n == 2:
             D = R[0] - R[1]
             d = sqrt(np.dot(D, D))
             text = u' %s-%s: %.3f Å' % (symbols[Z[0]], symbols[Z[1]], d)
-            if len(self.ordered_indices) == 1:
-                for i in indices:
-                    if i not in self.ordered_indices:
-                        self.ordered_indices += [i]
-            else:
-                self.ordered_indices = []
         elif n == 3:
             d = []
             for c in range(3):
@@ -88,21 +82,11 @@ class Status:
                     else:
                         t3 = pi
                 a.append(t3 * 180 / pi)
-            if len(self.ordered_indices) == 2:
-                for i in indices:
-                    if i not in self.ordered_indices:
-                        self.ordered_indices += [i]
-            else:
-                self.ordered_indices = []
             text = (u' %s-%s-%s: %.1f°, %.1f°, %.1f°' %
                     tuple([symbols[z] for z in Z] + a))
-        elif n == 4 and len(self.ordered_indices) == 3:
-            for i in indices:
-                if i not in self.ordered_indices:
-                    self.ordered_indices += [i]
-            R = self.R[self.ordered_indices]
-            Z = self.images.Z[self.ordered_indices]
-            self.ordered_indices = []
+        elif len(ordered_indices) == 4:
+            R = self.R[ordered_indices]
+            Z = self.images.Z[ordered_indices]
             a    = R[1]-R[0]
             b    = R[2]-R[1]
             c    = R[3]-R[2]

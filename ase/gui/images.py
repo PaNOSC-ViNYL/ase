@@ -71,6 +71,7 @@ class Images:
             print('WARNING: Not all images have the same bondary conditions!')
             
         self.selected = np.zeros(self.natoms, bool)
+        self.selected_ordered  = []
         self.atoms_to_rotate_0 = np.zeros(self.natoms, bool)
         self.visible = np.ones(self.natoms, bool)
         self.nselected = 0
