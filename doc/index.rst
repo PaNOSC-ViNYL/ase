@@ -68,6 +68,8 @@ Supported :mod:`calculators`:
 News
 ====
 
+* :ref:`ASE version 3.4 <download_and_install>` released (23 April 2010).
+
 * :ref:`ASE version 3.3 <download_and_install>` released (11 January 2010).
 
 * :ref:`ASE version 3.2 <download_and_install>` released (4 September 2009).
