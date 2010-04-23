@@ -1089,6 +1089,9 @@ class Atoms(object):
         scaled = np.linalg.solve(self._cell.T, self.arrays['positions'].T).T
         for i in range(3):
             if self._pbc[i]:
+                # Yes, we need to do it twice.
+                # See the scaled_positions.py test
+                scaled[:, i] %= 1.0
                 scaled[:, i] %= 1.0
         return scaled
 
