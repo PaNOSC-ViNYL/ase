@@ -450,7 +450,9 @@ class GUI(View, Status):
             if np.prod(self.z_axis_old != z_axis):
                 change = True
             self.z_axis_old = z_axis.copy()           
-            self.dx_change = copy(cz)            
+            self.dx_change = copy(cz)
+            dihedral_rotation = len(self.images.selected_ordered) == 4
+
             if change:
                 self.atoms_selected = sel.copy()
 
@@ -469,14 +471,22 @@ class GUI(View, Status):
                                    np.array([0, 0, 1])))     
                     self.rot_vec = rvx * dx + rvy * (dy + dz)
                     self.dx_change = [dx, dy+dz]
-                
+                    
+                # dihedral rotation?
+                if dihedral_rotation:
+                    sel = self.images.selected_ordered
+                    self.rot_vec = (dx+dy+dz)*(self.R[sel[2]]-self.R[sel[1]])
+
             rot_cen = np.array([0.0, 0.0, 0.0])
-            if nsel: 
+            if dihedral_rotation:
+                sel = self.images.selected_ordered
+                rot_cen = self.R[sel[1]]
+            elif nsel: 
                 for i, b in enumerate( sel):
                     if b: 
                         rot_cen += self.R[i]
                 rot_cen /= float(nsel)     
-            
+
             degrees = 5 * (1 - SHIFT) + SHIFT
             degrees = abs(sum(dxdydz)) * 3.1415 / 360.0 * degrees
             rotmat = rotate_about_vec(self.rot_vec, degrees)
