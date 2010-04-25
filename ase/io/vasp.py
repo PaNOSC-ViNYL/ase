@@ -65,14 +65,13 @@ def atomtypes_outpot(posfname, numsyms):
         fnames.append(f)
 
     tried = []
+    files_in_dir = os.listdir('.')
     for fn in fnames:
         tried.append(fn)
-        try:
+        if fn in files_in_dir:
             at = get_atomtypes(fn)
             if len(at) == numsyms:
                 return at
-        except IOError:
-            pass
 
     raise IOError('Could not determine chemical symbols. Tried files ' 
                   + str(tried))
