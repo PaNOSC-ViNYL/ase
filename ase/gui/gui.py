@@ -480,7 +480,7 @@ class GUI(View, Status):
             rot_cen = np.array([0.0, 0.0, 0.0])
             if dihedral_rotation:
                 sel = self.images.selected_ordered
-                rot_cen = self.R[sel[1]]
+                rot_cen = self.R[sel[1]].copy()
             elif nsel: 
                 for i, b in enumerate( sel):
                     if b: 
