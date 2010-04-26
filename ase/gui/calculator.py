@@ -98,6 +98,14 @@ documentation contains information on the keywords and
 functionalities available within this interface. 
 """
 
+vasp_info_txt = """\
+VASP is an external package implementing density 
+functional functional theory using pseudopotentials 
+or the projector-augmented wave method together 
+with a plane wave basis set. For full details, see
+http://cms.mpi.univie.ac.at/vasp/vasp/
+"""
+
 emt_parameters = (
     ("Default (Al, Ni, Cu, Pd, Ag, Pt, Au)", None),
     ("Alternative Cu, Ag and Au", "EMTRasmussenParameters"),
@@ -170,6 +178,14 @@ class SetCalculator(SetupWindow):
         self.aims_setup.connect("clicked", self.aims_setup_window)
         self.pack_line(vbox, self.aims_radio, self.aims_setup, self.aims_info)
         
+        # VASP
+        self.vasp_radio = gtk.RadioButton(self.none_radio, 
+                                          "Density Functional Theory (VASP)")
+        self.vasp_setup = gtk.Button("Setup")
+        self.vasp_info = InfoButton(vasp_info_txt)
+        self.vasp_setup.connect("clicked", self.vasp_setup_window)
+        self.pack_line(vbox, self.vasp_radio, self.vasp_setup, self.vasp_info)
+
         # Buttons etc.
         pack(vbox, gtk.Label(""))
         buts = cancel_apply_ok(cancel=lambda widget: self.destroy(),
@@ -226,6 +242,13 @@ class SetCalculator(SetupWindow):
         AIMS_Window(self, aims_param, "aims_parameters")        
         # When control is retuned, self.aims_parameters has been set.
 
+    def vasp_setup_window(self, widget):
+        if not self.get_atoms():
+            return
+        vasp_param = getattr(self, "vasp_parameters", None)
+        VASP_Window(self, vasp_param, "vasp_parameters")
+        # When control is retuned, self.vasp_parameters has been set.
+
     def get_atoms(self):
         "Make an atoms object from the active image"
         images = self.gui.images
@@ -269,6 +292,10 @@ class SetCalculator(SetupWindow):
             if nochk or self.aims_check():
                 self.choose_aims()
                 return True
+        elif self.vasp_radio.get_active():
+            if nochk or self.vasp_check():
+                self.choose_vasp()
+                return True  
         return False
 
     def ok(self, *widget):
@@ -429,6 +456,20 @@ class SetCalculator(SetupWindow):
         def aims_factory(calc = calc_aims):
             return calc
         self.gui.simulation["calc"] = aims_factory
+
+    def vasp_check(self):
+        if not hasattr(self, "vasp_parameters"):
+            oops("You must set up the VASP parameters")
+            return False
+        return True
+
+    def choose_vasp(self):
+        param = self.vasp_parameters
+        from ase.calculators.vasp import Vasp
+        calc_vasp = Vasp(**param)
+        def vasp_factory(calc = calc_vasp):
+            return calc
+        self.gui.simulation["calc"] = vasp_factory
 
     def element_check(self, name, elements):
         "Check that all atoms are allowed"
@@ -1010,6 +1051,7 @@ class AIMS_Window(gtk.Window):
     def export_control(self, *args):
         self.set_attributes(*args)
         param = getattr(self, "aims_parameters", None)
+        print param
         from ase.calculators.aims import Aims
         calc_temp = Aims(**param)
         atoms_temp = self.owner.atoms.copy()
@@ -1023,3 +1065,124 @@ class AIMS_Window(gtk.Window):
 
     def compute_forces_toggled(self, *args):
         self.sc_forces_spin.set_sensitive(self.compute_forces.get_active())
+
+
+class VASP_Window(gtk.Window):
+    vasp_xc_list = ['PW91', 'PBE', 'LDA']
+    vasp_xc_default = 'PBE'
+    vasp_prec_default = 'Normal'
+    def __init__(self, owner, param, attrname):
+        self.owner = owner
+        self.attrname = attrname
+        atoms = owner.atoms
+        self.periodic = atoms.get_pbc().all()
+        natoms = len(atoms)
+        gtk.Window.__init__(self)
+        self.set_title("VASP parameters")
+        vbox = gtk.VBox()
+        # Print some info
+        txt = "%i atoms.\n" % (natoms)
+        self.ucell = atoms.get_cell()
+        txt += "Periodic geometry, unit cell is: \n"
+        for i in range(3):
+            txt += "(%8.3f %8.3f %8.3f)\n" % (self.ucell[i][0], self.ucell[i][1], self.ucell[i][2])
+        pack(vbox, [gtk.Label(txt)])
+
+        # XC functional ()
+        self.xc = gtk.combo_box_new_text()
+        for i, x in enumerate(self.vasp_xc_list):
+            self.xc.append_text(x)
+            if x == self.vasp_xc_default:
+                self.xc.set_active(i)
+        pack(vbox, [gtk.Label("Exchange-correlation functional: "),
+                    self.xc])
+
+        # k-grid
+        self.kpts = []
+        self.kpts_spin = []
+        for i in range(3):
+            default = np.ceil(20.0 / np.sqrt(np.vdot(self.ucell[i],self.ucell[i])))
+            g = gtk.Adjustment(1.0, 1, 100, 1)
+            s = gtk.SpinButton(g, 0, 0)
+            self.kpts.append(g)
+            self.kpts_spin.append(s)
+            g.connect("value-changed", self.k_changed)
+        pack(vbox, [gtk.Label("k-points  k = ("), self.kpts_spin[0],
+                    gtk.Label(", "), self.kpts_spin[1], gtk.Label(", "),
+                    self.kpts_spin[2], gtk.Label(")")])
+        self.kpts_label = gtk.Label("")
+        self.kpts_label_format = "k-points x size:  (%.1f, %.1f, %.1f) Å"
+        pack(vbox, [self.kpts_label])
+        self.k_changed()
+        pack(vbox, gtk.Label(""))
+
+#        # Spin polarized
+#        self.spinpol = gtk.CheckButton("Spin polarized")
+#        pack(vbox, [self.spinpol])
+#        pack(vbox, gtk.Label(""))
+
+        # Precision of calculation
+        self.prec = gtk.combo_box_new_text()
+        for i, x in enumerate(['Low', 'Normal', 'Accurate']):
+            self.prec.append_text(x)
+            if x == self.vasp_prec_default:
+                self.prec.set_active(i)
+        pack(vbox, [gtk.Label("Precision of calculation: "),
+                    self.prec])
+        pack(vbox, gtk.Label(""))
+
+        # run command and location of POTCAR files:
+        pack(vbox, gtk.Label('VASP execution command: '))
+        self.run_command = pack(vbox, gtk.Entry(max=0))
+        if os.environ.has_key('VASP_COMMAND'):
+            self.run_command.set_text(os.environ['VASP_COMMAND'])
+        pack(vbox, gtk.Label('Directory for species defaults: '))
+        self.pp_path = pack(vbox, gtk.Entry(max=0))
+        if os.environ.has_key('VASP_PP_PATH'):
+            self.pp_path.set_text(os.environ['VASP_PP_PATH'])
+
+        # Buttons at the bottom
+        pack(vbox, gtk.Label(""))
+        butbox = gtk.HButtonBox()
+        cancel_but = gtk.Button(stock=gtk.STOCK_CANCEL)
+        cancel_but.connect('clicked', lambda widget: self.destroy())
+        ok_but = gtk.Button(stock=gtk.STOCK_OK)
+        ok_but.connect('clicked', self.ok)
+        butbox.pack_start(cancel_but, 0, 0)
+        butbox.pack_start(ok_but, 0, 0)
+        butbox.show_all()
+        pack(vbox, [butbox], end=True, bottom=True)
+        vbox.show()
+        self.add(vbox)
+        self.show()
+        self.grab_add()  # Lock all other windows
+
+    def set_attributes(self, *args):
+        self.param = {}
+        self.param["xc"] = self.xc.get_active_text()
+        self.param["prec"] = self.prec.get_active_text()
+        self.param["kpts"] = (int(self.kpts[0].value),
+                              int(self.kpts[1].value),
+                              int(self.kpts[2].value))
+        setattr(self.owner, self.attrname, self.param)
+        os.environ['VASP_COMMAND'] = self.run_command.get_text()
+        os.environ['VASP_PP_PATH'] = self.pp_path.get_text()
+
+    def ok(self, *args):
+        self.set_attributes(*args)
+        self.destroy()
+
+    def run(self, *args):
+        from ase.calculators.vasp import Vasp
+        calc_temp = Vasp(**self.param)
+        atoms_temp = self.owner.atoms.copy()
+        atoms_temp.set_calculator(calc_temp)
+        atoms_temp.calc.update(atoms_temp)
+        
+    def k_changed(self, *args):
+        size = [self.kpts[i].value * np.sqrt(np.vdot(self.ucell[i],self.ucell[i])) for i in range(3)]
+        self.kpts_label.set_text(self.kpts_label_format % tuple(size))
+
+    def destroy(self):
+        self.grab_remove()
+        gtk.Window.destroy(self)
