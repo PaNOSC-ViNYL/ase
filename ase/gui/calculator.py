@@ -2,6 +2,7 @@
 "calculator.py - module for choosing a calculator."
 
 import gtk
+import os
 import numpy as np
 from copy import copy
 from ase.gui.setupwindow import SetupWindow
@@ -87,6 +88,16 @@ functions, and the <b>P</b>rojector <b>A</b>ugmented <b>W</b>ave
 method for handling the core regions.  
 """
 
+aims_info_txt = """\
+FHI-aims is an external package implementing density 
+functional theory and quantum chemical methods using 
+all-electron methods and a numeric local orbital basis set. 
+For full details, see http://www.fhi-berlin.mpg.de/aims/ 
+or Comp. Phys. Comm. v180 2175 (2009). The ASE 
+documentation contains information on the keywords and 
+functionalities available within this interface. 
+"""
+
 emt_parameters = (
     ("Default (Al, Ni, Cu, Pd, Ag, Pt, Au)", None),
     ("Alternative Cu, Ag and Au", "EMTRasmussenParameters"),
@@ -98,7 +109,7 @@ class SetCalculator(SetupWindow):
     "Window for selecting a calculator."
 
     # List the names of the radio button attributes
-    radios = ("none", "lj", "emt", "aseemt", "gpaw")
+    radios = ("none", "lj", "emt", "aseemt", "gpaw","aims")
     # List the names of the parameter dictionaries
     paramdicts = ("lj_parameters",)
     # The name used to store parameters on the gui object
@@ -151,6 +162,14 @@ class SetCalculator(SetupWindow):
         self.gpaw_setup.connect("clicked", self.gpaw_setup_window)
         self.pack_line(vbox, self.gpaw_radio, self.gpaw_setup, self.gpaw_info)
         
+        # FHI-aims
+        self.aims_radio = gtk.RadioButton(self.none_radio, 
+                                          "Density Functional Theory (FHI-aims)")
+        self.aims_setup = gtk.Button("Setup")
+        self.aims_info = InfoButton(aims_info_txt)
+        self.aims_setup.connect("clicked", self.aims_setup_window)
+        self.pack_line(vbox, self.aims_radio, self.aims_setup, self.aims_info)
+        
         # Buttons etc.
         pack(vbox, gtk.Label(""))
         buts = cancel_apply_ok(cancel=lambda widget: self.destroy(),
@@ -200,6 +219,13 @@ class SetCalculator(SetupWindow):
         GPAW_Window(self, gpaw_param, "gpaw_parameters")
         # When control is retuned, self.gpaw_parameters has been set.
         
+    def aims_setup_window(self, widget):
+        if not self.get_atoms():
+            return
+        aims_param = getattr(self, "aims_parameters", None)
+        AIMS_Window(self, aims_param, "aims_parameters")        
+        # When control is retuned, self.aims_parameters has been set.
+
     def get_atoms(self):
         "Make an atoms object from the active image"
         images = self.gui.images
@@ -238,6 +264,10 @@ class SetCalculator(SetupWindow):
         elif self.gpaw_radio.get_active():
             if nochk or self.gpaw_check():
                 self.choose_gpaw()
+                return True
+        elif self.aims_radio.get_active():
+            if nochk or self.aims_check():
+                self.choose_aims()
                 return True
         return False
 
@@ -386,6 +416,20 @@ class SetCalculator(SetupWindow):
             return calc
         self.gui.simulation["calc"] = gpaw_factory
                 
+    def aims_check(self):
+        if not hasattr(self, "aims_parameters"):
+            oops("You must set up the FHI-aims parameters")
+            return False
+        return True
+
+    def choose_aims(self):
+        param = self.aims_parameters
+        from ase.calculators.aims import Aims
+        calc_aims = Aims(**param)
+        def aims_factory(calc = calc_aims):
+            return calc
+        self.gui.simulation["calc"] = aims_factory
+
     def element_check(self, name, elements):
         "Check that all atoms are allowed"
         elements = [ase.data.atomic_numbers[s] for s in elements]
@@ -794,3 +838,188 @@ class GPAW_Window(gtk.Window):
             param[t] = getattr(self, t+"_adj").value
         setattr(self.owner, self.attrname, param)
         self.destroy()
+
+class AIMS_Window(gtk.Window):
+    aims_xc_list = ['pw-lda','pz-lda','pbe','pbesol','rpbe','revpbe',
+                    'blyp','am05','b3lyp','hse03','hse06','pbe0','pbesol0',
+                    'hf','mp2']
+    aims_xc_default = 'pbe'
+    def __init__(self, owner, param, attrname):
+        self.owner = owner
+        self.attrname = attrname
+        atoms = owner.atoms
+        self.periodic = atoms.get_pbc().all()
+        natoms = len(atoms)
+        gtk.Window.__init__(self)
+        self.set_title("FHI-aims parameters")
+        vbox = gtk.VBox()
+        # Print some info
+        txt = "%i atoms.\n" % (natoms)
+        if self.periodic:
+            self.ucell = atoms.get_cell()
+            txt += "Periodic geometry, unit cell is: \n"
+            for i in range(3):
+                txt += "(%8.3f %8.3f %8.3f)\n" % (self.ucell[i][0], self.ucell[i][1], self.ucell[i][2])
+        else:
+            txt += "Non-periodic geometry. \n"
+        pack(vbox, [gtk.Label(txt)])
+
+        # XC functional ()
+        self.xc = gtk.combo_box_new_text()
+        for i, x in enumerate(self.aims_xc_list):
+            self.xc.append_text(x)
+            if x == self.aims_xc_default:
+                self.xc.set_active(i)
+        pack(vbox, [gtk.Label("Exchange-correlation functional: "),
+                    self.xc])
+        
+        # k-grid?
+        if self.periodic:
+            self.kpts = []
+            self.kpts_spin = []
+            for i in range(3):
+                default = np.ceil(20.0 / np.sqrt(np.vdot(self.ucell[i],self.ucell[i])))
+                g = gtk.Adjustment(default, 1, 100, 1)
+                s = gtk.SpinButton(g, 0, 0)
+                self.kpts.append(g)
+                self.kpts_spin.append(s)
+                g.connect("value-changed", self.k_changed)
+            pack(vbox, [gtk.Label("k-points  k = ("), self.kpts_spin[0],
+                        gtk.Label(", "), self.kpts_spin[1], gtk.Label(", "),
+                        self.kpts_spin[2], gtk.Label(")")])
+            self.kpts_label = gtk.Label("")
+            self.kpts_label_format = "k-points x size:  (%.1f, %.1f, %.1f) Å"
+            pack(vbox, [self.kpts_label])
+            self.k_changed()
+        pack(vbox, gtk.Label(""))
+
+        # Spin polarized
+        self.spinpol = gtk.CheckButton("Spin polarized")
+        pack(vbox, [self.spinpol])
+        pack(vbox, gtk.Label(""))
+
+        # self-consistency criteria
+        pack(vbox,[gtk.Label("Self-consistency convergence:")])
+        self.sc_tot_energy      = gtk.Adjustment(1e-6, 1e-6, 1e0, 1e-6)
+        self.sc_tot_energy_spin = gtk.SpinButton(self.sc_tot_energy, 0, 0)
+        self.sc_tot_energy_spin.set_digits(6)
+        self.sc_tot_energy_spin.set_numeric(True)
+        self.sc_sum_eigenvalue      = gtk.Adjustment(1e-3, 1e-6, 1e0, 1e-6)
+        self.sc_sum_eigenvalue_spin = gtk.SpinButton(self.sc_sum_eigenvalue, 0, 0)
+        self.sc_sum_eigenvalue_spin.set_digits(6)
+        self.sc_sum_eigenvalue_spin.set_numeric(True)
+        self.sc_density      = gtk.Adjustment(1e-4, 1e-6, 1e0, 1e-6)
+        self.sc_density_spin = gtk.SpinButton(self.sc_density, 0, 0)
+        self.sc_density_spin.set_digits(6)
+        self.sc_density_spin.set_numeric(True)
+        self.compute_forces = gtk.CheckButton("Compute forces: ")
+        self.compute_forces.set_active(True)
+        self.compute_forces.connect("toggled", self.compute_forces_toggled,"")
+        self.sc_forces      = gtk.Adjustment(1e-4, 1e-6, 1e0, 1e-6)
+        self.sc_forces_spin = gtk.SpinButton(self.sc_forces, 0, 0)
+        self.sc_forces_spin.set_numeric(True)
+        self.sc_forces_spin.set_digits(6)
+        pack(vbox, [gtk.Label("Energy:                 "),
+                    self.sc_tot_energy_spin, 
+                    gtk.Label(" eV   Sum of eigenvalues:  "),
+                    self.sc_sum_eigenvalue_spin,
+                    gtk.Label(" eV")])
+        pack(vbox, [gtk.Label("Electron density: "),
+                    self.sc_density_spin,
+                    gtk.Label("        Force convergence:  "),
+                    self.sc_forces_spin,
+                    gtk.Label(" eV/Ang  ")])
+
+        pack(vbox, [self.compute_forces])
+        pack(vbox, gtk.Label(""))
+
+        # run command and species defaults:
+        pack(vbox, gtk.Label('FHI-aims execution command: '))
+        self.run_command = pack(vbox, gtk.Entry(max=0))
+        if os.environ.has_key('AIMS_COMMAND'):
+            self.run_command.set_text(os.environ['AIMS_COMMAND'])
+        pack(vbox, gtk.Label('Directory for species defaults: '))
+        self.species_defaults = pack(vbox, gtk.Entry(max=0))
+        if os.environ.has_key('AIMS_SPECIES_DIR'):
+            self.species_defaults.set_text(os.environ['AIMS_SPECIES_DIR'])
+
+        # set defaults from previous instance of the calculator, if applicable:
+        if param is not None:
+            for i, x in enumerate(self.aims_xc_list):
+                if x == param["xc"]:
+                    self.xc.set_active(i)
+            if self.periodic:
+                self.kpts[0].value = param["k_grid"][0]
+                self.kpts[1].value = param["k_grid"][1]
+                self.kpts[2].value = param["k_grid"][2]
+            self.spinpol.set_active(param["spin"] == "collinear")
+            self.sc_tot_energy.value = param["sc_accuracy_etot"]
+            self.sc_sum_eigenvalue.value = param["sc_accuracy_eev"]
+            self.sc_density.value = param["sc_accuracy_rho"]
+            if param["compute_forces"]:
+                self.sc_forces.value = param["sc_accuracy_forces"]
+                self.compute_forces.set_active(param["compute_forces"])
+            else: 
+                self.compute_forces.set_active(False)
+            self.run_command.set_text(param["run_command"])
+            self.species_defaults.set_text(param["species_dir"])
+
+        # Buttons at the bottom
+        pack(vbox, gtk.Label(""))
+        butbox = gtk.HButtonBox()
+        write_control_but = gtk.Button("export control.in")
+        write_control_but.connect("clicked", self.export_control)
+        cancel_but = gtk.Button(stock=gtk.STOCK_CANCEL)
+        cancel_but.connect('clicked', lambda widget: self.destroy())
+        ok_but = gtk.Button(stock=gtk.STOCK_OK)
+        ok_but.connect('clicked', self.ok)
+        butbox.pack_start(write_control_but, 0, 0)
+        butbox.pack_start(cancel_but, 0, 0)
+        butbox.pack_start(ok_but, 0, 0)
+        butbox.show_all()
+        pack(vbox, [butbox], end=True, bottom=True)
+        vbox.show()
+        self.add(vbox)
+        self.show()
+        self.grab_add()  # Lock all other windows
+
+    def set_attributes(self, *args):
+        param = {}
+        param["xc"] = self.xc.get_active_text()
+        if self.periodic:
+            param["k_grid"] = (int(self.kpts[0].value),
+                               int(self.kpts[1].value),
+                               int(self.kpts[2].value))
+        if self.spinpol.get_active():
+            param["spin"] = "collinear"
+        else:
+            param["spin"] = "none"
+        param["sc_accuracy_etot"] = self.sc_tot_energy.value
+        param["sc_accuracy_eev"] = self.sc_sum_eigenvalue.value
+        param["sc_accuracy_rho"] = self.sc_density.value
+        param["compute_forces"] = self.compute_forces.get_active()
+        param["sc_accuracy_forces"] = self.sc_forces.value
+        param["run_command"] = self.run_command.get_text()
+        param["species_dir"] = self.species_defaults.get_text()
+        setattr(self.owner, self.attrname, param)
+
+    def ok(self, *args):
+        self.set_attributes(*args)
+        self.destroy()
+
+    def export_control(self, *args):
+        self.set_attributes(*args)
+        param = getattr(self, "aims_parameters", None)
+        from ase.calculators.aims import Aims
+        calc_temp = Aims(**param)
+        atoms_temp = self.owner.atoms.copy()
+        atoms_temp.set_calculator(calc_temp)
+        atoms_temp.calc.write_control()
+        atoms_temp.calc.write_species()
+
+    def k_changed(self, *args):
+        size = [self.kpts[i].value * np.sqrt(np.vdot(self.ucell[i],self.ucell[i])) for i in range(3)]
+        self.kpts_label.set_text(self.kpts_label_format % tuple(size))
+
+    def compute_forces_toggled(self, *args):
+        self.sc_forces_spin.set_sensitive(self.compute_forces.get_active())
