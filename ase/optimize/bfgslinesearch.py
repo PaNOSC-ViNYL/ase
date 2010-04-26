@@ -25,7 +25,7 @@ pymax = __builtin__.max
 __version__="0.1"
 
 class BFGSLineSearch(Optimizer):
-    def __init__(self, atoms, restart=None, logfile='-', maxstep=.2,
+    def __init__(self, atoms, restart='restart.pickle', logfile='-', maxstep=.2,
                  trajectory=None, c1=.23, c2=0.46, alpha=10., stpmax=50.):
         """Minimize a function using the BFGS algorithm.
 
@@ -59,6 +59,7 @@ class BFGSLineSearch(Optimizer):
         self.p = None
         self.alpha_k = None
         self.no_update = False
+        self.replay = False
 
         Optimizer.__init__(self, atoms, restart, logfile, trajectory)
 
@@ -88,7 +89,6 @@ class BFGSLineSearch(Optimizer):
 
         self.p = -np.dot(self.H,g)
         p_size = np.sqrt((self.p **2).sum())
-        print p_size
         if self.nsteps != 0:
             p0_size = np.sqrt((p0 **2).sum())
             delta_p = self.p/p_size + p0/p0_size
@@ -129,7 +129,8 @@ class BFGSLineSearch(Optimizer):
         else:
             dr = r - r0
             dg = g - g0 
-            if not (self.alpha_k > 0 and abs(np.dot(g,p0))-abs(np.dot(g0,p0)) < 0):
+            if not ((self.alpha_k > 0 and abs(np.dot(g,p0))-abs(np.dot(g0,p0)) < 0) \
+                or self.replay):
                 return
             if self.no_update == True:
                 print 'skip update'
@@ -171,21 +172,24 @@ class BFGSLineSearch(Optimizer):
 
     def replay_trajectory(self, traj):
         """Initialize hessian from old trajectory."""
+        self.replay = True
         if isinstance(traj, str):
             from ase.io.trajectory import PickleTrajectory
             traj = PickleTrajectory(traj, 'r')
-        self.H = None
         atoms = traj[0]
-        r0 = atoms.get_positions().ravel()
-        f0 = atoms.get_forces().ravel()
-        for atoms in traj:
-            r = atoms.get_positions().ravel()
-            f = atoms.get_forces().ravel()
-            self.update(r, f, r0, f0)
-            r0 = r
-            f0 = f
+        r0 = None
+        g0 = None
+        for i in range(0, len(traj) - 1):
+            r = traj[i].get_positions().ravel()
+            g = - traj[i].get_forces().ravel() / self.alpha
+            self.update(r, g, r0, g0, self.p)
+            self.p = -np.dot(self.H,g)
+            r0 = r.copy()
+            g0 = g.copy()
         self.r0 = r0
-        self.f0 = f0
+        self.g0 = g0
+        #self.r0 = traj[-2].get_positions().ravel()
+        #self.g0 = - traj[-2].get_forces().ravel()
 
 def wrap_function(function, args):
     ncalls = [0]
