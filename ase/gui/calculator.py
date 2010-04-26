@@ -881,15 +881,22 @@ class GPAW_Window(gtk.Window):
         self.destroy()
 
 class AIMS_Window(gtk.Window):
-    aims_xc_list = ['pw-lda','pz-lda','pbe','pbesol','rpbe','revpbe',
+    aims_xc_cluster = ['pw-lda','pz-lda','pbe','pbesol','rpbe','revpbe',
                     'blyp','am05','b3lyp','hse03','hse06','pbe0','pbesol0',
                     'hf','mp2']
+    aims_xc_periodic = ['pw-lda','pz-lda','pbe','pbesol','rpbe','revpbe',
+                        'blyp','am05']
     aims_xc_default = 'pbe'
+    aims_relativity_list = ['none','atomic_zora','zora']
     def __init__(self, owner, param, attrname):
         self.owner = owner
         self.attrname = attrname
         atoms = owner.atoms
         self.periodic = atoms.get_pbc().all()
+        aims_relativity_default = 'none'
+        for a in atoms:
+            if a.get_atomic_number() > 29: 
+                aims_relativity_default = 'atomic_zora'
         natoms = len(atoms)
         gtk.Window.__init__(self)
         self.set_title("FHI-aims parameters")
@@ -901,13 +908,15 @@ class AIMS_Window(gtk.Window):
             txt += "Periodic geometry, unit cell is: \n"
             for i in range(3):
                 txt += "(%8.3f %8.3f %8.3f)\n" % (self.ucell[i][0], self.ucell[i][1], self.ucell[i][2])
+            xc_list = self.aims_xc_periodic
         else:
             txt += "Non-periodic geometry. \n"
+            xc_list = self.aims_xc_cluster
         pack(vbox, [gtk.Label(txt)])
 
         # XC functional ()
         self.xc = gtk.combo_box_new_text()
-        for i, x in enumerate(self.aims_xc_list):
+        for i, x in enumerate(xc_list):
             self.xc.append_text(x)
             if x == self.aims_xc_default:
                 self.xc.set_active(i)
@@ -934,9 +943,27 @@ class AIMS_Window(gtk.Window):
             self.k_changed()
         pack(vbox, gtk.Label(""))
 
-        # Spin polarized
+        # Spin polarized, charge, relativity
         self.spinpol = gtk.CheckButton("Spin polarized")
-        pack(vbox, [self.spinpol])
+        self.charge  = gtk.Adjustment(0,-100,100,0.1)
+        self.charge_spin = gtk.SpinButton(self.charge, 0, 0)
+        self.charge_spin.set_digits(2)
+        self.relativity_type = gtk.combo_box_new_text()
+        for i, x in enumerate(self.aims_relativity_list):
+            self.relativity_type.append_text(x)
+            if x == aims_relativity_default:
+                self.relativity_type.set_active(i)
+        self.relativity_type.connect('changed',self.relativity_changed)
+        self.relativity_threshold = gtk.Entry(max=8)
+        self.relativity_threshold.set_text('1.00e-12')
+        self.relativity_threshold.set_sensitive(False)
+        pack(vbox, [self.spinpol, 
+                    gtk.Label("   Charge"), 
+                    self.charge_spin, 
+                    gtk.Label("   Relativity"),
+                    self.relativity_type,
+                    gtk.Label(" Threshold"),
+                    self.relativity_threshold])
         pack(vbox, gtk.Label(""))
 
         # self-consistency criteria
@@ -953,7 +980,7 @@ class AIMS_Window(gtk.Window):
         self.sc_density_spin = gtk.SpinButton(self.sc_density, 0, 0)
         self.sc_density_spin.set_digits(6)
         self.sc_density_spin.set_numeric(True)
-        self.compute_forces = gtk.CheckButton("Compute forces: ")
+        self.compute_forces = gtk.CheckButton("Compute forces")
         self.compute_forces.set_active(True)
         self.compute_forces.connect("toggled", self.compute_forces_toggled,"")
         self.sc_forces      = gtk.Adjustment(1e-4, 1e-6, 1e0, 1e-6)
@@ -994,9 +1021,17 @@ class AIMS_Window(gtk.Window):
                 self.kpts[1].value = param["k_grid"][1]
                 self.kpts[2].value = param["k_grid"][2]
             self.spinpol.set_active(param["spin"] == "collinear")
-            self.sc_tot_energy.value = param["sc_accuracy_etot"]
+            self.charge.value            = param["charge"]
+            rel = param["relativistic"].split()
+            for i, x in enumerate(self.aims_relativity_list):
+                if x == rel[0]:
+                    self.relativity.set_active(i)
+                    if x == 'zora':
+                        self.relativity_threshold.set_text(rel[2])
+                        self.relativity_threshold.set_active(True)
+            self.sc_tot_energy.value     = param["sc_accuracy_etot"]
             self.sc_sum_eigenvalue.value = param["sc_accuracy_eev"]
-            self.sc_density.value = param["sc_accuracy_rho"]
+            self.sc_density.value        = param["sc_accuracy_rho"]
             if param["compute_forces"]:
                 self.sc_forces.value = param["sc_accuracy_forces"]
                 self.compute_forces.set_active(param["compute_forces"])
@@ -1035,13 +1070,19 @@ class AIMS_Window(gtk.Window):
             param["spin"] = "collinear"
         else:
             param["spin"] = "none"
-        param["sc_accuracy_etot"] = self.sc_tot_energy.value
-        param["sc_accuracy_eev"] = self.sc_sum_eigenvalue.value
-        param["sc_accuracy_rho"] = self.sc_density.value
-        param["compute_forces"] = self.compute_forces.get_active()
+        param["charge"]             = self.charge.value
+        param["relativistic"]       = self.relativity_type.get_active_text()
+        if param["relativistic"] == 'atomic_zora':
+            param["relativistic"] += " scalar "
+        if param["relativistic"] == 'zora':
+            param["relativistic"] += " scalar "+str(self.relativity_threshold.value) 
+        param["sc_accuracy_etot"]   = self.sc_tot_energy.value
+        param["sc_accuracy_eev"]    = self.sc_sum_eigenvalue.value
+        param["sc_accuracy_rho"]    = self.sc_density.value
+        param["compute_forces"]     = self.compute_forces.get_active()
         param["sc_accuracy_forces"] = self.sc_forces.value
-        param["run_command"] = self.run_command.get_text()
-        param["species_dir"] = self.species_defaults.get_text()
+        param["run_command"]        = self.run_command.get_text()
+        param["species_dir"]        = self.species_defaults.get_text()
         setattr(self.owner, self.attrname, param)
 
     def ok(self, *args):
@@ -1050,8 +1091,7 @@ class AIMS_Window(gtk.Window):
 
     def export_control(self, *args):
         self.set_attributes(*args)
-        param = getattr(self, "aims_parameters", None)
-        print param
+        param = getattr(self.owner, "aims_parameters")
         from ase.calculators.aims import Aims
         calc_temp = Aims(**param)
         atoms_temp = self.owner.atoms.copy()
@@ -1065,6 +1105,9 @@ class AIMS_Window(gtk.Window):
 
     def compute_forces_toggled(self, *args):
         self.sc_forces_spin.set_sensitive(self.compute_forces.get_active())
+
+    def relativity_changed(self, *args):
+        self.relativity_threshold.set_sensitive(self.relativity_type.get_active() == 2)
 
 
 class VASP_Window(gtk.Window):
