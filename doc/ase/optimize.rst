@@ -46,9 +46,6 @@ should be less than *fmax*:
 
 .. math:: \max_a |\vec{F_a}| < fmax
 
-.. seealso::
-    :ref:`optimizer_tests`
-
 BFGS
 ----
 .. module:: optimize.qn
