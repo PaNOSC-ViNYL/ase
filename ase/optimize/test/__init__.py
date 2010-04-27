@@ -73,7 +73,8 @@ def run_test(get_atoms, get_calculator, name,
 
             if relax.get_number_of_steps() == steps:
                 note = 'Not converged in %i steps' % steps
-        except:
+        except Exception, e:
+            print e
             note = 'An exception occurred'
             E = np.nan
 
