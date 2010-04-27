@@ -894,6 +894,9 @@ class AIMS_Window(gtk.Window):
                         'blyp','am05']
     aims_xc_default = 'pbe'
     aims_relativity_list = ['none','atomic_zora','zora']
+    aims_keyword_gui_list = ['xc','vdw_correction_hirshfeld','k_grid','spin','charge','relativistic',
+                             'sc_accuracy_etot','sc_accuracy_eev','sc_accuracy_rho','sc_accuracy_forces',
+                             'compute_forces','run_command','species_dir']
     def __init__(self, owner, param, attrname):
         self.owner = owner
         self.attrname = attrname
@@ -902,6 +905,10 @@ class AIMS_Window(gtk.Window):
         if not self.periodic and atoms.get_pbc().any():
             oops(aims_pbc_warning_text)
             self.periodic = True 
+        from ase.calculators.aims import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys
+        self.aims_keyword_list =float_keys+exp_keys+string_keys+int_keys+bool_keys+list_keys
+        self.expert_keywords = []
+
         natoms = len(atoms)
         gtk.Window.__init__(self)
         self.set_title("FHI-aims parameters")
@@ -944,7 +951,7 @@ class AIMS_Window(gtk.Window):
             self.kpts_label_format = "k-points x size:  (%.1f, %.1f, %.1f) Å"
             pack(vbox, [self.kpts_label])
             self.k_changed()
-        pack(vbox, gtk.Label(""))
+            pack(vbox, gtk.Label(""))
 
         # Spin polarized, charge, relativity
         self.spinpol = gtk.CheckButton("Spin polarized")
@@ -1002,6 +1009,17 @@ class AIMS_Window(gtk.Window):
         pack(vbox, [self.compute_forces])
         pack(vbox, gtk.Label(""))
 
+        self.expert_keyword_set = gtk.Entry(max = 45)
+        self.expert_keyword_add = gtk.Button(stock = gtk.STOCK_ADD)
+        self.expert_keyword_add.connect("clicked", self.expert_keyword_import)
+        self.expert_keyword_set.connect("activate", self.expert_keyword_import)
+        pack(vbox,[gtk.Label("Additional keywords: "),
+                   self.expert_keyword_set, 
+                   self.expert_keyword_add])
+        self.expert_vbox = gtk.VBox()
+        pack(vbox, self.expert_vbox)
+        pack(vbox, gtk.Label(""))
+
         # run command and species defaults:
         pack(vbox, gtk.Label('FHI-aims execution command: '))
         self.run_command = pack(vbox, gtk.Entry(max=0))
@@ -1032,6 +1050,7 @@ class AIMS_Window(gtk.Window):
         butbox.pack_start(ok_but, 0, 0)
         butbox.show_all()
         pack(vbox, [butbox], end=True, bottom=True)
+        self.expert_vbox.show()
         vbox.show()
         self.add(vbox)
         self.show()
@@ -1063,6 +1082,11 @@ class AIMS_Window(gtk.Window):
         self.sc_sum_eigenvalue.set_value(1e-3)
         self.sc_density.set_value(1e-4)
         self.sc_forces.set_value(1e-4)
+        for key in self.expert_keywords:
+            key[0].destroy()
+            key[1].destroy()
+            key[2].destroy()
+            key[3] = False
         if os.environ.has_key('AIMS_COMMAND'):
             text = os.environ['AIMS_COMMAND']
         else:
@@ -1099,6 +1123,19 @@ class AIMS_Window(gtk.Window):
         param["sc_accuracy_forces"] = self.sc_forces.value
         param["run_command"]        = self.run_command.get_text()
         param["species_dir"]        = self.species_defaults.get_text()
+        from ase.calculators.aims import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys
+        for option in self.expert_keywords:
+            if option[3]:   # set type of parameter accoding to which list it is in
+                key = option[0].get_text().strip()
+                val = option[1].get_text().strip()
+                if key in float_keys or key in exp_keys:
+                    param[key] = float(val)
+                elif key in list_keys or key in string_keys:
+                    param[key] = val
+                elif key in int_keys:
+                    param[key] = int(val)
+                elif key in bool_keys:
+                    param[key] = bool(val)
         setattr(self.owner, self.attrname, param)
 
     def set_param(self, param):
@@ -1144,6 +1181,16 @@ class AIMS_Window(gtk.Window):
             self.run_command.set_text(param["run_command"])
         if param["species_dir"] is not None:
             self.species_defaults.set_text(param["species_dir"])
+        for (key,val) in param.items():
+            if key in self.aims_keyword_list and key not in self.aims_keyword_gui_list:
+                if val is not None:  # = existing "expert keyword"
+                    if isinstance(val,str):
+                        arg = [key]+val.split()
+                    elif isinstance(val,tuple) or isinstance(val,list):
+                        arg = [key]+[str(a) for a in val]
+                    else:
+                        arg = [key]+[str(val)]
+                    self.expert_keyword_create(arg)
 
     def ok(self, *args):
         self.set_attributes(*args)
@@ -1198,6 +1245,45 @@ class AIMS_Window(gtk.Window):
 
     def relativity_changed(self, *args):
         self.relativity_threshold.set_sensitive(self.relativity_type.get_active() == 2)
+
+    def expert_keyword_import(self, *args):
+        command = self.expert_keyword_set.get_text().split()
+        if len(command) > 0 and command[0] in self.aims_keyword_list and not command[0] in self.aims_keyword_gui_list:
+            self.expert_keyword_create(command)
+        elif command[0] in self.aims_keyword_gui_list:
+            oops("Please use the facilities provided in this window to manipulate "+
+                 "the keyword:" + command[0] + "!")
+        else:
+            oops("Don't know this keyword:" + command[0] + "\nPlease check!")
+        self.expert_keyword_set.set_text("")
+
+    def expert_keyword_create(self, command):
+        key = command[0]
+        argument = command[1]
+        if len(command) > 2:
+            for a in command[2:]:
+                argument += ' '+a
+        index = len(self.expert_keywords) 
+        self.expert_keywords += [[gtk.Label("    " +key+"  "),
+                                  gtk.Entry(max=35),
+                                  ExpertDeleteButton(index),
+                                  True]]
+        self.expert_keywords[index][1].set_text(argument)
+        self.expert_keywords[index][2].connect('clicked',self.expert_keyword_delete)
+        pack(self.expert_vbox, [self.expert_keywords[index][0],
+                                self.expert_keywords[index][1],
+                                self.expert_keywords[index][2]])
+
+    def expert_keyword_delete(self, button, *args):
+        index = button.index   # which one to kill 
+        for i in [0,1,2]:
+            self.expert_keywords[index][i].destroy()
+        self.expert_keywords[index][3] = False
+
+class ExpertDeleteButton(gtk.Button):
+    def __init__(self, index):
+        gtk.Button.__init__(self, stock=gtk.STOCK_DELETE)
+        self.index = index
 
 
 class VASP_Window(gtk.Window):

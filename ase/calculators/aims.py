@@ -20,6 +20,7 @@ float_keys = [
     'ini_linear_mix_param',
     'ini_spin_mix_parma',
     'initial_moment',
+    'MD_MB_init',
     'MD_time_step',
     'prec_mix_param',
     'spin_mix_param',
