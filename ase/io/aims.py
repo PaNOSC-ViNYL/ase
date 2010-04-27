@@ -206,6 +206,8 @@ def read_aims_calculator(file):
         else:
             args = line.split()
             key = args[0]
+            if '#' in key:
+                key = key[1:]
             if calc.float_params.has_key(key):
                 calc.float_params[key] = float(args[1])
             elif calc.exp_params.has_key(key):
@@ -215,7 +217,11 @@ def read_aims_calculator(file):
             elif calc.int_params.has_key(key):
                 calc.int_params[key] = int(args[1])
             elif calc.bool_params.has_key(key):
-                calc.bool_params[key] = bool(args[1])
+                try:
+                    calc.bool_params[key] = bool(args[1])
+                except:
+                    if key == 'vdw_correction_hirshfeld':
+                        calc.bool_params[key] = True
             elif calc.list_params.has_key(key):
                 calc.list_params[key] = tuple(args[1:])
             elif calc.input_parameters.has_key(key):

@@ -42,6 +42,8 @@ string_keys = [
     'restart_read_only',
     'restart_write_only',
     'spin',
+    'total_energy_method',
+    'qpe_calc',
     'xc',
 ]
 
@@ -97,7 +99,6 @@ class Aims(Calculator):
         self.string_params = {}
         self.int_params = {}
         self.bool_params = {}
-        self.s_bool_params = {}
         self.list_params = {}
         self.input_parameters = {}
         for key in float_keys:
@@ -218,20 +219,20 @@ class Aims(Calculator):
         if self.input_parameters['run_dir']:
             aims_command = aims_command + self.input_parameters['run_dir'] + '/'
         aims_command = aims_command + self.out
-        self.write_parameters()
+        self.write_parameters('',self.out)
         exitcode = os.system(aims_command)
         if exitcode != 0:
             raise RuntimeError('FHI-aims exited with exit code: %d.  ' % exitcode)
         if self.input_parameters['cubes'] and self.input_parameters['track_output']:
             self.input_parameters['cubes'].move_to_base_name(self.input_parameters['output_template']+str(self.run_counts-1))
 
-    def write_parameters(self):
-        output = open(self.out,'w')
-        output.write('=======================================================\n')
-        output.write('FHI-aims output file\n')
-        output.write('Created using the Atomic Simulation Environment (ASE)\n\n')
-        output.write('List of parameters used to initialize the calculator:\n')
-        output.write('=======================================================\n')
+    def write_parameters(self,prefix,filename):
+        output = open(filename,'w')
+        output.write(prefix+'=======================================================\n')
+        output.write(prefix+'FHI-aims file: '+filename+'\n')
+        output.write(prefix+'Created using the Atomic Simulation Environment (ASE)\n'+prefix+'\n')
+        output.write(prefix+'List of parameters used to initialize the calculator:\n')
+        output.write(prefix+'=======================================================\n')
         for key, val in self.float_params.items():
             if val is not None:
                 output.write('%-30s%5.6f\n' % (key, val))        
@@ -246,9 +247,11 @@ class Aims(Calculator):
                 output.write('%-30s%d\n' % (key, val))
         for key, val in self.bool_params.items():
             if val is not None:
-                if val:
+                if key == 'vdw_correction_hirshfeld' and val:
+                    output.write('%-30s\n' % (key))
+                elif val:
                     output.write('%-30s.true.\n' % (key))
-                else:
+                elif key != 'vdw_correction_hirshfeld':
                     output.write('%-30s.false.\n' % (key))
         for key, val in self.list_params.items():
             if val is not None:
@@ -264,48 +267,13 @@ class Aims(Calculator):
                 if val:
                     val.write(output)
             elif val:
-                output.write('%-30s%s\n' % (key,val))
-        output.write('=======================================================\n\n')
+                output.write(prefix+'%-30s%s\n' % (key,val))
+        output.write(prefix+'=======================================================\n\n')
         output.close()
 
     def write_control(self):
         """Writes the control.in file."""
-        control = open('control.in', 'w')
-        for key, val in self.float_params.items():
-            if val is not None:
-                control.write('%-30s%5.6f\n' % (key, val))
-        for key, val in self.exp_params.items():
-            if val is not None:
-                control.write('%-30s%5.2e\n' % (key, val))
-        for key, val in self.string_params.items():
-            if val is not None:
-                control.write('%-30s%s\n' % (key, val))
-        for key, val in self.int_params.items():
-            if val is not None:
-                contol.write('%-30s%d\n' % (key, val))
-        for key, val in self.bool_params.items():
-            if val is not None:
-                if key == 'vdw_correction_hirshfeld' and val:
-                    control.write('%-30s\n' % (key))
-                elif val:
-                    control.write('%-30s.true.\n' % (key))
-                elif key != 'vdw_correction_hirshfeld':
-                    control.write('%-30s.false.\n' % (key))
-        for key, val in self.list_params.items():
-            if val is not None:
-                control.write('%-30s' % key)
-                if isinstance(val,str):
-                    control.write(val)
-                else:
-                    for ival in val:
-                        control.write(str(ival)+' ')
-                control.write('\n')
-        for key, val in self.input_parameters.items():
-            if key is  'cubes':
-                if val:
-                    val.write(control)
-        control.write('\n')
-        control.close()
+        self.write_parameters('#','control.in')
 
     def write_species(self):
         from ase.data import atomic_numbers

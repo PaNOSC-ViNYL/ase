@@ -98,6 +98,12 @@ documentation contains information on the keywords and
 functionalities available within this interface. 
 """
 
+aims_pbc_warning_text = """\
+WARNING:
+Your system seems to have more than zero but less than three periodic dimensions. 
+Please check that this is really what you want to compute. Assuming full 
+periodicity for this calculator."""
+
 vasp_info_txt = """\
 VASP is an external package implementing density 
 functional functional theory using pseudopotentials 
@@ -501,7 +507,7 @@ class InfoButton(gtk.Button):
         dialog.set_markup(self.txt)
         dialog.connect('response', lambda x, y: dialog.destroy())
         dialog.show()
-        
+
 
 class LJ_Window(gtk.Window):
     def __init__(self, owner, param, attrname):
@@ -893,10 +899,9 @@ class AIMS_Window(gtk.Window):
         self.attrname = attrname
         atoms = owner.atoms
         self.periodic = atoms.get_pbc().all()
-        aims_relativity_default = 'none'
-        for a in atoms:
-            if a.get_atomic_number() > 29: 
-                aims_relativity_default = 'atomic_zora'
+        if not self.periodic and atoms.get_pbc().any():
+            oops(aims_pbc_warning_text)
+            self.periodic = True 
         natoms = len(atoms)
         gtk.Window.__init__(self)
         self.set_title("FHI-aims parameters")
@@ -908,20 +913,18 @@ class AIMS_Window(gtk.Window):
             txt += "Periodic geometry, unit cell is: \n"
             for i in range(3):
                 txt += "(%8.3f %8.3f %8.3f)\n" % (self.ucell[i][0], self.ucell[i][1], self.ucell[i][2])
-            xc_list = self.aims_xc_periodic
+            self.xc_list = self.aims_xc_periodic
         else:
             txt += "Non-periodic geometry. \n"
-            xc_list = self.aims_xc_cluster
+            self.xc_list = self.aims_xc_cluster
         pack(vbox, [gtk.Label(txt)])
 
-        # XC functional ()
+        # XC functional & dispersion correction
         self.xc = gtk.combo_box_new_text()
-        for i, x in enumerate(xc_list):
-            self.xc.append_text(x)
-            if x == self.aims_xc_default:
-                self.xc.set_active(i)
-        pack(vbox, [gtk.Label("Exchange-correlation functional: "),
-                    self.xc])
+        self.TS = gtk.CheckButton("Hirshfeld-based dispersion correction")
+        pack(vbox, [gtk.Label("Exchange-correlation functional: "),self.xc])
+        pack(vbox, [self.TS])
+        pack(vbox, [gtk.Label("")])
         
         # k-grid?
         if self.periodic:
@@ -951,8 +954,6 @@ class AIMS_Window(gtk.Window):
         self.relativity_type = gtk.combo_box_new_text()
         for i, x in enumerate(self.aims_relativity_list):
             self.relativity_type.append_text(x)
-            if x == aims_relativity_default:
-                self.relativity_type.set_active(i)
         self.relativity_type.connect('changed',self.relativity_changed)
         self.relativity_threshold = gtk.Entry(max=8)
         self.relativity_threshold.set_text('1.00e-12')
@@ -1004,52 +1005,29 @@ class AIMS_Window(gtk.Window):
         # run command and species defaults:
         pack(vbox, gtk.Label('FHI-aims execution command: '))
         self.run_command = pack(vbox, gtk.Entry(max=0))
-        if os.environ.has_key('AIMS_COMMAND'):
-            self.run_command.set_text(os.environ['AIMS_COMMAND'])
         pack(vbox, gtk.Label('Directory for species defaults: '))
         self.species_defaults = pack(vbox, gtk.Entry(max=0))
-        if os.environ.has_key('AIMS_SPECIES_DIR'):
-            self.species_defaults.set_text(os.environ['AIMS_SPECIES_DIR'])
 
         # set defaults from previous instance of the calculator, if applicable:
         if param is not None:
-            for i, x in enumerate(self.aims_xc_list):
-                if x == param["xc"]:
-                    self.xc.set_active(i)
-            if self.periodic:
-                self.kpts[0].value = param["k_grid"][0]
-                self.kpts[1].value = param["k_grid"][1]
-                self.kpts[2].value = param["k_grid"][2]
-            self.spinpol.set_active(param["spin"] == "collinear")
-            self.charge.value            = param["charge"]
-            rel = param["relativistic"].split()
-            for i, x in enumerate(self.aims_relativity_list):
-                if x == rel[0]:
-                    self.relativity.set_active(i)
-                    if x == 'zora':
-                        self.relativity_threshold.set_text(rel[2])
-                        self.relativity_threshold.set_active(True)
-            self.sc_tot_energy.value     = param["sc_accuracy_etot"]
-            self.sc_sum_eigenvalue.value = param["sc_accuracy_eev"]
-            self.sc_density.value        = param["sc_accuracy_rho"]
-            if param["compute_forces"]:
-                self.sc_forces.value = param["sc_accuracy_forces"]
-                self.compute_forces.set_active(param["compute_forces"])
-            else: 
-                self.compute_forces.set_active(False)
-            self.run_command.set_text(param["run_command"])
-            self.species_defaults.set_text(param["species_dir"])
+            self.set_param(param)
 
         # Buttons at the bottom
         pack(vbox, gtk.Label(""))
         butbox = gtk.HButtonBox()
-        write_control_but = gtk.Button("export control.in")
-        write_control_but.connect("clicked", self.export_control)
+        default_but = gtk.Button("Set Defaults")
+        default_but.connect("clicked",self.set_defaults)
+        import_control_but = gtk.Button("Import control.in")
+        import_control_but.connect("clicked",self.import_control)
+        export_control_but = gtk.Button("Export control.in")
+        export_control_but.connect("clicked", self.export_control)
         cancel_but = gtk.Button(stock=gtk.STOCK_CANCEL)
         cancel_but.connect('clicked', lambda widget: self.destroy())
         ok_but = gtk.Button(stock=gtk.STOCK_OK)
         ok_but.connect('clicked', self.ok)
-        butbox.pack_start(write_control_but, 0, 0)
+        butbox.pack_start(default_but, 0, 0)
+        butbox.pack_start(import_control_but, 0, 0)
+        butbox.pack_start(export_control_but, 0, 0)
         butbox.pack_start(cancel_but, 0, 0)
         butbox.pack_start(ok_but, 0, 0)
         butbox.show_all()
@@ -1057,7 +1035,44 @@ class AIMS_Window(gtk.Window):
         vbox.show()
         self.add(vbox)
         self.show()
-        self.grab_add()  # Lock all other windows
+        self.set_defaults()
+        self.grab_add() 
+
+    def set_defaults(self, *args):
+        atoms = self.owner.atoms.copy()
+        for i, x in enumerate(self.xc_list):
+            self.xc.append_text(x)
+            if x == self.aims_xc_default:
+                self.xc.set_active(i)
+        self.TS.set_active(False)
+        if self.periodic:
+            self.ucell = atoms.get_cell()
+            for i in range(3):
+                default = np.ceil(20.0 / np.sqrt(np.vdot(self.ucell[i],self.ucell[i])))
+                self.kpts_spin[i].set_value(default)
+        self.spinpol.set_active(False)
+        self.charge.set_value(0)
+        aims_relativity_default = 'none'
+        for a in atoms:
+            if a.get_atomic_number() > 29: 
+                aims_relativity_default = 'atomic_zora'
+        for i, x in enumerate(self.aims_relativity_list):
+            if x == aims_relativity_default:
+                self.relativity_type.set_active(i)
+        self.sc_tot_energy.set_value(1e-6)
+        self.sc_sum_eigenvalue.set_value(1e-3)
+        self.sc_density.set_value(1e-4)
+        self.sc_forces.set_value(1e-4)
+        if os.environ.has_key('AIMS_COMMAND'):
+            text = os.environ['AIMS_COMMAND']
+        else:
+            text = ""
+        self.run_command.set_text(text)
+        if os.environ.has_key('AIMS_SPECIES_DIR'):
+            text = os.environ['AIMS_SPECIES_DIR']
+        else:
+            text = ""
+        self.species_defaults.set_text(text)
 
     def set_attributes(self, *args):
         param = {}
@@ -1070,12 +1085,13 @@ class AIMS_Window(gtk.Window):
             param["spin"] = "collinear"
         else:
             param["spin"] = "none"
+        param["vdw_correction_hirshfeld"] = self.TS.get_active()
         param["charge"]             = self.charge.value
         param["relativistic"]       = self.relativity_type.get_active_text()
         if param["relativistic"] == 'atomic_zora':
             param["relativistic"] += " scalar "
         if param["relativistic"] == 'zora':
-            param["relativistic"] += " scalar "+str(self.relativity_threshold.value) 
+            param["relativistic"] += " scalar "+self.relativity_threshold.get_text() 
         param["sc_accuracy_etot"]   = self.sc_tot_energy.value
         param["sc_accuracy_eev"]    = self.sc_sum_eigenvalue.value
         param["sc_accuracy_rho"]    = self.sc_density.value
@@ -1084,6 +1100,50 @@ class AIMS_Window(gtk.Window):
         param["run_command"]        = self.run_command.get_text()
         param["species_dir"]        = self.species_defaults.get_text()
         setattr(self.owner, self.attrname, param)
+
+    def set_param(self, param):
+        if param["xc"] is not None:
+            for i, x in enumerate(self.xc_list):
+                if x == param["xc"]:
+                    self.xc.set_active(i)
+        if isinstance(param["vdw_correction_hirshfeld"],bool):
+            self.TS.set_active(param["vdw_correction_hirshfeld"])
+        if self.periodic and param["k_grid"] is not None:
+            self.kpts[0].value = int(param["k_grid"][0])
+            self.kpts[1].value = int(param["k_grid"][1])
+            self.kpts[2].value = int(param["k_grid"][2])
+        if param["spin"] is not None:
+            self.spinpol.set_active(param["spin"] == "collinear")
+        if param["charge"] is not None:
+            self.charge.value = param["charge"]
+        if param["relativistic"] is not None:
+            if isinstance(param["relativistic"],tuple):
+                rel = param["relativistic"]
+            else:
+                rel = param["relativistic"].split()
+            for i, x in enumerate(self.aims_relativity_list):
+                if x == rel[0]:
+                    self.relativity_type.set_active(i)
+                    if x == 'zora':
+                        self.relativity_threshold.set_text(rel[2])
+                        self.relativity_threshold.set_sensitive(True)
+        if param["sc_accuracy_etot"] is not None:
+            self.sc_tot_energy.value     = param["sc_accuracy_etot"]
+        if param["sc_accuracy_eev"] is not None:
+            self.sc_sum_eigenvalue.value = param["sc_accuracy_eev"]
+        if param["sc_accuracy_rho"] is not None:
+            self.sc_density.value        = param["sc_accuracy_rho"]
+        if param["compute_forces"] is not None:
+            if param["compute_forces"]:
+                if param["sc_accuracy_forces"] is not None:
+                    self.sc_forces.value = param["sc_accuracy_forces"]
+                self.compute_forces.set_active(param["compute_forces"])
+            else: 
+                self.compute_forces.set_active(False)
+        if param["run_command"] is not None:
+            self.run_command.set_text(param["run_command"])
+        if param["species_dir"] is not None:
+            self.species_defaults.set_text(param["species_dir"])
 
     def ok(self, *args):
         self.set_attributes(*args)
@@ -1098,6 +1158,36 @@ class AIMS_Window(gtk.Window):
         atoms_temp.set_calculator(calc_temp)
         atoms_temp.calc.write_control()
         atoms_temp.calc.write_species()
+
+    def import_control(self, *args):
+        self.set_defaults()
+        control = open('control.in','r')
+        while True:
+            line = control.readline()
+            if not line:
+                break
+            if "List of parameters used to initialize the calculator:" in line:
+                control.readline()
+                from ase.io.aims import read_aims_calculator
+                calc = read_aims_calculator(control)
+                found_aims_calculator = True
+        control.close()
+        if found_aims_calculator:
+            param = calc.float_params
+            for key in calc.exp_params:
+                param[key] = calc.exp_params[key]
+            for key in calc.string_params:
+                param[key] = calc.string_params[key]
+            for key in calc.int_params:
+                param[key] = calc.int_params[key]
+            for key in calc.bool_params:
+                param[key] = calc.bool_params[key]
+            for key in calc.list_params:
+                param[key] = calc.list_params[key]
+            for key in calc.input_parameters:
+                param[key] = calc.input_parameters[key]
+            self.set_defaults()
+            self.set_param(param)
 
     def k_changed(self, *args):
         size = [self.kpts[i].value * np.sqrt(np.vdot(self.ucell[i],self.ucell[i])) for i in range(3)]
