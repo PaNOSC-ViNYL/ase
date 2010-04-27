@@ -214,6 +214,9 @@ def read_aims_calculator(file):
                 calc.exp_params[key] = float(args[1])
             elif calc.string_params.has_key(key):
                 calc.string_params[key] = args[1]
+                if len(args) > 2:
+                    for s in args[2:]:
+                        calc.string_params[key] += " "+s
             elif calc.int_params.has_key(key):
                 calc.int_params[key] = int(args[1])
             elif calc.bool_params.has_key(key):
@@ -226,6 +229,9 @@ def read_aims_calculator(file):
                 calc.list_params[key] = tuple(args[1:])
             elif calc.input_parameters.has_key(key):
                 calc.input_parameters[key] = args[1]
+                if len(args) > 2: 
+                    for s in args[2:]:
+                        calc.input_parameters[key] += " "+s                
             else:
                 raise TypeError('FHI-aims keyword not defined in ASE: ' + key + '. Please check.')
     return calc
