@@ -100,9 +100,10 @@ functionalities available within this interface.
 
 aims_pbc_warning_text = """\
 WARNING:
-Your system seems to have more than zero but less than three periodic dimensions. 
-Please check that this is really what you want to compute. Assuming full 
-periodicity for this calculator."""
+Your system seems to have more than zero but less than 
+three periodic dimensions. Please check that this is 
+really what you want to compute. Assuming full 
+3D periodicity for this calculator."""
 
 vasp_info_txt = """\
 VASP is an external package implementing density 
@@ -903,7 +904,7 @@ class AIMS_Window(gtk.Window):
         atoms = owner.atoms
         self.periodic = atoms.get_pbc().all()
         if not self.periodic and atoms.get_pbc().any():
-            oops(aims_pbc_warning_text)
+            aims_periodic_warning = True
             self.periodic = True 
         from ase.calculators.aims import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys
         self.aims_keyword_list =float_keys+exp_keys+string_keys+int_keys+bool_keys+list_keys
@@ -928,6 +929,7 @@ class AIMS_Window(gtk.Window):
 
         # XC functional & dispersion correction
         self.xc = gtk.combo_box_new_text()
+        self.xc_setup = False
         self.TS = gtk.CheckButton("Hirshfeld-based dispersion correction")
         pack(vbox, [gtk.Label("Exchange-correlation functional: "),self.xc])
         pack(vbox, [self.TS])
@@ -1056,11 +1058,16 @@ class AIMS_Window(gtk.Window):
         self.show()
         self.set_defaults()
         self.grab_add() 
+        if aims_periodic_warning:
+            oops(aims_pbc_warning_text)
 
     def set_defaults(self, *args):
         atoms = self.owner.atoms.copy()
+        if not self.xc_setup:
+            self.xc_setup = True 
+            for i, x in enumerate(self.xc_list):
+                self.xc.append_text(x)
         for i, x in enumerate(self.xc_list):
-            self.xc.append_text(x)
             if x == self.aims_xc_default:
                 self.xc.set_active(i)
         self.TS.set_active(False)
@@ -1197,44 +1204,63 @@ class AIMS_Window(gtk.Window):
         self.destroy()
 
     def export_control(self, *args):
-        self.set_attributes(*args)
-        param = getattr(self.owner, "aims_parameters")
-        from ase.calculators.aims import Aims
-        calc_temp = Aims(**param)
-        atoms_temp = self.owner.atoms.copy()
-        atoms_temp.set_calculator(calc_temp)
-        atoms_temp.calc.write_control()
-        atoms_temp.calc.write_species()
+        filename = "control.in"
+        chooser = gtk.FileChooserDialog(
+            'Export parameters ... ', None, gtk.FILE_CHOOSER_ACTION_SAVE,
+            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+             gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+        chooser.set_filename(filename)
+        save = chooser.run()
+        if save == gtk.RESPONSE_OK or save == gtk.RESPONSE_SAVE:
+            filename = chooser.get_filename()
+            self.set_attributes(*args)
+            param = getattr(self.owner, "aims_parameters")
+            from ase.calculators.aims import Aims
+            calc_temp = Aims(**param)
+            atoms_temp = self.owner.atoms.copy()
+            atoms_temp.set_calculator(calc_temp)
+            atoms_temp.calc.write_control(file = filename)
+            atoms_temp.calc.write_species(file = filename)
+        chooser.destroy()
 
     def import_control(self, *args):
-        self.set_defaults()
-        control = open('control.in','r')
-        while True:
-            line = control.readline()
-            if not line:
-                break
-            if "List of parameters used to initialize the calculator:" in line:
-                control.readline()
-                from ase.io.aims import read_aims_calculator
-                calc = read_aims_calculator(control)
-                found_aims_calculator = True
-        control.close()
-        if found_aims_calculator:
-            param = calc.float_params
-            for key in calc.exp_params:
-                param[key] = calc.exp_params[key]
-            for key in calc.string_params:
-                param[key] = calc.string_params[key]
-            for key in calc.int_params:
-                param[key] = calc.int_params[key]
-            for key in calc.bool_params:
-                param[key] = calc.bool_params[key]
-            for key in calc.list_params:
-                param[key] = calc.list_params[key]
-            for key in calc.input_parameters:
-                param[key] = calc.input_parameters[key]
+        filename = "control.in"
+        chooser = gtk.FileChooserDialog(
+            'Import control.in file ... ', None, gtk.FILE_CHOOSER_ACTION_SAVE,
+            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+             gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+        chooser.set_filename(filename)
+        save = chooser.run()
+        if save == gtk.RESPONSE_OK:
             self.set_defaults()
-            self.set_param(param)
+            control = open('control.in','r')
+            while True:
+                line = control.readline()
+                if not line:
+                    break
+                if "List of parameters used to initialize the calculator:" in line:
+                    control.readline()
+                    from ase.io.aims import read_aims_calculator
+                    calc = read_aims_calculator(control)
+                    found_aims_calculator = True
+            control.close()
+            if found_aims_calculator:
+                param = calc.float_params
+                for key in calc.exp_params:
+                    param[key] = calc.exp_params[key]
+                for key in calc.string_params:
+                    param[key] = calc.string_params[key]
+                for key in calc.int_params:
+                    param[key] = calc.int_params[key]
+                for key in calc.bool_params:
+                    param[key] = calc.bool_params[key]
+                for key in calc.list_params:
+                    param[key] = calc.list_params[key]
+                for key in calc.input_parameters:
+                    param[key] = calc.input_parameters[key]
+                self.set_defaults()
+                self.set_param(param)
+        chooser.destroy()
 
     def k_changed(self, *args):
         size = [self.kpts[i].value * np.sqrt(np.vdot(self.ucell[i],self.ucell[i])) for i in range(3)]
@@ -1254,7 +1280,10 @@ class AIMS_Window(gtk.Window):
             oops("Please use the facilities provided in this window to manipulate "+
                  "the keyword:" + command[0] + "!")
         else:
-            oops("Don't know this keyword:" + command[0] + "\nPlease check!")
+            oops("Don't know this keyword:" + command[0] 
+                 + "\nPlease check!\n\n" 
+                 + "If you really think it should be available, "
+                 + "please add it to the top of ase/calculators/aims.py.")
         self.expert_keyword_set.set_text("")
 
     def expert_keyword_create(self, command):
@@ -1280,9 +1309,15 @@ class AIMS_Window(gtk.Window):
             self.expert_keywords[index][i].destroy()
         self.expert_keywords[index][3] = False
 
+
 class ExpertDeleteButton(gtk.Button):
     def __init__(self, index):
         gtk.Button.__init__(self, stock=gtk.STOCK_DELETE)
+        alignment = self.get_children()[0]
+        hbox = alignment.get_children()[0]
+        image, label = hbox.get_children()
+        if image is not None: 
+            label.set_text('')
         self.index = index
 
 

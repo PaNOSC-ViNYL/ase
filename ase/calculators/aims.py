@@ -72,6 +72,7 @@ bool_keys = [
 
 list_keys = [
     'k_grid',
+    'k_offset',
     'MD_run',
     'MD_schedule',
     'MD_segment',
@@ -272,17 +273,17 @@ class Aims(Calculator):
         output.write(prefix+'=======================================================\n\n')
         output.close()
 
-    def write_control(self):
+    def write_control(self, file = 'control.in'):
         """Writes the control.in file."""
-        self.write_parameters('#','control.in')
+        self.write_parameters('#',file)
 
-    def write_species(self):
+    def write_species(self, file = 'control.in'):
         from ase.data import atomic_numbers
 
         if not self.input_parameters['species_dir']:
             raise RuntimeError('Missing species directory, THIS MUST BE SPECIFIED!')
 
-        control = open('control.in', 'a')
+        control = open(file, 'a')
         species_path = self.input_parameters['species_dir']
         symbols = self.atoms.get_chemical_symbols()
         symbols2 = []
@@ -290,8 +291,8 @@ class Aims(Calculator):
             if symbol not in symbols2:
                 symbols2.append(symbol)
         for symbol in symbols2:
-            file = join(species_path, '%02i_%s_default' % (atomic_numbers[symbol], symbol))
-            for line in open(file, 'r'):
+            fd = join(species_path, '%02i_%s_default' % (atomic_numbers[symbol], symbol))
+            for line in open(fd, 'r'):
                 control.write(line)
         control.close()
 
