@@ -728,8 +728,20 @@ class Atoms(object):
         return atom
     
     def __imul__(self, m):
+        have_constraints = False
         if len(self._constraints) > 0:
-            raise RuntimeError('Remove constraint before modifying atoms.')
+            from ase.constraints import FixAtoms
+            fixed_only = True
+            fixed_atoms = [False for a in self]
+            have_constraints = True
+            for con in self.constraints:
+                if isinstance(con, FixAtoms):
+                    for i in con.index:
+                        fixed_atoms[i] = True
+                else: 
+                    fixed_only = False
+            if not fixed_only:
+                raise RuntimeError('Remove all constraints beyond FixAtoms before modifying atoms.')
         if isinstance(m, int):
             m = (m, m, m)
         M = np.product(m)
@@ -739,6 +751,7 @@ class Atoms(object):
             self.arrays[name] = np.tile(a, (M,) + (1,) * (len(a.shape) - 1))
 
         positions = self.arrays['positions']
+        fixed_atoms_mask = []
         i0 = 0
         for m2 in range(m[2]):
             for m1 in range(m[1]):
@@ -746,7 +759,11 @@ class Atoms(object):
                     i1 = i0 + n
                     positions[i0:i1] += np.dot((m0, m1, m2), self._cell)
                     i0 = i1
+                    if have_constraints:
+                        fixed_atoms_mask[i0:i1] = fixed_atoms
         self._cell = np.array([m[c] * self._cell[c] for c in range(3)])
+        if have_constraints:
+            self.set_constraint(FixAtoms(mask = fixed_atoms_mask))
         return self
 
     def repeat(self, rep):
