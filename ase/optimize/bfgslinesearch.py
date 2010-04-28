@@ -25,7 +25,7 @@ pymax = __builtin__.max
 __version__="0.1"
 
 class BFGSLineSearch(Optimizer):
-    def __init__(self, atoms, restart='restart.pickle', logfile='-', maxstep=.2,
+    def __init__(self, atoms, restart=None, logfile='-', maxstep=.2,
                  trajectory=None, c1=.23, c2=0.46, alpha=10., stpmax=50.):
         """Minimize a function using the BFGS algorithm.
 

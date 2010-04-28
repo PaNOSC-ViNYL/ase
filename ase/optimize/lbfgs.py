@@ -65,6 +65,9 @@ class LBFGS(Optimizer):
                             # Note that this is never changed!
         self.damping = damping
         self.use_line_search = use_line_search
+        self.p = None
+        self.function_calls = 0
+        self.force_calls = 0
 
     def initialize(self):
         """Initalize everything so no checks have to be done in step"""
@@ -79,14 +82,11 @@ class LBFGS(Optimizer):
         self.e0 = None
         self.task = 'START'
         self.load_restart = False
-        self.function_calls = 0
-        self.force_calls = 0
-        self.p = None
 
     def read(self):
         """Load saved arrays to reconstruct the Hessian"""
-        self.iteration, self.s, self.y, self.rho, self.r0, self.f0, self.task \
-        = self.load()
+        self.iteration, self.s, self.y, self.rho, \
+        self.r0, self.f0, self.e0, self.task = self.load()
         self.load_restart = True
 
     def step(self, f):
@@ -133,10 +133,10 @@ class LBFGS(Optimizer):
         self.atoms.set_positions(r+dr)
         
         self.iteration += 1
-        self.dump((self.iteration, self.s, self.y, 
-                   self.rho, self.r0, self.f0, self.task))
         self.r0 = r
         self.f0 = -g
+        self.dump((self.iteration, self.s, self.y, 
+                   self.rho, self.r0, self.f0, self.e0, self.task))
 
     def determine_step(self, dr):
         """Determine step to take according to maxstep
