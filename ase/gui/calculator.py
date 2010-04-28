@@ -906,6 +906,8 @@ class AIMS_Window(gtk.Window):
         if not self.periodic and atoms.get_pbc().any():
             aims_periodic_warning = True
             self.periodic = True 
+        else:
+            aims_periodic_warning = False
         from ase.calculators.aims import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys
         self.aims_keyword_list =float_keys+exp_keys+string_keys+int_keys+bool_keys+list_keys
         self.expert_keywords = []
