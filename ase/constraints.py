@@ -37,6 +37,13 @@ class FixConstraint:
         """
         raise NotImplementedError
 
+    def repeat(self, m, n):
+        """ basic method to multiply by m, needs to know the length 
+        of the underlying atoms object for the assignment of 
+        multiplied constraints to work. 
+        """
+        raise NotImplementedError
+
 class FixConstraintSingle(FixConstraint):
     "Base class for classes that fix a single atom."
 
@@ -119,6 +126,29 @@ class FixAtoms(FixConstraint):
         if self.index.dtype == bool:
             return 'FixAtoms(mask=%s)' % ints2string(self.index.astype(int))
         return 'FixAtoms(indices=%s)' % ints2string(self.index)
+
+    def repeat(self, m, n):
+        i0 = 0
+        l = len(self.index)
+        natoms = 0
+        if isinstance(m, int):
+            m = (m, m, m)
+        index_new = []
+        for m2 in range(m[2]):
+            for m1 in range(m[1]):
+                for m0 in range(m[0]):
+                    i1 = i0 + n
+                    if self.index.dtype == bool:
+                        index_new += self.index
+                    else:
+                        index_new += [i+natoms for i in self.index]
+                    i0 = i1
+                    natoms += n
+        if self.index.dtype == bool:
+            self.index = np.asarray(index_new, bool)
+        else:
+            self.index = np.asarray(index_new, int)
+        return self
 
 def ints2string(x, threshold=10):
     """Convert ndarray of ints to string."""

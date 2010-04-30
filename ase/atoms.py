@@ -728,22 +728,17 @@ class Atoms(object):
         return atom
     
     def __imul__(self, m):
-        have_constraints = False
-        if len(self._constraints) > 0:
-            from ase.constraints import FixAtoms
-            fixed_only = True
-            fixed_atoms = [False for a in self]
-            have_constraints = True
-            for con in self.constraints:
-                if isinstance(con, FixAtoms):
-                    for i in con.index:
-                        fixed_atoms[i] = True
-                else: 
-                    fixed_only = False
-            if not fixed_only:
-                raise RuntimeError('Remove all constraints beyond FixAtoms before modifying atoms.')
+
+        if not self.pbc.any():
+            raise RuntimeError("Don't know how to multiply non-periodic systems!")
+
+        # only extend atoms in periodic dimensions
         if isinstance(m, int):
-            m = (m, m, m)
+            m = [m, m, m]
+            for i in range(3):
+                if not self.pbc[i]: 
+                    m[i] = 1 
+
         M = np.product(m)
         n = len(self)
         
@@ -751,7 +746,6 @@ class Atoms(object):
             self.arrays[name] = np.tile(a, (M,) + (1,) * (len(a.shape) - 1))
 
         positions = self.arrays['positions']
-        fixed_atoms_mask = []
         i0 = 0
         for m2 in range(m[2]):
             for m1 in range(m[1]):
@@ -759,11 +753,9 @@ class Atoms(object):
                     i1 = i0 + n
                     positions[i0:i1] += np.dot((m0, m1, m2), self._cell)
                     i0 = i1
-                    if have_constraints:
-                        fixed_atoms_mask[i0:i1] = fixed_atoms
+        if self.constraints is not None:
+            self.constraints = [c.repeat(m,n) for c in self.constraints]
         self._cell = np.array([m[c] * self._cell[c] for c in range(3)])
-        if have_constraints:
-            self.set_constraint(FixAtoms(mask = fixed_atoms_mask))
         return self
 
     def repeat(self, rep):
