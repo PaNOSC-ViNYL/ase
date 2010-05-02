@@ -729,9 +729,6 @@ class Atoms(object):
     
     def __imul__(self, m):
 
-        if not self.pbc.any():
-            raise RuntimeError("Don't know how to multiply non-periodic systems!")
-
         # only extend atoms in periodic dimensions
         if isinstance(m, int):
             m = [m, m, m]
