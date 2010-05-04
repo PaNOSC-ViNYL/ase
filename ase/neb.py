@@ -218,6 +218,11 @@ class SingleCalculatorNEB(NEB):
         traj.write()
         traj.close()
 
+    def __add__(self, other):
+        for image in other:
+            self.images.append(image)
+        return self
+
 def fit(images):
     E = [i.get_potential_energy() for i in images]
     F = [i.get_forces() for i in images]
