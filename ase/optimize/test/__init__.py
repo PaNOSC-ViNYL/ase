@@ -28,6 +28,8 @@ from ase.parallel import rank, paropen
 import matplotlib.pyplot as pl
 import numpy as np
 
+import traceback
+
 optimizers = [
     'BFGS',
     'LBFGS',
@@ -73,8 +75,8 @@ def run_test(get_atoms, get_calculator, name,
 
             if relax.get_number_of_steps() == steps:
                 note = 'Not converged in %i steps' % steps
-        except Exception, e:
-            print e
+        except Exception:
+            traceback.print_exc()
             note = 'An exception occurred'
             E = np.nan
 
