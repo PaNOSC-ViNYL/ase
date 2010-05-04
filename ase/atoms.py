@@ -728,13 +728,9 @@ class Atoms(object):
         return atom
     
     def __imul__(self, m):
-
-        # only extend atoms in periodic dimensions
+        """In-place repeat of atoms."""
         if isinstance(m, int):
-            m = [m, m, m]
-            for i in range(3):
-                if not self.pbc[i]: 
-                    m[i] = 1 
+            m = (m, m, m)
 
         M = np.product(m)
         n = len(self)
@@ -750,9 +746,12 @@ class Atoms(object):
                     i1 = i0 + n
                     positions[i0:i1] += np.dot((m0, m1, m2), self._cell)
                     i0 = i1
+
         if self.constraints is not None:
-            self.constraints = [c.repeat(m,n) for c in self.constraints]
+            self.constraints = [c.repeat(m, n) for c in self.constraints]
+
         self._cell = np.array([m[c] * self._cell[c] for c in range(3)])
+
         return self
 
     def repeat(self, rep):
