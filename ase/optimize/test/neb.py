@@ -73,5 +73,5 @@ def get_calculator_gpaw():
                 txt='neb.txt')
     return calc
 
-run_test(get_atoms, get_calculator_gpaw, name + '-gpaw', 'GPAW (lcao)')
-run_test(get_atoms, get_calculator_emt, name + '-emt', 'EMT')
+run_test(get_atoms, get_calculator_emt, name + '-emt')
+run_test(get_atoms, get_calculator_gpaw, name + '-gpaw')
