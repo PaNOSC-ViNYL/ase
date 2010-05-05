@@ -127,11 +127,12 @@ def read_energy(filename):
             E = float(line.split()[-2])
     return E
 
-def read_aims_output(filename):
+def read_aims_output(filename, withingui = False):
     """  Import FHI-aims output files with all data available, i.e. relaxations, 
     MD information, force information etc etc etc. """
     from ase import Atoms, Atom 
     from ase.calculators import SinglePointCalculator
+    molecular_dynamics = False
     fd = open(filename, 'r')
     cell = []
     images = []
@@ -163,12 +164,20 @@ def read_aims_output(filename):
             for i in range(n_atoms):
                 inp = fd.readline().split()
                 atoms.append(Atom(inp[3],(inp[4],inp[5],inp[6]))) 
+        if "Complete information for previous time-step:" in line:
+            molecular_dynamics = True
         if "Updated atomic structure:" in line:
             fd.readline()
             atoms = Atoms()
+            velocities = []
             for i in range(n_atoms):
                 inp = fd.readline().split()
-                atoms.append(Atom(inp[4],(inp[1],inp[2],inp[3])))                 
+                atoms.append(Atom(inp[4],(inp[1],inp[2],inp[3])))  
+                if molecular_dynamics:
+                    inp = fd.readline().split()
+                    velocities += [[float(inp[1]),float(inp[2]),float(inp[3])]]
+            if molecular_dynamics:
+                atoms.set_velocities(velocities)
         if "Total atomic forces" in line:
             f = []
             for i in range(n_atoms):
@@ -188,11 +197,16 @@ def read_aims_output(filename):
                 atoms.set_calculator(SinglePointCalculator(e,None,None,None,atoms))
             images.append(atoms)
             e = None
+        if found_aims_calculator:
+            calc.set_results(images[-1])
+            images[-1].set_calculator(calc)
     fd.close()
-    if found_aims_calculator:
-        calc.set_results(images[-1])
-        images[-1].set_calculator(calc)
-    return images[-1]
+    if molecular_dynamics:
+        images = images[1:]
+    if withingui:
+        return images
+    else:
+        return images[-1]
 
 def read_aims_calculator(file):
     """  found instructions for building an FHI-aims calculator in the output file, 

@@ -124,7 +124,7 @@ class Images:
         images = []
         names = []
         for filename in filenames:
-            i = read(filename, index)
+            i = read(filename, index, withingui=True)
             
             if not isinstance(i, list):
                 i = [i]

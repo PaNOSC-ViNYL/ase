@@ -52,8 +52,9 @@ int_keys = [
     'empty_states',
     'ini_linear_mixing',
     'max_relaxation_steps',    
-    'n_max_pulay',    
+    'n_max_pulay',   
     'sc_iter_limit',
+    'walltime',
 ]
 
 bool_keys = [
