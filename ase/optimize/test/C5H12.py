@@ -41,7 +41,7 @@ def get_atoms():
 def get_calculator():
     calc = GPAW(h=0.2,
                 mode = 'lcao',
-                basis = 'szp',
+                basis = 'szp(dzp)',
                 mixer=Mixer(beta=0.1, nmaxold=5, weight=50.0),
                 poissonsolver=PoissonSolver(nn='M', relax='GS'),
                 txt='C5H12.txt')
