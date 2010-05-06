@@ -23,6 +23,7 @@ float_keys = [
     'MD_MB_init',
     'MD_time_step',
     'prec_mix_param',
+    'set_vacuum_level',
     'spin_mix_param',
 ]
 
@@ -61,6 +62,7 @@ bool_keys = [
     'collect_eigenvectors',
     'compute_forces',
     'compute_kinetic',
+    'evaluate_work_function',
     'final_forces_cleaned',
     'MD_clean_rotations',
     'restart_relaxations',

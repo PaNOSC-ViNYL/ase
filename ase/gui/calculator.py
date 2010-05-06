@@ -1033,6 +1033,8 @@ class AIMS_Window(gtk.Window):
         # set defaults from previous instance of the calculator, if applicable:
         if param is not None:
             self.set_param(param)
+        else:
+            self.set_defaults()
 
         # Buttons at the bottom
         pack(vbox, gtk.Label(""))
@@ -1058,7 +1060,6 @@ class AIMS_Window(gtk.Window):
         vbox.show()
         self.add(vbox)
         self.show()
-        self.set_defaults()
         self.grab_add() 
         if aims_periodic_warning:
             oops(aims_pbc_warning_text)
