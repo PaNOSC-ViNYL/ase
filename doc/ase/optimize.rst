@@ -13,7 +13,7 @@ minimum (a much harder task).
 .. seealso::
 
     `Performance test
-    <https://wiki.fysik.dtu.dk/gpaw/devel/ase_optimize.html>`_ for all
+    <https://wiki.fysik.dtu.dk/gpaw/devel/ase_optimize/ase_optimize.html>`_ for all
     ASE optimizers.
  
 
