@@ -185,7 +185,7 @@ def read_vasp(filename='CONTCAR'):
             atoms.set_constraint(constraints)
     return atoms
 
-def read_vasp_out(filename='OUTCAR',withingui = False):
+def read_vasp_out(filename='OUTCAR',index = -1):
     """Import OUTCAR type file.
 
     Reads unitcell, atom positions, energies, and forces from the OUTCAR file.
@@ -236,10 +236,33 @@ def read_vasp_out(filename='OUTCAR',withingui = False):
                 atoms.set_calculator(SinglePointCalculator(energy,forces,None,None,atoms))
             images += [atoms]
             atoms = Atoms(pbc = True)
-    if withingui:
-        return images
+
+    # return requested images, code borrowed from ase/io/trajectory.py
+    if isinstance(index, int):
+        return images[index]
     else:
-        return images[-1]
+        step = index.step or 1
+        if step > 0:
+            start = index.start or 0
+            if start < 0:
+                start += len(images)
+            stop = index.stop or len(images)
+            if stop < 0:
+                stop += len(images)
+        else:
+            if index.start is None:
+                start = len(images) - 1
+            else:
+                start = index.start
+                if start < 0:
+                    start += len(images)
+            if index.stop is None:
+                stop = -1
+            else:
+                stop = index.stop
+                if stop < 0:
+                    stop += len(images)
+        return [images[i] for i in range(start, stop, step)]
 
 def write_vasp(filename, atoms, label='', direct=False, sort=None, symbol_count = None ):
     """Method to write VASP position (POSCAR/CONTCAR) files.

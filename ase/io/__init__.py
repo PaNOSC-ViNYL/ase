@@ -11,7 +11,7 @@ from ase.io.trajectory import PickleTrajectory
 __all__ = ['read', 'write', 'PickleTrajectory']
 
 
-def read(filename, index=-1, format=None, withingui=False):
+def read(filename, index=-1, format=None):
     """Read Atoms object(s) from file.
 
     filename: str
@@ -134,7 +134,7 @@ def read(filename, index=-1, format=None, withingui=False):
     
     if format == 'vasp_out':
         from ase.io.vasp import read_vasp_out
-        return read_vasp_out(filename,withingui=withingui)
+        return read_vasp_out(filename, index)
     
     if format == 'mol':
         from ase.io.mol import read_mol
@@ -170,7 +170,7 @@ def read(filename, index=-1, format=None, withingui=False):
     
     if format == 'aims_out':
         from ase.io.aims import read_aims_output
-        return read_aims_output(filename,withingui=withingui)
+        return read_aims_output(filename, index)
 
     if format == 'iwm':
         from ase.io.iwm import read_iwm
