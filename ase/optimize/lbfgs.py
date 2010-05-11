@@ -129,7 +129,7 @@ class LBFGS(Optimizer):
         else:
             self.force_calls += 1
             self.function_calls += 1
-            dr = self.p
+            dr = self.determine_step(self.p) * self.damping
         self.atoms.set_positions(r+dr)
         
         self.iteration += 1
