@@ -908,8 +908,8 @@ class AIMS_Window(gtk.Window):
             self.periodic = True 
         else:
             aims_periodic_warning = False
-        from ase.calculators.aims import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys
-        self.aims_keyword_list =float_keys+exp_keys+string_keys+int_keys+bool_keys+list_keys
+        from ase.calculators.aims import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys,input_keys
+        self.aims_keyword_list =float_keys+exp_keys+string_keys+int_keys+bool_keys+list_keys+input_keys
         self.expert_keywords = []
 
         natoms = len(atoms)
@@ -1133,14 +1133,14 @@ class AIMS_Window(gtk.Window):
         param["sc_accuracy_forces"] = self.sc_forces.value
         param["run_command"]        = self.run_command.get_text()
         param["species_dir"]        = self.species_defaults.get_text()
-        from ase.calculators.aims import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys
+        from ase.calculators.aims import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys,input_keys
         for option in self.expert_keywords:
             if option[3]:   # set type of parameter accoding to which list it is in
                 key = option[0].get_text().strip()
                 val = option[1].get_text().strip()
                 if key in float_keys or key in exp_keys:
                     param[key] = float(val)
-                elif key in list_keys or key in string_keys:
+                elif key in list_keys or key in string_keys or key in input_keys:
                     param[key] = val
                 elif key in int_keys:
                     param[key] = int(val)

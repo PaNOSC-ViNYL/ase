@@ -197,9 +197,9 @@ def read_aims_output(filename, index = -1):
                 atoms.set_calculator(SinglePointCalculator(e,None,None,None,atoms))
             images.append(atoms)
             e = None
-        if found_aims_calculator:
-            calc.set_results(images[-1])
-            images[-1].set_calculator(calc)
+            if found_aims_calculator:
+                calc.set_results(images[-1])
+                images[-1].set_calculator(calc)
     fd.close()
     if molecular_dynamics:
         images = images[1:]
