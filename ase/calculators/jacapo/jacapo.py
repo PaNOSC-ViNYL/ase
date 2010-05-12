@@ -35,6 +35,11 @@ class DacapoInput(exceptions.Exception):
     def __init__(self, value):
         self.parameter = value
 
+class DacapoAbnormalTermination(exceptions.Exception):
+    """Raised when text file does not end correctly"""
+    def __init__(self, value):
+        self.parameter = value
+
 def read(ncfile):
     '''return atoms and calculator from ncfile
 
@@ -2526,7 +2531,7 @@ class Jacapo:
             status = self._dacapo.wait()
             [stdout,stderr] = self._dacapo.communicate()
             output = stdout+stderr
-            #status,output = commands.getstatusoutput(cmd)
+            
             if status is 0: #that means it ended fine!
                 self.ready = True
                 self.set_status('finished')
@@ -2534,8 +2539,28 @@ class Jacapo:
                 print 'Status was not 0'
                 print output
                 self.ready = False
+            # directory cleanup has been moved to self.__del__()
             del self._dacapo
-        # directory cleanup has been moved to self.__del__()
+
+            '''
+            Sometimes dacapo dies or is killed abnormally, and in this
+            case an exception should be raised to prevent a geometry
+            optimization from continuing for example. The best way to
+            detect this right now is actually to check the end of the
+            text file to make sure it ends with the right line. The
+            line differs if the job was run in parallel or in serial.'''
+            f = open(txt,'r')
+            lines = f.readlines()
+            f.close()
+
+            if 'PAR: msexit halting Master' in lines[-1]:
+                pass #standard parallel end
+            elif 'TIM' in lines[-2] and 'clexit: exiting the program' in lines[-1]:
+                pass #standard serial end
+            else:
+                # text file does not end as expected, print the last 10 lines and raise exception
+                print string.join(lines[-10:-1],'')
+                raise DacapoAbnormalTermination('Dacapo output txtfile (%s) did not end normally.' % txt)
 
     def execute_external_dynamics(self,
                                   nc=None,
