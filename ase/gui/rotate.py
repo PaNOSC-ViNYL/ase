@@ -1,5 +1,6 @@
-#!/usr/bin/env python
+import numpy as np
 import gtk
+
 from ase.gui.widgets import pack
 from ase.utils import rotate, irotate
 
@@ -9,7 +10,7 @@ class Rotate(gtk.Window):
     
     def __init__(self, gui):
         gtk.Window.__init__(self)
-        angles = irotate(gui.rotation)
+        angles = irotate(gui.axes)
         self.set_title('Rotate')
         vbox = gtk.VBox()
         pack(vbox, gtk.Label('Rotation angles:'))
@@ -33,12 +34,12 @@ class Rotate(gtk.Window):
     def change(self, adjustment):
         if self.update:
             x, y, z = [float(a.value) for a in self.rotate]
-            self.gui.rotation = rotate('%fx,%fy,%fz' % (x, y, z))
+            self.gui.axes = rotate('%fx,%fy,%fz' % (x, y, z))
             self.gui.set_coordinates()
         return True
         
     def update_angles(self, button):
-        angles = irotate(self.gui.rotation)
+        angles = irotate(self.gui.axes)
         self.update = False
         for r, a in zip(self.rotate, angles):
             r.value = a

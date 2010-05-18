@@ -340,8 +340,6 @@ class GUI(View, Status):
     def _do_zoom(self, x):
         """Utility method for zooming"""
         self.scale *= x
-        center = (0.5 * self.width, 0.5 * self.height, 0)
-        self.offset = x * (self.offset + center) - center
         self.draw()
         
     def zoom(self, action):
@@ -366,7 +364,7 @@ class GUI(View, Status):
         CTRL = event.state == gtk.gdk.CONTROL_MASK
         SHIFT = event.state == gtk.gdk.SHIFT_MASK
         dxdydz = {gtk.keysyms.KP_Add: ('zoom', 1.2, 0),
-                gtk.keysyms.KP_Subtract: ('zoom', 1 / 1.2),
+                gtk.keysyms.KP_Subtract: ('zoom', 1 / 1.2, 0),
                 gtk.keysyms.Up:    ( 0, -1 + CTRL, +CTRL),
                 gtk.keysyms.Down:  ( 0, +1 - CTRL, -CTRL),
                 gtk.keysyms.Right: (+1,  0, 0),
@@ -396,9 +394,9 @@ class GUI(View, Status):
         d = self.scale * 0.1
         tvec = np.array([dx, dy, dz])
 
-        dir_vec = np.dot(self.rotation, tvec)
+        dir_vec = np.dot(self.axes, tvec)
         if (atom_move):
-            rotmat = self.rotation
+            rotmat = self.axes
             s = 0.1
             if SHIFT: 
                 s = 0.01
@@ -420,7 +418,7 @@ class GUI(View, Status):
                 self.rot_vec = dir_vec
                 
             change = False
-            z_axis = np.dot(self.rotation, np.array([0, 0, 1]))
+            z_axis = np.dot(self.axes, np.array([0, 0, 1]))
             if self.atoms_to_rotate == None:
                 change = True 
                 self.z_axis_old = z_axis.copy()
@@ -467,7 +465,7 @@ class GUI(View, Status):
                           self.images.P[self.frame][a2]
                         
                     rvy = np.cross(rvx,
-                                   np.dot(self.rotation,
+                                   np.dot(self.axes,
                                    np.array([0, 0, 1])))     
                     self.rot_vec = rvx * dx + rvy * (dy + dz)
                     self.dx_change = [dx, dy+dz]
@@ -510,11 +508,12 @@ class GUI(View, Status):
 
             from rot_tools import rotate_vec_into_newvec
             rot_mat = rotate_vec_into_newvec(self.orient_normal, to_vec)
-            self.rotation = rot_mat
+            self.axes = rot_mat
             
             self.set_coordinates()
         else:
-            self.offset -= (dx * d, dy * d, 0)
+            self.center -= (dx * 0.1 * self.axes[:, 0] -
+                            dy * 0.1 * self.axes[:, 1])
         self.draw()
     
         
@@ -570,7 +569,7 @@ class GUI(View, Status):
                             self.add_entries[1].set_text('?' + molecule) 
                             return ()
                         
-                directions = np.transpose(self.rotation)
+                directions = np.transpose(self.axes)
                 if a != None:
                     for i in a:
                         try: 
@@ -585,7 +584,7 @@ class GUI(View, Status):
                             return ()
                   # apply the current rotation matrix to A
                     for i in a:
-                        i.position = np.dot(self.rotation, i.position)       
+                        i.position = np.dot(self.axes, i.position)       
                   # find the extent of the molecule in the local coordinate system
                     a_cen_pos = np.array([0.0, 0.0, 0.0])
                     m_cen_pos = 0.0
@@ -1006,12 +1005,11 @@ class GUI(View, Status):
         chooser.destroy()
 
         bbox = np.empty(4)
-        bbox[:2] = self.offset[:2]
-        bbox[2:] = bbox[:2] + (self.width, self.height)
-        bbox /= self.scale
+        size = np.array([self.width, self.height]) / self.scale
+        bbox[0:2] = np.dot(self.center, self.axes[:, :2]) - size / 2
+        bbox[2:] = bbox[:2] + size
         suc = self.ui.get_widget('/MenuBar/ViewMenu/ShowUnitCell').get_active()
-        self.images.write(filename, self.rotation,
-                          show_unit_cell=suc, bbox=bbox)
+        self.images.write(filename, self.axes, show_unit_cell=suc, bbox=bbox)
         
     def bulk_window(self, menuitem):
         SetupBulkCrystal(self)

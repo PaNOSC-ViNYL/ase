@@ -236,11 +236,11 @@ class Images:
                     indices = [indices]
 
         images = [self.get_atoms(i) for i in indices]
-        try:
+        if len(filename) > 4 and filename[-4:] in ['.eps', '.png', '.pov']:
             write(filename, images, 
                   rotation=rotations, show_unit_cell=show_unit_cell,
                   bbox=bbox)
-        except:
+        else:
             write(filename, images)
 
     def get_atoms(self, frame):

@@ -12,14 +12,15 @@ class DevNull:
 devnull = DevNull()
 
 
-def rotate(rotations, rotation=np.diag([1.0, -1, 1])):
+def rotate(rotations, rotation=np.identity(3)):
     """Convert string of format '50x,-10y,120z' to a rotation matrix.
 
     Note that the order of rotation matters, i.e. '50x,40z' is different
     from '40z,50x'.
     """
+        
     if rotations == '':
-        return rotation
+        return rotation.copy()
     
     for i, a in [('xyz'.index(s[-1]), radians(float(s[:-1])))
                  for s in rotations.split(',')]:
@@ -27,15 +28,15 @@ def rotate(rotations, rotation=np.diag([1.0, -1, 1])):
         c = cos(a)
         if i == 0:
             rotation = np.dot(rotation, [( 1,  0,  0),
-                                          ( 0,  c, -s),
-                                          ( 0,  s,  c)])
+                                          ( 0,  c, s),
+                                          ( 0,  -s,  c)])
         elif i == 1:
             rotation = np.dot(rotation, [( c,  0, -s),
                                           ( 0,  1,  0),
                                           ( s,  0,  c)])
         else:
-            rotation = np.dot(rotation, [( c, -s,  0),
-                                          ( s,  c,  0),
+            rotation = np.dot(rotation, [( c, s,  0),
+                                          ( -s,  c,  0),
                                           ( 0,  0,  1)])
     return rotation
 
@@ -67,16 +68,16 @@ def givens(a, b):
     return c, s, r
 
 
-def irotate(rotation, initial=np.diag([1.0, -1, 1])):
+def irotate(rotation, initial=np.identity(3)):
     """Determine x, y, z rotation angles from rotation matrix."""
     a = np.dot(initial, rotation)
     cx, sx, rx = givens(a[2, 2], a[1, 2])
     cy, sy, ry = givens(rx, a[0, 2])
     cz, sz, rz = givens(cx * a[1, 1] - sx * a[2, 1],
                         cy * a[0, 1] - sy * (sx * a[1, 1] + cx * a[2, 1]))
-    x = degrees(atan2(-sx, cx))
+    x = degrees(atan2(sx, cx))
     y = degrees(atan2(-sy, cy))
-    z = degrees(atan2(-sz, cz))
+    z = degrees(atan2(sz, cz))
     return x, y, z
 
 

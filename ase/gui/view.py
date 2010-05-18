@@ -20,7 +20,7 @@ class View:
         self.colors = [None] * (len(jmol_colors) + 1)
         self.nselected = 0
         self.light_green_markings = 0
-        self.rotation = rotate(rotations)
+        self.axes = rotate(rotations)
         # this is a hack, in order to be able to toggle menu actions off/on
         # without getting into an infinte loop
         self.menu_change = 0
@@ -311,41 +311,36 @@ class View:
         if (self.images.natoms == 0 and not
             self.ui.get_widget('/MenuBar/ViewMenu/ShowUnitCell').get_active()):
             self.scale = 1.0
-            self.offset = np.zeros(3)
+            self.center = np.zeros(3)
             self.draw()
             return
         
-        P = np.dot(self.X, self.rotation)[:, :2]
+        P = np.dot(self.X, self.axes)
         n = self.images.natoms
         P[:n] -= self.images.r[:, None]
         P1 = P.min(0) 
         P[:n] += 2 * self.images.r[:, None]
         P2 = P.max(0)
-        C = (P1 + P2) / 2
+        self.center = np.dot(self.axes, (P1 + P2) / 2)
         S = 1.3 * (P2 - P1)
         if S[0] * self.height < S[1] * self.width:
             self.scale = self.height / S[1]
         else:
             self.scale = self.width / S[0]
-        self.offset = np.array([self.scale * C[0] - self.width / 2,
-                                self.scale * C[1] - self.height / 2,
-                                0.0])
         self.draw()
 
     def draw(self, status=True):
         self.pixmap.draw_rectangle(self.white_gc, True, 0, 0,
                                    self.width, self.height)
-        X = np.dot(self.X, self.scale * self.rotation) - self.offset
+        axes = self.scale * self.axes * (1, -1, 1)
+        offset = (np.dot(self.center, axes) -
+                  (0.5 * self.width, 0.5 * self.height, 0))
+        X = np.dot(self.X, axes) - offset
         n = self.images.natoms
-        if n > 0:
-            self.center = sum(X[:n]) / n
-        else:
-            self.center = np.array([self.width / 2, self.height / 2, 0.0])
         self.indices = X[:, 2].argsort()
         P = self.P = X[:n, :2]
         X1 = X[n:, :2].round().astype(int)
-        X2 = (np.dot(self.B, self.scale * self.rotation) -
-              self.offset).round().astype(int)
+        X2 = (np.dot(self.B, axes) - offset).round().astype(int)
 
         if self.ui.get_widget('/MenuBar/ViewMenu/ShowBonds').get_active():
             r = self.images.r * (0.65 * self.scale)
@@ -369,7 +364,8 @@ class View:
                 if visible[a]:
                     arc(colors[Z[a]], True, A[a, 0], A[a, 1], ra, ra, 0, 23040)
                 if  self.light_green_markings and self.atoms_to_rotate_0[a]:
-                    arc(self.green, False, A[a, 0]+2, A[a, 1]+2, ra-4, ra-4, 0, 23040)
+                    arc(self.green, False, A[a, 0] + 2, A[a, 1] + 2,
+                        ra - 4, ra - 4, 0, 23040)
 
                 if not dynamic[a]:
                     R1 = int(0.14644 * ra)
@@ -403,15 +399,17 @@ class View:
 
     def draw_axes(self):
         L = np.zeros((10, 2, 3))
-        L[:3, 1] = self.rotation * 15
-        L[3:5] = self.rotation[0] * 20
-        L[5:7] = self.rotation[1] * 20
-        L[7:] = self.rotation[2] * 20
-        L[3:] += (((-4, 5, 0), (4, -5, 0)), ((-4, -5, 0), (4,  5, 0)), 
-                  ((-4,-5, 0), (0,  0, 0)), ((-4,  5, 0), (4, -5, 0)), 
-                  ((-4,-5, 0), (4, -5, 0)), (( 4, -5, 0), (-4,  5, 0)), 
-                  ((-4, 5, 0), (4,  5, 0)))
-        L = (L + (20, self.height - 20, 0)).round().astype(int)
+        L[:3, 1] = self.axes * 15
+        L[3:5] = self.axes[0] * 20
+        L[5:7] = self.axes[1] * 20
+        L[7:] = self.axes[2] * 20
+        L[3:, :, :2] += (((-4, -5), (4,  5)), ((-4,  5), ( 4, -5)), 
+                         ((-4,  5), (0,  0)), ((-4, -5), ( 4,  5)), 
+                         ((-4,  5), (4,  5)), (( 4,  5), (-4, -5)), 
+                         ((-4, -5), (4, -5)))
+        L = L.round().astype(int)
+        L[:, :, 0] += 20
+        L[:, :, 1] = self.height - 20 - L[:, :, 1]
         line = self.pixmap.draw_line
         colors = ([self.black_gc] * 3 +
                   [self.red] * 2 + [self.green] * 2 + [self.blue] * 3)
@@ -458,7 +456,7 @@ class View:
         selected_ordered = self.images.selected_ordered
 
         if event.time < self.t0 + 200:  # 200 ms
-            d = self.P - self.C
+            d = self.P - self.xy
             hit = np.less((d**2).sum(1), (self.scale * self.images.r)**2)
             for a in self.indices[::-1]:
                 if a < self.images.natoms and hit[a]:
@@ -482,8 +480,8 @@ class View:
             self.draw()
         else:
             A = (event.x, event.y)
-            C1 = np.minimum(A, self.C)
-            C2 = np.maximum(A, self.C)
+            C1 = np.minimum(A, self.xy)
+            C2 = np.maximum(A, self.xy)
             hit = np.logical_and(self.P > C1, self.P < C2)
             indices = np.compress(hit.prod(1), np.arange(len(hit)))
             if not (event.state & gtk.gdk.CONTROL_MASK):
@@ -502,22 +500,22 @@ class View:
 
     def press(self, drawing_area, event):
         self.button = event.button
-        self.C = np.array((event.x, event.y))
+        self.xy = (event.x, event.y)
         self.t0 = event.time
-        self.rotation0 = self.rotation
-        self.offset0 = self.offset
+        self.axes0 = self.axes
         self.center0 = self.center
         
     def move(self, drawing_area, event):
              
         x, y, state = event.window.get_pointer()
-        C = self.C
+        x0, y0 = self.xy
         if self.button == 1:
             window = self.drawing_area.window
             window.draw_drawable(self.white_gc, self.pixmap,
                                  0, 0, 0, 0,
                                  self.width, self.height)
-            x0, y0 = C.round().astype(int)
+            x0 = int(round(x0))
+            y0 = int(round(y0))
             window.draw_rectangle(self.selected_gc, False,
                                   min(x, x0), min(y, y0),
                                   abs(x - x0), abs(y - y0))
@@ -525,11 +523,12 @@ class View:
         if self.button == 2:
             return
         if state & gtk.gdk.SHIFT_MASK:
-            self.offset = self.offset0 - (x - C[0], y - C[1], 0)
+            self.center = (self.center0 -
+                           np.dot(self.axes, (x - x0, y0 - y, 0)) / self.scale)
         else:
             # Snap mode: the a-b angle and t should multipla of 15 degrees ???
-            a = x - C[0]
-            b = y - C[1]
+            a = x - x0
+            b = y0 - y
             t = sqrt(a * a + b * b)
             if t > 0:
                 a /= t
@@ -542,10 +541,13 @@ class View:
             rotation = np.array([(c * a * a + b * b, (c - 1) * b * a, s * a),
                                  ((c - 1) * a * b, c * b * b + a * a, s * b),
                                  (-s * a, -s * b, c)])
-            self.rotation = np.dot(self.rotation0, rotation)
-            self.offset = np.dot(self.center0 + self.offset0,
-                                 rotation) - self.center0
-
+            self.axes = np.dot(self.axes0, rotation)
+            if self.images.natoms > 0:
+                com = self.X[:self.images.natoms].mean(0) 
+            else:
+                com = self.images.A[self.frame].mean(0)
+            self.center = com - np.dot(com - self.center0,
+                                       np.dot(self.axes0, self.axes.T))
         self.draw(status=False)
         
     # Create a new backing pixmap of the appropriate size
@@ -572,8 +574,6 @@ class View:
                                      self.width, self.height)
         if self.configured:
             self.scale *= sqrt(1.0 * self.width * self.height / (w * h))
-            self.offset[0] += (w - self.width) / 2.0
-            self.offset[1] += (h - self.height) / 2.0
             self.draw()
         self.configured = True
         

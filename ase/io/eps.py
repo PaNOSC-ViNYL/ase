@@ -75,7 +75,6 @@ class EPS:
             h = scale * S[1]
             offset = np.array([scale * M[0] - w / 2, scale * M[1] - h / 2, 0])
         else:
-            #scale = 50.0
             w = (bbox[2] - bbox[0]) * scale
             h = (bbox[3] - bbox[1]) * scale
             offset = np.array([bbox[0], bbox[1], 0]) * scale
@@ -85,20 +84,16 @@ class EPS:
         
         X *= scale
         X -= offset
-        X[:, 1] = h - X[:, 1]
 
         if nlines > 0:
             D = np.dot(D, rotation)[:, :2] * scale
-            D[:, 1] = -D[:, 1]
         
         if C is not None:
             C *= scale
             C -= offset
-            C[:, 1] = h - C[:, 1]
 
         A = np.dot(A, rotation)
         A *= scale
-        A[:, 1] = -A[:, 1]
 
         self.A = A
         self.X = X
