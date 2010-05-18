@@ -66,8 +66,8 @@ surface_mapping = {0: 1, 1: 0, 2: 3, 3: 2, 4: 5, 5: 4,
                    24: 25, 25: 24}
 
 surface_data = ([{'l': 1.0, 'd': 0.5}] * 6 +
-                [{'l': 1.5, 'd': 0.5 / sqrt(2)}] * 12 +
-                [{'l': 1.0, 'd': 1.0 / sqrt(3)}] * 8)
+                [{'l': 1.5, 'd': 1.0 / 4.0}] * 12 +
+                [{'l': 1.0, 'd': 1.0 / 3.0}] * 8)
 
 surface_symmetries = get_surface_symmetries(symmetries, surface_names, surface_numbers)
 

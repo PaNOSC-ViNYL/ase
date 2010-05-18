@@ -11,6 +11,7 @@ from ase.cluster.data import lattice
 from ase import Atoms
 from ase.data import atomic_numbers, chemical_symbols, reference_states
 from ase.lattice.cubic import SimpleCubic, BodyCenteredCubic, FaceCenteredCubic, Diamond
+from ase.lattice.hexagonal import HexagonalClosedPacked
 
 class Cluster(Atoms):
     _datasyn = {'numbers':       ('number',       int,   ()  ),
@@ -61,6 +62,8 @@ class Cluster(Atoms):
         if latticeconstant is None:
             if self.symmetry == 'fcc':
                 self.lattice_constant = reference_states[self.atomic_number]['a']
+            elif self.symmetry == 'hcp':
+                self.lattice_constant = reference_states[self.atomic_number]
             else:
                 raise Warning(('Cannot find the lattice constant ' +
                                'for a %s structure!' % self.symmetry))
@@ -87,17 +90,33 @@ class Cluster(Atoms):
                 ys = yc + int(np.ceil(layers[2] / 2.0)) + 1
                 zs = zc + int(np.ceil(layers[4] / 2.0)) + 1
 
-                center = np.array((xc, yc, zc)) * self.lattice_constant
+                center = np.array([xc, yc, zc])
                 size = (xs, ys, zs)
-
-                if self.debug:
-                    print 'Base crystal size:', size
-                    print 'Center cell position:', center
 
                 atoms = FaceCenteredCubic(symbol=symbol,
                                           size=size,
                                           latticeconstant=self.lattice_constant,
                                           align=False)
+
+            elif self.symmetry == 'hcp':
+                if len(layers) != lattice[self.symmetry]['surface_count']:
+                    raise Warning('Something is wrong with the defined number of layers!')
+
+                zc = layers[1] + 1
+                ac = layers[3] + 1
+                bc = layers[5] + 1
+
+                z = zc + layers[0] + 1
+                a = ac + layers[2] + 1
+                b = bc + layers[4] + 1
+
+                center = np.array([ac, bc, zc])
+                size = (a, b, z)
+
+                atoms = HexagonalClosedPacked(symbol=symbol,
+                                              size=size,
+                                              latticeconstant=self.lattice_constant,
+                                              align=False)
 
             else:
                 raise Warning(('The %s crystal structure is not' +
@@ -106,6 +125,13 @@ class Cluster(Atoms):
             positions = atoms.get_positions()
             numbers = atoms.get_atomic_numbers()
             cell = atoms.get_cell()
+            basis = cell / np.array(size)
+            center = np.dot(center, basis)
+
+            if self.debug:
+                print 'Base crystal size:', size
+                print 'Center atom position:', center
+
         elif positions is not None:
             numbers = [self.atomic_number] * len(positions)
         else:
@@ -113,6 +139,7 @@ class Cluster(Atoms):
 
         #Load the constructed atoms object into this object
         self.set_center(center)
+        self.set_basis(basis)
         Atoms.__init__(self, numbers=numbers, positions=positions,
                        cell=cell, pbc=False)
 
@@ -292,8 +319,10 @@ class Cluster(Atoms):
         """Get the number of layers in the direction given by 'normal'"""
         positions = self.get_positions() - self.get_center()
         
-        d = self.lattice_constant * self.get_surface_data('d', normal)
         n = np.array(normal)
+        n = np.dot(n, self.get_basis())
+
+        d = np.linalg.norm(n) * self.get_surface_data('d', normal)
         r = np.dot(positions, n) / np.linalg.norm(n)
         layers = np.int(np.round(r.max() / d))
 
@@ -303,8 +332,10 @@ class Cluster(Atoms):
         """Set the number of layers in the direction given by 'normal'"""
         positions = self.get_positions() - self.get_center()
         
-        d = self.lattice_constant * self.get_surface_data('d', normal)
         n = np.array(normal)
+        n = np.dot(n, self.get_basis()) 
+
+        d = np.linalg.norm(n) * self.get_surface_data('d', normal)
         r = np.dot(positions, n) / np.linalg.norm(n)
 
         actual_layers = self.get_number_of_layers(normal)
@@ -394,6 +425,12 @@ class Cluster(Atoms):
 
     def set_center(self, center):
         self._center = np.array(center, float)
+
+    def get_basis(self):
+        return self._basis.copy()
+
+    def set_basis(self, basis):
+        self._basis = np.array(basis, float)
 
     def get_positions(self):
         return self.get_array('positions')
