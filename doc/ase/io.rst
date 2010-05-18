@@ -29,24 +29,22 @@ Examples
 
 ::
 
-  from ase.lattice.surface import *
-  adsorbate = Atoms('CO')
-  adsorbate[1].z = 1.1
-  slab = fcc111('Cu', (2, 2, 3))
-  add_adsorbate(slab, adsorbate, 1.8, 'ontop', vacuum=7.0)
-
-
-XXX should pbc be (1,1,0)?
+    from ase.lattice.surface import *
+    adsorbate = Atoms('CO')
+    adsorbate[1].z = 1.1
+    a = 3.61
+    slab = fcc111('Cu', (2, 2, 3), a=a, vacuum=7.0)
+    add_adsorbate(slab, adsorbate, 1.8, 'ontop')
  
 Write PNG image::
 
-  write('slab.png', slab * (3, 3, 1), rotation='10z,-80x')
+    write('slab.png', slab * (3, 3, 1), rotation='10z,-80x')
 
 .. image:: io1.png
 
 Write POVRAY file::
 
-  write('slab.pov', slab * (3, 3, 1), rotation='10z,-80x')
+    write('slab.pov', slab * (3, 3, 1), rotation='10z,-80x')
 
 This will write both a ``slab.pov`` and a ``slab.ini`` file.  Convert
 to PNG with the command ``povray slab.ini`` or use the
