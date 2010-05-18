@@ -232,7 +232,7 @@ def read_cfg(f):
             symbols           = syms,
             masses            = masses,
             scaled_positions  = spos,
-            momenta           = masses*vels,
+            momenta           = masses.reshape(-1,1)*vels,
             cell              = cell,
             pbc               = True
         )
