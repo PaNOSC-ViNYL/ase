@@ -260,8 +260,8 @@ def write(filename, images, format=None, **kwargs):
       An array of same length as the list of atoms indicating the sphere radii.
       A single float specifies a uniform scaling of the default covalent radii.
 
-    bbox: array (default None)
-      XXX
+    bbox: 4 floats (default None)
+      Set the bounding box to (xll, yll, xur, yur) (lower left, upper right).
 
     colors: array (default None)
       An array of same length as the list of atoms, indicating the rgb color

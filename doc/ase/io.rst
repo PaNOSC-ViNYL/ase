@@ -43,7 +43,6 @@ Write PNG image::
   write('slab.png', slab * (3, 3, 1), rotation='10z,-80x')
 
 .. image:: io1.png
-   :scale: 35
 
 Write POVRAY file::
 
@@ -54,7 +53,14 @@ to PNG with the command ``povray slab.ini`` or use the
 ``run_povray=True`` option:
 
 .. image:: io2.png
-   :scale: 35
+
+Here is an example using ``bbox``::
+
+    d = a / 2**0.5
+    write('slab.pov', slab * (2, 2, 1),
+          bbox=(d, 0, 3 * d, d * 3**0.5))
+
+.. image:: io3.png
 
 Note that the XYZ-format does not contain information about the unic cell:
 
