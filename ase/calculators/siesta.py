@@ -11,8 +11,7 @@ import array
 import numpy as np
 
 from ase.data import chemical_symbols
-from ase.units import Rydberg
-
+from ase.units import Rydberg, fs
 
 class Siesta:
     """Class for doing SIESTA calculations.
@@ -85,7 +84,8 @@ class Siesta:
     
         self.converged = False
         self.fdf = {}
-
+        self.e_fermi = None
+        
     def update(self, atoms):
         if (not self.converged or
             len(self.numbers) != len(atoms) or
@@ -118,7 +118,7 @@ class Siesta:
             found = False
             for path in pppaths:
                 filename = join(path, name)
-                filename1 = join(path,name1)
+                filename1 = join(path, name1)
                 if isfile(filename) or islink(filename):
                     found = True
                     if path != '.':
@@ -160,12 +160,12 @@ class Siesta:
         return self.dipole
 
     def read_dipole(self):
-        dipolemoment=np.zeros([1,3])
+        dipolemoment = np.zeros([1, 3])
         for line in open(self.label + '.txt', 'r'):
             if line.rfind('Electric dipole (Debye)') > -1:
-                dipolemoment=np.array([float(f) for f in line.split()[5:8]])
+                dipolemoment = np.array([float(f) for f in line.split()[5:8]])
         #debye to e*Ang (the units of VASP)
-        dipolemoment=dipolemoment*0.2081943482534
+        dipolemoment = dipolemoment*0.2081943482534
         return dipolemoment
 
     def calculate(self, atoms):
@@ -212,7 +212,7 @@ class Siesta:
             'SolutionMethod': 'diagon',
             'DM.NumberPulay': self.pulay,
             'DM.MixingWeight': self.mix,
-            'MaxSCFIterations' : self.maxiter
+            'MaxSCFIterations': self.maxiter
             }
         
         if self.xc != 'LDA':
@@ -254,7 +254,7 @@ class Siesta:
 
         fh.write('%block LatticeVectors\n')
         for v in self.cell:
-            fh.write('%.14f %.14f %.14f\n' %  tuple(v))
+            fh.write('%.14f %.14f %.14f\n' % tuple(v))
         fh.write('%endblock LatticeVectors\n')
 
         fh.write('%block Chemical_Species_label\n')
@@ -297,33 +297,102 @@ class Siesta:
                 self.grid = [int(word) for word in line.split()[3:8:2]]
                 break
 
-        # Stress:
+        # Stress (fixed so it's compatible with a MD run from siesta):
         for line in lines:
-            if line.startswith('siesta: stress tensor (total) (ev/ang**3):'):
+            if line.startswith('siesta: stress tensor '):
                 self.stress = np.empty((3, 3))
                 for i in range(3):
-                    self.stress[i] = [float(word)
-                                      for word in lines.next().split()]
+                    tmp = lines.next().split()
+                    if len(tmp) == 4:
+                        self.stress[i] = [float(word) for word in tmp[1:]]
+                    else:
+                        self.stress[i] = [float(word) for word in tmp]
                 break
         else:
             raise RuntimeError
 
-        # Energy:
+        text = open(self.label + '.txt', 'r').read().lower()
+        lines = iter(text.split('\n'))
+        # Energy (again a fix to make it compatible with a MD run from siesta):
+        counter = 0
         for line in lines:
-            if line.startswith('siesta: etot    ='):
+            if line.startswith('siesta: etot    =') and counter == 0:
+                counter += 1
+            elif line.startswith('siesta: etot    ='):
                 self.etotal = float(line.split()[-1])
                 self.efree = float(lines.next().split()[-1])
                 break
         else:
             raise RuntimeError
 
-        # Forces:
+        # Forces (changed so forces smaller than -999eV/A can be fetched):
         lines = open(self.label + '.FA', 'r').readlines()
         assert int(lines[0]) == len(self.numbers)
         assert len(lines) == len(self.numbers) + 1
-        self.forces = np.array([[float(word)
-                                 for word in line.split()[1:4]]
-                                for line in lines[1:]])
+        lines = lines[1:]
+        self.forces = np.zeros((len(lines), 3))
+        for i in range(len(lines)):
+            self.forces[i, 0] = float(lines[i][6:18].strip())
+            self.forces[i, 1] = float(lines[i][18:30].strip())
+            self.forces[i, 2] = float(lines[i][30:42].strip())
+
+    def read_eig(self):
+        if self.e_fermi is not None:
+            return
+
+        assert os.access(self.label + '.EIG', os.F_OK)
+        assert os.access(self.label + '.KP', os.F_OK)
+
+        # Read k point weights
+        text = open(self.label + '.KP', 'r').read()
+        lines = text.split('\n')
+        n_kpts = int(lines[0].strip())
+        self.weights = np.zeros((n_kpts,))
+        for i in range(n_kpts):
+            l = lines[i + 1].split()
+            self.weights[i] = float(l[4])
+
+        # Read eigenvalues and fermi-level
+        text = open(self.label+'.EIG','r').read()
+        lines = text.split('\n')
+        self.e_fermi = float(lines[0].split()[0])
+        tmp = lines[1].split()
+        self.n_bands = int(tmp[0])
+        n_spin_bands = int(tmp[1])
+        self.spin_pol = n_spin_bands == 2
+        lines = lines[2:-1]
+        lines_per_kpt = (self.n_bands * n_spin_bands / 10 +
+                         int((self.n_bands * n_spin_bands) % 10 != 0))
+        self.eig = dict()
+        for i in range(len(self.weights)):
+            tmp = lines[i * lines_per_kpt:(i + 1) * lines_per_kpt]
+            v = [float(v) for v in tmp[0].split()[1:]]
+            for l in tmp[1:]:
+                v.extend([float(t) for t in l.split()])
+            if self.spin_pol:
+                self.eig[(i, 1)] = np.array(v[0:self.n_bands])
+                self.eig[(i, -1)] = np.array(v[self.n_bands:])
+            else:
+                self.eig[(i, 1)] = np.array(v)
+        
+    def get_k_point_weights(self):
+        self.read_eig()
+        return self.weights
+
+    def get_fermi_level(self):
+        self.read_eig()
+        return self.e_fermi
+
+    def get_eigenvalues(self, kpt=0, spin=1):
+        self.read_eig()
+        return self.eig[(kpt, spin)]
+
+    def get_number_of_spins(self):
+        self.read_eig()
+        if self.spin_pol:
+            return 2
+        else:
+            return 1
 
     def read_hs(self, filename, is_gamma_only=False, magnus=False):
         """Read the Hamiltonian and overlap matrix from a Siesta 
@@ -353,7 +422,8 @@ class Siesta:
         """
         assert not magnus, 'Not implemented; changes by Magnus to file io' 
         assert not is_gamma_only, 'Not implemented. Only works for k-points.'
-        class Dummy: pass
+        class Dummy:
+            pass
         self._dat = dat = Dummy()
         # Try to read supercell and atom data from a jobname.XV file
         filename_xv = filename[:-2] + 'XV'
@@ -394,7 +464,7 @@ class Siesta:
             for mi in xrange(numh[oi]):
                 listh[listhptr[oi] + mi] = getrecord(fileobj, 'l')
 
-        dat.nuotot_sc = nuotot_sc = max(listh)
+        dat.nuotot_sc = max(listh)
         dat.h_sparse = h_sparse = np.zeros((mnh, ns), float)
         dat.s_sparse = s_sparse = np.zeros(mnh, float)
         print 'Reading H'
@@ -662,6 +732,3 @@ keys_with_units = {
     'rcspatial': 'Ang',
     'kgridcutoff': 'Ang',
     'latticeconstant': 'Ang'}
-
-    
-
