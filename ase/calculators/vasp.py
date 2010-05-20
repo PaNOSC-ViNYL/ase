@@ -712,15 +712,10 @@ class Vasp:
         # Then if ibrion > 0, check whether ionic relaxation condition been fulfilled
         if self.incar_parameters['ibrion'] > 0:
             ediffg = self.incar_parameters['ediffg']
-            if ediffg < 0:
-                for force in self.forces:
-                    if np.linalg.norm(force)>=abs(ediffg):
-                        converged = False
-                        continue
-                    else:
-                        converged = True
-            elif self.incar_parameters['ediffg'] > 0:
-                raise NotImplementedError('Method not implemented for ediffg>0')
+            if not self.read_relaxed():
+                converged = False
+            else:
+                converged = True
         return converged
 
     def read_ibz_kpoints(self):
@@ -761,6 +756,12 @@ class Vasp:
         for n in range(8+kpt*(self.nbands+2), 8+kpt*(self.nbands+2)+self.nbands):
             eigs.append(float(lines[n].split()[spin+1]))
         return np.array(eigs)
+
+    def read_relaxed(self):
+        for line in open('OUTCAR', 'r'):
+            if line.rfind('reached required accuracy') > -1:
+                return True
+        return False
 
 # The below functions are used to restart a calculation and are under early constructions
 
