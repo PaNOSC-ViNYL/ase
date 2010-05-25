@@ -4,9 +4,9 @@
 from ase import QuasiNewton, FixAtoms, EMT, NEB
 from ase.lattice.surface import fcc100, add_adsorbate
 from ase.optimize.test import run_test
-from gpaw import GPAW
-from gpaw import Mixer
-from gpaw.poisson import PoissonSolver
+from gpaw import GPAW, Mixer, PoissonSolver
+import gpaw.mpi as mpi
+
 
 name = 'neb'
 
@@ -46,12 +46,15 @@ def get_atoms():
 
     images.append(final)
 
-    neb = NEB(images)
+    neb = NEB(images, parallel=mpi.parallel)
     neb.interpolate()
 
     def set_calculator(calc):
-        for image in neb.images:
-            image.set_calculator(calc) 
+        i = 0
+        for image in neb.images[1:-1]:
+            if not mpi.parallel or mpi.rank // (mpi.size // 3) == i:
+                image.set_calculator(calc)
+            i += 1
     neb.set_calculator = set_calculator
 
     return neb
@@ -60,17 +63,17 @@ def get_calculator_emt():
     return EMT()
 
 def get_calculator_gpaw():
-    calc = GPAW(h=0.2,
-                mode='lcao',
-                basis='szp(dzp)',
-                nbands=-5,
-                xc='LDA',
-                width=0.1,
-                mixer=Mixer(beta=0.1, nmaxold=5, weight=50.0),
-                poissonsolver=PoissonSolver(nn='M', relax='GS'),
-                convergence={'energy':1e-4, 'bands':-3},
-                stencils=(3, 3),
-                txt='neb.txt')
+    if mpi.parallel:
+        assert mpi.size % 3 == 0
+        s = mpi.size // 3
+        r0 = mpi.rank // s * s
+        comm = range(r0, r0 + s)
+    else:
+        comm = mpi.world
+    calc = GPAW(h=0.25,
+                kpts=(2, 2, 1),
+                communicator=comm,
+                txt='neb-%d.txt' % r0)
     return calc
 
 run_test(get_atoms, get_calculator_emt, name + '-emt')
