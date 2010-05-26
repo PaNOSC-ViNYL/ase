@@ -21,7 +21,7 @@ class Movie(gtk.Window):
         self.frame_number.connect('value-changed', self.new_frame)
 
         hscale = pack(vbox, gtk.HScale(self.frame_number))
-        hscale.set_update_policy(gtk.UPDATE_DISCONTINUOUS)
+        hscale.set_update_policy(gtk.UPDATE_CONTINUOUS)
         hscale.set_digits(0)
 
         buttons = [gtk.Button(stock=gtk.STOCK_GOTO_FIRST),
