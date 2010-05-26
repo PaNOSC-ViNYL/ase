@@ -73,7 +73,16 @@ def cellpar_to_cell(cellpar, ab_normal=(0,0,1), a_direction=None):
     Y = np.cross(Z, X)
 
     # Express va, vb and vc in the X,Y,Z-system
-    a,b,c,alpha,beta,gamma = cellpar
+    alpha, beta, gamma = 90., 90., 90.
+    if isinstance(cellpar, (int, long, float)):
+        a = b = c = cellpar
+    elif len(cellpar) == 1:
+        a = b = c = cellpar[0]
+    elif len(cellpar) == 3:
+        a, b, c = cellpar
+        alpha, beta, gamma = 90., 90., 90.
+    else:
+        a, b, c, alpha, beta, gamma = cellpar
     alpha *= pi/180.0
     beta *= pi/180.0
     gamma *= pi/180.0
@@ -94,10 +103,8 @@ def cellpar_to_cell(cellpar, ab_normal=(0,0,1), a_direction=None):
 def metric_from_cell(cell):
     """Calculates the metric matrix from cell, which is given in the
     Cartesian system."""
-    a, b, c = cell
-    return np.array([dot(a,a), dot(a,b), dot(a,c)],
-                    [dot(b,a), dot(b,b), dot(b,c)],
-                    [dot(c,a), dot(c,b), dot(c,c)])
+    cell = np.asarray(cell, dtype=float)
+    return np.dot(cell, cell.T)
 
 
 

@@ -179,6 +179,14 @@ class Spacegroup(object):
         retval.append('\n')
         return ''.join(retval)
 
+    def __eq__(self, other):
+        """Chech whether *self* and *other* refer to the same
+        spacegroup number and setting."""
+        return self.no == other.no and self.setting == other.setting
+
+    def __index__(self):
+        return self.no
+
     def get_symop(self):
         """Returns all symmetry operations (including inversions and
         subtranslations) as a sequence of (rotation, translation)
@@ -211,18 +219,20 @@ class Spacegroup(object):
         >>> from spacegroup import Spacegroup
         >>> sg = Spacegroup(225)  # fcc
         >>> sg.equivalent_reflections([[0,0,2]])
-        array([[-2,  0,  0],
+        array([[ 0,  0, -2],
                [ 0, -2,  0],
-               [ 0,  0, -2],
-               [ 0,  0,  2],
+               [-2,  0,  0],
+               [ 2,  0,  0],
                [ 0,  2,  0],
-               [ 2,  0,  0]])
+               [ 0,  0,  2]])
         """
-        hkl = np.array(hkl, dtype='int').T
+        hkl = np.array(hkl, dtype='int')
         rot = self.get_rotations()
-        n,nrot = hkl.shape[1], len(rot)
-        refl = np.dot(rot.reshape((3*nrot, 3)), hkl).T.reshape((n*nrot, 3))
-        refl = rowsort2d(refl)
+        n,nrot = len(hkl), len(rot)
+        R = rot.transpose(0, 2, 1).reshape((3*nrot, 3)).T
+        refl = np.dot(hkl, R).reshape((n*nrot, 3))
+        ind = np.lexsort(refl.T)
+        refl = refl[ind]
         diff = np.diff(refl, axis=0)
         mask = np.any(diff, axis=1)
         return np.vstack((refl[mask], refl[-1,:]))
@@ -265,7 +275,7 @@ class Spacegroup(object):
         symprec2 = symprec**2
         for kind, pos in enumerate(scaled_positions):
             for rot, trans in self.get_symop():
-                site = np.mod(np.dot(rot, pos) + trans, 1)
+                site = np.mod(np.dot(rot, pos) + trans, 1.)
                 if not sites:
                     sites.append(site)
                     kinds.append(kind)
@@ -297,16 +307,6 @@ class Spacegroup(object):
         return np.array(sites), kinds
 
 
-
-def rowsort2d(a):
-    """Return a copy of 2d array a sorted along its rows."""
-    s = np.array(a, copy=True)
-    assert(s.ndim == 2)
-    nr,nc = s.shape
-    for c in range(nc-1, -1, -1):
-        inds = np.argsort(s[:,c], axis=0, kind='mergesort')
-        s = s[inds,:]
-    return s
 
 
 def get_datafile():
