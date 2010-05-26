@@ -990,10 +990,6 @@ class GUI(View, Status):
             else:
                 suffix = types[i]
                 
-            if suffix in ['pdb', 'vnl']:
-                self.xxx()
-                continue
-                
             if self.images.nimages > 1:
                 if button.get_active():
                     filename += '@%d' % self.frame
