@@ -117,7 +117,7 @@ class Atoms(object):
               len(symbols) > 0 and isinstance(symbols[0], Atom)):
             # Get data from a list or tuple of Atom objects:
             data = zip(*[atom.get_data() for atom in symbols])
-            atoms = Atoms(None, *data)
+            atoms = self.__class__(None, *data)
             symbols = None    
                 
         if atoms is not None:
@@ -584,7 +584,7 @@ class Atoms(object):
     def copy(self):
         """Return a copy."""
         import copy
-        atoms = Atoms(cell=self._cell, pbc=self._pbc)
+        atoms = self.__class__(cell=self._cell, pbc=self._pbc)
 
         atoms.arrays = {}
         for name, a in self.arrays.items():
@@ -612,7 +612,7 @@ class Atoms(object):
             symbols = self.get_chemical_symbols(reduce=True)
         else:
             symbols = ''.join([chemical_symbols[Z] for Z in num[:15]]) + '...'
-        s = "Atoms(symbols='%s', " % symbols
+        s = "%s(symbols='%s', " %(self.__class__.__name__, symbols)
         for name in self.arrays:
             if name == 'numbers':
                 continue
@@ -638,7 +638,7 @@ class Atoms(object):
     def extend(self, other):
         """Extend atoms object by appending atoms from *other*."""
         if isinstance(other, Atom):
-            other = Atoms([other])
+            other = self.__class__([other])
             
         n1 = len(self)
         n2 = len(other)
@@ -664,7 +664,7 @@ class Atoms(object):
 
     def append(self, atom):
         """Append atom to end."""
-        self.extend(Atoms([atom]))
+        self.extend(self.__class__([atom]))
 
     def __getitem__(self, i):
         """Return a subset of the atoms.
@@ -689,7 +689,7 @@ class Atoms(object):
         import copy
         from ase.constraints import FixConstraint
         
-        atoms = Atoms(cell=self._cell, pbc=self._pbc)
+        atoms = self.__class__(cell=self._cell, pbc=self._pbc)
         # TODO: Do we need to shuffle indices in adsorbate_info too?
         atoms.adsorbate_info = self.adsorbate_info
         
@@ -1022,7 +1022,7 @@ class Atoms(object):
         axis   = self.positions[list[2]]-self.positions[list[1]]
         center = self.positions[list[2]]
         # recursive object definition might not be the most elegant thing, more generally useful might be a rotation function with a mask?
-        group  = Atoms()
+        group  = self.__class__()
         for i in range(len(self)):
             if mask[i]:
                 group += self[i]
