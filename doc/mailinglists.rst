@@ -27,3 +27,14 @@ or (mainly) `dacapo <http://wiki.fysik.dtu.dk/dacapo>`_
 .. _campos: https://listserv.fysik.dtu.dk/mailman/listinfo/campos
 .. _campos-devel: https://listserv.fysik.dtu.dk/mailman/listinfo/campos-devel
 .. _BerliOS: http://www.berlios.de
+
+.. _irc:
+
+Internet Relay Chat
+===================
+
+We have the IRC channel ``#campos`` on FreeNode.  Please join us if you
+have any questions. For easy access, you can use this webclient_.
+
+.. _webclient: http://webchat.freenode.net/?randomnick=0&channels=campos
+
