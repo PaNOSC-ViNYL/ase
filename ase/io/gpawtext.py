@@ -6,6 +6,12 @@ def read_gpaw_text(fileobj, index=-1):
     if isinstance(fileobj, str):
         fileobj = open(fileobj)
 
+    def index_startswith(lines, string):
+        for i, line in enumerate(lines):
+            if line.startswith(string):
+                return i
+        raise ValueError
+
     lines = fileobj.readlines()
     images = []
     while True:
@@ -48,6 +54,12 @@ def read_gpaw_text(fileobj, index=-1):
             assert line.startswith('Zero Kelvin:')
             e = float(line.split()[-1])
         try:
+            ii = index_startswith(lines, 'Total Charge:')
+        except ValueError:
+            q = None
+        else:
+            q = float(lines[ii].split()[2])
+        try:
             ii = lines.index('Forces in eV/Ang:\n')
         except ValueError:
             f = None
@@ -65,6 +77,9 @@ def read_gpaw_text(fileobj, index=-1):
 
         if e is not None or f is not None:
             atoms.set_calculator(SinglePointCalculator(e, f, None, None, atoms)) ### Fixme magmoms
+        if q is not None:
+            n = len(atoms)
+            atoms.set_charges([q / n] * n)
 
         images.append(atoms)
         lines = lines[i:]
