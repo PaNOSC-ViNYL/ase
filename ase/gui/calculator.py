@@ -1083,7 +1083,7 @@ class AIMS_Window(gtk.Window):
         self.charge.set_value(0)
         aims_relativity_default = 'none'
         for a in atoms:
-            if a.get_atomic_number() > 29: 
+            if a.get_atomic_number() > 20: 
                 aims_relativity_default = 'atomic_zora'
         for i, x in enumerate(self.aims_relativity_list):
             if x == aims_relativity_default:

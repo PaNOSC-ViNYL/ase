@@ -62,6 +62,7 @@ bool_keys = [
     'collect_eigenvectors',
     'compute_forces',
     'compute_kinetic',
+    'distributed_spline_storage',
     'evaluate_work_function',
     'final_forces_cleaned',
     'MD_clean_rotations',
@@ -133,6 +134,27 @@ class Aims(Calculator):
         self.set(**kwargs)
 
     def set(self, **kwargs):
+        if 'control' in kwargs:
+            fname = kwargs['control']
+            from ase.io.aims import read_aims_calculator
+            file = open(fname, 'r')
+            calc_temp = None
+            while True:
+                line = file.readline()
+                if "List of parameters used to initialize the calculator:" in line:
+                   file.readline()
+                   calc_temp = read_aims_calculator(file)
+                   break
+            if calc_temp is not None:
+                self.float_params      = calc_temp.float_params
+                self.exp_params        = calc_temp.exp_params
+                self.string_params     = calc_temp.string_params
+                self.int_params        = calc_temp.int_params
+                self.bool_params       = calc_temp.bool_params
+                self.list_params       = calc_temp.list_params
+                self.input_parameters  = calc_temp.input_parameters
+            else:
+                raise TypeError("Control file to be imported can not be read by ASE = " + fname)
         for key in kwargs:
             if self.float_params.has_key(key):
                 self.float_params[key] = kwargs[key]
@@ -148,7 +170,7 @@ class Aims(Calculator):
                 self.list_params[key] = kwargs[key]
             elif self.input_parameters.has_key(key):
                 self.input_parameters[key] = kwargs[key]
-            else:
+            elif key is not 'control':
                 raise TypeError('Parameter not defined: ' + key)
 
     def update(self, atoms):
