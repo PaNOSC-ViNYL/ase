@@ -325,10 +325,6 @@ def write(filename, images, format=None, **kwargs):
         from ase.io.wien2k import write_struct
         write_struct(filename, images, **kwargs)
         return
-    elif format == 'struct':
-        from ase.io.wien2k import write_struct
-        write_struct(filename, images, **kwargs)
-        return
 
     format = {'traj': 'trajectory', 'nc': 'netcdf'}.get(format, format)
     name = 'write_' + format

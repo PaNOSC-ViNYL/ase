@@ -76,7 +76,7 @@ def read_struct(filename, ase = True):
             iline += 1
         for i in range(indif - indifini):
             atomtype.append(pip[iline][0:2].replace(' ', ''))
-            rmt.append(float(pip[iline][43:47]))
+            rmt.append(float(pip[iline][43:48]))
         iline += 4
     if ase:
         cell2 = coorsys(cell)
