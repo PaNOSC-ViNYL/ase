@@ -22,6 +22,7 @@ http://cms.mpi.univie.ac.at/vasp/
 
 import os
 import sys
+from general import Calculator
 from os.path import join, isfile, islink
 
 import numpy as np
@@ -30,109 +31,151 @@ import ase
 
 # Parameters that can be set in INCAR. The values which are None
 # are not written and default parameters of VASP are used for them.
-keys = [
-    'prec',       # Precission of calculation (Low, Normal, Accurate)
-    'nbands',     # Number of bands
-    'encut',      # Planewave cutoff
-    'enaug',      # Density cutoff
-    'ferwe',      # Fixed band occupation
-    'ngx',        # FFT mesh for wavefunctions, x
-    'ngy',        # FFT mesh for wavefunctions, y
-    'ngz',        # FFT mesh for wavefunctions, z
-    'ngxf',       # FFT mesh for charges x
-    'ngyf',       # FFT mesh for charges y
-    'ngzf',       # FFT mesh for charges z
-    'nblk',       # blocking for some BLAS calls (Sec. 6.5)
-    'system',     # name of System
-    'nwrite',     # verbosity write-flag (how much is written)
-    'istart',     # startjob: 0-new 1-cont 2-samecut
-    'icharg',     # charge: 1-file 2-atom 10-const
-    'iniwav',     # initial electr wf. : 0-lowe 1-rand
-    'nelm',       #
-    'nelmin',
-    'nbands',     #
-    'nelmdl',     # nr. of electronic steps
-    'ediff',      # stopping-criterion for electronic upd.
-    'ediffg',     # stopping-criterion for ionic upd.
-    'nsw',        # number of steps for ionic upd.
-    'nfree',      # number of steps per DOF when calculting Hessian using finitite differences
-    'ibrion',     # ionic relaxation: 0-MD 1-quasi-New 2-CG
-    'isif',       # calculate stress and what to relax
-    'iwavpr',     # prediction of wf.: 0-non 1-charg 2-wave 3-comb
-    'isym',       # symmetry: 0-nonsym 1-usesym
-    'symprec',    # precession in symmetry routines
-    'lcorr',      # Harris-correction to forces
-    'potim',      # time-step for ion-motion (fs)
-    'tebeg',      #
-    'teend',      # temperature during run
-    'smass',      # Nose mass-parameter (am)
-    'pomass',     # mass of ions in am
-    'zval',       # ionic valence
-    'rwigs',      # Wigner-Seitz radii
-    'nelect',     # total number of electrons
-    'nupdown',    # fix spin moment to specified value
-    'emin',       #
-    'emax',       # energy-range for DOSCAR file
-    'ismear',     # part. occupancies: -5 Blochl -4-tet -1-fermi 0-gaus >0 MP
-    'sigma',      # broadening in eV -4-tet -1-fermi 0-gaus
-    'algo',       # algorithm: Normal (Davidson) | Fast | Very_Fast (RMM-DIIS)
-    'ialgo',      # algorithm: use only 8 (CG) or 48 (RMM-DIIS)
-    'lreal',      # non-local projectors in real space
-    'ropt',       # number of grid points for non-local proj in real space
-    'gga',        # xc-type: PW PB LM or 91
-    'voskown',    # use Vosko, Wilk, Nusair interpolation
-    'dipol',      # center of cell for dipol
-    'idipol',     # monopol/dipol and quadropole corrections
-    'ldipol',     # potential correction mode
+
+float_keys = [
+    'aexx',       # Fraction of exact/DFT exchange
+    'aggac',      # Fraction of gradient correction to correlation
+    'aggax',      # Fraction of gradient correction to exchange
+    'aldac',      # Fraction of LDA correlation energy
     'amix',       #
     'bmix',       # tags for mixing
-    'lmaxmix',    # 
-    'time',       # special control tag
-    'lwave',      #
-    'lcharg',     #
-    'lvtot',      # create WAVECAR/CHGCAR/LOCPOT
-    'lelf',       # create ELFCAR
-    'lorbit',     # create PROOUT
-    'npar',       # parallelization over bands
-    'nsim',       # evaluate NSIM bands simultaneously if using RMM-DIIS
-    'lscalapack', # switch off scaLAPACK
-    'lscalu',     # switch of LU decomposition
-    'lasync',     # overlap communcation with calculations
-    'addgrid',    # finer grid for augmentation charge density
-    'lplane',     # parallelisation over the FFT grid
-    'lpard',      # evaluate partial (band and/or k-point) decomposed charge density
-    'iband',      # bands to calculate partial charge for
-    'eint',       # energy range to calculate partial charge for
-    'nbmod',      # specifies mode for partial charge calculation
-    'kpuse',      # k-point to calculate partial charge for
-    'lsepb',      # write out partial charge of each band seperately?
-    'lsepk',      # write out partial charge of each k-point seperately?
-    'ispin',      # spin-polarized calculation
-    'magmom',     # initial magnetic moments
-    'ispin',      # spin-polarized calculation
-    'lhfcalc',    # switch to turn on Hartree Fock calculations
-    'hfscreen',   # attribute to change from PBE0 to HSE
-    'aexx',       # Amount of exact/DFT exchange
+    'emax',       # energy-range for DOSCAR file
+    'emin',       #
+    'enaug',      # Density cutoff
+    'encut',      # Planewave cutoff
     'encutfock',  # FFT grid in the HF related routines 
+    'hfscreen',   # attribute to change from PBE0 to HSE
+    'potim',      # time-step for ion-motion (fs)
+    'nelect',     # total number of electrons
+    'pomass',     # mass of ions in am
+    'sigma',      # broadening in eV
+    'time',       # special control tag
+    'zval',       # ionic valence
+    ]
+
+exp_keys = [
+    'ediff',      # stopping-criterion for electronic upd.
+    'ediffg',     # stopping-criterion for ionic upd.
+    'symprec',    # precession in symmetry routines
+]
+
+string_keys = [
+    'algo',       # algorithm: Normal (Davidson) | Fast | Very_Fast (RMM-DIIS)
+    'gga',        # xc-type: PW PB LM or 91
+    'prec',       # Precission of calculation (Low, Normal, Accurate)
+    'system',     # name of System
+    'tebeg',      #
+    'teend',      # temperature during run
+]
+
+int_keys = [
+    'ialgo',      # algorithm: use only 8 (CG) or 48 (RMM-DIIS)
+    'ibrion',     # ionic relaxation: 0-MD 1-quasi-New 2-CG
+    'idipol',     # monopol/dipol and quadropole corrections
+    'iniwav',     # initial electr wf. : 0-lowe 1-rand
+    'isif',       # calculate stress and what to relax
+    'ismear',     # part. occupancies: -5 Blochl -4-tet -1-fermi 0-gaus >0 MP
+    'ispin',      # spin-polarized calculation
+    'istart',     # startjob: 0-new 1-cont 2-samecut
+    'isym',       # symmetry: 0-nonsym 1-usesym
+    'iwavpr',     # prediction of wf.: 0-non 1-charg 2-wave 3-comb
+    'lorbit',     # create PROOUT
+    'ngx',        # FFT mesh for wavefunctions, x
+    'ngxf',       # FFT mesh for charges x
+    'ngy',        # FFT mesh for wavefunctions, y
+    'ngyf',       # FFT mesh for charges y
+    'ngz',        # FFT mesh for wavefunctions, z
+    'ngzf',       # FFT mesh for charges z
+    'nbands',     # Number of bands
+    'nblk',       # blocking for some BLAS calls (Sec. 6.5)
+    'nbmod',      # specifies mode for partial charge calculation
+    'nelm',       #
+    'nelmdl',     # nr. of electronic steps
+    'nelmin',
+    'nfree',      # number of steps per DOF when calculting Hessian using finitite differences
     'nkred',      # define sub grid of q-points for HF with nkredx=nkredy=nkredz 
     'nkredx',      # define sub grid of q-points in x direction for HF 
     'nkredy',      # define sub grid of q-points in y direction for HF 
     'nkredz',      # define sub grid of q-points in z direction for HF 
+    'npar',       # parallelization over bands
+    'nsim',       # evaluate NSIM bands simultaneously if using RMM-DIIS
+    'nsw',        # number of steps for ionic upd.
+    'nupdown',    # fix spin moment to specified value
+    'nwrite',     # verbosity write-flag (how much is written)
+    'smass',      # Nose mass-parameter (am)
+    'voskown',    # use Vosko, Wilk, Nusair interpolation
+]
+
+bool_keys = [
+    'addgrid',    # finer grid for augmentation charge density
+    'icharg',     # charge: 1-file 2-atom 10-const
+    'lasync',     # overlap communcation with calculations
+    'lcharg',     #
+    'lcorr',      # Harris-correction to forces
+    'ldipol',     # potential correction mode
+    'lelf',       # create ELFCAR
+    'lhfcalc',    # switch to turn on Hartree Fock calculations
+    'lmaxmix',    # 
+    'lpard',      # evaluate partial (band and/or k-point) decomposed charge density
+    'lplane',     # parallelisation over the FFT grid
+    'lscalapack', # switch off scaLAPACK
+    'lscalu',     # switch of LU decomposition
+    'lsepb',      # write out partial charge of each band seperately?
+    'lsepk',      # write out partial charge of each k-point seperately?
+    'lthomas',    # 
+    'lvtot',      # create WAVECAR/CHGCAR/LOCPOT
+    'lwave',      #
+]
+
+list_keys = [
+    'dipol',      # center of cell for dipol
+    'eint',       # energy range to calculate partial charge for
+    'ferwe',      # Fixed band occupation
+    'iband',      # bands to calculate partial charge for
+    'magmom',     # initial magnetic moments
+    'kpuse',      # k-point to calculate partial charge for
+    'ropt',       # number of grid points for non-local proj in real space
+    'rwigs',      # Wigner-Seitz radii
+]
+
+special_keys = [
+    'lreal',      # non-local projectors in real space
+]
+
+keys = [    
     # 'NBLOCK' and KBLOCK       inner block; outer block
     # 'NPACO' and APACO         distance and nr. of slots for P.C.
     # 'WEIMIN, EBREAK, DEPER    special control tags
 ]
 
-class Vasp:
+class Vasp(Calculator):
     def __init__(self, restart=None, output_template='vasp', track_output=False, 
                  **kwargs):
         self.name = 'Vasp'
-        self.incar_parameters = {}
-        for key in keys:
-            self.incar_parameters[key] = None
-        self.incar_parameters['prec'] = 'Normal'
+        self.float_params = {}
+        self.exp_params = {}
+        self.string_params = {}
+        self.int_params = {}
+        self.bool_params = {}
+        self.list_params = {}
+        self.special_params = {}
+        for key in float_keys:
+            self.float_params[key] = None
+        for key in exp_keys:
+            self.exp_params[key] = None
+        for key in string_keys:
+            self.string_params[key] = None
+        for key in int_keys:
+            self.int_params[key] = None
+        for key in bool_keys:
+            self.bool_params[key] = None
+        for key in list_keys:
+            self.list_params[key] = None
+        for key in special_keys:
+            self.special_params[key] = None
+        self.string_params['prec'] = 'Normal'
 
-        self.input_parameters = {
+        self.input_params = {
             'xc':     'PW91',  # exchange correlation potential 
             'setups': None,    # Special setups (e.g pv, sv, ...)
             'txt':    '-',     # Where to send information
@@ -141,31 +184,41 @@ class Vasp:
                                # of Monkhorst-Pack
             }
 
-        self.old_incar_parameters = self.incar_parameters.copy()
-        self.old_input_parameters = self.input_parameters.copy()
-
         self.restart = restart
+        self.track_output = track_output
+        self.output_template = output_template
         if restart:
             self.restart_load()
             return
 
-        if self.input_parameters['xc'] not in ['PW91','LDA','PBE']:
+        if self.input_params['xc'] not in ['PW91','LDA','PBE']:
             raise ValueError(
                 '%s not supported for xc! use one of: PW91, LDA or PBE.' %
                 kwargs['xc'])
-        self.nbands = self.incar_parameters['nbands']
+        self.nbands = self.int_params['nbands']
         self.atoms = None
+        self.positions = None
         self.run_counts = 0
         self.set(**kwargs)
-        self.output_template = output_template
-        self.track_output = track_output
 
     def set(self, **kwargs):
         for key in kwargs:
-            if self.input_parameters.has_key(key):
-                self.input_parameters[key] = kwargs[key]
-            elif self.incar_parameters.has_key(key):
-                self.incar_parameters[key] = kwargs[key]
+            if self.float_params.has_key(key):
+                self.float_params[key] = kwargs[key]
+            elif self.exp_params.has_key(key):
+                self.exp_params[key] = kwargs[key]
+            elif self.string_params.has_key(key):
+                self.string_params[key] = kwargs[key]
+            elif self.int_params.has_key(key):
+                self.int_params[key] = kwargs[key]
+            elif self.bool_params.has_key(key):
+                self.bool_params[key] = kwargs[key]
+            elif self.list_params.has_key(key):
+                self.list_params[key] = kwargs[key]
+            elif self.special_params.has_key(key):
+                self.special_params[key] = kwargs[key]
+            elif self.input_params.has_key(key):
+                self.input_params[key] = kwargs[key]
             else:
                 raise TypeError('Parameter not defined: ' + key)
 
@@ -184,7 +237,7 @@ class Vasp:
         Constructs the POTCAR file. User should specify the PATH
         to the pseudopotentials in VASP_PP_PATH environment variable"""
 
-        p = self.input_parameters
+        p = self.input_params
 
         self.all_symbols = atoms.get_chemical_symbols()
         self.natoms = len(atoms)
@@ -195,16 +248,16 @@ class Vasp:
         # sorted after atomic species
         special_setups = []
         symbols = {}
-        if self.input_parameters['setups']:
-            for m in self.input_parameters['setups']:
+        if self.input_params['setups']:
+            for m in self.input_params['setups']:
                 try : 
-                    #special_setup[self.input_parameters['setups'][m]] = int(m)
+                    #special_setup[self.input_params['setups'][m]] = int(m)
                     special_setups.append(int(m))
                 except:
                     #print 'setup ' + m + ' is a groups setup'
                     continue
             #print 'special_setups' , special_setups
-        
+
         for m,atom in enumerate(atoms):
             symbol = atom.get_symbol()
             if m in special_setups:
@@ -251,7 +304,7 @@ class Vasp:
         else:
             pppaths = []
         self.ppp_list = []
-        #Setting the pseudopotentials, first special setups and 
+        # Setting the pseudopotentials, first special setups and 
         # then according to symbols
         for m in special_setups:
             name = 'potpaw'+xc.upper() + p['setups'][str(m)] + '/POTCAR'
@@ -312,27 +365,28 @@ class Vasp:
         
         # Execute VASP
         self.run()
-        
         # Read output
         atoms_sorted = ase.io.read('CONTCAR', format='vasp')
-        p=self.incar_parameters
-        if p['ibrion']>-1 and p['nsw']>0:
+        if self.int_params['ibrion']>-1 and self.int_params['nsw']>0:
             # Replace entire atoms object with the one read from CONTCAR.
             atoms.__dict__ = atoms_sorted[self.resort].__dict__
-        self.energy_free, self.energy_zero = self.read_energy()
-        self.forces = self.read_forces(atoms)
-        self.dipole = self.read_dipole()
-        self.fermi = self.read_fermi()
-        self.atoms = atoms.copy()
-        self.nbands = self.read_nbands()
+        self.converged = self.read_convergence()
+        self.set_results(atoms)
+
+    def set_results(self, atoms):
+        self.read(atoms)
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
-            if p['lorbit']>=10 or (p['lorbit']!=None and p['rwigs']):
+            if self.int_params['lorbit']>=10 or (self.int_params['lorbit']!=None and self.list_params['rwigs']):
                 self.magnetic_moments = self.read_magnetic_moments(atoms)
-        self.old_incar_parameters = self.incar_parameters.copy()
-        self.old_input_parameters = self.input_parameters.copy()
-        self.converged = self.read_convergence()
-        self.stress = self.read_stress()
+        self.old_float_params = self.float_params.copy()
+        self.old_exp_params = self.exp_params.copy()
+        self.old_string_params = self.string_params.copy()
+        self.old_int_params = self.int_params.copy()
+        self.old_input_params = self.input_params.copy()
+        self.old_bool_params = self.bool_params.copy()
+        self.old_list_params = self.list_params.copy()
+        self.atoms = atoms.copy()
         
     def run(self):
         """Method which explicitely runs VASP."""
@@ -343,7 +397,7 @@ class Vasp:
         else:
             self.out = self.output_template+'.out'
         stderr = sys.stderr
-        p=self.input_parameters
+        p=self.input_params
         if p['txt'] is None:
             sys.stderr = devnull
         elif p['txt'] == '-':
@@ -378,17 +432,20 @@ class Vasp:
                 data = line.split()
                 self.sort.append(int(data[0]))
                 self.resort.append(int(data[1]))
-            self.atoms = ase.io.read('CONTCAR', format='vasp')[self.resort]
+            atoms = ase.io.read('CONTCAR', format='vasp')[self.resort]
         else:
-            self.atoms = ase.io.read('CONTCAR', format='vasp')
-            self.sort = range(len(self.atoms))
-            self.resort = range(len(self.atoms))
+            atoms = ase.io.read('CONTCAR', format='vasp')
+            self.sort = range(len(atoms))
+            self.resort = range(len(atoms))
+        print self.resort
+        self.atoms = atoms.copy()
         self.read_incar()
+        self.set_results(atoms)
         self.read_outcar()
         self.read_kpoints()
         self.read_potcar()
-        self.old_incar_parameters = self.incar_parameters.copy()
-        self.old_input_parameters = self.input_parameters.copy()
+#        self.old_incar_params = self.incar_params.copy()
+        self.old_input_params = self.input_params.copy()
         self.converged = self.read_convergence()
 
     def clean(self):
@@ -442,9 +499,15 @@ class Vasp:
         return stress
 
     def calculation_required(self, atoms, quantities):
-        if (self.atoms != atoms
-            or (self.incar_parameters != self.old_incar_parameters)
-            or (self.input_parameters != self.old_input_parameters)
+        if (self.positions is None or 
+            (self.atoms != atoms) or
+            (self.float_params != self.old_float_params) or
+            (self.exp_params != self.old_exp_params) or
+            (self.string_params != self.old_string_params) or
+            (self.int_params != self.old_int_params) or
+            (self.bool_params != self.old_bool_params) or
+            (self.list_params != self.old_list_params) or
+            (self.input_params != self.old_input_params)
             or not self.converged):
             return True
         if 'magmom' in quantities:
@@ -494,8 +557,7 @@ class Vasp:
         return self.magnetic_moment
         
     def get_magnetic_moments(self, atoms):
-        p=self.incar_parameters
-        if p['lorbit']>=10 or p['rwigs']:
+        if self.int_params['lorbit']>=10 or self.list_params['rwigs']:
             self.update(atoms)
             return self.magnetic_moments
         else:
@@ -511,35 +573,59 @@ class Vasp:
         return self.nbands
 
     def get_xc_functional(self):
-        return self.input_parameters['xc']
+        return self.input_params['xc']
 
     def write_incar(self, atoms, **kwargs):
         """Writes the INCAR file."""
-        p = self.incar_parameters
         incar = open('INCAR', 'w')
         incar.write('INCAR created by Atomic Simulation Environment\n')
-        for key, val in p.items():
+        for key, val in self.float_params.items():
             if val is not None:
-                incar.write(' '+key.upper()+' = ')
-                # special cases:
-                if key in ('dipol', 'eint'):
+                incar.write(' %s = %5.6f\n' % (key.upper(), val))
+        for key, val in self.exp_params.items():
+            if val is not None:
+                incar.write(' %s = %5.2e\n' % (key.upper(), val))
+        for key, val in self.string_params.items():
+            if val is not None:
+                incar.write(' %s = %s\n' % (key.upper(), val))
+        for key, val in self.int_params.items():
+            if val is not None:
+                incar.write(' %s = %d\n' % (key.upper(), val))
+        for key, val in self.list_params.items():
+            if val is not None:
+                incar.write(' %s = ' % key.upper())
+                if key in ('dipol', 'eint', 'ferwe', 'ropt', 'rwigs'):
                     [incar.write('%.4f ' % x) for x in val]
                 elif key in ('iband', 'kpuse'):
                     [incar.write('%i ' % x) for x in val]
-                elif key == 'rwigs':
-                    [incar.write('%.4f ' % rwigs) for rwigs in val]
-                    if len(val) != len(self.symbol_count):
-                        raise RuntimeError('Incorrect number of magnetic moments')
-                else:
-                    if type(val)==type(bool()):
-                        if val:
-                            incar.write('.TRUE.')
+                elif key == 'magmom':
+                    list = [[1, val[0]]]
+                    for n in range(1, len(val)):
+                        if val[n] == val[n-1]:
+                            list[-1][0] += 1
                         else:
-                            incar.write('.FALSE.')
-                    else:
-                        incar.write('%s' % p[key])
+                            list.append([1, val[n]])
+                    [incar.write('%i*%.4f ' % (mom[0], mom[1])) for mom in list]
                 incar.write('\n')
-        if self.spinpol and not p['ispin']:
+        for key, val in self.bool_params.items():
+            if val is not None:
+                incar.write(' %s = ' % key.upper())
+                if val:
+                    incar.write('.TRUE.\n')
+                else:
+                    incar.write('.FALSE.\n')
+        for key, val in self.special_params.items():
+            if val is not None:
+                incar.write(' %s = ' % key.upper())
+                if key is 'lreal':
+                    if type(val)==type('str'):
+                        incar.write(val+'\n')
+                    elif type(val)==type(True):
+                       if val:
+                           incar.write('.TRUE.\n')
+                       else:
+                           incar.write('.FALSE.\n') 
+        if self.spinpol and not self.int_params['ispin']:
             incar.write(' ispin = 2\n'.upper())
             # Write out initial magnetic moments
             magmom = atoms.get_initial_magnetic_moments()[self.sort]
@@ -556,7 +642,7 @@ class Vasp:
 
     def write_kpoints(self, **kwargs):
         """Writes the KPOINTS file."""
-        p = self.input_parameters
+        p = self.input_params
         kpoints = open('KPOINTS', 'w')
         kpoints.write('KPOINTS created by Atomic Simulation Environemnt\n')
         shape=np.array(p['kpts']).shape
@@ -710,8 +796,7 @@ class Vasp:
                     converged = False
                     continue
         # Then if ibrion > 0, check whether ionic relaxation condition been fulfilled
-        if self.incar_parameters['ibrion'] > 0:
-            ediffg = self.incar_parameters['ediffg']
+        if self.int_params['ibrion'] > 0:
             if not self.read_relaxed():
                 converged = False
             else:
@@ -766,32 +851,61 @@ class Vasp:
 # The below functions are used to restart a calculation and are under early constructions
 
     def read_incar(self, filename='INCAR'):
+        """Method that imports settings from INCAR file."""
+
+        self.spinpol = False
         file=open(filename, 'r')
         file.readline()
         lines=file.readlines()
         for line in lines:
             try:
-                key = line.split()[0].lower()
-                if key in ['ispin', 'magmom']:
+                data = line.split()
+                # Skip empty and commented lines. 
+                if len(data) == 0:
                     continue
-                self.incar_parameters[key]
-                if key=='dipol':
-                    dipol=[]
-                    for n in range(3):
-                        dipol.append(float(line.split()[n+2]))
-                    self.incar_parameters[key] = dipol
-                else:
-                    try:
-                        self.incar_parameters[key] = int(line.split()[2])
-                    except ValueError:
-                        try:
-                            self.incar_parameters[key] = float(line.split()[2])
-                        except ValueError:
-                            self.incar_parameters[key] = line.split()[2]
+                elif data[0][0] in ['#', '!']:
+                    continue
+                key = data[0].lower()
+                if key in float_keys:
+                    self.float_params[key] = float(data[2])
+                elif key in exp_keys:
+                    self.exp_params[key] = float(data[2])
+                elif key in string_keys:
+                    self.string_params[key] = str(data[2])
+                elif key in int_keys:
+                    if key == 'ispin':
+                        if int(data[2]) == 2:
+                            self.spinpol = True
+                    else:
+                        self.int_params[key] = int(data[2])
+                elif key in bool_keys:
+                    if 'true' in data[2].lower():
+                        self.bool_params[key] = True
+                    elif 'false' in data[2].lower():
+                        self.bool_params[key] = False
+                elif key in list_keys:
+                    list = []
+                    if key in ('dipol', 'eint', 'ferwe', 'ropt', 'rwigs'):
+                        for a in data[2:]:
+                            list.append(float(a))
+                    elif key in ('iband', 'kpuse'):
+                        for a in data[2:]:
+                            list.append(int(a))
+                    self.list_params[key] = list
+                    if key == 'magmom':
+                        for a in data[2:]:
+                            a = a.split('*')
+                            if len(a)>1:
+                                for b in range(int(a[0])):
+                                    list.append(float(a[1]))
+                            else:
+                                list.append(float(a[0]))
+                        list = np.array(list)
+                        self.atoms.set_initial_magnetic_moments(list[self.resort])
             except KeyError:
-                continue
+                raise IOError('Keyword "%s" in INCAR is not known by calculator.' % key)
             except IndexError:
-                continue
+                raise IOError('Value missing for keyword "%s".' % key)
 
     def read_outcar(self):
         # Spin polarized calculation?
@@ -810,10 +924,11 @@ class Vasp:
         self.fermi = self.read_fermi()
         self.stress = self.read_stress()
         self.nbands = self.read_nbands()
-        p=self.incar_parameters
+        p=self.int_params
+        q=self.list_params
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
-            if p['lorbit']>=10 or (p['lorbit']!=None and p['rwigs']):
+            if p['lorbit']>=10 or (p['lorbit']!=None and q['rwigs']):
                 self.magnetic_moments = self.read_magnetic_moments(self.atoms)
         self.set(nbands=self.nbands)
 
@@ -857,7 +972,7 @@ class Vasp:
             raise ValueError(
                 'Unknown xc-functional flag found in POTCAR, LEXCH=%s' % xc_flag)
 
-        self.input_parameters['xc'] = xc_dict[xc_flag]
+        self.input_params['xc'] = xc_dict[xc_flag]
 
 
 class VaspChargeDensity(object):
