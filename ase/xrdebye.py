@@ -1,5 +1,7 @@
-from math import exp, pi, sin, sqrt
+from math import exp, pi, sin, sqrt, cos, acos
 import numpy as np
+
+from ase.data import atomic_numbers
 
 # Table (1) of
 # D. WAASMAIER AND A. KIRFEL, Acta Cryst. (1995). A51, 416-431
@@ -15,12 +17,19 @@ waasmaier = {
 }
 
 class XrDebye:
-    def __init__(self, wavelength, alpha=1.01, damping=0.04, warn=True):
-        """damping is in Angstrom**2"""
+    def __init__(self, wavelength, alpha=1.01, damping=0.04, warn=True,
+                 method='Iwasa'):
+        """
+        Obtain powder x-ray spectra.
+
+        wavelength in Angstrom
+        damping in Angstrom**2
+        """
         self.wavelength = wavelength
         self.damping = damping
         self.alpha = alpha
         self.warn = warn
+        self.method = method
 
     def set_damping(self, damping):
         self.damping = damping
@@ -34,13 +43,19 @@ class XrDebye:
 
         sinth = self.wavelength * s / 2.
         costh = sqrt(1. - sinth**2)
-        damp = exp(- self.damping * s**2 / 2) 
-        pre = costh / (1. + self.alpha * costh) * damp
+        cos2th = cos(2. * acos(costh))
+        pre = exp(- self.damping * s**2 / 2)
+ 
+        if self.method == 'Iwasa':
+            pre *= costh / (1. + self.alpha * cos2th**2)
 
         f = {}
         def atomic(symbol):
             if not f.has_key(symbol):
-                f[symbol] = self.get_atomic(symbol, s)
+                if self.method == 'Iwasa':
+                    f[symbol] = self.get_waasmaier(symbol, s)
+                else:
+                    f[symbol] = atomic_numbers[symbol]
             return f[symbol]
 
         def sinc(x):
@@ -53,6 +68,7 @@ class XrDebye:
         I = 0.
         for a in atoms:
             fa = atomic(a.symbol)
+#            print a.symbol, fa
             for b in atoms:
                 fb = atomic(b.symbol)
 
@@ -67,7 +83,7 @@ class XrDebye:
                     
         return pre * I
 
-    def get_atomic(self, symbol, s):
+    def get_waasmaier(self, symbol, s):
         """Scattering factor for free atoms."""
         if symbol == 'H':
             # XXXX implement analytical H
