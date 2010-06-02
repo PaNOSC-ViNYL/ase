@@ -1333,6 +1333,10 @@ class VASP_Window(gtk.Window):
         self.attrname = attrname
         atoms = owner.atoms
         self.periodic = atoms.get_pbc().all()
+        self.vasp_keyword_gui_list = ['prec']#, 'encut']
+        from ase.calculators.vasp import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys,special_keys
+        self.vasp_keyword_list = float_keys+exp_keys+string_keys+int_keys+bool_keys+list_keys+special_keys
+        self.expert_keywords = []
         natoms = len(atoms)
         gtk.Window.__init__(self)
         self.set_title("VASP parameters")
@@ -1387,6 +1391,23 @@ class VASP_Window(gtk.Window):
         pack(vbox, [gtk.Label("Precision of calculation: "),
                     self.prec])
         pack(vbox, gtk.Label(""))
+#        pack(vbox, gtk.Label('Cutoff energy'))
+#        self.encut = gtk.Adjustment(1e-6, 1e-6, 1e0, 1e-6)
+#        self.encut_spin = gtk.SpinButton(self.encut, 0, 0)
+#        pack(vbox, [gtk.Label("Cutoff energy:                 "),
+#                    self.encut_spin, 
+#                    gtk.Label(" eV")])
+        
+        self.expert_keyword_set = gtk.Entry(max = 45)
+        self.expert_keyword_add = gtk.Button(stock = gtk.STOCK_ADD)
+        self.expert_keyword_add.connect("clicked", self.expert_keyword_import)
+        self.expert_keyword_set.connect("activate", self.expert_keyword_import)
+        pack(vbox,[gtk.Label("Additional keywords: "),
+                   self.expert_keyword_set, 
+                   self.expert_keyword_add])
+        self.expert_vbox = gtk.VBox()
+        pack(vbox, self.expert_vbox)
+        pack(vbox, gtk.Label(""))
 
         # run command and location of POTCAR files:
         pack(vbox, gtk.Label('VASP execution command: '))
@@ -1421,9 +1442,23 @@ class VASP_Window(gtk.Window):
         self.param["kpts"] = (int(self.kpts[0].value),
                               int(self.kpts[1].value),
                               int(self.kpts[2].value))
+        from ase.calculators.vasp import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys,special_keys
+        for option in self.expert_keywords:
+            if option[3]:   # set type of parameter accoding to which list it is in
+                key = option[0].get_text().strip()
+                val = option[1].get_text().strip()
+                if key in float_keys or key in exp_keys:
+                    self.param[key] = float(val)
+                elif key in list_keys or key in string_keys:
+                    self.param[key] = val
+                elif key in int_keys:
+                    self.param[key] = int(val)
+                elif key in bool_keys:
+                    self.param[key] = bool(val)
         setattr(self.owner, self.attrname, self.param)
         os.environ['VASP_COMMAND'] = self.run_command.get_text()
         os.environ['VASP_PP_PATH'] = self.pp_path.get_text()
+        
 
     def ok(self, *args):
         self.set_attributes(*args)
@@ -1443,3 +1478,60 @@ class VASP_Window(gtk.Window):
     def destroy(self):
         self.grab_remove()
         gtk.Window.destroy(self)
+
+    def export_control(self, *args):
+        filename = "control.in"
+        chooser = gtk.FileChooserDialog(
+            'Export parameters ... ', None, gtk.FILE_CHOOSER_ACTION_SAVE,
+            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+             gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+        chooser.set_filename(filename)
+        save = chooser.run()
+        if save == gtk.RESPONSE_OK or save == gtk.RESPONSE_SAVE:
+            filename = chooser.get_filename()
+            self.set_attributes(*args)
+            param = getattr(self.owner, "vasp_parameters")
+            from ase.calculators.vasp import Vasp
+            calc_temp = Vasp(**param)
+            atoms_temp = self.owner.atoms.copy()
+            atoms_temp.set_calculator(calc_temp)
+            atoms_temp.calc.write_control(file = filename)
+            atoms_temp.calc.write_species(file = filename)
+        chooser.destroy()
+
+    def expert_keyword_import(self, *args):
+        command = self.expert_keyword_set.get_text().split()
+        if len(command) > 0 and command[0] in self.vasp_keyword_list and not command[0] in self.vasp_keyword_gui_list:
+            self.expert_keyword_create(command)
+        elif command[0] in self.vasp_keyword_gui_list:
+            oops("Please use the facilities provided in this window to manipulate "+
+                 "the keyword: " + command[0] + "!")
+        else:
+            oops("Don't know this keyword: " + command[0] 
+                 + "\nPlease check!\n\n" 
+                 + "If you really think it should be available, "
+                 + "please add it to the top of ase/calculators/vasp.py.")
+        self.expert_keyword_set.set_text("")
+
+    def expert_keyword_create(self, command):
+        key = command[0]
+        argument = command[1]
+        if len(command) > 2:
+            for a in command[2:]:
+                argument += ' '+a
+        index = len(self.expert_keywords) 
+        self.expert_keywords += [[gtk.Label("    " +key+"  "),
+                                  gtk.Entry(max=35),
+                                  ExpertDeleteButton(index),
+                                  True]]
+        self.expert_keywords[index][1].set_text(argument)
+        self.expert_keywords[index][2].connect('clicked',self.expert_keyword_delete)
+        pack(self.expert_vbox, [self.expert_keywords[index][0],
+                                self.expert_keywords[index][1],
+                                self.expert_keywords[index][2]])
+
+    def expert_keyword_delete(self, button, *args):
+        index = button.index   # which one to kill 
+        for i in [0,1,2]:
+            self.expert_keywords[index][i].destroy()
+        self.expert_keywords[index][3] = False
