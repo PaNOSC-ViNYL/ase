@@ -326,6 +326,8 @@ class Jacapo:
                 if hasattr(self, changef):
                     #print '+++ checking if %s changed' % key
                     notchanged = not eval('self.%s(kwargs[key])' % changef)
+                    if self.debug > 1:
+                        print key, 'notchanged = ',notchanged
                 else:
                     if self.debug > 1:
                         print changef, ' not found'
@@ -4339,15 +4341,28 @@ s.recv(14)
         else:
             return False
 
+    def xc_changed(self,x):
+        if x != self.get_xc():
+            return True
+        return False
+
+    def calculate_stress_changed(self,x):
+        if x != self.get_calculate_stress():
+            return True
+        return False
+    
     def ados_changed(self,x):
         ados = self.get_ados()
-
+        
         #ados may not be defined, and then None is returned
         if ados is None and x is None:
             return False
-        else:
+        elif ados is None and x is not None:
             return True
-        
+        elif ados is not None and x is None:
+            return True
+
+        #getting here means ados and x are not none so we compare them
         for key in x:
             try:
                 if x[key] != ados[key]:
