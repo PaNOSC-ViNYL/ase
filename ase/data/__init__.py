@@ -157,8 +157,10 @@ atomic_masses = np.array([
     np.nan, # No
     np.nan])# Lw
 
+covalent_radius_default = 0.20 # for anything we don't know better
+
 covalent_radii = np.array([
- 0.20, # X
+ covalent_radius_default, # X
  0.32, # H
  0.93, # He
  1.23, # Li
@@ -244,24 +246,24 @@ covalent_radii = np.array([
  1.46, # Bi
  1.53, # Po
  1.47, # At
- np.nan, # Rn
- np.nan, # Fr
- np.nan, # Ra
- np.nan, # Ac
+ covalent_radius_default, # Rn
+ covalent_radius_default, # Fr
+ covalent_radius_default, # Ra
+ covalent_radius_default, # Ac
  1.65, # Th
- np.nan, # Pa
+ covalent_radius_default, # Pa
  1.42, # U
- np.nan, # Np
- np.nan, # Pu
- np.nan, # Am
- np.nan, # Cm
- np.nan, # Bk
- np.nan, # Cf
- np.nan, # Es
- np.nan, # Fm
- np.nan, # Md
- np.nan, # No
- np.nan]) # Lw
+ covalent_radius_default, # Np
+ covalent_radius_default, # Pu
+ covalent_radius_default, # Am
+ covalent_radius_default, # Cm
+ covalent_radius_default, # Bk
+ covalent_radius_default, # Cf
+ covalent_radius_default, # Es
+ covalent_radius_default, # Fm
+ covalent_radius_default, # Md
+ covalent_radius_default, # No
+ covalent_radius_default]) # Lw
 
 # This data is from Ashcroft and Mermin.
 reference_states = [\
