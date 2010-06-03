@@ -1138,7 +1138,12 @@ class AIMS_Window(gtk.Window):
             if option[3]:   # set type of parameter accoding to which list it is in
                 key = option[0].get_text().strip()
                 val = option[1].get_text().strip()
-                if key in float_keys or key in exp_keys:
+                if key == 'output':
+                    if param.has_key('output'): 
+                        param[key] += [val]
+                    else:
+                        param[key] = [val]
+                elif key in float_keys or key in exp_keys:
                     param[key] = float(val)
                 elif key in list_keys or key in string_keys or key in input_keys:
                     param[key] = val
@@ -1164,7 +1169,7 @@ class AIMS_Window(gtk.Window):
         if param["charge"] is not None:
             self.charge.value = param["charge"]
         if param["relativistic"] is not None:
-            if isinstance(param["relativistic"],tuple):
+            if isinstance(param["relativistic"],(tuple,list)):
                 rel = param["relativistic"]
             else:
                 rel = param["relativistic"].split()
@@ -1194,13 +1199,19 @@ class AIMS_Window(gtk.Window):
         for (key,val) in param.items():
             if key in self.aims_keyword_list and key not in self.aims_keyword_gui_list:
                 if val is not None:  # = existing "expert keyword"
-                    if isinstance(val,str):
-                        arg = [key]+val.split()
-                    elif isinstance(val,tuple) or isinstance(val,list):
-                        arg = [key]+[str(a) for a in val]
+                    if key == 'output': # 'output' can be used more than once
+                        options = val
+                        if isinstance(options,str): options = [options]
+                        for arg in options:
+                            self.expert_keyword_create([key]+[arg])
                     else:
-                        arg = [key]+[str(val)]
-                    self.expert_keyword_create(arg)
+                        if isinstance(val,str):
+                            arg = [key]+val.split()
+                        elif isinstance(val,(tuple,list)):
+                            arg = [key]+[str(a) for a in val]
+                        else:
+                            arg = [key]+[str(val)]
+                        self.expert_keyword_create(arg)
 
     def ok(self, *args):
         self.set_attributes(*args)
@@ -1236,7 +1247,8 @@ class AIMS_Window(gtk.Window):
         save = chooser.run()
         if save == gtk.RESPONSE_OK:
             self.set_defaults()
-            control = open('control.in','r')
+            filename = chooser.get_filename()
+            control = open(filename,'r')
             while True:
                 line = control.readline()
                 if not line:

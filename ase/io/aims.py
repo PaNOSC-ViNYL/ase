@@ -243,9 +243,9 @@ def read_aims_calculator(file):
         else:
             args = line.split()
             key = args[0]
-            if '#' in key:
-                key = key[1:]
-            if calc.float_params.has_key(key):
+            if key == '#':
+                comment = True   
+            elif calc.float_params.has_key(key):
                 calc.float_params[key] = float(args[1])
             elif calc.exp_params.has_key(key):
                 calc.exp_params[key] = float(args[1])
@@ -263,12 +263,24 @@ def read_aims_calculator(file):
                     if key == 'vdw_correction_hirshfeld':
                         calc.bool_params[key] = True
             elif calc.list_params.has_key(key):
-                calc.list_params[key] = tuple(args[1:])
-            elif calc.input_parameters.has_key(key):
-                calc.input_parameters[key] = args[1]
-                if len(args) > 2: 
-                    for s in args[2:]:
-                        calc.input_parameters[key] += " "+s                
+                if key == 'output':
+                    # build output string from args:
+                    out_option = ''
+                    for arg in args[1:]:
+                        out_option +=str(arg)
+                    if calc.list_params['output'] is not None:
+                        calc.list_params['output'] += [out_option]
+                    else:
+                        calc.list_params['output'] = [out_option]
+                else:
+                    calc.list_params[key] = list(args[1:])
+            elif '#' in key:
+                key = key[1:]
+                if calc.input_parameters.has_key(key):
+                    calc.input_parameters[key] = args[1]
+                    if len(args) > 2: 
+                        for s in args[2:]:
+                            calc.input_parameters[key] += " "+s                
             else:
                 raise TypeError('FHI-aims keyword not defined in ASE: ' + key + '. Please check.')
     return calc

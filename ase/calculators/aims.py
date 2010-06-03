@@ -65,6 +65,7 @@ bool_keys = [
     'distributed_spline_storage',
     'evaluate_work_function',
     'final_forces_cleaned',
+    'hessian_to_restart_geometry',
     'MD_clean_rotations',
     'restart_relaxations',
     'squeeze_memory',
@@ -262,39 +263,45 @@ class Aims(Calculator):
         output.write(prefix+'=======================================================\n')
         for key, val in self.float_params.items():
             if val is not None:
-                output.write('%-30s%5.6f\n' % (key, val))        
+                output.write('%-35s%5.6f\n' % (key, val))        
         for key, val in self.exp_params.items():
             if val is not None:
-                output.write('%-30s%5.2e\n' % (key, val))
+                output.write('%-35s%5.2e\n' % (key, val))
         for key, val in self.string_params.items():
             if val is not None:
-                output.write('%-30s%s\n' % (key, val))
+                output.write('%-35s%s\n' % (key, val))
         for key, val in self.int_params.items():
             if val is not None:
-                output.write('%-30s%d\n' % (key, val))
+                output.write('%-35s%d\n' % (key, val))
         for key, val in self.bool_params.items():
             if val is not None:
                 if key == 'vdw_correction_hirshfeld' and val:
-                    output.write('%-30s\n' % (key))
+                    output.write('%-35s\n' % (key))
                 elif val:
-                    output.write('%-30s.true.\n' % (key))
+                    output.write('%-35s.true.\n' % (key))
                 elif key != 'vdw_correction_hirshfeld':
-                    output.write('%-30s.false.\n' % (key))
+                    output.write('%-35s.false.\n' % (key))
         for key, val in self.list_params.items():
             if val is not None:
-                output.write('%-30s' % (key))
-                if isinstance(val,str): 
-                    output.write(val)
+                if key == 'output':
+                    if not isinstance(val,(list,tuple)): 
+                        val = [val]
+                    for output_type in val:
+                        output.write('%-35s%s\n' % (key,str(output_type)))
                 else:
-                    for sub_value in val:
-                        output.write(str(sub_value)+' ')
-                output.write('\n')
+                    output.write('%-35s' % (key))
+                    if isinstance(val,str): 
+                        output.write(val)
+                    else:
+                        for sub_value in val:
+                            output.write(str(sub_value)+' ')
+                    output.write('\n')
         for key, val in self.input_parameters.items():
             if key is  'cubes':
                 if val:
                     val.write(output)
             elif val:
-                output.write(prefix+'%-30s%s\n' % (key,val))
+                output.write(prefix+'%-34s%s\n' % (key,val))
         output.write(prefix+'=======================================================\n\n')
         output.close()
 
