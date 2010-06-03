@@ -22,6 +22,6 @@ slab.set_calculator(calc)
 constraint = FixBondLengths([[-3,-2],[-3,-1]])
 slab.set_constraint(constraint)
 dyn = BFGS(slab, trajectory='relax.traj')
-dyn.run(fmax=0.05)	
+dyn.run(fmax=0.05)
 assert abs(co2.get_distance(-3, -2) - d0) < 1e-14
 assert abs(co2.get_distance(-3, -1) - d1) < 1e-14

@@ -7,7 +7,7 @@ __all__ = ['FixCartesian', 'FixBondLength', 'FixedMode', 'FixConstraintSingle',
            'FixedPlane', 'Filter', 'FixConstraint', 'FixedLine',
            'FixBondLengths']
 
-    
+
 def slice2enlist(s):
     """Convert a slice object into a list of (new, old) tuples."""
     if isinstance(s, (list, tuple)):
@@ -38,9 +38,9 @@ class FixConstraint:
         raise NotImplementedError
 
     def repeat(self, m, n):
-        """ basic method to multiply by m, needs to know the length 
-        of the underlying atoms object for the assignment of 
-        multiplied constraints to work. 
+        """ basic method to multiply by m, needs to know the length
+        of the underlying atoms object for the assignment of
+        multiplied constraints to work.
         """
         raise NotImplementedError
 
@@ -70,7 +70,7 @@ class FixAtoms(FixConstraint):
         mask : list of bool
            One boolean per atom indicating if the atom should be
            constrained or not.
-           
+
         Examples
         --------
         Fix all Copper atoms:
@@ -121,7 +121,7 @@ class FixAtoms(FixConstraint):
             return FixAtoms(mask=self.index.copy())
         else:
             return FixAtoms(indices=self.index.copy())
-    
+
     def __repr__(self):
         if self.index.dtype == bool:
             return 'FixAtoms(mask=%s)' % ints2string(self.index.astype(int))
@@ -181,7 +181,7 @@ class FixBondLength(FixConstraint):
         """Fix distance between atoms with indices a1 and a2."""
         self.indices = [a1, a2]
 
-    def adjust_positions(self, old, new):        
+    def adjust_positions(self, old, new):
         p1, p2 = old[self.indices]
         d = p2 - p1
         p = sqrt(np.dot(d, d))
@@ -207,7 +207,7 @@ class FixBondLength(FixConstraint):
         if newa[0] == -1 or newa[1] == -1:
             raise IndexError('Constraint not part of slice')
         self.indices = newa
-    
+
     def copy(self):
         return FixBondLength(*self.indices)
 
@@ -248,7 +248,7 @@ class FixedPlane(FixConstraintSingle):
     """Constrain an atom *a* to move in a given plane only.
 
     The plane is defined by its normal: *direction*."""
-    
+
     def __init__(self, a, direction):
         self.a = a
         self.dir = np.asarray(direction) / sqrt(np.dot(direction, direction))
@@ -271,7 +271,7 @@ class FixedLine(FixConstraintSingle):
     """Constrain an atom *a* to move on a given line only.
 
     The line is defined by its *direction*."""
-    
+
     def __init__(self, a, direction):
         self.a = a
         self.dir = np.asarray(direction) / sqrt(np.dot(direction, direction))
@@ -295,7 +295,7 @@ class FixCartesian(FixConstraintSingle):
     def __init__(self, a, mask=[1,1,1]):
         self.a=a
         self.mask = -(np.array(mask)-1)
-    
+
     def adjust_positions(self, old, new):
         step = new - old
         step[self.a] *= self.mask
@@ -390,14 +390,14 @@ class Filter:
         The computational cell is the same as for the original system.
         """
         return self.atoms.get_cell()
-    
+
     def get_pbc(self):
         """Returns the periodic boundary conditions.
 
         The boundary conditions are the same as for the original system.
         """
         return self.atoms.get_pbc()
-    
+
     def get_positions(self):
         "Return the positions of the visible atoms."
         return self.atoms.get_positions()[self.index]
@@ -446,7 +446,7 @@ class Filter:
 
     def get_stresses(self):
         return self.atoms.get_stresses()[self.index]
-    
+
     def get_masses(self):
         return self.atoms.get_masses()[self.index]
 
@@ -492,8 +492,8 @@ class StrainFilter:
 
     The stress and strain are presented as 6-vectors, the order of the
     components follow the standard engingeering practice: xx, yy, zz,
-    yz, xz, xy.  
-    
+    yz, xz, xy.
+
     """
     def __init__(self, atoms, mask=None):
         """Create a filter applying a homogeneous strain to a list of atoms.
@@ -504,9 +504,9 @@ class StrainFilter:
         indicating which of the six independent components of the
         strain that are allowed to become non-zero.  It defaults to
         [1,1,1,1,1,1].
-        
+
         """
-        
+
         self.atoms = atoms
         self.strain = np.zeros(6)
 
@@ -516,7 +516,7 @@ class StrainFilter:
             self.mask = np.array(mask)
 
         self.origcell = atoms.get_cell()
-        
+
     def get_positions(self):
         return self.strain.reshape((2, 3))
 
@@ -537,7 +537,7 @@ class StrainFilter:
         return self.atoms.get_potential_energy()
 
     def has(self, x):
-	    return self.atoms.has(x)
+        return self.atoms.has(x)
 
     def __len__(self):
         return 2
@@ -556,7 +556,7 @@ class UnitCellFilter:
         components of the strain are relaxed.
         1, True = relax to zero
         0, False = fixed, ignore this component
-        
+
         use atom Constraints, e.g. FixAtoms, to control relaxation of
         the atoms.
 
@@ -584,17 +584,17 @@ class UnitCellFilter:
         0.0003 eV/A^3 = 0.048 GPa
         0.0001 eV/A^3 = 0.02 GPa
         """
-        
+
         self.atoms = atoms
         self.strain = np.zeros(6)
-                
+
         if mask is None:
             self.mask = np.ones(6)
         else:
             self.mask = np.array(mask)
 
         self.origcell = atoms.get_cell()
-        
+
     def get_positions(self):
         '''
         this returns an array with shape (natoms+2,3).
@@ -616,16 +616,16 @@ class UnitCellFilter:
     def set_positions(self, new):
         '''
         new is an array with shape (natoms+2,3).
-        
+
         the first natoms rows are the positions of the atoms, the last
         two rows are the strains used to change the cell shape.
 
         The atom positions are set first, then the unit cell is
         changed keeping the atoms in their scaled positions.
-        '''        
+        '''
 
         natoms = len(self.atoms)
-        
+
         atom_positions = new[0:natoms,:]
         self.atoms.set_positions(atom_positions)
 
@@ -652,7 +652,7 @@ class UnitCellFilter:
 
         apply_constraint is an argument expected by ase
         '''
-        
+
         stress = self.atoms.get_stress()
         atom_forces = self.atoms.get_forces()
 
@@ -662,7 +662,7 @@ class UnitCellFilter:
 
         vol = self.atoms.get_volume()
         stress_forces = -vol * (stress * self.mask).reshape((2, 3))
-        all_forces[natoms:,:] = stress_forces 
+        all_forces[natoms:,:] = stress_forces
         return all_forces
 
     def get_potential_energy(self):

@@ -40,7 +40,7 @@ class Bravais:
 
     # How small numbers should be considered zero in the unit cell?
     chop_tolerance = 1e-10
-    
+
     def __call__(self, symbol,
                  directions=(None,None,None), miller=(None,None,None),
                  size=(1,1,1), latticeconstant=None,
@@ -132,7 +132,7 @@ class Bravais:
         self.atoms = np.dot(self.atoms, transf)
         # ... and rotate miller_basis
         self.miller_basis = np.dot(self.miller_basis, transf)
-        
+
     def make_list_of_atoms(self):
         "Repeat the unit cell."
         nrep = self.size[0] * self.size[1] * self.size[2]
@@ -169,12 +169,12 @@ class Bravais:
                           [0,self.size[1],0],
                           [0,0,self.size[2]]])
         basis = np.dot(basis, self.basis)
-        
+
         # Tiny elements should be replaced by zero.  The cutoff is
         # determined by chop_tolerance which is a class attribute.
         basis = np.where(np.abs(basis) < self.chop_tolerance,
                          0.0, basis)
-                         
+
         # None should be replaced, and memory should be freed.
         lattice = Lattice(positions=atoms, cell=basis, numbers=elements,
                           pbc=self.pbc)
@@ -182,7 +182,7 @@ class Bravais:
         # Add info for lattice.surface.AddAdsorbate
         lattice._addsorbate_info_size = np.array(self.size[:2])
         return lattice
-        
+
     def process_element(self, element):
         "Extract atomic number from element"
         # The types that can be elements: integers and strings
@@ -216,7 +216,7 @@ class Bravais:
                     raise TypeError("The symbols argument must be a sequence of strings or atomic numbers.")
             self.atomicnumber = [atomicnumber[i] for i in self.element_basis]
             assert len(self.atomicnumber) == len(self.bravais_basis)
-        
+
     def convert_to_natural_basis(self):
         "Convert directions and miller indices to the natural basis."
         self.directions = np.dot(self.directions, self.inverse_basis)
@@ -230,14 +230,14 @@ class Bravais:
             self.miller[i] = reduceindex(self.handedness *
                                          cross(self.directions[j],
                                                 self.directions[k]))
-        
+
     def calc_num_atoms(self):
         v = int(round(abs(np.linalg.det(self.directions))))
         if self.bravais_basis is None:
             return v
         else:
             return v * len(self.bravais_basis)
-    
+
     def make_unit_cell(self):
         "Make the unit cell."
         # Make three loops, and find the positions in the integral
@@ -274,7 +274,7 @@ class Bravais:
                         nk = 0
                         for (kstart, kstep) in ((0,1), (-1,-1)):
                             k = kstart
-                            #print "Starting line i=%d, j=%d, k=%d, step=(%d,%d,%d)" % (i,j,k,istep,jstep,kstep) 
+                            #print "Starting line i=%d, j=%d, k=%d, step=(%d,%d,%d)" % (i,j,k,istep,jstep,kstep)
                             kcont = True
                             while kcont:
                                 # Now (i,j,k) loops over Z^3, except that
@@ -338,7 +338,7 @@ class Bravais:
                 else:
                     self.elements[self.nput] = self.atomicnumber[i]
                 self.nput += 1
-                
+
     def find_directions(self, directions, miller):
         "Find missing directions and miller indices from the specified ones."
         directions = list(directions)
@@ -407,7 +407,7 @@ class Bravais:
 class MillerInfo:
     """Mixin class to provide information about Miller indices."""
     def miller_to_direction(self, miller):
-	"""Returns the direction corresponding to a given Miller index."""
+        """Returns the direction corresponding to a given Miller index."""
         return np.dot(miller, self.millerbasis)
 
 class Lattice(Atoms, MillerInfo):

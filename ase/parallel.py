@@ -25,7 +25,7 @@ def parprint(*args, **kwargs):
     for key in defaults:
         if not key in kwargs:
             kwargs[key] = defaults[key]
-    
+
     for arg in args[:-1]:
         print >> kwargs['file'], arg,
     if len(args):

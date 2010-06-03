@@ -15,16 +15,16 @@ def rotate_about_vec(vecU, theta):
                     [ux * uy * (1 - ct) + uz * st, 
                      uy ** 2 + ct * (1 - uy ** 2),
                      uy * uz * (1 - ct) - ux * st],
-		            [uz * ux * (1 - ct) - uy * st,
-		             uy * uz * (1 - ct) + ux * st,
-		             uz ** 2 + ct * (1 - uz **2)]])
-    return (mat)		
+                    [uz * ux * (1 - ct) - uy * st,
+                     uy * uz * (1 - ct) + ux * st,
+                     uz ** 2 + ct * (1 - uz **2)]])
+    return (mat)
 
 # Generates the rotation matrix which rotates aVec into intoVec
 def rotate_vec_into_newvec(aVec, intoVec):
     def length(v):
         return((sum(v ** 2)) ** 0.5)
-    
+
     import numpy as np
     from math import acos
     fac = 1.0

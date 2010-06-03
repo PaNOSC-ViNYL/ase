@@ -41,11 +41,11 @@ symmetries = get_all_symmetries(basesymmetries, 48)
 #Definition of used surfaces
 surface_names = [(1,0,0), (-1,0,0),
                  (0,1,0), (0,-1,0),
-                 (0,0,1), (0,0,-1), 
+                 (0,0,1), (0,0,-1),
                  (1,1,0), (-1,-1,0),
-                 (1,0,1), (-1,0,-1), 
-                 (0,1,1), (0,-1,-1), 
-                 (1,-1,0), (-1,1,0), 
+                 (1,0,1), (-1,0,-1),
+                 (0,1,1), (0,-1,-1),
+                 (1,-1,0), (-1,1,0),
                  (1,0,-1), (-1,0,1),
                  (0,1,-1), (0,-1,1),
                  (1,1,1), (-1,-1,-1),
@@ -55,11 +55,11 @@ surface_names = [(1,0,0), (-1,0,0),
 
 surface_numbers = {}
 for i, s in enumerate(surface_names):
-	surface_numbers[s] = i
+    surface_numbers[s] = i
 
 surface_count = len(surface_names)
 
-surface_mapping = {0: 1, 1: 0, 2: 3, 3: 2, 4: 5, 5: 4, 
+surface_mapping = {0: 1, 1: 0, 2: 3, 3: 2, 4: 5, 5: 4,
                    6: 7, 7: 6, 8: 9, 9: 8, 10: 11, 11: 10,
                    12: 13, 13: 12, 14: 15, 15: 14, 16: 17, 17: 16,
                    18: 19, 19: 18, 20: 21, 21: 20, 22: 23, 23: 22,
@@ -155,14 +155,14 @@ neighbor_names = [(0.5, 0.5, 0), (-0.5, -0.5, 0),
 
 neighbor_numbers = {}
 for i, n in enumerate(neighbor_names):
-	neighbor_numbers[n] = i
+    neighbor_numbers[n] = i
 
 neighbor_positions = np.array(neighbor_names, dtype=float)
 
 neighbor_cutoff = 0.8
 neighbor_count = 12
 
-neighbor_mapping = {0: 1, 1: 0, 2: 3, 3: 2, 4: 5, 5: 4, 
+neighbor_mapping = {0: 1, 1: 0, 2: 3, 3: 2, 4: 5, 5: 4,
                     6: 7, 7: 6, 8: 9, 9: 8, 10: 11, 11: 10}
 
 neighbor_symmetries = get_neighbor_symmetries(symmetries,
@@ -174,7 +174,7 @@ basetype_names = [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
                   (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
                   (0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1),
                   (0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1),
-                  (0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), 
+                  (0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
                   (0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1),
                   (0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1),
                   (0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1),
@@ -188,54 +188,54 @@ basetype_names = [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
                   (0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1),
                   ]
 
-basetype_data = [{'type': 0, 
-                  'coordination': 0, 
-                  'name': 'Free atom, Unknown'}, 
-                 {'type': 1, 
-                  'coordination': 12, 
-                  'name': 'bulk'}, 
-                 {'type': 2, 
-                  'coordination': 8, 
-                  'name': '100 surface'}, 
-                 {'type': 3, 
-                  'coordination': 7, 
-                  'name': '110 surface (top), 111-111 edge, 110-111 edge'}, 
-                 {'type': 4, 
-                  'coordination': 11, 
-                  'name': '110 surface (bottom)'}, 
-                 {'type': 5, 
-                  'coordination': 9, 
-                  'name': '111 surface'}, 
-                 {'type': 6, 
-                  'coordination': 6, 
-                  'name': '100-110 edge'}, 
-                 {'type': 7, 
-                  'coordination': 7, 
-                  'name': '100-111 edge'}, 
-                 {'type': 8, 
-                  'coordination': 6, 
-                  'name': '111-111-100 corner'}, 
-                 {'type': 9, 
-                  'coordination': 4, 
-                  'name': '100 surface ad-atom'}, 
-                 {'type': 10, 
-                  'coordination': 5, 
-                  'name': '110 surface ad-atom (bottom), A5 site'}, 
-                 {'type': 11, 
-                  'coordination': 3, 
-                  'name': '111 surface ad-atom'}, 
-                 {'type': 12, 
-                  'coordination': 9, 
-                  'name': '100 surface with ad-atom'}, 
-                 {'type': 13, 
-                  'coordination': 8, 
-                  'name': '110 surface with ad-atom'}, 
-                 {'type': 14, 
-                  'coordination': 10, 
-                  'name': '111 surface with ad-atom'}, 
-                 {'type': 15, 
-                  'coordination': 5, 
-                  'name': 'B5 site'}, 
+basetype_data = [{'type': 0,
+                  'coordination': 0,
+                  'name': 'Free atom, Unknown'},
+                 {'type': 1,
+                  'coordination': 12,
+                  'name': 'bulk'},
+                 {'type': 2,
+                  'coordination': 8,
+                  'name': '100 surface'},
+                 {'type': 3,
+                  'coordination': 7,
+                  'name': '110 surface (top), 111-111 edge, 110-111 edge'},
+                 {'type': 4,
+                  'coordination': 11,
+                  'name': '110 surface (bottom)'},
+                 {'type': 5,
+                  'coordination': 9,
+                  'name': '111 surface'},
+                 {'type': 6,
+                  'coordination': 6,
+                  'name': '100-110 edge'},
+                 {'type': 7,
+                  'coordination': 7,
+                  'name': '100-111 edge'},
+                 {'type': 8,
+                  'coordination': 6,
+                  'name': '111-111-100 corner'},
+                 {'type': 9,
+                  'coordination': 4,
+                  'name': '100 surface ad-atom'},
+                 {'type': 10,
+                  'coordination': 5,
+                  'name': '110 surface ad-atom (bottom), A5 site'},
+                 {'type': 11,
+                  'coordination': 3,
+                  'name': '111 surface ad-atom'},
+                 {'type': 12,
+                  'coordination': 9,
+                  'name': '100 surface with ad-atom'},
+                 {'type': 13,
+                  'coordination': 8,
+                  'name': '110 surface with ad-atom'},
+                 {'type': 14,
+                  'coordination': 10,
+                  'name': '111 surface with ad-atom'},
+                 {'type': 15,
+                  'coordination': 5,
+                  'name': 'B5 site'},
                  ]
 
 type_count = len(basetype_names)
@@ -245,7 +245,7 @@ type_data = []
 for i, n in enumerate(basetype_names):
     type_names.append(n)
     type_data.append(basetype_data[i])
-    
+
     for sym in neighbor_symmetries:
         new_type = apply_neighbor_symmetry(n, sym)
 
@@ -255,7 +255,7 @@ for i, n in enumerate(basetype_names):
 
 type_numbers = {}
 for i, n in enumerate(type_names):
-	type_numbers[n] = i
+    type_numbers[n] = i
 
 data = {'symmetries': symmetries,
         'surface_names': surface_names,

@@ -19,7 +19,7 @@ class FIRE(Optimizer):
         self.astart = astart
         self.fa = fa
         self.a = a
-	
+
     def initialize(self):
         self.v = None
 
