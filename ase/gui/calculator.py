@@ -1013,7 +1013,7 @@ class AIMS_Window(gtk.Window):
         pack(vbox, [self.compute_forces])
         pack(vbox, gtk.Label(""))
 
-        self.expert_keyword_set = gtk.Entry(max = 45)
+        self.expert_keyword_set = gtk.Entry(max = 55)
         self.expert_keyword_add = gtk.Button(stock = gtk.STOCK_ADD)
         self.expert_keyword_add.connect("clicked", self.expert_keyword_import)
         self.expert_keyword_set.connect("activate", self.expert_keyword_import)
@@ -1309,7 +1309,7 @@ class AIMS_Window(gtk.Window):
                 argument += ' '+a
         index = len(self.expert_keywords) 
         self.expert_keywords += [[gtk.Label("    " +key+"  "),
-                                  gtk.Entry(max=35),
+                                  gtk.Entry(max=45),
                                   ExpertDeleteButton(index),
                                   True]]
         self.expert_keywords[index][1].set_text(argument)
@@ -1410,7 +1410,7 @@ class VASP_Window(gtk.Window):
 #                    self.encut_spin, 
 #                    gtk.Label(" eV")])
         
-        self.expert_keyword_set = gtk.Entry(max = 45)
+        self.expert_keyword_set = gtk.Entry(max = 55)
         self.expert_keyword_add = gtk.Button(stock = gtk.STOCK_ADD)
         self.expert_keyword_add.connect("clicked", self.expert_keyword_import)
         self.expert_keyword_set.connect("activate", self.expert_keyword_import)

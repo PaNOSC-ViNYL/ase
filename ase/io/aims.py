@@ -267,7 +267,7 @@ def read_aims_calculator(file):
                     # build output string from args:
                     out_option = ''
                     for arg in args[1:]:
-                        out_option +=str(arg)
+                        out_option +=str(arg)+' '
                     if calc.list_params['output'] is not None:
                         calc.list_params['output'] += [out_option]
                     else:
