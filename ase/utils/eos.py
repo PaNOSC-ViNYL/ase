@@ -21,6 +21,7 @@ class EquationOfState:
 
     poly
         A simply third order polynomial fit
+        
     taylor
         A third order Taylor series expansion about the minimum volume
 
@@ -100,7 +101,7 @@ class EquationOfState:
 
     def birch(self,parameters,V):
         '''
-        From Intermetallic compounds: Principles and Practice, Vol. I: Princples
+        From Intermetallic compounds: Principles and Practice, Vol. I: Principles
         Chapter 9 pages 195-210 by M. Mehl. B. Klein, D. Papaconstantopoulos
         paper downloaded from Web
 
