@@ -25,6 +25,7 @@ other :mod:`Calculator <calculators>` could be plugged in instead.
    surface
 
    manipulating_atoms
+   spacegroup/spacegroup
    atomization
    lattice_constant
    eos/eos
