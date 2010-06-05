@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
+from numpy import exp, log, sqrt
+
 eV = 1.0
 _e = 1.60217733e-19          # elementary charge (C)
 J = 1.0 / _e
