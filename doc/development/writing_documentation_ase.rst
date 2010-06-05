@@ -135,8 +135,9 @@ reStructedText in emacs
 For people using emacs, the `reStructuredText extension`_ is highly
 recommended. The intallation procedure is described in the top of the
 file, but for most people, it is enough to place it in your emacs
-load-path (typically ``.emacs.d/``) and add the line::
+load-path (typically ``.emacs.d/``) and add the lines::
 
+  (add-to-list 'load-path "~/.emacs.d")
   (require 'rst)
 
 somewhere in your ``.emacs`` file.
