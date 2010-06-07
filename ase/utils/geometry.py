@@ -129,17 +129,17 @@ def cut(atoms, a=(1,0,0), b=(0,1,0), c=(0,0,1), origo=(0,0,0),
 
     >>> import ase
     >>> from ase.lattice.spacegroup import crystal
-
+    >>>
     # Create an aluminium (111) slab with three layers
     #
     # First an unit cell of Al
     >>> a = 4.05
     >>> aluminium = crystal('Al', [(0,0,0)], spacegroup=225,
     ...                     cellpar=[a, a, a, 90, 90, 90])
-
+    >>>
     # Then cut out the slab
     >>> al111 = cut(aluminium, (1,-1,0), (0,1,-1), nlayers=3)
-    
+    >>>
     # Visualisation of the skutterudite unit cell 
     #
     # Again, create a skutterudite unit cell
@@ -149,7 +149,7 @@ def cut(atoms, a=(1,0,0), b=(0,1,0), c=(0,0,1), origo=(0,0,0),
     ...     basis=[(0.25,0.25,0.25), (0.0, 0.335, 0.158)], 
     ...     spacegroup=204, 
     ...     cellpar=[a, a, a, 90, 90, 90])
-
+    >>>
     # Then use *origo* to put 'Co' at the corners and *extend* to
     # include all corner and edge atoms.
     >>> s = cut(skutterudite, origo=(0.25, 0.25, 0.25), extend=1.01)
@@ -252,22 +252,22 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
 
     >>> import ase
     >>> from ase.lattice.spacegroup import crystal
-
+    >>>
     # Create an Ag(110)-Si(110) interface with three atomic layers
     # on each side. 
     >>> a_ag = 4.09
     >>> ag = crystal(['Ag'], basis=[(0,0,0)], spacegroup=225, 
     ...              cellpar=[a_ag, a_ag, a_ag, 90., 90., 90.])
     >>> ag110 = cut(ag, (0, 0, 3), (-1.5, 1.5, 0), nlayers=3)
-
+    >>>
     >>> a_si = 5.43
     >>> si = crystal(['Si'], basis=[(0,0,0)], spacegroup=227, 
     ...              cellpar=[a_si, a_si, a_si, 90., 90., 90.])
     >>> si110 = cut(si, (0, 0, 2), (-1, 1, 0), nlayers=3)
-
+    >>>
     >>> interface = stack(ag110, si110, maxstrain=1)
     >>> ase.view(interface)  # doctest: +SKIP
-
+    >>>
     # Once more, this time adjusted such that the distance between
     # the closest Ag and Si atoms will be 2.3 Angstrom.
     >>> interface2 = stack(ag110, si110, 
