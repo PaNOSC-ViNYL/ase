@@ -193,7 +193,7 @@ def cut(atoms, a=(1,0,0), b=(0,1,0), c=(0,0,1), origo=(0,0,0),
         c = np.linalg.solve(metric.T, miller.T).T
         c *= layers[nlayers]/np.sqrt(np.dot(c, miller))
 
-    newcell = np.dot(cell, np.array([a, b, c]))
+    newcell = np.dot(np.array([a, b, c]), cell)
     
     # Create a new atoms object, repeated and translated such that
     # it completely covers the new cell
