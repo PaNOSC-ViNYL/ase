@@ -250,6 +250,12 @@ class Images:
                       tags=self.T,
                       cell=self.A[frame],
                       pbc=self.pbc)
+        
+        # check for constrained atoms and add them accordingly:
+        if not self.dynamic.all():
+            from ase.constraints import FixAtoms
+            atoms.set_constraint(FixAtoms(mask=self.dynamic))
+        
         atoms.set_calculator(SinglePointCalculator(self.E[frame],
                                                    self.F[frame],
                                                    None, None, atoms))
