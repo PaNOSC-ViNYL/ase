@@ -12,7 +12,7 @@ import numpy as np
 
 import ase.units as units
 from ase.io.trajectory import PickleTrajectory
-from ase.parallel import rank, barrier
+from ase.parallel import rank, barrier, paropen
 
 
 class Vibrations:
@@ -110,8 +110,9 @@ class Vibrations:
                 fd = open(filename, 'w')
                 if self.ir:
                     pickle.dump([forces, dipole], fd)
-                    sys.stdout.write('Writing %s, dipole moment = (%.6f %.6f %.6f)\n' % 
-                                             (filename, dipole[0], dipole[1], dipole[2]))
+                    sys.stdout.write(
+                        'Writing %s, dipole moment = (%.6f %.6f %.6f)\n' % 
+                        (filename, dipole[0], dipole[1], dipole[2]))
                 else:
                     pickle.dump(forces, fd)
                     sys.stdout.write('Writing %s\n' % filename)
@@ -123,12 +124,13 @@ class Vibrations:
             for i in range(3):
                 for sign in [-1, 1]:
                     for ndis in range(1, self.nfree/2+1):
-                        filename = '%s.%d%s%s.pckl' % (self.name, a,
-                                                       'xyz'[i], ndis*' +-'[sign])
+                        filename = ('%s.%d%s%s.pckl' %
+                                    (self.name, a, 'xyz'[i], ndis*' +-'[sign]))
                         if isfile(filename):
                             continue
                         barrier()
-                        self.atoms.positions[a, i] = p[a, i] + ndis * sign * self.delta
+                        self.atoms.positions[a, i] = (p[a, i] +
+                                                      ndis * sign * self.delta)
                         forces = self.atoms.get_forces()
                         if self.ir:
                             dipole = self.calc.get_dipole_moment(self.atoms)
@@ -136,8 +138,10 @@ class Vibrations:
                             fd = open(filename, 'w')
                             if self.ir:
                                 pickle.dump([forces, dipole], fd)
-                                sys.stdout.write('Writing %s, dipole moment = (%.6f %.6f %.6f)\n' % 
-                                                 (filename, dipole[0], dipole[1], dipole[2]))
+                                sys.stdout.write(
+                                    'Writing %s, ' % filename +
+                                    'dipole moment = (%.6f %.6f %.6f)\n' % 
+                                    (dipole[0], dipole[1], dipole[2]))
                             else:
                                 pickle.dump(forces, fd)
                                 sys.stdout.write('Writing %s\n' % filename)
@@ -187,7 +191,10 @@ class Vibrations:
                     if self.nfree == 2:
                         H[r] = .5 * (fminus - fplus)[self.indices].ravel()
                     else:
-                        H[r] = H[r] = (-fminusminus+8*fminus-8*fplus+fplusplus)[self.indices].ravel() / 12.0
+                        H[r] = H[r] = (-fminusminus +
+                                       8 * fminus -
+                                       8 * fplus +
+                                       fplusplus)[self.indices].ravel() / 12.0
                 elif self.direction == 'forward':
                     H[r] = (feq - fplus)[self.indices].ravel()
                 else: # self.direction == 'backward':
@@ -217,100 +224,122 @@ class Vibrations:
         s = 0.01 * units._e / units._c / units._hplanck
         return s * self.get_energies(method, direction)
 
-    def summary(self, method='standard', direction='central', T=298., threshold=10, freq=None):
-        """Print a summary of the frequencies and derived thermodynamic properties. The
-        equations for the calculation of the enthalpy and entropy diverge for zero frequencies
-        and a threshold value is used to ignore extremely low frequencies (default = 10 cm^-1).
+    def summary(self, method='standard', direction='central', T=298., 
+                threshold=10, freq=None, log=sys.stdout):
+        """Print a summary of the frequencies and derived thermodynamic
+        properties. The equations for the calculation of the enthalpy and 
+        entropy diverge for zero frequencies and a threshold value is used
+        to ignore extremely low frequencies (default = 10 cm^-1).
 
         Parameters:
 
         method : string
             Can be 'standard'(default) or 'Frederiksen'.
         direction: string
-            Direction for finite differences. Can be one of 'central'(default), 'forward', 'backward'.
+            Direction for finite differences. Can be one of 'central'
+            (default), 'forward', 'backward'.
         T : float
-            Temperature in K at which thermodynamic properties are calculated.   
+            Temperature in K at which thermodynamic properties are calculated.
         threshold : float
             Threshold value for low frequencies (default 10 cm^-1).
         freq : numpy array
-            Optional. Can be used to create a summary on a set of known frequencies.
+            Optional. Can be used to create a summary on a set of known
+            frequencies.
+        destination : string or object with a .write() method
+            Where to print the summary info. Default is to print to
+            standard output. If another string is given, it creates that
+            text file and writes the output to it. If a file object (or any
+            object with a .write(string) function) is given, it writes to that
+            file.
 
         Notes:
 
-        The enthalpy and entropy calculations are very sensitive to low frequencies
-        and the threshold value must be used with caution."""
+        The enthalpy and entropy calculations are very sensitive to low
+        frequencies and the threshold value must be used with caution."""
 
+        if isinstance(log, str):
+            log = paropen(log, 'a')
+        write = log.write
+        
         s = 0.01 * units._e / units._c / units._hplanck
         if freq != None:
             hnu = freq / s
         else:
             hnu = self.get_energies(method, direction)
-        print '---------------------'
-        print '  #    meV     cm^-1'
-        print '---------------------'
+        write('---------------------\n')
+        write('  #    meV     cm^-1\n')
+        write('---------------------\n')
         for n, e in enumerate(hnu):
             if e.imag != 0:
                 c = 'i'
                 e = e.imag
             else:
                 c = ' '
-            print '%3d %6.1f%s  %7.1f%s' % (n, 1000 * e, c, s * e, c)
-        print '---------------------'
-        print 'Zero-point energy: %.3f eV' % self.get_zero_point_energy(freq=freq)
-        print 'Thermodynamic properties at %.2f K' % T
-        print 'Enthalpy: %.3f eV' % self.get_enthalpy(method=method,
-                                                      direction=direction,
-                                                      T=T,
-                                                      threshold=threshold,
-                                                      freq=freq)
-        print 'Entropy : %.3f meV/K' % (1E3 * self.get_entropy(method=method,
-                                                               direction=direction,
-                                                               T=T,
-                                                               threshold=threshold,
-                                                               freq=freq))
-        print 'T*S     : %.3f eV' % (T * self.get_entropy(method=method,
-                                                      direction=direction,
-                                                      T=T,
-                                                      threshold=threshold,
-                                                      freq=freq))
-        print 'E->G    : %.3f eV' % (self.get_zero_point_energy(freq=freq) +
-                                     self.get_enthalpy(method=method,
-                                                       direction=direction,
-                                                       T=T,
-                                                       threshold=threshold,
-                                                       freq=freq) -
-                                     T * self.get_entropy(method=method,
-                                                          direction=direction,
-                                                          T=T,
-                                                          threshold=threshold,
-                                                          freq=freq))
-        print
+            write('%3d %6.1f%s  %7.1f%s\n' % (n, 1000 * e, c, s * e, c))
+        write('---------------------\n')
+        write('Zero-point energy: %.3f eV\n' %
+              self.get_zero_point_energy(freq=freq))
+        write('Thermodynamic properties at %.2f K\n' % T)
+        write('Enthalpy: %.3f eV\n' % self.get_enthalpy(method=method,
+                                                        direction=direction,
+                                                        T=T,
+                                                        threshold=threshold,
+                                                        freq=freq))
+        write('Entropy : %.3f meV/K\n' % 
+              (1E3 * self.get_entropy(method=method,
+                                      direction=direction,
+                                      T=T,
+                                      threshold=threshold,
+                                      freq=freq)))
+        write('T*S     : %.3f eV\n' %
+              (T * self.get_entropy(method=method,
+                                    direction=direction,
+                                    T=T,
+                                    threshold=threshold,
+                                    freq=freq)))
+        write('E->G    : %.3f eV\n' %
+              (self.get_zero_point_energy(freq=freq) +
+               self.get_enthalpy(method=method,
+                                 direction=direction,
+                                 T=T,
+                                 threshold=threshold,
+                                 freq=freq) -
+               T * self.get_entropy(method=method,
+                                    direction=direction,
+                                    T=T,
+                                    threshold=threshold,
+                                    freq=freq)))
 
     def get_zero_point_energy(self, freq=None):
-        if freq == None:
+        if freq is None:
             return 0.5 * self.hnu.real.sum()
         else:
             s = 0.01 * units._e / units._c / units._hplanck
             return 0.5 * freq.real.sum() / s
 
-    def get_enthalpy(self, method='standard', direction='central', T=298., threshold=10, freq=None):
-        H = 0.
-        if freq == None:
+    def get_enthalpy(self, method='standard', direction='central', T=298.0,
+                     threshold=10, freq=None):
+        H = 0.0
+        if freq is None:
             freq = self.get_frequencies(method=method, direction=direction)
         for f in freq:
-            if f.imag == 0 and f.real >= threshold:   # the formula diverges for f->0
+            if f.imag == 0 and f.real >= threshold:
+                # The formula diverges for f->0
                 x = (f.real * 100 * units._hplanck * units._c) / units._k
                 H += units._k / units._e * x / (np.exp(x / T) - 1)
         return H
 
-    def get_entropy(self, method='standard', direction='central', T=298., threshold=10, freq=None):
-        S = 0.
-        if freq == None:
+    def get_entropy(self, method='standard', direction='central', T=298.0,
+                    threshold=10, freq=None):
+        S = 0.0
+        if freq is None:
             freq=self.get_frequencies(method=method, direction=direction)
         for f in freq:
-            if f.imag == 0 and f.real >= threshold:   # the formula diverges for f->0
+            if f.imag == 0 and f.real >= threshold:
+                # The formula diverges for f->0
                 x = (f.real * 100 * units._hplanck * units._c) / units._k
-                S += units._k / units._e * (((x / T) / (np.exp(x / T) - 1)) - np.log(1 - np.exp(-x / T)))
+                S += (units._k / units._e * (((x / T) / (np.exp(x / T) - 1)) -
+                                             np.log(1 - np.exp(-x / T))))
         return S
 
     def get_mode(self, n):
@@ -336,10 +365,10 @@ class Vibrations:
     def write_jmol(self):
         """Writes file for viewing of the modes with jmol."""
 
-        fd = open(self.name+'.xyz', 'w')
+        fd = open(self.name + '.xyz', 'w')
         symbols = self.atoms.get_chemical_symbols()
         f = self.get_frequencies()
-        for n in range(3*len(self.atoms)):
+        for n in range(3 * len(self.atoms)):
             fd.write('%6d\n' % len(self.atoms))
             if f[n].imag != 0:
                 c = 'i'
@@ -354,5 +383,6 @@ class Vibrations:
             mode = self.get_mode(n)
             for i, pos in enumerate(self.atoms.positions):
                 fd.write('%2s %12.5f %12.5f %12.5f %12.5f %12.5f %12.5f \n' % 
-                         (symbols[i], pos[0], pos[1], pos[2], mode[i,0], mode[i,1], mode[i,2]) )
+                         (symbols[i], pos[0], pos[1], pos[2],
+                          mode[i,0], mode[i,1], mode[i,2]))
         fd.close()
