@@ -3,37 +3,6 @@ import time
 import atexit
 
 
-# Check for special MPI-enabled Python interpreters:
-if '_gpaw' in sys.modules:
-    # http://wiki.fysik.dtu.dk/gpaw
-    from gpaw.mpi import world
-    rank = world.rank
-    size = world.size
-    barrier = world.barrier
-elif 'asapparallel3' in sys.modules:
-    # http://wiki.fysik.dtu.dk/Asap
-    # We cannot import asap3.mpi here, as that creates an import deadlock
-    #from asap3.mpi import world
-    import asapparallel3
-    world = asapparallel3.Communicator()
-    rank = world.rank
-    size = world.size
-    barrier = world.barrier    
-elif 'Scientific_mpi' in sys.modules:
-    # 
-    from Scientific.MPI import world
-    rank = world.rank
-    size = world.size
-    barrier = world.barrier
-else:
-    # This is a standard Python interpreter:
-    rank = 0
-    size = 1
-    world = None
-    def barrier():
-        pass
-
-
 def paropen(name, mode='r', buffering=0):
     """MPI-safe version of open function.
 
@@ -69,6 +38,38 @@ def parprint(*args, **kwargs):
         print last
     else:
         print last,
+
+# Check for special MPI-enabled Python interpreters:
+if '_gpaw' in sys.modules:
+    # http://wiki.fysik.dtu.dk/gpaw
+    from gpaw.mpi import world
+    rank = world.rank
+    size = world.size
+    barrier = world.barrier
+elif 'asapparallel3' in sys.modules:
+    # http://wiki.fysik.dtu.dk/Asap
+    # We cannot import asap3.mpi here, as that creates an import deadlock
+    #from asap3.mpi import world
+    import asapparallel3
+    world = asapparallel3.Communicator()
+    rank = world.rank
+    size = world.size
+    barrier = world.barrier    
+elif 'Scientific_mpi' in sys.modules:
+    # 
+    from Scientific.MPI import world
+    rank = world.rank
+    size = world.size
+    barrier = world.barrier
+else:
+    # This is a standard Python interpreter:
+    rank = 0
+    size = 1
+    world = None
+    def barrier():
+        pass
+
+
 
 
 def register_parallel_cleanup_function():
