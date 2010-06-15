@@ -365,8 +365,8 @@ class GUI(View, Status):
         SHIFT = event.state == gtk.gdk.SHIFT_MASK
         dxdydz = {gtk.keysyms.KP_Add: ('zoom', 1.2, 0),
                 gtk.keysyms.KP_Subtract: ('zoom', 1 / 1.2, 0),
-                gtk.keysyms.Up:    ( 0, -1 + CTRL, +CTRL),
-                gtk.keysyms.Down:  ( 0, +1 - CTRL, -CTRL),
+                gtk.keysyms.Up:    ( 0, +1 - CTRL, +CTRL),
+                gtk.keysyms.Down:  ( 0, -1 + CTRL, -CTRL),
                 gtk.keysyms.Right: (+1,  0, 0),
                 gtk.keysyms.Left:  (-1,  0, 0)}.get(event.keyval, None)
         try:
