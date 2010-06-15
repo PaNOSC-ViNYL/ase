@@ -209,6 +209,7 @@ class SetupGraphene(SetupWindow):
         # Now, rotate into the xy plane (ase.gui's default view plane)
         pos = self.atoms.get_positions()
         cell = self.atoms.get_cell()
+        pbc = self.atoms.get_pbc()
         cell[1,1], cell[2,2] = cell[2,2], cell[1,1]
         x = pos[:,1].copy()
         z = pos[:,2].copy()
@@ -216,6 +217,7 @@ class SetupGraphene(SetupWindow):
         pos[:,2] = x
         self.atoms.set_cell(cell)
         self.atoms.set_positions(pos)
+        self.atoms.set_pbc([pbc[0], pbc[2], pbc[1]])
 
     def apply(self, *args):
         self.makeatoms()

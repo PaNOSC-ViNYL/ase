@@ -246,6 +246,7 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
             atoms += layer
         atoms.cell = [b * 4 * n + vacc2, vacc, 3 * C_C * m]
     atoms.center()
+    atoms.set_pbc([sheet, False, True])
     return atoms
 
 
