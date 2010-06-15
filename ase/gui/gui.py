@@ -42,6 +42,7 @@ from ase.gui.settings import Settings
 from ase.gui.surfaceslab import SetupSurfaceSlab
 from ase.gui.nanoparticle import SetupNanoparticle
 from ase.gui.nanotube import SetupNanotube
+from ase.gui.graphene import SetupGraphene
 from ase.gui.calculator import SetCalculator
 from ase.gui.energyforces import EnergyForces
 from ase.gui.minimize import Minimize
@@ -102,6 +103,7 @@ ui_info = """\
     <menu action='SetupMenu'>
       <menuitem action='Surface'/>
       <menuitem action='Nanoparticle'/>
+      <menuitem action='Graphene'/>
       <menuitem action='Nanotube'/>
     </menu>
     <menu action='CalculateMenu'>
@@ -246,6 +248,9 @@ class GUI(View, Status):
             ('Nanotube', None, 'Nano_tube', None,
              "Create a nanotube",
              self.nanotube_window),
+            ('Graphene', None, 'Graphene', None,
+             "Create a graphene sheet or nanoribbon",
+             self.graphene_window),
             ('SetCalculator', None, 'Set _Calculator', None,
              "Set a calculator used in all calculation modules",
              self.calculator_window),
@@ -1016,6 +1021,9 @@ class GUI(View, Status):
     def nanoparticle_window(self, menuitem):
         SetupNanoparticle(self)
         
+    def graphene_window(self, menuitem):
+        SetupGraphene(self)
+
     def nanotube_window(self, menuitem):
         SetupNanotube(self)
 
