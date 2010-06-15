@@ -81,6 +81,28 @@ implementation is mainly to make EMT available when ASAP is
 not installed.
 """
 
+brenner_info_txt = """\
+The Brenner potential is a reactive bond-order potential for
+carbon and hydrocarbons.  As a bond-order potential, it takes
+into account that carbon orbitals can hybridize in different
+ways, and that carbon can form single, double and triple
+bonds.  That the potential is reactive means that it can
+handle gradual changes in the bond order as chemical bonds
+are formed or broken.
+
+The Brenner potential is implemented in Asap, based on a
+C implentation published at http://www.rahul.net/pcm/brenner/ .
+
+The potential is documented here:
+  Donald W Brenner, Olga A Shenderova, Judith A Harrison,
+  Steven J Stuart, Boris Ni and Susan B Sinnott:
+  "A second-generation reactive empirical bond order (REBO)
+  potential energy expression for hydrocarbons",
+  J. Phys.: Condens. Matter 14 (2002) 783-802.
+  doi: 10.1088/0953-8984/14/4/312
+"""
+
+
 gpaw_info_txt = """\
 GPAW implements Density Functional Theory using a
 <b>G</b>rid-based real-space representation of the wave
@@ -124,7 +146,7 @@ class SetCalculator(SetupWindow):
     "Window for selecting a calculator."
 
     # List the names of the radio button attributes
-    radios = ("none", "lj", "emt", "aseemt", "gpaw","aims")
+    radios = ("none", "lj", "emt", "aseemt", "brenner", "gpaw", "aims", "vasp")
     # List the names of the parameter dictionaries
     paramdicts = ("lj_parameters",)
     # The name used to store parameters on the gui object
@@ -169,6 +191,12 @@ class SetCalculator(SetupWindow):
         self.aseemt_info = InfoButton(aseemt_info_txt)
         self.pack_line(vbox, self.aseemt_radio, None, self.aseemt_info)
 
+        # Brenner potential
+        self.brenner_radio = gtk.RadioButton(
+            self.none_radio, "Brenner Potential (ASAP)")
+        self.brenner_info = InfoButton(brenner_info_txt)
+        self.pack_line(vbox, self.brenner_radio, None, self.brenner_info)
+        
         # GPAW
         self.gpaw_radio = gtk.RadioButton(self.none_radio,
                                           "Density Functional Theory (GPAW)")
@@ -291,6 +319,10 @@ class SetCalculator(SetupWindow):
             if nochk or self.aseemt_check():
                 self.choose_aseemt()
                 return True
+        elif self.brenner_radio.get_active():
+            if nochk or self.brenner_check():
+                self.choose_brenner()
+                return True
         elif self.gpaw_radio.get_active():
             if nochk or self.gpaw_check():
                 self.choose_gpaw()
@@ -399,6 +431,22 @@ class SetCalculator(SetupWindow):
     def aseemt_check(self):
         return self.element_check("ASE EMT", ['H', 'Al', 'Cu', 'Ag', 'Au',
                                               'Ni', 'Pd', 'Pt', 'C', 'N', 'O'])
+
+    def choose_aseemt(self):
+        self.gui.simulation["calc"] = ase.EMT
+        ase.EMT.disabled = False  # In case Asap has been imported.
+
+    def brenner_check(self):
+        try:
+            import asap3
+        except ImportError:
+            oops("ASAP is not installed. (Failed to import asap3)")
+            return False
+        return self.element_check("Brenner potential", ['H', 'C', 'Si'])
+
+    def choose_brenner(self):
+        import asap3
+        self.gui.simulation["calc"] = asap3.BrennerPotential
 
     def choose_aseemt(self):
         self.gui.simulation["calc"] = ase.EMT
