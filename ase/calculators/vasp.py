@@ -437,7 +437,6 @@ class Vasp(Calculator):
             atoms = ase.io.read('CONTCAR', format='vasp')
             self.sort = range(len(atoms))
             self.resort = range(len(atoms))
-        print self.resort
         self.atoms = atoms.copy()
         self.read_incar()
         self.set_results(atoms)
@@ -1352,8 +1351,10 @@ class xdat2traj:
 
     def convert(self):
         lines = open(self.xdatcar).readlines()
-
-        del(lines[0:6])
+        if len(lines[5].split())==0:
+            del(lines[0:6])
+        elif len(lines[4].split())==0:
+            del(lines[0:5])
         step = 0
         iatom = 0
         scaled_pos = []
