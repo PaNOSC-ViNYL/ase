@@ -390,6 +390,11 @@ class Jacapo:
     def initnc(self, ncfile):
         'create an ncfile with minimal dimensions in it'
         if self.debug > 0: print 'initializing ', ncfile
+
+        base,f = os.path.split(ncfile)
+        if base is not '' and not os.path.isdir(base):
+            os.makedirs(base)
+        
         ncf = netCDF(ncfile, 'w')
         #first, we define some dimensions we always need
         #unlimited
@@ -778,7 +783,7 @@ class Jacapo:
           nbands : integer
             the number of bands.
             
-        if nbands = None tje function returns with nothing done. At
+        if nbands = None the function returns with nothing done. At
         calculate time, if there are still no bands, they will be set
         by:
 
@@ -787,6 +792,10 @@ class Jacapo:
         '''
         if nbands is None:
             return
+
+        self.delete_ncattdimvar(self.nc,
+                                ncdims=['number_of_bands'],
+                                ncvars=[])
                        
         nc = netCDF(self.nc, 'a')
         v = 'ElectronicBands'
@@ -884,7 +893,8 @@ class Jacapo:
             self.delete_ncattdimvar(self.nc,
                                     ncdims=['number_plane_waves',
                                             'number_BZ_kpoints',
-                                            'number_IBZ_kpoints'])
+                                            'number_IBZ_kpoints'],
+                                    ncvars=[])
 
         # now define dim and var
         nc = netCDF(self.nc, 'a')
@@ -933,9 +943,10 @@ class Jacapo:
         if lenmatch and posmatch and cellmatch:
             return True
         else:
-            print 'posmatch = ',posmatch
-            print 'cellmatch = ',cellmatch,self.atoms.get_cell(),atoms.get_cell()
-            print 'lenmatch = ',lenmatch
+            if self.debug > 1:
+                print 'posmatch = ',posmatch,abs(a['positions'] - b['positions'])
+                print 'cellmatch = ',cellmatch,self.atoms.get_cell(),atoms.get_cell()
+                print 'lenmatch = ',lenmatch
             return False
                 
     def set_atoms(self, atoms):
@@ -1200,7 +1211,12 @@ class Jacapo:
                 print 'copying %s to %s' % (self.nc,nc)
             #import shutil
             #shutil.copy(self.nc,nc)
-            os.system('cp %s %s' % (self.nc,nc))
+            base,f = os.path.split(nc)
+            if not os.path.isdir(base):
+                os.makedirs(base)
+            status = os.system('cp %s %s' % (self.nc,nc))
+            if status != 0:
+                raise Exception, 'Copying ncfile failed.'
             self.nc = nc
         
         elif os.path.exists(nc):
@@ -1309,7 +1325,12 @@ class Jacapo:
             sym = None
             
         nc.close()
-        return sym
+        if sym == 'Off':
+            return False
+        elif sym == 'Maximum':
+            return True
+        else:
+            raise Exception, 'Type of symmetry not recognized'
 
     def _set_symmetry(self,x):
         self.set_symmetry(x)
@@ -1514,7 +1535,8 @@ class Jacapo:
                                     ncdims=['softgrid_dim1',
                                             'softgrid_dim2',
                                             'softgrid_dim3'
-                                            ])
+                                            ],
+                                    ncvars=[])
         
             
             nc = netCDF(self.get_nc(),'a')
@@ -1532,7 +1554,8 @@ class Jacapo:
                                     ncdims=['hardgrid_dim1',
                                             'hardgrid_dim2',
                                             'hardgrid_dim3'
-                                            ])
+                                            ],
+                                    ncvars=[])
             nc = netCDF(self.get_nc(),'a')
             nc.createDimension('hardgrid_dim1',hard[0])
             nc.createDimension('hardgrid_dim2',hard[1])
@@ -1833,10 +1856,12 @@ class Jacapo:
                 position = v.DipoleLayerPosition
             else:
                 position = None
+
+            ed = {'value':value,'position':position}
         else:
-            value,position = None,None
+            ed = None
         nc.close()
-        return {'value':value,'position':position}
+        return ed
 
     def _set_dipole(self,x):
         if x in [True,False]:
@@ -3030,7 +3055,10 @@ s.recv(14)
             except TypeError:
                 #this exception occurs for scalar variables
                 #use getValue and assignValue instead
-                if self.debug > 0: print 'EXCEPTION HAPPENED in delete_NCATTR'
+                if self.debug > 0:
+                    print 'TypeError EXCEPTION HAPPENED in delete_NCATTR, you can ignore this message.'
+                    print 'variable name: %s' % v
+
                 ncvar2.assignValue(ncvar.getValue())
 
             #and variable attributes
@@ -4049,7 +4077,7 @@ s.recv(14)
         elif x.shape == (3,) and ((x.dtype == 'int32') or (x.dtype == 'int64')):
             return True
         #user-defined list
-        elif x.shape[1] == 3 and (x.dtype[0:5] == 'float64'):
+        elif x.shape[1] == 3 and (str(x.dtype))[0:7] == 'float64':
             return True
         else:
             return False
@@ -4185,6 +4213,7 @@ s.recv(14)
             return True
         
         valid_keys = ['value','position']
+        
         for key in x:
             if key not in valid_keys:
                 return False
@@ -4323,10 +4352,12 @@ s.recv(14)
             return True
 
     def electronic_minimization_changed(self, x):
-        print 'checking if em changed'
         myx = self.get_electronic_minimization()
-        print myx
-        print x
+
+        for key in myx:
+            if myx[key] != x[key]:
+                print key, myx[key],' changed to ',x[key]
+                return True
         return False
 
     def spinpol_changed(self,x):
@@ -4336,7 +4367,7 @@ s.recv(14)
             return False
 
     def symmetry_changed(self,x):
-        if x != self.get_symmetry:
+        if x != self.get_symmetry():
             return True
         else:
             return False
@@ -4409,8 +4440,24 @@ s.recv(14)
             return False
         return True
 
+    def fftgrid_changed(self,x):
+        validkeys = ['soft','hard']
+
+        myx = self.get_fftgrid()
+        if (myx['soft'] == x['soft'] and myx['hard'] == x['hard']):
+            return False
+        else:
+            return True
+        
+
     def nbands_changed(self,x):
         if self.get_nbands() == x:
+            return False
+        else:
+            return True
+
+    def occupationstatistics_changed(self,x):
+        if self.get_occupationstatistics() == x:
             return False
         else:
             return True
@@ -4420,6 +4467,13 @@ s.recv(14)
             return False
         else:
             return True
+
+    def dw_changed(self,x):
+        if self.get_dw() == x:
+            return False
+        else:
+            return True
+        
     def ft_changed(self,x):
         if self.get_ft() == x:
             return False
