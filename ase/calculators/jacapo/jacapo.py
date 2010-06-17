@@ -2962,7 +2962,8 @@ s.recv(14)
         symbols = [x.tostring().strip() for x in sym]
         spos = nc.variables['DynamicAtomPositions'][:][-1]
 
-        pos = np.dot(cell,spos.T).T
+        #pos = np.dot(cell,spos.T).T #this is incorrect!
+        pos = np.dot(spos,cell)
         
         atoms = Atoms(symbols=symbols,
                       positions=pos,
