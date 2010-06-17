@@ -20,6 +20,16 @@ from Scientific.IO.NetCDF import NetCDFFile as netCDF
 import numpy as np
 import subprocess as sp
 
+import logging
+log = logging.getLogger('Jacapo')
+
+handler = logging.StreamHandler()
+formatter = logging.Formatter('''\
+%(levelname)-10s function: %(funcName)s lineno: %(lineno)-4d %(message)s''')
+handler.setFormatter(formatter)
+log.addHandler(handler)
+
+
 class DacapoRunning(exceptions.Exception):
     """Raised when ncfile.status = 'running'"""
     def __init__(self, value):
@@ -55,7 +65,7 @@ class Jacapo:
     '''
     
     __name__ = 'Jacapo'
-    __version__ = 0.3
+    __version__ = 0.4
     '''
     dictionary of valid input variables and default settings
     '''
@@ -108,7 +118,7 @@ class Jacapo:
     def __init__(self,
                  nc='out.nc',
                  outnc=None,
-                 debug=0,
+                 debug=logging.WARN,
                  stay_alive=False,
                  **kwargs):
         '''
@@ -176,8 +186,11 @@ class Jacapo:
           stress : Boolean
             Turn stress calculation on (True) or off (False)
 
-          debug : integer
-            set debug level (0 = off, 10 = extreme)
+          debug : level for logging
+            could be something like
+            logging.DEBUG or an integer 0-50. The higher the integer,
+            the less information you see set debug level (0 = off, 10 =
+            extreme)
         
         Modification of the nc file is immediate on setting the
         parameter, and in most cases will require a new calculation to
@@ -203,6 +216,7 @@ class Jacapo:
         
         '''
         self.debug = debug
+        log.setLevel(debug)
 
         self.pars = {}
         self.pars_uptodate = {}
@@ -242,15 +256,12 @@ class Jacapo:
             #__init__ we assume the user wants the atoms object
             # updated to the current state in the file.
             if 'atoms' in kwargs:
+                log.debug('Updating the atoms in kwargs')
+
                 atoms = kwargs['atoms']
-                if self.debug > 1:
-                    print 'Updating the atoms in kwargs'
-                    print atoms.get_positions()
                 atoms.set_cell(self.atoms.get_cell())
                 atoms.set_positions(self.atoms.get_positions())
                 atoms.calc = self
-                if self.debug > 1:
-                    print atoms.get_positions()
 
                 #should anything else be updated here? I think
                 #everything else comes from looking up something in
@@ -326,14 +337,11 @@ class Jacapo:
                 if hasattr(self, changef):
                     #print '+++ checking if %s changed' % key
                     notchanged = not eval('self.%s(kwargs[key])' % changef)
-                    if self.debug > 1:
-                        print key, 'notchanged = ',notchanged
+                    log.debug('%s notchanged = %s' % (key,notchanged))
                 else:
-                    if self.debug > 1:
-                        print changef, ' not found'
+                    log.warn('%s not found' % changef)
                     try:
                         notchanged = (self.pars[key] == kwargs[key])
-                        # if kwargs[key]
                     except ValueError:
                         print 'pars = ', self.pars[key]
                         print 'set = ', kwargs[key]
@@ -341,10 +349,9 @@ class Jacapo:
 
                 if notchanged:
                     continue
-                            
-            if self.debug > 0:
-                #print 'key: ',key, self.pars[key],kwargs[key]
-                print 'setting: %s. self.ready = False ' % key
+
+            log.debug('setting: %s. self.ready = False ' % key)
+            
             self.pars[key] = kwargs[key]
             self.pars_uptodate[key] = False
             self.ready = False
@@ -373,8 +380,8 @@ class Jacapo:
                 else:
                     raise Exception, 'No set function exists for %s' % key
                 self.pars_uptodate[key] = True #update the changed flag
-                if self.debug > 0:
-                    print 'wrote %s: %s' % (key, str(self.pars[key]))
+
+                log.debug('wrote %s: %s' % (key, str(self.pars[key])))
 
     #todo open ncfile, read everything in, close ncfile instead of
     #individual reads
@@ -382,15 +389,15 @@ class Jacapo:
         '''read in all the input parameters from the netcdfile'''
         for key in self.valid_input:
             getf = 'self.get_%s()' % key
-            if self.debug > 0: print 'getting ', key
+            log.debug('getting key: %s' % key)
             self.pars[key] = eval(getf)
             self.pars_uptodate[key] = True
         return self.pars
     
     def initnc(self, ncfile):
         'create an ncfile with minimal dimensions in it'
-        if self.debug > 0: print 'initializing ', ncfile
-
+        log.debug('initializing %s' % ncfile)
+        
         base,f = os.path.split(ncfile)
         if base is not '' and not os.path.isdir(base):
             os.makedirs(base)
@@ -633,20 +640,16 @@ class Jacapo:
                 # so if the energy is > 1E36, there is definitely
                 # something wrong and a restart is required.
                 if nc.variables.get('TotalEnergy', None)[-1] > 1E36:
-                    if self.debug > 1:
-                        print nc.variables.get('TotalEnergy', None)[-1]
-                        print "NC file is incomplete. Restart required"
+                    log.warn("Total energy > 1E36. NC file is incomplete. calc.restart required")
                     self.restart()
             else:
                 frame = 1
             nc.close()
-            if self.debug > 1:
-                print "Current frame number is: ", frame-1
+            log.info("Current frame number is: %i" % (frame-1))
         self._frame = frame-1  #netCDF starts counting with 1
 
     def _increment_frame(self):
-        if self.debug > 1:
-            print 'incrementing frame'
+        log.debug('incrementing frame')
         self._frame += 1
     
     def _set_pw(self, pw):
@@ -907,9 +910,8 @@ class Jacapo:
         nc.sync()
         nc.close()
 
-        if self.debug > 0:
-            print 'kpts = ', self.get_kpts()
-
+        log.debug('kpts = %s' % str(self.get_kpts()))
+        
         self.set_status('new')
         self.ready = False
 
@@ -943,10 +945,6 @@ class Jacapo:
         if lenmatch and posmatch and cellmatch:
             return True
         else:
-            if self.debug > 1:
-                print 'posmatch = ',posmatch,abs(a['positions'] - b['positions'])
-                print 'cellmatch = ',cellmatch,self.atoms.get_cell(),atoms.get_cell()
-                print 'lenmatch = ',lenmatch
             return False
                 
     def set_atoms(self, atoms):
@@ -962,8 +960,7 @@ class Jacapo:
         if hasattr(self, 'atoms') and self.atoms is not None:
             #return if the atoms are the same. no change needs to be made
             if self.atoms_are_equal(atoms):
-                if self.debug > 1:
-                    print 'No change to atoms in set_atoms, returning'
+                log.debug('No change to atoms in set_atoms, returning')
                 return
             
             # some atoms already exist. Test if new atoms are
@@ -972,10 +969,8 @@ class Jacapo:
             if atoms != self.atoms:
                 # the new atoms are different from the old ones. Start
                 # a new frame.
-                if self.debug>1:
-                    print 'in set atoms, atoms != self.atoms, incrementing'
-                    print atoms.get_positions()
-                    print self.atoms.get_positions()
+                log.debug('atoms != self.atoms, incrementing')
+                    
                 self._increment_frame()
                 
         self.atoms = atoms.copy()
@@ -1207,8 +1202,7 @@ class Jacapo:
         #calculator details are copied over. if the file already
         #exists we use the contents of the existing file
         if nc != self.nc and not os.path.exists(nc):
-            if self.debug > 0:
-                print 'copying %s to %s' % (self.nc,nc)
+            log.debug('copying %s to %s' % (self.nc,nc))
             #import shutil
             #shutil.copy(self.nc,nc)
             base,f = os.path.split(nc)
@@ -1743,6 +1737,19 @@ class Jacapo:
         self.set_status('new')
         self.ready = False
 
+    def set_debug(self,debug):
+        '''
+        set debug level
+
+        debug should be an integer from 0-100 or one of the logging
+        constants like logging.DEBUG, logging.WARN, etc...'''
+        
+        self.debug = debug
+        log.setLevel(debug)
+
+    def get_debug(self):
+        return self.debug
+
     def get_decoupling(self):
         nc = netCDF(self.get_nc(),'r')
         if 'Decoupling' in nc.variables:
@@ -2101,19 +2108,16 @@ class Jacapo:
         return the potential energy.
         '''
         if self.calculation_required(atoms):
-            if self.debug > 0: print 'calculation required for energy'
+            log.debug('calculation required for energy')
             self.calculate()
         else:
-            if self.debug > 0: print 'no calculation required for energy'
+            log.debug('no calculation required for energy')
                         
         nc = netCDF(self.get_nc(),'r')
         try:
             if force_consistent:
                 e = nc.variables['TotalFreeEnergy'][-1]
             else:
-                if self.debug > 0:
-                    print 'returning total energy'
-                    print nc.variables['TotalEnergy'][:]
                 e = nc.variables['TotalEnergy'][-1]
             nc.close()
             return e 
@@ -2126,7 +2130,6 @@ class Jacapo:
         if atoms is None:
             atoms = self.atoms
         if self.calculation_required(atoms):
-            if self.debug > 0: print 'calculation required for forces'
             self.calculate()
         nc = netCDF(self.get_nc(),'r')
         forces = nc.variables['DynamicAtomForces'][-1]
@@ -2420,15 +2423,14 @@ class Jacapo:
         
         # first, compare if the atoms is the same as the stored atoms
         # if anything has changed, we need to run a calculation
-        if self.debug > 0: print 'running calculation_required'
+        log.debug('running calculation_required')
 
         if self.nc is None:
             raise Exception, 'No output ncfile specified!'
                 
         if atoms is not None:
             if not self.atoms_are_equal(atoms):
-                if self.debug > 0:
-                    print 'found that atoms != self.atoms'
+                log.debug('found that atoms != self.atoms')
                 tol = 1.0e-6 #tolerance that the unit cell is the same
                 new = atoms.get_cell()
                 old = self.atoms.get_cell()
@@ -2436,16 +2438,12 @@ class Jacapo:
                 if not np.all(abs(old-new) < tol): 
                     #this often changes the number of planewaves
                     #which requires a complete restart
-                    if self.debug > 0:
-                        print 'restart required! because cell changed'
+                    log.debug('restart required! because cell changed')
                     self.restart()
                 else:
-                    if self.debug > 0:
-                        print 'Unitcells apparently the same'
+                    log.debug('Unitcells apparently the same')
                     
                 self.set_atoms(atoms) #we have to update the atoms in any case
-                if self.debug > 0:
-                    print 'returning true for calculation required'
                 return True
             
         #if we make it past the atoms check, we look in the
@@ -2456,9 +2454,8 @@ class Jacapo:
         #update in the calculator
 
         flag = True
-        if self.debug > 0: print 'atoms tested equal'
+        log.debug('atoms tested equal')
         if os.path.exists(self.nc):
-            if self.debug > 0: print 'ncfile = ',self.nc
             nc = netCDF(self.nc,'r')
             if hasattr(nc,'status'):
                 if nc.status == 'finished' and self.ready:
@@ -2471,9 +2468,7 @@ class Jacapo:
                     nc.close()
                     raise DacapoAborted('Dacapo aborted. try to fix the problem!')
                 else:
-                    if self.debug > 0:
-                        print 'ncfile exists, but is not ready'
-                        print 'self.ready = ',self.ready
+                    log.debug('ncfile exists, but is not ready')
                     nc.close()
                     return True
             else:
@@ -2490,7 +2485,6 @@ class Jacapo:
             nc.close()
             
         #default, a calculation is required
-        if self.debug > 0: print 'default calculation required'
         return True
 
     def get_scratch(self):
@@ -2526,7 +2520,7 @@ class Jacapo:
         if not self.ready:
             self.write_input() #make sure input is uptodate
             
-        if self.debug > 0: print 'running a calculation'
+        log.debug('running a calculation')
 
         nc = self.get_nc()
         txt= self.get_txt()
@@ -2548,7 +2542,7 @@ class Jacapo:
                                                                               'txt':txt,
                                                                               'scratch':scratch}
 
-            if self.debug > 0: print cmd
+            log.debug(cmd)
             # using subprocess instead of commands subprocess is more
             # flexible and works better for stay_alive
             self._dacapo = sp.Popen(cmd,
@@ -2605,12 +2599,12 @@ class Jacapo:
         import tempfile
         import os
 
-        if self.debug > 0:
-            if hasattr(self,"_dacapo"):
-                print "Starting External Dynamics while Dacapo is runnning ",self._dacapo.poll()
-            else:
-                print "No dacapo instance has been started yet"
-            print "Stopprogram",stopprogram
+        
+        if hasattr(self,"_dacapo"):
+            log.debug("Starting External Dynamics while Dacapo is runnning: %s " % str(self._dacapo.poll()))
+        else:
+            log.debug("No dacapo instance has been started yet")
+        log.debug("Stopprogram: %s" % stopprogram)
 
         if not nc: nc = self.get_nc()
         if not txt: txt = self.get_txt()
@@ -2752,7 +2746,7 @@ s.recv(14)
             scratch = self.get_scratch()
             cmd = 'dacapo.run  %(innc)s %(outnc)s -out %(txt)s -scratch %(scratch)s' % {'innc':scratch_in_nc,'outnc':nc,'txt':txt, 'scratch':scratch}
 
-            if self.debug > 0: print cmd
+            log.debug(cmd)
             self._dacapo = sp.Popen(cmd,
                                     stdout=sp.PIPE,
                                     stderr=sp.PIPE,
@@ -2765,8 +2759,9 @@ s.recv(14)
 
     def write_nc(self,nc=None,atoms=None):
         '''
-        write out a netcdffile. This does not change the ncfile
-        attached to the calculator!
+        write out atoms to a netcdffile.
+
+        This does not write out the calculation parameters!
 
         :Parameters:
 
@@ -2791,6 +2786,12 @@ s.recv(14)
         if nc is None: 
             nc = self.get_nc()
 
+        #set Jacapo version
+        ncf = netCDF(nc,'a')
+        ncf.Jacapo_version = Jacapo.__version__
+        ncf.sync()
+        ncf.close()
+        
         if nc != self.nc:
             #this means we are writing a new file, and we should copy
             #the old file to it first.  this makes sure the old
@@ -3000,9 +3001,8 @@ s.recv(14)
         if you delete a dimension, all variables with that dimension
         are also deleted.
         '''
-        if self.debug > 0:
-            print 'beginning: going to delete dims: ',ncdims
-            print 'beginning: going to delete vars: ',ncvars
+        log.debug('beginning: going to delete dims: %s' % ncdims)
+        log.debug('beginning: going to delete vars: %s' % ncvars)
             
         oldnc = netCDF(ncf,'r')
 
@@ -3022,7 +3022,7 @@ s.recv(14)
         #copy dimensions
         for dim in oldnc.dimensions:
             if dim in ncdims:
-                if self.debug > 0: print 'deleting %s of %s' % (dim,str(ncdims))
+                log.debug('deleting %s of %s' % (dim,str(ncdims)))
                 continue #do not copy this dimension
             size=oldnc.dimensions[dim]
             #print 'created ',dim
@@ -3033,15 +3033,14 @@ s.recv(14)
             dims1 = oldnc.variables[v].dimensions
             for dim in ncdims:
                 if dim in dims1:
-                    if self.debug > 0: print 'deleting "%s" because it depends on dim "%s"' %(v,dim)
+                    log.debug('deleting "%s" because it depends on dim "%s"' %(v,dim))
                     ncvars.append(v)
 
         #copy variables, except the ones to delete
         for v in oldnc.variables:
             if v in ncvars:
-                if self.debug>0:
-                    print 'vars to delete: ',ncvars
-                    print 'deleting ncvar: ',v
+                log.debug('vars to delete: %s ' % ncvars)
+                log.debug('deleting ncvar: %s' % v)
                 continue #we do not copy this v over
 
             ncvar = oldnc.variables[v]
@@ -3056,10 +3055,6 @@ s.recv(14)
             except TypeError:
                 #this exception occurs for scalar variables
                 #use getValue and assignValue instead
-                if self.debug > 0:
-                    print 'TypeError EXCEPTION HAPPENED in delete_NCATTR, you can ignore this message.'
-                    print 'variable name: %s' % v
-
                 ncvar2.assignValue(ncvar.getValue())
 
             #and variable attributes
@@ -3072,7 +3067,8 @@ s.recv(14)
         oldnc.close()
         newnc.close()
 
-        if self.debug > 0: print 'deletencatt--2 (.nfs): ', glob.glob('.nfs*')
+        log.debug('looking for .nfs files before copying: %s' %  glob.glob('.nfs*'))
+        
         #ack!!! this makes .nfsxxx files!!!
         #os.close(h) #this avoids the stupid .nfsxxx file
         #import shutil
@@ -3082,7 +3078,7 @@ s.recv(14)
         os.system('cp %s %s' % (tempnc,ncf))
         os.system('rm %s' % tempnc)
 
-        if self.debug > 0: print 'deletencatt-end (.nfs): ', glob.glob('.nfs*')
+        log.debug('looking for .nfs files after copying: %s' %  glob.glob('.nfs*'))
         
     def restart(self):
         '''
@@ -3093,7 +3089,7 @@ s.recv(14)
         fortran netcdf errors if the data does not match the pre-defined
         dimension sizes.
         '''
-        if self.debug > 0: print 'restarting!'
+        log.debug('restarting!')
         
         ncdims = ['number_plane_waves',
                   'number_IBZ_kpoints',
