@@ -2986,7 +2986,7 @@ s.recv(14)
         
         return atoms
         
-    def delete_ncattdimvar(self,ncf,ncattrs=[],ncdims=[],ncvars=[]):
+    def delete_ncattdimvar(self,ncf,ncattrs=(),ncdims=(),ncvars=()):
         '''
         helper function to delete attributes,
         dimensions and variables in a netcdffile
