@@ -192,7 +192,7 @@ def cut(atoms, a=(1,0,0), b=(0,1,0), c=(0,0,1), origo=(0,0,0),
         metric = np.dot(cell, cell.T)
         c = np.linalg.solve(metric.T, miller.T).T
         c *= layers[nlayers]/np.sqrt(np.dot(c, miller))
-        if np.linalg.det(np.dot(np.array([a, b, -c]), cell)) < 0:
+        if np.linalg.det(np.dot(np.array([a, b, c]), cell)) < 0:
             c *= -1.0
 
     newcell = np.dot(np.array([a, b, c]), cell)
