@@ -1,4 +1,5 @@
-from ase import *
+from ase import Atom, Atoms
+
 m = Atoms('H2')
 a = m[0]
 b = Atom('H')

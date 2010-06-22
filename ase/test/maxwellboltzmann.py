@@ -1,6 +1,5 @@
-from ase.md.velocitydistribution import *
-from ase.lattice.cubic import *
-from ase import *
+from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
+from ase.lattice.cubic import FaceCenteredCubic
 
 atoms = FaceCenteredCubic(size=(50,50,50), symbol="Cu", pbc=False)
 print "Number of atoms:", len(atoms)

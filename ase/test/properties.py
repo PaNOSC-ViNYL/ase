@@ -1,4 +1,4 @@
-from ase import *
+from ase import Atoms
 a = Atoms('H2', positions=[(0, 0, 0), (0, 0, 1.1)])
 
 a.pbc[0] = 1

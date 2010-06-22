@@ -19,8 +19,8 @@ if not (os.system('which dacapo.run') == 0):
 
 # Now Scientific 2.8 and dacapo.run should both be available
 
-from ase import *
-from ase.calculators.jacapo import *
+from ase import Atoms, Atom
+from ase.calculators.jacapo import Jacapo
 
 atoms = Atoms([Atom('H',[0,0,0])],
             cell=(2,2,2))

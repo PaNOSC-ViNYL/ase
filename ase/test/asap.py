@@ -1,4 +1,5 @@
-from ase import *
+from ase import Atoms
+from ase.optimize import QuasiNewton
 from ase.calculators.emt import ASAP
 
 try:
