@@ -30,7 +30,8 @@ acut = 25.0  # Use the same value as ASAP XXX
 
 class EMT:
 
-    acut = 5.9
+    #acut = 5.9
+    acut = 23.8585
     disabled = False  # Set to a message to disable (asap does this).
     
     def __init__(self):
@@ -60,13 +61,23 @@ class EMT:
         self.par = {}
         self.rc = 0.0
         self.numbers = atoms.get_atomic_numbers()
+        maxseq = 0.0
+        seen = {}
+        for Z in self.numbers:
+            if Z not in seen:
+                seen[Z] = True
+                ss = parameters[chemical_symbols[Z]][1] * Bohr
+                if maxseq < ss:
+                    maxseq = ss
+        rc = self.rc = beta * maxseq * 0.5 * (sqrt(3) + sqrt(4))
+        rr = rc * 2 * sqrt(4) / (sqrt(3) + sqrt(4))
+        self.acut = np.log(9999.0) / (rr - rc)
         for Z in self.numbers:
             if Z not in self.par:
                 p = parameters[chemical_symbols[Z]]
                 s0 = p[1] * Bohr
                 eta2 = p[3] / Bohr
                 kappa = p[4] / Bohr
-                rc = beta * s0 * 0.5 * (sqrt(3) + sqrt(4))
                 x = eta2 * beta * s0
                 gamma1 = 0.0
                 gamma2 = 0.0
@@ -84,7 +95,7 @@ class EMT:
                     gamma2 += x * exp(-kappa / beta * (r - beta * s0))
                 else:
                     raise RuntimeError
-                    
+
                 self.par[Z] = {'E0': p[0],
                                's0': s0,
                                'V0': p[2],
@@ -95,15 +106,16 @@ class EMT:
                                'rc': rc,
                                'gamma1': gamma1,
                                'gamma2': gamma2}
-                if rc + 0.5 > self.rc:
-                    self.rc = rc + 0.5
+                #if rc + 0.5 > self.rc:
+                #    self.rc = rc + 0.5
 
         self.ksi = {}
         for s1, p1 in self.par.items():
             self.ksi[s1] = {}
             for s2, p2 in self.par.items():
-                self.ksi[s1][s2] = (p2['n0'] / p1['n0'] *
-                                    exp(eta1 * (p1['s0'] - p2['s0'])))
+                #self.ksi[s1][s2] = (p2['n0'] / p1['n0'] *
+                #                    exp(eta1 * (p1['s0'] - p2['s0'])))
+                self.ksi[s1][s2] = p2['n0'] / p1['n0']
                 
         self.forces = np.empty((len(atoms), 3))
         self.sigma1 = np.empty(len(atoms))
@@ -201,9 +213,10 @@ class EMT:
                                 continue
                             d = Q[a2] - R[a1]
                             r = sqrt(np.dot(d, d))
-                            if r < p1['rc'] + 0.5:
+                            if r < self.rc + 0.5:
                                 Z2 = self.numbers[a2]
-                                self.interact1(a1, a2, d, r, p1, ksi[Z2])
+                                p2 = self.par[Z2]
+                                self.interact1(a1, a2, d, r, p1, p2, ksi[Z2])
                                 
         for a in range(natoms):
             Z = self.numbers[a]
@@ -237,59 +250,33 @@ class EMT:
                                 continue
                             d = Q[a2] - R[a1]
                             r = sqrt(np.dot(d, d))
-                            if r < p1['rc'] + 0.5:
+                            if r < self.rc + 0.5:
                                 Z2 = self.numbers[a2]
-                                self.interact2(a1, a2, d, r, p1, ksi[Z2])
+                                p2 = self.par[Z2]
+                                self.interact2(a1, a2, d, r, p1, p2, ksi[Z2])
 
-    def interact1(self, a1, a2, d, r, p, ksi):
-        x = exp(acut * (r - p['rc']))
+    def interact1(self, a1, a2, d, r, p1, p2, ksi):
+        x = exp(acut * (r - max(p1['rc'], p2['rc'])))
         theta = 1.0 / (1.0 + x)
-        y = (0.5 * p['V0'] * exp(-p['kappa'] * (r / beta - p['s0'])) *
-             ksi / p['gamma2'] * theta)
+        y = (0.5 * p1['V0'] * exp(-p2['kappa'] * (r / beta - p2['s0'])) *
+             ksi / p1['gamma2'] * theta)
         self.energy -= y
-        f = y * (p['kappa'] / beta + acut * theta * x) * d / r
+        f = y * (p2['kappa'] / beta + acut * theta * x) * d / r
         self.forces[a1] += f
         self.forces[a2] -= f
-        self.sigma1[a1] += (exp(-p['eta2'] * (r - beta * p['s0'])) *
-                            ksi * theta / p['gamma1'])
+        self.sigma1[a1] += (exp(-p2['eta2'] * (r - beta * p2['s0'])) *
+                            ksi * theta / p1['gamma1'])
 
-    def interact2(self, a1, a2, d, r, p, ksi):
-        x = exp(acut * (r - p['rc']))
+    def interact2(self, a1, a2, d, r, p1, p2, ksi):
+        x = exp(acut * (r - max(p1['rc'], p2['rc'])))
         theta = 1.0 / (1.0 + x)
-        y = (exp(-p['eta2'] * (r - beta * p['s0'])) *
-             ksi / p['gamma1'] * theta * self.deds[a1])
-        f = y * (p['eta2'] + acut * theta * x) * d / r
+        y = (exp(-p2['eta2'] * (r - beta * p2['s0'])) *
+             ksi / p1['gamma1'] * theta * self.deds[a1])
+        f = y * (p2['eta2'] + acut * theta * x) * d / r
         self.forces[a1] -= f
         self.forces[a2] += f
 
 
+# Temporary dummy class while others work on the main __init__ file
 class ASAP:
-    def __init__(self):
-        self.atoms = None
-        
-    def get_potential_energy(self, atoms):
-        self.update(atoms)
-        return self.atoms.GetPotentialEnergy()
-
-    def get_forces(self, atoms):
-        self.update(atoms)
-        return np.array(self.atoms.GetCartesianForces())
-
-    def get_stress(self, atoms):
-        self.update(atoms)
-        return np.array(self.atoms.GetStress())
-
-    def update(self, atoms):
-        from Numeric import array
-        from Asap import ListOfAtoms, EMT as AsapEMT
-        if self.atoms is None:
-            self.atoms = ListOfAtoms(positions=array(atoms.positions),
-                                     cell=array(atoms.get_cell()),
-                                     periodic=tuple(atoms.get_pbc()))
-            self.atoms.SetAtomicNumbers(array(atoms.get_atomic_numbers()))
-            self.atoms.SetCalculator(AsapEMT())
-        else:
-            self.atoms.SetUnitCell(array(atoms.get_cell()), fix=True)
-            self.atoms.SetCartesianPositions(array(atoms.positions))
-        
-    
+    pass
