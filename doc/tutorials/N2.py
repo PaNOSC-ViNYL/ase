@@ -1,4 +1,5 @@
-from ase import *
+from ase import Atoms
+from ase.calculators.emt import EMT
 
 atom = Atoms('N', calculator=EMT())
 e_atom = atom.get_potential_energy()
