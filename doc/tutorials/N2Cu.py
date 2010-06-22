@@ -1,4 +1,4 @@
-from ase import *
+from ase import Atoms
 from ase.lattice.surface import *
 
 h = 1.85
