@@ -113,7 +113,7 @@ class SYMMOL:
 
 if __name__ == '__test__':
 
-    from ase import *
+    from ase import Atoms
     from ase.data import molecules
     
     mol = 'NH3'
