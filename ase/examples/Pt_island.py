@@ -1,5 +1,11 @@
-from ase import *
-from ase.optimize import *
+import numpy as np
+from math import sqrt
+from ase import Atom, Atoms
+from ase.optimize import QuasiNewton, FIRE
+from ase.constraints import FixAtoms
+from ase.neb import NEB
+from ase.io import write, PickleTrajectory
+from ase.calculators.emt import ASAP
 
 # Distance between Cu atoms on a (100) surface:
 d = 2.74
@@ -32,7 +38,7 @@ images = [initial.copy() for i in range(7)]
 neb = NEB(images)
 
 # Set constraints and calculator:
-indices = compress(initial.positions[:, 2] < -5.0, range(len(initial)))
+indices = np.compress(initial.positions[:, 2] < -5.0, range(len(initial)))
 constraint = FixAtoms(indices)
 for image in images:
     image.set_calculator(ASAP())

@@ -43,15 +43,16 @@ class EMT:
             happen if your script contains the lines
 
               from asap3 import *
-              from ase.all import *
+              from ase.calculators.emt import EMT
+            Swap the two lines to solve the problem.
 
             (or 'from ase import *' in older versions of ASE.) Swap 
             the two lines to solve the problem.
 
             In the UNLIKELY event that you actually wanted to use
-            ase.EMT although asap3 is loaded into memory, please
+            ase.calculators.emt.EMT although asap3 is loaded into memory, please
             reactivate it with the command
-              ase.EMT.disabled = False
+              ase.calculators.emt.EMT.disabled = False
             """
             raise RuntimeError('ase.EMT has been disabled.  ' +
                                'See message printed above.')
