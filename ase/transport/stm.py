@@ -31,8 +31,8 @@ class STM:
         The s* are the corresponding overlap matrices.  eta1, and eta
         2 are (finite) infinitesimals.  """
         
-        self.pl1 = len(h10) / 2 #principal layer size for the tip
-        self.pl2 = len(h20) / 2 #principal layer size for the surface
+        self.pl1 = len(h10) // 2 #principal layer size for the tip
+        self.pl2 = len(h20) // 2 #principal layer size for the surface
         self.h1 = h1 
         self.s1 = s1
         self.h2 = h2
