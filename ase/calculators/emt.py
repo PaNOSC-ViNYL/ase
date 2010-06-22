@@ -41,9 +41,12 @@ class EMT:
             intended to use Asap's EMT calculator, but accidentally
             imported ase's EMT calculator after Asap's.  This could
             happen if your script contains the lines
+
               from asap3 import *
-              from ase import *
-            Swap the two lines to solve the problem.
+              from ase.all import *
+
+            (or 'from ase import *' in older versions of ASE.) Swap 
+            the two lines to solve the problem.
 
             In the UNLIKELY event that you actually wanted to use
             ase.EMT although asap3 is loaded into memory, please
