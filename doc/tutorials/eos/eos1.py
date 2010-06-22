@@ -1,4 +1,9 @@
-from ase import *
+import numpy as np
+
+from ase import Atoms
+from ase.io.trajectory import PickleTrajectory
+from ase.calculators.emt import EMT
+
 a = 4.0  # approximate lattice constant
 b = a / 2
 ag = Atoms('Ag', 
