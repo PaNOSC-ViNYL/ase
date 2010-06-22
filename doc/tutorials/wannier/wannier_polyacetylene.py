@@ -1,3 +1,5 @@
+import numpy as np
+
 from ase import *
 from ase.dft import Wannier
 from gpaw import restart
