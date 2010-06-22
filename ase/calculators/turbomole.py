@@ -50,7 +50,8 @@ class Turbomole:
         cp Final/coord ./final.coord;
         mkdir Gz ; cp * Gz ; gzip -r Gz
         
-        from ase import *
+        from ase.io import read
+        from ase.calculators.turbomole import Turbomole
         a = read('coord', index=-1, format='turbomole')
         calc = Turbomole()
         a.set_calculator(calc)
