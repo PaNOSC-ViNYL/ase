@@ -1,4 +1,7 @@
-from ase import *
+import os
+import numpy as np
+
+from ase import Atoms, Atom
 
 ase = """\
  H   HH HHH
@@ -19,14 +22,14 @@ logo.center(vacuum=2.0)
 #view(logo)
 
 if 1:
-    from gpaw import *
-    calc = Calculator()
+    from gpaw import GPAW
+    calc = GPAW()
     logo.set_calculator(calc)
     e = logo.get_potential_energy()
     calc.write('logo2.gpw')
 if 0:
-    from gpaw import *
-    calc = Calculator('logo2.gpw', idiotproof=0)
+    from gpaw import GPAW
+    calc = GPAW('logo2.gpw', idiotproof=0)
 
 
 if 1:
