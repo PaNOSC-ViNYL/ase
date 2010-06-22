@@ -1,9 +1,10 @@
 "Demonstrates molecular dynamics with constant energy."
 
-from ase import *
+from ase.calculators.emt import EMT
 from ase.lattice.cubic import FaceCenteredCubic
-from ase.md.velocitydistribution import *
-from ase.md.langevin import *
+from ase.md.langevin import Langevin
+from ase.io.trajectory import PickleTrajectory
+from ase import units
 
 from asap3 import EMT   # Way too slow with ase.EMT !
 size = 10

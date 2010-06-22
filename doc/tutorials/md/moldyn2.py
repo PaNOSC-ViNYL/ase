@@ -1,9 +1,10 @@
 "Demonstrates molecular dynamics with constant energy."
 
-from ase import *
+from ase.calculators.emt import EMT
 from ase.lattice.cubic import FaceCenteredCubic
-from ase.md.velocitydistribution import *
-from ase.md.verlet import *
+from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
+from ase.md.verlet import VelocityVerlet
+from ase import units
 
 # Use Asap for a huge performance increase if it is installed
 useAsap = True
