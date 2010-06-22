@@ -123,7 +123,7 @@ class Vibrations:
         for a in self.indices:
             for i in range(3):
                 for sign in [-1, 1]:
-                    for ndis in range(1, self.nfree/2+1):
+                    for ndis in range(1, self.nfree//2+1):
                         filename = ('%s.%d%s%s.pckl' %
                                     (self.name, a, 'xyz'[i], ndis*' +-'[sign]))
                         if isfile(filename):
