@@ -5,7 +5,8 @@ def write_py(fileobj, images, **kwargs):
     if isinstance(fileobj, str):
         fileobj = open(fileobj, 'w')
 
-    fileobj.write('from ase import *\n\n')
+    fileobj.write('from ase import Atoms\n\n')
+    fileobj.write('import numpy as np\n\n')
     
     if not isinstance(images, (list, tuple)):
         images = [images]
