@@ -33,3 +33,12 @@ class DeprecatedFloat(float):
     __rmul__ = _dep(float.__rmul__)
     __div__ = _dep(float.__div__)
     __rdiv__ = _dep(float.__rdiv__)
+
+class DeprecatedNumpyImport:
+    def __init__(self):
+        import numpy
+        self.numpy = numpy
+
+    def __getattr__(self, key):
+        warnings.warn('ase.np is deprecated; use import numpy as np instead')
+        return getattr(self.numpy, key)
