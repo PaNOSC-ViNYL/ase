@@ -1,8 +1,10 @@
 # creates: fcc100.png fcc110.png bcc100.png fcc111.png bcc110.png bcc111.png hcp0001.png fcc111o.png bcc110o.png bcc111o.png hcp0001o.png ontop-site.png hollow-site.png fcc-site.png hcp-site.png bridge-site.png
 
 import os
-from ase import *
-from ase.lattice.surface import *
+from ase import Atoms
+from ase.io import write
+from ase.lattice.surface import (fcc100, fcc110, bcc100, fcc111, 
+                                 bcc110, bcc111, hcp0001, add_adsorbate)
 ortho = 'fcc100 fcc110 bcc100'.split()
 hex = 'fcc111 bcc110 bcc111 hcp0001'.split()
 

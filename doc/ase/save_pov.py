@@ -1,8 +1,13 @@
 # creates: NaCl_C6H6.png
-from ase import *
+
+import numpy as np
+
+from ase import Atoms
+from ase.io import write
+from ase.data.molecules import molecule
 
 a = 5.64 # Lattice constant for NaCl
-cell = [a / sqrt(2), a / sqrt(2), a]
+cell = [a / np.sqrt(2), a / np.sqrt(2), a]
 atoms = Atoms(symbols='Na2Cl2', pbc=True, cell=cell,
               scaled_positions=[(.0, .0, .0),
                                 (.5, .5, .5),

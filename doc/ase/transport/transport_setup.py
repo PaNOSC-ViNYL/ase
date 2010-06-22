@@ -1,8 +1,12 @@
 # creates: transport_setup.png
 
-from ase import *
+import numpy as np
+from ase import Atoms
+from ase.data.molecules import molecule
+from ase.io import write
 
 a = 3.92 # Experimental lattice constant
+sqrt = np.sqrt
 cell = np.array([[a / sqrt(3),          0.,               0.],
                  [         0., a / sqrt(2),               0.],
                  [         0., a / sqrt(8), a * sqrt(3 / 8.)]])

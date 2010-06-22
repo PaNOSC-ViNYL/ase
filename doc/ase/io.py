@@ -1,6 +1,9 @@
 # creates: io1.png io2.png io3.png
-from ase import *
-from ase.lattice.surface import *
+
+from ase import Atoms
+from ase.lattice.surface import fcc111, add_adsorbate
+from ase.io import write, read
+
 adsorbate = Atoms('CO')
 adsorbate[1].z = 1.1
 a = 3.61

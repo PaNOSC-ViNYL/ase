@@ -1,5 +1,8 @@
 # creates: Au-wire.png
-from ase import *
+
+from ase import Atoms
+from ase.io import write
+
 d = 2.9
 L = 10.0
 wire = Atoms('Au',
