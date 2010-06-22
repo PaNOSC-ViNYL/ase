@@ -63,7 +63,7 @@ class Dynamics:
         At every *interval* steps, call *function* with arguments
         *args* and keyword arguments *kwargs*."""
 
-        if not callable(function):
+        if not hasattr(function, '__call__'):
             function = function.write
         self.observers.append((function, interval, args, kwargs))
 
