@@ -4,7 +4,7 @@ import os
 import matplotlib
 matplotlib.use('Agg')
 import pylab as plt
-from ase import *
+from ase.io import read, write
 from ase.neb import fit
 if 1:
     execfile('diffusion1.py')

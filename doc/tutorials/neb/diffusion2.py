@@ -1,4 +1,8 @@
-from ase import *
+from ase.io import read
+from ase.constraints import FixAtoms
+from ase.calculators.emt import EMT
+from ase.neb import NEB
+from ase.optimize import QuasiNewton
 
 initial = read('initial.traj')
 final = read('final.traj')
