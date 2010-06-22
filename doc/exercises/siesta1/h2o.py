@@ -1,6 +1,9 @@
-from ase import *
-from ase.units import *
 import time
+import numpy as np
+
+from ase import Atoms, units
+from ase.optimize import QuasiNewton
+from ase.calculators.siesta import Siesta
 
 # Set up a H2O molecule by specifying atomic positions
 h2o = Atoms(symbols='H2O',
@@ -21,8 +24,8 @@ e_shifts = [0.01,0.1,0.2,0.3,0.4,0.5]
 
 for e_s in e_shifts:
     starttime = time.time()
-    calc = Siesta('h2o',meshcutoff=200.0 * Ry, mix=0.5, pulay=4)
-    calc.set_fdf('PAO.EnergyShift', e_s * eV)    
+    calc = Siesta('h2o',meshcutoff=200.0 * units.Ry, mix=0.5, pulay=4)
+    calc.set_fdf('PAO.EnergyShift', e_s * units.eV)    
     calc.set_fdf('PAO.SplitNorm', 0.15)
     calc.set_fdf('PAO.BasisSize', 'SZ')
     h2o.set_calculator(calc)

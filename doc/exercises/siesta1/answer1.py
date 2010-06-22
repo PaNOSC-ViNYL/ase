@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # creates:  ener.png distance.png angle.png
 import os
-from ase import *
 import matplotlib
 matplotlib.use('Agg')
 import pylab as plt
@@ -39,4 +38,3 @@ plt.xlabel(u'Energy shift [eV]')
 plt.ylabel(u'H20 angle')
 limits = plt.axis('tight')
 plt.title('O-H distance vs Eshift')
-plt.savefig('angle.png')
