@@ -285,7 +285,3 @@ class EMT:
         self.forces[a1] -= f
         self.forces[a2] += f
 
-
-# Temporary dummy class while others work on the main __init__ file
-class ASAP:
-    pass

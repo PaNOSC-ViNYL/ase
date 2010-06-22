@@ -45,7 +45,6 @@ neb = NEB(images, climb=True)
 
 # Set constraints and calculator:
 for image in images:
-    #image.set_calculator(ASAP())
     image.set_calculator(EMT())
     image.set_constraint(constraint)
 

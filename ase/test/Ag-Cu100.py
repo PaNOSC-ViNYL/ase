@@ -28,7 +28,6 @@ neb = NEB(images, climb=True)
 # Set constraints and calculator:
 constraint = FixAtoms(range(len(initial) - 1))
 for image in images:
-    #image.set_calculator(ASAP())
     image.set_calculator(EMT())
     image.set_constraint(constraint)
 

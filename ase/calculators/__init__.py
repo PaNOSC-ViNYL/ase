@@ -4,7 +4,7 @@ import numpy as np
 
 from ase import _deprecate_things_from_ase_module
 from ase.calculators.lj import LennardJones
-from ase.calculators.emt import EMT, ASAP
+from ase.calculators.emt import EMT
 from ase.calculators.siesta import Siesta
 from ase.calculators.dacapo import Dacapo
 from ase.calculators.vasp import Vasp
@@ -18,7 +18,7 @@ from ase.calculators.test import numeric_force, numeric_forces, TestPotential
 if _deprecate_things_from_ase_module:
     from ase.utils.deprecate import Deprecate
     _locals = locals()
-    for name in ['LennardJones', 'EMT', 'ASAP', 'Siesta', 'Dacapo', 'Vasp',
+    for name in ['LennardJones', 'EMT', 'Siesta', 'Dacapo', 'Vasp',
                  'Aims', 'AimsCube', 'Turbomole', 'Exciting', 'Dftb',
                  'SinglePointCalculator', 'numeric_force', 'numeric_forces',
                  'TestPotential']:

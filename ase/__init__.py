@@ -26,7 +26,7 @@ from ase.md.verlet import VelocityVerlet
 from ase.md.langevin import Langevin
 from ase.constraints import *
 from ase.calculators.lj import LennardJones
-from ase.calculators.emt import EMT, ASAP
+from ase.calculators.emt import EMT
 from ase.calculators.siesta import Siesta
 from ase.calculators.dacapo import Dacapo
 from ase.calculators.vasp import Vasp
