@@ -2,7 +2,7 @@ from ase import Atoms
 from ase.calculators import EMT
 from ase.constraints import FixAtoms
 from ase.optimize import QuasiNewton
-from ase.lattice.surface import fcc111
+from ase.lattice.surface import fcc111,add_adsorbate
 
 h = 1.85
 d = 1.10
