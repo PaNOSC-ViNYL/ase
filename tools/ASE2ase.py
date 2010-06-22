@@ -10,7 +10,7 @@ def convert(filename):
         line = lines[i]
         if line.startswith('from ASE'):
             if first:
-                lines[i] = 'from ase import *\n'
+                lines[i] = 'from ase.all import *\n'
                 first = False
             else:
                 lines[i] = ''
