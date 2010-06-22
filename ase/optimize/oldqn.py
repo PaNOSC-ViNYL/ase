@@ -10,8 +10,6 @@ __docformat__ = 'reStructuredText'
 import numpy as np
 import weakref,time,sys
 
-from ase import *
-
 
 def f(lamda,Gbar,b,radius): 
         b1 = b - lamda
