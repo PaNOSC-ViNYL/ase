@@ -1,6 +1,9 @@
 # creates:  nice.png
 
-from ase import *
+import numpy as np
+
+from ase import Atoms
+from ase.io import write
 
 atoms = Atoms('Ag', cell=(2.7, 2.7, 2.7), pbc=True) * (18, 8, 8)
 
