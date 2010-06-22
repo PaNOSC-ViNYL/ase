@@ -3,7 +3,7 @@ from math import sqrt
 import numpy as np
 
 from ase.parallel import world, rank, size
-from ase.calculators import SinglePointCalculator
+from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import read
 
 class NEB:

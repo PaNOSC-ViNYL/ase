@@ -4,7 +4,7 @@ import numpy as np
 
 from ase.data import covalent_radii
 from ase.atoms import Atoms
-from ase.calculators import SinglePointCalculator
+from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import read, write, string2index
 
 

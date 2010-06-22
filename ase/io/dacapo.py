@@ -1,6 +1,6 @@
 import numpy as np
 
-from ase.calculators import SinglePointCalculator
+from ase.calculators.singlepoint import SinglePointCalculator
 from ase.atom import Atom
 from ase.atoms import Atoms
 

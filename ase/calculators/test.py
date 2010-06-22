@@ -84,3 +84,59 @@ class TestCalculator:
     def get_fermi_level(self):
         return 0.0
 
+
+class TestPotential:
+    def get_forces(self, atoms):
+        E = 0.0
+        R = atoms.positions
+        F = np.zeros_like(R)
+        for a, r in enumerate(R):
+            D = R - r
+            d = (D**2).sum(1)**0.5
+            x = d - 1.0
+            E += np.vdot(x, x)
+            d[a] = 1
+            F -= (x / d)[:, None] * D
+        self.energy = 0.25 * E
+        return F
+
+    def get_potential_energy(self, atoms):
+        self.get_forces(atoms)
+        return self.energy
+
+    def get_stress(self, atoms):
+        raise NotImplementedError
+
+
+def numeric_force(atoms, a, i, d=0.001):
+    """Evaluate force along i'th axis on a'th atom using finite difference.
+
+    This will trigger two calls to get_potential_energy(), with atom a moved
+    plus/minus d in the i'th axial direction, respectively.
+    """
+    p0 = atoms.positions[a, i]
+    atoms.positions[a, i] += d
+    eplus = atoms.get_potential_energy()
+    atoms.positions[a, i] -= 2 * d
+    eminus = atoms.get_potential_energy()
+    atoms.positions[a, i] = p0
+    return (eminus - eplus) / (2 * d)
+
+
+def numeric_forces(atoms, indices=None, axes=(0, 1, 2), d=0.001):
+    """Evaluate finite-difference forces on several atoms.
+
+    Returns an array of forces for each specified atomic index and
+    each specified axis, calculated using finite difference on each
+    atom and direction separately.  Array has same shape as if
+    returned from atoms.get_forces(); uncalculated elements are zero.
+
+    Calculates all forces by default."""
+
+    if indices is None:
+        indices = range(len(atoms))
+    F_ai = np.zeros_like(atoms.positions)
+    for a in indices:
+        for i in axes:
+            F_ai[a, i] = numeric_force(atoms, a, i, d)
+    return F_ai

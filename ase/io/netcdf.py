@@ -2,7 +2,7 @@
 
 from ase.io.pupynere import NetCDFFile
 from ase.atoms import Atoms
-from ase.calculators import SinglePointCalculator
+from ase.calculators.singlepoint import SinglePointCalculator
 
 
 def read_netcdf(filename, index=-1):

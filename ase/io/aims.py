@@ -131,7 +131,7 @@ def read_aims_output(filename, index = -1):
     """  Import FHI-aims output files with all data available, i.e. relaxations, 
     MD information, force information etc etc etc. """
     from ase import Atoms, Atom 
-    from ase.calculators import SinglePointCalculator
+    from ase.calculators.singlepoint import SinglePointCalculator
     molecular_dynamics = False
     fd = open(filename, 'r')
     cell = []

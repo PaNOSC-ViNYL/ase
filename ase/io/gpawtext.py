@@ -1,5 +1,5 @@
 from ase.atoms import Atom, Atoms
-from ase.calculators import SinglePointCalculator
+from ase.calculators.singlepoint import SinglePointCalculator
 
 
 def read_gpaw_text(fileobj, index=-1):

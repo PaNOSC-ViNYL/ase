@@ -194,7 +194,7 @@ def read_vasp_out(filename='OUTCAR',index = -1):
     """
     import os
     import numpy as np
-    from ase.calculators import SinglePointCalculator
+    from ase.calculators.singlepoint import SinglePointCalculator
     from ase import Atoms, Atom
 
     if isinstance(filename, str):

@@ -3,7 +3,7 @@ import numpy as np
 from ase.atoms import Atoms
 from ase.units import Hartree
 from ase.parallel import paropen
-from ase.calculators import SinglePointCalculator
+from ase.calculators.singlepoint import SinglePointCalculator
 
 
 def write_xsf(fileobj, images, data=None):
