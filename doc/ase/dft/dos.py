@@ -1,5 +1,8 @@
 # creates: dos.png
-from ase import *
+
+import numpy as np
+
+from ase.dft import DOS
 
 class MyCalc:
     def get_eigenvalues(self, kpt=0, spin=0):

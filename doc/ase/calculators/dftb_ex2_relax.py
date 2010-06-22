@@ -1,5 +1,9 @@
 #!/usr/bin/python
-from ase import *
+
+from ase.io import read, write
+from ase.calculators.dftb import Dftb
+from ase.optimize import QuasiNewton
+
 system = read('h2o_1.xyz')
 system.set_calculator(Dftb(label='dftb',write_dftb=False))
 

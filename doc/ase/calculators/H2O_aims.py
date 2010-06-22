@@ -1,4 +1,7 @@
-from ase import *
+from ase import Atoms
+from ase.visualize import view
+from ase.calculators.aims import Aims, AimsCube
+from ase.optimize import QuasiNewton
 
 water = Atoms('HOH', [(1,0,0), (0,0,0), (0,1,0)])
 

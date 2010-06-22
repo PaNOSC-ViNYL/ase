@@ -1,6 +1,8 @@
 #!/usr/bin/env python
-from ase import *
 import os
+
+from ase.io import read,write
+from ase.optimize import QuasiNewton
 
 # Turbomole input coordinates must be in the file 'coord'.
 # The coordinates are updated to the file 'coord' during the minimization.

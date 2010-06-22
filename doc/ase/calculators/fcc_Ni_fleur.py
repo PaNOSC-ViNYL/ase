@@ -1,7 +1,8 @@
-from ase import *
+from numpy import linspace
+
 from ase.calculators.fleur import FLEUR
 from ase.structure import bulk
-from numpy import linspace
+from ase.io.trajectory import PickleTrajectory
 
 atoms = bulk('Ni', 'fcc', a=3.52)
 calc = FLEUR(xc='PBE', kmax=3.6, kpts=(10, 10, 10), workdir='lat_const')

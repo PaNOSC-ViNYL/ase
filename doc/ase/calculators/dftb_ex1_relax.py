@@ -1,6 +1,11 @@
 #!/usr/bin/env python
-from ase import *
+
 import os
+
+from ase import Atoms
+from ase.calculators.dftb import Dftb
+from ase.optimize import QuasiNewton
+from ase.io import write
 
 d = 1.10
 test = Atoms('2O', positions=[(0., 0., 0.), (0., 0., d)])

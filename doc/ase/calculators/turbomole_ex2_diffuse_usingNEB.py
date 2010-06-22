@@ -1,6 +1,11 @@
 #!/usr/bin/env python
-from ase import *
+
 import os
+
+from ase.io import read
+from ase.neb import NEB
+from ase.calculators.turbomole import Turbomole
+from ase.optimize import QuasiNewton
 
 initial = read('initial.coord')
 final = read('final.coord')
