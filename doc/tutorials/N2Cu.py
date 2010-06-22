@@ -1,5 +1,8 @@
 from ase import Atoms
-from ase.lattice.surface import *
+from ase.calculators import EMT
+from ase.constraints import FixAtoms
+from ase.optimize import QuasiNewton
+from ase.lattice.surface import fcc111
 
 h = 1.85
 d = 1.10
