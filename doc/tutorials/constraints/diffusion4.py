@@ -1,5 +1,7 @@
-from ase import *
 from ase.lattice.surface import fcc100, add_adsorbate
+from ase.constraints import FixAtoms, FixedPlane
+from ase.calculators.emt import EMT
+from ase.optimize import QuasiNewton
 
 # 2x2-Al(001) surface with 3 layers and an
 # Au atom adsorbed in a hollow site:

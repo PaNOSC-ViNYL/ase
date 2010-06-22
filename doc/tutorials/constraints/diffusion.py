@@ -1,6 +1,6 @@
 # creates:  diffusion-path.png
 import os
-from ase import *
+from ase.io import read, write
 if 1:
     execfile('diffusion4.py')
 images = [read('mep%d.traj' % i) for i in range(5)]
