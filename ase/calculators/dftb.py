@@ -7,7 +7,7 @@ http://www.dftb.org/
 """
 
 
-import numpy as npy
+import numpy as np
 import os, string
 
 #from ase.data import chemical_symbols
@@ -95,7 +95,7 @@ class Dftb:
         self.converged = False
 
         #dftb has no stress
-        self.stress = npy.empty((3, 3))
+        self.stress = np.empty((3, 3))
         
 
     def update(self, atoms):
@@ -215,25 +215,25 @@ class Dftb:
         myfile = open('detailed.out','r')
         line = myfile.readline()
         line = myfile.readline()
-        tmpforces = npy.array([[0, 0, 0]])
+        tmpforces = np.array([[0, 0, 0]])
         while line:
             if 'Total Forces' in line:
                 for i, dummy in enumerate(atoms):
                     line = myfile.readline()
                     line2 = string.replace(line, 'D', 'E')
-                    tmp = npy.array\
+                    tmp = np.array\
                         ([[float(f) for f in line2.split()[0:3]]])
-                    tmpforces = npy.concatenate((tmpforces, tmp))  
+                    tmpforces = np.concatenate((tmpforces, tmp))  
             line = myfile.readline()
             
 
-        self.forces = (npy.delete(tmpforces, npy.s_[0:1], axis=0))*Hartree/Bohr
+        self.forces = (np.delete(tmpforces, np.s_[0:1], axis=0))*Hartree/Bohr
 
         #print 'forces', self.forces
 
     def read(self):
         """Dummy stress for dftb"""
-        self.stress = npy.empty((3, 3))
+        self.stress = np.empty((3, 3))
 
     def write_dftb_input_file(self, atoms):
         """Write input parameters to DFTB+ input file 'dftb_in.hsd'."""
