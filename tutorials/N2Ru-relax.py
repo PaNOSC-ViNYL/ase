@@ -1,4 +1,7 @@
-from ase import *
+from ase import Atoms
+from ase.calculators.emt import EMT
+from ase.optimize import QuasiNewton
+from ase.constraints import FixAtoms
 
 a = 2.70
 c = 1.59 * a
