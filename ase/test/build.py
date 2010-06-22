@@ -1,4 +1,6 @@
-from ase import *
+import numpy as np
+from ase import Atoms, Atom
+
 a = Atoms([Atom('Cu')])
 a.positions[:] += 1.0
 print a.get_positions(), a.positions

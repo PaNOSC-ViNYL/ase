@@ -1,5 +1,6 @@
 import numpy as np
-from ase import *
+from ase.calculators.emt import EMT
+from ase import Atoms
 
 a = 3.60
 b = a / 2

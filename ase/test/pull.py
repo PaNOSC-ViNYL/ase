@@ -1,4 +1,7 @@
-from ase import *
+import numpy as np
+from ase import Atoms
+from ase.calculators.emt import EMT
+from ase.io import PickleTrajectory
 
 Cu = Atoms('Cu', pbc=(1, 0, 0), calculator=EMT())
 traj = PickleTrajectory('Cu.traj', 'w')

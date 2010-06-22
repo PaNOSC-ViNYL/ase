@@ -1,4 +1,5 @@
-from ase import *
+from ase import Atoms
+from ase.calculators.emt import EMT
 
 h2 = Atoms('H2', positions=[(0, 0, 0), (0, 0, 1.1)],
            calculator=EMT())

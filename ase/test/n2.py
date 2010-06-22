@@ -1,4 +1,6 @@
-from ase import *
+from ase import Atoms
+from ase.calculators.emt import EMT
+from ase.optimize import QuasiNewton
 
 n2 = Atoms('N2', positions=[(0, 0, 0), (0, 0, 1.1)],
            calculator=EMT())

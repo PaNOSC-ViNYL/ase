@@ -1,4 +1,6 @@
-from ase import *
+from ase import Atom, Atoms
+from ase.calculators.lj import LennardJones
+from ase.constraints import FixBondLength
 
 dimer = Atoms([Atom('X', (0, 0, 0)),
                Atom('X', (0, 0, 1))],

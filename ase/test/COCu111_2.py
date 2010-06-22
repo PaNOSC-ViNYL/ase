@@ -1,4 +1,9 @@
-from ase import *
+from math import sqrt
+from ase import Atoms, Atom
+from ase.constraints import FixAtoms
+from ase.optimize import FIRE, QuasiNewton
+from ase.neb import SingleCalculatorNEB
+from ase.calculators.emt import EMT
 
 Optimizer=FIRE
 Optimizer=QuasiNewton

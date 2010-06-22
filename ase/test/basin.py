@@ -1,7 +1,10 @@
 import numpy as np
-from ase import *
+from math import pi, sqrt
+from ase import Atoms
 from ase.calculators.lj import LennardJones
 from ase.optimize.basin import BasinHopping
+from ase.io import PickleTrajectory, read
+from ase.units import kB
 
 N = 7
 R = N**(1./3.)

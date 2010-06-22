@@ -1,5 +1,6 @@
 import os
-from ase import *
+from ase import Atom, Atoms
+from ase.io import PickleTrajectory
 
 co = Atoms([Atom('C', (0, 0, 0)),
             Atom('O', (0, 0, 1.2))])

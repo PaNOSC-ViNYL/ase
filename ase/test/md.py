@@ -1,4 +1,8 @@
-from ase import *
+from ase import Atoms
+from ase.calculators.emt import EMT
+from ase.md import VelocityVerlet
+from ase.io import PickleTrajectory
+
 a = 3.6
 b = a / 2
 fcc = Atoms('Cu', positions=[(0, 0, 0)],

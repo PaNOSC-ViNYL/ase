@@ -1,5 +1,6 @@
 import numpy.random as random
-from ase import *
+import numpy as np
+from ase import Atoms
 from ase.calculators.neighborlist import NeighborList
 
 atoms = Atoms(numbers=range(10),

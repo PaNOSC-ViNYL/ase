@@ -1,7 +1,11 @@
-
-from ase import *
-from ase.lattice.surface import *
-from math import *
+from math import sqrt, pi
+from ase import Atoms
+from ase.calculators.emt import EMT
+from ase.constraints import FixBondLengths
+from ase.optimize import BFGS, QuasiNewton
+from ase.neb import SingleCalculatorNEB
+from ase.lattice.surface import fcc111, add_adsorbate
+from math import sqrt, cos, sin
 
 
 zpos = cos(134.3/2.0*pi/180.0)*1.197

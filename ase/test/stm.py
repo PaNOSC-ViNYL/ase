@@ -1,5 +1,5 @@
 from ase.calculators.test import make_test_dft_calculation
-from ase import STM
+from ase.dft.stm import STM
 
 atoms = make_test_dft_calculation()
 stm = STM(atoms, [0, 1, 2])

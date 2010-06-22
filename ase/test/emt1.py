@@ -1,4 +1,8 @@
-from ase import *
+from ase import Atoms
+from ase.calculators.emt import EMT
+from ase.constraints import FixBondLength
+from ase.io import PickleTrajectory
+from ase.optimize import BFGS
 
 a = 3.6
 b = a / 2

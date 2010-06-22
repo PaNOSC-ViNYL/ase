@@ -1,4 +1,8 @@
-from ase import *
+from ase.io import PickleTrajectory
+from ase.neb import NEB
+from ase.calculators.lj import LennardJones
+from ase.optimize import QuasiNewton
+
 print [a.get_potential_energy() for a in PickleTrajectory('H.traj')]
 images = [PickleTrajectory('H.traj')[-1]]
 for i in range(4):

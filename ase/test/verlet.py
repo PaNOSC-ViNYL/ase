@@ -1,5 +1,12 @@
-from ase import *
+import numpy as np
+from ase import Atoms
+from ase.units import fs
 from ase.calculators import TestPotential
+from ase.calculators.emt import EMT
+from ase.md import VelocityVerlet
+from ase.io import PickleTrajectory, read
+from ase.optimize import QuasiNewton
+
 np.seterr(all='raise')
 a = Atoms('4X',
           masses=[1, 2, 3, 4],

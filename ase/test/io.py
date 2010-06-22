@@ -1,4 +1,6 @@
-from ase import *
+import numpy as np
+from ase import Atoms
+from ase.io import write, read
 
 a = 5.0
 d = 1.9

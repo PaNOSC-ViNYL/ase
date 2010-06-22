@@ -1,6 +1,6 @@
 import os
 from ase import Atoms
-from ase.io import *
+from ase.io import read, write
 from ase.calculators import Exciting
 from ase.units import Bohr, Hartree
 from ase.test import NotAvailable

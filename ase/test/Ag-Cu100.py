@@ -3,7 +3,7 @@ from ase import Atom, Atoms
 from ase.neb import NEB
 from ase.constraints import FixAtoms
 from ase.vibrations import Vibrations
-from ase.calculator.emt import EMT
+from ase.calculators.emt import EMT
 from ase.optimize import QuasiNewton
 
 # Distance between Cu atoms on a (100) surface:

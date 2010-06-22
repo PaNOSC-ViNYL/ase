@@ -1,4 +1,6 @@
-from ase import *
+from math import pi, sqrt
+from ase import Atoms, Atom
+
 d = 1.14
 a = Atoms([Atom('C', (0, 0, 0)), Atom('O', (d, 0, 0))])
 a.rotate_euler(phi=pi/2, theta=pi/4, psi=pi)

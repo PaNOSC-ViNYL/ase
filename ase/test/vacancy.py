@@ -1,4 +1,8 @@
-from ase import *
+from ase import Atoms
+from ase.calculators.emt import ASAP
+from ase.optimize import QuasiNewton
+from ase.neb import NEB
+from ase.optimize.mdmin import MDMin
 
 a = 3.6
 b = a / 2

@@ -1,4 +1,8 @@
-from ase import *
+from ase import Atoms
+from ase.constraints import FixAtoms
+from ase.calculators.lj import LennardJones
+from ase.io import PickleTrajectory
+from ase.optimize import QuasiNewton
 
 atoms = Atoms('H7',
               positions=[(0, 0, 0),

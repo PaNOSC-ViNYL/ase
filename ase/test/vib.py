@@ -1,4 +1,6 @@
-from ase import *
+from ase import Atoms
+from ase.calculators.emt import EMT
+from ase.optimize import QuasiNewton
 from ase.vibrations import Vibrations
 
 n2 = Atoms('N2',

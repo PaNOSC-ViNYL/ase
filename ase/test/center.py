@@ -1,13 +1,14 @@
 "Test that atoms.center() works when adding vacuum ()"
 
-from numpy import *
-from ase import *
+import numpy as np
+from math import pi, sqrt, cos
+from ase import data
 from ase.lattice.cubic import FaceCenteredCubic
 
 def checkang(a, b, phi):
     "Check the angle between two vectors."
-    cosphi = dot(a,b) / sqrt(dot(a,a) * dot(b,b))
-    assert abs(cosphi - cos(phi)) < 1e-10
+    cosphi = np.dot(a,b) / sqrt(np.dot(a,a) * np.dot(b,b))
+    assert np.abs(cosphi - cos(phi)) < 1e-10
 
 symb = "Cu"
 Z = data.atomic_numbers[symb]
@@ -20,7 +21,7 @@ c = atoms.get_cell()
 checkang(c[0], c[1], pi/2)
 checkang(c[0], c[2], pi/2)
 checkang(c[1], c[2], pi/2)
-assert abs(5 * a0 - c[2,2]) < 1e-10
+assert np.abs(5 * a0 - c[2,2]) < 1e-10
 
 # Add vacuum in one direction
 vac = 10.0
@@ -29,7 +30,7 @@ c = atoms.get_cell()
 checkang(c[0], c[1], pi/2)
 checkang(c[0], c[2], pi/2)
 checkang(c[1], c[2], pi/2)
-assert abs(4.5 * a0 + 2* vac - c[2,2]) < 1e-10
+assert np.abs(4.5 * a0 + 2* vac - c[2,2]) < 1e-10
 
 # Add vacuum in all directions
 vac = 4.0
@@ -38,9 +39,9 @@ c = atoms.get_cell()
 checkang(c[0], c[1], pi/2)
 checkang(c[0], c[2], pi/2)
 checkang(c[1], c[2], pi/2)
-assert abs(4.5 * a0 + 2* vac - c[0,0]) < 1e-10
-assert abs(4.5 * a0 + 2* vac - c[1,1]) < 1e-10
-assert abs(4.5 * a0 + 2* vac - c[2,2]) < 1e-10
+assert np.abs(4.5 * a0 + 2* vac - c[0,0]) < 1e-10
+assert np.abs(4.5 * a0 + 2* vac - c[1,1]) < 1e-10
+assert np.abs(4.5 * a0 + 2* vac - c[2,2]) < 1e-10
 
 # Now a general unit cell
 atoms = FaceCenteredCubic(size=(5,5,5), directions=[[1,0,0], [0,1,0], [1,0,1]],
@@ -50,7 +51,7 @@ c = atoms.get_cell()
 checkang(c[0], c[1], pi/2)
 checkang(c[0], c[2], pi/4)
 checkang(c[1], c[2], pi/2)
-assert abs(2.5 * a0 - c[2,2]) < 1e-10
+assert np.abs(2.5 * a0 - c[2,2]) < 1e-10
 
 # Add vacuum in one direction
 vac = 10.0
@@ -59,7 +60,7 @@ c = atoms.get_cell()
 checkang(c[0], c[1], pi/2)
 checkang(c[0], c[2], pi/4)
 checkang(c[1], c[2], pi/2)
-assert abs(2 * a0 + 2* vac - c[2,2]) < 1e-10
+assert np.abs(2 * a0 + 2* vac - c[2,2]) < 1e-10
 
 # Recenter without specifying vacuum
 atoms.center()
@@ -67,7 +68,7 @@ c = atoms.get_cell()
 checkang(c[0], c[1], pi/2)
 checkang(c[0], c[2], pi/4)
 checkang(c[1], c[2], pi/2)
-assert abs(2 * a0 + 2* vac - c[2,2]) < 1e-10
+assert np.abs(2 * a0 + 2* vac - c[2,2]) < 1e-10
 
 # Add vacuum in all directions
 vac = 4.0
@@ -76,6 +77,6 @@ c = atoms.get_cell()
 checkang(c[0], c[1], pi/2)
 checkang(c[0], c[2], pi/4)
 checkang(c[1], c[2], pi/2)
-assert abs(4.5 * a0 + 2* vac - c[1,1]) < 1e-10
-assert abs(2 * a0 + 2* vac - c[2,2]) < 1e-10
+assert np.abs(4.5 * a0 + 2* vac - c[1,1]) < 1e-10
+assert np.abs(2 * a0 + 2* vac - c[2,2]) < 1e-10
 

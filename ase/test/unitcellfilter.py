@@ -1,6 +1,11 @@
-from ase import *
+from math import sqrt
+from ase import Atoms
 from ase.optimize.lbfgs import LBFGS
-from ase.constraints import StrainFilter
+from ase.constraints import StrainFilter, UnitCellFilter
+from ase.io import PickleTrajectory
+from ase.optimize.lbfgs import LBFGS
+from ase.optimize.mdmin import MDMin
+
 a = 3.6
 b = a / 2
 cu = Atoms('Cu', cell=[(0,b,b),(b,0,b),(b,b,0)], pbc=1) * (6, 6, 6)

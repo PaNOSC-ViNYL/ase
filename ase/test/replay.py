@@ -1,4 +1,9 @@
-from ase import *
+from math import sqrt
+from ase import Atoms, Atom
+from ase.constraints import FixAtoms
+from ase.calculators.emt import EMT
+from ase.optimize import QuasiNewton
+from ase.io import read
 from ase.vibrations import Vibrations
 
 # Distance between Cu atoms on a (100) surface:
