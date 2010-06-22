@@ -69,7 +69,8 @@ class InfraRed(Vibrations):
 
     Example:
     
-    >>> from ase import *
+    >>> from ase.io import read
+    >>> from ase.calculators.vasp import Vasp
     >>> from ase.infrared import InfraRed
     >>> water = read('water.traj')  # read pre-relaxed structure of water molecule
     >>> calc = Vasp(prec='Accurate',
@@ -109,7 +110,8 @@ class InfraRed(Vibrations):
 
     >>> #!/usr/bin/env python
 
-    >>> from ase import *
+    >>> from ase.io import read
+    >>> from ase.calculators.siesta import Siesta
     >>> from ase.infrared import InfraRed
 
     >>> bud = read('bud1.xyz')
