@@ -21,6 +21,7 @@ from ase.optimize.lbfgs import HessLBFGS
 from ase.optimize.fire import FIRE
 from ase.optimize.lbfgs import LBFGS, LBFGSLineSearch
 from ase.optimize.bfgs import BFGS
+from ase.optimize import QuasiNewton
 from ase.md.verlet import VelocityVerlet
 from ase.md.langevin import Langevin
 from ase.constraints import *
@@ -40,8 +41,6 @@ from ase.data.molecules import molecule
 
 from math import sqrt, pi
 import numpy as np
-
-QuasiNewton = BFGS
 
 
 
