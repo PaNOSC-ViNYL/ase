@@ -31,7 +31,7 @@ def kpts_changed(calc, x):
         from ase.dft.kpoints import monkhorst_pack
         N1, N2, N3 = x
         listofkpts = monkhorst_pack((N1, N2, N3))
-        #user-defined list is provided
+    #user-defined list is provided
     elif len(np.array(x).shape) == 2:
         listofkpts = np.array(x)
     else:
@@ -39,7 +39,10 @@ def kpts_changed(calc, x):
 
     grid = calc.get_kpts()
 
-    if (np.array(listofkpts) == np.array(grid)).all():
+    if grid.shape != listofkpts.shape:
+        return True
+
+    if (abs(listofkpts - grid) < 1e-6).all():
         return False
     else:
         return True
