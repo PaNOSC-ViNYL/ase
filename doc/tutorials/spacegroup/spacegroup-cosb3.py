@@ -1,5 +1,6 @@
 import numpy as np
 import ase.utils.geometry as geometry
+import ase.io as io
 
 # Create a new atoms instance with Co at origo including all atoms on the 
 # surface of the unit cell
@@ -18,14 +19,14 @@ for i in xrange(len(cosb3)):
             bondatoms.append((i, j))
 
 # Create nice-looking image using povray
-ase.write('spacegroup-cosb3.pov', cosb3,         
-          transparent=False, 
-          display=False,
-          run_povray=True,
-          camera_type='perspective',
-          canvas_width=320,
-          radii=0.4,
-          rotation='90y',
-          bondlinewidth=0.07,
-          bondatoms=bondatoms,
-          )
+io.write('spacegroup-cosb3.pov', cosb3,         
+         transparent=False, 
+         display=False,
+         run_povray=True,
+         camera_type='perspective',
+         canvas_width=320,
+         radii=0.4,
+         rotation='90y',
+         bondlinewidth=0.07,
+         bondatoms=bondatoms,
+         )
