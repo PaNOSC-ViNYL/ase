@@ -1,4 +1,4 @@
-# creates: spacegroup-*.png 
+# creates: spacegroup-al.png spacegroup-fe.png spacegroup-rutile.png spacegroup-cosb3.png spacegroup-mg.png spacegroup-skutterudite.png spacegroup-diamond.png spacegroup-nacl.png
 
 import ase.io
 
