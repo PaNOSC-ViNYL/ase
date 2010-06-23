@@ -576,7 +576,7 @@ class Jacapo:
         resolve that
         '''
         
-        if xc == 'PW91':
+        if xc == 'PW91' or xc is None:
             from pw91_psp import defaultpseudopotentials
         else:
             log.warn('PW91 pseudopotentials are being used!')
@@ -962,6 +962,7 @@ class Jacapo:
         nc.status = status
         nc.sync()
         nc.close()
+        log.debug('set status to %s' % status)
 
     def get_spinpol(self):
         'Returns the spin polarization setting, either True or False'
@@ -1627,7 +1628,19 @@ class Jacapo:
     def get_mdos_data(self,
                       spin=0,
                       cutoffradius='infinite'):
-        'returns data from multicentered projection'
+        '''returns data from multicentered projection
+
+
+        returns (mdos, rotmat)
+
+        the rotation matrices are retrieved from the text file. I am
+        not sure what you would do with these, but there was a note
+        about them in the old documentation so I put the code to
+        retrieve them here. the syntax for the return value is:
+        rotmat[atom#][label] returns the rotation matrix for the
+        center on the atom# for label. I do not not know what the
+        label refers to.
+        '''
         
         if self.calculation_required():
             self.calculate()
@@ -1656,8 +1669,38 @@ class Jacapo:
 
         log.info('Found %d multicenters' % len(multicenterprojections))
         nc.close()
-        return multicenterprojections 
 
+        #now parse the text file for the rotation matrices
+        rot_mat_lines = []
+        txt = self.get_txt()
+        if os.path.exists(txt):
+            f = open(txt,'r')
+            for line in f:
+                if 'MUL: Rmatrix' in line:
+                    rot_mat_lines.append(line)
+            f.close()
+
+            rotmat = []
+            for line in rot_mat_lines:
+                fields = line.split()
+                novl = int(fields[2])
+                ncen = int(fields[3])
+                row = [float(x) for x in fields[4:]]
+
+                try:
+                    rotmat[novl-1][ncen-1].append(row)
+                except IndexError:
+                    try:
+                        rotmat[novl-1].append([])
+                        rotmat[novl-1][ncen-1].append(row)
+                    except IndexError:
+                        rotmat.append([])
+                        rotmat[novl-1].append([])
+                    rotmat[novl-1][ncen-1].append(row)
+        else:
+            rotmat = None
+                    
+        return (multicenterprojections, rotmat)
             
     def set_mdos(self,
                  mcenters=None,
@@ -1690,6 +1733,8 @@ class Jacapo:
            
         adapated from old MultiCenterProjectedDOS.py
         '''
+        if mcenters is None:
+            return
         
         nc = netCDF(self.get_nc(), 'a')
         
@@ -2835,7 +2880,7 @@ s.recv(14)
         log.debug('atoms = %s' % str(atoms))
 
         if atoms is not None: #there may still be no atoms attached
-        
+            log.debug('about to write to %s' % nc)
             ncf = netCDF(nc, 'a')
 
             if 'number_of_dynamic_atoms' not in ncf.dimensions:
@@ -3060,7 +3105,7 @@ s.recv(14)
         
         return atoms
         
-    def delete_ncattdimvar(self, ncf, ncattrs=(), ncdims=(), ncvars=()):
+    def delete_ncattdimvar(self, ncf, ncattrs=None, ncdims=None, ncvars=None):
         '''
         helper function to delete attributes,
         dimensions and variables in a netcdffile
@@ -3073,6 +3118,13 @@ s.recv(14)
         if you delete a dimension, all variables with that dimension
         are also deleted.
         '''
+
+        if ncattrs is None:
+            ncattrs = []
+        if ncdims is None:
+            ncdims = []
+        if ncvars is None:
+            ncvars = []
         
         log.debug('beginning: going to delete dims: %s' % str(ncdims))
         log.debug('beginning: going to delete vars: %s' % str(ncvars))
@@ -3164,6 +3216,8 @@ s.recv(14)
         planewave/densitywave cutoffs and kpt changes. These can cause
         fortran netcdf errors if the data does not match the pre-defined
         dimension sizes.
+
+        also delete all the output from previous calculation.
         '''
         
         log.debug('restarting!')
@@ -3175,13 +3229,29 @@ s.recv(14)
                   'softgrid_dim3',
                   'hardgrid_dim1',
                   'hardgrid_dim2',
-                  'hardgrid_dim3']
+                  'hardgrid_dim3',
+                  'max_projectors_per_atom']
 
-        #very strange error if I don't set ncvars to []
-        #for some reason, BZKpoints gets deleted
+        ncvars = ['TotalEnergy',
+                  'TotalFreeEnergy',
+                  'DynamicAtomForces',
+                  'TotalStress',
+                  'ChargeDensity',
+                  'WaveFunction',
+                  'WaveFunctionFFTindex',
+                  'NumberOfNLProjectors',
+                  'NLProjectorPsi',
+                  'TypeNLProjector1',
+                  'NumberofNLProjectors',
+                  'PartialCoreDensity',
+                  'ChargeDensity',
+                  'ElectrostaticPotential',
+                  'StructureFactor']
+                  
         self.delete_ncattdimvar(self.nc,
                                 ncattrs=[],
-                                ncdims=ncdims)
+                                ncdims=ncdims,
+                                ncvars=ncvars)
 
         self.set_status('new')
         self.ready = False
@@ -3779,6 +3849,7 @@ s.recv(14)
             self.calculate()
             
         nc = netCDF(self.get_nc(), 'r')
+     
         cd = np.transpose(nc.variables['ChargeDensity'][:][spin])
 
         #I am not completely sure why this has to be done
