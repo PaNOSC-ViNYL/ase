@@ -677,8 +677,8 @@ class Jacapo:
 
         pw = self.get_pw()
         if pw > dw:
-            raise Exception('Planewave cutoff %i is greater \
-            than density cutoff %i' % (pw, dw))
+            log.warn('Planewave cutoff %i is greater \
+than density cutoff %i' % (pw, dw))
         
         ncf = netCDF(self.nc, 'a')
         if 'Density_WaveCutoff' in ncf.variables:
