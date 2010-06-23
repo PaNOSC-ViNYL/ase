@@ -10,7 +10,6 @@ for manipulating atoms, analyzing simulations, visualization etc.
 
   The old ASE-2 webpage has moved to http://wiki.fysik.dtu.dk/ase2.
 
-
 Supported :mod:`calculators`:
 
    |abinit| |Asap| |dftb| |elk| |exciting| |EMT| |fhi-aims| 

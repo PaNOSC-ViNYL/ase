@@ -78,27 +78,28 @@ Extensions to Sphinx
 
 We have a couple of extensions to Sphinx:
 
+**:mol:**
+
+   Use ``:mol:`CH_3OH``` to get :mol:`CH_3OH`.
+
 **:svn:**
 
    A role for creating a link to a file in SVN.  If you write
    ``:svn:`ase/atoms.py```, you
-   will get: :svn:`ase/atoms.py`.  The implementation of this role is
-   here: :svn:`doc/ext.py`.
+   will get: :svn:`ase/atoms.py`.
 
 **:trac:**
 
    A role for creating a link to a file in Trac.  If you write
    ``:trac:`ase/atoms.py```, you
-   will get: :trac:`ase/atoms.py`.  The implementation of this role is
-   here: :trac:`doc/ext.py`.
+   will get: :trac:`ase/atoms.py`.
 
 **:epydoc:**
 
    A role for creating a link to the API-documentation generated with
    epydoc_.  If you
    write ``:epydoc:`ase.atoms.Atoms```, you will get:
-   :epydoc:`ase.atoms.Atoms`.  The implementation of this role is
-   here: :svn:`doc/ext.py`.
+   :epydoc:`ase.atoms.Atoms`.
 
 **:math:**
 
@@ -119,8 +120,10 @@ We have a couple of extensions to Sphinx:
 If you add the line ``.. default-role:: math``, then you can leave out
 the ``:math:`` part like here: ```\sin(x_n^2)```.
 
-Our custom, obsolete, implementation of the math role and directive is here:
-:svn:`doc/mathpng.py`. With sphinx >= 0.5 please use ``sphinx.ext.pngmath``.
+The implementation of these roles is here: :svn:`doc/ext.py`.  Our
+custom, obsolete, implementation of the math role and directive is
+here: :svn:`doc/mathpng.py`.  With sphinx >= 0.5 please use
+``sphinx.ext.pngmath``.
 
 
 .. _epydoc:  http://epydoc.sf.net
