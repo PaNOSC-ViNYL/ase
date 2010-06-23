@@ -105,6 +105,11 @@ def convergence_changed(calc, x):
 
 def charge_mixing_changed(calc, x):
     cm = calc.get_charge_mixing()
+    if x is None and cm is None:
+        return False
+    else:
+        return True
+        
     for key in x:
         if x[key] != cm[key]:
             return True
@@ -174,5 +179,16 @@ def ft_changed(calc, x):
         return True
     
 def mdos_changed(calc,x):
-    log.warn('mdos changed not properly implemented')
+
+    myx = calc.get_mdos()
+
+    if x is None and myx is None:
+        return False
+    elif ((x is None and myx is not None)
+        or (x is not None and myx is None)):
+        return True
+    else:
+        for key in x:
+            if x[key] != myx[key]:
+                return True
     return False
