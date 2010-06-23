@@ -16,6 +16,7 @@ if vcmd == None and vscr == None:
     raise NotAvailable('Neither VASP_COMMAND nor VASP_SCRIPT defined')
 
 from ase import Atoms
+from ase.calculators.vasp import Vasp
 import numpy as np
 
 def array_almost_equal(a1, a2, tol=np.finfo(type(1.0)).eps):

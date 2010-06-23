@@ -20,6 +20,7 @@ from ase import io
 from ase.optimize import QuasiNewton
 from ase.constraints import StrainFilter
 from ase.structure import bulk
+from ase.calculators.vasp import Vasp
 
 # -- Perform Volume relaxation within Vasp
 def vasp_vol_relax():
