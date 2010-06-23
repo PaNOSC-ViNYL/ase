@@ -182,6 +182,9 @@ def mdos_changed(calc,x):
 
     myx = calc.get_mdos()
 
+    log.debug('myx = %s' % str(myx))
+    log.debug('x = %s' % str(x))
+
     if x is None and myx is None:
         return False
     elif ((x is None and myx is not None)

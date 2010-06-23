@@ -1127,10 +1127,10 @@ class Jacapo:
             self.nc = nc
             self.update_input_parameters()
                 
-            #I always want the text file set based on the ncfile
-            #and I never want to set this myself.
-            base = os.path.splitext(self.nc)[0]
-            self.txt = base + '.txt'
+        #I always want the text file set based on the ncfile
+        #and I never want to set this myself.
+        base = os.path.splitext(self.nc)[0]
+        self.txt = base + '.txt'
                  
     def set_psp(self,
                 sym=None,
@@ -1619,8 +1619,8 @@ class Jacapo:
             mdos['energywidth'] = v.EnergyWidth
             mdos['numberenergypoints'] = v.NumberEnergyPoints
             mdos['cutoffradius'] = v.CutoffRadius
-
-        #need to get mcenters too
+            mdos['mcenters'] = eval(v.mcenters)
+                
         nc.close()
 
         return mdos
@@ -1777,6 +1777,10 @@ class Jacapo:
         v.EnergyWidth = energywidth
         v.NumberEnergyPoints = numberenergypoints
         v.CutoffRadius = cutoffradius
+
+        #this is kind of hacky, but it is needed for get_mdos so you
+        #can tell if the input is changed.
+        v.mcenters = str(mcenters)
 
         v[:] = mmatrix
 
