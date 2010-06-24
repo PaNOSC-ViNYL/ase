@@ -1,18 +1,18 @@
 from math import pi, sqrt
 
 # Constants from Konrad Hinsen's PhysicalQuantities module:
-_c = 299792458.              # speed of light
+_c = 299792458.              # speed of light, m/s
 _mu0 = 4.e-7 * pi            # permeability of vacuum
 _eps0 = 1 / _mu0 / _c**2     # permittivity of vacuum
 _Grav = 6.67259e-11          # gravitational constant
-_hplanck = 6.6260755e-34     # Planck constant
-_hbar = _hplanck / (2 * pi)  # Planck constant / 2pi
+_hplanck = 6.6260755e-34     # Planck constant, J s
+_hbar = _hplanck / (2 * pi)  # Planck constant / 2pi, J s
 _e = 1.60217733e-19          # elementary charge
 _me = 9.1093897e-31          # electron mass
 _mp = 1.6726231e-27          # proton mass
 _Nav = 6.0221367e23          # Avogadro number
-_k = 1.380658e-23            # Boltzmann constant
-_amu = 1.6605402e-27 
+_k = 1.380658e-23            # Boltzmann constant, J/K
+_amu = 1.6605402e-27         # atomic mass unit, kg
 
 Ang = Angstrom = 1.0
 nm = 10.0
@@ -30,7 +30,7 @@ Ha = Hartree
 second = 1e10 * sqrt(_e / _amu)
 fs = 1e-15 * second
 
-kB = _k / _e
+kB = _k / _e                 # Boltzmann constant, eV/K
 
 Pascal = (1 / _e) / 1e30  # J/m^3
 GPa = 1e9 * Pascal
