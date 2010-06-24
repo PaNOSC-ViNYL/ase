@@ -664,10 +664,10 @@ class Vasp(Calculator):
                     kpoints.write('1.0 \n')
         kpoints.close()
 
-    def write_potcar(self):
+    def write_potcar(self,suffix = ""):
         """Writes the POTCAR file."""
         import tempfile
-        potfile = open('POTCAR','w')
+        potfile = open('POTCAR'+suffix,'w')
         for filename in self.ppp_list:
             if filename.endswith('R'):
                 for line in open(filename, 'r'):

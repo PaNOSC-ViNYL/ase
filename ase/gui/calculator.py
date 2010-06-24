@@ -1393,7 +1393,7 @@ class VASP_Window(gtk.Window):
         self.attrname = attrname
         atoms = owner.atoms
         self.periodic = atoms.get_pbc().all()
-        self.vasp_keyword_gui_list = ['prec']#, 'encut']
+        self.vasp_keyword_gui_list = ['prec','encut','ispin']
         from ase.calculators.vasp import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys,special_keys
         self.vasp_keyword_list = float_keys+exp_keys+string_keys+int_keys+bool_keys+list_keys+special_keys
         self.expert_keywords = []
@@ -1415,15 +1415,22 @@ class VASP_Window(gtk.Window):
             self.xc.append_text(x)
             if x == self.vasp_xc_default:
                 self.xc.set_active(i)
+
+        # Spin polarized
+        self.spinpol = gtk.CheckButton("Spin polarized")
+
         pack(vbox, [gtk.Label("Exchange-correlation functional: "),
-                    self.xc])
+                    self.xc,
+                    gtk.Label("    "),
+                    self.spinpol])
+        pack(vbox, gtk.Label(""))
 
         # k-grid
         self.kpts = []
         self.kpts_spin = []
         for i in range(3):
             default = np.ceil(20.0 / np.sqrt(np.vdot(self.ucell[i],self.ucell[i])))
-            g = gtk.Adjustment(1.0, 1, 100, 1)
+            g = gtk.Adjustment(default, 1, 100, 1)
             s = gtk.SpinButton(g, 0, 0)
             self.kpts.append(g)
             self.kpts_spin.append(s)
@@ -1437,26 +1444,30 @@ class VASP_Window(gtk.Window):
         self.k_changed()
         pack(vbox, gtk.Label(""))
 
-#        # Spin polarized
-#        self.spinpol = gtk.CheckButton("Spin polarized")
-#        pack(vbox, [self.spinpol])
-#        pack(vbox, gtk.Label(""))
-
         # Precision of calculation
         self.prec = gtk.combo_box_new_text()
         for i, x in enumerate(['Low', 'Normal', 'Accurate']):
             self.prec.append_text(x)
             if x == self.vasp_prec_default:
                 self.prec.set_active(i)
+
+        if os.environ.has_key('VASP_PP_PATH'):
+            self.encut_min_default, self.encut_max_default = self.get_min_max_cutoff()
+        else:
+            self.encut_max_default = 400.0
+            self.encut_min_default = 100.0
+        self.encut = gtk.Adjustment(self.encut_max_default, 0, 9999, 10)
+        self.encut_spin = gtk.SpinButton(self.encut, 0, 0)
+        self.encut_spin.set_digits(2)
+        self.encut_spin.connect("value-changed",self.check_encut_warning)
         pack(vbox, [gtk.Label("Precision of calculation: "),
-                    self.prec])
+                    self.prec,
+                    gtk.Label("        Cutoff energy:"),
+                    self.encut_spin, 
+                    gtk.Label(" eV")])
+        self.encut_warning = gtk.Label("")
+        pack(vbox, self.encut_warning)
         pack(vbox, gtk.Label(""))
-#        pack(vbox, gtk.Label('Cutoff energy'))
-#        self.encut = gtk.Adjustment(1e-6, 1e-6, 1e0, 1e-6)
-#        self.encut_spin = gtk.SpinButton(self.encut, 0, 0)
-#        pack(vbox, [gtk.Label("Cutoff energy:                 "),
-#                    self.encut_spin, 
-#                    gtk.Label(" eV")])
         
         self.expert_keyword_set = gtk.Entry(max = 55)
         self.expert_keyword_add = gtk.Button(stock = gtk.STOCK_ADD)
@@ -1482,10 +1493,13 @@ class VASP_Window(gtk.Window):
         # Buttons at the bottom
         pack(vbox, gtk.Label(""))
         butbox = gtk.HButtonBox()
+        export_vasp_but = gtk.Button("Export VASP files")
+        export_vasp_but.connect("clicked", self.export_vasp_files)
         cancel_but = gtk.Button(stock=gtk.STOCK_CANCEL)
         cancel_but.connect('clicked', lambda widget: self.destroy())
         ok_but = gtk.Button(stock=gtk.STOCK_OK)
         ok_but.connect('clicked', self.ok)
+        butbox.pack_start(export_vasp_but, 0, 0)
         butbox.pack_start(cancel_but, 0, 0)
         butbox.pack_start(ok_but, 0, 0)
         butbox.show_all()
@@ -1502,6 +1516,11 @@ class VASP_Window(gtk.Window):
         self.param["kpts"] = (int(self.kpts[0].value),
                               int(self.kpts[1].value),
                               int(self.kpts[2].value))
+        self.param["encut"] = self.encut.value
+        if self.spinpol.get_active(): 
+            self.param["ispin"] = 2
+        else:
+            self.param["ispin"] = 1
         from ase.calculators.vasp import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys,special_keys
         for option in self.expert_keywords:
             if option[3]:   # set type of parameter accoding to which list it is in
@@ -1519,44 +1538,67 @@ class VASP_Window(gtk.Window):
         os.environ['VASP_COMMAND'] = self.run_command.get_text()
         os.environ['VASP_PP_PATH'] = self.pp_path.get_text()
         
-
     def ok(self, *args):
         self.set_attributes(*args)
         self.destroy()
 
-    def run(self, *args):
+    def get_min_max_cutoff(self, *args):
+        # determine the recommended energy cutoff limits 
         from ase.calculators.vasp import Vasp
-        calc_temp = Vasp(**self.param)
+        calc_temp = Vasp()
         atoms_temp = self.owner.atoms.copy()
-        atoms_temp.set_calculator(calc_temp)
-        atoms_temp.calc.update(atoms_temp)
-        
+        calc_temp.initialize(atoms_temp)
+        calc_temp.write_potcar(suffix = '.check_energy_cutoff')
+        enmin = -1e6
+        enmax = -1e6
+        for line in open("POTCAR.check_energy_cutoff",'r').readlines():
+            if "ENMIN" in line:
+                enmax = max(enmax,float(line.split()[2].split(';')[0]))
+                enmin = max(enmin,float(line.split()[5]))
+        from os import system
+        system("rm POTCAR.check_energy_cutoff")
+        return enmin, enmax
+
     def k_changed(self, *args):
         size = [self.kpts[i].value * np.sqrt(np.vdot(self.ucell[i],self.ucell[i])) for i in range(3)]
         self.kpts_label.set_text(self.kpts_label_format % tuple(size))
+
+    def check_encut_warning(self,*args):
+        if self.encut.value < self.encut_min_default:
+            self.encut_warning.set_markup("<b>WARNING:</b> cutoff energy is lower than recommended minimum!")
+        else:
+            self.encut_warning.set_markup("")
 
     def destroy(self):
         self.grab_remove()
         gtk.Window.destroy(self)
 
-    def export_control(self, *args):
-        filename = "control.in"
+    def export_vasp_files(self, *args):
+        filename = ""
         chooser = gtk.FileChooserDialog(
-            'Export parameters ... ', None, gtk.FILE_CHOOSER_ACTION_SAVE,
+            'Export VASP input files: choose directory ... ', 
+            None, gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
             (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
              gtk.STOCK_SAVE, gtk.RESPONSE_OK))
         chooser.set_filename(filename)
         save = chooser.run()
         if save == gtk.RESPONSE_OK or save == gtk.RESPONSE_SAVE:
             filename = chooser.get_filename()
+            from os import chdir
+            chdir(filename)
             self.set_attributes(*args)
             param = getattr(self.owner, "vasp_parameters")
             from ase.calculators.vasp import Vasp
             calc_temp = Vasp(**param)
             atoms_temp = self.owner.atoms.copy()
             atoms_temp.set_calculator(calc_temp)
-            atoms_temp.calc.write_control(file = filename)
-            atoms_temp.calc.write_species(file = filename)
+            calc_temp.initialize(atoms_temp)
+            calc_temp.write_incar(atoms_temp)
+            calc_temp.write_potcar()
+            calc_temp.write_kpoints()
+            calc_temp.write_sort_file()
+            from ase.io.vasp import write_vasp
+            write_vasp('POSCAR', calc_temp.atoms_sorted, symbol_count = calc_temp.symbol_count)
         chooser.destroy()
 
     def expert_keyword_import(self, *args):
@@ -1575,13 +1617,15 @@ class VASP_Window(gtk.Window):
 
     def expert_keyword_create(self, command):
         key = command[0]
+        if command[1] == "=":
+            command.remove("=")
         argument = command[1]
         if len(command) > 2:
             for a in command[2:]:
                 argument += ' '+a
         index = len(self.expert_keywords) 
-        self.expert_keywords += [[gtk.Label("    " +key+"  "),
-                                  gtk.Entry(max=35),
+        self.expert_keywords += [[gtk.Label("    " +key+" = "),
+                                  gtk.Entry(max=45),
                                   ExpertDeleteButton(index),
                                   True]]
         self.expert_keywords[index][1].set_text(argument)
