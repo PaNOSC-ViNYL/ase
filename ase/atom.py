@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from ase.data import atomic_numbers, chemical_symbols
+from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 
 
 #        singular,    plural,     type,  shape
@@ -183,7 +183,6 @@ class Atom(object):
     def get_tag(self): return self._get('tag')
     def get_momentum(self): return self._get_copy('momentum')
     def _get_momentum(self): return self._get('momentum')
-    def get_mass(self): return self._get('mass')
     def get_initial_magnetic_moment(self): return self._get('magmom')
     def get_charge(self): return self._get('charge')
 
@@ -193,7 +192,6 @@ class Atom(object):
         self._set('position', np.array(position, float))
     def set_tag(self, tag): self._set('tag', tag)
     def set_momentum(self, momentum): self._set('momentum', momentum)
-    def set_mass(self, mass): self._set('mass', mass)
     def set_initial_magnetic_moment(self, magmom): self._set('magmom', magmom)
     def set_charge(self, charge): self._set('charge', charge)
 
@@ -219,6 +217,31 @@ class Atom(object):
             'set_number is deprecated. Please use set_atomic_number instead.',
             DeprecationWarning, stacklevel=2)
         return self.set_atomic_number(number)
+
+    def get_mass(self):
+        """Get the mass of the atom.
+
+        Returns the mass of the atom, if known.  If unknown, returns the
+        atomic mass corresponding to the element.
+        """
+        m = self._get('mass')
+        if m is None:
+            m = atomic_masses[self.get_atomic_number()]
+        return m
+
+    def set_mass(self, mass):
+        """Sets the mass of the atom.
+
+        If the atom is part of a list of atoms, and the atoms do not yet
+        have masses, all other atoms are assigned their default masses.
+        """
+        if self.atoms is None:
+            self._mass = mass
+        else:
+            if 'masses' not in self.atoms.arrays:
+                # Assign default masses to all atoms
+                self.atoms.set_masses(self.atoms.get_masses())
+            self.atoms.arrays['masses'][self.index] = mass        
         
     symbol = property(get_symbol, set_symbol, doc='Chemical symbol')
     number = property(get_atomic_number, set_atomic_number, doc='Atomic number')
