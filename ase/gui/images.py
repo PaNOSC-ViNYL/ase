@@ -188,6 +188,29 @@ class Images:
         n = self.nimages
         def d(n1, n2):
             return sqrt(((R[n1] - R[n2])**2).sum())
+        def a(n1, n2, n3):
+            v1 = R[n1]-R[n2]
+            v2 = R[n3]-R[n2]
+            arg = np.vdot(v1,v2)/(sqrt((v1**2).sum()*(v2**2).sum()))
+            if arg > 1.0: arg = 1.0
+            if arg < -1.0: arg = -1.0
+            return 180.0*np.arccos(arg)/np.pi
+        def dih(n1, n2, n3, n4):
+            # vector 0->1, 1->2, 2->3 and their normalized cross products:
+            a    = R[n2]-R[n1]
+            b    = R[n3]-R[n2]
+            c    = R[n4]-R[n3]
+            bxa  = np.cross(b,a)
+            bxa /= np.sqrt(np.vdot(bxa,bxa))
+            cxb  = np.cross(c,b)
+            cxb /= np.sqrt(np.vdot(cxb,cxb))
+            angle = np.vdot(bxa,cxb)
+            # check for numerical trouble due to finite precision:
+            if angle < -1: angle = -1
+            if angle >  1: angle =  1
+            angle = np.arccos(angle)
+            if (np.vdot(bxa,c)) > 0: angle = 2*np.pi-angle
+            return angle*180.0/np.pi
         S = self.selected
         D = self.dynamic[:, np.newaxis]
         E = self.E

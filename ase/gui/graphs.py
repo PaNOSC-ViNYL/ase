@@ -33,10 +33,12 @@ class Graphs(gtk.Window):
         button = pack(vbox, [gtk.Button('Plot'),
                              gtk.Label(' y1, y2, ...')])[0]
         button.connect('clicked', self.plot, 'y')
+        save_button = gtk.Button(stock=gtk.STOCK_SAVE)
+        save_button.connect('clicked',self.save)
+        clear_button = gtk.Button(_('clear'))
+        clear_button.connect('clicked', self.clear)
+        pack(vbox, [save_button,clear_button])
         
-        button = pack(vbox, gtk.Button(_('clear')))
-                          
-        button.connect('clicked', self.clear)
 
         self.add(vbox)
         vbox.show()
@@ -84,6 +86,27 @@ class Graphs(gtk.Window):
         #pylab.show()
 
     python = plot
+
+    def save(self, filename):
+        chooser = gtk.FileChooserDialog(
+            'Save data to file ... ', None, gtk.FILE_CHOOSER_ACTION_SAVE,
+            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+             gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+        save = chooser.run()
+        if save == gtk.RESPONSE_OK:
+            filename = chooser.get_filename()
+            expr = self.expr.get_text()
+            data = self.gui.images.graph(expr)
+            expr = '# '+expr
+            fd = open(filename,'w')
+            fd.write("%s \n" % (expr))
+            for s in range(len(data[0])):
+                for i in range(len(data)):
+                    val = data[i,s]
+                    fd.write("%12.8e\t" % (val))
+                fd.write("\n")
+            fd.close()
+        chooser.destroy()
 
     def clear(self, button):
         import pylab
