@@ -216,8 +216,11 @@ class Jacapo:
         self.debug = debug
         log.setLevel(debug)
 
-        self.pars = Jacapo.default_input
+        self.pars = Jacapo.default_input.copy()
         self.pars_uptodate = {}
+
+        log.debug(self.pars)
+        
         for key in self.pars:
             self.pars_uptodate[key] = False
             
@@ -332,6 +335,7 @@ class Jacapo:
         actual writing.
         '''
         log.debug('Writing input variables out')
+        log.debug(self.pars)
         
         if 'DACAPO_READONLY' in os.environ:
             raise Exception, 'DACAPO_READONLY set and you tried to write!'
@@ -369,6 +373,8 @@ class Jacapo:
 
     def update_input_parameters(self):
         '''read in all the input parameters from the netcdfile'''
+
+        log.debug('Updating parameters')
         
         for key in self.default_input:
             getf = 'self.get_%s()' % key
@@ -1113,7 +1119,7 @@ than density cutoff %i' % (pw, dw))
             #import shutil
             #shutil.copy(self.nc,nc)
             base = os.path.split(nc)[0]
-            if not os.path.isdir(base):
+            if not os.path.isdir(base) and base is not '':
                 os.makedirs(base)
             status = os.system('cp %s %s' % (self.nc, nc))
             if status != 0:
@@ -3426,8 +3432,8 @@ s.recv(14)
         self.ready = False
 
     def set_electronic_minimization(self,
-                                    method,
-                                    diagsperband=None):
+                                    method='eigsolve',
+                                    diagsperband=2):
         '''set the eigensolver method
 
         Selector for which subroutine to use for electronic
@@ -3482,6 +3488,8 @@ s.recv(14)
     def get_electronic_minimization(self):
         '''get method and diagonalizations per band for electronic
         minimization algorithms'''
+
+        log.debug('getting electronic minimization parameters')
         
         nc = netCDF(self.get_nc(), 'a')
         vname = 'ElectronicMinimization'
@@ -3961,7 +3969,7 @@ s.recv(14)
             c[k] = np.array(c[k])
         return c, U
 
-    def get_dipole_moment(self):
+    def get_dipole_moment(self,atoms=None):
         '''
         return dipole moment of unit cell
 
@@ -3976,7 +3984,8 @@ s.recv(14)
         if self.calculation_required():
             self.calculate()
 
-        atoms = self.get_atoms()
+        if atoms is None:
+            atoms = self.get_atoms()
         
         #center of electron charge density
         x, y, z, cd = self.get_charge_density()
