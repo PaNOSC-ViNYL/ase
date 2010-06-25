@@ -2805,7 +2805,7 @@ else:                           # old interface
      s.connect("",%(effpid)s)
 # wait for python main loop
 s.recv(14)
-""" % (str(effpid), str(effpid)))
+""" % {'effpid':str(effpid)})
             scriptfile.close()
             os.system('chmod +x ' + scriptname)
 
