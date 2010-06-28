@@ -6,6 +6,7 @@ from ase.data import covalent_radii
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import read, write, string2index
+from ase.constraints import FixAtoms
 
 
 class Images:
@@ -75,7 +76,7 @@ class Images:
         self.atoms_to_rotate_0 = np.zeros(self.natoms, bool)
         self.visible = np.ones(self.natoms, bool)
         self.nselected = 0
-        self.set_dynamic()
+        self.set_dynamic(constraints = images[0].constraints)
         self.repeat = np.ones(3, int)
         self.set_radii(0.89)
         
@@ -235,7 +236,7 @@ class Images:
                 s += sqrt(((self.P[i + 1] - R)**2).sum())
         return xy
 
-    def set_dynamic(self):
+    def set_dynamic(self, constraints = None):
         if self.nimages == 1:
             self.dynamic = np.ones(self.natoms, bool)
         else:
@@ -243,6 +244,10 @@ class Images:
             R0 = self.P[0]
             for R in self.P[1:]:
                 self.dynamic |= (np.abs(R - R0) > 1.0e-10).any(1)
+        if constraints is not None:
+            for con in constraints: 
+                if isinstance(con,FixAtoms):
+                    self.dynamic[con.index] = False
 
     def write(self, filename, rotations='', show_unit_cell=False, bbox=None):
         indices = range(self.nimages)
@@ -276,8 +281,7 @@ class Images:
         
         # check for constrained atoms and add them accordingly:
         if not self.dynamic.all():
-            from ase.constraints import FixAtoms
-            atoms.set_constraint(FixAtoms(mask=self.dynamic))
+            atoms.set_constraint(FixAtoms(mask=1-self.dynamic))
         
         atoms.set_calculator(SinglePointCalculator(self.E[frame],
                                                    self.F[frame],

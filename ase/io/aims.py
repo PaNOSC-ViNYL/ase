@@ -6,7 +6,8 @@ def read_aims(filename):
     a geometry.in file.
     """
 
-    from ase import Atoms, FixAtoms, FixCartesian
+    from ase import Atoms
+    from ase.constraints import FixAtoms, FixCartesian
     import numpy as np
 
     atoms = Atoms()
