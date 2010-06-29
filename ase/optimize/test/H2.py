@@ -1,4 +1,5 @@
-from ase import Atoms, EMT
+from ase import Atoms
+from ase.calculators.emt import EMT
 from ase.optimize.test import run_test
 from gpaw import GPAW
 

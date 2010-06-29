@@ -1,4 +1,5 @@
-from ase import Atoms, Atom, EMT, molecule
+from ase import Atoms, Atom
+from ase.calculators.emt import EMT
 from ase.constraints import FixAtoms
 from ase.optimize.test import run_test
 

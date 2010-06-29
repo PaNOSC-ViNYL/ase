@@ -1,4 +1,4 @@
-from ase import EMT
+from ase.calculators.emt import EMT
 from ase.lattice.cubic import FaceCenteredCubic
 from ase.optimize.test import run_test
 

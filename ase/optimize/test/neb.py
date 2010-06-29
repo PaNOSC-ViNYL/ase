@@ -1,7 +1,10 @@
 #/usr/bin/env python
 #PBS -l nodes=4:ppn=8
 #PBS -l walltime=13:00:00
-from ase import QuasiNewton, FixAtoms, EMT, NEB
+from ase.optimize import QuasiNewton
+from ase.constraints import FixAtoms
+from ase.calculators.emt import EMT
+from ase.neb import NEB
 from ase.lattice.surface import fcc100, add_adsorbate
 from ase.optimize.test import run_test
 from gpaw import GPAW, Mixer, PoissonSolver

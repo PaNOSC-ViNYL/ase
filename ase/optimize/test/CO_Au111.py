@@ -1,8 +1,9 @@
-from ase import Atoms, EMT
-from ase.constraints import  FixAtoms
+from math import sin, cos, pi
+from ase import Atoms
+from ase.calculators.emt import EMT
+from ase.constraints import FixAtoms
 from ase.optimize.test import run_test
 from ase.lattice.surface import fcc111, add_adsorbate
-from math import sin, cos, pi
 
 name = 'CO_Au111'
 
