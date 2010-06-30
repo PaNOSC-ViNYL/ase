@@ -83,10 +83,10 @@ class ThermoChem:
         if self.verbose:
             sys.stdout.write(text + os.linesep)
 
-class AdsorbateThermo(ThermoChem):
-    """Class for calculating thermodynamic properties of an adsorbate
-    on a surface, in the approximation that all degrees of freedom are
-    treated harmonically.
+class HarmonicThermo(ThermoChem):
+    """Class for calculating thermodynamic properties in the approximation
+    that all degrees of freedom are treated harmonically. Often used for
+    adsorbates.
     
     Inputs:
 
