@@ -292,6 +292,9 @@ class SetCalculator(SetupWindow):
             return False
         self.atoms = Atoms(positions=images.P[0], symbols=images.Z,
                            cell=images.A[0], pbc=images.pbc)
+        if not images.dynamic.all(): 
+            from ase.constraints import FixAtoms
+            self.atoms.set_constraint(FixAtoms(mask=1-images.dynamic))
         return True
 
     def apply(self, *widget):
@@ -1393,7 +1396,7 @@ class VASP_Window(gtk.Window):
         self.attrname = attrname
         atoms = owner.atoms
         self.periodic = atoms.get_pbc().all()
-        self.vasp_keyword_gui_list = ['prec','encut','ispin']
+        self.vasp_keyword_gui_list = ['ediff','encut', 'ismear', 'ispin', 'prec', 'sigma']
         from ase.calculators.vasp import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys,special_keys
         self.vasp_keyword_list = float_keys+exp_keys+string_keys+int_keys+bool_keys+list_keys+special_keys
         self.expert_keywords = []
@@ -1435,14 +1438,6 @@ class VASP_Window(gtk.Window):
             self.kpts.append(g)
             self.kpts_spin.append(s)
             g.connect("value-changed", self.k_changed)
-        pack(vbox, [gtk.Label("k-points  k = ("), self.kpts_spin[0],
-                    gtk.Label(", "), self.kpts_spin[1], gtk.Label(", "),
-                    self.kpts_spin[2], gtk.Label(")")])
-        self.kpts_label = gtk.Label("")
-        self.kpts_label_format = "k-points x size:  (%.1f, %.1f, %.1f) Å"
-        pack(vbox, [self.kpts_label])
-        self.k_changed()
-        pack(vbox, gtk.Label(""))
 
         # Precision of calculation
         self.prec = gtk.combo_box_new_text()
@@ -1451,6 +1446,7 @@ class VASP_Window(gtk.Window):
             if x == self.vasp_prec_default:
                 self.prec.set_active(i)
 
+        # cutoff energy
         if os.environ.has_key('VASP_PP_PATH'):
             self.encut_min_default, self.encut_max_default = self.get_min_max_cutoff()
         else:
@@ -1460,15 +1456,46 @@ class VASP_Window(gtk.Window):
         self.encut_spin = gtk.SpinButton(self.encut, 0, 0)
         self.encut_spin.set_digits(2)
         self.encut_spin.connect("value-changed",self.check_encut_warning)
-        pack(vbox, [gtk.Label("Precision of calculation: "),
-                    self.prec,
-                    gtk.Label("        Cutoff energy:"),
-                    self.encut_spin, 
-                    gtk.Label(" eV")])
         self.encut_warning = gtk.Label("")
-        pack(vbox, self.encut_warning)
+
+        pack(vbox, [gtk.Label("k-points  k = ("), self.kpts_spin[0],
+                    gtk.Label(", "), self.kpts_spin[1], gtk.Label(", "),
+                    self.kpts_spin[2], 
+                    gtk.Label(")    Cutoff: "),self.encut_spin,
+                    gtk.Label("    Precision: "),self.prec])
+        self.kpts_label = gtk.Label("")
+        self.kpts_label_format = "k-points x size:  (%.1f, %.1f, %.1f) Å       "
+        pack(vbox, [self.kpts_label, self.encut_warning])
+        self.k_changed()
+        pack(vbox, gtk.Label(""))
+
+        self.ismear = gtk.combo_box_new_text()
+        for x in ['Fermi', 'Gauss', 'Methfessel-Paxton']:
+            self.ismear.append_text(x)
+        self.ismear.set_active(2)
+        self.smearing_order = gtk.Adjustment(2,0,9,1)
+        self.smearing_order_spin = gtk.SpinButton(self.smearing_order,0,0)
+        self.smearing_order_spin.set_digits(0)
+        self.ismear.connect("changed", self.check_ismear_changed)
+        self.sigma = gtk.Adjustment(0.1, 0.001, 9.0, 0.1)
+        self.sigma_spin = gtk.SpinButton(self.sigma,0,0)
+        self.sigma_spin.set_digits(3)
+        pack(vbox, [gtk.Label("Smearing: "),
+                    self.ismear,
+                    gtk.Label(" order: "),
+                    self.smearing_order_spin,
+                    gtk.Label(" width: "),
+                    self.sigma_spin])
         pack(vbox, gtk.Label(""))
         
+        self.ediff = gtk.Adjustment(1e-4, 1e-6, 1e0, 1e-4)
+        self.ediff_spin = gtk.SpinButton(self.ediff, 0, 0)
+        self.ediff_spin.set_digits(6)
+        pack(vbox,[gtk.Label("Self-consistency convergence: "),
+                   self.ediff_spin,
+                   gtk.Label(" eV")])
+        pack(vbox,gtk.Label(""))
+
         self.expert_keyword_set = gtk.Entry(max = 55)
         self.expert_keyword_add = gtk.Button(stock = gtk.STOCK_ADD)
         self.expert_keyword_add.connect("clicked", self.expert_keyword_import)
@@ -1517,6 +1544,9 @@ class VASP_Window(gtk.Window):
                               int(self.kpts[1].value),
                               int(self.kpts[2].value))
         self.param["encut"] = self.encut.value
+        self.param["ediff"] = self.ediff.value
+        self.param["ismear"] = self.get_ismear()
+        self.param["sigma"] = self.sigma.value
         if self.spinpol.get_active(): 
             self.param["ispin"] = 2
         else:
@@ -1568,6 +1598,22 @@ class VASP_Window(gtk.Window):
             self.encut_warning.set_markup("<b>WARNING:</b> cutoff energy is lower than recommended minimum!")
         else:
             self.encut_warning.set_markup("")
+
+    def check_ismear_changed(self,*args):
+        if self.ismear.get_active_text() == 'Methfessel-Paxton':
+            self.smearing_order_spin.set_sensitive(True)
+        else:
+            self.smearing_order_spin.set_sensitive(False)
+
+    def get_ismear(self,*args):
+        type = self.ismear.get_active_text()
+        if type == 'Methfessel-Paxton':
+            ismear_value = self.smearing_order.value
+        elif type == 'Fermi':
+            ismear_value = -1
+        else:
+            ismear_value = 0
+        return ismear_value
 
     def destroy(self):
         self.grab_remove()
