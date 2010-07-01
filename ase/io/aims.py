@@ -133,6 +133,7 @@ def read_aims_output(filename, index = -1):
     MD information, force information etc etc etc. """
     from ase import Atoms, Atom 
     from ase.calculators.singlepoint import SinglePointCalculator
+    from ase.units import Ang, fs
     molecular_dynamics = False
     fd = open(filename, 'r')
     cell = []
@@ -141,6 +142,7 @@ def read_aims_output(filename, index = -1):
     f = None
     pbc = False
     found_aims_calculator = False
+    v_unit = Ang/(1000.0*fs)
     while True:
         line = fd.readline()
         if not line:
@@ -167,7 +169,7 @@ def read_aims_output(filename, index = -1):
                 atoms.append(Atom(inp[3],(inp[4],inp[5],inp[6]))) 
         if "Complete information for previous time-step:" in line:
             molecular_dynamics = True
-        if "Updated atomic structure:" in line:
+        if "Updated atomic structure:" in line and not molecular_dynamics:
             fd.readline()
             atoms = Atoms()
             velocities = []
@@ -176,9 +178,16 @@ def read_aims_output(filename, index = -1):
                 atoms.append(Atom(inp[4],(inp[1],inp[2],inp[3])))  
                 if molecular_dynamics:
                     inp = fd.readline().split()
-                    velocities += [[float(inp[1]),float(inp[2]),float(inp[3])]]
-            if molecular_dynamics:
-                atoms.set_velocities(velocities)
+        if "Atomic structure (and velocities)" in line:
+            fd.readline()
+            atoms = Atoms()
+            velocities = []
+            for i in range(n_atoms):
+                inp = fd.readline().split()
+                atoms.append(Atom(inp[4],(inp[1],inp[2],inp[3])))  
+                inp = fd.readline().split()
+                velocities += [[float(inp[1])*v_unit,float(inp[2])*v_unit,float(inp[3])*v_unit]]
+            atoms.set_velocities(velocities)
         if "Total atomic forces" in line:
             f = []
             for i in range(n_atoms):
