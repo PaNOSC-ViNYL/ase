@@ -70,3 +70,4 @@ List of all modules:
    data
    trajectory
    utils
+   thermochemistry
