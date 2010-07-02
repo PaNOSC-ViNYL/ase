@@ -95,12 +95,12 @@ class HarmonicThermo(ThermoChem):
         ase.vibrations.Vibrations.get_energies). The number of
         energies should match the number of degrees of freedom of the
         adsorbate; i.e., 3*n, where n is the number of atoms. Note that
-        this module does not check that the user has supplied the correct
+        this class does not check that the user has supplied the correct
         number of energies. Units of energies are eV.
     electronicenergy : float
         the electronic energy in eV
         (If the electronicenergy is unspecified, then the methods of this
-        module can be interpreted as the energy corrections.)
+        class can be interpreted as the energy corrections.)
     """
 
     def __init__(self, vib_energies, electronicenergy=None):
@@ -117,10 +117,8 @@ class HarmonicThermo(ThermoChem):
             self.electronicenergy = 0.
 
     def get_internal_energy(self, temperature, verbose=True):
-        """Returns the internal energy (U) for an adsorbate based on the
-        harmonic approximation. Note that the enthalpy (H) is not strictly
-        defined, as the adsorbate has no pressure per se. Temperature is in
-        K and returns U in eV."""
+        """Returns the internal energy, in eV, in the harmonic approximation
+        at a specified temperature (K)."""
 
         self.verbose = verbose
         write = self._vprint
@@ -169,7 +167,7 @@ class HarmonicThermo(ThermoChem):
         return S
 
     def get_free_energy(self, temperature, verbose=True):
-        """Returns the free energy, in eV, in the ideal gas approximation
+        """Returns the free energy, in eV, in the harmonic approximation
         at a specified temperature (K)."""
 
         self.verbose = True
@@ -201,29 +199,29 @@ class IdealGasThermo(ThermoChem):
     vib_energies : list
         a list of the vibrational energies of the molecule (e.g., from
         ase.vibrations.Vibrations.get_energies). The number of vibrations
-        used is automatically calculated by the length of the atoms
-        object and the geometry. If more are specified than are needed, 
-        then the lowest numbered vibrations are neglected. If either atoms
-        or geometry is unspecified, then uses the entire list.
-        Units are cm^(-1).
+        used is automatically calculated by the geometry and the number of
+        atoms. If more are specified than are needed, then the lowest 
+        numbered vibrations are neglected. If either atoms or natoms is 
+        unspecified, then uses the entire list. Units are eV.
     geometry : 'monatomic', 'linear', or 'nonlinear'
         geometry of the molecule
     electronicenergy : float
         the electronic energy in eV
         (If electronicenergy is unspecified, then the methods of this
-        module can be interpreted as the enthalpy and free energy
+        class can be interpreted as the enthalpy and free energy
         corrections.)
     natoms : integer
         the number of atoms, used along with 'geometry' to determine how
         many vibrations to use. (Not needed if an atoms object is supplied
-        in 'atoms'.)
+        in 'atoms' or if the user desires the entire list of vibrations
+        to be used.)
 
     Extra inputs needed for for entropy / free energy calculations:
 
     atoms : an ASE atoms object
         used to calculate rotational moments of inertia and molecular mass
     symmetrynumber : integer
-        symmetry number of the molcule. See, for example, Table 10.1 and
+        symmetry number of the molecule. See, for example, Table 10.1 and
         Appendix B of C. Cramer "Essentials of Computational Chemistry",
         2nd Ed.
     spin : float
@@ -232,7 +230,7 @@ class IdealGasThermo(ThermoChem):
         1.0 for a triplet with two unpaired electrons, such as O_2.)
     """
 
-    def __init__(self, vib_energies, geometry=None, electronicenergy=None,
+    def __init__(self, vib_energies, geometry, electronicenergy=None,
                  atoms=None, symmetrynumber=None, spin=None, natoms=None):
         if electronicenergy == None:
             self.electronicenergy = 0.
@@ -243,15 +241,14 @@ class IdealGasThermo(ThermoChem):
         self.sigma = symmetrynumber
         self.spin = spin
         if natoms == None:
-            self.natoms = len(atoms)
-        else:
-            self.natoms = natoms
+            if atoms:
+                natoms = len(atoms)
         # Cut the vibrations to those needed from the geometry.
-        if atoms and geometry:
+        if natoms:
             if geometry == 'nonlinear':
-                self.vib_energies = vib_energies[-(3*self.natoms-6):]
+                self.vib_energies = vib_energies[-(3*natoms-6):]
             elif geometry == 'linear':
-                self.vib_energies = vib_energies[-(3*self.natoms-5):]
+                self.vib_energies = vib_energies[-(3*natoms-5):]
             elif geometry == 'monatomic':
                 self.vib_energies = []
         else:
@@ -261,16 +258,11 @@ class IdealGasThermo(ThermoChem):
             raise ValueError('Imaginary frequencies are present.')
         else:
             self.vib_energies = np.real(self.vib_energies) # clear +0.j 
-
-
-
-
         self.referencepressure = 101325. # Pa
 
     def get_enthalpy(self, temperature, verbose=True):
-        """Returns the enthalpy at specified temperature (in K)
-        based on ideal-gas treatment of all degrees of freedom. Returns
-        the results in units of eV."""
+        """Returns the enthalpy, in eV, in the ideal gas approximation
+        at a specified temperature (K)."""
 
         self.verbose = verbose
         write = self._vprint
@@ -317,6 +309,10 @@ class IdealGasThermo(ThermoChem):
         """Returns the entropy, in eV/K, in the ideal gas approximation
         at a specified temperature (K) and pressure (Pa)."""
 
+        if self.atoms == None or self.sigma == None or self.spin == None:
+            raise RuntimeError('atoms, symmetrynumber, and spin must be '
+                               'specified for entropy and free energy '
+                               'calculations.')
         self.verbose = verbose
         write = self._vprint
         fmt = '%-15s%13.7f eV/K%13.3f eV'
