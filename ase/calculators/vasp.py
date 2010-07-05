@@ -79,6 +79,7 @@ int_keys = [
     'istart',     # startjob: 0-new 1-cont 2-samecut
     'isym',       # symmetry: 0-nonsym 1-usesym
     'iwavpr',     # prediction of wf.: 0-non 1-charg 2-wave 3-comb
+    'lmaxmix',    # 
     'lorbit',     # create PROOUT
     'ngx',        # FFT mesh for wavefunctions, x
     'ngxf',       # FFT mesh for charges x
@@ -115,7 +116,6 @@ bool_keys = [
     'ldipol',     # potential correction mode
     'lelf',       # create ELFCAR
     'lhfcalc',    # switch to turn on Hartree Fock calculations
-    'lmaxmix',    # 
     'lpard',      # evaluate partial (band and/or k-point) decomposed charge density
     'lplane',     # parallelisation over the FFT grid
     'lscalapack', # switch off scaLAPACK
