@@ -53,7 +53,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
             (self.radio_z, (0,0,1))]
         self.deform_label = gtk.Label("")
         pack(vbox, [self.deform_label])
-        self.choose_possible_deformations()
+        self.choose_possible_deformations(first=True)
 
         # Parameters for the deformation
         self.max_scale = gtk.Adjustment(0.010, 0.001, 10.0, 0.001)
@@ -108,7 +108,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         self.show()
         self.gui.register_vulnerable(self)
 
-    def choose_possible_deformations(self):
+    def choose_possible_deformations(self, first=False):
         """Turn on sensible radio buttons.
 
         Only radio buttons corresponding to deformations in directions
@@ -124,6 +124,11 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
                 if requirement[i] and not pbc[i]:
                     ok = False
             radio.set_sensitive(ok)
+            if first and ok:
+                # The first acceptable choice, choose it to prevent
+                # inconsistent state.
+                radio.set_active(True)
+                first = False
 
     def relax_toggled(self, *args):
         "Turn minimization widgets on or off."
@@ -139,7 +144,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
     def get_deformation_axes(self):
         """Return which axes the user wants to deform along."""
         for but, deform in self.deformtable:
-            if but.get_active() and but.get_sensitive():
+            if but.get_active():
                 return np.array(deform)
         # No deformation chosen!
         oops("No deformation chosen: Please choose a deformation mode.")
