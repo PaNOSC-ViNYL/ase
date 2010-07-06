@@ -46,7 +46,7 @@ from ase.gui.graphene import SetupGraphene
 from ase.gui.calculator import SetCalculator
 from ase.gui.energyforces import EnergyForces
 from ase.gui.minimize import Minimize
-
+from ase.gui.scaling import HomogeneousDeformation
 
 ui_info = """\
 <ui>
@@ -111,6 +111,7 @@ ui_info = """\
       <separator/>
       <menuitem action='EnergyForces'/>
       <menuitem action='Minimize'/>
+      <menuitem action='Scaling'/>
     </menu>
     <menu action='HelpMenu'>
       <menuitem action='About'/>
@@ -260,6 +261,9 @@ class GUI(View, Status):
             ('Minimize', None, 'Energy _Minimization', None,
              "Minimize the energy",
              self.energy_minimize_window),
+            ('Scaling', None, 'Scale system', None,
+             "Deform system by scaling it",
+             self.scaling_window),
             ('About', None, '_About', None,
              None,
              self.about),
@@ -278,19 +282,19 @@ class GUI(View, Status):
              'Bold',
              self.toggle_show_bonds,
              show_bonds),
-             ('MoveAtoms', None, '_Move atoms', '<control>M',
-              'Bold',
-              self.toggle_move_mode,
-              False),
-              ('RotateAtoms', None, '_Rotate atoms', '<control>R',
-               'Bold',
-               self.toggle_rotate_mode,
-               False),
-               ('OrientAtoms', None, 'Orien_t atoms', '<control>T',
-                 'Bold',
-                 self.toggle_orient_mode,
-                 False)             
-             ])
+            ('MoveAtoms', None, '_Move atoms', '<control>M',
+             'Bold',
+             self.toggle_move_mode,
+             False),
+            ('RotateAtoms', None, '_Rotate atoms', '<control>R',
+             'Bold',
+             self.toggle_rotate_mode,
+             False),
+            ('OrientAtoms', None, 'Orien_t atoms', '<control>T',
+             'Bold',
+             self.toggle_orient_mode,
+             False)             
+            ])
         self.ui = ui = gtk.UIManager()
         ui.insert_action_group(actions, 0)
         self.window.add_accel_group(ui.get_accel_group())
@@ -1035,6 +1039,9 @@ class GUI(View, Status):
         
     def energy_minimize_window(self, menuitem):
         Minimize(self)
+
+    def scaling_window(self, menuitem):
+        HomogeneousDeformation(self)
         
     def new_atoms(self, atoms, init_magmom=False):
         "Set a new atoms object."

@@ -23,10 +23,31 @@ class DefaultProgressIndicator(gtk.Window):
         self.set_title("Progress")
         self.globalbox = gtk.VBox()
 
-        # Minimization progress frame
-        self.minbox = gtk.VBox()
-        self.minframe = gtk.Frame("Energy minimization:")
+        # Scaling deformation progress frame
+        self.scalebox = gtk.VBox()
+        self.scaleframe = gtk.Frame("Scaling deformation:")
         vbox = gtk.VBox()
+        self.scaleframe.add(vbox)
+        pack(self.scalebox, [self.scaleframe])
+        pack(self.scalebox, gtk.Label(""))
+
+        self.label_scale_stepno_format = "Step number %s of %s."
+        self.label_scale_stepno = gtk.Label(
+            self.label_scale_stepno_format % ("-" , "-"))
+        pack(vbox, [self.label_scale_stepno])
+        self.scale_progress = gtk.ProgressBar()
+        self.scale_progress.modify_bg(gtk.STATE_PRELIGHT,
+                                      gtk.gdk.color_parse('#00AA00'))
+        pack(vbox, [self.scale_progress])
+
+        vbox.show()
+        self.scaleframe.show()
+        self.globalbox.pack_start(self.scalebox)
+        
+        # Minimization progress frame
+        self.minbox = gtk.VBox()  # Box containing frame and spacing
+        self.minframe = gtk.Frame("Energy minimization:")
+        vbox = gtk.VBox()         # Box containing the frames content.
         self.minframe.add(vbox)
         pack(self.minbox, [self.minframe])
         pack(self.minbox, gtk.Label(""))
@@ -56,12 +77,18 @@ class DefaultProgressIndicator(gtk.Window):
         self.cancelbut.connect('clicked', self.cancel)
         pack(self.globalbox, [self.cancelbut], end=True, bottom=True)
         
-    def begin(self, mode=None, algo=None, fmax=None, steps=None):
+    def begin(self, mode=None, algo=None, fmax=None, steps=None,
+              scalesteps=None):
         self.mode = mode
         # Hide all mode-specific boxes
+        self.scalebox.hide()
         self.minbox.hide()
         # Activate any relevant box
-        if mode == "min":
+        if mode == "scale" or mode == "scale/min":
+            self.scalesteps = int(scalesteps)
+            self.scalebox.show()
+            self.set_scale_progress(0, init=True)
+        if mode == "min" or mode == "scale/min":
             # It is a minimization.
             self.minbox.show()
             self.label_min_stepno.set_text("-")
@@ -98,8 +125,18 @@ class DefaultProgressIndicator(gtk.Window):
         self.raisecancelexception = True
         self.cancelbut.set_sensitive(False)
 
+    def set_scale_progress(self, step, init=False):
+        "Set the step number in scaling deformation."
+        self.label_scale_stepno.set_text(
+            self.label_scale_stepno_format % (step, self.scalesteps))
+        percent = 1.0 * step / self.scalesteps
+        self.scale_progress.set_fraction(percent)
+        self.scale_progress.set_text("%i%%" % (round(100*percent),))
+        if not init:
+            self.activity()
+        
     def logger_write(self, line):
-        if self.mode == "min":
+        if self.mode == "min" or self.mode == "scale/min":
             # Update the minimization progress bar.
             w = line.split()
             fmax = float(w[-1])
@@ -109,7 +146,7 @@ class DefaultProgressIndicator(gtk.Window):
             self.label_min_stepno.set_text(step)
         else:
             raise RuntimeError(
-                "GpawProgressIndicator.logger_write called unexpectedly")
+                "ProgressIndicator.logger_write called unexpectedly")
         self.activity()
             
     def get_logger_stream(self):
@@ -165,8 +202,8 @@ class GpawProgressIndicator(DefaultProgressIndicator):
                 w.set_alignment(0, 0.5)
             w.show()
             
-    def begin(self, mode=None, algo=None, fmax=None, steps=None):
-        DefaultProgressIndicator.begin(self, mode, algo, fmax, steps)
+    def begin(self, **kwargs):
+        DefaultProgressIndicator.begin(self, **kwargs)
         # Set GPAW specific stuff.
         self.active = True
         self.oldenergy = None

@@ -8,9 +8,27 @@ from ase.gui.widgets import oops, pack, AseGuiCancelException
 import ase
 import numpy as np
 
-class Minimize(Simulation):
-    "Window for performing energy minimization."
+class MinimizeMixin:
     minimizers = ('BFGS', 'BFGSLineSearch', 'LBFGS', 'LBFGSLineSearch', 'MDMin', 'FIRE')
+    def make_minimize_gui(self, box):
+        self.algo = gtk.combo_box_new_text()
+        for m in self.minimizers:
+            self.algo.append_text(m)
+        self.algo.set_active(0)
+        pack(box, [gtk.Label("Algorithm: "), self.algo])
+        
+        self.fmax = gtk.Adjustment(0.05, 0.00, 10.0, 0.01)
+        self.fmax_spin = gtk.SpinButton(self.fmax, 0, 3)
+        lbl = gtk.Label()
+        lbl.set_markup("Convergence criterion: F<sub>max</sub> = ")
+        pack(box, [lbl, self.fmax_spin])
+
+        self.steps = gtk.Adjustment(100, 1, 1000000, 1)
+        self.steps_spin = gtk.SpinButton(self.steps, 0, 0)
+        pack(box, [gtk.Label("Max. number of steps: "), self.steps_spin])
+
+class Minimize(Simulation, MinimizeMixin):
+    "Window for performing energy minimization."
     
     def __init__(self, gui):
         Simulation.__init__(self, gui)
@@ -21,21 +39,8 @@ class Minimize(Simulation):
                       "Minimize the energy with respect to the positions.")
         self.packimageselection(vbox)
         pack(vbox, gtk.Label(""))
-        self.algo = gtk.combo_box_new_text()
-        for m in self.minimizers:
-            self.algo.append_text(m)
-        self.algo.set_active(0)
-        pack(vbox, [gtk.Label("Algorithm: "), self.algo])
-        
-        self.fmax = gtk.Adjustment(0.05, 0.00, 10.0, 0.01)
-        self.fmax_spin = gtk.SpinButton(self.fmax, 0, 3)
-        lbl = gtk.Label()
-        lbl.set_markup("Convergence criterion: F<sub>max</sub> = ")
-        pack(vbox, [lbl, self.fmax_spin])
 
-        self.steps = gtk.Adjustment(100, 1, 1000000, 1)
-        self.steps_spin = gtk.SpinButton(self.steps, 0, 0)
-        pack(vbox, [gtk.Label("Max. number of steps: "), self.steps_spin])
+        self.make_minimize_gui(vbox)
         
         pack(vbox, gtk.Label(""))
         self.status_label = gtk.Label("")
@@ -54,7 +59,7 @@ class Minimize(Simulation):
         steps = self.steps.value
         mininame = self.minimizers[self.algo.get_active()]
         self.begin(mode="min", algo=mininame, fmax=fmax, steps=steps)
-        algo = getattr(ase, mininame)
+        algo = getattr(ase.optimize, mininame)
         try:
             logger_func = self.gui.simulation['progress'].get_logger_stream
         except (KeyError, AttributeError):
