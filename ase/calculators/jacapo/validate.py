@@ -1,3 +1,4 @@
+import os
 import numpy as np
 '''
 input validation module
@@ -311,3 +312,27 @@ def valid_occupationstatistics(x):
 
 def valid_mdos(x):
     return True
+
+def valid_psp(x):
+    valid_keys = ['sym','psp']
+    if x is None:
+        return True
+    for key in x:
+        if key not in valid_keys:
+            return False
+        if not valid_str(x[key]):
+            return False
+        if key == 'sym':
+            from ase.data import chemical_symbols
+            if key not in chemical_symbols:
+                return False
+        if key == 'psp':
+            
+            if os.path.exists(x['psp']):
+                return True
+
+            if os.path.exists(os.path.join(os.environ['DACAPOPATH'],
+                                           x['psp'])):
+                return True
+            #psp not found
+            return False
