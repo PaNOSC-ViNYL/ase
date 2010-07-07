@@ -1180,11 +1180,16 @@ than density cutoff %i' % (pw, dw))
             self.set_psp_database()
 
         #only make change if needed
-        if self.psp[sym] != psp:
+        if sym not in self.psp:
+            self.psp[sym] = psp
+            self.ready = False
+            self.set_status('new')
+        elif self.psp[sym] != psp:
             self.psp[sym] = psp
             self.ready = False
             self.set_status('new')
 
+        if not self.ready:
             #now we update the netcdf file
             ncf = netCDF(self.nc, 'a')
             vn = 'AtomProperty_%s' % sym
@@ -3240,11 +3245,27 @@ s.recv(14)
                   'hardgrid_dim1',
                   'hardgrid_dim2',
                   'hardgrid_dim3',
-                  'max_projectors_per_atom']
+                  'max_projectors_per_atom',
+                  'atomdos_energygrid_size',
+                  'atomdos_angular_channels',
+                  'atomdos_radial_orbs']
 
         ncvars = ['TotalEnergy',
                   'TotalFreeEnergy',
+                  'EvaluateTotalEnergy',
                   'DynamicAtomForces',
+                  'FermiLevel',
+                  'EnsembleXCEnergies',
+                  'AtomProjectedDOS_IntegratedDOS',
+                  'AtomProjectedDOS_OrdinalMap',
+                  'NumberPlaneWavesKpoint',
+                  'AtomProjectedDOS_EnergyResolvedDOS',
+                  'AtomProjectedDOS_EnergyGrid',
+                  'EvaluateCorrelationEnergy',
+                  'DynamicAtomVelocities',
+                  'KpointWeight',
+                  'EvaluateExchangeEnergy',
+                  'EffectivePotential',
                   'TotalStress',
                   'ChargeDensity',
                   'WaveFunction',
@@ -3256,7 +3277,9 @@ s.recv(14)
                   'PartialCoreDensity',
                   'ChargeDensity',
                   'ElectrostaticPotential',
-                  'StructureFactor']
+                  'StructureFactor',
+                  'EigenValues',
+                  'OccupationNumbers']
                   
         self.delete_ncattdimvar(self.nc,
                                 ncattrs=[],
