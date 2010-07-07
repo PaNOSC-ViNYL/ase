@@ -892,13 +892,16 @@ class Vasp(Calculator):
                             list.append(int(a))
                     self.list_params[key] = list
                     if key == 'magmom':
+                        done = False
                         for a in data[2:]:
-                            a = a.split('*')
-                            if len(a)>1:
+                            if '!' in a or done:
+                                done = True
+                            elif '*' in a: 
+                                a = a.split('*')
                                 for b in range(int(a[0])):
                                     list.append(float(a[1]))
                             else:
-                                list.append(float(a[0]))
+                                list.append(float(a))
                         list = np.array(list)
                         self.atoms.set_initial_magnetic_moments(list[self.resort])
             except KeyError:

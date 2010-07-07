@@ -98,6 +98,13 @@ input_keys = [
     'track_output',
 ] 
 
+input_parameters_default = {'run_command':None,
+                            'run_dir':None,
+                            'species_dir':None,
+                            'cubes':None,
+                            'output_template':'aims',
+                            'track_output':False}
+
 class Aims(Calculator):
     def __init__(self, **kwargs):
         self.name = 'Aims'
@@ -121,7 +128,7 @@ class Aims(Calculator):
         for key in list_keys:
             self.list_params[key] = None
         for key in input_keys:
-            self.input_parameters[key] = None
+            self.input_parameters[key] = input_parameters_default[key]
         if os.environ.has_key('AIMS_SPECIES_DIR'):
             self.input_parameters['species_dir'] = os.environ['AIMS_SPECIES_DIR']
         if os.environ.has_key('AIMS_COMMAND'):
@@ -130,8 +137,6 @@ class Aims(Calculator):
         self.positions = None
         self.atoms = None
         self.run_counts = 0
-        self.input_parameters['output_template']='aims'
-        self.input_parameters['track_output'] = False
         self.set(**kwargs)
 
     def set(self, **kwargs):
@@ -247,7 +252,7 @@ class Aims(Calculator):
         if self.input_parameters['run_dir']:
             aims_command = aims_command + self.input_parameters['run_dir'] + '/'
         aims_command = aims_command + self.out
-        self.write_parameters('',self.out)
+        self.write_parameters('#',self.out)
         exitcode = os.system(aims_command)
         if exitcode != 0:
             raise RuntimeError('FHI-aims exited with exit code: %d.  ' % exitcode)
@@ -300,7 +305,7 @@ class Aims(Calculator):
             if key is  'cubes':
                 if val:
                     val.write(output)
-            elif val:
+            elif val and val != input_parameters_default[key]:
                 output.write(prefix+'%-34s%s\n' % (key,val))
         output.write(prefix+'=======================================================\n\n')
         output.close()
