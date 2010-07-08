@@ -84,10 +84,10 @@ def write_aims(filename, atoms):
             atoms = atoms[0]
 
     fd = open(filename, 'w')
-    fd.write('#=======================================================')
-    fd.write('#FHI-aims file: '+filename)
-    fd.write('#Created using the Atomic Simulation Environment (ASE)')
-    fd.write('#=======================================================')
+    fd.write('#=======================================================\n')
+    fd.write('#FHI-aims file: '+filename+'\n')
+    fd.write('#Created using the Atomic Simulation Environment (ASE)\n')
+    fd.write('#=======================================================\n')
     i = 0
     if atoms.get_pbc().any():
         for n, vector in enumerate(atoms.get_cell()):
