@@ -1,3 +1,4 @@
+from __future__ import division
 import numpy as np
 
 
@@ -52,49 +53,58 @@ def kpoint_convert(cell_cv, skpts_kc=None, ckpts_kv=None):
 def get_bandpath(points, cell, npoints=50):
     """Make a list of kpoints defining the path between the given points.
 
-    points is a list of special IBZ point pairs, e.g.
-    >>> points = [L, Gamma, Gamma, X, X, U, K, Gamma]
-    These should be given in scaled coordinates.
+    points: list
+        List of special IBZ point pairs, e.g. ``points =
+        [W, L, Gamma, X, W, K]``.  These should be given in
+        scaled coordinates.
+    cell: 3x3 ndarray
+        Unit cell of the atoms.
+    npoints: int
+        Length of the output kpts list.
 
-    cell is the unitcell if the atoms.
+    Return list of k-points, list of x-coordinates and list of
+    x-coordinates of special points."""
 
-    npoints is the approximate desired length of the output kpts list
-
-    The output list point_indices, gives the indices in kpts of the special
-    points.
-    """
-    assert len(points) % 2 == 0
     points = np.asarray(points)
-    dists = points[1::2] - points[::2]
+    dists = points[1:] - points[:-1]
     lengths = [np.linalg.norm(d) for d in kpoint_convert(cell, skpts_kc=dists)]
     length = sum(lengths)
     kpts = []
-    point_indices = [0]
-    for P, d, L in zip(points[::2], dists, lengths):
-        for t in np.linspace(0, 1, int(round(L / length * npoints)),
-                             endpoint=False):
+    x0 = 0
+    x = []
+    X = [0]
+    for P, d, L in zip(points[:-1], dists, lengths):
+        n = int(round(L * (npoints - 1 - len(x)) / (length - x0)))
+        for t in np.linspace(0, 1, n, endpoint=False):
             kpts.append(P + t * d)
-        point_indices.append(len(kpts))
-    return np.array(kpts), point_indices
+            x.append(x0 + t * L)
+        x0 += L
+        X.append(x0)
+    kpts.append(points[-1])
+    x.append(x0)
+    return kpts, np.array(x), np.array(X)
 
 
 # The following is a list of the critical points in the 1. Brillouin zone
 # for some typical crystal structures.
 # (In units of the reciprocal basis vectors)
-ibz_points = {'cubic': {'Gamma': [0/1., 0/1., 0/1.],
-                        'X':     [0/1., 0/2., 1/2.],
-                        'R':     [1/2., 1/2., 1/2.],
-                        'M':     [0/2., 1/2., 1/2.]},
-              'fcc':   {'Gamma': [0/1., 0/1., 0/1.],
-                        'X':     [0/1., 1/2., 1/2.],
-                        'W':     [1/2., 3/4., 1/4.],
-                        'K':     [3/8., 3/8., 3/4.],
-                        'U':     [1/4., 5/8., 5/8.],
-                        'L':     [1/2., 1/2., 1/2.]},
-              'bcc':   {'Gamma': [0/1., 0/1., 0/1.],
-                        'H': [1/2., -1/2., 1/2.],
-                        'N': [0/1., 0/1., 1/2.],
-                        'P': [1/4., 1/4., 1/4.]},
+# See http://en.wikipedia.org/wiki/Brillouin_zone
+ibz_points = {'cubic': {'Gamma': [0,     0,     0    ],
+                        'X':     [0,     0 / 2, 1 / 2],
+                        'R':     [1 / 2, 1 / 2, 1 / 2],
+                        'M':     [0 / 2, 1 / 2, 1 / 2]},
+
+              'fcc':   {'Gamma': [0,     0,     0    ],
+                        'X':     [1 / 2, 0,     1 / 2],
+                        'W':     [1 / 2, 1 / 4, 3 / 4],
+                        'K':     [3 / 8, 3 / 8, 3 / 4],
+                        'U':     [5 / 8, 1 / 4, 5 / 8],
+                        'L':     [1 / 2, 1 / 2, 1 / 2]},
+
+              'bcc':   {'Gamma': [0,      0,     0    ],
+                        'H':     [1 / 2, -1 / 2, 1 / 2],
+                        'N':     [0,      0,     1 / 2],
+                        'P':     [1 / 4,  1 / 4, 1 / 4]},
 
               }
 
