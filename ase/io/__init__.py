@@ -192,6 +192,10 @@ def read(filename, index=-1, format=None):
         from ase.io.dftb import read_dftb
         return read_dftb(filename)
 
+    if format == 'sdf':
+        from ase.io.sdf import read_sdf
+        return read_sdf(filename)
+
     raise RuntimeError('File format descriptor '+format+' not recognized!')
 
 
@@ -459,5 +463,8 @@ def filetype(filename):
             return 'vtu'
         elif xmltype is not None:
             raise IOError('Unknown VTK XML file!')
+
+    if filename.lower().endswith('.sdf'):
+        return 'sdf'
 
     return 'xyz'
