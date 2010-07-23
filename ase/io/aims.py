@@ -192,6 +192,7 @@ def read_aims_output(filename, index = -1):
                 inp = fd.readline().split()
                 velocities += [[float(inp[1])*v_unit,float(inp[2])*v_unit,float(inp[3])*v_unit]]
             atoms.set_velocities(velocities)
+            images.append(atoms)
         if "Total atomic forces" in line:
             f = []
             for i in range(n_atoms):
@@ -209,7 +210,8 @@ def read_aims_output(filename, index = -1):
                 atoms.pbc = True
             if not found_aims_calculator:
                 atoms.set_calculator(SinglePointCalculator(e,None,None,None,atoms))
-            images.append(atoms)
+            if not molecular_dynamics: 
+                images.append(atoms)
             e = None
             if found_aims_calculator:
                 calc.set_results(images[-1])
