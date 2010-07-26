@@ -232,7 +232,7 @@ class Images:
             epot = E[i]
             ekin = self.K[i]
             e = epot + ekin
-            T = 2.0*ekin/(3.0*ndynamic*units.kB)
+            T = 2.0 * ekin / (3.0 * ndynamic * units.kB)
             data = eval(code)
             if i == 0:
                 m = len(data)
