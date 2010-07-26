@@ -184,6 +184,7 @@ class Images:
         self.nselected = 0
         
     def graph(self, expr):
+        import ase.units as units
         code = compile(expr + ',', 'atoms.py', 'eval')
 
         n = self.nimages
@@ -212,6 +213,10 @@ class Images:
             angle = np.arccos(angle)
             if (np.vdot(bxa,c)) > 0: angle = 2*np.pi-angle
             return angle*180.0/np.pi
+        # get number of mobile atoms for temperature calculation
+        ndynamic = 0
+        for dyn in self.dynamic: 
+            if dyn: ndynamic += 1
         S = self.selected
         D = self.dynamic[:, np.newaxis]
         E = self.E
@@ -227,6 +232,7 @@ class Images:
             epot = E[i]
             ekin = self.K[i]
             e = epot + ekin
+            T = 2.0*ekin/(3.0*ndynamic*units.kB)
             data = eval(code)
             if i == 0:
                 m = len(data)

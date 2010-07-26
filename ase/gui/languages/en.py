@@ -18,7 +18,8 @@ translation = {
 <c>A[0-2,0-2]</c>:\tunit-cell basis vectors 
 <c>s</c>:\t\t\tpath length
 <c>a(n1,n2,n3)</c>:\tangle between atoms n1, n2 and n3, centered on n2
-<c>dih(n1,n2,n3,n4)</c>:\tdihedral angle between n1, n2, n3, and n4""",
+<c>dih(n1,n2,n3,n4)</c>:\tdihedral angle between n1, n2, n3, and n4
+<c>T</c>:\t\t\tTemperature (K)""",
 
 'Help for slice ...':
 """Use Python slice syntax: "start:stop:step" or "start:stop":
