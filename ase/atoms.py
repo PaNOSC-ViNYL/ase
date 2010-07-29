@@ -915,6 +915,15 @@ class Atoms(object):
             c = np.dot(v, v2)
             v = np.cross(v, v2)
             s = norm(v)
+            # In case *v* and *a* are parallel, np.cross(v, v2) vanish
+            # and can't be used as a rotation axis. However, in this
+            # case any rotation axis perpendicular to v2 will do.
+            eps = 1e-7
+            if s < eps:
+                v = np.cross((0, 0, 1), v2)
+            if norm(v) < eps:
+                v = np.cross((1, 0, 0), v2)
+            assert norm(v) >= eps
             if s > 0: v /= s
         
         if isinstance(center, str) and center.lower() == 'com':
