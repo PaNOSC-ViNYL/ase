@@ -165,12 +165,12 @@ def read_aims_output(filename, index = -1):
                 for i in range(3):
                     inp = fd.readline().split()
                     cell.append([inp[1],inp[2],inp[3]])
-        if "Atomic structure:" in line:
+        if "Atomic structure:" in line and not molecular_dynamics:
             fd.readline()
             atoms = Atoms()
             for i in range(n_atoms):
                 inp = fd.readline().split()
-                atoms.append(Atom(inp[3],(inp[4],inp[5],inp[6]))) 
+                atoms.append(Atom(inp[3],(inp[4],inp[5],inp[6])))
         if "Complete information for previous time-step:" in line:
             molecular_dynamics = True
         if "Updated atomic structure:" in line and not molecular_dynamics:
