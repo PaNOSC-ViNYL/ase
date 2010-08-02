@@ -10,6 +10,10 @@ from ase.gui.widgets import oops, pack, AseGuiCancelException
 import ase
 import numpy as np
 
+scaling_txt = """\
+This module is intended for calculating elastic constants by homogeneously
+deforming a system."""
+
 class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
     "Window for homogeneous deformation and elastic constants."
     
@@ -17,7 +21,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         Simulation.__init__(self, gui)
         self.set_title("Homogeneous scaling")
         vbox = gtk.VBox()
-        self.packtext(vbox, "XXXX Bla bla bla.")
+        self.packtext(vbox, scaling_txt)
         self.packimageselection(vbox, txt1="", txt2="")
         self.start_radio_nth.set_active(True)
         pack(vbox, gtk.Label(""))
@@ -90,7 +94,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         # Results
         pack(vbox, [gtk.Label("Results:")])
         self.radio_results_optimal = gtk.RadioButton(
-            None, "Load optimal configuration (XXX broken!)")
+            None, "Load optimal configuration")
         self.radio_results_all =  gtk.RadioButton(
             self.radio_results_optimal, "Load all configurations")
         self.radio_results_optimal.set_active(True)
