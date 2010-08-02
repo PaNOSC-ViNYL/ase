@@ -8,7 +8,12 @@ from ase.gui.widgets import oops, pack
 
 class OutputFieldMixin:
     def makeoutputfield(self, box, label="Output:"):
-        pack(box, [gtk.Label("Output:")])
+        frame = gtk.Frame(label)
+        if box is not None:
+            box.pack_start(frame, True, True, 0)
+        box2 = gtk.VBox()
+        frame.add(box2)
+        #pack(box, [gtk.Label("Output:")])
         scrwin = gtk.ScrolledWindow()
         scrwin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.output = gtk.TextBuffer()
@@ -16,12 +21,15 @@ class OutputFieldMixin:
         txtview.set_editable(False)
         scrwin.add(txtview)
         scrwin.show_all()
-        box.pack_start(scrwin, True, True, 0)
+        box2.pack_start(scrwin, True, True, 0)
         self.savebutton = gtk.Button(stock=gtk.STOCK_SAVE)
         self.savebutton.connect('clicked', self.saveoutput)
         self.savebutton.set_sensitive(False)
-        pack(box, [self.savebutton])
-
+        pack(box2, [self.savebutton])
+        box2.show()
+        frame.show()
+        return frame
+    
     def activate_output(self):
         self.savebutton.set_sensitive(True)
 

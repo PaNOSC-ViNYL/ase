@@ -18,7 +18,8 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         self.set_title("Homogeneous scaling")
         vbox = gtk.VBox()
         self.packtext(vbox, "XXXX Bla bla bla.")
-        self.packimageselection(vbox)
+        self.packimageselection(vbox, txt1="", txt2="")
+        self.start_radio_nth.set_active(True)
         pack(vbox, gtk.Label(""))
 
         # Radio buttons for choosing deformation mode.
@@ -56,23 +57,25 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         self.choose_possible_deformations(first=True)
 
         # Parameters for the deformation
-        self.max_scale = gtk.Adjustment(0.010, 0.001, 10.0, 0.001)
-        max_scale_spin = gtk.SpinButton(self.max_scale, 10.0, 3)
-        pack(vbox, [gtk.Label("Maximal scale factor: "), max_scale_spin])
-        self.scale_offset = gtk.Adjustment(0.0, -10.0, 10.0, 0.001)
-        scale_offset_spin = gtk.SpinButton(self.scale_offset, 10.0, 3)
-        pack(vbox, [gtk.Label("Scale offset: "), scale_offset_spin])
-        self.nsteps = gtk.Adjustment(5, 3, 100, 1)
-        nsteps_spin = gtk.SpinButton(self.nsteps, 1, 0)
-        pack(vbox, [gtk.Label("Number of steps: "), nsteps_spin])
-        pack(vbox, gtk.Label(""))
-        
-        # Atomic relaxations
-        frame = gtk.Frame("Atomic relaxations:")
-        pack(vbox, frame)
+        framedef = gtk.Frame("Deformation:")
         vbox2 = gtk.VBox()
         vbox2.show()
-        frame.add(vbox2)
+        framedef.add(vbox2)
+        self.max_scale = gtk.Adjustment(0.010, 0.001, 10.0, 0.001)
+        max_scale_spin = gtk.SpinButton(self.max_scale, 10.0, 3)
+        pack(vbox2, [gtk.Label("Maximal scale factor: "), max_scale_spin])
+        self.scale_offset = gtk.Adjustment(0.0, -10.0, 10.0, 0.001)
+        scale_offset_spin = gtk.SpinButton(self.scale_offset, 10.0, 3)
+        pack(vbox2, [gtk.Label("Scale offset: "), scale_offset_spin])
+        self.nsteps = gtk.Adjustment(5, 3, 100, 1)
+        nsteps_spin = gtk.SpinButton(self.nsteps, 1, 0)
+        pack(vbox2, [gtk.Label("Number of steps: "), nsteps_spin])
+        
+        # Atomic relaxations
+        framerel = gtk.Frame("Atomic relaxations:")
+        vbox2 = gtk.VBox()
+        vbox2.show()
+        framerel.add(vbox2)
         self.radio_relax_on = gtk.RadioButton(None, "On   ")
         self.radio_relax_off = gtk.RadioButton(self.radio_relax_on, "Off")
         self.radio_relax_off.set_active(True)
@@ -81,6 +84,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         for r in (self.radio_relax_on, self.radio_relax_off):
             r.connect("toggled", self.relax_toggled)
         self.relax_toggled()
+        pack(vbox, [framedef, gtk.Label(" "), framerel])
         pack(vbox, gtk.Label(""))
         
         # Results
@@ -94,7 +98,34 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         pack(vbox, [self.radio_results_all])
 
         # Output field
-        self.makeoutputfield(vbox)
+        outframe = self.makeoutputfield(None)
+        fitframe = gtk.Frame("Fit:")
+        vbox2 = gtk.VBox()
+        vbox2.show()
+        fitframe.add(vbox2)
+        self.radio_fit_2 = gtk.RadioButton(None, "2nd")
+        self.radio_fit_3 = gtk.RadioButton(self.radio_fit_2, "3rd")
+        self.radio_fit_2.connect("toggled", self.change_fit)
+        self.radio_fit_3.connect("toggled", self.change_fit)
+        self.radio_fit_3.set_active(True)
+        pack(vbox2, [gtk.Label("Order of fit: "), self.radio_fit_2,
+                     self.radio_fit_3])
+        pack(vbox2, [gtk.Label("")])
+        scrwin = gtk.ScrolledWindow()
+        scrwin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.fit_output = gtk.TextBuffer()
+        txtview = gtk.TextView(self.fit_output)
+        txtview.set_editable(False)
+        scrwin.add(txtview)
+        scrwin.show_all()
+        self.fit_win = scrwin
+        print "SIZE RQ:", scrwin.size_request()
+        vbox2.pack_start(scrwin, True, True, 0)
+        hbox = gtk.HBox(homogeneous=True)
+        for w in [outframe, fitframe]:
+            hbox.pack_start(w)
+            w.show()
+        pack(vbox, hbox)    
         pack(vbox, gtk.Label(""))
 
         # Status field
@@ -212,7 +243,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
                     self.store_atoms()
         except AseGuiCancelException:
             # Update display to reflect cancellation of simulation.
-            self.status_label.set_text("Cancellation CANCELLED.")
+            self.status_label.set_text("Calculation CANCELLED.")
             self.status_label.modify_fg(gtk.STATE_NORMAL,
                                         gtk.gdk.color_parse('#AA4000'))
         except MemoryError:
@@ -226,10 +257,28 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
             self.status_label.modify_fg(gtk.STATE_NORMAL,
                                         gtk.gdk.color_parse('#007700'))
                      
-        self.end()    
         if results:
+            self.do_fit(np.array(results))
+            if self.radio_results_optimal.get_active():
+                if self.minimum_ok:
+                    deformation = np.diag(1.0 + self.x0 * deform_axes)
+                    self.atoms.set_cell(np.dot(undef_cell, deformation),
+                                        scale_atoms=True)
+                    if self.radio_relax_on.get_active():
+                        if self.gui.simulation.has_key('progress'):
+                            self.gui.simulation['progress'].set_scale_progress(
+                                len(steps))
+                        algo = getattr(ase.optimize, mininame)
+                        minimizer = algo(self.atoms, logfile=logger)
+                        minimizer.run(fmax=fmax, steps=self.steps.value)
+                    # Store the optimal configuration.
+                    self.prepare_store_atoms()
+                    self.store_atoms()  
+                else:
+                    oops("No trustworthy minimum: Old configuration kept.")
             self.activate_output()
             self.gui.notify_vulnerable()
+        self.end()    
             
         # If we store all configurations: Open movie window and energy graph
         if self.gui.images.nimages > 1:
@@ -238,7 +287,71 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
             if not self.gui.plot_graphs_newatoms():
                 expr = 'i, e - E[-1]'            
                 self.gui.plot_graphs(expr=expr)
+            # Continuations should use the best image
+            nbest = np.argmin(np.array(results)[:,1])
+            self.start_nth_adj.value = nbest
+            
 
+    def change_fit(self, widget):
+        "Repeat the fitting if the order is changed."
+        # It may be called both for the button being turned on and the
+        # one being turned off.  But we only want to call do_fit once.
+        # And only if there are already cached results (ie. if the
+        # order is changed AFTER the calculation is done).
+        if widget.get_active() and getattr(self, "results", None) is not None:
+            self.do_fit(None)
+                
+    def do_fit(self, results):
+        "Fit the results to a polynomial"
+        if results is None:
+            results = self.results  # Use cached results
+        else:
+            self.results = results  # Keep for next time
+        self.minimum_ok = False
+        if self.radio_fit_3.get_active():
+            order = 3
+        else:
+            order = 2
+            
+        if len(results) < 3:
+            txt = ("Insufficent data for a fit\n(only %i data points)\n"
+                   % (len(results),) )
+            order = 0
+        elif len(results) == 3 and order == 3:
+            txt = "REVERTING TO 2ND ORDER FIT\n(only 3 data points)\n\n"
+            order = 2
+        else:
+            txt = ""
+
+        if order > 0:
+            fit0 = np.poly1d(np.polyfit(results[:,0], results[:,1], order))
+            fit1 = np.polyder(fit0, 1)
+            fit2 = np.polyder(fit1, 1)
+
+            x0 = None
+            for t in np.roots(fit1):
+                if fit2(t) > 0:
+                    x0 = t
+                    break
+            if x0 is None:
+                txt = txt + "No minimum found!"
+            else:
+                e0 = fit0(x0)
+                e2 = fit2(x0)
+                txt += "E = "
+                if order == 3:
+                    txt += "A(x - x0)³ + "
+                txt += "B(x - x0)² + C\n\n"
+                txt += "B = %.5g eV\n" % (e2,)
+                txt += "C = %.5g eV\n" % (e0,)
+                txt += "x0 = %.5g\n" % (x0,)
+                lowest = self.scale_offset.value - self.max_scale.value
+                highest = self.scale_offset.value + self.max_scale.value
+                if x0 < lowest or x0 > highest:
+                    txt += "\nWARNING: Minimum is outside interval\n"
+                    txt += "It is UNRELIABLE!\n"
+                else:
+                    self.minimum_ok = True
+                    self.x0 = x0
+        self.fit_output.set_text(txt)
         
-        
-    

@@ -19,7 +19,8 @@ class Simulation(gtk.Window):
         pack(vbox, txtframe)
         pack(vbox, gtk.Label(""))
 
-    def packimageselection(self, outerbox):
+    def packimageselection(self, outerbox, txt1=" (rerun simulation)",
+                           txt2=" (continue simulation)"):
         "Make the frame for selecting starting config if more than one."
         self.startframe = gtk.Frame("Select starting configuration:")
         pack(outerbox, [self.startframe])
@@ -32,7 +33,7 @@ class Simulation(gtk.Window):
         lbl = gtk.Label("Choose which one to use as the initial configuration")
         pack(vbox, [lbl])
         self.start_radio_first = gtk.RadioButton(
-            None, "The first configuration (rerun simulation).")
+            None, "The first configuration"+txt1+".")
         pack(vbox, [self.start_radio_first])
         self.start_radio_nth = gtk.RadioButton(self.start_radio_first,
                                                "Configuration number ")
@@ -41,7 +42,7 @@ class Simulation(gtk.Window):
         self.start_nth_spin.set_sensitive(False)
         pack(vbox, [self.start_radio_nth, self.start_nth_spin])
         self.start_radio_last = gtk.RadioButton(self.start_radio_first,
-            "The last configuration (continue simulation).")
+            "The last configuration"+txt2+".")
         self.start_radio_last.set_active(True)
         pack(vbox, self.start_radio_last)
         self.start_radio_nth.connect("toggled", self.start_radio_nth_toggled)

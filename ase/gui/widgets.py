@@ -123,7 +123,7 @@ def oops(message, message2=None):
     except AttributeError:
         print >>sys.stderr, message
         print >>sys.stderr, message2
-    dialog.connect('response', lambda x, y: dialog.destroy())
+    dialog.connect('response', lambda x, y, dialog=dialog: dialog.destroy())
     dialog.show()
 
 class AseGuiCancelException(Exception):
