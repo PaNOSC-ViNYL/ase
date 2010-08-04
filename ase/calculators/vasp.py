@@ -439,8 +439,8 @@ class Vasp(Calculator):
             self.resort = range(len(atoms))
         self.atoms = atoms.copy()
         self.read_incar()
-        self.set_results(atoms)
         self.read_outcar()
+        self.set_results(atoms)
         self.read_kpoints()
         self.read_potcar()
 #        self.old_incar_params = self.incar_params.copy()
@@ -567,9 +567,6 @@ class Vasp(Calculator):
         """Returns total dipole moment of the system."""
         self.update(atoms)
         return self.dipole
-
-    def get_number_of_bands(self):
-        return self.nbands
 
     def get_xc_functional(self):
         return self.input_params['xc']
