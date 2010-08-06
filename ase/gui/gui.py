@@ -946,8 +946,9 @@ class GUI(View, Status):
             (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
              gtk.STOCK_SAVE, gtk.RESPONSE_OK))
 
-        combo = gtk.combo_box_new_text()
+        # Add a file type filter
         types = []
+        name_to_suffix = {}
         for name, suffix in [('Automatic', None),
                              ('XYZ file', 'xyz'),
                              ('ASE trajectory', 'traj'),
@@ -964,40 +965,59 @@ class GUI(View, Status):
                 name = _(name)
             else:
                 name = '%s (%s)' % (_(name), suffix)
-            types.append(suffix)
-            combo.append_text(name)
-
-        combo.set_active(0)
-
-        pack(chooser.vbox, combo)
+            filt = gtk.FileFilter()
+            filt.set_name(name)
+            if suffix is None:
+                filt.add_pattern('*')
+            elif suffix == 'POSCAR':
+                filt.add_pattern('*POSCAR*')
+            else:
+                filt.add_pattern('*.'+suffix)
+            if suffix is not None:
+                types.append(suffix)
+                name_to_suffix[name] = suffix
+                
+            chooser.add_filter(filt)
 
         if self.images.nimages > 1:
+            img_vbox = gtk.VBox()
             button = gtk.CheckButton('Save current image only (#%d)' %
                                      self.frame)
-            pack(chooser.vbox, button)
-            entry = pack(chooser.vbox, [gtk.Label(_('Slice: ')),
-                                        gtk.Entry(10),
-                                        help('Help for slice ...')])[1]
+            pack(img_vbox, button)
+            entry = gtk.Entry(10)
+            pack(img_vbox, [gtk.Label(_('Slice: ')), entry,
+                                        help('Help for slice ...')])
             entry.set_text('0:%d' % self.images.nimages)
+            img_vbox.show()
+            chooser.set_extra_widget(img_vbox)
 
         while True:
-            if chooser.run() == gtk.RESPONSE_CANCEL:
+            # Loop until the user selects a proper file name, or cancels.
+            response = chooser.run()
+            if response == gtk.RESPONSE_CANCEL:
                 chooser.destroy()
                 return
-            
+            elif response != gtk.RESPONSE_OK:
+                print >>sys.stderr, "AG INTERNAL ERROR: strange response in Save,", response
+                chooser.destroy()
+                return
+                
             filename = chooser.get_filename()
 
-            i = combo.get_active()
-            if i == 0:
-                suffix = filename.split('.')[-1]
-                if 'POSCAR' in filename:
-                    suffix = 'POSCAR'
-                elif suffix not in types:
-                    self.xxx(message1='Unknown output format!',
-                             message2='Use one of: ' + ', '.join(types[1:]))
-                    continue
-            else:
-                suffix = types[i]
+            suffix = os.path.splitext(filename)[1]
+            if 'POSCAR' in filename:
+                suffix = 'POSCAR'
+            if suffix == '':
+                # No suffix given.  If the user has chosen a special
+                # file type, use the corresponding suffix.
+                filt = chooser.get_filter().get_name()
+                suffix = name_to_suffix[filt]
+                filename = filename + '.' + suffix
+                
+            if suffix not in types:
+                oops(message='Unknown output format!',
+                     message2='Use one of: ' + ', '.join(types[1:]))
+                continue
                 
             if self.images.nimages > 1:
                 if button.get_active():
