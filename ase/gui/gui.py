@@ -1004,7 +1004,7 @@ class GUI(View, Status):
                 
             filename = chooser.get_filename()
 
-            suffix = os.path.splitext(filename)[1]
+            suffix = os.path.splitext(filename)[1][1:]
             if 'POSCAR' in filename:
                 suffix = 'POSCAR'
             if suffix == '':
