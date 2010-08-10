@@ -908,8 +908,8 @@ class GUI(View, Status):
                 _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
                 (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
                  gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-            ok = chooser.run()
-            if ok == gtk.RESPONSE_OK:
+            ok = chooser.run() == gtk.RESPONSE_OK
+            if ok:
                 filenames = [chooser.get_filename()]
             chooser.destroy()
 
