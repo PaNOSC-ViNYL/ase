@@ -387,6 +387,7 @@ class Vasp(Calculator):
         self.old_bool_params = self.bool_params.copy()
         self.old_list_params = self.list_params.copy()
         self.atoms = atoms.copy()
+        self.niter = self.read_number_of_iterations()
         
     def run(self):
         """Method which explicitely runs VASP."""
@@ -480,6 +481,17 @@ class Vasp(Calculator):
             return self.energy_free
         else:
             return self.energy_zero
+
+    def get_number_of_iterations(self, atoms):
+        self.update(atoms)
+        return self.niter
+
+    def read_number_of_iterations(self):
+        niter = None
+        for line in open('OUTCAR'):
+            if line.find('- Iteration') != -1: # find the last iteration number
+                niter = int(line.split(')')[0].split('(')[-1].strip())
+        return niter
 
     def get_forces(self, atoms):
         self.update(atoms)
