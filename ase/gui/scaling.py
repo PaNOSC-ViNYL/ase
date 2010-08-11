@@ -123,7 +123,6 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         scrwin.add(txtview)
         scrwin.show_all()
         self.fit_win = scrwin
-        print "SIZE RQ:", scrwin.size_request()
         vbox2.pack_start(scrwin, True, True, 0)
         hbox = gtk.HBox(homogeneous=True)
         for w in [outframe, fitframe]:
@@ -237,7 +236,10 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
                     self.gui.simulation['progress'].set_scale_progress(i)
                 if self.radio_relax_on.get_active():
                     algo = getattr(ase.optimize, mininame)
-                    minimizer = algo(self.atoms, logfile=logger)
+                    if mininame == "MDMin":
+                        minimizer = algo(self.atoms, logfile=logger, dt=0.05)
+                    else:
+                        minimizer = algo(self.atoms, logfile=logger)
                     minimizer.run(fmax=fmax, steps=self.steps.value)
                 e = self.atoms.get_potential_energy()
                 results.append((d, e))

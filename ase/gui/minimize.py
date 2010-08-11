@@ -75,7 +75,10 @@ class Minimize(Simulation, MinimizeMixin):
             gtk.main_iteration()
 
         self.prepare_store_atoms()
-        minimizer = algo(self.atoms, logfile=logger)
+        if mininame == "MDMin":
+            minimizer = algo(self.atoms, logfile=logger, dt=0.05)
+        else:
+            minimizer = algo(self.atoms, logfile=logger)
         minimizer.attach(self.store_atoms)
         try:
             minimizer.run(fmax=fmax, steps=steps)
