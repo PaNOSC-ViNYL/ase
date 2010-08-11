@@ -10,6 +10,8 @@ When it is time for a new release of the code, here is what you have to do:
 
 * :ref:`running_tests`.
 
+* Make sure version.py has the correct version number.
+
 * Make a tag in svn, using the current version number
   (to make sure **not** to include changes done by other developers
   in the meantime!)::
