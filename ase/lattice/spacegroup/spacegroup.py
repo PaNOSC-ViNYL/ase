@@ -182,7 +182,12 @@ class Spacegroup(object):
     def __eq__(self, other):
         """Chech whether *self* and *other* refer to the same
         spacegroup number and setting."""
-        return self.no == other.no and self.setting == other.setting
+        if isinstance(other, int):
+            return self.no == other
+        elif isinstance(other, str):
+            return self.symbol == other
+        else:
+            return self.no == other.no and self.setting == other.setting
 
     def __index__(self):
         return self.no
@@ -356,7 +361,7 @@ def _read_datafile_entry(spg, no, symbol, setting, f):
     spg._no = no
     spg._symbol = symbol.strip()
     spg._setting = setting
-    spg._centrosymmetric = bool(f.readline().split()[1])
+    spg._centrosymmetric = bool(int(f.readline().split()[1]))
     # primitive vectors
     f.readline()
     spg._scaled_primitive_cell = np.array([map(float, f.readline().split()) 
