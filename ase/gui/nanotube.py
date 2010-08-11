@@ -21,7 +21,7 @@ and bond length.\
 py_template = """
 from ase.structure import nanotube
 
-atoms = nanotube(%(n)i, %(m)i, length=%(length)i, bond=%(bl).3f, symbol=%(symb)s)
+atoms = nanotube(%(n)i, %(m)i, length=%(length)i, bond=%(bl).3f, symbol='%(symb)s')
 """
 
 
