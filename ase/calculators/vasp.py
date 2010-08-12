@@ -388,6 +388,7 @@ class Vasp(Calculator):
         self.old_list_params = self.list_params.copy()
         self.atoms = atoms.copy()
         self.niter = self.read_number_of_iterations()
+        self.nelect = self.read_number_of_electrons()
         
     def run(self):
         """Method which explicitely runs VASP."""
@@ -482,8 +483,8 @@ class Vasp(Calculator):
         else:
             return self.energy_zero
 
-    def get_number_of_iterations(self, atoms):
-        self.update(atoms)
+    def get_number_of_iterations(self):
+        self.update(self.atoms)
         return self.niter
 
     def read_number_of_iterations(self):
@@ -492,6 +493,17 @@ class Vasp(Calculator):
             if line.find('- Iteration') != -1: # find the last iteration number
                 niter = int(line.split(')')[0].split('(')[-1].strip())
         return niter
+
+    def get_number_of_electrons(self):
+        self.update(self.atoms)
+        return self.nelect
+
+    def read_number_of_electrons(self):
+        nelect = None
+        for line in open('OUTCAR'):
+            if line.find('total number of electrons') != -1:
+                nelect = float(line.split('=')[1].split()[0].strip())
+        return nelect
 
     def get_forces(self, atoms):
         self.update(atoms)
