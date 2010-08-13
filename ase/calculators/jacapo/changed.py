@@ -198,3 +198,28 @@ def mdos_changed(calc,x):
             if x[key] != myx[key]:
                 return True
     return False
+
+def pseudopotentials_changed(calc,x):
+
+    mypsp = calc.get_pseudopotentials()
+
+    if len(mypsp) != len(x):
+        return True
+
+    for key in x:
+        if key not in mypsp:
+            return True
+        if mypsp[key] != x[key]:
+            return True
+
+    for key in mypsp:
+        if key not in x:
+            return True
+        if mypsp[key] != x[key]:
+            return True
+    return False
+
+def status_changed(calc,x):
+    if calc.get_status() != x:
+        return True
+    return False
