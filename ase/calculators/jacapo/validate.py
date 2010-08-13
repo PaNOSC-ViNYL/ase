@@ -106,6 +106,8 @@ def valid_pseudopotentials(x):
     #todo check that keys are symbols or numbers
     #todo check that psp files exist
 
+    return True
+
     DACAPOPATH = os.environ.get('DACAPOPATH', None)
     if DACAPOPATH is None:
         raise Exception, 'No $DACAPOPATH found. please set it in .cshrc or .bashrc'
@@ -136,7 +138,7 @@ def valid_extpot(x):
         return False
 
 def valid_ascii_debug(x):
-    return (x in ['Off', 'MediumLevel', 'HighLevel'])
+    return (x.strip() in ['Off', 'MediumLevel', 'HighLevel'])
 
 def valid_ncoutput(x):
     if x is None:
@@ -302,7 +304,7 @@ def valid_electronic_minimization(x):
                               'rmm-diis']:
                 return False
         elif key == 'diagsperband':
-            if not valid_int(x[key]):
+            if not (valid_int(x[key]) or x[key] is None):
                 return False
     return True
 
