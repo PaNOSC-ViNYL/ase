@@ -33,7 +33,6 @@ formatter = logging.Formatter('''\
 handler.setFormatter(formatter)
 log.addHandler(handler)
 
-
 class DacapoRunning(exceptions.Exception):
     """Raised when ncfile.status = 'running'"""
     pass
@@ -294,6 +293,12 @@ class Jacapo:
         parameter is stored in dictionary that is processed later if a
         calculation is need.
         '''
+
+        if 'DACAPO_NOSET' in os.environ:
+            #it is probably a bug that this is detected so we raise an exception
+            raise Exception, 'DACAPO_NOSET detected, nothing is being set'
+            
+        
         for key in kwargs:
             if key not in self.default_input:
                 raise DacapoInput, '%s is not valid input' % key
@@ -556,6 +561,9 @@ class Jacapo:
         s.append('  Number of bands     = %s'  % self.get_nbands())
         s.append('  Kpoint grid         = %s' % str(self.get_kpts_type()))
         s.append('  Spin-polarized      = %s' % self.get_spin_polarized())
+        if self.get_spin_polarized():
+           s.append('    Unit cell magnetic moment = %1.2f bohr-magnetons' % \
+                  self.get_magnetic_moment())
         s.append('  Dipole correction   = %s' % self.get_dipole())
         s.append('  Symmetry            = %s' % self.get_symmetry())
         s.append('  Constraints         = %s' % str(atoms._get_constraints()))
@@ -1138,7 +1146,17 @@ than density cutoff %i' % (pw, dw))
         #and I never want to set this myself.
         base = os.path.splitext(self.nc)[0]
         self.txt = base + '.txt'
-                 
+
+    def set_pseudopotentials(self,pspdict):
+        '''
+        set all the pseudopotentials from a dictionary of the form:
+        {symbol1:path1,
+         symbol2:path2}
+         '''
+        for key in pspdict:
+            self.set_psp(sym=key,
+                         psp=pspdict[key])
+            
     def set_psp(self,
                 sym=None,
                 z=None,
@@ -1212,7 +1230,7 @@ than density cutoff %i' % (pw, dw))
         psp = {}
         for atom in self.atoms:
             psp[atom.symbol] = self.psp[atom.symbol]
-        return psp
+        return {'pspdict':psp}
 
     def get_symmetry(self):
         '''return the type of symmetry used'''
@@ -1569,11 +1587,11 @@ than density cutoff %i' % (pw, dw))
             if hasattr(v, 'EnergyWindow'):
                 ados['energywindow'] = v.EnergyWindow
             if hasattr(v, 'EnergyWidth'):
-                ados['energywidth'] = v.EnergyWidth
+                ados['energywidth'] = v.EnergyWidth[0]
             if hasattr(v, 'NumberEnergyPoints'):
-                ados['npoints'] = v.NumberEnergyPoints
+                ados['npoints'] = v.NumberEnergyPoints[0]
             if hasattr(v, 'CutoffRadius'):
-                ados['cutoff'] = v.CutoffRadius
+                ados['cutoff'] = v.CutoffRadius[0]
         else:
             ados = None
 
@@ -2028,6 +2046,10 @@ than density cutoff %i' % (pw, dw))
                 soft.append(nc.dimensions[sd])
                 hard.append(nc.dimensions[hd])
         nc.close()
+        if soft == []:
+            soft = None
+        if hard == []:
+            hard = None
         return ({'soft':soft,
                  'hard':hard})
 
@@ -2190,8 +2212,9 @@ than density cutoff %i' % (pw, dw))
             nc.close()
             return e 
         except (TypeError, KeyError):
-            raise RuntimeError('Error in calculating the total energy\n' +
-                               'Check ascii out file for error messages')
+            raise RuntimeError('Error in calculating the total energy\n'
+                               + 'check %s for error messages'
+                               % self.get_txt())
 
     def get_forces(self, atoms=None):
         """Calculate atomic forces"""
@@ -2247,6 +2270,8 @@ than density cutoff %i' % (pw, dw))
         you can only specify sym or z. Returns the pseudopotential
         filename, not the full path.
         '''
+        if sym is None and z is None:
+            return None
         
         if (sym is None and z is not None):
             from ase.data import chemical_symbols
@@ -2671,7 +2696,8 @@ than density cutoff %i' % (pw, dw))
                 # text file does not end as expected, print the last
                 # 10 lines and raise exception
                 log.debug(string.join(lines[-10:-1], ''))
-                s = 'Dacapo output txtfile (%s) did not end normally.' 
+                s = 'Dacapo output txtfile (%s) did not end normally.\n'
+                s += ''.join(lines[-10:-1])
                 raise DacapoAbnormalTermination(s % txt)
 
     def execute_external_dynamics(self,
@@ -4233,4 +4259,4 @@ Jacapo.get_esp = Jacapo.get_electrostatic_potential
 Jacapo.get_occ = Jacapo.get_occupation_numbers
 Jacapo.get_ef = Jacapo.get_fermi_level
 Jacapo.get_number_of_bands = Jacapo.get_nbands
-Jacapo.set_pseudopotentials = Jacapo.set_psp
+
