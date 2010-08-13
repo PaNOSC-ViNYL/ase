@@ -1,3 +1,18 @@
+2010-07-08  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (Jacapo.get_psp): added a line to return None when sym and z is None, that probably means nothing is being asked for, but that must be caught.
+
+2010-06-16  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (Jacapo.set_nbands): added code to delete teh number_of)bands nc dimension. if you change the number of bands in a calculator, you need to delete this so that the new dimension can be fixed.
+	(valid_kpts): changed ot (str(x.dtype)[0:5] to make sure the string comparison works.
+	(valid_kpts): fixed to [0:7]
+
+2010-06-02  John Tester  <jkitchin@andrew.cmu.edu>
+
+	* jacapo.py (ados_changed): fixed error in the comparison. it used to return True if ados was None and x is not None. I added cases for each possibility.
+	(calculate_stress_changed): added.
+	(xc_changed): added.
 
 2009-12-21  John Tester  <jkitchin@andrew.cmu.edu>
 
