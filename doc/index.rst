@@ -63,6 +63,7 @@ Supported :mod:`calculators`:
 .. _Python: http://www.python.org
 .. _Trac: http://trac.fysik.dtu.dk/projects/ase/report/1
 
+.. _news:
 
 News
 ====

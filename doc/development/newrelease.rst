@@ -6,6 +6,8 @@ New release
 
 When it is time for a new release of the code, here is what you have to do:
 
+** **Warning:** use only three digits release numbers, e.g. *3.1.0*,
+
 * Checkout the :ref:`latest_development_release`.
 
 * :ref:`running_tests`.
@@ -38,7 +40,8 @@ When it is time for a new release of the code, here is what you have to do:
 
    scp dist/python-ase-3.1.0."tags_revision".tar.gz root@web2:/var/www/wiki/ase-files
 
-* Add a link to the new release at :ref:`latest_stable_release`.
+* Add a link on :ref:`news` and update the information
+  on the :ref:`download_and_install` page.
 
 * Increase the version number in ase/version.py, and commit the change::
 
