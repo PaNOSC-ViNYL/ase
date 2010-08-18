@@ -52,8 +52,11 @@ class NeighborList:
         self.positions = atoms.get_positions()
         self.pbc = atoms.get_pbc()
         self.cell = atoms.get_cell()
-        rcmax = self.cutoffs.max()
-        
+        if len(self.cutoffs) > 0:
+            rcmax = self.cutoffs.max()
+        else:
+            rcmax = 0.0
+
         icell = np.linalg.inv(self.cell)
         scaled = np.dot(self.positions, icell)
         scaled0 = scaled.copy()
