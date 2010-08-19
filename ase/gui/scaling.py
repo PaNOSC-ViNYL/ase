@@ -71,7 +71,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         self.scale_offset = gtk.Adjustment(0.0, -10.0, 10.0, 0.001)
         scale_offset_spin = gtk.SpinButton(self.scale_offset, 10.0, 3)
         pack(vbox2, [gtk.Label("Scale offset: "), scale_offset_spin])
-        self.nsteps = gtk.Adjustment(5, 3, 100, 1)
+        self.nsteps = gtk.Adjustment(5, 3, 1000, 1)
         nsteps_spin = gtk.SpinButton(self.nsteps, 1, 0)
         pack(vbox2, [gtk.Label("Number of steps: "), nsteps_spin])
         
