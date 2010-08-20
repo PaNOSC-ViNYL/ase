@@ -24,8 +24,8 @@ def kpts_changed(calc, x):
     '''
     #chadi-cohen
     if isinstance(x, str):
-        exec('from ase.dft.kpoints import %s' % kpts)
-        listofkpts = eval(kpts)
+        exec('from ase.dft.kpoints import %s' % x)
+        listofkpts = eval(x)
     #monkhorst-pack grid
     elif np.array(x).shape == (3,):
         from ase.dft.kpoints import monkhorst_pack
