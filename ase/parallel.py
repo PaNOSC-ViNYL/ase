@@ -16,14 +16,14 @@ def paropen(name, mode='r', buffering=0):
 
 
 def parprint(*args, **kwargs):
-    """MPI save print - prints only from master.
+    """MPI-safe print - prints only from master.
 
     Tries to adopt python 3 behaviour.
     """
     if rank > 0:
         return
-    defaults = { 'end' : '\n',
-                 'file' : sys.stdout }
+    defaults = {'end': '\n',
+                'file': sys.stdout }
     for key in defaults:
         if not key in kwargs:
             kwargs[key] = defaults[key]
