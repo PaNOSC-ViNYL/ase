@@ -103,8 +103,11 @@ def build():
     elif x == 'hcp':
         if face is None:
             face = '0001'
-        slab = hcp0001(surf, (n, m, opt.layers), a, a * opt.c_over_a,
-                       opt.vacuum)
+        if opt.c_over_a is None:
+            c = np.sqrt(8 / 3.0) * a
+        else:
+            c = opt.c_over_a * a
+        slab = hcp0001(surf, (n, m, opt.layers), a, c, opt.vacuum)
         r = a / 2
     else:
         raise NotImplementedError
