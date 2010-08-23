@@ -1147,12 +1147,14 @@ than density cutoff %i' % (pw, dw))
         base = os.path.splitext(self.nc)[0]
         self.txt = base + '.txt'
 
-    def set_pseudopotentials(self,pspdict):
+    def set_pseudopotentials(self, pspdict):
+        '''Set all the pseudopotentials from a dictionary.
+
+        The dictionary should have this form::
+
+            {symbol1: path1,
+             symbol2: path2}
         '''
-        set all the pseudopotentials from a dictionary of the form:
-        {symbol1:path1,
-         symbol2:path2}
-         '''
         for key in pspdict:
             self.set_psp(sym=key,
                          psp=pspdict[key])
