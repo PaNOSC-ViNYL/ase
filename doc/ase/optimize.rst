@@ -44,7 +44,8 @@ All optimizer classes have the following structure::
 The convergence criterion is that the force on all individual atoms
 should be less than *fmax*:
 
-.. math:: \max_a |\vec{F_a}| < fmax
+.. math:: \max_a |\vec{F_a}| < f_\text{max}
+
 
 BFGS
 ----
