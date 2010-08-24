@@ -18,6 +18,9 @@ based on pseudopotentials and a planewave basis.
 Environment variables
 =====================
 
+**Note**: setting environment variables is necessary
+only if you configure your ABINIT/ASE environment from scratch.
+
 You need to write a script called :file:`abinit.py` containing
 something like this::
 
