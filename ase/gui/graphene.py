@@ -26,7 +26,7 @@ class SetupGraphene(SetupWindow):
     "Window for setting up a graphene sheet or nanoribbon."
     def __init__(self, gui):
         SetupWindow.__init__(self)
-        self.set_title("Nanotube")
+        self.set_title("Graphene")
         vbox = gtk.VBox()
 
         # Intoductory text
