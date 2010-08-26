@@ -10,6 +10,9 @@ import ase
 import numpy as np
 # Delayed imports:
 # ase.cluster.data
+from ase.cluster.cubic import FaceCenteredCubic
+from ase.cluster.data.fcc import surface_names as fcc_surface_names
+from ase.cluster import wulff_construction
 
 introtext = """\
 You specify the size of the particle by specifying the number of atomic layers
@@ -43,11 +46,11 @@ class SetupNanoparticle(SetupWindow):
         SetupWindow.__init__(self)
         self.set_title("Nanoparticle")
         self.atoms = None
-        import ase.cluster.data
-        self.data_module = ase.cluster.data
-        import ase.cluster
-        self.Cluster = ase.cluster.Cluster
-        self.wulffconstruction = ase.cluster.wulff_construction
+        #import ase.cluster.data
+        #self.data_module = ase.cluster.data
+        #import ase.cluster
+        #self.Cluster = ase.cluster.Cluster
+        #self.wulffconstruction = ase.cluster.wulff_construction
         self.no_update = True
         
         vbox = gtk.VBox()
@@ -252,7 +255,7 @@ class SetupNanoparticle(SetupWindow):
         # Get the crystal structure
         struct = self.structure.get_active_text()
         # Get the surfaces in the order the ase.cluster module expects
-        surfaces = self.data_module.lattice[struct]['surface_names']
+        surfaces = fcc_surface_names
         # Get the surface families
         families = self.families[struct]
         if method == 0:
@@ -388,8 +391,8 @@ class SetupNanoparticle(SetupWindow):
         if self.method.get_active() == 0:
             # Layer-by-layer specification
             layers = [int(x.value) for x in self.layerdata.layers]
-            self.atoms = self.Cluster(self.legal_element, layers=layers,
-                                      latticeconstant=lc, symmetry=struct)
+            self.atoms = FaceCenteredCubic(self.legal_element, fcc_surface_names,
+                                           layers=layers, latticeconstant=lc)
             self.pybut.python = py_template % {'element': self.legal_element,
                                                'layers': str(layers),
                                                'structure': struct,
@@ -407,10 +410,10 @@ class SetupNanoparticle(SetupWindow):
                 rounding = "closest"
             else:
                 raise RuntimeError("No rounding!")
-            self.atoms = self.wulffconstruction(self.legal_element,
-                                                surfaceenergies,
-                                                self.size_n_adj.value,
-                                                rounding, struct, lc)
+            self.atoms = wulffconstruction(self.legal_element,
+                                           surfaceenergies,
+                                           self.size_n_adj.value,
+                                           rounding, struct, lc)
                                    
         self.makeinfo()
 

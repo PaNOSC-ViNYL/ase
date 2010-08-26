@@ -1,6 +1,7 @@
 import numpy as np
 
 import ase.cluster
+from ase.cluster.cubic import FaceCenteredCubic
 from ase.data import atomic_numbers, reference_states
 
 delta = 1e-10
@@ -168,9 +169,8 @@ def make_atoms(symbol, energies, factor, latticeconstant, symmetry):
     layers1 = factor * np.array(energies)
     layers = np.round(layers1).astype(int)
     #layers = np.array([int(round(factor * e)) for e in energies])
-    atoms = ase.cluster.Cluster(symbol=symbol, layers=layers,
-                                latticeconstant=latticeconstant,
-                                symmetry=symmetry)
+    atoms = FaceCenteredCubic(symbol, fcc_surface_names, layers=layers,
+                              latticeconstant=latticeconstant)
     if _debug:
         print "Created a cluster with %i atoms: %s" % (len(atoms),
                                                        str(layers))

@@ -6,14 +6,12 @@ import numpy as np
 import cPickle as pickle
 import new
 
-from ase.cluster.clusteratom import ClusterAtom
-from ase.cluster.data import lattice
 from ase import Atoms
-from ase.data import atomic_numbers, chemical_symbols, reference_states
-from ase.lattice.cubic import SimpleCubic, BodyCenteredCubic, FaceCenteredCubic, Diamond
-from ase.lattice.hexagonal import HexagonalClosedPacked
+from ase.data import chemical_symbols
+from ase.cluster.base import ClusterBase
+from ase.cluster.clusteratom import ClusterAtom
 
-class Cluster(Atoms):
+class Cluster(Atoms, ClusterBase):
     _datasyn = {'numbers':       ('number',       int,   ()  ),
                 'positions':     ('position',     float, (3,)),
                 'tags':          ('tag',          int,   ()  ),
@@ -21,134 +19,10 @@ class Cluster(Atoms):
                 'masses':        ('mass',         float, ()  ),
                 'magmoms':       ('magmom',       float, ()  ),
                 'charges':       ('charge',       float, ()  ),
-                'neighbors':     ('neighbors',    int,   None),
-                'coordinations': ('coordination', int,   ()  ),
-                'types':         ('type',         int,   ()  ),
                }
 
-    def __init__(self, symbol=None, layers=None, positions=None,
-                 latticeconstant=None, symmetry=None, cell=None, 
-                 center=None, multiplicity=1, filename=None, debug=0):
-
-        self.debug = debug
-        self.multiplicity = multiplicity
-
-        if filename is not None:
-            self.read(filename)
-            return
-        
-        #Find the atomic number
-        if symbol is not None:
-            if isinstance(symbol, str):
-                self.atomic_number = atomic_numbers[symbol]
-            else:
-                self.atomic_number = symbol
-        else:
-            raise Warning('You must specify a atomic symbol or number!')
-
-        #Find the crystal structure
-        if symmetry is not None:
-            if symmetry.lower() in ['bcc', 'fcc', 'hcp']:
-                self.symmetry = symmetry.lower()
-            else:
-                raise Warning('The %s symmetry does not exist!' % symmetry.lower())
-        else:
-            self.symmetry = reference_states[self.atomic_number]['symmetry'].lower()
-
-        if self.debug:
-            print 'Crystal structure:', self.symmetry
-
-        #Find the lattice constant
-        if latticeconstant is None:
-            if self.symmetry == 'fcc':
-                self.lattice_constant = reference_states[self.atomic_number]['a']
-            elif self.symmetry == 'hcp':
-                self.lattice_constant = reference_states[self.atomic_number]
-            else:
-                raise Warning(('Cannot find the lattice constant ' +
-                               'for a %s structure!' % self.symmetry))
-        else:
-            self.lattice_constant = latticeconstant
-
-        if self.debug:
-            print 'Lattice constant(s):', self.lattice_constant
-
-        #Make the cluster of atoms
-        if layers is not None and positions is None:
-            layers = list(layers)
-
-            #Make base crystal based on the found symmetry
-            if self.symmetry == 'fcc':
-                if len(layers) != lattice[self.symmetry]['surface_count']:
-                    raise Warning('Something is wrong with the defined number of layers!')
-
-                xc = int(np.ceil(layers[1] / 2.0)) + 1
-                yc = int(np.ceil(layers[3] / 2.0)) + 1
-                zc = int(np.ceil(layers[5] / 2.0)) + 1
-
-                xs = xc + int(np.ceil(layers[0] / 2.0)) + 1
-                ys = yc + int(np.ceil(layers[2] / 2.0)) + 1
-                zs = zc + int(np.ceil(layers[4] / 2.0)) + 1
-
-                center = np.array([xc, yc, zc])
-                size = (xs, ys, zs)
-
-                atoms = FaceCenteredCubic(symbol=symbol,
-                                          size=size,
-                                          latticeconstant=self.lattice_constant,
-                                          align=False)
-
-            elif self.symmetry == 'hcp':
-                if len(layers) != lattice[self.symmetry]['surface_count']:
-                    raise Warning('Something is wrong with the defined number of layers!')
-
-                zc = layers[1] + 1
-                ac = layers[3] + 1
-                bc = layers[5] + 1
-
-                z = zc + layers[0] + 1
-                a = ac + layers[2] + 1
-                b = bc + layers[4] + 1
-
-                center = np.array([ac, bc, zc])
-                size = (a, b, z)
-
-                atoms = HexagonalClosedPacked(symbol=symbol,
-                                              size=size,
-                                              latticeconstant=self.lattice_constant,
-                                              align=False)
-
-            else:
-                raise Warning(('The %s crystal structure is not' +
-                               ' supported yet.') % self.symmetry)
-
-            positions = atoms.get_positions()
-            numbers = atoms.get_atomic_numbers()
-            cell = atoms.get_cell()
-            basis = cell / np.array(size)
-            center = np.dot(center, basis)
-
-            if self.debug:
-                print 'Base crystal size:', size
-                print 'Center atom position:', center
-
-        elif positions is not None:
-            numbers = [self.atomic_number] * len(positions)
-        else:
-            numbers = None
-
-        #Load the constructed atoms object into this object
-        self.set_center(center)
-        self.set_basis(basis)
-        Atoms.__init__(self, numbers=numbers, positions=positions,
-                       cell=cell, pbc=False)
-
-        #Construct the particle with the assigned surfasces
-        if layers is not None:
-            self.set_layers(layers)
-
     def __repr__(self):
-        output = ('Cluster(symbols=%s%s, latticeconstant=%.2f' % 
+        output = ('Cluster(symbols=%i%s, latticeconstant=%.2f' % 
                   (len(self), chemical_symbols[self.atomic_number], self.lattice_constant))
 
         for name in self.arrays:
@@ -164,26 +38,6 @@ class Cluster(Atoms):
     def __getitem__(self, i):
         c = ClusterAtom(atoms=self, index=i)
         return c
-
-    def __delitem__(self, i):
-        Atoms.__delitem__(self, i)
-
-        #Subtract one from all neighbor references that is greater than "index"
-        if self.has('neighbors'):
-            neighbors = self.get_neighbors()
-            neighbors = neighbors - (neighbors > i).astype(int)
-            self.set_neighbors(neighbors)
-
-    def pop(self, i=-1):
-        atom = self[i]
-        atom.cut_reference_to_atoms()
-
-        #Subtract one from all neighbor references that is greater than "i"
-        if atom.has('neighbors'):
-            atom.neighbors = atom.neighbors - (atom.neighbors > i).astype(int)
-
-        del self[i]
-        return atom
 
     def __setitem__(self, i, atom):
         #raise Warning('Use direct assignment like atoms[i].type = x!')
@@ -217,7 +71,7 @@ class Cluster(Atoms):
 
     def extend(self, atoms):
         if not isinstance(atoms, Cluster):
-            raise Warning('The added atoms is not a Cluster instance!')
+            raise Warning('The added atoms is not in a Cluster instance!')
 
         for atom in atoms:
             self.append(atom)
@@ -234,190 +88,51 @@ class Cluster(Atoms):
 
         return cluster
 
-    #Special Monte Carlo functions to alter the atoms
-    def add_atom(self, atom):
-        atom.index = len(self)
-        self.append(atom)
-
-        if self.has('neighbors'):
-            self.update_neighborlist(i=atom.index, new=atom.neighbors)
-
-    def remove_atom(self, i):
-        atom = self.pop(i)
-
-        if self.has('neighbors'):
-            self.update_neighborlist(old=atom.neighbors)
-
-        return atom
-
-    def move_atom(self, i, other):
-        atom = self[i]
-        atom.cut_reference_to_atoms()
-        self[i] = other
-
-        if self.has('neighbors'):
-            self.update_neighborlist(i=i, new=other.neighbors, old=atom.neighbors)
-
-    def update_neighborlist(self, i=None, new=None, old=None):
-        """Updates the neighbor list around atoms that is removed and added."""
-
-        neighbor_mapping = lattice[self.symmetry]['neighbor_mapping']
-
-        #Add "i" in the new neighbors neighborlists
-        if new is not None and i is not None:
-            for j, n in enumerate(new):
-                if n >= 0 and n != i:
-                    self[n].neighbors[neighbor_mapping[j]] = i
-                    self[n].coordination += 1
-                    self[n].type = self.get_atom_type(self[n].neighbors)
-                elif n == i:
-                    self[n].neighbors[j] = -1
-                    self[n].coordination -= 1
-                    self[n].type = self.get_atom_type(self[n].neighbors)
-
-        #Set "-1" in the old neighbors neighborlists
-        if old is not None:
-            for j, n in enumerate(old):
-                if n >= 0:
-                    self[n].neighbors[neighbor_mapping[j]] = -1
-                    self[n].coordination -= 1
-                    self[n].type = self.get_atom_type(self[n].neighbors)
-
-    def make_neighborlist(self):
-        """Generate a lists with nearest neighbors, types and coordinations"""
-        from asap3 import FullNeighborList
-        neighbor_cutoff = lattice[self.symmetry]['neighbor_cutoff']
-        neighbor_cutoff *= self.lattice_constant
-        neighbor_numbers = lattice[self.symmetry]['neighbor_numbers']
-        neighbor_count = lattice[self.symmetry]['neighbor_count']
-
-        get_neighbors = FullNeighborList(neighbor_cutoff, self)
-
-        positions = self.get_positions()
-        neighbors = []
-        coordinations = []
-        types = []
-
-        for i, pos in enumerate(positions):
-            nl = get_neighbors[i]
-            dl = (positions[nl] - pos) / self.lattice_constant
-
-            neighbors.append([-1] * neighbor_count)
-            for n, d in zip(nl, dl):
-                name = tuple(d.round(1))
-                if name in neighbor_numbers:
-                    neighbors[i][neighbor_numbers[name]] = n
-
-            coordinations.append(self.get_atom_coordination(neighbors[i]))
-            types.append(self.get_atom_type(neighbors[i]))
-
-        self.set_neighbors(neighbors)
-        self.set_coordinations(coordinations)
-        self.set_types(types)
-
-    def get_number_of_layers(self, normal):
-        """Get the number of layers in the direction given by 'normal'"""
-        positions = self.get_positions() - self.get_center()
-        
-        n = np.array(normal)
-        n = np.dot(n, self.get_basis())
-
-        d = np.linalg.norm(n) * self.get_surface_data('d', normal)
-        r = np.dot(positions, n) / np.linalg.norm(n)
-        layers = np.int(np.round(r.max() / d))
-
-        return layers
-
-    def set_number_of_layers(self, normal, layers):
-        """Set the number of layers in the direction given by 'normal'"""
-        positions = self.get_positions() - self.get_center()
-        
-        n = np.array(normal)
-        n = np.dot(n, self.get_basis()) 
-
-        d = np.linalg.norm(n) * self.get_surface_data('d', normal)
-        r = np.dot(positions, n) / np.linalg.norm(n)
-
-        actual_layers = self.get_number_of_layers(normal)
-        
-        if layers > actual_layers:
-            if self.debug:
-                print ('Expanding the %s plane to %i from %i layers (Not supported yet)'
-                       % (normal, layers, actual_layers))
-            #raise Warning('Your cluster is not right!')
-        
-        elif layers < actual_layers:
-            if self.debug:
-                print ('Cutting the %s plane to %i from %i layers.'
-                       % (normal, layers, actual_layers))
-
-            rmax = (layers + 0.5) * d
-            mask = np.less(r, rmax)
-
-            for name in self.arrays.keys():
-                self.arrays[name] = self.arrays[name][mask]
-
-        else:
-            if self.debug:
-                print ('Keeping the %s plane at %i layers.'
-                       % (normal, layers))
-
     def get_layers(self):
-        surface_names = lattice[self.symmetry]['surface_names']
         layers = []
 
-        for n in surface_names:
-            layers.append(self.get_number_of_layers(n))
+        for s in self.surfaces:
+            n = self.miller_to_direction(s)
+            r = np.dot(self.get_positions() - self.center, n).max()
+            d = self.get_layer_distance(s, 2)
+            l = 2 * np.round(r / d).astype(int)
+
+            ls = np.arange(l-1,l+2)
+            ds = np.array([self.get_layer_distance(s, i) for i in ls])
+
+            mask = (np.abs(ds - r) < 1e-10)
+
+            layers.append(ls[mask][0])
 
         return np.array(layers, int)
 
-    def set_layers(self, layers):
-        surface_names = lattice[self.symmetry]['surface_names']
-        surface_count = lattice[self.symmetry]['surface_count']
+    def get_diameter(self, method='Volume'):
+        """Makes an estimate of the cluster diameter based on two different
+        methods.
 
-        if len(layers) != surface_count:
-            raise Warning(('The number of surfaces is not right: %i != %i' %
-                           (len(layers), surface_count)))
+        method = 'Volume': Returns the diameter of a sphere with the 
+                           same volume as the atoms. (Default)
+        
+        method = 'Shape': Returns the distance between two opposit surfaces
+                          averaged over all the surfaces on the cluster.
+        """
 
-        for n, l in zip(surface_names, layers):
-            self.set_number_of_layers(normal=n, layers=l)
+        if method == 'Shape':
+            directions = np.array(lattice[self.symmetry]['surface_names'])
+            pos = self.get_positions()
 
-    def get_diameter(self):
-        """Makes an estimate of the cluster diameter based on the average
-        distance between opposit layers"""
-        surface_mapping = lattice[self.symmetry]['surface_mapping']
-        surface_names = lattice[self.symmetry]['surface_names']
-        surface_numbers = lattice[self.symmetry]['surface_numbers']
-        surface_data = lattice[self.symmetry]['surface_data']
-        surface_count = lattice[self.symmetry]['surface_count']
+            d = 0.0
+            for n in directions:
+                n = np.dot(n, self.get_basis())
+                n = n / np.linalg.norm(n)
+                r = np.dot(pos, n)
+                d += r.max() - r.min()
 
-        d = 0.0
-        for s1 in surface_names:
-            s2 = surface_names[surface_mapping[surface_numbers[s1]]]
-            l1 = self.get_number_of_layers(s1)
-            l2 = self.get_number_of_layers(s2)
-            dl = surface_data[surface_numbers[s1]]['d'] * self.lattice_constant
-            d += (l1 + l2) * dl / surface_count
-
-        return d
-
-    def get_atom_coordination(self, neighbors):
-        neighbors = np.array(neighbors)
-        neighbors = neighbors[neighbors >= 0]
-        return len(neighbors)
-
-    def get_atom_type(self, neighbors):
-        neighbors = np.array(neighbors)
-        name = tuple((neighbors >= 0).astype(int))
-
-        type_names = lattice[self.symmetry]['type_names']
-        type_numbers = lattice[self.symmetry]['type_numbers']
-        type_data = lattice[self.symmetry]['type_data']
-
-        if name in type_names:
-            return type_data[type_numbers[name]]['type']
+            return d / len(directions)
+        elif method == 'Volume':
+            return (3.0/2.0 * len(self)/math.pi) ** (1.0/3.0) * self.lattice_constant
         else:
-            return 0
+            return 0.0
 
     #Functions to acces the properties
     def get_center(self):
@@ -426,38 +141,14 @@ class Cluster(Atoms):
     def set_center(self, center):
         self._center = np.array(center, float)
 
-    def get_basis(self):
-        return self._basis.copy()
+    def get_lattice_basis(self):
+        return self._lattice_basis.copy()
 
-    def set_basis(self, basis):
-        self._basis = np.array(basis, float)
+    def get_resiproc_basis(self):
+        return self._resiproc_basis.copy()
 
-    def get_positions(self):
-        return self.get_array('positions')
-
-    def set_positions(self, positions):
-        self.set_array('positions', positions, float)
-
-    def get_neighbors(self):
-        return self.get_array('neighbors')
-
-    def get_neighbors_bool(self, index):
-        return tuple((self.get_neighbors()[index] >= 0).astype(int))
-
-    def set_neighbors(self, neighbors):
-        self.set_array('neighbors', neighbors, int)
-
-    def get_types(self):
-        return self.get_array('types')
-
-    def set_types(self, types):
-        self.set_array('types', types, int)
-
-    def get_coordinations(self):
-        return self.get_array('coordinations')
-
-    def set_coordinations(self, coordinations):
-        self.set_array('coordinations', coordinations, int)
+    def get_atomic_basis(self):
+        return self._atomic_basis.copy()
 
     #Functions to store the cluster
     def write(self, filename=None):
@@ -512,15 +203,3 @@ class Cluster(Atoms):
         self.adsorbate_info = {}
         self.calc = None
 
-    #Helping fucntions
-    def get_surface_data(self, name=None, surface=None):
-        if name is None or surface is None:
-            return None
-        else:
-            surface_numbers = lattice[self.symmetry]['surface_numbers']
-            surface_data = lattice[self.symmetry]['surface_data']
-
-            if isinstance(surface, tuple):
-                return surface_data[surface_numbers[surface]][name]
-            else:
-                return surface_data[surface][name]
