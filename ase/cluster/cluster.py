@@ -1,10 +1,7 @@
 import os
 import math
-import random
 import numpy as np
-
 import cPickle as pickle
-import new
 
 from ase import Atoms
 from ase.data import chemical_symbols
@@ -21,19 +18,13 @@ class Cluster(Atoms, ClusterBase):
                 'charges':       ('charge',       float, ()  ),
                }
 
-    def __repr__(self):
-        output = ('Cluster(symbols=%i%s, latticeconstant=%.2f' % 
-                  (len(self), chemical_symbols[self.atomic_number], self.lattice_constant))
-
-        for name in self.arrays:
-            output += ', %s=...' % name
-
-        output += ', cell=%s' % self._cell.diagonal().tolist()
-
-        if self.get_center() is not None:
-            output += ', center=%s' % self.get_center().tolist()
-
-        return output + ')'
+    symmetry = None
+    center = None
+    surfaces = None
+    lattice_basis = None
+    resiproc_basis = None
+    atomic_basis = None
+    multiplicity = 1
 
     def __getitem__(self, i):
         c = ClusterAtom(atoms=self, index=i)
@@ -77,16 +68,20 @@ class Cluster(Atoms, ClusterBase):
             self.append(atom)
 
     def copy(self):
-        cluster = Cluster(symbol=self.atomic_number,
-                          latticeconstant=self.lattice_constant,
-                          symmetry=self.symmetry,
-                          cell=self.get_cell(),
-                          center=self.get_center())
-
-        for name, a in self.arrays.items():
-            cluster.arrays[name] = a.copy()
-
+        cluster = Atoms.copy(self)
+        cluster.symmetry = self.symmetry
+        cluster.center = self.center.copy()
+        cluster.surfaces = self.surfaces.copy()
+        cluster.lattice_basis = self.lattice_basis.copy()
+        cluster.atomic_basis = self.atomic_basis.copy()
+        cluster.resiproc_basis = self.resiproc_basis.copy()
         return cluster
+
+    def get_surfaces(self):
+        if not self.surfaces is None:
+            return self.surfaces.copy()
+        else:
+            return None
 
     def get_layers(self):
         layers = []
@@ -106,49 +101,33 @@ class Cluster(Atoms, ClusterBase):
 
         return np.array(layers, int)
 
-    def get_diameter(self, method='Volume'):
+    def get_diameter(self, method='volume'):
         """Makes an estimate of the cluster diameter based on two different
         methods.
 
-        method = 'Volume': Returns the diameter of a sphere with the 
+        method = 'volume': Returns the diameter of a sphere with the 
                            same volume as the atoms. (Default)
         
-        method = 'Shape': Returns the distance between two opposit surfaces
-                          averaged over all the surfaces on the cluster.
+        method = 'shape': Returns the averaged diameter calculated from the
+                          directions given by the defined surfaces.
         """
 
-        if method == 'Shape':
-            directions = np.array(lattice[self.symmetry]['surface_names'])
-            pos = self.get_positions()
-
+        if method == 'shape':
+            pos = self.get_positions() - self.center
             d = 0.0
-            for n in directions:
-                n = np.dot(n, self.get_basis())
-                n = n / np.linalg.norm(n)
+            for s in self.surfaces:
+                n = self.miller_to_direction(s)
                 r = np.dot(pos, n)
                 d += r.max() - r.min()
-
-            return d / len(directions)
-        elif method == 'Volume':
-            return (3.0/2.0 * len(self)/math.pi) ** (1.0/3.0) * self.lattice_constant
+            return d / len(self.surfaces)
+        elif method == 'volume':
+            atoms_in_unit_cell = {'sc': 1, 'bcc': 2, 'fcc': 4, 'hcp': 2}
+            V_cell = np.abs(np.linalg.det(self.lattice_basis))
+            N_cell = atoms_in_unit_cell[self.symmetry]
+            N = len(self)
+            return 2.0 * (3.0 * N * V_cell / (4.0 * math.pi * N_cell)) ** (1.0/3.0)
         else:
             return 0.0
-
-    #Functions to acces the properties
-    def get_center(self):
-        return self._center.copy()
-
-    def set_center(self, center):
-        self._center = np.array(center, float)
-
-    def get_lattice_basis(self):
-        return self._lattice_basis.copy()
-
-    def get_resiproc_basis(self):
-        return self._resiproc_basis.copy()
-
-    def get_atomic_basis(self):
-        return self._atomic_basis.copy()
 
     #Functions to store the cluster
     def write(self, filename=None):
@@ -158,11 +137,13 @@ class Cluster(Atoms, ClusterBase):
         if os.path.isfile(filename):
             os.rename(filename, filename + '.bak')
 
-        d = {'symbol': self.atomic_number,
-             'latticeconstant': self.lattice_constant,
-             'symmetry': self.symmetry,
-             'multiplicity': self.multiplicity,
+        d = {'symmetry': self.symmetry,
              'center': self.get_center(),
+             'surfaces': self.surfaces,
+             'lattice_basis': self.lattice_basis,
+             'resiproc_basis': self.resiproc_basis,
+             'atomic_basis': self.atomic_basis,
+             'multiplicity': self.multiplicity,
              'cell': self.get_cell(),
              'pbc': self.get_pbc()}
 
@@ -193,10 +174,12 @@ class Cluster(Atoms, ClusterBase):
         else:
             self.multiplicity = 1
 
-        self.atomic_number = d['symbol']
-        self.lattice_constant = d['latticeconstant']
         self.symmetry = d['symmetry']
-        self.set_center(d['center'])
+        self.center = d['center']
+        self.surfaces = d['surfaces']
+        self.lattice_basis = d['lattice_basis']
+        self.resiproc_basis = d['resiproc_basis']
+        self.atomic_basis = d['atomic_basis']
         self.set_cell(d['cell'])
         self.set_pbc(d['pbc'])
         self.set_constraint()

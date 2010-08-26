@@ -33,9 +33,9 @@ class ClusterFactory(ClusterBase):
         self.set_lattice_size()
 
         cluster = self.make_cluster(vacuum)
+        cluster.symmetry = self.xtal_name
         cluster.center = self.center.copy()
         cluster.surfaces = self.surfaces.copy()
-        #cluster.layers = self.layers.copy()
         cluster.lattice_basis = self.lattice_basis.copy()
         cluster.atomic_basis = self.atomic_basis.copy()
         cluster.resiproc_basis = self.resiproc_basis.copy()
@@ -50,6 +50,8 @@ class ClusterFactory(ClusterBase):
 
         # Remove all atoms that is outside the defined surfaces
         for s, l in zip(self.surfaces, self.layers):
+            if l < 0: continue
+
             n = self.miller_to_direction(s)
             rmax = self.get_layer_distance(s, l + 0.5)
 
@@ -84,6 +86,8 @@ class ClusterFactory(ClusterBase):
         for i in range(3):
             v = self.lattice_basis[i]
             for s, l in zip(self.surfaces, self.layers):
+                if l < 0: continue
+
                 n = self.miller_to_direction(s)
                 nl = self.get_layer_distance(s, l)
                 n = nl * n

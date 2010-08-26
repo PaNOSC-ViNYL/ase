@@ -15,10 +15,6 @@ class SimpleCubicFactory(ClusterFactory):
 
     xtal_name = 'sc'
 
-    int_lattice_basis = 1.0 * np.array([[1, 0, 0],
-                                        [0, 1, 0],
-                                        [0, 0, 1]])
-
     lattice_factory = SCFactory()
 
     def set_lattice_constant(self, latticeconstant):
@@ -36,9 +32,9 @@ class SimpleCubicFactory(ClusterFactory):
     def set_basis(self):
         a = self.lattice_constant
         if not isinstance(a, (int, float)):
-            raise ValueError("Improper lattice constants for %s crystal." % (xtal_name,))
+            raise ValueError("Improper lattice constant for %s crystal." % (xtal_name,))
 
-        self.lattice_basis = a * self.int_lattice_basis
+        self.lattice_basis = a * np.identity(3)
         self.resiproc_basis = self.get_resiproc_basis(self.lattice_basis)
 
 SimpleCubic = SimpleCubicFactory()
