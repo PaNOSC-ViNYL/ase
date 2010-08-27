@@ -13,7 +13,7 @@ extra = np.array([ 2.3, 4.2 ])
 atoms.set_array("extra", extra)
 atoms *= (1, 1, 2)
 images = [atoms.copy(), atoms.copy()]
-r = ['xyz', 'traj', 'cube', 'pdb', 'cfg', 'struct']
+r = ['xyz', 'traj', 'cube', 'pdb', 'cfg', 'struct', 'cif']
 w = r + ['xsf']
 try:
     import matplotlib

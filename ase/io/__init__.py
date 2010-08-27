@@ -42,6 +42,7 @@ def read(filename, index=-1, format=None):
     VASP POSCAR/CONTCAR file   vasp
     VASP OUTCAR file           vasp_out
     Protein Data Bank          pdb
+    CIF-file                   cif
     FHI-aims geometry file     aims
     FHI-aims output file       aims_out
     VTK XML Image Data         vti
@@ -146,7 +147,7 @@ def read(filename, index=-1, format=None):
 
     if format == 'cif':
         from ase.io.cif import read_cif
-        return read_cif(filename)
+        return read_cif(filename, index)
 
     if format == 'struct':
         from ase.io.wien2k import read_struct
@@ -220,6 +221,7 @@ def write(filename, images, format=None, **kwargs):
     XYZ-file                   xyz
     VASP POSCAR/CONTCAR file   vasp
     Protein Data Bank          pdb
+    CIF-file                   cif
     XCrySDen Structure File    xsf
     FHI-aims geometry file     aims
     gOpenMol .plt file         plt  
@@ -309,8 +311,9 @@ def write(filename, images, format=None, **kwargs):
         from ase.io.exciting import write_exciting
         write_exciting(filename, images)
         return
-
-
+    if format == 'cif':
+        from ase.io.cif import write_cif
+        write_cif(filename, images)
     if format == 'xyz':
         from ase.io.xyz import write_xyz
         write_xyz(filename, images)
