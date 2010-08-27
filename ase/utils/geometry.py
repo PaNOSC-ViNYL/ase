@@ -221,12 +221,16 @@ def cut(atoms, a=(1,0,0), b=(0,1,0), c=(0,0,1), origo=(0,0,0),
     return atoms
 
 
+class IncompatibleCellError(ValueError):
+    """Exception raised if stacking fails due to incompatible cells
+    between *atoms1* and *atoms2*."""
+    pass
 
 
 def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,  
           maxstrain=0.5, distance=None):
-    """Return a new Atoms instance with *atoms2* added to atoms1
-    along the given axis. Periodicity in all directions is
+    """Return a new Atoms instance with *atoms2* stacked on top of
+    *atoms1* along the given axis. Periodicity in all directions is
     ensured.
 
     The size of the final cell is determined by *cell*, except
@@ -238,10 +242,11 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
     if *fix* equals one, it will be determined purely from
     *atoms2*.
 
-    An ValueError exception will be raised if the far corner of
-    the unit cell of either *atoms1* or *atoms2* is displaced more
-    than *maxstrain*. Setting *maxstrain* to None, disable this
-    check.
+    An ase.geometry.IncompatibleCellError exception is raised if the
+    cells of *atoms1* and *atoms2* are incopatible, e.g. if the far
+    corner of the unit cell of either *atoms1* or *atoms2* is
+    displaced more than *maxstrain*. Setting *maxstrain* to None,
+    disable this check.
 
     If *distance* is provided, the atomic positions in *atoms1* and
     *atoms2* as well as the cell lengths along *axis* will be
@@ -271,7 +276,7 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
     >>> ase.view(interface)  # doctest: +SKIP
     >>>
     # Once more, this time adjusted such that the distance between
-    # the closest Ag and Si atoms will be 2.3 Angstrom.
+    # the closest Ag and Si atoms will be 2.3 Angstrom (requires scipy).
     >>> interface2 = stack(ag110, si110, 
     ...                    maxstrain=1, distance=2.3)   # doctest:+ELLIPSIS
     Optimization terminated successfully.
@@ -280,6 +285,11 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
     """
     atoms1 = atoms1.copy()
     atoms2 = atoms2.copy()
+
+    if (np.sign(np.linalg.det(atoms1.cell)) != 
+        np.sign(np.linalg.det(atoms2.cell))):
+        raise IncompatibleCellError('*atoms1* amd *atoms2* must both either '
+                                    'have a lefthanded or a righanded cell.')
 
     c1 = np.linalg.norm(atoms1.cell[axis])
     c2 = np.linalg.norm(atoms2.cell[axis])
@@ -295,17 +305,16 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
     cell1[axis] *= c1
     cell2[axis] *= c2
 
-    if (maxstrain and
-        (((cell1 - atoms1.cell).sum(axis=0)**2).sum() > maxstrain**2 or
-         ((cell2 - atoms2.cell).sum(axis=0)**2).sum() > maxstrain**2)):
-        raise ValueError('Incompatible cells.')
+    if maxstrain:
+        strain1 = np.sqrt(((cell1 - atoms1.cell).sum(axis=0)**2).sum())
+        strain2 = np.sqrt(((cell2 - atoms2.cell).sum(axis=0)**2).sum())
+        if strain1 > maxstrain or strain2 > maxstrain:
+            raise IncompatibleCellError(
+                '*maxstrain* exceeded. *atoms1* strained %f and '
+                '*atoms2* strained %f.'%(strain1, strain2))
 
-    sp1 = np.linalg.solve(atoms1.cell.T, atoms1.positions.T).T
-    sp2 = np.linalg.solve(atoms2.cell.T, atoms2.positions.T).T
-    atoms1.set_cell(cell1)
-    atoms2.set_cell(cell2)
-    atoms1.set_scaled_positions(sp1)
-    atoms2.set_scaled_positions(sp2)
+    atoms1.set_cell(cell1, scale_atoms=True)
+    atoms2.set_cell(cell2, scale_atoms=True)
 
     if distance is not None:
         from scipy.optimize import fmin
