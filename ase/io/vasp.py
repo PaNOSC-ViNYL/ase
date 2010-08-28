@@ -67,14 +67,26 @@ def atomtypes_outpot(posfname, numsyms):
     tried = []
     files_in_dir = os.listdir('.')
     for fn in fnames:
-        tried.append(fn)
         if fn in files_in_dir:
+            tried.append(fn)
             at = get_atomtypes(fn)
             if len(at) == numsyms:
                 return at
 
     raise IOError('Could not determine chemical symbols. Tried files ' 
                   + str(tried))
+
+
+def get_atomtypes_from_formula(formula):
+    """Return atom types from chemical formula (optionally prepended
+    with and underscore).
+    """
+    from ase.atoms import string2symbols
+    symbols = string2symbols(formula.split('_')[0])
+    atomtypes = [symbols[0]]
+    for s in symbols[1:]:
+        if s != atomtypes[-1]: atomtypes.append(s)
+    return atomtypes
 
 
 def read_vasp(filename='CONTCAR'):
@@ -99,6 +111,11 @@ def read_vasp(filename='CONTCAR'):
     # the same order
     # as later in the file (and POTCAR for the full vasp run)
     atomtypes = f.readline().split()
+
+    # Sometimes the first line in POSCAR/CONTCAR is of the form
+    # "CoP3_In-3.pos". Check for this case and extract atom types
+    if len(atomtypes) == 1 and '_' in atomtypes[0]:
+        atomtypes = get_atomtypes_from_formula(atomtypes[0])
 
     lattice_constant = float(f.readline())
 
