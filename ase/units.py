@@ -36,5 +36,6 @@ Pascal = (1 / _e) / 1e30  # J/m^3
 GPa = 1e9 * Pascal
 
 Debye = 1e11 *_e * _c
+alpha = _e**2 / (4 * pi * _eps0) / _hbar / _c # fine structure constant
 
 del pi, sqrt
