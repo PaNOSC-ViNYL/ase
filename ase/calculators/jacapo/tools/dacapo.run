@@ -152,25 +152,10 @@ elif ('PBS_NODEFILE' in os.environ.keys() or
 
     if NPROCS > 1:
         # now construct the mpirun command
-        MPICMD = 'mpirun -v -O -np %i' % NPROCS
+        MPICMD = 'mpirun -np %i' % NPROCS
         DACAPOEXE = os.environ.get('DACAPOEXE_PARALLEL')
         parcmd = string.join([MPICMD,DACAPOEXE,ARGS],' ')
         if __debug__: print parcmd
-
-        #now launch lamd universe
-        print '*******************************************************'
-        all_is_ok = True
-        print 'Running "recon -v %s"' % nodefile
-        status = os.system('recon -v %s' % nodefile)
-        if status != 0:
-            all_is_ok = False
-            print '**** recon failed ****'
-
-        print 'Running "lamboot -H -v %s"' % nodefile
-        status = os.system('lamboot -v %s' % nodefile)
-        if status != 0:
-            all_is_ok = False
-            print '**** lamboot failed ****'
 
         print 'Running "%s"' % parcmd
         p = Popen(parcmd,
@@ -184,25 +169,12 @@ elif ('PBS_NODEFILE' in os.environ.keys() or
 
         status = p.wait()
 
-        #status = os.system(parcmd)
         if status != 0:
             (sout,serr) = p.communicate()
             print 'stdout = ',sout
             print 'stderr = ',serr
             all_is_ok = False
             print '**** the command failed ****'
-
-        print 'Running "lamhalt"'
-        status = os.system('lamhalt -H -v')
-        if status != 0:
-            all_is_ok = False
-            print '****  lamhalt failed  ****'
-
-        '''
-        for some reason it seems important that the process sleep
-        a little bit. otherwise lamhalt seems to kill the next process
-        '''
-        os.system('sleep 2')
 
         if not all_is_ok:
             sys.exit('"%s" failed' % parcmd)
