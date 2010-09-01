@@ -340,6 +340,7 @@ class Jacapo:
         you must define a self._set_keyword function that does all the
         actual writing.
         '''
+        
         log.debug('Writing input variables out')
         log.debug(self.pars)
         
@@ -347,7 +348,10 @@ class Jacapo:
             raise Exception, 'DACAPO_READONLY set and you tried to write!'
         
         if self.ready:
+            log.debug('self.ready = %s' % self.ready)
+            log.debug('detected everything is ready, not writing input out')
             return
+
         # Only write out changed parameters. this function does not do
         # the writing, that is done for each variable in private
         # functions.
@@ -388,6 +392,27 @@ class Jacapo:
             self.pars[key] = eval(getf)
             self.pars_uptodate[key] = True
         return self.pars
+
+    def write(self, new=False):
+        '''write out everything to the ncfile : self.get_nc()
+
+        new determines whether to delete any existing ncfile, and rewrite it.
+        '''
+        nc = self.get_nc()
+
+        if new:
+            if os.path.exists(nc):
+                os.unlink(nc)
+            self.ready = False
+            for key in self.pars_uptodate:
+                self.pars_uptodate[key] = False
+
+        if not os.path.exists(nc):
+            self.initnc()
+
+        self.write_input()
+        self.write_nc()
+        
     
     def initnc(self, ncfile=None):
         '''create an ncfile with minimal dimensions in it
@@ -561,9 +586,9 @@ class Jacapo:
         s.append('  Number of bands     = %s'  % self.get_nbands())
         s.append('  Kpoint grid         = %s' % str(self.get_kpts_type()))
         s.append('  Spin-polarized      = %s' % self.get_spin_polarized())
-        if self.get_spin_polarized():
-           s.append('    Unit cell magnetic moment = %1.2f bohr-magnetons' % \
-                  self.get_magnetic_moment())
+#        if self.get_spin_polarized():
+#           s.append('    Unit cell magnetic moment = %1.2f bohr-magnetons' % \
+#                  self.get_magnetic_moment())
         s.append('  Dipole correction   = %s' % self.get_dipole())
         s.append('  Symmetry            = %s' % self.get_symmetry())
         s.append('  Constraints         = %s' % str(atoms._get_constraints()))
@@ -2081,7 +2106,7 @@ than density cutoff %i' % (pw, dw))
             bv = nc.variables['BZKpoints']
             kpts = bv[:]
         else:
-            kpts = ([0, 0, 0]) #default Gamma point used in Dacapo when
+            kpts = np.array(([0, 0, 0])) #default Gamma point used in Dacapo when
                              #BZKpoints not defined
 
         nc.close()
@@ -2150,7 +2175,9 @@ than density cutoff %i' % (pw, dw))
             pw = None
         ncf.close()
         
-        if isinstance(pw, int) or isinstance(pw, float):
+        if (isinstance(pw, int)
+            or isinstance(pw, float)
+            or isinstance(pw,np.int32)):
             return pw
         elif pw is None:
             return None
@@ -2169,7 +2196,9 @@ than density cutoff %i' % (pw, dw))
 
         #some old calculations apparently store ints, while newer ones
         #are lists
-        if isinstance(dw, int) or isinstance(dw, float):
+        if (isinstance(dw, int)
+            or isinstance(dw, float)
+            or isinstance(dw, np.int32)):
             return dw
         else:
             if dw is None:
@@ -2902,7 +2931,7 @@ s.recv(14)
 
         '''
 
-        log.debug('writing atoms to ncfile')
+        log.debug('writing atoms to ncfile with write_nc')
         #no filename was provided to function, use the current ncfile
         if nc is None: 
             nc = self.get_nc()
@@ -4058,7 +4087,7 @@ s.recv(14)
         electron_dipole_moment *= -1.0 #we need the - here so the two
                                         #negatives don't cancel
         # now the ion charge center
-        psps = self.get_pseudopotentials()
+        psps = self.get_pseudopotentials()['pspdict']
         ion_charge_center = np.array([0.0, 0.0, 0.0])
         total_ion_charge = 0.0
         for atom in atoms:
