@@ -14,7 +14,7 @@ def kpts_changed(calc, x):
     '''
     check if kpt grid has changed.
 
-    we have to take care to generate teh right k-points from x if
+    we have to take care to generate the right k-points from x if
     needed. if a user provides (4,4,4) we need to generate the MP
     grid, etc...
 
@@ -38,7 +38,7 @@ def kpts_changed(calc, x):
         raise Exception, 'apparent invalid setting for kpts'
 
     grid = calc.get_kpts()
-
+    
     if grid.shape != listofkpts.shape:
         return True
 
