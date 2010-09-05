@@ -56,9 +56,10 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
             (self.radio_x, (1,0,0)),
             (self.radio_y, (0,1,0)),
             (self.radio_z, (0,0,1))]
-        self.deform_label = gtk.Label("")
-        pack(vbox, [self.deform_label])
-        self.choose_possible_deformations(first=True)
+        self.allow_non_pbc = gtk.CheckButton(
+            "Allow deformation along non-periodic directions.")
+        pack(vbox, [self.allow_non_pbc])
+        self.allow_non_pbc.connect('toggled', self.choose_possible_deformations)
 
         # Parameters for the deformation
         framedef = gtk.Frame("Deformation:")
@@ -69,11 +70,14 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         max_scale_spin = gtk.SpinButton(self.max_scale, 10.0, 3)
         pack(vbox2, [gtk.Label("Maximal scale factor: "), max_scale_spin])
         self.scale_offset = gtk.Adjustment(0.0, -10.0, 10.0, 0.001)
-        scale_offset_spin = gtk.SpinButton(self.scale_offset, 10.0, 3)
-        pack(vbox2, [gtk.Label("Scale offset: "), scale_offset_spin])
+        self.scale_offset_spin = gtk.SpinButton(self.scale_offset, 10.0, 3)
+        pack(vbox2, [gtk.Label("Scale offset: "), self.scale_offset_spin])
         self.nsteps = gtk.Adjustment(5, 3, 1000, 1)
         nsteps_spin = gtk.SpinButton(self.nsteps, 1, 0)
         pack(vbox2, [gtk.Label("Number of steps: "), nsteps_spin])
+        self.pull = gtk.CheckButton("Only positive deformation")
+        pack(vbox2, [self.pull])
+        self.pull.connect('toggled', self.pull_toggled)
         
         # Atomic relaxations
         framerel = gtk.Frame("Atomic relaxations:")
@@ -134,7 +138,10 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         # Status field
         self.status_label = gtk.Label("")
         pack(vbox, [self.status_label])
-        
+
+        # Activate the right deformation buttons
+        self.choose_possible_deformations(first=True)
+
         # Run buttons etc.
         self.makebutbox(vbox)
         vbox.show()
@@ -142,7 +149,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         self.show()
         self.gui.register_vulnerable(self)
 
-    def choose_possible_deformations(self, first=False):
+    def choose_possible_deformations(self, widget=None, first=False):
         """Turn on sensible radio buttons.
 
         Only radio buttons corresponding to deformations in directions
@@ -152,6 +159,17 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
             pbc = self.atoms.get_pbc()
         else:
             pbc = [False, False, False]
+        if (pbc == [True, True, True]).all():
+            self.allow_non_pbc.set_active(False)
+            self.allow_non_pbc.set_sensitive(False)
+        else:
+            self.allow_non_pbc.set_sensitive(True)
+        if self.allow_non_pbc.get_active():
+            pbc = [True, True, True]  #All is allowed
+            self.radio_relax_off.set_active(True)
+            self.radio_relax_on.set_sensitive(False)
+        else:
+            self.radio_relax_on.set_sensitive(True)
         for radio, requirement in self.deformtable:
             ok = True
             for i in range(3):
@@ -169,6 +187,10 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         state = self.radio_relax_on.get_active()
         for widget in (self.algo, self.fmax_spin, self.steps_spin):
             widget.set_sensitive(state)
+
+    def pull_toggled(self, *args):
+        "When positive def. only, the scale offset is turned off."
+        self.scale_offset_spin.set_sensitive(not self.pull.get_active())
         
     def notify_atoms_changed(self):
         "When atoms have changed, check for the number of images."
@@ -217,8 +239,11 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
 
         # Do the scaling
         scale = self.max_scale.value
-        steps = np.linspace(-scale, scale, self.nsteps.value)
-        steps += self.scale_offset.value
+        if self.pull.get_active():
+            steps = np.linspace(0, scale, self.nsteps.value)
+        else:
+            steps = np.linspace(-scale, scale, self.nsteps.value)
+            steps += self.scale_offset.value
         undef_cell = self.atoms.get_cell()
         results = []
         txt = "Strain\t\tEnergy [eV]\n"
