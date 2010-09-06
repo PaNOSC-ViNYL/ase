@@ -7,12 +7,14 @@ from ase.gui.simulation import Simulation
 from ase.gui.widgets import oops, pack
 
 class OutputFieldMixin:
-    def makeoutputfield(self, box, label="Output:"):
+    def makeoutputfield(self, box, label="Output:", heading = None):
         frame = gtk.Frame(label)
         if box is not None:
             box.pack_start(frame, True, True, 0)
         box2 = gtk.VBox()
         frame.add(box2)
+        if heading is not None:
+            pack(box2, [gtk.Label(heading)])
         #pack(box, [gtk.Label("Output:")])
         scrwin = gtk.ScrolledWindow()
         scrwin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)

@@ -106,7 +106,8 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         pack(vbox, [self.radio_results_all])
 
         # Output field
-        outframe = self.makeoutputfield(None)
+        #label = gtk.Label("Strain\t\tEnergy [eV]\n")
+        outframe = self.makeoutputfield(None, heading="Strain\t\tEnergy [eV]")
         fitframe = gtk.Frame("Fit:")
         vbox2 = gtk.VBox()
         vbox2.show()
@@ -246,7 +247,8 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
             steps += self.scale_offset.value
         undef_cell = self.atoms.get_cell()
         results = []
-        txt = "Strain\t\tEnergy [eV]\n"
+        #txt = "Strain\t\tEnergy [eV]\n"
+        txt = ""
         # If we load all configurations, prepare it.
         if self.radio_results_all.get_active():
             self.prepare_store_atoms()
