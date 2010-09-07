@@ -54,6 +54,11 @@ Then :command:`cd` to the :file:`doc` directory and build the html-pages::
   $ cd ~/ase/doc
   $ sphinx-build . _build
 
+.. Note::
+
+   Make sure that you build the Sphinx documentation using the corresponding ASE version
+   by setting the environment variables :envvar:`$PYTHONPATH` and :envvar:`$PATH`.
+
 Make your changes to the ``.rst`` files, run the
 :command:`sphinx-build` command again, check the results and if things
 looks ok, commit::
