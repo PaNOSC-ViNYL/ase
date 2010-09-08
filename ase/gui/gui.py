@@ -1073,7 +1073,6 @@ class GUI(View, Status):
         
     def new_atoms(self, atoms, init_magmom=False):
         "Set a new atoms object."
-        self.notify_vulnerable()
         self.reset_tools_modes()
         
         rpt = getattr(self.images, 'repeat', None)
@@ -1083,6 +1082,7 @@ class GUI(View, Status):
         self.images.repeat_images(rpt)
         self.set_colors()
         self.set_coordinates(frame=0, focus=True)
+        self.notify_vulnerable()
 
     def prepare_new_atoms(self):
         "Marks that the next call to append_atoms should clear the images."
