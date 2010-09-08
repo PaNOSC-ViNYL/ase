@@ -47,6 +47,7 @@ from ase.gui.calculator import SetCalculator
 from ase.gui.energyforces import EnergyForces
 from ase.gui.minimize import Minimize
 from ase.gui.scaling import HomogeneousDeformation
+from ase.gui.quickinfo import QuickInfo
 
 ui_info = """\
 <ui>
@@ -77,6 +78,7 @@ ui_info = """\
       <menuitem action='ShowAxes'/>
       <menuitem action='ShowBonds'/>
       <separator/>
+      <menuitem action='QuickInfo'/>
       <menuitem action='Repeat'/>
       <menuitem action='Rotate'/>
       <menuitem action='Focus'/>
@@ -186,6 +188,9 @@ class GUI(View, Status):
             ('Last', gtk.STOCK_GOTO_LAST, '_Last image', 'End',
              '',
              self.step),
+            ('QuickInfo', None, 'Quick Info ...', None,
+             '',
+             self.quick_info_window),
             ('Repeat', None, 'Repeat ...', None,
              '',
              self.repeat_window),
@@ -1036,6 +1041,9 @@ class GUI(View, Status):
         suc = self.ui.get_widget('/MenuBar/ViewMenu/ShowUnitCell').get_active()
         self.images.write(filename, self.axes, show_unit_cell=suc, bbox=bbox)
         
+    def quick_info_window(self, menuitem):
+        QuickInfo(self)
+
     def bulk_window(self, menuitem):
         SetupBulkCrystal(self)
 
