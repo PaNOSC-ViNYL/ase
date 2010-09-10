@@ -139,6 +139,12 @@ class Dacapo:
     def get_fermi_level(self):
         return self.calc.GetFermiLevel()
 
+    def get_magnetic_moment(self):
+        return self.calc.GetMagneticMoment()
+
+    def get_number_of_electrons(self):
+        return self.calc.GetValenceElectrons()
+
     def get_number_of_grid_points(self):
         return np.array(self.get_pseudo_wave_function(0, 0, 0).shape)
 
