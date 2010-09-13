@@ -119,6 +119,7 @@ def _info (exctyp, value, tb):
 		dialog.set_has_separator (False)
 
 	primary = _("<big><b>A programming error has been detected.</b></big>")
+	primary += '\n\n<span color="red">'+str(value)+'</span>'
 	secondary = _("It probably isn't fatal, but the details should be reported to the developers nonetheless.")
 
 	try:
