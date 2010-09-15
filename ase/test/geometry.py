@@ -62,21 +62,21 @@ assert np.allclose(correct_pos, al111.get_scaled_positions())
 
 # Cut out cell including all corner and edge atoms (non-periodic structure)
 al = cut(al, extend=1.1)
-correct_pos = np.array([[ 0. ,  0. ,  0. ],
-                        [ 0. ,  0.5,  0.5],
-                        [ 0.5,  0. ,  0.5],
-                        [ 0.5,  0.5,  0. ],
-                        [ 0. ,  0. ,  0. ],
-                        [ 0. ,  0.5,  0.5],
-                        [ 0. ,  0. ,  0. ],
-                        [ 0.5,  0. ,  0.5],
-                        [ 0. ,  0. ,  0. ],
-                        [ 0. ,  0. ,  0. ],
-                        [ 0.5,  0.5,  0. ],
-                        [ 0. ,  0. ,  0. ],
-                        [ 0. ,  0. ,  0. ],
-                        [ 0. ,  0. ,  0. ]])
-assert np.allclose(correct_pos, al.get_scaled_positions())
+correct_pos = np.array([[ 0.   ,  0.   ,  0.   ],
+                        [ 0.   ,  2.025,  2.025],
+                        [ 2.025,  0.   ,  2.025],
+                        [ 2.025,  2.025,  0.   ],
+                        [ 4.05 ,  0.   ,  0.   ],
+                        [ 4.05 ,  2.025,  2.025],
+                        [ 0.   ,  4.05 ,  0.   ],
+                        [ 2.025,  4.05 ,  2.025],
+                        [ 4.05 ,  4.05 ,  0.   ],
+                        [ 0.   ,  0.   ,  4.05 ],
+                        [ 2.025,  2.025,  4.05 ],
+                        [ 4.05 ,  0.   ,  4.05 ],
+                        [ 0.   ,  4.05 ,  4.05 ],
+                        [ 4.05 ,  4.05 ,  4.05 ]])
+assert np.allclose(correct_pos, al.positions)
 
 
 # Create an Ag(111)/Si(111) interface
@@ -99,4 +99,5 @@ assert np.allclose(interface.positions[::100],
                     [ 31.30027778,  12.25444444, -17.67472222],
                     [ 25.85861111,  14.97527778, -14.95388889],
                     [ 23.13777778,   4.09194444,  -1.34972222]])
+
 
