@@ -29,6 +29,7 @@
 #TODO: WHen rotate and move / hide the movie menu
 
 import os
+import sys
 import weakref
 import numpy as np
 
@@ -999,11 +1000,11 @@ class GUI(View, Status):
         while True:
             # Loop until the user selects a proper file name, or cancels.
             response = chooser.run()
-            if response == gtk.RESPONSE_CANCEL:
+            if response == gtk.RESPONSE_CANCEL or response == gtk.RESPONSE_DELETE_EVENT:
                 chooser.destroy()
                 return
             elif response != gtk.RESPONSE_OK:
-                #print >>sys.stderr, "AG INTERNAL ERROR: strange response in Save,", response
+                print >>sys.stderr, "AG INTERNAL ERROR: strange response in Save,", response
                 chooser.destroy()
                 return
                 
