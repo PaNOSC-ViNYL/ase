@@ -270,7 +270,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
                     minimizer.run(fmax=fmax, steps=self.steps.value)
                 e = self.atoms.get_potential_energy()
                 results.append((d, e))
-                txt = txt + ("%.3f\t\t%.3f\n" % (d, e))
+                txt = txt + ("%.5f\t\t%.5f\n" % (d, e))
                 self.output.set_text(txt)
                 if self.radio_results_all.get_active():
                     self.store_atoms()
