@@ -1003,7 +1003,7 @@ class GUI(View, Status):
                 chooser.destroy()
                 return
             elif response != gtk.RESPONSE_OK:
-                print >>sys.stderr, "AG INTERNAL ERROR: strange response in Save,", response
+                #print >>sys.stderr, "AG INTERNAL ERROR: strange response in Save,", response
                 chooser.destroy()
                 return
                 
