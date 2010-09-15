@@ -97,11 +97,14 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         
         # Results
         pack(vbox, [gtk.Label("Results:")])
+        self.radio_results_keep = gtk.RadioButton(
+            None, "Keep original configuration")
         self.radio_results_optimal = gtk.RadioButton(
-            None, "Load optimal configuration")
+            self.radio_results_keep, "Load optimal configuration")
         self.radio_results_all =  gtk.RadioButton(
             self.radio_results_optimal, "Load all configurations")
-        self.radio_results_optimal.set_active(True)
+        self.radio_results_keep.set_active(True)
+        pack(vbox, [self.radio_results_keep])
         pack(vbox, [self.radio_results_optimal])
         pack(vbox, [self.radio_results_all])
 
@@ -253,6 +256,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         if self.radio_results_all.get_active():
             self.prepare_store_atoms()
 
+        stored_atoms = False
         try:
             # Now, do the deformation
             for i, d in enumerate(steps):
@@ -274,6 +278,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
                 self.output.set_text(txt)
                 if self.radio_results_all.get_active():
                     self.store_atoms()
+                    stored_atoms = True
         except AseGuiCancelException:
             # Update display to reflect cancellation of simulation.
             self.status_label.set_text("Calculation CANCELLED.")
@@ -306,15 +311,17 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
                         minimizer.run(fmax=fmax, steps=self.steps.value)
                     # Store the optimal configuration.
                     self.prepare_store_atoms()
-                    self.store_atoms()  
+                    self.store_atoms()
+                    stored_atoms = True
                 else:
                     oops("No trustworthy minimum: Old configuration kept.")
             self.activate_output()
-            self.gui.notify_vulnerable()
+            if stored_atoms:
+                self.gui.notify_vulnerable()
         self.end()    
             
         # If we store all configurations: Open movie window and energy graph
-        if self.gui.images.nimages > 1:
+        if stored_atoms and self.gui.images.nimages > 1:
             self.gui.movie()
             assert not np.isnan(self.gui.images.E[0])
             if not self.gui.plot_graphs_newatoms():
