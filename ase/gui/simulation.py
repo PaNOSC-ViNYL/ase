@@ -106,7 +106,8 @@ class Simulation(gtk.Window):
             oops("No atoms present")
             return None
         n = self.getimagenumber()
-        return Atoms(positions=images.P[n], symbols=images.Z,
+        natoms = len(images.P[n]) / images.repeat.prod()
+        return Atoms(positions=images.P[n,:natoms], symbols=images.Z[:natoms],
                      cell=images.A[n], pbc=images.pbc)
 
     def begin(self, **kwargs):
