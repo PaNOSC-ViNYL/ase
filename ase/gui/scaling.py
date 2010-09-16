@@ -149,30 +149,10 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         # Run buttons etc.
         self.makebutbox(vbox)
         vbox.show()
-        self.scrwin = gtk.ScrolledWindow()
-        self.scrwin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.scrwin.add_with_viewport(vbox)
-        self.scrwin.show()
-        self.add(self.scrwin)
-        self.set_reasonable_size()
+        self.add(vbox)
         self.show()
         self.gui.register_vulnerable(self)
 
-    def set_reasonable_size(self, resize=False):
-        x, y = self.scrwin.get_children()[0].size_request()
-        x += self.scrwin.get_vscrollbar().size_request()[0]
-        y += self.scrwin.get_hscrollbar().size_request()[1]
-        print x,y
-        if resize:
-            xdef, ydef = self.get_default_size()
-            xnow, ynow = self.get_size()
-            if xdef == xnow and ydef == ynow:
-                # The user has not changed the size.  Resize should be OK
-                self.resize(x,y)
-                self.set_default_size(x,y)
-        else:
-            self.set_default_size(x,y)
-        
     def choose_possible_deformations(self, widget=None, first=False):
         """Turn on sensible radio buttons.
 
@@ -220,7 +200,6 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         "When atoms have changed, check for the number of images."
         self.setupimageselection()
         self.choose_possible_deformations()
-        self.set_reasonable_size(resize=True)
 
     def get_deformation_axes(self):
         """Return which axes the user wants to deform along."""
