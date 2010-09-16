@@ -1,36 +1,29 @@
 from ase.atoms import Atoms
-from ase.units import Bohr
-
 
 def read_dftb(filename='dftb_in.hsd'):
     """Method to read coordinates form DFTB+ input file dftb_in.hsd
     additionally read information about fixed atoms
     and periodic boundary condition
     """
-    from ase import Atoms, Atom
-    from ase.constraints import FixAtoms
-    import sys, string
+    from ase import Atoms
 
     if isinstance(filename, str):
-        f = open(filename)
+        myfile = open(filename)
 
-    lines = f.readlines()
+    lines = myfile.readlines()
     atoms_pos = []
     atom_symbols = []
     type_names = []
     my_pbc = False
-    myconstraints=[]
-    moved_atoms_found = False
-    range_found = False
-    moved_atoms = []
+
 
     for line in lines:
         if (line.strip().startswith('#')):
             pass
         else:
             if ('TypeNames' in line):
-                col=line.split()
-                for i in range(3,len(col)-1):
+                col = line.split()
+                for i in range(3, len(col)-1):
                     type_names.append(col[i].strip("\""))
             elif ('Periodic' in line):
                 if ('Yes' in line):
@@ -38,28 +31,28 @@ def read_dftb(filename='dftb_in.hsd'):
             else:
                 pass
 
-    start_reading_coords=False
-    stop_reading_coords=False
+    start_reading_coords = False
+    stop_reading_coords = False
     for line in lines:
         if (line.strip().startswith('#')):
             pass
         else:
             if ('TypesAndCoordinates' in line):
-                start_reading_coords=True
+                start_reading_coords = True
             if start_reading_coords:
                 if ('}' in line):
-                    stop_reading_coords=True
+                    stop_reading_coords = True
             if (start_reading_coords and not(stop_reading_coords)
             and not 'TypesAndCoordinates' in line):
-                typeindexstr, x, y, z = line.split()[:4]
-                typeindex=int(typeindexstr)
-                symbol=type_names[typeindex-1]
+                typeindexstr, xxx, yyy, zzz = line.split()[:4]
+                typeindex = int(typeindexstr)
+                symbol = type_names[typeindex-1]
                 atom_symbols.append(symbol)
-                atoms_pos.append([float(x), float(y), float(z)])
+                atoms_pos.append([float(xxx), float(yyy), float(zzz)])
 
             
     if type(filename) == str:
-        f.close()
+        myfile.close()
 
     atoms = Atoms(positions = atoms_pos, symbols = atom_symbols, pbc = my_pbc)
 
@@ -67,44 +60,59 @@ def read_dftb(filename='dftb_in.hsd'):
     return atoms
 
 
-def write_dftb(filename,atoms):
-    """Method to write coordinates in DFTB+ format
+def write_dftb(filename, atoms):
+    """Method to write atom structure in DFTB+ format
+       (gen format)
     """
-
     import numpy as np
-    from ase.constraints import FixAtoms
+
+    #sort
+    atoms.set_masses()
+    masses = atoms.get_masses()
+    indexes = np.argsort(masses)
+    atomsnew = Atoms()
+    for i in indexes:
+        atomsnew = atomsnew + atoms[i]
 
     if isinstance(filename, str):
-        f = open(filename)
-
-    lines = f.readlines()
-
-    if type(filename) == str:
-        f.close()
-
-    if isinstance(filename, str):
-        f = open(filename, 'w')
+        myfile = open(filename, 'w')
     else: # Assume it's a 'file-like object'
-        f = filename
+        myfile = filename
 
-    coord = atoms.get_positions()
-    symbols = atoms.get_chemical_symbols()
+    ispbc = atoms.get_pbc()
+    box = atoms.get_cell()
+    
+    if (any(ispbc)):
+        myfile.write('%8d %2s \n' %(len(atoms), 'S'))
+    else:
+        myfile.write('%8d %2s \n' %(len(atoms), 'C'))
 
+    chemsym = atomsnew.get_chemical_symbols()
+    allchem = ''
+    for i in chemsym:
+        if i not in allchem:
+            allchem = allchem + i + ' '
+    myfile.write(allchem+' \n')
 
-    start_writing_coords = False
-    stop_writing_coords = False
-    i=0
-    for line in lines:
-        if ('TypesAndCoordinates' in line):
-            start_writing_coords=True
-        if (start_writing_coords and not(stop_writing_coords)):
-            if ('}' in line):
-                stop_writing_coords = True
-        if (start_writing_coords and not(stop_writing_coords)and 
-            not ('TypesAndCoordinates' in line)):
-            atom_type_index = line.split()[0]
-            f.write('%6s  %20.14f  %20.14f  %20.14f\n'
-                    % (atom_type_index,coord[i][0],coord[i][1],coord[i][2]))
-            i=i+1
-        else:
-            f.write(line)
+    coords = atomsnew.get_positions()
+    itype = 1
+    for iatom, coord in enumerate(coords):
+        if iatom > 0:
+            if chemsym[iatom] != chemsym[iatom-1]:
+                itype = itype+1
+        myfile.write('%5i%5i  %19.16f %19.16f %19.16f \n' \
+                    %(iatom+1, itype, 
+                      coords[iatom][0], coords[iatom][1], coords[iatom][2]))
+    # write box
+    if (any(ispbc)):
+        #dftb dummy
+        myfile.write(' %19.16f %19.16f %19.16f \n' %(0, 0, 0))
+        myfile.write(' %19.16f %19.16f %19.16f \n' 
+                %( box[0][0], box[0][1], box[0][2]))
+        myfile.write(' %19.16f %19.16f %19.16f \n' 
+                %( box[1][0], box[1][1], box[1][2]))
+        myfile.write(' %19.16f %19.16f %19.16f \n' 
+                %( box[2][0], box[2][1], box[2][2]))
+
+    if type(filename) == str:    
+        myfile.close()
