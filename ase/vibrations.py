@@ -228,10 +228,7 @@ class Vibrations:
 
     def summary(self, method='standard', direction='central', T=298., 
                 threshold=10, freq=None, log=sys.stdout):
-        """Print a summary of the frequencies and derived thermodynamic
-        properties. The equations for the calculation of the enthalpy and 
-        entropy diverge for zero frequencies and a threshold value is used
-        to ignore extremely low frequencies (default = 10 cm^-1).
+        """Print a summary of the vibrational frequencies.
 
         Parameters:
 
@@ -240,24 +237,13 @@ class Vibrations:
         direction: string
             Direction for finite differences. Can be one of 'central'
             (default), 'forward', 'backward'.
-        T : float
-            Temperature in K at which thermodynamic properties are calculated.
-        threshold : float
-            Threshold value for low frequencies (default 10 cm^-1).
         freq : numpy array
             Optional. Can be used to create a summary on a set of known
             frequencies.
-        destination : string or object with a .write() method
-            Where to print the summary info. Default is to print to
-            standard output. If another string is given, it creates that
-            text file and writes the output to it. If a file object (or any
-            object with a .write(string) function) is given, it writes to that
-            file.
-
-        Notes:
-
-        The enthalpy and entropy calculations are very sensitive to low
-        frequencies and the threshold value must be used with caution."""
+        log : if specified, write output to a different location than
+            stdout. Can be an object with a write() method or the name of a
+            file to create.
+        """
 
         if isinstance(log, str):
             log = paropen(log, 'a')
@@ -281,36 +267,6 @@ class Vibrations:
         write('---------------------\n')
         write('Zero-point energy: %.3f eV\n' %
               self.get_zero_point_energy(freq=freq))
-        write('Thermodynamic properties at %.2f K\n' % T)
-        write('Enthalpy: %.3f eV\n' % self.get_enthalpy(method=method,
-                                                        direction=direction,
-                                                        T=T,
-                                                        threshold=threshold,
-                                                        freq=freq))
-        write('Entropy : %.3f meV/K\n' % 
-              (1E3 * self.get_entropy(method=method,
-                                      direction=direction,
-                                      T=T,
-                                      threshold=threshold,
-                                      freq=freq)))
-        write('T*S     : %.3f eV\n' %
-              (T * self.get_entropy(method=method,
-                                    direction=direction,
-                                    T=T,
-                                    threshold=threshold,
-                                    freq=freq)))
-        write('E->G    : %.3f eV\n' %
-              (self.get_zero_point_energy(freq=freq) +
-               self.get_enthalpy(method=method,
-                                 direction=direction,
-                                 T=T,
-                                 threshold=threshold,
-                                 freq=freq) -
-               T * self.get_entropy(method=method,
-                                    direction=direction,
-                                    T=T,
-                                    threshold=threshold,
-                                    freq=freq)))
 
     def get_zero_point_energy(self, freq=None):
         if freq is None:
@@ -318,31 +274,6 @@ class Vibrations:
         else:
             s = 0.01 * units._e / units._c / units._hplanck
             return 0.5 * freq.real.sum() / s
-
-    def get_enthalpy(self, method='standard', direction='central', T=298.0,
-                     threshold=10, freq=None):
-        H = 0.0
-        if freq is None:
-            freq = self.get_frequencies(method=method, direction=direction)
-        for f in freq:
-            if f.imag == 0 and f.real >= threshold:
-                # The formula diverges for f->0
-                x = (f.real * 100 * units._hplanck * units._c) / units._k
-                H += units._k / units._e * x / (np.exp(x / T) - 1)
-        return H
-
-    def get_entropy(self, method='standard', direction='central', T=298.0,
-                    threshold=10, freq=None):
-        S = 0.0
-        if freq is None:
-            freq=self.get_frequencies(method=method, direction=direction)
-        for f in freq:
-            if f.imag == 0 and f.real >= threshold:
-                # The formula diverges for f->0
-                x = (f.real * 100 * units._hplanck * units._c) / units._k
-                S += (units._k / units._e * (((x / T) / (np.exp(x / T) - 1)) -
-                                             np.log(1 - np.exp(-x / T))))
-        return S
 
     def get_mode(self, n):
         mode = np.zeros((len(self.atoms), 3))
