@@ -4,6 +4,22 @@ The following lattice creators are defined:
     Hexagonal
     HexagonalClosedPacked
     Graphite
+    Graphene
+
+Example for using Graphene to create atoms object gra:
+
+from ase.lattice.hexagonal import *
+import ase.io as io
+from ase import Atoms, Atom
+
+index1=6
+index2=7
+mya = 2.45
+myc = 20.0
+
+gra = Graphene(symbol = 'C',latticeconstant={'a':mya,'c':myc},
+               size=(index1,index2,1))
+io.write('test.xyz', gra, format='xyz')
 """
 
 from ase.lattice.triclinic import TriclinicFactory
@@ -90,4 +106,11 @@ class GraphiteFactory(HexagonalFactory):
     bravais_basis = [[0,0,0], [1.0/3.0, 2.0/3.0, 0], [1.0/3.0,2.0/3.0,0.5], [2.0/3.0,1.0/3.0,0.5]]
 
 Graphite = GraphiteFactory()
+
+class GrapheneFactory(HexagonalFactory):
+    "A factory for creating graphene lattices."
+    xtal_name = "graphene"
+    bravais_basis = [[0,0,0], [1.0/3.0, 2.0/3.0, 0]]
+
+Graphene = GrapheneFactory()
 
