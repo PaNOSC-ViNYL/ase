@@ -19,6 +19,8 @@ if sys.version_info < (2, 3, 0, 'final', 0):
     raise SystemExit, 'Python 2.3 or later is required!'
 
 packages = ['ase',
+            'ase.cluster',
+            'ase.cluster.data',
             'ase.io',
             'ase.md',
             'ase.dft',
