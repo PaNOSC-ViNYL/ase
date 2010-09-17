@@ -62,6 +62,7 @@ bool_keys = [
     'collect_eigenvectors',
     'compute_forces',
     'compute_kinetic',
+    'compute_numerical_stress',
     'distributed_spline_storage',
     'evaluate_work_function',
     'final_forces_cleaned',
@@ -375,8 +376,20 @@ class Aims(Calculator):
                         forces[iatom, iforce] = float(data[2+iforce])
         return forces
 
-    def get_stress(self, atoms):
-        raise NotImplementedError('Stresses are not currently available in FHI-aims, sorry. ')
+    def read_stress(self):
+        lines = open(self.out, 'r').readlines()
+        stress = None
+        for n, line in enumerate(lines):
+            if line.rfind('Calculation of numerical stress completed') > -1:
+                stress = []
+                for i in [n+8,n+9,n+10]:
+                    data = lines[i].split()
+                    stress += [float(data[2]),float(data[3]),float(data[4])]
+        # rearrange in 6-component form and return
+        if stress is not None:
+            return [stress[0], stress[4], stress[8], stress[5], stress[2], stress[1]]
+        else:
+            return
 
 # methods that should be quickly implemented some time, haven't had time yet:
     def read_fermi(self):

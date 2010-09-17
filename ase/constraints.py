@@ -547,7 +547,7 @@ class StrainFilter:
     def __len__(self):
         return 2
 
-class UnitCellFilter:
+class UnitCellFilter(Filter):
     """Modify the supercell and the atom positions. """
     def __init__(self, atoms, mask=None):
         """Create a filter that returns the atomic forces and unit
@@ -589,6 +589,8 @@ class UnitCellFilter:
         0.0003 eV/A^3 = 0.048 GPa
         0.0001 eV/A^3 = 0.02 GPa
         """
+
+        Filter.__init__(self,atoms,indices=range(len(atoms)))
 
         self.atoms = atoms
         self.strain = np.zeros(6)

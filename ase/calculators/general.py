@@ -36,11 +36,11 @@ class Calculator:
         try:
             self.nbands = self.read_nbands()
         except NotImplementedError:
-            return
+            do_nothing = True
         except AttributeError:
-            return
+            do_nothing = True
         try:
             self.stress = self.read_stress()
         except NotImplementedError:
-            return
+            do_nothing = True
         return
