@@ -1,5 +1,5 @@
 from ase.atoms import Atom, Atoms
-from ase.calculators.singlepoint import SinglePointCalculator
+from ase.calculators.singlepoint import SinglePointDFTCalculator
 
 
 def read_gpaw_text(fileobj, index=-1):
@@ -54,6 +54,12 @@ def read_gpaw_text(fileobj, index=-1):
             assert line.startswith('Zero Kelvin:')
             e = float(line.split()[-1])
         try:
+            ii = index_startswith(lines, 'Fermi Level')
+        except ValueError:
+            eFermi = None
+        else:
+            eFermi = float(lines[ii].split()[2])
+        try:
             ii = index_startswith(lines, 'Total Charge:')
         except ValueError:
             q = None
@@ -76,7 +82,9 @@ def read_gpaw_text(fileobj, index=-1):
             break
 
         if e is not None or f is not None:
-            atoms.set_calculator(SinglePointCalculator(e, f, None, None, atoms)) ### Fixme magmoms
+            ### Fixme magmoms
+            calc = SinglePointDFTCalculator(e, f, None, None, atoms, eFermi)
+            atoms.set_calculator(calc)
         if q is not None:
             n = len(atoms)
             atoms.set_charges([q / n] * n)

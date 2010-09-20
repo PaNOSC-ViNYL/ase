@@ -34,8 +34,9 @@ class SinglePointCalculator:
         if self.atoms != atoms:
             raise RuntimeError('Energy, forces and stress no longer correct.')
 
-    def get_potential_energy(self, atoms):
-        self.update(atoms)
+    def get_potential_energy(self, atoms=None):
+        if atoms is not None:
+            self.update(atoms)
         if self.energy is None:
             raise RuntimeError('No energy.')
         return self.energy
@@ -61,3 +62,15 @@ class SinglePointCalculator:
             return self.magmoms
         else:
             return np.zeros(len(self.positions))
+
+class SinglePointDFTCalculator(SinglePointCalculator):
+    def __init__(self, energy, forces, stress, magmoms, atoms,
+                 eFermi=None):
+        SinglePointCalculator.__init__(self, energy, forces, stress, 
+                                       magmoms, atoms)
+        if eFermi is not None:
+            self.eFermi = eFermi
+
+    def get_fermi_level(self):
+        """Return the Fermi-level(s)."""
+        return self.eFermi
