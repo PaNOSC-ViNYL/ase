@@ -44,24 +44,12 @@ class FIRE(Optimizer):
                 self.a = self.astart
                 self.dt *= self.fdec
                 self.Nsteps = 0
-#            if vf < 0.0:
-#                self.v[:] = 0.0
-#                self.a = self.astart
-#                self.dt *= self.fdec
-#                self.Nsteps = 0
-#            else:
-#                self.v = (1.0 - self.a) * self.v + self.a * f * np.sqrt(
-#                    np.vdot(f, f) / np.vdot(self.v, self.v))
-#                if self.Nsteps > self.Nmin:
-#                    dt = min(dt * self.finc, dtmax)
-#                    self.a *= self.fa
-#                    self.Nsteps += 1
 
-            self.v += self.dt * f
-            dr = self.dt * self.v
-            normdr = np.sqrt(np.vdot(dr, dr))
-            if normdr > self.maxmove:
-                dr = self.maxmove * dr / normdr
-            r = atoms.get_positions()
-            atoms.set_positions(r + dr)
-            self.dump((self.v, self.dt))
+        self.v += self.dt * f
+        dr = self.dt * self.v
+        normdr = np.sqrt(np.vdot(dr, dr))
+        if normdr > self.maxmove:
+            dr = self.maxmove * dr / normdr
+        r = atoms.get_positions()
+        atoms.set_positions(r + dr)
+        self.dump((self.v, self.dt))
