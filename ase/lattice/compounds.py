@@ -8,11 +8,16 @@ own.  The following crystal structures are defined:
     B3 = ZnS = Zincblende
     L1_2 = AuCu3
     L1_0 = AuCu
+    TRI_Fe2O3
+    HEX_Fe2O3
     
 """
-from ase.lattice.cubic import FaceCenteredCubicFactory,\
+from ase.lattice.cubic import FaceCenteredCubicFactory, \
     BodyCenteredCubicFactory, DiamondFactory, SimpleCubicFactory
 from ase.lattice.tetragonal import SimpleTetragonalFactory
+from ase.lattice.triclinic import TriclinicFactory
+from ase.lattice.hexagonal import HexagonalFactory
+
 import numpy as np
 from ase.data import reference_states as _refstate
 
@@ -71,3 +76,118 @@ class AuCu3Factory(SimpleCubicFactory):
     element_basis = (0, 1, 1, 1)
 
 AuCu3 = L1_2 = AuCu3Factory()
+
+class TriclinicFe2O3Factory(TriclinicFactory):
+    """A factory for creating hematite (Fe2O3) lattices.
+     Rhombohedral unit cell.
+     Pauling L, Hendricks S B
+     Journal of the American Chemical Society 47 (1925) 781-790
+     Example:
+
+     #!/usr/bin/env python
+
+     from ase.lattice.hexagonal import *
+     from ase.lattice.compounds import *
+     import ase.io as io
+     from ase import Atoms, Atom
+
+     index1=3
+     index2=3
+     index3=3
+     mya = 5.42
+     myb = 5.42
+     myc = 5.42
+     myalpha = 55.28
+     mybeta = 55.28
+     mygamma = 55.28
+     gra = TRI_Fe2O3(symbol = ('Fe', 'O'),
+                     latticeconstant={'a':mya,'b':myb, 'c':myc, 
+                                      'alpha':myalpha, 
+                                      'beta':mybeta,
+                                      'gamma':mygamma},
+                     size=(index1,index2,index3))
+     io.write('rhombohedralUC_Fe2O3.xyz', gra, format='xyz')
+
+     """
+
+    bravais_basis = [[0.10534, 0.10534, 0.10534], [0.39466, 0.39466, 0.39466],
+                     [0.60534, 0.60534, 0.60534], [0.89466, 0.89466, 0.89466],
+                     [0.30569, 0.69431, 0.00000], [0.69431, 0.00000, 0.30569],
+                     [0.00000, 0.30569, 0.69431], [0.19431, 0.80569, 0.50000],
+                     [0.80569, 0.50000, 0.19431], [0.50000, 0.19431, 0.80569]]
+    element_basis = (0, 0, 0, 0, 1, 1, 1, 1, 1, 1)
+
+TRI_Fe2O3 = TriclinicFe2O3Factory()
+
+class HexagonalFe2O3Factory(HexagonalFactory):
+    """A factory for creating hematite (Fe2O3) lattices.
+     With hexagonal unit cell.
+     Blake R L, Hessevick R E, Zoltai T, Finger L W
+     American Mineralogist 51 (1966) 123-129
+     5.038 5.038 13.772 90 90 120 R-3c
+     Fe       0 0 .3553  .0080  .0080 .00029  .0040      0      0
+     O    .3059 0   1/4  .0068  .0083 .00046  .0042 .00058  .0012
+
+     Example:
+     #!/usr/bin/env python
+     from ase.lattice.hexagonal import *
+     from ase.lattice.compounds import *
+     import ase.io as io
+     from ase import Atoms, Atom
+
+     index1=1
+     index2=1
+     index3=1
+     mya = 5.038
+     myb = 5.038
+     myc = 13.772
+     myalpha = 90
+     mybeta = 90
+     mygamma = 120
+     gra = HEX_Fe2O3(symbol = ('Fe', 'O'),
+     latticeconstant={'a':mya,'b':myb, 'c':myc, 
+     'alpha':myalpha, 
+     'beta':mybeta,
+     'gamma':mygamma},
+     size=(index1,index2,index3))
+     io.write('hexaFe2O3.xyz', gra, format='xyz')
+     
+     """
+
+    bravais_basis =  [[0.0, 0.0, 0.354],     
+                      [0.577, 0.0, 0.686], 
+                      [0.577, 0.577, 0.022], 
+                      [0.0, 0.0, 0.144],     
+                      [0.577, 0.0, 0.477], 
+                      [0.577, 0.577, 0.809], 
+                      [0.0, 0.0, 0.643],     
+                      [0.577, 0.0, 0.975], 
+                      [0.577, 0.577, 0.31],  
+                      [0.0, 0.0, 0.852],     
+                      [0.577, 0.0, 0.188], 
+                      [0.577, 0.577, 0.52],
+                      #Fe to O here
+                      [0.173, -0.173, 0.249],
+                      [0.75, -0.173, 0.581],
+                      [0.75, 0.404, 0.913],
+                      [0.173, 0.346, 0.249],
+                      [0.75, 0.346, 0.581],
+                      [0.75, 0.923, 0.913],
+                      [0.808, 0.404, 0.249],
+                      [0.231, -0.173, 0.581],
+                      [0.231, 0.404, 0.913],
+                      [0.404, -0.404, 0.747],
+                      [0.404, 0.173, 0.083],
+                      [0.404, 0.75, 0.415],
+                      [0.404, 0.808, 0.747],
+                      [0.404, -0.346, 0.083],
+                      [0.404, 0.231, 0.415],
+                      [0.346, 0.173, 0.747],
+                      [0.923, 0.173, 0.083],
+                      [0.923, 0.75, 0.415]]
+    element_basis = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+                     1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+
+HEX_Fe2O3 = HexagonalFe2O3Factory()
+
