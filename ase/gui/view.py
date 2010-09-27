@@ -90,7 +90,7 @@ class View:
             if self.frame is None or filename != filenames[self.frame]:
                 if filename is None:
                     filename = 'ase.gui'
-                self.window.set_title(filename)
+            self.window.set_title(filename)
                 
         self.frame = frame
 
