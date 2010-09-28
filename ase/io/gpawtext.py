@@ -62,8 +62,12 @@ def read_gpaw_text(fileobj, index=-1):
                 eFermi = float(lines[ii].split()[2])
             except ValueError: # we have two Fermi levels
                 fields = lines[ii].split()
-                eFermi = [float(fields[2].replace('[','')),
-                          float(fields[3].replace(']','')) ]
+                def strip(string):
+                    for rubbish in '[],':
+                        string = string.replace(rubbish, '')
+                    return string
+                eFermi = [float(strip(fields[2])),
+                          float(strip(fields[3])) ]
         try:
             ii = index_startswith(lines, 'Total Charge:')
         except ValueError:
