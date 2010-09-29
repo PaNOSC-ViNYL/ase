@@ -87,7 +87,7 @@ class View:
 
             filenames = self.images.filenames
             filename = filenames[frame]
-            if self.frame is None or filename != filenames[self.frame]:
+            if self.frame is None or filename != filenames[self.frame] or filename is None:
                 if filename is None:
                     filename = 'ase.gui'
             self.window.set_title(filename)
