@@ -71,6 +71,7 @@ string_keys = [
 int_keys = [
     'ialgo',      # algorithm: use only 8 (CG) or 48 (RMM-DIIS)
     'ibrion',     # ionic relaxation: 0-MD 1-quasi-New 2-CG
+    'icharg',     # charge: 1-file 2-atom 10-const
     'idipol',     # monopol/dipol and quadropole corrections
     'iniwav',     # initial electr wf. : 0-lowe 1-rand
     'isif',       # calculate stress and what to relax
@@ -109,7 +110,6 @@ int_keys = [
 
 bool_keys = [
     'addgrid',    # finer grid for augmentation charge density
-    'icharg',     # charge: 1-file 2-atom 10-const
     'lasync',     # overlap communcation with calculations
     'lcharg',     #
     'lcorr',      # Harris-correction to forces
