@@ -15,82 +15,82 @@ dbh24 = ['dbh24_H', 'dbh24_N2O','dbh24_OH','dbh24_N2','dbh24_tst_H_N2O__OH_N2',
 	 'dbh24_CH3','dbh24_FCl','dbh24_CH3F','dbh24_Cl','dbh24_tst_CH3_FCl__CH3F_Cl',
          'dbh24_Cl-ion_CH3Cl','dbh24_tst_Cl-ion_CH3Cl',
          'dbh24_F-ion_CH3Cl','dbh24_Cl-ion_CH3F','dbh24_tst-Cl-ion_CH3F__F_ion_CH3Cl',
-         'dbh24_OH-ion','dbh24_CH3OH','dbh24_tst-OH-ion_CH3F__F_ion_CH3OH',
+         'dbh24_OH-ion','dbh24_CH3OH','dbh24_F-ion','dbh24_tst-OH-ion_CH3F__F_ion_CH3OH',
          'dbh24_HN2','dbh24_tst_H_N2__HN2',
          'dbh24_C2H4','dbh24_CH3CH2','dbh24_tst_H_C2H4__CH3CH2',
          'dbh24_HCN','dbh24_HNC','dbh24_tst_HCN__HNC',
          'dbh24_CH4','dbh24_H2O','dbh24_tst_OH_CH4__CH3_H2O',
-         'dbh24_H2','dbh24_tst_H_OH__O_H2',
+         'dbh24_H2','dbh24_O','dbh24_tst_H_OH__O_H2',
          'dbh24_H2S','dbh24_HS','dbh24_tst_H_H2S__H2_HS']
 
 dbh24_reaction_list = {
-'dh24_r1': {
+'dbh24_r1': {
     'description': 'HAT 1',
     'number': 1,
     'initial': ['dbh24_H', 'dbh24_N2O'],
     'final': ['dbh24_OH','dbh24_N2'],
     'tst': 'dbh24_tst_H_N2O__OH_N2'},
-'dh24_r2': {
+'dbh24_r2': {
     'description': 'HAT 2',
     'number': 2,
     'initial': ['dbh24_H', 'dbh24_HCl'],
     'final': ['dbh24_HCl', 'dbh24_H'],
     'tst': 'dbh24_tst_H_ClH__HCl_H'},
-'dh24_r3': {
+'dbh24_r3': {
     'description': 'HAT 3',
     'number': 3,
     'initial': ['dbh24_CH3', 'dbh24_FCl'],
     'final': ['dbh24_CH3F', 'dbh24_Cl'],
     'tst': 'dbh24_tst_CH3_FCl__CH3F_Cl'},
-'dh24_r4': {
+'dbh24_r4': {
     'description': 'NS 1',
     'number': 4,
     'initial': ['dbh24_Cl-ion_CH3Cl'],
     'final': ['dbh24_Cl-ion_CH3Cl'],
     'tst': 'dbh24_tst_Cl-ion_CH3Cl'},
-'dh24_r5': {
+'dbh24_r5': {
     'description': 'NS 2',
     'number': 5,
     'initial': ['dbh24_F-ion_CH3Cl'],
     'final': ['dbh24_Cl-ion_CH3F'],
     'tst': 'dbh24_tst-Cl-ion_CH3F__F_ion_CH3Cl'},
-'dh24_r6': {
+'dbh24_r6': {
     'description': 'NS 3',
     'number': 6,
     'initial': ['dbh24_OH-ion', 'dbh24_CH3F'],
     'final': ['dbh24_CH3OH', 'dbh24_F-ion'],
     'tst': 'dbh24_tst-OH-ion_CH3F__F_ion_CH3OH'},
-'dh24_r7': {
+'dbh24_r7': {
     'description': 'UA 1',
     'number': 7,
     'initial': ['dbh24_H', 'dbh24_N2'],
     'final': ['dbh24_HN2'],
     'tst': 'dbh24_tst_H_N2__HN2'},
-'dh24_r8': {
+'dbh24_r8': {
     'description': 'UA 2',
     'number': 8,
     'initial': ['dbh24_H', 'dbh24_C2H4'],
     'final': ['dbh24_CH3CH2'],
     'tst': 'dbh24_tst_H_C2H4__CH3CH2'},
-'dh24_r9': {
+'dbh24_r9': {
     'description': 'UA 3',
     'number': 9,
     'initial': ['dbh24_HCN'],
     'final': ['dbh24_HNC'],
     'tst': 'dbh24_tst_HCN__HNC'},
-'dh24_r10': {
+'dbh24_r10': {
     'description': 'HT 1',
     'number': 10,
     'initial': ['dbh24_OH', 'dbh24_CH4'],
     'final': ['dbh24_CH3', 'dbh24_H2O'],
     'tst': 'dbh24_tst_OH_CH4__CH3_H2O'},
-'dh24_r11': {
+'dbh24_r11': {
     'description': 'HT 2',
     'number': 11,
     'initial': ['dbh24_H', 'dbh24_OH'],
     'final': ['dbh24_O', 'dbh24_H2'],
     'tst': 'dbh24_tst_H_OH__O_H2'},
-'dh24_r12': {
+'dbh24_r12': {
     'description': 'HT 3',
     'number': 12,
     'initial': ['dbh24_H', 'dbh24_H2S'],
@@ -105,7 +105,7 @@ data = {
     'symbols': 'H',
     'magmoms': [1.],
     'charge': 0.,
-    'positions': [0. , 0. , 0.]},
+    'positions': [[0. , 0. , 0.]]},
 'dbh24_N2O': {
     'name': "dbh24_N2O",
     'symbols': 'NNO',
@@ -189,7 +189,7 @@ data = {
     'symbols': 'Cl',
     'magmoms': [1.],
     'charge': 0.,
-    'positions': [0. , 0. , 0.]},
+    'positions': [[0. , 0. , 0.]]},
 'dbh24_tst_CH3_FCl__CH3F_Cl': {
     'name': "dbh24_tst_CH3_FCl__CH3F_Cl",
     'Vf': 6.75, # kcal/mol
@@ -288,7 +288,7 @@ data = {
     'symbols': 'F',
     'magmoms': None,
     'charge': -1.,
-    'positions': [ 0.0, 0.0, 0.0]},
+    'positions': [[ 0.0, 0.0, 0.0]]},
 'dbh24_tst-OH-ion_CH3F__F_ion_CH3OH': {
     'name': "dbh24_tst-OH-ion_CH3F__F_ion_CH3OH",
     'Vf': -2.44, # kcal/mol
@@ -426,7 +426,7 @@ data = {
     'symbols': 'O',
     'magmoms': [2.],
     'charge': 0.,
-    'positions': [0. , 0. , 0.]},
+    'positions': [[0. , 0. , 0.]]},
 'dbh24_H2': {
     'name': "dbh24_H2",
     'symbols': 'HH',
