@@ -64,7 +64,7 @@ class Jacapo:
     '''
     
     __name__ = 'Jacapo'
-    __version__ = 0.4
+    __version__ = '0.4'
     
     #dictionary of valid input variables and default settings
     default_input = {'atoms':None,
@@ -233,15 +233,12 @@ class Jacapo:
 
         # need to set a default value for stay_alive
         self.stay_alive = stay_alive
+
+        # for correct updating, we need to set the correct frame number
+        # before setting atoms or calculator
+        self._set_frame_number()
         
-        # Jacapo('out.nc') should return a calculator with atoms in
-        # out.nc attached or initialize out.nc
         if os.path.exists(nc):
-
-            # for correct updating, we need to set the correct frame number
-            # before setting atoms or calculator
-
-            self._set_frame_number()
 
             self.atoms = self.read_only_atoms(nc)
 
@@ -445,7 +442,7 @@ class Jacapo:
         ncf.createDimension('dim20', 20) #for longer strings
         ncf.status  = 'new'
         ncf.history = 'Dacapo'
-        ncf.jacapo_version = Jacapo.__version__
+        ncf.Jacapo_version = Jacapo.__version__
         ncf.close()
         
         self.ready = False
@@ -479,7 +476,7 @@ class Jacapo:
         if self.nc is None:
             return 'No netcdf file attached to this calculator'
         if not os.path.exists(self.nc):
-            return 'ncfile does not exist yet'
+            return 'ncfile (%s) does not exist yet' % self.nc
         
         nc = netCDF(self.nc, 'r')
         s.append('  ---------------------------------')
@@ -626,26 +623,37 @@ class Jacapo:
         self.psp = defaultpseudopotentials
 
     def _set_frame_number(self, frame=None):
-        'set framenumber in the netcdf file'
+        '''set framenumber in the netcdf file
+
+        this is equal to the number of ionic steps dimension'''
         
         if frame is None:
-            nc = netCDF(self.nc, 'r')
-            if 'TotalEnergy' in nc.variables:
-                frame = nc.variables['TotalEnergy'].shape[0]
-                # make sure the last energy is reasonable. Sometime
-                # the field is empty if the calculation ran out of
-                # walltime for example. Empty values get returned as
-                # 9.6E36.  Dacapos energies should always be negative,
-                # so if the energy is > 1E36, there is definitely
-                # something wrong and a restart is required.
-                if nc.variables.get('TotalEnergy', None)[-1] > 1E36:
-                    log.warn("Total energy > 1E36. NC file is incomplete. \
-                    calc.restart required")
-                    self.restart()
+            if os.path.exists(self.nc):
+                nc = netCDF(self.nc, 'r')
+                number_ionic_steps = nc.dimensions['number_ionic_steps']
+                frame = number_ionic_steps -1
+                nc.close()
             else:
-                frame = 1
-            nc.close()
-            log.info("Current frame number is: %i" % (frame-1))
+                if hasattr(self,'atoms'):
+                    frame = 1
+                else:
+                    #when atoms are set, the frame will be incremented
+                    frame = 0
+    
+##            if 'TotalEnergy' in nc.variables:
+##                frame = nc.variables['TotalEnergy'].shape[0]
+##                # make sure the last energy is reasonable. Sometime
+##                # the field is empty if the calculation ran out of
+##                # walltime for example. Empty values get returned as
+##                # 9.6E36.  Dacapos energies should always be negative,
+##                # so if the energy is > 1E36, there is definitely
+##                # something wrong and a restart is required.
+##                if nc.variables.get('TotalEnergy', None)[-1] > 1E36:
+##                    log.warn("Total energy > 1E36. NC file is incomplete. \
+##                    calc.restart may be required")
+##                    #self.restart()
+            
+        log.info("Current frame number is: %i" % (frame-1))
         self._frame = frame-1  #netCDF starts counting with 1
 
     def _increment_frame(self):
