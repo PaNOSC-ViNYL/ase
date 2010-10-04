@@ -630,8 +630,10 @@ class Jacapo:
         if frame is None:
             if os.path.exists(self.nc):
                 nc = netCDF(self.nc, 'r')
-                number_ionic_steps = nc.dimensions['number_ionic_steps']
-                frame = number_ionic_steps -1
+                # nc.dimensions['number_ionic_steps'] is None
+                number_ionic_steps = nc.variables['TotalEnergy'].shape[0]
+                
+                frame = number_ionic_steps - 1
                 nc.close()
             else:
                 if hasattr(self,'atoms'):
@@ -653,8 +655,8 @@ class Jacapo:
 ##                    calc.restart may be required")
 ##                    #self.restart()
             
-        log.info("Current frame number is: %i" % (frame-1))
-        self._frame = frame-1  #netCDF starts counting with 1
+        log.info("Current frame number is: %i" % (frame - 1))
+        self._frame = frame - 1  #netCDF starts counting with 1
 
     def _increment_frame(self):
         'increment the framenumber'
