@@ -1,25 +1,26 @@
 """Function-like object creating hexagonal lattices.
 
 The following lattice creators are defined:
-    Hexagonal
-    HexagonalClosedPacked
-    Graphite
-    Graphene
 
-Example for using Graphene to create atoms object gra:
+* Hexagonal
+* HexagonalClosedPacked
+* Graphite
+* Graphene
 
-from ase.lattice.hexagonal import *
-import ase.io as io
-from ase import Atoms, Atom
+Example for using Graphene to create atoms object gra::
 
-index1=6
-index2=7
-mya = 2.45
-myc = 20.0
-
-gra = Graphene(symbol = 'C',latticeconstant={'a':mya,'c':myc},
-               size=(index1,index2,1))
-io.write('test.xyz', gra, format='xyz')
+    from ase.lattice.hexagonal import *
+    import ase.io as io
+    from ase import Atoms, Atom
+    
+    index1=6
+    index2=7
+    mya = 2.45
+    myc = 20.0
+    
+    gra = Graphene(symbol = 'C',latticeconstant={'a':mya,'c':myc},
+                   size=(index1,index2,1))
+    io.write('test.xyz', gra, format='xyz')
 """
 
 from ase.lattice.triclinic import TriclinicFactory

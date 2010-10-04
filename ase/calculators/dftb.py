@@ -66,10 +66,9 @@ class Dftb:
         scc: boolean
             True: Do charge self consistent dftb+
             False: No SCC, charges on atoms are not iterated
-        kpt_n11,kpt_n12,kpt_n13, kpt_n21,kpt_n22, kpt_n23,
-        kpt_n31,kpt_n32,kpt_n33: int(s)
+        kpt_nxx: int(s)
             The 9 integers for K-point generation scheme SupercellFolding
-        kpt_s1,kpt_s2,kpt_s3: float(s)
+        kpt_s1, kpt_s2, kpt_s3: float(s)
             Shifts for the K-point generation scheme SupercellFolding
         md_dftb: boolean
             True: MD is run by DFTB
