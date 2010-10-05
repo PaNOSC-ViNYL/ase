@@ -85,12 +85,14 @@ class Dftb:
             How often coordinates are written.
             (requires that md_dftb==True, ie MD is run by DFTB+ program)
             (requires that also write_dftb_input_file==True)
-        md_dftb_write_vel: boolean
-            True: velocities are written in dftb_in.hsd file to be read by
-                  dftb (in this case md_dftb_init_t is ignored)
-            False: velocities are not written in dftb_in.hsd
-            (requires that md_dftb==True, ie MD is run by DFTB+ program)
-            (requires that also write_dftb_input_file==True)    
+        md_dftb_write_vel: bool
+            True:
+                velocities are written in dftb_in.hsd file to be read by
+                dftb (in this case md_dftb_init_t is ignored)
+            False:
+                velocities are not written in dftb_in.hsd
+                (requires that md_dftb==True, ie MD is run by DFTB+ program)
+                (requires that also write_dftb_input_file==True)    
         md_dftb_init_t: float
             Initial temperature is set randomly to md_dftb_init_t
             This is dummy if md_dftb_write_vel==True
