@@ -100,6 +100,7 @@ the slab by using :class:`~constraints.FixAtoms` from the
 :mod:`~ase.constraints` module. Only the N2 molecule is then allowed
 to relax to the equilibrium structure::
 
+  from ase.constraints import FixAtoms
   constraint = FixAtoms(mask=[a.symbol != 'N' for a in slab])
   slab.set_constraint(constraint)
 
@@ -108,6 +109,7 @@ system and save the trajectory file. Run the minimizer with the
 convergence criteria that the force on all atoms should be less than
 some ``fmax``::
 
+  from ase.optimize import QuasiNewton
   dyn = QuasiNewton(slab, trajectory='N2Cu.traj')
   dyn.run(fmax=0.05)
 
@@ -126,6 +128,7 @@ Input-output
 Writing the atomic positions to a file is done with the
 :func:`~ase.io.write` function::
 
+  from ase.io import write
   write('slab.xyz', slab)
 
 This will write a file in the xyz-format.  Possible formats are:
@@ -142,6 +145,7 @@ format    description
 
 Reading from a file is done like this::
 
+  from ase.io import read
   slab_from_file = read('slab.xyz')
 
 If the file contains several configurations, the default behavior of
@@ -161,12 +165,15 @@ Visualization
 The simplest way to visualize the atoms is the :func:`~visualize.view`
 function::
 
+  from ase.visualize import view
   view(slab)
 
 This will pop up a :mod:`gui` window.  Alternative viewers can be used
 by specifying the optional keyword ``viewer=...`` - use one of
-'ase.gui', 'gopenmol', 'vmd', or 'rasmol'.  The VMD viewer can take an
-optional ``data`` argument to show 3D data::
+'ase.gui', 'gopenmol', 'vmd', or 'rasmol'. (Note that these alternative
+viewers are not a part of ASE and will need to be installed by the user
+separately.) The VMD viewer can take an optional ``data`` argument to
+show 3D data::
 
   view(slab, viewer='VMD', data=array)
 
@@ -183,7 +190,9 @@ step for the integration of Newton's law. We then perform the dynamics
 by calling its :meth:`run` method and giving it the number of steps to
 take::
 
-  dyn = VelocityVerlet(molecule, dt=1.0 * fs)
+  from ase.md.verlet import VelocityVerlet
+  from ase import units
+  dyn = VelocityVerlet(molecule, dt=1.0 * units.fs)
   for i in range(10):
      pot = molecule.get_potential_energy()
      kin = molecule.get_kinetic_energy()
