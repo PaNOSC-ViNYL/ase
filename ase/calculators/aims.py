@@ -73,10 +73,12 @@ bool_keys = [
     'use_density_matrix',
     'use_dipole_correction',
     'use_local_index',
+    'use_logsbt',
     'vdw_correction_hirshfeld',
 ]
 
 list_keys = [
+    'init_hess',
     'k_grid',
     'k_offset',
     'MD_run',
