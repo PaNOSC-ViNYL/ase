@@ -38,4 +38,12 @@ GPa = 1e9 * Pascal
 Debye = 1e11 *_e * _c
 alpha = _e**2 / (4 * pi * _eps0) / _hbar / _c # fine structure constant
 
+# Derived atomic units that have no assigned name:
+_aut = _hbar / (alpha**2 * _me * _c**2)      # atomic unit of time, s
+_auv =  _e**2 / _hbar / (4 * pi * _eps0)     # atomic unit of velocity, m/s
+_auf = alpha**3 * _me**2 * _c**3 / _hbar     # atomic unit of force, N
+_aup = alpha**5 * _me**4 * _c**5 / _hbar**3  # atomic unit of pressure, Pa
+
+AUT = second * _aut
+
 del pi, sqrt
