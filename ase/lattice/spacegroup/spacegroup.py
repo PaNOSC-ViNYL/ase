@@ -182,12 +182,9 @@ class Spacegroup(object):
     def __eq__(self, other):
         """Chech whether *self* and *other* refer to the same
         spacegroup number and setting."""
-        if isinstance(other, int):
-            return self.no == other
-        elif isinstance(other, str):
-            return self.symbol == other
-        else:
-            return self.no == other.no and self.setting == other.setting
+        if not isinstance(other, Spacegroup):
+            other = Spacegroup(other)
+        return self.no == other.no and self.setting == other.setting
 
     def __index__(self):
         return self.no

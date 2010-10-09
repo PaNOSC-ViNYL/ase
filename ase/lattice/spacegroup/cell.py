@@ -9,7 +9,7 @@ from numpy.linalg import norm
 import ase
 
 
-__ALL__ = ['cell_to_cellpar', 'cellpar_to_cell', 'metric_from_cell']
+__all__ = ['cell_to_cellpar', 'cellpar_to_cell', 'metric_from_cell']
 
 
 def unit_vector(x):

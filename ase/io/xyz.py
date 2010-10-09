@@ -1,5 +1,3 @@
-from math import pi, cos, sin, sqrt, acos
-
 from ase.atoms import Atoms
 from ase.parallel import paropen
 
