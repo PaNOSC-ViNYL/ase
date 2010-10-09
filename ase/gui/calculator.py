@@ -148,7 +148,7 @@ class SetCalculator(SetupWindow):
     # List the names of the radio button attributes
     radios = ("none", "lj", "emt", "aseemt", "brenner", "gpaw", "aims", "vasp")
     # List the names of the parameter dictionaries
-    paramdicts = ("lj_parameters",)
+    paramdicts = ("lj_parameters","gpaw_parameters","aims_parameters",)
     # The name used to store parameters on the gui object
     classname = "SetCalculator"
     

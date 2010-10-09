@@ -49,6 +49,7 @@ from ase.gui.energyforces import EnergyForces
 from ase.gui.minimize import Minimize
 from ase.gui.scaling import HomogeneousDeformation
 from ase.gui.quickinfo import QuickInfo
+from ase.gui.defaults import gui_default_settings, read_defaults
 
 ui_info = """\
 <ui>
@@ -325,6 +326,7 @@ class GUI(View, Status):
         self.vulnerable_windows = []
         self.simulation = {}   # Used by modules on Calculate menu.
         self.module_state = {} # Used by modules to store their state.
+        read_defaults()
 
     def run(self, expr=None):
         self.set_colors()
@@ -334,7 +336,7 @@ class GUI(View, Status):
             self.movie()
 
         if expr is None and not np.isnan(self.images.E[0]):
-            expr = 'i, e - E[-1]'
+            expr = gui_default_settings['gui_graphs_string']
             
         if expr is not None and expr != '' and self.images.nimages > 1:
             self.plot_graphs(expr=expr)
@@ -880,7 +882,7 @@ class GUI(View, Status):
         from ase.gui.movie import Movie
         self.movie_window = Movie(self)
         
-    def plot_graphs(self, x=None, expr=None):
+    def plot_graphs(self, x=None, expr=gui_default_settings['gui_graphs_string']):
         from ase.gui.graphs import Graphs
         g = Graphs(self)
         if expr is not None:
