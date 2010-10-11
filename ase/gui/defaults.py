@@ -1,8 +1,8 @@
-""" This is a module to handle generic ASE (gui) defaults from a ~/.ASE.rc configuration file, if it exists.
+""" This is a module to handle generic ASE (gui) defaults from a ~/.ase/gui.py configuration file, if it exists.
 It is imported when opening ag and can then be modified at runtime, if necessary.
 syntax for each entry:
 
-key = options
+gui_default_settings['key'] = value
 """
 
 gui_default_settings = {
@@ -11,16 +11,8 @@ gui_default_settings = {
 
 def read_defaults():
     import os.path
-    name = os.path.expanduser('~/.ASE.rc')
+    name = os.path.expanduser('~/.ase/gui.py')
+    config = gui_default_settings
     if os.path.exists(name):
-        fd = open(name)
-        lines = fd.readlines()
-        fd.close()
-        for line in lines:
-            keys = line.split()
-            if gui_default_settings.has_key(keys[0]):
-                s = ''
-                for k in keys[2:]:
-                    s += k + ' '
-                gui_default_settings[keys[0]] = s
-
+        execfile(name)
+    return config
