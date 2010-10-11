@@ -48,6 +48,8 @@ def parse_singletag(fileobj, line):
     if len(kv) == 1:  # _key
         key = line
         line = fileobj.readline().strip()
+        while line == '':
+            line = fileobj.readline().strip()
         if line == ';':  # multiline string 
             lines = [line[1:].lstrip()]
             while True:
