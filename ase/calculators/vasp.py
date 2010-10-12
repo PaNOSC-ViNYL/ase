@@ -83,6 +83,8 @@ int_keys = [
     'istart',     # startjob: 0-new 1-cont 2-samecut
     'isym',       # symmetry: 0-nonsym 1-usesym 2-usePAWsym
     'iwavpr',     # prediction of wf.: 0-non 1-charg 2-wave 3-comb
+    'ldauprint',  # 0-silent, 1-occ. matrix written to OUTCAR, 2-1+pot. matrix written
+    'ldautype',   # L(S)DA+U: 1-Liechtenstein 2-Dudarev 4-Liechtenstein(LDAU)
     'lmaxmix',    # 
     'lorbit',     # create PROOUT
     'maxmix',     #
@@ -118,6 +120,7 @@ bool_keys = [
     'lasync',     # overlap communcation with calculations
     'lcharg',     #
     'lcorr',      # Harris-correction to forces
+    'ldau',       # L(S)DA+U
     'ldipol',     # potential correction mode
     'lelf',       # create ELFCAR
     'lhfcalc',    # switch to turn on Hartree Fock calculations
@@ -147,6 +150,10 @@ special_keys = [
     'lreal',      # non-local projectors in real space
 ]
 
+dict_keys = [
+    'ldau_luj',   # dictionary with L(S)DA+U parameters, e.g. {'Fe':{'L':2, 'U':4.0, 'J':0.9}, ...}
+]
+
 keys = [    
     # 'NBLOCK' and KBLOCK       inner block; outer block
     # 'NPACO' and APACO         distance and nr. of slots for P.C.
@@ -164,6 +171,7 @@ class Vasp(Calculator):
         self.bool_params = {}
         self.list_params = {}
         self.special_params = {}
+        self.dict_params = {}
         for key in float_keys:
             self.float_params[key] = None
         for key in exp_keys:
@@ -178,6 +186,9 @@ class Vasp(Calculator):
             self.list_params[key] = None
         for key in special_keys:
             self.special_params[key] = None
+        for key in dict_keys:
+            self.dict_params[key] = None
+                            
         self.string_params['prec'] = 'Normal'
 
         self.input_params = {
@@ -222,6 +233,8 @@ class Vasp(Calculator):
                 self.list_params[key] = kwargs[key]
             elif self.special_params.has_key(key):
                 self.special_params[key] = kwargs[key]
+            elif self.dict_params.has_key(key):
+                self.dict_params[key] = kwargs[key]                               
             elif self.input_params.has_key(key):
                 self.input_params[key] = kwargs[key]
             else:
@@ -391,6 +404,7 @@ class Vasp(Calculator):
         self.old_input_params = self.input_params.copy()
         self.old_bool_params = self.bool_params.copy()
         self.old_list_params = self.list_params.copy()
+        self.old_dict_params = self.dict_params.copy()
         self.atoms = atoms.copy()
         self.niter = self.read_number_of_iterations()
         self.nelect = self.read_number_of_electrons()
@@ -526,6 +540,33 @@ class Vasp(Calculator):
                          * 1e-1 * ase.units.GPa
         return stress
 
+    def read_ldau(self):
+        ldau_luj = None
+        ldauprint = None
+        ldau = None
+        ldautype = None
+        atomtypes = []
+        # read ldau parameters from outcar
+        for line in open('OUTCAR'):
+            if line.find('TITEL') != -1:    # What atoms are present
+                atomtypes.append(line.split()[3].split('_')[0].split('.')[0])
+            if line.find('LDAUTYPE') != -1: # Is this a DFT+U calculation
+                ldautype = int(line.split('=')[-1])
+                ldau = True
+                ldau_luj = {}
+            if line.find('LDAUL') != -1:                
+                L = line.split('=')[-1].split()
+            if line.find('LDAUU') != -1:
+                U = line.split('=')[-1].split()
+            if line.find('LDAUJ') != -1:
+                J = line.split('=')[-1].split()
+        # create dictionary
+        if ldau:
+            for i,symbol in enumerate(atomtypes):            
+                ldau_luj[symbol] = {'L': int(L[i]), 'U': float(U[i]), 'J': float(J[i])}
+            self.dict_params['ldau_luj'] = ldau_luj
+        return ldau, ldau_print, ldautype, ldau_luj
+
     def calculation_required(self, atoms, quantities):
         if (self.positions is None or 
             (self.atoms != atoms) or
@@ -535,7 +576,8 @@ class Vasp(Calculator):
             (self.int_params != self.old_int_params) or
             (self.bool_params != self.old_bool_params) or
             (self.list_params != self.old_list_params) or
-            (self.input_params != self.old_input_params)
+            (self.input_params != self.old_input_params) or
+            (self.dict_params != self.old_dict_params)
             or not self.converged):
             return True
         if 'magmom' in quantities:
@@ -649,7 +691,19 @@ class Vasp(Calculator):
                        if val:
                            incar.write('.TRUE.\n')
                        else:
-                           incar.write('.FALSE.\n') 
+                           incar.write('.FALSE.\n')
+        for key, val in self.dict_params.items():
+            if val is not None:
+                if key == 'ldau_luj': 
+                    llist = ulist = jlist = ''
+                    for symbol in self.symbol_count:
+                        luj = val.get(symbol[0], {'L':-1, 'U': 0.0, 'J': 0.0}) # default: No +U
+                        llist += ' %i' % luj['L']
+                        ulist += ' %.3f' % luj['U']
+                        jlist += ' %.3f' % luj['J']
+                    incar.write(' LDAUL =%s\n' % llist)
+                    incar.write(' LDAUU =%s\n' % ulist)
+                    incar.write(' LDAUJ =%s\n' % jlist)
         if self.spinpol and not self.int_params['ispin']:
             incar.write(' ispin = 2\n'.upper())
             # Write out initial magnetic moments
@@ -952,6 +1006,7 @@ class Vasp(Calculator):
         self.fermi = self.read_fermi()
         self.stress = self.read_stress()
         self.nbands = self.read_nbands()
+        self.read_ldau()
         p=self.int_params
         q=self.list_params
         if self.spinpol:
