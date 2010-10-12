@@ -37,8 +37,11 @@ float_keys = [
     'aggac',      # Fraction of gradient correction to correlation
     'aggax',      # Fraction of gradient correction to exchange
     'aldac',      # Fraction of LDA correlation energy
+    'amin',       #
     'amix',       #
+    'amix_mag',   #
     'bmix',       # tags for mixing
+    'bmix_mag',   #
     'emax',       # energy-range for DOSCAR file
     'emin',       #
     'enaug',      # Density cutoff
@@ -71,17 +74,18 @@ string_keys = [
 int_keys = [
     'ialgo',      # algorithm: use only 8 (CG) or 48 (RMM-DIIS)
     'ibrion',     # ionic relaxation: 0-MD 1-quasi-New 2-CG
-    'icharg',     # charge: 1-file 2-atom 10-const
+    'icharg',     # charge: 0-WAVECAR 1-CHGCAR 2-atom 10-const
     'idipol',     # monopol/dipol and quadropole corrections
     'iniwav',     # initial electr wf. : 0-lowe 1-rand
     'isif',       # calculate stress and what to relax
     'ismear',     # part. occupancies: -5 Blochl -4-tet -1-fermi 0-gaus >0 MP
     'ispin',      # spin-polarized calculation
     'istart',     # startjob: 0-new 1-cont 2-samecut
-    'isym',       # symmetry: 0-nonsym 1-usesym
+    'isym',       # symmetry: 0-nonsym 1-usesym 2-usePAWsym
     'iwavpr',     # prediction of wf.: 0-non 1-charg 2-wave 3-comb
     'lmaxmix',    # 
     'lorbit',     # create PROOUT
+    'maxmix',     #
     'ngx',        # FFT mesh for wavefunctions, x
     'ngxf',       # FFT mesh for charges x
     'ngy',        # FFT mesh for wavefunctions, y
@@ -110,6 +114,7 @@ int_keys = [
 
 bool_keys = [
     'addgrid',    # finer grid for augmentation charge density
+    'lasph',      # non-spherical contributions to XC energy (and pot for VASP.5.X)
     'lasync',     # overlap communcation with calculations
     'lcharg',     #
     'lcorr',      # Harris-correction to forces
