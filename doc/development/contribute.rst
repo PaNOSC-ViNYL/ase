@@ -51,6 +51,7 @@ Here is the list of current committers:
 ==========  ======================  ===================================
 user name   real name
 ==========  ======================  ===================================
+anpet       Andrew Peterson         andy,peterson:stanford,edu
 anro        Anthony Goodrow         anro:fysik,dtu,dk
 askhl       Ask Hjorth Larsen       askhl:fysik,dtu,dk
 bjork       Jonas Bjork             J,Bjork:liverpool,ac,uk
