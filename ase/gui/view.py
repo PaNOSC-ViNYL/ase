@@ -6,12 +6,14 @@ import os
 import gtk
 import tempfile
 from math import cos, sin, sqrt
+from os.path import basename
 
 import numpy as np
 
 from ase.data.colors import jmol_colors
 from ase.gui.repeat import Repeat
 from ase.gui.rotate import Rotate
+from ase.gui.render import Render
 from ase.utils import rotate
 
 
@@ -90,6 +92,7 @@ class View:
             if self.frame is None or filename != filenames[self.frame] or filename is None:
                 if filename is None:
                     filename = 'ase.gui'
+            filename = basename(filename)
             self.window.set_title(filename)
                 
         self.frame = frame
@@ -595,3 +598,7 @@ class View:
         self.images.write(filename)
         os.system('(%s %s &); (sleep 60; rm %s) &' %
                   (command, filename, filename))
+
+    def render_window(self, action):
+        Render(self)
+        

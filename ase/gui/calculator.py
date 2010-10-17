@@ -967,6 +967,7 @@ class AIMS_Window(gtk.Window):
         gtk.Window.__init__(self)
         self.set_title("FHI-aims parameters")
         vbox = gtk.VBox()
+        vbox.set_border_width(5)
         # Print some info
         txt = "%i atoms.\n" % (natoms)
         if self.periodic:
@@ -1404,6 +1405,7 @@ class VASP_Window(gtk.Window):
         gtk.Window.__init__(self)
         self.set_title("VASP parameters")
         vbox = gtk.VBox()
+        vbox.set_border_width(5)
         # Print some info
         txt = "%i atoms.\n" % (natoms)
         self.ucell = atoms.get_cell()

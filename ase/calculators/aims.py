@@ -68,6 +68,7 @@ bool_keys = [
     'final_forces_cleaned',
     'hessian_to_restart_geometry',
     'MD_clean_rotations',
+    'MD_restart',
     'restart_relaxations',
     'squeeze_memory',
     'use_density_matrix',

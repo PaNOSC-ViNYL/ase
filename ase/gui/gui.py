@@ -97,6 +97,7 @@ ui_info = """\
       <menuitem action='Movie'/>
       <menuitem action='EModify'/>
       <menuitem action='Constraints'/>
+      <menuitem action='RenderScene'/>
       <menuitem action='MoveAtoms'/>
       <menuitem action='RotateAtoms'/>
       <menuitem action='OrientAtoms'/>
@@ -235,6 +236,9 @@ class GUI(View, Status):
             ('Constraints', None, 'Constraints ...', None,
              '',
              self.constraints_window),
+            ('RenderScene', None, 'Render scene ...', None,
+             '',
+             self.render_window),
             ('DFT', None, 'DFT ...', None,
              '',
              self.dft_window),

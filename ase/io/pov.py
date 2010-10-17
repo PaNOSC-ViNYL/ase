@@ -9,7 +9,7 @@ import numpy as np
 
 from ase.io.eps import EPS
 from ase.data import chemical_symbols
-
+from ase.constraints import FixAtoms
 
 def pa(array):
     """Povray array syntax"""
@@ -64,29 +64,35 @@ def get_bondpairs(atoms, radius=1.1):
 class POVRAY(EPS):
     default_settings = {
         # x, y is the image plane, z is *out* of the screen
-        'display'      : True, # Display while rendering
-        'pause'        : True, # Pause when done rendering (only if display)
-        'transparent'  : True, # Transparent background
-        'canvas_width' : None, # Width of canvas in pixels
-        'canvas_height': None, # Height of canvas in pixels 
-        'camera_dist'  : 50.,  # Distance from camera to front atom
-        'image_plane'  : None, # Distance from front atom to image plane
-        'camera_type'  : 'orthographic', # perspective, ultra_wide_angle
-        'point_lights' : [],             # [[loc1, color1], [loc2, color2],...]
-        'area_light'   : [(2., 3., 40.), # location
-                          'White',       # color
-                          .7, .7, 3, 3], # width, height, Nlamps_x, Nlamps_y
-        'background'   : 'White',        # color
-        'textures'     : None, # Length of atoms list of texture names
-        'celllinewidth': 0.05, # Radius of the cylinders representing the cell
-        'bondlinewidth': 0.10, # Radius of the cylinders representing the bonds
-        'bondatoms'    : [], # [[atom1, atom2], ...] pairs of bonding atoms
-        }
+        'display'        : True, # Display while rendering
+        'pause'          : True, # Pause when done rendering (only if display)
+        'transparent'    : True, # Transparent background
+        'canvas_width'   : None, # Width of canvas in pixels
+        'canvas_height'  : None, # Height of canvas in pixels 
+        'camera_dist'    : 50.,  # Distance from camera to front atom
+        'image_plane'    : None, # Distance from front atom to image plane
+        'camera_type'    : 'orthographic', # perspective, ultra_wide_angle
+        'point_lights'   : [],             # [[loc1, color1], [loc2, color2],...]
+        'area_light'     : [(2., 3., 40.), # location
+                            'White',       # color
+                            .7, .7, 3, 3], # width, height, Nlamps_x, Nlamps_y
+        'background'     : 'White',        # color
+        'textures'       : None, # Length of atoms list of texture names
+        'celllinewidth'  : 0.05, # Radius of the cylinders representing the cell
+        'bondlinewidth'  : 0.10, # Radius of the cylinders representing the bonds
+        'bondatoms'      : [],   # [[atom1, atom2], ... ] pairs of bonding atoms
+        'exportconstraints' : False}  # honour FixAtom requests and mark relevant atoms?
 
     def __init__(self, atoms, scale=1.0, **parameters):
         for k, v in self.default_settings.items():
             setattr(self, k, parameters.pop(k, v))
         EPS.__init__(self, atoms, scale=scale, **parameters)
+        constr = atoms.constraints
+        self.constrainatoms = []
+        for c in constr:
+            if isinstance(c,FixAtoms):
+                for n,i in enumerate(c.index):
+                    if i: self.constrainatoms += [n]
 
     def cell_to_lines(self, A):
         return np.empty((0, 3)), None, None
@@ -153,6 +159,16 @@ class POVRAY(EPS):
 
         w('\n')
         w('#declare simple = finish {phong 0.7}\n')
+        w('#declare pale = finish {'
+          'ambient .5 '
+          'diffuse .85 '   
+          'roughness .001 '
+          'specular 0.200 }\n')
+        w('#declare intermediate = finish {'
+          'ambient 0.3 '
+          'diffuse 0.6 '
+          'specular 0.60 '
+          'roughness 0.04 }\n')
         w('#declare vmd = finish {'
           'ambient .0 '
           'diffuse .65 '
@@ -181,7 +197,7 @@ class POVRAY(EPS):
           'specular 1. '
           'roughness .001 '
           'reflection .0}\n')
-        w('#declare glass = finish {' # Use filter 0.7
+        w('#declare glass = finish {'
           'ambient .05 '
           'diffuse .3 '
           'specular 1. '
@@ -191,6 +207,11 @@ class POVRAY(EPS):
         w('\n')
         w('#macro atom(LOC, R, COL, FIN)\n')
         w('  sphere{LOC, R texture{pigment{COL} finish{FIN}}}\n')
+        w('#end\n')
+        w('#macro constrain(LOC, R, COL, FIN)\n')
+        w('union{torus{R, Rcell rotate 45*z texture{pigment{COL} finish{FIN}}}\n')
+        w('      torus{R, Rcell rotate -45*z texture{pigment{COL} finish{FIN}}}\n')
+        w('      translate LOC}\n')
         w('#end\n')
         w('\n')
         
@@ -239,7 +260,14 @@ class POVRAY(EPS):
                 pa(self.X[a]), pa(mida), pc(self.colors[a]), texa))
             w('cylinder {%s, %s, Rbond texture{pigment {%s} finish{%s}}}\n' % (
                 pa(self.X[b]), pa(midb), pc(self.colors[b]), texb))
-
+            
+        # Draw constraints if requested
+        if self.exportconstraints:
+            for a in self.constrainatoms:
+                dia    = self.d[a]
+                loc    = self.X[a]
+                w('constrain(%s, %.2f, Black, %s) // #%i \n' % (
+                    pa(loc), dia / 2., tex, a))
 
 def write_pov(filename, atoms, run_povray=False, **parameters):
     if isinstance(atoms, list):
