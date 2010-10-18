@@ -247,7 +247,7 @@ class FixedMode(FixConstraint):
         return FixedMode(self.index.copy(), self.mode)
 
     def __repr__(self):
-        return 'FixedMode(%d, %s)' % (ints2string(self.index), self.mode.tolist())
+        return 'FixedMode(%s, %s)' % (ints2string(self.index), self.mode.tolist())
 
 class FixedPlane(FixConstraintSingle):
     """Constrain an atom *a* to move in a given plane only.
