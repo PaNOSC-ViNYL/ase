@@ -21,6 +21,8 @@ class EPS:
             radii = covalent_radii[self.numbers]
         elif type(radii) is float:
             radii = covalent_radii[self.numbers] * radii
+        else:
+            radii = np.array(radii)
             
         natoms = len(atoms)
 
