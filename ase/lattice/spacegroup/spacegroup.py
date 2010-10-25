@@ -35,7 +35,7 @@ class Spacegroup(object):
 
     Example:
     
-    >>> from spacegroup import Spacegroup
+    >>> from ase.lattice.spacegroup import Spacegroup
     >>> 
     >>> sg = Spacegroup(225)
     >>> print 'Space group', sg.no, sg.symbol
@@ -204,6 +204,19 @@ class Spacegroup(object):
                     symop.append((parity*rot, newtrans))
         return symop
 
+    def get_op(self):
+        """Returns all symmetry operations (including inversions and
+        subtranslations), but unlike get_symop(), they are returned as
+        two ndarrays."""
+        if self.centrosymmetric:
+            rot = np.tile(np.vstack((self.rotations, -self.rotations)), 
+                          (self.nsubtrans, 1, 1))
+            trans = np.repeat(self.subtrans, 2*len(self.rotations), axis=0)
+        else:
+            rot = np.tile(self.rotations, (self.nsubtrans, 1, 1))
+            trans = np.repeat(self.subtrans, len(self.rotations), axis=0)
+        return rot, trans
+
     def get_rotations(self):
         """Return all rotations, including inversions for
         centrosymmetric crystals."""
@@ -218,9 +231,9 @@ class Spacegroup(object):
 
         Example:
 
-        >>> from spacegroup import Spacegroup
+        >>> from ase.lattice.spacegroup import Spacegroup
         >>> sg = Spacegroup(225)  # fcc
-        >>> sg.equivalent_reflections([[0,0,2]])
+        >>> sg.equivalent_reflections([[0, 0, 2]])
         array([[ 0,  0, -2],
                [ 0, -2,  0],
                [-2,  0,  0],
@@ -228,9 +241,9 @@ class Spacegroup(object):
                [ 0,  2,  0],
                [ 0,  0,  2]])
         """
-        hkl = np.array(hkl, dtype='int')
+        hkl = np.array(hkl, dtype='int', ndmin=2)
         rot = self.get_rotations()
-        n,nrot = len(hkl), len(rot)
+        n, nrot = len(hkl), len(rot)
         R = rot.transpose(0, 2, 1).reshape((3*nrot, 3)).T
         refl = np.dot(hkl, R).reshape((n*nrot, 3))
         ind = np.lexsort(refl.T)
@@ -238,6 +251,52 @@ class Spacegroup(object):
         diff = np.diff(refl, axis=0)
         mask = np.any(diff, axis=1)
         return np.vstack((refl[mask], refl[-1,:]))
+
+    def symmetry_normalised_reflections(self, hkl):
+        """Returns an array of same size as *hkl*, containing the
+        corresponding symmetry-equivalent reflections of lowest
+        indices.
+
+        Example:
+
+        >>> from ase.lattice.spacegroup import Spacegroup
+        >>> sg = Spacegroup(225)  # fcc
+        >>> sg.symmetry_normalised_reflections([[2, 0, 0], [0, 2, 0]])
+        array([[ 0,  0, -2],
+               [ 0,  0, -2]])
+        """
+        hkl = np.array(hkl, dtype=int, ndmin=2)
+        normalised = np.empty(hkl.shape, int)
+        R = self.get_rotations().transpose(0, 2, 1)
+        for i, g in enumerate(hkl):
+            gsym = np.dot(R, g)
+            j = np.lexsort(gsym.T)[0]
+            normalised[i,:] = gsym[j]
+        return normalised
+
+    def unique_reflections(self, hkl):
+        """Returns a subset *hkl* containing only the symmetry-unique
+        reflections.
+
+        Example:
+
+        >>> from ase.lattice.spacegroup import Spacegroup
+        >>> sg = Spacegroup(225)  # fcc
+        >>> sg.unique_reflections([[ 2,  0,  0], 
+        ...                        [ 0, -2,  0], 
+        ...                        [ 2,  2,  0], 
+        ...                        [ 0, -2, -2]])
+        array([[2, 0, 0],
+               [2, 2, 0]])
+        """
+        hkl = np.array(hkl, dtype=int, ndmin=2)
+        hklnorm = self.symmetry_normalised_reflections(hkl)
+        perm = np.lexsort(hklnorm.T)
+        iperm = perm.argsort()
+        xmask = np.abs(np.diff(hklnorm[perm], axis=0)).any(axis=1)
+        mask = np.concatenate(([True], xmask))
+        imask = mask[iperm]
+        return hkl[imask]
             
     def equivalent_sites(self, scaled_positions, ondublicates='error', 
                          symprec=1e-3):
@@ -271,11 +330,29 @@ class Spacegroup(object):
         kinds: list
             A list of integer indices specifying which input site is 
             equivalent to the corresponding returned site.
+
+        Example:
+
+        >>> from ase.lattice.spacegroup import Spacegroup
+        >>> sg = Spacegroup(225)  # fcc
+        >>> sites, kinds = sg.equivalent_sites([[0, 0, 0], [0.5, 0.0, 0.0]])
+        >>> sites
+        array([[ 0. ,  0. ,  0. ],
+               [ 0. ,  0.5,  0.5],
+               [ 0.5,  0. ,  0.5],
+               [ 0.5,  0.5,  0. ],
+               [ 0.5,  0. ,  0. ],
+               [ 0. ,  0.5,  0. ],
+               [ 0. ,  0. ,  0.5],
+               [ 0.5,  0.5,  0.5]])
+        >>> kinds
+        [0, 0, 0, 0, 1, 1, 1, 1]
         """
         kinds = []
         sites = []
         symprec2 = symprec**2
-        for kind, pos in enumerate(scaled_positions):
+        scaled = np.array(scaled_positions, ndmin=2)
+        for kind, pos in enumerate(scaled):
             for rot, trans in self.get_symop():
                 site = np.mod(np.dot(rot, pos) + trans, 1.)
                 if not sites:
@@ -308,7 +385,54 @@ class Spacegroup(object):
                     kinds.append(kind)
         return np.array(sites), kinds
 
+    def symmetry_normalised_sites(self, scaled_positions):
+        """Returns an array of same size as *scaled_positions*,
+        containing the corresponding symmetry-equivalent sites within
+        the unit cell of lowest indices.
 
+        Example:
+
+        >>> from ase.lattice.spacegroup import Spacegroup
+        >>> sg = Spacegroup(225)  # fcc
+        >>> sg.symmetry_normalised_sites([[0.0, 0.5, 0.5], [1.0, 1.0, 0.0]])
+        array([[ 0.,  0.,  0.],
+               [ 0.,  0.,  0.]])
+        """
+        scaled = np.array(scaled_positions, ndmin=2)
+        normalised = np.empty(scaled.shape, np.float)
+        rot, trans = self.get_op()
+        for i, pos in enumerate(scaled):
+            sympos = np.dot(rot, pos) + trans
+            # Must be done twice, see the scaled_positions.py test
+            sympos %= 1.0
+            sympos %= 1.0
+            j = np.lexsort(sympos.T)[0]
+            normalised[i,:] = sympos[j]
+        return normalised
+
+    def unique_sites(self, scaled_positions, symprec=1e-3):
+        """Returns a subset *scaled_positions* containing only the
+        symmetry-unique positions.
+
+        Example:
+
+        >>> from ase.lattice.spacegroup import Spacegroup
+        >>> sg = Spacegroup(225)  # fcc
+        >>> sg.unique_sites([[0.0, 0.0, 0.0], 
+        ...                  [0.5, 0.5, 0.0], 
+        ...                  [1.0, 0.0, 0.0], 
+        ...                  [0.5, 0.0, 0.0]])
+        array([[ 0. ,  0. ,  0. ],
+               [ 0.5,  0. ,  0. ]])
+        """
+        scaled = np.array(scaled_positions, ndmin=2)
+        symnorm = self.symmetry_normalised_sites(scaled)
+        perm = np.lexsort(symnorm.T)
+        iperm = perm.argsort()
+        xmask = np.abs(np.diff(symnorm[perm], axis=0)).max(axis=1) > symprec
+        mask = np.concatenate(([True], xmask))
+        imask = mask[iperm]
+        return scaled[imask]
 
 
 def get_datafile():
