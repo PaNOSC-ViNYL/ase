@@ -206,6 +206,11 @@ class Vibrations:
         H += H.copy().T
         self.H = H
         m = self.atoms.get_masses()
+        if 0 in [m[index] for index in self.indices]:
+            raise RuntimeError('Zero mass encountered in one or more of '
+                               'the vibrated atoms. Use Atoms.set_masses()'
+                               ' to set all masses to non-zero values.')
+
         self.im = np.repeat(m[self.indices]**-0.5, 3)
         omega2, modes = np.linalg.eigh(self.im[:, None] * H * self.im)
         self.modes = modes.T.copy()
