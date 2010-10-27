@@ -15,9 +15,10 @@ def read_dftb(filename='dftb_in.hsd'):
     atom_symbols = []
     type_names = []
     my_pbc = False
+    mycell = []
 
 
-    for line in lines:
+    for iline, line in enumerate(lines):
         if (line.strip().startswith('#')):
             pass
         else:
@@ -28,6 +29,12 @@ def read_dftb(filename='dftb_in.hsd'):
             elif ('Periodic' in line):
                 if ('Yes' in line):
                     my_pbc = True
+            elif ('LatticeVectors' in line):
+                for imycell in range(3):
+                    extraline = lines[iline+imycell+1]
+                    cols = extraline.split()
+                    mycell.append(\
+                        [float(cols[0]),float(cols[1]),float(cols[2])])
             else:
                 pass
 
@@ -54,7 +61,8 @@ def read_dftb(filename='dftb_in.hsd'):
     if type(filename) == str:
         myfile.close()
 
-    atoms = Atoms(positions = atoms_pos, symbols = atom_symbols, pbc = my_pbc)
+    atoms = Atoms(positions = atoms_pos, symbols = atom_symbols, 
+                  cell = mycell, pbc = my_pbc)
 
 
     return atoms
