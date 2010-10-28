@@ -631,8 +631,9 @@ class Vasp(Calculator):
             self.update(atoms)
             return self.magnetic_moments
         else:
-            raise RuntimeError(
-                "The combination %s for lorbit with %s for rwigs not supported to calculate magnetic moments" % (p['lorbit'], p['rwigs']))
+            return None
+        #raise RuntimeError(
+        #        "The combination %s for lorbit with %s for rwigs not supported to calculate magnetic moments" % (p['lorbit'], p['rwigs']))
 
     def get_dipole_moment(self, atoms):
         """Returns total dipole moment of the system."""
@@ -1013,6 +1014,8 @@ class Vasp(Calculator):
             self.magnetic_moment = self.read_magnetic_moment()
             if p['lorbit']>=10 or (p['lorbit']!=None and q['rwigs']):
                 self.magnetic_moments = self.read_magnetic_moments(self.atoms)
+            else:
+                self.magnetic_moments = None
         self.set(nbands=self.nbands)
 
     def read_kpoints(self, filename='KPOINTS'):
