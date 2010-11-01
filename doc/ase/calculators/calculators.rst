@@ -66,7 +66,7 @@ Dacapo_           Old interface to Dacapo_. Requires           :term:`DFT`
 ================  ===========================================  ============
   
 
-.. _Asap: http://wiki.fysik.dtu.dk/Asap
+.. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
 .. _DftbPlus: http://www.dftb-plus.info/
