@@ -42,10 +42,10 @@ class Movie(gtk.Window):
         stop.connect('clicked', self.stop)
 
         self.rock = pack(vbox, gtk.CheckButton('Rock'))
-
-        self.time = gtk.Adjustment(2.0, 0.5, 9.0, 0.2)
+        self.time = gtk.Adjustment(24, 1, 300, 1)
         hscale = pack(vbox, gtk.HScale(self.time))
         hscale.set_update_policy(gtk.UPDATE_DISCONTINUOUS)
+        hscale.set_digits(0)
             
         self.time.connect('value-changed', self.new_time)
 
@@ -53,9 +53,9 @@ class Movie(gtk.Window):
 
         if gtk.pygtk_version < (2, 12):
             self.set_tip = gtk.Tooltips().set_tip
-            self.set_tip(hscale, _('Adjust play time.'))
+            self.set_tip(hscale, _('Adjust number of frames per second.'))
         else:
-            hscale.set_tooltip_text(_('Adjust play time.'))
+            hscale.set_tooltip_text(_('Adjust number of frames per second.'))
         vbox.show()
         self.show()
         self.gui = gui
@@ -83,8 +83,7 @@ class Movie(gtk.Window):
     def play(self, widget=None):
         if self.id is not None:
             gobject.source_remove(self.id)
-
-        t = int(1000 * self.time.value / (self.gui.images.nimages - 1))
+        t = int(1000.0 / float(self.time.value))
         self.id = gobject.timeout_add(t, self.step)
 
     def stop(self, widget=None):
