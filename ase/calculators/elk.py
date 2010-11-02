@@ -85,7 +85,12 @@ class ELK:
         self.pbc = atoms.get_pbc().copy()
 
         self.initialize(atoms)
-        assert os.system('cd %s; elk' % self.dir) == 0
+        try:
+            elk_exe = os.environ['ELK']
+        except KeyError:
+            elk_exe = 'elk'
+
+        assert os.system('cd %s; %s ' % (self.dir, elk_exe)) == 0
         self.read()
 
         self.converged = True
