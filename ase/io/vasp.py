@@ -227,10 +227,10 @@ def read_vasp_out(filename='OUTCAR',index = -1):
     species_num = []
     symbols = []
     for n,line in enumerate(data):
-        if 'POSCAR:' in line:
-            temp = line.split()
-            species = temp[1:]
+        if 'POTCAR:' in line:
+            species += [line.split()[2]]
         if 'ions per type' in line:
+            species = species[:len(species)/2]
             temp = line.split()
             for ispecies in range(len(species)):
                 species_num += [int(temp[ispecies+4])]

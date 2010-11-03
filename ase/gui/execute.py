@@ -71,6 +71,6 @@ class Execute(gtk.Window):
                 S[a] = s
                 R[a] = x, y, z
 
-        gui.set_frame(gui.frame)
+        gui.set_coordinates()
         
     python = execute

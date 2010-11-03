@@ -182,14 +182,13 @@ class Render(gtk.Window):
         box_selection = self.get_selection()
         selection = self.gui.images.selected.copy()
         if selection.any():
+            Z = []
+            for n in range(len(selection)):
+                if selection[n]:
+                    Z += [self.gui.images.Z[n]]
+            name = formula(Z)
             if (box_selection == selection).all():
-                name = self.texture_selection.get_text()
-            else:
-                Z = []
-                for n in range(len(selection)):
-                    if selection[n]:
-                        Z += [self.gui.images.Z[n]]
-                name = "Atoms "+formula(Z)
+                name += ': ' + self.texture_selection.get_text()
             texture_button = gtk.combo_box_new_text()
             for t in self.finish_list:
                 texture_button.append_text(t)
@@ -199,7 +198,8 @@ class Render(gtk.Window):
             index = len(self.materials)
             delete_button.connect("clicked",self.delete_material,{"n":index})
             self.materials += [[True,selection,texture_button,
-                                delete_button,gtk.Label("    "+name)]]
+                                delete_button,gtk.Label()]]
+            self.materials[-1][-1].set_markup("    "+name)
             pack(self.tbox,[self.materials[-1][2],self.materials[-1][3],self.materials[-1][4]])
         else:
             oops("Can not create new texture! Must have some atoms selected to create a new material!")
