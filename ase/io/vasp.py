@@ -117,7 +117,7 @@ def read_vasp(filename='CONTCAR'):
     if len(atomtypes) == 1 and '_' in atomtypes[0]:
         atomtypes = get_atomtypes_from_formula(atomtypes[0])
 
-    lattice_constant = float(f.readline())
+    lattice_constant = float(f.readline().split()[0])
 
     # Now the lattice vectors
     a = []
@@ -140,6 +140,12 @@ def read_vasp(filename='CONTCAR'):
     except ValueError:
         numofatoms = f.readline().split()
 
+    # check for comments in numofatoms line and get rid of them if necessary
+    commentcheck = np.array(['!' in s for s in numofatoms])
+    if commentcheck.any():
+        # only keep the elements up to the first including a '!':
+        numofatoms = numofatoms[:np.arange(len(numofatoms))[commentcheck][0]]
+        
     numsyms = len(numofatoms)
     if len(atomtypes) < numsyms:
         # First line in POSCAR/CONTCAR didn't contain enough symbols.
