@@ -408,9 +408,12 @@ def filetype(filename):
         in lines[:90]):
         return 'dacapo-text'
 
-    for word in ['ANIMSTEPS', 'CRYSTAL', 'SLAB', 'POLYMER', 'MOLECULE']:
-        if lines[0].startswith(word):
-            return 'xsf'
+
+    for line in lines:
+        if line[0] != '#':
+            word = line.strip()
+            if word in ['ANIMSTEPS', 'CRYSTAL', 'SLAB', 'POLYMER', 'MOLECULE']:
+                return 'xsf'
 
     filename_v = basename(filename) 
     if 'POSCAR' in filename_v or 'CONTCAR' in filename_v:

@@ -98,11 +98,15 @@ def read_xsf(fileobj, index=-1):
         fileobj = open(fileobj)
 
     readline = fileobj.readline
-    line = readline()
+    while True:
+        line = readline()
+        if line[0] != '#':
+            line = line.strip()
+            break
 
     if line.startswith('ANIMSTEPS'):
         nimages = int(line.split()[1])
-        line = readline()
+        line = readline().strip()
     else:
         nimages = 1
 
@@ -119,13 +123,13 @@ def read_xsf(fileobj, index=-1):
     for n in range(nimages):
         cell = None
         if pbc:
-            line = readline()
+            line = readline().strip()
             assert line.startswith('PRIMVEC')
             cell = []
             for i in range(3):
                 cell.append([float(x) for x in readline().split()])
 
-        line = readline()
+        line = readline().strip()
         assert line.startswith('PRIMCOORD')
 
         natoms = int(readline().split()[0])
