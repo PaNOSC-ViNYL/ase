@@ -31,7 +31,6 @@ def read_aims(filename):
             if xyz.all():
                 fix.append(i)
             elif xyz.any():
-                print 1
                 fix_cart.append(FixCartesian(i, xyz))
             floatvect = float(inp[1]), float(inp[2]), float(inp[3])
             positions.append(floatvect)
