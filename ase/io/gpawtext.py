@@ -54,7 +54,7 @@ def read_gpaw_text(fileobj, index=-1):
             assert line.startswith('Zero Kelvin:')
             e = float(line.split()[-1])
         try:
-            ii = index_startswith(lines, 'Fermi Level')
+            ii = index_startswith(lines, 'Fermi Level:')
         except ValueError:
             eFermi = None
         else:
