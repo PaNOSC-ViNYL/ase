@@ -69,6 +69,7 @@ jesperf     Jesper Friis            jesper,friis:sintef,no
 jingzhe     Jingzhe Chen            jingzhe:fysik,dtu,dk
 jkitchin    John Kitchin            jkitchin:andrew,cmu,edu
 jussie      Jussi Enkovaara         jussi,enkovaara:csc,fi
+kkaa        Kristen Kaasbjerg       kkaa:fysik,dtu,dk
 kleis       Jesper Kleis            kleis:fysik,dtu,dk
 kwj         Karsten Wedel Jacobsen  kwj:fysik,dtu,dk
 markus      Markus Kaukonen         markus,kaukonen:iki,fi
