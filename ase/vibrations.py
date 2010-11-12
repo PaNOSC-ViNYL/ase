@@ -18,16 +18,16 @@ from ase.parallel import rank, barrier, paropen
 class Vibrations:
     """Class for calculating vibrational modes using finite difference.
 
-    The vibrational modes are calculated from a finite difference
-    approximation of the Hessian matrix.
+    The vibrational modes are calculated from a finite difference approximation
+    of the Hessian matrix.
 
-    The *summary()*, *get_energies()* and *get_frequencies()*
-    methods all take an optional *method* keyword.  Use
-    method='Frederiksen' to use the method described in:
+    The *summary()*, *get_energies()* and *get_frequencies()* methods all take
+    an optional *method* keyword.  Use method='Frederiksen' to use the method
+    described in:
 
       T. Frederiksen, M. Paulsson, M. Brandbyge, A. P. Jauho:
-      "Inelastic transport theory from first-principles: methodology
-      and applications for nanoscale devices", 
+      "Inelastic transport theory from first-principles: methodology and
+       applications for nanoscale devices", 
       Phys. Rev. B 75, 205413 (2007) 
 
     atoms: Atoms object
@@ -40,9 +40,9 @@ class Vibrations:
     delta: float
         Magnitude of displacements.
     nfree: int
-        Number of displacements per atom and cartesian coordinate,
-        2 and 4 are supported. Default is 2 which will displace 
-        each atom +delta and -delta for each cartesian coordinate.
+        Number of displacements per atom and cartesian coordinate, 2 and 4 are
+        supported. Default is 2 which will displace each atom +delta and -delta
+        for each cartesian coordinate. 
 
     Example:
 
@@ -81,6 +81,7 @@ class Vibrations:
     >>> vib.write_mode(-1)  # write last mode to trajectory file
 
     """
+      
     def __init__(self, atoms, indices=None, name='vib', delta=0.01, nfree=2):
         assert nfree in [2, 4]
         self.atoms = atoms
@@ -96,20 +97,28 @@ class Vibrations:
     def run(self):
         """Run the vibration calculations.
 
-        This will calculate the forces for 6 displacements per atom
-        ±x, ±y, ±z.  Only those calculations that are not already done
-        will be started. Be aware that an interrupted calculation may
-        produce an empty file (ending with .pckl), which must be deleted
-        before restarting the job. Otherwise the forces will not be
-        calculated for that displacement."""
+        This will calculate the forces for 6 displacements per atom ±x, ±y, ±z.
+        Only those calculations that are not already done will be started. Be
+        aware that an interrupted calculation may produce an empty file (ending
+        with .pckl), which must be deleted before restarting the job. Otherwise
+        the forces will not be calculated for that displacement.
+
+        Note that the calculations for the different displacements can be done
+        simultaneously by several independent processes. This feature relies on
+        the existence of files and the subsequent creation of the file in case
+        it is not found.
+
+        """
+        
         filename = self.name + '.eq.pckl'
         if not isfile(filename):
             barrier()
+            if rank == 0:
+                fd = open(filename, 'w')            
             forces = self.atoms.get_forces()
             if self.ir:
                 dipole = self.calc.get_dipole_moment(self.atoms)
             if rank == 0:
-                fd = open(filename, 'w')
                 if self.ir:
                     pickle.dump([forces, dipole], fd)
                     sys.stdout.write(
@@ -131,13 +140,14 @@ class Vibrations:
                         if isfile(filename):
                             continue
                         barrier()
+                        if rank == 0:
+                            fd = open(filename, 'w')                        
                         self.atoms.positions[a, i] = (p[a, i] +
                                                       ndis * sign * self.delta)
                         forces = self.atoms.get_forces()
                         if self.ir:
                             dipole = self.calc.get_dipole_moment(self.atoms)
                         if rank == 0:
-                            fd = open(filename, 'w')
                             if self.ir:
                                 pickle.dump([forces, dipole], fd)
                                 sys.stdout.write(
@@ -221,6 +231,7 @@ class Vibrations:
 
     def get_energies(self, method='standard', direction='central'):
         """Get vibration energies in eV."""
+        
         if (self.H is None or method.lower() != self.method or
             direction.lower() != self.direction):
             self.read(method, direction)
@@ -228,6 +239,7 @@ class Vibrations:
 
     def get_frequencies(self, method='standard', direction='central'):
         """Get vibration frequencies in cm^-1."""
+        
         s = 0.01 * units._e / units._c / units._hplanck
         return s * self.get_energies(method, direction)
 
@@ -248,6 +260,7 @@ class Vibrations:
         log : if specified, write output to a different location than
             stdout. Can be an object with a write() method or the name of a
             file to create.
+            
         """
 
         if isinstance(log, str):
