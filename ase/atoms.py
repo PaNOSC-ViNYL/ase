@@ -373,13 +373,14 @@ class Atoms(object):
         E.g. instead of ['C', 'O', 'O', 'H'], the string 'CO2H' is returned.
         """
         if not reduce:
-            return [chemical_symbols[Z] for Z in self.arrays['numbers']]
+            # XXX
+            return [chemical_symbols[int(Z)] for Z in self.arrays['numbers']]
         else:
             num = self.get_atomic_numbers()
             N = len(num)
             dis = np.concatenate(([0], np.arange(1, N)[num[1:] != num[:-1]]))
             repeat = np.append(dis[1:], N) - dis
-            symbols = ''.join([chemical_symbols[num[d]] + str(r) * (r != 1)
+            symbols = ''.join([chemical_symbols[int(num[d])] + str(r) * (r != 1)
                                for r, d in zip(repeat, dis)])
             return symbols
 
@@ -759,9 +760,9 @@ class Atoms(object):
 
         positions = self.arrays['positions']
         i0 = 0
-        for m2 in range(m[2]):
+        for m0 in range(m[0]):
             for m1 in range(m[1]):
-                for m0 in range(m[0]):
+                for m2 in range(m[2]):
                     i1 = i0 + n
                     positions[i0:i1] += np.dot((m0, m1, m2), self._cell)
                     i0 = i1
