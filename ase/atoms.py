@@ -374,13 +374,13 @@ class Atoms(object):
         """
         if not reduce:
             # XXX
-            return [chemical_symbols[int(Z)] for Z in self.arrays['numbers']]
+            return [chemical_symbols[Z] for Z in self.arrays['numbers']]
         else:
             num = self.get_atomic_numbers()
             N = len(num)
             dis = np.concatenate(([0], np.arange(1, N)[num[1:] != num[:-1]]))
             repeat = np.append(dis[1:], N) - dis
-            symbols = ''.join([chemical_symbols[int(num[d])] + str(r) * (r != 1)
+            symbols = ''.join([chemical_symbols[num[d]] + str(r) * (r != 1)
                                for r, d in zip(repeat, dis)])
             return symbols
 
