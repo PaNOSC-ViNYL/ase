@@ -27,7 +27,7 @@ class Vibrations:
 
       T. Frederiksen, M. Paulsson, M. Brandbyge, A. P. Jauho:
       "Inelastic transport theory from first-principles: methodology and
-       applications for nanoscale devices", 
+      applications for nanoscale devices", 
       Phys. Rev. B 75, 205413 (2007) 
 
     atoms: Atoms object
