@@ -12,7 +12,7 @@ def gcd(seq):
     """Returns greatest common divisor of integers in *seq*."""
     def _gcd(m, n):
         while n:
-            m, n = n, m%n
+            m, n = n, m % n
         return m       
     return reduce(_gcd, seq)
 
@@ -74,7 +74,7 @@ def get_layers(atoms, miller, tolerance=0.001):
 
 
 
-def cut(atoms, a=(1,0,0), b=(0,1,0), c=(0,0,1), origo=(0,0,0), 
+def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=(0, 0, 1), origo=(0, 0, 0), 
         nlayers=None, extend=1.0, tolerance=0.001):
     """Cuts out a cell defined by *a*, *b*, *c* and *origo* from a
     sufficiently repeated copy of *atoms*.
@@ -228,7 +228,7 @@ class IncompatibleCellError(ValueError):
 
 
 def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,  
-          maxstrain=0.5, distance=None):
+          maxstrain=0.5, distance=None, reorder=False):
     """Return a new Atoms instance with *atoms2* stacked on top of
     *atoms1* along the given axis. Periodicity in all directions is
     ensured.
@@ -248,12 +248,15 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
     displaced more than *maxstrain*. Setting *maxstrain* to None,
     disable this check.
 
-    If *distance* is provided, the atomic positions in *atoms1* and
-    *atoms2* as well as the cell lengths along *axis* will be
-    adjusted such that the distance between the distance between
-    the closest atoms in *atoms1* and *atoms2* will equal *distance*.
-    This option uses scipy.optimize.fmin() and hence require scipy
-    to be installed.
+    If *distance* is not None, the size of the final cell, along the
+    direction perpendicular to the interface, will be adjusted such
+    that the distance between the closest atoms in *atoms1* and
+    *atoms2* will be equal to *distance*. This option uses
+    scipy.optimize.fmin() and hence require scipy to be installed.
+
+    If *reorder* is True, then the atoms will be reordred such that
+    all atoms with the same symbol will follow sequensially after each
+    other, eg: 'Al2MnAl10Fe' -> 'Al12FeMn'.    
 
     Example:
 
@@ -344,8 +347,42 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
     atoms2.translate(atoms1.cell[axis])
     atoms1.cell[axis] += atoms2.cell[axis]
     atoms1.extend(atoms2)
+
+    if reorder:
+        atoms1 = sort(atoms1)
+
     return atoms1
 
+
+def sort(atoms, tags=None):
+    """Return a new Atoms object with sorted atomic order. The default
+    is to order according to chemical symbols, but if *tags* is not
+    None, it will be used instead. A stable sorting algorithm is used.
+
+    Example:
+    >>> import ase
+    >>> from ase.lattice.spacegroup import crystal
+    >>>
+    # Two unit cells of NaCl
+    >>> a = 5.64
+    >>> nacl = crystal(['Na', 'Cl'], [(0, 0, 0), (0.5, 0.5, 0.5)], 
+    ... spacegroup=225, cellpar=[a, a, a, 90, 90, 90]).repeat((2, 1, 1))
+    >>> nacl.get_chemical_symbols()
+    ['Na', 'Na', 'Na', 'Na', 'Cl', 'Cl', 'Cl', 'Cl', 'Na', 'Na', 'Na', 'Na', 'Cl', 'Cl', 'Cl', 'Cl']
+    >>> nacl_sorted = sort(nacl)
+    >>> nacl_sorted.get_chemical_symbols()
+    ['Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Na', 'Na', 'Na', 'Na', 'Na', 'Na', 'Na', 'Na']
+    >>> np.all(nacl_sorted.cell == nacl.cell)
+    True
+    """
+    if tags is None:
+        tags = atoms.get_chemical_symbols()
+    else:
+        tags = list(tags)
+    deco = [(tag, i) for i, tag in enumerate(tags)]
+    deco.sort()
+    indices = [i for tag, i in deco]
+    return atoms[indices]
 
 #-----------------------------------------------------------------
 # Self test
