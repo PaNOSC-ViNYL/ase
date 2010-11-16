@@ -434,6 +434,42 @@ class Spacegroup(object):
         imask = mask[iperm]
         return scaled[imask]
 
+    def tag_sites(self, scaled_positions, symprec=1e-3):
+        """Returns an integer array of the same length as *scaled_positions*, 
+        tagging all equivalent atoms with the same index.
+
+        Example:
+
+        >>> from ase.lattice.spacegroup import Spacegroup
+        >>> sg = Spacegroup(225)  # fcc
+        >>> sg.tag_sites([[0.0, 0.0, 0.0], 
+        ...               [0.5, 0.5, 0.0], 
+        ...               [1.0, 0.0, 0.0], 
+        ...               [0.5, 0.0, 0.0]])
+        array([0, 0, 0, 1])
+        """
+        scaled = np.array(scaled_positions, ndmin=2)
+        scaled %= 1.0
+        scaled %= 1.0
+        tags = -np.ones((len(scaled), ), dtype=int)
+        mask = np.ones((len(scaled), ), dtype=np.bool)
+        rot, trans = self.get_op()
+        i = 0
+        while mask.any():
+            pos = scaled[mask][0]
+            sympos = np.dot(rot, pos) + trans
+            # Must be done twice, see the scaled_positions.py test
+            sympos %= 1.0
+            sympos %= 1.0
+            m = ~np.all(np.any(np.abs(scaled[np.newaxis,:,:] - 
+                                      sympos[:,np.newaxis,:]) > symprec, 
+                               axis=2), axis=0)
+            assert not np.any((~mask) & m)
+            tags[m] = i
+            mask &= ~m
+            i += 1
+        return tags
+    
 
 def get_datafile():
     """Return default path to datafile."""
