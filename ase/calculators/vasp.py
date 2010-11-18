@@ -111,6 +111,8 @@ int_keys = [
     'nupdown',    # fix spin moment to specified value
     'nwrite',     # verbosity write-flag (how much is written)
     'smass',      # Nose mass-parameter (am)
+    'vdwgr',      # extra keyword for Andris program
+    'vdwrn',      # extra keyword for Andris program
     'voskown',    # use Vosko, Wilk, Nusair interpolation
 ]
 
@@ -565,7 +567,7 @@ class Vasp(Calculator):
             for i,symbol in enumerate(atomtypes):            
                 ldau_luj[symbol] = {'L': int(L[i]), 'U': float(U[i]), 'J': float(J[i])}
             self.dict_params['ldau_luj'] = ldau_luj
-        return ldau, ldau_print, ldautype, ldau_luj
+        return ldau, ldauprint, ldautype, ldau_luj
 
     def calculation_required(self, atoms, quantities):
         if (self.positions is None or 
