@@ -25,16 +25,17 @@ Quick links:
     - :mod:`neb`
   * - :mod:`optimize`
     - :mod:`parallel`
+    - :mod:`phonons`
     - :mod:`structure`
-    - :mod:`~lattice.surface`
-  * - :mod:`units`
+  * - :mod:`~lattice.surface`
+    - :mod:`units`
     - :mod:`utils`
     - :mod:`vibrations`
-    - :mod:`visualize`
-  * - :mod:`vtk`
+  * - :mod:`visualize`
+    - :mod:`vtk`
     - :mod:`transport`
     -
-    -
+
 
 .. seealso::
 
@@ -63,6 +64,7 @@ List of all modules:
    constraints
    neb
    vibrations
+   phonons
    infrared
    md
    dft/dft
