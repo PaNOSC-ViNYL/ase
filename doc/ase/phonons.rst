@@ -8,6 +8,5 @@ You can calculate the vibrational normal modes for a periodic system
 represented by an :class:`~ase.atoms.Atoms` object in the harmonic 
 approximation using the :class:`~ase.phonons.Phonons`.
 
-.. autoclass:: ase.phonons.Phonons
-   :members:
+
 
