@@ -160,7 +160,7 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
     return atoms
 
 def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
-                        C_C=1.42, vacc=5., magnetic=None, initial_mag=1.12,
+                        C_C=1.42, vacc=5.0, magnetic=None, initial_mag=1.12,
                         sheet=False, main_element='C', satur_element='H'):
     """Create a graphene nanoribbon.
 
@@ -192,7 +192,8 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
     """
     #This function creates the coordinates for a graphene nanoribbon,
     #n is width, m is length
-    
+
+    assert vacc > 0
     b = sqrt(3) * C_C / 4
     arm_unit = Atoms(main_element+'4', pbc=(1,0,1),
                      cell = [4 * b,  vacc,  3 * C_C])
@@ -245,6 +246,7 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
             layer.positions[:, 0] -= 4 * b * i
             atoms += layer
         atoms.cell = [b * 4 * n + vacc2, vacc, 3 * C_C * m]
+
     atoms.center()
     atoms.set_pbc([sheet, False, True])
     return atoms
