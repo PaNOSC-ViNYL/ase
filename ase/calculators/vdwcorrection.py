@@ -8,7 +8,7 @@ from ase.units import Bohr, Hartree
 # atomic units, a_0^3
 vdWDB_Chu04jcp = {
     # Element: [alpha, C6]; units [Bohr^3, Hartree * Bohr^6]
-    'H'  : [9/2, 6.5], # [exact, Tkatchenko PRL]
+    'H'  : [4.5, 6.5], # [exact, Tkatchenko PRL]
     'He' : [1.38, 1.42],
     'Li' : [164, 1392],
     'Be' : [38, 227],
