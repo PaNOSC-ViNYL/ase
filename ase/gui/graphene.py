@@ -182,7 +182,7 @@ class SetupGraphene(SetupWindow):
             n = int(self.n.value)
             m = int(self.m.value)
             CC = self.bondlength.value
-            vacuum = self.vacuum.value
+            vacuum = 0.5 * self.vacuum.value
             orient = self.orient_text[self.orient.get_active()]
             elem = self.legal_element
             if self.struct.get_active() == 0:
@@ -200,10 +200,10 @@ class SetupGraphene(SetupWindow):
                 elem2 = self.legal_element2
                 self.atoms = graphene_nanoribbon(n, m, type=orient, C_C=CC,
                                                  C_H=self.bondlength2.value,
-                                                 vacc=vacuum,
+                                                 vacuum=vacuum,
                                                  saturated=True,
                                                  main_element=elem,
-                                                 satur_element=elem2)
+                                                 saturate_element=elem2)
             else:
                 raise RuntimeError("Unknown structure in SetupGraphene!")
         # Now, rotate into the xy plane (ase.gui's default view plane)

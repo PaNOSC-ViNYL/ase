@@ -3,6 +3,7 @@
 This mudule contains helper functions for setting up nanotubes,
 graphene nanoribbons and simple bulk crystals."""
 
+import warnings
 from math import sqrt
 
 import numpy as np
@@ -160,8 +161,9 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
     return atoms
 
 def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
-                        C_C=1.42, vacc=5.0, magnetic=None, initial_mag=1.12,
-                        sheet=False, main_element='C', satur_element='H'):
+                        C_C=1.42, vacuum=2.5, magnetic=None, initial_mag=1.12,
+                        sheet=False, main_element='C', saturate_element='H',
+                        vacc=None):
     """Create a graphene nanoribbon.
 
     Creates a graphene nanoribbon in the x-z plane, with the nanoribbon
@@ -182,7 +184,7 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
 
     C_C: Carbon-carbon bond length.  Default: 1.42 Angstrom.
 
-    vacc:  Amount of vacuum.  Default 5 Angstrom.
+    vacuum:  Amount of vacuum added to both sides.  Default 2.5 Angstrom.
 
     magnetic:  Make the edges magnetic.
 
@@ -193,24 +195,28 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
     #This function creates the coordinates for a graphene nanoribbon,
     #n is width, m is length
 
-    assert vacc > 0
+    if vacc is not None:
+        warnings.warn('Use vacuum=%f' % (0.5 * vacc))
+        vacuum = 0.5 * vacc
+        
+    assert vacuum > 0
     b = sqrt(3) * C_C / 4
     arm_unit = Atoms(main_element+'4', pbc=(1,0,1),
-                     cell = [4 * b,  vacc,  3 * C_C])
+                     cell = [4 * b,  2 * vacuum,  3 * C_C])
     arm_unit.positions = [[0, 0, 0],
                           [b * 2, 0, C_C / 2.],
                           [b * 2, 0, 3 * C_C / 2.],
                           [0, 0, 2 * C_C]]
     zz_unit = Atoms(main_element+'2', pbc=(1,0,1),
-                    cell = [3 * C_C /2., vacc, b * 4])
+                    cell = [3 * C_C /2., 2 * vacuum, b * 4])
     zz_unit.positions = [[0, 0, 0],
                          [C_C / 2., 0, b * 2]]
     atoms = Atoms()   
     tol = 1e-4   
     if sheet:
-        vacc2 = 0.0
+        vacuum2 = 0.0
     else:
-        vacc2 = vacc
+        vacuum2 = vacuum
     if type == 'zigzag':
         edge_index0 = np.arange(m) * 2 + 1
         edge_index1 = (n - 1) * m * 2 + np.arange(m) * 2
@@ -231,21 +237,21 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
         if magnetic:
             atoms.set_initial_magnetic_moments(mms)
         if saturated:
-            H_atoms0 = Atoms(satur_element + str(m))
+            H_atoms0 = Atoms(saturate_element + str(m))
             H_atoms0.positions = atoms[edge_index0].positions
             H_atoms0.positions[:, 0] += C_H
-            H_atoms1 = Atoms(satur_element + str(m))
+            H_atoms1 = Atoms(saturate_element + str(m))
             H_atoms1.positions = atoms[edge_index1].positions
             H_atoms1.positions[:, 0] -= C_H
             atoms += H_atoms0 + H_atoms1
-        atoms.cell = [n * 3 * C_C / 2 + vacc2, vacc, m * 4 * b]
+        atoms.cell = [n * 3 * C_C / 2 + 2 * vacuum2, 2 * vacuum, m * 4 * b]
    
     elif type == 'armchair':
         for i in range(n):
             layer = arm_unit.repeat((1, 1, m))
             layer.positions[:, 0] -= 4 * b * i
             atoms += layer
-        atoms.cell = [b * 4 * n + vacc2, vacc, 3 * C_C * m]
+        atoms.cell = [b * 4 * n + 2 * vacuum2, 2 * vacuum, 3 * C_C * m]
 
     atoms.center()
     atoms.set_pbc([sheet, False, True])
