@@ -182,7 +182,7 @@ class SetupGraphene(SetupWindow):
             n = int(self.n.value)
             m = int(self.m.value)
             CC = self.bondlength.value
-            vacuum = 0.5 * self.vacuum.value
+            vacuum = self.vacuum.value
             orient = self.orient_text[self.orient.get_active()]
             elem = self.legal_element
             if self.struct.get_active() == 0:
