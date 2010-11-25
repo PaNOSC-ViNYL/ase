@@ -1096,7 +1096,8 @@ class Atoms(object):
         R = self.arrays['positions']
         D = R[a1] - R[a0]
         if mic:
-            raise NotImplemented  # XXX
+            Dr = np.linalg.solve(self._cell.T, D)
+            D = np.dot(Dr - np.round(Dr) * self._pbc, self._cell)
         return np.linalg.norm(D)
 
     def set_distance(self, a0, a1, distance, fix=0.5):
