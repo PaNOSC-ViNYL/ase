@@ -365,16 +365,18 @@ class GUI(View, Status):
         
     def zoom(self, action):
         """Zoom in/out on keypress or clicking menu item"""
-        x = {'ZoomIn': 1.2, 'ZoomOut':1 / 1.2}[action.get_name()]
+        SHIFT = event.state == gtk.gdk.SHIFT_MASK
+        x = {'ZoomIn': 1.0 + (1-SHIFT)*0.2 + SHIFT*0.01, 'ZoomOut':1 /(1.0 + (1-SHIFT)*0.2 + SHIFT*0.01)}[action.get_name()]
         self._do_zoom(x)
 
     def scroll_event(self, window, event):
         """Zoom in/out when using mouse wheel"""
+        SHIFT = event.state == gtk.gdk.SHIFT_MASK
         x = 1.0
         if event.direction == gtk.gdk.SCROLL_UP:
-            x = 1.2
+            x = 1.0 + (1-SHIFT)*0.2 + SHIFT*0.01
         elif event.direction == gtk.gdk.SCROLL_DOWN:
-            x = 1.0 / 1.2
+            x = 1.0 / (1.0 + (1-SHIFT)*0.2 + SHIFT*0.01)
         self._do_zoom(x)
 
     def settings(self, menuitem):
@@ -384,8 +386,8 @@ class GUI(View, Status):
         from copy import copy    
         CTRL = event.state == gtk.gdk.CONTROL_MASK
         SHIFT = event.state == gtk.gdk.SHIFT_MASK
-        dxdydz = {gtk.keysyms.KP_Add: ('zoom', 1.2, 0),
-                gtk.keysyms.KP_Subtract: ('zoom', 1 / 1.2, 0),
+        dxdydz = {gtk.keysyms.KP_Add: ('zoom', 1.0 + (1-SHIFT)*0.2 + SHIFT*0.01, 0),
+                gtk.keysyms.KP_Subtract: ('zoom', 1 / (1.0 + (1-SHIFT)*0.2 + SHIFT*0.01), 0),
                 gtk.keysyms.Up:    ( 0, +1 - CTRL, +CTRL),
                 gtk.keysyms.Down:  ( 0, -1 + CTRL, -CTRL),
                 gtk.keysyms.Right: (+1,  0, 0),
@@ -409,9 +411,7 @@ class GUI(View, Status):
         if dx == 'zoom':
             self._do_zoom(dy)
             return
-        if dx == 'zoom':
-            self._do_zoom(dy)
-            return
+
         d = self.scale * 0.1
         tvec = np.array([dx, dy, dz])
 
