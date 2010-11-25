@@ -332,6 +332,10 @@ def write(filename, images, format=None, **kwargs):
         from ase.io.wien2k import write_struct
         write_struct(filename, images, **kwargs)
         return
+    elif format == 'findsym':
+        from ase.io.findsym import write_findsym
+        write_findsym(filename, images)
+        return
 
     format = {'traj': 'trajectory', 'nc': 'netcdf'}.get(format, format)
     name = 'write_' + format

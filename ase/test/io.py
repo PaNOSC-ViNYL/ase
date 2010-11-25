@@ -14,7 +14,7 @@ atoms.set_array("extra", extra)
 atoms *= (1, 1, 2)
 images = [atoms.copy(), atoms.copy()]
 r = ['xyz', 'traj', 'cube', 'pdb', 'cfg', 'struct', 'cif']
-w = r + ['xsf']
+w = r + ['xsf', 'findsym']
 try:
     import matplotlib
 except ImportError:
