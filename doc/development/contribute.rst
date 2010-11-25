@@ -63,6 +63,7 @@ grabow      Lars Grabow             grabow:fysik,dtu,dk
 hahansen    Heine Anton Hansen      hahansen:fysik,dtu,dk
 hanke       Felix Hanke             F,Hanke:liverpool,ac,uk
 jakobb      Jakob Blomquist         jakobb:fysik,dtu,dk
+jber        Jon Bergmann Maronsson  jber:fysik,dtu,dk
 jblomqvist  Janne Blomqvist         Janne,Blomqvist:tkk,fi
 jensj       Jens Jørgen Mortensen   jensj:fysik,dtu,dk
 jesperf     Jesper Friis            jesper,friis:sintef,no
