@@ -273,12 +273,7 @@ class Atoms(object):
 
     def get_reciprocal_cell(self):
         """Get the three reciprocal lattice vectors as a 3x3 ndarray. Note that the commonly used factor of 2 pi for Fourier transforms is not included here."""
-        uc=self._cell.copy()
-        constant=np.dot(uc[0],np.cross(uc[1],uc[2]))
-        rec_unit_cell = np.zeros((3,3),np.float)
-        rec_unit_cell[0] = np.cross(uc[1],uc[2])/constant
-        rec_unit_cell[1] = np.cross(uc[2],uc[0])/constant
-        rec_unit_cell[2] = np.cross(uc[0],uc[1])/constant
+        rec_unit_cell = np.linalg.inv(self.get_cell()).transpose()
         return rec_unit_cell
 
     def set_pbc(self, pbc):
