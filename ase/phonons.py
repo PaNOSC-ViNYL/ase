@@ -41,13 +41,13 @@ class Phonons:
 
     The acoustic sum-rule::
 
-                            _
+                           _ _
                 aj         \    bj    
-               C  (R ) = -  >  C  (R )
-                ai  0      /_   ai  m
-                         (m, b)
-                           !=
-                         (0, a)
+               C  (R ) = -  )  C  (R )
+                ai  0      /__  ai  m
+                          (m, b)
+                            !=
+                          (0, a)
                         
     Ordering of the unit cells illustrated here for a 1-dimensional system:
     
@@ -67,7 +67,7 @@ class Phonons:
     >>> from ase.structure import bulk
     >>> from ase.phonons import Phonons
     >>> from gpaw import GPAW, FermiDirac
-    >>> atoms = bulk('Si2', 'diamond', a=5.4)
+    >>> atoms = bulk('Si', 'diamond', a=5.4)
     >>> calc = GPAW(kpts=(5, 5, 5),
                     h=0.2,
                     occupations=FermiDirac(0.))
@@ -160,6 +160,7 @@ class Phonons:
             if rank == 0:
                 fd = open(filename, 'w')
                 fd.close()
+
             # Calculate forces
             forces = self.atoms_lmn.get_forces()
             # Write forces to file
@@ -178,21 +179,24 @@ class Phonons:
             for i in range(3):
                 for sign in [-1, 1]:
                     # Filename for atomic displacement
-                    filename = ('%s.%d%s%s.pckl' %
-                                (self.name, a, 'xyz'[i], ' +-'[sign]))
-                    # Skip if already being processed
+                    filename = '%s.%d%s%s.pckl' % \
+                               (self.name, a, 'xyz'[i], ' +-'[sign])
+                    # Wait for ranks before checking for file
+                    barrier()                    
                     if isfile(filename):
+                        # Skip if already done
                         continue
                     # Wait for ranks
                     barrier()
                     if rank == 0:
                         fd = open(filename, 'w')
                         fd.close()
+
                     # Update atomic positions and calculate forces
                     self.atoms_lmn.positions[a, i] = \
                         pos[a, i] + sign * self.delta
                     forces = self.atoms_lmn.get_forces()
-                    # Write forces to file                        
+                    # Write forces to file
                     if rank == 0:
                         fd = open(filename, 'w')
                         pickle.dump(forces, fd)
@@ -215,13 +219,15 @@ class Phonons:
                     if isfile(name):
                         remove(name)
         
-    def read(self, method='Frederiksen', acoustic=True):
+    def read(self, method='Frederiksen', symmetrize=True, acoustic=True):
         """Read pickle files and calculate matrix of force constants.
 
         Parameters
         ----------
         method: str
             Specify method for evaluating the atomic forces.
+        symmetrize: bool
+            Make force constants symmetric (see doc string at top).
         acoustic: bool
             Restore the acoustic sum-rule on the force constants.
             
@@ -261,15 +267,17 @@ class Phonons:
 
         # Reshape force constant to (l, m, n) cell indices
         C_lmn = C_m.transpose().copy().reshape(self.N_c + (3*N, 3*N))
-        # Shift reference cell to center
-        C_lmn = fft.fftshift(C_lmn, axes=(0, 1, 2))
-        # Make force constants symmetric in indices -- in case of an even
-        # number of unit cells don't include the first
-        i, j, k = (np.asarray(self.N_c) + 1) % 2
-        C_lmn[i:, j:, k:] *= 0.5
-        C_lmn[i:, j:, k:] += \
-            C_lmn[i:, j:, k:][::-1, ::-1, ::-1].transpose(0, 1, 2, 4, 3).copy()
-        C_lmn = fft.ifftshift(C_lmn, axes=(0, 1, 2))
+
+        if symmetrize:
+            # Shift reference cell to center
+            C_lmn = fft.fftshift(C_lmn, axes=(0, 1, 2))
+            # Make force constants symmetric in indices -- in case of an even
+            # number of unit cells don't include the first
+            i, j, k = np.asarray(self.N_c) % 2 - 1
+            C_lmn[i:, j:, k:] *= 0.5
+            C_lmn[i:, j:, k:] += \
+                      C_lmn[i:, j:, k:][::-1, ::-1, ::-1].transpose(0, 1, 2, 4, 3).copy()
+            C_lmn = fft.ifftshift(C_lmn, axes=(0, 1, 2))
 
         # Change to single unit cell index shape
         C_m = C_lmn.reshape((M, 3*N, 3*N))
