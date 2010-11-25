@@ -22,14 +22,13 @@ for i, a in enumerate([cnt1, cnt2]):
 ind = [2, 0, 1]
 gnr1 = graphene_nanoribbon(3, 4, type='armchair')
 gnr1.set_cell(np.diag(gnr1.cell)[ind])
-gnr1.positions = gnr1.positions[:,ind]
+gnr1.positions = gnr1.positions[:, ind]
 gnr2 = graphene_nanoribbon(2, 6, type='zigzag', saturated=True,
-                            C_H=1.1, C_C=1.4, vacc=6.0, 
-                           magnetic=True,initial_mag=1.12)
+                           C_H=1.1, C_C=1.4, vacuum=3.0, 
+                           magnetic=True, initial_mag=1.12)
 gnr2.set_cell(np.diag(gnr2.cell)[ind])
-gnr2.positions = gnr2.positions[:,ind]
+gnr2.positions = gnr2.positions[:, ind]
 
 for i, a in enumerate([gnr1, gnr2]):
     write('gnr%d.pov' % (i + 1), a,
           show_unit_cell=2, display=False, run_povray=True)
-
