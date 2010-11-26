@@ -16,7 +16,7 @@ fcc111 = Atoms(symbols='Cu',
 slab = fcc111 * (2, 2, 4)
 slab.set_cell([2 * d, d * sqrt(3), 1])
 slab.set_pbc((1, 1, 0))
-slab.set_calculator(EMT())
+slab.calc = EMT()
 Z = slab.get_positions()[:, 2]
 indices = [i for i, z in enumerate(Z) if z < Z.mean()]
 constraint = FixAtoms(indices=indices)
@@ -42,7 +42,7 @@ images = [slab]
 for i in range(6):
     image = slab.copy()
     image.set_constraint(constraint)
-    image.set_calculator(EMT())
+    image.calc = EMT()
     images.append(image)
 image[-2].position = image[-1].position
 image[-1].x = d

@@ -15,6 +15,7 @@ from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 import ase.units as units
 
+
 class Atoms(object):
     """Atoms object.
     
@@ -201,12 +202,18 @@ class Atoms(object):
             calc = OldASECalculatorWrapper(calc, self)
         if hasattr(calc, 'set_atoms'):
             calc.set_atoms(self)
-        self.calc = calc
+        self._calc = calc
 
     def get_calculator(self):
         """Get currently attached calculator object."""
-        return self.calc
+        return self._calc
 
+    def _del_calculator(self):
+        self._calc = None
+
+    calc = property(get_calculator, set_calculator, _del_calculator,
+                    doc='Calculator object.')
+    
     def set_constraint(self, constraint=None):
         """Apply one or more constrains.
 
@@ -452,19 +459,19 @@ class Atoms(object):
 
     def get_magnetic_moments(self):
         """Get calculated local magnetic moments."""
-        if self.calc is None:
+        if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
-        if self.calc.get_spin_polarized():
-            return self.calc.get_magnetic_moments(self)
+        if self._calc.get_spin_polarized():
+            return self._calc.get_magnetic_moments(self)
         else:
             return np.zeros(len(self))
         
     def get_magnetic_moment(self):
         """Get calculated total magnetic moment."""
-        if self.calc is None:
+        if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
-        if self.calc.get_spin_polarized():
-            return self.calc.get_magnetic_moment(self)
+        if self._calc.get_spin_polarized():
+            return self._calc.get_magnetic_moment(self)
         else:
             return 0.0
 
@@ -504,9 +511,9 @@ class Atoms(object):
 
     def get_potential_energy(self):
         """Calculate potential energy."""
-        if self.calc is None:
+        if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
-        return self.calc.get_potential_energy(self)
+        return self._calc.get_potential_energy(self)
 
     def get_potential_energies(self):
         """Calculate the potential energies of all the atoms.
@@ -514,9 +521,9 @@ class Atoms(object):
         Only available with calculators supporting per-atom energies
         (e.g. classical potentials).
         """
-        if self.calc is None:
+        if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
-        return self.calc.get_potential_energies(self)
+        return self._calc.get_potential_energies(self)
 
     def get_kinetic_energy(self):
         """Get the kinetic energy."""
@@ -546,9 +553,9 @@ class Atoms(object):
         constraints.  Use *apply_constraint=False* to get the raw
         forces."""
 
-        if self.calc is None:
+        if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
-        forces = self.calc.get_forces(self)
+        forces = self._calc.get_forces(self)
         if apply_constraint:
             for constraint in self.constraints:
                 constraint.adjust_forces(self.arrays['positions'], forces)
@@ -561,9 +568,9 @@ class Atoms(object):
         symmetric stress tensor, in the traditional order
         (s_xx, s_yy, s_zz, s_yz, s_xz, s_xy).
         """
-        if self.calc is None:
+        if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
-        stress = self.calc.get_stress(self)
+        stress = self._calc.get_stress(self)
         shape = getattr(stress, "shape", None)
         if shape == (3,3):
             return np.array([stress[0,0], stress[1,1], stress[2,2],
@@ -580,20 +587,23 @@ class Atoms(object):
         stresses (e.g. classical potentials).  Even for such calculators
         there is a certain arbitrariness in defining per-atom stresses.
         """
-        if self.calc is None:
+        if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
-        return self.calc.get_stresses(self)
+        return self._calc.get_stresses(self)
 
     def get_dipole_moment(self):
         """Calculate the electric dipole moment for the atoms object.
 
-        Only available for calculators which has a get_dipole_moment() method."""
-        if self.calc is None:
+        Only available for calculators which has a get_dipole_moment()
+        method."""
+        
+        if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
         try:
-            dipole = self.calc.get_dipole_moment(self)
+            dipole = self._calc.get_dipole_moment(self)
         except AttributeError:
-            raise AttributeError('Calculator object has no get_dipole_moment method.')
+            raise AttributeError(
+                'Calculator object has no get_dipole_moment method.')
         return dipole
     
     def copy(self):
@@ -641,8 +651,8 @@ class Atoms(object):
             s += 'constraint=%s, ' % repr(self.constraints[0])
         if len(self.constraints) > 1:
             s += 'constraint=%s, ' % repr(self.constraints)
-        if self.calc is not None:
-            s += 'calculator=%s(...), ' % self.calc.__class__.__name__
+        if self._calc is not None:
+            s += 'calculator=%s(...), ' % self._calc.__class__.__name__
         return s[:-2] + ')'
 
     def __add__(self, other):
