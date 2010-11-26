@@ -42,7 +42,7 @@ class Movie(gtk.Window):
         stop.connect('clicked', self.stop)
 
         self.rock = pack(vbox, gtk.CheckButton('Rock'))
-        self.time = gtk.Adjustment(24, 1, 300, 1)
+        self.time = gtk.Adjustment(10, 1, 300, 1)
         hscale = pack(vbox, gtk.HScale(self.time))
         hscale.set_update_policy(gtk.UPDATE_DISCONTINUOUS)
         hscale.set_digits(0)
