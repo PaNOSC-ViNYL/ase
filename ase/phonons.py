@@ -77,7 +77,7 @@ class Phonons:
 
     """
 
-    def __init__(self, atoms, calc, supercell=(1, 1, 1), name='phonon',
+    def __init__(self, atoms, calc=None, supercell=(1, 1, 1), name='phonon',
                  delta=0.01):
         """Init with an instance of class ``Atoms`` and a calculator.
 
@@ -96,12 +96,13 @@ class Phonons:
             Magnitude of displacements.
 
         """
-        
+
         self.atoms = atoms
+        self.calc = calc
         # Atoms in the supercell -- repeated in the lattice vector directions
         # beginning with the last
         self.atoms_lmn = atoms * supercell
-        self.atoms_lmn.set_calculator(calc)
+
         # Vibrate all atoms in small unit cell by default
         self.indices = range(len(atoms))
         self.name = name
@@ -150,6 +151,10 @@ class Phonons:
 
         """
 
+        # Set calculator if provided
+        assert self.calc is not None, "Provide calculator in __init__ method"
+        self.atoms_lmn.set_calculator(self.calc)
+        
         # Calculate forces in equilibrium structure
         filename = self.name + '.eq.pckl'
         
