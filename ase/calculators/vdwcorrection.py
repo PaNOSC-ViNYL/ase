@@ -27,6 +27,8 @@ vdWDB_Chu04jcp = {
     'Kr' : [16.7, 130],
 }
 
+# C6 values and vdW radii from 
+# S. Grimme, J Comput Chem 27 (2006) 1787-1799
 vdWDB_Grimme06jcc = {
     # Element: [C6, R0]; units [J nm^6 mol^{-1}, Angstrom]
     'H'  : [0.14, 1.001],
@@ -83,19 +85,29 @@ class vdWTkatchenko09prl:
     calculator: the calculator to get the PBE energy
     missing: Missing elements do not contribute to the vdW-Energy by default
     """
-    def __init__(self, hirshfeld=None, calculator=None, missing='zero'):
+    def __init__(self, hirshfeld=None, vdwradii=None, calculator=None,
+                 missing='zero'):
         self.hirshfeld = hirshfeld
         if calculator is None:
             self.calculator = self.hirshfeld.get_calculator()
         else:
             self.calculator = calculator
+        self.vdwradii = vdwradii
         self.missing = missing
 
     def update(self, atoms=None):
         if atoms is None:
             atoms = self.calculator.get_atoms()
         assert not atoms.get_pbc().any()
-
+        if self.vdwradii is not None:
+            # external vdW radii
+            vdwradii = self.vdwradii
+            assert(len(atoms) == len(vdwradii))
+        else:
+            vdwradii = []
+            for atom in atoms:
+                self.vdwradii.append(vdWDB_Grimme06jcc[stom.symbol][1])
+ 
         if self.hirshfeld == None:
             volume_ratios = [1.] * len(atoms)
         else:
@@ -111,6 +123,7 @@ class vdWTkatchenko09prl:
                 alphaA, C6AA = vdWDB_Chu04jcp[symbols[i1]]
                 # correction for effective C6
                 C6AA *= Hartree * volume_ratios[i1]**2 * Bohr**6
+                R0A = vdwradii[i1] * volume_ratios[i1]**(1./3.)
 
                 for i2 in indicees[i1 + 1:]:
                     p2 = positions[i2]
@@ -119,6 +132,7 @@ class vdWTkatchenko09prl:
                         alphaB, C6BB = vdWDB_Chu04jcp[symbols[i2]]
                         # correction for effective C6
                         C6BB *= Hartree * volume_ratios[i2]**2 * Bohr**6
+                        R0B = vdwradii[i2] * volume_ratios[i2]**(1./3.)
 
                         C6AB = (2 * C6AA * C6BB /
                                 (alphaB / alphaA * C6AA +
@@ -127,7 +141,7 @@ class vdWTkatchenko09prl:
                         diff = p2 - p1
                         r2 = np.dot(diff, diff) 
                         EvdW -= (self.damping(np.sqrt(r2),
-                                              symbols[i1], symbols[i2]) *
+                                              R0A, R0B    ) *
                                  C6AB / r2 / r2 /r2)
 
             elif self.missing != 'zero':
@@ -136,7 +150,7 @@ class vdWTkatchenko09prl:
 
         self.energy += EvdW
         
-    def damping(self, RAB, symbolA, symbolB,
+    def damping(self, RAB, R0A, R0B,
                 d = 20,   # steepness of the step function
                 sR = 0.94 # for PBE
                 ):
@@ -144,10 +158,7 @@ class vdWTkatchenko09prl:
 
         Standard values for d and sR as given in 
         Tkatchenko and Scheffler PRL 102 (2009) 073005."""
-        # XXX use nonempirical radii
-        RA0 = vdWDB_Grimme06jcc[symbolA][1]
-        RB0 = vdWDB_Grimme06jcc[symbolB][1]
-        x = RAB / (sR * (RA0 + RB0))
+        x = RAB / (sR * (R0A + R0B))
         return 1.0 / (1.0 + np.exp(-d * (x - 1.0)))
  
     def get_potential_energy(self, atoms=None):
