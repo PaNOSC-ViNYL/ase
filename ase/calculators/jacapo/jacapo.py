@@ -325,8 +325,12 @@ class Jacapo:
                     continue
 
             log.debug('setting: %s. self.ready = False ' % key)
-            
-            self.pars[key] = kwargs[key]
+
+            # psp's are not stored in self.pars, everything else is
+            if key == 'psp':
+                self.psp[kwargs[key]['sym']] = kwargs[key]['psp']
+            else:
+                self.pars[key] = kwargs[key]
             self.pars_uptodate[key] = False
             self.ready = False
             log.debug('exiting set function')
