@@ -275,14 +275,14 @@ class Phonons:
 
         if symmetrize:
             # Shift reference cell to center
-            C_lmn = fft.fftshift(C_lmn, axes=(0, 1, 2))
+            C_lmn = fft.fftshift(C_lmn, axes=(0, 1, 2)).copy()
             # Make force constants symmetric in indices -- in case of an even
             # number of unit cells don't include the first
             i, j, k = np.asarray(self.N_c) % 2 - 1
             C_lmn[i:, j:, k:] *= 0.5
             C_lmn[i:, j:, k:] += \
                       C_lmn[i:, j:, k:][::-1, ::-1, ::-1].transpose(0, 1, 2, 4, 3).copy()
-            C_lmn = fft.ifftshift(C_lmn, axes=(0, 1, 2))
+            C_lmn = fft.ifftshift(C_lmn, axes=(0, 1, 2)).copy()
 
         # Change to single unit cell index shape
         C_m = C_lmn.reshape((M, 3*N, 3*N))
@@ -362,13 +362,13 @@ class Phonons:
             D_q = np.sum(phase_m[:, np.newaxis, np.newaxis] * self.D_m, axis=0)
 
             if modes:
-                omega2_n, u_avn = la.eigh(D_q, UPLO='L')
+                omega2_n, u_avn = la.eigh(D_q, UPLO='U')
                 # Sort eigenmodes according to eigenvalues (see below) and 
                 # multiply with mass prefactor
                 u_nav = self.m_inv * u_avn[:, omega2_n.argsort()].T.copy()
-                u_kn.append(u_nav.reshape((-1, 3)))
+                u_kn.append(u_nav.reshape((-1, len(self.indices), 3)))
             else:
-                omega2_n = la.eigvalsh(D_q, UPLO='L')
+                omega2_n = la.eigvalsh(D_q, UPLO='U')
 
             # Sort eigenvalues in increasing order
             omega2_n.sort()
@@ -425,7 +425,7 @@ class Phonons:
 
         # Calculate modes
         omega_n, u_n = self.band_structure([q_c], modes=True)
-        
+
         # Repeat atoms
         atoms = self.atoms * repeat
         # Here ma refers to a composite unit cell/atom dimension
@@ -443,6 +443,7 @@ class Phonons:
             
             omega = omega_n[0, n]
             u_av = u_n[0, n]
+
             # Mean displacement of a classical oscillator at temperature T
             u_av *= sqrt(kT) / abs(omega)
 
@@ -451,7 +452,7 @@ class Phonons:
             mode_av[self.indices] = u_av
             # Repeat and multiply by Bloch phase factor
             mode_mav = (np.vstack([mode_av]*M) * phase_ma[:, np.newaxis]).real
-
+            
             traj = PickleTrajectory('%s.mode.%d.traj' % (self.name, n), 'w')
             
             for x in np.linspace(0, 2*pi, nimages, endpoint=False):
