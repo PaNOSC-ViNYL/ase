@@ -13,7 +13,7 @@ extra = np.array([ 2.3, 4.2 ])
 atoms.set_array("extra", extra)
 atoms *= (1, 1, 2)
 images = [atoms.copy(), atoms.copy()]
-r = ['xyz', 'traj', 'cube', 'pdb', 'cfg', 'struct', 'cif']
+r = ['xyz', 'traj', 'cube', 'pdb', 'cfg', 'struct', 'cif', 'etsf']
 w = r + ['xsf', 'findsym']
 try:
     import matplotlib
@@ -27,7 +27,7 @@ for format in w:
     fname1 = 'io-test.1.' + format
     fname2 = 'io-test.2.' + format
     write(fname1, atoms, format=format)
-    if format not in ['cube', 'png', 'eps', 'cfg', 'struct']:
+    if format not in ['cube', 'png', 'eps', 'cfg', 'struct', 'etsf']:
         write(fname2, images, format=format)
 
     if format in r:
@@ -40,7 +40,7 @@ for format in w:
         if format in ['cfg']:
             assert np.all(np.abs(a1.get_array('extra') -
                                  atoms.get_array('extra')) < 1e-6)
-        if format not in ['cube', 'png', 'eps', 'cfg', 'struct']:
+        if format not in ['cube', 'png', 'eps', 'cfg', 'struct', 'etsf']:
             a2 = read(fname2)
             a3 = read(fname2, index=0)
             a4 = read(fname2, index=slice(None))

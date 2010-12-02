@@ -53,6 +53,7 @@ def read(filename, index=-1, format=None):
     AtomEye configuration      cfg
     WIEN2k structure file      struct
     DftbPlus input file        dftb
+    ETSF format                etsf.nc
     =========================  ===========
 
     """
@@ -197,6 +198,10 @@ def read(filename, index=-1, format=None):
         from ase.io.sdf import read_sdf
         return read_sdf(filename)
 
+    if format == 'etsf':
+        from ase.io.etsf import ETSFReader
+        return ETSFReader(filename).read_atoms()
+
     raise RuntimeError('File format descriptor '+format+' not recognized!')
 
 
@@ -237,6 +242,7 @@ def write(filename, images, format=None, **kwargs):
     AtomEye configuration      cfg
     WIEN2k structure file      struct
     DftbPlus input file        dftb
+    ETSF                       etsf.nc
     =========================  ===========
   
     The use of additional keywords is format specific.
@@ -296,6 +302,8 @@ def write(filename, images, format=None, **kwargs):
             format = 'vasp'
         elif 'OUTCAR' in filename:
             format = 'vasp_out'
+        elif filename.endswith('etsf.nc'):
+            format = 'etsf'
         else:
             suffix = filename.split('.')[-1]
             format = {}.get(suffix, suffix) # XXX this does not make sense
@@ -335,6 +343,14 @@ def write(filename, images, format=None, **kwargs):
     elif format == 'findsym':
         from ase.io.findsym import write_findsym
         write_findsym(filename, images)
+        return
+    elif format == 'etsf':
+        from ase.io.etsf import ETSFWriter
+        writer = ETSFWriter(filename)
+        if not isinstance(images, (list, tuple)):
+            images = [images]
+        writer.write_atoms(images[0])
+        writer.close()
         return
 
     format = {'traj': 'trajectory', 'nc': 'netcdf'}.get(format, format)
@@ -390,6 +406,8 @@ def filetype(filename):
             return 'nc'
         if history == 'Dacapo':
             return 'dacapo'
+        if hasattr(nc, 'file_format') and nc.file_format.startswith('ETSF'):
+            return 'etsf'
         raise IOError('Unknown netCDF file!')
 
     
