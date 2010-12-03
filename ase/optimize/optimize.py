@@ -124,6 +124,9 @@ class Optimizer(Dynamics):
         """Did the optimization converge?"""
         if forces is None:
             forces = self.atoms.get_forces()
+        if hasattr(self.atoms, 'get_curvature'):
+            return (forces**2).sum(axis=1).max() < self.fmax**2 and \
+                   self.atoms.get_curvature() < 0.0
         return (forces**2).sum(axis=1).max() < self.fmax**2
 
     def log(self, forces):
