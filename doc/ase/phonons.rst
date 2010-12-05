@@ -3,10 +3,10 @@
 Phonon calculations
 -------------------
 
-This is the first piece of documentation for the new phonon module.  You can
-calculate the vibrational normal modes for periodic systems represented by an
-:class:`~ase.atoms.Atoms` object in the harmonic approximation using the
-:class:`~ase.phonons.Phonons` class.
+Module for calculating vibrational normal modes for periodic systems using the
+so-called small displacement method. So far, space-group symmetries are not
+exploited to reduce the number of elements in the matrix of force constants that
+must be calculated.
 
 
 Example
@@ -27,7 +27,7 @@ using a 7x7x7 supercell within effective medium theory::
   # Phonon calculator
   N = 7
   ph = Phonons(atoms, calc, supercell=(N, N, N))
-  # ph.run()
+  ph.run()
   
   # Read forces and assemble the dynamical matrix
   ph.read(acoustic=True)
