@@ -1,7 +1,7 @@
 import sys
 
 import gtk
-
+import numpy as np
 
 class Debug(gtk.Window):
     def __init__(self, gui):

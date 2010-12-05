@@ -114,6 +114,9 @@ class Render(gtk.Window):
         self.movie.set_sensitive(self.nimages > 1)
         self.set_outputname()
         pack(vbox,[self.single_frame,gtk.Label("   "),self.movie])
+        self.transparent = gtk.CheckButton("Transparent background")
+        self.transparent.set_active(True)
+        pack(vbox,[self.transparent])
         self.run_povray = gtk.CheckButton("Run povray       ")
         self.run_povray.set_active(True)
         self.run_povray.connect("toggled",self.toggle_run_povray,"")
@@ -265,6 +268,7 @@ class Render(gtk.Window):
                            'rotation'       : self.gui.axes, 
                            'show_unit_cell' : self.render_cell.get_active(),
                            'display'        : self.window_open.get_active(),
+                           'transparent'    : self.transparent.get_active(),
                            'camera_type'    : self.cameras[self.camera_style.get_active()],
                            'camera_dist'    : self.camera_distance.get_value(),
                            'canvas_width'   : self.width.get_value(),
