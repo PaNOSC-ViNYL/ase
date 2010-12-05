@@ -13,12 +13,12 @@ replaces the old Dacapo interface using Numeric python and ASE2.
 The code was originally developed by John Kitchin and detailed documentation
 as well as many examples are available online:
 
-http://beowulf.cheme.cmu.edu/jacapo/index.html
+http://gilgamesh.cheme.cmu.edu/doc/software/jacapo/index.html
 
 Jacapo is included as an optional calculator in ASE and small differences to the
 above documentation may occur.
 
-.. _Jacapo: http://beowulf.cheme.cmu.edu/jacapo/index.html
+.. _Jacapo: http://gilgamesh.cheme.cmu.edu/doc/software/jacapo/index.html
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
 
 Jacapo Calculator
