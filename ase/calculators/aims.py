@@ -16,6 +16,7 @@ import ase
 float_keys = [
     'charge',
     'charge_mix_param',
+    'default_initial_moment',
     'hartree_convergence_parameter',
     'ini_linear_mix_param',
     'ini_spin_mix_parma',
