@@ -102,7 +102,7 @@ class Phonons:
         # Atoms in the supercell -- repeated in the lattice vector directions
         # beginning with the last
         self.atoms_lmn = atoms * supercell
-
+        
         # Vibrate all atoms in small unit cell by default
         self.indices = range(len(atoms))
         self.name = name
@@ -428,6 +428,8 @@ class Phonons:
 
         # Repeat atoms
         atoms = self.atoms * repeat
+        atoms.center()
+        
         # Here ma refers to a composite unit cell/atom dimension
         pos_mav = atoms.get_positions()
         # Total number of unit cells
