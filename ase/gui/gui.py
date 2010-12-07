@@ -365,8 +365,7 @@ class GUI(View, Status):
         
     def zoom(self, action):
         """Zoom in/out on keypress or clicking menu item"""
-        SHIFT = event.state == gtk.gdk.SHIFT_MASK
-        x = {'ZoomIn': 1.0 + (1-SHIFT)*0.2 + SHIFT*0.01, 'ZoomOut':1 /(1.0 + (1-SHIFT)*0.2 + SHIFT*0.01)}[action.get_name()]
+        x = {'ZoomIn': 1.2, 'ZoomOut':1 /1.2}[action.get_name()]
         self._do_zoom(x)
 
     def scroll_event(self, window, event):
