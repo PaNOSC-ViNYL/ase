@@ -42,8 +42,8 @@ class DimerEigenmodeSearch:
     This class implements the rotational part of the dimer saddle point
     searching method.
 
-    Parameters
-    ----------
+    Parameters:
+
     atoms : MinModeAtoms object
         MinModeAtoms is an extension to the Atoms object, which includes
         information about the lowest eigenvalue mode.
@@ -56,16 +56,16 @@ class DimerEigenmodeSearch:
         It is possible to constrain the eigenmodes to be orthogonal
         to this given eigenmode.
 
-    Notes
-    -----
+    Notes:
+
     The code is inspired, with permission, by code written by the Henkelman
     group, which can be found at http://theory.cm.utexas.edu/vtsttools/code/
 
-    References
-    ----------
+    References:
+
     .. [1] Henkelman and Jonsson, JCP 111, 7010 (1999)
     .. [2] Olsen, Kroes, Henkelman, Arnaldsson, and Jonsson, JCP 121,
-    9776 (2004).
+           9776 (2004).
     .. [3] Heyden, Bell, and Keil, JCP 123, 224101 (2005).
     .. [4] Kastner and Sherwood, JCP 128, 014106 (2008).
 
@@ -389,47 +389,56 @@ class MinModeControl:
 class DimerControl(MinModeControl):
     """A class that takes care of the parameters needed for a Dimer search.
 
-    *parameters*
-    ------------
-    eigenmode_method: The name of the eigenmode search method. (string)
-    f_rot_min: Size of the rotational force under which no rotation
-               will be performed. (float)
-    f_rot_max: Size of the rotational force under which only one rotation
-               will be performed. (float)
-    max_num_rot: Maximum number of rotations per optimizer step. (int)
-    trial_angle: Trial angle for the finite difference estimate
-                 of the rotational angle. (float in rad)
-    trial_trans_step: Trial step size for the MinModeTranslate
-                      optimizer. (float)
-    maximum_translation: Maximum step size and forced step size when the
-                         curvature is still positive for the
-                         MinModeTranslate optimizer. (float)
-    cg_translation: Conjugate Gradient for the MinModeTranslate
-                    optimizer. (bool)
-    cg_rotation: Conjugate Gradient for the rotations.
-                 Not yet implemented. (bool)
-    use_central_forces: Only calculate the forces at one end of the dimer
-                        and extrapolate the forces to the other. (bool)
-    dimer_separation: Separation of the dimer's images (float)
-    initial_eigenmode_method: How to construct the initial eigenmode of
-                                the dimer. If an eigenmode is given when
-                                creating the MinModeAtoms object, this will
-                                be ignored. ('gauss', 'displacement')
-    extrapolate_forces: When more than one rotation is performed, an
-                        extrapolation scheme can be used to reduce the
-                        number of force evaluations. (bool)
-    displacement_method: How to displace the atoms. ('gauss' or 'vector')
-    gauss_std: The standard deviation of the gauss curve used when
-               doing random displacement. (float)
-    order: How many lowest eigenmodes will be inverted. (int)
-    mask: Which atoms will be moved during displacement. (list of bools)
-    displacement_center: The center of displacement, nearby atoms will
-                         be displaced. (int or [float, float, float])
-    displacement_radius: When choosing which atoms to displace with the
-                         *displacement_center* keyword, this decides how
-                         many nearby atoms to displace. (float)
-    number_of_displacement_atoms: The amount of atoms near
-                                  *displacement_center* to displace. (int)
+    Parameters:
+
+    eigenmode_method: str
+        The name of the eigenmode search method.
+    f_rot_min: float
+        Size of the rotational force under which no rotation will be
+        performed.
+    f_rot_max: float
+        Size of the rotational force under which only one rotation will be
+        performed.
+    max_num_rot: int
+        Maximum number of rotations per optimizer step.
+    trial_angle: float
+        Trial angle for the finite difference estimate of the rotational
+        angle in radians.
+    trial_trans_step: float
+        Trial step size for the MinModeTranslate optimizer.
+    maximum_translation: float
+        Maximum step size and forced step size when the curvature is still
+        positive for the MinModeTranslate optimizer.
+    cg_translation: bool
+        Conjugate Gradient for the MinModeTranslate optimizer.
+    use_central_forces: bool
+        Only calculate the forces at one end of the dimer and extrapolate
+        the forces to the other.
+    dimer_separation: float
+        Separation of the dimer's images.
+    initial_eigenmode_method: str
+        How to construct the initial eigenmode of the dimer. If an eigenmode
+        is given when creating the MinModeAtoms object, this will be ignored.
+        Possible choices are: 'gauss' and 'displacement'
+    extrapolate_forces: bool
+        When more than one rotation is performed, an extrapolation scheme can
+        be used to reduce the number of force evaluations.
+    displacement_method: str
+        How to displace the atoms. Possible choices are 'gauss' and 'vector'.
+    gauss_std: float
+        The standard deviation of the gauss curve used when doing random
+        displacement.
+    order: int
+        How many lowest eigenmodes will be inverted.
+    mask: list of bool
+        Which atoms will be moved during displacement.
+    displacement_center: int or [float, float, float]
+        The center of displacement, nearby atoms will be displaced.
+    displacement_radius: float
+        When choosing which atoms to displace with the *displacement_center*
+        keyword, this decides how many nearby atoms to displace.
+    number_of_displacement_atoms: int
+        The amount of atoms near *displacement_center* to displace.
 
     """
     # Default parameters for the Dimer eigenmode search
@@ -441,7 +450,6 @@ class DimerControl(MinModeControl):
                   'trial_trans_step': 0.001,
                   'maximum_translation': 0.1,
                   'cg_translation': True,
-                  'cg_rotation': True, # NYI
                   'use_central_forces': True,
                   'dimer_separation': 0.0001,
                   'initial_eigenmode_method': 'gauss',
@@ -487,22 +495,22 @@ class MinModeAtoms:
     along the eigenmode estimate. This eventually brings the system to
     a saddle point.
 
-    Parameters
-    ----------
+    Parameters:
+
     atoms : Atoms object
         A regular Atoms object
     control : MinModeControl object
         Contains the parameters necessary for the eigenmode search.
         If no control object is supplied a default DimerControl
         will be created and used.
-    mask: A list of booleans as long as the number of atoms
+    mask: list of bool
         Determines which atoms will be moved when calling displace()
 
-    References
-    ----------
+    References:
+
     .. [1] Henkelman and Jonsson, JCP 111, 7010 (1999)
     .. [2] Olsen, Kroes, Henkelman, Arnaldsson, and Jonsson, JCP 121,
-    9776 (2004).
+           9776 (2004).
     .. [3] Heyden, Bell, and Keil, JCP 123, 224101 (2005).
     .. [4] Kastner and Sherwood, JCP 128, 014106 (2008).
 
