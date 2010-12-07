@@ -4,9 +4,15 @@ Phonon calculations
 -------------------
 
 Module for calculating vibrational normal modes for periodic systems using the
-so-called small displacement method. So far, space-group symmetries are not
-exploited to reduce the number of elements in the matrix of force constants that
-must be calculated.
+so-called small displacement method (see e.g. [Alfe]_). So far, space-group
+symmetries are not exploited to reduce the number of atomic displacements that
+must be calculated and subsequent symmetrization of the force constants.
+
+For polar materials the dynamical matrix at the zone center acquires a
+non-analytical contribution that accounts for the LO-TO splitting. This
+contribution requires additional functionality to evaluate and is not included
+in the present implementation. Its implementation in conjunction with the small
+displacement method is described in [Wang]_.
 
 
 Example
@@ -26,7 +32,7 @@ using a 7x7x7 supercell within effective medium theory::
   
   # Phonon calculator
   N = 7
-  ph = Phonons(atoms, calc, supercell=(N, N, N))
+  ph = Phonons(atoms, calc, supercell=(N, N, N), delta=0.05)
   ph.run()
   
   # Read forces and assemble the dynamical matrix
@@ -39,11 +45,11 @@ using a 7x7x7 supercell within effective medium theory::
   W = points['W']
   K = points['K']
   L = points['L']
-  
-  point_names = ['$\Gamma$', 'K', 'X', '$\Gamma$', 'L', 'X', 'W', 'L']    
-  path = [G, K, X, G, L, X, W, L]
-  
-  path_kc, q, Q = get_bandpath(path, atoms.cell, 100)
+
+  point_names = ['$\Gamma$', 'X', 'U', 'L', '$\Gamma$', 'K']
+  path = [G, X, U, L, G, K]
+
+  # Band-structure in meV
   omega_kn = 1000 * ph.band_structure(path_kc)
 
   import pylab as plt
@@ -57,6 +63,19 @@ using a 7x7x7 supercell within effective medium theory::
   plt.ylabel("Frequency ($\mathrm{meV}$)", fontsize=22)
   plt.grid('on')
   plt.show()
+
+.. image:: Al_phonon.png
+
+Subsequent inspection of eigenmodes using ag::
   
   # Write modes for specific q-vector to trajectory files  
-  ph.write_modes(K, branches=[0,1,2], repeat=(5, 5, 5))
+  ph.write_modes(L, branches=[2], repeat=(5, 5, 5), kT=2e-4)
+
+.. image:: Al_mode.gif
+
+
+.. [Alfe] D. Alfe, PHON: A program to calculate phonons using the small
+          displacement method, Comput. Phys. Commun. 180, 2622 (2009)
+.. [Wang] Y. Wang *et al.*, A mixed-space approach to first-principles
+          calculations of phonon frequencies for polar materials, J. Phys.:
+          Cond. Matter 22, 202201 (2010)
