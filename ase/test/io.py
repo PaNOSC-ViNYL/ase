@@ -1,6 +1,9 @@
+import string
+
 import numpy as np
 from ase import Atoms
 from ase.io import write, read
+from ase.test import NotAvailable
 
 a = 5.0
 d = 1.9
@@ -13,7 +16,19 @@ extra = np.array([ 2.3, 4.2 ])
 atoms.set_array("extra", extra)
 atoms *= (1, 1, 2)
 images = [atoms.copy(), atoms.copy()]
-r = ['xyz', 'traj', 'cube', 'pdb', 'cfg', 'struct', 'cif', 'etsf']
+r = ['xyz', 'traj', 'cube', 'pdb', 'cfg', 'struct', 'cif']
+try:
+    import Scientific
+    version = string.split(Scientific.__version__,".")
+    print 'Found ScientificPython version: ',Scientific.__version__
+    if map(int,version) < [2,8]:
+        print 'ScientificPython 2.8 or greater required for numpy support in NetCDF'
+        raise NotAvailable('ScientificPython version 2.8 or greater is required')
+except (ImportError, NotAvailable):
+    print "No Scientific python found. Check your PYTHONPATH"
+    raise NotAvailable('ScientificPython version 2.8 or greater is required')
+else:
+    r += ['etsf']
 w = r + ['xsf', 'findsym']
 try:
     import matplotlib
@@ -21,7 +36,7 @@ except ImportError:
     pass
 else:
     w += ['png', 'eps']
-    
+
 for format in w:
     print format, 'O',
     fname1 = 'io-test.1.' + format
