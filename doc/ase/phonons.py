@@ -34,6 +34,8 @@ path_kc, q, Q = get_bandpath(path, atoms.cell, 100)
 omega_kn = 1000 * ph.band_structure(path_kc)
 
 # Plot phonon dispersion
+import matplotlib
+matplotlib.use('Agg')
 import pylab as plt
 
 for n in range(len(omega_kn[0])):
