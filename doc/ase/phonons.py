@@ -16,7 +16,6 @@ ph.run()
 
 # Read forces and assemble the dynamical matrix
 ph.read(acoustic=True)
-# ph.clean()
 
 # High-symmetry points in the Brillouin zone
 points = ibz_points['fcc']
@@ -49,7 +48,6 @@ plt.ylabel("Frequency ($\mathrm{meV}$)", fontsize=22)
 plt.grid('on')
 plt.savefig('Al_phonon.png')
 
-
 # Write modes for specific q-vector to trajectory files
 ph.write_modes(L, branches=[2], repeat=(5, 5, 5), kT=2e-4)
 
@@ -61,10 +59,14 @@ trajfile = 'phonon.mode.2.traj'
 trajectory = PickleTrajectory(trajfile, 'r')
 
 for i, atoms in enumerate(trajectory):
-    write('picture%02i.png' %i, atoms, show_unit_cell=2, rotation='-36x,26.5y,-25z')
+    write('picture%02i.png' %i, atoms, show_unit_cell=2,
+          rotation='-36x,26.5y,-25z')
+    # Flatten images for better quality
+    call(['convert', '-flatten', 'picture%02i.png' %i, 'picture%02i.png' %i])
 
-call(['mplayer', '-vo', 'gif89a:fps=10.0:output=Al_mode.gif',
-      '-mf', 'w=512:h=512:type=png:fps=10.0', 'mf://picture*.png'])
+# Concatenate to gif animation
+call(['convert', '-delay', '5', '-loop', '0', '-dispose', 'Previous', 'picture*.png',
+      'Al_mode.gif'])
 
 
 
