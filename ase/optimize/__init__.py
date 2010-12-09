@@ -8,5 +8,4 @@ from ase.optimize.lbfgs import LBFGS, LBFGSLineSearch
 from ase.optimize.bfgslinesearch import BFGSLineSearch
 from ase.optimize.bfgs import BFGS
 
-QuasiNewton = BFGS
-
+QuasiNewton = BFGSLineSearch
