@@ -71,7 +71,7 @@ Subsequent inspection of eigenmodes using ag::
   # Write modes for specific q-vector to trajectory files  
   ph.write_modes(L, branches=[2], repeat=(5, 5, 5), kT=2e-4)
 
-.. image:: Al_mode.gif
+.. image:: Al_mode.*
 
 
 .. [Alfe] D. Alfe, PHON: A program to calculate phonons using the small

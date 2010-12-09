@@ -1,4 +1,4 @@
-# creates: Al_phonon.png Al_mode.gif
+# creates: Al_phonon.png Al_mode.gif Al_mode.pdf
 
 from ase.structure import bulk
 from ase.calculators.emt import EMT
@@ -63,6 +63,9 @@ for i, atoms in enumerate(trajectory):
           rotation='-36x,26.5y,-25z')
     # Flatten images for better quality
     call(['convert', '-flatten', 'picture%02i.png' %i, 'picture%02i.png' %i])
+
+# Make static pdf image for pdflatex
+call(['convert', 'picture00.png', 'Al_mode.pdf'])
 
 # Concatenate to gif animation
 call(['convert', '-delay', '5', '-loop', '0', '-dispose', 'Previous', 'picture*.png',
