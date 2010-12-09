@@ -389,7 +389,7 @@ class Vasp(Calculator):
         atoms_sorted = ase.io.read('CONTCAR', format='vasp')
         if self.int_params['ibrion']>-1 and self.int_params['nsw']>0:
             # Replace entire atoms object with the one read from CONTCAR.
-            atoms.__dict__ = atoms_sorted[self.resort].__dict__
+            atoms.positions = atoms_sorted[self.resort].positions
         self.converged = self.read_convergence()
         self.set_results(atoms)
 
