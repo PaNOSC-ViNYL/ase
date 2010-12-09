@@ -25,9 +25,6 @@ class BFGS(Optimizer):
         
         Optimizer.__init__(self, atoms, restart, logfile, trajectory)
 
-        if rank == 0:
-            print ("For geometry optimization, please use BFGSLineSearch" +
-                  " instead.")
         if maxstep is not None:
             if maxstep > 1.0:
                 raise ValueError('You are using a much too large value for ' +
