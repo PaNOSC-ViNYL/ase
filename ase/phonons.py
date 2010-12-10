@@ -11,8 +11,9 @@ import numpy.linalg as la
 import numpy.fft as fft
 
 import ase.units as units
-from ase.io.trajectory import PickleTrajectory
 from ase.parallel import rank, barrier
+from ase.dft import monkhorst_pack
+from ase.io.trajectory import PickleTrajectory
 
 class Phonons:
     """Class for calculating phonon modes using finite difference.
@@ -396,6 +397,41 @@ class Phonons:
         
         return omega_kn
 
+    def dos(self, kpts=(5, 5, 5), npts=1000, delta=1e-3, indices=None):
+        """Calculate phonon dos as a function of energy.
+
+        Parameters
+        ----------
+        qpts: tuple
+            Shape of Monkhorst-Pack grid for sampling the Brillouin zone.
+        npts: int
+            Number of energy points.
+        delta: float
+            Broadening of Lorentzian line-shape in eV.
+        indices: list
+            If indices is not None, the atomic-partial dos for the specified
+            atoms will be calculated.
+            
+        """
+
+        # Monkhorst-Pack grid
+        kpts_kc = monkhorst_pack(kpts)
+        N = np.prod(kpts)
+        # Get frequencies
+        omega_kn = self.band_structure(kpts_kc)
+        # Energy axis and dos
+        omega_e = np.linspace(0., np.amax(omega_kn) + 5e-3, num=npts)
+        dos_e = np.zeros_like(omega_e)
+
+        # Sum up contribution from all q-points and branches
+        for omega_n in omega_kn:
+            x_en = (omega_e[:, np.newaxis] - omega_n[np.newaxis, :])**2
+            dos_e += 1./(x_en.sum(axis=1) + (0.5*delta)**2)
+
+        dos_e *= 1./(N * pi) * 0.5*delta
+        
+        return omega_e, dos_e
+    
     def write_modes(self, q_c, branches=0, kT=units.kB*300, repeat=(1, 1, 1),
                     nimages=30):
         """Write modes to trajectory file.
