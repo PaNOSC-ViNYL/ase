@@ -45,11 +45,13 @@ using a 7x7x7 supercell within effective medium theory::
   W = points['W']
   K = points['K']
   L = points['L']
+  U = points['U']
 
   point_names = ['$\Gamma$', 'X', 'U', 'L', '$\Gamma$', 'K']
   path = [G, X, U, L, G, K]
 
   # Band-structure in meV
+  path_kc, q, Q = get_bandpath(path, atoms.cell, 100)
   omega_kn = 1000 * ph.band_structure(path_kc)
 
   import pylab as plt
@@ -66,7 +68,7 @@ using a 7x7x7 supercell within effective medium theory::
 
 .. image:: Al_phonon.png
 
-Subsequent inspection of eigenmodes using ag::
+Mode inspection using ag::
   
   # Write modes for specific q-vector to trajectory files  
   ph.write_modes(L, branches=[2], repeat=(5, 5, 5), kT=2e-4)
