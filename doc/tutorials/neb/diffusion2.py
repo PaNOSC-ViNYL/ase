@@ -2,7 +2,7 @@ from ase.io import read
 from ase.constraints import FixAtoms
 from ase.calculators.emt import EMT
 from ase.neb import NEB
-from ase.optimize import QuasiNewton
+from ase.optimize import BFGS
 
 initial = read('initial.traj')
 final = read('final.traj')
@@ -20,5 +20,5 @@ images.append(final)
 
 neb = NEB(images)
 neb.interpolate()
-qn = QuasiNewton(neb, trajectory='neb.traj')
+qn = BFGS(neb, trajectory='neb.traj')
 qn.run(fmax=0.05)
