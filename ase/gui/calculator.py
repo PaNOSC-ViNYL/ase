@@ -1556,7 +1556,7 @@ class VASP_Window(gtk.Window):
         from ase.calculators.vasp import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys,special_keys
         for option in self.expert_keywords:
             if option[3]:   # set type of parameter accoding to which list it is in
-                key = option[0].get_text().strip()
+                key = option[0].get_text().split()[0].strip()
                 val = option[1].get_text().strip()
                 if key in float_keys or key in exp_keys:
                     self.param[key] = float(val)
