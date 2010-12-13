@@ -25,11 +25,13 @@ class NeighborList:
       
     """
     
-    def __init__(self, cutoffs, skin=0.3, sorted=False, self_interaction=True):
+    def __init__(self, cutoffs, skin=0.3, sorted=False, self_interaction=True,
+                 bothways=False):
         self.cutoffs = np.asarray(cutoffs) + skin
         self.skin = skin
         self.sorted = sorted
         self.self_interaction = self_interaction
+        self.bothways = bothways
         self.nupdates = 0
 
     def update(self, atoms):
@@ -94,9 +96,13 @@ class NeighborList:
                                     (self.cutoffs + self.cutoffs[a])**2]
                         if n1 == 0 and n2 == 0 and n3 == 0:
                             if self.self_interaction:
-                                i = i[i >= a]
+                                if not self.bothways:
+                                    i = i[i >= a]
                             else:
-                                i = i[i > a]
+                                if self.bothways:
+                                    i = i[i != a]
+                                else:
+                                    i = i[i > a]
                         self.nneighbors += len(i)
                         self.neighbors[a] = np.concatenate(
                             (self.neighbors[a], i))
