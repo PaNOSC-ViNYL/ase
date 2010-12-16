@@ -21,9 +21,9 @@ class Phonons:
     The matrix of force constants is calculated from the finite difference
     approximation to the first-order derivative of the atomic forces as::
     
-                            2           nbj   nbj
-                nbj        d V         F-  - F+
-               C     = ------------ ~  ----------  ,
+                            2            nbj   nbj
+                nbj        d V          F-  - F+
+               C     = ------------ ~  ------------  ,
                 mai     dR   dR         2 * delta
                           mai  nbj       
 
@@ -98,13 +98,11 @@ class Phonons:
 
         """
 
+        # Store atoms and calculator
         self.atoms = atoms
         self.calc = calc
-        # Atoms in the supercell -- repeated in the lattice vector directions
-        # beginning with the last
-        self.atoms_lmn = atoms * supercell
         
-        # Vibrate all atoms in small unit cell by default
+        # Vibrate all atoms in the unit cell by default
         self.indices = range(len(atoms))
         self.name = name
         self.delta = delta
@@ -152,9 +150,13 @@ class Phonons:
 
         """
 
+        # Atoms in the supercell -- repeated in the lattice vector directions
+        # beginning with the last
+        atoms_lmn = self.atoms * self.N_c
+        
         # Set calculator if provided
         assert self.calc is not None, "Provide calculator in __init__ method"
-        self.atoms_lmn.set_calculator(self.calc)
+        atoms_lmn.set_calculator(self.calc)
         
         # Calculate forces in equilibrium structure
         filename = self.name + '.eq.pckl'
@@ -168,7 +170,7 @@ class Phonons:
                 fd.close()
 
             # Calculate forces
-            forces = self.atoms_lmn.get_forces()
+            forces = atoms_lmn.get_forces()
             # Write forces to file
             if rank == 0:
                 fd = open(filename, 'w')
@@ -188,7 +190,7 @@ class Phonons:
                     filename = '%s.%d%s%s.pckl' % \
                                (self.name, a, 'xyz'[i], ' +-'[sign])
                     # Wait for ranks before checking for file
-                    barrier()                    
+                    # barrier()                    
                     if isfile(filename):
                         # Skip if already done
                         continue
@@ -199,9 +201,9 @@ class Phonons:
                         fd.close()
 
                     # Update atomic positions and calculate forces
-                    self.atoms_lmn.positions[a, i] = \
+                    atoms_lmn.positions[a, i] = \
                         pos[a, i] + sign * self.delta
-                    forces = self.atoms_lmn.get_forces()
+                    forces = atoms_lmn.get_forces()
                     # Write forces to file
                     if rank == 0:
                         fd = open(filename, 'w')
@@ -210,7 +212,7 @@ class Phonons:
                         fd.close()
                     sys.stdout.flush()
                     # Return to initial positions
-                    self.atoms_lmn.positions[a, i] = pos[a, i]
+                    atoms_lmn.positions[a, i] = pos[a, i]
 
     def clean(self):
         """Delete generated pickle files."""
@@ -397,7 +399,7 @@ class Phonons:
         
         return omega_kn
 
-    def dos(self, kpts=(5, 5, 5), npts=1000, delta=1e-3, indices=None):
+    def dos(self, kpts=(10, 10, 10), npts=1000, delta=1e-3, indices=None):
         """Calculate phonon dos as a function of energy.
 
         Parameters
