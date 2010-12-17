@@ -85,7 +85,9 @@ class vdWTkatchenko09prl:
     calculator: the calculator to get the PBE energy
     missing: Missing elements do not contribute to the vdW-Energy by default
     """
-    def __init__(self, hirshfeld=None, vdwradii=None, calculator=None,
+    def __init__(self,                  
+                 hirshfeld=None, vdwradii=None, calculator=None,
+                 Rmax = 10, # maximal radius for periodic calculations
                  missing='zero'):
         self.hirshfeld = hirshfeld
         if calculator is None:
@@ -93,12 +95,13 @@ class vdWTkatchenko09prl:
         else:
             self.calculator = calculator
         self.vdwradii = vdwradii
+        self.Rmax = Rmax
         self.missing = missing
 
     def update(self, atoms=None):
         if atoms is None:
             atoms = self.calculator.get_atoms()
-        assert not atoms.get_pbc().any()
+
         if self.vdwradii is not None:
             # external vdW radii
             vdwradii = self.vdwradii
@@ -106,49 +109,61 @@ class vdWTkatchenko09prl:
         else:
             vdwradii = []
             for atom in atoms:
-                self.vdwradii.append(vdWDB_Grimme06jcc[stom.symbol][1])
+                self.vdwradii.append(vdWDB_Grimme06jcc[atom.symbol][1])
  
         if self.hirshfeld == None:
             volume_ratios = [1.] * len(atoms)
         else:
             volume_ratios = self.hirshfeld.get_effective_volume_ratios()
 
+        # correction for effective C6
+        na = len(atoms)
+        C6eff_a = np.empty((na))
+        alpha_a = np.empty((na))
+        R0eff_a = np.empty((na))
+        for a, atom in enumerate(atoms):
+            # free atom values
+            alpha_a[a], C6eff_a[a] = vdWDB_Chu04jcp[atom.symbol]
+            # correction for effective C6
+            C6eff_a[a] *= Hartree * volume_ratios[a]**2 * Bohr**6
+            R0eff_a[a] = vdwradii[a] * volume_ratios[a]**(1./3.)
+        C6eff_aa = np.empty((na, na))
+        for a in range(na):
+            for b in range(a, na):
+                C6eff_aa[a, b] = (2 * C6eff_a[a] * C6eff_a[b] /
+                                  (alpha_a[b] / alpha_a[a] * C6eff_a[a] +
+                                   alpha_a[a] / alpha_a[b] * C6eff_a[b]   ))
+                C6eff_aa[b, a] = C6eff_aa[a, b]
+
+        # PBC
+        pbc_c = atoms.get_pbc()
+        cell_c = atoms.get_cell()
+        Rcell_c = np.sqrt(np.sum(cell_c**2, axis=1))
+        ncells_c = np.ceil(np.where(pbc_c, 1. + Rcell_c / self.Rmax, 1))
+        ncells_c = np.array(ncells_c, dtype=int)
+        print "ncells_c=", ncells_c 
+
         positions = atoms.get_positions()
-        indicees = range(len(positions))
-        symbols = atoms.get_chemical_symbols()
         EvdW = 0.0
-        for i1, p1 in enumerate(positions):
-            if symbols[i1] in vdWDB_Chu04jcp:
-                # free atom values
-                alphaA, C6AA = vdWDB_Chu04jcp[symbols[i1]]
-                # correction for effective C6
-                C6AA *= Hartree * volume_ratios[i1]**2 * Bohr**6
-                R0A = vdwradii[i1] * volume_ratios[i1]**(1./3.)
+        # loop over all atoms in the cell
+        for ia, posa in enumerate(positions):
+            # loop over all atoms in the cell (and neighbour cells for PBC)
+            for ib, posb in enumerate(positions):
+                # loops over neighbour cells
+                for ix in range(-ncells_c[0] + 1, ncells_c[0]):
+                    for iy in range(-ncells_c[1] + 1, ncells_c[1]):
+                        for iz in range(-ncells_c[2] + 1, ncells_c[2]):
+                            i_c = np.array([ix, iy, iz])
+                            diff = posb + np.dot(i_c, cell_c) - posa
+                            r2 = np.dot(diff, diff)
+                            r = np.sqrt(r2)
+                            if r > 1.e-10 and r < self.Rmax:
+                                EvdW -= (self.damping(r, 
+                                                      R0eff_a[ia],
+                                                      R0eff_a[ib]) *
+                                         C6eff_aa[ia, ib] / r2 / r2 /r2 )
 
-                for i2 in indicees[i1 + 1:]:
-                    p2 = positions[i2]
-                    if symbols[i2] in vdWDB_Chu04jcp:
-                        # free atom values
-                        alphaB, C6BB = vdWDB_Chu04jcp[symbols[i2]]
-                        # correction for effective C6
-                        C6BB *= Hartree * volume_ratios[i2]**2 * Bohr**6
-                        R0B = vdwradii[i2] * volume_ratios[i2]**(1./3.)
-
-                        C6AB = (2 * C6AA * C6BB /
-                                (alphaB / alphaA * C6AA +
-                                 alphaA / alphaB * C6BB   ))
- 
-                        diff = p2 - p1
-                        r2 = np.dot(diff, diff) 
-                        EvdW -= (self.damping(np.sqrt(r2),
-                                              R0A, R0B    ) *
-                                 C6AB / r2 / r2 /r2)
-
-            elif self.missing != 'zero':
-                raise RuntimeError('Element ' + symbols[i1] +
-                                   ' not in database.')
-
-        self.energy += EvdW
+        self.energy += EvdW / 2. # double counting
         
     def damping(self, RAB, R0A, R0B,
                 d = 20,   # steepness of the step function
