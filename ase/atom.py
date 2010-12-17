@@ -31,7 +31,7 @@ class Atom(object):
             Momentum for atom.
         mass: float
             Atomic mass in atomic units.
-        magmom: float
+        magmom: float or 3 floats
             Magnetic moment.
         charge: float
             Atomic charge.
@@ -92,6 +92,8 @@ class Atom(object):
             self._tag = tag
             if momentum is not None:
                 momentum = np.array(momentum, float)
+            if magmom is not None:
+                magmom = np.array(magmom, float)
             self._momentum = momentum
             self._mass = mass
             self._magmom = magmom
@@ -134,7 +136,7 @@ class Atom(object):
          self._charge) = data
         self._symbol = chemical_symbols[self._number]
         
-    def _get(self, name):
+    def _get(self, name, copy=False):
         if self.atoms is None:
             return getattr(self, '_' + name)
         elif name == 'symbol':
@@ -142,19 +144,10 @@ class Atom(object):
         else:
             plural = data[name][0]
             if plural in self.atoms.arrays:
-                return self.atoms.arrays[plural][self.index]
-            else:
-                return None
-
-    def _get_copy(self, name, copy=False):
-        if self.atoms is None:
-            return getattr(self, '_' + name)
-        elif name == 'symbol':
-            return chemical_symbols[self.number]
-        else:
-            plural = data[name][0]
-            if plural in self.atoms.arrays:
-                return self.atoms.arrays[plural][self.index].copy()
+                value = self.atoms.arrays[plural][self.index]
+                if copy:
+                    value = value.copy()
+                return value
             else:
                 return None
 
@@ -170,20 +163,26 @@ class Atom(object):
         else:
             plural, dtype, shape = data[name]
             if plural in self.atoms.arrays:
-                self.atoms.arrays[plural][self.index] = value
+                array = self.atoms.arrays[plural]
+                if name == 'magmom' and array.ndim == 2:
+                    assert len(value) == 3
+                array[self.index] = value
             else:
+                if name == 'magmom' and np.asarray(value).ndim == 1:
+                    shape = (3,)
                 array = np.zeros((len(self.atoms),) + shape, dtype)
                 array[self.index] = value
                 self.atoms.new_array(plural, array)
 
     def get_symbol(self): return self._get('symbol')
     def get_atomic_number(self): return self._get('number')
-    def get_position(self): return self._get_copy('position')
+    def get_position(self): return self._get('position', True)
     def _get_position(self): return self._get('position')
     def get_tag(self): return self._get('tag')
-    def get_momentum(self): return self._get_copy('momentum')
+    def get_momentum(self): return self._get('momentum', True)
     def _get_momentum(self): return self._get('momentum')
-    def get_initial_magnetic_moment(self): return self._get('magmom')
+    def get_initial_magnetic_moment(self): return self._get('magmom', True)
+    def _get_initial_magnetic_moment(self): return self._get('magmom')
     def get_charge(self): return self._get('charge')
 
     def set_symbol(self, symbol): self._set('symbol', symbol)
@@ -249,7 +248,7 @@ class Atom(object):
     tag = property(get_tag, set_tag, doc='Integer tag')
     momentum = property(_get_momentum, set_momentum, doc='XYZ-momentum')
     mass = property(get_mass, set_mass, doc='Atomic mass')
-    magmom = property(get_initial_magnetic_moment, set_initial_magnetic_moment,
+    magmom = property(_get_initial_magnetic_moment, set_initial_magnetic_moment,
                       doc='Initial magnetic moment')
     charge = property(get_charge, set_charge, doc='Atomic charge')
 

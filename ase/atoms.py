@@ -52,8 +52,10 @@ class Atoms(object):
         Momenta for all atoms.
     masses: list of float
         Atomic masses in atomic units.
-    magmoms: list of float
-        Magnetic moments.
+    magmoms: list of float or list of xyz-values
+        Magnetic moments.  Can be either a single value for each atom
+        for collinear calculations or three numbers for each atom for
+        non-collinear calculations.
     charges: list of float
         Atomic charges.
     cell: 3x3 matrix
@@ -111,7 +113,7 @@ class Atoms(object):
             from ase.old import OldASEListOfAtomsWrapper
             atoms = OldASEListOfAtomsWrapper(symbols)
             symbols = None
-        elif hasattr(symbols, "get_positions"):
+        elif hasattr(symbols, 'get_positions'):
             atoms = symbols
             symbols = None    
         elif (isinstance(symbols, (list, tuple)) and
@@ -234,7 +236,7 @@ class Atoms(object):
         self._constraints = []
 
     constraints = property(_get_constraints, set_constraint, _del_constraints,
-                           "Constraints of the atoms.")
+                           'Constraints of the atoms.')
     
     def set_cell(self, cell, scale_atoms=False, fix=None):
         """Set unit cell vectors.
@@ -442,9 +444,16 @@ class Atoms(object):
         else:
             return atomic_masses[self.arrays['numbers']]
         
-    def set_initial_magnetic_moments(self, magmoms):
-        """Set the initial magnetic moments."""
-        self.set_array('magmoms', magmoms, float, ())
+    def set_initial_magnetic_moments(self, magmoms=None):
+        """Set the initial magnetic moments.
+
+        Use either one or three numbers for every atom (collinear or non-collinear spins)."""
+        
+        if magmoms is None:
+            self.set_array('magmoms', None)
+        else:
+            magmoms = np.asarray(magmoms)
+            self.set_array('magmoms', magmoms, float, magmoms.shape[1:])
 
     def set_magnetic_moments(self, magmoms):
         print 'Please use set_initial_magnetic_moments() instead!'
@@ -571,7 +580,7 @@ class Atoms(object):
         if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
         stress = self._calc.get_stress(self)
-        shape = getattr(stress, "shape", None)
+        shape = getattr(stress, 'shape', None)
         if shape == (3,3):
             return np.array([stress[0,0], stress[1,1], stress[2,2],
                              stress[1,2], stress[0,2], stress[0,1]])
