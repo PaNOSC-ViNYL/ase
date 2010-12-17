@@ -2,6 +2,7 @@
 
 import numpy as np
 from ase.units import Bohr, Hartree
+from gpaw.mpi import rank
 
 # dipole polarizabilities and C6 values from 
 # X. Chu and A. Dalgarno, J. Chem. Phys. 129 (2004) 4083
@@ -139,9 +140,8 @@ class vdWTkatchenko09prl:
         pbc_c = atoms.get_pbc()
         cell_c = atoms.get_cell()
         Rcell_c = np.sqrt(np.sum(cell_c**2, axis=1))
-        ncells_c = np.ceil(np.where(pbc_c, 1. + Rcell_c / self.Rmax, 1))
+        ncells_c = np.ceil(np.where(pbc_c, 1. + self.Rmax / Rcell_c, 1))
         ncells_c = np.array(ncells_c, dtype=int)
-        print "ncells_c=", ncells_c 
 
         positions = atoms.get_positions()
         EvdW = 0.0
