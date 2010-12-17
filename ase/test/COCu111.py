@@ -2,7 +2,7 @@ from math import sqrt
 from ase import Atoms, Atom
 from ase.calculators.emt import EMT
 from ase.constraints import FixAtoms
-from ase.optimize import QuasiNewton
+from ase.optimize import BFGS, QuasiNewton
 from ase.neb import NEB
 
 # Distance between Cu atoms on a (111) surface:
@@ -65,7 +65,7 @@ for image in images:
 
 #dyn = MDMin(neb, dt=0.4)
 #dyn = FIRE(neb, dt=0.01)
-dyn = QuasiNewton(neb, maxstep=0.04, trajectory='mep.traj')
+dyn = BFGS(neb, maxstep=0.04, trajectory='mep.traj')
 #from ase.optimize.oldqn import GoodOldQuasiNewton
 #dyn = GoodOldQuasiNewton(neb)
 dyn.run(fmax=0.05)

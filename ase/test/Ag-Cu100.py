@@ -4,7 +4,7 @@ from ase.neb import NEB
 from ase.constraints import FixAtoms
 from ase.vibrations import Vibrations
 from ase.calculators.emt import EMT
-from ase.optimize import QuasiNewton
+from ase.optimize import QuasiNewton, BFGS
 
 # Distance between Cu atoms on a (100) surface:
 d = 3.6 / sqrt(2)
@@ -49,7 +49,7 @@ for image in images:
 
 #dyn = MDMin(neb, dt=0.4)
 #dyn = FIRE(neb, dt=0.4)
-dyn = QuasiNewton(neb, trajectory='mep.traj')
+dyn = BFGS(neb, trajectory='mep.traj')
 dyn.run(fmax=0.05)
 
 for image in images:

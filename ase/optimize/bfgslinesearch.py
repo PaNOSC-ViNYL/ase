@@ -78,6 +78,8 @@ class BFGSLineSearch(Optimizer):
 
     def step(self, f):
         atoms = self.atoms
+        from ase.neb import NEB
+        assert not isinstance(atoms, NEB)
         r = atoms.get_positions()
         r = r.reshape(-1)
         g = -f.reshape(-1) / self.alpha

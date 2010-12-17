@@ -1,12 +1,11 @@
 from math import sqrt
 from ase import Atoms, Atom
 from ase.constraints import FixAtoms
-from ase.optimize import FIRE, QuasiNewton
+from ase.optimize import FIRE, QuasiNewton, BFGS
 from ase.neb import SingleCalculatorNEB
 from ase.calculators.emt import EMT
 
-Optimizer=FIRE
-Optimizer=QuasiNewton
+Optimizer = BFGS
 
 # Distance between Cu atoms on a (111) surface:
 a = 3.6
@@ -55,7 +54,7 @@ dyn.run(fmax=0.1)
 neb = SingleCalculatorNEB([initial, final])
 neb.refine(2)
 neb.set_calculators(EMT())
-assert(neb.n() == 4)
+assert neb.n() == 4
 
 dyn = Optimizer(neb, maxstep=0.04, trajectory='mep_2coarse.traj')
 dyn.run(fmax=0.1)
@@ -69,4 +68,4 @@ neb.refine(2, 1, 3)
 neb.set_calculators(EMT())
 dyn = Optimizer(neb, maxstep=0.04, trajectory='mep_2fine.traj')
 dyn.run(fmax=0.1)
-assert(len(neb.images) == 8)
+assert len(neb.images) == 8

@@ -1,7 +1,7 @@
 from ase.io import PickleTrajectory
 from ase.neb import NEB
 from ase.calculators.lj import LennardJones
-from ase.optimize import QuasiNewton
+from ase.optimize import BFGS
 
 print [a.get_potential_energy() for a in PickleTrajectory('H.traj')]
 images = [PickleTrajectory('H.traj')[-1]]
@@ -17,7 +17,7 @@ for image in images:
 for a in neb.images:
     print a.positions[-1], a.get_potential_energy()
 
-dyn = QuasiNewton(neb, trajectory='mep.traj')
+dyn = BFGS(neb, trajectory='mep.traj')
 print dyn.run(fmax=0.01, steps=25)
 for a in neb.images:
     print a.positions[-1], a.get_potential_energy()
