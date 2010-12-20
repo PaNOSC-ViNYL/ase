@@ -280,6 +280,11 @@ def bulk(name, crystalstructure, a=None, c=None, covera=None,
         Construct cubic unit cell.
     """
 
+    if a is not None:
+        a = float(a)
+    if c is not None:
+        c = float(c)
+        
     if covera is not None and  c is not None:
         raise ValueError("Don't specify both c and c/a!")
     
