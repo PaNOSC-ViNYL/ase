@@ -114,7 +114,10 @@ class vdWTkatchenko09prl:
  
         if self.hirshfeld == None:
             volume_ratios = [1.] * len(atoms)
-        else:
+        elif hasattr(self.hirshfeld,'__len__'): # a list
+            assert(len(atoms) == len(self.hirshfeld))
+            volume_ratios = self.hirshfeld
+        else: # sould be an object
             volume_ratios = self.hirshfeld.get_effective_volume_ratios()
 
         # correction for effective C6
