@@ -93,7 +93,7 @@ def write_xsf(fileobj, images, data=None):
     fileobj.write('END_BLOCK_DATAGRID_3D\n')
 
 
-def read_xsf(fileobj, index=-1):
+def read_xsf(fileobj, index=-1, read_data=True):
     if isinstance(fileobj, str):
         fileobj = open(fileobj)
 
@@ -104,17 +104,17 @@ def read_xsf(fileobj, index=-1):
             line = line.strip()
             break
 
-    if line.startswith('ANIMSTEPS'):
+    if 'ANIMSTEPS' in line:
         nimages = int(line.split()[1])
         line = readline().strip()
     else:
         nimages = 1
 
-    if line.startswith('CRYSTAL'):
+    if 'CRYSTAL' in line:
         pbc = True
-    elif line.startswith('SLAB'):
+    elif 'SLAB' in line:
         pbc = (True, True, Flase)
-    elif line.startswith('POLYMER'):
+    elif 'POLYMER' in line:
         pbc = (True, False, Flase)
     else:
         pbc = False
@@ -124,13 +124,13 @@ def read_xsf(fileobj, index=-1):
         cell = None
         if pbc:
             line = readline().strip()
-            assert line.startswith('PRIMVEC')
+            assert 'PRIMVEC' in line
             cell = []
             for i in range(3):
                 cell.append([float(x) for x in readline().split()])
 
         line = readline().strip()
-        assert line.startswith('PRIMCOORD')
+        assert 'PRIMCOORD' in line
 
         natoms = int(readline().split()[0])
         numbers = []
@@ -153,5 +153,24 @@ def read_xsf(fileobj, index=-1):
             image.set_calculator(SinglePointCalculator(None, forces, None,
                                                        None, image))
         images.append(image)
+
+    if read_data:
+        line = readline()
+        assert 'BEGIN_BLOCK_DATAGRID_3D' in line
+        line = readline()
+        assert 'BEGIN_DATAGRID_3D' in line
+
+        shape = [int(x) for x in readline().split()]
+        start = [float(x) for x in readline().split()]
+
+        for i in range(3):
+            readline()
+            
+        n_data = shape[0]*shape[1]*shape[2]
+        data = np.array([float(readline())
+                         for s in range(n_data)]).reshape(shape[::-1])
+        data = np.swapaxes(data, 0, 2)
+        
+        return data, images[index]
 
     return images[index]
