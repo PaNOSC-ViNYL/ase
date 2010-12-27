@@ -118,6 +118,7 @@ int_keys = [
 
 bool_keys = [
     'addgrid',    # finer grid for augmentation charge density
+    'laechg',     # the core charge is written to AECCAR0 and the valance charge to AECCAR2
     'lasph',      # non-spherical contributions to XC energy (and pot for VASP.5.X)
     'lasync',     # overlap communcation with calculations
     'lcharg',     #
