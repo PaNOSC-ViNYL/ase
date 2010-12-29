@@ -1247,7 +1247,7 @@ class VaspChargeDensity(object):
         for ii, chg in enumerate(self.chg):
             if format == 'chgcar' and ii != len(self.chg) - 1:
                 continue # Write only the last image for CHGCAR
-            aiv.write_vasp(f, self.atoms[ii], direct=True)
+            aiv.write_vasp(f, self.atoms[ii], direct=True, long_format=False)
             f.write('\n')
             for dim in chg.shape:
                 f.write(' %4i' % dim)

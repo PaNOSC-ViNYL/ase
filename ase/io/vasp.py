@@ -287,7 +287,7 @@ def read_vasp_out(filename='OUTCAR',index = -1):
                     stop += len(images)
         return [images[i] for i in range(start, stop, step)]
 
-def write_vasp(filename, atoms, label='', direct=False, sort=None, symbol_count = None ):
+def write_vasp(filename, atoms, label='', direct=False, sort=None, symbol_count = None, long_format=True):
     """Method to write VASP position (POSCAR/CONTCAR) files.
 
     Writes label, scalefactor, unitcell, # of various kinds of atoms,
@@ -361,10 +361,14 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None, symbol_count 
     # ase Atoms doesn't store the lattice constant separately, so always
     # write 1.0.
     f.write('%19.16f\n' % 1.0)
+    if long_format:
+        latt_form = ' %21.16f'
+    else:
+        latt_form = ' %11.6f'
     for vec in atoms.get_cell():
         f.write(' ')
         for el in vec:
-            f.write(' %21.16f' % el)
+            f.write(latt_form % el)
         f.write('\n')
 
     # Numbers of each atom
@@ -380,9 +384,13 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None, symbol_count 
     else:
         f.write('Cartesian\n')
 
+    if long_format:
+        cform = ' %19.16f'
+    else:
+        cform = ' %9.6f'
     for iatom, atom in enumerate(coord):
         for dcoord in atom:
-            f.write(' %19.16f' % dcoord)
+            f.write(cform % dcoord)
         if atoms.constraints:
             for flag in sflags[iatom]:
                 if flag:
