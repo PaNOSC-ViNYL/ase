@@ -34,6 +34,7 @@ calc = Vasp(
             algo = 'Fast',
             ismear= 0,
             sigma = 1.,
+            istart = 0,
             lwave = False,
             lcharg = False)
 
@@ -57,3 +58,6 @@ assert array_almost_equal(calc.get_forces(co), calc2.get_forces(co2))
 assert array_almost_equal(calc.get_eigenvalues(), calc2.get_eigenvalues())
 assert calc.get_number_of_bands() == calc2.get_number_of_bands()
 assert calc.get_xc_functional() == calc2.get_xc_functional()
+
+# Cleanup
+calc.clean()
