@@ -99,7 +99,7 @@ class InfraRed(Vibrations):
     -------------------------------------
     Zero-point energy: 0.573 eV
     Static dipole moment: 1.833 D
-    Maximum force on atom in `eqiulibrium`: 0.0026 eV/Å
+    Maximum force on atom in `equilibrium`: 0.0026 eV/Å
 
 
 
@@ -245,7 +245,7 @@ class InfraRed(Vibrations):
         parprint('-------------------------------------')
         parprint('Zero-point energy: %.3f eV' % self.get_zero_point_energy())
         parprint('Static dipole moment: %.3f D' % self.dipole_zero)
-        parprint('Maximum force on atom in `eqiulibrium`: %.4f eV/Å' % 
+        parprint('Maximum force on atom in `equilibrium`: %.4f eV/Å' % 
                   self.force_zero)
         parprint()
 
