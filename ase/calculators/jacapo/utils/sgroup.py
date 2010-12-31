@@ -33,11 +33,15 @@ from numpy import *
 class SGROUP:
 
     def __init__(self,atoms,outfile=None):
+        '''outfile is where the results will be stored if you want
+        them. Otherwise they go into a tempfile that is deleted.'''
 
         id,infile = tempfile.mkstemp()
         
-        if not outfile:
-            id,outfile = tempfile.mkstemp()
+        if outfile is None:
+            od,ofile = tempfile.mkstemp()
+        else:
+            ofile = outfile
 
         unitcell = atoms.get_cell()
 
@@ -59,7 +63,7 @@ class SGROUP:
         scaledpositions = atoms.get_scaled_positions()
         chemicalsymbols = [atom.get_symbol() for atom in atoms]
 
-        f= open(infile,'w')
+        f = open(infile,'w')
         f.write('P\n')
 
         f.write('%1.4f %1.4f %1.4f %1.4f %1.4f %1.4f\n' % (a,b,c,
@@ -72,24 +76,34 @@ class SGROUP:
             f.write('%s\n\n' % chemicalsymbols[i])
         f.close()
 
-        os.system('sgroup %s %s' % (infile,outfile))
+        os.system('sgroup %s %s' % (infile,ofile))
           
-        f = open(outfile,'r')
+        f = open(ofile,'r')
         self.output= f.readlines()
         f.close()
 
-        os.remove(infile)
-        if not outfile:
-            os.remove(outfile)
+        os.unlink(infile)
+        os.close(id)
+        
+        if outfile is None:
+            os.unlink(ofile)
+            os.close(od) # you must close the file descriptor or
+                         # eventually too many open files will occur
+                         # and cause an error when you are processing
+                         # many files.
+
             
     def __str__(self):
         return string.join(self.output)
         
     def get_space_group(self):
+        'returns spacegroup number'
         regexp = re.compile('^Number and name of space group:')
         for line in self.output:
             if regexp.search(line):
-                return line#[32:]
+                line = line[32:]    
+                r2 = re.compile('^\d+')
+                return int(r2.search(line).group())
 
     def get_symmetry_operators(self):
         '''
