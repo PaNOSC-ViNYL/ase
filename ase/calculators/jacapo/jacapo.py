@@ -579,11 +579,14 @@ class Jacapo:
             s.append('  FermiTemperature    = %f kT' % ft)
         else:
             s.append('  FermiTemperature    = not defined')
-        nelectrons = self.get_valence()
+        try:
+            nelectrons = self.get_valence()
+        except:
+            nelectrons = None
         if nelectrons is not None:
             s.append('  Number of electrons = %1.1f'  % nelectrons)
         else:
-            s.append('  Number of electrons = None')
+            s.append('  Number of electrons = N/A')
         s.append('  Number of bands     = %s'  % self.get_nbands())
         s.append('  Kpoint grid         = %s' % str(self.get_kpts_type()))
         s.append('  Spin-polarized      = %s' % self.get_spin_polarized())
@@ -635,8 +638,11 @@ class Jacapo:
             if os.path.exists(self.nc):
                 nc = netCDF(self.nc, 'r')
                 # nc.dimensions['number_ionic_steps'] is None
-                number_ionic_steps = nc.variables['TotalEnergy'].shape[0]
-                
+                if 'TotalEnergy' in nc.variables:
+                    number_ionic_steps = nc.variables['TotalEnergy'].shape[0]
+                else:
+                    number_ionic_steps = nc.variables['DynamicAtomPositions'].shape[0]
+                    
                 frame = number_ionic_steps - 1
                 nc.close()
             else:
@@ -1379,7 +1385,7 @@ than density cutoff %i' % (pw, dw))
     def get_extpot(self):
         'return the external potential set in teh calculator'
         
-        nc = netCDF(self.get_nc(), 'a')
+        nc = netCDF(self.get_nc(), 'r')
         if 'ExternalPotential' in nc.variables:
             v = nc.variables['ExternalPotential']
             extpot = v[:]
@@ -1545,7 +1551,7 @@ than density cutoff %i' % (pw, dw))
     def get_ncoutput(self):
         'returns the control variables for the ncfile'
         
-        nc = netCDF(self.get_nc(), 'a')
+        nc = netCDF(self.get_nc(), 'r')
         if 'NetCDFOutputControl' in nc.variables:
             v = nc.variables['NetCDFOutputControl']
             ncoutput = {}
@@ -2538,7 +2544,6 @@ than density cutoff %i' % (pw, dw))
             possible_path_to_psp = os.path.join(base, psp)
             if os.path.exists(possible_path_to_psp):
                 fullpsp = possible_path_to_psp
-                
             else:
                 #or, it is in the default psp path
                 fullpsp = os.path.join(dacapopath, psp)
@@ -2553,7 +2558,8 @@ than density cutoff %i' % (pw, dw))
                 f.close()
                 totval += float(nvalence)
             else:
-                raise Exception, "%s does not exist" % fullpsp
+                print "%s does not exist" % fullpsp
+                totval = None
             
         return totval 
 
@@ -3586,7 +3592,7 @@ s.recv(14)
 
         log.debug('getting electronic minimization parameters')
         
-        nc = netCDF(self.get_nc(), 'a')
+        nc = netCDF(self.get_nc(), 'r')
         vname = 'ElectronicMinimization'
         if vname in nc.variables:
             v = nc.variables[vname]
