@@ -479,10 +479,11 @@ class Vasp(Calculator):
         method is called.
 
         """
-        files = ['CHG', 'CHGCAR', 'POSCAR', 'INCAR', 'CONTCAR', 'DOSCAR',
-                 'EIGENVAL', 'IBZKPT', 'KPOINTS', 'OSZICAR', 'OUTCAR', 'PCDAT',
-                 'POTCAR', 'vasprun.xml', 'WAVECAR', 'XDATCAR',
-                 'PROCAR', 'ase-sort.dat']
+        files = ['CHG', 'CHGCAR', 'POSCAR', 'INCAR', 'CONTCAR',
+                 'DOSCAR', 'EIGENVAL', 'IBZKPT', 'KPOINTS', 'OSZICAR',
+                 'OUTCAR', 'PCDAT', 'POTCAR', 'vasprun.xml',
+                 'WAVECAR', 'XDATCAR', 'PROCAR', 'ase-sort.dat',
+                 'LOCPOT', 'AECCAR0', 'AECCAR1', 'AECCAR2']
         for f in files:
             try:
                 os.remove(f)
