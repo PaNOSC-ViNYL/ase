@@ -83,4 +83,5 @@ s052580     Troels Kofoed Jacobsen  s052580:fysik,dtu,dk
 schiotz     Jakob Schiotz           schiotz:fysik,dtu,dk
 strange     Mikkel Strange          strange:fysik,dtu,dk
 tjiang      Tao Jiang               tjiang:fysik,dtu,dk
+tolsen      Thomas Olsen            tolsen:fysik,dtu,dk
 ==========  ======================  ===================================
