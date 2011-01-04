@@ -178,6 +178,13 @@ def read_aims_output(filename, index = -1):
             velocities = []
             for i in range(n_atoms):
                 inp = fd.readline().split()
+                if 'lattice_vector' in inp[0]:
+                    cell = []
+                    for i in range(3):
+                        cell += [[float(inp[1]),float(inp[2]),float(inp[3])]]
+                        inp = fd.readline().split()
+                    atoms.set_cell(cell)
+                    inp = fd.readline().split()
                 atoms.append(Atom(inp[4],(inp[1],inp[2],inp[3])))  
                 if molecular_dynamics:
                     inp = fd.readline().split()
