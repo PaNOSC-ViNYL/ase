@@ -39,7 +39,7 @@ class STM:
                 for n in range(self.nbands):
                     psi = self.calc.get_pseudo_wave_function(n, k, s)
                     if ldos is None:
-                        ldos = np.zeros_like(psi)
+                        ldos = np.zeros(psi.shape)
                     f = (exp(-(self.eigs[s, k, n] / width)**2) *
                          self.weights[k])
                     ldos += f * (psi * np.conj(psi)).real

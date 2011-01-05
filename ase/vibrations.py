@@ -281,6 +281,7 @@ class Vibrations:
                 e = e.imag
             else:
                 c = ' '
+                e = e.real
             write('%3d %6.1f%s  %7.1f%s\n' % (n, 1000 * e, c, s * e, c))
         write('---------------------\n')
         write('Zero-point energy: %.3f eV\n' %
