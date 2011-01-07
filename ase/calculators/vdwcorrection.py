@@ -99,6 +99,9 @@ class vdWTkatchenko09prl:
         self.Rmax = Rmax
         self.missing = missing
 
+        self.sR = 0.94
+        self.d = 20
+
     def update(self, atoms=None):
         if atoms is None:
             atoms = self.calculator.get_atoms()
@@ -163,8 +166,10 @@ class vdWTkatchenko09prl:
                             if r > 1.e-10 and r < self.Rmax:
                                 EvdW -= (self.damping(r, 
                                                       R0eff_a[ia],
-                                                      R0eff_a[ib]) *
-                                         C6eff_aa[ia, ib] / r2 / r2 /r2 )
+                                                      R0eff_a[ib],
+                                                      d=self.d, 
+                                                      sR=self.sR) *
+                                         C6eff_aa[ia, ib] / r2 / r2 /r2)
 
         self.energy += EvdW / 2. # double counting
         
