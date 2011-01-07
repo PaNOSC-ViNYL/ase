@@ -309,7 +309,7 @@ class View:
 
     def rotate_window(self, menuitem):
         Rotate(self)
-        
+
     def focus(self, x=None):
         if (self.images.natoms == 0 and not
             self.ui.get_widget('/MenuBar/ViewMenu/ShowUnitCell').get_active()):
@@ -331,6 +331,11 @@ class View:
         else:
             self.scale = self.width / S[0]
         self.draw()
+
+    def reset_view(self, menuitem):
+        self.axes = rotate('0.0x,0.0y,0.0z')
+        self.set_coordinates()
+        self.focus(self)
 
     def draw(self, status=True):
         self.pixmap.draw_rectangle(self.white_gc, True, 0, 0,

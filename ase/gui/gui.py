@@ -86,6 +86,7 @@ ui_info = """\
       <menuitem action='Focus'/>
       <menuitem action='ZoomIn'/>
       <menuitem action='ZoomOut'/>
+      <menuitem action='ResetView'/>
       <menuitem action='Settings'/>
       <menuitem action='VMD'/>
       <menuitem action='RasMol'/>
@@ -209,6 +210,9 @@ class GUI(View, Status):
             ('ZoomOut', gtk.STOCK_ZOOM_OUT, 'Zoom out', 'minus',
              '',
              self.zoom),
+            ('ResetView', None, 'Reset View', 'equal',
+             '',
+             self.reset_view),
             ('Settings', gtk.STOCK_PREFERENCES, 'Settings ...', None,
              '',
              self.settings),
