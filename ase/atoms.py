@@ -873,7 +873,7 @@ class Atoms(object):
             m = atomic_masses[self.arrays['numbers']]
         com = np.dot(m, self.arrays['positions']) / m.sum()
         if scaled:
-            return np.dot(np.linalg.inv(self._cell), com)
+            return np.linalg.solve(self._cell.T, com)
         else:
             return com
 
