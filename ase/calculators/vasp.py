@@ -691,9 +691,9 @@ class Vasp(Calculator):
             if val is not None:
                 incar.write(' %s = ' % key.upper())
                 if key is 'lreal':
-                    if type(val)==type('str'):
+                    if type(val) == str:
                         incar.write(val+'\n')
-                    elif type(val)==type(True):
+                    elif type(val) == bool:
                        if val:
                            incar.write('.TRUE.\n')
                        else:
@@ -1027,13 +1027,13 @@ class Vasp(Calculator):
         file = open(filename, 'r')
         lines = file.readlines()
         file.close()
-        type = lines[2].split()[0].lower()[0]
-        if type in ['g', 'm']:
-            if type=='g':
+        ktype = lines[2].split()[0].lower()[0]
+        if ktype in ['g', 'm']:
+            if ktype=='g':
                 self.set(gamma=True)
             kpts = np.array([int(lines[3].split()[i]) for i in range(3)])
             self.set(kpts=kpts)
-        elif type in ['c', 'k']:
+        elif ktype in ['c', 'k']:
             raise NotImplementedError('Only Monkhorst-Pack and gamma centered grid supported for restart.')
         else:
             raise NotImplementedError('Only Monkhorst-Pack and gamma centered grid supported for restart.')
