@@ -12,6 +12,7 @@ import numpy as np
 
 from ase.data import chemical_symbols
 from ase.units import Rydberg, fs
+from ase.io.siesta import read_rho
 
 class Siesta:
     """Class for doing SIESTA calculations.
@@ -167,6 +168,30 @@ class Siesta:
         #debye to e*Ang (the units of VASP)
         dipolemoment = dipolemoment*0.2081943482534
         return dipolemoment
+    
+    def get_pseudo_density(self, spin=None, pad=True):
+        """Return pseudo-density array.
+        
+        If *spin* is not given, then the total density is returned.
+        Otherwise, the spin up or down density is returned (spin=0 or 1).
+        """
+        filename = self.label + '.RHO'
+        if not isfile(filename):
+            raise RuntimeError('Could not find rho-file (make sure to add fdf-option '
+                               '"SaveRho=True" to your calculation)')
+        
+        rho = read_rho(filename)
+
+        if spin is None:
+            return rho.sum(axis=3)
+        elif rho.shape[3] != 2:
+            raise RuntimeError('Explicit spin-value requested. '
+                               'Only total density is available.')
+        elif spin == 0 or spin == 1:
+            return rho[:, :, :, spin]
+        else:
+            raise RuntimeError('Invalid spin-value requested. '
+                               'Expected 0 or 1, got %s' % spin)
 
     def calculate(self, atoms):
         self.positions = atoms.get_positions().copy()
