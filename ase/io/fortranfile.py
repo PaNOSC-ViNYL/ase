@@ -29,19 +29,24 @@ same integer as before.
 Examples
 --------
 
-To use the default endian and precision settings, one can just do::
-    >>> f = FortranFile('filename')
-    >>> x = f.readReals()
+To use the default endian and precision settings, one can just do:
 
-One can read arrays with varying precisions::
-    >>> f = FortranFile('filename')
-    >>> x = f.readInts('h')
-    >>> y = f.readInts('q')
-    >>> z = f.readReals('f')
+>>> f = FortranFile('filename')
+>>> x = f.readReals()
+
+One can read arrays with varying precisions:
+
+>>> f = FortranFile('filename')
+>>> x = f.readInts('h')
+>>> y = f.readInts('q')
+>>> z = f.readReals('f')
+
 Where the format codes are those used by Python's struct module.
 
-One can change the default endian-ness and header precision::
-    >>> f = FortranFile('filename', endian='>', header_prec='l')
+One can change the default endian-ness and header precision:
+
+>>> f = FortranFile('filename', endian='>', header_prec='l')
+
 for a file with little-endian data whose record headers are long
 integers.
 """
