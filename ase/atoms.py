@@ -281,7 +281,11 @@ class Atoms(object):
         return self._cell.copy()
 
     def get_reciprocal_cell(self):
-        """Get the three reciprocal lattice vectors as a 3x3 ndarray. Note that the commonly used factor of 2 pi for Fourier transforms is not included here."""
+        """Get the three reciprocal lattice vectors as a 3x3 ndarray.
+
+        Note that the commonly used factor of 2 pi for Fourier
+        transforms is not included here."""
+        
         rec_unit_cell = np.linalg.inv(self.get_cell()).transpose()
         return rec_unit_cell
 
@@ -363,7 +367,7 @@ class Atoms(object):
 
     def get_atomic_numbers(self):
         """Get integer array of atomic numbers."""
-        return self.arrays['numbers']
+        return self.arrays['numbers'].copy()
 
     def set_chemical_symbols(self, symbols):
         """Set chemical symbols."""
