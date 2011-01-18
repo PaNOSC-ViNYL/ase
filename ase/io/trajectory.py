@@ -51,6 +51,10 @@ class PickleTrajectory:
         backup=True:
             Use backup=False to disable renaming of an existing file.
         """
+
+        self.numbers = None
+        self.pbc = None
+        
         self.offsets = []
         if master is None:
             master = (rank == 0)
@@ -137,9 +141,17 @@ class PickleTrajectory:
                 self.write(image)
             return
 
+        
         if len(self.offsets) == 0:
             self.write_header(atoms)
-
+        else:
+            if (atoms.pbc != self.pbc).any():
+                raise ValueError('Bad periodic boundary conditions!')
+            elif len(atoms) != len(self.numbers):
+                raise ValueError('Bad number of atoms!')
+            elif (atoms.numbers != self.numbers).any():
+                raise ValueError('Bad atomic numbers!')
+            
         if atoms.has('momenta'):
             momenta = atoms.get_momenta()
         else:
@@ -198,6 +210,12 @@ class PickleTrajectory:
         pickle.dump(d, self.fd, protocol=-1)
         self.header_written = True
         self.offsets.append(self.fd.tell())
+
+        # Atomic numbers and periodic boundary conditions are only
+        # written once - in the header.  Store them here so that we can
+        # check that they are the same for all images:
+        self.numbers = atoms.get_atomic_numbers()
+        self.pbc = atoms.get_pbc()
         
     def close(self):
         """Close the trajectory file."""

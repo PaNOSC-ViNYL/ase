@@ -26,6 +26,35 @@ for a in t:
     print 2, a.positions[-1,2]
 assert len(t) == 7
 
+co[0].number = 1
+try:
+    t.write(co)
+except ValueError:
+    pass
+else:
+    assert False
+
+co[0].number = 6
+co.pbc = True
+try:
+    t.write(co)
+except ValueError:
+    pass
+else:
+    assert False
+
+co.pbc = False
+o = co.pop(1)
+try:
+    t.write(co)
+except ValueError:
+    pass
+else:
+    assert False
+
+co.append(o)
+t.write(co)
+
 # append to a nonexisting file
 fname = '2.traj'
 if os.path.isfile(fname):
