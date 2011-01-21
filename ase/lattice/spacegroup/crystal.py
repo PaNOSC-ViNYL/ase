@@ -22,7 +22,7 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
             cell=None, cellpar=None, 
             ab_normal=(0,0,1), a_direction=None, size=(1,1,1),
             ondublicates='warn', symprec=0.001, 
-            pbc=True, **kwargs):
+            pbc=True, primitive_cell=False, **kwargs):
     """Create an Atoms instance for a conventional unit cell of a
     space group.
 
@@ -67,6 +67,9 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
         Periodic boundary conditions flags.  Examples: True,
         False, 0, 1, (1, 1, 0), (True, False, False).  Default
         is True.
+    primitive_cell : bool
+        Wheter to return the primitive instead of the conventional
+        unit cell.
 
     Keyword arguments:
 
@@ -122,6 +125,11 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
                 array = basis.get_array(name)
                 atoms.new_array(name, [array[i] for i in kinds], 
                                 dtype=array.dtype, shape=array.shape[1:])
+
+    if primitive_cell:
+        from ase.utils.geometry  import cut
+        prim_cell = sg.scaled_primitive_cell
+        atoms = cut(atoms, a=prim_cell[0], b=prim_cell[1], c=prim_cell[2])
 
     if size != (1, 1, 1):
         atoms = atoms.repeat(size)
