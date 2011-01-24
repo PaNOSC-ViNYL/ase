@@ -60,6 +60,7 @@ class View:
     def set_frame(self, frame=None, focus=False, init=False):
         if frame is None:
             frame = self.frame
+        self.frame = frame
 
         n = self.images.natoms
 
@@ -94,8 +95,6 @@ class View:
                     filename = 'ase.gui'
             filename = basename(filename)
             self.window.set_title(filename)
-                
-        self.frame = frame
 
         self.X[:n] = self.images.P[frame]
         self.R = self.X[:n]
