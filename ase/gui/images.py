@@ -226,6 +226,7 @@ class Images:
             R = self.P[i]
             F = self.F[i]
             A = self.A[i]
+            M = self.M[i]
             f = ((F * D)**2).sum(1)**.5
             fmax = max(f)
             fave = f.mean()
