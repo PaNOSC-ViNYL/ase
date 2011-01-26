@@ -54,6 +54,7 @@ class PickleTrajectory:
 
         self.numbers = None
         self.pbc = None
+        self.sanitycheck = True
         
         self.offsets = []
         if master is None:
@@ -147,9 +148,9 @@ class PickleTrajectory:
         else:
             if (atoms.pbc != self.pbc).any():
                 raise ValueError('Bad periodic boundary conditions!')
-            elif len(atoms) != len(self.numbers):
+            elif self.sanitycheck and len(atoms) != len(self.numbers):
                 raise ValueError('Bad number of atoms!')
-            elif (atoms.numbers != self.numbers).any():
+            elif self.sanitycheck and (atoms.numbers != self.numbers).any():
                 raise ValueError('Bad atomic numbers!')
             
         if atoms.has('momenta'):
