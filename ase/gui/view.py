@@ -60,10 +60,12 @@ class View:
     def set_frame(self, frame=None, focus=False, init=False):
         if frame is None:
             frame = self.frame
-        self.frame = frame
 
         n = self.images.natoms
 
+        if self.frame > self.images.nimages:
+            self.frame = self.images.nimages - 1
+        
         if init or frame != self.frame:
             A = self.images.A
             nc = len(self.B1)
@@ -96,6 +98,7 @@ class View:
             filename = basename(filename)
             self.window.set_title(filename)
 
+        self.frame = frame
         self.X[:n] = self.images.P[frame]
         self.R = self.X[:n]
         if focus:

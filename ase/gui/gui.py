@@ -934,11 +934,6 @@ class GUI(View, Status):
         n_current = self.images.nimages
         self.reset_tools_modes()     
         self.images.read(filenames, slice(None))
-        # check for trouble when changing the number of images and the movie window is open
-        if self.images.nimages != n_current and self.movie_window is not None:
-            self.movie_window.frame_number.value = min(self.movie_window.frame_number.value,
-                                                       self.images.nimages-1)
-            self.movie_window.frame_number.upper = self.images.nimages-1
         self.set_colors()
         self.set_coordinates(self.images.nimages - 1, focus=True)
 
