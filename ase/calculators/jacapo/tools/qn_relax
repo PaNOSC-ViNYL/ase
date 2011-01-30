@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 from torque import *
 from ase import *
+from ase.optimize import QuasiNewton
+from ase.constraints import FixAtoms
 from ase.calculators.jacapo import *
 
 import os, string, sys, tempfile
@@ -51,15 +53,14 @@ for ncfile in args:
     atoms.set_constraint(FixAtoms(mask=mask))
 
     if options.q is None:
-
         calc = atoms.get_calculator()
-        calc.set_status('new')
+        calc.stay_alive = True
         qn = QuasiNewton(atoms,trajectory=base+'.traj')
         qn.run(fmax=0.05)
 
     else:
         
-        h,fname = tempfile.mkstemp()
+        h,fname = tempfile.mkstemp() 
         script = '''\
 #!/bin/tcsh
 
