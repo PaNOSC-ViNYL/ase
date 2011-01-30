@@ -103,7 +103,11 @@ class SGROUP:
             if regexp.search(line):
                 line = line[32:]    
                 r2 = re.compile('^\d+')
-                return int(r2.search(line).group())
+                s = r2.search(line)
+                if hasattr(s,'group'):
+                    return int(s.group())
+                else:
+                    return None
 
     def get_symmetry_operators(self):
         '''
