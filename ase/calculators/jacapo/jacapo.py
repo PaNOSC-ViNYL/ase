@@ -15,7 +15,7 @@ documentation
 
 __docformat__ = 'restructuredtext'
 
-import exceptions, glob, os, pickle, string
+import exceptions, glob, os, pickle, string, uuid
 from Scientific.IO.NetCDF import NetCDFFile as netCDF
 import numpy as np
 import subprocess as sp
@@ -48,6 +48,12 @@ class DacapoInput(exceptions.Exception):
 class DacapoAbnormalTermination(exceptions.Exception):
     """Raised when text file does not end correctly"""
     pass
+
+class DacapoDryrun(exceptions.Exception):
+    """Raised when text file does not end correctly"""
+    pass
+
+
 
 def read(ncfile):
     '''return atoms and calculator from ncfile
@@ -446,6 +452,7 @@ class Jacapo:
         ncf.createDimension('dim20', 20) #for longer strings
         ncf.status  = 'new'
         ncf.history = 'Dacapo'
+        ncf.uuid = str(uuid.uuid1())
         ncf.Jacapo_version = Jacapo.__version__
         ncf.close()
         
@@ -485,6 +492,8 @@ class Jacapo:
         nc = netCDF(self.nc, 'r')
         s.append('  ---------------------------------')
         s.append('  Dacapo calculation from %s' % self.nc)
+        if hasattr(nc, 'uuid'):
+            s.append('  uuid = %s' % nc.uuid)
         if hasattr(nc, 'status'):
             s.append('  status = %s' % nc.status)
         if hasattr(nc, 'version'):
@@ -568,7 +577,12 @@ class Jacapo:
             s.append('  XCfunctional        = %s' % self.get_xc())
         else:
             s.append('  XCfunctional        = Not defined')
-        s.append('  Planewavecutoff     = %i eV' % int(self.get_pw()))
+
+        pw = self.get_pw()
+        if pw is None:
+            pw = 'default (350eV)'
+            
+        s.append('  Planewavecutoff     = %s eV' % pw)
         dw = self.get_dw()
         if dw:
             s.append('  Densitywavecutoff   = %i eV' % int(self.get_dw()))
@@ -2111,7 +2125,7 @@ than density cutoff %i' % (pw, dw))
                 kpts_type = bv.gridtype #string saved in jacapo
             else:
                 #no grid attribute, this ncfile was created pre-jacapo
-                kpts_type = 'pre-Jacapo: %i kpts' % len(bv[:])
+                kpts_type = '%i kpts' % len(bv[:])
         else:
             kpts_type = 'BZKpoints not defined. [[0,0,0]] used by default.'
 
@@ -2668,7 +2682,7 @@ than density cutoff %i' % (pw, dw))
 
         #provide a way to make no calculation get run
         if os.environ.get('DACAPO_DRYRUN', None) is not None:
-            raise Exception, '$DACAPO_DRYRUN detected, and a calculation \
+            raise DacapoDryrun, '$DACAPO_DRYRUN detected, and a calculation \
             attempted'
     
         if not self.ready:
