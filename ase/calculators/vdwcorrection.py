@@ -98,6 +98,7 @@ class vdWTkatchenko09prl:
         self.vdwradii = vdwradii
         self.Rmax = Rmax
         self.missing = missing
+        self.atoms = None
 
         self.sR = 0.94
         self.d = 20
@@ -105,6 +106,12 @@ class vdWTkatchenko09prl:
     def update(self, atoms=None):
         if atoms is None:
             atoms = self.calculator.get_atoms()
+        if (self.atoms and 
+            (self.atoms.get_positions() == atoms.get_positions()).all()):
+            return
+        self.energy = self.calculator.get_potential_energy(atoms)
+        self.forces = self.calculator.get_forces(atoms)
+        self.atoms = atoms
 
         if self.vdwradii is not None:
             # external vdW radii
@@ -121,6 +128,7 @@ class vdWTkatchenko09prl:
             assert(len(atoms) == len(self.hirshfeld))
             volume_ratios = self.hirshfeld
         else: # sould be an object
+            self.hirshfeld.initialize()
             volume_ratios = self.hirshfeld.get_effective_volume_ratios()
 
         # correction for effective C6
@@ -151,6 +159,7 @@ class vdWTkatchenko09prl:
 
         positions = atoms.get_positions()
         EvdW = 0.0
+        forces = 0. * self.forces
         # loop over all atoms in the cell
         for ia, posa in enumerate(positions):
             # loop over all atoms in the cell (and neighbour cells for PBC)
@@ -162,16 +171,23 @@ class vdWTkatchenko09prl:
                             i_c = np.array([ix, iy, iz])
                             diff = posb + np.dot(i_c, cell_c) - posa
                             r2 = np.dot(diff, diff)
+                            r6 = r2**3
                             r = np.sqrt(r2)
                             if r > 1.e-10 and r < self.Rmax:
-                                EvdW -= (self.damping(r, 
-                                                      R0eff_a[ia],
-                                                      R0eff_a[ib],
-                                                      d=self.d, 
-                                                      sR=self.sR) *
-                                         C6eff_aa[ia, ib] / r2 / r2 /r2)
-
+                                Edamp, Fdamp = self.damping(r, 
+                                                            R0eff_a[ia],
+                                                            R0eff_a[ib],
+                                                            d=self.d, 
+                                                            sR=self.sR)
+                                EvdW -= (Edamp *
+                                         C6eff_aa[ia, ib] / r6 )
+                                # we neglect the C6eff contribution to the
+                                # forces
+                                forces[ia] -= ((Fdamp - 6 * Edamp / r) *
+                                               C6eff_aa[ia, ib] / r6 *
+                                               diff / r                 )
         self.energy += EvdW / 2. # double counting
+        self.forces += forces / 2. # double counting
         
     def damping(self, RAB, R0A, R0B,
                 d = 20,   # steepness of the step function
@@ -181,14 +197,18 @@ class vdWTkatchenko09prl:
 
         Standard values for d and sR as given in 
         Tkatchenko and Scheffler PRL 102 (2009) 073005."""
-        x = RAB / (sR * (R0A + R0B))
-        return 1.0 / (1.0 + np.exp(-d * (x - 1.0)))
+        scale = 1.0 / (sR * (R0A + R0B))
+        x = RAB * scale
+        chi = np.exp(-d * (x - 1.0))
+        return 1.0 / (1.0 + chi), d * scale * chi / (1.0 + chi)**2
  
     def get_potential_energy(self, atoms=None):
-        self.energy = self.calculator.get_potential_energy(atoms)
         self.update(atoms)
         return self.energy
 
     def get_forces(self, atoms):
-        return 0 * atoms.get_positions()
-        #raise RuntimeError('Forces are not available')
+        self.update(atoms)
+        return self.forces
+
+    def get_stress(self, atoms):
+        return np.zeros((3, 3))
