@@ -111,7 +111,7 @@ class vdWTkatchenko09prl:
             return
         self.energy = self.calculator.get_potential_energy(atoms)
         self.forces = self.calculator.get_forces(atoms)
-        self.atoms = atoms
+        self.atoms = atoms.copy()
 
         if self.vdwradii is not None:
             # external vdW radii
