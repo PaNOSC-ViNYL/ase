@@ -22,6 +22,9 @@ class NEB:
         d = (pos2 - pos1) / (self.nimages - 1.0)
         for i in range(1, self.nimages - 1):
             self.images[i].set_positions(pos1 + i * d)
+            # Calculators store only a copy of the atoms,
+            # so make sure all calculator objects have the updated positions
+            self.images[i].get_calculator().set_atoms(self.images[i])
 
     def get_positions(self):
         positions = np.empty(((self.nimages - 2) * self.natoms, 3))
@@ -37,6 +40,11 @@ class NEB:
         for image in self.images[1:-1]:
             n2 = n1 + self.natoms
             image.set_positions(positions[n1:n2])
+            if self.parallel and size == 1:
+                # parallelization is done in the calculator, not in python
+                # Calculators store only a copy of the atoms,
+                # so make sure all calculator objects have the updated positions
+                image.get_calculator().set_atoms(image)
             n1 = n2
         
     def get_forces(self):
@@ -45,7 +53,7 @@ class NEB:
         forces = np.empty(((self.nimages - 2), self.natoms, 3))
         energies = np.empty(self.nimages - 2)
 
-        if not self.parallel:
+        if not self.parallel or size == 1:   # python is not running in mpi mode, but parallelization may be done in calculator:
             # Do all images - one at a time:
             for i in range(1, self.nimages - 1):
                 energies[i - 1] = images[i].get_potential_energy()

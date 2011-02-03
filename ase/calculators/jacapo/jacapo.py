@@ -1274,6 +1274,8 @@ than density cutoff %i' % (pw, dw))
             ncf = netCDF(self.nc, 'a')
             vn = 'AtomProperty_%s' % sym
             if vn not in ncf.variables:
+                if 'dim20' not in ncf.dimensions:
+                    ncf.createDimension('dim20', 20)
                 p = ncf.createVariable(vn, 'c', ('dim20',))
             else:
                 p = ncf.variables[vn]
@@ -2083,6 +2085,10 @@ than density cutoff %i' % (pw, dw))
         self.delete_ncattdimvar(self.nc,
                                 ncvars=['Dynamics'])
 
+        if (hasattr(self,'parent') or hasattr(self,'children')) and value == True:
+            log.debug("This is a parent/child calculator and stay_alive must be false.")
+            value = False
+
         if value in [True, False]:
             self.stay_alive = value
             #self._dacapo_is_running = False
@@ -2672,6 +2678,19 @@ than density cutoff %i' % (pw, dw))
         raise IOError, "No suitable scratch directory and no write access \
         to current dir."
 
+    def set_parent(self,parent):
+        if hasattr(self,'children'):
+            raise RuntimeError,"Cannot create grandparents."
+        self.parent = parent
+
+    def attach_child(self,child):
+        if hasattr(self,'parent'):
+            raise RuntimeError,"Cannot create grandchildren!"
+        if not hasattr(self,'children'):
+            self.children = []
+        self.children.append(child)
+        child.set_parent(self)
+
     def calculate(self):
         '''run a calculation.
 
@@ -2684,6 +2703,16 @@ than density cutoff %i' % (pw, dw))
         if os.environ.get('DACAPO_DRYRUN', None) is not None:
             raise DacapoDryrun, '$DACAPO_DRYRUN detected, and a calculation \
             attempted'
+
+        if hasattr(self,'children'):
+                # We are a parent and call execute_parent_calculation
+                self.execute_parent_calculation()
+                return
+
+        if hasattr(self,'parent'):  # we're a child and call the parent
+                log.debug("I'm a child. Calling parent instead.")
+                self.parent.calculate()   # call the parent process to calculate all images
+                return
     
         if not self.ready:
             log.debug('Calculator is not ready.')
@@ -2692,19 +2721,17 @@ than density cutoff %i' % (pw, dw))
 
             log.debug('writing atoms out')
             log.debug(self.atoms)
-            
             self.write_nc() #write atoms to ncfile
 
             log.debug('writing input out')
             self.write_input() #make sure input is uptodate
-            
-
+   
             #check that the bands get set
-            if self.get_nbands() is None:
+            if self.get_nbands() is None:  
                 nelectrons = self.get_valence()
                 nbands = int(nelectrons * 0.65 + 4)
                 self.set_nbands(nbands) 
-            
+
         log.debug('running a calculation')
 
         nc = self.get_nc()
@@ -2716,54 +2743,117 @@ than density cutoff %i' % (pw, dw))
             self.ready = True
             self.set_status('finished')
         else:
+            # if Dynamics:ExternalIonMotion_script is set in the .nc file from a previous run
+            # and stay_alive is false for the continuation run, the Fortran executable continues
+            # taking steps of size 0 and ends in an infinite loop.
+            # Solution: remove the Dynamics variable if present when not running with stay_alive
+            # 
+            self.delete_ncattdimvar(self.nc,ncvars=['Dynamics'])
+	    cmd = 'dacapo.run  %(innc)s -out %(txt)s -scratch %(scratch)s'
+	    cmd = cmd % {'innc':nc,
+			 'txt':txt,
+			 'scratch':scratch}
+
+	    log.debug(cmd)
+	    # using subprocess instead of commands subprocess is more
+	    # flexible and works better for stay_alive
+	    self._dacapo = sp.Popen(cmd,
+				stdout=sp.PIPE,
+				stderr=sp.PIPE,
+				shell=True)
+	    status = self._dacapo.wait()
+	    [stdout, stderr] = self._dacapo.communicate()
+	    output = stdout+stderr
+    
+	    if status is 0: #that means it ended fine!
+		self.ready = True
+		self.set_status('finished')
+	    else:
+		log.debug('Status was not 0')
+		log.debug(output)
+		self.ready = False
+	    # directory cleanup has been moved to self.__del__()
+	    del self._dacapo
+
+	    #Sometimes dacapo dies or is killed abnormally, and in this
+	    #case an exception should be raised to prevent a geometry
+	    #optimization from continuing for example. The best way to
+	    #detect this right now is actually to check the end of the
+	    #text file to make sure it ends with the right line. The
+	    #line differs if the job was run in parallel or in serial.
+	    f = open(txt, 'r')
+	    lines = f.readlines()
+	    f.close()
+
+	    if 'PAR: msexit halting Master' in lines[-1]:
+		pass #standard parallel end
+	    elif ('TIM' in lines[-2]
+		  and 'clexit: exiting the program' in lines[-1]):
+		pass #standard serial end
+	    else:
+		# text file does not end as expected, print the last
+		# 10 lines and raise exception
+		log.debug(string.join(lines[-10:-1], ''))
+		s = 'Dacapo output txtfile (%s) did not end normally.\n'
+		s += ''.join(lines[-10:-1])
+		raise DacapoAbnormalTermination(s % txt)
+
+    def execute_parent_calculation(self):
+        '''
+        Implementation of an extra level of parallelization, where one jacapo calculator spawns several
+        dacapo.run processes. This is used for NEBs parallelized over images.
+        '''                
+        nchildren = len(self.children)
+        log.debug("I'm a parent and start a calculation for ",nchildren," children.")
+        self._dacapo = nchildren*[None]
+        # export the number of children to the environment
+        env = os.environ
+        env['JACAPO_NIMAGES'] = str(nchildren)
+        
+        # start a dacapo.run instance for each child
+        for i,child in enumerate(self.children):
+
+            nc = child.get_nc()
+            txt= child.get_txt()
+            scratch = child.get_scratch()
+
+            if not os.path.exists(nc):
+                child.initnc()
+            child.write_nc() #write atoms to ncfile
+            child.write_input() #make sure input is uptodate
+
+            #check that the bands get set
+            if child.get_nbands() is None:
+                nelectrons = child.get_valence()
+                nbands = int(nelectrons * 0.65 + 4)
+                child.set_nbands(nbands)
+
+            env['JACAPO_IMAGE'] = str(i)
             cmd = 'dacapo.run  %(innc)s -out %(txt)s -scratch %(scratch)s'
             cmd = cmd % {'innc':nc,
-                         'txt':txt,
-                         'scratch':scratch}
+                          'txt':txt,
+                      'scratch':scratch}
 
             log.debug(cmd)
-            # using subprocess instead of commands subprocess is more
-            # flexible and works better for stay_alive
-            self._dacapo = sp.Popen(cmd,
-                                    stdout=sp.PIPE,
-                                    stderr=sp.PIPE,
-                                    shell=True)
-            status = self._dacapo.wait()
-            [stdout, stderr] = self._dacapo.communicate()
+            self._dacapo[i] = sp.Popen(cmd,stdout=sp.PIPE,stderr=sp.PIPE,shell=True,env=env)
+        
+        print 'now waiting for all children to finish'
+        # now wait for all processes to finish
+        for i,child in enumerate(self.children):
+            status = self._dacapo[i].wait()
+            [stdout,stderr] = self._dacapo[i].communicate()
             output = stdout+stderr
-            
             if status is 0: #that means it ended fine!
-                self.ready = True
-                self.set_status('finished')
+                child.ready = True
+                child.set_status('finished')
             else:
                 log.debug('Status was not 0')
                 log.debug(output)
-                self.ready = False
-            # directory cleanup has been moved to self.__del__()
-            del self._dacapo
+                child.ready = False
 
-            #Sometimes dacapo dies or is killed abnormally, and in this
-            #case an exception should be raised to prevent a geometry
-            #optimization from continuing for example. The best way to
-            #detect this right now is actually to check the end of the
-            #text file to make sure it ends with the right line. The
-            #line differs if the job was run in parallel or in serial.
-            f = open(txt, 'r')
-            lines = f.readlines()
-            f.close()
-
-            if 'PAR: msexit halting Master' in lines[-1]:
-                pass #standard parallel end
-            elif ('TIM' in lines[-2]
-                  and 'clexit: exiting the program' in lines[-1]):
-                pass #standard serial end
-            else:
-                # text file does not end as expected, print the last
-                # 10 lines and raise exception
-                log.debug(string.join(lines[-10:-1], ''))
-                s = 'Dacapo output txtfile (%s) did not end normally.\n'
-                s += ''.join(lines[-10:-1])
-                raise DacapoAbnormalTermination(s % txt)
+        # could also check the end of the output .txt file to make sure everything was fine.
+        
+        del self._dacapo
 
     def execute_external_dynamics(self,
                                   nc=None,

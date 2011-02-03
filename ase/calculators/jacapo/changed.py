@@ -131,6 +131,9 @@ def dipole_changed(calc, x):
         return False
     elif pars is not False:
         for key in x:
+            if key == 'position':    # dipole layer position is never writen to the nc file
+                print 'need to do something special'
+                continue
             if x[key] != pars[key]:
                 return True
         return False
