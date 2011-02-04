@@ -12,7 +12,7 @@ import numpy as np
 
 from ase.optimize.optimize import Optimizer
 from math import cos, sin, atan, tan, degrees, pi, sqrt
-from random import gauss
+from random import gauss, seed
 from ase.parallel import rank
 from ase.calculators.singlepoint import SinglePointCalculator
 
@@ -534,16 +534,20 @@ class MinModeAtoms:
         else:
             self.control = control
             logfile = self.control.get_logfile()
-            ologfile = self.control.get_eigenmode_logfile()
+            mlogfile = self.control.get_eigenmode_logfile()
             for key in kwargs:
                 if key == 'logfile':
                     logfile = kwargs[key]
                 elif key == 'eigenmode_logfile':
-                    ologfile = kwargs[key]
+                    mlogfile = kwargs[key]
                 else:
                     self.control.set_parameter(key, kwargs[key])
             self.control.initialize_logfiles(logfile = logfile,
-                                             eigenmode_logfile = ologfile)
+                                             eigenmode_logfile = mlogfile)
+
+        # Seed the randomness
+        random_seed = int(time.time()) # NB: Need a better solution
+        seed(random_seed)
 
         # Check the order
         self.order = self.control.get_parameter('order')
@@ -557,7 +561,7 @@ class MinModeAtoms:
 
         # Get a reference to the log files
         self.logfile = self.control.get_logfile()
-        self.ologfile = self.control.get_eigenmode_logfile()
+        self.mlogfile = self.control.get_eigenmode_logfile()
 
     def save_original_forces(self, force_calculation=False):
         """Store the forces (and energy) of the original state."""
@@ -919,7 +923,7 @@ class MinModeAtoms:
 
     def eigenmode_log(self):
         """Log the eigenmodes (eigenmode estimates)"""
-        if self.ologfile is not None:
+        if self.mlogfile is not None:
             l = 'MINMODE:MODE: Optimization Step: %i\n' % \
                    (self.control.get_counter('optcount'))
             for m_num, mode in enumerate(self.eigenmodes):
@@ -927,8 +931,8 @@ class MinModeAtoms:
                 for k in range(len(mode)):
                     l += 'MINMODE:MODE: %7i %15.8f %15.8f %15.8f\n' % (k,
                          mode[k][0], mode[k][1], mode[k][2])
-            self.ologfile.write(l)
-            self.ologfile.flush()
+            self.mlogfile.write(l)
+            self.mlogfile.flush()
 
     def displacement_log(self, displacement_vector, parameters):
         """Log the displacement"""
@@ -1092,15 +1096,15 @@ class MinModeTranslate(Optimizer):
             self.logfile.write(l)
             self.logfile.flush()
 
-def read_eigenmode(olog, index = -1):
+def read_eigenmode(mlog, index = -1):
     """Read an eigenmode.
     To access the pre optimization eigenmode set index = 'null'.
 
     """
-    if isinstance(olog, str):
-        f = open(olog, 'r')
+    if isinstance(mlog, str):
+        f = open(mlog, 'r')
     else:
-        f = olog
+        f = mlog
 
     lines = f.readlines()
 
