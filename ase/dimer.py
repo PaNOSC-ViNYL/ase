@@ -12,8 +12,7 @@ import numpy as np
 
 from ase.optimize.optimize import Optimizer
 from math import cos, sin, atan, tan, degrees, pi, sqrt
-from random import gauss, seed
-from ase.parallel import rank
+from ase.parallel import rank, size, world
 from ase.calculators.singlepoint import SinglePointCalculator
 
 # Handy vector methods
@@ -505,6 +504,9 @@ class MinModeAtoms:
         will be created and used.
     mask: list of bool
         Determines which atoms will be moved when calling displace()
+    random_seed: int
+        The seed used for the random number generator. Defaults to
+        modified version the current time.
 
     References:
 
@@ -515,7 +517,7 @@ class MinModeAtoms:
     .. [4] Kastner and Sherwood, JCP 128, 014106 (2008).
 
     """
-    def __init__(self, atoms, control=None, eigenmodes=None, **kwargs):
+    def __init__(self, atoms, control=None, eigenmodes=None, random_seed=None, **kwargs):
         self.minmode_init = True
         self.atoms = atoms
 
@@ -546,8 +548,14 @@ class MinModeAtoms:
                                              eigenmode_logfile = mlogfile)
 
         # Seed the randomness
-        random_seed = int(time.time()) # NB: Need a better solution
-        seed(random_seed)
+        if random_seed is None:
+            if size > 1:
+                t = world.sum(t) / float(size)
+            else:
+                t = time.time()
+            # Harvest the latter part of the current time
+            random_seed = int(('%30.18f' % t)[-18:])
+        self.random_state = np.random.RandomState(random_seed)
 
         # Check the order
         self.order = self.control.get_parameter('order')
@@ -893,7 +901,7 @@ class MinModeAtoms:
                             if not gauss_std:
                                 gauss_std = \
                                 self.control.get_parameter('gauss_std')
-                            diff = gauss(0.0, gauss_std)
+                            diff = self.random_state.normal(0.0, gauss_std)
                         else:
                             e = 'Invalid displacement method >>%s<<' % \
                                  str(method)
