@@ -395,10 +395,10 @@ class Siesta:
             for l in tmp[1:]:
                 v.extend([float(t) for t in l.split()])
             if self.spin_pol:
-                self.eig[(i, 1)] = np.array(v[0:self.n_bands])
-                self.eig[(i, -1)] = np.array(v[self.n_bands:])
+                self.eig[(i, 0)] = np.array(v[0:self.n_bands])
+                self.eig[(i, 1)] = np.array(v[self.n_bands:])
             else:
-                self.eig[(i, 1)] = np.array(v)
+                self.eig[(i, 0)] = np.array(v)
         
     def get_k_point_weights(self):
         self.read_eig()
@@ -408,7 +408,7 @@ class Siesta:
         self.read_eig()
         return self.e_fermi
 
-    def get_eigenvalues(self, kpt=0, spin=1):
+    def get_eigenvalues(self, kpt=0, spin=0):
         self.read_eig()
         return self.eig[(kpt, spin)]
 
