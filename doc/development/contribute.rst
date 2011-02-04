@@ -52,10 +52,8 @@ Here is the list of current committers:
 user name   real name
 ==========  ======================  ===================================
 anpet       Andrew Peterson         andy,peterson:stanford,edu
-anro        Anthony Goodrow         anro:fysik,dtu,dk
 askhl       Ask Hjorth Larsen       askhl:fysik,dtu,dk
 bjork       Jonas Bjork             J,Bjork:liverpool,ac,uk
-carstenr    Carsten Rostgaard       carstenr:fysik,dtu,dk
 dlandis     David Landis            dlandis:fysik,dtu,dk
 dulak       Marcin Dulak            dulak:fysik,dtu,dk
 getri       George Tritsaris        getri:fysik,dtu,dk
@@ -78,8 +76,6 @@ miwalter    Michael Walter          Michael,Walter:fmf,uni-freiburg,de
 moses       Poul Georg Moses        poulgeorgmoses:gmail,com
 mvanin      Marco Vanin             mvanin:fysik,dtu,dk
 s032082     Christian Glinsvad      s032082:fysik,dtu,dk
-s042606     Janosch Michael Rauba   s042606:fysik,dtu,dk
-s052580     Troels Kofoed Jacobsen  s052580:fysik,dtu,dk
 schiotz     Jakob Schiotz           schiotz:fysik,dtu,dk
 strange     Mikkel Strange          strange:fysik,dtu,dk
 tjiang      Tao Jiang               tjiang:fysik,dtu,dk
