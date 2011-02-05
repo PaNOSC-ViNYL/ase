@@ -554,7 +554,7 @@ class MinModeAtoms:
             else:
                 t = time.time()
             # Harvest the latter part of the current time
-            random_seed = int(('%30.18f' % t)[-18:])
+            random_seed = int(('%30.9f' % t)[-9:])
         self.random_state = np.random.RandomState(random_seed)
 
         # Check the order
