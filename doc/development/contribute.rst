@@ -77,7 +77,7 @@ moses       Poul Georg Moses        poulgeorgmoses:gmail,com
 mvanin      Marco Vanin             mvanin:fysik,dtu,dk
 s032082     Christian Glinsvad      s032082:fysik,dtu,dk
 schiotz     Jakob Schiotz           schiotz:fysik,dtu,dk
-slabanja    Mattias Slabanja        slabanja@chalmers.se
+slabanja    Mattias Slabanja        slabanja:chalmers,se
 strange     Mikkel Strange          strange:fysik,dtu,dk
 tjiang      Tao Jiang               tjiang:fysik,dtu,dk
 tolsen      Thomas Olsen            tolsen:fysik,dtu,dk
