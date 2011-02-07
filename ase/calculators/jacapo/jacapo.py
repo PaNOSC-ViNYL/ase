@@ -15,7 +15,7 @@ documentation
 
 __docformat__ = 'restructuredtext'
 
-import exceptions, glob, os, pickle, string, uuid
+import exceptions, glob, os, pickle, string
 from Scientific.IO.NetCDF import NetCDFFile as netCDF
 import numpy as np
 import subprocess as sp
@@ -23,6 +23,17 @@ import subprocess as sp
 import validate
 import changed 
 
+try:
+    from uuid import uuid1
+except ImportError: #probably an old python before 2.5
+    import random, time
+    def uuid1():
+        t = time.asctime()
+        host = os.environ['HOSTNAME']
+        random.seed(host + str(t))
+        s = host + '-' + t + '-'+str(random.random())
+        return s.replace(' ','-')
+    
 import logging
 log = logging.getLogger('Jacapo')
 
@@ -452,7 +463,7 @@ class Jacapo:
         ncf.createDimension('dim20', 20) #for longer strings
         ncf.status  = 'new'
         ncf.history = 'Dacapo'
-        ncf.uuid = str(uuid.uuid1())
+        ncf.uuid = str(uuid1())
         ncf.Jacapo_version = Jacapo.__version__
         ncf.close()
         
