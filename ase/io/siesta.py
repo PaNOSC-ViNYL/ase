@@ -73,7 +73,8 @@ def _read_fdf_lines(file, inodes=[]):
 
     if type(file) is str:
         file = open(file, 'r')
-    inode = fstat(file.fileno()).st_ino
+    fst = fstat(file.fileno())
+    inode = (fst.st_dev, fst.st_ino)
     if inode in inodes:
         raise IOError('Cyclic include in fdf file')
     inodes = inodes + [inode]
