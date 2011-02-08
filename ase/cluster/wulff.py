@@ -169,6 +169,7 @@ def make_atoms(symbol, energies, factor, latticeconstant, symmetry):
     layers1 = factor * np.array(energies)
     layers = np.round(layers1).astype(int)
     #layers = np.array([int(round(factor * e)) for e in energies])
+    fcc_surface_names = ase.cluster.data.lattice['fcc']['surface_names']
     atoms = FaceCenteredCubic(symbol, fcc_surface_names, layers=layers,
                               latticeconstant=latticeconstant)
     if _debug:

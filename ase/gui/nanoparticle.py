@@ -410,10 +410,10 @@ class SetupNanoparticle(SetupWindow):
                 rounding = "closest"
             else:
                 raise RuntimeError("No rounding!")
-            self.atoms = wulffconstruction(self.legal_element,
-                                           surfaceenergies,
-                                           self.size_n_adj.value,
-                                           rounding, struct, lc)
+            self.atoms = wulff_construction(self.legal_element,
+                                            surfaceenergies,
+                                            self.size_n_adj.value,
+                                            rounding, struct, lc)
                                    
         self.makeinfo()
 
