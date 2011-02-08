@@ -285,3 +285,7 @@ class EMT:
         self.forces[a1] -= f
         self.forces[a2] += f
 
+    def set_atoms(self,*args,**kwargs):
+        'empty function for compatibility with other calculators and tests'
+        pass
+
