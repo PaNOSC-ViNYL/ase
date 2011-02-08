@@ -2459,7 +2459,7 @@ than density cutoff %i' % (pw, dw))
         '''
         
         from struct import unpack
-        dacapopath = os.environ.get('DACAPOPATH')
+        dacapopath = os.environ.get('DACAPOPATH', '')
 
         if os.path.exists(psp):
             #the pspfile may be in the current directory
