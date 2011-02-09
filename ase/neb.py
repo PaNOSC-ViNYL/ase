@@ -24,8 +24,11 @@ class NEB:
             self.images[i].set_positions(pos1 + i * d)
             # Calculators store only a copy of the atoms,
             # so make sure all calculator objects have the updated positions
-            self.images[i].get_calculator().set_atoms(self.images[i])
-
+            try:
+                self.images[i].get_calculator().set_atoms(self.images[i])
+            except AttributeError:
+                pass
+            
     def get_positions(self):
         positions = np.empty(((self.nimages - 2) * self.natoms, 3))
         n1 = 0
@@ -41,10 +44,14 @@ class NEB:
             n2 = n1 + self.natoms
             image.set_positions(positions[n1:n2])
             if self.parallel and size == 1:
-                # parallelization is done in the calculator, not in python
-                # Calculators store only a copy of the atoms,
-                # so make sure all calculator objects have the updated positions
-                image.get_calculator().set_atoms(image)
+                # parallelization is done in the calculator, not in
+                # python Calculators store only a copy of the atoms,
+                # so make sure all calculator objects have the updated
+                # positions
+                try:
+                    image.get_calculator().set_atoms(image)
+                except AttributeError:
+                    pass
             n1 = n2
         
     def get_forces(self):
