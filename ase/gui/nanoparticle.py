@@ -3,6 +3,7 @@
 """
 
 import gtk
+from copy import copy
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.setupwindow import SetupWindow
 from ase.gui.pybutton import PyButton
@@ -10,25 +11,45 @@ import ase
 import numpy as np
 # Delayed imports:
 # ase.cluster.data
-from ase.cluster.cubic import FaceCenteredCubic
-from ase.cluster.data.fcc import surface_names as fcc_surface_names
+from ase.cluster.cubic import FaceCenteredCubic, BodyCenteredCubic, SimpleCubic
+from ase.cluster.hexagonal import HexagonalClosedPacked, Graphite
 from ase.cluster import wulff_construction
 
 introtext = """\
 You specify the size of the particle by specifying the number of atomic layers
-in the different low-index crystal directions.  Often, the number of layers is
-specified for a family of directions, but they can be given individually.
+in different low-index crystal directions.  For the Wulff construction, you
+instead specify surface energies and approxmate cluster size.  First time a
+direction appears, it is interpreted as the entire family of directions.  If one
+of these directions is specified again, it overrules that specific direction.
 
-When the particle is created, the actual numbers of layers are printed, they
-may be less than specified if a surface is cut of by other surfaces."""
+Example: (1,0,0) (1,1,1), (0,0,1) would specify the {100} family of directions,
+the {111} family and then the (001) direction, overruling the value given for
+the whole family of directions.
+"""
 
-py_template = """
-from ase.cluster import Cluster
+py_template_layers = """
 import ase
+%(import)s
 
+surfaces = %(surfaces)s
 layers = %(layers)s
-atoms = Cluster(symbol='%(element)s', layers=layers, latticeconstant=%(a).5f,
-                symmetry='%(structure)s')
+lc = %(latconst)s
+atoms = %(factory)s('%(element)s', surfaces, layers, latticeconstant=lc)
+
+# OPTIONAL: Cast to ase.Atoms object, discarding extra information:
+# atoms = ase.Atoms(atoms)
+"""
+
+py_template_wulff = """
+import ase
+from ase.cluster import wulff_construction
+
+surfaces = %(surfaces)s
+esurf = %(energies)s
+lc = %(latconst)s
+size = %(natoms)s  # Number of atoms
+atoms = wulff_construction('%(element)s', surfaces, esurf, size, '%(structure)s',
+                           rounding='%(rounding)s', latticeconstant=lc)
 
 # OPTIONAL: Cast to ase.Atoms object, discarding extra information:
 # atoms = ase.Atoms(atoms)
@@ -39,18 +60,42 @@ class attribute_collection:
 
 class SetupNanoparticle(SetupWindow):
     "Window for setting up a nanoparticle."
-    families = {'fcc': [(0,0,1), (0,1,1), (1,1,1)]}
-    defaults = {'fcc': [6, 9, 5]}
+    # Structures:  Abbreviation, name, 4-index (boolean), two lattice const (bool), factory
+    structure_data = (('fcc', 'Face centered cubic (fcc)', False, False, FaceCenteredCubic),
+                      ('bcc', 'Body centered cubic (bcc)', False, False, BodyCenteredCubic),
+                      ('sc',  'Simple cubic (sc)', False, False, SimpleCubic),
+                      #('hcp', 'Hexagonal closed-packed (hcp)', True, True, HexagonalClosedPacked),
+                      #('graphite', 'Graphite', True, True, Graphite),
+                      )
+    #NB:  HCP is broken!
+    
+    # A list of import statements for the Python window.
+    import_names = {'fcc': 'from ase.cluster.cubic import FaceCenteredCubic',
+                    'bcc': 'from ase.cluster.cubic import BodyCenteredCubic',
+                    'sc': 'from ase.cluster.cubic import SimpleCubic',
+                    'hcp': 'from ase.cluster.hexagonal import HexagonalClosedPacked',
+                    'graphite': 'from ase.cluster.hexagonal import Graphite',
+                    }
+    # Default layer specifications for the different structures.
+    default_layers = {'fcc': [( (1,0,0), 6),
+                              ( (1,1,0), 9),
+                              ( (1,1,1), 5)],
+                      'bcc': [( (1,0,0), 6),
+                              ( (1,1,0), 9),
+                              ( (1,1,1), 5)],
+                      'sc':  [( (1,0,0), 6),
+                              ( (1,1,0), 9),
+                              ( (1,1,1), 5)],
+                      'hcp': [( (0,0,0,1), 5),
+                              ( (1,0,-1,0), 5)],
+                      'graphite': [( (0,0,0,1), 5),
+                                   ( (1,0,-1,0), 5)]
+                      }
     
     def __init__(self, gui):
         SetupWindow.__init__(self)
         self.set_title("Nanoparticle")
         self.atoms = None
-        #import ase.cluster.data
-        #self.data_module = ase.cluster.data
-        #import ase.cluster
-        #self.Cluster = ase.cluster.Cluster
-        #self.wulffconstruction = ase.cluster.wulff_construction
         self.no_update = True
         
         vbox = gtk.VBox()
@@ -64,7 +109,7 @@ class SetupNanoparticle(SetupWindow):
         element = gtk.Entry(max=3)
         self.element = element
         lattice_button = gtk.Button("Get structure")
-        lattice_button.connect('clicked', self.get_structure)
+        lattice_button.connect('clicked', self.set_structure_data)
         self.elementinfo = gtk.Label(" ")
         pack(vbox, [label, element, self.elementinfo, lattice_button], end=True)
         self.element.connect('activate', self.update)
@@ -73,18 +118,35 @@ class SetupNanoparticle(SetupWindow):
         # The structure and lattice constant
         label = gtk.Label("Structure: ")
         self.structure = gtk.combo_box_new_text()
-        self.allowed_structures = ('fcc',)
-        for struct in self.allowed_structures:
-            self.structure.append_text(struct)
+        self.list_of_structures = []
+        self.needs_4index = {}
+        self.needs_2lat = {}
+        self.factory = {}
+        for abbrev, name, n4, c, factory in self.structure_data:
+            self.structure.append_text(name)
+            self.list_of_structures.append(abbrev)
+            self.needs_4index[abbrev] = n4
+            self.needs_2lat[abbrev] = c
+            self.factory[abbrev] = factory
         self.structure.set_active(0)
-        self.structure.connect('changed', self.update)
+        self.fourindex = self.needs_4index[self.list_of_structures[0]]
+        self.structure.connect('changed', self.update_structure)
         
-        label2 = gtk.Label("   Lattice constant: ")
-        self.lattice_const = gtk.Adjustment(3.0, 0.0, 1000.0, 0.01)
-        lattice_box = gtk.SpinButton(self.lattice_const, 10.0, 3)
-        lattice_box.numeric = True
-        pack(vbox, [label, self.structure, label2, lattice_box])
-        self.lattice_const.connect('value-changed', self.update)
+        label2 = gtk.Label("Lattice constant:  a =")
+        self.lattice_const_a = gtk.Adjustment(3.0, 0.0, 1000.0, 0.01)
+        self.lattice_const_c = gtk.Adjustment(5.0, 0.0, 1000.0, 0.01)
+        self.lattice_box_a = gtk.SpinButton(self.lattice_const_a, 10.0, 3)
+        self.lattice_box_c = gtk.SpinButton(self.lattice_const_c, 10.0, 3)
+        self.lattice_box_a.numeric = True
+        self.lattice_box_c.numeric = True
+        self.lattice_label_c = gtk.Label(" c =")
+        pack(vbox, [label, self.structure])
+        pack(vbox, [label2, self.lattice_box_a,
+                    self.lattice_label_c, self.lattice_box_c])
+        self.lattice_label_c.hide()
+        self.lattice_box_c.hide()
+        self.lattice_const_a.connect('value-changed', self.update)
+        self.lattice_const_c.connect('value-changed', self.update)
 
         # Choose specification method
         label = gtk.Label("Method: ")
@@ -92,21 +154,55 @@ class SetupNanoparticle(SetupWindow):
         for meth in ("Layer specification", "Wulff construction"):
             self.method.append_text(meth)
         self.method.set_active(0)
-        self.method.connect('changed', self.update_gui)
+        self.method.connect('changed', self.update_gui_method)
         pack(vbox, [label, self.method])
         pack(vbox, gtk.Label(""))
-        
-        # The number of layers
-        self.layerbox = gtk.VBox()
-        self.layerdata = attribute_collection()
-        pack(vbox, self.layerbox)
-        self.make_layer_gui(self.layerbox, self.layerdata, 0)
+        self.old_structure = None
 
-        # The Wulff construction
+        frame = gtk.Frame()
+        pack(vbox, frame)
+        framebox = gtk.VBox()
+        frame.add(framebox)
+        framebox.show()
+        self.layerlabel = gtk.Label("Missing text")  # Filled in later
+        pack(framebox, [self.layerlabel])
+        # This box will contain a single table that is replaced when
+        # the list of directions is changed.
+        self.direction_table_box = gtk.VBox()
+        pack(framebox, self.direction_table_box)
+        pack(self.direction_table_box, gtk.Label("Dummy placeholder object"))
+        pack(framebox, gtk.Label(""))
+        pack(framebox, [gtk.Label("Add new direction:")])
+        self.newdir_label = []
+        self.newdir_box = []
+        self.newdir_index = []
+        packlist = []
+        for txt in ('(', ', ', ', ', ', '):
+            self.newdir_label.append(gtk.Label(txt))
+            adj = gtk.Adjustment(0, -100, 100, 1)
+            self.newdir_box.append(gtk.SpinButton(adj, 1, 0))
+            self.newdir_index.append(adj)
+            packlist.append(self.newdir_label[-1])
+            packlist.append(self.newdir_box[-1])
+        self.newdir_layers = gtk.Adjustment(5, 0, 100, 1)
+        self.newdir_layers_box = gtk.SpinButton(self.newdir_layers, 1, 0)
+        self.newdir_esurf = gtk.Adjustment(1.0, 0, 1000.0, 0.1)
+        self.newdir_esurf_box = gtk.SpinButton(self.newdir_esurf, 10, 3)
+        addbutton = gtk.Button("Add")
+        addbutton.connect('clicked', self.row_add)
+        packlist.extend([gtk.Label("): "),
+                         self.newdir_layers_box,
+                         self.newdir_esurf_box,
+                         gtk.Label("  "),
+                         addbutton])
+        pack(framebox, packlist)
+        self.defaultbutton = gtk.Button("Set all directions to default values")
+        self.defaultbutton.connect('clicked', self.default_direction_table)
+        self.default_direction_table()
+
+        # Extra widgets for the Wulff construction
         self.wulffbox = gtk.VBox()
-        self.wulffdata = attribute_collection()
         pack(vbox, self.wulffbox)
-        self.make_layer_gui(self.wulffbox, self.wulffdata, 1)
         label = gtk.Label("Particle size: ")
         self.size_n_radio = gtk.RadioButton(None, "Number of atoms: ")
         self.size_n_radio.set_active(True)
@@ -119,11 +215,10 @@ class SetupNanoparticle(SetupWindow):
         pack(self.wulffbox, [label, self.size_n_radio, self.size_n_spin,
                     gtk.Label("   "), self.size_dia_radio, self.size_dia_spin,
                     gtk.Label("Å³")])
-        self.size_n_radio.connect("toggled", self.update_gui)
-        self.size_dia_radio.connect("toggled", self.update_gui)
+        self.size_n_radio.connect("toggled", self.update_gui_size)
+        self.size_dia_radio.connect("toggled", self.update_gui_size)
         self.size_n_adj.connect("value-changed", self.update_size_n)
         self.size_dia_adj.connect("value-changed", self.update_size_dia)
-        self.update_size_n()
         label = gtk.Label(
             "Rounding: If exact size is not possible, choose the size")
         pack(self.wulffbox, [label])
@@ -164,23 +259,142 @@ class SetupNanoparticle(SetupWindow):
         pack(vbox, [fr], end=True, bottom=True)
         
         # Finalize setup
-        self.update_gui()
+        self.update_structure()
+        self.update_gui_method()
         self.add(vbox)
         vbox.show()
         self.show()
         self.gui = gui
         self.no_update = False
 
-    def update_gui(self, widget=None):
-        method = self.method.get_active()
-        if method == 0:
-            self.wulffbox.hide()
-            self.layerbox.show()
-        elif method == 1:
-            self.layerbox.hide()
+    def default_direction_table(self, widget=None):
+        "Set default directions and values for the current crystal structure."
+        self.direction_table = []
+        struct = self.get_structure()
+        for direction, layers in self.default_layers[struct]:
+            adj1 = gtk.Adjustment(layers, -100, 100, 1)
+            adj2 = gtk.Adjustment(1.0, -1000.0, 1000.0, 0.1)
+            adj1.connect("value-changed", self.update)
+            adj2.connect("value-changed", self.update)
+            self.direction_table.append([direction, adj1, adj2])
+        self.update_direction_table()
+
+    def update_direction_table(self):
+        "Update the part of the GUI containing the table of directions."
+        #Discard old table
+        oldwidgets = self.direction_table_box.get_children()
+        assert len(oldwidgets) == 1
+        oldwidgets[0].hide()
+        self.direction_table_box.remove(oldwidgets[0])
+        del oldwidgets  # It should now be gone
+        tbl = gtk.Table(len(self.direction_table)+1, 7)
+        pack(self.direction_table_box, [tbl])
+        for i, data in enumerate(self.direction_table):
+            tbl.attach(gtk.Label("%s: " % (str(data[0]),)),
+                       0, 1, i, i+1)
+            if self.method.get_active():
+                # Wulff construction
+                spin = gtk.SpinButton(data[2], 1.0, 3)
+            else:
+                # Layers
+                spin = gtk.SpinButton(data[1], 1, 0)
+            tbl.attach(spin, 1, 2, i, i+1)
+            tbl.attach(gtk.Label("   "), 2, 3, i, i+1)
+            but = gtk.Button("Up")
+            but.connect("clicked", self.row_swap_next, i-1)
+            if i == 0:
+                but.set_sensitive(False)
+            tbl.attach(but, 3, 4, i, i+1)
+            but = gtk.Button("Down")
+            but.connect("clicked", self.row_swap_next, i)
+            if i == len(self.direction_table)-1:
+                but.set_sensitive(False)
+            tbl.attach(but, 4, 5, i, i+1)
+            but = gtk.Button("Delete")
+            but.connect("clicked", self.row_delete, i)
+            if len(self.direction_table) == 1:
+                but.set_sensitive(False)
+            tbl.attach(but, 5, 6, i, i+1)
+        tbl.show_all()
+        self.update()
+
+    def get_structure(self):
+        "Returns the crystal structure chosen by the user."
+        return self.list_of_structures[self.structure.get_active()]
+
+    def update_structure(self, widget=None):
+        "Called when the user changes the structure."
+        s = self.get_structure()
+        if s != self.old_structure:
+            old4 = self.fourindex
+            self.fourindex = self.needs_4index[s]
+            if self.fourindex != old4:
+                # The table of directions is invalid.
+                self.default_direction_table()
+            self.old_structure = s
+            if self.needs_2lat[s]:
+                self.lattice_label_c.show()
+                self.lattice_box_c.show()
+            else:
+                self.lattice_label_c.hide()
+                self.lattice_box_c.hide()
+            if self.fourindex:
+                self.newdir_label[3].show()
+                self.newdir_box[3].show()
+            else:
+                self.newdir_label[3].hide()
+                self.newdir_box[3].hide()
+        self.update()
+
+    def update_gui_method(self, widget=None):
+        "Switch between layer specification and Wulff construction."
+        self.update_direction_table()
+        if self.method.get_active():
             self.wulffbox.show()
-            self.size_n_spin.set_sensitive(self.size_n_radio.get_active())
-            self.size_dia_spin.set_sensitive(self.size_dia_radio.get_active())
+            self.layerlabel.set_text("Surface energies:")
+            self.newdir_layers_box.hide()
+            self.newdir_esurf_box.show()
+        else:
+            self.wulffbox.hide()
+            self.layerlabel.set_text("Number of layers:")
+            self.newdir_layers_box.show()
+            self.newdir_esurf_box.hide()
+        self.update()
+
+    def row_add(self, widget=None):
+        "Add a row to the list of directions."
+        if self.fourindex:
+            n = 4
+        else:
+            n = 3
+        idx = tuple( [int(a.value) for a in self.newdir_index[:n]] )
+        if not np.array(idx).any():
+            oops("At least one index must be non-zero")
+            return
+        if n == 4 and np.array(idx)[:3].sum() != 0:
+            oops("Invalid hexagonal indices",
+                 "The sum of the first three numbers must be zero")
+            return
+        adj1 = gtk.Adjustment(self.newdir_layers.value, -100, 100, 1)
+        adj2 = gtk.Adjustment(self.newdir_esurf.value, -1000.0, 1000.0, 0.1)
+        adj1.connect("value-changed", self.update)
+        adj2.connect("value-changed", self.update)
+        self.direction_table.append([idx, adj1, adj2])
+        self.update_direction_table()
+
+    def row_delete(self, widget, row):
+        del self.direction_table[row]
+        self.update_direction_table()
+
+    def row_swap_next(self, widget, row):
+        dt = self.direction_table
+        dt[row], dt[row+1] = dt[row+1], dt[row]
+        self.update_direction_table()
+        
+    def update_gui_size(self, widget=None):
+        "Update gui when the cluster size specification changes."
+        self.size_n_spin.set_sensitive(self.size_n_radio.get_active())
+        self.size_dia_spin.set_sensitive(self.size_dia_radio.get_active())
 
     def update_size_n(self, widget=None):
         if not self.size_n_radio.get_active():
@@ -201,7 +415,6 @@ class SetupNanoparticle(SetupWindow):
     def update(self, *args):
         if self.no_update:
             return
-        self.update_gui()
         self.update_element()
         if self.auto.get_active():
             self.makeatoms()
@@ -211,7 +424,8 @@ class SetupNanoparticle(SetupWindow):
             self.clearatoms()
         self.makeinfo()
 
-    def get_structure(self, *args):
+    def set_structure_data(self, *args):
+        "Called when the user presses [Get structure]."
         if not self.update_element():
             oops("Invalid element.")
             return
@@ -222,163 +436,29 @@ class SetupNanoparticle(SetupWindow):
         else:
             structure = ref['symmetry'].lower()
                 
-        if ref is None or not structure in self.allowed_structures:
+        if ref is None or not structure in self.list_of_structures:
             oops("Unsupported or unknown structure",
                  "Element = %s,  structure = %s" % (self.legal_element,
                                                     structure))
             return
-        for i, s in enumerate(self.allowed_structures):
+        for i, s in enumerate(self.list_of_structures):
             if structure == s:
                 self.structure.set_active(i)
         a = ref['a']
-        self.lattice_const.set_value(a)
-
-    def make_layer_gui(self, box, data, method):
-        "Make the part of the gui specifying the layers of the particle"
-        assert method in (0,1)
-        
-        # Clear the box
-        children = box.get_children()
-        for c in children:
-            box.remove(c)
-        del children
-
-        # Make the label
-        if method == 0:
-            txt = "Number of layers:"
+        self.lattice_const_a.set_value(a)
+        self.fourindex = self.needs_4index[structure]
+        if self.fourindex:
+            try:
+                c = ref['c']
+            except KeyError:
+                c = ref['c/a'] * a
+            self.lattice_const_c.set_value(c)
+            self.lattice_label_c.show()
+            self.lattice_box_c.show()
         else:
-            txt = "Surface energies (unit: energy/area, i.e. J/m<sup>2</sup> or eV/nm<sup>2</sup>, <i>not</i> eV/atom):"
-        label = gtk.Label()
-        label.set_markup(txt)
-        pack(box, [label])
+            self.lattice_label_c.hide()
+            self.lattice_box_c.hide()
 
-        # Get the crystal structure
-        struct = self.structure.get_active_text()
-        # Get the surfaces in the order the ase.cluster module expects
-        surfaces = fcc_surface_names
-        # Get the surface families
-        families = self.families[struct]
-        if method == 0:
-            defaults = self.defaults[struct]
-        else:
-            defaults = [1.0] * len(self.defaults[struct])
-        
-        # Empty array for the gtk.Adjustments for the layer numbers
-        data.layers = [None] * len(surfaces)
-        data.layer_lbl = [None] * len(surfaces)
-        data.layer_spin = [None] * len(surfaces)
-        data.layer_owner = [None] * len(surfaces)
-        data.layer_label = [None] * len(surfaces)
-        data.famlayers = [None] * len(families)
-        data.infamily = [None] * len(families)
-        data.family_label = [None] * len(families)
-        
-        # Now, make a box for each family of surfaces
-        frames = []
-        for i in range(len(families)):
-            family = families[i]
-            default = defaults[i]
-            frames.append(self.make_layer_family(data, i, family, surfaces,
-                                                 default, method))
-        for a in data.layers:
-            assert a is not None
-
-        pack(box, frames)
-        box.show_all()
-
-    def make_layer_family(self, data, n, family, surfaces, default, method):
-        """Make a frame box for a single family of surfaces.
-
-        The layout is a frame containing a table.  For example
-
-        {0,0,1}, SPIN, EMPTY, EMPTY
-        -- empty line --
-        (0,0,1), SPIN, Label(actual), Checkbox
-        ...
-        """
-        tbl = gtk.Table(2, 4)
-        lbl = gtk.Label("{%i,%i,%i}: " % family)
-        lbl.set_alignment(1, 0.5)
-        tbl.attach(lbl, 0, 1, 0, 1)
-        if method == 0:
-            famlayers = gtk.Adjustment(default, 1, 100, 1)
-            sbut = gtk.SpinButton(famlayers, 0, 0)
-        else:
-            flimit = 1000.0
-            famlayers = gtk.Adjustment(default, 0.0, flimit, 0.1)
-            sbut = gtk.SpinButton(famlayers, 10.0, 3)
-        tbl.attach(sbut, 2, 3, 0, 1)
-        tbl.attach(gtk.Label(" "), 0, 1, 1, 2)
-        assert data.famlayers[n] is None
-        data.famlayers[n] = famlayers
-        data.infamily[n] = []
-        data.family_label[n] = gtk.Label("")
-        tbl.attach(data.family_label[n], 1, 2, 0, 1)
-        row = 2
-        myspin = []
-        for i, s in enumerate(surfaces):
-            s2 = [abs(x) for x in s]
-            s2.sort()
-            if tuple(s2) == family:
-                data.infamily[n].append(i)
-                tbl.resize(row+1, 4)
-                lbl = gtk.Label("(%i,%i,%i): " % s)
-                lbl.set_alignment(1, 0.5)
-                tbl.attach(lbl, 0, 1, row, row+1)
-                label = gtk.Label("    ")
-                tbl.attach(label, 1, 2, row, row+1)
-                data.layer_label[i] = label
-                if method == 0:
-                    lay = gtk.Adjustment(default, -100, 100, 1)
-                    spin = gtk.SpinButton(lay, 0, 0)
-                else:
-                    lay = gtk.Adjustment(default, -flimit, flimit, 0.1)
-                    spin = gtk.SpinButton(lay, 10.0, 3)
-                lay.connect('value-changed', self.update)
-                spin.set_sensitive(False)
-                tbl.attach(spin, 2, 3, row, row+1)
-                assert data.layers[i] is None
-                data.layers[i] = lay
-                data.layer_lbl[i] = lbl
-                data.layer_spin[i] = spin
-                data.layer_owner[i] = n
-                myspin.append(spin)
-                chkbut = gtk.CheckButton()
-                tbl.attach(chkbut, 3, 4, row, row+1)
-                chkbut.connect("toggled", self.toggle_surface, i)
-                row += 1
-        famlayers.connect('value-changed', self.changed_family_layers, myspin)
-        vbox = gtk.VBox()
-        vbox.pack_start(tbl, False, False, 0)
-        fr = gtk.Frame()
-        fr.add(vbox)
-        fr.show_all()
-        return fr
-
-    def toggle_surface(self, widget, number):
-        "Toggle whether a layer in a family can be specified."
-        active = widget.get_active()
-        data = self.get_data()
-        data.layer_spin[number].set_sensitive(active)
-        if not active:
-            data.layers[number].value = \
-                data.famlayers[data.layer_owner[number]].value
-        
-    def changed_family_layers(self, widget, myspin):
-        "Change the number of layers in inactive members of a family."
-        self.no_update = True
-        x = widget.value
-        for s in myspin:
-            if s.state == gtk.STATE_INSENSITIVE:
-                adj = s.get_adjustment()
-                if adj.value != x:
-                    adj.value = x
-        self.no_update = False
-        self.update()
-
-    def get_data(self):
-        return self.layerdata
-    
     def makeatoms(self, *args):
         "Make the atoms according to the current specification."
         if not self.update_element():
@@ -386,21 +466,34 @@ class SetupNanoparticle(SetupWindow):
             self.makeinfo()
             return False
         assert self.legal_element is not None
-        struct = self.structure.get_active_text()
-        lc = self.lattice_const.value
+        struct = self.list_of_structures[self.structure.get_active()]
+        if self.needs_2lat[struct]:
+            # a and c lattice constants
+            lc = {'a': self.lattice_const_a.value,
+                  'c': self.lattice_const_c.value}
+            lc_str = str(lc)
+        else:
+            lc = self.lattice_const_a.value
+            lc_str = "%.5f" % (lc,)
         if self.method.get_active() == 0:
             # Layer-by-layer specification
-            layers = [int(x.value) for x in self.layerdata.layers]
-            self.atoms = FaceCenteredCubic(self.legal_element, fcc_surface_names,
-                                           layers=layers, latticeconstant=lc)
-            self.pybut.python = py_template % {'element': self.legal_element,
-                                               'layers': str(layers),
-                                               'structure': struct,
-                                               'a': lc}
+            surfaces = [x[0] for x in self.direction_table]
+            layers = [int(x[1].value) for x in self.direction_table]
+            self.atoms = self.factory[struct](self.legal_element, copy(surfaces),
+                                              layers, latticeconstant=lc)
+            imp = self.import_names[struct]
+            self.pybut.python = py_template_layers % {'import': imp,
+                                                      'element': self.legal_element,
+                                                      'surfaces': str(surfaces),
+                                                      'layers': str(layers),
+                                                      'latconst': lc_str,
+                                                      'factory': imp.split()[-1]
+                                                      }
         else:
             # Wulff construction
             assert self.method.get_active() == 1
-            surfaceenergies = [x.value for x in self.wulffdata.layers]
+            surfaces = [x[0] for x in self.direction_table]
+            surfaceenergies = [x[2].value for x in self.direction_table]            
             self.update_size_dia()
             if self.round_above.get_active():
                 rounding = "above"
@@ -410,11 +503,19 @@ class SetupNanoparticle(SetupWindow):
                 rounding = "closest"
             else:
                 raise RuntimeError("No rounding!")
-            self.atoms = wulff_construction(self.legal_element,
+            self.atoms = wulff_construction(self.legal_element, surfaces,
                                             surfaceenergies,
                                             self.size_n_adj.value,
-                                            rounding, struct, lc)
-                                   
+                                            self.factory[struct],
+                                            rounding, lc)
+            self.pybut.python = py_template_wulff % {'element': self.legal_element,
+                                                     'surfaces': str(surfaces),
+                                                     'energies': str(surfaceenergies),
+                                                     'latconst': lc_str,
+                                                     'natoms': self.size_n_adj.value,
+                                                     'structure': struct,
+                                                     'rounding': rounding
+                                                      }
         self.makeinfo()
 
     def clearatoms(self):
@@ -422,10 +523,19 @@ class SetupNanoparticle(SetupWindow):
         self.pybut.python = None
 
     def get_atomic_volume(self):
-        s = self.structure.get_active_text()
-        a = self.lattice_const.value
+        s = self.list_of_structures[self.structure.get_active()]
+        a = self.lattice_const_a.value
+        c = self.lattice_const_c.value
         if s == 'fcc':
             return a**3 / 4
+        elif s == 'bcc':
+            return a**3 / 2
+        elif s == 'sc':
+            return a**3
+        elif s == 'hcp':
+            return np.sqrt(3.0)/2 * a * a * c / 2
+        elif s == 'graphite':
+            return np.sqrt(3.0)/2 * a * a * c / 4
         else:
             raise RuntimeError("Unknown structure: "+s)
 
@@ -435,25 +545,12 @@ class SetupNanoparticle(SetupWindow):
         if self.atoms is None:
             self.natoms_label.set_label("-")
             self.dia1_label.set_label("-")
-            for d in (self.layerdata, self.wulffdata):
-                for label in d.layer_label+d.family_label:
-                    label.set_text("    ")
         else:
             self.natoms_label.set_label(str(len(self.atoms)))
             at_vol = self.get_atomic_volume()
             dia = 2 * (3 * len(self.atoms) * at_vol / (4 * np.pi))**(1.0/3.0)
             self.dia1_label.set_label("%.1f Å" % (dia,))
-            actual = self.atoms.get_layers()
-            for i, a in enumerate(actual):
-                self.layerdata.layer_label[i].set_text("%2i " % (a,))
-                self.wulffdata.layer_label[i].set_text("%2i " % (a,))
-            for d in (self.layerdata, self.wulffdata):
-                for i, label in enumerate(d.family_label):
-                    relevant = actual[d.infamily[i]]
-                    if relevant.min() == relevant.max():
-                        label.set_text("%2i " % (relevant[0]))
-                    else:
-                        label.set_text("-- ")
+            #actual = self.atoms.get_layers()
             
     def apply(self, *args):
         self.makeatoms()
