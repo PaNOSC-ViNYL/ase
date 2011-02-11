@@ -55,9 +55,6 @@ atoms = wulff_construction('%(element)s', surfaces, esurf, size, '%(structure)s'
 # atoms = ase.Atoms(atoms)
 """
 
-class attribute_collection:
-    pass
-
 class SetupNanoparticle(SetupWindow):
     "Window for setting up a nanoparticle."
     # Structures:  Abbreviation, name, 4-index (boolean), two lattice const (bool), factory
@@ -541,7 +538,6 @@ class SetupNanoparticle(SetupWindow):
 
     def makeinfo(self):
         "Fill in information field about the atoms."
-        #data = self.get_data()
         if self.atoms is None:
             self.natoms_label.set_label("-")
             self.dia1_label.set_label("-")
@@ -550,7 +546,6 @@ class SetupNanoparticle(SetupWindow):
             at_vol = self.get_atomic_volume()
             dia = 2 * (3 * len(self.atoms) * at_vol / (4 * np.pi))**(1.0/3.0)
             self.dia1_label.set_label("%.1f Å" % (dia,))
-            #actual = self.atoms.get_layers()
             
     def apply(self, *args):
         self.makeatoms()
