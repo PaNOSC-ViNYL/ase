@@ -183,34 +183,34 @@ def read_fdf(fname):
     The implementation tries to comply with the fdf-format
     specification as presented in the siesta 2.0.2 manual.
 
-    An fdf-dictionary could e.g. look like this
+    An fdf-dictionary could e.g. look like this::
 
-    {'atomiccoordinatesandatomicspecies': [
-          ['4.9999998', '5.7632392', '5.6095972', '1'],
-          ['5.0000000', '6.5518100', '4.9929091', '2'],
-          ['5.0000000', '4.9746683', '4.9929095', '2']],
-     'atomiccoordinatesformat': ['Ang'],
-     'chemicalspecieslabel': [['1', '8', 'O'],
-                              ['2', '1', 'H']],
-     'dmmixingweight': ['0.1'],
-     'dmnumberpulay': ['5'],
-     'dmusesavedm': ['True'],
-     'latticeconstant': ['1.000000', 'Ang'],
-     'latticevectors': [
-          ['10.00000000', '0.00000000', '0.00000000'],
-          ['0.00000000', '11.52647800', '0.00000000'],
-          ['0.00000000', '0.00000000', '10.59630900']],
-     'maxscfiterations': ['120'],
-     'meshcutoff': ['2721.139566', 'eV'],
-     'numberofatoms': ['3'],
-     'numberofspecies': ['2'],
-     'paobasissize': ['dz'],
-     'solutionmethod': ['diagon'],
-     'systemlabel': ['H2O'],
-     'wavefunckpoints': [['0.0', '0.0', '0.0']],
-     'writedenchar': ['T'],
-     'xcauthors': ['PBE'],
-     'xcfunctional': ['GGA']}
+        {'atomiccoordinatesandatomicspecies': [
+              ['4.9999998', '5.7632392', '5.6095972', '1'],
+              ['5.0000000', '6.5518100', '4.9929091', '2'],
+              ['5.0000000', '4.9746683', '4.9929095', '2']],
+         'atomiccoordinatesformat': ['Ang'],
+         'chemicalspecieslabel': [['1', '8', 'O'],
+                                  ['2', '1', 'H']],
+         'dmmixingweight': ['0.1'],
+         'dmnumberpulay': ['5'],
+         'dmusesavedm': ['True'],
+         'latticeconstant': ['1.000000', 'Ang'],
+         'latticevectors': [
+              ['10.00000000', '0.00000000', '0.00000000'],
+              ['0.00000000', '11.52647800', '0.00000000'],
+              ['0.00000000', '0.00000000', '10.59630900']],
+         'maxscfiterations': ['120'],
+         'meshcutoff': ['2721.139566', 'eV'],
+         'numberofatoms': ['3'],
+         'numberofspecies': ['2'],
+         'paobasissize': ['dz'],
+         'solutionmethod': ['diagon'],
+         'systemlabel': ['H2O'],
+         'wavefunckpoints': [['0.0', '0.0', '0.0']],
+         'writedenchar': ['T'],
+         'xcauthors': ['PBE'],
+         'xcfunctional': ['GGA']}
 
     """
 
