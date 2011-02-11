@@ -112,6 +112,10 @@ class Phonons:
         self.C_m = None  # in units of eV / Ang**2 
         self.D_m = None  # in units of eV / Ang**2 / amu
         
+        # Attributes for born charges and static dielectric tensor
+        self.Z_avv = None
+        self.eps_vv = None
+        
     def set_atoms(self, atoms):
         """Set the atoms to vibrate.
 
@@ -226,10 +230,51 @@ class Phonons:
                     name = '%s.%d%s%s.pckl' % (self.name, a, i, sign)
                     if isfile(name):
                         remove(name)
-        
-    def read(self, method='Frederiksen', symmetrize=True, acoustic=True):
-        """Read pickle files and calculate matrix of force constants.
 
+    def read_born_charges(self, name=None, neutrality=True):
+        """Read Born charges and dieletric tensor from pickle file.
+
+        The charge neutrality sum-rule::
+    
+                   _ _
+                   \    a    
+                    )  Z   = 0
+                   /__  ij
+                    a
+                              
+        Parameters
+        ----------
+        neutrality: bool
+            Restore charge neutrality condition on calculated Born effective
+            charges. 
+
+        """
+
+        # Load file with Born charges and dielectric tensor for atoms in the
+        # unit cell
+        if name is None:
+            filename = '%s.born.pckl' % self.name
+        else:
+            filename = name
+            
+        fd = open(filename)
+        Z_avv, eps_vv = pickle.load(fd)
+        fd.close()
+
+        # Neutrality sum-rule
+        if neutrality:
+            Z_mean = Z_avv.sum(0) / len(Z_avv)
+            Z_avv -= Z_mean
+        
+        self.Z_avv = Z_avv[self.indices]
+        self.eps_vv = eps_vv
+        
+    def read(self, method='Frederiksen', symmetrize=True, acoustic=True,
+             born=False, **kwargs):
+        """Read forces from pickle files and calculate force constants.
+
+        Extra keyword arguments will be passed to ``read_born_charges``.
+        
         Parameters
         ----------
         method: str
@@ -238,32 +283,39 @@ class Phonons:
             Make force constants symmetric (see doc string at top).
         acoustic: bool
             Restore the acoustic sum-rule on the force constants.
+        born: bool
+            Also read in Born effective charge tensor and high-frequency static
+            dielelctric tensor from file.
             
         """
 
         method = method.lower()
         assert method in ['standard', 'frederiksen']
+
+        # Read Born effective charges and optical dielectric tensor
+        if born:
+            self.read_born_charges(**kwargs)
         
         # Number of atoms
         N = len(self.indices)
         # Number of unit cells
         M = np.prod(self.N_c)
         # Matrix of force constants as a function of unit cell index in units
-        # of eV/Ang**2 
+        # of eV/Ang**2
         C_m = np.empty((3*N, 3*N*M), dtype=float)
 
         # Loop over all atomic displacements and calculate force constants
         for i, a in enumerate(self.indices):
             for j, v in enumerate('xyz'):
                 # Atomic forces for a displacement of atom a in direction v
-                name = '%s.%d%s' % (self.name, a, v)
-                fminus_av = pickle.load(open(name + '-.pckl'))
-                fplus_av = pickle.load(open(name + '+.pckl'))
+                basename = '%s.%d%s' % (self.name, a, v)
+                fminus_av = pickle.load(open(basename + '-.pckl'))
+                fplus_av = pickle.load(open(basename + '+.pckl'))
                 
                 if method == 'frederiksen':
                     fminus_av[a] -= fminus_av.sum(0)
-                    fplus_av[a] -= fplus_av.sum(0)
-
+                    fplus_av[a]  -= fplus_av.sum(0)
+                    
                 # Finite difference derivative
                 C_av = fminus_av - fplus_av
                 C_av /= 2 * self.delta
@@ -273,7 +325,7 @@ class Phonons:
                 index = 3*i + j                
                 C_m[index] = C_mav.ravel()
 
-        # Reshape force constant to (l, m, n) cell indices
+        # Reshape force constants to (l, m, n) cell indices
         C_lmn = C_m.transpose().copy().reshape(self.N_c + (3*N, 3*N))
 
         if symmetrize:
@@ -308,7 +360,7 @@ class Phonons:
         # Add mass prefactor
         m = self.atoms.get_masses()
         self.m_inv = np.repeat(m[self.indices]**-0.5, 3)
-        M_inv = self.m_inv[:, np.newaxis] * self.m_inv
+        M_inv = np.outer(self.m_inv, self.m_inv)
         for D in self.D_m:
             D *= M_inv
 
@@ -319,7 +371,7 @@ class Phonons:
         
         return self.C_m
     
-    def band_structure(self, path_kc, modes=False):
+    def band_structure(self, path_kc, modes=False, born=False):
         """Calculate phonon dispersion along a path in the Brillouin zone.
 
         The dynamical matrix at arbitrary q-vectors is obtained by Fourier
@@ -338,11 +390,18 @@ class Phonons:
             dynamical matrix will be calculated.
         modes: bool
             Returns both frequencies and modes when True.
-            
+        born: bool
+            Include non-analytic part given by the Born effective charges and
+            the static part of the high-frequency dielectric tensor. This
+            contribution to the force constant accounts for the splitting
+            between the LO and TO branches for q -> 0.
+        
         """
 
         assert self.D_m is not None
-        
+        if born:
+            assert self.Z_avv is not None
+            assert self.eps_vv is not None
         for k_c in path_kc:
             assert np.all(np.asarray(k_c) <= 1.0), \
                    "Scaled coordinates must be given"
@@ -352,17 +411,40 @@ class Phonons:
         N_c = np.array(self.N_c)[:, np.newaxis]
         R_cm += N_c // 2
         R_cm %= N_c
-        R_cm -= N_c // 2        
+        R_cm -= N_c // 2
 
+        # Dynamical matrix in real-space
+        D_m = self.D_m
+        
         # Lists for frequencies and modes along path
         omega_kn = []
-        u_kn =  []
-        
+        u_kn = []
+
+        # Reciprocal basis vectors for use in non-analytic contribution
+        reci_vc = 2 * pi * la.inv(self.atoms.cell)
+        # Unit cell volume in Bohr^3
+        vol = abs(la.det(self.atoms.cell)) / units.Bohr**3
+
         for q_c in path_kc:
+
+            # Add non-analytic part
+            if born:
+                # q-vector in cartesian coordinates
+                q_v = np.dot(reci_vc, q_c)
+                # Non-analytic contribution to force constants in atomic units
+                qdotZ_av = np.dot(q_v, self.Z_avv).ravel()
+                C_na = 4 * pi * np.outer(qdotZ_av, qdotZ_av) / \
+                       np.dot(q_v, np.dot(self.eps_vv, q_v)) / vol
+                self.C_na = C_na / units.Bohr**2 * units.Hartree                
+                # Add mass prefactor and convert to eV / (Ang^2 * amu)
+                M_inv = np.outer(self.m_inv, self.m_inv)                
+                D_na = C_na * M_inv / units.Bohr**2 * units.Hartree
+                self.D_na = D_na
+                D_m = self.D_m + D_na / np.prod(self.N_c) 
 
             # Evaluate fourier sum
             phase_m = np.exp(-2.j * pi * np.dot(q_c, R_cm))
-            D_q = np.sum(phase_m[:, np.newaxis, np.newaxis] * self.D_m, axis=0)
+            D_q = np.sum(phase_m[:, np.newaxis, np.newaxis] * D_m, axis=0)
 
             if modes:
                 omega2_n, u_avn = la.eigh(D_q, UPLO='U')
@@ -434,8 +516,8 @@ class Phonons:
         
         return omega_e, dos_e
     
-    def write_modes(self, q_c, branches=0, kT=units.kB*300, repeat=(1, 1, 1),
-                    nimages=30):
+    def write_modes(self, q_c, branches=0, kT=units.kB*300, born=False,
+                    repeat=(1, 1, 1), nimages=30):
         """Write modes to trajectory file.
 
         Parameters
@@ -447,6 +529,8 @@ class Phonons:
         kT: float
             Temperature in units of eV. Determines the amplitude of the atomic
             displacements in the modes.
+        born: bool
+            Include non-analytic contribution to the force constants at q -> 0.
         repeat: tuple
             Repeat atoms (l, m, n) times in the directions of the lattice
             vectors. Displacements of atoms in repeated cells carry a Bloch
@@ -462,8 +546,8 @@ class Phonons:
             branch_n = list(branches)
 
         # Calculate modes
-        omega_n, u_n = self.band_structure([q_c], modes=True)
-
+        omega_n, u_n = self.band_structure([q_c], modes=True, born=born)
+        print omega_n
         # Repeat atoms
         atoms = self.atoms * repeat
         atoms.center()
