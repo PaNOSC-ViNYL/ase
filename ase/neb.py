@@ -6,6 +6,7 @@ from ase.parallel import world, rank, size
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import read
 
+
 class NEB:
     def __init__(self, images, k=0.1, climb=False, parallel=False):
         self.images = images
@@ -16,14 +17,15 @@ class NEB:
         self.nimages = len(images)
         self.emax = np.nan
 
+        assert not parallel or size % (self.nimages - 2) == 0
+
     def interpolate(self):
         pos1 = self.images[0].get_positions()
         pos2 = self.images[-1].get_positions()
         d = (pos2 - pos1) / (self.nimages - 1.0)
         for i in range(1, self.nimages - 1):
             self.images[i].set_positions(pos1 + i * d)
-            # Calculators store only a copy of the atoms,
-            # so make sure all calculator objects have the updated positions
+            # Parallel NEB with Jacapo needs this:
             try:
                 self.images[i].get_calculator().set_atoms(self.images[i])
             except AttributeError:
@@ -43,16 +45,13 @@ class NEB:
         for image in self.images[1:-1]:
             n2 = n1 + self.natoms
             image.set_positions(positions[n1:n2])
-            if self.parallel and size == 1:
-                # parallelization is done in the calculator, not in
-                # python Calculators store only a copy of the atoms,
-                # so make sure all calculator objects have the updated
-                # positions
-                try:
-                    image.get_calculator().set_atoms(image)
-                except AttributeError:
-                    pass
             n1 = n2
+
+            # Parallel NEB with Jacapo needs this:
+            try:
+                image.get_calculator().set_atoms(image)
+            except AttributeError:
+                pass
         
     def get_forces(self):
         """Evaluate and return the forces."""
@@ -60,7 +59,7 @@ class NEB:
         forces = np.empty(((self.nimages - 2), self.natoms, 3))
         energies = np.empty(self.nimages - 2)
 
-        if not self.parallel or size == 1:   # python is not running in mpi mode, but parallelization may be done in calculator:
+        if not self.parallel:
             # Do all images - one at a time:
             for i in range(1, self.nimages - 1):
                 energies[i - 1] = images[i].get_potential_energy()
@@ -118,6 +117,7 @@ class NEB:
 
     def __len__(self):
         return (self.nimages - 2) * self.natoms
+
 
 class SingleCalculatorNEB(NEB):
     def __init__(self, images, k=0.1, climb=False):
@@ -248,11 +248,13 @@ class SingleCalculatorNEB(NEB):
             self.images.append(image)
         return self
 
+
 def fit(images):
     E = [i.get_potential_energy() for i in images]
     F = [i.get_forces() for i in images]
     R = [i.get_positions() for i in images]
     return fit0(E, F, R)
+
 
 def fit0(E, F, R):
     E = np.array(E) - E[0]

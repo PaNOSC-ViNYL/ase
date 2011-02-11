@@ -134,6 +134,7 @@ class PickleTrajectory:
         if hasattr(atoms, 'interpolate'):
             # seems to be a NEB
             neb = atoms
+            assert not neb.parallel
             try:
                 neb.get_energies_and_forces(all=True)
             except AttributeError:
