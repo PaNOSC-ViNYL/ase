@@ -1,5 +1,5 @@
 import os
-import pickle
+import cPickle as pickle
 
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.atoms import Atoms
@@ -55,6 +55,9 @@ class PickleTrajectory:
         self.numbers = None
         self.pbc = None
         self.sanitycheck = True
+        self.pre_observers = []   # Callback functions before write is performed
+        self.post_observers = []  # Callback functions after write is performed
+        self.write_counter = 0    # Counter used to determine when callbacks are called.
         
         self.offsets = []
         if master is None:
@@ -128,6 +131,7 @@ class PickleTrajectory:
         If the atoms argument is not given, the atoms object specified
         when creating the trajectory object is used.
         """
+        self._call_observers(self.pre_observers)
         if atoms is None:
             atoms = self.atoms
 
@@ -193,6 +197,8 @@ class PickleTrajectory:
             pickle.dump(d, self.fd, protocol=-1)
         self.fd.flush()
         self.offsets.append(self.fd.tell())
+        self._call_observers(self.post_observers)
+        self.write_counter += 1
 
     def write_header(self, atoms):
         self.fd.write('PickleTrajectory')
@@ -317,8 +323,38 @@ class PickleTrajectory:
                                 self.offsets.append(self.offsets[-1] + step1)
                             m = 0
 
-        return
+    def pre_write_attach(self, function, interval=1, *args, **kwargs):
+        """Attach a function to be called before writing begins.
 
+        function: The function or callable object to be called.
+
+        interval: How often the function is called.  Default: every time (1).
+
+        All other arguments are stored, and passed to the function.
+        """
+        if not callable(function):
+            raise ValueError("Callback object must be callable.")
+        self.pre_observers.append((function, interval, args, kwargs))
+
+    def post_write_attach(self, function, interval=1, *args, **kwargs):
+        """Attach a function to be called after writing begins.
+
+        function: The function or callable object to be called.
+
+        interval: How often the function is called.  Default: every time (1).
+
+        All other arguments are stored, and passed to the function.
+        """
+        if not callable(function):
+            raise ValueError("Callback object must be callable.")
+        self.post_observers.append((function, interval, args, kwargs))
+
+    def _call_observers(self, obs):
+        "Call pre/post write observers."
+        for function, interval, args, kwargs in obs:
+            if self.write_counter % interval == 0:
+                function(*args, **kwargs)
+    
 def read_trajectory(filename, index=-1):
     traj = PickleTrajectory(filename, mode='r')
 
@@ -386,3 +422,73 @@ def write_trajectory(filename, images):
             
         traj.write(atoms)
     traj.close()
+
+def print_trajectory_info(filename):
+    """Prints information about a PickleTrajectory file.
+
+    Mainly intended to be called from a command line tool.
+    """
+    f = open(filename)
+    hdr = "PickleTrajectory"
+    x = f.read(len(hdr))
+    if x != hdr:
+        raise ValueError, "Not a PickleTrajectory file!"
+    # Head header
+    header = pickle.load(f)
+    print "Header information of trajectory file '%s':" % (filename,)
+    print "  Boundary conditions:", header['pbc']
+    print "  Atomic numbers: shape = %s, type = %s" % (str(header['numbers'].shape),
+                                                       str(header['numbers'].dtype))
+    if header['tags'] is None:
+        print "  Tags are absent."
+    else:
+        print "  Tags: shape = %s, type = %s" % (str(header['tags'].shape),
+                                                 str(header['tags'].dtype))
+    if header['masses'] is None:
+        print "  Masses are absent."
+    else:
+        print "  Masses: shape = %s, type = %s" % (str(header['masses'].shape),
+                                                 str(header['masses'].dtype))
+    if len(header['constraints']):
+        print "  %d constraints are present." % (len(header['constraints']),)
+    else:
+        print "  Constraints are absent."
+
+    after_header = f.tell()
+
+    # Read the first frame
+    frame = pickle.load(f)
+    print "Contents of first frame:"
+    for k, v in frame.items():
+        if hasattr(v, "shape"):
+            print "  %s: shape = %s, type = %s" % (k, str(v.shape), str(v.dtype))
+        else:
+            print "  %s: %s" % (k, str(v))
+    after_frame = f.tell()
+    kB = 1024
+    MB = 1024*kB
+    GB = 1024*MB
+    framesize = after_frame - after_header
+    if framesize >= GB:
+        print "Frame size: %.2f GB" % (1.0 * framesize / GB)
+    elif framesize >= MB:
+        print "Frame size: %.2f MB" % (1.0 * framesize / MB)
+    else:
+        print "Frame size: %.2f kB" % (1.0 * framesize / kB)
+
+    # Print information about file size
+    try:
+        filesize = os.path.getsize(filename)
+    except IOError:
+        print "No information about the file size."
+    else:
+        nframes = (filesize - after_header) // framesize
+        offset = nframes * framesize + after_header - filesize
+        if offset == 0:
+            if nframes == 1:
+                print "Trajectory contains 1 frame."
+            else:
+                print "Trajectory contains %d frames." % (nframes,)
+        else:
+            print "Trajectory appears to contain approximately %d frames," % (nframes,)
+            print "but the file size differs by %d bytes from the expected value." % (-offset,)
