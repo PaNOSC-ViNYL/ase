@@ -482,6 +482,13 @@ def print_trajectory_info(filename):
     except IOError:
         print "No information about the file size."
     else:
+        if filesize >= GB:
+            print "File size: %.2f GB" % (1.0 * filesize / GB)
+        elif filesize >= MB:
+            print "File size: %.2f MB" % (1.0 * filesize / MB)
+        else:
+            print "File size: %.2f kB" % (1.0 * filesize / kB)
+        
         nframes = (filesize - after_header) // framesize
         offset = nframes * framesize + after_header - filesize
         if offset == 0:
