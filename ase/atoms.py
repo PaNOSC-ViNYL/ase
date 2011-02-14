@@ -750,13 +750,18 @@ class Atoms(object):
         return atoms
 
     def __delitem__(self, i):
-        if len(self._constraints) > 0:
+        from ase.constraints import FixAtoms
+        check_constraint = np.array([isinstance(c,FixAtoms) for c in self._constraints])
+        if len(self._constraints) > 0 and not check_constraint.all():
             raise RuntimeError('Remove constraint using set_constraint() ' +
                                'before deleting atoms.')
         mask = np.ones(len(self), bool)
         mask[i] = False
         for name, a in self.arrays.items():
             self.arrays[name] = a[mask]
+        if len(self._constraints) > 0:
+            for n in range(len(self._constraints)):
+                self._constraints[n].delete_atom(i)
 
     def pop(self, i=-1):
         """Remove and return atom at index *i* (default last)."""

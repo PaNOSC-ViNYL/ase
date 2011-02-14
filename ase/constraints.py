@@ -155,6 +155,17 @@ class FixAtoms(FixConstraint):
             self.index = np.asarray(index_new, int)
         return self
 
+    def delete_atom(self,ind):
+        """ Removes atom number ind from the index array, if present.
+        Required for removing atoms with existing FixAtoms constraints.
+        """
+        if self.index.dtype == bool:
+            self.index = np.delete(self.index,ind)
+        else:
+            if ind in self.index:
+                i = list(self.index).index(ind)
+                self.index = np.delete(self.index,i)
+
 def ints2string(x, threshold=10):
     """Convert ndarray of ints to string."""
     if len(x) <= threshold:
