@@ -1116,10 +1116,10 @@ def read_eigenmode(mlog, index = -1):
     lines = f.readlines()
 
     # Detect the amount of atoms and iterations
-    k = 1
-    while lines[k].split()[1] != 'Optimization':
+    k = 2
+    while lines[k].split()[1].lower() not in ['optimization', 'order']:
         k += 1
-    n = k - 1
+    n = k - 2
     n_itr = (len(lines) / (n + 1)) - 2
 
     # Locate the correct image.
