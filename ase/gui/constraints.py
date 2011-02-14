@@ -18,6 +18,9 @@ class Constraints(gtk.Window):
         b = pack(vbox, [gtk.Button(_('Constrain')),
                         gtk.Label(_(' immobile atoms:'))])[0]
         b.connect('clicked', self.immobile)
+        b = pack(vbox, [gtk.Button(_('Unconstrain')),
+                        gtk.Label(_(' selected atoms:'))])[0]
+        b.connect('clicked', self.unconstrain)
         b = pack(vbox, gtk.Button('Clear constraints'))
         b.connect('clicked', self.clear)
         close = pack(vbox, gtk.Button(_('Close')))
@@ -28,9 +31,13 @@ class Constraints(gtk.Window):
         self.gui = gui
 
     def selected(self, button):
-        self.gui.images.dynamic = ~self.gui.images.selected
+        self.gui.images.dynamic[self.gui.images.selected] = False
         self.gui.draw()
 
+    def unconstrain(self, button):
+        self.gui.images.dynamic[self.gui.images.selected] = True
+        self.gui.draw()
+        
     def immobile(self, button):
         self.gui.images.set_dynamic()
         self.gui.draw()
