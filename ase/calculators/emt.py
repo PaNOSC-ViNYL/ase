@@ -7,6 +7,7 @@ import sys
 
 from ase.data import chemical_symbols
 from ase.units import Bohr
+from ase.calculators.neighborlist import NeighborList
 
 
 parameters = {
@@ -114,6 +115,9 @@ class EMT:
         self.sigma1 = np.empty(len(atoms))
         self.deds = np.empty(len(atoms))
                     
+        self.nl = NeighborList([0.5 * self.rc + 0.25] * len(atoms),
+                               self_interaction=False)
+
     def update(self, atoms):
         if (self.energy is None or
             len(self.numbers) != len(atoms) or
@@ -171,45 +175,27 @@ class EMT:
         self.cell = atoms.get_cell().copy()
         self.pbc = atoms.get_pbc().copy()
         
-        icell = np.linalg.inv(self.cell)
-        scaled = np.dot(self.positions, icell)
-        N = []
-        for i in range(3):
-            if self.pbc[i]:
-                scaled[:, i] %= 1.0
-                v = icell[:, i]
-                h = 1 / sqrt(np.dot(v, v))
-                N.append(int(self.rc / h) + 1)
-            else:
-                N.append(0)
-
-        R = np.dot(scaled, self.cell)
+        self.nl.update(atoms)
         
         self.energy = 0.0
         self.sigma1[:] = 0.0
         self.forces[:] = 0.0
         
-        N1, N2, N3 = N
         natoms = len(atoms)
-        for i1 in range(-N1, N1 + 1):
-            for i2 in range(-N2, N2 + 1):
-                for i3 in range(-N3, N3 + 1):
-                    C = np.dot((i1, i2, i3), self.cell)
-                    Q = R + C
-                    c = (i1 == 0 and i2 == 0 and i3 == 0)
-                    for a1 in range(natoms):
-                        Z1 = self.numbers[a1]
-                        p1 = self.par[Z1]
-                        ksi = self.ksi[Z1]
-                        for a2 in range(natoms):
-                            if c and a2 == a1:
-                                continue
-                            d = Q[a2] - R[a1]
-                            r = sqrt(np.dot(d, d))
-                            if r < self.rc + 0.5:
-                                Z2 = self.numbers[a2]
-                                p2 = self.par[Z2]
-                                self.interact1(a1, a2, d, r, p1, p2, ksi[Z2])
+
+        for a1 in range(natoms):
+            Z1 = self.numbers[a1]
+            p1 = self.par[Z1]
+            ksi = self.ksi[Z1]
+            neighbors, offsets = self.nl.get_neighbors(a1)
+            offsets = np.dot(offsets, atoms.cell)
+            for a2, offset in zip(neighbors, offsets):
+                d = self.positions[a2] + offset - self.positions[a1]
+                r = sqrt(np.dot(d, d))
+                if r < self.rc + 0.5:
+                    Z2 = self.numbers[a2]
+                    p2 = self.par[Z2]
+                    self.interact1(a1, a2, d, r, p1, p2, ksi[Z2])
                                 
         for a in range(natoms):
             Z = self.numbers[a]
@@ -228,44 +214,46 @@ class EMT:
             e = p['E0'] * ((1 + x) * y - 1) + z
             self.energy += p['E0'] * ((1 + x) * y - 1) + z
 
-        for i1 in range(-N1, N1 + 1):
-            for i2 in range(-N2, N2 + 1):
-                for i3 in range(-N3, N3 + 1):
-                    C = np.dot((i1, i2, i3), self.cell)
-                    Q = R + C
-                    c = (i1 == 0 and i2 == 0 and i3 == 0)
-                    for a1 in range(natoms):
-                        Z1 = self.numbers[a1]
-                        p1 = self.par[Z1]
-                        ksi = self.ksi[Z1]
-                        for a2 in range(natoms):
-                            if c and a2 == a1:
-                                continue
-                            d = Q[a2] - R[a1]
-                            r = sqrt(np.dot(d, d))
-                            if r < self.rc + 0.5:
-                                Z2 = self.numbers[a2]
-                                p2 = self.par[Z2]
-                                self.interact2(a1, a2, d, r, p1, p2, ksi[Z2])
+        for a1 in range(natoms):
+            Z1 = self.numbers[a1]
+            p1 = self.par[Z1]
+            ksi = self.ksi[Z1]
+            neighbors, offsets = self.nl.get_neighbors(a1)
+            offsets = np.dot(offsets, atoms.cell)
+            for a2, offset in zip(neighbors, offsets):
+                d = self.positions[a2] + offset - self.positions[a1]
+                r = sqrt(np.dot(d, d))
+                if r < self.rc + 0.5:
+                    Z2 = self.numbers[a2]
+                    p2 = self.par[Z2]
+                    self.interact2(a1, a2, d, r, p1, p2, ksi[Z2])
 
     def interact1(self, a1, a2, d, r, p1, p2, ksi):
         x = exp(self.acut * (r - self.rc))
         theta = 1.0 / (1.0 + x)
-        y = (0.5 * p1['V0'] * exp(-p2['kappa'] * (r / beta - p2['s0'])) *
-             ksi / p1['gamma2'] * theta)
-        self.energy -= y
-        f = y * (p2['kappa'] / beta + self.acut * theta * x) * d / r
+        y1 = (0.5 * p1['V0'] * exp(-p2['kappa'] * (r / beta - p2['s0'])) *
+              ksi / p1['gamma2'] * theta)
+        y2 = (0.5 * p2['V0'] * exp(-p1['kappa'] * (r / beta - p1['s0'])) /
+              ksi / p2['gamma2'] * theta)
+        self.energy -= y1 + y2
+        f = ((y1 * p2['kappa'] + y2 * p1['kappa']) / beta +
+             (y1 + y2) * self.acut * theta * x) * d / r
         self.forces[a1] += f
         self.forces[a2] -= f
         self.sigma1[a1] += (exp(-p2['eta2'] * (r - beta * p2['s0'])) *
                             ksi * theta / p1['gamma1'])
+        self.sigma1[a2] += (exp(-p1['eta2'] * (r - beta * p1['s0'])) /
+                            ksi * theta / p2['gamma1'])
 
     def interact2(self, a1, a2, d, r, p1, p2, ksi):
         x = exp(self.acut * (r - self.rc))
         theta = 1.0 / (1.0 + x)
-        y = (exp(-p2['eta2'] * (r - beta * p2['s0'])) *
-             ksi / p1['gamma1'] * theta * self.deds[a1])
-        f = y * (p2['eta2'] + self.acut * theta * x) * d / r
+        y1 = (exp(-p2['eta2'] * (r - beta * p2['s0'])) *
+              ksi / p1['gamma1'] * theta * self.deds[a1])
+        y2 = (exp(-p1['eta2'] * (r - beta * p1['s0'])) /
+              ksi / p2['gamma1'] * theta * self.deds[a2])
+        f = ((y1 * p2['eta2'] + y2 * p1['eta2']) +
+             (y1 + y2) * self.acut * theta * x) * d / r
         self.forces[a1] -= f
         self.forces[a2] += f
 
