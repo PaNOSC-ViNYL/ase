@@ -976,7 +976,9 @@ class GUI(View, Status):
                              ('Persistance of Vision', 'pov'),
                              ('Encapsulated PostScript', 'eps'),
                              ('FHI-aims geometry input', 'in'),
-                             ('VASP geometry input', 'POSCAR')]:
+                             ('VASP geometry input', 'POSCAR'),
+                             ('ASE bundle trajectory', 'bundle'),
+                             ]:
             if suffix is None:
                 name = _(name)
             else:

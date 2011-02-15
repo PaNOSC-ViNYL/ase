@@ -10,15 +10,19 @@ objects storing the temporal evolution of a simulation.  A Trajectory
 file contains one or more :class:`~ase.atoms.Atoms` objects, usually to be interpreted as
 a time series, although that is not a requirement.
 
-The :mod:`io.trajectory` module currently only defines one kind of
-Trajectory files, the PickleTrajectory.  In the future, other kinds of
-Trajectories may be defined, with similar Python interface but with
-different underlying file formats.
+The :mod:`io.trajectory` module currently defines two kinds of
+Trajectory files, the PickleTrajectory and the BundleTrajectory.
+PickleTrajectory is the recommended Trajectory format,
+BundleTrajectory is only intended for large molecular dynamics
+simulations (large meaning millions of atoms).
+
+In the future, other kinds of Trajectories may be defined, with
+similar Python interface but with different underlying file formats.
 
 PickleTrajectory
 ================
 
-The PickeTrajectory has the interface
+The PickleTrajectory has the interface
 
 .. autoclass:: ase.io.trajectory.PickleTrajectory
    :members:
@@ -50,6 +54,16 @@ Writing every 100th time step in a molecular dynamics simulation::
     dyn.attach(traj.write, interval=100)
     dyn.run(10000)
     traj.close()
+
+
+BundleTrajectory
+================
+
+The BundleTrajectory has the interface
+
+.. autoclass:: ase.io.bundletrajectory.BundleTrajectory
+   :members:
+
 
 See also
 ========

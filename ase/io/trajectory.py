@@ -337,7 +337,7 @@ class PickleTrajectory:
         self.pre_observers.append((function, interval, args, kwargs))
 
     def post_write_attach(self, function, interval=1, *args, **kwargs):
-        """Attach a function to be called after writing begins.
+        """Attach a function to be called after writing ends.
 
         function: The function or callable object to be called.
 

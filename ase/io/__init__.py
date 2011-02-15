@@ -7,8 +7,9 @@ from zipfile import is_zipfile
 from ase.atoms import Atoms
 from ase.units import Bohr
 from ase.io.trajectory import PickleTrajectory
+from ase.io.bundletrajectory import BundleTrajectory
 
-__all__ = ['read', 'write', 'PickleTrajectory']
+__all__ = ['read', 'write', 'PickleTrajectory', 'BundleTrajectory']
 
 
 def read(filename, index=-1, format=None):
@@ -34,6 +35,7 @@ def read(filename, index=-1, format=None):
     Old ASE netCDF trajectory  nc
     Virtual Nano Lab file      vnl
     ASE pickle trajectory      traj
+    ASE bundle trajectory      bundle
     GPAW text output           gpaw-text
     CUBE file                  cube
     XCrySDen Structure File    xsf  
@@ -105,6 +107,10 @@ def read(filename, index=-1, format=None):
     if format == 'traj':
         from ase.io.trajectory import read_trajectory
         return read_trajectory(filename, index)
+
+    if format == 'bundle':
+        from ase.io.bundletrajectory import read_bundletrajectory
+        return read_bundletrajectory(filename, index)
 
     if format == 'cube':
         from ase.io.cube import read_cube
@@ -222,6 +228,7 @@ def write(filename, images, format=None, **kwargs):
     format                     short name
     =========================  ===========
     ASE pickle trajectory      traj
+    ASE bundle trajectory      bundle
     CUBE file                  cube
     XYZ-file                   xyz
     VASP POSCAR/CONTCAR file   vasp
@@ -353,7 +360,10 @@ def write(filename, images, format=None, **kwargs):
         writer.close()
         return
 
-    format = {'traj': 'trajectory', 'nc': 'netcdf'}.get(format, format)
+    format = {'traj': 'trajectory',
+              'nc': 'netcdf',
+              'bundle': 'bundletrajectory'
+              }.get(format, format)
     name = 'write_' + format
 
     if format in ['vti', 'vts', 'vtu']:
@@ -385,6 +395,13 @@ def string2index(string):
 
 def filetype(filename):
     """Try to guess the type of the file."""
+    if os.path.isdir(filename):
+        # Potentially a BundleTrajectory
+        if BundleTrajectory.is_bundle(filename):
+            return 'bundle'
+        else:
+            raise IOError('Directory: ' + filename)
+    
     fileobj = open(filename)
     s3 = fileobj.read(3)
     if len(s3) == 0:
