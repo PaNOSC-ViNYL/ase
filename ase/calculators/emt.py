@@ -5,38 +5,37 @@ from math import sqrt, exp, log, pi
 import numpy as np
 import sys
 
-from ase.data import atomic_numbers, chemical_symbols
+from ase.data import chemical_symbols
 from ase.units import Bohr
 
 
 parameters = {
-#          E0     s0    V0     eta2    kappa   lambda  n0
-#          eV     bohr  eV     bohr^-1 bohr^-1 bohr^-1 bohr^-3
-    'H':  (-2.21, 0.71, 2.132, 1.652,  2.790,  1.892,  0.00547, 'dimer'),
-    'Al': (-3.28, 3.00, 1.493, 1.240,  2.000,  1.169,  0.00700, 'fcc'),
-    'Cu': (-3.51, 2.67, 2.476, 1.652,  2.740,  1.906,  0.00910, 'fcc'),
-    'Ag': (-2.96, 3.01, 2.132, 1.652,  2.790,  1.892,  0.00547, 'fcc'),
-    'Au': (-3.80, 3.00, 2.321, 1.674,  2.873,  2.182,  0.00703, 'fcc'),
-    'Ni': (-4.44, 2.60, 3.673, 1.669,  2.757,  1.948,  0.01030, 'fcc'),
-    'Pd': (-3.90, 2.87, 2.773, 1.818,  3.107,  2.155,  0.00688, 'fcc'),
-    'Pt': (-5.85, 2.90, 4.067, 1.812,  3.145,  2.192,  0.00802, 'fcc'),
-    'C':  (-1.97, 1.18, 0.132, 3.652,  5.790,  2.892,  0.01322, 'dimer'),
-    'N':  (-4.97, 1.18, 0.132, 2.652,  3.790,  2.892,  0.01222, 'dimer'),
-    'O':  (-2.97, 1.25, 2.132, 3.652,  5.790,  4.892,  0.00850, 'dimer')}
+    #      E0     s0    V0     eta2    kappa   lambda  n0
+    #      eV     bohr  eV     bohr^-1 bohr^-1 bohr^-1 bohr^-3
+    'Al': (-3.28, 3.00, 1.493, 1.240,  2.000,  1.169,  0.00700),
+    'Cu': (-3.51, 2.67, 2.476, 1.652,  2.740,  1.906,  0.00910),
+    'Ag': (-2.96, 3.01, 2.132, 1.652,  2.790,  1.892,  0.00547),
+    'Au': (-3.80, 3.00, 2.321, 1.674,  2.873,  2.182,  0.00703),
+    'Ni': (-4.44, 2.60, 3.673, 1.669,  2.757,  1.948,  0.01030),
+    'Pd': (-3.90, 2.87, 2.773, 1.818,  3.107,  2.155,  0.00688),
+    'Pt': (-5.85, 2.90, 4.067, 1.812,  3.145,  2.192,  0.00802),
+    # extra parameters - just for fun ...
+    'H':  (-3.21, 1.31, 0.132, 2.652,  2.790,  3.892,  0.00547),
+    'C':  (-3.50, 1.81, 0.332, 1.652,  2.790,  1.892,  0.01322),
+    'N':  (-5.10, 1.88, 0.132, 1.652,  2.790,  1.892,  0.01222),
+    'O':  (-4.60, 1.95, 0.332, 1.652,  2.790,  1.892,  0.00850)}
 
-beta = 1.809     #(16 * pi / 3)**(1.0 / 3) / 2**0.5
-#                 but preserve historical rounding.
+beta = 1.809     # (16 * pi / 3)**(1.0 / 3) / 2**0.5,
+                 # but preserve historical rounding
 
-#eta1 = 0.5 / Bohr
 
 class EMT:
     disabled = False  # Set to True to disable (asap does this).
     
-    def __init__(self, fix_alloys=False):
+    def __init__(self):
         self.energy = None
-        self.fix_alloys = fix_alloys
         if self.disabled:
-            print >>sys.stderr, """
+            print >> sys.stderr, """
             ase.EMT has been disabled by Asap.  Most likely, you
             intended to use Asap's EMT calculator, but accidentally
             imported ase's EMT calculator after Asap's.  This could
@@ -50,8 +49,8 @@ class EMT:
             the two lines to solve the problem.
 
             In the UNLIKELY event that you actually wanted to use
-            ase.calculators.emt.EMT although asap3 is loaded into memory, please
-            reactivate it with the command
+            ase.calculators.emt.EMT although asap3 is loaded into memory,
+            please reactivate it with the command
               ase.calculators.emt.EMT.disabled = False
             """
             raise RuntimeError('ase.EMT has been disabled.  ' +
@@ -84,20 +83,11 @@ class EMT:
                 x = eta2 * beta * s0
                 gamma1 = 0.0
                 gamma2 = 0.0
-                if p[7] == 'fcc':
-                    for i, n in enumerate([12, 6, 24, 12]):
-                        r = s0 * beta * sqrt(i + 1)
-                        x = n / (12 * (1.0 + exp(self.acut * (r - rc))))
-                        gamma1 += x * exp(-eta2 * (r - beta * s0))
-                        gamma2 += x * exp(-kappa / beta * (r - beta * s0))
-                elif p[7] == 'dimer':
-                    r = s0 * beta
-                    n = 1
+                for i, n in enumerate([12, 6, 24]):
+                    r = s0 * beta * sqrt(i + 1)
                     x = n / (12 * (1.0 + exp(self.acut * (r - rc))))
                     gamma1 += x * exp(-eta2 * (r - beta * s0))
                     gamma2 += x * exp(-kappa / beta * (r - beta * s0))
-                else:
-                    raise RuntimeError
 
                 self.par[Z] = {'E0': p[0],
                                's0': s0,
@@ -218,10 +208,7 @@ class EMT:
                             r = sqrt(np.dot(d, d))
                             if r < self.rc + 0.5:
                                 Z2 = self.numbers[a2]
-                                if self.fix_alloys:
-                                    p2 = self.par[Z2]
-                                else:
-                                    p2 = p1  # Old buggy behaviour
+                                p2 = self.par[Z2]
                                 self.interact1(a1, a2, d, r, p1, p2, ksi[Z2])
                                 
         for a in range(natoms):
@@ -258,10 +245,7 @@ class EMT:
                             r = sqrt(np.dot(d, d))
                             if r < self.rc + 0.5:
                                 Z2 = self.numbers[a2]
-                                if self.fix_alloys:
-                                    p2 = self.par[Z2]
-                                else:
-                                    p2 = p1  # Old buggy behaviour
+                                p2 = self.par[Z2]
                                 self.interact2(a1, a2, d, r, p1, p2, ksi[Z2])
 
     def interact1(self, a1, a2, d, r, p1, p2, ksi):
