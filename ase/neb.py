@@ -2,13 +2,14 @@ from math import sqrt
 
 import numpy as np
 
-from ase.parallel import world, rank, size
+import ase.parallel as mpi
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import read
 
 
 class NEB:
-    def __init__(self, images, k=0.1, climb=False, parallel=False):
+    def __init__(self, images, k=0.1, climb=False, parallel=False,
+                 world=None):
         self.images = images
         self.k = k
         self.climb = climb
@@ -17,7 +18,11 @@ class NEB:
         self.nimages = len(images)
         self.emax = np.nan
 
-        assert not parallel or size % (self.nimages - 2) == 0
+        if world is None:
+            world = mpi.world
+        self.world = world
+
+        assert not parallel or world.size % (self.nimages - 2) == 0
 
     def interpolate(self):
         pos1 = self.images[0].get_positions()
@@ -66,23 +71,23 @@ class NEB:
                 forces[i - 1] = images[i].get_forces()
         else:
             # Parallelize over images:
-            i = rank * (self.nimages - 2) // size + 1
+            i = self.world.rank * (self.nimages - 2) // self.world.size + 1
             try:
                 energies[i - 1] = images[i].get_potential_energy()
                 forces[i - 1] = images[i].get_forces()
             except:
                 # Make sure other images also fail:
-                error = world.sum(1.0)
+                error = self.world.sum(1.0)
                 raise
             else:
-                error = world.sum(0.0)
+                error = self.world.sum(0.0)
                 if error:
                     raise RuntimeError('Parallel NEB failed!')
                 
             for i in range(1, self.nimages - 1):
-                root = (i - 1) * size // (self.nimages - 2)
-                world.broadcast(energies[i - 1:i], root)
-                world.broadcast(forces[i - 1], root)
+                root = (i - 1) * self.world.size // (self.nimages - 2)
+                self.world.broadcast(energies[i - 1:i], root)
+                self.world.broadcast(forces[i - 1], root)
 
         imax = 1 + np.argsort(energies)[-1]
         self.emax = energies[imax - 1]

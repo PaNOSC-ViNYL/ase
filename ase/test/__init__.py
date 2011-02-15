@@ -2,6 +2,9 @@ import sys
 import unittest
 from glob import glob
 
+import numpy as np
+
+
 class NotAvailable(SystemExit):
     def __init__(self, msg, code=0):
         SystemExit.__init__(self, (msg,code,))
@@ -87,3 +90,53 @@ def test(verbosity=1, dir=None, display=True, stream=sys.stdout):
     sys.stdout = sys.__stdout__
 
     return results
+
+
+class World:
+    """Class for testing parallelization with MPI"""
+    def __init__(self, size):
+        self.size = size
+        self.data = {}
+        
+    def get_rank(self, rank):
+        return CPU(self, rank)
+
+class CPU:
+    def __init__(self, world, rank):
+        self.world = world
+        self.rank = rank
+        self.size = world.size
+
+    def send(self, x, rank):
+        while (self.rank, rank) in self.world.data:
+            pass
+        self.world.data[(self.rank, rank)] = x
+
+    def receive(self, x, rank):
+        while (rank, self.rank) not in self.world.data:
+            pass
+        x[:] = self.world.data.pop((rank, self.rank))
+    
+    def sum(self, x):
+        if not isinstance(x, np.ndarray):
+            x = np.array([x])
+            self.sum(x)
+            return x[0]
+
+        if self.rank == 0:
+            y = np.empty_like(x)
+            for rank in range(1, self.size):
+                self.receive(y, rank)
+                x += y
+        else:
+            self.send(x, 0)
+
+        self.broadcast(x, 0)
+
+    def broadcast(self, x, root):
+        if self.rank == root:
+            for rank in range(self.size):
+                if rank != root:
+                    self.send(x, rank)
+        else:
+            self.receive(x, root)
