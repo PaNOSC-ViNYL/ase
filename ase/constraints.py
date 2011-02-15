@@ -165,6 +165,9 @@ class FixAtoms(FixConstraint):
             if ind in self.index:
                 i = list(self.index).index(ind)
                 self.index = np.delete(self.index,i)
+            for i in range(len(self.index)):
+                if self.index[i] >= ind:
+                    self.index[i] -= 1
 
 def ints2string(x, threshold=10):
     """Convert ndarray of ints to string."""
