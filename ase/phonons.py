@@ -328,6 +328,15 @@ class Phonons:
         # Reshape force constants to (l, m, n) cell indices
         C_lmn = C_m.transpose().copy().reshape(self.N_c + (3*N, 3*N))
 
+        ##########################
+        # Increase number of unit cells to an odd number in each direction
+        # N_c = tuple(self.N_c)
+        # for n, N in enumerate(self.N_c):
+        #     N_c[n] = 2*N//2 + max(N%2, 1)
+        #     
+        # C_lmn_ = np.zeros(N_c + (3*N, 3*N), dtype=float)
+        ##########################
+        
         if symmetrize:
             # Shift reference cell to center
             C_lmn = fft.fftshift(C_lmn, axes=(0, 1, 2)).copy()
@@ -517,7 +526,7 @@ class Phonons:
         return omega_e, dos_e
     
     def write_modes(self, q_c, branches=0, kT=units.kB*300, born=False,
-                    repeat=(1, 1, 1), nimages=30):
+                    repeat=(1, 1, 1), nimages=30, center=False):
         """Write modes to trajectory file.
 
         Parameters
@@ -537,6 +546,8 @@ class Phonons:
             phase factor given by the q-vector and the cell lattice vector R_m.
         nimages: int
             Number of images in an oscillation.
+        center: bool
+            Center atoms in unit cell if True (default: False).
             
         """
 
@@ -550,7 +561,9 @@ class Phonons:
         print omega_n
         # Repeat atoms
         atoms = self.atoms * repeat
-        atoms.center()
+        # Center
+        if center:
+            atoms.center()
         
         # Here ma refers to a composite unit cell/atom dimension
         pos_mav = atoms.get_positions()
