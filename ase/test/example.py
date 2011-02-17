@@ -16,10 +16,12 @@ dyn = QuasiNewton(atoms, maxstep=0.2)
 dyn.attach(traj.write)
 dyn.run(fmax=0.01, steps=100)
 
-try:
-    del atoms[-1]
-except RuntimeError:
-    pass
-else:
-    raise RuntimeError
+print atoms
+del atoms[-1]
+print atoms
+del atoms[5]
+print atoms
+assert len(atoms.constraints[0].index) == 5
+
+
 
