@@ -78,12 +78,14 @@ class Cluster(Atoms, ClusterBase):
         return cluster
 
     def get_surfaces(self):
+        """Returns the miller indexs of the stored surfaces of the cluster."""
         if not self.surfaces is None:
             return self.surfaces.copy()
         else:
             return None
 
     def get_layers(self):
+        """Returns the number of atomic layers in the stored surfaces directions."""
         layers = []
 
         for s in self.surfaces:
@@ -102,7 +104,7 @@ class Cluster(Atoms, ClusterBase):
         return np.array(layers, int)
 
     def get_diameter(self, method='volume'):
-        """Makes an estimate of the cluster diameter based on two different
+        """Returns an estimate of the cluster diameter based on two different
         methods.
 
         method = 'volume': Returns the diameter of a sphere with the 
@@ -121,9 +123,8 @@ class Cluster(Atoms, ClusterBase):
                 d += r.max() - r.min()
             return d / len(self.surfaces)
         elif method == 'volume':
-            atoms_in_unit_cell = {'sc': 1, 'bcc': 2, 'fcc': 4, 'hcp': 2}
             V_cell = np.abs(np.linalg.det(self.lattice_basis))
-            N_cell = atoms_in_unit_cell[self.symmetry]
+            N_cell = len(self.atomic_basis)
             N = len(self)
             return 2.0 * (3.0 * N * V_cell / (4.0 * math.pi * N_cell)) ** (1.0/3.0)
         else:

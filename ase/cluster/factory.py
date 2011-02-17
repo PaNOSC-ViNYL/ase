@@ -1,5 +1,6 @@
 import numpy as np
 
+from ase import Atoms
 from ase.data import atomic_numbers
 from ase.lattice.spacegroup import Spacegroup
 from ase.cluster.base import ClusterBase
@@ -10,7 +11,7 @@ class ClusterFactory(ClusterBase):
                   [0, 1, 0],
                   [0, 0, 1]]
 
-    atomic_basis = None
+    atomic_basis = np.array([[0., 0., 0.]])
 
     size_factor = 1
 
@@ -29,8 +30,18 @@ class ClusterFactory(ClusterBase):
         self.set_lattice_constant(latticeconstant)
         self.set_basis()
 
+        if self.debug:
+            print "Lattice constant(s):", self.lattice_constant
+            print "Lattice basis:", self.lattice_basis
+            print "Resiprocal basis:", self.resiproc_basis
+            print "Atomic basis:", self.atomic_basis
+
         self.set_surfaces_layers(surfaces, layers)
         self.set_lattice_size()
+
+        if self.debug:
+            print "Center position:", self.center.round(2)
+            print "Base lattice size:", self.size
 
         cluster = self.make_cluster(vacuum)
         cluster.symmetry = self.xtal_name
@@ -42,11 +53,20 @@ class ClusterFactory(ClusterBase):
         return cluster
 
     def make_cluster(self, vacuum):
-        # Make the base crystal
-        crystal = self.lattice_factory(symbol = self.atomic_number, 
-                                       size = self.size,
-                                       latticeconstant = self.lattice_constant)
-        positions = crystal.get_positions()
+        # Make the base crystal by repeating the unit cell
+        size = np.array(self.size)
+        translations = np.zeros((size.prod(), 3))
+        for h in range(size[0]):
+            for k in range(size[1]):
+                for l in range(size[2]):
+                    i = h * (size[1] * size[2]) + k * size[2] + l
+                    translations[i] = np.dot([h, k, l], self.lattice_basis)
+
+        atomic_basis = np.dot(self.atomic_basis, self.lattice_basis)
+        positions = np.zeros((len(translations) * len(atomic_basis), 3))
+        n = len(atomic_basis)
+        for i, trans in enumerate(translations):
+            positions[n*i:n*(i+1)] = atomic_basis + trans
 
         # Remove all atoms that is outside the defined surfaces
         for s, l in zip(self.surfaces, self.layers):
@@ -111,10 +131,6 @@ class ClusterFactory(ClusterBase):
         self.center = np.dot(min, self.lattice_basis) * self.size_factor
         self.size = (min + max + np.ones(3, int)) * self.size_factor
 
-        if self.debug:
-            print "Center position:", self.center.round(2)
-            print "Base lattice size:", self.size
-
     def set_surfaces_layers(self, surfaces, layers):
         if len(surfaces) != len(layers):
             raise ValueError("Improper size of surface and layer arrays: %i != %i"
@@ -124,14 +140,14 @@ class ClusterFactory(ClusterBase):
         surfaces = np.array(surfaces)
         layers = np.array(layers)
 
-        for (i, s) in enumerate(surfaces):
+        for i, s in enumerate(surfaces):
             s = reduce_miller(s)
             surfaces[i] = s
 
         surfaces_full = surfaces.copy()
         layers_full = layers.copy()
 
-        for (s, l) in zip(surfaces, layers):
+        for s, l in zip(surfaces, layers):
             equivalent_surfaces = sg.equivalent_reflections(s.reshape(-1, 3))
 
             for es in equivalent_surfaces:
@@ -156,27 +172,31 @@ class ClusterFactory(ClusterBase):
 # Helping functions
 def cross(a, b):
     """The cross product of two vectors."""
-    return np.array((a[1]*b[2] - b[1]*a[2],
+    return np.array([a[1]*b[2] - b[1]*a[2],
                      a[2]*b[0] - b[2]*a[0],
-                     a[0]*b[1] - b[0]*a[1]))
+                     a[0]*b[1] - b[0]*a[1]])
 
-def gcd(a,b):
+def GCD(a,b):
     """Greatest Common Divisor of a and b."""
+    #print "--"
     while a != 0:
+        #print a,b,">",
         a,b = b%a,a
+        #print a,b
     return b
 
-def reduce_miller(M):
+def reduce_miller(hkl):
     """Reduce Miller index to the lowest equivalent integers."""
-    oldM = M
-    g = gcd(M[0], M[1])
-    h = gcd(g, M[2])
-    while h != 1:
-        M = M/h
-        g = gcd(M[0], M[1])
-        h = gcd(g, M[2])
-    if np.dot(oldM, M) > 0:
-        return M
+    hkl = np.array(hkl)
+    old = hkl.copy()
+
+    d = GCD(GCD(hkl[0], hkl[1]), hkl[2])
+    while d != 1:
+        hkl = hkl / d
+        d = GCD(GCD(hkl[0], hkl[1]), hkl[2])
+
+    if np.dot(old, hkl) > 0:
+        return hkl
     else:
-        return -M
+        return -hkl
 

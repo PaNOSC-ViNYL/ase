@@ -4,18 +4,12 @@ Function-like objects that creates cubic clusters.
 
 import numpy as np
 from ase.cluster.factory import ClusterFactory
-from ase.lattice.cubic import SimpleCubicFactory as SCFactory, \
-                              BodyCenteredCubicFactory as BCCFactory, \
-                              FaceCenteredCubicFactory as FCCFactory, \
-                              DiamondFactory as DiamondFactory
 from ase.data import reference_states as _refstate
 
 class SimpleCubicFactory(ClusterFactory):
     spacegroup = 221
 
     xtal_name = 'sc'
-
-    lattice_factory = SCFactory()
 
     def set_lattice_constant(self, latticeconstant):
         "Get the lattice constant of an element with cubic crystal structure."
@@ -34,30 +28,29 @@ class SimpleCubicFactory(ClusterFactory):
         if not isinstance(a, (int, float)):
             raise ValueError("Improper lattice constant for %s crystal." % (xtal_name,))
 
-        self.lattice_basis = a * np.identity(3)
+        self.lattice_basis = np.array([[a, 0., 0.],
+                                       [0., a, 0.],
+                                       [0., 0., a]])
+
         self.resiproc_basis = self.get_resiproc_basis(self.lattice_basis)
 
 SimpleCubic = SimpleCubicFactory()
 
 class BodyCenteredCubicFactory(SimpleCubicFactory):
-    spacegroup = 229
-
     xtal_name = 'bcc'
 
-    atomic_basis = 0.5 * np.array([[1, 1, 1]])
-
-    lattice_factory = BCCFactory()
+    atomic_basis = np.array([[0., 0., 0.],
+                             [.5, .5, .5]])
 
 BodyCenteredCubic = BodyCenteredCubicFactory()
 
 class FaceCenteredCubicFactory(SimpleCubicFactory):
-    spacegroup = 225
-
     xtal_name = 'fcc'
 
-    atomic_basis = 0.5 * np.array([[0, 1, 1], [1, 0, 1], [1, 1, 0]])
-
-    lattice_factory = FCCFactory()
+    atomic_basis = np.array([[0., 0., 0.],
+                             [0., .5, .5],
+                             [.5, 0., .5],
+                             [.5, .5, 0.]])
 
 FaceCenteredCubic = FaceCenteredCubicFactory()
 

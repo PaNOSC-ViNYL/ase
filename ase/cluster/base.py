@@ -2,6 +2,9 @@ import numpy as np
 
 class ClusterBase:
     def get_layer_distance(self, miller, layers=1):
+        """Returns the distance between planes defined by the given miller
+        index.
+        """
         n = self.miller_to_direction(miller)
         d1 = d2 = 0.0
 
@@ -10,7 +13,7 @@ class ClusterBase:
         if mask.sum() > 0:
             d1 = np.min(d[mask])
 
-        if not self.atomic_basis is None:
+        if len(self.atomic_basis) > 1:
             atomic_basis = np.dot(self.atomic_basis, self.lattice_basis)
             d = np.sum(n * atomic_basis, axis=1)
             s = np.sign(d)
