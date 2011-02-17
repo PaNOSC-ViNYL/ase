@@ -761,7 +761,7 @@ class Atoms(object):
             self.arrays[name] = a[mask]
         if len(self._constraints) > 0:
             for n in range(len(self._constraints)):
-                self._constraints[n].delete_atom(i)
+                self._constraints[n].delete_atom(range(len(mask))[i])
 
     def pop(self, i=-1):
         """Remove and return atom at index *i* (default last)."""
