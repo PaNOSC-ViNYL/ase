@@ -49,10 +49,11 @@ class HexagonalFactory(ClusterFactory):
         for i, s in enumerate(surfaces):
             if len(s) == 4:
                 (a, b, c, d) = s
-                x = 2*a - b - c
-                y = 2*b - a - c
-                z = 2*d
-                surfaces[i] = [x, y, z]
+                if a + b + c != 0:
+                    raise ValueError(("(%d,%d,%d,%d) is not a valid hexagonal Miller " +
+                                      "index, as the sum of the first three numbers " +
+                                      "should be zero.") % (a,b,c,d))
+                surfaces[i] = [a, b, d]
 
         ClusterFactory.set_surfaces_layers(self, surfaces, layers)
 
