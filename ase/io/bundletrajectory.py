@@ -485,8 +485,9 @@ class BundleTrajectory:
 
     def _rename_bundle(self, oldname, newname):
         "Rename a bundle.  Used to create the .bak"
-        os.rename(oldname, newname)
-        if not self.master:
+        if self.master:
+            os.rename(oldname, newname)
+        else:
             while os.path.exists(oldname):
                 time.sleep(1)
         # The master may not proceed before all tasks have seen the
