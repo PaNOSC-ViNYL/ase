@@ -61,8 +61,8 @@ class SetupNanoparticle(SetupWindow):
     structure_data = (('fcc', 'Face centered cubic (fcc)', False, False, FaceCenteredCubic),
                       ('bcc', 'Body centered cubic (bcc)', False, False, BodyCenteredCubic),
                       ('sc',  'Simple cubic (sc)', False, False, SimpleCubic),
-                      #('hcp', 'Hexagonal closed-packed (hcp)', True, True, HexagonalClosedPacked),
-                      #('graphite', 'Graphite', True, True, Graphite),
+                      ('hcp', 'Hexagonal closed-packed (hcp)', True, True, HexagonalClosedPacked),
+                      ('graphite', 'Graphite', True, True, Graphite),
                       )
     #NB:  HCP is broken!
     
