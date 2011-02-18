@@ -55,6 +55,7 @@ class BundleTrajectory:
     backup=True:
         Use backup=False to disable renaming of an existing file.
     """
+    slavelog = True  # Log from all nodes
     def __init__(self, filename, mode='r', atoms=None, backup=True):
         self.state = 'constructing'
         self.filename = filename
@@ -146,7 +147,7 @@ class BundleTrajectory:
         self._call_observers(self.pre_observers)
         self.log("Beginning to write frame "+str(self.nframes))
         framedir = os.path.join(self.filename, "F"+str(self.nframes))
-        self._mkdir(framedir)
+        self._make_framedir(framedir)
 
         # Check which data should be written the first time:
         # Modify datatypes so any element of type 'once' becomes true
@@ -264,7 +265,7 @@ class BundleTrajectory:
         This function is mainly for internal use, but can also be called by
         the user.
         """
-        if not self.master:
+        if not (self.master or self.slavelog):
             return
         text = time.asctime() + ': ' + text
         if hasattr(self, "logfile"):
@@ -326,9 +327,13 @@ class BundleTrajectory:
         return self.nframes
     
     def _open_log(self):
-        if not self.master:
+        if not (self.master or self.slavelog):
             return
-        lfn = os.path.join(self.filename, "log.txt")
+        if self.master:
+            lfn = os.path.join(self.filename, "log.txt")
+        else:
+            lfn = os.path.join(self.filename, ("log-node%d.txt" %
+                                               (ase.parallel.rank,)))
         self.logfile = open(lfn, "a")   # Append to log if it exists.
         if hasattr(self, 'logdata'):
             for text in self.logdata:
@@ -340,30 +345,32 @@ class BundleTrajectory:
         "Open a bundle trajectory for writing."
         self.logfile = None # Enable delayed logging
         self.atoms = atoms
-        if self.master:
-            if os.path.exists(self.filename):
-                # The file already exists.
-                if not self.is_bundle(self.filename):
-                    raise IOError("Filename '" + self.filename +
-                                  "' already exists, but is not a BundleTrajectory." +
-                                  "Cowardly refusing to remove it.")
-                if self.is_empty_bundle(self.filename):
-                    self.log('Deleting old "%s" as it is empty' % (self.filename,)) 
-                    self.delete_bundle(self.filename)
-                elif not backup:
-                    self.log('Deleting old "%s" as backup is turned off.' % (self.filename,))
-                    self.delete_bundle(self.filename)
-                else:
-                    # Make a backup file
-                    bakname = self.filename + '.bak'
-                    if os.path.exists(bakname):
-                        self.log('Deleting old backup file "%s"' % (bakname,))
-                        self.delete_bundle(bakname)
-                    self.log('Renaming "%s" to "%s"' % (self.filename, bakname))
-                    os.rename(self.filename, bakname)
+        if os.path.exists(self.filename):
+            # The output directory already exists.
+            if not self.is_bundle(self.filename):
+                raise IOError("Filename '" + self.filename +
+                              "' already exists, but is not a BundleTrajectory." +
+                              "Cowardly refusing to remove it.")
+            ase.parallel.barrier() # All must have time to see it exists.
+            if self.is_empty_bundle(self.filename):
+                ase.parallel.barrier()  # All must see it is empty
+                self.log('Deleting old "%s" as it is empty' % (self.filename,)) 
+                self.delete_bundle(self.filename)
+            elif not backup:
+                self.log('Deleting old "%s" as backup is turned off.' % (self.filename,))
+                self.delete_bundle(self.filename)
+            else:
+                # Make a backup file
+                bakname = self.filename + '.bak'
+                if os.path.exists(bakname):
+                    ase.parallel.barrier()  # All must see it exists
+                    self.log('Deleting old backup file "%s"' % (bakname,))
+                    self.delete_bundle(bakname)
+                self.log('Renaming "%s" to "%s"' % (self.filename, bakname))
+                self._rename_bundle(self.filename, bakname)
         # Ready to create a new bundle.
         self.log('Creating new "%s"' % (self.filename,))
-        self._mkdir(self.filename)
+        self._make_bundledir(self.filename)
         self.state = 'prewrite'
         self._write_metadata({})
         self._write_nframes(0)    # Mark new bundle as empty
@@ -473,17 +480,47 @@ class BundleTrajectory:
                 time.sleep(1)
         # The master may not proceed before all tasks have seen the
         # directory go away, as it might otherwise create a new bundle
-        # with the same name, fooling the wait loop in _mkdir.
+        # with the same name, fooling the wait loop in _make_bundledir.
         ase.parallel.barrier()
 
-    def _mkdir(self, filename):
+    def _rename_bundle(self, oldname, newname):
+        "Rename a bundle.  Used to create the .bak"
+        os.rename(oldname, newname)
+        if not self.master:
+            while os.path.exists(oldname):
+                time.sleep(1)
+        # The master may not proceed before all tasks have seen the
+        # directory go away.
+        ase.parallel.barrier()
+            
+    def _make_bundledir(self, filename):
+        """Make the main bundle directory.
+
+        Since all MPI tasks might write to it, all tasks must wait for
+        the directory to appear.
+        """
+        self.log("Making directory "+filename)
         assert not os.path.isdir(filename)
         ase.parallel.barrier()
         if self.master:
             os.mkdir(filename)
         else:
+            i = 0
             while not os.path.isdir(filename):
                 time.sleep(1)
+                i += 1
+            if i > 10:
+                self.log("Waiting %d seconds for %s to appear!"
+                         % (i, filename))
+
+    def _make_framedir(self, filename):
+        """Make subdirectory for the frame.
+
+        As only the master writes to it, no synchronization between
+        MPI tasks is necessary.
+        """
+        if self.master:
+            os.mkdir(filename)
 
     def pre_write_attach(self, function, interval=1, *args, **kwargs):
         """Attach a function to be called before writing begins.
