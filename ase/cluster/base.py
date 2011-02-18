@@ -42,6 +42,10 @@ class ClusterBase:
             ld = np.array([d1])
 
         if len(ld) > 1:
+            if layers < 0:
+                ld = np.array([-ld[1], -ld[0]])
+                layers *= -1
+
             map = np.arange(layers - (layers % 1), dtype=int) % len(ld)
             r = ld[map].sum() + (layers % 1) * ld[np.abs(map[-1] - 1)]
         else:

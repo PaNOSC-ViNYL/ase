@@ -70,8 +70,6 @@ class ClusterFactory(ClusterBase):
 
         # Remove all atoms that is outside the defined surfaces
         for s, l in zip(self.surfaces, self.layers):
-            if l < 0: continue
-
             n = self.miller_to_direction(s)
             rmax = self.get_layer_distance(s, l + 0.5)
 
