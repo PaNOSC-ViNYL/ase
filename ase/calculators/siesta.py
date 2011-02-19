@@ -4,7 +4,8 @@ http://www.uam.es/departamentos/ciencias/fismateriac/siesta
 """
 
 import os
-from os.path import join, isfile, islink
+from subprocess import Popen, PIPE
+from os.path import join, isfile, islink, getmtime
 from cmath import exp
 import array
 
@@ -12,7 +13,8 @@ import numpy as np
 
 from ase.data import chemical_symbols
 from ase.units import Rydberg, fs
-from ase.io.siesta import read_rho
+from ase.io.siesta import read_rho, read_fdf
+from ase.io.cube import read_cube_data
 
 class Siesta:
     """Class for doing SIESTA calculations.
@@ -192,6 +194,126 @@ class Siesta:
         else:
             raise RuntimeError('Invalid spin-value requested. '
                                'Expected 0 or 1, got %s' % spin)
+
+
+    def get_pseudo_wave_function(self, band=0, kpt=0, spin=None):
+        """Return pseudo-wave-function array.
+
+        The method is limited to the gamma point, and is implemented 
+        as a wrapper to denchar (a tool shipped with siesta);
+        denchar must be available in the command path.
+
+        When retrieving a p_w_f from a non-spin-polarized calculation, 
+        spin must be None (default), and for spin-polarized 
+        calculations, spin must be set to either 0 (up) or 1 (down).
+
+        As long as the necessary files are present and named
+        correctly, old p_w_fs can be read as long as the 
+        calculator label is set. E.g.
+
+        >>> c = Siesta(label='name_of_old_calculation')
+        >>> pwf = c.get_pseudo_wave_function()
+
+        The broadcast and pad options are not implemented.
+        """
+
+        # Not implemented: kpt=0, broadcast=True, pad=True
+        # kpoint must be Gamma
+        assert kpt == 0, \
+            "siesta.get_pseudo_wave_function is unfortunately limited " \
+            "to the gamma point only. kpt must be 0."
+
+        # In denchar, band numbering starts from 1
+        assert type(band) is int and band >= 0
+        band = band+1
+
+        if spin is None:
+            spin_name = ""
+        elif spin == 0:
+            spin_name = ".UP"
+        elif spin == 1:
+            spin_name = ".DOWN"
+
+        label = self.label
+        # If <label>.WF<band>.cube already exist and is newer than <label>.fdf, 
+        # just return it
+        fn_wf = label+('.WF%i%s.cube'%(band,spin_name))
+        fn_fdf = label+'.fdf'
+        if isfile(fn_wf) and isfile(fn_fdf) and (getmtime(fn_wf) > getmtime(fn_fdf)):
+            x, _ = read_cube_data(fn_wf)
+            return x
+
+        if not isfile(fn_fdf):
+            raise RuntimeError('Could not find the fdf-file. It is required as '
+                               'part of the input for denchar.')
+
+        fdf_mtime = getmtime(fn_fdf)
+        for suf in ['.WFS', '.PLD', '.DM', '.DIM']:
+            if not isfile(label+suf):
+                raise RuntimeError('Could not find file "%s%s" which is required '
+                                   'when extracting wave functions '
+                                   '(make sure the fdf options "WriteDenchar" is '
+                                   'True, and WaveFuncKpoints is [0.0 0.0 0.0]")' %
+                                   (label, suf))
+            if not getmtime(label+suf) > fdf_mtime:
+                # This should be handled in a better way, e.g. by implementing
+                # a "calculation_required() and calculate()"
+                raise RuntimeError('The calculation is not up to date.')
+
+        # Simply read the old fdf-file and pick some meta info from there.
+        # However, strictly it's not always neccesary
+        fdf = read_fdf(fn_fdf)
+        if 'latticeconstant' in fdf:
+            const = float(fdf['latticeconstant'][0])
+            unit =  fdf['latticeconstant'][1]
+        else:
+            const = 1.0
+            unit = 'Ang'
+
+        if 'latticevectors' in fdf:
+            cell = np.array(fdf['latticevectors'], dtype='d')
+        else:
+            raise RuntimeError('Failed to find the lattice vectors in the fdf-file.')
+
+        if 'spinpolarized' in fdf and \
+                fdf['spinpolarized'][0].lower() in ['yes', 'true', '.true.', 'T', '']:
+            if spin is None:
+                raise RuntimeError('The calculation was spin polarized, pick either '
+                                   'spin=0 or 1.')
+        else:
+            if not spin is None:
+                raise RuntimeError('The calculation was not spin polarized, '
+                                   'spin argument must be None.')
+
+        denc_fdf = open(fn_fdf).readlines()
+        denc_fdf.append('Denchar.TypeOfRun 3D\n')
+        denc_fdf.append('Denchar.PlotWaveFunctions T\n')
+        for dim, dir in zip(cell.transpose(), ['X', 'Y', 'Z']):
+            # Naive square box limits to denchar
+            denc_fdf.append('Denchar.Min%s %f %s\n' % (dir, const*dim.min(), unit))
+            denc_fdf.append('Denchar.Max%s %f %s\n' % (dir, const*dim.max(), unit))
+
+        # denchar rewinds stdin and fails if stdin is a pipe
+        denc_fdf_file = open(label+'.denchar.fdf', 'w')
+        denc_fdf_file.write(''.join(denc_fdf))
+        denc_fdf_file.close()
+
+        p = Popen('denchar', shell=True, stdin=open(label+'.denchar.fdf'),
+                  stdout=PIPE, stderr=PIPE, close_fds=True)
+        exitcode = p.wait()
+        
+        if exitcode == 0:
+            if not isfile(fn_wf):
+                raise RuntimeError('Could not find the requested file (%s)'%fn_wf)
+            x, _ = read_cube_data(fn_wf)
+            return x
+        elif exitcode == 127:
+            raise RuntimeError('No denchar executable found. Make sure it is in the path.')
+        else:
+            import sys
+            print >>sys.stderr, ''.join(p.stderr.readlines())
+            raise RuntimeError('Execution of denchar failed!')
+
 
     def calculate(self, atoms):
         self.positions = atoms.get_positions().copy()
