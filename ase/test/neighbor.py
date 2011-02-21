@@ -2,6 +2,7 @@ import numpy.random as random
 import numpy as np
 from ase import Atoms
 from ase.calculators.neighborlist import NeighborList
+from ase.structure import bulk
 
 atoms = Atoms(numbers=range(10),
               cell=[(0.2, 1.2, 1.4),
@@ -58,3 +59,18 @@ h2[1].z += 0.09
 assert nl.update(h2)
 assert (nl.get_neighbors(0)[0] == []).all()
 assert nl.nupdates == 2
+
+x = bulk('X', 'fcc', a=2**0.5)
+print x
+
+nl = NeighborList([0.5], skin=0.01, bothways=True, self_interaction=False)
+nl.update(x)
+assert len(nl.get_neighbors(0)[0]) == 12
+
+nl = NeighborList([0.5] * 27, skin=0.01, bothways=True, self_interaction=False)
+nl.update(x * (3, 3, 3))
+for a in range(27):
+    assert len(nl.get_neighbors(13)[0]) == 12
+    if a == 13:
+        assert not np.any(nl.get_neighbors(13)[1])
+
