@@ -348,7 +348,7 @@ class SetupNanoparticle(SetupWindow):
         self.update_direction_table()
         if self.method.get_active():
             self.wulffbox.show()
-            self.layerlabel.set_text("Surface energies:")
+            self.layerlabel.set_text("Surface energies (as energy/area, NOT per atom):")
             self.newdir_layers_box.hide()
             self.newdir_esurf_box.show()
         else:
