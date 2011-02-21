@@ -70,7 +70,6 @@ assert len(nl.get_neighbors(0)[0]) == 12
 nl = NeighborList([0.5] * 27, skin=0.01, bothways=True, self_interaction=False)
 nl.update(x * (3, 3, 3))
 for a in range(27):
-    assert len(nl.get_neighbors(13)[0]) == 12
-    if a == 13:
-        assert not np.any(nl.get_neighbors(13)[1])
+    assert len(nl.get_neighbors(a)[0]) == 12
+assert not np.any(nl.get_neighbors(13)[1])
 
