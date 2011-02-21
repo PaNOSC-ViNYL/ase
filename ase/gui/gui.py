@@ -1131,6 +1131,7 @@ class GUI(View, Status):
         self.vulnerable_windows.append(weakref.ref(obj))
 
     def exit(self, button, event=None):
+        self.window.destroy()
         gtk.main_quit()
         return True
 

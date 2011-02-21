@@ -1262,6 +1262,26 @@ class Atoms(object):
         """Write yourself to a file."""
         from ase.io import write
         write(filename, self, format)
+
+    def edit(self):
+        """Modify Atoms through ag viewer."""
+        from ase.gui.images import Images
+        from ase.gui.gui import GUI
+        images = Images([self])
+        gui = GUI(images)
+        gui.run()
+        # use atoms returned from gui:
+        # (1) delete all currently available atoms
+        self.set_constraint()
+        [self.pop() for z in range(len(self))]
+        edited_atoms = gui.images.get_atoms(0)
+        # (2) extract atoms from edit session
+        self.extend(edited_atoms)
+        self.set_constraint(edited_atoms._get_constraints())
+        self.set_cell(edited_atoms.get_cell())
+        self.set_initial_magnetic_moments(edited_atoms.get_magnetic_moments())
+        self.set_tags(edited_atoms.get_tags())
+        return
         
 def string2symbols(s):
     """Convert string to list of chemical symbols."""
