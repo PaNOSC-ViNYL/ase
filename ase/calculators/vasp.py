@@ -22,6 +22,7 @@ http://cms.mpi.univie.ac.at/vasp/
 
 import os
 import sys
+import re
 from general import Calculator
 from os.path import join, isfile, islink
 
@@ -410,6 +411,7 @@ class Vasp(Calculator):
         self.old_list_params = self.list_params.copy()
         self.old_dict_params = self.dict_params.copy()
         self.atoms = atoms.copy()
+        self.version = self.read_version()
         self.niter = self.read_number_of_iterations()
         self.nelect = self.read_number_of_electrons()
         
@@ -499,6 +501,18 @@ class Vasp(Calculator):
         atoms = self.atoms.copy()
         atoms.set_calculator(self)
         return atoms
+
+    def get_version(self):
+        self.update(self.atoms)
+        return self.version
+
+    def read_version(self):
+        version = None
+        for line in open('OUTCAR'):
+            if line.find(' vasp.') != -1: # find the first occurence
+                version = line[len(' vasp.'):].split()[0]
+                break
+        return version
 
     def get_potential_energy(self, atoms, force_consistent=False):
         self.update(atoms)
@@ -602,6 +616,10 @@ class Vasp(Calculator):
     def get_eigenvalues(self, kpt=0, spin=0):
         self.update(self.atoms)
         return self.read_eigenvalues(kpt, spin)
+
+    def get_occupation_numbers(self, kpt=0, spin=0):
+        self.update(self.atoms)
+        return self.read_occupation_numbers(kpt, spin)
 
     def get_fermi_level(self):
         return self.fermi
@@ -926,6 +944,32 @@ class Vasp(Calculator):
         for n in range(8+kpt*(self.nbands+2), 8+kpt*(self.nbands+2)+self.nbands):
             eigs.append(float(lines[n].split()[spin+1]))
         return np.array(eigs)
+
+    def read_occupation_numbers(self, kpt=0, spin=0):
+        lines = open('OUTCAR').readlines()
+        nspins = self.get_number_of_spins()
+        start = 0
+        if nspins == 1:
+            for n, line in enumerate(lines): # find it in the last iteration
+                m = re.search(' k-point *'+str(kpt+1)+' *:', line)
+                if m is not None:
+                    start = n
+        else:
+            for n, line in enumerate(lines):
+                if line.find(' spin component '+str(spin+1)) != -1: # find it in the last iteration
+                    start = n
+            for n2, line2 in enumerate(lines[start:]):
+                m = re.search(' k-point *'+str(kpt+1)+' *:', line2)
+                if m is not None:
+                    start = start + n2
+                    break
+        for n2, line2 in enumerate(lines[start+2:]):
+            if not line2.strip():
+                break
+        occ = []
+        for line in lines[start+2:start+2+n2]:
+            occ.append(float(line.split()[2]))
+        return np.array(occ)
 
     def read_relaxed(self):
         for line in open('OUTCAR', 'r'):
