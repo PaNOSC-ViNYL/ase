@@ -66,6 +66,7 @@ class BundleTrajectory:
         self.pre_observers = []   # Callback functions before write is performed
         self.post_observers = []  # Callback functions after write is performed
         self.master = ase.parallel.rank == 0
+        self.extra_data = []
         self._set_defaults()
         self._set_backend()
         if mode == 'r':
@@ -95,27 +96,15 @@ class BundleTrajectory:
                           }
 
     def _set_backend(self, backend=None):
-        """Set the backed doing the actual I/O.
-
-        It should either be a backend object, or a string containing
-        the name of the desired backend.
-        """
-        if backend is None:
-            backend = self.backend_name
-        if isinstance(backend, str):
-            # A backend specified by name
+        """Set the backed doing the actual I/O."""
+        if backend is not None:
             self.backend_name = backend
-            if self.backend_name == 'pickle':
-                self.backend = PickleBundleBackend(self.master)
-            elif self.backend_name == 'netcdf':
-                self.backend = NetCDFBundleBackend(self.master)
-            else:
-                raise NotImplementedError(
-                    "This version of ASE cannot use BundleTrajectory with backend '%s'"
-                    % self.backend_name)
+        if self.backend_name == 'pickle':
+            self.backend = PickleBundleBackend(self.master)
         else:
-            # A backend object
-            self.backend = backend
+            raise NotImplementedError(
+                "This version of ASE cannot use BundleTrajectory with backend '%s'"
+                % self.backend_name)
 
     def write(self, atoms=None):
         """Write the atoms to the file.
@@ -150,8 +139,7 @@ class BundleTrajectory:
         # OK, it is a real atoms object.  Write it.
         self._call_observers(self.pre_observers)
         self.log("Beginning to write frame "+str(self.nframes))
-        framedir = os.path.join(self.filename, "F"+str(self.nframes))
-        self._make_framedir(framedir)
+        framedir = self._make_framedir(self.nframes)
 
         # Check which data should be written the first time:
         # Modify datatypes so any element of type 'once' becomes true
@@ -221,6 +209,16 @@ class BundleTrajectory:
             else:
                 self.backend.write(framedir, 'energies', x) 
                 del x
+        # Write any extra data
+        for (label, source, once) in self.extra_data:
+            if self.nframes == 0 or not once:
+                if source is not None:
+                    x = source()
+                    assert len(x) == len(atoms)
+                else:
+                    x = atoms.arrays[label]
+                self.backend.write(framedir, label, x)
+                del x
         # Finally, write metadata if it is the first frame
         if self.nframes == 0:
             metadata = {'datatypes': self.datatypes}
@@ -252,6 +250,22 @@ class BundleTrajectory:
         if data not in self.datatypes:
             raise ValueError("Unsupported data type: " + data)
         self.datatypes[data] = value
+
+    def set_extra_data(self, name, source=None, once=False):
+        """Adds extra data to be written.
+
+        Parametes:
+        name:  The name of the data.
+
+        source (optional): If specified, a callable object returning
+        the data to be written.  If not specified it is instead
+        assumed that the atoms contains the data as an array of the
+        same name.
+
+        once (optional): If specified and True, the data will only be
+        written to the first frame.
+        """
+        self.extra_data.append((name, source, once))
         
     def close(self):
         "Closes the trajectory."
@@ -288,6 +302,9 @@ class BundleTrajectory:
 
     # __getitem__ is the main reading method.
     def __getitem__(self, n):
+        return self._read(n)
+
+    def _read(self, n):
         "Read an atoms object from the BundleTrajectory."
         if self.state != 'read':
             raise IOError('Cannot read in %s mode' % (self.state,))
@@ -303,17 +320,20 @@ class BundleTrajectory:
         data['pbc'] = smalldata['pbc']
         data['cell'] = smalldata['cell']
         data['constraint'] = smalldata['constraints']
+        if self.subtype == 'split':
+            self.backend.set_fragments(smalldata['fragments'])
+            atom_id = self.backend.read_split(framedir, 'ID')
+        else:
+            atom_id = None
         atoms = ase.Atoms(**data)
         natoms = smalldata['natoms']
         for name in ('positions', 'numbers', 'tags', 'masses',
                      'momenta', 'magmoms'):
             if self.datatypes.get(name):
-                if self.datatypes[name] == 'once':
-                    d = self.backend.read(framezero, name)
-                else:
-                    d = self.backend.read(framedir, name)
-                assert len(d) == natoms
-                atoms.arrays[name] = d
+                atoms.arrays[name] = self._read_data(framezero, framedir,
+                                                     name, atom_id)
+                assert len(atoms.arrays[name]) == natoms
+                
         # Create the atoms object
         if self.datatypes.get('energy'):
             if self.datatype.get('forces'):
@@ -326,6 +346,24 @@ class BundleTrajectory:
                                          magmoms, atoms)
             atoms.set_calculator(calc)
         return atoms
+
+    def _read_data(self, f0, f, name, atom_id):
+        "Read single data item."
+        
+        if self.subtype == 'normal':
+            if self.datatypes[name] == 'once':
+                d = self.backend.read(f0, name)
+            else:
+                d = self.backend.read(f, name)
+        elif self.subtype == 'split':
+            if self.datatypes[name] == 'once':
+                d = self.backend.read_split(f0, name)
+            else:
+                d = self.backend.read_split(f, name)
+            if atom_id is not None:
+                assert len(d) == len(atom_id)
+                d = d[atom_id]
+        return d
 
     def __len__(self):
         return self.nframes
@@ -357,7 +395,6 @@ class BundleTrajectory:
                               "Cowardly refusing to remove it.")
             ase.parallel.barrier() # All must have time to see it exists.
             if self.is_empty_bundle(self.filename):
-                ase.parallel.barrier()  # All must see it is empty
                 self.log('Deleting old "%s" as it is empty' % (self.filename,)) 
                 self.delete_bundle(self.filename)
             elif not backup:
@@ -395,15 +432,17 @@ class BundleTrajectory:
             raise NotImplementedError(
                 "This version of ASE cannot read a BundleTrajectory version "
                 + str(metadata['version']))
-        if metadata['subtype'] != 'normal':
+        if metadata['subtype'] not in ('normal', 'split'):
             raise NotImplementedError(
                 "This version of ASE cannot read BundleTrajectory subtype "
                 + metadata['subtype'])
+        self.subtype = metadata['subtype']
         self._set_backend(metadata['backend'])
         self.nframes = self._read_nframes()
         if self.nframes == 0:
             raise IOError("Empty BundleTrajectory")
         self.datatypes = metadata['datatypes']
+        self.state = 'read'
         
     def _write_nframes(self, n):
         "Write the number of frames in the bundle."
@@ -462,6 +501,7 @@ class BundleTrajectory:
         """Check if a filename is an empty bundle.  Assumes that it is a bundle."""
         f = open(os.path.join(filename, "frames"))
         nframes = int(f.read())
+        ase.parallel.barrier()  # File may be removed by the master immediately after this.
         return nframes == 0
 
     @classmethod
@@ -518,14 +558,16 @@ class BundleTrajectory:
                 self.log("Waiting %d seconds for %s to appear!"
                          % (i, filename))
 
-    def _make_framedir(self, filename):
+    def _make_framedir(self, frame):
         """Make subdirectory for the frame.
 
         As only the master writes to it, no synchronization between
         MPI tasks is necessary.
         """
+        framedir = os.path.join(self.filename, "F"+str(frame))
         if self.master:
             os.mkdir(filename)
+        return framedir
 
     def pre_write_attach(self, function, interval=1, *args, **kwargs):
         """Attach a function to be called before writing begins.
@@ -563,18 +605,20 @@ class BundleTrajectory:
 class PickleBundleBackend:
     """Backend for writing BundleTrajectories stored as pickle files."""
     def __init__(self, master):
-        self.master = master
+        # Store if this backend will actually write anything
+        self.writesmall = master
+        self.writelarge = master
         
     def write_small(self, framedir, smalldata):
         "Write small data to be written jointly."
-        if self.master:
+        if self.writesmall:
             f = open(os.path.join(framedir, "smalldata.pickle"), "w")
             pickle.dump(smalldata, f, -1)
             f.close()
 
     def write(self, framedir, name, data):
         "Write data to separate file."
-        if self.master:
+        if self.writelarge:
             fn = os.path.join(framedir, name + '.pickle')
             f = open(fn, "w")
             pickle.dump(data.shape, f, -1)
@@ -597,28 +641,20 @@ class PickleBundleBackend:
         f.close()
         return data
 
-class NetCDFBundleBackend(PickleBundleBackend):
-    dims = ('first', 'second', 'third', 'fourth', 'fifth')
-    def write(self, framedir, name, data):
-        if self.master:
-            if data.dtype == np.int64:
-                # Cannot write 64-bit integers!
-                data = data.astype(np.int32)
-            fn = os.path.join(framedir, name + '.nc')
-            f = pupynere.netcdf_file(fn, "w")
-            for i, n in enumerate(data.shape):
-                f.createDimension(self.dims[i], n)
-            var = f.createVariable(name, data.dtype,
-                                   self.dims[:len(data.shape)])
-            var[:] = data
+    def set_fragments(self, nfrag):
+        self.nfrag = nfrag
+        
+    def read_split(self, framedir, name):
+        "Read data from multiple files."
+        data = []
+        for i in range(self.nfrag):
+            suf = "_%d" % (i,)
+            fn = os.path.join(framedir, name + suf + '.pickle')
+            f = open(fn)
+            shape = pickle.load(f)  # Discarded.
+            data.append(pickle.load(f))
             f.close()
-
-    def read(self, framedir, name):
-        fn = os.path.join(framedir, name + '.nc')
-        f = pupynere.netcdf_file(fn)
-        var = f.variables[name][:]
-        f.close()
-        return var
+        return np.concatenate(data)
     
 def read_bundletrajectory(filename, index=-1):
     """Reads one or more atoms objects from a BundleTrajectory.
