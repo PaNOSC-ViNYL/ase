@@ -1,17 +1,20 @@
 """bundletrajectory - a module for I/O from large MD simulations.
 
-The BundleTrajectory class writes trajectory into a directory with the following structure.
+The BundleTrajectory class writes trajectory into a directory with the
+following structure::
 
-filename.bundle (dir)
-    metadata.pickle   Data about the file format, and about which data is present.
-    state.pickle      The number of frames
-    F0 (dir)          Frame number 0
-        small.pickle       Small data structures in a dictionary (pbc, cell, ...)
-        numbers.pickle     Atomic numbers
-        positions.pickle   Positions
-        momenta.pickle     Momenta
-        ...
-    F1 (dir)
+    filename.bundle (dir)
+        metadata.pickle        Data about the file format, and about which
+                               data is present.
+        state.pickle           The number of frames
+        F0 (dir)               Frame number 0
+            small.pickle       Small data structures in a dictionary
+                               (pbc, cell, ...)
+            numbers.pickle     Atomic numbers
+            positions.pickle   Positions
+            momenta.pickle     Momenta
+            ...
+        F1 (dir)
 """
 
 import ase.parallel 
@@ -24,6 +27,7 @@ import time
 import cPickle as pickle
 import weakref
 from copy import copy, deepcopy
+
 
 class BundleTrajectory:
     """Reads and writes atoms into a .bundle directory.
@@ -620,10 +624,10 @@ def read_bundletrajectory(filename, index=-1):
     """Reads one or more atoms objects from a BundleTrajectory.
 
     Arguments:
-    filename:
-        The name of the bundle (really a directory!)
 
-    index (optional):
+    filename: str
+        The name of the bundle (really a directory!)
+    index: int
         An integer specifying which frame to read, or an index object
         for reading multiple frames.  Default: -1 (reads the last
         frame).
