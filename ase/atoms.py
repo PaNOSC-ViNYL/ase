@@ -1273,7 +1273,8 @@ class Atoms(object):
         # use atoms returned from gui:
         # (1) delete all currently available atoms
         self.set_constraint()
-        [self.pop() for z in range(len(self))]
+        for z in range(len(self)):
+            self.pop()
         edited_atoms = gui.images.get_atoms(0)
         # (2) extract atoms from edit session
         self.extend(edited_atoms)

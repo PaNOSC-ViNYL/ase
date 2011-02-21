@@ -585,10 +585,10 @@ class GUI(View, Status):
                     a = ase.Atoms([ase.Atom(molecule)])
                 except:      
                     try:
-                        a = ase.molecule(molecule)
+                        a = ase.data.molecules.molecule(molecule)
                     except:
                         try:
-                            a = ase.read(molecule, -1)
+                            a = ase.io.read(molecule, -1)
                         except:
                             self.add_entries[1].set_text('?' + molecule) 
                             return ()
@@ -835,15 +835,15 @@ class GUI(View, Status):
          
             self.draw()    
         if data:      
-            self.window.destroy()
+            self.delete_window.destroy()
              
         if not(data) and sum(self.images.selected):
             more = '' + (sum(self.images.selected) > 1) * 's'
-            self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-            self.window.set_title('Confirmation')
-            self.window.set_border_width(10)
+            self.delete_window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+            self.delete_window.set_title('Confirmation')
+            self.delete_window.set_border_width(10)
             self.box1 = gtk.HBox(False, 0)
-            self.window.add(self.box1)
+            self.delete_window.add(self.box1)
             self.button1 = gtk.Button('Delete selected atom%s?' % more)
             self.button1.connect("clicked", self.delete_selected_atoms, "OK")
             self.box1.pack_start(self.button1, True, True, 0)
@@ -855,7 +855,7 @@ class GUI(View, Status):
             self.button2.show()
 
             self.box1.show()
-            self.window.show()
+            self.delete_window.show()
                 
     def debug(self, x):
         from ase.gui.debug import Debug
