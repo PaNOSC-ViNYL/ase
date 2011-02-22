@@ -439,17 +439,17 @@ def print_trajectory_info(filename):
     print "  Boundary conditions:", header['pbc']
     print "  Atomic numbers: shape = %s, type = %s" % (str(header['numbers'].shape),
                                                        str(header['numbers'].dtype))
-    if header['tags'] is None:
+    if header.get('tags') is None:
         print "  Tags are absent."
     else:
         print "  Tags: shape = %s, type = %s" % (str(header['tags'].shape),
                                                  str(header['tags'].dtype))
-    if header['masses'] is None:
+    if header.get('masses') is None:
         print "  Masses are absent."
     else:
         print "  Masses: shape = %s, type = %s" % (str(header['masses'].shape),
                                                  str(header['masses'].dtype))
-    if len(header['constraints']):
+    if header.get('constraints'):
         print "  %d constraints are present." % (len(header['constraints']),)
     else:
         print "  Constraints are absent."
