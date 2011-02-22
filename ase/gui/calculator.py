@@ -863,8 +863,9 @@ class GPAW_Window(gtk.Window):
             self.gpts[i].value = g
 
     def k_changed(self, *args):
-        if self.orthogonal:
-            size = [self.kpts[i].value * self.size[i] for i in range(3)]
+        size = [self.kpts[i].value * np.sqrt(np.vdot(self.ucell[i],
+                                                     self.ucell[i]))
+                for i in range(3)]
         self.kpts_label.set_text(self.kpts_label_format % tuple(size))
 
     def mode_changed(self, *args):
