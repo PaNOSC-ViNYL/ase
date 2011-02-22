@@ -19,7 +19,7 @@ for name, a in zip('ITF', images[::2]):
           transparent=False, display=False, run_povray=True)
 
 s, E, Sfit, Efit, lines = fit(images)
-assert abs(max(Efit) - 0.350) < 1e-3
+assert abs(max(Efit) - 0.374) < 1e-3
 plt.figure(figsize=(4.5, 3))
 plt.plot(s, E, 'o')
 plt.plot(Sfit, Efit, 'k-')
