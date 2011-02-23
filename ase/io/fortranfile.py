@@ -54,6 +54,20 @@ integers.
 __docformat__ = "restructuredtext en"
 
 import numpy
+    
+try:
+    file
+except NameError:
+    # For python3 compatibility
+    from io import FileIO as file
+
+try:
+    bytes
+except NameError:
+    # For python2.x compatibility, I think it would have been nicer to
+    # "from __future__ import unicode_literals" and used b'' instead of bytes()
+    bytes = str
+    
 
 class FortranFile(file):
 
@@ -118,14 +132,14 @@ class FortranFile(file):
 
     def _read_exactly(self, num_bytes):
         """Read in exactly num_bytes, raising an error if it can't be done."""
-        data = ''
+        data = bytes()
         while True:
             l = len(data)
             if l == num_bytes:
                 return data
             else:
                 read_data = self.read(num_bytes - l)
-            if read_data == '':
+            if read_data == bytes():
                 raise IOError('Could not read enough data.'
                               '  Wanted %d bytes, got %d.' % (num_bytes, l))
             data += read_data
