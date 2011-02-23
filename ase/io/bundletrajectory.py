@@ -566,7 +566,7 @@ class BundleTrajectory:
         """
         framedir = os.path.join(self.filename, "F"+str(frame))
         if self.master:
-            os.mkdir(filename)
+            os.mkdir(framedir)
         return framedir
 
     def pre_write_attach(self, function, interval=1, *args, **kwargs):
@@ -621,7 +621,8 @@ class PickleBundleBackend:
         if self.writelarge:
             fn = os.path.join(framedir, name + '.pickle')
             f = open(fn, "w")
-            pickle.dump(data.shape, f, -1)
+            info = (data.shape, str(data.dtype))
+            pickle.dump(info, f, -1)
             pickle.dump(data, f, -1)
             f.close()
 
@@ -640,6 +641,28 @@ class PickleBundleBackend:
         data = pickle.load(f)
         f.close()
         return data
+
+    def read_info(self, framedir, name, split=None):
+        "Read information about file contents without reading the data."
+        if split is None:
+            fn = os.path.join(framedir, name + '.pickle')
+            f = open(fn)
+            info = pickle.load(f)
+            f.close()
+            return info
+        else:
+            for i in range(split):
+                fn = os.path.join(framedir, name + '_' + str(i) + '.pickle')
+                f = open(fn)
+                info = pickle.load(f)
+                f.close()
+                if i == 0:
+                    shape = list(info[0])
+                    dtype = info[1]
+                else:
+                    shape[0] += info[0][0]
+                    assert dtype == info[1]
+            return (tuple(shape), dtype)
 
     def set_fragments(self, nfrag):
         self.nfrag = nfrag
@@ -723,7 +746,69 @@ def write_bundletrajectory(filename, images):
         traj.write(atoms)
     traj.close()
 
-        
+def print_bundletrajectory_info(filename):
+    """Prints information about a BundleTrajectory.
+
+    Mainly intended to be called from a command line tool.
+    """
+    if not BundleTrajectory.is_bundle(filename):
+        raise ValueError, "Not a BundleTrajectory!"
+    if BundleTrajectory.is_empty_bundle(filename):
+        print filename, "is an empty BundleTrajectory."
+        return
+    # Read the metadata
+    f = open(os.path.join(filename, 'metadata'))
+    metadata = pickle.load(f)
+    f.close()
+    print "Metadata information of BundleTrajectory '%s':" % (filename,)
+    for k,v in metadata.items():
+        if k != 'datatypes':
+            print "  %s: %s" % (k, v)
+    f = open(os.path.join(filename, 'frames'))
+    nframes = int(f.read())
+    print "Number of frames: %i" % (nframes,)
+    print "Data types:"
+    for k, v in metadata['datatypes'].items():
+        if v == 'once':
+            print "  %s: First frame only." % (k,)
+        elif v:
+            print "  %s: All frames." % (k,)
+    # Look at first frame
+    if metadata['backend'] == 'pickle':
+        backend = PickleBundleBackend(True)
+    else:
+        raise NotImplementedError("Backend %s not supported."
+                                  % (metadata['backend'],))
+    frame = os.path.join(filename, "F0")
+    small = backend.read_small(frame)
+    print "Contents of first frame:"
+    for k,v in small.items():
+        if k == 'constraints':
+            if v:
+                print "  %i constraints are present"
+            else:
+                print "  Constraints are absent."
+        elif k == 'pbc':
+            print "  Periodic boundary conditions: %s" % (str(v),)
+        elif k == 'natoms':
+            print "  Number of atoms: %i" % (v,)
+        elif hasattr(v, 'shape'):
+            print "  %s: shape = %s, type = %s" % (k, str(v.shape), str(v.dtype))
+        else:
+            print "  %s: %s" % (k, str(v))
+    # Read info from separate files.
+    for k, v in metadata['datatypes'].items():
+        if v and not k in small:
+            info = backend.read_info(frame, k)
+            if isinstance(info[0], tuple):
+                shape, dtype = info
+            else:
+                shape = info
+                dtype = 'unknown'
+            print "  %s: shape = %s, type = %s" % (k, str(shape), dtype)
+                
+            
+            
 if __name__ == '__main__':
     from ase.lattice.cubic import FaceCenteredCubic
     from ase.io import read, write
