@@ -59,7 +59,7 @@ class Images:
                 else:
                     self.M[i] = atoms.get_magnetic_moments()
             except (RuntimeError, AttributeError):
-                self.M[i] = 0.0
+                self.M[i] = atoms.get_initial_magnetic_moments()
                 
             # added support for tags
             try:
