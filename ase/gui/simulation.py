@@ -107,8 +107,11 @@ class Simulation(gtk.Window):
             return None
         n = self.getimagenumber()
         natoms = len(images.P[n]) / images.repeat.prod()
-        return Atoms(positions=images.P[n,:natoms], symbols=images.Z[:natoms],
-                     cell=images.A[n], pbc=images.pbc)
+        return Atoms(positions=images.P[n,:natoms],
+                     symbols=images.Z[:natoms],
+                     cell=images.A[n],
+                     magmoms=images.M[n],
+                     pbc=images.pbc)
 
     def begin(self, **kwargs):
         if self.gui.simulation.has_key('progress'):

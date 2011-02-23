@@ -57,7 +57,7 @@ class Images:
                 if init_magmom:
                     self.M[i] = atoms.get_initial_magnetic_moments()
                 else:
-                  self.M[i] = atoms.get_magnetic_moments()
+                    self.M[i] = atoms.get_magnetic_moments()
             except (RuntimeError, AttributeError):
                 self.M[i] = 0.0
                 
