@@ -264,7 +264,9 @@ def read_aims_calculator(file):
             break
         else:
             args = line.split()
-            key = args[0]
+            key = '#'
+            if len(args) > 0:
+                key = args[0]
             if key == '#':
                 comment = True   
             elif calc.float_params.has_key(key):
