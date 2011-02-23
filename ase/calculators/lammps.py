@@ -157,7 +157,7 @@ class LAMMPS:
         if ("boundary" in parameters):
             f.write("boundary %s \n" % parameters["boundary"])
         else:
-            f.write("boundary %c %c %c \n" % tuple("p" if x else "s" for x in pbc))
+            f.write("boundary %c %c %c \n" % tuple('sp'[x] for x in pbc))
         f.write("atom_modify sort 0 0.0 \n")
         for key in ("neighbor" ,"newton"):
             if key in parameters:
