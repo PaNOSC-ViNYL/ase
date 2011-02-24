@@ -223,11 +223,18 @@ class SetupNanoparticle(SetupWindow):
         self.round_below = gtk.RadioButton(self.round_above, "below  ")
         self.round_closest = gtk.RadioButton(self.round_above, "closest  ")
         self.round_closest.set_active(True)
+        butbox = gtk.HButtonBox()
+        self.smaller_button = gtk.Button("Smaller")
+        self.larger_button = gtk.Button("Larger")
+        self.smaller_button.connect('clicked', self.wulff_smaller)
+        self.larger_button.connect('clicked', self.wulff_larger)
+        pack(butbox, [self.smaller_button, self.larger_button])
         buts = [self.round_above, self.round_below, self.round_closest]
-        pack(self.wulffbox, buts)
         for b in buts:
             b.connect("toggled", self.update)
-        
+        buts.append(butbox)
+        pack(self.wulffbox, buts, end=True)
+
         # Information
         pack(vbox, gtk.Label(""))
         infobox = gtk.VBox()
@@ -358,6 +365,22 @@ class SetupNanoparticle(SetupWindow):
             self.newdir_esurf_box.hide()
         self.update()
 
+    def wulff_smaller(self, widget=None):
+        "Make a smaller Wulff construction."
+        n = len(self.atoms)
+        self.size_n_radio.set_active(True)
+        self.size_n_adj.value = n-1
+        self.round_below.set_active(True)
+        self.apply()
+
+    def wulff_larger(self, widget=None):
+        "Make a larger Wulff construction."
+        n = len(self.atoms)
+        self.size_n_radio.set_active(True)
+        self.size_n_adj.value = n+1
+        self.round_above.set_active(True)
+        self.apply()
+    
     def row_add(self, widget=None):
         "Add a row to the list of directions."
         if self.fourindex:
@@ -537,15 +560,23 @@ class SetupNanoparticle(SetupWindow):
             raise RuntimeError("Unknown structure: "+s)
 
     def makeinfo(self):
-        "Fill in information field about the atoms."
+        """Fill in information field about the atoms.
+
+        Also turns the Wulff construction buttons [Larger] and
+        [Smaller] on and off.
+        """
         if self.atoms is None:
             self.natoms_label.set_label("-")
             self.dia1_label.set_label("-")
+            self.smaller_button.set_sensitive(False)
+            self.larger_button.set_sensitive(False)
         else:
             self.natoms_label.set_label(str(len(self.atoms)))
             at_vol = self.get_atomic_volume()
             dia = 2 * (3 * len(self.atoms) * at_vol / (4 * np.pi))**(1.0/3.0)
             self.dia1_label.set_label("%.1f Å" % (dia,))
+            self.smaller_button.set_sensitive(True)
+            self.larger_button.set_sensitive(True)
             
     def apply(self, *args):
         self.makeatoms()

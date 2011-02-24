@@ -89,7 +89,6 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
                       latticeconstant=latticeconstant)
     for i, s in enumerate(surfaces):
         d = atoms.get_layer_distance(s)
-        print "Layer distance in %s direction: %.5f" % (s,d)
         energies[i] /= d
         
     # First guess a size that is not too large.
