@@ -315,6 +315,41 @@ class Aims(Calculator):
         output.write(prefix+'=======================================================\n\n')
         output.close()
 
+    def __repr__(self):
+        items =  self.float_params.items()+self.exp_params.items() \
+                +self.string_params.items()+self.int_params.items()
+        rep = 'Aims('
+        for key, val in items:
+            if val is not None:
+                rep += key+' '+str(val)+', '
+        for key, val in self.bool_params.items():
+            if val is not None:
+                if key == 'vdw_correction_hirshfeld' and val:
+                    rep += key + ', '
+                elif val:
+                    rep += key+' .true., '
+                elif key != 'vdw_correction_hirshfeld':
+                    rep += key+' .false., '
+        for key, val in self.list_params.items():
+            if val is not None:
+                if key == 'output':
+                    if not isinstance(val,(list,tuple)): 
+                        val = [val]
+                    for output_type in val:
+                        rep += key+' '+str(output_type)+', '
+                else:
+                    rep += key
+                    if isinstance(val,str): 
+                        rep += ' '+val
+                    else:
+                        for sub_value in val:
+                            rep += ' '+str(sub_value)
+                    rep += ', '
+        for key, val in self.input_parameters.items():
+            if val and val != input_parameters_default[key]:
+                rep += key+' '+val+', '
+        return rep[:-2]+')'
+        
     def write_control(self, file = 'control.in'):
         """Writes the control.in file."""
         self.write_parameters('#',file)
