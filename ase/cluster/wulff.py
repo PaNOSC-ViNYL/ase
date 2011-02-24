@@ -33,7 +33,7 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
     rounding (optional): Specifies what should be done if no Wulff
     construction corresponds to exactly the requested number of atoms.
     Should be a string, either "above", "below" or "closest" (the
-    default), meaning that the nearest cluste above or below - or the
+    default), meaning that the nearest cluster above or below - or the
     closest one - is created instead.
 
     latticeconstant (optional): The lattice constant.  If not given,
@@ -80,7 +80,18 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
     # We should check that for each direction, the surface energy plus
     # the energy in the opposite direction is positive.  But this is
     # very difficult in the general case!
-    
+
+    # Before starting, make a fake cluster just to extract the
+    # interlayer distances in the relevant directions, and use these
+    # to "renormalize" the surface energies such that they can be used
+    # to convert to number of layers instead of to distances.
+    atoms = structure(symbol, surfaces, 5*np.ones(len(surfaces), int),
+                      latticeconstant=latticeconstant)
+    for i, s in enumerate(surfaces):
+        d = atoms.get_layer_distance(s)
+        print "Layer distance in %s direction: %.5f" % (s,d)
+        energies[i] /= d
+        
     # First guess a size that is not too large.
     wanted_size = size**(1.0/3.0)
     max_e = max(energies)
