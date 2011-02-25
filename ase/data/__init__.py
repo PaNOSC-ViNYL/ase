@@ -21,7 +21,7 @@ chemical_symbols = ['X',  'H',  'He', 'Li', 'Be',
                     'At', 'Rn', 'Fr', 'Ra', 'Ac',
                     'Th', 'Pa', 'U',  'Np', 'Pu',
                     'Am', 'Cm', 'Bk', 'Cf', 'Es',
-                    'Fm', 'Md', 'No', 'Lw']
+                    'Fm', 'Md', 'No', 'Lr']
 
 atomic_numbers = {}
 for Z, symbol in enumerate(chemical_symbols):
