@@ -320,7 +320,7 @@ class Vibrations:
         fd = open(self.name + '.xyz', 'w')
         symbols = self.atoms.get_chemical_symbols()
         f = self.get_frequencies()
-        for n in range(3 * len(self.atoms)):
+        for n in range(3 * len(self.indices)):
             fd.write('%6d\n' % len(self.atoms))
             if f[n].imag != 0:
                 c = 'i'
