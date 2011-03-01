@@ -98,8 +98,8 @@ int_keys = [
     'nbands',     # Number of bands
     'nblk',       # blocking for some BLAS calls (Sec. 6.5)
     'nbmod',      # specifies mode for partial charge calculation
-    'nelm',       #
-    'nelmdl',     # nr. of electronic steps
+    'nelm',       # nr. of electronic steps (default 60)
+    'nelmdl',     # nr. of initial electronic steps
     'nelmin',
     'nfree',      # number of steps per DOF when calculting Hessian using finitite differences
     'nkred',      # define sub grid of q-points for HF with nkredx=nkredy=nkredz 
@@ -125,6 +125,7 @@ bool_keys = [
     'lcharg',     #
     'lcorr',      # Harris-correction to forces
     'ldau',       # L(S)DA+U
+    'ldiag',      # algorithm: perform sub space rotation
     'ldipol',     # potential correction mode
     'lelf',       # create ELFCAR
     'lhfcalc',    # switch to turn on Hartree Fock calculations
@@ -142,7 +143,8 @@ bool_keys = [
 list_keys = [
     'dipol',      # center of cell for dipol
     'eint',       # energy range to calculate partial charge for
-    'ferwe',      # Fixed band occupation
+    'ferwe',      # Fixed band occupation (spin-paired)
+    'ferdo',      # Fixed band occupation (spin-plarized)
     'iband',      # bands to calculate partial charge for
     'magmom',     # initial magnetic moments
     'kpuse',      # k-point to calculate partial charge for
@@ -256,7 +258,8 @@ class Vasp(Calculator):
     def initialize(self, atoms):
         """Initialize a VASP calculation
 
-        Constructs the POTCAR file. User should specify the PATH
+        Constructs the POTCAR file (does not actually write it).
+        User should specify the PATH
         to the pseudopotentials in VASP_PP_PATH environment variable"""
 
         p = self.input_params
@@ -532,6 +535,21 @@ class Vasp(Calculator):
                 niter = int(line.split(')')[0].split('(')[-1].strip())
         return niter
 
+    def get_default_number_of_electrons(self, filename='POTCAR'):
+        """Get list of tuples (atomic symbol, number of valence electrons)
+        for each atomtype from a POTCAR file.  """
+        return self.read_default_number_of_electrons(filename)
+
+    def read_default_number_of_electrons(self, filename='POTCAR'):
+        nelect = []
+        lines = open(filename).readlines()
+        for n, line in enumerate(lines):
+            if line.find('TITEL') != -1:
+                symbol = line.split('=')[1].split()[1].split('_')[0].strip()
+                valence = float(lines[n+4].split(';')[1].split('=')[1].split()[0].strip())
+                nelect.append((symbol, valence))
+        return nelect
+
     def get_number_of_electrons(self):
         self.update(self.atoms)
         return self.nelect
@@ -685,7 +703,7 @@ class Vasp(Calculator):
         for key, val in self.list_params.items():
             if val is not None:
                 incar.write(' %s = ' % key.upper())
-                if key in ('dipol', 'eint', 'ferwe', 'ropt', 'rwigs'):
+                if key in ('dipol', 'eint', 'ferwe', 'ferdo', 'ropt', 'rwigs'):
                     [incar.write('%.4f ' % x) for x in val]
                 elif key in ('iband', 'kpuse'):
                     [incar.write('%i ' % x) for x in val]
