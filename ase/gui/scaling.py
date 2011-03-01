@@ -162,7 +162,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         if self.setup_atoms():
             pbc = self.atoms.get_pbc()
         else:
-            pbc = [False, False, False]
+            pbc = np.array([False, False, False], bool)
         if (pbc == [True, True, True]).all():
             self.allow_non_pbc.set_active(False)
             self.allow_non_pbc.set_sensitive(False)
