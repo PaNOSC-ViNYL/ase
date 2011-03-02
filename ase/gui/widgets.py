@@ -69,8 +69,9 @@ class Help(gtk.Window):
         linelen = max([len(x) for x in text.split('\n')])
         text = _(text).replace('<c>', '<span foreground="blue">')
         text = text.replace('</c>', '</span>')
-        self.label.set_markup(text)
         self.label.set_width_chars(linelen)
+        self.label.set_line_wrap(False)
+        self.label.set_markup(text)
 
     def destroy(self, *args):
         self.hide()
