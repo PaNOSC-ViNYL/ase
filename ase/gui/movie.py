@@ -29,10 +29,10 @@ class Movie(gtk.Window):
                    gtk.Button(stock=gtk.STOCK_GO_FORWARD),
                    gtk.Button(stock=gtk.STOCK_GOTO_LAST)]
 
-        buttons[0].connect('clicked', self.click, -10000000)
+        buttons[0].connect('clicked', self.click, -1, True)
         buttons[1].connect('clicked', self.click, -1)
         buttons[2].connect('clicked', self.click, 1)
-        buttons[3].connect('clicked', self.click, 10000000)
+        buttons[3].connect('clicked', self.click, 1, True)
 
         pack(vbox, buttons)
 
@@ -72,12 +72,20 @@ class Movie(gtk.Window):
     def close(self, event):
         self.stop()
 
-    def click(self, button, step):
-        i = max(0, min(self.gui.images.nimages - 1, self.gui.frame + step))
+    def click(self, button, step, firstlast=False):
+        if firstlast and step < 0:
+            i = 0
+        elif firstlast:
+            i = self.gui.images.nimages - 1
+        else:
+            i = max(0, min(self.gui.images.nimages - 1, self.gui.frame + step))
         self.gui.set_frame(i)
         self.frame_number.value = i
-        self.direction = cmp(step, 0)
-        
+        if firstlast:
+            self.direction = cmp(-step, 0)
+        else:
+            self.direction = cmp(step, 0)
+            
     def new_frame(self, widget):
         self.gui.set_frame(int(self.frame_number.value))
 
