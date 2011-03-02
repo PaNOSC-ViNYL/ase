@@ -14,6 +14,32 @@ scaling_txt = """\
 This module is intended for calculating elastic constants by homogeneously
 deforming a system."""
 
+help_txt = """
+The homogeneous scaling module changes the size of a system by stretching it
+along on or more directions.  Small amounts of deformation can be used to
+calculate elastic constants, large amounts to simulate plastic deformation.
+
+You will have to choose along which axis/axes the deformation is done.  Usually,
+it only makes sense to deform along axes with periodic boundary conditions.  The
+<b>amount of deformation</b> is set in the Deformation frame.  A scale factor of
+e.g. 0.01 means that the system is changed incrementally from being 1% smaller
+than the initial configuration to 1% larger.  The offset alters this so it is
+not symmetric around 0% deformation.  A check-box can disable the negative
+deformation (compression).
+
+<b>'Atomic relaxations'</b> means that the individual atoms are allowed to move
+relative to the unit cell.  This is done by performing an energy minimization
+for each configuration.  You will have to choose the algorithm and minimization
+parameters.
+
+During the deformation, a number of steps is taken, with different system sizes.
+You can choose to load all configurations into the main window as a movie, to
+only load the configuration with the lowest energy, or to keep the original
+configuration loaded.  <b>Important:</b> If you repeat the calculation by
+pressing [Run] a second time, the starting configuration will have changed
+unless you keep the original configuration.
+"""
+
 class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
     "Window for homogeneous deformation and elastic constants."
     
@@ -147,7 +173,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         self.choose_possible_deformations(first=True)
 
         # Run buttons etc.
-        self.makebutbox(vbox)
+        self.makebutbox(vbox, helptext=help_txt)
         vbox.show()
         self.add(vbox)
         self.show()

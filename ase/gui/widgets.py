@@ -35,19 +35,47 @@ class Menu:
 
 
 class Help(gtk.Window):
+    __instance = None
+    def __new__(cls, *args, **kwargs):
+        # Make this a singleton.
+        if Help.__instance is None:
+            Help.__instance = gtk.Window.__new__(cls, *args, **kwargs)
+        return Help.__instance
     def __init__(self, text):
+        # Now, __init__ may be called multiple times!
+        if not hasattr(self, '_initialized'):
+            self.initialize(text)
+        else:
+            self.set_text(text)
+        self.present()  # Show the window.
+        
+    def initialize(self, text):
         gtk.Window.__init__(self)
+        self.set_title("Help")
+        self._initialized = True
         vbox = gtk.VBox()
         self.add(vbox)
-        label = pack(vbox, gtk.Label())
-        label.set_line_wrap(True)
-        text = _(text).replace('<c>', '<span foreground="blue">')
-        text = text.replace('</c>', '</span>')
-        label.set_markup(text)
-        close = pack(vbox, gtk.Button(_('Close')))
-        close.connect('clicked', lambda widget: self.destroy())
+        self.label = pack(vbox, gtk.Label())
+        self.label.set_line_wrap(True)
+        self.set_text(text)
+        close = gtk.Button(_('Close'))
+        pack(vbox, [close])
+        close.connect('clicked', self.destroy)
+        self.connect("delete-event", self.destroy) 
         self.show_all()
 
+    def set_text(self, text):
+        # Count line length
+        linelen = max([len(x) for x in text.split('\n')])
+        text = _(text).replace('<c>', '<span foreground="blue">')
+        text = text.replace('</c>', '</span>')
+        self.label.set_markup(text)
+        self.label.set_width_chars(linelen)
+
+    def destroy(self, *args):
+        self.hide()
+        return True  # Prevents destruction of the window.
+        
 def help(text):
     button = gtk.Button(_('Help'))
     button.connect('clicked', lambda widget, text=text: Help(text))

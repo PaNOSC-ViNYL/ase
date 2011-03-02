@@ -4,7 +4,7 @@
 
 import gtk
 from copy import copy
-from ase.gui.widgets import pack, cancel_apply_ok, oops
+from ase.gui.widgets import pack, cancel_apply_ok, oops, help
 from ase.gui.setupwindow import SetupWindow
 from ase.gui.pybutton import PyButton
 import ase
@@ -16,11 +16,32 @@ from ase.cluster.hexagonal import HexagonalClosedPacked, Graphite
 from ase.cluster import wulff_construction
 
 introtext = """\
-You specify the size of the particle by specifying the number of atomic layers
-in different low-index crystal directions.  For the Wulff construction, you
-instead specify surface energies and approxmate cluster size.  First time a
-direction appears, it is interpreted as the entire family of directions.  If one
-of these directions is specified again, it overrules that specific direction.
+Create a nanoparticle either by specifying the number of layers, or using the
+Wulff construction.  Please press the [Help] button for instructions on how to
+specify the directions.
+WARNING: The Wulff construction currently only works with cubic crystals!
+"""
+
+helptext = """
+The nanoparticle module sets up a nano-particle or a cluster with a given
+crystal structure.
+
+1) Select the element, the crystal structure and the lattice constant(s).
+   The [Get structure] button will find the data for a given element.
+
+2) Choose if you want to specify the number of layers in each direction, or if
+   you want to use the Wulff construction.  In the latter case, you must specify
+   surface energies in each direction, and the size of the cluster.
+
+How to specify the directions:
+------------------------------
+
+First time a direction appears, it is interpreted as the entire family of
+directions, i.e. (0,0,1) also covers (1,0,0), (-1,0,0) etc.  If one of these
+directions is specified again, the second specification overrules that specific
+direction.  For this reason, the order matters and you can rearrange the
+directions with the [Up] and [Down] keys.  You can also add a new direction,
+remember to press [Add] or it will not be included.
 
 Example: (1,0,0) (1,1,1), (0,0,1) would specify the {100} family of directions,
 the {111} family and then the (001) direction, overruling the value given for
@@ -252,10 +273,11 @@ class SetupNanoparticle(SetupWindow):
         # Buttons
         self.pybut = PyButton("Creating a nanoparticle.")
         self.pybut.connect('clicked', self.makeatoms)
+        helpbut = help(helptext)
         buts = cancel_apply_ok(cancel=lambda widget: self.destroy(),
                                apply=self.apply,
                                ok=self.ok)
-        pack(vbox, [self.pybut, buts], end=True, bottom=True)
+        pack(vbox, [self.pybut, helpbut, buts], end=True, bottom=True)
         self.auto = gtk.CheckButton("Automatic Apply")
         fr = gtk.Frame()
         fr.add(self.auto)
@@ -527,7 +549,7 @@ class SetupNanoparticle(SetupWindow):
                                             surfaceenergies,
                                             self.size_n_adj.value,
                                             self.factory[struct],
-                                            rounding, lc)
+                                            rounding, lc, debug=1)
             self.pybut.python = py_template_wulff % {'element': self.legal_element,
                                                      'surfaces': str(surfaces),
                                                      'energies': str(surfaceenergies),
