@@ -549,7 +549,7 @@ class SetupNanoparticle(SetupWindow):
                                             surfaceenergies,
                                             self.size_n_adj.value,
                                             self.factory[struct],
-                                            rounding, lc, debug=1)
+                                            rounding, lc)
             self.pybut.python = py_template_wulff % {'element': self.legal_element,
                                                      'surfaces': str(surfaces),
                                                      'energies': str(surfaceenergies),
