@@ -294,7 +294,8 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
                 if self.radio_relax_on.get_active():
                     algo = getattr(ase.optimize, mininame)
                     if mininame == "MDMin":
-                        minimizer = algo(self.atoms, logfile=logger, dt=0.05)
+                        minimizer = algo(self.atoms, logfile=logger,
+                                         dt=self.mdmin_dt.value)
                     else:
                         minimizer = algo(self.atoms, logfile=logger)
                     minimizer.run(fmax=fmax, steps=self.steps.value)

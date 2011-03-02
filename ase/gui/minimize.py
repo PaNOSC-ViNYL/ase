@@ -15,6 +15,7 @@ class MinimizeMixin:
         for m in self.minimizers:
             self.algo.append_text(m)
         self.algo.set_active(0)
+        self.algo.connect('changed', self.min_algo_specific)
         pack(box, [gtk.Label("Algorithm: "), self.algo])
         
         self.fmax = gtk.Adjustment(0.05, 0.00, 10.0, 0.01)
@@ -27,6 +28,22 @@ class MinimizeMixin:
         self.steps_spin = gtk.SpinButton(self.steps, 0, 0)
         pack(box, [gtk.Label("Max. number of steps: "), self.steps_spin])
 
+        # Special stuff for MDMin
+        lbl = gtk.Label("Pseudo time step: ")
+        self.mdmin_dt = gtk.Adjustment(0.05, 0.0, 10.0, 0.01)
+        spin = gtk.SpinButton(self.mdmin_dt, 0, 3)
+        self.mdmin_widgets = [lbl, spin]
+        pack(box, self.mdmin_widgets)
+        self.min_algo_specific()
+    def min_algo_specific(self, *args):
+        "SHow or hide algoritm-specific widgets."
+        minimizer = self.minimizers[self.algo.get_active()]
+        for w in self.mdmin_widgets:
+            if minimizer == 'MDMin':
+                w.show()
+            else:
+                w.hide()
+        
 class Minimize(Simulation, MinimizeMixin):
     "Window for performing energy minimization."
     
@@ -76,7 +93,8 @@ class Minimize(Simulation, MinimizeMixin):
 
         self.prepare_store_atoms()
         if mininame == "MDMin":
-            minimizer = algo(self.atoms, logfile=logger, dt=0.05)
+            minimizer = algo(self.atoms, logfile=logger,
+                             dt=self.mdmin_dt.value)
         else:
             minimizer = algo(self.atoms, logfile=logger)
         minimizer.attach(self.store_atoms)
