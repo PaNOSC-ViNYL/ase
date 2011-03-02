@@ -18,14 +18,11 @@ class ClusterFactory(ClusterBase):
     def __call__(self, symbol, surfaces, layers, latticeconstant=None, vacuum=0.0, debug=0):
         self.debug = debug
 
-        #Find the atomic number
-        if symbol is not None:
-            if isinstance(symbol, str):
-                self.atomic_number = atomic_numbers[symbol]
-            else:
-                self.atomic_number = symbol
+        # Interpret symbol
+        if isinstance(symbol, str):
+            self.atomic_number = atomic_numbers[symbol]
         else:
-            raise Warning('You must specify a atomic symbol or number!')
+            self.atomic_number = symbol
 
         self.set_lattice_constant(latticeconstant)
         self.set_basis()
