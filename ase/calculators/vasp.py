@@ -2,9 +2,9 @@
 """This module defines an ASE interface to VASP.
 
 Developed on the basis of modules by Jussi Enkovaara and John
-Kitchin.  The path of the directory containing the pseudopotential 
-directories (potpaw,potpaw_GGA, potpaw_PBE, ...) should be set 
-by the environmental flag $VASP_PP_PATH. 
+Kitchin.  The path of the directory containing the pseudopotential
+directories (potpaw,potpaw_GGA, potpaw_PBE, ...) should be set
+by the environmental flag $VASP_PP_PATH.
 
 The user should also set the environmental flag $VASP_SCRIPT pointing
 to a python script looking something like::
@@ -47,7 +47,7 @@ float_keys = [
     'emin',       #
     'enaug',      # Density cutoff
     'encut',      # Planewave cutoff
-    'encutfock',  # FFT grid in the HF related routines 
+    'encutfock',  # FFT grid in the HF related routines
     'hfscreen',   # attribute to change from PBE0 to HSE
     'potim',      # time-step for ion-motion (fs)
     'nelect',     # total number of electrons
@@ -86,7 +86,7 @@ int_keys = [
     'iwavpr',     # prediction of wf.: 0-non 1-charg 2-wave 3-comb
     'ldauprint',  # 0-silent, 1-occ. matrix written to OUTCAR, 2-1+pot. matrix written
     'ldautype',   # L(S)DA+U: 1-Liechtenstein 2-Dudarev 4-Liechtenstein(LDAU)
-    'lmaxmix',    # 
+    'lmaxmix',    #
     'lorbit',     # create PROOUT
     'maxmix',     #
     'ngx',        # FFT mesh for wavefunctions, x
@@ -102,10 +102,10 @@ int_keys = [
     'nelmdl',     # nr. of initial electronic steps
     'nelmin',
     'nfree',      # number of steps per DOF when calculting Hessian using finitite differences
-    'nkred',      # define sub grid of q-points for HF with nkredx=nkredy=nkredz 
-    'nkredx',      # define sub grid of q-points in x direction for HF 
-    'nkredy',      # define sub grid of q-points in y direction for HF 
-    'nkredz',      # define sub grid of q-points in z direction for HF 
+    'nkred',      # define sub grid of q-points for HF with nkredx=nkredy=nkredz
+    'nkredx',      # define sub grid of q-points in x direction for HF
+    'nkredy',      # define sub grid of q-points in y direction for HF
+    'nkredz',      # define sub grid of q-points in z direction for HF
     'npar',       # parallelization over bands
     'nsim',       # evaluate NSIM bands simultaneously if using RMM-DIIS
     'nsw',        # number of steps for ionic upd.
@@ -135,7 +135,7 @@ bool_keys = [
     'lscalu',     # switch of LU decomposition
     'lsepb',      # write out partial charge of each band seperately?
     'lsepk',      # write out partial charge of each k-point seperately?
-    'lthomas',    # 
+    'lthomas',    #
     'lvtot',      # create WAVECAR/CHGCAR/LOCPOT
     'lwave',      #
 ]
@@ -160,14 +160,14 @@ dict_keys = [
     'ldau_luj',   # dictionary with L(S)DA+U parameters, e.g. {'Fe':{'L':2, 'U':4.0, 'J':0.9}, ...}
 ]
 
-keys = [    
+keys = [
     # 'NBLOCK' and KBLOCK       inner block; outer block
     # 'NPACO' and APACO         distance and nr. of slots for P.C.
     # 'WEIMIN, EBREAK, DEPER    special control tags
 ]
 
 class Vasp(Calculator):
-    def __init__(self, restart=None, output_template='vasp', track_output=False, 
+    def __init__(self, restart=None, output_template='vasp', track_output=False,
                  **kwargs):
         self.name = 'Vasp'
         self.float_params = {}
@@ -194,11 +194,11 @@ class Vasp(Calculator):
             self.special_params[key] = None
         for key in dict_keys:
             self.dict_params[key] = None
-                            
+
         self.string_params['prec'] = 'Normal'
 
         self.input_params = {
-            'xc':     'PW91',  # exchange correlation potential 
+            'xc':     'PW91',  # exchange correlation potential
             'setups': None,    # Special setups (e.g pv, sv, ...)
             'txt':    '-',     # Where to send information
             'kpts':   (1,1,1), # k-points
@@ -240,7 +240,7 @@ class Vasp(Calculator):
             elif self.special_params.has_key(key):
                 self.special_params[key] = kwargs[key]
             elif self.dict_params.has_key(key):
-                self.dict_params[key] = kwargs[key]                               
+                self.dict_params[key] = kwargs[key]
             elif self.input_params.has_key(key):
                 self.input_params[key] = kwargs[key]
             else:
@@ -275,7 +275,7 @@ class Vasp(Calculator):
         symbols = {}
         if self.input_params['setups']:
             for m in self.input_params['setups']:
-                try : 
+                try :
                     #special_setup[self.input_params['setups'][m]] = int(m)
                     special_setups.append(int(m))
                 except:
@@ -292,14 +292,14 @@ class Vasp(Calculator):
                     symbols[symbol] = 1
                 else:
                     symbols[symbol] += 1
-        
+
         # Build the sorting list
         self.sort = []
         self.sort.extend(special_setups)
 
         for symbol in symbols:
             for m,atom in enumerate(atoms):
-                if m in special_setups: 
+                if m in special_setups:
                     pass
                 else:
                     if atom.get_symbol() == symbol:
@@ -316,7 +316,7 @@ class Vasp(Calculator):
             self.symbol_count.append([atomtypes[m],1])
         for m in symbols:
             self.symbol_count.append([m,symbols[m]])
-        #print 'self.symbol_count',self.symbol_count 
+        #print 'self.symbol_count',self.symbol_count
         sys.stdout.flush()
         xc = '/'
         #print 'p[xc]',p['xc']
@@ -329,7 +329,7 @@ class Vasp(Calculator):
         else:
             pppaths = []
         self.ppp_list = []
-        # Setting the pseudopotentials, first special setups and 
+        # Setting the pseudopotentials, first special setups and
         # then according to symbols
         for m in special_setups:
             name = 'potpaw'+xc.upper() + p['setups'][str(m)] + '/POTCAR'
@@ -346,8 +346,8 @@ class Vasp(Calculator):
                     self.ppp_list.append(filename+'.Z')
                     break
             if not found:
-                raise RuntimeError('No pseudopotential for %s!' % symbol)    
-        #print 'symbols', symbols 
+                raise RuntimeError('No pseudopotential for %s!' % symbol)
+        #print 'symbols', symbols
         for symbol in symbols:
             try:
                 name = 'potpaw'+xc.upper()+symbol + p['setups'][symbol]
@@ -375,10 +375,10 @@ class Vasp(Calculator):
         """Generate necessary files in the working directory and run VASP.
 
         The method first write VASP input files, then calls the method
-        which executes VASP. When the VASP run is finished energy, forces, 
+        which executes VASP. When the VASP run is finished energy, forces,
         etc. are read from the VASP output.
         """
-        
+
         # Write input
         from ase.io.vasp import write_vasp
         self.initialize(atoms)
@@ -387,7 +387,7 @@ class Vasp(Calculator):
         self.write_potcar()
         self.write_kpoints()
         self.write_sort_file()
-        
+
         # Execute VASP
         self.run()
         # Read output
@@ -416,8 +416,9 @@ class Vasp(Calculator):
         self.atoms = atoms.copy()
         self.version = self.read_version()
         self.niter = self.read_number_of_iterations()
+        self.sigma = self.read_electronic_temperature()
         self.nelect = self.read_number_of_electrons()
-        
+
     def run(self):
         """Method which explicitely runs VASP."""
 
@@ -447,10 +448,10 @@ class Vasp(Calculator):
         sys.stderr = stderr
         if exitcode != 0:
             raise RuntimeError('Vasp exited with exit code: %d.  ' % exitcode)
-        
+
     def restart_load(self):
         """Method which is called upon restart."""
-        
+
         # Try to read sorting file
         if os.path.isfile('ase-sort.dat'):
             self.sort = []
@@ -479,7 +480,7 @@ class Vasp(Calculator):
 
     def clean(self):
         """Method which cleans up after a calculation.
-        
+
         The default files generated by Vasp will be deleted IF this
         method is called.
 
@@ -534,6 +535,17 @@ class Vasp(Calculator):
             if line.find('- Iteration') != -1: # find the last iteration number
                 niter = int(line.split(')')[0].split('(')[-1].strip())
         return niter
+
+    def get_electronic_temperature(self):
+        self.update(self.atoms)
+        return self.sigma
+
+    def read_electronic_temperature(self):
+        sigma = None
+        for line in open('OUTCAR'):
+            if line.find('Fermi-smearing in eV        SIGMA') != -1:
+                sigma = float(line.split('=')[1].strip())
+        return sigma
 
     def get_default_number_of_electrons(self, filename='POTCAR'):
         """Get list of tuples (atomic symbol, number of valence electrons)
@@ -591,7 +603,7 @@ class Vasp(Calculator):
                 ldautype = int(line.split('=')[-1])
                 ldau = True
                 ldau_luj = {}
-            if line.find('LDAUL') != -1:                
+            if line.find('LDAUL') != -1:
                 L = line.split('=')[-1].split()
             if line.find('LDAUU') != -1:
                 U = line.split('=')[-1].split()
@@ -599,13 +611,13 @@ class Vasp(Calculator):
                 J = line.split('=')[-1].split()
         # create dictionary
         if ldau:
-            for i,symbol in enumerate(atomtypes):            
+            for i,symbol in enumerate(atomtypes):
                 ldau_luj[symbol] = {'L': int(L[i]), 'U': float(U[i]), 'J': float(J[i])}
             self.dict_params['ldau_luj'] = ldau_luj
         return ldau, ldauprint, ldautype, ldau_luj
 
     def calculation_required(self, atoms, quantities):
-        if (self.positions is None or 
+        if (self.positions is None or
             (self.atoms != atoms) or
             (self.float_params != self.old_float_params) or
             (self.exp_params != self.old_exp_params) or
@@ -661,12 +673,12 @@ class Vasp(Calculator):
     def get_spin_polarized(self):
         if not hasattr(self, 'spinpol'):
             self.spinpol = self.atoms.get_initial_magnetic_moments().any()
-        return self.spinpol            
+        return self.spinpol
 
     def get_magnetic_moment(self, atoms):
         self.update(atoms)
         return self.magnetic_moment
-        
+
     def get_magnetic_moments(self, atoms):
         if self.int_params['lorbit']>=10 or self.list_params['rwigs']:
             self.update(atoms)
@@ -736,7 +748,7 @@ class Vasp(Calculator):
                            incar.write('.FALSE.\n')
         for key, val in self.dict_params.items():
             if val is not None:
-                if key == 'ldau_luj': 
+                if key == 'ldau_luj':
                     llist = ulist = jlist = ''
                     for symbol in self.symbol_count:
                         luj = val.get(symbol[0], {'L':-1, 'U': 0.0, 'J': 0.0}) # default: No +U
@@ -1007,7 +1019,7 @@ class Vasp(Calculator):
         for line in lines:
             try:
                 data = line.split()
-                # Skip empty and commented lines. 
+                # Skip empty and commented lines.
                 if len(data) == 0:
                     continue
                 elif data[0][0] in ['#', '!']:
@@ -1044,7 +1056,7 @@ class Vasp(Calculator):
                         for a in data[2:]:
                             if '!' in a or done:
                                 done = True
-                            elif '*' in a: 
+                            elif '*' in a:
                                 a = a.split('*')
                                 for b in range(int(a[0])):
                                     list.append(float(a[1]))
@@ -1099,7 +1111,7 @@ class Vasp(Calculator):
             raise NotImplementedError('Only Monkhorst-Pack and gamma centered grid supported for restart.')
         else:
             raise NotImplementedError('Only Monkhorst-Pack and gamma centered grid supported for restart.')
-    
+
     def read_potcar(self):
         """ Method that reads the Exchange Correlation functional from POTCAR file.
         """
@@ -1138,7 +1150,7 @@ class VaspChargeDensity(object):
         self.chgdiff = [] # Charge density difference, if spin polarized
         self.aug = ''     # Augmentation charges, not parsed just a big string
         self.augdiff = '' # Augmentation charge differece, is spin polarized
-        
+
         # Note that the augmentation charge is not a list, since they
         # are needed only for CHGCAR files which store only a single
         # image.
@@ -1197,9 +1209,9 @@ class VaspChargeDensity(object):
             try:
                 atoms = aiv.read_vasp(f)
             except ValueError, e:
-                # Probably an empty line, or we tried to read the 
+                # Probably an empty line, or we tried to read the
                 # augmentation occupancies in CHGCAR
-                break 
+                break
             f.readline()
             ngr = f.readline().split()
             ng = (int(ngr[0]), int(ngr[1]), int(ngr[2]))
@@ -1347,7 +1359,7 @@ class VaspDos(object):
 
     The self.efermi property contains the currently set Fermi
     level. Changing this value shifts the energies.
-    
+
     """
 
     def __init__(self, doscar='DOSCAR', efermi=0.0):
@@ -1469,7 +1481,7 @@ class VaspDos(object):
 import pickle
 
 class xdat2traj:
-    def __init__(self, trajectory=None, atoms=None, poscar=None, 
+    def __init__(self, trajectory=None, atoms=None, poscar=None,
                  xdatcar=None, sort=None, calc=None):
         if not poscar:
             self.poscar = 'POSCAR'
@@ -1491,7 +1503,7 @@ class xdat2traj:
             self.calc = Vasp()
         else:
             self.calc = calc
-        if not sort: 
+        if not sort:
             if not hasattr(self.calc, 'sort'):
                 self.calc.sort = range(len(self.atoms))
         else:
@@ -1529,7 +1541,7 @@ class xdat2traj:
                 iatom = 0
                 step += 1
             else:
-                
+
                 iatom += 1
                 scaled_pos.append([float(line.split()[n]) for n in range(3)])
 
