@@ -54,3 +54,41 @@ class FaceCenteredCubicFactory(SimpleCubicFactory):
 
 FaceCenteredCubic = FaceCenteredCubicFactory()
 
+def Octahedron(symbol, length, cutoff=0, latticeconstant=None):
+    """
+    Returns Face Centered Cubic clusters of the octahedral class depending
+    on the choice of cutoff.
+
+    Type                            Condition
+    ----                            ---------
+    Regular octahedron              cutoff = 0
+    Truncated octahedron            cutoff > 0
+    Regular truncated octahedron    length = 3 * cutoff + 1
+    Cuboctahedron                   length = 2 * cutoff + 1
+
+    Parameters
+    ----------
+    symbol: The chemical symbol (or atomic number) of the element.
+
+    length: Number of atoms on the square edges of the complete octahedron.
+
+    cutoff (optional): Number of layers cut at each vertex.
+
+    latticeconstant (optional): The lattice constant. If not given,
+    then it is extracted form ase.data.
+    """
+
+    # Check length and cutoff
+    if length % 2 == 0 or length < 3:
+        raise ValueError("The lenght must be odd and greater than two.")
+
+    if cutoff < 0 or length < 2 * cutoff + 1:
+        raise ValueError("The cutoff must fullfill: > 0 and <= (length - 1) / 2.")
+
+    # Create cluster
+    structure = FaceCenteredCubic
+    surfaces = [(1,1,1), (1,0,0)]
+    layers = [(length - 1)/2, length - 1 - cutoff]
+
+    return FaceCenteredCubic(symbol, surfaces, layers, latticeconstant)
+

@@ -7,9 +7,8 @@ def Icosahedron(symbol, noshells, latticeconstant=None):
     """
     Returns a cluster with the icosahedra symmetry.
 
-    Parameters:
-    -----------
-
+    Parameters
+    ----------
     symbol: The chemical symbol (or atomic number) of the element.
 
     noshells: The number of shells (>= 1).
