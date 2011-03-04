@@ -715,8 +715,10 @@ class Vasp(Calculator):
         for key, val in self.list_params.items():
             if val is not None:
                 incar.write(' %s = ' % key.upper())
-                if key in ('dipol', 'eint', 'ferwe', 'ferdo', 'ropt', 'rwigs'):
+                if key in ('dipol', 'eint', 'ropt', 'rwigs'):
                     [incar.write('%.4f ' % x) for x in val]
+                elif key in ('ferwe', 'ferdo'):
+                    [incar.write('%.2f ' % x) for x in val]
                 elif key in ('iband', 'kpuse'):
                     [incar.write('%i ' % x) for x in val]
                 elif key == 'magmom':
