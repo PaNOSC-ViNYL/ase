@@ -41,7 +41,7 @@ def write_pdb(fileobj, images):
     if not isinstance(images, (list, tuple)):
         images = [images]
 
-    format = 'ATOM  %5d %-4s              %8.3f%8.3f%8.3f  0.00  0.00\n'
+    format = 'ATOM  %5d %2s                %8.3f%8.3f%8.3f  0.00  0.00\n'
 
     # RasMol complains if the atom index exceeds 100000. There might
     # be a limit of 5 digit numbers in this field.
