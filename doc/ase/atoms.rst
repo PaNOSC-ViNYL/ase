@@ -310,6 +310,7 @@ Other methods
 * :meth:`~ase.atoms.Atoms.get_distance`
 * :meth:`~ase.atoms.Atoms.get_volume`
 * :meth:`~ase.atoms.Atoms.has`
+* :meth:`~ase.atoms.Atoms.edit`
 * :meth:`~ase.atoms.Atoms.identical_to`
 
 

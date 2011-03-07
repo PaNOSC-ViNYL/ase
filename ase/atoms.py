@@ -1264,7 +1264,15 @@ class Atoms(object):
         write(filename, self, format)
 
     def edit(self):
-        """Modify Atoms through ag viewer."""
+        """Modify atoms interactively through ag viewer. 
+
+        Conflicts leading to undesirable behviour might arise
+        when matplotlib has been pre-imported with certain
+        incompatible backends and while trying to use the
+        plot feature inside the interactive ag. To circumvent,
+        please set matplotlib.use('gtk') before calling this
+        method. 
+        """
         from ase.gui.images import Images
         from ase.gui.gui import GUI
         images = Images([self])
