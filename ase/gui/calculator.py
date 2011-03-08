@@ -949,7 +949,7 @@ class AIMS_Window(gtk.Window):
     aims_relativity_list = ['none','atomic_zora','zora']
     aims_keyword_gui_list = ['xc','vdw_correction_hirshfeld','k_grid','spin','charge','relativistic',
                              'sc_accuracy_etot','sc_accuracy_eev','sc_accuracy_rho','sc_accuracy_forces',
-                             'compute_forces','run_command','species_dir']
+                             'compute_forces','run_command','species_dir','default_initial_moment']
     def __init__(self, owner, param, attrname):
         self.owner = owner
         self.attrname = attrname
@@ -1011,7 +1011,12 @@ class AIMS_Window(gtk.Window):
             pack(vbox, gtk.Label(""))
 
         # Spin polarized, charge, relativity
-        self.spinpol = gtk.CheckButton("Spin polarized")
+        self.spinpol = gtk.CheckButton("Spin / initial moment ")
+        self.spinpol.connect('toggled',self.spinpol_changed)
+        self.moment  = gtk.Adjustment(0,-100,100,0.1)
+        self.moment_spin = gtk.SpinButton(self.moment, 0, 0)
+        self.moment_spin.set_digits(2)
+        self.moment_spin.set_sensitive(False)
         self.charge  = gtk.Adjustment(0,-100,100,0.1)
         self.charge_spin = gtk.SpinButton(self.charge, 0, 0)
         self.charge_spin.set_digits(2)
@@ -1022,7 +1027,8 @@ class AIMS_Window(gtk.Window):
         self.relativity_threshold = gtk.Entry(max=8)
         self.relativity_threshold.set_text('1.00e-12')
         self.relativity_threshold.set_sensitive(False)
-        pack(vbox, [self.spinpol, 
+        pack(vbox, [self.spinpol,
+                    self.moment_spin, 
                     gtk.Label("   Charge"), 
                     self.charge_spin, 
                     gtk.Label("   Relativity"),
@@ -1133,6 +1139,8 @@ class AIMS_Window(gtk.Window):
                 default = np.ceil(20.0 / np.sqrt(np.vdot(self.ucell[i],self.ucell[i])))
                 self.kpts_spin[i].set_value(default)
         self.spinpol.set_active(False)
+        self.moment.set_value(0)
+        self.moment_spin.set_sensitive(False)
         self.charge.set_value(0)
         aims_relativity_default = 'none'
         for a in atoms:
@@ -1170,6 +1178,7 @@ class AIMS_Window(gtk.Window):
                                int(self.kpts[2].value))
         if self.spinpol.get_active():
             param["spin"] = "collinear"
+            param["default_initial_moment"] = self.moment.get_value()
         else:
             param["spin"] = "none"
         param["vdw_correction_hirshfeld"] = self.TS.get_active()
@@ -1219,6 +1228,9 @@ class AIMS_Window(gtk.Window):
             self.kpts[2].value = int(param["k_grid"][2])
         if param["spin"] is not None:
             self.spinpol.set_active(param["spin"] == "collinear")
+            self.moment_spin.set_sensitive(param["spin"] == "collinear")
+        if param["default_initial_moment"] is not None:
+            self.moment.value = param["default_initial_moment"]
         if param["charge"] is not None:
             self.charge.value = param["charge"]
         if param["relativistic"] is not None:
@@ -1339,6 +1351,9 @@ class AIMS_Window(gtk.Window):
 
     def relativity_changed(self, *args):
         self.relativity_threshold.set_sensitive(self.relativity_type.get_active() == 2)
+
+    def spinpol_changed(self, *args):
+        self.moment_spin.set_sensitive(self.spinpol.get_active())
 
     def expert_keyword_import(self, *args):
         command = self.expert_keyword_set.get_text().split()
