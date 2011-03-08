@@ -79,7 +79,7 @@ def Octahedron(symbol, length, cutoff=0, latticeconstant=None):
     """
 
     # Check length and cutoff
-    if length < 1:
+    if length < 2:
         raise ValueError("The lenght must be greater than one.")
 
     if cutoff < 0 or length < 2 * cutoff + 1:
