@@ -79,16 +79,20 @@ def Octahedron(symbol, length, cutoff=0, latticeconstant=None):
     """
 
     # Check length and cutoff
-    if length % 2 == 0 or length < 3:
-        raise ValueError("The lenght must be odd and greater than two.")
+    if length < 1:
+        raise ValueError("The lenght must be greater than one.")
 
     if cutoff < 0 or length < 2 * cutoff + 1:
         raise ValueError("The cutoff must fullfill: > 0 and <= (length - 1) / 2.")
 
     # Create cluster
-    structure = FaceCenteredCubic
     surfaces = [(1,1,1), (1,0,0)]
-    layers = [(length - 1)/2, length - 1 - cutoff]
+    if length % 2 == 0:
+        center = np.array([0.5, 0.5, 0.5])
+        layers = [length/2, length - 1 - cutoff]
+    else:
+        center = np.array([0.0, 0.0, 0.0])
+        layers = [(length - 1)/2, length - 1 - cutoff]
 
-    return FaceCenteredCubic(symbol, surfaces, layers, latticeconstant)
+    return FaceCenteredCubic(symbol, surfaces, layers, latticeconstant, center)
 

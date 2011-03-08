@@ -13,9 +13,8 @@ class ClusterFactory(ClusterBase):
 
     atomic_basis = np.array([[0., 0., 0.]])
 
-    size_factor = 1
-
-    def __call__(self, symbol, surfaces, layers, latticeconstant=None, vacuum=0.0, debug=0):
+    def __call__(self, symbol, surfaces, layers, latticeconstant=None,
+                 center=None, vacuum=0.0, debug=0):
         self.debug = debug
 
         # Interpret symbol
@@ -29,12 +28,12 @@ class ClusterFactory(ClusterBase):
 
         if self.debug:
             print "Lattice constant(s):", self.lattice_constant
-            print "Lattice basis:", self.lattice_basis
-            print "Resiprocal basis:", self.resiproc_basis
-            print "Atomic basis:", self.atomic_basis
+            print "Lattice basis:\n", self.lattice_basis
+            print "Resiprocal basis:\n", self.resiproc_basis
+            print "Atomic basis:\n", self.atomic_basis
 
         self.set_surfaces_layers(surfaces, layers)
-        self.set_lattice_size()
+        self.set_lattice_size(center)
 
         if self.debug:
             print "Center position:", self.center.round(2)
@@ -68,7 +67,7 @@ class ClusterFactory(ClusterBase):
         # Remove all atoms that is outside the defined surfaces
         for s, l in zip(self.surfaces, self.layers):
             n = self.miller_to_direction(s)
-            rmax = self.get_layer_distance(s, l + 0.5)
+            rmax = self.get_layer_distance(s, l + 0.1)
 
             r = np.dot(positions - self.center, n)
             mask = np.less(r, rmax)
@@ -94,37 +93,35 @@ class ClusterFactory(ClusterBase):
         return Cluster(symbols=[self.atomic_number] * len(positions),
                        positions=positions, cell=cell)
 
-    def set_lattice_size(self):
-        max = np.ones(3, int) * 100
-        min = np.ones(3, int) * 100
-        
-        for i in range(3):
-            v = self.lattice_basis[i]
-            for s, l in zip(self.surfaces, self.layers):
-                if l < 0: continue
+    def set_lattice_size(self, center):
+        if center is None:
+            offset = np.zeros(3)
+        else:
+            offset = np.array(center)
+            if (offset > 1.0).any() or (offset < 0.0).any():
+                raise ValueError("Center offset must lie within the lattice unit \
+                                  cell.")
 
-                n = self.miller_to_direction(s)
-                nl = self.get_layer_distance(s, l)
-                n = nl * n
+        max = np.ones(3)
+        min = -np.ones(3)
+        v = np.linalg.inv(self.lattice_basis.T)
+        for s, l in zip(self.surfaces, self.layers):
+            n = self.miller_to_direction(s) * self.get_layer_distance(s, l)
+            k = np.round(np.dot(v, n), 2)
+            for i in range(3):
+                if k[i] > 0.0:
+                    k[i] = np.ceil(k[i])
+                elif k[i] < 0.0:
+                    k[i] = np.floor(k[i])
 
-                cos = np.dot(n, v)
-                if np.abs(cos) < 1e-10:
-                    d = 0.0
-                else:
-                    d = nl**2 / cos
+            if self.debug > 1:
+                print "Spaning %i layers in %s in lattice basis ~ %s" % (l, s, k)
 
-                if self.debug > 1:
-                    print "%s dot %s = %.3f" % (s, v.round(2), d)
+            max[k > max] = k[k > max]
+            min[k < min] = k[k < min]
 
-                if d > 1e-10:
-                    d = np.int(np.ceil(d))
-                    if d < max[i]: max[i] = d
-                elif d < -1e-10:
-                    d = np.int(np.ceil(-d))
-                    if d < min[i]: min[i] = d
-
-        self.center = np.dot(min, self.lattice_basis) * self.size_factor
-        self.size = (min + max + np.ones(3, int)) * self.size_factor
+        self.center = np.dot(offset - min, self.lattice_basis)
+        self.size = (max - min + np.ones(3)).astype(int)
 
     def set_surfaces_layers(self, surfaces, layers):
         if len(surfaces) != len(layers):

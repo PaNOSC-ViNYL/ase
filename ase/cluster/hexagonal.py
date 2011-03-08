@@ -11,8 +11,6 @@ class HexagonalFactory(ClusterFactory):
 
     xtal_name = 'hexagonal'
 
-    size_factor = 2
-
     def set_lattice_constant(self, latticeconstant):
         "Get the lattice constant of an element with cubic crystal structure."
         if latticeconstant is None:
