@@ -75,6 +75,15 @@ def read_gpaw_text(fileobj, index=-1):
         else:
             q = float(lines[ii].split()[2])
         try:
+            ii = index_startswith(lines, 'Local Magnetic Moments')
+        except ValueError:
+            magmoms = None
+        else:
+            magmoms = []
+            for i in range(ii + 1, ii + 1 + len(atoms)):
+                iii, magmom = lines[i].split()[:2]
+                magmoms.append(float(magmom))
+        try:
             ii = lines.index('Forces in eV/Ang:\n')
         except ValueError:
             f = None
@@ -91,8 +100,7 @@ def read_gpaw_text(fileobj, index=-1):
             break
 
         if e is not None or f is not None:
-            ### Fixme magmoms
-            calc = SinglePointDFTCalculator(e, f, None, None, atoms, eFermi)
+            calc = SinglePointDFTCalculator(e, f, None, magmoms, atoms, eFermi)
             atoms.set_calculator(calc)
         if q is not None:
             n = len(atoms)
