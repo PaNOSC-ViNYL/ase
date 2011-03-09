@@ -14,12 +14,12 @@ from ase.data.colors import jmol_colors
 from ase.gui.repeat import Repeat
 from ase.gui.rotate import Rotate
 from ase.gui.render import Render
+from ase.gui.colors import ColorWindow
 from ase.utils import rotate
-
 
 class View:
     def __init__(self, vbox, rotations):
-        self.colors = [None] * (len(jmol_colors) + 1)
+        self.colormode = 'jmol'  # The default colors
         self.nselected = 0
         self.light_green_markings = 0
         self.axes = rotate(rotations)
@@ -107,6 +107,11 @@ class View:
             self.draw()
         
     def set_colors(self):
+        self.colormode = 'jmol'
+        self.set_jmol_colors()
+
+    def set_jmol_colors(self):
+        self.colors = [None] * (len(jmol_colors) + 1)
         new = self.drawing_area.window.new_gc
         alloc = self.colormap.alloc_color
         for z in self.images.Z:
@@ -312,6 +317,9 @@ class View:
     def rotate_window(self, menuitem):
         Rotate(self)
 
+    def colors_window(self, menuitem):
+        ColorWindow(self)
+
     def focus(self, x=None):
         if (self.images.natoms == 0 and not
             self.ui.get_widget('/MenuBar/ViewMenu/ShowUnitCell').get_active()):
@@ -360,8 +368,13 @@ class View:
         d = (2 * r).round().astype(int)
         selected_gc = self.selected_gc
 
-        colors = self.colors
         Z = self.images.Z
+        if self.colormode == 'jmol' or self.colormode == 'atno':
+            colors = np.array(self.colors)[Z]
+        elif self.colormode == 'tags':
+            colors = np.array(self.colors)[self.images.T]
+        else:
+            raise RuntimeError('Unknown color mode: %s' % (self.colormode,))
         arc = self.pixmap.draw_arc
         line = self.pixmap.draw_line
         black_gc = self.black_gc
@@ -372,7 +385,7 @@ class View:
             if a < n:
                 ra = d[a]
                 if visible[a]:
-                    arc(colors[Z[a]], True, A[a, 0], A[a, 1], ra, ra, 0, 23040)
+                    arc(colors[a], True, A[a, 0], A[a, 1], ra, ra, 0, 23040)
                 if  self.light_green_markings and self.atoms_to_rotate_0[a]:
                     arc(self.green, False, A[a, 0] + 2, A[a, 1] + 2,
                         ra - 4, ra - 4, 0, 23040)

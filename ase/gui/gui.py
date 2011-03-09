@@ -83,6 +83,7 @@ ui_info = """\
       <menuitem action='QuickInfo'/>
       <menuitem action='Repeat'/>
       <menuitem action='Rotate'/>
+      <menuitem action='Colors'/>
       <menuitem action='Focus'/>
       <menuitem action='ZoomIn'/>
       <menuitem action='ZoomOut'/>
@@ -201,6 +202,8 @@ class GUI(View, Status):
             ('Rotate', None, 'Rotate ...', None,
              '',
              self.rotate_window),
+            ('Colors', None, 'Colors ...', None, '',
+             self.colors_window),
             ('Focus', gtk.STOCK_ZOOM_FIT, 'Focus', 'F',
              '',
              self.focus),
