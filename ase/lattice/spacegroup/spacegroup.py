@@ -564,6 +564,92 @@ def _read_datafile(spg, spacegroup, setting, f):
             _skip_to_blank(f, spacegroup, setting)
                 
 
+def parse_sitesym(symlist, sep=','):
+    """Parses a sequence of site symmetries in the form used by
+    International Tables and returns corresponding rotation and
+    translation arrays.
+
+    Example:
+
+    >>> symlist = [
+    ...     'x,y,z',
+    ...     '-x,-y,z',
+    ...     '-y+1/2,x+1/2,z',
+    ...     'y+1/2,-x+1/2,z',
+    ...     '-x+1/2,y+1/2,-z',
+    ...     'x+1/2,-y+1/2,-z',
+    ...     'y,x,-z',
+    ...     '-y,-x,-z',
+    ... ]
+    >>> rot, trans = parse_sitesym(symlist)
+    >>> rot
+    >>> trans
+    """
+    nsym = len(symlist)
+    rot = np.zeros((nsym, 3, 3), dtype='int')
+    trans = np.zeros((nsym, 3))
+    for i, sym in enumerate(symlist):
+        for j, s in enumerate (sym.split(sep)):
+            for p in s.lower().strip().split('+'):
+                n = 0
+                if p[n] == '-':
+                    sign = -1
+                    n += 1
+                else:
+                    sign = 1
+                if p[n] in 'xyz':
+                    k = ord(p[n]) - ord('x')
+                    rot[i,j,k] = sign
+                elif p[n].isdigit():
+                    q, sp, r = p[n:].partition('/')
+                    trans[i,j] = float(q)/float(r)
+                else:
+                    raise SpacegroupValueError(
+                        'invalid site symmetry: %s' % sym)
+    return rot, trans
+                
+
+def spacegroup_from_data(no=None, symbol=None, setting=1, centrosymmetric=None, 
+                         scaled_primitive_cell=None, reciprocal_cell=None, 
+                         subtrans=None, sitesym=None, rotations=None, 
+                         translations=None, datafile=None):
+    """Manually create a new space group instance.  This might be
+    usefull when reading crystal data with its own spacegroup
+    definitions."""
+    if no is not None:
+        spg = Spacegroup(no, setting, datafile)
+    elif symbol is not None:
+        spg = Spacegroup(symbol, setting, datafile)
+    else:
+        raise SpacegroupValueError('either *no* or *symbol* must be given')
+
+    have_sym = False
+    if centrosymmetric is not None:
+        spg._centrosymmetric = bool(centrosymmetric)
+    if scaled_primitive_cell is not None:
+        spg._scaled_primitive_cell = np.array(scaled_primitive_cell)
+    if reciprocal_cell is not None:
+        spg._reciprocal_cell = np.array(reciprocal_cell)
+    if subtrans is not None:
+        spg._subtrans = np.atleast_2d(subtrans)
+        spg._nsubtrans = spg._subtrans.shape[0]
+    if sitesym is not None:
+        spg._rotations, spg._translations = parse_sitesym(sitesym)
+        have_sym = True
+    if rotations is not None:
+        spg._rotations = np.atleast_3d(rotations)
+        have_sym = True
+    if translations is not None:
+        spg._translations = np.atleast_2d(translations)
+        have_sym = True
+    if have_sym:
+        if spg._rotations.shape[0] != spg._translations.shape[0]:
+            raise SpacegroupValueError('inconsistent number of rotations and translations')
+        spg._nsymop = spg._rotations.shape[0]
+    return spg
+
+
+ 
 
 #-----------------------------------------------------------------
 # Self test

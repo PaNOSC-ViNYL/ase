@@ -12,6 +12,7 @@ import numpy as np
 
 from ase.parallel import paropen
 from ase.lattice.spacegroup import crystal
+from ase.lattice.spacegroup.spacegroup import spacegroup_from_data
 
 
 
@@ -169,7 +170,38 @@ def tags2atoms(tags, **kwargs):
         symbol = m.group(0)
         symbols.append(symbol)
 
-    spacegroup = tags.get('_symmetry_int_tables_number', 1)
+    # Symmetry specification, see
+    # http://www.iucr.org/resources/cif/dictionaries/cif_sym for a
+    # complete list of official keys.  In addition we also try to
+    # support some commonly used depricated notations
+    no = None
+    if '_space_group.IT_number' in tags:
+        no = tags['_space_group.IT_number']
+    elif '_symmetry_int_tables_number' in tags:
+        no = tags['_symmetry_int_tables_number']
+
+    symbolHM = None
+    if '_space_group.Patterson_name_H-M' in tags:
+        symbolHM = tags['_space_group.Patterson_name_H-M']
+    elif '_symmetry_space_group_name_H-M' in tags:
+        symbolsHM = tags['_symmetry_space_group_name_H-M']
+
+    sitesym = None
+    if '_space_group_symop.operation_xyz' in tags:
+        sitesym = tags['_space_group_symop.operation_xyz']
+    elif '_symmetry_equiv_pos_as_xyz' in tags:
+        sitesym = tags['_symmetry_equiv_pos_as_xyz']
+        
+    spacegroup = 1
+    if sitesym is not None:
+        spacegroup = spacegroup_from_data(no=no, symbol=symbolHM,
+                                          sitesym=sitesym)
+    elif no is not None:
+        spacegroup = no
+    elif symbolHM is not None:
+        spacegroup = symbolHM
+    else:
+        spacegroup = 1
 
     atoms = crystal(symbols, basis=scaled_positions, 
                     cellpar=[a, b, c, alpha, beta, gamma],
