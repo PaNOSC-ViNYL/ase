@@ -41,22 +41,18 @@ class Movie(gtk.Window):
         play.connect('clicked', self.play)
         stop.connect('clicked', self.stop)
 
-        self.rock = pack(vbox, gtk.CheckButton('Rock'))
-        tdefault = min(max(gui.images.nimages/5.0, 1.0), 30)
-        self.time = gtk.Adjustment(tdefault, 1.0, 30, 0.1)
-        hscale = pack(vbox, gtk.HScale(self.time))
-        hscale.set_update_policy(gtk.UPDATE_DISCONTINUOUS)
-        hscale.set_digits(1)
-            
-        self.time.connect('value-changed', self.new_time)
-
+        self.rock = gtk.CheckButton('Rock')
+        skipdefault = gui.images.nimages/150
+        tdefault = min(max(gui.images.nimages/(skipdefault*5.0), 1.0), 30)
+        self.time = gtk.Adjustment(tdefault, 1.0, 99, 0.1)
+        self.time_spin = gtk.SpinButton(self.time, 0, 0)
+        self.time_spin.set_digits(1)
+        self.skip = gtk.Adjustment(skipdefault, 0, 99, 1)
+        self.skip_spin = gtk.SpinButton(self.skip, 0, 0)
+        pack(vbox, [self.rock, gtk.Label(' Frame rate: '), self.time_spin,
+                    gtk.Label(' Skip frames: '), self.skip_spin,
+                    gtk.Label('   ')])
         self.add(vbox)
-
-        if gtk.pygtk_version < (2, 12):
-            self.set_tip = gtk.Tooltips().set_tip
-            self.set_tip(hscale, _('Adjust number of frames per second.'))
-        else:
-            hscale.set_tooltip_text(_('Adjust number of frames per second.'))
         vbox.show()
         self.show()
         self.gui = gui
@@ -103,15 +99,16 @@ class Movie(gtk.Window):
     def step(self):
         i = self.gui.frame
         nimages = self.gui.images.nimages
+        delta = int(self.skip.value + 1)
         
         if self.rock.get_active():
-            if i == 0:
+            if i <= self.skip.value:
                 self.direction = 1
-            elif i == nimages - 1:
+            elif i >= nimages - delta:
                 self.direction = -1
-            i += self.direction
+            i += self.direction*delta
         else:
-            i = (i + self.direction + nimages) % nimages
+            i = (i + self.direction*delta + nimages) % nimages
             
         self.gui.set_frame(i)
         self.frame_number.value = i
