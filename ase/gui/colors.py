@@ -44,11 +44,30 @@ class ColorWindow(gtk.Window):
         self.radio_force = gtk.RadioButton(self.radio_jmol, 'By force')
         self.radio_manual = gtk.RadioButton(self.radio_jmol, 'Manually specified')
         self.radio_same = gtk.RadioButton(self.radio_jmol, 'All the same color')
-        #for radio in (self.radio_jmol, self.radio_atno, self.radio_tag,
-        #              self.radio_force, self.radio_manual, self.radio_same):
-        for radio in (self.radio_jmol, self.radio_atno, self.radio_tag):
-            pack(self.methodbox, [radio])
-            radio.connect('toggled', self.method_radio_changed)
+        self.force_box = gtk.VBox()
+        for widget in (self.radio_jmol, self.radio_atno, self.radio_tag,
+                      self.radio_force, self.force_box, self.radio_manual,
+                      self.radio_same):
+            pack(self.methodbox, [widget])
+            if isinstance(widget, gtk.RadioButton):
+                widget.connect('toggled', self.method_radio_changed)
+        # Now fill in the box for additional information in case the force is used.
+        self.force_label = gtk.Label("This should not be displayed!")
+        pack(self.force_box, [self.force_label])
+        self.force_min = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
+        self.force_max = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
+        self.force_steps = gtk.Adjustment(10, 2, 500, 1)
+        force_apply = gtk.Button('Apply')
+        force_apply.connect('clicked', self.set_force_colors)
+        pack(self.force_box, [gtk.Label('Min: '),
+                              gtk.SpinButton(self.force_min, 10.0, 2),
+                              gtk.Label('  Max: '),
+                              gtk.SpinButton(self.force_max, 10.0, 2),
+                              gtk.Label('  Steps: '),
+                              gtk.SpinButton(self.force_steps, 1, 0),
+                              gtk.Label('  '),
+                              force_apply])
+        self.force_box.hide()
         # Lower left: Create a color scale
         pack(self.scalebox, gtk.Label(""))
         lbl = gtk.Label('Create a color scale:')
@@ -56,6 +75,7 @@ class ColorWindow(gtk.Window):
         color_scales = (
             'Black - white',
             'Black - red - yellow - white',
+            'Black - blue - cyan',
             'Hue',
             'Named colors'
             )
@@ -88,20 +108,21 @@ class ColorWindow(gtk.Window):
     def init_colors_from_gui(self):
         cm = self.gui.colormode
         # Disallow methods if corresponding data is not available
-        if self.gui.images.T is np.nan:
+        if self.gui.images.T is np.nan or not self.gui.images.T.any():
             self.radio_tag.set_sensitive(False)
             if self.radio_tag.get_active() or cm == 'tag':
                 self.radio_jmol.set_active(True)
                 return
         else:
             self.radio_tag.set_sensitive(True)
-        if self.gui.images.F is np.nan:
+        if np.isnan(self.gui.images.F).any() or not self.gui.images.F.any():
             self.radio_force.set_sensitive(False)
             if self.radio_force.get_active() or cm == 'force':
                 self.radio_jmol.set_active(True)
                 return
         else:
             self.radio_tag.set_sensitive(True)
+        self.radio_manual.set_sensitive(self.gui.images.natoms <= 1000)
         # Now check what the current color mode is
         if cm == 'jmol':
             self.radio_jmol.set_active(True)
@@ -120,14 +141,25 @@ class ColorWindow(gtk.Window):
     def method_radio_changed(self, widget=None):
         "Called when a radio button is changed."
         if not widget.get_active():
-            return  # Ignore events when a button is turned off.
+            # Ignore most events when a button is turned off.
+            if widget is self.radio_force:
+                self.force_box.hide()
+            return  
         if widget is self.radio_jmol:
             self.set_jmol_colors()
         elif widget is self.radio_atno:
             self.set_atno_colors()
         elif widget is self.radio_tag:
             self.set_tag_colors()
-        # Ignore the rest for now!
+        elif widget is self.radio_force:
+            self.show_force_stuff()
+            self.set_force_colors()
+        elif widget is self.radio_manual:
+            self.set_manual_colors()
+        elif widget is self.radio_same:
+            self.set_same_color()
+        else:
+            raise RuntimeError('Unknown widget in method_radio_changed')
             
     def make_jmol_colors(self):
         "Set the colors to the default jmol colors"
@@ -171,11 +203,99 @@ class ColorWindow(gtk.Window):
                                    zip(existingtags, colors)]
         self.actual_colordata = self.colordata_tags
         self.color_labels = [str(x)+':' for x, y in self.colordata_tags]
-        print self.color_labels
-        print self.actual_colordata
         self.make_colorwin()
         self.colormode = 'tags'
 
+    def set_same_color(self):
+        "All atoms have the same color"
+        if not hasattr(self, 'colordata_same'):
+            try:
+                self.colordata_same = self.actual_colordata[0:1]
+            except AttributeError:
+                self.colordata_same = self.get_named_colors(1)
+        self.actual_colordata = self.colordata_same
+        self.actual_colordata[0][0] = 0
+        self.color_labels = ['all:']
+        self.make_colorwin()
+        self.colormode = 'same'
+
+    def set_force_colors(self):
+        "Use the forces as basis for the colors."
+        borders = np.linspace(self.force_min.value,
+                              self.force_max.value,
+                              self.force_steps.value,
+                              endpoint=False)
+        if (not hasattr(self, 'colordata_force') or
+            len(self.colordata_force) != len(borders)):
+            colors = self.get_color_scale([[0, [0,0,0]],
+                                           [1, [1,1,1]]],
+                                          len(borders))
+            self.colordata_force = [[x, y] for x, y in
+                                    zip(borders, colors)]
+        self.actual_colordata = self.colordata_force
+        self.color_labels = ["%.2f:" % x for x, y in self.colordata_force]
+        self.make_colorwin()
+        self.colormode = 'force'
+        fmin = self.force_min.value
+        fmax = self.force_max.value
+        factor = self.force_steps.value / (fmax -fmin)
+        self.colormode_force_data = (fmin, factor)
+
+    def set_manual_colors(self):
+        "Set colors of all atoms from the last selection."
+        if self.colormode == 'manual':
+            return  # Cannot do anything.
+        # We cannot directly make np.arrays of the colors, as they may
+        # be sequences of the same length, causing creation of a 2D
+        # array of characters/numbers instead of a 1D array of
+        # objects.
+        colors = np.array([None] * self.gui.images.natoms)
+        if self.colormode in ['atno', 'jmol', 'tags']:
+            maxval = max([x for x, y in self.actual_colordata])
+            oldcolors = np.array([None] * (maxval+1))
+            for x, y in self.actual_colordata:
+                oldcolors[x] = y
+            if self.colormode == 'tags':
+                colors[:] = oldcolors[self.gui.images.T]
+            else:
+                colors[:] = oldcolors[self.gui.images.Z]
+        elif self.colormode == 'force':
+            oldcolors = np.array([None] * len(self.actual_colordata))
+            oldcolors[:] = [y for x, y in self.actual_colordata]
+            F = self.gui.images.F[self.gui.frame]
+            F = np.sqrt((F * F).sum(axis=-1))
+            nF = (F - self.colormode_force_data[0]) * self.colormode_force_data[1]
+            nF = np.clip(nF.astype(int), 0, len(oldcolors)-1)
+            colors[:] = oldcolors[nF]
+        elif self.colormode == 'same':
+            oldcolor = self.actual_colordata[0][1]
+            if len(colors) == len(oldcolor):
+                # Direct assignment would be e.g. one letter per atom. :-(
+                colors[:] = [oldcolor] * len(colors)
+            else:
+                colors[:] = oldcolor
+        self.color_labels = ["%d:" % i for i in range(len(colors))]
+        self.actual_colordata = [[i, x] for i, x in enumerate(colors)]
+        self.make_colorwin()
+        self.colormode = 'manual'
+
+    def show_force_stuff(self):
+        "Show and update widgets needed for selecting the force scale."
+        self.force_box.show()
+        print self.gui.images.F.shape
+        F = np.sqrt((self.gui.images.F * self.gui.images.F).sum(axis=-1))
+        fmax = F.max()
+        nimages = self.gui.images.nimages
+        assert len(F) == nimages
+        if nimages > 1:
+            fmax_frame = self.gui.images.F[self.gui.frame].max()
+            txt = "Max force: %.2f (this frame), %.2f (all frames)" % (fmax_frame, fmax)
+        else:
+            txt = "Max force: %.2f." % (fmax,)
+        self.force_label.set_text(txt)
+        if self.force_max.value == 0.0:
+            self.force_max.value = fmax
+        
     def make_colorwin(self):
         """Make the list of editable color entries.
 
@@ -264,16 +384,24 @@ class ColorWindow(gtk.Window):
                                           [0.67, [1,1,0]],
                                           [1, [1,1,1]]], n)
         elif s == 2:
+            # Black - Blue - Cyan
+            scale = self.get_color_scale([[0, [0,0,0]],
+                                          [0.5, [0,0,1]],
+                                          [1, [0,1,1]]], n)
+        elif s == 3:
             # Hues
             hues = np.linspace(0.0, 1.0, n, endpoint=False)
             scale = ["%.3f, %.3f, %.3f" % colorsys.hls_to_rgb(h, 0.5, 1)
                      for h in hues]
-        elif s == 3:
+        elif s == 4:
             # Named colors
             scale = self.get_named_colors(n)
-        print scale
         for i in range(n):
-            self.color_entries[i].set_text(scale[i])
+            if isinstance(scale[i], str):
+                self.color_entries[i].set_text(scale[i])
+            else:
+                s = "%.3f, %.3f, %.3f" % tuple(scale[i])
+                self.color_entries[i].set_text(s)
             self.color_entries[i].activate()
 
     def get_color_scale(self, fixpoints, n):
@@ -294,7 +422,7 @@ class ColorWindow(gtk.Window):
                 y0 = y[n-1]
                 y1 = y[n]
                 v = y0 + (y1 - y0) / (x1 - x0) * (a - x0)
-            res.append("%.3f, %.3f, %.3f" % tuple(v))
+            res.append(v)
         return res
 
     def get_named_colors(self, n):
@@ -310,11 +438,16 @@ class ColorWindow(gtk.Window):
             oops("Incorrect color specification",
                  "%s: %s" % self.color_errors.values()[0])
             return False
-        maxval = max([x for x, y in self.actual_colordata])
+        colordata = self.actual_colordata
+        if self.colormode == 'force':
+            # Use integers instead for border values
+            colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
+            self.gui.colormode_force_data = self.colormode_force_data
+        maxval = max([x for x, y in colordata])
         self.gui.colors = [None] * (maxval + 1)
         new = self.gui.drawing_area.window.new_gc
         alloc = self.gui.colormap.alloc_color
-        for z, val in self.actual_colordata:
+        for z, val in colordata:
             if isinstance(val, str):
                 self.gui.colors[z] = new(alloc(val))
             else:

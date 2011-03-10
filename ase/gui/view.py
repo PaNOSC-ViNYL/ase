@@ -373,6 +373,16 @@ class View:
             colors = np.array(self.colors)[Z]
         elif self.colormode == 'tags':
             colors = np.array(self.colors)[self.images.T]
+        elif self.colormode == 'force':
+            F = self.images.F[self.frame]
+            F = np.sqrt((F*F).sum(axis=-1))  # The absolute force
+            nF = (F - self.colormode_force_data[0]) * self.colormode_force_data[1]
+            nF = np.clip(nF.astype(int), 0, len(self.colors)-1)
+            colors = np.array(self.colors)[nF]
+        elif self.colormode == 'manual':
+            colors = self.colors
+        elif self.colormode == 'same':
+            colors = [self.colors[0]] * n
         else:
             raise RuntimeError('Unknown color mode: %s' % (self.colormode,))
         arc = self.pixmap.draw_arc
