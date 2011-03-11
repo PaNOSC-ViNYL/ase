@@ -417,7 +417,7 @@ def rotate(atoms, a1, a2, b1, b2, rotate_cell=True):
     ap2 = a2 - np.dot(a2, n)*n
     angle = np.arccos(np.dot(ap1, ap2)/(norm(ap1)*norm(ap2)))
     angle *= np.sign(det((ap1, ap2, n)))
-    return atoms.rotate(n, angle, rotate_cell)
+    atoms.rotate(n, angle, rotate_cell=rotate_cell)
 
 
 
