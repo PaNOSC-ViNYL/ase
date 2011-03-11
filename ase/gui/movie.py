@@ -42,11 +42,16 @@ class Movie(gtk.Window):
         stop.connect('clicked', self.stop)
 
         self.rock = gtk.CheckButton('Rock')
-        skipdefault = gui.images.nimages/150
-        tdefault = min(max(gui.images.nimages/(skipdefault*5.0), 1.0), 30)
+        if gui.images.nimages > 150:
+            skipdefault = gui.images.nimages/150
+            tdefault = min(max(gui.images.nimages/(skipdefault*5.0), 1.0), 30)
+        else:
+            skipdefault = 0
+            tdefault = min(max(gui.images.nimages/5.0, 1.0), 30)
         self.time = gtk.Adjustment(tdefault, 1.0, 99, 0.1)
         self.time_spin = gtk.SpinButton(self.time, 0, 0)
         self.time_spin.set_digits(1)
+        self.time.connect("value-changed",self.frame_rate_changed)
         self.skip = gtk.Adjustment(skipdefault, 0, 99, 1)
         self.skip_spin = gtk.SpinButton(self.skip, 0, 0)
         pack(vbox, [self.rock, gtk.Label(' Frame rate: '), self.time_spin,
@@ -95,6 +100,10 @@ class Movie(gtk.Window):
         if self.id is not None:
             gobject.source_remove(self.id)
             self.id = None
+
+    def frame_rate_changed(self,widget=None):
+        if self.id is not None:
+            self.play()
 
     def step(self):
         i = self.gui.frame
