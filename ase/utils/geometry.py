@@ -74,8 +74,8 @@ def get_layers(atoms, miller, tolerance=0.001):
 
 
 
-def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=(0, 0, 1), origo=(0, 0, 0), 
-        nlayers=None, extend=1.0, tolerance=0.001):
+def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, origo=(0, 0, 0), 
+        nlayers=None, extend=1.0, tolerance=0.01):
     """Cuts out a cell defined by *a*, *b*, *c* and *origo* from a
     sufficiently repeated copy of *atoms*.
 
@@ -99,19 +99,21 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=(0, 0, 1), origo=(0, 0, 0),
         The b-vector in scaled coordinates of the cell to cut out. If
         integer, the b-vector will be the scaled vector from *origo* to the
         atom with index *b*.
-    c: int | 3 floats
-        The c-vector in scaled coordinates of the cell to cut out. If
-        integer, the c-vector will be the scaled vector from *origo* to the
-        atom with index *c*. Not used if *nlayers* is given.
+    c: None | int | 3 floats
+        The c-vector in scaled coordinates of the cell to cut out. 
+        if integer, the c-vector will be the scaled vector from *origo* to 
+        the atom with index *c*. 
+        If *None* it will be along cross(a, b) converted to real space
+        and normalised with the cube root of the volume. Note that this
+        in general is not perpendicular to a and b for non-cubic
+        systems. For cubic systems however, this is redused to 
+        c = cross(a, b).
     origo: int | 3 floats
         Position of origo of the new cell in scaled coordinates. If
         integer, the position of the atom with index *origo* is used.
-    nlayers: int
+    nlayers: None | int
         If *nlayers* is not *None*, the returned cell will have
-        *nlayers* atomic layers in the c-direction. The direction of
-        the c-vector will be along cross(a, b) converted to real
-        space, i.e. normal to the plane spanned by a and b in
-        orthorombic systems.
+        *nlayers* atomic layers in the c-direction.
     extend: 1 or 3 floats
         The *extend* argument scales the effective cell in which atoms
         will be included. It must either be three floats or a single
@@ -160,6 +162,8 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=(0, 0, 1), origo=(0, 0, 0),
 
     if isinstance(origo, int):
         origo = atoms.get_scaled_positions()[origo]
+    origo = np.array(origo, dtype=float)
+
     scaled = (atoms.get_scaled_positions() - origo)%1.0
     scaled %= 1.0 # needed to ensure that all numbers are *less* than one
     atoms.set_scaled_positions(scaled)
@@ -171,34 +175,42 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=(0, 0, 1), origo=(0, 0, 0),
     if isinstance(c, int):
         c = scaled[c] - origo
 
+
     a = np.array(a, dtype=float)
     b = np.array(b, dtype=float)
-    origo = np.array(origo, dtype=float)
+    if c is None:
+        # 
+        #
+        metric = np.dot(cell, cell.T)
+        vol = np.sqrt(np.linalg.det(metric))
+        h = np.cross(a, b) 
+        H = np.linalg.solve(metric.T, h.T)
+        c = vol*H/vol**(1./3.)
+    c = np.array(c, dtype=float)
 
     if nlayers:
-        miller = np.cross(a, b) # surface normal
-        # The factor 36 = 2*2*3*3 is because the elements of a and b
-        # might be multiples of 1/2 or 1/3 because of lattice
-        # subtranslations
-        if np.all(36*miller - np.rint(36*miller)) < 1e-5:
-            miller = np.rint(36*miller)
-            miller /= gcd(miller)
-        tags, layers = get_layers(atoms, miller, tolerance)
-        while tags.max() < nlayers:
-            atoms = atoms.repeat(2)
-            tags, layers = get_layers(atoms, miller, tolerance)
-        # Convert surface normal in reciprocal space to direction in
-        # real space
-        metric = np.dot(cell, cell.T)
-        c = np.linalg.solve(metric.T, miller.T).T
-        c *= layers[nlayers]/np.sqrt(np.dot(c, miller))
-        if np.linalg.det(np.dot(np.array([a, b, c]), cell)) < 0:
-            c *= -1.0
+        # Recursive increase the length of c until we have at least
+        # *nlayers* atomic layers parallell to the a-b plane
+        while True:
+            at = cut(atoms, a, b, c, origo=origo, extend=extend, 
+                        tolerance=tolerance)
+            scaled = at.get_scaled_positions()
+            d = scaled[:,2]
+            keys = np.argsort(d)
+            ikeys = np.argsort(keys)
+            mask = np.concatenate(([True], np.diff(d[keys]) > tolerance))
+            tags = np.cumsum(mask)[ikeys] - 1
+            levels = d[keys][mask]
+            if len(levels) > nlayers: break
+            c *= 2
 
-    newcell = np.dot(np.array([a, b, c]), cell)
-    
+        at.cell[2] *= levels[nlayers]
+        return at[tags < nlayers]
+
+
     # Create a new atoms object, repeated and translated such that
     # it completely covers the new cell
+    newcell = np.dot(np.array([a, b, c]), cell)
     scorners_newcell = np.array([[0., 0., 0.], [0., 0., 1.], 
                                  [0., 1., 0.], [0., 1., 1.], 
                                  [1., 0., 0.], [1., 0., 1.], 
@@ -212,12 +224,12 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=(0, 0, 1), origo=(0, 0, 0),
     atoms.set_cell(newcell)
 
     # Mask out atoms outside new cell
-    stol = tolerance  # scaled tolerance, XXX
+    stol = 0.1*tolerance  # scaled tolerance, XXX
     maskcell = atoms.cell*extend
     sp = np.linalg.solve(maskcell.T, (atoms.positions).T).T
     mask = np.all(np.logical_and(-stol <= sp, sp < 1-stol), axis=1)
     atoms = atoms[mask]
-    
+
     return atoms
 
 
@@ -383,6 +395,31 @@ def sort(atoms, tags=None):
     deco.sort()
     indices = [i for tag, i in deco]
     return atoms[indices]
+
+
+def rotate(atoms, a1, a2, b1, b2, rotate_cell=True):
+    """Rotate *atoms*, such that *a1* will be rotated to *a2* and *b1*
+    to *b2*."""
+    from numpy.linalg import norm, det
+    a1 = np.asarray(a1, dtype=float)/norm(a1)
+    a2 = np.asarray(a2, dtype=float)/norm(a2)
+    b1 = np.asarray(b1, dtype=float)/norm(b1)
+    b2 = np.asarray(b2, dtype=float)/norm(b2)
+    if norm(a2 - a1) < 1e-5:
+        n = 0.5*(a1 + a2)
+        a1, a2 = b1, b2
+    elif norm(b2 - b1) < 1e-5:
+        n = 0.5*(b1 + b2)
+    else:
+        n = np.cross(a2 - a1, b2 - b1)
+    n /= norm(n)
+    ap1 = a1 - np.dot(a1, n)*n
+    ap2 = a2 - np.dot(a2, n)*n
+    angle = np.arccos(np.dot(ap1, ap2)/(norm(ap1)*norm(ap2)))
+    angle *= np.sign(det((ap1, ap2, n)))
+    return atoms.rotate(n, angle, rotate_cell)
+
+
 
 #-----------------------------------------------------------------
 # Self test
