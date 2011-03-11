@@ -107,7 +107,20 @@ def Icosahedron(symbol, noshells, latticeconstant=None):
                         pos = v0 + i*v3 + j*v4
                         positions.append(pos)
 
+    # Scale the positions
     scaling_factor = lattice_constant / np.sqrt(2*(1 + t**2))
     positions = np.array(positions) * scaling_factor
+
+    # Fit the cell, so it only just consist the atoms
+    min = np.zeros(3)
+    max = np.zeros(3)
+    axes = np.array([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])
+    for i in range(3):
+        r = np.dot(positions, axes[i])
+        min[i] = r.min()
+        max[i] = r.max()
+    cell = max - min
+    positions = positions - min
+
     symbols = [atomic_number] * len(positions)
-    return Atoms(symbols=symbols, positions=positions)
+    return Atoms(symbols=symbols, positions=positions, cell=cell)
