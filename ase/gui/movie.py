@@ -5,7 +5,6 @@ import gobject
 from ase.gui.languages import translate as _
 from ase.gui.widgets import pack
 
-
 class Movie(gtk.Window):
     def __init__(self, gui):
         gtk.Window.__init__(self)
@@ -36,12 +35,14 @@ class Movie(gtk.Window):
 
         pack(vbox, buttons)
 
-        play, stop = pack(vbox, [gtk.Button(_('Play')),
-                                 gtk.Button('Stop')])
+        play = gtk.Button(_('Play'))
         play.connect('clicked', self.play)
+        stop = gtk.Button('Stop')
         stop.connect('clicked', self.stop)
-
         self.rock = gtk.CheckButton('Rock')
+
+        pack(vbox, [play, stop, gtk.Label('  '), self.rock])
+
         if gui.images.nimages > 150:
             skipdefault = gui.images.nimages/150
             tdefault = min(max(gui.images.nimages/(skipdefault*5.0), 1.0), 30)
@@ -54,7 +55,7 @@ class Movie(gtk.Window):
         self.time.connect("value-changed",self.frame_rate_changed)
         self.skip = gtk.Adjustment(skipdefault, 0, 99, 1)
         self.skip_spin = gtk.SpinButton(self.skip, 0, 0)
-        pack(vbox, [self.rock, gtk.Label(' Frame rate: '), self.time_spin,
+        pack(vbox, [gtk.Label(' Frame rate: '), self.time_spin,
                     gtk.Label(' Skip frames: '), self.skip_spin,
                     gtk.Label('   ')])
         self.add(vbox)
