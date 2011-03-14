@@ -50,7 +50,8 @@ plt.grid('on')
 plt.savefig('Al_phonon.png')
 
 # Write modes for specific q-vector to trajectory files
-ph.write_modes([l/2 for l in L], branches=[2], repeat=(8,8,8), kT=3e-4)
+ph.write_modes([l/2 for l in L], branches=[2], repeat=(8,8,8), kT=3e-4,
+               center=True)
 
 # Generate png animation
 from subprocess import call
