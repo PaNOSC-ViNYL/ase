@@ -10,7 +10,7 @@ import numpy as np
 from numpy import atleast_1d, eye, mgrid, argmin, zeros, shape, empty, \
      squeeze, vectorize, asarray, absolute, sqrt, Inf, asfarray, isinf
 from ase.utils.linesearch import LineSearch
-from ase.optimize.optimize import Optimizer#, random_force
+from ase.optimize.optimize import Optimizer
 from numpy import arange
 
 
@@ -80,13 +80,14 @@ class BFGSLineSearch(Optimizer):
 
     def step(self, f):
         atoms = self.atoms
+        from ase.neb import NEB 
+        assert not isinstance(atoms, NEB) 
         r = atoms.get_positions()
         r = r.reshape(-1)
         g = -f.reshape(-1) / self.alpha
         p0 = self.p
         self.update(r, g, self.r0, self.g0, p0)
         e = self.func(r)
-        o,v = np.linalg.eigh(self.B)
 
         self.p = -np.dot(self.H,g)
         p_size = np.sqrt((self.p **2).sum())
