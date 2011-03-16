@@ -1181,6 +1181,7 @@ class AIMS_Window(gtk.Window):
             param["default_initial_moment"] = self.moment.get_value()
         else:
             param["spin"] = "none"
+            param["default_initial_moment"] = None
         param["vdw_correction_hirshfeld"] = self.TS.get_active()
         param["charge"]             = self.charge.value
         param["relativistic"]       = self.relativity_type.get_active_text()
