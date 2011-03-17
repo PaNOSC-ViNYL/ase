@@ -15,70 +15,22 @@ from ase.parallel import rank, barrier
 from ase.dft import monkhorst_pack
 from ase.io.trajectory import PickleTrajectory
 
-class Phonons:
-    """Class for calculating phonon modes using finite difference.
+class Displacement:
+    """Base class for phonon and electron-phonon supercell calculations.
 
-    The matrix of force constants is calculated from the finite difference
-    approximation to the first-order derivative of the atomic forces as::
+    Both phonons and the electron-phonon interaction in periodic systems can be
+    calculated with the so-called finite-displacement method where the
+    derivatives of the total energy and effective potential are obtained from
+    finite-difference approximations, i.e. by displacing the atoms. This class
+    provides the required functionality for carrying out the calculations for
+    the different displacements in its ``run`` member function.
+
+    Derived classes must overwrite the ``__call__`` member function which is
+    called for each atomic displacement.
     
-                            2            nbj   nbj
-                nbj        d V          F-  - F+
-               C     = ------------ ~  ------------  ,
-                mai     dR   dR         2 * delta
-                          mai  nbj       
-
-    where F+/F- denotes the force in direction j on atom nb when atom ma is
-    displaced in direction +i/-i. The force constants are related by various
-    symmetry relations. From the definition of the force constants it must
-    be symmetric in the three indices mai::
-
-                nbj    mai         bj        ai
-               C    = C      ->   C  (R ) = C  (-R )  .
-                mai    nbj         ai  n     bj   n
-
-    As the force constants can only depend on the difference between the m and
-    n indices, this symmetry is more conveniently expressed as shown on the
-    right hand-side.
-
-    The acoustic sum-rule::
-
-                           _ _
-                aj         \    bj    
-               C  (R ) = -  )  C  (R )
-                ai  0      /__  ai  m
-                          (m, b)
-                            !=
-                          (0, a)
-                        
-    Ordering of the unit cells illustrated here for a 1-dimensional system:
-    
-    ::
-    
-               m = 0        m = 1        m = -1        m = -2
-           -----------------------------------------------------
-           |            |            |            |            |
-           |        * b |        *   |        *   |        *   |
-           |            |            |            |            |
-           |   * a      |   *        |   *        |   *        |
-           |            |            |            |            |
-           -----------------------------------------------------
-       
-    Example:
-
-    >>> from ase.structure import bulk
-    >>> from ase.phonons import Phonons
-    >>> from gpaw import GPAW, FermiDirac
-    >>> atoms = bulk('Si', 'diamond', a=5.4)
-    >>> calc = GPAW(kpts=(5, 5, 5),
-                    h=0.2,
-                    occupations=FermiDirac(0.))
-    >>> ph = Phonons(atoms, calc, supercell=(5, 5, 5))
-    >>> ph.run()
-    >>> ph.read(method='frederiksen', acoustic=True)
-
     """
 
-    def __init__(self, atoms, calc=None, supercell=(1, 1, 1), name='phonon',
+    def __init__(self, atoms, calc=None, supercell=(1, 1, 1), name=None,
                  delta=0.01):
         """Init with an instance of class ``Atoms`` and a calculator.
 
@@ -102,20 +54,17 @@ class Phonons:
         self.atoms = atoms
         self.calc = calc
         
-        # Vibrate all atoms in the unit cell by default
+        # Displace all atoms in the unit cell by default
         self.indices = range(len(atoms))
         self.name = name
         self.delta = delta
         self.N_c = supercell
 
-        # Attributes for force constants and dynamical matrix in real-space
-        self.C_m = None  # in units of eV / Ang**2 
-        self.D_m = None  # in units of eV / Ang**2 / amu
-        
-        # Attributes for born charges and static dielectric tensor
-        self.Z_avv = None
-        self.eps_vv = None
-        
+    def __call__(self, *args, **kwargs):
+        """Member function called in the ``run`` function."""
+
+        raise NotImplementedError("Implement in derived classes!.")
+    
     def set_atoms(self, atoms):
         """Set the atoms to vibrate.
 
@@ -173,12 +122,12 @@ class Phonons:
                 fd = open(filename, 'w')
                 fd.close()
 
-            # Calculate forces
-            forces = atoms_lmn.get_forces()
-            # Write forces to file
+            # Call derived class implementation of __call__
+            output = self.__call__(atoms_lmn)
+            # Write output to file
             if rank == 0:
                 fd = open(filename, 'w')
-                pickle.dump(forces, fd)
+                pickle.dump(output, fd)
                 sys.stdout.write('Writing %s\n' % filename)
                 fd.close()
             sys.stdout.flush()
@@ -207,11 +156,13 @@ class Phonons:
                     # Update atomic positions and calculate forces
                     atoms_lmn.positions[a, i] = \
                         pos[a, i] + sign * self.delta
-                    forces = atoms_lmn.get_forces()
-                    # Write forces to file
+
+                    # Call derived class implementation of __call__
+                    output = self.__call__(atoms_lmn)
+                    # Write output to file    
                     if rank == 0:
                         fd = open(filename, 'w')
-                        pickle.dump(forces, fd)
+                        pickle.dump(output, fd)
                         sys.stdout.write('Writing %s\n' % filename)
                         fd.close()
                     sys.stdout.flush()
@@ -231,6 +182,94 @@ class Phonons:
                     if isfile(name):
                         remove(name)
 
+
+class Phonons(Displacement):
+    """Class for calculating phonon modes using the finite displacement method.
+
+    The matrix of force constants is calculated from the finite difference
+    approximation to the first-order derivative of the atomic forces as::
+    
+                            2             nbj   nbj
+                nbj        d E           F-  - F+
+               C     = ------------ ~  -------------  ,
+                mai     dR   dR          2 * delta
+                          mai  nbj       
+
+    where F+/F- denotes the force in direction j on atom nb when atom ma is
+    displaced in direction +i/-i. The force constants are related by various
+    symmetry relations. From the definition of the force constants it must
+    be symmetric in the three indices mai::
+
+                nbj    mai         bj        ai
+               C    = C      ->   C  (R ) = C  (-R )  .
+                mai    nbj         ai  n     bj   n
+
+    As the force constants can only depend on the difference between the m and
+    n indices, this symmetry is more conveniently expressed as shown on the
+    right hand-side.
+
+    The acoustic sum-rule::
+
+                           _ _
+                aj         \    bj    
+               C  (R ) = -  )  C  (R )
+                ai  0      /__  ai  m
+                          (m, b)
+                            !=
+                          (0, a)
+                        
+    Ordering of the unit cells illustrated here for a 1-dimensional system:
+    
+    ::
+    
+               m = 0        m = 1        m = -2        m = -1
+           -----------------------------------------------------
+           |            |            |            |            |
+           |        * b |        *   |        *   |        *   |
+           |            |            |            |            |
+           |   * a      |   *        |   *        |   *        |
+           |            |            |            |            |
+           -----------------------------------------------------
+       
+    Example:
+
+    >>> from ase.structure import bulk
+    >>> from ase.phonons import Phonons
+    >>> from gpaw import GPAW, FermiDirac
+    >>> atoms = bulk('Si', 'diamond', a=5.4)
+    >>> calc = GPAW(kpts=(5, 5, 5),
+                    h=0.2,
+                    occupations=FermiDirac(0.))
+    >>> ph = Phonons(atoms, calc, supercell=(5, 5, 5))
+    >>> ph.run()
+    >>> ph.read(method='frederiksen', acoustic=True)
+
+    """
+
+    def __init__(self, *args, **kwargs):
+        """Initialize with base class args and kwargs."""
+
+        if 'name' not in kwargs.keys():
+            kwargs['name'] = "phonon"
+            
+        Displacement.__init__(self, *args, **kwargs)
+        
+        # Attributes for force constants and dynamical matrix in real-space
+        self.C_m = None  # in units of eV / Ang**2 
+        self.D_m = None  # in units of eV / Ang**2 / amu
+        
+        # Attributes for born charges and static dielectric tensor
+        self.Z_avv = None
+        self.eps_vv = None
+
+    def __call__(self, atoms_lmn):
+        """Calculate forces on atoms in supercell."""
+
+        # Calculate forces
+        forces = atoms_lmn.get_forces()
+
+        return forces
+    
     def read_born_charges(self, name=None, neutrality=True):
         """Read Born charges and dieletric tensor from pickle file.
 
@@ -328,15 +367,6 @@ class Phonons:
         # Reshape force constants to (l, m, n) cell indices
         C_lmn = C_m.transpose().copy().reshape(self.N_c + (3*N, 3*N))
 
-        ##########################
-        # Increase number of unit cells to an odd number in each direction
-        # N_c = tuple(self.N_c)
-        # for n, N in enumerate(self.N_c):
-        #     N_c[n] = 2*N//2 + max(N%2, 1)
-        #     
-        # C_lmn_ = np.zeros(N_c + (3*N, 3*N), dtype=float)
-        ##########################
-        
         if symmetrize:
             # Shift reference cell to center
             C_lmn = fft.fftshift(C_lmn, axes=(0, 1, 2)).copy()
@@ -436,10 +466,11 @@ class Phonons:
 
         for q_c in path_kc:
 
+            # q-vector in cartesian coordinates
+            q_v = np.dot(reci_vc, q_c)
+            
             # Add non-analytic part
             if born:
-                # q-vector in cartesian coordinates
-                q_v = np.dot(reci_vc, q_c)
                 # Non-analytic contribution to force constants in atomic units
                 qdotZ_av = np.dot(q_v, self.Z_avv).ravel()
                 C_na = 4 * pi * np.outer(qdotZ_av, qdotZ_av) / \
@@ -449,7 +480,7 @@ class Phonons:
                 M_inv = np.outer(self.m_inv, self.m_inv)                
                 D_na = C_na * M_inv / units.Bohr**2 * units.Hartree
                 self.D_na = D_na
-                D_m = self.D_m + D_na / np.prod(self.N_c) 
+                D_m = self.D_m + D_na / np.prod(self.N_c)
 
             # Evaluate fourier sum
             phase_m = np.exp(-2.j * pi * np.dot(q_c, R_cm))
@@ -597,3 +628,5 @@ class Phonons:
                 traj.write(atoms)
                 
             traj.close()
+
+
