@@ -18,7 +18,7 @@ from ase.data.molecules import molecule
 def build():
     p = OptionParser(usage='%prog  [options] [ads@]surf [output file]',
                      version='%prog 0.1',
-                     description='Example ads/surf: CO@2x2Ru0001')
+                     description='Example ads/surf: fcc-CO@2x2Ru0001')
     p.add_option('-l', '--layers', type='int',
                  default=4,
                  help='Number of layers.')
@@ -36,9 +36,6 @@ def build():
                  help='Height of adsorbate over surface.')
     p.add_option('--distance', type='float',
                  help='Distance between adsorbate and nearest surface atoms.')
-    p.add_option('--site',
-                 help='Adsorption site.',
-                 choices=['fcc', 'hcc', 'hollow', 'bridge'])
     p.add_option('-M', '--magnetic-moment', type='float', default=0.0,
                  help='Magnetic moment.')
     p.add_option('-G', '--gui', action='store_true',
