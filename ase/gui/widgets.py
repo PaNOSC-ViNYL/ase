@@ -103,28 +103,28 @@ class Window(gtk.Window):
         vbox.show()
         self.show()
 
-def pack(vbox, widgets, end=False, bottom=False):
+def pack(vbox, widgets, end=False, bottom=False, expand=False, padding=0):
     if not isinstance(widgets, list):
         widgets.show()
         if bottom:
-            vbox.pack_end(widgets, 0, 0)
+            vbox.pack_end(widgets, expand, expand, padding)
         else:
-            vbox.pack_start(widgets, 0, 0)
+            vbox.pack_start(widgets, expand, expand, padding)
         return widgets
     hbox = gtk.HBox(0, 0)
     hbox.show()
     if bottom:
-        vbox.pack_end(hbox, 0, 0)
+        vbox.pack_end(hbox, expand, expand, padding)
     else:
-        vbox.pack_start(hbox, 0, 0)
+        vbox.pack_start(hbox, expand, expand, padding)
     for widget in widgets:
         if type(widget) is gtk.Entry:
             widget.set_size_request(widget.get_max_length() * 9, 24)
         widget.show()
         if end and widget is widgets[-1]:
-            hbox.pack_end(widget, 0, 0)
+            hbox.pack_end(widget, expand, expand, padding)
         else:
-            hbox.pack_start(widget, 0, 0)
+            hbox.pack_start(widget, expand, expand, padding)
     return widgets
 
 class cancel_apply_ok(gtk.HButtonBox):

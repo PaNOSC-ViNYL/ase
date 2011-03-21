@@ -237,7 +237,7 @@ class GUI(View, Status):
             ('Movie', None, 'Movie ...', None,
              '',
              self.movie),
-            ('EModify', None, 'Expert modify ...', None,
+            ('EModify', None, 'Expert mode ...', '<control>E',
              '',
              self.execute),
             ('Constraints', None, 'Constraints ...', None,
