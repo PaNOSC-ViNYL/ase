@@ -826,7 +826,7 @@ class GUI(View, Status):
  
             window.show()
         
-    def delete_selected_atoms(self, widget, data=None):
+    def delete_selected_atoms(self, widget=None, data=None):
         if data == 'OK':
             atoms = self.images.get_atoms(self.frame)
             lena = len(atoms)
