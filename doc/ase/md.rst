@@ -302,26 +302,33 @@ Useful parameter values:
 
 It has the following methods:
 
-.. method:: NPT.run(n)``:
+.. method:: NPT.run(n):
 
   Perform n timesteps.
 
-.. method:: NPT.initialize()``:
+.. method:: NPT.initialize():
 
   Estimates the dynamic variables for time=-1 to start the
   algorithm.  This is automatically called before the first timestep.
 
-.. method:: NPT.set_stress()``:
+.. method:: NPT.set_stress():
 
   Set the external stress.  Use with care.  It is
   preferable to set the right value when creating the object.
 
-.. method:: NPT.set_mask()``:
+.. method:: NPT.set_mask():
 
   Change the mask.  Use with care, as you may "freeze" a
   fluctuation in the strain rate.
+  
+.. method:: NPT.set_strainrate(eps):
 
-.. method:: NPT.get_gibbs_free_energy()``:
+  Set the strain rate.  ``eps`` must be an upper-triangular matrix.
+  If you set a strain rate along a direction that is "masked out"
+  (see ``set_mask``), the strain rate along that direction will be
+  maintained constantly.
+
+.. method:: NPT.get_gibbs_free_energy():
 
   Gibbs free energy is supposed to be
   preserved by this dynamics.  This is mainly intended as a diagnostic
