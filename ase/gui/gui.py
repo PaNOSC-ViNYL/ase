@@ -1026,7 +1026,7 @@ class GUI(View, Status):
             filename = chooser.get_filename()
 
             suffix = os.path.splitext(filename)[1][1:]
-            if 'POSCAR' in filename:
+            if 'POSCAR' in filename or 'CONTCAR' in filename:
                 suffix = 'POSCAR'
             if suffix == '':
                 # No suffix given.  If the user has chosen a special
