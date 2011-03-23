@@ -528,7 +528,7 @@ class Wannier:
           H(k) = V    diag(eps )  V
                   k           k    k
         """
-        eps_n = self.calc.get_eigenvalues(kpt=k, spin=self.spin)
+        eps_n = self.calc.get_eigenvalues(kpt=k, spin=self.spin)[:self.nbands]
         return np.dot(dag(self.V_knw[k]) * eps_n, self.V_knw[k])
 
     def get_hamiltonian_kpoint(self, kpt_c):
@@ -546,7 +546,6 @@ class Wannier:
             print 'Translating all Wannier functions to cell (0, 0, 0)'
         self.translate_all_to_cell()
         max = (self.kptgrid - 1) / 2
-        max += max > 0
         N1, N2, N3 = max
         Hk = np.zeros([self.nwannier, self.nwannier], complex)
         for n1 in xrange(-N1, N1 + 1):
