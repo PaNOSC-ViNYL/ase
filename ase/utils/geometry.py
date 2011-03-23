@@ -14,7 +14,7 @@ def gcd(seq):
         while n:
             m, n = n, m % n
         return m       
-    return reduce(_gcd, seq)
+    return reduce(_gcd, np.array(np.rint(seq), dtype=int))
 
 
 
@@ -74,8 +74,9 @@ def get_layers(atoms, miller, tolerance=0.001):
 
 
 
-def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, origo=(0, 0, 0), 
-        nlayers=None, extend=1.0, tolerance=0.01):
+def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None, 
+        origo=(0, 0, 0), nlayers=None, extend=1.0, tolerance=0.01, 
+        maxatoms=None):
     """Cuts out a cell defined by *a*, *b*, *c* and *origo* from a
     sufficiently repeated copy of *atoms*.
 
@@ -108,6 +109,10 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, origo=(0, 0, 0),
         in general is not perpendicular to a and b for non-cubic
         systems. For cubic systems however, this is redused to 
         c = cross(a, b).
+    clength: None | float
+        If not None, the length of the c-vector will be fixed to
+        *clength* Angstroms. Should not be used together with
+        *nlayers*.
     origo: int | 3 floats
         Position of origo of the new cell in scaled coordinates. If
         integer, the position of the atom with index *origo* is used.
@@ -126,6 +131,17 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, origo=(0, 0, 0),
         Determines what is defined as a plane.  All atoms within
         *tolerance* Angstroms from a given plane will be considered to
         belong to that plane.
+    maxatoms: None | int
+        This option is used to auto-tune *tolerance* when *nlayers* is
+        given for high zone axis systems.  For high zone axis one
+        needs to reduce *tolerance* in order to distinguise the atomic
+        planes, resulting in the more atoms will be added and
+        eventually MemoryError.  A too small *tolerance*, on the other
+        hand, might result in inproper splitting of atomic planes and
+        that too few layers are returned.
+            If *maxatoms* is not None, *tolerance* will automatically
+        be gradually reduced until *nlayers* atomic layers is
+        obtained, when the number of atoms exceeds *maxatoms*.
 
     Example:
 
@@ -175,12 +191,9 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, origo=(0, 0, 0),
     if isinstance(c, int):
         c = scaled[c] - origo
 
-
     a = np.array(a, dtype=float)
     b = np.array(b, dtype=float)
     if c is None:
-        # 
-        #
         metric = np.dot(cell, cell.T)
         vol = np.sqrt(np.linalg.det(metric))
         h = np.cross(a, b) 
@@ -198,19 +211,25 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, origo=(0, 0, 0),
             d = scaled[:,2]
             keys = np.argsort(d)
             ikeys = np.argsort(keys)
-            mask = np.concatenate(([True], np.diff(d[keys]) > tolerance))
-            tags = np.cumsum(mask)[ikeys] - 1
-            levels = d[keys][mask]
+            tol = tolerance
+            while True:
+                mask = np.concatenate(([True], np.diff(d[keys]) > tol))
+                tags = np.cumsum(mask)[ikeys] - 1
+                levels = d[keys][mask]
+                if len(at) < maxatoms or len(levels) > nlayers: break
+                tol *= 0.9
             if len(levels) > nlayers: break
             c *= 2
 
         at.cell[2] *= levels[nlayers]
         return at[tags < nlayers]
 
+    newcell = np.dot(np.array([a, b, c]), cell)
+    if nlayers is None and clength is not None:
+        newcell[2,:] *= clength/np.linalg.norm(newcell[2])
 
     # Create a new atoms object, repeated and translated such that
     # it completely covers the new cell
-    newcell = np.dot(np.array([a, b, c]), cell)
     scorners_newcell = np.array([[0., 0., 0.], [0., 0., 1.], 
                                  [0., 1., 0.], [0., 1., 1.], 
                                  [1., 0., 0.], [1., 0., 1.], 
@@ -229,7 +248,6 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, origo=(0, 0, 0),
     sp = np.linalg.solve(maskcell.T, (atoms.positions).T).T
     mask = np.all(np.logical_and(-stol <= sp, sp < 1-stol), axis=1)
     atoms = atoms[mask]
-
     return atoms
 
 
