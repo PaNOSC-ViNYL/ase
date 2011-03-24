@@ -84,6 +84,7 @@ class Spacegroup(object):
         lambda self: len(self._subtrans), 
         doc='Number of cell-subtranslation vectors.')
     def _get_nsymop(self):
+        """Returns total number of symmetry operations."""
         if self.centrosymmetric:
             return 2 * len(self._rotations) * len(self._subtrans)
         else:
@@ -130,7 +131,7 @@ class Spacegroup(object):
             f.close()
 
     def __repr__(self):
-        return 'Spacegroup(%d, setting=%d)'%(self.no, self.setting)
+        return 'Spacegroup(%d, setting=%d)' % (self.no, self.setting)
     
     def __str__(self):
         """Return a string representation of the space group data in
@@ -199,7 +200,7 @@ class Spacegroup(object):
             parities.append(-1)
         for parity in parities:
             for subtrans in self.subtrans:
-                for rot,trans in zip(self.rotations, self.translations):
+                for rot, trans in zip(self.rotations, self.translations):
                     newtrans = np.mod(trans + subtrans, 1)
                     symop.append((parity*rot, newtrans))
         return symop
@@ -410,9 +411,10 @@ class Spacegroup(object):
             normalised[i,:] = sympos[j]
         return normalised
 
-    def unique_sites(self, scaled_positions, symprec=1e-3):
-        """Returns a subset *scaled_positions* containing only the
-        symmetry-unique positions.
+    def unique_sites(self, scaled_positions, symprec=1e-3, output_mask=False):
+        """Returns a subset of *scaled_positions* containing only the
+        symmetry-unique positions.  If *output_mask* is True, a boolean
+        array masking the subset is also returned.
 
         Example:
 
@@ -432,7 +434,10 @@ class Spacegroup(object):
         xmask = np.abs(np.diff(symnorm[perm], axis=0)).max(axis=1) > symprec
         mask = np.concatenate(([True], xmask))
         imask = mask[iperm]
-        return scaled[imask]
+        if output_mask:
+            return scaled[imask], imask
+        else:
+            return scaled[imask]
 
     def tag_sites(self, scaled_positions, symprec=1e-3):
         """Returns an integer array of the same length as *scaled_positions*, 
@@ -522,8 +527,8 @@ def _read_datafile_entry(spg, no, symbol, setting, f):
     # primitive vectors
     f.readline()
     spg._scaled_primitive_cell = np.array([map(float, f.readline().split()) 
-                                       for i in range(3)], 
-                                      dtype=np.float)
+                                           for i in range(3)], 
+                                          dtype=np.float)
     # primitive reciprocal vectors
     f.readline()
     spg._reciprocal_cell = np.array([map(int, f.readline().split()) 
@@ -573,17 +578,26 @@ def parse_sitesym(symlist, sep=','):
 
     >>> symlist = [
     ...     'x,y,z',
-    ...     '-x,-y,z',
     ...     '-y+1/2,x+1/2,z',
-    ...     'y+1/2,-x+1/2,z',
-    ...     '-x+1/2,y+1/2,-z',
-    ...     'x+1/2,-y+1/2,-z',
-    ...     'y,x,-z',
     ...     '-y,-x,-z',
     ... ]
     >>> rot, trans = parse_sitesym(symlist)
     >>> rot
+    array([[[ 1,  0,  0],
+            [ 0,  1,  0],
+            [ 0,  0,  1]],
+    <BLANKLINE>
+           [[ 0, -1,  0],
+            [ 1,  0,  0],
+            [ 0,  0,  1]],
+    <BLANKLINE>
+           [[ 0, -1,  0],
+            [-1,  0,  0],
+            [ 0,  0, -1]]])
     >>> trans
+    array([[ 0. ,  0. ,  0. ],
+           [ 0.5,  0.5,  0. ],
+           [ 0. ,  0. ,  0. ]])
     """
     nsym = len(symlist)
     rot = np.zeros((nsym, 3, 3), dtype='int')
@@ -609,10 +623,10 @@ def parse_sitesym(symlist, sep=','):
     return rot, trans
                 
 
-def spacegroup_from_data(no=None, symbol=None, setting=1, centrosymmetric=None, 
-                         scaled_primitive_cell=None, reciprocal_cell=None, 
-                         subtrans=None, sitesym=None, rotations=None, 
-                         translations=None, datafile=None):
+def spacegroup_from_data(no=None, symbol=None, setting=1, 
+                         centrosymmetric=None, scaled_primitive_cell=None, 
+                         reciprocal_cell=None, subtrans=None, sitesym=None, 
+                         rotations=None, translations=None, datafile=None):
     """Manually create a new space group instance.  This might be
     usefull when reading crystal data with its own spacegroup
     definitions."""
@@ -644,7 +658,8 @@ def spacegroup_from_data(no=None, symbol=None, setting=1, centrosymmetric=None,
         have_sym = True
     if have_sym:
         if spg._rotations.shape[0] != spg._translations.shape[0]:
-            raise SpacegroupValueError('inconsistent number of rotations and translations')
+            raise SpacegroupValueError('inconsistent number of rotations and '
+                                       'translations')
         spg._nsymop = spg._rotations.shape[0]
     return spg
 
