@@ -40,6 +40,8 @@ def build():
                  help='Magnetic moment.')
     p.add_option('-G', '--gui', action='store_true',
                  help="Pop up ASE's GUI.")
+    p.add_option('-P', '--python', action='store_true',
+                 help="Write Python script.")
 
     opt, args = p.parse_args()
 
@@ -87,15 +89,25 @@ def build():
     else:
         a = estimate_lattice_constant(surf, x, opt.c_over_a)
 
+    script = ['from ase.lattice.surface import ',
+              'vac = %r' % opt.vacuum,
+              'a = %r' % a]
+    
     if x == 'fcc':
         if face is None:
             face = '111'
         slab = fcc111(surf, (n, m, opt.layers), a, opt.vacuum)
+        script[0] += 'fcc111'
+        script += ['slab = fcc111(%r, (%d, %d, %d), a, vac)' %
+                   (surf, n, m, opt.layers)]
         r = a / np.sqrt(2) / 2
     elif x == 'bcc':
         if face is None:
             face = '110'
         slab = bcc110(surf, (n, m, opt.layers), a, opt.vacuum)
+        script[0] += 'bcc110'
+        script += ['slab = bcc110(%r, (%d, %d, %d), a, vac)' %
+                   (surf, n, m, opt.layers)]
         r = a * np.sqrt(3) / 4
     elif x == 'hcp':
         if face is None:
@@ -105,6 +117,10 @@ def build():
         else:
             c = opt.c_over_a * a
         slab = hcp0001(surf, (n, m, opt.layers), a, c, opt.vacuum)
+        script[0] += 'hcp0001'
+        script += ['c = %r * a' % (c / a),
+                   'slab = hcp0001(%r, (%d, %d, %d), a, c, vac)' %
+                   (surf, n, m, opt.layers)]
         r = a / 2
     else:
         raise NotImplementedError
@@ -113,9 +129,13 @@ def build():
     if magmom is None:
         magmom = {'Ni': 0.6, 'Co': 1.2, 'Fe': 2.3}.get(surf, 0.0)
     slab.set_initial_magnetic_moments([magmom] * len(slab))
+    if magmom != 0:
+        script += ['slab.set_initial_magnetic_moments([%r] * len(slab))' %
+                   magmom]
     
     slab.pbc = 1
-
+    script += ['slab.pbc = True']
+    
     name = '%dx%d%s%s' % (n, m, surf, face) 
 
     if ads:
@@ -127,8 +147,12 @@ def build():
         symbols = string2symbols(ads)
         nads = len(symbols) 
         if nads == 1:
+            script[:0] = ['from ase import Atoms']
+            script += ['ads = Atoms(%r)' % ads]
             ads = Atoms(ads)
         else:
+            script[:0] = ['from ase.data.molecules import molecule']
+            script += ['ads = molecule(%r)' % ads]
             ads = molecule(ads)
 
         add_adsorbate(slab, ads, 0.0, site)
@@ -141,21 +165,31 @@ def build():
         if h is None:
             R = slab.positions
             y = ((R[:-nads] - R[-nads])**2).sum(1).min()**0.5
-            print y
             h = (d**2 - y**2)**0.5
-            print h
         else:
             assert opt.distance is None
         
         slab.positions[-nads:, 2] += h
 
+        script[1] += ', add_adsorbate'
+        script += ['add_adsorbate(slab, ads, %r, %r)' % (h, site)]
+        
     if len(args) == 2:
         write(args[1], slab)
+        script[1:1] = ['from ase.io import write']
+        script += ['write(%r, slab)' % args[1]]
     elif not opt.gui:
         write(name + '.traj', slab)
+        script[1:1] = ['from ase.io import write']
+        script += ['write(%r, slab)' % (name + '.traj')]
         
     if opt.gui:
         view(slab)
+        script[1:1] = ['from ase.visualize import view']
+        script += ['view(slab)']
+
+    if opt.python:
+        print('\n'.join(script))
 
 
 if __name__ == '__main__':
