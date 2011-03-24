@@ -137,8 +137,11 @@ class Vibrations:
                     for ndis in range(1, self.nfree//2+1):
                         filename = ('%s.%d%s%s.pckl' %
                                     (self.name, a, 'xyz'[i], ndis*' +-'[sign]))
-                        if isfile(filename):
+                        try:
+                            pickle.load(open(filename))
                             continue
+                        except:
+                            pass
                         barrier()
                         if rank == 0:
                             fd = open(filename, 'w')                        
