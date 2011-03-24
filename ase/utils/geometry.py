@@ -216,9 +216,12 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
                 mask = np.concatenate(([True], np.diff(d[keys]) > tol))
                 tags = np.cumsum(mask)[ikeys] - 1
                 levels = d[keys][mask]
-                if len(at) < maxatoms or len(levels) > nlayers: break
+                if (maxatoms is None or len(at) < maxatoms or 
+                    len(levels) > nlayers): 
+                    break
                 tol *= 0.9
-            if len(levels) > nlayers: break
+            if len(levels) > nlayers: 
+                break
             c *= 2
 
         at.cell[2] *= levels[nlayers]
