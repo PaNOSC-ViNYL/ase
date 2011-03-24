@@ -24,6 +24,17 @@ def gram_schmidt(U):
         col /= np.linalg.norm(col)
 
 
+def gram_schmidt_single(U, n):
+    """Orthogonalize columns of U to column n"""
+    N = len(U.T)
+    v_n = U.T[n]
+    indices = range(N)
+    del indices[indices.index(n)]
+    for i in indices:
+        v_i = U.T[i]
+        v_i -=  v_n * np.dot(v_n.conj(), v_i)
+        
+
 def lowdin(U, S=None):
     """Orthonormalize columns of U according to the Lowdin procedure.
     
@@ -130,6 +141,35 @@ def md_min(func, step=.25, tolerance=1e-6, verbose=False, **kwargs):
         t += time()
         print '%d iterations in %0.2f seconds (%0.2f ms/iter), endstep = %s' %(
             count, t, t * 1000. / count, step)
+
+
+def rotation_from_projection2(proj_nw, fixed):
+    V_ni = proj_nw
+    Nb, Nw = proj_nw.shape
+    M = fixed
+    L = Nw - M
+    print 'M=%i, L=%i, Nb=%i, Nw=%i' % (M, L, Nb, Nw) 
+    U_ww = np.zeros((Nw, Nw), dtype=proj_nw.dtype)
+    c_ul = np.zeros((Nb-M, L), dtype=proj_nw.dtype)
+    for V_n in V_ni.T:
+        V_n /= np.linalg.norm(V_n)
+    
+    # Find EDF
+    P_ui = V_ni[M:].copy()
+    la = np.linalg
+    for l in range(L):
+        norm_list = np.array([la.norm(v) for v in P_ui.T])
+        perm_list = np.argsort(-norm_list)
+        P_ui = P_ui[:, perm_list].copy()    # largest norm to the left
+        P_ui[:, 0] /= la.norm(P_ui[:, 0])   # normalize
+        c_ul[:, l] = P_ui[:, 0]             # save normalized EDF
+        gram_schmidt_single(P_ui, 0)        # ortho remain. to this EDF
+        P_ui = P_ui[:, 1:].copy()           # remove this EDF
+
+    U_ww[:M] = V_ni[:M, :]
+    U_ww[M:] = np.dot(c_ul.T.conj(), V_ni[M:])
+    gram_schmidt(U_ww)
+    return U_ww, c_ul
 
 
 def rotation_from_projection(proj_nw, fixed, ortho=True):
@@ -368,7 +408,7 @@ class Wannier:
             # Use initial guess to determine U and C
             self.C_kul, self.U_kww = self.calc.initial_wannier(
                 initialwannier, self.kptgrid, self.fixedstates_k,
-                self.edf_k, self.spin)
+                self.edf_k, self.spin, self.nbands)
         self.update()
 
     def save(self, file):
