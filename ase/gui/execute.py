@@ -42,7 +42,7 @@ class Execute(gtk.Window):
     <c>s</c>:\t\tatom is selected
     <c>f</c>:\t\tforce
     <c>Z</c>:\tatomic number
-    examples: x -= A[0][0], s = (z > 5), Z = 6
+    examples: x -= A[0][0], s = z > 5, Z = 6
     """
     
     def __init__(self, gui):
@@ -137,6 +137,8 @@ class Execute(gtk.Window):
         else:
             code = compile(cmd + '\n', 'execute.py', 'single',
                            __future__.CO_FUTURE_DIVISION)
+            if index_based and len(indices) == 0 and self.selected.get_active():
+                self.add_text("*** WARNING: No atoms selected to work with")
             for i in loop_images:
                 R = img.P[i][indices]
                 A = img.A[i]

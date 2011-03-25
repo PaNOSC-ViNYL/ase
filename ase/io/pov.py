@@ -167,7 +167,7 @@ class POVRAY(EPS):
         w('#declare intermediate = finish {'
           'ambient 0.3 '
           'diffuse 0.6 '
-          'specular 0.60 '
+          'specular 0.10 '
           'roughness 0.04 }\n')
         w('#declare vmd = finish {'
           'ambient .0 '
