@@ -138,10 +138,10 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
         planes, resulting in the more atoms will be added and
         eventually MemoryError.  A too small *tolerance*, on the other
         hand, might result in inproper splitting of atomic planes and
-        that too few layers are returned.
-            If *maxatoms* is not None, *tolerance* will automatically
-        be gradually reduced until *nlayers* atomic layers is
-        obtained, when the number of atoms exceeds *maxatoms*.
+        that too few layers are returned.  If *maxatoms* is not None,
+        *tolerance* will automatically be gradually reduced until
+        *nlayers* atomic layers is obtained, when the number of atoms
+        exceeds *maxatoms*.
 
     Example:
 
