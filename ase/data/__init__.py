@@ -1,5 +1,5 @@
 import numpy as np
-
+import os.path
 
 chemical_symbols = ['X',  'H',  'He', 'Li', 'Be',
                     'B',  'C',  'N',  'O',  'F',
@@ -371,3 +371,7 @@ reference_states = [\
     None,#Md
     None,#No
     None]#Lw
+
+name = os.path.expanduser('~/.ase/data.py')
+if os.path.exists(name):
+    execfile(name)

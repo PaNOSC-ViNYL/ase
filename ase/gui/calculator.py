@@ -285,13 +285,17 @@ class SetCalculator(SetupWindow):
         # When control is retuned, self.vasp_parameters has been set.
 
     def get_atoms(self):
-        "Make an atoms object from the active image"
+        "Make an atoms object from the active frame"
         images = self.gui.images
+        frame = self.gui.frame
         if images.natoms < 1:
             oops("No atoms present")
             return False
-        self.atoms = Atoms(positions=images.P[0], symbols=images.Z,
-                           cell=images.A[0], pbc=images.pbc)
+        self.atoms = Atoms(positions=images.P[frame],
+                           symbols=images.Z,
+                           cell=images.A[frame],
+                           pbc=images.pbc,
+                           magmoms=images.M[frame])
         if not images.dynamic.all(): 
             from ase.constraints import FixAtoms
             self.atoms.set_constraint(FixAtoms(mask=1-images.dynamic))

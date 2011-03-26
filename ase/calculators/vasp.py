@@ -760,8 +760,9 @@ class Vasp(Calculator):
                     incar.write(' LDAUL =%s\n' % llist)
                     incar.write(' LDAUU =%s\n' % ulist)
                     incar.write(' LDAUJ =%s\n' % jlist)
-        if self.spinpol and not self.int_params['ispin']:
-            incar.write(' ispin = 2\n'.upper())
+        if self.spinpol:
+            if not self.int_params['ispin']:
+                incar.write(' ispin = 2\n'.upper())
             # Write out initial magnetic moments
             magmom = atoms.get_initial_magnetic_moments()[self.sort]
             list = [[1, magmom[0]]]

@@ -23,17 +23,14 @@ class Execute(gtk.Window):
     - Assignment of a global variable may not reference a local one
     - use 'Current frame' switch to switch off application to all frames
     <c>e</c>:\t\ttotal energy of one frame
-    <c>E</c>:\t\ttotal energy array of all frames
-    <c>frame</c>:\tframe number
-    <c>F</c>:\t\tall forces in one frame
     <c>fmax</c>:\tmaximal force in one frame
     <c>A</c>:\tunit cell
-    <c>S</c>:\tall selected atoms (boolean array)
+    <c>E</c>:\t\ttotal energy array of all frames
+    <c>F</c>:\t\tall forces in one frame
+    <c>M</c>:\tall magnetic moments
     <c>R</c>:\t\tall atomic positions
-    <c>del S</c>:\tdelete selection
-    <c>gui</c>:\tadvanced: ag window python object
-    <c>img</c>:\tadvanced: ag images object
-    examples: <c>frame = 1</c>, <c>A[0][1] += 4</c>, <c>e-E[-1]</c>, <c>gui.movie()</c>
+    <c>S</c>:\tall selected atoms (boolean array)
+    examples: <c>frame = 1</c>, <c>A[0][1] += 4</c>, <c>e-E[-1]</c>
 
     Atom commands work on each atom (or a selection) individually
     - these can use global commands on the RHS of an equation
@@ -42,7 +39,15 @@ class Execute(gtk.Window):
     <c>s</c>:\t\tatom is selected
     <c>f</c>:\t\tforce
     <c>Z</c>:\tatomic number
+    <c>m</c>:\tmagnetic moment
     examples: x -= A[0][0], s = z > 5, Z = 6
+
+    Special commands and objects:
+    <c>sa,cf</c>:\t(un)restrict to selected atoms/current frame
+    <c>frame</c>:\tframe number
+    <c>gui</c>:\tadvanced: ag window python object
+    <c>img</c>:\tadvanced: ag images object
+    <c>del S</c>:\tdelete selection
     """
     
     def __init__(self, gui):
@@ -77,8 +82,8 @@ class Execute(gtk.Window):
         save_button.connect('clicked',self.save_output)
         help_button = gtk.Button(stock=gtk.STOCK_HELP)
         help_button.connect('clicked',self.terminal_help,"")
-        pack(vbox, [gtk.Label('Global: Use n, N, R, A, S, D, E, frame;'
-                              +' Atoms: Use a, x, y, z, f, s, Z     '),
+        pack(vbox, [gtk.Label('Global: Use A, D, E, M, N, R, S, n, frame;'
+                              +' Atoms: Use a, f, m, s, x, y, z, Z     '),
                     help_button, save_button])
         self.add(vbox)
         vbox.show()
@@ -86,8 +91,8 @@ class Execute(gtk.Window):
         self.cmd.grab_focus()
 
     def execute(self, widget=None):
-        global_commands = ['n','N','R','A','S','e','E','D','F','frame']  # explicitly 'implemented' commands for use on whole system or entire single frame
-        index_commands  = ['a','x','y','z','s','f','Z','d']              # commands for use on all (possibly selected) atoms
+        global_commands = ['n','N','R','A','S','e','E','D','F','M','frame']  # explicitly 'implemented' commands for use on whole system or entire single frame
+        index_commands  = ['a','x','y','z','s','f','Z','d','m']              # commands for use on all (possibly selected) atoms
 
         cmd = self.cmd.get_text().strip()
         if len(cmd) == 0:
@@ -144,6 +149,7 @@ class Execute(gtk.Window):
                 A = img.A[i]
                 F = img.F[i][indices]
                 e = img.E[i]
+                M = img.M[i][indices]
                 if len(indices) > 0:
                     fmax = max(((F * D[indices])**2).sum(1)**.5)
                 else:
@@ -165,6 +171,7 @@ class Execute(gtk.Window):
                         f = np.vdot(F[n]*d,F[n]*d)**0.5
                         s = S[a]
                         Z = img.Z[a]
+                        m = M[n]
                         try:
                             self.add_text(repr(eval(cmd)))
                         except:
@@ -172,6 +179,7 @@ class Execute(gtk.Window):
                         S[a] = s
                         img.P[i][a] = x, y, z
                         img.Z[a] = Z
+                        img.M[i][a] = m
         gui.images.set_radii(0.89)
         gui.set_colors()
         gui.set_coordinates()
