@@ -87,6 +87,7 @@ class BFGSLineSearch(Optimizer):
         g = -f.reshape(-1) / self.alpha
         p0 = self.p
         self.update(r, g, self.r0, self.g0, p0)
+        #o,v = np.linalg.eigh(self.B)
         e = self.func(r)
 
         self.p = -np.dot(self.H,g)
@@ -112,7 +113,7 @@ class BFGSLineSearch(Optimizer):
         self.I = eye(len(self.atoms) * 3, dtype=int)
         if self.H is None:
             self.H = eye(3 * len(self.atoms))
-            self.B = np.linalg.inv(self.H)
+            #self.B = np.linalg.inv(self.H)
             return
         else:
             dr = r - r0
@@ -137,17 +138,17 @@ class BFGSLineSearch(Optimizer):
             H0 = self.H
             self.H = np.dot(A1, np.dot(self.H, A2)) + rhok * dr[:, np.newaxis] \
                      * dr[np.newaxis, :]
-            self.B = np.linalg.inv(self.H)
+            #self.B = np.linalg.inv(self.H)
 
     def func(self, x):
         """Objective function for use of the optimizers"""
         self.atoms.set_positions(x.reshape(-1, 3))
+        calc = self.atoms.get_calculator()
         self.function_calls += 1
         # Scale the problem as SciPy uses I as initial Hessian.
-        calc = self.atoms.get_calculator()
         if self.use_free_energy:
             try:
-                return calc.get_potential_energy(force_consistent=True) / self.alpha
+                return calc.get_potential_energy(self.atoms,force_consistent=True) / self.alpha
             except TypeError:
                 return calc.get_potential_energy(self.atoms) / self.alpha
         else:
