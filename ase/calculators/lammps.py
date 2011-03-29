@@ -1,6 +1,6 @@
 #!/usr//bin/env python
 
-# lammps.py (2011/03/28)
+# lammps.py (2011/03/29)
 # An ASE calculator for the LAMMPS classical MD code available from
 #       http://lammps.sandia.gov/
 # The environment variable LAMMPS_COMMAND must be defined to point to the LAMMPS binary.
@@ -38,11 +38,12 @@ CALCULATION_END_MARK = "__end_of_ase_invoked_calculation__"
 
 class LAMMPS:
 
-    def __init__(self, label="lammps", dir="LAMMPS", parameters={}, files=[], 
+    def __init__(self, label="lammps", dir="LAMMPS", parameters={}, specorder=[], files=[], 
                  always_triclinic=False, keep_alive=False):
         self.label = label
         self.dir = dir
         self.parameters = parameters
+        self.specorder = specorder
         self.files = files
         self.always_triclinic = always_triclinic
         self.calls = 0
@@ -185,7 +186,7 @@ class LAMMPS:
         """Method which writes a LAMMPS data file with atomic structure."""
         if (lammps_data == None):
             lammps_data = "data." + self.label
-        write_lammps(lammps_data, self.atoms, force_skew=self.always_triclinic)
+        write_lammps(lammps_data, self.atoms, self.specorder, force_skew=self.always_triclinic)
 
     def write_lammps_in(self, lammps_in=None, lammps_data=None, lammps_trj=None, parameters={}):
         """Method which writes a LAMMPS in file with run parameters and settings."""
@@ -252,7 +253,7 @@ class LAMMPS:
                 ("dump dump_all all custom 1 %s id type x y z vx vy vz fx fy fz \n" % lammps_trj) )
         f.write("\n")
         f.write("thermo_style custom step temp ke pe etotal cpu \n" +
-                "thermo_modify flush yes format 1 %4d format 2 %9.3f format 3 %20.6f format 4 %20.6f format 5 %20.6f format 6 %9.3f \n" +
+                "thermo_modify flush yes format 1 %4d format 2 %9.3f format 3 %.11f format 4 %.11f format 5 %.11f format 6 %9.3f \n" +
                 "thermo 1 \n" +
                 "\n")
         if ("minimize" in parameters):
@@ -268,7 +269,7 @@ class LAMMPS:
         if close_in_file:
             f.close()
 
-    def read_lammps_log(self, lammps_log=None):
+    def read_lammps_log(self, lammps_log=None, PotEng_first=False):
         """Method which reads a LAMMPS output log file."""
 
         if (lammps_log == None):
@@ -283,15 +284,25 @@ class LAMMPS:
             close_log_file = False
 
         epot = float('nan')
+        i = 0
+        prevline = None
         while True:
             line = f.readline()
             if not line or line.strip() == CALCULATION_END_MARK:
                 break
-            # get potential energy of first step (if more are done)
+            # get column of potential energy
             if "PotEng" in line:
                 i = line.split().index("PotEng")
-                line = f.readline()
-                epot = float(line.split()[i])
+                # get potential energy of first step (if more are done)
+                if PotEng_first:
+                    line = f.readline()
+                    epot = float(line.split()[i])
+                    break
+            # get potential energy of last step (if more are done)
+            if "Loop" in line:
+                if prevline is not None:  
+                    epot = float(prevline.split()[i])
+            prevline = line
 
         if close_log_file:
             f.close()
@@ -471,7 +482,7 @@ class special_tee:
 
 # could perhaps go into io.lammps in the future...
 #from ase.parallel import paropen
-def write_lammps(fileobj, atoms, force_skew=False):
+def write_lammps(fileobj, atoms, specorder=[], force_skew=False):
     """Method which writes atomic structure data to a LAMMPS data file."""
     if isinstance(fileobj, file):
         f = fileobj
@@ -491,15 +502,23 @@ def write_lammps(fileobj, atoms, force_skew=False):
     n_atoms = len(symbols)
     f.write("%d \t atoms \n" % n_atoms)
 
-    # Uniqify 'symbols' list and sort to a new list 'species'.
-    # Sorting is important in case of multi-component systems:
-    # This way it is assured that LAMMPS atom types are always
-    # assigned predictively according to the alphabetic order 
-    # of the species present in the current system. 
-    # (Hence e.g. the mapping in interaction statements for alloy
-    #  potentials depending on the order of the elements in the
-    #  external potential can also be safely adjusted accordingly.)
-    species = sorted(list(set(symbols)))
+    if len(specorder):
+        # To index elements in the LAMMPS data file (indices must
+        # correspond to order in the potential file), either use supplied
+        # specorder parameter (["Al", "Mg"] means "Al" will have index 1
+        # and "Mg" will have index 2), or, if specorder is not supplied,
+        # index the species alphabetically:
+        species = specorder
+    else :
+        # Uniqify 'symbols' list and sort to a new list 'species'.
+        # Sorting is important in case of multi-component systems:
+        # This way it is assured that LAMMPS atom types are always
+        # assigned predictively according to the alphabetic order 
+        # of the species present in the current system. 
+        # (Hence e.g. the mapping in interaction statements for alloy
+        #  potentials depending on the order of the elements in the
+        #  external potential can also be safely adjusted accordingly.)
+        species = sorted(list(set(symbols)))
     n_atom_types = len(species)
     f.write("%d \t atom types \n" % n_atom_types)
 
@@ -669,7 +688,6 @@ if __name__ == "__main__":
 
 #    calc.clean(force=True)
     calc.clean()
-
 
 
 
