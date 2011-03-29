@@ -1,6 +1,6 @@
 #!/usr//bin/env python
 
-# lammps.py (2011/02/22)
+# lammps.py (2011/03/28)
 # An ASE calculator for the LAMMPS classical MD code available from
 #       http://lammps.sandia.gov/
 # The environment variable LAMMPS_COMMAND must be defined to point to the LAMMPS binary.
@@ -22,11 +22,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 # or see <http://www.gnu.org/licenses/>.
 
-import os
+import os 
 import shutil
 import shlex
 import time
-import math
 import decimal as dec
 from subprocess import Popen, PIPE
 from threading import Thread
@@ -110,18 +109,20 @@ class LAMMPS:
         self.calls += 1
 
         # set LAMMPS command from environment variable
-        env = os.environ
-        if 'LAMMPS_COMMAND' in env:
-            lammps_cmd_line = shlex.split(env['LAMMPS_COMMAND'])
+        if 'LAMMPS_COMMAND' in os.environ:
+            lammps_cmd_line = shlex.split(os.environ['LAMMPS_COMMAND'])
             if len(lammps_cmd_line) == 0:
                 self.clean()
                 raise RuntimeError('The LAMMPS_COMMAND environment variable '
                                    'must not be empty')
+            # want always an absolute path to LAMMPS binary when calling from self.dir                       
+            lammps_cmd_line[0] = os.path.abspath(lammps_cmd_line[0])
+
         else:
 	    self.clean()
             raise RuntimeError('Please set LAMMPS_COMMAND environment variable')
-        if 'LAMMPS_OPTIONS' in env:
-            lammps_options = shlex.split(env['LAMMPS_OPTIONS'])
+        if 'LAMMPS_OPTIONS' in os.environ:
+            lammps_options = shlex.split(os.environ['LAMMPS_OPTIONS'])
         else:
             lammps_options = shlex.split("-echo log -screen none")
 
@@ -203,10 +204,12 @@ class LAMMPS:
             f = lammps_in
             close_in_file = False
 
-        f.write("# (written by ASE) \n"
-                "clear\n"
-                "\n"
-                "### variables \n"
+        f.write("# (written by ASE) \n" +
+                "clear\n" +
+                "\n" +
+                "### variables \n" +
+                ("variable data_file string \"%s\" \n" % lammps_data ) +
+                ("variable dump_file string \"%s\" \n" % lammps_trj ) +
                 "\n\n")
 
         pbc = self.atoms.get_pbc()
@@ -238,20 +241,19 @@ class LAMMPS:
             #    pair_style 	lj/cut 2.5
             #    pair_coeff 	* * 1 1
             #    mass           * 1.0        else:
-            f.write("pair_style lj/cut 2.5 \n"
-                    "pair_coeff * * 1 1 \n"
+            f.write("pair_style lj/cut 2.5 \n" +
+                    "pair_coeff * * 1 1 \n" +
                     "mass * 1.0 \n")
         f.write("\n")
 
-        f.write("### run \n"
-                "fix fix_nve all nve \n"
-                "\n"
-                "dump dump_all all custom 1 %s id type x y z vx vy vz fx fy fz \n" %\
-                    lammps_trj)
+        f.write("### run \n" +
+                "fix fix_nve all nve \n" +
+                "\n" +
+                ("dump dump_all all custom 1 %s id type x y z vx vy vz fx fy fz \n" % lammps_trj) )
         f.write("\n")
-        f.write("thermo_style custom step temp ke pe etotal cpu \n"
-                "thermo_modify format 1 %4d format 2 %9.3f format 3 %20.6f format 4 %20.6f format 5 %20.6f format 6 %9.3f \n"
-                "thermo 1 \n"
+        f.write("thermo_style custom step temp ke pe etotal cpu \n" +
+                "thermo_modify flush yes format 1 %4d format 2 %9.3f format 3 %20.6f format 4 %20.6f format 5 %20.6f format 6 %9.3f \n" +
+                "thermo 1 \n" +
                 "\n")
         if ("minimize" in parameters):
             f.write("minimize %s \n" % parameters["minimize"])
@@ -667,6 +669,7 @@ if __name__ == "__main__":
 
 #    calc.clean(force=True)
     calc.clean()
+
 
 
 
