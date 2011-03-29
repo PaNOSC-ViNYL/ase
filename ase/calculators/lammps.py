@@ -24,9 +24,11 @@
 
 import os
 import shutil
+import shlex
 import time
 import math
 import decimal as dec
+from subprocess import Popen
 import numpy as np
 from ase import Atoms
 from ase.parallel import paropen
@@ -88,15 +90,20 @@ class LAMMPS:
         self.calls += 1
 
         # set LAMMPS command from environment variable
-        if os.environ.has_key('LAMMPS_COMMAND'):
-            lammps_command = os.path.abspath(os.environ['LAMMPS_COMMAND'])
+        env = os.environ
+        if 'LAMMPS_COMMAND' in env:
+            lammps_cmd_line = shlex.split(env['LAMMPS_COMMAND'])
+            if len(lammps_cmd_line) == 0:
+                self.clean()
+                raise RuntimeError('The LAMMPS_COMMAND environment variable '
+                                   'must not be empty')
         else:
 	    self.clean()
             raise RuntimeError('Please set LAMMPS_COMMAND environment variable')
-        if os.environ.has_key('LAMMPS_OPTIONS'):
-            lammps_options = os.environ['LAMMPS_OPTIONS']
+        if 'LAMMPS_OPTIONS' in env:
+            lammps_options = shlex.split(env['LAMMPS_OPTIONS'])
         else:
-            lammps_options = "-echo log -screen none"
+            lammps_options = shlex.split("-echo log -screen none")
 
         # change into subdirectory for LAMMPS calculations
         cwd = os.getcwd()
@@ -115,7 +122,9 @@ class LAMMPS:
 
         # run LAMMPS
         # TODO: check for successful completion (based on output files?!) of LAMMPS call...
-        exitcode = os.system("%s %s -in %s -log %s" % (lammps_command, lammps_options, lammps_in, lammps_log))
+        lmp_proc = Popen(lammps_cmd_line+lammps_options+\
+                            ['-in', lammps_in, '-log', lammps_log])
+        exitcode = lmp_proc.wait()
         if exitcode != 0:
             cwd = os.getcwd()
             raise RuntimeError("LAMMPS exited in %s with exit code: %d.  " % (cwd,exitcode))
