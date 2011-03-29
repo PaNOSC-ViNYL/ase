@@ -28,15 +28,19 @@ import shlex
 import time
 import math
 import decimal as dec
-from subprocess import Popen
+from subprocess import Popen, PIPE
+from threading import Thread
 import numpy as np
 from ase import Atoms
 from ase.parallel import paropen
 
+# "End mark" used to indicate that the calculation is done
+CALCULATION_END_MARK = "__end_of_ase_invoked_calculation__"
 
 class LAMMPS:
 
-    def __init__(self, label="lammps", dir="LAMMPS", parameters={}, files=[], always_triclinic=False):
+    def __init__(self, label="lammps", dir="LAMMPS", parameters={}, files=[], 
+                 always_triclinic=False, keep_alive=False):
         self.label = label
         self.dir = dir
         self.parameters = parameters
@@ -45,6 +49,8 @@ class LAMMPS:
         self.calls = 0
         self.potential_energy = None
         self.forces = None
+        self.keep_alive = keep_alive
+        self.lmp_handle = None        # To handle the lmp process
 
         if os.path.isdir(self.dir):
             if (os.listdir(self.dir) == []):
@@ -57,6 +63,9 @@ class LAMMPS:
             shutil.copy(f, os.path.join(self.dir, f))
 
     def clean(self, force=False):
+
+        self._lmp_end()
+
         if os.path.isdir(self.dir):
             files_in_dir = os.listdir(self.dir)
             files_copied = self.files
@@ -84,6 +93,17 @@ class LAMMPS:
         self.atoms = atoms.copy()
         self.run()
 
+    def _lmp_alive(self):
+        # Return True if this calculator is currently handling a running lammps process
+        lmp_handle = self.lmp_handle
+        return lmp_handle and not isinstance(lmp_handle.poll(), int)
+
+    def _lmp_end(self):
+        # Close lammps input and wait for lammps to end. Return process return value
+        if self._lmp_alive():
+            self.lmp_handle.stdin.close()
+            return self.lmp_handle.wait()
+        
     def run(self):
         """Method which explicitely runs LAMMPS."""
 
@@ -114,23 +134,47 @@ class LAMMPS:
         lammps_data = "data." + label
         lammps_in = "in." + label
         lammps_trj = label + ".lammpstrj"
-        lammps_log = label + ".log"
-
-        # write LAMMPS input files
+        lammps_log = label+".log"
+ 
         self.write_lammps_data(lammps_data=lammps_data)
-        self.write_lammps_in(lammps_in=lammps_in, lammps_data=lammps_data, lammps_trj=lammps_trj, parameters=self.parameters)
+        
+        # see to it that LAMMPS is started
+        if not self._lmp_alive():
+            # Attempt to (re)start lammps
+            self.lmp_handle = Popen(lammps_cmd_line+lammps_options+['-log', '/dev/stdout'], 
+                                    stdin=PIPE, stdout=PIPE)
+        lmp_handle = self.lmp_handle
 
-        # run LAMMPS
-        # TODO: check for successful completion (based on output files?!) of LAMMPS call...
-        lmp_proc = Popen(lammps_cmd_line+lammps_options+\
-                            ['-in', lammps_in, '-log', lammps_log])
-        exitcode = lmp_proc.wait()
-        if exitcode != 0:
+        # Create thread reading lammps stdout (for reference, also create the
+        # file lammps_log, although it is never used)
+        lammps_log_fd = open(lammps_log, 'w')
+        thr_read_log = Thread(target=self.read_lammps_log, 
+                              args=(special_tee(lmp_handle.stdout, lammps_log_fd),))
+        thr_read_log.start()
+
+        # write LAMMPS input (for reference, also create the file lammps_in, 
+        # although it is never used)
+        lammps_in_fd = open(lammps_in, 'w')
+        self.write_lammps_in(lammps_in=special_tee(lmp_handle.stdin, lammps_in_fd),
+                             lammps_data=lammps_data, lammps_trj=lammps_trj, 
+                             parameters=self.parameters)
+        lammps_in_fd.close()
+
+        # Wait for log output to be read (i.e., for LAMMPS to finish)
+        # and close the log file
+        thr_read_log.join()
+        lammps_log_fd.close()
+
+        if not self.keep_alive:
+            self._lmp_end()
+
+        exitcode = lmp_handle.poll()
+        if exitcode and exitcode != 0:
             cwd = os.getcwd()
-            raise RuntimeError("LAMMPS exited in %s with exit code: %d.  " % (cwd,exitcode))
+            raise RuntimeError("LAMMPS exited in %s with exit code: %d." %\
+                                   (cwd,exitcode))
 
         # read LAMMPS output files
-        self.read_lammps_log(lammps_log=lammps_log)
         self.read_lammps_trj(lammps_trj=lammps_trj)
 
         # change back to previous working directory
@@ -151,18 +195,23 @@ class LAMMPS:
         if (lammps_trj == None):
             lammps_trj = self.label + ".lammpstrj"
 
-        f = paropen(lammps_in, 'w')
-        f.write("# " + f.name + " (written by ASE) \n")
-        f.write("\n")
+        if isinstance(lammps_in, str):
+            f = paropen(lammps_in, 'w')
+            close_in_file = True
+        else:
+            # Expect lammps_in to be a file-like object
+            f = lammps_in
+            close_in_file = False
 
-        f.write("### variables \n")
-        f.write("variable data_file index \"%s\" \n" % lammps_data)
-        f.write("variable dump_file index \"%s\" \n" % lammps_trj)
-        f.write("\n\n")
+        f.write("# (written by ASE) \n"
+                "clear\n"
+                "\n"
+                "### variables \n"
+                "\n\n")
 
         pbc = self.atoms.get_pbc()
-        f.write("### simulation box \n")
-        f.write("units metal \n")
+        f.write("### simulation box \n"
+                "units metal \n")
         if ("boundary" in parameters):
             f.write("boundary %s \n" % parameters["boundary"])
         else:
@@ -172,7 +221,7 @@ class LAMMPS:
             if key in parameters:
                 f.write("%s %s \n" % (key, parameters[key]))
         f.write("\n")
-        f.write("read_data ${data_file} \n")
+        f.write("read_data %s\n" % lammps_data)
         f.write("\n\n")
 
         f.write("### interactions \n")
@@ -189,20 +238,21 @@ class LAMMPS:
             #    pair_style 	lj/cut 2.5
             #    pair_coeff 	* * 1 1
             #    mass           * 1.0        else:
-            f.write("pair_style lj/cut 2.5 \n")
-            f.write("pair_coeff * * 1 1 \n")
-            f.write("mass * 1.0 \n")
+            f.write("pair_style lj/cut 2.5 \n"
+                    "pair_coeff * * 1 1 \n"
+                    "mass * 1.0 \n")
         f.write("\n")
 
-        f.write("### run \n")
-        f.write("fix fix_nve all nve \n")
+        f.write("### run \n"
+                "fix fix_nve all nve \n"
+                "\n"
+                "dump dump_all all custom 1 %s id type x y z vx vy vz fx fy fz \n" %\
+                    lammps_trj)
         f.write("\n")
-        f.write("dump dump_all all custom 1 ${dump_file} id type x y z vx vy vz fx fy fz \n")
-        f.write("\n")
-        f.write("thermo_style custom step temp ke pe etotal cpu \n")
-        f.write("thermo_modify format 1 %4d format 2 %9.3f format 3 %20.6f format 4 %20.6f format 5 %20.6f format 6 %9.3f \n")
-        f.write("thermo 1 \n")
-        f.write("\n")
+        f.write("thermo_style custom step temp ke pe etotal cpu \n"
+                "thermo_modify format 1 %4d format 2 %9.3f format 3 %20.6f format 4 %20.6f format 5 %20.6f format 6 %9.3f \n"
+                "thermo 1 \n"
+                "\n")
         if ("minimize" in parameters):
             f.write("minimize %s \n" % parameters["minimize"])
         if ("run" in parameters):
@@ -210,28 +260,39 @@ class LAMMPS:
         if not ( ("minimize" in parameters) or ("run" in parameters) ):
             f.write("run 0 \n")
 
-        f.close()
+        f.write('print "%s"\n' % CALCULATION_END_MARK)
+        f.write('log /dev/stdout\n') # Force LAMMPS to flush log
+
+        if close_in_file:
+            f.close()
 
     def read_lammps_log(self, lammps_log=None):
         """Method which reads a LAMMPS output log file."""
+
         if (lammps_log == None):
             lammps_log = self.label + ".log"
 
-        epot = 0.0
+        if isinstance(lammps_log, str):
+            f = paropen(lammps_log, 'w')
+            close_log_file = True
+        else:
+            # Expect lammps_in to be a file-like object
+            f = lammps_log
+            close_log_file = False
 
-        f = paropen(lammps_log, 'r')
+        epot = float('nan')
         while True:
             line = f.readline()
-            if not line:
+            if not line or line.strip() == CALCULATION_END_MARK:
                 break
             # get potential energy of first step (if more are done)
             if "PotEng" in line:
                 i = line.split().index("PotEng")
                 line = f.readline()
                 epot = float(line.split()[i])
-        f.close()
 
-#        print epot
+        if close_log_file:
+            f.close()
 
         self.potential_energy = epot
 
@@ -370,6 +431,40 @@ class LAMMPS:
             self.atoms = Atoms(type_atoms, positions=positions_atoms, cell=cell_atoms, pbc=True)
 
         self.forces = forces_atoms
+
+
+
+class special_tee:
+    """A special purpose, with limited applicability, tee-like thing.
+
+    A subset of stuff read from, or written to, orig_fd, 
+    is also written to out_fd.
+    It is used by the lammps calculator for creating file-logs of stuff read from,
+    or written to, stdin and stdout, respectively.
+    """
+    def __init__(self, orig_fd, out_fd):
+        self._orig_fd = orig_fd
+        self._out_fd = out_fd
+        self.name = orig_fd.name
+    def write(self, data):
+        self._orig_fd.write(data)
+        self._out_fd.write(data)
+    def read(self, *args, **kwargs):
+        data = self._orig_fd.read(*args, **kwargs)
+        self._out_fd.write(data)
+        return data
+    def readline(self, *args, **kwargs):
+        data = self._orig_fd.readline(*args, **kwargs)
+        self._out_fd.write(data)
+        return data
+    def readlines(self, *args, **kwargs):
+        data = self._orig_fd.readlines(*args, **kwargs)
+        self._out_fd.write(''.join(data))
+        return data
+    def flush(self):
+        self._orig_fd.flush()
+        self._out_fd.flush()
+
 
 
 # could perhaps go into io.lammps in the future...
