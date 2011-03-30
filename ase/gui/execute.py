@@ -181,8 +181,7 @@ class Execute(gtk.Window):
                         img.Z[a] = Z
                         img.M[i][a] = m
         gui.images.set_radii(0.89)
-        gui.set_colors()
-        gui.set_coordinates()
+        gui.set_frame(frame)
 
     def add_text(self,val):
         text_end = self.textbuffer.get_end_iter()
