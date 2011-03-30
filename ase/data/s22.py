@@ -2986,7 +2986,6 @@ def get_interaction_energy_s22x5(name, dist, correct_offset=False):
         raise KeyError('error, mate!')
     e = data[name]['interaction energies s22x5'][i]
     if correct_offset == True:
-        #e -= data[name]['offset']
         e *= data[name]['interaction energy CC']/data[name]['interaction energies s22x5'][1]
     return e
 
