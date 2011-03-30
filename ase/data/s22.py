@@ -2924,19 +2924,15 @@ def create_s22_system(name, **kwargs):
     d = data[name]
     return Atoms(d['symbols'], d['positions'], **kwargs)
 
-def create_s22x5_system(name, dist, **kwargs):
+def create_s22x5_system(name, dist=None, **kwargs):
     """Create S22x5 system.
     """
-    if name not in s22:
-        raise NotImplementedError('System %s not in database.' % name)
-    dist = float(dist)
-    if dist not in [0.9, 1.0, 1.2, 1.5, 2.0]:
-        raise NotImplementedError('Structure %.1f for system %s not in database.' % (dist,name))
+    name, dist = s22x5_naming(name,dist)
     d = data[name]
     pos = 'positions '+str(dist)
     return Atoms(d['symbols'], d[pos], **kwargs)
 
-def get_s22x5_id(name, **kwargs):
+def get_s22x5_id(name):
     """Get main name and srelative separation distance of an S22x5 system.
     """
     if name not in s22x5:
@@ -2965,13 +2961,10 @@ def get_interaction_energy_cc(name):
     else:
         return data[name]['interaction energy CC']
 
-def get_interaction_energy_s22x5(name, dist, correct_offset=False):
+def get_interaction_energy_s22x5(name, dist=None, correct_offset=True):
     """Returns the S22x5 CCSD(T)/CBS CP interaction energy in eV.
     """
-    if name not in s22:
-        raise KeyError('System %s not in database.' % name)
-    if dist not in [0.9, 1.0, 1.2, 1.5, 2.0]:
-        raise NotImplementedError('Energy %.1f for system %s not in database.' % (dist,name))
+    name, dist = s22x5_naming(name,dist)
     if dist == 0.9:
         i = 0
     elif dist == 1.0:
@@ -3006,12 +2999,11 @@ def get_number_of_dimer_atoms(name):
         raise KeyError('System %s not in database.' % name)
     return data[name]['dimer atoms']
 
-def get_distance(name, dist):
+def get_s22x5_distance(name, dist=None):
     """Returns the relative intermolecular distance in angstroms.
        Values are relative to the original s22 distance.
     """
-    if name not in s22:
-        raise KeyError('System %s not in database.' % name)
+    name, dist = s22x5_naming(name,dist)
     x00 = data[name]['positions 1.0'][0][0]
     x01 = data[name]['positions 1.0'][-1][0]
     x10 = data[name]['positions '+str(dist)][0][0]
@@ -3019,3 +3011,16 @@ def get_distance(name, dist):
     d0 = x01 - x00
     d1 = x11 - x10
     return d1-d0
+
+def s22x5_naming(name, dist=None):
+    """convenience function.
+    """
+    if dist == None:
+        name, dist = get_s22x5_id(name)
+    dist = float(dist)
+
+    if name not in s22:
+        raise NotImplementedError('System %s not in database.' % name)
+    if dist not in [0.9, 1.0, 1.2, 1.5, 2.0]:
+        raise NotImplementedError('Structure %.1f for system %s not in database.' % (dist,name))
+    return name, dist
