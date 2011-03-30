@@ -232,6 +232,8 @@ def read_vasp_out(filename='OUTCAR',index = -1):
     species = []
     species_num = []
     symbols = []
+    ecount = 0
+    poscount = 0
     for n,line in enumerate(data):
         if 'POTCAR:' in line:
             species += [line.split()[2]]
@@ -250,6 +252,10 @@ def read_vasp_out(filename='OUTCAR',index = -1):
             atoms.set_cell(cell)
         if 'FREE ENERGIE OF THE ION-ELECTRON SYSTEM' in line:
             energy = float(data[n+2].split()[4])
+            if ecount < poscount:
+                # reset energy for LAST set of atoms, not current one - VASP 5.11? and up
+                images[-1].calc.energy = energy
+            ecount += 1
         if 'POSITION          ' in line:
             forces = []
             for iatom in range(natoms):
@@ -259,6 +265,7 @@ def read_vasp_out(filename='OUTCAR',index = -1):
                 atoms.set_calculator(SinglePointCalculator(energy,forces,None,None,atoms))
             images += [atoms]
             atoms = Atoms(pbc = True)
+            poscount += 1
 
     # return requested images, code borrowed from ase/io/trajectory.py
     if isinstance(index, int):
