@@ -27,6 +27,7 @@ Reference: L. Grafova, M. Pitonak, P. Hobza, J. Chem. Theo. Comput., 2010, ASAP 
 """
 
 from ase.atoms import Atoms
+import numpy as np
 
 s22 = ['Ammonia_dimer','Water_dimer','Formic_acid_dimer','Formamide_dimer',
 'Uracil_dimer_h-bonded','2-pyridoxine_2-aminopyridine_complex',
@@ -36,8 +37,38 @@ s22 = ['Ammonia_dimer','Water_dimer','Formic_acid_dimer','Formamide_dimer',
 'Adenine-thymine_complex_stack','Ethene-ethyne_complex','Benzene-water_complex',
 'Benzene-ammonia_complex','Benzene-HCN_complex','Benzene_dimer_T-shaped',
 'Indole-benzene_T-shape_complex','Phenol_dimer']
+
 s26 = s22 + ['Methanol_dimer','Methanol-formaldehyde_complex',
 'Methyl_amide_dimer_alpha','Methyl_amide_dimer_beta'] 
+
+s22x5 = ['Ammonia_dimer_0.9','Ammonia_dimer_1.0','Ammonia_dimer_1.2','Ammonia_dimer_1.5','Ammonia_dimer_2.0',
+'Water_dimer_0.9','Water_dimer_1.0','Water_dimer_1.2','Water_dimer_1.5','Water_dimer_2.0',
+'Formic_acid_dimer_0.9','Formic_acid_dimer_1.0','Formic_acid_dimer_1.2','Formic_acid_dimer_1.5','Formic_acid_dimer_2.0',
+'Formamide_dimer_0.9','Formamide_dimer_1.0','Formamide_dimer_1.2','Formamide_dimer_1.5','Formamide_dimer_2.0',
+'Uracil_dimer_h-bonded_0.9','Uracil_dimer_h-bonded_1.0','Uracil_dimer_h-bonded_1.2','Uracil_dimer_h-bonded_1.5','Uracil_dimer_h-bonded_2.0',
+'2-pyridoxine_2-aminopyridine_complex_0.9','2-pyridoxine_2-aminopyridine_complex_1.0',
+    '2-pyridoxine_2-aminopyridine_complex_1.2','2-pyridoxine_2-aminopyridine_complex_1.5','2-pyridoxine_2-aminopyridine_complex_2.0',
+'Adenine-thymine_Watson-Crick_complex_0.9','Adenine-thymine_Watson-Crick_complex_1.0',
+    'Adenine-thymine_Watson-Crick_complex_1.2','Adenine-thymine_Watson-Crick_complex_1.5','Adenine-thymine_Watson-Crick_complex_2.0',
+'Methane_dimer_0.9','Methane_dimer_1.0','Methane_dimer_1.2','Methane_dimer_1.5','Methane_dimer_2.0',
+'Ethene_dimer_0.9','Ethene_dimer_1.0','Ethene_dimer_1.2','Ethene_dimer_1.5','Ethene_dimer_2.0',
+'Benzene-methane_complex_0.9','Benzene-methane_complex_1.0','Benzene-methane_complex_1.2','Benzene-methane_complex_1.5','Benzene-methane_complex_2.0',
+'Benzene_dimer_parallel_displaced_0.9','Benzene_dimer_parallel_displaced_1.0',
+    'Benzene_dimer_parallel_displaced_1.2','Benzene_dimer_parallel_displaced_1.5','Benzene_dimer_parallel_displaced_2.0',
+'Pyrazine_dimer_0.9','Pyrazine_dimer_1.0','Pyrazine_dimer_1.2','Pyrazine_dimer_1.5','Pyrazine_dimer_2.0',
+'Uracil_dimer_stack_0.9','Uracil_dimer_stack_1.0','Uracil_dimer_stack_1.2','Uracil_dimer_stack_1.5','Uracil_dimer_stack_2.0',
+'Indole-benzene_complex_stack_0.9','Indole-benzene_complex_stack_1.0',
+    'Indole-benzene_complex_stack_1.2','Indole-benzene_complex_stack_1.5','Indole-benzene_complex_stack_2.0',
+'Adenine-thymine_complex_stack_0.9','Adenine-thymine_complex_stack_1.0',
+    'Adenine-thymine_complex_stack_1.2','Adenine-thymine_complex_stack_1.5','Adenine-thymine_complex_stack_2.0',
+'Ethene-ethyne_complex_0.9','Ethene-ethyne_complex_1.0','Ethene-ethyne_complex_1.2','Ethene-ethyne_complex_1.5','Ethene-ethyne_complex_2.0',
+'Benzene-water_complex_0.9','Benzene-water_complex_1.0','Benzene-water_complex_1.2','Benzene-water_complex_1.5','Benzene-water_complex_2.0',
+'Benzene-ammonia_complex_0.9','Benzene-ammonia_complex_1.0','Benzene-ammonia_complex_1.2','Benzene-ammonia_complex_1.5','Benzene-ammonia_complex_2.0',
+'Benzene-HCN_complex_0.9','Benzene-HCN_complex_1.0','Benzene-HCN_complex_1.2','Benzene-HCN_complex_1.5','Benzene-HCN_complex_2.0',
+'Benzene_dimer_T-shaped_0.9','Benzene_dimer_T-shaped_1.0','Benzene_dimer_T-shaped_1.2','Benzene_dimer_T-shaped_1.5','Benzene_dimer_T-shaped_2.0',
+'Indole-benzene_T-shape_complex_0.9','Indole-benzene_T-shape_complex_1.0',
+    'Indole-benzene_T-shape_complex_1.2','Indole-benzene_T-shape_complex_1.5','Indole-benzene_T-shape_complex_2.0',
+'Phenol_dimer_0.9','Phenol_dimer_1.0','Phenol_dimer_1.2','Phenol_dimer_1.5','Phenol_dimer_2.0']
 
 data = {
 # --- s22 and s22x5 ---#
@@ -2899,11 +2930,21 @@ def create_s22x5_system(name, dist, **kwargs):
     """
     if name not in s22:
         raise NotImplementedError('System %s not in database.' % name)
+    dist = float(dist)
     if dist not in [0.9, 1.0, 1.2, 1.5, 2.0]:
         raise NotImplementedError('Structure %.1f for system %s not in database.' % (dist,name))
     d = data[name]
     pos = 'positions '+str(dist)
     return Atoms(d['symbols'], d[pos], **kwargs)
+
+def get_s22x5_id(name, **kwargs):
+    """Get main name and srelative separation distance of an S22x5 system.
+    """
+    if name not in s22x5:
+        raise NotImplementedError('System %s not in s22x5 database.' % name)
+    s22_name = name[:-4]
+    dist = name[-3:]
+    return s22_name, dist
 
 def get_s22_number(name):
     """Returns the S22/S26 database number of a system as a string.
@@ -2946,7 +2987,8 @@ def get_interaction_energy_s22x5(name, dist, correct_offset=False):
         raise KeyError('error, mate!')
     e = data[name]['interaction energies s22x5'][i]
     if correct_offset == True:
-        e -= data[name]['offset']
+        #e -= data[name]['offset']
+        e *= data[name]['interaction energy CC']/data[name]['interaction energies s22x5'][1]
     return e
 
 def get_name(sysname):
@@ -2965,3 +3007,17 @@ def get_number_of_dimer_atoms(name):
     if name not in s22:
         raise KeyError('System %s not in database.' % name)
     return data[name]['dimer atoms']
+
+def get_distance(name, dist):
+    """Returns the relative intermolecular distance in angstroms.
+       Values are relative to the original s22 distance.
+    """
+    if name not in s22:
+        raise KeyError('System %s not in database.' % name)
+    x00 = data[name]['positions 1.0'][0][0]
+    x01 = data[name]['positions 1.0'][-1][0]
+    x10 = data[name]['positions '+str(dist)][0][0]
+    x11 = data[name]['positions '+str(dist)][-1][0]
+    d0 = x01 - x00
+    d1 = x11 - x10
+    return d1-d0
