@@ -27,7 +27,6 @@ Reference: L. Grafova, M. Pitonak, P. Hobza, J. Chem. Theo. Comput., 2010, ASAP 
 """
 
 from ase.atoms import Atoms
-import numpy as np
 
 s22 = ['Ammonia_dimer','Water_dimer','Formic_acid_dimer','Formamide_dimer',
 'Uracil_dimer_h-bonded','2-pyridoxine_2-aminopyridine_complex',
