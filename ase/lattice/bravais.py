@@ -210,7 +210,7 @@ class Bravais:
             for e in element:
                 if isinstance(e, type("string")):
                     atomicnumber.append(ase.data.atomic_numbers[e])
-                elif isinstance(element, int):
+                elif isinstance(e, int):
                     atomicnumber.append(e)
                 else:
                     raise TypeError("The symbols argument must be a sequence of strings or atomic numbers.")
