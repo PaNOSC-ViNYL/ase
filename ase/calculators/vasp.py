@@ -1211,7 +1211,7 @@ class VaspChargeDensity(object):
         while True:
             try:
                 atoms = aiv.read_vasp(f)
-            except ValueError, e:
+            except (IOError, ValueError):
                 # Probably an empty line, or we tried to read the
                 # augmentation occupancies in CHGCAR
                 break
