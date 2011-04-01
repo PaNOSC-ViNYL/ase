@@ -14,6 +14,11 @@ import ase.units as units
 from ase.io.trajectory import PickleTrajectory
 from ase.parallel import rank, barrier, paropen
 
+def _opencew(filename):
+    """Create and open filename exclusively for writing."""
+    import os
+    fd = os.open(filename, os.O_CREAT|os.O_EXCL|os.O_WRONLY)
+    return os.fdopen(fd, "w")
 
 class Vibrations:
     """Class for calculating vibrational modes using finite difference.
@@ -111,10 +116,10 @@ class Vibrations:
         """
         
         filename = self.name + '.eq.pckl'
-        if not isfile(filename):
+        try:
             barrier()
             if rank == 0:
-                fd = open(filename, 'w')            
+                fd = _opencew(filename)            
             forces = self.atoms.get_forces()
             if self.ir:
                 dipole = self.calc.get_dipole_moment(self.atoms)
@@ -129,6 +134,8 @@ class Vibrations:
                     sys.stdout.write('Writing %s\n' % filename)
                 fd.close()
             sys.stdout.flush()
+        except OSError:
+            pass
         
         p = self.atoms.positions.copy()
         for a in self.indices:
@@ -137,14 +144,12 @@ class Vibrations:
                     for ndis in range(1, self.nfree//2+1):
                         filename = ('%s.%d%s%s.pckl' %
                                     (self.name, a, 'xyz'[i], ndis*' +-'[sign]))
-                        try:
-                            pickle.load(open(filename))
-                            continue
-                        except:
-                            pass
                         barrier()
                         if rank == 0:
-                            fd = open(filename, 'w')                        
+                            try:
+                                fd = _opencew(filename)
+                            except OSError:
+                                continue
                         self.atoms.positions[a, i] = (p[a, i] +
                                                       ndis * sign * self.delta)
                         forces = self.atoms.get_forces()
