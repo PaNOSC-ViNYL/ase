@@ -5,8 +5,6 @@
 
 import pickle
 from math import sin, pi, sqrt, exp, log
-from os import remove
-from os.path import isfile
 
 import numpy as np
 
