@@ -112,6 +112,7 @@ class View:
 
     def set_jmol_colors(self):
         self.colors = [None] * (len(jmol_colors) + 1)
+        self.colordata = []
         new = self.drawing_area.window.new_gc
         alloc = self.colormap.alloc_color
         for z in self.images.Z:
@@ -120,7 +121,12 @@ class View:
                 self.colors[z] = new(alloc(int(65535 * c),
                                            int(65535 * p),
                                            int(65535 * k)))
-            
+        hasfound = {}
+        for z in self.images.Z:
+            if z not in hasfound:
+                hasfound[z] = True
+                self.colordata.append([z, jmol_colors[z]])
+                
     def plot_cell(self):
         V = self.images.A[0]
         R1 = []
@@ -347,6 +353,34 @@ class View:
         self.set_coordinates()
         self.focus(self)
 
+    def get_colors(self, rgb = False):
+        Z = self.images.Z
+        if rgb:
+            # create a shape that is equivalent to self.colors,
+            # but contains rgb data instead gtk.gdk.GCX11 objects
+            colarray = [None] * max(len(jmol_colors)+1,len(self.colordata))
+            for z, c in self.colordata:
+                colarray[z] = c
+        else:
+            colarray = self.colors
+        if self.colormode == 'jmol' or self.colormode == 'atno':
+            colors = np.array(colarray)[Z]
+        elif self.colormode == 'tags':
+            colors = np.array(colarray)[self.images.T]
+        elif self.colormode == 'force':
+            F = self.images.F[self.frame]
+            F = np.sqrt((F*F).sum(axis=-1))  # The absolute force
+            nF = (F - self.colormode_force_data[0]) * self.colormode_force_data[1]
+            nF = np.clip(nF.astype(int), 0, len(self.colors)-1)
+            colors = np.array(colarray)[nF]
+        elif self.colormode == 'manual':
+            colors = colarray
+        elif self.colormode == 'same':
+            colors = [colarray[0]] * n
+        else:
+            raise RuntimeError('Unknown color mode: %s' % (self.colormode,))
+        return colors
+
     def draw(self, status=True):
         self.pixmap.draw_rectangle(self.white_gc, True, 0, 0,
                                    self.width, self.height)
@@ -367,24 +401,7 @@ class View:
         A = (P - r[:, None]).round().astype(int)
         d = (2 * r).round().astype(int)
         selected_gc = self.selected_gc
-
-        Z = self.images.Z
-        if self.colormode == 'jmol' or self.colormode == 'atno':
-            colors = np.array(self.colors)[Z]
-        elif self.colormode == 'tags':
-            colors = np.array(self.colors)[self.images.T]
-        elif self.colormode == 'force':
-            F = self.images.F[self.frame]
-            F = np.sqrt((F*F).sum(axis=-1))  # The absolute force
-            nF = (F - self.colormode_force_data[0]) * self.colormode_force_data[1]
-            nF = np.clip(nF.astype(int), 0, len(self.colors)-1)
-            colors = np.array(self.colors)[nF]
-        elif self.colormode == 'manual':
-            colors = self.colors
-        elif self.colormode == 'same':
-            colors = [self.colors[0]] * n
-        else:
-            raise RuntimeError('Unknown color mode: %s' % (self.colormode,))
+        colors = self.get_colors()
         arc = self.pixmap.draw_arc
         line = self.pixmap.draw_line
         black_gc = self.black_gc

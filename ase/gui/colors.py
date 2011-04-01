@@ -18,6 +18,7 @@ class ColorWindow(gtk.Window):
     def __init__(self, gui):
         gtk.Window.__init__(self)
         self.gui = gui
+        self.colormode = gui.colormode
         self.set_title("Colors")
         vbox = gtk.VBox()
         self.add(vbox)
@@ -455,6 +456,7 @@ class ColorWindow(gtk.Window):
                 assert len(clr) == 3
                 self.gui.colors[z] = new(alloc(*clr))
         self.gui.colormode = self.colormode
+        self.gui.colordata = self.actual_colordata
         self.gui.draw()
         return True
 

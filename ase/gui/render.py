@@ -81,10 +81,11 @@ class Render(gtk.Window):
         for t in self.finish_list:
             self.default_texture.append_text(t)
         self.default_texture.set_active(1)
-        self.selection_help_but = gtk.Button("Help on textures")
-        self.selection_help_but.connect("clicked",self.selection_help,"")
+        self.default_transparency = gtk.Adjustment(0,0.0,1.0,0.01)
+        self.transparency = gtk.SpinButton(self.default_transparency, 0, 0)
+        self.transparency.set_digits(2)
         pack(self.tbox,[gtk.Label(" Default texture for atoms: "), self.default_texture,
-                        gtk.Label("       "), self.selection_help_but])
+                        gtk.Label("    transparency: "),self.transparency])
         pack(self.tbox,[gtk.Label("Define atom selection for new texture:")])
         self.texture_selection = gtk.Entry(max = 50)
         self.texture_select_but = gtk.Button("Select")
@@ -93,8 +94,11 @@ class Render(gtk.Window):
         pack(self.tbox,[self.texture_selection, self.texture_select_but])
         self.create_texture = gtk.Button("Create new texture from selection")
         self.create_texture.connect("clicked",self.material_from_selection,"")
+        self.selection_help_but = gtk.Button("Help on textures")
+        self.selection_help_but.connect("clicked",self.selection_help,"")
         self.materials = []
-        pack(self.tbox,[self.create_texture])
+        pack(self.tbox,[self.create_texture,
+                        gtk.Label("       "), self.selection_help_but])
         pack(vbox,[self.tbox])
         pack(vbox,[gtk.Label("")])
         self.camera_style = gtk.combo_box_new_text()
@@ -196,14 +200,19 @@ class Render(gtk.Window):
             for t in self.finish_list:
                 texture_button.append_text(t)
             texture_button.set_active(1)
+            transparency = gtk.Adjustment(0,0.0,1.0,0.01)
+            transparency_spin = gtk.SpinButton(transparency, 0, 0)
+            transparency_spin.set_digits(2)
             delete_button = gtk.Button(stock=gtk.STOCK_DELETE)
             alignment = delete_button.get_children()[0]
             index = len(self.materials)
             delete_button.connect("clicked",self.delete_material,{"n":index})
             self.materials += [[True,selection,texture_button,
-                                delete_button,gtk.Label()]]
+                                gtk.Label("  transparency: "),transparency_spin,
+                                gtk.Label("   "),delete_button,gtk.Label()]]
             self.materials[-1][-1].set_markup("    "+name)
-            pack(self.tbox,[self.materials[-1][2],self.materials[-1][3],self.materials[-1][4]])
+            pack(self.tbox,[self.materials[-1][2],self.materials[-1][3],self.materials[-1][4],
+                            self.materials[-1][5],self.materials[-1][6],self.materials[-1][7]])
         else:
             oops("Can not create new texture! Must have some atoms selected to create a new material!")
 
@@ -214,6 +223,9 @@ class Render(gtk.Window):
         self.materials[n][2].destroy()
         self.materials[n][3].destroy()
         self.materials[n][4].destroy()
+        self.materials[n][5].destroy()
+        self.materials[n][6].destroy()
+        self.materials[n][7].destroy()
 
     def set_movie(self, *args):
         if self.single_frame.get_active() and self.run_povray.get_active():
@@ -255,6 +267,18 @@ class Render(gtk.Window):
                     if val:
                         textures[n] = t
         return textures
+
+    def get_colors(self):
+        colors = self.gui.get_colors(rgb = True)
+        for n, c in enumerate(colors):
+            colors[n] = list(c) + [0,self.default_transparency.value]
+        for mat in self.materials:
+            sel   = mat[1]
+            trans = mat[4].get_value()
+            for n, val in enumerate(sel):
+                if val:
+                    colors[n][4] = trans
+        return colors
         
     def ok(self, *args):
         print "Rendering povray image(s): "
@@ -282,6 +306,7 @@ class Render(gtk.Window):
         initial_frame = self.gui.frame
         for frame in frames:
             self.gui.set_frame(frame)
+            povray_settings['colors'] = self.get_colors()
             atoms = self.gui.images.get_atoms(frame)
             self.set_outputname()        
             filename = self.outputname.get_text()
