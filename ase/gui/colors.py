@@ -19,6 +19,7 @@ class ColorWindow(gtk.Window):
         gtk.Window.__init__(self)
         self.gui = gui
         self.colormode = gui.colormode
+        self.actual_colordata = None
         self.set_title("Colors")
         vbox = gtk.VBox()
         self.add(vbox)
@@ -244,8 +245,6 @@ class ColorWindow(gtk.Window):
 
     def set_manual_colors(self):
         "Set colors of all atoms from the last selection."
-        if self.colormode == 'manual':
-            return  # Cannot do anything.
         # We cannot directly make np.arrays of the colors, as they may
         # be sequences of the same length, causing creation of a 2D
         # array of characters/numbers instead of a 1D array of
@@ -275,6 +274,10 @@ class ColorWindow(gtk.Window):
                 colors[:] = [oldcolor] * len(colors)
             else:
                 colors[:] = oldcolor
+        elif self.colormode == 'manual':
+            if self.actual_colordata is None:   # import colors from gui, if they don't exist already
+                colors = [y for x,y in self.gui.colordata]
+
         self.color_labels = ["%d:" % i for i in range(len(colors))]
         self.actual_colordata = [[i, x] for i, x in enumerate(colors)]
         self.make_colorwin()

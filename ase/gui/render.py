@@ -270,8 +270,8 @@ class Render(gtk.Window):
 
     def get_colors(self):
         colors = self.gui.get_colors(rgb = True)
-        for n, c in enumerate(colors):
-            colors[n] = list(c) + [0,self.default_transparency.value]
+        for n in range(self.natoms):
+            colors[n] = list(colors[n]) + [0,self.default_transparency.value]
         for mat in self.materials:
             sel   = mat[1]
             trans = mat[4].get_value()
@@ -313,6 +313,7 @@ class Render(gtk.Window):
             print " | Writing files for image", filename, "..."
             write_pov(filename,
                       atoms,
+                      radii = self.gui.images.r,
                       **povray_settings)
             if not self.keep_files.get_active():
                 print " | Deleting temporary file ", filename

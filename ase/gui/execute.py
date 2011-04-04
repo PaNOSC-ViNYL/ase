@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 import __future__
 import gtk
-import os
+import os.path
 import numpy as np
 import sys
 
 from ase.gui.languages import translate as _
 from ase.gui.widgets import pack, Help
+from ase.data import covalent_radii as cov
 
 class Execute(gtk.Window):
     """ The Execute class provides an expert-user window for modification
@@ -18,7 +19,7 @@ class Execute(gtk.Window):
 
     Please do not mix global and atom commands."""
     
-    terminal_help_txt="""\
+    terminal_help_txt="""
     Global commands work on all frames or only on the current frame
     - Assignment of a global variable may not reference a local one
     - use 'Current frame' switch to switch off application to all frames
@@ -36,18 +37,21 @@ class Execute(gtk.Window):
     - these can use global commands on the RHS of an equation
     - use 'selected atoms only' to restrict application of command
     <c>x,y,z</c>:\tatomic coordinates
+    <c>r,g,b</c>:\tatom display color, range is [0..1]
     <c>s</c>:\t\tatom is selected
     <c>f</c>:\t\tforce
     <c>Z</c>:\tatomic number
     <c>m</c>:\tmagnetic moment
-    examples: x -= A[0][0], s = z > 5, Z = 6
+    examples: <c>x -= A[0][0], s = z > 5, Z = 6</c>
 
     Special commands and objects:
     <c>sa,cf</c>:\t(un)restrict to selected atoms/current frame
     <c>frame</c>:\tframe number
+    <c>del S</c>:\tdelete selection
+    <c>exec file</c>: executes commands listed in file
+    <c>cov[Z]</c>:(read only): covalent radius of atomic number Z
     <c>gui</c>:\tadvanced: ag window python object
     <c>img</c>:\tadvanced: ag images object
-    <c>del S</c>:\tdelete selection
     """
     
     def __init__(self, gui):
@@ -82,31 +86,50 @@ class Execute(gtk.Window):
         save_button.connect('clicked',self.save_output)
         help_button = gtk.Button(stock=gtk.STOCK_HELP)
         help_button.connect('clicked',self.terminal_help,"")
+        stop_button = gtk.Button(stock=gtk.STOCK_STOP)
+        stop_button.connect('clicked',self.stop_execution)
+        self.stop = False
         pack(vbox, [gtk.Label('Global: Use A, D, E, M, N, R, S, n, frame;'
                               +' Atoms: Use a, f, m, s, x, y, z, Z     '),
-                    help_button, save_button])
+                    stop_button, help_button, save_button], end = True)
         self.add(vbox)
         vbox.show()
         self.show()
+        # set color mode to manual when opening this window for rgb manipulation
+        self.colors = self.gui.get_colors()
+        rgb_data = self.gui.get_colors(rgb = True)
+        self.rgb_data = []  # ensure proper format of rgb_data
+        for i, rgb in enumerate(rgb_data):
+            self.rgb_data += [[i, rgb]]
+        self.gui.colordata = self.rgb_data
+        self.gui.colors = self.colors
+        self.gui.colormode = 'manual'        
         self.cmd.grab_focus()
 
-    def execute(self, widget=None):
-        global_commands = ['n','N','R','A','S','e','E','D','F','M','frame']  # explicitly 'implemented' commands for use on whole system or entire single frame
-        index_commands  = ['a','x','y','z','s','f','Z','d','m']              # commands for use on all (possibly selected) atoms
+    def execute(self, widget=None, cmd = None):
+        global_commands = ['A','Col','D','e','E','F','frame','M','n','N','R','S']  # explicitly 'implemented' commands for use on whole system or entire single frame
+        index_commands  = ['a','b','d','f','g','m','r','rad','s','x','y','z','Z']  # commands for use on all (possibly selected) atoms
 
-        cmd = self.cmd.get_text().strip()
-        if len(cmd) == 0:
-            return
-        self.add_text('>>> '+cmd)
-        self.cmd_buffer[-1] = cmd
-        self.cmd_buffer += ['']
-        setattr(self.gui,'expert_mode_buffer', self.cmd_buffer)
-        self.cmd_position = len(self.cmd_buffer)-1
-        self.cmd.set_text('')
+        new = self.gui.drawing_area.window.new_gc
+        alloc = self.gui.colormap.alloc_color
+
+        self.stop = False
+        if cmd is None:
+            cmd = self.cmd.get_text().strip()
+            if len(cmd) == 0:
+                return
+            self.add_text('>>> '+cmd)
+            self.cmd_buffer[-1] = cmd
+            self.cmd_buffer += ['']
+            setattr(self.gui,'expert_mode_buffer', self.cmd_buffer)
+            self.cmd_position = len(self.cmd_buffer)-1
+            self.cmd.set_text('')
+        else:
+            self.add_text('--> '+cmd)
 
         gui = self.gui
         img = gui.images
-
+        frame = gui.frame
         N = img.nimages
         n = img.natoms
         S = img.selected
@@ -139,17 +162,36 @@ class Execute(gtk.Window):
             self.selected.set_active(not self.selected.get_active())
         elif cmd == 'cf':
             self.images_only.set_active(not self.images_only.get_active())
+        elif first_command == 'exec':
+            name = cmd.split()[1]
+            if '~' in name:
+                name = os.path.expanduser(name)
+            if os.path.exists(name):
+                commands = open(name,'r').readlines()
+                for c_parse in commands:
+                    c = c_parse.strip()
+                    if '#' in c:
+                        c = c[:c.find('#')].strip()
+                    if len(c) > 0:
+                        self.execute(cmd = c.strip())
+            else:
+                self.add_text('*** WARNING: file does not exist - '+name)
         else:
             code = compile(cmd + '\n', 'execute.py', 'single',
                            __future__.CO_FUTURE_DIVISION)
             if index_based and len(indices) == 0 and self.selected.get_active():
                 self.add_text("*** WARNING: No atoms selected to work with")
             for i in loop_images:
+                if self.stop:
+                    break
                 R = img.P[i][indices]
                 A = img.A[i]
                 F = img.F[i][indices]
                 e = img.E[i]
                 M = img.M[i][indices]
+                Col = []
+                for j in indices:
+                    Col += [gui.colordata[j]]
                 if len(indices) > 0:
                     fmax = max(((F * D[indices])**2).sum(1)**.5)
                 else:
@@ -166,12 +208,17 @@ class Execute(gtk.Window):
                         gui.movie_window.frame_number.value = frame
                 else:
                     for n,a in enumerate(indices):
+                        if self.stop:
+                            break
                         x, y, z = R[n]
+                        r, g, b = Col[n][1]
                         d = D[a]
                         f = np.vdot(F[n]*d,F[n]*d)**0.5
                         s = S[a]
                         Z = img.Z[a]
+                        Zold = Z
                         m = M[n]
+                        rad = img.r[a]
                         try:
                             self.add_text(repr(eval(cmd)))
                         except:
@@ -179,8 +226,14 @@ class Execute(gtk.Window):
                         S[a] = s
                         img.P[i][a] = x, y, z
                         img.Z[a] = Z
+                        img.r[a] = rad
+                        img.dynamic[a] = d
+                        if Z != Zold:
+                            img.r[a] = cov[Z] * 0.89
+                        gui.colordata[a] = [a,[r,g,b]]
+                        color = tuple([int(65535*x) for x in [r,g,b]])
+                        gui.colors[a] = new(alloc(*color))
                         img.M[i][a] = m
-        gui.images.set_radii(0.89)
         gui.set_frame(frame)
 
     def add_text(self,val):
@@ -232,4 +285,7 @@ class Execute(gtk.Window):
     def terminal_help(self,*args):
         Help(self.terminal_help_txt)
 
+    def stop_execution(self, *args):
+        self.stop = True
+        
     python = execute
