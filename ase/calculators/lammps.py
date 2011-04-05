@@ -108,6 +108,7 @@ class LAMMPS:
         return self.forces.copy()
 
     def get_stress(self, atoms):
+        self.update(atoms)
         tc = self.thermo_content[-1]
         # 1 bar (used by lammps for metal units) = 1e-4 GPa
         return np.array([tc[i] for i in ('pxx','pyy','pzz',
