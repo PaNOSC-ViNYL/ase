@@ -371,7 +371,3 @@ reference_states = [\
     None,#Md
     None,#No
     None]#Lw
-
-name = os.path.expanduser('~/.ase/data.py')
-if os.path.exists(name):
-    execfile(name)

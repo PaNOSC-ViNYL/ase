@@ -7,7 +7,7 @@ from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import read, write, string2index
 from ase.constraints import FixAtoms
-
+from ase.gui.defaults import read_defaults
 
 class Images:
     def __init__(self, images=None):
@@ -32,6 +32,11 @@ class Images:
         self.A = np.empty((self.nimages, 3, 3))
         self.Z = images[0].get_atomic_numbers()
         self.pbc = images[0].get_pbc()
+        self.covalent_radii = covalent_radii
+        config = read_defaults()
+        if config['covalent_radii'] is not None:
+            for data in config['covalent_radii']:
+                self.covalent_radii[data[0]] = data[1]
         warning = False
         for i, atoms in enumerate(images):
             natomsi = len(atoms)
@@ -119,7 +124,7 @@ class Images:
         return self.nimages
         
     def set_radii(self, scale):
-        self.r = covalent_radii[self.Z] * scale
+        self.r = self.covalent_radii[self.Z] * scale
                 
     def read(self, filenames, index=-1):
         images = []

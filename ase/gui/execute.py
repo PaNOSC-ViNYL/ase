@@ -7,7 +7,6 @@ import sys
 
 from ase.gui.languages import translate as _
 from ase.gui.widgets import pack, Help
-from ase.data import covalent_radii as cov
 
 class Execute(gtk.Window):
     """ The Execute class provides an expert-user window for modification
@@ -190,6 +189,7 @@ class Execute(gtk.Window):
                 e = img.E[i]
                 M = img.M[i][indices]
                 Col = []
+                cov = img.covalent_radii
                 for j in indices:
                     Col += [gui.colordata[j]]
                 if len(indices) > 0:

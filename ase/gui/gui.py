@@ -348,7 +348,7 @@ class GUI(View, Status):
 
         if expr is None and not np.isnan(self.images.E[0]):
             expr = self.config['gui_graphs_string']
-            
+
         if expr is not None and expr != '' and self.images.nimages > 1:
             self.plot_graphs(expr=expr)
 
