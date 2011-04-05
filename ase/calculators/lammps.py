@@ -33,6 +33,7 @@ from re import compile as re_compile, IGNORECASE
 import numpy as np
 from ase import Atoms
 from ase.parallel import paropen
+from ase.units import GPa
 
 # "End mark" used to indicate that the calculation is done
 CALCULATION_END_MARK = "__end_of_ase_invoked_calculation__"
@@ -107,7 +108,10 @@ class LAMMPS:
         return self.forces.copy()
 
     def get_stress(self, atoms):
-        raise NotImplementedError
+        tc = self.thermo_content[-1]
+        # 1 bar (used by lammps for metal units) = 1e-4 GPa
+        return np.array([tc[i] for i in ('pxx','pyy','pzz',
+                                         'pyz','pxz','pxy')])*(-1e-4*GPa)
 
     def update(self, atoms):
         # TODO: check if (re-)calculation is necessary
