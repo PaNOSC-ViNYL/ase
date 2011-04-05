@@ -29,6 +29,7 @@ import time
 import decimal as dec
 from subprocess import Popen, PIPE
 from threading import Thread
+from re import compile as re_compile, IGNORECASE
 import numpy as np
 from ase import Atoms
 from ase.parallel import paropen
@@ -47,10 +48,33 @@ class LAMMPS:
         self.files = files
         self.always_triclinic = always_triclinic
         self.calls = 0
-        self.potential_energy = None
         self.forces = None
         self.keep_alive = keep_alive
-        self.lmp_handle = None        # To handle the lmp process
+        self._lmp_handle = None        # To handle the lmp process
+
+        # read_log depends on that the first (three) thermo_style custom args
+        # can be capitilized and matched aginst the log output. I.e. 
+        # don't use e.g. 'ke' or 'cpu' which are labeled KinEng and CPU.
+        self._custom_thermo_args = ['step', 'temp', 'press', 'cpu', 
+                                    'pxx', 'pyy', 'pzz', 'pxy', 'pxz', 'pyz',
+                                    'ke', 'pe', 'etotal',
+                                    'vol', 'lx', 'ly', 'lz']
+        self._custom_thermo_mark = ' '.join([x.capitalize() for x in
+                                             self._custom_thermo_args[0:3]])
+
+        # Match something which can be converted to a float
+        f_re = r'([+-]?(?:(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?|nan|inf))'
+        n = len(self._custom_thermo_args)
+        # Create a re matching exactly N white space separated floatish things
+        self._custom_thermo_re = re_compile(r'^\s*' + r'\s+'.join([f_re]*n) + r'\s*$',
+                                            flags=IGNORECASE)
+        # thermo_content contains data "writen by" thermo_style.
+        # It is a list of dictionaries, each dict (one for each line
+        # printed by thermo_style) contains a mapping between each 
+        # custom_thermo_args-argument and the corresponding
+        # value as printed by lammps. thermo_content will be 
+        # re-populated by the read_log method.
+        self.thermo_content = []
 
         if os.path.isdir(self.dir):
             if (os.listdir(self.dir) == []):
@@ -76,7 +100,7 @@ class LAMMPS:
 
     def get_potential_energy(self, atoms):
         self.update(atoms)
-        return self.potential_energy
+        return self.thermo_content[-1]['pe']
 
     def get_forces(self, atoms):
         self.update(atoms)
@@ -95,14 +119,13 @@ class LAMMPS:
 
     def _lmp_alive(self):
         # Return True if this calculator is currently handling a running lammps process
-        lmp_handle = self.lmp_handle
-        return lmp_handle and not isinstance(lmp_handle.poll(), int)
+        return self._lmp_handle and not isinstance(self._lmp_handle.poll(), int)
 
     def _lmp_end(self):
         # Close lammps input and wait for lammps to end. Return process return value
         if self._lmp_alive():
-            self.lmp_handle.stdin.close()
-            return self.lmp_handle.wait()
+            self._lmp_handle.stdin.close()
+            return self._lmp_handle.wait()
         
     def run(self):
         """Method which explicitely runs LAMMPS."""
@@ -143,9 +166,9 @@ class LAMMPS:
         # see to it that LAMMPS is started
         if not self._lmp_alive():
             # Attempt to (re)start lammps
-            self.lmp_handle = Popen(lammps_cmd_line+lammps_options+['-log', '/dev/stdout'], 
+            self._lmp_handle = Popen(lammps_cmd_line+lammps_options+['-log', '/dev/stdout'], 
                                     stdin=PIPE, stdout=PIPE)
-        lmp_handle = self.lmp_handle
+        lmp_handle = self._lmp_handle
 
         # Create thread reading lammps stdout (for reference, also create the
         # file lammps_log, although it is never used)
@@ -252,10 +275,10 @@ class LAMMPS:
                 "\n" +
                 ("dump dump_all all custom 1 %s id type x y z vx vy vz fx fy fz \n" % lammps_trj) )
         f.write("\n")
-        f.write("thermo_style custom step temp ke pe etotal cpu \n" +
-                "thermo_modify flush yes format 1 %4d format 2 %9.3f format 3 %.11f format 4 %.11f format 5 %.11f format 6 %9.3f \n" +
+        f.write(("thermo_style custom %s\n" +
+                "thermo_modify flush yes\n" +
                 "thermo 1 \n" +
-                "\n")
+                "\n") % (' '.join(self._custom_thermo_args)))
         if ("minimize" in parameters):
             f.write("minimize %s \n" % parameters["minimize"])
         if ("run" in parameters):
@@ -283,31 +306,27 @@ class LAMMPS:
             f = lammps_log
             close_log_file = False
 
-        epot = float('nan')
-        i = 0
-        prevline = None
-        while True:
-            line = f.readline()
-            if not line or line.strip() == CALCULATION_END_MARK:
-                break
-            # get column of potential energy
-            if "PotEng" in line:
-                i = line.split().index("PotEng")
-                # get potential energy of first step (if more are done)
-                if PotEng_first:
+        thermo_content = []
+        line = f.readline()
+        while line and line.strip() != CALCULATION_END_MARK:
+            # get thermo output
+            if line.startswith(self._custom_thermo_mark):
+                m = True
+                while m:
                     line = f.readline()
-                    epot = float(line.split()[i])
-                    break
-            # get potential energy of last step (if more are done)
-            if "Loop" in line:
-                if prevline is not None:  
-                    epot = float(prevline.split()[i])
-            prevline = line
+                    m = self._custom_thermo_re.match(line)
+                    if m:
+                        # create a dictionary between each of the thermo_style args
+                        # and it's corresponding value
+                        thermo_content.append(dict(zip(self._custom_thermo_args, 
+                                                       map(float, m.groups()))))
+            else:
+                line = f.readline()
 
         if close_log_file:
             f.close()
 
-        self.potential_energy = epot
+        self.thermo_content = thermo_content
 
     def read_lammps_trj(self, lammps_trj=None, set_atoms=False):
         """Method which reads a LAMMPS dump file."""
