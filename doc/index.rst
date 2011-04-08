@@ -13,7 +13,7 @@ for manipulating atoms, analyzing simulations, visualization etc.
 Supported :mod:`calculators`:
 
    |abinit| |Asap| |dftb| |elk| |exciting| |EMT| |fhi-aims| 
-   |fleur| |gpaw| |hotbit| |jacapo| |siesta| |turbomole| |vasp| 
+   |fleur| |gpaw| |hotbit| |jacapo| |lammps| |siesta| |turbomole| |vasp| 
 
 .. |abinit| image:: _static/abinit.png
    :target: ase/calculators/abinit.html
@@ -21,20 +21,20 @@ Supported :mod:`calculators`:
 .. |Asap| image:: _static/asap.png
    :target: http://wiki.fysik.dtu.dk/asap
    :align: middle
-.. |dftb| image:: _static/dftb.png
-   :target: ase/calculators/dftb.html
-   :align: middle
-.. |jacapo| image:: _static/jacapo.png
-   :target: ase/calculators/jacapo.html
-   :align: middle
 .. |elk| image:: _static/elk.png
    :target: http://elk.sourceforge.net/
+   :align: middle
+.. |EMT| image:: _static/emt.png
+   :target: ase/calculators/emt.html
    :align: middle
 .. |exciting| image:: _static/exciting.png
    :target: ase/calculators/exciting.html
    :align: middle   
-.. |EMT| image:: _static/emt.png
-   :target: ase/calculators/emt.html
+.. |dftb| image:: _static/dftb.png
+   :target: ase/calculators/dftb.html
+   :align: middle
+.. |fhi-aims| image:: _static/fhi-aims.png
+   :target: ase/calculators/FHI-aims.html
    :align: middle
 .. |fleur| image:: _static/fleur.png
    :target: ase/calculators/fleur.html
@@ -45,6 +45,12 @@ Supported :mod:`calculators`:
 .. |hotbit| image:: _static/hotbit.png
    :target: https://trac.cc.jyu.fi/projects/hotbit
    :align: middle
+.. |jacapo| image:: _static/jacapo.png
+   :target: ase/calculators/jacapo.html
+   :align: middle
+.. |lammps| image:: _static/lammps.png
+   :target: http://lammps.sandia.gov/
+   :align: middle
 .. |siesta| image:: _static/siesta.png
    :target: ase/calculators/siesta.html
    :align: middle
@@ -53,9 +59,6 @@ Supported :mod:`calculators`:
    :align: middle 
 .. |vasp| image:: _static/vasp.png
    :target: ase/calculators/vasp.html
-   :align: middle
-.. |fhi-aims| image:: _static/fhi-aims.png
-   :target: ase/calculators/FHI-aims.html
    :align: middle
 
 .. _Asap: http://wiki.fysik.dtu.dk/asap
