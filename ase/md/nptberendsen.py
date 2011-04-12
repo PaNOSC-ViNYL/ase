@@ -10,6 +10,10 @@ import ase.units as units
 
 class NPTBerendsen(NVTBerendsen):
     """Berendsen (constant N, P, T) molecular dynamics.
+    
+    This dynamics scale the velocities and volumes to maintain a constant
+    pressure and temperature.  The shape of the simulation cell is not
+    altered, if that is desired use Inhomogenous_NPTBerendsen.
 
     Usage: NPTBerendsen(atoms, timestep, temperature, taut, pressure, taup)
 
@@ -92,16 +96,8 @@ class NPTBerendsen(NVTBerendsen):
         #print "volume scaling by:", scl_pressure
 
         cell = self.atoms.get_cell()
-        positions = self.atoms.get_positions()
-
         cell = scl_pressure * cell
-        positions = scl_pressure * positions 
-
-        self.atoms.set_cell(cell, scale_atoms=False)
-        self.atoms.set_positions(positions)
-
-        return 
-
+        self.atoms.set_cell(cell, scale_atoms=True)
 
     def step(self, f):
         """ move one timestep forward using Berenden NPT molecular dynamics."""
@@ -135,3 +131,60 @@ class NPTBerendsen(NVTBerendsen):
 
 
         return f
+
+class Inhomogenous_NPTBerendsen(NPTBerendsen):
+    """Berendsen (constant N, P, T) molecular dynamics.
+    
+    This dynamics scale the velocities and volumes to maintain a constant
+    pressure and temperature.  The size of the unit cell is allowed to change
+    independently in the three directions, but the angles remain constant.
+
+    Usage: NPTBerendsen(atoms, timestep, temperature, taut, pressure, taup)
+
+    atoms
+        The list of atoms.
+        
+    timestep
+        The time step.
+
+    temperature
+        The desired temperature, in Kelvin.
+
+    taut
+        Time constant for Berendsen temperature coupling.
+
+    fixcm
+        If True, the position and momentum of the center of mass is
+        kept unperturbed.  Default: True.
+
+    pressure
+        The desired pressure, in bar (1 bar = 1e5 Pa).
+
+    taup
+        Time constant for Berendsen pressure coupling.
+
+    compressibility
+        The compressibility of the material, water 4.57E-5 bar-1, in bar-1
+
+    """
+    def scale_positions_and_cell(self):
+        """ Do the Berendsen pressure coupling,
+        scale the atom positon and the simulation cell."""
+
+        taupscl = self.dt  * self.compressibility / self.taup / 3.0
+        stress = - self.atoms.get_stress() * 1e-5 / units.Pascal
+        if stress.shape == (6,):
+            stress = stress[:3]
+        elif stress.shape == (3,3):
+            stress = [stress[i][i] for i in range(3)]
+        else:
+            raise ValueError("Cannot use a stress tensor of shape " + str(stress.shape))
+        scl_pressurex = 1.0 - taupscl * (self.pressure - stress[0])
+        scl_pressurey = 1.0 - taupscl * (self.pressure - stress[1])
+        scl_pressurez = 1.0 - taupscl * (self.pressure - stress[2])
+
+        cell = self.atoms.get_cell()
+        cell = np.array([scl_pressurex * cell[0],scl_pressurey * cell[1],scl_pressurez * cell[2]])
+        self.atoms.set_cell(cell, scale_atoms=True)
+
+
