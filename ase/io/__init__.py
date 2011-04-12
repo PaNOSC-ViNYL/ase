@@ -56,6 +56,7 @@ def read(filename, index=-1, format=None):
     WIEN2k structure file      struct
     DftbPlus input file        dftb
     ETSF format                etsf.nc
+    DFTBPlus GEN format        gen
     =========================  ===========
 
     """
@@ -208,6 +209,10 @@ def read(filename, index=-1, format=None):
         from ase.io.etsf import ETSFReader
         return ETSFReader(filename).read_atoms()
 
+    if format == 'gen':
+        from ase.io.gen import read_gen
+        return read_gen(filename)
+
     raise RuntimeError('File format descriptor '+format+' not recognized!')
 
 
@@ -250,6 +255,7 @@ def write(filename, images, format=None, **kwargs):
     WIEN2k structure file      struct
     DftbPlus input file        dftb
     ETSF                       etsf.nc
+    DFTBPlus GEN format        gen
     =========================  ===========
   
     The use of additional keywords is format specific.
@@ -332,6 +338,10 @@ def write(filename, images, format=None, **kwargs):
     if format == 'xyz':
         from ase.io.xyz import write_xyz
         write_xyz(filename, images)
+        return
+    if format == 'gen':
+        from ase.io.gen import write_gen
+        write_gen(filename, images)
         return
     elif format == 'in':
         format = 'aims'
@@ -511,5 +521,8 @@ def filetype(filename):
 
     if filename.lower().endswith('.sdf'):
         return 'sdf'
+
+    if filename.lower().endswith('.gen'):
+        return 'gen'
 
     return 'xyz'
