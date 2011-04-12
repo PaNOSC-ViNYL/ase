@@ -19,6 +19,7 @@ following structure::
 
 import ase.parallel 
 from ase.parallel import paropen
+from ase.calculators.singlepoint import SinglePointCalculator
 import pupynere # Non-relative import ase.io.pupynere creates import loop!
 import numpy as np
 import os
@@ -328,7 +329,7 @@ class BundleTrajectory:
         atoms = ase.Atoms(**data)
         natoms = smalldata['natoms']
         for name in ('positions', 'numbers', 'tags', 'masses',
-                     'momenta', 'magmoms'):
+                     'momenta'):
             if self.datatypes.get(name):
                 atoms.arrays[name] = self._read_data(framezero, framedir,
                                                      name, atom_id)
@@ -336,10 +337,14 @@ class BundleTrajectory:
                 
         # Create the atoms object
         if self.datatypes.get('energy'):
-            if self.datatype.get('forces'):
+            if self.datatypes.get('forces'):
                 forces = self.backend.read(framedir, 'forces')
             else:
                 forces = None
+            if self.datatypes.get('magmoms'):
+                magmoms = self.backend.read(framedir, 'magmoms')
+            else:
+                magmoms = None
             calc = SinglePointCalculator(smalldata.get('energy'),
                                          forces,
                                          smalldata.get('stress'),
