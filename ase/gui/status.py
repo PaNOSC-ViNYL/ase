@@ -55,7 +55,7 @@ class Status:
         R = self.R[indices]
 
         if n == 1:
-            tag = self.images.T[indices][0]
+            tag = self.images.T[self.frame,indices][0]
             mom = self.images.M[self.frame][indices]
             text = (u' #%d %s (%s): %.3f Å, %.3f Å, %.3f Å ' %
                     ((indices[0], names[Z[0]], symbols[Z[0]]) + tuple(R[0])))

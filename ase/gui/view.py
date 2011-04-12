@@ -366,7 +366,7 @@ class View:
         if self.colormode == 'jmol' or self.colormode == 'atno':
             colors = np.array(colarray)[Z]
         elif self.colormode == 'tags':
-            colors = np.array(colarray)[self.images.T]
+            colors = np.array(colarray)[self.images.T[self.frame]]
         elif self.colormode == 'force':
             F = self.images.F[self.frame]
             F = np.sqrt((F*F).sum(axis=-1))  # The absolute force

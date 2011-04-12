@@ -110,7 +110,7 @@ class ColorWindow(gtk.Window):
     def init_colors_from_gui(self):
         cm = self.gui.colormode
         # Disallow methods if corresponding data is not available
-        if self.gui.images.T is np.nan or not self.gui.images.T.any():
+        if not self.gui.images.T.any():
             self.radio_tag.set_sensitive(False)
             if self.radio_tag.get_active() or cm == 'tag':
                 self.radio_jmol.set_active(True)
@@ -256,7 +256,7 @@ class ColorWindow(gtk.Window):
             for x, y in self.actual_colordata:
                 oldcolors[x] = y
             if self.colormode == 'tags':
-                colors[:] = oldcolors[self.gui.images.T]
+                colors[:] = oldcolors[self.gui.images.T[self.gui.frame]]
             else:
                 colors[:] = oldcolors[self.gui.images.Z]
         elif self.colormode == 'force':
