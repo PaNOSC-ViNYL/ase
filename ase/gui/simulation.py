@@ -115,6 +115,7 @@ class Simulation(gtk.Window):
                      symbols=images.Z[:natoms],
                      cell=images.A[n],
                      magmoms=images.M[n],
+                     tags=images.T[n],
                      pbc=images.pbc)
 
     def begin(self, **kwargs):
