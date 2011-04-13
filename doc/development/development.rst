@@ -12,6 +12,7 @@ Development topics
 
 .. toctree::
 
+   releasenotes
    contribute
    versioncontrol
    python_codingstandard

@@ -24,14 +24,15 @@ Local optimization
    :synopsis: Structure Optimization
 
 There are currently 5 different optimization algorithms available:
-``BFGS``, ``LBFGS``, ``LBFGSLineSearch``, ``MDMin``, and ``FIRE``.
+``BFGS``, ``LBFGS``, ``BFGSLineSearch``, ``LBFGSLineSearch``,
+``MDMin``, and ``FIRE``.
 
 ``MDMin`` and ``FIRE`` both use Newtonian dynamics with added
 friction, to converge to an energy minimum, whereas the first 3 are of
 the quasi-Newton type, where the forces of consecutive steps are used
 to dynamically update a Hessian describing the curvature of the
 potential energy landscape.  You can use the ``QuasiNewton`` synonym
-for ``BFGS`` because this algorithm is in many cases the optimal one
+for ``BFGSLineSearch`` because this algorithm is in many cases the optimal one
 of the three quasi-Newton algorithms.
 
 All optimizer classes have the following structure::
@@ -212,6 +213,7 @@ quadratic it becomes advantageous to switch to a minimization method
 with quadratic convergence, such as `Conjugate Gradient` or `Quasi
 Newton`.
 
+
 SciPy optimizers
 ----------------
 .. module:: optimize.sciopt
@@ -230,6 +232,7 @@ as::
 
   :epydoc:`optimize.sciopt.SciPyFminBFGS`, 
   :epydoc:`optimize.sciopt.SciPyFminCG`
+
 
 BFGSLineSearch
 --------------

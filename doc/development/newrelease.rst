@@ -41,7 +41,7 @@ When it is time for a new release of the code, here is what you have to do:
    scp dist/python-ase-3.1.0."tags_revision".tar.gz root@web2:/var/www/wiki/ase-files
 
 * Add a link on :ref:`news` and update the information
-  on the :ref:`download_and_install` page.
+  on the :ref:`download_and_install` page and the :ref:`releasenotes` page.
 
 * Increase the version number in ase/version.py, and commit the change::
 
