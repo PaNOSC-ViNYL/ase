@@ -31,7 +31,7 @@ Version 3.5.0
 
 * New :mod:`phonons` module.
 
-* Van der Waals corrections for DFT, see GPAW_ usage
+* Van der Waals corrections for DFT, see GPAW_ usage.
 
 
 .. _ASAP: http://wiki.fysik.dtu.dk/asap
