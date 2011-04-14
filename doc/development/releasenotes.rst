@@ -38,6 +38,10 @@ Version 3.5.0
   customization of colours, atomic radii; enabled user default
   settings via ~/.ase/gui.py 
 
+* database library expanded to include: 1) the s22, s26 and s22x5 sets
+  of van der Waals bonded dimers and complexes by the Hobza group, and 
+  2) the DBH24 set of gas-phase reaction barrier heights by the Truhlar group.
+
 .. _ASAP: http://wiki.fysik.dtu.dk/asap
 .. _GPAW: https://wiki.fysik.dtu.dk/gpaw/documentation/xc/vdwcorrection.html
 
