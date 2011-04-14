@@ -7,6 +7,7 @@ import sys
 
 from ase.gui.languages import translate as _
 from ase.gui.widgets import pack, Help
+from ase.data.colors import jmol_colors
 
 class Execute(gtk.Window):
     """ The Execute class provides an expert-user window for modification
@@ -230,7 +231,8 @@ class Execute(gtk.Window):
                         img.dynamic[a] = d
                         if Z != Zold:
                             img.r[a] = cov[Z] * 0.89
-                        gui.colordata[a] = [a,[r,g,b]]
+                            r,g,b = jmol_colors[Z]
+                        gui.colordata[a] = [a,[r,g,b]]                            
                         color = tuple([int(65535*x) for x in [r,g,b]])
                         gui.colors[a] = new(alloc(*color))
                         img.M[i][a] = m
