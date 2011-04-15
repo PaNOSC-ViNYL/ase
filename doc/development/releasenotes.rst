@@ -33,14 +33,25 @@ Version 3.5.0
 
 * Van der Waals corrections for DFT, see GPAW_ usage.
 
-* updated gui interface: stability and usability improvements; povray
-  render facility; updated expert user mode; enabled
-  customization of colours, atomic radii; enabled user default
-  settings via ~/.ase/gui.py 
+* New :class:`~ase.io.bundletrajectory.BundleTrajectory` added.
 
-* database library expanded to include: 1) the s22, s26 and s22x5 sets
-  of van der Waals bonded dimers and complexes by the Hobza group, and 
-  2) the DBH24 set of gas-phase reaction barrier heights by the Truhlar group.
+* Updated GUI interface:
+
+  * Stability and usability improvements.
+  * Povray render facility.
+  * Updated expert user mode.
+  * Enabled customization of colours and atomic radii.
+  * Enabled user default settings via :file:`~/.ase/gui.py`. 
+
+* :mod:`Database library <data>` expanded to include:
+  
+  * The s22, s26 and s22x5 sets of van der Waals bonded dimers and
+    complexes by the Hobza group.
+  * The DBH24 set of gas-phase reaction barrier heights by the Truhlar
+    group.
+
+* Implementation of the Dimer method.
+
 
 .. _ASAP: http://wiki.fysik.dtu.dk/asap
 .. _GPAW: https://wiki.fysik.dtu.dk/gpaw/documentation/xc/vdwcorrection.html
