@@ -27,6 +27,7 @@ class Repeat(gtk.Window):
 
     def change(self, adjustment):
         self.gui.images.repeat_images([int(r.value) for r in self.repeat])
+        self.gui.repeat_colors([int(r.value) for r in self.repeat])
         self.gui.set_coordinates()
         return True
         

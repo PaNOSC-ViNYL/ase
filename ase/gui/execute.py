@@ -102,7 +102,7 @@ class Execute(gtk.Window):
         for i, rgb in enumerate(rgb_data):
             self.rgb_data += [[i, rgb]]
         self.gui.colordata = self.rgb_data
-        self.gui.colors = self.colors
+        self.gui.colors = list(self.colors)
         self.gui.colormode = 'manual'        
         self.cmd.grab_focus()
 

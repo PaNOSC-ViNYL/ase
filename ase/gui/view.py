@@ -376,10 +376,26 @@ class View:
         elif self.colormode == 'manual':
             colors = colarray
         elif self.colormode == 'same':
-            colors = [colarray[0]] * n
+            colors = [colarray[0]] * self.images.natoms
         else:
             raise RuntimeError('Unknown color mode: %s' % (self.colormode,))
         return colors
+
+    def repeat_colors(self, repeat):
+        natoms = self.images.natoms
+        if self.colormode == 'manual':
+            a0 = 0
+            colors = self.colors
+            colordata = self.colordata
+            for i0 in range(repeat[0]):
+                for i1 in range(repeat[1]):
+                    for i2 in range(repeat[2]):
+                        a1 = a0 + natoms
+                        colors[a0:a1] = self.colors[:natoms]
+                        colordata[a0:a1] = self.colordata[:natoms]
+                        a0 = a1
+            self.colors = colors
+            self.colordata = colordata
 
     def draw(self, status=True):
         self.pixmap.draw_rectangle(self.white_gc, True, 0, 0,
