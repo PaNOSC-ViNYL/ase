@@ -49,7 +49,7 @@ Supported :mod:`calculators`:
    :target: ase/calculators/jacapo.html
    :align: middle
 .. |lammps| image:: _static/lammps.png
-   :target: http://lammps.sandia.gov/
+   :target: ase/calculators/lammps.html
    :align: middle
 .. |siesta| image:: _static/siesta.png
    :target: ase/calculators/siesta.html
