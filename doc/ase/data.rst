@@ -61,12 +61,12 @@ Example::
 >>> atoms = molecule(g2[11]) 
 >>> get_atomization_energy(g2[11])
 232.57990000000001
->>> from ase.units import kJ,mol
->>> get_atomization_energy(g2[11])*kJ/mol
-2.4105213781974975
+>>> from ase.units import kcal,mol
+>>> get_atomization_energy(g2[11])*kcal/mol
+10.08562144637833
 
 where the last line converts the experimental atomization energy of H2O
-from units of kJ/mol to eV.
+from units of kcal/mol to eV.
 
 
 S22, s26, and s22x5 data
