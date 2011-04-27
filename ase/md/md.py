@@ -1,5 +1,6 @@
 """Molecular Dynamics."""
 
+import warnings
 import numpy as np
 
 from ase.optimize.optimize import Dynamics
@@ -14,6 +15,10 @@ class MolecularDynamics(Dynamics):
         Dynamics.__init__(self, atoms, logfile=None, trajectory=trajectory)
         self.dt = timestep
         self.masses = self.atoms.get_masses()
+        if 0 in self.masses:
+            warnings.warn('Zero mass encountered in atoms; this will '
+                          'likely lead to errors if the massless atoms '
+                          'are unconstrained.')
         self.masses.shape = (-1, 1)
         if logfile:
             self.attach(MDLogger(dyn=self, atoms=atoms, logfile=logfile),
