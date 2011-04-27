@@ -271,9 +271,9 @@ class NPT(MolecularDynamics):
         if self.pfactor_given is None:
             deltaeta = zeros(6, float)
         else:
+            stress = self.stresscalculator()
             deltaeta = -2*dt * (self.pfact * linalg.det(self.h)
-                                * (self.atoms.get_stress()
-                                   - self.externalstress))
+                                * (stress - self.externalstress))
         
         if self.frac_traceless == 1:
             eta_future = self.eta_past + self.mask * self._makeuppertriangular(deltaeta)
@@ -302,14 +302,19 @@ class NPT(MolecularDynamics):
         self.zeta = zeta_future
         self._synchronize()  # for parallel simulations.
         self.zeta_integrated += dt * self.zeta
-        #self.forcecalculator()
-        force = self.atoms.get_forces()
+        force = self.forcecalculator()
         # The periodic boundary conditions may have moved the atoms.
         self.post_pbc_fix(fixfuture=0)  
         self._calculate_q_future(force)
         self.atoms.set_momenta(dot(self.q_future-self.q_past, self.h/(2*dt)) *
                                self._getmasses())
         #self.stresscalculator()
+        
+    def forcecalculator(self):
+        return self.atoms.get_forces()
+    
+    def stresscalculator(self):
+        return self.atoms.get_stress()
 
     def initialize(self):
         """Initialize the dynamics.
