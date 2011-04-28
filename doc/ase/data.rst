@@ -47,7 +47,7 @@ Example:
 >>> from ase.data.molecules import molecule
 >>> atoms = molecule('H2O')
 
-All molecular membars of each database is conveniently contained in a list
+All molecular members of each database is conveniently contained in a list
 of strings (g1, g2, g3), and one can look up the
 experimental atomization energy for each molecule.
 This is extrapolated from experimental heats of formation at room temperature,
@@ -156,7 +156,7 @@ energies for an s22 system and its s22x5 equivalent
 when the energy offset-correction is turned off.
 The last two functions are convenience functions,
 giving the number of atoms in the two molecules
-conctituting a dimer and the relative intermolecular
+constituting a dimer and the relative intermolecular
 distance in a dimer
 (relative to the '1.0' separation, and in Angstrom),
 respectively.
