@@ -42,7 +42,7 @@ Molecular data
 
 The G1, G2, and G3-databases are available in the :mod:`molecules` module.
 
-Example::
+Example:
 
 >>> from ase.data.molecules import molecule
 >>> atoms = molecule('H2O')
@@ -53,7 +53,7 @@ experimental atomization energy for each molecule.
 This is extrapolated from experimental heats of formation at room temperature,
 using calculated zero-point energies and thermal corrections.
 
-Example::
+Example:
 
 >>> from ase.data.molecules import molecule, g2, get_atomization_energy
 >>> g2[11]
