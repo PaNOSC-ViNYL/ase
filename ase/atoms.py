@@ -928,7 +928,6 @@ class Atoms(object):
         vector, then *v* is rotated into *a*.  The point at *center*
         is fixed.  Use *center='COM'* to fix the center of mass.
         Vectors can also be strings: 'x', '-x', 'y', ... .
-        If both *v* and *a* are vectors: rotate *v* into *a*.
 
         Examples:
 
@@ -975,7 +974,7 @@ class Atoms(object):
         p = self.arrays['positions'] - center
         self.arrays['positions'][:] = (c * p - 
                                        np.cross(p, s * v) + 
-                                       np.outer(np.dot(p, v), (1.0 - c) * v)+
+                                       np.outer(np.dot(p, v), (1.0 - c) * v) +
                                        center)
         if rotate_cell:
             rotcell = self.get_cell()
