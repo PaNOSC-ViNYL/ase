@@ -718,7 +718,7 @@ class Vasp(Calculator):
                 if key in ('dipol', 'eint', 'ropt', 'rwigs'):
                     [incar.write('%.4f ' % x) for x in val]
                 elif key in ('ferwe', 'ferdo'):
-                    [incar.write('%.2f ' % x) for x in val]
+                    [incar.write('%.1f ' % x) for x in val]
                 elif key in ('iband', 'kpuse'):
                     [incar.write('%i ' % x) for x in val]
                 elif key == 'magmom':
@@ -837,7 +837,7 @@ class Vasp(Calculator):
             energy_zero = []
         for line in open('OUTCAR', 'r'):
             # Free energy
-            if line.startswith('  free  energy   toten'):
+            if line.lower().startswith('  free  energy   toten'):
                 if all:
                     energy_free.append(float(line.split()[-2]))
                 else:
