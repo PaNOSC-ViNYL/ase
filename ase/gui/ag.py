@@ -4,9 +4,7 @@
 # CAMd (see accompanying license files for details).
  
 from optparse import OptionParser, SUPPRESS_HELP
-import ase.gui.gtkexcepthook
-#ase.gui.gtkexcepthook.feedback = "schiotz@fysik.dtu.dk"
-#ase.gui.gtkexcepthook.smtphost = "mail.fysik.dtu.dk"
+
 
 def build_parser():
     parser = OptionParser(usage='%prog [options] [file[, file2, ...]]',
@@ -110,6 +108,7 @@ def main():
                     print
         else:
             from ase.gui.gui import GUI
+            import ase.gui.gtkexcepthook
             gui = GUI(images, opt.rotations, opt.show_unit_cell, opt.bonds)
             gui.run(opt.graph)
 
