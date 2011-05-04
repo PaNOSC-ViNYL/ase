@@ -4,7 +4,6 @@ http://www.uam.es/departamentos/ciencias/fismateriac/siesta
 """
 
 import os
-from subprocess import Popen, PIPE
 from os.path import join, isfile, islink, getmtime
 from cmath import exp
 import array
@@ -21,11 +20,11 @@ class Siesta:
 
     The default parameters are very close to those that the SIESTA
     Fortran code would use.  These are the exceptions::
-    
+
       calc = Siesta(label='siesta', xc='LDA', pulay=5, mix=0.1)
 
     Use the set_fdf method to set extra FDF parameters::
-    
+
       calc.set_fdf('PAO.EnergyShift', 0.01 * Rydberg)
 
     """
@@ -64,13 +63,13 @@ class Siesta:
         Examples
         ========
         Use default values:
-        
+
         >>> h = Atoms('H', calculator=Siesta())
         >>> h.center(vacuum=3.0)
         >>> e = h.get_potential_energy()
-        
+
         """
-        
+
         self.label = label#################### != out
         self.xc = xc
         self.kpts = kpts
@@ -84,11 +83,11 @@ class Siesta:
         self.basis = basis
         self.ghosts = ghosts
         self.write_fdf_file = write_fdf
-    
+
         self.converged = False
         self.fdf = {}
         self.e_fermi = None
-        
+
     def update(self, atoms):
         if (not self.converged or
             len(self.numbers) != len(atoms) or
@@ -139,7 +138,7 @@ class Siesta:
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
 
         self.converged = False
-        
+
     def get_potential_energy(self, atoms, force_consistent=False):
         self.update(atoms)
 
@@ -152,7 +151,7 @@ class Siesta:
     def get_forces(self, atoms):
         self.update(atoms)
         return self.forces.copy()
-    
+
     def get_stress(self, atoms):
         self.update(atoms)
         return self.stress.copy()
@@ -170,10 +169,10 @@ class Siesta:
         #debye to e*Ang (the units of VASP)
         dipolemoment = dipolemoment*0.2081943482534
         return dipolemoment
-    
+
     def get_pseudo_density(self, spin=None, pad=True):
         """Return pseudo-density array.
-        
+
         If *spin* is not given, then the total density is returned.
         Otherwise, the spin up or down density is returned (spin=0 or 1).
         """
@@ -181,7 +180,7 @@ class Siesta:
         if not isfile(filename):
             raise RuntimeError('Could not find rho-file (make sure to add fdf-option '
                                '"SaveRho=True" to your calculation)')
-        
+
         rho = read_rho(filename)
 
         if spin is None:
@@ -199,16 +198,16 @@ class Siesta:
     def get_pseudo_wave_function(self, band=0, kpt=0, spin=None):
         """Return pseudo-wave-function array.
 
-        The method is limited to the gamma point, and is implemented 
+        The method is limited to the gamma point, and is implemented
         as a wrapper to denchar (a tool shipped with siesta);
         denchar must be available in the command path.
 
-        When retrieving a p_w_f from a non-spin-polarized calculation, 
-        spin must be None (default), and for spin-polarized 
+        When retrieving a p_w_f from a non-spin-polarized calculation,
+        spin must be None (default), and for spin-polarized
         calculations, spin must be set to either 0 (up) or 1 (down).
 
         As long as the necessary files are present and named
-        correctly, old p_w_fs can be read as long as the 
+        correctly, old p_w_fs can be read as long as the
         calculator label is set. E.g.
 
         >>> c = Siesta(label='name_of_old_calculation')
@@ -235,7 +234,7 @@ class Siesta:
             spin_name = ".DOWN"
 
         label = self.label
-        # If <label>.WF<band>.cube already exist and is newer than <label>.fdf, 
+        # If <label>.WF<band>.cube already exist and is newer than <label>.fdf,
         # just return it
         fn_wf = label+('.WF%i%s.cube'%(band,spin_name))
         fn_fdf = label+'.fdf'
@@ -298,10 +297,14 @@ class Siesta:
         denc_fdf_file.write(''.join(denc_fdf))
         denc_fdf_file.close()
 
-        p = Popen('denchar', shell=True, stdin=open(label+'.denchar.fdf'),
-                  stdout=PIPE, stderr=PIPE, close_fds=True)
-        exitcode = p.wait()
-        
+        try:
+            from subprocess import Popen, PIPE
+            p = Popen('denchar', shell=True, stdin=open(label+'.denchar.fdf'),
+                      stdout=PIPE, stderr=PIPE, close_fds=True)
+            exitcode = p.wait()
+        except ImportError:
+            raise RuntimeError('get_pseudo_wave_function implemented only with subprocess.')
+
         if exitcode == 0:
             if not isfile(fn_wf):
                 raise RuntimeError('Could not find the requested file (%s)'%fn_wf)
@@ -331,16 +334,16 @@ class Siesta:
             raise RuntimeError(('Siesta exited with exit code: %d.  ' +
                                 'Check %s.txt for more information.') %
                                (exitcode, self.label))
-        
+
         self.dipole = self.read_dipole()
         self.read()
 
         self.converged = True
-        
+
     def set_fdf(self, key, value):
         """Set FDF parameter."""
         self.fdf[key] = value
-                
+
     def write_fdf(self, atoms):
         """Write input parameters to fdf-file."""
         fh = open(self.label + '.fdf', 'w')
@@ -361,7 +364,7 @@ class Siesta:
             'DM.MixingWeight': self.mix,
             'MaxSCFIterations': self.maxiter
             }
-        
+
         if self.xc != 'LDA':
             fdf['xc.functional'] = 'GGA'
             fdf['xc.authors'] = self.xc
@@ -374,7 +377,7 @@ class Siesta:
                 if M != 0:
                     fh.write('%d %.14f\n' % (n + 1, M))
             fh.write('%endblock InitSpin\n')
-        
+
         fdf['Number_of_species'] = len(self.species)
 
         fdf.update(self.fdf)
@@ -429,9 +432,9 @@ class Siesta:
                         fh.write('0 ')
                 fh.write('%.1f\n' % (((self.kpts[i] + 1) % 2) * 0.5))
             fh.write('%endblock kgrid_Monkhorst_Pack\n')
-        
+
         fh.close()
-        
+
     def read(self):
         """Read results from SIESTA's text-output file."""
         text = open(self.label + '.txt', 'r').read().lower()
@@ -521,7 +524,7 @@ class Siesta:
                 self.eig[(i, 1)] = np.array(v[self.n_bands:])
             else:
                 self.eig[(i, 0)] = np.array(v)
-        
+
     def get_k_point_weights(self):
         self.read_eig()
         return self.weights
@@ -542,18 +545,18 @@ class Siesta:
             return 1
 
     def read_hs(self, filename, is_gamma_only=False, magnus=False):
-        """Read the Hamiltonian and overlap matrix from a Siesta 
-           calculation in sparse format. 
+        """Read the Hamiltonian and overlap matrix from a Siesta
+           calculation in sparse format.
 
         Parameters
         ==========
         filename: str
-            The filename should be on the form jobname.HS  
+            The filename should be on the form jobname.HS
         is_gamma_only: {False, True), optional
             Is it a gamma point calculation?
         magnus: bool
             The fileformat was changed by Magnus in Siesta at some
-            point around version 2.xxx. 
+            point around version 2.xxx.
             Use mangus=False, to use the old file format.
 
         Note
@@ -565,9 +568,9 @@ class Siesta:
             >>> calc = Siesta()
             >>> calc.read_hs('jobname.HS')
             >>> print calc._dat.fermi_level
-            >>> print 'Number of orbitals: %i' % calc._dat.nuotot 
+            >>> print 'Number of orbitals: %i' % calc._dat.nuotot
         """
-        assert not magnus, 'Not implemented; changes by Magnus to file io' 
+        assert not magnus, 'Not implemented; changes by Magnus to file io'
         assert not is_gamma_only, 'Not implemented. Only works for k-points.'
         class Dummy:
             pass
@@ -593,7 +596,7 @@ class Siesta:
         fileobj = file(filename, 'rb')
         fileobj.seek(0)
         dat.fermi_level = float(open(filename[:-3] + '.EIG', 'r').readline())
-        dat.is_gammay_only = is_gamma_only 
+        dat.is_gammay_only = is_gamma_only
         dat.nuotot, dat.ns, dat.mnh = getrecord(fileobj, 'l')
         nuotot, ns, mnh = dat.nuotot, dat.ns, dat.mnh
         print 'Number of orbitals found: %i' % nuotot
@@ -605,7 +608,7 @@ class Siesta:
         for oi in xrange(1, nuotot):
             listhptr[oi] = listhptr[oi - 1] + numh[oi - 1]
         dat.listh = listh = np.zeros(mnh, 'l')
-        
+
         print 'Reading sparse info'
         for oi in xrange(nuotot):
             for mi in xrange(numh[oi]):
@@ -635,8 +638,8 @@ class Siesta:
 
     def get_hs(self, kpt=(0, 0, 0), spin=0, remove_pbc=None, kpt_scaled=True):
         """Hamiltonian and overlap matrices for an arbitrary k-point.
-       
-        The default values corresponds to the Gamma point for 
+
+        The default values corresponds to the Gamma point for
         spin 0 and periodic boundary conditions.
 
         Parameters
@@ -645,10 +648,10 @@ class Siesta:
             k-point in scaled or absolute coordinates.
             For the latter the units should be Bohr^-1.
         spin : {0, 1}, optional
-            Spin index 
+            Spin index
         remove_pbc : {None, ({'x', 'y', 'z'}, basis)}, optional
             Use remove_pbc to truncate h and s along a cartesian
-            axis. 
+            axis.
         basis: {str, dict}
             The basis specification as either a string or a dictionary.
         kpt_scaled : {True, bool}, optional
@@ -674,7 +677,7 @@ class Siesta:
             print 'Please read in data first by calling the method read_hs.'
             return None, None
         dot = np.dot
-        dat = self._dat            
+        dat = self._dat
         kpt_c = np.array(kpt, float)
         if kpt_scaled:
             kpt_c = dot(kpt_c, dat.rcell)
@@ -685,30 +688,30 @@ class Siesta:
         x_sparse = dat.xij_sparse
         numh, listhptr, listh = dat.numh, dat.listhptr, dat.listh
         indxuo = np.mod(np.arange(dat.nuotot_sc), dat.nuotot)
-        
+
         for iuo in xrange(dat.nuotot):
             for j in range(numh[iuo]):
-                ind =  listhptr[iuo] + j 
+                ind =  listhptr[iuo] + j
                 jo = listh[ind] - 1
                 juo = indxuo[jo]
                 kx = dot(kpt_c, x_sparse[:, ind])
                 phasef = exp(1.0j * kx)
-                h_MM[iuo, juo] += phasef * h_sparse[ind, spin] 
+                h_MM[iuo, juo] += phasef * h_sparse[ind, spin]
                 s_MM[iuo, juo] += phasef * s_sparse[ind]
-        
+
         if remove_pbc is not None:
             direction, basis = remove_pbc
             centers_ic = get_bf_centers(dat.symbols, dat.pos_ac, basis)
             d = 'xyz'.index(direction)
             cutoff = dat.cell[d, d] * 0.5
             truncate_along_axis(h_MM, s_MM, direction, centers_ic, cutoff)
-        
+
         h_MM *= complex(Rydberg)
         return h_MM, s_MM
 
 
 def getrecord(fileobj, dtype):
-    """Used to read in binary files. 
+    """Used to read in binary files.
     """
     typetosize = {'l':4, 'f':4, 'd':8}# XXX np.int, np.float32, np.float64
     assert dtype in typetosize # XXX
@@ -733,7 +736,7 @@ def truncate_along_axis(h, s, direction, centers_ic, cutoff):
         Hamiltonian matrix.
     s: (N, N) ndarray
         Overlap matrix.
-    direction: {'x', 'y', 'z'} 
+    direction: {'x', 'y', 'z'}
         Truncate allong a cartesian axis.
     centers_ic: (N, 3) ndarray
         Centers of the basis functions.
@@ -753,7 +756,7 @@ def truncate_along_axis(h, s, direction, centers_ic, cutoff):
         s[:, i] *= mask_i
 
 def get_nao(symbol, basis):
-    """Number of basis functions. 
+    """Number of basis functions.
 
     Parameters
     ==========
@@ -767,25 +770,25 @@ def get_nao(symbol, basis):
     zeta = {'s':1, 'd':2, 't':3, 'q':4}
     nzeta = zeta[basis[0]]
     is_pol = 'p' in basis
-    for l in ls: 
+    for l in ls:
         nao += (2 * l + 1) * nzeta
     if is_pol:
         l_pol = None
-        l = -1 
+        l = -1
         while l_pol is None:
             l += 1
             if not l in ls:
                 l_pol = l
         nao += 2 * l_pol + 1
-    return nao        
+    return nao
 
 def get_bf_centers(symbols, positions, basis):
     """Centers of basis functions.
 
     Parameters
     ==========
-    symbols: str, (N, ) array_like 
-        chemical symbol for each atom. 
+    symbols: str, (N, ) array_like
+        chemical symbol for each atom.
     positions: float, (N, 3) array_like
         Positions of the atoms.
     basis: {str,  dict}
@@ -836,14 +839,14 @@ valence_config = {
     'C': (0, 1),
     'N': (0, 1),
     'O': (0, 1),
-    'S': (0, 1), 
+    'S': (0, 1),
     'Li': (0,),
     'Na': (0,),
     'Ni': (0, 2),
-    'Cu': (0, 2), 
-    'Pd': (0, 2), 
-    'Ag': (0, 2), 
-    'Pt': (0, 2), 
+    'Cu': (0, 2),
+    'Pd': (0, 2),
+    'Ag': (0, 2),
+    'Pt': (0, 2),
     'Au': (0, 2)}
 
 keys_with_units = {
