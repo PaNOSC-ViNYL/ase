@@ -145,10 +145,14 @@ class Execute(gtk.Window):
             loop_images = [self.gui.frame]
 
         # split off the first valid command in cmd to determine whether
-        # it is global or index based
+        # it is global or index based, this includes things such as 4*z and z*4
         index_based = False
         first_command = cmd.split()[0]
-        for c in ['=',',','+','-','/','*',';','.','[',']','(',')','{','}']:
+        special = ['=',',','+','-','/','*',';','.','[',']','(',')',
+                   '{','}','0','1','2','3','4','5','6','7','8','9']
+        while first_command[0] in special and len(first_command)>1:
+            first_command = first_command[1:]
+        for c in special:
             if c in first_command:
                 first_command = first_command[:first_command.find(c)]
         for c in index_commands:
@@ -236,7 +240,7 @@ class Execute(gtk.Window):
                         color = tuple([int(65535*x) for x in [r,g,b]])
                         gui.colors[a] = new(alloc(*color))
                         img.M[i][a] = m
-        gui.set_frame(frame)
+        gui.set_frame(frame,init=True)
 
     def add_text(self,val):
         text_end = self.textbuffer.get_end_iter()
