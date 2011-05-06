@@ -53,7 +53,7 @@ class Vibrations:
 
     >>> from ase import Atoms
     >>> from ase.calculators.emt import EMT
-    >>> from ase.optimizers import BFGS
+    >>> from ase.optimize import BFGS
     >>> from ase.vibrations import Vibrations
     >>> n2 = Atoms('N2', [(0, 0, 0), (0, 0, 1.1)],
     ...            calculator=EMT())
