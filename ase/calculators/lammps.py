@@ -32,6 +32,7 @@ from threading import Thread
 from re import compile as re_compile, IGNORECASE
 from tempfile import mkdtemp, NamedTemporaryFile
 import numpy as np
+import decimal as dec
 from ase import Atoms
 from ase.parallel import paropen
 from ase.units import GPa
@@ -79,6 +80,11 @@ class LAMMPS:
         # value as printed by lammps. thermo_content will be 
         # re-populated by the read_log method.
         self.thermo_content = []
+
+        # _no_data_file = True implies creating simulation box and
+        # individual atoms directly in the configuration file.
+        # Unfortunately, it is not entirely reliable
+        self._no_data_file = False
 
         if self.tmp_dir is None:
             tmp_dir = self.tmp_dir = mkdtemp(prefix='LAMMPS')
@@ -251,16 +257,17 @@ class LAMMPS:
             # Expect lammps_in to be a file-like object
             f = lammps_in
             close_in_file = False
+            
+        if self.keep_tmp_files:
+            f.write("# (written by ASE)\n")
 
-        f.write("# (written by ASE) \n" +
-                "clear\n" +
-                "\n### variables \n" +
+        # Write variables
+        f.write("clear\n" +
                 ("variable dump_file string \"%s\" \n" % lammps_trj ))
 
         parameters = self.parameters
         pbc = self.atoms.get_pbc()
-        f.write("\n### simulation box \n"
-                "units metal \n")
+        f.write("units metal \n")
         if ("boundary" in parameters):
             f.write("boundary %s \n" % parameters["boundary"])
         else:
@@ -272,16 +279,21 @@ class LAMMPS:
         f.write("\n")
 
         # Write the simulation box and the atoms
+        if self.keep_tmp_files:
+            f.write('## Original ase cell\n')
+            f.write(''.join(['# %.16f %.16f %.16f\n' % tuple(x)
+                             for x in self.atoms.get_cell()]))
+
         p = prism(self.atoms.get_cell())
         f.write("lattice sc 1.0\n")
-        xhi, yhi, zhi, xy, xz, yz = p.get_lammps_prism()
+        xhi, yhi, zhi, xy, xz, yz = p.get_lammps_prism_str()
         if self.always_triclinic or p.is_skewed():
-            f.write("region asecell prism 0.0 %20.16f 0.0 %20.16f 0.0 %20.16f " % \
+            f.write("region asecell prism 0.0 %s 0.0 %s 0.0 %s " % \
                         (xhi, yhi, zhi))
-            f.write("%20.16f %20.16f %20.16f side in units box\n" % \
+            f.write("%s %s %s side in units box\n" % \
                         (xy, xz, yz))
         else:
-            f.write(("region asecell block 0.0 %20.16f 0.0 %20.16f 0.0 %20.16f "
+            f.write(("region asecell block 0.0 %s 0.0 %s 0.0 %s "
                     "side in units box\n") % (xhi, yhi, zhi))
                     
         symbols = self.atoms.get_chemical_symbols()
@@ -296,10 +308,11 @@ class LAMMPS:
         species_i = dict([(s,i+1) for i,s in enumerate(species)])
 
         f.write("create_box %i asecell\n" % n_atom_types)
-        for s, r in zip(symbols, 
-                        map(p.trans_pos_to_lammps, self.atoms.get_positions())):
-            f.write("create_atoms %i single %20.16f %20.16f %20.16f units box\n" % \
-                        ((species_i[s],)+tuple(r)))
+        for s, pos in zip(symbols, self.atoms.get_positions()):
+            if self.keep_tmp_files:
+                f.write("# atom pos in ase cell: %.16f %.16f %.16f\n" % tuple(pos))
+            f.write("create_atoms %i single %s %s %s units box\n" % \
+                        ((species_i[s],)+p.pos_to_lammps_fold_str(pos)))
 
         # Write interaction stuff
         f.write("\n### interactions \n")
@@ -544,8 +557,17 @@ class special_tee:
 
 
 class prism:
-    def __init__(self, cell):
-        """Create a lammps-style triclinic prism object from a cell 
+    def __init__(self, cell, pbc=(True,True,True), digits=10):
+        """Create a lammps-style triclinic prism object from a cell
+
+        The main purpose of the prism-object is to create suitable 
+        string representations of prism limits and atom positions
+        within the prism.
+        When creating the object, the digits parameter (default set to 10)
+        specify the precission to use.
+        lammps is picky about stuff being within semi-open intervals,
+        e.g. for atom positions (when using create_atom in the in-file), 
+        x must be within [xlo, xhi).
         """
         a, b, c = cell
         an, bn, cn = [np.linalg.norm(v) for v in cell]
@@ -561,20 +583,46 @@ class prism:
         yzp = (bn*cn*np.cos(alpha) - xyp*xzp)/yhi
         zhi = np.sqrt(cn**2 - xzp**2 - yzp**2)
     
-        self.accuracy = np.finfo(xhi).eps
-        def fold_s(t, ref):
-            r = ref * (1.0-2.0*self.accuracy) # This is a little ugly, I think
-            return np.mod(0.5*r+t, r)-0.5*r
-        
-        xy = fold_s(xyp, xhi)
-        xz = fold_s(xzp, xhi)
-        yz = fold_s(yzp, yhi)
-        self.prism = (xhi, yhi, zhi, xy, xz, yz)
+        # Set precision
+        self.car_prec = dec.Decimal('10.0') ** \
+            int(np.floor(np.log10(max((xhi,yhi,zhi))))-digits)
+        self.dir_prec = dec.Decimal('10.0') ** (-digits)
+        self.acc = float(self.car_prec)
+        self.eps = np.finfo(xhi).eps
+
+        # For rotating positions from ase to lammps
+        self.R = np.dot(np.linalg.inv(cell),
+                        np.array(((xhi, 0,   0),
+                                  (xyp, yhi, 0),
+                                  (xzp, yzp, zhi))))
+
+        # Actual lammps cell may be different from what is used to create R
+        def fold(t, p):
+            tp = np.mod(0.5*p+t, p)-0.5*p
+            return float(self.f2qdec(tp))
+
+        xy = fold(xyp, xhi)
+        xz = fold(xzp, xhi)
+        yz = fold(yzp, yhi)
+
         self.A = np.array(((xhi, 0,   0),
                            (xy,  yhi, 0),
                            (xz,  yz,  zhi)))
-        self.R = np.dot(np.linalg.inv(cell), self.A)
         self.Ainv = np.linalg.inv(self.A)
+
+        if self.is_skewed() and \
+                (not (pbc[0] and pbc[1] and pbc[2])):
+            raise RuntimeError("Skewed lammps cells MUST have "
+                               "PBC == True in all directions!")
+
+    def f2qdec(self, f):
+        return dec.Decimal(repr(f)).quantize(self.car_prec, dec.ROUND_DOWN)
+
+    def f2qs(self, f):
+        return str(self.f2qdec(f))
+
+    def f2s(self, f):
+        return str(dec.Decimal(repr(f)).quantize(self.car_prec, dec.ROUND_HALF_EVEN))
 
     def dir2car(self, v):
         "Direct to cartesian coordinates"
@@ -584,25 +632,38 @@ class prism:
         "Cartesian to direct coordinates"
         return np.dot(v, self.Ainv)
 
-    def fold(self,v):
-        "Fold a position into the (lammps) cell" 
-        # This method is somewhat ugly.
-        # The 1-eps thing is to avoid atoms ending up exactly
-        # at the high limit of the cell (since the atoms then
-        # would be ignored by lammps)
-        return self.dir2car(np.mod(self.car2dir(v), 1-self.accuracy))
-
+    def fold_to_str(self,v):
+        "Fold a position into the lammps cell (semi open), return a tuple of str" 
+        # Two-stage fold, first into box, then into semi-open interval
+        # (within the given precission).
+        d = [x % (1-self.dir_prec) for x in 
+             map(dec.Decimal, np.mod(self.car2dir(v) + self.eps, 1.0))]
+        return tuple([self.f2qs(x) for x in 
+                      self.dir2car(map(float, d))])
+        
     def get_lammps_prism(self):
-        return self.prism
+        A = self.A
+        return (A[0,0], A[1,1], A[2,2], A[1,0], A[2,0], A[2,1])
 
-    def trans_pos_to_lammps(self, position):
-        "Rotate and fold a postion into the lammps cell"
-        return self.fold(np.dot(self.R, position))
+    def get_lammps_prism_str(self):
+        "Return a tuple of strings"
+        p = self.get_lammps_prism()
+        return tuple([self.f2s(x) for x in p[0:3]] + 
+                     [self.f2s(x) for x in p[3:]])
+
+    def pos_to_lammps_str(self, position):
+        "Rotate an ase-cell postion to the lammps cell orientation, return tuple of strs"
+        return tuple([self.f2s(x) for x in np.dot(position, self.R)])
+
+    def pos_to_lammps_fold_str(self, position):
+        "Rotate and fold an ase-cell postion into the lammps cell, return tuple of strs"
+        return self.fold_to_str(np.dot(position, self.R))
 
     def is_skewed(self):
-        acc = self.accuracy
-        xy, xz, yz = [np.abs(x) for x in self.prism[3:]]
-        return (xy > acc) or (xz > acc) or (yz > acc)
+        acc = self.acc
+        prism = self.get_lammps_prism()
+        axy, axz, ayz = [np.abs(x) for x in prism[3:]]
+        return (axy >= acc) or (axz >= acc) or (ayz >= acc)
         
 
 def write_lammps_data(fileobj, atoms, specorder=[], force_skew=False):
@@ -637,21 +698,21 @@ def write_lammps_data(fileobj, atoms, specorder=[], force_skew=False):
     f.write("%d  atom types\n" % n_atom_types)
 
     p = prism(atoms.get_cell())
-    xhi, yhi, zhi, xy, xz, yz = p.get_lammps_prism()
+    xhi, yhi, zhi, xy, xz, yz = p.get_lammps_prism_str()
 
-    f.write("%20.16f %20.16f  xlo xhi\n" % (0.0, xhi))
-    f.write("%20.16f %20.16f  ylo yhi\n" % (0.0, yhi))
-    f.write("%20.16f %20.16f  zlo zhi\n" % (0.0, zhi))
+    f.write("0.0 %s  xlo xhi\n" % xhi)
+    f.write("0.0 %s  ylo yhi\n" % yhi)
+    f.write("0.0 %s  zlo zhi\n" % zhi)
     
     if force_skew or p.is_skewed():
-        f.write("%20.16f %20.16f %20.16f  xy xz yz\n" % (xy, xz, yz))
+        f.write("%s %s %s  xy xz yz\n" % (xy, xz, yz))
     f.write("\n\n")
 
     f.write("Atoms \n\n")
-    for i, r in enumerate(map(p.trans_pos_to_lammps,
+    for i, r in enumerate(map(p.pos_to_lammps_str,
                               atoms.get_positions())):
         s = species.index(symbols[i]) + 1
-        f.write("%6d %3d %20.16f %20.16f %20.16f\n" % ((i+1, s)+tuple(r)))
+        f.write("%6d %3d %s %s %s\n" % ((i+1, s)+tuple(r)))
 
     f.close()
 
