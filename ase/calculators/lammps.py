@@ -30,6 +30,7 @@ import time
 from subprocess import Popen, PIPE
 from threading import Thread
 from re import compile as re_compile, IGNORECASE
+from tempfile import mkdtemp, NamedTemporaryFile
 import numpy as np
 from ase import Atoms
 from ase.parallel import paropen
@@ -40,11 +41,11 @@ CALCULATION_END_MARK = "__end_of_ase_invoked_calculation__"
 
 class LAMMPS:
 
-    def __init__(self, label="lammps", dir="LAMMPS", parameters={}, 
-                 specorder=[], files=[], always_triclinic=False, 
-                 keep_alive=False):
+    def __init__(self, label="lammps", tmp_dir=None, parameters={}, 
+                 specorder=None, files=[], always_triclinic=False, 
+                 keep_alive=True, keep_tmp_files=False):
         self.label = label
-        self.dir = dir
+        self.tmp_dir = tmp_dir
         self.parameters = parameters
         self.specorder = specorder
         self.files = files
@@ -52,6 +53,7 @@ class LAMMPS:
         self.calls = 0
         self.forces = None
         self.keep_alive = keep_alive
+        self.keep_tmp_files = keep_tmp_files
         self._lmp_handle = None        # To handle the lmp process
 
         # read_log depends on that the first (three) thermo_style custom args
@@ -78,27 +80,27 @@ class LAMMPS:
         # re-populated by the read_log method.
         self.thermo_content = []
 
-        if os.path.isdir(self.dir):
-            if (os.listdir(self.dir) == []):
-                os.rmdir(self.dir)
-            else:
-                os.rename(self.dir, self.dir + ".bak-" + time.strftime("%Y%m%d-%H%M%S"))
-        os.mkdir(self.dir, 0755)
+        if self.tmp_dir is None:
+            tmp_dir = self.tmp_dir = mkdtemp(prefix='LAMMPS')
+        else:
+            tmp_dir = self.tmp_dir = os.path.abspath(self.tmp_dir)
+            if os.path.isdir(tmp_dir):
+                if (os.listdir(tmp_dir) == []):
+                    os.rmdir(tmp_dir)
+                else:
+                    os.rename(tmp_dir, 
+                              tmp_dir+".bak-"+time.strftime("%Y%m%d-%H%M%S"))
+            os.mkdir(tmp_dir, 0755)
         
         for f in files:
-            shutil.copy(f, os.path.join(self.dir, f))
+            shutil.copy(f, os.path.join(tmp_dir, f))
 
     def clean(self, force=False):
 
         self._lmp_end()
 
-        if os.path.isdir(self.dir):
-            files_in_dir = os.listdir(self.dir)
-            files_copied = self.files
-            if (len(files_in_dir) == 0):
-                os.rmdir(self.dir)
-            elif (set(files_in_dir).issubset(set(files_copied)) or force):
-                shutil.rmtree(self.dir)
+        if not self.keep_tmp_files:
+            shutil.rmtree(self.tmp_dir)
 
     def get_potential_energy(self, atoms):
         self.update(atoms)
@@ -158,17 +160,17 @@ class LAMMPS:
 
         # change into subdirectory for LAMMPS calculations
         cwd = os.getcwd()
-        os.chdir(self.dir)
+        os.chdir(self.tmp_dir)
 
         # setup file names for LAMMPS calculation
         label = "%s-%06d" % (self.label, self.calls)
-        lammps_data = "data." + label
-        lammps_in = "in." + label
-        lammps_trj = label + ".lammpstrj"
+        lammps_in = "in."+label
         lammps_log = label+".log"
+        lammps_trj_fd = NamedTemporaryFile(prefix=label+".", suffix=".lammpstrj",
+                                           dir=self.tmp_dir, 
+                                           delete=(not self.keep_tmp_files))
+        lammps_trj = lammps_trj_fd.name
  
-        self.write_lammps_data(lammps_data=lammps_data)
-        
         # see to it that LAMMPS is started
         if not self._lmp_alive():
             # Attempt to (re)start lammps
@@ -176,25 +178,33 @@ class LAMMPS:
                                     stdin=PIPE, stdout=PIPE)
         lmp_handle = self._lmp_handle
 
-        # Create thread reading lammps stdout (for reference, also create the
-        # file lammps_log, although it is never used)
-        lammps_log_fd = open(lammps_log, 'w')
-        thr_read_log = Thread(target=self.read_lammps_log, 
-                              args=(special_tee(lmp_handle.stdout, lammps_log_fd),))
+        # Create thread reading lammps stdout (for reference, if requested,
+        # also create lammps_log, although it is never used)
+        if self.keep_tmp_files:
+            lammps_log_fd = open(lammps_log, 'w')
+            fd = special_tee(lmp_handle.stdout, lammps_log_fd)
+        else:
+            fd = lmp_handle.stdout
+        thr_read_log = Thread(target=self.read_lammps_log, args=(fd,))
         thr_read_log.start()
 
         # write LAMMPS input (for reference, also create the file lammps_in, 
         # although it is never used)
-        lammps_in_fd = open(lammps_in, 'w')
-        self.write_lammps_in(lammps_in=special_tee(lmp_handle.stdin, lammps_in_fd),
-                             lammps_data=lammps_data, lammps_trj=lammps_trj, 
-                             parameters=self.parameters)
-        lammps_in_fd.close()
+        if self.keep_tmp_files:
+            lammps_in_fd = open(lammps_in, 'w')
+            fd = special_tee(lmp_handle.stdin, lammps_in_fd)
+        else:
+            fd = lmp_handle.stdin
+        self.write_lammps_in(lammps_in=fd, lammps_trj=lammps_trj)
+
+        if self.keep_tmp_files:
+            lammps_in_fd.close()
 
         # Wait for log output to be read (i.e., for LAMMPS to finish)
-        # and close the log file
+        # and close the log file if there is one
         thr_read_log.join()
-        lammps_log_fd.close()
+        if self.keep_tmp_files:
+            lammps_log_fd.close()
 
         if not self.keep_alive:
             self._lmp_end()
@@ -207,6 +217,7 @@ class LAMMPS:
 
         # read LAMMPS output files
         self.read_lammps_trj(lammps_trj=lammps_trj)
+        lammps_trj_fd.close()
 
         # change back to previous working directory
         os.chdir(cwd)
@@ -215,14 +226,14 @@ class LAMMPS:
         """Method which writes a LAMMPS data file with atomic structure."""
         if (lammps_data == None):
             lammps_data = "data." + self.label
-        write_lammps(lammps_data, self.atoms, self.specorder, force_skew=self.always_triclinic)
+        write_lammps_data(lammps_data, self.atoms, self.specorder, 
+                          force_skew=self.always_triclinic)
 
-    def write_lammps_in(self, lammps_in=None, lammps_data=None, lammps_trj=None, parameters={}):
+    def write_lammps_in(self, lammps_in=None, lammps_trj=None):
         """Method which writes a LAMMPS in file with run parameters and settings."""
+
         if (lammps_in == None):
             lammps_in = "in." + self.label
-        if (lammps_data == None):
-            lammps_data = "data." + self.label
         if (lammps_trj == None):
             lammps_trj = self.label + ".lammpstrj"
 
@@ -236,14 +247,12 @@ class LAMMPS:
 
         f.write("# (written by ASE) \n" +
                 "clear\n" +
-                "\n" +
-                "### variables \n" +
-                ("variable data_file string \"%s\" \n" % lammps_data ) +
-                ("variable dump_file string \"%s\" \n" % lammps_trj ) +
-                "\n\n")
+                "\n### variables \n" +
+                ("variable dump_file string \"%s\" \n" % lammps_trj ))
 
+        parameters = self.parameters
         pbc = self.atoms.get_pbc()
-        f.write("### simulation box \n"
+        f.write("\n### simulation box \n"
                 "units metal \n")
         if ("boundary" in parameters):
             f.write("boundary %s \n" % parameters["boundary"])
@@ -254,10 +263,39 @@ class LAMMPS:
             if key in parameters:
                 f.write("%s %s \n" % (key, parameters[key]))
         f.write("\n")
-        f.write("read_data %s\n" % lammps_data)
-        f.write("\n\n")
 
-        f.write("### interactions \n")
+        # Write the simulation box and the atoms
+        p = prism(self.atoms.get_cell())
+        f.write("lattice sc 1.0\n")
+        xhi, yhi, zhi, xy, xz, yz = p.get_lammps_prism()
+        if self.always_triclinic or p.is_skewed():
+            f.write("region asecell prism 0.0 %15.10f 0.0 %15.10f 0.0 %15.10f " % \
+                        (xhi, yhi, zhi))
+            f.write("%15.10f %15.10f %15.10f side in units box\n" % \
+                        (xy, xz, yz))
+        else:
+            f.write(("region asecell block 0.0 %15.10f 0.0 %15.10f 0.0 %15.10f "
+                    "side in units box\n") % (xhi, yhi, zhi))
+                    
+        symbols = self.atoms.get_chemical_symbols()
+        if self.specorder is None:
+            # By default, atom types in alphabetic order
+            species = sorted(list(set(symbols)))
+        else:
+            # By request, specific atom type ordering
+            species = self.specorder
+
+        n_atom_types = len(species)
+        species_i = dict([(s,i+1) for i,s in enumerate(species)])
+
+        f.write("create_box %i asecell\n" % n_atom_types)
+        for s, r in zip(symbols, 
+                        map(p.trans_pos_to_lammps, self.atoms.get_positions())):
+            f.write("create_atoms %i single %15.10f %15.10f %15.10f units box\n" % \
+                        ((species_i[s],)+tuple(r)))
+
+        # Write interaction stuff
+        f.write("\n### interactions \n")
         if ( ("pair_style" in parameters) and ("pair_coeff" in parameters) ):
             pair_style = parameters["pair_style"]
             f.write("pair_style %s \n" % pair_style)
@@ -267,30 +305,24 @@ class LAMMPS:
                 for mass in parameters["mass"]:
                     f.write("mass %s \n" % mass)
         else:
-            # simple default parameters that should always make the LAMMPS calculation run
-            #    pair_style 	lj/cut 2.5
-            #    pair_coeff 	* * 1 1
-            #    mass           * 1.0        else:
+            # simple default parameters that should always make the LAMMPS 
+            # calculation run
             f.write("pair_style lj/cut 2.5 \n" +
                     "pair_coeff * * 1 1 \n" +
                     "mass * 1.0 \n")
-        f.write("\n")
 
-        f.write("### run \n" +
-                "fix fix_nve all nve \n" +
-                "\n" +
-                ("dump dump_all all custom 1 %s id type x y z vx vy vz fx fy fz \n" % lammps_trj) )
-        f.write("\n")
+        f.write("\n### run\n" +
+                "fix fix_nve all nve\n" +
+                ("dump dump_all all custom 1 %s id type x y z vx vy vz fx fy fz\n" % lammps_trj) )
         f.write(("thermo_style custom %s\n" +
                 "thermo_modify flush yes\n" +
-                "thermo 1 \n" +
-                "\n") % (' '.join(self._custom_thermo_args)))
-        if ("minimize" in parameters):
-            f.write("minimize %s \n" % parameters["minimize"])
-        if ("run" in parameters):
-            f.write("run %s \n" % parameters["run"])
-        if not ( ("minimize" in parameters) or ("run" in parameters) ):
-            f.write("run 0 \n")
+                "thermo 1\n") % (' '.join(self._custom_thermo_args)))
+        if "minimize" in parameters:
+            f.write("minimize %s\n" % parameters["minimize"])
+        if "run" in parameters:
+            f.write("run %s\n" % parameters["run"])
+        if not (("minimize" in parameters) or ("run" in parameters)):
+            f.write("run 0\n")
 
         f.write('print "%s"\n' % CALCULATION_END_MARK)
         f.write('log /dev/stdout\n') # Force LAMMPS to flush log
@@ -522,35 +554,52 @@ class prism:
         yzp = (bn*cn*np.cos(alpha) - xyp*xzp)/yhi
         zhi = np.sqrt(cn**2 - xzp**2 - yzp**2)
     
-        cell_lammps = np.array([[xhi, 0, 0],[xyp, yhi, 0],[xzp, yzp, zhi]])
-        self.R = np.dot(np.linalg.inv(cell), cell_lammps)
-        
-        def fold(t, ref):
+        def fold_s(t, ref):
             return np.mod(0.5*ref+t, ref)-0.5*ref
         
-        xy = fold(xyp, xhi)
-        xz = fold(xzp, xhi)
-        yz = fold(yzp, yhi)
+        xy = fold_s(xyp, xhi)
+        xz = fold_s(xzp, xhi)
+        yz = fold_s(yzp, yhi)
+        self.accuracy = np.finfo(xhi).eps
         self.prism = (xhi, yhi, zhi, xy, xz, yz)
+        self.A = np.array(((xhi, 0,   0),
+                           (xy,  yhi, 0),
+                           (xz,  yz,  zhi)))
+        self.R = np.dot(np.linalg.inv(cell), self.A)
+        self.Ainv = np.linalg.inv(self.A)
+
+    def dir2car(self, v):
+        "Direct to cartesian coordinates"
+        return np.dot(v, self.A)
+
+    def car2dir(self, v):
+        "Cartesian to direct coordinates"
+        return np.dot(v, self.Ainv)
+
+    def fold(self,v):
+        "Fold a position into the (lammps) cell" 
+        # This method is unfortunately ugly.
+        # The "two-stage fold" is there to avoid atoms ending up at the far ends  
+        # of the box, since those atoms would be ignored by lammps when using 
+        # create_atoms (they would fail to fall within any sub-box bound; 
+        # see lammps create_atoms.cpp). 
+        x = self.dir2car(np.mod(self.car2dir(v), 1))
+        return self.dir2car(np.mod(self.car2dir(x), 1-self.accuracy))
 
     def get_lammps_prism(self):
         return self.prism
 
     def trans_pos_to_lammps(self, position):
-        return np.dot(self.R, position)
+        "Rotate and fold a postion into the lammps cell"
+        return self.fold(np.dot(self.R, position))
 
-    def is_skewed(self, accuracy=None):
+    def is_skewed(self):
+        acc = self.accuracy
         xy, xz, yz = [np.abs(x) for x in self.prism[3:]]
-        
-        if accuracy == None:
-            accuracy = np.finfo(xy).eps
-            
-        return (xy > accuracy) or (xz > accuracy) or (yz > accuracy)
+        return (xy > acc) or (xz > acc) or (yz > acc)
         
 
-
-
-def write_lammps(fileobj, atoms, specorder=[], force_skew=False):
+def write_lammps_data(fileobj, atoms, specorder=[], force_skew=False):
     """Method which writes atomic structure data to a LAMMPS data file."""
     if isinstance(fileobj, file):
         f = fileobj
@@ -601,7 +650,6 @@ def write_lammps(fileobj, atoms, specorder=[], force_skew=False):
     f.close()
 
 
-
 if __name__ == "__main__":
 
     pair_style = "eam"
@@ -610,7 +658,6 @@ if __name__ == "__main__":
     parameters = { "pair_style" : pair_style, "pair_coeff" : pair_coeff }
     files = [ Pd_eam_file ]
     calc = LAMMPS(parameters=parameters, files=files)
-
     from ase import Atoms
     a0 = 3.93
     b0 = a0 / 2.0
@@ -629,7 +676,6 @@ if __name__ == "__main__":
             bulk.set_cell([a]*3)
             print "a : %f , total energy : %f" % (a, bulk.get_potential_energy())
 
-#    calc.clean(force=True)
     calc.clean()
 
 
