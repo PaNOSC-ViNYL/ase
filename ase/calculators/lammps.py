@@ -62,7 +62,7 @@ class LAMMPS:
         self._custom_thermo_args = ['step', 'temp', 'press', 'cpu', 
                                     'pxx', 'pyy', 'pzz', 'pxy', 'pxz', 'pyz',
                                     'ke', 'pe', 'etotal',
-                                    'vol', 'lx', 'ly', 'lz']
+                                    'vol', 'lx', 'ly', 'lz', 'atoms']
         self._custom_thermo_mark = ' '.join([x.capitalize() for x in
                                              self._custom_thermo_args[0:3]])
 
@@ -215,6 +215,13 @@ class LAMMPS:
             raise RuntimeError("LAMMPS exited in %s with exit code: %d." %\
                                    (cwd,exitcode))
 
+        # A few sanity checks
+        if len(self.thermo_content) == 0:
+            raise RuntimeError('Failed to retreive any thermo_style-output')
+        if int(self.thermo_content[-1]['atoms']) != len(self.atoms):
+            # This obviously shouldn't happen, but if prism.fold() fails, it could
+            raise RuntimeError('Atoms have gone missing')
+
         # read LAMMPS output files
         self.read_lammps_trj(lammps_trj=lammps_trj)
         lammps_trj_fd.close()
@@ -269,12 +276,12 @@ class LAMMPS:
         f.write("lattice sc 1.0\n")
         xhi, yhi, zhi, xy, xz, yz = p.get_lammps_prism()
         if self.always_triclinic or p.is_skewed():
-            f.write("region asecell prism 0.0 %15.10f 0.0 %15.10f 0.0 %15.10f " % \
+            f.write("region asecell prism 0.0 %20.16f 0.0 %20.16f 0.0 %20.16f " % \
                         (xhi, yhi, zhi))
-            f.write("%15.10f %15.10f %15.10f side in units box\n" % \
+            f.write("%20.16f %20.16f %20.16f side in units box\n" % \
                         (xy, xz, yz))
         else:
-            f.write(("region asecell block 0.0 %15.10f 0.0 %15.10f 0.0 %15.10f "
+            f.write(("region asecell block 0.0 %20.16f 0.0 %20.16f 0.0 %20.16f "
                     "side in units box\n") % (xhi, yhi, zhi))
                     
         symbols = self.atoms.get_chemical_symbols()
@@ -291,7 +298,7 @@ class LAMMPS:
         f.write("create_box %i asecell\n" % n_atom_types)
         for s, r in zip(symbols, 
                         map(p.trans_pos_to_lammps, self.atoms.get_positions())):
-            f.write("create_atoms %i single %15.10f %15.10f %15.10f units box\n" % \
+            f.write("create_atoms %i single %20.16f %20.16f %20.16f units box\n" % \
                         ((species_i[s],)+tuple(r)))
 
         # Write interaction stuff
@@ -554,13 +561,14 @@ class prism:
         yzp = (bn*cn*np.cos(alpha) - xyp*xzp)/yhi
         zhi = np.sqrt(cn**2 - xzp**2 - yzp**2)
     
+        self.accuracy = np.finfo(xhi).eps
         def fold_s(t, ref):
-            return np.mod(0.5*ref+t, ref)-0.5*ref
+            r = ref * (1.0-2.0*self.accuracy) # This is a little ugly, I think
+            return np.mod(0.5*r+t, r)-0.5*r
         
         xy = fold_s(xyp, xhi)
         xz = fold_s(xzp, xhi)
         yz = fold_s(yzp, yhi)
-        self.accuracy = np.finfo(xhi).eps
         self.prism = (xhi, yhi, zhi, xy, xz, yz)
         self.A = np.array(((xhi, 0,   0),
                            (xy,  yhi, 0),
@@ -578,13 +586,11 @@ class prism:
 
     def fold(self,v):
         "Fold a position into the (lammps) cell" 
-        # This method is unfortunately ugly.
-        # The "two-stage fold" is there to avoid atoms ending up at the far ends  
-        # of the box, since those atoms would be ignored by lammps when using 
-        # create_atoms (they would fail to fall within any sub-box bound; 
-        # see lammps create_atoms.cpp). 
-        x = self.dir2car(np.mod(self.car2dir(v), 1))
-        return self.dir2car(np.mod(self.car2dir(x), 1-self.accuracy))
+        # This method is somewhat ugly.
+        # The 1-eps thing is to avoid atoms ending up exactly
+        # at the high limit of the cell (since the atoms then
+        # would be ignored by lammps)
+        return self.dir2car(np.mod(self.car2dir(v), 1-self.accuracy))
 
     def get_lammps_prism(self):
         return self.prism
@@ -633,19 +639,19 @@ def write_lammps_data(fileobj, atoms, specorder=[], force_skew=False):
     p = prism(atoms.get_cell())
     xhi, yhi, zhi, xy, xz, yz = p.get_lammps_prism()
 
-    f.write("%16.10f %16.10f  xlo xhi\n" % (0.0, xhi))
-    f.write("%16.10f %16.10f  ylo yhi\n" % (0.0, yhi))
-    f.write("%16.10f %16.10f  zlo zhi\n" % (0.0, zhi))
+    f.write("%20.16f %20.16f  xlo xhi\n" % (0.0, xhi))
+    f.write("%20.16f %20.16f  ylo yhi\n" % (0.0, yhi))
+    f.write("%20.16f %20.16f  zlo zhi\n" % (0.0, zhi))
     
     if force_skew or p.is_skewed():
-        f.write("%15.10f %15.10f %15.10f  xy xz yz\n" % (xy, xz, yz))
+        f.write("%20.16f %20.16f %20.16f  xy xz yz\n" % (xy, xz, yz))
     f.write("\n\n")
 
     f.write("Atoms \n\n")
     for i, r in enumerate(map(p.trans_pos_to_lammps,
                               atoms.get_positions())):
         s = species.index(symbols[i]) + 1
-        f.write("%6d %3d %16.10f %16.10f %16.10f\n" % ((i+1, s)+tuple(r)))
+        f.write("%6d %3d %20.16f %20.16f %20.16f\n" % ((i+1, s)+tuple(r)))
 
     f.close()
 
