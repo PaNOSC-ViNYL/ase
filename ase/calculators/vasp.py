@@ -129,6 +129,7 @@ bool_keys = [
     'ldipol',     # potential correction mode
     'lelf',       # create ELFCAR
     'lhfcalc',    # switch to turn on Hartree Fock calculations
+    'loptics',    # calculate the frequency dependent dielectric matrix
     'lpard',      # evaluate partial (band and/or k-point) decomposed charge density
     'lplane',     # parallelisation over the FFT grid
     'lscalapack', # switch off scaLAPACK
