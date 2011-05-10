@@ -40,39 +40,39 @@ from ase.units import GPa
 __all__ = ['LAMMPS', 'write_lammps_data']
 
 # "End mark" used to indicate that the calculation is done
-CALCULATION_END_MARK = "__end_of_ase_invoked_calculation__"
+CALCULATION_END_MARK = '__end_of_ase_invoked_calculation__'
 
 class LAMMPS:
 
-    def __init__(self, label="lammps", tmp_dir=None, parameters={}, 
+    def __init__(self, label='lammps', tmp_dir=None, parameters={}, 
                  specorder=None, files=[], always_triclinic=False, 
                  keep_alive=True, keep_tmp_files=False,
                  no_data_file=False):
         """The LAMMPS calculators object
 
-        files :: List (default [])
-            ...
-        parameters :: Dict (default {})
-            ...
-        specorder :: List (default [])
-            ...
-
-        keep_tmp_files :: Bool (default False)
+        files: list
+            Short explanation XXX
+        parameters: dict
+            Short explanation XXX
+        specorder: list
+            Short explanation XXX
+        keep_tmp_files: bool
             Retain any temporary files created. Mostly useful for debugging.
-        tmp_dir :: path/dirname (default None -> create automatically)
+        tmp_dir: str
+            path/dirname (default None -> create automatically).
             Explicitly control where the calculator object should create 
             its files. Using this option implies 'keep_tmp_files'
-        no_data_file :: Bool (default False)
+        no_data_file: bool
             Controls whether an explicit data file will be used for feeding
             atom coordinates into lammps. Enable it to lessen the pressure on
             the (tmp) file system. THIS OPTION MIGHT BE UNRELIABLE FOR CERTIAN
             CORNER CASES (however, if it fails, you will notice...).
-        keep_alive :: Bool (default True)
+        keep_alive: bool
             When using LAMMPS as a spawned subprocess, keep the subprocess
             alive (but idling whn unused) along with the calculator object.
-        always_triclinic :: Bool (default False)
+        always_triclinic: bool
             Force use of a triclinic cell in LAMMPS, even if the cell is
-            a perfect parallelepiped.            
+            a perfect parallelepiped.
         """
 
         self.label = label
@@ -185,7 +185,7 @@ class LAMMPS:
         if 'LAMMPS_OPTIONS' in os.environ:
             lammps_options = shlex.split(os.environ['LAMMPS_OPTIONS'])
         else:
-            lammps_options = shlex.split("-echo log -screen none")
+            lammps_options = shlex.split('-echo log -screen none')
 
 
         # change into subdirectory for LAMMPS calculations
@@ -194,16 +194,16 @@ class LAMMPS:
  
 
         # setup file names for LAMMPS calculation
-        label = "%s%06d" % (self.label, self.calls)
-        lammps_in = uns_mktemp(prefix="in_"+label, dir=self.tmp_dir)
-        lammps_log = uns_mktemp(prefix="log_"+label, dir=self.tmp_dir)
-        lammps_trj_fd = NamedTemporaryFile(prefix="trj_"+label, dir=self.tmp_dir,
+        label = '%s%06d' % (self.label, self.calls)
+        lammps_in = uns_mktemp(prefix='in_'+label, dir=self.tmp_dir)
+        lammps_log = uns_mktemp(prefix='log_'+label, dir=self.tmp_dir)
+        lammps_trj_fd = NamedTemporaryFile(prefix='trj_'+label, dir=self.tmp_dir,
                                            delete=(not self.keep_tmp_files))
         lammps_trj = lammps_trj_fd.name
         if self.no_data_file:
             lammps_data = None
         else:
-            lammps_data_fd = NamedTemporaryFile(prefix="data_"+label, dir=self.tmp_dir,
+            lammps_data_fd = NamedTemporaryFile(prefix='data_'+label, dir=self.tmp_dir,
                                                 delete=(not self.keep_tmp_files))
             self.write_lammps_data(lammps_data=lammps_data_fd)
             lammps_data = lammps_data_fd.name
@@ -254,7 +254,7 @@ class LAMMPS:
         exitcode = lmp_handle.poll()
         if exitcode and exitcode != 0:
             cwd = os.getcwd()
-            raise RuntimeError("LAMMPS exited in %s with exit code: %d." %\
+            raise RuntimeError('LAMMPS exited in %s with exit code: %d.' %\
                                    (cwd,exitcode))
 
         # A few sanity checks
@@ -275,7 +275,7 @@ class LAMMPS:
     def write_lammps_data(self, lammps_data=None):
         """Method which writes a LAMMPS data file with atomic structure."""
         if (lammps_data == None):
-            lammps_data = "data." + self.label
+            lammps_data = 'data.' + self.label
         write_lammps_data(lammps_data, self.atoms, self.specorder, 
                           force_skew=self.always_triclinic)
 
@@ -291,7 +291,7 @@ class LAMMPS:
             close_in_file = False
             
         if self.keep_tmp_files:
-            f.write("# (written by ASE)\n")
+            f.write('# (written by ASE)\n')
 
         # Write variables
         f.write('clear\n' +
@@ -300,16 +300,16 @@ class LAMMPS:
 
         parameters = self.parameters
         pbc = self.atoms.get_pbc()
-        f.write("units metal \n")
-        if ("boundary" in parameters):
-            f.write("boundary %s \n" % parameters["boundary"])
+        f.write('units metal \n')
+        if ('boundary' in parameters):
+            f.write('boundary %s \n' % parameters['boundary'])
         else:
-            f.write("boundary %c %c %c \n" % tuple('sp'[x] for x in pbc))
-        f.write("atom_modify sort 0 0.0 \n")
-        for key in ("neighbor" ,"newton"):
+            f.write('boundary %c %c %c \n' % tuple('sp'[x] for x in pbc))
+        f.write('atom_modify sort 0 0.0 \n')
+        for key in ('neighbor' ,'newton'):
             if key in parameters:
-                f.write("%s %s \n" % (key, parameters[key]))
-        f.write("\n")
+                f.write('%s %s \n' % (key, parameters[key]))
+        f.write('\n')
 
 
         # If self.no_lammps_data, 
@@ -321,16 +321,16 @@ class LAMMPS:
                                  for x in self.atoms.get_cell()]))
 
             p = prism(self.atoms.get_cell())
-            f.write("lattice sc 1.0\n")
+            f.write('lattice sc 1.0\n')
             xhi, yhi, zhi, xy, xz, yz = p.get_lammps_prism_str()
             if self.always_triclinic or p.is_skewed():
-                f.write("region asecell prism 0.0 %s 0.0 %s 0.0 %s " % \
+                f.write('region asecell prism 0.0 %s 0.0 %s 0.0 %s ' % \
                             (xhi, yhi, zhi))
-                f.write("%s %s %s side in units box\n" % \
+                f.write('%s %s %s side in units box\n' % \
                             (xy, xz, yz))
             else:
-                f.write(("region asecell block 0.0 %s 0.0 %s 0.0 %s "
-                         "side in units box\n") % (xhi, yhi, zhi))
+                f.write(('region asecell block 0.0 %s 0.0 %s 0.0 %s '
+                         'side in units box\n') % (xhi, yhi, zhi))
                     
             symbols = self.atoms.get_chemical_symbols()
             if self.specorder is None:
@@ -343,49 +343,49 @@ class LAMMPS:
             n_atom_types = len(species)
             species_i = dict([(s,i+1) for i,s in enumerate(species)])
 
-            f.write("create_box %i asecell\n" % n_atom_types)
+            f.write('create_box %i asecell\n' % n_atom_types)
             for s, pos in zip(symbols, self.atoms.get_positions()):
                 if self.keep_tmp_files:
-                    f.write("# atom pos in ase cell: %.16f %.16f %.16f\n" % tuple(pos))
-                f.write("create_atoms %i single %s %s %s units box\n" % \
+                    f.write('# atom pos in ase cell: %.16f %.16f %.16f\n' % tuple(pos))
+                f.write('create_atoms %i single %s %s %s units box\n' % \
                             ((species_i[s],)+p.pos_to_lammps_fold_str(pos)))
                 
 
         # if NOT self.no_lammps_data, then simply refer to the data-file
         else:
-            f.write("read_data %s\n" % lammps_data)
+            f.write('read_data %s\n' % lammps_data)
 
 
         # Write interaction stuff
-        f.write("\n### interactions \n")
-        if ( ("pair_style" in parameters) and ("pair_coeff" in parameters) ):
-            pair_style = parameters["pair_style"]
-            f.write("pair_style %s \n" % pair_style)
-            for pair_coeff in parameters["pair_coeff"]:
-                f.write("pair_coeff %s \n" % pair_coeff)
-            if "mass" in parameters:
-                for mass in parameters["mass"]:
-                    f.write("mass %s \n" % mass)
+        f.write('\n### interactions \n')
+        if ( ('pair_style' in parameters) and ('pair_coeff' in parameters) ):
+            pair_style = parameters['pair_style']
+            f.write('pair_style %s \n' % pair_style)
+            for pair_coeff in parameters['pair_coeff']:
+                f.write('pair_coeff %s \n' % pair_coeff)
+            if 'mass' in parameters:
+                for mass in parameters['mass']:
+                    f.write('mass %s \n' % mass)
         else:
             # simple default parameters that should always make the LAMMPS 
             # calculation run
-            f.write("pair_style lj/cut 2.5 \n" +
-                    "pair_coeff * * 1 1 \n" +
-                    "mass * 1.0 \n")
+            f.write('pair_style lj/cut 2.5 \n' +
+                    'pair_coeff * * 1 1 \n' +
+                    'mass * 1.0 \n')
 
-        f.write("\n### run\n" +
-                "fix fix_nve all nve\n" +
-                ("dump dump_all all custom 1 %s id type x y z vx vy vz fx fy fz\n" % lammps_trj) )
-        f.write(("thermo_style custom %s\n" +
-                "thermo_modify flush yes\n" +
-                "thermo 1\n") % (' '.join(self._custom_thermo_args)))
+        f.write('\n### run\n' +
+                'fix fix_nve all nve\n' +
+                ('dump dump_all all custom 1 %s id type x y z vx vy vz fx fy fz\n' % lammps_trj) )
+        f.write(('thermo_style custom %s\n' +
+                'thermo_modify flush yes\n' +
+                'thermo 1\n') % (' '.join(self._custom_thermo_args)))
 
-        if "minimize" in parameters:
-            f.write("minimize %s\n" % parameters["minimize"])
-        if "run" in parameters:
-            f.write("run %s\n" % parameters["run"])
-        if not (("minimize" in parameters) or ("run" in parameters)):
-            f.write("run 0\n")
+        if 'minimize' in parameters:
+            f.write('minimize %s\n' % parameters['minimize'])
+        if 'run' in parameters:
+            f.write('run %s\n' % parameters['run'])
+        if not (('minimize' in parameters) or ('run' in parameters)):
+            f.write('run 0\n')
 
         f.write('print "%s"\n' % CALCULATION_END_MARK)
         f.write('log /dev/stdout\n') # Force LAMMPS to flush log
@@ -397,7 +397,7 @@ class LAMMPS:
         """Method which reads a LAMMPS output log file."""
 
         if (lammps_log == None):
-            lammps_log = self.label + ".log"
+            lammps_log = self.label + '.log'
 
         if isinstance(lammps_log, str):
             f = paropen(lammps_log, 'w')
@@ -432,7 +432,7 @@ class LAMMPS:
     def read_lammps_trj(self, lammps_trj=None, set_atoms=False):
         """Method which reads a LAMMPS dump file."""
         if (lammps_trj == None):
-            lammps_trj = self.label + ".lammpstrj"
+            lammps_trj = self.label + '.lammpstrj'
 
         f = paropen(lammps_trj, 'r')
         while True:
@@ -442,17 +442,17 @@ class LAMMPS:
                 break
 
             #TODO: extend to proper dealing with multiple steps in one trajectory file
-            if "ITEM: TIMESTEP" in line:
+            if 'ITEM: TIMESTEP' in line:
                 n_atoms = 0
                 lo = [] ; hi = [] ; tilt = []
                 id = [] ; type = []
                 positions = [] ; velocities = [] ; forces = []
 
-            if "ITEM: NUMBER OF ATOMS" in line:
+            if 'ITEM: NUMBER OF ATOMS' in line:
                 line = f.readline()
                 n_atoms = int(line.split()[0])
             
-            if "ITEM: BOX BOUNDS" in line:
+            if 'ITEM: BOX BOUNDS' in line:
                 # save labels behind "ITEM: BOX BOUNDS" in triclinic case (>=lammps-7Jul09)
                 tilt_items = line.split()[3:]
                 for i in range(3):
@@ -463,7 +463,7 @@ class LAMMPS:
                     if (len(fields) >= 3):
                         tilt.append(float(fields[2]))
             
-            if "ITEM: ATOMS" in line:
+            if 'ITEM: ATOMS' in line:
                 # (reliably) identify values by labels behind "ITEM: ATOMS" - requires >=lammps-7Jul09
                 # create corresponding index dictionary before iterating over atoms to (hopefully) speed up lookups...
                 atom_attributes = {}
@@ -655,8 +655,8 @@ class prism:
 
         if self.is_skewed() and \
                 (not (pbc[0] and pbc[1] and pbc[2])):
-            raise RuntimeError("Skewed lammps cells MUST have "
-                               "PBC == True in all directions!")
+            raise RuntimeError('Skewed lammps cells MUST have '
+                               'PBC == True in all directions!')
 
     def f2qdec(self, f):
         return dec.Decimal(repr(f)).quantize(self.car_prec, dec.ROUND_DOWN)
@@ -723,11 +723,11 @@ def write_lammps_data(fileobj, atoms, specorder=[], force_skew=False):
             raise ValueError('Can only write one configuration to a lammps data file!')
         atoms = atoms[0]
 
-    f.write(f.name + " (written by ASE) \n\n")
+    f.write(f.name + ' (written by ASE) \n\n')
 
     symbols = atoms.get_chemical_symbols()
     n_atoms = len(symbols)
-    f.write("%d \t atoms \n" % n_atoms)
+    f.write('%d \t atoms \n' % n_atoms)
 
     if specorder is None:
         # This way it is assured that LAMMPS atom types are always
@@ -738,36 +738,36 @@ def write_lammps_data(fileobj, atoms, specorder=[], force_skew=False):
         # correspond to order in the potential file)
         species = specorder
     n_atom_types = len(species)
-    f.write("%d  atom types\n" % n_atom_types)
+    f.write('%d  atom types\n' % n_atom_types)
 
     p = prism(atoms.get_cell())
     xhi, yhi, zhi, xy, xz, yz = p.get_lammps_prism_str()
 
-    f.write("0.0 %s  xlo xhi\n" % xhi)
-    f.write("0.0 %s  ylo yhi\n" % yhi)
-    f.write("0.0 %s  zlo zhi\n" % zhi)
+    f.write('0.0 %s  xlo xhi\n' % xhi)
+    f.write('0.0 %s  ylo yhi\n' % yhi)
+    f.write('0.0 %s  zlo zhi\n' % zhi)
     
     if force_skew or p.is_skewed():
-        f.write("%s %s %s  xy xz yz\n" % (xy, xz, yz))
-    f.write("\n\n")
+        f.write('%s %s %s  xy xz yz\n' % (xy, xz, yz))
+    f.write('\n\n')
 
-    f.write("Atoms \n\n")
+    f.write('Atoms \n\n')
     for i, r in enumerate(map(p.pos_to_lammps_str,
                               atoms.get_positions())):
         s = species.index(symbols[i]) + 1
-        f.write("%6d %3d %s %s %s\n" % ((i+1, s)+tuple(r)))
+        f.write('%6d %3d %s %s %s\n' % ((i+1, s)+tuple(r)))
     
     if close_file:
         f.close()
 
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
-    pair_style = "eam"
-    Pd_eam_file = "Pd_u3.eam"
-    pair_coeff = [ "* * " + Pd_eam_file ]
-    parameters = { "pair_style" : pair_style, "pair_coeff" : pair_coeff }
+    pair_style = 'eam'
+    Pd_eam_file = 'Pd_u3.eam'
+    pair_coeff = [ '* * ' + Pd_eam_file ]
+    parameters = { 'pair_style' : pair_style, 'pair_coeff' : pair_coeff }
     files = [ Pd_eam_file ]
     calc = LAMMPS(parameters=parameters, files=files)
     from ase import Atoms
@@ -779,14 +779,14 @@ if __name__ == "__main__":
                      cell=[a0]*3,
                      pbc=True)
         # test get_forces
-        print "forces for a = %f" % a0
+        print 'forces for a = %f' % a0
         print calc.get_forces(bulk)
         # single points for various lattice constants
         bulk.set_calculator(calc)
         for n in range(-5,5,1):
             a = a0 * (1 + n/100.0)
             bulk.set_cell([a]*3)
-            print "a : %f , total energy : %f" % (a, bulk.get_potential_energy())
+            print 'a : %f , total energy : %f' % (a, bulk.get_potential_energy())
 
     calc.clean()
 
