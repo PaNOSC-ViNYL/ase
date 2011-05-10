@@ -23,14 +23,18 @@ mailing list::
   $ # do your thing ...
   $ svn diff > patch.txt
 
-Before you send the patch, run pylint on your code (see :ref:`pylint`).
-One of the current committers will look at the patch and give you
-some feedback.  Maybe the patch is fine and the committer will commit
-it to trunk.  There could also be some more work to do like:
+Before you send the patch, *please* read our
+:ref:`python_codingstandard` and learn how to use pep8.py and pylint:
+
+* :ref:`pep8py`
+* :ref:`pylint`
+
+One of the current committers will look at the patch and give you some
+feedback.  Maybe the patch is fine and the committer will commit it to
+trunk.  There could also be some more work to do like:
 
 * write more comments
-* follow our :ref:`python_codingstandard`
-* fix this docstring
+* fix docstrings
 * write a test
 * add some documentation
 

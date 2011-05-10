@@ -4,15 +4,9 @@
 Coding Conventions
 ==================
 
+
 Importing modules
 =================
-
-We distinguish between scripts and code.  In scripts, like the ones
-found in the examples and tutorials, we use::
-
-  from ase import *
-
-which gives us the most used symbols.
 
 In code, like the implementation of ASE, we must *not* use the
 ``import *`` syntax.  Import everything explicitly from exactly the
@@ -20,9 +14,19 @@ place where it's defined::
 
   from ase.io import read, write
 
+We distinguish between scripts and code.  In your own scripts, it's OK
+to use::
+
+  from ase.all import *
+
+which will give you the most used symbols.
+
 
 Python Coding Conventions
 =========================
+
+Please run :ref:`pep8.py <pep8py>` and :ref:`pylint <pylint>` on your
+code before committing.
 
 The rules for the Python part are almost identical
 to those used by the `Docutils project`_:
@@ -42,7 +46,7 @@ Conventions`_ PEPs, summarized, clarified, and extended as follows:
 * Very important:  Read the *Whitespace in Expressions and Statements*
   section of PEP8_.
 
-* Avoid introducing `trailing whitespaces <http://www.gnu.org/software/emacs/manual/html_node/emacs/Useless-Whitespace.html>`_.
+* Avoid introducing `trailing whitespaces`_.
 
 * Try to use only 7-bit ASCII, no 8-bit strings.
 
@@ -81,6 +85,7 @@ Conventions`_ PEPs, summarized, clarified, and extended as follows:
 .. _Style Guide for Python Code: http://www.python.org/peps/pep-0008.html
 .. _Docstring Conventions: http://www.python.org/peps/pep-0257.html
 .. _Docutils project: http://docutils.sourceforge.net/docs/dev/policies.html#python-coding-conventions
+.. _trailing whitespaces: http://www.gnu.org/software/emacs/manual/html_node/emacs/Useless-Whitespace.html
 
 .. attention::
 
@@ -91,10 +96,12 @@ Conventions`_ PEPs, summarized, clarified, and extended as follows:
 
                                           Georg Brandl
 
+
 General advice
 ==============
 
  * Get rid of as many ``break`` and ``continue`` statements as possible.
+
 
 Writing documentation in the code
 =================================
@@ -104,6 +111,18 @@ Here is an example of how to write good docstrings:
   http://projects.scipy.org/numpy/browser/trunk/doc/example.py
 
 
+.. _pep8py:
+
+Run pep8.py on your code
+========================
+
+The `pep8.py <https://github.com/jcrocholl/pep8>`_ program is
+installed together with ASE.  It will check the PEP8_ conventions for
+you.  Try::
+
+  $ pep8.py --help
+
+
 .. _pylint:
 
 Using pylint to check your code
@@ -111,6 +130,7 @@ Using pylint to check your code
 
 A pylintrc trying to follow ASE :ref:`python_codingstandard` can be found here:
 :svn:`doc/development/pylintrc`
+
 
 Running pylint yourself
 -----------------------
@@ -122,6 +142,7 @@ Run pylint on a single file like this::
 Run pylint on a module like this::
     
     [~]$ pylint path/to/module/root/dir
+
 
 Output from pylint run on ASE
 -----------------------------
