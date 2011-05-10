@@ -102,7 +102,7 @@ def read_gpaw_text(fileobj, index=-1):
         if e is not None or f is not None:
             calc = SinglePointDFTCalculator(e, f, None, magmoms, atoms, eFermi)
             atoms.set_calculator(calc)
-        if q is not None:
+        if q is not None and len(atoms) > 0:
             n = len(atoms)
             atoms.set_charges([q / n] * n)
 
