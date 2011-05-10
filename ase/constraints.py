@@ -316,9 +316,9 @@ class FixCartesian(FixConstraintSingle):
         self.mask = -(np.array(mask)-1)
 
     def adjust_positions(self, old, new):
-        step = new - old
-        step[self.a] *= self.mask
-        new = old + step
+        step = new[self.a] - old[self.a]
+        step *= self.mask
+        new[self.a] = old[self.a] + step
 
     def adjust_forces(self, positions, forces):
         forces[self.a] *= self.mask
