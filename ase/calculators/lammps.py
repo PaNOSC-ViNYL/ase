@@ -680,7 +680,7 @@ class prism:
         # Two-stage fold, first into box, then into semi-open interval
         # (within the given precission).
         d = [x % (1-self.dir_prec) for x in 
-             map(dec.Decimal, np.mod(self.car2dir(v) + self.eps, 1.0))]
+             map(dec.Decimal, map(repr, np.mod(self.car2dir(v) + self.eps, 1.0)))]
         return tuple([self.f2qs(x) for x in 
                       self.dir2car(map(float, d))])
         
