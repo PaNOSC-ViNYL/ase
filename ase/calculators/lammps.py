@@ -634,23 +634,23 @@ class prism:
         self.eps = np.finfo(xhi).eps
 
         # For rotating positions from ase to lammps
-        self.R = np.dot(np.linalg.inv(cell),
-                        np.array(((xhi, 0,   0),
-                                  (xyp, yhi, 0),
-                                  (xzp, yzp, zhi))))
+        Apre = np.array(((xhi, 0,   0),
+                         (xyp, yhi, 0),
+                         (xzp, yzp, zhi)))
+        self.R = np.dot(np.linalg.inv(cell), Apre)
 
         # Actual lammps cell may be different from what is used to create R
-        def fold(t, p):
-            tp = np.mod(0.5*p+t, p)-0.5*p
-            return float(self.f2qdec(tp))
+        def fold(vec, pvec, i):
+            p = pvec[i]
+            x = vec[i] + 0.5*p
+            n = (np.mod(x, p) - x)/p
+            return [float(self.f2qdec(a)) for a in (vec + n*pvec)]
 
-        xy = fold(xyp, xhi)
-        xz = fold(xzp, xhi)
-        yz = fold(yzp, yhi)
+        Apre[1,:] = fold(Apre[1,:], Apre[0,:], 0)
+        Apre[2,:] = fold(Apre[2,:], Apre[1,:], 1)
+        Apre[2,:] = fold(Apre[2,:], Apre[0,:], 0)
 
-        self.A = np.array(((xhi, 0,   0),
-                           (xy,  yhi, 0),
-                           (xz,  yz,  zhi)))
+        self.A = Apre
         self.Ainv = np.linalg.inv(self.A)
 
         if self.is_skewed() and \
