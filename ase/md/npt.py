@@ -357,7 +357,7 @@ class NPT(MolecularDynamics):
         first timestep, Initialize will be called.
         """
         if not self.initialized:
-            self.Initialize()
+            self.initialize()
         n = self._getnatoms()
         #tretaTeta = sum(diagonal(matrixmultiply(transpose(self.eta),
         #                                        self.eta)))

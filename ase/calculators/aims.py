@@ -427,9 +427,13 @@ class Aims(Calculator):
                     stress += [float(data[2]),float(data[3]),float(data[4])]
         # rearrange in 6-component form and return
         if stress is not None:
-            return [stress[0], stress[4], stress[8], stress[5], stress[2], stress[1]]
+            return np.array([stress[0], stress[4], stress[8], stress[5], stress[2], stress[1]])
         else:
             return
+
+    def get_stress(self, atoms):
+        self.update(atoms)
+        return self.stress
 
 # methods that should be quickly implemented some time, haven't had time yet:
     def read_fermi(self):
