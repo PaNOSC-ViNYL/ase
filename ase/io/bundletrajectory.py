@@ -20,7 +20,6 @@ following structure::
 import ase.parallel 
 from ase.parallel import paropen
 from ase.calculators.singlepoint import SinglePointCalculator
-import pupynere # Non-relative import ase.io.pupynere creates import loop!
 import numpy as np
 import os
 import shutil
@@ -215,11 +214,14 @@ class BundleTrajectory:
             if self.nframes == 0 or not once:
                 if source is not None:
                     x = source()
-                    assert len(x) == len(atoms)
                 else:
                     x = atoms.arrays[label]
                 self.backend.write(framedir, label, x)
                 del x
+                if once:
+                    self.datatypes[label] = 'once'
+                else:
+                    self.datatypes[label] = True
         # Finally, write metadata if it is the first frame
         if self.nframes == 0:
             metadata = {'datatypes': self.datatypes}
@@ -255,7 +257,7 @@ class BundleTrajectory:
     def set_extra_data(self, name, source=None, once=False):
         """Adds extra data to be written.
 
-        Parametes:
+        Parameters:
         name:  The name of the data.
 
         source (optional): If specified, a callable object returning
@@ -626,7 +628,10 @@ class PickleBundleBackend:
         if self.writelarge:
             fn = os.path.join(framedir, name + '.pickle')
             f = open(fn, "w")
-            info = (data.shape, str(data.dtype))
+            try:
+                info = (data.shape, str(data.dtype))
+            except AttributeError:
+                info = None
             pickle.dump(info, f, -1)
             pickle.dump(data, f, -1)
             f.close()
@@ -642,15 +647,15 @@ class PickleBundleBackend:
         "Read data from separate file."
         fn = os.path.join(framedir, name + '.pickle')
         f = open(fn)
-        shape = pickle.load(f)  # Discarded.
+        pickle.load(f)  # Discarded.
         data = pickle.load(f)
         f.close()
         return data
 
     def read_info(self, framedir, name, split=None):
         "Read information about file contents without reading the data."
-        if split is None:
-            fn = os.path.join(framedir, name + '.pickle')
+        fn = os.path.join(framedir, name + '.pickle')
+        if split is None or os.path.exists(fn):
             f = open(fn)
             info = pickle.load(f)
             f.close()
@@ -805,7 +810,7 @@ def print_bundletrajectory_info(filename):
     for k, v in metadata['datatypes'].items():
         if v and not k in small:
             info = backend.read_info(frame, k)
-            if isinstance(info[0], tuple):
+            if info and isinstance(info[0], tuple):
                 shape, dtype = info
             else:
                 shape = info
