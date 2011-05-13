@@ -777,7 +777,10 @@ class Wannier:
                 # Z contains the eigenvectors as COLUMNS.
                 # Since H = iA, dU = exp(-A) = exp(iH) = ZDZ^d
                 dU = np.dot(Z * np.exp(1.j * epsilon), dag(Z))
-                U[:] = np.dot(U, dU)
+                if U.dtype == float:
+                    U[:] = np.dot(U, dU).real
+                else:
+                    U[:] = np.dot(U, dU)
 
         if updatecoeff:
             start = 0
