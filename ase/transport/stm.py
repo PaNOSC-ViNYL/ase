@@ -163,7 +163,8 @@ class STM:
             self.v12_a2 = v12_a2
             self.v21_a1 = v21_a1
             T = -np.trace(np.dot(v12_a2[:,:dim1], v21_a1[:,-dim0:])) #eq. 11
-            T_e[e] = T
+            assert abs(T.imag).max() < 1e-14
+            T_e[e] = T.real
             self.T_e = T_e
         return T_e
 
