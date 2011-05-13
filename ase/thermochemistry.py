@@ -58,8 +58,8 @@ class ThermoChem:
     def _vibrational_energy_contribution(self, temperature):
         """Calculates the change in internal energy due to vibrations from
         0K to the specified temperature for a set of vibrations given in
-        inverse centimeters and a temperature given in Kelvin. Returns the
-        energy change in eV."""
+        eV and a temperature given in Kelvin. Returns the energy change
+        in eV."""
         kT = units.kB * temperature
         dU = 0.
         for energy in self.vib_energies:
@@ -68,8 +68,8 @@ class ThermoChem:
 
     def _vibrational_entropy_contribution(self, temperature):
         """Calculates the entropy due to vibrations for a set of vibrations
-        given in inverse centimeters and a temperature given in Kelvin.
-        Returns the entropy in eV/K."""
+        given in eV and a temperature given in Kelvin.  Returns the entropy
+        in eV/K."""
         kT = units.kB * temperature
         S_v = 0.
         for energy in self.vib_energies:
