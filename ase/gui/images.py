@@ -194,8 +194,21 @@ class Images:
         self.atoms_to_rotate_0 = np.zeros(self.natoms, bool)
         self.visible = np.ones(natoms * N, bool)
         self.nselected = 0
+
+    def center(self):
+        """ center each image in the existing unit cell, keeping the cell constant. """
+        for jx in range(self.nimages):
+            c_vec = np.array([0,0,0])
+            A = self.A[jx]
+            c = A[0]/2.0 + A[1]/2.0 + A[2]/2.0
+            for i in range(self.natoms):
+                c_vec += self.P[jx][i]
+            c_vec = c - c_vec/float(self.natoms)
+            for i in range(self.natoms):
+                    self.P[jx][i] += c_vec
         
     def graph(self, expr):
+        """ routine to create the data in ag graphs, defined by the string expr.  """
         import ase.units as units
         code = compile(expr + ',', 'atoms.py', 'eval')
 

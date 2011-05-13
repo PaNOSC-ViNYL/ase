@@ -47,6 +47,7 @@ class Execute(gtk.Window):
     Special commands and objects:
     <c>sa,cf</c>:\t(un)restrict to selected atoms/current frame
     <c>frame</c>:\tframe number
+    <c>center</c>:\tcenters the system in its existing unit cell
     <c>del S</c>:\tdelete selection
     <c>exec file</c>: executes commands listed in file
     <c>cov[Z]</c>:(read only): covalent radius of atomic number Z
@@ -166,6 +167,8 @@ class Execute(gtk.Window):
             self.selected.set_active(not self.selected.get_active())
         elif cmd == 'cf':
             self.images_only.set_active(not self.images_only.get_active())
+        elif cmd == 'center':
+            img.center()
         elif first_command == 'exec':
             name = cmd.split()[1]
             if '~' in name:
