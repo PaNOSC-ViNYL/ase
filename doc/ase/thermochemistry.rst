@@ -1,4 +1,4 @@
-.. module:: ase.thermochemistry
+.. module:: thermochemistry
    :synopsis: Thermochemistry module
 
 ===============

@@ -28,13 +28,13 @@ Quick links:
     - :mod:`phonons`
     - :mod:`structure`
   * - :mod:`~lattice.surface`
-    - :mod:`units`
-    - :mod:`utils`
-    - :mod:`vibrations`
-  * - :mod:`visualize`
-    - :mod:`vtk`
     - :mod:`transport`
-    -
+    - :mod:`thermochemistry`
+    - :mod:`units`
+  * - :mod:`utils`
+    - :mod:`vibrations`
+    - :mod:`visualize`
+    - :mod:`vtk`
 
 
 .. seealso::
