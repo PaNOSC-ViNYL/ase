@@ -197,10 +197,9 @@ class Images:
 
     def center(self):
         """ center each image in the existing unit cell, keeping the cell constant. """
-        for jx in range(self.nimages):
-            c = self.A[jx].sum(axis=1) / 2.0 - self.P[jx].mean(axis=0)
-            self.P[jx][:] += c
-        
+        c = self.A.sum(axis=1) / 2.0 - self.P.mean(axis=1)
+        self.P += c[:, np.newaxis, :]
+            
     def graph(self, expr):
         """ routine to create the data in ag graphs, defined by the string expr.  """
         import ase.units as units
