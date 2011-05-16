@@ -324,7 +324,7 @@ class FixCartesian(FixConstraintSingle):
         forces[self.a] *= self.mask
 
     def copy(self):
-        return FixCartesian(self.a, self.mask)
+        return FixCartesian(self.a, 1 - self.mask)
 
     def __repr__(self):
         return 'FixCartesian(indice=%s mask=%s)' % (self.a, self.mask)
