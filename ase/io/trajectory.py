@@ -1,5 +1,6 @@
 import os
 import cPickle as pickle
+import warnings
 
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.atoms import Atoms
@@ -15,7 +16,7 @@ class PickleTrajectory:
     write_stress = True
     write_magmoms = True
     write_momenta = True
-    
+
     def __init__(self, filename, mode='r', atoms=None, master=None,
                  backup=True):
         """A PickleTrajectory can be created in read, write or append mode.
@@ -55,10 +56,11 @@ class PickleTrajectory:
         self.numbers = None
         self.pbc = None
         self.sanitycheck = True
-        self.pre_observers = []   # Callback functions before write is performed
-        self.post_observers = []  # Callback functions after write is performed
-        self.write_counter = 0    # Counter used to determine when callbacks are called.
-        
+        self.pre_observers = []   # Callback functions before write
+        self.post_observers = []  # Callback functions after write
+        self.write_counter = 0    # Counter used to determine when callbacks
+                                  # are called
+
         self.offsets = []
         if master is None:
             master = (rank == 0)
@@ -118,11 +120,12 @@ class PickleTrajectory:
             d = pickle.load(self.fd)
         except EOFError:
             raise EOFError('Bad trajectory file.')
+
         self.pbc = d['pbc']
         self.numbers = d['numbers']
         self.tags = d.get('tags')
         self.masses = d.get('masses')
-        self.constraints = d['constraints']
+        self.constraints = dict2constraints(d)
         self.offsets.append(self.fd.tell())
 
     def write(self, atoms=None):
@@ -146,7 +149,6 @@ class PickleTrajectory:
             for image in neb.images:
                 self.write(image)
             return
-
         
         if len(self.offsets) == 0:
             self.write_header(atoms)
@@ -210,11 +212,13 @@ class PickleTrajectory:
             masses = atoms.get_masses()
         else:
             masses = None
-        d = {'pbc': atoms.get_pbc(),
+        d = {'version': 2,
+             'pbc': atoms.get_pbc(),
              'numbers': atoms.get_atomic_numbers(),
              'tags': tags,
              'masses': masses,
-             'constraints': atoms.constraints}
+             'constraints': [],  # backwards compatibility
+             'constraints_string': pickle.dumps(atoms.constraints)}
         pickle.dump(d, self.fd, protocol=-1)
         self.header_written = True
         self.offsets.append(self.fd.tell())
@@ -242,7 +246,7 @@ class PickleTrajectory:
             try:
                 magmoms = d['magmoms']
             except KeyError:
-                magmoms = None    
+                magmoms = None
             atoms = Atoms(positions=d['positions'],
                           numbers=self.numbers,
                           cell=d['cell'],
@@ -333,7 +337,7 @@ class PickleTrajectory:
         All other arguments are stored, and passed to the function.
         """
         if not callable(function):
-            raise ValueError("Callback object must be callable.")
+            raise ValueError('Callback object must be callable.')
         self.pre_observers.append((function, interval, args, kwargs))
 
     def post_write_attach(self, function, interval=1, *args, **kwargs):
@@ -355,6 +359,7 @@ class PickleTrajectory:
             if self.write_counter % interval == 0:
                 function(*args, **kwargs)
     
+
 def read_trajectory(filename, index=-1):
     traj = PickleTrajectory(filename, mode='r')
 
@@ -390,6 +395,7 @@ def read_trajectory(filename, index=-1):
                     
         return [traj[i] for i in range(start, stop, step)]
 
+
 def write_trajectory(filename, images):
     """Write image(s) to trajectory.
 
@@ -423,79 +429,102 @@ def write_trajectory(filename, images):
         traj.write(atoms)
     traj.close()
 
+
+def dict2constraints(d):
+    """Convert dict unpickled from trajectory file to list of constraints."""
+
+    version = d.get('version', 1)
+
+    if version == 1:
+        return d['constraints']
+    elif version == 2:
+        try:
+            return pickle.loads(d['constraints_string'])
+        except (AttributeError, KeyError, EOFError):
+            warnings.warn('Could not unpickle constraints!')
+            return []
+    else:
+        return []
+
+
 def print_trajectory_info(filename):
     """Prints information about a PickleTrajectory file.
 
     Mainly intended to be called from a command line tool.
     """
     f = open(filename)
-    hdr = "PickleTrajectory"
+    hdr = 'PickleTrajectory'
     x = f.read(len(hdr))
     if x != hdr:
-        raise ValueError, "Not a PickleTrajectory file!"
+        raise ValueError('Not a PickleTrajectory file!')
     # Head header
     header = pickle.load(f)
-    print "Header information of trajectory file '%s':" % (filename,)
-    print "  Boundary conditions:", header['pbc']
-    print "  Atomic numbers: shape = %s, type = %s" % (str(header['numbers'].shape),
-                                                       str(header['numbers'].dtype))
+    print('Header information of trajectory file %r:' % filename)
+    print('  Version: %d' % header.get('version', 1))
+    print('  Boundary conditions: %s' % header['pbc'])
+    print('  Atomic numbers: shape = %s, type = %s' %
+          (header['numbers'].shape, header['numbers'].dtype))
     if header.get('tags') is None:
-        print "  Tags are absent."
+        print('  Tags are absent.')
     else:
-        print "  Tags: shape = %s, type = %s" % (str(header['tags'].shape),
-                                                 str(header['tags'].dtype))
+        print('  Tags: shape = %s, type = %s' %
+              (header['tags'].shape, header['tags'].dtype))
     if header.get('masses') is None:
-        print "  Masses are absent."
+        print('  Masses are absent.')
     else:
-        print "  Masses: shape = %s, type = %s" % (str(header['masses'].shape),
-                                                 str(header['masses'].dtype))
-    if header.get('constraints'):
-        print "  %d constraints are present." % (len(header['constraints']),)
+        print('  Masses: shape = %s, type = %s' %
+              (header['masses'].shape, header['masses'].dtype))
+    constraints = dict2constraints(header)
+    if constraints:
+        print('  %d constraints are present.' % len(constraints))
     else:
-        print "  Constraints are absent."
+        print('  No constraints.')
 
     after_header = f.tell()
 
     # Read the first frame
     frame = pickle.load(f)
-    print "Contents of first frame:"
+    print('Contents of first frame:')
     for k, v in frame.items():
-        if hasattr(v, "shape"):
-            print "  %s: shape = %s, type = %s" % (k, str(v.shape), str(v.dtype))
+        if hasattr(v, 'shape'):
+            print('  %s: shape = %s, type = %s' % (k, v.shape, v.dtype))
         else:
-            print "  %s: %s" % (k, str(v))
+            print('  %s: %s' % (k, v))
     after_frame = f.tell()
     kB = 1024
-    MB = 1024*kB
-    GB = 1024*MB
+    MB = 1024 * kB
+    GB = 1024 * MB
     framesize = after_frame - after_header
     if framesize >= GB:
-        print "Frame size: %.2f GB" % (1.0 * framesize / GB)
+        print('Frame size: %.2f GB' % (1.0 * framesize / GB))
     elif framesize >= MB:
-        print "Frame size: %.2f MB" % (1.0 * framesize / MB)
+        print('Frame size: %.2f MB' % (1.0 * framesize / MB))
     else:
-        print "Frame size: %.2f kB" % (1.0 * framesize / kB)
+        print('Frame size: %.2f kB' % (1.0 * framesize / kB))
 
     # Print information about file size
     try:
         filesize = os.path.getsize(filename)
     except IOError:
-        print "No information about the file size."
+        print('No information about the file size.')
     else:
         if filesize >= GB:
-            print "File size: %.2f GB" % (1.0 * filesize / GB)
+            print('File size: %.2f GB' % (1.0 * filesize / GB))
         elif filesize >= MB:
-            print "File size: %.2f MB" % (1.0 * filesize / MB)
+            print('File size: %.2f MB' % (1.0 * filesize / MB))
         else:
-            print "File size: %.2f kB" % (1.0 * filesize / kB)
+            print('File size: %.2f kB' % (1.0 * filesize / kB))
         
         nframes = (filesize - after_header) // framesize
         offset = nframes * framesize + after_header - filesize
         if offset == 0:
             if nframes == 1:
-                print "Trajectory contains 1 frame."
+                print('Trajectory contains 1 frame.')
             else:
-                print "Trajectory contains %d frames." % (nframes,)
+                print('Trajectory contains %d frames.' % nframes)
         else:
-            print "Trajectory appears to contain approximately %d frames," % (nframes,)
-            print "but the file size differs by %d bytes from the expected value." % (-offset,)
+            print('Trajectory appears to contain approximately %d frames,' %
+                  nframes)
+            print('but the file size differs by %d bytes from the expected' %
+                  -offset)
+            print('value.')

@@ -60,6 +60,6 @@ fname = '2.traj'
 if os.path.isfile(fname):
     os.remove(fname)
 t = PickleTrajectory(fname, 'a', co)
-del(t)
+del t
 os.remove(fname)
 
