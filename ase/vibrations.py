@@ -154,8 +154,9 @@ class Vibrations:
         for a in self.indices:
             for i in 'xyz':
                 for sign in '-+':
-                    for ndis in range(1, self.nfree/2+1):
-                        name = '%s.%d%s%s.pckl' % (self.name, a, i, ndis*sign)
+                    for ndis in range(1, self.nfree // 2 + 1):
+                        name = '%s.%d%s%s.pckl' % (self.name, a, i,
+                                                   ndis * sign)
                         if isfile(name):
                             remove(name)
         
@@ -194,7 +195,8 @@ class Vibrations:
                                        fplusplus)[self.indices].ravel() / 12.0
                 elif self.direction == 'forward':
                     H[r] = (feq - fplus)[self.indices].ravel()
-                else: # self.direction == 'backward':
+                else:
+                    assert self.direction == 'backward'
                     H[r] = (fminus - feq)[self.indices].ravel()
                 H[r] /= 2 * self.delta
                 r += 1
@@ -321,5 +323,5 @@ class Vibrations:
             for i, pos in enumerate(self.atoms.positions):
                 fd.write('%2s %12.5f %12.5f %12.5f %12.5f %12.5f %12.5f \n' % 
                          (symbols[i], pos[0], pos[1], pos[2],
-                          mode[i,0], mode[i,1], mode[i,2]))
+                          mode[i, 0], mode[i, 1], mode[i, 2]))
         fd.close()
