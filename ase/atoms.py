@@ -18,7 +18,7 @@ import ase.units as units
 
 class Atoms(object):
     """Atoms object.
-    
+
     The Atoms object can represent an isolated molecule, or a
     periodically repeated structure.  It has a unit cell and
     there may be periodic boundary conditions along any of the three
@@ -90,7 +90,7 @@ class Atoms(object):
     ...             pbc=True)
 
     Hydrogen wire:
-    
+
     >>> d = 0.9  # H-H distance
     >>> L = 7.0
     >>> h = Atoms('H', positions=[(0, L / 2, L / 2)],
@@ -115,14 +115,14 @@ class Atoms(object):
             symbols = None
         elif hasattr(symbols, 'get_positions'):
             atoms = symbols
-            symbols = None    
+            symbols = None
         elif (isinstance(symbols, (list, tuple)) and
               len(symbols) > 0 and isinstance(symbols[0], Atom)):
             # Get data from a list or tuple of Atom objects:
             data = zip(*[atom.get_data() for atom in symbols])
             atoms = self.__class__(None, *data)
-            symbols = None    
-                
+            symbols = None
+
         if atoms is not None:
             # Get data from another Atoms object:
             if scaled_positions is not None:
@@ -180,7 +180,7 @@ class Atoms(object):
                 positions = np.dot(scaled_positions, self._cell)
         else:
             if scaled_positions is not None:
-                raise RuntimeError, 'Both scaled and cartesian positions set!'
+                raise RuntimeError('Both scaled and cartesian positions set!')
         self.new_array('positions', positions, float, (3,))
 
         self.set_constraint(constraint)
@@ -413,7 +413,7 @@ class Atoms(object):
 
     def set_velocities(self, velocities):
         """Set the momenta by specifying the velocities."""
-        self.set_momenta(self.get_masses()[:,np.newaxis] * velocities)
+        self.set_momenta(self.get_masses()[:, np.newaxis] * velocities)
         
     def get_momenta(self):
         """Get array of momenta."""
@@ -451,17 +451,14 @@ class Atoms(object):
     def set_initial_magnetic_moments(self, magmoms=None):
         """Set the initial magnetic moments.
 
-        Use either one or three numbers for every atom (collinear or non-collinear spins)."""
+        Use either one or three numbers for every atom (collinear
+        or non-collinear spins)."""
         
         if magmoms is None:
             self.set_array('magmoms', None)
         else:
             magmoms = np.asarray(magmoms)
             self.set_array('magmoms', magmoms, float, magmoms.shape[1:])
-
-    def set_magnetic_moments(self, magmoms):
-        print 'Please use set_initial_magnetic_moments() instead!'
-        self.set_initial_magnetic_moments(magmoms)
 
     def get_initial_magnetic_moments(self):
         """Get array of initial magnetic moments."""
@@ -585,9 +582,9 @@ class Atoms(object):
             raise RuntimeError('Atoms object has no calculator.')
         stress = self._calc.get_stress(self)
         shape = getattr(stress, 'shape', None)
-        if shape == (3,3):
-            return np.array([stress[0,0], stress[1,1], stress[2,2],
-                             stress[1,2], stress[0,2], stress[0,1]])
+        if shape == (3, 3):
+            return np.array([stress[0, 0], stress[1, 1], stress[2, 2],
+                             stress[1, 2], stress[0, 2], stress[0, 1]])
         else:
             # Hopefully a 6-vector, but don't check in case some weird
             # calculator does something else.
@@ -650,7 +647,7 @@ class Atoms(object):
             symbols = self.get_chemical_symbols(reduce=True)
         else:
             symbols = ''.join([chemical_symbols[Z] for Z in num[:15]]) + '...'
-        s = "%s(symbols='%s', " %(self.__class__.__name__, symbols)
+        s = "%s(symbols='%s', " % (self.__class__.__name__, symbols)
         for name in self.arrays:
             if name == 'numbers':
                 continue
@@ -751,7 +748,8 @@ class Atoms(object):
 
     def __delitem__(self, i):
         from ase.constraints import FixAtoms
-        check_constraint = np.array([isinstance(c,FixAtoms) for c in self._constraints])
+        check_constraint = np.array([isinstance(c, FixAtoms)
+                                     for c in self._constraints])
         if len(self._constraints) > 0 and not check_constraint.all():
             raise RuntimeError('Remove constraint using set_constraint() ' +
                                'before deleting atoms.')
@@ -837,14 +835,14 @@ class Atoms(object):
         c = self.get_cell()
         dirs = np.zeros_like(c)
         for i in range(3):
-            dirs[i] = np.cross(c[i-1], c[i-2])
-            dirs[i] /= np.sqrt(np.dot(dirs[i], dirs[i])) #Normalize
-            if np.dot(dirs[i], c[i]) < 0.0:      
+            dirs[i] = np.cross(c[i - 1], c[i - 2])
+            dirs[i] /= np.sqrt(np.dot(dirs[i], dirs[i]))  # normalize
+            if np.dot(dirs[i], c[i]) < 0.0:
                 dirs[i] *= -1
 
         # Now, decide how much each basis vector should be made longer
         if axis is None:
-            axes = (0,1,2)
+            axes = (0, 1, 2)
         else:
             axes = (axis,)
         p = self.arrays['positions']
@@ -855,7 +853,7 @@ class Atoms(object):
             p1 = np.dot(p, dirs[i]).max()
             height = np.dot(c[i], dirs[i])
             if vacuum is not None:
-                lng = (p1 - p0 + 2*vacuum) - height
+                lng = (p1 - p0 + 2 * vacuum) - height
             else:
                 lng = 0.0  # Do not change unit cell size!
             top = lng + height - p1
@@ -872,7 +870,7 @@ class Atoms(object):
             translation += shift[i] * c[i] / nowlen
         self.arrays['positions'] += translation
 
-    def get_center_of_mass(self, scaled = False):
+    def get_center_of_mass(self, scaled=False):
         """Get the center of mass.
 
         If scaled=True the center of mass in scaled coordinates
@@ -897,21 +895,21 @@ class Atoms(object):
         
         com = self.get_center_of_mass()
         positions = self.get_positions()
-        positions -= com #translate center of mass to origin
+        positions -= com  # translate center of mass to origin
         masses = self.get_masses()
 
         #initialize elements of the inertial tensor
         I11 = I22 = I33 = I12 = I13 = I23 = 0.0
         for i in range(len(self)):
-            x,y,z = positions[i]
+            x, y, z = positions[i]
             m = masses[i]
 
-            I11 += m*(y**2 + z**2)
-            I22 += m*(x**2 + z**2)
-            I33 += m*(x**2 + y**2)
-            I12 += -m*x*y
-            I13 += -m*x*z
-            I23 += -m*y*z
+            I11 += m * (y**2 + z**2)
+            I22 += m * (x**2 + z**2)
+            I33 += m * (x**2 + y**2)
+            I12 += -m * x * y
+            I13 += -m * x * z
+            I23 += -m * y * z
 
         I = np.array([[I11, I12, I13],
                       [I12, I22, I23],
@@ -966,7 +964,8 @@ class Atoms(object):
             if norm(v) < eps:
                 v = np.cross((1, 0, 0), v2)
             assert norm(v) >= eps
-            if s > 0: v /= s
+            if s > 0:
+                v /= s
         
         if isinstance(center, str) and center.lower() == 'com':
             center = self.get_center_of_mass()
@@ -1028,28 +1027,34 @@ class Atoms(object):
         # Move back to the rotation point
         self.positions = np.transpose(rcoords) + center
 
-    def get_dihedral(self,list):
+    def get_dihedral(self, list):
+        """Calculate dihedral angle.
+
+        Calculate dihedral angle between the vectors list[0]->list[1]
+        and list[2]->list[3], where list contains the atomic indexes
+        in question.
         """
-        calculate dihedral angle between the vectors list[0]->list[1] and list[2]->list[3], 
-        where list contains the atomic indexes in question. 
-        """
+
         # vector 0->1, 1->2, 2->3 and their normalized cross products:
-        a    = self.positions[list[1]]-self.positions[list[0]]
-        b    = self.positions[list[2]]-self.positions[list[1]]
-        c    = self.positions[list[3]]-self.positions[list[2]]
-        bxa  = np.cross(b,a)
-        bxa /= np.sqrt(np.vdot(bxa,bxa))
-        cxb  = np.cross(c,b)
-        cxb /= np.sqrt(np.vdot(cxb,cxb))
-        angle = np.vdot(bxa,cxb)
+        a = self.positions[list[1]] - self.positions[list[0]]
+        b = self.positions[list[2]] - self.positions[list[1]]
+        c = self.positions[list[3]] - self.positions[list[2]]
+        bxa = np.cross(b, a)
+        bxa /= np.sqrt(np.vdot(bxa, bxa))
+        cxb = np.cross(c, b)
+        cxb /= np.sqrt(np.vdot(cxb, cxb))
+        angle = np.vdot(bxa, cxb)
         # check for numerical trouble due to finite precision:
-        if angle < -1: angle = -1
-        if angle >  1: angle =  1
+        if angle < -1:
+            angle = -1
+        if angle > 1:
+            angle = 1
         angle = np.arccos(angle)
-        if (np.vdot(bxa,c)) > 0: angle = 2*np.pi-angle
+        if np.vdot(bxa, c) > 0:
+            angle = 2 * np.pi - angle
         return angle
 
-    def set_dihedral(self,list,angle,mask=None):
+    def set_dihedral(self, list, angle, mask=None):
         """
         set the dihedral angle between vectors list[0]->list[1] and 
         list[2]->list[3] by changing the atom indexed by list[3]
@@ -1059,26 +1064,30 @@ class Atoms(object):
         example: the following defines a very crude 
         ethane-like molecule and twists one half of it by 30 degrees.
 
-        >>> atoms = Atoms('HHCCHH',[[-1,1,0],[-1,-1,0],[0,0,0],[1,0,0],[2,1,0],[2,-1,0]])
+        >>> atoms = Atoms('HHCCHH', [[-1, 1, 0], [-1, -1, 0], [0, 0, 0],
+                                     [1, 0, 0], [2, 1, 0], [2, -1, 0]])
         >>> atoms.set_dihedral([1,2,3,4],7*pi/6,mask=[0,0,0,1,1,1])
         """
-        # if not provided, set mask to the last atom in the dihedral description
+        # if not provided, set mask to the last atom in the
+        # dihedral description
         if mask is None:
             mask = np.zeros(len(self))
             mask[list[3]] = 1
         # compute necessary in dihedral change, from current value
-        current =self.get_dihedral(list)
-        diff    = angle - current
-        # do rotation of subgroup by copying it to temporary atoms object and then rotating that
-        axis   = self.positions[list[2]]-self.positions[list[1]]
+        current = self.get_dihedral(list)
+        diff = angle - current
+        # do rotation of subgroup by copying it to temporary atoms object
+        # and then rotating that
+        axis = self.positions[list[2]] - self.positions[list[1]]
         center = self.positions[list[2]]
-        # recursive object definition might not be the most elegant thing, more generally useful might be a rotation function with a mask?
-        group  = self.__class__()
+        # recursive object definition might not be the most elegant thing,
+        # more generally useful might be a rotation function with a mask?
+        group = self.__class__()
         for i in range(len(self)):
             if mask[i]:
                 group += self[i]
         group.translate(-center)
-        group.rotate(axis,diff)
+        group.rotate(axis, diff)
         group.translate(center)
         # set positions in original atoms object
         j = 0
@@ -1087,12 +1096,15 @@ class Atoms(object):
                 self.positions[i] = group[j].get_position()
                 j += 1
         
-    def rotate_dihedral(self,list,angle,mask=None):
-        """ complementing the two routines above: rotate a group by a predefined dihedral angle, 
-        starting from its current configuration
+    def rotate_dihedral(self, list, angle, mask=None):
+        """Rotate dihedral angle.
+
+        Complementing the two routines above: rotate a group by a
+        predefined dihedral angle, starting from its current
+        configuration
         """
         start = self.get_dihedral(list)
-        self.set_dihedral(list,angle+start,mask)
+        self.set_dihedral(list, angle + start, mask)
 
     def rattle(self, stdev=0.001, seed=42):
         """Randomly displace atoms.
@@ -1159,7 +1171,7 @@ class Atoms(object):
     def get_temperature(self):
         """Get the temperature. in Kelvin"""
         ekin = self.get_kinetic_energy() / len(self)
-        return ekin /(1.5*units.kB)
+        return ekin / (1.5 * units.kB)
 
     def get_isotropic_pressure(self, stress):
         """ get the current calculated pressure, assume isotropic medium.
@@ -1167,16 +1179,14 @@ class Atoms(object):
         """
         if type(stress) == type(1.0) or type(stress) == type(1):
             return -stress * 1e-5 / units.Pascal
-        elif stress.shape == (3,3):
+        elif stress.shape == (3, 3):
             return (-(stress[0, 0] + stress[1, 1] + stress[2, 2]) / 3.0) * \
                     1e-5 / units.Pascal
         elif stress.shape == (6,):
             return (-(stress[0] + stress[1] + stress[2]) / 3.0) * \
                    1e-5 / units.Pascal
         else:
-            raise ValueError, "The external stress has the wrong shape."
-
-
+            raise ValueError('The external stress has the wrong shape.')
 
     def __eq__(self, other):
         """Check for identity of two atoms objects.
@@ -1291,6 +1301,7 @@ class Atoms(object):
         self.set_tags(edited_atoms.get_tags())
         return
         
+
 def string2symbols(s):
     """Convert string to list of chemical symbols."""
     n = len(s)
@@ -1339,6 +1350,7 @@ def string2symbols(s):
     else:
         raise ValueError
 
+
 def symbols2numbers(symbols):
     if isinstance(symbols, str):
         symbols = string2symbols(symbols)
@@ -1350,6 +1362,7 @@ def symbols2numbers(symbols):
             numbers.append(s)
     return numbers
 
+
 def string2vector(v):
     if isinstance(v, str):
         if v[0] == '-':
@@ -1358,6 +1371,7 @@ def string2vector(v):
         w['xyz'.index(v)] = 1.0
         return w
     return np.array(v, float)
+
 
 def default(data, dflt):
     """Helper function for setting default values."""
@@ -1377,4 +1391,3 @@ def default(data, dflt):
         return newdata
     else:
         return data
-                               
