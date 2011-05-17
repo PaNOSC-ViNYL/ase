@@ -31,6 +31,9 @@ class FLEUR:
     executable for real and complex cases (systems with/without inversion
     symmetry), so FLEUR must point to the correct executable.
 
+    The initialize_density step can be performed in parallel
+    only if run on one compute node. FLEUR_SERIAL is used for this step.
+
     It is probable that user needs to tune manually the input file before
     the actual calculation, so in addition to the standard
     get_potential_energy function this class defines the following utility
@@ -48,11 +51,11 @@ class FLEUR:
         Uses fleur's internal algorithm for structure
         optimization. Requires that the proper optimization parameters
         (atoms to optimize etc.) are specified by hand in `inp`
-    
+
     """
     def __init__(self, xc='LDA', kpts=None, nbands=None, convergence=None,
-                 width=None, kmax=None, mixer=None, maxiter=40, 
-                 maxrelax=20, workdir=None):
+                 width=None, kmax=None, mixer=None, maxiter=None,
+                 maxrelax=20, workdir=None, equivatoms=True):
 
         """Construct FLEUR-calculator object.
 
@@ -73,22 +76,30 @@ class FLEUR:
         kmax: float
             Plane wave cutoff in a.u.
         mixer: dictionary
-            Mixing parameters imix, alpha, spinf 
+            Mixing parameters imix, alpha, spinf
             {'imix' : int, 'alpha' : float, 'spinf' : float}
         maxiter: int
-            Maximum number of SCF iterations
+            Maximum number of SCF iterations (name in the code: itmax)
         maxrelax: int
             Maximum number of relaxation steps
         workdir: str
             Working directory for the calculation
+        equivatoms: bool
+            If False: generate inequivalent atoms (default is True).
+            Setting to False allows one for example to calculate spin-polarized dimers.
+            Ssee http://www.flapw.de/pm/index.php?n=User-Documentation.InputFileForTheInputGenerator.
         """
-        
+
         self.xc = xc
         self.kpts = kpts
         self.nbands = nbands
         self.width = width
         self.kmax = kmax
-        self.maxiter = maxiter
+        self.itmax_default = 40
+        if maxiter is None:
+            self.itmax = self.itmax_default
+        else:
+            self.itmax = maxiter
         self.maxrelax = maxrelax
         self.mixer = mixer
 
@@ -109,12 +120,40 @@ class FLEUR:
         else:
             self.workdir = '.'
             self.start_dir = '.'
-        
+
+        self.equivatoms = equivatoms
+
         self.converged = False
+
+    def run_executable(self, mode='fleur', executable='FLEUR'):
+
+        assert executable in ['FLEUR', 'FLEUR_SERIAL']
+
+        executable_use = executable
+        if executable == 'FLEUR_SERIAL' and not os.environ.get(executable, ''):
+            executable_use = 'FLEUR' # use FLEUR if FLEUR_SERIAL not set
+        try:
+            code_exe = os.environ[executable_use]
+        except KeyError:
+            raise RuntimeError('Please set ' + executable_use)
+        p = Popen(code_exe, shell=True, stdin=PIPE, stdout=PIPE,
+                  stderr=PIPE)
+        stat = p.wait()
+        out = p.stdout.read()
+        err = p.stderr.read()
+        print mode, ': stat= ', stat, ' out= ', out, ' err=', err
+        # special handling of exit status from density generation and regular fleur.x
+        if mode in ['density']:
+            if '!' in err:
+                raise RuntimeError(executable_use + ' exited with a code %s' % err)
+        else:
+            if stat != 0:
+                raise RuntimeError(executable_use + ' exited with a code %d' % stat)
+
 
     def update(self, atoms):
         """Update a FLEUR calculation."""
-        
+
         if (not self.converged or
             len(self.numbers) != len(atoms) or
             (self.numbers != atoms.get_atomic_numbers()).any()):
@@ -132,7 +171,7 @@ class FLEUR:
 
         self.converged = False
         self.initialize_inp(atoms)
-        self.initialize_density()
+        self.initialize_density(atoms)
 
     def initialize_inp(self, atoms):
         """Create a inp file"""
@@ -145,16 +184,19 @@ class FLEUR:
 
         # create the input
         self.write_inp(atoms)
-        
+
         os.chdir(self.start_dir)
 
-    def initialize_density(self):
+    def initialize_density(self, atoms):
         """Creates a new starting density."""
 
         os.chdir(self.workdir)
         # remove possible conflicting files
-        files2remove = ['cdn1', 'fl7para', 'stars', 'wkf2',
+        files2remove = ['cdn1', 'fl7para', 'stars', 'wkf2', 'enpara',
                         'kpts', 'broyd', 'broyd.7', 'tmat', 'tmas']
+        if 0:
+            # avoid STOP bzone3 error by keeping the kpts file
+            files2remove.remove('kpts')
 
         for f in files2remove:
             if os.path.isfile(f):
@@ -162,18 +204,25 @@ class FLEUR:
 
         # generate the starting density
         os.system("sed -i -e 's/strho=./strho=T/' inp")
-        try:
-            fleur_exe = os.environ['FLEUR']
-        except KeyError:
-            raise RuntimeError('Please set FLEUR')
-        cmd = popen3(fleur_exe)[2]
-        stat = cmd.read()
-        if '!' in stat:
-            raise RuntimeError('FLEUR exited with a code %s' % stat)
+        self.run_executable(mode='density', executable='FLEUR_SERIAL')
         os.system("sed -i -e 's/strho=./strho=F/' inp")
 
         os.chdir(self.start_dir)
-        
+        # generate spin-polarized density
+        # http://www.flapw.de/pm/index.php?n=User-Documentation.Magnetism
+        if atoms.get_initial_magnetic_moments().sum() > 0.0:
+            os.chdir(self.workdir)
+            # generate cdnc file (1 SCF step: swsp=F - non-magnetic)
+            os.system("sed -i -e 's/itmax=.*,maxiter/itmax= 1,maxiter/' inp")
+            self.run_executable(mode='cdnc', executable='FLEUR')
+            os.system("sed -i -e 's/itmax=.*,maxiter/itmax= 9,maxiter/' inp")
+            # generate spin polarized density (swsp=T)
+            os.system("sed -i -e 's/swsp=./swsp=T/' inp")
+            self.run_executable(mode='swsp', executable='FLEUR_SERIAL')
+            # restore swsp=F
+            os.system("sed -i -e 's/swsp=./swsp=F/' inp")
+            os.chdir(self.start_dir)
+
     def get_potential_energy(self, atoms, force_consistent=False):
         self.update(atoms)
 
@@ -188,7 +237,7 @@ class FLEUR:
         # electronic structure is converged, so let's calculate forces:
         # TODO
         return np.array((0.0, 0.0, 0.0))
-    
+
     def get_stress(self, atoms):
         raise NotImplementedError
 
@@ -204,34 +253,24 @@ class FLEUR:
            reduces the number of iterations gradually, however, a minimum
            of five SCF steps is always performed.
         """
-                      
+
         os.chdir(self.workdir)
-        try:
-            fleur_exe = os.environ['FLEUR']
-        except KeyError:
-            raise RuntimeError('Please set FLEUR')
 
         self.niter = 0
         out = ''
         err = ''
         while not self.converged:
-            if self.niter > self.maxiter:
-                raise RuntimeError('FLEUR failed to convergence in %d iterations' % self.maxiter)
-            
-            p = Popen(fleur_exe, shell=True, stdin=PIPE, stdout=PIPE,
-                      stderr=PIPE)
-            stat = p.wait()
-            out = p.stdout.read()
-            err = p.stderr.read()
-            print err.strip()
-            if stat != 0:
-                raise RuntimeError('FLEUR exited with a code %d' % stat)
+            if self.niter > self.itmax:
+                raise RuntimeError('FLEUR failed to convergence in %d iterations' % self.itmax)
+
+            self.run_executable(mode='fleur', executable='FLEUR')
+
             # catenate new output with the old one
             os.system('cat out >> out.old')
             self.read()
             self.check_convergence()
 
-        os.rename('out.old', 'out')
+        if os.path.exists('out.old'): os.rename('out.old', 'out')
         # After convergence clean up broyd* files
         os.system('rm -f broyd*')
         os.chdir(self.start_dir)
@@ -267,7 +306,7 @@ class FLEUR:
             if nrelax > self.maxrelax:
                 raise RuntimeError('Failed to relax in %d iterations' % self.maxrelax)
             self.converged = False
-                
+
 
     def write_inp(self, atoms):
         """Write the `inp` input file of FLEUR.
@@ -284,7 +323,7 @@ class FLEUR:
         fh = open('inp_simple', 'w')
         fh.write('FLEUR input generated with ASE\n')
         fh.write('\n')
-        
+
         if atoms.pbc[2]:
             film = 'f'
         else:
@@ -300,7 +339,7 @@ class FLEUR:
         fh.write(' %21.16f\n' % 1.0)
         fh.write(' %21.16f %21.16f %21.16f\n' % (1.0, 1.0, 1.0))
         fh.write('\n')
-        
+
         natoms = len(atoms)
         fh.write(' %6d\n' % natoms)
         positions = atoms.get_scaled_positions()
@@ -311,8 +350,14 @@ class FLEUR:
             cart_pos[:, 2] -= atoms.get_cell()[2, 2]/2.0
             positions[:, 2] = cart_pos[:, 2] / Bohr
         atomic_numbers = atoms.get_atomic_numbers()
-        for Z, pos in zip(atomic_numbers, positions):
-            fh.write('%3d' % Z)
+        for n, (Z, pos) in enumerate(zip(atomic_numbers, positions)):
+            if self.equivatoms:
+                fh.write('%3d' % Z)
+            else:
+                # generate inequivalent atoms, by using non-integer Z
+                # (only the integer part will be used as Z of the atom)
+                # see http://www.flapw.de/pm/index.php?n=User-Documentation.InputFileForTheInputGenerator
+                fh.write('%3d.%04d' % (Z, n)) # MDTMP don't think one can calculate more that 10**4 atoms
             for el in pos:
                 fh.write(' %21.16f' % el)
             fh.write('\n')
@@ -350,7 +395,7 @@ class FLEUR:
             if self.kmax and line.startswith('Window'):
                 line = '%10.5f\n' % self.kmax
                 lines[ln+2] = line
-            
+
             # Fermi width
             if self.width and line.startswith('gauss'):
                 line = 'gauss=F   %7.5ftria=F\n' % (self.width / Hartree)
@@ -361,6 +406,12 @@ class FLEUR:
                                                               self.kpts[1],
                                                               self.kpts[2])
                 lines[ln] = line
+            # itmax
+            if self.itmax != self.itmax_default and line.startswith('itmax'):
+                lsplit = line.split(',')
+                if lsplit[0].find('itmax') != -1:
+                    lsplit[0] = 'itmax=' + ('%2d' % self.itmax)
+                    lines[ln] = ",".join(lsplit)
             # Mixing
             if self.mixer and line.startswith('itmax'):
                 imix = self.mixer['imix']
@@ -371,7 +422,18 @@ class FLEUR:
                                                                    spinf)
                 line = line[:21] + line_end
                 lines[ln] = line
-                
+            # jspins and swsp
+            if atoms.get_initial_magnetic_moments().sum() > 0.0:
+                assert not self.equivatoms, 'equivatoms currently not allowed in magnetic systems'
+                if line.find('jspins=1') != -1:
+                    lines[ln] = line.replace('jspins=1', 'jspins=2')
+                if line.startswith('swsp=F'):
+                    # setting initial magnetic moments for all atom types
+                    lines[ln] = 'swsp=F'
+                    for m in atoms.get_initial_magnetic_moments():
+                        lines[ln] += (' %5.2f' % m)
+                    lines[ln] += '\n'
+
         # write everything back to inp
         fh = open('inp', 'w')
         for line in lines:
@@ -391,7 +453,7 @@ class FLEUR:
             if m:
                 self.total_energies.append(float(m.group(3)))
         self.etotal = self.total_energies[-1]
-        
+
         # free_energies
         self.free_energies = []
         pat = re.compile('(.*free energy=)(\s)*([-0-9.]*)')
@@ -424,4 +486,3 @@ class FLEUR:
                 line = 'itmax=%2d' % itmax + line[8:]
             fh.write(line)
         fh.close()
-                
