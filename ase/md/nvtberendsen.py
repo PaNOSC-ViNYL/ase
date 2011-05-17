@@ -3,14 +3,7 @@
 import sys
 import numpy as np
 from ase.md.md import MolecularDynamics
-
-
-# For parallel GPAW simulations, the random forces should be distributed.
-if '_gpaw' in sys.modules:
-    # http://wiki.fysik.dtu.dk/gpaw
-    from gpaw.mpi import world as gpaw_world
-else:
-    gpaw_world = None
+from ase.parallel import world
 
 
 class NVTBerendsen(MolecularDynamics):
@@ -38,7 +31,7 @@ class NVTBerendsen(MolecularDynamics):
 
     def __init__(self, atoms, timestep, temperature, taut, fixcm=True,
                  trajectory=None, logfile=None, loginterval=1,
-                 communicator=gpaw_world):
+                 communicator=world):
 
         MolecularDynamics.__init__(self, atoms, timestep, trajectory, 
                                    logfile, loginterval)

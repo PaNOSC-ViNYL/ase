@@ -6,6 +6,7 @@ from ase.units import kB
 from ase.parallel import world
 from ase.io.trajectory import PickleTrajectory
 
+
 class BasinHopping(Dynamics):
     """Basin hopping algorythm.
 
@@ -15,7 +16,7 @@ class BasinHopping(Dynamics):
                  temperature=100 * kB,
                  optimizer=FIRE,
                  fmax=0.1,
-                 dr=.1,
+                 dr=0.1,
                  logfile='-', 
                  trajectory='lowest.traj',
                  optimizer_logfile='-',
@@ -40,7 +41,7 @@ class BasinHopping(Dynamics):
         self.initialize()
 
     def initialize(self):
-        self.positions = 0. * self.atoms.get_positions()
+        self.positions = 0.0 * self.atoms.get_positions()
         self.Emin = self.get_energy(self.atoms.get_positions())
         self.rmin = self.atoms.get_positions()
         self.positions = self.atoms.get_positions()
@@ -88,8 +89,7 @@ class BasinHopping(Dynamics):
             cm = atoms.get_center_of_mass()
             atoms.translate(self.cm - cm)
         rn = atoms.get_positions()
-        if world is not None:
-            world.broadcast(rn, 0)
+        world.broadcast(rn, 0)
         atoms.set_positions(rn)
         return atoms.get_positions()
 

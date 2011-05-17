@@ -1,15 +1,52 @@
+import os
 from math import sin, cos, radians, atan2, degrees
 
 import numpy as np
 
+from ase.parallel import world
+
 
 class DevNull:
-    def write(self, string): pass
-    def flush(self): pass
-    def tell(self): return 0
-    def close(self): pass
+    def write(self, string):
+        pass
+
+    def flush(self):
+        pass
+
+    def tell(self):
+        return 0
+
+    def close(self):
+        pass
 
 devnull = DevNull()
+
+
+def opencew(filename):
+    """Create and open filename exclusively for writing.
+
+    If master cpu gets exclusive write access til filename, a file
+    descriptor is returned (a dummy file descriptor is returned on the
+    slaves).  If the master cpu doet not gets write access, None is
+    returned on all processors."""
+
+    if world.rank == 0:
+        try:
+            fd = os.open(filename, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except OSError:
+            ok = 0
+        else:
+            ok = 1
+            fd = os.fdopen(fd, 'w')
+    else:
+        ok = 0
+        fd = devnull
+
+    # Syncronize:
+    if world.sum(ok) == 0:
+        return None
+    else:
+        return fd
 
 
 def rotate(rotations, rotation=np.identity(3)):
@@ -18,26 +55,26 @@ def rotate(rotations, rotation=np.identity(3)):
     Note that the order of rotation matters, i.e. '50x,40z' is different
     from '40z,50x'.
     """
-        
+
     if rotations == '':
         return rotation.copy()
-    
+
     for i, a in [('xyz'.index(s[-1]), radians(float(s[:-1])))
                  for s in rotations.split(',')]:
         s = sin(a)
         c = cos(a)
         if i == 0:
-            rotation = np.dot(rotation, [( 1,  0,  0),
-                                          ( 0,  c, s),
-                                          ( 0,  -s,  c)])
+            rotation = np.dot(rotation, [(1, 0, 0),
+                                         (0, c, s),
+                                         (0, -s, c)])
         elif i == 1:
-            rotation = np.dot(rotation, [( c,  0, -s),
-                                          ( 0,  1,  0),
-                                          ( s,  0,  c)])
+            rotation = np.dot(rotation, [(c, 0, -s),
+                                         (0, 1, 0),
+                                         (s, 0, c)])
         else:
-            rotation = np.dot(rotation, [( c, s,  0),
-                                          ( -s,  c,  0),
-                                          ( 0,  0,  1)])
+            rotation = np.dot(rotation, [(c, s, 0),
+                                         (-s, c, 0),
+                                         (0, 0, 1)])
     return rotation
 
 
@@ -55,13 +92,13 @@ def givens(a, b):
         r = abs(a)
     elif abs(b) >= abs(a):
         cot = a / b
-        u = sgn(b) * (1 + cot**2)**.5
+        u = sgn(b) * (1 + cot**2)**0.5
         s = 1. / u
         c = s * cot
         r = b * u
     else:
         tan = b / a
-        u = sgn(a) * (1 + tan**2)**.5
+        u = sgn(a) * (1 + tan**2)**0.5
         c = 1. / u
         s = c * tan
         r = a * u
@@ -113,7 +150,7 @@ def hsv2rgb(h, s, v):
     elif i == 5:
         return v, p, q
     else:
-        raise RuntimeError, 'h must be in [0, 360]'
+        raise RuntimeError('h must be in [0, 360]')
 
 
 def hsv(array, s=.9, v=.9):
@@ -128,4 +165,4 @@ def hsv(array, s=.9, v=.9):
 ##     import pylab
 ##     a = (array + array.min()) / array.ptp()
 ##     rgba = getattr(pylab.cm, name)(a)
-##     return rgba[:-1] # return rgb only (not alpha) 
+##     return rgba[:-1] # return rgb only (not alpha)

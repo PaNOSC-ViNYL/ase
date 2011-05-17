@@ -12,13 +12,9 @@ import numpy as np
 
 import ase.units as units
 from ase.io.trajectory import PickleTrajectory
-from ase.parallel import rank, barrier, paropen
+from ase.parallel import rank, paropen
+from ase.utils import opencew
 
-def _opencew(filename):
-    """Create and open filename exclusively for writing."""
-    import os
-    fd = os.open(filename, os.O_CREAT|os.O_EXCL|os.O_WRONLY)
-    return os.fdopen(fd, "w")
 
 class Vibrations:
     """Class for calculating vibrational modes using finite difference.
@@ -116,59 +112,40 @@ class Vibrations:
         """
         
         filename = self.name + '.eq.pckl'
-        try:
-            barrier()
-            if rank == 0:
-                fd = _opencew(filename)            
-            forces = self.atoms.get_forces()
-            if self.ir:
-                dipole = self.calc.get_dipole_moment(self.atoms)
-            if rank == 0:
-                if self.ir:
-                    pickle.dump([forces, dipole], fd)
-                    sys.stdout.write(
-                        'Writing %s, dipole moment = (%.6f %.6f %.6f)\n' % 
-                        (filename, dipole[0], dipole[1], dipole[2]))
-                else:
-                    pickle.dump(forces, fd)
-                    sys.stdout.write('Writing %s\n' % filename)
-                fd.close()
-            sys.stdout.flush()
-        except OSError:
-            pass
+        fd = opencew(filename)            
+        if fd is not None:
+            self.calculate(filename, fd)
         
         p = self.atoms.positions.copy()
         for a in self.indices:
             for i in range(3):
                 for sign in [-1, 1]:
-                    for ndis in range(1, self.nfree//2+1):
+                    for ndis in range(1, self.nfree // 2 + 1):
                         filename = ('%s.%d%s%s.pckl' %
-                                    (self.name, a, 'xyz'[i], ndis*' +-'[sign]))
-                        barrier()
-                        if rank == 0:
-                            try:
-                                fd = _opencew(filename)
-                            except OSError:
-                                continue
-                        self.atoms.positions[a, i] = (p[a, i] +
-                                                      ndis * sign * self.delta)
-                        forces = self.atoms.get_forces()
-                        if self.ir:
-                            dipole = self.calc.get_dipole_moment(self.atoms)
-                        if rank == 0:
-                            if self.ir:
-                                pickle.dump([forces, dipole], fd)
-                                sys.stdout.write(
-                                    'Writing %s, ' % filename +
-                                    'dipole moment = (%.6f %.6f %.6f)\n' % 
-                                    (dipole[0], dipole[1], dipole[2]))
-                            else:
-                                pickle.dump(forces, fd)
-                                sys.stdout.write('Writing %s\n' % filename)
-                            fd.close()
-                        sys.stdout.flush()
-                        self.atoms.positions[a, i] = p[a, i]
-        self.atoms.set_positions(p)
+                                    (self.name, a, 'xyz'[i],
+                                     ndis * ' +-'[sign]))
+                        fd = opencew(filename)
+                        if fd is not None:
+                            disp = ndis * sign * self.delta
+                            self.atoms.positions[a, i] = p[a, i] + disp
+                            self.calculate(filename, fd)
+                            self.atoms.positions[a, i] = p[a, i]
+
+    def calculate(self, filename, fd):
+        forces = self.atoms.get_forces()
+        if self.ir:
+            dipole = self.calc.get_dipole_moment(self.atoms)
+        if rank == 0:
+            if self.ir:
+                pickle.dump([forces, dipole], fd)
+                sys.stdout.write(
+                    'Writing %s, dipole moment = (%.6f %.6f %.6f)\n' % 
+                    (filename, dipole[0], dipole[1], dipole[2]))
+            else:
+                pickle.dump(forces, fd)
+                sys.stdout.write('Writing %s\n' % filename)
+            fd.close()
+        sys.stdout.flush()
 
     def clean(self):
         if isfile(self.name + '.eq.pckl'):

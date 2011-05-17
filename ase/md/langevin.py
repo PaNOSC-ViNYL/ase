@@ -5,13 +5,8 @@ import sys
 import numpy as np
 from numpy.random import standard_normal
 from ase.md.md import MolecularDynamics
+from ase.parallel import world
 
-# For parallel GPAW simulations, the random forces should be distributed.
-if '_gpaw' in sys.modules:
-    # http://wiki.fysik.dtu.dk/gpaw
-    from gpaw.mpi import world as gpaw_world
-else:
-    gpaw_world = None
 
 class Langevin(MolecularDynamics):
     """Langevin (constant N, V, T) molecular dynamics.
@@ -41,7 +36,7 @@ class Langevin(MolecularDynamics):
     
     def __init__(self, atoms, timestep, temperature, friction, fixcm=True,
                  trajectory=None, logfile=None, loginterval=1,
-                 communicator=gpaw_world):
+                 communicator=world):
         MolecularDynamics.__init__(self, atoms, timestep, trajectory,
                                    logfile, loginterval)
         self.temp = temperature
@@ -109,9 +104,8 @@ class Langevin(MolecularDynamics):
         random1 = standard_normal(size=(len(atoms), 3))
         random2 = standard_normal(size=(len(atoms), 3))
 
-        if self.communicator is not None:
-            self.communicator.broadcast(random1, 0)
-            self.communicator.broadcast(random2, 0)
+        self.communicator.broadcast(random1, 0)
+        self.communicator.broadcast(random2, 0)
         
         rrnd = self.sdpos * random1
         prnd = (self.sdmom * self.pmcor * random1 +

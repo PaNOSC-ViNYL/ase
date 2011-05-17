@@ -78,7 +78,7 @@ class TIP3P:
         self.energy = 0.0
         self.forces = np.zeros((natoms, 3))
         
-        if world is None:
+        if world.size == 1:
             mya = range(nH2O - 1)
         else:
             rank = world.rank
@@ -124,9 +124,8 @@ class TIP3P:
                 self.forces[(a + 1) * 3:] += F.reshape((-1, 3))
                 self.forces[a * 3 + i] -= F.sum(axis=0).sum(axis=0)
 
-        if world is not None:
-            self.energy = world.sum(self.energy)
-            world.sum(self.forces)
+        self.energy = world.sum(self.energy)
+        world.sum(self.forces)
 
 
 class H2OConstraint:
