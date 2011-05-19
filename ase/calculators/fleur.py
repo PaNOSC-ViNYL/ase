@@ -95,6 +95,10 @@ class FLEUR:
         self.nbands = nbands
         self.width = width
         self.kmax = kmax
+        self.itmax_step_default = 9 # SCF steps per run (default)
+        self.itmax_step = 5 # SCF steps per run
+        assert self.itmax_step_default <= 9
+        assert self.itmax_step <= self.itmax_step_default
         self.itmax_default = 40
         if maxiter is None:
             self.itmax = self.itmax_default
@@ -104,8 +108,7 @@ class FLEUR:
         self.mixer = mixer
 
         if convergence:
-            self.convergence = convergence
-            self.convergence['energy'] /= Hartree
+            self.convergence = {'energy' : convergence / Hartree}
         else:
             self.convergence = {'energy' : 0.0001}
 
@@ -215,7 +218,9 @@ class FLEUR:
             # generate cdnc file (1 SCF step: swsp=F - non-magnetic)
             os.system("sed -i -e 's/itmax=.*,maxiter/itmax= 1,maxiter/' inp")
             self.run_executable(mode='cdnc', executable='FLEUR')
-            os.system("sed -i -e 's/itmax=.*,maxiter/itmax= 9,maxiter/' inp")
+            sedline = "'s/itmax=.*,maxiter/itmax= '"
+            sedline += str(self.itmax_step_default) + "',maxiter/'"
+            os.system("sed -i -e " + sedline + " inp")
             # generate spin polarized density (swsp=T)
             os.system("sed -i -e 's/swsp=./swsp=T/' inp")
             self.run_executable(mode='swsp', executable='FLEUR_SERIAL')
@@ -407,7 +412,8 @@ class FLEUR:
                                                               self.kpts[2])
                 lines[ln] = line
             # itmax
-            if self.itmax != self.itmax_default and line.startswith('itmax'):
+            if self.itmax < self.itmax_step_default and line.startswith('itmax'):
+                # decrease number of SCF steps; increasing is done by 'while not self.converged:'
                 lsplit = line.split(',')
                 if lsplit[0].find('itmax') != -1:
                     lsplit[0] = 'itmax=' + ('%2d' % self.itmax)
@@ -482,7 +488,7 @@ class FLEUR:
                 itmax = int(m.group(2))
                 self.niter += itmax
                 itmax_new = itmax / 2
-                itmax = max(5, itmax_new)
+                itmax = max(self.itmax_step, itmax_new)
                 line = 'itmax=%2d' % itmax + line[8:]
             fh.write(line)
         fh.close()
