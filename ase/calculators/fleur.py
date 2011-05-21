@@ -237,6 +237,10 @@ class FLEUR:
             # Energy extrapolated to zero Kelvin:
             return  (self.etotal + self.efree) / 2 * Hartree
 
+    def get_number_of_iterations(self, atoms):
+        self.update(atoms)
+        return self.niter
+
     def get_forces(self, atoms):
         self.update(atoms)
         # electronic structure is converged, so let's calculate forces:
