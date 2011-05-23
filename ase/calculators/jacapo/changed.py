@@ -126,17 +126,27 @@ def decoupling_changed(calc, x):
     return False
 
 def dipole_changed(calc, x):
-    pars = calc.get_dipole()
-    if pars is False and x is False:
-        return False
-    elif pars is not False:
+
+    pars = calc.get_dipole() #pars stored in calculator
+
+    # pars = False if no dipole variables exist
+    if (pars is False and x is False):
+        return False #no change
+    elif (pars is False and x is not False):
+        return True
+
+    # both x and pars is a dictionary
+    if (type(pars) == type(dict) and
+        type(pars) == type(x)):
         for key in x:
             if key == 'position':    # dipole layer position is never writen to the nc file
                 print 'need to do something special'
                 continue
             if x[key] != pars[key]:
                 return True
-        return False
+
+    #nothing seems to have changed.
+    return False
 
 def extpot_changed(calc, x):
     extpot = calc.get_extpot()
