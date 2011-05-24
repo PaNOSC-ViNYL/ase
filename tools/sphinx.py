@@ -9,7 +9,7 @@ import tempfile
 tmpdir = tempfile.mkdtemp(prefix='ase-')
 os.chdir(tmpdir)
 
-def build():
+def build(email):
     if os.system('svn checkout ' +
                  'https://svn.fysik.dtu.dk/projects/ase/trunk ase') != 0:
         raise RuntimeError('Checkout of ASE failed!')
@@ -25,7 +25,7 @@ def build():
     results = test(verbosity=2, dir='ase/test', display=False, stream=stream)
     stream.close()
     if len(results.failures) > 0 or len(results.errors) > 0:
-        address = 'ase-developers@listserv.fysik.dtu.dk'
+        address = email
         subject = 'ASE test-suite failed!'
         os.system('mail -s "%s" %s < %s' %
                   (subject, address, 'test-results.txt'))
@@ -37,7 +37,7 @@ def build():
     if os.system('epydoc --docformat restructuredtext --parse-only ' +
                  '--name ASE ' +
                  '--url http://wiki.fysik.dtu.dk/ase ' +
-                 '--show-imports --no-frames -v ase >& epydoc.out') != 0:
+                 '--show-imports --no-frames -v ase &> epydoc.out') != 0:
         raise RuntimeError('Epydoc failed!')
 
     epydoc_errors = open('epydoc.out').read()
@@ -69,14 +69,14 @@ def build():
                      'mv ../../dist/python-ase-%s.tar.gz .' % version) == 0
     
 tarfiledir = None
-if len(sys.argv) == 2:
-    tarfiledir = sys.argv[1]
+if len(sys.argv) == 3:
+    tarfiledir = sys.argv[2]
     try:
         os.remove(tarfiledir + '/ase-webpages.tar.gz')
     except OSError:
         pass
 
-build()
+build(sys.argv[1])
     
 if tarfiledir is not None:
     os.system('cd ..; tar czf %s/ase-webpages.tar.gz _build' % tarfiledir)
