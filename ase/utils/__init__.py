@@ -1,4 +1,5 @@
 import os
+import sys
 from math import sin, cos, radians, atan2, degrees
 
 import numpy as np
@@ -47,6 +48,16 @@ def opencew(filename):
         return None
     else:
         return fd
+
+
+def prnt(*args, **kwargs):
+    """Python 3 style print function."""
+    kwargs.pop('file', sys.stdout).write(
+        kwargs.pop('sep', ' ').join(str(arg) for arg in args) +
+        kwargs.pop('end', '\n'))
+    if kwargs:
+        raise TypeError('%r is an invalid keyword argument for this function' %
+                        kwargs.keys()[0])
 
 
 def rotate(rotations, rotation=np.identity(3)):
