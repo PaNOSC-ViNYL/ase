@@ -720,6 +720,18 @@ def python_3000_backticks(logical_line):
         return pos, "W604 backticks are deprecated, use 'repr()'"
 
 
+def python_3000_print(logical_line):
+    """
+    Use Python 3 compatible print statement.
+
+    Okay: print('hello %s' % you)
+    E802: print 'hello', you
+    """
+    if logical_line.lstrip().startswith('print '):
+        start = logical_line.find('print')
+        return start, 'E802 not Python 3 compatible, use print(...)'
+
+
 def single_quoted_strings(logical_line, tokens):
     """
     Use single quoted strings instead of double quoted, unless the
