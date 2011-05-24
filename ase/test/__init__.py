@@ -1,3 +1,4 @@
+import platform
 import sys
 import unittest
 from glob import glob
@@ -80,6 +81,12 @@ def test(verbosity=1, dir=None, display=True, stream=sys.stdout):
             continue
         ts.addTest(ScriptTestCase(filename=test, display=display))
     ts.addTest(ScriptTestCase(filename=lasttest, display=display))
+
+    operating_system = platform.system() + ' ' + platform.machine()
+    operating_system += ' ' + ' '.join(platform.dist())
+    python = platform.python_version() + ' ' + platform.python_compiler()
+    python += ' ' + ' '.join(platform.architecture())
+    print 'python %s on %s' % (python, operating_system)
 
     from ase.utils import devnull
     sys.stdout = devnull
