@@ -72,6 +72,8 @@ Supported :mod:`calculators`:
 News
 ====
 
+* Bugfix release: :ref:`ASE version 3.5.1 <releasenotes>` (24 May 2011).
+
 * :ref:`ASE version 3.5.0 <releasenotes>` released (13 April 2011).
 
 * :ref:`ASE version 3.4.1 <download_and_install>` released (11 August 2010).

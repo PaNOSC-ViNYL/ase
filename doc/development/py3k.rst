@@ -5,10 +5,10 @@ Python 3 strategy
 
 * Use "print(...)" if possible::
 
-  print 'bla bla'   # no
-  print('bla bla')  # yes
-  print 'bla bla:', x       # no
-  print('bla bla: %s' % x)  # yes
+    print 'bla bla'   # no
+    print('bla bla')  # yes
+    print 'bla bla:', x       # no
+    print('bla bla: %s' % x)  # yes
 
 * Don't do this: ``print >> f, ...``.  Use ``f.write(... + '\n')`` or
   ``ase.utils.prnt(..., file=f)``.

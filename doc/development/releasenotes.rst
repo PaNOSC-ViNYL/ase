@@ -15,6 +15,15 @@ Development version in trunk
 
 
 
+Version 3.5.1
+=============
+
+24 May 2011: :trac:`tags/3.5.1 <../tags/3.5.1>`.
+
+* Problem with parallel vibration calculations fixed:
+  `Ticket #80 <https://trac.fysik.dtu.dk/projects/ase/ticket/80>`_.
+
+
 Version 3.5.0
 =============
 
