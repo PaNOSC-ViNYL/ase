@@ -147,8 +147,8 @@ class LAMMPS:
                                          'pyz','pxz','pxy')])*(-1e-4*GPa)
 
     def update(self, atoms):
-        # TODO: check if (re-)calculation is necessary
-        self.calculate(atoms)
+        if not hasattr(self,'atoms') or self.atoms != atoms:
+            self.calculate(atoms)
 
     def calculate(self, atoms):
         self.atoms = atoms.copy()
