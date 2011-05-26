@@ -9,7 +9,7 @@ from ase.utils import devnull
 
 
 class PickleTrajectory:
-    "Reads/writes Atoms objects into a .traj file."
+    """Reads/writes Atoms objects into a .traj file."""
     # Per default, write these quantities
     write_energy = True
     write_forces = True
@@ -234,6 +234,9 @@ class PickleTrajectory:
         self.fd.close()
 
     def __getitem__(self, i=-1):
+        if isinstance(i, slice):
+            return [self[j] for j in range(*i.indices(len(self)))]
+
         N = len(self.offsets)
         if 0 <= i < N:
             self.fd.seek(self.offsets[i])
@@ -350,11 +353,11 @@ class PickleTrajectory:
         All other arguments are stored, and passed to the function.
         """
         if not callable(function):
-            raise ValueError("Callback object must be callable.")
+            raise ValueError('Callback object must be callable.')
         self.post_observers.append((function, interval, args, kwargs))
 
     def _call_observers(self, obs):
-        "Call pre/post write observers."
+        """Call pre/post write observers."""
         for function, interval, args, kwargs in obs:
             if self.write_counter % interval == 0:
                 function(*args, **kwargs)
