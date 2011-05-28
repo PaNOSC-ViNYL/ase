@@ -664,6 +664,9 @@ class Vasp(Calculator):
     def get_pseudo_wavefunction(self, n=0, k=0, s=0, pad=True):
         raise NotImplementedError
 
+    def get_bz_k_points(self):
+        raise NotImplementedError
+
     def get_ibz_kpoints(self):
         self.update(self.atoms)
         return self.read_ibz_kpoints()
