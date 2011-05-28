@@ -664,12 +664,12 @@ class Vasp(Calculator):
     def get_pseudo_wavefunction(self, n=0, k=0, s=0, pad=True):
         raise NotImplementedError
 
-    def get_bz_k_points(self):
-        raise NotImplementedError
-
     def get_ibz_kpoints(self):
         self.update(self.atoms)
         return self.read_ibz_kpoints()
+
+    def get_ibz_k_points(self):
+        return self.get_ibz_kpoints()
 
     def get_spin_polarized(self):
         if not hasattr(self, 'spinpol'):
