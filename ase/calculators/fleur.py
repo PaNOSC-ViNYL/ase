@@ -74,7 +74,9 @@ class FLEUR:
         width: float
             Fermi-distribution width in eV.
         kmax: float
-            Plane wave cutoff in a.u.
+            Plane wave cutoff in a.u. If kmax is set then:
+            gmax = 3.0 * kmax
+            gmaxxc = int(2.5 * kmax * 10)/10. (from set_inp.f)
         mixer: dictionary
             Mixing parameters imix, alpha, spinf
             {'imix' : int, 'alpha' : float, 'spinf' : float}
@@ -111,8 +113,6 @@ class FLEUR:
             self.convergence = {'energy' : convergence / Hartree}
         else:
             self.convergence = {'energy' : 0.0001}
-
-
 
         self.start_dir = None
         self.workdir = workdir
@@ -388,6 +388,7 @@ class FLEUR:
         fh.close()
 
 
+        window_ln = -1
         for ln, line in enumerate(lines):
             # XC potential
             if line.startswith('pbe'):
@@ -400,11 +401,19 @@ class FLEUR:
                     del lines[ln+1]
                 else:
                     raise RuntimeError('XC-functional %s is not supported' % self.xc)
+            if line.startswith('Window'):
+                # few things are set around this line
+                window_ln = ln
             # kmax
-            if self.kmax and line.startswith('Window'):
+            if self.kmax and ln == window_ln:
                 line = '%10.5f\n' % self.kmax
                 lines[ln+2] = line
-
+            # gmax   cutoff for PW-expansion of potential & density  ( > 2*kmax)
+            # gmaxxc cutoff for PW-expansion of XC-potential ( > 2*kmax, < gmax)
+            if self.kmax and line.startswith('vchk'):
+                gmax = 3. * self.kmax
+                line = ' %10.6f %10.6f\n' % (gmax, int(2.5 * self.kmax * 10)/10.)
+                lines[ln-1] = line
             # Fermi width
             if self.width and line.startswith('gauss'):
                 line = 'gauss=F   %7.5ftria=F\n' % (self.width / Hartree)
