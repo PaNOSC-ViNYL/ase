@@ -15,6 +15,7 @@ documentation
 
 __docformat__ = 'restructuredtext'
 
+import sys
 import exceptions, glob, os, pickle, string
 from Scientific.IO.NetCDF import NetCDFFile as netCDF
 import numpy as np
@@ -38,9 +39,13 @@ import logging
 log = logging.getLogger('Jacapo')
 
 handler = logging.StreamHandler()
-formatter = logging.Formatter('''\
-%(levelname)-10s function: %(funcName)s lineno: %(lineno)-4d \
-%(message)s''')
+if sys.version_info < (2,5): # no funcName in python 2.4
+    formatstring = ('%(levelname)-10s '
+                    'lineno: %(lineno)-4d %(message)s')
+else:
+    formatstring = ('%(levelname)-10s function: %(funcName)s '
+                    'lineno: %(lineno)-4d %(message)s')
+formatter = logging.Formatter(formatstring)
 handler.setFormatter(formatter)
 log.addHandler(handler)
 
