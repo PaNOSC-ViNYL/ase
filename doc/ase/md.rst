@@ -59,7 +59,7 @@ the dynamics, and it is *stongly recommended* to use the optional
 Logging
 =======
 
-A logging mechanism is provided, printing time; total ,potential and
+A logging mechanism is provided, printing time; total, potential and
 kinetic energy; and temperature (calculated from the kinetic energy).
 It is enabled by giving the ``logfile`` argument when the dynamics
 object is created, ``logfile`` may be an open file, a filename or the
@@ -89,6 +89,17 @@ instead of total energies.  The parameters are
 
 Despite appearances, attaching a logger like this does *not* create a
 cyclic reference to the dynamics.
+
+.. note::
+
+   If building your own logging class, be sure not to attach the dynamics
+   object directly to the logging object. Instead, create a weak reference
+   using the ``proxy`` method of the ``weakref`` package. See the
+   `ase.md.MDLogger` source code for an example. (If this is not done, a
+   cyclic reference may be created which can cause certain calculators,
+   such as Jacapo, to not terminate correctly.)
+
+
 
 Constant NVE simulations (the microcanonical ensemble)
 ======================================================
