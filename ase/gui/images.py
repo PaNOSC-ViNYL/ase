@@ -274,7 +274,7 @@ class Images:
                 if isinstance(con,FixAtoms):
                     self.dynamic[con.index] = False
 
-    def write(self, filename, rotations='', show_unit_cell=False, bbox=None):
+    def write(self, filename, rotations='', show_unit_cell=False, bbox=None, **kwargs):
         indices = range(self.nimages)
         p = filename.rfind('@')
         if p != -1:
@@ -292,9 +292,9 @@ class Images:
         if len(filename) > 4 and filename[-4:] in ['.eps', '.png', '.pov']:
             write(filename, images, 
                   rotation=rotations, show_unit_cell=show_unit_cell,
-                  bbox=bbox)
+                  bbox=bbox, **kwargs)
         else:
-            write(filename, images)
+            write(filename, images, **kwargs)
 
     def get_atoms(self, frame):
         atoms = Atoms(positions=self.P[frame],

@@ -9,9 +9,9 @@ from ase.data.colors import jmol_colors
 import numpy as np
 import colorsys
 
-named_colors = ('green', 'yellow', 'blue', 'red', 'orange', 'cyan',
-                'magenta', 'black', 'white', 'grey', 'violet', 'brown',
-                'navy')
+named_colors = ('Green', 'Yellow', 'Blue', 'Red', 'Orange', 'Cyan',
+                'Magenta', 'Black', 'White', 'Grey', 'Violet', 'Brown',
+                'Navy')
 
 class ColorWindow(gtk.Window):
     "A window for selecting how to color the atoms."
@@ -433,7 +433,7 @@ class ColorWindow(gtk.Window):
         if n <= len(named_colors):
             return named_colors[:n]
         else:
-            return named_colors + ('black',) * (n - len(named_colors))
+            return named_colors + ('Black',) * (n - len(named_colors))
         
     def apply(self, *args):
         #if self.colormode in ['atno', 'jmol', 'tags']:

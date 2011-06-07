@@ -1055,7 +1055,10 @@ class GUI(View, Status):
         bbox[0:2] = np.dot(self.center, self.axes[:, :2]) - size / 2
         bbox[2:] = bbox[:2] + size
         suc = self.ui.get_widget('/MenuBar/ViewMenu/ShowUnitCell').get_active()
-        self.images.write(filename, self.axes, show_unit_cell=suc, bbox=bbox)
+        extra_args = {}
+        if len(filename) > 4 and filename[-4:] in ['.eps', '.png', '.pov', '.png']:
+            extra_args['colors'] = self.get_colors(rgb=True)
+        self.images.write(filename, self.axes, show_unit_cell=suc, bbox=bbox, **extra_args)
         
     def quick_info_window(self, menuitem):
         QuickInfo(self)
