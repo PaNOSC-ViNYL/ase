@@ -1056,7 +1056,7 @@ class GUI(View, Status):
         bbox[2:] = bbox[:2] + size
         suc = self.ui.get_widget('/MenuBar/ViewMenu/ShowUnitCell').get_active()
         extra_args = {}
-        if len(filename) > 4 and filename[-4:] in ['.eps', '.png', '.pov', '.png']:
+        if suffix in ['eps', 'png', 'pov', 'png']:
             extra_args['colors'] = self.get_colors(rgb=True)
         self.images.write(filename, self.axes, show_unit_cell=suc, bbox=bbox, **extra_args)
         
