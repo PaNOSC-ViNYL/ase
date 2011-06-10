@@ -6,66 +6,14 @@ import cPickle as pickle
 from ase import Atoms
 from ase.data import chemical_symbols
 from ase.cluster.base import ClusterBase
-from ase.cluster.clusteratom import ClusterAtom
 
 class Cluster(Atoms, ClusterBase):
-    _datasyn = {'numbers':       ('number',       int,   ()  ),
-                'positions':     ('position',     float, (3,)),
-                'tags':          ('tag',          int,   ()  ),
-                'momenta':       ('momentum',     float, (3,)),
-                'masses':        ('mass',         float, ()  ),
-                'magmoms':       ('magmom',       float, ()  ),
-                'charges':       ('charge',       float, ()  ),
-               }
-
     symmetry = None
     center = None
     surfaces = None
     lattice_basis = None
     resiproc_basis = None
     atomic_basis = None
-    multiplicity = 1
-
-    def __getitem__(self, i):
-        c = ClusterAtom(atoms=self, index=i)
-        return c
-
-    def __setitem__(self, i, atom):
-        #raise Warning('Use direct assignment like atoms[i].type = x!')
-
-        #If implemented make sure that all values are cleared before copied
-        if not isinstance(atom, ClusterAtom):
-            raise Warning('The added atom is not a ClusterAtom instance!')
-
-        for name in self.arrays.keys():
-            singular, dtype, shape = self._datasyn[name]
-            self[i]._set(singular, np.zeros(shape, dtype))
-
-        self[i]._set('number', atom._get('number', True))
-
-        for name in atom._data:
-            self[i]._set(name, atom._get(name, True))
-
-    def append(self, atom):
-        if not isinstance(atom, ClusterAtom):
-            raise Warning('The added atom is not a ClusterAtom instance!')
-
-        n = len(self)
-
-        for name, a in self.arrays.items():
-            b = np.zeros((n + 1,) + a.shape[1:], a.dtype)
-            b[:n] = a
-            self.arrays[name] = b
-
-        for name in atom._data:
-            self[-1]._set(name, atom._get(name, True))
-
-    def extend(self, atoms):
-        if not isinstance(atoms, Cluster):
-            raise Warning('The added atoms is not in a Cluster instance!')
-
-        for atom in atoms:
-            self.append(atom)
 
     def copy(self):
         cluster = Atoms.copy(self)
@@ -144,7 +92,6 @@ class Cluster(Atoms, ClusterBase):
              'lattice_basis': self.lattice_basis,
              'resiproc_basis': self.resiproc_basis,
              'atomic_basis': self.atomic_basis,
-             'multiplicity': self.multiplicity,
              'cell': self.get_cell(),
              'pbc': self.get_pbc()}
 
@@ -169,11 +116,6 @@ class Cluster(Atoms, ClusterBase):
             raise Warinig('Bad file.')
 
         f.close()
-
-        if 'multiplicity' in d:
-            self.multiplicity = d['multiplicity']
-        else:
-            self.multiplicity = 1
 
         self.symmetry = d['symmetry']
         self.center = d['center']
