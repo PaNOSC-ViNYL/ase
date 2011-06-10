@@ -11,7 +11,7 @@ Quick links:
 
 .. list-table::
 
-  * - :mod:`atom`
+  * - :mod:`~ase.atom`
     - :mod:`atoms`
     - :mod:`calculators`
     - :mod:`constraints`

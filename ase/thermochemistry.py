@@ -27,9 +27,9 @@ def rotationalinertia(atoms):
     Iyz = 0.
     for index, atom in enumerate(atoms):
         m = masses[index]
-        x = atom.get_x() - xcm
-        y = atom.get_y() - ycm
-        z = atom.get_z() - zcm
+        x = atom.x - xcm
+        y = atom.y - ycm
+        z = atom.z - zcm
         Ixx += m * (y**2. + z**2.)
         Iyy += m * (x**2. + z**2.)
         Izz += m * (x**2. + y**2.)
