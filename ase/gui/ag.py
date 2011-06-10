@@ -2,7 +2,7 @@
 
 # Copyright 2008, 2009
 # CAMd (see accompanying license files for details).
- 
+
 from optparse import OptionParser, SUPPRESS_HELP
 
 
@@ -35,8 +35,8 @@ def build_parser():
                       help='Plot x,y1,y2,... graph from configurations or '
                       'write data to sdtout in terminal mode.  Use the '
                       'symbols: i, s, d, fmax, e, ekin, A, R, E and F.  See '
-                      'https://wiki.fysik.dtu.dk/ase/ase/gui.html#plotting-data '
-                      'for more details.')
+                      'https://wiki.fysik.dtu.dk/ase/ase/gui.html'
+                      '#plotting-data for more details.')
     parser.add_option('-t', '--terminal',
                       action='store_true',
                       default=False,
@@ -52,9 +52,8 @@ def build_parser():
                       action='store_true',
                       default=False,
                       help='Draw bonds between atoms.')
-    #parser.add_option('--read-pickled-data-from-file',
-    #                  type='string', help=SUPPRESS_HELP)
     return parser
+
 
 def main():
     parser = build_parser()
@@ -96,7 +95,7 @@ def main():
 
         if opt.output is not None:
             images.write(opt.output, rotations=opt.rotations,
-                        show_unit_cell=opt.show_unit_cell)
+                         show_unit_cell=opt.show_unit_cell)
             opt.terminal = True
 
         if opt.terminal:
@@ -120,8 +119,8 @@ def main():
         pass
     except Exception:
         traceback.print_exc()
-        print """
+        print("""
 An exception occurred!  Please report the issue to
 ase-developers@listserv.fysik.dtu.dk - thanks!  Please also report this if
 it was a user error, so that a better error message can be provided
-next time."""
+next time.""")
