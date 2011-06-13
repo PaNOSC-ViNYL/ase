@@ -3,6 +3,7 @@
 import gtk
 from ase.gui.widgets import oops, pack, help
 from ase import Atoms
+from ase.constraints import FixAtoms
 
 class Simulation(gtk.Window):
     def __init__(self, gui):
@@ -111,12 +112,16 @@ class Simulation(gtk.Window):
             return None
         n = self.getimagenumber()
         natoms = len(images.P[n]) / images.repeat.prod()
+        constraint = None
+        if not images.dynamic.all():
+            constraint = FixAtoms(mask=1-images.dynamic)
         return Atoms(positions=images.P[n,:natoms],
                      symbols=images.Z[:natoms],
                      cell=images.A[n],
                      magmoms=images.M[n],
                      tags=images.T[n],
-                     pbc=images.pbc)
+                     pbc=images.pbc,
+                     constraint=constraint)
 
     def begin(self, **kwargs):
         if self.gui.simulation.has_key('progress'):
