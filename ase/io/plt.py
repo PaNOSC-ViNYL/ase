@@ -56,5 +56,5 @@ def read_plt(fileobj):
 
     # read data
     data = np.fromfile(fileobj, dtype=np.float32)
-    return data.reshape(dims[::-1]), cell
+    return data.reshape(dims).T, cell
     
