@@ -8,6 +8,7 @@ import numpy as np
 
 from ase import units
 
+
 def rotationalinertia(atoms):
     """Calculates the three principle moments of inertia for an ASE atoms
     object. This uses the atomic masses from ASE, which (if not explicitly
@@ -27,9 +28,9 @@ def rotationalinertia(atoms):
     Iyz = 0.
     for index, atom in enumerate(atoms):
         m = masses[index]
-        x = atom.get_x() - xcm
-        y = atom.get_y() - ycm
-        z = atom.get_z() - zcm
+        x = atom.x - xcm
+        y = atom.y - ycm
+        z = atom.z - zcm
         Ixx += m * (y**2. + z**2.)
         Iyy += m * (x**2. + z**2.)
         Izz += m * (x**2. + y**2.)
@@ -43,6 +44,7 @@ def rotationalinertia(atoms):
     # Find the eigenvalues, which are the principle moments of inertia.
     I = np.linalg.eigvals(I_)
     return I
+
 
 class ThermoChem:
     """Base class containing common methods used in thermochemistry
@@ -83,6 +85,7 @@ class ThermoChem:
         if self.verbose:
             sys.stdout.write(text + os.linesep)
 
+
 class HarmonicThermo(ThermoChem):
     """Class for calculating thermodynamic properties in the approximation
     that all degrees of freedom are treated harmonically. Often used for
@@ -109,7 +112,7 @@ class HarmonicThermo(ThermoChem):
         if sum(np.iscomplex(self.vib_energies)):
             raise ValueError('Imaginary vibrational energies are present.')
         else:
-            self.vib_energies = np.real(self.vib_energies) # clear +0.j 
+            self.vib_energies = np.real(self.vib_energies)  # clear +0.j 
 
         if electronicenergy:
             self.electronicenergy = electronicenergy
@@ -188,6 +191,7 @@ class HarmonicThermo(ThermoChem):
         write(fmt % ('G', G))
         write('='*23)
         return G
+
 
 class IdealGasThermo(ThermoChem):
     """Class for calculating thermodynamic properties of a molecule
@@ -318,57 +322,58 @@ class IdealGasThermo(ThermoChem):
         fmt = '%-15s%13.7f eV/K%13.3f eV'
         write('Entropy components at T = %.2f K and P = %.1f Pa:' %
                (temperature, pressure))
-        write('='*49)
+        write('=' * 49)
         write('%15s%13s     %13s' % ('', 'S', 'T*S'))
 
-        S = 0.
+        S = 0.0
 
         # Translational entropy (term inside the log is in SI units).
-        mass = sum(self.atoms.get_masses()) * units._amu # kg/molecule
-        S_t = (2*np.pi*mass*units._k*temperature/units._hplanck**2)**(3./2)
+        mass = sum(self.atoms.get_masses()) * units._amu  # kg/molecule
+        S_t = (2 * np.pi * mass * units._k *
+               temperature / units._hplanck**2)**(3.0 / 2)
         S_t *= units._k * temperature / self.referencepressure 
-        S_t = units.kB * (np.log(S_t) + 5./2.)
+        S_t = units.kB * (np.log(S_t) + 5.0 / 2.0)
         write(fmt % ('S_trans (1 atm)', S_t, S_t * temperature))
         S += S_t
 
         # Rotational entropy (term inside the log is in SI units).
         if self.geometry == 'monatomic':
-            S_r = 0.
+            S_r = 0.0
         elif self.geometry == 'nonlinear':
             inertias = (rotationalinertia(self.atoms) * units._amu /
-                        (10.**10)**2) # kg m^2
-            S_r = np.sqrt(np.pi*np.product(inertias)) / self.sigma
-            S_r *= (8. * np.pi**2 * units._k * temperature /
-                    units._hplanck**2)**(3./2.)
-            S_r = units.kB * (np.log(S_r) + 3./2.)
+                        (10.0**10)**2)  # kg m^2
+            S_r = np.sqrt(np.pi * np.product(inertias)) / self.sigma
+            S_r *= (8.0 * np.pi**2 * units._k * temperature /
+                    units._hplanck**2)**(3.0 / 2.0)
+            S_r = units.kB * (np.log(S_r) + 3.0 / 2.0)
         elif self.geometry == 'linear':
             inertias = (rotationalinertia(self.atoms) * units._amu /
-                        (10.**10)**2) # kg m^2
-            inertia = max(inertias) # should be two identical and one zero
+                        (10.0**10)**2)  # kg m^2
+            inertia = max(inertias)  # should be two identical and one zero
             S_r = (8 * np.pi**2 * inertia * units._k * temperature /
                    self.sigma / units._hplanck**2)
-            S_r = units.kB * ( np.log(S_r) + 1.)
-        write(fmt % ('S_rot', S_r, S_r*temperature))
+            S_r = units.kB * (np.log(S_r) + 1.)
+        write(fmt % ('S_rot', S_r, S_r * temperature))
         S += S_r
 
         # Electronic entropy.
-        S_e = units.kB * np.log(2*self.spin+1)
+        S_e = units.kB * np.log(2 * self.spin + 1)
         write(fmt % ('S_elec', S_e, S_e * temperature))
         S += S_e
 
         # Vibrational entropy.
         S_v = self._vibrational_entropy_contribution(temperature)
-        write(fmt % ('S_vib', S_v, S_v* temperature))
+        write(fmt % ('S_vib', S_v, S_v * temperature))
         S += S_v
 
         # Pressure correction to translational entropy.
-        S_p = - units.kB * np.log(pressure/self.referencepressure)
+        S_p = - units.kB * np.log(pressure / self.referencepressure)
         write(fmt % ('S (1 atm -> P)', S_p, S_p * temperature))
         S += S_p
 
-        write('-'*49)
+        write('-' * 49)
         write(fmt % ('S', S, S * temperature))
-        write('='*49)
+        write('=' * 49)
         return S
 
     def get_free_energy(self, temperature, pressure, verbose=True):
@@ -386,12 +391,11 @@ class IdealGasThermo(ThermoChem):
         write('')
         write('Free energy components at T = %.2f K and P = %.1f Pa:' %
                (temperature, pressure))
-        write('='*23)
+        write('=' * 23)
         fmt = '%5s%15.3f eV'
         write(fmt % ('H', H))
         write(fmt % ('-T*S', -temperature * S))
-        write('-'*23)
+        write('-' * 23)
         write(fmt % ('G', G))
-        write('='*23)
+        write('=' * 23)
         return G
-

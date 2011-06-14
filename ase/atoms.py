@@ -119,7 +119,10 @@ class Atoms(object):
         elif (isinstance(symbols, (list, tuple)) and
               len(symbols) > 0 and isinstance(symbols[0], Atom)):
             # Get data from a list or tuple of Atom objects:
-            data = zip(*[atom.get_data() for atom in symbols])
+            data = [[atom.get_raw(name) for atom in symbols]
+                    for name in
+                    ['position', 'number', 'tag', 'momentum',
+                     'mass', 'magmom', 'charge']]
             atoms = self.__class__(None, *data)
             symbols = None
 
@@ -689,8 +692,13 @@ class Atoms(object):
         for name, a2 in other.arrays.items():
             if name in self.arrays:
                 continue
-            a = np.zeros((n1 + n2,) + a2.shape[1:], a2.dtype)
+            a = np.empty((n1 + n2,) + a2.shape[1:], a2.dtype)
             a[n1:] = a2
+            if name == 'masses':
+                a[:n1] = self.get_masses()
+            else:
+                a[:n1] = 0
+
             self.set_array(name, a)
 
         return self

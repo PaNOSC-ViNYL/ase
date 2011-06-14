@@ -51,7 +51,7 @@ def write_cfg(f, a):
     # Distinct elements
     spos = a.get_scaled_positions()
     for i in a:
-        el  = i.get_symbol()
+        el  = i.symbol
 
         f.write('%f\n' % ase.data.atomic_masses[ase.data.chemical_symbols.index(el)])
         f.write('%s\n' % el)
