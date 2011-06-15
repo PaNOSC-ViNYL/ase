@@ -600,8 +600,8 @@ class GUI(View, Status):
                 if a != None:
                     for i in a:
                         try: 
-                            i.set_tag(int(tag))
-                        except: 
+                            i.set('tag',int(tag))
+                        except:
                             self.add_entries[2].set_text('?' + tag) 
                             return ()
                         try: 
