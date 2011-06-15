@@ -981,6 +981,7 @@ class GUI(View, Status):
                              ('FHI-aims geometry input', 'in'),
                              ('VASP geometry input', 'POSCAR'),
                              ('ASE bundle trajectory', 'bundle'),
+                             ('cif file', 'cif'),
                              ]:
             if suffix is None:
                 name = _(name)
