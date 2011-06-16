@@ -307,14 +307,9 @@ class Abinit:
             inp['nsppol'] = 2
             fh.write('spinat\n')
             for n, M in enumerate(magmoms):
-                if M != 0:
-                    fh.write('%.14f %.14f %.14f\n' % (0, 0, M))
+                fh.write('%.14f %.14f %.14f\n' % (0, 0, M))
         else:
             inp['nsppol'] = 1
-            #fh.write('spinat\n')
-            #for n, M in enumerate(magmoms):
-            #    if M != 0:
-            #        fh.write('%.14f\n' % (M))
 
         inp.update(self.inp)
 
