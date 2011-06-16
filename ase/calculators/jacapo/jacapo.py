@@ -563,9 +563,9 @@ class Jacapo:
             forces = nc.variables.get('DynamicAtomForces', None)
            
             for i, atom in enumerate(atoms):
-                sym = atom.get_symbol()
-                pos = atom.get_position()
-                tag = atom.get_tag()
+                sym = atom.symbol
+                pos = atom.position
+                tag = atom.tag
                 if forces is not None and (forces[:][-1][i] < 1E36).all():
                     f = forces[:][-1][i]
                     # Lars Grabow: this seems to work right for some
@@ -4233,7 +4233,7 @@ s.recv(14)
         for atom in atoms:
             Z = self.get_psp_nuclear_charge(psps[atom.symbol])
             total_ion_charge += Z
-            pos = atom.get_position()
+            pos = atom.position
             ion_charge_center += Z*pos
 
         ion_charge_center /= total_ion_charge

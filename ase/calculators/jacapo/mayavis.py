@@ -15,7 +15,7 @@ def plot_cylinder(start,end,tube_radius=0.1,color=(0,0,0)):
 def plot_atoms(atoms):
 
     for atom in atoms:
-        pos = atom.get_position()
+        pos = atom.position
         mlab.points3d([pos[0]],[pos[1]],[pos[2]],
                       scale_factor=4,
                       resolution=20,

@@ -105,7 +105,7 @@ def write_aims(filename, atoms):
 
     for i, atom in enumerate(atoms):
         fd.write('atom ')
-        for pos in atom.get_position():
+        for pos in atom.position:
             fd.write('%16.16f ' % pos)
         fd.write(atom.symbol)
         fd.write('\n')

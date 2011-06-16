@@ -285,7 +285,7 @@ class Vasp(Calculator):
             #print 'special_setups' , special_setups
 
         for m,atom in enumerate(atoms):
-            symbol = atom.get_symbol()
+            symbol = atom.symbol
             if m in special_setups:
                 pass
             else:
@@ -303,7 +303,7 @@ class Vasp(Calculator):
                 if m in special_setups:
                     pass
                 else:
-                    if atom.get_symbol() == symbol:
+                    if atom.symbol == symbol:
                         self.sort.append(m)
         self.resort = range(len(self.sort))
         for n in range(len(self.resort)):
