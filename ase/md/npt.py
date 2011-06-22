@@ -504,7 +504,7 @@ class NPT(MolecularDynamics):
         # trajectory is now a BundleTrajectory object (or compatible)
         if atoms is None:
             atoms = trajectory[frame]
-        init_data = trajectory.read_extra_data('npt_init', frame)
+        init_data = trajectory.read_extra_data('npt_init', 0)
         frame_data = trajectory.read_extra_data('npt_dynamics', frame)
         dyn = cls(atoms, timestep=init_data['dt'], 
                   temperature=init_data['temperature'],

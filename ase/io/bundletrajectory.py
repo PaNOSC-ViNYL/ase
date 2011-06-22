@@ -308,8 +308,14 @@ class BundleTrajectory:
         "Read an atoms object from the BundleTrajectory."
         if self.state != 'read':
             raise IOError('Cannot read in %s mode' % (self.state,))
-        # Handle negative n.  Find frame directories.
-        n, framedir, framezero = self._normalize_n_get_framedirs(n)
+        if n < 0:
+            n += self.nframes
+        if n < 0 or n >= self.nframes:
+            raise IndexError('Trajectory index %d out of range [0, %d['
+                             % (n, self.nframes))
+
+        framedir = os.path.join(self.filename, 'F' + str(n))
+        framezero = os.path.join(self.filename, 'F0')
         smalldata = self.backend.read_small(framedir)
         data = {}
         data['pbc'] = smalldata['pbc']
@@ -346,7 +352,7 @@ class BundleTrajectory:
             atoms.set_calculator(calc)
         return atoms
 
-    def read_extra_data(self, name, n):
+    def read_extra_data(self, name, n=0):
         """Read extra data stored alongside the atoms.
         
         Currently only used to read data stored by an NPT dynamics object.
@@ -354,19 +360,14 @@ class BundleTrajectory:
         """
         if self.state != 'read':
             raise IOError('Cannot read extra data in %s mode' % (self.state,))
-        # Handle negative n.  Find frame directories.
-        n, framedir, framezero = self._normalize_n_get_framedirs(n)
-        return self._read_data(framezero, framedir, name, None) 
-
-    def _normalize_n_get_framedirs(self, n):
+        # Handle negative n.
         if n < 0:
             n += self.nframes
         if n < 0 or n >= self.nframes:
             raise IndexError('Trajectory index %d out of range [0, %d['
                              % (n, self.nframes))
         framedir = os.path.join(self.filename, 'F' + str(n))
-        framezero = os.path.join(self.filename, 'F0')
-        return (n, framedir, framezero)
+        return self.backend.read(framedir, name) 
 
     def _read_data(self, f0, f, name, atom_id):
         "Read single data item."
@@ -703,7 +704,7 @@ class PickleBundleBackend:
             f.close()
         return np.concatenate(data)
     
-def read_bundletrajectory(filename, index= -1):
+def read_bundletrajectory(filename, index=-1):
     """Reads one or more atoms objects from a BundleTrajectory.
 
     Arguments:
