@@ -25,9 +25,6 @@ import os
 import shutil
 import time
 import cPickle as pickle
-import weakref
-from copy import copy, deepcopy
-
 
 class BundleTrajectory:
     """Reads and writes atoms into a .bundle directory.
@@ -138,7 +135,7 @@ class BundleTrajectory:
 
         # OK, it is a real atoms object.  Write it.
         self._call_observers(self.pre_observers)
-        self.log("Beginning to write frame "+str(self.nframes))
+        self.log("Beginning to write frame " + str(self.nframes))
         framedir = self._make_framedir(self.nframes)
 
         # Check which data should be written the first time:
@@ -228,7 +225,7 @@ class BundleTrajectory:
             self._write_metadata(metadata)
         self._write_nframes(self.nframes + 1)
         self._call_observers(self.post_observers)
-        self.log("Done writing frame "+str(self.nframes))
+        self.log("Done writing frame " + str(self.nframes))
         self.nframes += 1
 
     def select_data(self, data, value):
@@ -298,10 +295,10 @@ class BundleTrajectory:
                 except AttributeError:
                     self.logdata = [text]
             else:
-                self.logfile.write(text+'\n')
+                self.logfile.write(text + '\n')
                 self.logfile.flush()
         else:
-            raise RuntimeError("Cannot write to log file in mode "+self.state)
+            raise RuntimeError("Cannot write to log file in mode " + self.state)
 
     # __getitem__ is the main reading method.
     def __getitem__(self, n):
@@ -311,13 +308,8 @@ class BundleTrajectory:
         "Read an atoms object from the BundleTrajectory."
         if self.state != 'read':
             raise IOError('Cannot read in %s mode' % (self.state,))
-        if n < 0:
-            n += self.nframes
-        if n < 0 or n >= self.nframes:
-            raise IndexError('Trajectory index %d out of range [0, %d['
-                             % (n, self.nframes))
-        framedir = os.path.join(self.filename, 'F'+str(n))
-        framezero = os.path.join(self.filename, 'F0')
+        # Handle negative n.  Find frame directories.
+        n, framedir, framezero = self._normalize_n_get_framedirs(n)
         smalldata = self.backend.read_small(framedir)
         data = {}
         data['pbc'] = smalldata['pbc']
@@ -354,6 +346,28 @@ class BundleTrajectory:
             atoms.set_calculator(calc)
         return atoms
 
+    def read_extra_data(self, name, n):
+        """Read extra data stored alongside the atoms.
+        
+        Currently only used to read data stored by an NPT dynamics object.
+        The data is not associated with individual atoms.
+        """
+        if self.state != 'read':
+            raise IOError('Cannot read extra data in %s mode' % (self.state,))
+        # Handle negative n.  Find frame directories.
+        n, framedir, framezero = self._normalize_n_get_framedirs(n)
+        return self._read_data(framezero, framedir, name, None) 
+
+    def _normalize_n_get_framedirs(self, n):
+        if n < 0:
+            n += self.nframes
+        if n < 0 or n >= self.nframes:
+            raise IndexError('Trajectory index %d out of range [0, %d['
+                             % (n, self.nframes))
+        framedir = os.path.join(self.filename, 'F' + str(n))
+        framezero = os.path.join(self.filename, 'F0')
+        return (n, framedir, framezero)
+
     def _read_data(self, f0, f, name, atom_id):
         "Read single data item."
         
@@ -381,12 +395,12 @@ class BundleTrajectory:
         if self.master:
             lfn = os.path.join(self.filename, "log.txt")
         else:
-            lfn = os.path.join(self.filename, ("log-node%d.txt" %
+            lfn = os.path.join(self.filename, ("log-node%d.txt" % 
                                                (ase.parallel.rank,)))
         self.logfile = open(lfn, "a")   # Append to log if it exists.
         if hasattr(self, 'logdata'):
             for text in self.logdata:
-                self.logfile.write(text+'\n')
+                self.logfile.write(text + '\n')
             self.logfile.flush()
             del self.logdata
 
@@ -397,8 +411,8 @@ class BundleTrajectory:
         if os.path.exists(self.filename):
             # The output directory already exists.
             if not self.is_bundle(self.filename):
-                raise IOError("Filename '" + self.filename +
-                              "' already exists, but is not a BundleTrajectory." +
+                raise IOError("Filename '" + self.filename + 
+                              "' already exists, but is not a BundleTrajectory." + 
                               "Cowardly refusing to remove it.")
             ase.parallel.barrier() # All must have time to see it exists.
             if self.is_empty_bundle(self.filename):
@@ -455,7 +469,7 @@ class BundleTrajectory:
         "Write the number of frames in the bundle."
         assert self.state == 'write' or self.state == 'prewrite'
         f = paropen(os.path.join(self.filename, "frames"), "w")
-        f.write(str(n)+'\n')
+        f.write(str(n) + '\n')
         f.close()
 
     def _read_nframes(self):
@@ -551,7 +565,7 @@ class BundleTrajectory:
         Since all MPI tasks might write to it, all tasks must wait for
         the directory to appear.
         """
-        self.log("Making directory "+filename)
+        self.log("Making directory " + filename)
         assert not os.path.isdir(filename)
         ase.parallel.barrier()
         if self.master:
@@ -571,7 +585,7 @@ class BundleTrajectory:
         As only the master writes to it, no synchronization between
         MPI tasks is necessary.
         """
-        framedir = os.path.join(self.filename, "F"+str(frame))
+        framedir = os.path.join(self.filename, "F" + str(frame))
         if self.master:
             os.mkdir(framedir)
         return framedir
@@ -689,7 +703,7 @@ class PickleBundleBackend:
             f.close()
         return np.concatenate(data)
     
-def read_bundletrajectory(filename, index=-1):
+def read_bundletrajectory(filename, index= -1):
     """Reads one or more atoms objects from a BundleTrajectory.
 
     Arguments:
@@ -771,7 +785,7 @@ def print_bundletrajectory_info(filename):
     metadata = pickle.load(f)
     f.close()
     print "Metadata information of BundleTrajectory '%s':" % (filename,)
-    for k,v in metadata.items():
+    for k, v in metadata.items():
         if k != 'datatypes':
             print "  %s: %s" % (k, v)
     f = open(os.path.join(filename, 'frames'))
@@ -792,7 +806,7 @@ def print_bundletrajectory_info(filename):
     frame = os.path.join(filename, "F0")
     small = backend.read_small(frame)
     print "Contents of first frame:"
-    for k,v in small.items():
+    for k, v in small.items():
         if k == 'constraints':
             if v:
                 print "  %i constraints are present"
@@ -822,7 +836,7 @@ def print_bundletrajectory_info(filename):
 if __name__ == '__main__':
     from ase.lattice.cubic import FaceCenteredCubic
     from ase.io import read, write
-    atoms = FaceCenteredCubic(size=(5,5,5), symbol='Au')
+    atoms = FaceCenteredCubic(size=(5, 5, 5), symbol='Au')
     write('test.bundle', atoms)
     atoms2 = read('test.bundle')
     assert (atoms.get_positions() == atoms2.get_positions()).all()

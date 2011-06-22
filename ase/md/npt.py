@@ -24,7 +24,6 @@ __docformat__ = 'reStructuredText'
 
 from numpy import *
 import sys
-import time
 import weakref
 from ase.md.md import MolecularDynamics
 #from ASE.Trajectories.NetCDFTrajectory import NetCDFTrajectory
@@ -505,8 +504,8 @@ class NPT(MolecularDynamics):
         # trajectory is now a BundleTrajectory object (or compatible)
         if atoms is None:
             atoms = trajectory[frame]
-        init_data = trajectory.read_special('npt_init')
-        frame_data = trajectory.read_special('npt_dynamics', frame)
+        init_data = trajectory.read_extra_data('npt_init', frame)
+        frame_data = trajectory.read_extra_data('npt_dynamics', frame)
         dyn = cls(atoms, timestep=init_data['dt'], 
                   temperature=init_data['temperature'],
                   externalstress=init_data['externalstress'],
