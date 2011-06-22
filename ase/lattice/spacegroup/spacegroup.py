@@ -481,6 +481,24 @@ def get_datafile():
     return os.path.join(os.path.dirname(__file__), 'spacegroup.dat')
 
 
+def format_symbol(symbol):
+    """Returns well formatted Hermann-Mauguin symbol as extected by
+    the database, by correcting the case and adding missing or
+    removing dublicated spaces."""
+    fixed = []
+    s = symbol.strip()
+    s = s[0].upper() + s[1:].lower()
+    for c in s:
+        if c.isalpha():
+            fixed.append(' ' + c + ' ')
+        elif c.isspace():
+            fixed.append(' ')
+        elif c.isdigit():
+            fixed.append(c)
+        elif c == '-':
+            fixed.append(' ' + c)
+    s = ''.join(fixed).strip()
+    return ' '.join(s.split())
 
 
 #-----------------------------------------------------------------
@@ -552,7 +570,8 @@ def _read_datafile(spg, spacegroup, setting, f):
     if isinstance(spacegroup, int):
         pass
     elif isinstance(spacegroup, basestring):
-        spacegroup = ' '.join(spacegroup.strip().split())
+        #spacegroup = ' '.join(spacegroup.strip().split())
+        spacegroup = format_symbol(spacegroup)
     else:
         raise SpacegroupValueError('`spacegroup` must be of type int or str')
     while True:
