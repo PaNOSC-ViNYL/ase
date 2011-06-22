@@ -2277,6 +2277,9 @@ than density cutoff %i' % (pw, dw))
         nc.close()
         return xc
 
+    def get_number_of_iterations(self):
+        raise NotImplementedError
+
     def get_potential_energy(self,
                              atoms=None,
                              force_consistent=False):
@@ -4430,4 +4433,5 @@ Jacapo.get_esp = Jacapo.get_electrostatic_potential
 Jacapo.get_occ = Jacapo.get_occupation_numbers
 Jacapo.get_ef = Jacapo.get_fermi_level
 Jacapo.get_number_of_bands = Jacapo.get_nbands
-
+Jacapo.get_electronic_temperature = Jacapo.get_ft
+Jacapo.get_number_of_electrons = Jacapo.get_valence
