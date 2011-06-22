@@ -18,6 +18,14 @@ from ase.lattice.spacegroup.spacegroup import spacegroup_from_data
 
 def unread_line(fileobj):
     """Unread the last line read from *fileobj*."""
+
+    # If previous line ends with CRLF, we have to back up one extra 
+    # character before entering the loop below
+    if fileobj.tell() > 2:
+        fileobj.seek(-2, 1)
+        if fileobj.read(2) == '\r\n':
+            fileobj.seek(-1, 1)
+
     while True:
         if fileobj.tell() == 0:
             break

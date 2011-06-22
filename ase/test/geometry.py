@@ -2,7 +2,6 @@
 
 import numpy as np
 
-import ase
 from ase.lattice.spacegroup import crystal
 from ase.utils.geometry import get_layers, cut, stack
 
