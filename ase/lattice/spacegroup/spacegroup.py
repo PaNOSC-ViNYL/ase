@@ -634,8 +634,11 @@ def parse_sitesym(symlist, sep=','):
                     k = ord(p[n]) - ord('x')
                     rot[i,j,k] = sign
                 elif p[n].isdigit():
-                    q, sp, r = p[n:].partition('/')
-                    trans[i,j] = float(q)/float(r)
+                    if '/' in p[n:]:
+                        q, r = p[n:].split('/')
+                        trans[i,j] = float(q)/float(r)
+                    else:
+                        trans[i,j] = float(p[n:])
                 else:
                     raise SpacegroupValueError(
                         'invalid site symmetry: %s' % sym)
