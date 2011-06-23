@@ -2278,7 +2278,22 @@ than density cutoff %i' % (pw, dw))
         return xc
 
     def get_number_of_iterations(self):
-        raise NotImplementedError
+
+        niter = None
+
+        if self.calculation_required():
+            self.calculate()
+
+        txt = self.get_txt()
+        if os.path.exists(txt):
+            f = open(txt,'r')
+            for line in f:
+                if 'Number of iterations =' in line:
+                    niter = int(line.split('=')[1])
+                    break
+            f.close()
+                    
+        return niter
 
     def get_potential_energy(self,
                              atoms=None,
