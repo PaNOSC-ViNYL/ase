@@ -19,8 +19,8 @@ from ase.utils import opencew
 class Vibrations:
     """Class for calculating vibrational modes using finite difference.
 
-    The vibrational modes are calculated from a finite difference approximation
-    of the Hessian matrix.
+    The vibrational modes are calculated from a finite difference
+    approximation of the Hessian matrix.
 
     The *summary()*, *get_energies()* and *get_frequencies()* methods all take
     an optional *method* keyword.  Use method='Frederiksen' to use the method
@@ -28,8 +28,7 @@ class Vibrations:
 
       T. Frederiksen, M. Paulsson, M. Brandbyge, A. P. Jauho:
       "Inelastic transport theory from first-principles: methodology and
-      applications for nanoscale devices", 
-      Phys. Rev. B 75, 205413 (2007) 
+      applications for nanoscale devices", Phys. Rev. B 75, 205413 (2007)
 
     atoms: Atoms object
         The atoms to work on.
@@ -42,47 +41,53 @@ class Vibrations:
         Magnitude of displacements.
     nfree: int
         Number of displacements per atom and cartesian coordinate, 2 and 4 are
-        supported. Default is 2 which will displace each atom +delta and -delta
-        for each cartesian coordinate. 
+        supported. Default is 2 which will displace each atom +delta and
+        -delta for each cartesian coordinate.
 
     Example:
 
     >>> from ase import Atoms
-    >>> from ase.calculators.emt import EMT
+    >>> from ase.calculators import EMT
     >>> from ase.optimize import BFGS
     >>> from ase.vibrations import Vibrations
     >>> n2 = Atoms('N2', [(0, 0, 0), (0, 0, 1.1)],
     ...            calculator=EMT())
     >>> BFGS(n2).run(fmax=0.01)
-    BFGS:   0  19:16:06        0.042171       2.9357
-    BFGS:   1  19:16:07        0.104197       3.9270
-    BFGS:   2  19:16:07        0.000963       0.4142
-    BFGS:   3  19:16:07        0.000027       0.0698
-    BFGS:   4  19:16:07        0.000000       0.0010
+    BFGS:   0  16:01:21        0.440339       3.2518
+    BFGS:   1  16:01:21        0.271928       0.8211
+    BFGS:   2  16:01:21        0.263278       0.1994
+    BFGS:   3  16:01:21        0.262777       0.0088
     >>> vib = Vibrations(n2)
     >>> vib.run()
+    Writing vib.eq.pckl
+    Writing vib.0x-.pckl
+    Writing vib.0x+.pckl
+    Writing vib.0y-.pckl
+    Writing vib.0y+.pckl
+    Writing vib.0z-.pckl
+    Writing vib.0z+.pckl
+    Writing vib.1x-.pckl
+    Writing vib.1x+.pckl
+    Writing vib.1y-.pckl
+    Writing vib.1y+.pckl
+    Writing vib.1z-.pckl
+    Writing vib.1z+.pckl
     >>> vib.summary()
     ---------------------
-      #    meV     cm^-1
+    #    meV     cm^-1
     ---------------------
-      0    0.0i      0.0i
-      1    0.0i      0.0i
-      2    0.0i      0.0i
-      3    1.6      13.1 
-      4    1.6      13.1 
-      5  232.7    1877.2 
+    0    0.0       0.0
+    1    0.0       0.0
+    2    0.0       0.0
+    3    2.5      20.4
+    4    2.5      20.4
+    5  152.6    1230.8
     ---------------------
-    Zero-point energy: 0.118 eV
-    Thermodynamic properties at 298.00 K
-    Enthalpy: 0.050 eV
-    Entropy : 0.648 meV/K
-    T*S     : 0.193 eV
-    E->G    : -0.025 eV
-
+    Zero-point energy: 0.079 eV
     >>> vib.write_mode(-1)  # write last mode to trajectory file
 
     """
-      
+
     def __init__(self, atoms, indices=None, name='vib', delta=0.01, nfree=2):
         assert nfree in [2, 4]
         self.atoms = atoms
@@ -98,24 +103,24 @@ class Vibrations:
     def run(self):
         """Run the vibration calculations.
 
-        This will calculate the forces for 6 displacements per atom ±x, ±y, ±z.
-        Only those calculations that are not already done will be started. Be
-        aware that an interrupted calculation may produce an empty file (ending
-        with .pckl), which must be deleted before restarting the job. Otherwise
-        the forces will not be calculated for that displacement.
+        This will calculate the forces for 6 displacements per atom +/-x,
+        +/-y, +/-z. Only those calculations that are not already done will be
+        started. Be aware that an interrupted calculation may produce an empty
+        file (ending with .pckl), which must be deleted before restarting the
+        job. Otherwise the forces will not be calculated for that
+        displacement.
 
         Note that the calculations for the different displacements can be done
-        simultaneously by several independent processes. This feature relies on
-        the existence of files and the subsequent creation of the file in case
-        it is not found.
-
+        simultaneously by several independent processes. This feature relies
+        on the existence of files and the subsequent creation of the file in
+        case it is not found.
         """
-        
+
         filename = self.name + '.eq.pckl'
-        fd = opencew(filename)            
+        fd = opencew(filename)
         if fd is not None:
             self.calculate(filename, fd)
-        
+
         p = self.atoms.positions.copy()
         for a in self.indices:
             for i in range(3):
@@ -139,7 +144,7 @@ class Vibrations:
             if self.ir:
                 pickle.dump([forces, dipole], fd)
                 sys.stdout.write(
-                    'Writing %s, dipole moment = (%.6f %.6f %.6f)\n' % 
+                    'Writing %s, dipole moment = (%.6f %.6f %.6f)\n' %
                     (filename, dipole[0], dipole[1], dipole[2]))
             else:
                 pickle.dump(forces, fd)
@@ -150,7 +155,7 @@ class Vibrations:
     def clean(self):
         if isfile(self.name + '.eq.pckl'):
             remove(self.name + '.eq.pckl')
-        
+
         for a in self.indices:
             for i in 'xyz':
                 for sign in '-+':
@@ -159,13 +164,13 @@ class Vibrations:
                                                    ndis * sign)
                         if isfile(name):
                             remove(name)
-        
+
     def read(self, method='standard', direction='central'):
         self.method = method.lower()
         self.direction = direction.lower()
         assert self.method in ['standard', 'frederiksen']
         assert self.direction in ['central', 'forward', 'backward']
-        
+
         n = 3 * len(self.indices)
         H = np.empty((n, n))
         r = 0
@@ -208,17 +213,17 @@ class Vibrations:
                                'the vibrated atoms. Use Atoms.set_masses()'
                                ' to set all masses to non-zero values.')
 
-        self.im = np.repeat(m[self.indices]**-0.5, 3)
+        self.im = np.repeat(m[self.indices] ** -0.5, 3)
         omega2, modes = np.linalg.eigh(self.im[:, None] * H * self.im)
         self.modes = modes.T.copy()
 
         # Conversion factor:
         s = units._hbar * 1e10 / sqrt(units._e * units._amu)
-        self.hnu = s * omega2.astype(complex)**0.5
+        self.hnu = s * omega2.astype(complex) ** 0.5
 
     def get_energies(self, method='standard', direction='central'):
         """Get vibration energies in eV."""
-        
+
         if (self.H is None or method.lower() != self.method or
             direction.lower() != self.direction):
             self.read(method, direction)
@@ -226,12 +231,12 @@ class Vibrations:
 
     def get_frequencies(self, method='standard', direction='central'):
         """Get vibration frequencies in cm^-1."""
-        
+
         s = 0.01 * units._e / units._c / units._hplanck
         return s * self.get_energies(method, direction)
 
-    def summary(self, method='standard', direction='central', T=298., 
-                threshold=10, freq=None, log=sys.stdout):
+    def summary(self, method='standard', direction='central', freq=None,
+                log=sys.stdout):
         """Print a summary of the vibrational frequencies.
 
         Parameters:
@@ -247,13 +252,12 @@ class Vibrations:
         log : if specified, write output to a different location than
             stdout. Can be an object with a write() method or the name of a
             file to create.
-            
         """
 
         if isinstance(log, str):
             log = paropen(log, 'a')
         write = log.write
-        
+
         s = 0.01 * units._e / units._c / units._hplanck
         if freq != None:
             hnu = freq / s
@@ -313,7 +317,7 @@ class Vibrations:
                 c = 'i'
                 f[n] = f[n].imag
             else:
-                c = ' ' 
+                c = ' '
             fd.write('Mode #%d, f = %.1f%s cm^-1' % (n, f[n], c))
             if self.ir:
                 fd.write(', I = %.4f (D/Å)^2 amu^-1.\n' % self.intensities[n])
@@ -321,7 +325,7 @@ class Vibrations:
                 fd.write('.\n')
             mode = self.get_mode(n)
             for i, pos in enumerate(self.atoms.positions):
-                fd.write('%2s %12.5f %12.5f %12.5f %12.5f %12.5f %12.5f \n' % 
+                fd.write('%2s %12.5f %12.5f %12.5f %12.5f %12.5f %12.5f \n' %
                          (symbols[i], pos[0], pos[1], pos[2],
                           mode[i, 0], mode[i, 1], mode[i, 2]))
         fd.close()
