@@ -368,9 +368,17 @@ class Vasp(Calculator):
                     self.ppp_list.append(filename+'.Z')
                     break
             if not found:
+
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
         self.converged = None
         self.setups_changed = None
+        # Write input
+        from ase.io.vasp import write_vasp
+        write_vasp('POSCAR', self.atoms_sorted, symbol_count = self.symbol_count)
+        self.write_incar(atoms)
+        self.write_potcar()
+        self.write_kpoints()
+        self.write_sort_file()
 
     def calculate(self, atoms):
         """Generate necessary files in the working directory and run VASP.
@@ -380,14 +388,8 @@ class Vasp(Calculator):
         etc. are read from the VASP output.
         """
 
-        # Write input
-        from ase.io.vasp import write_vasp
+        # Initialize calculations (will write all input files)
         self.initialize(atoms)
-        write_vasp('POSCAR', self.atoms_sorted, symbol_count = self.symbol_count)
-        self.write_incar(atoms)
-        self.write_potcar()
-        self.write_kpoints()
-        self.write_sort_file()
 
         # Execute VASP
         self.run()
