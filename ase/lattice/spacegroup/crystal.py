@@ -73,9 +73,9 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
 
     Keyword arguments:
 
-    All additional keyword arguments are passed on to the Atoms constructor. 
-    Currently, probably the most useful additional keyword arguments are
-    `constraint` and `calculator`.
+    All additional keyword arguments are passed on to the Atoms
+    constructor.  Currently, probably the most useful additional
+    keyword arguments are `info`, `constraint` and `calculator`.
 
     Examples:
 
@@ -112,6 +112,16 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
     symbols = [symbols[i] for i in kinds]
     if cell is None:
         cell = cellpar_to_cell(cellpar, ab_normal, a_direction)
+
+    info = dict(spacegroup=sg)
+    if primitive_cell:
+        info['unit_cell'] = 'primitive'
+    else:
+        info['unit_cell'] = 'conventional'
+
+    if 'info' in kwargs:
+        info.update(kwargs['info'])
+    kwargs['info'] = info
 
     atoms = ase.Atoms(symbols, 
                       scaled_positions=sites, 

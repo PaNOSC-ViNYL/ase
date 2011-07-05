@@ -173,8 +173,11 @@ def parse_cif(fileobj):
     return blocks
 
 
-def tags2atoms(tags, **kwargs):
-    """Returns an Atoms object from a cif tags dictionary."""
+def tags2atoms(tags, store_tags=False, **kwargs):
+    """Returns an Atoms object from a cif tags dictionary.  If
+    *store_tags* is true, the *info* attribute of the returned Atoms
+    object will be populated with all the cif tags.  Keyword arguments
+    are passed to the Atoms constructor."""
     a = tags['_cell_length_a']
     b = tags['_cell_length_b']
     c = tags['_cell_length_c']
@@ -230,19 +233,31 @@ def tags2atoms(tags, **kwargs):
     else:
         spacegroup = 1
 
+    if store_tags:
+        info = tags.copy()
+        if 'info' in kwargs:
+            info.update(kwargs['info'])
+        kwargs['info'] = info
+
     atoms = crystal(symbols, basis=scaled_positions, 
                     cellpar=[a, b, c, alpha, beta, gamma],
                     spacegroup=spacegroup, **kwargs)
     return atoms
     
 
-def read_cif(fileobj, index=-1, **kwargs):
+def read_cif(fileobj, index=-1, store_tags=False, **kwargs):
     """Read Atoms object from CIF file. *index* specifies the data
-    block number or name (if string) to return.  If *index* is None or
-    a slice object, a list of atoms objects will be returned. In the
-    case of *index* is *None* or *slice(None)*, only blocks with valid
-    crystal data will be included.  Keyword arguments are passed on to
-    ase.lattice.spacegroup.crystal()."""
+    block number or name (if string) to return.  
+
+    If *index* is None or a slice object, a list of atoms objects will
+    be returned. In the case of *index* is *None* or *slice(None)*,
+    only blocks with valid crystal data will be included.
+
+    If *store_tags* is true, the *info* attribute of the returned
+    Atoms object will be populated with all tags in the corresponding
+    cif data block.
+
+    Keyword arguments are passed on to the Atoms constructor."""
     blocks = parse_cif(fileobj)
     if isinstance(index, str):
         tags = dict(blocks)[index]

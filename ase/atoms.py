@@ -71,6 +71,19 @@ class Atoms(object):
     calculator: calculator object
         Used to attach a calculator for calulating energies and atomic
         forces.
+    info: dict of key-value pairs
+        Dictionary of key-value pairs with additional information
+        about the system.  The following keys may be used by ase:
+
+          - spacegroup: Spacegroup instance
+          - unit_cell: 'conventional' | 'primitive' | int | 3 ints
+          - adsorbate_info:
+
+        Items in the info attribute survives copy and slicing and can
+        be store to and retrieved from trajectory files given that the
+        key is a string, the value is picklable and, if the value is a
+        userdefined object, its base class is importable.  One should
+        not make any assumptions about the existence of keys.
 
     Examples:
 
@@ -105,7 +118,8 @@ class Atoms(object):
                  scaled_positions=None,
                  cell=None, pbc=None,
                  constraint=None,
-                 calculator=None):
+                 calculator=None, 
+                 info=None):
 
         atoms = None
 
@@ -195,6 +209,11 @@ class Atoms(object):
         if pbc is None:
             pbc = False
         self.set_pbc(pbc)
+
+        if info is None:
+            self.info = {}
+        else:
+            self.info = dict(info)
 
         self.adsorbate_info = {}
 
@@ -622,7 +641,7 @@ class Atoms(object):
     def copy(self):
         """Return a copy."""
         import copy
-        atoms = self.__class__(cell=self._cell, pbc=self._pbc)
+        atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info)
 
         atoms.arrays = {}
         for name, a in self.arrays.items():
@@ -732,7 +751,7 @@ class Atoms(object):
         import copy
         from ase.constraints import FixConstraint
         
-        atoms = self.__class__(cell=self._cell, pbc=self._pbc)
+        atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info)
         # TODO: Do we need to shuffle indices in adsorbate_info too?
         atoms.adsorbate_info = self.adsorbate_info
         
