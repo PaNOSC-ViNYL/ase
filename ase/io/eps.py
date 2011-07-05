@@ -23,7 +23,7 @@ class EPS:
             radii = covalent_radii[self.numbers] * radii
         else:
             radii = np.array(radii)
-            
+
         natoms = len(atoms)
 
         if isinstance(rotation, str):
@@ -38,7 +38,7 @@ class EPS:
                     for c3 in range(2):
                         C[c1, c2, c3] = np.dot([c1, c2, c3], A)
             C.shape = (8, 3)
-            C = np.dot(C, rotation) # Unit cell vertices
+            C = np.dot(C, rotation)  # Unit cell vertices
         else:
             L = np.empty((0, 3))
             T = None
@@ -63,8 +63,8 @@ class EPS:
         R = X[:natoms]
 
         if bbox is None:
-            X1 = (R - radii[:, None]).min(0) 
-            X2 = (R + radii[:, None]).max(0) 
+            X1 = (R - radii[:, None]).min(0)
+            X2 = (R + radii[:, None]).max(0)
             if show_unit_cell == 2:
                 X1 = np.minimum(X1, C.min(0))
                 X2 = np.maximum(X2, C.max(0))
@@ -83,13 +83,13 @@ class EPS:
 
         self.w = w
         self.h = h
-        
+
         X *= scale
         X -= offset
 
         if nlines > 0:
             D = np.dot(D, rotation)[:, :2] * scale
-        
+
         if C is not None:
             C *= scale
             C -= offset
@@ -170,7 +170,7 @@ class EPS:
         self.fd.write('%d %d 0 0 clipbox\n' % (self.w, self.h))
 
         self.renderer = RendererPS(self.w, self.h, self.fd)
-        
+
     def write_body(self):
         try:
             from matplotlib.path import Path
@@ -184,8 +184,11 @@ class EPS:
         for a in indices:
             xy = self.X[a, :2]
             if a < self.natoms:
-                circle = Circle(xy, self.d[a] / 2, facecolor=self.colors[a])
-                circle.draw(self.renderer)
+                r = self.d[a] / 2
+                if ((xy[1] + r > 0) and (xy[1] - r < self.h) and
+                    (xy[0] + r > 0) and (xy[0] - r < self.w)):
+                    circle = Circle(xy, r, facecolor=self.colors[a])
+                    circle.draw(self.renderer)
             else:
                 a -= self.natoms
                 c = self.T[a]
