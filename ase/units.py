@@ -1,6 +1,6 @@
 from math import pi, sqrt
 
-# Constants from Konrad Hinsen's PhysicalQuantities module:
+# Constants from Konrad Hinsen's PhysicalQuantities module (1986 CODATA):
 _c = 299792458.              # speed of light, m/s
 _mu0 = 4.e-7 * pi            # permeability of vacuum
 _eps0 = 1 / _mu0 / _c**2     # permittivity of vacuum
