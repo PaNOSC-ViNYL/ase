@@ -795,7 +795,7 @@ class Vasp(Calculator):
             else:
                 kpoints.write('Monkhorst-Pack\n')
             [kpoints.write('%i ' % kpt) for kpt in p['kpts']]
-            kpoints.write('\n0 0 0')
+            kpoints.write('\n0 0 0\n')
         elif len(shape)==2:
             kpoints.write('%i \n' % (len(p['kpts'])))
             kpoints.write('Cartesian\n')
