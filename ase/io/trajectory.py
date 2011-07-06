@@ -486,7 +486,7 @@ def dict2constraints(d):
 
     if version == 1:
         return d['constraints']
-    elif version == 2:
+    elif version in (2, 3):
         try:
             return pickle.loads(d['constraints_string'])
         except (AttributeError, KeyError, EOFError):
