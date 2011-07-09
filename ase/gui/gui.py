@@ -66,6 +66,9 @@ ui_info = """\
       <menuitem action='Invert'/>
       <menuitem action='SelectConstrained'/>
       <separator/>
+      <menuitem action='Copy'/>
+      <menuitem action='Paste'/>
+      <separator/>
       <menuitem action='Modify'/>
       <menuitem action='AddAtoms'/>
       <menuitem action='DeleteAtoms'/>
@@ -172,6 +175,12 @@ class GUI(View, Status):
             ('SelectConstrained', None, 'Select _constrained atoms', None,
              '',
              self.select_constrained_atoms),
+             ('Copy', None, '_Copy', '<control>C',
+              'Copy current selection and its orientation to clipboard',
+              self.copy_atoms),
+             ('Paste', None, '_Paste', '<control>V',
+              'Insert current clipboard selection',
+              self.paste_atoms),
              ('Modify', None, '_Modify', '<control>Y',
               'Change tags, moments and atom types of the selected atoms',
               self.modify_atoms),
@@ -334,6 +343,7 @@ class GUI(View, Status):
         self.graphs = []       # List of open pylab windows
         self.graph_wref = []   # List of weakrefs to Graph objects
         self.movie_window = None
+        self.clipboard = None  # initialize copy/paste functions
         self.vulnerable_windows = []
         self.simulation = {}   # Used by modules on Calculate menu.
         self.module_state = {} # Used by modules to store their state.
@@ -542,11 +552,36 @@ class GUI(View, Status):
             self.center -= (dx * 0.1 * self.axes[:, 0] -
                             dy * 0.1 * self.axes[:, 1])
         self.draw()
-    
         
-    def add_atoms(self, widget, data=None):
+    def copy_atoms(self, widget):
+        "Copies selected atoms to a clipboard, if no atoms are selected then the clipboard is cleared."
+        if self.images.selected.any():
+            atoms = self.images.get_atoms(self.frame)
+            lena = len(atoms)
+            for i in range(len(atoms)):
+                li = lena-1-i
+                if not self.images.selected[li]:
+                    del(atoms[li])
+            for i in atoms:
+                i.position = np.dot(self.axes.T,i.position)       
+            ref = atoms[0].position
+            for i in atoms:
+                if i.position[2] < ref[2]:
+                    ref = i.position
+            self.clipboard = atoms.copy()
+            self.clipboard.reference_position = ref
+        else:
+            self.clipboard = None
+
+    def paste_atoms(self, widget):
+        "Inserts clipboard selection into the current frame using the add_atoms window."
+        if self.clipboard is not None:
+            self.add_atoms(widget, data='Paste', paste=self.clipboard)
+        
+    def add_atoms(self, widget, data=None, paste=None):
         """
-        Presents a dialogbox to the user, that allows him to add atoms/molecule to the current slab.
+        Presents a dialogbox to the user, that allows him to add atoms/molecule to the current slab
+        or to paste the clipboard.
         
         The molecule/atom is rotated using the current rotation of the coordinate system.
         
@@ -560,30 +595,31 @@ class GUI(View, Status):
         
         Note: If this option is used, all frames except the active one are deleted.
         """
-        if data:
+        
+        if data == 'load':
+            chooser = gtk.FileChooserDialog(
+                        _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
+                        (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                         gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+            ok = chooser.run()
+            if ok == gtk.RESPONSE_OK:
+                filename = chooser.get_filename()
+            chooser.destroy()
+            if not ok:
+                return
+
+        if data == 'OK' or data == 'load':
+            import ase
             if data == 'load':
-                chooser = gtk.FileChooserDialog(
-                            _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
-                            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                             gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-                ok = chooser.run()
-                if ok == gtk.RESPONSE_OK:
-                    filename = chooser.get_filename()
-                chooser.destroy()
-                if not ok:
-                    return
+                molecule = filename
+            else:
+                molecule = self.add_entries[1].get_text()
+            tag = self.add_entries[2].get_text()
+            mom = self.add_entries[3].get_text()
+            pos = self.add_entries[4].get_text().lower()
 
-            if data == 'OK' or data == 'load':
-                import ase
-                if data == 'load':
-                    molecule = filename
-                else:
-                    molecule = self.add_entries[1].get_text()
-                tag = self.add_entries[2].get_text()
-                mom = self.add_entries[3].get_text()
-                pos = self.add_entries[4].get_text().lower()
-
-                a = None
+            a = paste.copy()
+            if a is None:
                 try:
                     a = ase.Atoms([ase.Atom(molecule)])
                 except:      
@@ -595,85 +631,95 @@ class GUI(View, Status):
                         except:
                             self.add_entries[1].set_text('?' + molecule) 
                             return ()
-                        
-                directions = np.transpose(self.axes)
-                if a != None:
-                    for i in a:
-                        try: 
-                            i.set('tag',int(tag))
-                        except:
-                            self.add_entries[2].set_text('?' + tag) 
-                            return ()
-                        try: 
-                            i.magmom = float(mom)
-                        except: 
-                            self.add_entries[3].set_text('?' + mom) 
-                            return ()
-                  # apply the current rotation matrix to A
-                    for i in a:
-                        i.position = np.dot(self.axes, i.position)       
-                  # find the extent of the molecule in the local coordinate system
+
+            directions = np.transpose(self.axes)
+            if a != None:
+                for i in a:
+                    try: 
+                        i.set('tag',int(tag))
+                    except:
+                        self.add_entries[2].set_text('?' + tag) 
+                        return ()
+                    try: 
+                        i.magmom = float(mom)
+                    except: 
+                        self.add_entries[3].set_text('?' + mom) 
+                        return ()
+                if self.origin_radio.get_active() and paste:
+                    a.translate(-paste.reference_position)
+                # apply the current rotation matrix to A
+                for i in a:
+                    i.position = np.dot(self.axes, i.position)       
+                # find the extent of the molecule in the local coordinate system
+                if self.centre_radio.get_active():
                     a_cen_pos = np.array([0.0, 0.0, 0.0])
                     m_cen_pos = 0.0
                     for i in a.positions:
                         a_cen_pos[0] += np.dot(directions[0], i)
                         a_cen_pos[1] += np.dot(directions[1], i)
                         a_cen_pos[2] += np.dot(directions[2], i)
-
                         m_cen_pos = max(np.dot(-directions[2], i), m_cen_pos)
+                        
                     a_cen_pos[0] /= len(a.positions)      
                     a_cen_pos[1] /= len(a.positions)      
                     a_cen_pos[2] /= len(a.positions)
                     a_cen_pos[2] -= m_cen_pos
-          
-                  # now find the position
-                    cen_pos = np.array([0.0, 0.0, 0.0])
-                    if sum(self.images.selected) > 0:
-                        for i in range(len(self.R)):
-                            if self.images.selected[i]:
-                                cen_pos += self.R[i]
-                        cen_pos /= sum(self.images.selected)   
-                    elif len(self.R) > 0:
-                        px = 0.0
-                        py = 0.0
-                        pz = -1e6
+                else:
+                    a_cen_pos = np.array([0.0, 0.0, 0.0])
 
-                        for i in range(len(self.R)):
-                            px += np.dot(directions[0], self.R[i])
-                            py += np.dot(directions[1], self.R[i])
-                            pz = max(np.dot(directions[2], self.R[i]), pz)
-                        px = (px/float(len(self.R)))
-                        py = (py/float(len(self.R)))
-                        cen_pos = directions[0] * px + \
-                                  directions[1] * py + \
-                                  directions[2] * pz
-              
-                    if 'auto' in pos:
-                        pos = pos.replace('auto', '')
-                        import re
-                        pos = re.sub('\s', '', pos)
-                        if '(' in pos:
-                            sign = eval('%s1' % pos[0])
-                            a_cen_pos -= sign * np.array(eval(pos[1:]), float)
-                        else:
-                            a_cen_pos -= float(pos) * directions[2]
-                    else:
-                        cen_pos = np.array(eval(pos))
-                    for i in a:
-                        i.position += cen_pos - a_cen_pos      
-  
-                  # and them to the molecule
-                    atoms = self.images.get_atoms(self.frame)
-                    atoms = atoms + a
-                    self.new_atoms(atoms, init_magmom=True)
+                # now find the position
+                cen_pos = np.array([0.0, 0.0, 0.0])
+                if sum(self.images.selected) > 0:
+                    for i in range(len(self.R)):
+                        if self.images.selected[i]:
+                            cen_pos += self.R[i]
+                    cen_pos /= sum(self.images.selected)   
+                elif len(self.R) > 0:
+                    px = 0.0
+                    py = 0.0
+                    pz = -1e6
+
+                    for i in range(len(self.R)):
+                        px += np.dot(directions[0], self.R[i])
+                        py += np.dot(directions[1], self.R[i])
+                        pz = max(np.dot(directions[2], self.R[i]), pz)
+                    px = (px/float(len(self.R)))
+                    py = (py/float(len(self.R)))
+                    cen_pos = directions[0] * px + \
+                              directions[1] * py + \
+                              directions[2] * pz
                     
-                  # and finally select the new molecule for easy moving and rotation
-                    for i in range(len(a)):
-                        self.images.selected[len(atoms) - i - 1] = True
+                if 'auto' in pos:
+                    pos = pos.replace('auto', '')
+                    import re
+                    pos = re.sub('\s', '', pos)
+                    if '(' in pos:
+                        sign = eval('%s1' % pos[0])
+                        a_cen_pos -= sign * np.array(eval(pos[1:]), float)
+                    else:
+                        a_cen_pos -= float(pos) * directions[2]
+                else:
+                    cen_pos = np.array(eval(pos))
+                for i in a:
+                    i.position += cen_pos - a_cen_pos      
 
-                    self.draw()    
+              # and them to the molecule
+                atoms = self.images.get_atoms(self.frame)
+                atoms = atoms + a
+                self.new_atoms(atoms, init_magmom=True)
+
+              # and finally select the new molecule for easy moving and rotation
+                for i in range(len(a)):
+                    self.images.selected[len(atoms) - i - 1] = True
+
+                self.draw()    
             self.add_entries[0].destroy()
-        if data == None:
+
+        if data == 'Cancel':
+            self.add_entries[0].destroy()
+            
+        if data == None or data == 'Paste':
+            from ase.gui.widgets import pack
             molecule = ''
             tag = '0'
             mom = '0'
@@ -682,21 +728,24 @@ class GUI(View, Status):
             window = gtk.Window(gtk.WINDOW_TOPLEVEL)
             self.add_entries.append(window)
             window.set_title('Add atoms')
-
+            if data == 'Paste':
+                molecule = paste.get_chemical_symbols(True)
+                window.set_title('Paste')
+                
             vbox = gtk.VBox(False, 0)
             window.add(vbox)
             vbox.show()
-            pack = False
+            packed = False
             for i, j in [['Insert atom or molecule', molecule],
                          ['Tag', tag],
                          ['Moment', mom],
                          ['Position', pos]]:
 
                 label = gtk.Label(i)
-                if not pack:
+                if not packed:
                     vbox.pack_start(label, True, True, 0)
                 else: 
-                    pack = True
+                    packed = True
                     vbox.add(label)    
                 label.show()
   
@@ -705,22 +754,28 @@ class GUI(View, Status):
                 self.add_entries.append(entry)
                 entry.set_max_length(50)
                 entry.show()
-    
                 vbox.add(entry)
 
-            button = gtk.Button('_Load molecule')
-            button.connect('clicked', self.add_atoms, 'load')
-            button.show()
-            vbox.add(button)
+            pack(vbox,[gtk.Label('atom/molecule reference:')])
+            self.centre_radio = gtk.RadioButton(None, "centre ")
+            self.origin_radio = gtk.RadioButton(self.centre_radio, "origin")
+            pack(vbox,[self.centre_radio, self.origin_radio])
+            if data == 'Paste':
+                self.origin_radio.set_active(True)
+                self.add_entries[1].set_sensitive(False)
+            if data == None:
+                button = gtk.Button('_Load molecule')
+                button.connect('clicked', self.add_atoms, 'load')
+                button.show()
+                vbox.add(button)
             button = gtk.Button('_OK')
-            button.connect('clicked', self.add_atoms, 'OK')
+            button.connect('clicked', self.add_atoms, 'OK', paste)
             button.show()
             vbox.add(button)
             button = gtk.Button('_Cancel')
             button.connect('clicked', self.add_atoms, 'Cancel')
             button.show()
             vbox.add(button)
- 
             window.show()
         
     def modify_atoms(self, widget, data=None):
