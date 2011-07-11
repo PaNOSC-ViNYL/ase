@@ -144,7 +144,7 @@ class FixAtoms(FixConstraint):
                 for m0 in range(m[0]):
                     i1 = i0 + n
                     if self.index.dtype == bool:
-                        index_new += self.index
+                        index_new.extend(self.index)
                     else:
                         index_new += [i+natoms for i in self.index]
                     i0 = i1
