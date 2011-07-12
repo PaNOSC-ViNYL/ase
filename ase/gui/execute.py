@@ -160,27 +160,24 @@ class Execute(gtk.Window):
             if c == first_command:
                 index_based = True
 
+        name = os.path.expanduser('~/.ase/'+cmd)
         # check various special commands: 
-        if cmd == 'del S':
+        if os.path.exists(name):   # run script from default directory
+            self.run_script(name)
+        elif cmd == 'del S':       # delete selection
             gui.delete_selected_atoms()
-        elif cmd == 'sa':
+        elif cmd == 'sa':          # selected atoms only
             self.selected.set_active(not self.selected.get_active())
-        elif cmd == 'cf':
+        elif cmd == 'cf':          # current frame only
             self.images_only.set_active(not self.images_only.get_active())
-        elif cmd == 'center':
+        elif cmd == 'center':      # center system
             img.center()
-        elif first_command == 'exec':
+        elif first_command == 'exec': # execute script
             name = cmd.split()[1]
             if '~' in name:
                 name = os.path.expanduser(name)
             if os.path.exists(name):
-                commands = open(name,'r').readlines()
-                for c_parse in commands:
-                    c = c_parse.strip()
-                    if '#' in c:
-                        c = c[:c.find('#')].strip()
-                    if len(c) > 0:
-                        self.execute(cmd = c.strip())
+                self.run_script(name)
             else:
                 self.add_text('*** WARNING: file does not exist - '+name)
         else:
@@ -214,6 +211,10 @@ class Execute(gtk.Window):
                     gui.set_frame(frame)
                     if gui.movie_window is not None:
                         gui.movie_window.frame_number.value = frame
+                    img.selected      = S
+                    img.A[i]          = A
+                    img.P[i][indices] = R
+                    img.M[i][indices] = M
                 else:
                     for n,a in enumerate(indices):
                         if self.stop:
@@ -290,6 +291,15 @@ class Execute(gtk.Window):
             fd.write(text)
             fd.close()
             chooser.destroy()
+
+    def run_script(self, name):
+        commands = open(name,'r').readlines()
+        for c_parse in commands:
+            c = c_parse.strip()
+            if '#' in c:
+                c = c[:c.find('#')].strip()
+            if len(c) > 0:
+                self.execute(cmd = c.strip())
             
     def terminal_help(self,*args):
         Help(self.terminal_help_txt)
