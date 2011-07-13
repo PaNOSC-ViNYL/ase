@@ -69,7 +69,7 @@ class Atoms(object):
         Used for applying one or more constraints during structure
         optimization.
     calculator: calculator object
-        Used to attach a calculator for calulating energies and atomic
+        Used to attach a calculator for calculating energies and atomic
         forces.
     info: dict of key-value pairs
         Dictionary of key-value pairs with additional information
@@ -82,7 +82,7 @@ class Atoms(object):
         Items in the info attribute survives copy and slicing and can
         be store to and retrieved from trajectory files given that the
         key is a string, the value is picklable and, if the value is a
-        userdefined object, its base class is importable.  One should
+        user-defined object, its base class is importable.  One should
         not make any assumptions about the existence of keys.
 
     Examples:
@@ -377,7 +377,7 @@ class Atoms(object):
                 b[:] = a
 
     def has(self, name):
-        """Check for existance of array.
+        """Check for existence of array.
 
         name must be one of: 'tags', 'momenta', 'masses', 'magmoms',
         'charges'."""
@@ -447,7 +447,7 @@ class Atoms(object):
     def set_masses(self, masses='defaults'):
         """Set atomic masses.
 
-        The array masses should contain the a list masses.  In case
+        The array masses should contain a list of masses.  In case
         the masses argument is not given or for those elements of the
         masses list that are None, standard values are set."""
         
@@ -1180,7 +1180,7 @@ class Atoms(object):
 
         Atoms outside the unit cell will be wrapped into the cell in
         those directions with periodic boundary conditions so that the
-        scaled coordinates are beween zero and one."""
+        scaled coordinates are between zero and one."""
 
         scaled = np.linalg.solve(self._cell.T, self.arrays['positions'].T).T
         for i in range(3):
@@ -1201,7 +1201,7 @@ class Atoms(object):
         return ekin / (1.5 * units.kB)
 
     def get_isotropic_pressure(self, stress):
-        """ get the current calculated pressure, assume isotropic medium.
+        """Get the current calculated pressure, assume isotropic medium.
             in Bar
         """
         if type(stress) == type(1.0) or type(stress) == type(1):
@@ -1245,7 +1245,7 @@ class Atoms(object):
         return abs(np.linalg.det(self._cell))
     
     def _get_positions(self):
-        """Return reference to positions-array for inplace manipulations."""
+        """Return reference to positions-array for in-place manipulations."""
         return self.arrays['positions']
 
     def _set_positions(self, pos):
@@ -1257,7 +1257,8 @@ class Atoms(object):
                          'manipulation of the positions.')
 
     def _get_atomic_numbers(self):
-        """Return reference to atomic numbers for inplace manipulations."""
+        """Return reference to atomic numbers for in-place 
+        manipulations."""
         return self.arrays['numbers']
 
     numbers = property(_get_atomic_numbers, set_atomic_numbers,
@@ -1265,14 +1266,14 @@ class Atoms(object):
                        'manipulation of the atomic numbers.')
 
     def _get_cell(self):
-        """Return reference to unit cell for inplace manipulations."""
+        """Return reference to unit cell for in-place manipulations."""
         return self._cell
     
     cell = property(_get_cell, set_cell, doc='Attribute for direct ' +
                        'manipulation of the unit cell.')
 
     def _get_pbc(self):
-        """Return reference to pbc-flags for inplace manipulations."""
+        """Return reference to pbc-flags for in-place manipulations."""
         return self._pbc
     
     pbc = property(_get_pbc, set_pbc,
@@ -1302,7 +1303,7 @@ class Atoms(object):
     def edit(self):
         """Modify atoms interactively through ag viewer. 
 
-        Conflicts leading to undesirable behviour might arise
+        Conflicts leading to undesirable behaviour might arise
         when matplotlib has been pre-imported with certain
         incompatible backends and while trying to use the
         plot feature inside the interactive ag. To circumvent,

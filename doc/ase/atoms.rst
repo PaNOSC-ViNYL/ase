@@ -177,7 +177,7 @@ The :meth:`~ase.atoms.Atoms.set_pbc` method specifies whether
 periodic boundary conditions are to be used in the directions of the
 three vectors of the unit cell.  A slab calculation with periodic
 boundary conditions in *x* and *y* directions and free boundary
-condtions in the *z* direction is obatined through
+conditions in the *z* direction is obtained through
 
 >>> a.set_pbc((True, True, False))
 
@@ -269,7 +269,7 @@ List-methods
 .. list-table::
 
   * - method
-    - exampl
+    - example
   * - ``+``
     - ``wire2 = wire + co``
   * - ``+=``, :meth:`~ase.atoms.Atoms.extend`
