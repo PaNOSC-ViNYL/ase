@@ -618,7 +618,11 @@ class GUI(View, Status):
             mom = self.add_entries[3].get_text()
             pos = self.add_entries[4].get_text().lower()
 
-            a = paste.copy()
+            if paste is not None: 
+                a = paste.copy()
+            else:
+                a = None
+                
             if a is None:
                 try:
                     a = ase.Atoms([ase.Atom(molecule)])
