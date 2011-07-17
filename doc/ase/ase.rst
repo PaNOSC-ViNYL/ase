@@ -54,7 +54,7 @@ List of all modules:
    atom
    units
    io
-   gui
+   gui/gui
    setup-overview
    optimize
    parallel

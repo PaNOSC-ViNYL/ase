@@ -38,6 +38,7 @@ class Execute(gtk.Window):
     - use 'selected atoms only' to restrict application of command
     <c>x,y,z</c>:\tatomic coordinates
     <c>r,g,b</c>:\tatom display color, range is [0..1]
+    <c>rad</c>:\tatomic radius for display
     <c>s</c>:\t\tatom is selected
     <c>f</c>:\t\tforce
     <c>Z</c>:\tatomic number
