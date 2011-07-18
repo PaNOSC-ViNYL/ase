@@ -452,6 +452,9 @@ class FLEUR:
                     for m in atoms.get_initial_magnetic_moments():
                         lines[ln] += (' %5.2f' % m)
                     lines[ln] += '\n'
+            # inpgen produces incorrect symbol 'J' for Iodine
+            if line.startswith(' J  53'):
+                lines[ln] = lines[ln].replace(' J  53', ' I  53')
 
         # write everything back to inp
         fh = open('inp', 'w')
