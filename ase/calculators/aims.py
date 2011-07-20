@@ -18,6 +18,7 @@ float_keys = [
     'charge_mix_param',
     'default_initial_moment',
     'hartree_convergence_parameter',
+    'harmonic_length_scale',
     'ini_linear_mix_param',
     'ini_spin_mix_parma',
     'initial_moment',

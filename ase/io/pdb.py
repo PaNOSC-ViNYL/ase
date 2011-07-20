@@ -14,6 +14,7 @@ def read_pdb(fileobj, index=-1):
     if isinstance(fileobj, str):
         fileobj = open(fileobj)
 
+    images = []
     atoms = Atoms()
     for line in fileobj.readlines():
         if line.startswith('ATOM') or line.startswith('HETATM'):
@@ -21,7 +22,9 @@ def read_pdb(fileobj, index=-1):
                 symbol = line[12:16].strip()
                 # we assume that the second character is a label 
                 # in case that it is upper case
-                if len(symbol) > 1 and symbol[1].isupper():
+                if len(symbol) > 1 and (symbol[1].isupper() or
+                                        symbol[1].isdigit() or
+                                        symbol[1] == "'"): 
                     symbol = symbol[0]
                 words = line[30:55].split()
                 position = np.array([float(words[0]), 
@@ -30,8 +33,14 @@ def read_pdb(fileobj, index=-1):
                 atoms.append(Atom(symbol, position))
             except:
                 pass
+        if line.startswith('MODEL'):
+            if len(atoms) > 0:
+                images += [atoms]
+            atoms = Atoms()
 
-    return atoms
+    if len(images) == 0:
+        images = [atoms]
+    return images
 
 def write_pdb(fileobj, images):
     """Write images to PDB-file."""
