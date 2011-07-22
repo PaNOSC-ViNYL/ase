@@ -911,7 +911,7 @@ class Atoms(object):
         else:
             return com
 
-    def get_moments_of_inertia(self):
+    def get_moments_of_inertia(self, vectors=False):
         '''Get the moments of inertia
 
         The three principal moments of inertia are computed from the
@@ -943,7 +943,10 @@ class Atoms(object):
                       [I13, I23, I33]])
 
         evals, evecs = np.linalg.eig(I)
-        return evals
+        if vectors:
+            return evals, evecs.transpose()
+        else:
+            return evals
 
     def rotate(self, v, a=None, center=(0, 0, 0), rotate_cell=False):
         """Rotate atoms.
