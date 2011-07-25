@@ -37,7 +37,7 @@ class DOS:
         self.energies = np.linspace(emin, emax, npts)
 
     def get_energies(self):
-        """Return the array of energies used to sample the DOS."""
+        """Return the array of energies used to sample the DOS. The energies are reported relative to the Fermi level."""
         return self.energies
 
     def delta(self, energy):
