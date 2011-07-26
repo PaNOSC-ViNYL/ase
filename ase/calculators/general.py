@@ -34,6 +34,11 @@ class Calculator:
         self.update(atoms)
         return self.stress
 
+    def initialize(self, atoms):
+        """Prepare the input files required to
+        start the program (calculator).  """
+        raise NotImplementedError
+
     def read(self, atoms):
         self.positions = atoms.get_positions()
         self.energy_free, self.energy_zero = self.read_energy()
