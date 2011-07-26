@@ -13,15 +13,19 @@ Monkhorst-Pack
 --------------
 
 .. function:: dft.kpoints.monkhorst_pack
+.. function:: dft.kpoints.get_monkhorst_pack_size
+.. function:: dft.kpoints.get_monkhorst_pack_size_and_offset
 
 Example:
 
->>> from ase.dft.kpoints import monkhorst_pack
+>>> from ase.dft.kpoints import *
 >>> monkhorst_pack((4, 1, 1))
 array([[-0.375,  0.   ,  0.   ],
        [-0.125,  0.   ,  0.   ],
        [ 0.125,  0.   ,  0.   ],
        [ 0.375,  0.   ,  0.   ]])
+>>> get_monkhorst_pack_size_and_offset([[0, 0, 0]])
+(array([1, 1, 1]), array([ 0.,  0.,  0.]))
 
 
 Chadi-Cohen

@@ -1,4 +1,6 @@
 from __future__ import division
+import warnings
+
 import numpy as np
 
 
@@ -10,26 +12,59 @@ def monkhorst_pack(size):
     return (kpts + 0.5) / size - 0.5
 
 
-def get_monkhorst_shape(kpts, tol=1e-5):
-    """Return the number of k-points along each axis of input Monkhorst pack.
+def get_monkhorst_pack_size_and_offset(kpts):
+    """Find Monkhorst-Pack size and offset.
 
-    The set of k-points must not have been symmetry reduced.
-    """
-    nkpts = len(kpts)
-    if nkpts == 1:
-        return np.ones(3, int)
+    Returns (size, offset), where::
+
+        kpts = monkhorst_pack(size) + offset.
     
-    Nk_c = np.zeros(3, int)
-    for c in range(3):
-        # Determine increment between kpoints along current axis
-        DeltaK = max(np.diff(np.sort(kpts[:, c])))
+    The set of k-points must not have been symmetry reduced."""
 
-        # Determine number of kpoints as inverse of distance between kpoints
-        if DeltaK > tol:
-            Nk_c[c] = int(round(1. / DeltaK))
+    if len(kpts) == 1:
+        return np.ones(3, int), np.array(kpts[0], dtype=float)
+    
+    size = np.zeros(3, int)
+    for c in range(3):
+        # Determine increment between k-points along current axis
+        delta = max(np.diff(np.sort(kpts[:, c])))
+
+        # Determine number of k-points as inverse of distance between kpoints
+        if delta > 1e-8:
+            size[c] = int(round(1.0 / delta))
         else:
-            Nk_c[c] = 1
-    return Nk_c
+            size[c] = 1
+
+    kpts0 = monkhorst_pack(size)
+    offsets = kpts - kpts0
+
+    # All offsets must be identical:
+    if (offsets.ptp(axis=0) > 1e-9).any():
+        raise ValueError('Not an ASE-style Monkhorst-Pack grid!')
+
+    return size, offsets[0].copy()
+
+
+def get_monkhorst_pack_size(kpts):
+    """Find Monkhorst-Pack size.
+
+    Returns size, where::
+
+        kpts = monkhorst_pack(size).
+    
+    The set of k-points must not have been symmetry reduced."""
+
+    size, offset = get_monkhorst_pack_size_and_offset(kpts)
+
+    if (abs(offset) > 1e-9).any():
+        raise ValueError('Not an ASE-style Monkhorst-Pack grid!')
+
+    return size
+
+
+def get_monkhorst_shape(kpts):
+    warnings.warn('Use get_monkhorst_pack_size() instead.')
+    return get_monkhorst_pack_size(kpts)
 
 
 def kpoint_convert(cell_cv, skpts_kc=None, ckpts_kv=None):
@@ -127,21 +162,21 @@ ibz_points = {'cubic': {'Gamma': [0,     0,     0    ],
 # sq(3)xsq(3) is named 'cc18_sq3xsq3'.
 
 cc6_1x1 = np.array([1, 1, 0, 1, 0, 0, 0, -1, 0, -1, -1, 0, -1, 0, 0,
-    0, 1, 0] ).reshape((6, 3)) / 3.0
+    0, 1, 0]).reshape((6, 3)) / 3.0
 
 cc12_2x3 = np.array([3, 4, 0, 3, 10, 0, 6, 8, 0, 3, -2, 0, 6, -4, 0,
     6, 2, 0, -3, 8, 0, -3, 2, 0, -3, -4, 0, -6, 4, 0, -6, -2, 0, -6,
-    -8, 0] ).reshape((12, 3)) / 18.0
+    -8, 0]).reshape((12, 3)) / 18.0
 
 cc18_sq3xsq3 = np.array([2, 2, 0, 4, 4, 0, 8, 2, 0, 4, -2, 0, 8, -4,
     0, 10, -2, 0, 10, -8, 0, 8, -10, 0, 2, -10, 0, 4, -8, 0, -2, -8,
     0, 2, -4, 0, -4, -4, 0, -2, -2, 0, -4, 2, 0, -2, 4, 0, -8, 4, 0,
-    -4, 8, 0] ).reshape((18, 3)) / 18.0
+    -4, 8, 0]).reshape((18, 3)) / 18.0
 
 cc18_1x1 = np.array([2, 4, 0, 2, 10, 0, 4, 8, 0, 8, 4, 0, 8, 10, 0,
     10, 8, 0, 2, -2, 0, 4, -4, 0, 4, 2, 0, -2, 8, 0, -2, 2, 0, -2, -4,
     0, -4, 4, 0, -4, -2, 0, -4, -8, 0, -8, 2, 0, -8, -4, 0, -10, -2,
-    0] ).reshape((18, 3)) / 18.0
+    0]).reshape((18, 3)) / 18.0
 
 cc54_sq3xsq3 = np.array([4, -10, 0, 6, -10, 0, 0, -8, 0, 2, -8, 0, 6,
     -8, 0, 8, -8, 0, -4, -6, 0, -2, -6, 0, 2, -6, 0, 4, -6, 0, 8, -6,
@@ -161,7 +196,7 @@ cc54_1x1 = np.array([2, 2, 0, 4, 4, 0, 8, 8, 0, 6, 8, 0, 4, 6, 0, 6,
     6, -2, 0, 6, -4, 0, 2, 0, 0, 4, 0, 0, 6, 2, 0, 6, 4, 0, 8, 6, 0,
     8, 0, 0, 8, 2, 0, 10, 4, 0, 10, 6, 0, 2, -4, 0, 2, -6, 0, 4, -6,
     0, 0, -2, 0, 0, -4, 0, -2, -6, 0, -4, -6, 0, -6, -8, 0, 0, -8, 0,
-    -2, -8, 0, -4, -10, 0, -6, -10, 0] ).reshape((54, 3)) / 18.0
+    -2, -8, 0, -4, -10, 0, -6, -10, 0]).reshape((54, 3)) / 18.0
 
 cc162_sq3xsq3 = np.array([-8, 16, 0, -10, 14, 0, -7, 14, 0, -4, 14,
     0, -11, 13, 0, -8, 13, 0, -5, 13, 0, -2, 13, 0, -13, 11, 0, -10,
