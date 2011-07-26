@@ -58,6 +58,23 @@ class DummyMPI:
         pass
 
 
+class MPI4PY:
+    def __init__(self):
+        from mpi4py import MPI
+        self.comm = MPI.COMM_WORLD
+        self.rank = self.comm.rank
+        self.size = self.comm.size
+
+    def sum(self, a):
+        return self.comm.allreduce(a)
+    
+    def barrier(self):
+        self.comm.barrier()
+
+    def broadcast(self, a, rank):
+        a[:] = self.comm.bcast(a, rank)
+
+
 # Check for special MPI-enabled Python interpreters:
 if '_gpaw' in sys.modules:
     # http://wiki.fysik.dtu.dk/gpaw
@@ -69,8 +86,9 @@ elif 'asapparallel3' in sys.modules:
     import asapparallel3
     world = asapparallel3.Communicator()
 elif 'Scientific_mpi' in sys.modules:
-    # 
     from Scientific.MPI import world
+elif 'mpi4py' in sys.modules:
+    world = MPI4PY()
 else:
     # This is a standard Python interpreter:
     world = DummyMPI()
