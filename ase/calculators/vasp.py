@@ -417,6 +417,7 @@ class Vasp(Calculator):
         self.old_list_params = self.list_params.copy()
         self.old_dict_params = self.dict_params.copy()
         self.atoms = atoms.copy()
+        self.name = 'vasp'
         self.version = self.read_version()
         self.niter = self.read_number_of_iterations()
         self.sigma = self.read_electronic_temperature()
@@ -508,6 +509,9 @@ class Vasp(Calculator):
         atoms = self.atoms.copy()
         atoms.set_calculator(self)
         return atoms
+
+    def get_name(self):
+        return self.name
 
     def get_version(self):
         self.update(self.atoms)

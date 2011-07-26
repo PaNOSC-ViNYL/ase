@@ -35,6 +35,8 @@ class EMT:
     
     def __init__(self):
         self.energy = None
+        self.name = 'EMT'
+        self.version = '1.0'
         if self.disabled:
             print >> sys.stderr, """
             ase.EMT has been disabled by Asap.  Most likely, you
@@ -57,6 +59,12 @@ class EMT:
             raise RuntimeError('ase.EMT has been disabled.  ' +
                                'See message printed above.')
         
+    def get_name(self):
+        return self.name
+
+    def get_version(self):
+        return self.version
+
     def get_spin_polarized(self):
         return False
     

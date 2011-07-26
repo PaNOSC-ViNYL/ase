@@ -11,6 +11,14 @@ class Calculator:
         atoms.set_calculator(self)
         return atoms
 
+    def get_name(self):
+        """Return the name of the calculator (string).  """
+        raise NotImplementedError
+
+    def get_version(self):
+        """Return the version of the calculator (string).  """
+        raise NotImplementedError
+
     def get_potential_energy(self, atoms, force_consistent=False):
         self.update(atoms)
         if force_consistent:
