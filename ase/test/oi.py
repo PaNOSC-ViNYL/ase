@@ -17,13 +17,13 @@ images = [atoms.copy(), atoms.copy()]
 r = ['xyz', 'traj', 'cube', 'pdb', 'cfg', 'struct', 'cif', 'gen']
 try:
     import Scientific
-    version = Scientific.__version__.split(".")
+    version = Scientific.__version__.split('.')
     print 'Found ScientificPython version: ',Scientific.__version__
     if map(int,version) < [2,8]:
         print 'ScientificPython 2.8 or greater required for numpy support in NetCDF'
         #raise NotAvailable('ScientificPython version 2.8 or greater is required')
 except (ImportError, NotAvailable):
-    print "No Scientific python found. Check your PYTHONPATH"
+    print 'No Scientific python found. Check your PYTHONPATH'
     #raise NotAvailable('ScientificPython version 2.8 or greater is required')
 else:
     r += ['etsf']
@@ -58,5 +58,6 @@ for format in w:
             a2 = read(fname2)
             a3 = read(fname2, index=0)
             a4 = read(fname2, index=slice(None))
+            assert len(a4) == 2
     else:
         print
