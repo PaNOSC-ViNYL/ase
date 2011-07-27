@@ -42,7 +42,7 @@ class BasinHopping(Dynamics):
 
     def initialize(self):
         self.positions = 0.0 * self.atoms.get_positions()
-        self.Emin = self.get_energy(self.atoms.get_positions())
+        self.Emin = self.get_energy(self.atoms.get_positions()) or 1.e32
         self.rmin = self.atoms.get_positions()
         self.positions = self.atoms.get_positions()
         self.call_observers()
@@ -53,10 +53,12 @@ class BasinHopping(Dynamics):
 
         ro = self.positions
         Eo = self.get_energy(ro)
+        En = None
  
         for step in range(steps):
-            rn = self.move(ro)
-            En = self.get_energy(rn)
+            while En is None:
+                rn = self.move(ro)
+                En = self.get_energy(rn)
 
             if En < self.Emin:
                 # new minimum found
@@ -76,10 +78,11 @@ class BasinHopping(Dynamics):
             return
         name = self.__class__.__name__
         self.logfile.write('%s: step %d, energy %15.6f, emin %15.6f\n'
-                           % (name, step, En, self.Emin))
+                           % (name, step, En, Emin))
         self.logfile.flush()
 
     def move(self, ro):
+        """Move atoms by a random step."""
         atoms = self.atoms
         # displace coordinates
         disp = np.random.uniform(-1., 1., (len(atoms), 3))
@@ -94,6 +97,7 @@ class BasinHopping(Dynamics):
         return atoms.get_positions()
 
     def get_minimum(self):
+        """Return minimal energy and configuration."""
         atoms = self.atoms.copy()
         atoms.set_positions(self.rmin)
         return self.Emin, atoms
@@ -112,8 +116,9 @@ class BasinHopping(Dynamics):
 
                 self.energy = self.atoms.get_potential_energy()
             except:
-                # the atoms are probably to near to each other
-                self.energy = 1.e32
+                # Something went wrong.
+                # In GPAW the atoms are probably to near to each other.
+                return None
             
         return self.energy
        
