@@ -284,10 +284,11 @@ class Wannier:
         self.calc = calc
         self.spin = spin
         self.verbose = verbose
-        self.kpt_kc = sign * calc.get_ibz_k_points()
+        self.kpt_kc = calc.get_ibz_k_points()
         assert len(calc.get_bz_k_points()) == len(self.kpt_kc)
-        
         self.kptgrid = get_monkhorst_pack_size_and_offset(self.kpt_kc)[0]
+        self.kpt_kc *= sign
+
         self.Nk = len(self.kpt_kc)
         self.unitcell_cc = calc.get_atoms().get_cell()
         self.largeunitcell_cc = (self.unitcell_cc.T * self.kptgrid).T
