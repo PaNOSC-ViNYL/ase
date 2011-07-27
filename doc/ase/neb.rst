@@ -53,7 +53,7 @@ Example of use::
   for image in images[1:4]:
       image.set_calculator(MyCalculator(...))
   # Optimize:
-  optimizer = QuasiNewton(neb, trajectory='A2B.traj')
+  optimizer = MDMin(neb, trajectory='A2B.traj')
   optimizer.run(fmax=0.04)
 
 Notice the use of the :meth:`~NEB.interpolate` method to get a good
@@ -150,6 +150,7 @@ To use the climbing image NEB method, instantiate the NEB object like this::
   Quasi-Newton methods, such as BFGS, are not well suited for climbing image
   NEB calculations. FIRE have been known to give good results, although
   convergence is slow.
+
 
 Parallelization over images
 ===========================
