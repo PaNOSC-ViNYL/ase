@@ -12,7 +12,7 @@ import numpy as np
 
 from ase.parallel import paropen
 from ase.calculators.dacapo import Dacapo
-from ase.dft.kpoints import get_monkhorst_pack_size
+from ase.dft.kpoints import get_monkhorst_pack_size_and_offset
 from ase.transport.tools import dagger, normalize
 
 dag = dagger
@@ -287,7 +287,7 @@ class Wannier:
         self.kpt_kc = sign * calc.get_ibz_k_points()
         assert len(calc.get_bz_k_points()) == len(self.kpt_kc)
         
-        self.kptgrid = get_monkhorst_pack_size(self.kpt_kc)
+        self.kptgrid = get_monkhorst_pack_size_and_offset(self.kpt_kc)[0]
         self.Nk = len(self.kpt_kc)
         self.unitcell_cc = calc.get_atoms().get_cell()
         self.largeunitcell_cc = (self.unitcell_cc.T * self.kptgrid).T

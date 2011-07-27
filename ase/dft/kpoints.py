@@ -45,26 +45,9 @@ def get_monkhorst_pack_size_and_offset(kpts):
     return size, offsets[0].copy()
 
 
-def get_monkhorst_pack_size(kpts):
-    """Find Monkhorst-Pack size.
-
-    Returns size, where::
-
-        kpts = monkhorst_pack(size).
-    
-    The set of k-points must not have been symmetry reduced."""
-
-    size, offset = get_monkhorst_pack_size_and_offset(kpts)
-
-    if (abs(offset) > 1e-9).any():
-        raise ValueError('Not an ASE-style Monkhorst-Pack grid!')
-
-    return size
-
-
 def get_monkhorst_shape(kpts):
-    warnings.warn('Use get_monkhorst_pack_size() instead.')
-    return get_monkhorst_pack_size(kpts)
+    warnings.warn('Use get_monkhorst_pack_size_and_offset()[0] instead.')
+    return get_monkhorst_pack_size_and_offset(kpts)[0]
 
 
 def kpoint_convert(cell_cv, skpts_kc=None, ckpts_kv=None):

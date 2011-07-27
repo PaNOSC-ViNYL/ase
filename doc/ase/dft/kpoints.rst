@@ -13,7 +13,6 @@ Monkhorst-Pack
 --------------
 
 .. function:: dft.kpoints.monkhorst_pack
-.. function:: dft.kpoints.get_monkhorst_pack_size
 .. function:: dft.kpoints.get_monkhorst_pack_size_and_offset
 
 Example:
