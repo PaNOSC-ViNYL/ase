@@ -151,7 +151,7 @@ def read(filename, index=-1, format=None):
 
     if format == 'pdb':
         from ase.io.pdb import read_pdb
-        return read_pdb(filename)
+        return read_pdb(filename, index)
 
     if format == 'cif':
         from ase.io.cif import read_cif

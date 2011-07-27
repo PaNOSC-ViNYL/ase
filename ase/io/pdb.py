@@ -14,14 +14,16 @@ def read_pdb(fileobj, index=-1):
     if isinstance(fileobj, str):
         fileobj = open(fileobj)
 
+    images = []
     atoms = Atoms()
     for line in fileobj.readlines():
         if line.startswith('ATOM') or line.startswith('HETATM'):
             try:
                 symbol = line[12:16].strip()
                 # we assume that the second character is a label 
-                # in case that it is upper case
-                if len(symbol) > 1 and symbol[1].isupper():
+                # in case that it is upper case, a number, or a prime
+                # (all of which can be found at www.pdb.org entries)
+                if len(symbol) > 1 and (symbol[1].isupper() or symbol[1].isdigit() or symbol[1] == "'"):
                     symbol = symbol[0]
                 words = line[30:55].split()
                 position = np.array([float(words[0]), 
@@ -30,8 +32,12 @@ def read_pdb(fileobj, index=-1):
                 atoms.append(Atom(symbol, position))
             except:
                 pass
-
-    return atoms
+        if line.startswith('ENDMDL'):
+            images.append(atoms)
+            atoms = Atoms()
+    if len(images) == 0:
+        images.append(atoms)
+    return images[index]
 
 def write_pdb(fileobj, images):
     """Write images to PDB-file."""
@@ -50,8 +56,8 @@ def write_pdb(fileobj, images):
     symbols = images[0].get_chemical_symbols()
     natoms = len(symbols)
     
-    for atoms in images:
-        fileobj.write('MODEL         1\n')
+    for n,atoms in enumerate(images):
+        fileobj.write('MODEL     '+str(n+1)+'\n')
         p = atoms.get_positions()
         for a in range(natoms):
             x, y, z = p[a]
