@@ -55,6 +55,8 @@ Dacapo_           Old interface to Dacapo_. Requires           :term:`DFT`
 :mod:`dftb`       DftbPlus_ DFT based tight binding            :term:`DFT`
 :mod:`turbomole`  Fast atom orbital code Turbomole_,           :term:`DFT`,
                                                                :term:`HF`
+:mod:`castep`     Planewave pseodopotential code               :term:`DFT`,
+                                                               :term:`HF`
 :mod:`vasp`       Planewave PAW code                           :term:`DFT`
 :mod:`FHI-aims`   Numeric Atomic Orbital, full potential code  :term:`DFT`,
                                                                :term:`HF` 
@@ -103,6 +105,7 @@ Documentation for group 2 and 3 calculators
    mmtk
    exciting
    fleur
+   castep
 
 
 

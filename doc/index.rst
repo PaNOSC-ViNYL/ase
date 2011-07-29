@@ -12,7 +12,7 @@ for manipulating atoms, analyzing simulations, visualization etc.
 
 Supported :mod:`calculators`:
 
-   |abinit| |Asap| |dftb| |elk| |exciting| |EMT| |fhi-aims| 
+   |abinit| |Asap| |CASTEP| |dftb| |elk| |exciting| |EMT| |fhi-aims| 
    |fleur| |gpaw| |hotbit| |jacapo| |lammps| |siesta| |turbomole| |vasp| 
 
 .. |abinit| image:: _static/abinit.png
@@ -20,6 +20,9 @@ Supported :mod:`calculators`:
    :align: middle
 .. |Asap| image:: _static/asap.png
    :target: http://wiki.fysik.dtu.dk/asap
+   :align: middle
+.. |CASTEP| image:: _static/castep.gif
+   :target: ase/calculators/castep.html
    :align: middle
 .. |elk| image:: _static/elk.png
    :target: http://elk.sourceforge.net/
