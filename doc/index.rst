@@ -21,7 +21,7 @@ Supported :mod:`calculators`:
 .. |Asap| image:: _static/asap.png
    :target: http://wiki.fysik.dtu.dk/asap
    :align: middle
-.. |CASTEP| image:: _static/castep.gif
+.. |CASTEP| image:: _static/castep.png
    :target: ase/calculators/castep.html
    :align: middle
 .. |elk| image:: _static/elk.png
