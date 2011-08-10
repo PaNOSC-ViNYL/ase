@@ -17,7 +17,9 @@ if vcmd == None and vscr == None:
 
 import numpy as np
 from ase import io
-from ase.optimize import QuasiNewton
+# QuasiNewton nowadays is an alias for BFGSLineSearch, which is
+# broken. Use BFGS instead.
+from ase.optimize import BFGS as QuasiNewton
 from ase.structure import bulk
 from ase.calculators.vasp import Vasp
 
@@ -72,3 +74,6 @@ Al_ase = ase_vol_relax()
 
 assert cells_almost_equal(LDA_cell, Al_vasp.get_cell())
 assert cells_almost_equal(LDA_cell, Al_ase.get_cell())
+
+# Cleanup
+Al_ase.get_calculator().clean()
