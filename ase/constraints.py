@@ -479,6 +479,12 @@ class Filter:
         """
         return self.atoms.get_potential_energy()
 
+    def get_chemical_symbols(self):
+        return self.atoms.get_chemical_symbols()
+
+    def get_initial_magnetic_moments(self):
+        return self.atoms.get_initial_magnetic_moments()
+
     def get_calculator(self):
         """Returns the calculator.
 
@@ -537,7 +543,7 @@ class StrainFilter(Filter):
         else:
             self.mask = np.array(mask)
 
-        self.index = np.asarray(mask, bool)
+        self.index = np.arange(len(atoms))
         self.n = self.index.sum()
 
         self.origcell = atoms.get_cell()
