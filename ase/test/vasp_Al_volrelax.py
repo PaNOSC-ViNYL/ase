@@ -18,7 +18,6 @@ if vcmd == None and vscr == None:
 import numpy as np
 from ase import io
 from ase.optimize import QuasiNewton
-from ase.constraints import StrainFilter
 from ase.structure import bulk
 from ase.calculators.vasp import Vasp
 

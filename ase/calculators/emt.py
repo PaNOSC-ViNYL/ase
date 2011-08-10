@@ -33,10 +33,13 @@ beta = 1.809     # (16 * pi / 3)**(1.0 / 3) / 2**0.5,
 class EMT:
     disabled = False  # Set to True to disable (asap does this).
     
-    def __init__(self):
+    def __init__(self, fakestress=False):
         self.energy = None
         self.name = 'EMT'
         self.version = '1.0'
+        # fakestress is needed to fake some stress value for the testsuite
+        # in order to test the filter functionality.
+        self.fakestress = fakestress
         if self.disabled:
             print >> sys.stderr, """
             ase.EMT has been disabled by Asap.  Most likely, you
@@ -176,7 +179,10 @@ class EMT:
         return self.forces.copy()
     
     def get_stress(self, atoms):
-        raise NotImplementedError
+        if self.fakestress:
+            return np.zeros((6))
+        else:
+            raise NotImplementedError
     
     def calculate(self, atoms):
         self.positions = atoms.get_positions().copy()

@@ -392,9 +392,9 @@ class Filter:
         self.constraints = []
 
         if indices is None and mask is None:
-            raise ValuError('Use "indices" or "mask".')
+            raise ValueError('Use "indices" or "mask".')
         if indices is not None and mask is not None:
-            raise ValuError('Use only one of "indices" and "mask".')
+            raise ValueError('Use only one of "indices" and "mask".')
 
         if mask is not None:
             self.index = np.asarray(mask, bool)
@@ -426,6 +426,9 @@ class Filter:
         pos = self.atoms.get_positions()
         pos[self.index] = positions
         self.atoms.set_positions(pos)
+
+    positions = property(get_positions, set_positions, 
+                         doc='Positions of the atoms')
 
     def get_momenta(self):
         "Return the momenta of the visible atoms."
@@ -497,7 +500,7 @@ class Filter:
         return self.atoms[self.index[i]]
 
 
-class StrainFilter:
+class StrainFilter(Filter):
     """Modify the supercell while keeping the scaled positions fixed.
 
     Presents the strain of the supercell as the generalized positions,
@@ -534,7 +537,11 @@ class StrainFilter:
         else:
             self.mask = np.array(mask)
 
+        self.index = np.asarray(mask, bool)
+        self.n = self.index.sum()
+
         self.origcell = atoms.get_cell()
+
 
     def get_positions(self):
         return self.strain.reshape((2, 3))
