@@ -750,7 +750,7 @@ class Vasp(Calculator):
         for key, val in self.special_params.items():
             if val is not None:
                 incar.write(' %s = ' % key.upper())
-                if key is 'lreal':
+                if key == 'lreal':
                     if type(val) == str:
                         incar.write(val+'\n')
                     elif type(val) == bool:
