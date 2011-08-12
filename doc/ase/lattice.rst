@@ -169,8 +169,8 @@ be specified.
   
   Example:
 
-  >>> atoms = Monoclinic( ... , latticeconstant={'a':3.06, 
-  ...     'b/a': 0.95, 'c/a': 1.07, 'alpha'=74})
+  >>> atoms = Monoclinic( ... , latticeconstant={'a': 3.06, 
+  ...     'b/a': 0.95, 'c/a': 1.07, 'alpha': 74})
 
 
 ``debug``:
