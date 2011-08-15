@@ -262,13 +262,7 @@ class Images:
         return xy
 
     def set_dynamic(self, constraints = None):
-        if self.nimages == 1:
-            self.dynamic = np.ones(self.natoms, bool)
-        else:
-            self.dynamic = np.zeros(self.natoms, bool)
-            R0 = self.P[0]
-            for R in self.P[1:]:
-                self.dynamic |= (np.abs(R - R0) > 1.0e-10).any(1)
+        self.dynamic = np.ones(self.natoms, bool)
         if constraints is not None:
             for con in constraints: 
                 if isinstance(con,FixAtoms):
