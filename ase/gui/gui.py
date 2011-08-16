@@ -65,6 +65,7 @@ ui_info = """\
       <menuitem action='SelectAll'/>
       <menuitem action='Invert'/>
       <menuitem action='SelectConstrained'/>
+      <menuitem action='SelectImmobile'/>
       <separator/>
       <menuitem action='Copy'/>
       <menuitem action='Paste'/>
@@ -175,6 +176,9 @@ class GUI(View, Status):
             ('SelectConstrained', None, 'Select _constrained atoms', None,
              '',
              self.select_constrained_atoms),
+            ('SelectImmobile', None, 'Select _immobile atoms', '<control>I',
+             '',
+             self.select_immobile_atoms),
              ('Copy', None, '_Copy', '<control>C',
               'Copy current selection and its orientation to clipboard',
               self.copy_atoms),
@@ -947,6 +951,13 @@ class GUI(View, Status):
         self.images.selected[:] = ~self.images.dynamic
         self.draw()
         
+    def select_immobile_atoms(self, widget):
+        if self.images.nimages > 1:
+            R0 = self.images.P[0]
+            for R in self.images.P[1:]:
+                self.images.selected[:] =~ (np.abs(R - R0) > 1.0e-10).any(1)
+        self.draw()
+
     def movie(self, widget=None):
         from ase.gui.movie import Movie
         self.movie_window = Movie(self)
