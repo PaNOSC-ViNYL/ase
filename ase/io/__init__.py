@@ -38,7 +38,7 @@ def read(filename, index=-1, format=None):
     ASE bundle trajectory      bundle
     GPAW text output           gpaw-text
     CUBE file                  cube
-    XCrySDen Structure File    xsf  
+    XCrySDen Structure File    xsf
     Dacapo text output         dacapo-text
     XYZ-file                   xyz
     VASP POSCAR/CONTCAR file   vasp
@@ -55,6 +55,9 @@ def read(filename, index=-1, format=None):
     AtomEye configuration      cfg
     WIEN2k structure file      struct
     DftbPlus input file        dftb
+    CASTEP geom file           cell
+    CASTEP output file         castep
+    CASTEP trajectory file     geom
     ETSF format                etsf.nc
     DFTBPlus GEN format        gen
     =========================  ===========
@@ -97,6 +100,18 @@ def read(filename, index=-1, format=None):
 
         return atoms
 
+    if format == 'castep':
+        from ase.io.castep import read_castep
+        return read_castep(filename, index)
+
+    if format == 'castep_cell':
+        import ase.io.castep
+        return ase.io.castep.read_cell(filename, index)
+
+    if format == 'castep_geom':
+        import ase.io.castep
+        return ase.io.castep.read_geom(filename, index)
+
     if format == 'exi':
         from ase.io.exciting import read_exciting
         return read_exciting(filename, index)
@@ -132,7 +147,7 @@ def read(filename, index=-1, format=None):
     if format == 'dacapo':
         from ase.io.dacapo import read_dacapo
         return read_dacapo(filename)
-    
+
     if format == 'xsf':
         from ase.io.xsf import read_xsf
         return read_xsf(filename, index)
@@ -140,11 +155,11 @@ def read(filename, index=-1, format=None):
     if format == 'vasp':
         from ase.io.vasp import read_vasp
         return read_vasp(filename)
-    
+
     if format == 'vasp_out':
         from ase.io.vasp import read_vasp_out
         return read_vasp_out(filename, index)
-    
+
     if format == 'mol':
         from ase.io.mol import read_mol
         return read_mol(filename)
@@ -176,7 +191,7 @@ def read(filename, index=-1, format=None):
     if format == 'aims':
         from ase.io.aims import read_aims
         return read_aims(filename)
-    
+
     if format == 'aims_out':
         from ase.io.aims import read_aims_output
         return read_aims_output(filename, index)
@@ -225,10 +240,10 @@ def write(filename, images, format=None, **kwargs):
         A single Atoms object or a list of Atoms objects.
     format: str
         Used to specify the file-format.  If not given, the
-        file-format will be taken from suffix of the filename. 
+        file-format will be taken from suffix of the filename.
 
     The accepted output formats:
-  
+
     =========================  ===========
     format                     short name
     =========================  ===========
@@ -241,7 +256,7 @@ def write(filename, images, format=None, **kwargs):
     CIF-file                   cif
     XCrySDen Structure File    xsf
     FHI-aims geometry file     aims
-    gOpenMol .plt file         plt  
+    gOpenMol .plt file         plt
     Python script              py
     Encapsulated Postscript    eps
     Portable Network Graphics  png
@@ -253,17 +268,18 @@ def write(filename, images, format=None, **kwargs):
     exciting                   exi
     AtomEye configuration      cfg
     WIEN2k structure file      struct
+    CASTEP cell file           cell
     DftbPlus input file        dftb
     ETSF                       etsf.nc
     DFTBPlus GEN format        gen
     =========================  ===========
-  
+
     The use of additional keywords is format specific.
-  
+
     The ``cube`` and ``plt`` formats accept (plt requires it) a ``data``
     keyword, which can be used to write a 3D array to the file along
     with the nuclei coordinates.
-  
+
     The ``vti``, ``vts`` and ``vtu`` formats are all specifically directed
     for use with MayaVi, and the latter is designated for visualization of
     the atoms whereas the two others are intended for volume data. Further,
@@ -294,7 +310,7 @@ def write(filename, images, format=None, **kwargs):
 
     scale: int (default 20)
       Number of pixels per Angstrom.
-      
+
     For the ``pov`` graphics format, ``scale`` should not be specified.
     The elements of the color array can additionally be strings, or 4
     and 5 vectors for named colors, rgb + filter, and rgb + filter + transmit
@@ -306,7 +322,7 @@ def write(filename, images, format=None, **kwargs):
     ``area_light``, ``background``, ``textures``, ``celllinewidth``,
     ``bondlinewidth``, ``bondatoms``
     """
-    
+
     if format is None:
         if filename == '-':
             format = 'xyz'
@@ -319,7 +335,8 @@ def write(filename, images, format=None, **kwargs):
             format = 'etsf'
         else:
             suffix = filename.split('.')[-1]
-            format = {}.get(suffix, suffix) # XXX this does not make sense
+            format = {'cell':'castep_cell',
+                    }.get(suffix, suffix) # XXX this does not make sense
             # Maybe like this:
 ##             format = {'traj': 'trajectory',
 ##                       'nc': 'netcdf',
@@ -328,6 +345,10 @@ def write(filename, images, format=None, **kwargs):
 ##                       'tmol': 'turbomole',
 ##                       }.get(suffix, suffix)
 
+    if format == 'castep_cell':
+        from ase.io.castep import write_cell
+        write_cell(filename, images, **kwargs)
+        return
     if format == 'exi':
         from ase.io.exciting import write_exciting
         write_exciting(filename, images)
@@ -386,7 +407,7 @@ def write(filename, images, format=None, **kwargs):
         write = getattr(__import__('ase.io.%s' % format, {}, {}, [name]), name)
     except ImportError:
         raise TypeError('Unknown format: "%s".' % format)
-    
+
     write(filename, images, **kwargs)
 
 
@@ -411,12 +432,12 @@ def filetype(filename):
             return 'bundle'
         else:
             raise IOError('Directory: ' + filename)
-    
+
     fileobj = open(filename)
     s3 = fileobj.read(3)
     if len(s3) == 0:
         raise IOError('Empty file: ' + filename)
-    
+
     if is_tarfile(filename):
         return 'gpw'
 
@@ -437,7 +458,7 @@ def filetype(filename):
             return 'etsf'
         raise IOError('Unknown netCDF file!')
 
-    
+
     if is_zipfile(filename):
         return 'vnl'
 
@@ -449,7 +470,7 @@ def filetype(filename):
 
     if lines[1].startswith('OUTER LOOP:') or filename.lower().endswith('.cube'):
         return 'cube'
-    
+
     if '  ___ ___ ___ _ _ _  \n' in lines:
         return 'gpaw-text'
 
@@ -464,16 +485,16 @@ def filetype(filename):
             if word in ['ANIMSTEPS', 'CRYSTAL', 'SLAB', 'POLYMER', 'MOLECULE']:
                 return 'xsf'
 
-    filename_v = basename(filename) 
+    filename_v = basename(filename)
     if 'POSCAR' in filename_v or 'CONTCAR' in filename_v:
-        return 'vasp'    
+        return 'vasp'
 
     if 'OUTCAR' in filename_v:
         return 'vasp_out'
-    
+
     if filename.lower().endswith('.exi'):
         return 'exi'
-    
+
     if filename.lower().endswith('.mol'):
         return 'mol'
 
@@ -482,7 +503,7 @@ def filetype(filename):
 
     if filename.lower().endswith('.cif'):
         return 'cif'
-   
+
     if filename.lower().endswith('.struct'):
         return 'struct'
 
@@ -494,7 +515,7 @@ def filetype(filename):
 
     if filename.lower().endswith('.cfg'):
         return 'cfg'
-        
+
     if os.path.split(filename)[1] == 'atoms.dat':
         return 'iwm'
 
@@ -507,6 +528,14 @@ def filetype(filename):
     if lines[0].startswith('Geometry'):
         return 'dftb'
 
+    if filename.lower().endswith('.geom'):
+        return 'castep_geom'
+
+    if filename.lower().endswith('.castep'):
+        return 'castep'
+
+    if filename.lower().endswith('.cell'):
+        return 'castep_cell'
     if s3 == '<?x':
         from ase.io.vtkxml import probe_vtkxml
         xmltype = probe_vtkxml(filename)

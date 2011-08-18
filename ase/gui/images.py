@@ -133,11 +133,11 @@ class Images:
     def set_radii(self, scale):
         self.r = self.covalent_radii[self.Z] * scale
                 
-    def read(self, filenames, index=-1):
+    def read(self, filenames, index=-1, filetype=None):
         images = []
         names = []
         for filename in filenames:
-            i = read(filename, index)
+            i = read(filename, index,filetype)
             
             if not isinstance(i, list):
                 i = [i]

@@ -996,9 +996,48 @@ class GUI(View, Status):
                 _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
                 (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
                  gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+
+            # Add a file type filter
+            name_to_suffix = {}
+            types = gtk.combo_box_new_text()
+            for name, suffix in [('Automatic', None),
+                                 ('Dacapo netCDF output file','dacapo'),
+                                 ('Virtual Nano Lab file','vnl'),
+                                 ('ASE pickle trajectory','traj'),
+                                 ('ASE bundle trajectory','bundle'),
+                                 ('GPAW text output','gpaw-text'),
+                                 ('CUBE file','cube'),
+                                 ('XCrySDen Structure File','xsf'),
+                                 ('Dacapo text output','dacapo-text'),
+                                 ('XYZ-file','xyz'),
+                                 ('VASP POSCAR/CONTCAR file','vasp'),
+                                 ('VASP OUTCAR file','vasp_out'),
+                                 ('Protein Data Bank','pdb'),
+                                 ('CIF-file','cif'),
+                                 ('FHI-aims geometry file','aims'),
+                                 ('FHI-aims output file','aims_out'),
+                                 ('TURBOMOLE coord file','tmol'),
+                                 ('exciting input','exi'),
+                                 ('WIEN2k structure file','struct'),
+                                 ('DftbPlus input file','dftb'),
+                                 ('ETSF format','etsf.nc'),
+                                 ('CASTEP geom file','cell'),
+                                 ('CASTEP output file','castep'),
+                                 ('CASTEP trajectory file','geom'),
+                                 ('DFTBPlus GEN format','gen')
+                                ]:
+                types.append_text(name)
+                name_to_suffix[name] = suffix
+            types.set_active(0)
+            img_vbox = gtk.VBox()
+            pack(img_vbox, [gtk.Label('File type:'), types])
+            img_vbox.show()
+            chooser.set_extra_widget(img_vbox)
+
             ok = chooser.run() == gtk.RESPONSE_OK
             if ok:
                 filenames = [chooser.get_filename()]
+                filetype = types.get_active_text()
             chooser.destroy()
 
             if not ok:
@@ -1006,7 +1045,7 @@ class GUI(View, Status):
 
         n_current = self.images.nimages
         self.reset_tools_modes()     
-        self.images.read(filenames, slice(None))
+        self.images.read(filenames, slice(None), name_to_suffix[filetype])
         self.set_colors()
         self.set_coordinates(self.images.nimages - 1, focus=True)
 
@@ -1049,6 +1088,7 @@ class GUI(View, Status):
                              ('Persistance of Vision', 'pov'),
                              ('Encapsulated PostScript', 'eps'),
                              ('FHI-aims geometry input', 'in'),
+                             ('CASTEP geom file','cell'),
                              ('VASP geometry input', 'POSCAR'),
                              ('ASE bundle trajectory', 'bundle'),
                              ('cif file', 'cif'),
