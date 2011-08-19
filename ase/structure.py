@@ -20,6 +20,10 @@ def gcd(m,n):
 def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
     if n < m:
         m, n = n, m
+        sign = -1
+    else:
+        sign = 1
+
     nk = 6000
     sq3 = sqrt(3.0)
     a = sq3 * bond
@@ -137,7 +141,7 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
     ntotal = 2 * nn
     X = []
     for i in range(ntotal):
-        X.append([x[i], y[i], z[i]])
+        X.append([x[i], y[i], sign * z[i]])
 
     if length > 1:
         xx = X[:]

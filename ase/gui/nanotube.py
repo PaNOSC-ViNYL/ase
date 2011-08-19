@@ -68,8 +68,6 @@ class SetupNanotube(SetupWindow):
         self.err.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('#FF0000'))
         pack(vbox, [self.err])
         pack(vbox, gtk.Label(""))
-        self.n.connect('value-changed', self.update_n)
-        self.m.connect('value-changed', self.update_m)
 
         # Buttons
         self.pybut = PyButton("Creating a nanoparticle.")
@@ -84,20 +82,6 @@ class SetupNanotube(SetupWindow):
         vbox.show()
         self.show()
         self.gui = gui
-
-    def update_n(self, *args):
-        if self.m.value > self.n.value:
-            self.m.value = self.n.value
-            self.err.set_text("m decreased! (m may not be larger than n.)")
-        else:
-            self.err.set_text("")
-            
-    def update_m(self, *args):
-        if self.m.value > self.n.value:
-            self.n.value = self.m.value
-            self.err.set_text("n increased! (m may not be larger than n.)")
-        else:
-            self.err.set_text("")
 
     def update_element(self, *args):
         "Called when a new element may have been entered."
