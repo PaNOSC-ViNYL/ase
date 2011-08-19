@@ -38,6 +38,10 @@ def view(atoms, data=None, viewer='ag', repeat=None, block=False):
     elif vwr == 'avogadro':
         format = 'cube'
         command = 'avogadro'
+    elif vwr == 'sage':
+        from ase.visualize.sage import view_sage_jmol
+        view_sage_jmol(atoms)
+        return
     else:
         raise RuntimeError('Unknown viewer: ' + viewer)
 
