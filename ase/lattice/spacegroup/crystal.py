@@ -28,12 +28,16 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
 
     Parameters:
 
-    symbols : string | sequence of strings
-        Either a string formula or a sequence of element
-        symbols. E.g. ('Na', 'Cl') and 'NaCl' are equivalent.
-    basis : list of scaled coordinates | atoms instance
-        Positions of the non-equivalent sites given either as
-        scaled positions or through an atoms instance.
+    symbols : str | sequence of str | sequence of Atom | Atoms
+        Element symbols of the unique sites.  Can either be a string
+        formula or a sequence of element symbols. E.g. ('Na', 'Cl')
+        and 'NaCl' are equivalent.  Can also be given as a sequence of
+        Atom objects or an Atoms object.
+    basis : list of scaled coordinates 
+        Positions of the unique sites corresponding to symbols given
+        either as scaled positions or through an atoms instance.  Not
+        needed if *symbols* is a sequence of Atom objects or an Atoms
+        object.
     spacegroup : int | string | Spacegroup instance
         Space group given either as its number in International Tables
         or as its Hermann-Mauguin symbol.
@@ -94,6 +98,11 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
     32
     """
     sg = Spacegroup(spacegroup, setting)
+    if (not isinstance(symbols, str) and 
+        hasattr(symbols, '__getitem__') and
+        len(symbols) > 0 and 
+        isinstance(symbols[0], ase.Atom)):
+        symbols = ase.Atoms(symbols)
     if isinstance(symbols, ase.Atoms):
         basis = symbols
         symbols = basis.get_chemical_symbols()
