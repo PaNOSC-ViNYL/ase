@@ -33,6 +33,11 @@ surfaces = [('FCC(100)', 'fcc', True, False, _surf.fcc100),
             ('BCC(111) orthogonal', 'bcc', True, True, _surf.bcc111),
             ('HCP(0001) non-orthogonal', 'hcp', False, True, _surf.hcp0001),
             ('HCP(0001) orthogonal', 'hcp', True, True, _surf.hcp0001),
+            ('HCP(10-10) orthogonal', 'hcp', True, False, _surf.hcp10m10),
+            ('DIAMOND(100) orthogonal', 'diamond', True, False,
+             _surf.diamond100),
+            ('DIAMOND(111) non-orthogonal', 'diamond', False, True,
+             _surf.diamond111),
             ]
 
 py_template = """

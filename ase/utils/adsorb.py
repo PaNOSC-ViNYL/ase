@@ -7,7 +7,8 @@ from optparse import OptionParser
 
 import numpy as np
 
-from ase.lattice.surface import fcc111, hcp0001, bcc110, add_adsorbate
+from ase.lattice.surface import fcc111, hcp0001, bcc110, diamond111, \
+    add_adsorbate
 from ase.structure import estimate_lattice_constant
 from ase.data import reference_states, atomic_numbers, covalent_radii
 from ase.io import write
@@ -122,6 +123,14 @@ def build():
                    'slab = hcp0001(%r, (%d, %d, %d), a, c, vac)' %
                    (surf, n, m, opt.layers)]
         r = a / 2
+    elif x == 'diamond':
+        if face is None:
+            face = '111'
+        slab = diamond111(surf, (n, m, opt.layers), a, opt.vacuum)
+        script[0] += 'diamond111'
+        script += ['slab = diamond111(%r, (%d, %d, %d), a, vac)' %
+                   (surf, n, m, opt.layers)]
+        r = a * np.sqrt(3) / 8
     else:
         raise NotImplementedError
 

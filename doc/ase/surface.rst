@@ -99,29 +99,35 @@ The following functions are provided
 .. function:: fcc100(symbol, size, a=None, vacuum=0.0)
 .. function:: fcc110(symbol, size, a=None, vacuum=0.0)
 .. function:: bcc100(symbol, size, a=None, vacuum=0.0)
+.. function:: hcp10m10(symbol, size, a=None, c=None, vacuum=0.0)
+.. function:: diamond100(symbol, size, a=None, vacuum=0.0)
 
 These allways give orthorhombic cells:
 
-======  ========
-fcc100  |fcc100|
-fcc110  |fcc110|
-bcc100  |bcc100|
-======  ========
+==========  ============
+fcc100      |fcc100|
+fcc110      |fcc110|
+bcc100      |bcc100|
+hcp10m10    |hcp10m10|
+diamond100  |diamond100|
+==========  ============
 
 
 .. function:: fcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
 .. function:: bcc110(symbol, size, a=None, vacuum=0.0, orthogonal=False)
 .. function:: bcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
 .. function:: hcp0001(symbol, size, a=None, c=None, vacuum=0.0, orthogonal=False)
+.. function:: diamond111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
 
 These can give both non-orthorhombic and orthorhombic cells:
 
-=======  =========  ==========
-fcc111   |fcc111|   |fcc111o|
-bcc110   |bcc110|   |bcc110o|
-bcc111   |bcc111|   |bcc111o|
-hcp0001  |hcp0001|  |hcp0001o|
-=======  =========  ==========
+==========  ============  ===============
+fcc111      |fcc111|      |fcc111o|
+bcc110      |bcc110|      |bcc110o|
+bcc111      |bcc111|      |bcc111o|
+hcp0001     |hcp0001|     |hcp0001o|
+diamond111  |diamond111|  not implemented
+==========  ============  ===============
 
 The adsorption sites are marked with:
 
@@ -146,6 +152,9 @@ ontop    hollow    fcc    hcp    bridge    shortbridge  longbridge
 .. |bcc110o|  image:: bcc110o.png
 .. |bcc111o|  image:: bcc111o.png
 .. |hcp0001o| image:: hcp0001o.png
+.. |hcp10m10| image:: hcp10m10.png
+.. |diamond100| image:: diamond100.png
+.. |diamond111| image:: diamond111.png
 
 
 
@@ -156,6 +165,7 @@ If you need other surfaces than the ones above, the easiest is to look
 in the source file surface.py, and adapt one of the existing
 functions.  *Please* contribute any such function that you make
 either by cheking it into SVN or by mailing it to the developers.
+
 
 Adding adsorbates
 -----------------
