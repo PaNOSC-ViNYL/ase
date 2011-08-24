@@ -630,13 +630,13 @@ def parse_sitesym(symlist, sep=','):
                     if s[0] == '-':
                         sign = -1
                     s = s[1:]
-                if s in 'xyz':
+                if s[0] in 'xyz':
                     k = ord(s[0]) - ord('x')
                     rot[i, j, k] = sign
                     s = s[1:]
                 elif s[0].isdigit():
                     n = 0
-                    while s[n].isdigit() or s[n] in '/':
+                    while n < len(s) and (s[n].isdigit() or s[n] == '/'):
                         n += 1
                     t = s[:n]
                     s = s[n:]
