@@ -371,6 +371,9 @@ class FLEUR:
                 fh.write(' %21.16f' % el)
             fh.write('\n')
 
+        # avoid "STOP read_record: ERROR reading input"
+        fh.write('&end /')
+
         fh.close()
         try:
             inpgen = os.environ['FLEUR_INPGEN']
