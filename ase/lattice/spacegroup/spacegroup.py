@@ -623,22 +623,28 @@ def parse_sitesym(symlist, sep=','):
     trans = np.zeros((nsym, 3))
     for i, sym in enumerate(symlist):
         for j, s in enumerate (sym.split(sep)):
-            for p in s.lower().strip().split('+'):
-                n = 0
-                if p[n] == '-':
-                    sign = -1
-                    n += 1
-                else:
-                    sign = 1
-                if p[n] in 'xyz':
-                    k = ord(p[n]) - ord('x')
-                    rot[i,j,k] = sign
-                elif p[n].isdigit():
-                    if '/' in p[n:]:
-                        q, r = p[n:].split('/')
+            s = s.lower().strip()
+            while s:
+                sign = 1
+                if s[0] in '+-':
+                    if s[0] == '-':
+                        sign = -1
+                    s = s[1:]
+                if s in 'xyz':
+                    k = ord(s[0]) - ord('x')
+                    rot[i, j, k] = sign
+                    s = s[1:]
+                elif s[0].isdigit():
+                    n = 0
+                    while s[n].isdigit() or s[n] in '/':
+                        n += 1
+                    t = s[:n]
+                    s = s[n:]
+                    if '/' in t:
+                        q, r = t.split('/')
                         trans[i,j] = float(q)/float(r)
                     else:
-                        trans[i,j] = float(p[n:])
+                        trans[i,j] = float(t)
                 else:
                     raise SpacegroupValueError(
                         'invalid site symmetry: %s' % sym)
