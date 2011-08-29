@@ -151,6 +151,9 @@ class EMT:
                 (self.pbc != atoms.get_pbc()).any() or
                 (self.cell != atoms.get_cell()).any())
                 
+    def get_number_of_iterations(self):
+        return 0
+
     def get_potential_energy(self, atoms):
         self.update(atoms)
         return self.energy
