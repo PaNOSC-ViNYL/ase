@@ -44,10 +44,8 @@ class NWchem(Calculator):
             # the sub process gets started here
             proc = Popen([command], shell=True, stderr=PIPE)
             error = proc.communicate()[1]
-            # check the error output
-            if 'abnormally' in error:
-                raise OSError(error)
-#            print 'TM command: ', command, 'successfully executed'
+            if error:
+                raise OSError(error + '\ncheck ' + self.output)
         except OSError, e:
             print >> sys.stderr, 'Execution failed:', e
             sys.exit(1)
@@ -69,6 +67,10 @@ class NWchem(Calculator):
             basis = '\nbasis\n'
             basis += '  * library ' + self.basis + '\n'
             basis += 'end\n'
+            if 1:
+                basis += 'ecp\n'
+                basis += '  * library ' + self.basis + '\n'
+                basis += 'end\n'
             f.write(basis)
 
             if self.xc == 'RHF':
@@ -121,8 +123,29 @@ class NWchem(Calculator):
             estring += ' energy'
             if line.find(estring) >=0:
                 energy = float(line.split()[4])
+                break
         self.energy = energy
 
+        # Eigenstates
+        found = False
+        for line in lines:
+            if found:
+                if line.find('Vector') >= 0:
+                    line = line.lower().replace('d', 'e')
+                    line = line.replace('=', ' ')
+                    word = line.split()
+                    f_i.append(float(word[3]))
+                    e_i.append(float(word[5]))
+                    assert(int(word[1]) == len(f_i))
+            else:
+                if line.find('Molecular Orbital Analysis') >= 0:
+                    found = True
+                    f_i = []
+                    e_i = []
+        if found:
+            self.f_i = np.array(f_i)
+            self.e_i = np.array(e_i)
+        
     def read_forces(self):
         """Read Forces from nwchem output file."""
         file = open(self.output, 'r')
@@ -137,6 +160,14 @@ class NWchem(Calculator):
                     gradients.append([float(word[k]) for k in range(5,8)])
         self.forces =  - np.array(gradients) * Hartree / Bohr
 
+    def get_eigenvalues(self, kpt=0, spin=0):
+        """Return eigenvalue array."""
+        return self.e_i
+    
+    def get_occupation_numbers(self, kpt=0, spin=0):
+        """Return occupation number array."""
+        return self.f_i
+        
     def set_atoms(self, atoms):
         if self.atoms == atoms:
             return
