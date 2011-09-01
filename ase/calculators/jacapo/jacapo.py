@@ -2175,7 +2175,7 @@ than density cutoff %i' % (pw, dw))
         if 'ElectronicBands' in nc.variables:
             v = nc.variables['ElectronicBands']
             if hasattr(v, 'NumberOfBands'):
-                nbands = v.NumberOfBands[0]
+                nbands = int(v.NumberOfBands[0])
             else:
                 nbands = None
         else:
