@@ -11,6 +11,12 @@ from ase.units import Hartree, Bohr
 from ase.io.nwchem import write_nwchem, read_nwchem
 from ase.calculators.general import Calculator
 
+class KPoint:
+    def __init__(self, s):
+        self.s = s
+        self.eps_n = []
+        self.f_n = []
+
 class NWchem(Calculator):
     def __init__(self, label='nwchem',
                  calculate_energy='nwchem', 
@@ -20,6 +26,7 @@ class NWchem(Calculator):
                                 'gradient': 1.e-5},
                  basis='3-21G',
                  charge=None,
+                 spinpol=False,
                  ):
         self.label = label
         self.converged = False
@@ -27,13 +34,14 @@ class NWchem(Calculator):
         # set calculators for energy and forces
         self.calculate_energy = calculate_energy
 
-        # turbomole has no stress
+        # does nwchem have stress ???
         self.stress = np.empty((3, 3))
         
         self.charge = charge
         self.xc = xc
         self.basis = basis
         self.convergence = convergence
+        self.spinpol = spinpol
 
         # atoms must be set
         self.atoms = None
@@ -86,6 +94,8 @@ class NWchem(Calculator):
                 else:
                     xc = self.xc
                 f.write('\ndft\n')
+                if self.spinpol:
+                    f.write('  odft\n')
                 f.write('  xc ' + xc + '\n')
                 for key in self.convergence:
                     f.write('  convergence ' + key + ' ' +
@@ -127,24 +137,22 @@ class NWchem(Calculator):
         self.energy = energy
 
         # Eigenstates
-        found = False
+        spin = -1
+        kpts = []
         for line in lines:
-            if found:
+            if line.find('Molecular Orbital Analysis') >= 0:
+                spin += 1
+                kpts.append(KPoint(spin))
+            if spin >= 0:
                 if line.find('Vector') >= 0:
                     line = line.lower().replace('d', 'e')
                     line = line.replace('=', ' ')
                     word = line.split()
-                    f_i.append(float(word[3]))
-                    e_i.append(float(word[5]))
-                    assert(int(word[1]) == len(f_i))
-            else:
-                if line.find('Molecular Orbital Analysis') >= 0:
-                    found = True
-                    f_i = []
-                    e_i = []
-        if found:
-            self.f_i = np.array(f_i)
-            self.e_i = np.array(e_i)
+                    # print word
+                    kpts[spin].f_n.append(float(word[3]))
+                    kpts[spin].eps_n.append(float(word[5]))
+                    assert(int(word[1]) == len(kpts[spin].f_n))
+        self.kpts = kpts
         
     def read_forces(self):
         """Read Forces from nwchem output file."""
@@ -162,11 +170,21 @@ class NWchem(Calculator):
 
     def get_eigenvalues(self, kpt=0, spin=0):
         """Return eigenvalue array."""
-        return self.e_i
+        return self.kpts[spin].eps_n
     
     def get_occupation_numbers(self, kpt=0, spin=0):
         """Return occupation number array."""
-        return self.f_i
+        return self.kpts[spin].f_n
+
+    def get_number_of_spins(self):
+        """Return the number of spins in the calculation.
+
+        Spin-paired calculations: 1, spin-polarized calculation: 2."""
+        return int(self.spinpol) + 1
+
+    def get_spin_polarized(self):
+        """Is it a spin-polarized calculation?"""
+        return self.spinpol
         
     def set_atoms(self, atoms):
         if self.atoms == atoms:
