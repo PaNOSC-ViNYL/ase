@@ -1,7 +1,6 @@
 import numpy as np
 
-from ase import Atoms
-from ase.data import atomic_numbers
+from ase.data import atomic_numbers as ref_atomic_numbers
 from ase.lattice.spacegroup import Spacegroup
 from ase.cluster.base import ClusterBase
 from ase.cluster.cluster import Cluster
@@ -13,17 +12,24 @@ class ClusterFactory(ClusterBase):
 
     atomic_basis = np.array([[0., 0., 0.]])
 
-    def __call__(self, symbol, surfaces, layers, latticeconstant=None,
+    element_basis = None
+
+    def __call__(self, symbols, surfaces, layers, latticeconstant=None,
                  center=None, vacuum=0.0, debug=0):
         self.debug = debug
 
         # Interpret symbol
-        if isinstance(symbol, str):
-            self.atomic_number = atomic_numbers[symbol]
-        else:
-            self.atomic_number = symbol
+        self.set_atomic_numbers(symbols)
 
-        self.set_lattice_constant(latticeconstant)
+        # Interpret lattice constant
+        if latticeconstant is None:
+            if self.element_basis is None:
+                self.lattice_constant = self.get_lattice_constant()
+            else:
+                raise ValueError("A lattice constant must be specified for a compound")
+        else:
+            self.lattice_constant = latticeconstant
+
         self.set_basis()
 
         if self.debug:
@@ -60,9 +66,11 @@ class ClusterFactory(ClusterBase):
 
         atomic_basis = np.dot(self.atomic_basis, self.lattice_basis)
         positions = np.zeros((len(translations) * len(atomic_basis), 3))
+        numbers = np.zeros(len(positions))
         n = len(atomic_basis)
         for i, trans in enumerate(translations):
             positions[n*i:n*(i+1)] = atomic_basis + trans
+            numbers[n*i:n*(i+1)] = self.atomic_numbers
 
         # Remove all atoms that is outside the defined surfaces
         for s, l in zip(self.surfaces, self.layers):
@@ -76,6 +84,7 @@ class ClusterFactory(ClusterBase):
                 print "Cutting %s at %i layers ~ %.3f A" % (s, l, rmax)
 
             positions = positions[mask]
+            numbers = numbers[mask]
 
         # Fit the cell, so it only just consist the atoms
         min = np.zeros(3)
@@ -90,8 +99,45 @@ class ClusterFactory(ClusterBase):
         positions = positions - min + vacuum / 2.0
         self.center = self.center - min + vacuum / 2.0
 
-        return Cluster(symbols=[self.atomic_number] * len(positions),
-                       positions=positions, cell=cell)
+        return Cluster(symbols=numbers, positions=positions, cell=cell)
+
+    def set_atomic_numbers(self, symbols):
+        "Extract atomic number from element"
+        # The types that can be elements: integers and strings
+        atomic_numbers = []
+        if self.element_basis is None:
+            if isinstance(symbols, str):
+                atomic_numbers.append(ref_atomic_numbers[symbols])
+            elif isinstance(symbols, int):
+                atomic_numbers.append(symbols)
+            else:
+                raise TypeError("The symbol argument must be a " +
+                                "string or an atomic number.")
+            element_basis = [0] * len(self.atomic_basis)
+        else:
+            if isinstance(symbols, (list, tuple)):
+                nsymbols = len(symbols)
+            else:
+                nsymbols = 0
+
+            nelement_basis = max(self.element_basis) + 1
+            if nsymbols != nelement_basis:
+                raise TypeError("The symbol argument must be a sequence " +
+                                "of length %d" % (nelement_basis,) +
+                                " (one for each kind of lattice position")
+
+            for s in symbols:
+                if isinstance(s, str):
+                    atomic_numbers.append(ref_atomic_numbers[s])
+                elif isinstance(s, int):
+                    atomic_numbers.append(s)
+                else:
+                    raise TypeError("The symbol argument must be a " +
+                                    "string or an atomic number.")
+            element_basis = self.element_basis
+
+        self.atomic_numbers = [atomic_numbers[n] for n in element_basis]
+        assert len(self.atomic_numbers) == len(self.atomic_basis)
 
     def set_lattice_size(self, center):
         if center is None:
