@@ -26,6 +26,8 @@ class NWchem(Calculator):
                                 'gradient': 1.e-5},
                  maxiter = 120,
                  basis='3-21G',
+                 ecp=None,
+                 so=None,
                  charge=None,
                  multiplicity = 1,
                  spinorbit=False,
@@ -42,6 +44,8 @@ class NWchem(Calculator):
         self.charge = charge
         self.xc = xc
         self.basis = basis
+        self.ecp = ecp
+        self.so = so
         self.convergence = convergence
         self.maxiter = maxiter
         self.multiplicity = multiplicity
@@ -76,13 +80,20 @@ class NWchem(Calculator):
             if self.charge is not None:
                 f.write('charge ' + str(self.charge) + '\n')
             write_nwchem(f, atoms)
-            basis = '\nbasis\n'
-            basis += '  * library ' + self.basis + '\n'
-            basis += 'end\n'
-            if 1:
-                basis += 'ecp\n'
-                basis += '  * library ' + self.basis + '\n'
-                basis += 'end\n'
+
+            def format_basis_set(string, tag='basis'):
+                formatted = tag + '\n'
+                lines = string.split('\n')
+                if len(lines) > 1:
+                    formatted += string
+                else:
+                    formatted += '  * library '  + string + '\n'
+                return formatted + 'end\n'
+            basis = format_basis_set(self.basis)
+            if self.ecp is not None:
+                basis += format_basis_set(self.ecp, 'ecp')
+            if self.so is not None:
+                basis += format_basis_set(self.so, 'so')
             f.write(basis)
 
             if self.xc == 'RHF':
@@ -109,8 +120,8 @@ class NWchem(Calculator):
                             str(self.convergence[key]) + '\n')
                 f.write('end\n')
 
-            f.write('\ntask ' + task + ' gradient\n')
-#            f.write('\ntask ' + task + ' energy\n')
+#            f.write('\ntask ' + task + ' gradient\n')
+            f.write('\ntask ' + task + ' energy\n')
             f.close()
 
             # calculate energy
@@ -186,11 +197,11 @@ class NWchem(Calculator):
         """Return the number of spins in the calculation.
 
         Spin-paired calculations: 1, spin-polarized calculation: 2."""
-        return int(self.spinpol) + 1
+        return len(self.kpts)
 
     def get_spin_polarized(self):
         """Is it a spin-polarized calculation?"""
-        return self.spinpol
+        return len(self.kpts) == 2
         
     def set_atoms(self, atoms):
         if self.atoms == atoms:
