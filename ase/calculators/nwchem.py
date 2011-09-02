@@ -24,9 +24,11 @@ class NWchem(Calculator):
                  convergence = {'energy'  : 1.e-6,
                                 'density' : 1.e-5,
                                 'gradient': 1.e-5},
+                 maxiter = 120,
                  basis='3-21G',
                  charge=None,
-                 spinpol=False,
+                 multiplicity = 1,
+                 spinorbit=False,
                  ):
         self.label = label
         self.converged = False
@@ -41,7 +43,9 @@ class NWchem(Calculator):
         self.xc = xc
         self.basis = basis
         self.convergence = convergence
-        self.spinpol = spinpol
+        self.maxiter = maxiter
+        self.multiplicity = multiplicity
+        self.spinorbit = spinorbit
 
         # atoms must be set
         self.atoms = None
@@ -69,7 +73,7 @@ class NWchem(Calculator):
         if self.energy is None or self.forces is None:
             # write input file
             f = open(self.label + '.nw', 'w')
-            if self.charge:
+            if self.charge is not None:
                 f.write('charge ' + str(self.charge) + '\n')
             write_nwchem(f, atoms)
             basis = '\nbasis\n'
@@ -84,7 +88,10 @@ class NWchem(Calculator):
             if self.xc == 'RHF':
                 task = 'scf'
             else:
-                task = 'dft'
+                if self.spinorbit:
+                    task = 'sodft'
+                else:
+                    task = 'dft'
                 nwchem_xc_map = {
                     'LDA' : 'pw91lda',
                     'PBE' : 'xpbe96 cpbe96',
@@ -94,15 +101,16 @@ class NWchem(Calculator):
                 else:
                     xc = self.xc
                 f.write('\ndft\n')
-                if self.spinpol:
-                    f.write('  odft\n')
+                f.write('  mult ' + str(self.multiplicity) + '\n')
                 f.write('  xc ' + xc + '\n')
+                f.write('  iterations ' + str(self.maxiter) + '\n')
                 for key in self.convergence:
                     f.write('  convergence ' + key + ' ' +
                             str(self.convergence[key]) + '\n')
                 f.write('end\n')
 
             f.write('\ntask ' + task + ' gradient\n')
+#            f.write('\ntask ' + task + ' energy\n')
             f.close()
 
             # calculate energy
@@ -112,7 +120,7 @@ class NWchem(Calculator):
             # read output
             self.atoms = read_nwchem(self.output)
             self.read_energy()
-            self.read_forces()
+#            self.read_forces()
         else:
             print 'taking old values (E)'
 
@@ -134,7 +142,7 @@ class NWchem(Calculator):
             if line.find(estring) >=0:
                 energy = float(line.split()[4])
                 break
-        self.energy = energy
+        self.energy = energy * Hartree
 
         # Eigenstates
         spin = -1
@@ -148,10 +156,8 @@ class NWchem(Calculator):
                     line = line.lower().replace('d', 'e')
                     line = line.replace('=', ' ')
                     word = line.split()
-                    # print word
                     kpts[spin].f_n.append(float(word[3]))
-                    kpts[spin].eps_n.append(float(word[5]))
-                    assert(int(word[1]) == len(kpts[spin].f_n))
+                    kpts[spin].eps_n.append(float(word[5]) * Hartree)
         self.kpts = kpts
         
     def read_forces(self):
