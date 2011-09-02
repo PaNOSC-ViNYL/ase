@@ -124,7 +124,7 @@ class NWchem(Calculator):
         else:
             print 'taking old values (E)'
 
-        return self.energy
+        return self.energy * Hartree
 
     def read_energy(self):
         """Read Energy from nwchem output file."""
@@ -142,7 +142,7 @@ class NWchem(Calculator):
             if line.find(estring) >=0:
                 energy = float(line.split()[4])
                 break
-        self.energy = energy * Hartree
+        self.energy = energy
 
         # Eigenstates
         spin = -1
@@ -157,7 +157,7 @@ class NWchem(Calculator):
                     line = line.replace('=', ' ')
                     word = line.split()
                     kpts[spin].f_n.append(float(word[3]))
-                    kpts[spin].eps_n.append(float(word[5]) * Hartree)
+                    kpts[spin].eps_n.append(float(word[5]))
         self.kpts = kpts
         
     def read_forces(self):
@@ -176,7 +176,7 @@ class NWchem(Calculator):
 
     def get_eigenvalues(self, kpt=0, spin=0):
         """Return eigenvalue array."""
-        return self.kpts[spin].eps_n
+        return np.array(self.kpts[spin].eps_n) * Hartree
     
     def get_occupation_numbers(self, kpt=0, spin=0):
         """Return occupation number array."""
