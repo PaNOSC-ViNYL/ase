@@ -56,7 +56,9 @@ def Icosahedron(symbol, noshells, latticeconstant=None):
                           [0., -1., -t]])
 
     positions = []
+    tags = []
     positions.append(np.zeros(3))
+    tags.append(1)
 
     for n in range(1, noshells):
         #Construct square edges (6)
@@ -66,6 +68,7 @@ def Icosahedron(symbol, noshells, latticeconstant=None):
             for i in range(n+1):
                 pos = i*v1 + (n-i)*v2
                 positions.append(pos)
+                tags.append(n + 1)
 
         #Construct triangle planes (12)
         if n > 1:
@@ -86,6 +89,7 @@ def Icosahedron(symbol, noshells, latticeconstant=None):
                             continue
                         pos = v0 + i*v1 + j*v2
                         positions.append(pos)
+                        tags.append(n + 1)
 
         #Fill missing triangle planes (8)
         if n > 2:
@@ -104,23 +108,21 @@ def Icosahedron(symbol, noshells, latticeconstant=None):
                     for j in range(1, n-i):
                         pos = v0 + i*v1 + j*v2
                         positions.append(pos)
+                        tags.append(n + 1)
                         pos = v0 + i*v3 + j*v4
                         positions.append(pos)
+                        tags.append(n + 1)
 
     # Scale the positions
     scaling_factor = lattice_constant / np.sqrt(2*(1 + t**2))
     positions = np.array(positions) * scaling_factor
 
     # Fit the cell, so it only just consist the atoms
-    min = np.zeros(3)
-    max = np.zeros(3)
-    axes = np.array([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])
-    for i in range(3):
-        r = np.dot(positions, axes[i])
-        min[i] = r.min()
-        max[i] = r.max()
+    min = positions.min(axis=0)
+    max = positions.max(axis=0)
     cell = max - min
     positions = positions - min
 
     symbols = [atomic_number] * len(positions)
-    return Atoms(symbols=symbols, positions=positions, cell=cell)
+    return Atoms(symbols=symbols, positions=positions, tags=tags, cell=cell)
+
