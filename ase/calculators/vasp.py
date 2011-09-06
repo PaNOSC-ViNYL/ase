@@ -56,6 +56,7 @@ float_keys = [
     'pomass',     # mass of ions in am
     'sigma',      # broadening in eV
     'time',       # special control tag
+    'zab_vdw',     # vdW-DF parameter
     'zval',       # ionic valence
     ]
 
