@@ -1,6 +1,7 @@
+import numpy as np
 from ase.atoms import Atom, Atoms
 from ase.calculators.singlepoint import SinglePointDFTCalculator
-
+from ase.calculators.singlepoint import SinglePointKPoint
 
 def read_gpaw_text(fileobj, index=-1):
     if isinstance(fileobj, str):
@@ -68,6 +69,36 @@ def read_gpaw_text(fileobj, index=-1):
                     return string
                 eFermi = [float(strip(fields[2])),
                           float(strip(fields[3])) ]
+        # read Eigenvalues and occupations
+        ii1 = ii2 = 1e32
+        try:
+            ii1 = index_startswith(lines, ' Band   Eigenvalues  Occupancy')
+        except ValueError:
+            pass
+        try:
+            ii2 = index_startswith(lines, ' Band  Eigenvalues  Occupancy')
+        except ValueError:
+            pass
+        ii = min(ii1, ii2)
+        if ii == 1e32:
+            kpts = None
+        else:
+            ii += 1
+            words = lines[ii].split()
+            vals = []
+            while(len(words) > 2):
+                vals.append([float(word) for word in words])
+                ii += 1
+                words = lines[ii].split()
+            vals = np.array(vals).transpose()
+            kpts = [SinglePointKPoint(0, 0)]
+            kpts[0].eps_n = vals[1]
+            kpts[0].f_n = vals[2]
+            if vals.shape[0] > 3:
+                kpts.append(SinglePointKPoint(0, 1))
+                kpts[1].eps_n = vals[1]
+                kpts[1].f_n = vals[2]
+        # read charge
         try:
             ii = index_startswith(lines, 'Total Charge:')
         except ValueError:
@@ -101,6 +132,8 @@ def read_gpaw_text(fileobj, index=-1):
 
         if e is not None or f is not None:
             calc = SinglePointDFTCalculator(e, f, None, magmoms, atoms, eFermi)
+            if kpts is not None:
+                calc.kpts = kpts
             atoms.set_calculator(calc)
         if q is not None and len(atoms) > 0:
             n = len(atoms)

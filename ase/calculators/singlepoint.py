@@ -63,6 +63,13 @@ class SinglePointCalculator:
         else:
             return np.zeros(len(self.positions))
 
+class SinglePointKPoint:
+    def __init__(self, kpt, spin):
+        self.k = kpt
+        self.s = spin
+        self.eps_n = []
+        self.f_n = []
+
 class SinglePointDFTCalculator(SinglePointCalculator):
     def __init__(self, energy, forces, stress, magmoms, atoms,
                  eFermi=None):
@@ -70,7 +77,24 @@ class SinglePointDFTCalculator(SinglePointCalculator):
                                        magmoms, atoms)
         if eFermi is not None:
             self.eFermi = eFermi
+        self.kpts = None
 
     def get_fermi_level(self):
         """Return the Fermi-level(s)."""
         return self.eFermi
+
+    def get_occupation_numbers(self, kpt=0, spin=0):
+        """Return occupation number array."""
+        if self.kpts is not None:
+            for kpt in self.kpts:
+                if kpt.s == spin:
+                    return kpt.f_n
+        return None
+
+    def get_eigenvalues(self, kpt=0, spin=0):
+        """Return eigenvalue array."""
+        if self.kpts is not None:
+            for kpt in self.kpts:
+                if kpt.s == spin:
+                    return kpt.eps_n
+        return None
