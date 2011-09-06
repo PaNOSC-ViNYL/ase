@@ -110,7 +110,8 @@ class FLEUR:
         self.mixer = mixer
 
         if convergence:
-            self.convergence = {'energy' : convergence / Hartree}
+            self.convergence = convergence 
+            self.convergence['energy'] /= Hartree 
         else:
             self.convergence = {'energy' : 0.0001}
 
