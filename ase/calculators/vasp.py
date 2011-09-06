@@ -1537,7 +1537,9 @@ class xdat2traj:
 
     def convert(self):
         lines = open(self.xdatcar).readlines()
-        if len(lines[5].split())==0:
+        if len(lines[7].split())==0:
+            del(lines[0:8])
+        elif len(lines[5].split())==0:
             del(lines[0:6])
         elif len(lines[4].split())==0:
             del(lines[0:5])
