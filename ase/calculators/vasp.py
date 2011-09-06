@@ -51,9 +51,12 @@ float_keys = [
     'hfscreen',   # attribute to change from PBE0 to HSE
     'potim',      # time-step for ion-motion (fs)
     'nelect',     # total number of electrons
+    'param1',     # Exchange parameter 
+    'param2',     # Exchange parameter 
     'pomass',     # mass of ions in am
     'sigma',      # broadening in eV
     'time',       # special control tag
+    'zab_vdw',    # vdW-DF parameter
     'zval',       # ionic valence
     ]
 
@@ -137,6 +140,7 @@ bool_keys = [
     'lsepb',      # write out partial charge of each band seperately?
     'lsepk',      # write out partial charge of each k-point seperately?
     'lthomas',    #
+    'luse_vdw',   # Invoke vdW-DF implementation by Klimes et. al 
     'lvtot',      # create WAVECAR/CHGCAR/LOCPOT
     'lwave',      #
 ]
