@@ -51,12 +51,9 @@ float_keys = [
     'hfscreen',   # attribute to change from PBE0 to HSE
     'potim',      # time-step for ion-motion (fs)
     'nelect',     # total number of electrons
-    'param1',     # Exchange parameter
-    'param2',     # Exchange parameter
     'pomass',     # mass of ions in am
     'sigma',      # broadening in eV
     'time',       # special control tag
-    'zab_vdw',     # vdW-DF parameter
     'zval',       # ionic valence
     ]
 
@@ -140,7 +137,6 @@ bool_keys = [
     'lsepb',      # write out partial charge of each band seperately?
     'lsepk',      # write out partial charge of each k-point seperately?
     'lthomas',    #
-    'luse_vdw',   # Invoke vdW-DF implementation by Klimes et. al
     'lvtot',      # create WAVECAR/CHGCAR/LOCPOT
     'lwave',      #
 ]
@@ -202,14 +198,21 @@ class Vasp(Calculator):
 
         self.string_params['prec'] = 'Normal'
 
-        self.input_params = {
-            'xc':     'PW91',  # exchange correlation potential
+        if kwargs.get('xc', None):
+            if kwargs['xc'] not in ['PW91','LDA','PBE']:
+                raise ValueError(
+                    '%s not supported for xc! use one of: PW91, LDA or PBE.' %
+                    kwargs['xc'])
+            self.input_params = {'xc': kwargs['xc']} # exchange correlation functional
+        else:
+            self.input_params = {'xc': 'PW91'} # exchange correlation functional
+        self.input_params.update({
             'setups': None,    # Special setups (e.g pv, sv, ...)
             'txt':    '-',     # Where to send information
             'kpts':   (1,1,1), # k-points
             'gamma':  False,   # Option to use gamma-sampling instead
                                # of Monkhorst-Pack
-            }
+            })
 
         self.restart = restart
         self.track_output = track_output
@@ -218,10 +221,6 @@ class Vasp(Calculator):
             self.restart_load()
             return
 
-        if self.input_params['xc'] not in ['PW91','LDA','PBE']:
-            raise ValueError(
-                '%s not supported for xc! use one of: PW91, LDA or PBE.' %
-                kwargs['xc'])
         self.nbands = self.int_params['nbands']
         self.atoms = None
         self.positions = None
