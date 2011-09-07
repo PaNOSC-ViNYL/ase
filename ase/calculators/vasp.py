@@ -140,7 +140,8 @@ bool_keys = [
     'lsepb',      # write out partial charge of each band seperately?
     'lsepk',      # write out partial charge of each k-point seperately?
     'lthomas',    #
-    'luse_vdw',   # Invoke vdW-DF implementation by Klimes et. al 
+    'luse_vdw',   # Invoke vdW-DF implementation by Klimes et. al
+    'lvhar',      # write Hartree potential to LOCPOT (vasp 5.x)
     'lvtot',      # create WAVECAR/CHGCAR/LOCPOT
     'lwave',      #
 ]
