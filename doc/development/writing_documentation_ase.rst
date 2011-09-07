@@ -34,6 +34,7 @@ For that to work, you need the following installed:
 * pdflatex
 * bibtex
 * AUCTex
+* convert (ImageMagick)
 
 .. _using_sphinx:
 

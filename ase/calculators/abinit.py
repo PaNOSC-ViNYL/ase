@@ -27,8 +27,8 @@ class Abinit:
       calc.set_inp('nstep', 30)
 
     """
-    def __init__(self, label='abinit', xc='LDA', kpts=None, nbands=0,
-                 width=0.04*Hartree, ecut=None, charge=0,
+    def __init__(self, label='abinit', xc='LDA', kpts=None, nbands=None,
+                 nstep=None, width=0.04*Hartree, ecut=None, charge=0,
                  pulay=5, mix=0.1, pps='fhi', toldfe=1.0e-6
                  ):
         """Construct ABINIT-calculator object.
@@ -45,7 +45,9 @@ class Abinit:
             Monkhost-Pack sampling.
         nbands: int
             Number of bands.
-            Default is 0.
+            For the values of occopt not equal to 0 or 2, nbands can be omitted.
+        nstep: int
+            Number of self-consistent field STEPS.
         width: float
             Fermi-distribution width in eV.
             Default is 0.04 Hartree.
@@ -70,8 +72,8 @@ class Abinit:
 
         """
 
-        if not nbands > 0:
-            raise ValueError('Number of bands (nbands) not set')
+        self.nband = nbands # called nband in abinit
+        self.nstep = nstep
 
         if ecut is None:
             raise ValueError('Planewave cutoff energy in eV (ecut) not set')
@@ -79,7 +81,6 @@ class Abinit:
         self.label = label#################### != out
         self.xc = xc
         self.kpts = kpts
-        self.nbands = nbands
         self.width = width
         self.ecut = ecut
         self.charge = charge
@@ -112,6 +113,9 @@ class Abinit:
         for a, Z in enumerate(self.numbers):
             if Z not in self.species:
                 self.species.append(Z)
+
+        if not hasattr(self, 'spinpol'):
+            self.spinpol = atoms.get_initial_magnetic_moments().any()
 
         if 'ABINIT_PP_PATH' in os.environ:
             pppaths = os.environ['ABINIT_PP_PATH'].split(':')
@@ -175,8 +179,39 @@ class Abinit:
             # Energy extrapolated to zero Kelvin:
             return  (self.etotal + self.efree) / 2
 
+    def get_number_of_iterations(self):
+        return self.niter
+
+    def read_number_of_iterations(self):
+        niter = None
+        for line in open(self.label + '.txt'):
+            if line.find(' At SCF step') != -1: # find the last iteration number
+                niter = int(line.split(',')[0].split()[-1].strip())
+        return niter
+
+    def get_electronic_temperature(self):
+        return self.width
+
+    def get_number_of_electrons(self):
+        return self.nelect
+
+    def read_number_of_electrons(self):
+        nelect = None
+        # only in log file!
+        for line in open(self.label + '.log'): # find last one
+            if line.find('nelect') != -1:
+                nelect = float(line.split('=')[1].strip())
+        return nelect
+
     def get_number_of_bands(self):
-        return self.nbands
+        return self.nband
+
+    def read_number_of_bands(self):
+        nband = None
+        for line in open(self.label + '.txt'): # find last one
+            if line.find('     nband') != -1: # nband, or nband1, nband*
+                nband = int(line.split()[-1].strip())
+        return nband
 
     def get_kpts_info(self, kpt=0, spin=0, mode='eigenvalues'):
         return self.read_kpts_info(kpt, spin, mode)
@@ -189,6 +224,9 @@ class Abinit:
 
     def get_ibz_k_points(self):
         return self.get_kpts_info(kpt=0, spin=0, mode='ibz_k_points')
+
+    def get_spin_polarized(self):
+        return self.spinpol
 
     def get_fermi_level(self):
         return self.read_fermi()
@@ -260,6 +298,9 @@ class Abinit:
         fh.write('%s\n' % (self.label+'i')) # input
         fh.write('%s\n' % (self.label+'o')) # output
         # scratch files
+        scratchdir = os.path.dirname(os.path.join(scratch, self.label))
+        if not os.path.exists(scratchdir):
+            os.makedirs(scratchdir)
         fh.write('%s\n' % (os.path.join(scratch, self.label+'.abinit')))
         # Provide the psp files
         for ppp in self.ppp_list:
@@ -280,12 +321,17 @@ class Abinit:
             #'LatticeConstant': 1.0,
             'natom': len(atoms),
             'charge': self.charge,
-            'nband': self.nbands,
             #'DM.UseSaveDM': self.converged,
             #'SolutionMethod': 'diagon',
             'npulayit': self.pulay, # default 7
             'diemix': self.mix
             }
+
+        if not self.nband is None:
+            inp.update({'nband': self.nband})
+
+        if not self.nstep is None:
+            inp.update({'nstep': self.nstep})
 
         if self.ecut is not None:
             inp['ecut'] = str(self.ecut)+' eV' # default Ha
@@ -393,7 +439,7 @@ class Abinit:
         return E_f*Hartree
 
     def read_kpts_info(self, kpt=0, spin=0, mode='eigenvalues'):
-        """ Returns list of eigenvalues, occupations, kpts weights, or
+        """ Returns list of last eigenvalues, occupations, kpts weights, or
         kpts coordinates for given kpt and spin"""
         # output may look like this (or without occupation entries); 8 entries per line:
         #
@@ -407,23 +453,22 @@ class Abinit:
         #
         assert mode in ['eigenvalues' , 'occupations', 'ibz_k_points', 'k_point_weights'], 'mode not in [\'eigenvalues\' , \'occupations\', \'ibz_k_points\', \'k_point_weights\']'
         # number of lines of eigenvalues/occupations for a kpt
-        n_entry_lines = max(1, int(self.nbands/self.n_entries_float))
+        nband = self.get_number_of_bands()
+        n_entry_lines = max(1, int(nband/self.n_entries_float))
         #
         filename = self.label + '.txt'
         text = open(filename).read().lower()
         assert 'error' not in text
-        lines = iter(text.split('\n'))
+        lines = text.split('\n')
         text_list = []
-        # find the begining line of eigenvalues
-        contains_eigenvalues = False
-        for line in lines:
-            #if line.rfind('eigenvalues (hartree) for nkpt') > -1: #MDTMP
-            if line.rfind('eigenvalues (   ev  ) for nkpt') > -1:
-                n_kpts = int(line.split('nkpt=')[1].strip().split()[0])
-                contains_eigenvalues = True
-                break
-        # find the end line of eigenvalues starting from linenum
-        for line in lines:
+        # find the begining line of last eigenvalues
+        contains_eigenvalues = 0
+        for n, line in enumerate(lines):
+            if line.rfind('eigenvalues (hartree) for nkpt') > -1:
+            #if line.rfind('eigenvalues (   ev  ) for nkpt') > -1: #MDTMP
+                contains_eigenvalues = n
+        # find the end line of eigenvalues starting from contains_eigenvalues
+        for line in lines[contains_eigenvalues:]:
             text_list.append(line)
             if not line.strip(): # find a blank line
                 break
@@ -431,6 +476,8 @@ class Abinit:
         text_list = text_list[:-1]
 
         assert contains_eigenvalues, 'No eigenvalues found in the output'
+
+        n_kpts = int(text_list[0].split('nkpt=')[1].strip().split()[0])
 
         # join text eigenvalues description with eigenvalues
         # or occupation numbers for kpt# with occupations
@@ -448,7 +495,7 @@ class Abinit:
             range_kpts = n_kpts
         #
         values_list = []
-        offset = 0
+        offset = 1
         for kpt_entry in range(range_kpts):
             full_line = ''
             for entry_line in range(n_entry_lines+1):
@@ -463,8 +510,8 @@ class Abinit:
                 if first_line.rfind('reduced coord') > -1:
                     # extract numbers
                     if mode == 'eigenvalues':
-                        #full_line = [Hartree*float(v) for v in full_line.split(')')[1].strip().split()[:]] # MDTMP
-                        full_line = [float(v) for v in full_line.split(')')[1].strip().split()[:]]
+                        full_line = [Hartree*float(v) for v in full_line.split(')')[1].strip().split()[:]]
+                        #full_line = [float(v) for v in full_line.split(')')[1].strip().split()[:]] #MDTMP
                     elif mode == 'ibz_k_points':
                         full_line = [float(v) for v in full_line.split('kpt=')[1].strip().split('(')[0].split()]
                     else:
@@ -554,6 +601,10 @@ class Abinit:
                 break
         else:
             raise RuntimeError
+        #
+        self.nband = self.read_number_of_bands()
+        self.niter = self.read_number_of_iterations()
+        self.nelect = self.read_number_of_electrons()
 
 def inpify(key):
     return key.lower().replace('_', '').replace('.', '').replace('-', '')
