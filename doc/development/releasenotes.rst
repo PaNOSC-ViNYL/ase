@@ -10,9 +10,14 @@ Development version in trunk
 
 :trac:`trunk <>`.
 
-* ...
-* ...
+* New function for making surfaces with arbitrary Miller indices with
+  the smallest possible surface unit cell:
+  ase.lattice.surface.surface()
 
+* New ase.lattice.bulk() function.  Will replace old
+  ase.structure.bulk() function.  The new one will produce a more
+  natural hcp lattice and it will use experimental data for crystal
+  structure and lattice constants if not provided explicitely.
 
 
 Version 3.5.1

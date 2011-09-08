@@ -6,7 +6,7 @@ except ImportError:
 
 import numpy as np
 from ase.io import read, PickleTrajectory
-from ase.structure import bulk
+from ase.lattice import bulk
 from ase.calculators.emt import EMT
 
 a0 = 3.52 / np.sqrt(2)

@@ -31,6 +31,7 @@ from ase.data import chemical_symbols, atomic_numbers, atomic_names, \
      atomic_masses, covalent_radii, reference_states
 from ase.data.molecules import molecule
 from ase.structure import *
+#from ase.lattice import bulk
 
 from math import pi, sqrt
 import numpy as np

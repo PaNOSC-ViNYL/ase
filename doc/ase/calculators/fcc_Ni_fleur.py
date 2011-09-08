@@ -1,10 +1,10 @@
 from numpy import linspace
 
 from ase.calculators.fleur import FLEUR
-from ase.structure import bulk
+from ase.lattice import bulk
 from ase.io.trajectory import PickleTrajectory
 
-atoms = bulk('Ni', 'fcc', a=3.52)
+atoms = bulk('Ni', a=3.52)
 calc = FLEUR(xc='PBE', kmax=3.6, kpts=(10, 10, 10), workdir='lat_const')
 atoms.set_calculator(calc)
 traj = PickleTrajectory('Ni.traj','w', atoms)

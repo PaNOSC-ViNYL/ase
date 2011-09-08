@@ -1,12 +1,12 @@
 # creates: Al_phonon.png Al_mode.gif Al_mode.pdf
 
-from ase.structure import bulk
+from ase.lattice import bulk
 from ase.calculators.emt import EMT
 from ase.dft.kpoints import ibz_points, get_bandpath
 from ase.phonons import Phonons
 
 # Setup crystal and EMT calculator
-atoms = bulk('Al', 'fcc', a=4.05)
+atoms = bulk('Al', a=4.05)
 calc = EMT()
 
 # Phonon calculator

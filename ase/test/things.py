@@ -7,7 +7,8 @@ assert len(monkhorst_pack((3, 4, 6))) == 3 * 4 * 6
 from ase.units import Hartree, Bohr, kJ, mol, kcal, kB, fs
 print Hartree, Bohr, kJ/mol, kcal/mol, kB*300, fs, 1/fs
 
-from ase.structure import bulk
-ru = bulk('Ru', 'hcp', a=2.7) * (2, 2, 1)
-assert abs(ru.get_distance(0, 7, mic=True) - ru.get_distance(1, 6)) < 1e-14
-assert abs(ru.get_distance(0, 5, mic=True) - 2.7) < 1e-14
+from ase.lattice import bulk
+hcp = bulk('X', 'hcp', a=1) * (2, 2, 1)
+assert abs(hcp.get_distance(0, 3, mic=True) - 1) < 1e-12
+assert abs(hcp.get_distance(0, 4, mic=True) - 1) < 1e-12
+assert abs(hcp.get_distance(2, 5, mic=True) - 1) < 1e-12

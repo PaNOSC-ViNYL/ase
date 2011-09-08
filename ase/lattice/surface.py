@@ -12,26 +12,27 @@ import numpy as np
 from ase.atom import Atom
 from ase.atoms import Atoms
 from ase.data import reference_states, atomic_numbers
+from ase.lattice.general_surface import surface
 
 
 def fcc100(symbol, size, a=None, vacuum=None):
     """FCC(100) surface.
  
     Supported special adsorption sites: 'ontop', 'bridge', 'hollow'."""
-    return surface(symbol, 'fcc', '100', size, a, None, vacuum)
+    return _surface(symbol, 'fcc', '100', size, a, None, vacuum)
 
 def fcc110(symbol, size, a=None, vacuum=None):
     """FCC(110) surface.
  
     Supported special adsorption sites: 'ontop', 'longbridge',
     'shortbridge','hollow'."""
-    return surface(symbol, 'fcc', '110', size, a, None, vacuum)
+    return _surface(symbol, 'fcc', '110', size, a, None, vacuum)
 
 def bcc100(symbol, size, a=None, vacuum=None):
     """BCC(100) surface.
  
     Supported special adsorption sites: 'ontop', 'bridge', 'hollow'."""
-    return surface(symbol, 'bcc', '100', size, a, None, vacuum)
+    return _surface(symbol, 'bcc', '100', size, a, None, vacuum)
 
 def bcc110(symbol, size, a=None, vacuum=None, orthogonal=False):
     """BCC(110) surface.
@@ -41,7 +42,7 @@ def bcc110(symbol, size, a=None, vacuum=None, orthogonal=False):
  
     Use *orthogonal=True* to get an orthogonal unit cell - works only
     for size=(i,j,k) with j even."""
-    return surface(symbol, 'bcc', '110', size, a, None, vacuum, orthogonal)
+    return _surface(symbol, 'bcc', '110', size, a, None, vacuum, orthogonal)
 
 def bcc111(symbol, size, a=None, vacuum=None, orthogonal=False):
     """BCC(111) surface.
@@ -50,7 +51,7 @@ def bcc111(symbol, size, a=None, vacuum=None, orthogonal=False):
  
     Use *orthogonal=True* to get an orthogonal unit cell - works only
     for size=(i,j,k) with j even."""
-    return surface(symbol, 'bcc', '111', size, a, None, vacuum, orthogonal)
+    return _surface(symbol, 'bcc', '111', size, a, None, vacuum, orthogonal)
 
 def fcc111(symbol, size, a=None, vacuum=None, orthogonal=False):
     """FCC(111) surface.
@@ -59,7 +60,7 @@ def fcc111(symbol, size, a=None, vacuum=None, orthogonal=False):
  
     Use *orthogonal=True* to get an orthogonal unit cell - works only
     for size=(i,j,k) with j even."""
-    return surface(symbol, 'fcc', '111', size, a, None, vacuum, orthogonal)
+    return _surface(symbol, 'fcc', '111', size, a, None, vacuum, orthogonal)
 
 def hcp0001(symbol, size, a=None, c=None, vacuum=None, orthogonal=False):
     """HCP(0001) surface.
@@ -68,7 +69,7 @@ def hcp0001(symbol, size, a=None, c=None, vacuum=None, orthogonal=False):
  
     Use *orthogonal=True* to get an orthogonal unit cell - works only
     for size=(i,j,k) with j even."""
-    return surface(symbol, 'hcp', '0001', size, a, c, vacuum, orthogonal)
+    return _surface(symbol, 'hcp', '0001', size, a, c, vacuum, orthogonal)
 
     
 def hcp10m10(symbol, size, a=None, c=None, vacuum=None):
@@ -77,13 +78,13 @@ def hcp10m10(symbol, size, a=None, c=None, vacuum=None):
     Supported special adsorption sites: 'ontop'.
     
     Works only for size=(i,j,k) with j even."""
-    return surface(symbol, 'hcp', '10m10', size, a, c, vacuum)
+    return _surface(symbol, 'hcp', '10m10', size, a, c, vacuum)
 
 def diamond100(symbol, size, a=None, vacuum=None):
     """DIAMOND(100) surface.
 
     Supported special adsorption sites: 'ontop'."""
-    return surface(symbol, 'diamond', '100', size, a, None, vacuum)
+    return _surface(symbol, 'diamond', '100', size, a, None, vacuum)
 
 def diamond111(symbol, size, a=None, vacuum=None, orthogonal=False):
     """DIAMOND(111) surface.
@@ -92,7 +93,7 @@ def diamond111(symbol, size, a=None, vacuum=None, orthogonal=False):
 
     if orthogonal:
         raise NotImplementedError("Can't do orthogonal cell yet!")
-    return surface(symbol, 'diamond', '111', size, a, None, vacuum, orthogonal)
+    return _surface(symbol, 'diamond', '111', size, a, None, vacuum, orthogonal)
 
     
 def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
@@ -189,7 +190,7 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
     slab.extend(ads)
 
 
-def surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
+def _surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
     """Function to build often used surfaces.
 
     Don't call this function directly - use fcc100, fcc110, bcc111, ..."""

@@ -5,6 +5,7 @@
    * The :mod:`lattice` module
    * The :mod:`~lattice.surface` module
 
+
 .. _bulk-crystal-section:
 
 Common bulk crystals
@@ -36,6 +37,7 @@ array([[ 3.6,  0. ,  0. ],
 .. |a1| image:: a1.png
 .. |a2| image:: a2.png
 .. |a3| image:: a3.png
+
 
 .. _nanotubes-section:
 

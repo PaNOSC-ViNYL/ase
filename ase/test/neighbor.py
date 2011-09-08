@@ -2,7 +2,7 @@ import numpy.random as random
 import numpy as np
 from ase import Atoms
 from ase.calculators.neighborlist import NeighborList
-from ase.structure import bulk
+from ase.lattice import bulk
 
 atoms = Atoms(numbers=range(10),
               cell=[(0.2, 1.2, 1.4),

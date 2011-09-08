@@ -1,7 +1,7 @@
 """Atomic structure.
 
-This mudule contains helper functions for setting up nanotubes,
-graphene nanoribbons and simple bulk crystals."""
+This mudule contains helper functions for setting up nanotubes and
+graphene nanoribbons."""
 
 import warnings
 from math import sqrt
@@ -10,12 +10,8 @@ import numpy as np
 
 from ase.atoms import Atoms, string2symbols
 from ase.data import covalent_radii
+from ase.utils import gcd
 
-
-def gcd(m,n):
-    while n:
-        m,n=n,m%n
-    return m
 
 def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
     if n < m:
@@ -283,6 +279,9 @@ def bulk(name, crystalstructure, a=None, c=None, covera=None,
     cubic: bool
         Construct cubic unit cell.
     """
+
+    #warnings.warn('This function is deprecated.  Use the ' +
+    #              'ase.lattice.bulk.bulk() function instead.')
 
     if a is not None:
         a = float(a)

@@ -60,6 +60,13 @@ def prnt(*args, **kwargs):
                         kwargs.keys()[0])
 
 
+def gcd(a, b):
+    """Greatest common divisor of a and b."""
+    while a != 0:
+        a, b = b % a, a
+    return b
+
+
 def rotate(rotations, rotation=np.identity(3)):
     """Convert string of format '50x,-10y,120z' to a rotation matrix.
 

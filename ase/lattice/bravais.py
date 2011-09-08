@@ -4,9 +4,13 @@ This is a base class for numerous classes setting up pieces of crystal.
 """
 
 import math
+
 import numpy as np
+
 from ase.atoms import Atoms
+from ase.utils import gcd
 import ase.data
+
 
 class Bravais:
     """Bravais lattice factory.
@@ -404,11 +408,13 @@ class Bravais:
         for i in (0,1,2):
             print "   ", self.miller[i]
 
+
 class MillerInfo:
     """Mixin class to provide information about Miller indices."""
     def miller_to_direction(self, miller):
         """Returns the direction corresponding to a given Miller index."""
         return np.dot(miller, self.millerbasis)
+
 
 class Lattice(Atoms, MillerInfo):
     """List of atoms initially containing a regular lattice of atoms.
@@ -419,6 +425,7 @@ class Lattice(Atoms, MillerInfo):
     """
     pass
 
+
 # Helper functions
 def cross(a, b):
     """The cross product of two vectors."""
@@ -426,11 +433,6 @@ def cross(a, b):
                      a[2]*b[0] - b[2]*a[0],
                      a[0]*b[1] - b[0]*a[1]))
 
-def gcd(a,b):
-    """Greatest Common Divisor of a and b."""
-    while a != 0:
-        a,b = b%a,a
-    return b
 
 def reduceindex(M):
     "Reduce Miller index to the lowest equivalent integers."

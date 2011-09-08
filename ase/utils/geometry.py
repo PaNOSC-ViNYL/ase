@@ -7,18 +7,6 @@ different orientations."""
 import numpy as np
 
 
-
-def gcd(seq):
-    """Returns greatest common divisor of integers in *seq*."""
-    def _gcd(m, n):
-        while n:
-            m, n = n, m % n
-        return m       
-    return reduce(_gcd, np.array(np.rint(seq), dtype=int))
-
-
-
-
 def get_layers(atoms, miller, tolerance=0.001):
     """Returns two arrays describing which layer each atom belongs
     to and the distance between the layers and origo. 

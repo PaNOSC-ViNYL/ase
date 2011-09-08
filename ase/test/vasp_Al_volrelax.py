@@ -20,7 +20,7 @@ from ase import io
 # QuasiNewton nowadays is an alias for BFGSLineSearch, which is
 # broken. Use BFGS instead.
 from ase.optimize import BFGS as QuasiNewton
-from ase.structure import bulk
+from ase.lattice import bulk
 from ase.calculators.vasp import Vasp
 
 # -- Perform Volume relaxation within Vasp
