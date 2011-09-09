@@ -35,8 +35,9 @@ class MinimizeMixin:
         self.mdmin_widgets = [lbl, spin]
         pack(box, self.mdmin_widgets)
         self.min_algo_specific()
+        
     def min_algo_specific(self, *args):
-        "SHow or hide algoritm-specific widgets."
+        "SHow or hide algorithm-specific widgets."
         minimizer = self.minimizers[self.algo.get_active()]
         for w in self.mdmin_widgets:
             if minimizer == 'MDMin':

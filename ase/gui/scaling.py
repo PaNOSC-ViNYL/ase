@@ -42,10 +42,11 @@ unless you keep the original configuration.
 
 class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
     "Window for homogeneous deformation and elastic constants."
-    
+    use_scrollbar = True
     def __init__(self, gui):
         Simulation.__init__(self, gui)
         self.set_title("Homogeneous scaling")
+        self.scaling_is_ready = False
         vbox = gtk.VBox()
         self.packtext(vbox, scaling_txt)
         self.packimageselection(vbox, txt1="", txt2="")
@@ -175,10 +176,40 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         # Run buttons etc.
         self.makebutbox(vbox, helptext=help_txt)
         vbox.show()
-        self.add(vbox)
+        if self.use_scrollbar:
+            self.scrwin = gtk.ScrolledWindow() 
+            self.scrwin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC) 
+            self.scrwin.add_with_viewport(vbox) 
+            self.scrwin.show() 
+            self.add(self.scrwin) 
+            self.scaling_is_ready = True
+            self.set_reasonable_size() 
+        else:
+            self.add(vbox)
         self.show()
         self.gui.register_vulnerable(self)
-
+        
+    def set_reasonable_size(self, resize=False): 
+        if not self.use_scrollbar or not self.scaling_is_ready:
+            return
+        x, y = self.scrwin.get_children()[0].size_request() 
+        x += self.scrwin.get_vscrollbar().size_request()[0] + 5
+        y += self.scrwin.get_hscrollbar().size_request()[1] + 5
+        print x,y 
+        if resize: 
+            xdef, ydef = self.get_default_size() 
+            xnow, ynow = self.get_size() 
+            if xdef == xnow and ydef == ynow: 
+                # The user has not changed the size.  Resize should be OK 
+                self.resize(x,y) 
+                self.set_default_size(x,y) 
+        else: 
+            self.set_default_size(x,y) 
+                  
+    def min_algo_specific(self, *args):
+        MinimizeMixin.min_algo_specific(self, *args)
+        self.set_reasonable_size(resize=True)
+                  
     def choose_possible_deformations(self, widget=None, first=False):
         """Turn on sensible radio buttons.
 
@@ -226,6 +257,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         "When atoms have changed, check for the number of images."
         self.setupimageselection()
         self.choose_possible_deformations()
+        self.set_reasonable_size(resize=True)
 
     def get_deformation_axes(self):
         """Return which axes the user wants to deform along."""
