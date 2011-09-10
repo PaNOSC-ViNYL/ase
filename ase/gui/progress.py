@@ -18,11 +18,14 @@ class DummyProgressIndicator:
 class DefaultProgressIndicator(gtk.Window):
     "Window for reporting progress."
     waittime = 3  # Time (in sec) after which a progress bar appears.
+    updatetime = 0.1   # Minimum time (in sec) between updates of the progress bars.
     def __init__(self):
         gtk.Window.__init__(self)
         self.set_title("Progress")
         self.globalbox = gtk.VBox()
-
+        self.nextupdate = 0
+        self.fmax_max = 1.0
+        
         # Scaling deformation progress frame
         self.scalebox = gtk.VBox()
         self.scaleframe = gtk.Frame("Scaling deformation:")
@@ -93,7 +96,7 @@ class DefaultProgressIndicator(gtk.Window):
             self.minbox.show()
             self.label_min_stepno.set_text("-")
             self.label_min_fmax.set_text("%.3f" % (fmax,))
-            self.label_min_maxsteps.set_text(str(steps))
+            self.label_min_maxsteps.set_text(str(int(steps)))
             self.minimize_progress.set_fraction(0)
             self.minimize_progress.set_text("unknown")
         # Record starting time
@@ -112,8 +115,9 @@ class DefaultProgressIndicator(gtk.Window):
             self.show()
             self.active = True
         # Allow GTK to update display
-        while gtk.events_pending():
-            gtk.main_iteration()
+        if self.active:
+            while gtk.events_pending(): 
+                gtk.main_iteration()
         if self.raisecancelexception:
             self.cancelbut.set_sensitive(True)
             raise AseGuiCancelException
@@ -136,18 +140,22 @@ class DefaultProgressIndicator(gtk.Window):
             self.activity()
         
     def logger_write(self, line):
-        if self.mode == "min" or self.mode == "scale/min":
-            # Update the minimization progress bar.
-            w = line.split()
-            fmax = float(w[-1])
-            step = w[1]
-            self.minimize_progress.set_fraction(fmax / 1.0)
-            self.minimize_progress.set_text(w[-1])
-            self.label_min_stepno.set_text(step)
-        else:
-            raise RuntimeError(
-                "ProgressIndicator.logger_write called unexpectedly")
-        self.activity()
+        if time.time() > self.nextupdate:
+            if self.mode == "min" or self.mode == "scale/min":
+                # Update the minimization progress bar.
+                w = line.split()
+                fmax = float(w[-1])
+                step = w[1]
+                if fmax > self.fmax_max:
+                    self.fmax_max = np.ceil(fmax)
+                self.minimize_progress.set_fraction(fmax / self.fmax_max)
+                self.minimize_progress.set_text(w[-1])
+                self.label_min_stepno.set_text(step)
+            else:
+                raise RuntimeError(
+                    "ProgressIndicator.logger_write called unexpectedly")
+            self.activity()
+            self.nextupdate = time.time() + self.updatetime
             
     def get_logger_stream(self):
         return LoggerStream(self)
