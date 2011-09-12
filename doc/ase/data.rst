@@ -19,7 +19,7 @@ This module defines the following variables:
 
 All of these are lists that should be indexed with an atomic number:
 
->>> from ase import *
+>>> from ase.data import *
 >>> atomic_names[92]
 'Uranium'
 >>> atomic_masses[2]
@@ -35,6 +35,13 @@ it up in the :data:`atomic_numbers` dictionary:
 29
 >>> covalent_radii[29]
 1.1699999999999999
+
+The covalent radii are taken from [Cordeo08]_
+
+.. [Cordeo08] *Covalent radii revisited*,
+    Beatriz Cordero, Verónica Gómez, Ana E. Platero-Prats, Marc Revés,
+    Jorge Echeverría, Eduard Cremades, Flavia Barragán and Santiago Alvarez,
+    Dalton Trans., 2008, 2832-2838 DOI:10.1039/B801115J 
 
 
 Molecular data

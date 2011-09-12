@@ -19,6 +19,8 @@ Development version in trunk
   natural hcp lattice and it will use experimental data for crystal
   structure and lattice constants if not provided explicitely.
 
+* New values for ase.data.covalent_radii from Cordeo *et al.*.
+
 
 Version 3.5.1
 =============
