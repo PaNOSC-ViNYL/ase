@@ -75,14 +75,7 @@ class EMT:
         self.par = {}
         self.rc = 0.0
         self.numbers = atoms.get_atomic_numbers()
-        maxseq = 0.0
-        seen = {}
-        for Z in self.numbers:
-            if Z not in seen:
-                seen[Z] = True
-                ss = parameters[chemical_symbols[Z]][1] * Bohr
-                if maxseq < ss:
-                    maxseq = ss
+        maxseq = max(par[1] for par in parameters.values()) * Bohr
         rc = self.rc = beta * maxseq * 0.5 * (sqrt(3) + sqrt(4))
         rr = rc * 2 * sqrt(4) / (sqrt(3) + sqrt(4))
         self.acut = np.log(9999.0) / (rr - rc)

@@ -30,7 +30,7 @@ for i in range(3):
     from scipy.optimize import fmin_bfgs
     a0, c0 = fmin_bfgs(p, (a0, c0))
     print '%.4f %.3f' % (a0, c0 / a0)
-assert abs(a0 - 2.469) < 0.001
-assert abs(c0 / a0 - 1.624) < 0.005
+assert abs(a0 - 2.466) < 0.001
+assert abs(c0 / a0 - 1.632) < 0.005
 
 
