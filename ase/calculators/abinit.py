@@ -88,7 +88,7 @@ class Abinit:
         self.mix = mix
         self.pps = pps
         self.toldfe = toldfe
-        if not pps in ['fhi', 'hgh', 'hgh.sc', 'paw']:
+        if not pps in ['fhi', 'hgh', 'hgh.sc', 'hgh.k', 'tm', 'paw']:
             raise ValueError('Unexpected PP identifier %s' % pps)
 
         self.converged = False
@@ -135,7 +135,16 @@ class Abinit:
             pps = self.pps
             if pps == 'fhi':
                 name = '%02d-%s.%s.fhi' % (number, symbol, xcname)
-            elif pps in ('hgh', 'hgh.sc'):
+            elif pps in ['paw']:
+                hghtemplate = '%s-%s-%s.paw' # E.g. "H-GGA-hard-uspp.paw"
+                name = hghtemplate % (symbol, xcname, '*')
+            elif pps in ['hgh.k']:
+                hghtemplate = '%s-q%s.hgh.k' # E.g. "Co-q17.hgh.k"
+                name = hghtemplate % (symbol, '*')
+            elif pps in ['tm']:
+                hghtemplate = '%d%s%s.pspnc' # E.g. "44ru.pspnc"
+                name = hghtemplate % (number, symbol.lower(), '*')
+            elif pps in ['hgh', 'hgh.sc']:
                 hghtemplate = '%d%s.%s.hgh' # E.g. "42mo.6.hgh"
                 # There might be multiple files with different valence
                 # electron counts, so we must choose between
@@ -144,24 +153,43 @@ class Abinit:
                 # Therefore we first use glob to get all relevant files,
                 # then pick the correct one afterwards.
                 name = hghtemplate % (number, symbol.lower(), '*')
-            elif pps == 'paw':
-                name = '%s.%s.atompaw' % (symbol, xcname.lower())
 
             found = False
             for path in pppaths:
-                if pps.startswith('hgh'):
+                if (pps.startswith('paw') or
+                    pps.startswith('hgh') or
+                    pps.startswith('tm')):
                     filenames = glob(join(path, name))
                     if not filenames:
                         continue
                     assert len(filenames) in [0, 1, 2]
-                    if pps == 'hgh':
+                    if pps == 'paw':
+                        selector = max # Semicore or hard
+                        # warning: see download.sh in 
+                        # abinit-pseudopotentials*tar.gz for additional information!
+                        S = selector([str(os.path.split(name)[1].split('-')[2][:-4])
+                                      for name in filenames])
+                        name = hghtemplate % (symbol, xcname, S)
+                    elif pps == 'hgh':
                         selector = min # Lowest possible valence electron count
+                        Z = selector([int(os.path.split(name)[1].split('.')[1])
+                                      for name in filenames])
+                        name = hghtemplate % (number, symbol.lower(), str(Z))
+                    elif pps == 'hgh.k':
+                        selector = min # Semicore - highest electron count
+                        Z = selector([int(os.path.split(name)[1].split('-')[1][:-6][1:])
+                                      for name in filenames])
+                        name = hghtemplate % (symbol, Z)
+                    elif pps == 'tm':
+                        selector = max # Semicore - highest electron count
+                        # currently only one version of psp per atom
+                        name = hghtemplate % (number, symbol.lower(), '')
                     else:
                         assert pps == 'hgh.sc'
                         selector = max # Semicore - highest electron count
-                    Z = selector([int(os.path.split(name)[1].split('.')[1])
-                                  for name in filenames])
-                    name = hghtemplate % (number, symbol.lower(), str(Z))
+                        Z = selector([int(os.path.split(name)[1].split('.')[1])
+                                      for name in filenames])
+                        name = hghtemplate % (number, symbol.lower(), str(Z))
                 filename = join(path, name)
                 if isfile(filename) or islink(filename):
                     found = True
@@ -229,6 +257,31 @@ class Abinit:
 
     def get_spin_polarized(self):
         return self.spinpol
+
+    def get_number_of_spins(self):
+        return 1 + int(self.spinpol)
+
+    def get_magnetic_moment(self, atoms):
+        self.update(atoms)
+        return self.magnetic_moment
+
+    def read_magnetic_moment(self):
+        magmom = None
+        if not self.get_spin_polarized():
+            magmom = 0.0
+        else: # only for spinpolarized system Magnetisation is printed
+            for line in open(self.label + '.txt'):
+                if line.find('Magnetisation') != -1: # last one
+                    magmom = float(line.split('=')[-1].strip())
+        return magmom
+
+    def get_magnetic_moments(self, atoms):
+        # local magnetic moments are not available in abinit
+        # so set the total magnetic moment on the atom no. 0 and fill with 0.0
+        self.update(atoms)
+        magmoms = [0.0 for a in range(len(atoms))]
+        magmoms[0] = self.get_magnetic_moment(atoms)
+        return np.array(magmoms)
 
     def get_fermi_level(self):
         return self.read_fermi()
@@ -442,7 +495,8 @@ class Abinit:
 
     def read_kpts_info(self, kpt=0, spin=0, mode='eigenvalues'):
         """ Returns list of last eigenvalues, occupations, kpts weights, or
-        kpts coordinates for given kpt and spin"""
+        kpts coordinates for given kpt and spin.
+        Due to the way of reading output the spins are exchanged in spin-polarized case.  """
         # output may look like this (or without occupation entries); 8 entries per line:
         #
         #  Eigenvalues (hartree) for nkpt=  20  k points:
@@ -454,9 +508,15 @@ class Abinit:
         # ...
         #
         assert mode in ['eigenvalues' , 'occupations', 'ibz_k_points', 'k_point_weights'], 'mode not in [\'eigenvalues\' , \'occupations\', \'ibz_k_points\', \'k_point_weights\']'
+        if self.get_spin_polarized():
+            spin = {0: 1, 1: 0}[spin]
+        if spin == 0:
+           spinname = ''
+        else:
+           spinname = 'SPIN UP'.lower()
         # number of lines of eigenvalues/occupations for a kpt
         nband = self.get_number_of_bands()
-        n_entry_lines = max(1, int(nband/self.n_entries_float))
+        n_entry_lines = max(1, int((nband - 0.1)/self.n_entries_float) + 1)
         #
         filename = self.label + '.txt'
         text = open(filename).read().lower()
@@ -466,13 +526,21 @@ class Abinit:
         # find the begining line of last eigenvalues
         contains_eigenvalues = 0
         for n, line in enumerate(lines):
-            if line.rfind('eigenvalues (hartree) for nkpt') > -1:
-            #if line.rfind('eigenvalues (   ev  ) for nkpt') > -1: #MDTMP
-                contains_eigenvalues = n
+            if spin == 0:
+                if line.rfind('eigenvalues (hartree) for nkpt') > -1:
+                #if line.rfind('eigenvalues (   ev  ) for nkpt') > -1: #MDTMP
+                    contains_eigenvalues = n
+            else:
+                if (line.rfind('eigenvalues (hartree) for nkpt') > -1 and
+                    line.rfind(spinname) > -1): # find the last 'SPIN UP'
+                        contains_eigenvalues = n
         # find the end line of eigenvalues starting from contains_eigenvalues
-        for line in lines[contains_eigenvalues:]:
+        text_list = [lines[contains_eigenvalues]]
+        for line in lines[contains_eigenvalues + 1:]:
             text_list.append(line)
-            if not line.strip(): # find a blank line
+            # find a blank line or eigenvalues of second spin
+            if (not line.strip() or
+                line.rfind('eigenvalues (hartree) for nkpt') > -1):
                 break
         # remove last (blank) line
         text_list = text_list[:-1]
@@ -480,6 +548,9 @@ class Abinit:
         assert contains_eigenvalues, 'No eigenvalues found in the output'
 
         n_kpts = int(text_list[0].split('nkpt=')[1].strip().split()[0])
+
+        # get rid of the "eigenvalues line"
+        text_list = text_list[1:]
 
         # join text eigenvalues description with eigenvalues
         # or occupation numbers for kpt# with occupations
@@ -497,7 +568,7 @@ class Abinit:
             range_kpts = n_kpts
         #
         values_list = []
-        offset = 1
+        offset = 0
         for kpt_entry in range(range_kpts):
             full_line = ''
             for entry_line in range(n_entry_lines+1):
@@ -607,6 +678,7 @@ class Abinit:
         self.nband = self.read_number_of_bands()
         self.niter = self.read_number_of_iterations()
         self.nelect = self.read_number_of_electrons()
+        self.magnetic_moment = self.read_magnetic_moment()
 
 def inpify(key):
     return key.lower().replace('_', '').replace('.', '').replace('-', '')
@@ -647,3 +719,6 @@ keys_with_units = {
 #    'rcspatial': 'Ang',
 #    'kgridcutoff': 'Ang',
 #    'latticeconstant': 'Ang'}
+
+# shortcut function names
+Abinit.get_occupation_numbers = Abinit.get_occupations
