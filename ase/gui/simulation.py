@@ -118,8 +118,8 @@ class Simulation(gtk.Window):
         return Atoms(positions=images.P[n,:natoms],
                      symbols=images.Z[:natoms],
                      cell=images.A[n],
-                     magmoms=images.M[n],
-                     tags=images.T[n],
+                     magmoms=images.M[n,:natoms],
+                     tags=images.T[n,:natoms],
                      pbc=images.pbc,
                      constraint=constraint)
 
