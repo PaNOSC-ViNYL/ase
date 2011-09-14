@@ -88,7 +88,7 @@ class Abinit:
         self.mix = mix
         self.pps = pps
         self.toldfe = toldfe
-        if not pps in ['fhi', 'hgh', 'hgh.sc']:
+        if not pps in ['fhi', 'hgh', 'hgh.sc', 'paw']:
             raise ValueError('Unexpected PP identifier %s' % pps)
 
         self.converged = False
@@ -144,6 +144,8 @@ class Abinit:
                 # Therefore we first use glob to get all relevant files,
                 # then pick the correct one afterwards.
                 name = hghtemplate % (number, symbol.lower(), '*')
+            elif pps == 'paw':
+                name = '%s.%s.atompaw' % (symbol, xcname.lower())
 
             found = False
             for path in pppaths:
