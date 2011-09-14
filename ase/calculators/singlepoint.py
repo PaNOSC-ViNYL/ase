@@ -83,8 +83,37 @@ class SinglePointDFTCalculator(SinglePointCalculator):
         """Return the Fermi-level(s)."""
         return self.eFermi
 
+    def get_bz_k_points(self):
+        """Return the k-points."""
+        if self.kpts is not None:
+            # we assume that only the gamma point is defined
+            return np.zeros((1, 3))
+        return None
+
+    def get_number_of_spins(self):
+        """Return the number of spins in the calculation.
+
+        Spin-paired calculations: 1, spin-polarized calculation: 2."""
+        if self.kpts is not None:
+            # we assume that only the gamma point is defined
+            return len(self.kpts)
+        return None
+
+    def get_spin_polarized(self):
+        """Is it a spin-polarized calculation?"""
+        nos = self.get_number_of_spins()
+        if nos is not None:
+            return nos == 2
+        return None
+    
+    def get_ibz_k_points(self):
+        """Return k-points in the irreducible part of the Brillouin zone."""
+        return self.get_bz_k_points()
+
     def get_occupation_numbers(self, kpt=0, spin=0):
         """Return occupation number array."""
+        # we assume that only the gamma point is defined
+        assert(kpt == 0)
         if self.kpts is not None:
             for kpt in self.kpts:
                 if kpt.s == spin:
@@ -93,6 +122,8 @@ class SinglePointDFTCalculator(SinglePointCalculator):
 
     def get_eigenvalues(self, kpt=0, spin=0):
         """Return eigenvalue array."""
+        # we assume that only the gamma point is defined
+        assert(kpt == 0)
         if self.kpts is not None:
             for kpt in self.kpts:
                 if kpt.s == spin:
