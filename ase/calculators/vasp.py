@@ -43,6 +43,8 @@ float_keys = [
     'amix_mag',   #
     'bmix',       # tags for mixing
     'bmix_mag',   #
+    'deper',      # relative stopping criterion for optimization of eigenvalue
+    'ebreak',     # absolute stopping criterion for optimization of eigenvalues (EDIFF/N-BANDS/4)
     'emax',       # energy-range for DOSCAR file
     'emin',       #
     'enaug',      # Density cutoff
@@ -56,6 +58,7 @@ float_keys = [
     'pomass',     # mass of ions in am
     'sigma',      # broadening in eV
     'time',       # special control tag
+    'weimin',     # maximum weight for a band to be considered empty
     'zab_vdw',    # vdW-DF parameter
     'zval',       # ionic valence
     ]
@@ -140,7 +143,7 @@ bool_keys = [
     'lsepb',      # write out partial charge of each band seperately?
     'lsepk',      # write out partial charge of each k-point seperately?
     'lthomas',    #
-    'luse_vdw',   # Invoke vdW-DF implementation by Klimes et. al
+    'luse_vdw',   # Invoke vdW-DF implementation by Klimes et. al 
     'lvhar',      # write Hartree potential to LOCPOT (vasp 5.x)
     'lvtot',      # create WAVECAR/CHGCAR/LOCPOT
     'lwave',      #
@@ -416,6 +419,8 @@ class Vasp(Calculator):
             self.magnetic_moment = self.read_magnetic_moment()
             if self.int_params['lorbit']>=10 or (self.int_params['lorbit']!=None and self.list_params['rwigs']):
                 self.magnetic_moments = self.read_magnetic_moments(atoms)
+            else:
+                self.magnetic_moments = None
         self.old_float_params = self.float_params.copy()
         self.old_exp_params = self.exp_params.copy()
         self.old_string_params = self.string_params.copy()
