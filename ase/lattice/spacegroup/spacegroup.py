@@ -634,9 +634,9 @@ def parse_sitesym(symlist, sep=','):
                     k = ord(s[0]) - ord('x')
                     rot[i, j, k] = sign
                     s = s[1:]
-                elif s[0].isdigit():
+                elif s[0].isdigit() or s[0] == '.':
                     n = 0
-                    while n < len(s) and (s[n].isdigit() or s[n] == '/'):
+                    while n < len(s) and (s[n].isdigit() or s[n] in '/.'):
                         n += 1
                     t = s[:n]
                     s = s[n:]
@@ -647,7 +647,8 @@ def parse_sitesym(symlist, sep=','):
                         trans[i,j] = float(t)
                 else:
                     raise SpacegroupValueError(
-                        'invalid site symmetry: %s' % sym)
+                        'Error parsing %r. Invalid site symmetry: %s' % 
+                        (s, sym))
     return rot, trans
                 
 
