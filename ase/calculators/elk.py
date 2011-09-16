@@ -13,6 +13,10 @@ class ELK:
         for key, value in kwargs.items():
             if key in elk_parameters:
                 kwargs[key] /= elk_parameters[key]
+        try:
+            self.exe = os.environ['ELK']
+        except KeyError:
+            self.exe = 'elk'
 
         if xc is not None:
             if 'xctype' in kwargs:
@@ -45,7 +49,15 @@ class ELK:
 
         kwargs['tasks'] = tasks
 
+        if 'rmt' in kwargs:
+            self.rmt = kwargs['rmt']
+            assert len(self.rmt.keys()) == len(list(set(self.rmt.keys()))), 'redundant rmt definitions'
+        else:
+            self.rmt = None
+
         self.parameters = kwargs
+        if 'rmt' in self.parameters:
+            self.parameters.pop('rmt') # this is not an elk keyword!
 
         self.dir = dir
         self.energy = None
@@ -85,12 +97,8 @@ class ELK:
         self.pbc = atoms.get_pbc().copy()
 
         self.initialize(atoms)
-        try:
-            elk_exe = os.environ['ELK']
-        except KeyError:
-            elk_exe = 'elk'
 
-        assert os.system('cd %s; %s ' % (self.dir, elk_exe)) == 0
+        assert os.system('cd %s&& %s ' % (self.dir, self.exe)) == 0
         self.read()
 
         self.converged = True
@@ -113,8 +121,6 @@ class ELK:
             fd.write('%.14f %.14f %.14f\n' % tuple(vec / Bohr))
         fd.write('\n')
 
-        fd.write("sppath\n'%s'\n\n" % os.environ['ELK_SPECIES_PATH'])
-
         species = {}
         symbols = []
         for a, symbol in enumerate(atoms.get_chemical_symbols()):
@@ -130,6 +136,51 @@ class ELK:
             fd.write('%d\n' % len(species[symbol]))
             for a in species[symbol]:
                 fd.write('%.14f %.14f %.14f 0.0 0.0 0.0\n' % tuple(scaled[a]))
+
+        customspecies = self.rmt
+        if customspecies:
+            # custom species definitions
+            fd.write("\n")
+            sfile = os.path.join(os.environ['ELK_SPECIES_PATH'], 'elk.in')
+            assert os.path.exists(sfile)
+            slines = open(sfile, 'r').readlines()
+            # all species must be defined using species keyword
+            for s in species.keys():
+                if s not in customspecies.keys():
+                    # use default rmt for undefined species
+                    customspecies.update({s: 0.0})
+            # write custom species into elk.in
+            skeys = customspecies.keys()
+            skeys.sort()
+            for s in skeys:
+                found = False
+                for n, line in enumerate(slines):
+                    if line.find("'" + s + "'") > -1:
+                        begline = n - 1
+                for n, line in enumerate(slines[begline:]):
+                    if not line.strip(): # first empty line
+                        endline = n
+                        found = True
+                        break
+                assert found
+                fd.write("species\n")
+                # set rmt on third line
+                rmt = customspecies[s]
+                assert isinstance(rmt, (float,int))
+                if rmt <= 0.0: # relative
+                    # split needed because H is defined with comments
+                    newrmt = float(slines[begline + 3].split()[0].strip()) + rmt
+                else:
+                    newrmt = rmt
+                slines[begline + 3] = '%6s\n' % str(newrmt)
+                for l in slines[begline: begline + endline]:
+                    fd.write('%s' % l)
+                fd.write("\n")
+        else:
+            # use default species
+            # if sppath is present in elk.in it overwrites species blocks!
+            fd.write("sppath\n'%s'\n\n" % os.environ['ELK_SPECIES_PATH'])
+
 
     def read(self):
         fd = open('%s/TOTENERGY.OUT' % self.dir, 'r')
