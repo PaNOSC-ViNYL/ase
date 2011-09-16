@@ -144,7 +144,11 @@ class ELK:
             sfile = os.path.join(os.environ['ELK_SPECIES_PATH'], 'elk.in')
             assert os.path.exists(sfile)
             slines = open(sfile, 'r').readlines()
-            # all species must be defined using species keyword
+            # remove unused species
+            for s in customspecies.keys():
+                if s not in species.keys():
+                    customspecies.pop(s)
+            # add undefined species with defaults
             for s in species.keys():
                 if s not in customspecies.keys():
                     # use default rmt for undefined species
