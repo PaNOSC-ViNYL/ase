@@ -22,6 +22,7 @@ __all__ = [
         'write_param',
         ]
 
+
 def write_cell(filename, atoms, positions_frac=False, castep_cell=None,
     force_write=False):
     """This CASTEP export function write minimal information to
@@ -190,12 +191,16 @@ def read_cell(filename, _=None):
             if len(line) == 0:
                 l += 1
                 continue
-            elif any([line.startswith(c) for c in comment_chars]):
+            elif any([line.startswith(comment_char)
+                      for comment_char in comment_chars]):
                 l += 1
                 continue
             else:
-                icomment = min([line.index(c) if c in line else len(line) for
-                                                 c in comment_chars])
+                for c in comment_chars:
+                    if c in line:
+                        icomment = min(line.index(c))
+                    else:
+                        icomment = len(line) 
                 tokens = line[:icomment].split()
                 return tokens, l + 1
         tokens = ""
@@ -411,7 +416,10 @@ def read_castep(filename, _=-1):
                 symbols=''.join(species),
                 )
             # take 0K energy where available, else total energy
-            energy = energy_0K if energy_0K else energy_total
+            if energy_0K:
+                energy = energy_0K
+            else:
+                energy = energy_total
             # generate a minimal single-point calculator
             sp_calc = SinglePointCalculator(atoms=atoms,
                                             energy=energy,

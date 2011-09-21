@@ -24,12 +24,7 @@ if not (os.system('which %s' % os.environ['CASTEP_COMMAND']) == 0):
 
 
 # check if we can import everything
-ase_castep_dir_patched = "ase"
-ase_castep_dir_external = "castep_interface"
-if os.path.exists(ase_castep_dir_external):
-    ase_castep_dir = ase_castep_dir_external
-else:
-    ase_castep_dir = ase_castep_dir_patched
+ase_castep_dir = "ase"
 
 try:
     castep_calc = __import__(ase_castep_dir + ".calculators.castep", globals(), locals(), ["Castep", "CastepParam", "create_castep_keywords"])
@@ -51,6 +46,7 @@ except Exception, e:
 tmp_dir = tempfile.mkdtemp()
 cwd = os.getcwd()
 
+from ase.calculators.castep import Castep
 
 try:
     c = Castep(directory=tmp_dir, label='test_label')

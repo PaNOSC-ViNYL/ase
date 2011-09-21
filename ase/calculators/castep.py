@@ -68,16 +68,6 @@ attribute access (*i.e*. ``calc.param.keyword = ...`` or
 Getting Started:
 ================
 
-Besides an installed CASTEP binary one needs to generate the
-*castep_keywords.py* file which is *not* distributed but can be generated in a
-few seconds. [2]_ Simply run:
-
->>> ./castep.py  [-f]
-
-in the calculators directory of ASE. [3]_  ``-f`` will overwrite an existing
-keywords file.
-
-
 Set the environment variables appropriately for your system.
 
 >>> export CASTEP_COMMAND=' ... '
@@ -268,20 +258,6 @@ Notes/Issues:
        pp.567- 570 (2005)
        `online <http://goo.gl/tRJ7x>`_
 
-.. [2] The castep_keywords.py contains abstractions for CASTEP input
-       parameters (for both .cell and .param input files), including some
-       format checks and descriptions. The latter are extracted from the
-       internal online help facility of a CASTEP binary, thus allowing to
-       easily keep the calculator synchronized with (different versions of)
-       the CASTEP code. Consequently, avoiding licensing issues (CASTEP is
-       distributed commercially by accelrys), we consider it wise not to
-       provide castep_keywords.py in the first place.
-
-
-.. [3] If non system-wide installation is needed it can in also be placed in
-       ``~/.ase`` or in the current working directory. However the latter is
-       not recommended.
-
 
 End CASTEP Interface Documentation
     """
@@ -337,15 +313,10 @@ End CASTEP Interface Documentation
         # initialize the ase.calculators.general calculator
         Calculator.__init__(self)
 
-        # 2011/04/25 jm
-        # do relative import here for now:
-        # this allows to keep castep_interface completely
-        # separate from ASE installation
-        # for people who do not like to patch the latter
-        from ..io.castep import write_cell
+        from ase.io.castep import write_cell
         self._write_cell = write_cell
 
-        import castep_keywords
+        castep_keywords = import_castep_keywords()
         self.param = CastepParam()
         self.cell = CastepCell()
 
@@ -734,7 +705,10 @@ End CASTEP Interface Documentation
 
             # The next time around we will have an atoms object, since
             # set_calculator also set atoms in the calculator.
-            constraints = self.atoms.constraints if self.atoms else []
+            if self.atoms:
+                constraints = self.atoms.constraints
+            else:
+                constraints = []
             atoms = ase.atoms.Atoms(species,
                                     cell=lattice_real,
                                     constraint=constraints,
@@ -962,13 +936,13 @@ End CASTEP Interface Documentation
 
         if self.param.reuse.value is None:
             print("You have not set e.g. calc.param.reuse = True")
-            print("Reusing a previous calculation may save a lot of CPU time!\n")
-            print("The interface will make sure by default, that there is .check")
+            print("Reusing a previous calculation saves a lot of CPU time!\n")
+            print("The interface will make sure, that there is .check")
             print("file before adding this statement to the .param file.\n")
         if self.param.num_dump_cycles.value is None:
             print("You have not set e.g. calc.param.num_dump_cycles = 0.")
-            print("This can save you a lot of disk space. One only needs")
-            print("*wvfn* if electronic convergence is not achieved in one go.\n")
+            print("This can save a lot of disk space. One only needs *wvfn*")
+            print("if electronic convergence isn't achieved in one go.\n")
         from ase.io.castep import write_param
 
         if atoms is None:
@@ -1020,7 +994,10 @@ End CASTEP Interface Documentation
         self._write_cell('%s.cell' % self._seed,
             self.atoms, force_write=force_write)
 
-        interface_options = self._opt if self._export_settings else None
+        if self._export_settings:
+            interface_options = self._opt
+        else:
+            interface_options = None
         write_param('%s.param' % self._seed, self.param,
                     check_checkfile=True,
                     force_write=force_write,
@@ -1133,11 +1110,14 @@ End CASTEP Interface Documentation
         elif attr  in ['atoms', 'cell', 'param']:
             if value is not None:
                 if attr == 'atoms' and not isinstance(value, ase.atoms.Atoms):
-                    raise TypeError('%s is not an instance of ase.atoms.Atoms.' % value)
+                    raise TypeError('%s is not an instance of ase.atoms.Atoms.'
+                                     % value)
                 elif attr == 'cell' and not isinstance(value, CastepCell):
-                    raise TypeError('%s is not an instance of CastepCell.' % value)
+                    raise TypeError('%s is not an instance of CastepCell.'
+                                     % value)
                 elif attr == 'param' and not isinstance(value, CastepParam):
-                    raise TypeError('%s is not an instance of CastepParam.' % value)
+                    raise TypeError('%s is not an instance of CastepParam.'
+                                     % value)
             # These 3 are accepted right-away, no matter what
             self.__dict__[attr] = value
             return
@@ -1409,7 +1389,7 @@ def create_castep_keywords(castep_command, filename='castep_keywords.py',
     fh.write('ase/calculators/castep.py\n')
     fh.write('and is not distributed with ASE to avoid breaking')
     fh.write('CASTEP copyright\n"""\n')
-    fh.write('class Opt():\n')
+    fh.write('class Opt:\n')
     fh.write('    """"A CASTEP option"""\n')
     fh.write("""    def __init__(self):
         self.keyword = None
@@ -1460,14 +1440,18 @@ def create_castep_keywords(castep_command, filename='castep_keywords.py',
         code[suffix] += '        self._options = ComparableDict()\n'
     castep_version = get_castep_version(castep_command)
 
-    help_all = shell_stdouterr('%s -help all' % castep_command)
+    help_all, _ = shell_stdouterr('%s -help all' % castep_command)
 
     # Filter out proper keywords
-    raw_options = re.findall(r'(?<=^ )[A-Z_]+', help_all, re.MULTILINE)
+    try:
+        raw_options = re.findall(r'(?<=^ )[A-Z_]+', help_all, re.MULTILINE)
+    except:
+        print('Problem parsing: %s' % help_all)
+        raise
 
     processed_options = 0
     for option in raw_options[:fetch_only]:
-        doc = shell_stdouterr('%s -help %s' % (castep_command, option))
+        doc, _ = shell_stdouterr('%s -help %s' % (castep_command, option))
 
         # Stand Back! I know regular expressions (http://xkcd.com/208/) :-)
         match = re.match(r'(?P<before_type>.*)Type: (?P<type>[^ ]+).*' + \
@@ -1543,7 +1527,7 @@ class CastepParam(object):
     """CastepParam abstracts the settings that go into the .param file"""
     def __init__(self):
         object.__init__(self)
-        import castep_keywords
+        castep_keywords = import_castep_keywords()
         castep_param_dict = castep_keywords.CastepParamDict()
         self._options = castep_param_dict._options
         self.__dict__.update(self._options)
@@ -1638,7 +1622,7 @@ class CastepCell(object):
     """CastepCell abstracts all setting that go into the .cell file"""
     def __init__(self):
         object.__init__(self)
-        import castep_keywords
+        castep_keywords = import_castep_keywords()
         castep_cell_dict = castep_keywords.CastepCellDict()
         self._options = castep_cell_dict._options
         self.__dict__.update(self._options)
@@ -1858,6 +1842,32 @@ def shell_stdouterr(raw_command):
         shell=True).communicate()
     return stdout.strip(), stderr.strip()
 
+
+def import_castep_keywords():
+    try:
+        import castep_keywords
+    except ImportError:
+        print("""    Generating castep_keywords.py ... hang on.
+    The castep_keywords.py contains abstractions for CASTEP input
+    parameters (for both .cell and .param input files), including some
+    format checks and descriptions. The latter are extracted from the
+    internal online help facility of a CASTEP binary, thus allowing to
+    easily keep the calculator synchronized with (different versions of)
+    the CASTEP code. Consequently, avoiding licensing issues (CASTEP is
+    distributed commercially by accelrys), we consider it wise not to
+    provide castep_keywords.py in the first place.
+""")
+        create_castep_keywords(get_castep_command())
+        print("""\n\n    Stored castep_keywords.py in %s.  Copy castep_keywords.py to your
+    ASE installation under ase/calculators for system-wide installation
+""" % os.path.abspath(os.path.curdir))
+
+
+
+        import castep_keywords
+    return castep_keywords
+
+
 if __name__ == '__main__':
     print("When called directly this calculator will fetch all available")
     print("keywords from the binarys help function into a castep_keywords.py")
@@ -1873,7 +1883,11 @@ if __name__ == '__main__':
         help='Force overwriting existing castep_keywords.py', default=False,
         action='store_true')
     (options, args) = parser.parse_args()
-    opt_castep_command = ''.join(args) if args else ''
+
+    if args:
+        opt_castep_command = ''.join(args)
+    else:
+        opt_castep_command = ''
     generated = create_castep_keywords(get_castep_command(opt_castep_command),
         force_write=options.force_write)
 
