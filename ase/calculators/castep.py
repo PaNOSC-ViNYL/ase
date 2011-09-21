@@ -96,11 +96,12 @@ default settings of CASTEP, meaning LDA, singlepoint, etc..
 
 With a generated castep_keywords.py in place all options are accessible
 by inspection, *i.e.* tab-completion. This works best when using `ipython`.
-All options can be accessed via ``calc.param.keyword``e ``calc.cell.keyword``
-and documentation is printed with ``?`` . All options can also be set directly
+All options can be accessed via ``calc.param.<TAB>`` or ``calc.cell.<TAB>``
+and documentation is printed with ``calc.param.<keyword> ?`` or
+``calc.cell.<keyword> ?``. All options can also be set directly
 using ``calc.keyword = ...`` or ``calc.KEYWORD = ...`` or even
 ``calc.KeYwOrD`` or directly as named arguments in the call to the constructor
-(*i.e.* ``Castep(task='GeometryOptimization')``).
+(*e.g.* ``Castep(task='GeometryOptimization')``).
 
 All options that go into the ``.param`` file are held in an ``CastepParam``
 instance, while all options that go into the ``.cell`` file and don't belong
@@ -1045,9 +1046,11 @@ End CASTEP Interface Documentation
         self._calls += 1
 
         # run castep itself
-        res = shell_stdouterr('%s %s' % (self._castep_command, self._seed))
-        if res:
-            print(res)
+        stdout, stderr = shell_stdouterr('%s %s' % (self._castep_command, self._seed))
+        if stdout:
+            print('castep call stdout:\n%s' % stdout)
+        if stderr:
+            print('castep call stderr:\n%s' % stderr)
         self.push_oldstate()
 
         # check for non-empty error files
@@ -1849,11 +1852,11 @@ def shell_stdouterr(raw_command):
     """Abstracts the standard call of the commandline, when
     we are only interested in the stdout and stderr
     """
-    return subprocess.Popen(raw_command,
+    stdout, stderr = subprocess.Popen(raw_command,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        shell=True).communicate()[0].strip()
-
+        shell=True).communicate()
+    return stdout.strip(), stderr.strip()
 
 if __name__ == '__main__':
     print("When called directly this calculator will fetch all available")
