@@ -1,4 +1,4 @@
-.. _spacegroup:
+.. module:: lattice.spacegroup
 
 ===============================
 Using the spacegroup subpackage

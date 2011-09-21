@@ -3,6 +3,7 @@
 .. seealso:: 
 
    * The :mod:`lattice` module
+   * The :mod:`~lattice.spacegroup` module
    * The :mod:`~lattice.surface` module
 
 

@@ -15,23 +15,24 @@ Quick links:
     - :mod:`atoms`
     - :mod:`calculators`
     - :mod:`constraints`
-  * - :mod:`dft`
-    - :mod:`data`
+    - :mod:`dft`
+  * - :mod:`data`
     - :mod:`gui`
     - :mod:`infrared`
-  * - :mod:`io`
+    - :mod:`io`
     - :mod:`lattice`
-    - :mod:`md`
+  * - :mod:`md`
     - :mod:`neb`
-  * - :mod:`optimize`
+    - :mod:`optimize`
     - :mod:`parallel`
     - :mod:`phonons`
+  * - :mod:`~lattice.spacegroup`
     - :mod:`structure`
-  * - :mod:`~lattice.surface`
+    - :mod:`~lattice.surface`
     - :mod:`transport`
     - :mod:`thermochemistry`
-    - :mod:`units`
-  * - :mod:`utils`
+  * - :mod:`units`
+    - :mod:`utils`
     - :mod:`vibrations`
     - :mod:`visualize`
     - :mod:`vtk`

@@ -61,7 +61,7 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
     ondublicates : 'keep' | 'replace' | 'warn' | 'error'
         Action if `basis` contain symmetry-equivalent positions:
             'keep'    - ignore additional symmetry-equivalent positions
-            'replace' - reolace
+            'replace' - replace
             'warn'    - like 'keep', but issue an UserWarning
             'error'   - raises a SpacegroupValueError
     symprec : float
