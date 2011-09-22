@@ -77,6 +77,10 @@ class ELK:
 
     def initialize(self, atoms):
         self.numbers = atoms.get_atomic_numbers().copy()
+
+        if not hasattr(self, 'spinpol'):
+            self.spinpol = atoms.get_initial_magnetic_moments().any()
+
         self.write(atoms)
 
     def get_potential_energy(self, atoms):
@@ -90,6 +94,136 @@ class ELK:
     def get_stress(self, atoms):
         self.update(atoms)
         return self.stress.copy()
+
+    def get_ibz_k_points(self):
+        return self.read_kpts(mode='ibz_k_points')
+
+    def read_kpts(self, mode='ibz_k_points'):
+        """ Returns list of kpts weights or kpts coordinates.  """
+        values = []
+        assert mode in ['ibz_k_points' , 'k_point_weights'], 'mode not in [\'ibz_k_points\' , \'k_point_weights\']'
+        KPOINTS_file = '%s/KPOINTS.OUT' % self.dir
+        if os.path.isfile(KPOINTS_file) or os.path.islink(KPOINTS_file):
+            lines = open(KPOINTS_file).readlines()
+            kpts = None
+            for line in lines:
+                if line.rfind(': nkpt') > -1:
+                    kpts = int(line.split(':')[0].strip())
+                    break
+            assert not kpts is None
+            text = lines[1:] # remove first line
+            values = []
+            for line in text:
+                if mode == 'ibz_k_points':
+                    b = [float(c.strip()) for c in line.split()[1:-3]]
+                else:
+                    b = [float(c.strip()) for c in line.split()[-2]]
+                values.append(b)
+            if len(values) == 0:
+                values = None
+            return np.array(values)
+
+    def get_spin_polarized(self):
+        return self.spinpol
+
+    def get_number_of_spins(self):
+        return 1 + int(self.spinpol)
+
+    def get_magnetic_moment(self, atoms):
+        self.update(atoms)
+        return self.magnetic_moment
+
+    def read_magnetic_moment(self):
+        magmom = None
+        INFO_file = '%s/INFO.OUT' % self.dir
+        if os.path.isfile(INFO_file) or os.path.islink(INFO_file):
+            lines = open(INFO_file).readlines()
+            for line in lines:
+                if line.rfind('total moment                :') > -1:
+                    magmom = float(line.split(':')[1].strip()) # last iter
+        return magmom
+
+    def get_magnetic_moments(self, atoms):
+        # not implemented yet, so
+        # so set the total magnetic moment on the atom no. 0 and fill with 0.0
+        self.update(atoms)
+        magmoms = [0.0 for a in range(len(atoms))]
+        magmoms[0] = self.get_magnetic_moment(atoms)
+        return np.array(magmoms)
+
+    def get_fermi_level(self):
+        return self.read_fermi()
+
+    def get_number_of_bands(self):
+        return self.nbands
+
+    def read_number_of_bands(self):
+        nbands = None
+        EIGVAL_file = '%s/EIGVAL.OUT' % self.dir
+        if os.path.isfile(EIGVAL_file) or os.path.islink(EIGVAL_file):
+            lines = open(EIGVAL_file).readlines()
+            for line in lines:
+                if line.rfind(': nstsv') > -1:
+                    nbands = int(line.split(':')[0].strip())
+                    break
+        if self.get_spin_polarized():
+            nbands = nbands / 2
+        return nbands
+
+    def get_number_of_iterations(self):
+        return self.niter
+
+    def read_number_of_iterations(self):
+        niter = None
+        INFO_file = '%s/INFO.OUT' % self.dir
+        if os.path.isfile(INFO_file) or os.path.islink(INFO_file):
+            lines = open(INFO_file).readlines()
+            for line in lines:
+                if line.rfind(' Loop number : ') > -1:
+                    niter = int(line.split(':')[1].split()[0].strip()) # last iter
+        return niter
+
+    def get_electronic_temperature(self):
+        return self.swidth
+
+    def read_electronic_temperature(self):
+        swidth = None
+        INFO_file = '%s/INFO.OUT' % self.dir
+        if os.path.isfile(INFO_file) or os.path.islink(INFO_file):
+            text = open(INFO_file).read().lower()
+            assert 'convergence targets achieved' in text
+            assert not 'reached self-consistent loops maximum' in text
+            for line in iter(text.split('\n')):
+                if line.rfind('smearing width :') > -1:
+                    swidth = float(line.split(':')[1].strip())
+                    break
+        return Hartree*swidth
+
+    def get_number_of_electrons(self):
+        return self.nelect
+
+    def read_number_of_electrons(self):
+        nelec = None
+        INFO_file = '%s/INFO.OUT' % self.dir
+        if os.path.isfile(INFO_file) or os.path.islink(INFO_file):
+            text = open(INFO_file).read().lower()
+            assert 'convergence targets achieved' in text
+            assert not 'reached self-consistent loops maximum' in text
+            # Total electronic charge
+            for line in iter(text.split('\n')):
+                if line.rfind('total electronic charge :') > -1:
+                    nelec = float(line.split(':')[1].strip())
+                    break
+        return nelec
+
+    def get_eigenvalues(self, kpt=0, spin=0):
+        return self.read_eigenvalues(kpt, spin, 'eigenvalues')
+
+    def get_occupation_numbers(self, kpt=0, spin=0):
+        return self.read_eigenvalues(kpt, spin, 'occupations')
+
+    def get_fermi_level(self):
+        return self.fermi
 
     def calculate(self, atoms):
         self.positions = atoms.get_positions().copy()
@@ -154,7 +288,7 @@ class ELK:
                     # use default rmt for undefined species
                     customspecies.update({s: 0.0})
             # write custom species into elk.in
-            skeys = customspecies.keys()
+            skeys = list(set(customspecies.keys())) # unique
             skeys.sort()
             for s in skeys:
                 found = False
@@ -186,6 +320,65 @@ class ELK:
             fd.write("sppath\n'%s'\n\n" % os.environ['ELK_SPECIES_PATH'])
 
 
+    def read_fermi(self):
+        """Method that reads Fermi energy in Hartree from the output file
+        and returns it in eV"""
+        E_f=None
+        INFO_file = '%s/INFO.OUT' % self.dir
+        if os.path.isfile(INFO_file) or os.path.islink(INFO_file):
+            text = open(INFO_file).read().lower()
+            assert 'convergence targets achieved' in text
+            assert not 'reached self-consistent loops maximum' in text
+            for line in iter(text.split('\n')):
+                if line.rfind('fermi                       :') > -1:
+                    E_f = float(line.split(':')[1].strip())
+            E_f = E_f*Hartree
+        return E_f
+
+    def read_eigenvalues(self, kpt=0, spin=0, mode='eigenvalues'):
+        """ Returns list of last eigenvalues, occupations
+        for given kpt and spin.  """
+        values = []
+        assert mode in ['eigenvalues' , 'occupations'], 'mode not in [\'eigenvalues\' , \'occupations\']'
+        EIGVAL_file = '%s/EIGVAL.OUT' % self.dir
+        if os.path.isfile(EIGVAL_file) or os.path.islink(EIGVAL_file):
+            lines = open(EIGVAL_file).readlines()
+            nstsv = None
+            for line in lines:
+                if line.rfind(': nstsv') > -1:
+                    nstsv = int(line.split(':')[0].strip())
+                    break
+            assert not nstsv is None
+            kpts = None
+            for line in lines:
+                if line.rfind(': nkpt') > -1:
+                    kpts = int(line.split(':')[0].strip())
+                    break
+            assert not kpts is None
+            text = lines[3:] # remove first 3 lines
+            # find the requested k-point
+            beg = 2 + (nstsv + 4) * kpt
+            end = beg + nstsv
+            if self.get_spin_polarized():
+                # elk prints spin-up and spin-down together
+                if spin == 0:
+                    beg = beg
+                    end = beg + nstsv / 2
+                else:
+                    beg = beg - nstsv / 2 - 3
+                    end = end
+            values = []
+            for line in text[beg:end]:
+                b = [float(c.strip()) for c in line.split()[1:]]
+                values.append(b)
+            if mode == 'eigenvalues':
+                values = [Hartree*v[0] for v in values]
+            else:
+                values = [v[1] for v in values]
+            if len(values) == 0:
+                values = None
+            return np.array(values)
+
     def read(self):
         fd = open('%s/TOTENERGY.OUT' % self.dir, 'r')
         self.energy = float(fd.readlines()[-1]) * Hartree
@@ -207,3 +400,8 @@ class ELK:
             raise RuntimeError
         # Stress
         self.stress = np.empty((3, 3))
+        self.nbands = self.read_number_of_bands()
+        self.nelect = self.read_number_of_electrons()
+        self.swidth = self.read_electronic_temperature()
+        self.niter = self.read_number_of_iterations()
+        self.magnetic_moment = self.read_magnetic_moment()
