@@ -33,6 +33,7 @@ One of the current committers will look at the patch and give you some
 feedback.  Maybe the patch is fine and the committer will commit it to
 trunk.  There could also be some more work to do like:
 
+* make it compatible with all supported pythons (see :ref:`download_and_install`).
 * write more comments
 * fix docstrings
 * write a test
@@ -41,7 +42,7 @@ trunk.  There could also be some more work to do like:
 Once everyone is happy, the patch can be appied.  This patch-feedback
 loop is not something we have invented to prevent you from
 contributing - it should be viewed as an opportunity for you to learn
-how to write good code that fits into the ASE codebase.  
+how to write a code that fits into the ASE codebase.  
 
 After a couple of contributions, we will probably trust you enough to
 add you as a committer.

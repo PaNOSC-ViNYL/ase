@@ -6,7 +6,7 @@ Installation of ASE: Requirements
 
 The following packages are required for basic ASE functionality:
 
-1) Python_.
+1) Python_ 2.4 - 2.7.
 2) NumPy_.
 
 .. _Python: http://www.python.org
