@@ -29,7 +29,6 @@ class NWchem(Calculator):
                  ecp=None,
                  so=None,
                  charge=None,
-                 multiplicity = 1,
                  spinorbit=False,
                  ):
         self.label = label
@@ -48,7 +47,6 @@ class NWchem(Calculator):
         self.so = so
         self.convergence = convergence
         self.maxiter = maxiter
-        self.multiplicity = multiplicity
         self.spinorbit = spinorbit
 
         # atoms must be set
@@ -211,5 +209,13 @@ class NWchem(Calculator):
         self.energy = None
         self.forces = None
 
+        # obtain multiplicity from magnetic momenta
+        multiplicity = 1 + atoms.get_initial_magnetic_moments().sum()
+        self.multiplicity = int(multiplicity)
+        if self.multiplicity != multiplicity:
+            raise RuntimeError('Noninteger magnetic moments not possible.\n' +
+                               'Check initial magnetic moments.')
+
     def update(self, atoms):
         self.set_atoms(atoms)
+        
