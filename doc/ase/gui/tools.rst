@@ -81,10 +81,11 @@ r,g,b		 Color components, invoking the expert mode changes
 		 ``r = (z-min(R[:,2]))/(max(R[:,2])-min(R[:,2]))``
 rad		 atomic display radius
 s		 Boolean to control the selection of an atom. Example:
-		 ``s = Z == 6 and x > 5``
+		 ``s = Z == 6 and x > 5`` or ``s = d == False``
 f		 force on an atom
 Z		 atomic number
 m		 magnetic moment
+d		 dynamic, e.g. d = False fixes an atom
 ================ =====================================================
 
 List of frame-based and global commands and global objects with
@@ -102,6 +103,7 @@ F		 all forces in one frame
 M		 all magnetic moments
 R		 all atomic positions
 S		 boolean array of the entire selection
+D		 boolean array of dynamic atoms (False = atom is fixed)
 del S		 deletes current selection
 sa,cf		 toggles the selected-atoms-only or the
 		 current-frame-only buttons 

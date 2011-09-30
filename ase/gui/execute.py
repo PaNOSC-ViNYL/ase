@@ -31,6 +31,7 @@ class Execute(gtk.Window):
     <c>M</c>:\tall magnetic moments
     <c>R</c>:\t\tall atomic positions
     <c>S</c>:\tall selected atoms (boolean array)
+    <c>D</c>:\tall dynamic atoms (boolean array)
     examples: <c>frame = 1</c>, <c>A[0][1] += 4</c>, <c>e-E[-1]</c>
 
     Atom commands work on each atom (or a selection) individually
@@ -40,6 +41,7 @@ class Execute(gtk.Window):
     <c>r,g,b</c>:\tatom display color, range is [0..1]
     <c>rad</c>:\tatomic radius for display
     <c>s</c>:\t\tatom is selected
+    <c>d</c>:\t\tatom is movable
     <c>f</c>:\t\tforce
     <c>Z</c>:\tatomic number
     <c>m</c>:\tmagnetic moment
