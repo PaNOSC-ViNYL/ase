@@ -137,6 +137,15 @@ ibz_points = {'cubic': {'Gamma': [0,     0,     0    ],
                         'Z':     [0,      0,     1 / 2 ],
                         'R':     [1 / 2,  0,     1 / 2 ],
                         'A':     [1 / 2,  1 / 2, 1 / 2 ]},
+              'orthorhombic':
+                       {'Gamma': [0,      0,       0   ],
+                        'R':     [1 / 2,  1 / 2, 1 / 2 ],
+                        'S':     [1 / 2,  1 / 2,   0   ],
+                        'T':     [0,      1 / 2, 1 / 2 ],
+                        'U':     [1 / 2,  0,     1 / 2 ],
+                        'X':     [1 / 2,  0,       0   ],
+                        'Y':     [0,      1 / 2,   0   ],
+                        'Z':     [0,      0,     1 / 2 ]},              
               }
 
 # ChadiCohen k point grids. The k point grids are given in units of the
