@@ -137,10 +137,13 @@ def read_aims_output(filename, index = -1):
     from ase import Atoms, Atom 
     from ase.calculators.singlepoint import SinglePointCalculator
     from ase.units import Ang, fs
+    from ase.constraints import FixAtoms, FixCartesian
     molecular_dynamics = False
     fd = open(filename, 'r')
     cell = []
     images = []
+    fix = []
+    fix_cart = []    
     n_periodic = -1
     f = None
     pbc = False
@@ -164,6 +167,30 @@ def read_aims_output(filename, index = -1):
                 for i in range(3):
                     inp = fd.readline().split()
                     cell.append([inp[1],inp[2],inp[3]])
+        if "Found relaxation constraint for atom" in line:
+            xyz = [0, 0, 0]
+            ind = int(line.split()[5][:-1])-1
+            if "All coordinates fixed" in line:
+                if ind not in fix:
+                    fix.append(ind)
+            if "coordinate fixed" in line:
+                coord = line.split()[6]
+                constr_ind = 0
+                if coord == 'x':
+                    xyz[0] = 1
+                elif coord == 'y':
+                    xyz[1] = 1
+                elif coord == 'z':
+                    xyz[2] = 1
+                keep = True
+                for n,c in enumerate(fix_cart):
+                    if ind == c.a:
+                        keep = False
+                        constr_ind = n
+                if keep:
+                    fix_cart.append(FixCartesian(ind, xyz))
+                else:
+                    fix_cart[n].mask[xyz.index(1)] = 0
         if "Atomic structure:" in line and not molecular_dynamics:
             fd.readline()
             atoms = Atoms()
@@ -198,6 +225,10 @@ def read_aims_output(filename, index = -1):
                 inp = fd.readline().split()
                 velocities += [[float(inp[1])*v_unit,float(inp[2])*v_unit,float(inp[3])*v_unit]]
             atoms.set_velocities(velocities)
+            if len(fix):
+                atoms.set_constraint([FixAtoms(indices=fix)]+fix_cart)
+            else:
+                atoms.set_constraint(fix_cart)
             images.append(atoms)
         if "Total atomic forces" in line:
             f = []
@@ -217,6 +248,10 @@ def read_aims_output(filename, index = -1):
             if not found_aims_calculator:
                 atoms.set_calculator(SinglePointCalculator(e,None,None,None,atoms))
             if not molecular_dynamics: 
+                if len(fix):
+                    atoms.set_constraint([FixAtoms(indices=fix)]+fix_cart)
+                else:
+                    atoms.set_constraint(fix_cart)
                 images.append(atoms)
             e = None
             if found_aims_calculator:
