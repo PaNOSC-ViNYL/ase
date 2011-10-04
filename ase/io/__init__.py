@@ -5,9 +5,10 @@ from tarfile import is_tarfile
 from zipfile import is_zipfile
 
 from ase.atoms import Atoms
-from ase.units import Bohr
+from ase.units import Bohr, Hartree
 from ase.io.trajectory import PickleTrajectory
 from ase.io.bundletrajectory import BundleTrajectory
+from ase.calculators.singlepoint import SinglePointCalculator
 
 __all__ = ['read', 'write', 'PickleTrajectory', 'BundleTrajectory']
 
@@ -88,6 +89,12 @@ def read(filename, index=-1, format=None):
         pbc = r.get('BoundaryConditions')
         tags = r.get('Tags')
         magmoms = r.get('MagneticMoments')
+        energy = r.get('PotentialEnergy') * Hartree
+
+        if r.has_array('CartesianForces'):
+            forces = r.get('CartesianForces') * Hartree / Bohr
+        else:
+            forces = None
 
         atoms = Atoms(positions=positions,
                       numbers=numbers,
@@ -95,8 +102,14 @@ def read(filename, index=-1, format=None):
                       pbc=pbc)
         if tags.any():
             atoms.set_tags(tags)
+
         if magmoms.any():
             atoms.set_initial_magnetic_moments(magmoms)
+        else:
+            magmoms = None
+
+        atoms.calc = SinglePointCalculator(energy, forces, None, magmoms,
+                                           atoms)
 
         return atoms
 
