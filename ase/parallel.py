@@ -37,9 +37,9 @@ def parprint(*args, **kwargs):
     else:
         last = ''
     if kwargs['end'] == '\n':
-        print last
+        print >> kwargs['file'], last
     else:
-        print last,
+        print >> kwargs['file'], last,
 
 
 class DummyMPI:
