@@ -56,8 +56,9 @@ class SinglePointCalculator:
     def get_spin_polarized(self):
         return self.magmoms is not None and self.magmoms.any()
 
-    def get_magnetic_moments(self, atoms):
-        self.update(atoms)
+    def get_magnetic_moments(self, atoms=None):
+        if atoms is not None:
+            self.update(atoms)
         if self.magmoms is not None:
             return self.magmoms
         else:
