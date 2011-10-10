@@ -31,6 +31,22 @@ class NWchem(Calculator):
                  charge=None,
                  spinorbit=False,
                  ):
+        """Construct NWchem-calculator object.
+
+        Parameters
+        ==========
+        label: str
+            Prefix to use for filenames (label.nw, label.out, ...).
+            Default is 'nwchem'.
+        xc: str
+            Exchange-correlation functional. LDA and PBE are predefined, 
+            use nchem names instead.
+        basis: str
+            Basis set
+        maxiter: int
+            Maximal number of iteratations in self-consistent field convergence.
+            """
+
         self.label = label
         self.converged = False
         
@@ -38,7 +54,7 @@ class NWchem(Calculator):
         self.calculate_energy = calculate_energy
 
         # does nwchem have stress ???
-        self.stress = np.empty((3, 3))
+        self.stress = np.zeros((3, 3))
         
         self.charge = charge
         self.xc = xc
