@@ -40,6 +40,7 @@ from ase.gui.widgets import pack, help, Help, oops
 from ase.gui.languages import translate as _
 
 from ase.gui.settings import Settings
+from ase.gui.crystal import SetupBulkCrystal
 from ase.gui.surfaceslab import SetupSurfaceSlab
 from ase.gui.nanoparticle import SetupNanoparticle
 from ase.gui.nanotube import SetupNanotube
@@ -112,6 +113,7 @@ ui_info = """\
       <menuitem action='BulkModulus'/>
     </menu>
     <menu action='SetupMenu'>
+      <menuitem action='Bulk'/>
       <menuitem action='Surface'/>
       <menuitem action='Nanoparticle'/>
       <menuitem action='Graphene'/>
