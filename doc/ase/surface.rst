@@ -2,10 +2,15 @@
 
 .. _lattice-surface-section:
 
+========
+Surfaces
+========
+
+.. module:: ase.lattice.surface
+
+
 Common surfaces
 ===============
-
-.. module:: lattice.surface
 
 A number of utility functions are provided to set up
 the most common surfaces, to add vacuum layers, and to add adsorbates
@@ -174,3 +179,55 @@ After a slab has been created, a vacuum layer can be added.  It is
 also possible to add one or more adsorbates.
 
 .. autofunction:: ase.lattice.surface.add_adsorbate
+
+
+.. _general-surface-section:
+
+Create specific non-common surfaces
+===================================
+
+In addition to the most normal surfaces, a function has been
+constructed to create more uncommon surfaces that one could be
+interested in.  It is constructed upon the Miller Indices defining the
+surface and can be used for both fcc, bcc and hcp structures.  The
+theory behind the implementation can be found here:
+:download:`general_surface.pdf`.
+
+
+Example
+-------
+
+To setup a Au(211) surface with 9 layers and 10 Å of vacuum:
+
+.. literalinclude:: general_surface.py
+    :lines: 2-4
+
+This is the easy way, where you use the experimental lattice constant
+for gold bulk structure.  You can write::
+
+    from ase.visualize import view
+    view(s1)
+
+or simply ``s1.edit()`` if you want to see and rotate the structure.
+
+.. image:: s1.png
+
+Next example is a molybdenum bcc(321) surface where we decide what
+lattice constant to use:
+
+.. literalinclude:: general_surface.py
+    :lines: 6-9
+
+.. image:: s2.png
+
+As the last example, creation of alloy surfaces is also very easily
+carried out with this module.  In this example, two :mol:`Pt_3Rh`
+fcc(211) surfaces will be created:
+
+.. literalinclude:: general_surface.py
+    :lines: 11-25
+
+|s3| |s4|
+
+.. |s3| image:: s3.png
+.. |s4| image:: s4.png
