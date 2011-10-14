@@ -8,6 +8,7 @@ import sys
 from ase.gui.languages import translate as _
 from ase.gui.widgets import pack, Help
 from ase.data.colors import jmol_colors
+from ase.atoms import Atoms
 
 class Execute(gtk.Window):
     """ The Execute class provides an expert-user window for modification
@@ -52,6 +53,7 @@ class Execute(gtk.Window):
     <c>frame</c>:\tframe number
     <c>center</c>:\tcenters the system in its existing unit cell
     <c>del S</c>:\tdelete selection
+    <c>CM</c>:\tcenter of mass
     <c>exec file</c>: executes commands listed in file
     <c>cov[Z]</c>:(read only): covalent radius of atomic number Z
     <c>gui</c>:\tadvanced: ag window python object
@@ -175,6 +177,13 @@ class Execute(gtk.Window):
             self.images_only.set_active(not self.images_only.get_active())
         elif cmd == 'center':      # center system
             img.center()
+        elif cmd == 'CM':          # calculate center of mass
+            for i in loop_images:
+                if self.stop:
+                    break
+                atoms = Atoms(positions=img.P[i][indices],
+                              numbers=img.Z[indices])
+                self.add_text(repr(atoms.get_center_of_mass()))
         elif first_command == 'exec': # execute script
             name = cmd.split()[1]
             if '~' in name:
