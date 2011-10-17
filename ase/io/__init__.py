@@ -61,6 +61,7 @@ def read(filename, index=-1, format=None):
     CASTEP trajectory file     geom
     ETSF format                etsf.nc
     DFTBPlus GEN format        gen
+    CMR db-file                db
     =========================  ===========
 
     """
@@ -240,6 +241,10 @@ def read(filename, index=-1, format=None):
     if format == 'gen':
         from ase.io.gen import read_gen
         return read_gen(filename)
+
+    if format == 'db':
+        from ase.io.db import read_db
+        return read_db(filename, index)
 
     raise RuntimeError('File format descriptor '+format+' not recognized!')
 
@@ -450,6 +455,9 @@ def filetype(filename):
     s3 = fileobj.read(3)
     if len(s3) == 0:
         raise IOError('Empty file: ' + filename)
+
+    if filename.lower().endswith('.db'):
+        return 'db'
 
     if is_tarfile(filename):
         return 'gpw'
