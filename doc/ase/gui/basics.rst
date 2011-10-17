@@ -84,9 +84,6 @@ the :option:`-n` or :option:`--image-number` option::
 
   Type :program:`ag -h` for a description of all command line options.
 
-XXX latex shows --image-number as -image-number!
-
-
 
 Writing files
 -------------
@@ -138,9 +135,11 @@ function of the distance between atom 0 and 5::
 
 The symbols are the same as used in the plotting data function. 
 
+
 Defaults for ag
 ---------------
-Using a file ~.ase/gui.py, certain defaults can be set. If it exists,
+
+Using a file ~/.ase/gui.py, certain defaults can be set. If it exists,
 this file is executed after initializing the variables and colours
 normally used in ag. One can change the default graphs that are
 plotted, and the default radii for displaying specific atoms. This

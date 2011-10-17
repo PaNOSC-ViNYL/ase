@@ -56,6 +56,7 @@ List of all modules:
    units
    io
    gui/gui
+   cmdline
    setup-overview
    optimize
    parallel

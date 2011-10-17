@@ -21,6 +21,8 @@ Development version in trunk
 
 * New values for ase.data.covalent_radii from Cordeo *et al.*.
 
+* New command line tool: :ref:`command line tools`.
+
 
 Version 3.5.1
 =============

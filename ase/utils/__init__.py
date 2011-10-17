@@ -28,7 +28,7 @@ def opencew(filename):
 
     If master cpu gets exclusive write access til filename, a file
     descriptor is returned (a dummy file descriptor is returned on the
-    slaves).  If the master cpu doet not gets write access, None is
+    slaves).  If the master cpu doet not get write access, None is
     returned on all processors."""
 
     if world.rank == 0:

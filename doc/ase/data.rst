@@ -44,6 +44,8 @@ The covalent radii are taken from [Cordeo08]_
     Dalton Trans., 2008, 2832-2838 DOI:10.1039/B801115J 
 
 
+.. _molecular data:
+
 Molecular data
 ==============
 

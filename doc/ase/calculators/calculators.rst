@@ -35,6 +35,8 @@ Alternatively, a calculator can be attached like this::
   atoms = Atoms(..., calculator=Siesta())
 
 
+.. _supported calculators:
+
 Supported calculators
 =====================
 
