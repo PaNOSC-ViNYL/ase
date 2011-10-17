@@ -309,9 +309,6 @@ class Abinit:
 
         self.write_inp(atoms)
 
-        abinit = os.environ['ABINIT_SCRIPT']
-        locals = {'label': self.label}
-
         # Now, because (stupidly) abinit when it finds a name it uses nameA
         # and when nameA exists it uses nameB, etc.
         # we need to rename our *.txt file to *.txt.bak
@@ -319,8 +316,15 @@ class Abinit:
         if islink(filename) or isfile(filename):
             os.rename(filename, filename+'.bak')
 
-        execfile(abinit, {}, locals)
-        exitcode = locals['exitcode']
+        if 'ABINIT_SCRIPT' in os.environ:
+            abinit = os.environ['ABINIT_SCRIPT']
+            locals = {'label': self.label}
+            execfile(abinit, {}, locals)
+            exitcode = locals['exitcode']
+        else:
+            exitcode = os.system('/usr/bin/abinis < %s.files > %s.log' %
+                                 (self.label, self.label))
+
         if exitcode != 0:
             raise RuntimeError(('Abinit exited with exit code: %d.  ' +
                                 'Check %s.log for more information.') %
