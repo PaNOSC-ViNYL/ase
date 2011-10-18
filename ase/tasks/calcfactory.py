@@ -107,11 +107,12 @@ class CalculatorFactory:
 
 
 # Recognized names of calculators sorted alphabetically:
-calcnames = ['abinit', 'aims', 'castep', 'dftb', 'elk', 'emt', 'exciting',
-             'fleur', 'gpaw', 'lammps', 'lj', 'morse', 'nwchem', 'siesta',
-             'turbomole', 'vasp']
+calcnames = ['abinit', 'aims', 'asap', 'castep', 'dftb', 'elk', 'emt',
+             'exciting', 'fleur', 'gpaw', 'hotbit', 'lammps', 'lj', 'morse',
+             'nwchem', 'siesta', 'turbomole', 'vasp']
 
-classnames = {'elk': 'ELK',
+classnames = {'asap': 'EMT',
+              'elk': 'ELK',
               'emt': 'EMT',
               'fleur': 'FLEUR',
               'lammps': 'LAMMPS',
@@ -123,12 +124,21 @@ classnames = {'elk': 'ELK',
 def calculator_factory(name, **kwargs):
     """Create an ASE calculator factory."""
 
+    if name == 'asap':
+        from asap3 import EMT
+        return CalculatorFactory(EMT, 'Asap', None, 'no k-points', **kwargs)
+
     if name == 'gpaw':
         from gpaw.factory import GPAWFactory
         return GPAWFactory(**kwargs)
 
+    if name == 'hotbit':
+        from hotbit import Calculator
+        return CalculatorFactory(Calculator, 'Hotbit', 'txt', 'no k-points',
+                                 **kwargs)
+
     classname = classnames.get(name, name.title())
-    module = __import__('ase.calculators.' + name, fromlist=[classname])
+    module = __import__('ase.calculators.' + name, {}, None, [classname])
     Class = getattr(module, classname)
 
     if name in ['emt', 'lammps', 'lj', 'morse']:
