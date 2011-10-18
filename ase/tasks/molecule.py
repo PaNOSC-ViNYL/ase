@@ -4,7 +4,7 @@ import optparse
 import numpy as np
 
 from ase.atoms import Atoms, string2symbols
-from ase.data.molecules import molecule
+from ase.structure import molecule
 from ase.tasks.task import OptimizeTask
 from ase.data import covalent_radii, atomic_numbers
 from ase.utils.eos import EquationOfState
@@ -39,9 +39,11 @@ class MoleculeTask(OptimizeTask):
     def run(self, names1):
         names = []
         for name in names1:
-            if name.lower() == 'g2-1':
-                from ase.data.molecules import g1
-                names.extend(g1)
+            if name.lower() == 'g2':
+                from ase.data.g2 import data as g2data
+                g2keys = g2data.keys()
+                g2keys.sort()
+                names.extend(g2keys)
             else:
                 names.append(name)
 

@@ -1,5 +1,5 @@
 import os
-from ase.data.molecules import molecule
+from ase.structure import molecule
 from ase.io.bader import attach_charges
 
 fname = 'ACF.dat'

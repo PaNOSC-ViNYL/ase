@@ -257,6 +257,34 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
     atoms.set_pbc([sheet, False, True])
     return atoms
 
+def molecule(name, data=None, **kwargs):
+    """Create formula base on data. If data is None assume G2 set.
+    kwargs currently not used.  """
+    if data is None:
+        from ase.data.g2 import data
+    if name not in data.keys():
+        raise NotImplementedError('%s not in data.' % (name))
+    d = data[name]
+    args = {}
+    kkwargs = kwargs.copy()
+    # all Atoms constructor arguments relevant for a molecule
+    # setup using center(vacuum=)
+    # https://trac.fysik.dtu.dk/projects/ase/ticket/84
+    for k in [
+        'symbols', 'positions', 'numbers',
+        'tags', 'masses',
+        'magmoms', 'charges',
+        'info',
+        ]:
+        # kwargs overwite data args
+        if k in kwargs:
+            args[k] = kkwargs[k]
+            kkwargs.pop(k)
+        else:
+            if k in d:
+                args[k] = d[k]
+    args.update(kkwargs)
+    return Atoms(**args)
 
 def bulk(name, crystalstructure, a=None, c=None, covera=None,
          orthorhombic=False, cubic=False):
