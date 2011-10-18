@@ -1,7 +1,7 @@
 from math import sqrt
 
 from ase.atoms import Atoms, string2symbols
-from ase.data import reference_states, atomic_numbers
+from ase.data import reference_states, atomic_numbers, chemical_symbols
 
 
 def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
@@ -37,7 +37,7 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
     if covera is not None and c is not None:
         raise ValueError("Don't specify both c and c/a!")
 
-    if name in atomic_numbers:
+    if name in chemical_symbols:
         Z = atomic_numbers[name]
         ref = reference_states[Z]
         if ref is not None:
