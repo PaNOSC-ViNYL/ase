@@ -19,9 +19,10 @@ The name of the calculator must be lower case and will default to
 several ways to specify the system or systems to perform the
 calculations on:
 
-* Chemical symbols: ``H2O`` or ``Fe``
+* Chemical names: ``H2O`` or ``Fe``.
+  Default :ref:`molecule<molecules-section>` definitions are used.
 * Range of chemical symbols: ``Sc-Zn`` (3d-metals)
-* Special names: ``G2-1`` or ``S22``
+* Special names: ``G2``, ``G2-1`` or ``S22``
 * File names: ``benzene.xyz`` or ``slab.traj``
 
 The exact meaning of these names will depend on the task.
@@ -154,12 +155,15 @@ More examples
 
 Anti-ferromagnetic bcc iron::
 
-    $ ase vasp bulk Fe -C -M 2.3,-2.3 -p xc=PBE -k 8,8,8
+    $ ase vasp bulk -x bcc Fe -C -M 2.3,-2.3 -p xc=PBE -k 8,8,8
 
 Bulk silicon (128 atoms, `\Gamma` point only)::
 
     $ ase abinit bulk Si -r 4,4,4 -k 1,1,1 -a 5.46
 
+Bulk aluminum in orthorhombic cell with LDA and fixed rmt::
+
+    $ ase elk bulk --orthorhombic Al -k 4,4,4 -a 4.05 -p "swidth=0.1,rmt={'Al': 1.9}"
 
 Batch jobs
 ==========
@@ -172,11 +176,13 @@ compute cluster::
     $ ase gpaw G2-1 -v 6.0 -p xc=vdW-DF,h=0.18 -R 0.02
 
 The molecule task will expand ``G2-1`` to a lot of molecules, so it
-makes sence to submit several jobs to share the work.  You would use
-the :option:`-l` option (:option:`--use-lock-files`) for that and
-submit as many as you like of these jobs::
+makes sense to use :option:`-l` option (:option:`--use-lock-files`)
+and submit the same job many times. A lock file will be created
+for each started calculation and calculations with existing lock file skipped. 
+Moreover the calculations can be run in parallel
+(if parallel version of GPAW is installed)::
 
-    $ ase gpaw G2-1 -v 6.0 -p xc=vdW-DF,h=0.18 -R 0.02 -l
+    $ mpiexec gpaw-python `which ase` gpaw G2-1 -v 6.0 -p xc=vdW-DF,h=0.18 -R 0.02 -l
 
 
 Making your own tasks

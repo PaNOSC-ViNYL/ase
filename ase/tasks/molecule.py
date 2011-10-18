@@ -44,6 +44,11 @@ class MoleculeTask(OptimizeTask):
                 g2keys = g2data.keys()
                 g2keys.sort()
                 names.extend(g2keys)
+            elif name.lower() == 'g2-1':
+                from ase.data.g2_1 import data as g2_1data
+                g2_1keys = g2_1data.keys()
+                g2_1keys.sort()
+                names.extend(g2_1keys)
             else:
                 names.append(name)
 

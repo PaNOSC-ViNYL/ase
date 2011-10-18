@@ -49,7 +49,7 @@ class CalculatorFactory:
         if self.kpts is not None:
             # Number of k-points was explicitely set:
             return self.kpts
-        
+
         # Use kptdensity to make a good estimate:
         recipcell = atoms.get_reciprocal_cell()
         kpts = []
@@ -64,7 +64,7 @@ class CalculatorFactory:
 
     def __call__(self, name, atoms):
         """Create calculator.
-        
+
         Put name in the filename of all created files."""
 
         kpts = self.calculate_kpts(atoms)
@@ -108,17 +108,20 @@ class CalculatorFactory:
 
 # Recognized names of calculators sorted alphabetically:
 calcnames = ['abinit', 'aims', 'asap', 'castep', 'dftb', 'elk', 'emt',
-             'exciting', 'fleur', 'gpaw', 'hotbit', 'lammps', 'lj', 'morse',
+             'exciting', 'fleur', 'gpaw', 'hotbit', 'jacapo',
+             'lammps', 'lj', 'morse',
              'nwchem', 'siesta', 'turbomole', 'vasp']
 
 classnames = {'asap': 'EMT',
               'elk': 'ELK',
               'emt': 'EMT',
               'fleur': 'FLEUR',
+              'jacapo': 'Jacapo',
               'lammps': 'LAMMPS',
               'lj': 'LennardJones',
               'morse': 'MorsePotential',
-              'nwchem': 'NWchem'}
+              'nwchem': 'NWchem',
+              'vasp': 'Vasp'}
 
 
 def calculator_factory(name, **kwargs):
@@ -128,6 +131,14 @@ def calculator_factory(name, **kwargs):
         from asap3 import EMT
         return CalculatorFactory(EMT, 'Asap', None, 'no k-points', **kwargs)
 
+    if name == 'elk':
+        from ase.calculators.elk import ELK
+        return CalculatorFactory(ELK, 'ELK', 'dir', **kwargs)
+
+    if name == 'fleur':
+        from ase.calculators.fleur import FLEUR
+        return CalculatorFactory(FLEUR, 'FLEUR', 'workdir', **kwargs)
+
     if name == 'gpaw':
         from gpaw.factory import GPAWFactory
         return GPAWFactory(**kwargs)
@@ -136,6 +147,14 @@ def calculator_factory(name, **kwargs):
         from hotbit import Calculator
         return CalculatorFactory(Calculator, 'Hotbit', 'txt', 'no k-points',
                                  **kwargs)
+
+    if name == 'jacapo':
+        from ase.calculators.jacapo import Jacapo
+        return CalculatorFactory(Jacapo, 'Jacapo', 'nc', **kwargs)
+
+    if name == 'vasp':
+        from ase.calculators.vasp import Vasp
+        return CalculatorFactory(Vasp, 'Vasp', None, **kwargs)
 
     classname = classnames.get(name, name.title())
     module = __import__('ase.calculators.' + name, {}, None, [classname])
