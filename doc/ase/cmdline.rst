@@ -1,8 +1,8 @@
-.. _command line tools:
-
 .. highlight:: bash
 
 .. index:: ase
+
+.. _command line tools:
 
 ==================
 Command line tools
@@ -15,7 +15,7 @@ line without having to write a Python script.  The syntax is::
     $ ase [calculator] [task] [options] system(s)
 
 The name of the calculator must be lower case and will default to
-``emt``.  The task must be ``molecule`` or ``bulk``.  There are
+:mod:`EMT <emt>`.  The task must be ``molecule`` or ``bulk``.  There are
 several ways to specify the system or systems to perform the
 calculations on:
 
@@ -26,13 +26,18 @@ calculations on:
 
 The exact meaning of these names will depend on the task.
 
+Simple examples::
+
+    $ ase emt H2 --relax=0.01
+    $ ase abinit bulk Si -a 5.5 -p ecut=150 -k 4,4,4
+
 
 Command line options
 ====================
 
 General options:
 
--h, --help          Show help message and exit
+-h, --help          Show help message and exit.
 -t TAG, --tag=TAG   String tag added to filenames.
 -M <M1,M2,...>, --magnetic-moment=<M1,M2,...>
                     Magnetic moment(s).  Use "-M 1" or "-M 2.3,-2.3".
@@ -102,11 +107,11 @@ Example::
 
     $ ase abinit H2 -p ecut=200,xc=LDA -F 5,0.01 --atomize
 
-This will calculate the energy of a :mol:`H_2` molecule using Abinit
-with a planewave cutoff of 200 eV and the LDA XC-functional.  A fit
-using 5 points and a variation of the bond length from -1 % to +1 % is
-made and in addition the energy of a single hydrogen atom is also
-calculated.
+This will calculate the energy of a :mol:`H_2` molecule using
+:mod:`Abinit <abinit>` with a planewave cutoff of 200 eV and the LDA
+XC-functional.  A fit using 5 points and a variation of the bond
+length from -1 % to +1 % is made and in addition the energy of a
+single hydrogen atom is also calculated.
 
 Results are written to json files and can be analysed with::
 
