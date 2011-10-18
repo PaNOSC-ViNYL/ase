@@ -35,6 +35,10 @@ class BulkTask(OptimizeTask):
                      a=self.lattice_constant, covera=self.c_over_a,
                      orthorhombic=self.orthorhombic, cubic=self.cubic)
 
+        M = {'Fe': 2.3, 'Co': 1.2, 'Ni': 0.6}.get(name)
+        if M is not None:
+            atoms.set_initial_magnetic_moments([M] * len(atoms))
+
         if self.repeat is not None:
             r = self.repeat.split(',')
             if len(r) == 1:
