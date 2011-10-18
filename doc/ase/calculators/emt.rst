@@ -16,8 +16,10 @@ tests.
 
 .. class:: EMT()
 
-Right now, the only supported elements are: Ni, C, Pt, Ag, H, Al, O,
-N, Au, Pd, Cu.
+Right now, the only supported elements are: H, C, N, O, Al, Ni, Cu,
+Pd, Ag, Pt and Au.  The EMT parameters for the metals are quite
+realistic for many purposes, whereas the H, C, N and O parameters are
+just for fun!
 
 
 .. _ASAP: http://wiki.fysik.dtu.dk/asap
