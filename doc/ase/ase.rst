@@ -28,7 +28,7 @@ Quick links:
     - :mod:`phonons`
   * - :mod:`~lattice.spacegroup`
     - :mod:`structure`
-    - :mod:`~lattice.surface`
+    - :mod:`~ase.lattice.surface`
     - :mod:`transport`
     - :mod:`thermochemistry`
   * - :mod:`units`
