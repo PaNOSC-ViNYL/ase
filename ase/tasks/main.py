@@ -1,6 +1,7 @@
 import os
 import sys
 import tempfile
+import textwrap
 import traceback
 
 from ase.tasks.task import Task
@@ -12,14 +13,14 @@ from ase.tasks.calcfactory import calcnames
 usage = """\
 Usage: ase [calculator] [task] [options] system(s)
 
-calculator: %s.  Default value is emt.
-task:       molecule, bulk or the name of Python script that instantiates
-            a Task object.  Default value is molecule.
+%s
+task:       'molecule', 'bulk' or the name of Python script that instantiates
+            a Task object.  Default value is 'molecule'.
 systems:    chemical formulas or filenames of files containing the atomic
             structure.
 
 Try "ase molecule --help" or "ase bulk --help".
-""" % (', '.join(calcnames[:-1]) + ' or ' + calcnames[-1])
+"""
 
 
 def run(args=sys.argv[1:], calcname='emt'):
@@ -38,7 +39,12 @@ def run(args=sys.argv[1:], calcname='emt'):
         taskname = args.pop(0)
 
     if len(args) == 0:
-        sys.stderr.write(usage)
+        sys.stderr.write(
+            usage % textwrap.fill(', '.join(calcnames[:-1]) +
+                                  ' or ' + calcnames[-1] +
+                                  '.  Default value is emt.',
+                                  initial_indent='calculator: ',
+                                  subsequent_indent=' ' * 12))
         return
     
     if taskname.endswith('.py'):
@@ -66,7 +72,7 @@ def run(args=sys.argv[1:], calcname='emt'):
         file.write('if "PYTHONSTARTUP" in os.environ:\n')
         file.write('    execfile(os.environ["PYTHONSTARTUP"])\n')
         file.write('from ase.tasks.main import run\n')
-        file.write('atoms, task = run(%r)\n' % argsoriginal)
+        file.write('atoms, task = run(%r, %r)\n' % (argsoriginal, calcname))
         file.flush()
         os.system('python -i %s' % file.name)
         return

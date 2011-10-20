@@ -139,7 +139,7 @@ class Task:
         if self.write_summary:
             self.read(names)
             self.analyse()
-            self.summarize()
+            self.summarize(names)
             return
 
         atoms = None
@@ -210,10 +210,11 @@ class Task:
         for name, data in self.data.items():
             self.results[name] = [data['energy']]
 
-    def summarize(self):
+    def summarize(self, names):
         self.log(' '.join('%10s' % x[0] for x in self.summary_header))
         self.log(' '.join('%10s' % x[1] for x in self.summary_header))
-        for name, data in self.results.items():
+        for name in names:
+            data = self.results[name]
             s = '%10s' % name
             for x in data:
                 if x is None:
@@ -224,13 +225,9 @@ class Task:
 
     def create_parser(self):
         calcname = self.calcfactory.name
-        description = ('Run %s calculation for simple atoms, molecules or ' +
-                       'bulk systems.') % calcname
-        epilog = ''
         parser = optparse.OptionParser(
-            usage='%prog [options] formula or filename',
-            version='%prog 0.1',
-            description=description + ' ' + epilog)
+            usage='%prog [options] system(s)',
+            description='Run %s calculation.' % calcname)
         self.add_options(parser)
         return parser
 
@@ -301,7 +298,7 @@ class Task:
 class OptimizeTask(Task):
     taskname = 'opt'
 
-    def __init__(self, fmax=0.05, constrain_tags=[], **kwargs):
+    def __init__(self, fmax=None, constrain_tags=[], **kwargs):
         self.fmax = fmax
         self.constrain_tags = constrain_tags
 

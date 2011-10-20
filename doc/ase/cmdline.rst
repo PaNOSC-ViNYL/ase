@@ -60,9 +60,11 @@ General options:
                     already exists.
 -R FMAX, --relax=FMAX
                     Relax internal coordinates using L-BFGS algorithm.
--F, --fit           Find optimal bondlength and vibration frequency for
+-F <N,x>, --fit=<N,x>
+                    Find optimal bondlength and vibration frequency for
                     dimer molecules or optimal volume and bulk modulus for
-                    bulk systems.
+                    bulk systems using N points and a variation from -x %
+		    to +x % for the bondlength or lattice constants.
 --constrain-tags=<T1,T2,...>
                     Constrain atoms with tags T1, T2, ...
 -k <K1,K2,K3>, --monkhorst-pack=<K1,K2,K3>
@@ -106,7 +108,7 @@ Molecules
 
 Example::
 
-    $ ase abinit H2 -p ecut=200,xc=LDA -F 5,0.01 --atomize
+    $ ase abinit H2 -p ecut=200,xc=LDA -F 5,1 --atomize
 
 This will calculate the energy of a :mol:`H_2` molecule using
 :mod:`Abinit <abinit>` with a planewave cutoff of 200 eV and the LDA
@@ -135,7 +137,7 @@ Bulk systems
 
 Example::
 
-    $ ase bulk Ni Cu Pd Ag Pt Au -F 5,0.01
+    $ ase bulk Ni Cu Pd Ag Pt Au -F 5,1
 
 Here we used the default EMT potential and the result is::
 
@@ -233,11 +235,8 @@ To be done
 ==========
 
 * Optimize c/a ratio.
-* Write summary in correct order.
-* Write results to file (pickl, csv, ...).
-* Split off EnergyTast from Task.
+* Write results to file (pickel, csv, ...).
+* Split off EnergyTask from Task.
 * Fix usage text.
 * Set correct magnetic moments for atoms.
-* Remove --version option.
 * Add --exclude option.
-* Implement --fit=5,0.01 option.

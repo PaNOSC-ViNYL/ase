@@ -16,7 +16,7 @@ class MoleculeTask(OptimizeTask):
     taskname = 'molecule'
         
     def __init__(self, vacuum=3.0, cell=None, atomize=False,
-                 bond_length=None, fit=False,
+                 bond_length=None, fit=None,
                  **kwargs):
         """Molecule task.
 
@@ -91,8 +91,10 @@ class MoleculeTask(OptimizeTask):
         return atoms
     
     def fit_bond_length(self, name, atoms):
+        N, x = self.fit
+        assert N % 2 == 1
         d0 = atoms.get_distance(0, 1)
-        distances = np.linspace(d0 * 0.98, d0 * 1.02, 5)
+        distances = np.linspace(d0 * (1 - x), d0 * (1 + x), N)
         energies = []
         traj = PickleTrajectory(self.get_filename(name, '-fit.traj'), 'w')
         for d in distances:
@@ -102,7 +104,7 @@ class MoleculeTask(OptimizeTask):
 
         traj.close()
 
-        data = {'energy': energies[2],
+        data = {'energy': energies[N // 2],
                 'distances': distances,
                 'energies': energies}
 
@@ -178,9 +180,10 @@ class MoleculeTask(OptimizeTask):
                        '(in Angstrom).')
         mol.add_option('--bond-length', type='float',
                        help='Bond length of dimer in Angstrom.')
-        mol.add_option('-F', '--fit', action='store_true',
+        mol.add_option('-F', '--fit', metavar='N,x',
                        help='Find optimal bondlength and vibration ' +
-                       'frequency.')
+                       'frequency using N points and displacements from ' +
+                       '-x % to +x %.')
         mol.add_option('--atomize', action='store_true',
                        help='Calculate Atomization energies.')
         parser.add_option_group(mol)
@@ -190,9 +193,12 @@ class MoleculeTask(OptimizeTask):
 
         self.vacuum = opts.vacuum
         self.bond_length = opts.bond_length
-        self.fit = opts.fit
         self.atomize = opts.atomize
 
+        if opts.fit:
+            points, strain = opts.fit.split(',')
+            self.fit = (int(points), float(strain) * 0.01)
+        
         if opts.unit_cell:
             if ',' in opts.unit_cell:
                 self.unit_cell = [float(x) for x in opts.unit_cell.split(',')]

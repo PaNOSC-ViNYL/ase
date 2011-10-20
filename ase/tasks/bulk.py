@@ -14,7 +14,7 @@ class BulkTask(OptimizeTask):
     taskname = 'bulk'
 
     def __init__(self, crystal_structure=None, lattice_constant=None,
-                 c_over_a=None, cubic=False, orthorhombic=False, fit=False,
+                 c_over_a=None, cubic=False, orthorhombic=False, fit=None,
                  **kwargs):
         """Bulk task."""
 
@@ -48,8 +48,9 @@ class BulkTask(OptimizeTask):
         return atoms
     
     def fit_volume(self, name, atoms):
+        N, x = self.fit
         cell0 = atoms.get_cell()
-        strains = np.linspace(0.98, 1.02, 5)
+        strains = np.linspace(1 - x, 1 + x, N)
         energies = []
         traj = PickleTrajectory(self.get_filename(name, '-fit.traj'), 'w')
         for s in strains:
@@ -59,13 +60,15 @@ class BulkTask(OptimizeTask):
 
         traj.close()
 
-        data = {'energy': energies[2],
+        assert N % 2 == 1
+        data = {'energy': energies[N // 2],
                 'strains': strains,
                 'energies': energies}
 
         return data
             
     def calculate(self, name, atoms):
+        #????
         if self.fit:
             return self.fit_volume(name, atoms)
         else:
@@ -90,8 +93,10 @@ class BulkTask(OptimizeTask):
         OptimizeTask.add_options(self, parser)
 
         bulk = optparse.OptionGroup(parser, 'Bulk')
-        bulk.add_option('-F', '--fit', action='store_true',
-                        help='Find optimal volume.')
+        bulk.add_option('-F', '--fit', metavar='N,x',
+                        help='Find optimal volume and bulk modulus ' +
+                        'using N points and variations of the lattice ' +
+                        'constants from -x % to +x %.')
         bulk.add_option('-x', '--crystal-structure',
                         help='Crystal structure.',
                         choices=['sc', 'fcc', 'bcc', 'diamond', 'hcp',
@@ -111,7 +116,10 @@ class BulkTask(OptimizeTask):
     def parse(self, opts, args):
         OptimizeTask.parse(self, opts, args)
 
-        self.fit = opts.fit
+        if opts.fit:
+            points, strain = opts.fit.split(',')
+            self.fit = (int(points), float(strain) * 0.01)
+
         self.crystal_structure = opts.crystal_structure
         self.lattice_constant = opts.lattice_constant
         self.c_over_a = opts.c_over_a
