@@ -237,6 +237,10 @@ To be done
 * Optimize c/a ratio.
 * Write results to file (pickel, csv, ...).
 * Split off EnergyTask from Task.
-* Fix usage text.
 * Set correct magnetic moments for atoms.
 * Add --exclude option.
+* Relax cell.
+* Optimize first then fit.
+* Behavior of -w option?
+* Reaction task?
+* Rethink analysis and summary stuff.
