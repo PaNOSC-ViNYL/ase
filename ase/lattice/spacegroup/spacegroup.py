@@ -497,6 +497,8 @@ def format_symbol(symbol):
             fixed.append(c)
         elif c == '-':
             fixed.append(' ' + c)
+        elif c == '/':
+            fixed.append(' ' + c)
     s = ''.join(fixed).strip()
     return ' '.join(s.split())
 
@@ -577,6 +579,7 @@ def _read_datafile(spg, spacegroup, setting, f):
     while True:
         line1, line2 = _skip_to_nonblank(f, spacegroup, setting)
         _no,_symbol = line1.strip().split(None, 1)
+        _symbol = format_symbol(_symbol)
         _setting = int(line2.strip().split()[1])
         _no = int(_no)
         if ((isinstance(spacegroup, int) and _no == spacegroup) or
