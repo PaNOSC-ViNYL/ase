@@ -4,7 +4,7 @@ import numpy as np
 
 from ase.lattice import bulk
 from ase.tasks.task import OptimizeTask
-from ase.data import chemical_symbols
+from ase.data import chemical_symbols, reference_states
 from ase.utils.eos import EquationOfState
 from ase.io.trajectory import PickleTrajectory
 import ase.units as units
@@ -29,6 +29,26 @@ class BulkTask(OptimizeTask):
         
         self.summary_header += [('V0', 'Ang^3'),
                                 ('B', 'GPa')]
+
+    def expand(self, names):
+        """Expand fcc, bcc, hcp and diamond.
+
+        The name fcc will be expanded to all the elements with the fcc
+        stucture and so on."""
+
+        names = OptimizeTask.expand(self, names)
+            
+        newnames = []
+        for name in names:
+            if name in ['fcc', 'bcc', 'hcp', 'diamond']:
+                for Z in range(1, 95):
+                    x = reference_states[Z]
+                    if x is not None and x['symmetry'] == name:
+                        newnames.append(chemical_symbols[Z])
+            else:
+                newnames.append(name)
+
+        return newnames
 
     def build_system(self, name):
         atoms = bulk(name, crystalstructure=self.crystal_structure,
