@@ -30,6 +30,10 @@ and may be distributed or copied http://www.nist.gov/public_affairs/disclaimer.c
 
 from ase.atoms import Atoms, string2symbols
 
+atom_names = ['H','Li','Be','C','N','O','F','Na','Si','P','S','Cl']
+
+molecule_names = ['LiH','BeH','CH','CH2_s3B1d','CH2_s1A1d','CH3','CH4','NH','NH2','NH3','OH','H2O','HF','SiH2_s1A1d','SiH2_s3B1d','SiH3','SiH4','PH2','PH3','SH2','HCl','Li2','LiF','C2H2','C2H4','C2H6','CN','HCN','CO','HCO','H2CO','CH3OH','N2','N2H4','NO','O2','H2O2','F2','CO2','Na2','Si2','P2','S2','Cl2','NaCl','SiO','CS','SO','ClO','ClF','Si2H6','CH3Cl','CH3SH','HOCl','SO2']
+
 data = {
 'H': {
     'name': 'Hydrogen',

@@ -44,7 +44,7 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
         n60 = 1
     else:
         n60 = nr * 4
-   
+
     absn = abs(n60)
     nnp = []
     nnq = []
@@ -66,19 +66,19 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
     nnnp = nnp[0]
     nnnq = nnq[0]
 
-    if verbose:   
+    if verbose:
         print 'the symmetry vector is', nnnp, nnnq
 
     lp = nnnp * nnnp + nnnq * nnnq + nnnp * nnnq
     r = a * sqrt(lp)
     c = a * l
     t = sq3 * c / ndr
-   
+
     if 2 * nn > nk:
         raise RuntimeError('parameter nk is too small!')
 
     rs = c / (2.0 * np.pi)
-   
+
     if verbose:
         print 'radius=', rs, t
 
@@ -93,10 +93,10 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
     h2 = bond * np.sin((np.pi / 6.0) - q1)
 
     ii = 0
-    x, y, z = [], [], []   
+    x, y, z = [], [], []
     for i in range(nn):
         x1, y1, z1 = 0, 0, 0
-   
+
         k = np.floor(i * abs(r) / h1)
         x1 = rs * np.cos(i * q4)
         y1 = rs * np.sin(i * q4)
@@ -132,8 +132,8 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
                 z2 += t * kk
             x.append(x2)
             y.append(y2)
-            z.append(z2) 
-       
+            z.append(z2)
+
     ntotal = 2 * nn
     X = []
     for i in range(ntotal):
@@ -144,12 +144,12 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
         for mnp in range(2, length + 1):
             for i in range(len(xx)):
                 X.append(xx[i][:2] + [xx[i][2] + (mnp - 1) * t])
-               
+
     TransVec = t
     NumAtom = ntotal * length
     Diameter = rs * 2
     ChiralAngle = np.arctan((sq3 * n) / (2 * m + n)) / (np.pi * 180)
-   
+
     cell = [Diameter * 2, Diameter * 2, length * t]
     atoms = Atoms(symbol + str(NumAtom), positions=X, cell=cell,
                   pbc=[False, False, True])
@@ -198,7 +198,7 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
     if vacc is not None:
         warnings.warn('Use vacuum=%f' % (0.5 * vacc))
         vacuum = 0.5 * vacc
-        
+
     assert vacuum > 0
     b = sqrt(3) * C_C / 4
     arm_unit = Atoms(main_element+'4', pbc=(1,0,1),
@@ -211,8 +211,8 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
                     cell = [3 * C_C /2., 2 * vacuum, b * 4])
     zz_unit.positions = [[0, 0, 0],
                          [C_C / 2., 0, b * 2]]
-    atoms = Atoms()   
-    tol = 1e-4   
+    atoms = Atoms()
+    tol = 1e-4
     if sheet:
         vacuum2 = 0.0
     else:
@@ -223,10 +223,10 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
         if magnetic:
             mms = np.zeros(m * n * 2)
             for i in edge_index0:
-                mms[i] = initial_mag 
+                mms[i] = initial_mag
             for i in edge_index1:
                 mms[i] = -initial_mag
-               
+
         for i in range(n):
             layer = zz_unit.repeat((1, 1, m))
             layer.positions[:, 0] -= 3 * C_C / 2 * i
@@ -245,7 +245,7 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
             H_atoms1.positions[:, 0] -= C_H
             atoms += H_atoms0 + H_atoms1
         atoms.cell = [n * 3 * C_C / 2 + 2 * vacuum2, 2 * vacuum, m * 4 * b]
-   
+
     elif type == 'armchair':
         for i in range(n):
             layer = arm_unit.repeat((1, 1, m))
@@ -264,26 +264,19 @@ def molecule(name, data=None, **kwargs):
         from ase.data.g2 import data
     if name not in data.keys():
         raise NotImplementedError('%s not in data.' % (name))
-    d = data[name]
-    args = {}
-    kkwargs = kwargs.copy()
-    # all Atoms constructor arguments relevant for a molecule
-    # setup using center(vacuum=)
-    # https://trac.fysik.dtu.dk/projects/ase/ticket/84
-    for k in [
-        'symbols', 'positions', 'numbers',
-        'tags', 'masses',
-        'magmoms', 'charges',
-        'info',
-        ]:
-        # kwargs overwite data args
-        if k in kwargs:
-            args[k] = kkwargs[k]
-            kkwargs.pop(k)
-        else:
-            if k in d:
-                args[k] = d[k]
-    args.update(kkwargs)
+    args = data[name].copy()
+    # accept only the following Atoms constructor arguments
+    # XXX: should we accept all Atoms arguments?
+    for k in args.keys():
+        if k not in [
+            'symbols', 'positions', 'numbers',
+            'tags', 'masses',
+            'magmoms', 'charges',
+            'info',
+            ]:
+            args.pop(k)
+    # kwargs overwrites data
+    args.update(kwargs)
     return Atoms(**args)
 
 def bulk(name, crystalstructure, a=None, c=None, covera=None,
@@ -315,19 +308,19 @@ def bulk(name, crystalstructure, a=None, c=None, covera=None,
         a = float(a)
     if c is not None:
         c = float(c)
-        
+
     if covera is not None and  c is not None:
         raise ValueError("Don't specify both c and c/a!")
-    
+
     if covera is None and c is None:
         covera = sqrt(8.0 / 3.0)
-        
+
     if a is None:
         a = estimate_lattice_constant(name, crystalstructure, covera)
 
     if covera is None and c is not None:
         covera = c / a
-        
+
     x = crystalstructure.lower()
 
     if orthorhombic and x != 'sc':
@@ -338,7 +331,7 @@ def bulk(name, crystalstructure, a=None, c=None, covera=None,
 
     if cubic and x != 'sc':
         return _cubic_bulk(name, x, a)
-    
+
     if x == 'sc':
         atoms = Atoms(name, cell=(a, a, a), pbc=True)
     elif x == 'fcc':
@@ -368,7 +361,7 @@ def bulk(name, crystalstructure, a=None, c=None, covera=None,
         atoms.positions[1, 0] += a / 2
     else:
         raise ValueError('Unknown crystal structure: ' + crystalstructure)
-    
+
     return atoms
 
 def estimate_lattice_constant(name, crystalstructure, covera):
@@ -412,7 +405,7 @@ def _orthorhombic_bulk(name, x, a, covera=None):
                                         (0.5, 0.5, 0.5), (0, 0, 0.5)])
     else:
         raise RuntimeError
-    
+
     return atoms
 
 def _cubic_bulk(name, x, a):
@@ -436,5 +429,5 @@ def _cubic_bulk(name, x, a):
                                         (0.5, 0.5, 0), (0, 0.5, 0)])
     else:
         raise RuntimeError
-    
+
     return atoms

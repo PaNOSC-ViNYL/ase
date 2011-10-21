@@ -40,15 +40,11 @@ class MoleculeTask(OptimizeTask):
         names = []
         for name in names1:
             if name.lower() == 'g2':
-                from ase.data.g2 import data as g2data
-                g2keys = g2data.keys()
-                g2keys.sort()
-                names.extend(g2keys)
+                from ase.data.g2 import molecule_names
+                names.extend(molecule_names)
             elif name.lower() == 'g2-1':
-                from ase.data.g2_1 import data as g2_1data
-                g2_1keys = g2_1data.keys()
-                g2_1keys.sort()
-                names.extend(g2_1keys)
+                from ase.data.g2_1 import molecule_names
+                names.extend(molecule_names)
             else:
                 names.append(name)
 

@@ -29,6 +29,10 @@ and may be distributed or copied http://www.nist.gov/public_affairs/disclaimer.c
 
 from ase.atoms import Atoms, string2symbols
 
+atom_names = ['H','B','C','N','O','F','Al','Si','S','Cl']
+
+molecule_names = ['BF3','BCl3','AlF3','AlCl3','CF4','CCl4','OCS','CS2','COF2','SiF4','SiCl4','N2O','ClNO','NF3','PF3','O3','F2O','ClF3','C2F4','C2Cl4','CF3CN','C3H4_C3v','C3H4_D2d','C3H4_C2v','C3H6_Cs','C3H6_D3h','C3H8','butadiene','2-butyne','methylenecyclopropane','bicyclobutane','cyclobutene','cyclobutane','isobutene','trans-butane','isobutane','C5H8','C6H6','H2CF2','HCF3','H2CCl2','HCCl3','H3CNH2','CH3CN','CH3NO2','CH3ONO','CH3SiH3','HCOOH','HCOOCH3','CH3CONH2','CH2NHCH2','NCCN','C2H6NH','CH3CH2NH2','H2CCO','CH2OCH2','CH3CHO','OCHCHO','CH3CH2OH','CH3OCH3','CH2SCH2','C2H6SO','CH3CH2SH','CH3SCH3','H2CCHF','CH3CH2Cl','H2CCHCl','H2CCHCN','CH3COCH3','CH3COOH','CH3COF','CH3COCl','C3H7Cl','C2H6CHOH','CH3CH2OCH3','C3H9N','C4H4O','C4H4S','C4H4NH','C5H5N','H2','SH','CCH','C2H3','CH3CO','H2COH','CH3O','CH3CH2O','CH3S','C2H5','C3H7','C3H9C','NO2']
+
 data = {
 'B': {
     'name': 'Boron',

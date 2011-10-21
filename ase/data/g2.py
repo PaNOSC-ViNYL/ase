@@ -32,5 +32,16 @@ data = data_g2_1.copy()
 
 data.update(data_g2_2)
 
+from ase.data.g2_1 import atom_names as atom_names_g2_1
+from ase.data.g2_1 import molecule_names as molecule_names_g2_1
+from ase.data.g2_2 import atom_names as atom_names_g2_2
+from ase.data.g2_2 import molecule_names as molecule_names_g2_2
+
+atom_names = []
+for a in atom_names_g2_1 + atom_names_g2_2:
+    if a not in atom_names:
+        atom_names.append(a)
+molecule_names = molecule_names_g2_1 + molecule_names_g2_2
+
 from ase.data.g2_2 import get_ionization_energy
 from ase.data.g2_2 import get_atomization_energy
