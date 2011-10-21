@@ -202,7 +202,8 @@ class Task:
             filenamebase = self.get_filename(name)
             try:
                 data = self.read_func(filenamebase)
-            except IOError:
+            except (IOError, ValueError):
+                
                 continue
             self.data[name] = data
 
@@ -214,7 +215,7 @@ class Task:
         self.log(' '.join('%10s' % x[0] for x in self.summary_header))
         self.log(' '.join('%10s' % x[1] for x in self.summary_header))
         for name in names:
-            data = self.results[name]
+            data = self.results.get(name, [])
             s = '%10s' % name
             for x in data:
                 if x is None:
