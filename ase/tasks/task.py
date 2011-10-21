@@ -156,7 +156,13 @@ class Task:
         return atoms
 
     def run_single(self, name):
-        atoms = self.create_system(name)
+        try:
+            atoms = self.create_system(name)
+        except Exception:
+            self.log(name, 'FAILED')
+            traceback.print_exc(file=self.logfile)
+            return
+            
         atoms.calc = self.calcfactory(self.get_filename(name), atoms)
 
         tstart = time()
@@ -202,8 +208,7 @@ class Task:
             filenamebase = self.get_filename(name)
             try:
                 data = self.read_func(filenamebase)
-            except (IOError, ValueError):
-                
+            except (IOError, SyntaxError, ValueError):
                 continue
             self.data[name] = data
 
