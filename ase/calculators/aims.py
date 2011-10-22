@@ -38,10 +38,12 @@ exp_keys = [
 
 string_keys = [
     'communication_type',
+    'density_update_method',
     'KS_method',
     'mixer',
     'output_level',
     'packed_matrix_format',
+    'relax_unit_cell',
     'restart',
     'restart_read_only',
     'restart_write_only',
@@ -70,6 +72,7 @@ bool_keys = [
     'evaluate_work_function',
     'final_forces_cleaned',
     'hessian_to_restart_geometry',
+    'load_balancing',
     'MD_clean_rotations',
     'MD_restart',
     'restart_relaxations',
