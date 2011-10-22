@@ -235,12 +235,27 @@ To be done
 ==========
 
 * Optimize c/a ratio.
-* Write results to file (pickel, csv, ...).
+* Implement different way of cell sampling for eos:
+  [a0 + s for s in [x * np.array(range(- N/2 + 1, N/2 + 1))]]
+  where x is sampling step length, N number of steps.
+  Current way of sampling gives different length of sampling interval
+  depending on the lattice constant guess a0.
+* Write results to file (pickel, csv, cmr (db), traj, ...).
 * Split off EnergyTask from Task.
 * Set correct magnetic moments for atoms.
+* Allow setting charges in ase.tasks.task
+* Check occupation numbers and requested total magnetic moments for molecules/atoms
 * Add --exclude option.
 * Relax cell.
 * Optimize first then fit.
 * Behavior of -w option?
 * Reaction task?
-* Rethink analysis and summary stuff.
+* Rethink analysis and summary stuff:
+   * it would be nice to calculate for example cohesive energies on 
+     the command line, i.e. using species belonging to different tasks
+   * analysis should be more modular: one may want for example to calculate
+     zpe energies for adsorption systems including molecules and surfaces
+     and print the zpe correction for a given reaction.
+* ase.tasks.main - print complete architecture string in case of error
+  (like in ase/test/__init__.py)
+
