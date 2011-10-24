@@ -189,7 +189,7 @@ data = {
     'thermal correction': 2.0739,
     'ionization energy': 8.21,
     'symbols': 'BeH',
-    'magmoms': [ 0.,  1.],
+    'magmoms': [ 0.8,  0.2],
     'charges': None,
     'positions': [[ 0.      ,  0.      ,  0.269654],
                   [ 0.      ,  0.      , -1.078616]]},
