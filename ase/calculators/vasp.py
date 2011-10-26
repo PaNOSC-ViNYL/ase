@@ -159,6 +159,11 @@ list_keys = [
     'kpuse',      # k-point to calculate partial charge for
     'ropt',       # number of grid points for non-local proj in real space
     'rwigs',      # Wigner-Seitz radii
+    'ldauu',      # ldau parameters, has potential to redundant w.r.t. dict
+    'ldaul',      # key 'ldau_luj', but 'ldau_luj' can't be read direct from
+    'ldauj',      # the INCAR (since it needs to know information about atomic
+                  # species. In case of conflict 'ldau_luj' gets written out
+                  # when a calculation is set up
 ]
 
 special_keys = [
@@ -383,13 +388,7 @@ class Vasp(Calculator):
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
         self.converged = None
         self.setups_changed = None
-        # Write input
-        from ase.io.vasp import write_vasp
-        write_vasp('POSCAR', self.atoms_sorted, symbol_count = self.symbol_count)
-        self.write_incar(atoms)
-        self.write_potcar()
-        self.write_kpoints()
-        self.write_sort_file()
+        
 
     def calculate(self, atoms):
         """Generate necessary files in the working directory and run VASP.
@@ -399,8 +398,16 @@ class Vasp(Calculator):
         etc. are read from the VASP output.
         """
 
-        # Initialize calculations (will write all input files)
+        # Initialize calculations
         self.initialize(atoms)
+
+        # Write input
+        from ase.io.vasp import write_vasp
+        write_vasp('POSCAR', self.atoms_sorted, symbol_count = self.symbol_count)
+        self.write_incar(atoms)
+        self.write_potcar()
+        self.write_kpoints()
+        self.write_sort_file()
 
         # Execute VASP
         self.run()
@@ -740,6 +747,9 @@ class Vasp(Calculator):
                 incar.write(' %s = ' % key.upper())
                 if key in ('dipol', 'eint', 'ropt', 'rwigs'):
                     [incar.write('%.4f ' % x) for x in val]
+                elif key in ('ldauu', 'ldauj', 'ldaul') and \
+                    not self.dict_keys.has('ldau_luj'):
+                    [incar.write('%.4f ' % x) for x in val]
                 elif key in ('ferwe', 'ferdo'):
                     [incar.write('%.1f ' % x) for x in val]
                 elif key in ('iband', 'kpuse'):
@@ -1044,6 +1054,8 @@ class Vasp(Calculator):
         lines=file.readlines()
         for line in lines:
             try:
+                # Make multiplications easier to spot
+                line = line.replace("*", " * ")
                 data = line.split()
                 # Skip empty and commented lines.
                 if len(data) == 0:
@@ -1070,26 +1082,37 @@ class Vasp(Calculator):
                         self.bool_params[key] = False
                 elif key in list_keys:
                     list = []
-                    if key in ('dipol', 'eint', 'ferwe', 'ropt', 'rwigs'):
+                    if key in ('dipol', 'eint', 'ferwe', 'ropt', 'rwigs',
+                               'ldauu', 'ldaul', 'ldauj'):
                         for a in data[2:]:
+                            if a in ["!", "#"]:
+                               break 
                             list.append(float(a))
                     elif key in ('iband', 'kpuse'):
                         for a in data[2:]:
+                            if a in ["!", "#"]:
+                               break
                             list.append(int(a))
                     self.list_params[key] = list
                     if key == 'magmom':
-                        done = False
-                        for a in data[2:]:
-                            if '!' in a or done:
-                                done = True
-                            elif '*' in a:
-                                a = a.split('*')
-                                for b in range(int(a[0])):
-                                    list.append(float(a[1]))
+                        list = []
+                        i = 2
+                        while i < len(data):
+                            if data[i] in ["#", "!"]:
+                                break
+                            if data[i] == "*":
+                                b = list.pop()
+                                i += 1
+                                for j in range(int(b)):
+                                    list.append(float(data[i]))
                             else:
-                                list.append(float(a))
+                                list.append(float(data[i]))
+                            i += 1
+                        self.list_params['magmom'] = list
                         list = np.array(list)
-                        self.atoms.set_initial_magnetic_moments(list[self.resort])
+                        if self.atoms is not None:
+                                self.atoms.set_initial_magnetic_moments(list[self.resort])
+ 
             except KeyError:
                 raise IOError('Keyword "%s" in INCAR is not known by calculator.' % key)
             except IndexError:

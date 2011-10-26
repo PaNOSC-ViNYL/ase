@@ -1202,7 +1202,7 @@ class AIMS_Window(gtk.Window):
         param["species_dir"]        = self.species_defaults.get_text()
         from ase.calculators.aims import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys,input_keys
         for option in self.expert_keywords:
-            if option[3]:   # set type of parameter accoding to which list it is in
+            if option[3]:   # set type of parameter according to which list it is in
                 key = option[0].get_text().strip()
                 val = option[1].get_text().strip()
                 if key == 'output':
@@ -1403,9 +1403,10 @@ class ExpertDeleteButton(gtk.Button):
         gtk.Button.__init__(self, stock=gtk.STOCK_DELETE)
         alignment = self.get_children()[0]
         hbox = alignment.get_children()[0]
+        #self.set_size_request(1, 3)
         image, label = hbox.get_children()
         if image is not None: 
-            label.set_text('')
+            label.set_text('Del')
         self.index = index
 
 
@@ -1439,12 +1440,10 @@ class VASP_Window(gtk.Window):
         self.xc = gtk.combo_box_new_text()
         for i, x in enumerate(self.vasp_xc_list):
             self.xc.append_text(x)
-            if x == self.vasp_xc_default:
-                self.xc.set_active(i)
 
         # Spin polarized
         self.spinpol = gtk.CheckButton("Spin polarized")
-
+        
         pack(vbox, [gtk.Label("Exchange-correlation functional: "),
                     self.xc,
                     gtk.Label("    "),
@@ -1519,6 +1518,10 @@ class VASP_Window(gtk.Window):
                    gtk.Label(" eV")])
         pack(vbox,gtk.Label(""))
 
+        swin = gtk.ScrolledWindow()
+        swin.set_border_width(0)
+        swin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+
         self.expert_keyword_set = gtk.Entry(max = 55)
         self.expert_keyword_add = gtk.Button(stock = gtk.STOCK_ADD)
         self.expert_keyword_add.connect("clicked", self.expert_keyword_import)
@@ -1527,7 +1530,12 @@ class VASP_Window(gtk.Window):
                    self.expert_keyword_set, 
                    self.expert_keyword_add])
         self.expert_vbox = gtk.VBox()
-        pack(vbox, self.expert_vbox)
+        vbox.pack_start(swin, True, True, 0)
+        swin.add_with_viewport(self.expert_vbox)
+        self.expert_vbox.get_parent().set_shadow_type(gtk.SHADOW_NONE)
+        self.expert_vbox.get_parent().set_size_request(-1, 100)
+        swin.show()
+        self.expert_vbox.show()
         pack(vbox, gtk.Label(""))
 
         # run command and location of POTCAR files:
@@ -1543,12 +1551,18 @@ class VASP_Window(gtk.Window):
         # Buttons at the bottom
         pack(vbox, gtk.Label(""))
         butbox = gtk.HButtonBox()
+        set_default_but = gtk.Button("Set Defaults")
+        set_default_but.connect("clicked", self.set_defaults)
+        import_vasp_but = gtk.Button("Import VASP files")
+        import_vasp_but.connect("clicked", self.import_vasp_files)
         export_vasp_but = gtk.Button("Export VASP files")
         export_vasp_but.connect("clicked", self.export_vasp_files)
         cancel_but = gtk.Button(stock=gtk.STOCK_CANCEL)
         cancel_but.connect('clicked', lambda widget: self.destroy())
         ok_but = gtk.Button(stock=gtk.STOCK_OK)
         ok_but.connect('clicked', self.ok)
+        butbox.pack_start(set_default_but, 0, 0)
+        butbox.pack_start(import_vasp_but, 0, 0)
         butbox.pack_start(export_vasp_but, 0, 0)
         butbox.pack_start(cancel_but, 0, 0)
         butbox.pack_start(ok_but, 0, 0)
@@ -1558,6 +1572,119 @@ class VASP_Window(gtk.Window):
         self.add(vbox)
         self.show()
         self.grab_add()  # Lock all other windows
+
+        self.load_attributes()
+
+    def load_attributes(self, directory = "."):
+        """Sets values of fields of the window according to the values 
+        set inside the INCAR, KPOINTS and POTCAR file in 'directory'."""
+        from os import chdir
+        chdir(directory)
+
+
+       
+        # Try and load INCAR, in the current directory
+        from ase.calculators.vasp import Vasp
+        calc_temp = Vasp()
+        try:
+            calc_temp.read_incar("INCAR")
+        except IOError:
+            pass
+        else:
+            if calc_temp.spinpol:
+                self.spinpol.set_active(True)
+            else:
+                self.spinpol.set_active(False)
+
+            if calc_temp.float_params['encut']:
+                self.encut.set_value(calc_temp.float_params['encut'])
+ 
+            if calc_temp.int_params['ismear'] == -1: # Fermi
+                vasp_ismear_default = 'Fermi'
+            elif calc_temp.int_params['ismear'] == 0: # Gauss
+                vasp_ismear_default = 'Gauss'
+            elif calc_temp.int_params['ismear'] > 0: # Methfessel-Paxton
+                vasp_ismear_default = 'Methfessel-Paxton'
+            else:
+                vasp_ismear_default = None
+
+            for i, x in enumerate(['Fermi', 'Gauss', 'Methfessel-Paxton']):
+                if vasp_ismear_default == x:
+                    self.ismear.set_active(i)
+
+            if calc_temp.exp_params['ediff']:
+                self.ediff.set_value(calc_temp.exp_params['ediff'])
+
+            for i, x in enumerate(['Low', 'Normal', 'Accurate']):
+                if x == calc_temp.string_params['prec']:
+                    self.prec.set_active(i)
+
+            if calc_temp.float_params['sigma']:
+                self.sigma.set_value(calc_temp.float_params['sigma'])
+
+            import copy
+            all_params = copy.deepcopy(calc_temp.float_params)
+            all_params.update(calc_temp.exp_params)
+            all_params.update(calc_temp.string_params)
+            all_params.update(calc_temp.int_params)
+            all_params.update(calc_temp.bool_params)
+            all_params.update(calc_temp.special_params)
+
+            for (key, value) in all_params.items(): 
+                if key in self.vasp_keyword_list \
+                        and key not in self.vasp_keyword_gui_list \
+                        and value is not None:
+                    command = key + " " + str(value)
+                    self.expert_keyword_create(command.split())
+
+            for (key, value) in calc_temp.list_params.items():
+                if key == "magmom" and value is not None:
+                    command = key + " "
+                    rep = 1
+                    previous = value[0]
+                    for v in value[1:]:
+                        if v == previous:
+                            rep += 1
+                        else:
+                            if rep > 1:
+                                command += "%d*%f " % (rep, previous)
+                            else:
+                                command += "%f " % previous
+                            rep = 1
+                        previous = v
+                    if rep > 1:
+                        command += "%d*%f " % (rep, previous)
+                    else:
+                        command += "%f" % previous
+                    self.expert_keyword_create(command.split())
+                elif value is not None:
+                    command = key + " "
+                    for v in value:
+                        command += str(v) + " "
+                    self.expert_keyword_create(command.split())
+                 
+
+
+        # Try and load POTCAR, in the current directory
+        try:
+            calc_temp.read_potcar()
+        except IOError:
+            pass
+        else:
+            #Set xc read from POTCAR
+            for i, x in enumerate(self.vasp_xc_list):
+                if x == calc_temp.input_params['xc']:
+                    self.xc.set_active(i)
+
+        # Try and load KPOINTS, in the current directory
+        try:
+            calc_temp.read_kpoints("KPOINTS")
+        except IOError:
+            pass
+        else:
+            # Set KPOINTS grid dimensions
+            for i in range(3):
+                self.kpts_spin[i].set_value(calc_temp.input_params['kpts'][i])
 
     def set_attributes(self, *args):
         self.param = {}
@@ -1581,7 +1708,28 @@ class VASP_Window(gtk.Window):
                 val = option[1].get_text().strip()
                 if key in float_keys or key in exp_keys:
                     self.param[key] = float(val)
-                elif key in list_keys or key in string_keys:
+                elif key == "magmom":
+                    val = val.replace("*", " * ")
+                    c = val.split()
+                    val = []
+                    i = 0
+                    while i < len(c):
+                        if c[i] == "*":
+                            b = val.pop()
+                            i += 1
+                            for j in range(int(b)):
+                                val.append(float(c[i]))
+                        else:
+                            val.append(float(c[i]))
+                        i += 1
+                    self.param[key] = val
+                elif key in list_keys:
+                    c = val.split()
+                    val = []
+                    for i in c:
+                        val.append(float(i))
+                    self.param[key] = val
+                elif key in string_keys:
                     self.param[key] = val
                 elif key in int_keys:
                     self.param[key] = int(val)
@@ -1642,6 +1790,46 @@ class VASP_Window(gtk.Window):
         self.grab_remove()
         gtk.Window.destroy(self)
 
+    def set_defaults(self, *args):
+         # Reset fields to what they were
+        self.spinpol.set_active(False)
+
+        for i, x in enumerate(['Low', 'Normal', 'Accurate']):
+            if x == self.vasp_prec_default:
+                self.prec.set_active(i)
+
+        self.encut_spin.set_value(self.encut_max_default)
+
+        self.ismear.set_active(2)
+        self.smearing_order.set_value(2)
+        self.ediff.set_value(1e-4)
+
+        for child in self.expert_vbox.children():
+            self.expert_vbox.remove(child)
+
+        for i, x in enumerate(self.vasp_xc_list):
+                if x == self.vasp_xc_default:
+                    self.xc.set_active(i) 
+
+        default = np.ceil(20.0 / np.sqrt(np.vdot(self.ucell[i],self.ucell[i])))
+        for i in range(3):
+            self.kpts_spin[i].set_value(default)
+
+    def import_vasp_files(self, *args):
+        dirname = ""
+        chooser = gtk.FileChooserDialog(
+            'Import VASP input files: choose directory ... ',
+            None, gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
+            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+             gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+        chooser.set_filename(dirname)
+        openr = chooser.run()
+        if openr == gtk.RESPONSE_OK or openr == gtk.RESPONSE_SAVE:
+            dirname = chooser.get_filename()
+            self.load_attributes(dirname)
+        chooser.destroy()
+            
+
     def export_vasp_files(self, *args):
         filename = ""
         chooser = gtk.FileChooserDialog(
@@ -1694,17 +1882,32 @@ class VASP_Window(gtk.Window):
                 argument += ' '+a
         index = len(self.expert_keywords) 
         self.expert_keywords += [[gtk.Label("    " +key+" = "),
-                                  gtk.Entry(max=45),
+                                  gtk.Entry(max=55),
                                   ExpertDeleteButton(index),
                                   True]]
         self.expert_keywords[index][1].set_text(argument)
         self.expert_keywords[index][2].connect('clicked',self.expert_keyword_delete)
-        pack(self.expert_vbox, [self.expert_keywords[index][0],
-                                self.expert_keywords[index][1],
-                                self.expert_keywords[index][2]])
-
+        if not self.expert_vbox.get_children():
+            table = gtk.Table(1, 3)
+            table.attach(self.expert_keywords[index][0], 0, 1, 0, 1, 0)
+            table.attach(self.expert_keywords[index][1], 1, 2, 0, 1, 0)
+            table.attach(self.expert_keywords[index][2], 2, 3, 0, 1, 0)
+            table.show_all()
+            pack(self.expert_vbox, table)
+        else:
+            table = self.expert_vbox.get_children()[0]
+            nrows = table.get_property('n-rows')
+            table.resize(nrows + 1, 3)
+            table.attach(self.expert_keywords[index][0],  0, 1, nrows, nrows + 1, 0) 
+            table.attach(self.expert_keywords[index][1],  1, 2, nrows, nrows + 1, 0) 
+            table.attach(self.expert_keywords[index][2],  2, 3, nrows, nrows + 1, 0) 
+            table.show_all()
+        
     def expert_keyword_delete(self, button, *args):
         index = button.index   # which one to kill 
         for i in [0,1,2]:
             self.expert_keywords[index][i].destroy()
+        table = self.expert_vbox.get_children()[0]
+        nrows = table.get_property('n-rows')
+        table.resize(nrows-1, 3)
         self.expert_keywords[index][3] = False
