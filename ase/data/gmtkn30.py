@@ -296,8 +296,8 @@ def main():
     import os
     if not os.path.isdir('GMTKN30/strucs'):
         os.makedirs('GMTKN30/strucs')
-    for database in ['G2RC', 'WATER27']:
-    #for database in database_files.keys(): # all databases
+    #for database in ['G2RC', 'WATER27']:
+    for database in database_files.keys(): # all databases
         fh = open(database_files[database]['module'].lower() + '.py', 'w')
         fh.write('# Computer generated code! Hands off!\n')
         fh.write('# Generated: ' + str(datetime.date.today()) + '\n')
