@@ -83,7 +83,7 @@ def build():
     if opt.crystal_structure:
         x = opt.crystal_structure
     else:
-        x = state['symmetry'].lower()
+        x = state['symmetry']
     
     if opt.lattice_constant:
         a = opt.lattice_constant

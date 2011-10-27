@@ -49,7 +49,7 @@ class SetupWindow(gtk.Window):
         if ref is None:
             struct = "No crystal structure data"
         else:
-            struct = ref['symmetry'].lower()
+            struct = ref['symmetry']
             if struct == 'fcc' or struct == 'bcc':
                 struct = "%s (a=%.3f Å)" % (struct, ref['a'])
         

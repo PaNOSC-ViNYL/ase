@@ -476,7 +476,7 @@ class SetupNanoparticle(SetupWindow):
         if ref is None:
             structure = None
         else:
-            structure = ref['symmetry'].lower()
+            structure = ref['symmetry']
                 
         if ref is None or not structure in self.list_of_structures:
             oops("Unsupported or unknown structure",

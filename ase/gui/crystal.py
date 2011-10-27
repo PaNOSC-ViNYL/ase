@@ -438,7 +438,7 @@ class SetupBulkCrystal(SetupWindow):
         element = self.elements[0][0].get_text()
         z = ase.atomic_numbers[self.legal_element]        
         ref = ase.data.reference_states[z]
-        lattice = ref['symmetry'].lower()
+        lattice = ref['symmetry']
         index = 0
         while index < len(crystal_definitions) and crystal_definitions[index][0] != lattice:
             index += 1

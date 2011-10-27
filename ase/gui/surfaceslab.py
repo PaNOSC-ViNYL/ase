@@ -217,10 +217,10 @@ class SetupSurfaceSlab(SetupWindow):
             oops("No structure specified!")
             return
         struct = self.surfinfo[surface][1]
-        if ref is None or ref['symmetry'].lower() != struct:
+        if ref is None or ref['symmetry'] != struct:
             from ase.data.alternatives import alternative_structures
             alt = alternative_structures[z]
-            if alt and alt['symmetry'].lower() == struct:
+            if alt and alt['symmetry'] == struct:
                 ref = alt
             else:
                 oops(struct.upper() + " lattice constant unknown for "

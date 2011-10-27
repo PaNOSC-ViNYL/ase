@@ -32,7 +32,7 @@ class SimpleOrthorhombicFactory(Bravais):
 
     def get_lattice_constant(self):
         "Get the lattice constant of an element with orhtorhombic crystal structure."
-        if _refstate[self.atomicnumber]['symmetry'].lower() != self.xtal_name:
+        if _refstate[self.atomicnumber]['symmetry'] != self.xtal_name:
             raise ValueError, (("Cannot guess the %s lattice constant of"
                                 + " an element with crystal structure %s.")
                                % (self.xtal_name,

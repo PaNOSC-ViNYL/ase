@@ -41,7 +41,7 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
         Z = atomic_numbers[name]
         ref = reference_states[Z]
         if ref is not None:
-            xref = ref['symmetry'].lower()
+            xref = ref['symmetry']
         else:
             xref = None
 

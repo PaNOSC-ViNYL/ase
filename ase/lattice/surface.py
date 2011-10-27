@@ -198,14 +198,14 @@ def _surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
     Z = atomic_numbers[symbol]
 
     if a is None:
-        sym = reference_states[Z]['symmetry'].lower()
+        sym = reference_states[Z]['symmetry']
         if sym != structure:
             raise ValueError("Can't guess lattice constant for %s-%s!" %
                              (structure, symbol))
         a = reference_states[Z]['a']
 
     if structure == 'hcp' and c is None:
-        if reference_states[Z]['symmetry'].lower() == 'hcp':
+        if reference_states[Z]['symmetry'] == 'hcp':
             c = reference_states[Z]['c/a'] * a
         else:
             c = sqrt(8 / 3.0) * a
