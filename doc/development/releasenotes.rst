@@ -23,6 +23,7 @@ Development version in trunk
 
 * New command line tool: :ref:`command line tools`.
 
+* New crystal builder for ag
 
 Version 3.5.1
 =============

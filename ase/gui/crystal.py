@@ -7,7 +7,8 @@ from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.pybutton import PyButton
 from ase.gui.setupwindow import SetupWindow
 from ase.gui.status import formula
-import ase.lattice.spacegroup.crystal as crystal
+from ase.lattice.spacegroup import crystal, Spacegroup
+
 import ase
 import numpy as np
 
@@ -62,11 +63,13 @@ class SetupBulkCrystal(SetupWindow):
         for c in crystal_definitions:
             self.structinfo.append_text(c[0])
             self.structures[c[0]] = c
+        self.structinfo.set_active(0)
         self.structinfo.connect("changed",self.set_lattice_type)
-        self.spacegroup = gtk.Adjustment(1,1,230,1)
-        self.sg_spin = gtk.SpinButton(self.spacegroup,0,0)
+        self.spacegroup = gtk.Entry(max=14)
+        self.spacegroup.set_text('P 1')
         self.elementinfo = gtk.Label("")
-        pack(vbox,[gtk.Label("Lattice: "),self.structinfo,gtk.Label("\tSpace group: "),self.sg_spin,gtk.Label('\t'),self.elementinfo])
+        self.spacegroupinfo = gtk.Label('Number: 1')
+        pack(vbox,[gtk.Label("Lattice: "),self.structinfo,gtk.Label("\tSpace group: "),self.spacegroup,gtk.Label('  '),self.spacegroupinfo,gtk.Label('  '),self.elementinfo])
         pack(vbox,[gtk.Label("")])
         self.size = [gtk.Adjustment(1, 1, 100, 1) for i in range(3)]
         buttons = [gtk.SpinButton(s, 0, 0) for s in self.size]
@@ -151,7 +154,7 @@ class SetupBulkCrystal(SetupWindow):
                                ok=self.ok)
         pack(vbox, [self.pybut, clear, buts], end=True, bottom=True)
         self.structinfo.connect("changed", self.update)
-        self.spacegroup.connect("value-changed", self.update)
+        self.spacegroup.connect("activate", self.update)
         for s in self.size:
             s.connect("value-changed",self.update)
         for el in self.elements:
@@ -181,6 +184,22 @@ class SetupBulkCrystal(SetupWindow):
         alpha_equals = self.lattice_aequals[0].get_active()
         beta_equals  = self.lattice_aequals[1].get_active()
         gamma_equals = self.lattice_aequals[2].get_active()
+        sym = self.spacegroup.get_text()
+        valid = True
+        try:
+            no = int(sym)
+            spg = Spacegroup(no).symbol
+            self.spacegroupinfo.set_label('Symbol: '+str(spg))
+            spg = no
+        except:
+            try:
+                no = Spacegroup(sym).no
+                self.spacegroupinfo.set_label('Number: '+str(no))
+                spg = no
+            except:
+                self.spacegroupinfo.set_label('Invalid Spacegroup!')
+                valid = False
+                
         if a_equals == 0:
             self.lattice_lbuts[0].set_sensitive(True)
         elif a_equals == 1:
@@ -242,7 +261,7 @@ class SetupBulkCrystal(SetupWindow):
         else:
             self.lattice_abuts[2].set_sensitive(False)
             
-        valid = len(self.elements[0][0].get_text())
+        valid = len(self.elements[0][0].get_text()) and valid
         self.get_data.set_sensitive(valid and len(self.elements) == 1 and self.update_element())
         self.atoms = None
         if valid:
@@ -285,16 +304,15 @@ class SetupBulkCrystal(SetupWindow):
                 cellpar_str += str(i.get_value())+','
                 cellpar += [i.get_value()]
             cellpar_str = '['+cellpar_str[:-1]+']'
-            spacegroup = int(self.spacegroup.get_value())
             args = {'symbols' : symbol,
                     'basis'  : basis,
                     'size'   : size,
-                    'spacegroup' : spacegroup,
+                    'spacegroup' : spg,
                     'cellpar' : cellpar}
             args_str = {'symbols' : symbol_str,
                         'basis'   : basis_str,
                         'size'    : size_str,
-                        'spacegroup' : spacegroup,
+                        'spacegroup' : spg,
                         'cellpar' : cellpar_str} 
             self.pybut.python = py_template % args_str
             try: 
@@ -366,7 +384,7 @@ class SetupBulkCrystal(SetupWindow):
                     self.elements[n+1][i].destroy()
         for i in range(4):
             self.elements[0][i].set_text("")
-        self.sg_spin.set_sensitive(True)
+        self.spacegroup.set_sensitive(True)
         for i in self.lattice_lbuts:
             i.set_sensitive(True)
         for i in self.lattice_abuts:
@@ -384,8 +402,8 @@ class SetupBulkCrystal(SetupWindow):
         self.clearing_in_process = True
         self.clear_lattice()
         lattice = crystal_definitions[self.structinfo.get_active()]
-        self.spacegroup.set_value(lattice[1])
-        self.sg_spin.set_sensitive(lattice[2])
+        self.spacegroup.set_text(str(lattice[1]))
+        self.spacegroup.set_sensitive(lattice[2])
         for s, i in zip(self.size,lattice[3]):
             s.set_value(i)
         self.lattice_lbuts[0].set_value(lattice[4][0])
