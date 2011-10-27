@@ -23,7 +23,7 @@ class InfraRed(Vibrations):
     a finite difference approximation of the gradient of the dipole
     moment. The method is described in:
 
-      D. Porezag, M. R. Peterson:
+      D. Porezag, M. R. Pederson:
       "Infrared intensities and Raman-scattering activities within
       density-functional theory",
       Phys. Rev. B 54, 7830 (1996)
