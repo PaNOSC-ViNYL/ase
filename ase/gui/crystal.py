@@ -127,16 +127,25 @@ class SetupBulkCrystal(SetupWindow):
         self.get_data.set_sensitive(False)
         pack(vbox,[gtk.Label("     "),self.get_data])
         pack(vbox,[gtk.Label("")])
-        self.vbox_basis = gtk.VBox()
-        pack(self.vbox_basis,[gtk.Label("Basis: ")])
+        pack(vbox,[gtk.Label("Basis: ")])
         self.elements = [[gtk.Entry(max=3),gtk.Entry(max=8),gtk.Entry(max=8),gtk.Entry(max=8),True]]
         self.element = self.elements[0][0]
         add_atom = gtk.Button(stock = gtk.STOCK_ADD)
         add_atom.connect("clicked",self.add_basis_atom)
         add_atom.connect("activate",self.add_basis_atom)
-        pack(self.vbox_basis,[gtk.Label('  Element:\t'),self.elements[0][0],gtk.Label('\tx: '),
-                              self.elements[0][1],gtk.Label('  y: '),self.elements[0][2],
-                              gtk.Label('  z: '),self.elements[0][3],gtk.Label('\t'),add_atom])
+        pack(vbox,[gtk.Label('  Element:\t'),self.elements[0][0],gtk.Label('\tx: '),
+                   self.elements[0][1],gtk.Label('  y: '),self.elements[0][2],
+                   gtk.Label('  z: '),self.elements[0][3],gtk.Label('\t'),add_atom])
+        self.vbox_basis = gtk.VBox()
+        swin = gtk.ScrolledWindow()
+        swin.set_border_width(0)
+        swin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        vbox.pack_start(swin, True, True, 0)
+        swin.add_with_viewport(self.vbox_basis)
+        self.vbox_basis.get_parent().set_shadow_type(gtk.SHADOW_NONE)
+        self.vbox_basis.get_parent().set_size_request(-1, 100)
+        swin.show()
+
         pack(self.vbox_basis,[gtk.Label('')])
         pack(vbox,[self.vbox_basis])
         self.vbox_basis.show()
@@ -262,7 +271,7 @@ class SetupBulkCrystal(SetupWindow):
             self.lattice_abuts[2].set_sensitive(False)
             
         valid = len(self.elements[0][0].get_text()) and valid
-        self.get_data.set_sensitive(valid and len(self.elements) == 1 and self.update_element())
+        self.get_data.set_sensitive(valid and self.get_n_elements() == 1 and self.update_element())
         self.atoms = None
         if valid:
             basis_count = -1
@@ -364,6 +373,14 @@ class SetupBulkCrystal(SetupWindow):
         for i in range(10):
             self.elements[n][i].destroy()
         self.update()
+
+    def get_n_elements(self):
+        """ counts how many basis atoms are actually active """
+        n = 0
+        for el in self.elements:
+            if el[-1]:
+                n += 1
+        return n
 
     def clear(self, *args):
         """ reset to original state """ 

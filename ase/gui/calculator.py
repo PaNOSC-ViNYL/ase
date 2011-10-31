@@ -1076,6 +1076,10 @@ class AIMS_Window(gtk.Window):
         pack(vbox, [self.compute_forces])
         pack(vbox, gtk.Label(""))
 
+        swin = gtk.ScrolledWindow()
+        swin.set_border_width(0)
+        swin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+
         self.expert_keyword_set = gtk.Entry(max = 55)
         self.expert_keyword_add = gtk.Button(stock = gtk.STOCK_ADD)
         self.expert_keyword_add.connect("clicked", self.expert_keyword_import)
@@ -1083,8 +1087,14 @@ class AIMS_Window(gtk.Window):
         pack(vbox,[gtk.Label("Additional keywords: "),
                    self.expert_keyword_set, 
                    self.expert_keyword_add])
+
         self.expert_vbox = gtk.VBox()
-        pack(vbox, self.expert_vbox)
+        vbox.pack_start(swin, True, True, 0)
+        swin.add_with_viewport(self.expert_vbox)
+        self.expert_vbox.get_parent().set_shadow_type(gtk.SHADOW_NONE)
+        self.expert_vbox.get_parent().set_size_request(-1, 100)
+        swin.show()
+        self.expert_vbox.show()
         pack(vbox, gtk.Label(""))
 
         # run command and species defaults:
@@ -1162,6 +1172,8 @@ class AIMS_Window(gtk.Window):
             key[1].destroy()
             key[2].destroy()
             key[3] = False
+        for child in self.expert_vbox.children():
+            self.expert_vbox.remove(child)
         if os.environ.has_key('AIMS_COMMAND'):
             text = os.environ['AIMS_COMMAND']
         else:
@@ -1387,14 +1399,29 @@ class AIMS_Window(gtk.Window):
                                   True]]
         self.expert_keywords[index][1].set_text(argument)
         self.expert_keywords[index][2].connect('clicked',self.expert_keyword_delete)
-        pack(self.expert_vbox, [self.expert_keywords[index][0],
-                                self.expert_keywords[index][1],
-                                self.expert_keywords[index][2]])
+        if not self.expert_vbox.get_children():
+            table = gtk.Table(1, 3)
+            table.attach(self.expert_keywords[index][0], 0, 1, 0, 1, 0)
+            table.attach(self.expert_keywords[index][1], 1, 2, 0, 1, 0)
+            table.attach(self.expert_keywords[index][2], 2, 3, 0, 1, 0)
+            table.show_all()
+            pack(self.expert_vbox, table)
+        else:
+            table = self.expert_vbox.get_children()[0]
+            nrows = table.get_property('n-rows')
+            table.resize(nrows + 1, 3)
+            table.attach(self.expert_keywords[index][0],  0, 1, nrows, nrows + 1, 0) 
+            table.attach(self.expert_keywords[index][1],  1, 2, nrows, nrows + 1, 0) 
+            table.attach(self.expert_keywords[index][2],  2, 3, nrows, nrows + 1, 0) 
+            table.show_all()
 
     def expert_keyword_delete(self, button, *args):
         index = button.index   # which one to kill 
         for i in [0,1,2]:
             self.expert_keywords[index][i].destroy()
+        table = self.expert_vbox.get_children()[0]
+        nrows = table.get_property('n-rows')
+        table.resize(nrows-1, 3)
         self.expert_keywords[index][3] = False
 
 
