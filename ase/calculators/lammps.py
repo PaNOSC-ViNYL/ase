@@ -152,6 +152,20 @@ class LAMMPS:
 
     def calculate(self, atoms):
         self.atoms = atoms.copy()
+        pbc = self.atoms.get_pbc()
+        if all(pbc):
+            cell = self.atoms.get_cell()
+        elif not any(pbc):
+            # large enough cell for non-periodic calculation -
+            # LAMMPS shrink-wraps automatically via input command 
+            #       "periodic s s s"
+            # below
+            cell = 2 * np.max(np.abs(self.atoms.get_positions())) * np.eye(3)
+        else: 
+            print "WARNING: semi-periodic ASE cell detected -"
+            print "         translation to proper LAMMPS input cell might fail"
+            cell = self.atoms.get_cell()
+        self.prism = prism(cell)
         self.run()
 
     def _lmp_alive(self):
@@ -277,7 +291,7 @@ class LAMMPS:
         if (lammps_data == None):
             lammps_data = 'data.' + self.label
         write_lammps_data(lammps_data, self.atoms, self.specorder, 
-                          force_skew=self.always_triclinic)
+                          force_skew=self.always_triclinic, prismobj=self.prism)
 
     def write_lammps_in(self, lammps_in=None, lammps_trj=None, lammps_data=None):
         """Method which writes a LAMMPS in file with run parameters and settings."""
@@ -320,7 +334,7 @@ class LAMMPS:
                 f.write(''.join(['# %.16f %.16f %.16f\n' % tuple(x)
                                  for x in self.atoms.get_cell()]))
 
-            p = prism(self.atoms.get_cell())
+            p = self.prism
             f.write('lattice sc 1.0\n')
             xhi, yhi, zhi, xy, xz, yz = p.get_lammps_prism_str()
             if self.always_triclinic or p.is_skewed():
@@ -367,8 +381,8 @@ class LAMMPS:
                 for mass in parameters['mass']:
                     f.write('mass %s \n' % mass)
         else:
-            # simple default parameters that should always make the LAMMPS 
-            # calculation run
+            # simple default parameters 
+            # that should always make the LAMMPS calculation run
             f.write('pair_style lj/cut 2.5 \n' +
                     'pair_coeff * * 1 1 \n' +
                     'mass * 1.0 \n')
@@ -497,62 +511,45 @@ class LAMMPS:
         yhilo = (hi[1] - lo[1]) - yz
         zhilo = (hi[2] - lo[2])
 	
-	# The simulation box bounds are included in each snapshot and if the box is triclinic (non-orthogonal), 
-	# then the tilt factors are also printed; see the region prism command for a description of tilt factors. 
-	# For triclinic boxes the box bounds themselves (first 2 quantities on each line) are a true "bounding box" 
-	# around the simulation domain, which means they include the effect of any tilt.
-	# [ http://lammps.sandia.gov/doc/dump.html , lammps-7Jul09 ]
-	#
-	# This *should* extract the lattice vectors that LAMMPS uses from the true "bounding box" printed in the dump file
-	# It might fail in some cases (negative tilts?!) due to the MIN / MAX construction of these box corners:
-	#
-	#	void Domain::set_global_box() 
-	#	[...]
-	#	  if (triclinic) {
-	#	    [...]
-	#	    boxlo_bound[0] = MIN(boxlo[0],boxlo[0]+xy);
-	#	    boxlo_bound[0] = MIN(boxlo_bound[0],boxlo_bound[0]+xz);
-	#	    boxlo_bound[1] = MIN(boxlo[1],boxlo[1]+yz);
-	#	    boxlo_bound[2] = boxlo[2];
-	#
-	#	    boxhi_bound[0] = MAX(boxhi[0],boxhi[0]+xy);
-	#	    boxhi_bound[0] = MAX(boxhi_bound[0],boxhi_bound[0]+xz);
-	#	    boxhi_bound[1] = MAX(boxhi[1],boxhi[1]+yz);
-	#	    boxhi_bound[2] = boxhi[2];
-	#	  }
-	# [ lammps-7Jul09/src/domain.cpp ]
-	#
+# The simulation box bounds are included in each snapshot and if the box is triclinic (non-orthogonal), 
+# then the tilt factors are also printed; see the region prism command for a description of tilt factors. 
+# For triclinic boxes the box bounds themselves (first 2 quantities on each line) are a true "bounding box" 
+# around the simulation domain, which means they include the effect of any tilt.
+# [ http://lammps.sandia.gov/doc/dump.html , lammps-7Jul09 ]
+#
+# This *should* extract the lattice vectors that LAMMPS uses from the true "bounding box" printed in the dump file
+# It might fail in some cases (negative tilts?!) due to the MIN / MAX construction of these box corners:
+#
+#	void Domain::set_global_box() 
+#	[...]
+#	  if (triclinic) {
+#	    [...]
+#	    boxlo_bound[0] = MIN(boxlo[0],boxlo[0]+xy);
+#	    boxlo_bound[0] = MIN(boxlo_bound[0],boxlo_bound[0]+xz);
+#	    boxlo_bound[1] = MIN(boxlo[1],boxlo[1]+yz);
+#	    boxlo_bound[2] = boxlo[2];
+#
+#	    boxhi_bound[0] = MAX(boxhi[0],boxhi[0]+xy);
+#	    boxhi_bound[0] = MAX(boxhi_bound[0],boxhi_bound[0]+xz);
+#	    boxhi_bound[1] = MAX(boxhi[1],boxhi[1]+yz);
+#	    boxhi_bound[2] = boxhi[2];
+#	  }
+# [ lammps-7Jul09/src/domain.cpp ]
+#
         cell = [[xhilo,0,0],[xy,yhilo,0],[xz,yz,zhilo]]
 
-#       print n_atoms
-#       print lo
-#       print hi
-#       print id
-#       print type
-#       print positions
-#       print velocities
-#       print forces
-
         # assume that LAMMPS does not reorder atoms internally
-#        print np.array(positions)
-#        print self.atoms.get_positions()
-#        print np.array(positions) - self.atoms.get_positions()
-
         cell_atoms = np.array(cell)
         type_atoms = np.array(type)
-#      velocities_atoms = np.array(velocities)
-        positions_atoms = np.array(positions)
-        forces_atoms = np.array(forces)
 
         if self.atoms:
             cell_atoms = self.atoms.get_cell()
 
-            rotation_lammps2ase = np.dot(np.linalg.inv(np.array(cell)), cell_atoms)
-#           print "rotation_lammps2ase:"
-#           print rotation_lammps2ase
-#           print np.transpose(rotation_lammps2ase)
-#           print np.linalg.det(rotation_lammps2ase)                                            # check for orthogonality of matrix 'rotation'
-#           print np.dot(rotation_lammps2ase, np.transpose(rotation_lammps2ase))                # check for orthogonality of matrix 'rotation'
+            # BEWARE: reconstructing the rotation from the LAMMPS output trajectory file
+            #         fails in case of shrink wrapping for a non-periodic direction
+            # -> hence rather obtain rotation from prism object used to generate the LAMMPS input
+            #rotation_lammps2ase = np.dot(np.linalg.inv(np.array(cell)), cell_atoms)
+            rotation_lammps2ase = np.linalg.inv(self.prism.R)
 
             type_atoms = self.atoms.get_atomic_numbers()
             positions_atoms = np.array( [np.dot(np.array(r), rotation_lammps2ase) for r in positions] )
@@ -560,8 +557,8 @@ class LAMMPS:
             forces_atoms = np.array( [np.dot(np.array(f), rotation_lammps2ase) for f in forces] )
 
         if (set_atoms):
-            # assume periodic boundary conditions here (like also below in write_lammps) <- TODO:?!
-            self.atoms = Atoms(type_atoms, positions=positions_atoms, cell=cell_atoms, pbc=True)
+            # assume periodic boundary conditions here (like also below in write_lammps)
+            self.atoms = Atoms(type_atoms, positions=positions_atoms, cell=cell_atoms)
 
         self.forces = forces_atoms
 
@@ -708,7 +705,7 @@ class prism:
         return (axy >= acc) or (axz >= acc) or (ayz >= acc)
         
 
-def write_lammps_data(fileobj, atoms, specorder=[], force_skew=False):
+def write_lammps_data(fileobj, atoms, specorder=[], force_skew=False, prismobj=None):
     """Method which writes atomic structure data to a LAMMPS data file."""
     if isinstance(fileobj, str):
         f = paropen(fileobj, 'w')
@@ -734,13 +731,16 @@ def write_lammps_data(fileobj, atoms, specorder=[], force_skew=False):
         # assigned predictively according to the alphabetic order 
         species = sorted(list(set(symbols)))
     else:
-        # To index elements in the LAMMPS data file (indices must
-        # correspond to order in the potential file)
+        # To index elements in the LAMMPS data file 
+        # (indices must correspond to order in the potential file)
         species = specorder
     n_atom_types = len(species)
     f.write('%d  atom types\n' % n_atom_types)
 
-    p = prism(atoms.get_cell())
+    if prismobj is None:
+        p = prism(atoms.get_cell())
+    else:
+        p = prismobj
     xhi, yhi, zhi, xy, xz, yz = p.get_lammps_prism_str()
 
     f.write('0.0 %s  xlo xhi\n' % xhi)
@@ -759,7 +759,6 @@ def write_lammps_data(fileobj, atoms, specorder=[], force_skew=False):
     
     if close_file:
         f.close()
-
 
 
 if __name__ == '__main__':
@@ -789,6 +788,4 @@ if __name__ == '__main__':
             print 'a : %f , total energy : %f' % (a, bulk.get_potential_energy())
 
     calc.clean()
-
-
 
