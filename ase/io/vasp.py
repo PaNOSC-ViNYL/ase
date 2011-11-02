@@ -211,14 +211,21 @@ def read_vasp(filename='CONTCAR'):
 def read_vasp_out(filename='OUTCAR',index = -1):
     """Import OUTCAR type file.
 
-    Reads unitcell, atom positions, energies, and forces from the OUTCAR file.
-
-    - does not (yet) read any constraints
+    Reads unitcell, atom positions, energies, and forces from the OUTCAR file
+    and attempts to read constraints (if any) from CONTCAR/POSCAR, if present. 
     """
     import os
     import numpy as np
     from ase.calculators.singlepoint import SinglePointCalculator
     from ase import Atoms, Atom
+
+    try:          # try to read constraints, first from CONTCAR, then from POSCAR
+        constr = read_vasp('CONTCAR').constraints
+    except:
+        try:
+            constr = read_vasp('POSCAR').constraints
+        except:
+            constr = None
 
     if isinstance(filename, str):
         f = open(filename)
@@ -227,7 +234,7 @@ def read_vasp_out(filename='OUTCAR',index = -1):
     data    = f.readlines()
     natoms  = 0
     images  = []
-    atoms   = Atoms(pbc = True)
+    atoms   = Atoms(pbc = True, constraint = constr)
     energy  = 0
     species = []
     species_num = []
@@ -264,7 +271,7 @@ def read_vasp_out(filename='OUTCAR',index = -1):
                 forces += [[float(temp[3]),float(temp[4]),float(temp[5])]]
                 atoms.set_calculator(SinglePointCalculator(energy,forces,None,None,atoms))
             images += [atoms]
-            atoms = Atoms(pbc = True)
+            atoms = Atoms(pbc = True, constraint = constr)
             poscount += 1
 
     # return requested images, code borrowed from ase/io/trajectory.py
