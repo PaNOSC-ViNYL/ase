@@ -370,6 +370,7 @@ class fix_scaled(FixScaled):
         super(fix_scaled, self).__init__(cell, a, mask)
         warnings.warn('fix_scaled is deprecated. Please use FixScaled ' \
                       'instead.', DeprecationWarning, stacklevel=2)
+
 class BondSpring(FixConstraint):
     """Forces two atoms to stay close together by applying no force if they
     are below threshhold_length, and applying a Hookian force when the

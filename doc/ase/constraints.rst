@@ -93,6 +93,49 @@ The FixedMode class
 
 A mode is a list of vectors specifying a direction for each atom. It often comes from :meth:`ase.vibrations.Vibrations.get_mode`.
 
+The BondSpring class
+====================
+
+This constraint applies a Hookean restorative force between two atoms if the distance between them exceeds a threshhold. This is useful to maintain the identity of molecules in quenched molecular dynamics, without changing the degrees of freedom or violating conservation of energy. When the distance between the two atoms is less than the threshhold length, this constraint is completely inactive.
+
+The below example tethers together atoms at index 3 and 4 together::
+
+  >>> c = BondSpring(a1=3, a2=4, threshhold_length=1.79,
+                     springconstant=5.)
+  >>> atoms.set_constraint(c)
+
+Alternatively, this constraint can tether a single atom to a point in space, for example to prevent the top layer of a slab from subliming during a high-temperature MD simulation. An example of tethering atom at index 3 to its original position::
+
+  >>> c = BondSpring(a1=3, a2=atoms[3].position, threshhold_length=0.94,
+                     springconstant=2.)
+  >>> atoms.set_constraint(c)
+
+Reasonable values of the threshhold and spring constant for some common bonds are below.
+
+.. list-table::
+
+  * - Bond
+    - threshhold_length
+    - springconstant
+  * - O-H
+    - 1.40
+    - 5
+  * - C-O
+    - 1.79
+    - 5
+  * - C-H
+    - 1.59
+    - 7
+  * - C=O
+    - 1.58
+    - 10
+  * - Pt sublimation
+    - 0.94
+    - 2
+  * - Cu sublimation
+    - 0.97
+    - 2
+
 Combining constraints
 =====================
 
