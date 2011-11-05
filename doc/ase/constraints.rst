@@ -86,7 +86,12 @@ The FixedPlane class
 
 Example of use: :ref:`constraints_diffusion_tutorial`.
 
+The FixedMode class
+===================
 
+.. autoclass:: ase.constraints.FixedMode
+
+A mode is a list of vectors specifying a direction for each atom. It often comes from :meth:`ase.vibrations.Vibrations.get_mode`.
 
 Combining constraints
 =====================
