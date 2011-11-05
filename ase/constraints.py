@@ -370,6 +370,65 @@ class fix_scaled(FixScaled):
         super(fix_scaled, self).__init__(cell, a, mask)
         warnings.warn('fix_scaled is deprecated. Please use FixScaled ' \
                       'instead.', DeprecationWarning, stacklevel=2)
+class BondSpring(FixConstraint):
+    """Forces two atoms to stay close together by applying no force if they
+    are below threshhold_length, and applying a Hookian force when the
+    distance between them exceeds the thresshhold_length.
+    
+    a1, a2 : indices of atoms 1 and 2
+    a2 can alternately be a position in space to tether a1 to
+    threshhold_length (float) : the length below which there is no force
+    springconstant (integer) : Hook's law constant to apply when distance
+        between the two atoms exceeds threshhold_length, dimensions of 
+        (force / length)
+    """
+    def __init__(self, a1, a2, threshhold_length, springconstant):
+        if type(a2) == int:
+            self._type = 2 # two atoms tethered together
+            self.indices = [a1, a2]
+        else:
+            self._type = 1 # one atom tethered to a point in space
+            self.index = a1
+            self.origin = np.array(a2)
+        self.threshhold = threshhold_length
+        self.spring = springconstant
+
+    def adjust_positions(self, oldpositions, newpositions):
+        pass
+
+    def adjust_forces(self, positions, forces):
+        if self._type == 2:
+            p1, p2 = positions[self.indices]
+        else:
+            p1 = positions[self.index]
+            p2 = self.origin
+        displace = p2 - p1
+        bondlength = np.linalg.norm(displace)
+        if bondlength > self.threshhold:
+            magnitude = self.spring * (bondlength - self.threshhold)
+            direction = displace / np.linalg.norm(displace)
+            if self._type == 2:
+                forces[self.indices[0]] += direction * magnitude / 2.
+                forces[self.indices[1]] -= direction * magnitude / 2.
+            else:
+                forces[self.index] += direction * magnitude
+
+    def __repr__(self):
+        if self._type == 2:
+            return 'BondSpring(%d, %d)' % tuple(self.indices)
+        else:
+            return 'BondSpring(%d) to cartesian' % self.index
+
+    def copy(self):
+        if self._type == 2:
+            return BondSpring(a1=self.indices[0], a2=self.indices[1],
+                              threshhold_length=self.threshhold,
+                              springconstant=self.spring)
+        else:
+            return BondSpring(a1=self.index, a2=self.origin,
+                              threshhold_length=self.threshhold,
+                              springconstant=self.spring)
+
 
 class Filter:
     """Subset filter class."""
