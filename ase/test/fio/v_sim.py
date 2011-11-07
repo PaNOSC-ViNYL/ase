@@ -12,6 +12,6 @@ try:
 except urllib2.URLError:
     raise NotAvailable('Retrieval of ' + src + ' failed')
 
-from ase.io.v_sim import read_v_sim
+from ase.io import read
 
-a = read_v_sim(dest)
+a = read(dest, format='v_sim')

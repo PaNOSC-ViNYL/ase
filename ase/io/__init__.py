@@ -43,6 +43,7 @@ def read(filename, index=-1, format=None):
     XYZ-file                   xyz
     VASP POSCAR/CONTCAR file   vasp
     VASP OUTCAR file           vasp_out
+    ABINIT input file          abinit
     V_Sim ascii file           v_sim
     Protein Data Bank          pdb
     CIF-file                   cif
@@ -175,6 +176,10 @@ def read(filename, index=-1, format=None):
         from ase.io.vasp import read_vasp_out
         return read_vasp_out(filename, index)
 
+    if format == 'abinit':
+        from ase.io.abinit import read_abinit
+        return read_abinit(filename)
+
     if format == 'v_sim':
         from ase.io.v_sim import read_v_sim
         return read_v_sim(filename)
@@ -279,6 +284,7 @@ def write(filename, images, format=None, **kwargs):
     CUBE file                  cube
     XYZ-file                   xyz
     VASP POSCAR/CONTCAR file   vasp
+    ABINIT input file          abinit
     Protein Data Bank          pdb
     CIF-file                   cif
     XCrySDen Structure File    xsf
