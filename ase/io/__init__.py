@@ -43,6 +43,7 @@ def read(filename, index=-1, format=None):
     XYZ-file                   xyz
     VASP POSCAR/CONTCAR file   vasp
     VASP OUTCAR file           vasp_out
+    V_Sim ascii file           v_sim
     Protein Data Bank          pdb
     CIF-file                   cif
     FHI-aims geometry file     aims
@@ -173,6 +174,10 @@ def read(filename, index=-1, format=None):
     if format == 'vasp_out':
         from ase.io.vasp import read_vasp_out
         return read_vasp_out(filename, index)
+
+    if format == 'v_sim':
+        from ase.io.v_sim import read_v_sim
+        return read_v_sim(filename)
 
     if format == 'mol':
         from ase.io.mol import read_mol

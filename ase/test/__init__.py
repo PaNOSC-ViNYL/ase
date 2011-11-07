@@ -1,3 +1,5 @@
+import os
+
 import platform
 import sys
 import unittest
@@ -46,7 +48,7 @@ class ScriptTestCase(unittest.TestCase):
         unittest.TestCase.__init__(self, methodname)
         self.filename = filename
         self.display = display
-        
+
     def testfile(self):
         try:
             execfile(self.filename, {'display': self.display})
@@ -70,9 +72,30 @@ class ScriptTestCase(unittest.TestCase):
 def test(verbosity=1, dir=None, display=True, stream=sys.stdout):
     ts = unittest.TestSuite()
     if dir is None:
-        dir = __path__[0]
-    tests = glob(dir + '/*.py')
+        # ase/test (__path__[0])
+        testdir = __path__[0]
+    else:
+        if os.path.isdir(dir):
+            # absolute path
+            testdir = dir
+        else:
+            # relative to ase/test (__path__[0])
+            testdir = os.path.join(__path__[0], dir)
+    files = glob(testdir + '/*')
+    sdirtests = [] # tests from subdirectories: only one level assumed
+    tests = []
+    for f in files:
+        if os.path.isdir(f):
+            # add test subdirectories (like calculators)
+            sdirtests.extend(glob(os.path.join(testdir, f) + '/*.py'))
+        else:
+            # add py files in testdir
+            if f.endswith('.py'):
+                tests.append(f)
     tests.sort()
+    sdirtests.sort()
+    tests.extend(sdirtests) # run test subdirectories at the end
+    lasttest = None # is COCu111.py in the current set
     for test in tests:
         if test.endswith('__init__.py'):
             continue
@@ -80,7 +103,8 @@ def test(verbosity=1, dir=None, display=True, stream=sys.stdout):
             lasttest = test
             continue
         ts.addTest(ScriptTestCase(filename=test, display=display))
-    ts.addTest(ScriptTestCase(filename=lasttest, display=display))
+    if lasttest:
+        ts.addTest(ScriptTestCase(filename=lasttest, display=display))
 
     operating_system = platform.system() + ' ' + platform.machine()
     operating_system += ' ' + ' '.join(platform.dist())
@@ -90,7 +114,7 @@ def test(verbosity=1, dir=None, display=True, stream=sys.stdout):
 
     from ase.utils import devnull
     sys.stdout = devnull
-    
+
     ttr = unittest.TextTestRunner(verbosity=verbosity, stream=stream)
     results = ttr.run(ts)
 
@@ -104,7 +128,7 @@ class World:
     def __init__(self, size):
         self.size = size
         self.data = {}
-        
+
     def get_rank(self, rank):
         return CPU(self, rank)
 
@@ -123,7 +147,7 @@ class CPU:
         while (rank, self.rank) not in self.world.data:
             pass
         x[:] = self.world.data.pop((rank, self.rank))
-    
+
     def sum(self, x):
         if not isinstance(x, np.ndarray):
             x = np.array([x])
