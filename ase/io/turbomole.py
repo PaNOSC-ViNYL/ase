@@ -57,6 +57,89 @@ def read_turbomole(filename='coord'):
 
     return atoms
 
+def read_turbomole_gradient(filename='gradient', index=-1):
+    """ Method to read turbomole gradient file """
+
+    if isinstance(filename, str):
+        f = open(filename)
+
+    # read entire file
+    lines = [x.strip() for x in f.readlines()]
+
+    # find $grad section
+    start = end = -1
+    for i, line in enumerate(lines):
+        if not line.startswith('$'):
+            continue
+        if line.split()[0] == '$grad':
+            start = i
+        elif start >= 0:
+            end = i
+            break
+
+    if end <= start:
+        raise RuntimeError('File %s does not contain a valid \'$grad\' section' % (filename))
+
+    def formatError():
+        raise RuntimeError('Data format in file %s does not correspond to known Turbomole gradient format' % (filename))
+
+
+    # trim lines to $grad
+    del lines[:start+1]
+    del lines[end-1-start:]
+
+    # Interpret $grad section
+    from ase import Atoms, Atom
+    from ase.calculators.singlepoint import SinglePointCalculator
+    from ase.units import Bohr
+    images = []
+    while len(lines): # loop over optimization cycles
+        # header line
+        # cycle =      1    SCF energy =     -267.6666811409   |dE/dxyz| =  0.157112
+        fields = lines[0].split('=')
+        try:
+            cycle = int(fields[1].split()[0])
+            energy = float(fields[2].split()[0])
+            gradient = float(fields[3].split()[0])
+        except (IndexError, ValueError):
+            formatError()
+        
+        # coordinates/gradient
+        atoms = Atoms()
+        forces = []
+        for line in lines[1:]:
+            fields = line.split()
+            if len(fields) == 4: # coordinates
+                # 0.00000000000000      0.00000000000000      0.00000000000000      c
+                try:
+                    symbol = fields[3].lower().capitalize()
+                    position = tuple([bohr2angstrom(float(x)) for x in fields[0:3] ])
+                except ValueError:
+                    formatError()
+                atoms.append(Atom(symbol, position))
+            elif len(fields) == 3: # gradients
+                #  -.51654903354681D-07  -.51654903206651D-07  0.51654903169644D-07
+                try:
+                    grad = [float(x.replace('D', 'E')) * Bohr for x in fields[0:3] ]
+                except ValueError:
+                    formatError()
+                forces.append(grad)
+            else: # next cycle
+                break
+
+        # calculator
+        calc = SinglePointCalculator(energy, forces, None, None, atoms)
+        atoms.set_calculator(calc)
+
+        # save frame
+        images.append(atoms)
+
+        # delete this frame from data to be handled
+        del lines[:2*len(atoms)+1]
+
+    return images[index]
+
+
 def write_turbomole(filename, atoms):
     """Method to write turbomole coord file
     """

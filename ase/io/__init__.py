@@ -51,6 +51,7 @@ def read(filename, index=-1, format=None):
     VTK XML Structured Grid    vts
     VTK XML Unstructured Grid  vtu
     TURBOMOLE coord file       tmol
+    TURBOMOLE gradient file    tmol-gradient
     exciting input             exi
     AtomEye configuration      cfg
     WIEN2k structure file      struct
@@ -220,6 +221,10 @@ def read(filename, index=-1, format=None):
     if format == 'tmol':
         from ase.io.turbomole import read_turbomole
         return read_turbomole(filename)
+
+    if format == 'tmol-gradient':
+        from ase.io.turbomole import read_turbomole_gradient
+        return read_turbomole_gradient(filename)
 
     if format == 'cfg':
         from ase.io.cfg import read_cfg
@@ -542,8 +547,11 @@ def filetype(filename):
     if filename.endswith('I_info'):
         return 'Cmdft'
 
-    if lines[0].startswith('$coord'):
+    if lines[0].startswith('$coord') or os.path.basename(filename) == 'coord':
         return 'tmol'
+
+    if lines[0].startswith('$grad') or os.path.basename(filename) == 'gradient':
+        return 'tmol-gradient'
 
     if lines[0].startswith('Geometry'):
         return 'dftb'
