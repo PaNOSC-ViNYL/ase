@@ -19,6 +19,7 @@ def read_xyz(fileobj, index=-1):
         symbols = []
         for line in lines[:natoms]:
             symbol, x, y, z = line.split()[:4]
+            symbol = symbol.lower().capitalize()
             symbols.append(symbol)
             positions.append([float(x), float(y), float(z)])
         images.append(Atoms(symbols=symbols, positions=positions))
