@@ -21,13 +21,14 @@ def read_turbomole(filename='coord'):
     lines = f.readlines()
     atoms_pos = []
     atom_symbols = []
-    dollar_count=0
     myconstraints=[]
-    for line in lines:
-        if ('$' in line):
-            dollar_count = dollar_count + 1
-            if (dollar_count >= 2):
-                break
+    
+    # find $coord section;
+    # does not necessarily have to be the first $<something> in file...
+    start = lines.index('$coord') # raises ValueError if not found
+    for line in lines[start+1:]:
+        if line.startswith('$'): # start of new section
+            break
         else:
             x, y, z, symbolraw = line.split()[:4]
             symbolshort=symbolraw.strip()
@@ -49,7 +50,7 @@ def read_turbomole(filename='coord'):
         f.close()
 
     atoms = Atoms(positions = atoms_pos, symbols = atom_symbols, pbc = False)
-    c = FixAtoms(myconstraints)
+    c = FixAtoms(mask = myconstraints)
     atoms.set_constraint(c)
     #print c
     
