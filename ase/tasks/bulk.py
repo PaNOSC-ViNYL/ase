@@ -102,10 +102,13 @@ class BulkTask(OptimizeTask):
                 volumes = data['strains']**3 * atoms.get_volume()
                 energies = data['energies']
                 eos = EquationOfState(volumes, energies)
-                v, e, B = eos.fit()
-
-                self.results[name][1:] = [energies[2] - e, v,
-                                          B * 1e24 / units.kJ]
+                try:
+                    v, e, B = eos.fit()
+                except ValueError:
+                    self.results[name].extend([None, None])
+                else:
+                    self.results[name][1:] = [energies[2] - e, v,
+                                              B * 1e24 / units.kJ]
             else:
                 self.results[name].extend([None, None])
 
