@@ -186,6 +186,8 @@ also possible to add one or more adsorbates.
 Create specific non-common surfaces
 ===================================
 
+.. versionadded:: 3.5.2
+
 In addition to the most normal surfaces, a function has been
 constructed to create more uncommon surfaces that one could be
 interested in.  It is constructed upon the Miller Indices defining the
