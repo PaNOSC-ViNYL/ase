@@ -1,4 +1,4 @@
-#!/usr//bin/env python
+#!/usr/bin/env python
 
 # lammps.py (2011/03/29)
 # An ASE calculator for the LAMMPS classical MD code available from
