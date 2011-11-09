@@ -3,6 +3,8 @@ from math import sqrt, pi
 
 import numpy as np
 
+from ase.dft.kpoints import monkhorst_pack
+
 
 def str2dict(s, namespace={}):
     """Convert comma-separated key=vale string to dictionary.
