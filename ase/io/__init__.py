@@ -543,11 +543,19 @@ def filetype(filename):
     if filename.lower().endswith('.struct'):
         return 'struct'
 
+    for line in lines:
+        if 'Invoking FHI-aims ...' in line:
+            return 'aims_out'
+        if 'atom' in line:
+            data = line.split()
+            try:
+                a = Atoms(symbols=[data[4]],positions = [[float(data[1]),float(data[2]),float(data[3])]])
+                return 'aims'
+            except:
+                pass
+
     if filename.lower().endswith('.in'):
         return 'aims'
-
-    if filename.lower().endswith('.out'):
-        return 'aims_out'
 
     if filename.lower().endswith('.cfg'):
         return 'cfg'
