@@ -243,7 +243,11 @@ def read_vasp_out(filename='OUTCAR',index = -1):
     poscount = 0
     for n,line in enumerate(data):
         if 'POTCAR:' in line:
-            species += [line.split()[2]]
+            temp = line.split()[2]
+            for c in ['.','_','1']:
+                if c in temp:
+                    temp = temp[0:temp.find(c)]
+            species += [temp]
         if 'ions per type' in line:
             species = species[:len(species)/2]
             temp = line.split()
