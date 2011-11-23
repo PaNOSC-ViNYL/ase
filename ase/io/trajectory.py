@@ -283,6 +283,8 @@ class PickleTrajectory:
         return self[i]
 
     def __len__(self):
+        if len(self.offsets) == 0:
+            return 0
         N = len(self.offsets) - 1
         while True:
             self.fd.seek(self.offsets[N])
