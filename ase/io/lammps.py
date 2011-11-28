@@ -1,4 +1,5 @@
 from ase.atoms import Atoms
+from ase.quaternions import Quaternions
 from ase.parallel import paropen
 
 def read_lammps_dump(fileobj, index=-1):
@@ -21,7 +22,10 @@ def read_lammps_dump(fileobj, index=-1):
             n_atoms = 0
             lo = [] ; hi = [] ; tilt = []
             id = [] ; type = []
-            positions = [] ; velocities = [] ; forces = []
+            positions = []
+            velocities = [] 
+            forces = []
+            quaternions = []
 
         if 'ITEM: NUMBER OF ATOMS' in line:
             line = lines.pop(0)
@@ -79,10 +83,18 @@ def read_lammps_dump(fileobj, index=-1):
                 add_quantity(fields, positions, ['x', 'y', 'z'])
                 add_quantity(fields, velocities, ['vx', 'vy', 'vz'])
                 add_quantity(fields, forces, ['fx', 'fy', 'fz'])
+                add_quantity(fields, quaternions, ['c_q[1]', 'c_q[2]',
+                                                   'c_q[3]', 'c_q[4]'])
 
-            images.append(Atoms(symbols=type,
-                                positions=positions,
-                                cell=cell))
+            if len(quaternions):
+                images.append(Quaternions(symbols=type,
+                                          positions=positions,
+                                          cell=cell,
+                                          quaternions=quaternions))
+            else:
+                images.append(Atoms(symbols=type,
+                                    positions=positions,
+                                    cell=cell))
 
     return images[index]
 

@@ -397,6 +397,9 @@ class View:
             self.colors = colors
             self.colordata = colordata
 
+    def rotated_ellipse(self, *args, **kwargs):
+        return self.pixmap.draw_arc(*args, **kwargs)
+
     def draw(self, status=True):
         self.pixmap.draw_rectangle(self.white_gc, True, 0, 0,
                                    self.width, self.height)
@@ -414,11 +417,18 @@ class View:
             r = self.images.r * (0.65 * self.scale)
         else:
             r = self.images.r * self.scale
-        A = (P - r[:, None]).round().astype(int)
-        d = (2 * r).round().astype(int)
+        if self.images.shapes is not None:
+            A = P.round().astype(int)
+            dx = (2 * self.images.shapes[:,0] * self.scale).round().astype(int)
+            dy = (2 * self.images.shapes[:,1] * self.scale).round().astype(int)
+            arc = self.rotated_ellipse
+        else:
+            A = (P - r[:, None]).round().astype(int)
+            dx = dy = (2 * r).round().astype(int)
+            arc = self.pixmap.draw_arc
         selected_gc = self.selected_gc
         colors = self.get_colors()
-        arc = self.pixmap.draw_arc
+        arc = self.rotated_ellipse
         line = self.pixmap.draw_line
         black_gc = self.black_gc
         dynamic = self.images.dynamic
@@ -426,16 +436,17 @@ class View:
         visible = self.images.visible
         for a in self.indices:
             if a < n:
-                ra = d[a]
+                rx = dx[a]
+                ry = dy[a]
                 if visible[a]:
-                    arc(colors[a], True, A[a, 0], A[a, 1], ra, ra, 0, 23040)
+                    arc(colors[a], True, A[a, 0], A[a, 1], rx, ry, 0, 23040)
                 if  self.light_green_markings and self.atoms_to_rotate_0[a]:
                     arc(self.green, False, A[a, 0] + 2, A[a, 1] + 2,
-                        ra - 4, ra - 4, 0, 23040)
+                        rx - 4, ry - 4, 0, 23040)
 
                 if not dynamic[a]:
-                    R1 = int(0.14644 * ra)
-                    R2 = int(0.85355 * ra)
+                    R1 = int(0.14644 * rx)
+                    R2 = int(0.85355 * ry)
                     line(black_gc,
                          A[a, 0] + R1, A[a, 1] + R1,
                          A[a, 0] + R2, A[a, 1] + R2)
@@ -443,9 +454,10 @@ class View:
                          A[a, 0] + R2, A[a, 1] + R1,
                          A[a, 0] + R1, A[a, 1] + R2)
                 if selected[a]:
-                    arc(selected_gc, False, A[a, 0], A[a, 1], ra, ra, 0, 23040)
+                    arc(selected_gc, False, A[a, 0], A[a, 1], rx, ry, 0, 23040)
                 elif visible[a]:
-                    arc(black_gc, False, A[a, 0], A[a, 1], ra, ra, 0, 23040)
+                    arc(black_gc, False, A[a, 0], A[a, 1], rx, ry, 
+                        0, 23040)
             else:
                 a -= n
                 line(black_gc, X1[a, 0], X1[a, 1], X2[a, 0], X2[a, 1])
@@ -464,6 +476,10 @@ class View:
             self.status()
 
     def draw_axes(self):
+#        print "self.axes=", self.axes
+        from ase.quaternions import Quaternion
+        q = Quaternion().from_matrix(self.axes)
+#        print "quaternion=", q
         L = np.zeros((10, 2, 3))
         L[:3, 1] = self.axes * 15
         L[3:5] = self.axes[0] * 20

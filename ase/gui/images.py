@@ -18,6 +18,10 @@ class Images:
     def initialize(self, images, filenames=None, init_magmom=False):
         
         self.natoms = len(images[0])
+        if hasattr(images[0], 'get_shapes'):
+            self.shapes = images[0].get_shapes()
+        else:
+            self.shapes = None
 
         self.nimages = len(images)
         if filenames is None:
@@ -131,7 +135,10 @@ class Images:
         return self.nimages
         
     def set_radii(self, scale):
-        self.r = self.covalent_radii[self.Z] * scale
+        if self.shapes == None:
+            self.r = self.covalent_radii[self.Z] * scale
+        else:
+            self.r = np.sqrt(np.sum(self.shapes**2, axis=1)) * scale
                 
     def read(self, filenames, index=-1, filetype=None):
         images = []
