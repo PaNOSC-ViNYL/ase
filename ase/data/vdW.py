@@ -10,32 +10,39 @@ and the references given there:
    a unified approach, Addison Wesley Publishing Co., 
    Reading Massachusetts, USA, 1984.
 4. A.M. James and M.P. Lord in Macmillan's Chemical and Physical Data, 
-   Macmillan, London, UK, 1992."""
+   Macmillan, London, UK, 1992.
+
+additional source from: http://de.wikipedia.org/wiki/Van-der-Waals-Radius
+5. Manjeera Mantina, Adam C. Chamberlin, Rosendo Valero, 
+   Christopher J. Cramer, Donald G. Truhlar: Consistent van der Waals Radii 
+   for the Whole Main Group. In: J. Phys. Chem. A. 2009, 113, 5806–5812, 
+   doi:10.1021/jp8111556
+"""
 
 import numpy as np
 
 vdW_radii = np.array([
  np.nan, # X
  1.20, # H
- 1.40, # He
- 1.82, # Li
- np.nan, # Be
- np.nan, # B
- 1.70, # C
- 1.55, # N
- 1.52, # O
- 1.47, # F
- 1.54, # Ne
- 2.27, # Na
- 1.73, # Mg
- np.nan, # Al
- 2.10, # Si
- 1.80, # P
- 1.80, # S
- 1.75, # Cl
- 1.88, # Ar
- 2.75, # K
- np.nan, # Ca
+ 1.40, # He [1]
+ 1.82, # Li [1]
+ 1.53, # Be [5]
+ 1.92, # B [5]
+ 1.70, # C [1]
+ 1.55, # N [1]
+ 1.52, # O [1]
+ 1.47, # F [1]
+ 1.54, # Ne [1]
+ 2.27, # Na [1]
+ 1.73, # Mg [1]
+ 1.84, # Al [5]
+ 2.10, # Si [1]
+ 1.80, # P [1]
+ 1.80, # S [1]
+ 1.75, # Cl [1]
+ 1.88, # Ar [1]
+ 2.75, # K [1]
+ 2.31, # Ca [5]
  np.nan, # Sc
  np.nan, # Ti
  np.nan, # V
@@ -43,17 +50,17 @@ vdW_radii = np.array([
  np.nan, # Mn
  np.nan, # Fe
  np.nan, # Co
- 1.63, # Ni
- 1.40, # Cu
- 1.39, # Zn
- 1.87, # Ga
- np.nan, # Ge
- 1.85, # As
- 1.90, # Se
- 1.85, # Br
- 2.02, # Kr
- np.nan, # Rb
- np.nan, # Sr
+ 1.63, # Ni [1]
+ 1.40, # Cu [1]
+ 1.39, # Zn [1]
+ 1.87, # Ga [1]
+ 2.11, # Ge [5]
+ 1.85, # As [1]
+ 1.90, # Se [1]
+ 1.85, # Br [1]
+ 2.02, # Kr [1]
+ 3.03, # Rb [5]
+ 2.49, # Sr [5]
  np.nan, # Y
  np.nan, # Zr
  np.nan, # Nb
@@ -61,17 +68,17 @@ vdW_radii = np.array([
  np.nan, # Tc
  np.nan, # Ru
  np.nan, # Rh
- 1.63, # Pd
- 1.72, # Ag
- 1.58, # Cd
- 1.93, # In
- 2.17, # Sn
- np.nan, # Sb
- 2.06, # Te
- 1.98, # I
- 2.16, # Xe
- np.nan, # Cs
- np.nan, # Ba
+ 1.63, # Pd [1]
+ 1.72, # Ag [1]
+ 1.58, # Cd [1]
+ 1.93, # In [1]
+ 2.17, # Sn [1]
+ 2.06, # Sb [5]
+ 2.06, # Te [1]
+ 1.98, # I [1]
+ 2.16, # Xe [1]
+ 3.43, # Cs [5]
+ 2.49, # Ba [5]
  np.nan, # La
  np.nan, # Ce
  np.nan, # Pr
@@ -93,21 +100,21 @@ vdW_radii = np.array([
  np.nan, # Re
  np.nan, # Os
  np.nan, # Ir
- 1.75, # Pt
- 1.66, # Au
- 1.55, # Hg
- 1.96, # Tl
- 2.02, # Pb
- np.nan, # Bi
- np.nan, # Po
- np.nan, # At
- np.nan, # Rn
- np.nan, # Fr
- np.nan, # Ra
+ 1.75, # Pt [1]
+ 1.66, # Au [1]
+ 1.55, # Hg [1]
+ 1.96, # Tl [1]
+ 2.02, # Pb [1]
+ 2.07, # Bi [5]
+ 1.97, # Po [5]
+ 2.02, # At [5]
+ 2.20, # Rn [5]
+ 3.48, # Fr [5]
+ 2.83, # Ra [5]
  np.nan, # Ac
  np.nan, # Th
  np.nan, # Pa
- 1.86, # U
+ 1.86, # U [1]
  np.nan, # Np
  np.nan, # Pu
  np.nan, # Am
