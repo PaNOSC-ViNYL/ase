@@ -1,3 +1,4 @@
+# encoding: utf-8
 """ Van der Waals radii in [A] taken from
 http://www.webelements.com/periodicity/van_der_waals_radius/
 and the references given there:
@@ -21,7 +22,7 @@ additional source from: http://de.wikipedia.org/wiki/Van-der-Waals-Radius
 
 import numpy as np
 
-vdW_radii = np.array([
+vdw_radii = np.array([
  np.nan, # X
  1.20, # H
  1.40, # He [1]

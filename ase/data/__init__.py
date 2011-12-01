@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import os.path
+from ase.data.vdw import vdw_radii
 
 chemical_symbols = ['X',  'H',  'He', 'Li', 'Be',
                     'B',  'C',  'N',  'O',  'F',
