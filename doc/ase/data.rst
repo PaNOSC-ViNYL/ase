@@ -16,6 +16,7 @@ This module defines the following variables:
 .. data:: covalent_radii
 .. data:: cpk_colors
 .. data:: reference_states
+.. data:: vdw_radii
 
 All of these are lists that should be indexed with an atomic number:
 
@@ -36,13 +37,15 @@ it up in the :data:`atomic_numbers` dictionary:
 >>> covalent_radii[29]
 1.1699999999999999
 
-The covalent radii are taken from [Cordeo08]_
+The covalent radii are taken from [Cordeo08]_. 
+The source of the van der Waals radii is given in vdw.py_.
 
 .. [Cordeo08] *Covalent radii revisited*,
     Beatriz Cordero, Verónica Gómez, Ana E. Platero-Prats, Marc Revés,
     Jorge Echeverría, Eduard Cremades, Flavia Barragán and Santiago Alvarez,
     Dalton Trans., 2008, 2832-2838 DOI:10.1039/B801115J 
 
+.. _vdw.py: https://trac.fysik.dtu.dk/projects/ase/browser/trunk/ase/data/vdw.py
 
 .. _molecular data:
 

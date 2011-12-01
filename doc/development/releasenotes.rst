@@ -25,6 +25,8 @@ Development version in trunk
 
 * New crystal builder for ag
 
+* Van der Waals radii in ase.data
+
 
 Version 3.5.1
 =============
