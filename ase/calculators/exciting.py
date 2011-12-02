@@ -6,22 +6,25 @@ from ase.units import Bohr, Hartree
 class Exciting:
     """exciting calculator object."""
    
-    def __init__(self, dir='.', template=None, speciespath=None,
+    def __init__(self, dir='calc', template=None, 
+                 speciespath='http://xml.exciting-code.org/species/',
                  bin='excitingser', kpts=(1, 1, 1), **kwargs):
         """Exciting calculator object constructor
         
         Parameters
         ----------
         dir: string
-            directory in which to excecute exciting
+            directory in which to execute exciting
         template: string
-            Path to XSLT templat if it schould be used
+            Path to XSLT template if it should be used
             default: none
+        speciespath: string
+            Directory or URL to look up species files
         bin: string
             Path or executable name of exciting 
             default: ``excitingser`` 
         kpts: integer list length 3
-            Number of kpoints
+            Number of k-points
         kwargs: dictionary like
             list of key value pairs to be converted into groundstate attributes
         
@@ -29,8 +32,8 @@ class Exciting:
         self.dir = dir
         self.energy = None
         self.template = template
-        if speciespath is None:
-            self.speciespath = os.environ.get('EXCITING_SPECIES_PATH', './')
+     
+        self.speciespath = speciespath
         self.converged = False
         self.excitingbinary = bin
         self.groundstate_attributes = kwargs
@@ -53,16 +56,20 @@ class Exciting:
         self.write(atoms)
 
     def get_potential_energy(self, atoms):
-        self.update(atoms)
+        """
+        returns potential Energy
+        """
+        if self.energy is None:
+            self.update(atoms)
         return self.energy
 
     def get_forces(self, atoms):
         self.update(atoms)
         return self.forces.copy()
 
-    def get_stress(self, atoms):
-        self.update(atoms)
-        return self.stress.copy()
+#    def get_stress(self, atoms):
+#        self.update(atoms)
+#        return self.stress.copy()
 
     def calculate(self, atoms):
         self.positions = atoms.get_positions().copy()
@@ -127,4 +134,4 @@ class Exciting:
             raise RuntimeError('calculation did not finish correctly')
   
         # Stress
-        self.stress = np.empty((3, 3))
+        # self.stress = np.empty((3, 3))

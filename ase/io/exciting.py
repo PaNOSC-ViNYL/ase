@@ -6,9 +6,12 @@ The module depends on lxml  http://codespeak.net/lxml/
 """
 from math import pi, cos, sin, sqrt, acos
 
+import numpy as np
+
 from ase.atoms import Atoms
 from ase.parallel import paropen
 from ase.units import Bohr
+
 
 def read_exciting(fileobj, index=-1):
     """Reads structure from exiting xml file.
@@ -16,7 +19,7 @@ def read_exciting(fileobj, index=-1):
     Parameters
     ----------
     fileobj: file object
-        Filehandle from which data should be read.
+        File handle from which data should be read.
         
     Other parameters
     ----------------
@@ -41,12 +44,26 @@ def read_exciting(fileobj, index=-1):
             x, y, z = atom.get('coord').split()
             positions.append([float(x), float(y), float(z)])
             symbols.append(symbol)
+    # scale unit cell accorting to scaling attributes
+    if doc.xpath('//crystal/@scale'):
+        scale = float(str(doc.xpath('//crystal/@scale')[0]))
+    else:
+        scale = 1
+        
+    if doc.xpath('//crystal/@stretch'):
+        a, b, c = doc.xpath('//crystal/@scale')[0].split()
+        stretch = np.array([float(a),float(b),float(c)])
+    else:    
+        stretch = np.array([1.0, 1.0, 1.0])
     basevectsn = doc.xpath('//basevect/text()') 
- 
     for basevect in basevectsn:
         x, y, z = basevect.split()
-        basevects.append([float(x) * Bohr, float(y) * Bohr, float(z) * Bohr])
+        basevects.append(np.array([float(x) * Bohr * stretch[0],
+                                   float(y) * Bohr * stretch[1], 
+                                   float(z) * Bohr * stretch[2]
+                                   ]) * scale)
     atoms = Atoms(symbols=symbols, cell=basevects)
+ 
     atoms.set_scaled_positions(positions)
     if 'molecule' in root.find('structure').attrib.keys():
         if root.find('structure').attrib['molecule']:
@@ -79,7 +96,7 @@ def write_exciting(fileobj, images):
                               encoding='UTF-8'))
 
 def atoms2etree(images):
-    """This function creates the xml DOM corresponding
+    """This function creates the XML DOM corresponding
      to the structure for use in write and calculator
     
     Parameters
@@ -109,11 +126,11 @@ def atoms2etree(images):
                              
     species = {}
     symbols = []
-    for a, symbol in enumerate(atoms.get_chemical_symbols()):
+    for aindex, symbol in enumerate(atoms.get_chemical_symbols()):
         if symbol in species:
-            species[symbol].append(a)
+            species[symbol].append(aindex)
         else:
-            species[symbol] = [a]
+            species[symbol] = [aindex]
             symbols.append(symbol)
     scaled = atoms.get_scaled_positions()
     for symbol in symbols:
