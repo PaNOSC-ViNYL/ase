@@ -398,9 +398,9 @@ class Aims(Calculator):
     def read_energy(self, all=None):
         for line in open(self.out, 'r'):
             if line.rfind('Total energy corrected') > -1:
-                E0 = float(line.split()[-2])
+                E0 = float(line.split()[5])
             elif line.rfind('Total energy uncorrected') > -1:
-                F = float(line.split()[-2])
+                F = float(line.split()[5])
         energy_free, energy_zero = F, E0
         return [energy_free, energy_zero]
 
