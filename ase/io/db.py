@@ -5,7 +5,8 @@ from ase.data import atomic_numbers
 
 def get_atoms(cmr_data):
     if type(cmr_data)==str:
-        raise RuntimeError('cmr db-file: the specified cmr group file does not contain any images, only references.')
+        raise RuntimeError('cmr db-file: the specified cmr group file does not contain any images, only references.\n'+
+                           'This error could be caused by an older version of CMR - or a group file containing only references to other db-files.')
     positions = cmr_data.get('ase_positions')
     numbers = cmr_data.get('ase_atomic_numbers')
     symbols = cmr_data.get('ase_chemical_symbols')
@@ -46,7 +47,8 @@ def read_db(filename, index):
         hashes = r.get_member_hashes()
         hashes = hashes[index]
         if len(hashes)==0:
-            raise RuntimeError('cmr db-file: could not find any group members. This error could be caused by an older version of CMR - or a group file containing only references to other db-files.')
+            raise RuntimeError('cmr db-file: could not find any group members.\n'+
+                               'This error could be caused by an older version of CMR - or a group file containing only references to other db-files.')
         if type(hashes)==list:
             return [get_atoms(r.get_xmldata(hash)) for hash in hashes]
         return get_atoms(r.get_xmldata(hashes))
