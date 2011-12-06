@@ -44,6 +44,7 @@ class Task:
         self.magmoms = magmoms
         self.gui = gui
         self.write_summary = write_summary
+        self.use_lock_files = use_lock_files
         self.write_to_file = write_to_file
         self.slice = slice
 
