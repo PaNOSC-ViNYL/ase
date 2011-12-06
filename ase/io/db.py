@@ -37,7 +37,6 @@ def get_atoms(cmr_data):
 
     atoms.calc = SinglePointCalculator(energy, forces, None, magmoms,
                                            atoms)
-
     return atoms
 
 def read_db(filename, index):
@@ -46,6 +45,8 @@ def read_db(filename, index):
     if not r.has_key("ase_positions") and r.is_group():
         hashes = r.get_member_hashes()
         hashes = hashes[index]
+        if len(hashes)==0:
+            raise RuntimeError('cmr db-file: could not find any group members. This error could be caused by an older version of CMR - or a group file containing only references to other db-files.')
         if type(hashes)==list:
             return [get_atoms(r.get_xmldata(hash)) for hash in hashes]
         return get_atoms(r.get_xmldata(hashes))
