@@ -20,7 +20,12 @@ from ase.structure import molecule
 m1 = molecule('O2')
 m1.center(2.0)
 
-cmr.atoms2cmr(m1).write("O2.db")
+try:
+    cmr.atoms2cmr(m1).write("O2.db")
+except:
+    print "The installed version of CMR is too old for this test."
+    import sys
+    sys.exit()
 
 m1.set_calculator(EMT())
 e1 = m1.get_potential_energy()
