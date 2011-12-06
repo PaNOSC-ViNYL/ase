@@ -9,7 +9,7 @@ from ase.test import NotAvailable
 try:
     import cmr
 except ImportError:
-    raise NotAvailable('CMR version>0.3.2 is required')
+    raise NotAvailable('CMR is required')
 
 from ase.calculators.emt import EMT
 
@@ -20,10 +20,7 @@ from ase.structure import molecule
 m1 = molecule('O2')
 m1.center(2.0)
 
-try:
-    cmr.atoms2cmr(m1).write("O2.db")
-except:
-    raise NotAvailable('CMR version>0.3.2 is required')
+write("O2.db", images=m1)
 
 m1.set_calculator(EMT())
 e1 = m1.get_potential_energy()

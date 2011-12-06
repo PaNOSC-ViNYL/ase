@@ -28,8 +28,9 @@ def get_atoms(cmr_data):
                   numbers=numbers,
                   cell=cell,
                   pbc=pbc)
+
     if tags.any():
-        atoms.set_tags(tags)
+        atoms.set_tags(list(tags))
 
     if magmoms.any():
         atoms.set_initial_magnetic_moments(magmoms)
@@ -56,4 +57,14 @@ def read_db(filename, index):
         return get_atoms(r)
     
     
+
+def write_db(filename, images, **kwargs):
+    try:
+        import cmr
+        cmr.atoms2cmr(images, **kwargs).write(filename)
+    except:
+        raise
+        raise NotAvailable('CMR version>0.3.2 is required')
+    
+
 

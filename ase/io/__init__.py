@@ -257,7 +257,7 @@ def read(filename, index=-1, format=None):
         return read_gen(filename)
 
     if format == 'db':
-        from ase.io.db import read_db
+        from ase.io.cmr_io import read_db
         return read_db(filename, index)
 
     raise RuntimeError('File format descriptor '+format+' not recognized!')
@@ -305,6 +305,7 @@ def write(filename, images, format=None, **kwargs):
     DftbPlus input file        dftb
     ETSF                       etsf.nc
     DFTBPlus GEN format        gen
+    CMR db-file                db
     =========================  ===========
 
     The use of additional keywords is format specific.
@@ -423,6 +424,9 @@ def write(filename, images, format=None, **kwargs):
         writer.write_atoms(images[0])
         writer.close()
         return
+    elif format == 'db':
+        from ase.io.cmr_io import write_db
+        return write_db(filename, images, **kwargs)
 
     format = {'traj': 'trajectory',
               'nc': 'netcdf',
