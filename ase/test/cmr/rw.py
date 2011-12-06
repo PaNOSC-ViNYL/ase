@@ -4,12 +4,12 @@ def array_almost_equal(a1, a2, tol=np.finfo(type(1.0)).eps):
     """Replacement for old numpy.testing.utils.array_almost_equal."""
     return (np.abs(a1 - a2) < tol).all()
 
-# this test should be run with abinit!
+from ase.test import NotAvailable
+# this test should be run with cmr!
 try:
     import cmr
 except ImportError:
-    import sys
-    sys.exit()
+    raise NotAvailable('CMR version>0.3.2 is required')
 
 from ase.calculators.emt import EMT
 
@@ -23,9 +23,7 @@ m1.center(2.0)
 try:
     cmr.atoms2cmr(m1).write("O2.db")
 except:
-    print "The installed version of CMR is too old for this test."
-    import sys
-    sys.exit()
+    raise NotAvailable('CMR version>0.3.2 is required')
 
 m1.set_calculator(EMT())
 e1 = m1.get_potential_energy()
