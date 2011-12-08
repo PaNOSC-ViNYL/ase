@@ -55,6 +55,7 @@ using a 7x7x7 supercell within effective medium theory::
   omega_kn = 1000 * ph.band_structure(path_kc)
 
   import pylab as plt
+  plt.figure(1)
   for n in range(len(omega_kn[0])):
       omega_n = omega_kn[:, n]
       plt.plot(q, omega_n, 'k-', lw=2)
@@ -70,8 +71,17 @@ using a 7x7x7 supercell within effective medium theory::
 
 Phonon DOS::
   
-  # Write modes for specific q-vector to trajectory files  
-  ph.write_modes([l/2 for l in L], branches=[2], repeat=(8,8,8), kT=3e-4)
+  # Calculate phonon DOS
+  omega_e, dos_e = ph.dos(kpts=(50, 50, 50), npts=5000, delta=5e-4)
+
+  plt.figure(2)
+  plt.plot(omega_e * 1000, dos_e, 'k-', lw=2)
+  plt.xticks(fontsize=18)    
+  plt.yticks(fontsize=18)
+  plt.xlim(omega_e[0], omega_e[-1])
+  plt.xlabel("Frequency ($\mathrm{meV}$)", fontsize=22)
+  plt.ylabel("DOS", fontsize=22)
+  plt.show()
 
 .. image:: Al_dos.png
 

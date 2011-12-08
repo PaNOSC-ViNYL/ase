@@ -53,7 +53,7 @@ plt.grid('on')
 plt.savefig('Al_phonon.png')
 
 plt.figure(2)
-plt.plot(omega_e, dos_e, 'k-', lw=2)
+plt.plot(omega_e * 1000, dos_e, 'k-', lw=2)
 plt.xticks(fontsize=18)
 plt.yticks(fontsize=18)
 plt.xlim(omega_e[0], omega_e[-1])
