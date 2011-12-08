@@ -51,7 +51,7 @@ class Displacement:
             Size of supercell given by the number of repetitions (l, m, n) of
             the small unit cell in each direction.
         name: str
-            Name to use for files.
+            Base name to use for files.
         delta: float
             Magnitude of displacement in Ang.
         refcell: str
@@ -426,7 +426,7 @@ class Phonons(Displacement):
         # Make unitcell index the first and reshape
         C_N = C_xNav.swapaxes(0 ,1). reshape((N,) + (3 * natoms, 3 * natoms))
 
-        # Cut off before symmetrization and acoustic sum rule are imposed
+        # Cut off before symmetry and acoustic sum rule are imposed
         if cutoff is not None:
             self.apply_cutoff(C_N, cutoff)
             
@@ -441,7 +441,6 @@ class Phonons(Displacement):
                 else:
                     break
              
-           
         # Store force constants and dynamical matrix
         self.C_N = C_N
         self.D_N = C_N.copy()
@@ -480,13 +479,12 @@ class Phonons(Displacement):
         C_N = C_lmn.reshape((N, 3 * natoms, 3 * natoms))
 
         return C_N
-
+       
     def acoustic(self, C_N):
         """Restore acoustic sumrule on force constants."""
 
         # Number of atoms
         natoms = len(self.indices)
-        
         # Copy force constants
         C_N_temp = C_N.copy()
         
@@ -503,7 +501,7 @@ class Phonons(Displacement):
         Parameters
         ----------
         D_N: ndarray
-            Dynamical matrix.
+            Dynamical/force constant matrix.
         r_c: float
             Cutoff in Angstrom.
 
@@ -512,10 +510,8 @@ class Phonons(Displacement):
         # Number of atoms and primitive cells
         natoms = len(self.indices)
         N = np.prod(self.N_c)
-
         # Lattice vectors
         R_cN = self.lattice_vectors()
-
         # Reshape matrix to individual atomic and cartesian dimensions
         D_Navav = D_N.reshape((N, natoms, 3, natoms, 3))
 
@@ -597,12 +593,11 @@ class Phonons(Displacement):
         vol = abs(la.det(self.atoms.cell)) / units.Bohr**3
 
         for q_c in path_kc:
-
-            # q-vector in cartesian coordinates
-            q_v = np.dot(reci_vc, q_c)
-            
+           
             # Add non-analytic part
             if born:
+                # q-vector in cartesian coordinates
+                q_v = np.dot(reci_vc, q_c)
                 # Non-analytic contribution to force constants in atomic units
                 qdotZ_av = np.dot(q_v, self.Z_avv).ravel()
                 C_na = 4 * pi * np.outer(qdotZ_av, qdotZ_av) / \
@@ -687,11 +682,12 @@ class Phonons(Displacement):
         # Energy axis and dos
         omega_e = np.linspace(0., np.amax(omega_kl) + 5e-3, num=npts)
         dos_e = np.zeros_like(omega_e)
-
+       
         # Sum up contribution from all q-points and branches
         for omega_l in omega_kl:
-            x_en = (omega_e[:, np.newaxis] - omega_l[np.newaxis, :])**2
-            dos_e += 1./(x_en.sum(axis=1) + (0.5*delta)**2)
+            diff_el = (omega_e[:, np.newaxis] - omega_l[np.newaxis, :])**2
+            dos_el = 1. / (diff_el + (0.5 * delta)**2)
+            dos_e += dos_el.sum(axis=1)
 
         dos_e *= 1./(N * pi) * 0.5*delta
         
