@@ -10,6 +10,13 @@ import numpy as np
 import numpy.linalg as la
 import numpy.fft as fft
 
+has_spglib = False
+try:
+    from pyspglib import spglib
+    has_spglib = True
+except ImportError:
+    pass
+
 import ase.units as units
 from ase.parallel import rank, barrier
 from ase.dft import monkhorst_pack
@@ -71,8 +78,8 @@ class Displacement:
         else:
             # Center cell
             N_c = self.N_c
-            self.offset = N_c[0] // 2 * (N_c[1] * N_c[2]) + N_c[1] // 2 * N_c[2] \
-                          + N_c[2] // 2        
+            self.offset = N_c[0] // 2 * (N_c[1] * N_c[2]) + N_c[1] // \
+                          2 * N_c[2] + N_c[2] // 2        
 
     def __call__(self, *args, **kwargs):
         """Member function called in the ``run`` function."""
@@ -351,7 +358,7 @@ class Phonons(Displacement):
         self.Z_avv = Z_avv[self.indices]
         self.eps_vv = eps_vv
         
-    def read(self, method='Frederiksen', symmetrize=True, acoustic=True,
+    def read(self, method='Frederiksen', symmetrize=3, acoustic=True,
              cutoff=None, born=False, **kwargs):
         """Read forces from pickle files and calculate force constants.
 
@@ -361,15 +368,19 @@ class Phonons(Displacement):
         ----------
         method: str
             Specify method for evaluating the atomic forces.
-        symmetrize: bool
-            Make force constants symmetric (see doc string at top).
+        symmetrize: int
+            Symmetrize force constants (see doc string at top) when
+            ``symmetrize != 0`` (default: 3). Since restoring the acoustic sum
+            rule breaks the symmetry, the symmetrization must be repeated a few
+            times until the changes a insignificant. The integer gives the
+            number of iterations that will be carried out.
         acoustic: bool
-            Restore the acoustic sum-rule on the force constants.
+            Restore the acoustic sum rule on the force constants.
         cutoff: None or float
-            Neglect elements in the dynamical matrix between atoms with an
+            Zero elements in the dynamical matrix between atoms with an
             interatomic distance larger than the cutoff.
         born: bool
-            Also read in Born effective charge tensor and high-frequency static
+            Read in Born effective charge tensor and high-frequency static
             dielelctric tensor from file.
             
         """
@@ -415,18 +426,22 @@ class Phonons(Displacement):
         # Make unitcell index the first and reshape
         C_N = C_xNav.swapaxes(0 ,1). reshape((N,) + (3 * natoms, 3 * natoms))
 
-        # Symmetrize force constants
-        if symmetrize:
-            C_N = self.symmetrize(C_N)
-
-        # Cut off before acoustic sum-rule is imposed
+        # Cut off before symmetrization and acoustic sum rule are imposed
         if cutoff is not None:
             self.apply_cutoff(C_N, cutoff)
-
-        # Restore acoustic sum-rule
-        if acoustic:
-            self.acoustic(C_N)
             
+        # Symmetrize force constants
+        if symmetrize:
+            for i in range(symmetrize):
+                # Symmetrize
+                C_N = self.symmetrize(C_N)
+                # Restore acoustic sum-rule
+                if acoustic:
+                    self.acoustic(C_N)
+                else:
+                    break
+             
+           
         # Store force constants and dynamical matrix
         self.C_N = C_N
         self.D_N = C_N.copy()
