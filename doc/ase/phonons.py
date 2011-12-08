@@ -28,9 +28,11 @@ U = points['U']
 
 point_names = ['$\Gamma$', 'X', 'U', 'L', '$\Gamma$', 'K']
 path = [G, X, U, L, G, K]
-
 path_kc, q, Q = get_bandpath(path, atoms.cell, 100)
 omega_kn = 1000 * ph.band_structure(path_kc)
+
+# DOS
+omega_e, dos_e = ph.dos(kpts=(50, 50, 50), npts=5000, delta=5e-4)
 
 # Plot phonon dispersion
 import matplotlib
@@ -45,9 +47,19 @@ for n in range(len(omega_kn[0])):
 plt.xticks(Q, point_names, fontsize=18)
 plt.yticks(fontsize=18)
 plt.xlim(q[0], q[-1])
+plt.ylim(0, 35)
 plt.ylabel("Frequency ($\mathrm{meV}$)", fontsize=22)
 plt.grid('on')
 plt.savefig('Al_phonon.png')
+
+plt.figure(2)
+plt.plot(omega_e, dos_e, 'k-', lw=2)
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.xlim(omega_e[0], omega_e[-1])
+plt.xlabel("Frequency ($\mathrm{meV}$)", fontsize=22)
+plt.ylabel("DOS", fontsize=22)
+plt.savefig('Al_dos.png')
 
 # Write modes for specific q-vector to trajectory files
 ph.write_modes([l/2 for l in L], branches=[2], repeat=(8,8,8), kT=3e-4,
