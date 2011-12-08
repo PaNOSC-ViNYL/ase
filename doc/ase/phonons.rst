@@ -68,13 +68,19 @@ using a 7x7x7 supercell within effective medium theory::
 
 .. image:: Al_phonon.png
 
+Phonon DOS::
+  
+  # Write modes for specific q-vector to trajectory files  
+  ph.write_modes([l/2 for l in L], branches=[2], repeat=(8,8,8), kT=3e-4)
+
+.. image:: Al_dos.png
+
 Mode inspection using ag::
   
   # Write modes for specific q-vector to trajectory files  
   ph.write_modes([l/2 for l in L], branches=[2], repeat=(8,8,8), kT=3e-4)
 
 .. image:: Al_mode.*
-
 
 .. [Alfe] D. Alfe, PHON: A program to calculate phonons using the small
           displacement method, Comput. Phys. Commun. 180, 2622 (2009)
