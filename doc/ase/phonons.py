@@ -33,6 +33,7 @@ omega_kn = 1000 * ph.band_structure(path_kc)
 
 # DOS
 omega_e, dos_e = ph.dos(kpts=(50, 50, 50), npts=5000, delta=5e-4)
+omega_e *= 1000
 
 # Plot phonon dispersion
 import matplotlib
@@ -53,7 +54,7 @@ plt.grid('on')
 plt.savefig('Al_phonon.png')
 
 plt.figure(2)
-plt.plot(omega_e * 1000, dos_e, 'k-', lw=2)
+plt.plot(omega_e, dos_e, 'k-', lw=2)
 plt.xticks(fontsize=18)
 plt.yticks(fontsize=18)
 plt.xlim(omega_e[0], omega_e[-1])
