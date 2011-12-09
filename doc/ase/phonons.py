@@ -32,7 +32,7 @@ path_kc, q, Q = get_bandpath(path, atoms.cell, 100)
 omega_kn = 1000 * ph.band_structure(path_kc)
 
 # DOS
-omega_e, dos_e = ph.dos(kpts=(50, 50, 50), npts=5000, delta=5e-4)
+omega_e, dos_e = ph.dos(kpts=(50, 50, 50), npts=5000, delta=1e-4)
 omega_e *= 1000
 
 # Plot phonon dispersion
@@ -54,7 +54,7 @@ plt.ylabel("Frequency ($\mathrm{meV}$)", fontsize=22)
 plt.grid('on')
 
 plt.axes([.8, .07, .17, .85])
-plt.plot(dos_e, omega_e, 'k-', lw=2)
+plt.fill_between(dos_e, omega_e, y2=0, color='lightgrey', edgecolor='k', lw=2)
 plt.ylim(0, 35)
 plt.xticks([], [])
 plt.yticks([], [])
@@ -62,7 +62,7 @@ plt.xlabel("DOS", fontsize=18)
 plt.savefig('Al_phonon.png')
 
 # Write modes for specific q-vector to trajectory files
-ph.write_modes([l/2 for l in L], branches=[2], repeat=(8,8,8), kT=3e-4,
+ph.write_modes([l/2 for l in L], branches=[2], repeat=(8, 8, 8), kT=3e-4,
                center=True)
 
 # Generate png animation
