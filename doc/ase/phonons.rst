@@ -50,12 +50,18 @@ using a 7x7x7 supercell within effective medium theory::
   point_names = ['$\Gamma$', 'X', 'U', 'L', '$\Gamma$', 'K']
   path = [G, X, U, L, G, K]
 
-  # Band-structure in meV
+  # Band structure in meV
   path_kc, q, Q = get_bandpath(path, atoms.cell, 100)
   omega_kn = 1000 * ph.band_structure(path_kc)
 
+  # Calculate phonon DOS
+  omega_e, dos_e = ph.dos(kpts=(50, 50, 50), npts=5000, delta=5e-4)
+  omega_e *= 1000
+
+  # Plot the band structure and DOS
   import pylab as plt
-  plt.figure(1)
+  plt.figure(1, (8, 6))   
+  plt.axes([.1, .07, .67, .85])
   for n in range(len(omega_kn[0])):
       omega_n = omega_kn[:, n]
       plt.plot(q, omega_n, 'k-', lw=2)
@@ -65,26 +71,16 @@ using a 7x7x7 supercell within effective medium theory::
   plt.xlim(q[0], q[-1])
   plt.ylabel("Frequency ($\mathrm{meV}$)", fontsize=22)
   plt.grid('on')
+
+  plt.axes([.8, .07, .17, .85])
+  plt.plot(dos_e, omega_e, 'k-', lw=2)
+  plt.ylim(0, 35)
+  plt.xticks([], [])
+  plt.yticks([], [])
+  plt.xlabel("DOS", fontsize=18)
   plt.show()
 
 .. image:: Al_phonon.png
-
-Phonon DOS::
-  
-  # Calculate phonon DOS
-  omega_e, dos_e = ph.dos(kpts=(50, 50, 50), npts=5000, delta=5e-4)
-  omega_e *= 1000
-
-  plt.figure(2)
-  plt.plot(omega_e, dos_e, 'k-', lw=2)
-  plt.xticks(fontsize=18)    
-  plt.yticks(fontsize=18)
-  plt.xlim(omega_e[0], omega_e[-1])
-  plt.xlabel("Frequency ($\mathrm{meV}$)", fontsize=22)
-  plt.ylabel("DOS", fontsize=22)
-  plt.show()
-
-.. image:: Al_dos.png
 
 Mode inspection using ag::
   

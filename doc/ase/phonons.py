@@ -40,7 +40,8 @@ import matplotlib
 matplotlib.use('Agg')
 import pylab as plt
 
-plt.figure(1)
+plt.figure(1, (8, 6))
+plt.axes([.1, .07, .67, .85])
 for n in range(len(omega_kn[0])):
     omega_n = omega_kn[:, n]
     plt.plot(q, omega_n, 'k-', lw=2)
@@ -51,16 +52,14 @@ plt.xlim(q[0], q[-1])
 plt.ylim(0, 35)
 plt.ylabel("Frequency ($\mathrm{meV}$)", fontsize=22)
 plt.grid('on')
-plt.savefig('Al_phonon.png')
 
-plt.figure(2)
-plt.plot(omega_e, dos_e, 'k-', lw=2)
-plt.xticks(fontsize=18)
-plt.yticks(fontsize=18)
-plt.xlim(omega_e[0], omega_e[-1])
-plt.xlabel("Frequency ($\mathrm{meV}$)", fontsize=22)
-plt.ylabel("DOS", fontsize=22)
-plt.savefig('Al_dos.png')
+plt.axes([.8, .07, .17, .85])
+plt.plot(dos_e, omega_e, 'k-', lw=2)
+plt.ylim(0, 35)
+plt.xticks([], [])
+plt.yticks([], [])
+plt.xlabel("DOS", fontsize=18)
+plt.savefig('Al_phonon.png')
 
 # Write modes for specific q-vector to trajectory files
 ph.write_modes([l/2 for l in L], branches=[2], repeat=(8,8,8), kT=3e-4,
