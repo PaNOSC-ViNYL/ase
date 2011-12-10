@@ -14,13 +14,13 @@ from ase.structure import molecule
 m1 = molecule('O2')
 m1.center(2.0)
 
-write('abinit.in', images=m1, format='abinit')
+write('abinit_save.in', images=m1, format='abinit')
 
 m1.set_calculator(EMT())
 e1 = m1.get_potential_energy()
 f1 = m1.get_forces()
 
-m2 = read('abinit.in', format='abinit')
+m2 = read('abinit_save.in', format='abinit')
 
 m2.set_calculator(EMT())
 e2 = m2.get_potential_energy()
