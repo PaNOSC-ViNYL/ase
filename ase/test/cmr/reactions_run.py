@@ -42,4 +42,4 @@ for formula in compounds:
         cmr_params = {'formula': formula}
         m.get_potential_energy()
         write(filename=('%s.traj' % formula), images=m, format='traj')
-        write(filename=('%s.traj' % formula), images=m, format='db', cmr_params=cmr_params)
+        # write(filename=('%s.db' % formula), images=m, format='db', cmr_params=cmr_params)
