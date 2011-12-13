@@ -33,6 +33,9 @@ import sys
 import weakref
 import numpy as np
 
+import pygtk
+pygtk.require("2.0")
+
 import gtk
 from ase.gui.view import View
 from ase.gui.status import Status
@@ -137,6 +140,12 @@ ui_info = """\
 class GUI(View, Status):
     def __init__(self, images, rotations='', show_unit_cell=True,
                  show_bonds=False):
+        # Try to change into directory of file you are viewing
+        try:
+            os.chdir(os.path.split(sys.argv[1])[0])
+        # This will fail sometimes (e.g. for starting a new session)
+        except:
+            pass
         self.images = images
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         #self.window.set_icon(gtk.gdk.pixbuf_new_from_file('guiase.png'))
@@ -607,11 +616,14 @@ class GUI(View, Status):
                         _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
                         (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
                          gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+
+            chooser.set_filename("<<filename>>")
             ok = chooser.run()
             if ok == gtk.RESPONSE_OK:
                 filename = chooser.get_filename()
-            chooser.destroy()
-            if not ok:
+                chooser.destroy()
+            else:
+                chooser.destroy()
                 return
 
         if data == 'OK' or data == 'load':
@@ -998,6 +1010,7 @@ class GUI(View, Status):
                 _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
                 (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
                  gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+            chooser.set_filename("<<filename>>")
 
             # Add a file type filter
             name_to_suffix = {}
@@ -1075,6 +1088,11 @@ class GUI(View, Status):
             _('Save ...'), None, gtk.FILE_CHOOSER_ACTION_SAVE,
             (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
              gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+        try:
+            fname = sys.argv[1]
+        except IndexError:
+            fname = "<<filename>>"
+        chooser.set_filename(fname)
 
         # Add a file type filter
         types = []
