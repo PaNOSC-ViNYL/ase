@@ -66,10 +66,11 @@ all = reader.find(name_value_list=[('db_calculator', 'group'),
 
 print 'reaction_id, calc, ref, calc - ref'
 # compare with the reference
-for reaction_id in reference:
+for r in reactions:
+    reaction_id = r[-1][1]
     res = all.get('reaction_id', reaction_id)
     if res is None:
-        print "Could not find reaction_id %d in reference"%reaction_id
+        print "Could not find reaction_id %s in reference"%str(reaction_id)
     else:
         calc = res['reaction_energy']
         ref = reference[reaction_id]
