@@ -1205,7 +1205,7 @@ than density cutoff %i' % (pw, dw))
             base = os.path.split(nc)[0]
             if not os.path.isdir(base) and base is not '':
                 os.makedirs(base)
-            status = os.system('cp %s %s' % (self.nc, nc))
+            status = os.system("cp '%s' '%s'" % (self.nc, nc))
             if status != 0:
                 raise Exception, 'Copying ncfile failed.'
             self.nc = nc
@@ -1220,7 +1220,7 @@ than density cutoff %i' % (pw, dw))
         #I always want the text file set based on the ncfile
         #and I never want to set this myself.
         base = os.path.splitext(self.nc)[0]
-        self.txt = base + '.txt'
+        self.txt = "%s.txt" % base
 
     def set_pseudopotentials(self, pspdict):
         '''Set all the pseudopotentials from a dictionary.
@@ -2783,7 +2783,7 @@ than density cutoff %i' % (pw, dw))
             # Solution: remove the Dynamics variable if present when not running with stay_alive
             # 
             self.delete_ncattdimvar(self.nc,ncvars=['Dynamics'])
-	    cmd = 'dacapo.run  %(innc)s -out %(txt)s -scratch %(scratch)s'
+	    cmd = "dacapo.run '%(innc)s' -out '%(txt)s' -scratch %(scratch)s"
 	    cmd = cmd % {'innc':nc,
 			 'txt':txt,
 			 'scratch':scratch}
@@ -2863,10 +2863,10 @@ than density cutoff %i' % (pw, dw))
                 child.set_nbands(nbands)
 
             env['JACAPO_IMAGE'] = str(i)
-            cmd = 'dacapo.run  %(innc)s -out %(txt)s -scratch %(scratch)s'
+            cmd = "dacapo.run  '%(innc)s' -out '%(txt)s' -scratch %(scratch)s"
             cmd = cmd % {'innc':nc,
-                          'txt':txt,
-                      'scratch':scratch}
+                         'txt':txt,
+                         'scratch':scratch}
 
             log.debug(cmd)
             self._dacapo[i] = sp.Popen(cmd,stdout=sp.PIPE,stderr=sp.PIPE,shell=True,env=env)
@@ -2962,7 +2962,7 @@ than density cutoff %i' % (pw, dw))
             # remove the script???? file
             ncfile = netCDF(nc, 'r')
             vdyn = ncfile.variables['Dynamics']
-            os.system('rm -f '+vdyn.ExternalIonMotion_script)
+            os.system("rm -f '"+vdyn.ExternalIonMotion_script+"'")
             ncfile.close()
             os.system('rm -f '+stoppfile)
 
@@ -3045,8 +3045,8 @@ s.recv(14)
             os.system('mv '+nc+' '+scratch_in_nc)
             os.system('rm -f '+stoppfile)
             scratch = self.get_scratch()
-            cmd = 'dacapo.run'
-            cmd += ' %(innc)s %(outnc)s -out %(txt)s -scratch %(scratch)s'
+            cmd = "dacapo.run"
+            cmd += " '%(innc)s' '%(outnc)s' -out '%(txt)s' -scratch %(scratch)s"
             cmd = cmd % {'innc':scratch_in_nc,
                          'outnc':nc,
                          'txt':txt,
@@ -3101,8 +3101,8 @@ s.recv(14)
             new = nc
             old = self.nc
             log.debug('Copying old ncfile to new ncfile')
-            log.debug('cp %s %s' % (old, new))
-            os.system('cp %s %s' % (old, new))
+            log.debug("cp '%s' '%s'" % (old, new))
+            os.system("cp '%s' '%s'" % (old, new))
               
         if atoms is None:
             atoms = self.get_atoms()
@@ -3433,8 +3433,8 @@ s.recv(14)
         #shutil.move(tempnc,ncf)
 
         #this seems to avoid making the .nfs files 
-        os.system('cp %s %s' % (tempnc, ncf))
-        os.system('rm %s' % tempnc)
+        os.system("cp '%s' '%s'" % (tempnc, ncf))
+        os.system("rm '%s'" % tempnc)
 
         s = 'looking for .nfs files after copying: %s'
         log.debug(s %  glob.glob('.nfs*'))
@@ -3971,7 +3971,7 @@ s.recv(14)
         nc.close()
         return kw
 
-    def get_magnetic_moment(self):
+    def get_magnetic_moment(self, atoms=None):
         'calculates the magnetic moment (Bohr-magnetons) of the supercell'
 
         if not self.get_spin_polarized():
