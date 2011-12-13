@@ -54,6 +54,7 @@ class Execute(gtk.Window):
     <c>center</c>:\tcenters the system in its existing unit cell
     <c>del S</c>:\tdelete selection
     <c>CM</c>:\tcenter of mass
+    <c>ans[-i]</c>:\tith last calculated result
     <c>exec file</c>: executes commands listed in file
     <c>cov[Z]</c>:(read only): covalent radius of atomic number Z
     <c>gui</c>:\tadvanced: ag window python object
@@ -146,6 +147,8 @@ class Execute(gtk.Window):
         else:
             indices = range(n)
 
+        ans = getattr(gui,'expert_mode_answers',[])
+
         loop_images = range(N)
         if self.images_only.get_active():
             loop_images = [self.gui.frame]
@@ -184,6 +187,7 @@ class Execute(gtk.Window):
                 atoms = Atoms(positions=img.P[i][indices],
                               numbers=img.Z[indices])
                 self.add_text(repr(atoms.get_center_of_mass()))
+                ans += [atoms.get_center_of_mass()]
         elif first_command == 'exec': # execute script
             name = cmd.split()[1]
             if '~' in name:
@@ -218,6 +222,7 @@ class Execute(gtk.Window):
                 if not index_based:
                     try:
                         self.add_text(repr(eval(cmd)))
+                        ans += [eval(cmd)]
                     except:
                         exec code
                     gui.set_frame(frame)
@@ -242,6 +247,7 @@ class Execute(gtk.Window):
                         rad = img.r[a]
                         try:
                             self.add_text(repr(eval(cmd)))
+                            ans += [eval(cmd)]
                         except:
                             exec code
                         S[a] = s
@@ -256,6 +262,7 @@ class Execute(gtk.Window):
                         color = tuple([int(65535*x) for x in [r,g,b]])
                         gui.colors[a] = new(alloc(*color))
                         img.M[i][a] = m
+        setattr(self.gui,'expert_mode_answers', ans)
         gui.set_frame(frame,init=True)
 
     def add_text(self,val):
