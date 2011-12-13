@@ -19,7 +19,7 @@ from ase.test.cmr.reactions import reactions
 for r in reactions:
     assert r[-1][0] == 'reaction_id'
 
-optimize = False
+optimize = True
 
 calculator = EMT()
 
@@ -39,7 +39,5 @@ for formula in compounds:
                           )
         dyn.run()
     else:
-        cmr_params = {'formula': formula}
-        m.get_potential_energy()
+        e = m.get_potential_energy()
         write(filename=('%s.traj' % formula), images=m, format='traj')
-        # write(filename=('%s.db' % formula), images=m, format='db', cmr_params=cmr_params)

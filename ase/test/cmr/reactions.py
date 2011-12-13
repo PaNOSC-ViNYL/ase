@@ -11,7 +11,7 @@ reactions = [  [('N2', -1), ('N', 2), ('reaction_id', 1)],
 # reference reaction energies
 reference = {
     # 'reaction_id' : reaction energy
-    reactions[0][-1][1]: 9.93999318921,
-    reactions[1][-1][1]: 1.89052980761,
-    reactions[2][-1][1]: 9.28052839487,
+    reactions[0][-1][1]: 9.93722251591,
+    reactions[1][-1][1]: -0.496408928568,
+    reactions[2][-1][1]: 9.14067431054,
     }

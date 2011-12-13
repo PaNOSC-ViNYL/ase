@@ -21,7 +21,7 @@ for r in reactions:
 project_id = 'EMT' + ' reaction energies'
 
 # if True, then results are uploaded to the database
-database = True
+database = False
 
 # create assisting class for project with project_id,
 # that allows one to convert trajectory files into
