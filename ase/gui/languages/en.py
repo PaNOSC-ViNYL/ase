@@ -14,6 +14,7 @@ translation = {
 <c>i</c>:\t\t\tcurrent image number
 <c>E[i]</c>:\t\t\tenergy of image number <c>i</c>
 <c>F[n,0-2]</c>:\t\tforce on atom number <c>n</c>
+<c>V[n,0-2]</c>:\t\tvelocity of atom number <c>n</c>
 <c>M[n]</c>:\t\tmagnetic moment of atom number <c>n</c> 
 <c>A[0-2,0-2]</c>:\tunit-cell basis vectors 
 <c>s</c>:\t\t\tpath length

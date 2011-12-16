@@ -44,12 +44,14 @@ class ColorWindow(gtk.Window):
                                           'By atomic number, user specified')
         self.radio_tag = gtk.RadioButton(self.radio_jmol, 'By tag')
         self.radio_force = gtk.RadioButton(self.radio_jmol, 'By force')
+        self.radio_velocity = gtk.RadioButton(self.radio_jmol, 'By velocity')
         self.radio_manual = gtk.RadioButton(self.radio_jmol, 'Manually specified')
         self.radio_same = gtk.RadioButton(self.radio_jmol, 'All the same color')
         self.force_box = gtk.VBox()
+        self.velocity_box = gtk.VBox()
         for widget in (self.radio_jmol, self.radio_atno, self.radio_tag,
-                      self.radio_force, self.force_box, self.radio_manual,
-                      self.radio_same):
+                      self.radio_force, self.force_box, self.radio_velocity,
+                      self.velocity_box, self.radio_manual, self.radio_same):
             pack(self.methodbox, [widget])
             if isinstance(widget, gtk.RadioButton):
                 widget.connect('toggled', self.method_radio_changed)
@@ -70,6 +72,23 @@ class ColorWindow(gtk.Window):
                               gtk.Label('  '),
                               force_apply])
         self.force_box.hide()
+        # Now fill in the box for additional information in case the velocity is used.
+        self.velocity_label = gtk.Label("This should not be displayed!")
+        pack(self.velocity_box, [self.velocity_label])
+        self.velocity_min = gtk.Adjustment(0.0, 0.0, 100.0, 0.05) #XXX tune this
+        self.velocity_max = gtk.Adjustment(0.0, 0.0, 100.0, 0.05) #XXX tune this
+        self.velocity_steps = gtk.Adjustment(10, 2, 500, 1)
+        velocity_apply = gtk.Button('Apply')
+        velocity_apply.connect('clicked', self.set_velocity_colors)
+        pack(self.velocity_box, [gtk.Label('Min: '),
+                                 gtk.SpinButton(self.velocity_min, 10.0, 2), #XXX tune this
+                                 gtk.Label('  Max: '),
+                                 gtk.SpinButton(self.velocity_max, 10.0, 2), #XXX tune this
+                                 gtk.Label('  Steps: '),
+                                 gtk.SpinButton(self.velocity_steps, 1, 0),
+                                 gtk.Label('  '),
+                                 velocity_apply])
+        self.velocity_box.hide()
         # Lower left: Create a color scale
         pack(self.scalebox, gtk.Label(""))
         lbl = gtk.Label('Create a color scale:')
@@ -123,7 +142,14 @@ class ColorWindow(gtk.Window):
                 self.radio_jmol.set_active(True)
                 return
         else:
-            self.radio_tag.set_sensitive(True)
+            self.radio_force.set_sensitive(True)
+        if np.isnan(self.gui.images.V).any() or not self.gui.images.V.any():
+            self.radio_velocity.set_sensitive(False)
+            if self.radio_velocity.get_active() or cm == 'velocity':
+                self.radio_jmol.set_active(True)
+                return
+        else:
+            self.radio_velocity.set_sensitive(True)
         self.radio_manual.set_sensitive(self.gui.images.natoms <= 1000)
         # Now check what the current color mode is
         if cm == 'jmol':
@@ -135,6 +161,8 @@ class ColorWindow(gtk.Window):
             self.radio_tag.set_active(True)
         elif cm == 'force':
             self.radio_force.set_active(True)
+        elif cm == 'velocity':
+            self.radio_velocity.set_active(True)
         elif cm == 'manual':
             self.radio_manual.set_active(True)
         elif cm == 'same':
@@ -146,6 +174,8 @@ class ColorWindow(gtk.Window):
             # Ignore most events when a button is turned off.
             if widget is self.radio_force:
                 self.force_box.hide()
+            if widget is self.radio_velocity:
+                self.velocity_box.hide()
             return  
         if widget is self.radio_jmol:
             self.set_jmol_colors()
@@ -156,6 +186,9 @@ class ColorWindow(gtk.Window):
         elif widget is self.radio_force:
             self.show_force_stuff()
             self.set_force_colors()
+        elif widget is self.radio_velocity:
+            self.show_velocity_stuff()
+            self.set_velocity_colors()
         elif widget is self.radio_manual:
             self.set_manual_colors()
         elif widget is self.radio_same:
@@ -243,6 +276,28 @@ class ColorWindow(gtk.Window):
         factor = self.force_steps.value / (fmax -fmin)
         self.colormode_force_data = (fmin, factor)
 
+    def set_velocity_colors(self):
+        "Use the velocities as basis for the colors."
+        borders = np.linspace(self.velocity_min.value,
+                              self.velocity_max.value,
+                              self.velocity_steps.value,
+                              endpoint=False)
+        if (not hasattr(self, 'colordata_velocity') or
+            len(self.colordata_velocity) != len(borders)):
+            colors = self.get_color_scale([[0, [0,0,0]],
+                                           [1, [1,1,1]]],
+                                          len(borders))
+            self.colordata_velocity = [[x, y] for x, y in
+                                       zip(borders, colors)]
+        self.actual_colordata = self.colordata_velocity
+        self.color_labels = ["%.2f:" % x for x, y in self.colordata_velocity]
+        self.make_colorwin()
+        self.colormode = 'velocity'
+        vmin = self.velocity_min.value
+        vmax = self.velocity_max.value
+        factor = self.velocity_steps.value / (vmax -vmin)
+        self.colormode_velocity_data = (vmin, factor)
+
     def set_manual_colors(self):
         "Set colors of all atoms from the last selection."
         # We cannot directly make np.arrays of the colors, as they may
@@ -267,6 +322,14 @@ class ColorWindow(gtk.Window):
             nF = (F - self.colormode_force_data[0]) * self.colormode_force_data[1]
             nF = np.clip(nF.astype(int), 0, len(oldcolors)-1)
             colors[:] = oldcolors[nF]
+        elif self.colormode == 'velocity':
+            oldcolors = np.array([None] * len(self.actual_colordata))
+            oldcolors[:] = [y for x, y in self.actual_colordata]
+            V = self.gui.images.V[self.gui.frame]
+            V = np.sqrt((V * V).sum(axis=-1))
+            nV = (V - self.colormode_velocity_data[0]) * self.colormode_velocity_data[1]
+            nV = np.clip(nV.astype(int), 0, len(oldcolors)-1)
+            colors[:] = oldcolors[nV]
         elif self.colormode == 'same':
             oldcolor = self.actual_colordata[0][1]
             if len(colors) == len(oldcolor):
@@ -299,6 +362,23 @@ class ColorWindow(gtk.Window):
         self.force_label.set_text(txt)
         if self.force_max.value == 0.0:
             self.force_max.value = fmax
+
+    def show_velocity_stuff(self):
+        "Show and update widgets needed for selecting the velocity scale."
+        self.velocity_box.show()
+        print self.gui.images.V.shape
+        V = np.sqrt((self.gui.images.V * self.gui.images.V).sum(axis=-1))
+        vmax = V.max()
+        nimages = self.gui.images.nimages
+        assert len(V) == nimages
+        if nimages > 1:
+            vmax_frame = self.gui.images.V[self.gui.frame].max()
+            txt = "Max velocity: %.2f (this frame), %.2f (all frames)" % (vmax_frame, vmax)
+        else:
+            txt = "Max velocity: %.2f." % (vmax,)
+        self.velocity_label.set_text(txt)
+        if self.velocity_max.value == 0.0:
+            self.velocity_max.value = vmax
         
     def make_colorwin(self):
         """Make the list of editable color entries.
@@ -447,6 +527,10 @@ class ColorWindow(gtk.Window):
             # Use integers instead for border values
             colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
             self.gui.colormode_force_data = self.colormode_force_data
+        if self.colormode == 'velocity':
+            # Use integers instead for border values
+            colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
+            self.gui.colormode_velocity_data = self.colormode_velocity_data
         maxval = max([x for x, y in colordata])
         self.gui.colors = [None] * (maxval + 1)
         new = self.gui.drawing_area.window.new_gc

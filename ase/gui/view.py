@@ -373,6 +373,12 @@ class View:
             nF = (F - self.colormode_force_data[0]) * self.colormode_force_data[1]
             nF = np.clip(nF.astype(int), 0, len(self.colors)-1)
             colors = np.array(colarray)[nF]
+        elif self.colormode == 'velocity':
+            V = self.images.V[self.frame]
+            V = np.sqrt((V*V).sum(axis=-1))  # The absolute velocity
+            nV = (V - self.colormode_velocity_data[0]) * self.colormode_velocity_data[1]
+            nV = np.clip(nV.astype(int), 0, len(self.colors)-1)
+            colors = np.array(colarray)[nV]
         elif self.colormode == 'manual':
             colors = colarray
         elif self.colormode == 'same':

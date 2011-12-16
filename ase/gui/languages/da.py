@@ -35,6 +35,7 @@ u"""Symboler:
 <c>i</c>:\t\tnuværende billede nummer
 <c>E[i]</c>:\t\tenergi af billede nummer <c>i</c>
 <c>F[n,0-2]</c>:\tkræft på atom nummer <c>n</c> 
+<c>V[n,0-2]</c>:\thastighed af atom nummer <c>n</c> 
 <c>A[0-2,0-2]</c>:\tEnhedscelle vektorer
 <c>s</c>:\t\tvejlængde""",
 
