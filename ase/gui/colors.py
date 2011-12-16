@@ -61,7 +61,7 @@ class ColorWindow(gtk.Window):
         self.force_min = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
         self.force_max = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
         self.force_steps = gtk.Adjustment(10, 2, 500, 1)
-        force_apply = gtk.Button('Apply')
+        force_apply = gtk.Button('Update')
         force_apply.connect('clicked', self.set_force_colors)
         pack(self.force_box, [gtk.Label('Min: '),
                               gtk.SpinButton(self.force_min, 10.0, 2),
@@ -75,15 +75,15 @@ class ColorWindow(gtk.Window):
         # Now fill in the box for additional information in case the velocity is used.
         self.velocity_label = gtk.Label("This should not be displayed!")
         pack(self.velocity_box, [self.velocity_label])
-        self.velocity_min = gtk.Adjustment(0.0, 0.0, 100.0, 0.05) #XXX tune this
-        self.velocity_max = gtk.Adjustment(0.0, 0.0, 100.0, 0.05) #XXX tune this
+        self.velocity_min = gtk.Adjustment(0.0, 0.0, 10.0, 0.005)
+        self.velocity_max = gtk.Adjustment(0.0, 0.0, 10.0, 0.005)
         self.velocity_steps = gtk.Adjustment(10, 2, 500, 1)
-        velocity_apply = gtk.Button('Apply')
+        velocity_apply = gtk.Button('Update')
         velocity_apply.connect('clicked', self.set_velocity_colors)
         pack(self.velocity_box, [gtk.Label('Min: '),
-                                 gtk.SpinButton(self.velocity_min, 10.0, 2), #XXX tune this
+                                 gtk.SpinButton(self.velocity_min, 10.0, 3),
                                  gtk.Label('  Max: '),
-                                 gtk.SpinButton(self.velocity_max, 10.0, 2), #XXX tune this
+                                 gtk.SpinButton(self.velocity_max, 10.0, 3),
                                  gtk.Label('  Steps: '),
                                  gtk.SpinButton(self.velocity_steps, 1, 0),
                                  gtk.Label('  '),
@@ -96,10 +96,12 @@ class ColorWindow(gtk.Window):
         color_scales = (
             'Black - white',
             'Black - red - yellow - white',
+            'Black - green - white',
             'Black - blue - cyan',
             'Hue',
             'Named colors'
             )
+        self.scaletype_created = None
         self.scaletype = gtk.combo_box_new_text()
         for s in color_scales:
             self.scaletype.append_text(s)
@@ -170,6 +172,8 @@ class ColorWindow(gtk.Window):
             
     def method_radio_changed(self, widget=None):
         "Called when a radio button is changed."
+        self.scaletype_created = None
+        self.scaletype.set_active(-1)
         if not widget.get_active():
             # Ignore most events when a button is turned off.
             if widget is self.radio_force:
@@ -254,19 +258,21 @@ class ColorWindow(gtk.Window):
         self.make_colorwin()
         self.colormode = 'same'
 
-    def set_force_colors(self):
+    def set_force_colors(self, *args):
         "Use the forces as basis for the colors."
         borders = np.linspace(self.force_min.value,
                               self.force_max.value,
                               self.force_steps.value,
                               endpoint=False)
-        if (not hasattr(self, 'colordata_force') or
+        if self.scaletype_created is None:
+            colors = self.new_color_scale([[0, [1,1,1]],
+                                           [1, [0,0,1]]], len(borders))
+        elif (not hasattr(self, 'colordata_force') or
             len(self.colordata_force) != len(borders)):
-            colors = self.get_color_scale([[0, [0,0,0]],
-                                           [1, [1,1,1]]],
-                                          len(borders))
-            self.colordata_force = [[x, y] for x, y in
-                                    zip(borders, colors)]
+            colors = self.get_color_scale(len(borders), self.scaletype_created)
+        else:
+            colors = [y for x, y in self.colordata_force]
+        self.colordata_force = [[x, y] for x, y in zip(borders, colors)]
         self.actual_colordata = self.colordata_force
         self.color_labels = ["%.2f:" % x for x, y in self.colordata_force]
         self.make_colorwin()
@@ -276,19 +282,21 @@ class ColorWindow(gtk.Window):
         factor = self.force_steps.value / (fmax -fmin)
         self.colormode_force_data = (fmin, factor)
 
-    def set_velocity_colors(self):
+    def set_velocity_colors(self, *args):
         "Use the velocities as basis for the colors."
         borders = np.linspace(self.velocity_min.value,
                               self.velocity_max.value,
                               self.velocity_steps.value,
                               endpoint=False)
-        if (not hasattr(self, 'colordata_velocity') or
+        if self.scaletype_created is None:
+            colors = self.new_color_scale([[0, [1,1,1]],
+                                           [1, [1,0,0]]], len(borders))
+        elif (not hasattr(self, 'colordata_velocity') or
             len(self.colordata_velocity) != len(borders)):
-            colors = self.get_color_scale([[0, [0,0,0]],
-                                           [1, [1,1,1]]],
-                                          len(borders))
-            self.colordata_velocity = [[x, y] for x, y in
-                                       zip(borders, colors)]
+            colors = self.get_color_scale(len(borders), self.scaletype_created)
+        else:
+            colors = [y for x, y in self.colordata_velocity]
+        self.colordata_velocity = [[x, y] for x, y in zip(borders, colors)]
         self.actual_colordata = self.colordata_velocity
         self.color_labels = ["%.2f:" % x for x, y in self.colordata_velocity]
         self.make_colorwin()
@@ -455,31 +463,10 @@ class ColorWindow(gtk.Window):
     def create_color_scale(self, *args):
         if self.radio_jmol.get_active():
             self.radio_atno.set_active(1)
-        s = self.scaletype.get_active()
         n = len(self.color_entries)
-        if s == 0:
-            # Black - White
-            scale = self.get_color_scale([[0, [0,0,0]],
-                                          [1, [1,1,1]]], n)
-        elif s == 1:
-            # Black - Red - Yellow - White (STM colors)
-            scale = self.get_color_scale([[0, [0,0,0]],
-                                          [0.33, [1,0,0]],
-                                          [0.67, [1,1,0]],
-                                          [1, [1,1,1]]], n)
-        elif s == 2:
-            # Black - Blue - Cyan
-            scale = self.get_color_scale([[0, [0,0,0]],
-                                          [0.5, [0,0,1]],
-                                          [1, [0,1,1]]], n)
-        elif s == 3:
-            # Hues
-            hues = np.linspace(0.0, 1.0, n, endpoint=False)
-            scale = ["%.3f, %.3f, %.3f" % colorsys.hls_to_rgb(h, 0.5, 1)
-                     for h in hues]
-        elif s == 4:
-            # Named colors
-            scale = self.get_named_colors(n)
+        s = self.scaletype.get_active()
+        scale = self.get_color_scale(n, s)
+        self.scaletype_created = s
         for i in range(n):
             if isinstance(scale[i], str):
                 self.color_entries[i].set_text(scale[i])
@@ -488,7 +475,41 @@ class ColorWindow(gtk.Window):
                 self.color_entries[i].set_text(s)
             self.color_entries[i].activate()
 
-    def get_color_scale(self, fixpoints, n):
+    def get_color_scale(self, n, s):
+        if s == 0:
+            # Black - White
+            scale = self.new_color_scale([[0, [0,0,0]],
+                                          [1, [1,1,1]]], n)
+        elif s == 1:
+            # Black - Red - Yellow - White (STM colors)
+            scale = self.new_color_scale([[0, [0,0,0]],
+                                          [0.33, [1,0,0]],
+                                          [0.67, [1,1,0]],
+                                          [1, [1,1,1]]], n)
+        elif s == 2:
+            # Black - Green - White
+            scale = self.new_color_scale([[0, [0,0,0]],
+                                          [0.5, [0,0.9,0]],
+                                          [0.75, [0.2,1.0,0.2]],
+                                          [1, [1,1,1]]], n)
+        elif s == 3:
+            # Black - Blue - Cyan
+            scale = self.new_color_scale([[0, [0,0,0]],
+                                          [0.5, [0,0,1]],
+                                          [1, [0,1,1]]], n)
+        elif s == 4:
+            # Hues
+            hues = np.linspace(0.0, 1.0, n, endpoint=False)
+            scale = ["%.3f, %.3f, %.3f" % colorsys.hls_to_rgb(h, 0.5, 1)
+                     for h in hues]
+        elif s == 5:
+            # Named colors
+            scale = self.get_named_colors(n)
+        else:
+            scale = None
+        return scale
+
+    def new_color_scale(self, fixpoints, n):
         "Create a homogeneous color scale."
         x = np.array([a[0] for a in fixpoints], float)
         y = np.array([a[1] for a in fixpoints], float)
