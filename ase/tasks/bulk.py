@@ -25,6 +25,8 @@ class BulkTask(OptimizeTask):
         self.orthorhombic = orthorhombic
         self.fit = fit
 
+        self.repeat = None
+
         OptimizeTask.__init__(self, **kwargs)
         
         self.summary_header += [('V0', 'Ang^3'),
