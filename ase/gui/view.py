@@ -5,7 +5,7 @@
 import os
 import gtk
 import tempfile
-from math import cos, sin, sqrt
+from math import cos, sin, sqrt, atan
 from os.path import basename
 
 import numpy as np
@@ -397,8 +397,64 @@ class View:
             self.colors = colors
             self.colordata = colordata
 
-    def rotated_ellipse(self, *args, **kwargs):
-        return self.pixmap.draw_arc(*args, **kwargs)
+    def my_arc(self, gc, fill, j, X, r, n, A):
+   
+        if self.images.shapes is not None:
+            rx = (self.images.shapes[j, 0]).round().astype(int)
+            ry = (self.images.shapes[j, 1]).round().astype(int)
+            rz = (self.images.shapes[j, 2]).round().astype(int)
+            circle = rx == ry and ry == rz
+        else:
+            circle = True
+
+        if not circle:
+            Q = self.images.Q[j]
+            X2d = np.array([X[j][0], X[j][1]])
+            Ellipsoid = np.array([[1. / (rx*rx), 0, 0],
+                                  [0, 1. / (ry*ry), 0],
+                                  [0, 0, 1. / (rz*rz)]
+                                  ])
+            # Ellipsoid rotatet by quaternion as Matrix X' = R X R_transpose
+            El_r = np.dot(Q.rotation_matrix(),
+                          np.dot(Ellipsoid, 
+                                 np.transpose(Q.rotation_matrix())))
+            # Ellipsoid rotated by quaternion and axes as 
+            # Matrix X' =  R_axes X' R_axes
+            El_v = np.dot(np.transpose(self.axes), np.dot(El_r, self.axes))
+            # Projection of rotatet ellipsoid on xy plane
+            El_p = Ell = np.array([
+                    [El_v[0][0] - El_v[0][2] * El_v[0][2] / El_v[2][2],
+                     El_v[0][1] - El_v[0][2] * El_v[1][2] / El_v[2][2]],
+                    [El_v[0][1] - El_v[0][2] * El_v[1][2] / El_v[2][2],
+                     El_v[1][1] - El_v[1][2] * El_v[1][2] / El_v[2][2]]
+                    ])
+            # diagonal matrix der Ellipse gibt halbachsen
+            El_p_diag = np.linalg.eig(El_p)
+            # Winkel mit dem Ellipse in xy gedreht ist aus 
+            # eigenvektor der diagonal matrix
+            phi = atan(El_p_diag[1][0][1] / El_p_diag[1][0][0])
+            tupl = []
+            alpha = np.array(range(20)) *2* np.pi /20
+            El_xy = np.array([sqrt(1. / (El_p_diag[0][0])) *
+                              np.cos(alpha)*np.cos(phi) 
+                              - sqrt(1./(El_p_diag[0][1])) * 
+                              np.sin(alpha) * np.sin(phi),
+                              sqrt(1./(El_p_diag[0][0])) * 
+                              np.cos(alpha)*np.sin(phi)
+                              + sqrt(1./(El_p_diag[0][1])) * 
+                              np.sin(alpha) * np.cos(phi)])
+
+            for i in range (20):
+                tupl.append(((El_xy[0][i] * self.scale + X[j][0]).round().astype(int) ,
+                             (El_xy[1][i]*self.scale + X[j][1]).round().astype(int)))
+
+            return self.pixmap.draw_polygon( gc,fill,tupl)
+        
+        dx = dy = (2 * r).round().astype(int)
+        rj = dx[j]
+        
+        return self.pixmap.draw_arc(gc, fill, A[j, 0], A[j, 1], rj, rj, 
+                                    0, 23040)
 
     def draw(self, status=True):
         self.pixmap.draw_rectangle(self.white_gc, True, 0, 0,
@@ -409,26 +465,19 @@ class View:
         X = np.dot(self.X, axes) - offset
         n = self.images.natoms
         self.indices = X[:, 2].argsort()
-        P = self.P = X[:n, :2]
-        X1 = X[n:, :2].round().astype(int)
-        X2 = (np.dot(self.B, axes) - offset).round().astype(int)
-
         if self.ui.get_widget('/MenuBar/ViewMenu/ShowBonds').get_active():
             r = self.images.r * (0.65 * self.scale)
         else:
             r = self.images.r * self.scale
-        if self.images.shapes is not None:
-            A = P.round().astype(int)
-            dx = (2 * self.images.shapes[:,0] * self.scale).round().astype(int)
-            dy = (2 * self.images.shapes[:,1] * self.scale).round().astype(int)
-            arc = self.rotated_ellipse
-        else:
-            A = (P - r[:, None]).round().astype(int)
-            dx = dy = (2 * r).round().astype(int)
-            arc = self.pixmap.draw_arc
+        P = self.P = X[:n, :2]
+        A = (P - r[:, None]).round().astype(int)
+        X1 = X[n:, :2].round().astype(int)
+        X2 = (np.dot(self.B, axes) - offset).round().astype(int)
+        d = (2 * r).round().astype(int)
+
         selected_gc = self.selected_gc
         colors = self.get_colors()
-        arc = self.rotated_ellipse
+        arc = self.pixmap.draw_arc
         line = self.pixmap.draw_line
         black_gc = self.black_gc
         dynamic = self.images.dynamic
@@ -436,17 +485,16 @@ class View:
         visible = self.images.visible
         for a in self.indices:
             if a < n:
-                rx = dx[a]
-                ry = dy[a]
+                ra = d[a]
                 if visible[a]:
-                    arc(colors[a], True, A[a, 0], A[a, 1], rx, ry, 0, 23040)
+                    self.my_arc(colors[a], True, a, X, r, n, A)
                 if  self.light_green_markings and self.atoms_to_rotate_0[a]:
                     arc(self.green, False, A[a, 0] + 2, A[a, 1] + 2,
-                        rx - 4, ry - 4, 0, 23040)
+                        ra - 4, ra - 4, 0, 23040)
 
                 if not dynamic[a]:
-                    R1 = int(0.14644 * rx)
-                    R2 = int(0.85355 * ry)
+                    R1 = int(0.14644 * ra)
+                    R2 = int(0.85355 * ra)
                     line(black_gc,
                          A[a, 0] + R1, A[a, 1] + R1,
                          A[a, 0] + R2, A[a, 1] + R2)
@@ -454,10 +502,9 @@ class View:
                          A[a, 0] + R2, A[a, 1] + R1,
                          A[a, 0] + R1, A[a, 1] + R2)
                 if selected[a]:
-                    arc(selected_gc, False, A[a, 0], A[a, 1], rx, ry, 0, 23040)
+                    self.my_arc(selected_gc, False, a, X, r, n, A)
                 elif visible[a]:
-                    arc(black_gc, False, A[a, 0], A[a, 1], rx, ry, 
-                        0, 23040)
+                    self.my_arc(black_gc, False, a, X, r, n, A)
             else:
                 a -= n
                 line(black_gc, X1[a, 0], X1[a, 1], X2[a, 0], X2[a, 1])
@@ -476,10 +523,8 @@ class View:
             self.status()
 
     def draw_axes(self):
-#        print "self.axes=", self.axes
         from ase.quaternions import Quaternion
         q = Quaternion().from_matrix(self.axes)
-#        print "quaternion=", q
         L = np.zeros((10, 2, 3))
         L[:3, 1] = self.axes * 15
         L[3:5] = self.axes[0] * 20
