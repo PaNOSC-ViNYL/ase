@@ -25,7 +25,7 @@ class Quaternions(Atoms):
     def get_quaternions(self):
         return self.get_array('quaternions')
 
-class Quaternion():
+class Quaternion:
     def __init__(self, qin=[1, 0, 0, 0]):
         assert(len(qin) == 4)
         self.q = np.array(qin)
