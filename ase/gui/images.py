@@ -8,6 +8,7 @@ from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import read, write, string2index
 from ase.constraints import FixAtoms
 from ase.gui.defaults import read_defaults
+from ase.quaternions import Quaternion
 
 class Images:
     def __init__(self, images=None):
@@ -18,12 +19,13 @@ class Images:
     def initialize(self, images, filenames=None, init_magmom=False):
         
         self.natoms = len(images[0])
+        self.nimages = len(images)
         if hasattr(images[0], 'get_shapes'):
             self.shapes = images[0].get_shapes()
+            self.Q = []
         else:
             self.shapes = None
 
-        self.nimages = len(images)
         if filenames is None:
             filenames = [None] * self.nimages
         self.filenames = filenames
@@ -50,6 +52,11 @@ class Images:
                                    'different numbers of atoms or different ' +
                                    'kinds of atoms!')
             self.P[i] = atoms.get_positions()
+
+            if hasattr(self, 'Q'):
+                for q in atoms.get_quaternions():
+                     self.Q.append(Quaternion(q))
+
             self.A[i] = atoms.get_cell()
             if (atoms.get_pbc() != self.pbc).any():
                 warning = True
