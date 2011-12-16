@@ -357,7 +357,6 @@ class ColorWindow(gtk.Window):
     def show_force_stuff(self):
         "Show and update widgets needed for selecting the force scale."
         self.force_box.show()
-        print self.gui.images.F.shape
         F = np.sqrt((self.gui.images.F * self.gui.images.F).sum(axis=-1))
         fmax = F.max()
         nimages = self.gui.images.nimages
@@ -374,7 +373,6 @@ class ColorWindow(gtk.Window):
     def show_velocity_stuff(self):
         "Show and update widgets needed for selecting the velocity scale."
         self.velocity_box.show()
-        print self.gui.images.V.shape
         V = np.sqrt((self.gui.images.V * self.gui.images.V).sum(axis=-1))
         vmax = V.max()
         nimages = self.gui.images.nimages
