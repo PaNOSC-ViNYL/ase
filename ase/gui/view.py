@@ -444,11 +444,12 @@ class View:
                               + sqrt(1./(El_p_diag[0][1])) * 
                               np.sin(alpha) * np.cos(phi)])
 
-            for i in range (20):
-                tupl.append(((El_xy[0][i] * self.scale + X[j][0]).round().astype(int) ,
-                             (El_xy[1][i]*self.scale + X[j][1]).round().astype(int)))
+            tupl = (El_xy.transpose() * self.scale + 
+                    X[j][:2]).round().astype(int)
+            # XXX there must be a better way
+            tupl = [tuple(i) for i in tupl]
 
-            return self.pixmap.draw_polygon( gc,fill,tupl)
+            return self.pixmap.draw_polygon( gc, fill, tupl)
         
         dx = dy = (2 * r).round().astype(int)
         rj = dx[j]
