@@ -260,6 +260,10 @@ def read(filename, index=-1, format=None):
         from ase.io.cmr_io import read_db
         return read_db(filename, index)
 
+    if format == 'lammps':
+        from ase.io.lammps import read_lammps_dump
+        return read_lammps_dump(filename, index)
+
     raise RuntimeError('File format descriptor '+format+' not recognized!')
 
 
@@ -604,5 +608,8 @@ def filetype(filename):
 
     if filename.lower().endswith('.gen'):
         return 'gen'
+
+    if 'ITEM: TIMESTEP\n' in lines:
+        return 'lammps'
 
     return 'xyz'

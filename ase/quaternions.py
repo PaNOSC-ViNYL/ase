@@ -10,6 +10,8 @@ class Quaternions(Atoms):
         Atoms.__init__(self, *args, **kwargs)
         if quaternions is not None:
             self.set_array('quaternions', quaternions, shape=(4,))
+        # set default shapes
+        self.set_shapes(np.array([[5, 3, 1]] * len(self)))
 
     def set_shapes(self, shapes):
         self.set_array('shapes', shapes, shape=(3,))
