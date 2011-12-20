@@ -27,6 +27,8 @@ Development version in trunk
 
 * Van der Waals radii in ase.data
 
+* ASE GUI (ag) now supports velocities for both graphs and coloring
+
 
 Version 3.5.1
 =============
