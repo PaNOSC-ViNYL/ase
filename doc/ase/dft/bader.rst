@@ -38,8 +38,8 @@ Some calculators (e.g. gpaw) also have a method called
 Note that it is strongly recommended to use version 0.26b or higher of
 the program, and the examples below refer to this version.
 
-.. [Bader] R. F. W. Bader.  Atoms in Molecules: A Quentum Theory.
-           Oxford University Press, New York, 1990
+.. [Bader] R. F. W. Bader.  Atoms in Molecules: A Quantum Theory.
+           Oxford University Press, New York, 1990.
 
 .. [Tang]  W. Tang, E. Sanville, G. Henkelman.
            A grid-based Bader analysis algorithm without lattice bias.
