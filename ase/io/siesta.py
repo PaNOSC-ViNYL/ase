@@ -217,4 +217,27 @@ def read_fdf(fname):
     return _read_fdf(fname)
 
 
+def read_struct(fname):
+    """Read a siesta struct file"""
+    from ase.atoms import Atoms, Atom
 
+    f = open(fname, 'r')
+
+    cell = []
+    for i in range(3):
+        cell.append([float(x) for x in f.readline().split()])
+
+    natoms = int(f.readline())
+
+    atoms = Atoms()
+    for atom in f:
+        Z, pos_x, pos_y, pos_z = atom.split()[1:]
+        atoms.append(Atom(int(Z), position = (float(pos_x), float(pos_y), float(pos_z))))
+
+    if len(atoms) != natoms:
+        raise IOError('Badly structured input file')
+    
+    atoms.set_cell(cell, scale_atoms = True)
+
+    return atoms
+    

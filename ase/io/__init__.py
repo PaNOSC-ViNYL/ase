@@ -43,6 +43,7 @@ def read(filename, index=-1, format=None):
     XYZ-file                   xyz
     VASP POSCAR/CONTCAR file   vasp
     VASP OUTCAR file           vasp_out
+    SIESTA STRUCT file         struct_out
     ABINIT input file          abinit
     V_Sim ascii file           v_sim
     Protein Data Bank          pdb
@@ -198,6 +199,10 @@ def read(filename, index=-1, format=None):
 
     if format == 'struct':
         from ase.io.wien2k import read_struct
+        return read_struct(filename)
+
+    if format == 'struct_out':
+        from ase.io.siesta import read_struct
         return read_struct(filename)
 
     if format == 'vti':
@@ -550,6 +555,9 @@ def filetype(filename):
 
     if filename.lower().endswith('.struct'):
         return 'struct'
+
+    if filename.lower().endswith('.struct_out'):
+        return 'struct_out'
 
     for line in lines:
         if 'Invoking FHI-aims ...' in line:
