@@ -12,7 +12,7 @@ import numpy as np
 
 from ase.data import chemical_symbols
 from ase.units import Rydberg, fs
-from ase.io.siesta import read_rho, read_fdf
+from ase.io.siesta import read_rho, read_fdf, read_struct
 from ase.io.cube import read_cube_data
 
 class Siesta:
@@ -337,6 +337,10 @@ class Siesta:
 
         self.dipole = self.read_dipole()
         self.read()
+
+        atoms_structout = read_struct('%s.STRUCT_OUT' % self.label)
+        atoms.cell = atoms_structout.cell
+        atoms.positions = atoms_structout.positions
 
         self.converged = True
 
