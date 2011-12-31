@@ -70,6 +70,7 @@ class Siesta:
 
         """
 
+        self.name = 'Siesta'
         self.label = label#################### != out
         self.xc = xc
         self.kpts = kpts
