@@ -15,7 +15,7 @@ class Graphs(gtk.Window):
         #self.window.connect('delete_event', self.exit)
         self.set_title('Graphs')
         vbox = gtk.VBox()
-        self.expr = pack(vbox, [gtk.Entry(40),
+        self.expr = pack(vbox, [gtk.Entry(64),
                                 help('Help for plot ...')])[0]
         self.expr.connect('activate', self.plot)
 
