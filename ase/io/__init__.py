@@ -315,6 +315,7 @@ def write(filename, images, format=None, **kwargs):
     ETSF                       etsf.nc
     DFTBPlus GEN format        gen
     CMR db-file                db
+    LAMMPS dump file           lammps
     =========================  ===========
 
     The use of additional keywords is format specific.
