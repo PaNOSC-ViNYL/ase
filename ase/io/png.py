@@ -32,6 +32,9 @@ class PNG(EPS):
 
 def write_png(filename, atoms, **parameters):
     if isinstance(atoms, list):
-        assert len(atoms) == 1
-        atoms = atoms[0]
+        if len(atoms) > 1:
+            raise RuntimeError("Don't know how to save more than "+
+                               "one image to PNG image!")
+        else:
+            atoms = atoms[0]
     PNG(atoms, **parameters).write(filename)
