@@ -13,24 +13,25 @@ HCP
 ===
 
 Let's try to find the `a` and `c` lattice constants for HCP nickel
-using the :mod:`EMT <emt>` potential.  First, we import the things we need
-like the :func:`~ase.structure.bulk` function::
+using the :mod:`EMT <emt>` potential.  
 
-  from ase import *
-  from ase.structure import bulk
-
-Then we make a good intial guess for `a` and `c` using the FCC nearest
+First, we make a good intial guess for `a` and `c` using the FCC nearest
 neighbor distance and the ideal `c/a` ratio::
 
+  from numpy import sqrt
   a0 = 3.52 / sqrt(2)
   c0 = sqrt(8 / 3.0) * a0
 
 and create a trajectory for the results::
 
+  from ase.io import PickleTrajectory
   traj = PickleTrajectory('Ni.traj', 'w')
 
 Finally, we do the 12 calculations (four values for `a` and three for `c`)::
 
+  import numpy as np
+  from ase.structure import bulk
+  from ase.calculators import EMT
   eps = 0.01
   for a in a0 * np.linspace(1 - eps, 1 + eps, 4):
       for c in c0 * np.linspace(1 - eps, 1 + eps, 3):
@@ -55,7 +56,7 @@ array([[ 2.5       ,  0.        ,  0.        ],
 So, we can get `a` and `c` from ``ni.cell[0, 0]`` and ``ni.cell[2,
 2]``:
 
->>> from ase import *
+>>> from ase.io import read
 >>> configs = read('Ni.traj@:')
 >>> energies = [config.get_potential_energy() for config in configs]
 >>> ac = [(config.cell[0, 0], config.cell[2, 2]) for config in configs]

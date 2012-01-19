@@ -8,7 +8,7 @@ We will set up a one layer slab of Ni atoms with one Ag adatom.
 
 Define the slab atoms:
 
->>> from ase import *
+>>> from ase import Atoms
 >>> atoms = Atoms('Ni4', [(0, 0, 0),
 ...                       (0.45, 0, 0),
 ...                       (0, 0.5, 0),
@@ -56,6 +56,7 @@ array([[ 1.,  0.,  0.],
 Now, setup a p(2x2) cell in a hexagonal surface.
 Here, *a* is the fcc lattice constant, the cell is 10 layers high:
 
+>>> from numpy import sqrt
 >>> a = 3.55
 >>> cell = [(2/sqrt(2.)*a, 0, 0),
 ...         (1/sqrt(2.)*a, sqrt(3./2.)*a, 0),
@@ -78,6 +79,7 @@ array([[ 0.        ,  0.        ,  0.        ],
 
 Plot the whole system by bringing up the :mod:`gui`:
 
+>>> from ase.visualize import view
 >>> view(atoms)
 
 .. image:: a1.png
@@ -95,7 +97,9 @@ cell for our atoms we can either add the atom using its cartesian
 coordinates in Angstrom or rescale the unit cell and use scaled
 coordinates. We try the latter:
 
->>> xyzcell=identity(3) # The 3x3 unit matrix
+>>> from numpy import identity
+>>> from ase import Atom
+>>> xyzcell = identity(3) # The 3x3 unit matrix
 >>> atoms.set_cell(xyzcell, scale_atoms=True)  # Set the unit cell and rescale
 >>> atoms.append(Atom('Ni', (1/6., 1/6., .1)))  
 >>> atoms.set_cell(cell, scale_atoms=True)  # Set the unit cell and scale back
