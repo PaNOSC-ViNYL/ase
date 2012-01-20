@@ -3,6 +3,7 @@
 """
 
 import gtk
+from gettext import gettext as _
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 import ase
 
@@ -28,7 +29,7 @@ class SetupWindow(gtk.Window):
         # invalid.
         elem = self.element.get_text()
         if not elem:
-            self.invalid_element("  No element specified!")
+            self.invalid_element(_("  No element specified!"))
             return False
         try:
             z = int(elem)
@@ -47,18 +48,18 @@ class SetupWindow(gtk.Window):
         name = ase.data.atomic_names[z]
         ref = ase.data.reference_states[z]
         if ref is None:
-            struct = "No crystal structure data"
+            struct = _("No crystal structure data")
         else:
             struct = ref['symmetry']
             if struct == 'fcc' or struct == 'bcc':
-                struct = "%s (a=%.3f Å)" % (struct, ref['a'])
+                struct = _("%s (a=%.3f Å)") % (struct, ref['a'])
         
-        txt = "  %s: %s, Z=%i, %s" % (name, symb, z, struct)
+        txt = _("  %s: %s, Z=%i, %s") % (name, symb, z, struct)
         self.elementinfo.set_text(txt)
         self.legal_element = symb
         return True
         
-    def invalid_element(self, txt="  ERROR: Invalid element!"):
+    def invalid_element(self, txt=_("  ERROR: Invalid element!")):
         self.legal_element = False
         self.elementinfo.set_text(txt)
 

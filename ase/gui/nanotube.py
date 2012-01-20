@@ -3,6 +3,7 @@
 """
 
 import gtk
+from gettext import gettext as _
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.setupwindow import SetupWindow
 from ase.gui.pybutton import PyButton
@@ -29,21 +30,21 @@ class SetupNanotube(SetupWindow):
     "Window for setting up a (Carbon) nanotube."
     def __init__(self, gui):
         SetupWindow.__init__(self)
-        self.set_title("Nanotube")
+        self.set_title(_("Nanotube"))
         vbox = gtk.VBox()
 
         # Intoductory text
         self.packtext(vbox, introtext)
            
         # Choose the element and bond length
-        label1 = gtk.Label("Element: ")
+        label1 = gtk.Label(_("Element: "))
         #label.set_alignment(0.0, 0.2)
         self.element = gtk.Entry(max=3)
         self.element.set_text("C")
         self.element.connect('activate', self.update_element)
         self.bondlength = gtk.Adjustment(1.42, 0.0, 1000.0, 0.01)
-        label2 = gtk.Label("  Bond length: ")
-        label3 = gtk.Label("Å")
+        label2 = gtk.Label(_("  Bond length: "))
+        label3 = gtk.Label(_("Å"))
         bond_box = gtk.SpinButton(self.bondlength, 10.0, 3)
         pack(vbox, [label1, self.element, label2, bond_box, label3])
         self.elementinfo = gtk.Label("")
@@ -53,14 +54,15 @@ class SetupNanotube(SetupWindow):
         pack(vbox, gtk.Label(""))
 
         # Choose the structure.
-        pack(vbox, [gtk.Label("Select roll-up vector (n,m) and tube length:")])
+        pack(vbox, [gtk.Label(_("Select roll-up vector (n,m) "
+                                "and tube length:"))])
         label1 = gtk.Label("n: ")
         label2 = gtk.Label("  m: ")
         self.n = gtk.Adjustment(5, 1, 100, 1)
         self.m = gtk.Adjustment(5, 0, 100, 1)
         spinn = gtk.SpinButton(self.n, 0, 0)
         spinm = gtk.SpinButton(self.m, 0, 0)
-        label3 = gtk.Label("  Length: ")
+        label3 = gtk.Label(_("  Length: "))
         self.length = gtk.Adjustment(1, 1, 100, 1)
         spinl = gtk.SpinButton(self.length, 0, 0)
         pack(vbox, [label1, spinn, label2, spinm, label3, spinl])
@@ -70,7 +72,7 @@ class SetupNanotube(SetupWindow):
         pack(vbox, gtk.Label(""))
 
         # Buttons
-        self.pybut = PyButton("Creating a nanoparticle.")
+        self.pybut = PyButton(_("Creating a nanoparticle."))
         self.pybut.connect('clicked', self.makeatoms)
         buts = cancel_apply_ok(cancel=lambda widget: self.destroy(),
                                apply=self.apply,
@@ -91,7 +93,7 @@ class SetupNanotube(SetupWindow):
         # invalid.
         elem = self.element.get_text()
         if not elem:
-            self.invalid_element("  No element specified!")
+            self.invalid_element(_("  No element specified!"))
             return False
         try:
             z = int(elem)
@@ -123,6 +125,7 @@ class SetupNanotube(SetupWindow):
             length = int(self.length.value)
             bl = self.bondlength.value
             self.atoms = nanotube(n, m, length=length, bond=bl, symbol=symb)
+            # XXX can this be translated?
             self.pybut.python = py_template % {'n': n, 'm':m, 'length':length,
                                                'symb':symb, 'bl':bl}
         
@@ -133,8 +136,9 @@ class SetupNanotube(SetupWindow):
             self.gui.new_atoms(self.atoms)
             return True
         else:
-            oops("No valid atoms.",
-                 "You have not (yet) specified a consistent set of parameters.")
+            oops(_("No valid atoms."),
+                 _("You have not (yet) specified a consistent "
+                   "set of parameters."))
             return False
 
     def ok(self, *args):

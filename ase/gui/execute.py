@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 import __future__
 import gtk
+from gettext import gettext as _
 import os.path
 import numpy as np
 import sys
 
-from ase.gui.languages import translate as _
 from ase.gui.widgets import pack, Help
 from ase.data.colors import jmol_colors
 from ase.atoms import Atoms
@@ -20,7 +20,7 @@ class Execute(gtk.Window):
 
     Please do not mix global and atom commands."""
     
-    terminal_help_txt="""
+    terminal_help_txt=_("""
     Global commands work on all frames or only on the current frame
     - Assignment of a global variable may not reference a local one
     - use 'Current frame' switch to switch off application to all frames
@@ -59,12 +59,12 @@ class Execute(gtk.Window):
     <c>cov[Z]</c>:(read only): covalent radius of atomic number Z
     <c>gui</c>:\tadvanced: ag window python object
     <c>img</c>:\tadvanced: ag images object
-    """
+    """)
     
     def __init__(self, gui):
         gtk.Window.__init__(self)
         self.gui = gui
-        self.set_title('Expert user mode')
+        self.set_title(_('Expert user mode'))
         vbox = gtk.VBox()
         vbox.set_border_width(5)
         self.sw = gtk.ScrolledWindow()
@@ -77,16 +77,16 @@ class Execute(gtk.Window):
         pack(vbox, self.sw, expand=True, padding = 5)
         self.sw.set_size_request(540, 150)
         self.textview.show()
-        self.add_text('Welcome to the ASE Expert user mode')
+        self.add_text(_('Welcome to the ASE Expert user mode'))
         self.cmd = gtk.Entry(60)
         self.cmd.connect('activate', self.execute)
         self.cmd.connect('key-press-event', self.update_command_buffer)
         pack(vbox, [gtk.Label('>>>'),self.cmd])
         self.cmd_buffer = getattr(gui,'expert_mode_buffer',[''])
         self.cmd_position = len(self.cmd_buffer)-1
-        self.selected = gtk.CheckButton('Only selected atoms (sa)   ')
+        self.selected = gtk.CheckButton(_('Only selected atoms (sa)   '))
         self.selected.connect('toggled',self.selected_changed)
-        self.images_only = gtk.CheckButton('Only current frame (cf)  ')
+        self.images_only = gtk.CheckButton(_('Only current frame (cf)  '))
         self.images_only.connect('toggled',self.images_changed)
         pack(vbox, [self.selected, self.images_only])
         save_button = gtk.Button(stock=gtk.STOCK_SAVE)
@@ -96,8 +96,8 @@ class Execute(gtk.Window):
         stop_button = gtk.Button(stock=gtk.STOCK_STOP)
         stop_button.connect('clicked',self.stop_execution)
         self.stop = False
-        pack(vbox, [gtk.Label('Global: Use A, D, E, M, N, R, S, n, frame;'
-                              +' Atoms: Use a, f, m, s, x, y, z, Z     '),
+        pack(vbox, [gtk.Label(_('Global: Use A, D, E, M, N, R, S, n, frame;'
+                                ' Atoms: Use a, f, m, s, x, y, z, Z     ')),
                     stop_button, help_button, save_button], end = True)
         self.add(vbox)
         vbox.show()
@@ -195,12 +195,12 @@ class Execute(gtk.Window):
             if os.path.exists(name):
                 self.run_script(name)
             else:
-                self.add_text('*** WARNING: file does not exist - '+name)
+                self.add_text(_('*** WARNING: file does not exist - %s') % name)
         else:
             code = compile(cmd + '\n', 'execute.py', 'single',
                            __future__.CO_FUTURE_DIVISION)
             if index_based and len(indices) == 0 and self.selected.get_active():
-                self.add_text("*** WARNING: No atoms selected to work with")
+                self.add_text(_("*** WARNING: No atoms selected to work with"))
             for i in loop_images:
                 if self.stop:
                     break
@@ -274,15 +274,15 @@ class Execute(gtk.Window):
         
     def selected_changed(self, *args):
         if self.selected.get_active():
-            self.add_text('*** Only working on selected atoms')
+            self.add_text(_('*** Only working on selected atoms'))
         else:
-            self.add_text('*** Working on all atoms')
+            self.add_text(_('*** Working on all atoms'))
 
     def images_changed(self, *args):
         if self.images_only.get_active():
-            self.add_text('*** Only working on current image')
+            self.add_text(_('*** Only working on current image'))
         else:
-            self.add_text('*** Working on all images')
+            self.add_text(_('*** Working on all images'))
 
     def update_command_buffer(self, entry, event, *args):
         arrow = {gtk.keysyms.Up: -1, gtk.keysyms.Down: 1}.get(event.keyval, None)

@@ -114,13 +114,15 @@ def _info (exctyp, value, tb):
 	exception_dialog_active = True
 	trace = None
 	dialog = gtk.MessageDialog (parent=None, flags=0, type=gtk.MESSAGE_WARNING, buttons=gtk.BUTTONS_NONE)
-	dialog.set_title (_("Bug Detected"))
+	dialog.set_title(_("Bug Detected"))
 	if gtk.check_version (2, 4, 0) is not None:
 		dialog.set_has_separator (False)
 
-	primary = _("<big><b>A programming error has been detected.</b></big>")
+	primary = "<big><b>%s</b></big>" % _("A programming error has been "
+					     "detected.")
 	primary += '\n\n<span color="red">'+str(value)+'</span>'
-	secondary = _("It probably isn't fatal, but the details should be reported to the developers nonetheless.")
+	secondary = _("It probably isn't fatal, but the details should be "
+		      "reported to the developers nonetheless.")
 
 	try:
 		setsec = dialog.format_secondary_text
@@ -135,7 +137,7 @@ def _info (exctyp, value, tb):
 
 	try:
 		email = feedback
-		dialog.add_button (_("Report..."), 3)
+		dialog.add_button(_("Report..."), 3)
 	except NameError:
 		# could ask for an email address instead...
 		pass
@@ -155,7 +157,7 @@ def _info (exctyp, value, tb):
 			except NameError:
 				server = 'localhost'
 
-			message = 'From: buggy_application"\nTo: bad_programmer\nSubject: Exception feedback\n\n%s' % trace.getvalue()
+			message = _('From: buggy_application"\nTo: bad_programmer\nSubject: Exception feedback\n\n%s') % trace.getvalue()
 
 			s = SMTP()
 			s.connect (server)

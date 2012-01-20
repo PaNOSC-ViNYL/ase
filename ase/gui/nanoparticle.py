@@ -3,6 +3,7 @@
 """
 
 import gtk
+from gettext import gettext as _
 from copy import copy
 from ase.gui.widgets import pack, cancel_apply_ok, oops, help
 from ase.gui.setupwindow import SetupWindow
@@ -15,14 +16,14 @@ from ase.cluster.cubic import FaceCenteredCubic, BodyCenteredCubic, SimpleCubic
 from ase.cluster.hexagonal import HexagonalClosedPacked, Graphite
 from ase.cluster import wulff_construction
 
-introtext = """\
+introtext = _("""\
 Create a nanoparticle either by specifying the number of layers, or using the
 Wulff construction.  Please press the [Help] button for instructions on how to
 specify the directions.
 WARNING: The Wulff construction currently only works with cubic crystals!
-"""
+""")
 
-helptext = """
+helptext = _("""
 The nanoparticle module sets up a nano-particle or a cluster with a given
 crystal structure.
 
@@ -46,7 +47,7 @@ remember to press [Add] or it will not be included.
 Example: (1,0,0) (1,1,1), (0,0,1) would specify the {100} family of directions,
 the {111} family and then the (001) direction, overruling the value given for
 the whole family of directions.
-"""
+""")
 
 py_template_layers = """
 import ase
@@ -79,11 +80,11 @@ atoms = wulff_construction('%(element)s', surfaces, esurf, size, '%(structure)s'
 class SetupNanoparticle(SetupWindow):
     "Window for setting up a nanoparticle."
     # Structures:  Abbreviation, name, 4-index (boolean), two lattice const (bool), factory
-    structure_data = (('fcc', 'Face centered cubic (fcc)', False, False, FaceCenteredCubic),
-                      ('bcc', 'Body centered cubic (bcc)', False, False, BodyCenteredCubic),
-                      ('sc',  'Simple cubic (sc)', False, False, SimpleCubic),
-                      ('hcp', 'Hexagonal closed-packed (hcp)', True, True, HexagonalClosedPacked),
-                      ('graphite', 'Graphite', True, True, Graphite),
+    structure_data = (('fcc', _('Face centered cubic (fcc)'), False, False, FaceCenteredCubic),
+                      ('bcc', _('Body centered cubic (bcc)'), False, False, BodyCenteredCubic),
+                      ('sc',  _('Simple cubic (sc)'), False, False, SimpleCubic),
+                      ('hcp', _('Hexagonal closed-packed (hcp)'), True, True, HexagonalClosedPacked),
+                      ('graphite', _('Graphite'), True, True, Graphite),
                       )
     #NB:  HCP is broken!
     
@@ -112,7 +113,7 @@ class SetupNanoparticle(SetupWindow):
     
     def __init__(self, gui):
         SetupWindow.__init__(self)
-        self.set_title("Nanoparticle")
+        self.set_title(_("Nanoparticle"))
         self.atoms = None
         self.no_update = True
         
@@ -122,11 +123,11 @@ class SetupNanoparticle(SetupWindow):
         self.packtext(vbox, introtext)
            
         # Choose the element
-        label = gtk.Label("Element: ")
+        label = gtk.Label(_("Element: "))
         label.set_alignment(0.0, 0.2)
         element = gtk.Entry(max=3)
         self.element = element
-        lattice_button = gtk.Button("Get structure")
+        lattice_button = gtk.Button(_("Get structure"))
         lattice_button.connect('clicked', self.set_structure_data)
         self.elementinfo = gtk.Label(" ")
         pack(vbox, [label, element, self.elementinfo, lattice_button], end=True)
@@ -134,7 +135,7 @@ class SetupNanoparticle(SetupWindow):
         self.legal_element = False
 
         # The structure and lattice constant
-        label = gtk.Label("Structure: ")
+        label = gtk.Label(_("Structure: "))
         self.structure = gtk.combo_box_new_text()
         self.list_of_structures = []
         self.needs_4index = {}
@@ -150,7 +151,7 @@ class SetupNanoparticle(SetupWindow):
         self.fourindex = self.needs_4index[self.list_of_structures[0]]
         self.structure.connect('changed', self.update_structure)
         
-        label2 = gtk.Label("Lattice constant:  a =")
+        label2 = gtk.Label(_("Lattice constant:  a ="))
         self.lattice_const_a = gtk.Adjustment(3.0, 0.0, 1000.0, 0.01)
         self.lattice_const_c = gtk.Adjustment(5.0, 0.0, 1000.0, 0.01)
         self.lattice_box_a = gtk.SpinButton(self.lattice_const_a, 10.0, 3)
@@ -167,9 +168,9 @@ class SetupNanoparticle(SetupWindow):
         self.lattice_const_c.connect('value-changed', self.update)
 
         # Choose specification method
-        label = gtk.Label("Method: ")
+        label = gtk.Label(_("Method: "))
         self.method = gtk.combo_box_new_text()
-        for meth in ("Layer specification", "Wulff construction"):
+        for meth in (_("Layer specification"), _("Wulff construction")):
             self.method.append_text(meth)
         self.method.set_active(0)
         self.method.connect('changed', self.update_gui_method)
@@ -188,9 +189,10 @@ class SetupNanoparticle(SetupWindow):
         # the list of directions is changed.
         self.direction_table_box = gtk.VBox()
         pack(framebox, self.direction_table_box)
-        pack(self.direction_table_box, gtk.Label("Dummy placeholder object"))
+        pack(self.direction_table_box, 
+             gtk.Label(_("Dummy placeholder object")))
         pack(framebox, gtk.Label(""))
-        pack(framebox, [gtk.Label("Add new direction:")])
+        pack(framebox, [gtk.Label(_("Add new direction:"))])
         self.newdir_label = []
         self.newdir_box = []
         self.newdir_index = []
@@ -206,7 +208,7 @@ class SetupNanoparticle(SetupWindow):
         self.newdir_layers_box = gtk.SpinButton(self.newdir_layers, 1, 0)
         self.newdir_esurf = gtk.Adjustment(1.0, 0, 1000.0, 0.1)
         self.newdir_esurf_box = gtk.SpinButton(self.newdir_esurf, 10, 3)
-        addbutton = gtk.Button("Add")
+        addbutton = gtk.Button(_("Add"))
         addbutton.connect('clicked', self.row_add)
         packlist.extend([gtk.Label("): "),
                          self.newdir_layers_box,
@@ -214,39 +216,40 @@ class SetupNanoparticle(SetupWindow):
                          gtk.Label("  "),
                          addbutton])
         pack(framebox, packlist)
-        self.defaultbutton = gtk.Button("Set all directions to default values")
+        self.defaultbutton = gtk.Button(_("Set all directions to default "
+                                          "values"))
         self.defaultbutton.connect('clicked', self.default_direction_table)
         self.default_direction_table()
 
         # Extra widgets for the Wulff construction
         self.wulffbox = gtk.VBox()
         pack(vbox, self.wulffbox)
-        label = gtk.Label("Particle size: ")
-        self.size_n_radio = gtk.RadioButton(None, "Number of atoms: ")
+        label = gtk.Label(_("Particle size: "))
+        self.size_n_radio = gtk.RadioButton(None, _("Number of atoms: "))
         self.size_n_radio.set_active(True)
         self.size_n_adj = gtk.Adjustment(100, 1, 100000, 1)
         self.size_n_spin = gtk.SpinButton(self.size_n_adj, 0, 0)
         self.size_dia_radio = gtk.RadioButton(self.size_n_radio,
-                                              "Volume: ")
+                                              _("Volume: "))
         self.size_dia_adj = gtk.Adjustment(1.0, 0, 100.0, 0.1)
         self.size_dia_spin = gtk.SpinButton(self.size_dia_adj, 10.0, 2)
         pack(self.wulffbox, [label, self.size_n_radio, self.size_n_spin,
                     gtk.Label("   "), self.size_dia_radio, self.size_dia_spin,
-                    gtk.Label("Å³")])
+                    gtk.Label(_("Å³"))])
         self.size_n_radio.connect("toggled", self.update_gui_size)
         self.size_dia_radio.connect("toggled", self.update_gui_size)
         self.size_n_adj.connect("value-changed", self.update_size_n)
         self.size_dia_adj.connect("value-changed", self.update_size_dia)
-        label = gtk.Label(
-            "Rounding: If exact size is not possible, choose the size")
+        label = gtk.Label(_("Rounding: If exact size is not possible, "
+                            "choose the size"))
         pack(self.wulffbox, [label])
-        self.round_above = gtk.RadioButton(None, "above  ")
-        self.round_below = gtk.RadioButton(self.round_above, "below  ")
-        self.round_closest = gtk.RadioButton(self.round_above, "closest  ")
+        self.round_above = gtk.RadioButton(None, _("above  "))
+        self.round_below = gtk.RadioButton(self.round_above, _("below  "))
+        self.round_closest = gtk.RadioButton(self.round_above, _("closest  "))
         self.round_closest.set_active(True)
         butbox = gtk.HButtonBox()
-        self.smaller_button = gtk.Button("Smaller")
-        self.larger_button = gtk.Button("Larger")
+        self.smaller_button = gtk.Button(_("Smaller"))
+        self.larger_button = gtk.Button(_("Larger"))
         self.smaller_button.connect('clicked', self.wulff_smaller)
         self.larger_button.connect('clicked', self.wulff_larger)
         pack(butbox, [self.smaller_button, self.larger_button])
@@ -259,26 +262,26 @@ class SetupNanoparticle(SetupWindow):
         # Information
         pack(vbox, gtk.Label(""))
         infobox = gtk.VBox()
-        label1 = gtk.Label("Number of atoms: ")
+        label1 = gtk.Label(_("Number of atoms: "))
         self.natoms_label = gtk.Label("-")
-        label2 = gtk.Label("   Approx. diameter: ")
+        label2 = gtk.Label(_("   Approx. diameter: "))
         self.dia1_label = gtk.Label("-")
         pack(infobox, [label1, self.natoms_label, label2, self.dia1_label])
         pack(infobox, gtk.Label(""))
-        infoframe = gtk.Frame("Information about the created cluster:")
+        infoframe = gtk.Frame(_("Information about the created cluster:"))
         infoframe.add(infobox)
         infobox.show()
         pack(vbox, infoframe)
         
         # Buttons
-        self.pybut = PyButton("Creating a nanoparticle.")
+        self.pybut = PyButton(_("Creating a nanoparticle."))
         self.pybut.connect('clicked', self.makeatoms)
         helpbut = help(helptext)
         buts = cancel_apply_ok(cancel=lambda widget: self.destroy(),
                                apply=self.apply,
                                ok=self.ok)
         pack(vbox, [self.pybut, helpbut, buts], end=True, bottom=True)
-        self.auto = gtk.CheckButton("Automatic Apply")
+        self.auto = gtk.CheckButton(_("Automatic Apply"))
         fr = gtk.Frame()
         fr.add(self.auto)
         fr.show_all()
@@ -326,17 +329,17 @@ class SetupNanoparticle(SetupWindow):
                 spin = gtk.SpinButton(data[1], 1, 0)
             tbl.attach(spin, 1, 2, i, i+1)
             tbl.attach(gtk.Label("   "), 2, 3, i, i+1)
-            but = gtk.Button("Up")
+            but = gtk.Button(_("Up"))
             but.connect("clicked", self.row_swap_next, i-1)
             if i == 0:
                 but.set_sensitive(False)
             tbl.attach(but, 3, 4, i, i+1)
-            but = gtk.Button("Down")
+            but = gtk.Button(_("Down"))
             but.connect("clicked", self.row_swap_next, i)
             if i == len(self.direction_table)-1:
                 but.set_sensitive(False)
             tbl.attach(but, 4, 5, i, i+1)
-            but = gtk.Button("Delete")
+            but = gtk.Button(_("Delete"))
             but.connect("clicked", self.row_delete, i)
             if len(self.direction_table) == 1:
                 but.set_sensitive(False)
@@ -377,12 +380,13 @@ class SetupNanoparticle(SetupWindow):
         self.update_direction_table()
         if self.method.get_active():
             self.wulffbox.show()
-            self.layerlabel.set_text("Surface energies (as energy/area, NOT per atom):")
+            self.layerlabel.set_text(_("Surface energies (as energy/area, "
+                                       "NOT per atom):"))
             self.newdir_layers_box.hide()
             self.newdir_esurf_box.show()
         else:
             self.wulffbox.hide()
-            self.layerlabel.set_text("Number of layers:")
+            self.layerlabel.set_text(_("Number of layers:"))
             self.newdir_layers_box.show()
             self.newdir_esurf_box.hide()
         self.update()
@@ -411,11 +415,11 @@ class SetupNanoparticle(SetupWindow):
             n = 3
         idx = tuple( [int(a.value) for a in self.newdir_index[:n]] )
         if not np.array(idx).any():
-            oops("At least one index must be non-zero")
+            oops(_("At least one index must be non-zero"))
             return
         if n == 4 and np.array(idx)[:3].sum() != 0:
-            oops("Invalid hexagonal indices",
-                 "The sum of the first three numbers must be zero")
+            oops(_("Invalid hexagonal indices",
+                 "The sum of the first three numbers must be zero"))
             return
         adj1 = gtk.Adjustment(self.newdir_layers.value, -100, 100, 1)
         adj2 = gtk.Adjustment(self.newdir_esurf.value, -1000.0, 1000.0, 0.1)
@@ -469,7 +473,7 @@ class SetupNanoparticle(SetupWindow):
     def set_structure_data(self, *args):
         "Called when the user presses [Get structure]."
         if not self.update_element():
-            oops("Invalid element.")
+            oops(_("Invalid element."))
             return
         z = ase.atomic_numbers[self.legal_element]
         ref = ase.data.reference_states[z]
@@ -479,9 +483,9 @@ class SetupNanoparticle(SetupWindow):
             structure = ref['symmetry']
                 
         if ref is None or not structure in self.list_of_structures:
-            oops("Unsupported or unknown structure",
-                 "Element = %s,  structure = %s" % (self.legal_element,
-                                                    structure))
+            oops(_("Unsupported or unknown structure",
+                   "Element = %s,  structure = %s" % (self.legal_element,
+                                                      structure)))
             return
         for i, s in enumerate(self.list_of_structures):
             if structure == s:
@@ -596,7 +600,7 @@ class SetupNanoparticle(SetupWindow):
             self.natoms_label.set_label(str(len(self.atoms)))
             at_vol = self.get_atomic_volume()
             dia = 2 * (3 * len(self.atoms) * at_vol / (4 * np.pi))**(1.0/3.0)
-            self.dia1_label.set_label("%.1f Å" % (dia,))
+            self.dia1_label.set_label(_("%.1f Å") % (dia,))
             self.smaller_button.set_sensitive(True)
             self.larger_button.set_sensitive(True)
             
@@ -606,8 +610,9 @@ class SetupNanoparticle(SetupWindow):
             self.gui.new_atoms(self.atoms)
             return True
         else:
-            oops("No valid atoms.",
-                 "You have not (yet) specified a consistent set of parameters.")
+            oops(_("No valid atoms."),
+                 _("You have not (yet) specified a consistent set of "
+                   "parameters."))
             return False
 
     def ok(self, *args):

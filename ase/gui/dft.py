@@ -2,8 +2,8 @@
 from math import sqrt
 
 import gtk
+from gettext import gettext as _
 
-from ase.gui.languages import translate as _
 from ase.gui.widgets import pack, Help
 
 

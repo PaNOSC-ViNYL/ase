@@ -3,6 +3,7 @@
 "Module for performing energy minimization."
 
 import gtk
+from gettext import gettext as _
 from ase.gui.simulation import Simulation
 from ase.gui.widgets import oops, pack, AseGuiCancelException
 import ase
@@ -16,20 +17,20 @@ class MinimizeMixin:
             self.algo.append_text(m)
         self.algo.set_active(0)
         self.algo.connect('changed', self.min_algo_specific)
-        pack(box, [gtk.Label("Algorithm: "), self.algo])
+        pack(box, [gtk.Label(_("Algorithm: ")), self.algo])
         
         self.fmax = gtk.Adjustment(0.05, 0.00, 10.0, 0.01)
         self.fmax_spin = gtk.SpinButton(self.fmax, 0, 3)
         lbl = gtk.Label()
-        lbl.set_markup("Convergence criterion: F<sub>max</sub> = ")
+        lbl.set_markup(_("Convergence criterion: F<sub>max</sub> = "))
         pack(box, [lbl, self.fmax_spin])
 
         self.steps = gtk.Adjustment(100, 1, 1000000, 1)
         self.steps_spin = gtk.SpinButton(self.steps, 0, 0)
-        pack(box, [gtk.Label("Max. number of steps: "), self.steps_spin])
+        pack(box, [gtk.Label(_("Max. number of steps: ")), self.steps_spin])
 
         # Special stuff for MDMin
-        lbl = gtk.Label("Pseudo time step: ")
+        lbl = gtk.Label(_("Pseudo time step: "))
         self.mdmin_dt = gtk.Adjustment(0.05, 0.0, 10.0, 0.01)
         spin = gtk.SpinButton(self.mdmin_dt, 0, 3)
         self.mdmin_widgets = [lbl, spin]
@@ -50,11 +51,11 @@ class Minimize(Simulation, MinimizeMixin):
     
     def __init__(self, gui):
         Simulation.__init__(self, gui)
-        self.set_title("Energy minimization")
+        self.set_title(_("Energy minimization"))
         
         vbox = gtk.VBox()
         self.packtext(vbox,
-                      "Minimize the energy with respect to the positions.")
+                      _("Minimize the energy with respect to the positions."))
         self.packimageselection(vbox)
         pack(vbox, gtk.Label(""))
 
@@ -86,7 +87,7 @@ class Minimize(Simulation, MinimizeMixin):
             logger = logger_func()  # Don't catch errors in the function.
 
         # Display status message
-        self.status_label.set_text("Running ...")
+        self.status_label.set_text(_("Running ..."))
         self.status_label.modify_fg(gtk.STATE_NORMAL,
                                     gtk.gdk.color_parse('#AA0000'))
         while gtk.events_pending():
@@ -103,18 +104,20 @@ class Minimize(Simulation, MinimizeMixin):
             minimizer.run(fmax=fmax, steps=steps)
         except AseGuiCancelException:
             # Update display to reflect cancellation of simulation.
-            self.status_label.set_text("Minimization CANCELLED after %i steps."
+            self.status_label.set_text(_("Minimization CANCELLED after "
+                                         "%i steps.")
                                        % (self.count_steps,))
             self.status_label.modify_fg(gtk.STATE_NORMAL,
                                         gtk.gdk.color_parse('#AA4000'))
         except MemoryError:
-            self.status_label.set_text("Out of memory, consider using LBFGS instead")
+            self.status_label.set_text(_("Out of memory, consider using "
+                                         "LBFGS instead"))
             self.status_label.modify_fg(gtk.STATE_NORMAL,
                                         gtk.gdk.color_parse('#AA4000'))
             
         else:
             # Update display to reflect succesful end of simulation.
-            self.status_label.set_text("Minimization completed in %i steps."
+            self.status_label.set_text(_("Minimization completed in %i steps.")
                                        % (self.count_steps,))
             self.status_label.modify_fg(gtk.STATE_NORMAL,
                                         gtk.gdk.color_parse('#007700'))

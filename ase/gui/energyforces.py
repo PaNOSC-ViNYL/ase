@@ -3,11 +3,12 @@
 "Module for calculating energies and forces."
 
 import gtk
+from gettext import gettext as _
 from ase.gui.simulation import Simulation
 from ase.gui.widgets import oops, pack
 
 class OutputFieldMixin:
-    def makeoutputfield(self, box, label="Output:", heading = None):
+    def makeoutputfield(self, box, label=_("Output:"), heading = None):
         frame = gtk.Frame(label)
         if box is not None:
             box.pack_start(frame, True, True, 0)
@@ -37,7 +38,7 @@ class OutputFieldMixin:
 
     def saveoutput(self, widget):
         chooser = gtk.FileChooserDialog(
-            'Save output', None, gtk.FILE_CHOOSER_ACTION_SAVE,
+            _('Save output'), None, gtk.FILE_CHOOSER_ACTION_SAVE,
             (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
              gtk.STOCK_SAVE, gtk.RESPONSE_OK))
         ok = chooser.run()
@@ -53,14 +54,15 @@ class OutputFieldMixin:
 class EnergyForces(Simulation, OutputFieldMixin):
     def __init__(self, gui):
         Simulation.__init__(self, gui)
-        self.set_title("Potential energy and forces")
+        self.set_title(_("Potential energy and forces"))
         self.set_default_size(-1, 400)
         vbox = gtk.VBox()
         self.packtext(vbox,
-                      "Calculate potential energy and the force on all atoms")
+                      _("Calculate potential energy and the force on all "
+                        "atoms"))
         self.packimageselection(vbox)
         pack(vbox, gtk.Label(""))
-        self.forces = gtk.CheckButton("Write forces on the atoms")
+        self.forces = gtk.CheckButton(_("Write forces on the atoms"))
         self.forces.set_active(True)
         pack(vbox, [self.forces])
         pack(vbox, [gtk.Label("")])
@@ -77,14 +79,14 @@ class EnergyForces(Simulation, OutputFieldMixin):
             return
         self.begin()
         e = self.atoms.get_potential_energy()
-        txt = "Potential Energy:\n"
-        txt += "  %8.2f eV\n" % (e,)
-        txt += "  %8.4f eV/atom\n\n" % (e/len(self.atoms),)
+        txt = _("Potential Energy:\n")
+        txt += _("  %8.2f eV\n") % (e,)
+        txt += _("  %8.4f eV/atom\n\n") % (e/len(self.atoms),)
         if self.forces.get_active():
-            txt +="Forces:\n"
+            txt += _("Forces:\n")
             forces = self.atoms.get_forces()
             for f in forces:
-                txt += "  %8.3f, %8.3f, %8.3f eV/Å\n" % tuple(f)
+                txt += _("  %8.3f, %8.3f, %8.3f eV/Å\n") % tuple(f)
         self.output.set_text(txt)
         self.activate_output()
         self.end()

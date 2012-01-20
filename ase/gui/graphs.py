@@ -2,8 +2,8 @@
 from math import sqrt
 
 import gtk
+from gettext import gettext as _
 
-from ase.gui.languages import translate as _
 from ase.gui.widgets import pack, help
 
 
@@ -16,7 +16,7 @@ class Graphs(gtk.Window):
         self.set_title('Graphs')
         vbox = gtk.VBox()
         self.expr = pack(vbox, [gtk.Entry(64),
-                                help('Help for plot ...')])[0]
+                                help(_('Help for plot ...'))])[0]
         self.expr.connect('activate', self.plot)
 
         completion = gtk.EntryCompletion()
@@ -27,10 +27,10 @@ class Graphs(gtk.Window):
         self.expr.set_completion(completion)
         completion.set_text_column(0)
 
-        button = pack(vbox, [gtk.Button('Plot'),
+        button = pack(vbox, [gtk.Button(_('Plot')),
                              gtk.Label(' x, y1, y2, ...')])[0]
         button.connect('clicked', self.plot, 'xy')
-        button = pack(vbox, [gtk.Button('Plot'),
+        button = pack(vbox, [gtk.Button(_('Plot')),
                              gtk.Label(' y1, y2, ...')])[0]
         button.connect('clicked', self.plot, 'y')
         save_button = gtk.Button(stock=gtk.STOCK_SAVE)
@@ -89,7 +89,7 @@ class Graphs(gtk.Window):
 
     def save(self, filename):
         chooser = gtk.FileChooserDialog(
-            'Save data to file ... ', None, gtk.FILE_CHOOSER_ACTION_SAVE,
+            _('Save data to file ... '), None, gtk.FILE_CHOOSER_ACTION_SAVE,
             (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
              gtk.STOCK_SAVE, gtk.RESPONSE_OK))
         save = chooser.run()

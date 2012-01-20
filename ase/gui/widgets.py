@@ -1,6 +1,5 @@
+from gettext import gettext as _
 import gtk
-
-from ase.gui.languages import translate as _
 
 
 class Number(gtk.SpinButton):
@@ -23,12 +22,12 @@ class Menu:
             text = data[0]
             callback = data[1]
             args = data[2:]
-            menuitem = gtk.MenuItem(_(text))
+            menuitem = gtk.MenuItem(text)
             menu.append(menuitem)
             menuitem.connect('activate', callback, *args)
             menuitem.show()
             self.items[text] = menuitem
-        menuitem = gtk.MenuItem(_(name))
+        menuitem = gtk.MenuItem(name)
         menubar.append(menuitem)
         menuitem.set_submenu(menu)
         menuitem.show()
@@ -51,7 +50,7 @@ class Help(gtk.Window):
         
     def initialize(self, text):
         gtk.Window.__init__(self)
-        self.set_title("Help")
+        self.set_title(_("Help"))
         self._initialized = True
         vbox = gtk.VBox()
         self.add(vbox)
@@ -67,7 +66,7 @@ class Help(gtk.Window):
     def set_text(self, text):
         # Count line length
         linelen = max([len(x) for x in text.split('\n')])
-        text = _(text).replace('<c>', '<span foreground="blue">')
+        text = text.replace('<c>', '<span foreground="blue">')
         text = text.replace('</c>', '</span>')
         self.label.set_width_chars(linelen)
         self.label.set_line_wrap(False)
@@ -95,7 +94,7 @@ class Window(gtk.Window):
         b = pack(vbox, [gtk.Button(_('Constrain')),
                         gtk.Label(_(' immobile atoms:'))])[0]
         b.connect('clicked', self.immobile)
-        b = pack(vbox, gtk.Button('Clear constraint'))
+        b = pack(vbox, gtk.Button(_('Clear constraint')))
         b.connect('clicked', self.clear)
         close = pack(vbox, gtk.Button(_('Close')))
         close.connect('clicked', lambda widget: self.destroy())

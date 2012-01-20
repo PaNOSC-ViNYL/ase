@@ -8,7 +8,7 @@ import numpy as np
 from ase.data import chemical_symbols as symbols
 from ase.data import atomic_names as names
 from ase.gui.widgets import pack
-from ase.gui.languages import translate as _
+from gettext import gettext as _
 
 def formula(Z):
     hist = {}
@@ -57,14 +57,14 @@ class Status:
         if n == 1:
             tag = self.images.T[self.frame,indices][0]
             mom = self.images.M[self.frame][indices]
-            text = (u' #%d %s (%s): %.3f Å, %.3f Å, %.3f Å ' %
+            text = (_(u' #%d %s (%s): %.3f Å, %.3f Å, %.3f Å ') %
                     ((indices[0], names[Z[0]], symbols[Z[0]]) + tuple(R[0])))
         
-            text+=' tag=%s mom=%1.2f' % (tag, mom)        
+            text += _(' tag=%s mom=%1.2f') % (tag, mom)        
         elif n == 2:
             D = R[0] - R[1]
             d = sqrt(np.dot(D, D))
-            text = u' %s-%s: %.3f Å' % (symbols[Z[0]], symbols[Z[1]], d)
+            text = _(u' %s-%s: %.3f Å') % (symbols[Z[0]], symbols[Z[1]], d)
         elif n == 3:
             d = []
             for c in range(3):
@@ -82,7 +82,7 @@ class Status:
                     else:
                         t3 = pi
                 a.append(t3 * 180 / pi)
-            text = (u' %s-%s-%s: %.1f°, %.1f°, %.1f°' %
+            text = (_(u' %s-%s-%s: %.1f°, %.1f°, %.1f°') %
                     tuple([symbols[z] for z in Z] + a))
         elif len(ordered_indices) == 4:
             R = self.R[ordered_indices]
@@ -100,7 +100,7 @@ class Status:
             angle = np.arccos(angle)
             if (np.vdot(bxa,c)) > 0: angle = 2*np.pi-angle
             angle = angle*180.0/np.pi
-            text = ( u'dihedral %s->%s->%s->%s: %.1f°' % tuple([symbols[z] for z in Z]+[angle]))
+            text = ( _(u'dihedral %s->%s->%s->%s: %.1f°') % tuple([symbols[z] for z in Z]+[angle]))
         else:
             text = ' ' + formula(Z)
             

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import gtk
 from ase.gui.widgets import pack
-from ase.gui.languages import translate as _
+from gettext import gettext as _
 
 class Settings(gtk.Window):
     def __init__(self, gui):
@@ -13,7 +13,7 @@ class Settings(gtk.Window):
         # Constraints
         a = pack(vbox, gtk.Label())
         a.set_markup('<span size="larger" underline="single">'
-                     'Constraints:</span>')
+                     '%s</span>' % _('Constraints:'))
         a, b = pack(vbox, [gtk.Button(_('Constrain')),
                            gtk.Label('/'),
                            gtk.Button(_('release')),                        
@@ -28,7 +28,7 @@ class Settings(gtk.Window):
         # Visibility
         a = pack(vbox, gtk.Label())
         a.set_markup('\n<span size="larger" underline="single">'
-                     'Visibility:</span>')
+                     '%s</span>' % _('Visibility:'))
         a, b = pack(vbox, [gtk.Button(_('Hide')),
                            gtk.Label('/'),
                            gtk.Button(_('show')),
@@ -41,7 +41,7 @@ class Settings(gtk.Window):
         # Miscellaneous
         a = pack(vbox, gtk.Label())
         a.set_markup('\n<span size="larger" underline="single">'
-                     'Miscellaneous:</span>')
+                     '%s</span>' % _('Miscellaneous:'))
         self.scale = gtk.Adjustment(value=.89, lower=0.2, upper=2.0,
                                     step_incr=0.1, page_incr=0.5)
         pack(vbox, [gtk.Label(_('Scale atomic radii:')),

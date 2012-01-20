@@ -3,14 +3,15 @@
 "Module for displaying information about the system."
 
 import gtk
+from gettext import gettext as _
 from ase.gui.widgets import pack
 
-singleimage = "Single image loaded."
-multiimage = "Image %d loaded (0 - %d)."
-ucconst = "Unit cell is fixed."
-ucvaries = "Unit cell varies."
+singleimage = _("Single image loaded.")
+multiimage = _("Image %d loaded (0 - %d).")
+ucconst = _("Unit cell is fixed.")
+ucvaries = _("Unit cell varies.")
 
-format = """\
+format = _("""\
 %s
 
 Number of atoms: %d.
@@ -20,16 +21,16 @@ Unit cell:
   %8.3f  %8.3f  %8.3f
   %8.3f  %8.3f  %8.3f
 %s
-"""
+""")
 
 class QuickInfo(gtk.Window):
     def __init__(self, gui):
         gtk.Window.__init__(self)
-        self.set_title("Quick Info")
+        self.set_title(_("Quick Info"))
         vbox = gtk.VBox()
         images = gui.images
         if images.natoms < 1:
-            txt = "No atoms loaded."
+            txt = _("No atoms loaded.")
         else:
             (nimg, natoms, three) = images.P.shape
             assert three == 3

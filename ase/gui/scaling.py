@@ -3,6 +3,7 @@
 "Module for homogeneous deformation and calculations of elastic constants."
 
 import gtk
+from gettext import gettext as _
 from ase.gui.simulation import Simulation
 from ase.gui.minimize import MinimizeMixin
 from ase.gui.energyforces import OutputFieldMixin
@@ -45,7 +46,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
     use_scrollbar = True
     def __init__(self, gui):
         Simulation.__init__(self, gui)
-        self.set_title("Homogeneous scaling")
+        self.set_title(_("Homogeneous scaling"))
         self.scaling_is_ready = False
         vbox = gtk.VBox()
         self.packtext(vbox, scaling_txt)
@@ -55,23 +56,24 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
 
         # Radio buttons for choosing deformation mode.
         tbl = gtk.Table(4,3)
-        for i, l in enumerate(('3D', '2D', '1D')):
-            l = l + " deformation   "
+        for i, l in enumerate([_('3D deformation   '), 
+                               _('2D deformation   '), 
+                               _('1D deformation   ')]):
             lbl = gtk.Label(l)
             tbl.attach(lbl, i, i+1, 0, 1)
-        self.radio_bulk = gtk.RadioButton(None, "Bulk")
+        self.radio_bulk = gtk.RadioButton(None, _("Bulk"))
         tbl.attach(self.radio_bulk, 0, 1, 1, 2)
-        self.radio_xy = gtk.RadioButton(self.radio_bulk, "xy-plane")
+        self.radio_xy = gtk.RadioButton(self.radio_bulk, _("xy-plane"))
         tbl.attach(self.radio_xy, 1, 2, 1, 2)
-        self.radio_xz = gtk.RadioButton(self.radio_bulk, "xz-plane")
+        self.radio_xz = gtk.RadioButton(self.radio_bulk, _("xz-plane"))
         tbl.attach(self.radio_xz, 1, 2, 2, 3)
-        self.radio_yz = gtk.RadioButton(self.radio_bulk, "yz-plane")
+        self.radio_yz = gtk.RadioButton(self.radio_bulk, _("yz-plane"))
         tbl.attach(self.radio_yz, 1, 2, 3, 4)
-        self.radio_x = gtk.RadioButton(self.radio_bulk, "x-axis")
+        self.radio_x = gtk.RadioButton(self.radio_bulk, _("x-axis"))
         tbl.attach(self.radio_x, 2, 3, 1, 2)
-        self.radio_y = gtk.RadioButton(self.radio_bulk, "y-axis")
+        self.radio_y = gtk.RadioButton(self.radio_bulk, _("y-axis"))
         tbl.attach(self.radio_y, 2, 3, 2, 3)
-        self.radio_z = gtk.RadioButton(self.radio_bulk, "z-axis")
+        self.radio_z = gtk.RadioButton(self.radio_bulk, _("z-axis"))
         tbl.attach(self.radio_z, 2, 3, 3, 4)
         tbl.show_all()
         pack(vbox, [tbl])
@@ -84,35 +86,35 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
             (self.radio_y, (0,1,0)),
             (self.radio_z, (0,0,1))]
         self.allow_non_pbc = gtk.CheckButton(
-            "Allow deformation along non-periodic directions.")
+            _("Allow deformation along non-periodic directions."))
         pack(vbox, [self.allow_non_pbc])
         self.allow_non_pbc.connect('toggled', self.choose_possible_deformations)
 
         # Parameters for the deformation
-        framedef = gtk.Frame("Deformation:")
+        framedef = gtk.Frame(_("Deformation:"))
         vbox2 = gtk.VBox()
         vbox2.show()
         framedef.add(vbox2)
         self.max_scale = gtk.Adjustment(0.010, 0.001, 10.0, 0.001)
         max_scale_spin = gtk.SpinButton(self.max_scale, 10.0, 3)
-        pack(vbox2, [gtk.Label("Maximal scale factor: "), max_scale_spin])
+        pack(vbox2, [gtk.Label(_("Maximal scale factor: ")), max_scale_spin])
         self.scale_offset = gtk.Adjustment(0.0, -10.0, 10.0, 0.001)
         self.scale_offset_spin = gtk.SpinButton(self.scale_offset, 10.0, 3)
-        pack(vbox2, [gtk.Label("Scale offset: "), self.scale_offset_spin])
+        pack(vbox2, [gtk.Label(_("Scale offset: ")), self.scale_offset_spin])
         self.nsteps = gtk.Adjustment(5, 3, 1000, 1)
         nsteps_spin = gtk.SpinButton(self.nsteps, 1, 0)
-        pack(vbox2, [gtk.Label("Number of steps: "), nsteps_spin])
-        self.pull = gtk.CheckButton("Only positive deformation")
+        pack(vbox2, [gtk.Label(_("Number of steps: ")), nsteps_spin])
+        self.pull = gtk.CheckButton(_("Only positive deformation"))
         pack(vbox2, [self.pull])
         self.pull.connect('toggled', self.pull_toggled)
         
         # Atomic relaxations
-        framerel = gtk.Frame("Atomic relaxations:")
+        framerel = gtk.Frame(_("Atomic relaxations:"))
         vbox2 = gtk.VBox()
         vbox2.show()
         framerel.add(vbox2)
-        self.radio_relax_on = gtk.RadioButton(None, "On   ")
-        self.radio_relax_off = gtk.RadioButton(self.radio_relax_on, "Off")
+        self.radio_relax_on = gtk.RadioButton(None, _("On   "))
+        self.radio_relax_off = gtk.RadioButton(self.radio_relax_on, _("Off"))
         self.radio_relax_off.set_active(True)
         pack(vbox2, [self.radio_relax_on, self.radio_relax_off])
         self.make_minimize_gui(vbox2)
@@ -123,13 +125,13 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         pack(vbox, gtk.Label(""))
         
         # Results
-        pack(vbox, [gtk.Label("Results:")])
+        pack(vbox, [gtk.Label(_("Results:"))])
         self.radio_results_keep = gtk.RadioButton(
-            None, "Keep original configuration")
+            None, _("Keep original configuration"))
         self.radio_results_optimal = gtk.RadioButton(
-            self.radio_results_keep, "Load optimal configuration")
+            self.radio_results_keep, _("Load optimal configuration"))
         self.radio_results_all =  gtk.RadioButton(
-            self.radio_results_optimal, "Load all configurations")
+            self.radio_results_optimal, _("Load all configurations"))
         self.radio_results_keep.set_active(True)
         pack(vbox, [self.radio_results_keep])
         pack(vbox, [self.radio_results_optimal])
@@ -137,17 +139,18 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
 
         # Output field
         #label = gtk.Label("Strain\t\tEnergy [eV]\n")
-        outframe = self.makeoutputfield(None, heading="Strain\t\tEnergy [eV]")
-        fitframe = gtk.Frame("Fit:")
+        outframe = self.makeoutputfield(None, 
+                                        heading=_("Strain\t\tEnergy [eV]"))
+        fitframe = gtk.Frame(_("Fit:"))
         vbox2 = gtk.VBox()
         vbox2.show()
         fitframe.add(vbox2)
-        self.radio_fit_2 = gtk.RadioButton(None, "2nd")
-        self.radio_fit_3 = gtk.RadioButton(self.radio_fit_2, "3rd")
+        self.radio_fit_2 = gtk.RadioButton(None, _("2nd"))
+        self.radio_fit_3 = gtk.RadioButton(self.radio_fit_2, _("3rd"))
         self.radio_fit_2.connect("toggled", self.change_fit)
         self.radio_fit_3.connect("toggled", self.change_fit)
         self.radio_fit_3.set_active(True)
-        pack(vbox2, [gtk.Label("Order of fit: "), self.radio_fit_2,
+        pack(vbox2, [gtk.Label(_("Order of fit: ")), self.radio_fit_2,
                      self.radio_fit_3])
         pack(vbox2, [gtk.Label("")])
         scrwin = gtk.ScrolledWindow()
@@ -293,7 +296,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
             logger = logger_func()  # Don't catch errors in the function.
 
         # Display status message
-        self.status_label.set_text("Running ...")
+        self.status_label.set_text(_("Running ..."))
         self.status_label.modify_fg(gtk.STATE_NORMAL,
                                     gtk.gdk.color_parse('#AA0000'))
         while gtk.events_pending():
@@ -340,17 +343,18 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
                     stored_atoms = True
         except AseGuiCancelException:
             # Update display to reflect cancellation of simulation.
-            self.status_label.set_text("Calculation CANCELLED.")
+            self.status_label.set_text(_("Calculation CANCELLED."))
             self.status_label.modify_fg(gtk.STATE_NORMAL,
                                         gtk.gdk.color_parse('#AA4000'))
         except MemoryError:
-            self.status_label.set_text("Out of memory, consider using LBFGS instead")
+            self.status_label.set_text(_("Out of memory, consider using "
+                                         "LBFGS instead"))
             self.status_label.modify_fg(gtk.STATE_NORMAL,
                                         gtk.gdk.color_parse('#AA4000'))
             
         else:
             # Update display to reflect succesful end of simulation.
-            self.status_label.set_text("Calculation completed.")
+            self.status_label.set_text(_("Calculation completed."))
             self.status_label.modify_fg(gtk.STATE_NORMAL,
                                         gtk.gdk.color_parse('#007700'))
                      
@@ -373,7 +377,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
                     self.store_atoms()
                     stored_atoms = True
                 else:
-                    oops("No trustworthy minimum: Old configuration kept.")
+                    oops(_("No trustworthy minimum: Old configuration kept."))
             self.activate_output()
             if stored_atoms:
                 self.gui.notify_vulnerable()
@@ -413,11 +417,11 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
             order = 2
             
         if len(results) < 3:
-            txt = ("Insufficent data for a fit\n(only %i data points)\n"
+            txt = (_("Insufficent data for a fit\n(only %i data points)\n")
                    % (len(results),) )
             order = 0
         elif len(results) == 3 and order == 3:
-            txt = "REVERTING TO 2ND ORDER FIT\n(only 3 data points)\n\n"
+            txt = _("REVERTING TO 2ND ORDER FIT\n(only 3 data points)\n\n")
             order = 2
         else:
             txt = ""
@@ -433,7 +437,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
                     x0 = t
                     break
             if x0 is None:
-                txt = txt + "No minimum found!"
+                txt = txt + _("No minimum found!")
             else:
                 e0 = fit0(x0)
                 e2 = fit2(x0)
@@ -447,8 +451,8 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
                 lowest = self.scale_offset.value - self.max_scale.value
                 highest = self.scale_offset.value + self.max_scale.value
                 if x0 < lowest or x0 > highest:
-                    txt += "\nWARNING: Minimum is outside interval\n"
-                    txt += "It is UNRELIABLE!\n"
+                    txt += _("\nWARNING: Minimum is outside interval\n")
+                    txt += _("It is UNRELIABLE!\n")
                 else:
                     self.minimum_ok = True
                     self.x0 = x0

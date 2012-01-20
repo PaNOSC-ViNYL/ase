@@ -2,8 +2,8 @@
 from math import sqrt
 
 import gtk
+from gettext import gettext as _
 
-from ase.gui.languages import translate as _
 from ase.gui.widgets import pack, Help
 
 
@@ -21,7 +21,7 @@ class Constraints(gtk.Window):
         b = pack(vbox, [gtk.Button(_('Unconstrain')),
                         gtk.Label(_(' selected atoms:'))])[0]
         b.connect('clicked', self.unconstrain)
-        b = pack(vbox, gtk.Button('Clear constraints'))
+        b = pack(vbox, gtk.Button(_('Clear constraints')))
         b.connect('clicked', self.clear)
         close = pack(vbox, gtk.Button(_('Close')))
         close.connect('clicked', lambda widget: self.destroy())

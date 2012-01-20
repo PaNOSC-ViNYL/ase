@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 import gtk
+from gettext import gettext as _
 import numpy as np
 from ase.gui.widgets import pack, oops, AseGuiCancelException
 import sys
@@ -21,20 +22,20 @@ class DefaultProgressIndicator(gtk.Window):
     updatetime = 0.1   # Minimum time (in sec) between updates of the progress bars.
     def __init__(self):
         gtk.Window.__init__(self)
-        self.set_title("Progress")
+        self.set_title(_("Progress"))
         self.globalbox = gtk.VBox()
         self.nextupdate = 0
         self.fmax_max = 1.0
         
         # Scaling deformation progress frame
         self.scalebox = gtk.VBox()
-        self.scaleframe = gtk.Frame("Scaling deformation:")
+        self.scaleframe = gtk.Frame(_("Scaling deformation:"))
         vbox = gtk.VBox()
         self.scaleframe.add(vbox)
         pack(self.scalebox, [self.scaleframe])
         pack(self.scalebox, gtk.Label(""))
 
-        self.label_scale_stepno_format = "Step number %s of %s."
+        self.label_scale_stepno_format = _("Step number %s of %s.")
         self.label_scale_stepno = gtk.Label(
             self.label_scale_stepno_format % ("-" , "-"))
         pack(vbox, [self.label_scale_stepno])
@@ -49,24 +50,24 @@ class DefaultProgressIndicator(gtk.Window):
         
         # Minimization progress frame
         self.minbox = gtk.VBox()  # Box containing frame and spacing
-        self.minframe = gtk.Frame("Energy minimization:")
+        self.minframe = gtk.Frame(_("Energy minimization:"))
         vbox = gtk.VBox()         # Box containing the frames content.
         self.minframe.add(vbox)
         pack(self.minbox, [self.minframe])
         pack(self.minbox, gtk.Label(""))
         
         self.label_min_stepno = gtk.Label("-")
-        pack(vbox, [gtk.Label("Step number: "), self.label_min_stepno])
+        pack(vbox, [gtk.Label(_("Step number: ")), self.label_min_stepno])
         lbl = gtk.Label()
-        lbl.set_markup("F<sub>max</sub>: ")
+        lbl.set_markup(_("F<sub>max</sub>: "))
         self.minimize_progress = gtk.ProgressBar()
         pack(vbox, [lbl, self.minimize_progress])
         self.label_min_fmax = gtk.Label("-")
         lbl = gtk.Label()
-        lbl.set_markup("Convergence criterion: F<sub>max</sub> = ")
+        lbl.set_markup(_("Convergence criterion: F<sub>max</sub> = "))
         pack(vbox, [lbl, self.label_min_fmax])
         self.label_min_maxsteps = gtk.Label("-")
-        pack(vbox, [gtk.Label("Max. number of steps: "),
+        pack(vbox, [gtk.Label(_("Max. number of steps: ")),
                     self.label_min_maxsteps])
         
         vbox.show()
@@ -98,7 +99,7 @@ class DefaultProgressIndicator(gtk.Window):
             self.label_min_fmax.set_text("%.3f" % (fmax,))
             self.label_min_maxsteps.set_text(str(int(steps)))
             self.minimize_progress.set_fraction(0)
-            self.minimize_progress.set_text("unknown")
+            self.minimize_progress.set_text(_("unknown"))
         # Record starting time
         self.starttime = time.time()
         self.active = None  # Becoming active
@@ -175,26 +176,26 @@ class GpawProgressIndicator(DefaultProgressIndicator):
         self.tablerows = 0
         pack(vbox, self.table)
         self.status = gtk.Label("-")
-        self.tablepack([gtk.Label("Status: "), self.status])
+        self.tablepack([gtk.Label(_("Status: ")), self.status])
         self.iteration = gtk.Label("-")
-        self.tablepack([gtk.Label("Iteration: "), self.iteration])
+        self.tablepack([gtk.Label(_("Iteration: ")), self.iteration])
         self.tablepack([gtk.Label("")])
         lbl = gtk.Label()
-        lbl.set_markup("log<sub>10</sub>(change):")
+        lbl.set_markup(_("log<sub>10</sub>(change):"))
         self.tablepack([gtk.Label(""), lbl])
         self.wfs_progress = gtk.ProgressBar()
-        self.tablepack([gtk.Label("Wave functions: "), self.wfs_progress])
+        self.tablepack([gtk.Label(_("Wave functions: ")), self.wfs_progress])
         self.dens_progress = gtk.ProgressBar()
-        self.tablepack([gtk.Label("Density: "), self.dens_progress])
+        self.tablepack([gtk.Label(_("Density: ")), self.dens_progress])
         self.energy_progress = gtk.ProgressBar()
-        self.tablepack([gtk.Label("Energy: "), self.energy_progress])
+        self.tablepack([gtk.Label(_("Energy: ")), self.energy_progress])
         self.tablepack([gtk.Label("")])
         self.versionlabel = gtk.Label("")
-        self.tablepack([gtk.Label("GPAW version: "), self.versionlabel])
+        self.tablepack([gtk.Label(_("GPAW version: ")), self.versionlabel])
         self.natomslabel = gtk.Label("")
-        self.tablepack([gtk.Label("Number of atoms: "), self.natomslabel])
-        self.memorylabel = gtk.Label("N/A")
-        self.tablepack([gtk.Label("Memory estimate: "), self.memorylabel])
+        self.tablepack([gtk.Label(_("Number of atoms: ")), self.natomslabel])
+        self.memorylabel = gtk.Label(_("N/A"))
+        self.tablepack([gtk.Label(_("Memory estimate: ")), self.memorylabel])
         self.globalbox.pack_start(self.gpawframe)
         self.gpawframe.show()
 
@@ -229,7 +230,7 @@ class GpawProgressIndicator(DefaultProgressIndicator):
         for bar in (self.wfs_progress, self.dens_progress,
                     self.energy_progress):
             bar.set_fraction(0.0)
-            bar.set_text("No info")
+            bar.set_text(_("No info"))
 
     def gpaw_write(self, txt):
         #if not self.active:
@@ -239,12 +240,12 @@ class GpawProgressIndicator(DefaultProgressIndicator):
         if versearch:
             # Starting a gpaw calculation.
             self.versionlabel.set_text(versearch.group(1))
-            self.status.set_text("Initializing")
-        elif txt.startswith("Positions:"):
+            self.status.set_text(_("Initializing"))
+        elif txt.startswith(_("Positions:")):
             # Start counting atoms
             self.poscount = True
             self.reset_gpaw_bars()
-            self.status.set_text("Starting calculation")
+            self.status.set_text(_("Starting calculation"))
             self.oldenergy = None
         elif txt.strip() == "":
             # Stop counting atoms
@@ -281,7 +282,7 @@ class GpawProgressIndicator(DefaultProgressIndicator):
                         self.energy_progress.set_text("%.1f" % de)
                     else:
                         self.energy_progress.set_fraction(1)
-                        self.energy_progress.set_text("unchanged")
+                        self.energy_progress.set_text(_("unchanged"))
             words = txt.split()
             self.iteration.set_text(words[1])
         elif (-1 < txt.find("WFS") < txt.find("Density") < txt.find("Energy")
@@ -291,13 +292,13 @@ class GpawProgressIndicator(DefaultProgressIndicator):
             self.density_idx = txt.find("Density")
             self.energy_idx = txt.find("Energy")
             self.fermi_idx = txt.find("Fermi")
-            self.status.set_text("Self-consistency loop")
+            self.status.set_text(_("Self-consistency loop"))
             self.iteration.set_text("0")
         elif txt.find("Converged After") != -1:
             # SCF loop has converged.
             words = txt.split()
-            self.status.set_text("Calculating forces")
-            self.iteration.set_text(words[2]+" (converged)")
+            self.status.set_text(_("Calculating forces"))
+            self.iteration.set_text(words[2] + _(" (converged)"))
         elif -1 < txt.find("Calculator") < txt.find("MiB"):
             # Memory estimate
             words = txt.split()

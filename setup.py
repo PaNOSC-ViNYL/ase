@@ -43,7 +43,13 @@ packages = ['ase',
 
 package_dir={'ase': 'ase'}
 
-package_data={'ase': ['lattice/spacegroup/spacegroup.dat']}
+# Compile translation files:
+#for pofile in glob('ase/gui/po/??_??/LC_MESSAGES/ag.po'):
+#    mofile = os.path.join(os.path.split(pofile)[0], 'ag.mo')
+#    os.system('msgfmt -cv %s --output-file=%s' % (pofile, mofile))
+
+package_data={'ase': ['lattice/spacegroup/spacegroup.dat',
+                      'gui/po/??_??/LC_MESSAGES/ag.mo']}
 
 # Get the current version number:
 execfile('ase/svnversion_io.py')  # write ase/svnversion.py and get svnversion

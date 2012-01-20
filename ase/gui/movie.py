@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import gtk
+from gettext import gettext as _
 import gobject
 
-from ase.gui.languages import translate as _
 from ase.gui.widgets import pack
 
 class Movie(gtk.Window):
@@ -11,7 +11,7 @@ class Movie(gtk.Window):
         self.set_position(gtk.WIN_POS_NONE)
         self.connect('destroy', self.close)
         #self.connect('delete_event', self.exit2)
-        self.set_title('Movie')
+        self.set_title(_('Movie'))
         vbox = gtk.VBox()
         pack(vbox, gtk.Label(_('Image number:')))
         self.frame_number = gtk.Adjustment(gui.frame, 0,
@@ -37,9 +37,9 @@ class Movie(gtk.Window):
 
         play = gtk.Button(_('Play'))
         play.connect('clicked', self.play)
-        stop = gtk.Button('Stop')
+        stop = gtk.Button(_('Stop'))
         stop.connect('clicked', self.stop)
-        self.rock = gtk.CheckButton('Rock')
+        self.rock = gtk.CheckButton(_('Rock'))
 
         pack(vbox, [play, stop, gtk.Label('  '), self.rock])
 
@@ -55,8 +55,8 @@ class Movie(gtk.Window):
         self.time.connect("value-changed",self.frame_rate_changed)
         self.skip = gtk.Adjustment(skipdefault, 0, 99, 1)
         self.skip_spin = gtk.SpinButton(self.skip, 0, 0)
-        pack(vbox, [gtk.Label(' Frame rate: '), self.time_spin,
-                    gtk.Label(' Skip frames: '), self.skip_spin,
+        pack(vbox, [gtk.Label(_(' Frame rate: ')), self.time_spin,
+                    gtk.Label(_(' Skip frames: ')), self.skip_spin,
                     gtk.Label('   ')])
         self.add(vbox)
         vbox.show()
@@ -116,9 +116,9 @@ class Movie(gtk.Window):
                 self.direction = 1
             elif i >= nimages - delta:
                 self.direction = -1
-            i += self.direction*delta
+            i += self.direction * delta
         else:
-            i = (i + self.direction*delta + nimages) % nimages
+            i = (i + self.direction * delta + nimages) % nimages
             
         self.gui.set_frame(i)
         self.frame_number.value = i

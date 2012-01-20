@@ -4,6 +4,7 @@
 
 
 import gtk
+from gettext import gettext as _
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.setupwindow import SetupWindow
 from ase.gui.pybutton import PyButton
@@ -11,10 +12,10 @@ from ase.structure import graphene_nanoribbon
 import ase
 import numpy as np
 
-introtext = """\
+introtext = _("""\
 Set up a graphene sheet or a graphene nanoribbon.  A nanoribbon may
 optionally be saturated with hydrogen (or another element).\
-"""
+""")
 
 py_template = """
 from ase.structure import nanotube
@@ -26,26 +27,27 @@ class SetupGraphene(SetupWindow):
     "Window for setting up a graphene sheet or nanoribbon."
     def __init__(self, gui):
         SetupWindow.__init__(self)
-        self.set_title("Graphene")
+        self.set_title(_("Graphene"))
         vbox = gtk.VBox()
 
         # Intoductory text
         self.packtext(vbox, introtext)
 
         # Choose structure
-        label = gtk.Label("Structure: ")
+        label = gtk.Label(_("Structure: "))
         self.struct = gtk.combo_box_new_text()
-        for s in ("Infinite sheet", "Unsaturated ribbon", "Saturated ribbon"):
+        for s in (_("Infinite sheet"), _("Unsaturated ribbon"), 
+                  _("Saturated ribbon")):
             self.struct.append_text(s)
         self.struct.set_active(0)
         self.struct.connect('changed', self.update_gui)
         pack(vbox, [label, self.struct])
 
         # Orientation
-        label = gtk.Label("Orientation: ")
+        label = gtk.Label(_("Orientation: "))
         self.orient = gtk.combo_box_new_text()
         self.orient_text = []
-        for s in ("zigzag", "armchair"):
+        for s in (_("zigzag"), _("armchair")):
             self.orient.append_text(s)
             self.orient_text.append(s)
         self.orient.set_active(0)
@@ -61,20 +63,20 @@ class SetupGraphene(SetupWindow):
         self.element.set_text("C")
         self.element.connect('activate', self.update_element)
         self.bondlength = gtk.Adjustment(1.42, 0.0, 1000.0, 0.01)
-        label2 = gtk.Label("  Bond length: ")
-        label3 = gtk.Label("Å")
+        label2 = gtk.Label(_("  Bond length: "))
+        label3 = gtk.Label(_("Å"))
         bond_box = gtk.SpinButton(self.bondlength, 10.0, 3)
         pack(vbox, [label1, self.element, label2, bond_box, label3])
 
         # Choose the saturation element and bond length
-        self.sat_label1 = gtk.Label("Saturation: ")
+        self.sat_label1 = gtk.Label(_("Saturation: "))
         #label.set_alignment(0.0, 0.2)
         self.element2 = gtk.Entry(max=3)
-        self.element2.set_text("H")
+        self.element2.set_text(_("H"))
         self.element2.connect('activate', self.update_element)
         self.bondlength2 = gtk.Adjustment(1.12, 0.0, 1000.0, 0.01)
-        self.sat_label2 = gtk.Label("  Bond length: ")
-        self.sat_label3 = gtk.Label("Å")
+        self.sat_label2 = gtk.Label(_("  Bond length: "))
+        self.sat_label3 = gtk.Label(_("Å"))
         self.bond_box = gtk.SpinButton(self.bondlength2, 10.0, 3)
         pack(vbox, [self.sat_label1, self.element2, self.sat_label2,
                     self.bond_box, self.sat_label3])
@@ -86,8 +88,8 @@ class SetupGraphene(SetupWindow):
         pack(vbox, gtk.Label(""))
 
         # Size
-        label1 = gtk.Label("Width: ")
-        label2 = gtk.Label("  Length: ")
+        label1 = gtk.Label(_("Width: "))
+        label2 = gtk.Label(_("  Length: "))
         self.n = gtk.Adjustment(1, 1, 100, 1)
         self.m = gtk.Adjustment(1, 1, 100, 1)
         spinn = gtk.SpinButton(self.n, 0, 0)
@@ -95,9 +97,9 @@ class SetupGraphene(SetupWindow):
         pack(vbox, [label1, spinn, label2, spinm])
 
         # Vacuum
-        label1 = gtk.Label("Vacuum: ")
+        label1 = gtk.Label(_("Vacuum: "))
         self.vacuum = gtk.Adjustment(5.0, 0.0, 1000.0, 0.1)
-        label2 = gtk.Label("Å")
+        label2 = gtk.Label(_("Å"))
         vac_box = gtk.SpinButton(self.vacuum, 10.0, 2)
         pack(vbox, [label1, vac_box, label2])
         pack(vbox, gtk.Label(""))
@@ -133,7 +135,7 @@ class SetupGraphene(SetupWindow):
             
         for elem in elements:
             if not elem:
-                self.invalid_element("  No element specified!")
+                self.invalid_element(_("  No element specified!"))
                 return False
             try:
                 z = int(elem)
@@ -225,8 +227,9 @@ class SetupGraphene(SetupWindow):
             self.gui.new_atoms(self.atoms)
             return True
         else:
-            oops("No valid atoms.",
-                 "You have not (yet) specified a consistent set of parameters.")
+            oops(_("No valid atoms."),
+                 _("You have not (yet) specified a consistent set of "
+                   "parameters."))
             return False
 
     def ok(self, *args):

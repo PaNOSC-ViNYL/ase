@@ -3,6 +3,7 @@
 
 
 import gtk
+from gettext import gettext as _
 from ase.gui.widgets import pack, cancel_apply_ok, oops, help
 import ase
 from ase.data.colors import jmol_colors
@@ -20,7 +21,7 @@ class ColorWindow(gtk.Window):
         self.gui = gui
         self.colormode = gui.colormode
         self.actual_colordata = None
-        self.set_title("Colors")
+        self.set_title(_("Colors"))
         vbox = gtk.VBox()
         self.add(vbox)
         vbox.show()
@@ -37,16 +38,16 @@ class ColorWindow(gtk.Window):
         self.colorbox.show()
         self.maintable.attach(self.colorbox, 1, 2, 0, 2, gtk.EXPAND)
         # Upper left: Choose how the atoms are colored.
-        lbl = gtk.Label("Choose how the atoms are colored:")
+        lbl = gtk.Label(_("Choose how the atoms are colored:"))
         pack(self.methodbox, [lbl])
-        self.radio_jmol = gtk.RadioButton(None, 'By atomic number, default "jmol" colors')
+        self.radio_jmol = gtk.RadioButton(None, _('By atomic number, default "jmol" colors'))
         self.radio_atno = gtk.RadioButton(self.radio_jmol,
-                                          'By atomic number, user specified')
-        self.radio_tag = gtk.RadioButton(self.radio_jmol, 'By tag')
-        self.radio_force = gtk.RadioButton(self.radio_jmol, 'By force')
-        self.radio_velocity = gtk.RadioButton(self.radio_jmol, 'By velocity')
-        self.radio_manual = gtk.RadioButton(self.radio_jmol, 'Manually specified')
-        self.radio_same = gtk.RadioButton(self.radio_jmol, 'All the same color')
+                                          _('By atomic number, user specified'))
+        self.radio_tag = gtk.RadioButton(self.radio_jmol, _('By tag'))
+        self.radio_force = gtk.RadioButton(self.radio_jmol, _('By force'))
+        self.radio_velocity = gtk.RadioButton(self.radio_jmol, _('By velocity'))
+        self.radio_manual = gtk.RadioButton(self.radio_jmol, _('Manually specified'))
+        self.radio_same = gtk.RadioButton(self.radio_jmol, _('All the same color'))
         self.force_box = gtk.VBox()
         self.velocity_box = gtk.VBox()
         for widget in (self.radio_jmol, self.radio_atno, self.radio_tag,
@@ -56,18 +57,18 @@ class ColorWindow(gtk.Window):
             if isinstance(widget, gtk.RadioButton):
                 widget.connect('toggled', self.method_radio_changed)
         # Now fill in the box for additional information in case the force is used.
-        self.force_label = gtk.Label("This should not be displayed!")
+        self.force_label = gtk.Label(_("This should not be displayed!"))
         pack(self.force_box, [self.force_label])
         self.force_min = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
         self.force_max = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
         self.force_steps = gtk.Adjustment(10, 2, 500, 1)
-        force_apply = gtk.Button('Update')
+        force_apply = gtk.Button(_('Update'))
         force_apply.connect('clicked', self.set_force_colors)
-        pack(self.force_box, [gtk.Label('Min: '),
+        pack(self.force_box, [gtk.Label(_('Min: ')),
                               gtk.SpinButton(self.force_min, 10.0, 2),
-                              gtk.Label('  Max: '),
+                              gtk.Label(_('  Max: ')),
                               gtk.SpinButton(self.force_max, 10.0, 2),
-                              gtk.Label('  Steps: '),
+                              gtk.Label(_('  Steps: ')),
                               gtk.SpinButton(self.force_steps, 1, 0),
                               gtk.Label('  '),
                               force_apply])
@@ -78,34 +79,34 @@ class ColorWindow(gtk.Window):
         self.velocity_min = gtk.Adjustment(0.0, 0.0, 10.0, 0.005)
         self.velocity_max = gtk.Adjustment(0.0, 0.0, 10.0, 0.005)
         self.velocity_steps = gtk.Adjustment(10, 2, 500, 1)
-        velocity_apply = gtk.Button('Update')
+        velocity_apply = gtk.Button(_('Update'))
         velocity_apply.connect('clicked', self.set_velocity_colors)
-        pack(self.velocity_box, [gtk.Label('Min: '),
+        pack(self.velocity_box, [gtk.Label(_('Min: ')),
                                  gtk.SpinButton(self.velocity_min, 10.0, 3),
-                                 gtk.Label('  Max: '),
+                                 gtk.Label(_('  Max: ')),
                                  gtk.SpinButton(self.velocity_max, 10.0, 3),
-                                 gtk.Label('  Steps: '),
+                                 gtk.Label(_('  Steps: ')),
                                  gtk.SpinButton(self.velocity_steps, 1, 0),
                                  gtk.Label('  '),
                                  velocity_apply])
         self.velocity_box.hide()
         # Lower left: Create a color scale
         pack(self.scalebox, gtk.Label(""))
-        lbl = gtk.Label('Create a color scale:')
+        lbl = gtk.Label(_('Create a color scale:'))
         pack(self.scalebox, [lbl])
         color_scales = (
-            'Black - white',
-            'Black - red - yellow - white',
-            'Black - green - white',
-            'Black - blue - cyan',
-            'Hue',
-            'Named colors'
+            _('Black - white'),
+            _('Black - red - yellow - white'),
+            _('Black - green - white'),
+            _('Black - blue - cyan'),
+            _('Hue'),
+            _('Named colors')
             )
         self.scaletype_created = None
         self.scaletype = gtk.combo_box_new_text()
         for s in color_scales:
             self.scaletype.append_text(s)
-        self.createscale = gtk.Button("Create")
+        self.createscale = gtk.Button(_("Create"))
         pack(self.scalebox, [self.scaletype, self.createscale])
         self.createscale.connect('clicked', self.create_color_scale)
         # The actually colors are specified in a box possibly with scrollbars
@@ -363,9 +364,9 @@ class ColorWindow(gtk.Window):
         assert len(F) == nimages
         if nimages > 1:
             fmax_frame = self.gui.images.F[self.gui.frame].max()
-            txt = "Max force: %.2f (this frame), %.2f (all frames)" % (fmax_frame, fmax)
+            txt = _("Max force: %.2f (this frame), %.2f (all frames)") % (fmax_frame, fmax)
         else:
-            txt = "Max force: %.2f." % (fmax,)
+            txt = _("Max force: %.2f.") % (fmax,)
         self.force_label.set_text(txt)
         if self.force_max.value == 0.0:
             self.force_max.value = fmax
@@ -379,9 +380,9 @@ class ColorWindow(gtk.Window):
         assert len(V) == nimages
         if nimages > 1:
             vmax_frame = self.gui.images.V[self.gui.frame].max()
-            txt = "Max velocity: %.2f (this frame), %.2f (all frames)" % (vmax_frame, vmax)
+            txt = _("Max velocity: %.2f (this frame), %.2f (all frames)") % (vmax_frame, vmax)
         else:
-            txt = "Max velocity: %.2f." % (vmax,)
+            txt = _("Max velocity: %.2f.") % (vmax,)
         self.velocity_label.set_text(txt)
         if self.velocity_max.value == 0.0:
             self.velocity_max.value = vmax
@@ -422,7 +423,7 @@ class ColorWindow(gtk.Window):
             space.show()
             blob.add(space)
             if error:
-                space.set_text("ERROR")
+                space.set_text(_("ERROR"))
             else:
                 blob.modify_bg(gtk.STATE_NORMAL, clr)
             table.attach(lbl, 0, 1, i, i+1, yoptions=0)
@@ -451,7 +452,7 @@ class ColorWindow(gtk.Window):
                 # Cannot parse the color
                 displ = self.color_display[index]
                 displ.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
-                displ.get_child().set_text("ERR")
+                displ.get_child().set_text(_("ERR"))
                 self.color_errors[index] = (self.color_labels[index], txt)
                 return
         self.color_display[index].get_child().set_text("    ") # Clear error message
@@ -538,7 +539,7 @@ class ColorWindow(gtk.Window):
         #if self.colormode in ['atno', 'jmol', 'tags']:
         # Color atoms according to an integer value number
         if self.color_errors:
-            oops("Incorrect color specification",
+            oops(_("Incorrect color specification"),
                  "%s: %s" % self.color_errors.values()[0])
             return False
         colordata = self.actual_colordata
