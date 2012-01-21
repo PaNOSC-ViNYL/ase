@@ -64,7 +64,8 @@ def read(filename, index=-1, format=None):
     CASTEP trajectory file     geom
     ETSF format                etsf.nc
     DFTBPlus GEN format        gen
-    CMR db-file                db
+    CMR db/cmr-file            db
+    CMR db/cmr-file            cmr
     LAMMPS dump file           lammps
     =========================  ===========
 
@@ -315,7 +316,8 @@ def write(filename, images, format=None, **kwargs):
     DftbPlus input file        dftb
     ETSF                       etsf.nc
     DFTBPlus GEN format        gen
-    CMR db-file                db
+    CMR db/cmr-file            db
+    CMR db/cmr-file            cmr
     =========================  ===========
 
     The use of additional keywords is format specific.
@@ -434,7 +436,7 @@ def write(filename, images, format=None, **kwargs):
         writer.write_atoms(images[0])
         writer.close()
         return
-    elif format == 'db':
+    elif format == 'db' or format == 'cmr':
         from ase.io.cmr_io import write_db
         return write_db(filename, images, **kwargs)
 
@@ -485,7 +487,7 @@ def filetype(filename):
     if len(s3) == 0:
         raise IOError('Empty file: ' + filename)
 
-    if filename.lower().endswith('.db'):
+    if filename.lower().endswith('.db') or filename.lower().endswith('.cmr'):
         return 'db'
 
     if is_tarfile(filename):
