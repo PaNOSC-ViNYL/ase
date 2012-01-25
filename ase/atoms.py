@@ -1298,10 +1298,10 @@ class Atoms(object):
                 name += str(elements[element])
         return name
 
-    def write(self, filename, format=None):
+    def write(self, filename, format=None, **kwargs):
         """Write yourself to a file."""
         from ase.io import write
-        write(filename, self, format)
+        write(filename, self, format, **kwargs)
 
     def edit(self):
         """Modify atoms interactively through ag viewer. 
