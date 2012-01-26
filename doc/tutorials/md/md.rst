@@ -62,3 +62,35 @@ melting point due to finite size effects (including surface melting),
 but you will probably see an almost flat region where the inside of
 the system melts.  The outermost layers melt at a lower temperature.
 
+.. note::
+
+  The Langevin dynamics will by default keep the position and momentum
+  of the center of mass unperturbed. This is another improvement over
+  just setting momenta corresponding to a temperature, as we did before.
+
+
+Isolated particle MD
+====================
+
+When simulating isolated particles with MD, it is sometimes preferable
+to set random momenta corresponding to a spefic temperature and let the
+system evolve freely. With a relatively high temperature, the is however
+a risk that the collection of atoms will drift out of the simulation box
+because the randomized momenta gave the center of mass a small but
+non-zero velocity too.
+
+Let us see what happens when we propagate a nanoparticle for a long time:
+
+.. literalinclude:: moldyn4.py
+
+After running the simulation, use :program:`ag` to compare the results
+with how it looks if you comment out either the line that says
+:epydoc:`ase.md.velocitydistribution.Stationary` (atoms),
+:epydoc:`ase.md.velocitydistribution.ZeroRotation` (atoms) or both.
+
+::
+
+  ag moldyn4.traj
+
+Try playing the movie with a high frame rate and set frame skipping to a
+low number. Can you spot the subtle difference?

@@ -912,14 +912,13 @@ class Atoms(object):
             return com
 
     def get_moments_of_inertia(self, vectors=False):
-        '''Get the moments of inertia
+        """Get the moments of inertia along the principal axes.
 
         The three principal moments of inertia are computed from the
-        eigenvalues of the inertial tensor. periodic boundary
+        eigenvalues of the symmetric inertial tensor. Periodic boundary
         conditions are ignored. Units of the moments of inertia are
         amu*angstrom**2.
-        '''
-        
+        """
         com = self.get_center_of_mass()
         positions = self.get_positions()
         positions -= com  # translate center of mass to origin
@@ -942,11 +941,18 @@ class Atoms(object):
                       [I12, I22, I23],
                       [I13, I23, I33]])
 
-        evals, evecs = np.linalg.eig(I)
+        evals, evecs = np.linalg.eigh(I)
         if vectors:
             return evals, evecs.transpose()
         else:
             return evals
+
+    def get_angular_momentum(self):
+        """Get total angular momentum with respect to the center of mass."""
+        com = self.get_center_of_mass()
+        positions = self.get_positions()
+        positions -= com  # translate center of mass to origin
+        return np.cross(positions, self.get_momenta()).sum(0)
 
     def rotate(self, v, a=None, center=(0, 0, 0), rotate_cell=False):
         """Rotate atoms.
