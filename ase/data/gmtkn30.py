@@ -183,6 +183,8 @@ def read_html(filename, dir='.'):
                 fs = f.strip()
                 try:
                     v = eval(fs)
+                    if fs.isdigit() and str(v) != fs: # e.g. undesirable eval('001') = 1
+                        v = fs   
                 # string: NameError, .*[+-*], etc: SyntaxError
                 except (NameError, SyntaxError):
                     v = fs
@@ -212,7 +214,8 @@ def table2reference(ncompounds, table):
         stoich = []
         for c in range(ncompounds):
             if r[c] != '': # only defined compounds
-                stoich.append((str(r[c]), r[c+ncompounds]))
+                # compound names can have spaces around
+                stoich.append((str(r[c]).strip(), r[c+ncompounds]))
         stoich.append(('reaction_id', reaction_id))
         reactions.append(stoich)
     return reference, reactions
