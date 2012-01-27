@@ -15,6 +15,17 @@ from ase.lattice.spacegroup import crystal
 from ase.lattice.spacegroup.spacegroup import spacegroup_from_data
 
 
+def get_lineno(fileobj):
+    """Returns the line number of current line in fileobj."""
+    pos = fileobj.tell()
+    try:
+        fileobj.seek(0)
+        s = fileobj.read(pos)
+        lineno = s.count('\n') 
+    finally:
+        fileobj.seek(pos)
+    return lineno
+
 
 def unread_line(fileobj):
     """Unread the last line read from *fileobj*."""
@@ -140,9 +151,11 @@ def parse_items(fileobj, line):
         elif lowerline.startswith('data_'):
             unread_line(fileobj)
             break
+        elif line.startswith(';'):
+            temp = parse_multiline_string(fileobj, line)
         else:
-            raise ValueError('%s: Unexpected CIF file entry: %s'%(
-                    fileobj.name, line))
+            raise ValueError('%s:%d: Unexpected CIF file entry: "%s"'%(
+                    fileobj.name, get_lineno(fileobj), line))
     return tags
 
 
@@ -207,6 +220,8 @@ def tags2atoms(tags, store_tags=False, **kwargs):
     no = None
     if '_space_group.it_number' in tags:
         no = tags['_space_group.it_number']
+    elif '_space_group_it_number' in tags:
+        no = tags['_space_group_it_number']
     elif '_symmetry_int_tables_number' in tags:
         no = tags['_symmetry_int_tables_number']
 
