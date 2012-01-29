@@ -86,7 +86,7 @@ class EnergyForces(Simulation, OutputFieldMixin):
             txt += _("Forces:\n")
             forces = self.atoms.get_forces()
             for f in forces:
-                txt += _("  %8.3f, %8.3f, %8.3f eV/Å\n") % tuple(f)
+                txt += "  %8.3f, %8.3f, %8.3f eV/Å\n" % tuple(f)
         self.output.set_text(txt)
         self.activate_output()
         self.end()

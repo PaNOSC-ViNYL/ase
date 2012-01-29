@@ -57,14 +57,14 @@ class Status:
         if n == 1:
             tag = self.images.T[self.frame,indices][0]
             mom = self.images.M[self.frame][indices]
-            text = (_(u' #%d %s (%s): %.3f Å, %.3f Å, %.3f Å ') %
+            text = (u' #%d %s (%s): %.3f Å, %.3f Å, %.3f Å ' %
                     ((indices[0], names[Z[0]], symbols[Z[0]]) + tuple(R[0])))
-        
-            text += _(' tag=%s mom=%1.2f') % (tag, mom)        
+            # TRANSLATORS: mom refers to magnetic moment
+            text += _(' tag=%(tag)s mom=%(mom)1.2f') % dict(tag=tag, mom=mom)
         elif n == 2:
             D = R[0] - R[1]
             d = sqrt(np.dot(D, D))
-            text = _(u' %s-%s: %.3f Å') % (symbols[Z[0]], symbols[Z[1]], d)
+            text = u' %s-%s: %.3f Å' % (symbols[Z[0]], symbols[Z[1]], d)
         elif n == 3:
             d = []
             for c in range(3):
@@ -82,7 +82,7 @@ class Status:
                     else:
                         t3 = pi
                 a.append(t3 * 180 / pi)
-            text = (_(u' %s-%s-%s: %.1f°, %.1f°, %.1f°') %
+            text = (u' %s-%s-%s: %.1f°, %.1f°, %.1f°' %
                     tuple([symbols[z] for z in Z] + a))
         elif len(ordered_indices) == 4:
             R = self.R[ordered_indices]
@@ -100,7 +100,8 @@ class Status:
             angle = np.arccos(angle)
             if (np.vdot(bxa,c)) > 0: angle = 2*np.pi-angle
             angle = angle*180.0/np.pi
-            text = ( _(u'dihedral %s->%s->%s->%s: %.1f°') % tuple([symbols[z] for z in Z]+[angle]))
+            text = (u'%s %s->%s->%s->%s: %.1f°'
+                    % tuple([_('dihedral')] + [symbols[z] for z in Z]+[angle]))
         else:
             text = ' ' + formula(Z)
             

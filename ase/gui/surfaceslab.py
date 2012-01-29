@@ -104,9 +104,9 @@ class SetupSurfaceSlab(SetupWindow):
                                               0.0, 1000.0, 0.01)
         lattice_box_c = gtk.SpinButton(self.lattice_const_c, 10.0, 3)
         lattice_box_c.numeric = True
-        pack(self.vbox_hcp, [gtk.Label(_("c:")), 
-                             lattice_box_c, gtk.Label(_("Å"))])
-        self.hcp_c_over_a_format = _("c/a: %.3f (%.1f %% of ideal)")
+        pack(self.vbox_hcp, [gtk.Label("c:"), 
+                             lattice_box_c, gtk.Label("Å")])
+        self.hcp_c_over_a_format = "c/a: %.3f " + _("(%.1f %% of ideal)")
         self.hcp_c_over_a_label = gtk.Label(self.hcp_c_over_a_format % \
                                                 (self.hcp_ideal, 100.0))
         pack(self.vbox_hcp, [self.hcp_c_over_a_label])
@@ -208,8 +208,8 @@ class SetupSurfaceSlab(SetupWindow):
             norm /= np.sqrt(np.dot(norm, norm))
             h[i] = np.abs(np.dot(norm, uc[i]))
         natoms = len(self.atoms)
-        txt = (_("\t\t%.2f Å x %.2f Å x %.2f Å,  %i atoms.")
-               % (h[0], h[1], h[2], natoms))
+        txt = ("\t\t%.2f Å x %.2f Å x %.2f Å,  %s"
+               % (h[0], h[1], h[2], _('%i atoms.') % natoms))
         self.sizelabel.set_text(txt)
         return True
     
@@ -230,8 +230,8 @@ class SetupSurfaceSlab(SetupWindow):
             if alt and alt['symmetry'] == struct:
                 ref = alt
             else:
-                oops(_('%s lattice constant unknown for %s.') 
-                     % (struct.upper(), self.legal_element))
+                oops(_('%(struct)s lattice constant unknown for %(element)s.')
+                     % dict(struct=struct.upper(), element=self.legal_element))
         
         a = ref['a']
         self.lattice_const.set_value(a)

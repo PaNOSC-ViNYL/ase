@@ -165,6 +165,7 @@ class GUI(View, Status):
             ('EditMenu', None, _('_Edit')),
             ('ViewMenu', None, _('_View')),
             ('ToolsMenu', None, _('_Tools')),
+            # TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
             ('SetupMenu', None, _('_Setup')),
             ('CalculateMenu', None, _('_Calculate')),
             ('HelpMenu', None, _('_Help')),

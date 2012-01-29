@@ -168,7 +168,8 @@ class SetCalculator(SetupWindow):
         pack(vbox, [self.none_radio])
 
         # Lennard-Jones
-        self.lj_radio = gtk.RadioButton(self.none_radio, _("Lennard-Jones (ASAP)"))
+        self.lj_radio = gtk.RadioButton(self.none_radio,
+                                        _("Lennard-Jones (ASAP)"))
         self.lj_setup = gtk.Button(_("Setup"))
         self.lj_info = InfoButton(lj_info_txt)
         self.lj_setup.connect("clicked", self.lj_setup_window)
@@ -550,8 +551,8 @@ class SetCalculator(SetupWindow):
             for e in self.atoms.get_atomic_numbers():
                 elements_dict[e]
         except KeyError:
-            oops(_("Element %s is not allowed by the '%s' calculator")
-                 % (ase.data.chemical_symbols[e], name))
+            oops(_("Element %(sym)s not allowed by the '%(name)s' calculator")
+                 % dict(sym=ase.data.chemical_symbols[e], name=name))
             return False
         return True
     
@@ -595,6 +596,7 @@ class LJ_Window(gtk.Window):
         pack(vbox, [gtk.Label(_("Sigma (Å):"))])
         tbl, self.sigma_adj = self.makematrix(self.present)
         pack(vbox, [tbl])
+        # TRANSLATORS: Shift roughly means adjust (about a potential)
         self.modif = gtk.CheckButton(_("Shift to make smooth at cutoff"))
         self.modif.set_active(True)
         pack(vbox, gtk.Label(""))
@@ -693,7 +695,7 @@ class GPAW_Window(gtk.Window):
         # Print some info
         txt = _("%i atoms.\n") % (self.natoms,)
         if self.orthogonal:
-            txt += _("Orthogonal unit cell: %.2f x %.2f x %.2f Å." % self.size)
+            txt += _("Orthogonal unit cell: %.2f x %.2f x %.2f Å.") % self.size
         else:
             txt += _("Non-orthogonal unit cell:\n")
             txt += str(self.ucell)
@@ -983,12 +985,12 @@ class AIMS_Window(gtk.Window):
         txt = _("%i atoms.\n") % (natoms)
         if self.periodic:
             self.ucell = atoms.get_cell()
-            txt += _("Periodic geometry, unit cell is: \n")
+            txt += _("Periodic geometry, unit cell is:\n")
             for i in range(3):
                 txt += "(%8.3f %8.3f %8.3f)\n" % (self.ucell[i][0], self.ucell[i][1], self.ucell[i][2])
             self.xc_list = self.aims_xc_periodic
         else:
-            txt += _("Non-periodic geometry. \n")
+            txt += _("Non-periodic geometry.\n")
             self.xc_list = self.aims_xc_cluster
         pack(vbox, [gtk.Label(txt)])
 
@@ -1068,6 +1070,10 @@ class AIMS_Window(gtk.Window):
         self.sc_forces_spin = gtk.SpinButton(self.sc_forces, 0, 0)
         self.sc_forces_spin.set_numeric(True)
         self.sc_forces_spin.set_digits(6)
+        # XXX: use gtk table for layout.  Spaces will not work well otherwise
+        # (depend on fonts, widget style, ...)
+        # TRANSLATORS: Don't care too much about these, just get approximately
+        # the same string lengths
         pack(vbox, [gtk.Label(_("Energy:                 ")),
                     self.sc_tot_energy_spin, 
                     gtk.Label(_(" eV   Sum of eigenvalues:  ")),

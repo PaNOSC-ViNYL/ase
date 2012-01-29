@@ -7,62 +7,59 @@ import os
 from optparse import OptionParser, SUPPRESS_HELP
 
 import ase.gui.i18n
-#from gettext import gettext as _
+from gettext import gettext as _
 
 # Grrr, older versions (pre-python2.7) of optparse have a bug
 # which prevents non-ascii descriptions.  How do we circumvent this?
-# For now, we'll have to use English in the command line options then:
-def _(msg):
-    return msg
-
+# For now, we'll have to use English in the command line options then.
 
 def build_parser():
-    parser = OptionParser(usage=_('%prog [options] [file[, file2, ...]]'),
+    parser = OptionParser(usage='%prog [options] [file[, file2, ...]]',
                           version='%prog 0.1',
                           description='See the online manual ' +
                           '(https://wiki.fysik.dtu.dk/ase/ase/gui.html) ' +
                           'for more information.')
     parser.add_option('-n', '--image-number',
-                      default=':', metavar=_('NUMBER'),
-                      help=_('Pick image(s) from trajectory.  NUMBER can be a '
+                      default=':', metavar='NUMBER',
+                      help='Pick image(s) from trajectory.  NUMBER can be a '
                       'single number (use a negative number to count from '
                       'the back) or a range: start:stop:step, where the '
                       '":step" part can be left out - default values are '
-                      '0:nimages:1.'))
+                      '0:nimages:1.')
     parser.add_option('-u', '--show-unit-cell', type='int',
-                      default=1, metavar=_('I'),
-                      help=_("0: Don't show unit cell.  1: Show unit cell.  "
-                      '2: Show all of unit cell.'))
+                      default=1, metavar='I',
+                      help="0: Don't show unit cell.  1: Show unit cell.  "
+                      '2: Show all of unit cell.')
     parser.add_option('-r', '--repeat',
                       default='1',
-                      help=_('Repeat unit cell.  Use "-r 2" or "-r 2,3,1".'))
+                      help='Repeat unit cell.  Use "-r 2" or "-r 2,3,1".')
     parser.add_option('-R', '--rotations', default='',
-                      help=_('Examples: "-R -90x", "-R 90z,-30x".'))
-    parser.add_option('-o', '--output', metavar=_('FILE'),
-                      help=_('Write configurations to FILE.'))
+                      help='Examples: "-R -90x", "-R 90z,-30x".')
+    parser.add_option('-o', '--output', metavar='FILE',
+                      help='Write configurations to FILE.')
     parser.add_option('-g', '--graph',
                       # TRANSLATORS: EXPR abbreviates 'expression'
-                      metavar=_('EXPR'),
-                      help=_('Plot x,y1,y2,... graph from configurations or '
+                      metavar='EXPR',
+                      help='Plot x,y1,y2,... graph from configurations or '
                       'write data to sdtout in terminal mode.  Use the '
                       'symbols: i, s, d, fmax, e, ekin, A, R, E and F.  See '
                       'https://wiki.fysik.dtu.dk/ase/ase/gui.html'
-                      '#plotting-data for more details.'))
+                      '#plotting-data for more details.')
     parser.add_option('-t', '--terminal',
                       action='store_true',
                       default=False,
-                      help=_('Run in terminal window - no GUI.'))
+                      help='Run in terminal window - no GUI.')
     parser.add_option('--aneb',
                       action='store_true',
                       default=False,
-                      help=_('Read ANEB data.'))
+                      help='Read ANEB data.')
     parser.add_option('--interpolate',
-                      type='int', metavar=_('N'),
-                      help=_('Interpolate N images between 2 given images.'))
+                      type='int', metavar='N',
+                      help='Interpolate N images between 2 given images.')
     parser.add_option('-b', '--bonds',
                       action='store_true',
                       default=False,
-                      help=_('Draw bonds between atoms.'))
+                      help='Draw bonds between atoms.')
     return parser
 
 

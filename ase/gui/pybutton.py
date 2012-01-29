@@ -40,18 +40,18 @@ class PyButton(gtk.Button):
         self.connect_after('clicked', self.run)
 
     def run(self, *args):
-        "The method called when the button is click."
+        "The method called when the button is clicked."
         if self.python:
             now = time.ctime()
             win = PyWindow(self.title, now, self.python)
         else:
             oops(_("No Python code"),
-                   _("You have not (yet) specified a "
+                 _("You have not (yet) specified a "
                    "consistent set of parameters."))
 
 fr1_template = _("""
-Title: %s
-Time: %s
+Title: %(title)s
+Time: %(time)s
 """)
 
 class PyWindow(gtk.Window):
@@ -60,7 +60,7 @@ class PyWindow(gtk.Window):
         gtk.Window.__init__(self)
         self.set_title(_("ag: Python code"))
         vbox = gtk.VBox()
-        lbl = gtk.Label(fr1_template % (title, time))
+        lbl = gtk.Label(fr1_template % dict(title=title, time=time))
         lbl.set_alignment(0.0, 0.5)
         fr = gtk.Frame(_("Information:"))
         fr.add(lbl)

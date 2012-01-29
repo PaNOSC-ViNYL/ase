@@ -52,9 +52,9 @@ class SetupWindow(gtk.Window):
         else:
             struct = ref['symmetry']
             if struct == 'fcc' or struct == 'bcc':
-                struct = _("%s (a=%.3f Å)") % (struct, ref['a'])
+                struct = "%s (a=%.3f Å)" % (struct, ref['a'])
         
-        txt = _("  %s: %s, Z=%i, %s") % (name, symb, z, struct)
+        txt = "  %s: %s, Z=%i, %s" % (name, symb, z, struct)
         self.elementinfo.set_text(txt)
         self.legal_element = symb
         return True

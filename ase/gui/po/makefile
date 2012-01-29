@@ -11,7 +11,7 @@
 #     LANG=de_DE.UTF8 make init
 # 
 
-# List of files calling gettext.  Could also just write ../*.py
+# List of files calling gettext.
 TRANSLATIONFILES=../ag.py ../calculator.py ../colors.py ../constraints.py ../crystal.py ../debug.py ../dft.py ../energyforces.py ../execute.py ../graphene.py ../graphs.py ../gtkexcepthook.py ../gui.py ../minimize.py ../movie.py ../nanoparticle.py ../nanotube.py ../progress.py ../pybutton.py ../quickinfo.py ../render.py ../repeat.py ../rotate.py ../scaling.py ../settings.py ../setupwindow.py ../simulation.py ../status.py ../surfaceslab.py ../widgets.py
 
 i18n: ag.pot update-po compile
@@ -33,10 +33,8 @@ init: ag.pot
 # reusing the existing translations.
 update-po: ag.pot
 	for FILE in $(wildcard */LC_MESSAGES/ag.po); do \
-	  echo msgmerge --update $$FILE ag.pot ;\
+	  msgmerge --update $$FILE ag.pot ;\
 	done
-
-MSGFMT=echo msgfmt -cv --output-file=$(basename ${FILE})/LC_MESSAGES/ag.mo ${FILE}
 
 # This will compile all translations (*.po) into binary files in gettext's
 # search directory.
