@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-01-29 02:37+0100\n"
+"POT-Creation-Date: 2012-01-31 20:42+0100\n"
 "PO-Revision-Date: 2012-01-29 21:46+0100\n"
 "Last-Translator: Ask Hjorth Larsen <askhl@fysik.dtu.dk>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
@@ -520,9 +520,9 @@ msgstr "Selfkonsistenskonvergens:"
 msgid "Compute forces"
 msgstr "Beregn kræfter"
 
-#. DEVELOPERS: please change to gtk table.  Spaces will never work
-#. (will depend on fonts, widget style, ...)
-#. TRANSLATORS: Don't care too much about this, just get approximately
+#. XXX: use gtk table for layout.  Spaces will not work well otherwise
+#. (depend on fonts, widget style, ...)
+#. TRANSLATORS: Don't care too much about these, just get approximately
 #. the same string lengths
 #: ../calculator.py:1077
 msgid "Energy:                 "
@@ -1999,16 +1999,17 @@ msgstr "Afspil"
 msgid "Stop"
 msgstr "Stop"
 
-# Viser animation af f.eks. vibration skiftevis frem/tilbage
-#: ../movie.py:42
+#. TRANSLATORS: This function plays an animation forwards and backwards
+#. alternatingly, e.g. for displaying vibrational movement
+#: ../movie.py:44
 msgid "Rock"
 msgstr "Pendul"
 
-#: ../movie.py:58
+#: ../movie.py:60
 msgid " Frame rate: "
 msgstr " Billedrate: "
 
-#: ../movie.py:59
+#: ../movie.py:61
 msgid " Skip frames: "
 msgstr " Overspring billeder: "
 

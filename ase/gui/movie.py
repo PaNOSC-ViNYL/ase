@@ -39,6 +39,8 @@ class Movie(gtk.Window):
         play.connect('clicked', self.play)
         stop = gtk.Button(_('Stop'))
         stop.connect('clicked', self.stop)
+        # TRANSLATORS: This function plays an animation forwards and backwards
+        # alternatingly, e.g. for displaying vibrational movement
         self.rock = gtk.CheckButton(_('Rock'))
 
         pack(vbox, [play, stop, gtk.Label('  '), self.rock])
