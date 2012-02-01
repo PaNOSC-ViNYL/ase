@@ -1,9 +1,13 @@
-from math import pi
+from math import pi, ceil
 
 import numpy as np
 
 from ase.atoms import Atoms
-
+from ase.parallel import world, rank
+try:
+    from gpaw.mpi import SerialCommunicator
+except:
+    pass
 
 def make_test_dft_calculation():
     a = b = 2.0
@@ -123,7 +127,8 @@ def numeric_force(atoms, a, i, d=0.001):
     return (eminus - eplus) / (2 * d)
 
 
-def numeric_forces(atoms, indices=None, axes=(0, 1, 2), d=0.001):
+def numeric_forces(atoms, indices=None, axes=(0, 1, 2), d=0.001,
+                   parallel=None):
     """Evaluate finite-difference forces on several atoms.
 
     Returns an array of forces for each specified atomic index and
@@ -136,7 +141,22 @@ def numeric_forces(atoms, indices=None, axes=(0, 1, 2), d=0.001):
     if indices is None:
         indices = range(len(atoms))
     F_ai = np.zeros_like(atoms.positions)
-    for a in indices:
-        for i in axes:
-            F_ai[a, i] = numeric_force(atoms, a, i, d)
+    n = len(indices) * len(axes)
+    if parallel is None:
+        atom_tasks = [atoms] * n
+    else:
+        # XXX we assume that there n > world.size always
+        calculator = atoms.get_calculator()
+        calculator.set(communicator=SerialCommunicator())
+        atom_tasks = [None] * n
+        for i in range(n):
+            if ((i - rank) % world.size) == 0:
+                atom_tasks[i] = atoms
+    for ia, a in enumerate(indices):
+        for ii, i in enumerate(axes):
+            atoms = atom_tasks[ia * len(axes) + ii]
+            if atoms is not None:
+                F_ai[a, i] = numeric_force(atoms, a, i, d)
+    if parallel is not None:
+        world.sum(F_ai)
     return F_ai
