@@ -136,6 +136,38 @@ Reasonable values of the threshhold and spring constant for some common bonds ar
     - 0.97
     - 2
 
+The FixInternals class
+======================
+
+This class allows to fix an arbitrary number of bond lengths, angles 
+and dihedral angles. The defined constraints are satisfied self 
+consistently. To define the constraints one needs to specify the 
+atoms object on which the constraint works (needed for atomic 
+masses), a list of bond, angle and dihedral constraints. 
+Those constraint definitions are always list objects containing 
+the value to be set and a list of atomic indices. The epsilon value 
+specifies the accuracy to which the constraints are fullfilled.
+
+.. class:: FixInternals(atoms, bonds=[bond1, bond2], \
+    angles=[angle1], dihedrals=[dihedral1, dihedral2], epsilon=1.e-7)
+
+Example of use::
+
+  >>> bond1 = [1.20, [1, 2]]
+  >>> angle_indices1 = [2, 3, 4]
+  >>> dihedral_indices1 = [2, 3, 4, 5]
+  >>> angle1 = [atoms.get_angle(angle_indices1), angle_indices1]
+  >>> dihedral1 = [atoms.get_dihedral(dihedral_indices1), \
+    dihedral_indices1]
+  >>> c = FixInternals(atoms, bonds=[bonds1], angles=[angles1], \
+    dihedrals=[dihedral1])
+  >>> atoms.set_onstraint(c)
+
+This example defines a bond an angle and a dihedral angle constraint 
+to be fixed at the same time.
+
+
+
 Combining constraints
 =====================
 

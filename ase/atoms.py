@@ -1076,9 +1076,9 @@ class Atoms(object):
         b = self.positions[list[2]] - self.positions[list[1]]
         c = self.positions[list[3]] - self.positions[list[2]]
         bxa = np.cross(b, a)
-        bxa /= np.sqrt(np.vdot(bxa, bxa))
+        bxa /= np.linalg.norm(bxa)
         cxb = np.cross(c, b)
-        cxb /= np.sqrt(np.vdot(cxb, cxb))
+        cxb /= np.linalg.norm(cxb)
         angle = np.vdot(bxa, cxb)
         # check for numerical trouble due to finite precision:
         if angle < -1:
@@ -1089,6 +1089,26 @@ class Atoms(object):
         if np.vdot(bxa, c) > 0:
             angle = 2 * np.pi - angle
         return angle
+
+    def _masked_rotate(self, center, axis, diff, mask):
+        # do rotation of subgroup by copying it to temporary atoms object
+        # and then rotating that
+        #
+        # recursive object definition might not be the most elegant thing,
+        # more generally useful might be a rotation function with a mask?
+        group = self.__class__()
+        for i in range(len(self)):
+            if mask[i]:
+                group += self[i]
+        group.translate(-center)
+        group.rotate(axis, diff)
+        group.translate(center)
+        # set positions in original atoms object
+        j = 0
+        for i in range(len(self)):
+            if mask[i]:
+                self.positions[i] = group[j].get_position()
+                j += 1
 
     def set_dihedral(self, list, angle, mask=None):
         """
@@ -1112,25 +1132,9 @@ class Atoms(object):
         # compute necessary in dihedral change, from current value
         current = self.get_dihedral(list)
         diff = angle - current
-        # do rotation of subgroup by copying it to temporary atoms object
-        # and then rotating that
         axis = self.positions[list[2]] - self.positions[list[1]]
         center = self.positions[list[2]]
-        # recursive object definition might not be the most elegant thing,
-        # more generally useful might be a rotation function with a mask?
-        group = self.__class__()
-        for i in range(len(self)):
-            if mask[i]:
-                group += self[i]
-        group.translate(-center)
-        group.rotate(axis, diff)
-        group.translate(center)
-        # set positions in original atoms object
-        j = 0
-        for i in range(len(self)):
-            if mask[i]:
-                self.positions[i] = group[j].get_position()
-                j += 1
+        self._masked_rotate(center, axis, diff, mask)
         
     def rotate_dihedral(self, list, angle, mask=None):
         """Rotate dihedral angle.
@@ -1141,7 +1145,46 @@ class Atoms(object):
         """
         start = self.get_dihedral(list)
         self.set_dihedral(list, angle + start, mask)
+    
+    def get_angle(self, list):
+        """Get angle formed by three atoms.
+        
+        calculate angle between the vectors list[0]->list[1] and
+        list[1]->list[2], where list contains the atomic indexes in
+        question."""
+        # normalized vector 1->0, 1->2:
+        v10 = self.positions[list[0]] - self.positions[list[1]]
+        v12 = self.positions[list[2]] - self.positions[list[1]]
+        v10 /= np.linalg.norm(v10)
+        v12 /= np.linalg.norm(v12)
+        angle = np.vdot(v10, v12)
+        angle = np.arccos(angle)
+        return angle
 
+    def set_angle(self, list, angle, mask=None):
+        """Set angle formed by three atoms.
+        
+        Sets the angle between vectors list[1]->list[0] and 
+        list[1]->list[2].
+
+        Same usage as in set_dihedral."""
+        # If not provided, set mask to the last atom in the angle description
+        if mask is None:
+            mask = np.zeros(len(self))
+            mask[list[2]] = 1
+        # Compute necessary in angle change, from current value
+        current = self.get_angle(list)
+        diff = current - angle
+        # Do rotation of subgroup by copying it to temporary atoms object and
+        # then rotating that
+        v10 = self.positions[list[0]] - self.positions[list[1]]
+        v12 = self.positions[list[2]] - self.positions[list[1]]
+        v10 /= np.linalg.norm(v10)
+        v12 /= np.linalg.norm(v12)
+        axis = np.cross(v10, v12)
+        center = self.positions[list[1]]
+        self._masked_rotate(center, axis, diff, mask)
+    
     def rattle(self, stdev=0.001, seed=42):
         """Randomly displace atoms.
 
