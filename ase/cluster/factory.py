@@ -47,7 +47,6 @@ class ClusterFactory(ClusterBase):
 
         cluster = self.make_cluster(vacuum)
         cluster.symmetry = self.xtal_name
-        cluster.center = self.center.copy()
         cluster.surfaces = self.surfaces.copy()
         cluster.lattice_basis = self.lattice_basis.copy()
         cluster.atomic_basis = self.atomic_basis.copy()

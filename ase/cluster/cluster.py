@@ -10,7 +10,6 @@ from ase.cluster.base import ClusterBase
 
 class Cluster(Atoms, ClusterBase):
     symmetry = None
-    center = None
     surfaces = None
     lattice_basis = None
     resiproc_basis = None
@@ -19,7 +18,6 @@ class Cluster(Atoms, ClusterBase):
     def copy(self):
         cluster = Atoms.copy(self)
         cluster.symmetry = self.symmetry
-        cluster.center = self.center.copy()
         cluster.surfaces = self.surfaces.copy()
         cluster.lattice_basis = self.lattice_basis.copy()
         cluster.atomic_basis = self.atomic_basis.copy()
@@ -40,7 +38,8 @@ class Cluster(Atoms, ClusterBase):
 
         for s in self.surfaces:
             n = self.miller_to_direction(s)
-            r = np.dot(self.get_positions() - self.center, n).max()
+            c = self.get_positions().mean(axis=0)
+            r = np.dot(self.get_positions() - c, n).max()
             d = self.get_layer_distance(s, 2)
             l = 2 * np.round(r / d).astype(int)
 
@@ -65,7 +64,8 @@ class Cluster(Atoms, ClusterBase):
         """
 
         if method == 'shape':
-            pos = self.get_positions() - self.center
+            cen = self.get_positions().mean(axis=0)
+            pos = self.get_positions() - cen
             d = 0.0
             for s in self.surfaces:
                 n = self.miller_to_direction(s)
@@ -90,7 +90,6 @@ class Cluster(Atoms, ClusterBase):
             os.rename(filename, filename + '.bak')
 
         d = {'symmetry': self.symmetry,
-             'center': self.get_center(),
              'surfaces': self.surfaces,
              'lattice_basis': self.lattice_basis,
              'resiproc_basis': self.resiproc_basis,
@@ -121,7 +120,6 @@ class Cluster(Atoms, ClusterBase):
         f.close()
 
         self.symmetry = d['symmetry']
-        self.center = d['center']
         self.surfaces = d['surfaces']
         self.lattice_basis = d['lattice_basis']
         self.resiproc_basis = d['resiproc_basis']
