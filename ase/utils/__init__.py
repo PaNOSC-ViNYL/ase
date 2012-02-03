@@ -14,6 +14,9 @@ class DevNull:
     def flush(self):
         pass
 
+    def seek(self, long, int=0):
+        return 0
+
     def tell(self):
         return 0
 
