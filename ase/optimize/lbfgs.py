@@ -217,6 +217,8 @@ class LBFGS(Optimizer):
            ls._line_search(self.func, self.fprime, r, self.p, g, e, self.e0,
                            maxstep=self.maxstep, c1=.23,
                            c2=.46, stpmax=50.)
+        if self.alpha_k is None:
+            raise RuntimeError("LineSearch failed!")
 
 class LBFGSLineSearch(LBFGS):
     """This optimizer uses the LBFGS algorithm, but does a line search that fulfills

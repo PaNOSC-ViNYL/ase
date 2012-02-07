@@ -102,6 +102,8 @@ class BFGSLineSearch(Optimizer):
            ls._line_search(self.func, self.fprime, r, self.p, g, e, self.e0,
                            maxstep=self.maxstep, c1=self.c1,
                            c2=self.c2, stpmax=self.stpmax)
+        if self.alpha_k is None:
+            raise RuntimeError("LineSearch failed!")
 
         dr = self.alpha_k * self.p
         atoms.set_positions((r+dr).reshape(len(atoms),-1))
