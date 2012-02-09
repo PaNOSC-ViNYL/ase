@@ -61,12 +61,32 @@ float_keys = [
     'weimin',     # maximum weight for a band to be considered empty
     'zab_vdw',    # vdW-DF parameter
     'zval',       # ionic valence
-    ]
+#The next keywords pertain to the VTST add-ons from Graeme Henkelman's group at UT Austin
+    'jacobian',   # Weight of lattice to atomic motion
+    'ddr',        # (DdR) dimer separation
+    'drotmax',    # (DRotMax) number of rotation steps per translation step
+    'dfnmin',     # (DFNMin) rotational force below which dimer is not rotated
+    'dfnmax',     # (DFNMax) rotational force below which dimer rotation stops
+    'stol',       # convergence ratio for minimum eigenvalue
+    'sdr',        # finite difference for setting up Lanczos matrix and step size when translating
+    'maxmove',    # Max step for translation for IOPT > 0
+    'invcurve',   # Initial curvature for LBFGS (IOPT = 1)
+    'timestep',   # Dynamical timestep for IOPT = 3 and IOPT = 7
+    'sdalpha',    # Ratio between force and step size for IOPT = 4
+#The next keywords pertain to IOPT = 7 (i.e. FIRE)
+    'ftimemax',   # Max time step
+    'ftimedec',   # Factor to dec. dt
+    'ftimeinc',   # Factor to inc. dt
+    'falpha',     # Parameter for velocity damping
+    'falphadec',  # Factor to dec. alpha
+]
 
 exp_keys = [
     'ediff',      # stopping-criterion for electronic upd.
     'ediffg',     # stopping-criterion for ionic upd.
     'symprec',    # precession in symmetry routines
+#The next keywords pertain to the VTST add-ons from Graeme Henkelman's group at UT Austin
+    'fdstep',     # Finite diference step for IOPT = 1 or 2
 ]
 
 string_keys = [
@@ -121,6 +141,13 @@ int_keys = [
     'vdwgr',      # extra keyword for Andris program
     'vdwrn',      # extra keyword for Andris program
     'voskown',    # use Vosko, Wilk, Nusair interpolation
+#The next keywords pertain to the VTST add-ons from Graeme Henkelman's group at UT Austin
+    'ichain',     # Flag for controlling which method is being used (0=NEB, 1=DynMat, 2=Dimer, 3=Lanczos)
+                  # if ichain > 3, then both IBRION and POTIM are automatically set in the INCAR file
+    'iopt',       # Controls which optimizer to use.  for iopt > 0, ibrion = 3 and potim = 0.0
+    'snl',        # Maximum dimentionality of the Lanczos matrix
+    'lbfgsmem',   # Steps saved for inverse Hessian for IOPT = 1 (LBFGS)
+    'fnmin',      # Max iter. before adjusting dt and alpha for IOPT = 7 (FIRE) 
 ]
 
 bool_keys = [
@@ -147,6 +174,13 @@ bool_keys = [
     'lvhar',      # write Hartree potential to LOCPOT (vasp 5.x)
     'lvtot',      # create WAVECAR/CHGCAR/LOCPOT
     'lwave',      #
+#The next keywords pertain to the VTST add-ons from Graeme Henkelman's group at UT Austin
+    'lclimb',     # Turn on CI-NEB
+    'ltangentold', # Old central difference tangent
+    'ldneb',      # Turn on modified double nudging
+    'lnebcell',   # Turn on SS-NEB
+    'lglobal',    # Optmizize NEB globally for LBFGS (IOPT = 1)
+    'llineopt',   # Use force based line minimizer for translation (IOPT = 1)
 ]
 
 list_keys = [
@@ -742,6 +776,15 @@ class Vasp(Calculator):
         for key, val in self.int_params.items():
             if val is not None:
                 incar.write(' %s = %d\n' % (key.upper(), val))
+                if key == 'ichain' and val > 0:
+                    incar.write(' IBRION = 3\n POTIM = 0.0\n')
+                    for key, val in self.int_params.items():
+                        if key == 'iopt' and val == None:
+                            print 'WARNING: optimization is set to LFBGS (IOPT = 1)'
+                            incar.write(' IOPT = 1\n')
+                    for key, val in self.exp_params.items():
+                        if key == 'ediffg' and val == None:
+                            RuntimeError('Please set EDIFFG < 0')
         for key, val in self.list_params.items():
             if val is not None:
                 incar.write(' %s = ' % key.upper())
