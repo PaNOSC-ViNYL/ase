@@ -113,9 +113,9 @@ def read_xsf(fileobj, index=-1, read_data=True):
     if 'CRYSTAL' in line:
         pbc = True
     elif 'SLAB' in line:
-        pbc = (True, True, Flase)
+        pbc = (True, True, False)
     elif 'POLYMER' in line:
-        pbc = (True, False, Flase)
+        pbc = (True, False, False)
     else:
         pbc = False
 
