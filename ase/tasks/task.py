@@ -94,7 +94,7 @@ class Task:
             
         newnames = []
         for name in names:
-            if '-' in name:
+            if name.count('-') == 1:
                 s1, s2 = name.split('-')
                 Z1 = atomic_numbers.get(s1)
                 Z2 = atomic_numbers.get(s2)
