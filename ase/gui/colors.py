@@ -358,7 +358,7 @@ class ColorWindow(gtk.Window):
     def show_force_stuff(self):
         "Show and update widgets needed for selecting the force scale."
         self.force_box.show()
-        F = np.sqrt((self.gui.images.F * self.gui.images.F).sum(axis=-1))
+        F = np.sqrt(((self.gui.images.F*self.gui.images.dynamic[:,np.newaxis])**2).sum(axis=-1))
         fmax = F.max()
         nimages = self.gui.images.nimages
         assert len(F) == nimages
