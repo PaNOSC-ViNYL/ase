@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-01-31 20:42+0100\n"
-"PO-Revision-Date: 2012-01-31 23:25+0100\n"
+"POT-Creation-Date: 2012-02-01 16:08+0100\n"
+"PO-Revision-Date: 2012-02-02 00:15+0100\n"
 "Last-Translator: Max Ramirez <m.ramirez@mx.uni-saarland.de>\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -1536,7 +1536,7 @@ msgstr "Colores ..."
 #. TRANSLATORS: verb
 #: ../gui.py:235
 msgid "Focus"
-msgstr "Focar"
+msgstr "Enfocar"
 
 #: ../gui.py:238
 msgid "Zoom in"
@@ -2290,6 +2290,15 @@ msgstr "Estructura no soportada o desconocida"
 #, python-format
 msgid "%.1f Å"
 msgstr "%.1f Å"
+
+#: ../nanotube.py:14
+msgid ""
+"Set up a Carbon nanotube by specifying the (n,m) roll-up vector.\n"
+"Please note that m <= n.\n"
+"\n"
+"Nanotubes of other elements can be made by specifying the element\n"
+"and bond length."
+msgstr ""
 
 #: ../nanotube.py:33
 msgid "Nanotube"

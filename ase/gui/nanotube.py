@@ -11,13 +11,13 @@ from ase.structure import nanotube
 import ase
 import numpy as np
 
-introtext = """\
+introtext = _("""\
 Set up a Carbon nanotube by specifying the (n,m) roll-up vector.
 Please note that m <= n.
 
 Nanotubes of other elements can be made by specifying the element
 and bond length.\
-"""
+""")
 
 py_template = """
 from ase.structure import nanotube

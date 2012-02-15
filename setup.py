@@ -44,9 +44,9 @@ packages = ['ase',
 package_dir={'ase': 'ase'}
 
 # Compile translation files:
-#for pofile in glob('ase/gui/po/??_??/LC_MESSAGES/ag.po'):
-#    mofile = os.path.join(os.path.split(pofile)[0], 'ag.mo')
-#    os.system('msgfmt -cv %s --output-file=%s' % (pofile, mofile))
+for pofile in glob('ase/gui/po/??_??/LC_MESSAGES/ag.po'):
+    mofile = os.path.join(os.path.split(pofile)[0], 'ag.mo')
+    os.system('msgfmt -cv %s --output-file=%s' % (pofile, mofile))
 
 package_data={'ase': ['lattice/spacegroup/spacegroup.dat',
                       'gui/po/??_??/LC_MESSAGES/ag.mo']}
