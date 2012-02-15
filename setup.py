@@ -10,6 +10,17 @@ from os.path import join
 import os
 import sys
 
+from os import path
+try:
+    from subprocess import Popen, PIPE
+except ImportError:
+    from os import popen3
+else:
+    def popen3(cmd):
+        p = Popen(cmd, shell=True, close_fds=True,
+                  stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        return p.stdin, p.stdout, p.stderr
+
 long_description = """\
 ASE is a python package providing an open source Atomic Simulation
 Environment in the python scripting language."""
@@ -43,13 +54,24 @@ packages = ['ase',
 
 package_dir={'ase': 'ase'}
 
-# Compile translation files:
-for pofile in glob('ase/gui/po/??_??/LC_MESSAGES/ag.po'):
-    mofile = os.path.join(os.path.split(pofile)[0], 'ag.mo')
-    os.system('msgfmt -cv %s --output-file=%s' % (pofile, mofile))
-
 package_data={'ase': ['lattice/spacegroup/spacegroup.dat',
-                      'gui/po/??_??/LC_MESSAGES/ag.mo']}
+                      'gui/po/ag.pot',
+                      'gui/po/makefile',
+                      'gui/po/??_??/LC_MESSAGES/ag.po']}
+
+# Compile makes sense only when building
+if 'build' in sys.argv or 'build_ext' in sys.argv or 'install' in sys.argv:
+    msgfmt = 'msgfmt'
+    # Compile translation files (requires gettext)
+    cmd = popen3(msgfmt + ' -V')[1]
+    output = cmd.read().strip()
+    cmd.close()
+    if output:
+        for pofile in glob('ase/gui/po/??_??/LC_MESSAGES/ag.po'):
+            mofile = os.path.join(os.path.split(pofile)[0], 'ag.mo')
+            os.system(msgfmt + ' -cv %s --output-file=%s' % (pofile, mofile))
+        package_data.update({'ase': package_data['ase'] + \
+                             ['gui/po/??_??/LC_MESSAGES/ag.mo']})
 
 # Get the current version number:
 execfile('ase/svnversion_io.py')  # write ase/svnversion.py and get svnversion
