@@ -3,7 +3,7 @@ from math import pi, ceil
 import numpy as np
 
 from ase.atoms import Atoms
-from ase.parallel import world, rank
+from ase.parallel import world, rank, distribute_cpus
 try:
     from gpaw.mpi import SerialCommunicator
 except:
@@ -144,19 +144,24 @@ def numeric_forces(atoms, indices=None, axes=(0, 1, 2), d=0.001,
     n = len(indices) * len(axes)
     if parallel is None:
         atom_tasks = [atoms] * n
+        master = True
     else:
-        # XXX we assume that there n > world.size always
+        calc_comm, tasks_comm, tasks_rank = distribute_cpus(parallel, world)
+        master = calc_comm.rank == 0 
         calculator = atoms.get_calculator()
-        calculator.set(communicator=SerialCommunicator())
+        calculator.set(communicator=calc_comm)
         atom_tasks = [None] * n
         for i in range(n):
-            if ((i - rank) % world.size) == 0:
+            if ((i - tasks_rank) % tasks_comm.size) == 0:
                 atom_tasks[i] = atoms
     for ia, a in enumerate(indices):
         for ii, i in enumerate(axes):
             atoms = atom_tasks[ia * len(axes) + ii]
             if atoms is not None:
-                F_ai[a, i] = numeric_force(atoms, a, i, d)
+                print '# rank', rank, 'calculating atom', a, 'xyz'[i]
+                force = numeric_force(atoms, a, i, d)
+                if master:
+                    F_ai[a, i] = force
     if parallel is not None:
         world.sum(F_ai)
     return F_ai

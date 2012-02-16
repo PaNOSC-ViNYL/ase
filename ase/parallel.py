@@ -119,3 +119,20 @@ def register_parallel_cleanup_function():
             world.abort(42)
 
     atexit.register(cleanup)
+
+def distribute_cpus(parsize_calculator, comm):
+    """Distribute cpus to tasks and calculators"""
+    
+    assert parsize_calculator <= comm.size
+    assert comm.size % parsize_calculator == 0
+
+    tasks_rank = comm.rank // parsize_calculator
+
+    r0 = tasks_rank * parsize_calculator
+    ranks = np.arange(r0, r0 + parsize_calculator)
+    calc_comm = comm.new_communicator(ranks)
+#    print 'comm.rank, ranks=', comm.rank, ranks
+
+    tasks_comm = np.arange(0, comm.size, parsize_calculator)
+
+    return calc_comm, tasks_comm, tasks_rank
