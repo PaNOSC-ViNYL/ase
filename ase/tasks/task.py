@@ -112,9 +112,9 @@ class Task:
         newnames = []
         for name in names:
             atoms = self.create_system(name)
-            if self.contains is not None:
-                if self.contains in atoms.get_chemical_symbols():
-                    newnames.append(name)
+            if (self.contains is None or
+                self.contains in atoms.get_chemical_symbols()):
+                newnames.append(name)
         return newnames
 
     def run(self, names):
@@ -129,9 +129,7 @@ class Task:
         """
 
         names = self.expand(names)
-            
         names = names[self.slice]
-
         names = self.exclude(names)
 
         if self.gui:
