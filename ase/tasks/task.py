@@ -69,6 +69,7 @@ class Task:
         self.summary_header = [('name', ''), ('E', 'eV')]
 
         self.interactive_python_session = False
+        self.contains = None
 
     def set_calculator_factory(self, calcfactory):
         if isinstance(calcfactory, str):
@@ -107,6 +108,15 @@ class Task:
 
         return newnames
 
+    def exclude(self, names):
+        newnames = []
+        for name in names:
+            atoms = self.create_system(name)
+            if self.contains is not None:
+                if self.contains in atoms.get_chemical_symbols():
+                    newnames.append(name)
+        return newnames
+
     def run(self, names):
         """Run task far all names.
 
@@ -121,6 +131,8 @@ class Task:
         names = self.expand(names)
             
         names = names[self.slice]
+
+        names = self.exclude(names)
 
         if self.gui:
             for name in names:
@@ -266,6 +278,9 @@ class Task:
         general.add_option('-l', '--use-lock-files', action='store_true',
                             help='Skip calculations where the json ' +
                            'lock-file or result file already exists.')
+        general.add_option('--contains', metavar='ELEMENT',
+                            help='Run only systems containing specific ' +
+                           'element.')
         parser.add_option_group(general)
     
     def parse_args(self, args=None):
@@ -297,6 +312,7 @@ class Task:
         self.write_to_file = opts.write_to_file
         self.use_lock_files = opts.use_lock_files
         self.interactive_python_session = opts.interactive_python_session
+        self.contains = opts.contains
 
         if opts.slice:
             self.slice = string2index(opts.slice)
