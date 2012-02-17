@@ -7,6 +7,7 @@ from ase.atoms import Atoms, string2symbols
 from ase.structure import molecule
 from ase.tasks.task import OptimizeTask
 from ase.data import covalent_radii, atomic_numbers
+from ase.data import ground_state_magnetic_moments
 from ase.utils.eos import EquationOfState
 from ase.io.trajectory import PickleTrajectory
 import ase.units as units
@@ -14,7 +15,7 @@ import ase.units as units
 
 class MoleculeTask(OptimizeTask):
     taskname = 'molecule'
-        
+
     def __init__(self, vacuum=3.0, cell=None, atomize=False,
                  bond_length=None, fit=None,
                  **kwargs):
@@ -28,9 +29,9 @@ class MoleculeTask(OptimizeTask):
         self.atomize = atomize
         self.bond_length = bond_length
         self.fit = fit
-        
+
         OptimizeTask.__init__(self, **kwargs)
-        
+
         self.summary_header += [('d0', 'Ang'),
                                 ('hnu', 'meV'),
                                 ('Ea', 'eV'),
@@ -38,20 +39,25 @@ class MoleculeTask(OptimizeTask):
 
     def run(self, names1):
         names = []
+        atoms = set()
         for name in names1:
             if name.lower() == 'g2':
                 from ase.data.g2 import molecule_names
                 names.extend(molecule_names)
+                from ase.data.g2 import atom_names
+                if self.atomize:
+                    atoms.update(atom_names)
             elif name.lower() == 'g2-1':
                 from ase.data.g2_1 import molecule_names
                 names.extend(molecule_names)
+                from ase.data.g2_1 import atom_names
+                if self.atomize:
+                    atoms.update(atom_names)
             else:
                 names.append(name)
-
+                if self.atomize:
+                    atoms.update(self.build_system(name).get_chemical_symbols())
         if self.atomize:
-            atoms = set()
-            for name in names:
-                atoms.update(self.build_system(name).get_chemical_symbols())
             names.extend(atoms)
 
         return OptimizeTask.run(self, names)
@@ -65,7 +71,8 @@ class MoleculeTask(OptimizeTask):
         except NotImplementedError:
             symbols = string2symbols(name)
             if len(symbols) == 1:
-                atoms = Atoms(name) # , magmoms=[])  XXX
+                magmom = ground_state_magnetic_moments[atomic_numbers[symbols[0]]]
+                atoms = Atoms(name, magmoms=[magmom])
             elif len(symbols) == 2:
                 # Dimer
                 if self.bond_length is None:
@@ -85,7 +92,7 @@ class MoleculeTask(OptimizeTask):
             atoms.center()
 
         return atoms
-    
+
     def fit_bond_length(self, name, atoms):
         N, x = self.fit
         assert N % 2 == 1
@@ -105,13 +112,13 @@ class MoleculeTask(OptimizeTask):
                 'energies': energies}
 
         return data
-            
+
     def calculate(self, name, atoms):
         if self.fit and len(atoms) == 2:
             return self.fit_bond_length(name, atoms)
         else:
             return OptimizeTask.calculate(self, name, atoms)
-        
+
     def analyse(self):
         OptimizeTask.analyse(self)
 
@@ -131,7 +138,7 @@ class MoleculeTask(OptimizeTask):
 
                 if dmin is None:
                     raise ValueError('No minimum!')
-        
+
                 emin = fit0(t)
                 k = fit2(t) * t**4
                 m1, m2 = self.create_system(name).get_masses()
@@ -148,7 +155,7 @@ class MoleculeTask(OptimizeTask):
             if len(atoms) == 1:
                 self.results[name].extend([None, None])
                 continue
-            
+
             eatoms = 0.0
             for symbol in atoms.get_chemical_symbols():
                 if symbol in self.data and symbol != name:
@@ -194,7 +201,7 @@ class MoleculeTask(OptimizeTask):
         if opts.fit:
             points, strain = opts.fit.split(',')
             self.fit = (int(points), float(strain) * 0.01)
-        
+
         if opts.unit_cell:
             if ',' in opts.unit_cell:
                 self.unit_cell = [float(x) for x in opts.unit_cell.split(',')]
