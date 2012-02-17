@@ -103,6 +103,7 @@ class MoleculeTask(OptimizeTask):
         for d in distances:
             atoms.set_distance(0, 1, d)
             energies.append(atoms.get_potential_energy())
+            self.check_occupation_numbers(atoms)
             traj.write(atoms)
 
         traj.close()
@@ -117,7 +118,9 @@ class MoleculeTask(OptimizeTask):
         if self.fit and len(atoms) == 2:
             return self.fit_bond_length(name, atoms)
         else:
-            return OptimizeTask.calculate(self, name, atoms)
+            data = OptimizeTask.calculate(self, name, atoms)
+            self.check_occupation_numbers(atoms)
+            return data
 
     def analyse(self):
         OptimizeTask.analyse(self)
@@ -138,6 +141,11 @@ class MoleculeTask(OptimizeTask):
 
                 if dmin is None:
                     raise ValueError('No minimum!')
+
+                if abs(dmin) < min(distances) or abs(dmin) > max(distances):
+                    raise ValueError('Fit outside of range! ' + \
+                                      str(abs(dmin)) + ' not in ' + \
+                                      str(distances))
 
                 emin = fit0(t)
                 k = fit2(t) * t**4
@@ -209,12 +217,28 @@ class MoleculeTask(OptimizeTask):
                 self.unit_cell = [float(opts.unit_cell)] * 3
 
     def check_occupation_numbers(self, config):
-        """Check that occupation numbers are integers."""
+        """Check that occupation numbers are integers and sum
+        to desired magnetic moment.  """
         if config.pbc.any():
             return
         calc = config.get_calculator()
-        nspins = calc.get_number_of_spins()
-        for s in range(nspins):
-            f = calc.get_occupation_numbers(spin=s)
-            if abs(f % (2 // nspins)).max() > 0.0001:
-                raise RuntimeError('Fractional occupation numbers?!')
+        try:
+            mref = abs(config.get_initial_magnetic_moments().sum())
+            nspins = calc.get_number_of_spins()
+            mcalc = 0.0
+            for s in range(nspins):
+                f = calc.get_occupation_numbers(spin=s)
+                if abs((f.round() - f).sum()) > 0.0001:
+                    raise RuntimeError('Fractional occupation numbers?!')
+                if s % 2:
+                    mcalc -= abs(f).sum()
+                else:
+                    mcalc += abs(f).sum()
+            mcalc = abs(mcalc)
+            if mref > 0.0:
+                if  abs(mcalc - mref) > 0.0001:
+                    raise RuntimeError('Incorrect magnetic moment?! ' + \
+                                       str(mcalc) + ' vs ' + str(mref))
+
+        except AttributeError:
+            pass
