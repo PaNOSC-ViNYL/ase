@@ -475,9 +475,12 @@ class Abinit:
             fh.write('%.14f %.14f %.14f\n' %  tuple(pos))
 
         if self.kpts is not None:
-            fh.write('kptopt %d\n' % (1))
-            fh.write('ngkpt ')
-            fh.write('%d %d %d\n' %  tuple(self.kpts))
+            fh.write('kptopt 1\n')
+            fh.write('ngkpt %d %d %d\n' % tuple(self.kpts))
+            fh.write('nshiftk 1\n')
+            fh.write('shiftk\n')
+            fh.write('%.1f %.1f %.1f\n' %
+                     tuple((np.array(self.kpts) + 1) % 2 * 0.5))
 
         fh.write('#Definition of the SCF procedure\n')
         fh.write('toldfe %.1g\n' %  self.toldfe)
