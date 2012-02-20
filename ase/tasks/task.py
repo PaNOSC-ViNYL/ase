@@ -70,6 +70,7 @@ class Task:
 
         self.interactive_python_session = False
         self.contains = None
+        self.modify = None
 
     def set_calculator_factory(self, calcfactory):
         if isinstance(calcfactory, str):
@@ -206,6 +207,9 @@ class Task:
             system.set_initial_magnetic_moments(
                 np.tile(self.magmoms, len(system) // len(self.magmoms)))
 
+        if self.modify:
+            exec self.modify
+
         return system
 
     def calculate(self, name, atoms):
@@ -279,6 +283,9 @@ class Task:
         general.add_option('--contains', metavar='ELEMENT',
                             help='Run only systems containing specific ' +
                            'element.')
+        general.add_option('--modify', metavar='...',
+                            help='Modify system with Python statement.  ' +
+                           'Example: "system.positions[-1,2]+=0.1".')
         parser.add_option_group(general)
     
     def parse_args(self, args=None):
@@ -311,6 +318,7 @@ class Task:
         self.use_lock_files = opts.use_lock_files
         self.interactive_python_session = opts.interactive_python_session
         self.contains = opts.contains
+        self.modify = opts.modify
 
         if opts.slice:
             self.slice = string2index(opts.slice)
