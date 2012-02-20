@@ -1,5 +1,6 @@
 .. module:: dft.kpoints
    :synopsis: Brillouin zone sampling
+.. default-role:: math
 
 =======================
 Brillouin zone sampling
@@ -12,8 +13,18 @@ reciprocal unit cell.
 Monkhorst-Pack
 --------------
 
-.. function:: dft.kpoints.monkhorst_pack
-.. function:: dft.kpoints.get_monkhorst_pack_size_and_offset
+.. autofunction:: ase.dft.kpoints.monkhorst_pack
+
+The k-points are given as [MonkhorstPack]_:
+
+.. math::
+
+    \sum_{i=1,2,3} \frac{2n_i -N_i - 1}{2N_i} \mathbf{b}_i,
+
+where `n_i=1,2,...,N_i`, ``size`` = `(N_1, N_2, N_3)` and the
+`\mathbf{b}_i`'s are reciprocal lattice vectors.
+
+.. autofunction:: ase.dft.kpoints.get_monkhorst_pack_size_and_offset
 
 Example:
 
@@ -25,6 +36,12 @@ array([[-0.375,  0.   ,  0.   ],
        [ 0.375,  0.   ,  0.   ]])
 >>> get_monkhorst_pack_size_and_offset([[0, 0, 0]])
 (array([1, 1, 1]), array([ 0.,  0.,  0.]))
+
+
+.. [MonkhorstPack]
+    Hendrik J. Monkhorst and James D. Pack:
+    *Special points for Brillouin-zone integrations*,
+    Phys. Rev. B 13, 5188–5192 (1976) 
 
 
 Chadi-Cohen
