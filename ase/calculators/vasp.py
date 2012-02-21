@@ -643,6 +643,7 @@ class Vasp(Calculator):
         return self.stress
 
     def read_stress(self):
+        stress = None
         for line in open('OUTCAR'):
             if line.find(' in kB  ') != -1:
                 stress = -np.array([float(a) for a in line.split()[2:]]) \
