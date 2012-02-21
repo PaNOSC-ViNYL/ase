@@ -229,11 +229,9 @@ class MoleculeTask(OptimizeTask):
             for s in range(nspins):
                 f = calc.get_occupation_numbers(spin=s)
                 if abs((f.round() - f).sum()) > 0.0001:
-                    raise RuntimeError('Fractional occupation numbers?!')
-                if s % 2:
-                    mcalc -= abs(f).sum()
-                else:
-                    mcalc += abs(f).sum()
+                    raise RuntimeError('Fractional occupation numbers?! ' + \
+                                       str(f) + ' for spin ' + str(s))
+                mcalc += abs(f).sum() * (-1)**s
             mcalc = abs(mcalc)
             if mref > 0.0:
                 if  abs(mcalc - mref) > 0.0001:
