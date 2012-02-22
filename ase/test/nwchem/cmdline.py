@@ -3,9 +3,6 @@ import os
 from ase.test import NotAvailable
 
 try:
-    nwchem_basis_library = os.getenv('NWCHEM_BASIS_LIBRARY')
-    if nwchem_basis_library == None:
-        raise NotAvailable('NWCHEM_BASIS_LIBRARY not defined')
     nwchem_command = os.getenv('NWCHEM_COMMAND')
     if nwchem_command == None:
         raise NotAvailable('NWCHEM_COMMAND not defined')
