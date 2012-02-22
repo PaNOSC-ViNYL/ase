@@ -205,11 +205,6 @@ class NWchem(Calculator):
     def get_potential_energy(self, atoms):
         # update atoms
         self.set_atoms(atoms)
-        # set multiplicity
-        if self.multiplicity is not None:
-            multiplicity = self.multiplicity
-        else:
-            multiplicity = int(sum(atoms.get_initial_magnetic_moments()) + 1)
         # if update of energy is neccessary
         if self.energy is None or self.forces is None:
             # write input file
@@ -370,12 +365,16 @@ class NWchem(Calculator):
         self.energy = None
         self.forces = None
 
-        # obtain multiplicity from magnetic momenta
-        multiplicity = 1 + atoms.get_initial_magnetic_moments().sum()
-        self.multiplicity = int(multiplicity)
-        if self.multiplicity != multiplicity:
-            raise RuntimeError('Noninteger magnetic moments not possible.\n' +
-                               'Check initial magnetic moments.')
+        if self.multiplicity is None:
+            # obtain multiplicity from magnetic momenta
+            multiplicity = 1 + atoms.get_initial_magnetic_moments().sum()
+            self.multiplicity = int(multiplicity)
+            if self.multiplicity != multiplicity:
+                raise RuntimeError('Noninteger multiplicity not possible.\n' +
+                                   'Check initial magnetic moments.')
+        else:
+            if self.multiplicity != int(self.multiplicity):
+                raise RuntimeError('Noninteger multiplicity not possible.')
 
     def update(self, atoms):
         self.set_atoms(atoms)
