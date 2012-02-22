@@ -18,18 +18,23 @@ def read_nwchem(filename):
             natoms = int(lines[i + 2].split()[0])
             string = ''
             for j in range(2, natoms + 4):
-                string += lines[i + j]
+                xyzstring = lines[i + j]
+                symbol = xyzstring.split()[0].strip()
+                # replace bq ghost with X: MDTMP can we do better?
+                if symbol.startswith('bq'):
+                    xyzstring = xyzstring.replace(symbol, 'X')
+                string += xyzstring
             atoms = read_xyz(StringIO(string))
             i += natoms + 4
         else:
             i += 1
-           
+
     if type(filename) == str:
         f.close()
 
     return atoms
 
-def write_nwchem(filename, atoms, autosym=False):
+def write_nwchem(filename, atoms, geometry=None):
     """Method to write nwchem coord file
     """
 
@@ -40,14 +45,21 @@ def write_nwchem(filename, atoms, autosym=False):
     else: # Assume it's a 'file-like object'
         f = filename
 
-    if autosym:
-        f.write('geometry\n')
+    # autosym and autoz are defaults
+    # http://www.nwchem-sw.org/index.php/Geometry
+    # geometry noautoz results in higher memory demand!
+    # http://www.emsl.pnl.gov/docs/nwchem/nwchem-support/2010/10/0060.RE:_NWCHEM_Geometry_problem_fwd_
+    if geometry is not None:
+        f.write('geometry ' + str(geometry) + '\n')
     else:
-        f.write('geometry noautosym\n')
+        f.write('geometry\n')
     for atom in atoms:
-        f.write('  ' + atom.symbol + ' ' +
+        if atom.tag == -71: # 71 is ascii G (Ghost)
+            symbol = 'bq' + atom.symbol
+        else:
+            symbol = atom.symbol
+        f.write('  ' + symbol + ' ' +
                 str(atom.position[0]) + ' ' +
                 str(atom.position[1]) + ' ' +
                 str(atom.position[2]) + '\n' )
     f.write('end\n')
-    
