@@ -107,13 +107,10 @@ class NWchem(Calculator):
     def run(self):
         """Method which explicitely runs Nwchem."""
 
-        if os.environ.has_key('NWCHEM_COMMAND'):
-            command = os.environ['NWCHEM_COMMAND']
-            # The label may contain escapable characters!
-            self.execute(command + ' "' + \
-                         self.label + '.nw" > "' + self.output + '"')
-        else:
-            raise RuntimeError('Please set NWCHEM_COMMAND environment variable')
+        command = os.environ.get('NWCHEM_COMMAND', 'nwchem')
+        # The label may contain escapable characters!
+        self.execute(command + ' "' + \
+                     self.label + '.nw" > "' + self.output + '"')
 
     def get_forces(self, atoms):
         self.get_potential_energy(atoms)
