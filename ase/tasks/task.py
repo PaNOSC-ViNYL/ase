@@ -285,7 +285,8 @@ class Task:
                            'element.')
         general.add_option('--modify', metavar='...',
                             help='Modify system with Python statement.  ' +
-                           'Example: "system.positions[-1,2]+=0.1".')
+                           'Example: "system.positions[-1,2]+=0.1". ' +
+                           'Warning: no spaces allowed!')
         parser.add_option_group(general)
     
     def parse_args(self, args=None):
