@@ -322,7 +322,7 @@ class Abinit:
             execfile(abinit, {}, locals)
             exitcode = locals['exitcode']
         else:
-            exitcode = os.system('/usr/bin/abinis < %s.files > %s.log' %
+            exitcode = os.system('abinis < %s.files > %s.log' %
                                  (self.label, self.label))
 
         if exitcode != 0:
