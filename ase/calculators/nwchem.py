@@ -23,10 +23,10 @@ class NWchem(Calculator):
                  task='energy',
                  geometry=None,
                  xc='LDA',
-                 convergence = {'energy'  : 1.e-6,
-                                'density' : 1.e-5,
-                                'gradient': 5.e-4,
-                                'lshift': 0.5, # set to 0.0 for nolevelshifting
+                 convergence = {'energy'  : None,
+                                'density' : None,
+                                'gradient': None,
+                                'lshift': None, # set to 0.0 for nolevelshifting
                                 },
                  smear=0.001*Hartree, # smear must be specified to appear in out!
                  grid=None,
@@ -245,11 +245,17 @@ class NWchem(Calculator):
                 f.write('  xc ' + xc + '\n')
                 f.write('  iterations ' + str(self.maxiter) + '\n')
                 for key in self.convergence:
-                    if key == 'lshift' and not (self.convergence['lshift'] > 0.0):
-                        f.write('  convergence nolevelshifting\n')
+                    if key == 'lshift':
+                        if self.convergence[key] is not None:
+                            if not (self.convergence[key] > 0.0):
+                                f.write('  convergence nolevelshifting\n')
+                            else:
+                                f.write('  convergence ' + key + ' ' +
+                                        str(self.convergence[key]) + '\n')
                     else:
-                        f.write('  convergence ' + key + ' ' +
-                                str(self.convergence[key]) + '\n')
+                        if self.convergence[key] is not None:
+                            f.write('  convergence ' + key + ' ' +
+                                    str(self.convergence[key]) + '\n')
                 if self.smear is not None:
                     f.write('  smear ' + str(self.smear) + '\n')
                 if self.grid is not None:
