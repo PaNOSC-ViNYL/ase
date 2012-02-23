@@ -240,11 +240,13 @@ To be done
   where x is sampling step length, N number of steps.
   Current way of sampling gives different length of sampling interval
   depending on the lattice constant guess a0.
-* Write results to file (pickel, csv, cmr (db), traj, ...).
+* Write results to file (pickel, csv, cmr (db), traj, ...) per system,
+  together with json file!
 * Split off EnergyTask from Task.
-* Set correct magnetic moments for atoms.
+* Set correct magnetic moments for atoms. DONE
 * Allow setting charges in ase.tasks.task
-* Check occupation numbers and requested total magnetic moments for molecules/atoms
+* Check occupation numbers and requested total magnetic moments
+  for molecules/atoms. DONE
 * Add --exclude option.
 * Relax cell.
 * Optimize first then fit.

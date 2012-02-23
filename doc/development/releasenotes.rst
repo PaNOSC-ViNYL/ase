@@ -21,7 +21,8 @@ Development version in trunk
 
 * New values for ase.data.covalent_radii from Cordeo *et al.*.
 
-* New command line tool: :ref:`command line tools`.
+* New command line tool: :ref:`command line tools` and tests based on it:
+  abinit, elk, fleur, nwchem.
 
 * New crystal builder for ag
 
