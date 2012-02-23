@@ -30,6 +30,12 @@ Development version in trunk
 
 * ASE GUI (ag) now supports velocities for both graphs and coloring
 
+* Cleaned up some name-spaces:
+
+  * ``ase`` now contains only :class:`~ase.atoms.Atoms` and
+    :class:`~ase.atom.Atom`
+  * ``ase.calculators`` is now empty
+
 
 Version 3.5.1
 =============
