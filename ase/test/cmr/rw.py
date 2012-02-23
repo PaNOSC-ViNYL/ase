@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 def array_almost_equal(a1, a2, tol=np.finfo(type(1.0)).eps):
@@ -35,3 +37,8 @@ f2 = m1.get_forces()
 # assume atoms definitions are the same if energy/forces are the same: can we do better?
 assert abs(e1-e2) < 1.e-6, str(e1) + ' ' + str(e2)
 assert array_almost_equal(f1, f2, tol=1.e-6)
+
+# clean
+filename = "O2.db"
+if os.path.exists(filename): os.unlink(filename)
+

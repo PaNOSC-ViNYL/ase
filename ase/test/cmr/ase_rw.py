@@ -1,3 +1,5 @@
+import os
+
 from ase.test import NotAvailable
 
 try:
@@ -25,3 +27,8 @@ db_read = cmr.read("O2.db")
 assert "O" in db_read["db_keywords"]
 assert "ase" in db_read["db_keywords"]
 assert db_read["molecule"] == "O2"
+
+# clean
+filename = "O2.db"
+if os.path.exists(filename): os.unlink(filename)
+

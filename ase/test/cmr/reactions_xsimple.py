@@ -1,3 +1,5 @@
+import os
+
 from ase.test import NotAvailable
 
 try:
@@ -60,3 +62,10 @@ group_vars["result"] = sum
 group.write(group_vars)
 print "Energy: ",sum
 group.dump()
+
+# clean
+for (formula, coef) in reaction:
+    filename=('reactions_xsimple.%s.db' % formula)
+    if os.path.exists(filename): os.unlink(filename)
+filename = "group.db"
+if os.path.exists(filename): os.unlink(filename)

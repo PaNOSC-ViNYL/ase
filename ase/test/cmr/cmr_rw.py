@@ -1,3 +1,5 @@
+import os
+
 from ase.test import NotAvailable
 
 try:
@@ -22,3 +24,7 @@ data.write("O2.db")
 reread = cmr.read("O2.db")
 e2 = reread["ase_potential_energy"]
 assert abs(e1-e2) < 1.e-6, str(e1) + ' ' + str(e2)
+
+# clean
+filename = "O2.db"
+if os.path.exists(filename): os.unlink(filename)
