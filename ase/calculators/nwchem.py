@@ -251,7 +251,7 @@ class NWchem(Calculator):
                                 f.write('  convergence nolevelshifting\n')
                             else:
                                 f.write('  convergence ' + key + ' ' +
-                                        str(self.convergence[key]) + '\n')
+                                        str(self.convergence[key]/Hartree) + '\n')
                     else:
                         if self.convergence[key] is not None:
                             f.write('  convergence ' + key + ' ' +
