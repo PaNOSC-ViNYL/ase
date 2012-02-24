@@ -9,6 +9,7 @@ from ase.gui.widgets import pack, cancel_apply_ok, oops, help
 from ase.gui.setupwindow import SetupWindow
 from ase.gui.pybutton import PyButton
 import ase
+import ase.data
 import numpy as np
 # Delayed imports:
 # ase.cluster.data
@@ -475,7 +476,7 @@ class SetupNanoparticle(SetupWindow):
         if not self.update_element():
             oops(_("Invalid element."))
             return
-        z = ase.atomic_numbers[self.legal_element]
+        z = ase.data.atomic_numbers[self.legal_element]
         ref = ase.data.reference_states[z]
         if ref is None:
             structure = None
