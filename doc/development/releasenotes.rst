@@ -10,6 +10,13 @@ Development version in trunk
 
 :trac:`trunk <>`.
 
+Version 3.6.0
+=============
+
+24 Feb 2012: :trac:`tags/3.6.0 <../tags/3.6.0>`.
+
+* ASE GUI translations added, available: da_DK, en_GB, es_ES.
+
 * New function for making surfaces with arbitrary Miller indices with
   the smallest possible surface unit cell:
   ase.lattice.surface.surface()
