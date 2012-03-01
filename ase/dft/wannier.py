@@ -284,8 +284,8 @@ class Wannier:
         self.calc = calc
         self.spin = spin
         self.verbose = verbose
-        self.kpt_kc = calc.get_ibz_k_points()
-        assert len(calc.get_bz_k_points()) == len(self.kpt_kc)
+        self.kpt_kc = calc.get_bz_k_points()
+        assert len(calc.get_ibz_k_points()) == len(self.kpt_kc)
         self.kptgrid = get_monkhorst_pack_size_and_offset(self.kpt_kc)[0]
         self.kpt_kc *= sign
 
