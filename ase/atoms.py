@@ -528,9 +528,15 @@ class Atoms(object):
                 
         self.set_array('positions', newpositions, shape=(3,))
 
-    def get_positions(self):
-        """Get array of positions."""
-        return self.arrays['positions'].copy()
+    def get_positions(self, wrap=False):
+        """Get array of positions. If wrap==True, wraps atoms back
+        into unit cell.
+        """
+        if wrap:
+            scaled = self.get_scaled_positions()
+            return np.dot(scaled, self._cell)
+        else:
+            return self.arrays['positions'].copy()
 
     def get_calculation_done(self):
         """Let the calculator calculate its thing,
