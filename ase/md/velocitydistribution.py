@@ -22,11 +22,21 @@ def _maxwellboltzmanndistribution(masses, temp, communicator=world):
     return momenta
 
 
-def MaxwellBoltzmannDistribution(atoms, temp, communicator=world):
-    """Sets the momenta to a Maxwell-Boltzmann distribution."""
+def MaxwellBoltzmannDistribution(atoms, temp, communicator=world,
+                                 force_temp=False):
+    """Sets the momenta to a Maxwell-Boltzmann distribution. temp should be
+    fed in energy units; i.e., for 300 K use temp=300.*units.kB. If
+    force_temp is set to True, it scales the random momenta such that the
+    temperature request is precise.
+    """
     momenta = _maxwellboltzmanndistribution(atoms.get_masses(), temp,
                                             communicator)
     atoms.set_momenta(momenta)
+    if force_temp:
+        temp0 = atoms.get_kinetic_energy() / len(atoms) / 1.5
+        gamma = temp / temp0
+        atoms.set_momenta(atoms.get_momenta() * np.sqrt(gamma))
+
 
 
 def Stationary(atoms):
