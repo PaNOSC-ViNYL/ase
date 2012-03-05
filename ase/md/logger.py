@@ -44,8 +44,8 @@ class MDLogger:
         self.stress = stress
         self.peratom = peratom
         if self.dyn is not None:
-            self.hdr = "%-8s " % ("Time[ps]",)
-            self.fmt = "%-8.2f "
+            self.hdr = "%-9s " % ("Time[ps]",)
+            self.fmt = "%-9.3f "
         else:
             self.hdr = ""
             self.fmt = ""
