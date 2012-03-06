@@ -908,9 +908,7 @@ class Atoms(object):
 
         If scaled=True the center of mass in scaled coordinates
         is returned."""
-        m = self.arrays.get('masses')
-        if m is None:
-            m = atomic_masses[self.arrays['numbers']]
+        m = self.get_masses()
         com = np.dot(m, self.arrays['positions']) / m.sum()
         if scaled:
             return np.linalg.solve(self._cell.T, com)
