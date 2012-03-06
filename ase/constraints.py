@@ -244,11 +244,7 @@ class FixedMode(FixConstraint):
     """Constrain atoms to move along directions orthogonal to
     a given mode only."""
 
-    def __init__(self, indices, mode):
-        if indices is None:
-            raise ValueError('Use "indices".')
-        if indices is not None:
-            self.index = np.asarray(indices, int)
+    def __init__(self, mode):
         self.mode = (np.asarray(mode) / np.sqrt((mode **2).sum())).reshape(-1)
 
     def adjust_positions(self, oldpositions, newpositions):
@@ -264,12 +260,20 @@ class FixedMode(FixConstraint):
         forces -= self.mode * np.dot(forces, self.mode)
         forces = forces.reshape(-1, 3)
 
+    def index_shuffle(self, ind):
+        eps = 1e-12
+        mode = self.mode.reshape(-1, 3)
+        excluded = np.ones(len(mode), dtype=bool)
+        excluded[ind] = False
+        if (abs(mode[excluded]) > eps).any():
+            raise IndexError('All nonzero parts of mode not in slice')
+        self.mode = mode[ind].ravel()
+
     def copy(self):
-        return FixedMode(self.index.copy(), self.mode)
+        return FixedMode(self.mode)
 
     def __repr__(self):
-        return 'FixedMode(%s, %s)' % (ints2string(self.index),
-                                      self.mode.tolist())
+        return 'FixedMode(%s)' % self.mode.tolist()
 
 class FixedPlane(FixConstraintSingle):
     """Constrain an atom *a* to move in a given plane only.
