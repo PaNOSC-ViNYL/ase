@@ -396,23 +396,77 @@ class Atoms(object):
         self.set_array('numbers', symbols2numbers(symbols), int, ())
 
     def get_chemical_symbols(self, reduce=False):
-        """Get list of chemical symbol strings.
+        """Get list of chemical symbol strings."""
+        if reduce:
+            import warnings
+            warnings.warn('ase.atoms.get_chemical_symbols(reduce=True) is ' +
+                          'deprecated. Please use ase.atoms.get_chemical' +
+                          '_formula(mode="reduce") instead.',
+                          DeprecationWarning, stacklevel=2)
+            return self.get_chemical_formula(mode='reduce')
+        return [chemical_symbols[Z] for Z in self.arrays['numbers']]
 
-        If reduce is True, a single string is returned, where repeated
-        elements have been contracted to a single symbol and a number.
-        E.g. instead of ['C', 'O', 'O', 'H'], the string 'CO2H' is returned.
+    def get_chemical_formula(self, mode='hill'):
+        """Get the chemial formula as a string based on the chemical symbols.
+
+        Parameters:
+        
+        mode:
+            There are three different modes available:
+
+            'all': The list of chemical symbols are contracted to at string,
+            e.g. ['C', 'H', 'H', 'H', 'O', 'H'] becomes 'CHHHOH'.
+
+            'reduce': The same as 'all' where repeated elements are contracted
+            to a single symbol and a number, e.g. 'CHHHOCHHH' is reduced to
+            'CH3OCH3'.
+
+            'hill': The list of chemical symbols are contracted to a string
+            following the Hill notation (alphabetical order with C and H
+            first), e.g. 'CHHHOCHHH' is reduced to 'C2H6O' and 'SOOHOHO' to
+            'H2O4S'. This is default.
         """
-        if not reduce:
-            # XXX
-            return [chemical_symbols[Z] for Z in self.arrays['numbers']]
+        if len(self) == 0:
+            return ''
+
+        if mode == 'reduce':
+            numbers = self.get_atomic_numbers()
+            n = len(numbers)
+            changes = np.concatenate(([0], np.arange(1, n)[numbers[1:] !=
+                                                           numbers[:-1]]))
+            symbols = [chemical_symbols[e] for e in numbers[changes]]
+            counts = np.append(changes[1:], n) - changes
+        elif mode == 'hill':
+            numbers = self.get_atomic_numbers()
+            elements = np.unique(numbers)
+            symbols = np.array([chemical_symbols[e] for e in elements])
+            counts = np.array([(numbers == e).sum() for e in elements])
+
+            ind = symbols.argsort()
+            symbols = symbols[ind]
+            counts = counts[ind]
+
+            if 'H' in symbols:
+                i = np.arange(len(symbols))[symbols == 'H']
+                symbols = np.insert(np.delete(symbols, i), 0, symbols[i])
+                counts = np.insert(np.delete(counts, i), 0, counts[i])
+            if 'C' in symbols:
+                i = np.arange(len(symbols))[symbols == 'C']
+                symbols = np.insert(np.delete(symbols, i), 0, symbols[i])
+                counts = np.insert(np.delete(counts, i), 0, counts[i])
+        elif mode == 'all':
+            numbers = self.get_atomic_numbers()
+            symbols = [chemical_symbols[n] for n in numbers]
+            counts = [1] * len(numbers)
         else:
-            num = self.get_atomic_numbers()
-            N = len(num)
-            dis = np.concatenate(([0], np.arange(1, N)[num[1:] != num[:-1]]))
-            repeat = np.append(dis[1:], N) - dis
-            symbols = ''.join([chemical_symbols[num[d]] + str(r) * (r != 1)
-                               for r, d in zip(repeat, dis)])
-            return symbols
+            raise ValueError("Use mode = 'all', 'reduce' or 'hill'.")
+
+        formula = ''
+        for s, c in zip(symbols, counts):
+            formula += s
+            if c > 1:
+                formula += str(c)
+        return formula
 
     def set_tags(self, tags):
         """Set tags for all atoms."""
@@ -672,9 +726,9 @@ class Atoms(object):
         if N == 0:
             symbols = ''
         elif N <= 60:
-            symbols = self.get_chemical_symbols(reduce=True)
+            symbols = self.get_chemical_formula('reduce')
         else:
-            symbols = ''.join([chemical_symbols[Z] for Z in num[:15]]) + '...'
+            symbols = self.get_chemical_formula('hill')
         s = "%s(symbols='%s', " % (self.__class__.__name__, symbols)
         for name in self.arrays:
             if name == 'numbers':
@@ -1369,19 +1423,11 @@ class Atoms(object):
                    'of the periodic boundary condition flags.')
 
     def get_name(self):
-        """Return a name extracted from the elements."""
-        elements = {}
-        for a in self:
-            try:
-                elements[a.symbol] += 1
-            except:
-                elements[a.symbol] = 1
-        name = ''
-        for element in elements:
-            name += element
-            if elements[element] > 1:
-                name += str(elements[element])
-        return name
+        import warnings
+        warnings.warn('ase.atoms.get_name is deprecated. Please use ase.' +
+                      'atoms.get_chemical_formula(mode="hill") instead.',
+                      DeprecationWarning, stacklevel=2)
+        return self.get_chemical_formula(mode='hill')
 
     def write(self, filename, format=None, **kwargs):
         """Write yourself to a file."""
