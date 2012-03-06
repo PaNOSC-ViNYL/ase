@@ -959,13 +959,27 @@ class Atoms(object):
         return np.cross(positions, self.get_momenta()).sum(0)
 
     def rotate(self, v, a=None, center=(0, 0, 0), rotate_cell=False):
-        """Rotate atoms.
+        """Rotate atoms based on a vector and an angle, or two vectors.
 
-        Rotate the angle *a* around the vector *v*.  If *a* is not
-        given, the length of *v* is used as the angle.  If *a* is a
-        vector, then *v* is rotated into *a*.  The point at *center*
-        is fixed.  Use *center='COM'* to fix the center of mass.
-        Vectors can also be strings: 'x', '-x', 'y', ... .
+        Parameters:
+        
+        v:
+            Vector to rotate the atoms around. Vectors can be given as
+            strings: 'x', '-x', 'y', ... .
+
+        a = None:
+            Angle that the atoms is rotated around the vecor 'v'. If an angle
+            is not specified, the length of 'v' is used as the angle
+            (default). The angle can also be a vector and then 'v' is rotated
+            into 'a'.
+
+        center = (0, 0, 0):
+            The center is kept fixed under the rotation. Use 'COM' to fix
+            the center of mass, 'COP' to fix the center of positions or
+            'COU' to fix the center of cell.
+
+        rotate_cell = False:
+            If true the cell is also rotated.
 
         Examples:
 
@@ -1006,9 +1020,18 @@ class Atoms(object):
             assert norm(v) >= eps
             if s > 0:
                 v /= s
-        
-        if isinstance(center, str) and center.lower() == 'com':
-            center = self.get_center_of_mass()
+
+        if isinstance(center, str):
+            if center.lower() == 'com':
+                center = self.get_center_of_mass()
+            elif center.lower() == 'cop':
+                center = self.get_positions().mean(axis=0)
+            elif center.lower() == 'cou':
+                center = self.get_cell().sum(axis=0) / 2
+            else:
+                raise ValueError('Cannot interpret center')
+        else:
+            center = np.array(center)
 
         p = self.arrays['positions'] - center
         self.arrays['positions'][:] = (c * p - 
@@ -1031,7 +1054,8 @@ class Atoms(object):
         
         center :
             The point to rotate about. A sequence of length 3 with the
-            coordinates, or 'COM' to select the center of mass.
+            coordinates, or 'COM' to select the center of mass, 'COP' to
+            select center of positions or 'COU' to select center of cell.
         phi :
             The 1st rotation angle around the z axis.
         theta :
@@ -1040,10 +1064,18 @@ class Atoms(object):
             2nd rotation around the z axis.
         
         """
-        if isinstance(center, str) and center.lower() == 'com':
-            center = self.get_center_of_mass()
+        if isinstance(center, str):
+            if center.lower() == 'com':
+                center = self.get_center_of_mass()
+            elif center.lower() == 'cop':
+                center = self.get_positions().mean(axis=0)
+            elif center.lower() == 'cou':
+                center = self.get_cell().sum(axis=0) / 2
+            else:
+                raise ValueError('Cannot interpret center')
         else:
             center = np.array(center)
+
         # First move the molecule to the origin In contrast to MATLAB,
         # numpy broadcasts the smaller array to the larger row-wise,
         # so there is no need to play with the Kronecker product.
