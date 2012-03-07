@@ -14,8 +14,8 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
     name: str
         Chemical symbol or symbols as in 'MgO' or 'NaCl'.
     crystalstructure: str
-        Must be one of sc, fcc, bcc, hcp, diamond, zincblende or
-        rocksalt.
+        Must be one of sc, fcc, bcc, hcp, diamond, zincblende,
+        rocksalt, or cesiumchloride
     a: float
         Lattice constant.
     c: float
@@ -33,7 +33,7 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
         a = float(a)
     if c is not None:
         c = float(c)
-        
+
     if covera is not None and c is not None:
         raise ValueError("Don't specify both c and c/a!")
 
@@ -65,12 +65,12 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
     if orthorhombic and crystalstructure != 'sc':
         return _orthorhombic_bulk(name, crystalstructure, a, covera)
 
-    if cubic and crystalstructure == 'bcc':
+    if cubic and crystalstructure in ['bcc', 'cesiumchloride']:
         return _orthorhombic_bulk(name, crystalstructure, a, covera)
 
     if cubic and crystalstructure != 'sc':
         return _cubic_bulk(name, crystalstructure, a)
-    
+
     if crystalstructure == 'sc':
         atoms = Atoms(name, cell=(a, a, a), pbc=True)
     elif crystalstructure == 'fcc':
@@ -98,9 +98,13 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
         s1, s2 = string2symbols(name)
         atoms = bulk(s1, 'fcc', a) + bulk(s2, 'fcc', a)
         atoms.positions[1, 0] += a / 2
+    elif crystalstructure == 'cesiumchloride':
+        s1, s2 = string2symbols(name)
+        atoms = bulk(s1, 'sc', a) + bulk(s2, 'sc', a)
+        atoms.positions[1, :] += a / 2
     else:
         raise ValueError('Unknown crystal structure: ' + crystalstructure)
-    
+
     return atoms
 
 
@@ -134,9 +138,12 @@ def _orthorhombic_bulk(name, crystalstructure, a, covera=None):
         atoms = Atoms(2 * name, cell=(b, b, a), pbc=True,
                       scaled_positions=[(0, 0, 0), (0.5, 0.5, 0),
                                         (0.5, 0.5, 0.5), (0, 0, 0.5)])
+    elif crystalstructure == 'cesiumchloride':
+        atoms = Atoms(name, cell=(a, a, a), pbc=True,
+                      scaled_positions=[(0, 0, 0), (0.5, 0.5, 0.5)])
     else:
         raise RuntimeError
-    
+
     return atoms
 
 
@@ -161,5 +168,5 @@ def _cubic_bulk(name, crystalstructure, a):
                                         (0.5, 0.5, 0), (0, 0.5, 0)])
     else:
         raise RuntimeError
-    
+
     return atoms
