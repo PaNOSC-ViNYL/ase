@@ -138,7 +138,7 @@ WHITESPACE = ' \t'
 BINARY_OPERATORS = frozenset(['**=', '*=', '+=', '-=', '!=', '<>',
     '%=', '^=', '&=', '|=', '==', '/=', '//=', '<=', '>=', '<<=', '>>=',
     '%',  '^',  '&',  '|',  '=',  '/',  '//',  '<',  '>',  '<<'])
-UNARY_OPERATORS = frozenset(['>>', '**', '*', '+', '-'])
+UNARY_OPERATORS = frozenset(['>>', '*', '+', '-'])
 OPERATORS = BINARY_OPERATORS | UNARY_OPERATORS
 SKIP_TOKENS = frozenset([tokenize.COMMENT, tokenize.NL, tokenize.INDENT,
                          tokenize.DEDENT, tokenize.NEWLINE])
@@ -469,6 +469,7 @@ def missing_whitespace_around_operator(logical_line, tokens):
     Okay: submitted += 1
     Okay: x = x * 2 - 1
     Okay: hypot2 = x * x + y * y
+    Okay: hypot2 = x**3
     Okay: c = (a + b) * (a - b)
     Okay: foo(bar, key='word', *args, **kwargs)
     Okay: baz(**kwargs)
@@ -484,7 +485,6 @@ def missing_whitespace_around_operator(logical_line, tokens):
     E225: hypot2 = x*x + y*y
     E225: c = (a+b) * (a-b)
     E225: c = alpha -4
-    E225: z = x **y
     """
     parens = 0
     need_space = False
