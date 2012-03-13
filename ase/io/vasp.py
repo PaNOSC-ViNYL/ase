@@ -262,7 +262,7 @@ def read_vasp_out(filename='OUTCAR',index = -1):
                 cell += [[float(temp[0]), float(temp[1]), float(temp[2])]]
             atoms.set_cell(cell)
         if 'FREE ENERGIE OF THE ION-ELECTRON SYSTEM' in line:
-            energy = float(data[n+2].split()[6])
+            energy = float(data[n+4].split()[6])
             if ecount < poscount:
                 # reset energy for LAST set of atoms, not current one - VASP 5.11? and up
                 images[-1].calc.energy = energy
