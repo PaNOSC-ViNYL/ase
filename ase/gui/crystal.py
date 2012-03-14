@@ -455,7 +455,7 @@ class SetupBulkCrystal(SetupWindow):
 
     def get_from_database(self, *args):
         element = self.elements[0][0].get_text()
-        z = ase.atomic_numbers[self.legal_element]        
+        z = ase.data.atomic_numbers[self.legal_element]        
         ref = ase.data.reference_states[z]
         lattice = ref['symmetry']
         index = 0

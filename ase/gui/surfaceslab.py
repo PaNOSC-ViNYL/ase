@@ -217,7 +217,7 @@ class SetupSurfaceSlab(SetupWindow):
         if not self.update_element():
             oops(_("Invalid element."))
             return
-        z = ase.atomic_numbers[self.legal_element]
+        z = ase.data.atomic_numbers[self.legal_element]
         ref = ase.data.reference_states[z]
         surface = self.structchoice.get_active_text()
         if not surface:
