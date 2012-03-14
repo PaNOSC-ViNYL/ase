@@ -7,6 +7,7 @@ from gettext import gettext as _
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.setupwindow import SetupWindow
 from ase.gui.pybutton import PyButton
+from ase.gui.status import formula
 from ase.structure import nanotube
 import ase
 import numpy as np
@@ -25,6 +26,7 @@ from ase.structure import nanotube
 atoms = nanotube(%(n)i, %(m)i, length=%(length)i, bond=%(bl).3f, symbol='%(symb)s')
 """
 
+label_template = _(""" %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>""")
 
 class SetupNanotube(SetupWindow):
     "Window for setting up a (Carbon) nanotube."
@@ -41,7 +43,7 @@ class SetupNanotube(SetupWindow):
         #label.set_alignment(0.0, 0.2)
         self.element = gtk.Entry(max=3)
         self.element.set_text("C")
-        self.element.connect('activate', self.update_element)
+        self.element.connect('activate', self.makeatoms)
         self.bondlength = gtk.Adjustment(1.42, 0.0, 1000.0, 0.01)
         label2 = gtk.Label(_("  Bond length: "))
         label3 = gtk.Label(_("Å"))
@@ -71,6 +73,10 @@ class SetupNanotube(SetupWindow):
         pack(vbox, [self.err])
         pack(vbox, gtk.Label(""))
 
+        self.status = gtk.Label("")
+        pack(vbox,[self.status])
+        pack(vbox,[gtk.Label("")])
+
         # Buttons
         self.pybut = PyButton(_("Creating a nanoparticle."))
         self.pybut.connect('clicked', self.makeatoms)
@@ -80,6 +86,11 @@ class SetupNanotube(SetupWindow):
         pack(vbox, [self.pybut, buts], end=True, bottom=True)
 
         # Finalize setup
+        self.makeatoms()
+        self.bondlength.connect('value-changed', self.makeatoms)
+        self.m.connect('value-changed', self.makeatoms)
+        self.n.connect('value-changed', self.makeatoms)
+        self.length.connect('value-changed', self.makeatoms)
         self.add(vbox)
         vbox.show()
         self.show()
@@ -128,7 +139,16 @@ class SetupNanotube(SetupWindow):
             # XXX can this be translated?
             self.pybut.python = py_template % {'n': n, 'm':m, 'length':length,
                                                'symb':symb, 'bl':bl}
-        
+            h = np.zeros(3)
+            uc = self.atoms.get_cell()
+            for i in range(3):
+                norm = np.cross(uc[i-1], uc[i-2])
+                norm /= np.sqrt(np.dot(norm, norm))
+                h[i] = np.abs(np.dot(norm, uc[i]))
+            label = label_template % {'natoms'  : self.atoms.get_number_of_atoms(),
+                                      'symbols' : formula(self.atoms.get_atomic_numbers()),
+                                      'volume'  : self.atoms.get_volume()}
+            self.status.set_markup(label)                
 
     def apply(self, *args):
         self.makeatoms()

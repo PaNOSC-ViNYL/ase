@@ -8,6 +8,7 @@ from gettext import gettext as _
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.setupwindow import SetupWindow
 from ase.gui.pybutton import PyButton
+from ase.gui.status import formula
 from ase.structure import graphene_nanoribbon
 import ase
 import numpy as np
@@ -22,6 +23,8 @@ from ase.structure import nanotube
 
 atoms = nanotube(%(n)i, %(m)i, length=%(length)i, bond=%(bl).3f, symbol=%(symb)s)
 """
+
+label_template = _(""" %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>""")
 
 class SetupGraphene(SetupWindow):
     "Window for setting up a graphene sheet or nanoribbon."
@@ -40,7 +43,7 @@ class SetupGraphene(SetupWindow):
                   _("Saturated ribbon")):
             self.struct.append_text(s)
         self.struct.set_active(0)
-        self.struct.connect('changed', self.update_gui)
+    
         pack(vbox, [label, self.struct])
 
         # Orientation
@@ -51,17 +54,14 @@ class SetupGraphene(SetupWindow):
             self.orient.append_text(s)
             self.orient_text.append(s)
         self.orient.set_active(0)
-        self.orient.connect('changed', self.update_gui)
         pack(vbox, [label, self.orient])
         pack(vbox, gtk.Label(""))
-
 
         # Choose the element and bond length
         label1 = gtk.Label("Element: ")
         #label.set_alignment(0.0, 0.2)
         self.element = gtk.Entry(max=3)
         self.element.set_text("C")
-        self.element.connect('activate', self.update_element)
         self.bondlength = gtk.Adjustment(1.42, 0.0, 1000.0, 0.01)
         label2 = gtk.Label(_("  Bond length: "))
         label3 = gtk.Label(_("Å"))
@@ -73,7 +73,6 @@ class SetupGraphene(SetupWindow):
         #label.set_alignment(0.0, 0.2)
         self.element2 = gtk.Entry(max=3)
         self.element2.set_text(_("H"))
-        self.element2.connect('activate', self.update_element)
         self.bondlength2 = gtk.Adjustment(1.12, 0.0, 1000.0, 0.01)
         self.sat_label2 = gtk.Label(_("  Bond length: "))
         self.sat_label3 = gtk.Label(_("Å"))
@@ -104,16 +103,27 @@ class SetupGraphene(SetupWindow):
         pack(vbox, [label1, vac_box, label2])
         pack(vbox, gtk.Label(""))
 
+        self.status = gtk.Label("")
+        pack(vbox,[self.status])
+        pack(vbox,[gtk.Label("")])
 
         # Buttons
-        #self.pybut = PyButton("Creating a nanoparticle.")
-        #self.pybut.connect('clicked', self.makeatoms)
         buts = cancel_apply_ok(cancel=lambda widget: self.destroy(),
                                apply=self.apply,
                                ok=self.ok)
         pack(vbox, [buts], end=True, bottom=True)
 
         # Finalize setup
+        self.makeatoms()
+        self.struct.connect('changed', self.makeatoms)
+        self.orient.connect('changed', self.makeatoms)
+        self.element.connect('activate', self.makeatoms)
+        self.bondlength.connect('value-changed', self.makeatoms)
+        self.element2.connect('activate', self.makeatoms)
+        self.bondlength2.connect('value-changed', self.makeatoms)
+        self.n.connect('value-changed', self.makeatoms)
+        self.m.connect('value-changed', self.makeatoms)
+        self.vacuum.connect('value-changed', self.makeatoms)
         self.update_gui()
         self.add(vbox)
         vbox.show()
@@ -176,10 +186,12 @@ class SetupGraphene(SetupWindow):
         
     def makeatoms(self, *args):
         self.update_element()
+        self.update_gui()
         if self.legal_element is None or (self.struct.get_active() == 2 and
                                           self.legal_element2 is None):
             self.atoms = None
             self.pybut.python = None
+            self.status.set_markup(_("Please specify a consistent set of atoms. "))
         else:
             n = int(self.n.value)
             m = int(self.m.value)
@@ -208,6 +220,7 @@ class SetupGraphene(SetupWindow):
                                                  saturate_element=elem2)
             else:
                 raise RuntimeError("Unknown structure in SetupGraphene!")
+
         # Now, rotate into the xy plane (ase.gui's default view plane)
         pos = self.atoms.get_positions()
         cell = self.atoms.get_cell()
@@ -220,6 +233,17 @@ class SetupGraphene(SetupWindow):
         self.atoms.set_cell(cell)
         self.atoms.set_positions(pos)
         self.atoms.set_pbc([pbc[0], pbc[2], pbc[1]])
+        # Find the heights of the unit cell
+        h = np.zeros(3)
+        uc = self.atoms.get_cell()
+        for i in range(3):
+            norm = np.cross(uc[i-1], uc[i-2])
+            norm /= np.sqrt(np.dot(norm, norm))
+            h[i] = np.abs(np.dot(norm, uc[i]))
+        label = label_template % {'natoms'  : self.atoms.get_number_of_atoms(),
+                                  'symbols' : formula(self.atoms.get_atomic_numbers()),
+                                  'volume'  : self.atoms.get_volume()}
+        self.status.set_markup(label)                
 
     def apply(self, *args):
         self.makeatoms()
