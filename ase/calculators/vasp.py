@@ -1156,7 +1156,14 @@ class Vasp(Calculator):
                         list = np.array(list)
                         if self.atoms is not None:
                                 self.atoms.set_initial_magnetic_moments(list[self.resort])
- 
+                elif key in special_keys:
+                    if key == 'lreal':
+                        if 'true' in data[2].lower():
+                            self.special_params[key] = True
+                        elif 'false' in data[2].lower():
+                            self.special_params[key] = False
+                        else:
+                            self.special_params[key] = data[2]
             except KeyError:
                 raise IOError('Keyword "%s" in INCAR is not known by calculator.' % key)
             except IndexError:
