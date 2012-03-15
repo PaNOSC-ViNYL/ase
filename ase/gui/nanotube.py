@@ -26,7 +26,7 @@ from ase.structure import nanotube
 atoms = nanotube(%(n)i, %(m)i, length=%(length)i, bond=%(bl).3f, symbol='%(symb)s')
 """
 
-label_template = _(""" %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>""")
+label_template = _(""" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f A, cell volume: %(volume).3f A<sup>3</sup>""")
 
 class SetupNanotube(SetupWindow):
     "Window for setting up a (Carbon) nanotube."
@@ -145,9 +145,10 @@ class SetupNanotube(SetupWindow):
                 norm = np.cross(uc[i-1], uc[i-2])
                 norm /= np.sqrt(np.dot(norm, norm))
                 h[i] = np.abs(np.dot(norm, uc[i]))
-            label = label_template % {'natoms'  : self.atoms.get_number_of_atoms(),
-                                      'symbols' : formula(self.atoms.get_atomic_numbers()),
-                                      'volume'  : self.atoms.get_volume()}
+            label = label_template % {'natoms'   : self.atoms.get_number_of_atoms(),
+                                      'symbols'  : formula(self.atoms.get_atomic_numbers()),
+                                      'volume'   : self.atoms.get_volume(),
+                                      'diameter' : self.atoms.get_cell()[0][0]/2.0}
             self.status.set_markup(label)                
 
     def apply(self, *args):
