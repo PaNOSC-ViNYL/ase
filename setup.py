@@ -65,7 +65,9 @@ if 'build' in sys.argv or 'build_ext' in sys.argv or 'install' in sys.argv:
     if status == 0:
         for pofile in glob('ase/gui/po/??_??/LC_MESSAGES/ag.po'):
             mofile = os.path.join(os.path.split(pofile)[0], 'ag.mo')
-            os.system(msgfmt + ' -cv %s --output-file=%s' % (pofile, mofile))
+            status = os.system(msgfmt + ' -cv %s --output-file=%s 2>&1' %
+                               (pofile, mofile))
+            assert status == 0, 'msgfmt failed!'
         package_data['ase'].append('gui/po/??_??/LC_MESSAGES/ag.mo')
 
 # Get the current version number:
