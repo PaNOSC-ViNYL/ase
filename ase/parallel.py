@@ -71,6 +71,9 @@ class MPI4PY:
     def barrier(self):
         self.comm.barrier()
 
+    def abort(self, code):
+        self.comm.Abort(code)
+
     def broadcast(self, a, rank):
         a[:] = self.comm.bcast(a, rank)
 
