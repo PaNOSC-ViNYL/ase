@@ -705,7 +705,7 @@ class prism:
         return (axy >= acc) or (axz >= acc) or (ayz >= acc)
         
 
-def write_lammps_data(fileobj, atoms, specorder=[], force_skew=False, prismobj=None):
+def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False, prismobj=None):
     """Method which writes atomic structure data to a LAMMPS data file."""
     if isinstance(fileobj, str):
         f = paropen(fileobj, 'w')
