@@ -573,7 +573,7 @@ class Atoms(object):
             return np.zeros(len(self))
 
     def set_positions(self, newpositions):
-        """Set positions."""
+        """Set positions, honoring any constraints."""
         positions = self.arrays['positions']
         if self.constraints:
             newpositions = np.asarray(newpositions, float)

@@ -18,24 +18,20 @@ This class is used for fixing some of the atoms.
 
 .. class:: FixAtoms(indices=None, mask=None)
 
-
-
-**XXX positive or negative mask???**
-
-
-
 You must supply either the indices of the atoms that should be fixed
 or a mask. The mask is a list of booleans, one for each atom, being true
 if the atoms should be kept fixed.
 
-Example of use:
+For example, to fix the positions of all the Cu atoms in a simulation 
+with the indices keyword:
 
->>> c = FixAtoms(mask=[a.symbol == 'Cu' for a in atoms])
+>>> c = FixAtoms(indices=[atom.index for atom in atoms if atom.symbol == 'Cu'])
 >>> atoms.set_constraint(c)
 
-This will fix the positions of all the Cu atoms in a
-simulation.
+or with the mask keyword:
 
+>>> c = FixAtoms(mask=[atom.symbol == 'Cu' for atom in atoms])
+>>> atoms.set_constraint(c)
 
 The FixBondLength class
 =======================
@@ -58,6 +54,8 @@ This constraint is useful for finding minimum energy barriers for
 reactions where the path can be described well by a single bond
 length (see the :ref:`mep2` tutorial).
 
+Important: If fixing multiple bond lengths, use the FixBondLengths class
+below, particularly if the same atom is fixed to multiple partners.
 
 
 The FixBondLengths class
@@ -196,6 +194,10 @@ When applying more than one constraint they are passed as a list in
 the :meth:`set_constraint` method, and they will be applied one after
 the other.
 
+Important: If wanting to fix the length of more than one bond in the
+simulation, do not supply a list of :class:`~ase.constraints.FixBondLength`
+instances; instead, use a single instance of
+:class:`~ase.constraints.FixBondLengths`.
 
 
 Making your own constraint class
