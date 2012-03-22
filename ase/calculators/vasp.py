@@ -171,6 +171,7 @@ bool_keys = [
     'lsepk',      # write out partial charge of each k-point seperately?
     'lthomas',    #
     'luse_vdw',   # Invoke vdW-DF implementation by Klimes et. al 
+    'lvdw',	  # Invoke DFT-D2 method of Grimme
     'lvhar',      # write Hartree potential to LOCPOT (vasp 5.x)
     'lvtot',      # create WAVECAR/CHGCAR/LOCPOT
     'lwave',      #
