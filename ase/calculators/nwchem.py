@@ -8,7 +8,7 @@ import sys
 import numpy as np
 
 from ase.units import Hartree, Bohr
-from ase.io.nwchem import write_nwchem, read_nwchem
+from ase.io.nwchem import write_nwchem
 from ase.calculators.general import Calculator
 
 class KPoint:
@@ -21,7 +21,7 @@ class NWchem(Calculator):
     def __init__(self,
                  label='nwchem',
                  task='energy',
-                 geometry=None,
+                 geometry='nocenter',
                  xc='LDA',
                  convergence = {'energy'  : None,
                                 'density' : None,
@@ -279,7 +279,6 @@ class NWchem(Calculator):
             self.output = self.label + '.out'
             self.run()
             # read output
-            self.atoms = read_nwchem(self.output)
             self.read_energy()
             if self.task.find('gradient') > -1:
                 self.read_forces()
@@ -364,7 +363,7 @@ class NWchem(Calculator):
         if self.atoms == atoms:
             return
 
-        self.atoms = atoms
+        self.atoms = atoms.copy()
         self.energy = None
         self.forces = None
 
