@@ -21,7 +21,7 @@ class NWchem(Calculator):
     def __init__(self,
                  label='nwchem',
                  task='energy',
-                 geometry='nocenter',
+                 geometry=None,
                  xc='LDA',
                  convergence = {'energy'  : None,
                                 'density' : None,
