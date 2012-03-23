@@ -562,7 +562,11 @@ def filetype(filename):
     if filename.lower().endswith('.struct_out'):
         return 'struct_out'
 
-    for line in lines:
+    fileobj.seek(0)
+    while True:
+        line = fileobj.readline()
+        if not line:
+            break
         if 'Invoking FHI-aims ...' in line:
             return 'aims_out'
         if 'atom' in line:

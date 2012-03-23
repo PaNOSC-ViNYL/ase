@@ -94,6 +94,7 @@ list_keys = [
     'mixer_threshold',
     'occupation_type',
     'output',
+    'cube',
     'preconditioner',
     'relativistic',
     'relax_geometry',

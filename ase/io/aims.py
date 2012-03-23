@@ -333,7 +333,7 @@ def read_aims_calculator(file):
                         calc.list_params['output'] = [out_option]
                 else:
                     calc.list_params[key] = list(args[1:])
-            elif '#' in key:
+            elif '#' in key or calc.input_parameters.has_key(key):
                 key = key[1:]
                 if calc.input_parameters.has_key(key):
                     calc.input_parameters[key] = args[1]
