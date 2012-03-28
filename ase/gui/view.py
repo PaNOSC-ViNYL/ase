@@ -489,7 +489,7 @@ class View:
         vectors = (self.ui.get_widget('/MenuBar/ViewMenu/ShowForces'
                                       ).get_active())
         if vectors:
-            V = self.vectors[0]
+            V = self.scale * self.vectors[0]
 #            V = np.dot(self.vectors[0], axes)
 
         selected_gc = self.selected_gc
@@ -748,5 +748,5 @@ class View:
         Render(self)
         
     def show_vectors(self, vectors):
-        self.vectors = 50 * vectors
+        self.vectors = vectors
     
