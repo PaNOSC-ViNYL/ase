@@ -42,15 +42,15 @@ def numpyfy(obj):
     return obj
 
 
-def write_json(name, atoms, results):
+def write_json(name, results):
     if world.rank == 0:
-        fd = open(name + '.json', 'w')
+        fd = open(name, 'w')
         fd.write(dumps(results))
         fd.close()
 
 
 def read_json(name):
-    fd = open(name + '.json', 'r')
+    fd = open(name, 'r')
     results = loads(fd.read())
     fd.close()
     return numpyfy(results)

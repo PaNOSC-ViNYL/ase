@@ -1,13 +1,16 @@
 import numpy as np
 from ase.tasks.main import run
-atoms, task = run('H2 --bond-length=0.78 -R 0.01 -F 5,2 --atomize')
+atoms, task = run('H2 -R 0.01 -F 5,2 --atomize')
 atoms, task = run('H2 H -s')
-results = np.array(task.results['H2'])
-assert abs(results -
-           [1.071, 0.000, 0.779, 862.780, 5.349, 5.349]).max() < 0.001
+data = task.data['H2']
+assert abs(data['relaxed energy'] - 1.0705) < 0.0001
+assert abs(data['distance'] - 0.7790) < 0.0001
+assert abs(data['frequency'] - 0.8628) < 0.0001
+assert abs(data['atomic energy'] - data['relaxed energy'] - 5.3495) < 0.0001
 
 atoms, task = run('bulk Cu -F 5,2')
 atoms, task = run('bulk Cu -s')
-results = np.array(task.results['Cu'])
-assert abs(results -
-           [-0.0057, 0.0014, 11.5654, 134.4389]).max() < 0.001
+data = task.data['Cu']
+assert abs(data['relaxed energy'] - -0.0070) < 0.0001
+assert abs(data['volume'] - 11.5654) < 0.0001
+assert abs(data['B [GPa]'] - 134.4389) < 0.001

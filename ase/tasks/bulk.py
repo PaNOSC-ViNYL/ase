@@ -29,8 +29,7 @@ class BulkTask(OptimizeTask):
 
         OptimizeTask.__init__(self, **kwargs)
         
-        self.summary_header += [('V0', 'Ang^3'),
-                                ('B', 'GPa')]
+        self.summary_keys = ['energy', 'relaxed energy', 'volume', 'B [GPa]']
 
     def expand(self, names):
         """Expand fcc, bcc, hcp and diamond.
@@ -74,7 +73,7 @@ class BulkTask(OptimizeTask):
         cell0 = atoms.get_cell()
         strains = np.linspace(1 - x, 1 + x, N)
         energies = []
-        traj = PickleTrajectory(self.get_filename(name, '-fit.traj'), 'w')
+        traj = PickleTrajectory(self.get_filename(name, 'fit.traj'), 'w')
         for s in strains:
             atoms.set_cell(cell0 * s, scale_atoms=True)
             energies.append(atoms.get_potential_energy())
@@ -97,7 +96,6 @@ class BulkTask(OptimizeTask):
             return OptimizeTask.calculate(self, name, atoms)
         
     def analyse(self):
-        OptimizeTask.analyse(self)
         for name, data in self.data.items():
             if 'strains' in data:
                 atoms = self.create_system(name)
@@ -107,12 +105,13 @@ class BulkTask(OptimizeTask):
                 try:
                     v, e, B = eos.fit()
                 except ValueError:
-                    self.results[name].extend([None, None])
+                    pass
                 else:
-                    self.results[name][1:] = [energies[2] - e, v,
-                                              B * 1e24 / units.kJ]
-            else:
-                self.results[name].extend([None, None])
+                    data['relaxed energy'] = e
+                    data['volume'] = v
+                    data['B [GPa]'] = B * 1e24 / units.kJ
+
+        OptimizeTask.analyse(self)
 
     def add_options(self, parser):
         OptimizeTask.add_options(self, parser)

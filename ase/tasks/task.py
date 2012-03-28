@@ -1,3 +1,4 @@
+import os
 import sys
 import optparse
 import traceback
@@ -11,7 +12,7 @@ from ase.io import read, write
 from ase.io import string2index
 from ase.constraints import FixAtoms
 from ase.optimize.lbfgs import LBFGS
-from ase.utils import opencew, devnull, prnt
+from ase.utils import Lock, devnull, prnt
 from ase.tasks.io import read_json, write_json
 from ase.data import chemical_symbols, atomic_numbers
 from ase.tasks.calcfactory import calculator_factory
@@ -60,17 +61,17 @@ class Task:
             logfile = devnull
         self.logfile = logfile
         
-        self.write_funcs = [write_json]
-        self.read_func = read_json
-    
-        self.data = {}  # data read from json files
-        self.results = {}  # results from analysis of json files
-
-        self.summary_header = [('name', ''), ('E', 'eV')]
+        self.data = {}
 
         self.interactive_python_session = False
         self.contains = None
         self.modify = None
+
+        self.write_funcs = []
+
+        self.lock = Lock(self.get_filename(ext='lock'))
+
+        self.summary_keys = ['energy']
 
     def set_calculator_factory(self, calcfactory):
         if isinstance(calcfactory, str):
@@ -81,13 +82,15 @@ class Task:
     def log(self, *args, **kwargs):
         prnt(file=self.logfile, *args, **kwargs)
 
-    def get_filename(self, name=None, ext=''):
-        filename = self.taskname + '-' + self.calcfactory.name.lower()
+    def get_filename(self, name=None, ext=None):
+        filename = self.taskname
         if self.tag:
             filename += '-' + self.tag
         if name:
             filename = name + '-' + filename
-        return filename + ext
+        if ext:
+            filename += '.' + ext
+        return filename
 
     def expand(self, names):
         """Expand ranges like H-Li to H, He, Li."""
@@ -149,7 +152,7 @@ class Task:
             return
 
         if self.write_summary:
-            self.read(names)
+            self.read()
             self.analyse()
             self.summarize(names)
             return
@@ -157,17 +160,28 @@ class Task:
         atoms = None
         for name in names:
             if self.use_lock_files:
-                lockfilename = self.get_filename(name, '.json')
-                fd = opencew(lockfilename)
-                if fd is None:
-                    self.log('Skipping', name)
-                    continue
-                fd.close()
+                try:
+                    filename = self.get_filename(ext='json')
+                    self.lock.acquire()
+                    if os.path.isfile(filename):
+                        data = read_json(filename)
+                        if name not in data:
+                            data[name] = {}
+                            write_json(filename, data)
+                        else:
+                            self.log('Skipping', name)
+                            continue
+                    else:
+                        write_json(filename, {name: {}})
+                finally:
+                    self.lock.release()
+
             atoms = self.run_single(name)
         
         return atoms
 
     def run_single(self, name):
+        self.log('Running', name)
         try:
             atoms = self.create_system(name)
         except Exception:
@@ -191,10 +205,22 @@ class Task:
         tstop = time()
         data['time'] = tstop - tstart
 
+        filename = self.get_filename(ext='json')
+        try:
+            self.lock.acquire()
+            if os.path.isfile(filename):
+                alldata = read_json(filename)
+            else:
+                alldata = {}
+            alldata[name] = data
+            write_json(filename, alldata)
+        finally:
+            self.lock.release()
+
         for write in self.write_funcs:
             filenamebase = self.get_filename(name)
             write(filenamebase, atoms, data)
-        
+
         return atoms
 
     def create_system(self, name):
@@ -214,35 +240,42 @@ class Task:
 
     def calculate(self, name, atoms):
         e = atoms.get_potential_energy()
-        f = atoms.get_forces()
-        return {'energy': e, 'forces': f}
+        return {'energy': e}
 
-    def read(self, names):
-        self.data = {}
-        for name in names:
-            filenamebase = self.get_filename(name)
-            try:
-                data = self.read_func(filenamebase)
-            except (IOError, SyntaxError, ValueError):
-                continue
-            self.data[name] = data
-
+    def read(self):
+        self.data = read_json(self.get_filename(ext='json'))
+        self.data = dict((key.encode('ascii'), value)
+                         for key, value in self.data.items())
+        
     def analyse(self):
-        for name, data in self.data.items():
-            self.results[name] = [data['energy']]
+        """Extend data with analysis results and write."""
+        try:
+            self.lock.acquire()
+            write_json(self.get_filename(ext='json'), self.data)
+        finally:
+            self.lock.release()
 
     def summarize(self, names):
-        self.log(' '.join('%10s' % x[0] for x in self.summary_header))
-        self.log(' '.join('%10s' % x[1] for x in self.summary_header))
+        lines = [['name'] + self.summary_keys]
         for name in names:
-            data = self.results.get(name, [])
-            s = '%10s' % name
-            for x in data:
-                if x is None:
-                    s += '           '
+            if name not in self.data:
+                continue
+            d = self.data[name]
+            line = [name]
+            for key in self.summary_keys:
+                if key in d:
+                    line.append('%.6f' % d[key])
                 else:
-                    s += '%11.3f' % x
-            self.log(s)
+                    line.append('')
+            lines.append(line)
+
+        lengths = [max(len(line[i]) for line in lines)
+                   for i in range(len(lines[0]))]
+        
+        for line in lines:
+            for txt, l in zip(line, lengths):
+                self.log('%*s' % (l, txt), end='  ')
+            self.log()
 
     def create_parser(self):
         calcname = self.calcfactory.name
@@ -268,7 +301,7 @@ class Task:
                             help='Select subset of calculations using ' +
                             'Python slice syntax.  ' +
                             'Use "::2" to do every second calculation and ' +
-                            '":-5" to do the last five.')
+                            '"-5:" to do the last five.')
         general.add_option('-w', '--write-to-file', metavar='FILENAME',
                             help='Write configuration to file.')
         general.add_option('-i', '--interactive-python-session',
@@ -333,8 +366,8 @@ class OptimizeTask(Task):
         self.constrain_tags = constrain_tags
 
         Task.__init__(self, **kwargs)
-        
-        self.summary_header.append(('E-E0', 'eV'))
+
+        self.summary_keys = ['energy', 'relaxed energy']
 
     def optimize(self, name, atoms):
         mask = [t in self.constrain_tags for t in atoms.get_tags()]
@@ -342,7 +375,7 @@ class OptimizeTask(Task):
             constrain = FixAtoms(mask=mask)
             atoms.constraints = [constrain]
 
-        optimizer = LBFGS(atoms, trajectory=self.get_filename(name, '.traj'),
+        optimizer = LBFGS(atoms, trajectory=self.get_filename(name, 'traj'),
                           logfile=None)
         optimizer.run(self.fmax)
         
@@ -352,19 +385,9 @@ class OptimizeTask(Task):
         if self.fmax is not None:
             self.optimize(name, atoms)
 
-            data['minimum energy'] = atoms.get_potential_energy()
-            data['minimum forces'] = atoms.get_forces()
+            data['relaxed energy'] = atoms.get_potential_energy()
         
         return data
-
-    def analyse(self):
-        Task.analyse(self)
-        for name, data in self.data.items():
-            if 'minimum energy' in data:
-                self.results[name].append(data['energy'] -
-                                          data['minimum energy'])
-            else:
-                self.results[name].append(None)
 
     def add_options(self, parser):
         Task.add_options(self, parser)
