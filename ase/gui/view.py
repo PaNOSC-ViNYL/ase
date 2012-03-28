@@ -489,8 +489,7 @@ class View:
         vectors = (self.ui.get_widget('/MenuBar/ViewMenu/ShowForces'
                                       ).get_active())
         if vectors:
-            V = self.scale * self.vectors[0]
-#            V = np.dot(self.vectors[0], axes)
+            V = self.scale * self.vectors[self.frame]
 
         selected_gc = self.selected_gc
         colors = self.get_colors()
