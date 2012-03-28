@@ -53,6 +53,25 @@ def opencew(filename):
         return fd
 
 
+class Lock:
+    def __init__(self, name='lock'):
+        self.name = name
+
+    def acquire(self):
+        fd = None
+        while fd is None:
+            fd = opencew(self.name)
+
+    def release(self):
+        os.remove(self.name)
+
+    def __enter__(self):
+        self.acquire()
+
+    def __exit__(self, type, value, tb):
+        self.release()
+
+
 def prnt(*args, **kwargs):
     """Python 3 style print function."""
     kwargs.pop('file', sys.stdout).write(
