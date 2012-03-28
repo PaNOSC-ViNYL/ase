@@ -89,6 +89,7 @@ ui_info = """\
       <menuitem action='ShowUnitCell'/>
       <menuitem action='ShowAxes'/>
       <menuitem action='ShowBonds'/>
+      <menuitem action='ShowForces'/>
       <separator/>
       <menuitem action='QuickInfo'/>
       <menuitem action='Repeat'/>
@@ -328,6 +329,10 @@ class GUI(View, Status):
              'Bold',
              self.toggle_show_bonds,
              show_bonds),
+            ('ShowForces', None, _('Show _forces'), '<control>F',
+             'Bold',
+             self.toggle_show_forces,
+             False),
             ('MoveAtoms', None, _('_Move atoms'), '<control>M',
              'Bold',
              self.toggle_move_mode,

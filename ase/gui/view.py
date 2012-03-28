@@ -316,6 +316,10 @@ class View:
     def toggle_show_bonds(self, action):
         self.set_coordinates()
 
+    def toggle_show_forces(self, action):
+        self.show_vectors(self.images.F)
+        self.draw()
+
     def repeat_window(self, menuitem):
         self.reset_tools_modes()
         Repeat(self)
@@ -482,6 +486,12 @@ class View:
         X2 = (np.dot(self.B, axes) - offset).round().astype(int)
         d = (2 * r).round().astype(int)
 
+        vectors = (self.ui.get_widget('/MenuBar/ViewMenu/ShowForces'
+                                      ).get_active())
+        if vectors:
+            V = self.vectors[0]
+#            V = np.dot(self.vectors[0], axes)
+
         selected_gc = self.selected_gc
         colors = self.get_colors()
         arc = self.pixmap.draw_arc
@@ -512,6 +522,10 @@ class View:
                     self.my_arc(selected_gc, False, a, X, r, n, A)
                 elif visible[a]:
                     self.my_arc(black_gc, False, a, X, r, n, A)
+                if vectors:
+                    Xs = X[a].round().astype(int)
+                    Xe = (X[a] + V[a]).round().astype(int)
+                    line(black_gc, Xs[0], Xs[1], Xe[0], Xe[1])
             else:
                 a -= n
                 line(black_gc, X1[a, 0], X1[a, 1], X2[a, 0], X2[a, 1])
@@ -581,7 +595,7 @@ class View:
             for a, b, c, d in bars:
                 line(color, a + x, b + y, c + x, d + y)
             x += 8
-        
+
     def release(self, drawing_area, event):
         if event.button != 1:
             return
@@ -733,3 +747,6 @@ class View:
     def render_window(self, action):
         Render(self)
         
+    def show_vectors(self, vectors):
+        self.vectors = 50 * vectors
+    
