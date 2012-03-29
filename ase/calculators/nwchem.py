@@ -21,7 +21,9 @@ class NWchem(Calculator):
     def __init__(self,
                  label='nwchem',
                  task='energy',
-                 geometry=None,
+                 # Warning: nwchem centers atoms by default
+                 # see ase-developers/2012-March/001356.html
+                 geometry='nocenter',
                  xc='LDA',
                  convergence = {'energy'  : None,
                                 'density' : None,
