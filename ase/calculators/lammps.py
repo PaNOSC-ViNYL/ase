@@ -122,7 +122,7 @@ class LAMMPS:
                 os.mkdir(self.tmp_dir, 0755)
         
         for f in files:
-            shutil.copy(f, os.path.join(self.tmp_dir, f))
+            shutil.copy(f, os.path.join(self.tmp_dir, os.path.basename(f)))
 
     def clean(self, force=False):
 
