@@ -424,14 +424,14 @@ class View:
                                   [0, 1. / (ry*ry), 0],
                                   [0, 0, 1. / (rz*rz)]
                                   ])
-            # Ellipsoid rotatet by quaternion as Matrix X' = R X R_transpose
+            # Ellipsoid rotated by quaternion as Matrix X' = R X R_transpose
             El_r = np.dot(Q.rotation_matrix(),
                           np.dot(Ellipsoid, 
                                  np.transpose(Q.rotation_matrix())))
             # Ellipsoid rotated by quaternion and axes as 
             # Matrix X' =  R_axes X' R_axes
             El_v = np.dot(np.transpose(self.axes), np.dot(El_r, self.axes))
-            # Projection of rotatet ellipsoid on xy plane
+            # Projection of rotated ellipsoid on xy plane
             El_p = Ell = np.array([
                     [El_v[0][0] - El_v[0][2] * El_v[0][2] / El_v[2][2],
                      El_v[0][1] - El_v[0][2] * El_v[1][2] / El_v[2][2]],
@@ -507,7 +507,7 @@ class View:
         vectors = (self.ui.get_widget('/MenuBar/ViewMenu/ShowForces'
                                       ).get_active())
         if vectors:
-            V = self.scale * self.vectors[self.frame]
+            V = np.dot(self.vectors[self.frame], axes)
 
         selected_gc = self.selected_gc
         colors = self.get_colors()
