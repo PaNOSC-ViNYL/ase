@@ -63,7 +63,9 @@ class Lock:
             fd = opencew(self.name)
 
     def release(self):
-        os.remove(self.name)
+        world.barrier()
+        if world.rank == 0:
+            os.remove(self.name)
 
     def __enter__(self):
         self.acquire()
