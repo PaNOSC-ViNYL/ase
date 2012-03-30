@@ -5,7 +5,7 @@
 import os
 import gtk
 import tempfile
-from math import cos, sin, sqrt, atan
+from math import cos, sin, sqrt, atan, atan2
 from os.path import basename
 
 import numpy as np
@@ -467,6 +467,24 @@ class View:
         return self.pixmap.draw_arc(gc, fill, A[j, 0], A[j, 1], rj, rj, 
                                     0, 23040)
 
+    def arrow(self, begin, end):
+        vec = end - begin
+        length = np.sqrt((vec[:2]**2).sum())
+        length = min(length, 0.3 * self.scale)
+
+        line = self.pixmap.draw_line
+        beg = begin.round().astype(int)
+        en = end.round().astype(int)
+        line(self.black_gc, beg[0], beg[1], en[0], en[1])
+        
+        angle = atan2(en[1] - beg[1], en[0] - beg[0]) + np.pi
+        x1 = (end[0] + length * cos(angle - 0.3)).round().astype(int)
+        y1 = (end[1] + length * sin(angle - 0.3)).round().astype(int)
+        x2 = (end[0] + length * cos(angle + 0.3)).round().astype(int)
+        y2 = (end[1] + length * sin(angle + 0.3)).round().astype(int)
+        line(self.black_gc, x1, y1, en[0], en[1])
+        line(self.black_gc, x2, y2, en[0], en[1])
+
     def draw(self, status=True):
         self.pixmap.draw_rectangle(self.white_gc, True, 0, 0,
                                    self.width, self.height)
@@ -522,9 +540,7 @@ class View:
                 elif visible[a]:
                     self.my_arc(black_gc, False, a, X, r, n, A)
                 if vectors:
-                    Xs = X[a].round().astype(int)
-                    Xe = (X[a] + V[a]).round().astype(int)
-                    line(black_gc, Xs[0], Xs[1], Xe[0], Xe[1])
+                    self.arrow(X[a], X[a] + V[a])
             else:
                 a -= n
                 line(black_gc, X1[a, 0], X1[a, 1], X2[a, 0], X2[a, 1])
