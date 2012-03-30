@@ -170,7 +170,7 @@ class InfraRed(Vibrations):
         # Get "static" dipole moment and forces
         name = '%s.eq.pckl' % self.name
         [forces_zero, dipole_zero] = pickle.load(open(name))
-        self.dipole_zero = (sum(dipole_zero**2)**0.5)*units.Debye
+        self.dipole_zero = (sum(dipole_zero**2)**0.5) / units.Debye
         self.force_zero = max([sum((forces_zero[j])**2)**0.5 for j in self.indices])
 
         ndof = 3 * len(self.indices)
@@ -222,7 +222,7 @@ class InfraRed(Vibrations):
         s = units._hbar * 1e10 / sqrt(units._e * units._amu)
         self.hnu = s * omega2.astype(complex)**0.5
         # Conversion factor from atomic units to (D/Angstrom)^2/amu.
-        conv = units.Debye**2*units._amu/units._me
+        conv = (1.0 / units.Debye)**2*units._amu/units._me
         self.intensities = intensities*conv
 
     def summary(self, method='standard', direction='central'):

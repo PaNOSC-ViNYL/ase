@@ -35,7 +35,7 @@ kB = _k / _e                 # Boltzmann constant, eV/K
 Pascal = (1 / _e) / 1e30  # J/m^3
 GPa = 1e9 * Pascal
 
-Debye = 1e11 *_e * _c
+Debye = 1.0 / 1e11 / _e / _c
 alpha = _e**2 / (4 * pi * _eps0) / _hbar / _c # fine structure constant
 
 # Derived atomic units that have no assigned name:
