@@ -46,4 +46,13 @@ _aup = alpha**5 * _me**4 * _c**5 / _hbar**3  # atomic unit of pressure, Pa
 
 AUT = second * _aut
 
+# SI units
+m = 1e10 * Ang    # metre
+kg = 1. / _amu    # kilogram
+s = second        # second
+A = 1.0 / _e / s  # ampere
+# derived
+J = kJ / 1000  # Joule   = kg * m**2 / s**2
+C = 1.0 / _e   # Coulomb = A * s
+
 del pi, sqrt
