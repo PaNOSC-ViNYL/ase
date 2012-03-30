@@ -49,6 +49,8 @@ formatter = logging.Formatter(formatstring)
 handler.setFormatter(formatter)
 log.addHandler(handler)
 
+from ase.calculators.jacapo.validate import get_dacapopath
+
 class DacapoRunning(exceptions.Exception):
     """Raised when ncfile.status = 'running'"""
     pass
@@ -2482,7 +2484,7 @@ than density cutoff %i' % (pw, dw))
         '''
         
         from struct import unpack
-        dacapopath = os.environ.get('DACAPOPATH', '')
+        dacapopath = get_dacapopath()
 
         if os.path.exists(psp):
             #the pspfile may be in the current directory
@@ -2521,7 +2523,7 @@ than density cutoff %i' % (pw, dw))
         '''
         
         from struct import unpack
-        dacapopath = os.environ.get('DACAPOPATH')
+        dacapopath = get_dacapopath()
 
         if os.path.exists(psp):
             #the pspfile may be in the current directory
@@ -2581,7 +2583,7 @@ than density cutoff %i' % (pw, dw))
             else:
                 return None
 
-        dacapopath = os.environ.get('DACAPOPATH')
+        dacapopath = get_dacapopath()
         totval = 0.0
         for sym in atoms.get_chemical_symbols():
             psp = self.get_psp(sym)
@@ -2748,6 +2750,11 @@ than density cutoff %i' % (pw, dw))
                 self.parent.calculate()   # call the parent process to calculate all images
                 return
     
+        # hack: use the default psp path (see validate.get_dacapopath)
+        # export DACAPOPATH to the environment
+        env = os.environ
+        env['DACAPOPATH'] = get_dacapopath()
+
         if not self.ready:
             log.debug('Calculator is not ready.')
             if not os.path.exists(self.get_nc()):
@@ -2837,6 +2844,12 @@ than density cutoff %i' % (pw, dw))
         Implementation of an extra level of parallelization, where one jacapo calculator spawns several
         dacapo.run processes. This is used for NEBs parallelized over images.
         '''                
+
+        # hack: use the default psp path (see validate.get_dacapopath)
+        # export DACAPOPATH to the environment
+        env = os.environ
+        env['DACAPOPATH'] = get_dacapopath()
+
         nchildren = len(self.children)
         log.debug("I'm a parent and start a calculation for ",nchildren," children.")
         self._dacapo = nchildren*[None]
@@ -3029,6 +3042,11 @@ s.recv(14)
 """ % {'effpid':str(effpid)})
             scriptfile.close()
             os.system('chmod +x ' + scriptname)
+
+            # hack: use the default psp path (see validate.get_dacapopath)
+            # export DACAPOPATH to the environment
+            env = os.environ
+            env['DACAPOPATH'] = get_dacapopath()
 
             # setup dynamics as external and set the script name
             ncfile = netCDF(nc, 'a')

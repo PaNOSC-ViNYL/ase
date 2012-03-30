@@ -242,7 +242,7 @@ else:
     print 'No default parallel dacapo executable found'
 
 
-psp = os.environ.get('DACAPOPATH',None)
+psp = os.environ.get('DACAPOPATH', '/usr/share/dacapo-psp')
 if os.path.isdir(psp):
     print 'Pseudopotential database = ',psp
 else:

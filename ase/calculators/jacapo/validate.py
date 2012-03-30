@@ -7,6 +7,16 @@ provides functions to validate all input variables to the Jacapo calculator.
 '''
 
 ###########################################3
+### Helper functions
+##########################################
+def get_dacapopath():
+    """Return the value of the DACAPOPATH environment variable,
+    or, if DACAPOPATH not set, return /usr/share/dacapo-psp/.
+    Note that DACAPOPATH must be set for the Fortran code!  """
+    import os
+    return os.environ.get('DACAPOPATH', '/usr/share/dacapo-psp')
+
+###########################################3
 ### Validation functions
 ##########################################
 def valid_int(x):
@@ -111,8 +121,8 @@ def valid_pseudopotentials(x):
 
     return True
 
-    DACAPOPATH = os.environ.get('DACAPOPATH', None)
-    if DACAPOPATH is None:
+    dacapopath = get_dacapopath()
+    if dacapopath is None:
         raise Exception, 'No $DACAPOPATH found. please set it in .cshrc or .bashrc'
 
     from ase.data import chemical_symbols
@@ -126,7 +136,7 @@ def valid_pseudopotentials(x):
         #now check for existence of psp files
         psp = x[key]
         if not (os.path.exists(psp)
-                or os.path.exists(os.path.join(DACAPOPATH, psp))):
+                or os.path.exists(os.path.join(dacapopath, psp))):
             return False
     return True
 
@@ -319,6 +329,9 @@ def valid_mdos(x):
     return True
 
 def valid_psp(x):
+
+    dacapopath = get_dacapopath()
+    
     valid_keys = ['sym','psp']
     if x is None:
         return True
@@ -336,8 +349,7 @@ def valid_psp(x):
             if os.path.exists(x['psp']):
                 return True
 
-            if os.path.exists(os.path.join(os.environ['DACAPOPATH'],
-                                           x['psp'])):
+            if os.path.exists(os.path.join(dacapopath, x['psp'])):
                 return True
             #psp not found
             return False
