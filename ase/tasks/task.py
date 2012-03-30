@@ -25,7 +25,7 @@ class Task:
                  tag=None, magmoms=None, gui=False,
                  write_summary=False, use_lock_files=False,
                  write_to_file=None, slice=slice(None),
-                 logfile='-'):
+                 logfile='-', collection=None):
 
         """Generic task object.
 
@@ -35,6 +35,8 @@ class Task:
 
         calcfactory: CalculatorFactory object or str
             A calculator factory or the name of a calculator.
+        collection: dict
+            Collection of systems.
 
         For the meaning of the other arguments, see the add_options()
         and parse_args() methods."""
@@ -72,6 +74,8 @@ class Task:
         self.lock = None
 
         self.summary_keys = ['energy']
+
+        self.collection = collection
 
     def set_calculator_factory(self, calcfactory):
         if isinstance(calcfactory, str):
@@ -121,8 +125,8 @@ class Task:
                 newnames.append(name)
         return newnames
 
-    def run(self, names):
-        """Run task far all names.
+    def run(self, names=None):
+        """Run task for all names.
 
         The task will be one of these four:
 
@@ -132,6 +136,9 @@ class Task:
         * Do the actual calculation
         """
 
+        if names is None:
+            names = self.collection.keys()
+            
         names = self.expand(names)
         names = names[self.slice]
         names = self.exclude(names)
@@ -231,7 +238,10 @@ class Task:
         if '.' in name:
             system = read(name)
         else:
-            system = self.build_system(name)
+            if self.collection is None:
+                system = self.build_system(name)
+            else:
+                system = self.collection[name]
 
         if self.magmoms is not None:
             system.set_initial_magnetic_moments(
@@ -334,7 +344,7 @@ class Task:
         self.calcfactory.add_options(parser)
         opts, args = parser.parse_args(args)
 
-        if len(args) == 0:
+        if len(args) == 0 and self.collection is None:
             parser.error('incorrect number of arguments')
 
         self.parse(opts, args)
@@ -380,7 +390,7 @@ class OptimizeTask(Task):
             atoms.constraints = [constrain]
 
         optimizer = LBFGS(atoms, trajectory=self.get_filename(name, 'traj'),
-                          logfile=None)
+                          logfile=self.logfile)
         optimizer.run(self.fmax)
         
     def calculate(self, name, atoms):

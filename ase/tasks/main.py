@@ -23,7 +23,7 @@ Try "ase molecule --help" or "ase bulk --help".
 """
 
 
-def run(args=sys.argv[1:], calcname='emt'):
+def run(args=sys.argv[1:], calcname='emt', task=None):
 
     if isinstance(args, str):
         args = args.split(' ')
@@ -33,12 +33,24 @@ def run(args=sys.argv[1:], calcname='emt'):
     if len(args) > 0 and args[0] in calcnames:
         calcname = args.pop(0)
 
-    taskname = 'molecule'
-    if (len(args) > 0 and
-        (args[0] in ['molecule', 'bulk'] or args[0].endswith('.py'))):
-        taskname = args.pop(0)
+    if task is None:
+        taskname = 'molecule'
+        if (len(args) > 0 and
+            (args[0] in ['molecule', 'bulk'] or args[0].endswith('.py'))):
+            taskname = args.pop(0)
 
-    if len(args) == 0:
+        if taskname.endswith('.py'):
+            locals = {}
+            execfile(taskname, locals, locals)
+            tasks = [task for task in locals.values() if isinstance(task, Task)]
+            assert len(tasks) == 1
+            task = tasks[0]
+        elif taskname == 'bulk':
+            task = BulkTask()
+        else:
+            task = MoleculeTask()
+
+    if len(args) == 0 and task.collection is None:
         sys.stderr.write(
             usage % textwrap.fill(', '.join(calcnames[:-1]) +
                                   ' or ' + calcnames[-1] +
@@ -47,17 +59,6 @@ def run(args=sys.argv[1:], calcname='emt'):
                                   subsequent_indent=' ' * 12))
         return
     
-    if taskname.endswith('.py'):
-        locals = {}
-        execfile(taskname, locals, locals)
-        tasks = [task for task in locals.values() if isinstance(task, Task)]
-        assert len(tasks) == 1
-        task = tasks[0]
-    elif taskname == 'bulk':
-        task = BulkTask()
-    else:
-        task = MoleculeTask()
-
     task.set_calculator_factory(calcname)
 
     args = task.parse_args(args)
