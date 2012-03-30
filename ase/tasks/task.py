@@ -69,7 +69,7 @@ class Task:
 
         self.write_funcs = []
 
-        self.lock = Lock(self.get_filename(ext='lock'))
+        self.lock = None
 
         self.summary_keys = ['energy']
 
@@ -150,6 +150,10 @@ class Task:
                 assert len(names) == 1
                 write(self.write_to_file, self.create_system(names[0]))
             return
+
+        if self.lock is None:
+            # Create lock object:
+            self.lock = Lock(self.get_filename(ext='lock'))
 
         if self.write_summary:
             self.read()
