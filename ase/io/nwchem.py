@@ -7,6 +7,7 @@ def read_nwchem(filename):
     """
     from ase import Atoms, Atom
 
+    f = filename
     if isinstance(filename, str):
         f = open(filename)
 
