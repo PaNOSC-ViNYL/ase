@@ -259,7 +259,8 @@ class Task:
     def read(self):
         self.data = read_json(self.get_filename(ext='json'))
         self.data = dict((key.encode('ascii'), value)
-                         for key, value in self.data.items())
+                         for key, value in self.data.items()
+                         if value)
         
     def analyse(self):
         """Extend data with analysis results and write."""
