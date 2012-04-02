@@ -105,6 +105,15 @@ def read_gpaw_text(fileobj, index=-1):
             q = None
         else:
             q = float(lines[ii].split()[2])
+        # read dipole moment
+        try:
+            ii = index_startswith(lines, 'Dipole Moment:')
+        except ValueError:
+            dipole = None
+        else:
+            line = lines[ii].replace(']', '').replace('[', '')
+            dipole = np.array([float(i) for i in line.split()[-3:]])
+
         try:
             ii = index_startswith(lines, 'Local Magnetic Moments')
         except ValueError:
@@ -134,6 +143,8 @@ def read_gpaw_text(fileobj, index=-1):
             calc = SinglePointDFTCalculator(e, f, None, magmoms, atoms, eFermi)
             if kpts is not None:
                 calc.kpts = kpts
+            if dipole is not None:
+                calc.set_dipole_moment(dipole)
             atoms.set_calculator(calc)
         if q is not None and len(atoms) > 0:
             n = len(atoms)

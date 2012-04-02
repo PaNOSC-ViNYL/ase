@@ -64,6 +64,14 @@ class SinglePointCalculator:
         else:
             return np.zeros(len(self.positions))
 
+    def get_dipole_moment(self):
+        if hasattr(self, 'dipole'):
+            return self.dipole
+        return None
+
+    def set_dipole_moment(self, dipole):
+        self.dipole = dipole
+
 class SinglePointKPoint:
     def __init__(self, kpt, spin):
         self.k = kpt
