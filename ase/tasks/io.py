@@ -53,4 +53,5 @@ def read_json(name):
     fd = open(name, 'r')
     results = loads(fd.read())
     fd.close()
+    world.barrier()
     return numpyfy(results)
