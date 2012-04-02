@@ -316,6 +316,10 @@ class View:
     def toggle_show_bonds(self, action):
         self.set_coordinates()
 
+    def toggle_show_velocities(self, action):
+        self.show_vectors(10 * self.images.V) # XXX hard coded scale is ugly
+        self.draw()
+
     def toggle_show_forces(self, action):
         self.show_vectors(self.images.F)
         self.draw()
@@ -504,7 +508,9 @@ class View:
         X2 = (np.dot(self.B, axes) - offset).round().astype(int)
         d = (2 * r).round().astype(int)
 
-        vectors = (self.ui.get_widget('/MenuBar/ViewMenu/ShowForces'
+        vectors = (self.ui.get_widget('/MenuBar/ViewMenu/ShowVelocities'
+                                      ).get_active() or
+                   self.ui.get_widget('/MenuBar/ViewMenu/ShowForces'
                                       ).get_active())
         if vectors:
             V = np.dot(self.vectors[self.frame], axes)
