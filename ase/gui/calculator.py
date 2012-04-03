@@ -1621,8 +1621,6 @@ class VASP_Window(gtk.Window):
         set inside the INCAR, KPOINTS and POTCAR file in 'directory'."""
         from os import chdir
         chdir(directory)
-
-
        
         # Try and load INCAR, in the current directory
         from ase.calculators.vasp import Vasp
@@ -1770,7 +1768,7 @@ class VASP_Window(gtk.Window):
                     for i in c:
                         val.append(float(i))
                     self.param[key] = val
-                elif key in string_keys:
+                elif key in string_keys or key in special_keys:
                     self.param[key] = val
                 elif key in int_keys:
                     self.param[key] = int(val)
