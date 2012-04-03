@@ -763,7 +763,10 @@ class Atoms(object):
         for name, a1 in self.arrays.items():
             a = np.zeros((n1 + n2,) + a1.shape[1:], a1.dtype)
             a[:n1] = a1
-            a2 = other.arrays.get(name)
+            if name == 'masses':
+                a2 = other.get_masses()
+            else:
+                a2 = other.arrays.get(name)
             if a2 is not None:
                 a[n1:] = a2
             self.arrays[name] = a
@@ -774,7 +777,7 @@ class Atoms(object):
             a = np.empty((n1 + n2,) + a2.shape[1:], a2.dtype)
             a[n1:] = a2
             if name == 'masses':
-                a[:n1] = self.get_masses()
+                a[:n1] = self.get_masses()[:n1]
             else:
                 a[:n1] = 0
 
