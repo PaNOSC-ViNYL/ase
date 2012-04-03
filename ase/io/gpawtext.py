@@ -112,7 +112,7 @@ def read_gpaw_text(fileobj, index=-1):
             dipole = None
         else:
             line = lines[ii].replace(']', '').replace('[', '')
-            dipole = np.array([float(i) for i in line.split()[-3:]])
+            dipole = np.array([float(c) for c in line.split()[-3:]])
 
         try:
             ii = index_startswith(lines, 'Local Magnetic Moments')
