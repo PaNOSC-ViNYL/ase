@@ -225,12 +225,25 @@ class InfraRed(Vibrations):
         conv = (1.0 / units.Debye)**2*units._amu/units._me
         self.intensities = intensities*conv
 
-    def summary(self, method='standard', direction='central'):
+    def summary(self, method='standard', direction='central', 
+                intensity_unit='(D/A)2/amu'):
         hnu = self.get_energies(method, direction)
         s = 0.01 * units._e / units._c / units._hplanck
+        if intensity_unit == '(D/A)2/amu':
+            iu = 1.0
+            iu_string = '(D/Å)^2 amu^-1'
+            iu_format = '%9.4f'
+        elif intensity_unit == 'km/mol':
+            # conversion factor from Porezag PRB 54 (1996) 7830
+            iu = 42.255
+            iu_string = '   km/mol'
+            iu_format = ' %7.1f'
+        else:
+            raise RuntimeError('Intensity unit >' + intensity_unit +
+                               '< unknown.')
         parprint('-------------------------------------')
         parprint(' Mode    Frequency        Intensity')
-        parprint('  #    meV     cm^-1   (D/Å)^2 amu^-1')
+        parprint('  #    meV     cm^-1   ' + iu_string)
         parprint('-------------------------------------')
         for n, e in enumerate(hnu):
             if e.imag != 0:
@@ -238,8 +251,8 @@ class InfraRed(Vibrations):
                 e = e.imag
             else:
                 c = ' '
-            parprint('%3d %6.1f%s  %7.1f%s  %9.4f' % 
-                     (n, 1000 * e, c, s * e, c, self.intensities[n]))
+            parprint(('%3d %6.1f%s  %7.1f%s  ' + iu_format) % 
+                     (n, 1000 * e, c, s * e, c, iu * self.intensities[n]))
         parprint('-------------------------------------')
         parprint('Zero-point energy: %.3f eV' % self.get_zero_point_energy())
         parprint('Static dipole moment: %.3f D' % self.dipole_zero)
