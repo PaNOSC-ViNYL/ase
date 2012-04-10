@@ -9,14 +9,14 @@ except ImportError:
 
 
 if json is None:
-    def dumps(obj):
+    def dumps(obj, sort_keys=False, indent=None):
         if isinstance(obj, str):
             return '"' + obj + '"'
         if isinstance(obj, (int, float)):
             return repr(obj)
         if isinstance(obj, dict):
-            return '{' + ','.join(dumps(key) + ':' + dumps(value)
-                                  for key, value in obj.items()) + '}'
+            return '{' + ', '.join(dumps(key) + ': ' + dumps(value)
+                                   for key, value in obj.items()) + '}'
         return '[' + ','.join(dumps(value) for value in obj) + ']'
 
     loads = eval
@@ -45,7 +45,7 @@ def numpyfy(obj):
 def write_json(name, results):
     if world.rank == 0:
         fd = open(name, 'w')
-        fd.write(dumps(results))
+        fd.write(dumps(results, sort_keys=True, indent=4))
         fd.close()
 
 
