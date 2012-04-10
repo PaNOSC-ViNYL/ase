@@ -9,7 +9,7 @@ except ImportError:
 
 
 if json is None:
-    def dumps(obj, sort_keys=False, indent=None):
+    def dumps(obj):
         if isinstance(obj, str):
             return '"' + obj + '"'
         if isinstance(obj, (int, float)):
@@ -22,11 +22,15 @@ if json is None:
     loads = eval
 else:
     class NDArrayEncoder(json.JSONEncoder):
+        def __init__(self):
+            json.JSONEncoder.__init__(self, sort_keys=True, indent=4)
+
         def default(self, obj):
             if isinstance(obj, np.ndarray):
                 return obj.tolist()
             return json.JSONEncoder.default(self, obj)
     
+
     dumps = NDArrayEncoder().encode
     loads = json.loads
 
@@ -45,7 +49,7 @@ def numpyfy(obj):
 def write_json(name, results):
     if world.rank == 0:
         fd = open(name, 'w')
-        fd.write(dumps(results, sort_keys=True, indent=4))
+        fd.write(dumps(results))
         fd.close()
 
 
