@@ -29,7 +29,7 @@ class BulkTask(OptimizeTask):
 
         OptimizeTask.__init__(self, **kwargs)
         
-        self.summary_keys = ['energy', 'relaxed energy', 'volume', 'B [GPa]']
+        self.summary_keys = ['energy', 'relaxed energy', 'volume', 'B']
 
     def expand(self, names):
         """Expand fcc, bcc, hcp and diamond.
@@ -109,7 +109,7 @@ class BulkTask(OptimizeTask):
                 else:
                     data['relaxed energy'] = e
                     data['volume'] = v
-                    data['B [GPa]'] = B * 1e24 / units.kJ
+                    data['B'] = B
 
         OptimizeTask.analyse(self)
 
