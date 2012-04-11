@@ -136,7 +136,7 @@ class Task:
         * Do the actual calculation
         """
 
-        if names is None:
+        if names is None or len(names) == 0:
             names = self.collection.keys()
             
         names = self.expand(names)
