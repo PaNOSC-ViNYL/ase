@@ -12,7 +12,6 @@ The following packages are required for basic ASE functionality:
 .. _Python: http://www.python.org
 .. _NumPy: http://www.scipy.org/NumPy
 
-
 It is highly recommended (but not required) to install also these two:
 
 3) matplotlib_.
@@ -20,8 +19,9 @@ It is highly recommended (but not required) to install also these two:
 
 Matplotlib is needed for :mod:`writing png and eps files <io>`, and
 both packages are needed for ASE's simple GUI (called **ag**, see :mod:`gui`).
-Some of these packages may already be installed on your system.
-
+Some of these packages may already be installed on your system. OSX
+users, please see below for additional details to install the
+prerequisite libraries. 
 
 .. _matplotlib: http://matplotlib.sourceforge.net
 .. _pygtk: http://www.pygtk.org
@@ -174,6 +174,24 @@ If you have root-permissions, you can install ASE system-wide::
   $ sudo python setup.py install
 
 .. _running_tests:
+
+Installation of prerequisites for OSX
+=====================================
+
+For Apple users, the MacPorts_ Project provides a straight-forward
+route to obtain all necessary requirements. Unfortunately, MacPorts
+does not install the `gtk` bindings to matplotlib_ by default, which
+are required to open the GUI. To get all the ASE prerequisites for
+python 2.7 in one single command anyway, install MacPorts and then
+run::
+
+  $ port install py27-matplotlib +gtk2
+
+Use the `sudo` command if you have root access and if you require 
+a system-wide install. Once finished, please follow the instructions
+above to install ASE. 
+
+.. _MacPorts: http://www.macports.org/
 
 Run the tests
 =============
