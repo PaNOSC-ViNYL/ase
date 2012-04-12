@@ -13,4 +13,4 @@ atoms, task = run('bulk Cu -s')
 data = task.data['Cu']
 assert abs(data['relaxed energy'] - -0.0070) < 0.0001
 assert abs(data['volume'] - 11.5654) < 0.0001
-assert abs(data['B [GPa]'] - 134.4389) < 0.001
+assert abs(data['B'] - 0.83910) < 0.00001
