@@ -593,7 +593,7 @@ class LJ_Window(gtk.Window):
         tbl, self.epsilon_adj = self.makematrix(self.present)
         pack(vbox, [tbl])
         pack(vbox, gtk.Label(""))
-        pack(vbox, [gtk.Label(_("Sigma (Å):"))])
+        pack(vbox, [gtk.Label(_(u"Sigma (Å):"))])
         tbl, self.sigma_adj = self.makematrix(self.present)
         pack(vbox, [tbl])
         # TRANSLATORS: Shift roughly means adjust (about a potential)
@@ -695,7 +695,7 @@ class GPAW_Window(gtk.Window):
         # Print some info
         txt = _("%i atoms.\n") % (self.natoms,)
         if self.orthogonal:
-            txt += _("Orthogonal unit cell: %.2f x %.2f x %.2f Å.") % self.size
+            txt += _(u"Orthogonal unit cell: %.2f x %.2f x %.2f Å.") % self.size
         else:
             txt += _("Non-orthogonal unit cell:\n")
             txt += str(self.ucell)
@@ -715,7 +715,7 @@ class GPAW_Window(gtk.Window):
         self.h = gtk.Adjustment(0.18, 0.0, 1.0, 0.01)
         self.h_spin = gtk.SpinButton(self.h, 0, 2)
         pack(vbox, [self.radio_h, gtk.Label(" h = "), self.h_spin,
-                    gtk.Label(_("Å"))])
+                    gtk.Label(_(u"Å"))])
         self.radio_gpts = gtk.RadioButton(self.radio_h, _("Grid points"))
         self.gpts = []
         self.gpts_spin = []
@@ -725,7 +725,7 @@ class GPAW_Window(gtk.Window):
             self.gpts.append(g)
             self.gpts_spin.append(s)
         self.gpts_hlabel = gtk.Label("")
-        self.gpts_hlabel_format = _("h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å")
+        self.gpts_hlabel_format = _(u"h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å")
         pack(vbox, [self.radio_gpts, gtk.Label(" gpts = ("), self.gpts_spin[0],
                     gtk.Label(", "), self.gpts_spin[1], gtk.Label(", "),
                     self.gpts_spin[2], gtk.Label(")  "), self.gpts_hlabel])
@@ -755,7 +755,7 @@ class GPAW_Window(gtk.Window):
                     gtk.Label(", "), self.kpts_spin[1], gtk.Label(", "),
                     self.kpts_spin[2], gtk.Label(")")])
         self.kpts_label = gtk.Label("")
-        self.kpts_label_format = _("k-points x size:  (%.1f, %.1f, %.1f) Å")
+        self.kpts_label_format = _(u"k-points x size:  (%.1f, %.1f, %.1f) Å")
         pack(vbox, [self.kpts_label])
         self.k_changed()
         
@@ -1017,7 +1017,7 @@ class AIMS_Window(gtk.Window):
                         gtk.Label(", "), self.kpts_spin[1], gtk.Label(", "),
                         self.kpts_spin[2], gtk.Label(")")])
             self.kpts_label = gtk.Label("")
-            self.kpts_label_format = _("k-points x size:  (%.1f, %.1f, %.1f) Å")
+            self.kpts_label_format = _(u"k-points x size:  (%.1f, %.1f, %.1f) Å")
             pack(vbox, [self.kpts_label])
             self.k_changed()
             pack(vbox, gtk.Label(""))
@@ -1527,7 +1527,7 @@ class VASP_Window(gtk.Window):
                     gtk.Label(_(")    Cutoff: ")),self.encut_spin,
                     gtk.Label(_("    Precision: ")),self.prec])
         self.kpts_label = gtk.Label("")
-        self.kpts_label_format = _("k-points x size:  (%.1f, %.1f, %.1f) Å       ")
+        self.kpts_label_format = _(u"k-points x size:  (%.1f, %.1f, %.1f) Å       ")
         pack(vbox, [self.kpts_label, self.encut_warning])
         self.k_changed()
         pack(vbox, gtk.Label(""))

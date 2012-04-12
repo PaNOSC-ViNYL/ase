@@ -26,7 +26,7 @@ from ase.structure import nanotube
 atoms = nanotube(%(n)i, %(m)i, length=%(length)i, bond=%(bl).3f, symbol='%(symb)s')
 """
 
-label_template = _(""" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f A, cell volume: %(volume).3f A<sup>3</sup>""")
+label_template = _(u""" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: %(volume).3f Å<sup>3</sup>""")
 
 class SetupNanotube(SetupWindow):
     "Window for setting up a (Carbon) nanotube."
@@ -46,7 +46,7 @@ class SetupNanotube(SetupWindow):
         self.element.connect('activate', self.makeatoms)
         self.bondlength = gtk.Adjustment(1.42, 0.0, 1000.0, 0.01)
         label2 = gtk.Label(_("  Bond length: "))
-        label3 = gtk.Label(_("Å"))
+        label3 = gtk.Label(_(u"Å"))
         bond_box = gtk.SpinButton(self.bondlength, 10.0, 3)
         pack(vbox, [label1, self.element, label2, bond_box, label3])
         self.elementinfo = gtk.Label("")

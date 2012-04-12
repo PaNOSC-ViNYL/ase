@@ -64,7 +64,7 @@ class SetupGraphene(SetupWindow):
         self.element.set_text("C")
         self.bondlength = gtk.Adjustment(1.42, 0.0, 1000.0, 0.01)
         label2 = gtk.Label(_("  Bond length: "))
-        label3 = gtk.Label(_("Å"))
+        label3 = gtk.Label(_(u"Å"))
         bond_box = gtk.SpinButton(self.bondlength, 10.0, 3)
         pack(vbox, [label1, self.element, label2, bond_box, label3])
 
@@ -75,7 +75,7 @@ class SetupGraphene(SetupWindow):
         self.element2.set_text(_("H"))
         self.bondlength2 = gtk.Adjustment(1.12, 0.0, 1000.0, 0.01)
         self.sat_label2 = gtk.Label(_("  Bond length: "))
-        self.sat_label3 = gtk.Label(_("Å"))
+        self.sat_label3 = gtk.Label(_(u"Å"))
         self.bond_box = gtk.SpinButton(self.bondlength2, 10.0, 3)
         pack(vbox, [self.sat_label1, self.element2, self.sat_label2,
                     self.bond_box, self.sat_label3])
@@ -98,7 +98,7 @@ class SetupGraphene(SetupWindow):
         # Vacuum
         label1 = gtk.Label(_("Vacuum: "))
         self.vacuum = gtk.Adjustment(5.0, 0.0, 1000.0, 0.1)
-        label2 = gtk.Label(_("Å"))
+        label2 = gtk.Label(_(u"Å"))
         vac_box = gtk.SpinButton(self.vacuum, 10.0, 2)
         pack(vbox, [label1, vac_box, label2])
         pack(vbox, gtk.Label(""))

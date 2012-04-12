@@ -94,7 +94,7 @@ class SetupSurfaceSlab(SetupWindow):
         self.lattice_const = gtk.Adjustment(3.0, 0.0, 1000.0, 0.01)
         lattice_box = gtk.SpinButton(self.lattice_const, 10.0, 3)
         lattice_box.numeric = True
-        pack(vbox2, [gtk.Label(_("a:")), lattice_box, gtk.Label(_("Å"))])
+        pack(vbox2, [gtk.Label(_("a:")), lattice_box, gtk.Label(_(u"Å"))])
         tbl.attach(vbox2, 1, 2, 0, 1)
         lattice_button = gtk.Button(_("Get from database"))
         tbl.attach(lattice_button, 2, 3, 0, 1)
@@ -105,7 +105,7 @@ class SetupSurfaceSlab(SetupWindow):
         lattice_box_c = gtk.SpinButton(self.lattice_const_c, 10.0, 3)
         lattice_box_c.numeric = True
         pack(self.vbox_hcp, [gtk.Label("c:"), 
-                             lattice_box_c, gtk.Label("Å")])
+                             lattice_box_c, gtk.Label(u"Å")])
         self.hcp_c_over_a_format = "c/a: %.3f " + _("(%.1f %% of ideal)")
         self.hcp_c_over_a_label = gtk.Label(self.hcp_c_over_a_format % \
                                                 (self.hcp_ideal, 100.0))
@@ -129,7 +129,7 @@ class SetupSurfaceSlab(SetupWindow):
                     gtk.Label(_(" unit cells"))])
         pack(vbox, [gtk.Label(_("      \t\tz: ")), buttons[2],
                     gtk.Label(_(" layers,  ")),
-                    vacuum_box, gtk.Label(_(" Å vacuum"))])
+                    vacuum_box, gtk.Label(_(u" Å vacuum"))])
         self.nosize = _("\t\tNo size information yet.")
         self.sizelabel = gtk.Label(self.nosize)
         pack(vbox, [self.sizelabel])

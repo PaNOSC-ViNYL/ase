@@ -19,7 +19,7 @@ i18n: ag.pot update-po compile
 # This will update the English template (ag.pot) with English messages from 
 # the Python source code.
 ag.pot: ${TRANSLATIONFILES}
-	xgettext --add-comments --language=Python --keyword=_ --output=ag.pot ${TRANSLATIONFILES}
+	xgettext --add-comments --language=Python --keyword=_ --output=ag.pot --msgid-bugs-address=ase-developers@listserv.fysik.dtu.dk --copyright-holder=CAMD --package-name=ase ${TRANSLATIONFILES}
 
 # This will create an empty translation file ($LANG.po, where $LANG is
 # an environment variable) from the English template ag.pot.
@@ -33,7 +33,7 @@ init: ag.pot
 # reusing the existing translations.
 update-po: ag.pot
 	for FILE in $(wildcard */LC_MESSAGES/ag.po); do \
-	  msgmerge --update $$FILE ag.pot ;\
+	  msgmerge --previous --update $$FILE ag.pot ;\
 	done
 
 # This will compile all translations (*.po) into binary files in gettext's
