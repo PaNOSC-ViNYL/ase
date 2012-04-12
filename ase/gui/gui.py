@@ -660,6 +660,7 @@ class GUI(View, Status):
                     a = ase.Atoms([ase.Atom(molecule)])
                 except:      
                     try:
+                        import ase.data.molecules
                         a = ase.data.molecules.molecule(molecule)
                     except:
                         try:
