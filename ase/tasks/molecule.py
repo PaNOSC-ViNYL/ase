@@ -169,8 +169,6 @@ class MoleculeTask(OptimizeTask):
             if eatoms is not None:
                 data['atomic energy'] = eatoms
 
-        OptimizeTask.analyse(self)
-
     def add_options(self, parser):
         OptimizeTask.add_options(self, parser)
 

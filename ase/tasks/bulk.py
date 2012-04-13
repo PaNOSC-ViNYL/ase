@@ -7,7 +7,6 @@ from ase.tasks.task import OptimizeTask
 from ase.data import chemical_symbols, reference_states
 from ase.utils.eos import EquationOfState
 from ase.io.trajectory import PickleTrajectory
-import ase.units as units
 
 
 class BulkTask(OptimizeTask):
@@ -29,7 +28,7 @@ class BulkTask(OptimizeTask):
 
         OptimizeTask.__init__(self, **kwargs)
         
-        self.summary_keys = ['energy', 'relaxed energy', 'volume', 'B']
+        self.summary_keys = ['energy', 'fitted energy', 'volume', 'B']
 
     def expand(self, names):
         """Expand fcc, bcc, hcp and diamond.
@@ -107,11 +106,9 @@ class BulkTask(OptimizeTask):
                 except ValueError:
                     pass
                 else:
-                    data['relaxed energy'] = e
+                    data['fitted energy'] = e
                     data['volume'] = v
                     data['B'] = B
-
-        OptimizeTask.analyse(self)
 
     def add_options(self, parser):
         OptimizeTask.add_options(self, parser)

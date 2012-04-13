@@ -68,7 +68,8 @@ class Task:
         self.interactive_python_session = False
         self.contains = None
         self.modify = None
-
+        self.clean = False
+        
         self.write_funcs = []
 
         self.lock = None
@@ -136,6 +137,14 @@ class Task:
         * Do the actual calculation
         """
 
+        if self.lock is None:
+            # Create lock object:
+            self.lock = Lock(self.get_filename(ext='lock'))
+
+        if self.clean:
+            self.clean_json_file(names)
+            return
+
         if names is None or len(names) == 0:
             names = self.collection.keys()
             
@@ -157,10 +166,6 @@ class Task:
                 assert len(names) == 1
                 write(self.write_to_file, self.create_system(names[0]))
             return
-
-        if self.lock is None:
-            # Create lock object:
-            self.lock = Lock(self.get_filename(ext='lock'))
 
         if self.write_summary:
             self.read()
@@ -256,19 +261,34 @@ class Task:
         e = atoms.get_potential_energy()
         return {'energy': e}
 
-    def read(self):
+    def read(self, skipempty=True):
         self.data = read_json(self.get_filename(ext='json'))
-        self.data = dict((key.encode('ascii'), value)
-                         for key, value in self.data.items()
-                         if value)
+        if skipempty:
+            self.data = dict((key.encode('ascii'), value)
+                             for key, value in self.data.items()
+                             if value)
+
+    def clean_json_file(self, names=None):
+        self.read(skipempty=False)
         
-    def analyse(self):
-        """Extend data with analysis results and write."""
+        n = len(self.data)
+
+        if names:
+            for name in names:
+                del self.data[name]
+        else:
+            self.data = dict((key, value) for key, value in self.data.items()
+                             if value)
+
+        filename = self.get_filename(ext='json')
         try:
             self.lock.acquire()
-            write_json(self.get_filename(ext='json'), self.data)
+            write_json(filename, self.data)
         finally:
             self.lock.release()
+
+        n -= len(self.data)
+        self.log('Cleaned', n, ['tasks', 'task'][n == 1])
 
     def summarize(self, names):
         lines = [['name'] + self.summary_keys]
@@ -335,6 +355,8 @@ class Task:
                             help='Modify system with Python statement.  ' +
                            'Example: "system.positions[-1,2]+=0.1". ' +
                            'Warning: no spaces allowed!')
+        general.add_option('--clean', action='store_true',
+                            help='Remove unfinished tasks from json file.')
         parser.add_option_group(general)
     
     def parse_args(self, args=None):
@@ -368,6 +390,7 @@ class Task:
         self.interactive_python_session = opts.interactive_python_session
         self.contains = opts.contains
         self.modify = opts.modify
+        self.clean = opts.clean
 
         if opts.slice:
             self.slice = string2index(opts.slice)
