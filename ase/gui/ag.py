@@ -60,6 +60,9 @@ def build_parser():
                       action='store_true',
                       default=False,
                       help='Draw bonds between atoms.')
+    parser.add_option('-s', '--scale', dest='radii_scale', metavar='FLOAT',
+                      default=None, type=float,
+                      help='Scale covalent radii.')
     return parser
 
 
@@ -100,6 +103,9 @@ def main():
             if len(r) == 1:
                 r = 3 * r
             images.repeat_images([int(c) for c in r])
+
+        if opt.radii_scale:
+            images.set_radii(opt.radii_scale)
 
         if opt.output is not None:
             images.write(opt.output, rotations=opt.rotations,

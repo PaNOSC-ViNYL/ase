@@ -7,7 +7,8 @@ gui_default_settings['key'] = value
 
 gui_default_settings = {
     'gui_graphs_string' : 'i, e - E[-1]',   # default for the graph command in the gui
-    'covalent_radii' : None
+    'covalent_radii' : None,
+    'radii_scale': 0.89,
     }
 
 def read_defaults():

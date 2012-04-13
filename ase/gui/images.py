@@ -96,7 +96,7 @@ class Images:
         self.nselected = 0
         self.set_dynamic(constraints = images[0].constraints)
         self.repeat = np.ones(3, int)
-        self.set_radii(0.89)
+        self.set_radii(config['radii_scale'])
         
     def prepare_new_atoms(self):
         "Marks that the next call to append_atoms should clear the images."
