@@ -1,4 +1,5 @@
 # Copyright (C) 2012, Jesper Friis
+# (see accompanying license files for ASE).
 """
 Determines space group of an atoms object using the FINDSYM program
 from the ISOTROPY (http://stokes.byu.edu/iso/isotropy.html) software

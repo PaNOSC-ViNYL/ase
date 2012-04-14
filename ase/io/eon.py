@@ -1,4 +1,5 @@
 # Copyright (C) 2012, Jesper Friis, SINTEF
+# (see accompanying license files for ASE).
 """Module to read and write atoms EON reactant.con files.
 
 See http://theory.cm.utexas.edu/eon/index.html for a description of EON.
