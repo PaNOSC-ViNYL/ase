@@ -11,6 +11,6 @@ assert abs(data['atomic energy'] - data['relaxed energy'] - 5.3495) < 0.0001
 atoms, task = run('bulk Cu -F 5,2')
 atoms, task = run('bulk Cu -s')
 data = task.data['Cu']
-assert abs(data['relaxed energy'] - -0.0070) < 0.0001
+assert abs(data['fitted energy'] - -0.0070) < 0.0001
 assert abs(data['volume'] - 11.5654) < 0.0001
 assert abs(data['B'] - 0.83910) < 0.00001
