@@ -241,6 +241,8 @@ def read_vasp_out(filename='OUTCAR',index = -1):
     symbols = []
     ecount = 0
     poscount = 0
+    magnetization = []
+
     for n,line in enumerate(data):
         if 'POTCAR:' in line:
             temp = line.split()[2]
@@ -267,6 +269,10 @@ def read_vasp_out(filename='OUTCAR',index = -1):
                 # reset energy for LAST set of atoms, not current one - VASP 5.11? and up
                 images[-1].calc.energy = energy
             ecount += 1
+        if 'magnetization (x)' in line:
+            magnetization = []
+            for i in range(natoms):
+                magnetization += [float(data[n + 4 + i].split()[4])]
         if 'POSITION          ' in line:
             forces = []
             for iatom in range(natoms):
@@ -275,8 +281,11 @@ def read_vasp_out(filename='OUTCAR',index = -1):
                 forces += [[float(temp[3]),float(temp[4]),float(temp[5])]]
                 atoms.set_calculator(SinglePointCalculator(energy,forces,None,None,atoms))
             images += [atoms]
+            if len(magnetization) > 0:
+                images[-1].calc.magmoms = np.array(magnetization, float)
             atoms = Atoms(pbc = True, constraint = constr)
             poscount += 1
+
 
     # return requested images, code borrowed from ase/io/trajectory.py
     if isinstance(index, int):
