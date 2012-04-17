@@ -31,6 +31,7 @@
 import os
 import sys
 import weakref
+import pickle
 from gettext import gettext as _
 from gettext import ngettext
 import numpy as np
@@ -372,7 +373,6 @@ class GUI(View, Status):
         self.graphs = []       # List of open pylab windows
         self.graph_wref = []   # List of weakrefs to Graph objects
         self.movie_window = None
-        self.clipboard = None  # initialize copy/paste functions
         self.vulnerable_windows = []
         self.simulation = {}   # Used by modules on Calculate menu.
         self.module_state = {} # Used by modules to store their state.
@@ -583,7 +583,10 @@ class GUI(View, Status):
         self.draw()
         
     def copy_atoms(self, widget):
-        "Copies selected atoms to a clipboard, if no atoms are selected then the clipboard is cleared."
+        "Copies selected atoms to a clipboard."
+
+        clip = gtk.clipboard_get(gtk.gdk.SELECTION_CLIPBOARD)
+
         if self.images.selected.any():
             atoms = self.images.get_atoms(self.frame)
             lena = len(atoms)
@@ -597,15 +600,20 @@ class GUI(View, Status):
             for i in atoms:
                 if i.position[2] < ref[2]:
                     ref = i.position
-            self.clipboard = atoms.copy()
-            self.clipboard.reference_position = ref
-        else:
-            self.clipboard = None
+            atoms.reference_position = ref
+            clip.set_text(pickle.dumps(atoms, 0))
+            
 
     def paste_atoms(self, widget):
         "Inserts clipboard selection into the current frame using the add_atoms window."
-        if self.clipboard is not None:
-            self.add_atoms(widget, data='Paste', paste=self.clipboard)
+        clip = gtk.clipboard_get(gtk.gdk.SELECTION_CLIPBOARD)
+        try:
+            atoms = pickle.loads(clip.wait_for_text())
+            self.add_atoms(widget, data='Paste', paste=atoms)
+        except:
+            pass
+            
+            
         
     def add_atoms(self, widget, data=None, paste=None):
         """
