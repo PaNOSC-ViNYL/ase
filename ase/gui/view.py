@@ -4,6 +4,7 @@
 
 import os
 import gtk
+import pango
 import tempfile
 from math import cos, sin, sqrt, atan, atan2
 from os.path import basename
@@ -309,6 +310,18 @@ class View:
             v2 = sel_pos[1] - sel_pos[2]
             self.orient_normal = np.cross(v1, v2)
         self.orient_normal /= sum(self.orient_normal ** 2) ** 0.5
+
+    def show_labels(self, action, active):
+        an = active.get_name()
+        if an == "AtomIndex":
+            self.labels = [range(self.images.natoms)] * self.images.nimages
+        elif an == "NoLabel":
+            self.labels = [""] * self.images.natoms * self.images.nimages
+        elif an == "MagMom":
+            self.labels = self.images.M
+
+        self.draw()
+
             
     def toggle_show_axes(self, action):
         self.draw()
@@ -528,6 +541,22 @@ class View:
                 ra = d[a]
                 if visible[a]:
                     self.my_arc(colors[a], True, a, X, r, n, A)
+                    # start labeling with atomic indexes
+                    # to do: scale position and size with radius in some
+                    # meaningful manner - pick a reference magnification
+                    # where it "looks good" and then go from there ... 
+                    try:
+                        nlabel = str(self.labels[self.frame][a])
+                    except:
+                        nlabel = ""
+                    colorl = self.black_gc
+
+                    layout = self.drawing_area.create_pango_layout(nlabel)
+                    xlabel = int(A[a,0]+ra/2 - layout.get_size()[0]/2. / pango.SCALE)
+                    ylabel = int(A[a,1]+ra/2 - layout.get_size()[1]/2. / pango.SCALE)
+
+                    self.pixmap.draw_layout(colorl, xlabel, ylabel, layout)
+
                 if  self.light_green_markings and self.atoms_to_rotate_0[a]:
                     arc(self.green, False, A[a, 0] + 2, A[a, 1] + 2,
                         ra - 4, ra - 4, 0, 23040)
@@ -567,55 +596,39 @@ class View:
     def draw_axes(self):
         from ase.quaternions import Quaternion
         q = Quaternion().from_matrix(self.axes)
-        L = np.zeros((10, 2, 3))
-        L[:3, 1] = self.axes * 15
-        L[3:5] = self.axes[0] * 20
-        L[5:7] = self.axes[1] * 20
-        L[7:] = self.axes[2] * 20
-        L[3:, :, :2] += (((-4, -5), (4,  5)), ((-4,  5), ( 4, -5)), 
-                         ((-4,  5), (0,  0)), ((-4, -5), ( 4,  5)), 
-                         ((-4,  5), (4,  5)), (( 4,  5), (-4, -5)), 
-                         ((-4, -5), (4, -5)))
-        L = L.round().astype(int)
-        L[:, :, 0] += 20
-        L[:, :, 1] = self.height - 20 - L[:, :, 1]
-        line = self.pixmap.draw_line
-        colors = ([self.black_gc] * 3 +
-                  [self.red] * 2 + [self.green] * 2 + [self.blue] * 3)
-        for i in L[:, 1, 2].argsort():
-            (a, b), (c, d) = L[i, :, :2]
-            line(colors[i], a, b, c, d)
+        axes_labels = [
+                "<span foreground=\"red\" font_weight=\"bold\">X</span>",
+                "<span foreground=\"green\" font_weight=\"bold\">Y</span>",
+                "<span foreground=\"blue\" font_weight=\"bold\">Z</span>"]
+        axes_length = 15
+ 
+        for i in self.axes[:,2].argsort():
+            a = 20
+            b = self.height - 20
+            c = int(self.axes[i][0] * axes_length + a)
+            d = int(-self.axes[i][1] * axes_length + b)
+            self.pixmap.draw_line(self.black_gc, a, b, c, d)
 
-    digits = np.array(((1, 1, 1, 1, 1, 1, 0),
-                       (0, 1, 1, 0, 0, 0, 0),
-                       (1, 0, 1, 1, 0, 1, 1),
-                       (1, 1, 1, 1, 0, 0, 1),
-                       (0, 1, 1, 0, 1, 0, 1),
-                       (1, 1, 0, 1, 1, 0, 1),
-                       (1, 1, 0, 1, 1, 1, 1),
-                       (0, 1, 1, 1, 0, 0, 0),
-                       (1, 1, 1, 1, 1, 1, 1),
-                       (0, 1, 1, 1, 1, 0, 1)), bool)
+            # The axes label
+            layout = self.drawing_area.create_pango_layout(axes_labels[i])
+            layout.set_markup(axes_labels[i])
+            lox = int(self.axes[i][0] * 20 + 20\
+                    - layout.get_size()[0] / 2. / pango.SCALE)
+            loy = int(self.height - 20 - self.axes[i][1] * 20\
+                    - layout.get_size()[1] / 2. / pango.SCALE)
+            self.pixmap.draw_layout(self.black_gc, lox, loy, layout)
 
-    bars = np.array(((0, 2, 1, 2),
-                     (1, 2, 1, 1),
-                     (1, 1, 1, 0),
-                     (1, 0, 0, 0),
-                     (0, 0, 0, 1),
-                     (0, 1, 0, 2),
-                     (0, 1, 1, 1))) * 5
+ 
     
     def draw_frame_number(self):
         n = str(self.frame)
-        x = self.width - 3 - 8 * len(n)
-        y = self.height - 27
         color = self.black_gc
         line = self.pixmap.draw_line
-        for c in n:
-            bars = View.bars[View.digits[int(c)]]
-            for a, b, c, d in bars:
-                line(color, a + x, b + y, c + x, d + y)
-            x += 8
+        layout = self.drawing_area.create_pango_layout("Frame: " + n)
+        x = self.width - 3 - layout.get_size()[0] / pango.SCALE 
+        y = self.height - 5 - layout.get_size()[1] / pango.SCALE
+        self.pixmap.draw_layout(self.black_gc, x, y, layout)
+ 
 
     def release(self, drawing_area, event):
         if event.button != 1:

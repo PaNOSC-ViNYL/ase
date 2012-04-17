@@ -92,6 +92,11 @@ ui_info = """\
       <menuitem action='ShowBonds'/>
       <menuitem action='ShowVelocities'/>
       <menuitem action='ShowForces'/>
+      <menu action='ShowLabels'>
+        <menuitem action='NoLabel'/>
+        <menuitem action='AtomIndex'/>
+        <menuitem action='MagMom'/>
+      </menu>
       <separator/>
       <menuitem action='QuickInfo'/>
       <menuitem action='Repeat'/>
@@ -223,6 +228,7 @@ class GUI(View, Status):
             ('Last', gtk.STOCK_GOTO_LAST, _('_Last image'), 'End',
              '',
              self.step),
+            ('ShowLabels', None, _('Show _Labels')),
             ('QuickInfo', None, _('Quick Info ...'), None,
              '',
              self.quick_info_window),
@@ -352,6 +358,11 @@ class GUI(View, Status):
              self.toggle_orient_mode,
              False)             
             ])
+        actions.add_radio_actions((
+            ('NoLabel', None, _('_None'), None, None, 0),
+            ('AtomIndex', None, _('Atom _Index'), None, None, 1),
+            ('MagMom', None, _('_Magnetic Moments'), None, None, 2)),
+            0, self.show_labels)
         self.ui = ui = gtk.UIManager()
         ui.insert_action_group(actions, 0)
         self.window.add_accel_group(ui.get_accel_group())
@@ -862,6 +873,15 @@ class GUI(View, Status):
                             self.add_entries[3].set_text('?' + mom)
                             return ()
                 self.new_atoms(atoms, init_magmom=True)
+
+                # Updates atomic labels
+                cv = self.ui.get_action_groups()[0].\
+                        get_action("NoLabel").get_current_value()
+                self.ui.get_action_groups()[0].\
+                        get_action("NoLabel").set_current_value(0)
+                self.ui.get_action_groups()[0].\
+                        get_action("NoLabel").set_current_value(cv)
+
 
                 # and finally select the new molecule for easy moving and rotation
                 self.images.selected = y
