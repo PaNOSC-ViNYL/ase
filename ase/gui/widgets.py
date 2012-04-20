@@ -1,6 +1,6 @@
 from gettext import gettext as _
 import gtk
-
+import re
 
 class Number(gtk.SpinButton):
     def __init__(self, value=0,
@@ -64,8 +64,9 @@ class Help(gtk.Window):
         self.show_all()
 
     def set_text(self, text):
-        # Count line length
-        linelen = max([len(x) for x in text.split('\n')])
+        # Count line length without all the markup tags
+        plaintext = ''.join(re.split('<[^>]+>', text))
+        linelen = max([len(x) for x in plaintext.split('\n')])
         text = text.replace('<c>', '<span foreground="blue">')
         text = text.replace('</c>', '</span>')
         self.label.set_width_chars(linelen)
