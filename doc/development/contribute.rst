@@ -64,7 +64,6 @@ dulak       Marcin Dulak            dulak:fysik,dtu,dk
 getri       George Tritsaris        getri:fysik,dtu,dk
 grabow      Lars Grabow             grabow:fysik,dtu,dk
 hahansen    Heine Anton Hansen      hahansen:fysik,dtu,dk
-hanke       Felix Hanke             F,Hanke:liverpool,ac,uk
 ivca        Ivano Eligio Castelli   ivca:fysik,dtu,dk
 jakobb      Jakob Blomquist         jakobb:fysik,dtu,dk
 jber        Jon Bergmann Maronsson  jber:fysik,dtu,dk
@@ -95,6 +94,7 @@ Former committers:
 ==========  ======================  ===================================
 anro        Anthony Goodrow         anro:fysik,dtu,dk 
 carstenr    Carsten Rostgaard       carstenr:fysik,dtu,dk
+hanke       Felix Hanke             F,Hanke:liverpool,ac,uk
 s042606     Janosch Michael Rauba   s042606:fysik,dtu,dk
 s052580     Troels Kofoed Jacobsen  s052580:fysik,dtu,dk
 ==========  ======================  ===================================
