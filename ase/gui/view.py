@@ -16,6 +16,7 @@ from ase.gui.repeat import Repeat
 from ase.gui.rotate import Rotate
 from ase.gui.render import Render
 from ase.gui.colors import ColorWindow
+from ase.gui.defaults import read_defaults
 from ase.utils import rotate
 
 class View:
@@ -45,6 +46,7 @@ class View:
         vbox.pack_start(self.drawing_area)
         self.drawing_area.show()
         self.configured = False
+        self.config = None
         self.frame = None
         
     def set_coordinates(self, frame=None, focus=None):
@@ -492,18 +494,18 @@ class View:
         line = self.pixmap.draw_line
         beg = begin.round().astype(int)
         en = end.round().astype(int)
-        line(self.black_gc, beg[0], beg[1], en[0], en[1])
+        line(self.foreground_gc, beg[0], beg[1], en[0], en[1])
         
         angle = atan2(en[1] - beg[1], en[0] - beg[0]) + np.pi
         x1 = (end[0] + length * cos(angle - 0.3)).round().astype(int)
         y1 = (end[1] + length * sin(angle - 0.3)).round().astype(int)
         x2 = (end[0] + length * cos(angle + 0.3)).round().astype(int)
         y2 = (end[1] + length * sin(angle + 0.3)).round().astype(int)
-        line(self.black_gc, x1, y1, en[0], en[1])
-        line(self.black_gc, x2, y2, en[0], en[1])
+        line(self.foreground_gc, x1, y1, en[0], en[1])
+        line(self.foreground_gc, x2, y2, en[0], en[1])
 
     def draw(self, status=True):
-        self.pixmap.draw_rectangle(self.white_gc, True, 0, 0,
+        self.pixmap.draw_rectangle(self.background_gc, True, 0, 0,
                                    self.width, self.height)
         axes = self.scale * self.axes * (1, -1, 1)
         offset = (np.dot(self.center, axes) -
@@ -532,7 +534,7 @@ class View:
         colors = self.get_colors()
         arc = self.pixmap.draw_arc
         line = self.pixmap.draw_line
-        black_gc = self.black_gc
+        foreground_gc = self.foreground_gc
         dynamic = self.images.dynamic
         selected = self.images.selected
         visible = self.images.visible
@@ -549,7 +551,7 @@ class View:
                         nlabel = str(self.labels[self.frame][a])
                     except:
                         nlabel = ""
-                    colorl = self.black_gc
+                    colorl = self.foreground_gc
 
                     layout = self.drawing_area.create_pango_layout(nlabel)
                     xlabel = int(A[a,0]+ra/2 - layout.get_size()[0]/2. / pango.SCALE)
@@ -564,21 +566,21 @@ class View:
                 if not dynamic[a]:
                     R1 = int(0.14644 * ra)
                     R2 = int(0.85355 * ra)
-                    line(black_gc,
+                    line(foreground_gc,
                          A[a, 0] + R1, A[a, 1] + R1,
                          A[a, 0] + R2, A[a, 1] + R2)
-                    line(black_gc,
+                    line(foreground_gc,
                          A[a, 0] + R2, A[a, 1] + R1,
                          A[a, 0] + R1, A[a, 1] + R2)
                 if selected[a]:
                     self.my_arc(selected_gc, False, a, X, r, n, A)
                 elif visible[a]:
-                    self.my_arc(black_gc, False, a, X, r, n, A)
+                    self.my_arc(foreground_gc, False, a, X, r, n, A)
                 if vectors:
                     self.arrow(X[a], X[a] + V[a])
             else:
                 a -= n
-                line(black_gc, X1[a, 0], X1[a, 1], X2[a, 0], X2[a, 1])
+                line(foreground_gc, X1[a, 0], X1[a, 1], X2[a, 0], X2[a, 1])
 
         if self.ui.get_widget('/MenuBar/ViewMenu/ShowAxes').get_active():
             self.draw_axes()
@@ -586,7 +588,7 @@ class View:
         if self.images.nimages > 1:
             self.draw_frame_number()
             
-        self.drawing_area.window.draw_drawable(self.white_gc, self.pixmap,
+        self.drawing_area.window.draw_drawable(self.background_gc, self.pixmap,
                                                0, 0, 0, 0,
                                                self.width, self.height)
 
@@ -607,7 +609,7 @@ class View:
             b = self.height - 20
             c = int(self.axes[i][0] * axes_length + a)
             d = int(-self.axes[i][1] * axes_length + b)
-            self.pixmap.draw_line(self.black_gc, a, b, c, d)
+            self.pixmap.draw_line(self.foreground_gc, a, b, c, d)
 
             # The axes label
             layout = self.drawing_area.create_pango_layout(axes_labels[i])
@@ -616,18 +618,18 @@ class View:
                     - layout.get_size()[0] / 2. / pango.SCALE)
             loy = int(self.height - 20 - self.axes[i][1] * 20\
                     - layout.get_size()[1] / 2. / pango.SCALE)
-            self.pixmap.draw_layout(self.black_gc, lox, loy, layout)
+            self.pixmap.draw_layout(self.foreground_gc, lox, loy, layout)
 
  
     
     def draw_frame_number(self):
         n = str(self.frame)
-        color = self.black_gc
+        color = self.foreground_gc
         line = self.pixmap.draw_line
         layout = self.drawing_area.create_pango_layout("Frame: " + n)
         x = self.width - 3 - layout.get_size()[0] / pango.SCALE 
         y = self.height - 5 - layout.get_size()[1] / pango.SCALE
-        self.pixmap.draw_layout(self.black_gc, x, y, layout)
+        self.pixmap.draw_layout(self.foreground_gc, x, y, layout)
  
 
     def release(self, drawing_area, event):
@@ -693,7 +695,7 @@ class View:
         x0, y0 = self.xy
         if self.button == 1:
             window = self.drawing_area.window
-            window.draw_drawable(self.white_gc, self.pixmap,
+            window.draw_drawable(self.background_gc, self.pixmap,
                                  0, 0, 0, 0,
                                  self.width, self.height)
             x0 = int(round(x0))
@@ -738,9 +740,12 @@ class View:
             w = self.width
             h = self.height
         else:
+            self.config = read_defaults()
             self.colormap = self.drawing_area.get_colormap()
-            self.black_gc = self.drawing_area.get_style().black_gc
-            self.white_gc = self.drawing_area.get_style().white_gc
+            self.foreground_gc = self.drawing_area.window.new_gc(
+                self.colormap.alloc_color(self.config['gui_foreground_color']))
+            self.background_gc = self.drawing_area.window.new_gc(
+                self.colormap.alloc_color(self.config['gui_background_color']))
             self.red = self.drawing_area.window.new_gc(
                 self.colormap.alloc_color(62345, 0, 0), line_width=2)
             self.green = self.drawing_area.window.new_gc(
@@ -762,7 +767,7 @@ class View:
     # Redraw the screen from the backing pixmap
     def expose_event(self, drawing_area, event):
         x , y, width, height = event.area
-        gc = self.white_gc
+        gc = self.background_gc
         drawing_area.window.draw_drawable(gc, self.pixmap,
                                           x, y, x, y, width, height)
 

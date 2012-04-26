@@ -56,7 +56,6 @@ from ase.gui.energyforces import EnergyForces
 from ase.gui.minimize import Minimize
 from ase.gui.scaling import HomogeneousDeformation
 from ase.gui.quickinfo import QuickInfo
-from ase.gui.defaults import read_defaults
 
 ui_info = """\
 <ui>
@@ -387,7 +386,6 @@ class GUI(View, Status):
         self.vulnerable_windows = []
         self.simulation = {}   # Used by modules on Calculate menu.
         self.module_state = {} # Used by modules to store their state.
-        self.config = read_defaults()
 
     def run(self, expr=None):
         self.set_colors()

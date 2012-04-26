@@ -7,6 +7,8 @@ gui_default_settings['key'] = value
 
 gui_default_settings = {
     'gui_graphs_string' : 'i, e - E[-1]',   # default for the graph command in the gui
+    'gui_foreground_color': '#000000',
+    'gui_background_color': '#ffffff',
     'covalent_radii' : None,
     'radii_scale': 0.89,
     }
