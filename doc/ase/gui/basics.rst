@@ -139,7 +139,7 @@ The symbols are the same as used in the plotting data function.
 Defaults for ag
 ---------------
 
-Using a file ~/.ase/gui.py, certain defaults can be set. If it exists,
+Using a file ``~/.ase/gui.py``, certain defaults can be set. If it exists,
 this file is executed after initializing the variables and colours
 normally used in ag. One can change the default graphs that are
 plotted, and the default radii for displaying specific atoms. This
@@ -150,3 +150,39 @@ graph and also display Cu atoms (Z=29) with a radius of 1.6 Angstrom.
 
   gui_default_settings['gui_graphs_string'] = "i, e - min(E), fmax"
   gui_default_settings['covalent_radii'] = [[29,1.6]]
+
+
+High contrast settings for ag
+-----------------------------
+
+In revision 2600 or later, it is possible to change the foreground and
+background colors used to draw the atoms, for instance to draw white
+graphics on a black background. This can be done in ``~/.ase/gui.py``.
+
+::
+  gui_default_settings['gui_foreground_color'] = '#ffffff' #white
+  gui_default_settings['gui_background_color'] = '#000000' #black
+
+To change the color scheme of graphs it is necessary to change the
+default behaviour of Matplotlib in a similar way by using a file
+``~/.matplotlib/matplotlibrc``.
+
+::
+  patch.edgecolor  : white
+  text.color       : white
+  axes.facecolor   : black
+  axes.edgecolor   : white
+  axes.labelcolor  : white
+  axes.color_cycle : b, g, r, c, m, y, w
+  xtick.color      : white
+  ytick.color      : white
+  grid.color       : white
+  figure.facecolor : 0.1
+  figure.edgecolor : black
+
+Finally, the color scheme of the windows themselves (i.e. menus, buttons
+and text etc.) can be changed by choosing a different desktop theme. In
+Ubuntu it is possible to get white on a dark background by selecting the
+theme HighContrastInverse under Appearances in the system settings dialog.
+
+
