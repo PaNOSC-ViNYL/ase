@@ -599,9 +599,9 @@ class View:
         from ase.quaternions import Quaternion
         q = Quaternion().from_matrix(self.axes)
         axes_labels = [
-                "<span foreground=\"red\" font_weight=\"bold\">X</span>",
-                "<span foreground=\"green\" font_weight=\"bold\">Y</span>",
-                "<span foreground=\"blue\" font_weight=\"bold\">Z</span>"]
+                "<span foreground=\"red\" weight=\"bold\">X</span>",
+                "<span foreground=\"green\" weight=\"bold\">Y</span>",
+                "<span foreground=\"blue\" weight=\"bold\">Z</span>"]
         axes_length = 15
  
         for i in self.axes[:,2].argsort():
