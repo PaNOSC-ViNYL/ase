@@ -160,6 +160,7 @@ background colors used to draw the atoms, for instance to draw white
 graphics on a black background. This can be done in ``~/.ase/gui.py``.
 
 ::
+
   gui_default_settings['gui_foreground_color'] = '#ffffff' #white
   gui_default_settings['gui_background_color'] = '#000000' #black
 
@@ -168,6 +169,7 @@ default behaviour of Matplotlib in a similar way by using a file
 ``~/.matplotlib/matplotlibrc``.
 
 ::
+
   patch.edgecolor  : white
   text.color       : white
   axes.facecolor   : black
@@ -184,5 +186,3 @@ Finally, the color scheme of the windows themselves (i.e. menus, buttons
 and text etc.) can be changed by choosing a different desktop theme. In
 Ubuntu it is possible to get white on a dark background by selecting the
 theme HighContrastInverse under Appearances in the system settings dialog.
-
-
