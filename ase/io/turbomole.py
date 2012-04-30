@@ -25,7 +25,7 @@ def read_turbomole(filename='coord'):
     
     # find $coord section;
     # does not necessarily have to be the first $<something> in file...
-    start = lines.index('$coord') # raises ValueError if not found
+    start = lines.index('$coord\n') # raises ValueError if not found
     for line in lines[start+1:]:
         if line.startswith('$'): # start of new section
             break
