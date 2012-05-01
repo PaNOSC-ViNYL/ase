@@ -10,6 +10,16 @@ When performing minimizations or dynamics one may wish to keep some
 degrees of freedom in the system fixed. One way of doing this is by
 attaching constraint object(s) directly to the atoms object.
 
+Important: setting constraints will freeze the corresponding atom positions.
+Attempts to change such atom positions after setting the constraints will fail
+silently (see :svn:`ase/test/constr_setpos.py`).
+To change the constrained positions, the constraints must first be removed::
+
+  del atoms.constraints
+
+or::
+
+  atoms.set_constraint()
 
 The FixAtoms class
 ==================
