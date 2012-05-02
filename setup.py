@@ -52,10 +52,7 @@ packages = ['ase',
 
 package_dir={'ase': 'ase'}
 
-package_data={'ase': ['lattice/spacegroup/spacegroup.dat',
-                      'gui/po/ag.pot',
-                      'gui/po/makefile',
-                      'gui/po/??_??/LC_MESSAGES/ag.po']}
+package_data={'ase': ['lattice/spacegroup/spacegroup.dat']}
 
 # Compile makes sense only when building
 if 'build' in sys.argv or 'build_ext' in sys.argv or 'install' in sys.argv:
