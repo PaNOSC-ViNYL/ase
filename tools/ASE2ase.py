@@ -1,5 +1,14 @@
 #!/usr/bin/env python
-import sys
+
+from optparse import OptionParser
+
+description = """Convert ASE2 script FILEs to ase3.  FILEs will be
+modified in-place to be compatible with ase3.  Original files are
+backed up."""
+
+p = OptionParser(usage='%prog FILE...', description=description)
+
+opts, args = p.parse_args()
 
 def convert(filename):
     lines = open(filename).readlines()
@@ -78,5 +87,5 @@ def convert(filename):
         open(filename + '.bak', 'w').write(t1)
         open(filename, 'w').write(t2)
 
-for filename in sys.argv[1:]:
+for filename in args:
     convert(filename)
