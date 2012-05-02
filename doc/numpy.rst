@@ -38,15 +38,6 @@ array([[ 0.,  1.],
 2
 
 
-.. note::
-
-  When you do ``from ase import *``, you will get the ``np`` alias
-  automatically, so there is no need to do a ``import numpy as np``
-  also.  Try this:
-
-  >>> from ase import *
-  >>> dir(np)
-
 The conventions of numpy's linear algebra package:
 
 >>> import numpy as np
