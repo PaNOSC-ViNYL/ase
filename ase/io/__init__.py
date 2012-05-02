@@ -379,6 +379,8 @@ def write(filename, images, format=None, **kwargs):
             format = 'vasp_out'
         elif filename.endswith('etsf.nc'):
             format = 'etsf'
+        elif os.path.basename(filename) == 'coord':
+            format = 'tmol'
         else:
             suffix = filename.split('.')[-1]
             format = {'cell':'castep_cell',
