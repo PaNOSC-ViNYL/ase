@@ -445,10 +445,6 @@ class SetCalculator(SetupWindow):
         return self.element_check("ASE EMT", ['H', 'Al', 'Cu', 'Ag', 'Au',
                                               'Ni', 'Pd', 'Pt', 'C', 'N', 'O'])
 
-    def choose_aseemt(self):
-        self.gui.simulation["calc"] = ase.EMT
-        ase.EMT.disabled = False  # In case Asap has been imported.
-
     def brenner_check(self):
         try:
             import asap3
@@ -462,8 +458,10 @@ class SetCalculator(SetupWindow):
         self.gui.simulation["calc"] = asap3.BrennerPotential
 
     def choose_aseemt(self):
-        self.gui.simulation["calc"] = ase.EMT
-        ase.EMT.disabled = False  # In case Asap has been imported.
+        import ase.calculators.emt 
+        self.gui.simulation["calc"] = ase.calculators.emt.EMT
+        # In case Asap has been imported
+        ase.calculators.emt.EMT.disabled = False
 
     def gpaw_check(self):
         try:

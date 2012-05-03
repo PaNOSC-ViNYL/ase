@@ -7,6 +7,7 @@ from gettext import gettext as _
 from ase.gui.simulation import Simulation
 from ase.gui.widgets import oops, pack, AseGuiCancelException
 import ase
+import ase.optimize
 import numpy as np
 
 class MinimizeMixin:
