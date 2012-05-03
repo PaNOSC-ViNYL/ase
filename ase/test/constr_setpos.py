@@ -12,12 +12,16 @@ c = FixAtoms(indices=[atom.index for atom in m])
 m.set_constraint(c)
 
 pos1 = m.get_positions()
-pos = m.get_positions()
 # shift z-coordinates by 1.
-pos[:,2] += 1.
-for a in range(len(m)):
-    assert abs(pos[a, 2] - 1. - pos1[a, 2]) < 1.0e-6
+pos = m.get_positions()
+pos[:, 2] += 1.
+
 m.set_positions(pos)
 # note that set_positions fails silently to set the new positions
 # due to the presence of constraints!
 assert array_almost_equal(pos1, m.get_positions())
+
+m.positions = pos
+# atoms.positions allows one to set the new positions
+# even in the presence of constraints!
+assert array_almost_equal(pos, m.get_positions())

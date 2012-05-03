@@ -576,7 +576,7 @@ class Atoms(object):
         """Set positions, honoring any constraints."""
         positions = self.arrays['positions']
         if self.constraints:
-            newpositions = np.asarray(newpositions, float)
+            newpositions = np.array(newpositions, float)
             for constraint in self.constraints:
                 constraint.adjust_positions(positions, newpositions)
                 
