@@ -181,6 +181,7 @@ conditions in the *z* direction is obtained through
 
 >>> a.set_pbc((True, True, False))
 
+.. _atoms_special_attributes:
 
 Special attributes
 ==================

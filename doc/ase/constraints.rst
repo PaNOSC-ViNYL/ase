@@ -11,15 +11,20 @@ degrees of freedom in the system fixed. One way of doing this is by
 attaching constraint object(s) directly to the atoms object.
 
 Important: setting constraints will freeze the corresponding atom positions.
-Attempts to change such atom positions after setting the constraints will fail
-silently (see :svn:`ase/test/constr_setpos.py`).
-To change the constrained positions, the constraints must first be removed::
+Changing such atom positions can be achieved:
 
-  del atoms.constraints
+- by directly setting the :attr:`~ase.atoms.Atoms.positions` attribute
+  (see example of setting :ref:`atoms_special_attributes`),
 
-or::
+- alternatively, by removing the constraints first::
 
-  atoms.set_constraint()
+    del atoms.constraints
+
+  or::
+
+    atoms.set_constraint()
+
+  and using the :meth:`~ase.atoms.Atoms.set_positions` method.
 
 The FixAtoms class
 ==================
