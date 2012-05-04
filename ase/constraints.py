@@ -776,8 +776,8 @@ class BondSpring(FixConstraint):
             magnitude = self.spring * (bondlength - self.threshhold)
             direction = displace / np.linalg.norm(displace)
             if self._type == 2:
-                forces[self.indices[0]] += direction * magnitude / 2.
-                forces[self.indices[1]] -= direction * magnitude / 2.
+                forces[self.indices[0]] += direction * magnitude
+                forces[self.indices[1]] -= direction * magnitude
             else:
                 forces[self.index] += direction * magnitude
 
