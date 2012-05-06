@@ -202,7 +202,7 @@ directory (preferably using bash)::
 
   $ bash
   $ mkdir /tmp/testase.$$; cd /tmp/testase.*
-  $ python ~/ase/tools/testase.py 2>&1 | tee testase.log
+  $ python ~/ase/tools/testase 2>&1 | tee testase.log
 
 .. note::
 
@@ -217,5 +217,5 @@ then please send us :file:`testase.log` (see :ref:`bugs`).
    If matplotlib_ or pygtk_ is not installed, one of the tests will
    fail - avoid this with::
 
-     $ testase.py --no-display
+     $ testase --no-display
 

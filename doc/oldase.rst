@@ -28,14 +28,14 @@ would be simpler::
 
 
 
-.. index:: ASE2ase.py
+.. index:: ASE2ase
 
-The ASE2ase.py tool
-===================
+The ASE2ase tool
+================
 
-Use the :program:`ASE2ase.py` tool (source code :svn:`tools/ASE2ase.py`) to convert old scripts::
+Use the :program:`ASE2ase` tool (source code :svn:`tools/ASE2ase`) to convert old scripts::
 
-  $ ASE2ase.py oldscript.py
+  $ ASE2ase oldscript.py
   $ diff -u oldscript.py.bak oldscript.py
 
 Check that the differences look OK.  The conversion tool isn't clever
