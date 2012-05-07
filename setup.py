@@ -86,5 +86,5 @@ setup(name = 'python-ase',
       packages=packages,
       package_dir=package_dir,
       package_data=package_data,
-      scripts=['tools/ag', 'tools/ase', 'tools/ASE2ase.py', 'tools/testase.py'],
+      scripts=['tools/ag', 'tools/ase', 'tools/ASE2ase', 'tools/testase'],
       long_description=long_description)
