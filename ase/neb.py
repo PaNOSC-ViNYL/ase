@@ -10,13 +10,27 @@ from ase.io import read
 class NEB:
     def __init__(self, images, k=0.1, climb=False, parallel=False,
                  world=None):
+        """Nudged elastic band.
+
+        images: list of Atoms objects
+            Images defining path from initial to final state.
+        k: float or list of floats
+            Spring constant(s).  One number or one for each spring.
+        climb: bool
+            Use a climbing image (default is no climbing image).
+        parallel: bool
+            Distribute images over processors.
+        """
         self.images = images
-        self.k = k
         self.climb = climb
         self.parallel = parallel
         self.natoms = len(images[0])
         self.nimages = len(images)
         self.emax = np.nan
+
+        if isinstance(k, (float, int)):
+            k = [k] * (self.nimages - 1)
+        self.k = list(k)
 
         if world is None:
             world = mpi.world
@@ -110,8 +124,8 @@ class NEB:
                 f -= 2 * ft / tt * tangent
             else:
                 f -= ft / tt * tangent
-                f -= (np.vdot(tangent1 - tangent2, tangent) *
-                      self.k / tt * tangent)
+                f -= np.vdot(tangent1 * self.k[i - 1] -
+                             tangent2 * self.k[i], tangent) / tt * tangent
                 
             tangent1 = tangent2
 
@@ -158,6 +172,7 @@ class SingleCalculatorNEB(NEB):
             for k in range(steps):
                 self.images.insert(j + 1, self.images[j].copy())
                 self.calculators.insert(j + 1, None)
+            self.k[j:j + 1] = [self.k[j] * (steps + 1)] * (steps + 1)
             self.nimages = len(self.images)
             self.interpolate(j, j + steps + 1)
             j += steps + 1
@@ -189,10 +204,10 @@ class SingleCalculatorNEB(NEB):
         n = len(calculators)
         if n == self.nimages:
             for i in range(self.nimages):
-                self.images[i].set_calculator(calculators[i])   
+                self.images[i].set_calculator(calculators[i])
         elif n == self.nimages - 2:
-            for i in range(1, self.nimages -1):
-                self.images[i].set_calculator(calculators[i-1])   
+            for i in range(1, self.nimages - 1):
+                self.images[i].set_calculator(calculators[i - 1])
         else:
             raise RuntimeError(
                 'len(calculators)=%d does not fit to len(images)=%d'
@@ -203,9 +218,6 @@ class SingleCalculatorNEB(NEB):
         if self.energies_ok:
             return
 
-        images = self.images
-        forces = np.zeros(((self.nimages - 2), self.natoms, 3))
-        energies = np.zeros(self.nimages - 2)
         self.emax = -1.e32
 
         def calculate_and_hide(i):

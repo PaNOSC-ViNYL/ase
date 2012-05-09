@@ -35,7 +35,7 @@ The NEB class
 
 This module defines one class:
 
-.. class:: NEB(images, k=0.1, climb=False)
+.. autoclass:: ase.neb.NEB
 
 Example of use, between initial and final state which have been previously
 saved in A.traj and B.traj::
