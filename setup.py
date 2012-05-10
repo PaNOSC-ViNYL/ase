@@ -55,9 +55,6 @@ package_dir={'ase': 'ase'}
 
 package_data={'ase': ['lattice/spacegroup/spacegroup.dat']}
 
-
-installed_mofiles = []
-
 class build_py(_build_py):
     """Custom distutils command to build translations."""
     def __init__(self, *args, **kwargs):
