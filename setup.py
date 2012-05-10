@@ -4,6 +4,7 @@
 # Please see the accompanying LICENSE file for further information.
 
 from distutils.core import setup
+from distutils.command.build_py import build_py as _build_py
 from glob import glob
 from os.path import join
 
@@ -15,8 +16,8 @@ ASE is a python package providing an open source Atomic Simulation
 Environment in the python scripting language."""
 
 
-if sys.version_info < (2, 3, 0, 'final', 0):
-    raise SystemExit, 'Python 2.3 or later is required!'
+if sys.version_info < (2, 4, 0, 'final', 0):
+    raise SystemExit, 'Python 2.4 or later is required!'
 
 packages = ['ase',
             'ase.cluster',
@@ -54,18 +55,35 @@ package_dir={'ase': 'ase'}
 
 package_data={'ase': ['lattice/spacegroup/spacegroup.dat']}
 
-# Compile makes sense only when building
-if 'build' in sys.argv or 'build_ext' in sys.argv or 'install' in sys.argv:
-    msgfmt = 'msgfmt'
-    # Compile translation files (requires gettext)
-    status = os.system(msgfmt + ' -V')
-    if status == 0:
-        for pofile in glob('ase/gui/po/??_??/LC_MESSAGES/ag.po'):
-            mofile = os.path.join(os.path.split(pofile)[0], 'ag.mo')
-            status = os.system(msgfmt + ' -cv %s --output-file=%s 2>&1' %
-                               (pofile, mofile))
-            assert status == 0, 'msgfmt failed!'
-        package_data['ase'].append('gui/po/??_??/LC_MESSAGES/ag.mo')
+
+installed_mofiles = []
+
+class build_py(_build_py):
+    """Custom distutils command to build translations."""
+    def __init__(self, *args, **kwargs):
+        _build_py.__init__(self, *args, **kwargs)
+        # Keep list of files to appease bdist_rpm.  We have to keep track of
+        # all the installed files for no particular reason.
+        self.mofiles = []
+    
+    def run(self):
+        """Compile translation files (requires gettext)."""
+        _build_py.run(self)
+        msgfmt = 'msgfmt'
+        status = os.system(msgfmt + ' -V')
+        if status == 0:
+            for pofile in glob('ase/gui/po/??_??/LC_MESSAGES/ag.po'):
+                dirname = join(self.build_lib, os.path.dirname(pofile))
+                if not os.path.isdir(dirname):
+                    os.makedirs(dirname)
+                mofile = join(dirname, 'ag.mo')
+                status = os.system('%s -cv %s --output-file=%s 2>&1' %
+                                   (msgfmt, pofile, mofile))
+                assert status == 0, 'msgfmt failed!'
+                self.mofiles.append(mofile)
+
+    def get_outputs(self, *args, **kwargs):
+        return _build_py.get_outputs(self, *args, **kwargs) + self.mofiles
 
 # Get the current version number:
 execfile('ase/svnversion_io.py')  # write ase/svnversion.py and get svnversion
@@ -75,7 +93,7 @@ if svnversion:
 else:
     version = version_base
 
-setup(name = 'python-ase',
+setup(name='python-ase',
       version=version,
       description='Atomic Simulation Environment',
       url='https://wiki.fysik.dtu.dk/ase',
@@ -87,4 +105,5 @@ setup(name = 'python-ase',
       package_dir=package_dir,
       package_data=package_data,
       scripts=['tools/ag', 'tools/ase', 'tools/ASE2ase', 'tools/testase'],
-      long_description=long_description)
+      long_description=long_description,
+      cmdclass={'build_py': build_py})
