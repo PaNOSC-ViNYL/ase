@@ -4,15 +4,11 @@ from ase.units import Bohr, Hartree
 
 
 class Exciting:
-    """exciting calculator object."""
-   
     def __init__(self, dir='calc', template=None, 
                  speciespath='http://xml.exciting-code.org/species/',
                  bin='excitingser', kpts=(1, 1, 1), **kwargs):
         """Exciting calculator object constructor
         
-        Parameters
-        ----------
         dir: string
             directory in which to execute exciting
         template: string
