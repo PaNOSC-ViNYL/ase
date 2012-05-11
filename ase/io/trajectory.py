@@ -2,6 +2,13 @@ import os
 import sys
 import cPickle as pickle
 import warnings
+import errno
+
+# pass for WindowsError on non-Win platforms
+try:
+    WindowsError
+except NameError:
+    class WindowsError(OSError): pass 
 
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.atoms import Atoms
@@ -98,7 +105,14 @@ class PickleTrajectory:
             if self.master:
                 if isinstance(filename, str):
                     if self.backup and os.path.isfile(filename):
-                        os.rename(filename, filename + '.bak')
+                        try:
+                            os.rename(filename, filename + '.bak')
+                        except WindowsError, e:
+                            # this must run on Win only! Not atomic!
+                            if e.errno != errno.EEXIST:
+                                raise
+                            os.unlink(filename + '.bak')
+                            os.rename(filename, filename + '.bak')
                     self.fd = open(filename, 'wb')
             else:
                 self.fd = devnull

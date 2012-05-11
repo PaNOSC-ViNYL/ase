@@ -56,6 +56,12 @@ def view(atoms, data=None, viewer='ag', repeat=None, block=False):
     fd.close()
     if block:
         os.system('%s %s' % (command, filename))
+        os.remove(filename)
     else:
-        os.system('%s %s &' % (command, filename))
-    os.system('(sleep 60; rm %s) &' % filename)
+        if os.name in ['ce', 'nt']: # Win
+            # XXX: how to make it non-blocking?
+            os.system('%s %s' % (command, filename))
+            os.remove(filename)
+        else:
+            os.system('%s %s & ' % (command, filename))
+            os.system('(sleep 60; rm %s) &' % filename)

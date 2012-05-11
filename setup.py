@@ -62,7 +62,7 @@ class build_py(_build_py):
         # Keep list of files to appease bdist_rpm.  We have to keep track of
         # all the installed files for no particular reason.
         self.mofiles = []
-    
+
     def run(self):
         """Compile translation files (requires gettext)."""
         _build_py.run(self)
@@ -90,6 +90,12 @@ if svnversion:
 else:
     version = version_base
 
+scripts = ['tools/ag', 'tools/ase', 'tools/ASE2ase', 'tools/testase']
+# provide bat executables in the tarball and always for Win
+if 'sdist' in sys.argv or os.name in ['ce', 'nt']:
+    for s in scripts[:]:
+        scripts.append(s + '.bat')
+
 setup(name='python-ase',
       version=version,
       description='Atomic Simulation Environment',
@@ -101,6 +107,6 @@ setup(name='python-ase',
       packages=packages,
       package_dir=package_dir,
       package_data=package_data,
-      scripts=['tools/ag', 'tools/ase', 'tools/ASE2ase', 'tools/testase'],
+      scripts=scripts,
       long_description=long_description,
       cmdclass={'build_py': build_py})

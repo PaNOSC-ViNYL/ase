@@ -6,17 +6,9 @@ import zipfile
 
 import datetime
 
-try:
-    from subprocess import Popen, PIPE
-except ImportError:
-    from os import popen3
-else:
-    def popen3(cmd):
-        p = Popen(cmd, shell=True, close_fds=True,
-                  stdin=PIPE, stdout=PIPE, stderr=PIPE)
-        return p.stdin, p.stdout, p.stderr
-
 import numpy as np
+
+from ase.utils import popen3
 
 import ase.io
 from ase.atom import Atom

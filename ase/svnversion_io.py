@@ -2,13 +2,18 @@
 # Please see the accompanying LICENSE file for further information.
 
 from os import path
+import sys
+
+ON_POSIX = 'posix' in sys.builtin_module_names
+
 try:
-    from subprocess import Popen, PIPE
+    from subprocess import Popen
 except ImportError:
     from os import popen3
 else:
     def popen3(cmd):
-        p = Popen(cmd, shell=True, close_fds=True,
+        from subprocess import PIPE
+        p = Popen(cmd, shell=True, close_fds=ON_POSIX,
                   stdin=PIPE, stdout=PIPE, stderr=PIPE)
         return p.stdin, p.stdout, p.stderr
 

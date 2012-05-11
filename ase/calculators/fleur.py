@@ -4,15 +4,9 @@ http://www.flapw.de
 """
 
 import os
-try:
-    from subprocess import Popen, PIPE
-except ImportError:
-    from os import popen3
-else:
-    def popen3(cmd):
-        p = Popen(cmd, shell=True, close_fds=True,
-                  stdin=PIPE, stdout=PIPE, stderr=PIPE)
-        return p.stdin, p.stdout, p.stderr
+
+from subprocess import Popen, PIPE
+
 import re
 
 import numpy as np

@@ -208,3 +208,16 @@ def hsv(array, s=.9, v=.9):
 ##     a = (array + array.min()) / array.ptp()
 ##     rgba = getattr(pylab.cm, name)(a)
 ##     return rgba[:-1] # return rgb only (not alpha)
+
+ON_POSIX = 'posix' in sys.builtin_module_names
+
+try:
+    from subprocess import Popen
+except ImportError:
+    from os import popen3
+else:
+    def popen3(cmd):
+        from subprocess import PIPE
+        p = Popen(cmd, shell=True, close_fds=ON_POSIX,
+                  stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        return p.stdin, p.stdout, p.stderr
