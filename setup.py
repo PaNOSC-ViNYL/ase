@@ -85,7 +85,7 @@ class build_py(_build_py):
 # Get the current version number:
 execfile('ase/svnversion_io.py')  # write ase/svnversion.py and get svnversion
 execfile('ase/version.py')        # get version_base
-if svnversion:
+if svnversion and os.name not in ['ce', 'nt']: # MSI accepts only version X.X.X
     version = version_base + '.' + svnversion
 else:
     version = version_base
