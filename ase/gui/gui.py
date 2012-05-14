@@ -95,6 +95,7 @@ ui_info = """\
         <menuitem action='NoLabel'/>
         <menuitem action='AtomIndex'/>
         <menuitem action='MagMom'/>
+        <menuitem action='Element'/>
       </menu>
       <separator/>
       <menuitem action='QuickInfo'/>
@@ -360,7 +361,8 @@ class GUI(View, Status):
         actions.add_radio_actions((
             ('NoLabel', None, _('_None'), None, None, 0),
             ('AtomIndex', None, _('Atom _Index'), None, None, 1),
-            ('MagMom', None, _('_Magnetic Moments'), None, None, 2)),
+            ('MagMom', None, _('_Magnetic Moments'), None, None, 2),
+            ('Element', None, _('_Element Symbol'), None, None, 3)),
             0, self.show_labels)
         self.ui = ui = gtk.UIManager()
         ui.insert_action_group(actions, 0)

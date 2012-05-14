@@ -11,6 +11,7 @@ from os.path import basename
 
 import numpy as np
 
+from ase.data import chemical_symbols
 from ase.data.colors import jmol_colors
 from ase.gui.repeat import Repeat
 from ase.gui.rotate import Rotate
@@ -321,6 +322,8 @@ class View:
             self.labels = [""] * self.images.natoms * self.images.nimages
         elif an == "MagMom":
             self.labels = self.images.M
+        elif an == "Element":
+            self.labels = [[chemical_symbols[x] for x in self.images.Z]] * self.images.nimages
 
         self.draw()
 
