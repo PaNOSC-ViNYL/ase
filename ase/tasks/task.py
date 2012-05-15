@@ -68,6 +68,7 @@ class Task:
         self.interactive_python_session = False
         self.contains = None
         self.modify = None
+        self.after = None
         self.clean = False
         
         self.write_funcs = []
@@ -211,6 +212,8 @@ class Task:
 
         try:
             data = self.calculate(name, atoms)
+            if self.after:
+                exec self.after
         except KeyboardInterrupt:
             raise
         except Exception:
@@ -353,8 +356,9 @@ class Task:
                            'element.')
         general.add_option('--modify', metavar='...',
                             help='Modify system with Python statement.  ' +
-                           'Example: "system.positions[-1,2]+=0.1". ' +
-                           'Warning: no spaces allowed!')
+                           'Example: --modify="system.positions[-1,2]+=0.1".')
+        general.add_option('--after', metavar='...',
+                           help='Execute Python statement after calculation.')
         general.add_option('--clean', action='store_true',
                             help='Remove unfinished tasks from json file.')
         parser.add_option_group(general)
@@ -390,6 +394,7 @@ class Task:
         self.interactive_python_session = opts.interactive_python_session
         self.contains = opts.contains
         self.modify = opts.modify
+        self.after = opts.after
         self.clean = opts.clean
 
         if opts.slice:
