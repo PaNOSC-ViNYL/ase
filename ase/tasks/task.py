@@ -194,7 +194,8 @@ class Task:
                     self.lock.release()
 
             atoms = self.run_single(name)
-        
+            del atoms.calc
+
         return atoms
 
     def run_single(self, name):
