@@ -10,6 +10,11 @@ Development version in trunk
 
 :trac:`trunk <>`.
 
+* *Important backwards incompatible change*:  The
+  ase.lattice.surface.surface() function now returns a right-handed
+  unit cell.
+
+
 Version 3.6.0
 =============
 

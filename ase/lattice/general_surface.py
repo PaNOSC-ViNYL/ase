@@ -34,7 +34,7 @@ def surface(lattice, indices, layers, vacuum=0.0, tol=1e-10):
         if not h0:
             c1, c2, c3 = [(0, 1, 0), (0, 0, 1), (1, 0, 0)]
         if not k0:
-            c1, c2, c3 = [(1, 0, 0), (0, 0, 1), (0, 1, 0)]
+            c1, c2, c3 = [(0, 0, 1), (1, 0, 0), (0, 1, 0)]
         if not l0:
             c1, c2, c3 = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
     else:
@@ -82,7 +82,7 @@ def build(lattice, basis, layers, tol):
     surf.set_cell([(norm(a1), 0, 0),
                    (np.dot(a1, a2) / norm(a1),
                     np.sqrt(norm(a2)**2 - (np.dot(a1, a2) / norm(a1))**2), 0),
-                   (0, 0, -norm(a3))],
+                   (0, 0, norm(a3))],
                   scale_atoms=True)
 
     surf.pbc = (True, True, False)
