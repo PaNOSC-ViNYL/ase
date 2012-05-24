@@ -193,8 +193,9 @@ class Task:
                 finally:
                     self.lock.release()
 
+            if atoms is not None:
+                del atoms.calc
             atoms = self.run_single(name)
-            del atoms.calc
 
         return atoms
 
