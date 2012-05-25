@@ -4,6 +4,10 @@ import warnings
 # Therefore also deprecated methods are called - and we choose to silence those warnings.
 warnings.filterwarnings('ignore', 'ase.atoms.*deprecated',)
 
+# make sure a settings file exist (do this only for the tests please)
+# otherwise you should create one (e.g. type cmr and it will create one)
+from ase.test.cmr.temp_settings import TempSettings
+ts = TempSettings()
 try:
     import cmr
 except ImportError:
