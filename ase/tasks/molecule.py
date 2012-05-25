@@ -138,9 +138,9 @@ class MoleculeTask(OptimizeTask):
                     raise ValueError('No minimum!')
 
                 if abs(dmin) < min(distances) or abs(dmin) > max(distances):
-                    raise ValueError('Fit outside of range! ' + \
-                                      str(abs(dmin)) + ' not in ' + \
-                                      str(distances))
+                    raise ValueError(name + ': fit outside of range! ' + \
+                                     str(abs(dmin)) + ' not in ' + \
+                                     str(distances))
 
                 emin = fit0(t)
                 k = fit2(t) * t**4

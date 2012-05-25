@@ -27,7 +27,7 @@ class BulkTask(OptimizeTask):
         self.repeat = None
 
         OptimizeTask.__init__(self, **kwargs)
-        
+
         self.summary_keys = ['energy', 'fitted energy', 'volume', 'B']
 
     def expand(self, names):
@@ -37,7 +37,7 @@ class BulkTask(OptimizeTask):
         stucture and so on."""
 
         names = OptimizeTask.expand(self, names)
-            
+
         newnames = []
         for name in names:
             if name in ['fcc', 'bcc', 'hcp', 'diamond']:
@@ -66,7 +66,7 @@ class BulkTask(OptimizeTask):
             atoms = atoms.repeat([int(c) for c in r])
 
         return atoms
-    
+
     def fit_volume(self, name, atoms):
         N, x = self.fit
         cell0 = atoms.get_cell()
@@ -86,14 +86,14 @@ class BulkTask(OptimizeTask):
                 'energies': energies}
 
         return data
-            
+
     def calculate(self, name, atoms):
         #????
         if self.fit:
             return self.fit_volume(name, atoms)
         else:
             return OptimizeTask.calculate(self, name, atoms)
-        
+
     def analyse(self):
         for name, data in self.data.items():
             if 'strains' in data:
@@ -109,6 +109,11 @@ class BulkTask(OptimizeTask):
                     data['fitted energy'] = e
                     data['volume'] = v
                     data['B'] = B
+
+                    if abs(v) < min(volumes) or abs(v) > max(volumes):
+                        raise ValueError(name + ': fit outside of range! ' + \
+                                         str(abs(v)) + ' not in ' + \
+                                         str(volumes))
 
     def add_options(self, parser):
         OptimizeTask.add_options(self, parser)
