@@ -3,7 +3,7 @@
 # Copyright (C) 2007  CAMP
 # Please see the accompanying LICENSE file for further information.
 
-from distutils.core import setup
+from distutils.core import setup, Command
 from distutils.command.build_py import build_py as _build_py
 from glob import glob
 from os.path import join
@@ -54,6 +54,39 @@ packages = ['ase',
 package_dir={'ase': 'ase'}
 
 package_data={'ase': ['lattice/spacegroup/spacegroup.dat']}
+
+class test(Command):
+    description = 'build and run test suite; exit code is number of failures'
+    user_options = []
+    
+    def __init__(self, dist):
+        Command.__init__(self, dist)
+        self.sub_commands = ['build']
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        self.run_command('build')
+        buildcmd = self.get_finalized_command('build')
+        sys.path.insert(0, buildcmd.build_lib)
+
+        from ase.test import test as _test
+        testdir = '%s/testase-tempfiles' % buildcmd.build_base
+        origcwd = os.getcwd()
+        if not os.path.exists(testdir):
+            os.mkdir(testdir)
+        os.chdir(testdir)
+        try:
+            results = _test(2, display=False)
+            if results.failures or results.errors:
+                print >> sys.stderr, 'Test suite failed'
+                raise SystemExit(len(results.failures) + len(results.errors))
+        finally:
+            os.chdir(origcwd)
 
 class build_py(_build_py):
     """Custom distutils command to build translations."""
@@ -109,4 +142,5 @@ setup(name='python-ase',
       package_data=package_data,
       scripts=scripts,
       long_description=long_description,
-      cmdclass={'build_py': build_py})
+      cmdclass={'build_py': build_py,
+                'test': test})
