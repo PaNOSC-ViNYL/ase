@@ -15,7 +15,7 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
         Chemical symbol or symbols as in 'MgO' or 'NaCl'.
     crystalstructure: str
         Must be one of sc, fcc, bcc, hcp, diamond, zincblende,
-        rocksalt, or cesiumchloride
+        rocksalt, cesiumchloride, or fluorite.
     a: float
         Lattice constant.
     c: float
@@ -102,6 +102,11 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
         s1, s2 = string2symbols(name)
         atoms = bulk(s1, 'sc', a) + bulk(s2, 'sc', a)
         atoms.positions[1, :] += a / 2
+    elif crystalstructure == 'fluorite':
+        s1, s2, s3 = string2symbols(name)
+        atoms = bulk(s1, 'fcc', a) + bulk(s2, 'fcc', a) + bulk(s3, 'fcc', a)
+        atoms.positions[1, :] += a / 4
+        atoms.positions[2, :] += a * 3. / 4
     else:
         raise ValueError('Unknown crystal structure: ' + crystalstructure)
 

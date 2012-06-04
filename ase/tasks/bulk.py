@@ -126,7 +126,8 @@ class BulkTask(OptimizeTask):
         bulk.add_option('-x', '--crystal-structure',
                         help='Crystal structure.',
                         choices=['sc', 'fcc', 'bcc', 'diamond', 'hcp',
-                                 'rocksalt', 'zincblende'])
+                                 'zincblende', 'rocksalt',
+                                 'cesiumchloride', 'fluorite'])
         bulk.add_option('-a', '--lattice-constant', type='float',
                         help='Lattice constant in Angstrom.')
         bulk.add_option('--c-over-a', type='float',
