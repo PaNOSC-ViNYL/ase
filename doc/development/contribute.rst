@@ -61,6 +61,7 @@ askhl       Ask Hjorth Larsen       askhl:fysik,dtu,dk
 bjork       Jonas Bjork             J,Bjork:liverpool,ac,uk
 dlandis     David Landis            dlandis:fysik,dtu,dk
 dulak       Marcin Dulak            dulak:fysik,dtu,dk
+eojons      Elvar Örn Jónsson       elvar,jonsson:fysik,dtu,dk
 getri       George Tritsaris        getri:fysik,dtu,dk
 grabow      Lars Grabow             grabow:fysik,dtu,dk
 hahansen    Heine Anton Hansen      hahansen:fysik,dtu,dk
