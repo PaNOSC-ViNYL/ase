@@ -107,15 +107,14 @@ def read_vasp(filename='CONTCAR'):
     else: # Assume it's a file-like object
         f = filename
 
-    # First line should contain the atom symbols , eg. "Ag Ge" in
-    # the same order
-    # as later in the file (and POTCAR for the full vasp run)
-    atomtypes = f.readline().split()
-
-    # Sometimes the first line in POSCAR/CONTCAR is of the form
-    # "CoP3_In-3.pos". Check for this case and extract atom types
-    if len(atomtypes) == 1 and '_' in atomtypes[0]:
-        atomtypes = get_atomtypes_from_formula(atomtypes[0])
+    # The first line is in principle a comment line, however in VASP
+    # 4.x a common convention is to have it contain the atom symbols,
+    # eg. "Ag Ge" in the same order as later in the file (and POTCAR
+    # for the full vasp run). In the VASP 5.x format this information
+    # is found on the fifth line. Thus we save the first line and use
+    # it in case we later detect that we're reading a VASP 4.x format
+    # file.
+    line1 = f.readline()
 
     lattice_constant = float(f.readline().split()[0])
 
@@ -133,11 +132,15 @@ def read_vasp(filename='CONTCAR'):
     # or in the POTCAR or OUTCAR file
     atom_symbols = []
     numofatoms = f.readline().split()
-    #vasp5.1 has an additional line which gives the atom types
-    #the following try statement skips this line
+    # Check whether we have a VASP 4.x or 5.x format file. If the
+    # format is 5.x, use the fifth line to provide information about
+    # the atomic symbols.
+    vasp5 = False
     try:
         int(numofatoms[0])
     except ValueError:
+        vasp5 = True
+        atomtypes = numofatoms
         numofatoms = f.readline().split()
 
     # check for comments in numofatoms line and get rid of them if necessary
@@ -145,18 +148,27 @@ def read_vasp(filename='CONTCAR'):
     if commentcheck.any():
         # only keep the elements up to the first including a '!':
         numofatoms = numofatoms[:np.arange(len(numofatoms))[commentcheck][0]]
-        
-    numsyms = len(numofatoms)
-    if len(atomtypes) < numsyms:
-        # First line in POSCAR/CONTCAR didn't contain enough symbols.
-        atomtypes = atomtypes_outpot(f.name, numsyms)
-    else:
-        try:
-            for atype in atomtypes[:numsyms]:
-                if not atype in chemical_symbols:
-                    raise KeyError
-        except KeyError:
-            atomtypes = atomtypes_outpot(f.name, numsyms)
+
+    if not vasp5:
+        atomtypes = line1.split()
+       
+        numsyms = len(numofatoms)
+        if len(atomtypes) < numsyms:
+            # First line in POSCAR/CONTCAR didn't contain enough symbols.
+
+            # Sometimes the first line in POSCAR/CONTCAR is of the form
+            # "CoP3_In-3.pos". Check for this case and extract atom types
+            if len(atomtypes) == 1 and '_' in atomtypes[0]:
+                atomtypes = get_atomtypes_from_formula(atomtypes[0])
+            else:
+                atomtypes = atomtypes_outpot(f.name, numsyms)
+        else:
+            try:
+                for atype in atomtypes[:numsyms]:
+                    if not atype in chemical_symbols:
+                        raise KeyError
+            except KeyError:
+                atomtypes = atomtypes_outpot(f.name, numsyms)
 
     for i, num in enumerate(numofatoms):
         numofatoms[i] = int(num)
