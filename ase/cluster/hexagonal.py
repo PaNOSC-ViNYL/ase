@@ -11,7 +11,7 @@ class HexagonalFactory(ClusterFactory):
 
     xtal_name = 'hexagonal'
 
-    def get_lattice_constant(self, latticeconstant):
+    def get_lattice_constant(self):
         "Get the lattice constant of an element with cubic crystal structure."
         symmetry = _refstate[self.atomic_numbers[0]]['symmetry']
         if symmetry != self.xtal_name:
@@ -61,7 +61,7 @@ class HexagonalClosedPackedFactory(HexagonalFactory):
     xtal_name = 'hcp'
 
     atomic_basis = np.array([[0., 0., 0.],
-                             [2./3., 1./3., .5]])
+                             [1./3., 2./3., .5]])
 
 HexagonalClosedPacked = HexagonalClosedPackedFactory()
 
