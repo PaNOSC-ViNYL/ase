@@ -89,12 +89,11 @@ class vdWTkatchenko09prl:
 
     hirshfeld: the Hirshfeld partitioning object
     calculator: the calculator to get the PBE energy
-    missing: Missing elements do not contribute to the vdW-Energy by default
     """
     def __init__(self,                  
                  hirshfeld=None, vdwradii=None, calculator=None,
                  Rmax = 10, # maximal radius for periodic calculations
-                 missing='zero'):
+                 ):
         self.hirshfeld = hirshfeld
         if calculator is None:
             self.calculator = self.hirshfeld.get_calculator()
@@ -102,7 +101,6 @@ class vdWTkatchenko09prl:
             self.calculator = calculator
         self.vdwradii = vdwradii
         self.Rmax = Rmax
-        self.missing = missing
         self.atoms = None
 
         self.sR = 0.94
