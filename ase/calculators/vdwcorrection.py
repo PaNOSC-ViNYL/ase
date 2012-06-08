@@ -93,6 +93,7 @@ class vdWTkatchenko09prl:
     def __init__(self,                  
                  hirshfeld=None, vdwradii=None, calculator=None,
                  Rmax = 10, # maximal radius for periodic calculations
+                 vdWDB_alphaC6 = vdWDB_Chu04jcp, # 
                  ):
         self.hirshfeld = hirshfeld
         if calculator is None:
@@ -100,6 +101,7 @@ class vdWTkatchenko09prl:
         else:
             self.calculator = calculator
         self.vdwradii = vdwradii
+        self.vdWDB_alphaC6 = vdWDB_alphaC6
         self.Rmax = Rmax
         self.atoms = None
 
@@ -141,7 +143,7 @@ class vdWTkatchenko09prl:
         R0eff_a = np.empty((na))
         for a, atom in enumerate(atoms):
             # free atom values
-            alpha_a[a], C6eff_a[a] = vdWDB_Chu04jcp[atom.symbol]
+            alpha_a[a], C6eff_a[a] = self.vdWDB_alphaC6[atom.symbol]
             # correction for effective C6
             C6eff_a[a] *= Hartree * volume_ratios[a]**2 * Bohr**6
             R0eff_a[a] = vdwradii[a] * volume_ratios[a]**(1./3.)
