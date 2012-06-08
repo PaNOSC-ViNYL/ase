@@ -326,7 +326,7 @@ def read_vasp_out(filename='OUTCAR',index = -1):
                     stop += len(images)
         return [images[i] for i in range(start, stop, step)]
 
-def write_vasp(filename, atoms, label='', direct=False, sort=None, symbol_count = None, long_format=True):
+def write_vasp(filename, atoms, label='', direct=False, sort=None, symbol_count = None, long_format=True, vasp5=False):
     """Method to write VASP position (POSCAR/CONTCAR) files.
 
     Writes label, scalefactor, unitcell, # of various kinds of atoms,
@@ -408,6 +408,13 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None, symbol_count 
         f.write(' ')
         for el in vec:
             f.write(latt_form % el)
+        f.write('\n')
+
+    # If we're writing a VASP 5.x format POSCAR file, write out the
+    # atomic symbols
+    if vasp5:
+        for sym, c in sc:
+            f.write(' %3s' % sym)
         f.write('\n')
 
     # Numbers of each atom
