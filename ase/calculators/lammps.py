@@ -194,7 +194,7 @@ class LAMMPS:
             lammps_cmd_line[0] = os.path.abspath(lammps_cmd_line[0])
 
         else:
-	    self.clean()
+            self.clean()
             raise RuntimeError('Please set LAMMPS_COMMAND environment variable')
         if 'LAMMPS_OPTIONS' in os.environ:
             lammps_options = shlex.split(os.environ['LAMMPS_OPTIONS'])
