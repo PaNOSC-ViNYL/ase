@@ -886,15 +886,15 @@ than density cutoff %i' % (pw, dw))
         KpointSetup = [3,0,0]
         KpointSetup.gridtype = 'ChadiCohen'
 
-        KpointSetup(1) 	Chadi-Cohen k-point set
-        1 	6 k-points 1x1
-        2 	18-kpoints sqrt(3)*sqrt(3)
-        3 	18-kpoints 1x1
-        4 	54-kpoints sqrt(3)*sqrt(3)
-        5 	54-kpoints 1x1
-        6 	162-kpoints 1x1
-        7 	12-kpoints 2x3
-        8 	162-kpoints 3xsqrt 3
+        KpointSetup(1)  Chadi-Cohen k-point set
+        1       6 k-points 1x1
+        2       18-kpoints sqrt(3)*sqrt(3)
+        3       18-kpoints 1x1
+        4       54-kpoints sqrt(3)*sqrt(3)
+        5       54-kpoints 1x1
+        6       162-kpoints 1x1
+        7       12-kpoints 2x3
+        8       162-kpoints 3xsqrt 3
 
         or
         KpointSetup = [4,4,4]
@@ -2790,54 +2790,54 @@ than density cutoff %i' % (pw, dw))
             # Solution: remove the Dynamics variable if present when not running with stay_alive
             # 
             self.delete_ncattdimvar(self.nc,ncvars=['Dynamics'])
-	    cmd = "dacapo.run '%(innc)s' -out '%(txt)s' -scratch %(scratch)s"
-	    cmd = cmd % {'innc':nc,
-			 'txt':txt,
-			 'scratch':scratch}
+            cmd = "dacapo.run '%(innc)s' -out '%(txt)s' -scratch %(scratch)s"
+            cmd = cmd % {'innc':nc,
+                         'txt':txt,
+                         'scratch':scratch}
 
-	    log.debug(cmd)
-	    # using subprocess instead of commands subprocess is more
-	    # flexible and works better for stay_alive
-	    self._dacapo = sp.Popen(cmd,
-				stdout=sp.PIPE,
-				stderr=sp.PIPE,
-				shell=True)
-	    status = self._dacapo.wait()
-	    [stdout, stderr] = self._dacapo.communicate()
-	    output = stdout+stderr
+            log.debug(cmd)
+            # using subprocess instead of commands subprocess is more
+            # flexible and works better for stay_alive
+            self._dacapo = sp.Popen(cmd,
+                                stdout=sp.PIPE,
+                                stderr=sp.PIPE,
+                                shell=True)
+            status = self._dacapo.wait()
+            [stdout, stderr] = self._dacapo.communicate()
+            output = stdout+stderr
     
-	    if status is 0: #that means it ended fine!
-		self.ready = True
-		self.set_status('finished')
-	    else:
-		log.debug('Status was not 0')
-		log.debug(output)
-		self.ready = False
-	    # directory cleanup has been moved to self.__del__()
-	    del self._dacapo
+            if status is 0: #that means it ended fine!
+                self.ready = True
+                self.set_status('finished')
+            else:
+                log.debug('Status was not 0')
+                log.debug(output)
+                self.ready = False
+            # directory cleanup has been moved to self.__del__()
+            del self._dacapo
 
-	    #Sometimes dacapo dies or is killed abnormally, and in this
-	    #case an exception should be raised to prevent a geometry
-	    #optimization from continuing for example. The best way to
-	    #detect this right now is actually to check the end of the
-	    #text file to make sure it ends with the right line. The
-	    #line differs if the job was run in parallel or in serial.
-	    f = open(txt, 'r')
-	    lines = f.readlines()
-	    f.close()
+            #Sometimes dacapo dies or is killed abnormally, and in this
+            #case an exception should be raised to prevent a geometry
+            #optimization from continuing for example. The best way to
+            #detect this right now is actually to check the end of the
+            #text file to make sure it ends with the right line. The
+            #line differs if the job was run in parallel or in serial.
+            f = open(txt, 'r')
+            lines = f.readlines()
+            f.close()
 
-	    if 'PAR: msexit halting Master' in lines[-1]:
-		pass #standard parallel end
-	    elif ('TIM' in lines[-2]
-		  and 'clexit: exiting the program' in lines[-1]):
-		pass #standard serial end
-	    else:
-		# text file does not end as expected, print the last
-		# 10 lines and raise exception
-		log.debug(string.join(lines[-10:-1], ''))
-		s = 'Dacapo output txtfile (%s) did not end normally.\n'
-		s += ''.join(lines[-10:-1])
-		raise DacapoAbnormalTermination(s % txt)
+            if 'PAR: msexit halting Master' in lines[-1]:
+                pass #standard parallel end
+            elif ('TIM' in lines[-2]
+                  and 'clexit: exiting the program' in lines[-1]):
+                pass #standard serial end
+            else:
+                # text file does not end as expected, print the last
+                # 10 lines and raise exception
+                log.debug(string.join(lines[-10:-1], ''))
+                s = 'Dacapo output txtfile (%s) did not end normally.\n'
+                s += ''.join(lines[-10:-1])
+                raise DacapoAbnormalTermination(s % txt)
 
     def execute_parent_calculation(self):
         '''
@@ -3840,16 +3840,16 @@ s.recv(14)
             some set of 'PZ','VWN','PW91','PBE','revPBE', 'RPBE'
 
         This function returns the self-consistent energy and/or
-	energies associated with various functionals. 
+        energies associated with various functionals. 
         The functionals are currently PZ,VWN,PW91,PBE,revPBE, RPBE.
         The different energies may be useful for calculating improved
-	adsorption energies as in B. Hammer, L.B. Hansen and
-	J.K. Norskov, Phys. Rev. B 59,7413. 
+        adsorption energies as in B. Hammer, L.B. Hansen and
+        J.K. Norskov, Phys. Rev. B 59,7413. 
         Examples: 
         get_xcenergies() #returns all the energies
         get_xcenergies('PBE') # returns the PBE total energy
         get_xcenergies('PW91','PBE','revPBE') # returns a
-	# list of energies in the order asked for
+        # list of energies in the order asked for
         """
         
         if self.calculation_required():

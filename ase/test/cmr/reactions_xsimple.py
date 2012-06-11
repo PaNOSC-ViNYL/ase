@@ -55,7 +55,7 @@ group = cmr.create_group()
 group_vars = {"reaction":reaction, "output":"group.db"}
 sum = 0.0
 for (formula, coef) in reaction:
-	data = all.get("formula", formula)
+        data = all.get("formula", formula)
         if data is None:
            print "%s is missing"%formula
            sum = None
