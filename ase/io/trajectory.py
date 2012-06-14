@@ -93,6 +93,8 @@ class PickleTrajectory:
             if isinstance(filename, str):
                 exists = os.path.isfile(filename)
                 if exists:
+                    exists = os.path.getsize(filename) > 0
+                if exists:
                     self.fd = open(filename, 'rb')
                     self.read_header()
                     self.fd.close()
