@@ -256,7 +256,6 @@ Notes/Issues:
 .. [1] S. J. Clark, M. D. Segall, C. J. Pickard, P. J. Hasnip, M. J. Probert,
        K. Refson, M. C. Payne Zeitschrift für Kristallographie 220(5-6)
        pp.567- 570 (2005)
-       `online <http://goo.gl/tRJ7x>`_
 
 
 End CASTEP Interface Documentation

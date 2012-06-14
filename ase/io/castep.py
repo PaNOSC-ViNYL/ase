@@ -438,10 +438,10 @@ def read_param(filename, calc=None):
     second argument, the parameter setings are merged into
     the existing object and returned. Otherwise a new Castep()
     calculator instance gets created and returned.
+
     Parameters:
         filename: the .param file. Only opens reading
-        calc: [Optional] calculator object to hang
-            parameters onto
+        calc: [Optional] calculator object to hang parameters onto
     """
     if calc is None:
         calc = ase.calculators.castep.Castep(check_castep_version=False)
@@ -460,8 +460,8 @@ def write_param(filename, param, check_checkfile=False,
         doesn't it will be created.
         param: a CastepParam instance
         check_checkfile : if set to True, write_param will
-            only write continuation or reuse statement
-            if a restart file exists in the same directory
+        only write continuation or reuse statement
+        if a restart file exists in the same directory
     """
     if os.path.isfile(filename) and not force_write:
         print('ase.io.castep.write_param: Set optional argument')
@@ -560,7 +560,7 @@ def read_seed(seed, new_seed=None, ignore_internal_keys=False):
     read_cell and read_param. Basically this can be used to reuse
     a previous calculation which results in a triple of
     cell/param/castep file. The label of the calculation if pre-
-    fixed with cop_of_ and everything else will be recycled as
+    fixed with `cop_of_` and everything else will be recycled as
     much as possible from the addressed calculation.
     """
 

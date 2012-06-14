@@ -482,7 +482,7 @@ class NPT(MolecularDynamics):
         including the internal data of the NPT dynamics object (automatically
         saved when attaching a BundleTrajectory to an NPT object).
         
-        Arguments::
+        Arguments:
         
         trajectory 
             The filename or an open BundleTrajectory object.

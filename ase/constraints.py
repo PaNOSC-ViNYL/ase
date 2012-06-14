@@ -747,8 +747,8 @@ class BondSpring(FixConstraint):
     a2 can alternately be a position in space to tether a1 to
     threshhold_length (float) : the length below which there is no force
     springconstant (integer) : Hook's law constant to apply when distance
-        between the two atoms exceeds threshhold_length, dimensions of 
-        (force / length)
+    between the two atoms exceeds threshhold_length, dimensions of 
+    (force / length)
     """
     def __init__(self, a1, a2, threshhold_length, springconstant):
         if type(a2) == int:
