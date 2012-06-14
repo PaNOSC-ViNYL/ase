@@ -114,7 +114,7 @@ Aside from the geometry, the Hessian of the previous run can and
 should be retained for the second run.  Use the ``restart`` keyword to
 specify a file in which to save the Hessian::
 
-  dyn = BFGS(system, trajectory='qn.traj', restart='qn.pckl')
+  dyn = BFGS(atoms=system, trajectory='qn.traj', restart='qn.pckl')
 
 This will create an optimizer which saves the Hessian to
 :file:`qn.pckl` (using the Python :mod:`pickle` module) on each
@@ -126,7 +126,7 @@ optimization, since it contains the history of all forces and
 positions, and thus whichever information about the Hessian was
 assembled so far::
 
-  dyn = BFGS(system, trajectory='qn.traj')
+  dyn = BFGS(atoms=system, trajectory='qn.traj')
   dyn.replay_trajectory('history.traj')
 
 This will read through each iteration stored in :file:`history.traj`,
@@ -148,7 +148,7 @@ retained by replaying the trajectory as above.
 .. note::
 
    In many of the examples, tests, exercises and tutorials,
-   ``QuasiNewton`` is used -- it is a synonym for ``BFGS``.
+   ``QuasiNewton`` is used -- it is a synonym for ``BFGSLineSearch``.
 
 
 LBFGS
@@ -168,7 +168,7 @@ step lengths are determined by the forces.
 To start a structure optimization with LBFGS algorithm is similar to
 BFGS. A typical optimization should look like::
 
-  dyn = LBFGS(system, trajectory='lbfgs.traj', restart='lbfgs.pckl')
+  dyn = LBFGS(atoms=system, trajectory='lbfgs.traj', restart='lbfgs.pckl')
 
 where the trajectory and the restart save the trajectory of the 
 optimization and the vectors needed to generate the Hessian Matrix.
@@ -248,7 +248,7 @@ algorithms. A typical optimization should look like::
 
   from ase.optimize.bfgslinesearch import BFGSLineSearch
 
-  dyn = BFGSLineSearch(system, trajectory='bfgs_ls.traj', restart='bfgs_ls.pckl')
+  dyn = BFGSLineSearch(atoms=system, trajectory='bfgs_ls.traj', restart='bfgs_ls.pckl')
 
 where the trajectory and the restart save the trajectory of the
 optimization and the information needed to generate the Hessian Matrix.
@@ -270,7 +270,7 @@ local optimization algorithm::
   from ase import *
   from ase.optimize.basin import BasinHopping
 
-  bh = BasinHopping(system,               # the system to optimize 
+  bh = BasinHopping(atoms=system,         # the system to optimize 
                     temperature=100 * kB, # 'temperature' to overcome barriers
                     dr=0.5,               # maximal stepwidth
 	       	    optimizer=LBFGS,      # optimizer to find local minima
