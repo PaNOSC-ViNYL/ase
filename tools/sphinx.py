@@ -6,7 +6,25 @@ import glob
 import trace
 import tempfile
 
-tmpdir = tempfile.mkdtemp(prefix='ase-')
+if '--dir' in sys.argv:
+    i = sys.argv.index('--dir')
+    dir = sys.argv[i+1]
+else:
+    dir = None
+
+if '--email' in sys.argv:
+    i = sys.argv.index('--email')
+    email = sys.argv[i+1]
+else:
+    email = None
+
+if '--tarfiledir' in sys.argv:
+    i = sys.argv.index('--tarfiledir')
+    tarfiledir = sys.argv[i+1]
+else:
+    tarfiledir = None
+
+tmpdir = tempfile.mkdtemp(prefix='ase-sphinx-', dir=dir)
 os.chdir(tmpdir)
 
 def build(email):
@@ -14,21 +32,24 @@ def build(email):
                  'https://svn.fysik.dtu.dk/projects/ase/trunk ase') != 0:
         raise RuntimeError('Checkout of ASE failed!')
     os.chdir('ase')
-    if os.system('python setup.py install --home=.') != 0:
+    if os.system('python setup.py install --home=..') != 0:
         raise RuntimeError('Installation failed!')
-    sys.path.insert(0, 'lib/python')
+
+    # ase installs under lib independently of the platform
+    sys.path.insert(0, '%s/lib/python' % tmpdir)
+
     from ase.test import test
     from ase.version import version
 
     # Run test-suite:
     stream = open('test-results.txt', 'w')
-    results = test(verbosity=2, dir='ase/test', display=False, stream=stream)
+    results = test(verbosity=2, display=False, stream=stream)
     stream.close()
     if len(results.failures) > 0 or len(results.errors) > 0:
-        address = email
-        subject = 'ASE test-suite failed!'
-        os.system('mail -s "%s" %s < %s' %
-                  (subject, address, 'test-results.txt'))
+        if email is not None:
+            subject = 'ASE %s: test-suite failed!' % str(version)
+            os.system('mail -s "%s" %s < %s' %
+                      (subject, email, 'test-results.txt'))
         raise RuntimeError('Testsuite failed!')
 
     # Generate tar-file:
@@ -44,15 +65,28 @@ def build(email):
     if ' Warning:' in epydoc_errors:
         sys.stderr.write(epydoc_errors)
 
+    epydoc_output = open('epydoc.out').readlines()
+    errors = []
+    for line in epydoc_output:
+        if line[0] == '|' or line[:2] == '+-':
+            errors.append(line)
+    if errors:
+        fd = open('epydoc.errors', 'w')
+        fd.write(''.join(errors))
+        fd.close()
+        if 1 and email is not None:
+            x = os.system('mail -s "ASE: EpyDoc errors" %s < epydoc.errors' % email)
+            assert x == 0
+
     os.chdir('doc')
     os.mkdir('_build')
-    if os.system('PYTHONPATH=%s/ase sphinx-build . _build' % tmpdir) != 0:
+    if os.system('PYTHONPATH=%s/lib/python sphinx-build . _build' % tmpdir) != 0:
         raise RuntimeError('Sphinx failed!')
     os.system('cd _build; cp _static/searchtools.js .; ' +
               'sed -i s/snapshot.tar/%s.tar/ download.html' % version)
 
     if 1:
-        if os.system('PYTHONPATH=%s/ase ' % tmpdir +
+        if os.system('PYTHONPATH=%s/lib/python ' % tmpdir +
                      'sphinx-build -b latex . _build 2> error') != 0:
             raise RuntimeError('Sphinx failed!')
         os.system(
@@ -68,16 +102,15 @@ def build(email):
     assert os.system('mv ../../html epydoc;' +
                      'mv ../../dist/python-ase-%s.tar.gz .' % version) == 0
     
-tarfiledir = None
-if len(sys.argv) == 3:
-    tarfiledir = sys.argv[2]
+if tarfiledir is not None:
     try:
         os.remove(tarfiledir + '/ase-webpages.tar.gz')
     except OSError:
         pass
 
-build(sys.argv[1])
+build(email)
     
 if tarfiledir is not None:
     os.system('cd ..; tar czf %s/ase-webpages.tar.gz _build' % tarfiledir)
-    os.system('cd; rm -r ' + tmpdir)
+
+os.system('cd; rm -rf ' + tmpdir)
