@@ -976,7 +976,7 @@ class StrainFilter(Filter):
         self.origcell = atoms.get_cell()
 
     def get_positions(self):
-        return self.strain.reshape((2, 3))
+        return self.strain.reshape((2, 3)).copy()
 
     def set_positions(self, new):
         new = new.ravel() * self.mask
