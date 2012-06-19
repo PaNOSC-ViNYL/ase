@@ -27,7 +27,7 @@ class MorsePotential:
         return self._forces
 
     def get_stress(self, atoms):
-        return np.zeros((3, 3))
+        return np.zeros(6)
     
     def calculate(self, atoms):
         positions = atoms.get_positions()

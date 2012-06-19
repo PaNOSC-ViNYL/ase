@@ -29,7 +29,7 @@ class Calculator:
                         
     def get_stress(self, atoms):
         """Return the stress."""
-        return np.zeros((3, 3))
+        return np.zeros(6)
 
     def calculation_required(self, atoms, quantities):
         """Check if a calculation is required.

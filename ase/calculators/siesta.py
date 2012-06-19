@@ -455,13 +455,16 @@ class Siesta:
         # Stress (fixed so it's compatible with a MD run from siesta):
         for line in lines:
             if line.startswith('siesta: stress tensor '):
-                self.stress = np.empty((3, 3))
+                stress = np.empty((3, 3))
                 for i in range(3):
                     tmp = lines.next().split()
                     if len(tmp) == 4:
-                        self.stress[i] = [float(word) for word in tmp[1:]]
+                        stress[i] = [float(word) for word in tmp[1:]]
                     else:
-                        self.stress[i] = [float(word) for word in tmp]
+                        stress[i] = [float(word) for word in tmp]
+                self.stress = np.array(
+                    [stress[0, 0], stress[1, 1], stress[2, 2],
+                     stress[1, 2], stress[0, 2], stress[0, 1]])
                 break
         else:
             raise RuntimeError

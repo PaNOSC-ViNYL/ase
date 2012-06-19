@@ -176,7 +176,7 @@ class Dftb:
         self.converged = False
 
         #dftb has no stress
-        self.stress = np.empty((3, 3))
+        self.stress = np.empty(6)
         
 
     def update(self, atoms):
@@ -370,7 +370,7 @@ class Dftb:
 
     def read(self):
         """Dummy stress for dftb"""
-        self.stress = np.empty((3, 3))
+        self.stress = np.empty(6)
 
     def write_dftb_input_file(self, atoms):
         """Write input parameters to DFTB+ input file 'dftb_in.hsd'."""

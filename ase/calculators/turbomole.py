@@ -24,7 +24,7 @@ class Turbomole(Calculator):
         self.calculate_forces = calculate_forces
 
         # turbomole has no stress
-        self.stress = np.empty((3, 3))
+        self.stress = np.empty(6)
         
         # storage for energy and forces
         self.e_total = None

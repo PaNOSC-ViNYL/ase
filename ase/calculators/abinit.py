@@ -639,12 +639,11 @@ class Abinit:
         # sigma(3 3)=  4.02063464E-04  sigma(2 1)=  0.00000000E+00
         for line in lines:
             if line.rfind('cartesian components of stress tensor (hartree/bohr^3)') > -1:
-                self.stress = np.empty((3, 3))
+                self.stress = np.empty(6)
                 for i in range(3):
                     entries = lines.next().split()
-                    self.stress[i,i] = float(entries[2])
-                    self.stress[min(3, 4-i)-1, max(1, 2-i)-1] = float(entries[5])
-                    self.stress[max(1, 2-i)-1, min(3, 4-i)-1] = float(entries[5])
+                    self.stress[i] = float(entries[2])
+                    self.stress[i + 3] = float(entries[5])
                 self.stress = self.stress*Hartree/Bohr**3
                 break
         else:

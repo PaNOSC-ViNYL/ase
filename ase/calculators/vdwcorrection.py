@@ -216,4 +216,4 @@ class vdWTkatchenko09prl:
         return self.forces
 
     def get_stress(self, atoms):
-        return np.zeros((3, 3))
+        return np.zeros(6)

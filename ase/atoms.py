@@ -7,6 +7,7 @@ This module defines the central object in the ASE package: the Atoms
 object.
 """
 
+import warnings
 from math import cos, sin
 
 import numpy as np
@@ -398,7 +399,6 @@ class Atoms(object):
     def get_chemical_symbols(self, reduce=False):
         """Get list of chemical symbol strings."""
         if reduce:
-            import warnings
             warnings.warn('ase.atoms.get_chemical_symbols(reduce=True) is ' +
                           'deprecated. Please use ase.atoms.get_chemical' +
                           '_formula(mode="reduce") instead.',
@@ -653,25 +653,38 @@ class Atoms(object):
                 constraint.adjust_forces(self.arrays['positions'], forces)
         return forces
 
-    def get_stress(self):
+    def get_stress(self, voigt=True):
         """Calculate stress tensor.
 
         Returns an array of the six independent components of the
-        symmetric stress tensor, in the traditional order
-        (s_xx, s_yy, s_zz, s_yz, s_xz, s_xy).
+        symmetric stress tensor, in the traditional Voigt order
+        (xx, yy, zz, yz, xz, xy) or as a 3x3 matrix.  Default is Voigt
+        order.
         """
+
         if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
+
         stress = self._calc.get_stress(self)
-        shape = getattr(stress, 'shape', None)
+        shape = stress.shape
+
         if shape == (3, 3):
-            return np.array([stress[0, 0], stress[1, 1], stress[2, 2],
-                             stress[1, 2], stress[0, 2], stress[0, 1]])
+            warnings.warn('Converting 3x3 stress tensor from %s ' %
+                          self._calc.__class__.__name__ +
+                          'calculator to the required Voigt form.')
+            stress = np.array([stress[0, 0], stress[1, 1], stress[2, 2],
+                               stress[1, 2], stress[0, 2], stress[0, 1]])
         else:
-            # Hopefully a 6-vector, but don't check in case some weird
-            # calculator does something else.
+            assert shape == (6,)
+
+        if voigt:
             return stress
-    
+        else:
+            xx, yy, zz, yz, xz, xy = stress
+            return np.array([(xx, xy, xz),
+                             (xy, yy, yz),
+                             (xz, yz, zz)])
+        
     def get_stresses(self):
         """Calculate the stress-tensor of all the atoms.
 
