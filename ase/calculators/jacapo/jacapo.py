@@ -316,9 +316,9 @@ class Jacapo:
         if len(args) == 0:
             return None
         elif len(args) == 1:
-            return eval('self.get_%s()' % args[0])
+            return self.pars[args[0]]
         else:
-            return [eval('self.get_%s()' % key) for arg in args]
+            return [self.pars[arg] for arg in args]
 
     def set(self, **kwargs):
         '''set a parameter
