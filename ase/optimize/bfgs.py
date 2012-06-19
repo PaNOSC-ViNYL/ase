@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from numpy.linalg import eigh, solve
+from numpy.linalg import eigh
 
 from ase.optimize.optimize import Optimizer
-from ase.parallel import rank, barrier
+
 
 class BFGS(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,

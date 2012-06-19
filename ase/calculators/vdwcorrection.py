@@ -2,7 +2,7 @@
 
 import numpy as np
 from ase.units import Bohr, Hartree
-from gpaw.mpi import rank
+
 
 # dipole polarizabilities and C6 values from 
 # X. Chu and A. Dalgarno, J. Chem. Phys. 129 (2004) 4083

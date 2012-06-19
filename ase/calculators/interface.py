@@ -130,8 +130,6 @@ class DFTCalculator(Calculator):
         """
         raise NotImplementedError
 
-        return c, U
-
     def get_wannier_localization_matrix(self, nbands, dirG, kpoint,
                                         nextkpoint, G_I, spin):
         """Calculate integrals for maximally localized Wannier functions."""
