@@ -22,7 +22,7 @@ import numpy as np
 import subprocess as sp
 
 import validate
-import changed 
+import changed
 
 try:
     from uuid import uuid1
@@ -34,7 +34,7 @@ except ImportError: #probably an old python before 2.5
         random.seed(host + str(t))
         s = host + '-' + t + '-'+str(random.random())
         return s.replace(' ','-')
-    
+
 import logging
 log = logging.getLogger('Jacapo')
 
@@ -86,10 +86,10 @@ class Jacapo:
     '''
     Python interface to the Fortran DACAPO code
     '''
-    
+
     __name__ = 'Jacapo'
     __version__ = '0.4'
-    
+
     #dictionary of valid input variables and default settings
     default_input = {'atoms':None,
                      'pw':350,
@@ -106,7 +106,7 @@ class Jacapo:
                                'mixpar':0.2,
                                'initval':0.0,
                                'adddipfield':0.0,
-                               'position':None},                         
+                               'position':None},
                      'status':'new',
                      'pseudopotentials':None,
                      'extracharge':None,
@@ -138,7 +138,7 @@ class Jacapo:
                      'mdos':None,
                      'psp':None
                    }
-    
+
     def __init__(self,
                  nc='out.nc',
                  outnc=None,
@@ -158,13 +158,13 @@ class Jacapo:
 
           debug : integer
            logging debug level.
-           
+
         Valid kwargs:
 
           atoms : ASE.Atoms instance
             atoms is an ase.Atoms object that will be attached
             to this calculator.
-        
+
           pw : integer
             sets planewave cutoff
 
@@ -174,7 +174,7 @@ class Jacapo:
           kpts : iterable
             set chadi-cohen, monkhorst-pack kpt grid,
             e.g. kpts = (2,2,1) or explicit list of kpts
-            
+
           spinpol : Boolean
             sets whether spin-polarization is used or not.
 
@@ -200,7 +200,7 @@ class Jacapo:
             'initval':0.0,
             'adddipfield':0.0,
             'position':None}
-            
+
           nbands : integer
             set the number of bands
 
@@ -215,13 +215,13 @@ class Jacapo:
             logging.DEBUG or an integer 0-50. The higher the integer,
             the less information you see set debug level (0 = off, 10 =
             extreme)
-        
+
         Modification of the nc file only occurs at calculate time if needed
 
         >>> calc = Jacapo('CO.nc')
-        
+
         reads the calculator from CO.nc if it exists or
-        minimally initializes CO.nc with dimensions if it does not exist. 
+        minimally initializes CO.nc with dimensions if it does not exist.
 
         >>> calc = Jacapo('CO.nc', pw=300)
 
@@ -235,7 +235,7 @@ class Jacapo:
         attached to it.
 
         >>> atoms, calc = read('CO.nc')
-        
+
         '''
         self.debug = debug
         log.setLevel(debug)
@@ -244,16 +244,16 @@ class Jacapo:
         self.pars_uptodate = {}
 
         log.debug(self.pars)
-        
+
         for key in self.pars:
             self.pars_uptodate[key] = False
-            
+
         self.kwargs = kwargs
         self.set_psp_database()
 
         self.set_nc(nc)
-        #assume not ready at init, rely on code later to change this 
-        self.ready = False  
+        #assume not ready at init, rely on code later to change this
+        self.ready = False
 
         # need to set a default value for stay_alive
         self.stay_alive = stay_alive
@@ -261,7 +261,7 @@ class Jacapo:
         # for correct updating, we need to set the correct frame number
         # before setting atoms or calculator
         self._set_frame_number()
-        
+
         if os.path.exists(nc):
 
             self.atoms = self.read_only_atoms(nc)
@@ -276,23 +276,23 @@ class Jacapo:
                 atoms.set_cell(self.atoms.get_cell())
                 atoms.set_positions(self.atoms.get_positions())
                 atoms.calc = self
-                
+
             #update the parameter list from the ncfile
             self.update_input_parameters()
-    
+
             self.ready = True
-                   
+
         #change output file if needed
         if outnc:
-            self.set_nc(outnc)          
-            
+            self.set_nc(outnc)
+
         if len(kwargs) > 0:
 
             if 'stress' in kwargs:
                 raise DacapoInput, '''\
                 stress keyword is deprecated.
                 you must use calculate_stress instead'''
-            
+
             #make sure to set calculator on atoms if it was in kwargs
             #and do this first, since some parameters need info from atoms
             if 'atoms' in kwargs:
@@ -305,9 +305,21 @@ class Jacapo:
                                     #because it will update the _frame
                                     #counter, and that should not be
                                     #done here.
-                                
+
             self.set(**kwargs) #if nothing changes, nothing will be done
-                    
+
+    def get(self, *args):
+        ''' get values for args.
+
+        e.g. calc.get('nbands')
+        '''
+        if len(args) == 0:
+            return None
+        elif len(args) == 1:
+            return eval('self.get_%s()' % args[0])
+        else:
+            return [eval('self.get_%s()' % key) for arg in args]
+
     def set(self, **kwargs):
         '''set a parameter
 
@@ -318,15 +330,15 @@ class Jacapo:
         if 'DACAPO_NOSET' in os.environ:
             #it is probably a bug that this is detected so we raise an exception
             raise Exception, 'DACAPO_NOSET detected, nothing is being set'
-            
-        
+
+
         for key in kwargs:
             if key not in self.default_input:
                 raise DacapoInput, '%s is not valid input' % key
 
             if kwargs[key] is None:
                 continue
-            
+
             #now check for valid input
             validf = 'validate.valid_%s' % key
             valid = eval('%s(kwargs[key])' % validf)
@@ -335,7 +347,7 @@ class Jacapo:
                 log.warn(s % (key,
                               kwargs[key]))
                 raise DacapoInput, s % (key, kwargs[key])
-                                       
+
             #now see if key has changed
             if key in self.pars:
                 changef = 'changed.%s_changed' % key
@@ -365,13 +377,13 @@ class Jacapo:
         you must define a self._set_keyword function that does all the
         actual writing.
         '''
-        
+
         log.debug('Writing input variables out')
         log.debug(self.pars)
-        
+
         if 'DACAPO_READONLY' in os.environ:
             raise Exception, 'DACAPO_READONLY set and you tried to write!'
-        
+
         if self.ready:
             log.debug('self.ready = %s' % self.ready)
             log.debug('detected everything is ready, not writing input out')
@@ -386,7 +398,7 @@ class Jacapo:
 
                 if self.pars[key] is None:
                     continue
-                
+
                 log.debug('trying to call: %s' % setf)
                 log.debug('self.%s(self.pars[key])' % setf)
                 log.debug('key = %s' % str(self.pars[key]))
@@ -395,7 +407,7 @@ class Jacapo:
                     eval('self.%s(**self.pars[key])' % setf)
                 else:
                     eval('self.%s(self.pars[key])' % setf)
-                
+
                 self.pars_uptodate[key] = True #update the changed flag
 
                 log.debug('wrote %s: %s' % (key, str(self.pars[key])))
@@ -410,7 +422,7 @@ class Jacapo:
         '''read in all the input parameters from the netcdfile'''
 
         log.debug('Updating parameters')
-        
+
         for key in self.default_input:
             getf = 'self.get_%s()' % key
             log.debug('getting key: %s' % key)
@@ -437,25 +449,25 @@ class Jacapo:
 
         self.write_input()
         self.write_nc()
-        
-    
+
+
     def initnc(self, ncfile=None):
         '''create an ncfile with minimal dimensions in it
 
         this makes sure the dimensions needed for other set functions
         exist when needed.'''
-        
+
         if ncfile is None:
             ncfile = self.get_nc()
         else:
             self.set_nc(ncfile)
-            
+
         log.debug('initializing %s' % ncfile)
-                
+
         base = os.path.split(ncfile)[0]
         if base is not '' and not os.path.isdir(base):
             os.makedirs(base)
-        
+
         ncf = netCDF(ncfile, 'w')
         #first, we define some dimensions we always need
         #unlimited
@@ -473,14 +485,14 @@ class Jacapo:
         ncf.uuid = str(uuid1())
         ncf.Jacapo_version = Jacapo.__version__
         ncf.close()
-        
+
         self.ready = False
         self._frame = 0
-        
+
     def __del__(self):
         '''If calculator is deleted try to stop dacapo program
         '''
-        
+
         if hasattr(self, '_dacapo'):
             if self._dacapo.poll()==None:
                 self.execute_external_dynamics(stopprogram=True)
@@ -493,7 +505,7 @@ class Jacapo:
             slv = txt + '.slave*'
             for slvf in glob.glob(slv):
                 os.remove(slvf)
-        
+
     def __str__(self):
         '''
         pretty-print the calculator and atoms.
@@ -506,7 +518,7 @@ class Jacapo:
             return 'No netcdf file attached to this calculator'
         if not os.path.exists(self.nc):
             return 'ncfile (%s) does not exist yet' % self.nc
-        
+
         nc = netCDF(self.nc, 'r')
         s.append('  ---------------------------------')
         s.append('  Dacapo calculation from %s' % self.nc)
@@ -518,19 +530,19 @@ class Jacapo:
             s.append('  version = %s' % nc.version)
         if hasattr(nc, 'Jacapo_version'):
             s.append('  Jacapo version = %s' % nc.Jacapo_version[0])
-        
+
         energy = nc.variables.get('TotalEnergy', None)
-        
+
         if energy and energy[:][-1] < 1E36: # missing values get
                                               # returned at 9.3E36
             s.append('  Energy = %1.6f eV' % energy[:][-1])
         else:
             s.append('  Energy = None')
-            
+
         s.append('')
-        
+
         atoms = self.get_atoms()
-        
+
         if atoms is None:
             s.append('  no atoms defined')
         else:
@@ -546,7 +558,7 @@ class Jacapo:
                                                                  v[1],
                                                                  v[2],
                                                                  L))
-                                                                 
+
             stress = nc.variables.get('TotalStress', None)
             if stress is not None:
                 stress = np.take(stress[:].ravel(), [0, 4, 8, 5, 2, 1])
@@ -563,7 +575,7 @@ class Jacapo:
 
             #this is just the ncvariable
             forces = nc.variables.get('DynamicAtomForces', None)
-           
+
             for i, atom in enumerate(atoms):
                 sym = atom.symbol
                 pos = atom.position
@@ -577,7 +589,7 @@ class Jacapo:
                     rmsforce = (np.sum(f**2))**0.5
                 else:
                     rmsforce = None
-                    
+
                 st = "  %2i   %3.12s  " % (i, sym)
                 st += "[% 7.3f%7.3f% 7.3f] " % tuple(pos)
                 st += " %2s  " % tag
@@ -585,9 +597,9 @@ class Jacapo:
                     st += " %4.3f " % rmsforce
                 else:
                     st += ' None '
-                st += " %s"  % (self.get_psp(sym))        
+                st += " %s"  % (self.get_psp(sym))
                 s.append(st)
-                
+
         s.append('')
         s.append('  Details:')
         xc = self.get_xc()
@@ -599,7 +611,7 @@ class Jacapo:
         pw = self.get_pw()
         if pw is None:
             pw = 'default (350eV)'
-            
+
         s.append('  Planewavecutoff     = %s eV' % pw)
         dw = self.get_dw()
         if dw:
@@ -630,7 +642,7 @@ class Jacapo:
         s.append('  Constraints         = %s' % str(atoms._get_constraints()))
         s.append('  ---------------------------------')
         nc.close()
-        return string.join(s, '\n')            
+        return string.join(s, '\n')
 
     #todo figure out other xc psp databases
     def set_psp_database(self, xc=None):
@@ -642,7 +654,7 @@ class Jacapo:
          xc : string
            one of 'PW91', 'PBE', 'revPBE', 'RPBE', 'PZ'
 
-        
+
         not all the databases are complete, and that means
         some psp do not exist.
 
@@ -651,7 +663,7 @@ class Jacapo:
         a nearly empty database, and I have not thought about how to
         resolve that
         '''
-        
+
         if xc == 'PW91' or xc is None:
             from pw91_psp import defaultpseudopotentials
         else:
@@ -665,7 +677,7 @@ class Jacapo:
         '''set framenumber in the netcdf file
 
         this is equal to the number of ionic steps dimension'''
-        
+
         if frame is None:
             if os.path.exists(self.nc):
                 nc = netCDF(self.nc, 'r')
@@ -674,7 +686,7 @@ class Jacapo:
                     number_ionic_steps = nc.variables['TotalEnergy'].shape[0]
                 else:
                     number_ionic_steps = nc.variables['DynamicAtomPositions'].shape[0]
-                    
+
                 frame = number_ionic_steps - 1
                 nc.close()
             else:
@@ -683,7 +695,7 @@ class Jacapo:
                 else:
                     #when atoms are set, the frame will be incremented
                     frame = 0
-    
+
 ##            if 'TotalEnergy' in nc.variables:
 ##                frame = nc.variables['TotalEnergy'].shape[0]
 ##                # make sure the last energy is reasonable. Sometime
@@ -696,13 +708,13 @@ class Jacapo:
 ##                    log.warn("Total energy > 1E36. NC file is incomplete. \
 ##                    calc.restart may be required")
 ##                    #self.restart()
-            
+
         log.info("Current frame number is: %i" % (frame - 1))
         self._frame = frame - 1  #netCDF starts counting with 1
 
     def _increment_frame(self):
         'increment the framenumber'
-        
+
         log.debug('incrementing frame')
         self._frame += 1
 
@@ -713,10 +725,10 @@ class Jacapo:
 
          pw : integer
            the planewave cutoff in eV
-           
+
         this function checks to make sure the density wave cutoff is
         greater than or equal to the planewave cutoff.'''
-        
+
         nc = netCDF(self.nc, 'a')
         if 'PlaneWaveCutoff' in nc.variables:
             vpw = nc.variables['PlaneWaveCutoff']
@@ -732,7 +744,7 @@ class Jacapo:
                 vdw.assignValue(pw) #make them equal
         else:
             vdw = nc.createVariable('Density_WaveCutoff', 'd', ('dim1',))
-            vdw.assignValue(pw) 
+            vdw.assignValue(pw)
         nc.close()
         self.restart() #nc dimension change for number_plane_Wave dimension
         self.set_status('new')
@@ -771,7 +783,7 @@ class Jacapo:
         if pw > dw:
             log.warn('Planewave cutoff %i is greater \
 than density cutoff %i' % (pw, dw))
-        
+
         ncf = netCDF(self.nc, 'a')
         if 'Density_WaveCutoff' in ncf.variables:
             vdw = ncf.variables['Density_WaveCutoff']
@@ -812,13 +824,13 @@ than density cutoff %i' % (pw, dw))
         nc = netCDF(self.nc, 'a')
         v = 'ExcFunctional'
         if v in nc.variables:
-            nc.variables[v][:] = np.array('%7s' % xc, 'c') 
+            nc.variables[v][:] = np.array('%7s' % xc, 'c')
         else:
             vxc = nc.createVariable('ExcFunctional', 'c', ('dim7',))
             vxc[:] = np.array('%7s' % xc, 'c')
         nc.close()
         self.set_status('new')
-        self.ready = False    
+        self.ready = False
 
     def set_nbands(self, nbands=None):
         '''Set the number of bands. a few unoccupied bands are
@@ -828,7 +840,7 @@ than density cutoff %i' % (pw, dw))
 
           nbands : integer
             the number of bands.
-            
+
         if nbands = None the function returns with nothing done. At
         calculate time, if there are still no bands, they will be set
         by:
@@ -842,14 +854,14 @@ than density cutoff %i' % (pw, dw))
         self.delete_ncattdimvar(self.nc,
                                 ncdims=['number_of_bands'],
                                 ncvars=[])
-                       
+
         nc = netCDF(self.nc, 'a')
         v = 'ElectronicBands'
         if v in nc.variables:
             vnb = nc.variables[v]
         else:
             vnb = nc.createVariable('ElectronicBands', 'c', ('dim1',))
-            
+
         vnb.NumberOfBands = nbands
         nc.sync()
         nc.close()
@@ -864,7 +876,7 @@ than density cutoff %i' % (pw, dw))
 
         kpts: (n1,n2,n3) or [k1,k2,k3,...] or one of these
         chadi-cohen sets:
-         
+
         * cc6_1x1
         * cc12_2x3
         * cc18_sq3xsq3
@@ -873,11 +885,11 @@ than density cutoff %i' % (pw, dw))
         * cc54_1x1
         * cc162_sq3xsq3
         * cc162_1x1
-        
+
         (n1,n2,n3) creates an n1 x n2 x n3 monkhorst-pack grid,
         [k1,k2,k3,...] creates a kpt-grid based on the kpoints
         defined in k1,k2,k3,...
-        
+
         There is also a possibility to have Dacapo (fortran) create
         the Kpoints in chadi-cohen or monkhorst-pack form. To do this
         you need to set the KpointSetup.gridtype attribute, and
@@ -921,7 +933,7 @@ than density cutoff %i' % (pw, dw))
         if len(np.array(kpts).shape) == 2:
             listofkpts = kpts
             gridtype = 'user_defined_%i_kpts' % len(kpts)  #stored in ncfile
-                    
+
         nbzkpts = len(listofkpts)
 
         #we need to get dimensions stored temporarily so
@@ -949,7 +961,7 @@ than density cutoff %i' % (pw, dw))
         nc.close()
 
         log.debug('kpts = %s' % str(self.get_kpts()))
-        
+
         self.set_status('new')
         self.ready = False
 
@@ -958,7 +970,7 @@ than density cutoff %i' % (pw, dw))
         comparison of atoms to self.atoms using tolerances to account
         for float/double differences and float math.
         '''
-        
+
         TOL = 1.0e-6 #angstroms
 
         a = self.atoms.arrays
@@ -968,18 +980,18 @@ than density cutoff %i' % (pw, dw))
         lenmatch = len(atoms) == len(self.atoms)
         if lenmatch is not True:
             return False #the next two comparisons fail in this case.
-        
+
         #match positions in cell
         posmatch = (abs(a['positions'] - b['positions']) <= TOL).all()
         #match cell
         cellmatch = (abs(self.atoms.get_cell()
                          - atoms.get_cell()) <= TOL).all()
-        
+
         if lenmatch and posmatch and cellmatch:
             return True
         else:
             return False
-                
+
     def set_atoms(self, atoms):
         '''attach an atoms to the calculator and update the ncfile
 
@@ -987,17 +999,17 @@ than density cutoff %i' % (pw, dw))
 
           atoms
             ASE.Atoms instance
-          
+
         '''
 
         log.debug('setting atoms to: %s' % str(atoms))
-        
+
         if hasattr(self, 'atoms') and self.atoms is not None:
             #return if the atoms are the same. no change needs to be made
             if self.atoms_are_equal(atoms):
                 log.debug('No change to atoms in set_atoms, returning')
                 return
-            
+
             # some atoms already exist. Test if new atoms are
             # different from old atoms.
             # this is redundant
@@ -1006,7 +1018,7 @@ than density cutoff %i' % (pw, dw))
                 # a new frame.
                 log.debug('atoms != self.atoms, incrementing')
                 self._increment_frame()
-                
+
         self.atoms = atoms.copy()
         self.ready = False
         log.debug('self.atoms = %s' % str(self.atoms))
@@ -1027,7 +1039,7 @@ than density cutoff %i' % (pw, dw))
         for d-metals and narrow gap semiconducters, higher for free
         electron-like metals).
         '''
-        
+
         nc = netCDF(self.nc, 'a')
         v = 'ElectronicBands'
         if v in nc.variables:
@@ -1049,7 +1061,7 @@ than density cutoff %i' % (pw, dw))
           status : string
             status flag, e.g. 'new', 'finished'
         '''
-        
+
         nc = netCDF(self.nc, 'a')
         nc.status = status
         nc.sync()
@@ -1058,7 +1070,7 @@ than density cutoff %i' % (pw, dw))
 
     def get_spinpol(self):
         'Returns the spin polarization setting, either True or False'
-        
+
         nc = netCDF(self.nc, 'r')
         v = 'ElectronicBands'
         if v in nc.variables:
@@ -1088,7 +1100,7 @@ than density cutoff %i' % (pw, dw))
         Specify whether to perform a spin polarized or unpolarized
         calculation.
         '''
-        
+
         nc = netCDF(self.nc, 'a')
         v = 'ElectronicBands'
         if v in nc.variables:
@@ -1114,10 +1126,10 @@ than density cutoff %i' % (pw, dw))
           fixmagmom : float
             the magnetic moment of the cell in Bohr magnetons
         '''
-        
+
         if fixmagmom is None:
             return
-        
+
         nc = netCDF(self.nc,'a')
         v = 'ElectronicBands'
         if v in nc.variables:
@@ -1134,7 +1146,7 @@ than density cutoff %i' % (pw, dw))
 
     def get_fixmagmom(self):
         'returns the value of FixedMagneticMoment'
-        
+
         nc = netCDF(self.nc,'r')
         if 'ElectronicBands' in nc.variables:
             v = nc.variables['ElectronicBands']
@@ -1146,7 +1158,7 @@ than density cutoff %i' % (pw, dw))
             fixmagmom = None
         nc.close()
         return fixmagmom
-            
+
     def set_calculate_stress(self, stress=True):
         '''Turn on stress calculation
 
@@ -1156,7 +1168,7 @@ than density cutoff %i' % (pw, dw))
             set_calculate_stress(True) calculates stress
             set_calculate_stress(False) do not calculate stress
         '''
-        
+
         nc = netCDF(self.get_nc(),'a')
         vs = 'NetCDFOutputControl'
         if vs in nc.variables:
@@ -1181,21 +1193,21 @@ than density cutoff %i' % (pw, dw))
 
           nc : string
             filename for netcdf file
-                
+
         if the ncfile attached to the calculator is changing, the old
         file will be copied to the new file if it doesn not exist so
-        that all the calculator details are preserved. Otherwise, the 
+        that all the calculator details are preserved. Otherwise, the
 
         if the ncfile does not exist, it will get initialized.
 
         the text file will have the same basename as the ncfile, but
         with a .txt extension.
         '''
-        
+
         #the first time this is called, there may be no self.nc defined
         if not hasattr(self, 'nc'):
-            self.nc = nc    
-            
+            self.nc = nc
+
         #check if the name is changing and if so, copy the old ncfile
         #to the new one.  This is necessary to ensure all the
         #calculator details are copied over. if the file already
@@ -1211,14 +1223,14 @@ than density cutoff %i' % (pw, dw))
             if status != 0:
                 raise Exception, 'Copying ncfile failed.'
             self.nc = nc
-        
+
         elif os.path.exists(nc):
             self._set_frame_number()
             self.set_psp_database()
             self.atoms = self.read_only_atoms(nc)
             self.nc = nc
             self.update_input_parameters()
-                
+
         #I always want the text file set based on the ncfile
         #and I never want to set this myself.
         base = os.path.splitext(self.nc)[0]
@@ -1235,7 +1247,7 @@ than density cutoff %i' % (pw, dw))
         for key in pspdict:
             self.set_psp(sym=key,
                          psp=pspdict[key])
-            
+
     def set_psp(self,
                 sym=None,
                 z=None,
@@ -1254,18 +1266,18 @@ than density cutoff %i' % (pw, dw))
           psp : string
             filename of the pseudopotential
 
-        
+
         you can only set sym or z.
 
         examples::
-        
+
           set_psp('N',psp='pspfile')
           set_psp(z=6,psp='pspfile')
         '''
         log.debug(str([sym, z, psp]))
         if (sym, z, psp) == (None, None, None):
             return
-        
+
         if (sym is None and z is not None):
             from ase.data import chemical_symbols
             sym = chemical_symbols[z]
@@ -1304,10 +1316,10 @@ than density cutoff %i' % (pw, dw))
 
     def get_pseudopotentials(self):
         'get pseudopotentials set for atoms attached to calculator'
-        
+
         if self.atoms is None:
             return None
-        
+
         psp = {}
         for atom in self.atoms:
             psp[atom.symbol] = self.psp[atom.symbol]
@@ -1315,12 +1327,12 @@ than density cutoff %i' % (pw, dw))
 
     def get_symmetry(self):
         '''return the type of symmetry used'''
-        
+
         nc = netCDF(self.nc, 'r')
         if 'UseSymmetry' in nc.variables:
             sym = string.join(nc.variables['UseSymmetry'][:],'').strip()
         else:
-            sym = None      
+            sym = None
         nc.close()
         if sym in ['Off', None]:
             return False
@@ -1328,7 +1340,7 @@ than density cutoff %i' % (pw, dw))
             return True
         else:
             raise Exception, 'Type of symmetry not recognized: %s' % sym
-       
+
     def set_symmetry(self, val=False):
         '''set how symmetry is used to reduce k-points
 
@@ -1362,18 +1374,18 @@ than density cutoff %i' % (pw, dw))
         spatial symmetry on ionic forces and electronic structure,
         i.e. the symmetry will be conserved during the calculation.
         '''
-        
+
         if val:
             symval = 'Maximum'
         else:
             symval = 'Off'
-        
+
         ncf = netCDF(self.get_nc(), 'a')
         if 'UseSymmetry' not in ncf.variables:
             sym = ncf.createVariable('UseSymmetry', 'c', ('dim7',))
         else:
             sym = ncf.variables['UseSymmetry']
-            
+
         sym[:] = np.array('%7s' % symval, 'c')
         ncf.sync()
         ncf.close()
@@ -1393,7 +1405,7 @@ than density cutoff %i' % (pw, dw))
         constant backgound charge (jellium) to forge overall charge
         neutrality.
         '''
-        
+
         nc = netCDF(self.get_nc(), 'a')
         if 'ExtraCharge' in nc.variables:
             v = nc.variables['ExtraCharge']
@@ -1406,7 +1418,7 @@ than density cutoff %i' % (pw, dw))
 
     def get_extracharge(self):
         'Return the extra charge set in teh calculator'
-        
+
         nc = netCDF(self.get_nc(), 'r')
         if 'ExtraCharge' in nc.variables:
             v = nc.variables['ExtraCharge']
@@ -1418,7 +1430,7 @@ than density cutoff %i' % (pw, dw))
 
     def get_extpot(self):
         'return the external potential set in teh calculator'
-        
+
         nc = netCDF(self.get_nc(), 'r')
         if 'ExternalPotential' in nc.variables:
             v = nc.variables['ExternalPotential']
@@ -1428,32 +1440,32 @@ than density cutoff %i' % (pw, dw))
 
         nc.close()
         return extpot
-    
+
     def set_extpot(self, potgrid):
         '''add external potential of value
 
         see this link before using this
         https://listserv.fysik.dtu.dk/pipermail/campos/2003-August/000657.html
-        
+
         :Parameters:
 
           potgrid : np.array with shape (nx,ny,nz)
             the shape must be the same as the fft soft grid
             the value of the potential to add
 
-        
+
         you have to know both of the fft grid dimensions ahead of time!
         if you know what you are doing, you can set the fft_grid you want
         before hand with:
         calc.set_fftgrid((n1,n2,n3))
         '''
-        
+
         nc = netCDF(self.get_nc(), 'a')
         if 'ExternalPotential' in nc.variables:
             v = nc.variables['ExternalPotential']
         else:
             # I assume here you have the dimensions of potgrid correct
-            # and that the soft and hard grids are the same. 
+            # and that the soft and hard grids are the same.
             # if softgrid is defined, Dacapo requires hardgrid to be
             # defined too.
             s1, s2, s3 = potgrid.shape
@@ -1464,7 +1476,7 @@ than density cutoff %i' % (pw, dw))
                 nc.createDimension('hardgrid_dim1', s1)
                 nc.createDimension('hardgrid_dim2', s2)
                 nc.createDimension('hardgrid_dim3', s3)
-                
+
             v = nc.createVariable('ExternalPotential',
                                   'd',
                                   ('softgrid_dim1',
@@ -1475,7 +1487,7 @@ than density cutoff %i' % (pw, dw))
         nc.close()
         self.set_status('new')
         self.ready = False
-        
+
     def set_fftgrid(self, soft=None, hard=None):
         '''
         sets the dimensions of the FFT grid to be used
@@ -1488,16 +1500,16 @@ than density cutoff %i' % (pw, dw))
           hard : (n1,n2,n3) integers
             make a n1 x n2 x n3 grid
 
-        
+
         >>> calc.set_fftgrid(soft=[42,44,46])
         sets the soft and hard grid dimensions to 42,44,46
 
         >>> calc.set_fftgrid(soft=[42,44,46],hard=[80,84,88])
         sets the soft grid dimensions to 42,44,46 and the hard
         grid dimensions to 80,84,88
-        
+
         These are the fast FFt grid numbers listed in fftdimensions.F
-        
+
         data list_of_fft /2,  4,  6,  8, 10, 12, 14, 16, 18, 20, &
         22,24, 28, 30,32, 36, 40, 42, 44, 48, &
         56,60, 64, 66, 70, 72, 80, 84, 88, 90, &
@@ -1505,12 +1517,12 @@ than density cutoff %i' % (pw, dw))
         160,168,176,180,192,198,200, &
         216,240,264,270,280,288,324,352,360,378,384,400,432, &
         450,480,540,576,640/
-        
+
         otherwise you will get some errors from mis-dimensioned variables.
-        
+
         this is usually automatically set by Dacapo.
         '''
-        
+
         if soft is not None:
             self.delete_ncattdimvar(self.nc,
                                     ncdims=['softgrid_dim1',
@@ -1518,8 +1530,8 @@ than density cutoff %i' % (pw, dw))
                                             'softgrid_dim3'
                                             ],
                                     ncvars=[])
-        
-            
+
+
             nc = netCDF(self.get_nc(), 'a')
             nc.createDimension('softgrid_dim1', soft[0])
             nc.createDimension('softgrid_dim2', soft[1])
@@ -1549,7 +1561,7 @@ than density cutoff %i' % (pw, dw))
 
     def get_ascii_debug(self):
         'Return the debug settings in Dacapo'
-        
+
         nc = netCDF(self.get_nc(), 'r')
         if 'PrintDebugInfo' in nc.variables:
             v = nc.variables['PrintDebugInfo']
@@ -1558,16 +1570,16 @@ than density cutoff %i' % (pw, dw))
             debug = None
         nc.close()
         return debug
-    
+
     def set_ascii_debug(self, level):
         '''set the debug level for Dacapo
 
         :Parameters:
-        
+
           level : string
             one of 'Off', 'MediumLevel', 'HighLevel'
         '''
-        
+
         nc = netCDF(self.get_nc(), 'a')
         if 'PrintDebugInfo' in nc.variables:
             v = nc.variables['PrintDebugInfo']
@@ -1584,7 +1596,7 @@ than density cutoff %i' % (pw, dw))
 
     def get_ncoutput(self):
         'returns the control variables for the ncfile'
-        
+
         nc = netCDF(self.get_nc(), 'r')
         if 'NetCDFOutputControl' in nc.variables:
             v = nc.variables['NetCDFOutputControl']
@@ -1601,7 +1613,7 @@ than density cutoff %i' % (pw, dw))
             ncoutput = None
         nc.close()
         return ncoutput
-        
+
     def set_ncoutput(self,
                      wf=None,
                      cd=None,
@@ -1657,10 +1669,10 @@ than density cutoff %i' % (pw, dw))
         and calc.get_ados(atoms=[],...) should return data
 
         '''
-        
+
         if len(kwargs) != 0:
             return self.get_ados_data(**kwargs)
-        
+
         nc = netCDF(self.get_nc(),'r')
         if 'PrintAtomProjectedDOS' in nc.variables:
             v = nc.variables['PrintAtomProjectedDOS']
@@ -1678,7 +1690,7 @@ than density cutoff %i' % (pw, dw))
 
         nc.close()
         return ados
-        
+
     def set_ados(self,
                  energywindow=(-15,5),
                  energywidth=0.2,
@@ -1701,7 +1713,7 @@ than density cutoff %i' % (pw, dw))
           cutoff : float
             the cutoff radius in angstroms for the integration.
         '''
-        
+
         nc = netCDF(self.get_nc(), 'a')
         if 'PrintAtomProjectedDOS' in nc.variables:
             v = nc.variables['PrintAtomProjectedDOS']
@@ -1723,7 +1735,7 @@ than density cutoff %i' % (pw, dw))
         nc = netCDF(self.get_nc(),'r')
 
         mdos = {}
-        
+
         if 'MultiCenterProjectedDOS' in nc.variables:
             v = nc.variables['MultiCenterProjectedDOS']
             mdos['energywindow'] = v.EnergyWindow
@@ -1731,7 +1743,7 @@ than density cutoff %i' % (pw, dw))
             mdos['numberenergypoints'] = v.NumberEnergyPoints
             mdos['cutoffradius'] = v.CutoffRadius
             mdos['mcenters'] = eval(v.mcenters)
-                
+
         nc.close()
 
         return mdos
@@ -1752,15 +1764,15 @@ than density cutoff %i' % (pw, dw))
         center on the atom# for label. I do not not know what the
         label refers to.
         '''
-        
+
         if self.calculation_required():
             self.calculate()
-        
+
         nc = netCDF(self.get_nc(),'r')
         icut = 1 #short
         if cutoffradius == "infinite":
             icut = 0
-            
+
         #var = nc.variables['MultiCenterProjectedDOS']
         integrated = nc.variables['MultiCenterProjectedDOS_IntegratedDOS'][:]
         tz = 'MultiCenterProjectedDOS_EnergyResolvedDOS'
@@ -1772,7 +1784,7 @@ than density cutoff %i' % (pw, dw))
         #number_of_spin = integrated.shape[2]
 
         multicenterprojections = []
-        for multicenter in range(number_of_multicenters): 
+        for multicenter in range(number_of_multicenters):
             #orbitals = var[multicenter]
             energyresolveddata = energyresolved[multicenter, icut, spin, :]
             #integrateddata     = integrated[multicenter, icut, spin]
@@ -1810,9 +1822,9 @@ than density cutoff %i' % (pw, dw))
                     rotmat[novl-1][ncen-1].append(row)
         else:
             rotmat = None
-                    
+
         return (multicenterprojections, rotmat)
-            
+
     def set_mdos(self,
                  mcenters=None,
                  energywindow=(-15,5),
@@ -1825,7 +1837,7 @@ than density cutoff %i' % (pw, dw))
            a list of tuples containing (atom#,l,m,weight)
            (0,0,0,1.0) specifies (atom 0, l=0, m=0, weight=1.0) an s orbital
            on atom 0
-           
+
            (1,1,1,1.0) specifies (atom 1, l=1, m=1, weight=1.0) a p orbital
            with m = +1 on atom 0
 
@@ -1841,32 +1853,32 @@ than density cutoff %i' % (pw, dw))
            along the direction to this next atom. At the moment the
            rotation matrices is only given in the text file, you can
            use grep'MUL: Rmatrix' out_o2.txt to get this information.
-           
+
         adapated from old MultiCenterProjectedDOS.py
         '''
         if mcenters is None:
             return
-        
+
         nc = netCDF(self.get_nc(), 'a')
-        
+
         _listofmcenters_ = mcenters
-        
+
         # get number of multi centers
         ncenters = len(_listofmcenters_)
-        # get max number of orbitals any center 
+        # get max number of orbitals any center
         max_orbitals = max(map(len, _listofmcenters_))
 
         mmatrix = np.zeros([ncenters, max_orbitals, 4], np.float)
         ncenter = 0
-        for multicenter in _listofmcenters_: 
+        for multicenter in _listofmcenters_:
             norbital = 0
-            for orbital in multicenter: 
-                mmatrix[ncenter, norbital] = orbital 
-                norbital = norbital + 1 
+            for orbital in multicenter:
+                mmatrix[ncenter, norbital] = orbital
+                norbital = norbital + 1
 
             # signal that this multicenter contains less than
             # max_orbital orbitals
-            if len(multicenter) < max_orbitals: 
+            if len(multicenter) < max_orbitals:
                 mmatrix[ncenter, len(multicenter):max_orbitals] = (-1.0, 0,
                                                                    0, 0)
 
@@ -1896,7 +1908,7 @@ than density cutoff %i' % (pw, dw))
         v[:] = mmatrix
 
         nc.sync()
-        nc.close()        
+        nc.close()
 
     def set_debug(self, debug):
         '''
@@ -1906,18 +1918,18 @@ than density cutoff %i' % (pw, dw))
         constants like logging.DEBUG, logging.WARN, etc...
 
         '''
-        
+
         self.debug = debug
         log.setLevel(debug)
 
     def get_debug(self):
         'Return the python logging level'
-        
+
         return self.debug
 
     def get_decoupling(self):
         'return the electrostatic decoupling parameters'
-        
+
         nc = netCDF(self.get_nc(), 'r')
         if 'Decoupling' in nc.variables:
             v = nc.variables['Decoupling']
@@ -1932,7 +1944,7 @@ than density cutoff %i' % (pw, dw))
             decoupling = None
         nc.close()
         return decoupling
-        
+
     def set_decoupling(self,
                        ngaussians=3,
                        ecutoff=100,
@@ -1957,7 +1969,7 @@ than density cutoff %i' % (pw, dw))
           gausswidth : float
             The width of the Gaussians defined by
             $widthofgaussian*1.5^(n-1)$  $n$=(1 to numberofgaussians)
-            
+
         '''
 
         nc = netCDF(self.get_nc(), 'a')
@@ -1980,7 +1992,7 @@ than density cutoff %i' % (pw, dw))
                             position=None):
         '''
         Externally imposed dipole potential. This option overwrites
-        DipoleCorrection if set. 
+        DipoleCorrection if set.
 
         :Parameters:
 
@@ -1993,14 +2005,14 @@ than density cutoff %i' % (pw, dw))
             vacuum position farthest from any other atoms on both
             sides of the slab. Do not set to 0.0.
         '''
-        
+
         var = 'ExternalDipolePotential'
         nc = netCDF(self.get_nc(), 'a')
         if var in nc.variables:
             v = nc.variables[var]
         else:
             v = nc.createVariable('ExternalDipolePotential', 'd', ())
-        
+
         v.assignValue(value)
         if position is not None:
             v.DipoleLayerPosition = position
@@ -2028,7 +2040,7 @@ than density cutoff %i' % (pw, dw))
             ed = None
         nc.close()
         return ed
-            
+
     def set_dipole(self,
                    status=True,
                    mixpar=0.2,
@@ -2072,14 +2084,14 @@ than density cutoff %i' % (pw, dw))
             other atoms on both sides of the slab. Do not set this to
             0.0
 
-        
+
         calling set_dipole() sets all default values.
-            
+
         '''
         if status == False:
             self.delete_ncattdimvar(self.nc, ncvars=['DipoleCorrection'])
             return
-        
+
         ncf = netCDF(self.get_nc(), 'a')
         if 'DipoleCorrection' not in ncf.variables:
             dip = ncf.createVariable('DipoleCorrection', 'c', ())
@@ -2091,15 +2103,15 @@ than density cutoff %i' % (pw, dw))
 
         if position is not None:
             dip.DipoleLayerPosition = position
-            
+
         ncf.sync()
         ncf.close()
         self.set_status('new')
         self.ready = False
-       
+
     def set_stay_alive(self, value):
         'set the stay alive setting'
-        
+
         self.delete_ncattdimvar(self.nc,
                                 ncvars=['Dynamics'])
 
@@ -2115,12 +2127,12 @@ than density cutoff %i' % (pw, dw))
 
     def get_stay_alive(self):
         'return the stay alive settings'
-        
+
         return self.stay_alive
 
     def get_fftgrid(self):
         'return soft and hard fft grids'
-        
+
         nc = netCDF(self.nc, 'r')
         soft = []
         hard = []
@@ -2140,7 +2152,7 @@ than density cutoff %i' % (pw, dw))
 
     def get_kpts_type(self):
         'return the kpt grid type'
-        
+
         nc = netCDF(self.nc, 'r')
 
         if 'BZKpoints' in nc.variables:
@@ -2155,7 +2167,7 @@ than density cutoff %i' % (pw, dw))
 
         nc.close()
         return kpts_type
-    
+
     def get_kpts(self):
         'return the BZ kpts'
         nc = netCDF(self.nc, 'r')
@@ -2169,7 +2181,7 @@ than density cutoff %i' % (pw, dw))
 
         nc.close()
         return kpts
-        
+
     def get_nbands(self):
         'return the number of bands used in the calculation'
         nc = netCDF(self.nc, 'r')
@@ -2182,10 +2194,10 @@ than density cutoff %i' % (pw, dw))
                 nbands = None
         else:
             nbands = None
-            
+
         nc.close()
         return nbands
-    
+
     def get_ft(self):
         'return the FermiTemperature used in the calculation'
         nc = netCDF(self.nc, 'r')
@@ -2200,10 +2212,10 @@ than density cutoff %i' % (pw, dw))
             ft = None
         nc.close()
         return ft
-    
+
     def get_dipole(self):
         'return dictionary of parameters if the DipoleCorrection was used'
-        
+
         nc = netCDF(self.get_nc(), 'r')
         pars = {}
         if 'DipoleCorrection' in nc.variables:
@@ -2217,22 +2229,22 @@ than density cutoff %i' % (pw, dw))
                 pars['adddipfield'] = v.AdditiveDipoleField
             if hasattr(v, 'DipoleLayerPosition'):
                 pars['position'] = v.DipoleLayerPosition
-            
+
         else:
             pars = False
         nc.close()
         return pars
-        
+
     def get_pw(self):
         'return the planewave cutoff used'
-        
+
         ncf = netCDF(self.nc, 'r')
         if 'PlaneWaveCutoff' in ncf.variables:
             pw = ncf.variables['PlaneWaveCutoff'].getValue()
         else:
             pw = None
         ncf.close()
-        
+
         if (isinstance(pw, int)
             or isinstance(pw, float)
             or isinstance(pw,np.int32)):
@@ -2244,7 +2256,7 @@ than density cutoff %i' % (pw, dw))
 
     def get_dw(self):
         'return the density wave cutoff'
-        
+
         ncf = netCDF(self.nc, 'r')
         if 'Density_WaveCutoff' in ncf.variables:
             dw = ncf.variables['Density_WaveCutoff'].getValue()
@@ -2263,12 +2275,12 @@ than density cutoff %i' % (pw, dw))
                 return None
             else:
                 return dw[0]
-    
+
     def get_xc(self):
         '''return the self-consistent exchange-correlation functional used
 
         returns a string'''
-        
+
         nc = netCDF(self.nc, 'r')
         v = 'ExcFunctional'
         if v in nc.variables:
@@ -2294,7 +2306,7 @@ than density cutoff %i' % (pw, dw))
                     niter = int(line.split('=')[1])
                     break
             f.close()
-                    
+
         return niter
 
     def get_potential_energy(self,
@@ -2303,13 +2315,13 @@ than density cutoff %i' % (pw, dw))
         '''
         return the potential energy.
         '''
-        
+
         if self.calculation_required(atoms):
             log.debug('calculation required for energy')
             self.calculate()
         else:
             log.debug('no calculation required for energy')
-                        
+
         nc = netCDF(self.get_nc(), 'r')
         try:
             if force_consistent:
@@ -2317,7 +2329,7 @@ than density cutoff %i' % (pw, dw))
             else:
                 e = nc.variables['TotalEnergy'][-1]
             nc.close()
-            return e 
+            return e
         except (TypeError, KeyError):
             raise RuntimeError('Error in calculating the total energy\n'
                                + 'check %s for error messages'
@@ -2325,7 +2337,7 @@ than density cutoff %i' % (pw, dw))
 
     def get_forces(self, atoms=None):
         """Calculate atomic forces"""
-        
+
         if atoms is None:
             atoms = self.atoms
         if self.calculation_required(atoms):
@@ -2337,7 +2349,7 @@ than density cutoff %i' % (pw, dw))
 
     def get_atoms(self):
         'return the atoms attached to a calculator()'
-        
+
         if hasattr(self, 'atoms'):
             if self.atoms is None:
                 return None
@@ -2351,17 +2363,17 @@ than density cutoff %i' % (pw, dw))
 
     def get_nc(self):
         'return the ncfile used for output'
-        
+
         return self.nc
 
     def get_txt(self):
         'return the txt file used for output'
-        
+
         if hasattr(self,'txt'):
             return self.txt
         else:
             return None
-        
+
     def get_psp(self, sym=None, z=None):
         '''get the pseudopotential filename from the psp database
 
@@ -2373,13 +2385,13 @@ than density cutoff %i' % (pw, dw))
           z : integer
             the atomic number of the species
 
-        
+
         you can only specify sym or z. Returns the pseudopotential
         filename, not the full path.
         '''
         if sym is None and z is None:
             return None
-        
+
         if (sym is None and z is not None):
             from ase.data import chemical_symbols
             sym = chemical_symbols[z]
@@ -2389,10 +2401,10 @@ than density cutoff %i' % (pw, dw))
             raise Exception, 'You can only specify Z or sym!'
         psp = self.psp[sym]
         return psp
-    
+
     def get_spin_polarized(self):
         'Return True if calculate is spin-polarized or False if not'
-        
+
         #self.calculate() #causes recursion error with get_magnetic_moments
         nc = netCDF(self.nc, 'r')
         if 'ElectronicBands' in nc.variables:
@@ -2433,7 +2445,7 @@ than density cutoff %i' % (pw, dw))
         'finished'
         None
         '''
-        
+
         nc = netCDF(self.nc, 'r')
         if hasattr(nc, 'status'):
             status = nc.status
@@ -2444,7 +2456,7 @@ than density cutoff %i' % (pw, dw))
 
     def get_calculate_stress(self):
         'return whether stress is calculated or not'
-        
+
         nc = netCDF(self.get_nc(), 'r')
         if 'TotalStress' in nc.variables:
             calcstress = True
@@ -2452,7 +2464,7 @@ than density cutoff %i' % (pw, dw))
             calcstress = False
         nc.close()
         return calcstress
-        
+
     def get_stress(self, atoms=None):
         '''get stress on the atoms.
 
@@ -2460,7 +2472,7 @@ than density cutoff %i' % (pw, dw))
         to calculate stress first.
 
         returns [sxx, syy, szz, syz, sxz, sxy]'''
-        
+
         if self.calculation_required(atoms):
             self.calculate()
 
@@ -2473,16 +2485,16 @@ than density cutoff %i' % (pw, dw))
             #stress will not be here if you did not set it up by
             #calling set_stress() or in the __init__
             stress = None
-        
+
         nc.close()
-        
+
         return stress
 
     def get_psp_valence(self, psp):
         '''
         get the psp valence charge on an atom from the pspfile.
         '''
-        
+
         from struct import unpack
         dacapopath = get_dacapopath()
 
@@ -2521,7 +2533,7 @@ than density cutoff %i' % (pw, dw))
         We read in the valence ion configuration from the psp file and
         add up the charges in each shell.
         '''
-        
+
         from struct import unpack
         dacapopath = get_dacapopath()
 
@@ -2561,7 +2573,7 @@ than density cutoff %i' % (pw, dw))
             raise Exception, "%s does not exist" % fullpsp
 
         return np.array(wwnlps).sum()
-       
+
     def get_valence(self, atoms=None):
         '''return the total number of valence electrons for the
         atoms. valence electrons are read directly from the
@@ -2573,9 +2585,9 @@ than density cutoff %i' % (pw, dw))
         may be defined by an absolute or relative path. This function
         deals with all these possibilities.
         '''
-        
+
         from struct import unpack
-        
+
         #do not use get_atoms() or recursion occurs
         if atoms is None:
             if hasattr(self, 'atoms'):
@@ -2587,7 +2599,7 @@ than density cutoff %i' % (pw, dw))
         totval = 0.0
         for sym in atoms.get_chemical_symbols():
             psp = self.get_psp(sym)
-            
+
             if os.path.exists(psp):
                 #the pspfile may be in the current directory
                 #or defined by an absolute path
@@ -2616,8 +2628,8 @@ than density cutoff %i' % (pw, dw))
             else:
                 print "%s does not exist" % fullpsp
                 totval = None
-            
-        return totval 
+
+        return totval
 
     def calculation_required(self, atoms=None, quantities=None):
         '''
@@ -2628,14 +2640,14 @@ than density cutoff %i' % (pw, dw))
 
         quantities is here because of the ase interface.
         '''
-        
+
         # first, compare if the atoms is the same as the stored atoms
         # if anything has changed, we need to run a calculation
         log.debug('running calculation_required')
 
         if self.nc is None:
             raise Exception, 'No output ncfile specified!'
-                
+
         if atoms is not None:
             if not self.atoms_are_equal(atoms):
                 log.debug('found that atoms != self.atoms')
@@ -2643,17 +2655,17 @@ than density cutoff %i' % (pw, dw))
                 new = atoms.get_cell()
                 old = self.atoms.get_cell()
                 #float comparison of equality
-                if not np.all(abs(old-new) < tol): 
+                if not np.all(abs(old-new) < tol):
                     #this often changes the number of planewaves
                     #which requires a complete restart
                     log.debug('restart required! because cell changed')
                     self.restart()
                 else:
                     log.debug('Unitcells apparently the same')
-                    
+
                 self.set_atoms(atoms) #we have to update the atoms in any case
                 return True
-            
+
         #if we make it past the atoms check, we look in the
         #nc file. if parameters have been changed the status
         #will tell us if a calculation is needed
@@ -2690,13 +2702,13 @@ than density cutoff %i' % (pw, dw))
                 log.debug('Legacy calculation')
                 return runflag #if no status run calculation
             nc.close()
-            
+
         #default, a calculation is required
         return True
 
     def get_scratch(self):
         '''finds an appropriate scratch directory for the calculation'''
-        
+
         import getpass
         username = getpass.getuser()
 
@@ -2749,7 +2761,7 @@ than density cutoff %i' % (pw, dw))
                 log.debug("I'm a child. Calling parent instead.")
                 self.parent.calculate()   # call the parent process to calculate all images
                 return
-    
+
         # hack: use the default psp path (see validate.get_dacapopath)
         # export DACAPOPATH to the environment
         env = os.environ
@@ -2766,12 +2778,12 @@ than density cutoff %i' % (pw, dw))
 
             log.debug('writing input out')
             self.write_input() #make sure input is uptodate
-   
+
             #check that the bands get set
-            if self.get_nbands() is None:  
+            if self.get_nbands() is None:
                 nelectrons = self.get_valence()
                 nbands = int(nelectrons * 0.65 + 4)
-                self.set_nbands(nbands) 
+                self.set_nbands(nbands)
 
         log.debug('running a calculation')
 
@@ -2788,7 +2800,7 @@ than density cutoff %i' % (pw, dw))
             # and stay_alive is false for the continuation run, the Fortran executable continues
             # taking steps of size 0 and ends in an infinite loop.
             # Solution: remove the Dynamics variable if present when not running with stay_alive
-            # 
+            #
             self.delete_ncattdimvar(self.nc,ncvars=['Dynamics'])
             cmd = "dacapo.run '%(innc)s' -out '%(txt)s' -scratch %(scratch)s"
             cmd = cmd % {'innc':nc,
@@ -2805,7 +2817,7 @@ than density cutoff %i' % (pw, dw))
             status = self._dacapo.wait()
             [stdout, stderr] = self._dacapo.communicate()
             output = stdout+stderr
-    
+
             if status is 0: #that means it ended fine!
                 self.ready = True
                 self.set_status('finished')
@@ -2843,7 +2855,7 @@ than density cutoff %i' % (pw, dw))
         '''
         Implementation of an extra level of parallelization, where one jacapo calculator spawns several
         dacapo.run processes. This is used for NEBs parallelized over images.
-        '''                
+        '''
 
         # hack: use the default psp path (see validate.get_dacapopath)
         # export DACAPOPATH to the environment
@@ -2856,7 +2868,7 @@ than density cutoff %i' % (pw, dw))
         # export the number of children to the environment
         env = os.environ
         env['JACAPO_NIMAGES'] = str(nchildren)
-        
+
         # start a dacapo.run instance for each child
         for i,child in enumerate(self.children):
 
@@ -2883,7 +2895,7 @@ than density cutoff %i' % (pw, dw))
 
             log.debug(cmd)
             self._dacapo[i] = sp.Popen(cmd,stdout=sp.PIPE,stderr=sp.PIPE,shell=True,env=env)
-        
+
         print 'now waiting for all children to finish'
         # now wait for all processes to finish
         for i,child in enumerate(self.children):
@@ -2899,7 +2911,7 @@ than density cutoff %i' % (pw, dw))
                 child.ready = False
 
         # could also check the end of the output .txt file to make sure everything was fine.
-        
+
         del self._dacapo
 
     def execute_external_dynamics(self,
@@ -2914,10 +2926,10 @@ than density cutoff %i' % (pw, dw))
         from the same python process, since the python PID is used as
         identifier for the script[PID].py file.
         '''
-        
+
         from socket import socket, AF_INET, SOCK_STREAM, timeout
         import tempfile
-        
+
         if hasattr(self, "_dacapo"):
             msg = "Starting External Dynamics while Dacapo is runnning: %s"
             msg = msg % str(self._dacapo.poll())
@@ -2939,7 +2951,7 @@ than density cutoff %i' % (pw, dw))
             stfile.close()
 
             # signal to dacapo that positions are ready
-            # let dacapo continue, it is up to the python mainloop 
+            # let dacapo continue, it is up to the python mainloop
             # to allow dacapo enough time to finish properly.
             self._client.send('ok too proceed')
 
@@ -2967,7 +2979,7 @@ than density cutoff %i' % (pw, dw))
             except timeout:
                 print '''Socket connection timed out.'''
                 print '''This usually means Dacapo crashed.'''
-                
+
             # close the socket s
             self.s.close()
             self._client.close()
@@ -2989,7 +3001,7 @@ than density cutoff %i' % (pw, dw))
             del self._dacapo
             return
 
-        if hasattr(self, '_dacapo') and self._dacapo.poll()==None: 
+        if hasattr(self, '_dacapo') and self._dacapo.poll()==None:
             # returns  None if  dacapo is running self._dacapo_is_running:
 
             # calculation_required already updated the positions in
@@ -3030,10 +3042,10 @@ than density cutoff %i' % (pw, dw))
 """#!/usr/bin/env python
 from socket import *
 from sys    import version
-from string import split  
+from string import split
 s = socket(AF_INET,SOCK_STREAM)
 # tell python that dacapo has finished
-if split(version)[0] > "2":     # new interface 
+if split(version)[0] > "2":     # new interface
      s.connect(("",%(effpid)s))
 else:                           # old interface
      s.connect("",%(effpid)s)
@@ -3054,7 +3066,7 @@ s.recv(14)
                 vdyn = ncfile.createVariable('Dynamics', 'c', ())
             else:
                 vdyn = ncfile.variables['Dynamics']
-            vdyn.Type = "ExternalIonMotion" 
+            vdyn.Type = "ExternalIonMotion"
             vdyn.ExternalIonMotion_script = './'+ scriptname
             ncfile.close()
 
@@ -3078,7 +3090,7 @@ s.recv(14)
 
             self.s.listen(1)
 
-        # wait for dacapo  
+        # wait for dacapo
         self._client, self._addr = self.s.accept()
 
     def write_nc(self, nc=None, atoms=None):
@@ -3096,7 +3108,7 @@ s.recv(14)
           atoms : ASE.Atoms
             atoms to write. if None use the attached atoms
             if no atoms are attached only the calculator is
-            written out. 
+            written out.
 
         the ncfile is always opened in 'a' mode.
 
@@ -3109,9 +3121,9 @@ s.recv(14)
 
         log.debug('writing atoms to ncfile with write_nc')
         #no filename was provided to function, use the current ncfile
-        if nc is None: 
+        if nc is None:
             nc = self.get_nc()
-        
+
         if nc != self.nc:
             #this means we are writing a new file, and we should copy
             #the old file to it first.  this makes sure the old
@@ -3121,7 +3133,7 @@ s.recv(14)
             log.debug('Copying old ncfile to new ncfile')
             log.debug("cp '%s' '%s'" % (old, new))
             os.system("cp '%s' '%s'" % (old, new))
-              
+
         if atoms is None:
             atoms = self.get_atoms()
 
@@ -3155,7 +3167,7 @@ s.recv(14)
                                                     'number_ionic_steps'])
                     ncf = netCDF(nc, 'a')
                     ncf.createDimension('number_of_dynamic_atoms',
-                                                  len(atoms)) 
+                                                  len(atoms))
                     ncf.createDimension('number_ionic_steps', None)
                     self._set_frame_number(0)
                     ncf.close() #nc file must be closed for restart to
@@ -3200,7 +3212,7 @@ s.recv(14)
             cell = atoms.get_cell()
             if uc.typecode() == 'f':
                 cell = np.array(cell, dtype=np.float32)
-                
+
             uc[self._frame, :] = cell
 
             if 'AtomTags' not in ncf.variables:
@@ -3223,7 +3235,7 @@ s.recv(14)
             if mom.typecode() == 'f':
                 moms = np.array(moms, dtype=np.float32)
             mom[:] = moms
-            
+
             #finally the atom pseudopotentials
             for sym in atoms.get_chemical_symbols():
                 vn = 'AtomProperty_%s' % sym
@@ -3237,7 +3249,7 @@ s.recv(14)
 
             ncf.sync()
             ncf.close()
-               
+
             #store constraints if they exist
             constraints = atoms._get_constraints()
             if constraints != []:
@@ -3270,7 +3282,7 @@ s.recv(14)
                     log.debug('deleting old constraints')
                     self.delete_ncattdimvar(self.nc,
                                             ncvars=['constraints'])
-        
+
     def read_atoms(filename):
         '''read atoms and calculator from an existing netcdf file.
 
@@ -3282,17 +3294,17 @@ s.recv(14)
         static method
 
         example::
-        
+
           >>> atoms = Jacapo.read_atoms(ncfile)
           >>> calc = atoms.get_calculator()
 
         this method is here for legacy purposes. I used to use it alot.
         '''
-        
+
         calc = Jacapo(filename)
         atoms = calc.get_atoms()
         return atoms
-    
+
     read_atoms = staticmethod(read_atoms)
 
     def read_only_atoms(self, ncfile):
@@ -3307,23 +3319,23 @@ s.recv(14)
         return ASE.Atoms with no calculator attached or None if no
         atoms found
         '''
-        
+
         from ase import Atoms
-        
+
         nc = netCDF(ncfile, 'r')
         #some ncfiles do not have atoms in them
         if 'UnitCell' not in nc.variables:
             log.debug('no unit cell found in ncfile')
             nc.close()
             return None
-        
+
         cell = nc.variables['UnitCell'][:][-1]
         sym = nc.variables['DynamicAtomSpecies'][:]
         symbols = [x.tostring().strip() for x in sym]
         spos = nc.variables['DynamicAtomPositions'][:][-1]
 
         pos = np.dot(spos, cell)
-        
+
         atoms = Atoms(symbols=symbols,
                       positions=pos,
                       cell=cell)
@@ -3349,11 +3361,11 @@ s.recv(14)
         if c is not None:
             constraints = pickle.loads(c.data)
             atoms.set_constraint(constraints)
-                    
+
         nc.close()
-        
+
         return atoms
-        
+
     def delete_ncattdimvar(self, ncf, ncattrs=None, ncdims=None, ncvars=None):
         '''
         helper function to delete attributes,
@@ -3374,15 +3386,15 @@ s.recv(14)
             ncdims = []
         if ncvars is None:
             ncvars = []
-        
+
         log.debug('beginning: going to delete dims: %s' % str(ncdims))
         log.debug('beginning: going to delete vars: %s' % str(ncvars))
-            
+
         oldnc = netCDF(ncf, 'r')
 
         #h,tempnc = tempfile.mkstemp(dir='.',suffix='.nc')
         tempnc = ncf+'.temp'
-        
+
         newnc = netCDF(tempnc, 'w')
 
         for attr in dir(oldnc):
@@ -3392,14 +3404,14 @@ s.recv(14)
             if attr in ncattrs:
                 continue #do not copy this attribute
             setattr(newnc, attr, getattr(oldnc, attr))
-           
+
         #copy dimensions
         for dim in oldnc.dimensions:
             if dim in ncdims:
                 log.debug('deleting %s of %s' % (dim, str(ncdims)))
                 continue #do not copy this dimension
             size = oldnc.dimensions[dim]
-            
+
             newnc.createDimension(dim, size)
 
         # we need to delete all variables that depended on a deleted dimension
@@ -3423,7 +3435,7 @@ s.recv(14)
             #char typecodes do not come out right apparently
             if tcode == " ":
                 tcode = 'c'
-            
+
             ncvar2 = newnc.createVariable(v, tcode, ncvar.dimensions)
             try:
                 ncvar2[:] = ncvar[:]
@@ -3444,19 +3456,19 @@ s.recv(14)
 
         s = 'looking for .nfs files before copying: %s'
         log.debug(s % glob.glob('.nfs*'))
-        
+
         #ack!!! this makes .nfsxxx files!!!
         #os.close(h) #this avoids the stupid .nfsxxx file
         #import shutil
         #shutil.move(tempnc,ncf)
 
-        #this seems to avoid making the .nfs files 
+        #this seems to avoid making the .nfs files
         os.system("cp '%s' '%s'" % (tempnc, ncf))
         os.system("rm '%s'" % tempnc)
 
         s = 'looking for .nfs files after copying: %s'
         log.debug(s %  glob.glob('.nfs*'))
-        
+
     def restart(self):
         '''
         Restart the calculator by deleting nc dimensions that will
@@ -3468,9 +3480,9 @@ s.recv(14)
 
         also delete all the output from previous calculation.
         '''
-        
+
         log.debug('restarting!')
-        
+
         ncdims = ['number_plane_waves',
                   'number_IBZ_kpoints',
                   'softgrid_dim1',
@@ -3514,7 +3526,7 @@ s.recv(14)
                   'StructureFactor',
                   'EigenValues',
                   'OccupationNumbers']
-                  
+
         self.delete_ncattdimvar(self.nc,
                                 ncattrs=[],
                                 ncdims=ncdims,
@@ -3525,7 +3537,7 @@ s.recv(14)
 
     def get_convergence(self):
         'return convergence settings for Dacapo'
-        
+
         nc = netCDF(self.get_nc(), 'r')
         vname = 'ConvergenceControl'
         if vname in nc.variables:
@@ -3575,7 +3587,7 @@ s.recv(14)
 
         Autopilot not supported here.
         '''
-        
+
         nc = netCDF(self.get_nc(), 'a')
         vname = 'ConvergenceControl'
         if vname in nc.variables:
@@ -3599,7 +3611,7 @@ s.recv(14)
 
     def get_charge_mixing(self):
         'return charge mixing parameters'
-        
+
         nc = netCDF(self.get_nc(), 'r')
         vname = 'ChargeMixing'
         if vname in nc.variables:
@@ -3645,30 +3657,30 @@ s.recv(14)
             Mixing coefficient for Pulay charge mixing, corresponding
             to A in G$^1$ in Sec. 4.2 in Kresse/Furthmuller:
             Comp. Mat. Sci. 6 (1996) p34ff
-                        
+
           precondition : string
             'Yes' or 'No'
-            
+
             * "Yes" : Kerker preconditiong is used,
                i.e. q$_0$ is different from zero, see eq. 82
                in Kresse/Furthmuller: Comp. Mat. Sci. 6 (1996).
                The value of q$_0$ is fix to give a damping of 20
                of the lowest q vector.
-            
+
             * "No" : q$_0$ is zero and mixing is linear (default).
 
           updatecharge : string
             'Yes' or 'No'
-            
+
             * "Yes" : Perform charge mixing according to
                ChargeMixing:Method setting
-              
+
             * "No" : Freeze charge to initial value.
                This setting is useful when evaluating the Harris-Foulkes
                density functional
-              
+
         '''
-        
+
         if method == 'Pulay':
             nc = netCDF(self.get_nc(), 'a')
             vname = 'ChargeMixing'
@@ -3708,7 +3720,7 @@ s.recv(14)
            method (RMM), using DIIS (direct inversion in the iterate
            subspace) The implementaion follows closely the algorithm
            outlined in Kresse and Furthmuller, Comp. Mat. Sci, III.G/III.H
-        
+
         :Parameters:
 
           method : string
@@ -3721,9 +3733,9 @@ s.recv(14)
             ElectronicMinimization:Method = "resmin" and "eigsolve".
             default value = 2
         '''
-        
+
         nc = netCDF(self.get_nc(), 'a')
-        
+
         vname = 'ElectronicMinimization'
         if vname in nc.variables:
             v = nc.variables[vname]
@@ -3739,7 +3751,7 @@ s.recv(14)
 
         log.debug('synchronizing ncfile')
         nc.sync()
-        
+
         nc.close()
 
     def get_electronic_minimization(self):
@@ -3747,7 +3759,7 @@ s.recv(14)
         minimization algorithms'''
 
         log.debug('getting electronic minimization parameters')
-        
+
         nc = netCDF(self.get_nc(), 'r')
         vname = 'ElectronicMinimization'
         if vname in nc.variables:
@@ -3766,7 +3778,7 @@ s.recv(14)
 
     def get_occupationstatistics(self):
         'return occupation statistics method'
-        
+
         nc = netCDF(self.get_nc(), 'r')
         if 'ElectronicBands' in nc.variables:
             v = nc.variables['ElectronicBands']
@@ -3791,18 +3803,18 @@ s.recv(14)
             is implemented to 1th order (which is recommemded by most authors).
             'FermiDirac' is the default
         '''
-            
+
         nc = netCDF(self.get_nc(), 'a')
         if 'ElectronicBands' in nc.variables:
             v = nc.variables['ElectronicBands']
             v.OccupationStatistics = method
-        
+
         nc.sync()
         nc.close()
 
     def get_fermi_level(self):
         'return Fermi level'
-        
+
         if self.calculation_required():
             self.calculate()
         nc = netCDF(self.get_nc(), 'r')
@@ -3821,7 +3833,7 @@ s.recv(14)
           spin : integer
             0 or 1
         '''
-        
+
         if self.calculation_required():
             self.calculate()
         nc = netCDF(self.get_nc(), 'r')
@@ -3840,18 +3852,18 @@ s.recv(14)
             some set of 'PZ','VWN','PW91','PBE','revPBE', 'RPBE'
 
         This function returns the self-consistent energy and/or
-        energies associated with various functionals. 
+        energies associated with various functionals.
         The functionals are currently PZ,VWN,PW91,PBE,revPBE, RPBE.
         The different energies may be useful for calculating improved
         adsorption energies as in B. Hammer, L.B. Hansen and
-        J.K. Norskov, Phys. Rev. B 59,7413. 
-        Examples: 
+        J.K. Norskov, Phys. Rev. B 59,7413.
+        Examples:
         get_xcenergies() #returns all the energies
         get_xcenergies('PBE') # returns the PBE total energy
         get_xcenergies('PW91','PBE','revPBE') # returns a
         # list of energies in the order asked for
         """
-        
+
         if self.calculation_required():
             self.calculate()
 
@@ -3861,7 +3873,7 @@ s.recv(14)
         xcfuncs = nc.variables['EvalFunctionalOfDensity_XC'][:]
 
         nc.close()
-        
+
         xcfuncs = [xc.tostring().strip() for xc in xcfuncs]
         edict = dict(zip(xcfuncs, funcenergies))
 
@@ -3881,7 +3893,7 @@ s.recv(14)
 
         :Parameters:
 
-          atoms  
+          atoms
               list of atom indices (integers)
 
           orbitals
@@ -3901,7 +3913,7 @@ s.recv(14)
         returns (egrid, ados)
         egrid has the fermi level at 0 eV
         '''
-              
+
         if self.calculation_required():
             self.calculate()
         nc = netCDF(self.get_nc(), 'r')
@@ -3936,7 +3948,7 @@ s.recv(14)
         icut = cutdict[cutoff]
 
         ydata = np.zeros(len(egrid), np.float)
-        
+
         for atomind in atoms:
             for oi in orbinds:
                 ind = omap[atomind, icut, oi]
@@ -3953,14 +3965,14 @@ s.recv(14)
 
           spin : integer
             which spin the eigenvalues are for'''
-        
+
         if self.calculation_required():
             self.calculate()
         nc = netCDF(self.get_nc(), 'r')
         ev = nc.variables['EigenValues'][:][-1][:, spin]
         nc.close()
         return ev
-    
+
     def get_eigenvalues(self, kpt=0, spin=0):
         '''return the eigenvalues for a kpt and spin
 
@@ -3971,17 +3983,17 @@ s.recv(14)
 
           spin : integer
             which spin the eigenvalues are for'''
-        
+
         if self.calculation_required():
             self.calculate()
         nc = netCDF(self.get_nc(), 'r')
         ev = nc.variables['EigenValues'][:][-1][kpt, spin]
         nc.close()
         return ev
-    
+
     def get_k_point_weights(self):
         'return the weights on the IBZ kpoints'
-        
+
         if self.calculation_required():
             self.calculate()
         nc = netCDF(self.get_nc(), 'r')
@@ -3994,7 +4006,7 @@ s.recv(14)
 
         if not self.get_spin_polarized():
             return None
-        
+
         if self.calculation_required():
             self.calculate()
 
@@ -4011,7 +4023,7 @@ s.recv(14)
 
     def get_number_of_spins(self):
         'if spin-polarized returns 2, if not returns 1'
-        
+
         if self.calculation_required():
             self.calculate()
         nc = netCDF(self.get_nc(), 'r')
@@ -4025,7 +4037,7 @@ s.recv(14)
 
     def get_ibz_kpoints(self):
         'return list of kpoints in the irreducible brillouin zone'
-        
+
         if self.calculation_required():
             self.calculate()
         nc = netCDF(self.get_nc(), 'r')
@@ -4037,7 +4049,7 @@ s.recv(14)
 
     def get_bz_k_points(self):
         'return list of kpoints in the Brillouin zone'
-        
+
         nc = netCDF(self.get_nc(), 'r')
         if 'BZKpoints' in nc.variables:
             bz = nc.variables['BZKpoints'][:]
@@ -4045,7 +4057,7 @@ s.recv(14)
             bz = None
         nc.close()
         return bz
-    
+
     def get_effective_potential(self, spin=1):
         '''
         returns the realspace local effective potential for the spin.
@@ -4055,12 +4067,12 @@ s.recv(14)
 
           spin : integer
              specify which spin you want, 0 or 1
-          
+
         '''
-        
+
         if self.calculation_required():
             self.calculate()
-            
+
         nc = netCDF(self.get_nc(), 'r')
         efp = np.transpose(nc.variables['EffectivePotential'][:][spin])
         nc.close()
@@ -4068,12 +4080,12 @@ s.recv(14)
         hardgrid = fftgrids['hard']
         x, y, z = self.get_ucgrid(hardgrid)
         return (x, y, z, efp)
-        
+
     def get_electrostatic_potential(self, spin=0):
         '''get electrostatic potential
 
         Netcdf documentation::
-        
+
           double ElectrostaticPotential(number_of_spin,
                                         hardgrid_dim3,
                                         hardgrid_dim2,
@@ -4081,30 +4093,30 @@ s.recv(14)
                  ElectrostaticPotential:
                      Description = "realspace local effective potential" ;
                      unit = "eV" ;
-                     
+
         '''
-        
+
         if self.calculation_required():
             self.calculate()
-            
+
         nc = netCDF(self.get_nc(), 'r')
         esp = np.transpose(nc.variables['ElectrostaticPotential'][:][spin])
         nc.close()
         fftgrids = self.get_fftgrid()
 
         x, y, z = self.get_ucgrid(fftgrids['hard'])
-        
+
         return (x, y, z, esp)
-    
+
     def get_charge_density(self, spin=0):
         '''
         return x,y,z,charge density data
-        
+
         x,y,z are grids sampling the unit cell
         cd is the charge density data
 
         netcdf documentation::
-        
+
           ChargeDensity(number_of_spin,
                         hardgrid_dim3,
                         hardgrid_dim2,
@@ -4113,12 +4125,12 @@ s.recv(14)
                   ChargeDensity:unit = "-e/A^3" ;
 
         '''
-        
+
         if self.calculation_required():
             self.calculate()
-            
+
         nc = netCDF(self.get_nc(), 'r')
-     
+
         cd = np.transpose(nc.variables['ChargeDensity'][:][spin])
 
         #I am not completely sure why this has to be done
@@ -4140,9 +4152,9 @@ s.recv(14)
         n1 points along unitcell vector 1
         n2 points along unitcell vector 2
         '''
-        
+
         n0, n1, n2 = dims
-        
+
         s0 = 1.0/n0
         s1 = 1.0/n1
         s2 = 1.0/n2
@@ -4150,11 +4162,11 @@ s.recv(14)
         X, Y, Z = np.mgrid[0.0:1.0:s0,
                           0.0:1.0:s1,
                           0.0:1.0:s2]
-        
+
         C = np.column_stack([X.ravel(),
                              Y.ravel(),
                              Z.ravel()])
-        
+
         atoms = self.get_atoms()
         uc = atoms.get_cell()
         real = np.dot(C, uc)
@@ -4167,11 +4179,11 @@ s.recv(14)
 
     def get_number_of_grid_points(self):
         'return soft fft grid'
-        
+
         # needed by ase.dft.wannier
         fftgrids = self.get_fftgrid()
         return np.array(fftgrids['soft'])
-    
+
     def get_wannier_localization_matrix(self, nbands, dirG, kpoint,
                                         nextkpoint, G_I, spin):
         'return wannier localization  matrix'
@@ -4243,7 +4255,7 @@ s.recv(14)
 
         if atoms is None:
             atoms = self.get_atoms()
-        
+
         #center of electron charge density
         x, y, z, cd = self.get_charge_density()
 
@@ -4252,13 +4264,13 @@ s.recv(14)
         voxel_volume = atoms.get_volume()/nelements
         total_electron_charge = -cd.sum()*voxel_volume
 
-        
+
         electron_density_center = np.array([(cd*x).sum(),
                                             (cd*y).sum(),
                                             (cd*z).sum()])
         electron_density_center *= voxel_volume
         electron_density_center /= total_electron_charge
-       
+
         electron_dipole_moment = electron_density_center*total_electron_charge
         electron_dipole_moment *= -1.0 #we need the - here so the two
                                         #negatives don't cancel
@@ -4278,11 +4290,11 @@ s.recv(14)
         dipole_vector = (ion_dipole_moment + electron_dipole_moment)
         return dipole_vector
 
-    
+
     def get_reciprocal_bloch_function(self, band=0, kpt=0, spin=0):
         '''return the reciprocal bloch function. Need for Jacapo
         Wannier class.'''
-        
+
         if self.calculation_required():
             self.calculate()
 
@@ -4301,7 +4313,7 @@ s.recv(14)
 
     def get_reciprocal_fft_index(self, kpt=0):
         '''return the Wave Function FFT Index'''
-        
+
         nc = netCDF(self.get_nc(), 'r')
         recind = nc.variables['WaveFunctionFFTindex'][kpt, :, :]
         nc.close()
@@ -4309,7 +4321,7 @@ s.recv(14)
 
     def get_ensemble_coefficients(self):
         'returns exchange correlation ensemble coefficients'
-        
+
         # adapted from ASE/dacapo.py
         # def GetEnsembleCoefficients(self):
         #     self.Calculate()
@@ -4321,9 +4333,9 @@ s.recv(14)
         #     exc = exc_c + exc_e
         #     if self.GetXCFunctional() == 'RPBE':
         #             Exc = exc[-1][-1]
-        # 
+        #
         #     E0 = xc[1]       # Fx = 0
-        # 
+        #
         #     diff0 = xc[2] # - Exc
         #     diff1 = xc[3] # - Exc
         #     diff2 = xc[4] # - Exc
@@ -4344,7 +4356,7 @@ s.recv(14)
         if 'EvaluateCorrelationEnergy' in nc.variables:
             v = nc.variables['EvaluateCorrelationEnergy']
             exc_c = v[:]
-            
+
         if 'EvaluateExchangeEnergy' in nc.variables:
             v = nc.variables['EvaluateExchangeEnergy']
             exc_e = v[:]
@@ -4353,7 +4365,7 @@ s.recv(14)
 
         if self.get_xc == 'RPBE':
             EXC = exc[-1][-1]
-            
+
         E0 = xc[1]    # Fx = 0
 
         diff0 = xc[2] # - Exc
@@ -4366,7 +4378,7 @@ s.recv(14)
     def get_pseudo_wave_function(self, band=0, kpt=0, spin=0, pad=True):
 
         '''return the pseudo wavefunction'''
-        
+
         # pad=True does nothing here.
         if self.calculation_required():
             self.calculate()
@@ -4378,13 +4390,13 @@ s.recv(14)
                                                     kpt=kpt,
                                                     spin=spin)
         # wflist == Reciprocal Bloch Function
- 
+
         recind = self. get_reciprocal_fft_index(kpt)
         grids = self.get_fftgrid()
         softgrid = grids['soft']
-        
+
         # GetReciprocalBlochFunctionGrid
-        wfrec = np.zeros((softgrid), np.complex) 
+        wfrec = np.zeros((softgrid), np.complex)
 
         for i in xrange(len(wflist)):
             wfrec[recind[0, i]-1,
@@ -4392,7 +4404,7 @@ s.recv(14)
                   recind[2, i]-1] = wflist[i]
 
         # calculate Bloch Function
-        wf = wfrec.copy() 
+        wf = wfrec.copy()
         dim = wf.shape
         for i in range(len(dim)):
             wf = np.fft.fft(wf, dim[i], axis=i)
@@ -4429,7 +4441,7 @@ s.recv(14)
     def get_wave_function(self, band=0, kpt=0, spin=0):
         '''return the wave function. This is the pseudo wave function
         divided by volume.'''
-        
+
         pwf = self.get_pseudo_wave_function(band=band,
                                             kpt=kpt,
                                             spin=spin,
@@ -4437,14 +4449,14 @@ s.recv(14)
         vol = self.get_atoms().get_volume()
         fftgrids = self.get_fftgrid()
         softgrid = fftgrids['soft']
-    
+
         x, y, z = self.get_ucgrid((softgrid))
 
         return x, y, z, pwf/np.sqrt(vol)
 
     def strip(self):
         '''remove all large memory nc variables not needed for
-        anything I use very often. 
+        anything I use very often.
         '''
         self.delete_ncattdimvar(self.nc,
                                 ncdims=['max_projectors_per_atom'],
