@@ -66,6 +66,9 @@ keyword         type       default value   description
 ``kpts``        *seq*      `\Gamma`-point  **k**-point sampling
 ``gamma``       ``bool``   None            `\Gamma`-point centered 
                                            **k**-point sampling
+``reciprocal``  ``bool``   None		   Use reciprocal units if
+                                           **k**-points are specified 
+                                           explicitly
 ``prec``        ``str``                    Accuracy of calculation
 ``encut``       ``float``                  Kinetic energy cutoff
 ``ediff``       ``float``                  Convergence break condition
