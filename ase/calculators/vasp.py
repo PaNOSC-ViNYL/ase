@@ -16,8 +16,6 @@ Alternatively, user can set the environmental flag $VASP_COMMAND pointing
 to the command use the launch vasp e.g. 'vasp' or 'mpirun -n 16 vasp'
 
 http://cms.mpi.univie.ac.at/vasp/
-
--Jonas Bjork j.bjork@liverpool.ac.uk
 """
 
 import os
@@ -255,11 +253,13 @@ class Vasp(Calculator):
         else:
             self.input_params = {'xc': 'PW91'} # exchange correlation functional
         self.input_params.update({
-            'setups': None,    # Special setups (e.g pv, sv, ...)
-            'txt':    '-',     # Where to send information
-            'kpts':   (1,1,1), # k-points
-            'gamma':  False,   # Option to use gamma-sampling instead
-                               # of Monkhorst-Pack
+            'setups':     None,    # Special setups (e.g pv, sv, ...)
+            'txt':        '-',     # Where to send information
+            'kpts':       (1,1,1), # k-points
+            'gamma':      False,   # Option to use gamma-sampling instead
+                                   # of Monkhorst-Pack
+            'reciprocal': False,   # Option to write explicit k-points in units
+                                   # of reciprocal lattice vectors 
             })
 
         self.restart = restart
@@ -870,7 +870,10 @@ class Vasp(Calculator):
             kpoints.write('\n0 0 0\n')
         elif len(shape)==2:
             kpoints.write('%i \n' % (len(p['kpts'])))
-            kpoints.write('Cartesian\n')
+            if p['reciprocal']:
+                kpoints.write('Reciprocal\n')
+            else:
+                kpoints.write('Cartesian\n')
             for n in range(len(p['kpts'])):
                 [kpoints.write('%f ' % kpt) for kpt in p['kpts'][n]]
                 if shape[1]==4:
