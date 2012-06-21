@@ -81,3 +81,9 @@ One can also use the stress tensor to optimize the unit cell::
     sf = StrainFilter(ni)
     opt = BFGS(sf)
     opt.run(0.005)
+
+If you want the optimization path in a trajectory, add these lines
+before calling the ``run()`` method::
+
+    traj = PickleTrajectory('path.traj', 'w', ni)
+    opt.attach(traj)
