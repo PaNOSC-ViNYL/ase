@@ -9,3 +9,5 @@ from ase.optimize.bfgslinesearch import BFGSLineSearch
 from ase.optimize.bfgs import BFGS
 
 QuasiNewton = BFGSLineSearch
+
+from ase.optimize.minimahopping import MinimaHopping
