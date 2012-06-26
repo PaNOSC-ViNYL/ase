@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2012-04-20 17:35+0200\n"
-"PO-Revision-Date: 2012-04-12 17:05+0200\n"
+"POT-Creation-Date: 2012-06-26 16:06+0200\n"
+"PO-Revision-Date: 2012-06-26 16:10+0200\n"
 "Last-Translator: Ask Hjorth Larsen <askhl@fysik.dtu.dk>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
 "MIME-Version: 1.0\n"
@@ -323,7 +323,7 @@ msgstr "Kontrollér at beregneren er rimelig."
 msgid "No atoms present"
 msgstr "Ingen atomer til stede"
 
-#: ../calculator.py:388 ../calculator.py:422 ../calculator.py:456
+#: ../calculator.py:388 ../calculator.py:422 ../calculator.py:452
 msgid "ASAP is not installed. (Failed to import asap3)"
 msgstr "ASAP er ikke installeret. (Kunne ikke importere asap3)"
 
@@ -339,184 +339,184 @@ msgstr "Kunne ikke oprette en nyttig Lennard-Jones-beregner."
 msgid "Could not attach EMT calculator to the atoms."
 msgstr "Kunne ikke knytte EMT-beregner til atomerne."
 
-#: ../calculator.py:472 ../calculator.py:484
+#: ../calculator.py:470 ../calculator.py:482
 msgid "GPAW is not installed. (Failed to import gpaw)"
 msgstr "GPAW er ikke installeret. (Kunne ikke importere gpaw)"
 
-#: ../calculator.py:475
+#: ../calculator.py:473
 msgid "You must set up the GPAW parameters"
 msgstr "Du skal angive GPAW-parametrene"
 
-#: ../calculator.py:516
+#: ../calculator.py:514
 msgid "You must set up the FHI-aims parameters"
 msgstr "Du skal angive FHI-aims-parametrene"
 
-#: ../calculator.py:530
+#: ../calculator.py:528
 msgid "You must set up the VASP parameters"
 msgstr "Du skal angive VASP-parametrene"
 
-#: ../calculator.py:554
+#: ../calculator.py:552
 #, python-format
 msgid "Element %(sym)s not allowed by the '%(name)s' calculator"
 msgstr "Grundstoffet %(sym)s tillades ikke af \"%(name)s\"-beregneren"
 
-#: ../calculator.py:561
+#: ../calculator.py:559
 msgid "Info"
 msgstr "Info"
 
-#: ../calculator.py:577
+#: ../calculator.py:575
 msgid "Lennard-Jones parameters"
 msgstr "Lennard-Jones-parametre"
 
-#: ../calculator.py:589
+#: ../calculator.py:587
 msgid "Specify the Lennard-Jones parameters here"
 msgstr "Angiv Lennard-Jones-parametrene her"
 
-#: ../calculator.py:592
+#: ../calculator.py:590
 msgid "Epsilon (eV):"
 msgstr "Epsilon (eV):"
 
-#: ../calculator.py:596
+#: ../calculator.py:594
 msgid "Sigma (Å):"
 msgstr "Sigma (Å):"
 
 #. TRANSLATORS: Shift roughly means adjust (about a potential)
-#: ../calculator.py:600
+#: ../calculator.py:598
 msgid "Shift to make smooth at cutoff"
 msgstr "Skift for at blødgøre ved afskæring"
 
-#: ../calculator.py:681
+#: ../calculator.py:679
 msgid "GPAW parameters"
 msgstr "GPAW-parametre"
 
 #. label = gtk.Label("Specify the GPAW parameters here")
 #. pack(vbox, [label])
 #. Print some info
-#: ../calculator.py:696 ../calculator.py:985 ../calculator.py:1473
+#: ../calculator.py:694 ../calculator.py:983 ../calculator.py:1471
 #, python-format
 msgid "%i atoms.\n"
 msgstr "%i atomer.\n"
 
-#: ../calculator.py:698
+#: ../calculator.py:696
 #, python-format
 msgid "Orthogonal unit cell: %.2f x %.2f x %.2f Å."
 msgstr "Ortogonal enhedscelle: %.2f x %.2f x %.2f Å."
 
-#: ../calculator.py:700
+#: ../calculator.py:698
 msgid "Non-orthogonal unit cell:\n"
 msgstr "Ikke-ortogonal enhedscelle:\n"
 
-#: ../calculator.py:710 ../calculator.py:1001 ../calculator.py:1488
+#: ../calculator.py:708 ../calculator.py:999 ../calculator.py:1486
 msgid "Exchange-correlation functional: "
 msgstr "Udvekslings- og korrelationsfunktional: "
 
 #. Grid spacing
-#: ../calculator.py:714
+#: ../calculator.py:712
 msgid "Grid spacing"
 msgstr "Gitterafstand"
 
-#: ../calculator.py:718 ../graphene.py:67 ../graphene.py:78 ../graphene.py:101
+#: ../calculator.py:716 ../graphene.py:67 ../graphene.py:78 ../graphene.py:101
 #: ../nanotube.py:49 ../surfaceslab.py:97
 msgid "Å"
 msgstr "Å"
 
-#: ../calculator.py:719
+#: ../calculator.py:717
 msgid "Grid points"
 msgstr "Gitterpunkter"
 
-#: ../calculator.py:728
+#: ../calculator.py:726
 #, python-format
 msgid "h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å"
 msgstr "h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å"
 
-#: ../calculator.py:754 ../calculator.py:1016 ../calculator.py:1524
+#: ../calculator.py:752 ../calculator.py:1014 ../calculator.py:1522
 msgid "k-points  k = ("
 msgstr "k-punkter  k = ("
 
-#: ../calculator.py:758 ../calculator.py:1020
+#: ../calculator.py:756 ../calculator.py:1018
 #, python-format
 msgid "k-points x size:  (%.1f, %.1f, %.1f) Å"
 msgstr "k-punkter x størrelse:  (%.1f, %.1f, %.1f) Å"
 
 #. Spin polarized
-#: ../calculator.py:763 ../calculator.py:1486
+#: ../calculator.py:761 ../calculator.py:1484
 msgid "Spin polarized"
 msgstr "Spinpolariseret"
 
-#: ../calculator.py:769
+#: ../calculator.py:767
 msgid "FD - Finite Difference (grid) mode"
 msgstr "FD - Finite Difference-tilstand (gitter)"
 
-#: ../calculator.py:770
+#: ../calculator.py:768
 msgid "LCAO - Linear Combination of Atomic Orbitals"
 msgstr "LCAO - linearkombination af atomare orbitaler"
 
-#: ../calculator.py:773
+#: ../calculator.py:771
 msgid "Mode: "
 msgstr "Tilstand: "
 
-#: ../calculator.py:775
+#: ../calculator.py:773
 msgid "sz - Single Zeta"
 msgstr "sz - Enkelt-zeta"
 
-#: ../calculator.py:776
+#: ../calculator.py:774
 msgid "szp - Single Zeta polarized"
 msgstr "szp - Enkelt-zeta polariseret"
 
-#: ../calculator.py:777
+#: ../calculator.py:775
 msgid "dzp - Double Zeta polarized"
 msgstr "dzp - dobbelt-zeta polariseret"
 
 #. dzp
-#: ../calculator.py:779
+#: ../calculator.py:777
 msgid "Basis functions: "
 msgstr "Basisfunktioner: "
 
 #. Mixer
-#: ../calculator.py:785
+#: ../calculator.py:783
 msgid "Non-standard mixer parameters"
 msgstr "Særlige mikserparametre"
 
-#: ../calculator.py:981
+#: ../calculator.py:979
 msgid "FHI-aims parameters"
 msgstr "FHI-aims-parametre"
 
-#: ../calculator.py:988
+#: ../calculator.py:986
 msgid "Periodic geometry, unit cell is:\n"
 msgstr "Periodisk geometri; enhedscellen er:\n"
 
-#: ../calculator.py:993
+#: ../calculator.py:991
 msgid "Non-periodic geometry.\n"
 msgstr "Ikke-periodisk geometri.\n"
 
 # XXX ikke Hirschfeld?
-#: ../calculator.py:1000
+#: ../calculator.py:998
 msgid "Hirshfeld-based dispersion correction"
 msgstr "Hirshfeld-baseret dispersionskorrektion"
 
 #. Spin polarized, charge, relativity
-#: ../calculator.py:1026
+#: ../calculator.py:1024
 msgid "Spin / initial moment "
 msgstr "Spin / startmoment "
 
-#: ../calculator.py:1044
+#: ../calculator.py:1042
 msgid "   Charge"
 msgstr "   Ladning"
 
-#: ../calculator.py:1046
+#: ../calculator.py:1044
 msgid "   Relativity"
 msgstr "   Relativitet"
 
-#: ../calculator.py:1048
+#: ../calculator.py:1046
 msgid " Threshold"
 msgstr " Tærskel"
 
 #. self-consistency criteria
-#: ../calculator.py:1053
+#: ../calculator.py:1051
 msgid "Self-consistency convergence:"
 msgstr "Selfkonsistenskonvergens:"
 
-#: ../calculator.py:1066
+#: ../calculator.py:1064
 msgid "Compute forces"
 msgstr "Beregn kræfter"
 
@@ -524,65 +524,65 @@ msgstr "Beregn kræfter"
 #. (depend on fonts, widget style, ...)
 #. TRANSLATORS: Don't care too much about these, just get approximately
 #. the same string lengths
-#: ../calculator.py:1077
+#: ../calculator.py:1075
 msgid "Energy:                 "
 msgstr "Energi:                 "
 
-#: ../calculator.py:1079
+#: ../calculator.py:1077
 msgid " eV   Sum of eigenvalues:  "
 msgstr " eV   Sum af egenværdier:  "
 
-#: ../calculator.py:1081 ../calculator.py:1559
+#: ../calculator.py:1079 ../calculator.py:1557
 msgid " eV"
 msgstr " eV"
 
-#: ../calculator.py:1082
+#: ../calculator.py:1080
 msgid "Electron density: "
 msgstr "Elektrontæthed: "
 
-#: ../calculator.py:1084
+#: ../calculator.py:1082
 msgid "        Force convergence:  "
 msgstr "        Kraftkonvergens:  "
 
-#: ../calculator.py:1086
+#: ../calculator.py:1084
 msgid " eV/Ang  "
 msgstr " eV/Å  "
 
-#: ../calculator.py:1099 ../calculator.py:1570
+#: ../calculator.py:1097 ../calculator.py:1568
 msgid "Additional keywords: "
 msgstr "Yderligere nøgleord: "
 
 #. run command and species defaults:
-#: ../calculator.py:1113
+#: ../calculator.py:1111
 msgid "FHI-aims execution command: "
 msgstr "Kørselskommando til FHI-aims: "
 
 # ??
-#: ../calculator.py:1115 ../calculator.py:1587
+#: ../calculator.py:1113 ../calculator.py:1585
 msgid "Directory for species defaults: "
 msgstr "Mappe for grundstofstandarder: "
 
-#: ../calculator.py:1127 ../calculator.py:1595
+#: ../calculator.py:1125 ../calculator.py:1593
 msgid "Set Defaults"
 msgstr "Brug standardværdier"
 
-#: ../calculator.py:1129
+#: ../calculator.py:1127
 msgid "Import control.in"
 msgstr "Importér control.in"
 
-#: ../calculator.py:1131
+#: ../calculator.py:1129
 msgid "Export control.in"
 msgstr "Eksportér control.in"
 
-#: ../calculator.py:1317
+#: ../calculator.py:1315
 msgid "Export parameters ... "
 msgstr "Eksportér parametre ... "
 
-#: ../calculator.py:1337
+#: ../calculator.py:1335
 msgid "Import control.in file ... "
 msgstr "Importér control.in-fil ... "
 
-#: ../calculator.py:1393 ../calculator.py:1905
+#: ../calculator.py:1391 ../calculator.py:1903
 #, python-format
 msgid ""
 "Please use the facilities provided in this window to manipulate the keyword: "
@@ -590,7 +590,7 @@ msgid ""
 msgstr ""
 "Brug venligst faciliteterne i dette vindue til at manipulere nøgleordet: %s!"
 
-#: ../calculator.py:1396
+#: ../calculator.py:1394
 #, python-format
 msgid ""
 "Don't know this keyword: %s\n"
@@ -607,70 +607,70 @@ msgstr ""
 "Hvis du virkelig mener det børe være tilgængeligt, så tilføj det venligst "
 "øverst i ase/calculators/aims.py."
 
-#: ../calculator.py:1469
+#: ../calculator.py:1467
 msgid "VASP parameters"
 msgstr "VASP-parametre"
 
-#: ../calculator.py:1475
+#: ../calculator.py:1473
 msgid "Periodic geometry, unit cell is: \n"
 msgstr "Periodisk geometri; enhedscelle er: \n"
 
-#: ../calculator.py:1527
+#: ../calculator.py:1525
 msgid ")    Cutoff: "
 msgstr ")    Afskæring: "
 
-#: ../calculator.py:1528
+#: ../calculator.py:1526
 msgid "    Precision: "
 msgstr "    Præcision: "
 
-#: ../calculator.py:1530
+#: ../calculator.py:1528
 #, python-format
 msgid "k-points x size:  (%.1f, %.1f, %.1f) Å       "
 msgstr "k-punkter x størrelse:  (%.1f, %.1f, %.1f) Å       "
 
-#: ../calculator.py:1546
+#: ../calculator.py:1544
 msgid "Smearing: "
 msgstr "Udjævning: "
 
-#: ../calculator.py:1548
+#: ../calculator.py:1546
 msgid " order: "
 msgstr " orden: "
 
-#: ../calculator.py:1550
+#: ../calculator.py:1548
 msgid " width: "
 msgstr " bredde: "
 
-#: ../calculator.py:1557
+#: ../calculator.py:1555
 msgid "Self-consistency convergence: "
 msgstr "Selfkonsistenskonvergens: "
 
 #. run command and location of POTCAR files:
-#: ../calculator.py:1583
+#: ../calculator.py:1581
 msgid "VASP execution command: "
 msgstr "Kørselskommando til VASP: "
 
-#: ../calculator.py:1597
+#: ../calculator.py:1595
 msgid "Import VASP files"
 msgstr "Importér VASP-filer"
 
-#: ../calculator.py:1599
+#: ../calculator.py:1597
 msgid "Export VASP files"
 msgstr "Eksportér VASP-filer"
 
-#: ../calculator.py:1808
+#: ../calculator.py:1806
 msgid "<b>WARNING:</b> cutoff energy is lower than recommended minimum!"
 msgstr ""
 "<b>ADVARSEL:</b> afskæringsenergi er lavere end det anbefalede minimum!"
 
-#: ../calculator.py:1860
+#: ../calculator.py:1858
 msgid "Import VASP input files: choose directory ... "
 msgstr "Importér VASP-inputfiler: vælg mappe ... "
 
-#: ../calculator.py:1875
+#: ../calculator.py:1873
 msgid "Export VASP input files: choose directory ... "
 msgstr "Eksportér VASP-inputfiler: vælg mappe ... "
 
-#: ../calculator.py:1908
+#: ../calculator.py:1906
 #, python-format
 msgid ""
 "Don't know this keyword: %s\n"
@@ -807,20 +807,20 @@ msgstr "FEJL"
 msgid "Incorrect color specification"
 msgstr "Forkert farveangivelse"
 
-#: ../constraints.py:13 ../widgets.py:89
+#: ../constraints.py:13 ../widgets.py:90
 msgid "Constraints"
 msgstr "Begrænsninger"
 
 #: ../constraints.py:15 ../constraints.py:18 ../settings.py:17
-#: ../widgets.py:91 ../widgets.py:94
+#: ../widgets.py:92 ../widgets.py:95
 msgid "Constrain"
 msgstr "Begræns"
 
-#: ../constraints.py:16 ../settings.py:20 ../settings.py:35 ../widgets.py:92
+#: ../constraints.py:16 ../settings.py:20 ../settings.py:35 ../widgets.py:93
 msgid " selected atoms"
 msgstr " markerede atomer"
 
-#: ../constraints.py:19 ../widgets.py:95
+#: ../constraints.py:19 ../widgets.py:96
 msgid " immobile atoms:"
 msgstr " immobile atomer:"
 
@@ -837,7 +837,7 @@ msgid "Clear constraints"
 msgstr "Ryd begrænsninger"
 
 #: ../constraints.py:26 ../dft.py:29 ../settings.py:53 ../widgets.py:60
-#: ../widgets.py:99
+#: ../widgets.py:100
 msgid "Close"
 msgstr "Luk"
 
@@ -1337,8 +1337,9 @@ msgstr ""
 "<c>M[n]</c>:\t\t\tmagnetiskt moment af atom nummer <c>n</c>\n"
 "<c>A[0-2,0-2]</c>:\t\tenhedscelle vektorer\n"
 "<c>s</c>:\t\t\t\tvejlængde\n"
-"<c>a(n1,n2,n3)</c>:\t\tvinkel mellem atomerne <c>n<sub>1</sub></c>, <c>n<sub>2</"
-"sub></c> and <c>n<sub>3</sub></c>, centeret på <c>n<sub>2</sub></c>\n"
+"<c>a(n1,n2,n3)</c>:\t\tvinkel mellem atomerne <c>n<sub>1</sub></c>, "
+"<c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centeret på <c>n<sub>2</sub></"
+"c>\n"
 "<c>dih(n1,n2,n3,n4)</c>:\tdihedral vinkel mellem <c>n<sub>1</sub></c>, "
 "<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> og <c>n<sub>4</sub></c>\n"
 "<c>T</c>:\t\t\t\ttemperatur (K)"
@@ -1746,7 +1747,11 @@ msgstr "Atom _Indeks"
 msgid "_Magnetic Moments"
 msgstr "_Magnetiske Momenter"
 
-#: ../gui.py:373
+#: ../gui.py:365
+msgid "_Element Symbol"
+msgstr "_Kemisk symbol"
+
+#: ../gui.py:374
 #, python-format
 msgid "building menus failed: %s"
 msgstr "bygning af menuer mislykkedes: %s"
@@ -2009,49 +2014,49 @@ msgstr "Ikke implementeret!"
 msgid "do you really need it?"
 msgstr "har du virkelig brug for dette?"
 
-#: ../minimize.py:20
+#: ../minimize.py:21
 msgid "Algorithm: "
 msgstr "Algoritme: "
 
-#: ../minimize.py:25 ../progress.py:67
+#: ../minimize.py:26 ../progress.py:67
 msgid "Convergence criterion: F<sub>max</sub> = "
 msgstr "Konvergenskriterium: F<sub>max</sub> = "
 
-#: ../minimize.py:30 ../progress.py:70
+#: ../minimize.py:31 ../progress.py:70
 msgid "Max. number of steps: "
 msgstr "Maksimalt antal trin: "
 
 #. Special stuff for MDMin
-#: ../minimize.py:33
+#: ../minimize.py:34
 msgid "Pseudo time step: "
 msgstr "Pseudotidsskridt: "
 
-#: ../minimize.py:54
+#: ../minimize.py:55
 msgid "Energy minimization"
 msgstr "Energiminimering"
 
-#: ../minimize.py:58
+#: ../minimize.py:59
 msgid "Minimize the energy with respect to the positions."
 msgstr "Minimér energien med hensyn til positionerne."
 
 #. Don't catch errors in the function.
 #. Display status message
-#: ../minimize.py:90 ../scaling.py:299
+#: ../minimize.py:91 ../scaling.py:299
 msgid "Running ..."
 msgstr "Kører ..."
 
 #. Update display to reflect cancellation of simulation.
-#: ../minimize.py:107
+#: ../minimize.py:108
 #, python-format
 msgid "Minimization CANCELLED after %i steps."
 msgstr "Minimering AFBRUDT efter %i trin."
 
-#: ../minimize.py:113 ../scaling.py:350
+#: ../minimize.py:114 ../scaling.py:350
 msgid "Out of memory, consider using LBFGS instead"
 msgstr "Løbet tør for hukommelse; overvej at bruge LBFGS i stedet"
 
 #. Update display to reflect succesful end of simulation.
-#: ../minimize.py:120
+#: ../minimize.py:121
 #, python-format
 msgid "Minimization completed in %i steps."
 msgstr "Minimering fuldført på %i trin."
@@ -3149,11 +3154,11 @@ msgstr "Ingen struktur angivet!"
 msgid "%(struct)s lattice constant unknown for %(element)s."
 msgstr "%(struct)s-gitterkonstant ukendt for %(element)s."
 
-#: ../widgets.py:53 ../widgets.py:80
+#: ../widgets.py:53 ../widgets.py:81
 msgid "Help"
 msgstr "Hjælp"
 
-#: ../widgets.py:97
+#: ../widgets.py:98
 msgid "Clear constraint"
 msgstr "Ryd begrænsninger"
 

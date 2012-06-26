@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase\n"
 "Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2012-04-20 17:35+0200\n"
+"POT-Creation-Date: 2012-06-26 16:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -227,7 +227,7 @@ msgstr ""
 msgid "No atoms present"
 msgstr ""
 
-#: ../calculator.py:388 ../calculator.py:422 ../calculator.py:456
+#: ../calculator.py:388 ../calculator.py:422 ../calculator.py:452
 msgid "ASAP is not installed. (Failed to import asap3)"
 msgstr ""
 
@@ -243,183 +243,183 @@ msgstr ""
 msgid "Could not attach EMT calculator to the atoms."
 msgstr ""
 
-#: ../calculator.py:472 ../calculator.py:484
+#: ../calculator.py:470 ../calculator.py:482
 msgid "GPAW is not installed. (Failed to import gpaw)"
 msgstr ""
 
-#: ../calculator.py:475
+#: ../calculator.py:473
 msgid "You must set up the GPAW parameters"
 msgstr ""
 
-#: ../calculator.py:516
+#: ../calculator.py:514
 msgid "You must set up the FHI-aims parameters"
 msgstr ""
 
-#: ../calculator.py:530
+#: ../calculator.py:528
 msgid "You must set up the VASP parameters"
 msgstr ""
 
-#: ../calculator.py:554
+#: ../calculator.py:552
 #, python-format
 msgid "Element %(sym)s not allowed by the '%(name)s' calculator"
 msgstr ""
 
-#: ../calculator.py:561
+#: ../calculator.py:559
 msgid "Info"
 msgstr ""
 
-#: ../calculator.py:577
+#: ../calculator.py:575
 msgid "Lennard-Jones parameters"
 msgstr ""
 
-#: ../calculator.py:589
+#: ../calculator.py:587
 msgid "Specify the Lennard-Jones parameters here"
 msgstr ""
 
-#: ../calculator.py:592
+#: ../calculator.py:590
 msgid "Epsilon (eV):"
 msgstr ""
 
-#: ../calculator.py:596
+#: ../calculator.py:594
 msgid "Sigma (Å):"
 msgstr ""
 
 #. TRANSLATORS: Shift roughly means adjust (about a potential)
-#: ../calculator.py:600
+#: ../calculator.py:598
 msgid "Shift to make smooth at cutoff"
 msgstr ""
 
-#: ../calculator.py:681
+#: ../calculator.py:679
 msgid "GPAW parameters"
 msgstr ""
 
 #. label = gtk.Label("Specify the GPAW parameters here")
 #. pack(vbox, [label])
 #. Print some info
-#: ../calculator.py:696 ../calculator.py:985 ../calculator.py:1473
+#: ../calculator.py:694 ../calculator.py:983 ../calculator.py:1471
 #, python-format
 msgid "%i atoms.\n"
 msgstr ""
 
-#: ../calculator.py:698
+#: ../calculator.py:696
 #, python-format
 msgid "Orthogonal unit cell: %.2f x %.2f x %.2f Å."
 msgstr ""
 
-#: ../calculator.py:700
+#: ../calculator.py:698
 msgid "Non-orthogonal unit cell:\n"
 msgstr ""
 
-#: ../calculator.py:710 ../calculator.py:1001 ../calculator.py:1488
+#: ../calculator.py:708 ../calculator.py:999 ../calculator.py:1486
 msgid "Exchange-correlation functional: "
 msgstr ""
 
 #. Grid spacing
-#: ../calculator.py:714
+#: ../calculator.py:712
 msgid "Grid spacing"
 msgstr ""
 
-#: ../calculator.py:718 ../graphene.py:67 ../graphene.py:78 ../graphene.py:101
+#: ../calculator.py:716 ../graphene.py:67 ../graphene.py:78 ../graphene.py:101
 #: ../nanotube.py:49 ../surfaceslab.py:97
 msgid "Å"
 msgstr ""
 
-#: ../calculator.py:719
+#: ../calculator.py:717
 msgid "Grid points"
 msgstr ""
 
-#: ../calculator.py:728
+#: ../calculator.py:726
 #, python-format
 msgid "h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å"
 msgstr ""
 
-#: ../calculator.py:754 ../calculator.py:1016 ../calculator.py:1524
+#: ../calculator.py:752 ../calculator.py:1014 ../calculator.py:1522
 msgid "k-points  k = ("
 msgstr ""
 
-#: ../calculator.py:758 ../calculator.py:1020
+#: ../calculator.py:756 ../calculator.py:1018
 #, python-format
 msgid "k-points x size:  (%.1f, %.1f, %.1f) Å"
 msgstr ""
 
 #. Spin polarized
-#: ../calculator.py:763 ../calculator.py:1486
+#: ../calculator.py:761 ../calculator.py:1484
 msgid "Spin polarized"
 msgstr ""
 
-#: ../calculator.py:769
+#: ../calculator.py:767
 msgid "FD - Finite Difference (grid) mode"
 msgstr ""
 
-#: ../calculator.py:770
+#: ../calculator.py:768
 msgid "LCAO - Linear Combination of Atomic Orbitals"
 msgstr ""
 
-#: ../calculator.py:773
+#: ../calculator.py:771
 msgid "Mode: "
 msgstr ""
 
-#: ../calculator.py:775
+#: ../calculator.py:773
 msgid "sz - Single Zeta"
 msgstr ""
 
-#: ../calculator.py:776
+#: ../calculator.py:774
 msgid "szp - Single Zeta polarized"
 msgstr ""
 
-#: ../calculator.py:777
+#: ../calculator.py:775
 msgid "dzp - Double Zeta polarized"
 msgstr ""
 
 #. dzp
-#: ../calculator.py:779
+#: ../calculator.py:777
 msgid "Basis functions: "
 msgstr ""
 
 #. Mixer
-#: ../calculator.py:785
+#: ../calculator.py:783
 msgid "Non-standard mixer parameters"
 msgstr ""
 
-#: ../calculator.py:981
+#: ../calculator.py:979
 msgid "FHI-aims parameters"
 msgstr ""
 
-#: ../calculator.py:988
+#: ../calculator.py:986
 msgid "Periodic geometry, unit cell is:\n"
 msgstr ""
 
-#: ../calculator.py:993
+#: ../calculator.py:991
 msgid "Non-periodic geometry.\n"
 msgstr ""
 
-#: ../calculator.py:1000
+#: ../calculator.py:998
 msgid "Hirshfeld-based dispersion correction"
 msgstr ""
 
 #. Spin polarized, charge, relativity
-#: ../calculator.py:1026
+#: ../calculator.py:1024
 msgid "Spin / initial moment "
 msgstr ""
 
-#: ../calculator.py:1044
+#: ../calculator.py:1042
 msgid "   Charge"
 msgstr ""
 
-#: ../calculator.py:1046
+#: ../calculator.py:1044
 msgid "   Relativity"
 msgstr ""
 
-#: ../calculator.py:1048
+#: ../calculator.py:1046
 msgid " Threshold"
 msgstr ""
 
 #. self-consistency criteria
-#: ../calculator.py:1053
+#: ../calculator.py:1051
 msgid "Self-consistency convergence:"
 msgstr ""
 
-#: ../calculator.py:1066
+#: ../calculator.py:1064
 msgid "Compute forces"
 msgstr ""
 
@@ -427,71 +427,71 @@ msgstr ""
 #. (depend on fonts, widget style, ...)
 #. TRANSLATORS: Don't care too much about these, just get approximately
 #. the same string lengths
-#: ../calculator.py:1077
+#: ../calculator.py:1075
 msgid "Energy:                 "
 msgstr ""
 
-#: ../calculator.py:1079
+#: ../calculator.py:1077
 msgid " eV   Sum of eigenvalues:  "
 msgstr ""
 
-#: ../calculator.py:1081 ../calculator.py:1559
+#: ../calculator.py:1079 ../calculator.py:1557
 msgid " eV"
 msgstr ""
 
-#: ../calculator.py:1082
+#: ../calculator.py:1080
 msgid "Electron density: "
 msgstr ""
 
-#: ../calculator.py:1084
+#: ../calculator.py:1082
 msgid "        Force convergence:  "
 msgstr ""
 
-#: ../calculator.py:1086
+#: ../calculator.py:1084
 msgid " eV/Ang  "
 msgstr ""
 
-#: ../calculator.py:1099 ../calculator.py:1570
+#: ../calculator.py:1097 ../calculator.py:1568
 msgid "Additional keywords: "
 msgstr ""
 
 #. run command and species defaults:
-#: ../calculator.py:1113
+#: ../calculator.py:1111
 msgid "FHI-aims execution command: "
 msgstr ""
 
-#: ../calculator.py:1115 ../calculator.py:1587
+#: ../calculator.py:1113 ../calculator.py:1585
 msgid "Directory for species defaults: "
 msgstr ""
 
-#: ../calculator.py:1127 ../calculator.py:1595
+#: ../calculator.py:1125 ../calculator.py:1593
 msgid "Set Defaults"
 msgstr ""
 
-#: ../calculator.py:1129
+#: ../calculator.py:1127
 msgid "Import control.in"
 msgstr ""
 
-#: ../calculator.py:1131
+#: ../calculator.py:1129
 msgid "Export control.in"
 msgstr ""
 
-#: ../calculator.py:1317
+#: ../calculator.py:1315
 msgid "Export parameters ... "
 msgstr ""
 
-#: ../calculator.py:1337
+#: ../calculator.py:1335
 msgid "Import control.in file ... "
 msgstr ""
 
-#: ../calculator.py:1393 ../calculator.py:1905
+#: ../calculator.py:1391 ../calculator.py:1903
 #, python-format
 msgid ""
 "Please use the facilities provided in this window to manipulate the keyword: "
 "%s!"
 msgstr ""
 
-#: ../calculator.py:1396
+#: ../calculator.py:1394
 #, python-format
 msgid ""
 "Don't know this keyword: %s\n"
@@ -502,69 +502,69 @@ msgid ""
 "calculators/aims.py."
 msgstr ""
 
-#: ../calculator.py:1469
+#: ../calculator.py:1467
 msgid "VASP parameters"
 msgstr ""
 
-#: ../calculator.py:1475
+#: ../calculator.py:1473
 msgid "Periodic geometry, unit cell is: \n"
 msgstr ""
 
-#: ../calculator.py:1527
+#: ../calculator.py:1525
 msgid ")    Cutoff: "
 msgstr ""
 
-#: ../calculator.py:1528
+#: ../calculator.py:1526
 msgid "    Precision: "
 msgstr ""
 
-#: ../calculator.py:1530
+#: ../calculator.py:1528
 #, python-format
 msgid "k-points x size:  (%.1f, %.1f, %.1f) Å       "
 msgstr ""
 
-#: ../calculator.py:1546
+#: ../calculator.py:1544
 msgid "Smearing: "
 msgstr ""
 
-#: ../calculator.py:1548
+#: ../calculator.py:1546
 msgid " order: "
 msgstr ""
 
-#: ../calculator.py:1550
+#: ../calculator.py:1548
 msgid " width: "
 msgstr ""
 
-#: ../calculator.py:1557
+#: ../calculator.py:1555
 msgid "Self-consistency convergence: "
 msgstr ""
 
 #. run command and location of POTCAR files:
-#: ../calculator.py:1583
+#: ../calculator.py:1581
 msgid "VASP execution command: "
 msgstr ""
 
-#: ../calculator.py:1597
+#: ../calculator.py:1595
 msgid "Import VASP files"
 msgstr ""
 
-#: ../calculator.py:1599
+#: ../calculator.py:1597
 msgid "Export VASP files"
 msgstr ""
 
-#: ../calculator.py:1808
+#: ../calculator.py:1806
 msgid "<b>WARNING:</b> cutoff energy is lower than recommended minimum!"
 msgstr ""
 
-#: ../calculator.py:1860
+#: ../calculator.py:1858
 msgid "Import VASP input files: choose directory ... "
 msgstr ""
 
-#: ../calculator.py:1875
+#: ../calculator.py:1873
 msgid "Export VASP input files: choose directory ... "
 msgstr ""
 
-#: ../calculator.py:1908
+#: ../calculator.py:1906
 #, python-format
 msgid ""
 "Don't know this keyword: %s\n"
@@ -696,20 +696,20 @@ msgstr ""
 msgid "Incorrect color specification"
 msgstr ""
 
-#: ../constraints.py:13 ../widgets.py:89
+#: ../constraints.py:13 ../widgets.py:90
 msgid "Constraints"
 msgstr ""
 
 #: ../constraints.py:15 ../constraints.py:18 ../settings.py:17
-#: ../widgets.py:91 ../widgets.py:94
+#: ../widgets.py:92 ../widgets.py:95
 msgid "Constrain"
 msgstr ""
 
-#: ../constraints.py:16 ../settings.py:20 ../settings.py:35 ../widgets.py:92
+#: ../constraints.py:16 ../settings.py:20 ../settings.py:35 ../widgets.py:93
 msgid " selected atoms"
 msgstr ""
 
-#: ../constraints.py:19 ../widgets.py:95
+#: ../constraints.py:19 ../widgets.py:96
 msgid " immobile atoms:"
 msgstr ""
 
@@ -726,7 +726,7 @@ msgid "Clear constraints"
 msgstr ""
 
 #: ../constraints.py:26 ../dft.py:29 ../settings.py:53 ../widgets.py:60
-#: ../widgets.py:99
+#: ../widgets.py:100
 msgid "Close"
 msgstr ""
 
@@ -1544,7 +1544,11 @@ msgstr ""
 msgid "_Magnetic Moments"
 msgstr ""
 
-#: ../gui.py:373
+#: ../gui.py:365
+msgid "_Element Symbol"
+msgstr ""
+
+#: ../gui.py:374
 #, python-format
 msgid "building menus failed: %s"
 msgstr ""
@@ -1805,49 +1809,49 @@ msgstr ""
 msgid "do you really need it?"
 msgstr ""
 
-#: ../minimize.py:20
+#: ../minimize.py:21
 msgid "Algorithm: "
 msgstr ""
 
-#: ../minimize.py:25 ../progress.py:67
+#: ../minimize.py:26 ../progress.py:67
 msgid "Convergence criterion: F<sub>max</sub> = "
 msgstr ""
 
-#: ../minimize.py:30 ../progress.py:70
+#: ../minimize.py:31 ../progress.py:70
 msgid "Max. number of steps: "
 msgstr ""
 
 #. Special stuff for MDMin
-#: ../minimize.py:33
+#: ../minimize.py:34
 msgid "Pseudo time step: "
 msgstr ""
 
-#: ../minimize.py:54
+#: ../minimize.py:55
 msgid "Energy minimization"
 msgstr ""
 
-#: ../minimize.py:58
+#: ../minimize.py:59
 msgid "Minimize the energy with respect to the positions."
 msgstr ""
 
 #. Don't catch errors in the function.
 #. Display status message
-#: ../minimize.py:90 ../scaling.py:299
+#: ../minimize.py:91 ../scaling.py:299
 msgid "Running ..."
 msgstr ""
 
 #. Update display to reflect cancellation of simulation.
-#: ../minimize.py:107
+#: ../minimize.py:108
 #, python-format
 msgid "Minimization CANCELLED after %i steps."
 msgstr ""
 
-#: ../minimize.py:113 ../scaling.py:350
+#: ../minimize.py:114 ../scaling.py:350
 msgid "Out of memory, consider using LBFGS instead"
 msgstr ""
 
 #. Update display to reflect succesful end of simulation.
-#: ../minimize.py:120
+#: ../minimize.py:121
 #, python-format
 msgid "Minimization completed in %i steps."
 msgstr ""
@@ -2859,10 +2863,10 @@ msgstr ""
 msgid "%(struct)s lattice constant unknown for %(element)s."
 msgstr ""
 
-#: ../widgets.py:53 ../widgets.py:80
+#: ../widgets.py:53 ../widgets.py:81
 msgid "Help"
 msgstr ""
 
-#: ../widgets.py:97
+#: ../widgets.py:98
 msgid "Clear constraint"
 msgstr ""

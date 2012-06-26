@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2012-04-20 17:35+0200\n"
-"PO-Revision-Date: 2012-04-12 17:08+0200\n"
+"POT-Creation-Date: 2012-06-26 16:06+0200\n"
+"PO-Revision-Date: 2012-06-26 16:29+0200\n"
 "Last-Translator: Max Ramirez <m.ramirez@mx.uni-saarland.de>\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -348,7 +348,7 @@ msgstr "Compruebe que el calculador sea razonable."
 msgid "No atoms present"
 msgstr "No hay átomos presentes"
 
-#: ../calculator.py:388 ../calculator.py:422 ../calculator.py:456
+#: ../calculator.py:388 ../calculator.py:422 ../calculator.py:452
 msgid "ASAP is not installed. (Failed to import asap3)"
 msgstr "ASAP no está instalado. (Error al importar asap3)"
 
@@ -364,184 +364,184 @@ msgstr "No se pudo crear un calculador Lennard-Jones útil."
 msgid "Could not attach EMT calculator to the atoms."
 msgstr "No se pudo adjuntar el calculador EMT a los átomos."
 
-#: ../calculator.py:472 ../calculator.py:484
+#: ../calculator.py:470 ../calculator.py:482
 msgid "GPAW is not installed. (Failed to import gpaw)"
 msgstr "GPAW no está instalado (Error al importar gpaw)"
 
-#: ../calculator.py:475
+#: ../calculator.py:473
 msgid "You must set up the GPAW parameters"
 msgstr "Debe establecer los parámetros para GPAW"
 
-#: ../calculator.py:516
+#: ../calculator.py:514
 msgid "You must set up the FHI-aims parameters"
 msgstr "Debe establecer los parámetros para FHI-aims"
 
-#: ../calculator.py:530
+#: ../calculator.py:528
 msgid "You must set up the VASP parameters"
 msgstr "Debe establecer los parámetros para VASP"
 
-#: ../calculator.py:554
+#: ../calculator.py:552
 #, python-format
 msgid "Element %(sym)s not allowed by the '%(name)s' calculator"
 msgstr "El elemento %(sym)s no esta permitido para el calculador '%(name)s'"
 
-#: ../calculator.py:561
+#: ../calculator.py:559
 msgid "Info"
 msgstr "Información"
 
-#: ../calculator.py:577
+#: ../calculator.py:575
 msgid "Lennard-Jones parameters"
 msgstr "Parámetros de Lennard-Jones"
 
-#: ../calculator.py:589
+#: ../calculator.py:587
 msgid "Specify the Lennard-Jones parameters here"
 msgstr "Especifique los parámetros de Lennard-Jones aquí"
 
 # Epsilon (eV)
-#: ../calculator.py:592
+#: ../calculator.py:590
 msgid "Epsilon (eV):"
 msgstr "Epsilon (eV):"
 
-#: ../calculator.py:596
+#: ../calculator.py:594
 msgid "Sigma (Å):"
 msgstr "Sigma (Å):"
 
 #. TRANSLATORS: Shift roughly means adjust (about a potential)
-#: ../calculator.py:600
+#: ../calculator.py:598
 msgid "Shift to make smooth at cutoff"
 msgstr "Cambie para que el corte sea suave"
 
-#: ../calculator.py:681
+#: ../calculator.py:679
 msgid "GPAW parameters"
 msgstr "Parámetros de GPAW"
 
 #. label = gtk.Label("Specify the GPAW parameters here")
 #. pack(vbox, [label])
 #. Print some info
-#: ../calculator.py:696 ../calculator.py:985 ../calculator.py:1473
+#: ../calculator.py:694 ../calculator.py:983 ../calculator.py:1471
 #, python-format
 msgid "%i atoms.\n"
 msgstr "átomos %i.\n"
 
-#: ../calculator.py:698
+#: ../calculator.py:696
 #, python-format
 msgid "Orthogonal unit cell: %.2f x %.2f x %.2f Å."
 msgstr "Celda unitaria ortogonal:  %.2f x %.2f x %.2f Å."
 
-#: ../calculator.py:700
+#: ../calculator.py:698
 msgid "Non-orthogonal unit cell:\n"
 msgstr "Celda unitaria no ortogonal:\n"
 
-#: ../calculator.py:710 ../calculator.py:1001 ../calculator.py:1488
+#: ../calculator.py:708 ../calculator.py:999 ../calculator.py:1486
 msgid "Exchange-correlation functional: "
 msgstr "Funcional de intercambio y correlación: "
 
 #. Grid spacing
-#: ../calculator.py:714
+#: ../calculator.py:712
 msgid "Grid spacing"
 msgstr "Espacio de grilla"
 
-#: ../calculator.py:718 ../graphene.py:67 ../graphene.py:78 ../graphene.py:101
+#: ../calculator.py:716 ../graphene.py:67 ../graphene.py:78 ../graphene.py:101
 #: ../nanotube.py:49 ../surfaceslab.py:97
 msgid "Å"
 msgstr "Å"
 
-#: ../calculator.py:719
+#: ../calculator.py:717
 msgid "Grid points"
 msgstr "Puntos de grilla"
 
-#: ../calculator.py:728
+#: ../calculator.py:726
 #, python-format
 msgid "h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å"
 msgstr "h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å"
 
-#: ../calculator.py:754 ../calculator.py:1016 ../calculator.py:1524
+#: ../calculator.py:752 ../calculator.py:1014 ../calculator.py:1522
 msgid "k-points  k = ("
 msgstr "puntos k k=("
 
-#: ../calculator.py:758 ../calculator.py:1020
+#: ../calculator.py:756 ../calculator.py:1018
 #, python-format
 msgid "k-points x size:  (%.1f, %.1f, %.1f) Å"
 msgstr "Tamaño de los puntos k: (%.1f, %.1f, %.1f) Å"
 
 #. Spin polarized
-#: ../calculator.py:763 ../calculator.py:1486
+#: ../calculator.py:761 ../calculator.py:1484
 msgid "Spin polarized"
 msgstr "Polarizado de espín"
 
-#: ../calculator.py:769
+#: ../calculator.py:767
 msgid "FD - Finite Difference (grid) mode"
 msgstr "Modo de grilla tipo diferencias finitas"
 
-#: ../calculator.py:770
+#: ../calculator.py:768
 msgid "LCAO - Linear Combination of Atomic Orbitals"
 msgstr "LCAO - Combinaciones lineales de orbitales atómicos"
 
-#: ../calculator.py:773
+#: ../calculator.py:771
 msgid "Mode: "
 msgstr "Modo: "
 
-#: ../calculator.py:775
+#: ../calculator.py:773
 msgid "sz - Single Zeta"
 msgstr "sz - Single Zeta"
 
-#: ../calculator.py:776
+#: ../calculator.py:774
 msgid "szp - Single Zeta polarized"
 msgstr "szp - Single Zeta polarizado"
 
-#: ../calculator.py:777
+#: ../calculator.py:775
 msgid "dzp - Double Zeta polarized"
 msgstr "dzp - Doble Zeta polarizado"
 
 #. dzp
-#: ../calculator.py:779
+#: ../calculator.py:777
 msgid "Basis functions: "
 msgstr "Funciones base: "
 
 #. Mixer
-#: ../calculator.py:785
+#: ../calculator.py:783
 msgid "Non-standard mixer parameters"
 msgstr "Parámetros combinados no estándar"
 
-#: ../calculator.py:981
+#: ../calculator.py:979
 msgid "FHI-aims parameters"
 msgstr "Parámetros de FHI-aims"
 
-#: ../calculator.py:988
+#: ../calculator.py:986
 msgid "Periodic geometry, unit cell is:\n"
 msgstr "Geometría periódica, la celda unitaria es:\n"
 
-#: ../calculator.py:993
+#: ../calculator.py:991
 msgid "Non-periodic geometry.\n"
 msgstr "Geometría no periódica\n"
 
-#: ../calculator.py:1000
+#: ../calculator.py:998
 msgid "Hirshfeld-based dispersion correction"
 msgstr "Corrección a la dispersión basada en el método de Hirshfeld"
 
 #. Spin polarized, charge, relativity
-#: ../calculator.py:1026
+#: ../calculator.py:1024
 msgid "Spin / initial moment "
 msgstr "Spin / momento inicial"
 
-#: ../calculator.py:1044
+#: ../calculator.py:1042
 msgid "   Charge"
 msgstr "   Carga"
 
-#: ../calculator.py:1046
+#: ../calculator.py:1044
 msgid "   Relativity"
 msgstr "   Relatividad"
 
-#: ../calculator.py:1048
+#: ../calculator.py:1046
 msgid " Threshold"
 msgstr " Umbral"
 
 #. self-consistency criteria
-#: ../calculator.py:1053
+#: ../calculator.py:1051
 msgid "Self-consistency convergence:"
 msgstr "Convergencia auto-consistente:"
 
-#: ../calculator.py:1066
+#: ../calculator.py:1064
 msgid "Compute forces"
 msgstr "Calcule las fuerzas"
 
@@ -549,64 +549,64 @@ msgstr "Calcule las fuerzas"
 #. (depend on fonts, widget style, ...)
 #. TRANSLATORS: Don't care too much about these, just get approximately
 #. the same string lengths
-#: ../calculator.py:1077
+#: ../calculator.py:1075
 msgid "Energy:                 "
 msgstr "Energía:                "
 
-#: ../calculator.py:1079
+#: ../calculator.py:1077
 msgid " eV   Sum of eigenvalues:  "
 msgstr " eV   Suma de los autovalores:  "
 
-#: ../calculator.py:1081 ../calculator.py:1559
+#: ../calculator.py:1079 ../calculator.py:1557
 msgid " eV"
 msgstr " eV"
 
-#: ../calculator.py:1082
+#: ../calculator.py:1080
 msgid "Electron density: "
 msgstr "Densidad electrónica: "
 
-#: ../calculator.py:1084
+#: ../calculator.py:1082
 msgid "        Force convergence:  "
 msgstr "       Convergencia de la fuerza:  "
 
-#: ../calculator.py:1086
+#: ../calculator.py:1084
 msgid " eV/Ang  "
 msgstr " eV/Å    "
 
-#: ../calculator.py:1099 ../calculator.py:1570
+#: ../calculator.py:1097 ../calculator.py:1568
 msgid "Additional keywords: "
 msgstr "Palabras clave adicionales: "
 
 #. run command and species defaults:
-#: ../calculator.py:1113
+#: ../calculator.py:1111
 msgid "FHI-aims execution command: "
 msgstr "Comando de ejecución por FHI-aims: "
 
-#: ../calculator.py:1115 ../calculator.py:1587
+#: ../calculator.py:1113 ../calculator.py:1585
 msgid "Directory for species defaults: "
 msgstr "Directorio para las especies por defecto: "
 
-#: ../calculator.py:1127 ../calculator.py:1595
+#: ../calculator.py:1125 ../calculator.py:1593
 msgid "Set Defaults"
 msgstr "Establecer por defecto"
 
-#: ../calculator.py:1129
+#: ../calculator.py:1127
 msgid "Import control.in"
 msgstr "Importar control.in"
 
-#: ../calculator.py:1131
+#: ../calculator.py:1129
 msgid "Export control.in"
 msgstr "Exportar control.in"
 
-#: ../calculator.py:1317
+#: ../calculator.py:1315
 msgid "Export parameters ... "
 msgstr "Exportar parámetros ... "
 
-#: ../calculator.py:1337
+#: ../calculator.py:1335
 msgid "Import control.in file ... "
 msgstr "Importar el archivo control.in ... "
 
-#: ../calculator.py:1393 ../calculator.py:1905
+#: ../calculator.py:1391 ../calculator.py:1903
 #, python-format
 msgid ""
 "Please use the facilities provided in this window to manipulate the keyword: "
@@ -616,7 +616,7 @@ msgstr ""
 "palabra clave: \n"
 "%s!"
 
-#: ../calculator.py:1396
+#: ../calculator.py:1394
 #, python-format
 msgid ""
 "Don't know this keyword: %s\n"
@@ -635,72 +635,72 @@ msgstr ""
 "\n"
 "ase/calculators/aims.py"
 
-#: ../calculator.py:1469
+#: ../calculator.py:1467
 msgid "VASP parameters"
 msgstr "Parámetros de VASP"
 
-#: ../calculator.py:1475
+#: ../calculator.py:1473
 msgid "Periodic geometry, unit cell is: \n"
 msgstr "Geometría periódica, la celda unitaria es: \n"
 
-#: ../calculator.py:1527
+#: ../calculator.py:1525
 msgid ")    Cutoff: "
 msgstr ") radio de corte: "
 
-#: ../calculator.py:1528
+#: ../calculator.py:1526
 msgid "    Precision: "
 msgstr "    Precisión: "
 
-#: ../calculator.py:1530
+#: ../calculator.py:1528
 #, python-format
 msgid "k-points x size:  (%.1f, %.1f, %.1f) Å       "
 msgstr "Tamaño de los puntos k:  (%.1f, %.1f, %.1f) Å       "
 
 # Smearing: 
-#: ../calculator.py:1546
+#: ../calculator.py:1544
 msgid "Smearing: "
 msgstr "Smearing: "
 
-#: ../calculator.py:1548
+#: ../calculator.py:1546
 msgid " order: "
 msgstr " orden: "
 
-#: ../calculator.py:1550
+#: ../calculator.py:1548
 msgid " width: "
 msgstr " ancho: "
 
-#: ../calculator.py:1557
+#: ../calculator.py:1555
 msgid "Self-consistency convergence: "
 msgstr "Convergencia auto-consistente: "
 
 #. run command and location of POTCAR files:
-#: ../calculator.py:1583
+#: ../calculator.py:1581
 msgid "VASP execution command: "
 msgstr "Comando de ejecución de VASP: "
 
-#: ../calculator.py:1597
+#: ../calculator.py:1595
 msgid "Import VASP files"
 msgstr "Importar archivos de VASP"
 
-#: ../calculator.py:1599
+#: ../calculator.py:1597
 msgid "Export VASP files"
 msgstr "Exportar archivos de VASP"
 
-#: ../calculator.py:1808
+#: ../calculator.py:1806
 msgid "<b>WARNING:</b> cutoff energy is lower than recommended minimum!"
 msgstr ""
 "<b>ADVERTENCIA:</b> ¡La energía de corte es más baja que el mínimo "
 "recomendado! "
 
-#: ../calculator.py:1860
+#: ../calculator.py:1858
 msgid "Import VASP input files: choose directory ... "
 msgstr "Importando archivos de entrada de VASP: elija directorio ... "
 
-#: ../calculator.py:1875
+#: ../calculator.py:1873
 msgid "Export VASP input files: choose directory ... "
 msgstr "Exportando archivos de salida de VASP: elija directorio ... "
 
-#: ../calculator.py:1908
+#: ../calculator.py:1906
 #, python-format
 msgid ""
 "Don't know this keyword: %s\n"
@@ -838,20 +838,20 @@ msgstr "ERR"
 msgid "Incorrect color specification"
 msgstr "Especificación de color incorrecta"
 
-#: ../constraints.py:13 ../widgets.py:89
+#: ../constraints.py:13 ../widgets.py:90
 msgid "Constraints"
 msgstr "Restricciones"
 
 #: ../constraints.py:15 ../constraints.py:18 ../settings.py:17
-#: ../widgets.py:91 ../widgets.py:94
+#: ../widgets.py:92 ../widgets.py:95
 msgid "Constrain"
 msgstr "Restricción"
 
-#: ../constraints.py:16 ../settings.py:20 ../settings.py:35 ../widgets.py:92
+#: ../constraints.py:16 ../settings.py:20 ../settings.py:35 ../widgets.py:93
 msgid " selected atoms"
 msgstr "  átomos seleccionados"
 
-#: ../constraints.py:19 ../widgets.py:95
+#: ../constraints.py:19 ../widgets.py:96
 msgid " immobile atoms:"
 msgstr " átomos inamovibles:"
 
@@ -868,7 +868,7 @@ msgid "Clear constraints"
 msgstr "Quitar las restricciones"
 
 #: ../constraints.py:26 ../dft.py:29 ../settings.py:53 ../widgets.py:60
-#: ../widgets.py:99
+#: ../widgets.py:100
 msgid "Close"
 msgstr "Cerrar"
 
@@ -1370,8 +1370,9 @@ msgstr ""
 "<c>M[n]</c>:\t\t\tmomento magnético de número de átomos de <c>n</c>\n"
 "<c>A[0-2,0-2]</c>:\t\tcelda unitaria vectores de la base\n"
 "<c>s</c>:\t\t\t\tlongitud de la trayectoria\n"
-"<c>a(n1,n2,n3)</c>:\t\tángulo entre los átomos <c>n<sub>1</sub></c>, <c>n<sub>2</"
-"sub></c> and <c>n<sub>3</sub></c>, centrado en <c>n<sub>2</sub></c>\n"
+"<c>a(n1,n2,n3)</c>:\t\tángulo entre los átomos <c>n<sub>1</sub></c>, "
+"<c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centrado en <c>n<sub>2</sub></"
+"c>\n"
 "<c>dih(n1,n2,n3,n4)</c>:\tdiedro ángulo entre <c>n<sub>1</sub></c>, "
 "<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> y <c>n<sub>4</sub></c>\n"
 "<c>T</c>:\t\t\t\ttemperatura (K)"
@@ -1779,7 +1780,11 @@ msgstr "_Índice de Atom"
 msgid "_Magnetic Moments"
 msgstr "Momentos _Magnético"
 
-#: ../gui.py:373
+#: ../gui.py:365
+msgid "_Element Symbol"
+msgstr "Símbolo _Químico"
+
+#: ../gui.py:374
 #, python-format
 msgid "building menus failed: %s"
 msgstr "La construcción de los menús ha fallado: %s"
@@ -2040,49 +2045,49 @@ msgstr "No implementado!"
 msgid "do you really need it?"
 msgstr "¿realmente necesita esto?"
 
-#: ../minimize.py:20
+#: ../minimize.py:21
 msgid "Algorithm: "
 msgstr "Algoritmo: "
 
-#: ../minimize.py:25 ../progress.py:67
+#: ../minimize.py:26 ../progress.py:67
 msgid "Convergence criterion: F<sub>max</sub> = "
 msgstr "Criterio de convergencia: F<sub>máx</sub> = "
 
-#: ../minimize.py:30 ../progress.py:70
+#: ../minimize.py:31 ../progress.py:70
 msgid "Max. number of steps: "
 msgstr "Número máximo de pasos: "
 
 #. Special stuff for MDMin
-#: ../minimize.py:33
+#: ../minimize.py:34
 msgid "Pseudo time step: "
 msgstr "Paso de pseudotiempo: "
 
-#: ../minimize.py:54
+#: ../minimize.py:55
 msgid "Energy minimization"
 msgstr "Minimización de energía"
 
-#: ../minimize.py:58
+#: ../minimize.py:59
 msgid "Minimize the energy with respect to the positions."
 msgstr "Minimize la energía con respecto a las posiciones."
 
 #. Don't catch errors in the function.
 #. Display status message
-#: ../minimize.py:90 ../scaling.py:299
+#: ../minimize.py:91 ../scaling.py:299
 msgid "Running ..."
 msgstr "Calculando ..."
 
 #. Update display to reflect cancellation of simulation.
-#: ../minimize.py:107
+#: ../minimize.py:108
 #, python-format
 msgid "Minimization CANCELLED after %i steps."
 msgstr "Minimización CANCELADO después de %i iteraciones."
 
-#: ../minimize.py:113 ../scaling.py:350
+#: ../minimize.py:114 ../scaling.py:350
 msgid "Out of memory, consider using LBFGS instead"
 msgstr "No hay más memoria, considere usar el algoritmo LBFGS"
 
 #. Update display to reflect succesful end of simulation.
-#: ../minimize.py:120
+#: ../minimize.py:121
 #, python-format
 msgid "Minimization completed in %i steps."
 msgstr "Minimización hecha en %i pasos."
@@ -2372,14 +2377,20 @@ msgid ""
 "Nanotubes of other elements can be made by specifying the element\n"
 "and bond length."
 msgstr ""
+"Configure un nanotubo de carbono specificando el vector de roll-up.\n"
+"Note que m <= n.\n"
+"\n"
+"Nanotubos de otros elementos se pueden construir especificando el elemento y "
+"largo del enlace."
 
 #: ../nanotube.py:29
-#, fuzzy, python-format
-#| msgid " %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>"
+#, python-format
 msgid ""
 " %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: %"
 "(volume).3f Å<sup>3</sup>"
-msgstr " %(natoms)i átomos: %(symbols)s, Volumen: %(volume).3f A<sup>3</sup>"
+msgstr ""
+" %(natoms)i átomos: %(symbols)s, diámetro: %(diameter).3f Å, volumen: %"
+"(volume).3f Å<sup>3</sup>"
 
 #: ../nanotube.py:35
 msgid "Nanotube"
@@ -3182,11 +3193,11 @@ msgid "%(struct)s lattice constant unknown for %(element)s."
 msgstr ""
 "La constante de red %(struct)s es desconocida para el elemento %(element)s."
 
-#: ../widgets.py:53 ../widgets.py:80
+#: ../widgets.py:53 ../widgets.py:81
 msgid "Help"
 msgstr "Ayuda"
 
-#: ../widgets.py:97
+#: ../widgets.py:98
 msgid "Clear constraint"
 msgstr "Borrar restricción"
 
