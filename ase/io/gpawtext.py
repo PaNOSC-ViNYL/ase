@@ -5,7 +5,7 @@ from ase.calculators.singlepoint import SinglePointKPoint
 
 def read_gpaw_text(fileobj, index=-1):
     if isinstance(fileobj, str):
-        fileobj = open(fileobj)
+        fileobj = open(fileobj, 'rU')
 
     def index_startswith(lines, string):
         for i, line in enumerate(lines):

@@ -484,7 +484,7 @@ def filetype(filename):
         else:
             raise IOError('Directory: ' + filename)
 
-    fileobj = open(filename)
+    fileobj = open(filename, 'rU')
     s3 = fileobj.read(3)
     if len(s3) == 0:
         raise IOError('Empty file: ' + filename)
