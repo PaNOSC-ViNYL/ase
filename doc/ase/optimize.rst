@@ -4,18 +4,10 @@
 Structure optimization
 ======================
 
-The optimization algorithms can be roughly devided into local
-optimization algorithms which find the next local minimum and
+The optimization algorithms can be roughly divided into local
+optimization algorithms which find a nearby local minimum and
 global optimization algorithms that try to find the global
 minimum (a much harder task).
-
-
-.. seealso::
-
-    `Performance test
-    <https://wiki.fysik.dtu.dk/gpaw/devel/ase_optimize/ase_optimize.html>`_ for all
-    ASE optimizers.
- 
 
 
 Local optimization
@@ -23,19 +15,28 @@ Local optimization
 .. module:: optimize
    :synopsis: Structure Optimization
 
-There are currently 5 different optimization algorithms available:
+The local optimization algorithms available in ASE are:
 ``BFGS``, ``LBFGS``, ``BFGSLineSearch``, ``LBFGSLineSearch``,
 ``MDMin``, and ``FIRE``.
 
+.. seealso::
+
+    `Performance test
+    <https://wiki.fysik.dtu.dk/gpaw/devel/ase_optimize/ase_optimize.html>`_ for all
+    ASE local optimizers.
+ 
+
+
+
 ``MDMin`` and ``FIRE`` both use Newtonian dynamics with added
-friction, to converge to an energy minimum, whereas the first 3 are of
+friction, to converge to an energy minimum, whereas the others are of
 the quasi-Newton type, where the forces of consecutive steps are used
 to dynamically update a Hessian describing the curvature of the
 potential energy landscape.  You can use the ``QuasiNewton`` synonym
-for ``BFGSLineSearch`` because this algorithm is in many cases the optimal one
-of the three quasi-Newton algorithms.
+for ``BFGSLineSearch`` because this algorithm is in many cases the optimal
+of the quasi-Newton algorithms.
 
-All optimizer classes have the following structure::
+All of the local optimizer classes have the following structure::
 
   class Optimizer:
       def __init__(self, atoms, restart=None, logfile=None):
@@ -53,27 +54,33 @@ BFGS
 .. module:: optimize.qn
    :synopsis: Quasi-Newton
 
-The ``BFGS`` object is one of the minimizers in the ASE
-package.  Let's try to use it to optimize the structure of a water
-molecule.  We start with the experimental geometry::
+The ``BFGS`` object is one of the minimizers in the ASE package. The below
+script uses ``BFGS`` to optimize the structure of a water molecule, starting
+with the experimental geometry::
 
-  from ase import *
-  import numpy as np
-  d = 0.9575
-  t = pi / 180 * 104.51
-  water = Atoms('H2O',
-                positions=[(d, 0, 0),
-                           (d * np.cos(t), d * np.sin(t), 0),
-                           (0, 0, 0)],
-                calculator=EMT())
-  dyn = BFGS(water)
-  dyn.run(fmax=0.05)
-  BFGS:   0  16:14:26        6.445801      51.6847
-  BFGS:   1  16:14:26        2.418583      27.2946
-  BFGS:   2  16:14:26        0.620874      13.0140
-  BFGS:   3  16:14:26       -0.028619       4.4019
-  BFGS:   4  16:14:26       -0.129349       0.7307
-  BFGS:   5  16:14:26       -0.132320       0.0138
+   from ase import Atoms
+   from ase.optimize import BFGS
+   from ase.calculators.emt import EMT
+   import numpy as np
+   d = 0.9575
+   t = np.pi / 180 * 104.51
+   water = Atoms('H2O',
+                 positions=[(d, 0, 0),
+                            (d * np.cos(t), d * np.sin(t), 0),
+                            (0, 0, 0)],
+                 calculator=EMT())
+   dyn = BFGS(water)
+   dyn.run(fmax=0.05)
+
+which produces the following output. The columns are the solver name, step
+number, clock time, potential energy (eV), and maximum force.::
+
+   BFGS:   0  19:45:25        2.769633       8.6091
+   BFGS:   1  19:45:25        2.154560       4.4644
+   BFGS:   2  19:45:25        1.906812       1.3097
+   BFGS:   3  19:45:25        1.880255       0.2056
+   BFGS:   4  19:45:25        1.879488       0.0205
+
 
 When doing structure optimization, it is useful to write the
 trajectory to a file, so that the progress of the optimization run can
@@ -144,11 +151,6 @@ When switching between different types of optimizers, e.g. between
 ``BFGS`` and ``LBFGS``, the pickle-files specified by the
 ``restart`` keyword are not compatible, but the Hessian can still be
 retained by replaying the trajectory as above.
-
-.. note::
-
-   In many of the examples, tests, exercises and tutorials,
-   ``QuasiNewton`` is used -- it is a synonym for ``BFGSLineSearch``.
 
 
 LBFGS
@@ -253,11 +255,16 @@ algorithms. A typical optimization should look like::
 where the trajectory and the restart save the trajectory of the
 optimization and the information needed to generate the Hessian Matrix.
 
+.. note::
+
+   In many of the examples, tests, exercises and tutorials,
+   ``QuasiNewton`` is used -- it is a synonym for ``BFGSLineSearch``.
+
 
 Global optimization
 ===================
 
-There is currently one global optimisation algorithm available.
+There are currently two global optimisation algorithms available.
 
 
 Basin hopping
@@ -293,4 +300,44 @@ and here:
 
 __ http://www.sciencemag.org/cgi/content/abstract/sci;285/5432/1368
 
+Minima hopping
+--------------
 
+The minima hopping algorithm was developed and described by Goedecker:
+
+  | Stefan Goedecker
+  | `Minima hopping: An efficient search method for the global minimum of the potential energy surface of complex molecular systems`__
+  | J. Chem. Phys., Vol. **120**, 9911 (2004)
+
+__ http://link.aip.org/link/doi/10.1063/1.1724816
+
+This algorithm utilizes a series of alternating steps of NVE molecular dynamics and local optimizations, and has two parameters that the code dynamically adjusts in response to the progress of the search. The first parameter is the initial temperature of the NVE simulation. Whenever a step finds a new minimum this temperature is decreased; if the step finds a previously found minimum the temperature is increased. The second dynamically adjusted parameter is :math:`E_\mathrm{diff}`, which is an energy threshold for accepting a newly found minimum. If the new minimum is no more than :math:`E_\mathrm{diff}` eV higher than the previous minimum, it is acccepted and :math:`E_\mathrm{diff}` is decreased; if it is more than :math:`E_\mathrm{diff}` eV higher it is rejected and :math:`E_\mathrm{diff}` is increased. The method is used as::
+
+   from ase.optimize.minimahopping import MinimaHopping
+   opt = MinimaHopping(atoms=system)
+   opt(totalsteps=10)
+
+This will run the algorithm until 10 steps are taken; alternatively, if totalsteps is not specified the algorithm will run indefinitely (or until stopped by a batch system). A number of optional arguments can be fed when initializing the algorithm as keyword pairs. The keywords and default values are:
+
+ 
+ | ``T0``: 1000.,  # K, initial MD 'temperature'
+ | ``beta1``: 1.1,  # temperature adjustment parameter
+ | ``beta2``: 1.1,  # temperature adjustment parameter
+ | ``beta3``: 1. / 1.1,  # temperature adjustment parameter
+ | ``Ediff0``: 0.5,  # eV, initial energy acceptance threshold
+ | ``alpha1`` : 0.98,  # energy threshold adjustment parameter
+ | ``alpha2`` : 1. / 0.98,  # energy threshold adjustment parameter
+ | ``mdmin`` : 2,  # criteria to stop MD simulation (no. of minima)
+ | ``logfile``: 'hop.log',  # text log
+ | ``minima_threshold`` : 0.5,  # A, threshold for identical configs
+ | ``timestep`` : 1.0,  # fs, timestep for MD simulations
+ | ``optimizer`` : QuasiNewton,  # local optimizer to use
+ | ``minima_traj`` : 'minima.traj',  # storage file for minima list
+
+Specific definitions of the ``alpha``, ``beta``, and ``mdmin`` parameters can be found in the publication by Goedecker. ``minima_threshold`` is used to determine if two atomic configurations are identical; if any atom has moved by more than this amount it is considered a new configuration. Note that the code tries to do this in an intelligent manner: atoms are considered to be indistinguishable, and translations are allowed in the directions of the periodic boundary conditions. Therefore, if a CO is adsorbed in an ontop site on a (211) surface it will be considered identical no matter which ontop site it occupies.
+
+The trajectory file ``minima_traj`` will be populated with the accepted minima as they are found. A log of the progress is kept in ``logfile``.
+
+The code is written such that a stopped simulation (e.g., killed by the batching system when the maximum wall time was exceeded) can usually be restarted without too much effort by the user. In most cases, the script can be resubmitted without any modification -- if the ``logfile`` and ``minima_traj`` are found, the script will attempt to use these to resume. (Note that you may need to clean up files left in the directory by the calculator, however, such as the .nc file produced by Jacapo.)
+
+Note that these searches can be quite slow, so it can pay to have multiple searches running at a time. Multiple searches can run in parallel and share one list of minima. (Run each script from a separate directory but specify the location to the same absolute location for ``minima_traj``). Each search will use the global information of the list of minima, but will keep its own local information of the initial temperature and :math:`E_\mathrm{diff}`.
