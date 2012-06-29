@@ -2488,6 +2488,11 @@ than density cutoff %i' % (pw, dw))
 
         nc.close()
 
+        if stress == None:
+            raise NotImplementedError('For stress in Jacapo, first set '
+                                      'calculate_stress=True on '
+                                      'initialization.')
+
         return stress
 
     def get_psp_valence(self, psp):

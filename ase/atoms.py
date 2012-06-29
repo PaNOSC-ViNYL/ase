@@ -666,8 +666,6 @@ class Atoms(object):
             raise RuntimeError('Atoms object has no calculator.')
 
         stress = self._calc.get_stress(self)
-        if stress == None:
-            return
         shape = stress.shape
 
         if shape == (3, 3):
