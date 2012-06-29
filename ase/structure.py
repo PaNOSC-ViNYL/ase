@@ -25,18 +25,15 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
     a = sq3 * bond
     l2 = n * n + m * m + n * m
     l = sqrt(l2)
-    dt = a * l / np.pi
 
-    nd = gcd(n ,m)
-    if (n - m) % (3 * nd ) == 0:
+    nd = gcd(n, m)
+    if (n - m) % (3 * nd) == 0:
         ndr = 3 * nd
     else:
         ndr = nd
 
     nr = (2 * m + n) / ndr
     ns = -(2 * n + m) / ndr
-    nt2 = 3 * l2 / ndr / ndr
-    nt = np.floor(sqrt(nt2))
     nn = 2 * l2 / ndr
 
     ichk = 0
@@ -160,6 +157,7 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
         print 'chiral angle = ', ChiralAngle
     return atoms
 
+
 def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
                         C_C=1.42, vacuum=2.5, magnetic=None, initial_mag=1.12,
                         sheet=False, main_element='C', saturate_element='H',
@@ -171,29 +169,28 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
 
     Parameters:
 
-    n: The width of the nanoribbon
-
-    m: The length of the nanoribbon.
-
-    type ('zigzag'): The orientation of the ribbon.  Must be either 'zigzag'
-    or 'armchair'.
-
-    saturated (Falsi):  If true, hydrogen atoms are placed along the edge.
-
-    C_H: Carbon-hydrogen bond length.  Default: 1.09 Angstrom
-
-    C_C: Carbon-carbon bond length.  Default: 1.42 Angstrom.
-
-    vacuum:  Amount of vacuum added to both sides.  Default 2.5 Angstrom.
-
-    magnetic:  Make the edges magnetic.
-
-    initial_mag: Magnitude of magnetic moment if magnetic=True.
-
-    sheet:  If true, make an infinite sheet instead of a ribbon.
+    n: int
+        The width of the nanoribbon.
+    m: int
+        The length of the nanoribbon.
+    type: str
+        The orientation of the ribbon.  Must be either 'zigzag'
+        or 'armchair'.
+    saturated: bool
+        If true, hydrogen atoms are placed along the edge.
+    C_H: float
+        Carbon-hydrogen bond length.  Default: 1.09 Angstrom.
+    C_C: float
+        Carbon-carbon bond length.  Default: 1.42 Angstrom.
+    vacuum: float
+        Amount of vacuum added to both sides.  Default 2.5 Angstrom.
+    magnetic: bool
+        Make the edges magnetic.
+    initial_mag: float
+        Magnitude of magnetic moment if magnetic=True.
+    sheet: bool
+        If true, make an infinite sheet instead of a ribbon.
     """
-    #This function creates the coordinates for a graphene nanoribbon,
-    #n is width, m is length
 
     if vacc is not None:
         warnings.warn('Use vacuum=%f' % (0.5 * vacc))
@@ -201,18 +198,19 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
 
     assert vacuum > 0
     b = sqrt(3) * C_C / 4
-    arm_unit = Atoms(main_element+'4', pbc=(1,0,1),
-                     cell = [4 * b,  2 * vacuum,  3 * C_C])
+    arm_unit = Atoms(main_element + '4',
+                     pbc=(1, 0, 1),
+                     cell=[4 * b, 2 * vacuum, 3 * C_C])
     arm_unit.positions = [[0, 0, 0],
                           [b * 2, 0, C_C / 2.],
                           [b * 2, 0, 3 * C_C / 2.],
                           [0, 0, 2 * C_C]]
-    zz_unit = Atoms(main_element+'2', pbc=(1,0,1),
-                    cell = [3 * C_C /2., 2 * vacuum, b * 4])
+    zz_unit = Atoms(main_element + '2',
+                    pbc=(1, 0, 1),
+                    cell=[3 * C_C / 2.0, 2 * vacuum, b * 4])
     zz_unit.positions = [[0, 0, 0],
-                         [C_C / 2., 0, b * 2]]
+                         [C_C / 2.0, 0, b * 2]]
     atoms = Atoms()
-    tol = 1e-4
     if sheet:
         vacuum2 = 0.0
     else:
@@ -251,11 +249,27 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
             layer = arm_unit.repeat((1, 1, m))
             layer.positions[:, 0] -= 4 * b * i
             atoms += layer
+        if saturated:
+            arm_right_saturation = Atoms(saturate_element + '2', pbc=(1, 0, 1),
+                                         cell=[4 * b, 2 * vacuum, 3 * C_C])
+            arm_right_saturation.positions = [
+                [- sqrt(3) / 2 * C_H, 0, C_H * 0.5], 
+                [- sqrt(3) / 2 * C_H, 0, 2 * C_C - C_H * 0.5]]
+            arm_left_saturation = Atoms(saturate_element + '2', pbc=(1, 0, 1),
+                                        cell=[4 * b, 2 * vacuum, 3 * C_C])
+            arm_left_saturation.positions = [
+                [b * 2 + sqrt(3) / 2 * C_H, 0, C_C / 2 - C_H * 0.5], 
+                [b * 2 + sqrt(3) / 2 * C_H, 0, 3 * C_C / 2.0 + C_H * 0.5]]
+            arm_right_saturation.positions[:, 0] -= 4 * b * (n - 1)
+            atoms += arm_right_saturation.repeat((1, 1, m))
+            atoms += arm_left_saturation.repeat((1, 1, m))
+
         atoms.cell = [b * 4 * n + 2 * vacuum2, 2 * vacuum, 3 * C_C * m]
 
     atoms.center()
     atoms.set_pbc([sheet, False, True])
     return atoms
+
 
 def molecule(name, data=None, **kwargs):
     """Create formula base on data. If data is None assume G2 set.
@@ -278,6 +292,7 @@ def molecule(name, data=None, **kwargs):
     # kwargs overwrites data
     args.update(kwargs)
     return Atoms(**args)
+
 
 def bulk(name, crystalstructure, a=None, c=None, covera=None,
          orthorhombic=False, cubic=False):
@@ -364,6 +379,7 @@ def bulk(name, crystalstructure, a=None, c=None, covera=None,
 
     return atoms
 
+
 def estimate_lattice_constant(name, crystalstructure, covera):
     atoms = bulk(name, crystalstructure, 1.0, covera)
     v0 = atoms.get_volume()
@@ -372,6 +388,7 @@ def estimate_lattice_constant(name, crystalstructure, covera):
         r = covalent_radii[Z]
         v += 4 * np.pi / 3 * r**3 * 1.5
     return (v / v0)**(1.0 / 3)
+
 
 def _orthorhombic_bulk(name, x, a, covera=None):
     if x == 'fcc':
@@ -407,6 +424,7 @@ def _orthorhombic_bulk(name, x, a, covera=None):
         raise RuntimeError
 
     return atoms
+
 
 def _cubic_bulk(name, x, a):
     if x == 'fcc':
