@@ -67,6 +67,7 @@ def read(filename, index=-1, format=None):
     CMR db/cmr-file            db
     CMR db/cmr-file            cmr
     LAMMPS dump file           lammps
+    Gromacs coordinates        gro
     =========================  ===========
 
     """
@@ -271,6 +272,10 @@ def read(filename, index=-1, format=None):
         from ase.io.lammps import read_lammps_dump
         return read_lammps_dump(filename, index)
 
+    if format == 'gromacs':
+        from ase.io.gromacs import read_gromacs
+        return read_gromacs(filename)
+
     raise RuntimeError('File format descriptor '+format+' not recognized!')
 
 
@@ -318,6 +323,7 @@ def write(filename, images, format=None, **kwargs):
     DFTBPlus GEN format        gen
     CMR db/cmr-file            db
     CMR db/cmr-file            cmr
+    Gromacs coordinates        gro
     =========================  ===========
 
     The use of additional keywords is format specific.
@@ -441,6 +447,10 @@ def write(filename, images, format=None, **kwargs):
     elif format == 'db' or format == 'cmr':
         from ase.io.cmr_io import write_db
         return write_db(filename, images, **kwargs)
+    elif format == 'gro':
+        from ase.io.gromacs import write_gromacs
+        write_gromacs(filename, images)
+        return
 
     format = {'traj': 'trajectory',
               'nc': 'netcdf',
@@ -628,5 +638,8 @@ def filetype(filename):
 
     if 'ITEM: TIMESTEP\n' in lines:
         return 'lammps'
+
+    if filename.lower().endswith('.gro'):
+        return 'gromacs'
 
     return 'xyz'
