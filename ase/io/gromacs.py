@@ -6,7 +6,7 @@ from ase.parallel import paropen
 
 
 def read_gromacs(filename):
-    """Import gromacs geometry type files (*.gro).
+    """Import gromacs geometry type files (\*.gro).
     Reads atom positions,
     velocities(if present) and
     simulation cell (if present)
@@ -104,7 +104,7 @@ def read_gromacs(filename):
 
 
 def write_gromacs(fileobj, images):
-    """Write gromacs geometry files (*.gro).
+    """Write gromacs geometry files (\*.gro).
     Writes:
     atom positions,
     velocities (if present, otherwise 0)
