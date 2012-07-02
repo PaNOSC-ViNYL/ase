@@ -340,7 +340,12 @@ class ComparePositions:
         # Make comparison sets from atoms2, which contain repeated atoms in
         # all pbc's and bring the atom listed in indices2 to (0,0,0)
         comparisons = []
-        repeat = [3 if bc == True else 1 for bc in atoms2.pbc]
+        repeat = []
+        for bc in atoms2.pbc:
+            if bc == True:
+                repeat.append(3)
+            else:
+                repeat.append(1)
         repeated = atoms2.repeat(repeat)
         moved_cell = atoms2.cell * atoms2.pbc
         for moved in moved_cell:
