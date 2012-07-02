@@ -18,6 +18,12 @@ if '--email' in sys.argv:
 else:
     email = None
 
+if '--nodoc' in sys.argv:
+    i = sys.argv.index('--nodoc')
+    doc = False
+else:
+    doc = True
+
 if '--tarfiledir' in sys.argv:
     i = sys.argv.index('--tarfiledir')
     tarfiledir = sys.argv[i+1]
@@ -55,54 +61,56 @@ def build(email):
     # Generate tar-file:
     assert os.system('python setup.py sdist') == 0
 
-    if os.system('epydoc --docformat restructuredtext --parse-only ' +
-                 '--name ASE ' +
-                 '--url http://wiki.fysik.dtu.dk/ase ' +
-                 '--show-imports --no-frames -v ase &> epydoc.out') != 0:
-        raise RuntimeError('Epydoc failed!')
+    if doc:
 
-    epydoc_errors = open('epydoc.out').read()
-    if ' Warning:' in epydoc_errors:
-        sys.stderr.write(epydoc_errors)
+        if os.system('epydoc --docformat restructuredtext --parse-only ' +
+                     '--name ASE ' +
+                     '--url http://wiki.fysik.dtu.dk/ase ' +
+                     '--show-imports --no-frames -v ase &> epydoc.out') != 0:
+            raise RuntimeError('Epydoc failed!')
 
-    epydoc_output = open('epydoc.out').readlines()
-    errors = []
-    for line in epydoc_output:
-        if line[0] == '|' or line[:2] == '+-':
-            errors.append(line)
-    if errors:
-        fd = open('epydoc.errors', 'w')
-        fd.write(''.join(errors))
-        fd.close()
-        if 1 and email is not None:
-            x = os.system('mail -s "ASE: EpyDoc errors" %s < epydoc.errors' % email)
-            assert x == 0
+        epydoc_errors = open('epydoc.out').read()
+        if ' Warning:' in epydoc_errors:
+            sys.stderr.write(epydoc_errors)
 
-    os.chdir('doc')
-    os.mkdir('_build')
-    if os.system('PYTHONPATH=%s/lib/python sphinx-build . _build' % tmpdir) != 0:
-        raise RuntimeError('Sphinx failed!')
-    os.system('cd _build; cp _static/searchtools.js .; ' +
-              'sed -i s/snapshot.tar/%s.tar/ download.html' % version)
+        epydoc_output = open('epydoc.out').readlines()
+        errors = []
+        for line in epydoc_output:
+            if line[0] == '|' or line[:2] == '+-':
+                errors.append(line)
+        if errors:
+            fd = open('epydoc.errors', 'w')
+            fd.write(''.join(errors))
+            fd.close()
+            if 1 and email is not None:
+                x = os.system('mail -s "ASE: EpyDoc errors" %s < epydoc.errors' % email)
+                assert x == 0
 
-    if 1:
-        if os.system('PYTHONPATH=%s/lib/python ' % tmpdir +
-                     'sphinx-build -b latex . _build 2> error') != 0:
+        os.chdir('doc')
+        os.mkdir('_build')
+        if os.system('PYTHONPATH=%s/lib/python sphinx-build . _build' % tmpdir) != 0:
             raise RuntimeError('Sphinx failed!')
-        os.system(
-            'grep -v "WARNING: unusable reference target found" error 1>&2')
-        
-        os.chdir('_build')
-        #os.system('cd ../..; ln -s doc/_static')
-        if os.system('make ase-manual.pdf 2>&1') != 0:
-            raise RuntimeError('pdflatex failed!')
-    else:
-        os.chdir('_build')
+        os.system('cd _build; cp _static/searchtools.js .; ' +
+                  'sed -i s/snapshot.tar/%s.tar/ download.html' % version)
 
-    assert os.system('mv ../../html epydoc;' +
-                     'mv ../../dist/python-ase-%s.tar.gz .' % version) == 0
+        if 1:
+            if os.system('PYTHONPATH=%s/lib/python ' % tmpdir +
+                         'sphinx-build -b latex . _build 2> error') != 0:
+                raise RuntimeError('Sphinx failed!')
+            os.system(
+                'grep -v "WARNING: unusable reference target found" error 1>&2')
+            
+            os.chdir('_build')
+            #os.system('cd ../..; ln -s doc/_static')
+            if os.system('make ase-manual.pdf 2>&1') != 0:
+                raise RuntimeError('pdflatex failed!')
+        else:
+            os.chdir('_build')
+
+        assert os.system('mv ../../html epydoc;' +
+                         'mv ../../dist/python-ase-%s.tar.gz .' % version) == 0
     
-if tarfiledir is not None:
+if doc and tarfiledir is not None:
     try:
         os.remove(tarfiledir + '/ase-webpages.tar.gz')
     except OSError:
@@ -110,7 +118,7 @@ if tarfiledir is not None:
 
 build(email)
     
-if tarfiledir is not None:
+if doc and tarfiledir is not None:
     os.system('cd ..; tar czf %s/ase-webpages.tar.gz _build' % tarfiledir)
 
 os.system('cd; rm -rf ' + tmpdir)
