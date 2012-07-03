@@ -17,7 +17,7 @@ if not os.environ.has_key('CASTEP_COMMAND'):
     os.environ['CASTEP_COMMAND'] = 'castep'
 
 
-if not (os.system('which %s' % os.environ['CASTEP_COMMAND']) == 0):
+if not (os.system('which %s > /dev/null 2>&1' % os.environ['CASTEP_COMMAND']) == 0):
     raise NotAvailable("""Could not find CASTEP. If you have it
                           installed make sure, you set the CASTEP_COMMAND
                           environment variable correctly""")

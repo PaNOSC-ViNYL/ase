@@ -13,7 +13,7 @@ except (ImportError, NotAvailable):
     print "No Scientific python found. Check your PYTHONPATH"
     raise NotAvailable('ScientificPython version 2.8 or greater is required')
 
-if not (os.system('which dacapo.run') == 0):
+if not (os.system('which dacapo.run > /dev/null 2>&1') == 0):
     print "No Dacapo Fortran executable (dacapo.run) found. Check your path settings."
     raise NotAvailable('dacapo.run is not installed on this machine or not in the path')
 
