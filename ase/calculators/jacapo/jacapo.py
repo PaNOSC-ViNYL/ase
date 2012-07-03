@@ -30,7 +30,7 @@ except ImportError: #probably an old python before 2.5
     import random, time
     def uuid1():
         t = time.asctime()
-        host = os.environ['HOSTNAME']
+        host = os.environ.get('HOSTNAME', 'localhost')
         random.seed(host + str(t))
         s = host + '-' + t + '-'+str(random.random())
         return s.replace(' ','-')
