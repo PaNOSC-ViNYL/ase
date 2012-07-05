@@ -70,7 +70,11 @@ class BulkTask(OptimizeTask):
     def fit_volume(self, name, atoms):
         N, x = self.fit
         cell0 = atoms.get_cell()
-        strains = np.linspace(1 - x, 1 + x, N)
+        v = atoms.get_volume()
+        if x > 0:
+            strains = np.linspace(1 - x, 1 + x, N)
+        else:
+            strains = np.linspace(1 + x / v, 1 - x / v,  N)**(1./3)
         energies = []
         traj = PickleTrajectory(self.get_filename(name, 'fit.traj'), 'w')
         for s in strains:
@@ -121,13 +125,19 @@ class BulkTask(OptimizeTask):
         bulk = optparse.OptionGroup(parser, 'Bulk')
         bulk.add_option('-F', '--fit', metavar='N,x',
                         help='Find optimal volume and bulk modulus ' +
-                        'using N points and variations of the lattice ' +
-                        'constants from -x % to +x %.')
+                        'using odd N points and variations of the lattice ' +
+                        'constant a from -x % to +x %, i.e. in the interval '
+                        '<a - a * x * 100, ..., a, ..., a + a * x * 100>. ' +
+                        'This method gives non-equidistant sampling of volume. ' +
+                        'With x negative (in Angstrom**3) the sampling of ' +
+                        'the cell volume (v) in the interval ' +
+                        '<(1 + x /v), ..., 1, ..., (1 - x /v)> is used. ' +
+                        'This method gives equidistant sampling of volume.')
         bulk.add_option('-x', '--crystal-structure',
                         help='Crystal structure.',
-                        choices=['sc', 'fcc', 'bcc', 'diamond', 'hcp',
-                                 'zincblende', 'rocksalt',
-                                 'cesiumchloride', 'fluorite'])
+                        choices=['sc', 'fcc', 'bcc', 'hcp', 'diamond',
+                                 'zincblende' 'rocksalt', 'cesiumchloride',
+                                 'fluorite'])
         bulk.add_option('-a', '--lattice-constant', type='float',
                         help='Lattice constant in Angstrom.')
         bulk.add_option('--c-over-a', type='float',
@@ -145,7 +155,10 @@ class BulkTask(OptimizeTask):
 
         if opts.fit:
             points, strain = opts.fit.split(',')
-            self.fit = (int(points), float(strain) * 0.01)
+            if float(strain) > 0:
+                self.fit = (int(points), float(strain) * 0.01)
+            else:
+                self.fit = (int(points), float(strain))
 
         self.crystal_structure = opts.crystal_structure
         self.lattice_constant = opts.lattice_constant
