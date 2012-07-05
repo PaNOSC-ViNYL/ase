@@ -20,7 +20,7 @@ class Abinit:
     The default parameters are very close to those that the ABINIT
     Fortran code would use.  These are the exceptions::
 
-      calc = Abinit(label='abinit', xc='LDA', pulay=5, mix=0.1)
+      calc = Abinit(label='abinit', xc='LDA', diemix=0.1)
 
     Use the set_inp method to set extra INPUT parameters::
 
@@ -29,7 +29,8 @@ class Abinit:
     """
     def __init__(self, label='abinit', xc='LDA', kpts=None, nbands=None,
                  nstep=None, width=0.04*Hartree, ecut=None, charge=0,
-                 pulay=5, mix=0.1, pps='fhi', toldfe=1.0e-6
+                 npulayit=7, diemix=0.1, diemac=1.e6, pps='fhi',
+                 toldfe=1.0e-6
                  ):
         """Construct ABINIT-calculator object.
 
@@ -57,10 +58,15 @@ class Abinit:
         charge: float
             Total charge of the system.
             Default is 0.
-        pulay: int
+        npulayit: int
             Number of old densities to use for Pulay mixing.
-        mix: float
+        diemix: float
             Mixing parameter between zero and one for density mixing.
+        diemac: float
+            Model DIElectric MACroscopic constant.
+            The value of diemac should usually be bigger than 1.0d0,
+            on physical grounds. If you let diemac to its default value,
+            you might even never obtain the self-consistent convergence!
 
         Examples
         ========
@@ -84,8 +90,9 @@ class Abinit:
         self.width = width
         self.ecut = ecut
         self.charge = charge
-        self.pulay = pulay
-        self.mix = mix
+        self.npulayit = npulayit
+        self.diemix = diemix
+        self.diemac = diemac
         self.pps = pps
         self.toldfe = toldfe
         if not pps in ['fhi', 'hgh', 'hgh.sc', 'hgh.k', 'tm', 'paw']:
@@ -165,7 +172,7 @@ class Abinit:
                     assert len(filenames) in [0, 1, 2]
                     if pps == 'paw':
                         selector = max # Semicore or hard
-                        # warning: see download.sh in 
+                        # warning: see download.sh in
                         # abinit-pseudopotentials*tar.gz for additional information!
                         S = selector([str(os.path.split(name)[1].split('-')[2][:-4])
                                       for name in filenames])
@@ -382,8 +389,13 @@ class Abinit:
             'charge': self.charge,
             #'DM.UseSaveDM': self.converged,
             #'SolutionMethod': 'diagon',
-            'npulayit': self.pulay, # default 7
-            'diemix': self.mix
+            'npulayit': self.npulayit, # default 7
+            # Default is 1.0 (norm-conserving psps or iprcel/=0)
+            # or 0.7 (PAW and iprcel=0)
+            'diemix': self.diemix,
+            # Default is 10^6 (metallic damping).
+            # For molecules in an otherwise empty big box, try 1.5 ... 3.0
+            'diemac': self.diemac,
             }
 
         if not self.nband is None:
