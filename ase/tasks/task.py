@@ -11,7 +11,7 @@ from ase.visualize import view
 from ase.io import read, write
 from ase.io import string2index
 from ase.constraints import FixAtoms
-from ase.optimize.lbfgs import LBFGS
+import ase.optimize
 from ase.utils import Lock, devnull, prnt
 from ase.tasks.io import read_json, write_json
 from ase.data import chemical_symbols, atomic_numbers
@@ -62,7 +62,7 @@ class Task:
         else:
             logfile = devnull
         self.logfile = logfile
-        
+
         self.data = {}
 
         self.interactive_python_session = False
@@ -70,7 +70,7 @@ class Task:
         self.modify = None
         self.after = None
         self.clean = False
-        
+
         self.write_funcs = []
 
         self.lock = None
@@ -84,7 +84,7 @@ class Task:
             calcfactory = calculator_factory(calcfactory)
 
         self.calcfactory = calcfactory
-        
+
     def log(self, *args, **kwargs):
         prnt(file=self.logfile, *args, **kwargs)
 
@@ -102,7 +102,7 @@ class Task:
         """Expand ranges like H-Li to H, He, Li."""
         if isinstance(names, str):
             names = [names]
-            
+
         newnames = []
         for name in names:
             if name.count('-') == 1:
@@ -148,7 +148,7 @@ class Task:
 
         if names is None or len(names) == 0:
             names = self.collection.keys()
-            
+
         names = self.expand(names)
         names = names[self.slice]
         names = self.exclude(names)
@@ -157,7 +157,7 @@ class Task:
             for name in names:
                 view(self.create_system(name))
             return
-        
+
         if self.write_to_file:
             if self.write_to_file[0] == '.':
                 for name in names:
@@ -207,7 +207,7 @@ class Task:
             self.log(name, 'FAILED')
             traceback.print_exc(file=self.logfile)
             return
-            
+
         atoms.calc = self.calcfactory(self.get_filename(name), atoms)
 
         tstart = time()
@@ -275,7 +275,7 @@ class Task:
 
     def clean_json_file(self, names=None):
         self.read(skipempty=False)
-        
+
         n = len(self.data)
 
         if names:
@@ -311,7 +311,7 @@ class Task:
 
         lengths = [max(len(line[i]) for line in lines)
                    for i in range(len(lines[0]))]
-        
+
         for line in lines:
             for txt, l in zip(line, lengths):
                 self.log('%*s' % (l, txt), end='  ')
@@ -364,7 +364,7 @@ class Task:
         general.add_option('--clean', action='store_true',
                             help='Remove unfinished tasks from json file.')
         parser.add_option_group(general)
-    
+
     def parse_args(self, args=None):
         if args is None:
             args = sys.argv[1:]
@@ -384,11 +384,11 @@ class Task:
     def parse(self, opts, args):
         if opts.tag:
             self.tag = opts.tag
-            
+
         if opts.magnetic_moment:
             self.magmoms = np.array(
                 [float(m) for m in opts.magnetic_moment.split(',')])
-        
+
         self.gui = opts.gui
         self.write_summary = opts.write_summary
         self.write_to_file = opts.write_to_file
@@ -406,8 +406,9 @@ class Task:
 class OptimizeTask(Task):
     taskname = 'opt'
 
-    def __init__(self, fmax=None, constrain_tags=[], **kwargs):
+    def __init__(self, fmax=None, constrain_tags=[], optimizer='LBFGS', **kwargs):
         self.fmax = fmax
+        self.optimizer = optimizer
         self.constrain_tags = constrain_tags
 
         Task.__init__(self, **kwargs)
@@ -420,10 +421,12 @@ class OptimizeTask(Task):
             constrain = FixAtoms(mask=mask)
             atoms.constraints = [constrain]
 
-        optimizer = LBFGS(atoms, trajectory=self.get_filename(name, 'traj'),
-                          logfile=self.logfile)
+        optstr = "ase.optimize." + self.optimizer
+        optstr += "(atoms, trajectory=self.get_filename(name, 'traj'),"
+        optstr += "logfile=self.logfile)"
+        optimizer = eval(optstr)
         optimizer.run(self.fmax)
-        
+
     def calculate(self, name, atoms):
         data = Task.calculate(self, name, atoms)
 
@@ -431,16 +434,17 @@ class OptimizeTask(Task):
             self.optimize(name, atoms)
 
             data['relaxed energy'] = atoms.get_potential_energy()
-        
+
         return data
 
     def add_options(self, parser):
         Task.add_options(self, parser)
 
         optimize = optparse.OptionGroup(parser, 'Optimize')
-        optimize.add_option('-R', '--relax', type='float', metavar='FMAX',
-                            help='Relax internal coordinates using L-BFGS '
-                            'algorithm.')
+        optimize.add_option('-R', '--relax', metavar='FMAX[,OPTIMIZER]',
+                            help='Relax internal coordinates using '
+                            'OPTIMIZER algorithm. The OPTIMIZER keyword is '
+                            'optional, and if omitted LBFGS is used by default.')
         optimize.add_option('--constrain-tags', type='str',
                             metavar='T1,T2,...',
                             help='Constrain atoms with tags T1, T2, ...')
@@ -449,7 +453,13 @@ class OptimizeTask(Task):
     def parse(self, opts, args):
         Task.parse(self, opts, args)
 
-        self.fmax = opts.relax
+        if opts.relax:
+            if len(opts.relax.split(',')) > 1:
+                self.fmax, self.optimizer = opts.relax.split(',')
+            else:
+                self.fmax = opts.relax
+                self.optimizer = 'LBFGS'
+            self.fmax = float(self.fmax)
 
         if opts.constrain_tags:
             self.constrain_tags = [int(t)
