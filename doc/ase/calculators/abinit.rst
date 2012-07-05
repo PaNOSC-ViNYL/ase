@@ -53,7 +53,7 @@ ABINIT Calculator
 The default parameters are very close to those that the ABINIT Fortran
 code uses.  These are the exceptions:
 
-.. class:: Abinit(label='abinit', xc='LDA', pulay=5, mix=0.1)
+.. class:: Abinit(label='abinit', xc='LDA', mix=0.1)
     
 Here is a detailed list of all the keywords for the calculator:
 
@@ -65,9 +65,10 @@ keyword        type      default value     description
 ``nstep``      ``int``   ``None``          Number of self-consistent field STEPS.
 ``ecut``       ``float`` ``None``          Planewave cutoff energy in eV (default: None)
 ``xc``         ``str``   ``'LDA'``         Exchange-correlation functional.
-``pulay``      ``int``   ``5``             Number of old densities to use for
+``npulayit``   ``int``   ``7``             Number of old densities to use for
                                            Pulay mixing
-``mix``        ``float`` ``0.1``           Pulay mixing weight 
+``diemix``     ``float`` ``0.1``           Pulay mixing weight 
+``diemac``     ``float`` ``1e6``           Model DIElectric MACroscopic constant 
 ``width``      ``float`` ``0.04 Ha``       Fermi-distribution width in eV (default: 0.04 Ha)
 ``charge``     ``float`` ``0``             Total charge of the system (default: 0)
 ``label``      ``str``   ``'abinit'``      Name of the output file
