@@ -415,17 +415,32 @@ class OptimizeTask(Task):
 
         self.summary_keys = ['energy', 'relaxed energy']
 
-    def optimize(self, name, atoms):
+    def optimize(self, name, atoms, trajectory=None):
         mask = [t in self.constrain_tags for t in atoms.get_tags()]
         if mask:
             constrain = FixAtoms(mask=mask)
             atoms.constraints = [constrain]
 
         optstr = "ase.optimize." + self.optimizer
-        optstr += "(atoms, trajectory=self.get_filename(name, 'traj'),"
+        optstr += "(atoms, "
+        if trajectory is not None:
+            # allow existing trajectory to append new optimizations
+            # or create new one if trajectory is str
+            optstr += "trajectory=trajectory,"
+        else:
+            # create new trajectory with default name
+            optstr += "trajectory=self.get_filename(name, 'traj'),"
         optstr += "logfile=self.logfile)"
         optimizer = eval(optstr)
-        optimizer.run(self.fmax)
+        try:
+            # handle scipy optimizers who raise Converged when done
+            from ase.optimize import Converged
+            try:
+                optimizer.run(self.fmax)
+            except Converged:
+                pass
+        except ImportError:
+            optimizer.run(self.fmax)
 
     def calculate(self, name, atoms):
         data = Task.calculate(self, name, atoms)

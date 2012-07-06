@@ -239,7 +239,7 @@ To be done
   [a0 + s for s in [x * np.array(range(- N/2 + 1, N/2 + 1))]]
   where x is sampling step length, N number of steps.
   Current way of sampling gives different length of sampling interval
-  depending on the lattice constant guess a0.
+  depending on the lattice constant guess a0. DONE
 * Write results to file (pickel, csv, cmr (db), traj, ...) per system,
   together with json file!
 * Split off EnergyTask from Task.
@@ -248,7 +248,7 @@ To be done
 * Check occupation numbers and requested total magnetic moments
   for molecules/atoms. DONE
 * Add --exclude option.
-* Relax cell.
+* Relax cell. DONE
 * Optimize first then fit.
 * Behavior of -w option?
 * Reaction task?

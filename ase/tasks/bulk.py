@@ -3,6 +3,8 @@ import optparse
 import numpy as np
 
 from ase.lattice import bulk
+from ase.constraints import StrainFilter
+import ase.optimize
 from ase.tasks.task import OptimizeTask
 from ase.data import chemical_symbols, reference_states
 from ase.utils.eos import EquationOfState
@@ -14,7 +16,7 @@ class BulkTask(OptimizeTask):
 
     def __init__(self, crystal_structure=None, lattice_constant=None,
                  c_over_a=None, cubic=False, orthorhombic=False, fit=None,
-                 **kwargs):
+                 sfmax=None, soptimizer='BFGS', **kwargs):
         """Bulk task."""
 
         self.crystal_structure = crystal_structure
@@ -23,6 +25,8 @@ class BulkTask(OptimizeTask):
         self.cubic = cubic
         self.orthorhombic = orthorhombic
         self.fit = fit
+        self.sfmax = sfmax
+        self.soptimizer = soptimizer
 
         self.repeat = None
 
@@ -91,10 +95,65 @@ class BulkTask(OptimizeTask):
 
         return data
 
+    def soptimize(self, name, atoms, trajectory=None):
+        # Call it soptimize to avoid conflicts with OptimizeTask.optimize.
+        # With so many levels of inheritance one never knows ...
+        optstr = "ase.optimize." + self.soptimizer
+        optstr += "(atoms, logfile=self.logfile)"
+        optimizer = eval(optstr)
+        if trajectory is not None:
+            if not isinstance(trajectory, str):
+                optimizer.attach(trajectory)
+        try:
+            # handle scipy optimizers who raise Converged when done
+            from ase.optimize import Converged
+            try:
+                optimizer.run(self.sfmax)
+            except Converged:
+                raise
+        except ImportError:
+            optimizer.run(self.sfmax)
+
+    def converged(self, atoms, sfmax, fmax):
+        # The same criteria as in ASE optimizers:
+        # see ase.constraints: StrainFilter
+        sforces = - atoms.get_stress().ravel()*atoms.get_volume()
+        rmssforces = np.sum(sforces**2)**0.5
+        maxsforce = rmssforces
+        # see ase.optimize.optimize: converged
+        rmsforces = np.sum(atoms.get_forces()**2, axis=1)**0.5
+        maxforce = max(rmsforces)
+
+        if maxforce < fmax and maxsforce < sfmax:
+            return True
+        return False
+
     def calculate(self, name, atoms):
         #????
         if self.fit:
             return self.fit_volume(name, atoms)
+        elif self.sfmax is not None and self.fmax is not None:
+            # this performs first relaxation of internal degrees of freedom
+            data = OptimizeTask.calculate(self, name, atoms)
+            # writing traj from optimizer does not work for StrainFilter!
+            trajectory = PickleTrajectory(self.get_filename(name, 'traj'), 'a', atoms)
+            sf = StrainFilter(atoms)
+            while not self.converged(atoms, sfmax=self.sfmax, fmax=self.fmax):
+                # take a step on the cell
+                self.soptimize(name, sf, trajectory)
+                # relax internal degrees of freedom
+                OptimizeTask.optimize(self, name, atoms, trajectory)
+            data['relaxed energy'] = atoms.get_potential_energy()
+            return data
+        elif self.sfmax is not None:
+            # this performs single-point energy calculation
+            data = OptimizeTask.calculate(self, name, atoms)
+            sf = StrainFilter(atoms)
+            # writing traj from optimizer does not work for StrainFilter!
+            trajectory = PickleTrajectory(self.get_filename(name, 'traj'), 'w', atoms)
+            self.soptimize(name, sf, trajectory)
+            data['relaxed energy'] = atoms.get_potential_energy()
+            return data
         else:
             return OptimizeTask.calculate(self, name, atoms)
 
@@ -133,10 +192,14 @@ class BulkTask(OptimizeTask):
                         'the cell volume (v) in the interval ' +
                         '<(1 + x /v), ..., 1, ..., (1 - x /v)> is used. ' +
                         'This method gives equidistant sampling of volume.')
+        bulk.add_option('--srelax', metavar='SFMAX[,SOPTIMIZER]',
+                        help='Relax cell by minimizing stress using StranFilter '
+                        'with SOPTIMIZER algorithm. The SOPTIMIZER keyword is '
+                        'optional, and if omitted BFGS is used by default.')
         bulk.add_option('-x', '--crystal-structure',
                         help='Crystal structure.',
                         choices=['sc', 'fcc', 'bcc', 'hcp', 'diamond',
-                                 'zincblende' 'rocksalt', 'cesiumchloride',
+                                 'zincblende', 'rocksalt', 'cesiumchloride',
                                  'fluorite'])
         bulk.add_option('-a', '--lattice-constant', type='float',
                         help='Lattice constant in Angstrom.')
@@ -152,6 +215,14 @@ class BulkTask(OptimizeTask):
 
     def parse(self, opts, args):
         OptimizeTask.parse(self, opts, args)
+
+        if opts.srelax:
+            if len(opts.srelax.split(',')) > 1:
+                self.sfmax, self.soptimizer = opts.srelax.split(',')
+            else:
+                self.sfmax = opts.srelax
+                self.soptimizer = 'BFGS'
+            self.sfmax = float(self.sfmax)
 
         if opts.fit:
             points, strain = opts.fit.split(',')
