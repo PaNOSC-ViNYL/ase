@@ -26,6 +26,8 @@ Try "ase molecule --help" or "ase bulk --help".
 def run(args=sys.argv[1:], calcname='emt', task=None):
 
     if isinstance(args, str):
+        # leading/trailing spaces result in weird errors
+        args = args.strip()
         args = args.split(' ')
 
     argsoriginal = args[:]

@@ -249,7 +249,7 @@ To be done
   for molecules/atoms. DONE
 * Add --exclude option.
 * Relax cell. DONE
-* Optimize first then fit.
+* Optimize first then fit. DONE
 * Behavior of -w option?
 * Reaction task?
 * Rethink analysis and summary stuff:

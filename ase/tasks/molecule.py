@@ -92,9 +92,8 @@ class MoleculeTask(OptimizeTask):
 
         return atoms
 
-    def fit_bond_length(self, name, atoms, data):
+    def fit_bond_length(self, name, atoms, data=None):
         N, x = self.fit
-        assert N % 2 == 1
         d0 = atoms.get_distance(0, 1)
         distances = np.linspace(d0 * (1 - x), d0 * (1 + x), N)
         energies = []
@@ -107,16 +106,36 @@ class MoleculeTask(OptimizeTask):
 
         traj.close()
 
-        data['distances'] = distances
-        data['energies'] = energies
+        if data is not None:
+            data['distances'] = distances
+            data['energies'] = energies
+        else:
+            assert N % 2 == 1
+            data = {'energy': energies[N // 2],
+                    'distances': distances,
+                    'energies': energies}
+
+        return data
 
     def calculate(self, name, atoms):
-        data = OptimizeTask.calculate(self, name, atoms)
-        if self.fmax is not None and len(atoms) == 2:
-            data['distance'] = atoms.get_distance(0, 1)
+        if self.fmax is not None:
+            # this performs relaxation of internal degrees of freedom
+            data = OptimizeTask.calculate(self, name, atoms)
+            if len(atoms) == 2:
+                data['distance'] = atoms.get_distance(0, 1)
+        else:
+            # no optimization
+            if self.fit is None or len(atoms) != 2:
+                # for dimers: only calculate single-point energy if no fit follows
+                data = OptimizeTask.calculate(self, name, atoms)
+        if self.fit is not None and len(atoms) == 2:
+            if self.fmax is not None:
+                # fit after optimization
+                self.fit_bond_length(name, atoms, data)
+            else:
+                # fit is the only task performed
+                data = self.fit_bond_length(name, atoms)
         self.check_occupation_numbers(atoms)
-        if self.fit and len(atoms) == 2:
-            self.fit_bond_length(name, atoms, data)
         return data
 
     def analyse(self):

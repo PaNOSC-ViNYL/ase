@@ -71,7 +71,7 @@ class BulkTask(OptimizeTask):
 
         return atoms
 
-    def fit_volume(self, name, atoms):
+    def fit_volume(self, name, atoms, data=None):
         N, x = self.fit
         cell0 = atoms.get_cell()
         v = atoms.get_volume()
@@ -88,14 +88,18 @@ class BulkTask(OptimizeTask):
 
         traj.close()
 
-        assert N % 2 == 1
-        data = {'energy': energies[N // 2],
-                'strains': strains,
-                'energies': energies}
+        if data is not None:
+            data['strains'] = strains
+            data['energies'] = energies
+        else:
+            assert N % 2 == 1
+            data = {'energy': energies[N // 2],
+                    'strains': strains,
+                    'energies': energies}
 
         return data
 
-    def soptimize(self, name, atoms, trajectory=None):
+    def soptimize(self, name, atoms, data, trajectory=None):
         # Call it soptimize to avoid conflicts with OptimizeTask.optimize.
         # With so many levels of inheritance one never knows ...
         optstr = "ase.optimize." + self.soptimizer
@@ -113,6 +117,11 @@ class BulkTask(OptimizeTask):
                 raise
         except ImportError:
             optimizer.run(self.sfmax)
+        # StrainFilter optimizer steps
+        if data.get('soptimizer steps', None) is None:
+            data['soptimizer steps'] = optimizer.get_number_of_steps() + 1
+        else:
+            data['soptimizer steps'] += optimizer.get_number_of_steps() + 1
 
     def converged(self, atoms, sfmax, fmax):
         # The same criteria as in ASE optimizers:
@@ -130,32 +139,41 @@ class BulkTask(OptimizeTask):
 
     def calculate(self, name, atoms):
         #????
-        if self.fit:
-            return self.fit_volume(name, atoms)
-        elif self.sfmax is not None and self.fmax is not None:
+        if self.sfmax is not None and self.fmax is not None:
             # this performs first relaxation of internal degrees of freedom
             data = OptimizeTask.calculate(self, name, atoms)
             # writing traj from optimizer does not work for StrainFilter!
-            trajectory = PickleTrajectory(self.get_filename(name, 'traj'), 'a', atoms)
+            traj = PickleTrajectory(self.get_filename(name, 'traj'), 'a', atoms)
             sf = StrainFilter(atoms)
             while not self.converged(atoms, sfmax=self.sfmax, fmax=self.fmax):
                 # take a step on the cell
-                self.soptimize(name, sf, trajectory)
+                self.soptimize(name, sf, data, trajectory=traj)
                 # relax internal degrees of freedom
-                OptimizeTask.optimize(self, name, atoms, trajectory)
+                OptimizeTask.optimize(self, name, atoms, data, trajectory=traj)
             data['relaxed energy'] = atoms.get_potential_energy()
-            return data
         elif self.sfmax is not None:
             # this performs single-point energy calculation
             data = OptimizeTask.calculate(self, name, atoms)
             sf = StrainFilter(atoms)
             # writing traj from optimizer does not work for StrainFilter!
-            trajectory = PickleTrajectory(self.get_filename(name, 'traj'), 'w', atoms)
-            self.soptimize(name, sf, trajectory)
+            traj = PickleTrajectory(self.get_filename(name, 'traj'), 'w', atoms)
+            self.soptimize(name, sf, data, trajectory=traj)
             data['relaxed energy'] = atoms.get_potential_energy()
-            return data
+        elif self.fmax is not None:
+            data = OptimizeTask.calculate(self, name, atoms)
         else:
-            return OptimizeTask.calculate(self, name, atoms)
+            # no optimization
+            if self.fit is None:
+                # only calculate single-point energy if no fit follows
+                data = OptimizeTask.calculate(self, name, atoms)
+        if self.fit is not None:
+            if self.sfmax is not None or self.fmax is not None:
+                # fit after optimization
+                self.fit_volume(name, atoms, data)
+            else:
+                # fit is the only task performed
+                data = self.fit_volume(name, atoms)
+        return data
 
     def analyse(self):
         for name, data in self.data.items():

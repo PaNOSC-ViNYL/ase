@@ -396,6 +396,12 @@ class Task:
         self.interactive_python_session = opts.interactive_python_session
         self.contains = opts.contains
         self.modify = opts.modify
+        if self.modify is not None:
+            try:
+                assert not isinstance(eval(self.modify), str), \
+                '--modify option received a string argument. Check quoting.'
+            except SyntaxError:
+                pass
         self.after = opts.after
         self.clean = opts.clean
 
@@ -415,7 +421,7 @@ class OptimizeTask(Task):
 
         self.summary_keys = ['energy', 'relaxed energy']
 
-    def optimize(self, name, atoms, trajectory=None):
+    def optimize(self, name, atoms, data, trajectory=None):
         mask = [t in self.constrain_tags for t in atoms.get_tags()]
         if mask:
             constrain = FixAtoms(mask=mask)
@@ -441,12 +447,17 @@ class OptimizeTask(Task):
                 pass
         except ImportError:
             optimizer.run(self.fmax)
+        # the steps of force optimizer (not force evaluations!)
+        if data.get('foptimizer steps', None) is None:
+            data['foptimizer steps'] = optimizer.get_number_of_steps() + 1
+        else:
+            data['foptimizer steps'] += optimizer.get_number_of_steps() + 1
 
     def calculate(self, name, atoms):
         data = Task.calculate(self, name, atoms)
 
         if self.fmax is not None:
-            self.optimize(name, atoms)
+            self.optimize(name, atoms, data)
 
             data['relaxed energy'] = atoms.get_potential_energy()
 
