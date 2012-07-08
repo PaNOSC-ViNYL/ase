@@ -1,15 +1,6 @@
-import os
+from ase.test.elk import installed
 
-from ase.test import NotAvailable
-
-try:
-    elk_species_path = os.getenv('ELK_SPECIES_PATH')
-    if elk_species_path == None:
-        raise NotAvailable('ELK_SPECIES_PATH not defined')
-except NotAvailable:
-    raise NotAvailable('ELK required')
-
-import numpy as np
+assert installed()
 
 from ase.tasks.main import run
 
