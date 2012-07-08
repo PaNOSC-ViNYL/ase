@@ -72,7 +72,7 @@ class BulkTask(OptimizeTask):
         return atoms
 
     def fit_volume(self, name, atoms, data=None):
-        N, x = self.fit
+        N, x, eos = self.fit
         cell0 = atoms.get_cell()
         v = atoms.get_volume()
         if x > 0:
@@ -91,11 +91,13 @@ class BulkTask(OptimizeTask):
         if data is not None:
             data['strains'] = strains
             data['energies'] = energies
+            data['equation of state'] = eos
         else:
             assert N % 2 == 1
             data = {'energy': energies[N // 2],
                     'strains': strains,
-                    'energies': energies}
+                    'energies': energies,
+                    'equation of state': eos}
 
         return data
 
@@ -188,10 +190,17 @@ class BulkTask(OptimizeTask):
     def analyse(self):
         for name, data in self.data.items():
             if 'strains' in data:
+                # allow selection of eos type independent of data
+                try:
+                    # --fit specified in the summary run
+                    N, x, e = self.fit
+                except TypeError:
+                    # --fit omitted in the summary run
+                    e = data['equation of state']
                 atoms = self.create_system(name)
                 volumes = data['strains']**3 * atoms.get_volume()
                 energies = data['energies']
-                eos = EquationOfState(volumes, energies)
+                eos = EquationOfState(volumes, energies, e)
                 try:
                     v, e, B = eos.fit()
                 except ValueError:
@@ -210,7 +219,7 @@ class BulkTask(OptimizeTask):
         OptimizeTask.add_options(self, parser)
 
         bulk = optparse.OptionGroup(parser, 'Bulk')
-        bulk.add_option('-F', '--fit', metavar='N,x',
+        bulk.add_option('-F', '--fit', metavar='N,x[,eos]',
                         help='Find optimal volume and bulk modulus ' +
                         'using odd N points and variations of the lattice ' +
                         'constant a from -x % to +x %, i.e. in the interval '
@@ -219,7 +228,8 @@ class BulkTask(OptimizeTask):
                         'With x negative (in Angstrom**3) the sampling of ' +
                         'the cell volume (v) in the interval ' +
                         '<(1 + x /v), ..., 1, ..., (1 - x /v)> is used. ' +
-                        'This method gives equidistant sampling of volume.')
+                        'This method gives equidistant sampling of volume. ' +
+                        'Optional eos argument selects the type of eos.')
         bulk.add_option('--srelax', metavar='SFMAX[,SOPTIMIZER]',
                         help='Relax cell by minimizing stress using StranFilter '
                         'with SOPTIMIZER algorithm. The SOPTIMIZER keyword is '
@@ -253,11 +263,15 @@ class BulkTask(OptimizeTask):
             self.sfmax = float(self.sfmax)
 
         if opts.fit:
-            points, strain = opts.fit.split(',')
-            if float(strain) > 0:
-                self.fit = (int(points), float(strain) * 0.01)
+            if len(opts.fit.split(',')) > 2:
+                points, strain, eos = opts.fit.split(',')
             else:
-                self.fit = (int(points), float(strain))
+                points, strain = opts.fit.split(',')
+                eos = 'ip3'
+            if float(strain) > 0:
+                self.fit = (int(points), float(strain) * 0.01, eos)
+            else:
+                self.fit = (int(points), float(strain), eos)
 
         self.crystal_structure = opts.crystal_structure
         self.lattice_constant = opts.lattice_constant

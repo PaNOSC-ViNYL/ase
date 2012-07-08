@@ -26,8 +26,8 @@ Try "ase molecule --help" or "ase bulk --help".
 def run(args=sys.argv[1:], calcname='emt', task=None):
 
     if isinstance(args, str):
-        # leading/trailing spaces result in weird errors
-        args = args.strip()
+        # leading/trailing/extra-mid spaces result in weird errors
+        args = ' '.join(args.split())
         args = args.split(' ')
 
     argsoriginal = args[:]
@@ -60,7 +60,7 @@ def run(args=sys.argv[1:], calcname='emt', task=None):
                                   initial_indent='calculator: ',
                                   subsequent_indent=' ' * 12))
         return
-    
+
     task.set_calculator_factory(calcname)
 
     args = task.parse_args(args)

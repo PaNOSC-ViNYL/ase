@@ -15,7 +15,9 @@ assert task.data == {}
 # fit in range
 # when only fitting the number of points not must be odd
 # in this case data['energy'] is the energy of the middle fit point
-atoms, task = run('molecule H2 -F 5,7 --atomize -t fit')
+# 
+# test trailing space
+atoms, task = run('molecule H2 -F 5,7 --atomize -t fit ')
 atoms, task = run('molecule H2 H -t fit -s')
 data = task.data['H2']
 assert abs(data['energy'] - 1.1589) < 0.0001
@@ -28,7 +30,9 @@ assert abs(data['atomic energy'] - data['relaxed energy'] - 5.3495) < 0.0001
 # opt then fit
 # when fitting after optimization the number of points not need to be odd
 # in this case data['energy'] is the original energy before optimization
-atoms, task = run('molecule H2 -R 0.001,FIRE -F 6,2 --atomize -t optfit')
+#
+# test leading space
+atoms, task = run(' molecule H2 -R 0.001,FIRE -F 6,2 --atomize -t optfit')
 atoms, task = run('molecule H2 H -t optfit -s')
 data = task.data['H2']
 assert abs(data['energy'] - 1.1589) < 0.0001
@@ -62,12 +66,25 @@ assert abs(data['volume'] - 20.2594) < 0.0001
 assert abs(data['B'] - 0.9317) < 0.0001
 
 # fit sensitivity to sampling (same initial structure)
-atoms, task = run('bulk NiO -x rocksalt -a 4.32 -F 5,1 --modify=system.positions[0,2]+=0.1 -t fit')
+#
+# test mid space
+atoms, task = run('bulk NiO -x rocksalt -a 4.32 -F 5,1  --modify=system.positions[0,2]+=0.1 -t fit')
 atoms, task = run('bulk NiO -x rocksalt -a 4.32 -t fit -s')
 data = task.data['NiO']
 assert abs(data['fitted energy'] - 1.1455) < 0.0001
 assert abs(data['volume'] - 20.2595) < 0.0001
 assert abs(data['B'] - 0.9303) < 0.0001
+
+# fit sensitivity to equation of state (same data)
+try:
+    import scipy
+    atoms, task = run('bulk NiO -x rocksalt -a 4.32 -F 5,1,murnaghan -t fit -s')
+    data = task.data['NiO']
+    assert abs(data['fitted energy'] - 1.1455) < 0.0001
+    assert abs(data['volume'] - 20.2595) < 0.0001
+    assert abs(data['B'] - 0.9301) < 0.0001
+except ImportError:
+    pass
 
 # opt and fit (same initial structure)
 atoms, task = run('bulk NiO -x rocksalt -a 4.32 -R 0.01,BFGS -F 5,-0.5 --modify=system.positions[0,2]+=0.1 -t optfit5')

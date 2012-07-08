@@ -56,7 +56,7 @@ try:
         """
         def __init__(self, volumes, energies, eos='ip3'):
             if eos == 'ip3':
-                EquationOfStateIP3.__init__(self, volumes, energies)
+                EquationOfStateIP3.__init__(self, volumes, energies, eos)
             else:
                 # old ASE2 implementation
                 EquationOfStateASE2.__init__(self, volumes, energies, eos)

@@ -26,7 +26,8 @@ class EquationOfStateIP3:
        eos.plot()
 
     """
-    def __init__(self, volumes, energies):
+    def __init__(self, volumes, energies, eos='ip3'):
+        assert eos == 'ip3', eos + ' eos not available. Probably scipy missing.'
         self.v = np.array(volumes)
         self.e = np.array(energies)
         self.eos_string = 'ip3'
