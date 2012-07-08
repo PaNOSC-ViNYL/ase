@@ -264,7 +264,8 @@ class Task:
 
     def calculate(self, name, atoms):
         e = atoms.get_potential_energy()
-        return {'energy': e}
+        data = {'energy': e}
+        return data
 
     def read(self, skipempty=True):
         self.data = read_json(self.get_filename(ext='json'))
@@ -447,11 +448,21 @@ class OptimizeTask(Task):
                 pass
         except ImportError:
             optimizer.run(self.fmax)
-        # the steps of force optimizer (not force evaluations!)
-        if data.get('foptimizer steps', None) is None:
-            data['foptimizer steps'] = optimizer.get_number_of_steps() + 1
+        # StrainFilter optimizer steps
+        steps = optimizer.get_number_of_steps() + 1
+        if data.get('optimizer steps', None) is None:
+            data['optimizer steps'] = steps
         else:
-            data['foptimizer steps'] += optimizer.get_number_of_steps() + 1
+            data['optimizer steps'] += steps
+        # optimizer force calls
+        if hasattr(optimizer, 'force_calls'):
+            calls = optimizer.force_calls + 1
+        else:
+            calls = steps
+        if data.get('optimizer force calls', None) is None:
+            data['optimizer force calls'] = calls
+        else:
+            data['optimizer force calls'] += calls
 
     def calculate(self, name, atoms):
         data = Task.calculate(self, name, atoms)
@@ -459,7 +470,9 @@ class OptimizeTask(Task):
         if self.fmax is not None:
             self.optimize(name, atoms, data)
 
-            data['relaxed energy'] = atoms.get_potential_energy()
+            e = atoms.get_potential_energy()
+
+            data['relaxed energy'] = e
 
         return data
 

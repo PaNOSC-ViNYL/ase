@@ -118,10 +118,20 @@ class BulkTask(OptimizeTask):
         except ImportError:
             optimizer.run(self.sfmax)
         # StrainFilter optimizer steps
-        if data.get('soptimizer steps', None) is None:
-            data['soptimizer steps'] = optimizer.get_number_of_steps() + 1
+        steps = optimizer.get_number_of_steps() + 1
+        if data.get('strain optimizer steps', None) is None:
+            data['strain optimizer steps'] = steps
         else:
-            data['soptimizer steps'] += optimizer.get_number_of_steps() + 1
+            data['strain optimizer steps'] += steps
+        # optimizer force calls
+        if hasattr(optimizer, 'force_calls'):
+            calls = optimizer.force_calls + 1
+        else:
+            calls = steps
+        if data.get('strain optimizer force calls', None) is None:
+            data['strain optimizer force calls'] = calls
+        else:
+            data['strain optimizer force calls'] += calls
 
     def converged(self, atoms, sfmax, fmax):
         # The same criteria as in ASE optimizers:

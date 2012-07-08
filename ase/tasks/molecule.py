@@ -32,8 +32,8 @@ class MoleculeTask(OptimizeTask):
 
         OptimizeTask.__init__(self, **kwargs)
 
-        self.summary_keys = ['energy', 'relaxed energy', 'distance',
-                             'frequency', 'atomic energy']
+        self.summary_keys = ['energy', 'relaxed energy', 'distance', 'frequency',
+                             'atomic energy']
 
     def run(self, names1):
         names = []

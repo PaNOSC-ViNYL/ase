@@ -145,7 +145,7 @@ class EMT:
                 (self.cell != atoms.get_cell()).any())
                 
     def get_number_of_iterations(self):
-        return 0
+        return 1
 
     def get_potential_energy(self, atoms):
         self.update(atoms)
