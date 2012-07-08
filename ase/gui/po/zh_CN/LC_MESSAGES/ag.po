@@ -1,0 +1,3083 @@
+# Chinese translations for the ASE package.
+# Copyright (C) 2012 ASE developers
+# This file is distributed under the same license as the AsE package.
+# Jens Jørgen Mortensen <jensj@fysik.dtu.dk>, 2012.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ase-3.6.1\n"
+"Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
+"POT-Creation-Date: 2012-07-06 02:46+0200\n"
+"PO-Revision-Date: 2012-07-08 18:23+0200\n"
+"Last-Translator: Jun Yan\n"
+"Language-Team: Chinese (simplified)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../ag.py:136
+msgid ""
+"\n"
+"An exception occurred!  Please report the issue to\n"
+"ase-developers@listserv.fysik.dtu.dk - thanks!  Please also report this if\n"
+"it was a user error, so that a better error message can be provided\n"
+"next time."
+msgstr ""
+"\n"
+"错误！请向 ase-developers@listserv.fysik.dtu.dk 报告－谢谢！如果这是一个用户"
+"造成的错误，也请报告，这样下次我们可以提供更好的错误消息。"
+
+#. Asap and GPAW may be imported if selected.
+#: ../calculator.py:18
+msgid ""
+"To make most calculations on the atoms, a Calculator object must first\n"
+"be associated with it.  ASE supports a number of calculators, supporting\n"
+"different elements, and implementing different physical models for the\n"
+"interatomic interactions."
+msgstr ""
+"为了对原子做计算，首先需要对原子关联一个‘计算子’。ASE 支持多种程序多种元素的"
+"计算子，同时用各类不同的物理模型描述原子之间的相互作用。"
+
+#. Informational text about the calculators
+#: ../calculator.py:26
+msgid ""
+"The Lennard-Jones pair potential is one of the simplest\n"
+"possible models for interatomic interactions, mostly\n"
+"suitable for noble gasses and model systems.\n"
+"\n"
+"Interactions are described by an interaction length and an\n"
+"interaction strength."
+msgstr ""
+"Lennard－Jones 势是各类描述原子间相互作用的模型中最简单的一种之一，通常适合与"
+"惰性原子气体和模型体系。"
+
+#: ../calculator.py:35
+msgid ""
+"The EMT potential is a many-body potential, giving a\n"
+"good description of the late transition metals crystalling\n"
+"in the FCC crystal structure.  The elements described by the\n"
+"main set of EMT parameters are Al, Ni, Cu, Pd, Ag, Pt, and\n"
+"Au, the Al potential is however not suitable for materials\n"
+"science application, as the stacking fault energy is wrong.\n"
+"\n"
+"A number of parameter sets are provided.\n"
+"\n"
+"<b>Default parameters:</b>\n"
+"\n"
+"The default EMT parameters, as published in K. W. Jacobsen,\n"
+"P. Stoltze and J. K. Nørskov, <i>Surf. Sci.</i> <b>366</b>, 394 (1996).\n"
+"\n"
+"<b>Alternative Cu, Ag and Au:</b>\n"
+"\n"
+"An alternative set of parameters for Cu, Ag and Au,\n"
+"reoptimized to experimental data including the stacking\n"
+"fault energies by Torben Rasmussen (partly unpublished).\n"
+"\n"
+"<b>Ruthenium:</b>\n"
+"\n"
+"Parameters for Ruthenium, as published in J. Gavnholt and\n"
+"J. Schiøtz, <i>Phys. Rev. B</i> <b>77</b>, 035404 (2008).\n"
+"\n"
+"<b>Metallic glasses:</b>\n"
+"\n"
+"Parameters for MgCu and CuZr metallic glasses. MgCu\n"
+"parameters are in N. P. Bailey, J. Schiøtz and\n"
+"K. W. Jacobsen, <i>Phys. Rev. B</i> <b>69</b>, 144205 (2004).\n"
+"CuZr in A. Paduraru, A. Kenoufi, N. P. Bailey and\n"
+"J. Schiøtz, <i>Adv. Eng. Mater.</i> <b>9</b>, 505 (2007).\n"
+msgstr ""
+"EMT 势是一种多体势，对有面心立方结构的后期过渡性金属材料有很好的描述。由 EMT "
+"参数描述的元素主要有 Al，Ni，Cu，Pd，Ag，Pt 和 Au。其中 Al 势不适合做材料科学"
+"应用，因为堆栈缺陷能是错误的。\n"
+"一系列的参数被提供了。\n"
+"\n"
+"默认参数：\n"
+"\n"
+"默认 EMT 参数发表在K. W. Jacobsen,\n"
+"P. Stoltze and J. K. Nørskov, <i>Surf. Sci.</i> <b>366</b>, 394 (1996).\n"
+"\n"
+"Cu，Ag 和 Au 的另一类参数：\n"
+"Cu，Ag 和 Au 的另一类可选参数是根据 Torben Rasmussen 关于堆栈缺陷能的实验数据"
+"（部分未发表）重新优化得到的。\n"
+"Ruthenium：\n"
+"Ruthenium的参数，发表在J. Gavnholt and\n"
+"J. Schiøtz, <i>Phys. Rev. B</i> <b>77</b>, 035404 (2008).\n"
+"\n"
+"金属玻璃:\n"
+"MgCu 和 CuZr 金属玻璃的参数：MgCu 参数发表在 N. P. Bailey, J. Schiøtz and\n"
+"K. W. Jacobsen, <i>Phys. Rev. B</i> <b>69</b>, 144205 (2004). CuZr 在A. "
+"Paduraru, A. Kenoufi, N. P. Bailey and\n"
+"J. Schiøtz, <i>Adv. Eng. Mater.</i> <b>9</b>, 505 (2007).\n"
+
+#: ../calculator.py:70
+msgid ""
+"The EMT potential is a many-body potential, giving a\n"
+"good description of the late transition metals crystalling\n"
+"in the FCC crystal structure.  The elements described by the\n"
+"main set of EMT parameters are Al, Ni, Cu, Pd, Ag, Pt, and\n"
+"Au.  In addition, this implementation allows for the use of\n"
+"H, N, O and C adatoms, although the description of these is\n"
+"most likely not very good.\n"
+"\n"
+"<b>This is the ASE implementation of EMT.</b> For large\n"
+"simulations the ASAP implementation is more suitable; this\n"
+"implementation is mainly to make EMT available when ASAP is\n"
+"not installed.\n"
+msgstr ""
+"EMT 势是一种多体势，对有面心立方结构的后期过渡性金属材料有很好的描述。由 EMT "
+"参数描述的元素主要有 Al，Ni，Cu，Pd，Ag，Pt 和 Au。除此以外，这个程序应用还能"
+"够使用 H，N，O 和 C 做为吸附原子，虽然对这些元素的描述很有可能不太好。\n"
+"这个是 ASE 中 EMT 程序应用。对大型模拟，ASAP 程序应用更加适用。当前程序应用主"
+"要是为了使当 ASAP 没有被安装时可以使用 EMT。\n"
+
+#: ../calculator.py:85
+msgid ""
+"The Brenner potential is a reactive bond-order potential for\n"
+"carbon and hydrocarbons.  As a bond-order potential, it takes\n"
+"into account that carbon orbitals can hybridize in different\n"
+"ways, and that carbon can form single, double and triple\n"
+"bonds.  That the potential is reactive means that it can\n"
+"handle gradual changes in the bond order as chemical bonds\n"
+"are formed or broken.\n"
+"\n"
+"The Brenner potential is implemented in Asap, based on a\n"
+"C implentation published at http://www.rahul.net/pcm/brenner/ .\n"
+"\n"
+"The potential is documented here:\n"
+"  Donald W Brenner, Olga A Shenderova, Judith A Harrison,\n"
+"  Steven J Stuart, Boris Ni and Susan B Sinnott:\n"
+"  \"A second-generation reactive empirical bond order (REBO)\n"
+"  potential energy expression for hydrocarbons\",\n"
+"  J. Phys.: Condens. Matter 14 (2002) 783-802.\n"
+"  doi: 10.1088/0953-8984/14/4/312\n"
+msgstr ""
+"Brenner 势是一种适用于碳和 hydrocarbon 的 reactive bond-order 势。做为一个 "
+"bond－order 势，它考虑到碳原子轨道能够形成不同种类的耦合，形成单价，双价和三"
+"价键。势是 reactive 指它可以处理化学键形成或者断裂时键级数的逐步改变。\n"
+"Brenner 势植入在 Asap，基于发表在 http://www.rahul.net/pcm/brenner/ 的碳 "
+"implementation。\n"
+"这个势发表在：\n"
+"  Donald W Brenner, Olga A Shenderova, Judith A Harrison,\n"
+"  Steven J Stuart, Boris Ni and Susan B Sinnott:\n"
+"  \"A second-generation reactive empirical bond order (REBO)\n"
+"  potential energy expression for hydrocarbons\",\n"
+"  J. Phys.: Condens. Matter 14 (2002) 783-802.\n"
+"  doi: 10.1088/0953-8984/14/4/312\n"
+
+#: ../calculator.py:107
+msgid ""
+"GPAW implements Density Functional Theory using a\n"
+"<b>G</b>rid-based real-space representation of the wave\n"
+"functions, and the <b>P</b>rojector <b>A</b>ugmented <b>W</b>ave\n"
+"method for handling the core regions.  \n"
+msgstr ""
+"GPAW 是密度泛函理论的程序实现，对波函数使用实空间格点，对原子核区域使用 "
+"projector augmented wave 方法。\n"
+
+#: ../calculator.py:114
+msgid ""
+"FHI-aims is an external package implementing density \n"
+"functional theory and quantum chemical methods using \n"
+"all-electron methods and a numeric local orbital basis set. \n"
+"For full details, see http://www.fhi-berlin.mpg.de/aims/ \n"
+"or Comp. Phys. Comm. v180 2175 (2009). The ASE \n"
+"documentation contains information on the keywords and \n"
+"functionalities available within this interface. \n"
+msgstr ""
+"FHI－aims 是一个外部程序包，用全电子方法和数值局域轨道基底实现密度泛函理论和"
+"量子化学方法。详见 http://www.fhi-berlin.mpg.de/aims/ or Comp. Phys. Comm. "
+"v180 2175 (2009). ASE documentation 包括关键词和程序界面的功能的信息。\n"
+
+#: ../calculator.py:124
+msgid ""
+"WARNING:\n"
+"Your system seems to have more than zero but less than \n"
+"three periodic dimensions. Please check that this is \n"
+"really what you want to compute. Assuming full \n"
+"3D periodicity for this calculator."
+msgstr ""
+"警告：你的系统似乎是大于0维但是小于3维。请检查这究竟是否你想计算的结构。这个"
+"计算子假设完整的3维周期性。"
+
+#: ../calculator.py:131
+msgid ""
+"VASP is an external package implementing density \n"
+"functional functional theory using pseudopotentials \n"
+"or the projector-augmented wave method together \n"
+"with a plane wave basis set. For full details, see\n"
+"http://cms.mpi.univie.ac.at/vasp/vasp/\n"
+msgstr ""
+"VASP 是一个外部程序包，用赝势或者 projector augmented wave 方法以及平面波基底"
+"实现密度泛函理论。详见http://cms.mpi.univie.ac.at/vasp/vasp/\n"
+
+#: ../calculator.py:140
+msgid "Default (Al, Ni, Cu, Pd, Ag, Pt, Au)"
+msgstr "默认（Al，Ni，Cu，Pd，Ag，Pt，Au）"
+
+#: ../calculator.py:141
+msgid "Alternative Cu, Ag and Au"
+msgstr "替代的 Cu，Ag和Au"
+
+#: ../calculator.py:142
+msgid "Ruthenium"
+msgstr "Ruthenium"
+
+#: ../calculator.py:143
+msgid "CuMg and CuZr metallic glass"
+msgstr "CuMg 和 CuZr 金属玻璃"
+
+#: ../calculator.py:158
+msgid "Select calculator"
+msgstr "选择计算子"
+
+#: ../calculator.py:164
+msgid "Calculator:"
+msgstr "计算子："
+
+#. No calculator (the default)
+#: ../calculator.py:167
+msgid "None"
+msgstr "无"
+
+#: ../calculator.py:172
+msgid "Lennard-Jones (ASAP)"
+msgstr "Lennard－Jones（ASAP）"
+
+#: ../calculator.py:173 ../calculator.py:206 ../calculator.py:215
+#: ../calculator.py:224
+msgid "Setup"
+msgstr "Setup"
+
+#: ../calculator.py:180
+msgid "EMT - Effective Medium Theory (ASAP)"
+msgstr "EMT－有效介质理论（ASAP）"
+
+#: ../calculator.py:192
+msgid "EMT - Effective Medium Theory (ASE)"
+msgstr "EMT－有效介质理论（ASE）"
+
+#: ../calculator.py:198
+msgid "Brenner Potential (ASAP)"
+msgstr "Brenner 势（ASAP）"
+
+#: ../calculator.py:204
+msgid "Density Functional Theory (GPAW)"
+msgstr "密度泛函理论（GPAW）"
+
+#: ../calculator.py:213
+msgid "Density Functional Theory (FHI-aims)"
+msgstr "密度泛函理论（FHI-aims）"
+
+#: ../calculator.py:222
+msgid "Density Functional Theory (VASP)"
+msgstr "密度泛函理论（VASP）"
+
+#: ../calculator.py:235
+msgid "Check that the calculator is reasonable."
+msgstr "检查计算子是否合理。"
+
+#: ../calculator.py:298 ../simulation.py:114
+msgid "No atoms present"
+msgstr "没有原子信息"
+
+#: ../calculator.py:388 ../calculator.py:422 ../calculator.py:452
+msgid "ASAP is not installed. (Failed to import asap3)"
+msgstr "ASAP 没有被安装（导入 asap3 失败）。"
+
+#: ../calculator.py:391
+msgid "You must set up the Lennard-Jones parameters"
+msgstr "你必须设置 Lennard－Jones 参数"
+
+#: ../calculator.py:396
+msgid "Could not create useful Lennard-Jones calculator."
+msgstr "建立不了有用的 Lennard－Jones 计算子。"
+
+#: ../calculator.py:430
+msgid "Could not attach EMT calculator to the atoms."
+msgstr "无法把 EMT 计算子赋给原子。"
+
+#: ../calculator.py:470 ../calculator.py:482
+msgid "GPAW is not installed. (Failed to import gpaw)"
+msgstr "GPAW 没有被安装。"
+
+#: ../calculator.py:473
+msgid "You must set up the GPAW parameters"
+msgstr "需设置 GPAW 参数。"
+
+#: ../calculator.py:514
+msgid "You must set up the FHI-aims parameters"
+msgstr "需设置 FHI－aims 参数。"
+
+#: ../calculator.py:528
+msgid "You must set up the VASP parameters"
+msgstr "需设置 VASP 参数。"
+
+#: ../calculator.py:552
+#, fuzzy, python-format
+#| msgid "Element %s is not allowed by the '%s' calculator"
+msgid "Element %(sym)s not allowed by the '%(name)s' calculator"
+msgstr "元素 %s 不被 %s 计算子容许。"
+
+#: ../calculator.py:559
+msgid "Info"
+msgstr "信息"
+
+#: ../calculator.py:575
+msgid "Lennard-Jones parameters"
+msgstr "Lennard－Jones 参数"
+
+#: ../calculator.py:587
+msgid "Specify the Lennard-Jones parameters here"
+msgstr "在这里设置 Lennard－Jones 参数"
+
+#: ../calculator.py:590
+msgid "Epsilon (eV):"
+msgstr "Epsilon （电子伏特）"
+
+#: ../calculator.py:594
+msgid "Sigma (Å):"
+msgstr "Sigma （Å）"
+
+#. TRANSLATORS: Shift roughly means adjust (about a potential)
+#: ../calculator.py:598
+msgid "Shift to make smooth at cutoff"
+msgstr "改为光滑截断"
+
+#: ../calculator.py:679
+msgid "GPAW parameters"
+msgstr "GPAW 参数"
+
+#. label = gtk.Label("Specify the GPAW parameters here")
+#. pack(vbox, [label])
+#. Print some info
+#: ../calculator.py:694 ../calculator.py:983 ../calculator.py:1471
+#, python-format
+msgid "%i atoms.\n"
+msgstr "%i 原子。\n"
+
+#: ../calculator.py:696
+#, python-format
+msgid "Orthogonal unit cell: %.2f x %.2f x %.2f Å."
+msgstr "正交原胞：%.2f x %.2f x %.2f Å。"
+
+#: ../calculator.py:698
+msgid "Non-orthogonal unit cell:\n"
+msgstr "非正交原胞：\n"
+
+#: ../calculator.py:708 ../calculator.py:999 ../calculator.py:1486
+msgid "Exchange-correlation functional: "
+msgstr "交换关联势："
+
+#. Grid spacing
+#: ../calculator.py:712
+msgid "Grid spacing"
+msgstr "格点间距"
+
+#: ../calculator.py:716 ../graphene.py:67 ../graphene.py:78 ../graphene.py:101
+#: ../nanotube.py:49 ../surfaceslab.py:97
+msgid "Å"
+msgstr "Å"
+
+#: ../calculator.py:717
+msgid "Grid points"
+msgstr "格点"
+
+#: ../calculator.py:726
+#, python-format
+msgid "h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å"
+msgstr "h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å"
+
+#: ../calculator.py:752 ../calculator.py:1014 ../calculator.py:1522
+msgid "k-points  k = ("
+msgstr "k－点 k ＝（"
+
+#: ../calculator.py:756 ../calculator.py:1018
+#, python-format
+msgid "k-points x size:  (%.1f, %.1f, %.1f) Å"
+msgstr "k－点 x 大小:  (%.1f, %.1f, %.1f) Å"
+
+#. Spin polarized
+#: ../calculator.py:761 ../calculator.py:1484
+msgid "Spin polarized"
+msgstr "自旋极化"
+
+#: ../calculator.py:767
+msgid "FD - Finite Difference (grid) mode"
+msgstr "FD－有限差分（格点）模式"
+
+#: ../calculator.py:768
+msgid "LCAO - Linear Combination of Atomic Orbitals"
+msgstr "LCAO－原子轨道的线性叠加"
+
+#: ../calculator.py:771
+msgid "Mode: "
+msgstr "模式"
+
+#: ../calculator.py:773
+msgid "sz - Single Zeta"
+msgstr "sz－单个Zeta"
+
+#: ../calculator.py:774
+msgid "szp - Single Zeta polarized"
+msgstr "szp－单个 zeta 极化"
+
+#: ../calculator.py:775
+msgid "dzp - Double Zeta polarized"
+msgstr "dzp－双 zeta 极化"
+
+#. dzp
+#: ../calculator.py:777
+msgid "Basis functions: "
+msgstr "基底"
+
+#. Mixer
+#: ../calculator.py:783
+msgid "Non-standard mixer parameters"
+msgstr "非标准混合参数"
+
+#: ../calculator.py:979
+msgid "FHI-aims parameters"
+msgstr "FHI－aims 参数"
+
+#: ../calculator.py:986
+#, fuzzy
+#| msgid "Periodic geometry, unit cell is: \n"
+msgid "Periodic geometry, unit cell is:\n"
+msgstr "周期性结构，原胞为：\n"
+
+#: ../calculator.py:991
+#, fuzzy
+#| msgid "Non-periodic geometry. \n"
+msgid "Non-periodic geometry.\n"
+msgstr "非周期性结构。\n"
+
+#: ../calculator.py:998
+msgid "Hirshfeld-based dispersion correction"
+msgstr "基于 Hirshfeld 的 dispersion 修正"
+
+#. Spin polarized, charge, relativity
+#: ../calculator.py:1024
+msgid "Spin / initial moment "
+msgstr "自旋／初始磁矩"
+
+#: ../calculator.py:1042
+msgid "   Charge"
+msgstr "电荷"
+
+#: ../calculator.py:1044
+msgid "   Relativity"
+msgstr "相对论效应"
+
+#: ../calculator.py:1046
+msgid " Threshold"
+msgstr "阙值"
+
+#. self-consistency criteria
+#: ../calculator.py:1051
+msgid "Self-consistency convergence:"
+msgstr "自洽收敛："
+
+#: ../calculator.py:1064
+msgid "Compute forces"
+msgstr "计算力"
+
+#. XXX: use gtk table for layout.  Spaces will not work well otherwise
+#. (depend on fonts, widget style, ...)
+#. TRANSLATORS: Don't care too much about these, just get approximately
+#. the same string lengths
+#: ../calculator.py:1075
+msgid "Energy:                 "
+msgstr "能量"
+
+#: ../calculator.py:1077
+msgid " eV   Sum of eigenvalues:  "
+msgstr "电子伏特 本征值相加："
+
+#: ../calculator.py:1079 ../calculator.py:1557
+msgid " eV"
+msgstr "电子伏特"
+
+#: ../calculator.py:1080
+msgid "Electron density: "
+msgstr "电荷密度"
+
+#: ../calculator.py:1082
+msgid "        Force convergence:  "
+msgstr "力收敛"
+
+#: ../calculator.py:1084
+msgid " eV/Ang  "
+msgstr "eV／Ang"
+
+#: ../calculator.py:1097 ../calculator.py:1568
+msgid "Additional keywords: "
+msgstr "附加关键词："
+
+#. run command and species defaults:
+#: ../calculator.py:1111
+msgid "FHI-aims execution command: "
+msgstr "FHI－aims 执行命令："
+
+#: ../calculator.py:1113 ../calculator.py:1585
+msgid "Directory for species defaults: "
+msgstr "原子种类默认值目录："
+
+#: ../calculator.py:1125 ../calculator.py:1593
+msgid "Set Defaults"
+msgstr "设置默认值"
+
+#: ../calculator.py:1127
+msgid "Import control.in"
+msgstr "导入控制输入"
+
+#: ../calculator.py:1129
+msgid "Export control.in"
+msgstr "导出控制输入"
+
+#: ../calculator.py:1315
+msgid "Export parameters ... "
+msgstr "导出参数。。。"
+
+#: ../calculator.py:1335
+msgid "Import control.in file ... "
+msgstr "导入控制输入文件。。"
+
+#: ../calculator.py:1391 ../calculator.py:1903
+#, fuzzy, python-format
+msgid ""
+"Please use the facilities provided in this window to manipulate the keyword: "
+"%s!"
+msgstr "请使用这个窗口提供的工具操纵关键词！"
+
+#: ../calculator.py:1394
+#, python-format
+msgid ""
+"Don't know this keyword: %s\n"
+"\n"
+"Please check!\n"
+"\n"
+"If you really think it should be available, please add it to the top of ase/"
+"calculators/aims.py."
+msgstr ""
+"此关键词不存在：%s\n"
+"\n"
+"请检查！\n"
+"\n"
+"如果你认为这个关键词需要存在，请在ase/calculators/aims.py 顶部添加。"
+
+#: ../calculator.py:1467
+msgid "VASP parameters"
+msgstr "VASP 参数"
+
+#: ../calculator.py:1473
+msgid "Periodic geometry, unit cell is: \n"
+msgstr "周期性结构，原胞为：\n"
+
+#: ../calculator.py:1525
+msgid ")    Cutoff: "
+msgstr "）能量截断："
+
+#: ../calculator.py:1526
+msgid "    Precision: "
+msgstr "精度："
+
+#: ../calculator.py:1528
+#, python-format
+msgid "k-points x size:  (%.1f, %.1f, %.1f) Å       "
+msgstr "k－点 x 大小:  (%.1f, %.1f, %.1f) Å "
+
+#: ../calculator.py:1544
+msgid "Smearing: "
+msgstr "费米展宽："
+
+#: ../calculator.py:1546
+msgid " order: "
+msgstr "级数："
+
+#: ../calculator.py:1548
+msgid " width: "
+msgstr "宽度："
+
+#: ../calculator.py:1555
+msgid "Self-consistency convergence: "
+msgstr "自洽收敛："
+
+#. run command and location of POTCAR files:
+#: ../calculator.py:1581
+msgid "VASP execution command: "
+msgstr "VASP执行命令："
+
+#: ../calculator.py:1595
+msgid "Import VASP files"
+msgstr "导入 VASP 文件"
+
+#: ../calculator.py:1597
+msgid "Export VASP files"
+msgstr "导出 VASP 文件"
+
+#: ../calculator.py:1806
+msgid "<b>WARNING:</b> cutoff energy is lower than recommended minimum!"
+msgstr "警告：能量截断比推荐的最低值还低！"
+
+#: ../calculator.py:1858
+msgid "Import VASP input files: choose directory ... "
+msgstr "导入 VASP 输入文件：选择目录。。。"
+
+#: ../calculator.py:1873
+msgid "Export VASP input files: choose directory ... "
+msgstr "导出 VASP 输入文件：选择目录。。。"
+
+#: ../calculator.py:1906
+#, python-format
+msgid ""
+"Don't know this keyword: %s\n"
+"Please check!\n"
+"\n"
+"If you really think it should be available, please add it to the top of ase/"
+"calculators/vasp.py."
+msgstr ""
+"该关键词不存在：%s。请检查！如果你认为此关键词应该存在，请把它添加于 ase/"
+"calculators/vasp.py 顶部。"
+
+#: ../colors.py:24
+msgid "Colors"
+msgstr "颜色"
+
+#. Upper left: Choose how the atoms are colored.
+#: ../colors.py:41
+msgid "Choose how the atoms are colored:"
+msgstr "选择如何给原子着色："
+
+#: ../colors.py:43
+msgid "By atomic number, default \"jmol\" colors"
+msgstr "根据原子数，默认\"jmol\" 颜色"
+
+#: ../colors.py:45
+msgid "By atomic number, user specified"
+msgstr "根据原子数，用户自定义"
+
+#: ../colors.py:46
+msgid "By tag"
+msgstr "根据 tag"
+
+#: ../colors.py:47
+msgid "By force"
+msgstr "根据力"
+
+#: ../colors.py:48
+msgid "By velocity"
+msgstr "根据速度"
+
+#: ../colors.py:49
+msgid "Manually specified"
+msgstr "手动定义"
+
+#: ../colors.py:50
+msgid "All the same color"
+msgstr "全部使用同样颜色"
+
+#. Now fill in the box for additional information in case the force is used.
+#: ../colors.py:60
+msgid "This should not be displayed!"
+msgstr "这个应不被显示！"
+
+#: ../colors.py:65 ../colors.py:82 ../rotate.py:25
+msgid "Update"
+msgstr "更新"
+
+#: ../colors.py:67 ../colors.py:84
+msgid "Min: "
+msgstr "最小值"
+
+#: ../colors.py:69 ../colors.py:86
+msgid "  Max: "
+msgstr "最大值"
+
+#: ../colors.py:71 ../colors.py:88
+msgid "  Steps: "
+msgstr "步长"
+
+#: ../colors.py:95
+msgid "Create a color scale:"
+msgstr "建立一个颜色尺度"
+
+#: ../colors.py:98
+msgid "Black - white"
+msgstr "黑－白"
+
+#: ../colors.py:99
+msgid "Black - red - yellow - white"
+msgstr "黑－红－黄－白"
+
+#: ../colors.py:100
+msgid "Black - green - white"
+msgstr "黑－绿－白"
+
+#: ../colors.py:101
+msgid "Black - blue - cyan"
+msgstr "黑－蓝－cyan"
+
+#: ../colors.py:102
+msgid "Hue"
+msgstr "Hue"
+
+#: ../colors.py:103
+msgid "Named colors"
+msgstr "命名的颜色"
+
+#: ../colors.py:109
+msgid "Create"
+msgstr "建立"
+
+#: ../colors.py:367
+#, python-format
+msgid "Max force: %.2f (this frame), %.2f (all frames)"
+msgstr "最大力： %.2f (这个框架), %.2f (所有框架)"
+
+#: ../colors.py:369
+#, python-format
+msgid "Max force: %.2f."
+msgstr "最大力：%.2f。"
+
+#: ../colors.py:383
+#, python-format
+msgid "Max velocity: %.2f (this frame), %.2f (all frames)"
+msgstr "最大速度：%.2f (这个框架), %.2f (所有框架)"
+
+#: ../colors.py:385
+#, python-format
+msgid "Max velocity: %.2f."
+msgstr "最大速度：%.2f。"
+
+#: ../colors.py:426
+msgid "ERROR"
+msgstr "错误"
+
+#: ../colors.py:455
+msgid "ERR"
+msgstr "错误"
+
+#: ../colors.py:542
+msgid "Incorrect color specification"
+msgstr "错误颜色"
+
+#: ../constraints.py:13 ../widgets.py:90
+msgid "Constraints"
+msgstr "限定"
+
+#: ../constraints.py:15 ../constraints.py:18 ../settings.py:17
+#: ../widgets.py:92 ../widgets.py:95
+msgid "Constrain"
+msgstr "限定"
+
+#: ../constraints.py:16 ../settings.py:20 ../settings.py:35 ../widgets.py:93
+msgid " selected atoms"
+msgstr "选择原子"
+
+#: ../constraints.py:19 ../widgets.py:96
+msgid " immobile atoms:"
+msgstr "固定原子："
+
+#: ../constraints.py:21
+msgid "Unconstrain"
+msgstr "非限定"
+
+#: ../constraints.py:22
+msgid " selected atoms:"
+msgstr "选择原子："
+
+#: ../constraints.py:24
+msgid "Clear constraints"
+msgstr "清空限定"
+
+#: ../constraints.py:26 ../dft.py:29 ../settings.py:53 ../widgets.py:60
+#: ../widgets.py:100
+msgid "Close"
+msgstr "关闭"
+
+#: ../crystal.py:16
+msgid ""
+"  Use this dialog to create crystal lattices. First select the structure,\n"
+"  either from a set of common crystal structures, or by space group "
+"description.\n"
+"  Then add all other lattice parameters.\n"
+"\n"
+"  If an experimental crystal structure is available for an atom, you can\n"
+"  look up the crystal type and lattice constant, otherwise you have to "
+"specify it\n"
+"  yourself.  "
+msgstr ""
+"使用这个对话来建立晶格。首先选择结构，从已有晶格结构或者空间群描述中选择。"
+
+#: ../crystal.py:33 ../graphene.py:27
+#, python-format
+msgid " %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>"
+msgstr "%(natoms)i 原子：%(symbols)s, 体积: %(volume).3f A<sup>3</sup>"
+
+#: ../crystal.py:58
+msgid "Create Bulk Crystal by Spacegroup"
+msgstr "根据‘空间群’建立体结构"
+
+#: ../crystal.py:72
+msgid "Number: 1"
+msgstr "数目：1"
+
+#: ../crystal.py:73
+msgid "Lattice: "
+msgstr "晶格"
+
+#: ../crystal.py:73
+msgid "\tSpace group: "
+msgstr "空间群"
+
+#: ../crystal.py:77
+msgid "Size: x: "
+msgstr "大小：x："
+
+#: ../crystal.py:78 ../crystal.py:138
+msgid "  y: "
+msgstr "y："
+
+#: ../crystal.py:79 ../crystal.py:139
+msgid "  z: "
+msgstr "z："
+
+#: ../crystal.py:80 ../surfaceslab.py:127 ../surfaceslab.py:129
+msgid " unit cells"
+msgstr "原胞"
+
+#: ../crystal.py:92 ../crystal.py:96 ../crystal.py:100 ../crystal.py:104
+#: ../crystal.py:108 ../crystal.py:112
+msgid "free"
+msgstr "自由"
+
+#: ../crystal.py:93 ../crystal.py:102
+msgid "equals b"
+msgstr "等于 b"
+
+#: ../crystal.py:94 ../crystal.py:98
+msgid "equals c"
+msgstr "等于 c"
+
+#: ../crystal.py:95 ../crystal.py:99 ../crystal.py:103 ../crystal.py:107
+#: ../crystal.py:111 ../crystal.py:115
+msgid "fixed"
+msgstr "固定"
+
+#: ../crystal.py:97 ../crystal.py:101
+msgid "equals a"
+msgstr "等于 a"
+
+#: ../crystal.py:105 ../crystal.py:114
+msgid "equals beta"
+msgstr "等于 beta"
+
+#: ../crystal.py:106 ../crystal.py:110
+msgid "equals gamma"
+msgstr "等于 gamma"
+
+#: ../crystal.py:109 ../crystal.py:113
+msgid "equals alpha"
+msgstr "等于 alpha"
+
+#: ../crystal.py:119
+msgid "Lattice parameters"
+msgstr "晶格参数"
+
+#: ../crystal.py:120
+msgid "\t\ta:\t"
+msgstr ""
+
+#: ../crystal.py:121
+msgid "\talpha:\t"
+msgstr ""
+
+#: ../crystal.py:122
+msgid "\t\tb:\t"
+msgstr ""
+
+#: ../crystal.py:123
+msgid "\tbeta:\t"
+msgstr ""
+
+#: ../crystal.py:124
+msgid "\t\tc:\t"
+msgstr ""
+
+#: ../crystal.py:125
+msgid "\tgamma:\t"
+msgstr ""
+
+#: ../crystal.py:126 ../surfaceslab.py:99
+msgid "Get from database"
+msgstr "从数据库获得"
+
+#: ../crystal.py:131
+msgid "Basis: "
+msgstr "基底："
+
+#: ../crystal.py:137
+msgid "  Element:\t"
+msgstr "元素："
+
+#: ../crystal.py:137
+msgid "\tx: "
+msgstr ""
+
+#: ../crystal.py:157
+msgid "Creating a crystal."
+msgstr "建立晶格。"
+
+#: ../crystal.py:202
+#, python-format
+msgid "Symbol: %s"
+msgstr ""
+
+#: ../crystal.py:207
+#, python-format
+msgid "Number: %s"
+msgstr "原子数：%s"
+
+#: ../crystal.py:210
+msgid "Invalid Spacegroup!"
+msgstr "错误空间群！"
+
+#: ../crystal.py:336 ../crystal.py:339
+msgid "Please specify a consistent set of atoms."
+msgstr "请使用恰当的原子设置。"
+
+#: ../crystal.py:348 ../graphene.py:254 ../nanoparticle.py:614
+#: ../nanotube.py:160 ../surfaceslab.py:248
+msgid "No valid atoms."
+msgstr "错误原子。"
+
+#: ../crystal.py:465
+msgid "Can't find lattice definition!"
+msgstr "找不到晶格定义！"
+
+#: ../debug.py:11
+msgid "Debug"
+msgstr "Debug"
+
+#: ../dft.py:13
+msgid "DFT"
+msgstr "密度泛函理论"
+
+#: ../dft.py:19
+msgid "XC-functional: "
+msgstr "交换关联势："
+
+#: ../dft.py:23 ../repeat.py:16
+msgid "Repeat atoms:"
+msgstr "重复原子："
+
+#: ../energyforces.py:11
+msgid "Output:"
+msgstr "输出："
+
+#: ../energyforces.py:41
+msgid "Save output"
+msgstr "保存输出"
+
+#: ../energyforces.py:57
+msgid "Potential energy and forces"
+msgstr "势能和力"
+
+#: ../energyforces.py:61
+msgid "Calculate potential energy and the force on all atoms"
+msgstr "计算所有原子的势能和力"
+
+#: ../energyforces.py:65
+msgid "Write forces on the atoms"
+msgstr "写原子力"
+
+#: ../energyforces.py:82
+msgid "Potential Energy:\n"
+msgstr "势能：\n"
+
+#: ../energyforces.py:83
+#, python-format
+msgid "  %8.2f eV\n"
+msgstr "%8.2f 电子伏特\n"
+
+#: ../energyforces.py:84
+#, python-format
+msgid ""
+"  %8.4f eV/atom\n"
+"\n"
+msgstr ""
+"%8.4f 电子伏特／原子\n"
+"\n"
+
+#: ../energyforces.py:86
+msgid "Forces:\n"
+msgstr "力：\n"
+
+#: ../execute.py:23
+msgid ""
+"\n"
+"    Global commands work on all frames or only on the current frame\n"
+"    - Assignment of a global variable may not reference a local one\n"
+"    - use 'Current frame' switch to switch off application to all frames\n"
+"    <c>e</c>:\t\ttotal energy of one frame\n"
+"    <c>fmax</c>:\tmaximal force in one frame\n"
+"    <c>A</c>:\tunit cell\n"
+"    <c>E</c>:\t\ttotal energy array of all frames\n"
+"    <c>F</c>:\t\tall forces in one frame\n"
+"    <c>M</c>:\tall magnetic moments\n"
+"    <c>R</c>:\t\tall atomic positions\n"
+"    <c>S</c>:\tall selected atoms (boolean array)\n"
+"    <c>D</c>:\tall dynamic atoms (boolean array)\n"
+"    examples: <c>frame = 1</c>, <c>A[0][1] += 4</c>, <c>e-E[-1]</c>\n"
+"\n"
+"    Atom commands work on each atom (or a selection) individually\n"
+"    - these can use global commands on the RHS of an equation\n"
+"    - use 'selected atoms only' to restrict application of command\n"
+"    <c>x,y,z</c>:\tatomic coordinates\n"
+"    <c>r,g,b</c>:\tatom display color, range is [0..1]\n"
+"    <c>rad</c>:\tatomic radius for display\n"
+"    <c>s</c>:\t\tatom is selected\n"
+"    <c>d</c>:\t\tatom is movable\n"
+"    <c>f</c>:\t\tforce\n"
+"    <c>Z</c>:\tatomic number\n"
+"    <c>m</c>:\tmagnetic moment\n"
+"    examples: <c>x -= A[0][0], s = z > 5, Z = 6</c>\n"
+"\n"
+"    Special commands and objects:\n"
+"    <c>sa,cf</c>:\t(un)restrict to selected atoms/current frame\n"
+"    <c>frame</c>:\tframe number\n"
+"    <c>center</c>:\tcenters the system in its existing unit cell\n"
+"    <c>del S</c>:\tdelete selection\n"
+"    <c>CM</c>:\tcenter of mass\n"
+"    <c>ans[-i]</c>:\tith last calculated result\n"
+"    <c>exec file</c>: executes commands listed in file\n"
+"    <c>cov[Z]</c>:(read only): covalent radius of atomic number Z\n"
+"    <c>gui</c>:\tadvanced: ag window python object\n"
+"    <c>img</c>:\tadvanced: ag images object\n"
+"    "
+msgstr ""
+"\n"
+"    全局命令适用于所有框架或者仅适用于当前框架\n"
+"    - 使用一个全局变量可能不会链接局域变量\n"
+"    - 使用‘当前框架’切换到停止应用到所有框架\n"
+"    <c>e</c>:\t\t一个框架的总能\n"
+"    <c>fmax</c>:\t一个框架的最大力\n"
+"    <c>A</c>:\t原胞\n"
+"    <c>E</c>:\t\t所有框架的总能数列\n"
+"    <c>F</c>:\t\t一个框架中的所有力\n"
+"    <c>M</c>:\t所有磁矩\n"
+"    <c>R</c>:\t\t所有原子位置\n"
+"    <c>S</c>:\t所有选择的原子(boolean 数列)\n"
+"    <c>D</c>:\t所有可动的原子 (boolean 数列)\n"
+"    例子: <c>框架 = 1</c>, <c>A[0][1] += 4</c>, <c>e-E[-1]</c>\n"
+"\n"
+"    原子命令适用于每个原子（或者选择的原子）\n"
+"    - 这些能使用全局命令 on the RHS of an equation\n"
+"    - 使用‘仅所选原子’来限制命令的应用\n"
+"    <c>x,y,z</c>:\t原子坐标\n"
+"    <c>r,g,b</c>:\t原子显示颜色，区域为 [0..1]\n"
+"    <c>rad</c>:\t显示原子半径\n"
+"    <c>s</c>:\t\t原子被选择\n"
+"    <c>d</c>:\t\t原子可移动\n"
+"    <c>f</c>:\t\t力\n"
+"    <c>Z</c>:\t原子数\n"
+"    <c>m</c>:\t磁矩\n"
+"    例子: <c>x -= A[0][0], s = z > 5, Z = 6</c>\n"
+"\n"
+"    特殊命令和目标:\n"
+"    <c>sa,cf</c>:\t （非）限制被选原子／当前框架\n"
+"    <c>frame</c>:\t框架数目\n"
+"    <c>center</c>:\t在当前原胞中居中系统\n"
+"    <c>del S</c>:\t删除选择\n"
+"    <c>CM</c>:\tcenter of mass\n"
+"    <c>ans[-i]</c>:\tith 上次计算结果\n"
+"    <c>exec file</c>: 执行列与文件中的命令\n"
+"    <c>cov[Z]</c>:(只读): 原子数 Z 的共价半径\n"
+"    <c>gui</c>:\t高级: ag 窗口 python object\n"
+"    <c>img</c>:\t高级: ag 镜像 object\n"
+"    "
+
+#: ../execute.py:67
+msgid "Expert user mode"
+msgstr "专家模式"
+
+#: ../execute.py:80
+msgid "Welcome to the ASE Expert user mode"
+msgstr "欢迎进入 ASE 专家模式"
+
+#: ../execute.py:87
+msgid "Only selected atoms (sa)   "
+msgstr "仅所选原子（sa）"
+
+#: ../execute.py:89
+msgid "Only current frame (cf)  "
+msgstr "仅当前框架（cf）"
+
+#: ../execute.py:99
+msgid ""
+"Global: Use A, D, E, M, N, R, S, n, frame; Atoms: Use a, f, m, s, x, y, z, "
+"Z     "
+msgstr ""
+"全局: 使用 A, D, E, M, N, R, S, n, 框架; 原子: 使用 a, f, m, s, x, y, z, "
+"Z     "
+
+#: ../execute.py:198
+#, python-format
+msgid "*** WARNING: file does not exist - %s"
+msgstr "警告：文件不存在－%s"
+
+#: ../execute.py:203
+msgid "*** WARNING: No atoms selected to work with"
+msgstr "警告：没有原子被选择"
+
+#: ../execute.py:277
+msgid "*** Only working on selected atoms"
+msgstr "仅使用被选择的原子"
+
+#: ../execute.py:279
+msgid "*** Working on all atoms"
+msgstr "使用所有原子"
+
+#: ../execute.py:283
+msgid "*** Only working on current image"
+msgstr "是使用当前镜像"
+
+#: ../execute.py:285
+msgid "*** Working on all images"
+msgstr "使用所有镜像"
+
+#: ../execute.py:301
+msgid "Save Terminal text ..."
+msgstr "保存终端文字。。。"
+
+#: ../graphene.py:16
+msgid ""
+"Set up a graphene sheet or a graphene nanoribbon.  A nanoribbon may\n"
+"optionally be saturated with hydrogen (or another element)."
+msgstr ""
+"建立石墨 sheet 或者石墨 nanoribbon。一个 nanoribbon 可使用氢原子（或者其它元"
+"素）来 saturate"
+
+#: ../graphene.py:33 ../gui.py:307
+msgid "Graphene"
+msgstr "石墨"
+
+#. Choose structure
+#. The structure and lattice constant
+#. Choose the surface structure
+#: ../graphene.py:40 ../nanoparticle.py:139 ../surfaceslab.py:78
+msgid "Structure: "
+msgstr "结构："
+
+#: ../graphene.py:42
+msgid "Infinite sheet"
+msgstr "无限 sheet"
+
+#: ../graphene.py:42
+msgid "Unsaturated ribbon"
+msgstr "非饱和 ribbon"
+
+#: ../graphene.py:43
+msgid "Saturated ribbon"
+msgstr "饱和 ribbon"
+
+#. Orientation
+#: ../graphene.py:50
+msgid "Orientation: "
+msgstr "方向："
+
+#: ../graphene.py:53
+msgid "zigzag"
+msgstr "蜿蜒的"
+
+#: ../graphene.py:53
+msgid "armchair"
+msgstr "armchair"
+
+#: ../graphene.py:66 ../graphene.py:77 ../nanotube.py:48
+msgid "  Bond length: "
+msgstr "键长："
+
+#. Choose the saturation element and bond length
+#: ../graphene.py:72
+msgid "Saturation: "
+msgstr "饱和度："
+
+#: ../graphene.py:75
+msgid "H"
+msgstr "氢"
+
+#. Size
+#: ../graphene.py:90
+msgid "Width: "
+msgstr "宽度："
+
+#: ../graphene.py:91 ../nanotube.py:67
+msgid "  Length: "
+msgstr "长度："
+
+#. Vacuum
+#: ../graphene.py:99
+msgid "Vacuum: "
+msgstr "真空："
+
+#: ../graphene.py:148 ../nanotube.py:107 ../setupwindow.py:32
+msgid "  No element specified!"
+msgstr "没有指定元素！"
+
+#: ../graphene.py:194
+#, fuzzy
+#| msgid "Please specify a consistent set of atoms."
+msgid "Please specify a consistent set of atoms. "
+msgstr "请使用恰当的原子设置。"
+
+#: ../graphene.py:255 ../nanoparticle.py:615 ../nanotube.py:161
+#: ../pybutton.py:49 ../surfaceslab.py:249
+msgid "You have not (yet) specified a consistent set of parameters."
+msgstr "你还没有指定一套恰当的参数。"
+
+#: ../graphs.py:9
+msgid ""
+"Help for plot ...\n"
+"\n"
+"Symbols:\n"
+"<c>e</c>:\t\t\t\ttotal energy\n"
+"<c>epot</c>:\t\t\tpotential energy\n"
+"<c>ekin</c>:\t\t\tkinetic energy\n"
+"<c>fmax</c>:\t\t\tmaximum force\n"
+"<c>fave</c>:\t\t\taverage force\n"
+"<c>R[n,0-2]</c>:\t\t\tposition of atom number <c>n</c>\n"
+"<c>d(n<sub>1</sub>,n<sub>2</sub>)</c>:\t\t\tdistance between two atoms "
+"<c>n<sub>1</sub></c> and <c>n<sub>2</sub></c>\n"
+"<c>i</c>:\t\t\t\tcurrent image number\n"
+"<c>E[i]</c>:\t\t\t\tenergy of image number <c>i</c>\n"
+"<c>F[n,0-2]</c>:\t\t\tforce on atom number <c>n</c>\n"
+"<c>V[n,0-2]</c>:\t\t\tvelocity of atom number <c>n</c>\n"
+"<c>M[n]</c>:\t\t\tmagnetic moment of atom number <c>n</c>\n"
+"<c>A[0-2,0-2]</c>:\t\tunit-cell basis vectors\n"
+"<c>s</c>:\t\t\t\tpath length\n"
+"<c>a(n1,n2,n3)</c>:\t\tangle between atoms <c>n<sub>1</sub></c>, <c>n<sub>2</"
+"sub></c> and <c>n<sub>3</sub></c>, centered on <c>n<sub>2</sub></c>\n"
+"<c>dih(n1,n2,n3,n4)</c>:\tdihedral angle between <c>n<sub>1</sub></c>, "
+"<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> and <c>n<sub>4</sub></c>\n"
+"<c>T</c>:\t\t\t\ttemperature (K)"
+msgstr ""
+
+#: ../graphs.py:52 ../graphs.py:55
+msgid "Plot"
+msgstr "画图"
+
+#: ../graphs.py:60
+msgid "clear"
+msgstr "清空"
+
+#: ../graphs.py:114
+msgid "Save data to file ... "
+msgstr "保存数据到文件。。。"
+
+#: ../gtkexcepthook.py:117
+msgid "Bug Detected"
+msgstr "检测到 Bug"
+
+#: ../gtkexcepthook.py:121
+msgid "A programming error has been detected."
+msgstr "一个程序错误被探测到。"
+
+#: ../gtkexcepthook.py:124
+msgid ""
+"It probably isn't fatal, but the details should be reported to the "
+"developers nonetheless."
+msgstr "虽然这可能是非致命错误，但详细错误还是需要报告给开发者。"
+
+#: ../gtkexcepthook.py:140
+msgid "Report..."
+msgstr "报告。。。"
+
+#: ../gtkexcepthook.py:144
+msgid "Details..."
+msgstr "详情。。。"
+
+#: ../gtkexcepthook.py:160
+#, python-format
+msgid ""
+"From: buggy_application\"\n"
+"To: bad_programmer\n"
+"Subject: Exception feedback\n"
+"\n"
+"%s"
+msgstr ""
+"From: buggy_应用\"\n"
+"To: 坏程序员\n"
+"Subject: 错误反馈\n"
+"\n"
+"%s"
+
+#. Show details...
+#: ../gtkexcepthook.py:173
+msgid "Bug Details"
+msgstr "错误详情"
+
+#: ../gui.py:172
+msgid "_File"
+msgstr "文件"
+
+#: ../gui.py:173
+msgid "_Edit"
+msgstr "编辑"
+
+#: ../gui.py:174
+msgid "_View"
+msgstr "查看"
+
+#: ../gui.py:175
+msgid "_Tools"
+msgstr "工具"
+
+#. TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
+#: ../gui.py:177
+msgid "_Setup"
+msgstr "设置"
+
+#: ../gui.py:178
+msgid "_Calculate"
+msgstr "计算"
+
+#: ../gui.py:179
+msgid "_Help"
+msgstr "帮助"
+
+#: ../gui.py:180
+msgid "_Open"
+msgstr "打开"
+
+#: ../gui.py:181
+msgid "Create a new file"
+msgstr "建立一个新文件"
+
+#: ../gui.py:183
+msgid "_New"
+msgstr "新"
+
+#: ../gui.py:184
+msgid "New ase.gui window"
+msgstr "新 ase.gui 窗口"
+
+#: ../gui.py:186
+msgid "_Save"
+msgstr "保存"
+
+#: ../gui.py:187
+msgid "Save current file"
+msgstr "保存当前文件"
+
+#: ../gui.py:189
+msgid "_Quit"
+msgstr "退出"
+
+#: ../gui.py:190
+msgid "Quit"
+msgstr "退出"
+
+#: ../gui.py:192
+msgid "Select _all"
+msgstr "选择全部"
+
+#: ../gui.py:195
+msgid "_Invert selection"
+msgstr "取消选择"
+
+#: ../gui.py:198
+msgid "Select _constrained atoms"
+msgstr "选择被限定的原子"
+
+#: ../gui.py:201
+msgid "Select _immobile atoms"
+msgstr "选择非能动的原子"
+
+#: ../gui.py:204
+msgid "_Copy"
+msgstr "复制"
+
+#: ../gui.py:205
+msgid "Copy current selection and its orientation to clipboard"
+msgstr "复制当前选择和方向到剪切板"
+
+#: ../gui.py:207
+msgid "_Paste"
+msgstr "粘贴"
+
+#: ../gui.py:208
+msgid "Insert current clipboard selection"
+msgstr "插入当前剪贴板选择"
+
+#: ../gui.py:210
+msgid "_Modify"
+msgstr "修改"
+
+#: ../gui.py:211
+msgid "Change tags, moments and atom types of the selected atoms"
+msgstr "改变所选原子标签，磁矩和原子类型"
+
+#: ../gui.py:213
+msgid "_Add atoms"
+msgstr "添加原子"
+
+#: ../gui.py:214
+msgid "Insert or import atoms and molecules"
+msgstr "插入或导入原子和分子"
+
+#: ../gui.py:216
+msgid "_Delete selected atoms"
+msgstr "删除所选原子"
+
+#: ../gui.py:217
+msgid "Delete the selected atoms"
+msgstr "删除所选原子"
+
+#: ../gui.py:219
+msgid "_First image"
+msgstr "第一镜像"
+
+#: ../gui.py:222
+msgid "_Previous image"
+msgstr "前一个镜像"
+
+#: ../gui.py:225
+msgid "_Next image"
+msgstr "下一个镜像"
+
+#: ../gui.py:228
+msgid "_Last image"
+msgstr "最后镜像"
+
+#: ../gui.py:231
+#, fuzzy
+#| msgid "Show _axes"
+msgid "Show _Labels"
+msgstr "显示轴"
+
+#: ../gui.py:232
+msgid "Quick Info ..."
+msgstr "快速信息。。。"
+
+#: ../gui.py:235
+msgid "Repeat ..."
+msgstr "重复。。。"
+
+#: ../gui.py:238
+msgid "Rotate ..."
+msgstr "旋转。。。"
+
+#: ../gui.py:241
+msgid "Colors ..."
+msgstr "颜色。。。"
+
+#. TRANSLATORS: verb
+#: ../gui.py:244
+msgid "Focus"
+msgstr "聚焦"
+
+#: ../gui.py:247
+msgid "Zoom in"
+msgstr "放大"
+
+#: ../gui.py:250
+msgid "Zoom out"
+msgstr "放小"
+
+#: ../gui.py:253
+msgid "Reset View"
+msgstr "重设视图"
+
+#: ../gui.py:256
+msgid "Settings ..."
+msgstr "设置。。。"
+
+#: ../gui.py:259
+msgid "VMD"
+msgstr "VMD"
+
+#: ../gui.py:262
+msgid "RasMol"
+msgstr ""
+
+#: ../gui.py:265
+msgid "xmakemol"
+msgstr ""
+
+#: ../gui.py:268
+msgid "avogadro"
+msgstr ""
+
+#: ../gui.py:271
+msgid "Graphs ..."
+msgstr "图像。。。"
+
+#: ../gui.py:274
+msgid "Movie ..."
+msgstr "电影。。。"
+
+#: ../gui.py:277
+msgid "Expert mode ..."
+msgstr "专家模式。。。"
+
+#: ../gui.py:280
+msgid "Constraints ..."
+msgstr "限定。。。"
+
+#: ../gui.py:283
+msgid "Render scene ..."
+msgstr "Render 图像。。。"
+
+#: ../gui.py:286
+msgid "DFT ..."
+msgstr "密度泛函理论。。。"
+
+#: ../gui.py:289
+msgid "NE_B"
+msgstr "NEB"
+
+#: ../gui.py:292
+msgid "B_ulk Modulus"
+msgstr "体 modulus"
+
+#: ../gui.py:295
+msgid "_Bulk Crystal"
+msgstr "体晶体"
+
+#: ../gui.py:296
+msgid "Create a bulk crystal with arbitrary orientation"
+msgstr "建立一任意方向的体晶体"
+
+#: ../gui.py:298
+msgid "_Surface slab"
+msgstr "表面 slab"
+
+#: ../gui.py:299
+msgid "Create the most common surfaces"
+msgstr "建立最常用的表面"
+
+#: ../gui.py:301
+msgid "_Nanoparticle"
+msgstr "纳米颗粒"
+
+#: ../gui.py:302
+msgid "Create a crystalline nanoparticle"
+msgstr "建立一个晶体纳米颗粒"
+
+#: ../gui.py:304
+msgid "Nano_tube"
+msgstr "纳米管"
+
+#: ../gui.py:305
+msgid "Create a nanotube"
+msgstr "建立一个纳米管"
+
+#: ../gui.py:308
+msgid "Create a graphene sheet or nanoribbon"
+msgstr "建立一个石墨 sheet 或者 nanoribbon"
+
+#: ../gui.py:310
+msgid "Set _Calculator"
+msgstr "设置计算子"
+
+#: ../gui.py:311
+msgid "Set a calculator used in all calculation modules"
+msgstr "设置一个用于所有计算的计算子"
+
+#: ../gui.py:313
+msgid "_Energy and Forces"
+msgstr "能量和力"
+
+#: ../gui.py:314
+msgid "Calculate energy and forces"
+msgstr "计算能量和力"
+
+#: ../gui.py:316
+msgid "Energy _Minimization"
+msgstr "能量最小化"
+
+#: ../gui.py:317
+msgid "Minimize the energy"
+msgstr "最小化能量"
+
+#: ../gui.py:319
+msgid "Scale system"
+msgstr "Scale 系统"
+
+#: ../gui.py:320
+msgid "Deform system by scaling it"
+msgstr "使用 scaling deform 系统"
+
+#: ../gui.py:322
+msgid "_About"
+msgstr "关于"
+
+#: ../gui.py:325
+msgid "Webpage ..."
+msgstr "网页 。。。"
+
+#: ../gui.py:326
+msgid "Debug ..."
+msgstr "Debug"
+
+#: ../gui.py:328
+msgid "Show _unit cell"
+msgstr "显示原胞"
+
+#: ../gui.py:332
+msgid "Show _axes"
+msgstr "显示轴"
+
+#: ../gui.py:336
+msgid "Show _bonds"
+msgstr "显示键"
+
+#: ../gui.py:340
+#, fuzzy
+#| msgid "Show _axes"
+msgid "Show _velocities"
+msgstr "显示轴"
+
+#: ../gui.py:344
+#, fuzzy
+#| msgid "Show _axes"
+msgid "Show _forces"
+msgstr "显示轴"
+
+#: ../gui.py:348
+msgid "_Move atoms"
+msgstr "移动原子"
+
+#: ../gui.py:352
+msgid "_Rotate atoms"
+msgstr "旋转原子"
+
+#: ../gui.py:356
+msgid "Orien_t atoms"
+msgstr "定义原子方向"
+
+#: ../gui.py:362
+#, fuzzy
+#| msgid "None"
+msgid "_None"
+msgstr "无"
+
+#: ../gui.py:363
+msgid "Atom _Index"
+msgstr ""
+
+#: ../gui.py:364
+msgid "_Magnetic Moments"
+msgstr ""
+
+#: ../gui.py:365
+#, fuzzy
+#| msgid "Element: "
+msgid "_Element Symbol"
+msgstr "元素"
+
+#: ../gui.py:374
+#, python-format
+msgid "building menus failed: %s"
+msgstr "建立 menus 失败：%s"
+
+#: ../gui.py:649 ../gui.py:1055 ../gui.py:1115
+msgid "Open ..."
+msgstr "打开。。。"
+
+#: ../gui.py:653 ../gui.py:1058
+msgid "<<filename>>"
+msgstr "<<文件名>>"
+
+#: ../gui.py:786
+msgid "Add atoms"
+msgstr "添加原子"
+
+#: ../gui.py:789
+msgid "Paste"
+msgstr "粘贴"
+
+#: ../gui.py:795
+msgid "Insert atom or molecule"
+msgstr "插入原子或分子"
+
+#: ../gui.py:796 ../gui.py:922
+msgid "Tag"
+msgstr "标签"
+
+#: ../gui.py:797 ../gui.py:923
+msgid "Moment"
+msgstr "动量"
+
+#: ../gui.py:798
+msgid "Position"
+msgstr "位置"
+
+#: ../gui.py:823
+msgid "_Load molecule"
+msgstr "加载分子"
+
+#: ../gui.py:827 ../gui.py:938
+msgid "_OK"
+msgstr ""
+
+#: ../gui.py:831 ../gui.py:942
+msgid "_Cancel"
+msgstr "取消"
+
+#: ../gui.py:915
+msgid "Modify"
+msgstr "修改"
+
+#: ../gui.py:921
+msgid "Atom"
+msgstr "原子"
+
+#: ../gui.py:966
+msgid "Confirmation"
+msgstr "确认"
+
+#: ../gui.py:970
+msgid "Delete selected atom?"
+msgid_plural "Delete selected atoms?"
+msgstr[0] "删除被选原子？"
+
+#: ../gui.py:977
+msgid "Cancel"
+msgstr "取消"
+
+#: ../gui.py:1063 ../gui.py:1145
+msgid "Automatic"
+msgstr "自动"
+
+#: ../gui.py:1064
+msgid "Dacapo netCDF output file"
+msgstr "Dacapo netCDF 输出文件"
+
+#: ../gui.py:1065
+msgid "Virtual Nano Lab file"
+msgstr "虚拟 Nano Lab 文件"
+
+#: ../gui.py:1066
+msgid "ASE pickle trajectory"
+msgstr "ASE pickle 路径"
+
+#: ../gui.py:1067 ../gui.py:1158
+#, fuzzy
+#| msgid "ASE pickle trajectory"
+msgid "ASE bundle trajectory"
+msgstr "ASE pickle 路径"
+
+#: ../gui.py:1068
+msgid "GPAW text output"
+msgstr "GPAW 文字输出"
+
+#: ../gui.py:1069
+msgid "CUBE file"
+msgstr "CUBE 文件"
+
+#: ../gui.py:1070
+msgid "XCrySDen Structure File"
+msgstr "XCrySDen 结构文件"
+
+#: ../gui.py:1071
+msgid "Dacapo text output"
+msgstr "Dacapo 文字输出"
+
+#: ../gui.py:1072
+msgid "XYZ-file"
+msgstr "XYZ-文件"
+
+#: ../gui.py:1073
+msgid "VASP POSCAR/CONTCAR file"
+msgstr "VASP POSCAR／CONTCAR 文件"
+
+#: ../gui.py:1074
+msgid "VASP OUTCAR file"
+msgstr "VASP OUTCAR 文件"
+
+#: ../gui.py:1075
+msgid "Protein Data Bank"
+msgstr "蛋白数据库"
+
+#: ../gui.py:1076
+msgid "CIF-file"
+msgstr "CIF－文件"
+
+#: ../gui.py:1077
+msgid "FHI-aims geometry file"
+msgstr "FHI-aims 几何结构文件"
+
+#: ../gui.py:1078
+msgid "FHI-aims output file"
+msgstr "FHI-aims 输出文件"
+
+#: ../gui.py:1079
+msgid "TURBOMOLE coord file"
+msgstr "TURBOMOLE 坐标文件"
+
+#: ../gui.py:1080
+msgid "exciting input"
+msgstr "exciting 输入"
+
+#: ../gui.py:1081
+msgid "WIEN2k structure file"
+msgstr "WIEN2k 结构文件"
+
+#: ../gui.py:1082
+msgid "DftbPlus input file"
+msgstr "DftbPlus 输入文件"
+
+#: ../gui.py:1083
+msgid "ETSF format"
+msgstr "ETSF 格式"
+
+#: ../gui.py:1084 ../gui.py:1156
+msgid "CASTEP geom file"
+msgstr "CASTEP 结构文件"
+
+#: ../gui.py:1085
+msgid "CASTEP output file"
+msgstr "CASTEP 输出文件"
+
+#: ../gui.py:1086
+msgid "CASTEP trajectory file"
+msgstr "CASTEP 路径文件"
+
+#: ../gui.py:1087
+msgid "DFTBPlus GEN format"
+msgstr "DFTBPlus GEN 格式"
+
+#: ../gui.py:1093
+msgid "File type:"
+msgstr "文件类型："
+
+#: ../gui.py:1133
+msgid "Save ..."
+msgstr "保存。。。"
+
+#: ../gui.py:1146
+msgid "XYZ file"
+msgstr "XYZ 文件"
+
+#: ../gui.py:1147
+msgid "ASE trajectory"
+msgstr "ASE 路径"
+
+#: ../gui.py:1148
+msgid "PDB file"
+msgstr "PDB 文件"
+
+#: ../gui.py:1149
+msgid "Gaussian cube file"
+msgstr "Gaussian cube 文件"
+
+#: ../gui.py:1150
+msgid "Python script"
+msgstr "Python 脚本"
+
+#: ../gui.py:1151
+msgid "VNL file"
+msgstr "VNL 文件"
+
+#: ../gui.py:1152
+msgid "Portable Network Graphics"
+msgstr ""
+
+#: ../gui.py:1153
+msgid "Persistence of Vision"
+msgstr ""
+
+#: ../gui.py:1154
+msgid "Encapsulated PostScript"
+msgstr ""
+
+#: ../gui.py:1155
+msgid "FHI-aims geometry input"
+msgstr "FHI-aims 结构输入"
+
+#: ../gui.py:1157
+msgid "VASP geometry input"
+msgstr "VASP 结构输入"
+
+#: ../gui.py:1159
+msgid "cif file"
+msgstr "cif 文件"
+
+#: ../gui.py:1181
+#, fuzzy, python-format
+msgid "Save current image only (#%d)"
+msgstr "仅保存当前镜像"
+
+#: ../gui.py:1185
+msgid "Slice: "
+msgstr "切片："
+
+#: ../gui.py:1186
+msgid "Help for slice ..."
+msgstr "切片帮助。。。"
+
+#: ../gui.py:1198
+msgid "AG INTERNAL ERROR: strange response in Save,"
+msgstr "AG 内部错误：保存时奇怪响应，"
+
+#: ../gui.py:1217
+msgid "Unknown output format!"
+msgstr "未知输出格式！"
+
+#: ../gui.py:1218
+#, python-format
+msgid "Use one of: %s"
+msgstr "使用其中之一：%s"
+
+#: ../gui.py:1323
+msgid "Not implemented!"
+msgstr "不支持！"
+
+#: ../gui.py:1324
+msgid "do you really need it?"
+msgstr "你真的需要？"
+
+#: ../minimize.py:21
+msgid "Algorithm: "
+msgstr "Algorithm："
+
+#: ../minimize.py:26 ../progress.py:67
+msgid "Convergence criterion: F<sub>max</sub> = "
+msgstr "收敛判据：F<sub>max</sub>"
+
+#: ../minimize.py:31 ../progress.py:70
+msgid "Max. number of steps: "
+msgstr "最大步数："
+
+#. Special stuff for MDMin
+#: ../minimize.py:34
+msgid "Pseudo time step: "
+msgstr "赝时间步："
+
+#: ../minimize.py:55
+msgid "Energy minimization"
+msgstr "能量最小化"
+
+#: ../minimize.py:59
+msgid "Minimize the energy with respect to the positions."
+msgstr "相对于原子位置最小化能量"
+
+#. Don't catch errors in the function.
+#. Display status message
+#: ../minimize.py:91 ../scaling.py:299
+msgid "Running ..."
+msgstr "运行。。。"
+
+#. Update display to reflect cancellation of simulation.
+#: ../minimize.py:108
+#, python-format
+msgid "Minimization CANCELLED after %i steps."
+msgstr "最小化在%i步后被取消。"
+
+#: ../minimize.py:114 ../scaling.py:350
+msgid "Out of memory, consider using LBFGS instead"
+msgstr "内存溢出，请考虑 LBFGS。"
+
+#. Update display to reflect succesful end of simulation.
+#: ../minimize.py:121
+#, python-format
+msgid "Minimization completed in %i steps."
+msgstr "最小化在%i步后完成。"
+
+#. self.connect('delete_event', self.exit2)
+#: ../movie.py:14
+msgid "Movie"
+msgstr "电影"
+
+#: ../movie.py:16
+msgid "Image number:"
+msgstr "镜像数："
+
+#: ../movie.py:38
+msgid "Play"
+msgstr "播放"
+
+#: ../movie.py:40
+msgid "Stop"
+msgstr "停止"
+
+#. TRANSLATORS: This function plays an animation forwards and backwards
+#. alternatingly, e.g. for displaying vibrational movement
+#: ../movie.py:44
+msgid "Rock"
+msgstr "反复播放"
+
+#: ../movie.py:60
+msgid " Frame rate: "
+msgstr "框架率："
+
+#: ../movie.py:61
+msgid " Skip frames: "
+msgstr "跳过框架："
+
+#: ../nanoparticle.py:20
+msgid ""
+"Create a nanoparticle either by specifying the number of layers, or using "
+"the\n"
+"Wulff construction.  Please press the [Help] button for instructions on how "
+"to\n"
+"specify the directions.\n"
+"WARNING: The Wulff construction currently only works with cubic crystals!\n"
+msgstr ""
+"建立一个纳米颗粒， 或者指明层数，或者使用 Wulff 重构。请按［帮助］按钮参见如"
+"何指明方向。\n"
+"警告：Wulff 重构当前只适用于立方晶体！\n"
+
+#: ../nanoparticle.py:27
+msgid ""
+"\n"
+"The nanoparticle module sets up a nano-particle or a cluster with a given\n"
+"crystal structure.\n"
+"\n"
+"1) Select the element, the crystal structure and the lattice constant(s).\n"
+"   The [Get structure] button will find the data for a given element.\n"
+"\n"
+"2) Choose if you want to specify the number of layers in each direction, or "
+"if\n"
+"   you want to use the Wulff construction.  In the latter case, you must "
+"specify\n"
+"   surface energies in each direction, and the size of the cluster.\n"
+"\n"
+"How to specify the directions:\n"
+"------------------------------\n"
+"\n"
+"First time a direction appears, it is interpreted as the entire family of\n"
+"directions, i.e. (0,0,1) also covers (1,0,0), (-1,0,0) etc.  If one of "
+"these\n"
+"directions is specified again, the second specification overrules that "
+"specific\n"
+"direction.  For this reason, the order matters and you can rearrange the\n"
+"directions with the [Up] and [Down] keys.  You can also add a new "
+"direction,\n"
+"remember to press [Add] or it will not be included.\n"
+"\n"
+"Example: (1,0,0) (1,1,1), (0,0,1) would specify the {100} family of "
+"directions,\n"
+"the {111} family and then the (001) direction, overruling the value given "
+"for\n"
+"the whole family of directions.\n"
+msgstr ""
+"\n"
+"纳米颗粒模板建立一个纳米颗粒或者一个给定晶格结构的团簇\n"
+"1) 选择元素, 晶格结构和晶格常数。\n"
+"   [获得结构] 按钮会找到给定元素的数据。\n"
+"\n"
+"2) 选择是否指定每个方向的层数，或者是否使用 Wulff 重构。对于后者，你必须指定"
+"每个方向的表面能和团簇大小。\n"
+"\n"
+"如何指定方向:\n"
+"------------------------------\n"
+"\n"
+"当一个方向第一次出现时，它被理解为整个家族的方向，也就是（0，0,1）也覆盖"
+"（1,0,0）,（－1,0,0）等等。如果其中之一的方向被再次指定，第二次指定覆盖被指定"
+"的方向。因此，指定的顺序关乎方向，你可以通过［Up］和［Down］键重新安排方向。"
+"你也可以添加一个新的方向，记得按［Add］，否则它不会被添加。\n"
+"\n"
+"例子: (1,0,0) (1,1,1), (0,0,1) 会指定 {100}，{111} 家族方向，之后指定（001）"
+"方向，覆盖为家族指定的值。\n"
+
+#. Structures:  Abbreviation, name, 4-index (boolean), two lattice const (bool), factory
+#: ../nanoparticle.py:84
+msgid "Face centered cubic (fcc)"
+msgstr "体心立方（fcc）"
+
+#: ../nanoparticle.py:85
+msgid "Body centered cubic (bcc)"
+msgstr "面心立方（bcc）"
+
+#: ../nanoparticle.py:86
+msgid "Simple cubic (sc)"
+msgstr "简单立方（sc）"
+
+#: ../nanoparticle.py:87
+msgid "Hexagonal closed-packed (hcp)"
+msgstr "六角密堆积（hcp）"
+
+#: ../nanoparticle.py:88
+msgid "Graphite"
+msgstr "石墨"
+
+#: ../nanoparticle.py:117
+msgid "Nanoparticle"
+msgstr "纳米颗粒"
+
+#. Choose the element
+#. Choose the element and bond length
+#. Choose the element
+#: ../nanoparticle.py:127 ../nanotube.py:42 ../surfaceslab.py:69
+msgid "Element: "
+msgstr "元素"
+
+#: ../nanoparticle.py:131
+msgid "Get structure"
+msgstr "获得结构"
+
+#: ../nanoparticle.py:155
+msgid "Lattice constant:  a ="
+msgstr "晶格常数：a＝"
+
+#. Choose specification method
+#: ../nanoparticle.py:172
+msgid "Method: "
+msgstr "方法："
+
+#: ../nanoparticle.py:174
+msgid "Layer specification"
+msgstr "指定层数"
+
+#: ../nanoparticle.py:174
+msgid "Wulff construction"
+msgstr "Wulff 重构"
+
+#: ../nanoparticle.py:194
+msgid "Dummy placeholder object"
+msgstr ""
+
+#: ../nanoparticle.py:196
+msgid "Add new direction:"
+msgstr "添加新方向"
+
+#: ../nanoparticle.py:212
+msgid "Add"
+msgstr "添加"
+
+#: ../nanoparticle.py:220
+msgid "Set all directions to default values"
+msgstr "对所有方向设置默认值"
+
+#: ../nanoparticle.py:228
+msgid "Particle size: "
+msgstr "颗粒大小"
+
+#: ../nanoparticle.py:229 ../nanoparticle.py:266 ../progress.py:196
+msgid "Number of atoms: "
+msgstr "原子个数"
+
+#: ../nanoparticle.py:234
+msgid "Volume: "
+msgstr "体积"
+
+#: ../nanoparticle.py:239
+msgid "Å³"
+msgstr ""
+
+#: ../nanoparticle.py:244
+msgid "Rounding: If exact size is not possible, choose the size"
+msgstr "Rouding：如果精确大小不可能实现，选择大小"
+
+#: ../nanoparticle.py:247
+msgid "above  "
+msgstr "高于"
+
+#: ../nanoparticle.py:248
+msgid "below  "
+msgstr "低于"
+
+#: ../nanoparticle.py:249
+msgid "closest  "
+msgstr "最近的"
+
+#: ../nanoparticle.py:252
+msgid "Smaller"
+msgstr "小点"
+
+#: ../nanoparticle.py:253
+msgid "Larger"
+msgstr "大点"
+
+#: ../nanoparticle.py:268
+msgid "   Approx. diameter: "
+msgstr "大致半径："
+
+#: ../nanoparticle.py:272
+msgid "Information about the created cluster:"
+msgstr "建立的团簇信息："
+
+#. Buttons
+#: ../nanoparticle.py:278 ../nanotube.py:81
+msgid "Creating a nanoparticle."
+msgstr "建立一个纳米颗粒"
+
+#: ../nanoparticle.py:285
+msgid "Automatic Apply"
+msgstr "自动应用"
+
+#: ../nanoparticle.py:333
+msgid "Up"
+msgstr "上"
+
+#: ../nanoparticle.py:338
+msgid "Down"
+msgstr "下"
+
+#: ../nanoparticle.py:343
+msgid "Delete"
+msgstr "删除"
+
+#: ../nanoparticle.py:384
+msgid "Surface energies (as energy/area, NOT per atom):"
+msgstr "表面能（能量／面积，而不是／原子）"
+
+#: ../nanoparticle.py:390
+msgid "Number of layers:"
+msgstr "层数"
+
+#: ../nanoparticle.py:419
+msgid "At least one index must be non-zero"
+msgstr "至少一个索引值必须为非零"
+
+#: ../nanoparticle.py:422
+msgid "Invalid hexagonal indices"
+msgstr "错误六角 indices"
+
+#: ../nanoparticle.py:477 ../surfaceslab.py:218
+msgid "Invalid element."
+msgstr "错误元素"
+
+#: ../nanoparticle.py:487
+msgid "Unsupported or unknown structure"
+msgstr "非支持或未知结构"
+
+#: ../nanoparticle.py:604
+#, python-format
+msgid "%.1f Å"
+msgstr ""
+
+#: ../nanotube.py:15
+msgid ""
+"Set up a Carbon nanotube by specifying the (n,m) roll-up vector.\n"
+"Please note that m <= n.\n"
+"\n"
+"Nanotubes of other elements can be made by specifying the element\n"
+"and bond length."
+msgstr ""
+
+#: ../nanotube.py:29
+#, fuzzy, python-format
+#| msgid " %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>"
+msgid ""
+" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: "
+"%(volume).3f Å<sup>3</sup>"
+msgstr "%(natoms)i 原子：%(symbols)s, 体积: %(volume).3f A<sup>3</sup>"
+
+#: ../nanotube.py:35
+msgid "Nanotube"
+msgstr "纳米管"
+
+#. Choose the structure.
+#: ../nanotube.py:59
+msgid "Select roll-up vector (n,m) and tube length:"
+msgstr "选择卷曲矢量（n，m）和管长："
+
+#: ../progress.py:25
+msgid "Progress"
+msgstr "进展"
+
+#: ../progress.py:32
+msgid "Scaling deformation:"
+msgstr ""
+
+#: ../progress.py:38
+#, python-format
+msgid "Step number %s of %s."
+msgstr "步数 %s of %s"
+
+#. Minimization progress frame
+#. Box containing frame and spacing
+#: ../progress.py:53
+msgid "Energy minimization:"
+msgstr "能量最小化："
+
+#: ../progress.py:60
+msgid "Step number: "
+msgstr "步数："
+
+#: ../progress.py:62
+msgid "F<sub>max</sub>: "
+msgstr ""
+
+#: ../progress.py:102
+msgid "unknown"
+msgstr "未知"
+
+#: ../progress.py:179
+msgid "Status: "
+msgstr "状态"
+
+#: ../progress.py:181
+msgid "Iteration: "
+msgstr ""
+
+#: ../progress.py:184
+msgid "log<sub>10</sub>(change):"
+msgstr ""
+
+#: ../progress.py:187
+msgid "Wave functions: "
+msgstr ""
+
+#: ../progress.py:189
+msgid "Density: "
+msgstr ""
+
+#: ../progress.py:191
+msgid "Energy: "
+msgstr ""
+
+#: ../progress.py:194
+msgid "GPAW version: "
+msgstr ""
+
+#: ../progress.py:197
+msgid "N/A"
+msgstr ""
+
+#: ../progress.py:198
+msgid "Memory estimate: "
+msgstr ""
+
+#: ../progress.py:233
+msgid "No info"
+msgstr ""
+
+#: ../progress.py:243
+msgid "Initializing"
+msgstr ""
+
+#: ../progress.py:244
+msgid "Positions:"
+msgstr ""
+
+#: ../progress.py:248
+msgid "Starting calculation"
+msgstr ""
+
+#: ../progress.py:285
+msgid "unchanged"
+msgstr ""
+
+#: ../progress.py:295
+msgid "Self-consistency loop"
+msgstr ""
+
+#: ../progress.py:300
+msgid "Calculating forces"
+msgstr ""
+
+#: ../progress.py:301
+msgid " (converged)"
+msgstr ""
+
+#: ../pybutton.py:37
+msgid "Python"
+msgstr ""
+
+#: ../pybutton.py:48
+msgid "No Python code"
+msgstr ""
+
+#: ../pybutton.py:52
+#, python-format
+msgid ""
+"\n"
+"Title: %(title)s\n"
+"Time: %(time)s\n"
+msgstr ""
+
+#: ../pybutton.py:61
+msgid "ag: Python code"
+msgstr ""
+
+#: ../pybutton.py:65
+msgid "Information:"
+msgstr ""
+
+#: ../pybutton.py:72
+msgid "Python code:"
+msgstr ""
+
+#: ../quickinfo.py:9
+msgid "Single image loaded."
+msgstr ""
+
+#: ../quickinfo.py:10
+#, python-format
+msgid "Image %d loaded (0 - %d)."
+msgstr ""
+
+#: ../quickinfo.py:11
+msgid "Unit cell is fixed."
+msgstr ""
+
+#: ../quickinfo.py:12
+msgid "Unit cell varies."
+msgstr ""
+
+#: ../quickinfo.py:14
+#, python-format
+msgid ""
+"%s\n"
+"\n"
+"Number of atoms: %d.\n"
+"\n"
+"Unit cell:\n"
+"  %8.3f  %8.3f  %8.3f\n"
+"  %8.3f  %8.3f  %8.3f\n"
+"  %8.3f  %8.3f  %8.3f\n"
+"%s\n"
+msgstr ""
+
+#: ../quickinfo.py:29
+msgid "Quick Info"
+msgstr ""
+
+#: ../quickinfo.py:33
+msgid "No atoms loaded."
+msgstr ""
+
+#: ../render.py:14
+msgid ""
+"    Textures can be used to highlight different parts of\n"
+"    an atomic structure. This window applies the default\n"
+"    texture to the entire structure and optionally\n"
+"    applies a different texture to subsets of atoms that\n"
+"    can be selected using the mouse.\n"
+"    An alternative selection method is based on a boolean\n"
+"    expression in the entry box provided, using the\n"
+"    variables x, y, z, or Z. For example, the expression\n"
+"    Z == 11 and x > 10 and y > 10 \n"
+"    will mark all sodium atoms with x or coordinates \n"
+"    larger than 10. In either case, the button labeled\n"
+"    `Create new texture from selection` will enable\n"
+"    to change the attributes of the current selection. \n"
+"    "
+msgstr ""
+
+#: ../render.py:32
+msgid "Render current view in povray ... "
+msgstr ""
+
+#: ../render.py:36
+#, python-format
+msgid "Rendering %d atoms."
+msgstr ""
+
+#: ../render.py:41
+msgid "Render constraints"
+msgstr ""
+
+#: ../render.py:44
+msgid "Width"
+msgstr ""
+
+#: ../render.py:45
+msgid "     Height"
+msgstr ""
+
+#: ../render.py:52
+msgid "Render unit cell"
+msgstr ""
+
+#: ../render.py:61
+msgid "Line width"
+msgstr ""
+
+#: ../render.py:63
+msgid "Angstrom           "
+msgstr ""
+
+#: ../render.py:73
+msgid "Set"
+msgstr ""
+
+#: ../render.py:75
+msgid "Output basename: "
+msgstr ""
+
+#: ../render.py:77
+msgid "               Filename: "
+msgstr ""
+
+#: ../render.py:88
+msgid " Default texture for atoms: "
+msgstr ""
+
+#: ../render.py:89
+msgid "    transparency: "
+msgstr ""
+
+#: ../render.py:90
+msgid "Define atom selection for new texture:"
+msgstr ""
+
+#: ../render.py:92
+msgid "Select"
+msgstr ""
+
+#: ../render.py:96
+msgid "Create new texture from selection"
+msgstr ""
+
+#: ../render.py:98
+msgid "Help on textures"
+msgstr ""
+
+#: ../render.py:111
+msgid "Camera type: "
+msgstr ""
+
+#: ../render.py:112
+msgid "     Camera distance"
+msgstr ""
+
+#: ../render.py:113
+msgid "Render current frame"
+msgstr ""
+
+#: ../render.py:117
+#, python-format
+msgid "Render all %d frames"
+msgstr ""
+
+#: ../render.py:122
+msgid "Transparent background"
+msgstr ""
+
+#: ../render.py:125
+msgid "Run povray       "
+msgstr ""
+
+#: ../render.py:128
+msgid "Keep povray files       "
+msgstr ""
+
+#: ../render.py:131
+msgid "Show output window"
+msgstr ""
+
+#: ../render.py:212
+msgid "  transparency: "
+msgstr ""
+
+#: ../render.py:218
+msgid ""
+"Can not create new texture! Must have some atoms selected to create a new "
+"material!"
+msgstr ""
+
+#: ../repeat.py:14
+msgid "Repeat"
+msgstr ""
+
+#: ../repeat.py:21
+msgid "Set unit cell"
+msgstr ""
+
+#: ../rotate.py:15
+msgid "Rotate"
+msgstr ""
+
+#: ../rotate.py:17
+msgid "Rotation angles:"
+msgstr ""
+
+#: ../rotate.py:27
+msgid ""
+"Note:\n"
+"You can rotate freely\n"
+"with the mouse, by holding\n"
+"down mouse button 2."
+msgstr ""
+
+#: ../scaling.py:49
+msgid "Homogeneous scaling"
+msgstr ""
+
+#: ../scaling.py:59
+msgid "3D deformation   "
+msgstr ""
+
+#: ../scaling.py:60
+msgid "2D deformation   "
+msgstr ""
+
+#: ../scaling.py:61
+msgid "1D deformation   "
+msgstr ""
+
+#: ../scaling.py:64
+msgid "Bulk"
+msgstr ""
+
+#: ../scaling.py:66
+msgid "xy-plane"
+msgstr ""
+
+#: ../scaling.py:68
+msgid "xz-plane"
+msgstr ""
+
+#: ../scaling.py:70
+msgid "yz-plane"
+msgstr ""
+
+#: ../scaling.py:72
+msgid "x-axis"
+msgstr ""
+
+#: ../scaling.py:74
+msgid "y-axis"
+msgstr ""
+
+#: ../scaling.py:76
+msgid "z-axis"
+msgstr ""
+
+#: ../scaling.py:89
+msgid "Allow deformation along non-periodic directions."
+msgstr ""
+
+#. Parameters for the deformation
+#: ../scaling.py:94
+msgid "Deformation:"
+msgstr ""
+
+#: ../scaling.py:100
+msgid "Maximal scale factor: "
+msgstr ""
+
+#: ../scaling.py:103
+msgid "Scale offset: "
+msgstr ""
+
+#: ../scaling.py:106
+msgid "Number of steps: "
+msgstr ""
+
+#: ../scaling.py:107
+msgid "Only positive deformation"
+msgstr ""
+
+#. Atomic relaxations
+#: ../scaling.py:112
+msgid "Atomic relaxations:"
+msgstr ""
+
+#: ../scaling.py:116
+msgid "On   "
+msgstr ""
+
+#: ../scaling.py:117
+msgid "Off"
+msgstr ""
+
+#. Results
+#: ../scaling.py:128
+msgid "Results:"
+msgstr ""
+
+#: ../scaling.py:130
+msgid "Keep original configuration"
+msgstr ""
+
+#: ../scaling.py:132
+msgid "Load optimal configuration"
+msgstr ""
+
+#: ../scaling.py:134
+msgid "Load all configurations"
+msgstr ""
+
+#: ../scaling.py:143
+msgid "Strain\t\tEnergy [eV]"
+msgstr ""
+
+#: ../scaling.py:144
+msgid "Fit:"
+msgstr ""
+
+#: ../scaling.py:148
+msgid "2nd"
+msgstr ""
+
+#: ../scaling.py:149
+msgid "3rd"
+msgstr ""
+
+#: ../scaling.py:153
+msgid "Order of fit: "
+msgstr ""
+
+#. Update display to reflect cancellation of simulation.
+#: ../scaling.py:346
+msgid "Calculation CANCELLED."
+msgstr ""
+
+#. Update display to reflect succesful end of simulation.
+#: ../scaling.py:357
+msgid "Calculation completed."
+msgstr ""
+
+#: ../scaling.py:380
+msgid "No trustworthy minimum: Old configuration kept."
+msgstr ""
+
+#: ../scaling.py:420
+#, python-format
+msgid ""
+"Insufficent data for a fit\n"
+"(only %i data points)\n"
+msgstr ""
+
+#: ../scaling.py:424
+msgid ""
+"REVERTING TO 2ND ORDER FIT\n"
+"(only 3 data points)\n"
+"\n"
+msgstr ""
+
+#: ../scaling.py:440
+msgid "No minimum found!"
+msgstr ""
+
+#: ../scaling.py:454
+msgid ""
+"\n"
+"WARNING: Minimum is outside interval\n"
+msgstr ""
+
+#: ../scaling.py:455
+msgid "It is UNRELIABLE!\n"
+msgstr ""
+
+#: ../settings.py:16
+msgid "Constraints:"
+msgstr ""
+
+#: ../settings.py:19
+msgid "release"
+msgstr ""
+
+#: ../settings.py:23
+msgid "Constrain immobile atoms"
+msgstr ""
+
+#: ../settings.py:25
+msgid "Clear all constraints"
+msgstr ""
+
+#: ../settings.py:31
+msgid "Visibility:"
+msgstr ""
+
+#: ../settings.py:32
+msgid "Hide"
+msgstr ""
+
+#: ../settings.py:34
+msgid "show"
+msgstr ""
+
+#: ../settings.py:38
+msgid "View all atoms"
+msgstr ""
+
+#: ../settings.py:44
+msgid "Miscellaneous:"
+msgstr ""
+
+#: ../settings.py:47
+msgid "Scale atomic radii:"
+msgstr ""
+
+#. A close button
+#: ../settings.py:52
+msgid "\n"
+msgstr ""
+
+#: ../setupwindow.py:51
+msgid "No crystal structure data"
+msgstr ""
+
+#: ../setupwindow.py:62
+msgid "  ERROR: Invalid element!"
+msgstr ""
+
+#: ../simulation.py:24
+msgid " (rerun simulation)"
+msgstr ""
+
+#: ../simulation.py:25
+msgid " (continue simulation)"
+msgstr ""
+
+#: ../simulation.py:27
+msgid "Select starting configuration:"
+msgstr ""
+
+#: ../simulation.py:32
+#, python-format
+msgid "There are currently %i configurations loaded."
+msgstr ""
+
+#: ../simulation.py:36
+msgid "Choose which one to use as the initial configuration"
+msgstr ""
+
+#: ../simulation.py:40
+#, python-format
+msgid "The first configuration %s."
+msgstr ""
+
+#: ../simulation.py:43
+msgid "Configuration number "
+msgstr ""
+
+#: ../simulation.py:49
+#, python-format
+msgid "The last configuration %s."
+msgstr ""
+
+#: ../simulation.py:85
+msgid "Run"
+msgstr ""
+
+#: ../simulation.py:105
+msgid "No calculator: Use Calculate/Set Calculator on the menu."
+msgstr ""
+
+#: ../status.py:37 ../status.py:39
+msgid "Tip for status box ..."
+msgstr ""
+
+#. TRANSLATORS: mom refers to magnetic moment
+#: ../status.py:63
+#, python-format
+msgid " tag=%(tag)s mom=%(mom)1.2f"
+msgstr ""
+
+#: ../status.py:104
+msgid "dihedral"
+msgstr ""
+
+#: ../surfaceslab.py:14
+msgid ""
+"  Use this dialog to create surface slabs.  Select the element by\n"
+"writing the chemical symbol or the atomic number in the box.  Then\n"
+"select the desired surface structure.  Note that some structures can\n"
+"be created with an othogonal or a non-orthogonal unit cell, in these\n"
+"cases the non-orthogonal unit cell will contain fewer atoms.\n"
+"\n"
+"  If the structure matches the experimental crystal structure, you can\n"
+"look up the lattice constant, otherwise you have to specify it\n"
+"yourself."
+msgstr ""
+
+#. Name, structure, orthogonal, support-nonorthogonal, function
+#: ../surfaceslab.py:26
+msgid "FCC(100)"
+msgstr ""
+
+#: ../surfaceslab.py:26 ../surfaceslab.py:27 ../surfaceslab.py:28
+#: ../surfaceslab.py:30
+msgid "fcc"
+msgstr ""
+
+#: ../surfaceslab.py:27
+msgid "FCC(110)"
+msgstr ""
+
+#: ../surfaceslab.py:28
+msgid "FCC(111) non-orthogonal"
+msgstr ""
+
+#: ../surfaceslab.py:30
+msgid "FCC(111) orthogonal"
+msgstr ""
+
+#: ../surfaceslab.py:31
+msgid "BCC(100)"
+msgstr ""
+
+#: ../surfaceslab.py:31 ../surfaceslab.py:32 ../surfaceslab.py:34
+#: ../surfaceslab.py:35 ../surfaceslab.py:37
+msgid "bcc"
+msgstr ""
+
+#: ../surfaceslab.py:32
+msgid "BCC(110) non-orthogonal"
+msgstr ""
+
+#: ../surfaceslab.py:34
+msgid "BCC(110) orthogonal"
+msgstr ""
+
+#: ../surfaceslab.py:35
+msgid "BCC(111) non-orthogonal"
+msgstr ""
+
+#: ../surfaceslab.py:37
+msgid "BCC(111) orthogonal"
+msgstr ""
+
+#: ../surfaceslab.py:38
+msgid "HCP(0001) non-orthogonal"
+msgstr ""
+
+#: ../surfaceslab.py:38 ../surfaceslab.py:40 ../surfaceslab.py:41
+msgid "hcp"
+msgstr ""
+
+#: ../surfaceslab.py:40
+msgid "HCP(0001) orthogonal"
+msgstr ""
+
+#: ../surfaceslab.py:41
+msgid "HCP(10-10) orthogonal"
+msgstr ""
+
+#: ../surfaceslab.py:43
+msgid "DIAMOND(100) orthogonal"
+msgstr ""
+
+#: ../surfaceslab.py:43 ../surfaceslab.py:45
+msgid "diamond"
+msgstr ""
+
+#: ../surfaceslab.py:45
+msgid "DIAMOND(111) non-orthogonal"
+msgstr ""
+
+#: ../surfaceslab.py:60
+msgid "Surface"
+msgstr ""
+
+#: ../surfaceslab.py:90
+msgid "Lattice constant: "
+msgstr ""
+
+#: ../surfaceslab.py:97
+msgid "a:"
+msgstr ""
+
+#: ../surfaceslab.py:109
+#, python-format
+msgid "(%.1f %% of ideal)"
+msgstr ""
+
+#: ../surfaceslab.py:126
+msgid "Size: \tx: "
+msgstr ""
+
+#: ../surfaceslab.py:128
+msgid "\t\ty: "
+msgstr ""
+
+#: ../surfaceslab.py:130
+msgid "      \t\tz: "
+msgstr ""
+
+#: ../surfaceslab.py:131
+msgid " layers,  "
+msgstr ""
+
+#: ../surfaceslab.py:132
+msgid " Å vacuum"
+msgstr ""
+
+#: ../surfaceslab.py:133
+msgid "\t\tNo size information yet."
+msgstr ""
+
+#. Buttons
+#: ../surfaceslab.py:142
+msgid "Creating a surface slab."
+msgstr ""
+
+#: ../surfaceslab.py:212
+#, fuzzy, python-format
+#| msgid "%i atoms.\n"
+msgid "%i atoms."
+msgstr "%i 原子。\n"
+
+#: ../surfaceslab.py:224
+msgid "No structure specified!"
+msgstr ""
+
+#: ../surfaceslab.py:233
+#, python-format
+msgid "%(struct)s lattice constant unknown for %(element)s."
+msgstr ""
+
+#: ../widgets.py:53 ../widgets.py:81
+msgid "Help"
+msgstr ""
+
+#: ../widgets.py:98
+msgid "Clear constraint"
+msgstr ""
+
+#~ msgid "%prog [options] [file[, file2, ...]]"
+#~ msgstr "%prog [选择] ［文件［，文件，。。。］］"
+
+#~ msgid "NUMBER"
+#~ msgstr "号码"
+
+#~ msgid ""
+#~ "Pick image(s) from trajectory.  NUMBER can be a single number (use a "
+#~ "negative number to count from the back) or a range: start:stop:step, "
+#~ "where the \":step\" part can be left out - default values are 0:nimages:1."
+#~ msgstr ""
+#~ "从路径文件中选择镜像结构。‘号码’可以是单个整数（使用负数从后往前数），或者"
+#~ "是一个整数范围（开始:结束:间隔），其中‘间隔’部分可以省略－默认值为 0:总镜"
+#~ "像数:1。"
+
+#~ msgid ""
+#~ "0: Don't show unit cell.  1: Show unit cell.  2: Show all of unit cell."
+#~ msgstr "0: 不显示原胞。1：显示原胞。2：显示原胞所有部分。"
+
+#~ msgid "Repeat unit cell.  Use \"-r 2\" or \"-r 2,3,1\"."
+#~ msgstr "重复原胞。使用 \"-r 2\" or \"-r 2,3,1\"。"
+
+#~ msgid "Examples: \"-R -90x\", \"-R 90z,-30x\"."
+#~ msgstr "例子： \"-R -90x\", \"-R 90z,-30x\" "
+
+#~ msgid "FILE"
+#~ msgstr "文件"
+
+#~ msgid "Write configurations to FILE."
+#~ msgstr "写入原子配置到‘文件’"
+
+#~ msgid ""
+#~ "Plot x,y1,y2,... graph from configurations or write data to sdtout in "
+#~ "terminal mode.  Use the symbols: i, s, d, fmax, e, ekin, A, R, E and F.  "
+#~ "See https://wiki.fysik.dtu.dk/ase/ase/gui.html#plotting-data for more "
+#~ "details."
+#~ msgstr ""
+#~ "根据原子配置画 x，y1, y2，。。或者写数据到电脑终端标准输出。使用符号：i, "
+#~ "s, d, fmax, e, ekin, A, R, E 和 F。详见 https://wiki.fysik.dtu.dk/ase/ase/"
+#~ "gui.html#plotting-data。"
+
+#~ msgid "Run in terminal window - no GUI."
+#~ msgstr "在电脑终端屏幕运行－非GUI（交互图形界面）。"
+
+#~ msgid "Read ANEB data."
+#~ msgstr "读取 ANEB 数据。"
+
+#~ msgid "Interpolate N images between 2 given images."
+#~ msgstr "在两个指定镜像结构之间interpolate N 个镜像结构。"
+
+#~ msgid "Draw bonds between atoms."
+#~ msgstr "画原子键。"
+
+#~ msgid "Help for plot ..."
+#~ msgstr "画图帮助。。。"
