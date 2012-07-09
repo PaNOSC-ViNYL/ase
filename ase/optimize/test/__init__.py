@@ -22,6 +22,7 @@ from ase.optimize.mdmin import MDMin
 from ase.optimize.sciopt import SciPyFminCG
 from ase.optimize.sciopt import SciPyFminBFGS
 from ase.optimize.bfgslinesearch import BFGSLineSearch
+from ase.optimize.oldqn import GoodOldQuasiNewton
 
 from ase.parallel import rank, paropen
 
@@ -38,7 +39,8 @@ optimizers = [
     'MDMin',
     'SciPyFminCG',
     'SciPyFminBFGS',
-    'BFGSLineSearch'
+    'BFGSLineSearch',
+    'GoodOldQuasiNewton'
 ]
 
 def get_optimizer(optimizer):
@@ -50,6 +52,7 @@ def get_optimizer(optimizer):
     elif optimizer == 'SciPyFminCG': return SciPyFminCG
     elif optimizer == 'SciPyFminBFGS': return SciPyFminBFGS
     elif optimizer == 'BFGSLineSearch': return BFGSLineSearch
+    elif optimizer == 'GoodOldQuasiNewton': return GoodOldQuasiNewton
 
 def run_test(get_atoms, get_calculator, name,
              fmax=0.05, steps=100, plot=True):
