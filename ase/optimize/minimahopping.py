@@ -98,7 +98,8 @@ class MinimaHopping:
     def _resume(self):
         """Attempt to resume a run, based on information in the log
         file. Note it will almost always be interrupted in the middle of
-        either a qn or md run, so it only works in those cases currently."""
+        either a qn or md run, so it only has been tested in those cases
+        currently."""
         f = paropen(self._logfile, 'r')
         lines = f.read().splitlines()
         f.close()
@@ -254,13 +255,18 @@ class MinimaHopping:
         energies, oldpositions = [], []
         if resume:
             self._log('msg', 'Resuming MD from md%05i.traj' % resume)
-            images = io.PickleTrajectory('md%05i.traj' % resume, 'r')
-            for atoms in images:
-                energies.append(atoms.get_potential_energy())
-                oldpositions.append(atoms.positions.copy())
-                passedmin = self._passedminimum(energies)
-                if passedmin:
-                    mincount += 1
+            if os.path.getsize('md%05i.traj' % resume) == 0:
+                self._log('msg', 'md%05i.traj is empty. Resuming from '
+                          'qn%05i.traj.' % (resume, resume - 1))
+                atoms = io.read('qn%05i.traj' % (resume - 1), index=-1)
+            else:
+                images = io.PickleTrajectory('md%05i.traj' % resume, 'r')
+                for atoms in images:
+                    energies.append(atoms.get_potential_energy())
+                    oldpositions.append(atoms.positions.copy())
+                    passedmin = self._passedminimum(energies)
+                    if passedmin:
+                        mincount += 1
             self._atoms.positions = atoms.get_positions()
             self._atoms.set_momenta(atoms.get_momenta())
             self._log('msg', 'Starting MD with %i existing energies.' %
