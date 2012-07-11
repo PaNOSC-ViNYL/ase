@@ -22,7 +22,7 @@ calculations on:
 * Chemical names: ``H2O`` or ``Fe``.
   Default :ref:`molecule<molecules-section>` definitions are used.
 * Range of chemical symbols: ``Sc-Zn`` (3d-metals)
-* Special names: ``G2``, ``G2-1`` or ``S22``
+* Special names: ``G2``, ``G2_1`` or ``S22``
 * File names: ``benzene.xyz`` or ``slab.traj``
 
 The exact meaning of these names will depend on the task.
@@ -175,16 +175,16 @@ relaxing the structure of all the molecules in the :ref:`G2-1 database
 <molecular data>`.  You could do that by submitting this job to your
 compute cluster::
 
-    $ ase gpaw G2-1 -v 6.0 -p xc=vdW-DF,h=0.18 -R 0.02
+    $ ase gpaw G2_1 -v 6.0 -p xc=vdW-DF,h=0.18 -R 0.02
 
-The molecule task will expand ``G2-1`` to a lot of molecules, so it
+The molecule task will expand ``G2_1`` to a lot of molecules, so it
 makes sense to use :option:`-l` option (:option:`--use-lock-files`)
 and submit the same job many times. A lock file will be created
 for each started calculation and calculations with existing lock file skipped. 
 Moreover the calculations can be run in parallel
 (if parallel version of GPAW is installed)::
 
-    $ mpiexec gpaw-python `which ase` gpaw G2-1 -v 6.0 -p xc=vdW-DF,h=0.18 -R 0.02 -l
+    $ mpiexec gpaw-python `which ase` gpaw G2_1 -v 6.0 -p xc=vdW-DF,h=0.18 -R 0.02 -l
 
 
 Making your own tasks

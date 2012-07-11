@@ -45,7 +45,7 @@ class MoleculeTask(OptimizeTask):
                 from ase.data.g2 import atom_names
                 if self.atomize:
                     atoms.update(atom_names)
-            elif name.lower() == 'g2-1':
+            elif name.lower() == 'g2_1':
                 from ase.data.g2_1 import molecule_names
                 names.extend(molecule_names)
                 from ase.data.g2_1 import atom_names
