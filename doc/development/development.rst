@@ -22,6 +22,7 @@ Development topics
    making_movies
    newrelease
    tests
+   translate
    todo
 
 
