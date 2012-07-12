@@ -51,8 +51,8 @@ float_keys = [
     'hfscreen',   # attribute to change from PBE0 to HSE
     'potim',      # time-step for ion-motion (fs)
     'nelect',     # total number of electrons
-    'param1',     # Exchange parameter 
-    'param2',     # Exchange parameter 
+    'param1',     # Exchange parameter
+    'param2',     # Exchange parameter
     'pomass',     # mass of ions in am
     'sigma',      # broadening in eV
     'time',       # special control tag
@@ -145,7 +145,7 @@ int_keys = [
     'iopt',       # Controls which optimizer to use.  for iopt > 0, ibrion = 3 and potim = 0.0
     'snl',        # Maximum dimentionality of the Lanczos matrix
     'lbfgsmem',   # Steps saved for inverse Hessian for IOPT = 1 (LBFGS)
-    'fnmin',      # Max iter. before adjusting dt and alpha for IOPT = 7 (FIRE) 
+    'fnmin',      # Max iter. before adjusting dt and alpha for IOPT = 7 (FIRE)
 ]
 
 bool_keys = [
@@ -168,7 +168,7 @@ bool_keys = [
     'lsepb',      # write out partial charge of each band seperately?
     'lsepk',      # write out partial charge of each k-point seperately?
     'lthomas',    #
-    'luse_vdw',   # Invoke vdW-DF implementation by Klimes et. al 
+    'luse_vdw',   # Invoke vdW-DF implementation by Klimes et. al
     'lvdw',	  # Invoke DFT-D2 method of Grimme
     'lvhar',      # write Hartree potential to LOCPOT (vasp 5.x)
     'lvtot',      # create WAVECAR/CHGCAR/LOCPOT
@@ -259,7 +259,7 @@ class Vasp(Calculator):
             'gamma':      False,   # Option to use gamma-sampling instead
                                    # of Monkhorst-Pack
             'reciprocal': False,   # Option to write explicit k-points in units
-                                   # of reciprocal lattice vectors 
+                                   # of reciprocal lattice vectors
             })
 
         self.restart = restart
@@ -423,7 +423,7 @@ class Vasp(Calculator):
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
         self.converged = None
         self.setups_changed = None
-        
+
 
     def calculate(self, atoms):
         """Generate necessary files in the working directory and run VASP.
@@ -510,7 +510,7 @@ class Vasp(Calculator):
 
     def restart_load(self):
         """Method which is called upon restart."""
-
+        import ase.io
         # Try to read sorting file
         if os.path.isfile('ase-sort.dat'):
             self.sort = []
@@ -1012,8 +1012,8 @@ class Vasp(Calculator):
                 else:
                     converged = False
                     continue
-        # Then if ibrion > 0, check whether ionic relaxation condition been fulfilled
-        if self.int_params['ibrion'] > 0:
+        # Then if ibrion in [1,2,3] check whether ionic relaxation condition been fulfilled
+        if self.int_params['ibrion'] in [1,2,3]:
             if not self.read_relaxed():
                 converged = False
             else:
@@ -1134,7 +1134,7 @@ class Vasp(Calculator):
                                'ldauu', 'ldaul', 'ldauj'):
                         for a in data[2:]:
                             if a in ["!", "#"]:
-                               break 
+                               break
                             list.append(float(a))
                     elif key in ('iband', 'kpuse'):
                         for a in data[2:]:
