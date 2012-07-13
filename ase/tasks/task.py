@@ -413,10 +413,12 @@ class Task:
 class OptimizeTask(Task):
     taskname = 'opt'
 
-    def __init__(self, fmax=None, constrain_tags=[], optimizer='LBFGS', **kwargs):
+    def __init__(self, fmax=None, constrain_tags=[],
+                 optimizer='LBFGS', steps=100000000, **kwargs):
         self.fmax = fmax
-        self.optimizer = optimizer
         self.constrain_tags = constrain_tags
+        self.optimizer = optimizer
+        self.steps = steps
 
         Task.__init__(self, **kwargs)
 
@@ -443,20 +445,20 @@ class OptimizeTask(Task):
             # handle scipy optimizers who raise Converged when done
             from ase.optimize import Converged
             try:
-                optimizer.run(self.fmax)
+                optimizer.run(fmax=self.fmax, steps=self.steps)
             except Converged:
                 pass
         except ImportError:
-            optimizer.run(self.fmax)
+            optimizer.run(fmax=self.fmax, steps=self.steps)
         # StrainFilter optimizer steps
-        steps = optimizer.get_number_of_steps() + 1
+        steps = optimizer.get_number_of_steps()
         if data.get('optimizer steps', None) is None:
             data['optimizer steps'] = steps
         else:
             data['optimizer steps'] += steps
         # optimizer force calls
         if hasattr(optimizer, 'force_calls'):
-            calls = optimizer.force_calls + 1
+            calls = optimizer.force_calls
         else:
             calls = steps
         if data.get('optimizer force calls', None) is None:
@@ -484,6 +486,9 @@ class OptimizeTask(Task):
                             help='Relax internal coordinates using '
                             'OPTIMIZER algorithm. The OPTIMIZER keyword is '
                             'optional, and if omitted LBFGS is used by default.')
+        optimize.add_option('--relaxsteps', type='int',
+                            metavar='steps',
+                            help='Limit the number of optimizer steps.')
         optimize.add_option('--constrain-tags', type='str',
                             metavar='T1,T2,...',
                             help='Constrain atoms with tags T1, T2, ...')
@@ -499,6 +504,13 @@ class OptimizeTask(Task):
                 self.fmax = opts.relax
                 self.optimizer = 'LBFGS'
             self.fmax = float(self.fmax)
+
+        if opts.relaxsteps is not None:
+            self.steps = int(opts.relaxsteps)
+        else:
+            # yes, the default number of ASE optimizer steps
+            # ase/optimize/optimize.py
+            self.steps = 100000000
 
         if opts.constrain_tags:
             self.constrain_tags = [int(t)

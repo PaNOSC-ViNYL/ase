@@ -16,7 +16,7 @@ class BulkTask(OptimizeTask):
 
     def __init__(self, crystal_structure=None, lattice_constant=None,
                  c_over_a=None, cubic=False, orthorhombic=False, fit=None,
-                 sfmax=None, soptimizer='BFGS', **kwargs):
+                 sfmax=None, soptimizer='BFGS', ssteps=100000000, **kwargs):
         """Bulk task."""
 
         self.crystal_structure = crystal_structure
@@ -27,6 +27,7 @@ class BulkTask(OptimizeTask):
         self.fit = fit
         self.sfmax = sfmax
         self.soptimizer = soptimizer
+        self.ssteps = ssteps
 
         self.repeat = None
 
@@ -114,20 +115,20 @@ class BulkTask(OptimizeTask):
             # handle scipy optimizers who raise Converged when done
             from ase.optimize import Converged
             try:
-                optimizer.run(self.sfmax)
+                optimizer.run(fmax=self.sfmax, steps=self.ssteps)
             except Converged:
                 raise
         except ImportError:
-            optimizer.run(self.sfmax)
+            optimizer.run(fmax=self.sfmax, steps=self.ssteps)
         # StrainFilter optimizer steps
-        steps = optimizer.get_number_of_steps() + 1
+        steps = optimizer.get_number_of_steps()
         if data.get('strain optimizer steps', None) is None:
             data['strain optimizer steps'] = steps
         else:
             data['strain optimizer steps'] += steps
         # optimizer force calls
         if hasattr(optimizer, 'force_calls'):
-            calls = optimizer.force_calls + 1
+            calls = optimizer.force_calls
         else:
             calls = steps
         if data.get('strain optimizer force calls', None) is None:
@@ -234,6 +235,9 @@ class BulkTask(OptimizeTask):
                         help='Relax cell by minimizing stress using StranFilter '
                         'with SOPTIMIZER algorithm. The SOPTIMIZER keyword is '
                         'optional, and if omitted BFGS is used by default.')
+        bulk.add_option('--srelaxsteps', type='int',
+                        metavar='ssteps',
+                        help='Limit the number of SF optimizer steps.')
         bulk.add_option('-x', '--crystal-structure',
                         help='Crystal structure.',
                         choices=['sc', 'fcc', 'bcc', 'hcp', 'diamond',
@@ -261,6 +265,13 @@ class BulkTask(OptimizeTask):
                 self.sfmax = opts.srelax
                 self.soptimizer = 'BFGS'
             self.sfmax = float(self.sfmax)
+
+        if opts.srelaxsteps is not None:
+            self.ssteps = int(opts.srelaxsteps)
+        else:
+            # yes, the default number of ASE optimizer steps
+            # ase/optimize/optimize.py
+            self.ssteps = 100000000
 
         if opts.fit:
             if len(opts.fit.split(',')) > 2:

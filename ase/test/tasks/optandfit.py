@@ -46,11 +46,20 @@ assert abs(data['atomic energy'] - data['relaxed energy'] - 5.3495) < 0.0001
 atoms, task = run('molecule H2 -R 0.001,BFGSLineSearch --atomize -t opt')
 atoms, task = run('molecule H2 H -t opt -s')
 data = task.data['H2']
-assert data['optimizer steps'] == 5
-assert data['optimizer force calls'] == 6
+assert data['optimizer steps'] == 4
+assert data['optimizer force calls'] == 5
 assert abs(data['relaxed energy'] - 1.0705) < 0.0001
 assert abs(data['distance'] - 0.77905) < 0.00001
 assert abs(data['atomic energy'] - data['relaxed energy'] - 5.3495) < 0.0001
+
+# optimization with unsufficient number of steps (ASE does not fail, simpy stops)
+atoms, task = run('molecule H2 -R 0.001 --relaxsteps 1 --atomize -t opt')
+atoms, task = run('molecule H2 H -t opt -s')
+data = task.data['H2']
+assert data['optimizer steps'] == 1
+assert abs(data['relaxed energy'] - 1.1294) < 0.0001
+assert abs(data['distance'] - 0.81717) < 0.00001
+assert abs(data['atomic energy'] - data['relaxed energy'] - 5.2906) < 0.0001
 
 # bulk
 
@@ -90,7 +99,7 @@ except ImportError:
 atoms, task = run('bulk NiO -x rocksalt -a 4.32 -R 0.01,BFGS -F 5,-0.5 --modify=system.positions[0,2]+=0.1 -t optfit5')
 atoms, task = run('bulk NiO -x rocksalt -a 4.32 -t optfit5 -s')
 data = task.data['NiO']
-assert data['optimizer force calls'] == data['optimizer steps'] == 4
+assert data['optimizer force calls'] == data['optimizer steps'] == 3
 assert abs(data['energy'] - 1.1458) < 0.0001
 assert abs(data['fitted energy'] - 1.1254) < 0.0001
 assert abs(data['volume'] - 20.1513) < 0.0001
