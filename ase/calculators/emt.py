@@ -37,6 +37,7 @@ class EMT:
         self.energy = None
         self.name = 'EMT'
         self.version = '1.0'
+        self.niter = 0
         # fakestress is needed to fake some stress value for the testsuite
         # in order to test the filter functionality.
         self.fakestress = fakestress
@@ -191,6 +192,8 @@ class EMT:
         self.sigma1[:] = 0.0
         self.forces[:] = 0.0
         
+        self.niter += 1
+
         natoms = len(atoms)
 
         for a1 in range(natoms):
