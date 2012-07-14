@@ -20,7 +20,7 @@ class KPoint:
 class NWchem(Calculator):
     def __init__(self,
                  label='nwchem',
-                 task='energy',
+                 task='energy', # use 'gradient' in optimizations!
                  # Warning: nwchem centers atoms by default
                  # see ase-developers/2012-March/001356.html
                  geometry='nocenter',
