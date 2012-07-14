@@ -87,7 +87,7 @@ assert abs(data['B'] - 0.9303) < 0.0001
 # fit sensitivity to equation of state (same data)
 try:
     import scipy
-    atoms, task = run('bulk NiO -x rocksalt -a 4.32 -F 5,1,murnaghan -t fit -s')
+    atoms, task = run('bulk NiO -x rocksalt -a 4.32 --eos murnaghan -t fit -s')
     data = task.data['NiO']
     assert abs(data['fitted energy'] - 1.1455) < 0.0001
     assert abs(data['volume'] - 20.2595) < 0.0001
