@@ -49,6 +49,10 @@ float_keys = [
     'encut',      # Planewave cutoff
     'encutfock',  # FFT grid in the HF related routines
     'hfscreen',   # attribute to change from PBE0 to HSE
+    'kspacing', # determines the number of k-points if the KPOINTS
+                  # file is not present. KSPACING is the smallest
+                  # allowed spacing between k-points in units of
+                  # $\AA$^{-1}$.
     'potim',      # time-step for ion-motion (fs)
     'nelect',     # total number of electrons
     'param1',     # Exchange parameter
@@ -150,6 +154,10 @@ int_keys = [
 
 bool_keys = [
     'addgrid',    # finer grid for augmentation charge density
+    'kgamma',     # The generated kpoint grid (from KSPACING) is either
+                  # centred at the $\Gamma$
+                  # point (e.g. includes the $\Gamma$ point)
+                  # (KGAMMA=.TRUE.)
     'laechg',     # write AECCAR0/AECCAR1/AECCAR2
     'lasph',      # non-spherical contributions to XC energy (and pot for VASP.5.X)
     'lasync',     # overlap communcation with calculations
@@ -159,6 +167,7 @@ bool_keys = [
     'ldiag',      # algorithm: perform sub space rotation
     'ldipol',     # potential correction mode
     'lelf',       # create ELFCAR
+    'lepsilon',   # enables to calculate and to print the BEC tensors
     'lhfcalc',    # switch to turn on Hartree Fock calculations
     'loptics',    # calculate the frequency dependent dielectric matrix
     'lpard',      # evaluate partial (band and/or k-point) decomposed charge density
@@ -376,6 +385,8 @@ class Vasp(Calculator):
             xc = '_gga/'
         elif p['xc'] == 'PBE':
             xc = '_pbe/'
+        elif p['xc'] == 'LDA':
+            xc = '_lda/'
         if 'VASP_PP_PATH' in os.environ:
             pppaths = os.environ['VASP_PP_PATH'].split(':')
         else:
@@ -398,6 +409,7 @@ class Vasp(Calculator):
                     self.ppp_list.append(filename+'.Z')
                     break
             if not found:
+                print 'Looking for %s' % name
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
         #print 'symbols', symbols
         for symbol in symbols:
@@ -419,7 +431,7 @@ class Vasp(Calculator):
                     self.ppp_list.append(filename+'.Z')
                     break
             if not found:
-
+                print 'Looking for %s' % name
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
         self.converged = None
         self.setups_changed = None
@@ -704,7 +716,10 @@ class Vasp(Calculator):
         return self.read_k_point_weights()
 
     def get_number_of_spins(self):
-        return 1 + int(self.spinpol)
+        if self.spinpol is None:
+            return 1
+        else:
+            return 1 + int(self.spinpol)
 
     def get_eigenvalues(self, kpt=0, spin=0):
         self.update(self.atoms)
@@ -858,7 +873,7 @@ class Vasp(Calculator):
         """Writes the KPOINTS file."""
         p = self.input_params
         kpoints = open('KPOINTS', 'w')
-        kpoints.write('KPOINTS created by Atomic Simulation Environemnt\n')
+        kpoints.write('KPOINTS created by Atomic Simulation Environment\n')
         shape=np.array(p['kpts']).shape
         if len(shape)==1:
             kpoints.write('0\n')
