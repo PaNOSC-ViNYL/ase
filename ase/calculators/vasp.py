@@ -321,7 +321,17 @@ class Vasp(Calculator):
 
         Constructs the POTCAR file (does not actually write it).
         User should specify the PATH
-        to the pseudopotentials in VASP_PP_PATH environment variable"""
+        to the pseudopotentials in VASP_PP_PATH environment variable
+
+        The pseudopotentials are expected to be in:
+        LDA:  $VASP_PP_PATH/potpaw/
+        PBE:  $VASP_PP_PATH/potpaw_PBE/
+        PW91: $VASP_PP_PATH/potpaw_GGA/
+
+        if your pseudopotentials are somewhere else, or named
+        differently you should make symlinks at the paths above that
+        point to the right place.
+        """
 
         p = self.input_params
 
@@ -385,8 +395,6 @@ class Vasp(Calculator):
             xc = '_gga/'
         elif p['xc'] == 'PBE':
             xc = '_pbe/'
-        elif p['xc'] == 'LDA':
-            xc = '_lda/'
         if 'VASP_PP_PATH' in os.environ:
             pppaths = os.environ['VASP_PP_PATH'].split(':')
         else:
@@ -431,7 +439,11 @@ class Vasp(Calculator):
                     self.ppp_list.append(filename+'.Z')
                     break
             if not found:
-                print 'Looking for %s' % name
+                print '''Looking for %s
+                The pseudopotentials are expected to be in:
+                LDA:  $VASP_PP_PATH/potpaw/
+                PBE:  $VASP_PP_PATH/potpaw_PBE/
+                PW91: $VASP_PP_PATH/potpaw_GGA/'''  % name
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
         self.converged = None
         self.setups_changed = None
@@ -1058,8 +1070,12 @@ class Vasp(Calculator):
         file = open('IBZKPT')
         lines = file.readlines()
         file.close()
+        if 'Tetrahedra\n' in lines:
+            N = lines.index('Tetrahedra\n')
+        else:
+            N = len(lines)
         kpt_weights = []
-        for n in range(3, len(lines)):
+        for n in range(3, N):
             kpt_weights.append(float(lines[n].split()[3]))
         kpt_weights = np.array(kpt_weights)
         kpt_weights /= np.sum(kpt_weights)
