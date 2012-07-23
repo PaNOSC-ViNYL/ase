@@ -13,9 +13,9 @@ If any of the below steps prove difficult, be sure to ask on the
 :ref:`developer mailing list <mailing_lists>`.  These steps should work on GNU/Linux.
 
 * :ref:`Download <download_and_install>` ASE.
-* Go to :file:`ase/gui/po`.  There is a directory of the form :file:`{ll}_{LL}` for each language, where :file:`{ll}` is the `language code`_ and :file:`{LL}` the `country code`_.
-* If your language is not there already, run :file:`LANG={ll}_{LL} make init`, substituting the desired language/country codes.
-* There should now be a template file for your language, :file:`{ll}_{LL}/LC_MESSAGES/ag.po`, which can be filled out.
+* Go to :file:`ase/gui/po`.  There is a directory of the form :file:`{ll}` or :file:`{ll}_{LL}` for each language, where :file:`{ll}` is the `language code`_ and :file:`{LL}` the `country code`_.  The latter is necessary only if variants of the same language are spoken in multiple countries.
+* If your language is not there already, run :file:`LANG={ll} make init`, substituting the desired language code.  If necessary append the country code as well: :file:`LANG={ll_LL} ...`.
+* There should now be a template file for your language, :file:`{ll}/LC_MESSAGES/ag.po`, which can be filled out.
 
 You can edit the po-file with any text editor.  It is easiest with a dedicated po-editor such as gtranslator, poedit or the gettext mode in EMACS (the package ":file:`gettext-el`").  Fill out the missing :file:`msgstr` entries like this::
 
@@ -69,9 +69,9 @@ Check and commit your translation
   newly installed ASE.  If you translate into the same language as
   your computer's locale, you should see the translations when you
   start :file:`ag` normally.  If you translate ASE into another
-  language, then run :file:`LANG={ll}_{LL}.UTF-8 ag`.  In recent
-  versions of Ubuntu, you may need to run
-  :file:`LANGUAGES={ll}_{LL}.UTF-8 ag` instead.
+  language, then run :file:`LANG={ll}_{LL}.UTF-8 ag`.  On some
+  operating systems you may need to run
+  :file:`LANGUAGE={ll}_{LL}.UTF-8 ag` instead.
 
 Depending on your operating system, you may need to install
 :file:`gettext` or :file:`locales`.
