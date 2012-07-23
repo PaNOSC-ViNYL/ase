@@ -103,7 +103,7 @@ class build_py(_build_py):
         msgfmt = 'msgfmt'
         status = os.system(msgfmt + ' -V')
         if status == 0:
-            for pofile in glob('ase/gui/po/??_??/LC_MESSAGES/ag.po'):
+            for pofile in glob('ase/gui/po/*/LC_MESSAGES/ag.po'):
                 dirname = join(self.build_lib, os.path.dirname(pofile))
                 if not os.path.isdir(dirname):
                     os.makedirs(dirname)

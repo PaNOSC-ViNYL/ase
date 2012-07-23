@@ -39,6 +39,7 @@ update-po: ag.pot
 # This will compile all translations (*.po) into binary files in gettext's
 # search directory.
 compile: */LC_MESSAGES/ag.po
-	for DIR in $(wildcard */LC_MESSAGES/); do \
+	for DIR in $(wildcard */LC_MESSAGES); do \
+	  echo Checking $$DIR/ag.po ;\
 	  msgfmt -cv --output-file=$$DIR/ag.mo $$DIR/ag.po ;\
 	done
