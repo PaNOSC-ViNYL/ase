@@ -19,7 +19,7 @@ from ase.gui.render import Render
 from ase.gui.colors import ColorWindow
 from ase.gui.defaults import read_defaults
 from ase.utils import rotate
-
+from ase.quaternions import Quaternion
 class View:
     def __init__(self, vbox, rotations):
         self.colormode = 'jmol'  # The default colors
@@ -440,7 +440,7 @@ class View:
             circle = True
 
         if not circle:
-            Q = self.images.Q[j]
+            Q = Quaternion(self.images.Q[self.frame][j])
             X2d = np.array([X[j][0], X[j][1]])
             Ellipsoid = np.array([[1. / (rx*rx), 0, 0],
                                   [0, 1. / (ry*ry), 0],
@@ -466,7 +466,7 @@ class View:
             # eigenvektor der diagonal matrix
             phi = atan(El_p_diag[1][0][1] / El_p_diag[1][0][0])
             tupl = []
-            alpha = np.array(range(20)) *2* np.pi /20
+            alpha = np.array(range(16)) * 2 * np.pi / 16
             El_xy = np.array([sqrt(1. / (El_p_diag[0][0])) *
                               np.cos(alpha)*np.cos(phi) 
                               - sqrt(1./(El_p_diag[0][1])) * 

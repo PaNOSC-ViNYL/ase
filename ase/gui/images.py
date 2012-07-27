@@ -10,6 +10,7 @@ from ase.constraints import FixAtoms
 from ase.gui.defaults import read_defaults
 from ase.quaternions import Quaternion
 
+
 class Images:
     def __init__(self, images=None):
 
@@ -20,15 +21,31 @@ class Images:
         
         self.natoms = len(images[0])
         self.nimages = len(images)
-        if hasattr(images[0], 'get_shapes'):
-            self.shapes = images[0].get_shapes()
-            self.Q = []
-        else:
-            self.shapes = None
-
         if filenames is None:
             filenames = [None] * self.nimages
         self.filenames = filenames
+
+        if hasattr(images[0], 'get_shapes'):
+            self.Q = np.empty((self.nimages, self.natoms, 4))
+            self.shapes = images[0].get_shapes()
+            import os as os
+            if os.path.exists('shapes'):
+                shapesfile = open('shapes')
+                lines = shapesfile.readlines()
+                shapesfile.close()
+                if '#{type:(shape_x,shape_y,shape_z), .....,}' in lines[0]:
+                    shape = eval(lines[1])
+                    shapes=[]
+                    for an in images[0].get_atomic_numbers():
+                        shapes.append(shape[an])
+                    self.shapes = np.array(shapes)
+                else:
+                    print 'shape file has wrong format'
+            else: 
+                print 'no shapesfile found: default shapes were used!'
+		  
+        else:
+            self.shapes = None
         self.P = np.empty((self.nimages, self.natoms, 3))
         self.V = np.empty((self.nimages, self.natoms, 3))
         self.E = np.empty(self.nimages)
@@ -54,11 +71,8 @@ class Images:
                                    'kinds of atoms!')
             self.P[i] = atoms.get_positions()
             self.V[i] = atoms.get_velocities()
-
             if hasattr(self, 'Q'):
-                for q in atoms.get_quaternions():
-                     self.Q.append(Quaternion(q))
-
+                self.Q[i] = atoms.get_quaternions()
             self.A[i] = atoms.get_cell()
             if (atoms.get_pbc() != self.pbc).any():
                 warning = True
