@@ -129,6 +129,10 @@ classnames = {'asap': 'EMT',
 def calculator_factory(name, **kwargs):
     """Create an ASE calculator factory."""
 
+    if name == 'abinit':
+        from ase.calculators.abinit import Abinit
+        return CalculatorFactory(Abinit, 'Abinit', 'label', **kwargs)
+
     if name == 'asap':
         from asap3 import EMT
         return CalculatorFactory(EMT, 'Asap', None, 'no k-points', **kwargs)
