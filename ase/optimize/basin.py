@@ -53,9 +53,9 @@ class BasinHopping(Dynamics):
 
         ro = self.positions
         Eo = self.get_energy(ro)
-        En = None
  
         for step in range(steps):
+            En = None
             while En is None:
                 rn = self.move(ro)
                 En = self.get_energy(rn)
