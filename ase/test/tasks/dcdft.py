@@ -1,22 +1,22 @@
 """Collection of bulk systems.
 
-From this paper:
+From this paper::
 
    K. Lejaeghere, V. Van Speybroeck, G. Van Oost and S. Cottenier,
 
-   The ground state elemental crystals as a benchmark set for solid state DFT:
-   intrinsic accuracy and code comparison
+   Error bars for solid-state density-functional theory predictions:
+   an overview by means of the ground-state elemental crystals
 
    http://molmod.ugent.be/DeltaCodesDFT
 
-   Data extracted to csv file with:
+   Data extracted to csv file with
 
-    * Wien2K ref:
+   * Wien2K ref:
 
-      pdftotext -layout -f 11 -l 12 SupplMat.pdf - | sed -n '/text file/,$p' \
-      | grep -E -v "text" | sed '/^$/d' | tr '\f' ' ' \
-      | sed 's/,WIEN2k//g' | sed 's/V0/formula,V0/g' | sed -e 's/^[ \t]*//' \
-      | sed -e 's/\s\+/,/g'
+     pdftotext -layout -f 11 -l 12 SupplMat.pdf - | sed -n '/text file/,$p' \
+     | grep -E -v "text" | sed '/^$/d' | tr '\f' ' ' \
+     | sed 's/,WIEN2k//g' | sed 's/V0/formula,V0/g' | sed -e 's/^[ \t]*//' \
+     | sed -e 's/\s\+/,/g'
 
 """
 
@@ -106,7 +106,7 @@ class FullEquationOfState(EquationOfState):
         return self.v0, self.e0, self.B0, self.B1, residuals0
 
 
-class DeltaCodesDFT:
+class DeltaCodesDFTCollection:
 
     # retrieved Sat Jul 28 2012
     wienref = """
@@ -830,7 +830,7 @@ class DeltaCodesDFT:
 class DeltaCodesDFTTask(BulkTask):
     def __init__(self, **kwargs):
         BulkTask.__init__(self,
-                          collection=DeltaCodesDFT(),
+                          collection=DeltaCodesDFTCollection(),
                           **kwargs)
 
         self.summary_keys = ['energy', 'fitted energy', 'volume',
@@ -895,19 +895,21 @@ if __name__ == '__main__':
         for f in glob.glob('*.cif'):
             a = ase.io.read(f)
             s = os.path.splitext(f)[0]
-            if s == 'S_betaPo': # exception in name
-                s = 'S'
-            if s == 'Mn_fcc': # exception in name (use fcc)
-                s = 'Mn'
+            # MDTMP
+            #if s == 'S_betaPo': # exception in name
+            #    s = 'S'
+            #if s == 'Mn_fcc': # exception in name (use fcc)
+            #    s = 'Mn'
             # Fe, Co, Ni
             M = {'Fe': 2.3, 'Co': 1.2, 'Ni': 0.6}.get(s)
             if M is not None:
                 magmoms = [M] * len(a)
             else:
                 magmoms = None
-            # MDTMP antiferromagnetic Cr, Mn ?
+            # antiferromagnetic Cr, Mn
             if s in ['Cr', 'Mn']:
-                pass
+                magmoms = [0.5 for i in range(len(a) / 2)]
+                magmoms += [-0.5 for i in range(len(a) / 2)]
             d = {'symbols': a.get_chemical_symbols(),
                  'positions': a.get_positions(),
                  'cell': a.get_cell(),
