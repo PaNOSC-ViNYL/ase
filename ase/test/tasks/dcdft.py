@@ -808,7 +808,7 @@ class DeltaCodesDFTCollection:
     ref = {}
     for name in names:
         for l in wienref.split():
-            if l.startswith(name):
+            if l.split(',')[0] == name:
                 ref[name] = [float(v) for v in l.split(',')[1:]]
     data = {}
     for name in names:
