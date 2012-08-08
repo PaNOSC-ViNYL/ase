@@ -3488,6 +3488,9 @@ s.recv(14)
 
         log.debug('restarting!')
 
+        if not os.path.exists(self.nc):
+            return
+
         ncdims = ['number_plane_waves',
                   'number_IBZ_kpoints',
                   'softgrid_dim1',
