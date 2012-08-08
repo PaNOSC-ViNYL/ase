@@ -843,16 +843,21 @@ class DeltaCodesDFTTask(BulkTask):
             if 'strains' in data:
                 atoms = self.create_system(name)
                 # full equation of state
-                volumes = data['strains']**3 * atoms.get_volume() / len(atoms)
-                energies = data['energies'] / len(atoms)
+                # use relaxed volume if present
+                if 'relaxed volume' in data:
+                    volume = data['relaxed volume']
+                else:
+                    volume = atoms.get_volume()
+                volumes = data['strains']**3 * volume
+                energies = data['energies']
                 eos = FullEquationOfState(volumes, energies)
                 try:
                     v, e, B0, B1, R = eos.fit()
                 except ValueError:
                     pass
                 else:
-                    data['dcdft fitted energy'] = e
-                    data['dcdft volume'] = v
+                    data['dcdft fitted energy'] = e / len(atoms)
+                    data['dcdft volume'] = v / len(atoms)
                     data['dcdft B0'] = B0
                     data['dcdft B1'] = B1
                     data['dcdft R'] = R
