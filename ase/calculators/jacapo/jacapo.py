@@ -142,6 +142,7 @@ class Jacapo:
     def __init__(self,
                  nc='out.nc',
                  outnc=None,
+                 deletenc=False,
                  debug=logging.WARN,
                  stay_alive=False,
                  **kwargs):
@@ -155,6 +156,11 @@ class Jacapo:
 
           outnc : string
            output file. by default equal to nc
+
+          deletenc : Boolean
+           determines whether the ncfile is deleted on initialization
+           so a fresh run occurs. If True, the ncfile is deleted if
+           it exists.
 
           debug : integer
            logging debug level.
@@ -250,6 +256,9 @@ class Jacapo:
 
         self.kwargs = kwargs
         self.set_psp_database()
+
+        if deletenc and os.path.exists(nc):
+            os.unlink(nc)
 
         self.set_nc(nc)
         #assume not ready at init, rely on code later to change this
