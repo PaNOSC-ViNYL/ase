@@ -1,8 +1,35 @@
 .. _download_and_install:
 
-=================================
-Installation of ASE: Requirements
-=================================
+===================
+Installation of ASE
+===================
+
+In the video: :ref:`overview` of the features of ASE,
+followed by a manual installation of ASE on a Linux system.
+
+.. note::
+
+   Use "Right Click -> Play" to play.
+
+.. raw:: html
+
+        <p></p>
+        <object width="800" height="600">
+        <embed src="https://wiki.fysik.dtu.dk/ase-files/oi_en_800x600.swf"
+        type="application/x-shockwave-flash"
+        allowFullScreen="false"
+        allowscriptaccess="never"
+        loop="false"
+        play="false"
+        width="800" height="600">
+        <p></p>
+        Video not playing? Download avi <a href="https://wiki.fysik.dtu.dk/ase-files/oi_en.avi">file</a> instead.
+        </embed></object>
+        <p></p>
+
+=========================
+Installation requirements
+=========================
 
 The following packages are required for basic ASE functionality:
 
