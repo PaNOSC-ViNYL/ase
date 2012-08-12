@@ -69,7 +69,7 @@ The currently supported systems include (issue the commands below **as root**):
 
     yum install wget
     cd /etc/yum.repos.d/
-    wget http://download.opensuse.org/repositories/home:/dtufys/RedHat_RHEL-6/home:dtufys.repo
+    wget http://download.opensuse.org/repositories/home:/dtufys/CentOS_CentOS-6/home:dtufys.repo
     yum install python-ase
 
 - Fedora 17::
