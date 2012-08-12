@@ -70,7 +70,7 @@ Videos
 
 The following video tutorials are available:
 
- - **Overview and installation of ASE** (duration: ~5min 30sec; size: 26 MB) - en: |oi_en|
+ - **Overview and installation of ASE**, by Anthony Goodrow (duration: ~5min 30sec; size: 26 MB) - en: |oi_en|
 
 .. |oi_en| image:: ../_static/United_States_of_America.png
    :target: https://wiki.fysik.dtu.dk/ase-files/oi_en.avi
