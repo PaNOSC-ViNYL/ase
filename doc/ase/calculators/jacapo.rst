@@ -51,6 +51,7 @@ keyword        type         description
 ``dipole``     ``boolean``  Turn on/off dipole correction
 ``stay_alive`` ``boolean``  Turn on/off stay alive
 ``debug``      ``int``      Set debug level (0=off, 10=extreme)
+``deletenc``   ``boolean``  If the nc file exists, delete it (to ensure a fresh run). Default is False.
 ============== ============ =====================================
 
 Example
