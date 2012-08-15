@@ -192,13 +192,17 @@ The currently supported systems include (issue the commands below **as root**):
     sudo apt-get install python-ase
     sudo apt-get install python-matplotlib # optionally
 
+  .. note::
+
+    Alternative packages for ubuntu are provided at
+    `Ubuntu package <https://wiki.fysik.dtu.dk/gpaw/install/Linux/Ubuntu_ppa.html#ubuntupackage>`_.
+
 .. note::
 
-   Alternative packages for ubuntu are provided at
-   `Ubuntu package <https://wiki.fysik.dtu.dk/gpaw/install/Linux/Ubuntu_ppa.html#ubuntupackage>`_.
+   For the full list of supported distributions check
+   https://build.opensuse.org/package/show?package=python-ase&project=home%3Adtufys
 
-For the full list of supported distributions check
-https://build.opensuse.org/package/show?package=python-ase&project=home%3Adtufys
+   Explore the repositories - more software is available!
 
 OSX
 ===
