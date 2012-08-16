@@ -149,7 +149,9 @@ Installation with package manager on Linux
 ==========================================
 
 Install the binaries with the software package manager of your Linux distribution.
+
 This is **the preferred** way to install on a Linux system.
+
 If you prefer to install from sources follow :ref:`manual_installation`.
 
 The currently supported systems include (issue the commands below **as root**):
@@ -197,12 +199,35 @@ The currently supported systems include (issue the commands below **as root**):
     Alternative packages for ubuntu are provided at
     `Ubuntu package <https://wiki.fysik.dtu.dk/gpaw/install/Linux/Ubuntu_ppa.html#ubuntupackage>`_.
 
+For the full list of supported distributions check
+https://build.opensuse.org/package/show?package=python-ase&project=home%3Adtufys
+
 .. note::
 
-   For the full list of supported distributions check
-   https://build.opensuse.org/package/show?package=python-ase&project=home%3Adtufys
+   Explore the repositories - more software packages are available!
 
-   Explore the repositories - more software is available!
+.. note::
+
+   If you prefer to install manually, proceed to :ref:`manual_installation`, or
+   alternatively, manually unpack the RPMS, e.g.::
+
+     # download the packages + dependencies (you can do that also manually!)
+     $ yumdownloader --resolve python-ase
+     # unpack into the current directory
+     $ find . -name "*.rpm" | xargs -t -I file sh -c "rpm2cpio file | cpio -idm"
+     # modify profile.d environment scripts
+     $ find . -name "*.*sh" | xargs -t -I file sh -c "sed -i "s#PA=/usr#PA=$PWD/usr#" file"
+     # make scripts executable
+     $ find . -name "*.*sh" | xargs -t -I file sh -c "chmod u+x file"
+     # source the scripts (example for bash)
+     $ for f in `find . -name "*.sh"`; do source $f; done
+     # verify the desired installation location is used
+     $ python -c "import ase; print ase.__file__"
+
+   This method works for all the RPM packages from the repository (like gpaw),
+   however not for the external, distribution provided packages,
+   which may require manually creating the environment scripts.
+
 
 OSX
 ===
