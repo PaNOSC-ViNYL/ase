@@ -216,7 +216,9 @@ https://build.opensuse.org/package/show?package=python-ase&project=home%3Adtufys
      # unpack into the current directory
      $ find . -name "*.rpm" | xargs -t -I file sh -c "rpm2cpio file | cpio -idm"
      # modify profile.d environment scripts
-     $ find . -name "*.*sh" | xargs -t -I file sh -c "sed -i "s#PA=/usr#PA=$PWD/usr#" file"
+     $ find . -name "*.*sh" | xargs -t -I file sh -c 'sed -i "s#PA=/usr#PA=$PWD/usr#" file'
+     # modify environment modules scripts
+     $ find . -name "*.modules" | xargs -t -I file sh -c 'sed -i "s# /usr# $PWD/usr#" file'
      # make scripts executable
      $ find . -name "*.*sh" | xargs -t -I file sh -c "chmod u+x file"
      # source the scripts (example for bash)
