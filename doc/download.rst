@@ -329,10 +329,12 @@ Instead of :envvar:`HOME`, you may use any other directory.
 
 .. index:: test
 
-If you have root-permissions, you can install ASE system-wide::
+Optional, **NOT** recommended way of installing ASE system-wide is::
 
   $ cd ase
   $ sudo python setup.py install
+
+This is one of the best ways to ruin a Linux system.
 
 .. _running_tests:
 
