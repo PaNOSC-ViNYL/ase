@@ -59,6 +59,7 @@ float_keys = [
     'param2',     # Exchange parameter
     'pomass',     # mass of ions in am
     'sigma',      # broadening in eV
+    'spring',     # spring constant for NEB
     'time',       # special control tag
     'weimin',     # maximum weight for a band to be considered empty
     'zab_vdw',    # vdW-DF parameter
@@ -105,6 +106,7 @@ int_keys = [
     'ibrion',     # ionic relaxation: 0-MD 1-quasi-New 2-CG
     'icharg',     # charge: 0-WAVECAR 1-CHGCAR 2-atom 10-const
     'idipol',     # monopol/dipol and quadropole corrections
+    'images',     # number of images for NEB calculation
     'iniwav',     # initial electr wf. : 0-lowe 1-rand
     'isif',       # calculate stress and what to relax
     'ismear',     # part. occupancies: -5 Blochl -4-tet -1-fermi 0-gaus >0 MP
@@ -1031,6 +1033,10 @@ class Vasp(Calculator):
             if line.rfind('EDIFF  ') > -1:
                 ediff = float(line.split()[2])
             if line.rfind('total energy-change')>-1:
+                # I saw this in an atomic oxygen calculation. it
+                # breaks this code, so I am checking for it here.
+                if 'MIXING' in line:
+                    continue
                 split = line.split(':')
                 a = float(split[1].split('(')[0])
                 b = float(split[1].split('(')[1][0:-2])
@@ -1039,7 +1045,8 @@ class Vasp(Calculator):
                 else:
                     converged = False
                     continue
-        # Then if ibrion in [1,2,3] check whether ionic relaxation condition been fulfilled
+        # Then if ibrion in [1,2,3] check whether ionic relaxation
+        # condition been fulfilled
         if self.int_params['ibrion'] in [1,2,3]:
             if not self.read_relaxed():
                 converged = False
@@ -1150,6 +1157,8 @@ class Vasp(Calculator):
                     self.string_params[key] = str(data[2])
                 elif key in int_keys:
                     if key == 'ispin':
+                        # JRK added. not sure why we would want to leave ispin out
+                        self.int_params[key] = int(data[2])
                         if int(data[2]) == 2:
                             self.spinpol = True
                     else:
