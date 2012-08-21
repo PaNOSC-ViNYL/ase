@@ -20,6 +20,7 @@ from ase.gui.colors import ColorWindow
 from ase.gui.defaults import read_defaults
 from ase.utils import rotate
 from ase.quaternions import Quaternion
+
 class View:
     def __init__(self, vbox, rotations):
         self.colormode = 'jmol'  # The default colors
@@ -342,6 +343,14 @@ class View:
         self.show_vectors(self.images.F)
         self.draw()
 
+    def hide_selected(self, button):
+        self.images.visible[self.images.selected] = False
+        self.draw()
+
+    def show_selected(self, button):
+        self.images.visible[self.images.selected] = True
+        self.draw()
+
     def repeat_window(self, menuitem):
         self.reset_tools_modes()
         Repeat(self)
@@ -543,8 +552,10 @@ class View:
             if a < n:
                 ra = d[a]
                 if visible[a]:
+                    # Draw the atoms
                     self.my_arc(colors[a], True, a, X, r, n, A, d)
 
+                    # Draw labels on the atoms
                     if self.labels is not None:
                         # start labeling with atomic indexes
                         # to do: scale position and size with radius in some
@@ -559,26 +570,32 @@ class View:
 
                         self.pixmap.draw_layout(colorl, xlabel, ylabel, layout)
 
-                if  self.light_green_markings and self.atoms_to_rotate_0[a]:
+                    # Draw cross on constrained atoms
+                    if not dynamic[a]:
+                        R1 = int(0.14644 * ra)
+                        R2 = int(0.85355 * ra)
+                        line(foreground_gc,
+                             A[a, 0] + R1, A[a, 1] + R1,
+                             A[a, 0] + R2, A[a, 1] + R2)
+                        line(foreground_gc,
+                             A[a, 0] + R2, A[a, 1] + R1,
+                             A[a, 0] + R1, A[a, 1] + R2)
+
+                    # Draw velocities og forces
+                    if vectors:
+                        self.arrow(X[a], X[a] + V[a])
+
+                if self.light_green_markings and self.atoms_to_rotate_0[a]:
                     arc(self.green, False, A[a, 0] + 2, A[a, 1] + 2,
                         ra - 4, ra - 4, 0, 23040)
 
-                if not dynamic[a]:
-                    R1 = int(0.14644 * ra)
-                    R2 = int(0.85355 * ra)
-                    line(foreground_gc,
-                         A[a, 0] + R1, A[a, 1] + R1,
-                         A[a, 0] + R2, A[a, 1] + R2)
-                    line(foreground_gc,
-                         A[a, 0] + R2, A[a, 1] + R1,
-                         A[a, 0] + R1, A[a, 1] + R2)
+                # Draw marking circles around the atoms
                 if selected[a]:
                     self.my_arc(selected_gc, False, a, X, r, n, A, d)
                 elif visible[a]:
                     self.my_arc(foreground_gc, False, a, X, r, n, A, d)
-                if vectors:
-                    self.arrow(X[a], X[a] + V[a])
             else:
+                # Draw unit cell
                 a -= n
                 line(foreground_gc, X1[a, 0], X1[a, 1], X2[a, 0], X2[a, 1])
 
@@ -596,8 +613,6 @@ class View:
             self.status()
 
     def draw_axes(self):
-        from ase.quaternions import Quaternion
-        q = Quaternion().from_matrix(self.axes)
         axes_labels = [
                 "<span foreground=\"red\" weight=\"bold\">X</span>",
                 "<span foreground=\"green\" weight=\"bold\">Y</span>",
@@ -619,8 +634,6 @@ class View:
             loy = int(self.height - 20 - self.axes[i][1] * 20\
                     - layout.get_size()[1] / 2. / pango.SCALE)
             self.pixmap.draw_layout(self.foreground_gc, lox, loy, layout)
-
- 
     
     def draw_frame_number(self):
         n = str(self.frame)

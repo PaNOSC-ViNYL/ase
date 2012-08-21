@@ -76,6 +76,9 @@ ui_info = """\
       <menuitem action='Copy'/>
       <menuitem action='Paste'/>
       <separator/>
+      <menuitem action='HideAtoms'/>
+      <menuitem action='ShowAtoms'/>
+      <separator/>
       <menuitem action='Modify'/>
       <menuitem action='AddAtoms'/>
       <menuitem action='DeleteAtoms'/>
@@ -229,6 +232,12 @@ class GUI(View, Status):
              '',
              self.step),
             ('ShowLabels', None, _('Show _Labels')),
+            ('HideAtoms', None, _('Hide selected atoms'), None,
+             '',
+             self.hide_selected),
+            ('ShowAtoms', None, _('Show selected atoms'), None,
+             '',
+             self.show_selected),
             ('QuickInfo', None, _('Quick Info ...'), None,
              '',
              self.quick_info_window),
