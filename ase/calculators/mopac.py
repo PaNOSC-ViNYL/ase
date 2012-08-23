@@ -139,6 +139,15 @@ class Mopac(Calculator):
         myfile.write(mopac_input)
         myfile.close()
 
+    def get_command(self):
+        """Return command string if program installed, otherwise None.  """
+        command = None
+        if self.str_params['command'] is not None:
+            command = self.str_params['command']
+        elif ('MOPAC_COMMAND' in os.environ):
+            command = os.environ['MOPAC_COMMAND']
+        return command
+
     def run(self):
         # set the input file name
         finput = self.label + '.mop'
@@ -146,12 +155,8 @@ class Mopac(Calculator):
         
         self.write_input(finput, self.atoms)
 
-        command = ''
-        if self.str_params['command'] is not None:
-            command = self.str_params['command']
-        elif ('MOPAC_COMMAND' in os.environ):
-            command = os.environ['MOPAC_COMMAND']
-        else:
+        command = self.get_command()
+        if command is None:
             raise RuntimeError('MOPAC command not specified')
         
         exitcode = os.system('%s %s' % (command, finput))
