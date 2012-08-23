@@ -1,3 +1,4 @@
+# encoding: utf-8
 """
 Version 2012/08/20, Torsten Kerber
 
