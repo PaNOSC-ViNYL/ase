@@ -569,7 +569,7 @@ class DeltaCodesDFTCollection:
         'O': {'cell': array([[  4.27163000e+00,   0.00000000e+00,   0.00000000e+00],
                              [  2.61879696e-16,   4.27682000e+00,   0.00000000e+00],
                              [  1.80666882e+00,   1.69295858e-16,   4.19933056e+00]]),
-              'magmoms': None,
+              'magmoms': [0.5, 0.5, -0.5, -0.5],
               'positions': array([[  4.27100416e+00,   2.48306235e-17,   6.15915813e-01],
                                   [  1.80729466e+00,   1.44465234e-16,   3.58341475e+00],
                                   [  2.13518916e+00,   2.13841000e+00,   6.15915813e-01],
@@ -837,7 +837,10 @@ class DeltaCodesDFTTask(BulkTask):
                              'volume error [%]', 'B', 'B error [%]']
 
     def analyse(self, atomsfile=None):
-        BulkTask.analyse(self)
+        try:
+            BulkTask.analyse(self)
+        except ValueError: # allow fit outside of range
+            pass
 
         for name, data in self.data.items():
             if 'strains' in data:
@@ -911,8 +914,8 @@ if __name__ == '__main__':
                 magmoms = [M] * len(a)
             else:
                 magmoms = None
-            # antiferromagnetic Cr, Mn
-            if s in ['Cr', 'Mn']:
+            # antiferromagnetic Cr, Mn, O
+            if s in ['Cr', 'Mn', 'O']:
                 magmoms = [0.5 for i in range(len(a) / 2)]
                 magmoms += [-0.5 for i in range(len(a) / 2)]
             d = {'symbols': a.get_chemical_symbols(),
