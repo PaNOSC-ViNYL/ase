@@ -117,7 +117,7 @@ For the example above, you can write the images to individual
 trajectory files like this::
 
   for i in range(1, 4):
-      qn.attach(io.PickleTrajectory('A2B-%d.traj' % d, 'w', images[i])
+      qn.attach(io.PickleTrajectory('A2B-%d.traj' % i, 'w', images[i]))
 
 The result of the latest iteration can be analysed like this:
 
