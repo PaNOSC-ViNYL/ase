@@ -236,7 +236,7 @@ class Abinit:
         nelect = None
         # only in log file!
         for line in open(self.label + '.log'): # find last one
-            if line.find('nelect') != -1:
+            if line.find('with nelect') != -1:
                 nelect = float(line.split('=')[1].strip())
         return nelect
 
