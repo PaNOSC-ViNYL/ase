@@ -1,11 +1,10 @@
-# encoding: utf-8
 """
 Version 2012/08/20, Torsten Kerber
 
 Contributors:
-  Torsten Kerber, Ecole normale supérieure de Lyon:
-  Paul Fleurat-Lessard, Ecole normale supérieure de Lyon
-  based on a script by Rosa Bulo, Ecole normale supérieure de Lyon
+  Torsten Kerber, Ecole normale superieure de Lyon:
+  Paul Fleurat-Lessard, Ecole normale superieure de Lyon
+  based on a script by Rosa Bulo, Ecole normale superieure de Lyon
 
 This work is supported by Award No. UK-C0017, made by King Abdullah
 University of Science and Technology (KAUST), Saudi Arabia
