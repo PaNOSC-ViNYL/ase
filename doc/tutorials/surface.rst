@@ -55,9 +55,9 @@ common crystal structures. Let us make a Cu (111) surface::
 Calculators
 ----------- 
 
-The following :mod:`calculators` can be used with ASE:
-:mod:`~calculators.emt`, Asap_, Dacapo_, GPAW_, Siesta_
-(Abinit_, Vasp_, and MMTK - work in progress).
+Many :mod:`calculators` can be used with ASE, including
+:mod:`~calculators.emt`, Asap_, Dacapo_, GPAW_, Abinit_, Vasp_.
+See the ASE home page for the full list.
   
 .. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
