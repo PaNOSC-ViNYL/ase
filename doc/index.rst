@@ -13,7 +13,8 @@ for manipulating atoms, analyzing simulations, visualization etc.
 Supported :mod:`calculators`:
 
    |abinit| |Asap| |CASTEP| |dftb| |elk| |exciting| |EMT| |fhi-aims| 
-   |fleur| |gpaw| |hotbit| |jacapo| |lammps| |siesta| |turbomole| |vasp| 
+   |fleur| |gpaw| |hotbit| |jacapo| |lammps| Mopac_ |siesta| |turbomole|
+   |vasp| 
 
 .. |abinit| image:: _static/abinit.png
    :target: ase/calculators/abinit.html
@@ -66,6 +67,7 @@ Supported :mod:`calculators`:
 
 .. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _MMTK: http://dirac.cnrs-orleans.fr/MMTK
+.. _Mopac: http://openmopac.net/
 .. _Python: http://www.python.org
 .. _Trac: http://trac.fysik.dtu.dk/projects/ase/report/1
 
