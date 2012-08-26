@@ -208,7 +208,7 @@ class BulkTask(OptimizeTask):
                     eos = EquationOfState(volumes, energies)
                 try:
                     v, e, B = eos.fit()
-                except ValueError:
+                except (RuntimeError, ValueError):
                     pass
                 else:
                     data['fitted energy'] = e
