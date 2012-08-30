@@ -14,6 +14,9 @@ Development version in trunk
   ase.lattice.surface.surface() function now returns a right-handed
   unit cell.
 
+* Mopac interface added.
+
+* Gaussian interface added.
 
 Version 3.6.0
 =============

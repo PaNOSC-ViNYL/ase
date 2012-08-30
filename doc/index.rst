@@ -13,8 +13,8 @@ for manipulating atoms, analyzing simulations, visualization etc.
 Supported :mod:`calculators`:
 
    |abinit| |Asap| |CASTEP| |dftb| |elk| |exciting| |EMT| |fhi-aims| 
-   |fleur| |gpaw| |hotbit| |jacapo| |lammps| Mopac_ |siesta| |turbomole|
-   |vasp| 
+   |fleur| Gaussian_ |gpaw| |hotbit| |jacapo| |lammps| Mopac_ |siesta|
+   |turbomole| |vasp| 
 
 .. |abinit| image:: _static/abinit.png
    :target: ase/calculators/abinit.html
@@ -66,6 +66,7 @@ Supported :mod:`calculators`:
    :align: middle
 
 .. _Asap: http://wiki.fysik.dtu.dk/asap
+.. _Gaussian: http://www.gaussian.com/
 .. _MMTK: http://dirac.cnrs-orleans.fr/MMTK
 .. _Mopac: http://openmopac.net/
 .. _Python: http://www.python.org

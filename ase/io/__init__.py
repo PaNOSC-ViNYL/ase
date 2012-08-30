@@ -27,9 +27,9 @@ def read(filename, index=-1, format=None):
 
     Known formats:
 
-    =========================  ===========
+    =========================  =============
     format                     short name
-    =========================  ===========
+    =========================  =============
     GPAW restart-file          gpw
     Dacapo netCDF output file  dacapo
     Old ASE netCDF trajectory  nc
@@ -68,7 +68,9 @@ def read(filename, index=-1, format=None):
     CMR db/cmr-file            cmr
     LAMMPS dump file           lammps
     Gromacs coordinates        gro
-    =========================  ===========
+    Gaussian com (input) file  gaussian
+    Gaussian output file       gaussian_out
+    =========================  =============
 
     """
     if isinstance(filename, str):
@@ -275,6 +277,14 @@ def read(filename, index=-1, format=None):
     if format == 'gromacs':
         from ase.io.gromacs import read_gromacs
         return read_gromacs(filename)
+
+    if format == 'gaussian':
+        from ase.io.gaussian import read_gaussian
+        return read_gaussian(filename)
+
+    if format == 'gaussian_out':
+        from ase.io.gaussian import read_gaussian_out
+        return read_gaussian_out(filename, index)
 
     raise RuntimeError('File format descriptor '+format+' not recognized!')
 
@@ -641,5 +651,12 @@ def filetype(filename):
 
     if filename.lower().endswith('.gro'):
         return 'gromacs'
+
+    if filename.lower().endswith('.log'):
+        return 'gaussian_out'
+
+    if filename.lower().endswith('.com'):
+        return 'gaussian'
+
 
     return 'xyz'
