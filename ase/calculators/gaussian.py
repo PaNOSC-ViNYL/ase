@@ -1,9 +1,9 @@
 """
-Gaussian calculator for ASE written by:
+Gaussian calculator for ASE written by::
     Glen R. Jenness
     University of Wisconsin - Madison
 
-Based off of code written by:
+Based off of code written by::
     Glen R. Jenness
     Kuang Yu
     Torsten Kerber

@@ -1,6 +1,6 @@
 """
 Read/write functions for Gaussian.
-Written by:
+Written by::
    Glen R. Jenness
    University of Wisconsin - Madison
 
