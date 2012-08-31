@@ -92,6 +92,11 @@ Here the distances between atoms with indices 0 and 1 and atoms with
 indices 0 and 2 will be fixed. The constraint is for the same purpose 
 as the FixBondLength class. 
 
+The FixedLine class
+====================
+
+.. autoclass:: ase.constraints.FixedLine
+
 The FixedPlane class
 ====================
 
