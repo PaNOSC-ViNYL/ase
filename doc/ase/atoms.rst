@@ -7,7 +7,7 @@ The Atoms object
 The :class:`~ase.atoms.Atoms` object is a collection of atoms.  Here
 is how to define a CO molecule::
 
-  from ase import *
+  from ase import Atoms
   d = 1.1
   co = Atoms('CO', positions=[(0, 0, 0), (0, 0, d)])
 
@@ -19,7 +19,7 @@ possible keywords are: ``numbers``, ``tags``, ``momenta``, ``masses``,
 Here is how you could make an infinite gold wire with a bond length of
 2.9 Å::
 
-  from ase import *
+  from ase import Atoms
   d = 2.9
   L = 10.0
   wire = Atoms('Au',
