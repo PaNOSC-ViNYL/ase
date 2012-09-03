@@ -21,7 +21,7 @@ def read_lammps_dump(fileobj, index=-1):
         if 'ITEM: TIMESTEP' in line:
             n_atoms = 0
             lo = [] ; hi = [] ; tilt = []
-            id = [] ; type = []
+            id = [] ; types = []
             positions = []
             velocities = [] 
             forces = []
@@ -88,7 +88,7 @@ def read_lammps_dump(fileobj, index=-1):
                 line = lines.pop(0)
                 fields = line.split()
                 id.append( int(fields[atom_attributes['id']]) )
-                type.append( int(fields[atom_attributes['type']]) )
+                types.append( int(fields[atom_attributes['type']]) )
                 add_quantity(fields, positions, ['x', 'y', 'z'])
                 add_quantity(fields, velocities, ['vx', 'vy', 'vz'])
                 add_quantity(fields, forces, ['fx', 'fy', 'fz'])
@@ -96,12 +96,12 @@ def read_lammps_dump(fileobj, index=-1):
                                                    'c_q[3]', 'c_q[4]'])
 
             if len(quaternions):
-                images.append(Quaternions(symbols=type,
+                images.append(Quaternions(symbols=types,
                                           positions=positions,
                                           cell=cell, celldisp=celldisp,
                                           quaternions=quaternions))
             else:
-                images.append(Atoms(symbols=type,
+                images.append(Atoms(symbols=types,
                                     positions=positions, celldisp=celldisp,
                                     cell=cell))
 
