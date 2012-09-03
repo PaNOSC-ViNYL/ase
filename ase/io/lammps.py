@@ -56,12 +56,21 @@ def read_lammps_dump(fileobj, index=-1):
                     yz = tilt[2]
             else:
                 xy = xz = yz = 0
-            xhilo = (hi[0] - lo[0]) - xy - xz
-            yhilo = (hi[1] - lo[1]) - yz
+            xhilo = (hi[0] - lo[0]) - (xy**2)**0.5 - (xz**2)**0.5
+            yhilo = (hi[1] - lo[1]) - (yz**2)**0.5
             zhilo = (hi[2] - lo[2])
+            if xy < 0:
+                if xz < 0:
+                    celldispx = lo[0] - xy -xz
+                else:
+                    celldispx = lo[0] - xy
+            else:
+                 celldispx = lo[0]
+            celldispy = lo[1] 
+            celldispz = lo[2]
 
             cell = [[xhilo,0,0],[xy,yhilo,0],[xz,yz,zhilo]]
-
+            celldisp = [[celldispx, celldispy, celldispz]]
         def add_quantity(fields, var, labels):
             for label in labels:
                 if label not in atom_attributes:
@@ -89,11 +98,11 @@ def read_lammps_dump(fileobj, index=-1):
             if len(quaternions):
                 images.append(Quaternions(symbols=type,
                                           positions=positions,
-                                          cell=cell,
+                                          cell=cell, celldisp=celldisp,
                                           quaternions=quaternions))
             else:
                 images.append(Atoms(symbols=type,
-                                    positions=positions,
+                                    positions=positions, celldisp=celldisp,
                                     cell=cell))
 
     return images[index]

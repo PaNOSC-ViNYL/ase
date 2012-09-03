@@ -62,6 +62,9 @@ class Atoms(object):
     cell: 3x3 matrix
         Unit cell vectors.  Can also be given as just three
         numbers for orthorhombic cells.  Default value: [1, 1, 1].
+    celldisp: Vector
+        Unit cell displacement vector. To visualize a displaced cell
+        around the center of mass of a Systems of atoms. Default value = (0,0,0)
     pbc: one or three bool
         Periodic boundary conditions flags.  Examples: True,
         False, 0, 1, (1, 1, 0), (True, False, False).  Default
@@ -117,7 +120,7 @@ class Atoms(object):
                  tags=None, momenta=None, masses=None,
                  magmoms=None, charges=None,
                  scaled_positions=None,
-                 cell=None, pbc=None,
+                 cell=None, pbc=None, celldisp=None,
                  constraint=None,
                  calculator=None, 
                  info=None):
@@ -161,6 +164,8 @@ class Atoms(object):
                 charges = atoms.get_charges()
             if cell is None:
                 cell = atoms.get_cell()
+            if celldisp is None:
+                celldisp = atoms.get_celldisp()
             if pbc is None:
                 pbc = atoms.get_pbc()
             if constraint is None:
@@ -190,6 +195,10 @@ class Atoms(object):
         if cell is None:
             cell = np.eye(3)
         self.set_cell(cell)
+
+        if celldisp is None:
+            celldisp = np.zeros(shape=(3,1))
+        self.set_celldisp(celldisp)
 
         if positions is None:
             if scaled_positions is None:
@@ -299,9 +308,19 @@ class Atoms(object):
             self.arrays['positions'][:] = np.dot(self.arrays['positions'], M)
         self._cell = cell
 
+    def set_celldisp(self, celldisp):
+        celldisp = np.array(celldisp, float)
+        self._celldisp = celldisp
+  
+    def get_celldisp(self):
+        """Get the unit cell displacement vectors ."""
+        return self._celldisp.copy()
+
     def get_cell(self):
         """Get the three unit cell vectors as a 3x3 ndarray."""
         return self._cell.copy()
+
+
 
     def get_reciprocal_cell(self):
         """Get the three reciprocal lattice vectors as a 3x3 ndarray.

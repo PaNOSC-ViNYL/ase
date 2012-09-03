@@ -74,6 +74,7 @@ class View:
         
         if init or frame != self.frame:
             A = self.images.A
+            Disp = self.images.D
             nc = len(self.B1)
             nb = len(self.bonds)
             
@@ -531,6 +532,7 @@ class View:
         A = (P - r[:, None]).round().astype(int)
         X1 = X[n:, :2].round().astype(int)
         X2 = (np.dot(self.B, axes) - offset).round().astype(int)
+        disp = (np.dot(self.images.D[self.frame],axes)).round().astype(int)
         d = (2 * r).round().astype(int)
 
         vectors = (self.ui.get_widget('/MenuBar/ViewMenu/ShowVelocities'
@@ -597,7 +599,7 @@ class View:
             else:
                 # Draw unit cell
                 a -= n
-                line(foreground_gc, X1[a, 0], X1[a, 1], X2[a, 0], X2[a, 1])
+                line(foreground_gc, X1[a, 0] + disp[0], X1[a, 1] + disp[1], X2[a, 0] + disp[0], X2[a, 1] + disp[1])
 
         if self.ui.get_widget('/MenuBar/ViewMenu/ShowAxes').get_active():
             self.draw_axes()

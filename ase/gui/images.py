@@ -54,6 +54,7 @@ class Images:
         self.M = np.empty((self.nimages, self.natoms))
         self.T = np.empty((self.nimages, self.natoms), int)
         self.A = np.empty((self.nimages, 3, 3))
+        self.D = np.empty((self.nimages, 3))
         self.Z = images[0].get_atomic_numbers()
         self.pbc = images[0].get_pbc()
         self.covalent_radii = covalent_radii
@@ -74,6 +75,7 @@ class Images:
             if hasattr(self, 'Q'):
                 self.Q[i] = atoms.get_quaternions()
             self.A[i] = atoms.get_cell()
+            self.D[i] = atoms.get_celldisp()
             if (atoms.get_pbc() != self.pbc).any():
                 warning = True
             try:
