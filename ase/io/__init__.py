@@ -334,6 +334,8 @@ def write(filename, images, format=None, **kwargs):
     CMR db/cmr-file            db
     CMR db/cmr-file            cmr
     Gromacs coordinates        gro
+    GROMOS96 (only positions)  g96
+
     =========================  ===========
 
     The use of additional keywords is format specific.
@@ -460,6 +462,10 @@ def write(filename, images, format=None, **kwargs):
     elif format == 'gro':
         from ase.io.gromacs import write_gromacs
         write_gromacs(filename, images)
+        return
+    elif format == 'g96':
+        from ase.io.gromos import write_gromos
+        write_gromos(filename, images)
         return
 
     format = {'traj': 'trajectory',
@@ -658,5 +664,7 @@ def filetype(filename):
     if filename.lower().endswith('.com'):
         return 'gaussian'
 
+    if filename.lower().endswith('.g96'):
+        return 'gromos'
 
     return 'xyz'
