@@ -75,7 +75,7 @@ class Images:
             if hasattr(self, 'Q'):
                 self.Q[i] = atoms.get_quaternions()
             self.A[i] = atoms.get_cell()
-            self.D[i] = atoms.get_celldisp()
+            self.D[i] = atoms.get_celldisp().reshape((3,))
             if (atoms.get_pbc() != self.pbc).any():
                 warning = True
             try:
