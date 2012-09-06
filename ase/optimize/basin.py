@@ -64,12 +64,12 @@ class BasinHopping(Dynamics):
             while En is None:
                 rn = self.move(ro)
                 En = self.get_energy(rn)
+                self.call_observers()
 
             if En < self.Emin:
                 # new minimum found
                 self.Emin = En
                 self.rmin = self.atoms.get_positions()
-                self.call_observers()
             self.log(step, En, self.Emin)
 
             accept = np.exp((Eo - En) / self.kT) > np.random.uniform()
