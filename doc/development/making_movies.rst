@@ -55,6 +55,13 @@ A video tutorial can be produced in the following way:
              -ovc lavc -lavcopts acodec=mp3lame:vcodec=msmpeg4v2:vpass=2:$opt \
              -info name="Overview and installation of ASE":artist=CAMd:copyright="CAMd 2009" -o video_final_mpeg4.avi
 
+  - convert `video_final.avi` into a 800x600 `swf` file for streaming::
+
+     ffmpeg -i video_final.avi -pass 1 -s 800x600 -b:a 256k -ar 44100 -ac 1 \
+            -vcodec flv -b:v 1200k -g 160 -mbd 2 oi_en_800x600.swf
+     ffmpeg -i video_final.avi -pass 2 -s 800x600 -b:a 256k -ar 44100 -ac 1 \
+            -vcodec flv -b:v 1200k -g 160 -mbd 2 -y oi_en_800x600.swf
+
 .. _recordmydesktop: http://recordmydesktop.sourceforge.net/
 .. _audacity: http://audacity.sourceforge.net/
 .. _avidemux: http://www.avidemux.org/
