@@ -117,8 +117,8 @@ Run pep8.py on your code
 ========================
 
 The `pep8.py <https://github.com/jcrocholl/pep8>`_ program is
-installed together with ASE.  It will check the PEP8_ conventions for
-you.  Try::
+installed together with ASE :svn:`~ase/tools/pep8.py`.
+It will check the PEP8_ conventions for you.  Try::
 
   $ pep8.py --help
 
@@ -150,3 +150,12 @@ Output from pylint run on ASE
 * pylint_ase_
 
 .. _pylint_ase: http://dcwww.fys.dtu.dk/~s052580/pylint/ase
+
+.. _epydoc:
+
+Run epydoc on your code
+=======================
+
+Run::
+
+  $ epydoc --docformat restructuredtext --parse-only --show-imports -v dir

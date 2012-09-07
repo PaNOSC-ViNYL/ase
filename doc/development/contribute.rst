@@ -24,10 +24,12 @@ mailing list::
   $ svn diff > patch.txt
 
 Before you send the patch, *please* read our
-:ref:`python_codingstandard` and learn how to use pep8.py and pylint:
+:ref:`python_codingstandard` and learn how to use pep8.py,
+pylint and epydoc:
 
 * :ref:`pep8py`
 * :ref:`pylint`
+* :ref:`epydoc`
 
 One of the current committers will look at the patch and give you some
 feedback.  Maybe the patch is fine and the committer will commit it to
