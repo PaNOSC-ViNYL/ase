@@ -117,7 +117,7 @@ Run pep8.py on your code
 ========================
 
 The `pep8.py <https://github.com/jcrocholl/pep8>`_ program is
-installed together with ASE :svn:`~ase/tools/pep8.py`.
+installed together with ASE :svn:`tools/pep8.py`.
 It will check the PEP8_ conventions for you.  Try::
 
   $ pep8.py --help
