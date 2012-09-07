@@ -8,7 +8,7 @@ from ase.parallel import paropen
 
 
 def write_gromos(fileobj, images):
-    """Write gromos geometry files (*.g96).
+    """Write gromos geometry files (\*.g96).
     Writes:
     atom positions,
     and simulation cell (if present)
