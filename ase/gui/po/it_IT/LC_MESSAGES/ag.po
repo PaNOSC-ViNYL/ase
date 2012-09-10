@@ -1,20 +1,21 @@
-# French translations for PACKAGE package.
+# Italian translations for ASE package
+# Traduzioni italiane per il pacchetto ASE
 # Copyright (C) 2012 CAMD
-# This file is distributed under the same license as the PACKAGE package.
-# Ask Hjorth Larsen <asklarsen@gmail.com>, 2012.
+# This file is distributed under the same license as the ASE package.
+# Ivano Castelli <ivca@fysik.dtu.dk>, 2012.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: ase\n"
+"Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
 "POT-Creation-Date: 2012-09-10 15:12+0200\n"
-"PO-Revision-Date: 2012-07-23 16:21+0200\n"
-"Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
-"Language-Team: French\n"
+"PO-Revision-Date: 2012-02-15 15:24+0100\n"
+"Last-Translator: Ivano Castelli <ivca@fysik.dtu.dk>\n"
+"Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../ag.py:136
 msgid ""
@@ -1203,7 +1204,7 @@ msgstr ""
 
 #: ../gui.py:176
 msgid "_Edit"
-msgstr ""
+msgstr "_Modifica"
 
 #: ../gui.py:177
 msgid "_View"

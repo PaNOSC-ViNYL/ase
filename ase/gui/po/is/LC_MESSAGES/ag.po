@@ -1,20 +1,25 @@
-# French translations for PACKAGE package.
+# Icelandic translation of ag
 # Copyright (C) 2012 CAMD
-# This file is distributed under the same license as the PACKAGE package.
-# Ask Hjorth Larsen <asklarsen@gmail.com>, 2012.
+# This file is distributed under the same license as the ag package.
+#
+# Elvar Örn Jonsson <eojons@fysik.dtu.dk>, 2012.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: ase\n"
+"Project-Id-Version: ag-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
 "POT-Creation-Date: 2012-09-10 15:12+0200\n"
-"PO-Revision-Date: 2012-07-23 16:21+0200\n"
-"Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
-"Language-Team: French\n"
+"PO-Revision-Date: 2012-02-01 15:45+0100\n"
+"Last-Translator: Elvar Örn Jonsson <eojons@fysik.dtu.dk>\n"
+"Language-Team: Icelandic\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language: \n"
+"Plural-Forms: nplurals=2; plural=(n % 100 != 1 && n % 100 != 21 && n % 100 !"
+"= 31 && n % 100 != 41 && n % 100 != 51 && n % 100 != 61 && n % 100 != 71 && "
+"n % 100 != 81 && n % 100 != 91)\n"
+"\n"
 
 #: ../ag.py:136
 msgid ""

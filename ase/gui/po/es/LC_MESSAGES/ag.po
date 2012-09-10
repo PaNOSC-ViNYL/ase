@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2012-06-26 16:06+0200\n"
+"POT-Creation-Date: 2012-09-10 15:12+0200\n"
 "PO-Revision-Date: 2012-06-26 16:29+0200\n"
 "Last-Translator: Max Ramirez <m.ramirez@mx.uni-saarland.de>\n"
 "Language-Team: Spanish\n"
@@ -1251,7 +1251,7 @@ msgstr ""
 "Configure una sábana de grafeno o una nanocinta. Opcionalmente,\n"
 "la nanocinta puede ser saturada con hidrógeno u otro elemento."
 
-#: ../graphene.py:33 ../gui.py:307
+#: ../graphene.py:33 ../gui.py:316
 msgid "Graphene"
 msgstr "Grafeno"
 
@@ -1433,615 +1433,627 @@ msgstr ""
 msgid "Bug Details"
 msgstr "Detalles del error"
 
-#: ../gui.py:172
+#: ../gui.py:175
 msgid "_File"
 msgstr "_Archivo"
 
-#: ../gui.py:173
+#: ../gui.py:176
 msgid "_Edit"
 msgstr "_Editar"
 
-#: ../gui.py:174
+#: ../gui.py:177
 msgid "_View"
 msgstr "_Ver"
 
-#: ../gui.py:175
+#: ../gui.py:178
 msgid "_Tools"
 msgstr "_Herramientas"
 
 #. TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
-#: ../gui.py:177
+#: ../gui.py:180
 msgid "_Setup"
 msgstr "_Configurar"
 
-#: ../gui.py:178
+#: ../gui.py:181
 msgid "_Calculate"
 msgstr "_Calcular"
 
-#: ../gui.py:179
+#: ../gui.py:182
 msgid "_Help"
 msgstr "_Ayuda"
 
-#: ../gui.py:180
+#: ../gui.py:183
 msgid "_Open"
 msgstr "_Abrir"
 
-#: ../gui.py:181
+#: ../gui.py:184
 msgid "Create a new file"
 msgstr "Crear un archivo nuevo"
 
-#: ../gui.py:183
+#: ../gui.py:186
 msgid "_New"
 msgstr "_Nuevo"
 
-#: ../gui.py:184
+#: ../gui.py:187
 msgid "New ase.gui window"
 msgstr "Nueva ventana ase.gui"
 
-#: ../gui.py:186
+#: ../gui.py:189
 msgid "_Save"
 msgstr "_Guardar"
 
-#: ../gui.py:187
+#: ../gui.py:190
 msgid "Save current file"
 msgstr "Guardar archivo actual"
 
-#: ../gui.py:189
+#: ../gui.py:192
 msgid "_Quit"
 msgstr "_Salir"
 
-#: ../gui.py:190
+#: ../gui.py:193
 msgid "Quit"
 msgstr "Salir"
 
-#: ../gui.py:192
+#: ../gui.py:195
 msgid "Select _all"
 msgstr "Seleccionar _todo"
 
-#: ../gui.py:195
+#: ../gui.py:198
 msgid "_Invert selection"
 msgstr "_Invertir selección"
 
-#: ../gui.py:198
+#: ../gui.py:201
 msgid "Select _constrained atoms"
 msgstr "Seleccionar los átomos _restringidos"
 
-#: ../gui.py:201
+#: ../gui.py:204
 msgid "Select _immobile atoms"
 msgstr "Seleccionar los átomos _inmóbiles"
 
-#: ../gui.py:204
+#: ../gui.py:207
 msgid "_Copy"
 msgstr "_Copiar"
 
-#: ../gui.py:205
+#: ../gui.py:208
 msgid "Copy current selection and its orientation to clipboard"
 msgstr "Copiar la selección actual y su orientación"
 
-#: ../gui.py:207
+#: ../gui.py:210
 msgid "_Paste"
 msgstr "_Pegar"
 
-#: ../gui.py:208
+#: ../gui.py:211
 msgid "Insert current clipboard selection"
 msgstr "Insertar selección actual"
 
-#: ../gui.py:210
+#: ../gui.py:213
 msgid "_Modify"
 msgstr "_Modificar"
 
-#: ../gui.py:211
+#: ../gui.py:214
 msgid "Change tags, moments and atom types of the selected atoms"
 msgstr ""
 "Cambiar etiquetas, momentos magnéticos y tipo de los átomos seleccionados"
 
-#: ../gui.py:213
+#: ../gui.py:216
 msgid "_Add atoms"
 msgstr "_Añadir átomos"
 
-#: ../gui.py:214
+#: ../gui.py:217
 msgid "Insert or import atoms and molecules"
 msgstr "Insertar o importar átomos y moléculas"
 
-#: ../gui.py:216
+#: ../gui.py:219
 msgid "_Delete selected atoms"
 msgstr "_Borrar átomos seleccionados"
 
-#: ../gui.py:217
+#: ../gui.py:220
 msgid "Delete the selected atoms"
 msgstr "Borrar los átomos seleccionados"
 
-#: ../gui.py:219
+#: ../gui.py:222
 msgid "_First image"
 msgstr "_Primera imagen"
 
-#: ../gui.py:222
+#: ../gui.py:225
 msgid "_Previous image"
 msgstr "_Imagen previa"
 
-#: ../gui.py:225
+#: ../gui.py:228
 msgid "_Next image"
 msgstr "_Próxima imagen"
 
-#: ../gui.py:228
+#: ../gui.py:231
 msgid "_Last image"
 msgstr "Ú_ltima imagen"
 
-#: ../gui.py:231
+#: ../gui.py:234
 msgid "Show _Labels"
 msgstr "Mostrar los _etiquetas"
 
-#: ../gui.py:232
+#: ../gui.py:235
+#, fuzzy
+#| msgid " selected atoms"
+msgid "Hide selected atoms"
+msgstr "  átomos seleccionados"
+
+#: ../gui.py:238
+#, fuzzy
+#| msgid " selected atoms"
+msgid "Show selected atoms"
+msgstr "  átomos seleccionados"
+
+#: ../gui.py:241
 msgid "Quick Info ..."
 msgstr "Información rápida ..."
 
-#: ../gui.py:235
+#: ../gui.py:244
 msgid "Repeat ..."
 msgstr "Repetir ..."
 
-#: ../gui.py:238
+#: ../gui.py:247
 msgid "Rotate ..."
 msgstr "Rotar ..."
 
-#: ../gui.py:241
+#: ../gui.py:250
 msgid "Colors ..."
 msgstr "Colores ..."
 
 #. TRANSLATORS: verb
-#: ../gui.py:244
+#: ../gui.py:253
 msgid "Focus"
 msgstr "Enfocar"
 
-#: ../gui.py:247
+#: ../gui.py:256
 msgid "Zoom in"
 msgstr "Ampliar"
 
-#: ../gui.py:250
+#: ../gui.py:259
 msgid "Zoom out"
 msgstr "Alejar"
 
-#: ../gui.py:253
+#: ../gui.py:262
 msgid "Reset View"
 msgstr "Reiniciar la vista"
 
-#: ../gui.py:256
+#: ../gui.py:265
 msgid "Settings ..."
 msgstr "Ajustes ..."
 
-#: ../gui.py:259
+#: ../gui.py:268
 msgid "VMD"
 msgstr "VMD"
 
-#: ../gui.py:262
+#: ../gui.py:271
 msgid "RasMol"
 msgstr "RasMol"
 
-#: ../gui.py:265
+#: ../gui.py:274
 msgid "xmakemol"
 msgstr "xmakemol"
 
-#: ../gui.py:268
+#: ../gui.py:277
 msgid "avogadro"
 msgstr "avogadro"
 
-#: ../gui.py:271
+#: ../gui.py:280
 msgid "Graphs ..."
 msgstr "Gráficos ..."
 
-#: ../gui.py:274
+#: ../gui.py:283
 msgid "Movie ..."
 msgstr "Película ..."
 
-#: ../gui.py:277
+#: ../gui.py:286
 msgid "Expert mode ..."
 msgstr "Modo experto ..."
 
-#: ../gui.py:280
+#: ../gui.py:289
 msgid "Constraints ..."
 msgstr "Restricciones ..."
 
-#: ../gui.py:283
+#: ../gui.py:292
 msgid "Render scene ..."
 msgstr "Dibujar escena ... "
 
-#: ../gui.py:286
+#: ../gui.py:295
 msgid "DFT ..."
 msgstr "DFT ..."
 
-#: ../gui.py:289
+#: ../gui.py:298
 msgid "NE_B"
 msgstr "NE_B"
 
-#: ../gui.py:292
+#: ../gui.py:301
 msgid "B_ulk Modulus"
 msgstr "Módulo de b_ulto"
 
-#: ../gui.py:295
+#: ../gui.py:304
 msgid "_Bulk Crystal"
 msgstr "Cristal en _bulto"
 
-#: ../gui.py:296
+#: ../gui.py:305
 msgid "Create a bulk crystal with arbitrary orientation"
 msgstr "Crear un cristal en bulto con orientación arbitraria"
 
-#: ../gui.py:298
+#: ../gui.py:307
 msgid "_Surface slab"
 msgstr "Trozo de _superficie"
 
-#: ../gui.py:299
+#: ../gui.py:308
 msgid "Create the most common surfaces"
 msgstr "Crear las superficies más comunes"
 
-#: ../gui.py:301
+#: ../gui.py:310
 msgid "_Nanoparticle"
 msgstr "_Nanopartícula"
 
-#: ../gui.py:302
+#: ../gui.py:311
 msgid "Create a crystalline nanoparticle"
 msgstr "Crear una nanoparticula cristalina"
 
-#: ../gui.py:304
+#: ../gui.py:313
 msgid "Nano_tube"
 msgstr "Nano_tubo"
 
-#: ../gui.py:305
+#: ../gui.py:314
 msgid "Create a nanotube"
 msgstr "Crear un nanotubo"
 
-#: ../gui.py:308
+#: ../gui.py:317
 msgid "Create a graphene sheet or nanoribbon"
 msgstr "Crear una sábana de grafeno o una nanocinta"
 
-#: ../gui.py:310
+#: ../gui.py:319
 msgid "Set _Calculator"
 msgstr "Fijar el _calculador"
 
-#: ../gui.py:311
+#: ../gui.py:320
 msgid "Set a calculator used in all calculation modules"
 msgstr "Fijar un calculador utilizado en todos los módulos de cálculo"
 
-#: ../gui.py:313
+#: ../gui.py:322
 msgid "_Energy and Forces"
 msgstr "_Energía y Fuerzas"
 
-#: ../gui.py:314
+#: ../gui.py:323
 msgid "Calculate energy and forces"
 msgstr "Calcular energía y fuerzas"
 
-#: ../gui.py:316
+#: ../gui.py:325
 msgid "Energy _Minimization"
 msgstr "_Minimización de energía"
 
-#: ../gui.py:317
+#: ../gui.py:326
 msgid "Minimize the energy"
 msgstr "Minimize la energía"
 
-#: ../gui.py:319
+#: ../gui.py:328
 msgid "Scale system"
 msgstr "Escale el sistema"
 
-#: ../gui.py:320
+#: ../gui.py:329
 msgid "Deform system by scaling it"
 msgstr "Deforme el sistema escalándolo"
 
-#: ../gui.py:322
+#: ../gui.py:331
 msgid "_About"
 msgstr "_Acerca de ag"
 
-#: ../gui.py:325
+#: ../gui.py:334
 msgid "Webpage ..."
 msgstr "Página web ..."
 
-#: ../gui.py:326
+#: ../gui.py:335
 msgid "Debug ..."
 msgstr "Quitar errores"
 
-#: ../gui.py:328
+#: ../gui.py:337
 msgid "Show _unit cell"
 msgstr "Mostrar la celda _unitaria"
 
-#: ../gui.py:332
+#: ../gui.py:341
 msgid "Show _axes"
 msgstr "Mostrar los _ejes"
 
-#: ../gui.py:336
+#: ../gui.py:345
 msgid "Show _bonds"
 msgstr "Mostrar los _enlaces"
 
-#: ../gui.py:340
+#: ../gui.py:349
 msgid "Show _velocities"
 msgstr "Mostrar las _velocidades"
 
-#: ../gui.py:344
+#: ../gui.py:353
 msgid "Show _forces"
 msgstr "Mostrar las _fuerzas"
 
-#: ../gui.py:348
+#: ../gui.py:357
 msgid "_Move atoms"
 msgstr "_Mover los átomos"
 
-#: ../gui.py:352
+#: ../gui.py:361
 msgid "_Rotate atoms"
 msgstr "_Rotar los átomos"
 
-#: ../gui.py:356
+#: ../gui.py:365
 msgid "Orien_t atoms"
 msgstr "Orien_tar los átomos"
 
-#: ../gui.py:362
+#: ../gui.py:371
 msgid "_None"
 msgstr "_Ninguno"
 
-#: ../gui.py:363
+#: ../gui.py:372
 msgid "Atom _Index"
 msgstr "_Índice de Atom"
 
-#: ../gui.py:364
+#: ../gui.py:373
 msgid "_Magnetic Moments"
 msgstr "Momentos _Magnético"
 
-#: ../gui.py:365
+#: ../gui.py:374
 msgid "_Element Symbol"
 msgstr "Símbolo _Químico"
 
-#: ../gui.py:374
+#: ../gui.py:383
 #, python-format
 msgid "building menus failed: %s"
 msgstr "La construcción de los menús ha fallado: %s"
 
-#: ../gui.py:649 ../gui.py:1055 ../gui.py:1115
+#: ../gui.py:658 ../gui.py:1064 ../gui.py:1124
 msgid "Open ..."
 msgstr "Abrir ..."
 
-#: ../gui.py:653 ../gui.py:1058
+#: ../gui.py:662 ../gui.py:1067
 msgid "<<filename>>"
 msgstr "<<Nombre de archivo>>"
 
-#: ../gui.py:786
+#: ../gui.py:795
 msgid "Add atoms"
 msgstr "Agregar átomos"
 
-#: ../gui.py:789
+#: ../gui.py:798
 msgid "Paste"
 msgstr "Pegar"
 
-#: ../gui.py:795
+#: ../gui.py:804
 msgid "Insert atom or molecule"
 msgstr "Insertar átomo o molécula"
 
-#: ../gui.py:796 ../gui.py:922
+#: ../gui.py:805 ../gui.py:931
 msgid "Tag"
 msgstr "Etiqueta"
 
-#: ../gui.py:797 ../gui.py:923
+#: ../gui.py:806 ../gui.py:932
 msgid "Moment"
 msgstr "Momento magnético"
 
-#: ../gui.py:798
+#: ../gui.py:807
 msgid "Position"
 msgstr "Posición"
 
-#: ../gui.py:823
+#: ../gui.py:832
 msgid "_Load molecule"
 msgstr "_Cargar molécula"
 
-#: ../gui.py:827 ../gui.py:938
+#: ../gui.py:836 ../gui.py:947
 msgid "_OK"
 msgstr "_OK"
 
-#: ../gui.py:831 ../gui.py:942
+#: ../gui.py:840 ../gui.py:951
 msgid "_Cancel"
 msgstr "_Cancelar"
 
-#: ../gui.py:915
+#: ../gui.py:924
 msgid "Modify"
 msgstr "Modificar"
 
-#: ../gui.py:921
+#: ../gui.py:930
 msgid "Atom"
 msgstr "Átomo"
 
-#: ../gui.py:966
+#: ../gui.py:975
 msgid "Confirmation"
 msgstr "Confirmación"
 
-#: ../gui.py:970
+#: ../gui.py:979
 msgid "Delete selected atom?"
 msgid_plural "Delete selected atoms?"
 msgstr[0] "¿Borrar el átomo seleccionado?"
 msgstr[1] "¿Borrar los átomos seleccionados?"
 
-#: ../gui.py:977
+#: ../gui.py:986
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: ../gui.py:1063 ../gui.py:1145
+#: ../gui.py:1072 ../gui.py:1154
 msgid "Automatic"
 msgstr "Automático"
 
-#: ../gui.py:1064
+#: ../gui.py:1073
 msgid "Dacapo netCDF output file"
 msgstr "Archivo de salida Dacapo (.netCDF)"
 
-#: ../gui.py:1065
+#: ../gui.py:1074
 msgid "Virtual Nano Lab file"
 msgstr "Archivo Virtual Nano Lab"
 
-#: ../gui.py:1066
+#: ../gui.py:1075
 msgid "ASE pickle trajectory"
 msgstr "Trajectoria ASE pickle"
 
-#: ../gui.py:1067 ../gui.py:1158
+#: ../gui.py:1076 ../gui.py:1167
 msgid "ASE bundle trajectory"
 msgstr "Trajectoria ASE ligada"
 
-#: ../gui.py:1068
+#: ../gui.py:1077
 msgid "GPAW text output"
 msgstr "Archivo de salida de texto (GPAW)"
 
-#: ../gui.py:1069
+#: ../gui.py:1078
 msgid "CUBE file"
 msgstr "Archivo CUBE"
 
-#: ../gui.py:1070
+#: ../gui.py:1079
 msgid "XCrySDen Structure File"
 msgstr "Archivo de estructura XCrySDen"
 
-#: ../gui.py:1071
+#: ../gui.py:1080
 msgid "Dacapo text output"
 msgstr "Archivo de salida de texto (Dacapo)"
 
-#: ../gui.py:1072
+#: ../gui.py:1081
 msgid "XYZ-file"
 msgstr "Archivo XYZ"
 
-#: ../gui.py:1073
+#: ../gui.py:1082
 msgid "VASP POSCAR/CONTCAR file"
 msgstr "Archivo POSCAR/CONTCAR (VASP)"
 
-#: ../gui.py:1074
+#: ../gui.py:1083
 msgid "VASP OUTCAR file"
 msgstr "Archivo OUTCAR (VASP)"
 
-#: ../gui.py:1075
+#: ../gui.py:1084
 msgid "Protein Data Bank"
 msgstr "Banco de datos de proteínas"
 
-#: ../gui.py:1076
+#: ../gui.py:1085
 msgid "CIF-file"
 msgstr "Archivo CIF"
 
-#: ../gui.py:1077
+#: ../gui.py:1086
 msgid "FHI-aims geometry file"
 msgstr "Archivo de geometría (FHI-aims)"
 
-#: ../gui.py:1078
+#: ../gui.py:1087
 msgid "FHI-aims output file"
 msgstr "Archivo de salida (FHI-aims)"
 
-#: ../gui.py:1079
+#: ../gui.py:1088
 msgid "TURBOMOLE coord file"
 msgstr "Archivo de coordenadas (TURBOMOLE)"
 
-#: ../gui.py:1080
+#: ../gui.py:1089
 msgid "exciting input"
 msgstr "Archivo de entrada (exciting)"
 
-#: ../gui.py:1081
+#: ../gui.py:1090
 msgid "WIEN2k structure file"
 msgstr "Archivo de estructura (WIEN2k)"
 
-#: ../gui.py:1082
+#: ../gui.py:1091
 msgid "DftbPlus input file"
 msgstr "Archivo de entrada (DFTBPlus)"
 
-#: ../gui.py:1083
+#: ../gui.py:1092
 msgid "ETSF format"
 msgstr "Formato ETSF"
 
-#: ../gui.py:1084 ../gui.py:1156
+#: ../gui.py:1093 ../gui.py:1165
 msgid "CASTEP geom file"
 msgstr "Archivo de geometría (CASTEP)"
 
-#: ../gui.py:1085
+#: ../gui.py:1094
 msgid "CASTEP output file"
 msgstr "Archivo de salida (CASTEP)"
 
-#: ../gui.py:1086
+#: ../gui.py:1095
 msgid "CASTEP trajectory file"
 msgstr "Archivo de trajectoria (CASTEP)"
 
-#: ../gui.py:1087
+#: ../gui.py:1096
 msgid "DFTBPlus GEN format"
 msgstr "Formato GEN (DFTBPlus)"
 
-#: ../gui.py:1093
+#: ../gui.py:1102
 msgid "File type:"
 msgstr "Tipo de archivo:"
 
-#: ../gui.py:1133
+#: ../gui.py:1142
 msgid "Save ..."
 msgstr "Guardar ..."
 
-#: ../gui.py:1146
+#: ../gui.py:1155
 msgid "XYZ file"
 msgstr "Archivo XYZ"
 
-#: ../gui.py:1147
+#: ../gui.py:1156
 msgid "ASE trajectory"
 msgstr "Trajectoria ASE"
 
-#: ../gui.py:1148
+#: ../gui.py:1157
 msgid "PDB file"
 msgstr "Archivo PDB"
 
-#: ../gui.py:1149
+#: ../gui.py:1158
 msgid "Gaussian cube file"
 msgstr "Archivo cube (Gaussian)"
 
-#: ../gui.py:1150
+#: ../gui.py:1159
 msgid "Python script"
 msgstr "Script de Python"
 
-#: ../gui.py:1151
+#: ../gui.py:1160
 msgid "VNL file"
 msgstr "Archivo VNL"
 
-#: ../gui.py:1152
+#: ../gui.py:1161
 msgid "Portable Network Graphics"
 msgstr "Archivo PNG"
 
-#: ../gui.py:1153
+#: ../gui.py:1162
 msgid "Persistence of Vision"
 msgstr "Archivo POV"
 
-#: ../gui.py:1154
+#: ../gui.py:1163
 msgid "Encapsulated PostScript"
 msgstr "Archivo EPS"
 
-#: ../gui.py:1155
+#: ../gui.py:1164
 msgid "FHI-aims geometry input"
 msgstr "Geometría de entrada (FHI-aims)"
 
-#: ../gui.py:1157
+#: ../gui.py:1166
 msgid "VASP geometry input"
 msgstr "Geometría de entrada (VASP)"
 
-#: ../gui.py:1159
+#: ../gui.py:1168
 msgid "cif file"
 msgstr "Archivo cif"
 
-#: ../gui.py:1181
+#: ../gui.py:1190
 #, python-format
 msgid "Save current image only (#%d)"
 msgstr "Guardar solamente la imagen actual (#%d)"
 
-#: ../gui.py:1185
+#: ../gui.py:1194
 msgid "Slice: "
 msgstr "Trozo: "
 
-#: ../gui.py:1186
+#: ../gui.py:1195
 msgid "Help for slice ..."
 msgstr "Ayuda para trozar ..."
 
-#: ../gui.py:1198
+#: ../gui.py:1207
 msgid "AG INTERNAL ERROR: strange response in Save,"
 msgstr "ERROR INTERNO DE AG: respuesta extraña en guardar,"
 
-#: ../gui.py:1217
+#: ../gui.py:1226
 msgid "Unknown output format!"
 msgstr "¡Formato de salida desconocido!"
 
-#: ../gui.py:1218
+#: ../gui.py:1227
 #, python-format
 msgid "Use one of: %s"
 msgstr "Use uno de: %s"
 
-#: ../gui.py:1323
+#: ../gui.py:1332
 msgid "Not implemented!"
 msgstr "No implementado!"
 
-#: ../gui.py:1324
+#: ../gui.py:1333
 msgid "do you really need it?"
 msgstr "¿realmente necesita esto?"
 
