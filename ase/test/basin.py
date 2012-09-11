@@ -31,7 +31,7 @@ for GlobalOptimizer in [BasinHopping(s,
                                      trajectory=ftraj,
                                      optimizer_logfile=None),
                         MinimaHopping(atoms=s,
-                                      T0=100 * kB,
+                                      T0=100,
                                       optimizer=optimize.FIRE,
                                       minima_traj=ftraj)
                         ]:
