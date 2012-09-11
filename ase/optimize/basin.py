@@ -64,12 +64,12 @@ class BasinHopping(Dynamics):
             while En is None:
                 rn = self.move(ro)
                 En = self.get_energy(rn)
-                self.call_observers()
 
             if En < self.Emin:
                 # new minimum found
                 self.Emin = En
                 self.rmin = self.atoms.get_positions()
+                self.call_observers()
             self.log(step, En, self.Emin)
 
             accept = np.exp((Eo - En) / self.kT) > np.random.uniform()
@@ -113,7 +113,8 @@ class BasinHopping(Dynamics):
             self.atoms.set_positions(positions)
  
             try:
-                opt = self.optimizer(self.atoms, logfile=self.optimizer_logfile)
+                opt = self.optimizer(self.atoms, 
+                                     logfile=self.optimizer_logfile)
                 opt.run(fmax=self.fmax)
                 if self.lm_trajectory is not None:
                     self.lm_trajectory.write(self.atoms)
@@ -125,4 +126,3 @@ class BasinHopping(Dynamics):
                 return None
             
         return self.energy
-       
