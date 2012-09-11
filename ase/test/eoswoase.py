@@ -9,5 +9,5 @@ import ase
 dir = os.path.abspath(os.path.dirname(ase.__file__))
 utilsdir = os.path.join(dir, 'utils')
 
-eosip3 = os.path.join(utilsdir, 'eosip3.py')
-assert os.system("PYTHONPATH=" + utilsdir + " python " + eosip3) == 0
+sjeos = os.path.join(utilsdir, 'sjeos.py')
+assert os.system("PYTHONPATH=" + utilsdir + " python " + sjeos) == 0
