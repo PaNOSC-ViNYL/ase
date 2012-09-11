@@ -30,6 +30,7 @@ class MinimaHopping:
         'timestep': 1.0,  # fs, timestep for MD simulations
         'optimizer': QuasiNewton,  # local optimizer to use
         'minima_traj': 'minima.traj',  # storage file for minima list
+        'fmax' : 0.05, # eV/A, max force for optimizations
                           }
 
     def __init__(self, atoms, **kwargs):
@@ -41,7 +42,6 @@ class MinimaHopping:
         for k, v in self._default_settings.items():
             setattr(self, '_%s' % k, kwargs.pop(k, v))
 
-        self._fmax = 0.05  # eV/A, max force for optimizations
         self._passedminimum = PassedMinimum()  # when a MD sim. has passed
                                                # a local minimum
         # Misc storage.
