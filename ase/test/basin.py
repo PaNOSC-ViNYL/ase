@@ -1,6 +1,6 @@
 import numpy as np
 from math import pi, sqrt
-from ase import Atoms
+from ase import Atoms, io
 from ase.calculators.lj import LennardJones
 from ase.optimize.basin import BasinHopping
 from ase.io import PickleTrajectory, read
@@ -42,3 +42,10 @@ smim = read(ftraj)
 E = smin.get_potential_energy()
 assert abs(E - Emin) < 1e-15
 
+# check that only minima were written
+last_energy = None
+for im in io.read(ftraj + '@:'):
+    energy = im.get_potential_energy()
+    if last_energy is not None:
+        assert energy < last_energy
+    last_energy = energy
