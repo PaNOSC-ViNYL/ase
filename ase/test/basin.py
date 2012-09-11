@@ -1,8 +1,9 @@
 import numpy as np
 from math import pi, sqrt
-from ase import Atoms, io
+from ase import Atoms, io, optimize
 from ase.calculators.lj import LennardJones
 from ase.optimize.basin import BasinHopping
+from ase.optimize.minimahopping import MinimaHopping
 from ase.io import PickleTrajectory, read
 from ase.units import kB
 
@@ -20,32 +21,49 @@ pos = np.random.uniform(-R, R, (N, 3))
 s = Atoms('He' + str(N),
           positions = pos)
 s.set_calculator(LennardJones())
+original_positions = 1. * s.get_positions() 
 
 ftraj = 'lowest.traj'
-traj = PickleTrajectory(ftraj, 'w', s)
-bh = BasinHopping(s, 
-                  temperature=100 * kB, dr=0.5, 
-                  optimizer_logfile=None)
-bh.attach(traj)
-bh.run(10)
 
-Emin, smin = bh.get_minimum()
-print "N=", N, 'minimal energy found', Emin, 
-print ' global minimum:', E_global[N]
+for GlobalOptimizer in [BasinHopping(s,
+                                     temperature=100 * kB,
+                                     dr=0.5,
+                                     trajectory=ftraj,
+                                     optimizer_logfile=None),
+                        MinimaHopping(atoms=s,
+                                      T0=100 * kB,
+                                      optimizer=optimize.FIRE,
+                                      minima_traj=ftraj)
+                        ]:
 
-# recalc energy
-smin.set_calculator(LennardJones())
-E = smin.get_potential_energy()
-assert abs(E - Emin) < 1e-15
-traj.close()
-smim = read(ftraj)
-E = smin.get_potential_energy()
-assert abs(E - Emin) < 1e-15
+    if str(GlobalOptimizer.__class__) == 'ase.optimize.basin.BasinHopping':
+        GlobalOptimizer.run(10)
+        Emin, smin = GlobalOptimizer.get_minimum()
+    else:
+        GlobalOptimizer(totalsteps=10)
+        Emin = s.get_potential_energy()
+        smin = s
+    print "N=", N, 'minimal energy found', Emin, 
+    print ' global minimum:', E_global[N]
 
-# check that only minima were written
-last_energy = None
-for im in io.read(ftraj + '@:'):
-    energy = im.get_potential_energy()
-    if last_energy is not None:
-        assert energy < last_energy
-    last_energy = energy
+    # recalc energy
+    smin.set_calculator(LennardJones())
+    E = smin.get_potential_energy()
+    assert abs(E - Emin) < 1e-15
+    smim = read(ftraj)
+    E = smin.get_potential_energy()
+    assert abs(E - Emin) < 1e-15
+
+    # check that only minima were written
+    last_energy = None
+    for im in io.read(ftraj + '@:'):
+        energy = im.get_potential_energy()
+        if last_energy is not None:
+            assert energy < last_energy
+        last_energy = energy
+
+    # reset positions
+    s.set_positions(original_positions)
+
+    import os
+    os.remove(ftraj)
