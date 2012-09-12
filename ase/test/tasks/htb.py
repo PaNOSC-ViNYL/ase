@@ -14,18 +14,18 @@ From this paper:
 
   * lattice constant::
 
-    pdftotext -layout -f 3 -l 4 e085104.pdf - | sed -n '/Solid/,$p' \
-    | sed -n '/me /q;p' | grep -E -v "085104|TRAN|TABLE" \
-    | sed '/^$/d' | sed -e 1b -e '/^Solid/d' \
-    | sed 's/Expt./Expt1. Expt2./' | sed 's/Solid/Solid Str/' \
-    | sed -e 's/\s\+/,/g'
+     pdftotext -layout -f 3 -l 4 e085104.pdf - | sed -n '/Solid/,$p' \
+     | sed -n '/me /q;p' | grep -E -v "085104|TRAN|TABLE" \
+     | sed '/^$/d' | sed -e 1b -e '/^Solid/d' \
+     | sed 's/Expt./Expt1. Expt2./' | sed 's/Solid/Solid Str/' \
+     | sed -e 's/\s\+/,/g'
 
   * erratum::
 
-    pdftotext -layout e209902.pdf - | sed -n '/Solid/,$p' | sed -n '/me /q;p' \
-    | sed '/^$/d' \
-    | sed 's/Expt./Expt1. Expt2./' | sed 's/Solid/Solid Str/' \
-    | sed -e 's/\s\+/,/g'
+     pdftotext -layout e209902.pdf - | sed -n '/Solid/,$p' | sed -n '/me /q;p' \
+     | sed '/^$/d' \
+     | sed 's/Expt./Expt1. Expt2./' | sed 's/Solid/Solid Str/' \
+     | sed -e 's/\s\+/,/g'
 
 """
 
