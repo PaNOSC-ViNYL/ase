@@ -20,11 +20,17 @@ import numpy as np
 
 from ase.calculators.general import Calculator
 
-# Gaussian has two generic classes of keywords:  link0 and route.
-# Since both types of keywords have different input styles, we will
-# distinguish between both types, dividing each type into str's, int's
-# etc.
+"""
+Gaussian has two generic classes of keywords:  link0 and route.
+Since both types of keywords have different input styles, we will
+distinguish between both types, dividing each type into str's, int's
+etc.
 
+For more information on the Link0 commands see:
+    http://www.gaussian.com/g_tech/g_ur/k_link0.htm
+For more information on the route section keywords, see:
+    http://www.gaussian.com/g_tech/g_ur/l_keywords09.htm
+"""
 link0_str_keys = ['chk',
                   'mem',
                   'rwf',
@@ -363,13 +369,13 @@ class Gaussian(Calculator):
 
     def clean(self):
         """Cleans up from a previous run"""
-        files = [self.label, self.label]
-        for f in glob.glob('Gau*'):
-            files.append(f)
-        for f in files:
+        extensions = ['.chk', '.com', '.log']
+
+        for ext in extensions:
+            f = self.label + ext
             try:
                 if (self.directory is not None):
-                    os.remove(self.directory + '/' + f)
+                    os.remove(os.path.join(self.directory, f))
                 else:
                     os.remove(f)
             except OSError:
