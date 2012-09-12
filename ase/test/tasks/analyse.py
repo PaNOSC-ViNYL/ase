@@ -312,7 +312,7 @@ class AnalyseOptimizersTask:
         # csv summary of self.key_summary
         kname = self.key_summary.replace(' ', '_')
         row = ['formula', self.key_summary]
-        row.extend([r for r in runs])
+        row.extend([r for r in range(len(runs))])
         rows = [row]
         for name, data in datasys.items():
             if not data:
@@ -322,9 +322,10 @@ class AnalyseOptimizersTask:
                                        runs,
                                        data,
                                        precision=self.precision)
+            row = [r.replace('None', 'N/A') for r in row]
             # only failed or non-common runs
             for k in row[2:]:
-                if k == 'None' or k != '-':
+                if k == 'N/A' or k != '-':
                     rows.append(row)
                     break
         if len(rows) > 0: # always create csv file
