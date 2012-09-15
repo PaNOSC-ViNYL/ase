@@ -502,7 +502,7 @@ class DeltaCodesDFTCollection:
  'Mn': {'cell': array([[  3.59552000e+00,   0.00000000e+00,   0.00000000e+00],
        [  2.20162103e-16,   3.59552000e+00,   0.00000000e+00],
        [  2.20162103e-16,   2.20162103e-16,   3.59552000e+00]]),
-        'magmoms': [0.5, 0.5, -0.5, -0.5],
+        'magmoms': [2.0, 1.9, -2.0, -1.9],
         'positions': array([[  0.00000000e+00,   0.00000000e+00,   0.00000000e+00],
        [  2.20162103e-16,   1.79776000e+00,   1.79776000e+00],
        [  1.79776000e+00,   1.10081051e-16,   1.79776000e+00],
@@ -910,10 +910,13 @@ if __name__ == '__main__':
                 magmoms = [M] * len(a)
             else:
                 magmoms = None
-            # antiferromagnetic Cr, Mn, O
-            if s in ['Cr', 'Mn', 'O']:
+            # antiferromagnetic Cr, O
+            if s in ['Cr', 'O']:
                 magmoms = [0.5 for i in range(len(a) / 2)]
                 magmoms += [-0.5 for i in range(len(a) / 2)]
+            # ferrimagnetic Mn
+            elif s in ['Mn']:
+                magmoms = [2.0, 1.9, -2.0, -1.9]
             d = {'symbols': a.get_chemical_symbols(),
                  'positions': a.get_positions(),
                  'cell': a.get_cell(),
