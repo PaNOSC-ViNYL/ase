@@ -395,7 +395,7 @@ class ELK:
                 if line.rfind('total force') > -1:
                     forces.append(np.array([float(f) for f in line.split(':')[1].split()]))
                     atomnum =+ 1
-            self.forces = np.array(forces)
+            self.forces = np.array(forces) * Hartree / Bohr
         else:
             raise RuntimeError
         # Stress
