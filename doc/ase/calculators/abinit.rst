@@ -25,23 +25,34 @@ You need to write a script called :file:`abinit.py` containing
 something like this::
 
   import os
-  abinit = '/usr/bin/abinis'
+  abinit = '/usr/bin/abinis'  # full path to the abinit executable
   exitcode = os.system('%s < %s.files > %s.log' % (abinit, label, label))
 
 The environment variable :envvar:`ABINIT_SCRIPT` must point to that file.
 
-A directory containing the pseudopotential files :file:`.fhi` is also
+A directory containing the pseudopotential files
+(at least of :file:`.fhi` type) is also
 needed, and it is to be put in the environment variable
-:envvar:`ABINIT_PP_PATH`.
+:envvar:`ABINIT_PP_PATH`. Abinit does not provide tarballs of
+pseduopotentials so the easiest way is to download and unpack
+http://wiki.fysik.dtu.dk/abinit-files/abinit-pseudopotentials-2.tar.gz
 
-Set both environment variables in your in your shell configuration file:
+Set the environment variables in your in your shell configuration file:
 
 .. highlight:: bash
  
 ::
 
   $ export ABINIT_SCRIPT=$HOME/bin/abinit.py
-  $ export ABINIT_PP_PATH=$HOME/mypps
+  $ export ABINIT_PP_PATH=${HOME}/abinit-pseudopotentials-2/LDA_FHI
+  $ export ABINIT_PP_PATH=${HOME}/abinit-pseudopotentials-2/GGA_FHI:$ABINIT_PP_PATH
+  $ export ABINIT_PP_PATH=${HOME}/abinit-pseudopotentials-2/LDA_HGH:$ABINIT_PP_PATH
+  $ export ABINIT_PP_PATH=${HOME}/abinit-pseudopotentials-2/LDA_PAW:$ABINIT_PP_PATH
+  $ export ABINIT_PP_PATH=${HOME}/abinit-pseudopotentials-2/LDA_TM:$ABINIT_PP_PATH
+  $ export ABINIT_PP_PATH=${HOME}/abinit-pseudopotentials-2/GGA_FHI:$ABINIT_PP_PATH
+  $ export ABINIT_PP_PATH=${HOME}/abinit-pseudopotentials-2/GGA_HGHK:$ABINIT_PP_PATH
+  $ export ABINIT_PP_PATH=${HOME}/abinit-pseudopotentials-2/GGA_PAW:$ABINIT_PP_PATH
+  $ export ABINIT_PP_PATH=$HOME/mypps:$ABINIT_PP_PATH
 
 .. highlight:: python
 
@@ -72,6 +83,8 @@ keyword        type      default value     description
 ``width``      ``float`` ``0.04 Ha``       Fermi-distribution width in eV (default: 0.04 Ha)
 ``charge``     ``float`` ``0``             Total charge of the system (default: 0)
 ``label``      ``str``   ``'abinit'``      Name of the output file
+``pps``        ``str``   ``'fhi'``         Pseudopotentials used
+                                           'fhi', 'hgh', 'hgh.sc', 'hgh.k', 'tm', 'paw'
 ``toldfe``     ``float`` ``1.0e-6``        TOLerance on the DiFference of total Energy
 ============== ========= ================  =====================================
 
