@@ -31,7 +31,7 @@ beta = 1.809     # (16 * pi / 3)**(1.0 / 3) / 2**0.5,
 
 
 class EMT:
-    disabled = False  # Set to True to disable (asap does this).
+    disabled = False  # Asap still tries to disable ase.EMT, but that is now ignored!
     
     def __init__(self, fakestress=False):
         self.energy = None
@@ -41,27 +41,6 @@ class EMT:
         # fakestress is needed to fake some stress value for the testsuite
         # in order to test the filter functionality.
         self.fakestress = fakestress
-        if self.disabled:
-            print >> sys.stderr, """
-            ase.EMT has been disabled by Asap.  Most likely, you
-            intended to use Asap's EMT calculator, but accidentally
-            imported ase's EMT calculator after Asap's.  This could
-            happen if your script contains the lines
-
-              from asap3 import *
-              from ase.calculators.emt import EMT
-            Swap the two lines to solve the problem.
-
-            (or 'from ase import *' in older versions of ASE.) Swap 
-            the two lines to solve the problem.
-
-            In the UNLIKELY event that you actually wanted to use
-            ase.calculators.emt.EMT although asap3 is loaded into memory,
-            please reactivate it with the command
-              ase.calculators.emt.EMT.disabled = False
-            """
-            raise RuntimeError('ase.EMT has been disabled.  ' +
-                               'See message printed above.')
         
     def get_name(self):
         return self.name
