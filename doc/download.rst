@@ -250,6 +250,11 @@ a system-wide install. Once finished, please follow :ref:`manual_installation`.
 Windows
 =======
 
+.. note::
+
+   ASE is not yet fully functional on Windows!
+   https://trac.fysik.dtu.dk/projects/ase/ticket/62
+
 On Windows the following packages need to installed.
 On the command prompt:
 
