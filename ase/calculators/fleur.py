@@ -49,7 +49,7 @@ class FLEUR:
     """
     def __init__(self, xc='LDA', kpts=None, nbands=None, convergence=None,
                  width=None, kmax=None, mixer=None, maxiter=None,
-                 maxrelax=20, workdir=None, equivatoms=True):
+                 maxrelax=20, workdir=None, equivatoms=True, rmt=None):
 
         """Construct FLEUR-calculator object.
 
@@ -83,7 +83,10 @@ class FLEUR:
         equivatoms: bool
             If False: generate inequivalent atoms (default is True).
             Setting to False allows one for example to calculate spin-polarized dimers.
-            Ssee http://www.flapw.de/pm/index.php?n=User-Documentation.InputFileForTheInputGenerator.
+            See http://www.flapw.de/pm/index.php?n=User-Documentation.InputFileForTheInputGenerator.
+        rmt: dictionary
+            rmt values, e.g: {'O': 1.1, 'N': -0.1}
+            Negative number with respect to the rmt set by FLEUR.
         """
 
         self.xc = xc
@@ -120,6 +123,8 @@ class FLEUR:
             self.start_dir = '.'
 
         self.equivatoms = equivatoms
+
+        self.rmt = rmt
 
         self.converged = False
 
@@ -453,6 +458,21 @@ class FLEUR:
             # inpgen produces incorrect symbol 'J' for Iodine
             if line.startswith(' J  53'):
                 lines[ln] = lines[ln].replace(' J  53', ' I  53')
+        # rmt
+        if self.rmt is not None:
+            for s in list(set(atoms.get_chemical_symbols())):  # unique
+                if s in self.rmt:
+                    # set the requested rmt
+                    for ln, line in enumerate(lines):
+                        ls = line.split()
+                        if len(ls) == 7 and ls[0].strip() == s:
+                            rorig = ls[5].strip()
+                            if self.rmt[s] < 0.0:
+                                r = float(rorig) + self.rmt[s]
+                            else:
+                                r = self.rmt[s]
+                            print s, rorig, r
+                            lines[ln] = lines[ln].replace(rorig, ("%.6f" % r))
 
         # write everything back to inp
         fh = open('inp', 'w')
