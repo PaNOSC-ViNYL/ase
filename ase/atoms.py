@@ -1104,10 +1104,10 @@ class Atoms(object):
             eps = 1e-7
             if s < eps:
                 v = np.cross((0, 0, 1), v2)
-            if norm(v) < eps:
-                v = np.cross((1, 0, 0), v2)
-            assert norm(v) >= eps
-            if s > 0:
+                if norm(v) < eps:
+                    v = np.cross((1, 0, 0), v2)
+                assert norm(v) >= eps
+            elif s > 0:
                 v /= s
 
         if isinstance(center, str):
