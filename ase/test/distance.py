@@ -14,7 +14,7 @@ org = Atoms([
         ])
 #visualize.view(org)
 
-maxdist = 1.e-13
+maxdist = 2.e-6
 
 # translate
 for dx in range(3, 10, 2):
@@ -43,16 +43,16 @@ if 0:
     dist = distance(org, new)
     print 'reflected -> distance', dist
 
-# TODO: permute
+# permute
 for i, a in enumerate(org):
     if i < 3:
         a.symbol = 'H'
-#visualize.view(org)
 
-for indxs in itertools.permutations(range(3)):
-    new = org.copy()
-    for c in range(3):
-        new[c].position = org[indxs[c]].position
-    dist = distance(org, new)
-    print 'permutation', indxs, '-> distance', dist 
-#visualize.view(new)
+if hasattr(itertools, 'permutations'):
+    for indxs in itertools.permutations(range(3)):
+        new = org.copy()
+        for c in range(3):
+            new[c].position = org[indxs[c]].position
+        dist = distance(org, new, True)
+        print 'permutation', indxs, '-> distance', dist 
+        assert dist < maxdist
