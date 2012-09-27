@@ -14,15 +14,17 @@ org = Atoms([
         ])
 #visualize.view(org)
 
-maxdist = 2.e-6
+maxdist = 1.e-13
 
 # translate
 for dx in range(3, 10, 2):
     new = org.copy()
     new.translate([dx / np.sqrt(2), -dx / np.sqrt(2), 0])
-    dist = distance(org, new)
+    dist = distance(org, new, True)
+    dist2 = distance(org, new, False)
     print 'translation', dx, '-> distance', dist
     assert dist < maxdist
+    assert dist == dist2
 
 # rotate
 for axis in ['x', '-y', 'z', np.array([1, 1, 1] / np.sqrt(3))]:
@@ -30,10 +32,12 @@ for axis in ['x', '-y', 'z', np.array([1, 1, 1] / np.sqrt(3))]:
         new = org.copy()
         new.translate(-new.get_center_of_mass())
         new.rotate(axis, np.pi * rot / 180)
-        dist = distance(org, new)
-        print 'axis', axis, ', angle', rot, '-> distance', dist
+        dist = distance(org, new, True)
+        dist2 = distance(org, new, False)
+        print 'rotation', axis, ', angle', rot, '-> distance', dist
         assert dist < maxdist
-
+        assert dist == dist2
+    
 if 0:
     # reflect
     new = Atoms()
@@ -53,6 +57,6 @@ if hasattr(itertools, 'permutations'):
         new = org.copy()
         for c in range(3):
             new[c].position = org[indxs[c]].position
-        dist = distance(org, new, True)
+        dist = distance(org, new)
         print 'permutation', indxs, '-> distance', dist 
         assert dist < maxdist
