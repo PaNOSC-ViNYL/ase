@@ -8,9 +8,12 @@ Based off of code written by:
 
     Glen R. Jenness
     Kuang Yu
-    Torsten Kerber
-    Paul Fleurat-Lessard
+    Torsten Kerber, Ecole normale superieure de Lyon (*)
+    Paul Fleurat-Lessard, Ecole normale superieure de Lyon (*)
     Martin Krupicka
+
+(*) This work is supported by Award No. UK-C0017, made by King Abdullah
+University of Science and Technology (KAUST), Saudi Arabia.
 
 See accompanying license files for details.
 """
