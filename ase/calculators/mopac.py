@@ -57,6 +57,7 @@ class Mopac(Calculator):
         #set atoms
         self.atoms = None
         # initialize the results
+        self.version = None
         self.energy_zero = None
         self.energy_free = None
         self.forces = None
@@ -66,6 +67,10 @@ class Mopac(Calculator):
         self.occupations = None
         
     def set(self, **kwargs):
+        """
+        Sets the parameters on the according keywords
+        Raises RuntimeError when wrong keyword is provided
+        """
         for key in kwargs:
             if key in self.bool_params:
                 self.bool_params[key] = kwargs[key]
@@ -82,7 +87,7 @@ class Mopac(Calculator):
         return 'MOPAC'
 
     def get_version(self):
-        return 'TODO'
+        return self.version
 
     def initialize(self, atoms):
         pass
@@ -149,6 +154,11 @@ class Mopac(Calculator):
         return command
 
     def run(self):
+        """
+        Writes input in label.mop
+        Runs MOPAC
+        Reads Version, Energy and Forces
+        """
         # set the input file name
         finput = self.label + '.mop'
         foutput = self.label + '.out'
@@ -163,14 +173,32 @@ class Mopac(Calculator):
         
         if exitcode != 0:
             raise RuntimeError('MOPAC exited with error code')
-        
+
+        self.version = self.read_version(foutput)
+
         energy = self.read_energy(foutput)
         self.energy_zero = energy
         self.energy_free = energy
         
         self.forces = self.read_forces(foutput)
 
+    def read_version(self, fname):
+        """
+        Reads the MOPAC version string from the second line
+        """
+        version = 'unknown'
+        lines = open(fname).readlines()
+        for line in lines:
+            if "  Version" in line:
+                version = line.split()[-2]
+                break
+        return version
+
     def read_energy(self, fname):
+        """
+        Reads the ENERGY from the output file (HEAT of FORMATION in kcal / mol)
+        Raises RuntimeError if no energy was found
+        """
         outfile = open(fname)
         lines = outfile.readlines()
         outfile.close()
@@ -192,6 +220,10 @@ class Mopac(Calculator):
         return energy
 
     def read_forces(self, fname):
+        """
+        Reads the FORCES from the output file
+        search string: (HEAT of FORMATION in kcal / mol / AA)
+        """
         outfile = open(fname)
         lines = outfile.readlines()
         outfile.close()
