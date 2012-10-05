@@ -11,4 +11,4 @@ atoms, task = run("mopac molecule O2 O")
 atoms, task = run('mopac molecule O2 O -s')
 ae = 2 * task.data['O']['energy'] - task.data['O2']['energy']
 print ae
-#assert abs(ae - 6.605) < 1e-3
+assert abs(ae - 12.658) < 1e-3
