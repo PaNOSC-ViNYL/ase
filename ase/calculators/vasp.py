@@ -43,10 +43,12 @@ float_keys = [
     'bmix_mag',   #
     'deper',      # relative stopping criterion for optimization of eigenvalue
     'ebreak',     # absolute stopping criterion for optimization of eigenvalues (EDIFF/N-BANDS/4)
+    'efield',     # applied electrostatic field
     'emax',       # energy-range for DOSCAR file
     'emin',       #
     'enaug',      # Density cutoff
     'encut',      # Planewave cutoff
+    'encutgw',    # energy cutoff for response function
     'encutfock',  # FFT grid in the HF related routines
     'hfscreen',   # attribute to change from PBE0 to HSE
     'kspacing', # determines the number of k-points if the KPOINTS
@@ -99,6 +101,7 @@ string_keys = [
     'system',     # name of System
     'tebeg',      #
     'teend',      # temperature during run
+    'precfock',    # FFT grid in the HF related routines
 ]
 
 int_keys = [
@@ -136,6 +139,8 @@ int_keys = [
     'nkredx',      # define sub grid of q-points in x direction for HF
     'nkredy',      # define sub grid of q-points in y direction for HF
     'nkredz',      # define sub grid of q-points in z direction for HF
+    'nomega',     # number of frequency points
+    'nomegar',    # number of frequency points on real axis
     'npar',       # parallelization over bands
     'nsim',       # evaluate NSIM bands simultaneously if using RMM-DIIS
     'nsw',        # number of steps for ionic upd.
@@ -269,6 +274,7 @@ class Vasp(Calculator):
             'kpts':       (1,1,1), # k-points
             'gamma':      False,   # Option to use gamma-sampling instead
                                    # of Monkhorst-Pack
+            'kpts_nintersections': None,  # number of points between points in band structures
             'reciprocal': False,   # Option to write explicit k-points in units
                                    # of reciprocal lattice vectors
             })
@@ -464,7 +470,9 @@ class Vasp(Calculator):
 
         # Write input
         from ase.io.vasp import write_vasp
-        write_vasp('POSCAR', self.atoms_sorted, symbol_count = self.symbol_count)
+        write_vasp('POSCAR',
+                   self.atoms_sorted,
+                   symbol_count=self.symbol_count)
         self.write_incar(atoms)
         self.write_potcar()
         self.write_kpoints()
@@ -475,7 +483,8 @@ class Vasp(Calculator):
         # Read output
         atoms_sorted = ase.io.read('CONTCAR', format='vasp')
         if self.int_params['ibrion']>-1 and self.int_params['nsw']>0:
-            # Update atomic positions and unit cell with the ones read from CONTCAR.
+            # Update atomic positions and unit cell with the ones read
+            # from CONTCAR.
             atoms.positions = atoms_sorted[self.resort].positions
             atoms.cell = atoms_sorted.cell
         self.converged = self.read_convergence()
@@ -485,7 +494,9 @@ class Vasp(Calculator):
         self.read(atoms)
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
-            if self.int_params['lorbit']>=10 or (self.int_params['lorbit']!=None and self.list_params['rwigs']):
+            if (self.int_params['lorbit']>=10
+                or (self.int_params['lorbit']!=None
+                    and self.list_params['rwigs'])):
                 self.magnetic_moments = self.read_magnetic_moments(atoms)
             else:
                 self.magnetic_moments = None
@@ -1047,7 +1058,8 @@ class Vasp(Calculator):
                     continue
         # Then if ibrion in [1,2,3] check whether ionic relaxation
         # condition been fulfilled
-        if self.int_params['ibrion'] in [1,2,3]:
+        if (self.int_params['ibrion'] in [1,2,3]
+            and self.int_params['nsw'] not in [0]) :
             if not self.read_relaxed():
                 converged = False
             else:
