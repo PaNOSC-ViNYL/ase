@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
 "POT-Creation-Date: 2012-09-10 15:12+0200\n"
-"PO-Revision-Date: 2012-06-26 16:29+0200\n"
+"PO-Revision-Date: 2012-10-10 17:02+0200\n"
 "Last-Translator: Max Ramirez <m.ramirez@mx.uni-saarland.de>\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -1572,16 +1572,12 @@ msgid "Show _Labels"
 msgstr "Mostrar los _etiquetas"
 
 #: ../gui.py:235
-#, fuzzy
-#| msgid " selected atoms"
 msgid "Hide selected atoms"
-msgstr "  átomos seleccionados"
+msgstr "Ocultar átomos seleccionados"
 
 #: ../gui.py:238
-#, fuzzy
-#| msgid " selected atoms"
 msgid "Show selected atoms"
-msgstr "  átomos seleccionados"
+msgstr "Mostrar átomos seleccionados"
 
 #: ../gui.py:241
 msgid "Quick Info ..."
