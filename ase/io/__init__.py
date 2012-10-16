@@ -67,6 +67,7 @@ def read(filename, index=-1, format=None):
     CMR db/cmr-file            db
     CMR db/cmr-file            cmr
     LAMMPS dump file           lammps
+    EON reactant.con file      eon
     Gromacs coordinates        gro
     Gaussian com (input) file  gaussian
     Gaussian output file       gaussian_out
@@ -274,6 +275,10 @@ def read(filename, index=-1, format=None):
         from ase.io.lammps import read_lammps_dump
         return read_lammps_dump(filename, index)
 
+    if format == 'eon':
+        from ase.io.eon import read_reactant_con
+        return read_reactant_con(filename)
+
     if format == 'gromacs':
         from ase.io.gromacs import read_gromacs
         return read_gromacs(filename)
@@ -333,6 +338,7 @@ def write(filename, images, format=None, **kwargs):
     DFTBPlus GEN format        gen
     CMR db/cmr-file            db
     CMR db/cmr-file            cmr
+    EON reactant.con file      eon
     Gromacs coordinates        gro
     GROMOS96 (only positions)  g96
 
@@ -397,6 +403,8 @@ def write(filename, images, format=None, **kwargs):
             format = 'vasp_out'
         elif filename.endswith('etsf.nc'):
             format = 'etsf'
+        elif filename.lower().endswith('.con'):
+            format = 'eon'
         elif os.path.basename(filename) == 'coord':
             format = 'tmol'
         else:
@@ -459,6 +467,10 @@ def write(filename, images, format=None, **kwargs):
     elif format == 'db' or format == 'cmr':
         from ase.io.cmr_io import write_db
         return write_db(filename, images, **kwargs)
+    elif format == 'eon':
+        from ase.io.eon import write_reactant_con
+        write_reactant_con(filename, images)
+        return
     elif format == 'gro':
         from ase.io.gromacs import write_gromacs
         write_gromacs(filename, images)
@@ -507,6 +519,8 @@ def filetype(filename):
         # Potentially a BundleTrajectory
         if BundleTrajectory.is_bundle(filename):
             return 'bundle'
+        elif os.path.normpath(filename) == 'states':
+            return 'eon'
         else:
             raise IOError('Directory: ' + filename)
 
@@ -651,6 +665,9 @@ def filetype(filename):
 
     if filename.lower().endswith('.gen'):
         return 'gen'
+
+    if filename.lower().endswith('.con'):
+        return 'eon'
 
     if 'ITEM: TIMESTEP\n' in lines:
         return 'lammps'
