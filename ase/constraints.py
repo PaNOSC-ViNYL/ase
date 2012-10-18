@@ -1054,6 +1054,9 @@ class UnitCellFilter(Filter):
             self.mask = np.array(mask)
 
         self.origcell = atoms.get_cell()
+        self.copy = self.atoms.copy
+        self.arrays = self.atoms.arrays
+
 
     def get_positions(self):
         '''
