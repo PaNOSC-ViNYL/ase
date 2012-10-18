@@ -49,7 +49,8 @@ class FLEUR:
     """
     def __init__(self, xc='LDA', kpts=None, nbands=None, convergence=None,
                  width=None, kmax=None, mixer=None, maxiter=None,
-                 maxrelax=20, workdir=None, equivatoms=True, rmt=None):
+                 maxrelax=20, workdir=None, equivatoms=True, rmt=None,
+                 lenergy=None):
 
         """Construct FLEUR-calculator object.
 
@@ -85,8 +86,10 @@ class FLEUR:
             Setting to False allows one for example to calculate spin-polarized dimers.
             See http://www.flapw.de/pm/index.php?n=User-Documentation.InputFileForTheInputGenerator.
         rmt: dictionary
-            rmt values, e.g: {'O': 1.1, 'N': -0.1}
+            rmt values in Angstrom., e.g: {'O': 1.1 * Bohr, 'N': -0.1}
             Negative number with respect to the rmt set by FLEUR.
+        lenergy: float
+            Lower energy in eV. Default -1.8 * Hartree.
         """
 
         self.xc = xc
@@ -125,6 +128,7 @@ class FLEUR:
         self.equivatoms = equivatoms
 
         self.rmt = rmt
+        self.lenergy = lenergy
 
         self.converged = False
 
@@ -148,9 +152,11 @@ class FLEUR:
         # special handling of exit status from density generation and regular fleur.x
         if mode in ['density']:
             if '!' in err:
+                os.chdir(self.start_dir)
                 raise RuntimeError(executable_use + ' exited with a code %s' % err)
         else:
             if stat != 0:
+                os.chdir(self.start_dir)
                 raise RuntimeError(executable_use + ' exited with a code %d' % stat)
 
 
@@ -270,6 +276,7 @@ class FLEUR:
         err = ''
         while not self.converged:
             if self.niter > self.itmax:
+                os.chdir(self.start_dir)
                 raise RuntimeError('FLEUR failed to convergence in %d iterations' % self.itmax)
 
             self.run_executable(mode='fleur', executable='FLEUR')
@@ -313,6 +320,7 @@ class FLEUR:
             os.system('cp out out_%d' % nrelax)
             os.system('cp cdn1 cdn1_%d' % nrelax)
             if nrelax > self.maxrelax:
+                os.chdir(self.start_dir)
                 raise RuntimeError('Failed to relax in %d iterations' % self.maxrelax)
             self.converged = False
 
@@ -411,6 +419,11 @@ class FLEUR:
             if self.kmax and ln == window_ln:
                 line = '%10.5f\n' % self.kmax
                 lines[ln+2] = line
+            # lower energy
+            if self.lenergy is not None and ln == window_ln:
+                l0 = lines[ln+1].split()[0]
+                l = lines[ln+1].replace(l0, '%8.5f' % (self.lenergy / Hartree))
+                lines[ln+1] = l
             # gmax   cutoff for PW-expansion of potential & density  ( > 2*kmax)
             # gmaxxc cutoff for PW-expansion of XC-potential ( > 2*kmax, < gmax)
             if self.kmax and line.startswith('vchk'):
@@ -468,9 +481,9 @@ class FLEUR:
                         if len(ls) == 7 and ls[0].strip() == s:
                             rorig = ls[5].strip()
                             if self.rmt[s] < 0.0:
-                                r = float(rorig) + self.rmt[s]
+                                r = float(rorig) + self.rmt[s] / Bohr
                             else:
-                                r = self.rmt[s]
+                                r = self.rmt[s] / Bohr
                             print s, rorig, r
                             lines[ln] = lines[ln].replace(rorig, ("%.6f" % r))
 
