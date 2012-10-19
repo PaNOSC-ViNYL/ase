@@ -2,7 +2,9 @@
 """ An example for using gromacs calculator in ase.
     Atom positions are relaxed.
     A sample call:
+
    ./gromacs_example_relax.py hishBOX.gro
+
 """
 
 from ase import Atoms
