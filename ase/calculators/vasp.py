@@ -27,6 +27,7 @@ from os.path import join, isfile, islink
 import numpy as np
 
 import ase
+from ase.utils import devnull
 
 # Parameters that can be set in INCAR. The values which are None
 # are not written and default parameters of VASP are used for them.

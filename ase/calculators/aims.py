@@ -511,7 +511,7 @@ class AimsCube:
 
     def add_plot(self,name):
         """ in case you forgot one ... """
-        plots += [name]
+        self.plots += [name]
 
     def write(self,file):
         """ write the necessary output to the already opened control.in """

@@ -222,9 +222,6 @@ class ELK:
     def get_occupation_numbers(self, kpt=0, spin=0):
         return self.read_eigenvalues(kpt, spin, 'occupations')
 
-    def get_fermi_level(self):
-        return self.fermi
-
     def calculate(self, atoms):
         self.positions = atoms.get_positions().copy()
         self.cell = atoms.get_cell().copy()

@@ -435,7 +435,7 @@ class Abinit:
                 continue
 
             if isinstance(value, list):
-                fh.write('%block %s\n' % key)
+                fh.write('%s %s\n' % ('%block', key))  # don't confuse '%b'
                 for line in value:
                     fh.write(' '.join(['%s' % x for x in line]) + '\n')
                 fh.write('%endblock %s\n' % key)
