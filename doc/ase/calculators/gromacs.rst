@@ -1,8 +1,8 @@
 .. module:: gromacs
 
-=========
+=======
 Gromacs
-=========
+=======
 
 Introduction
 ============
@@ -15,7 +15,7 @@ ubuntu-linux distribution.
 
 
 Gromacs Calculator
-==================== 
+==================
 This ASE-interface is a preliminary one and it is VERY SLOW so 
 do not use it for production runs. It is here because of 
 hopefully we'll get a QM/MM calculator which is using gromacs as the 
@@ -64,7 +64,7 @@ init_structure_file: str
 
     
 Example1: Geometry Optimization of a histidine molecule
-===============================
+=======================================================
 Initial pdb coordinates (file his.pdb):
 
 .. literalinclude:: his.pdb
@@ -83,9 +83,4 @@ Finally, relax the structure:
 The sample file:
 
 .. literalinclude:: gromacs_example_relax.py
-
-
-
-
-
 
