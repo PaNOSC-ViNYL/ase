@@ -919,6 +919,9 @@ class Filter:
         different number of atoms.
         """
         return self.atoms.get_calculator()
+    
+    def get_celldisp(self):
+        return self.atoms.get_celldisp()
 
     def has(self, name):
         """Check for existance of array."""
