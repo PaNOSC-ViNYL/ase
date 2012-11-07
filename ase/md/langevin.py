@@ -96,6 +96,7 @@ class Langevin(MolecularDynamics):
         self.c4 = c4
         self.pmcor = pmcor
         self.cnst = cnst
+        self.natoms = self.atoms.get_number_of_atoms() # Also works in parallel Asap.
 
     def step(self, f):
         atoms = self.atoms
@@ -104,8 +105,9 @@ class Langevin(MolecularDynamics):
         random1 = standard_normal(size=(len(atoms), 3))
         random2 = standard_normal(size=(len(atoms), 3))
 
-        self.communicator.broadcast(random1, 0)
-        self.communicator.broadcast(random2, 0)
+        if self.communicator is not None:
+            self.communicator.broadcast(random1, 0)
+            self.communicator.broadcast(random2, 0)
         
         rrnd = self.sdpos * random1
         prnd = (self.sdmom * self.pmcor * random1 +
@@ -114,9 +116,8 @@ class Langevin(MolecularDynamics):
         if self.fixcm:
             rrnd = rrnd - np.sum(rrnd, 0) / len(atoms)
             prnd = prnd - np.sum(prnd, 0) / len(atoms)
-            n = len(atoms)
-            rrnd *= np.sqrt(n / (n - 1.0))
-            prnd *= np.sqrt(n / (n - 1.0))
+            rrnd *= np.sqrt(self.natoms / (self.natoms - 1.0))
+            prnd *= np.sqrt(self.natoms / (self.natoms - 1.0))
 
         atoms.set_positions(atoms.get_positions() +
                             self.c1 * p +
@@ -126,5 +127,5 @@ class Langevin(MolecularDynamics):
         atoms.set_momenta(p)
                       
         f = atoms.get_forces()
-        atoms.set_momenta(p + self.c4 * f)
+        atoms.set_momenta(atoms.get_momenta() + self.c4 * f)
         return f
