@@ -120,6 +120,7 @@ class ColorWindow(gtk.Window):
             _('Black - red - yellow - white'),
             _('Black - green - white'),
             _('Black - blue - cyan'),
+            _('Blue - white - red'),
             _('Hue'),
             _('Named colors')
             )
@@ -187,6 +188,8 @@ class ColorWindow(gtk.Window):
             self.radio_force.set_active(True)
         elif cm == 'velocity':
             self.radio_velocity.set_active(True)
+        elif cm == 'charge':
+            self.radio_charge.set_active(True)
         elif cm == 'manual':
             self.radio_manual.set_active(True)
         elif cm == 'same':
@@ -569,11 +572,16 @@ class ColorWindow(gtk.Window):
                                           [0.5, [0,0,1]],
                                           [1, [0,1,1]]], n)
         elif s == 4:
+            # Blue - White - Red
+             scale = self.new_color_scale([[0, [0,0,1]],
+                                          [0.5, [1,1,1]],
+                                          [2, [1,0,0]]], n)
+        elif s == 5:
             # Hues
             hues = np.linspace(0.0, 1.0, n, endpoint=False)
             scale = ["%.3f, %.3f, %.3f" % colorsys.hls_to_rgb(h, 0.5, 1)
                      for h in hues]
-        elif s == 5:
+        elif s == 6:
             # Named colors
             scale = self.get_named_colors(n)
         else:
