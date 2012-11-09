@@ -454,10 +454,13 @@ class ColorWindow(gtk.Window):
         qmax = self.gui.images.q.max()
         nimages = self.gui.images.nimages
         if nimages > 1:
-            fmax_frame = self.gui.images.F[self.gui.frame].max()
-            txt = _("Max charge: %.2f (this frame), %.2f (all frames)") % (fmax_frame, fmax)
+            qmin_frame = self.gui.images.q[self.gui.frame].min()
+            qmax_frame = self.gui.images.q[self.gui.frame].max()
+            txt = (_('Min, max charge: %.2f, %.2f (this frame),' +
+                     '%.2f, %.2f (all frames)') 
+                   % (qmin_frame, qmax_frame, qmin, qmax))
         else:
-            txt = _("Min, Max charge: %.2f, %.2f.") % (qmin, qmax,)
+            txt = _("Min, max charge: %.2f, %.2f.") % (qmin, qmax,)
         self.charge_label.set_text(txt)
         self.charge_max.value = qmax
         self.charge_min.value = qmin
