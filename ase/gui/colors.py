@@ -46,13 +46,16 @@ class ColorWindow(gtk.Window):
         self.radio_tag = gtk.RadioButton(self.radio_jmol, _('By tag'))
         self.radio_force = gtk.RadioButton(self.radio_jmol, _('By force'))
         self.radio_velocity = gtk.RadioButton(self.radio_jmol, _('By velocity'))
+        self.radio_charge = gtk.RadioButton(self.radio_jmol, _('By charge'))
         self.radio_manual = gtk.RadioButton(self.radio_jmol, _('Manually specified'))
         self.radio_same = gtk.RadioButton(self.radio_jmol, _('All the same color'))
         self.force_box = gtk.VBox()
         self.velocity_box = gtk.VBox()
+        self.charge_box = gtk.VBox()
         for widget in (self.radio_jmol, self.radio_atno, self.radio_tag,
-                      self.radio_force, self.force_box, self.radio_velocity,
-                      self.velocity_box, self.radio_manual, self.radio_same):
+                       self.radio_force, self.force_box, self.radio_velocity,
+                       self.radio_charge, self.charge_box,
+                       self.velocity_box, self.radio_manual, self.radio_same):
             pack(self.methodbox, [widget])
             if isinstance(widget, gtk.RadioButton):
                 widget.connect('toggled', self.method_radio_changed)
@@ -90,6 +93,24 @@ class ColorWindow(gtk.Window):
                                  gtk.Label('  '),
                                  velocity_apply])
         self.velocity_box.hide()
+        # Now fill in the box for additional information in case 
+        # the charge is used.
+        self.charge_label = gtk.Label(_("This should not be displayed!"))
+        pack(self.charge_box, [self.charge_label])
+        self.charge_min = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
+        self.charge_max = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
+        self.charge_steps = gtk.Adjustment(10, 2, 500, 1)
+        charge_apply = gtk.Button(_('Update'))
+        charge_apply.connect('clicked', self.set_charge_colors)
+        pack(self.charge_box, [gtk.Label(_('Min: ')),
+                              gtk.SpinButton(self.charge_min, 10.0, 2),
+                              gtk.Label(_('  Max: ')),
+                              gtk.SpinButton(self.charge_max, 10.0, 2),
+                              gtk.Label(_('  Steps: ')),
+                              gtk.SpinButton(self.charge_steps, 1, 0),
+                              gtk.Label('  '),
+                              charge_apply])
+        self.charge_box.hide()
         # Lower left: Create a color scale
         pack(self.scalebox, gtk.Label(""))
         lbl = gtk.Label(_('Create a color scale:'))
@@ -194,6 +215,9 @@ class ColorWindow(gtk.Window):
         elif widget is self.radio_velocity:
             self.show_velocity_stuff()
             self.set_velocity_colors()
+        elif widget is self.radio_charge:
+            self.show_charge_stuff()
+            self.set_charge_colors()
         elif widget is self.radio_manual:
             self.set_manual_colors()
         elif widget is self.radio_same:
@@ -307,6 +331,30 @@ class ColorWindow(gtk.Window):
         factor = self.velocity_steps.value / (vmax -vmin)
         self.colormode_velocity_data = (vmin, factor)
 
+    def set_charge_colors(self, *args):
+        "Use the charge as basis for the colors."
+        borders = np.linspace(self.charge_min.value,
+                              self.charge_max.value,
+                              self.charge_steps.value,
+                              endpoint=False)
+        if self.scaletype_created is None:
+            colors = self.new_color_scale([[0, [1,1,1]],
+                                           [1, [0,0,1]]], len(borders))
+        elif (not hasattr(self, 'colordata_charge') or
+            len(self.colordata_charge) != len(borders)):
+            colors = self.get_color_scale(len(borders), self.scaletype_created)
+        else:
+            colors = [y for x, y in self.colordata_charge]
+        self.colordata_charge = [[x, y] for x, y in zip(borders, colors)]
+        self.actual_colordata = self.colordata_charge
+        self.color_labels = ["%.2f:" % x for x, y in self.colordata_charge]
+        self.make_colorwin()
+        self.colormode = 'charge'
+        qmin = self.charge_min.value
+        qmax = self.charge_max.value
+        factor = self.charge_steps.value / (qmax - qmin)
+        self.colormode_charge_data = (qmin, factor)
+
     def set_manual_colors(self):
         "Set colors of all atoms from the last selection."
         # We cannot directly make np.arrays of the colors, as they may
@@ -339,6 +387,15 @@ class ColorWindow(gtk.Window):
             nV = (V - self.colormode_velocity_data[0]) * self.colormode_velocity_data[1]
             nV = np.clip(nV.astype(int), 0, len(oldcolors)-1)
             colors[:] = oldcolors[nV]
+        elif self.colormode == 'charge':
+            oldcolors = np.array([None] * len(self.actual_colordata))
+            oldcolors[:] = [y for x, y in self.actual_colordata]
+            q = self.gui.images.q[self.gui.frame]
+            nq = ((q - self.colormode_charge_data[0]) * 
+                  self.colormode_charge_data[1])
+            nq = np.clip(nq.astype(int), 0, len(oldcolors)-1)
+            print "nq = ", nq
+            colors[:] = oldcolors[nq]
         elif self.colormode == 'same':
             oldcolor = self.actual_colordata[0][1]
             if len(colors) == len(oldcolor):
@@ -387,6 +444,21 @@ class ColorWindow(gtk.Window):
         if self.velocity_max.value == 0.0:
             self.velocity_max.value = vmax
         
+    def show_charge_stuff(self):
+        "Show and update widgets needed for selecting the charge scale."
+        self.charge_box.show()
+        qmin = self.gui.images.q.min()
+        qmax = self.gui.images.q.max()
+        nimages = self.gui.images.nimages
+        if nimages > 1:
+            fmax_frame = self.gui.images.F[self.gui.frame].max()
+            txt = _("Max charge: %.2f (this frame), %.2f (all frames)") % (fmax_frame, fmax)
+        else:
+            txt = _("Min, Max charge: %.2f, %.2f.") % (qmin, qmax,)
+        self.charge_label.set_text(txt)
+        self.charge_max.value = qmax
+        self.charge_min.value = qmin
+
     def make_colorwin(self):
         """Make the list of editable color entries.
 
@@ -547,10 +619,14 @@ class ColorWindow(gtk.Window):
             # Use integers instead for border values
             colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
             self.gui.colormode_force_data = self.colormode_force_data
-        if self.colormode == 'velocity':
+        elif self.colormode == 'velocity':
             # Use integers instead for border values
             colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
             self.gui.colormode_velocity_data = self.colormode_velocity_data
+        elif self.colormode == 'charge':
+            # Use integers instead for border values
+            colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
+            self.gui.colormode_charge_data = self.colormode_charge_data
         maxval = max([x for x, y in colordata])
         self.gui.colors = [None] * (maxval + 1)
         new = self.gui.drawing_area.window.new_gc

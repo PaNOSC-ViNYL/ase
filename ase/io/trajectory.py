@@ -212,6 +212,8 @@ class PickleTrajectory:
 
         if 'magmoms' not in d and atoms.has('magmoms'):
             d['magmoms'] = atoms.get_initial_magnetic_moments()
+        if atoms.has('charges') and (atoms.get_charges() != 0).any():
+            d['charges'] = atoms.get_charges()
 
         if self.write_info:
             d['info'] = stringnify_info(atoms.info)
@@ -291,6 +293,8 @@ class PickleTrajectory:
                     d.get('energy', None), d.get('forces', None),
                     d.get('stress', None), magmoms, atoms)
                 atoms.set_calculator(calc)
+            if 'charges' in d:
+                atoms.set_charges(d.get('charges', None))
             return atoms
 
         if i >= N:

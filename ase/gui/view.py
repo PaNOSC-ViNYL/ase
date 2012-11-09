@@ -415,6 +415,12 @@ class View:
             nV = (V - self.colormode_velocity_data[0]) * self.colormode_velocity_data[1]
             nV = np.clip(nV.astype(int), 0, len(self.colors)-1)
             colors = np.array(colarray)[nV]
+        elif self.colormode == 'charge':
+            Q = self.images.q[self.frame]
+            nq = ((Q - self.colormode_charge_data[0]) * 
+                  self.colormode_charge_data[1]        )
+            nq = np.clip(nq.astype(int), 0, len(self.colors)-1)
+            colors = np.array(colarray)[nq]
         elif self.colormode == 'manual':
             colors = colarray
         elif self.colormode == 'same':

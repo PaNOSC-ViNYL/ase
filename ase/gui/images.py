@@ -56,6 +56,7 @@ class Images:
         self.A = np.empty((self.nimages, 3, 3))
         self.D = np.empty((self.nimages, 3))
         self.Z = images[0].get_atomic_numbers()
+        self.q = np.empty((self.nimages, self.natoms))
         self.pbc = images[0].get_pbc()
         self.covalent_radii = covalent_radii
         config = read_defaults()
@@ -94,7 +95,11 @@ class Images:
                     self.M[i] = atoms.get_magnetic_moments()
             except (RuntimeError, AttributeError):
                 self.M[i] = atoms.get_initial_magnetic_moments()
-                
+            try:
+                self.q[i] = atoms.get_charges()
+            except RuntimeError:
+                self.q[i] = np.nan
+            
             # added support for tags
             try:
                 self.T[i] = atoms.get_tags()
