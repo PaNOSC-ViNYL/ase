@@ -64,9 +64,9 @@ class Langevin(MolecularDynamics):
         self._localfrict = hasattr(self.frict, 'shape')
         lt = self.frict * dt
         masses = self.masses
-        sdpos = dt * np.sqrt(self.temp / masses * (2.0/3.0 - 0.5 * lt) * lt)
+        sdpos = dt * np.sqrt(self.temp / masses.reshape(-1) * (2.0/3.0 - 0.5 * lt) * lt)
         sdpos.shape = (-1, 1)
-        sdmom = np.sqrt(self.temp * masses * 2.0 * (1.0 - lt) * lt)
+        sdmom = np.sqrt(self.temp * masses.reshape(-1) * 2.0 * (1.0 - lt) * lt)
         sdmom.shape = (-1, 1)
         pmcor = np.sqrt(3.0)/2.0 * (1.0 - 0.125 * lt)
         cnst = np.sqrt((1.0 - pmcor) * (1.0 + pmcor))
@@ -74,9 +74,9 @@ class Langevin(MolecularDynamics):
         act0 = 1.0 - lt + 0.5 * lt * lt
         act1 = (1.0 - 0.5 * lt + (1.0/6.0) * lt * lt)
         act2 = 0.5 - (1.0/6.0) * lt + (1.0/24.0) * lt * lt
-        c1 = act1 * dt / masses
+        c1 = act1 * dt / masses.reshape(-1)
         c1.shape = (-1, 1)
-        c2 = act2 * dt * dt / masses
+        c2 = act2 * dt * dt / masses.reshape(-1)
         c2.shape = (-1, 1)
         c3 = (act1 - act2) * dt
         c4 = act2 * dt
