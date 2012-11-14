@@ -68,9 +68,9 @@ class ColorWindow(gtk.Window):
         force_apply = gtk.Button(_('Update'))
         force_apply.connect('clicked', self.set_force_colors)
         pack(self.force_box, [gtk.Label(_('Min: ')),
-                              gtk.SpinButton(self.force_min, 10.0, 2),
+                              gtk.SpinButton(self.force_min, 1.0, 2),
                               gtk.Label(_('  Max: ')),
-                              gtk.SpinButton(self.force_max, 10.0, 2),
+                              gtk.SpinButton(self.force_max, 1.0, 2),
                               gtk.Label(_('  Steps: ')),
                               gtk.SpinButton(self.force_steps, 1, 0),
                               gtk.Label('  '),
@@ -79,15 +79,15 @@ class ColorWindow(gtk.Window):
         # Now fill in the box for additional information in case the velocity is used.
         self.velocity_label = gtk.Label("This should not be displayed!")
         pack(self.velocity_box, [self.velocity_label])
-        self.velocity_min = gtk.Adjustment(0.0, 0.0, 10.0, 0.005)
-        self.velocity_max = gtk.Adjustment(0.0, 0.0, 10.0, 0.005)
+        self.velocity_min = gtk.Adjustment(0.0, 0.0, 100.0, 0.005)
+        self.velocity_max = gtk.Adjustment(0.0, 0.0, 100.0, 0.005)
         self.velocity_steps = gtk.Adjustment(10, 2, 500, 1)
         velocity_apply = gtk.Button(_('Update'))
         velocity_apply.connect('clicked', self.set_velocity_colors)
         pack(self.velocity_box, [gtk.Label(_('Min: ')),
-                                 gtk.SpinButton(self.velocity_min, 10.0, 3),
+                                 gtk.SpinButton(self.velocity_min, 1.0, 3),
                                  gtk.Label(_('  Max: ')),
-                                 gtk.SpinButton(self.velocity_max, 10.0, 3),
+                                 gtk.SpinButton(self.velocity_max, 1.0, 3),
                                  gtk.Label(_('  Steps: ')),
                                  gtk.SpinButton(self.velocity_steps, 1, 0),
                                  gtk.Label('  '),
@@ -180,9 +180,9 @@ class ColorWindow(gtk.Window):
         if cm == 'jmol':
             self.radio_jmol.set_active(True)
             self.set_jmol_colors()
-        elif cm == 'Z':
+        elif cm == 'atno':
             self.radio_atno.set_active(True)
-        elif cm == 'tag':
+        elif cm == 'tags':
             self.radio_tag.set_active(True)
         elif cm == 'force':
             self.radio_force.set_active(True)
@@ -254,16 +254,13 @@ class ColorWindow(gtk.Window):
         self.color_labels = ["%i (%s):" % (z, ase.data.chemical_symbols[z])
                              for z, col in self.colordata_z]
         self.make_colorwin()
-        self.colormode = "atno"
+        self.colormode = 'atno'
 
     def set_tag_colors(self):
         "We use per-tag colors."
         # Find which tags are in use
         tags = self.gui.images.T
-        existingtags = []
-        for t in range(tags.min(), tags.max()+1):
-            if t in tags:
-                existingtags.append(t)
+        existingtags = range(tags.min(), tags.max()+1)
         if not hasattr(self, 'colordata_tags') or len(self.colordata_tags) != len(existingtags):
             colors = self.get_named_colors(len(existingtags))
             self.colordata_tags = [[x, y] for x, y in
@@ -510,7 +507,7 @@ class ColorWindow(gtk.Window):
             lbl.show()
             entry.show()
             blob.show()
-            entry.connect('activate', self.entry_changed, i)
+            entry.connect('changed', self.entry_changed, i)
             self.color_display.append(blob)
             self.color_entries.append(entry)
             
@@ -650,7 +647,7 @@ class ColorWindow(gtk.Window):
                 assert len(clr) == 3
                 self.gui.colors[z] = new(alloc(*clr))
         self.gui.colormode = self.colormode
-        self.gui.colordata = self.actual_colordata
+        self.gui.colordata = colordata
         self.gui.draw()
         return True
 
