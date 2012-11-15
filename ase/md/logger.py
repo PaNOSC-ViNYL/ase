@@ -57,11 +57,11 @@ class MDLogger:
             self.hdr += "%12s %12s %12s  %6s" % ("Etot[eV]", "Epot[eV]",
                                                  "Ekin[eV]", "T[K]")
             # Choose a sensible number of decimals
-            if self.natoms <= 10:
+            if self.natoms <= 100:
                 digits = 4
-            elif self.natoms <= 100:
-                digits = 3
             elif self.natoms <= 1000:
+                digits = 3
+            elif self.natoms <= 10000:
                 digits = 2
             else:
                 digits = 1
