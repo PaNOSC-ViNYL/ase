@@ -8,7 +8,7 @@ Jacapo - ASE python interface for Dacapo
 Introduction
 ============
 
-Jacapo_ is an ASE interface for Dacapo_ and fully compatible with ASE. It 
+Jacapo_ is an ASE interface for Dacapo_ that is fully compatible with ASE. It
 replaces the old Dacapo interface using Numeric python and ASE2.
 The code was originally developed by John Kitchin and detailed documentation
 as well as many examples are available online:
@@ -21,12 +21,14 @@ above documentation may occur.
 .. _Jacapo: http://gilgamesh.cheme.cmu.edu/doc/software/jacapo/index.html
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
 
-Jacapo Calculator
+Jacapo calculator
 ================= 
 
-The Jacapo calculator is automatically installed with ase and can be imported using::
+The Jacapo interface is automatically installed with ase and can be imported using::
 
-  from ase.calculators.jacapo import *
+  from ase.calculators.jacapo import Jacapo
+
+(You will need to have a working installation of Dacapo, however.)
 
 .. class:: Jacapo()
     
@@ -49,6 +51,7 @@ keyword        type         description
 ``symmetry``   ``boolean``  Turn on/off symmetry reduction
 ``stress``     ``boolean``  Turn on/off stress calculation
 ``dipole``     ``boolean``  Turn on/off dipole correction
+``ados``       ``dict``     Atom-projected density of states
 ``stay_alive`` ``boolean``  Turn on/off stay alive
 ``debug``      ``int``      Set debug level (0=off, 10=extreme)
 ``deletenc``   ``boolean``  If the nc file exists, delete it (to ensure a fresh run). Default is False.
@@ -61,7 +64,7 @@ Here is an example of how to calculate the total energy of a CO molecule::
         
   #!/usr/bin/env python
   from ase import *
-  from ase.calculators.jacapo import *
+  from ase.calculators.jacapo import Jacapo
 
   CO = data.molecules.molecule('CO')
   CO.set_cell([6,6,6])
@@ -74,20 +77,45 @@ Here is an example of how to calculate the total energy of a CO molecule::
   
   print CO.get_potential_energy()
   
+Note that all calculator parameters should be set in the calculator definition
+itself. Do not attempt to use the calc.set_* commands as they are intended to
+be internal to the calculator.
 
-Restarting from an old Calculation
+Restarting from an old calculation
 ==================================
 
-With Jacapo it is very easy to restart an old calculation. All necessary information
-(including the constraints) is stored in the out.nc file. To continue for example a
-geometry optimization do something like this::
+If the file you specify to Jacapo with the ``nc`` keyword exists, Jacapo will
+assume you are attempting to restart an existing calculation. If you do not
+want this behavior, turn the flag ``deletenc`` to True in your calculator
+definition.
 
-  calc = Jacapo('old.nc',stay_alive=True)
+For example, it is possible to continue a geometry optimization with something
+like this::
+
+  calc = Jacapo('old.nc', stay_alive=True)
   atoms = calc.get_atoms()
-  dyn = QuasiNewton(atoms,logfile='qn.log')
+  dyn = QuasiNewton(atoms, logfile='qn.log')
   dyn.run(fmax=0.05)
 
-Note, that the stay_alive flag is not stored in the .nc file and must be set when the
-calculator instance is created.
+Note, that the stay_alive flag is not stored in the .nc file and must be set
+when the calculator instance is created.  
 
+Atom-projected density of states
+================================
 
+To find the atom-projected density of states with Jacapo, first specify the
+ados dictionary in your calculator definition, as in::
+
+  calc = Jacapo( ... ,
+                ados={'energywindow': (-10., 5.),
+                      'energywidth': 0.2,
+                      'npoints': 250,
+                      'cutoff': 1.0})
+
+After this is established, you can use the get_ados command to get the
+desired ADOS data. For example::
+
+  energies, dos = calc.get_ados(atoms=[0],
+                                orbitals=['d'],
+                                cutoff='short',
+                                spin=[0])
