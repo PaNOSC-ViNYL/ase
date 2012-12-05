@@ -1,9 +1,11 @@
 from math import pi, ceil
+import pickle
 
 import numpy as np
 
 from ase.atoms import Atoms
 from ase.parallel import world, rank, distribute_cpus
+from ase.utils import opencew
 try:
     from gpaw.mpi import SerialCommunicator
 except:
@@ -128,7 +130,7 @@ def numeric_force(atoms, a, i, d=0.001):
 
 
 def numeric_forces(atoms, indices=None, axes=(0, 1, 2), d=0.001,
-                   parallel=None):
+                   parallel=None, name=None):
     """Evaluate finite-difference forces on several atoms.
 
     Returns an array of forces for each specified atomic index and
@@ -158,10 +160,28 @@ def numeric_forces(atoms, indices=None, axes=(0, 1, 2), d=0.001,
         for ii, i in enumerate(axes):
             atoms = atom_tasks[ia * len(axes) + ii]
             if atoms is not None:
-                print '# rank', rank, 'calculating atom', a, 'xyz'[i]
-                force = numeric_force(atoms, a, i, d)
-                if master:
-                    F_ai[a, i] = force
+                done = 0
+                if name:
+                    fname = '%s.%d%s.pckl' % (name, a, 'xyz'[i])
+                    fd = opencew(fname, calc_comm)
+                    if fd is None:
+                        if master:
+                            try:
+                                F_ai[a, i] = pickle.load(open(fname))
+                                print '# atom', a, 'xyz'[i], 'done'
+                                done = 1
+                            except EOFError:
+                                pass
+                        done = calc_comm.sum(done)
+                if not done:
+                    print '# rank', rank, 'calculating atom', a, 'xyz'[i]
+                    force = numeric_force(atoms, a, i, d)
+                    if master:
+                        F_ai[a, i] = force
+                        if name:
+                            fd = open('%s.%d%s.pckl' % (name, a, 'xyz'[i]), 'w')
+                            pickle.dump(force, fd)
+                            fd.close()
     if parallel is not None:
         world.sum(F_ai)
     return F_ai

@@ -26,7 +26,7 @@ class DevNull:
 devnull = DevNull()
 
 
-def opencew(filename):
+def opencew(filename, my_world=world):
     """Create and open filename exclusively for writing.
 
     If master cpu gets exclusive write access til filename, a file
@@ -34,7 +34,7 @@ def opencew(filename):
     slaves).  If the master cpu doet not get write access, None is
     returned on all processors."""
 
-    if world.rank == 0:
+    if my_world.rank == 0:
         try:
             fd = os.open(filename, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
         except OSError:
@@ -47,7 +47,7 @@ def opencew(filename):
         fd = devnull
 
     # Syncronize:
-    if world.sum(ok) == 0:
+    if my_world.sum(ok) == 0:
         return None
     else:
         return fd
