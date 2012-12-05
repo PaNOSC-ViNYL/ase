@@ -147,6 +147,7 @@ def numeric_forces(atoms, indices=None, axes=(0, 1, 2), d=0.001,
     if parallel is None:
         atom_tasks = [atoms] * n
         master = True
+        calc_comm = world
     else:
         calc_comm, tasks_comm, tasks_rank = distribute_cpus(parallel, world)
         master = calc_comm.rank == 0 
