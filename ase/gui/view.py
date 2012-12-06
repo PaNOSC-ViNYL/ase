@@ -392,10 +392,19 @@ class View:
     def get_colors(self, rgb = False):
         Z = self.images.Z
         if rgb:
-            # create a shape that is equivalent to self.colors,
-            # but contains rgb data instead gtk.gdk.GCX11 objects
-            colarray = [None] * max(len(jmol_colors)+1,len(self.colordata))
+            # Create a shape that is equivalent to self.colors,
+            # but contains rgb data instead gtk.gdk.GCX11 objects.
+            # The rgb data may be three numbers, or a named color.  As
+            # the type of data is unknown, we cannot create an array
+            # beforehand with sensible default values, but need to
+            # create unused elements on the fly.  The type of unused
+            # elements is important to prevent trouble when converting
+            # to numpy arrays.
+            colarray = []
             for z, c in self.colordata:
+                if z >= len(colarray):
+                    # Allocate unused elements as well.
+                    colarray.extend([c,] * (1 + z - len(colarray)))
                 colarray[z] = c
         else:
             colarray = self.colors
