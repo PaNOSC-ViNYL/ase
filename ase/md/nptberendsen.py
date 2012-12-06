@@ -132,7 +132,7 @@ class NPTBerendsen(NVTBerendsen):
 
         return f
 
-class Inhomogenous_NPTBerendsen(NPTBerendsen):
+class Inhomogeneous_NPTBerendsen(NPTBerendsen):
     """Berendsen (constant N, P, T) molecular dynamics.
     
     This dynamics scale the velocities and volumes to maintain a constant
