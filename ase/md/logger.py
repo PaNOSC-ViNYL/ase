@@ -67,7 +67,7 @@ class MDLogger:
                 digits = 1
             self.fmt += 3*("%%12.%df " % (digits,)) + " %6.1f"
         if self.stress:
-            self.hdr += "      ---------------- stress [GPa] -----------------"
+            self.hdr += "      ---------------------- stress [GPa] -----------------------"
             self.fmt += 6*" %10.3f"
         self.fmt += "\n"
         if header:
