@@ -13,7 +13,7 @@ class MDLogger:
 
     atoms:         The atoms.
 
-    logfile:       File name or open file, "-" meaning standart output.
+    logfile:       File name or open file, "-" meaning standard output.
 
     stress=False:  Include stress in log.
 
