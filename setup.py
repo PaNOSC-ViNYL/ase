@@ -11,6 +11,8 @@ from os.path import join
 import os
 import sys
 
+import shutil
+
 long_description = """\
 ASE is a python package providing an open source Atomic Simulation
 Environment in the python scripting language."""
@@ -80,8 +82,9 @@ class test(Command):
         from ase.test import test as _test
         testdir = '%s/testase-tempfiles' % buildcmd.build_base
         origcwd = os.getcwd()
-        if not os.path.exists(testdir):
-            os.mkdir(testdir)
+        if os.path.isdir(testdir):
+            shutil.rmtree(testdir)  # clean before running tests!
+        os.mkdir(testdir)
         os.chdir(testdir)
         try:
             results = _test(2, display=False)
