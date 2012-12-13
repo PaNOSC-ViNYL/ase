@@ -131,8 +131,14 @@ class MinimaHopping:
                                           '%.3f.' % (qncount, self._fmax))
             self._atoms.positions = atoms.get_positions()
             self._optimize()
-            self._check_results()
             self._counter += 1
+            if qncount > 0:
+                self._check_results()
+            else:
+                self._record_minimum()
+                self._log('msg', 'Found a new minimum.')
+                self._log('msg', 'Accepted new minimum.')
+                self._log('par')
         elif qncount < mdcount:
             # Probably stopped during molecular dynamics.
             self._log('msg', 'Attempting to resume at md%05i.' % mdcount)
@@ -253,6 +259,7 @@ class MinimaHopping:
         self._log('msg', 'Molecular dynamics: md%05i' % self._counter)
         mincount = 0
         energies, oldpositions = [], []
+        thermalized = False
         if resume:
             self._log('msg', 'Resuming MD from md%05i.traj' % resume)
             if os.path.getsize('md%05i.traj' % resume) == 0:
@@ -267,11 +274,12 @@ class MinimaHopping:
                     passedmin = self._passedminimum(energies)
                     if passedmin:
                         mincount += 1
+                self._atoms.set_momenta(atoms.get_momenta())
+                thermalized = True
             self._atoms.positions = atoms.get_positions()
-            self._atoms.set_momenta(atoms.get_momenta())
             self._log('msg', 'Starting MD with %i existing energies.' %
                       len(energies))
-        else:
+        if not thermalized:
             MaxwellBoltzmannDistribution(self._atoms,
                                          temp=self._temperature * units.kB,
                                          force_temp=True)
