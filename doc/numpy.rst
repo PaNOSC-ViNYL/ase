@@ -16,7 +16,6 @@ Links to NumPy's webpage:
 .. _Numpy functions by category:
                         http://www.scipy.org/Numpy_Functions_by_Category
 
-
 ASE makes heavy use of an extension to Python called NumPy.  The
 NumPy module defines an :term:`ndarray` type that can hold large arrays of
 uniform multidimensional numeric data.  An array is similar to a
