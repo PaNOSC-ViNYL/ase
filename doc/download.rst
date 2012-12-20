@@ -10,12 +10,13 @@ The following packages are required for basic ASE functionality:
 2) NumPy_.
 
 .. _Python: http://www.python.org
-.. _NumPy: http://www.scipy.org/NumPy
+.. _NumPy: http://www.numpy.org/
 
-It is highly recommended (but not required) to install also these two:
+It is highly recommended (but not required) to install also these:
 
 3) matplotlib_.
 4) pygtk_.
+5) SciPy_.
 
 Matplotlib is needed for :mod:`writing png and eps files <io>`, and
 both packages are needed for ASE's simple GUI (called **ag**, see :mod:`gui`).
@@ -23,6 +24,7 @@ Some of these packages may already be installed on your system.
 
 .. _matplotlib: http://matplotlib.sourceforge.net
 .. _pygtk: http://www.pygtk.org
+.. _SciPy: http://www.scipy.org/
 
 
 Specific information for different operating systems 
