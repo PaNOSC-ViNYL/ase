@@ -689,7 +689,7 @@ class Phonons(Displacement):
             dos_el = 1. / (diff_el + (0.5 * delta)**2)
             dos_e += dos_el.sum(axis=1)
 
-        dos_e *= 1./(N * pi) * 0.5*delta
+        dos_e *= 1. / (N * pi) * 0.5 * delta
         
         return omega_e, dos_e
     
@@ -700,7 +700,7 @@ class Phonons(Displacement):
         Parameters
         ----------
         q_c: ndarray
-            q-vector of modes.
+            q-vector of the modes.
         branches: int or list
             Branch index of modes.
         kT: float
@@ -755,12 +755,12 @@ class Phonons(Displacement):
             # Insert slice with atomic displacements for the included atoms
             mode_av[self.indices] = u_av
             # Repeat and multiply by Bloch phase factor
-            mode_Nav = (np.vstack(N * [mode_av]) * phase_Na[:, np.newaxis]).real
+            mode_Nav = np.vstack(N * [mode_av]) * phase_Na[:, np.newaxis]
             
             traj = PickleTrajectory('%s.mode.%d.traj' % (self.name, l), 'w')
             
             for x in np.linspace(0, 2*pi, nimages, endpoint=False):
-                atoms.set_positions(pos_Nav + sin(x) * mode_Nav)
+                atoms.set_positions((pos_Nav + np.exp(1.j * x) * mode_Nav).real)
                 traj.write(atoms)
                 
             traj.close()
