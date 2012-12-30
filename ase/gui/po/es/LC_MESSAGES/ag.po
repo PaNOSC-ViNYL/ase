@@ -8,14 +8,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2012-09-10 15:12+0200\n"
-"PO-Revision-Date: 2012-10-10 17:02+0200\n"
+"POT-Creation-Date: 2012-12-30 23:39+0100\n"
+"PO-Revision-Date: 2012-12-30 23:42+0100\n"
 "Last-Translator: Max Ramirez <m.ramirez@mx.uni-saarland.de>\n"
 "Language-Team: Spanish\n"
+"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: es\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../ag.py:136
@@ -746,112 +746,132 @@ msgid "By velocity"
 msgstr "Por velocidad"
 
 #: ../colors.py:49
+msgid "By charge"
+msgstr "Por carga"
+
+#: ../colors.py:50
 msgid "Manually specified"
 msgstr "Especificado manualmente"
 
-#: ../colors.py:50
+#: ../colors.py:51
 msgid "All the same color"
 msgstr "Todos del mismo color"
 
 #. Now fill in the box for additional information in case the force is used.
-#: ../colors.py:60
+#. Now fill in the box for additional information in case
+#. the charge is used.
+#: ../colors.py:63 ../colors.py:98
 msgid "This should not be displayed!"
 msgstr "¡Esto no debería ser desplegado!"
 
-#: ../colors.py:65 ../colors.py:82 ../rotate.py:25
+#: ../colors.py:68 ../colors.py:85 ../colors.py:103 ../rotate.py:25
 msgid "Update"
 msgstr "Actualizar"
 
-#: ../colors.py:67 ../colors.py:84
+#: ../colors.py:70 ../colors.py:87 ../colors.py:105
 msgid "Min: "
 msgstr "Mín: "
 
-#: ../colors.py:69 ../colors.py:86
+#: ../colors.py:72 ../colors.py:89 ../colors.py:107
 msgid "  Max: "
 msgstr "  Máx: "
 
-#: ../colors.py:71 ../colors.py:88
+#: ../colors.py:74 ../colors.py:91 ../colors.py:109
 msgid "  Steps: "
 msgstr "  Pasos: "
 
-#: ../colors.py:95
+#: ../colors.py:116
 msgid "Create a color scale:"
 msgstr "Crear una escala de colores:"
 
-#: ../colors.py:98
+#: ../colors.py:119
 msgid "Black - white"
 msgstr "Negro - blanco"
 
-#: ../colors.py:99
+#: ../colors.py:120
 msgid "Black - red - yellow - white"
 msgstr "Negro - rojo - amarillo - blanco"
 
-#: ../colors.py:100
+#: ../colors.py:121
 msgid "Black - green - white"
 msgstr "Negro - verde - blanco"
 
-#: ../colors.py:101
+#: ../colors.py:122
 msgid "Black - blue - cyan"
 msgstr "Negro - azul - cian"
 
-#: ../colors.py:102
+#: ../colors.py:123
+msgid "Blue - white - red"
+msgstr "Azul - blanco - rojo"
+
+#: ../colors.py:124
 msgid "Hue"
 msgstr "Tonalidad"
 
-#: ../colors.py:103
+#: ../colors.py:125
 msgid "Named colors"
 msgstr "Colores con nombre"
 
-#: ../colors.py:109
+#: ../colors.py:131
 msgid "Create"
 msgstr "Crear"
 
-#: ../colors.py:367
+#: ../colors.py:424
 #, python-format
 msgid "Max force: %.2f (this frame), %.2f (all frames)"
 msgstr "Fuerza máx: %.2f (este cuadro), %.2f (todos los cuadros)"
 
-#: ../colors.py:369
+#: ../colors.py:426
 #, python-format
 msgid "Max force: %.2f."
 msgstr "Fuerza máx: %.2f."
 
-#: ../colors.py:383
+#: ../colors.py:440
 #, python-format
 msgid "Max velocity: %.2f (this frame), %.2f (all frames)"
 msgstr "Velocidad máxima: %.2f (este cuadro), %.2f (todos los cuadros)"
 
-#: ../colors.py:385
+#: ../colors.py:442
 #, python-format
 msgid "Max velocity: %.2f."
 msgstr "Velocidad máxima: %.2f."
 
-#: ../colors.py:426
+#: ../colors.py:456
+#, python-format
+msgid "Min, max charge: %.2f, %.2f (this frame),"
+msgstr "Carga mín, máx: %.2f, %.2f (este cuadro),"
+
+#: ../colors.py:460
+#, python-format
+msgid "Min, max charge: %.2f, %.2f."
+msgstr "Carga mín, máx: %.2f, %.2f."
+
+#: ../colors.py:501
 msgid "ERROR"
 msgstr "ERROR"
 
-#: ../colors.py:455
+#: ../colors.py:530
 msgid "ERR"
 msgstr "ERR"
 
-#: ../colors.py:542
+#: ../colors.py:622
 msgid "Incorrect color specification"
 msgstr "Especificación de color incorrecta"
 
-#: ../constraints.py:13 ../widgets.py:90
+#: ../constraints.py:13 ../widgets.py:91
 msgid "Constraints"
 msgstr "Restricciones"
 
 #: ../constraints.py:15 ../constraints.py:18 ../settings.py:17
-#: ../widgets.py:92 ../widgets.py:95
+#: ../widgets.py:93 ../widgets.py:96
 msgid "Constrain"
 msgstr "Restricción"
 
-#: ../constraints.py:16 ../settings.py:20 ../settings.py:35 ../widgets.py:93
+#: ../constraints.py:16 ../settings.py:20 ../settings.py:35 ../widgets.py:94
 msgid " selected atoms"
 msgstr "  átomos seleccionados"
 
-#: ../constraints.py:19 ../widgets.py:96
+#: ../constraints.py:19 ../widgets.py:97
 msgid " immobile atoms:"
 msgstr " átomos inamovibles:"
 
@@ -867,8 +887,8 @@ msgstr " átomos seleccionados:"
 msgid "Clear constraints"
 msgstr "Quitar las restricciones"
 
-#: ../constraints.py:26 ../dft.py:29 ../settings.py:53 ../widgets.py:60
-#: ../widgets.py:100
+#: ../constraints.py:26 ../dft.py:29 ../settings.py:53 ../widgets.py:61
+#: ../widgets.py:101
 msgid "Close"
 msgstr "Cerrar"
 
@@ -1327,7 +1347,7 @@ msgstr "Por favor, especifique un conjunto consistente de átomos. "
 msgid "You have not (yet) specified a consistent set of parameters."
 msgstr "No ha especificado aún un conjunto consistente de parámetros."
 
-#: ../graphs.py:9
+#: ../graphs.py:8
 msgid ""
 "Help for plot ...\n"
 "\n"
@@ -1377,15 +1397,15 @@ msgstr ""
 "<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> y <c>n<sub>4</sub></c>\n"
 "<c>T</c>:\t\t\t\ttemperatura (K)"
 
-#: ../graphs.py:52 ../graphs.py:55
+#: ../graphs.py:51 ../graphs.py:54
 msgid "Plot"
 msgstr "Graficar"
 
-#: ../graphs.py:60
+#: ../graphs.py:59
 msgid "clear"
 msgstr "Limpiar"
 
-#: ../graphs.py:114
+#: ../graphs.py:113
 msgid "Save data to file ... "
 msgstr "Salve los datos a un archivo ..."
 
@@ -2394,11 +2414,11 @@ msgstr ""
 #: ../nanotube.py:29
 #, python-format
 msgid ""
-" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: %"
-"(volume).3f Å<sup>3</sup>"
+" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: "
+"%(volume).3f Å<sup>3</sup>"
 msgstr ""
-" %(natoms)i átomos: %(symbols)s, diámetro: %(diameter).3f Å, volumen: %"
-"(volume).3f Å<sup>3</sup>"
+" %(natoms)i átomos: %(symbols)s, diámetro: %(diameter).3f Å, volumen: "
+"%(volume).3f Å<sup>3</sup>"
 
 #: ../nanotube.py:35
 msgid "Nanotube"
@@ -3201,11 +3221,11 @@ msgid "%(struct)s lattice constant unknown for %(element)s."
 msgstr ""
 "La constante de red %(struct)s es desconocida para el elemento %(element)s."
 
-#: ../widgets.py:53 ../widgets.py:81
+#: ../widgets.py:54 ../widgets.py:82
 msgid "Help"
 msgstr "Ayuda"
 
-#: ../widgets.py:98
+#: ../widgets.py:99
 msgid "Clear constraint"
 msgstr "Borrar restricción"
 

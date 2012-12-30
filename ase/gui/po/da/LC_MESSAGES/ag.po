@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2012-09-10 15:12+0200\n"
-"PO-Revision-Date: 2012-10-10 17:03+0200\n"
+"POT-Creation-Date: 2012-12-30 23:39+0100\n"
+"PO-Revision-Date: 2012-12-30 23:45+0100\n"
 "Last-Translator: Ask Hjorth Larsen <askhl@fysik.dtu.dk>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
+"Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: da\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../ag.py:136
@@ -715,112 +715,132 @@ msgid "By velocity"
 msgstr "Efter hastighed"
 
 #: ../colors.py:49
+msgid "By charge"
+msgstr "Efter ladning"
+
+#: ../colors.py:50
 msgid "Manually specified"
 msgstr "Manuelt angivet"
 
-#: ../colors.py:50
+#: ../colors.py:51
 msgid "All the same color"
 msgstr "Alle med samme farve"
 
 #. Now fill in the box for additional information in case the force is used.
-#: ../colors.py:60
+#. Now fill in the box for additional information in case
+#. the charge is used.
+#: ../colors.py:63 ../colors.py:98
 msgid "This should not be displayed!"
 msgstr "Dette bør ikke blive vist!"
 
-#: ../colors.py:65 ../colors.py:82 ../rotate.py:25
+#: ../colors.py:68 ../colors.py:85 ../colors.py:103 ../rotate.py:25
 msgid "Update"
 msgstr "Opdatér"
 
-#: ../colors.py:67 ../colors.py:84
+#: ../colors.py:70 ../colors.py:87 ../colors.py:105
 msgid "Min: "
 msgstr "Min: "
 
-#: ../colors.py:69 ../colors.py:86
+#: ../colors.py:72 ../colors.py:89 ../colors.py:107
 msgid "  Max: "
 msgstr "  Maks: "
 
-#: ../colors.py:71 ../colors.py:88
+#: ../colors.py:74 ../colors.py:91 ../colors.py:109
 msgid "  Steps: "
 msgstr "  Trin: "
 
-#: ../colors.py:95
+#: ../colors.py:116
 msgid "Create a color scale:"
 msgstr "Opret en farveskala:"
 
-#: ../colors.py:98
+#: ../colors.py:119
 msgid "Black - white"
 msgstr "Sort - hvid"
 
-#: ../colors.py:99
+#: ../colors.py:120
 msgid "Black - red - yellow - white"
 msgstr "Sort - rød - gul - hvid"
 
-#: ../colors.py:100
+#: ../colors.py:121
 msgid "Black - green - white"
 msgstr "Sort - grøn - hvid"
 
-#: ../colors.py:101
+#: ../colors.py:122
 msgid "Black - blue - cyan"
 msgstr "Sort - blå - cyan"
 
-#: ../colors.py:102
+#: ../colors.py:123
+msgid "Blue - white - red"
+msgstr "Blå - hvid - rød"
+
+#: ../colors.py:124
 msgid "Hue"
 msgstr "Farvetone"
 
-#: ../colors.py:103
+#: ../colors.py:125
 msgid "Named colors"
 msgstr "Navngivne farver"
 
-#: ../colors.py:109
+#: ../colors.py:131
 msgid "Create"
 msgstr "Opret"
 
-#: ../colors.py:367
+#: ../colors.py:424
 #, python-format
 msgid "Max force: %.2f (this frame), %.2f (all frames)"
 msgstr "Maks kraft: %.2f (dette billede), %.2f (alle billeder)"
 
-#: ../colors.py:369
+#: ../colors.py:426
 #, python-format
 msgid "Max force: %.2f."
 msgstr "Maks kraft: %.2f."
 
-#: ../colors.py:383
+#: ../colors.py:440
 #, python-format
 msgid "Max velocity: %.2f (this frame), %.2f (all frames)"
 msgstr "Maks. hastighed: %.2f (dette billede), %.2f (alle billeder)"
 
-#: ../colors.py:385
+#: ../colors.py:442
 #, python-format
 msgid "Max velocity: %.2f."
 msgstr "Maks. hastighed: %.2f."
 
-#: ../colors.py:426
+#: ../colors.py:456
+#, python-format
+msgid "Min, max charge: %.2f, %.2f (this frame),"
+msgstr "Min, maks ladning: %.2f, %.2f  (dette billede),"
+
+#: ../colors.py:460
+#, python-format
+msgid "Min, max charge: %.2f, %.2f."
+msgstr "Min, maks ladning: %.2f, %.2f."
+
+#: ../colors.py:501
 msgid "ERROR"
 msgstr "FEJL"
 
-#: ../colors.py:455
+#: ../colors.py:530
 msgid "ERR"
 msgstr "FEJL"
 
-#: ../colors.py:542
+#: ../colors.py:622
 msgid "Incorrect color specification"
 msgstr "Forkert farveangivelse"
 
-#: ../constraints.py:13 ../widgets.py:90
+#: ../constraints.py:13 ../widgets.py:91
 msgid "Constraints"
 msgstr "Begrænsninger"
 
 #: ../constraints.py:15 ../constraints.py:18 ../settings.py:17
-#: ../widgets.py:92 ../widgets.py:95
+#: ../widgets.py:93 ../widgets.py:96
 msgid "Constrain"
 msgstr "Begræns"
 
-#: ../constraints.py:16 ../settings.py:20 ../settings.py:35 ../widgets.py:93
+#: ../constraints.py:16 ../settings.py:20 ../settings.py:35 ../widgets.py:94
 msgid " selected atoms"
 msgstr " markerede atomer"
 
-#: ../constraints.py:19 ../widgets.py:96
+#: ../constraints.py:19 ../widgets.py:97
 msgid " immobile atoms:"
 msgstr " immobile atomer:"
 
@@ -836,8 +856,8 @@ msgstr " markerede atomer:"
 msgid "Clear constraints"
 msgstr "Ryd begrænsninger"
 
-#: ../constraints.py:26 ../dft.py:29 ../settings.py:53 ../widgets.py:60
-#: ../widgets.py:100
+#: ../constraints.py:26 ../dft.py:29 ../settings.py:53 ../widgets.py:61
+#: ../widgets.py:101
 msgid "Close"
 msgstr "Luk"
 
@@ -1293,7 +1313,7 @@ msgstr "Angiv venligst en konsistent samling atomer. "
 msgid "You have not (yet) specified a consistent set of parameters."
 msgstr "Du har (endnu) ikke angivet konsistente parametre."
 
-#: ../graphs.py:9
+#: ../graphs.py:8
 msgid ""
 "Help for plot ...\n"
 "\n"
@@ -1344,15 +1364,15 @@ msgstr ""
 "<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> og <c>n<sub>4</sub></c>\n"
 "<c>T</c>:\t\t\t\ttemperatur (K)"
 
-#: ../graphs.py:52 ../graphs.py:55
+#: ../graphs.py:51 ../graphs.py:54
 msgid "Plot"
 msgstr "Graf"
 
-#: ../graphs.py:60
+#: ../graphs.py:59
 msgid "clear"
 msgstr "ryd"
 
-#: ../graphs.py:114
+#: ../graphs.py:113
 msgid "Save data to file ... "
 msgstr "Gem data til fil ... "
 
@@ -2360,11 +2380,11 @@ msgstr ""
 #: ../nanotube.py:29
 #, python-format
 msgid ""
-" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: %"
-"(volume).3f Å<sup>3</sup>"
+" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: "
+"%(volume).3f Å<sup>3</sup>"
 msgstr ""
-" %(natoms)i atomer: %(symbols)s, diameter: %(diameter).3f Å, cellevolumen: %"
-"(volume).3f Å<sup>3</sup>"
+" %(natoms)i atomer: %(symbols)s, diameter: %(diameter).3f Å, cellevolumen: "
+"%(volume).3f Å<sup>3</sup>"
 
 #: ../nanotube.py:35
 msgid "Nanotube"
@@ -3162,11 +3182,11 @@ msgstr "Ingen struktur angivet!"
 msgid "%(struct)s lattice constant unknown for %(element)s."
 msgstr "%(struct)s-gitterkonstant ukendt for %(element)s."
 
-#: ../widgets.py:53 ../widgets.py:81
+#: ../widgets.py:54 ../widgets.py:82
 msgid "Help"
 msgstr "Hjælp"
 
-#: ../widgets.py:98
+#: ../widgets.py:99
 msgid "Clear constraint"
 msgstr "Ryd begrænsninger"
 
