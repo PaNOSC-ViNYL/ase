@@ -151,10 +151,6 @@ class Aims(Calculator):
         self.run_counts = 0
         self.set(**kwargs)
 
-        if (self.input_parameters['species_dir'] is None and
-            not os.environ.has_key('AIMS_SPECIES_DIR')):
-            raise RuntimeError('Missing species directory, THIS MUST BE SPECIFIED!')
-
         # set output_template and run_dir
         self.output_template = self.input_parameters['output_template']
         if self.input_parameters['run_dir']:
@@ -389,6 +385,10 @@ class Aims(Calculator):
 
     def write_species(self, file = 'control.in'):
         from ase.data import atomic_numbers
+
+        if (self.input_parameters['species_dir'] is None and
+            not os.environ.has_key('AIMS_SPECIES_DIR')):
+            raise RuntimeError('Missing species directory, THIS MUST BE SPECIFIED!')
 
         # species_dir keyword overwrites AIMS_SPECIES_DIR
         if (os.environ.has_key('AIMS_SPECIES_DIR') and
