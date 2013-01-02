@@ -71,7 +71,10 @@ class CalculatorFactory:
 
         kpts = self.calculate_kpts(atoms)
         if kpts != 'no k-points':
-            self.kwargs['kpts'] = kpts
+            if self.Class().get_name() == 'Aims':  # XXX Aims uses k_grid!
+                self.kwargs['k_grid'] = kpts
+            else:
+                self.kwargs['kpts'] = kpts
 
         if self.label is not None:
             self.kwargs[self.label] = name
@@ -115,6 +118,7 @@ calcnames = ['abinit', 'aims', 'asap', 'castep', 'dftb', 'elk', 'emt',
              'nwchem', 'siesta', 'turbomole', 'vasp']
 
 classnames = {'asap': 'EMT',
+              'aims': 'Aims',
               'elk': 'ELK',
               'emt': 'EMT',
               'fleur': 'FLEUR',
@@ -134,6 +138,10 @@ def calculator_factory(name, **kwargs):
     if name == 'abinit':
         from ase.calculators.abinit import Abinit
         return CalculatorFactory(Abinit, 'Abinit', 'label', **kwargs)
+
+    if name == 'aims':
+        from ase.calculators.aims import Aims
+        return CalculatorFactory(Aims, 'aims', 'run_dir', **kwargs)
 
     if name == 'asap':
         from asap3 import EMT

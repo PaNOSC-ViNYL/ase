@@ -30,10 +30,12 @@ float_keys = [
 ]
 
 exp_keys = [
+    'basis_threshold',
     'sc_accuracy_eev',
     'sc_accuracy_etot',
     'sc_accuracy_forces',
     'sc_accuracy_rho',
+    'sc_accuracy_stress',
 ]
 
 string_keys = [
@@ -68,6 +70,7 @@ bool_keys = [
     'compute_forces',
     'compute_kinetic',
     'compute_numerical_stress',
+    'compute_analytical_stress',
     'distributed_spline_storage',
     'evaluate_work_function',
     'final_forces_cleaned',
@@ -75,8 +78,10 @@ bool_keys = [
     'load_balancing',
     'MD_clean_rotations',
     'MD_restart',
+    'override_illconditioning',
     'restart_relaxations',
     'squeeze_memory',
+    'symmetry_reduced_k_grid',
     'use_density_matrix',
     'use_dipole_correction',
     'use_local_index',
@@ -140,15 +145,31 @@ class Aims(Calculator):
             self.list_params[key] = None
         for key in input_keys:
             self.input_parameters[key] = input_parameters_default[key]
-        if os.environ.has_key('AIMS_SPECIES_DIR'):
-            self.input_parameters['species_dir'] = os.environ['AIMS_SPECIES_DIR']
-        if os.environ.has_key('AIMS_COMMAND'):
-            self.input_parameters['run_command'] = os.environ['AIMS_COMMAND']
 
         self.positions = None
         self.atoms = None
         self.run_counts = 0
         self.set(**kwargs)
+
+        if (self.input_parameters['species_dir'] is None and
+            not os.environ.has_key('AIMS_SPECIES_DIR')):
+            raise RuntimeError('Missing species directory, THIS MUST BE SPECIFIED!')
+
+        # set output_template and run_dir
+        self.output_template = self.input_parameters['output_template']
+        if self.input_parameters['run_dir']:
+            self.run_dir = self.input_parameters['run_dir']
+        else:
+            self.run_dir = os.getcwd()
+        # output (used for reading) and output in PWD (used for running)
+        self.outcwd = self.output_template + '.out'
+        self.out = os.path.join(self.run_dir, self.outcwd)
+        # create work directory
+        if not os.path.isdir(self.run_dir):
+            os.mkdir(self.run_dir)
+
+    def get_name(self):
+        return self.name
 
     def set(self, **kwargs):
         if 'control' in kwargs:
@@ -223,9 +244,9 @@ class Aims(Calculator):
         if not have_lattice_vectors and have_k_grid:
             raise RuntimeError("Found k-grid but no lattice vectors!")
         from ase.io.aims import write_aims
-        write_aims('geometry.in', atoms) 
-        self.write_control()
-        self.write_species()
+        write_aims(os.path.join(self.run_dir, 'geometry.in'), atoms) 
+        self.write_control(os.path.join(self.run_dir, 'control.in'))
+        self.write_species(os.path.join(self.run_dir, 'control.in'))
         self.run()
         self.converged = self.read_convergence()
         if not self.converged:
@@ -247,24 +268,30 @@ class Aims(Calculator):
         self.old_list_params = self.list_params.copy()
         self.old_atoms = self.atoms.copy()
 
-    def run(self):
-        if self.input_parameters['track_output']:
-            self.out = self.input_parameters['output_template']+str(self.run_counts)+'.out'
-            self.run_counts += 1
-        else:
-            self.out = self.input_parameters['output_template']+'.out'            
+    def get_command(self):
+        """Return command string if program installed, otherwise None.  """
+        command = None
+        # run_command keyword overwrites AIMS_COMMAND
         if self.input_parameters['run_command']:
-            aims_command = self.input_parameters['run_command'] 
+            command = self.input_parameters['run_command'] 
         elif os.environ.has_key('AIMS_COMMAND'):
-            aims_command = os.environ['AIMS_COMMAND']
-        else:
-            raise RuntimeError("No specification for running FHI-aims. Aborting!")
-        aims_command = aims_command + ' >> ' 
-        if self.input_parameters['run_dir']:
-            aims_command = aims_command + self.input_parameters['run_dir'] + '/'
-        aims_command = aims_command + self.out
-        self.write_parameters('#',self.out)
-        exitcode = os.system(aims_command)
+            command = os.environ['AIMS_COMMAND']
+        return command
+
+    def run(self):
+        command = self.get_command()
+        if command is None:
+            raise RuntimeError("No specification for running FHI-aims. Aborting")
+        command = command + ' >> ' 
+
+        if self.input_parameters['track_output']:
+            self.outcwd = self.output_template+str(self.run_counts)+'.out'
+            self.out = os.path.join(self.run_dir, self.outcwd)
+            self.run_counts += 1
+
+        command = command + self.outcwd
+        self.write_parameters('#', os.path.join(self.run_dir, self.outcwd))
+        exitcode = os.system('cd %s&& %s' % (self.run_dir, command))
         if exitcode != 0:
             raise RuntimeError('FHI-aims exited with exit code: %d.  ' % exitcode)
         if self.input_parameters['cubes'] and self.input_parameters['track_output']:
@@ -363,8 +390,10 @@ class Aims(Calculator):
     def write_species(self, file = 'control.in'):
         from ase.data import atomic_numbers
 
-        if not self.input_parameters['species_dir']:
-            raise RuntimeError('Missing species directory, THIS MUST BE SPECIFIED!')
+        # species_dir keyword overwrites AIMS_SPECIES_DIR
+        if (os.environ.has_key('AIMS_SPECIES_DIR') and
+            self.input_parameters['species_dir'] is None):
+            self.input_parameters['species_dir'] = os.environ['AIMS_SPECIES_DIR']
 
         control = open(file, 'a')
         species_path = self.input_parameters['species_dir']
@@ -425,9 +454,10 @@ class Aims(Calculator):
         lines = open(self.out, 'r').readlines()
         stress = None
         for n, line in enumerate(lines):
-            if line.rfind('Calculation of numerical stress completed') > -1:
+            if (line.rfind('|              Analytical stress tensor') > -1 or
+                line.rfind('Numerical stress tensor') > -1):
                 stress = []
-                for i in [n+8,n+9,n+10]:
+                for i in [n+5,n+6,n+7]:
                     data = lines[i].split()
                     stress += [float(data[2]),float(data[3]),float(data[4])]
         # rearrange in 6-component form and return
