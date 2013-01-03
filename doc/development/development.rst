@@ -15,7 +15,6 @@ Development topics
 
    releasenotes
    contribute
-   py3k
    versioncontrol
    python_codingstandard
    writing_documentation_ase
@@ -24,12 +23,15 @@ Development topics
    tests
    translate
    todo
+   py3k
 
+
+.. _devel_passwd_create:
 
 Creating an encrypted password for SVN access
 =============================================
 
-Use this cammand::
+Use this command::
 
   htpasswd -nm <your-desired-user-name>
 
