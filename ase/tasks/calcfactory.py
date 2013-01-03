@@ -71,7 +71,11 @@ class CalculatorFactory:
 
         kpts = self.calculate_kpts(atoms)
         if kpts != 'no k-points':
-            if self.Class().get_name() == 'Aims':  # XXX Aims uses k_grid!
+            try:
+                cname = self.Class().get_name()  # not all calcs have that
+            except (AttributeError, ValueError, NotImplementedError):
+                cname = ''
+            if cname == 'Aims':  # XXX Aims uses k_grid!
                 self.kwargs['k_grid'] = kpts
             else:
                 self.kwargs['kpts'] = kpts
