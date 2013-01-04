@@ -23,27 +23,27 @@ MM part.
 
 For example::
 
-calc = Gromacs(
-    init_structure_file=infilename, 
-    force_field='oplsaa', 
-    water_model='tip3p',
-    define = '-DFLEXIBLE',
-    integrator = 'md',
-    nsteps = '0',
-    nstfout = '1',
-    nstlog = '1',
-    nstenergy = '1',
-    energygrps = 'System',
-    nstlist = '1',
-    ns_type = 'grid',
-    pbc = 'xyz',
-    rlist = '1.15',
-    coulombtype = 'PME-Switch',
-    rcoulomb = '0.8',
-    vdwtype = 'shift',
-    rvdw = '0.8',
-    rvdw_switch = '0.75',
-    DispCorr = 'Ener')
+    calc = Gromacs(
+        init_structure_file=infilename, 
+        force_field='oplsaa', 
+        water_model='tip3p',
+        define = '-DFLEXIBLE',
+        integrator = 'md',
+        nsteps = '0',
+        nstfout = '1',
+        nstlog = '1',
+        nstenergy = '1',
+        energygrps = 'System',
+        nstlist = '1',
+        ns_type = 'grid',
+        pbc = 'xyz',
+        rlist = '1.15',
+        coulombtype = 'PME-Switch',
+        rcoulomb = '0.8',
+        vdwtype = 'shift',
+        rvdw = '0.8',
+        rvdw_switch = '0.75',
+        DispCorr = 'Ener')
 
 
 Parameters
