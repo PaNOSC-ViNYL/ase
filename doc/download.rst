@@ -145,6 +145,14 @@ Installation
 
 After performing the installation do not forget to :ref:`running_tests`!
 
+.. _macosx_installation:
+
+Installation on OS X
+====================
+
+For installation with http://mxcl.github.com/homebrew/ please follow
+instructions at `Homebrew <https://wiki.fysik.dtu.dk/gpaw/install/MacOSX/homebrew.html>`_.
+
 .. _pm_installation:
 
 Installation with package manager on Linux
@@ -232,22 +240,6 @@ https://build.opensuse.org/package/show?package=python-ase&project=home%3Adtufys
    however not for the external, distribution provided packages,
    which may require manually creating the environment scripts.
 
-
-OSX
-===
-
-For Apple users, the MacPorts_ Project provides a straight-forward
-route to obtain all necessary requirements. Unfortunately, MacPorts
-does not install the `gtk` bindings to matplotlib_ by default, which
-are required to open the GUI. To get all the ASE prerequisites for
-python 2.7 in one single command anyway, install MacPorts and then run::
-
-  $ port install py27-matplotlib +gtk2
-
-Use the `sudo` command if you have root access and if you require 
-a system-wide install. Once finished, please follow :ref:`manual_installation`.
-
-.. _MacPorts: http://www.macports.org/
 
 Windows
 =======
