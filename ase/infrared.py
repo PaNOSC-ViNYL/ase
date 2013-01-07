@@ -5,12 +5,13 @@
 
 import pickle
 from math import sin, pi, sqrt, exp, log
+from sys import stdout
 
 import numpy as np
 
 import ase.units as units
 from ase.io.trajectory import PickleTrajectory
-from ase.parallel import rank, barrier, parprint
+from ase.parallel import rank, barrier, parprint, paropen
 from ase.vibrations import Vibrations
 
 
@@ -236,7 +237,7 @@ class InfraRed(Vibrations):
                                '< unknown.')
 
     def summary(self, method='standard', direction='central', 
-                intensity_unit='(D/A)2/amu'):
+                intensity_unit='(D/A)2/amu', log=stdout):
         hnu = self.get_energies(method, direction)
         s = 0.01 * units._e / units._c / units._hplanck
         iu, iu_string = self.intensity_prefactor(intensity_unit)
@@ -245,11 +246,13 @@ class InfraRed(Vibrations):
         elif intensity_unit == 'km/mol':
             iu_string = '   ' + iu_string
             iu_format = ' %7.1f'
+        if isinstance(log, str):
+            log = paropen(log, 'a')
 
-        parprint('-------------------------------------')
-        parprint(' Mode    Frequency        Intensity')
-        parprint('  #    meV     cm^-1   ' + iu_string)
-        parprint('-------------------------------------')
+        parprint('-------------------------------------', file=log)
+        parprint(' Mode    Frequency        Intensity', file=log)
+        parprint('  #    meV     cm^-1   ' + iu_string, file=log)
+        parprint('-------------------------------------', file=log)
         for n, e in enumerate(hnu):
             if e.imag != 0:
                 c = 'i'
@@ -257,13 +260,15 @@ class InfraRed(Vibrations):
             else:
                 c = ' '
             parprint(('%3d %6.1f%s  %7.1f%s  ' + iu_format) % 
-                     (n, 1000 * e, c, s * e, c, iu * self.intensities[n]))
-        parprint('-------------------------------------')
-        parprint('Zero-point energy: %.3f eV' % self.get_zero_point_energy())
-        parprint('Static dipole moment: %.3f D' % self.dipole_zero)
+                     (n, 1000 * e, c, s * e, c, iu * self.intensities[n]),
+                     file=log)
+        parprint('-------------------------------------', file=log)
+        parprint('Zero-point energy: %.3f eV' % self.get_zero_point_energy(), 
+                file=log)
+        parprint('Static dipole moment: %.3f D' % self.dipole_zero, file=log)
         parprint('Maximum force on atom in `equilibrium`: %.4f eV/Å' % 
-                  self.force_zero)
-        parprint()
+                  self.force_zero, file=log)
+        parprint(file=log)
 
     def get_spectrum(self, start=800, end=4000, npts=None, width=4, 
                      type='Gaussian', method='standard', direction='central', 
