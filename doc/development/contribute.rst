@@ -59,7 +59,7 @@ Here is the list of current committers:
 user name   real name
 ==========  ======================  ===================================
 anpet       Andrew Peterson         andy,peterson:stanford,edu
-askhl       Ask Hjorth Larsen       askhl:fysik,dtu,dk
+askhl       Ask Hjorth Larsen       asklarsen:gmail,com
 bjork       Jonas Bjork             J,Bjork:liverpool,ac,uk
 dlandis     David Landis            dlandis:fysik,dtu,dk
 dulak       Marcin Dulak            dulak:fysik,dtu,dk
