@@ -3,6 +3,7 @@
 # because PYTHONPATH is overwritten under os.system call!
 
 import os
+import platform
 
 import ase
 
@@ -10,4 +11,6 @@ dir = os.path.abspath(os.path.dirname(ase.__file__))
 utilsdir = os.path.join(dir, 'utils')
 
 sjeos = os.path.join(utilsdir, 'sjeos.py')
-assert os.system("PYTHONPATH=" + utilsdir + " python " + sjeos) == 0
+
+if platform.system() in ['Linux', 'Darwin']:
+    assert os.system("PYTHONPATH=" + utilsdir + " python " + sjeos) == 0
