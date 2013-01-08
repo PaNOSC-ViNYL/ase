@@ -13,7 +13,7 @@ a0 = 3.52 / np.sqrt(2)
 c0 = np.sqrt(8 / 3.0) * a0
 print '%.4f %.3f' % (a0, c0 / a0)
 for i in range(3):
-    traj = PickleTrajectory('Ni.traj', 'w')
+    traj = PickleTrajectory('Ni.traj', 'a')
     eps = 0.01
     for a in a0 * np.linspace(1 - eps, 1 + eps, 4):
         for c in c0 * np.linspace(1 - eps, 1 + eps, 4):
