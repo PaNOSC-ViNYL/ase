@@ -16,9 +16,5 @@ nc.close()
 nc = NetCDFFile('test.nc', 'r')
 b1 = nc.variables['matrix1'][:]
 b2 = nc.variables['matrix2'][:]
-nc.close()
 
 assert np.all(a1 == b1) and np.all(a2 == b2)
-
-import os
-os.remove('test.nc')

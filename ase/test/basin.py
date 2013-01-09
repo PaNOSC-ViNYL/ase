@@ -64,6 +64,3 @@ for GlobalOptimizer in [BasinHopping(s,
 
     # reset positions
     s.set_positions(original_positions)
-
-    import os
-    os.remove(ftraj)
