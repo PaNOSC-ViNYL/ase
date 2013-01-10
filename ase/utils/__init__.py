@@ -29,9 +29,9 @@ devnull = DevNull()
 def opencew(filename, my_world=world):
     """Create and open filename exclusively for writing.
 
-    If master cpu gets exclusive write access til filename, a file
+    If master cpu gets exclusive write access to filename, a file
     descriptor is returned (a dummy file descriptor is returned on the
-    slaves).  If the master cpu doet not get write access, None is
+    slaves).  If the master cpu does not get write access, None is
     returned on all processors."""
 
     if my_world.rank == 0:
