@@ -14,7 +14,7 @@ org = Atoms([
         ])
 #visualize.view(org)
 
-maxdist = 1.e-13
+maxdist = 3.0e-13
 
 # translate
 for dx in range(3, 10, 2):
