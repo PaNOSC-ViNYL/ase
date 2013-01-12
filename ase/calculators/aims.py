@@ -79,6 +79,7 @@ bool_keys = [
     'MD_clean_rotations',
     'MD_restart',
     'override_illconditioning',
+    'override_relativity',
     'restart_relaxations',
     'squeeze_memory',
     'symmetry_reduced_k_grid',
