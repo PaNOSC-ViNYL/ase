@@ -366,6 +366,8 @@ class Spacegroup(object):
                     kinds.append(kind)
                     continue
                 t = site - sites
+                t %= 1.0
+                t %= 1.0
                 mask = np.sum(t*t, 1) < symprec2
                 if np.any(mask):
                     ind = np.argwhere(mask)[0][0]
