@@ -1232,7 +1232,7 @@ class Atoms(object):
         j = 0
         for i in range(len(self)):
             if mask[i]:
-                self.positions[i] = group[j].get_position()
+                self.positions[i] = group[j].position
                 j += 1
 
     def set_dihedral(self, list, angle, mask=None):
@@ -1274,7 +1274,7 @@ class Atoms(object):
     def get_angle(self, list):
         """Get angle formed by three atoms.
         
-        calculate angle between the vectors list[0]->list[1] and
+        calculate angle between the vectors list[1]->list[0] and
         list[1]->list[2], where list contains the atomic indexes in
         question."""
         # normalized vector 1->0, 1->2:
@@ -1299,7 +1299,7 @@ class Atoms(object):
             mask[list[2]] = 1
         # Compute necessary in angle change, from current value
         current = self.get_angle(list)
-        diff = current - angle
+        diff = angle - current
         # Do rotation of subgroup by copying it to temporary atoms object and
         # then rotating that
         v10 = self.positions[list[0]] - self.positions[list[1]]
