@@ -32,7 +32,10 @@ class Calculator:
 
     def get_stress(self, atoms):
         self.update(atoms)
-        return self.stress
+        if self.stress is not None:
+            return self.stress
+        else:
+            raise NotImplementedError
 
     def initialize(self, atoms):
         """Prepare the input files required to
@@ -55,5 +58,6 @@ class Calculator:
         try:
             self.stress = self.read_stress()
         except NotImplementedError:
+            self.stress = None
             do_nothing = True
         return
