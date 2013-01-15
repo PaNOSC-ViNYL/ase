@@ -467,10 +467,6 @@ class Aims(Calculator):
         else:
             return
 
-    def get_stress(self, atoms):
-        self.update(atoms)
-        return self.stress
-
 # methods that should be quickly implemented some time, haven't had time yet:
     def read_fermi(self):
         """Method that reads Fermi energy from output file"""
