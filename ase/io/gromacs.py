@@ -11,9 +11,9 @@ def read_gromacs(filename):
     C format
     "%5d%5s%5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f" 
     python: starting from 0, including first excluding last
-     0:4 5:10 10:15 15:20 20:28 28:36 36:44 44:52 52:60 60:68 
+    0:4 5:10 10:15 15:20 20:28 28:36 36:44 44:52 52:60 60:68 
 
-    Import gromacs geometry type files (\*.gro).
+    Import gromacs geometry type files (.gro).
     Reads atom positions,
     velocities(if present) and
     simulation cell (if present)

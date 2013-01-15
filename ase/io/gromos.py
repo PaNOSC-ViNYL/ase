@@ -8,7 +8,7 @@ from ase.parallel import paropen
 
 
 def read_gromos(fileobj, index=-1):
-    """Read gromos geometry files (*.g96).
+    """Read gromos geometry files (.g96).
     Reads:
     atom positions,
     and simulation cell (if present)
@@ -77,7 +77,7 @@ def read_gromos(fileobj, index=-1):
     return gmx_system
 
 def write_gromos(fileobj, images):
-    """Write gromos geometry files (*.g96).
+    """Write gromos geometry files (.g96).
     Writes:
     atom positions,
     and simulation cell (if present)
