@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 from ase import Atoms
 from ase.io import write, read
@@ -58,6 +60,9 @@ for format in w:
             a2 = read(fname2)
             a3 = read(fname2, index=0)
             a4 = read(fname2, index=slice(None))
-            assert len(a4) == 2
+            if format in ['cif'] and sys.platform in ['win32']:
+                raise NotAvailable('Fails on Windows https://trac.fysik.dtu.dk/projects/ase/ticket/62')
+            else:
+                assert len(a4) == 2
     else:
         print
