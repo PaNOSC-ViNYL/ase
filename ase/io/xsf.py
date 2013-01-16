@@ -93,7 +93,7 @@ def write_xsf(fileobj, images, data=None):
     fileobj.write('END_BLOCK_DATAGRID_3D\n')
 
 
-def read_xsf(fileobj, index=-1, read_data=True):
+def read_xsf(fileobj, index=-1, read_data=False):
     if isinstance(fileobj, str):
         fileobj = open(fileobj)
 
