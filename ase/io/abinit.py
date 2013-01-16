@@ -81,7 +81,8 @@ def read_abinit(filename='abinit.in'):
             xred.append([float(tokens[index+3*i+1]),
                          float(tokens[index+3*i+2]),
                          float(tokens[index+3*i+3])])
-        atoms = Atoms(cell=rprim, scaled_positions=xred, numbers=numbers)
+        atoms = Atoms(cell=rprim, scaled_positions=xred, numbers=numbers,
+                      pbc=True)
         return atoms
 
     index = None
@@ -98,7 +99,7 @@ def read_abinit(filename='abinit.in'):
             xangs.append([unit*float(tokens[index+3*i+1]),
                           unit*float(tokens[index+3*i+2]),
                           unit*float(tokens[index+3*i+3])])
-        atoms = Atoms(cell=rprim, positions=xangs, numbers=numbers)
+        atoms = Atoms(cell=rprim, positions=xangs, numbers=numbers, pbc=True)
         return atoms
 
     raise IOError("No xred, xcart, or xangs keyword in abinit input file")
