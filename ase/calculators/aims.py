@@ -279,14 +279,15 @@ class Aims(Calculator):
         command = self.get_command()
         if command is None:
             raise RuntimeError("No specification for running FHI-aims. Aborting")
-        command = command + ' >> ' 
-
         if self.input_parameters['track_output']:
             self.outcwd = self.output_template+str(self.run_counts)+'.out'
             self.out = os.path.join(self.run_dir, self.outcwd)
             self.run_counts += 1
+            command = command + ' >> ' + self.outcwd
+        else:
+            self.out = self.input_parameters['output_template']+'.out'
+            command = command + ' > ' + self.out            
 
-        command = command + self.outcwd
         self.write_parameters('#', os.path.join(self.run_dir, self.outcwd))
         exitcode = os.system('cd %s&& %s' % (self.run_dir, command))
         if exitcode != 0:
