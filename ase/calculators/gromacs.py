@@ -116,6 +116,7 @@ class Gromacs():
             extra parameter(s) to be passed to gromacs programm 'mdrun'
         """
 
+        self.name = 'Gromacs'
         self.init_structure_file = init_structure_file
         self.structure_file = structure_file
         self.force_field = force_field 
@@ -179,6 +180,8 @@ class Gromacs():
         print "parameter write ok"
 
 
+    def get_name(self):
+        return self.name
 
     def set(self, **kwargs):
         """ Setting values for the parameters of the gromacs calculator """
