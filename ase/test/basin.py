@@ -17,6 +17,7 @@ E_global = {
 }
 N = 7
 R = N**(1./3.)
+np.random.seed(42)
 pos = np.random.uniform(-R, R, (N, 3))
 s = Atoms('He' + str(N),
           positions = pos)
