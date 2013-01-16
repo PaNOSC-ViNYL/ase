@@ -299,3 +299,12 @@ In all three filters only the hydrogen atoms are made
 visible.  When asking for the positions only the positions of the
 hydrogen atoms are returned.
 
+The UnitCellFilter class
+========================
+
+.. autoclass:: ase.constraints.UnitCellFilter
+
+The StrainFilter class
+======================
+
+.. autoclass:: ase.constraints.StrainFilter

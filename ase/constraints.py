@@ -1006,44 +1006,42 @@ class StrainFilter(Filter):
 class UnitCellFilter(Filter):
     """Modify the supercell and the atom positions. """
     def __init__(self, atoms, mask=None):
-        """Create a filter that returns the atomic forces and unit
-        cell stresses together, so they can simultaneously be
-        minimized.
+        """Create a filter that returns the atomic forces and unit cell
+        stresses together, so they can simultaneously be minimized.
 
-        The first argument, atoms, is the atoms object.
+        The first argument, atoms, is the atoms object. The optional second
+        argument, mask, is a list of booleans, indicating which of the six
+        independent components of the strain are relaxed.
 
-        The optional second argument, mask, is a list of booleans,
-        indicating which of the six independent
-        components of the strain are relaxed.
-        1, True = relax to zero
-        0, False = fixed, ignore this component
+        - True = relax to zero
+        - False = fixed, ignore this component
 
-        use atom Constraints, e.g. FixAtoms, to control relaxation of
-        the atoms.
+        You can still use constraints on the atoms, e.g. FixAtoms, to control
+        the relaxation of the atoms.
 
-        #this should be equivalent to the StrainFilter
+        >>> # this should be equivalent to the StrainFilter
         >>> atoms = Atoms(...)
         >>> atoms.set_constraint(FixAtoms(mask=[True for atom in atoms]))
-        >>> ucf = UCFilter(atoms)
+        >>> ucf = UnitCellFilter(atoms)
 
-        You should not attach this UCFilter object to a
+        You should not attach this UnitCellFilter object to a
         trajectory. Instead, create a trajectory for the atoms, and
         attach it to an optimizer like this:
 
         >>> atoms = Atoms(...)
-        >>> ucf = UCFilter(atoms)
+        >>> ucf = UnitCellFilter(atoms)
         >>> qn = QuasiNewton(ucf)
-        >>> traj = PickleTrajectory('TiO2.traj','w',atoms)
+        >>> traj = PickleTrajectory('TiO2.traj', 'w', atoms)
         >>> qn.attach(traj)
         >>> qn.run(fmax=0.05)
 
-        Helpful conversion table
-        ========================
-        0.05 eV/A^3   = 8 GPA
-        0.003 eV/A^3  = 0.48 GPa
-        0.0006 eV/A^3 = 0.096 GPa
-        0.0003 eV/A^3 = 0.048 GPa
-        0.0001 eV/A^3 = 0.02 GPa
+        Helpful conversion table:
+
+        - 0.05 eV/A^3   = 8 GPA
+        - 0.003 eV/A^3  = 0.48 GPa
+        - 0.0006 eV/A^3 = 0.096 GPa
+        - 0.0003 eV/A^3 = 0.048 GPa
+        - 0.0001 eV/A^3 = 0.02 GPa
         """
 
         Filter.__init__(self, atoms, indices=range(len(atoms)))
