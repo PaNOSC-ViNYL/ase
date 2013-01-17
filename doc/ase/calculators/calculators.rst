@@ -41,9 +41,9 @@ Supported calculators
 =====================
 
 
-================  ===========================================  ============
+================= ===========================================  ============
 Code              Description                                  Type
-================  ===========================================  ============
+================= ===========================================  ============
 GPAW_             Grid-based real-space PAW code               :term:`DFT`,
                                                                :term:`HF`
 Asap_             Highly efficient EMT code (written in C++)   :term:`EMT`
@@ -60,7 +60,7 @@ Dacapo_           Old interface to Dacapo_. Requires           :term:`DFT`
 :mod:`castep`     Planewave pseodopotential code               :term:`DFT`,
                                                                :term:`HF`
 :mod:`vasp`       Planewave PAW code                           :term:`DFT`
-:mod:`FHI-aims`   Numeric Atomic Orbital, full potential code  :term:`DFT`,
+:mod:`FHI-aims`   Numeric Atomic Orbital, full pot. code       :term:`DFT`,
                                                                :term:`HF` 
 :mod:`exciting`   Full Potential LAPW code                     :term:`DFT`,
                                                                :term:`LAPW`
@@ -68,8 +68,9 @@ Dacapo_           Old interface to Dacapo_. Requires           :term:`DFT`
                                                                :term:`LAPW`
 :mod:`lammps`     Classical molecular dynamics code
 :mod:`gromacs`    Classical molecular dynamics code
-:mod:`mmtk`       XXX Library for molecular simulations 
-================  ===========================================  ============
+:mod:`mmtk`       XXX Library for molecular simulations
+ase_qmmm_manyqm   QM/MM interface,MM=Gromacs,QM=FHI-aims 
+================= ===========================================  ============
   
 
 .. _Asap: http://wiki.fysik.dtu.dk/asap
@@ -79,7 +80,7 @@ Dacapo_           Old interface to Dacapo_. Requires           :term:`DFT`
 .. _Turbomole: http://www.turbomole.com/
 
 
-The calculators can be divided in three groups:
+The calculators can be divided in four groups:
 
 1) GPAW, Asap, Dacapo have their own native ASE interfaces.
 
@@ -90,9 +91,10 @@ The calculators can be divided in three groups:
 3) EMT is a pure python implementation of the Effective Medium Theory
    potential and it is included in the ASE package.
 
+4) ase_qmmm_manyqm drives two ase-calculators, one being a QM (quantum mechanics) calculater, the other a MM (molecular mechanics) one. Currently only QM=FHI-aims and MM=Gromacs is supported.
 
-Documentation for group 2 and 3 calculators
-===========================================
+Documentation for group 2, 3 and 4 calculators
+==============================================
 
 .. toctree::
 
@@ -110,7 +112,7 @@ Documentation for group 2 and 3 calculators
    fleur
    castep
    gromacs
-
+   ase_qmmm_manyqm
 
 Calculator interface
 ====================

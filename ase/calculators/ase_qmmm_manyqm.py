@@ -301,15 +301,19 @@ class AseQmmmManyqm():
 
         Parameters
         ==========
-        nqm_regions:  how many qm regions
+        nqm_regions: int
+            how many qm regions
 
-        qm_calculators: ase-qm calculator for each qm region
+        qm_calculators: list members of a Class defining a Calculator
+            ase-qm calculator for each qm region
 
-        mm_calculator: ase-mm calculator for mm (the whole system)
+        mm_calculator: a member of a Class defining a Calculator
+             ase-mm calculator for mm (the whole system)
 
-        link_info: can be either
-        'byQM': the edge_qm_atom-link_h_atom distances are calculated by QM
-        'byFile': the edge_qm_atom-link_h_atom distances are read from a file
+        link_info: str
+            can be either
+            'byQM': the edge_qm_atom-link_h_atom distances are calculated by QM
+            'byFile':the edge_qm_atom-link_h_atom distances are read from a file
 
         """
 

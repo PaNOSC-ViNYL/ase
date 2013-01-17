@@ -48,7 +48,7 @@ CALC_MM = Gromacs(
     rvdw_switch = '0.75',
     DispCorr = 'Ener')
 
-For example:: (setting for a MM calculation, usefull when keeping QM fixed 
+For example:: (setting for a MM calculation, useful when keeping QM fixed 
                and relaxing MM only, parameter '-nt 1' for serial run):
          
 CALC_MM_RELAX = Gromacs(
@@ -90,7 +90,7 @@ init_structure_file: str
     (only pdb2gmx uses this)
 structure_file: str
     Name of the structure file for gromacs
-    (in all other context that the iniial input file)
+    (in all other context that the initial input file)
 force_field: str
     Name of the force field for gromacs
 water_model: str
@@ -99,7 +99,7 @@ base_filename: str
     The generated Gromacs file names have this string  
     as the common part in their names (except structure files).
 doing_qmmm: logical
-    If true we run only sigle step of gromacs 
+    If true we run only single step of gromacs 
     (to get MM forces and energies in QM/MM)
 freeze_qm: logical
     If true, the qm atoms will be kept fixed
@@ -109,9 +109,9 @@ index_filename: string
 extra_pdb2gmx_parameters: str
     extra parameter(s) to be passed to gromacs programm 'pdb2gmx'
 extra_grompp_parameters: str
-    extra parameter(s) to be passed to gromacs programm 'grompp'
+    extra parameter(s) to be passed to gromacs program 'grompp'
 extra_mdrun_parameters: str
-    extra parameter(s) to be passed to gromacs programm 'mdrun'
+    extra parameter(s) to be passed to gromacs program 'mdrun'
 
     
 Example: MM-only geometry optimization of a histidine molecule
@@ -138,7 +138,7 @@ Solvate histidine in a water box
 
 genbox -cp hish_box.gro -cs spc216.gro -o hish_waterbox.gro
 
-Generate indexfile for gromacs groups
+Generate index file for gromacs groups
 
 make_ndx -f hish_waterbox.gro
 q<ENTER>
