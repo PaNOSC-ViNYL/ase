@@ -6,25 +6,31 @@ import numpy as np
 from ase.dft.kpoints import monkhorst_pack
 
 
-def str2dict(s, namespace={}):
+def str2dict(s, namespace={}, sep='='):
     """Convert comma-separated key=vale string to dictionary.
 
-    Example:
+    Examples:
 
-    >>> str2dict('a=1.2,b=True,c=abc,d=1,2,3')
-    {'a': 1.2, 'c': 'abc', 'b': True, 'd': (1, 2, 3)}
+    >>> str2dict('xc=PBE,nbands=200,parallel={band:4}')
+    {'xc': 'PBE', 'nbands': 200, 'parallel': {'band': 4}}
+    >>> str2dict('a=1.2,b=True,c=ab,d=1,2,3,e={f:42,g:cd}')
+    {'a': 1.2, 'c': 'ab', 'b': True, 'e': {'g': 'cd', 'f': 42}, 'd': (1, 2, 3)}
     """
 
     dct = {}
-    s = (s + ',').split('=')
+    s = (s + ',').split(sep)
     for i in range(len(s) - 1):
         key = s[i]
         m = s[i + 1].rfind(',')
         value = s[i + 1][:m]
-        try:
-            value = eval(value, namespace)
-        except (NameError, SyntaxError):
-            pass
+        if value[0] == '{':
+            assert value[-1] == '}'
+            value = str2dict(value[1:-1], {}, ':')
+        else:
+            try:
+                value = eval(value, namespace)
+            except (NameError, SyntaxError):
+                pass
         dct[key] = value
         s[i + 1] = s[i + 1][m + 1:]
     return dct
