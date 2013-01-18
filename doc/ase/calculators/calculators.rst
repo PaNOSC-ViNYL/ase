@@ -41,36 +41,39 @@ Supported calculators
 =====================
 
 
-================= ===========================================  ============
-Code              Description                                  Type
-================= ===========================================  ============
-GPAW_             Grid-based real-space PAW code               :term:`DFT`,
-                                                               :term:`HF`
-Asap_             Highly efficient EMT code (written in C++)   :term:`EMT`
-:mod:`jacapo`     ASE interface to Dacapo_,                    :term:`DFT`
-                  a planewave ultra-soft pseudopotential code
-Dacapo_           Old interface to Dacapo_. Requires           :term:`DFT`
-                  Numeric python and ASE2.
-:mod:`emt`        Effective Medium Theory calculator           :term:`EMT`
-:mod:`abinit`     A planewave pseudopotential code             :term:`DFT`
-:mod:`siesta`     LCAO pseudopotential code                    :term:`DFT`
-:mod:`dftb`       DftbPlus_ DFT based tight binding            :term:`DFT`
-:mod:`turbomole`  Fast atom orbital code Turbomole_,           :term:`DFT`,
-                                                               :term:`HF`
-:mod:`castep`     Planewave pseodopotential code               :term:`DFT`,
-                                                               :term:`HF`
-:mod:`vasp`       Planewave PAW code                           :term:`DFT`
-:mod:`FHI-aims`   Numeric Atomic Orbital, full pot. code       :term:`DFT`,
-                                                               :term:`HF` 
-:mod:`exciting`   Full Potential LAPW code                     :term:`DFT`,
-                                                               :term:`LAPW`
-:mod:`fleur`      Full Potential LAPW code                     :term:`DFT`,
-                                                               :term:`LAPW`
-:mod:`lammps`     Classical molecular dynamics code
-:mod:`gromacs`    Classical molecular dynamics code
-:mod:`mmtk`       XXX Library for molecular simulations
-ase_qmmm_manyqm   QM/MM interface,MM=Gromacs,QM=FHI-aims 
-================= ===========================================  ============
+=======================  =======================================  ============
+Code                     Description                              Type
+=======================  =======================================  ============
+GPAW_                    Grid-based real-space PAW code           :term:`DFT`,
+                                                                  :term:`HF`
+Asap_                    Highly efficient EMT code                :term:`EMT`
+                         (written in C++)
+:mod:`jacapo`            ASE interface to Dacapo_,                :term:`DFT`
+                         a planewave ultra-soft
+                         pseudopotential code
+Dacapo_                  Old interface to Dacapo_. Requires       :term:`DFT`
+                         Numeric python and ASE2.
+:mod:`emt`               Effective Medium Theory calculator       :term:`EMT`
+:mod:`abinit`            A planewave pseudopotential code         :term:`DFT`
+:mod:`siesta`            LCAO pseudopotential code                :term:`DFT`
+:mod:`dftb`              DftbPlus_ DFT based tight binding        :term:`DFT`
+:mod:`turbomole`         Fast atom orbital code Turbomole_,       :term:`DFT`,
+                                                                  :term:`HF`
+:mod:`castep`            Planewave pseodopotential code           :term:`DFT`,
+                                                                  :term:`HF`
+:mod:`vasp`              Planewave PAW code                       :term:`DFT`
+:mod:`FHI-aims`          Numeric Atomic Orbital                   :term:`DFT`,
+                         , full pot. code                         :term:`HF` 
+:mod:`exciting`          Full Potential LAPW code                 :term:`DFT`,
+                                                                  :term:`LAPW`
+:mod:`fleur`             Full Potential LAPW code                 :term:`DFT`,
+                                                                  :term:`LAPW`
+:mod:`lammps`            Classical molecular dynamics code
+:mod:`gromacs`           Classical molecular dynamics code
+:mod:`mmtk`              XXX Library for molecular simulations
+:mod:`ase_qmmm_manyqm`   QM/MM interface,
+                         MM=Gromacs, QM=FHI-aims 
+=======================  =======================================  ============
   
 
 .. _Asap: http://wiki.fysik.dtu.dk/asap

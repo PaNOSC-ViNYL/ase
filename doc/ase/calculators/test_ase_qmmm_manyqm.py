@@ -87,5 +87,5 @@ SYSTEM.set_calculator(CALC_QMMM)
 DYN = BFGS(SYSTEM)
 DYN.run(fmax = 0.05)
 
-print "exiting fine"
+print('exiting fine')
 LOG_FILE.close()

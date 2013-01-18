@@ -177,7 +177,6 @@ class Gromacs():
             self.string_params['integrator'] = 'md'
             self.string_params['nsteps'] = '0'
         self.write_parameters()
-        print "parameter write ok"
 
 
     def get_name(self):
@@ -258,7 +257,6 @@ class Gromacs():
         except:
             pass
         if os.path.isfile(self.index_filename):
-            print "GROMPP (with index file)"
             os.system('grompp '+ \
                           ' -f ' + self.base_filename + '.mdp ' + \
                           ' -c ' + self.structure_file + \
@@ -269,7 +267,6 @@ class Gromacs():
                           ' -maxwarn 100' + ' > /dev/null 2>&1')
 
         else:
-            print "GROMPP (no index file)"
             os.system('grompp '+\
                           ' -f ' + self.base_filename + '.mdp ' + \
                           ' -c ' + self.structure_file + \
@@ -289,7 +286,6 @@ class Gromacs():
         except:
             pass
         if self.doing_qmmm:
-            print "Running ONE step gromacs"
             os.system('mdrun '\
                           + ' -s ' + self.base_filename + '.tpr' \
                           + ' -o ' + self.base_filename + '.trr ' \
@@ -298,9 +294,7 @@ class Gromacs():
                           + ' -rerun ' + self.structure_file \
                           + ' ' + self.extra_mdrun_parameters \
                           + ' > mm.log 2>&1')
-            print "did run ONE step gromacs"
         else:
-            print "Running Multi step gromacs"
             os.system('mdrun ' \
                           + ' -s ' + self.base_filename + '.tpr' \
                           + ' -o ' + self.base_filename + '.trr' \
@@ -311,8 +305,6 @@ class Gromacs():
                           + '  > MM.log 2>&1')
             atoms = read_gromos(self.structure_file)
             self.atoms = atoms.copy()
-            print "did run many steps gromacs"
-            #print "atoms mdrun", self.atoms.get_positions()
 
     def update(self, atoms):
         """ set atoms and do the calculation """
@@ -366,8 +358,6 @@ class Gromacs():
         energy = float(line.split()[1])
         #We go for ASE units !
         self.energy = energy * units.kJ / units.mol 
-        print "energy", self.energy
-        #self.energy = energy 
         # energies are about 100 times bigger in Gromacs units 
         # when compared to ase units
 
@@ -391,7 +381,6 @@ class Gromacs():
         self.forces = np.array(forces)/ units.nm * units.kJ / units.mol
         self.forces = np.reshape(self.forces, (-1, 3))
         #self.forces = np.array(forces)
-        #print "forces", self.forces
 
     def set_own(self, key, value, docstring=""):
         """Set own gromacs input file parameter."""
