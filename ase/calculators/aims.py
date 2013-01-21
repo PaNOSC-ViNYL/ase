@@ -285,8 +285,7 @@ class Aims(Calculator):
             self.run_counts += 1
             command = command + ' >> ' + self.outcwd
         else:
-            self.out = self.input_parameters['output_template']+'.out'
-            command = command + ' > ' + self.out            
+            command = command + ' > ' + self.outcwd
 
         self.write_parameters('#', os.path.join(self.run_dir, self.outcwd))
         exitcode = os.system('cd %s&& %s' % (self.run_dir, command))
