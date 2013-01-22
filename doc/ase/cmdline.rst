@@ -2,11 +2,11 @@
 
 .. index:: ase
 
-.. _command line tools:
+.. _command line tool:
 
-==================
-Command line tools
-==================
+=================
+Command line tool
+=================
 
 The :program:`ase` program can be used to do calculations with
 :ref:`ASE supported calculators<supported calculators>` on the command

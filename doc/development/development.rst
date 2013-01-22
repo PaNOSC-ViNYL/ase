@@ -4,8 +4,8 @@
 ASE development
 ===============
 
-As a developer,
-you should subscribe to all ASE related :ref:`mailing_lists`.
+As a developer, you should subscribe to all ASE related
+:ref:`mailing_lists`.
 
 
 Development topics
@@ -24,6 +24,7 @@ Development topics
    translate
    todo
    py3k
+   proposals/proposals
 
 
 .. _devel_passwd_create:

@@ -152,6 +152,8 @@ graph and also display Cu atoms (Z=29) with a radius of 1.6 Angstrom.
   gui_default_settings['covalent_radii'] = [[29,1.6]]
 
 
+.. _high contrast:
+
 High contrast settings for ag
 -----------------------------
 

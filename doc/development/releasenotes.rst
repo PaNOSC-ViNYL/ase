@@ -10,6 +10,11 @@ Development version in trunk
 
 :trac:`trunk <>`.
 
+* ASE's GUI can now be configured to be more friendly to visually
+  impaired users: :ref:`high contrast`.
+
+* The :class:`ase.neb.NEB` object now accepts a list of spring constants.
+
 * *Important backwards incompatible change*:  The
   ase.lattice.surface.surface() function now returns a right-handed
   unit cell.
@@ -36,7 +41,7 @@ Version 3.6.0
 
 * New values for ase.data.covalent_radii from Cordeo *et al.*.
 
-* New command line tool: :ref:`command line tools` and tests based on it:
+* New command line tool: :ref:`command line tool` and tests based on it:
   abinit, elk, fleur, nwchem.
 
 * New crystal builder for ag
