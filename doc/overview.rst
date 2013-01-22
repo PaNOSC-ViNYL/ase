@@ -14,8 +14,8 @@ number of "design goals" that make it:
 
   Setting up an atomistic total energy calculation or molecular
   dynamics simulation with ASE is simple and straightforward.  ASE can
-  be used via a :mod:`graphical user interface <gui>`, :ref:`command
-  line tools` and the Python language.  Python scripts are
+  be used via a :mod:`graphical user interface <gui>`, a :ref:`command
+  line tool` and the Python language.  Python scripts are
   easy to follow (see :ref:`python_info` for a short introduction).
   It is simple for new users to get access to all of the functionality
   of ASE.
