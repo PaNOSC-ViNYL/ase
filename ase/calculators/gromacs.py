@@ -36,7 +36,7 @@ string_keys = [
     'DispCorr',
 ]
 
-class Gromacs():
+class Gromacs:
     """ A calculator using gromacs.org .
     Initializing variables
     and preparing gromacs topology and run input file.

@@ -271,7 +271,7 @@ class LinkAtom:
         return self.equilibrium_distance_xy
 
 
-class AseQmmmManyqm():
+class AseQmmmManyqm:
     """ This is a qm/mm interface with qm=FHI-aims, mm=gromacs.
     
     We can have many QM regions, each with a different calculator.
