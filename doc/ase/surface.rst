@@ -77,7 +77,7 @@ All the functions setting up surfaces take the same arguments.
   (optional) Extra HCP lattice constant.  If specified, it overrides the
   expermental lattice constant of the element.  Can be specified if
   setting up a crystal structure different from the one found in
-  nature and an ideal `c/a` ratio is not wanted (`c/a=(8/3)^{1/3}`).
+  nature and an ideal `c/a` ratio is not wanted (`c/a=(8/3)^{1/2}`).
 
 *vacuum*: 
   The thickness of the vacuum layer.  The specified amount of
