@@ -5,8 +5,6 @@ Nudged elastic band
 .. module:: neb
    :synopsis: Nudged Elastic Band method.
 
-.. default-role:: math
-
 The Nudged Elastic Band method is a technique for finding transition paths
 (and corresponding energy barriers) between given initial and final states.
 The method involves constructing a "chain" of "replicas" or "images" of the
@@ -192,5 +190,3 @@ For a complete example using GPAW_, see here_.
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
 .. _gpaw-python: https://wiki.fysik.dtu.dk/gpaw/documentation/manual.html#parallel-calculations
 .. _here: https://wiki.fysik.dtu.dk/gpaw/tutorials/neb/neb.html
-
-.. default-role::

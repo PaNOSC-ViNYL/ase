@@ -63,12 +63,12 @@ First do a ground state calculation, and save the density as a cube file::
   rho = atoms.calc.get_all_electron_density(gridrefinement=4) * Bohr**3
   write('water_density.cube', atoms, data=rho)
 
-Then analyse the density cube file by running (use `bader -h` for a
+Then analyse the density cube file by running (use *bader -h* for a
 description of the possible options)::
 
   $ bader -p all_atom -p atom_index water_density.cube
 
-This will produce a number of files. The `ACF.dat` file, contains a
+This will produce a number of files. The *ACF.dat* file, contains a
 summary of the Bader analysis::
 
   |     #         X           Y           Z        CHARGE     MIN DIST
@@ -82,17 +82,17 @@ summary of the Bader analysis::
 Revealing that 0.56 electrons have been transfered from each
 Hydrogen atom to the Oxygen atom.
 
-The `BvAtxxxx.dat` files, are cube files for each Bader volume,
+The *BvAtxxxx.dat* files, are cube files for each Bader volume,
 describing the density within that volume. (I.e. it is just the
 original cube file, truncated to zero outside the domain of the
 specific Bader volume).
 
-`AtIndex.dat` is a cube file with an integer value at each grid point,
+*AtIndex.dat* is a cube file with an integer value at each grid point,
 describing which Bader volume it belongs to.
 
 The plot below shows the dividing surfaces of the Hydrogen Bader
 volumes. This was achieved by plotting a contour surface of
-`AtIndex.dat` at an isovalue of 1.5.
+*AtIndex.dat* at an isovalue of 1.5.
 
 .. image:: water_divide_surf.png
    :height: 220 pt

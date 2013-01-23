@@ -32,7 +32,7 @@ Constant temperature MD
 
 Often, you want to control the temperature of an MD simulation.  This
 can be done with the Langevin dynamics module.  In the previous
-examples, replace the line `dyn = VelocityVerlet(...)` with::
+examples, replace the line ``dyn = VelocityVerlet(...)`` with::
 
   dyn = Langevin(atoms, 5*units.fs, T*units.kB, 0.002)
 

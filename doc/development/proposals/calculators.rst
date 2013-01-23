@@ -1,5 +1,3 @@
-.. default-role:: math
-
 =============================
 Calculator interface proposal
 =============================
@@ -181,5 +179,3 @@ Other stuff
 ===========
 
 Support for ASE's :ref:`command line tool`.
-
-.. default-role::

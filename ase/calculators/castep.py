@@ -85,7 +85,7 @@ To do a minimal run one only needs to set atoms, this will use all
 default settings of CASTEP, meaning LDA, singlepoint, etc..
 
 With a generated castep_keywords.py in place all options are accessible
-by inspection, *i.e.* tab-completion. This works best when using `ipython`.
+by inspection, *i.e.* tab-completion. This works best when using *ipython*.
 All options can be accessed via ``calc.param.<TAB>`` or ``calc.cell.<TAB>``
 and documentation is printed with ``calc.param.<keyword> ?`` or
 ``calc.cell.<keyword> ?``. All options can also be set directly

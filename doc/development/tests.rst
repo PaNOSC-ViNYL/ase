@@ -57,7 +57,8 @@ Remember, great tests should serve a dual purpose:
 
 .. function:: assert(expression)
     
-    Raises an `AssertionError` if the `expression` does not evaluate to `True`.
+    Raises an ``AssertionError`` if the ``expression`` does not
+    evaluate to ``True``.
 
 Example::
 
@@ -85,6 +86,6 @@ Using functions to repeat calculations with different parameters::
           
 .. important::
 
-  Unlike normally, the module `__name__` will be set to ``'__builtin__'``
+  Unlike normally, the module *__name__* will be set to ``'__builtin__'``
   when a test script is run by the test suite.
 

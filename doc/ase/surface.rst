@@ -1,5 +1,3 @@
-.. default-role:: math
-
 .. _lattice-surface-section:
 
 ========

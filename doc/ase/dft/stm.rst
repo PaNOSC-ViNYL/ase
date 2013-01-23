@@ -71,7 +71,7 @@ The list of keywords for the STMTool object is:
 STM linescans
 -------------
 
-The class `STMLineScan` can be used to simulate an STM linescan. It must be
+The class STMLineScan can be used to simulate an STM linescan. It must be
 initialized with an instance of the STMTool class.
 
 Note that the linescans are limited to be along one of the axis of
@@ -82,7 +82,7 @@ The class is used like::
 
    linescan = STMLineScan(stm,fftnumber=12,axis=1)
 
-See more details in the `linescan section` of the `STM tutorial`.
+See more details in the linescan section of the STM tutorial.
 
 
 .. _dacapo: http://www.fysik.dtu.dk/campos/Dacapo/

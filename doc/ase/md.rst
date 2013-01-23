@@ -95,7 +95,7 @@ cyclic reference to the dynamics.
    If building your own logging class, be sure not to attach the dynamics
    object directly to the logging object. Instead, create a weak reference
    using the ``proxy`` method of the ``weakref`` package. See the
-   `ase.md.MDLogger` source code for an example. (If this is not done, a
+   *ase.md.MDLogger* source code for an example. (If this is not done, a
    cyclic reference may be created which can cause certain calculators,
    such as Jacapo, to not terminate correctly.)
 

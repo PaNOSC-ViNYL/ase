@@ -29,7 +29,7 @@ arguments, of which the most important are:
     setting : 1 | 2
         Space group setting.
     cellpar : [a, b, c, alpha, beta, gamma]
-        Cell parameters with angles in degree. Is not used when `cell`
+        Cell parameters with angles in degree. Is not used when ``cell``
         is given.
 
 Aluminium (fcc)

@@ -1,5 +1,3 @@
-.. default-role:: math
-
 .. _general-crystal-section:
 
 General crystal structures and surfaces
@@ -258,5 +256,3 @@ use the simple cubic lattice with a larger basis::
   B1 = NaCl = Rocksalt = NaClFactory()
 
 More examples can be found in the file :trac:`ase/lattice/compounds.py`.
-
-.. default-role::

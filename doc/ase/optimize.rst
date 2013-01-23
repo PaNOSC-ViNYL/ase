@@ -212,8 +212,8 @@ Although the algorithm is primitive, it performs very well because it
 takes advantage of the physics of the problem.  Once the system is so
 near the minimum that the potential energy surface is approximately
 quadratic it becomes advantageous to switch to a minimization method
-with quadratic convergence, such as `Conjugate Gradient` or `Quasi
-Newton`.
+with quadratic convergence, such as *Conjugate Gradient* or *Quasi
+Newton*.
 
 
 SciPy optimizers

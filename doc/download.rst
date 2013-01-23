@@ -252,10 +252,10 @@ Windows
 On Windows the following packages need to installed.
 On the command prompt:
 
-.. note:: installation assumes the python TARGETDIR `C:\\Python27` ,
-          leave also the default `C:\\Program Files\\pythonxy` .
+.. note:: installation assumes the python TARGETDIR C:\\Python27,
+          leave also the default C:\\Program Files\\pythonxy.
 
--  pythonxy_. Download the `exe` installer and install with::
+-  pythonxy_. Download the exe installer and install with::
 
      Python(x,y)-2.7.2.2.exe /Log="%TMP%\pythonxy_install.log" /S
 
@@ -263,7 +263,7 @@ On the command prompt:
 
    Open Task Manager and control when the process in finished.
 
-- pygtk_win32_. Download the `msi` **pygtk-all-in-one** installer.
+- pygtk_win32_. Download the msi **pygtk-all-in-one** installer.
   Specify the correct TARGETDIR and install::
 
      pygtk-all-in-one-2.24.2.win32-py2.7.msi TARGETDIR="%HOMEDRIVE%\Python27" ALLUSERS=1 /l*vx "%TMP%\pygtk_install.log" /passive
@@ -279,11 +279,11 @@ On the command prompt:
 
 .. note::
 
-   You can build the `msi` ASE package on Windows with::
+   You can build the msi ASE package on Windows with::
 
       python setup.py bdist_msi
 
-   The `msi` package will be created under the `dist` directory.
+   The msi package will be created under the *dist* directory.
 
 .. _pythonxy: http://code.google.com/p/pythonxy
 .. _pygtk_win32: http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.24/

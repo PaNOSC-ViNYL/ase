@@ -1,6 +1,5 @@
 .. module:: dft.kpoints
    :synopsis: Brillouin zone sampling
-.. default-role:: math
 
 =======================
 Brillouin zone sampling

@@ -5,8 +5,6 @@
 Electron transport
 ==================
 
-.. default-role:: math
-
 The :mod:`transport` module of ASE assumes the generic setup of the system in
 question sketched below:
 
@@ -86,5 +84,3 @@ For an example of how to use the :mod:`transport` module, see the GPAW
 exercise on `electron transport`_
 
 .. _electron transport: http://wiki.fysik.dtu.dk/gpaw/exercises/transport/transport.html
-
-.. default-role::

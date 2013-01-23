@@ -5,9 +5,6 @@
 Maximally localized Wannier functions
 =====================================
 
-.. default-role:: math
-
-
 This page describes how to construct the Wannier orbitals using the
 class :class:`Wannier`. The page is organized as follows:
 
@@ -118,5 +115,3 @@ In Dacapo, the inialwannier keyword can be a list as described below:
 
      from ase import *
      kpts = monkhorst_pack((15, 9, 9)) + [2e-5, 0, 0]
-
-.. default-role::

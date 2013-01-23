@@ -110,7 +110,10 @@ We have a couple of extensions to Sphinx:
 **:math:**
 
    This role is for inline LaTeX-style math.  Example:
-   ``:math:`\sin(x_n^2)``` gives you :math:`\sin(x_n^2)`.
+   ``:math:`\sin(x_n^2)``` gives you :math:`\sin(x_n^2)`.  This role
+   is actually the default for ASE's documentation, so you can leave
+   out the ``:math:`` part like here: ```\sin(x_n^2)```.
+
 
 **.. math::**
 
@@ -121,10 +124,6 @@ We have a couple of extensions to Sphinx:
    gives you:
 
    .. math:: \frac{1}{1+x^2}
-
-
-If you add the line ``.. default-role:: math``, then you can leave out
-the ``:math:`` part like here: ```\sin(x_n^2)```.
 
 The implementation of these roles is here: :svn:`doc/ext.py`.  Our
 custom, obsolete, implementation of the math role and directive is

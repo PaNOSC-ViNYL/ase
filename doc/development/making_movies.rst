@@ -17,7 +17,7 @@ A video tutorial can be produced in the following way:
 
 - record and edit the sound track using audacity_:
 
-  - use 44100 Hz for recording and save the final file as `sound.wav`,
+  - use 44100 Hz for recording and save the final file as *sound.wav*,
 
   - make sure not to keep the microphone to close to avoid signal peaks,
 
@@ -25,19 +25,22 @@ A video tutorial can be produced in the following way:
 
 - edit the movie using avidemux_ (to match the sound track):
 
-  - load the `video.avi`: `File->Open`, make sure to use
-    the following options when editing and saving:
-    `Video->Copy`, `Audio->Copy`, `Format->AVI`,
+  - load the *video.avi*: :menuselection:`File --> Open`, make sure to
+    use the following options when editing and saving:
+    :menuselection:`Video --> Copy`, :menuselection:`Audio --> Copy`,
+    :menuselection:`Format --> AVI`,
 
-  - add the `sound.avi`: `Audio->Main Track->Audio Source->External WAV`,
+  - add the *sound.avi*: :menuselection:`Audio --> Main`
+    :menuselection:`Track --> Audio` :menuselection:`Source -->
+    External WAV`,
 
   - cut video frames (or copy and insert still frames to extend the video)
     to match the sound track.
     Set beginning mark and end mark -
     the cut or copy/paste operation applies to the selected region,
 
-  - make sure to save intermediate stages
-    when working on the video `File->Save->Save Video` (as AVI):
+  - make sure to save intermediate stages when working on the video
+    :menuselection:`File --> Save --> Save Video` (as AVI):
 
     - avidemux caches the audio track so to match the audio
       to a freshly cut video you can copy the audio file into another name,
@@ -46,7 +49,7 @@ A video tutorial can be produced in the following way:
     - sometimes when cutting frames avidemux does not allow to set the markers
       correctly, and there is **no** undo the last step in avidemux!
 
-  - save the `video_final.avi` (that matches the sound track),
+  - save the *video_final.avi* (that matches the sound track),
     and encode it into mpeg4 format using mencoder, using two passes::
 
      opt="vbitrate=550:mbd=2:dc=10 -vf unsharp=l:0.4:c:0.0:hqdn3d"
@@ -55,7 +58,7 @@ A video tutorial can be produced in the following way:
              -ovc lavc -lavcopts acodec=mp3lame:vcodec=msmpeg4v2:vpass=2:$opt \
              -info name="Overview and installation of ASE":artist=CAMd:copyright="CAMd 2009" -o video_final_mpeg4.avi
 
-  - convert `video_final.avi` into a 800x600 `swf` file for streaming::
+  - convert *video_final.avi* into a 800x600 *swf* file for streaming::
 
      ffmpeg -i video_final.avi -pass 1 -s 800x600 -b:a 256k -ar 44100 -ac 1 \
             -vcodec flv -b:v 1200k -g 160 -mbd 2 oi_en_800x600.swf

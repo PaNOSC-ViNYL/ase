@@ -34,9 +34,9 @@ class FLEUR:
     functions:
 
     write_inp
-        generate the input file `inp`
+        generate the input file *inp*
     initialize_density
-        creates the initial density after possible manual edits of `inp`
+        creates the initial density after possible manual edits of *inp*
     calculate
         convergence the total energy. With fleur, one specifies always
         only the number of SCF-iterations so this function launches
@@ -44,7 +44,7 @@ class FLEUR:
     relax
         Uses fleur's internal algorithm for structure
         optimization. Requires that the proper optimization parameters
-        (atoms to optimize etc.) are specified by hand in `inp`
+        (atoms to optimize etc.) are specified by hand in *inp*
 
     """
     def __init__(self, xc='LDA', kpts=None, nbands=None, convergence=None,
@@ -326,14 +326,14 @@ class FLEUR:
 
 
     def write_inp(self, atoms):
-        """Write the `inp` input file of FLEUR.
+        """Write the *inp* input file of FLEUR.
 
         First, the information from Atoms is written to the simple input
-        file and the actual input file `inp` is then generated with the
+        file and the actual input file *inp* is then generated with the
         FLEUR input generator. The location of input generator is specified
         in the environment variable FLEUR_INPGEN.
 
-        Finally, the `inp` file is modified according to the arguments of
+        Finally, the *inp* file is modified according to the arguments of
         the FLEUR calculator object.
         """
 
