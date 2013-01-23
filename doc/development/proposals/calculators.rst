@@ -181,3 +181,5 @@ Other stuff
 ===========
 
 Support for ASE's :ref:`command line tool`.
+
+.. default-role::
