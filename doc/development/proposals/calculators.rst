@@ -23,7 +23,7 @@ Behavior
 ========
 
 When a calculator calculates the energy, forces, stress tensor, atomic
-magnetic moments or something else, it should store a copy of the
+magnetic moments or dipole moment, it should store a copy of the
 system (atomic numbers, atomic positions, unit cell and boundary
 conditions).  When asked again, it should return the value already
 calculated if the system hasn't been changed.
@@ -36,83 +36,54 @@ values.
 Standards parameters
 ====================
 
-The standard keywords are: ``xc``, ``kpts``, ``smearing_method``,
-``width``, ``nbands`` and ``ranks``.  Each calculator can have
-additional parameters.  The units are eV and Å.
+The standard keywords that all calculators must use (if they make
+sense) are: ``xc``, ``kpts``, ``smearing``, ``width`` and ``nbands``.
+Each calculator will have its own default values for these parameters
+--- see recommendations below.  I addition, calculators will typically
+have many other parameters.  The units are eV and Å.
 
-Magnetic moments and charges are read from the
+Magnetic moments and charges are taken from the
 :class:`~ase.atoms.Atoms` object.
 
+:xc:
 
-kpts
-----
+  It is recommended that ``'LDA'`` and ``'PBE'`` are valid options.
 
-* ``None``: Gamma-point
+:kpts:
 
-* ``(n1,n2,n3)``: Monkhorst-Pack grid
+  * ``None``: Gamma-point
+  
+  * ``(n1,n2,n3)``: Monkhorst-Pack grid
+  
+  * ``(n1,n2,n3,'gamma')``: Shifted Monkhorst-Pack grid that includes `\Gamma`
+  
+  * ``[(k11,k12,k13),(k21,k22,k23),...]``: Explicit list in units of the
+    reciprocal lattice vectors
+  
+  * ``kpts=3.5``: `\vec k`-point density as in 3.5 `\vec k`-points per
+    Å\ `^{-1}`.
 
-* ``(n1,n2,n3,'gamma')``: Shifted Monkhorst-Pack grid that includes `\Gamma`
+:smearing:
 
-* ``[(k11,k12,k13),(k21,k22,k23),...]``: Explicit list in units of the
-  reciprocal lattice vectors
+  The smearing parameter can be one of these string:
 
-* Should there be a k-point density parameter?  Maybe ``kpts=3.5`` as
-  in 3.5 `\vec k`-points per Å\ `^{-1}`?
+  * ``'Fermi-Dirac'`` or ``'FD'``
+  * ``'Gaussian'``
+  * ``'Methfessel-Paxton-n'`` or ``'MPn'``, where `n` is the order
+    (`n=1` is the same as ``'Gaussian'``)
+  * or lower-case versions of any of the above
 
-* Should there be a way to get a reasonable number of k-points for the
-  given cell?
+:width:
 
+  The width parameter used for the chosen smearing method (in eV).
 
-xc
----
+:nbands:
 
-* Should all calculators agree on a default functional?  LDA?
+  Each band can be occupied by two electrons.
 
-* Which LDA?
-
-* What about wave function methods where XC-functional doesn't make
-  sense?  Hartree-Fock, MP2, ...
-
-
-smearing_method
----------------
-
-Smearing method can be one of
-
-* ``'Fermi-Dirac'``
-* ``'Gaussian'``
-* ``'Methfessel-Paxton'`` of some order?
-
-Default value?
-
-
-width
------
-
-The width parameter used for the chosen smearing method (in eV).
-Default value?  Is there a better way to specify the smearing method
-than using ``smearing_method`` and ``width`` keywords?
-
-
-nbands
-------
-
-Each band can be occupied by two electrons.  Should it be a
-requirement that this parameters is optional?
-
-Alternative names: ``states``, ``nband``, ...
-
-
-ranks
------
-
-If a calculator can run in parallel on a subset of the available
-CPU's, it should support a ``ranks`` keyword that can be set to a list
-of ranks.  Useful for parallel NEB calculations.
-
-
-Restart
-=======
+  
+ABC calculator example
+======================
 
 A calculator should be able to prefix all output files with a given
 label or run the calculation in a directory.  There are three
@@ -135,15 +106,25 @@ Example:  Do a calculation with ABC calculator and write results to
 >>> atoms.get_potential_energy()
 -1.2
 
+An alternative way to do the same thing:
+
+>>> atoms = ...
+>>> calc = ABC('si.abc', xc='LDA', atoms=atoms)
+>>> atoms.get_potential_energy()
+-1.2
+
+This will automatically attach the calculator to the atoms and if
+:file:`si.abc` exists, the atoms will be updated form the file.
+
 Start from previous calculation:
 
->>> atoms = ABC.read('si.abc')  # or read_atoms?
+>>> atoms = ABC.read_atoms('si.abc')
 >>> atoms.calc
 <ABC-calculator>
 >>> atoms.get_potential_energy()
 -1.2
 
-The :meth:`read()` method is equivalent to:
+The :meth:`read_atoms()` method is equivalent to:
 
 >>> atoms = ABC('si.abc').get_atoms()
 
@@ -157,22 +138,31 @@ If we do:
 
 then the :file:`si.abc` will be overwritten or maybe appended to.
 
+The command used to start the ABC code must be given in an environment
+variable called :envvar:`ASE_ABC_COMMAND` or as a ``command``
+keyword.  The command can be the actual command to run like ``mpiexec
+abc`` or the name of an executable file that can start the calculator.
+If neither the environment variable or the ``command`` keyword is
+specified, the calculator will raise a ``NotAvailable`` exception,
+which will make the test-suite skip such tests.
+
+Pre and post-run hooks:  What should the interface look like?
+Suggestions are welcome.
+
+Calculators could have ``before`` and ``after`` attributes that are
+lists of ``(function, interval, args, kwargs)`` tuples and then there
+could be an ``add_observer(when, function, interval=1, *args,
+**kwargs)`` method?
+
 
 Implementation
 ==============
-
-There will be a hierarchy of classes:
 
 * Common base class for all calculators: ``Calculator``.  Takes care
   of file read/write logic, handles setting of parameters and checks
   for state changes.
 
-* Specialized DFT class: ``ElectronicStructureCalculator`` or
-  ``DFTCalculator``?  Special treatment of ``xc``, ``nbands``,
-  ``smearing_method`` and ``width`` parameters.
-
-* Class for handling `\vec k`-points: ``KPointCalculator``. Handles
-  ``kpts`` logic.
+* Helper function to deal with ``kpts`` keyword.
 
 
 Other stuff
