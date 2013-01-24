@@ -19,7 +19,7 @@ CALC_MM_RELAX = Gromacs(
     force_field='oplsaa', 
     water_model='tip3p',    
     base_filename = 'gromacs_mm-relax',
-    doing_qmmm = False, freeze_qm = True,
+    doing_qmmm = False, freeze_qm = False,
     index_filename = 'index.ndx',
     extra_mdrun_parameters = ' -nt 1 ',
     define = '-DFLEXIBLE',

@@ -20,9 +20,9 @@ do not use it for production runs. It is here because of
 we'll have a QM/MM calculator which is using gromacs as the 
 MM part.
 
-For example:: (setting for the MM part of a QM/MM run,
-               parameter '-nt 1' for serial run):
-CALC_MM = Gromacs(
+For example: (setting for the MM part of a QM/MM run, 
+parameter '-nt 1' for serial run)::
+  CALC_MM = Gromacs(
     init_structure_file = infile_name,
     structure_file = 'gromacs_qm.g96', \
     force_field='oplsaa', 
@@ -48,10 +48,10 @@ CALC_MM = Gromacs(
     rvdw_switch = '0.75',
     DispCorr = 'Ener')
 
-For example:: (setting for a MM calculation, useful when keeping QM fixed 
-               and relaxing MM only, parameter '-nt 1' for serial run):
+For example: (setting for a MM calculation, useful when keeping QM fixed 
+and relaxing MM only, parameter '-nt 1' for serial run)::
          
-CALC_MM_RELAX = Gromacs(
+  CALC_MM_RELAX = Gromacs(
     init_structure_file = infile_name,
     structure_file = 'gromacs_mm-relax.g96',
     force_field='oplsaa', 
@@ -113,6 +113,13 @@ extra_grompp_parameters: str
 extra_mdrun_parameters: str
     extra parameter(s) to be passed to gromacs program 'mdrun'
 
+Environmental variables:
+========================
+  - GMXCMD the name of the main gromacs executable (usually 'mdrun').
+    If GMXCMD is not set gromacs test is not run, but in the calculator 
+    works using 'mdrun'.
+  - GMXCMD_PREF prefix for all gromacs commands (default '')
+  - GMXCMD_POST postfix (ie suffix) for all gromacs commands (default '') 
     
 Example: MM-only geometry optimization of a histidine molecule
 ==============================================================
@@ -126,22 +133,23 @@ Initial pdb coordinates (file his.pdb):
 
 First generate the initial structure in gromacs format (.gro)
 
-pdb2gmx -f his.pdb -o hish.gro -ff oplsaa -water tip3p 
-(pdb2gmx seems strangely to give molecule hish.gro with total charge 
--0.110 but this is not a problem for us now, this is just a test)
+>>> pdb2gmx -f his.pdb -o hish.gro -ff oplsaa -water tip3p 
+
+(pdb2gmx seems strangely to give the molecule hish.gro a total charge of 
+-0.110 but this is not a problem for us now, this is just an example)
 
 Then setup a periodic simulation box
-
-editconf_d -f hish.gro -o hish_box.gro -box 3 3 3
+ 
+>>> editconf -f hish.gro -o hish_box.gro -box 3 3 3
 
 Solvate histidine in a water box
 
-genbox -cp hish_box.gro -cs spc216.gro -o hish_waterbox.gro
+>>> genbox -cp hish_box.gro -cs spc216.gro -o hish_waterbox.gro
 
 Generate index file for gromacs groups
 
-make_ndx -f hish_waterbox.gro
-q<ENTER>
+>>> make_ndx -f hish_waterbox.gro
+>>> q<ENTER>
 
 Finally, relax the structure.
 The sample file for relaxation:

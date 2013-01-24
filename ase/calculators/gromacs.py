@@ -15,6 +15,8 @@ import glob
 from ase import units
 import numpy as np
 from ase.io.gromos import read_gromos, write_gromos
+from ase.io import read
+from general import Calculator
 
 string_keys = [
     'define',
@@ -36,10 +38,10 @@ string_keys = [
     'DispCorr',
 ]
 
-class Gromacs:
+class Gromacs(Calculator):
     """ A calculator using gromacs.org .
     Initializing variables
-    and preparing gromacs topology and run input file.
+    and preparing gromacs run input file.
 
     It is very slow to use gromacs this way, the point is use it as
     MM calculator in QM/MM calculations (ase_qmmm_manyqm.py)
@@ -178,9 +180,43 @@ class Gromacs:
             self.string_params['nsteps'] = '0'
         self.write_parameters()
 
+        # a possible prefix for gromacs programs
+        if os.environ.has_key('GMXCMD_PREF'):
+            self.prefix = os.environ['GMXCMD_PREF']
+        else:
+            self.prefix = ''
+
+        # a possible postfix for gromacs programs
+        if os.environ.has_key('GMXCMD_PREF'):
+            self.postfix = os.environ['GMXCMD_PREF']
+        else:
+            self.postfix = ''
+
+        # write input files for gromacs force and energy calculations
+        filename = 'inputGenergy.txt'
+        output = open(filename,'w')
+        output.write('Potential  \n')
+        output.write('   \n')
+        output.write('   \n')
+        output.close()
+
+        filename = 'inputGtraj.txt'
+        output = open(filename, 'w')
+        output.write('System  \n')
+        output.write('   \n')
+        output.write('   \n')
+        output.close()
+
+
 
     def get_name(self):
         return self.name
+
+    def get_prefix(self):
+        return self.prefix
+
+    def get_postfix(self):
+        return self.postfix
 
     def set(self, **kwargs):
         """ Setting values for the parameters of the gromacs calculator """
@@ -215,6 +251,10 @@ class Gromacs:
         """ read atoms from file """
         self.atoms = read_gromos(self.structure_file) 
 
+    def read_init_atoms(self):
+        """ read atoms from file """
+        self.atoms = read(self.init_structure_file) 
+
     def generate_topology_and_g96file(self):
         """ from coordinates (self.structure_file)
             and gromacs run input file (' + self.base_filename + '.mdp)
@@ -224,7 +264,8 @@ class Gromacs:
         import os.path
         #generate structure and topology files 
         # In case of predefinded topology file this is not done
-        os.system('pdb2gmx '+ \
+        command = self.prefix + 'pdb2gmx' + self.postfix + ' '
+        os.system(command + \
                       ' -f ' + self.init_structure_file + \
                       ' -o ' + self.structure_file + \
                       ' -p ' + self.topology_filename + \
@@ -232,6 +273,8 @@ class Gromacs:
                       ' -water ' + self.water_model + \
                       ' ' + self.extra_pdb2gmx_parameters +\
                       ' > /dev/null 2>&1')
+#                      ' > debug.log 2>&1')
+
         atoms = read_gromos(self.structure_file)
         self.atoms = atoms.copy()
 
@@ -256,8 +299,9 @@ class Gromacs:
             os.remove(self.base_filename + '.tpr')
         except:
             pass
+        command = self.prefix + 'grompp' + self.postfix + ' '
         if os.path.isfile(self.index_filename):
-            os.system('grompp '+ \
+            os.system(command + \
                           ' -f ' + self.base_filename + '.mdp ' + \
                           ' -c ' + self.structure_file + \
                           ' -p ' + self.topology_filename + \
@@ -267,13 +311,22 @@ class Gromacs:
                           ' -maxwarn 100' + ' > /dev/null 2>&1')
 
         else:
-            os.system('grompp '+\
+            os.system(command + \
                           ' -f ' + self.base_filename + '.mdp ' + \
                           ' -c ' + self.structure_file + \
                           ' -p ' + self.topology_filename + \
                           ' -o ' + self.base_filename + '.tpr -maxwarn 100' + \
                           ' ' + self.extra_grompp_parameters + \
                           ' > /dev/null 2>&1')
+
+    def get_command(self):
+        """Return command string for gromacs mdrun, otherwise 'mdrun'.  """
+        command = 'mdrun'
+        # run_command keyword overwrites GMXCMD
+        if os.environ.has_key('GMXCMD'):
+            command = os.environ['GMXCMD']
+        return self.prefix + command + self.postfix
+
 
 
     def run(self):
@@ -285,8 +338,9 @@ class Gromacs:
                 os.remove(delname)
         except:
             pass
+        command = self.get_command()
         if self.doing_qmmm:
-            os.system('mdrun '\
+            os.system(command \
                           + ' -s ' + self.base_filename + '.tpr' \
                           + ' -o ' + self.base_filename + '.trr ' \
                           + ' -e ' + self.base_filename + '.edr ' \
@@ -295,7 +349,7 @@ class Gromacs:
                           + ' ' + self.extra_mdrun_parameters \
                           + ' > mm.log 2>&1')
         else:
-            os.system('mdrun ' \
+            os.system(command \
                           + ' -s ' + self.base_filename + '.tpr' \
                           + ' -o ' + self.base_filename + '.trr' \
                           + ' -e ' + self.base_filename + '.edr' \
@@ -346,8 +400,8 @@ class Gromacs:
             os.remove('tmp_ene.del')
         except:
             pass
-
-        os.system('g_energy '+\
+        command = self.prefix + 'g_energy' + self.postfix + ' '
+        os.system(command +\
                       ' -f ' + self.base_filename + '.edr -dp '+\
                       ' -o ' + self.base_filename + \
                       'Energy.xvg < inputGenergy.txt'+\
@@ -367,7 +421,8 @@ class Gromacs:
         except:
             pass
         #os.system('gmxdump_d -f gromacs.trr > tmp_force.del 2>/dev/null')
-        os.system('g_traj '+\
+        command = self.prefix + 'g_traj' + self.postfix + ' '
+        os.system(command +\
                       ' -f ' + self.base_filename + '.trr -s ' \
                       + self.base_filename + '.tpr -of ' \
                       + ' -fp ' + self.base_filename \

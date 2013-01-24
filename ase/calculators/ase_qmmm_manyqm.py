@@ -366,21 +366,6 @@ class AseQmmmManyqm:
             print ('%s' % index_str)
             print('')
 
-        # write input files for gromacs force and energy calculations
-        filename = 'inputGenergy.txt'
-        output = open(filename,'w')
-        output.write('Potential  \n')
-        output.write('   \n')
-        output.write('   \n')
-        output.close()
-
-        filename = 'inputGtraj.txt'
-        output = open(filename, 'w')
-        output.write('System  \n')
-        output.write('   \n')
-        output.write('   \n')
-        output.close()
-
         if ( len(self.qms) != nqm_regions):
             print ('Number of set of QM atoms does not match with nqm_regions')
             print ('self.qms %s' % str(self.qms))
@@ -1435,7 +1420,8 @@ class AseQmmmManyqm:
                 self.equilibrium_distances_xh\
                     [i_qm_region][index_xopt] = current_xopt
                 print('i_qm_region, i_link_atom, optimal X-H bond[nm] %s' \
-                    % str(i_qm_region, index_xopt, current_xopt))
+                    % (str(i_qm_region) + ' ' + str(index_xopt) \
+                           + ' ' + str(current_xopt)))
 
 
     def define_QM_clusters_in_vacuum(self, system):
