@@ -285,6 +285,10 @@ class Aims(Calculator):
             self.run_counts += 1
             command = command + ' >> ' + self.outcwd
         else:
+            # update self.outcwd and self.out 
+            # for qm/mm (different qm, different filename)
+            self.outcwd = self.input_parameters['output_template']+'.out'
+            self.out = os.path.join(self.run_dir, self.outcwd)
             command = command + ' > ' + self.outcwd
 
         self.write_parameters('#', os.path.join(self.run_dir, self.outcwd))

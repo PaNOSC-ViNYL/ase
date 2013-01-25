@@ -323,7 +323,7 @@ class Gromacs(Calculator):
 
     def get_command(self):
         """Return command string for gromacs mdrun.  """
-        command = None
+        command = 'mdrun'
         if os.environ.has_key('GMXCMD'):
             command = self.prefix + os.environ['GMXCMD'] + self.postfix
         return command
