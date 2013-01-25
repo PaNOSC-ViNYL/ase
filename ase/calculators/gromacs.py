@@ -8,6 +8,8 @@ It is VERY SLOW compared to standard Gromacs
 Mainly intended to be the MM part in the ase QM/MM
 
 Markus.Kaukonen@iki.fi
+
+See accompanying license files for details.
 """
 
 import os, sys
@@ -187,8 +189,8 @@ class Gromacs(Calculator):
             self.prefix = ''
 
         # a possible postfix for gromacs programs
-        if os.environ.has_key('GMXCMD_PREF'):
-            self.postfix = os.environ['GMXCMD_PREF']
+        if os.environ.has_key('GMXCMD_POST'):
+            self.postfix = os.environ['GMXCMD_POST']
         else:
             self.postfix = ''
 
@@ -320,14 +322,11 @@ class Gromacs(Calculator):
                           ' > /dev/null 2>&1')
 
     def get_command(self):
-        """Return command string for gromacs mdrun, otherwise 'mdrun'.  """
-        command = 'mdrun'
-        # run_command keyword overwrites GMXCMD
+        """Return command string for gromacs mdrun.  """
+        command = None
         if os.environ.has_key('GMXCMD'):
-            command = os.environ['GMXCMD']
-        return self.prefix + command + self.postfix
-
-
+            command = self.prefix + os.environ['GMXCMD'] + self.postfix
+        return command
 
     def run(self):
         """ runs a 0-step gromacs-mdrun with the 

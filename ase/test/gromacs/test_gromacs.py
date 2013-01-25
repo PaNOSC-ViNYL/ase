@@ -1,11 +1,11 @@
-#!/usr/bin/env python
 """ test run for gromacs calculator """
 
-from ase.calculators.gromacs import Gromacs
-from ase.structure import molecule
-from ase.test.gromacs import installed
+from ase.test import NotAvailable
 
-assert installed()
+from ase.calculators.gromacs import Gromacs
+
+if Gromacs().get_command() is None:
+    raise NotAvailable('Gromacs required')
 
 import sys, os, glob
 from ase.io import read, write
@@ -39,18 +39,18 @@ outfile.write('    3HISE   OT2   20   1.770   2.057   2.016 \n')
 outfile.write('   4.00000   4.00000   4.00000 \n')
 outfile.close()
 
-# a possible prefix for gromacs programs
-if os.environ.has_key('GMXCMD_PREF'):
-    prefix = os.environ['GMXCMD_PREF']
-else:
-    prefix = ''
-
-# a possible postfix for gromacs programs
-if os.environ.has_key('GMXCMD_PREF'):
-    postfix = os.environ['GMXCMD_PREF']
-else:
-    postfix = ''
-
+## a possible prefix for gromacs programs
+#if os.environ.has_key('GMXCMD_PREF'):
+#    prefix = os.environ['GMXCMD_PREF']
+#else:
+#    prefix = ''
+#
+## a possible postfix for gromacs programs
+#if os.environ.has_key('GMXCMD_PREF'):
+#    postfix = os.environ['GMXCMD_PREF']
+#else:
+#    postfix = ''
+#
 #make index groups
 #outfile=open("tmp.del",'w')
 #outfile.write('q \n')
