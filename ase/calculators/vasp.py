@@ -27,6 +27,7 @@ from os.path import join, isfile, islink
 import numpy as np
 
 import ase
+import ase.io
 from ase.utils import devnull
 
 # Parameters that can be set in INCAR. The values which are None
@@ -548,7 +549,6 @@ class Vasp(Calculator):
 
     def restart_load(self):
         """Method which is called upon restart."""
-        import ase.io
         # Try to read sorting file
         if os.path.isfile('ase-sort.dat'):
             self.sort = []
