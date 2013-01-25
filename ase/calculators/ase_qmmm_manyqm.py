@@ -1,86 +1,89 @@
+"""QM/MM interface with QM=FHI-aims, MM=gromacs
 
-""" QM/MM interface with QM=FHI-aims, MM=gromacs
-
-    QM could be something else, but you need to read in qm-atom charges
-    from the qm program (in method 'get_qm_charges') 
-
-
-    One can have many QM regions, each with a different calculator.
-    There can be only one MM calculator, which is calculating the whole
-    system. 
+QM could be something else, but you need to read in qm-atom charges
+from the qm program (in method 'get_qm_charges') 
 
 
-    Non-bonded interactions:
-    ------------------------
-    Generally:
-    Within the same QM-QM: by qm calculator
-    MM-MM: by MM calculator
-    QM-MM: by MM using MM vdw parameters and QM charges.
-    Different QM different QM: 
-           by MM using QM and MM charges and MM-vdw parameters
-
-    The Hirschfeld charges (or other atomic charges) 
-    on QM atoms are calculated by QM in a H terminated cluster in vacuum. 
-    The charge of QM atom next to MM atom (edge-QM-atom) 
-    and its H neighbors are set as in the classical force field. 
-    The extra(missing) charge results from: 
-    1) linkH atoms
-    2) The edge-QM atoms, and their qm-H neighbors, 
-       have their original MM charges.
-    3) and the fact that the charge of the QM fraction 
-    is not usually an integer when using the original MM charges.
-    It is added equally to all QM atoms 
-    (not being linkH and not being edge-QM-atom or its H neighbor)
-    so that the total charge of the MM-fragment involving QM atoms
-    will be the same as in the original MM-description.
-
-    Vdw interactions are calculated by MM-gromacs for MM and MM-QM inteactions.
-    The QM-QM vdw interaction s could be done by the FHI-aims if desired
-    (by modifying the imput for QM-FHI-aims input accordingly.
-
-    Bonded interactions:
-    E= 
-    E_qm(QM-H)         ; qm energy of H terminated QM cluster(s) 
-    + E_mm(ALL ATOMS)  ; mm energy of all atoms,
-                       ; except for terms in which all MM-interacting atoms are 
-                       ; in the same QM region
-
-    Forces do not act on link atoms but they are positioned by scaling.
-    Forces on link atoms are given to their QM and MM neighbors by chain rule.
-    (see J. Chem. Theory Comput. 2011, 7, 761-777).
-    The optimal edge-qm-atom-linkH bond length is calculated 
-    by QM in 'get_eq_qm_atom_link_h_distances'
-    or they are read from a file.
+One can have many QM regions, each with a different calculator.
+There can be only one MM calculator, which is calculating the whole
+system. 
 
 
-    Questions & Comments markus.kaukonen@iki.fi
-    
-    I'm especially interested in cases when we need two or more 
-    QM regions. For instance two redox centers in a protein, 
-    cathode and anode of a fuel cell ... you name it!
+Non-bonded interactions:
+------------------------
+Generally:
+
+Within the same QM-QM:
+  by qm calculator
+MM-MM:
+  by MM calculator
+QM-MM:
+  by MM using MM vdw parameters and QM charges.
+Different QM different QM: 
+  by MM using QM and MM charges and MM-vdw parameters
+
+The Hirschfeld charges (or other atomic charges) 
+on QM atoms are calculated by QM in a H terminated cluster in vacuum. 
+The charge of QM atom next to MM atom (edge-QM-atom) 
+and its H neighbors are set as in the classical force field. 
+The extra(missing) charge results from: 
+
+1) linkH atoms
+2) The edge-QM atoms, and their qm-H neighbors, 
+   have their original MM charges.
+3) and the fact that the charge of the QM fraction 
+   is not usually an integer when using the original MM charges.
+   It is added equally to all QM atoms 
+   (not being linkH and not being edge-QM-atom or its H neighbor)
+   so that the total charge of the MM-fragment involving QM atoms
+   will be the same as in the original MM-description.
+
+Vdw interactions are calculated by MM-gromacs for MM and MM-QM inteactions.
+The QM-QM vdw interaction s could be done by the FHI-aims if desired
+(by modifying the imput for QM-FHI-aims input accordingly.
+
+Bonded interactions::
+
+  E= 
+  E_qm(QM-H)         ; qm energy of H terminated QM cluster(s) 
+  + E_mm(ALL ATOMS)  ; mm energy of all atoms,
+                     ; except for terms in which all MM-interacting atoms are 
+                     ; in the same QM region
+
+Forces do not act on link atoms but they are positioned by scaling.
+Forces on link atoms are given to their QM and MM neighbors by chain rule.
+(see J. Chem. Theory Comput. 2011, 7, 761-777).
+The optimal edge-qm-atom-linkH bond length is calculated 
+by QM in 'get_eq_qm_atom_link_h_distances'
+or they are read from a file.
 
 
-    Some things to improve:
+Questions & Comments markus.kaukonen@iki.fi
 
-    1) Water topology issue (at the moment water cannot be in QM),
-    Its topology should be put into the main 
-    topology file, not in a separate file.
-
-    2) point charges and periodicity (if desired) to the QM calculation
-    (now in vacuum)
-
-    3) Eichinger type of link atom treatment with fitted force constants for 
-    linkH-QMedge (bond strecth)
-    linkH-QMedge-QMnextTOedge (angle terms)
-
-    4) file io using unformatted formats (.trr) instead of g96
-    This is not easily possible without loading extra stuff from
-    ftp://ftp.gromacs.org/pub/contrib/xd...e-1.1.1.tar.gz.
-
-    5) Utilize gromacs-python wrapper: (just found this today 31.12.2012...) 
-    http://orbeckst.github.com/GromacsWrapper/index.html#
+I'm especially interested in cases when we need two or more 
+QM regions. For instance two redox centers in a protein, 
+cathode and anode of a fuel cell ... you name it!
 
 
+Some things to improve:
+
+1) Water topology issue (at the moment water cannot be in QM),
+   Its topology should be put into the main 
+   topology file, not in a separate file.
+
+2) point charges and periodicity (if desired) to the QM calculation
+   (now in vacuum)
+
+3) Eichinger type of link atom treatment with fitted force constants for 
+   linkH-QMedge (bond strecth)
+   linkH-QMedge-QMnextTOedge (angle terms)
+
+4) file io using unformatted formats (.trr) instead of g96
+   This is not easily possible without loading extra stuff from
+   ftp://ftp.gromacs.org/pub/contrib/xd...e-1.1.1.tar.gz.
+
+5) Utilize gromacs-python wrapper: (just found this today 31.12.2012...) 
+   http://orbeckst.github.com/GromacsWrapper/index.html#
 """
 
 import sys
