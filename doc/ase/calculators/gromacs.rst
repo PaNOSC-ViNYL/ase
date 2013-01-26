@@ -12,6 +12,9 @@ used in modeling of biological systems. It is part of the
 ubuntu-linux distribution.
 http://www.gromacs.org/
 
+.. warning:: 1) Ase-Gromacs calculator works properly only with gromacs version 4.5.6 or a newer one. (fixed bug related to .g96 format)
+
+.. warning:: 2) It only makes sense to use ase-gromacs for qm/mm or for testing. For pure MM production runs the native gromacs is much much faster (at the moment ase-gromacs has formatted io using .g96 format which is slow).
 
 Gromacs Calculator
 ==================
