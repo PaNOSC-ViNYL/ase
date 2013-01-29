@@ -19,16 +19,6 @@ def equal(a, b):
     return a == b
 
 
-def read_parameters_from_file(filename, calculator=None):
-    """Read parameters from file.
-
-    Get the function called 'parameters' and call it XXX
-    """
-    namespace = {}
-    execfile(os.path.expanduser(filename), namespace)
-    return namespace['parameters'](calculator)
-
-
 def kptdensity2monkhorstpack(atoms, kptdensity=3.5, even=True):
     """Convert k-point density to Monkhorst-Pack grid size.
 
@@ -66,29 +56,53 @@ def normalize_smearing_keyword(smearing):
     return smearing
 
 
+class Parameters(dict):
+    def __getattr__(self, key):
+        return self[key]
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
+    @classmethod
+    def read(cls, filename):
+        """Read parameters from file."""
+        with open(os.path.expanduser(filename)) as f:
+            parameters = cls(eval(f.read()))
+        return parameters
+
+    def tostring(self):
+        keys = sorted(self.keys())
+        return 'dict(' + ',\n     '.join(
+            '%s=%r' %(key, self[key]) for key in keys) + ')\n'
+    
+    def write(self, filename):
+        with open(filename, 'w') as f:
+            f.write(self.tostring())
+
+
 class Calculator:
     notimplemented = []  # properties calculator can't handle
 
     """Base-class for all ASE calculators."""
 
-    def __init__(self, path=None, atoms=None, **kwargs):
+    def __init__(self, label=None, atoms=None, **kwargs):
         """Basic calculator implementation.
 
-        path: str
-            Path for output file.
+        label: str
+            Label for output file.
         atoms: Atoms object
             Optional Atoms object to which the calculator will be
-            attached.  If path exists, atoms will get its positions
+            attached.  If label exists, atoms will get its positions
             and unit-cell updated form file.
         """
 
         self.state = None  # copy of atoms object for last calculation
         self.results = {}  # calculated properties (energy, forces, ...)
-        self.parameters = {}  # calculational parameters
+        self.parameters = Parameters()  # calculational parameters
 
-        self.path = path
-        if path is not None:
-            self.read(path)
+        self.label = label
+        if label is not None:
+            self.read()
 
         if atoms is not None:
             atoms.calc = self
@@ -115,8 +129,8 @@ class Calculator:
         self.state = None
         self.results = {}
 
-    def read(self, path):
-        """Read atoms, parameter and calculated properties from file.
+    def read(self):
+        """Read atoms, parameters and calculated properties from file.
 
         This method must set self.state, the parameter dictionary
         self.parameters and calculated properties self.results like
@@ -132,8 +146,8 @@ class Calculator:
         return atoms
 
     @classmethod
-    def read_atoms(cls, path, **kwargs):
-        return cls(path, **kwargs).get_atoms()
+    def read_atoms(cls, label, **kwargs):
+        return cls(label, **kwargs).get_atoms()
 
     def set(self, **kwargs):
         """Set parameters like set(key1=value1, key2=value2, ...).
@@ -146,7 +160,7 @@ class Calculator:
 
         if 'parameters' in kwargs:
             filename = kwargs.pop('parameters')
-            parameters = read_parameters_from_file(filename)
+            parameters = Parameters.read(filename)
             parameters.update(kwargs)
             kwargs = parameters
 
@@ -165,24 +179,24 @@ class Calculator:
 
     def check_state(self, atoms):
         if self.state is None:
-            changes = ['positions', 'numbers', 'cell', 'pbc']
+            system_changes = ['positions', 'numbers', 'cell', 'pbc']
         else:
-            changes = []
+            system_changes = []
             if not equal(self.state.positions, atoms.positions):
-                changes.append('positions')
+                system_changes.append('positions')
             if not equal(self.state.numbers, atoms.numbers):
-                changes.append('numbers')
+                system_changes.append('numbers')
             if not equal(self.state.cell, atoms.cell):
-                changes.append('cell')
+                system_changes.append('cell')
             if not equal(self.state.pbc, atoms.pbc):
-                changes.append('pbc')
+                system_changes.append('pbc')
 
-        return changes
+        return system_changes
 
     def get_potential_energy(self, atoms, force_consistent=False):
         energy = self.get_property('energy', atoms)
         if force_consistent:
-            return self.results.get('free_energy', energy)
+            return self.results.get('free energy', energy)
         else:
             return energy
 
@@ -205,31 +219,31 @@ class Calculator:
         if name in self.notimplemented:
             raise NotImplementedError
 
-        changes = self.check_state(atoms)
-        if changes:
+        system_changes = self.check_state(atoms)
+        if system_changes:
             self.reset()
 
         if name not in self.results:
-            self._calculate(atoms, [name], changes)
+            self._calculate(atoms, [name], system_changes)
         return self.results[name]
 
     def calculation_required(self, atoms, properties):
-        changes = self.check_state(atoms)
-        if changes:
+        system_changes = self.check_state(atoms)
+        if system_changes:
             return True
         for name in properties:
             if name not in self.results:
                 return True
         return False
         
-    def _calculate(self, atoms, properties, changes):
+    def _calculate(self, atoms, properties, system_changes):
         """Call hooks before and after actual calculation."""
         self.call_hooks('before')
-        self.calculate(atoms, properties, changes)
+        self.calculate(atoms, properties, system_changes)
         self.state = atoms.copy()
         self.call_hooks('after')
 
-    def calculate(self, atoms, properties, changes):
+    def calculate(self, atoms, properties, system_changes):
         """Do the calculation.
 
         atoms: Atoms object
@@ -238,13 +252,13 @@ class Calculator:
             List of what needs to be calculated can be any combination
             of 'energy', 'forces', 'stress', 'dipole', 'magmom' and
             'magmoms'.
-        changes: list of str
+        system_changes: list of str
             List of what has changed since last calculation.  Can be
             any of these four: 'positons', 'numbers', 'cell' and
             'pbc'.
 
         Subclasses need to implement this, but can ignore properties
-        and changes if they want.
+        and system_changes if they want.
         """
 
         self.results = {'energy': 0.0,
@@ -266,42 +280,45 @@ class FileIOCalculator(Calculator):
     """Base class for calculators that write input files and read output files.
 
     """
+    def __init__(self, label=None, atoms=None, command=None, **kwargs):
+        Calculator.__init__(self, label, atoms, **kwargs)
+        self.command = command
 
-    def _calculate(self, atoms, properties=None, changes=None):
-        self.write_input(atoms, properties)
-        Calculator._calculate(self, atoms, properties, changes)
-        self.read()
-
-    def get_command(self):
-        command = self.parameters.get('command')
-        if command is None:
-            name = 'ASE_' + self.name.upper() + '_COMMAND'
-            command = os.env.get(name)
-        if command is None:
-            raise NotAvailable('Please set $%s environment variable ' % name +
-                               'or supply the command keyword')
-        return command
-
-    def calculate(self, properties=None, changes=None):
-        dir, label = self.split_path()
+    def calculate(self, atoms, properties=None, system_changes=None):
+        self.write_input(atoms, properties, system_changes)
+        dir, label = self.split_label()
         command = self.get_command().replace('LABEL', label)
         olddir = os.getcwd()
         try:
             os.chdir(dir)
-            errorcode = subprocess.call(command)
+            errorcode = subprocess.call(command, shell=True)
         finally:
             os.chdir(olddir)
         
         if errorcode:
             raise RuntimeError(errorcode)
+        self.read_results()
 
-    def split_path(self):
-        """Convert path to directory and label.
+    def get_command(self):
+        command = self.command
+        if command is None:
+            name = self.name.upper() + '_ASE_COMMAND'
+            command = os.environ.get(name)
+        if command is None:
+            raise NotAvailable('Please set $%s environment variable ' % name +
+                               'or supply the command keyword')
+        return command
+
+    def split_label(self):
+        """Convert label to directory and prefix.
 
         """
-        return os.path.split(self.path)
+        dir, prefix = os.path.split(self.label)
+        if dir == '':
+            dir = os.curdir
+        return dir, prefix
 
-    def write_input(self, properties=None):
-        dir, label = self.split_path()
+    def write_input(self, atoms, properties, system_changes):
+        dir, label = self.split_label()
         if dir != os.curdir and not os.path.isdir(dir):
             os.makedirs(dir)
