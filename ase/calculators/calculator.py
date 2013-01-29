@@ -87,6 +87,7 @@ class Parameters(dict):
         file.write(self.tostring())
         file.close()
 
+
 class Calculator:
     notimplemented = []  # properties calculator can't handle
 
@@ -198,6 +199,9 @@ class Calculator:
                 system_changes.append('cell')
             if not equal(self.state.pbc, atoms.pbc):
                 system_changes.append('pbc')
+            if not equal(self.state.get_inital_magnetic_moments(),
+                         atoms.get_inital_magnetic_moments()):
+                system_changes.append('magmoms')
 
         return system_changes
 
