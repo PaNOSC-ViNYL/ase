@@ -119,6 +119,7 @@ class Gaussian(Calculator):
     """
     Gaussian calculator
     """
+    name = 'Gaussian'
     def __init__(self, label='ase', ioplist=list(), basisfile=None,
                  directory=None, **kwargs):
         Calculator.__init__(self)
@@ -449,6 +450,3 @@ class Gaussian(Calculator):
 
     def get_version(self):
         return self.read_output(self.label + '.log', 'version')
-
-    def get_name(self):
-        return self.__class__.__name__

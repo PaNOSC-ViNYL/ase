@@ -123,8 +123,8 @@ input_parameters_default = {'run_command':None,
                             'track_output':False}
 
 class Aims(Calculator):
+    name = 'Aims'
     def __init__(self, **kwargs):
-        self.name = 'Aims'
         self.float_params = {}
         self.exp_params = {}
         self.string_params = {}

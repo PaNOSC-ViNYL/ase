@@ -57,6 +57,12 @@ def normalize_smearing_keyword(smearing):
 
 
 class Parameters(dict):
+    """Dictionary for parameters
+    
+    Special feature: If param is a Parameters instance, then param.xc
+    is a shorthand for param['xc'].
+    """
+    
     def __getattr__(self, key):
         return self[key]
 
@@ -66,8 +72,9 @@ class Parameters(dict):
     @classmethod
     def read(cls, filename):
         """Read parameters from file."""
-        with open(os.path.expanduser(filename)) as f:
-            parameters = cls(eval(f.read()))
+        file = open(os.path.expanduser(filename))
+        parameters = cls(eval(file.read()))
+        file.close()
         return parameters
 
     def tostring(self):
@@ -76,9 +83,9 @@ class Parameters(dict):
             '%s=%r' %(key, self[key]) for key in keys) + ')\n'
     
     def write(self, filename):
-        with open(filename, 'w') as f:
-            f.write(self.tostring())
-
+        file = open(filename, 'w')
+        file.write(self.tostring())
+        file.close()
 
 class Calculator:
     notimplemented = []  # properties calculator can't handle
@@ -118,7 +125,8 @@ class Calculator:
 
         self.hooks = {'before': [], 'after': []}  # call-back functions
 
-        self.name = self.__class__.__name__
+        if not hasattr(self, 'name'):
+            self.name = self.__class__.__name__
 
     def reset(self, changed_parameters=[]):
         """Clear all information from old calculation.
@@ -302,7 +310,7 @@ class FileIOCalculator(Calculator):
     def get_command(self):
         command = self.command
         if command is None:
-            name = self.name.upper() + '_ASE_COMMAND'
+            name = 'ASE_' + self.name.upper() + '_COMMAND'
             command = os.environ.get(name)
         if command is None:
             raise NotAvailable('Please set $%s environment variable ' % name +
