@@ -35,7 +35,7 @@ for (formula, coef) in reaction:
         # add project_id also as a field to support search across projects
         "project_id": project_id,
         "formula": formula,
-        "calculator": calculator.get_name(),
+        "calculator": calculator.name,
         }
     write(filename=('reactions_xsimple.%s.db' % formula),
           images=m, format='db', cmr_params=cmr_params)

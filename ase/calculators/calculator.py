@@ -123,7 +123,7 @@ class Calculator:
                 
         self.set(**kwargs)
 
-        self.hooks = {'before': [], 'after': []}  # call-back functions
+        self.callbacks = {'before': [], 'after': []}  # call-back functions
 
         if not hasattr(self, 'name'):
             self.name = self.__class__.__name__
@@ -245,11 +245,11 @@ class Calculator:
         return False
         
     def _calculate(self, atoms, properties, system_changes):
-        """Call hooks before and after actual calculation."""
-        self.call_hooks('before')
+        """Call callbacks before and after actual calculation."""
+        self.call_callbacks('before')
         self.calculate(atoms, properties, system_changes)
         self.state = atoms.copy()
-        self.call_hooks('after')
+        self.call_callbacks('after')
 
     def calculate(self, atoms, properties, system_changes):
         """Do the calculation.
@@ -262,13 +262,14 @@ class Calculator:
             'magmoms'.
         system_changes: list of str
             List of what has changed since last calculation.  Can be
-            any of these four: 'positons', 'numbers', 'cell' and
-            'pbc'.
+            any combination of these five: 'positons', 'numbers', 'cell',
+            'pbc' and 'magmoms'.
 
         Subclasses need to implement this, but can ignore properties
         and system_changes if they want.
         """
 
+        # Dummy calculation:
         self.results = {'energy': 0.0,
                         'forces': np.zeros((len(atoms), 3)),
                         'stress': np.zeros(6),
@@ -276,11 +277,19 @@ class Calculator:
                         'magmom': 0.0,
                         'magmoms': np.zeros(len(atoms))}
                         
-    def add_hook(self, name, function, *args, **kwargs):
-        self.hooks[name].append((function, args, kwargs))
+    def attach_callback(self, name, function, *args, **kwargs):
+        """Attach function to be called before or after calculation.
 
-    def call_hooks(self, name):
-        for function, args, kwargs in self.hooks[name]:
+        name: str
+            One of 'before' or 'after'
+        function: callable
+            Function or callable to call.
+        """
+
+        self.callbacks[name].append((function, args, kwargs))
+
+    def call_callbacks(self, name):
+        for function, args, kwargs in self.callbacks[name]:
             function(*args, **kwargs)
 
 

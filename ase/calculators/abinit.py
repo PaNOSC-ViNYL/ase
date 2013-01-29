@@ -16,22 +16,61 @@ from ase.calculators.calculator import FileIOCalculator, Parameters
 from ase.io.abinit import read_abinit
 
 
+keys_with_units = {
+    'toldfe': 'eV',
+    'tsmear': 'eV',
+    'paoenergyshift': 'eV',
+    'zmunitslength': 'Bohr',
+    'zmunitsangle': 'rad',
+    'zmforcetollength': 'eV/Ang',
+    'zmforcetolangle': 'eV/rad',
+    'zmmaxdispllength': 'Ang',
+    'zmmaxdisplangle': 'rad',
+    'ecut': 'eV',
+    'dmenergytolerance': 'eV',
+    'electronictemperature': 'eV',
+    'oneta': 'eV',
+    'onetaalpha': 'eV',
+    'onetabeta': 'eV',
+    'onrclwf': 'Ang',
+    'onchemicalpotentialrc': 'Ang',
+    'onchemicalpotentialtemperature': 'eV',
+    'mdmaxcgdispl': 'Ang',
+    'mdmaxforcetol': 'eV/Ang',
+    'mdmaxstresstol': 'eV/Ang**3',
+    'mdlengthtimestep': 'fs',
+    'mdinitialtemperature': 'eV',
+    'mdtargettemperature': 'eV',
+    'mdtargetpressure': 'eV/Ang**3',
+    'mdnosemass': 'eV*fs**2',
+    'mdparrinellorahmanmass': 'eV*fs**2',
+    'mdtaurelax': 'fs',
+    'mdbulkmodulus': 'eV/Ang**3',
+    'mdfcdispl': 'Ang',
+    'warningminimumatomicdistance': 'Ang',
+    'rcspatial': 'Ang',
+    'kgridcutoff': 'Ang',
+    'latticeconstant': 'Ang'}
+
+
 class Abinit(FileIOCalculator):
     """Class for doing ABINIT calculations.
 
     The default parameters are very close to those that the ABINIT
     Fortran code would use.  These are the exceptions::
 
-      calc = Abinit(label='abinit', xc='LDA', diemix=0.1)
+      calc = Abinit(label='abinit', xc='LDA', ecut=400, toldfe=1e-5)
     """
+
+    notimplemented = ['dipole', 'magmoms']
+
     def __init__(self, label='abinit', atoms=None, 
                  xc='LDA',
-                 width=0.04 * Hartree, smearing='fermi-dirac',
-                 ecut=None,
+                 width=0.04 * Hartree,
+                 smearing='fermi-dirac',
+                 kpts=[1, 1, 1],
                  charge=0.0,
-                 npulayit=7, diemix=0.1, diemac=1.e6,
                  pps='fhi',
-                 toldfe=1.0e-6,
                  scratch=None,
                  **kwargs):
         """Construct ABINIT-calculator object.
@@ -74,14 +113,11 @@ class Abinit(FileIOCalculator):
         ========
         Use default values:
 
-        >>> h = Atoms('H', calculator=Abinit())
+        >>> h = Atoms('H', calculator=Abinit(ecut=200, toldfe=0.001))
         >>> h.center(vacuum=3.0)
         >>> e = h.get_potential_energy()
 
         """
-
-        if ecut is None:
-            raise ValueError('Planewave cutoff energy in eV (ecut) not set')
 
         if pps not in ['fhi', 'hgh', 'hgh.sc', 'hgh.k', 'tm', 'paw']:
             raise ValueError('Unexpected PP identifier %s' % pps)
@@ -91,19 +127,21 @@ class Abinit(FileIOCalculator):
         self.species = None
         self.ppp_list = None
 
-        self.n_entries_int = 20  # integer entries per line
-        self.n_entries_float = 8  # float entries per line
-
         FileIOCalculator.__init__(self, label, atoms,
                                   xc=xc,
-                                  width=width, smearing=smearing,
-                                  ecut=ecut,
+                                  width=width,
+                                  smearing=smearing,
+                                  kpts=kpts,
                                   charge=charge,
-                                  npulayit=npulayit,
-                                  diemix=diemix, diemac=diemac,
                                   pps=pps,
-                                  toldfe=toldfe,
                                   **kwargs)
+
+    def check_state(self, atoms):
+        system_changes = FileIOCalculator.check_state(self, atoms)
+        # Ignore boundary conditions:
+        if 'pbc' in system_changes:
+            system_changes.remove('pbc')
+        return system_changes
 
     def write_input(self, atoms, properties, system_changes):
         """Write input parameters to files-file."""
@@ -135,17 +173,22 @@ class Abinit(FileIOCalculator):
 
         fh.close()
 
+        # Abinit will write to label.txtA if label.txt already exists,
+        # so we remove it if it's there:
+        filename = self.label + '.txt'
+        if os.path.isfile(filename):
+            os.remove(filename)
+
         param = self.parameters
-        param.write(self.label + '.param')
+        param.write(self.label + '.parameters.ase')
 
         fh = open(self.label + '.in', 'w')
         inp = {}
         inp.update(param)
+        del inp['xc']
         del inp['width']
         del inp['smearing']
-        del inp['xc']
         del inp['kpts']
-        del inp['toldfe']
         del inp['pps']
 
         inp['tsmear'] = param.width
@@ -214,17 +257,16 @@ class Abinit(FileIOCalculator):
             for n, Zs in enumerate(self.species):
                 if Z == Zs:
                     self.types.append(n+1)
+        n_entries_int = 20  # integer entries per line
         for n, type in enumerate(self.types):
             fh.write(' %d' % (type))
-            if n > 1 and ((n % self.n_entries_int) == 1):
+            if n > 1 and ((n % n_entries_int) == 1):
                 fh.write('\n')
         fh.write('\n')
 
         fh.write('#Definition of the atoms\n')
         fh.write('xangst\n')
-        a = 0
-        for pos, Z in zip(atoms.positions, atoms.numbers):
-            a += 1
+        for pos in atoms.positions:
             fh.write('%.14f %.14f %.14f\n' %  tuple(pos))
 
         if param.kpts is not None:
@@ -235,8 +277,6 @@ class Abinit(FileIOCalculator):
             fh.write('%.1f %.1f %.1f\n' %
                      tuple((np.array(param.kpts) + 1) % 2 * 0.5))
 
-        fh.write('#Definition of the SCF procedure\n')
-        fh.write('toldfe %.1g\n' % param.toldfe)
         fh.write('chkexit 1 # abinit.exit file in the running directory terminates after the current SCF\n')
 
         fh.close()
@@ -248,7 +288,7 @@ class Abinit(FileIOCalculator):
             return
 
         self.state = read_abinit(self.label + '.in')
-        self.parameters = Parameters.read(self.label + '.param')
+        self.parameters = Parameters.read(self.label + '.parameters.ase')
 
         self.initialize(self.state)
         self.read_results()
@@ -527,8 +567,9 @@ class Abinit(FileIOCalculator):
            spinname = 'SPIN UP'.lower()
         # number of lines of eigenvalues/occupations for a kpt
         nband = self.get_number_of_bands()
-        n_entry_lines = max(1, int((nband - 0.1)/self.n_entries_float) + 1)
-        #
+        n_entries_float = 8  # float entries per line
+        n_entry_lines = max(1, int((nband - 0.1) / n_entries_float) + 1)
+
         filename = self.label + '.txt'
         text = open(filename).read().lower()
         assert 'error' not in text
@@ -577,7 +618,7 @@ class Abinit(FileIOCalculator):
             range_kpts = 2*n_kpts
         else:
             range_kpts = n_kpts
-        #
+
         values_list = []
         offset = 0
         for kpt_entry in range(range_kpts):
@@ -602,49 +643,8 @@ class Abinit(FileIOCalculator):
                         full_line = float(full_line.split('wtk=')[1].strip().split(',')[0].split()[0])
                     values_list.append(full_line)
             offset = offset+n_entry_lines+1
-        #
+
         if mode in ['occupations', 'eigenvalues']:
             return np.array(values_list[kpt])
         else:
             return np.array(values_list)
-
-
-
-def inpify(key):
-    return key.lower().replace('_', '').replace('.', '').replace('-', '')
-
-
-keys_with_units = {
-    'tsmear': 'eV',
-    'paoenergyshift': 'eV',
-    'zmunitslength': 'Bohr',
-    'zmunitsangle': 'rad',
-    'zmforcetollength': 'eV/Ang',
-    'zmforcetolangle': 'eV/rad',
-    'zmmaxdispllength': 'Ang',
-    'zmmaxdisplangle': 'rad',
-    'ecut': 'eV',
-    'dmenergytolerance': 'eV',
-    'electronictemperature': 'eV',
-    'oneta': 'eV',
-    'onetaalpha': 'eV',
-    'onetabeta': 'eV',
-    'onrclwf': 'Ang',
-    'onchemicalpotentialrc': 'Ang',
-    'onchemicalpotentialtemperature': 'eV',
-    'mdmaxcgdispl': 'Ang',
-    'mdmaxforcetol': 'eV/Ang',
-    'mdmaxstresstol': 'eV/Ang**3',
-    'mdlengthtimestep': 'fs',
-    'mdinitialtemperature': 'eV',
-    'mdtargettemperature': 'eV',
-    'mdtargetpressure': 'eV/Ang**3',
-    'mdnosemass': 'eV*fs**2',
-    'mdparrinellorahmanmass': 'eV*fs**2',
-    'mdtaurelax': 'fs',
-    'mdbulkmodulus': 'eV/Ang**3',
-    'mdfcdispl': 'Ang',
-    'warningminimumatomicdistance': 'Ang',
-    'rcspatial': 'Ang',
-    'kgridcutoff': 'Ang',
-    'latticeconstant': 'Ang'}
