@@ -217,7 +217,6 @@ class Abinit(FileIOCalculator):
 
         for key in sorted(inp.keys()):
             value = inp[key]
-            print key,value
             if isinstance(value, list):
                 fh.write('%s %s\n' % ('%block', key))  # don't confuse '%b'
                 for line in value:
