@@ -89,9 +89,9 @@ def read_abinit(filename='abinit.in'):
     if "xcart" in tokens:
         index = tokens.index("xcart")
         unit = units.Bohr
-    elif "xangs" in tokens:
+    elif "xangst" in tokens:
         unit = 1.0
-        index = tokens.index("xangs")
+        index = tokens.index("xangst")
 
     if(index != None):
         xangs = []
