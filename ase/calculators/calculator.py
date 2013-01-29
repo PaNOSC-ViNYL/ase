@@ -199,8 +199,8 @@ class Calculator:
                 system_changes.append('cell')
             if not equal(self.state.pbc, atoms.pbc):
                 system_changes.append('pbc')
-            if not equal(self.state.get_inital_magnetic_moments(),
-                         atoms.get_inital_magnetic_moments()):
+            if not equal(self.state.get_initial_magnetic_moments(),
+                         atoms.get_initial_magnetic_moments()):
                 system_changes.append('magmoms')
 
         return system_changes
