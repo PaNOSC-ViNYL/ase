@@ -224,22 +224,22 @@ class Abinit(FileIOCalculator):
 
         for key in sorted(inp.keys()):
             value = inp[key]
-            if key == 'raw':
-                for line in value:
-                    if isinstance(line, tuple):
-                        fh.write(' '.join(['%s' % x for x in line]) + '\n')
-                    else:
-                        fh.write('%s\n' % line)
+            unit = keys_with_units.get(key)
+            if unit is None:
+                fh.write('%s %s\n' % (key, value))
             else:
-                unit = keys_with_units.get(key)
-                if unit is None:
-                    fh.write('%s %s\n' % (key, value))
+                if 'fs**2' in unit:
+                    value /= fs**2
+                elif 'fs' in unit:
+                    value /= fs
+                fh.write('%s %f %s\n' % (key, value, unit))
+
+        if param.raw is not None:
+            for line in param.raw:
+                if isinstance(line, tuple):
+                    fh.write(' '.join(['%s' % x for x in line]) + '\n')
                 else:
-                    if 'fs**2' in unit:
-                        value /= fs**2
-                    elif 'fs' in unit:
-                        value /= fs
-                    fh.write('%s %f %s\n' % (key, value, unit))
+                    fh.write('%s\n' % line)
 
         fh.write('#Definition of the unit cell\n')
         fh.write('acell\n')
