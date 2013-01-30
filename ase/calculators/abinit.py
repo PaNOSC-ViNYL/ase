@@ -155,18 +155,20 @@ class Abinit(FileIOCalculator):
 
         fh = open(self.label + '.files', 'w')
 
-        fh.write('%s\n' % (self.label+'.in')) # input
-        fh.write('%s\n' % (self.label+'.txt')) # output
-        fh.write('%s\n' % (self.label+'i')) # input
-        fh.write('%s\n' % (self.label+'o')) # output
+        fh.write('%s\n' % (prefix + '.in')) # input
+        fh.write('%s\n' % (prefix + '.txt')) # output
+        fh.write('%s\n' % (prefix + 'i')) # input
+        fh.write('%s\n' % (prefix + 'o')) # output
         
+        # XXX:
         # scratch files
-        scratch = self.scratch
-        if scratch is None:
-            scratch = dir
-        if not os.path.exists(scratch):
-            os.makedirs(scratch)
-        fh.write('%s\n' % (os.path.join(scratch, prefix + '.abinit')))
+        #scratch = self.scratch
+        #if scratch is None:
+        #    scratch = dir
+        #if not os.path.exists(scratch):
+        #    os.makedirs(scratch)
+        #fh.write('%s\n' % (os.path.join(scratch, prefix + '.abinit')))
+        fh.write('%s\n' % (prefix + '.abinit'))
         # Provide the psp files
         for ppp in self.ppp_list:
             fh.write('%s\n' % (ppp)) # psp file path
@@ -507,10 +509,6 @@ class Abinit(FileIOCalculator):
 
     def get_number_of_spins(self):
         return 1 + int(self.spinpol)
-
-    def get_magnetic_moment(self, atoms):
-        self.update(atoms)
-        return self.magnetic_moment
 
     def read_magnetic_moment(self):
         magmom = None
