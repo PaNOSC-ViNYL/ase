@@ -9,11 +9,12 @@ from os.path import join, isfile, islink
 
 import numpy as np
 
-from ase.data import chemical_symbols
 from ase.data import atomic_numbers
 from ase.units import Bohr, Hartree
-from ase.calculators.calculator import FileIOCalculator, Parameters
+from ase.data import chemical_symbols
 from ase.io.abinit import read_abinit
+from ase.calculators.calculator import FileIOCalculator, Parameters, kpts2mp, \
+    normalize_smearing_keyword    
 
 
 keys_with_units = {
@@ -66,10 +67,11 @@ class Abinit(FileIOCalculator):
 
     def __init__(self, label='abinit', atoms=None, 
                  xc='LDA',
-                 width=0.04 * Hartree,
+                 width=0.1,
                  smearing='fermi-dirac',
-                 kpts=[1, 1, 1],
+                 kpts=None,
                  charge=0.0,
+                 raw=None,
                  pps='fhi',
                  scratch=None,
                  **kwargs):
@@ -133,6 +135,7 @@ class Abinit(FileIOCalculator):
                                   smearing=smearing,
                                   kpts=kpts,
                                   charge=charge,
+                                  raw=raw,
                                   pps=pps,
                                   **kwargs)
 
@@ -187,26 +190,28 @@ class Abinit(FileIOCalculator):
         fh = open(self.label + '.in', 'w')
         inp = {}
         inp.update(param)
-        del inp['xc']
-        del inp['width']
-        del inp['smearing']
-        del inp['kpts']
-        del inp['pps']
+        for key in ['xc', 'width', 'smearing', 'kpts', 'pps', 'raw']:
+            del inp[key]
 
-        inp['tsmear'] = param.width
-        inp['occopt'] = 3
-        assert param.smearing == 'fermi-dirac'
+        if 'tsmear' not in param:
+            inp['tsmear'] = param.width
+
+        if 'occopt' not in param:
+            smearing = normalize_smearing_keyword(param.smearing)
+            inp['occopt'] = {'fermi-dirac': 3, 'gaussian': 7}[param.smearing]
+
         inp['natom'] = len(atoms)
 
         if 'nbands' in param:
             inp['nband'] = param.nbands
             del inp['nbands']
 
-        inp['ixc'] = {'LDA': 7,
-                      'PBE': 11,
-                      'revPBE': 14,
-                      'RPBE': 15,
-                      'WC': 23}[param.xc]
+        if 'ixc' not in param:
+            inp['ixc'] = {'LDA': 7,
+                          'PBE': 11,
+                          'revPBE': 14,
+                          'RPBE': 15,
+                          'WC': 23}[param.xc]
 
         magmoms = atoms.get_initial_magnetic_moments()
         if magmoms.any():
@@ -219,21 +224,22 @@ class Abinit(FileIOCalculator):
 
         for key in sorted(inp.keys()):
             value = inp[key]
-            if isinstance(value, list):
-                fh.write('%s %s\n' % ('%block', key))  # don't confuse '%b'
+            if key == 'raw':
                 for line in value:
-                    fh.write(' '.join(['%s' % x for x in line]) + '\n')
-                fh.write('%endblock %s\n' % key)
-
-            unit = keys_with_units.get(key)
-            if unit is None:
-                fh.write('%s %s\n' % (key, value))
+                    if isinstance(line, tuple):
+                        fh.write(' '.join(['%s' % x for x in line]) + '\n')
+                    else:
+                        fh.write('%s\n' % line)
             else:
-                if 'fs**2' in unit:
-                    value /= fs**2
-                elif 'fs' in unit:
-                    value /= fs
-                fh.write('%s %f %s\n' % (key, value, unit))
+                unit = keys_with_units.get(key)
+                if unit is None:
+                    fh.write('%s %s\n' % (key, value))
+                else:
+                    if 'fs**2' in unit:
+                        value /= fs**2
+                    elif 'fs' in unit:
+                        value /= fs
+                    fh.write('%s %f %s\n' % (key, value, unit))
 
         fh.write('#Definition of the unit cell\n')
         fh.write('acell\n')
@@ -270,13 +276,13 @@ class Abinit(FileIOCalculator):
         for pos in atoms.positions:
             fh.write('%.14f %.14f %.14f\n' %  tuple(pos))
 
-        if param.kpts is not None:
+        if 'kptopt' not in param:
+            mp = kpts2mp(atoms, param.kpts)
             fh.write('kptopt 1\n')
-            fh.write('ngkpt %d %d %d\n' % tuple(param.kpts))
+            fh.write('ngkpt %d %d %d\n' % tuple(mp))
             fh.write('nshiftk 1\n')
             fh.write('shiftk\n')
-            fh.write('%.1f %.1f %.1f\n' %
-                     tuple((np.array(param.kpts) + 1) % 2 * 0.5))
+            fh.write('%.1f %.1f %.1f\n' % tuple((np.array(mp) + 1) % 2 * 0.5))
 
         fh.write('chkexit 1 # abinit.exit file in the running directory terminates after the current SCF\n')
 

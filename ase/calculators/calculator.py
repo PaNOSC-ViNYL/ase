@@ -9,6 +9,36 @@ class NotAvailable(Exception):
     pass
 
 
+# Recognized names of calculators sorted alphabetically:
+names = ['abinit', 'aims', 'asap', 'castep', 'dftb', 'elk', 'emt',
+         'exciting', 'fleur', 'gpaw', 'gaussian', 'hotbit', 'jacapo',
+         'lammps', 'lj', 'mopac', 'morse',
+         'nwchem', 'siesta', 'turbomole', 'vasp']
+
+
+special = {'elk': 'ELK',
+           'emt': 'EMT',
+           'fleur': 'FLEUR',
+           'lammps': 'LAMMPS',
+           'lj': 'LennardJones',
+           'morse': 'MorsePotential',
+           'nwchem': 'NWchem'}
+
+
+def get_calculator(name):
+    if name == 'asap':
+        from asap3 import EMT as Calculator
+    elif name == 'gpaw':
+        from gpaw import GPAW as Calculator
+    elif name == 'hotbit':
+        from hotbit import Calculator
+    else:
+        classname = special.get(name, name.title())
+        module = __import__('ase.calculators.' + name, {}, None, [classname])
+        Calculator = getattr(module, classname)
+    return Calculator
+
+
 def equal(a, b):
     """ndarray-enabled comparison function."""
     if isinstance(a, np.ndarray):
@@ -44,6 +74,15 @@ def kptdensity2monkhorstpack(atoms, kptdensity=3.5, even=True):
     return kpts
 
 
+def kpts2mp(atoms, kpts, even=False):
+    if kpts is None:
+        return (1, 1, 1)
+    if isinstance(kpts, float):
+        return kptdensity2monkhorstpack(atoms, kpts, even)
+    else:
+        return kpts
+
+
 def normalize_smearing_keyword(smearing):
     """Normalize smearing string to long names and lower case.
     """
@@ -53,6 +92,8 @@ def normalize_smearing_keyword(smearing):
         smearing = 'fermi-dirac'
     elif smearing.startswith('mp'):
         smearing = 'mathfessel-paxton-' + smearing[2]
+    if smearing == 'mathfessel-paxton-0':
+        smearing == 'gaussian'
     return smearing
 
 
