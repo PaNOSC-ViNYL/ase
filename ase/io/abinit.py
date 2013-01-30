@@ -101,7 +101,13 @@ def read_abinit(filename='abinit.in'):
                           unit*float(tokens[index+3*i+3])])
         atoms = Atoms(cell=rprim, positions=xangs, numbers=numbers, pbc=True)
     
-    nsppol = int(tokens[tokens.index('nsppol') + 1])
+    try:
+        i = tokens.index('nsppol')
+    except ValueError:
+        nsppol = None
+    else:
+        nsppol = int(tokens[i + 1])
+
     if nsppol == 2:
         index = tokens.index('spinat')
         magmoms = [float(tokens[index + 3 * i + 3]) for i in range(natom)]
