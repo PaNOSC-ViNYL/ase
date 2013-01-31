@@ -25,6 +25,7 @@ MM part.
 
 For example: (setting for the MM part of a QM/MM run, 
 parameter '-nt 1' for serial run)::
+
   CALC_MM = Gromacs(
     init_structure_file = infile_name,
     structure_file = 'gromacs_qm.g96', \
