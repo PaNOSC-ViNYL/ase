@@ -22,11 +22,11 @@ So far, this proposal is mostly ideas and questions.
 Behavior
 ========
 
-When a calculator calculates the energy, forces, stress tensor, atomic
-magnetic moments or dipole moment, it should store a copy of the
-system (atomic numbers, atomic positions, unit cell and boundary
-conditions).  When asked again, it should return the value already
-calculated if the system hasn't been changed.
+When a calculator calculates the energy, forces, stress tensor, total
+magnetic momen, atomic magnetic moments or dipole moment, it should
+store a copy of the system (atomic numbers, atomic positions, unit
+cell and boundary conditions).  When asked again, it should return the
+value already calculated if the system hasn't been changed.
 
 If calculational parameters such as plane wave cutoff or XC-functional
 has been changed the calculator should throw away old calculated
@@ -37,13 +37,14 @@ Standards parameters
 ====================
 
 The standard keywords that all calculators must use (if they make
-sense) are: ``xc``, ``kpts``, ``smearing``, ``width`` and ``nbands``.
-Each calculator will have its own default values for these parameters
---- see recommendations below.  I addition, calculators will typically
-have many other parameters.  The units are eV and Å.
+sense) are: ``xc``, ``kpts``, ``smearing``, ``width``, ``charge`` and
+``nbands``.  Each calculator will have its own default values for
+these parameters --- see recommendations below.  I addition,
+calculators will typically have many other parameters.  The units are
+eV and Å.
 
-Magnetic moments and charges are taken from the
-:class:`~ase.atoms.Atoms` object.
+Initial magnetic moments are taken from the :class:`~ase.atoms.Atoms`
+object.
 
 :xc:
 
@@ -70,12 +71,20 @@ Magnetic moments and charges are taken from the
   * ``'Fermi-Dirac'`` or ``'FD'``
   * ``'Gaussian'``
   * ``'Methfessel-Paxton-n'`` or ``'MPn'``, where `n` is the order
-    (`n=1` is the same as ``'Gaussian'``)
+    (`n=0` is the same as ``'Gaussian'``)
   * or lower-case versions of any of the above
 
+Recommended value: ``'fermi-dirac'`` with ``width=0.1`` eV.
 :width:
 
   The width parameter used for the chosen smearing method (in eV).
+  Recommended value is 0.1 eV combined with ``smearing='fermi-dirac'``
+
+:charge:
+
+  Charge of the system in units of `|e|` (``charge=1`` means one
+  electron has been removed).
+
 
 :nbands:
 
@@ -86,13 +95,17 @@ ABC calculator example
 ======================
 
 A calculator should be able to prefix all output files with a given
-label or run the calculation in a directory.  There are three
-possibilities for the first argument of the constructor of a
-calculator object:
+label or run the calculation in a directory with a specified name.
+There are three possibilities for the first argument (called
+``label``) of the constructor of a calculator object:
 
-* name of a file containing all results of a calculation
-* a prefix used for several files containing results
-* name of a directory containing result files with fixed names
+* Name of a file containing all results of a calculation (possibly
+  containing a directory).
+
+* A prefix used for several files containing results.  The label may
+  have both a directory part and a prefix part like ``'LDA/mol1'``.
+
+* Name of a directory containing result files with fixed names.
 
 Each calculator can decide what the default value is: ``None`` for no
 output, ``'-'`` for standard output or something else.  All others
@@ -109,7 +122,7 @@ Example:  Do a calculation with ABC calculator and write results to
 An alternative way to do the same thing:
 
 >>> atoms = ...
->>> calc = ABC('si.abc', xc='LDA', atoms=atoms)
+>>> calc = ABC('si.abc', atoms, xc='LDA')
 >>> atoms.get_potential_energy()
 -1.2
 
@@ -140,32 +153,46 @@ then the :file:`si.abc` will be overwritten or maybe appended to.
 
 The command used to start the ABC code must be given in an environment
 variable called :envvar:`ASE_ABC_COMMAND` or as a ``command``
-keyword.  The command can be the actual command to run like ``mpiexec
-abc`` or the name of an executable file that can start the calculator.
+keyword.  The command can look like this::
+
+  mpiexec abc LABEL.input > LABEL.output
+
+or like this::
+
+  ~/bin/start_abc.py LABEL
+
+The ``LABEL`` strings will be substituted by the ``label`` prefix.
 If neither the environment variable or the ``command`` keyword is
 specified, the calculator will raise a ``NotAvailable`` exception,
 which will make the test-suite skip such tests.
 
-Pre and post-run hooks:  What should the interface look like?
-Suggestions are welcome.
 
-Calculators could have ``before`` and ``after`` attributes that are
-lists of ``(function, interval, args, kwargs)`` tuples and then there
-could be an ``add_observer(when, function, interval=1, *args,
-**kwargs)`` method?
+Pre- and post-run hooks
+=======================
+
+Calculators can call call-back functions before and after a
+calculation.  These are stored in a dictionary called ``callbacks``::
+
+  {'before': [], 'after': []}
+
+The two lists can contain any number of functions specified as
+``(function, args, kwargs)`` tuples.  The lists can be manipulated
+directly or apended to by using the ``attach_callback(when, function,
+*args, **kwargs)`` method, where ``when`` is one of ``'before'`` or
+``'after'``.
 
 
 Implementation
 ==============
 
 * Common base class for all calculators: ``Calculator``.  Takes care
-  of file read/write logic, handles setting of parameters and checks
+  of restart from file logic, handles setting of parameters and checks
   for state changes.
 
+* A ``FileIOCalculator`` for the case where we need to:
+
+  * write input file(s)
+  * run Fortran code
+  * read output file(s)
+
 * Helper function to deal with ``kpts`` keyword.
-
-
-Other stuff
-===========
-
-Support for ASE's :ref:`command line tool`.
