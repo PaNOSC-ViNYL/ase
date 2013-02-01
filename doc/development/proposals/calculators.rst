@@ -137,7 +137,7 @@ Start from previous calculation:
 >>> atoms.get_potential_energy()
 -1.2
 
-The :meth:`read_atoms()` method is equivalent to:
+The class method :meth:`read_atoms()` is equivalent to:
 
 >>> atoms = ABC('si.abc').get_atoms()
 
