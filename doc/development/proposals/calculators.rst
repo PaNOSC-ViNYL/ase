@@ -74,7 +74,8 @@ object.
     (`n=0` is the same as ``'Gaussian'``)
   * or lower-case versions of any of the above
 
-Recommended value: ``'fermi-dirac'`` with ``width=0.1`` eV.
+  Recommended value: ``'fermi-dirac'`` with ``width=0.1`` eV.
+
 :width:
 
   The width parameter used for the chosen smearing method (in eV).
@@ -119,17 +120,25 @@ Example:  Do a calculation with ABC calculator and write results to
 >>> atoms.get_potential_energy()
 -1.2
 
-An alternative way to do the same thing:
+The default behavior of of reading from :file:`si.abc` and also
+writing results from following calculations to the same file can be
+changed by using the ``output`` keyword (``output='si-new.abc'``).
+
+An alternative way to connect atoms and calculator:
 
 >>> atoms = ...
->>> calc = ABC('si.abc', atoms, xc='LDA')
+>>> calc = ABC('si.abc', atoms=atoms, xc='LDA')
 >>> atoms.get_potential_energy()
 -1.2
 
-This will automatically attach the calculator to the atoms and if
-:file:`si.abc` exists, the atoms will be updated form the file.
+This will automatically attach the calculator to the atoms and if the
+file :file:`si.abc` exists the atoms will be updated form that file.
+This will allow you to use the same script to do the initial
+calculation where :file:`si.abc` does not exist and following
+calculations where atoms may have been moved arround be an
+optimization algorithm.
 
-Start from previous calculation:
+Read atoms with ABC calculator attaced from a previous calculation:
 
 >>> atoms = ABC.read_atoms('si.abc')
 >>> atoms.calc
