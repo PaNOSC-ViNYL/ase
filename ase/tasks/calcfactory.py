@@ -76,7 +76,7 @@ class CalculatorFactory:
         Put name in the filename of all created files."""
 
         kpts = self.calculate_kpts(atoms)
-        if kpts != 'no k-points':
+        if 0:#kpts != 'no k-points':
             try:
                 cname = self.Class().name  # not all calcs have that
             except (AttributeError, ValueError, NotImplementedError):
@@ -86,10 +86,10 @@ class CalculatorFactory:
             else:
                 self.kwargs['kpts'] = kpts
 
-        if self.label is not None:
-            self.kwargs[self.label] = name
-
-        return self.Class(**self.kwargs)
+        if self.label is None:
+            return self.Class(**self.kwargs)
+        else:
+            return self.Class(name, **self.kwargs)
 
     def add_options(self, parser):
         calc = optparse.OptionGroup(parser, 'Calculator')
@@ -138,7 +138,7 @@ classnames = {'asap': 'EMT',
               'lj': 'LennardJones',
               'mopac': 'Mopac',
               'morse': 'MorsePotential',
-              'nwchem': 'NWchem',
+              'nwchem': 'NWChem',
               'vasp': 'Vasp'}
 
 

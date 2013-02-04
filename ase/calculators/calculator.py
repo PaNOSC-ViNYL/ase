@@ -22,7 +22,7 @@ special = {'elk': 'ELK',
            'lammps': 'LAMMPS',
            'lj': 'LennardJones',
            'morse': 'MorsePotential',
-           'nwchem': 'NWchem'}
+           'nwchem': 'NWChem'}
 
 
 def get_calculator(name):
@@ -134,7 +134,8 @@ class Calculator:
 
     """Base-class for all ASE calculators."""
 
-    def __init__(self, label=None, atoms=None, **kwargs):
+    def __init__(self, input=None, output='same as input', atoms=None,
+                 **kwargs):
         """Basic calculator implementation.
 
         label: str
@@ -149,9 +150,13 @@ class Calculator:
         self.results = {}  # calculated properties (energy, forces, ...)
         self.parameters = Parameters()  # calculational parameters
 
-        self.label = label
-        if label is not None:
+        if input is not None:
+            self.path = input
             self.read()
+
+        if output == 'same as input':
+            output = input
+        self.path = output
 
         if atoms is not None:
             atoms.calc = self
@@ -196,8 +201,8 @@ class Calculator:
         return atoms
 
     @classmethod
-    def read_atoms(cls, label, **kwargs):
-        return cls(label, **kwargs).get_atoms()
+    def read_atoms(cls, input, **kwargs):
+        return cls(input, **kwargs).get_atoms()
 
     def set(self, **kwargs):
         """Set parameters like set(key1=value1, key2=value2, ...).
@@ -342,13 +347,14 @@ class FileIOCalculator(Calculator):
     """Base class for calculators that write input files and read output files.
 
     """
-    def __init__(self, label=None, atoms=None, command=None, **kwargs):
-        Calculator.__init__(self, label, atoms, **kwargs)
+    def __init__(self, input=None, output='same as input',
+                 atoms=None, command=None, **kwargs):
+        Calculator.__init__(self, input, output, atoms, **kwargs)
         self.command = command
 
     def calculate(self, atoms, properties=None, system_changes=None):
         self.write_input(atoms, properties, system_changes)
-        dir, label = self.split_label()
+        dir, label = self.split_path()
         command = self.get_command().replace('LABEL', label)
         olddir = os.getcwd()
         try:
@@ -372,16 +378,16 @@ class FileIOCalculator(Calculator):
                                'or supply the command keyword')
         return command
 
-    def split_label(self):
-        """Convert label to directory and prefix.
+    def split_path(self):
+        """Convert path into directory and prefix.
 
         """
-        dir, prefix = os.path.split(self.label)
+        dir, prefix = os.path.split(self.path)
         if dir == '':
             dir = os.curdir
         return dir, prefix
 
     def write_input(self, atoms, properties, system_changes):
-        dir, label = self.split_label()
+        dir, label = self.split_path()
         if dir != os.curdir and not os.path.isdir(dir):
             os.makedirs(dir)
