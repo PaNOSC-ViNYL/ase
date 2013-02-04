@@ -358,7 +358,8 @@ class FileIOCalculator(Calculator):
             os.chdir(olddir)
         
         if errorcode:
-            raise RuntimeError(errorcode)
+            raise RuntimeError('%s returned an error: %d' %
+                               (self.name, errorcode))
         self.read_results()
 
     def get_command(self):
