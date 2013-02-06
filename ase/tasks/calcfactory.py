@@ -7,7 +7,7 @@ from ase.dft.kpoints import monkhorst_pack
 
 
 def str2dict(s, namespace={}, sep='='):
-    """Convert comma-separated key=vale string to dictionary.
+    """Convert comma-separated key=value string to dictionary.
 
     Examples:
 

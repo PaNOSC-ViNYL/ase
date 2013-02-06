@@ -65,11 +65,17 @@ class NWChem(FileIOCalculator):
                                   raw=raw,
                                   **kwargs)
 
+    def check_state(self, atoms):
+        system_changes = FileIOCalculator.check_state(self, atoms)
+        # Ignore unit cell and boundary conditions:
+        if 'cell' in system_changes:
+            system_changes.remove('cell')
+        if 'pbc' in system_changes:
+            system_changes.remove('pbc')
+        return system_changes
+
     def write_input(self, atoms, properties, system_changes):
-        """Write input parameters to files-file."""
-
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
-
         p = self.parameters
         p.write(self.path + '.parameters.ase')
         f = open(self.path + '.nw', 'w')
@@ -147,7 +153,6 @@ class NWChem(FileIOCalculator):
         f.close()
 
     def read(self):
-        """Read results from ABINIT's text-output file."""
         if not os.path.isfile(self.path + '.out'):
             return
 
