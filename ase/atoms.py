@@ -723,12 +723,7 @@ class Atoms(object):
         
         if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
-        try:
-            dipole = self._calc.get_dipole_moment(self)
-        except AttributeError:
-            raise AttributeError(
-                'Calculator object has no get_dipole_moment method.')
-        return dipole
+        return self._calc.get_dipole_moment(self)
     
     def copy(self):
         """Return a copy."""

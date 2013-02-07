@@ -14,7 +14,7 @@ from ase.units import Bohr, Hartree
 from ase.data import chemical_symbols
 from ase.io.abinit import read_abinit
 from ase.calculators.calculator import FileIOCalculator, Parameters, kpts2mp, \
-    normalize_smearing_keyword    
+    normalize_smearing_keyword, ReadError
 
 
 keys_with_units = {
@@ -64,8 +64,9 @@ class Abinit(FileIOCalculator):
     """
 
     notimplemented = ['dipole', 'magmoms']
+    command = 'abinis < PREFIX.files > PREFIX.log'
 
-    def __init__(self, input='abinit', output='same as input', atoms=None, 
+    def __init__(self, label='abinit', mode='rw', output='abinit', atoms=None, 
                  xc='LDA',
                  width=0.1,
                  smearing='fermi-dirac',
@@ -129,7 +130,7 @@ class Abinit(FileIOCalculator):
         self.species = None
         self.ppp_list = None
 
-        FileIOCalculator.__init__(self, input, output, atoms,
+        FileIOCalculator.__init__(self, label, mode, output, atoms,
                                   xc=xc,
                                   width=width,
                                   smearing=smearing,
@@ -154,9 +155,9 @@ class Abinit(FileIOCalculator):
         if 'numbers' in system_changes or 'magmoms' in system_changes:
             self.initialize(atoms)
 
-        dir, prefix = self.split_path()
+        dir, prefix = self.split_label()
 
-        fh = open(self.path + '.files', 'w')
+        fh = open(self.label + '.files', 'w')
 
         fh.write('%s\n' % (prefix + '.in')) # input
         fh.write('%s\n' % (prefix + '.txt')) # output
@@ -178,16 +179,16 @@ class Abinit(FileIOCalculator):
 
         fh.close()
 
-        # Abinit will write to path.txtA if path.txt already exists,
+        # Abinit will write to label.txtA if label.txt already exists,
         # so we remove it if it's there:
-        filename = self.path + '.txt'
+        filename = self.label + '.txt'
         if os.path.isfile(filename):
             os.remove(filename)
 
         param = self.parameters
-        param.write(self.path + '.parameters.ase')
+        param.write(self.label + '.parameters.ase')
 
-        fh = open(self.path + '.in', 'w')
+        fh = open(self.label + '.in', 'w')
         inp = {}
         inp.update(param)
         for key in ['xc', 'width', 'smearing', 'kpts', 'pps', 'raw']:
@@ -290,21 +291,23 @@ class Abinit(FileIOCalculator):
 
     def read(self):
         """Read results from ABINIT's text-output file."""
-        filename = self.path + '.txt'
+        filename = self.label + '.txt'
         if not os.path.isfile(filename):
             return
 
-        self.state = read_abinit(self.path + '.in')
-        self.parameters = Parameters.read(self.path + '.parameters.ase')
+        self.state = read_abinit(self.label + '.in')
+        self.parameters = Parameters.read(self.label + '.parameters.ase')
 
         self.initialize(self.state)
         self.read_results()
 
     def read_results(self):
-        filename = self.path + '.txt'
+        filename = self.label + '.txt'
         text = open(filename).read().lower()
-        assert 'error' not in text
-        assert 'was not enough scf cycles to converge' not in text
+        
+        if ('error' in text or
+            'was not enough scf cycles to converge' in text):
+            raise ReadError
 
         for line in iter(text.split('\n')):
             if line.rfind('natom  ') > -1:
@@ -469,7 +472,7 @@ class Abinit(FileIOCalculator):
 
     def read_number_of_iterations(self):
         niter = None
-        for line in open(self.path + '.txt'):
+        for line in open(self.label + '.txt'):
             if line.find(' At SCF step') != -1: # find the last iteration number
                 niter = int(line.split(',')[0].split()[-1].strip())
         return niter
@@ -483,7 +486,7 @@ class Abinit(FileIOCalculator):
     def read_number_of_electrons(self):
         nelect = None
         # only in log file!
-        for line in open(self.path + '.log'):  # find last one
+        for line in open(self.label + '.log'):  # find last one
             if line.find('with nelect') != -1:
                 nelect = float(line.split('=')[1].strip())
         return nelect
@@ -493,7 +496,7 @@ class Abinit(FileIOCalculator):
 
     def read_number_of_bands(self):
         nband = None
-        for line in open(self.path + '.txt'): # find last one
+        for line in open(self.label + '.txt'): # find last one
             if line.find('     nband') != -1: # nband, or nband1, nband*
                 nband = int(line.split()[-1].strip())
         return nband
@@ -521,7 +524,7 @@ class Abinit(FileIOCalculator):
         if not self.get_spin_polarized():
             magmom = 0.0
         else: # only for spinpolarized system Magnetisation is printed
-            for line in open(self.path + '.txt'):
+            for line in open(self.label + '.txt'):
                 if line.find('Magnetisation') != -1: # last one
                     magmom = float(line.split('=')[-1].strip())
         return magmom
@@ -539,7 +542,7 @@ class Abinit(FileIOCalculator):
         """Method that reads Fermi energy in Hartree from the output file
         and returns it in eV"""
         E_f=None
-        filename = self.path + '.txt'
+        filename = self.label + '.txt'
         text = open(filename).read().lower()
         assert 'error' not in text
         for line in iter(text.split('\n')):
@@ -573,7 +576,7 @@ class Abinit(FileIOCalculator):
         n_entries_float = 8  # float entries per line
         n_entry_lines = max(1, int((nband - 0.1) / n_entries_float) + 1)
 
-        filename = self.path + '.txt'
+        filename = self.label + '.txt'
         text = open(filename).read().lower()
         assert 'error' not in text
         lines = text.split('\n')

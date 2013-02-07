@@ -9,6 +9,10 @@ class NotAvailable(Exception):
     pass
 
 
+class ReadError(Exception):
+    pass
+
+
 # Recognized names of calculators sorted alphabetically:
 names = ['abinit', 'aims', 'asap', 'castep', 'dftb', 'elk', 'emt',
          'exciting', 'fleur', 'gpaw', 'gaussian', 'hotbit', 'jacapo',
@@ -134,7 +138,7 @@ class Calculator:
 
     """Base-class for all ASE calculators."""
 
-    def __init__(self, input=None, output='same as input', atoms=None,
+    def __init__(self, label=None, mode='rw', output=None, atoms=None,
                  **kwargs):
         """Basic calculator implementation.
 
@@ -146,17 +150,20 @@ class Calculator:
             and unit-cell updated form file.
         """
 
-        self.state = None  # copy of atoms object for last calculation
+        self.state = None  # copy of atoms object from last calculation
         self.results = {}  # calculated properties (energy, forces, ...)
         self.parameters = Parameters()  # calculational parameters
 
-        if input is not None:
-            self.path = input
-            self.read()
+        self.label = label
 
-        if output == 'same as input':
-            output = input
-        self.path = output
+        if label is not None and mode in ['r', 'rw']:
+            try:
+                self.read()
+            except ReadError:
+                self.reset()
+
+        if mode == 'r':
+            self.label = output
 
         if atoms is not None:
             atoms.calc = self
@@ -201,8 +208,8 @@ class Calculator:
         return atoms
 
     @classmethod
-    def read_atoms(cls, input, **kwargs):
-        return cls(input, **kwargs).get_atoms()
+    def read_atoms(cls, label, **kwargs):
+        return cls(label, **kwargs).get_atoms()
 
     def set(self, **kwargs):
         """Set parameters like set(key1=value1, key2=value2, ...).
@@ -297,8 +304,8 @@ class Calculator:
     def _calculate(self, atoms, properties, system_changes):
         """Call callbacks before and after actual calculation."""
         self.call_callbacks('before')
-        self.calculate(atoms, properties, system_changes)
         self.state = atoms.copy()
+        self.calculate(atoms, properties, system_changes)
         self.call_callbacks('after')
 
     def calculate(self, atoms, properties, system_changes):
@@ -342,20 +349,34 @@ class Calculator:
         for function, args, kwargs in self.callbacks[name]:
             function(*args, **kwargs)
 
+    def get_spin_polarized(self):
+        return False
+
 
 class FileIOCalculator(Calculator):
     """Base class for calculators that write input files and read output files.
 
     """
-    def __init__(self, input=None, output='same as input',
+
+    command = None
+
+    def __init__(self, label=None, mode='rw', output=None,
                  atoms=None, command=None, **kwargs):
-        Calculator.__init__(self, input, output, atoms, **kwargs)
-        self.command = command
+        Calculator.__init__(self, label, mode, output, atoms, **kwargs)
+        if command is not None:
+            self.command = command
+        else:
+            name = 'ASE_' + self.name.upper() + '_COMMAND'
+            self.command = os.environ.get(name, self.command)
 
     def calculate(self, atoms, properties=None, system_changes=None):
         self.write_input(atoms, properties, system_changes)
-        dir, label = self.split_path()
-        command = self.get_command().replace('LABEL', label)
+        dir, prefix = self.split_label()
+        if self.command is None:
+            raise NotAvailable('Please set $%s environment variable ' %
+                               ('ASE_' + self.name.upper() + '_COMMAND') +
+                               'or supply the command keyword')
+        command = self.command.replace('PREFIX', prefix)
         olddir = os.getcwd()
         try:
             os.chdir(dir)
@@ -368,26 +389,16 @@ class FileIOCalculator(Calculator):
                                (self.name, errorcode))
         self.read_results()
 
-    def get_command(self):
-        command = self.command
-        if command is None:
-            name = 'ASE_' + self.name.upper() + '_COMMAND'
-            command = os.environ.get(name)
-        if command is None:
-            raise NotAvailable('Please set $%s environment variable ' % name +
-                               'or supply the command keyword')
-        return command
-
-    def split_path(self):
-        """Convert path into directory and prefix.
+    def split_label(self):
+        """Convert label into directory and prefix.
 
         """
-        dir, prefix = os.path.split(self.path)
+        dir, prefix = os.path.split(self.label)
         if dir == '':
             dir = os.curdir
         return dir, prefix
 
     def write_input(self, atoms, properties, system_changes):
-        dir, label = self.split_path()
+        dir, prefix = self.split_label()
         if dir != os.curdir and not os.path.isdir(dir):
             os.makedirs(dir)

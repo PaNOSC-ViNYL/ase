@@ -23,15 +23,14 @@ class KPoint:
 
 class NWChem(FileIOCalculator):
     notimplemented = ['stress', 'magmoms']
-
-    def __init__(self, input='nwchem',
-                 output='same as input',
+    command = 'nwchem PREFIX.nw > PREFIX.out'
+    def __init__(self, label='nwchem', mode='rw', output='nwchem',
                  atoms=None,
                  xc='LDA',
                  smearing='gaussian',
                  width=0.001 * Hartree,
                  charge=None,
-                 task='energy', # use 'gradient' in optimizations!
+                 task='gradient',#energy', # use 'gradient' in optimizations!
                  # Warning: nwchem centers atoms by default
                  # see ase-developers/2012-March/001356.html
                  geometry='nocenter',
@@ -49,7 +48,7 @@ class NWChem(FileIOCalculator):
                  raw='', # additional outside of dft block control string
                  **kwargs):
         """Construct NWchem-calculator object."""
-        FileIOCalculator.__init__(self, input, output, atoms,
+        FileIOCalculator.__init__(self, label, mode, output, atoms,
                                   xc=xc,
                                   width=width,
                                   smearing=smearing,
@@ -77,8 +76,8 @@ class NWChem(FileIOCalculator):
     def write_input(self, atoms, properties, system_changes):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
         p = self.parameters
-        p.write(self.path + '.parameters.ase')
-        f = open(self.path + '.nw', 'w')
+        p.write(self.label + '.parameters.ase')
+        f = open(self.label + '.nw', 'w')
         if p.charge is not None:
             f.write('charge %s\n' * p.charge)
         write_nwchem(f, atoms, p.geometry)
@@ -153,10 +152,10 @@ class NWChem(FileIOCalculator):
         f.close()
 
     def read(self):
-        if not os.path.isfile(self.path + '.out'):
+        if not os.path.isfile(self.label + '.out'):
             return
 
-        f = open(self.path + '.nw')
+        f = open(self.label + '.nw')
         for line in f:
             if line.startswith('geometry'):
                 break
@@ -170,7 +169,7 @@ class NWChem(FileIOCalculator):
             positions.append([float(word) for word in words[1:]])
 
         self.state = Atoms(symbols, positions)
-        self.parameters = Parameters.read(self.path + '.parameters.ase')
+        self.parameters = Parameters.read(self.label + '.parameters.ase')
         self.read_results()
 
     def read_results(self):
@@ -181,16 +180,14 @@ class NWChem(FileIOCalculator):
         self.nelect = self.read_number_of_electrons()
         self.nvector = self.read_number_of_bands()
         self.results['magmom'] = self.read_magnetic_moment()
-        dipole = self.read_dipole_moment()
-        if dipole is not None:
-            self.results['dipole'] = dipole
+        self.results['dipole'] = self.read_dipole_moment()
 
     def get_ibz_k_points(self):
         return np.array([0., 0., 0.])
 
     def read_smear(self):
         smear = None
-        for line in open(self.path + '.out'): # find last one
+        for line in open(self.label + '.out'): # find last one
             if line.find('Smearing applied:') != -1:
                 smear = float(line.split(':')[1].split()[0].strip().lower().replace('d', 'e'))
         return smear
@@ -200,7 +197,7 @@ class NWChem(FileIOCalculator):
 
     def read_number_of_bands(self):
         nvector = 0
-        for line in open(self.path + '.out'):
+        for line in open(self.label + '.out'):
             if line.find('Vector ') != -1: # count all printed vectors
                 nvector += 1
         if not nvector:
@@ -212,7 +209,7 @@ class NWChem(FileIOCalculator):
 
     def read_number_of_electrons(self):
         nelect = None
-        for line in open(self.path + '.out'): # find last one
+        for line in open(self.label + '.out'): # find last one
             if line.find('of electrons') != -1:
                 nelect = float(line.split(':')[1].strip())
         return nelect
@@ -222,7 +219,7 @@ class NWChem(FileIOCalculator):
 
     def read_number_of_iterations(self):
         niter = 0
-        for line in open(self.path + '.out'):
+        for line in open(self.label + '.out'):
             if line.find('d= ') != -1: # count all iterations
                 niter += 1
         if not niter:
@@ -231,14 +228,14 @@ class NWChem(FileIOCalculator):
 
     def read_magnetic_moment(self):
         magmom = None
-        for line in open(self.path + '.out'):
+        for line in open(self.label + '.out'):
             if line.find('Spin multiplicity') != -1: # last one
                 magmom = float(line.split(':')[-1].strip()) - 1
         return magmom
 
     def read_dipole_moment(self):
         dipolemoment=[]
-        for line in open(self.path + '.out'):
+        for line in open(self.label + '.out'):
             for component in [
                 '1   1 0 0',
                 '1   0 1 0',
@@ -248,14 +245,11 @@ class NWChem(FileIOCalculator):
                     value = float(line.split(component)[1].split()[0])  # total dipole component
                     value = value * Bohr
                     dipolemoment.append(value)
-        if len(dipolemoment) == 0:
-            dipolemoment = None
-        return dipolemoment
-
+        return np.array(dipolemoment)
 
     def read_energy(self):
         """Read Energy from nwchem output file."""
-        text = open(self.path + '.out', 'r').read()
+        text = open(self.label + '.out', 'r').read()
         lines = iter(text.split('\n'))
 
         # Energy:
@@ -289,14 +283,14 @@ class NWChem(FileIOCalculator):
 
     def read_forces(self):
         """Read Forces from nwchem output file."""
-        file = open(self.path + '.out', 'r')
+        file = open(self.label + '.out', 'r')
         lines = file.readlines()
         file.close()
 
         for i, line in enumerate(lines):
             if line.find('ENERGY GRADIENTS') >=0:
                 gradients = []
-                for j in range(i + 4, i + 4 + len(self.atoms)):
+                for j in range(i + 4, i + 4 + len(self.state)):
                     word = lines[j].split()
                     gradients.append([float(word[k]) for k in range(5,8)])
                     

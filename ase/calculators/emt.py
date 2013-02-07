@@ -34,8 +34,8 @@ beta = 1.809     # (16 * pi / 3)**(1.0 / 3) / 2**0.5,
 class EMT(Calculator):
     notimplemented = ['stress', 'dipole', 'magmom', 'magmoms']
 
-    def __init__(self, atoms=None):
-        Calculator.__init__(self, atoms=atoms)
+    def __init__(self, label=None, mode='rw', output=None, atoms=None):
+        Calculator.__init__(self, input, mode, output, atoms=atoms)
 
     def initialize(self, atoms):
         self.par = {}

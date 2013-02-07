@@ -1,6 +1,6 @@
-from ase.test.nwchem import installed
+#from ase.test.nwchem import installed
 
-assert installed()
+#assert installed()
 
 from ase.tasks.main import run
 
