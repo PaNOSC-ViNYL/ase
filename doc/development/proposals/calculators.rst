@@ -95,6 +95,10 @@ object.
 ABC calculator example
 ======================
 
+The constructor will look like this::
+
+  ABC(label='abc.abc', iomode='rw', output=None, atoms=None, **kwargs)
+
 A calculator should be able to prefix all output files with a given
 label or run the calculation in a directory with a specified name.
 There are three possibilities for the first argument (called
@@ -109,8 +113,30 @@ There are three possibilities for the first argument (called
 * Name of a directory containing result files with fixed names.
 
 Each calculator can decide what the default value is: ``None`` for no
-output, ``'-'`` for standard output or something else.  All others
-parameters are given as keyword arguments.
+output, ``'-'`` for standard output or something else.
+
+The second argument (``iomode``) must be one of ``'r'``, ``'rw'`` or
+``'w'``, where ``'rw'`` is the default.  The value of ``iomode`` will
+decide what to use the ``label`` argument for:
+
+``'r'``:
+  Read atomic configuration, input parameters and results from
+  a previous calculation in the ``label`` file(s) or directory if
+  those files exist and are not corrupted
+
+``'w'``:
+  Write atomic configuration, input parameters and results from a
+  new calculation to the ``label`` file(s) or directory
+
+``'rw'``:
+  Both of the above
+
+The third agrument (``output``) can be combined with ``iomode='r'`` in
+the case where one wants to use one label for reading and another for
+writing.
+
+The ``atoms`` argument is discussed below.  All additional parameters
+are given as keyword arguments.
 
 Example:  Do a calculation with ABC calculator and write results to
 :file:`si.abc`:
@@ -120,9 +146,11 @@ Example:  Do a calculation with ABC calculator and write results to
 >>> atoms.get_potential_energy()
 -1.2
 
-The default behavior of of reading from :file:`si.abc` and also
-writing results from following calculations to the same file can be
-changed by using the ``output`` keyword (``output='si-new.abc'``).
+The default behavior is to read from :file:`si.abc` and also write
+results from following calculations to the same file.  This can be
+changed by using ``ABC('si.abc', 'r', output='si-new.abc')``) or in
+case no reading should be done one can do simlpy do
+``ABC('si-new.abc', 'w')``.
 
 An alternative way to connect atoms and calculator:
 
@@ -160,20 +188,17 @@ If we do:
 
 then the :file:`si.abc` will be overwritten or maybe appended to.
 
-The command used to start the ABC code must be given in an environment
+The command used to start the ABC code can be given in an environment
 variable called :envvar:`ASE_ABC_COMMAND` or as a ``command``
 keyword.  The command can look like this::
 
-  mpiexec abc LABEL.input > LABEL.output
+  mpiexec abc PREFIX.input > PREFIX.output
 
 or like this::
 
-  ~/bin/start_abc.py LABEL
+  ~/bin/start_abc.py PREFIX
 
-The ``LABEL`` strings will be substituted by the ``label`` prefix.
-If neither the environment variable or the ``command`` keyword is
-specified, the calculator will raise a ``NotAvailable`` exception,
-which will make the test-suite skip such tests.
+The ``PREFIX`` strings will be substituted by the ``label`` keyword.
 
 
 Pre- and post-run hooks
