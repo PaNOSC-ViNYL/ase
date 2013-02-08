@@ -55,11 +55,11 @@ class ScriptTestCase(unittest.TestCase):
         except ImportError, ex:
             module = ex.args[0].split()[-1].split('.')[0]
             if module in ['scipy', 'cmr', 'Scientific']:
-                sys.stderr.write('skipped ')
+                sys.__stdout__.write('skipped ')
             else:
                 raise
         except NotAvailable:
-            sys.stderr.write('skipped ')
+            sys.__stdout__.write('skipped ')
 
     def id(self):
         return self.filename
