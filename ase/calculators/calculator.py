@@ -5,10 +5,6 @@ from math import pi, sqrt
 import numpy as np
 
 
-class NotAvailable(Exception):
-    pass
-
-
 class ReadError(Exception):
     pass
 
@@ -373,7 +369,7 @@ class FileIOCalculator(Calculator):
         self.write_input(atoms, properties, system_changes)
         dir, prefix = self.split_label()
         if self.command is None:
-            raise NotAvailable('Please set $%s environment variable ' %
+            raise RuntimeError('Please set $%s environment variable ' %
                                ('ASE_' + self.name.upper() + '_COMMAND') +
                                'or supply the command keyword')
         command = self.command.replace('PREFIX', prefix)
