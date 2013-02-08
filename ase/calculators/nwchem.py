@@ -76,7 +76,9 @@ class NWChem(FileIOCalculator):
     def write_input(self, atoms, properties, system_changes):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
         p = self.parameters
+        p.magmoms = atoms.get_initial_magnetic_moments().tolist()
         p.write(self.label + '.parameters.ase')
+        del p['magmoms']
         f = open(self.label + '.nw', 'w')
         if p.charge is not None:
             f.write('charge %s\n' * p.charge)
@@ -168,8 +170,9 @@ class NWChem(FileIOCalculator):
             symbols.append(words[0])
             positions.append([float(word) for word in words[1:]])
 
-        self.state = Atoms(symbols, positions)
         self.parameters = Parameters.read(self.label + '.parameters.ase')
+        self.state = Atoms(symbols, positions,
+                           magmoms=self.parameters.pop('magmoms'))
         self.read_results()
 
     def read_results(self):
