@@ -193,16 +193,16 @@ The currently supported systems include (issue the commands below **as root**):
 
 - Debian 6.0::
 
-    sudo bash -c 'echo "deb http://widehat.opensuse.org/repositories/home:/dtufys/Debian_6.0 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
-    wget http://widehat.opensuse.org/repositories/home:/dtufys/Debian_6.0/Release.key && sudo apt-key add Release.key && rm Release.key
+    sudo bash -c 'echo "deb http://download.opensuse.org/repositories/home:/dtufys/Debian_6.0 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
+    wget http://download.opensuse.org/repositories/home:/dtufys/Debian_6.0/Release.key && sudo apt-key add Release.key && rm Release.key
     sudo apt-get update
     sudo apt-get install python-ase
     sudo apt-get install python-matplotlib # optionally
 
 - Ubuntu 12.04::
 
-    sudo bash -c 'echo "deb http://widehat.opensuse.org/repositories/home:/dtufys/xUbuntu_12.04 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
-    wget http://widehat.opensuse.org/repositories/home:/dtufys/xUbuntu_12.04/Release.key && sudo apt-key add Release.key && rm Release.key
+    sudo bash -c 'echo "deb http://download.opensuse.org/repositories/home:/dtufys/xUbuntu_12.04 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
+    wget http://download.opensuse.org/repositories/home:/dtufys/xUbuntu_12.04/Release.key && sudo apt-key add Release.key && rm Release.key
     sudo apt-get update
     sudo apt-get install python-ase
     sudo apt-get install python-matplotlib # optionally
