@@ -146,8 +146,10 @@ class ASEC:
                      a=d.get('a'), c=d.get('c'),
                      orthorhombic=args.orthorhombic, cubic=args.cubic)
 
-        M = {'Fe': 2.3, 'Co': 1.2, 'Ni': 0.6}.get(name)
-        if M is not None:
+        M, X = {'Fe': (2.3, 'bcc'),
+                'Co': (1.2, 'hcp'),
+                'Ni': (0.6, 'fcc')}.get(name, (None, None))
+        if M is not None and args.crystal_structure == X:
             atoms.set_initial_magnetic_moments([M] * len(atoms))
 
         return atoms
@@ -156,7 +158,7 @@ class ASEC:
         # create the top-level parser
         parser = argparse.ArgumentParser()
         parser.add_argument('names', nargs='*')
-        parser.add_argument('-t', '--tag', default='',
+        parser.add_argument('-t', '--tag',
                              help='String tag added to filenames.')
         parser.add_argument('-M', '--magnetic-moment',
                              metavar='M1,M2,...',
@@ -217,9 +219,6 @@ class ASEC:
             if 'run' in namespace:
                 self.command = PlugginCommand(self.logfile, args,
                                               namespace.get('run'))
-
-        if args.tag != '':
-            args.tag = '-' + args.tag
 
 
 def run(args=sys.argv[1:]):

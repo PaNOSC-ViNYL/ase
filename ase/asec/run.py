@@ -5,7 +5,7 @@ import traceback
 
 from ase.asec.command import Command
 from ase.calculators.calculator import get_calculator
-from ase.utils import Lock
+from ase.utils import Lock, OpenLock
 from ase.tasks.io import read_json, write_json
 
 
@@ -71,14 +71,17 @@ class RunCommand(Command):
     def run(self, atoms, name):
         args = self.args
 
-        if args.use_lock_file and self.lock is None:
+        if self.lock is None:
             # Create lock object:
-            self.lock = Lock('asec' + args.tag + '.lock')
+            if args.use_lock_file:
+                self.lock = Lock(self.get_filename(ext='lock'))
+            else:
+                self.lock = OpenLock()
 
         skip = False
         if args.use_lock_file:
             try:
-                filename = args.tag + '.json'
+                filename = self.get_filename(ext='json')
                 self.lock.acquire()
                 if os.path.isfile(filename):
                     data = read_json(filename)
@@ -94,7 +97,19 @@ class RunCommand(Command):
         
         if not skip:
             self.set_calculator(atoms, name)
-            self.calculate(atoms, name)
+
+            tstart = time.time()
+            try:
+                data = self.calculate(atoms, name)
+            except KeyboardInterrupt:
+                raise
+            except Exception:
+                self.log(name, 'FAILED')
+                traceback.print_exc(file=self.logfile)
+            else:
+                tstop = time.time()
+                data['time'] = tstop - tstart
+                self.write(name, data)
 
     def set_calculator(self, atoms, name):
         args = self.args
@@ -102,51 +117,37 @@ class RunCommand(Command):
         if getattr(Calculator, 'nolabel', False):
             atoms.calc = Calculator(**str2dict(args.parameters))
         else:
-            atoms.calc = Calculator(name + args.tag,
+            atoms.calc = Calculator(self.get_filename(name),
                                     **str2dict(args.parameters))
 
     def calculate(self, atoms, name):
         args = self.args
 
         data = {}
-        tstart = time.time()
+        for property, method in [('energy', 'get_potential_energy'),
+                                 ('forces', 'get_forces'),
+                                 ('stress', 'get_stress'),
+                                 ('magmom', 'get_magnetic_moment'),
+                                 ('magmoms', 'get_magnetic_moments'),
+                                 ('dipole', 'get_dipole_moment')]:
+            try:
+                x = getattr(atoms, method)()
+            except NotImplementedError:
+                pass
+            else:
+                data[property] = x
 
-        try:
-            for property, method in [('energy', 'get_potential_energy'),
-                                     ('forces', 'get_forces'),
-                                     ('stress', 'get_stress'),
-                                     ('magmom', 'get_magnetic_moment'),
-                                     ('magmoms', 'get_magnetic_moments'),
-                                     ('dipole', 'get_dipole_moment')]:
-                try:
-                    x = getattr(atoms, method)()
-                except NotImplementedError:
-                    pass
-                else:
-                    data[property] = x
+        if args.after:
+            exec args.after in {'atoms': atoms, 'data': data}
+        
+        return data
 
-            if args.after:
-                exec args.after in {'atoms': atoms, 'data': data}
-
-        except KeyboardInterrupt:
-            raise
-        except Exception:
-            self.log(name, 'FAILED')
-            traceback.print_exc(file=self.logfile)
-
-        tstop = time.time()
-        data['time'] = tstop - tstart
-
-        filename = 'asec' + args.tag + '.json'
-        try:
-            if self.lock is not None:
-                self.lock.acquire()
+    def write(self, name, data):
+        filename = self.get_filename(ext='json')
+        with self.lock:
             if os.path.isfile(filename):
                 alldata = read_json(filename)
             else:
                 alldata = {}
             alldata[name] = data
             write_json(filename, alldata)
-        finally:
-            if self.lock is not None:
-                self.lock.release()

@@ -14,6 +14,25 @@ class Command:
     def add_parser(cls, subparser):
         pass
 
+    def get_filename(self, name=None, ext=None):
+        if name is None:
+            if self.args.tag is None:
+                filename = 'asec'
+            else:
+                filename = self.args.tag
+        else:
+            if '.' in name:
+                name = name.rsplit('.', 1)[0]
+            if self.args.tag is None:
+                filename = name
+            else:
+                filename = name + '-' + self.args.tag
+
+        if ext:
+            filename += '.' + ext
+
+        return filename
+
     def run(self, atoms, name):
         pass
 
