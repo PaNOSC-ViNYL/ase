@@ -250,9 +250,12 @@ class NWChem(FileIOCalculator):
                 '1   0 0 1'
                 ]:
                 if line.find(component) != -1:
-                    value = float(line.split(component)[1].split()[0])  # total dipole component
+                    value = float(line.split(component)[1].split()[0])
                     value = value * Bohr
                     dipolemoment.append(value)
+        if len(dipolemoment) == 0:
+            assert len(self.state) == 1
+            dipolemoment = [0.0, 0.0, 0.0]
         return np.array(dipolemoment)
 
     def read_energy(self):
