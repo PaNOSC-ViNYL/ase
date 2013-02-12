@@ -134,7 +134,7 @@ class Calculator:
 
     """Base-class for all ASE calculators."""
 
-    def __init__(self, label=None, mode='rw', output=None, atoms=None,
+    def __init__(self, label=None, iomode='rw', output=None, atoms=None,
                  **kwargs):
         """Basic calculator implementation.
 
@@ -152,13 +152,13 @@ class Calculator:
 
         self.label = label
 
-        if label is not None and mode in ['r', 'rw']:
+        if label is not None and iomode in ['r', 'rw']:
             try:
                 self.read()
             except ReadError:
                 self.reset()
 
-        if mode == 'r':
+        if iomode == 'r':
             self.label = output
 
         if atoms is not None:
@@ -356,9 +356,9 @@ class FileIOCalculator(Calculator):
 
     command = None
 
-    def __init__(self, label=None, mode='rw', output=None,
+    def __init__(self, label=None, iomode='rw', output=None,
                  atoms=None, command=None, **kwargs):
-        Calculator.__init__(self, label, mode, output, atoms, **kwargs)
+        Calculator.__init__(self, label, iomode, output, atoms, **kwargs)
         if command is not None:
             self.command = command
         else:

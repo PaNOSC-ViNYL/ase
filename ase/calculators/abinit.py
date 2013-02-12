@@ -66,7 +66,8 @@ class Abinit(FileIOCalculator):
     notimplemented = ['dipole', 'magmoms']
     command = 'abinis < PREFIX.files > PREFIX.log'
 
-    def __init__(self, label='abinit', mode='rw', output='abinit', atoms=None, 
+    def __init__(self, label='abinit', iomode='rw', output='abinit',
+                 atoms=None, 
                  xc='LDA',
                  width=0.1,
                  smearing='fermi-dirac',
@@ -130,7 +131,7 @@ class Abinit(FileIOCalculator):
         self.species = None
         self.ppp_list = None
 
-        FileIOCalculator.__init__(self, label, mode, output, atoms,
+        FileIOCalculator.__init__(self, label, iomode, output, atoms,
                                   xc=xc,
                                   width=width,
                                   smearing=smearing,
@@ -186,7 +187,7 @@ class Abinit(FileIOCalculator):
             os.remove(filename)
 
         param = self.parameters
-        param.write(self.label + '.parameters.ase')
+        param.write(self.label + '.ase')
 
         fh = open(self.label + '.in', 'w')
         inp = {}
@@ -296,7 +297,7 @@ class Abinit(FileIOCalculator):
             return
 
         self.state = read_abinit(self.label + '.in')
-        self.parameters = Parameters.read(self.label + '.parameters.ase')
+        self.parameters = Parameters.read(self.label + '.ase')
 
         self.initialize(self.state)
         self.read_results()

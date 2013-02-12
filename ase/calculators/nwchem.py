@@ -24,7 +24,8 @@ class KPoint:
 class NWChem(FileIOCalculator):
     notimplemented = ['stress', 'magmoms']
     command = 'nwchem PREFIX.nw > PREFIX.out'
-    def __init__(self, label='nwchem', mode='rw', output='nwchem',
+
+    def __init__(self, label='nwchem', iomode='rw', output='nwchem',
                  atoms=None,
                  xc='LDA',
                  smearing='gaussian',
@@ -48,7 +49,7 @@ class NWChem(FileIOCalculator):
                  raw='', # additional outside of dft block control string
                  **kwargs):
         """Construct NWchem-calculator object."""
-        FileIOCalculator.__init__(self, label, mode, output, atoms,
+        FileIOCalculator.__init__(self, label, iomode, output, atoms,
                                   xc=xc,
                                   width=width,
                                   smearing=smearing,
@@ -77,7 +78,7 @@ class NWChem(FileIOCalculator):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
         p = self.parameters
         p.magmoms = atoms.get_initial_magnetic_moments().tolist()
-        p.write(self.label + '.parameters.ase')
+        p.write(self.label + '.ase')
         del p['magmoms']
         f = open(self.label + '.nw', 'w')
         if p.charge is not None:
@@ -170,7 +171,7 @@ class NWChem(FileIOCalculator):
             symbols.append(words[0])
             positions.append([float(word) for word in words[1:]])
 
-        self.parameters = Parameters.read(self.label + '.parameters.ase')
+        self.parameters = Parameters.read(self.label + '.ase')
         self.state = Atoms(symbols, positions,
                            magmoms=self.parameters.pop('magmoms'))
         self.read_results()
