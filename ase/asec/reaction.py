@@ -1,3 +1,7 @@
+from collections import Counter
+
+import numpy as np
+
 from ase.asec.command import Command
 
 
@@ -5,13 +9,30 @@ class ReactionCommand(Command):
     @classmethod
     def add_parser(cls, subparser):
         parser = subparser.add_parser('reaction', help='reaction ...')
-        cls.add_arguments(parser)
 
-    @classmethod
-    def add_arguments(cls, parser):
-        parser.add_argument('formula')
+    def __init__(self, logfile, args):
+        Command.__init__(self, logfile, args)
+        self.count = {}
+        self.data = self.read()
 
-    def run(self):
-        a=np.array([(1,2,0),(2,4,0),(0,10,10),(0,10,10)])
-        u,s,v=np.linalg.svd(a)
-        print v[-1]/v[-1,0]
+    def run(self, atoms, name):
+        self.count[name] = Counter(atoms.numbers)
+    
+    def finalize(self):
+        numbers = set()
+        for c in self.count.values():
+            numbers.update(c.keys())
+        print numbers
+        a = []
+        for name in self.args.names:
+            a.append([self.count[name].get(Z, 0) for Z in numbers])
+            
+        print a
+        u, s, v = np.linalg.svd(a)
+        coefs = u[:, -1] / u[0, -1]
+        energy = 0.0
+        for c, name in zip(coefs, self.args.names):
+            e = self.data[name]['energy']
+            energy += c * e
+            print '%10.5f %f %s' % (c, e, name)
+        print energy, 'ev'

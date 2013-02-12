@@ -11,6 +11,7 @@ from ase.structure import molecule
 from ase.lattice import bulk
 from ase.atoms import Atoms, string2symbols
 from ase.data import ground_state_magnetic_moments
+from ase.asec.plugin import PluginCommand
 
 
 def expand(names):
@@ -44,8 +45,6 @@ class ASEC:
 
     def run(self):
         args = self.args
-        print args
-
         expand(args.names)
 
         atoms = None
@@ -54,6 +53,8 @@ class ASEC:
                 del atoms.calc
             atoms = self.build(name)
             self.command.run(atoms, name)
+
+        self.command.finalize()
 
         return atoms
 
@@ -186,14 +187,13 @@ class ASEC:
                         help='Use cubic unit cell.')
         parser.add_argument('-r', '--repeat',
                         help='Repeat unit cell.  Use "-r 2" or "-r 2,3,1".')
-        parser.add_argument('--script',
-                        help='Repeat unit cell.  Use "-r 2" or "-r 2,3,1".')
+        parser.add_argument('--plugin')
 
         subparsers = parser.add_subparsers(dest='subparser_name',
                                            help='sub-command help')
 
         commands = {}
-        for command in ['run', 'optimize', 'eos', 'write', 'plugin',
+        for command in ['run', 'optimize', 'eos', 'write',
                         'reaction', 'view', 'python']:
             classname = command.title() + 'Command'
             module = __import__('ase.asec.' + command, {}, None, [classname])
@@ -204,56 +204,22 @@ class ASEC:
 
         args = self.args = parser.parse_args(args)
 
-        if args.script:
-            with open(args.script) as f:
+        self.command = commands[args.subparser_name](self.logfile, args)
+
+        if args.plugin:
+            with open(args.plugin) as f:
                 script = f.read()
             namespace = {}
             exec script in namespace
             if 'names' in namespace and len(args.names) == 0:
                 args.names = namespace['names']
             self.build_function = namespace.get('build')
-
-        self.command = commands[args.subparser_name](self.logfile, args)
+            if 'run' in namespace:
+                self.command = PlugginCommand(self.logfile, args,
+                                              namespace.get('run'))
 
         if args.tag != '':
             args.tag = '-' + args.tag
-
-
-usage = """\
-Usage: ase [calculator] [task] [options] atoms(s)
-
-%s
-task:       'molecule', 'bulk' or the name of Python script that instantiates
-            a Task object.  Default value is 'molecule'.
-atomss:    chemical formulas or filenames of files containing the atomic
-            structure.
-
-Try "ase molecule --help" or "ase bulk --help".
-    def check_occupation_numbers(self, config):
-    #Check that occupation numbers are integers and sum
-    #    to desired magnetic moment.
-        if config.pbc.any():
-            return
-        calc = config.get_calculator()
-        try:
-            mref = abs(config.get_initial_magnetic_moments().sum())
-            nspins = calc.get_number_of_spins()
-            mcalc = 0.0
-            for s in range(nspins):
-                f = calc.get_occupation_numbers(spin=s)
-                if abs((f.round() - f).sum()) > 0.0001:
-                    raise RuntimeError('Fractional occupation numbers?! ' + \
-                                       str(f) + ' for spin ' + str(s))
-                mcalc += abs(f).sum() * (-1)**s
-            mcalc = abs(mcalc)
-            if mref > 0.0:
-                if  abs(mcalc - mref) > 0.0001:
-                    raise RuntimeError('Incorrect magnetic moment?! ' + \
-                                       str(mcalc) + ' vs ' + str(mref))
-
-        except AttributeError:
-            pass
-"""
 
 
 def run(args=sys.argv[1:]):

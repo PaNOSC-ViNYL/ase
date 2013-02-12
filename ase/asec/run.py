@@ -99,7 +99,11 @@ class RunCommand(Command):
     def set_calculator(self, atoms, name):
         args = self.args
         Calculator = get_calculator(args.calculator)
-        atoms.calc = Calculator(name + args.tag, **str2dict(args.parameters))
+        if getattr(Calculator, 'nolabel', False):
+            atoms.calc = Calculator(**str2dict(args.parameters))
+        else:
+            atoms.calc = Calculator(name + args.tag,
+                                    **str2dict(args.parameters))
 
     def calculate(self, atoms, name):
         args = self.args
