@@ -85,6 +85,8 @@ class NWChem(FileIOCalculator):
             f.write('charge %s\n' * p.charge)
         write_nwchem(f, atoms, p.geometry)
 
+        f.write('start\n')
+
         if p.basispar is not None:
             basispar = 'basis ' + p.basispar
         else:
@@ -140,6 +142,8 @@ class NWChem(FileIOCalculator):
                 raise RuntimeError('Noninteger multiplicity not possible. ' +
                                    'Check initial magnetic moments.')
             f.write('  mult %d\n' % mult)
+            if mult > 1:
+                f.write('  odft\n')
             for key in sorted(p.keys()):
                 if key in ['charge', 'geometry', 'basis', 'basispar', 'ecp',
                            'so', 'xc', 'spinorbit', 'convergence', 'smearing',
