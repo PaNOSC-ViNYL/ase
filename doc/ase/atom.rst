@@ -51,7 +51,7 @@ array([-1.,  0.])
 Another example:
 
 >>> for atom in bulk:
-...     if atom.symbol = 'Ni':
+...     if atom.symbol == 'Ni':
 ...         atom.magmom = 0.7  # set initial magnetic moment
     
 
