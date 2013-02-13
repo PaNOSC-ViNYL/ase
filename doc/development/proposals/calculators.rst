@@ -11,6 +11,7 @@ The goal is to have ASE calculators:
 * that share more code
 * are more uniform to use
 * are better tested
+* are portable
 
 Setting some standards is a good thing, but we should also be careful
 not to set too strict rules that could limit each calculator to the
@@ -23,7 +24,7 @@ Behavior
 ========
 
 When a calculator calculates the energy, forces, stress tensor, total
-magnetic momen, atomic magnetic moments or dipole moment, it should
+magnetic moment, atomic magnetic moments or dipole moment, it should
 store a copy of the system (atomic numbers, atomic positions, unit
 cell and boundary conditions).  When asked again, it should return the
 value already calculated if the system hasn't been changed.
@@ -218,6 +219,8 @@ directly or apended to by using the ``attach_callback(when, function,
 
 Implementation
 ==============
+
+* Portability (Linux/Windows): ``os.system('Linux commands')`` not allowed
 
 * Common base class for all calculators: ``Calculator``.  Takes care
   of restart from file logic, handles setting of parameters and checks
