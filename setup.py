@@ -85,6 +85,8 @@ class test(Command):
 
         if self.calculators is not None:
             calculators = self.calculators.split(',')
+        elif 'ASE_CALCULATORS' in os.environ:
+            calculators = os.environ['ASE_CALCULATORS'].split(',')
         else:
             calculators = []
         from ase.test import test as _test
