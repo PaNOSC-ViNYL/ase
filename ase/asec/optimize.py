@@ -30,7 +30,6 @@ class OptimizeCommand(RunCommand):
                           trajectory=self.get_filename(name, 'traj'),
                           logfile=self.logfile)
         optimizer.run(fmax=args.maximum_force)
-
         data = RunCommand.calculate(self, atoms, name)
 
         if hasattr(optimizer, 'force_calls'):

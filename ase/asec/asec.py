@@ -200,7 +200,7 @@ class ASEC:
             classname = command.title() + 'Command'
             module = __import__('ase.asec.' + command, {}, None, [classname])
             cls = getattr(module, classname)
-            #cls._calculator = '...'
+            cls._calculator = self.calculator
             cls.add_parser(subparsers)
             commands[command] = cls
 
@@ -217,14 +217,15 @@ class ASEC:
                 args.names = namespace['names']
             self.build_function = namespace.get('build')
             if 'run' in namespace:
-                self.command = PlugginCommand(self.logfile, args,
+                self.command = PluginCommand(self.logfile, args,
                                               namespace.get('run'))
 
 
-def run(args=sys.argv[1:]):
+def run(args=sys.argv[1:], calculator=None):
     if isinstance(args, str):
         args = args.split(' ')
     runner = ASEC()
+    runner.calculator = calculator
     runner.parse(args)
     atoms = runner.run()
     return atoms

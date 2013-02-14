@@ -4,9 +4,9 @@ import traceback
 from ase.asec.asec import run
 
 
-def main():
+def main(calculator=None):
     try:
-        run()
+        run(calculator=calculator)
     except (KeyboardInterrupt, SystemExit):
         raise
     except Exception:

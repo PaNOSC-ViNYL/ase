@@ -40,5 +40,5 @@ class Command:
         pass
     
     def read(self):
-        filename = 'asec' + self.args.tag + '.json'
+        filename = self.get_filename(ext='json')
         return read_json(filename)
