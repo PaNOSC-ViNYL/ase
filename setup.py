@@ -65,14 +65,15 @@ package_data={'ase': ['lattice/spacegroup/spacegroup.dat']}
 
 class test(Command):
     description = 'build and run test suite; exit code is number of failures'
-    user_options = []
+    user_options = [('calculators=', 'c',
+                     'Comma separated list of calculators to test')]
     
     def __init__(self, dist):
         Command.__init__(self, dist)
         self.sub_commands = ['build']
 
     def initialize_options(self):
-        pass
+        self.calculators = None
 
     def finalize_options(self):
         pass
@@ -82,6 +83,10 @@ class test(Command):
         buildcmd = self.get_finalized_command('build')
         sys.path.insert(0, buildcmd.build_lib)
 
+        if self.calculators is not None:
+            calculators = self.calculators.split(',')
+        else:
+            calculators = []
         from ase.test import test as _test
         testdir = '%s/testase-tempfiles' % buildcmd.build_base
         origcwd = os.getcwd()
@@ -90,7 +95,7 @@ class test(Command):
         os.mkdir(testdir)
         os.chdir(testdir)
         try:
-            results = _test(2, display=False)
+            results = _test(2, calculators, display=False)
             if results.failures or results.errors:
                 print >> sys.stderr, 'Test suite failed'
                 raise SystemExit(len(results.failures) + len(results.errors))
