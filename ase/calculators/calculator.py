@@ -27,6 +27,7 @@ special = {'elk': 'ELK',
 
 
 def get_calculator(name):
+    """Return calculator class."""
     if name == 'asap':
         from asap3 import EMT as Calculator
     elif name == 'gpaw':
@@ -85,8 +86,7 @@ def kpts2mp(atoms, kpts, even=False):
 
 
 def normalize_smearing_keyword(smearing):
-    """Normalize smearing string to long names and lower case.
-    """
+    """Normalize smearing string to long names and lower case."""
 
     smearing = smearing.lower()
     if smearing == 'fd':
@@ -99,7 +99,7 @@ def normalize_smearing_keyword(smearing):
 
 
 class Parameters(dict):
-    """Dictionary for parameters
+    """Dictionary for parameters.
     
     Special feature: If param is a Parameters instance, then param.xc
     is a shorthand for param['xc'].
@@ -142,11 +142,16 @@ class Calculator:
         """Basic calculator implementation.
 
         label: str
-            Label for output file.
+            Label used for io.
+        iomode: str
+            Use label for reading and/or for writing.  Must be one of 'r',
+            'rw' and 'w'.
+        output: str
+            For iomode='r', output will be used as label for all files written.
         atoms: Atoms object
             Optional Atoms object to which the calculator will be
-            attached.  If label exists, atoms will get its positions
-            and unit-cell updated form file.
+            attached.  In iomode='r' or 'rw', and label exists, atoms will
+            get its positions and unit-cell updated form file.
         """
 
         self.label = label
@@ -162,6 +167,7 @@ class Calculator:
                 self.reset()
         
         if self.parameters is None:
+            # Use default parameters if they were not read from file: 
             self.parameters = Parameters(deepcopy(self.default_parameters))
 
         if iomode == 'r':
@@ -191,11 +197,23 @@ class Calculator:
         self.results = {}
 
     def read(self):
-        """Read atoms, parameters and calculated properties from file.
+        """Read atoms, parameters and calculated properties from output file.
 
-        This method must set self.state, the parameter dictionary
-        self.parameters and calculated properties self.results like
-        energy and forces."""
+        Read result from file labeled self.label.  Do nothing if file
+        is not there.  If the file is corrupted or contains an error
+        message from the calculation, a ReadError should be
+        raised.  In case of succes, these attributes must set:
+
+        state: Atoms object
+            The state of the atoms from last calculation.
+        parameters: Parameters object
+            The parameter dictionary.
+        results: dict
+            Calculated properties like energy and forces.
+
+        The FileIOCalculator.read() method will typically read state
+        and parameters and get the results dict by calling the
+        read_results() method."""
 
         pass
 
@@ -213,8 +231,6 @@ class Calculator:
     def set(self, **kwargs):
         """Set parameters like set(key1=value1, key2=value2, ...).
         
-        The special keyword 'parameters' ...
-
         A dictionary containing the parameters that have been changed
         is returned.
 
@@ -222,7 +238,9 @@ class Calculator:
         chaneged parameters and decide if a call to reset() is needed.
         If the changed parameters are harmless, like a change in
         verbosity, then there is no need to call reset().
-        """
+
+        The special keyword 'parameters' can be used to read
+        parameters from a file."""
 
         if 'parameters' in kwargs:
             filename = kwargs.pop('parameters')
@@ -250,8 +268,9 @@ class Calculator:
         return changed_parameters
 
     def check_state(self, atoms):
+        """Check for system changes since last calculation."""
         if self.state is None:
-            system_changes = ['positions', 'numbers', 'cell', 'pbc']
+            system_changes = ['positions', 'numbers', 'cell', 'pbc', 'magmoms']
         else:
             system_changes = []
             if not equal(self.state.positions, atoms.positions):
@@ -317,7 +336,7 @@ class Calculator:
         self.state = atoms.copy()
         try:
             self.calculate(atoms, properties, system_changes)
-        except:
+        except Exception:
             self.reset()
             raise
         self.call_callbacks('after')
@@ -328,7 +347,7 @@ class Calculator:
         atoms: Atoms object
             Contains positions, unit-cell, ...
         properties: list of str
-            List of what needs to be calculated can be any combination
+            List of what needs to be calculated.  Can be any combination
             of 'energy', 'forces', 'stress', 'dipole', 'magmom' and
             'magmoms'.
         system_changes: list of str
@@ -368,9 +387,7 @@ class Calculator:
 
 
 class FileIOCalculator(Calculator):
-    """Base class for calculators that write input files and read output files.
-
-    """
+    "Base class for calculators that write input files and read output files."
 
     command = None
 
@@ -406,13 +423,26 @@ class FileIOCalculator(Calculator):
     def split_label(self):
         """Convert label into directory and prefix.
 
-        """
+        Examples:
+
+        * label='abc': ('.', 'abc')
+        * label='dir1/abc': ('dir1', 'abc')
+
+        Calculators that must write results to files with fixed names
+        can overwrite this method so that the directory is set to all
+        of label."""
+
         dir, prefix = os.path.split(self.label)
         if dir == '':
             dir = os.curdir
         return dir, prefix
 
     def write_input(self, atoms, properties, system_changes):
+        """Write input file(s).
+
+        Call this method first in subclasses so that directories are
+        created automatically."""
+
         dir, prefix = self.split_label()
         if dir != os.curdir and not os.path.isdir(dir):
             os.makedirs(dir)
