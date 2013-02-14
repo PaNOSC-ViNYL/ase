@@ -65,6 +65,11 @@ class RunCommand(Command):
         parser.add_argument('-l', '--use-lock-file', action='store_true',
                             help='Skip calculations where the json ' +
                            'lock-file or result file already exists.')
+        parser.add_argument(
+            '--properties', default='efsdMm',
+            help='Default value is "efsdMm" meaning calculate energy, ' +
+            'forces, stress, dipole moment, total magnetic moment and ' +
+            'atomic magnetic moments.')
     
     lock = None
         
@@ -124,12 +129,13 @@ class RunCommand(Command):
         args = self.args
 
         data = {}
-        for property, method in [('energy', 'get_potential_energy'),
-                                 ('forces', 'get_forces'),
-                                 ('stress', 'get_stress'),
-                                 ('magmom', 'get_magnetic_moment'),
-                                 ('magmoms', 'get_magnetic_moments'),
-                                 ('dipole', 'get_dipole_moment')]:
+        for p in args.properties:
+            property, method = {'e': ('energy', 'get_potential_energy'),
+                                'f': ('forces', 'get_forces'),
+                                's': ('stress', 'get_stress'),
+                                'd': ('dipole', 'get_dipole_moment'),
+                                'M': ('magmom', 'get_magnetic_moment'),
+                                'm': ('magmoms', 'get_magnetic_moments')}[p]
             try:
                 x = getattr(atoms, method)()
             except NotImplementedError:
