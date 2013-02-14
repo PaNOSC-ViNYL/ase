@@ -25,45 +25,37 @@ class NWChem(FileIOCalculator):
     notimplemented = ['stress', 'magmoms']
     command = 'nwchem PREFIX.nw > PREFIX.out'
 
+    default_parameters = dict(
+        xc='LDA',
+        smearing='gaussian',
+        width=0.001 * Hartree,
+        charge=None,
+        task='gradient',#energy', # use 'gradient' in optimizations!
+        # Warning: nwchem centers atoms by default
+        # see ase-developers/2012-March/001356.html
+        geometry='nocenter',
+        convergence = {'energy'  : None,
+                       'density' : None,
+                       'gradient': None,
+                       'lshift': None,
+                       # set lshift to 0.0 for nolevelshifting
+                       },
+        basis='3-21G',
+        basispar=None,
+        ecp=None,
+        so=None,
+        spinorbit=False,
+        raw='') # additional outside of dft block control string
+
     def __init__(self, label='nwchem', iomode='rw', output='nwchem',
-                 atoms=None,
-                 xc='LDA',
-                 smearing='gaussian',
-                 width=0.001 * Hartree,
-                 charge=None,
-                 task='gradient',#energy', # use 'gradient' in optimizations!
-                 # Warning: nwchem centers atoms by default
-                 # see ase-developers/2012-March/001356.html
-                 geometry='nocenter',
-                 convergence = {'energy'  : None,
-                                'density' : None,
-                                'gradient': None,
-                                'lshift': None,
-                                # set lshift to 0.0 for nolevelshifting
-                                },
-                 basis='3-21G',
-                 basispar=None,
-                 ecp=None,
-                 so=None,
-                 spinorbit=False,
-                 raw='', # additional outside of dft block control string
-                 **kwargs):
+                 atoms=None, **kwargs):
         """Construct NWchem-calculator object."""
-        FileIOCalculator.__init__(self, label, iomode, output, atoms,
-                                  xc=xc,
-                                  width=width,
-                                  smearing=smearing,
-                                  charge=charge,
-                                  task=task,
-                                  geometry=geometry,
-                                  convergence=convergence,
-                                  basis=basis,
-                                  basispar=basispar,
-                                  ecp=ecp,
-                                  so=so,
-                                  spinorbit=spinorbit,
-                                  raw=raw,
-                                  **kwargs)
+        FileIOCalculator.__init__(self, label, iomode, output, atoms, **kwargs)
+
+    def set(self, **kwargs):
+        changed_parameters = FileIOCalculator.set(self, **kwargs)
+        if changed_parameters:
+            self.reset()
 
     def check_state(self, atoms):
         system_changes = FileIOCalculator.check_state(self, atoms)

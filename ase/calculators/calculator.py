@@ -1,6 +1,7 @@
 import os
 import subprocess
 from math import pi, sqrt
+from copy import deepcopy
 
 import numpy as np
 
@@ -132,6 +133,8 @@ class Parameters(dict):
 class Calculator:
     notimplemented = []  # properties calculator can't handle
 
+    default_parameters = {}
+
     """Base-class for all ASE calculators."""
 
     def __init__(self, label=None, iomode='rw', output=None, atoms=None,
@@ -146,17 +149,20 @@ class Calculator:
             and unit-cell updated form file.
         """
 
+        self.label = label
+
         self.state = None  # copy of atoms object from last calculation
         self.results = {}  # calculated properties (energy, forces, ...)
-        self.parameters = Parameters()  # calculational parameters
-
-        self.label = label
+        self.parameters = None  # calculational parameters
 
         if label is not None and iomode in ['r', 'rw']:
             try:
-                self.read()
+                self.read()  # read parameters, state and results
             except ReadError:
                 self.reset()
+        
+        if self.parameters is None:
+            self.parameters = Parameters(deepcopy(self.default_parameters))
 
         if iomode == 'r':
             self.label = output
@@ -178,11 +184,8 @@ class Calculator:
         if not hasattr(self, 'name'):
             self.name = self.__class__.__name__
 
-    def reset(self, changed_parameters=[]):
-        """Clear all information from old calculation.
-
-        Subclasses can decide to bypass this if the changed_parameters
-        are harmless like a change in verbosity."""
+    def reset(self):
+        """Clear all information from old calculation."""
 
         self.state = None
         self.results = {}
@@ -213,7 +216,12 @@ class Calculator:
         The special keyword 'parameters' ...
 
         A dictionary containing the parameters that have been changed
-        is returned.  Subclasses may use this information to do stuff.
+        is returned.
+
+        Subclasses must implement a set() method that will look at the
+        chaneged parameters and decide if a call to reset() is needed.
+        If the changed parameters are harmless, like a change in
+        verbosity, then there is no need to call reset().
         """
 
         if 'parameters' in kwargs:
@@ -225,13 +233,19 @@ class Calculator:
         changed_parameters = {}
 
         for key, value in kwargs.items():
-            if (key not in self.parameters or
-                not equal(value, self.parameters[key])):
+            oldvalue = self.parameters.get(key)
+            if key not in self.parameters or not equal(value, oldvalue):
+                if isinstance(oldvalue, dict):
+                    # Special treatment for dictionary parameters:
+                    for name in value:
+                        if name not in oldvalue:
+                            raise KeyError(
+                                'Unknown subparameter "%s" in '
+                                'dictionary parameter "%s"' % (name, key))
+                    oldvalue.update(value)
+                    value = oldvalue
                 changed_parameters[key] = value
                 self.parameters[key] = value
-
-        if changed_parameters:
-            self.reset(changed_parameters)
 
         return changed_parameters
 
@@ -301,7 +315,11 @@ class Calculator:
         """Call callbacks before and after actual calculation."""
         self.call_callbacks('before')
         self.state = atoms.copy()
-        self.calculate(atoms, properties, system_changes)
+        try:
+            self.calculate(atoms, properties, system_changes)
+        except:
+            self.reset()
+            raise
         self.call_callbacks('after')
 
     def calculate(self, atoms, properties, system_changes):

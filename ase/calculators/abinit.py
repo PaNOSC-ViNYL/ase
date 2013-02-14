@@ -66,17 +66,17 @@ class Abinit(FileIOCalculator):
     notimplemented = ['dipole', 'magmoms']
     command = 'abinis < PREFIX.files > PREFIX.log'
 
+    default_parameters = dict(
+        xc='LDA',
+        width=0.1,
+        smearing='fermi-dirac',
+        kpts=None,
+        charge=0.0,
+        raw=None,
+        pps='fhi')
+
     def __init__(self, label='abinit', iomode='rw', output='abinit',
-                 atoms=None, 
-                 xc='LDA',
-                 width=0.1,
-                 smearing='fermi-dirac',
-                 kpts=None,
-                 charge=0.0,
-                 raw=None,
-                 pps='fhi',
-                 scratch=None,
-                 **kwargs):
+                 atoms=None, scratch=None, **kwargs):
         """Construct ABINIT-calculator object.
 
         Parameters
@@ -123,23 +123,12 @@ class Abinit(FileIOCalculator):
 
         """
 
-        if pps not in ['fhi', 'hgh', 'hgh.sc', 'hgh.k', 'tm', 'paw']:
-            raise ValueError('Unexpected PP identifier %s' % pps)
-
         self.scratch = scratch
         
         self.species = None
         self.ppp_list = None
 
-        FileIOCalculator.__init__(self, label, iomode, output, atoms,
-                                  xc=xc,
-                                  width=width,
-                                  smearing=smearing,
-                                  kpts=kpts,
-                                  charge=charge,
-                                  raw=raw,
-                                  pps=pps,
-                                  **kwargs)
+        FileIOCalculator.__init__(self, label, iomode, output, atoms, **kwargs)
 
     def check_state(self, atoms):
         system_changes = FileIOCalculator.check_state(self, atoms)
@@ -147,6 +136,11 @@ class Abinit(FileIOCalculator):
         if 'pbc' in system_changes:
             system_changes.remove('pbc')
         return system_changes
+
+    def set(self, **kwargs):
+        changed_parameters = FileIOCalculator.set(self, **kwargs)
+        if changed_parameters:
+            self.reset()
 
     def write_input(self, atoms, properties, system_changes):
         """Write input parameters to files-file."""
@@ -395,11 +389,14 @@ class Abinit(FileIOCalculator):
         else:
             xcname = 'LDA'
 
+        pps = self.parameters.pps
+        if pps not in ['fhi', 'hgh', 'hgh.sc', 'hgh.k', 'tm', 'paw']:
+            raise ValueError('Unexpected PP identifier %s' % pps)
+
         for Z in self.species:
             symbol = chemical_symbols[abs(Z)]
             number = atomic_numbers[symbol]
 
-            pps = self.parameters.pps
             if pps == 'fhi':
                 name = '%02d-%s.%s.fhi' % (number, symbol, xcname)
             elif pps in ['paw']:
