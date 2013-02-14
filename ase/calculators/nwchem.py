@@ -134,8 +134,6 @@ class NWChem(FileIOCalculator):
                 raise RuntimeError('Noninteger multiplicity not possible. ' +
                                    'Check initial magnetic moments.')
             f.write('  mult %d\n' % mult)
-            if mult > 1:
-                f.write('  odft\n')
             for key in sorted(p.keys()):
                 if key in ['charge', 'geometry', 'basis', 'basispar', 'ecp',
                            'so', 'xc', 'spinorbit', 'convergence', 'smearing',
