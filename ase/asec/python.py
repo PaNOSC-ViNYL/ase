@@ -1,7 +1,11 @@
 import os
 import sys
-import argparse
 import tempfile
+
+try:
+    import argparse
+except ImportError:
+    import ase.asec.argparse24 as argparse
 
 from ase.asec.run import RunCommand
 

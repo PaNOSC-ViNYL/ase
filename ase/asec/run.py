@@ -1,7 +1,11 @@
 import os
 import time
-import argparse
 import traceback
+
+try:
+    import argparse
+except ImportError:
+    import ase.asec.argparse24 as argparse
 
 from ase.asec.command import Command
 from ase.calculators.calculator import get_calculator
@@ -150,10 +154,13 @@ class RunCommand(Command):
 
     def write(self, name, data):
         filename = self.get_filename(ext='json')
-        with self.lock:
+        try:
+            self.lock.acquire()
             if os.path.isfile(filename):
                 alldata = read_json(filename)
             else:
                 alldata = {}
             alldata[name] = data
             write_json(filename, alldata)
+        finally:
+            self.lock.release()

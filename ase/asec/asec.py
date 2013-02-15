@@ -1,6 +1,5 @@
 import sys
-import argparse
-
+    
 import numpy as np
 
 from ase.parallel import world
@@ -12,6 +11,11 @@ from ase.lattice import bulk
 from ase.atoms import Atoms, string2symbols
 from ase.data import ground_state_magnetic_moments
 from ase.asec.plugin import PluginCommand
+
+try:
+    import argparse
+except ImportError:
+    from ase.asec import argparse24 as argparse#ArgumentParser
 
 
 def expand(names):
@@ -30,7 +34,7 @@ def expand(names):
 
 
 class ASEC:
-    def __init__(self):
+    def __init__(self, args=None):
         if world.rank == 0:
             self.logfile = sys.stdout
         else:
@@ -38,13 +42,30 @@ class ASEC:
 
         self.command = None
         self.build_function = None
-        self.args = None
+        self.args = args
 
     def log(self, *args, **kwargs):
         prnt(file=self.logfile, *args, **kwargs)
 
     def run(self):
         args = self.args
+
+        cls = self.get_command_class(args.subparser_name)
+        command = cls(self.logfile, args)
+
+        if args.plugin:
+            f = open(args.plugin)
+            script = f.read()
+            f.close()
+            namespace = {}
+            exec script in namespace
+            if 'names' in namespace and len(args.names) == 0:
+                args.names = namespace['names']
+            self.build_function = namespace.get('build')
+            if 'run' in namespace:
+                command = PluginCommand(self.logfile, args,
+                                        namespace.get('run'))
+
         expand(args.names)
 
         atoms = None
@@ -52,9 +73,9 @@ class ASEC:
             if atoms is not None:
                 del atoms.calc
             atoms = self.build(name)
-            self.command.run(atoms, name)
+            command.run(atoms, name)
 
-        self.command.finalize()
+        command.finalize()
 
         return atoms
 
@@ -197,28 +218,17 @@ class ASEC:
         commands = {}
         for command in ['run', 'optimize', 'eos', 'write',
                         'reaction', 'view', 'python']:
-            classname = command.title() + 'Command'
-            module = __import__('ase.asec.' + command, {}, None, [classname])
-            cls = getattr(module, classname)
+            cls = self.get_command_class(command)
             cls._calculator = self.calculator
             cls.add_parser(subparsers)
-            commands[command] = cls
 
-        args = self.args = parser.parse_args(args)
+        self.args = parser.parse_args(args)
 
-        self.command = commands[args.subparser_name](self.logfile, args)
-
-        if args.plugin:
-            with open(args.plugin) as f:
-                script = f.read()
-            namespace = {}
-            exec script in namespace
-            if 'names' in namespace and len(args.names) == 0:
-                args.names = namespace['names']
-            self.build_function = namespace.get('build')
-            if 'run' in namespace:
-                self.command = PluginCommand(self.logfile, args,
-                                              namespace.get('run'))
+    def get_command_class(self, name):
+        classname = name.title() + 'Command'
+        module = __import__('ase.asec.' + name, {}, None, [classname])
+        cls = getattr(module, classname)
+        return cls
 
 
 def run(args=sys.argv[1:], calculator=None):

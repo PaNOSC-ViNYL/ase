@@ -1,5 +1,3 @@
-from collections import Counter
-
 import numpy as np
 
 from ase.asec.command import Command
@@ -16,6 +14,7 @@ class ReactionCommand(Command):
         self.data = self.read()
 
     def run(self, atoms, name):
+        from collections import Counter
         self.count[name] = Counter(atoms.numbers)
     
     def finalize(self):
