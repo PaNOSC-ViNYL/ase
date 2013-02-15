@@ -15,7 +15,7 @@ from ase.asec.plugin import PluginCommand
 try:
     import argparse
 except ImportError:
-    from ase.asec import argparse24 as argparse#ArgumentParser
+    from ase.asec import argparse24 as argparse
 
 
 def expand(names):

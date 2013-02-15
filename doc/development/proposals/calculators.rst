@@ -17,8 +17,6 @@ Setting some standards is a good thing, but we should also be careful
 not to set too strict rules that could limit each calculator to the
 lowest common denominator.
 
-So far, this proposal is mostly ideas and questions.  
-
 
 Behavior
 ========
@@ -40,7 +38,7 @@ Standards parameters
 The standard keywords that all calculators must use (if they make
 sense) are: ``xc``, ``kpts``, ``smearing``, ``width``, ``charge`` and
 ``nbands``.  Each calculator will have its own default values for
-these parameters --- see recommendations below.  I addition,
+these parameters --- see recommendations below.  In addition,
 calculators will typically have many other parameters.  The units are
 eV and Å.
 
@@ -53,7 +51,7 @@ object.
 
 :kpts:
 
-  * ``None``: Gamma-point
+  * ``(1,1,1)``: Gamma-point
   
   * ``(n1,n2,n3)``: Monkhorst-Pack grid
   
@@ -63,7 +61,7 @@ object.
     reciprocal lattice vectors
   
   * ``kpts=3.5``: `\vec k`-point density as in 3.5 `\vec k`-points per
-    Å\ `^{-1}`.
+    Å\ `^{-1}`
 
 :smearing:
 
