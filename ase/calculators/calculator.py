@@ -131,11 +131,13 @@ class Parameters(dict):
 
 
 class Calculator:
-    notimplemented = []  # properties calculator can't handle
+    """Base-class for all ASE calculators."""
+
+    notimplemented = []
+    "Properties calculator can't handle"
 
     default_parameters = {}
-
-    """Base-class for all ASE calculators."""
+    'Default parameters'
 
     def __init__(self, label=None, iomode='rw', output=None, atoms=None,
                  **kwargs):
@@ -390,6 +392,7 @@ class FileIOCalculator(Calculator):
     "Base class for calculators that write input files and read output files."
 
     command = None
+    'Command used to start program'
 
     def __init__(self, label=None, iomode='rw', output=None,
                  atoms=None, command=None, **kwargs):

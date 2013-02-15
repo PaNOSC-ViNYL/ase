@@ -11,6 +11,7 @@ The goal is to have ASE calculators:
 * that share more code
 * are more uniform to use
 * are better tested
+* are portable
 
 Setting some standards is a good thing, but we should also be careful
 not to set too strict rules that could limit each calculator to the
@@ -22,11 +23,11 @@ So far, this proposal is mostly ideas and questions.
 Behavior
 ========
 
-When a calculator calculates the energy, forces, stress tensor, atomic
-magnetic moments or dipole moment, it should store a copy of the
-system (atomic numbers, atomic positions, unit cell and boundary
-conditions).  When asked again, it should return the value already
-calculated if the system hasn't been changed.
+When a calculator calculates the energy, forces, stress tensor, total
+magnetic moment, atomic magnetic moments or dipole moment, it should
+store a copy of the system (atomic numbers, atomic positions, unit
+cell and boundary conditions).  When asked again, it should return the
+value already calculated if the system hasn't been changed.
 
 If calculational parameters such as plane wave cutoff or XC-functional
 has been changed the calculator should throw away old calculated
@@ -37,13 +38,14 @@ Standards parameters
 ====================
 
 The standard keywords that all calculators must use (if they make
-sense) are: ``xc``, ``kpts``, ``smearing``, ``width`` and ``nbands``.
-Each calculator will have its own default values for these parameters
---- see recommendations below.  I addition, calculators will typically
-have many other parameters.  The units are eV and Å.
+sense) are: ``xc``, ``kpts``, ``smearing``, ``width``, ``charge`` and
+``nbands``.  Each calculator will have its own default values for
+these parameters --- see recommendations below.  I addition,
+calculators will typically have many other parameters.  The units are
+eV and Å.
 
-Magnetic moments and charges are taken from the
-:class:`~ase.atoms.Atoms` object.
+Initial magnetic moments are taken from the :class:`~ase.atoms.Atoms`
+object.
 
 :xc:
 
@@ -70,12 +72,21 @@ Magnetic moments and charges are taken from the
   * ``'Fermi-Dirac'`` or ``'FD'``
   * ``'Gaussian'``
   * ``'Methfessel-Paxton-n'`` or ``'MPn'``, where `n` is the order
-    (`n=1` is the same as ``'Gaussian'``)
+    (`n=0` is the same as ``'Gaussian'``)
   * or lower-case versions of any of the above
+
+  Recommended value: ``'fermi-dirac'`` with ``width=0.1`` eV.
 
 :width:
 
   The width parameter used for the chosen smearing method (in eV).
+  Recommended value is 0.1 eV combined with ``smearing='fermi-dirac'``
+
+:charge:
+
+  Charge of the system in units of `|e|` (``charge=1`` means one
+  electron has been removed).
+
 
 :nbands:
 
@@ -85,18 +96,48 @@ Magnetic moments and charges are taken from the
 ABC calculator example
 ======================
 
-A calculator should be able to prefix all output files with a given
-label or run the calculation in a directory.  There are three
-possibilities for the first argument of the constructor of a
-calculator object:
+The constructor will look like this::
 
-* name of a file containing all results of a calculation
-* a prefix used for several files containing results
-* name of a directory containing result files with fixed names
+  ABC(label='abc.abc', iomode='rw', output=None, atoms=None, **kwargs)
+
+A calculator should be able to prefix all output files with a given
+label or run the calculation in a directory with a specified name.
+There are three possibilities for the first argument (called
+``label``) of the constructor of a calculator object:
+
+* Name of a file containing all results of a calculation (possibly
+  containing a directory).
+
+* A prefix used for several files containing results.  The label may
+  have both a directory part and a prefix part like ``'LDA/mol1'``.
+
+* Name of a directory containing result files with fixed names.
 
 Each calculator can decide what the default value is: ``None`` for no
-output, ``'-'`` for standard output or something else.  All others
-parameters are given as keyword arguments.
+output, ``'-'`` for standard output or something else.
+
+The second argument (``iomode``) must be one of ``'r'``, ``'rw'`` or
+``'w'``, where ``'rw'`` is the default.  The value of ``iomode`` will
+decide what to use the ``label`` argument for:
+
+``'r'``:
+  Read atomic configuration, input parameters and results from
+  a previous calculation in the ``label`` file(s) or directory if
+  those files exist and are not corrupted
+
+``'w'``:
+  Write atomic configuration, input parameters and results from a
+  new calculation to the ``label`` file(s) or directory
+
+``'rw'``:
+  Both of the above
+
+The third agrument (``output``) can be combined with ``iomode='r'`` in
+the case where one wants to use one label for reading and another for
+writing.
+
+The ``atoms`` argument is discussed below.  All additional parameters
+are given as keyword arguments.
 
 Example:  Do a calculation with ABC calculator and write results to
 :file:`si.abc`:
@@ -106,17 +147,27 @@ Example:  Do a calculation with ABC calculator and write results to
 >>> atoms.get_potential_energy()
 -1.2
 
-An alternative way to do the same thing:
+The default behavior is to read from :file:`si.abc` and also write
+results from following calculations to the same file.  This can be
+changed by using ``ABC('si.abc', 'r', output='si-new.abc')``) or in
+case no reading should be done one can do simlpy do
+``ABC('si-new.abc', 'w')``.
+
+An alternative way to connect atoms and calculator:
 
 >>> atoms = ...
->>> calc = ABC('si.abc', xc='LDA', atoms=atoms)
+>>> calc = ABC('si.abc', atoms=atoms, xc='LDA')
 >>> atoms.get_potential_energy()
 -1.2
 
-This will automatically attach the calculator to the atoms and if
-:file:`si.abc` exists, the atoms will be updated form the file.
+This will automatically attach the calculator to the atoms and if the
+file :file:`si.abc` exists the atoms will be updated form that file.
+This will allow you to use the same script to do the initial
+calculation where :file:`si.abc` does not exist and following
+calculations where atoms may have been moved arround be an
+optimization algorithm.
 
-Start from previous calculation:
+Read atoms with ABC calculator attaced from a previous calculation:
 
 >>> atoms = ABC.read_atoms('si.abc')
 >>> atoms.calc
@@ -124,7 +175,7 @@ Start from previous calculation:
 >>> atoms.get_potential_energy()
 -1.2
 
-The :meth:`read_atoms()` method is equivalent to:
+The class method :meth:`read_atoms()` is equivalent to:
 
 >>> atoms = ABC('si.abc').get_atoms()
 
@@ -138,34 +189,66 @@ If we do:
 
 then the :file:`si.abc` will be overwritten or maybe appended to.
 
-The command used to start the ABC code must be given in an environment
+The command used to start the ABC code can be given in an environment
 variable called :envvar:`ASE_ABC_COMMAND` or as a ``command``
-keyword.  The command can be the actual command to run like ``mpiexec
-abc`` or the name of an executable file that can start the calculator.
-If neither the environment variable or the ``command`` keyword is
-specified, the calculator will raise a ``NotAvailable`` exception,
-which will make the test-suite skip such tests.
+keyword.  The command can look like this::
 
-Pre and post-run hooks:  What should the interface look like?
-Suggestions are welcome.
+  mpiexec abc PREFIX.input > PREFIX.output
 
-Calculators could have ``before`` and ``after`` attributes that are
-lists of ``(function, interval, args, kwargs)`` tuples and then there
-could be an ``add_observer(when, function, interval=1, *args,
-**kwargs)`` method?
+or like this::
+
+  ~/bin/start_abc.py PREFIX
+
+The ``PREFIX`` strings will be substituted by the ``label`` keyword.
+
+
+Pre- and post-run hooks
+=======================
+
+Calculators can call call-back functions before and after a
+calculation.  These are stored in a dictionary called ``callbacks``::
+
+  {'before': [], 'after': []}
+
+The two lists can contain any number of functions specified as
+``(function, args, kwargs)`` tuples.  The lists can be manipulated
+directly or apended to by using the ``attach_callback(when, function,
+*args, **kwargs)`` method, where ``when`` is one of ``'before'`` or
+``'after'``.
 
 
 Implementation
 ==============
 
+* Portability (Linux/Windows): ``os.system('Linux commands')`` not allowed
+
 * Common base class for all calculators: ``Calculator``.  Takes care
-  of file read/write logic, handles setting of parameters and checks
+  of restart from file logic, handles setting of parameters and checks
   for state changes.
+
+* A ``FileIOCalculator`` for the case where we need to:
+
+  * write input file(s)
+  * run Fortran code
+  * read output file(s)
 
 * Helper function to deal with ``kpts`` keyword.
 
 
-Other stuff
-===========
+The Calculator class
+--------------------
 
-Support for ASE's :ref:`command line tool`.
+Here is a description of the base-class:
+
+.. autoclass:: ase.calculators.calculator.Calculator
+   :members:
+   :private-members:
+   :member-order: bysource
+
+The FileIOCalculator class
+--------------------------
+
+.. autoclass:: ase.calculators.calculator.FileIOCalculator
+   :members:
+   :private-members:
+   :member-order: bysource
