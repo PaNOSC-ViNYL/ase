@@ -443,7 +443,7 @@ class FileIOCalculator(Calculator):
             dir = os.curdir
         return dir, prefix
 
-    def write_input(self, atoms, properties, system_changes):
+    def write_input(self, atoms, properties=None, system_changes=None):
         """Write input file(s).
 
         Call this method first in subclasses so that directories are
