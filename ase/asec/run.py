@@ -32,7 +32,7 @@ def str2dict(s, namespace={}, sep='='):
         value = s[i + 1][:m]
         if value[0] == '{':
             assert value[-1] == '}'
-            value = str2dict(value[1:-1], {}, ':')
+            value = str2dict(value[1:-1], namespace, ':')
         else:
             try:
                 value = eval(value, namespace)
@@ -59,7 +59,7 @@ class RunCommand(Command):
                 help='...')
         else:
             parser.add_argument(
-                '-c', '--calculator', default=calculator,
+                '-c', '--calculator', default=calculator.name,
                 help=argparse.SUPPRESS)
             
         parser.add_argument('-p', '--parameters', default='',
@@ -123,11 +123,15 @@ class RunCommand(Command):
     def set_calculator(self, atoms, name):
         args = self.args
         Calculator = get_calculator(args.calculator)
-        if getattr(Calculator, 'nolabel', False):
-            atoms.calc = Calculator(**str2dict(args.parameters))
+        if self._calculator is None:
+            namespace = {}
         else:
-            atoms.calc = Calculator(self.get_filename(name),
-                                    **str2dict(args.parameters))
+            namespace = self._calculator.namespace
+        parameters = str2dict(args.parameters, namespace)
+        if getattr(Calculator, 'nolabel', False):
+            atoms.calc = Calculator(**parameters)
+        else:
+            atoms.calc = Calculator(self.get_filename(name), **parameters)
 
     def calculate(self, atoms, name):
         args = self.args
