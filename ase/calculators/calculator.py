@@ -79,7 +79,7 @@ def kptdensity2monkhorstpack(atoms, kptdensity=3.5, even=True):
 def kpts2mp(atoms, kpts, even=False):
     if kpts is None:
         return (1, 1, 1)
-    if isinstance(kpts, float):
+    if isinstance(kpts, (float, int)):
         return kptdensity2monkhorstpack(atoms, kpts, even)
     else:
         return kpts
