@@ -1,7 +1,7 @@
 import os
+import copy
 import subprocess
 from math import pi, sqrt
-from copy import deepcopy
 
 import numpy as np
 
@@ -170,7 +170,7 @@ class Calculator:
         
         if self.parameters is None:
             # Use default parameters if they were not read from file: 
-            self.parameters = Parameters(deepcopy(self.default_parameters))
+            self.parameters = self.get_default_parameters()
 
         if iomode == 'r':
             self.label = output
@@ -191,6 +191,9 @@ class Calculator:
 
         if not hasattr(self, 'name'):
             self.name = self.__class__.__name__
+
+    def get_default_parameters(self):
+        return Parameters(copy.deepcopy(self.default_parameters))
 
     def reset(self):
         """Clear all information from old calculation."""
