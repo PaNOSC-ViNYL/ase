@@ -76,12 +76,8 @@ class CalculatorFactory:
         Put name in the filename of all created files."""
 
         kpts = self.calculate_kpts(atoms)
-        if 0:#kpts != 'no k-points':
-            try:
-                cname = self.Class().name  # not all calcs have that
-            except (AttributeError, ValueError, NotImplementedError):
-                cname = ''
-            if cname == 'Aims':  # XXX Aims uses k_grid!
+        if kpts != 'no k-points':
+            if self.name == 'aims':  # XXX Aims uses k_grid!
                 self.kwargs['k_grid'] = kpts
             else:
                 self.kwargs['kpts'] = kpts
