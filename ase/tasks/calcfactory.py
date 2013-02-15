@@ -153,6 +153,11 @@ def calculator_factory(name, **kwargs):
         from ase.calculators.aims import Aims
         return CalculatorFactory(Aims, 'aims', 'run_dir', **kwargs)
 
+    if name == 'nwchem':
+        from ase.calculators.nwchem import NWChem
+        return CalculatorFactory(NWChem, 'NWChem', 'label', 'no k-points',
+                                 **kwargs)
+
     if name == 'asap':
         from asap3 import EMT
         return CalculatorFactory(EMT, 'Asap', None, 'no k-points', **kwargs)
