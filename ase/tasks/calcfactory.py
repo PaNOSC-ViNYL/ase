@@ -86,6 +86,10 @@ class CalculatorFactory:
             else:
                 self.kwargs['kpts'] = kpts
 
+        if self.label is not None:
+            self.kwargs[self.label] = name
+        return self.Class(**self.kwargs)
+        
         if self.label is None:
             return self.Class(**self.kwargs)
         else:
