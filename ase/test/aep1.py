@@ -39,6 +39,10 @@ def h2dft(name):
     calc = Calculator(label, atoms=h1, xc='LDA', **par)
     print h1.get_potential_energy()
     print Calculator.read_atoms(label).get_potential_energy()
-    
-#h2dft('abinit')
-h2dft('nwchem')
+
+for name in ['abinit', 'nwchem']:
+    try:
+        h2dft(name)
+    except NotAvailable:
+        pass
+
