@@ -33,7 +33,7 @@ class NWChem(FileIOCalculator):
         task='gradient',#energy', # use 'gradient' in optimizations!
         # Warning: nwchem centers atoms by default
         # see ase-developers/2012-March/001356.html
-        geometry='nocenter',
+        geometry='nocenter noautosym',
         convergence = {'energy'  : None,
                        'density' : None,
                        'gradient': None,
@@ -74,7 +74,7 @@ class NWChem(FileIOCalculator):
         del p['magmoms']
         f = open(self.label + '.nw', 'w')
         if p.charge is not None:
-            f.write('charge %s\n' * p.charge)
+            f.write('charge %s\n' % p.charge)
         write_nwchem(f, atoms, p.geometry)
 
         f.write('start\n')
