@@ -173,7 +173,7 @@ class ASEC:
 
     def parse(self, args):
         # create the top-level parser
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
         parser.add_argument('names', nargs='*')
         parser.add_argument('-t', '--tag',
                              help='String tag added to filenames.')
@@ -218,7 +218,7 @@ class ASEC:
             cls.add_parser(subparsers)
 
         self.args = parser.parse_args(args)
-
+        
     def get_command_class(self, name):
         classname = name.title() + 'Command'
         module = __import__('ase.asec.' + name, {}, None, [classname])
