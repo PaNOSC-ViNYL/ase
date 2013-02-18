@@ -1,4 +1,5 @@
 import sys
+import argparse
     
 import numpy as np
 
@@ -12,14 +13,9 @@ from ase.atoms import Atoms, string2symbols
 from ase.data import ground_state_magnetic_moments
 from ase.asec.plugin import PluginCommand
 
-try:
-    import argparse
-except ImportError:
-    from ase.asec import argparse24 as argparse
-
 
 def expand(names):
-    """Expand ranges like H-Li to H, He, Li."""
+    """Expand ranges like H-Li to H, He and Li."""
     i = 0
     while i < len(names):
         name = names[i]
@@ -215,7 +211,6 @@ class ASEC:
         subparsers = parser.add_subparsers(dest='subparser_name',
                                            help='sub-command help')
 
-        commands = {}
         for command in ['run', 'optimize', 'eos', 'write',
                         'reaction', 'view', 'python']:
             cls = self.get_command_class(command)

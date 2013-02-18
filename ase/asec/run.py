@@ -1,11 +1,7 @@
 import os
 import time
+import argparse
 import traceback
-
-try:
-    import argparse
-except ImportError:
-    import ase.asec.argparse24 as argparse
 
 from ase.asec.command import Command
 from ase.calculators.calculator import get_calculator
