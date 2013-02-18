@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2012-12-30 23:39+0100\n"
-"PO-Revision-Date: 2012-12-30 23:45+0100\n"
+"POT-Creation-Date: 2012-11-16 13:18+0100\n"
+"PO-Revision-Date: 2013-02-18 20:12+0100\n"
 "Last-Translator: Ask Hjorth Larsen <askhl@fysik.dtu.dk>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
-"Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: da\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../ag.py:136
@@ -788,12 +788,12 @@ msgstr "Opret"
 #: ../colors.py:424
 #, python-format
 msgid "Max force: %.2f (this frame), %.2f (all frames)"
-msgstr "Maks kraft: %.2f (dette billede), %.2f (alle billeder)"
+msgstr "Maks. kraft: %.2f (dette billede), %.2f (alle billeder)"
 
 #: ../colors.py:426
 #, python-format
 msgid "Max force: %.2f."
-msgstr "Maks kraft: %.2f."
+msgstr "Maks. kraft: %.2f."
 
 #: ../colors.py:440
 #, python-format
@@ -808,12 +808,12 @@ msgstr "Maks. hastighed: %.2f."
 #: ../colors.py:456
 #, python-format
 msgid "Min, max charge: %.2f, %.2f (this frame),"
-msgstr "Min, maks ladning: %.2f, %.2f  (dette billede),"
+msgstr "Min., maks. ladning: %.2f, %.2f (dette billede),"
 
 #: ../colors.py:460
 #, python-format
 msgid "Min, max charge: %.2f, %.2f."
-msgstr "Min, maks ladning: %.2f, %.2f."
+msgstr "Min., maks. ladning: %.2f, %.2f."
 
 #: ../colors.py:501
 msgid "ERROR"
@@ -2380,11 +2380,11 @@ msgstr ""
 #: ../nanotube.py:29
 #, python-format
 msgid ""
-" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: "
-"%(volume).3f Å<sup>3</sup>"
+" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: %"
+"(volume).3f Å<sup>3</sup>"
 msgstr ""
-" %(natoms)i atomer: %(symbols)s, diameter: %(diameter).3f Å, cellevolumen: "
-"%(volume).3f Å<sup>3</sup>"
+" %(natoms)i atomer: %(symbols)s, diameter: %(diameter).3f Å, cellevolumen: %"
+"(volume).3f Å<sup>3</sup>"
 
 #: ../nanotube.py:35
 msgid "Nanotube"
