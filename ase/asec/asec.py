@@ -212,7 +212,7 @@ class ASEC:
                                            help='sub-command help')
 
         for command in ['run', 'optimize', 'eos', 'write',
-                        'reaction', 'view', 'python']:
+                        'reaction', 'results', 'view', 'python']:
             cls = self.get_command_class(command)
             cls._calculator = self.calculator
             cls.add_parser(subparsers)
