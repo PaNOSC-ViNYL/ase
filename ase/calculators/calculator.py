@@ -139,41 +139,44 @@ class Calculator:
     default_parameters = {}
     'Default parameters'
 
-    def __init__(self, label=None, iomode='rw', output=None, atoms=None,
-                 **kwargs):
+    def __init__(self, restart=None, ignore_bad_restart_file=False, label=None,
+                 atoms=None, **kwargs):
         """Basic calculator implementation.
 
+        restart: str
+            Prefix for restart file.  May contain a directory.  Default
+            is None: don't restart.
+        ignore_bad_restart_file: bool
+            Ignore broken or missing restart file.  By defauls, it is an
+            error if the restart file is missing or broken.
         label: str
-            Label used for io.
-        iomode: str
-            Use label for reading and/or for writing.  Must be one of 'r',
-            'rw' and 'w'.
-        output: str
-            For iomode='r', output will be used as label for all files written.
+            Name used for all files.  May contain a directory.
         atoms: Atoms object
             Optional Atoms object to which the calculator will be
-            attached.  In iomode='r' or 'rw', and label exists, atoms will
-            get its positions and unit-cell updated form file.
+            attached.  When restarting, atoms will get its positions and
+            unit-cell updated from file.
         """
-
-        self.label = label
 
         self.state = None  # copy of atoms object from last calculation
         self.results = {}  # calculated properties (energy, forces, ...)
         self.parameters = None  # calculational parameters
 
-        if label is not None and iomode in ['r', 'rw']:
+        if restart is not None:
+            self.label = restart
             try:
                 self.read()  # read parameters, state and results
             except ReadError:
-                self.reset()
+                if ignore_bad_restart_file:
+                    self.reset()
+                else:
+                    raise
+        
+        self.label = label
+        self.directory, self.prefix = self.split_label(label)
         
         if self.parameters is None:
             # Use default parameters if they were not read from file: 
             self.parameters = self.get_default_parameters()
-
-        if iomode == 'r':
-            self.label = output
 
         if atoms is not None:
             atoms.calc = self
@@ -195,18 +198,44 @@ class Calculator:
     def get_default_parameters(self):
         return Parameters(copy.deepcopy(self.default_parameters))
 
+    def todict(self):
+        data = copy.deepcopy(self.parameters)
+        data['name'] = self.name
+        return data
+
     def reset(self):
         """Clear all information from old calculation."""
 
         self.state = None
         self.results = {}
 
+    def split_label(self, label):
+        """Convert name to directory and prefix.
+
+        Examples:
+
+        * label='abc': ('.', 'abc')
+        * label='dir1/abc': ('dir1', 'abc')
+
+        Calculators that must write results to files with fixed names
+        can overwrite this method so that the directory is set to all
+        of label."""
+
+        if label is None:
+            return None, None
+
+        directory, prefix = os.path.split(label)
+        if directory == '':
+            directory = os.curdir
+        print label,directory, prefix
+        return directory, prefix
+
     def read(self):
         """Read atoms, parameters and calculated properties from output file.
 
-        Read result from file labeled self.label.  Do nothing if file
+        Read result from self.label file.  Raise ReadError if the file
         is not there.  If the file is corrupted or contains an error
-        message from the calculation, a ReadError should be
+        message from the calculation, a ReadError should also be
         raised.  In case of succes, these attributes must set:
 
         state: Atoms object
@@ -230,8 +259,8 @@ class Calculator:
         return atoms
 
     @classmethod
-    def read_atoms(cls, label, **kwargs):
-        return cls(label, **kwargs).get_atoms()
+    def read_atoms(cls, restart, **kwargs):
+        return cls(restart, **kwargs).get_atoms()
 
     def set(self, **kwargs):
         """Set parameters like set(key1=value1, key2=value2, ...).
@@ -397,9 +426,10 @@ class FileIOCalculator(Calculator):
     command = None
     'Command used to start program'
 
-    def __init__(self, label=None, iomode='rw', output=None,
-                 atoms=None, command=None, **kwargs):
-        Calculator.__init__(self, label, iomode, output, atoms, **kwargs)
+    def __init__(self, restart=None, ignore_bad_restart_file=False,
+                 label=None, atoms=None, command=None, **kwargs):
+        Calculator.__init__(self, restart, ignore_bad_restart_file, label,
+                            atoms, **kwargs)
         if command is not None:
             self.command = command
         else:
@@ -408,15 +438,14 @@ class FileIOCalculator(Calculator):
 
     def calculate(self, atoms, properties=None, system_changes=None):
         self.write_input(atoms, properties, system_changes)
-        dir, prefix = self.split_label()
         if self.command is None:
             raise RuntimeError('Please set $%s environment variable ' %
                                ('ASE_' + self.name.upper() + '_COMMAND') +
                                'or supply the command keyword')
-        command = self.command.replace('PREFIX', prefix)
+        command = self.command.replace('PREFIX', self.prefix)
         olddir = os.getcwd()
         try:
-            os.chdir(dir)
+            os.chdir(self.directory)
             errorcode = subprocess.call(command, shell=True)
         finally:
             os.chdir(olddir)
@@ -426,29 +455,11 @@ class FileIOCalculator(Calculator):
                                (self.name, errorcode))
         self.read_results()
 
-    def split_label(self):
-        """Convert label into directory and prefix.
-
-        Examples:
-
-        * label='abc': ('.', 'abc')
-        * label='dir1/abc': ('dir1', 'abc')
-
-        Calculators that must write results to files with fixed names
-        can overwrite this method so that the directory is set to all
-        of label."""
-
-        dir, prefix = os.path.split(self.label)
-        if dir == '':
-            dir = os.curdir
-        return dir, prefix
-
     def write_input(self, atoms, properties=None, system_changes=None):
         """Write input file(s).
 
         Call this method first in subclasses so that directories are
         created automatically."""
 
-        dir, prefix = self.split_label()
-        if dir != os.curdir and not os.path.isdir(dir):
-            os.makedirs(dir)
+        if self.directory != os.curdir and not os.path.isdir(self.directory):
+            os.makedirs(self.directory)

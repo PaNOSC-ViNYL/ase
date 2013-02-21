@@ -9,7 +9,7 @@ required = {'abinit': dict(ecut=200, toldfe=0.0001)}
 def h2dft(name):
     Calculator = get_calculator(name)
     par = required.get(name, {})
-    calc = Calculator(name, xc='LDA', **par)
+    calc = Calculator(label=name, xc='LDA', **par)
     h2 = molecule('H2', calculator=calc)
     h2.center(vacuum=2.0)
     e2 = h2.get_potential_energy()
@@ -37,7 +37,7 @@ def h2dft(name):
     h1 = calc.get_atoms()
     print h1.get_potential_energy()
     label = 'dir/' + name + '-h1'
-    calc = Calculator(label, atoms=h1, xc='LDA', **par)
+    calc = Calculator(label=label, atoms=h1, xc='LDA', **par)
     print h1.get_potential_energy()
     print Calculator.read_atoms(label).get_potential_energy()
 

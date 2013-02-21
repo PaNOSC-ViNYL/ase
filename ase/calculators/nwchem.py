@@ -11,7 +11,7 @@ from ase.atoms import Atoms
 from ase.units import Hartree, Bohr
 from ase.io.nwchem import write_nwchem
 from ase.calculators.calculator import FileIOCalculator, Parameters, \
-    normalize_smearing_keyword    
+    normalize_smearing_keyword, ReadError
 
 
 class KPoint:
@@ -47,10 +47,11 @@ class NWChem(FileIOCalculator):
         spinorbit=False,
         raw='') # additional outside of dft block control string
 
-    def __init__(self, label='nwchem', iomode='rw', output='nwchem',
-                 atoms=None, **kwargs):
+    def __init__(self, restart=None, ignore_bad_restart_file=False,
+                 label='nwchem', atoms=None, **kwargs):
         """Construct NWchem-calculator object."""
-        FileIOCalculator.__init__(self, label, iomode, output, atoms, **kwargs)
+        FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
+                                  label, atoms, **kwargs)
 
     def set(self, **kwargs):
         changed_parameters = FileIOCalculator.set(self, **kwargs)
@@ -150,7 +151,7 @@ class NWChem(FileIOCalculator):
 
     def read(self):
         if not os.path.isfile(self.label + '.out'):
-            return
+            raise ReadError
 
         f = open(self.label + '.nw')
         for line in f:

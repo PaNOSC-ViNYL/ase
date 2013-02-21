@@ -75,8 +75,8 @@ class Abinit(FileIOCalculator):
         raw=None,
         pps='fhi')
 
-    def __init__(self, label='abinit', iomode='rw', output='abinit',
-                 atoms=None, scratch=None, **kwargs):
+    def __init__(self, restart=None, ignore_bad_restart_file=False,
+                 label='abinit', atoms=None, scratch=None, **kwargs):
         """Construct ABINIT-calculator object.
 
         Parameters
@@ -128,7 +128,8 @@ class Abinit(FileIOCalculator):
         self.species = None
         self.ppp_list = None
 
-        FileIOCalculator.__init__(self, label, iomode, output, atoms, **kwargs)
+        FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
+                                  label, atoms, **kwargs)
 
     def check_state(self, atoms):
         system_changes = FileIOCalculator.check_state(self, atoms)
@@ -150,14 +151,12 @@ class Abinit(FileIOCalculator):
         if 'numbers' in system_changes or 'magmoms' in system_changes:
             self.initialize(atoms)
 
-        dir, prefix = self.split_label()
-
         fh = open(self.label + '.files', 'w')
 
-        fh.write('%s\n' % (prefix + '.in')) # input
-        fh.write('%s\n' % (prefix + '.txt')) # output
-        fh.write('%s\n' % (prefix + 'i')) # input
-        fh.write('%s\n' % (prefix + 'o')) # output
+        fh.write('%s\n' % (self.prefix + '.in')) # input
+        fh.write('%s\n' % (self.prefix + '.txt')) # output
+        fh.write('%s\n' % (self.prefix + 'i')) # input
+        fh.write('%s\n' % (self.prefix + 'o')) # output
         
         # XXX:
         # scratch files
@@ -167,7 +166,7 @@ class Abinit(FileIOCalculator):
         #if not os.path.exists(scratch):
         #    os.makedirs(scratch)
         #fh.write('%s\n' % (os.path.join(scratch, prefix + '.abinit')))
-        fh.write('%s\n' % (prefix + '.abinit'))
+        fh.write('%s\n' % (self.prefix + '.abinit'))
         # Provide the psp files
         for ppp in self.ppp_list:
             fh.write('%s\n' % (ppp)) # psp file path
@@ -288,7 +287,7 @@ class Abinit(FileIOCalculator):
         """Read results from ABINIT's text-output file."""
         filename = self.label + '.txt'
         if not os.path.isfile(filename):
-            return
+            raise ReadError
 
         self.state = read_abinit(self.label + '.in')
         self.parameters = Parameters.read(self.label + '.ase')
