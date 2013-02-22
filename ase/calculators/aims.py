@@ -122,8 +122,20 @@ class Aims(FileIOCalculator):
         self.out = os.path.join(label, 'aims.out')
         return label, ''
 
+    def check_state(self, atoms):
+        system_changes = FileIOCalculator.check_state(self, atoms)
+        # Ignore unit cell for molecules:
+        if not atoms.pbc.any() and 'cell' in system_changes:
+            system_changes.remove('cell')
+        return system_changes
+
     def set(self, **kwargs):
+        xc = kwargs.get('xc')
+        if xc:
+            kwargs['xc'] = {'LDA': 'pw-lda', 'PBE': 'pbe'}.get(xc, xc)
+
         changed_parameters = FileIOCalculator.set(self, **kwargs)
+        
         if changed_parameters:
             self.reset()
         return changed_parameters
@@ -172,7 +184,7 @@ class Aims(FileIOCalculator):
 
     def read(self):
         geometry = os.path.join(self.directory, 'geometry.in')
-        control = os.path.join(self.directory, 'control.in'),
+        control = os.path.join(self.directory, 'control.in')
                         
         for filename in [geometry, control, self.out]:
             if not os.path.isfile(filename):
@@ -186,7 +198,9 @@ class Aims(FileIOCalculator):
         for line in file:
             if line[0] == '#':
                 continue
-            words = line.strip().split(' ', 1)
+            words = line.strip().split()
+            if len(words) == 0:
+                break
             key = words[0]
             words = words[1:]
             if key == 'vdw_correction_hirshfeld':

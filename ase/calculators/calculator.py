@@ -163,6 +163,7 @@ class Calculator:
 
         if restart is not None:
             self.label = restart
+            self.directory, self.prefix = self.split_label(restart)
             try:
                 self.read()  # read parameters, state and results
             except ReadError:
@@ -227,7 +228,6 @@ class Calculator:
         directory, prefix = os.path.split(label)
         if directory == '':
             directory = os.curdir
-        print label,directory, prefix
         return directory, prefix
 
     def read(self):

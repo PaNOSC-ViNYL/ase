@@ -17,6 +17,7 @@ def read_aims(filename):
     positions = []
     cell = []
     symbols = []
+    magmoms = []
     fix = []
     fix_cart = []
     xyz = np.array([0, 0, 0])
@@ -42,6 +43,8 @@ def read_aims(filename):
             cell.append(floatvect)
             n_periodic = n_periodic + 1
             periodic[n_periodic] = True
+        elif inp[0] == 'initial_moment':
+            magmoms.append(float(inp[1]))
         if inp[0] == 'constrain_relaxation':
             if inp[1] == '.true.':
                 fix.append(i)
@@ -56,7 +59,9 @@ def read_aims(filename):
     elif xyz.any():
         fix_cart.append(FixCartesian(i, xyz))
     atoms = Atoms(symbols, positions)
-    if periodic.all():
+    if len(magmoms) > 0:
+        atoms.set_initial_magnetic_moments(magmoms)
+    if periodic.any():
         atoms.set_cell(cell)
         atoms.set_pbc(periodic)
     if len(fix):
