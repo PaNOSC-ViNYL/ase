@@ -12,7 +12,8 @@ import numpy as np
 
 from ase.io.aims import write_aims, read_aims
 from ase.data import atomic_numbers
-from ase.calculators.calculator import FileIOCalculator, Parameters
+from ase.calculators.calculator import FileIOCalculator, Parameters, kpts2mp, \
+    normalize_smearing_keyword, ReadError
 
 
 float_keys = [
@@ -112,7 +113,7 @@ list_keys = [
 class Aims(FileIOCalculator):
     name = 'Aims'
     command = 'aims > aims.out'
-    notimplemented = ['magmoms', 'magmom', 'stress']  # XXX
+    notimplemented = ['magmoms', 'magmom']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label=os.curdir, atoms=None, **kwargs):
@@ -144,16 +145,17 @@ class Aims(FileIOCalculator):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
 
         have_lattice_vectors = atoms.pbc.any()        
-        have_k_grid = 'k_grid' in self.parameters
+        have_k_grid = ('k_grid' in self.parameters or
+                       'kpts' in self.parameters)
         if have_lattice_vectors and not have_k_grid:
             raise RuntimeError("Found lattice vectors but no k-grid!")
         if not have_lattice_vectors and have_k_grid:
             raise RuntimeError("Found k-grid but no lattice vectors!")
         write_aims(os.path.join(self.directory, 'geometry.in'), atoms) 
-        self.write_control(os.path.join(self.directory, 'control.in'))
+        self.write_control(atoms, os.path.join(self.directory, 'control.in'))
         self.write_species(atoms, os.path.join(self.directory, 'control.in'))
 
-    def write_control(self, filename):
+    def write_control(self, atoms, filename):
         output = open(filename, 'w')
         for line in ['=====================================================',
                      'FHI-aims file: ' + filename,
@@ -164,7 +166,10 @@ class Aims(FileIOCalculator):
             output.write('#' + line + '\n')
 
         for key, value in self.parameters.items():
-            if key == 'output':
+            if key == 'kpts' and 'k_grid' not in self.parameters:
+                mp = kpts2mp(atoms, self.parameters.kpts)
+                output.write('%-35s%d %d %d\n' % (('k_grid',) + tuple(mp)))
+            elif key == 'output':
                 for output_type in value:
                     output.write('%-35s%s\n' % (key, output_type))
             elif key == 'vdw_correction_hirshfeld' and value:
@@ -246,7 +251,9 @@ class Aims(FileIOCalculator):
                                "and should give an indication why.")
         self.read_energy()
         self.read_forces()
-        #self.read_stress()  XXX
+        if ('compute_numerical_stress' in self.parameters or
+            'compute_analytic_stress' in self.parameters):
+            self.read_stress()
         if ('dipole' in self.parameters.get('output', []) and
             not self.state.pbc.any()):
             self.read_dipole()
@@ -278,6 +285,12 @@ class Aims(FileIOCalculator):
             atoms.pbc.any()):
             raise NotImplementedError
         return FileIOCalculator.get_dipole_moment(self, atoms)
+
+    def get_stress(self, atoms):
+        if ('compute_numerical_stress' not in self.parameters and
+            'compute_analytic_stress' not in self.parameters):
+            raise NotImplementedError
+        return FileIOCalculator.get_stress(self, atoms)
 
     def read_dipole(self):
         "Method that reads the electric dipole moment from the output file."
