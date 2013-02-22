@@ -35,13 +35,17 @@ images = [initial.copy()]
 for i in range(3):
     images.append(initial.copy())
 images.append(final.copy())
-neb = NEB(images, climb=True)
+neb = NEB(images, climb=True, parallel=True)
 
 # Set constraints and calculator:
 constraint = FixAtoms(indices=[1, 3])  # fix OO
+i = 0
+from ase.calculators.nwchem import NWChem
 for image in images:
-    image.set_calculator(EMT())
+    #image.set_calculator(EMT())
+    image.set_calculator(NWChem('i%d' % i, 'w',charge=-1, basis='4-31G'))
     image.set_constraint(constraint)
+    i += 1
 
 for image in images:  # O-H(shared) distance
     print image.get_distance(1, 2), image.get_potential_energy()
@@ -52,10 +56,10 @@ if 1:
     # One would have to optimize more tightly in order to get
     # symmetric anion from both images[0] and [1], but
     # if one optimizes tightly one gets rotated(H2O) ... OH- instead
-    dyn1 = QuasiNewton(images[0])
-    dyn1.run(fmax=0.01)
-    dyn2 = QuasiNewton(images[-1])
-    dyn2.run(fmax=0.01)
+    dyn1 = BFGS(images[0])
+    dyn1.run(fmax=0.1)
+    dyn2 = BFGS(images[-1])
+    dyn2.run(fmax=0.1)
 
 # Interpolate positions between initial and final states:
 neb.interpolate()
