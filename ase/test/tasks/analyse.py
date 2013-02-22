@@ -42,31 +42,45 @@ def get_differences(reference, values, precision=None):
     return values
 
 
-def get_key_summary_list(key, name, runs, data, precision=3):
+def get_key_summary_list(key, name, runs, data, precision=3, relative=False):
+    # if relative, then first entry is a common value, other entries relative
+    # if not relative, then first entry is average value, other entries verbatim
     nruns = len(runs)
     d = data.copy()
     l = [name]
-    # find the most common value
     values = [d[r][key] for r in runs if r in d and key in d[r] and d[r][key] is not None]
-    e = most_common_value(values, precision)
+    if relative:
+        # find the most common value
+        e = most_common_value(values, precision)
+    else:
+        e = np.mean(values)
     if e is None:
         l.extend(['None' for i in range(nruns + 1)])
     else:
         # print the found common value with the precision
         l.append(("%." + "%df" % (precision + 0)) % e)
         es = [d[r].get(key, None) for r in runs if r in d]
-        des = get_differences(e, es)
-        # and the corresponding differences
-        for n, de in enumerate(des):
-            if de is not None:
-                if abs(de) < 1. / precision:
-                    # value within precision
-                    des[n] = '-'
+        if relative:
+            des = get_differences(e, es)
+            # and the corresponding differences
+            for n, de in enumerate(des):
+                if de is not None:
+                    if abs(de) < 1. / precision:
+                        # value within precision
+                        des[n] = '-'
+                    else:
+                        des[n] = ("%." + "%df" % precision) % de
                 else:
-                    des[n] = ("%." + "%df" % precision) % de
-            else:
-                des[n] = 'None'
-        l.extend(des)
+                    des[n] = 'None'
+            l.extend(des)
+        else:
+            des = es[:]
+            for n, de in enumerate(es):
+                if de is not None:
+                    des[n] = str(de)
+                else:
+                    des[n] = 'None'
+            l.extend(des)
     return l
 
 
@@ -309,8 +323,36 @@ class AnalyseOptimizersTask:
                     datasys[k1] = {k: v1}
                 else:
                     datasys[k1].update({k: v1})
+        # csv summary of self.key_plot
+        key_name = self.key_plot.replace(' ', '_')
+        row = ['formula', self.key_plot]
+        row.extend([r for r in range(len(runs))])
+        rows = [row]
+        for name, data in datasys.items():
+            if not data:
+                continue
+            row = get_key_summary_list(self.key_plot,
+                                       name,
+                                       runs,
+                                       data,
+                                       precision=self.precision,
+                                       relative=False)
+            row = [r.replace('None', 'N/A') for r in row]
+            # only failed or non-common runs
+            for k in row[2:]:
+                if k == 'N/A' or k != '-':
+                    rows.append(row)
+                    break
+        if len(rows) > 0: # always create csv file
+            if self.tag is not None:
+                csvwriter = csv.writer(
+                    open('%s_%s.csv' % (self.tag, key_name), 'wb'))
+            else:
+                csvwriter = csv.writer(open('%s.csv' % key_name, 'wb'))
+            for r in rows:
+                csvwriter.writerow(r)
         # csv summary of self.key_summary
-        kname = self.key_summary.replace(' ', '_')
+        summary_name = self.key_summary.replace(' ', '_')
         row = ['formula', self.key_summary]
         row.extend([r for r in range(len(runs))])
         rows = [row]
@@ -321,7 +363,8 @@ class AnalyseOptimizersTask:
                                        name,
                                        runs,
                                        data,
-                                       precision=self.precision)
+                                       precision=self.precision,
+                                       relative=True)
             row = [r.replace('None', 'N/A') for r in row]
             # only failed or non-common runs
             for k in row[2:]:
@@ -331,9 +374,9 @@ class AnalyseOptimizersTask:
         if len(rows) > 0: # always create csv file
             if self.tag is not None:
                 csvwriter = csv.writer(
-                    open('%s_%s.csv' % (self.tag, kname), 'wb'))
+                    open('%s_%s.csv' % (self.tag, summary_name), 'wb'))
             else:
-                csvwriter = csv.writer(open('%s.csv' % kname, 'wb'))
+                csvwriter = csv.writer(open('%s.csv' % summary_name, 'wb'))
             for r in rows:
                 csvwriter.writerow(r)
         # plot
