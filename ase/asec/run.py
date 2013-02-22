@@ -127,7 +127,8 @@ class RunCommand(Command):
         if getattr(Calculator, 'nolabel', False):
             atoms.calc = Calculator(**parameters)
         else:
-            atoms.calc = Calculator(self.get_filename(name), **parameters)
+            atoms.calc = Calculator(label=self.get_filename(name),
+                                    **parameters)
 
     def calculate(self, atoms, name):
         args = self.args
