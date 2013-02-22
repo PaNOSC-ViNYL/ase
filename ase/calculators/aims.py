@@ -112,7 +112,7 @@ list_keys = [
 class Aims(FileIOCalculator):
     name = 'Aims'
     command = 'aims > aims.out'
-    notimplemented = ['magmoms', 'magmom']
+    notimplemented = ['magmoms', 'magmom', 'stress']  # XXX
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label=os.curdir, atoms=None, **kwargs):
@@ -120,7 +120,7 @@ class Aims(FileIOCalculator):
                                   label, atoms, **kwargs)
     def split_label(self, label):
         self.out = os.path.join(label, 'aims.out')
-        return label, None
+        return label, ''
 
     def set(self, **kwargs):
         changed_parameters = FileIOCalculator.set(self, **kwargs)
@@ -151,13 +151,13 @@ class Aims(FileIOCalculator):
                      '=====================================================']:
             output.write('#' + line + '\n')
 
-        for key, value in self.parameters:
+        for key, value in self.parameters.items():
             if key == 'output':
                 for output_type in value:
                     output.write('%-35s%s\n' % (key, output_type))
             elif key == 'vdw_correction_hirshfeld' and value:
                 output.write('%-35s\n' % key)
-            elif key in bool_params:
+            elif key in bool_keys:
                 output.write('%-35s.%s.\n' % (key, repr(bool(value)).lower()))
             elif isinstance(value, (tuple, list)):
                 output.write('%-35s%s\n' %
@@ -194,15 +194,15 @@ class Aims(FileIOCalculator):
             elif key == 'output':
                 output.append(' '.join(words))
                 continue
-            if key in bool_params:
+            if key in bool_keys:
                 value = (words[0] == '.true.')
-            elif key in int_params:
+            elif key in int_keys:
                 value = intwords[0]()
-            elif key in float_params or key in exp_params:
+            elif key in float_keys or key in exp_keys:
                 value = float(words[0])
-            elif key in string_params:
+            elif key in string_keys:
                 value = ' '.join(words)
-            elif key in list_params:
+            elif key in list_keys:
                 value = []
                 for x in words:
                     for type in [int, float]:
@@ -223,25 +223,31 @@ class Aims(FileIOCalculator):
         file.close()
         self.read_results()
 
-    def read_results():
+    def read_results(self):
         converged = self.read_convergence()
         if not converged:
             os.system("tail -20 "+self.out)
             raise RuntimeError("FHI-aims did not converge!\n"+
                                "The last lines of output are printed above "+
                                "and should give an indication why.")
+        self.read_energy()
+        self.read_forces()
+        #self.read_stress()  XXX
+        if ('dipole' in self.parameters.get('output', []) and
+            not self.state.pbc.any()):
+            self.read_dipole()
 
     def write_species(self, atoms, filename='control.in'):
-        species_path = self.parameters.species_dir
+        species_path = self.parameters.get('species_dir')
         if species_path is None:
             species_path = os.environ.get('AIMS_SPECIES_DIR')
-        if species_dir is None:
+        if species_path is None:
             raise RuntimeError(
                 'Missing species directory!  Use species_dir ' +
                 'parameter or set $AIMS_SPECIES_DIR environment variable.')
 
         control = open(filename, 'a')
-        symbols = self.atoms.get_chemical_symbols()
+        symbols = atoms.get_chemical_symbols()
         symbols2 = []
         for n, symbol in enumerate(symbols):
             if symbol not in symbols2:
@@ -256,7 +262,7 @@ class Aims(FileIOCalculator):
     def get_dipole_moment(self, atoms):
         if ('dipole' not in self.parameters.get('output', []) or
             atoms.pbc.any()):
-            raise NotImplemented
+            raise NotImplementedError
         return FileIOCalculator.get_dipole_moment(self, atoms)
 
     def read_dipole(self):
