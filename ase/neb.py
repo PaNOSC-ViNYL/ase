@@ -1,4 +1,3 @@
-import threading
 from math import sqrt
 
 import numpy as np
@@ -37,7 +36,7 @@ class NEB:
             world = mpi.world
         self.world = world
 
-        #assert not parallel or world.size % (self.nimages - 2) == 0
+        assert not parallel or world.size % (self.nimages - 2) == 0
 
     def interpolate(self):
         pos1 = self.images[0].get_positions()
@@ -84,19 +83,6 @@ class NEB:
             for i in range(1, self.nimages - 1):
                 energies[i - 1] = images[i].get_potential_energy()
                 forces[i - 1] = images[i].get_forces()
-        elif self.world.size == 1:
-            def run(image, energies, forces):
-                energies[:] = image.get_potential_energy()
-                forces[:] = image.get_forces()
-            threads = [threading.Thread(target=run,
-                                        args=(images[i],
-                                              energies[i - 1:i],
-                                              forces[i - 1:i]))
-                       for i in range(1, self.nimages - 1)]
-            for thread in threads:
-                thread.start()
-            for thread in threads:
-                thread.join()
         else:
             # Parallelize over images:
             i = self.world.rank * (self.nimages - 2) // self.world.size + 1

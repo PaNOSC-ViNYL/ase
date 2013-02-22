@@ -12,7 +12,7 @@ except NameError:
 
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.atoms import Atoms
-from ase.parallel import rank, size as mpisize, barrier
+from ase.parallel import rank, barrier
 from ase.utils import devnull
 
 
@@ -159,7 +159,7 @@ class PickleTrajectory:
         if hasattr(atoms, 'interpolate'):
             # seems to be a NEB
             neb = atoms
-            assert not neb.parallel or mpisize==1
+            assert not neb.parallel
             try:
                 neb.get_energies_and_forces(all=True)
             except AttributeError:
