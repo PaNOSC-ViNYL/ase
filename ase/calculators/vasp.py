@@ -1042,6 +1042,10 @@ class Vasp(Calculator):
         converged = None
         # First check electronic convergence
         for line in open('OUTCAR', 'r'):
+            if 0:  # vasp always prints that!
+                if line.rfind('aborting loop') > -1:  # scf failed
+                    raise RuntimeError(line.strip())
+                    break
             if line.rfind('EDIFF  ') > -1:
                 ediff = float(line.split()[2])
             if line.rfind('total energy-change')>-1:
@@ -1051,7 +1055,17 @@ class Vasp(Calculator):
                     continue
                 split = line.split(':')
                 a = float(split[1].split('(')[0])
-                b = float(split[1].split('(')[1][0:-2])
+                b = split[1].split('(')[1][0:-2]
+                # sometimes this line looks like (second number wrong format!):
+                # energy-change (2. order) :-0.2141803E-08  ( 0.2737684-111)
+                # we are checking still the first number so
+                # let's "fix" the format for the second one
+                if 'e' not in b.lower():
+                    # replace last occurence of - (assumed exponent) with -e
+                    bsplit = b.split('-')
+                    bsplit[-1] = 'e' + bsplit[-1]
+                    b = '-'.join(bsplit).replace('-e','e-')
+                b = float(b)
                 if [abs(a), abs(b)] < [ediff, ediff]:
                     converged = True
                 else:
