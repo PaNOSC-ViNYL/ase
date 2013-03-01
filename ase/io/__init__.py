@@ -7,7 +7,8 @@ from ase.atoms import Atoms
 from ase.units import Bohr, Hartree
 from ase.io.trajectory import PickleTrajectory
 from ase.io.bundletrajectory import BundleTrajectory
-from ase.calculators.singlepoint import SinglePointCalculator
+from ase.calculators.singlepoint import SinglePointDFTCalculator
+from ase.calculators.singlepoint import SinglePointKPoint
 
 __all__ = ['read', 'write', 'PickleTrajectory', 'BundleTrajectory']
 
@@ -118,8 +119,18 @@ def read(filename, index=-1, format=None):
         else:
             magmoms = None
 
-        atoms.calc = SinglePointCalculator(energy, forces, None, magmoms,
-                                           atoms)
+        atoms.calc = SinglePointDFTCalculator(energy, forces, None, magmoms,
+                                              atoms)
+        kpts = []
+        if r.has_array('IBZKPoints'):
+            for w, kpt, eps_n, f_n in zip(r.get('IBZKPointWeights'), 
+                                          r.get('IBZKPoints'),
+                                          r.get('Eigenvalues'),
+                                          r.get('OccupationNumbers')):
+                print eps_n.shape, f_n.shape
+                kpts.append(SinglePointKPoint(w, kpt[0], kpt[1],
+                                              eps_n[0], f_n[0]  )) # XXX
+        atoms.calc.kpts = kpts
 
         return atoms
 
