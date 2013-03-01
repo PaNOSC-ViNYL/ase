@@ -17,7 +17,7 @@ is a brief overview of the most basic features needed when developing ASE.
 
   This retrieves the code tree from the subversion repository.
   Prepend :envvar:`PYTHONPATH` and :envvar:`PATH` environment variables
-  as described at :ref:`installation`.
+  as described at :ref:`manual_installation`.
 
 * Updating the working copy of the code (in the directory ``ase-svn``)::
 
@@ -45,8 +45,8 @@ is a brief overview of the most basic features needed when developing ASE.
 
     svn commit -m "Message to describe the committed changes"
 
-  If the ``-m`` option is omitted, an editor is opened for writing the
-  log message.
+  If the ``-m`` option is omitted and appropriate environment variable
+  :envvar:`SVN_EDITOR` is set, an editor is opened for writing the log message.
 
 * Adding files or directories to version control::
 
