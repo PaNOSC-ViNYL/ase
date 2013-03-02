@@ -4,7 +4,7 @@ from ase.io import read
 from ase.constraints import FixAtoms
 from ase.calculators.emt import EMT
 from ase.neb import NEB
-from ase.optimize.bfgs import BFGS as QuasiNewton
+from ase.optimize.fire import FIRE as QuasiNewton
 
 initial = read('N2.traj')
 final = read('2N.traj')
