@@ -254,9 +254,11 @@ class Aims(FileIOCalculator):
                                "The last lines of output are printed above "+
                                "and should give an indication why.")
         self.read_energy()
-        self.read_forces()
+        if ('compute_forces' in self.parameters or
+            'sc_accuracy_forces' in self.parameters):
+            self.read_forces()
         if ('compute_numerical_stress' in self.parameters or
-            'compute_analytic_stress' in self.parameters):
+            'compute_analytical_stress' in self.parameters):
             self.read_stress()
         if ('dipole' in self.parameters.get('output', []) and
             not self.state.pbc.any()):
@@ -292,9 +294,15 @@ class Aims(FileIOCalculator):
 
     def get_stress(self, atoms):
         if ('compute_numerical_stress' not in self.parameters and
-            'compute_analytic_stress' not in self.parameters):
+            'compute_analytical_stress' not in self.parameters):
             raise NotImplementedError
         return FileIOCalculator.get_stress(self, atoms)
+
+    def get_forces(self, atoms):
+        if ('compute_forces' not in self.parameters and
+            'sc_accuracy_forces' not in self.parameters):
+            raise NotImplementedError
+        return FileIOCalculator.get_forces(self, atoms)
 
     def read_dipole(self):
         "Method that reads the electric dipole moment from the output file."
@@ -322,7 +330,7 @@ class Aims(FileIOCalculator):
         forces = np.zeros([len(self.state), 3])
         for n, line in enumerate(lines):
             if line.rfind('Total atomic forces') > -1:
-                for iatom in range(len(atoms)):
+                for iatom in range(len(self.state)):
                     data = lines[n+iatom+1].split()
                     for iforce in range(3):
                         forces[iatom, iforce] = float(data[2+iforce])
