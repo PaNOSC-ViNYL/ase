@@ -151,7 +151,7 @@ def calculator_factory(name, **kwargs):
 
     if name == 'aims':
         from ase.calculators.aims import Aims
-        return CalculatorFactory(Aims, 'aims', 'run_dir', **kwargs)
+        return CalculatorFactory(Aims, 'aims', 'label', **kwargs)
 
     if name == 'nwchem':
         from ase.calculators.nwchem import NWChem

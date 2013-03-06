@@ -1,13 +1,4 @@
-from ase.test import NotAvailable
-
-from ase.calculators.aims import Aims
-
-if Aims().get_command() is None:
-    raise NotAvailable('FHI-aims required')
-
 from ase.tasks.main import run
-
-from os import environ
 
 # warning! parameters are not converged - only an illustration!
 
