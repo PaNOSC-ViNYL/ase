@@ -122,7 +122,7 @@ class Aims(FileIOCalculator):
 
     def set_label(self, label):
         self.label = label
-        self.directory = lable
+        self.directory = label
         self.prefix = ''
         self.out = os.path.join(label, 'aims.out')
 
