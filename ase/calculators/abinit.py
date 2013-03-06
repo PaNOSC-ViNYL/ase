@@ -283,8 +283,9 @@ class Abinit(FileIOCalculator):
 
         fh.close()
 
-    def read(self):
+    def read(self, label):
         """Read results from ABINIT's text-output file."""
+        FileIOCalculator.read(self, label)
         filename = self.label + '.txt'
         if not os.path.isfile(filename):
             raise ReadError

@@ -33,6 +33,7 @@ beta = 1.809     # (16 * pi / 3)**(1.0 / 3) / 2**0.5,
 
 class EMT(Calculator):
     notimplemented = ['stress', 'dipole', 'magmom', 'magmoms']
+
     nolabel = True
 
     def __init__(self):

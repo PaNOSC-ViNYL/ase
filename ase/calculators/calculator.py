@@ -162,18 +162,19 @@ class Calculator:
         self.parameters = None  # calculational parameters
 
         if restart is not None:
-            self.label = restart
-            self.directory, self.prefix = self.split_label(restart)
             try:
-                self.read()  # read parameters, state and results
+                self.read(restart)  # read parameters, state and results
             except ReadError:
                 if ignore_bad_restart_file:
                     self.reset()
                 else:
                     raise
         
-        self.label = label
-        self.directory, self.prefix = self.split_label(label)
+        self.label = None
+        self.directory = None
+        self.prefix = None
+
+        self.set_label(label)
         
         if self.parameters is None:
             # Use default parameters if they were not read from file: 
@@ -196,6 +197,28 @@ class Calculator:
         if not hasattr(self, 'name'):
             self.name = self.__class__.__name__
 
+    def set_label(self, label):
+        """Set label and convert label to directory and prefix.
+
+        Examples:
+
+        * label='abc': (directory='.', prefix='abc')
+        * label='dir1/abc': (directory='dir1', prefix='abc')
+
+        Calculators that must write results to files with fixed names
+        can overwrite this method so that the directory is set to all
+        of label."""
+
+        self.label = label
+
+        if label is None:
+            self.directory = None
+            self.prefix = None
+        else:
+            self.directory, self.prefix = os.path.split(label)
+            if self.directory == '':
+                self.directory = os.curdir
+
     def get_default_parameters(self):
         return Parameters(copy.deepcopy(self.default_parameters))
 
@@ -210,27 +233,7 @@ class Calculator:
         self.state = None
         self.results = {}
 
-    def split_label(self, label):
-        """Convert name to directory and prefix.
-
-        Examples:
-
-        * label='abc': ('.', 'abc')
-        * label='dir1/abc': ('dir1', 'abc')
-
-        Calculators that must write results to files with fixed names
-        can overwrite this method so that the directory is set to all
-        of label."""
-
-        if label is None:
-            return None, None
-
-        directory, prefix = os.path.split(label)
-        if directory == '':
-            directory = os.curdir
-        return directory, prefix
-
-    def read(self):
+    def read(self, label):
         """Read atoms, parameters and calculated properties from output file.
 
         Read result from self.label file.  Raise ReadError if the file
@@ -249,7 +252,7 @@ class Calculator:
         and parameters and get the results dict by calling the
         read_results() method."""
 
-        pass
+        self.set_label(label)
 
     def get_atoms(self):
         if self.state is None:
@@ -424,12 +427,19 @@ class FileIOCalculator(Calculator):
     "Base class for calculators that write input files and read output files."
 
     command = None
-    'Command used to start program'
+    'Command used to start calculation'
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label=None, atoms=None, command=None, **kwargs):
+        """File-IO calculator.
+        
+        command: str
+            Command used to start calculation.
+        """
+
         Calculator.__init__(self, restart, ignore_bad_restart_file, label,
                             atoms, **kwargs)
+
         if command is not None:
             self.command = command
         else:

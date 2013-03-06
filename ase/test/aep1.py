@@ -45,7 +45,7 @@ def h2dft(name):
     print Calculator.read_atoms(label).get_potential_energy()
 
 names = sys.argv[1:]
-if not names:
+if not names or names[0] == 'test':
     names = ['abinit', 'nwchem']
 for name in names:
     try:

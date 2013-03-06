@@ -119,9 +119,12 @@ class Aims(FileIOCalculator):
                  label=os.curdir, atoms=None, **kwargs):
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, **kwargs)
-    def split_label(self, label):
+
+    def set_label(self, label):
+        self.label = label
+        self.directory = lable
+        self.prefix = ''
         self.out = os.path.join(label, 'aims.out')
-        return label, ''
 
     def check_state(self, atoms):
         system_changes = FileIOCalculator.check_state(self, atoms)
@@ -187,7 +190,8 @@ class Aims(FileIOCalculator):
             '#=======================================================\n\n')
         output.close()
 
-    def read(self):
+    def read(self, label):
+        FileIOCalculator.read(self, label)
         geometry = os.path.join(self.directory, 'geometry.in')
         control = os.path.join(self.directory, 'control.in')
                         

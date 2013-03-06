@@ -149,7 +149,8 @@ class NWChem(FileIOCalculator):
         f.write('\ntask ' + task + ' ' + p.task + '\n')
         f.close()
 
-    def read(self):
+    def read(self, label):
+        FileIOCalculator.read(self, label)
         if not os.path.isfile(self.label + '.out'):
             raise ReadError
 
