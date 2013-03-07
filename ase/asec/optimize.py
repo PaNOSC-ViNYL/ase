@@ -18,8 +18,8 @@ class OptimizeCommand(RunCommand):
         parser.add_argument('--constrain-tags',
                             metavar='T1,T2,...',
                             help='Constrain atoms with tags T1, T2, ...')
-        parser.add_argument('--maximum-stress', type=float,
-                            help='Relax unit-cell.')
+        parser.add_argument('-s', '--maximum-stress', type=float,
+                            help='Relax unit-cell and internal coordinates.')
 
     def calculate(self, atoms, name):
         args = self.args
@@ -46,4 +46,3 @@ class OptimizeCommand(RunCommand):
             data['force calls'] = optimizer.force_calls
 
         return data
-
