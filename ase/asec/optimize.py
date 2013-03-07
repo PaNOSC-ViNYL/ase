@@ -1,6 +1,7 @@
 from ase.asec.run import RunCommand
-from ase.constraints import FixAtoms
+from ase.constraints import FixAtoms, UnitCellFilter
 from ase.optimize import LBFGS
+from ase.io.trajectory import PickleTrajectory
 
 
 class OptimizeCommand(RunCommand):
@@ -26,10 +27,19 @@ class OptimizeCommand(RunCommand):
             tags = [int(t) for t in args.constrain_tags.split(',')]
             mask = [t in tags for t in atoms.get_tags()]
             atoms.constraints = FixAtoms(mask=mask)
-        optimizer = LBFGS(atoms,
-                          trajectory=self.get_filename(name, 'traj'),
-                          logfile=self.logfile)
-        optimizer.run(fmax=args.maximum_force)
+        
+        trajectory = PickleTrajectory(self.get_filename(name, 'traj'), 'w',
+                                      atoms)
+        if args.maximum_stress:
+            optimizer = LBFGS(UnitCellFilter(atoms), logfile=self.logfile)
+            fmax = args.maximum_stress
+        else:
+            optimizer = LBFGS(atoms, logfile=self.logfile)
+            fmax = args.maximum_force
+
+        optimizer.attach(trajectory)
+        optimizer.run(fmax=fmax)
+
         data = RunCommand.calculate(self, atoms, name)
 
         if hasattr(optimizer, 'force_calls'):
