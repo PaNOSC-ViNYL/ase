@@ -1,9 +1,12 @@
-from ase.asec.command import Command
+from ase.asec.run import RunCommand
 
-class PluginCommand(Command):
-    def __init__(self, logfile, args, run_function):
+class PluginCommand(RunCommand):
+    def __init__(self, logfile, args, calculate_function):
         RunCommand.__init__(self, logfile, args)
-        self.run_function = run_function
+        self.calculate_function = calculate_function
 
-    def run(self, atoms, name, args):
-        self.run_function(atoms, name, args)
+    def calculate(self, atoms, name):
+        data = self.calculate_function(atoms, name)
+        if data is None:
+            data = {}
+        return data

@@ -58,9 +58,9 @@ class ASEC:
             if 'names' in namespace and len(args.names) == 0:
                 args.names = namespace['names']
             self.build_function = namespace.get('build')
-            if 'run' in namespace:
+            if 'calculate' in namespace:
                 command = PluginCommand(self.logfile, args,
-                                        namespace.get('run'))
+                                        namespace.get('calculate'))
 
         expand(args.names)
 
