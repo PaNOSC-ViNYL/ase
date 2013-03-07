@@ -21,5 +21,5 @@ calc=Aims(xc='pbe',
 water.set_calculator(calc)
 dynamics = QuasiNewton(water,trajectory='square_water.traj')
 dynamics.run(fmax=0.01)
-
+print water.get_dipole_moment()
 view(water)

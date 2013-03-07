@@ -92,8 +92,8 @@ def normalize_smearing_keyword(smearing):
     if smearing == 'fd':
         smearing = 'fermi-dirac'
     elif smearing.startswith('mp'):
-        smearing = 'mathfessel-paxton-' + smearing[2]
-    if smearing == 'mathfessel-paxton-0':
+        smearing = 'methfessel-paxton-' + smearing[2]
+    if smearing == 'methfessel-paxton-0':
         smearing == 'gaussian'
     return smearing
 

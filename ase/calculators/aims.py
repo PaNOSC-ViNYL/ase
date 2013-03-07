@@ -5,8 +5,6 @@ Jonas Bjork j.bjork@liverpool.ac.uk
 """
 
 import os
-import sys
-from os.path import join, isfile, islink
 
 import numpy as np
 
@@ -64,7 +62,7 @@ int_keys = [
     'ini_linear_mixing',
     'max_relaxation_steps',
     'multiplicity',
-    'n_max_pulay',   
+    'n_max_pulay',
     'sc_iter_limit',
     'walltime',
 ]
@@ -110,15 +108,17 @@ list_keys = [
     'relax_geometry',
 ]
 
+
 class Aims(FileIOCalculator):
     name = 'Aims'
     command = 'aims > aims.out'
     notimplemented = ['magmoms', 'magmom']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 label=os.curdir, atoms=None, **kwargs):
+                 label=os.curdir, atoms=None, cubes=None, **kwargs):
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, **kwargs)
+        self.cubes = cubes
 
     def set_label(self, label):
         self.label = label
@@ -147,16 +147,17 @@ class Aims(FileIOCalculator):
     def write_input(self, atoms, properties=None, system_changes=None):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
 
-        have_lattice_vectors = atoms.pbc.any()        
+        have_lattice_vectors = atoms.pbc.any()
         have_k_grid = ('k_grid' in self.parameters or
                        'kpts' in self.parameters)
         if have_lattice_vectors and not have_k_grid:
-            raise RuntimeError("Found lattice vectors but no k-grid!")
+            raise RuntimeError('Found lattice vectors but no k-grid!')
         if not have_lattice_vectors and have_k_grid:
-            raise RuntimeError("Found k-grid but no lattice vectors!")
-        write_aims(os.path.join(self.directory, 'geometry.in'), atoms) 
+            raise RuntimeError('Found k-grid but no lattice vectors!')
+        write_aims(os.path.join(self.directory, 'geometry.in'), atoms)
         self.write_control(atoms, os.path.join(self.directory, 'control.in'))
         self.write_species(atoms, os.path.join(self.directory, 'control.in'))
+        self.parameters.write(os.path.join(self.directory, 'parameters.ase'))
 
     def write_control(self, atoms, filename):
         output = open(filename, 'w')
@@ -168,10 +169,28 @@ class Aims(FileIOCalculator):
                      '=====================================================']:
             output.write('#' + line + '\n')
 
+        assert not ('kpts' in self.parameters and 'k_grid' in self.parameters)
+        assert not (('smearing' in self.parameters or
+                     'width' in self.parameters) and
+                    'occupation_type' in self.parameters)
+
+        wrote_occupation_type = False
         for key, value in self.parameters.items():
-            if key == 'kpts' and 'k_grid' not in self.parameters:
+            if key == 'kpts':
                 mp = kpts2mp(atoms, self.parameters.kpts)
                 output.write('%-35s%d %d %d\n' % (('k_grid',) + tuple(mp)))
+                dk = 0.5 - 0.5 / mp
+                output.write('%-35s%d %d %d\n' % (('k_offset',) + tuple(dk)))
+            elif not wrote_occupation_type and key in ['smearing', 'width']:
+                smearing = normalize_smearing_keyword(
+                    self.parameters.get('smearing', 'gaussian')),
+                width = self.parameters.get('width', 0.01)
+                words = [smearing, repr(width)]
+                if smearing.startswith('methfessel-paxton'):
+                    words.append(smearing[-1])
+                output.write('%-35s%s\n' % ('occupation_type',
+                                            ' '.join(words)))
+                wrote_occupation_type = True
             elif key == 'output':
                 for output_type in value:
                     output.write('%-35s%s\n' % (key, output_type))
@@ -186,6 +205,8 @@ class Aims(FileIOCalculator):
                 output.write('%-35s%s\n' % (key, value))
             else:
                 output.write('%-35s%r\n' % (key, value))
+        if self.cubes:
+            self.cubes.write(output)
         output.write(
             '#=======================================================\n\n')
         output.close()
@@ -200,59 +221,17 @@ class Aims(FileIOCalculator):
                 raise ReadError
 
         self.state = read_aims(geometry)
-
-        self.parameters = Parameters()
-        file = open(control)
-        output = []
-        for line in file:
-            if line[0] == '#':
-                continue
-            words = line.strip().split()
-            if len(words) == 0:
-                break
-            key = words[0]
-            words = words[1:]
-            if key == 'vdw_correction_hirshfeld':
-                value = True
-            elif key == 'output':
-                output.append(' '.join(words))
-                continue
-            if key in bool_keys:
-                value = (words[0] == '.true.')
-            elif key in int_keys:
-                value = intwords[0]()
-            elif key in float_keys or key in exp_keys:
-                value = float(words[0])
-            elif key in string_keys:
-                value = ' '.join(words)
-            elif key in list_keys:
-                value = []
-                for x in words:
-                    for type in [int, float]:
-                        try:
-                            x = type(x)
-                        except ValueError:
-                            pass
-                        else:
-                            break
-                    value.append(x)
-            else:
-                raise TypeError('FHI-aims keyword not defined in ASE: ' + key)
-            self.parameters[key] = value
-
-        if output:
-            self.parameters['output'] = output
-
-        file.close()
+        self.parameters = Parameters.read(os.path.join(self.directory,
+                                                       'parameters.ase'))
         self.read_results()
 
     def read_results(self):
         converged = self.read_convergence()
         if not converged:
-            os.system("tail -20 "+self.out)
-            raise RuntimeError("FHI-aims did not converge!\n"+
-                               "The last lines of output are printed above "+
-                               "and should give an indication why.")
+            os.system('tail -20 ' + self.out)
+            raise RuntimeError('FHI-aims did not converge!\n' +
+                               'The last lines of output are printed above ' +
+                               'and should give an indication why.')
         self.read_energy()
         if ('compute_forces' in self.parameters or
             'sc_accuracy_forces' in self.parameters):
@@ -280,8 +259,8 @@ class Aims(FileIOCalculator):
             if symbol not in symbols2:
                 symbols2.append(symbol)
         for symbol in symbols2:
-            fd = join(species_path, '%02i_%s_default' %
-                      (atomic_numbers[symbol], symbol))
+            fd = os.path.join(species_path, '%02i_%s_default' %
+                              (atomic_numbers[symbol], symbol))
             for line in open(fd, 'r'):
                 control.write(line)
         control.close()
@@ -308,7 +287,8 @@ class Aims(FileIOCalculator):
         "Method that reads the electric dipole moment from the output file."
         for line in open(self.out, 'r'):
             if line.rfind('Total dipole moment [eAng]') > -1:
-                dipolemoment=np.array([float(f) for f in line.split()[6:10]])#XXX
+                dipolemoment = np.array([float(f)
+                                         for f in line.split()[6:10]])
         self.results['dipole'] = dipolemoment
 
     def read_energy(self):
@@ -331,9 +311,9 @@ class Aims(FileIOCalculator):
         for n, line in enumerate(lines):
             if line.rfind('Total atomic forces') > -1:
                 for iatom in range(len(self.state)):
-                    data = lines[n+iatom+1].split()
+                    data = lines[n + iatom + 1].split()
                     for iforce in range(3):
-                        forces[iatom, iforce] = float(data[2+iforce])
+                        forces[iatom, iforce] = float(data[2 + iforce])
         self.results['forces'] = forces
 
     def read_stress(self):
@@ -343,9 +323,9 @@ class Aims(FileIOCalculator):
             if (line.rfind('|              Analytical stress tensor') > -1 or
                 line.rfind('Numerical stress tensor') > -1):
                 stress = []
-                for i in [n+5,n+6,n+7]:
+                for i in [n + 5, n + 6, n + 7]:
                     data = lines[i].split()
-                    stress += [float(data[2]),float(data[3]),float(data[4])]
+                    stress += [float(data[2]), float(data[3]), float(data[4])]
         # rearrange in 6-component form and return
         self.results['stress'] = np.array([stress[0], stress[4], stress[8],
                                            stress[5], stress[2], stress[1]])
@@ -360,19 +340,19 @@ class Aims(FileIOCalculator):
 
 
 class AimsCube:
-    """ object to ensure the output of cube files, can be attached to Aims object"""
-    def __init__(self,origin=(0,0,0),
-                 edges=[(0.1,0.0,0.0),(0.0,0.1,0.0),(0.0,0.0,0.1)],
-                 points=(50,50,50),plots=None):
-        """ parameters: 
+    "Object to ensure the output of cube files, can be attached to Aims object"
+    def __init__(self, origin=(0, 0, 0),
+                 edges=[(0.1, 0.0, 0.0), (0.0, 0.1, 0.0), (0.0, 0.0, 0.1)],
+                 points=(50, 50, 50), plots=None):
+        """parameters:
         origin, edges, points = same as in the FHI-aims output
         plots: what to print, same names as in FHI-aims """
 
-        self.name   = 'AimsCube'
+        self.name = 'AimsCube'
         self.origin = origin
-        self.edges  = edges
+        self.edges = edges
         self.points = points
-        self.plots  = plots
+        self.plots = plots
          
     def ncubes(self):
         """returns the number of cube files to output """
@@ -382,52 +362,51 @@ class AimsCube:
             number = 0
         return number
 
-    def set(self,**kwargs):
+    def set(self, **kwargs):
         """ set any of the parameters ... """
         # NOT IMPLEMENTED AT THE MOMENT!
 
-    def move_to_base_name(self,basename):
+    def move_to_base_name(self, basename):
         """ when output tracking is on or the base namem is not standard,
-        this routine will rename add the base to the cube file output for 
+        this routine will rename add the base to the cube file output for
         easier tracking """
         for plot in self.plots:
             found = False
             cube = plot.split()
-            if cube[0] == 'total_density' or cube[0] == 'spin_density' or cube[0] == 'delta_density':
+            if (cube[0] == 'total_density' or
+                cube[0] == 'spin_density' or
+                cube[0] == 'delta_density'):
                 found = True
-                old_name = cube[0]+'.cube'
-                new_name = basename+'.'+old_name
+                old_name = cube[0] + '.cube'
+                new_name = basename + '.' + old_name
             if cube[0] == 'eigenstate' or cube[0] == 'eigenstate_density':
                 found = True
                 state = int(cube[1])
                 s_state = cube[1]
-                for i in [10,100,1000,10000]:
+                for i in [10, 100, 1000, 10000]:
                     if state < i:
-                        s_state = '0'+s_state
-                old_name = cube[0]+'_'+s_state+'_spin_1.cube'
-                new_name = basename+'.'+old_name
+                        s_state = '0' + s_state
+                old_name = cube[0] + '_' + s_state + '_spin_1.cube'
+                new_name = basename + '.' + old_name
             if found:
-                os.system("mv "+old_name+" "+new_name)
+                os.system('mv ' + old_name + ' ' + new_name)
 
-    def add_plot(self,name):
+    def add_plot(self, name):
         """ in case you forgot one ... """
         self.plots += [name]
 
-    def write(self,file):
+    def write(self, file):
         """ write the necessary output to the already opened control.in """
-        file.write('output cube '+self.plots[0]+'\n')
+        file.write('output cube ' + self.plots[0] + '\n')
         file.write('   cube origin ')
         for ival in self.origin:
-            file.write(str(ival)+' ')
+            file.write(str(ival) + ' ')
         file.write('\n')
         for i in range(3):
-            file.write('   cube edge '+str(self.points[i])+' ')
+            file.write('   cube edge ' + str(self.points[i]) + ' ')
             for ival in self.edges[i]:
-                file.write(str(ival)+' ')
+                file.write(str(ival) + ' ')
             file.write('\n')
         if self.ncubes() > 1:
-            for i in range(self.ncubes()-1):
-                file.write('output cube '+self.plots[i+1]+'\n')
-
-                    
-                
+            for i in range(self.ncubes() - 1):
+                file.write('output cube ' + self.plots[i + 1] + '\n')
