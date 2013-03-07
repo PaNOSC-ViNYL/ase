@@ -288,7 +288,7 @@ class Aims(FileIOCalculator):
         for line in open(self.out, 'r'):
             if line.rfind('Total dipole moment [eAng]') > -1:
                 dipolemoment = np.array([float(f)
-                                         for f in line.split()[6:10]])
+                                         for f in line.split()[6:9]])
         self.results['dipole'] = dipolemoment
 
     def read_energy(self):
