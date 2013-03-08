@@ -96,7 +96,8 @@ ABC calculator example
 
 The constructor will look like this::
 
-  ABC(label='abc.abc', iomode='rw', output=None, atoms=None, **kwargs)
+  ABC(restart=None, ignore_bad_restart=False, label='abc.abc',
+      atoms=None, **kwargs)
 
 A calculator should be able to prefix all output files with a given
 label or run the calculation in a directory with a specified name.
@@ -198,21 +199,6 @@ or like this::
   ~/bin/start_abc.py PREFIX
 
 The ``PREFIX`` strings will be substituted by the ``label`` keyword.
-
-
-Pre- and post-run hooks
-=======================
-
-Calculators can call call-back functions before and after a
-calculation.  These are stored in a dictionary called ``callbacks``::
-
-  {'before': [], 'after': []}
-
-The two lists can contain any number of functions specified as
-``(function, args, kwargs)`` tuples.  The lists can be manipulated
-directly or apended to by using the ``attach_callback(when, function,
-*args, **kwargs)`` method, where ``when`` is one of ``'before'`` or
-``'after'``.
 
 
 Implementation
