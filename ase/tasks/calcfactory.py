@@ -7,7 +7,7 @@ from ase.dft.kpoints import monkhorst_pack
 
 
 def str2dict(s, namespace={}, sep='='):
-    """Convert comma-separated key=vale string to dictionary.
+    """Convert comma-separated key=value string to dictionary.
 
     Examples:
 
@@ -77,19 +77,19 @@ class CalculatorFactory:
 
         kpts = self.calculate_kpts(atoms)
         if kpts != 'no k-points':
-            try:
-                cname = self.Class().get_name()  # not all calcs have that
-            except (AttributeError, ValueError, NotImplementedError):
-                cname = ''
-            if cname == 'Aims':  # XXX Aims uses k_grid!
+            if self.name == 'aims':  # XXX Aims uses k_grid!
                 self.kwargs['k_grid'] = kpts
             else:
                 self.kwargs['kpts'] = kpts
 
         if self.label is not None:
             self.kwargs[self.label] = name
-
         return self.Class(**self.kwargs)
+        
+        if self.label is None:
+            return self.Class(**self.kwargs)
+        else:
+            return self.Class(name, **self.kwargs)
 
     def add_options(self, parser):
         calc = optparse.OptionGroup(parser, 'Calculator')
@@ -138,7 +138,7 @@ classnames = {'asap': 'EMT',
               'lj': 'LennardJones',
               'mopac': 'Mopac',
               'morse': 'MorsePotential',
-              'nwchem': 'NWchem',
+              'nwchem': 'NWChem',
               'vasp': 'Vasp'}
 
 
@@ -151,7 +151,12 @@ def calculator_factory(name, **kwargs):
 
     if name == 'aims':
         from ase.calculators.aims import Aims
-        return CalculatorFactory(Aims, 'aims', 'run_dir', **kwargs)
+        return CalculatorFactory(Aims, 'aims', 'label', **kwargs)
+
+    if name == 'nwchem':
+        from ase.calculators.nwchem import NWChem
+        return CalculatorFactory(NWChem, 'NWChem', 'label', 'no k-points',
+                                 **kwargs)
 
     if name == 'asap':
         from asap3 import EMT

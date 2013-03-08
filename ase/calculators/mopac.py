@@ -24,6 +24,7 @@ float_keys = ['RELSCF']
 
 
 class Mopac(Calculator):
+    name = 'MOPAC'
     def __init__(self, label='ase', **kwargs):
         # define parameter fields
         self.str_params = {}
@@ -82,9 +83,6 @@ class Mopac(Calculator):
                 self.float_params[key] = kwargs[key]
             else:
                 raise RuntimeError('MOPAC calculator: unknown keyword: ' + key)
-
-    def get_name(self):
-        return 'MOPAC'
 
     def get_version(self):
         return self.version

@@ -232,9 +232,9 @@ keys = [
 ]
 
 class Vasp(Calculator):
+    name = 'Vasp'
     def __init__(self, restart=None, output_template='vasp', track_output=False,
                  **kwargs):
-        self.name = 'Vasp'
         self.float_params = {}
         self.exp_params = {}
         self.string_params = {}
@@ -602,9 +602,6 @@ class Vasp(Calculator):
         atoms = self.atoms.copy()
         atoms.set_calculator(self)
         return atoms
-
-    def get_name(self):
-        return self.name
 
     def get_version(self):
         self.update(self.atoms)

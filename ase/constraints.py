@@ -1003,6 +1003,7 @@ class StrainFilter(Filter):
     def __len__(self):
         return 2
 
+
 class UnitCellFilter(Filter):
     """Modify the supercell and the atom positions. """
     def __init__(self, atoms, mask=None):

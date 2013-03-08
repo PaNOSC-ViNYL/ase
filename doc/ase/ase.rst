@@ -75,3 +75,4 @@ List of all modules:
    trajectory
    utils
    thermochemistry
+   neighbors

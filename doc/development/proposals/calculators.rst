@@ -1,3 +1,5 @@
+.. _aep1:
+
 =============================
 Calculator interface proposal
 =============================
@@ -16,8 +18,6 @@ The goal is to have ASE calculators:
 Setting some standards is a good thing, but we should also be careful
 not to set too strict rules that could limit each calculator to the
 lowest common denominator.
-
-So far, this proposal is mostly ideas and questions.  
 
 
 Behavior
@@ -40,7 +40,7 @@ Standards parameters
 The standard keywords that all calculators must use (if they make
 sense) are: ``xc``, ``kpts``, ``smearing``, ``width``, ``charge`` and
 ``nbands``.  Each calculator will have its own default values for
-these parameters --- see recommendations below.  I addition,
+these parameters --- see recommendations below.  In addition,
 calculators will typically have many other parameters.  The units are
 eV and Å.
 
@@ -53,7 +53,7 @@ object.
 
 :kpts:
 
-  * ``None``: Gamma-point
+  * ``(1,1,1)``: Gamma-point
   
   * ``(n1,n2,n3)``: Monkhorst-Pack grid
   
@@ -63,11 +63,11 @@ object.
     reciprocal lattice vectors
   
   * ``kpts=3.5``: `\vec k`-point density as in 3.5 `\vec k`-points per
-    Å\ `^{-1}`.
+    Å\ `^{-1}`
 
 :smearing:
 
-  The smearing parameter can be one of these string:
+  The smearing parameter can be one of these strings:
 
   * ``'Fermi-Dirac'`` or ``'FD'``
   * ``'Gaussian'``
@@ -75,12 +75,9 @@ object.
     (`n=0` is the same as ``'Gaussian'``)
   * or lower-case versions of any of the above
 
-  Recommended value: ``'fermi-dirac'`` with ``width=0.1`` eV.
-
 :width:
 
   The width parameter used for the chosen smearing method (in eV).
-  Recommended value is 0.1 eV combined with ``smearing='fermi-dirac'``
 
 :charge:
 
@@ -98,12 +95,13 @@ ABC calculator example
 
 The constructor will look like this::
 
-  ABC(label='abc.abc', iomode='rw', output=None, atoms=None, **kwargs)
+  ABC(restart=None, ignore_bad_restart=False, label=None,
+      atoms=None, **kwargs)
 
 A calculator should be able to prefix all output files with a given
 label or run the calculation in a directory with a specified name.
-There are three possibilities for the first argument (called
-``label``) of the constructor of a calculator object:
+This is handled by the ``label`` argument.  There are three
+possibilities:
 
 * Name of a file containing all results of a calculation (possibly
   containing a directory).
@@ -116,25 +114,11 @@ There are three possibilities for the first argument (called
 Each calculator can decide what the default value is: ``None`` for no
 output, ``'-'`` for standard output or something else.
 
-The second argument (``iomode``) must be one of ``'r'``, ``'rw'`` or
-``'w'``, where ``'rw'`` is the default.  The value of ``iomode`` will
-decide what to use the ``label`` argument for:
-
-``'r'``:
-  Read atomic configuration, input parameters and results from
-  a previous calculation in the ``label`` file(s) or directory if
-  those files exist and are not corrupted
-
-``'w'``:
-  Write atomic configuration, input parameters and results from a
-  new calculation to the ``label`` file(s) or directory
-
-``'rw'``:
-  Both of the above
-
-The third agrument (``output``) can be combined with ``iomode='r'`` in
-the case where one wants to use one label for reading and another for
-writing.
+If the ``restart`` argument is given, atomic configuration, input
+parameters and results will be read from a previous calculation from
+the file(s) pointed to by the ``restart`` argument.  It is an error if
+those files don't exist and are corrupted.  This error can be ignored
+bu using ``ignore_bad_restart=True``.
 
 The ``atoms`` argument is discussed below.  All additional parameters
 are given as keyword arguments.
@@ -143,29 +127,9 @@ Example:  Do a calculation with ABC calculator and write results to
 :file:`si.abc`:
 
 >>> atoms = ...
->>> atoms.calc = ABC('si.abc', xc='LDA')
+>>> atoms.calc = ABC(label='si.abc', xc='LDA', kpts=3.0)
 >>> atoms.get_potential_energy()
 -1.2
-
-The default behavior is to read from :file:`si.abc` and also write
-results from following calculations to the same file.  This can be
-changed by using ``ABC('si.abc', 'r', output='si-new.abc')``) or in
-case no reading should be done one can do simlpy do
-``ABC('si-new.abc', 'w')``.
-
-An alternative way to connect atoms and calculator:
-
->>> atoms = ...
->>> calc = ABC('si.abc', atoms=atoms, xc='LDA')
->>> atoms.get_potential_energy()
--1.2
-
-This will automatically attach the calculator to the atoms and if the
-file :file:`si.abc` exists the atoms will be updated form that file.
-This will allow you to use the same script to do the initial
-calculation where :file:`si.abc` does not exist and following
-calculations where atoms may have been moved arround be an
-optimization algorithm.
 
 Read atoms with ABC calculator attaced from a previous calculation:
 
@@ -175,19 +139,33 @@ Read atoms with ABC calculator attaced from a previous calculation:
 >>> atoms.get_potential_energy()
 -1.2
 
-The class method :meth:`read_atoms()` is equivalent to:
+The ``ABC.read_atoms('si.abc')`` statement is equivalent to::
 
->>> atoms = ABC('si.abc').get_atoms()
+  ABC(restart='si.abc', label='si.abc').get_atoms()
 
 If we do:
 
->>> atoms = ABC.read('si.abc')
+>>> atoms = ABC.read_atoms('si.abc')
 >>> atoms.rattle()            # change positions and/or
 >>> atoms.calc.set(xc='PBE')  # change a calculator-parameter
 >>> atoms.get_potential_energy()
 -0.7
 
 then the :file:`si.abc` will be overwritten or maybe appended to.
+
+An alternative way to connect atoms and calculator:
+
+>>> atoms = ...
+>>> calc = ABC(restart='si.abc', label='si.abc', atoms=atoms)
+>>> atoms.get_potential_energy()
+-0.7
+
+This will automatically attach the calculator to the atoms and the
+atoms will be updated form the file.  If you add
+``ignore_bad_restart=True``, you will be able to use the same
+script to do the initial calculation where :file:`si.abc` does not
+exist and following calculations where atoms may have been moved
+arround by an optimization algorithm.
 
 The command used to start the ABC code can be given in an environment
 variable called :envvar:`ASE_ABC_COMMAND` or as a ``command``
@@ -202,25 +180,10 @@ or like this::
 The ``PREFIX`` strings will be substituted by the ``label`` keyword.
 
 
-Pre- and post-run hooks
-=======================
-
-Calculators can call call-back functions before and after a
-calculation.  These are stored in a dictionary called ``callbacks``::
-
-  {'before': [], 'after': []}
-
-The two lists can contain any number of functions specified as
-``(function, args, kwargs)`` tuples.  The lists can be manipulated
-directly or apended to by using the ``attach_callback(when, function,
-*args, **kwargs)`` method, where ``when`` is one of ``'before'`` or
-``'after'``.
-
-
 Implementation
 ==============
 
-* Portability (Linux/Windows): ``os.system('Linux commands')`` not allowed
+* Portability (Linux/Windows): ``os.system('Linux commands')`` not allowed.
 
 * Common base class for all calculators: ``Calculator``.  Takes care
   of restart from file logic, handles setting of parameters and checks
@@ -229,7 +192,7 @@ Implementation
 * A ``FileIOCalculator`` for the case where we need to:
 
   * write input file(s)
-  * run Fortran code
+  * run Fortran/C/C++ code
   * read output file(s)
 
 * Helper function to deal with ``kpts`` keyword.

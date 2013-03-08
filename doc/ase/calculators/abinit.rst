@@ -7,8 +7,8 @@ ABINIT
 Introduction
 ============
 
-ABINIT_ is a density-functional theory code
-based on pseudopotentials and a planewave basis.
+ABINIT_ is a density-functional theory code based on pseudopotentials
+and a planewave basis.
 
 
 .. _ABINIT: http://www.abinit.org
@@ -18,115 +18,58 @@ based on pseudopotentials and a planewave basis.
 Environment variables
 =====================
 
-**Note**: setting environment variables is necessary
-only if you configure your ABINIT/ASE environment from scratch.
+.. highlight:: bash
 
-You need to write a script called :file:`abinit.py` containing
+The environment variable :envvar:`ASE_ABINIT_COMMAND` must be set to
 something like this::
 
-  import os
-  abinit = '/usr/bin/abinis'  # full path to the abinit executable
-  exitcode = os.system('%s < %s.files > %s.log' % (abinit, label, label))
+  abinis < PREFIX.files > PREFIX.log
 
-The environment variable :envvar:`ABINIT_SCRIPT` must point to that file.
+where ``abinis`` is the executable.
 
-A directory containing the pseudopotential files
-(at least of :file:`.fhi` type) is also
-needed, and it is to be put in the environment variable
-:envvar:`ABINIT_PP_PATH`. Abinit does not provide tarballs of
-pseduopotentials so the easiest way is to download and unpack
+A directory containing the pseudopotential files (at least of
+:file:`.fhi` type) is also needed, and it is to be put in the
+environment variable :envvar:`ABINIT_PP_PATH`. Abinit does not provide
+tarballs of pseduopotentials so the easiest way is to download and
+unpack
 http://wiki.fysik.dtu.dk/abinit-files/abinit-pseudopotentials-2.tar.gz
 
-Set the environment variables in your in your shell configuration file:
+Set the environment variables in your in your shell configuration file::
 
-.. highlight:: bash
- 
-::
-
-  $ export ABINIT_SCRIPT=$HOME/bin/abinit.py
-  $ export ABINIT_PP_PATH=${HOME}/abinit-pseudopotentials-2/LDA_FHI
-  $ export ABINIT_PP_PATH=${HOME}/abinit-pseudopotentials-2/GGA_FHI:$ABINIT_PP_PATH
-  $ export ABINIT_PP_PATH=${HOME}/abinit-pseudopotentials-2/LDA_HGH:$ABINIT_PP_PATH
-  $ export ABINIT_PP_PATH=${HOME}/abinit-pseudopotentials-2/LDA_PAW:$ABINIT_PP_PATH
-  $ export ABINIT_PP_PATH=${HOME}/abinit-pseudopotentials-2/LDA_TM:$ABINIT_PP_PATH
-  $ export ABINIT_PP_PATH=${HOME}/abinit-pseudopotentials-2/GGA_FHI:$ABINIT_PP_PATH
-  $ export ABINIT_PP_PATH=${HOME}/abinit-pseudopotentials-2/GGA_HGHK:$ABINIT_PP_PATH
-  $ export ABINIT_PP_PATH=${HOME}/abinit-pseudopotentials-2/GGA_PAW:$ABINIT_PP_PATH
-  $ export ABINIT_PP_PATH=$HOME/mypps:$ABINIT_PP_PATH
+  export ASE_ABINIT_COMMAND="abinis < PREFIX.files > PREFIX.log"
+  PP=${HOME}/abinit-pseudopotentials-2
+  export ABINIT_PP_PATH=$PP/LDA_FHI
+  export ABINIT_PP_PATH=$PP/GGA_FHI:$ABINIT_PP_PATH
+  export ABINIT_PP_PATH=$PP/LDA_HGH:$ABINIT_PP_PATH
+  export ABINIT_PP_PATH=$PP/LDA_PAW:$ABINIT_PP_PATH
+  export ABINIT_PP_PATH=$PP/LDA_TM:$ABINIT_PP_PATH
+  export ABINIT_PP_PATH=$PP/GGA_FHI:$ABINIT_PP_PATH
+  export ABINIT_PP_PATH=$PP/GGA_HGHK:$ABINIT_PP_PATH
+  export ABINIT_PP_PATH=$PP/GGA_PAW:$ABINIT_PP_PATH
 
 .. highlight:: python
-
 
 
 ABINIT Calculator
 ================= 
 
-The default parameters are very close to those that the ABINIT Fortran
-code uses.  These are the exceptions:
-
-.. class:: Abinit(label='abinit', xc='LDA', mix=0.1)
-    
-Here is a detailed list of all the keywords for the calculator:
-
-============== ========= ================  =====================================
-keyword        type      default value     description
-============== ========= ================  =====================================
-``kpts``       ``list``  ``[1,1,1]``       Monkhorst-Pack k-point sampling
-``nbands``     ``int``   ``None``          Number of band. May be omitted.
-``nstep``      ``int``   ``None``          Number of self-consistent field STEPS.
-``ecut``       ``float`` ``None``          Planewave cutoff energy in eV (default: None)
-``xc``         ``str``   ``'LDA'``         Exchange-correlation functional.
-``npulayit``   ``int``   ``7``             Number of old densities to use for
-                                           Pulay mixing
-``diemix``     ``float`` ``0.1``           Pulay mixing weight 
-``diemac``     ``float`` ``1e6``           Model DIElectric MACroscopic constant 
-``width``      ``float`` ``0.04 Ha``       Fermi-distribution width in eV (default: 0.04 Ha)
-``charge``     ``float`` ``0``             Total charge of the system (default: 0)
-``label``      ``str``   ``'abinit'``      Name of the output file
-``pps``        ``str``   ``'fhi'``         Pseudopotentials used
-                                           'fhi', 'hgh', 'hgh.sc', 'hgh.k', 'tm', 'paw'
-``toldfe``     ``float`` ``1.0e-6``        TOLerance on the DiFference of total Energy
-============== ========= ================  =====================================
-
-A value of ``None`` means that ABINIT's default value is used.
-
-**Warning**: abinit does not specify a default value for
-``Planewave cutoff energy in eV`` - you need to set them as in the example at thei bottom of the page, otherwise calculation will fail.
-Calculations wihout k-points are not parallelized by default
-and will fail! To enable band paralellization specify ``Number of BanDs in a BLOCK`` 
-(``nbdblock``) as `Extra parameters`_ -
-see `<http://www.abinit.org/Infos_v5.2/tutorial/lesson_parallelism.html>`_.
-
-Extra parameters
-================
-
-The ABINIT code reads the input parameters for any calculation from a 
-:file:`.in` file and :file:`.files` file.
-This means that you can set parameters by manually setting 
-entries in this input :file:`.in` file. This is done by the syntax:
-
->>> calc.set_inp('name_of_the_entry', value)
-
-For example, the ``ndtset`` can be set using
-
->>> calc.set_inp('ndtset', 2)
-
-The complete list of keywords can be found in the official `ABINIT
-manual`_.
-
-.. _ABINIT manual: http://www.abinit.org/Infos_v5.4/input_variables/keyhr.html
-
+Abinit does not specify a default value for the plane-wave cutoff
+energy.  You need to set them as in the example at the bottom of the
+page, otherwise calculations will fail.  Calculations wihout k-points
+are not parallelized by default and will fail! To enable band
+paralellization specify ``Number of BanDs in a BLOCK`` (``nbdblock``)
+--- see
+`<http://www.abinit.org/Infos_v5.2/tutorial/lesson_parallelism.html>`_.
 
 
 Pseudopotentials
 ================
 
 Pseudopotentials in the ABINIT format are available on the
-`pseudopotentials`_ website.
-A database of user contributed pseudopotentials is also available there.
+`pseudopotentials`_ website.  A database of user contributed
+pseudopotentials is also available there.
 
 .. _pseudopotentials: http://www.abinit.org/Psps/?text=psps
-
 
 
 Example 1

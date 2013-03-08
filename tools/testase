@@ -10,9 +10,6 @@ p = OptionParser(usage='%prog [OPTION]', description=description)
 p.add_option('--no-display', action='store_true',
              help='do not open graphical windows')
 
-opts, args = p.parse_args()
-if len(args) != 0:
-    raise p.error('Unexpected arguments: %s' % args)
-
+opts, calculators = p.parse_args()
 from ase.test import test
-test(2, display=not opts.no_display)
+test(2, calculators, display=not opts.no_display)

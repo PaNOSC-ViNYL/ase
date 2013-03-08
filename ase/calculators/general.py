@@ -13,7 +13,7 @@ class Calculator:
 
     def get_name(self):
         """Return the name of the calculator (string).  """
-        raise NotImplementedError
+        return self.name
 
     def get_version(self):
         """Return the version of the calculator (string).  """

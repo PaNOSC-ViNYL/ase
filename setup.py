@@ -22,6 +22,7 @@ if sys.version_info < (2, 4, 0, 'final', 0):
     raise SystemExit, 'Python 2.4 or later is required!'
 
 packages = ['ase',
+            'ase.asec',
             'ase.cluster',
             'ase.cluster.data',
             'ase.io',
@@ -64,14 +65,15 @@ package_data={'ase': ['lattice/spacegroup/spacegroup.dat']}
 
 class test(Command):
     description = 'build and run test suite; exit code is number of failures'
-    user_options = []
+    user_options = [('calculators=', 'c',
+                     'Comma separated list of calculators to test')]
     
     def __init__(self, dist):
         Command.__init__(self, dist)
         self.sub_commands = ['build']
 
     def initialize_options(self):
-        pass
+        self.calculators = None
 
     def finalize_options(self):
         pass
@@ -81,6 +83,12 @@ class test(Command):
         buildcmd = self.get_finalized_command('build')
         sys.path.insert(0, buildcmd.build_lib)
 
+        if self.calculators is not None:
+            calculators = self.calculators.split(',')
+        elif 'ASE_CALCULATORS' in os.environ:
+            calculators = os.environ['ASE_CALCULATORS'].split(',')
+        else:
+            calculators = []
         from ase.test import test as _test
         testdir = '%s/testase-tempfiles' % buildcmd.build_base
         origcwd = os.getcwd()
@@ -89,7 +97,7 @@ class test(Command):
         os.mkdir(testdir)
         os.chdir(testdir)
         try:
-            results = _test(2, display=False)
+            results = _test(2, calculators, display=False)
             if results.failures or results.errors:
                 print >> sys.stderr, 'Test suite failed'
                 raise SystemExit(len(results.failures) + len(results.errors))
@@ -131,7 +139,8 @@ if svnversion and os.name not in ['ce', 'nt']: # MSI accepts only version X.X.X
 else:
     version = version_base
 
-scripts = ['tools/ag', 'tools/ase', 'tools/ASE2ase', 'tools/testase']
+scripts = ['tools/ag', 'tools/ase', 'tools/ASE2ase', 'tools/testase',
+           'tools/asec']
 # provide bat executables in the tarball and always for Win
 if 'sdist' in sys.argv or os.name in ['ce', 'nt']:
     for s in scripts[:]:

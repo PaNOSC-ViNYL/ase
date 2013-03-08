@@ -18,6 +18,7 @@ Development topics
    versioncontrol
    python_codingstandard
    writing_documentation_ase
+   calculators
    making_movies
    newrelease
    tests

@@ -1,9 +1,5 @@
 import os
 
-from ase.test.jacapo import installed
-
-assert installed()
-
 from ase import units
 from ase.tasks.main import run
 

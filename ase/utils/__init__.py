@@ -74,6 +74,20 @@ class Lock:
         self.release()
 
 
+class OpenLock:
+    def acquire(self):
+        pass
+
+    def release(self):
+        pass
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, tb):
+        pass
+
+
 def prnt(*args, **kwargs):
     """Python 3 style print function."""
     kwargs.pop('file', sys.stdout).write(

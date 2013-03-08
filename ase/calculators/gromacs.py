@@ -48,6 +48,7 @@ class Gromacs(Calculator):
     It is very slow to use gromacs this way, the point is use it as
     MM calculator in QM/MM calculations (ase_qmmm_manyqm.py)
     """
+    name = 'Gromacs'
     def __init__(self, init_structure_file='gromacs_init.gro', \
                      structure_file='gromacs_out.g96', \
                      force_field='oplsaa', water_model='tip3p', \
@@ -120,7 +121,6 @@ class Gromacs(Calculator):
             extra parameter(s) to be passed to gromacs programm 'mdrun'
         """
 
-        self.name = 'Gromacs'
         self.init_structure_file = init_structure_file
         self.structure_file = structure_file
         self.force_field = force_field 
@@ -208,11 +208,6 @@ class Gromacs(Calculator):
         output.write('   \n')
         output.write('   \n')
         output.close()
-
-
-
-    def get_name(self):
-        return self.name
 
     def get_prefix(self):
         return self.prefix

@@ -1,7 +1,3 @@
-from ase.test.nwchem import installed
-
-assert installed()
-
 from ase.tasks.main import run
 
 atoms, task = run("nwchem molecule O2 O -p task=gradient")
