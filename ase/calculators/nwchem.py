@@ -67,7 +67,7 @@ class NWChem(FileIOCalculator):
             system_changes.remove('pbc')
         return system_changes
 
-    def write_input(self, atoms, properties, system_changes):
+    def write_input(self, atoms, properties=None, system_changes=None):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
         p = self.parameters
         p.magmoms = atoms.get_initial_magnetic_moments().tolist()

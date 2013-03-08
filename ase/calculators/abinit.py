@@ -143,7 +143,7 @@ class Abinit(FileIOCalculator):
         if changed_parameters:
             self.reset()
 
-    def write_input(self, atoms, properties, system_changes):
+    def write_input(self, atoms, properties=None, system_changes=None):
         """Write input parameters to files-file."""
 
         FileIOCalculator.write_input(self, atoms, properties, system_changes)

@@ -192,8 +192,6 @@ class Calculator:
                 
         self.set(**kwargs)
 
-        self.callbacks = {'before': [], 'after': []}  # call-back functions
-
         if not hasattr(self, 'name'):
             self.name = self.__class__.__name__
 
@@ -355,7 +353,13 @@ class Calculator:
             self.reset()
 
         if name not in self.results:
-            self._calculate(atoms, [name], system_changes)
+            self.state = atoms.copy()
+            try:
+                self.calculate(atoms, [name], system_changes)
+            except Exception:
+                self.reset()
+                raise
+
         return self.results[name]
 
     def calculation_required(self, atoms, properties):
@@ -367,17 +371,6 @@ class Calculator:
                 return True
         return False
         
-    def _calculate(self, atoms, properties, system_changes):
-        """Call callbacks before and after actual calculation."""
-        self.call_callbacks('before')
-        self.state = atoms.copy()
-        try:
-            self.calculate(atoms, properties, system_changes)
-        except Exception:
-            self.reset()
-            raise
-        self.call_callbacks('after')
-
     def calculate(self, atoms, properties, system_changes):
         """Do the calculation.
 
@@ -404,21 +397,6 @@ class Calculator:
                         'magmom': 0.0,
                         'magmoms': np.zeros(len(atoms))}
                         
-    def attach_callback(self, name, function, *args, **kwargs):
-        """Attach function to be called before or after calculation.
-
-        name: str
-            One of 'before' or 'after'
-        function: callable
-            Function or callable to call.
-        """
-
-        self.callbacks[name].append((function, args, kwargs))
-
-    def call_callbacks(self, name):
-        for function, args, kwargs in self.callbacks[name]:
-            function(*args, **kwargs)
-
     def get_spin_polarized(self):
         return False
 

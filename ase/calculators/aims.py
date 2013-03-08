@@ -110,12 +110,23 @@ list_keys = [
 
 
 class Aims(FileIOCalculator):
-    name = 'Aims'
-    command = 'aims > aims.out'
+    command = 'aims.version.serial.x > aims.out'
     notimplemented = ['magmoms', 'magmom']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label=os.curdir, atoms=None, cubes=None, **kwargs):
+        """Construct FHI-aims calculator.
+        
+        The keyword arguments (kwargs) can be one of the ASE standard
+        keywords: 'xc', 'kpts', 'smearing' and 'width' or any of
+        FHI-aims' native keywords.
+        
+        Additional arguments:
+
+        cubes: AimsCube object
+            Cube file specification.
+        """
+
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, **kwargs)
         self.cubes = cubes
