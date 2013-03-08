@@ -91,11 +91,11 @@ def read_gpaw_text(fileobj, index=-1):
                 ii += 1
                 words = lines[ii].split()
             vals = np.array(vals).transpose()
-            kpts = [SinglePointKPoint(0, 0)]
+            kpts = [SinglePointKPoint(1, 0, 0)]
             kpts[0].eps_n = vals[1]
             kpts[0].f_n = vals[2]
             if vals.shape[0] > 3:
-                kpts.append(SinglePointKPoint(0, 1))
+                kpts.append(SinglePointKPoint(1, 0, 1))
                 kpts[1].eps_n = vals[3]
                 kpts[1].f_n = vals[4]
         # read charge

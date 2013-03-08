@@ -254,19 +254,19 @@ class ELK:
 
         species = {}
         symbols = []
-        for a, symbol in enumerate(atoms.get_chemical_symbols()):
+        for a, (symbol, m) in enumerate(zip(atoms.get_chemical_symbols(), atoms.get_initial_magnetic_moments())):
             if symbol in species:
-                species[symbol].append(a)
+                species[symbol].append((a, m))
             else:
-                species[symbol] = [a]
+                species[symbol] = [(a, m)]
                 symbols.append(symbol)
         fd.write('atoms\n%d\n' % len(species))
         scaled = atoms.get_scaled_positions()
         for symbol in symbols:
             fd.write("'%s.in'\n" % symbol)
             fd.write('%d\n' % len(species[symbol]))
-            for a in species[symbol]:
-                fd.write('%.14f %.14f %.14f 0.0 0.0 0.0\n' % tuple(scaled[a]))
+            for a, m in species[symbol]:
+                fd.write('%.14f %.14f %.14f 0.0 0.0 %.14f\n' % (tuple(scaled[a])+ (m,)))
 
         customspecies = self.rmt
         if customspecies:

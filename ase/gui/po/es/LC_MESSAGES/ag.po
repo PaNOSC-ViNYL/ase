@@ -8,14 +8,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2012-12-30 23:39+0100\n"
-"PO-Revision-Date: 2012-12-30 23:42+0100\n"
+"POT-Creation-Date: 2012-11-16 13:18+0100\n"
+"PO-Revision-Date: 2013-02-18 20:10+0100\n"
 "Last-Translator: Max Ramirez <m.ramirez@mx.uni-saarland.de>\n"
 "Language-Team: Spanish\n"
-"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../ag.py:136
@@ -2414,11 +2414,11 @@ msgstr ""
 #: ../nanotube.py:29
 #, python-format
 msgid ""
-" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: "
-"%(volume).3f Å<sup>3</sup>"
+" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: %"
+"(volume).3f Å<sup>3</sup>"
 msgstr ""
-" %(natoms)i átomos: %(symbols)s, diámetro: %(diameter).3f Å, volumen: "
-"%(volume).3f Å<sup>3</sup>"
+" %(natoms)i átomos: %(symbols)s, diámetro: %(diameter).3f Å, volumen: %"
+"(volume).3f Å<sup>3</sup>"
 
 #: ../nanotube.py:35
 msgid "Nanotube"

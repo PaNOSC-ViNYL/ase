@@ -7,8 +7,8 @@ ABINIT
 Introduction
 ============
 
-ABINIT_ is a density-functional theory code
-based on pseudopotentials and a planewave basis.
+ABINIT_ is a density-functional theory code based on pseudopotentials
+and a planewave basis.
 
 
 .. _ABINIT: http://www.abinit.org
@@ -20,7 +20,8 @@ Environment variables
 
 .. highlight:: bash
 
-The environment variable :envvar:`ASE_ABINIT_COMMAND` must be set to something like this::
+The environment variable :envvar:`ASE_ABINIT_COMMAND` must be set to
+something like this::
 
   abinis < PREFIX.files > PREFIX.log
 
