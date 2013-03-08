@@ -74,7 +74,7 @@ gaussian                Gaussian based electronic structure code
 :mod:`jacapo`           Plane-wave ultra-soft pseudopotential code
 :mod:`lammps`           Classical molecular dynamics code
 mopac                   ...
-nwchem                  ...
+:mod:`nwchem`           Gaussian based electronic structure code
 :mod:`siesta`           LCAO pseudopotential code
 :mod:`turbomole`        Fast atom orbital code
 :mod:`vasp`             Plane-wave PAW code
@@ -175,6 +175,7 @@ specific to only that calculator.
    gromacs
    jacapo
    lammps
+   nwchem
    siesta
    turbomole
    vasp
