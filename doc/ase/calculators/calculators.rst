@@ -6,7 +6,7 @@ Calculators
 ===========
 
 For ASE, a calculator is a black box that can take atomic numbers and
-atomic positions from an :class:`~atoms.Atoms` object and calculate the
+atomic positions from an :class:`~ase.atoms.Atoms` object and calculate the
 energy and forces and sometimes also stresses.
 
 In order to calculate forces and energies, you need to attach a
@@ -19,7 +19,7 @@ Traceback (most recent call last):
   File "/home/jjmo/ase/ase/atoms.py", line 399, in get_potential_energy
     raise RuntimeError('Atoms object has no calculator.')
 RuntimeError: Atoms object has no calculator.
->>> from ase.calculators import Abinit
+>>> from ase.calculators.abinit import Abinit
 >>> calc = Abinit(...)
 >>> a.set_calculator(calc)
 >>> e = a.get_potential_energy()
@@ -32,7 +32,11 @@ we asked for the energy.
 
 Alternatively, a calculator can be attached like this::
 
-  atoms = Atoms(..., calculator=Siesta())
+  atoms = Atoms(..., calculator=Abinit(...))
+
+or this::
+
+  atoms.calc=Abinit(...)
 
 
 .. _supported calculators:
@@ -40,82 +44,148 @@ Alternatively, a calculator can be attached like this::
 Supported calculators
 =====================
 
+The calculators can be divided in three groups:
 
-=======================  =======================================  ============
-Code                     Description                              Type
-=======================  =======================================  ============
-GPAW_                    Grid-based real-space PAW code           :term:`DFT`,
-                                                                  :term:`HF`
-Asap_                    Highly efficient EMT code                :term:`EMT`
-                         (written in C++)
-:mod:`jacapo`            ASE interface to Dacapo_,                :term:`DFT`
-                         a planewave ultra-soft
-                         pseudopotential code
-Dacapo_                  Old interface to Dacapo_. Requires       :term:`DFT`
-                         Numeric python and ASE2.
-:mod:`emt`               Effective Medium Theory calculator       :term:`EMT`
-:mod:`abinit`            A planewave pseudopotential code         :term:`DFT`
-:mod:`siesta`            LCAO pseudopotential code                :term:`DFT`
-:mod:`dftb`              DftbPlus_ DFT based tight binding        :term:`DFT`
-:mod:`turbomole`         Fast atom orbital code Turbomole_,       :term:`DFT`,
-                                                                  :term:`HF`
-:mod:`castep`            Planewave pseodopotential code           :term:`DFT`,
-                                                                  :term:`HF`
-:mod:`vasp`              Planewave PAW code                       :term:`DFT`
-:mod:`FHI-aims`          Numeric Atomic Orbital                   :term:`DFT`,
-                         , full pot. code                         :term:`HF` 
-:mod:`exciting`          Full Potential LAPW code                 :term:`DFT`,
-                                                                  :term:`LAPW`
-:mod:`fleur`             Full Potential LAPW code                 :term:`DFT`,
-                                                                  :term:`LAPW`
-:mod:`lammps`            Classical molecular dynamics code
-:mod:`gromacs`           Classical molecular dynamics code
-:mod:`mmtk`              XXX Library for molecular simulations
-:mod:`ase_qmmm_manyqm`   QM/MM interface,
-                         MM=Gromacs, QM=FHI-aims 
-=======================  =======================================  ============
-  
+1) Asap_, GPAW_ and Hotbit_ have their own native ASE interfaces.
+
+2) ABINIT, CASTEP, DFTB+, ELK, EXCITING, FHI-aims, FLEUR, GAUSSIAN,
+   Gromacs, Jacapo, LAMMPS, MOPAC, NWChem, SIESTA, TURBOMOLE, VASP and
+   FLEUR, have Python wrappers in the ASE package, but the actual
+   FORTRAN/C/C++ codes are not part of ASE.
+
+3) Pure python implementations included in the ASE package: EMT,
+   Lennard-Jones and Morse.
+
+======================  ===========================================
+name                    description
+======================  ===========================================
+Asap_                   Highly efficient EMT code
+GPAW_                   Real-space/plane-wave/LCAO PAW code
+Hotbit_                 DFT based tight binding
+:mod:`abinit`           Plane-wave pseudopotential code
+:mod:`castep`           Plane-wave pseodopotential code
+:mod:`dftb`             DFT based tight binding
+elk                     Full Potential LAPW code
+:mod:`exciting`         Full Potential LAPW code
+:mod:`FHI-aims`         Numeric atomic orbital, full potential code
+:mod:`fleur`            Full Potential LAPW code
+gaussian                Gaussian based electronic structure code
+:mod:`gromacs`          Classical molecular dynamics code
+:mod:`jacapo`           Plane-wave ultra-soft pseudopotential code
+:mod:`lammps`           Classical molecular dynamics code
+mopac                   ...
+nwchem                  ...
+:mod:`siesta`           LCAO pseudopotential code
+:mod:`turbomole`        Fast atom orbital code
+:mod:`vasp`             Plane-wave PAW code
+:mod:`emt`              Effective Medium Theory calculator
+lj                      Lennard-Jones potential
+morse                   Morse potential
+======================  ===========================================
+
+The calculators included in ASE are used like this:
+
+>>> from ase.calculators.abc import ABC
+>>> calc = ABC(...)
+
+where ``abc`` is the module name and ``ABC`` is the class name.
+
 
 .. _Asap: http://wiki.fysik.dtu.dk/asap
-.. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
-.. _DftbPlus: http://www.dftb-plus.info/
-.. _Turbomole: http://www.turbomole.com/
+.. _Hotbit: https://trac.cc.jyu.fi/projects/hotbit
 
 
-The calculators can be divided in four groups:
+Calculator keywords
+===================
 
-1) GPAW, Asap, Dacapo have their own native ASE interfaces.
+Example for a hypothetical ABC calculator:
 
-2) Jacapo, ABINIT, SIESTA, DftbPlus, TURBOMOLE, VASP, FLEUR, 
-   FHI-aims, LAMMPS, MMTK and Gromacs have Python wrappers in the ASE
-   package, but the actual codes are not part of ASE.
+.. class:: ABC(restart=None, ignore_bad_restart_file=False, label=None,
+               atoms=None, parameters=None, command='abc > PREFIX.abc',
+	       xc=None, kpts=[1, 1, 1], smearing=None, width=None,
+	       charge=0.0, nbands=None, **kwargs)
 
-3) EMT is a pure python implementation of the Effective Medium Theory
-   potential and it is included in the ASE package.
+   Create ABC calculator
 
-4) ase_qmmm_manyqm drives two ase-calculators, one being a QM (quantum mechanics) calculater, the other a MM (molecular mechanics) one. Currently only QM=FHI-aims and MM=Gromacs is supported.
+   restart: str
+       Prefix for restart file.  May contain a directory.  Default
+       is None: don't restart.
+   ignore_bad_restart_file: bool
+       Ignore broken or missing restart file.  By defauls, it is an
+       error if the restart file is missing or broken.
+   label: str
+       Name used for all files.  May contain a directory.
+   atoms: Atoms object
+       Optional Atoms object to which the calculator will be
+       attached.  When restarting, atoms will get its positions and
+       unit-cell updated from file.
+   command: str
+       Command used to start calculation.  This will override any value
+       in an :envvar:`ASE_ABC_COMMAND` environment variable.
+   parameters: str
+       Read parameters from file.
+   xc: str
+       XC-functional (``'LDA'``, ``'PBE'``, ...).
+   kpts:
+       Brillouin zone sampling:
 
-Documentation for group 2, 3 and 4 calculators
-==============================================
+       * ``(1,1,1)``: Gamma-point
+       * ``(n1,n2,n3)``: Monkhorst-Pack grid
+       * ``(n1,n2,n3,'gamma')``: Shifted Monkhorst-Pack grid that includes
+	 `\Gamma`
+       * ``[(k11,k12,k13),(k21,k22,k23),...]``: Explicit list in units of the
+         reciprocal lattice vectors
+       * ``kpts=3.5``: `\vec k`-point density as in 3.5 `\vec k`-points per
+         Å\ `^{-1}`.
+   smearing: str
+       The smearing type.  Must be one of these strings:
+
+       * ``'Fermi-Dirac'`` or ``'FD'``
+       * ``'Gaussian'``
+       * ``'Methfessel-Paxton-n'`` or ``'MPn'``, where `n` is the order
+         (`n=0` is the same as ``'Gaussian'``)
+       
+       or lower-case versions.
+   width: float
+      The width parameter used for the chosen smearing method (in eV).
+   charge: float
+      Charge of the system in units of `|e|` (``charge=1`` means one
+      electron has been removed).  Default is ``charge=0``.
+   nbands: int
+      Number of bands.  Each band can be occupied by two electrons.
+
+Not all of the above arguments make sense for all of ASE's
+calculators.  As an example, Gromacs will not accept DFT related
+keywords such as ``xc`` and ``smearing``.  In addition to the keywords
+mentioned above, each calculator may have native keywords that are
+specific to only that calculator.
+
 
 .. toctree::
+   :hidden:
 
    emt
-   jacapo
    abinit
-   siesta
+   castep
    dftb
+   exciting
+   FHI-aims
+   fleur
+   gromacs
+   jacapo
+   lammps
+   siesta
    turbomole
    vasp
-   FHI-aims
-   lammps
-   mmtk
-   exciting
-   fleur
-   castep
-   gromacs
    ase_qmmm_manyqm
+
+
+QMMM
+====
+
+For QMMM caculations, see :mod:`ase_qmmm_manyqm`.
+  
 
 Calculator interface
 ====================
@@ -135,32 +205,3 @@ standard methods for accessing those quantities:
 
 .. autoclass:: ase.calculators.interface.DFTCalculator
    :members:
-
-
-
-Building new calculators
-========================
-
-Adding an ASE interface to your favorite force-calculator can be very
-simple.  Take a look at the Python wrapper we have in the ASE code for
-using the SIESTA_ code with ASE: :trac:`ase/calculators/siesta.py`.
-Here, a :class:`~siesta.Siesta` class is defined.  An instance of this class
-will simply write the fdf input-file, start the SIESTA Fortran
-program, and finally read the energy, forces and stresses from the
-text output-file.
-
-
-.. _SIESTA: http://www.uam.es/departamentos/ciencias/fismateriac/siesta/
-
-
-
-Building neighbor-lists
-=======================
-
-The :class:`EMT` potential and the GPAW_ DFT calculator both make
-use of ASE's built-in neighbor-list class:
-
-.. autoclass:: ase.calculators.neighborlist.NeighborList
-   :members:
-
-

@@ -261,7 +261,7 @@ class Calculator:
 
     @classmethod
     def read_atoms(cls, restart, **kwargs):
-        return cls(restart, **kwargs).get_atoms()
+        return cls(restart=restart, label=restart, **kwargs).get_atoms()
 
     def set(self, **kwargs):
         """Set parameters like set(key1=value1, key2=value2, ...).
@@ -451,3 +451,7 @@ class FileIOCalculator(Calculator):
 
         if self.directory != os.curdir and not os.path.isdir(self.directory):
             os.makedirs(self.directory)
+
+    def read_results(self):
+        """Read energy, forces, ... from output file(s)."""
+        pass
