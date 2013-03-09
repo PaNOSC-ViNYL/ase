@@ -1,5 +1,3 @@
-import sys
-
 from ase.test import NotAvailable
 from ase.structure import molecule
 from ase.calculators.calculator import get_calculator
@@ -44,9 +42,7 @@ def h2dft(name):
     print h1.get_potential_energy()
     print Calculator.read_atoms(label).get_potential_energy()
 
-names = sys.argv[1:]
-if not names or names[0] == 'test':
-    names = ['abinit', 'nwchem']
+names = ['abinit', 'nwchem']
 for name in names:
     try:
         h2dft(name)
