@@ -73,12 +73,12 @@ def kptdensity2monkhorstpack(atoms, kptdensity=3.5, even=True):
                 kpts.append(max(1, int(round(k))))
         else:
             kpts.append(1)
-    return kpts
+    return np.array(kpts)
 
 
 def kpts2mp(atoms, kpts, even=False):
     if kpts is None:
-        return (1, 1, 1)
+        return np.array([1, 1, 1])
     if isinstance(kpts, (float, int)):
         return kptdensity2monkhorstpack(atoms, kpts, even)
     else:

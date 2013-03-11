@@ -192,13 +192,20 @@ class Aims(FileIOCalculator):
                 output.write('%-35s%d %d %d\n' % (('k_grid',) + tuple(mp)))
                 dk = 0.5 - 0.5 / mp
                 output.write('%-35s%d %d %d\n' % (('k_offset',) + tuple(dk)))
-            elif not wrote_occupation_type and key in ['smearing', 'width']:
+            elif key == 'species_dir':
+                continue
+            elif key in ['smearing', 'width']:
+                if wrote_occupation_type:
+                    continue
                 smearing = normalize_smearing_keyword(
-                    self.parameters.get('smearing', 'gaussian')),
+                    self.parameters.get('smearing', 'gaussian'))
+                if smearing == 'fermi-dirac':
+                    smearing = 'fermi'
                 width = self.parameters.get('width', 0.01)
                 words = [smearing, repr(width)]
                 if smearing.startswith('methfessel-paxton'):
                     words.append(smearing[-1])
+                    words[0] = words[0][:-2]
                 output.write('%-35s%s\n' % ('occupation_type',
                                             ' '.join(words)))
                 wrote_occupation_type = True
