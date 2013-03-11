@@ -36,7 +36,7 @@ Alternatively, a calculator can be attached like this::
 
 or this::
 
-  atoms.calc=Abinit(...)
+  atoms.calc = Abinit(...)
 
 
 .. _supported calculators:
@@ -160,6 +160,11 @@ calculators.  As an example, Gromacs will not accept DFT related
 keywords such as ``xc`` and ``smearing``.  In addition to the keywords
 mentioned above, each calculator may have native keywords that are
 specific to only that calculator.
+
+Keyword arguments can also be set or changed at a later stage using
+the :meth:`set` method:
+
+.. method:: set(key1=value1, key2=value2, ...)
 
 
 .. toctree::
