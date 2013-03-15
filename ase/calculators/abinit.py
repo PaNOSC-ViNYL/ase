@@ -227,7 +227,7 @@ class Abinit(FileIOCalculator):
                     value /= fs**2
                 elif 'fs' in unit:
                     value /= fs
-                fh.write('%s %f %s\n' % (key, value, unit))
+                fh.write('%s %e %s\n' % (key, value, unit))
 
         if param.raw is not None:
             for line in param.raw:
