@@ -62,6 +62,7 @@ int_keys = [
     'empty_states',
     'ini_linear_mixing',
     'max_relaxation_steps',
+    'max_zeroin',
     'multiplicity',
     'n_max_pulay',
     'sc_iter_limit',
