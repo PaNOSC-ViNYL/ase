@@ -38,11 +38,10 @@ Standards parameters
 ====================
 
 The standard keywords that all calculators must use (if they make
-sense) are: ``xc``, ``kpts``, ``smearing``, ``width``, ``charge`` and
-``nbands``.  Each calculator will have its own default values for
-these parameters --- see recommendations below.  In addition,
-calculators will typically have many other parameters.  The units are
-eV and Å.
+sense) are: ``xc``, ``kpts``, ``smearing``, ``charge`` and ``nbands``.
+Each calculator will have its own default values for these parameters
+--- see recommendations below.  In addition, calculators will
+typically have many other parameters.  The units are eV and Å.
 
 Initial magnetic moments are taken from the :class:`~ase.atoms.Atoms`
 object.
@@ -67,17 +66,15 @@ object.
 
 :smearing:
 
-  The smearing parameter can be one of these strings:
+  The smearing parameter must be given as a tuple:
 
-  * ``'Fermi-Dirac'`` or ``'FD'``
-  * ``'Gaussian'``
-  * ``'Methfessel-Paxton-n'`` or ``'MPn'``, where `n` is the order
-    (`n=0` is the same as ``'Gaussian'``)
-  * or lower-case versions of any of the above
+  * ``('Fermi-Dirac', width)``
+  * ``('Gaussian', width)``
+  * ``('Methfessel-Paxton', width, n)``, where `n` is the order (`n=0`
+    is the same as ``'Gaussian'``)
 
-:width:
-
-  The width parameter used for the chosen smearing method (in eV).
+  Lower-case strings are also allowed.  The ``width`` parameter used
+  for the chosen smearing method is in eV units.
 
 :charge:
 

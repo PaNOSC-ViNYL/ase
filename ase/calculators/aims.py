@@ -11,7 +11,7 @@ import numpy as np
 from ase.io.aims import write_aims, read_aims
 from ase.data import atomic_numbers
 from ase.calculators.calculator import FileIOCalculator, Parameters, kpts2mp, \
-    normalize_smearing_keyword, ReadError
+    ReadError
 
 
 float_keys = [
@@ -120,8 +120,8 @@ class Aims(FileIOCalculator):
         """Construct FHI-aims calculator.
         
         The keyword arguments (kwargs) can be one of the ASE standard
-        keywords: 'xc', 'kpts', 'smearing' and 'width' or any of
-        FHI-aims' native keywords.
+        keywords: 'xc', 'kpts' and 'smearing' or any of FHI-aims'
+        native keywords.
         
         Additional arguments:
 
@@ -183,11 +183,9 @@ class Aims(FileIOCalculator):
             output.write('#' + line + '\n')
 
         assert not ('kpts' in self.parameters and 'k_grid' in self.parameters)
-        assert not (('smearing' in self.parameters or
-                     'width' in self.parameters) and
+        assert not ('smearing' in self.parameters and
                     'occupation_type' in self.parameters)
 
-        wrote_occupation_type = False
         for key, value in self.parameters.items():
             if key == 'kpts':
                 mp = kpts2mp(atoms, self.parameters.kpts)
@@ -196,21 +194,16 @@ class Aims(FileIOCalculator):
                 output.write('%-35s%d %d %d\n' % (('k_offset',) + tuple(dk)))
             elif key == 'species_dir':
                 continue
-            elif key in ['smearing', 'width']:
-                if wrote_occupation_type:
-                    continue
-                smearing = normalize_smearing_keyword(
-                    self.parameters.get('smearing', 'gaussian'))
-                if smearing == 'fermi-dirac':
-                    smearing = 'fermi'
-                width = self.parameters.get('width', 0.01)
-                words = [smearing, repr(width)]
-                if smearing.startswith('methfessel-paxton'):
-                    words.append(smearing[-1])
-                    words[0] = words[0][:-2]
-                output.write('%-35s%s\n' % ('occupation_type',
-                                            ' '.join(words)))
-                wrote_occupation_type = True
+            elif key == 'smearing':
+                name = self.parameters.smearing[0].lower()
+                if name == 'fermi-dirac':
+                    name = 'fermi'
+                width = self.parameters.smearing[1]
+                output.write('%-35s%s %f' % ('occupation_type', name, width))
+                if name == 'methfessel-paxton':
+                    order = self.parameters.smearing[2]
+                    output.write(' %d' % order)
+                output.write('\n' % order)
             elif key == 'output':
                 for output_type in value:
                     output.write('%-35s%s\n' % (key, output_type))

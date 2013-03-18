@@ -85,19 +85,6 @@ def kpts2mp(atoms, kpts, even=False):
         return kpts
 
 
-def normalize_smearing_keyword(smearing):
-    """Normalize smearing string to long names and lower case."""
-
-    smearing = smearing.lower()
-    if smearing == 'fd':
-        smearing = 'fermi-dirac'
-    elif smearing.startswith('mp'):
-        smearing = 'methfessel-paxton-' + smearing[2]
-    if smearing == 'methfessel-paxton-0':
-        smearing == 'gaussian'
-    return smearing
-
-
 class Parameters(dict):
     """Dictionary for parameters.
     

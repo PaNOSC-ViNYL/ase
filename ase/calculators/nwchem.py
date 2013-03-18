@@ -10,8 +10,7 @@ import numpy as np
 from ase.atoms import Atoms
 from ase.units import Hartree, Bohr
 from ase.io.nwchem import write_nwchem
-from ase.calculators.calculator import FileIOCalculator, Parameters, \
-    normalize_smearing_keyword, ReadError
+from ase.calculators.calculator import FileIOCalculator, Parameters, ReadError
 
 
 class KPoint:
@@ -27,19 +26,18 @@ class NWChem(FileIOCalculator):
 
     default_parameters = dict(
         xc='LDA',
-        smearing='gaussian',
-        width=0.001 * Hartree,
+        smearing=None,
         charge=None,
         task='gradient',#energy', # use 'gradient' in optimizations!
         # Warning: nwchem centers atoms by default
         # see ase-developers/2012-March/001356.html
         geometry='nocenter noautosym',
-        convergence = {'energy'  : None,
-                       'density' : None,
-                       'gradient': None,
-                       'lshift': None,
-                       # set lshift to 0.0 for nolevelshifting
-                       },
+        convergence={'energy'  : None,
+                     'density' : None,
+                     'gradient': None,
+                     'lshift': None,
+                     # set lshift to 0.0 for nolevelshifting
+                     },
         basis='3-21G',
         basispar=None,
         ecp=None,
@@ -123,9 +121,9 @@ class NWChem(FileIOCalculator):
                     else:
                         f.write('  convergence %s %s\n' %
                                 (key, p.convergence[key]))
-            smearing = normalize_smearing_keyword(p.smearing)
-            assert smearing == 'gaussian'
-            f.write('  smear %s\n' % (p.width / Hartree))
+            if p.smearing is not None:
+                assert p.smearing[0].lower() == 'gaussian'
+                f.write('  smear %s\n' % (p.smearing[1] / Hartree))
             if 'mult' not in p:
                 # Obtain multiplicity from magnetic momenta:
                 mult = 1 + atoms.get_initial_magnetic_moments().sum()
@@ -138,7 +136,7 @@ class NWChem(FileIOCalculator):
             for key in sorted(p.keys()):
                 if key in ['charge', 'geometry', 'basis', 'basispar', 'ecp',
                            'so', 'xc', 'spinorbit', 'convergence', 'smearing',
-                           'width', 'raw', 'mult', 'task']:
+                           'raw', 'mult', 'task']:
                     continue
                 value = p[key]
                 f.write('%s %s\n' % (key, value))
@@ -184,13 +182,6 @@ class NWChem(FileIOCalculator):
 
     def get_ibz_k_points(self):
         return np.array([0., 0., 0.])
-
-    def read_smear(self):
-        smear = None
-        for line in open(self.label + '.out'): # find last one
-            if line.find('Smearing applied:') != -1:
-                smear = float(line.split(':')[1].split()[0].strip().lower().replace('d', 'e'))
-        return smear
 
     def get_number_of_bands(self):
         return self.nvector

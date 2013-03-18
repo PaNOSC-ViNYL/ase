@@ -14,7 +14,7 @@ from ase.units import Bohr, Hartree
 from ase.data import chemical_symbols
 from ase.io.abinit import read_abinit
 from ase.calculators.calculator import FileIOCalculator, Parameters, kpts2mp, \
-    normalize_smearing_keyword, ReadError
+    ReadError
 
 
 keys_with_units = {
@@ -68,8 +68,7 @@ class Abinit(FileIOCalculator):
 
     default_parameters = dict(
         xc='LDA',
-        width=0.1,
-        smearing='fermi-dirac',
+        smearing=None,
         kpts=None,
         charge=0.0,
         raw=None,
@@ -185,15 +184,17 @@ class Abinit(FileIOCalculator):
         fh = open(self.label + '.in', 'w')
         inp = {}
         inp.update(param)
-        for key in ['xc', 'width', 'smearing', 'kpts', 'pps', 'raw']:
+        for key in ['xc', 'smearing', 'kpts', 'pps', 'raw']:
             del inp[key]
 
-        if 'tsmear' not in param:
-            inp['tsmear'] = param.width
+        smearing = param.get('smearing')
+        if 'tsmear' in param or 'occopt' in param:
+            assert smearing is None
 
-        if 'occopt' not in param:
-            smearing = normalize_smearing_keyword(param.smearing)
-            inp['occopt'] = {'fermi-dirac': 3, 'gaussian': 7}[param.smearing]
+        if smearing is not None:
+            inp['occopt'] = {'fermi-dirac': 3,
+                             'gaussian': 7}[smearing[0].lower()]
+            inp['tsmear'] = smearing[1]
 
         inp['natom'] = len(atoms)
 
@@ -343,14 +344,14 @@ class Abinit(FileIOCalculator):
             for line2 in iter(text.split('\n')):
                 if line2.rfind('>>>>>>>>> etotal=') > -1:
                     etotal = float(line2.split('=')[-1])*Hartree
-                    efree = self.etotal
+                    efree = etotal
                     break
             else:
                 raise RuntimeError
 
-        self.results['energy'] = etotal
         # Energy extrapolated to zero Kelvin:
-        self.results['free energy'] = (etotal + efree) / 2
+        self.results['energy'] = (etotal + efree) / 2
+        self.results['free energy'] = efree
 
         # Forces:
         for line in lines:
