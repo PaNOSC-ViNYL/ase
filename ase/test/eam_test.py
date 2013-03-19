@@ -1,18 +1,12 @@
 import numpy as np
 
-from ase.test import NotAvailable
-
 from ase.calculators.eam import EAM
 from ase.lattice import bulk
 
 # test to generate an EAM potential file using a simplified
 # approximation to the Mishin potential Al99.eam.alloy data
 
-try:
-    from scipy.interpolate import InterpolatedUnivariateSpline as spline
-
-except ImportError:
-    raise NotAvailable('This needs scipy module.')
+from scipy.interpolate import InterpolatedUnivariateSpline as spline
     
 cutoff = 6.28721
 

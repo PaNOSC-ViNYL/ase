@@ -16,10 +16,7 @@ from ase.test import NotAvailable
 from ase.calculators.neighborlist import NeighborList
 from ase.calculators.general import Calculator
 
-try:
-    from scipy.interpolate import InterpolatedUnivariateSpline as spline
-except ImportError:
-    raise NotAvailable('This needs scipy module.')
+from scipy.interpolate import InterpolatedUnivariateSpline as spline
 
 
 class EAM(Calculator):
