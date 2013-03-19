@@ -11,7 +11,7 @@ class ReadError(Exception):
 
 
 # Recognized names of calculators sorted alphabetically:
-names = ['abinit', 'aims', 'asap', 'castep', 'dftb', 'elk', 'emt',
+names = ['abinit', 'aims', 'asap', 'castep', 'dftb', 'eam', 'elk', 'emt',
          'exciting', 'fleur', 'gpaw', 'gaussian', 'hotbit', 'jacapo',
          'lammps', 'lj', 'mopac', 'morse',
          'nwchem', 'siesta', 'turbomole', 'vasp']
