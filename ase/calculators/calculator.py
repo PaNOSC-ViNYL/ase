@@ -17,7 +17,8 @@ names = ['abinit', 'aims', 'asap', 'castep', 'dftb', 'eam', 'elk', 'emt',
          'nwchem', 'siesta', 'turbomole', 'vasp']
 
 
-special = {'elk': 'ELK',
+special = {'eam': 'EAM',
+           'elk': 'ELK',
            'emt': 'EMT',
            'fleur': 'FLEUR',
            'lammps': 'LAMMPS',
