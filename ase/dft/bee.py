@@ -47,7 +47,7 @@ class BEEF_Ensemble:
 
     def get_beefvdw_ensemble_coefs(self, size, seed):
         """Pertubation coefficients of the BEEF-vdW ensemble"""
-        from beefvdw_pars import uiOmega as omega
+        from pars_beefvdw import uiOmega as omega
         assert np.shape(omega) == (31, 31)
 
         Wo, Vo = np.linalg.eig(omega)
@@ -66,7 +66,7 @@ class BEEF_Ensemble:
 
     def get_mbeef_ensemble_coefs(self, size, seed):
         """Pertubation coefficients of mBEEF ensemble"""
-        from mbeef_pars import uiOmega as omega
+        from pars_mbeef import uiOmega as omega
         assert np.shape(omega) == (64, 64)
 
         mu, sigma = 0, 1.0 # mean zero and standard deviation one
