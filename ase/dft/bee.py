@@ -65,18 +65,12 @@ class BEEF_Ensemble:
         return (np.vstack((ensemble_coefs.T, PBEc_ens))).T
 
     def get_mbeef_ensemble_coefs(self, size, seed):
-        """Pertubation coefficients of mBEEF ensemble"""
+        """Pertubation coefficients of the mBEEF ensemble"""
         from pars_mbeef import uiOmega as omega
         assert np.shape(omega) == (64, 64)
 
-        mu, sigma = 0, 1.0 # mean zero and standard deviation one
         Wo, Vo = np.linalg.eig(omega)
-        Wo = Wo.real
-        for i, Woi in enumerate(Wo):
-            if np.abs(Woi) < 1.e-15 or Woi < 0.0:
-                Wo[i] = 0.
-
         np.random.seed(seed)
+        mu, sigma = 0.0, 1.0
         rand = np.array(np.random.normal(mu, sigma, (len(Wo), size)))
-        coefs = (np.sqrt(2.)*np.dot(np.dot(Vo, np.diag(np.sqrt(Wo))), rand)[:]).T
-        return coefs
+        return (np.sqrt(2.)*np.dot(np.dot(Vo, np.diag(np.sqrt(Wo))), rand)[:]).T
