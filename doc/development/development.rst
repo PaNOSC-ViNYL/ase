@@ -22,6 +22,7 @@ Development topics
    making_movies
    newrelease
    tests
+   buildbot
    translate
    todo
    py3k
