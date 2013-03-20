@@ -58,14 +58,14 @@ Here is the list of current committers:
 ==========  ======================  ===================================
 user name   real name
 ==========  ======================  ===================================
-anpet       Andrew Peterson         andy,peterson:stanford,edu
+anpet       Andrew Peterson         andrew_peterson:brown,edu
 askhl       Ask Hjorth Larsen       asklarsen:gmail,com
-bjork       Jonas Bjork             J,Bjork:liverpool,ac,uk
+bjork       Jonas Bjork             jonbj:ifm,liu,se
 dlandis     David Landis            dlandis:fysik,dtu,dk
 dulak       Marcin Dulak            dulak:fysik,dtu,dk
 eojons      Elvar Örn Jónsson       elvar,jonsson:fysik,dtu,dk
-getri       George Tritsaris        getri:fysik,dtu,dk
-grabow      Lars Grabow             grabow:fysik,dtu,dk
+getri       George Tritsaris        gtritsaris:seas,harvard,edu
+grabow      Lars Grabow             grabow:uh,edu
 hahansen    Heine Anton Hansen      hahansen:fysik,dtu,dk
 ivca        Ivano Eligio Castelli   ivca:fysik,dtu,dk
 jakobb      Jakob Blomquist         jakobb:fysik,dtu,dk
@@ -86,7 +86,7 @@ mvanin      Marco Vanin             mvanin:fysik,dtu,dk
 s032082     Christian Glinsvad      s032082:fysik,dtu,dk
 schiotz     Jakob Schiotz           schiotz:fysik,dtu,dk
 slabanja    Mattias Slabanja        slabanja:chalmers,se
-strange     Mikkel Strange          strange:fysik,dtu,dk
+strange     Mikkel Strange          mikkel,strange:gmail,com
 tjiang      Tao Jiang               tjiang:fysik,dtu,dk
 tolsen      Thomas Olsen            tolsen:fysik,dtu,dk
 ==========  ======================  ===================================
