@@ -34,17 +34,15 @@ import weakref
 import pickle
 from gettext import gettext as _
 from gettext import ngettext
-import numpy as np
 
+import numpy as np
 import pygtk
 pygtk.require("2.0")
-
 import gtk
+
 from ase.gui.view import View
 from ase.gui.status import Status
 from ase.gui.widgets import pack, help, Help, oops
-#from ase.gui.languages import translate as _
-
 from ase.gui.settings import Settings
 from ase.gui.crystal import SetupBulkCrystal
 from ase.gui.surfaceslab import SetupSurfaceSlab
@@ -56,6 +54,8 @@ from ase.gui.energyforces import EnergyForces
 from ase.gui.minimize import Minimize
 from ase.gui.scaling import HomogeneousDeformation
 from ase.gui.quickinfo import QuickInfo
+from ase.version import version
+
 
 ui_info = """\
 <ui>
@@ -1336,12 +1336,16 @@ class GUI(View, Status):
     def about(self, action):
         try:
             dialog = gtk.AboutDialog()
+            dialog.set_version(version)
+            dialog.set_website(
+                'https://wiki.fysik.dtu.dk/ase/ase/gui/gui.html')
         except AttributeError:
             self.xxx()
         else:
             dialog.run()
+            dialog.destroy()
 
 def webpage(widget):
     import webbrowser
-    webbrowser.open('https://wiki.fysik.dtu.dk/ase/ase/gui.html')
+    webbrowser.open('https://wiki.fysik.dtu.dk/ase/ase/gui/gui.html')
 
