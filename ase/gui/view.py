@@ -389,6 +389,49 @@ class View:
         self.set_coordinates()
         self.focus(self)
 
+    def set_view(self, menuitem):
+        plane_rotation = menuitem.get_name()
+
+        if plane_rotation == 'xyPlane':
+            self.axes = rotate('0.0x,0.0y,0.0z')
+        elif plane_rotation == 'yzPlane':
+            self.axes = rotate('-90.0x,-90.0y,0.0z')
+        elif plane_rotation == 'zxPlane':
+            self.axes = rotate('90.0x,0.0y,90.0z')
+        elif plane_rotation == 'yxPlane':
+            self.axes = rotate('180.0x,0.0y,90.0z')
+        elif plane_rotation == 'zyPlane':
+            self.axes = rotate('0.0x,90.0y,0.0z')
+        elif plane_rotation == 'xzPlane':
+            self.axes = rotate('-90.0x,0.0y,0.0z')
+        else:
+            if plane_rotation == 'a1a2Plane':
+                i, j = 0, 1
+            elif plane_rotation == 'a2a3Plane':
+                i, j = 1, 2
+            elif plane_rotation == 'a3a1Plane':
+                i, j = 2, 0
+            elif plane_rotation == 'a2a1Plane':
+                i, j = 1, 0
+            elif plane_rotation == 'a3a2Plane':
+                i, j = 2, 1
+            elif plane_rotation == 'a1a3Plane':
+                i, j = 0, 2
+
+            x1 = self.images.A[self.frame, i]
+            x2 = self.images.A[self.frame, j]
+
+            norm = np.linalg.norm
+
+            x1 = x1 / norm(x1)
+            x2 = x2 - x1 * np.dot(x1, x2)
+            x2 /= norm(x2)
+            x3 = np.cross(x1, x2)
+
+            self.axes = np.array([x1, x2, x3]).T
+
+        self.set_coordinates()
+
     def get_colors(self, rgb = False):
         Z = self.images.Z
         if rgb:
