@@ -33,6 +33,7 @@ float_keys = [
 
 exp_keys = [
     'basis_threshold',
+    'occupation_thr',
     'sc_accuracy_eev',
     'sc_accuracy_etot',
     'sc_accuracy_forces',
