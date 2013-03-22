@@ -92,11 +92,19 @@ Install with::
 
   yum install buildbot-slave
 
-You can configure ``systemd`` service by creating the following
+You can configure ``systemd`` service by creating
 :file:`python-ase-fedora-18-x86_64-gcc-2.7.service` file
 under ``/usr/lib/systemd/system``.
 
 .. literalinclude:: python-ase-fedora-18-x86_64-gcc-2.7.service
+
+``python-ase-fedora+18+x86_64+gcc+2.7-start.sh`` simply exports
+the necessary environment variables (if needed) and starts ``buildslave``
+(use the full path), e.g.::
+
+   #!/bin/sh
+   bot=/home/buildslave-username/python-ase-fedora+18+x86_64+gcc+2.7
+   buildslave start $bot
 
 Choose ``User`` and ``Group`` under which ``buildslave`` will be running.
 The service is started with::
