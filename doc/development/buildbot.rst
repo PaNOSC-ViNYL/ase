@@ -92,6 +92,22 @@ Install with::
 
   yum install buildbot-slave
 
+You can configure ``systemd`` service by creating the following
+:file:`python-ase-fedora-18-x86_64-gcc-2.7.service` file
+under ``/usr/lib/systemd/system``.
+
+.. literalinclude:: python-ase-fedora-18-x86_64-gcc-2.7.service
+
+Choose ``User`` and ``Group`` under which ``buildslave`` will be running.
+The service is started with::
+
+  systemctl start python-ase-fedora-18-x86_64-gcc-2.7.service
+
+In order to force the service to be started at boot time create a link::
+
+  cd /etc/systemd/system/multi-user.target.wants
+  ln -s /usr/lib/systemd/system/python-ase-fedora-18-x86_64-gcc-2.7.service .
+
 OS X
 ++++
 
@@ -107,7 +123,7 @@ Configure a virtualenv, and then::
 RHEL5
 +++++
 
-Install recent ``python-setuptools` to get ``easy_install`::
+Install recent ``python-setuptools`` to get ``easy_install``::
 
   mkdir ~/buildbot-slave-el5
   export PATH=$HOME/buildbot-slave-el5:${PATH}
@@ -124,7 +140,7 @@ then::
 RHEL6
 +++++
 
-Install ``build-slave` and dependencies::
+Install ``build-slave`` and dependencies::
 
   mkdir ~/buildbot-slave-el6
   export PATH=$HOME/buildbot-slave-el6:${PATH}
@@ -167,14 +183,14 @@ describe your ``buildslave`` configuration relevant for the builder process
 in the ``info`` file.
 
 Note that before starting the slave you need to perform an temporary
-svn checkout of ASE in order to accept the certificate permenently.
+svn checkout of ASE in order to accept the certificate permanently.
 
 Start the ``buildslave`` with::
 
   buildslave start python-ase-redhat+6+x86_64+gcc+2.6
 
-Consider a crontab job for it as described in the above configuration
-of ``buildmaster``.
+Don't forget to configure a crontab job or a service as described in the
+previous sections.
 
 By default all slaves run the continuous integration for the trunk.
 If you prefer your ``buildslave`` works also on one of the branches, write
