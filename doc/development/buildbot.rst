@@ -48,14 +48,15 @@ Proceed with buildbot configuration:
 
     buildbot create-master --relocatable python-ase
 
-* reconfigure the master with :svn:`doc/devel/development/master.cfg`:
+* reconfigure the master with :svn:`doc/development/master.cfg`::
 
     cp master.cfg python-ase
     buildbot checkconfig python-ase/master.cfg
     buildbot start python-ase
 
 * consider setting up a crontab which starts ``buildmaster``
-  after the server reboot::
+  after the server reboot (this solution is not reliable,
+  deploy rather init scripts - see below)::
 
     # run every 5 minutes
     */5 * * * * sh ~/python-ase-restart.sh
@@ -75,6 +76,24 @@ Proceed with buildbot configuration:
             buildbot restart $bot
         fi
     fi
+
+* or create a system V init script under ``/etc/init.d``
+
+  .. literalinclude:: python-ase-buildmaster
+
+  The service is added with::
+
+    chkconfig --add python-ase-buildmaster
+
+  started with::
+
+    service python-ase-buildmaster start
+
+  end enabled for boot time with::
+
+    chkconfig python-ase-buildmaster on
+
+  See also an example of ``systemd`` script in the section below.
 
 Installation and configuration of buildslaves
 =============================================
@@ -131,7 +150,7 @@ Configure a virtualenv, and then::
 RHEL5
 +++++
 
-Install recent ``python-setuptools`` to get ``easy_install``::
+Install recent ``python-setuptools`` in order to get ``easy_install``::
 
   mkdir ~/buildbot-slave-el5
   export PATH=$HOME/buildbot-slave-el5:${PATH}
@@ -160,7 +179,7 @@ Configuration
 
 After having installed the buildbot create a name which will identify
 your ``buildslave``. Obtain the first part of the name for your ``buildslave`` by
-running :svn:`doc/devel/development/master.cfg`::
+running :svn:`doc/development/master.cfg`::
 
   python master.cfg
 
