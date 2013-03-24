@@ -26,7 +26,8 @@ fi
 # Check that networking is configured.
 [ "${NETWORKING}" = "no" ] && exit 0
 
-PYTHON_ASE_HOME=/home/buildmaster-username/python-ase
+RUN_AS=buildmaster-username
+PYTHON_ASE_HOME=/home/$RUN_AS/python-ase
 test -d $PYTHON_ASE_HOME || exit 5
 
 LOGFILE=$PYTHON_ASE_HOME/../python-ase.log
@@ -43,15 +44,15 @@ start() {
 		RETVAL=1
 		return
 	fi
-	#su - buildmaster-username -s /bin/sh -c "exec nohup /bin/sh $PYTHON_ASE_HOME/../python-ase-start.sh >> $LOGFILE 2>&1 &"
+	#su - $RUN_AS -s /bin/sh -c "exec nohup /bin/sh $PYTHON_ASE_HOME/../python-ase-start.sh >> $LOGFILE 2>&1 &"
         # don't produce log
-	su - buildmaster-username -s /bin/sh -c "exec nohup /bin/sh $PYTHON_ASE_HOME/../python-ase-start.sh >> /dev/null 2>&1 &"
+	su - $RUN_AS -s /bin/sh -c "exec nohup /bin/sh $PYTHON_ASE_HOME/../python-ase-start.sh >> /dev/null 2>&1 &"
 	RETVAL=$?
 	if [ $RETVAL -eq 0 ]
 	then
 		sleep 1
-		su - buildmaster-username -s /bin/sh -c "cat $PYTHON_ASE_HOME/twistd.pid > $PIDFILE"
-		su - buildmaster-username -s /bin/sh -c "touch $LOCKFILE"
+		su - $RUN_AS -s /bin/sh -c "cat $PYTHON_ASE_HOME/twistd.pid > $PIDFILE"
+		su - $RUN_AS -s /bin/sh -c "touch $LOCKFILE"
 		log_success_msg
 	else
 		log_failure_msg
@@ -61,12 +62,12 @@ start() {
 
 stop() {
 	echo -n $"Shutting down python-ase buildmaster: "
-	kill $(su - buildmaster-username -s /bin/sh -c "cat $PIDFILE 2>/dev/null") > /dev/null 2>&1
+	kill $(su - $RUN_AS -s /bin/sh -c "cat $PIDFILE 2>/dev/null") > /dev/null 2>&1
 	RETVAL=$?
 	sleep 1
 	if [ $RETVAL -eq 0 ]
 	then
-		su - buildmaster-username -s /bin/sh -c "rm -f $PIDFILE $LOCKFILE"
+		su - $RUN_AS -s /bin/sh -c "rm -f $PIDFILE $LOCKFILE"
 		log_success_msg
 	else
 		log_failure_msg
