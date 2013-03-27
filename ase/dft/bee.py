@@ -29,10 +29,10 @@ class BEEF_Ensemble:
             else:
                 raise NotImplementedError('No ensemble for xc = %s' % self.xc)
 
-    def get_ensemble_energies(self, size=2000, seed=0, write=False, fname=None):
+    def get_ensemble_energies(self, size=2000, seed=0):
         """Returns an array of ensemble total energies"""
-        if write:
-            isinstance(fname, str)
+        self.size = size
+        self.seed = seed
         if rank == 0:
             print '\n'
             print '%s ensemble started' % self.xc
@@ -42,31 +42,29 @@ class BEEF_Ensemble:
             self.e = self.calc.get_potential_energy()
         if self.beef_type == 'beefvdw':
             assert len(self.contribs) == 32
-            coefs = self.get_beefvdw_ensemble_coefs(size, seed)
+            coefs = self.get_beefvdw_ensemble_coefs()
         elif self.beef_type == 'mbeef':
             assert len(self.contribs) == 64
-            coefs = self.get_mbeef_ensemble_coefs(size, seed)
-        de = np.dot(coefs, self.contribs)
+            coefs = self.get_mbeef_ensemble_coefs()
+        self.de = np.dot(coefs, self.contribs)
         self.done = True
 
         if rank == 0:
             print '%s ensemble finished' % self.xc
             print '\n'
 
-        if write:
-            self.write(fname, de, seed)
-        return de
+        return self.de
 
-    def get_beefvdw_ensemble_coefs(self, size, seed):
+    def get_beefvdw_ensemble_coefs(self):
         """Pertubation coefficients of the BEEF-vdW ensemble"""
         from pars_beefvdw import uiOmega as omega
         assert np.shape(omega) == (31, 31)
 
         Wo, Vo = np.linalg.eig(omega)
-        np.random.seed(seed)
-        RandV = np.random.randn(31, size)
+        np.random.seed(self.seed)
+        RandV = np.random.randn(31, self.size)
 
-        for j in range(size):
+        for j in range(self.size):
             v = RandV[:,j]
             coefs_i = (np.dot(np.dot(Vo, np.diag(np.sqrt(Wo))), v)[:])
             if j == 0:
@@ -76,20 +74,21 @@ class BEEF_Ensemble:
         PBEc_ens = -ensemble_coefs[:, 30]
         return (np.vstack((ensemble_coefs.T, PBEc_ens))).T
 
-    def get_mbeef_ensemble_coefs(self, size, seed):
+    def get_mbeef_ensemble_coefs(self):
         """Pertubation coefficients of the mBEEF ensemble"""
         from pars_mbeef import uiOmega as omega
         assert np.shape(omega) == (64, 64)
 
         Wo, Vo = np.linalg.eig(omega)
-        np.random.seed(seed)
+        np.random.seed(self.seed)
         mu, sigma = 0.0, 1.0
-        rand = np.array(np.random.normal(mu, sigma, (len(Wo), size)))
+        rand = np.array(np.random.normal(mu, sigma, (len(Wo), self.size)))
         return (np.sqrt(2.)*np.dot(np.dot(Vo, np.diag(np.sqrt(Wo))), rand)[:]).T
 
-    def write(self, fname, de, seed):
+    def write(self, fname):
         """Write ensemble data file"""
         import cPickle as pickle
+        isinstance(fname, str)
         if fname[-4:] != '.ens':
             fname += '.ens'
         assert self.done
@@ -97,7 +96,7 @@ class BEEF_Ensemble:
             if os.path.isfile(fname):
                 os.rename(fname, fname + '.old')
             f = open(fname, 'w')
-            obj = [self.e, de, self.contribs, seed, self.xc]
+            obj = [self.e, self.de, self.contribs, self.seed, self.xc]
             pickle.dump(obj, f)
             f.close()
 
