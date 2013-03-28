@@ -20,76 +20,150 @@ from scipy.interpolate import InterpolatedUnivariateSpline as spline
 
 
 class EAM(Calculator):
-    """EAM/ADP Calculator for atom energy and forces.
+    r"""
+
+    EAM Interface Documentation
     
-    The Embedded Atom Method (EAM) is a classical potential which is
-    equiaxial and does not model directional bonds well, but it is
-    good for metallic bonds particularly for fcc. This calculator will
-    also handle the Angular Dependent Potential (ADP) which is an
-    extended version of EAM to handle directional bonds.
+Introduction
+============
 
-    For EAM See M.S. Daw and M.I. Baskes, Phys. Rev. Letters 50 (1983)
-    1285.
+The Embedded Atom Method (EAM) [1]_ is a classical potential which is
+good for modelling metals particularly or fcc materials. Because it is
+an equiaxial potential the EAM does not model directional bonds
+well. However, the Angular Dependent Potential (ADP) [2]_ which is an
+extended version of EAM is able to model directional bonds is part of
+the EAM calculator.
 
-    For ADP see Y. Mishin, M.J. Mehl, and D.A. Papaconstantopoulos,
-    Acta Materialia 53 2005 4029--4041.
+A single element EAM potential is defined by three functions: the
+embedded energy, electron density and the pair potential (phi).
+A two element alloy contains the individual three functions
+for each element plus cross pair interactions.
+The ADP potential has additional two additional sets of data to
+define the dipole and quadrupole directional terms for each alloy
+and their cross interactions.
 
-    The Interatomic Potentials Repository Project at
-    http://www.ctcms.nist.gov/potentials/ contains many suitable
-    potential files.
+The files containing the potentials for this calculator are not
+included but many suitable potentials can be downloaded from The
+Interatomic Potentials Repository Project at
+http://www.ctcms.nist.gov/potentials/
 
-    A single element EAM potential is defined by three functions: the
-    embedded_energy, electron_density and the pair potential (phi).
-    A two element alloy contains the individual three functions
-    for each element plus cross pair interactions.
-    The ADP potential has additional two additional sets of data to
-    define the dipole and quadrupole directional terms for each alloy
-    and their cross interactions.
+Running the Calculator
+======================
 
-    The data for the potential can be created from:
-        1. reading from a LAMMPS .alloy format file
-           (this is slightly different from the LAMMPS .eam format),
+EAM calculates the cohesive atom energy and forces. Internally the
+potential functions are defined by splines which may be directly
+supplied or created by reading the spline points from a data file from
+which a slpline function is created.  The LAMMPS compatible ``.alloy``
+and ``.adp`` formats are supported. The LAMMPS ``.eam`` format is
+slightly different from the ``.alloy`` format and is currently not
+supported.
 
-        2. an .adp file
+For example::
 
-        3. directly suppling the individual functions.
-
-    Note: Any supplied values will overide values read from the file.
-     
-    The derivative functions, if supplied, are only required to
-    calculate forces.
-
-    Parameters:
-
-    fileobj: file of potential in alloy format
-
-    and/or
- 
-    elements[N]: array of N element abreviations
-    embedded_energy[N], electron_density[N], phi[N,N]: arrays of EAM functions
-    d_embedded_energy[N], d_electron_density[N], d_phi[N,N]: derivative functions
-    d[N], q[N,N], d_d[N,N],d_q[N,N]: ADP functions and derivative functions
-    
-    The following parameters are required for writing an EAM alloy
-    format file and are required to sample the functions:
-
-    Z[N]: array of atomic number of each element
-    mass[N]: atomic mass of each element
-    a[N]: array of lattice parameters for each element
-    lattice[N]: lattice type
-    nrho: no. of rho samples
-    drho: increment for sampling density
-    nr: no. of radial points
-    dr: increment for sampling radius
-    
-    Example of use:
+    from eam import EAM
 
     mishin = EAM('Al99.eam.alloy')
     mishin.write_file('new.eam.alloy')
-    mishin.show()
+    mishin.plot()
+
     slab.set_calculator(mishin)
     slab.get_potential_energy()
     slab.get_forces()
+
+
+Arguments
+=========
+
+=========================  ====================================================
+Keyword                    Description
+=========================  ====================================================
+``fileobj``                file of potential in ``.alloy`` or ``.adp`` format
+                           (This is generally all you need to supply)
+                            
+``elements[N]``            array of N element abreviations
+
+``embedded_energy[N]``     arrays of embedded energy functions
+
+``electron_density[N]``    arrays of electron density functions
+
+``phi[N,N]``               arrays of pair potential funtions
+
+``d_embedded_energy[N]``   arrays of derivative embedded energy functions
+
+``d_electron_density[N]``  arrays of derivative electron density functions
+
+``d_phi[N,N]``             arrays of derivative pair potentials functions
+
+``d[N], q[N,N]``           ADP dipole and quadrupole function
+
+``d_d[N,N], d_q[N,N]``     ADP dipole and quadrupole derivative functions
+
+=========================  ====================================================
+
+
+Additional parameters for writing potential files
+=================================================
+
+The following parameters are only required for writing a potential in
+``.alloy`` or ``.adp`` format file.
+
+=========================  ====================================================
+Keyword                    Description
+=========================  ====================================================
+``Z[N]``                   Array of atomic number of each element
+
+``mass[N]``                Atomic mass of each element
+
+``a[N]``                   Array of lattice parameters for each element
+
+``lattice[N]``             Lattice type
+
+``nrho``                   No. of rho samples
+
+``drho``                   Increment for sampling density
+
+``nr``                     No. of radial points
+
+``dr``                     Increment for sampling radius
+
+=========================  ====================================================
+
+Special features
+================
+
+``.plot()``
+  Plots the individual funtions. This may be called from multiple EAM
+  potentials to compare the shape of the individual curves. This
+  function requires the installation of the Matplotlib libraries.
+
+Notes/Issues
+=============
+
+* Although currently not fast, this calculator can be good for trying
+  small calculations or for creating new potentials by matching baseline
+  data such as from DFT results. The format for these potentials is
+  compatable with LAMMPS_ and so can be used either directly by LAMMPS or
+  with the ASE LAMMPS calculator interface.
+
+* Supported formats are the LAMMPS_ ``.alloy`` and ``.adp``. The
+  ``.eam`` format is currently not supported.
+
+* Any supplied values will overide values read from the file.
+
+* The derivative functions, if supplied, are only used to calculate
+  forces.
+
+
+.. _LAMMPS: http://lammps.sandia.gov/
+
+.. [1] M.S. Daw and M.I. Baskes, Phys. Rev. Letters 50 (1983)
+       1285.
+
+.. [2] Y. Mishin, M.J. Mehl, and D.A. Papaconstantopoulos,
+       Acta Materialia 53 2005 4029--4041.
+
+
+End EAM Interface Documentation
     """
 
     def __init__(self, fileobj=None, **kwargs):
@@ -514,7 +588,7 @@ blank
         self.energy_free = energy
         self.energy_zero = energy
 
-    def show(self, name=''):
+    def plot(self, name=''):
         """Plot the individual curves"""
 
         try:
@@ -548,7 +622,7 @@ blank
         plt.subplot(nrow, 2, 2)
         self.elem_subplot(r, self.electron_density,
                           r'$r$', r'Electron Density $\rho(r)$', name, plt)
-        
+
         plt.subplot(nrow, 2, 3)
         self.multielem_subplot(r, self.phi,
                                r'$r$', r'Pair Potential $\phi(r)$', name, plt)
@@ -563,7 +637,7 @@ blank
             self.multielem_subplot(r, self.q,
                                    r'$r$', r'Quadrupole Energy', name, plt)
 
-        plt.show()
+        plt.plot()
 
     def elem_subplot(self, curvex, curvey, xlabel, ylabel, name, plt):
         plt.xlabel(xlabel)
@@ -617,7 +691,7 @@ blank
     def eam_dipole(self, r, rvec, d):
         # calculate the dipole contribution
         mu = np.sum((rvec * d(r)[:, np.newaxis]), axis=0)
-        
+
         return mu  # sign to agree with lammps
 
     def eam_quadrupole(self, r, rvec, q):

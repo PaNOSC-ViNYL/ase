@@ -53,7 +53,7 @@ The calculators can be divided in three groups:
    have Python wrappers in the ASE package, but the actual
    FORTRAN/C/C++ codes are not part of ASE.
 
-3) Pure python implementations included in the ASE package: EMT,
+3) Pure python implementations included in the ASE package: EMT, EAM,
    Lennard-Jones and Morse.
 
 ======================  ===========================================
@@ -65,7 +65,7 @@ Hotbit_                 DFT based tight binding
 :mod:`abinit`           Plane-wave pseudopotential code
 :mod:`castep`           Plane-wave pseodopotential code
 :mod:`dftb`             DFT based tight binding
-eam                     Embedded Atom Method
+:mod:`eam`              Embedded Atom Method
 elk                     Full Potential LAPW code
 :mod:`exciting`         Full Potential LAPW code
 :mod:`FHI-aims`         Numeric atomic orbital, full potential code
@@ -170,6 +170,7 @@ the :meth:`set` method:
 .. toctree::
    :hidden:
 
+   eam
    emt
    abinit
    castep
