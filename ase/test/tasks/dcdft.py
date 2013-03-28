@@ -342,7 +342,7 @@ class DeltaCodesDFTCollection:
  'Cr': {'cell': array([[  2.87100000e+00,   0.00000000e+00,   0.00000000e+00],
        [  1.75798048e-16,   2.87100000e+00,   0.00000000e+00],
        [  1.75798048e-16,   1.75798048e-16,   2.87100000e+00]]),
-        'magmoms': [0.5, -0.5],
+        'magmoms': [1.5, -1.5],
         'positions': array([[ 0.    ,  0.    ,  0.    ],
        [ 1.4355,  1.4355,  1.4355]]),
         'symbols': ['Cr', 'Cr']},
@@ -564,7 +564,7 @@ class DeltaCodesDFTCollection:
  'O': {'cell': array([[  4.27163000e+00,   0.00000000e+00,   0.00000000e+00],
        [  2.61879696e-16,   4.27682000e+00,   0.00000000e+00],
        [  1.80666882e+00,   1.69295858e-16,   4.19933056e+00]]),
-       'magmoms': [0.5, 0.5, -0.5, -0.5],
+       'magmoms': [1.5, 1.5, -1.5, -1.5],
        'positions': array([[  4.27100416e+00,   2.48306235e-17,   6.15915813e-01],
        [  1.80729466e+00,   1.44465234e-16,   3.58341475e+00],
        [  2.13518916e+00,   2.13841000e+00,   6.15915813e-01],
@@ -912,8 +912,8 @@ if __name__ == '__main__':
                 magmoms = None
             # antiferromagnetic Cr, O
             if s in ['Cr', 'O']:
-                magmoms = [0.5 for i in range(len(a) / 2)]
-                magmoms += [-0.5 for i in range(len(a) / 2)]
+                magmoms = [1.5 for i in range(len(a) / 2)]
+                magmoms += [-1.5 for i in range(len(a) / 2)]
             # ferrimagnetic Mn
             elif s in ['Mn']:
                 magmoms = [2.0, 1.9, -2.0, -1.9]
