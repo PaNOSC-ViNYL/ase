@@ -30,7 +30,7 @@ class MinimaHopping:
         'timestep': 1.0,  # fs, timestep for MD simulations
         'optimizer': QuasiNewton,  # local optimizer to use
         'minima_traj': 'minima.traj',  # storage file for minima list
-        'fmax' : 0.05, # eV/A, max force for optimizations
+        'fmax': 0.05,  # eV/A, max force for optimizations
                           }
 
     def __init__(self, atoms, **kwargs):
@@ -124,7 +124,7 @@ class MinimaHopping:
                 self._previous_optimum = atoms.copy()
                 self._previous_energy = atoms.get_potential_energy()
             atoms = io.read('qn%05i.traj' % qncount, index=-1)
-            fmax = np.sqrt((atoms.get_forces()**2).sum(axis=1).max())
+            fmax = np.sqrt((atoms.get_forces() ** 2).sum(axis=1).max())
             if fmax < self._fmax:
                 raise NotImplementedError('Error resuming. qn%05i fmax '
                                           'already less than self._fmax = '
@@ -438,3 +438,228 @@ class PassedMinimum:
             index -= 1
         if status:
             return (-self._nup - 1), energies[-self._nup - 1]
+
+
+class MHPlot:
+    """Makes a plot summarizing the output of the MH algorithm from the
+    specified rundirectory. If no rundirectory is supplied, uses the
+    current directory."""
+
+    def __init__(self, rundirectory=None, logname='hop.log'):
+        if not rundirectory:
+            rundirectory = os.getcwd()
+        self._rundirectory = rundirectory
+        self._logname = logname
+        self._read_log()
+        self._fig, self._ax = self._makecanvas()
+        self._plot_data()
+
+    def get_figure(self):
+        """Returns the matplotlib figure object."""
+        return self._fig
+
+    def save_figure(self, filename):
+        """Saves the file to the specified path, with any allowed
+        matplotlib extension (e.g., .pdf, .png, etc.)."""
+        self._fig.savefig(filename)
+
+    def _read_log(self):
+        """Reads relevant parts of the log file."""
+        data = []  # format: [energy, status, temperature, ediff]
+        f = open(os.path.join(self._rundirectory, self._logname), 'r')
+        lines = f.read().splitlines()
+        f.close()
+        step_over = False
+        for line in lines:
+            if line[:24] == 'msg: Molecular dynamics:':
+                status = 'performing MD'
+            elif line[:18] == 'msg: Optimization:':
+                status = 'performing QN'
+            elif line[:4] == 'ene:':
+                status = 'local optimum reached'
+                energy = floatornan(line.split()[1])
+            elif line[:26] == 'msg: Accepted new minimum.':
+                status = 'accepted'
+                step_over = True
+            elif line[:36] == 'msg: Found previously found minimum.':
+                status = 'previously found minimum'
+                step_over = True
+            elif line[:27] == 'msg: Re-found last minimum.':
+                status = 'previous minimum'
+                step_over = True
+            elif line[:25] == 'msg: Rejected new minimum':
+                status = 'rejected'
+                step_over = True
+            elif line[:5] == 'par: ':
+                temperature = floatornan(line.split()[1])
+                ediff = floatornan(line.split()[2])
+            if step_over:
+                data.append([energy, status, temperature, ediff])
+                step_over = False
+        if data[-1][1] != status:
+            data.append([np.nan, status, temperature, ediff])
+        self._data = data
+
+    def _makecanvas(self):
+        from matplotlib import pyplot
+        from matplotlib.ticker import ScalarFormatter
+        fig = pyplot.figure(figsize=(6., 8.))
+        lm, rm, bm, tm = 0.22, 0.02, 0.05, 0.04
+        vg1 = 0.01  # between adjacent energy plots
+        vg2 = 0.03  # between different types of plots
+        ratio = 2.  # size of an energy plot to a parameter plot
+        figwidth = 1. - lm - rm
+        totalfigheight = 1. - bm - tm - vg1 - 2. * vg2
+        parfigheight = totalfigheight / (2. * ratio + 2)
+        epotheight = ratio * parfigheight
+        ax1 = fig.add_axes((lm, bm, figwidth, epotheight))
+        ax2 = fig.add_axes((lm, bm + epotheight + vg1,
+                            figwidth, epotheight))
+        for ax in [ax1, ax2]:
+            ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+        ediffax = fig.add_axes((lm, bm + 2. * epotheight + vg1 + vg2,
+                                figwidth, parfigheight))
+        tempax = fig.add_axes((lm, (bm + 2 * epotheight + vg1 + 2 * vg2 +
+                               parfigheight), figwidth, parfigheight))
+        for ax in [ax2, tempax, ediffax]:
+            ax.set_xticklabels([])
+        ax1.set_xlabel('step')
+        tempax.set_ylabel('$T$, K')
+        ediffax.set_ylabel('$E_\mathrm{diff}$, eV')
+        for ax in [ax1, ax2]:
+            ax.set_ylabel('$E_\mathrm{pot}$, eV')
+        ax = CombinedAxis(ax1, ax2, tempax, ediffax)
+        self._set_zoomed_range(ax)
+        ax1.spines['top'].set_visible(False)
+        ax2.spines['bottom'].set_visible(False)
+        return fig, ax
+
+    def _set_zoomed_range(self, ax):
+        """Try to intelligently set the range for the zoomed-in part of the
+        graph."""
+        energies = [line[0] for line in self._data
+                    if not np.isnan(line[0])]
+        dr = max(energies) - min(energies)
+        if dr == 0.:
+            dr = 1.
+        ax.set_ax1_range((min(energies) - 0.2 * dr,
+                          max(energies) + 0.2 * dr))
+
+    def _plot_data(self):
+        for step, line in enumerate(self._data):
+            self._plot_energy(step, line)
+            self._plot_qn(step, line)
+            self._plot_md(step, line)
+        self._plot_parameters()
+
+    def _plot_energy(self, step, line):
+        """Plots energy and annotation for acceptance."""
+        energy, status = line[0], line[1]
+        if np.isnan(energy):
+            return
+        self._ax.plot([step, step + 0.5], [energy] * 2, '-',
+                      color='k', linewidth=2.)
+        if status == 'accepted':
+            self._ax.text(step + 0.51, energy, '$\checkmark$')
+        elif status == 'rejected':
+            self._ax.text(step + 0.51, energy, '$\Uparrow$', color='red')
+        elif status == 'previously found minimum':
+            self._ax.text(step + 0.51, energy, '$\hookleftarrow$',
+                          color='red', va='center')
+        elif status == 'previous minimum':
+            self._ax.text(step + 0.51, energy, '$\leftarrow$',
+                          color='red', va='center')
+
+    def _plot_md(self, step, line):
+        """Adds a curved plot of molecular dynamics trajectory."""
+        if step == 0:
+            return
+        energies = [self._data[step - 1][0]]
+        file = os.path.join(self._rundirectory, 'md%05i.traj' % step)
+        traj = io.PickleTrajectory(file, 'r')
+        for atoms in traj:
+            energies.append(atoms.get_potential_energy())
+        xi = step - 1 + .5
+        xf = xi + (step + 0.25 - xi) * len(energies) / (len(energies) - 2.)
+        self._ax.plot(np.linspace(xi, xf, num=len(energies)), energies,
+                      '-k')
+
+    def _plot_qn(self, index, line):
+        """Plots a dashed vertical line for the optimization."""
+        if line[1] == 'performing MD':
+            return
+        file = os.path.join(self._rundirectory, 'qn%05i.traj' % index)
+        if os.path.getsize(file) == 0:
+            return
+        traj = io.PickleTrajectory(file, 'r')
+        energies = [traj[0].get_potential_energy(),
+                    traj[-1].get_potential_energy()]
+        if index > 0:
+            file = os.path.join(self._rundirectory, 'md%05i.traj' % index)
+            atoms = io.read(file, index=-3)
+            energies[0] = atoms.get_potential_energy()
+        self._ax.plot([index + 0.25] * 2, energies, ':k')
+
+    def _plot_parameters(self):
+        """Adds a plot of temperature and Ediff to the plot."""
+        steps, Ts, ediffs = [], [], []
+        for step, line in enumerate(self._data):
+            if step > 0:
+                steps.extend([step - 0.5, step + 0.5])
+                Ts.extend([line[2]] * 2)
+                ediffs.extend([line[3]] * 2)
+        self._ax.tempax.plot(steps, Ts)
+        self._ax.ediffax.plot(steps, ediffs)
+
+        for ax in [self._ax.tempax, self._ax.ediffax]:
+            ylim = ax.get_ylim()
+            yrange = ylim[1] - ylim[0]
+            ax.set_ylim((ylim[0] - 0.1 * yrange, ylim[1] + 0.1 * yrange))
+
+
+def floatornan(value):
+    """Converts the argument into a float if possible, np.nan if not."""
+    try:
+        output = float(value)
+    except ValueError:
+        output = np.nan
+    return output
+
+
+class CombinedAxis:
+    """Helper class for MHPlot to plot on split y axis and adjust limits
+    simultaneously."""
+    def __init__(self, ax1, ax2, tempax, ediffax):
+        self.ax1 = ax1
+        self.ax2 = ax2
+        self.tempax = tempax
+        self.ediffax = ediffax
+        self._ymax = None
+
+    def set_ax1_range(self, ylim):
+        self._ax1_ylim = ylim
+        self.ax1.set_ylim(ylim)
+
+    def plot(self, *args, **kwargs):
+        self.ax1.plot(*args, **kwargs)
+        self.ax2.plot(*args, **kwargs)
+        # Re-adjust yrange
+        for yvalue in args[1]:
+            if yvalue > self._ymax:
+                self._ymax = yvalue
+        self.ax1.set_ylim(self._ax1_ylim)
+        self.ax2.set_ylim((self._ax1_ylim[1], self._ymax))
+
+    def set_xlim(self, *args):
+        self.ax1.set_xlim(*args)
+        self.ax2.set_xlim(*args)
+        self.tempax.set_xlim(*args)
+        self.ediffax.set_xlim(*args)
+
+    def text(self, *args, **kwargs):
+        y = args[1]
+        if y < self._ax1_ylim[1]:
+            ax = self.ax1
+        else:
+            ax = self.ax2
+        ax.text(*args, **kwargs)
