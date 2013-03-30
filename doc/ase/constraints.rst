@@ -111,24 +111,22 @@ The FixedMode class
 
 A mode is a list of vectors specifying a direction for each atom. It often comes from :meth:`ase.vibrations.Vibrations.get_mode`.
 
-The BondSpring class
+The Hookean class
 ====================
 
-This constraint applies a Hookean restorative force between two atoms if the distance between them exceeds a threshhold. This is useful to maintain the identity of molecules in quenched molecular dynamics, without changing the degrees of freedom or violating conservation of energy. When the distance between the two atoms is less than the threshhold length, this constraint is completely inactive.
+This class of constraints, based on Hooke's Law, is generally used to conserve molecular identity in optimization schemes and can be used in three different ways. In the first, it applies a Hookean restorative force between two atoms if the distance between them exceeds a threshold. This is useful to maintain the identity of molecules in quenched molecular dynamics, without changing the degrees of freedom or violating conservation of energy. When the distance between the two atoms is less than the threshold length, this constraint is completely inactive.
 
-The below example tethers together atoms at index 3 and 4 together::
+The below example tethers atoms at indices 3 and 4 together::
 
-  >>> c = BondSpring(a1=3, a2=4, threshhold_length=1.79,
-                     springconstant=5.)
+  >>> c = Hookean(a1=3, a2=4, rt=1.79, k=5.)
   >>> atoms.set_constraint(c)
 
 Alternatively, this constraint can tether a single atom to a point in space, for example to prevent the top layer of a slab from subliming during a high-temperature MD simulation. An example of tethering atom at index 3 to its original position::
 
-  >>> c = BondSpring(a1=3, a2=atoms[3].position, threshhold_length=0.94,
-                     springconstant=2.)
+  >>> c = Hookean(a1=3, a2=atoms[3].position, rt=0.94, k=2.)
   >>> atoms.set_constraint(c)
 
-Reasonable values of the threshhold and spring constant for some common bonds are below.
+Reasonable values of the threshold and spring constant for some common bonds are below.
 
 .. list-table::
 
@@ -153,6 +151,19 @@ Reasonable values of the threshhold and spring constant for some common bonds ar
   * - Cu sublimation
     - 0.97
     - 2
+
+A third way this constraint can be applied is to apply a restorative force if an atom crosses a plane in space. For example::
+
+  >>> c = Hookean(a1=3, a2=(0, 0, 1, -7, k=10.)
+  >>> atoms.set_constraint(c)
+
+This will apply a restorative force in the downward direction of magnitude k * (atom.z - 7) if the atom's vertical position exceeds 7 Angstroms. In other words, if the atom crosses to the (positive) normal side of the plane, the force is applied and directed towards the plane. (The same plane with the normal direction pointing in the -z direction would be given by (0, 0, -1, 7).)
+
+For an example of use, see the :ref:`mhtutorial` tutorial.
+
+.. note::
+
+  In previous versions of ASE, this was known as the BondSpring constraint.
 
 The FixInternals class
 ======================

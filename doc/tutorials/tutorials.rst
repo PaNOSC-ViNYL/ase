@@ -37,6 +37,7 @@ other :mod:`Calculator <calculators>` could be plugged in instead.
    md/md
    stm-tutorial
    wannier/wannier
+   minimahopping/minimahopping
  
 NumPy
 -----
