@@ -3,6 +3,8 @@
 ======================
 Structure optimization
 ======================
+.. module:: optimize
+   :synopsis: Structure Optimization
 
 The optimization algorithms can be roughly divided into local
 optimization algorithms which find a nearby local minimum and
@@ -12,8 +14,6 @@ minimum (a much harder task).
 
 Local optimization
 ==================
-.. module:: optimize
-   :synopsis: Structure Optimization
 
 The local optimization algorithms available in ASE are:
 ``BFGS``, ``LBFGS``, ``BFGSLineSearch``, ``LBFGSLineSearch``,
