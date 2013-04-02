@@ -1,6 +1,8 @@
 # creates:  hoppingsummary.png
-
+import matplotlib
+matplotlib.use('Agg')
 from ase.optimize.minimahopping import MHPlot
+
 execfile('Cu2_Pt110.py')
 mhplot = MHPlot()
 mhplot.save_figure('hoppingsummary.png')
@@ -15,4 +17,3 @@ for index in range(1, 10):
     os.remove('qn%05i.log' % index)
     os.remove('md%05i.traj' % index)
     os.remove('md%05i.log' % index)
-
