@@ -119,7 +119,16 @@ class Parameters(dict):
 
 
 class Calculator:
-    """Base-class for all ASE calculators."""
+    """Base-class for all ASE calculators.
+
+    A calculator must raise NotImplementedError if asked for a
+    property that it can't calculate.  So, if calculation of the
+    stress tensor has not been implemented, get_stress(atoms) should
+    raise NotImplementedError.  This can be achieved simply by adding
+    the string 'stress' to the list notimplemented which is a class
+    member.  These are the names of the standard properties: 'energy',
+    'forces', 'stress', 'dipole', 'magmom' and 'magmoms'.
+    """
 
     notimplemented = []
     "Properties calculator can't handle"
@@ -370,7 +379,7 @@ class Calculator:
             'magmoms'.
         system_changes: list of str
             List of what has changed since last calculation.  Can be
-            any combination of these five: 'positons', 'numbers', 'cell',
+            any combination of these five: 'positions', 'numbers', 'cell',
             'pbc' and 'magmoms'.
 
         Subclasses need to implement this, but can ignore properties
