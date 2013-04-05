@@ -1,7 +1,9 @@
 import numpy as np
 
+from ase.calculators.calculator import Calculator, all_properties
 
-class SinglePointCalculator:
+
+class SinglePointCalculator(Calculator):
     """Special calculator for a single configuration.
 
     Used to remember the energy, force and stress for a given
@@ -9,68 +11,20 @@ class SinglePointCalculator:
     boundary conditions are changed, then asking for
     energy/forces/stress will raise an exception."""
     
-    def __init__(self, energy, forces, stress, magmoms, atoms):
+    def __init__(self, atoms, **results):
         """Save energy, forces and stresses for the current configuration."""
-        self.energy = energy
-        if forces is not None:
-            forces = np.array(forces, float)
-        self.forces = forces
-        if stress is not None:
-            stress = np.array(stress, float)
-        self.stress = stress
-        if magmoms is not None:
-            magmoms = np.array(magmoms, float)
-        self.magmoms = magmoms
-        self.atoms = atoms.copy()
+        Calculator.__init__(self)
+        self.results = {}
+        for property, value in results.items():
+            assert property in all_properties
+            if value is None:
+                continue
+            if property in ['energy', 'magmom']:
+                self.results[property] = value
+            else:
+                self.results[property] = np.array(value, float)
+        self.state = atoms.copy()
 
-    def calculation_required(self, atoms, quantities):
-        ok = self.atoms == atoms
-        return ('forces' in quantities and (self.forces is None or not ok) or
-                'energy' in quantities and (self.energy is None or not ok) or
-                'stress' in quantities and (self.stress is None or not ok) or
-                'magmoms' in quantities and (self.magmoms is None or not ok))
-
-    def update(self, atoms):
-        if self.atoms != atoms:
-            raise RuntimeError('Energy, forces and stress no longer correct.')
-
-    def get_potential_energy(self, atoms=None):
-        if atoms is not None:
-            self.update(atoms)
-        if self.energy is None:
-            raise RuntimeError('No energy.')
-        return self.energy
-
-    def get_forces(self, atoms):
-        self.update(atoms)
-        if self.forces is None:
-            raise RuntimeError('No forces.')
-        return self.forces
-
-    def get_stress(self, atoms):
-        self.update(atoms)
-        if self.stress is None:
-            raise NotImplementedError
-        return self.stress
-
-    def get_spin_polarized(self):
-        return self.magmoms is not None and self.magmoms.any()
-
-    def get_magnetic_moments(self, atoms=None):
-        if atoms is not None:
-            self.update(atoms)
-        if self.magmoms is not None:
-            return self.magmoms
-        else:
-            return np.zeros(len(self.positions))
-
-    def get_dipole_moment(self):
-        if hasattr(self, 'dipole'):
-            return self.dipole
-        return None
-
-    def set_dipole_moment(self, dipole):
-        self.dipole = dipole
 
 class SinglePointKPoint:
     def __init__(self, weight, s, k, eps_n=[], f_n=[]):

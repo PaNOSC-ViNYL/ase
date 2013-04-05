@@ -134,6 +134,10 @@ def read(filename, index=-1, format=None):
 
         return atoms
 
+    if format == 'json':
+        from ase.db.jsondb import read_jsondb
+        return read_jsondb(filename, index)
+
     if format == 'castep':
         from ase.io.castep import read_castep
         return read_castep(filename, index)
@@ -539,6 +543,9 @@ def filetype(filename):
     s3 = fileobj.read(3)
     if len(s3) == 0:
         raise IOError('Empty file: ' + filename)
+
+    if s3.startswith('{"'):
+        return 'json'
 
     if filename.lower().endswith('.db') or filename.lower().endswith('.cmr'):
         return 'db'

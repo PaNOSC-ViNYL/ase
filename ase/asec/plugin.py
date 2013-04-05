@@ -1,8 +1,8 @@
 from ase.asec.run import RunCommand
 
+
 class PluginCommand(RunCommand):
-    def __init__(self, logfile, args, calculate_function):
-        RunCommand.__init__(self, logfile, args)
+    def __init__(self, calculate_function):
         self.calculate_function = calculate_function
 
     def calculate(self, atoms, name):

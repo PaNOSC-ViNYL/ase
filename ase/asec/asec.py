@@ -46,8 +46,7 @@ class ASEC:
     def run(self):
         args = self.args
 
-        cls = self.get_command_class(args.subparser_name)
-        command = cls(self.logfile, args)
+        command = self.get_command_object(args.subparser_name)
 
         if args.plugin:
             f = open(args.plugin)
@@ -59,15 +58,17 @@ class ASEC:
                 args.names = namespace['names']
             self.build_function = namespace.get('build')
             if 'calculate' in namespace:
-                command = PluginCommand(self.logfile, args,
-                                        namespace.get('calculate'))
+                command = PluginCommand(namespace.get('calculate'))
+
+        command.logfile = self.logfile
+        command.args = args
 
         expand(args.names)
 
         atoms = None
         for name in args.names:
             if atoms is not None:
-                del atoms.calc
+                del atoms.calc  # release resources from last calculation
             atoms = self.build(name)
             command.run(atoms, name)
 
@@ -75,11 +76,67 @@ class ASEC:
 
         return atoms
 
+    def parse(self, args):
+        # create the top-level parser
+        parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
+        parser.add_argument('names', nargs='*')
+        parser.add_argument('-t', '--tag',
+                             help='String tag added to filenames.')
+        parser.add_argument('-M', '--magnetic-moment',
+                             metavar='M1,M2,...',
+                             help='Magnetic moment(s).  ' +
+                             'Use "-M 1" or "-M 2.3,-2.3".')
+        parser.add_argument(
+            '--modify', metavar='...',
+            help='Modify atoms with Python statement.  ' +
+            'Example: --modify="atoms.positions[-1,2]+=0.1".')
+        parser.add_argument('-v', '--vacuum', type=float, default=3.0,
+                       help='Amount of vacuum to add around isolated atoms '
+                       '(in Angstrom).')
+        parser.add_argument('--unit-cell',
+                       help='Unit cell.  Examples: "10.0" or "9,10,11" ' +
+                       '(in Angstrom).')
+        parser.add_argument('--bond-length', type=float,
+                       help='Bond length of dimer in Angstrom.')
+        parser.add_argument('-x', '--crystal-structure',
+                        help='Crystal structure.',
+                        choices=['sc', 'fcc', 'bcc', 'hcp', 'diamond',
+                                 'zincblende', 'rocksalt', 'cesiumchloride',
+                                 'fluorite'])
+        parser.add_argument('-a', '--lattice-constant', default='',
+                        help='Lattice constant(s) in Angstrom.')
+        parser.add_argument('--orthorhombic', action='store_true',
+                        help='Use orthorhombic unit cell.')
+        parser.add_argument('--cubic', action='store_true',
+                        help='Use cubic unit cell.')
+        parser.add_argument('-r', '--repeat',
+                        help='Repeat unit cell.  Use "-r 2" or "-r 2,3,1".')
+        parser.add_argument('--plugin')
+
+        subparsers = parser.add_subparsers(dest='subparser_name',
+                                           help='sub-command help')
+
+        for command in ['run', 'optimize', 'eos', 'write',
+                        'reaction', 'results', 'view', 'python']:
+            cmd = self.get_command_object(command)
+            cmd.add_parser(subparsers)
+
+        self.args = parser.parse_args(args)
+        
+    def get_command_object(self, name):
+        classname = name.title() + 'Command'
+        module = __import__('ase.asec.' + name, {}, None, [classname])
+        cmd = getattr(module, classname)()
+        cmd.default_calculator = self.default_calculator
+        return cmd
+
     def build(self, name):
         args = self.args
         if '.' in name:
+            # Read from file:
             atoms = read(name)
         elif self.build_function:
+            # Use build() function from plugin:
             atoms = self.build_function(name, self.args)
         elif self.args.crystal_structure:
             atoms = self.build_bulk(name)
@@ -171,66 +228,12 @@ class ASEC:
 
         return atoms
 
-    def parse(self, args):
-        # create the top-level parser
-        parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
-        parser.add_argument('names', nargs='*')
-        parser.add_argument('-t', '--tag',
-                             help='String tag added to filenames.')
-        parser.add_argument('-M', '--magnetic-moment',
-                             metavar='M1,M2,...',
-                             help='Magnetic moment(s).  ' +
-                             'Use "-M 1" or "-M 2.3,-2.3".')
-        parser.add_argument(
-            '--modify', metavar='...',
-            help='Modify atoms with Python statement.  ' +
-            'Example: --modify="atoms.positions[-1,2]+=0.1".')
-        parser.add_argument('-v', '--vacuum', type=float, default=3.0,
-                       help='Amount of vacuum to add around isolated atoms '
-                       '(in Angstrom).')
-        parser.add_argument('--unit-cell',
-                       help='Unit cell.  Examples: "10.0" or "9,10,11" ' +
-                       '(in Angstrom).')
-        parser.add_argument('--bond-length', type=float,
-                       help='Bond length of dimer in Angstrom.')
-        parser.add_argument('-x', '--crystal-structure',
-                        help='Crystal structure.',
-                        choices=['sc', 'fcc', 'bcc', 'hcp', 'diamond',
-                                 'zincblende', 'rocksalt', 'cesiumchloride',
-                                 'fluorite'])
-        parser.add_argument('-a', '--lattice-constant', default='',
-                        help='Lattice constant(s) in Angstrom.')
-        parser.add_argument('--orthorhombic', action='store_true',
-                        help='Use orthorhombic unit cell.')
-        parser.add_argument('--cubic', action='store_true',
-                        help='Use cubic unit cell.')
-        parser.add_argument('-r', '--repeat',
-                        help='Repeat unit cell.  Use "-r 2" or "-r 2,3,1".')
-        parser.add_argument('--plugin')
 
-        subparsers = parser.add_subparsers(dest='subparser_name',
-                                           help='sub-command help')
-
-        for command in ['run', 'optimize', 'eos', 'write',
-                        'reaction', 'results', 'view', 'python']:
-            cls = self.get_command_class(command)
-            cls._calculator = self.calculator
-            cls.add_parser(subparsers)
-
-        self.args = parser.parse_args(args)
-        
-    def get_command_class(self, name):
-        classname = name.title() + 'Command'
-        module = __import__('ase.asec.' + name, {}, None, [classname])
-        cls = getattr(module, classname)
-        return cls
-
-
-def run(args=sys.argv[1:], calculator=None):
+def run(args=sys.argv[1:], default_calculator={'name': 'emt'}):
     if isinstance(args, str):
         args = args.split(' ')
     runner = ASEC()
-    runner.calculator = calculator
+    runner.default_calculator = default_calculator
     runner.parse(args)
     atoms = runner.run()
     return atoms

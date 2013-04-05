@@ -10,7 +10,7 @@ try:
 except NameError:
     class WindowsError(OSError): pass
 
-from ase.calculators.singlepoint import SinglePointCalculator
+from ase.calculators.singlepoint import SinglePointCalculator, all_properties
 from ase.atoms import Atoms
 from ase.parallel import rank, barrier
 from ase.utils import devnull
@@ -290,8 +290,11 @@ class PickleTrajectory:
                           constraint=constraints)
             if 'energy' in d:
                 calc = SinglePointCalculator(
-                    d.get('energy', None), d.get('forces', None),
-                    d.get('stress', None), magmoms, atoms)
+                    atoms,
+                    energy=d.get('energy', None),
+                    forces=d.get('forces', None),
+                    stress=d.get('stress', None),
+                    magmoms=magmoms)
                 atoms.set_calculator(calc)
             if 'charges' in d:
                 atoms.set_charges(d.get('charges', None))
@@ -486,23 +489,18 @@ def write_trajectory(filename, images):
     for atoms in images:
         # Avoid potentially expensive calculations:
         calc = atoms.get_calculator()
-        if calc is not None:
-            if  hasattr(calc, 'calculation_required'):
-                if calc.calculation_required(atoms, ['energy']):
-                    traj.write_energy = False
-                if calc.calculation_required(atoms, ['forces']):
-                    traj.write_forces = False
-                if calc.calculation_required(atoms, ['stress']):
-                    traj.write_stress = False
-                if calc.calculation_required(atoms, ['magmoms']):
-                    traj.write_magmoms = False
-        else:
-            traj.write_energy = False
-            traj.write_forces = False
-            traj.write_stress = False
-            traj.write_magmoms = False
+        if calc is None:
+            for property in all_properties:
+                setattr(traj, 'write_' + property, False)
+            break
+        nochange = len(calc.check_state(atoms)) == 0
+        for property in all_properties:
+            setattr(traj, 'write_' + property,
+                    nochange and property in calc.results)
 
+    for atoms in images:
         traj.write(atoms)
+
     traj.close()
 
 

@@ -7,15 +7,13 @@ from ase.asec.run import RunCommand
 
 
 class PythonCommand(RunCommand):
-    @classmethod
-    def add_parser(cls, subparser):
+    def add_parser(self, subparser):
         parser = subparser.add_parser('python',
                                       help='Interactive Python session')
-        cls.add_arguments(parser)
+        self.add_arguments(parser)
 
-    @classmethod
-    def add_arguments(cls, parser):
-        RunCommand.add_arguments(parser)
+    def add_arguments(self, parser):
+        RunCommand.add_arguments(self, parser)
         parser.add_argument(
             '--interactive-python-session', action='store_true',
             help=argparse.SUPPRESS)
@@ -26,7 +24,7 @@ class PythonCommand(RunCommand):
 
     def calculate(self, atoms, name):
         if self.args.interactive_python_session:
-            return
+            return {}
 
         file = tempfile.NamedTemporaryFile()
         file.write('import os\n')
@@ -37,3 +35,4 @@ class PythonCommand(RunCommand):
                    (' '.join(sys.argv[1:]) + ' --interactive-python-session'))
         file.flush()
         os.system('python -i %s' % file.name)
+        return {}

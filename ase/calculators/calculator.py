@@ -10,6 +10,10 @@ class ReadError(Exception):
     pass
 
 
+all_properties = ['energy', 'forces', 'stress', 'dipole',
+                  'magmom', 'magmoms']
+
+
 # Recognized names of calculators sorted alphabetically:
 names = ['abinit', 'aims', 'asap', 'castep', 'dftb', 'eam', 'elk', 'emt',
          'exciting', 'fleur', 'gpaw', 'gaussian', 'hotbit', 'jacapo',
@@ -218,7 +222,7 @@ class Calculator:
         return Parameters(copy.deepcopy(self.default_parameters))
 
     def todict(self):
-        data = copy.deepcopy(self.parameters)
+        data = copy.deepcopy(dict(self.parameters.items()))
         data['name'] = self.name
         return data
 

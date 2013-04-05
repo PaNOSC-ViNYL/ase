@@ -3,13 +3,8 @@ from ase.io import write
 
 
 class WriteCommand(Command):
-    @classmethod
-    def add_parser(cls, subparser):
+    def add_parser(self, subparser):
         parser = subparser.add_parser('write', help='write ...')
-        cls.add_arguments(parser)
-
-    @classmethod
-    def add_arguments(cls, parser):
         parser.add_argument('filename', nargs='?')
         
     def run(self, atoms, name):

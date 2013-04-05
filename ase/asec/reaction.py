@@ -4,14 +4,11 @@ from ase.asec.command import Command
 
 
 class ReactionCommand(Command):
-    @classmethod
-    def add_parser(cls, subparser):
+    def add_parser(self, subparser):
         parser = subparser.add_parser('reaction', help='reaction ...')
 
-    def __init__(self, logfile, args):
-        Command.__init__(self, logfile, args)
+    def __init__(self):
         self.count = {}
-        self.data = self.read()
 
     def run(self, atoms, name):
         from collections import Counter

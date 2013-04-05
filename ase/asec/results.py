@@ -4,13 +4,8 @@ from ase.asec.command import Command
 
 
 class ResultsCommand(Command):
-    @classmethod
-    def add_parser(cls, subparser):
+    def add_parser(self, subparser):
         parser = subparser.add_parser('results', help='results ...')
-
-    def __init__(self, logfile, args):
-        Command.__init__(self, logfile, args)
-        self.data = self.read()
 
     def finalize(self):
         for name in self.args.names:

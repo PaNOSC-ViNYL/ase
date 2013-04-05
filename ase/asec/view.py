@@ -3,9 +3,8 @@ from ase.visualize import view
 
 
 class ViewCommand(Command):
-    @classmethod
-    def add_parser(cls, subparser):
-        parser = subparser.add_parser('view', help='ag ...')
+    def add_parser(self, subparser):
+        parser = subparser.add_parser('view', help='View atoms with ase-gui')
         
     def run(self, atoms, name):
         view(atoms)
