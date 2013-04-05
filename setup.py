@@ -15,7 +15,7 @@ import shutil
 
 long_description = """\
 ASE is a python package providing an open source Atomic Simulation
-Environment in the python scripting language."""
+Environment in the Python language."""
 
 
 if sys.version_info < (2, 4, 0, 'final', 0):

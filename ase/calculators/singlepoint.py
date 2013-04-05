@@ -25,7 +25,14 @@ class SinglePointCalculator(Calculator):
                 self.results[property] = np.array(value, float)
         self.state = atoms.copy()
 
+    def calculate(self, atoms, properties, changes):
+        if len(changes) == 1:
+            changes = changes[0]
+        else:
+            changes = ' and '.join([', '.join(changes[:-1]), changes[-1]])
+        raise RuntimeError('The %s has been modified' % changes)
 
+    
 class SinglePointKPoint:
     def __init__(self, weight, s, k, eps_n=[], f_n=[]):
         self.weight = weight
@@ -33,6 +40,7 @@ class SinglePointKPoint:
         self.k = k  # k-point index
         self.eps_n = eps_n
         self.f_n = f_n
+
 
 class SinglePointDFTCalculator(SinglePointCalculator):
     def __init__(self, energy, forces, stress, magmoms, atoms,
