@@ -1,4 +1,4 @@
-from ase.asec.run import RunCommand
+from ase.cli.run import RunCommand
 from ase.constraints import FixAtoms, UnitCellFilter
 from ase.optimize import LBFGS
 from ase.io.trajectory import PickleTrajectory

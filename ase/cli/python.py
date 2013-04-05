@@ -3,7 +3,7 @@ import sys
 import tempfile
 import argparse
 
-from ase.asec.run import RunCommand
+from ase.cli.run import RunCommand
 
 
 class PythonCommand(RunCommand):
@@ -30,7 +30,7 @@ class PythonCommand(RunCommand):
         file.write('import os\n')
         file.write('if "PYTHONSTARTUP" in os.environ:\n')
         file.write('    execfile(os.environ["PYTHONSTARTUP"])\n')
-        file.write('from ase.asec import run\n')
+        file.write('from ase.cli import run\n')
         file.write('atoms = run(%r)\n' % 
                    (' '.join(sys.argv[1:]) + ' --interactive-python-session'))
         file.flush()

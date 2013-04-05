@@ -1,4 +1,4 @@
-from ase.asec.run import RunCommand
+from ase.cli.run import RunCommand
 
 
 class EOSCommand(RunCommand):

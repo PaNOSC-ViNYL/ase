@@ -1,4 +1,4 @@
-from ase.asec.command import Command
+from ase.cli.command import Command
 from ase.visualize import view
 
 

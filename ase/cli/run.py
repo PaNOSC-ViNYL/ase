@@ -3,7 +3,7 @@ import time
 import argparse
 import traceback
 
-from ase.asec.command import Command
+from ase.cli.command import Command
 from ase.calculators.calculator import get_calculator, \
     names as calculator_names
 import ase.db as db

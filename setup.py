@@ -22,9 +22,10 @@ if sys.version_info < (2, 4, 0, 'final', 0):
     raise SystemExit, 'Python 2.4 or later is required!'
 
 packages = ['ase',
-            'ase.asec',
+            'ase.cli',
             'ase.cluster',
             'ase.cluster.data',
+            'ase.db',
             'ase.io',
             'ase.md',
             'ase.dft',
@@ -140,7 +141,7 @@ else:
     version = version_base
 
 scripts = ['tools/ag', 'tools/ase', 'tools/ASE2ase', 'tools/testase',
-           'tools/asec']
+           'tools/ase-cli']
 # provide bat executables in the tarball and always for Win
 if 'sdist' in sys.argv or os.name in ['ce', 'nt']:
     for s in scripts[:]:

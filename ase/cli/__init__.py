@@ -1,7 +1,7 @@
 import sys
 import traceback
 
-from ase.asec.asec import run
+from ase.cli.cli import run
 
 
 def main(default_calculator={'name': 'emt'}):

@@ -11,7 +11,7 @@ from ase.structure import molecule
 from ase.lattice import bulk
 from ase.atoms import Atoms, string2symbols
 from ase.data import ground_state_magnetic_moments
-from ase.asec.plugin import PluginCommand
+from ase.cli.plugin import PluginCommand
 
 
 def expand(names):
@@ -29,7 +29,7 @@ def expand(names):
         i += 1
 
 
-class ASEC:
+class CLI:
     def __init__(self, args=None):
         if world.rank == 0:
             self.logfile = sys.stdout
@@ -125,7 +125,7 @@ class ASEC:
         
     def get_command_object(self, name):
         classname = name.title() + 'Command'
-        module = __import__('ase.asec.' + name, {}, None, [classname])
+        module = __import__('ase.cli.' + name, {}, None, [classname])
         cmd = getattr(module, classname)()
         cmd.default_calculator = self.default_calculator
         return cmd
@@ -232,7 +232,7 @@ class ASEC:
 def run(args=sys.argv[1:], default_calculator={'name': 'emt'}):
     if isinstance(args, str):
         args = args.split(' ')
-    runner = ASEC()
+    runner = CLI()
     runner.default_calculator = default_calculator
     runner.parse(args)
     atoms = runner.run()

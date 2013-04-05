@@ -1,6 +1,6 @@
 import numpy as np
 
-from ase.asec.command import Command
+from ase.cli.command import Command
 
 
 class ResultsCommand(Command):
