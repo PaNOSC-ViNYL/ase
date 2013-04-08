@@ -1,4 +1,4 @@
-from ase.db.core import database
+from ase.db.core import connect
 
 
 class KeyCollisionError(Exception):

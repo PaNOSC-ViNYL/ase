@@ -222,9 +222,7 @@ class Calculator:
         return Parameters(copy.deepcopy(self.default_parameters))
 
     def todict(self):
-        data = copy.deepcopy(dict(self.parameters.items()))
-        data['name'] = self.name
-        return data
+        return copy.deepcopy(dict(self.parameters.items()))
 
     def reset(self):
         """Clear all information from old calculation."""

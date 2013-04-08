@@ -8,7 +8,9 @@ class WriteCommand(Command):
         parser.add_argument('filename', nargs='?')
         
     def run(self, atoms, name):
+        print self.args
         filename = self.args.filename or '.traj'
-        if filename[0] == '.':
-            filename = name + self.args.tag + filename
-        write(filename, atoms)
+        if 0:#filename[0] == '.':
+            filename = name + tag+filename
+        #write(filename, atoms)
+        write(name + '.json', atoms)

@@ -62,8 +62,9 @@ class RunCommand(Command):
             help='Comma-separated key=value pairs of ' +
             'calculator specific parameters.')
         add('-d', '--database',
-            help='Use sqlite for a sqlite3 database and json for a simple ' +
-            'json database.  Default is no database')
+            help='Use a filename with a .sqlite extension for a sqlite3 ' +
+            'database a .json extension for a simple json database.  ' +
+            'Default is no database')
         add('-l', '--use-lock-file', action='store_true',
             help='Skip calculations where the json ' +
             'lock-file or result file already exists.')
@@ -77,13 +78,12 @@ class RunCommand(Command):
 
         if self.db is None:
             # Create database object:
-            self.db = db.database(self.get_filename(ext=args.database),
-                                  args.database,
-                                  use_lock_file=args.use_lock_file)
+            self.db = db.connect(args.database,
+                                 use_lock_file=args.use_lock_file)
 
         skip = False
         try:
-            self.db.write(name, None)
+            self.db.write(name, None, replace=False)
         except db.KeyCollisionError:
             skip = True
         
@@ -101,7 +101,7 @@ class RunCommand(Command):
             else:
                 tstop = time.time()
                 data['time'] = tstop - tstart
-                self.db.write(name, atoms, data, overwrite=True)
+                self.db.write(name, atoms, data)
 
     def set_calculator(self, atoms, name):
         args = self.args
