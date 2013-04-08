@@ -1,4 +1,4 @@
-from math import pi, ceil
+from math import pi
 import pickle
 
 import numpy as np
@@ -6,10 +6,7 @@ import numpy as np
 from ase.atoms import Atoms
 from ase.parallel import world, rank, distribute_cpus
 from ase.utils import opencew
-try:
-    from gpaw.mpi import SerialCommunicator
-except:
-    pass
+
 
 def make_test_dft_calculation():
     a = b = 2.0
@@ -150,7 +147,7 @@ def numeric_forces(atoms, indices=None, axes=(0, 1, 2), d=0.001,
         calc_comm = world
     else:
         calc_comm, tasks_comm, tasks_rank = distribute_cpus(parallel, world)
-        master = calc_comm.rank == 0 
+        master = calc_comm.rank == 0
         calculator = atoms.get_calculator()
         calculator.set(communicator=calc_comm)
         atom_tasks = [None] * n
@@ -180,7 +177,8 @@ def numeric_forces(atoms, indices=None, axes=(0, 1, 2), d=0.001,
                     if master:
                         F_ai[a, i] = force
                         if name:
-                            fd = open('%s.%d%s.pckl' % (name, a, 'xyz'[i]), 'w')
+                            fd = open('%s.%d%s.pckl' % (name, a, 'xyz'[i]),
+                                      'w')
                             pickle.dump(force, fd)
                             fd.close()
     if parallel is not None:

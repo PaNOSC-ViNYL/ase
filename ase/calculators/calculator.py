@@ -5,6 +5,8 @@ from math import pi, sqrt
 
 import numpy as np
 
+from ase.calculators.test import numeric_force
+
 
 class ReadError(Exception):
     pass
@@ -110,7 +112,7 @@ class Parameters(dict):
     def tostring(self):
         keys = sorted(self.keys())
         return 'dict(' + ',\n     '.join(
-            '%s=%r' %(key, self[key]) for key in keys) + ')\n'
+            '%s=%r' % (key, self[key]) for key in keys) + ')\n'
     
     def write(self, filename):
         file = open(filename, 'w')
@@ -174,7 +176,7 @@ class Calculator:
         self.set_label(label)
         
         if self.parameters is None:
-            # Use default parameters if they were not read from file: 
+            # Use default parameters if they were not read from file:
             self.parameters = self.get_default_parameters()
 
         if atoms is not None:
@@ -394,6 +396,14 @@ class Calculator:
                         'magmom': 0.0,
                         'magmoms': np.zeros(len(atoms))}
                         
+    def calculate_numerical_forces(self, atoms, d=0.001):
+        """Calculate numerical forces using finite difference.
+
+        All atoms will be displaced by +d and -d in all directions."""
+
+        return np.array([[numeric_force(atoms, a, i, d)
+                          for i in range(3)] for a in range(len(atoms))])
+
     def get_spin_polarized(self):
         return False
 
