@@ -17,8 +17,8 @@ in which case ``buildmaster`` will schedule the given builder to switch
 periodically between the ``buildslaves``.
 At the time of writing (2012) buildbot_ does not offer satisfactory security
 mechanisms, and due to clear text passwords stored/transferred both on
-``buildmaster`` and ``buildslaves`` external security measures like firewall or
-ssh/stunnel should be used.
+``buildmaster`` and ``buildslaves`` external security measures like firewall,
+proxy, ssh/stunnel should be used.
 
 The sections below describe the configuration of ``buildmaster`` and ``buildslaves``.
 
@@ -94,6 +94,12 @@ Proceed with buildbot configuration:
     chkconfig python-ase-buildmaster on
 
   See also an example of ``systemd`` script in the section below.
+
+* consider protecting the ``buildmaster`` web interface by, e.g.
+  apache reverse proxy (http://httpd.apache.org/docs/2.4/mod/mod_proxy.html).
+  The basic configuration file may look like
+
+  .. literalinclude:: buildbot.conf
 
 Installation and configuration of buildslaves
 =============================================
