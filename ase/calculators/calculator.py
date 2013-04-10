@@ -129,8 +129,8 @@ class Calculator:
     raise NotImplementedError.  This can be achieved simply by not
     including the string 'stress' in the list implemented_properties
     which is a class member.  These are the names of the standard
-    properties: 'energy', 'forces', 'stress', 'dipole', 'magmom' and
-    'magmoms'.
+    properties: 'energy', 'forces', 'stress', 'dipole', 'charges',
+    'magmom' and 'magmoms'.
     """
 
     implemented_properites = []
@@ -305,7 +305,8 @@ class Calculator:
     def check_state(self, atoms):
         """Check for system changes since last calculation."""
         if self.state is None:
-            system_changes = ['positions', 'numbers', 'cell', 'pbc', 'magmoms']
+            system_changes = ['positions', 'numbers', 'cell', 'pbc',
+                              'charges', 'magmoms']
         else:
             system_changes = []
             if not equal(self.state.positions, atoms.positions):
@@ -319,6 +320,9 @@ class Calculator:
             if not equal(self.state.get_initial_magnetic_moments(),
                          atoms.get_initial_magnetic_moments()):
                 system_changes.append('magmoms')
+            if not equal(self.state.get_initial_charges(),
+                         atoms.get_initial_charges()):
+                system_changes.append('charges')
 
         return system_changes
 
@@ -337,6 +341,9 @@ class Calculator:
 
     def get_dipole_moment(self, atoms):
         return self.get_property('dipole', atoms).copy()
+
+    def get_charges(self, atoms):
+        return self.get_property('charges', atoms)
 
     def get_magnetic_moment(self, atoms):
         return self.get_property('magmom', atoms)
@@ -378,12 +385,12 @@ class Calculator:
             Contains positions, unit-cell, ...
         properties: list of str
             List of what needs to be calculated.  Can be any combination
-            of 'energy', 'forces', 'stress', 'dipole', 'magmom' and
-            'magmoms'.
+            of 'energy', 'forces', 'stress', 'dipole', 'charges', 'magmom'
+            and 'magmoms'.
         system_changes: list of str
             List of what has changed since last calculation.  Can be
             any combination of these five: 'positions', 'numbers', 'cell',
-            'pbc' and 'magmoms'.
+            'pbc', 'charges' and 'magmoms'.
 
         Subclasses need to implement this, but can ignore properties
         and system_changes if they want.
@@ -394,6 +401,7 @@ class Calculator:
                         'forces': np.zeros((len(atoms), 3)),
                         'stress': np.zeros(6),
                         'dipole': np.zeros(3),
+                        'charges': np.zeros(len(atoms)),
                         'magmom': 0.0,
                         'magmoms': np.zeros(len(atoms))}
                         
