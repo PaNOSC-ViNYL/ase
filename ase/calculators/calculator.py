@@ -126,14 +126,15 @@ class Calculator:
     A calculator must raise NotImplementedError if asked for a
     property that it can't calculate.  So, if calculation of the
     stress tensor has not been implemented, get_stress(atoms) should
-    raise NotImplementedError.  This can be achieved simply by adding
-    the string 'stress' to the list notimplemented which is a class
-    member.  These are the names of the standard properties: 'energy',
-    'forces', 'stress', 'dipole', 'magmom' and 'magmoms'.
+    raise NotImplementedError.  This can be achieved simply by not
+    including the string 'stress' in the list implemented_properties
+    which is a class member.  These are the names of the standard
+    properties: 'energy', 'forces', 'stress', 'dipole', 'magmom' and
+    'magmoms'.
     """
 
-    notimplemented = []
-    "Properties calculator can't handle"
+    implemented_properites = []
+    "Properties calculator can handle (energy, forces, ...)"
 
     default_parameters = {}
     'Default parameters'
@@ -344,7 +345,7 @@ class Calculator:
         return self.get_property('magmoms', atoms).copy()
 
     def get_property(self, name, atoms):
-        if name in self.notimplemented:
+        if name not in self.implemented_properties:
             raise NotImplementedError
 
         system_changes = self.check_state(atoms)

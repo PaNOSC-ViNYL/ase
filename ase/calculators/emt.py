@@ -1,9 +1,8 @@
 """Effective medium theory potential."""
 
-from math import sqrt, exp, log, pi
+from math import sqrt, exp, log
 
 import numpy as np
-import sys
 
 from ase.data import chemical_symbols
 from ase.units import Bohr
@@ -32,7 +31,7 @@ beta = 1.809     # (16 * pi / 3)**(1.0 / 3) / 2**0.5,
 
 
 class EMT(Calculator):
-    notimplemented = ['stress', 'dipole', 'magmom', 'magmoms']
+    implemented_properties = ['energy', 'forces']
 
     nolabel = True
 
@@ -134,7 +133,6 @@ class EMT(Calculator):
             z = 6 * p['V0'] * exp(-p['kappa'] * ds)
             self.deds[a] = ((x * y * p['E0'] * p['lambda'] + p['kappa'] * z) /
                             (self.sigma1[a] * beta * p['eta2']))
-            e = p['E0'] * ((1 + x) * y - 1) + z
             self.energy += p['E0'] * ((1 + x) * y - 1) + z
 
         for a1 in range(natoms):

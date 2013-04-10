@@ -3,7 +3,6 @@
 http://www.nwchem-sw.org/
 """
 import os
-import sys
 
 import numpy as np
 
@@ -21,19 +20,19 @@ class KPoint:
 
 
 class NWChem(FileIOCalculator):
-    notimplemented = ['stress', 'magmoms']
+    implemented_properties = ['energy', 'forces', 'dipole', 'magmom']
     command = 'nwchem PREFIX.nw > PREFIX.out'
 
     default_parameters = dict(
         xc='LDA',
         smearing=None,
         charge=None,
-        task='gradient',#energy', # use 'gradient' in optimizations!
+        task='gradient',
         # Warning: nwchem centers atoms by default
         # see ase-developers/2012-March/001356.html
         geometry='nocenter noautosym',
-        convergence={'energy'  : None,
-                     'density' : None,
+        convergence={'energy': None,
+                     'density': None,
                      'gradient': None,
                      'lshift': None,
                      # set lshift to 0.0 for nolevelshifting
@@ -43,7 +42,7 @@ class NWChem(FileIOCalculator):
         ecp=None,
         so=None,
         spinorbit=False,
-        raw='') # additional outside of dft block control string
+        raw='')  # additional outside of dft block control string
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='nwchem', atoms=None, **kwargs):
@@ -89,7 +88,7 @@ class NWChem(FileIOCalculator):
             if len(lines) > 1:
                 formatted += string
             else:
-                formatted += '  * library '  + string + '\n'
+                formatted += '  * library ' + string + '\n'
             return formatted + 'end\n'
 
         basis = format_basis_set(p.basis)
@@ -106,8 +105,8 @@ class NWChem(FileIOCalculator):
                 task = 'sodft'
             else:
                 task = 'dft'
-            xc = {'LDA' : 'slater pw91lda',
-                  'PBE' : 'xpbe96 cpbe96'}.get(p.xc, p.xc)
+            xc = {'LDA': 'slater pw91lda',
+                  'PBE': 'xpbe96 cpbe96'}.get(p.xc, p.xc)
             f.write('\n' + task + '\n')
             f.write('  xc ' + xc + '\n')
             for key in p.convergence:
@@ -189,7 +188,7 @@ class NWChem(FileIOCalculator):
     def read_number_of_bands(self):
         nvector = 0
         for line in open(self.label + '.out'):
-            if line.find('Vector ') != -1: # count all printed vectors
+            if line.find('Vector ') != -1:  # count all printed vectors
                 nvector += 1
         if not nvector:
             nvector = None
@@ -200,7 +199,7 @@ class NWChem(FileIOCalculator):
 
     def read_number_of_electrons(self):
         nelect = None
-        for line in open(self.label + '.out'): # find last one
+        for line in open(self.label + '.out'):  # find last one
             if line.find('of electrons') != -1:
                 nelect = float(line.split(':')[1].strip())
         return nelect
@@ -211,7 +210,7 @@ class NWChem(FileIOCalculator):
     def read_number_of_iterations(self):
         niter = 0
         for line in open(self.label + '.out'):
-            if line.find('d= ') != -1: # count all iterations
+            if line.find('d= ') != -1:  # count all iterations
                 niter += 1
         if not niter:
             niter = None
@@ -220,12 +219,12 @@ class NWChem(FileIOCalculator):
     def read_magnetic_moment(self):
         magmom = None
         for line in open(self.label + '.out'):
-            if line.find('Spin multiplicity') != -1: # last one
+            if line.find('Spin multiplicity') != -1:  # last one
                 magmom = float(line.split(':')[-1].strip()) - 1
         return magmom
 
     def read_dipole_moment(self):
-        dipolemoment=[]
+        dipolemoment = []
         for line in open(self.label + '.out'):
             for component in [
                 '1   1 0 0',
@@ -254,7 +253,7 @@ class NWChem(FileIOCalculator):
             else:
                 estring += 'DFT'
             estring += ' energy'
-            if line.find(estring) >=0:
+            if line.find(estring) >= 0:
                 energy = float(line.split()[4])
                 break
         self.results['energy'] = energy * Hartree
@@ -282,11 +281,11 @@ class NWChem(FileIOCalculator):
         file.close()
 
         for i, line in enumerate(lines):
-            if line.find('ENERGY GRADIENTS') >=0:
+            if line.find('ENERGY GRADIENTS') >= 0:
                 gradients = []
                 for j in range(i + 4, i + 4 + len(self.state)):
                     word = lines[j].split()
-                    gradients.append([float(word[k]) for k in range(5,8)])
+                    gradients.append([float(word[k]) for k in range(5, 8)])
                     
         self.results['forces'] = -np.array(gradients) * Hartree / Bohr
 
