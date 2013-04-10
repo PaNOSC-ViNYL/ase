@@ -133,7 +133,7 @@ class Calculator:
     'magmom' and 'magmoms'.
     """
 
-    implemented_properites = []
+    implemented_properties = []
     "Properties calculator can handle (energy, forces, ...)"
 
     default_parameters = {}
