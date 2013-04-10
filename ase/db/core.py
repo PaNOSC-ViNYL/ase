@@ -9,7 +9,10 @@ from ase.calculators.singlepoint import SinglePointCalculator
 
 def connect(name, type='use_filename_extension', use_lock_file=False):
     if type == 'use_filename_extension':
-        type = os.path.splitext(name)[1][1:]
+        if name is None:
+            type = None
+        else:
+            type = os.path.splitext(name)[1][1:]
 
     if type is None:
         return NoDatabase()
@@ -42,8 +45,10 @@ class NoDatabase:
         pass
 
     def collect_data(self, atoms):
-        #dct = {}#'date': datetime.now()}#, 'user': ..., ...}
-        dct = atoms2dict(atoms)
+        dct = {}#'date': datetime.now()}#, 'user': ..., ...}
+        if atoms is None:
+            return dct
+        dct.update(atoms2dict(atoms))
         if atoms.calc is not None:
             dct['calculator'] = {'name': atoms.calc.name,
                                  'parameters': atoms.calc.todict()}

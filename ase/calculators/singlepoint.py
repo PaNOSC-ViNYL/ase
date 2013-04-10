@@ -26,11 +26,7 @@ class SinglePointCalculator(Calculator):
         self.state = atoms.copy()
 
     def calculate(self, atoms, properties, changes):
-        if len(changes) == 1:
-            changes = changes[0]
-        else:
-            changes = ' and '.join([', '.join(changes[:-1]), changes[-1]])
-        raise RuntimeError('The %s has been modified' % changes)
+        raise NotImplementedError('No %s!' % properties[0])
 
     
 class SinglePointKPoint:
