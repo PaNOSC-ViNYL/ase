@@ -161,7 +161,7 @@ class Atoms(object):
             if masses is None and atoms.has('masses'):
                 masses = atoms.get_masses()
             if charges is None and atoms.has('charges'):
-                charges = atoms.get_charges()
+                charges = atoms.get_initial_charges()
             if cell is None:
                 cell = atoms.get_cell()
             if celldisp is None:
@@ -215,7 +215,7 @@ class Atoms(object):
         self.set_momenta(default(momenta, (0.0, 0.0, 0.0)))
         self.set_masses(default(masses, None))
         self.set_initial_magnetic_moments(default(magmoms, 0.0))
-        self.set_charges(default(charges, 0.0))
+        self.set_initial_charges(default(charges, 0.0))
         if pbc is None:
             pbc = False
         self.set_pbc(pbc)
@@ -580,17 +580,30 @@ class Atoms(object):
         else:
             return 0.0
 
-    def set_charges(self, charges):
-        """Set charges."""
-        self.set_array('charges', charges, float, ())
+    def set_initial_charges(self, charges=None):
+        """Set the initial charges."""
+        
+        if charges is None:
+            self.set_array('charges', None)
+        else:
+            self.set_array('charges', charges, float, ())
 
-    def get_charges(self):
-        """Get array of charges."""
+    def get_initial_charges(self):
+        """Get array of initial charges."""
         if 'charges' in self.arrays:
             return self.arrays['charges'].copy()
         else:
             return np.zeros(len(self))
 
+    def get_charges(self):
+        """Get calculated charges."""
+        if self._calc is None:
+            raise RuntimeError('Atoms object has no calculator.')
+        try:
+            charges = self._calc.get_charges(self)
+        except AttributeError:
+            raise NotImplementedError
+        
     def set_positions(self, newpositions):
         """Set positions, honoring any constraints."""
         positions = self.arrays['positions']

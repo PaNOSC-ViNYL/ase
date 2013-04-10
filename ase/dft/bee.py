@@ -89,8 +89,8 @@ class BEEF_Ensemble:
         """Write ensemble data file"""
         import cPickle as pickle
         isinstance(fname, str)
-        if fname[-4:] != '.ens':
-            fname += '.ens'
+        if fname[-4:] != '.bee':
+            fname += '.bee'
         assert self.done
         if rank is 0:
             if os.path.isfile(fname):
@@ -103,8 +103,8 @@ class BEEF_Ensemble:
     def read(self, fname, all=False):
         import cPickle as pickle
         isinstance(fname, str)
-        if fname[-4:] != '.ens':
-            fname += '.ens'
+        if fname[-4:] != '.bee':
+            fname += '.bee'
         assert os.path.isfile(fname)
         f = open(fname, 'r')
         e, de, contribs, seed, xc = pickle.load(f)

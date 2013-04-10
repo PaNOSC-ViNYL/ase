@@ -114,7 +114,7 @@ list_keys = [
 
 class Aims(FileIOCalculator):
     command = 'aims.version.serial.x > aims.out'
-    notimplemented = ['magmoms', 'magmom']
+    implemented_properties = ['energy', 'forces', 'stress', 'dipole']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label=os.curdir, atoms=None, cubes=None, **kwargs):

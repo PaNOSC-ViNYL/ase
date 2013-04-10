@@ -12,7 +12,7 @@ class SinglePointCalculator(Calculator):
     energy/forces/stress will raise an exception."""
     
     def __init__(self, atoms, **results):
-        """Save energy, forces and stresses for the current configuration."""
+        """Save energy, forces, stress, ... for the current configuration."""
         Calculator.__init__(self)
         self.results = {}
         for property, value in results.items():
@@ -25,8 +25,10 @@ class SinglePointCalculator(Calculator):
                 self.results[property] = np.array(value, float)
         self.state = atoms.copy()
 
-    def calculate(self, atoms, properties, changes):
-        raise NotImplementedError('No %s!' % properties[0])
+    def get_property(self, name, atoms):
+        if name not in self.results or self.check_state(atoms):
+            raise NotImplementedError
+        return self.results[name]
 
     
 class SinglePointKPoint:

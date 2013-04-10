@@ -2,7 +2,7 @@ import os
 import numpy as np
 from ase import io, units
 from ase.optimize import QuasiNewton
-from ase.parallel import paropen, rank
+from ase.parallel import paropen, rank, world
 from ase.md import VelocityVerlet
 from ase.md import MDLogger
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
@@ -57,6 +57,9 @@ class MinimaHopping:
         self._startup()
         while True:
             if (totalsteps and self._counter >= totalsteps):
+                self._log('msg', 'Run terminated. Step #%i reached of '
+                          '%i allowed. Increase totalsteps if resuming.'
+                          % (self._counter, totalsteps))
                 return
             self._previous_optimum = self._atoms.copy()
             self._previous_energy = self._atoms.get_potential_energy()
@@ -68,38 +71,41 @@ class MinimaHopping:
     def _startup(self):
         """Initiates a run, and determines if running from previous data or
         a fresh run."""
+
+        status = np.array(-1.)
         exists = self._read_minima()
-        if not exists:
-            # Fresh run with new minima file.
-            self._record_minimum(initialize_only=True)
+        if rank == 0:
+            if not exists:
+                # Fresh run with new minima file.
+                status = np.array(0.)
+            elif not os.path.exists(self._logfile):
+                # Fresh run with existing or shared minima file.
+                status = np.array(1.)
+            else:
+                # Must be resuming from within a working directory.
+                status = np.array(2.)
+        world.barrier()
+        world.broadcast(status, 0)
+
+        if status == 2.:
+            self._resume()
+        else:
             self._counter = 0
             self._log('init')
-            self._log('msg', 'Performing / checking initial optimization.')
-            self._optimize()
-            self._counter += 1
-            self._record_minimum()
-            self._log('msg', 'Found a new minimum.')
-            self._log('msg', 'Accepted new minimum.')
-            self._log('par')
-        elif not os.path.exists(self._logfile):
-            # Fresh run with existing or shared minima file.
-            self._counter = 0
-            self._log('init')
-            self._log('msg', 'Using existing minima file with %i prior '
-                      'minima: %s' % (len(self._minima), self._minima_traj))
-            self._log('msg', 'Performing / checking initial optimization.')
+            self._log('msg', 'Performing initial optimization.')
+            if status == 1.:
+                self._log('msg', 'Using existing minima file with %i prior '
+                          'minima: %s' % (len(self._minima),
+                                          self._minima_traj))
             self._optimize()
             self._check_results()
             self._counter += 1
-        else:
-            # Must be resuming from within a working directory.
-            self._resume()
 
     def _resume(self):
         """Attempt to resume a run, based on information in the log
         file. Note it will almost always be interrupted in the middle of
-        either a qn or md run, so it only has been tested in those cases
-        currently."""
+        either a qn or md run or when exceeding totalsteps, so it only has
+        been tested in those cases currently."""
         f = paropen(self._logfile, 'r')
         lines = f.read().splitlines()
         f.close()
@@ -117,19 +123,22 @@ class MinimaHopping:
                 mdcount = int(line[25:].split('md')[1])
         self._counter = max((mdcount, qncount))
         if qncount == mdcount:
-            # Probably stopped during local optimization.
+            # Either stopped during local optimization or terminated due to
+            # max steps.
             self._log('msg', 'Attempting to resume at qn%05i' % qncount)
             if qncount > 0:
                 atoms = io.read('qn%05i.traj' % (qncount - 1), index=-1)
                 self._previous_optimum = atoms.copy()
                 self._previous_energy = atoms.get_potential_energy()
             atoms = io.read('qn%05i.traj' % qncount, index=-1)
+            self._atoms.positions = atoms.get_positions()
             fmax = np.sqrt((atoms.get_forces() ** 2).sum(axis=1).max())
             if fmax < self._fmax:
-                raise NotImplementedError('Error resuming. qn%05i fmax '
-                                          'already less than self._fmax = '
-                                          '%.3f.' % (qncount, self._fmax))
-            self._atoms.positions = atoms.get_positions()
+                # Stopped after a qn finished.
+                self._log('msg', 'qn%05i fmax already less than fmax=%.3f'
+                          % (qncount, self._fmax))
+                self._counter += 1
+                return
             self._optimize()
             self._counter += 1
             if qncount > 0:
@@ -152,6 +161,15 @@ class MinimaHopping:
 
     def _check_results(self):
         """Adjusts parameters and positions based on outputs."""
+
+        # No prior minima found?
+        self._read_minima()
+        if len(self._minima) == 0:
+            self._log('msg', 'Found a new minimum.')
+            self._log('msg', 'Accepted new minimum.')
+            self._record_minimum()
+            self._log('par')
+            return
         # Returned to starting position?
         if self._previous_optimum:
             compare = ComparePositions(translate=False)
@@ -231,11 +249,12 @@ class MinimaHopping:
         opt.run(fmax=self._fmax)
         self._log('ene')
 
-    def _record_minimum(self, initialize_only=False):
+    def _record_minimum(self):
         """Adds the current atoms configuration to the minima list."""
         traj = io.PickleTrajectory(self._minima_traj, 'a')
-        if not initialize_only:
-            traj.write(self._atoms)
+        traj.write(self._atoms)
+        self._read_minima()
+        self._log('msg', 'Recorded minima #%i.' % (len(self._minima) - 1))
 
     def _read_minima(self):
         """Reads in the list of minima from the minima file."""
