@@ -119,9 +119,11 @@ def create_png_files():
                                 break
                     if run:
                         print 'running:', join(dirpath, filename)
-                        e = os.system('cd %s; %s %s' % (dirpath, executable, filename))
+                        cmd = 'cd %s; %s %s' % (dirpath, executable, filename)
+                        e = os.system(cmd)
                         if e != 0:
-                            raise RuntimeError('FAILED!')
+                            raise RuntimeError('command ' + cmd + ' FAILED!\n' +
+                                               'os.system error: ' + str(e))
                         for file in line.split()[2:]:
                             print dirpath, file
                             #os.rename(join(dirpath, file),
