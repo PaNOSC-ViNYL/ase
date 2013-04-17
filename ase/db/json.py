@@ -24,9 +24,12 @@ def numpyfy(obj):
         return dict((key, numpyfy(value)) for key, value in obj.items())
     if isinstance(obj, list):
         try:
-            obj = np.array(obj)
+            a = np.array(obj)
         except ValueError:
             obj = [numpyfy(value) for value in obj]
+        else:
+            if a.dtype != object:
+                obj = a
     return obj
 
 
@@ -50,28 +53,23 @@ class JSONDatabase(NoDatabase):
         NoDatabase.__init__(self, use_lock_file)
         self.filename = filename
         
-    def _write(self, name, atoms, extra, replace):
-        if name is None:
-            name = self.create_random_key(atoms)
-
+    def _write(self, id, atoms, extra, replace):
         if os.path.isfile(self.filename):
-            dct = read_json(self.filename)
-            if not replace and name in dct:
+            data = read_json(self.filename)
+            if not replace and id in data:
                 raise KeyCollisionError
         else:
-            dct = {}
+            data = {}
 
-        data = self.collect_data(atoms)
-        data['extra'] = extra
-        dct[name] = data
-        write_json(self.filename, dct)
+        dct = self.collect_data(atoms)
+        dct['timestamp'] = dct['timestamp'].isoformat(' ')
+        dct['extra'] = extra
+        data[id] = dct
+        write_json(self.filename, data)
 
-    def _get(self, names, attach_calculator=False):
+    def get_dict(self, id):
         dct = read_json(self.filename)
-        if names == [-1] or names == [0]:
+        if id in [-1, 0]:
             assert len(dct) == 1
-            names = dct.keys()
-        elif names == [slice(None, None, None)]:
-            names = dct.keys()
-        return [(dict2atoms(dct[name], attach_calculator), dct[name]['extra'])
-                for name in names]
+            id = dct.keys()[0]
+        return dct[id]

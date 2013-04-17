@@ -111,10 +111,10 @@ class SQLite3Database(NoDatabase):
         conn.commit()
         conn.close()
        
-    def _get(self, names, attach_calculator=False):
+    def get_dict(self, id):
         conn = sqlite3.connect(self.filename)
         c = conn.cursor()
-        if names in [[-1], [0]]:
+        if id in [-1, 0]:
             c.execute('select count(*) from systems')
             assert c.fetchone()[0] == 1
             c.execute('select * from systems')
@@ -166,10 +166,6 @@ class SQLite3Database(NoDatabase):
                 dct['results'] = results
         dct['extra'] = numpyfy(json.loads(row[19]))
         return dct
-
-    def row_to_atoms_and_extra(self, row, attach_calculator):
-        dct = self.row_to_dict(row)
-        return (dict2atoms(dct, attach_calculator), dct['extra'])
 
 
 def blob(array):

@@ -21,6 +21,8 @@ def connect(name, type='use_filename_extension', use_lock_file=False):
         from ase.db.json import JSONDatabase as DB
     elif type == 'sqlite3':
         from ase.db.sqlite3 import SQLite3Database as DB
+    else:
+        assert 0
     return DB(name, use_lock_file=use_lock_file)
 
 
@@ -45,33 +47,31 @@ class NoDatabase:
         pass
 
     def collect_data(self, atoms):
-        dct = {}#'date': datetime.now()}#, 'user': ..., ...}
+        dct = {'timestamp': datetime.now(),
+               'user': os.getenv('USER')}
         if atoms is None:
             return dct
         dct.update(atoms2dict(atoms))
         if atoms.calc is not None:
-            dct['calculator'] = {'name': atoms.calc.name,
-                                 'parameters': atoms.calc.todict()}
+            dct['calculator_name'] = atoms.calc.name
+            dct['calculator_parameters'] = atoms.calc.todict()
             if len(atoms.calc.check_state(atoms)) == 0:
                 dct['results'] = atoms.calc.results
             else:
                 dct['results'] = {}
         return dct
 
-    def get(self, names, attach_calculator=False):
-        if isinstance(names, str) or names in [0, -1]:
-            return self._get([names], attach_calculator)[0]
-        if isinstance(names, (list, tuple)):
-            return self._get(names, attach_calculator)
-        if names == slice(None, None, None):
-            return self._get([names], attach_calculator)
-        assert 0
+    def get_atoms(self, id, attach_calculator=False, extra=False):
+        dct = self.get_dict(id)
+        atoms = dict2atoms(dct, attach_calculator)
+        if extra:
+            atoms.info = dct['extra']
+        return atoms
 
     def __getitem__(self, index):
-        result = self.get(index)
-        if isinstance(result, list):
-            return [item[0] for item in result]
-        return result[0]
+        if index == slice(None, None, None):
+            return [self[0]]
+        return self.get_atoms(index)
 
 
 def atoms2dict(atoms):
@@ -82,6 +82,8 @@ def atoms2dict(atoms):
         'positions': atoms.positions}
     if atoms.has('magmoms'):
         data['magmoms'] = atoms.get_initial_magnetic_moments()
+    if atoms.has('charges'):
+        data['charges'] = atoms.get_initial_charges()
     if atoms.constraints:
         data['constraints'] = repr(atoms.constraints)
     return data
