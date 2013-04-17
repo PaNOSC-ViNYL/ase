@@ -19,8 +19,8 @@ def connect(name, type='use_filename_extension', use_lock_file=False):
 
     if type == 'json':
         from ase.db.json import JSONDatabase as DB
-    elif type == 'sqlite':
-        from ase.db.sqlite import SQLiteDatabase as DB
+    elif type == 'sqlite3':
+        from ase.db.sqlite3 import SQLite3Database as DB
     return DB(name, use_lock_file=use_lock_file)
 
 
