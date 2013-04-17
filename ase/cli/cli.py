@@ -29,6 +29,12 @@ def expand(names):
         i += 1
 
 
+class MyArgumentParser(argparse.ArgumentParser):
+    def convert_arg_line_to_args(self, arg_line):
+        for arg in arg_line.split():
+            yield arg
+
+
 class CLI:
     def __init__(self, args=None):
         if world.rank == 0:
@@ -78,7 +84,7 @@ class CLI:
 
     def parse(self, args):
         # create the top-level parser
-        parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
+        parser = MyArgumentParser(fromfile_prefix_chars='@')
         parser.add_argument('names', nargs='*')
         parser.add_argument('-t', '--tag',
                              help='String tag added to filenames.')
