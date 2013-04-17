@@ -48,7 +48,7 @@ class NoDatabase:
 
     def collect_data(self, atoms):
         dct = {'timestamp': datetime.now(),
-               'user': os.getenv('USER')}
+               'username': os.getenv('USER')}
         if atoms is None:
             return dct
         dct.update(atoms2dict(atoms))

@@ -3,6 +3,7 @@ import os
 import json
 import sqlite3
 import collections
+from datetime import datetime
 
 import numpy as np
 
@@ -24,13 +25,13 @@ class SQLite3Database(NoDatabase):
         if not c.fetchone()[0]:
             conn.execute(
                 'create table systems (id text primary key, ' +
-                'natoms integer, ' +
+                'timestamp text, username text, ' +
                 'numbers blob, positions blob, cell blob, pbc integer, ' +
                 'initial_magmoms blob, initial_charges blob, ' +
                 'constraints text, ' +
                 'calculator_name text, calculator_parameters blob, ' +
                 'energy real, free_energy real, forces blob, stress blob, ' +
-                'magmoms blob, magmom blob, charges blob, charge real, ' +
+                'magmoms blob, magmom blob, charges blob, ' +
                 'extra text)')
             conn.execute(
                 'create table species (atomic_number integer, ' +
@@ -47,12 +48,13 @@ class SQLite3Database(NoDatabase):
             conn.commit()
 
         if atoms is None:
-            row = (id, -1, None, None, None, None, None, None, None, None,
+            row = (id, None, None, None, None, None, None, None, None, None,
                    None, None, None, None, None, None, None, None, None, None)
         else:
             dct = self.collect_data(atoms)
             row = (id,
-                   len(atoms),
+                   dct['timestamp'].isoformat(' '),
+                   dct['username'],
                    blob(atoms.numbers),
                    blob(atoms.positions),
                    blob(atoms.cell),
@@ -73,10 +75,9 @@ class SQLite3Database(NoDatabase):
                         blob(r.get('stress')),
                         blob(r.get('magmoms')),
                         blob(r.get('magmom')),
-                        blob(r.get('charges')),
-                        r.get('charge'))
+                        blob(r.get('charges')))
             else:
-                row += (None, None, None, None, None, None, None, None)
+                row += (None, None, None, None, None, None, None)
             row += (encode(extra),)
         q = ', '.join('?' * len(row))
         if replace:
@@ -118,50 +119,39 @@ class SQLite3Database(NoDatabase):
             c.execute('select count(*) from systems')
             assert c.fetchone()[0] == 1
             c.execute('select * from systems')
-            row = c.fetchone()
-            return [self.row_to_atoms_and_extra(row, attach_calculator)]
-        elif names == [slice(None, None, None)]:
-            c.execute('select * from systems')
-            return [self.row_to_atoms_and_extra(row, attach_calculator)
-                    for row in c.fetchall()]
         else:
-            systems = []
-            for name in names:
-                c.execute('select * from systems where name=?', (name,))
-                row = c.fetchone()
-                systems.append(
-                    self.row_to_atoms_and_extra(row, attach_calculator))
-            return systems
+            c.execute('select * from systems where id=?', (id,))
+        row = c.fetchone()
+        return self.row_to_dict(row)
 
     def row_to_dict(self, row):
-        natoms = row[1]
-        dct = {'numbers': deblob(row[2], int),
-               'positions': deblob(row[3], shape=(natoms, 3)),
-               'cell': deblob(row[4], shape=(3, 3)),
-               'pbc': deblob(row[5], bool),
-               'magmoms': deblob(row[6]),
-               'charges': deblob(row[7]),
+        dct = {'timestamp': datetime.strptime(row[1], '%Y-%m-%d %H:%M:%S.%f'),
+               'username': row[2],
+               'numbers': deblob(row[3], int),
+               'positions': deblob(row[4], shape=(-1, 3)),
+               'cell': deblob(row[5], shape=(3, 3)),
+               'pbc': deblob(row[6], bool),
+               'magmoms': deblob(row[7]),
+               'charges': deblob(row[8]),
                'constraints': ''}
-        if row[9] is not None:
-            dct['calculator'] = {'name': row[9],
-                                 'parameters': numpyfy(json.loads(row[10]))}
+        if row[10] is not None:
+            dct['calculator_name'] = row[10]
+            dct['calculator_parameters'] = numpyfy(json.loads(row[11]))
             results = {}
-            if row[11] is not None:
-                results['energy'] = row[11]
             if row[12] is not None:
-                results['free_energy'] = row[12]
+                results['energy'] = row[12]
             if row[13] is not None:
-                results['forces'] = deblob(row[13], shape=(natoms, 3))
+                results['free_energy'] = row[13]
             if row[14] is not None:
-                results['stress'] = deblob(row[14], shape=(3, 3))
+                results['forces'] = deblob(row[14], shape=(-1, 3))
             if row[15] is not None:
-                results['magmoms'] = deblob(row[15])
+                results['stress'] = deblob(row[15], shape=(3, 3))
             if row[16] is not None:
-                results['magmom'] = deblob(row[16])[0]
+                results['magmoms'] = deblob(row[16])
             if row[17] is not None:
-                results['charges'] = deblob(row[17])
+                results['magmom'] = deblob(row[17])[0]
             if row[18] is not None:
-                results['charge'] = row[18]
+                results['charges'] = deblob(row[18])
             if results:
                 dct['results'] = results
         dct['extra'] = numpyfy(json.loads(row[19]))
