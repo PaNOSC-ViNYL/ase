@@ -18,7 +18,7 @@ def connect(name, type='use_filename_extension', use_lock_file=False):
         return NoDatabase()
 
     if type == 'json':
-        from ase.db.jsondb import JSONDatabase as DB
+        from ase.db.json import JSONDatabase as DB
     elif type == 'sqlite':
         from ase.db.sqlite import SQLiteDatabase as DB
     return DB(name, use_lock_file=use_lock_file)
@@ -31,17 +31,17 @@ class NoDatabase:
         else:
             self.lock = OpenLock()
 
-    def write(self, name, atoms, data={}, replace=True):
+    def write(self, id, atoms, data={}, replace=True):
         if world.rank > 0:
             return
 
-        if name is None:
-            name = self.create_random_key(atoms)
+        if id is None:
+            id = self.create_random_id(atoms)
 
         with self.lock:
-            self._write(name, atoms, data, replace)
+            self._write(id, atoms, data, replace)
 
-    def _write(self, name, atoms, data, replace):
+    def _write(self, id, atoms, data, replace):
         pass
 
     def collect_data(self, atoms):
