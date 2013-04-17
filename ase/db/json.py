@@ -1,22 +1,33 @@
-from __future__ import absolute_import
+#from __future__ import absolute_import
 import os
-import json
-
 import numpy as np
 
+if 1:
+    def encode(obj):
+        if isinstance(obj, str):
+            return '"' + obj + '"'
+        if isinstance(obj, (int, float)):
+            return repr(obj)
+        if isinstance(obj, (bool, np.bool_)):
+            return repr(obj).lower()
+        if isinstance(obj, dict):
+            return '{' + ', '.join(['"' + key + '": ' + encode(value)
+                                    for key, value in obj.items()]) + '}'
+        return '[' + ','.join([encode(value) for value in obj]) + ']'
+    def loads(txt):
+        return eval(txt, {'false': False, 'true': True})
+else:
+    from json import JSONEncoder, loads
+    class NDArrayEncoder(JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, np.ndarray):
+                return obj.tolist()
+            return JSONEncoder.default(self, obj)
+    encode = NDArrayEncoder().encode
+        
 from ase.parallel import world
 from ase.db import KeyCollisionError
 from ase.db.core import NoDatabase, dict2atoms
-
-
-class NDArrayEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        return json.JSONEncoder.default(self, obj)
-
-
-encode = NDArrayEncoder().encode
 
 
 def numpyfy(obj):
@@ -42,7 +53,7 @@ def write_json(name, results):
 
 def read_json(name):
     fd = open(name, 'r')
-    results = json.loads(fd.read())
+    results = loads(fd.read())
     fd.close()
     world.barrier()
     return numpyfy(results)

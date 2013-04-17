@@ -40,8 +40,13 @@ class NoDatabase:
         if id is None:
             id = self.create_random_id(atoms)
 
-        with self.lock:
+        #with self.lock:
+        #    self._write(id, atoms, data, replace)
+        self.lock.acquire()
+        try:
             self._write(id, atoms, data, replace)
+        finally:
+            self.lock.release()
 
     def _write(self, id, atoms, data, replace):
         pass
