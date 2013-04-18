@@ -1,6 +1,6 @@
 from ase.cli import run
 from ase.db import connect
-from ase.db.jsondb import read_json
+from ase.db.json import read_json
 from ase.calculators.nwchem import NWChem
 
 run('O2 O run -c nwchem -d oxygen.json')
