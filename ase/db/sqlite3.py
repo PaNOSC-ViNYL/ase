@@ -14,10 +14,6 @@ from ase.db.json import encode, numpyfy
 
 
 class SQLite3Database(NoDatabase):
-    def __init__(self, filename, use_lock_file=False):
-        NoDatabase.__init__(self, use_lock_file)
-        self.filename = filename
-        
     def _write(self, id, atoms, extra, replace):
         conn = sqlite3.connect(self.filename)
         c = conn.execute(

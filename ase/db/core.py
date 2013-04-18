@@ -27,9 +27,10 @@ def connect(name, type='use_filename_extension', use_lock_file=False):
 
 
 class NoDatabase:
-    def __init__(self, use_lock_file=False):
+    def __init__(self, filename=None, use_lock_file=False):
+        self.filename = filename
         if use_lock_file:
-            self.lock = Lock(name + '.lock')
+            self.lock = Lock(filename + '.lock')
         else:
             self.lock = OpenLock()
 

@@ -60,10 +60,6 @@ def read_json(name):
 
 
 class JSONDatabase(NoDatabase):
-    def __init__(self, filename, use_lock_file=False):
-        NoDatabase.__init__(self, use_lock_file)
-        self.filename = filename
-        
     def _write(self, id, atoms, extra, replace):
         if os.path.isfile(self.filename):
             data = read_json(self.filename)
