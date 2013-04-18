@@ -65,6 +65,7 @@ class CLI:
             self.build_function = namespace.get('build')
             if 'calculate' in namespace:
                 command = PluginCommand(namespace.get('calculate'))
+                command.default_calculator = self.default_calculator
 
         command.logfile = self.logfile
         command.args = args
