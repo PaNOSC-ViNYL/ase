@@ -5,8 +5,6 @@ from math import pi, sqrt
 
 import numpy as np
 
-from ase.calculators.test import numeric_force
-
 
 class ReadError(Exception):
     pass
@@ -412,6 +410,7 @@ class Calculator:
 
         All atoms will be displaced by +d and -d in all directions."""
 
+        from ase.calculators.test import numeric_force
         return np.array([[numeric_force(atoms, a, i, d)
                           for i in range(3)] for a in range(len(atoms))])
 
