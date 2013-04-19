@@ -129,7 +129,7 @@ class SQLite3Database(NoDatabase):
                'pbc': deblob(row[6], bool),
                'magmoms': deblob(row[7]),
                'charges': deblob(row[8]),
-               'constraints': ''}
+               'constraints': numpyfy(json.loads(row[9]))}
         if row[10] is not None:
             dct['calculator_name'] = row[10]
             dct['calculator_parameters'] = numpyfy(json.loads(row[11]))

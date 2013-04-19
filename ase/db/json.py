@@ -1,5 +1,7 @@
-#from __future__ import absolute_import
+#from __future__ import absolute_import  # PY24
 import os
+import operator
+
 import numpy as np
 
 if 1:
@@ -26,8 +28,15 @@ else:
     encode = NDArrayEncoder().encode
         
 from ase.parallel import world
-from ase.db import KeyCollisionError
+from ase.db import IdCollisionError
 from ase.db.core import NoDatabase, dict2atoms
+
+
+ops = {'<': operator.lt,
+       '<=': operator.le,
+       '=': operator.eq,
+       '>=': operator.ge,
+       '>': operator.gt}
 
 
 def numpyfy(obj):
@@ -60,23 +69,54 @@ def read_json(name):
 
 
 class JSONDatabase(NoDatabase):
-    def _write(self, id, atoms, extra, replace):
+    def _write(self, id, atoms, keywords, key_value_pairs, extra, replace):
         if os.path.isfile(self.filename):
             data = read_json(self.filename)
             if not replace and id in data:
-                raise KeyCollisionError
+                raise IdCollisionError
         else:
             data = {}
 
         dct = self.collect_data(atoms)
-        dct['timestamp'] = dct['timestamp'].isoformat(' ')
+        dct['keywords'] = keywords
+        dct['key_value_pairs'] = key_value_pairs
         dct['extra'] = extra
         data[id] = dct
         write_json(self.filename, data)
 
     def get_dict(self, id):
-        dct = read_json(self.filename)
+        data = read_json(self.filename)
         if id in [-1, 0]:
-            assert len(dct) == 1
-            id = dct.keys()[0]
-        return dct[id]
+            assert len(data) == 1
+            id = data.keys()[0]
+        return data[id]
+
+    def _iselect(self, keywords, cmps):
+        data = read_json(self.filename)
+        cmps = [(key, ops[op], val) for key, op, val in cmps]
+        for dct in data.values():
+            for keyword in keywords:
+                if keyword not in dct['keywords']:
+                    break
+            else:
+                for key, op, val in cmps:
+                    value = get_value(dct, key)
+                    print key,value,op,val
+                    if value is None or not op(value,val):
+                        break
+                else:
+                    yield dct
+
+
+def get_value(dct, key):
+    value = dct['key_value_pairs'].get(key)
+    if value is not None:
+        return value
+    if key in ['energy', 'magmom']:
+        return dct.get('results', {}).get(key)
+    if key in ['timestamp', 'username']:
+        return dct.get(key)
+    if key == 'calculator':
+        return dct.get('calculator_name')
+    if isinstance(key, int):
+        return (dct['numbers'] == key).sum()
