@@ -121,7 +121,7 @@ class NWChem(FileIOCalculator):
                         f.write('  convergence %s %s\n' %
                                 (key, p.convergence[key]))
             if p.smearing is not None:
-                assert p.smearing[0].lower() == 'gaussian'
+                assert p.smearing[0].lower() == 'gaussian', p.smearing
                 f.write('  smear %s\n' % (p.smearing[1] / Hartree))
             if 'mult' not in p:
                 # Obtain multiplicity from magnetic momenta:

@@ -20,6 +20,13 @@ def str2dict(s, namespace={}, sep='='):
     {'a': 1.2, 'c': 'ab', 'b': True, 'e': {'g': 'cd', 'f': 42}, 'd': (1, 2, 3)}
     """
     
+    def myeval(value):
+        try:
+            value = eval(value, namespace)
+        except (NameError, SyntaxError):
+            pass
+        return value
+
     dct = {}
     s = (s + ',').split(sep)
     for i in range(len(s) - 1):
@@ -29,11 +36,11 @@ def str2dict(s, namespace={}, sep='='):
         if value[0] == '{':
             assert value[-1] == '}'
             value = str2dict(value[1:-1], namespace, ':')
+        if value[0] == '(':
+            assert value[-1] == ')'
+            value = [myeval(t) for t in value[1:-1].split(',')]
         else:
-            try:
-                value = eval(value, namespace)
-            except (NameError, SyntaxError):
-                pass
+            value = myeval(value)
         dct[key] = value
         s[i + 1] = s[i + 1][m + 1:]
     return dct
@@ -84,7 +91,7 @@ class RunCommand(Command):
         skip = False
         try:
             self.db.write(name, None, replace=False)
-        except db.KeyCollisionError:
+        except db.IdCollisionError:
             skip = True
         
         if not skip:
@@ -101,7 +108,8 @@ class RunCommand(Command):
             else:
                 tstop = time.time()
                 data['time'] = tstop - tstart
-                self.db.write(name, atoms, data)
+                self.db.write(name, atoms, #key_value_pairs={'ase-cli': ???},
+                              data=data)
 
     def set_calculator(self, atoms, name):
         args = self.args
