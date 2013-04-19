@@ -138,6 +138,14 @@ class FixAtoms(FixConstraint):
             return 'FixAtoms(mask=%s)' % ints2string(self.index.astype(int))
         return 'FixAtoms(indices=%s)' % ints2string(self.index)
 
+    def todict(self):
+        dct = {'name': 'ase.constraints.FixAtoms'}
+        if self.index.dtype == bool:
+            dct['mask'] = self.index
+        else:
+            dct['indices'] = self.index
+        return dct
+
     def repeat(self, m, n):
         i0 = 0
         l = len(self.index)
