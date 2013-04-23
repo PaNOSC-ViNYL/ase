@@ -8,16 +8,18 @@ if 1:
     def encode(obj):
         if isinstance(obj, str):
             return '"' + obj + '"'
-        if isinstance(obj, (int, float)):
-            return repr(obj)
         if isinstance(obj, (bool, np.bool_)):
             return repr(obj).lower()
+        if isinstance(obj, (int, float)):
+            return repr(obj)
         if isinstance(obj, dict):
             return '{' + ', '.join(['"' + key + '": ' + encode(value)
                                     for key, value in obj.items()]) + '}'
+        if obj is None:
+            return 'null'
         return '[' + ','.join([encode(value) for value in obj]) + ']'
     def loads(txt):
-        return eval(txt, {'false': False, 'true': True})
+        return eval(txt, {'false': False, 'true': True, 'null': None})
 else:
     from json import JSONEncoder, loads
     class NDArrayEncoder(JSONEncoder):
@@ -54,6 +56,7 @@ def numpyfy(obj):
 
 
 def write_json(name, results):
+    print results
     if world.rank == 0:
         fd = open(name, 'w')
         fd.write(encode(results))
@@ -69,32 +72,33 @@ def read_json(name):
 
 
 class JSONDatabase(NoDatabase):
-    def _write(self, id, atoms, keywords, key_value_pairs, extra, replace):
+    def _write(self, id, atoms, keywords, key_value_pairs, data, replace):
         if os.path.isfile(self.filename):
-            data = read_json(self.filename)
-            if not replace and id in data:
+            bigdct = read_json(self.filename)
+            if not replace and id in bigdct:
                 raise IdCollisionError
         else:
-            data = {}
+            bigdct = {}
 
         dct = self.collect_data(atoms)
+        dct['id'] = id
         dct['keywords'] = keywords
         dct['key_value_pairs'] = key_value_pairs
-        dct['extra'] = extra
-        data[id] = dct
-        write_json(self.filename, data)
+        dct['data'] = data
+        bigdct[id] = dct
+        write_json(self.filename, bigdct)
 
     def get_dict(self, id):
-        data = read_json(self.filename)
+        bigdct = read_json(self.filename)
         if id in [-1, 0]:
-            assert len(data) == 1
-            id = data.keys()[0]
-        return data[id]
+            assert len(bigdct) == 1
+            id = bigdct.keys()[0]
+        return bigdct[id]
 
     def _iselect(self, keywords, cmps):
-        data = read_json(self.filename)
+        bigdct = read_json(self.filename)
         cmps = [(key, ops[op], val) for key, op, val in cmps]
-        for dct in data.values():
+        for id, dct in bigdct.items():
             for keyword in keywords:
                 if keyword not in dct['keywords']:
                     break
@@ -114,9 +118,7 @@ def get_value(dct, key):
         return value
     if key in ['energy', 'magmom']:
         return dct.get('results', {}).get(key)
-    if key in ['timestamp', 'username']:
+    if key in ['timestamp', 'username', 'calculator']:
         return dct.get(key)
-    if key == 'calculator':
-        return dct.get('calculator_name')
     if isinstance(key, int):
         return (dct['numbers'] == key).sum()

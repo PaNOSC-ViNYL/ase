@@ -78,11 +78,15 @@ class NoDatabase:
                 dct['results'] = {}
         return dct
 
-    def get_atoms(self, id=0, attach_calculator=False, extra=False):
+    def get_atoms(self, id=0, attach_calculator=False,
+                  add_additional_information=False):
         dct = self.get_dict(id)
         atoms = dict2atoms(dct, attach_calculator)
-        if extra:
-            atoms.info = dct['extra']
+        if add_additional_information:
+            atoms.info = {'id': id,
+                          'keywords': dct['keywords'],
+                          'key_value_pairs': dct['key_value_pairs'],
+                          'data': dct['data']}
         return atoms
 
     def __getitem__(self, index):
@@ -93,6 +97,7 @@ class NoDatabase:
     def iselect(self, *expressions, **kwargs):
         username = kwargs.pop('username', None)  # PY24
         charge = kwargs.pop('charge', None)
+        calculator = kwargs.pop('calculator', None)
         filter = kwargs.pop('filter', None)
         if expressions:
             expressions = ','.join(expressions).split(',')
@@ -122,8 +127,11 @@ class NoDatabase:
         cmps = []
         for key, op, value in comparisons:
             if key == 'age':
+                key = 'timestamp'
+                op = {'<': '>', '<=': '>=', '>=': '<=', '>': '<'}.get(op, op)
                 value = (time() - T0) / 86400 - time_string_to_float(value)
-                op = {'<': '>', '<=': '>=', '>=': '<=', '>': '<', }.get(op, op)
+            elif key == 'calculator':
+                key = 'calculator_name'
             elif key in atomic_numbers:
                 key = atomic_numbers[key]
                 value = int(value)
@@ -138,6 +146,8 @@ class NoDatabase:
             cmps.append(('username', '=', username))
         if charge is not None:
             cmps.append(('charge', '=', charge))
+        if calculator is not None:
+            cmps.append(('claculator_name', '=', calculator))
         for symbol, n in kwargs.items():
             assert isinstance(n, int)
             Z = atomic_numbers[symbol]
@@ -161,18 +171,18 @@ def atoms2dict(atoms):
         data['masses'] = atoms.get_masses()
     if atoms.has('tags'):
         data['tags'] = atoms.get_tags()
-    if atoms.has('moments'):
-        data['moments'] = atoms.get_moments()
+    if atoms.has('momenta'):
+        data['momenta'] = atoms.get_momenta()
     if atoms.constraints:
         data['constraints'] = [c.todict() for c in atoms.constraints]
     return data
 
 
 def dict2atoms(dct, attach_calculator=False):
-    constaint_dicts = dct.get('constraints')
-    if constrint_dicts:
+    constraint_dicts = dct.get('constraints')
+    if constraint_dicts:
         constraints = []
-        for c in constrint_dicts:
+        for c in constraint_dicts:
             assert c.pop('name') == 'ase.constraints.FixAtoms'
             constraints.append(FixAtoms(**c))
     else:
@@ -186,7 +196,7 @@ def dict2atoms(dct, attach_calculator=False):
                   charges=dct.get('charges'),
                   tags=dct.get('tags'),
                   masses=dct.get('masses'),
-                  moments=dct.get('moments'),
+                  momenta=dct.get('momenta'),
                   constraint=constraints)
 
     results = dct.get('results')
@@ -205,13 +215,13 @@ def time_string_to_float(s):
     s = s.replace(' ', '')
     if '+' in s:
         return sum(time_string_to_float(x) for x in s.split('+'))
-    if s[-1] == 's':
+    if s[-2].isalpha() and s[-1] == 's':
         s = s[:-1]
     i = 1
     while s[i].isdigit():
         i += 1
     return {'s': 1, 'second': 1,
-            'm': 60, 'minutes': 60,
+            'm': 60, 'minute': 60,
             'h': 3600, 'hour': 3600,
             'd': 86400, 'day': 86400,
             'w': 604800, 'week': 604800,
