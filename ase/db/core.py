@@ -30,6 +30,16 @@ def connect(name, type='use_filename_extension', use_lock_file=False):
     return DB(name, use_lock_file=use_lock_file)
 
 
+class FancyDict(dict):
+    def __getattr__(self, key):
+        if key not in self:
+            return dict.__getattr__(self, key)
+        value = self[key]
+        if isinstance(value, dict):
+            return FancyDict(value)
+        return value
+
+
 class NoDatabase:
     def __init__(self, filename=None, use_lock_file=False):
         self.filename = filename
@@ -78,9 +88,15 @@ class NoDatabase:
                 dct['results'] = {}
         return dct
 
+    def get_dict(self, id, fancy=True):
+        dct = self._get_dict(id)
+        if fancy:
+            dct = FancyDict(dct)
+        return dct
+
     def get_atoms(self, id=0, attach_calculator=False,
                   add_additional_information=False):
-        dct = self.get_dict(id)
+        dct = self.get_dict(id, fancy=False)
         atoms = dict2atoms(dct, attach_calculator)
         if add_additional_information:
             atoms.info = {'id': id,

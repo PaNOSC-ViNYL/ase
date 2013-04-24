@@ -144,7 +144,7 @@ class SQLite3Database(NoDatabase):
         con.commit()
         con.close()
        
-    def get_dict(self, id):
+    def _get_dict(self, id):
         con = sqlite3.connect(self.filename)
         c = con.cursor()
         if id in [-1, 0]:

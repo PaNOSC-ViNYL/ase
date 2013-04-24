@@ -88,7 +88,7 @@ class JSONDatabase(NoDatabase):
         bigdct[id] = dct
         write_json(self.filename, bigdct)
 
-    def get_dict(self, id):
+    def _get_dict(self, id):
         bigdct = read_json(self.filename)
         if id in [-1, 0]:
             assert len(bigdct) == 1
