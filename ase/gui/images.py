@@ -347,9 +347,9 @@ class Images:
         if not self.dynamic.all():
             atoms.set_constraint(FixAtoms(mask=1-self.dynamic))
         
-        atoms.set_calculator(SinglePointCalculator(self.E[frame],
-                                                   self.F[frame],
-                                                   None, None, atoms))
+        atoms.set_calculator(SinglePointCalculator(atoms,
+                                                   energy=self.E[frame],
+                                                   forces=self.F[frame])
         return atoms
                            
     def delete(self, i):
