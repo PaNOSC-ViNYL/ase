@@ -64,7 +64,7 @@ def read_elk(filename):
         symbols += str(s[1:].split('.')[0]) * natoms[n]
         positions += atpos[n]
         if len(bfcmt[n]) > 0:
-            magmoms += bfcmt[n]
+            magmoms += [m[-1] for m in bfcmt[n]]
     atoms = Atoms(symbols, positions)
     if len(magmoms) > 0:
         atoms.set_initial_magnetic_moments(magmoms)
