@@ -44,7 +44,7 @@ ops = {'<': operator.lt,
 def numpyfy(obj):
     if isinstance(obj, dict):
         return dict((key, numpyfy(value)) for key, value in obj.items())
-    if isinstance(obj, list):
+    if isinstance(obj, list) and len(obj) > 0:
         try:
             a = np.array(obj)
         except ValueError:
@@ -56,7 +56,6 @@ def numpyfy(obj):
 
 
 def write_json(name, results):
-    print results
     if world.rank == 0:
         fd = open(name, 'w')
         fd.write(encode(results))
@@ -105,7 +104,6 @@ class JSONDatabase(NoDatabase):
             else:
                 for key, op, val in cmps:
                     value = get_value(dct, key)
-                    print key,value,op,val
                     if value is None or not op(value,val):
                         break
                 else:

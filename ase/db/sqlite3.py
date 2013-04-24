@@ -178,7 +178,6 @@ class SQLite3Database(NoDatabase):
             dct['constraints'] = numpyfy(json.loads(row[12]))
         if row[13] is not None:
             dct['calculator_name'] = row[13]
-            print row[14]
             dct['calculator_parameters'] = numpyfy(json.loads(row[14]))
             results = {}
             if row[15] is not None:

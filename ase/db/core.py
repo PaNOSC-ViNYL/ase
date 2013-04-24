@@ -158,7 +158,6 @@ class NoDatabase:
                     value = float(value)
                 except ValueError:
                     assert op == '='
-            print (key, op, value)
             cmps.append((key, op, value))
         if username is not None:
             cmps.append(('username', '=', username))

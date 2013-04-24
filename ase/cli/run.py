@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import argparse
 import traceback
@@ -108,7 +109,9 @@ class RunCommand(Command):
             else:
                 tstop = time.time()
                 data['time'] = tstop - tstart
-                self.db.write(name, atoms, #key_value_pairs={'ase-cli': ???},
+                self.db.write(name, atoms,
+                              key_value_pairs={'ase_cli':
+                                               ' '.join(sys.argv[1:])},
                               data=data)
 
     def set_calculator(self, atoms, name):
