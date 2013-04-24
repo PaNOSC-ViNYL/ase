@@ -14,7 +14,7 @@ def main():
     'limit,explain'
     args = parser.parse_args()
     con = connect(args.name[0])
-    Formatter().format(list(con.iselect(*args.query)))
+    Formatter().format(list(con.select(*args.query)))
 
 
 class Formatter:
@@ -41,54 +41,53 @@ class Formatter:
             fd.write('\n')
         
     def id(self, d):
-        return d['id']
+        return d.id
     
     def age(self, d):
-        return '%.1f' % d['timestamp']
+        return '%.1f' % d.timestamp
 
     def user(self, d):
-        return d['username']
+        return d.username
     
     def symbols(self, d):
-        return Atoms(d['numbers']).get_chemical_formula()
+        return Atoms(d.numbers).get_chemical_formula()
 
     def energy(self, d):
-        return '%.3f' % d['results']['energy']
+        return '%.3f' % d.results.energy
 
     def size(self, d):
-        return '%.3f' % abs(np.linalg.det(d['cell']))
+        return '%.3f' % abs(np.linalg.det(d.cell))
 
     def pbc(self, d):
-        a, b, c = d['pbc']
+        a, b, c = d.pbc
         return '%s' % (' a'[a] + ' b'[b] + ' c'[c])
 
     def calc(self, d):
-        return '%s' % d['calculator_name']
+        return '%s' % d.calculator_name
 
     def fmax(self, d):
-        return '%.3f' % (d['results']['forces']**2).sum(1).max()**0.5
+        return '%.3f' % (d.results.forces**2).sum(1).max()**0.5
 
     def keywords(self, d):
-        return '%s' % ','.join(d['keywords'] +
+        return '%s' % ','.join(d.keywords +
                                ['%s=%s' % (key, value)
-                                for key, value in d['key_value_pairs'].items()]
-                               )
+                                for key, value in d.key_value_pairs.items()])
 
     def charge(self, d):
-        return '%.3f' % d['results']['charge']
+        return '%.3f' % d.results.charge
 
     def mass(self, d):
-        return '%.3f' % d['masses'].sum()
+        return '%.3f' % d.masses.sum()
 
     def fixed(self, d):
-        c = d['constraints']
+        c = d.constraints
         if c is None:
             return ''
         if len(c) > 1:
             return '?'
 
     def smax(self, d):
-        return '%.3f' % (d['results']['stress']**2).max()**0.5
+        return '%.3f' % (d.results.stress**2).max()**0.5
 
     def magmom(self, d):
-        return '%.3f' % d['results']['magmom']
+        return '%.3f' % d.results.magmom

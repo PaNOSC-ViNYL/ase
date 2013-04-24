@@ -33,7 +33,7 @@ def connect(name, type='use_filename_extension', use_lock_file=False):
 class FancyDict(dict):
     def __getattr__(self, key):
         if key not in self:
-            return dict.__getattr__(self, key)
+            raise KeyError
         value = self[key]
         if isinstance(value, dict):
             return FancyDict(value)
@@ -110,11 +110,13 @@ class NoDatabase:
             return [self[0]]
         return self.get_atoms(index)
 
-    def iselect(self, *expressions, **kwargs):
+    def select(self, *expressions, **kwargs):
         username = kwargs.pop('username', None)  # PY24
         charge = kwargs.pop('charge', None)
         calculator = kwargs.pop('calculator', None)
         filter = kwargs.pop('filter', None)
+        fancy = kwargs.pop('fancy', True)
+
         if expressions:
             expressions = ','.join(expressions).split(',')
         keywords = []
@@ -168,8 +170,10 @@ class NoDatabase:
             assert isinstance(n, int)
             Z = atomic_numbers[symbol]
             cmps.append((Z, op, n))
-        for dct in self._iselect(keywords, cmps):
+        for dct in self._select(keywords, cmps):
             if filter is None or filter(dct):
+                if fancy:
+                    dct = FancyDict(dct)
                 yield dct
 
 

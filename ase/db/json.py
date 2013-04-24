@@ -95,7 +95,7 @@ class JSONDatabase(NoDatabase):
             id = bigdct.keys()[0]
         return bigdct[id]
 
-    def _iselect(self, keywords, cmps):
+    def _select(self, keywords, cmps):
         bigdct = read_json(self.filename)
         cmps = [(key, ops[op], val) for key, op, val in cmps]
         for id, dct in bigdct.items():
