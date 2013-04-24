@@ -349,7 +349,7 @@ class Images:
         
         atoms.set_calculator(SinglePointCalculator(atoms,
                                                    energy=self.E[frame],
-                                                   forces=self.F[frame])
+                                                   forces=self.F[frame]))
         return atoms
                            
     def delete(self, i):
