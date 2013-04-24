@@ -1,8 +1,2 @@
-from ase.test.fleur import installed
-
-assert installed()
-
-from ase.tasks.main import run
-
-atoms, task = run("fleur bulk Al -x fcc -a 4.04 --k-point-density=3.0 -p xc=PBE")
-atoms, task = run('fleur bulk Al -s')
+from ase.cli import run
+run('-x fcc -a 4.04 Al run -c fleur -p kpts=3.0,xc=PBE')
