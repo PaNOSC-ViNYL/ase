@@ -88,7 +88,10 @@ def main():
 
         if len(args) > 0:
             from ase.io import string2index
-            images.read(args, string2index(opt.image_number))
+            try:
+                images.read(args, string2index(opt.image_number))
+            except IOError, e:
+                parser.error(e.args[1] + ': ' + e.filename)
         else:
             images.initialize([Atoms()])
 

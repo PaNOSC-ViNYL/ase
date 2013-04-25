@@ -148,7 +148,7 @@ def read_gpaw_text(fileobj, index=-1):
             atoms.set_calculator(calc)
         if q is not None and len(atoms) > 0:
             n = len(atoms)
-            atoms.set_charges([q / n] * n)
+            atoms.set_initial_charges([q / n] * n)
 
         images.append(atoms)
         lines = lines[i:]

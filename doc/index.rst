@@ -13,7 +13,7 @@ for manipulating atoms, analyzing simulations, visualization etc.
 Supported :mod:`calculators`:
 
    |abinit| |Asap| |CASTEP| |dftb| |elk| |exciting| |EMT| |fhi-aims| 
-   |fleur| Gaussian_ |gpaw| |hotbit| |jacapo| |lammps| Mopac_ |siesta|
+   |fleur| Gaussian_ |gpaw| |hotbit| |jacapo| |lammps| Mopac_ |nwchem| |siesta|
    |turbomole| |vasp| 
 
 .. |abinit| image:: _static/abinit.png
@@ -54,6 +54,9 @@ Supported :mod:`calculators`:
    :align: middle
 .. |lammps| image:: _static/lammps.png
    :target: ase/calculators/lammps.html
+   :align: middle
+.. |nwchem| image:: _static/nwchem.png
+   :target: http://www.nwchem-sw.org
    :align: middle
 .. |siesta| image:: _static/siesta.png
    :target: ase/calculators/siesta.html

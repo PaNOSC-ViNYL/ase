@@ -1717,6 +1717,8 @@ class xdat2traj:
 
         # Write also the last image
         # I'm sure there is also more clever fix...
+        if step == 0:
+            self.out.write_header(self.atoms[self.calc.resort])
         scaled_pos = np.array(scaled_pos)
         self.atoms.set_scaled_positions(scaled_pos)
         d = {'positions': self.atoms.get_positions()[self.calc.resort],

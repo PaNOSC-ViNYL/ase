@@ -139,7 +139,7 @@ def disable_calculators(names):
         raise NotAvailable
 
     for name in names:
-        if name in ['emt', 'lj', 'eam']:
+        if name in ['emt', 'lj', 'eam', 'morse']:
             continue
         try:
             cls = get_calculator(name)

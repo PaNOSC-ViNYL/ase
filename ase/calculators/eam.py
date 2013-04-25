@@ -23,24 +23,54 @@ class EAM(Calculator):
     r"""
 
     EAM Interface Documentation
-    
+
 Introduction
 ============
 
 The Embedded Atom Method (EAM) [1]_ is a classical potential which is
-good for modelling metals particularly or fcc materials. Because it is
+good for modelling metals, particularly fcc materials. Because it is
 an equiaxial potential the EAM does not model directional bonds
 well. However, the Angular Dependent Potential (ADP) [2]_ which is an
-extended version of EAM is able to model directional bonds is part of
-the EAM calculator.
+extended version of EAM is able to model directional bonds and is also
+included in the EAM calculator.
 
 A single element EAM potential is defined by three functions: the
-embedded energy, electron density and the pair potential (phi).
-A two element alloy contains the individual three functions
-for each element plus cross pair interactions.
-The ADP potential has additional two additional sets of data to
-define the dipole and quadrupole directional terms for each alloy
-and their cross interactions.
+embedded energy, electron density and the pair potential.  A two
+element alloy contains the individual three functions for each element
+plus cross pair interactions.  The ADP potential has two additional
+sets of data to define the dipole and quadrupole directional terms for
+each alloy and their cross interactions.
+
+The total energy `E_{\rm tot}` of an arbitrary arrangement of atoms is
+given by the EAM potential as
+
+.. math::
+   E_{\rm tot} = \sum_i F(\bar\rho_i) + \frac{1}{2}\sum_{i\ne j} \phi(r_{ij})
+
+and
+
+.. math:: 
+   \bar\rho_i = \sum_j \rho(r_{ij})
+
+where `F` is an embedding function, namely the energy to embed an atom `i` in
+the combined electron density `\bar\rho_i` which is contributed from
+each of its neighbouring atoms `j` by an amount `\rho(r_{ij})`,
+`\phi(r_{ij})` is the pair potential function representing the energy
+in bond `ij` which is due to the short-range electro-static
+interaction between atoms, and `r_{ij}` is the distance between an
+atom and its neighbour for that bond.
+
+The ADP potential is defined as
+
+.. math:: 
+   E_{\rm tot} = \sum_i F(\bar\rho_i) + \frac{1}{2}\sum_{i\ne j} \phi(r_{ij})
+   + {1\over 2} \sum_{i,\alpha} (\mu_i^\alpha)^2
+   + {1\over 2} \sum_{i,\alpha,\beta} (\lambda_i^{\alpha\beta})^2
+   - {1 \over 6} \sum_i \nu_i^2
+
+where `\mu_i^\alpha` is the dipole vector, `\lambda_i^{\alpha\beta}`
+is the quadrupole tensor and `\nu_i` is the trace of
+`\lambda_i^{\alpha\beta}`.
 
 The files containing the potentials for this calculator are not
 included but many suitable potentials can be downloaded from The
@@ -79,14 +109,14 @@ Keyword                    Description
 =========================  ====================================================
 ``fileobj``                file of potential in ``.alloy`` or ``.adp`` format
                            (This is generally all you need to supply)
-                            
+
 ``elements[N]``            array of N element abreviations
 
 ``embedded_energy[N]``     arrays of embedded energy functions
 
 ``electron_density[N]``    arrays of electron density functions
 
-``phi[N,N]``               arrays of pair potential funtions
+``phi[N,N]``               arrays of pair potential functions
 
 ``d_embedded_energy[N]``   arrays of derivative embedded energy functions
 
@@ -97,6 +127,15 @@ Keyword                    Description
 ``d[N], q[N,N]``           ADP dipole and quadrupole function
 
 ``d_d[N,N], d_q[N,N]``     ADP dipole and quadrupole derivative functions
+
+``skin``                   skin distance passed to NeighborList(). If no atom 
+                           has moved more than the skin-distance since the last
+                           call to the ``update()`` method then the neighbor 
+                           list can be reused. Defaults to 1.0. 
+
+``form``                   the form of the potential ``alloy`` or ``adp``. This
+                           will be determined from the file suffix or must be 
+                           set if using equations
 
 =========================  ====================================================
 
@@ -110,6 +149,8 @@ The following parameters are only required for writing a potential in
 =========================  ====================================================
 Keyword                    Description
 =========================  ====================================================
+``header``                 Three line text header. Default is standard message.
+
 ``Z[N]``                   Array of atomic number of each element
 
 ``mass[N]``                Atomic mass of each element
@@ -118,11 +159,12 @@ Keyword                    Description
 
 ``lattice[N]``             Lattice type
 
-``nrho``                   No. of rho samples
+``nrho``                   No. of rho samples along embedded energy curve
 
 ``drho``                   Increment for sampling density
 
-``nr``                     No. of radial points
+``nr``                     No. of radial points along density and pair 
+                           potential curves
 
 ``dr``                     Increment for sampling radius
 
@@ -132,7 +174,7 @@ Special features
 ================
 
 ``.plot()``
-  Plots the individual funtions. This may be called from multiple EAM
+  Plots the individual functions. This may be called from multiple EAM
   potentials to compare the shape of the individual curves. This
   function requires the installation of the Matplotlib libraries.
 
@@ -146,7 +188,8 @@ Notes/Issues
   with the ASE LAMMPS calculator interface.
 
 * Supported formats are the LAMMPS_ ``.alloy`` and ``.adp``. The
-  ``.eam`` format is currently not supported.
+  ``.eam`` format is currently not supported. The form of the
+  potential will be determined from the file suffix.
 
 * Any supplied values will overide values read from the file.
 
@@ -200,6 +243,7 @@ End EAM Interface Documentation
         self.pbc = None
         
     def set_form(self, fileobj):
+        """set the form variable based on the file name suffix"""
         extension = os.path.splitext(fileobj)[1]
 
         if extension == '.eam':
