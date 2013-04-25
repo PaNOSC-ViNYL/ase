@@ -8,7 +8,7 @@ import numpy as np
 
 from ase.parallel import world
 from ase.db import IdCollisionError
-from ase.db.core import NoDatabase, dict2atoms
+from ase.db.core import NoDatabase, dict2atoms, ops
 from ase.db.json import encode, numpyfy
 
 
@@ -69,6 +69,17 @@ class SQLite3Database(NoDatabase):
             for statement in init_statements.split(';'):
                 con.execute(statement)
             con.commit()
+
+        if id is None:
+            cur = con.execute('select count(*) from systems')
+            n = cur.fetchone()[0]:
+            while id is None:
+                id = self.get_random_id(n)
+                cur = con.execute('select count(*) from systems where id=?',
+                                  id)
+                if cur.fetchone()[0] == 1:
+                    id = None
+                
         if atoms is None:
             row = (id, None, None, None, None, None, None, None, None, None,
                    None, None, None, None, None, None, None, None, None, None,
@@ -95,12 +106,16 @@ class SQLite3Database(NoDatabase):
                 row += (None, None)
             if 'results' in dct:
                 r = dct['results']
+                magmom = r.get('magmom')
+                if magmom is not None:
+                    # magmom can be one or three numbers (non-collinear case)
+                    magmom = np.array(magmom)
                 row += (r.get('energy'),
                         r.get('free_energy'),
                         blob(r.get('forces')),
                         blob(r.get('stress')),
                         blob(r.get('magmoms')),
-                        blob(np.array(r.get('magmom'))),
+                        blob(magmom),
                         blob(r.get('charges')))
             else:
                 row += (None, None, None, None, None, None, None)
@@ -117,9 +132,9 @@ class SQLite3Database(NoDatabase):
                 raise IdCollisionError
 
         if atoms is not None:
-            species = [(int(Z), n, id)
-                       for Z, n in collections.Counter(atoms.numbers).items()]
-            species.sort()
+            count = np.bincount(atoms.numbers)
+            unique_numbers = count.nonzero()[0]
+            species = [(int(Z), int(count[Z]), id) for Z in unique_numbers]
             con.executemany('insert into species values (?, ?, ?)', species)
 
         text_key_values = []
@@ -129,7 +144,8 @@ class SQLite3Database(NoDatabase):
                 text_key_values.append([key, value, id])
             elif isinstance(value, (float, int)):
                 number_key_values.append([key, float(value), id])
-            assert 0, value
+            else:
+                assert 0, value
  
         if text_key_values:
             con.executemany('insert into text_key_values values (?, ?, ?)',
@@ -207,15 +223,23 @@ class SQLite3Database(NoDatabase):
             for keyword in keywords:
                 where.append('systems.id=keywords.id and keywords.keyword=%r' %
                              keyword)
+        bad = {}
+        for key, op, value in cmps:
+            if isinstance(key, int):
+                bad[key] = bad.get(key, True) and ops[op](0, value)
+        cmps2 = []
         for key, op, value in cmps:
             if key in ['energy', 'magmom', 'timestamp', 'username',
                        'calculator_name']:
                 where.append('systems.%s%s%r' % (key, op, value))
             elif isinstance(key, int):
-                tables.add('species')
-                where.append('systems.id=species.id and ' +
-                             'species.Z=%d and species.n%s%d' %
-                             (key, op, value))
+                if bad[key]:
+                    cmps2.append((key, ops[op], value))
+                else:
+                    tables.add('species')
+                    where.append('systems.id=species.id and ' +
+                                 'species.Z=%d and species.n%s%d' %
+                                 (key, op, value))
             elif isinstance(value, str):
                 tables.add('text_key_values')
                 where.append('systems.id=text_key_values.id and ' +
@@ -229,19 +253,29 @@ class SQLite3Database(NoDatabase):
                              'number_key_values.value%s%r' %
                              (op, value))
                 
-        sql = ('select systems.* from\n  ' +
-               ', '.join(tables) + '\n  where\n  ' +
-               ' and\n  '.join(where))
+        sql = 'select systems.* from\n  ' + ', '.join(tables)
+        if where:
+            sql += '\n  where\n  ' + ' and\n  '.join(where)
         explain = False
         if explain:
             sql = 'explain querry plan ' + sql
         print sql
         con = sqlite3.connect(self.filename)
         cur = con.execute(sql)
-        for row in cur.fetchall():
-            if explain:
+        if explain:
+            for row in cur.fetchall():
                 print row
-            yield self.row_to_dict(row)
+        else:
+            for row in cur.fetchall():
+                if cmps2:
+                    numbers = deblob(row[3], int)
+                    for key, op, value in cmps2:
+                        if not op((numbers == key).sum(), value):
+                            break
+                    else:
+                        yield self.row_to_dict(row)
+                else:
+                    yield self.row_to_dict(row)
         
 
 def blob(array):

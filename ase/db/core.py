@@ -1,4 +1,5 @@
 import os
+import operator
 from time import time
 
 from ase.atoms import Atoms
@@ -9,6 +10,13 @@ from ase.calculators.singlepoint import SinglePointCalculator
 
 
 T0 = 1366375643.236751
+
+
+ops = {'<': operator.lt,
+       '<=': operator.le,
+       '=': operator.eq,
+       '>=': operator.ge,
+       '>': operator.gt}
 
 
 def connect(name, type='use_filename_extension', use_lock_file=False):
@@ -55,9 +63,6 @@ class NoDatabase:
         if world.rank > 0:
             return
 
-        if id is None:
-            id = self.create_random_id(atoms)
-
         if timestamp is None:
             timestamp = (time() - T0) / 86400
         self.timestamp = timestamp
@@ -72,6 +77,11 @@ class NoDatabase:
 
     def _write(self, id, atoms, keywords, key_value_pairs, data, replace):
         pass
+
+    def create_random_id(self, n):
+        hexdigits = int(ceil(log((n + 1) * 100) / log(2) / 4))
+        id = '%x' % randint(16**(hexdigits - 1), 16**hexdigits - 1)
+        return id
 
     def collect_data(self, atoms):
         dct = {'timestamp': self.timestamp,

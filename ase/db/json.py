@@ -1,6 +1,5 @@
 #from __future__ import absolute_import  # PY24
 import os
-import operator
 
 import numpy as np
 
@@ -31,14 +30,7 @@ else:
         
 from ase.parallel import world
 from ase.db import IdCollisionError
-from ase.db.core import NoDatabase, dict2atoms
-
-
-ops = {'<': operator.lt,
-       '<=': operator.le,
-       '=': operator.eq,
-       '>=': operator.ge,
-       '>': operator.gt}
+from ase.db.core import NoDatabase, dict2atoms, ops
 
 
 def numpyfy(obj):
@@ -79,6 +71,9 @@ class JSONDatabase(NoDatabase):
         else:
             bigdct = {}
 
+        while id is None or id in bigdct:
+            id = get_random_id(len(bigdct))
+
         dct = self.collect_data(atoms)
         dct['id'] = id
         dct['keywords'] = keywords
@@ -104,7 +99,7 @@ class JSONDatabase(NoDatabase):
             else:
                 for key, op, val in cmps:
                     value = get_value(dct, key)
-                    if value is None or not op(value,val):
+                    if value is None or not op(value, val):
                         break
                 else:
                     yield dct
