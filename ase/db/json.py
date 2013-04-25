@@ -14,6 +14,8 @@ if 1:
         if isinstance(obj, dict):
             return '{' + ', '.join(['"' + key + '": ' + encode(value)
                                     for key, value in obj.items()]) + '}'
+        if isinstance(obj, complex):  # no complex in json
+            return 'null'
         if obj is None:
             return 'null'
         return '[' + ','.join([encode(value) for value in obj]) + ']'
