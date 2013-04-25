@@ -1,11 +1,15 @@
 import os
 import operator
 from time import time
+from random import randint
+from math import log, ceil
 
 from ase.atoms import Atoms
 from ase.parallel import world
-from ase.utils import Lock, OpenLock
 from ase.data import atomic_numbers
+from ase.constraints import FixAtoms
+from ase.utils import Lock, OpenLock
+from ase.calculators.calculator import get_calculator
 from ase.calculators.singlepoint import SinglePointCalculator
 
 

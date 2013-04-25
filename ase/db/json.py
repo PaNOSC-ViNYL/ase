@@ -19,6 +19,7 @@ if 1:
         if obj is None:
             return 'null'
         return '[' + ','.join([encode(value) for value in obj]) + ']'
+
     def loads(txt):
         return eval(txt, {'false': False, 'true': True, 'null': None})
 else:
@@ -32,7 +33,7 @@ else:
         
 from ase.parallel import world
 from ase.db import IdCollisionError
-from ase.db.core import NoDatabase, dict2atoms, ops
+from ase.db.core import NoDatabase, ops
 
 
 def numpyfy(obj):
@@ -73,8 +74,12 @@ class JSONDatabase(NoDatabase):
         else:
             bigdct = {}
 
-        while id is None or id in bigdct:
-            id = get_random_id(len(bigdct))
+        if id is None or not replace:
+            nrows = len(bigdct)
+            while id is None:
+                id = self.create_random_id(nrows)
+                if id in bigdct:
+                    id = None
 
         dct = self.collect_data(atoms)
         dct['id'] = id

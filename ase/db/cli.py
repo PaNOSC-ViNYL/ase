@@ -19,13 +19,13 @@ def main():
 
 def cut(txt, length):
     if len(txt) <= length:
-        return text
+        return txt
     return txt[:length - 3] + '...'
 
 
 class Formatter:
     def format(self, dcts, columns=None):
-        columns = ['id', 'age', 'user', 'symbols', 'calc', 
+        columns = ['id', 'age', 'user', 'symbols', 'calc',
                    'energy', 'fmax', 'pbc', 'size', 'keywords',
                    'charge', 'mass', 'fixed', 'smax', 'magmom']
         table = [columns]

@@ -1,14 +1,11 @@
 from __future__ import absolute_import
-import os
 import json
 import sqlite3
-import collections
 
 import numpy as np
 
-from ase.parallel import world
 from ase.db import IdCollisionError
-from ase.db.core import NoDatabase, dict2atoms, ops
+from ase.db.core import NoDatabase, ops
 from ase.db.json import encode, numpyfy
 
 
@@ -70,11 +67,11 @@ class SQLite3Database(NoDatabase):
                 con.execute(statement)
             con.commit()
 
-        if id is None:
+        if id is None or not replace:
             cur = con.execute('select count(*) from systems')
-            n = cur.fetchone()[0]:
+            nrows = cur.fetchone()[0]
             while id is None:
-                id = self.get_random_id(n)
+                id = self.create_random_id(nrows)
                 cur = con.execute('select count(*) from systems where id=?',
                                   id)
                 if cur.fetchone()[0] == 1:
@@ -259,12 +256,12 @@ class SQLite3Database(NoDatabase):
         explain = False
         if explain:
             sql = 'explain querry plan ' + sql
-        print sql
+        print(sql)
         con = sqlite3.connect(self.filename)
         cur = con.execute(sql)
         if explain:
             for row in cur.fetchall():
-                print row
+                print(row)
         else:
             for row in cur.fetchall():
                 if cmps2:
