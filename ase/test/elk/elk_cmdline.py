@@ -1,8 +1,6 @@
-from ase.test.elk import installed
+from ase.cli import run
 
-assert installed()
-
-from ase.tasks.main import run
-
-atoms, task = run("elk bulk Al -x fcc -a 4.04 --k-point-density=3.0 -p xc='PBE',rgkmax=5.0,tforce=True")
-atoms, task = run('elk bulk Al -s')
+# warning! parameters are not converged - only an illustration!
+atoms = run('-x fcc -a 4.04 Al run -c elk -p ' +
+            'tasks=0,kpts=1.5,rgkmax=5.0,tforce=True,' +
+            'smearing=(fermi-dirac,0.05)')
