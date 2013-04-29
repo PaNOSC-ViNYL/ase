@@ -64,6 +64,7 @@ bjork       Jonas Bjork             jonbj:ifm,liu,se
 dlandis     David Landis            dlandis:fysik,dtu,dk
 dulak       Marcin Dulak            dulak:fysik,dtu,dk
 eojons      Elvar Örn Jónsson       elvar,jonsson:fysik,dtu,dk
+gdonval     Gaël Donval             gael,donval:cnrs-imn,fr
 getri       George Tritsaris        gtritsaris:seas,harvard,edu
 grabow      Lars Grabow             grabow:uh,edu
 hahansen    Heine Anton Hansen      hahansen:fysik,dtu,dk

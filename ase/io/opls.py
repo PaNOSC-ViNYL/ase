@@ -50,7 +50,8 @@ class AnglesData:
         return None, None
     
 class OPLSff:
-    def __init__(self, fileobj=None):
+    def __init__(self, fileobj=None, warnings=0):
+        self.warnings = warnings
         self.data = {}
         if fileobj is not None:
             self.read(fileobj)
@@ -69,7 +70,7 @@ class OPLSff:
 
             def add_line():
                 line = fileobj.readline()
-                if len(line) == 1: # end of the block
+                if len(line) <= 1: # end of the block
                     return False
                 line = line.split('#')[0] # get rid of comments
                 if len(line) > symlen:
@@ -79,7 +80,8 @@ class OPLSff:
                         if nvalues == 1:
                             data[symbol] = float(words[0])
                         else:
-                            data[symbol] = [float(word) for word in words[:nvalues]]
+                            data[symbol] = [float(word) 
+                                            for word in words[:nvalues]]
                 return True
 
             while add_line():
@@ -96,8 +98,7 @@ class OPLSff:
         self.angles = AnglesData(self.data['angles'])
         self.cutoffs = CutoffList(self.data['cutoffs'])
 
-    def write_lammps(self, atoms, warnings=0):
-        self.warnings = warnings
+    def write_lammps(self, atoms):
         btypes, atypes = self.write_lammps_atoms(atoms)
         self.write_lammps_definitions(atoms, btypes, atypes)
 

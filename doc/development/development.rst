@@ -41,8 +41,8 @@ Use this command::
 and type a good password twice.  The encrypted password will be
 printed on the screen.
 
-If you don't have the ``htpasswd`` command, then use Python:
+Alternatively, you can use::
 
->>> import crypt
->>> passwd = '<your-password>'
->>> print crypt.crypt(passwd, passwd)
+  openssl passwd -apr1
+
+followed by your password (twice).

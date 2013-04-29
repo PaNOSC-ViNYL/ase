@@ -91,7 +91,10 @@ def main():
             try:
                 images.read(args, string2index(opt.image_number))
             except IOError, e:
-                parser.error(e.args[1] + ': ' + e.filename)
+                if len(e.args) == 1:
+                    parser.error(e.args[0])
+                else:
+                    parser.error(e.args[1] + ': ' + e.filename)
         else:
             images.initialize([Atoms()])
 
