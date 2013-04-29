@@ -15,13 +15,24 @@ Development version in trunk
 
 * The :class:`ase.neb.NEB` object now accepts a list of spring constants.
 
-* *Important backwards incompatible change*:  The
-  ase.lattice.surface.surface() function now returns a right-handed
-  unit cell.
+* *Important backwards incompatible change*: The
+  :func:`ase.lattice.surface.surface` function now returns a
+  right-handed unit cell.
 
-* Mopac interface added.
+* Mopac, NWChem and Gaussian interfaces and EAM potential added.
 
-* Gaussian interface added.
+* New :meth:`~ase.atoms.Atoms.set_initial_charges` and
+  :meth:`~ase.atoms.Atoms.get_initial_charges` methods.  The
+  :meth:`~ase.atoms.Atoms.get_charges` method will now ask the
+  calculator to calculate the atomic charges.
+
+* The :ref:`aep1` has been implemented and 6 ASE calculators are now
+  based on the new base class
+
+* ASE now runs on Windows and Mac.
+
+* :ref:`mhtutorial` added to ASE.
+
 
 Version 3.6.0
 =============

@@ -193,6 +193,8 @@ surface and can be used for both fcc, bcc and hcp structures.  The
 theory behind the implementation can be found here:
 :download:`general_surface.pdf`.
 
+.. autofunction:: ase.lattice.surface.surface
+
 
 Example
 -------
