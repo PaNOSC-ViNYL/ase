@@ -9,12 +9,63 @@ from ase.atoms import Atoms
 
 def main():
     parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
-    parser.add_argument('name', nargs=1)
-    parser.add_argument('query', nargs=1)
-    'limit,explain'
+    add = parser.add_argument
+    add('name', nargs=1)
+    add('selection', nargs='?')
+    add('-n', '--count', action='store_true')
+    add('-c', '--columns', help='short/long+row-row')
+    add('-l', '--limit', type=int)
+    add('-o', '--offset', type=int)
+    add('--explain', action='store_true')
+    add('-y', '--yes', action='store_true')
+    add('-i', '--insert-into')
+    add('--set-keyword')
+    add('--set-key-value-pair')
+    add('--remove', action='store_true')
+    add('-v', '--verbose', action='store_true')
+    add('-q', '--quiet', action='store_true')
+
     args = parser.parse_args()
+
+    verbosity = 1 - args.quiet + args.verbose
+
     con = connect(args.name[0])
-    Formatter().format(list(con.select(*args.query)))
+
+    if verbosity == 2:
+        print(args)
+
+    if args.selection:
+        selection = (args.selection,)
+    else:
+        selection = ()
+
+    rows = con.select(*selection, limit=args.limit, offset=args.offset,
+                       explain=args.explain, set_keywords=args.set_keyword,
+                       count=args.count, verbosity=verbosity)
+    if args.count:
+        n = rows.next()[0]
+        print('%d row%s' % (n, 's'[:int(n!=1)]))
+        return
+
+    if args.explain:
+        for row in rows:
+            print('%d %d %d %s' % row)
+        return
+
+    if args.insert_into:
+        return    
+
+    if args.remove:
+        ids = [dct['id'] for dct in rows]
+        if ids and not args.yes:
+            if raw_input('Remove %d rows? (yes/no): ').lower() != 'yes':
+                return
+        for id in ids:
+            con.remove(id)
+        return
+
+    f = Formatter(columns=args.columns)
+    f.format(list(rows))
 
 
 def cut(txt, length):
@@ -24,6 +75,9 @@ def cut(txt, length):
 
 
 class Formatter:
+    def __init__(self, columns):
+        pass
+
     def format(self, dcts, columns=None):
         columns = ['id', 'age', 'user', 'symbols', 'calc',
                    'energy', 'fmax', 'pbc', 'size', 'keywords',

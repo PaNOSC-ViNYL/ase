@@ -109,10 +109,8 @@ class RunCommand(Command):
             else:
                 tstop = time.time()
                 data['time'] = tstop - tstart
-                self.db.write(name, atoms,
-                              key_value_pairs={'ase_cli':
-                                               ' '.join(sys.argv[1:])},
-                              data=data)
+                data['ase_cli'] = ' '.join(sys.argv[1:])
+                self.db.write(name, atoms, data=data)
 
     def set_calculator(self, atoms, name):
         args = self.args

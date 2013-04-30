@@ -130,6 +130,12 @@ class NoDatabase:
         calculator = kwargs.pop('calculator', None)
         filter = kwargs.pop('filter', None)
         fancy = kwargs.pop('fancy', True)
+        set_keywords = kwargs.pop('set_keywords', [])
+        limit = kwargs.pop('limit', None)
+        offset = kwargs.pop('offset', None)
+        explain = kwargs.pop('explain', False)
+        count = kwargs.pop('count', False)
+        verbosity = kwargs.pop('verbosity', 1)
 
         if expressions:
             expressions = ','.join(expressions).split(',')
@@ -183,12 +189,19 @@ class NoDatabase:
             assert isinstance(n, int)
             Z = atomic_numbers[symbol]
             cmps.append((Z, op, n))
-        for dct in self._select(keywords, cmps):
-            if filter is None or filter(dct):
-                if fancy:
-                    dct = FancyDict(dct)
+        for dct in self._select(keywords, cmps,
+                                limit=limit, offset=offset, explain=explain,
+                                count=count, set_keywords=set_keywords,
+                                verbosity=verbosity):
+            if isinstance(dct, dict):
+                if filter is None or filter(dct):
+                    if fancy:
+                        dct = FancyDict(dct)
+                    yield dct
+            else:
+                # dct is a tuple count() or explain
                 yield dct
-
+                
 
 def atoms2dict(atoms):
     data = {

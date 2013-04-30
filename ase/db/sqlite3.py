@@ -212,7 +212,8 @@ class SQLite3Database(NoDatabase):
             dct.update(numpyfy(json.loads(row[22])))
         return dct
 
-    def _select(self, keywords, cmps):
+    def _select(self, keywords, cmps, limit, offset,
+                explain, count, set_keywords, verbosity):
         tables = set(['systems'])
         where = []
         if keywords:
@@ -226,7 +227,7 @@ class SQLite3Database(NoDatabase):
                 bad[key] = bad.get(key, True) and ops[op](0, value)
         cmps2 = []
         for key, op, value in cmps:
-            if key in ['energy', 'magmom', 'timestamp', 'username',
+            if key in ['id', 'energy', 'magmom', 'timestamp', 'username',
                        'calculator_name']:
                 where.append('systems.%s%s%r' % (key, op, value))
             elif isinstance(key, int):
@@ -250,18 +251,22 @@ class SQLite3Database(NoDatabase):
                              'number_key_values.value%s%r' %
                              (op, value))
                 
-        sql = 'select systems.* from\n  ' + ', '.join(tables)
+        if count:
+            sql = 'select count (*) from\n  '
+        else:
+            sql = 'select systems.* from\n  '
+        sql += ', '.join(tables)
         if where:
             sql += '\n  where\n  ' + ' and\n  '.join(where)
-        explain = False
         if explain:
-            sql = 'explain querry plan ' + sql
-        print(sql)
+            sql = 'explain query plan ' + sql
+        if verbosity == 2:
+            print(sql)
         con = sqlite3.connect(self.filename)
         cur = con.execute(sql)
-        if explain:
+        if count or explain:
             for row in cur.fetchall():
-                print(row)
+                yield row
         else:
             for row in cur.fetchall():
                 if cmps2:
