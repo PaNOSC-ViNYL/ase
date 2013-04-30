@@ -164,7 +164,7 @@ def calculator_factory(name, **kwargs):
 
     if name == 'elk':
         from ase.calculators.elk import ELK
-        return CalculatorFactory(ELK, 'ELK', 'dir', **kwargs)
+        return CalculatorFactory(ELK, 'ELK', 'label', **kwargs)
 
     if name == 'fleur':
         from ase.calculators.fleur import FLEUR
