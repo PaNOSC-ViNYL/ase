@@ -29,10 +29,11 @@ class BEEF_Ensemble:
             else:
                 raise NotImplementedError('No ensemble for xc = %s' % self.xc)
 
-    def get_ensemble_energies(self, size=2000, seed=0):
+    def get_ensemble_energies(self, size=2000, seed=0, safe=True):
         """Returns an array of ensemble total energies"""
         self.size = size
         self.seed = seed
+        self.safe = safe
         if rank == 0:
             print '\n'
             print '%s ensemble started' % self.xc
@@ -76,14 +77,22 @@ class BEEF_Ensemble:
 
     def get_mbeef_ensemble_coefs(self):
         """Pertubation coefficients of the mBEEF ensemble"""
-        from pars_mbeef import uiOmega as omega
-        assert np.shape(omega) == (64, 64)
+        if self.safe:
+            from coefs_mbeef import ens_coefs
+            assert np.shape(ens_coefs) == (2000,64)
+            return ens_coefs
+        else:
+            from pars_mbeef import uiOmega as omega
+            assert np.shape(omega) == (64, 64)
 
-        Wo, Vo = np.linalg.eig(omega)
-        np.random.seed(self.seed)
-        mu, sigma = 0.0, 1.0
-        rand = np.array(np.random.normal(mu, sigma, (len(Wo), self.size)))
-        return (np.sqrt(2.)*np.dot(np.dot(Vo, np.diag(np.sqrt(Wo))), rand)[:]).T
+            self.seed = 0
+            self.size = 2000
+
+            Wo, Vo = np.linalg.eig(omega)
+            np.random.seed(self.seed)
+            mu, sigma = 0.0, 1.0
+            rand = np.array(np.random.normal(mu, sigma, (len(Wo), self.size)))
+            return (np.sqrt(2.)*np.dot(np.dot(Vo, np.diag(np.sqrt(Wo))), rand)[:]).T
 
     def write(self, fname):
         """Write ensemble data file"""
