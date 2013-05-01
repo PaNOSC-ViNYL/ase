@@ -33,7 +33,7 @@ class BEEF_Ensemble:
         """Returns an array of ensemble total energies"""
         self.size = size
         self.seed = seed
-        self.safe = safe
+        self.generator = np.random.RandomState(self.seed)
         if rank == 0:
             print '\n'
             print '%s ensemble started' % self.xc
@@ -46,7 +46,7 @@ class BEEF_Ensemble:
             coefs = self.get_beefvdw_ensemble_coefs()
         elif self.beef_type == 'mbeef':
             assert len(self.contribs) == 64
-            coefs = self.get_mbeef_ensemble_coefs()
+            coefs = self.get_mbeef_ensemble_coefs(safe)
         self.de = np.dot(coefs, self.contribs)
         self.done = True
 
@@ -62,8 +62,7 @@ class BEEF_Ensemble:
         assert np.shape(omega) == (31, 31)
 
         Wo, Vo = np.linalg.eig(omega)
-        np.random.seed(self.seed)
-        RandV = np.random.randn(31, self.size)
+        RandV = self.generator.randn(31, self.size)
 
         for j in range(self.size):
             v = RandV[:,j]
@@ -75,9 +74,9 @@ class BEEF_Ensemble:
         PBEc_ens = -ensemble_coefs[:, 30]
         return (np.vstack((ensemble_coefs.T, PBEc_ens))).T
 
-    def get_mbeef_ensemble_coefs(self):
+    def get_mbeef_ensemble_coefs(self, safe=True):
         """Pertubation coefficients of the mBEEF ensemble"""
-        if self.safe:
+        if safe:
             from coefs_mbeef import ens_coefs
             assert np.shape(ens_coefs) == (2000,64)
             return ens_coefs
@@ -85,13 +84,9 @@ class BEEF_Ensemble:
             from pars_mbeef import uiOmega as omega
             assert np.shape(omega) == (64, 64)
 
-            self.seed = 0
-            self.size = 2000
-
             Wo, Vo = np.linalg.eig(omega)
-            np.random.seed(self.seed)
             mu, sigma = 0.0, 1.0
-            rand = np.array(np.random.normal(mu, sigma, (len(Wo), self.size)))
+            rand = np.array(self.generator.normal(mu, sigma, (len(Wo), self.size)))
             return (np.sqrt(2.)*np.dot(np.dot(Vo, np.diag(np.sqrt(Wo))), rand)[:]).T
 
     def write(self, fname):
