@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2013-04-30 18:12+0200\n"
-"PO-Revision-Date: 2013-04-30 18:14+0200\n"
+"POT-Creation-Date: 2013-04-30 19:24+0200\n"
+"PO-Revision-Date: 2013-05-01 19:50+0200\n"
 "Last-Translator: Ask Hjorth Larsen <askhl@fysik.dtu.dk>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
+"Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: da\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../ag.py:142
@@ -152,7 +152,7 @@ msgstr ""
 "beskrivelse af de sene overgangsmetaller som danner FCC-strukturer.\n"
 "Grundstofferne som beskrives af hoveddelen af EMT-parametrene er Al,\n"
 "Ni, Cu, Pd, Ag, Pt og Au.  Yderligere tillader denne implementation\n"
-"bruben af H-, N-, O- og C-adatomer, selvom beskrivelsen af disse\n"
+"brugen af H-, N-, O- og C-adatomer, selvom beskrivelsen af disse\n"
 "sandsynligvis er dårlig.\n"
 "\n"
 "<b>Dette er ASE's implementation af EMT.</b> For støre simulationer er\n"
@@ -187,6 +187,30 @@ msgid ""
 "new EAM/ADP poentials by matching results using ab\n"
 "initio.\n"
 msgstr ""
+"EAM/ADP potentialet er ee mangelegme-potential\n"
+"implementering af Embedded Atom Method og\n"
+"equipotential plus Angular Dependent Potential,\n"
+"hvilket er en udvidelse til EAM de inkluderer\n"
+"retningsafhængige bindinger. EAM er velegnet til FCC metalliske\n"
+"bindinger og ADP er velegnet til metalliske bindinger\n"
+"med nogen grad af retningsafhængighed.\n"
+"\n"
+"For EAM se M.S. Daw and M.I. Baskes,\n"
+"Phys. Rev. Letters 50 (1983) 1285.\n"
+"\n"
+"For ADP se Y. Mishin, M.J. Mehl, and\n"
+"D.A. Papaconstantopoulos, Acta Materialia 53 2005\n"
+"4029--4041.\n"
+"\n"
+"Data for potentialet er indeholdt i en fil i enten LAMMPS Alloy\n"
+"eller ADP formatet som skal indlæses før brug. Interatomic\n"
+"Potentials Repository Project (http://www.ctcms.nist.gov/potentials/)\n"
+"indeholder mange passende potential filer.\n"
+"\n"
+"For store simulationer er LAMMPS beregneren mere\n"
+"passende; denne implementation er hovedsageligis inkluderet for at\n"
+"gøre EAM tilgængelig når LAMMPS ikke er installeret eller for at udvikle\n"
+"nye EAM/ADP poentialer ved at matche ab initio resultater.\n"
 
 #: ../calculator.py:113
 msgid ""
@@ -228,12 +252,6 @@ msgstr ""
 "  doi: 10.1088/0953-8984/14/4/312\n"
 
 #: ../calculator.py:135
-#, fuzzy
-#| msgid ""
-#| "GPAW implements Density Functional Theory using a\n"
-#| "<b>G</b>rid-based real-space representation of the wave\n"
-#| "functions, and the <b>P</b>rojector <b>A</b>ugmented <b>W</b>ave\n"
-#| "method for handling the core regions.  \n"
 msgid ""
 "GPAW implements Density Functional Theory using a\n"
 "<b>G</b>rid-based real-space representation of the wave\n"
@@ -243,18 +261,9 @@ msgstr ""
 "GPAW implementerer tæthedsfunktionalteori med en <b>G</b>itterbaseret\n"
 "repræsentation af bølgefunktioner i det reelle rum, samt\n"
 "<b>P</b>rojector <b>A</b>ugmented <b>W</b>ave-metoden til behandling\n"
-"af regionen omkring atomkerner.  \n"
+"af regionen omkring atomkerner.\n"
 
 #: ../calculator.py:142
-#, fuzzy
-#| msgid ""
-#| "FHI-aims is an external package implementing density \n"
-#| "functional theory and quantum chemical methods using \n"
-#| "all-electron methods and a numeric local orbital basis set. \n"
-#| "For full details, see http://www.fhi-berlin.mpg.de/aims/ \n"
-#| "or Comp. Phys. Comm. v180 2175 (2009). The ASE \n"
-#| "documentation contains information on the keywords and \n"
-#| "functionalities available within this interface. \n"
 msgid ""
 "FHI-aims is an external package implementing density\n"
 "functional theory and quantum chemical methods using\n"
@@ -269,16 +278,9 @@ msgstr ""
 "numerisk lokaliseret atomart basissæt. De fulde detaljer kan findes på\n"
 "http://www.fhi-berlin.mpg.de/aims/ eller i Comp. Phys. Comm. v180 2175\n"
 "(2009). ASE-dokumentationen indeholder oplysninger om nøgleord og\n"
-"funktioner, som er tilgængelige i denne grænseflade. \n"
+"funktioner, som er tilgængelige i denne grænseflade.\n"
 
 #: ../calculator.py:152
-#, fuzzy
-#| msgid ""
-#| "WARNING:\n"
-#| "Your system seems to have more than zero but less than \n"
-#| "three periodic dimensions. Please check that this is \n"
-#| "really what you want to compute. Assuming full \n"
-#| "3D periodicity for this calculator."
 msgid ""
 "WARNING:\n"
 "Your system seems to have more than zero but less than \n"
@@ -352,7 +354,7 @@ msgstr "EMT - Effective Medium Theory (ASE)"
 
 #: ../calculator.py:230
 msgid "EAM - Embedded Atom Method/Angular Dependent Potential (ASE)"
-msgstr ""
+msgstr "EAM - Embedded Atom Method/Angular Dependent Potential (ASE)"
 
 #: ../calculator.py:238
 msgid "Brenner Potential (ASAP)"
@@ -395,10 +397,8 @@ msgid "Could not attach EMT calculator to the atoms."
 msgstr "Kunne ikke knytte EMT-beregner til atomerne."
 
 #: ../calculator.py:503
-#, fuzzy
-#| msgid "You must set up the GPAW parameters"
 msgid "You must set up the EAM parameters"
-msgstr "Du skal angive GPAW-parametrene"
+msgstr "Du skal angive EAM-parametrene"
 
 #: ../calculator.py:539 ../calculator.py:551
 msgid "GPAW is not installed. (Failed to import gpaw)"
@@ -447,26 +447,20 @@ msgid "Shift to make smooth at cutoff"
 msgstr "Skift for at blødgøre ved afskæring"
 
 #: ../calculator.py:750
-#, fuzzy
-#| msgid "GPAW parameters"
 msgid "EAM parameters"
-msgstr "GPAW-parametre"
+msgstr "EAM-parametre"
 
 #: ../calculator.py:764
-#, fuzzy
-#| msgid "Import control.in"
 msgid "Import Potential"
-msgstr "Importér control.in"
+msgstr "Importér potential"
 
 #: ../calculator.py:787
 msgid "You need to import the potential file"
-msgstr ""
+msgstr "Du skal importere en potential fil"
 
 #: ../calculator.py:795
-#, fuzzy
-#| msgid "Import control.in file ... "
 msgid "Import .alloy or .adp potential file ... "
-msgstr "Importér control.in-fil ... "
+msgstr "Importér .alloy eller .adp potential-fil ... "
 
 #: ../calculator.py:818
 msgid "GPAW parameters"
@@ -2515,11 +2509,11 @@ msgstr ""
 #: ../nanotube.py:29
 #, python-format
 msgid ""
-" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: %"
-"(volume).3f Å<sup>3</sup>"
+" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: "
+"%(volume).3f Å<sup>3</sup>"
 msgstr ""
-" %(natoms)i atomer: %(symbols)s, diameter: %(diameter).3f Å, cellevolumen: %"
-"(volume).3f Å<sup>3</sup>"
+" %(natoms)i atomer: %(symbols)s, diameter: %(diameter).3f Å, cellevolumen: "
+"%(volume).3f Å<sup>3</sup>"
 
 #: ../nanotube.py:35
 msgid "Nanotube"
