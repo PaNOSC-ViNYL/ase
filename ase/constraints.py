@@ -395,6 +395,8 @@ class fix_scaled(FixScaled):
                       'instead.', DeprecationWarning, stacklevel=2)
 
 
+# TODO: Better interface might be to use dictionaries in place of very
+# nested lists/tuples
 class FixInternals(FixConstraint):
     """Constraint object for fixing multiple internal coordinates.
 
@@ -414,15 +416,15 @@ class FixInternals(FixConstraint):
             self.n = len(bonds) + len(angles) + len(dihedrals)
             self.constraints = []
             for bond in bonds:
-                masses_bond = masses[bond[1]]
+                masses_bond = masses.take(bond[1])
                 self.constraints.append(self.FixBondLengthAlt(bond[0], bond[1],
                                                               masses_bond))
             for angle in angles:
-                masses_angle = masses[angle[1]]
+                masses_angle = masses.take(angle[1])
                 self.constraints.append(self.FixAngle(angle[0], angle[1],
                                                       masses_angle))
             for dihedral in dihedrals:
-                masses_dihedral = masses[dihedral[1]]
+                masses_dihedral = masses.take(dihedral[1])
                 self.constraints.append(self.FixDihedral(dihedral[0],
                                                          dihedral[1],
                                                          masses_dihedral))
@@ -517,7 +519,8 @@ class FixInternals(FixConstraint):
             """Fix distance between atoms with indices a1, a2."""
             self.indices = indices
             self.bond = bond
-            self.h1, self.h2 = None
+            self.h1 = None
+            self.h2 = None
             self.masses = masses
             self.h = []
             self.sigma = 1.
@@ -551,8 +554,9 @@ class FixInternals(FixConstraint):
             self.h /= np.linalg.norm(self.h)
 
         def __repr__(self):
-            return 'FixBondLengthAlt(%d, %d, %d)' % \
-                tuple(self.bond, self.indices)
+            return 'FixBondLengthAlt(%s, %d, %d)' % \
+                (repr(self.bond), self.indices[0], self.indices[1])
+
 
     class FixAngle:
         """Constraint object for fixing an angle within
