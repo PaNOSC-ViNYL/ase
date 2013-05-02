@@ -94,6 +94,10 @@ A simple example.
   
   print NaCl.get_stress()
 
+Setting up an OPLS calculation
+==============================
 
+There are some modules to facilitate the setup of an OPLS force field 
+calculation, see :mod:`opls`.
 
 
