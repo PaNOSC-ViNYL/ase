@@ -198,7 +198,7 @@ class ELK(FileIOCalculator):
     def read_energy(self):
         fd = open(os.path.join(self.directory, 'TOTENERGY.OUT'), 'r')
         e = float(fd.readlines()[-1]) * Hartree
-        self.results['free energy'] = e
+        self.results['free_energy'] = e
         self.results['energy'] = e
 
     def read_forces(self):

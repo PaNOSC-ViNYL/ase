@@ -311,7 +311,7 @@ class Aims(FileIOCalculator):
                 E0 = float(line.split()[5])
             elif line.rfind('Total energy uncorrected') > -1:
                 F = float(line.split()[5])
-        self.results['free energy'] = F
+        self.results['free_energy'] = F
         self.results['energy'] = E0
 
     def read_forces(self):

@@ -329,7 +329,7 @@ class Calculator:
     def get_potential_energy(self, atoms, force_consistent=False):
         energy = self.get_property('energy', atoms)
         if force_consistent:
-            return self.results.get('free energy', energy)
+            return self.results.get('free_energy', energy)
         else:
             return energy
 
