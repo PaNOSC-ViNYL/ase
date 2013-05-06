@@ -3,18 +3,26 @@ import operator
 from time import time
 from random import randint
 from math import log, ceil
+from functools import wraps
 
 from ase.atoms import Atoms
 from ase.parallel import world
 from ase.data import atomic_numbers
 from ase.constraints import FixAtoms
-from ase.utils import Lock, OpenLock
+from ase.utils import Lock
 from ase.calculators.calculator import get_calculator
 from ase.calculators.singlepoint import SinglePointCalculator
 
 
 T0 = 1366375643.236751
 
+seconds = {'s': 1,
+           'm': 60,
+           'h': 3600,
+           'd': 86400,
+           'w': 604800,
+           'M': 2592000,
+           'y': 31622400}
 
 ops = {'<': operator.lt,
        '<=': operator.le,
@@ -52,32 +60,71 @@ class FancyDict(dict):
         return value
 
 
+def lock(method):
+    @wraps(method)
+    def new_method(self, *args, **kwargs):
+        if self.lock is None:
+            return method(self, *args, **kwargs)
+        else:
+            #with self.lock: PY24
+            #    return method(self, *args, **kwargs)
+            self.lock.acquire()
+            try:
+                return method(self, *args, **kwargs)
+            finally:
+                self.lock.release()
+    return new_method
+
+
+def parallel(method):
+    if world.size == 1:
+        return method
+    @wraps(method)
+    def new_method(*args, **kwargs):
+        if world.rank == 0:
+            result = method(*args, **kwargs)
+        else:
+            result = None
+        result = broadcast(result)
+        return result
+    return new_method
+
+
+def parallel_generator(generator):
+    if world.size == 1:
+        return generator
+    @wraps(generator)
+    def new_generator(*args, **kwargs):
+        if world.rank == 0:
+            for result in generator(*args, **kwargs):
+                result = broadcast(result)
+                yield result
+            broadcast(None)
+        else:
+            result = broadcast(None)
+            while result is not None:
+                yield result
+    return new_generator
+
+
 class NoDatabase:
     def __init__(self, filename=None, use_lock_file=False):
         self.filename = filename
         if use_lock_file:
             self.lock = Lock(filename + '.lock')
         else:
-            self.lock = OpenLock()
+            self.lock = None
 
         self.timestamp = None  # timestamp form last write
 
+    @lock
+    @parallel
     def write(self, id, atoms, keywords=[], key_value_pairs={}, data={},
               timestamp=None, replace=True):
-        if world.rank > 0:
-            return
-
         if timestamp is None:
             timestamp = (time() - T0) / 86400
         self.timestamp = timestamp
-
-        #with self.lock: PY24
-        #    self._write(id, atoms, data, replace)
-        self.lock.acquire()
-        try:
-            self._write(id, atoms, keywords, key_value_pairs, data, replace)
-        finally:
-            self.lock.release()
+        self._write(id, atoms, keywords, key_value_pairs, data, replace)
 
     def _write(self, id, atoms, keywords, key_value_pairs, data, replace):
         pass
@@ -102,6 +149,7 @@ class NoDatabase:
                 dct['results'] = {}
         return dct
 
+    @parallel
     def get_dict(self, id, fancy=True):
         dct = self._get_dict(id)
         if fancy:
@@ -124,13 +172,13 @@ class NoDatabase:
             return [self[0]]
         return self.get_atoms(index)
 
+    @parallel_generator
     def select(self, *expressions, **kwargs):
         username = kwargs.pop('username', None)  # PY24
         charge = kwargs.pop('charge', None)
         calculator = kwargs.pop('calculator', None)
         filter = kwargs.pop('filter', None)
         fancy = kwargs.pop('fancy', True)
-        set_keywords = kwargs.pop('set_keywords', [])
         limit = kwargs.pop('limit', None)
         offset = kwargs.pop('offset', None)
         explain = kwargs.pop('explain', False)
@@ -191,15 +239,14 @@ class NoDatabase:
             cmps.append((Z, op, n))
         for dct in self._select(keywords, cmps,
                                 limit=limit, offset=offset, explain=explain,
-                                count=count, set_keywords=set_keywords,
-                                verbosity=verbosity):
+                                count=count, verbosity=verbosity):
             if isinstance(dct, dict):
                 if filter is None or filter(dct):
                     if fancy:
                         dct = FancyDict(dct)
                     yield dct
             else:
-                # dct is a tuple count() or explain
+                # dct is a tuple from count or explain
                 yield dct
                 
 
@@ -266,10 +313,12 @@ def time_string_to_float(s):
     i = 1
     while s[i].isdigit():
         i += 1
-    return {'s': 1, 'second': 1,
-            'm': 60, 'minute': 60,
-            'h': 3600, 'hour': 3600,
-            'd': 86400, 'day': 86400,
-            'w': 604800, 'week': 604800,
-            'M': 2592000, 'month': 2592000,
-            'y': 31622400, 'year': 31622400}[s[i:]] * int(s[:i]) / 86400.0
+    return seconds[s[i:]] * int(s[:i]) / 86400.0
+
+
+def float_to_time_string(t):
+    t *= 86400.0
+    for s in 'yMwdhms':
+        if t / seconds[s] > 10:
+            break
+    return '%d%s' % (round(t / seconds[s]), s)

@@ -33,7 +33,7 @@ else:
         
 from ase.parallel import world
 from ase.db import IdCollisionError
-from ase.db.core import NoDatabase, ops
+from ase.db.core import NoDatabase, ops, parallel, lock
 
 
 def numpyfy(obj):
@@ -45,7 +45,7 @@ def numpyfy(obj):
         except ValueError:
             obj = [numpyfy(value) for value in obj]
         else:
-            if a.dtype != object:
+            if a.dtype in [bool, int, float]:
                 obj = a
     return obj
 
@@ -89,6 +89,14 @@ class JSONDatabase(NoDatabase):
         bigdct[id] = dct
         write_json(self.filename, bigdct)
 
+    @lock
+    @parallel
+    def delete(self, ids):
+        bigdct = read_json(self.filename)
+        for id in ids:
+            del bigdct[id]
+        write_json(self.filename, bigdct)
+
     def _get_dict(self, id):
         bigdct = read_json(self.filename)
         if id in [-1, 0]:
@@ -97,7 +105,7 @@ class JSONDatabase(NoDatabase):
         return bigdct[id]
 
     def _select(self, keywords, cmps, limit, offset,
-                explain=False, count=False, set_keywords=[], verbosity=1):
+                explain=False, count=False, verbosity=1):
         if explain:
             return
         if count:
@@ -108,7 +116,10 @@ class JSONDatabase(NoDatabase):
             return
         bigdct = read_json(self.filename)
         cmps = [(key, ops[op], val) for key, op, val in cmps]
-        for id, dct in bigdct.items():
+        offset = offset or 0
+        ids = bigdct.keys()[offset:offset + limit]
+        for id in ids:
+            dct = bigdct[id]
             for keyword in keywords:
                 if keyword not in dct['keywords']:
                     break
@@ -119,6 +130,21 @@ class JSONDatabase(NoDatabase):
                         break
                 else:
                     yield dct
+
+    @lock
+    @parallel
+    def update(self, ids, set_keywords):
+        bigdct = read_json(self.filename)
+        n = 0
+        for id in ids:
+            keywords = bigdct[id]['keywords']
+            for keyword in set_keywords:
+                if keyword not in keywords:
+                    keywords.append(keyword)
+                    n += 1
+        if n > 0:
+            write_json(self.filename, bigdct)
+        return n
 
 
 def get_value(dct, key):
