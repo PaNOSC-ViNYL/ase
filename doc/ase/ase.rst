@@ -76,3 +76,4 @@ List of all modules:
    utils
    thermochemistry
    neighbors
+   opls
