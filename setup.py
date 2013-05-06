@@ -37,9 +37,11 @@ packages = ['ase',
             'ase.test.castep',
             'ase.test.cmr',
             'ase.test.elk',
+            'ase.test.exciting',
             'ase.test.fio',
             'ase.test.fleur',
             'ase.test.gaussian',
+            'ase.test.gromacs',
             'ase.test.jacapo',
             'ase.test.mopac',
             'ase.test.nwchem',
@@ -140,11 +142,25 @@ else:
     version = version_base
 
 scripts = ['tools/ag', 'tools/ase', 'tools/ASE2ase', 'tools/testase',
-           'tools/asec']
+           'tools/asec',
+           'tools/foldtrajectory', 'tools/trajectoryinfo']
 # provide bat executables in the tarball and always for Win
 if 'sdist' in sys.argv or os.name in ['ce', 'nt']:
     for s in scripts[:]:
         scripts.append(s + '.bat')
+scripts.append('tools/pep8.py')  # our own custom version
+scripts.append('tools/sphinx.py')
+
+# data_files needs (directory, files-in-this-directory) tuples
+data_files = []
+for dirname, dirnames, filenames in os.walk('doc'):
+    if '.svn' not in dirname: # skip .svn dirs
+        fileslist = []
+        for filename in filenames:
+            fullname = os.path.join(dirname, filename)
+            if '.svn' not in fullname:
+                fileslist.append(fullname)
+        data_files.append(('share/python-ase/' + dirname, fileslist))
 
 setup(name='python-ase',
       version=version,
@@ -158,6 +174,7 @@ setup(name='python-ase',
       package_dir=package_dir,
       package_data=package_data,
       scripts=scripts,
+      data_files=data_files,
       long_description=long_description,
       cmdclass={'build_py': build_py,
                 'test': test})
