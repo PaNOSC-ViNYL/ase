@@ -7,7 +7,7 @@ from math import log, ceil
 try:
     from functools import wraps
 except ImportError:
-    wraps = lambda f: f  # PY24
+    wraps = lambda f: lambda g: g  # PY24
 
 from ase.atoms import Atoms
 from ase.parallel import world
