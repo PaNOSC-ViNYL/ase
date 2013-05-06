@@ -22,7 +22,7 @@ try:
 except ImportError:
     pass
 else:
-    r += ['json', 'sqlite3']
+    r += ['json', 'sqlite']
 
 try:
     import Scientific
@@ -45,7 +45,7 @@ else:
     w += ['png', 'eps']
 
 only_one_image = ['cube', 'png', 'eps', 'cfg', 'struct', 'etsf', 'gen',
-                  'json', 'sqlite3']
+                  'json', 'sqlite']
 
 for format in w:
     print format, 'O',

@@ -70,7 +70,7 @@ class RunCommand(Command):
             help='Comma-separated key=value pairs of ' +
             'calculator specific parameters.')
         add('-d', '--database',
-            help='Use a filename with a ".sqlite3" extension for a sqlite3 ' +
+            help='Use a filename with a ".sqlite" extension for a sqlite3 ' +
             'database a ".json" extension for a simple json database.  ' +
             'Default is no database')
         add('-l', '--use-lock-file', action='store_true',
