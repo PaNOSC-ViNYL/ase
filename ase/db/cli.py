@@ -5,7 +5,7 @@ from time import time
 import numpy as np
 
 from ase.db import connect
-from ase.db.core import float_to_time_string, T0, dict2atoms
+from ase.db.core import float_to_time_string, T0, YEAR, dict2atoms
 from ase.atoms import Atoms
 
 
@@ -159,7 +159,7 @@ class Formatter:
         return d.id
     
     def age(self, d):
-        return float_to_time_string((time() - T0) / 86400 - d.timestamp)
+        return float_to_time_string((time() - T0) / YEAR - d.timestamp)
 
     def user(self, d):
         return d.username

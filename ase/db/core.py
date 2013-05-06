@@ -3,7 +3,11 @@ import operator
 from time import time
 from random import randint
 from math import log, ceil
-from functools import wraps
+
+try:
+    from functools import wraps
+except ImportError:
+    wraps = lambda f: f  # PY24
 
 from ase.atoms import Atoms
 from ase.parallel import world
@@ -14,15 +18,17 @@ from ase.calculators.calculator import get_calculator
 from ase.calculators.singlepoint import SinglePointCalculator
 
 
-T0 = 1366375643.236751
+T0 = 946681200.0  # January 1. 2000
+
+YEAR = 31557600.0  # 365.25 days
 
 seconds = {'s': 1,
            'm': 60,
            'h': 3600,
            'd': 86400,
            'w': 604800,
-           'M': 2592000,
-           'y': 31622400}
+           'M': 2629800,
+           'y': YEAR}
 
 ops = {'<': operator.lt,
        '<=': operator.le,
@@ -122,7 +128,7 @@ class NoDatabase:
     def write(self, id, atoms, keywords=[], key_value_pairs={}, data={},
               timestamp=None, replace=True):
         if timestamp is None:
-            timestamp = (time() - T0) / 86400
+            timestamp = (time() - T0) / YEAR
         self.timestamp = timestamp
         self._write(id, atoms, keywords, key_value_pairs, data, replace)
 
@@ -215,7 +221,7 @@ class NoDatabase:
             if key == 'age':
                 key = 'timestamp'
                 op = {'<': '>', '<=': '>=', '>=': '<=', '>': '<'}.get(op, op)
-                value = (time() - T0) / 86400 - time_string_to_float(value)
+                value = (time() - T0) / YEAR - time_string_to_float(value)
             elif key == 'calculator':
                 key = 'calculator_name'
             elif key in atomic_numbers:
@@ -313,11 +319,11 @@ def time_string_to_float(s):
     i = 1
     while s[i].isdigit():
         i += 1
-    return seconds[s[i:]] * int(s[:i]) / 86400.0
+    return seconds[s[i:]] * int(s[:i]) / YEAR
 
 
 def float_to_time_string(t):
-    t *= 86400.0
+    t *= YEAR
     for s in 'yMwdhms':
         if t / seconds[s] > 10:
             break
