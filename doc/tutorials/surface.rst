@@ -72,7 +72,7 @@ as it is very fast and hence useful for getting started.
 We can attach a calculator to the previously created
 :class:`~ase.atoms.Atoms` objects::
 
-  from ase import EMT
+  from ase.calculators.emt import EMT
   slab.set_calculator(EMT())
   molecule.set_calculator(EMT()) 
 
