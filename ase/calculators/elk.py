@@ -169,9 +169,10 @@ class ELK(FileIOCalculator):
             if not os.path.isfile(filename):
                 raise ReadError
 
-        self.state = self.read_elk(geometry)
+        self.state = read_elk(geometry)
         self.parameters = Parameters.read(os.path.join(self.directory,
                                                        'parameters.ase'))
+        self.initialize(self.state)
         self.read_results()
 
     def read_results(self):
@@ -189,6 +190,8 @@ class ELK(FileIOCalculator):
     def initialize(self, atoms):
         if 'spinpol' not in self.parameters:  # honor elk.in settings
             self.spinpol = atoms.get_initial_magnetic_moments().any()
+        else:
+            self.spinpol = self.parameters['spinpol']
 
     def get_forces(self, atoms):
         if not self.parameters.get('tforce'):
