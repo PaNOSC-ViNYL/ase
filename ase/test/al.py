@@ -4,7 +4,8 @@ from ase.calculators.calculator import get_calculator
 
 
 required = {'abinit': dict(ecut=200, toldfe=0.0001),
-            'aims': dict(sc_accuracy_eev=5.e-3)}
+            'aims': dict(sc_accuracy_eev=5.e-3),
+            'elk': dict(tasks=0, rgkmax=5.0)}
 
 
 def run(name):
@@ -27,7 +28,7 @@ def run(name):
     print al.get_potential_energy()
     print Calculator.read_atoms(label).get_potential_energy()
 
-names = ['abinit', 'aims']
+names = ['abinit', 'aims', 'elk']
 for name in names:
     try:
         run(name)

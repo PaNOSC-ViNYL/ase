@@ -6,6 +6,7 @@ def read_elk(filename):
     """
 
     from ase import Atoms
+    from ase.units import Bohr
     import numpy as np
 
     atoms = Atoms()
@@ -62,14 +63,15 @@ def read_elk(filename):
     magmoms = []
     for n, s in enumerate(spfname):
         symbols += str(s[1:].split('.')[0]) * natoms[n]
-        positions += atpos[n]
+        positions += atpos[n]  # assumes fractional coordinates
         if len(bfcmt[n]) > 0:
-            magmoms += bfcmt[n]
+            # how to handle cases of magmoms being one or three dim array?
+            magmoms += [m[-1] for m in bfcmt[n]]
     atoms = Atoms(symbols, positions)
     if len(magmoms) > 0:
         atoms.set_initial_magnetic_moments(magmoms)
     # final cell scale
-    cell = cell * scale[0]
+    cell = cell * scale[0] * Bohr
     if periodic.any():
         atoms.set_cell(cell)
         atoms.set_pbc(periodic)

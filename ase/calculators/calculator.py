@@ -46,13 +46,16 @@ def get_calculator(name):
     return Calculator
 
 
-def equal(a, b):
+def equal(a, b, tol=None):
     """ndarray-enabled comparison function."""
     if isinstance(a, np.ndarray):
         b = np.array(b)
-        return a.shape == b.shape and (a == b).all()
+        if tol is None:
+            return a.shape == b.shape and (a == b).all()
+        else:
+            return a.shape == b.shape and (np.abs(a - b) < tol).all()
     if isinstance(b, np.ndarray):
-        return equal(b, a)
+        return equal(b, a, tol)
     return a == b
 
 
@@ -313,7 +316,7 @@ class Calculator:
                 system_changes.append('positions')
             if not equal(self.state.numbers, atoms.numbers):
                 system_changes.append('numbers')
-            if not equal(self.state.cell, atoms.cell):
+            if not equal(self.state.cell, atoms.cell, tol=1.e-9):
                 system_changes.append('cell')
             if not equal(self.state.pbc, atoms.pbc):
                 system_changes.append('pbc')
