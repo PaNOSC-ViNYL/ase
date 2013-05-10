@@ -72,6 +72,8 @@ def read(filename, index=-1, format=None):
     Gromacs coordinates        gro
     Gaussian com (input) file  gaussian
     Gaussian output file       gaussian_out
+    Quantum espresso in file   esp_in
+    Quantum espresso out file  esp_out
     =========================  =============
 
     """
@@ -301,6 +303,14 @@ def read(filename, index=-1, format=None):
     if format == 'gaussian_out':
         from ase.io.gaussian import read_gaussian_out
         return read_gaussian_out(filename, index)
+
+    if format == 'esp_in':
+        from ase.io.espresso import read_espresso_in
+        return read_espresso_in(filename)
+
+    if format == 'esp_out':
+        from ase.io.espresso import read_espresso_out
+        return read_espresso_out(filename, index)
 
     raise RuntimeError('File format descriptor '+format+' not recognized!')
 
@@ -631,6 +641,13 @@ def filetype(filename):
                 pass
 
     if filename.lower().endswith('.in'):
+        fileobj.seek(0)
+        while True:
+            line = fileobj.readline()
+            if not line:
+                break
+            if ('&system' in line) or ('&SYSTEM' in line):
+                return 'esp_in'
         return 'aims'
 
     if filename.lower().endswith('.cfg'):
@@ -694,5 +711,8 @@ def filetype(filename):
 
     if filename.lower().endswith('.g96'):
         return 'gromos'
+
+    if filename.lower().endswith('.out'):
+        return 'esp_out'
 
     return 'xyz'
