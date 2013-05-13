@@ -46,17 +46,12 @@ def run(args=sys.argv[1:]):
     if verbosity == 2:
         print(args)
 
-    if args.selection:
-        selection = (args.selection,)
-    else:
-        selection = ()
-
     if args.set_keywords:
         set_keywords = args.set_keywords.split(',')
     else:
         set_keywords = []
 
-    rows = con.select(*selection, limit=args.limit, offset=args.offset,
+    rows = con.select(args.selection, limit=args.limit, offset=args.offset,
                        explain=args.explain,
                        count=args.count, verbosity=verbosity)
 

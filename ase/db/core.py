@@ -194,7 +194,7 @@ class NoDatabase:
         return n
 
     @parallel_generator
-    def select(self, *expressions, **kwargs):
+    def select(self, expressions=None, **kwargs):
         username = kwargs.pop('username', None)  # PY24
         charge = kwargs.pop('charge', None)
         calculator = kwargs.pop('calculator', None)
@@ -206,8 +206,10 @@ class NoDatabase:
         count = kwargs.pop('count', False)
         verbosity = kwargs.pop('verbosity', 1)
 
-        if expressions:
-            expressions = ','.join(expressions).split(',')
+        if expressions is None:
+            expressions = []
+        elif not isinstance(expressions, list):
+            expressions = expressions.split(',')
         keywords = []
         comparisons = []
         for expression in expressions:
