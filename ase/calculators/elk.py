@@ -143,7 +143,7 @@ class ELK(FileIOCalculator):
         fd.write('atoms\n%d\n' % len(species))
         scaled = atoms.get_scaled_positions()
         for symbol in symbols:
-            fd.write("'%s.in'\n" % symbol)
+            fd.write("'%s.in' : spfname\n" % symbol)
             fd.write('%d\n' % len(species[symbol]))
             for a, m in species[symbol]:
                 fd.write('%.14f %.14f %.14f 0.0 0.0 %.14f\n' % (tuple(scaled[a])+ (m,)))
@@ -161,7 +161,6 @@ class ELK(FileIOCalculator):
     def read(self, label):
         FileIOCalculator.read(self, label)
         totenergy = os.path.join(self.directory, 'TOTENERGY.OUT')
-        geometry = os.path.join(self.directory, 'GEOMETRY.OUT')
         eigval = os.path.join(self.directory, 'EIGVAL.OUT')
         kpoints = os.path.join(self.directory, 'KPOINTS.OUT')
 
@@ -169,7 +168,8 @@ class ELK(FileIOCalculator):
             if not os.path.isfile(filename):
                 raise ReadError
 
-        self.state = read_elk(geometry)
+        # read state from elk.in because *.OUT do not provide enough digits!
+        self.state = read_elk(os.path.join(self.directory, 'elk.in'))
         self.parameters = Parameters.read(os.path.join(self.directory,
                                                        'parameters.ase'))
         self.initialize(self.state)
