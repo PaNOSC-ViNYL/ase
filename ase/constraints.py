@@ -139,7 +139,7 @@ class FixAtoms(FixConstraint):
         return 'FixAtoms(indices=%s)' % ints2string(self.index)
 
     def todict(self):
-        dct = {'name': 'ase.constraints.FixAtoms'}
+        dct = {'__name__': 'ase.constraints.FixAtoms'}
         if self.index.dtype == bool:
             dct['mask'] = self.index
         else:

@@ -1,17 +1,19 @@
 import sys
+import os.path
 import argparse
     
 import numpy as np
 
-from ase.parallel import world
 from ase.io import read
-from ase.utils import devnull, prnt
-from ase.data import chemical_symbols, atomic_numbers, covalent_radii
-from ase.structure import molecule
+from ase.db import connect
 from ase.lattice import bulk
+from ase.parallel import world
+from ase.structure import molecule
+from ase.utils import devnull, prnt
+from ase.cli.plugin import PluginCommand
 from ase.atoms import Atoms, string2symbols
 from ase.data import ground_state_magnetic_moments
-from ase.cli.plugin import PluginCommand
+from ase.data import chemical_symbols, atomic_numbers, covalent_radii
 
 
 def expand(names):
@@ -45,6 +47,7 @@ class CLI:
         self.command = None
         self.build_function = None
         self.args = args
+        self.collection = None
 
     def log(self, *args, **kwargs):
         prnt(file=self.logfile, *args, **kwargs)
@@ -52,7 +55,10 @@ class CLI:
     def run(self):
         args = self.args
 
-        command = self.get_command_object(args.subparser_name)
+        command = self.get_command_object(args.command)
+
+        if len(args.names) == 0 and self.collection is not None:
+            args.names = self.collection.keys()
 
         if args.plugin:
             f = open(args.plugin)
@@ -65,7 +71,7 @@ class CLI:
             self.build_function = namespace.get('build')
             if 'calculate' in namespace:
                 command = PluginCommand(namespace.get('calculate'))
-                command.default_calculator = self.default_calculator
+                command.hook = self.hook
 
         command.logfile = self.logfile
         command.args = args
@@ -86,55 +92,70 @@ class CLI:
     def parse(self, args):
         # create the top-level parser
         parser = MyArgumentParser(fromfile_prefix_chars='@')
-        parser.add_argument('names', nargs='*')
-        parser.add_argument('-t', '--tag',
-                             help='String tag added to filenames.')
-        parser.add_argument('-M', '--magnetic-moment',
-                             metavar='M1,M2,...',
-                             help='Magnetic moment(s).  ' +
-                             'Use "-M 1" or "-M 2.3,-2.3".')
-        parser.add_argument(
-            '--modify', metavar='...',
+        add = parser.add_argument
+        add('names', nargs='*')
+        add('-q', '--quiet', action='store_const', const=0, default=1,
+            dest='verbosity')
+        add('-V', '--verbose', action='store_const', const=2, default=1,
+            dest='verbosity')
+        add('-t', '--tag',
+            help='String tag added to filenames.')
+        add('-M', '--magnetic-moment',
+            metavar='M1,M2,...',
+            help='Magnetic moment(s).  ' +
+            'Use "-M 1" or "-M 2.3,-2.3".')
+        add('--modify', metavar='...',
             help='Modify atoms with Python statement.  ' +
             'Example: --modify="atoms.positions[-1,2]+=0.1".')
-        parser.add_argument('-v', '--vacuum', type=float, default=3.0,
-                       help='Amount of vacuum to add around isolated atoms '
-                       '(in Angstrom).')
-        parser.add_argument('--unit-cell',
-                       help='Unit cell.  Examples: "10.0" or "9,10,11" ' +
-                       '(in Angstrom).')
-        parser.add_argument('--bond-length', type=float,
-                       help='Bond length of dimer in Angstrom.')
-        parser.add_argument('-x', '--crystal-structure',
-                        help='Crystal structure.',
-                        choices=['sc', 'fcc', 'bcc', 'hcp', 'diamond',
-                                 'zincblende', 'rocksalt', 'cesiumchloride',
-                                 'fluorite'])
-        parser.add_argument('-a', '--lattice-constant', default='',
-                        help='Lattice constant(s) in Angstrom.')
-        parser.add_argument('--orthorhombic', action='store_true',
-                        help='Use orthorhombic unit cell.')
-        parser.add_argument('--cubic', action='store_true',
-                        help='Use cubic unit cell.')
-        parser.add_argument('-r', '--repeat',
-                        help='Repeat unit cell.  Use "-r 2" or "-r 2,3,1".')
-        parser.add_argument('--plugin')
+        add('-v', '--vacuum', type=float, default=3.0,
+            help='Amount of vacuum to add around isolated atoms '
+            '(in Angstrom).')
+        add('--unit-cell',
+            help='Unit cell.  Examples: "10.0" or "9,10,11" ' +
+            '(in Angstrom).')
+        add('--bond-length', type=float,
+            help='Bond length of dimer in Angstrom.')
+        add('-c', '--collection')
+        add('-x', '--crystal-structure',
+            help='Crystal structure.',
+            choices=['sc', 'fcc', 'bcc', 'hcp', 'diamond',
+                     'zincblende', 'rocksalt', 'cesiumchloride',
+                     'fluorite'])
+        add('-a', '--lattice-constant', default='',
+            help='Lattice constant(s) in Angstrom.')
+        add('--orthorhombic', action='store_true',
+            help='Use orthorhombic unit cell.')
+        add('--cubic', action='store_true',
+            help='Use cubic unit cell.')
+        add('-r', '--repeat',
+            help='Repeat unit cell.  Use "-r 2" or "-r 2,3,1".')
+        add('--plugin')
 
-        subparsers = parser.add_subparsers(dest='subparser_name',
+        subparsers = parser.add_subparsers(dest='command',
                                            help='sub-command help')
 
-        for command in ['run', 'optimize', 'eos', 'write',
-                        'reaction', 'results', 'view', 'python']:
+
+        commands = ['run', 'optimize', 'eos', 'write',
+                    'reaction', 'results', 'view', 'python']
+        commands += self.hook.get('commands', [])
+        for command in commands:
             cmd = self.get_command_object(command)
             cmd.add_parser(subparsers)
 
         self.args = parser.parse_args(args)
-        
+        if self.args.verbosity == 2:
+            print(self.args)
+
     def get_command_object(self, name):
-        classname = name.title() + 'Command'
-        module = __import__('ase.cli.' + name, {}, None, [classname])
+        classname = name.title().replace('-', '') + 'Command'
+        if name in self.hook.get('commands', []):
+            module = self.hook['command_module']
+        else:
+            module = 'ase.cli'
+        name = name.replace('-', '_')
+        module = __import__(module + '.' + name, {}, None, [classname])
         cmd = getattr(module, classname)()
-        cmd.default_calculator = self.default_calculator
+        cmd.hook = self.hook
         return cmd
 
     def build(self, name):
@@ -147,6 +168,8 @@ class CLI:
             atoms = self.build_function(name, self.args)
         elif self.args.crystal_structure:
             atoms = self.build_bulk(name)
+        elif self.args.collection:
+            atoms = self.build_from_collection(name)
         else:
             atoms = self.build_molecule(name)
 
@@ -235,12 +258,42 @@ class CLI:
 
         return atoms
 
+    def build_from_collection(self, name):
+        if self.collection is None:
+            self.read_collection()
+        return self.collection[name]
 
-def run(args=sys.argv[1:], default_calculator={'name': 'emt'}):
-    if isinstance(args, str):
-        args = args.split(' ')
+    def read_collection(self):
+        colname = self.args.collection
+        if os.path.isfile(colname):
+            self.collection = connect(colname)
+        else:
+            module, name = colname.rsplit('.', 1)
+            module = __import__(module, {}, None, [name])
+            self.collection = getattr(module, name)
+            if not isinstance(self.collection, dict):
+                self.collection = self.collection()
+
+
+def run(command=None, hook=None, **kwargs):
+    if command is None:
+        command = sys.argv[1:]
+    elif ' ' in command:
+        command = command.split()
     runner = CLI()
-    runner.default_calculator = default_calculator
-    runner.parse(args)
+    runner.hook = hook or {}
+    if isinstance(command, str):
+        kwargs['command'] = command
+        runner.args = FakeArguments(kwargs)
+    else:
+        runner.parse(command)
     atoms = runner.run()
     return atoms
+
+
+class FakeArguments:
+    def __init__(self, kwargs):
+        self.args = kwargs
+
+    def __getattr__(self, name):
+        return self.args.get(name)

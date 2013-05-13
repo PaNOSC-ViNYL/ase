@@ -59,7 +59,7 @@ def connect(name, type='use_filename_extension', use_lock_file=False):
 class FancyDict(dict):
     def __getattr__(self, key):
         if key not in self:
-            raise KeyError
+            return dict.__getattribute__(self, key)#raise KeyError
         value = self[key]
         if isinstance(value, dict):
             return FancyDict(value)
@@ -168,6 +168,7 @@ class NoDatabase:
         atoms = dict2atoms(dct, attach_calculator)
         if add_additional_information:
             atoms.info = {'id': id,
+                          'unique_id': dct['unique_id'],
                           'keywords': dct['keywords'],
                           'key_value_pairs': dct['key_value_pairs'],
                           'data': dct['data']}
@@ -177,6 +178,20 @@ class NoDatabase:
         if index == slice(None, None, None):
             return [self[0]]
         return self.get_atoms(index)
+
+    @lock
+    @parallel
+    def update(self, ids, set_keywords):
+        n = 0
+        for id in ids:
+            dct = self._get_dict(id)
+            keywords = dct.get('keywords', [])
+            for keyword in set_keywords:
+                if keyword not in keywords:
+                    keywords.append(keyword)
+                    n += 1
+            self._write(id, dct, keywords, None, data=None, replace=True)
+        return n
 
     @parallel_generator
     def select(self, *expressions, **kwargs):
@@ -261,7 +276,8 @@ def atoms2dict(atoms):
         'numbers': atoms.numbers,
         'pbc': atoms.pbc,
         'cell': atoms.cell,
-        'positions': atoms.positions}
+        'positions': atoms.positions,
+        'unique_id': '%x' % randint(16**31, 16**32 - 1)}
     if atoms.has('magmoms'):
         data['magmoms'] = atoms.get_initial_magnetic_moments()
     if atoms.has('charges'):
@@ -282,7 +298,7 @@ def dict2atoms(dct, attach_calculator=False):
     if constraint_dicts:
         constraints = []
         for c in constraint_dicts:
-            assert c.pop('name') == 'ase.constraints.FixAtoms'
+            assert c.pop('__name__') == 'ase.constraints.FixAtoms'
             constraints.append(FixAtoms(**c))
     else:
         constraints = None
@@ -325,6 +341,6 @@ def time_string_to_float(s):
 def float_to_time_string(t):
     t *= YEAR
     for s in 'yMwdhms':
-        if t / seconds[s] > 10:
+        if t / seconds[s] > 5:
             break
     return '%d%s' % (round(t / seconds[s]), s)

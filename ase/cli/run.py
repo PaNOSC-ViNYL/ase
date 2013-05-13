@@ -57,7 +57,7 @@ class RunCommand(Command):
     def add_arguments(self, parser):
         add = parser.add_argument
         add('--after')
-        calculator = self.default_calculator['name']
+        calculator = self.hook.get('name', 'emt')
         if calculator == 'emt':
             help = ('Name of calculator to use: ' +
                     ', '.join(calculator_names) +
@@ -71,11 +71,12 @@ class RunCommand(Command):
             'calculator specific parameters.')
         add('-d', '--database',
             help='Use a filename with a ".sqlite" extension for a sqlite3 ' +
-            'database a ".json" extension for a simple json database.  ' +
+            'database or a ".json" extension for a simple json database.  ' +
             'Default is no database')
         add('-l', '--use-lock-file', action='store_true',
-            help='Skip calculations where the json ' +
-            'lock-file or result file already exists.')
+            help='Use a lock-file to syncronize access to database.')
+        add('-S', '--skip', action='store_true',
+            help='Skip calculations already done.')
         add('--properties', default='efsdMm',
             help='Default value is "efsdMm" meaning calculate energy, ' +
             'forces, stress, dipole moment, total magnetic moment and ' +
@@ -89,11 +90,17 @@ class RunCommand(Command):
             self.db = db.connect(args.database,
                                  use_lock_file=args.use_lock_file)
 
+        if args.tag:
+            id = name + '-' + args.tag
+        else:
+            id = name
+
         skip = False
-        try:
-            self.db.write(name, None, replace=False)
-        except db.IdCollisionError:
-            skip = True
+        if args.skip:
+            try:
+                self.db.write(id, None, replace=False)
+            except db.IdCollisionError:
+                skip = True
         
         if not skip:
             self.set_calculator(atoms, name)
@@ -110,12 +117,12 @@ class RunCommand(Command):
                 tstop = time.time()
                 data['time'] = tstop - tstart
                 data['ase_cli'] = ' '.join(sys.argv[1:])
-                self.db.write(name, atoms, data=data)
+                self.db.write(id, atoms, data=data)
 
     def set_calculator(self, atoms, name):
         args = self.args
         cls = get_calculator(args.calculator)
-        namespace = self.default_calculator.get('namespace', {})
+        namespace = self.hook.get('namespace', {})
         parameters = str2dict(args.parameters, namespace)
         if getattr(cls, 'nolabel', False):
             atoms.calc = cls(**parameters)
@@ -125,7 +132,7 @@ class RunCommand(Command):
     def calculate(self, atoms, name):
         args = self.args
 
-        for p in args.properties:
+        for p in args.properties or 'efsdMm':
             property, method = {'e': ('energy', 'get_potential_energy'),
                                 'f': ('forces', 'get_forces'),
                                 's': ('stress', 'get_stress'),

@@ -15,7 +15,9 @@ def plural(n, word):
     return '%d %ss' % (n, word)
 
 
-def main():
+def run(args=sys.argv[1:]):
+    if isinstance(args, str):
+        args = args.split(' ')
     parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
     add = parser.add_argument
     add('name', nargs=1)
@@ -35,7 +37,7 @@ def main():
     add('-v', '--verbose', action='store_true')
     add('-q', '--quiet', action='store_true')
 
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     verbosity = 1 - args.quiet + args.verbose
 
@@ -61,7 +63,7 @@ def main():
     if args.count:
         n = rows.next()[0]
         print('%d %s' % plural('row', n))
-        return
+        return n
 
     if args.explain:
         for row in rows:
@@ -72,44 +74,46 @@ def main():
         con2 = connect(args.insert_into)
         n = 0
         ids = []
-        rollback = True
         for dct in rows:
             for keyword in set_keywords:
                 if keyword not in dct.keywords:
                     dct.keywords.append(keyword)
                     n += 1
-            id = None
-            try:
-                id = con2.write(id, dct, timestamp=dct.timestamp)
+            rollback = True
+            if 1:#try:
+                id = con2.write(dct.id, dct, timestamp=dct.timestamp)
                 rollback = False
-            finally:
+            if 0:#finally:
                 if rollback:
                     con2.delete(ids)
                     return
+            ids.append(id)
         print('Added %s' % plural(n, 'keyword'))
         print('Inserted %s' % plural(len(ids), 'row'))
-        return    
+        return ids  
 
     if set_keywords:
         ids = [dct['id'] for dct in rows]
         n = con.update(ids, set_keywords)
         print('Added %s' % plural(n, 'keyword'))
-        return
+        return ids
 
     if args.delete:
         ids = [dct['id'] for dct in rows]
         if ids and not args.yes:
-            msg = 'Delete %d rows? (yes/no): ' % len(ids)
+            msg = 'Delete %s? (yes/no): ' % plural(len(ids), 'row')
             if raw_input(msg).lower() != 'yes':
                 return
         con.delete(ids)
         print('Deleted %s' % plural(len(ids), 'row'))
-        return
+        return ids
 
     dcts = list(rows)
     if len(dcts) > 0:
         f = Formatter(columns=args.columns)
-        f.format(dcts)
+        return f.format(dcts)
+
+    return []
 
 
 def cut(txt, length):
@@ -123,19 +127,20 @@ class Formatter:
         pass
 
     def format(self, dcts, columns=None):
-        columns = ['id', 'age', 'user', 'symbols', 'calc',
+        columns = ['id', 'age', 'user', 'formula', 'calc',
                    'energy', 'fmax', 'pbc', 'size', 'keywords', 'keyvals',
                    'charge', 'mass', 'fixed', 'smax', 'magmom']
         table = [columns]
         widths = [0 for column in columns]
         signs = [1 for column in columns]  # left or right adjust
+        ids = []
         fd = sys.stdout
         for dct in dcts:
             row = []
             for i, column in enumerate(columns):
                 try:
                     s = getattr(self, column)(dct)
-                except KeyError:
+                except AttributeError:
                     s = ''
                 if isinstance(s, int):
                     s = '%d' % s 
@@ -147,6 +152,7 @@ class Formatter:
                     widths[i] = len(s)
                 row.append(s)
             table.append(row)
+            ids.append(dct.id)
         widths = [w and max(w, len(column))
                   for w, column in zip(widths, columns)]
         for row in table:
@@ -154,6 +160,7 @@ class Formatter:
                               for w, sign, s in zip(widths, signs, row)
                               if w > 0))
             fd.write('\n')
+        return ids
         
     def id(self, d):
         return d.id
@@ -164,7 +171,7 @@ class Formatter:
     def user(self, d):
         return d.username
     
-    def symbols(self, d):
+    def formula(self, d):
         return Atoms(d.numbers).get_chemical_formula()
 
     def energy(self, d):

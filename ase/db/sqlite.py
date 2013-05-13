@@ -12,6 +12,7 @@ from ase.db.json import encode, numpyfy
 init_statements = """\
 create table systems (
  id text primary key,
+ unique_id text,
  timestamp real,
  username text,
  numbers blob,
@@ -34,6 +35,7 @@ create table systems (
  magmom blob,
  charges blob,
  data text); -- contains keywords and key_value_pairs also
+create index unique_id_index on systems(unique_id);
 create table species (
  Z integer,
  n integer,
@@ -66,8 +68,19 @@ class SQLite3Database(NoDatabase):
             for statement in init_statements.split(';'):
                 con.execute(statement)
             con.commit()
+                
+        if isinstance(atoms, dict):
+            dct = atoms
+            unique_id = dct['unique_id']
+            cur = con.execute('select id from systems where unique_id=?',
+                              (unique_id,))
+            rows = cur.fetchall()
+            if rows:
+                id = rows[0][0]
+        else:
+            dct = self.collect_data(atoms)
 
-        if id is None or not replace:
+        if id is None:
             cur = con.execute('select count(*) from systems')
             nrows = cur.fetchone()[0]
             while id is None:
@@ -76,49 +89,50 @@ class SQLite3Database(NoDatabase):
                                   id)
                 if cur.fetchone()[0] == 1:
                     id = None
-                
+            
         if atoms is None:
             row = (id, None, None, None, None, None, None, None, None, None,
                    None, None, None, None, None, None, None, None, None, None,
-                   None, None, None)
+                   None, None, None, None)
+
+        row = (id,
+               dct['unique_id'],
+               self.timestamp,
+               dct['username'],
+               blob(dct.get('numbers')),
+               blob(dct.get('positions')),
+               blob(dct.get('cell')),
+               blob(dct.get('pbc')),
+               blob(dct.get('magmoms')),
+               blob(dct.get('charges')),
+               blob(dct.get('masses')),
+               blob(dct.get('tags')),
+               blob(dct.get('moments')),
+               dct.get('constraints'))
+        if 'calculator_name' in dct:
+            row += (dct['calculator_name'],
+                    encode(dct['calculator_parameters']))
         else:
-            dct = self.collect_data(atoms)
-            row = (id,
-                   self.timestamp,
-                   dct['username'],
-                   blob(atoms.numbers),
-                   blob(atoms.positions),
-                   blob(atoms.cell),
-                   blob(atoms.pbc),
-                   blob(dct.get('magmoms')),
-                   blob(dct.get('charges')),
-                   blob(dct.get('masses')),
-                   blob(dct.get('tags')),
-                   blob(dct.get('moments')),
-                   dct.get('constraints'))
-            if 'calculator_name' in dct:
-                row += (dct['calculator_name'],
-                        encode(dct['calculator_parameters']))
-            else:
-                row += (None, None)
-            if 'results' in dct:
-                r = dct['results']
-                magmom = r.get('magmom')
-                if magmom is not None:
-                    # magmom can be one or three numbers (non-collinear case)
-                    magmom = np.array(magmom)
-                row += (r.get('energy'),
-                        r.get('free_energy'),
-                        blob(r.get('forces')),
-                        blob(r.get('stress')),
-                        blob(r.get('magmoms')),
-                        blob(magmom),
-                        blob(r.get('charges')))
-            else:
-                row += (None, None, None, None, None, None, None)
-            row += (encode({'data': data,
-                            'keywords': keywords,
-                            'key_value_pairs': key_value_pairs}),)
+            row += (None, None)
+        if 'results' in dct:
+            r = dct['results']
+            magmom = r.get('magmom')
+            if magmom is not None:
+                # magmom can be one or three numbers (non-collinear case)
+                magmom = np.array(magmom)
+            row += (r.get('energy'),
+                    r.get('free_energy'),
+                    blob(r.get('forces')),
+                    blob(r.get('stress')),
+                    blob(r.get('magmoms')),
+                    blob(magmom),
+                    blob(r.get('charges')))
+        else:
+            row += (None, None, None, None, None, None, None)
+        row += (encode({'data': data,
+                        'keywords': keywords,
+                        'key_value_pairs': key_value_pairs}),)
+
         q = ', '.join('?' * len(row))
         if replace:
             con.execute('insert or replace into systems values (%s)' % q, row)
@@ -171,49 +185,50 @@ class SQLite3Database(NoDatabase):
 
     def row_to_dict(self, row):
         dct = {'id': row[0],
-               'timestamp': row[1],
-               'username': row[2],
-               'numbers': deblob(row[3], int),
-               'positions': deblob(row[4], shape=(-1, 3)),
-               'cell': deblob(row[5], shape=(3, 3)),
-               'pbc': deblob(row[6], bool)}
-        if row[7] is not None:
-            dct['magmoms'] = deblob(row[7])
+               'unique_id': row[1],
+               'timestamp': row[2],
+               'username': row[3],
+               'numbers': deblob(row[4], int),
+               'positions': deblob(row[5], shape=(-1, 3)),
+               'cell': deblob(row[6], shape=(3, 3)),
+               'pbc': deblob(row[7], bool)}
         if row[8] is not None:
-            dct['charges'] = deblob(row[8])
+            dct['magmoms'] = deblob(row[8])
         if row[9] is not None:
-            dct['masses'] = deblob(row[9])
+            dct['charges'] = deblob(row[9])
         if row[10] is not None:
-            dct['tags'] = deblob(row[10], int)
+            dct['masses'] = deblob(row[10])
         if row[11] is not None:
-            dct['moments'] = deblob(row[11], shape=(-1, 3))
+            dct['tags'] = deblob(row[11], int)
         if row[12] is not None:
-            dct['constraints'] = numpyfy(json.loads(row[12]))
+            dct['moments'] = deblob(row[12], shape=(-1, 3))
         if row[13] is not None:
-            dct['calculator_name'] = row[13]
-            dct['calculator_parameters'] = numpyfy(json.loads(row[14]))
+            dct['constraints'] = numpyfy(json.loads(row[13]))
+        if row[14] is not None:
+            dct['calculator_name'] = row[14]
+            dct['calculator_parameters'] = numpyfy(json.loads(row[15]))
             results = {}
-            if row[15] is not None:
-                results['energy'] = row[15]
             if row[16] is not None:
-                results['free_energy'] = row[16]
+                results['energy'] = row[16]
             if row[17] is not None:
-                results['forces'] = deblob(row[17], shape=(-1, 3))
+                results['free_energy'] = row[17]
             if row[18] is not None:
-                results['stress'] = deblob(row[18], shape=(3, 3))
+                results['forces'] = deblob(row[18], shape=(-1, 3))
             if row[19] is not None:
-                results['magmoms'] = deblob(row[19])
+                results['stress'] = deblob(row[19])
             if row[20] is not None:
-                results['magmom'] = deblob(row[20])[0]
+                results['magmoms'] = deblob(row[20])
             if row[21] is not None:
-                results['charges'] = deblob(row[21])
+                results['magmom'] = deblob(row[21])[0]
+            if row[22] is not None:
+                results['charges'] = deblob(row[22])
             if results:
                 dct['results'] = results
-            dct.update(numpyfy(json.loads(row[22])))
+            dct.update(numpyfy(json.loads(row[23])))
         return dct
 
     def _select(self, keywords, cmps, limit, offset,
-                explain, count, set_keywords, verbosity):
+                explain, count, verbosity):
         tables = set(['systems'])
         where = []
         if keywords:
@@ -279,6 +294,13 @@ class SQLite3Database(NoDatabase):
                 else:
                     yield self.row_to_dict(row)
         
+    def delete(self, ids):
+        con = sqlite3.connect(self.filename)
+        cur = con.executemany('delete from systems where id=?',
+                              ((id,) for id in ids))
+        con.commit()
+        con.close()
+
 
 def blob(array):
     """Convert array to blob/buffer object."""
