@@ -65,6 +65,7 @@ When using svn please set the following variable:
 ======= =========== ============================================ =============================
 Release Date        Retrieve as svn checkout                     Retrieve as tarball
 ======= =========== ============================================ =============================
+ 3.7.0_ May 13 2013 ``svn co -r 3168 $ASE_TAGS/3.7.0 ase-3.7.0`` python-ase-3.7.0.3168.tar.gz_
  3.6.0_ Feb 24 2012 ``svn co -r 2515 $ASE_TAGS/3.6.0 ase-3.6.0`` python-ase-3.6.0.2515.tar.gz_
  3.5.1_ May 24 2011 ``svn co -r 2175 $ASE_TAGS/3.5.1 ase-3.5.1`` python-ase-3.5.1.2175.tar.gz_
  3.4.1_ Aug 11 2010 ``svn co -r 1765 $ASE_TAGS/3.4.1 ase-3.4.1`` python-ase-3.4.1.1765.tar.gz_
@@ -75,8 +76,14 @@ Release Date        Retrieve as svn checkout                     Retrieve as tar
  3.0.0_ Nov 13 2008 ``svn co -r 657 $ASE_TAGS/3.0.0 ase-3.0.0``  python-ase-3.0.0.657.tar.gz_
 ======= =========== ============================================ =============================
 
-.. _3.6.0:
-    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.6.0
+.. _3.7.0:
+    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.7.0
+
+.. _python-ase-3.7.0.3168.tar.gz:
+    https://wiki.fysik.dtu.dk/ase-files/python-ase-3.7.0.3168.tar.gz
+
+.. _3.7.0:
+    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.7.0
 
 .. _python-ase-3.6.0.2515.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.6.0.2515.tar.gz
@@ -140,6 +147,7 @@ or from the daily snapshot: `<python-ase-snapshot.tar.gz>`_.
 
    The recommended checkout path is :envvar:`$HOME`.
 
+
 .. _installation:
 
 ============
@@ -148,20 +156,24 @@ Installation
 
 After performing the installation do not forget to :ref:`running_tests`!
 
+
 .. _macosx_installation:
 
 Installation on OS X
 ====================
 
 For installation with http://mxcl.github.com/homebrew/ please follow
-instructions at `Homebrew <https://wiki.fysik.dtu.dk/gpaw/install/MacOSX/homebrew.html>`_.
+instructions at `Homebrew
+<https://wiki.fysik.dtu.dk/gpaw/install/MacOSX/homebrew.html>`_.
+
 
 .. _pm_installation:
 
 Installation with package manager on Linux
 ==========================================
 
-Install the binaries with the software package manager of your Linux distribution.
+Install the binaries with the software package manager of your Linux
+distribution.
 
 This is **the preferred** way to install on a Linux system.
 
@@ -209,8 +221,8 @@ The currently supported systems include (issue the commands below **as root**):
 
   .. note::
 
-    Alternative packages for ubuntu are provided at
-    `Ubuntu package <https://wiki.fysik.dtu.dk/gpaw/install/Linux/Ubuntu_ppa.html#ubuntupackage>`_.
+    Alternative packages for ubuntu are provided at `Ubuntu package
+    <https://wiki.fysik.dtu.dk/gpaw/install/Linux/Ubuntu_ppa.html#ubuntupackage>`_.
 
 For the full list of supported distributions check
 https://build.opensuse.org/package/show?package=python-ase&project=home%3Adtufys
@@ -294,6 +306,7 @@ On the command prompt:
 .. _python-ase-win32.msi:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.6.1.2627.win32.msi
 
+
 .. _manual_installation:
 
 Manual installation
@@ -305,13 +318,13 @@ to the requested version, e.g.:
 - if retrieved from ``svn``::
 
    $ cd $HOME
-   $ ln -s ase-3.5.1 ase
+   $ ln -s ase-3.7.0 ase
     
 - if retrieved as ``tarball``::
 
    $ cd $HOME
-   $ tar zxf python-ase-3.5.1.2175.tar.gz
-   $ ln -s python-ase-3.5.1.2175 ase
+   $ tar zxf python-ase-3.7.0.3168.tar.gz
+   $ ln -s python-ase-3.7.0.3168 ase
 
 It is sufficient to
 put the directory :file:`$HOME/ase` in your :envvar:`PYTHONPATH`
@@ -337,6 +350,7 @@ Optional, **NOT** recommended way of installing ASE system-wide is::
   $ sudo python setup.py install
 
 This is one of the best ways to ruin a Linux system.
+
 
 .. _running_tests:
 
@@ -370,6 +384,7 @@ then please send us :file:`testase.log` (see :ref:`bugs`).
    fail - avoid this with::
 
      $ testase.py --no-display
+
 
 Video tutorial
 ==============

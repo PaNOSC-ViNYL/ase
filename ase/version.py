@@ -1,7 +1,7 @@
 # Copyright (C) 2003  CAMP
 # Please see the accompanying LICENSE file for further information.
 
-version_base = '3.7.0'
+version_base = '3.8.0'
 
 try:
     from ase.svnversion import svnversion

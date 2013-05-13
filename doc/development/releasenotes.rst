@@ -10,6 +10,12 @@ Development version in trunk
 
 :trac:`trunk <>`.
 
+
+Version 3.6.0
+=============
+
+13 May 2013: :trac:`tags/3.7.0 <../tags/3.7.0>`.
+
 * ASE's GUI can now be configured to be more friendly to visually
   impaired users: :ref:`high contrast`.
 
