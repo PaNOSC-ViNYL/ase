@@ -2,7 +2,7 @@
 def read_elk(filename):
     """Import ELK atoms definition.
 
-    Reads unitcell, atom positions, magmoms from GEOMETRY.OUT file.
+    Reads unitcell, atom positions, magmoms from elk.in/GEOMETRY.OUT file.
     """
 
     from ase import Atoms

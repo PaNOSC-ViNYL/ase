@@ -319,7 +319,7 @@ class Calculator:
                 system_changes.append('positions')
             if not equal(self.state.numbers, atoms.numbers):
                 system_changes.append('numbers')
-            if not equal(self.state.cell, atoms.cell, tol=1.e-9):
+            if not equal(self.state.cell, atoms.cell):
                 system_changes.append('cell')
             if not equal(self.state.pbc, atoms.pbc):
                 system_changes.append('pbc')
