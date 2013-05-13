@@ -27,7 +27,7 @@ Development version in trunk
   calculator to calculate the atomic charges.
 
 * The :ref:`aep1` has been implemented and 6 ASE calculators are now
-  based on the new base class
+  based on the new base classes.
 
 * ASE now runs on Windows and Mac.
 

@@ -351,7 +351,7 @@ class Abinit(FileIOCalculator):
 
         # Energy extrapolated to zero Kelvin:
         self.results['energy'] = (etotal + efree) / 2
-        self.results['free energy'] = efree
+        self.results['free_energy'] = efree
 
         # Forces:
         for line in lines:

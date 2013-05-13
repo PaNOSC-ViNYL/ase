@@ -85,7 +85,6 @@ calculators attached.
    :ref:`tutorials`:
 
         * :ref:`diffusion_tutorial`
-        * :ref:`neb1`
         * :ref:`neb2`
 
 

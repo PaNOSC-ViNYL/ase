@@ -1,7 +1,7 @@
 import numpy as np
 
 """
-mBEEF ensemble coefficients
+mBEEF ensemble matrix
 """
 uiOmega = np.array([
 [ +3.97526822e+00 , +9.89942369e+00 , +1.07326424e+01 , +6.75380818e+00 , 

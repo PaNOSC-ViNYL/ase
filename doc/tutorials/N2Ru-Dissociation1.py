@@ -41,7 +41,7 @@ write('N2.traj', slab)
 
 # Now the final state.
 # Move the second N atom to a neighboring hollow site:
-slab[-1].set_position((x + a, y, z))
+slab[-1].position = (x + a, y, z)
 relax.run()
 print 'final state:  ', slab.get_potential_energy()
 write('2N.traj', slab)

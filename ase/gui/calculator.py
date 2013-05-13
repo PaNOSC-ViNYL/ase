@@ -84,12 +84,12 @@ not installed.
 
 eam_info_txt = _("""\
 The EAM/ADP potential is a many-body potential
-implementation of the Embedded Atom Method an
-equipotential and the Angular Dependent Potential which
-is an extension of the EAM to include directional
-bonds. EAM is good for FCC metallic bonding and the ADP
-is good for metallic bonds with some degree of
-directionality.
+implementation of the Embedded Atom Method and
+equipotential plus the Angular Dependent Potential,
+which is an extension of the EAM to include
+directional bonds. EAM is suited for FCC metallic
+bonding while the ADP is suited for metallic bonds
+with some degree of directionality.
 
 For EAM see M.S. Daw and M.I. Baskes,
 Phys. Rev. Letters 50 (1983) 1285.

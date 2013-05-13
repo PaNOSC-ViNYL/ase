@@ -38,8 +38,8 @@ Use this command::
 
   htpasswd -nm <your-desired-user-name>
 
-and type a good password twice.  The encrypted password will be
-printed on the screen.
+and type a `good password <http://xkcd.com/936/>`__ twice.  The
+encrypted password will be printed on the screen.
 
 Alternatively, you can use::
 

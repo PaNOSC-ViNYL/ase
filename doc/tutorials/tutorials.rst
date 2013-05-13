@@ -30,8 +30,6 @@ other :mod:`Calculator <calculators>` could be plugged in instead.
    eos/eos
    spacegroup/spacegroup
    dissociation
-   aneb
-   association
    neb/diffusion
    constraints/diffusion
    md/md
