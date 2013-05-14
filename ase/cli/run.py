@@ -130,7 +130,7 @@ class RunCommand(Command):
 
     def get_parameters(self):
         namespace = self.hook.get('namespace', {})
-        parameters = str2dict(args.parameters, namespace)
+        parameters = str2dict(self.args.parameters, namespace)
         return parameters
 
     def calculate(self, atoms, name):
