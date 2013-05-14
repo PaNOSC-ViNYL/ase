@@ -228,7 +228,7 @@ class SQLite3Database(NoDatabase):
         return dct
 
     def _select(self, keywords, cmps, limit, offset,
-                explain, count, verbosity):
+                explain, verbosity):
         tables = set(['systems'])
         where = []
         if keywords:
@@ -245,6 +245,8 @@ class SQLite3Database(NoDatabase):
             if key in ['id', 'energy', 'magmom', 'timestamp', 'username',
                        'calculator_name']:
                 where.append('systems.%s%s%r' % (key, op, value))
+            elif key == 'natoms':
+                cmps2.append((key, ops[op], value))
             elif isinstance(key, int):
                 if bad[key]:
                     cmps2.append((key, ops[op], value))
@@ -266,11 +268,7 @@ class SQLite3Database(NoDatabase):
                              'number_key_values.value%s%r' %
                              (op, value))
                 
-        if count:
-            sql = 'select count (*) from\n  '
-        else:
-            sql = 'select systems.* from\n  '
-        sql += ', '.join(tables)
+        sql = 'select systems.* from\n  ' + ', '.join(tables)
         if where:
             sql += '\n  where\n  ' + ' and\n  '.join(where)
         if explain:
@@ -279,15 +277,18 @@ class SQLite3Database(NoDatabase):
             print(sql)
         con = sqlite3.connect(self.filename)
         cur = con.execute(sql)
-        if count or explain:
+        if explain:
             for row in cur.fetchall():
                 yield row
         else:
             for row in cur.fetchall():
                 if cmps2:
-                    numbers = deblob(row[3], int)
+                    numbers = deblob(row[4], int)
                     for key, op, value in cmps2:
-                        if not op((numbers == key).sum(), value):
+                        if key == 'natoms':
+                            if not op(len(numbers), value):
+                                break
+                        elif not op((numbers == key).sum(), value):
                             break
                     else:
                         yield self.row_to_dict(row)

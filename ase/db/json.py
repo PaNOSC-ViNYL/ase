@@ -125,14 +125,8 @@ class JSONDatabase(NoDatabase):
         return bigdct[id]
 
     def _select(self, keywords, cmps, limit, offset,
-                explain=False, count=False, verbosity=1):
+                explain=False, verbosity=1):
         if explain:
-            return
-        if count:
-            n = 0
-            for dct in self._select(keywords, cmps, limit, offset):
-                n += 1
-            yield (n,)
             return
         bigdct = read_json(self.filename)
         cmps = [(key, ops[op], val) for key, op, val in cmps]
@@ -181,3 +175,5 @@ def get_value(dct, key):
         return dct.get(key)
     if isinstance(key, int):
         return (dct['numbers'] == key).sum()
+    if key == 'natoms':
+        return len(dct['numbers'])

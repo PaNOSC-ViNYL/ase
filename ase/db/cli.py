@@ -52,12 +52,13 @@ def run(args=sys.argv[1:]):
         set_keywords = []
 
     rows = con.select(args.selection, limit=args.limit, offset=args.offset,
-                       explain=args.explain,
-                       count=args.count, verbosity=verbosity)
+                       explain=args.explain, verbosity=verbosity)
 
     if args.count:
-        n = rows.next()[0]
-        print('%d %s' % plural('row', n))
+        n = 0
+        for row in rows:
+            n += 1
+        print('%s' % plural(n, 'row'))
         return n
 
     if args.explain:

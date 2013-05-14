@@ -130,6 +130,8 @@ class NoDatabase:
         if timestamp is None:
             timestamp = (time() - T0) / YEAR
         self.timestamp = timestamp
+        if atoms is None:
+            atoms = Atoms()
         self._write(id, atoms, keywords, key_value_pairs, data, replace)
 
     def _write(self, id, atoms, keywords, key_value_pairs, data, replace):
@@ -141,11 +143,9 @@ class NoDatabase:
         return id
 
     def collect_data(self, atoms):
-        dct = {'timestamp': self.timestamp,
-               'username': os.getenv('USER')}
-        if atoms is None:
-            return dct
-        dct.update(atoms2dict(atoms))
+        dct = atoms2dict(atoms)
+        dct['timestamp'] = self.timestamp
+        dct['username'] = os.getenv('USER')
         if atoms.calc is not None:
             dct['calculator_name'] = atoms.calc.name.lower()
             dct['calculator_parameters'] = atoms.calc.todict()
@@ -262,7 +262,7 @@ class NoDatabase:
             cmps.append((Z, op, n))
         for dct in self._select(keywords, cmps,
                                 limit=limit, offset=offset, explain=explain,
-                                count=count, verbosity=verbosity):
+                                verbosity=verbosity):
             if isinstance(dct, dict):
                 if filter is None or filter(dct):
                     if fancy:
