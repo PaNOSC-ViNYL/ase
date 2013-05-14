@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 from math import sin, cos, radians, atan2, degrees
 
 import numpy as np
@@ -58,10 +59,12 @@ class Lock:
         self.name = name
 
     def acquire(self):
-        fd = None
-        while fd is None:
+        while True:
             fd = opencew(self.name)
-
+            if fd is not None:
+                break
+            time.sleep(1.0)
+            
     def release(self):
         world.barrier()
         if world.rank == 0:
