@@ -57,8 +57,10 @@ class CLI:
 
         command = self.get_command_object(args.command)
 
-        if len(args.names) == 0 and self.collection is not None:
-            args.names = self.collection.keys()
+        if args.collection is not None:
+            self.read_collection()
+            if len(args.names) == 0:
+                args.names = self.collection.keys()
 
         if args.plugin:
             f = open(args.plugin)
@@ -169,7 +171,7 @@ class CLI:
         elif self.args.crystal_structure:
             atoms = self.build_bulk(name)
         elif self.args.collection:
-            atoms = self.build_from_collection(name)
+            atoms = self.collection[name]
         else:
             atoms = self.build_molecule(name)
 
@@ -257,11 +259,6 @@ class CLI:
             atoms.set_initial_magnetic_moments([M] * len(atoms))
 
         return atoms
-
-    def build_from_collection(self, name):
-        if self.collection is None:
-            self.read_collection()
-        return self.collection[name]
 
     def read_collection(self):
         colname = self.args.collection

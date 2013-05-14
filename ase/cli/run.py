@@ -122,12 +122,16 @@ class RunCommand(Command):
     def set_calculator(self, atoms, name):
         args = self.args
         cls = get_calculator(args.calculator)
-        namespace = self.hook.get('namespace', {})
-        parameters = str2dict(args.parameters, namespace)
+        parameters = self.get_parameters()
         if getattr(cls, 'nolabel', False):
             atoms.calc = cls(**parameters)
         else:
             atoms.calc = cls(label=self.get_filename(name), **parameters)
+
+    def get_parameters(self):
+        namespace = self.hook.get('namespace', {})
+        parameters = str2dict(args.parameters, namespace)
+        return parameters
 
     def calculate(self, atoms, name):
         args = self.args
