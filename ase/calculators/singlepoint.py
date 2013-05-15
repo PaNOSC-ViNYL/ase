@@ -82,11 +82,13 @@ class SinglePointKPoint:
 
 class SinglePointDFTCalculator(SinglePointCalculator):
     def __init__(self, energy, forces, stress, magmoms, atoms,
-                 eFermi=None):
+                 eFermi=None, energies=None):
         SinglePointCalculator.__init__(self, energy, forces, stress, 
                                        magmoms, atoms)
         if eFermi is not None:
             self.eFermi = eFermi
+        if energies is not None:
+            self.energies = energies
         self.kpts = None
 
     def get_fermi_level(self):
