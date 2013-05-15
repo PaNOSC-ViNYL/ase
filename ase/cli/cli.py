@@ -85,8 +85,10 @@ class CLI:
             if atoms is not None:
                 del atoms.calc  # release resources from last calculation
             atoms = self.build(name)
+            if args.verbosity == 2:
+                print('%s: %s' % (args.command.title(), name))
             command.run(atoms, name)
-
+        
         command.finalize()
 
         return atoms

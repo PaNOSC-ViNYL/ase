@@ -227,7 +227,7 @@ class Calculator:
 
     def todict(self):
         default = self.get_default_parameters()
-        return dict((key, copy.deepcopy(value))
+        return dict((key, value)
                     for key, value in self.parameters.items()
                     if value != default[key])
 
