@@ -26,7 +26,7 @@ if 1:
             return encode(obj.todict())
         warnings.warn('%s object has no todict() method' %
                       obj.__class__.__name__)
-        return obj.__class__.__name__
+        return '"' + obj.__class__.__name__ + '"'
 
     def loads(txt):
         return eval(txt, {'false': False, 'true': True, 'null': None})
