@@ -124,16 +124,12 @@ class JSONDatabase(NoDatabase):
             id = bigdct.keys()[0]
         return bigdct[id]
 
-    def _select(self, keywords, cmps, limit, offset,
-                explain=False, verbosity=1):
+    def _select(self, keywords, cmps, explain=False, verbosity=1):
         if explain:
             return
         bigdct = read_json(self.filename)
         cmps = [(key, ops[op], val) for key, op, val in cmps]
-        offset = offset or 0
-        ids = bigdct.keys()[offset:offset + limit]
-        for id in ids:
-            dct = bigdct[id]
+        for dct in bigdct.values():
             for keyword in keywords:
                 if 'keywords' not in dct or keyword not in dct['keywords']:
                     break
@@ -174,6 +170,6 @@ def get_value(dct, key):
     if key in ['id', 'timestamp', 'username', 'calculator']:
         return dct.get(key)
     if isinstance(key, int):
-        return (dct['numbers'] == key).sum()
+        return np.equal(dct['numbers'], key).sum()
     if key == 'natoms':
         return len(dct['numbers'])

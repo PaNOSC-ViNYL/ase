@@ -200,8 +200,6 @@ class NoDatabase:
         calculator = kwargs.pop('calculator', None)
         filter = kwargs.pop('filter', None)
         fancy = kwargs.pop('fancy', True)
-        limit = kwargs.pop('limit', None)
-        offset = kwargs.pop('offset', None)
         explain = kwargs.pop('explain', False)
         count = kwargs.pop('count', False)
         verbosity = kwargs.pop('verbosity', 1)
@@ -260,8 +258,7 @@ class NoDatabase:
             assert isinstance(n, int)
             Z = atomic_numbers[symbol]
             cmps.append((Z, op, n))
-        for dct in self._select(keywords, cmps,
-                                limit=limit, offset=offset, explain=explain,
+        for dct in self._select(keywords, cmps, explain=explain,
                                 verbosity=verbosity):
             if isinstance(dct, dict):
                 if filter is None or filter(dct):

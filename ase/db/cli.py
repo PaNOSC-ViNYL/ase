@@ -24,8 +24,6 @@ def run(args=sys.argv[1:]):
     add('selection', nargs='?')
     add('-n', '--count', action='store_true')
     add('-c', '--columns', help='short/long+row-row')
-    add('-l', '--limit', type=int, default=50)
-    add('-o', '--offset', type=int)
     add('--explain', action='store_true')
     add('-y', '--yes', action='store_true')
     add('-i', '--insert-into')
@@ -51,8 +49,8 @@ def run(args=sys.argv[1:]):
     else:
         set_keywords = []
 
-    rows = con.select(args.selection, limit=args.limit, offset=args.offset,
-                       explain=args.explain, verbosity=verbosity)
+    rows = con.select(args.selection, explain=args.explain,
+                      verbosity=verbosity)
 
     if args.count:
         n = 0

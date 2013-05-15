@@ -227,8 +227,7 @@ class SQLite3Database(NoDatabase):
             dct.update(numpyfy(json.loads(row[23])))
         return dct
 
-    def _select(self, keywords, cmps, limit, offset,
-                explain, verbosity):
+    def _select(self, keywords, cmps, explain, verbosity):
         tables = set(['systems'])
         where = []
         if keywords:
