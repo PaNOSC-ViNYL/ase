@@ -1,6 +1,7 @@
 #from __future__ import absolute_import  # PY24
 import os
 import copy
+import warnings
 
 import numpy as np
 
@@ -21,7 +22,11 @@ if 1:
             return 'null'
         if isinstance(obj, (list, tuple, np.ndarray)):
             return '[' + ','.join([encode(value) for value in obj]) + ']'
-        return encode(obj.todict())
+        if hasattr(obj, 'todict'):
+            return encode(obj.todict())
+        warnings.warn('%s object has no todict() method' %
+                      obj.__class__.__name__)
+        return obj.__class__.__name__
 
     def loads(txt):
         return eval(txt, {'false': False, 'true': True, 'null': None})
