@@ -23,6 +23,7 @@ def read_lammps_dump(fileobj, index=-1):
             lo = [] ; hi = [] ; tilt = []
             id = [] ; types = []
             positions = []
+            scaled_positions = []
             velocities = [] 
             forces = []
             quaternions = []
@@ -90,6 +91,7 @@ def read_lammps_dump(fileobj, index=-1):
                 id.append( int(fields[atom_attributes['id']]) )
                 types.append( int(fields[atom_attributes['type']]) )
                 add_quantity(fields, positions, ['x', 'y', 'z'])
+                add_quantity(fields, scaled_positions, ['xs', 'ys', 'zs'])
                 add_quantity(fields, velocities, ['vx', 'vy', 'vz'])
                 add_quantity(fields, forces, ['fx', 'fy', 'fz'])
                 add_quantity(fields, quaternions, ['c_q[1]', 'c_q[2]',
@@ -100,9 +102,14 @@ def read_lammps_dump(fileobj, index=-1):
                                           positions=positions,
                                           cell=cell, celldisp=celldisp,
                                           quaternions=quaternions))
-            else:
+            elif len(positions):
                 images.append(Atoms(symbols=types,
                                     positions=positions, celldisp=celldisp,
+                                    cell=cell))
+            elif len(scaled_positions):
+                images.append(Atoms(symbols=types,
+                                    scaled_positions=scaled_positions, 
+                                    celldisp=celldisp,
                                     cell=cell))
 
     return images[index]
