@@ -1,5 +1,6 @@
 from ase.atoms import Atoms
 from ase.quaternions import Quaternions
+from ase.calculators.singlepoint import SinglePointCalculator
 from ase.parallel import paropen
 
 def read_lammps_dump(fileobj, index=-1):
@@ -97,6 +98,7 @@ def read_lammps_dump(fileobj, index=-1):
                 add_quantity(fields, quaternions, ['c_q[1]', 'c_q[2]',
                                                    'c_q[3]', 'c_q[4]'])
 
+
             if len(quaternions):
                 images.append(Quaternions(symbols=types,
                                           positions=positions,
@@ -111,6 +113,11 @@ def read_lammps_dump(fileobj, index=-1):
                                     scaled_positions=scaled_positions, 
                                     celldisp=celldisp,
                                     cell=cell))
+
+            if len(forces):
+                calculator = SinglePointCalculator(0.0, forces,
+                                                   None, None, images[-1])
+                images[-1].set_calculator(calculator)
 
     return images[index]
 
