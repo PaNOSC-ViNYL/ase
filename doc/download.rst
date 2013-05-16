@@ -65,6 +65,7 @@ When using svn please set the following variable:
 ======= =========== ============================================ =============================
 Release Date        Retrieve as svn checkout                     Retrieve as tarball
 ======= =========== ============================================ =============================
+ 3.7.1_ May 16 2013 ``svn co -r 3184 $ASE_TAGS/3.7.1 ase-3.7.1`` python-ase-3.7.1.3184.tar.gz_
  3.7.0_ May 13 2013 ``svn co -r 3168 $ASE_TAGS/3.7.0 ase-3.7.0`` python-ase-3.7.0.3168.tar.gz_
  3.6.0_ Feb 24 2012 ``svn co -r 2515 $ASE_TAGS/3.6.0 ase-3.6.0`` python-ase-3.6.0.2515.tar.gz_
  3.5.1_ May 24 2011 ``svn co -r 2175 $ASE_TAGS/3.5.1 ase-3.5.1`` python-ase-3.5.1.2175.tar.gz_
@@ -76,14 +77,20 @@ Release Date        Retrieve as svn checkout                     Retrieve as tar
  3.0.0_ Nov 13 2008 ``svn co -r 657 $ASE_TAGS/3.0.0 ase-3.0.0``  python-ase-3.0.0.657.tar.gz_
 ======= =========== ============================================ =============================
 
+.. _3.7.1:
+    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.7.1
+
+.. _python-ase-3.7.1.3184.tar.gz:
+    https://wiki.fysik.dtu.dk/ase-files/python-ase-3.7.1.3184.tar.gz
+
 .. _3.7.0:
     https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.7.0
 
 .. _python-ase-3.7.0.3168.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.7.0.3168.tar.gz
 
-.. _3.7.0:
-    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.7.0
+.. _3.6.0:
+    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.6.0
 
 .. _python-ase-3.6.0.2515.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.6.0.2515.tar.gz

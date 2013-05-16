@@ -148,8 +148,6 @@ scripts = ['tools/ag', 'tools/ase', 'tools/ASE2ase', 'tools/testase',
 if 'sdist' in sys.argv or os.name in ['ce', 'nt']:
     for s in scripts[:]:
         scripts.append(s + '.bat')
-scripts.append('tools/pep8.py')  # our own custom version
-scripts.append('tools/sphinx.py')
 
 # data_files needs (directory, files-in-this-directory) tuples
 data_files = []
