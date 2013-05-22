@@ -8,14 +8,10 @@
 # License: See accompanying license files for details
 
 import os
-
 import numpy as np
-
 from ase.test import NotAvailable
-
 from ase.calculators.neighborlist import NeighborList
-from ase.calculators.general import Calculator
-
+from ase.calculators.calculator import Calculator
 from scipy.interpolate import InterpolatedUnivariateSpline as spline
 
 
@@ -49,7 +45,7 @@ given by the EAM potential as
 
 and
 
-.. math:: 
+.. math::
    \bar\rho_i = \sum_j \rho(r_{ij})
 
 where `F` is an embedding function, namely the energy to embed an atom `i` in
@@ -62,7 +58,7 @@ atom and its neighbour for that bond.
 
 The ADP potential is defined as
 
-.. math:: 
+.. math::
    E_{\rm tot} = \sum_i F(\bar\rho_i) + \frac{1}{2}\sum_{i\ne j} \phi(r_{ij})
    + {1\over 2} \sum_{i,\alpha} (\mu_i^\alpha)^2
    + {1\over 2} \sum_{i,\alpha,\beta} (\lambda_i^{\alpha\beta})^2
@@ -92,14 +88,13 @@ For example::
 
     from eam import EAM
 
-    mishin = EAM('Al99.eam.alloy')
-    mishin.write_file('new.eam.alloy')
+    mishin = EAM(potential='Al99.eam.alloy')
+    mishin.write_potential('new.eam.alloy')
     mishin.plot()
 
     slab.set_calculator(mishin)
     slab.get_potential_energy()
     slab.get_forces()
-
 
 Arguments
 =========
@@ -128,13 +123,13 @@ Keyword                    Description
 
 ``d_d[N,N], d_q[N,N]``     ADP dipole and quadrupole derivative functions
 
-``skin``                   skin distance passed to NeighborList(). If no atom 
+``skin``                   skin distance passed to NeighborList(). If no atom
                            has moved more than the skin-distance since the last
-                           call to the ``update()`` method then the neighbor 
-                           list can be reused. Defaults to 1.0. 
+                           call to the ``update()`` method then the neighbor
+                           list can be reused. Defaults to 1.0.
 
 ``form``                   the form of the potential ``alloy`` or ``adp``. This
-                           will be determined from the file suffix or must be 
+                           will be determined from the file suffix or must be
                            set if using equations
 
 =========================  ====================================================
@@ -163,7 +158,7 @@ Keyword                    Description
 
 ``drho``                   Increment for sampling density
 
-``nr``                     No. of radial points along density and pair 
+``nr``                     No. of radial points along density and pair
                            potential curves
 
 ``dr``                     Increment for sampling radius
@@ -191,6 +186,9 @@ Notes/Issues
   ``.eam`` format is currently not supported. The form of the
   potential will be determined from the file suffix.
 
+* The breakdown of energy compontents are stored in the calculator instance
+  ``.results['energy_components']``
+
 * Any supplied values will overide values read from the file.
 
 * The derivative functions, if supplied, are only used to calculate
@@ -209,39 +207,38 @@ Notes/Issues
 End EAM Interface Documentation
     """
 
-    def __init__(self, fileobj=None, **kwargs):
+    implemented_properties = ['energy', 'forces']
 
-        if fileobj != None:
-            self.read_file(fileobj)
+    default_parameters = dict(
+        skin=1.0,
+        potential=None,
+        header="""EAM/ADP potential file\nGenerated from eam.py\nblank\n""")
 
-        valid_args = ('elements', 'header', 'drho', 'dr', 'cutoff',
-                      'atomic_number', 'mass', 'a', 'lattice',
+    def __init__(self, restart=None, ignore_bad_restart_file=False,
+                  label=os.curdir, atoms=None, **kwargs):
+
+        if 'potential' in kwargs:
+            self.read_potential(kwargs['potential'])
+
+        Calculator.__init__(self, restart, ignore_bad_restart_file,
+                            label, atoms, **kwargs)
+
+        valid_args = ('potential', 'elements', 'header', 'drho', 'dr',
+                      'cutoff', 'atomic_number', 'mass', 'a', 'lattice',
                       'embedded_energy', 'electron_density', 'phi',
-                      # adp terms
-                      'd', 'q', 'd_d', 'd_q',
                       # derivatives
                       'd_embedded_energy', 'd_electron_density', 'd_phi',
+                      'd', 'q', 'd_d', 'd_q',  # adp terms
                       'skin', 'form', 'Z', 'nr', 'nrho', 'mass')
 
-        # these variables need to be set, but are not read in
-        if 'skin' not in kwargs:
-            self.skin = 1.0
-
         # set any additional keyword arguments
-        for arg, val in kwargs.iteritems():
+        for arg, val in self.parameters.iteritems():
             if arg in valid_args:
                 setattr(self, arg, val)
             else:
                 raise RuntimeError('unknown keyword arg "%s" : not in %s'
                                    % (arg, valid_args))
 
-        # initialise the state of the calculation
-        self.Nelements = len(self.elements)
-        self.energy = 0.0
-        self.positions = None
-        self.cell = None
-        self.pbc = None
-        
     def set_form(self, fileobj):
         """set the form variable based on the file name suffix"""
         extension = os.path.splitext(fileobj)[1]
@@ -249,18 +246,15 @@ End EAM Interface Documentation
         if extension == '.eam':
             self.form = 'eam'
             raise NotImplementedError
-        
         elif extension == '.alloy':
             self.form = 'alloy'
-                
         elif extension == '.adp':
             self.form = 'adp'
-
         else:
             raise RuntimeError('unknown file extension type: %s' % extension)
 
-    def read_file(self, fileobj):
-        """Reads a LAMMPS EAM file in alloy format
+    def read_potential(self, fileobj):
+        """Reads a LAMMPS EAM file in alloy or adp format
         and creates the interpolation functions from the data
         """
 
@@ -269,7 +263,7 @@ End EAM Interface Documentation
             self.set_form(fileobj)
         else:
             f = fileobj
-         
+
         lines = f.readlines()
         self.header = lines[:3]
         i = 3
@@ -278,7 +272,7 @@ End EAM Interface Documentation
         data = []
         for line in lines[i:]:
             data.extend(line.split())
-            
+
         self.Nelements = int(data[0])
         d = 1
         self.elements = data[d:(d + self.Nelements)]
@@ -289,7 +283,7 @@ End EAM Interface Documentation
         self.nr = int(data[d + 2])
         self.dr = float(data[d + 3])
         self.cutoff = float(data[d + 4])
-        
+
         self.embedded_data = np.zeros([self.Nelements, self.nrho])
         self.density_data = np.zeros([self.Nelements, self.nr])
         self.Z = np.zeros([self.Nelements], dtype=int)
@@ -305,7 +299,7 @@ End EAM Interface Documentation
             self.a[elem] = float(data[d + 2])
             self.lattice.append(data[d + 3])
             d += 4
-            
+
             self.embedded_data[elem] = np.float_(data[d:(d + self.nrho)])
             d += self.nrho
             self.density_data[elem] = np.float_(data[d:(d + self.nr)])
@@ -322,12 +316,19 @@ End EAM Interface Documentation
         self.r = np.arange(0, self.nr) * self.dr
         self.rho = np.arange(0, self.nrho) * self.drho
 
+        self.set_splines()
+
+        if (self.form == 'adp'):
+            self.read_adp_data(data, d)
+            self.set_adp_splines()
+
+    def set_splines(self):
         # this section turns the file data into three functions (and
         # derivative functions) that define the potential
-        self.embedded_energy = np.zeros(self.Nelements, object)
-        self.electron_density = np.zeros(self.Nelements, object)
-        self.d_embedded_energy = np.zeros(self.Nelements, object)
-        self.d_electron_density = np.zeros(self.Nelements, object)
+        self.embedded_energy = np.empty(self.Nelements, object)
+        self.electron_density = np.empty(self.Nelements, object)
+        self.d_embedded_energy = np.empty(self.Nelements, object)
+        self.d_electron_density = np.empty(self.Nelements, object)
 
         for i in range(self.Nelements):
             self.embedded_energy[i] = spline(self.rho,
@@ -337,8 +338,8 @@ End EAM Interface Documentation
             self.d_embedded_energy[i] = self.deriv(self.embedded_energy[i])
             self.d_electron_density[i] = self.deriv(self.electron_density[i])
 
-        self.phi = np.zeros([self.Nelements, self.Nelements], object)
-        self.d_phi = np.zeros([self.Nelements, self.Nelements], object)
+        self.phi = np.empty([self.Nelements, self.Nelements], object)
+        self.d_phi = np.empty([self.Nelements, self.Nelements], object)
 
         # ignore the first point of the phi data because it is forced
         # to go through zero due to the r*phi format in alloy and adp
@@ -361,31 +362,12 @@ End EAM Interface Documentation
                     self.phi[j, i] = self.phi[i, j]
                     self.d_phi[j, i] = self.d_phi[i, j]
 
-        if (self.form == 'adp'):
-            self.read_adp_data(data, d)
+    def set_adp_splines(self):
+        self.d = np.empty([self.Nelements, self.Nelements], object)
+        self.d_d = np.empty([self.Nelements, self.Nelements], object)
+        self.q = np.empty([self.Nelements, self.Nelements], object)
+        self.d_q = np.empty([self.Nelements, self.Nelements], object)
 
-    def read_adp_data(self, data, d):
-        """reads in the extra data fro the adp format"""
-
-        self.d_data = np.zeros([self.Nelements, self.Nelements, self.nr])
-        # should be non symetrical combinations of 2
-        for i in range(self.Nelements):
-            for j in range(i, self.Nelements):
-                self.d_data[i, j] = data[d:d + self.nr]
-                d += self.nr
-                
-        self.q_data = np.zeros([self.Nelements, self.Nelements, self.nr])
-        # should be non symetrical combinations of 2
-        for i in range(self.Nelements):
-            for j in range(i, self.Nelements):
-                self.q_data[i, j] = data[d:d + self.nr]
-                d += self.nr
-    
-        self.d = np.zeros([self.Nelements, self.Nelements], object)
-        self.d_d = np.zeros([self.Nelements, self.Nelements], object)
-        self.q = np.zeros([self.Nelements, self.Nelements], object)
-        self.d_q = np.zeros([self.Nelements, self.Nelements], object)
-    
         for i in range(self.Nelements):
             for j in range(i, self.Nelements):
                 self.d[i, j] = spline(self.r[1:], self.d_data[i, j][1:], k=3)
@@ -400,23 +382,34 @@ End EAM Interface Documentation
                     self.q[j, i] = self.q[i, j]
                     self.d_q[j, i] = self.d_q[i, j]
 
-    def write_file(self, filename, nc=1, form='%.8e'):
-        """Writes out the model of the eam_alloy in lammps alloy
-        format to file with name = 'filename' with a data format that
-        is nc columns wide.  Note: array lengths need to be an exact
-        multiple of nc
-"""
+    def read_adp_data(self, data, d):
+        """read in the extra adp data from the potential file"""
+
+        self.d_data = np.zeros([self.Nelements, self.Nelements, self.nr])
+        # should be non symetrical combinations of 2
+        for i in range(self.Nelements):
+            for j in range(i, self.Nelements):
+                self.d_data[i, j] = data[d:d + self.nr]
+                d += self.nr
+
+        self.q_data = np.zeros([self.Nelements, self.Nelements, self.nr])
+        # should be non symetrical combinations of 2
+        for i in range(self.Nelements):
+            for j in range(i, self.Nelements):
+                self.q_data[i, j] = data[d:d + self.nr]
+                d += self.nr
+
+    def write_potential(self, filename, nc=1, numformat='%.8e'):
+        """Writes out the potential in the format given by the form
+        variable to 'filename' with a data format that is nc columns
+        wide.  Note: array lengths need to be an exact multiple of nc
+        """
 
         f = open(filename, 'w')
 
         assert self.nr % nc == 0
         assert self.nrho % nc == 0
 
-        if not hasattr(self, 'header'):
-            self.header = """Unknown EAM potential file
-Generated from eam.py
-blank
-"""
         for line in self.header:
             f.write(line)
 
@@ -427,7 +420,7 @@ blank
 
         f.write('%d %f %d %f %f \n' %
                 (self.nrho, self.drho, self.nr, self.dr, self.cutoff))
-    
+
         # start of each section for each element
 #        rs = np.linspace(0, self.nr * self.dr, self.nr)
 #        rhos = np.linspace(0, self.nrho * self.drho, self.nrho)
@@ -441,11 +434,11 @@ blank
             np.savetxt(f,
                        self.embedded_energy[i](rhos).reshape(self.nrho / nc,
                                                              nc),
-                       fmt=nc * [form])
+                       fmt=nc * [numformat])
             np.savetxt(f,
                        self.electron_density[i](rs).reshape(self.nr / nc,
                                                             nc),
-                       fmt=nc * [form])
+                       fmt=nc * [numformat])
 
         # write out the pair potentials in Lammps DYNAMO setfl format
         # as r*phi for alloy format
@@ -454,59 +447,173 @@ blank
                 np.savetxt(f,
                            (rs * self.phi[i, j](rs)).reshape(self.nr / nc,
                                                              nc),
-                           fmt=nc * [form])
+                           fmt=nc * [numformat])
 
         if self.form == 'adp':
-            # these are the u(r) values
+            # these are the u(r) or dipole values
             for i in range(self.Nelements):
                 for j in range(i + 1):
                     np.savetxt(f, self.d_data[i, j])
-            
-            # these are the w(r) values
+
+            # these are the w(r) or quadrupole values
             for i in range(self.Nelements):
                 for j in range(i + 1):
                     np.savetxt(f, self.q_data[i, j])
-                
+
         f.close()
 
     def update(self, atoms):
         # check all the elements are available in the potential
+        self.Nelements = len(self.elements)
         elements = np.unique(atoms.get_chemical_symbols())
         unavailable = np.logical_not(
             np.array([item in self.elements for item in elements]))
+
         if np.any(unavailable):
             raise RuntimeError('These elements are not in the potential: %s' %
                                elements[unavailable])
-                    
-        # check if anything has changed to require re-calculation
-        if (self.positions is None or
-            len(self.positions) != len(atoms.get_positions()) or
-            (self.positions != atoms.get_positions()).any() or
-            (self.cell != atoms.get_cell()).any() or
-            (self.pbc != atoms.get_pbc()).any()):
 
-            # cutoffs need to be a vector for NeighborList
-            cutoffs = self.cutoff * np.ones(len(atoms))
+        # cutoffs need to be a vector for NeighborList
+        cutoffs = self.cutoff * np.ones(len(atoms))
 
-            # convert the elements to an index of the position
-            # in the eam format
-            self.index = np.array([atoms.calc.elements.index(el)
-                                   for el in atoms.get_chemical_symbols()])
-            self.pbc = atoms.get_pbc()
+        # convert the elements to an index of the position
+        # in the eam format
+        self.index = np.array([atoms.calc.elements.index(el)
+                               for el in atoms.get_chemical_symbols()])
+        self.pbc = atoms.get_pbc()
 
-            # since we need the contribution of all neighbors to the
-            # local electron density we cannot just calculate and use
-            # one way neighbors
-            self.neighbors = NeighborList(cutoffs, skin=self.skin,
-                                          self_interaction=False,
-                                          bothways=True)
-            self.neighbors.update(atoms)
-            self.calculate(atoms)
-            
-    def get_forces(self, atoms):
+        # since we need the contribution of all neighbors to the
+        # local electron density we cannot just calculate and use
+        # one way neighbors
+        self.neighbors = NeighborList(cutoffs,
+                                      skin=self.parameters.skin,
+                                      self_interaction=False,
+                                      bothways=True)
+        self.neighbors.update(atoms)
+
+    def calculate(self, atoms, properties, system_changes):
+        """Eam Calculator
+
+        atoms: Atoms object
+            Contains positions, unit-cell, ...
+        properties: list of str
+            List of what needs to be calculated.  Can be any combination
+            of 'energy', 'forces'
+        system_changes: list of str
+            List of what has changed since last calculation.  Can be
+            any combination of these five: 'positions', 'numbers', 'cell',
+            'pbc', 'charges' and 'magmoms'.
+            """
+
+        # we shouldn't really recalc if charges or magmos change
+        if len(system_changes) > 0:  # something wrong with this way
+            self.update(atoms)
+            self.calculate_energy(atoms)
+
+            if 'forces' in properties:
+                self.calculate_forces(atoms)
+
+        # check we have all the properties requested
+        for property in properties:
+            if property not in self.results:
+                if property is 'energy':
+                    self.calculate_energy(atoms)
+
+                if property is 'forces':
+                    self.calculate_forces(atoms)
+
+        # we need to remember the previous state of parameters
+#        if 'potential' in parameter_changes and potential != None:
+#                self.read_potential(potential)
+
+    def calculate_energy(self, atoms):
+        """Calculate the energy
+        the energy is made up of the ionic or pair interaction and
+        the embedding energy of each atom into the electron cloud
+        generated by its neighbors
+        """
+
+        pair_energy = 0.0
+        embedding_energy = 0.0
+        mu_energy = 0.0
+        lam_energy = 0.0
+        trace_energy = 0.0
+
+        self.total_density = np.zeros(len(atoms))
+        if (self.form == 'adp'):
+            self.mu = np.zeros([len(atoms), 3])
+            self.lam = np.zeros([len(atoms), 3, 3])
+
+        for i in range(len(atoms)):  # this is the atom to be embedded
+            neighbors, offsets = self.neighbors.get_neighbors(i)
+            offset = np.dot(offsets, atoms.get_cell())
+
+            rvec = (atoms.positions[neighbors] + offset -
+                    atoms.positions[i])
+
+            ## calculate the distance to the nearest neighbors
+            r = np.sqrt(np.sum(np.square(rvec), axis=1))  # fast
+#            r = np.apply_along_axis(np.linalg.norm, 1, rvec)  # sloow
+
+            nearest = np.arange(len(r))[r <= self.cutoff]
+            for j_index in range(self.Nelements):
+                use = self.index[neighbors[nearest]] == j_index
+                if not use.any():
+                    continue
+                pair_energy += np.sum(self.phi[self.index[i], j_index](
+                        r[nearest][use])) / 2.
+
+                density = np.sum(
+                    self.electron_density[j_index](r[nearest][use]))
+                self.total_density[i] += density
+
+                if self.form == 'adp':
+                    self.mu[i] += self.adp_dipole(
+                        r[nearest][use],
+                        rvec[nearest][use],
+                        self.d[self.index[i], j_index])
+
+                    self.lam[i] += self.adp_quadrupole(
+                        r[nearest][use],
+                        rvec[nearest][use],
+                        self.q[self.index[i], j_index])
+
+            # add in the electron embedding energy
+            embedding_energy += self.embedded_energy[self.index[i]](
+                self.total_density[i])
+
+        components = dict(pair=pair_energy, embedding=embedding_energy)
+
+        if self.form == 'adp':
+            mu_energy += np.sum(self.mu ** 2) / 2.
+            lam_energy += np.sum(self.lam ** 2) / 2.
+
+            for i in range(len(atoms)):  # this is the atom to be embedded
+                trace_energy -= np.sum(self.lam[i].trace() ** 2) / 6.
+
+            adp_result = dict(adp_mu=mu_energy,
+                              adp_lam=lam_energy,
+                              adp_trace=trace_energy)
+            components.update(adp_result)
+
+        self.positions = atoms.positions.copy()
+        self.cell = atoms.get_cell().copy()
+
+        energy = 0.0
+        for i in components.keys():
+            energy += components[i]
+
+        self.energy_free = energy
+        self.energy_zero = energy
+
+        self.results['energy_components'] = components
+        self.results['energy'] = energy
+
+    def calculate_forces(self, atoms):
         # calculate the forces based on derivatives of the three EAM functions
+
         self.update(atoms)
-        self.forces = np.zeros((len(atoms), 3))
+        self.results['forces'] = np.zeros((len(atoms), 3))
 
         for i in range(len(atoms)):  # this is the atom to be embedded
             neighbors, offsets = self.neighbors.get_neighbors(i)
@@ -522,7 +629,7 @@ blank
 
             for j in np.arange(len(neighbors)):
                 urvec[j] = urvec[j] / r[j]
-    
+
             for j_index in range(self.Nelements):
                 use = self.index[neighbors[nearest]] == j_index
                 if not use.any():
@@ -534,9 +641,9 @@ blank
                           self.d_electron_density[j_index](rnuse)) +
                          (self.d_embedded_energy[j_index](density_j) *
                           self.d_electron_density[self.index[i]](rnuse)))
-            
-                self.forces[i] += np.dot(scale, urvec[nearest][use])
-                
+
+                self.results['forces'][i] += np.dot(scale, urvec[nearest][use])
+
                 if (self.form == 'adp'):
                     adp_forces = self.angular_forces(
                         self.mu[i],
@@ -548,96 +655,72 @@ blank
                         self.index[i],
                         j_index)
 
-                    self.forces[i] += adp_forces
-                    
-        return self.forces.copy()
-            
-    def get_stress(self, atoms):
-        ## currently not implemented
-        raise NotImplementedError
-    
-    def calculate(self, atoms):
-        # calculate the energy
-        # the energy is made up of the ionic or pair interaction and
-        # the embedding energy of each atom into the electron cloud
-        # generated by its neighbors
+                    self.results['forces'][i] += adp_forces
 
-        energy = 0.0
-        adp_energy = 0.0
-        self.total_density = np.zeros(len(atoms))
-        if (self.form == 'adp'):
-            self.mu = np.zeros([len(atoms), 3])
-            self.lam = np.zeros([len(atoms), 3, 3])
+    def angular_forces(self, mu_i, mu, lam_i, lam, r, rvec, form1, form2):
+        # calculate the extra components for the adp forces
+        # rvec are the relative positions to atom i
+        psi = np.zeros(mu.shape)
+        for gamma in range(3):
+            term1 = (mu_i[gamma] - mu[:, gamma]) * self.d[form1][form2](r)
 
-        for i in range(len(atoms)):  # this is the atom to be embedded
-            neighbors, offsets = self.neighbors.get_neighbors(i)
-            offset = np.dot(offsets, atoms.get_cell())
-            
-            rvec = (atoms.positions[neighbors] + offset -
-                    atoms.positions[i])
+            term2 = np.sum((mu_i - mu)
+                           * self.d_d[form1][form2](r)[:, np.newaxis]
+                           * (rvec * rvec[:, gamma][:, np.newaxis]
+                           / r[:, np.newaxis]), axis=1)
 
-            ## calculate the distance to the nearest neighbors
-            r = np.sqrt(np.sum(np.square(rvec), axis=1))  # fast
-#            r = np.apply_along_axis(np.linalg.norm, 1, rvec)  # sloow
+            term3 = 2 * np.sum((lam_i[:, gamma] + lam[:, :, gamma])
+                               * rvec * self.q[form1][form2](r)[:, np.newaxis],
+                               axis=1)
+            term4 = 0.0
+            for alpha in range(3):
+                for beta in range(3):
+                    rs = rvec[:, alpha] * rvec[:, beta] * rvec[:, gamma]
+                    term4 += ((lam_i[alpha, beta] + lam[:, alpha, beta]) *
+                              self.d_q[form1][form2](r) * rs) / r
 
-            nearest = np.arange(len(r))[r <= self.cutoff]
-            for j_index in range(self.Nelements):
-                use = self.index[neighbors[nearest]] == j_index
-                if not use.any():
-                    continue
-                pair_energy = np.sum(self.phi[self.index[i], j_index](
-                        r[nearest][use])) / 2.
-                energy += pair_energy
+            term5 = ((lam_i.trace() + lam.trace(axis1=1, axis2=2)) *
+                     (self.d_q[form1][form2](r) * r
+                      + 2 * self.q[form1][form2](r)) * rvec[:, gamma]) / 3.
 
-                density = np.sum(
-                    self.electron_density[j_index](r[nearest][use]))
-                self.total_density[i] += density
+            # the minus for term5 is a correction on the adp
+            # formulation given in the 2005 Mishin Paper and is posted
+            # on the NIST website with the AlH potential
+            psi[:, gamma] = term1 + term2 + term3 + term4 - term5
 
-                if self.form == 'adp':
-                    self.mu[i] += self.eam_dipole(
-                        r[nearest][use],
-                        rvec[nearest][use],
-                        self.d[self.index[i], j_index])
-                    
-                    self.lam[i] += self.eam_quadrupole(
-                        r[nearest][use],
-                        rvec[nearest][use],
-                        self.q[self.index[i], j_index])
+        return np.sum(psi, axis=0)
 
-            # add in the electron embedding energy
-            embedding_energy = self.embedded_energy[self.index[i]](
-                self.total_density[i])
-#            print 'pair energy',energy
-#            print 'embed energy',embedding_energy
-            
-            energy += embedding_energy
+    def adp_dipole(self, r, rvec, d):
+        # calculate the dipole contribution
+        mu = np.sum((rvec * d(r)[:, np.newaxis]), axis=0)
 
-        if self.form == 'adp':
-            mu_energy = np.sum(self.mu**2) / 2.
-            adp_energy += mu_energy
-#            print 'adp mu', mu_energy
-            lam_energy = np.sum(self.lam**2) / 2.
-            adp_energy += lam_energy
-#            print 'adp lam', lam_energy
+        return mu  # sign to agree with lammps
 
-            for i in range(len(atoms)):  # this is the atom to be embedded
-                adp_energy -= np.sum(self.lam[i].trace()**2) / 6.
+    def adp_quadrupole(self, r, rvec, q):
+        # slow way of calculating the quadrupole contribution
+        r = np.sqrt(np.sum(rvec ** 2, axis=1))
 
-#            print 'energy no adp', energy
-            energy += adp_energy
+        lam = np.zeros([rvec.shape[0], 3, 3])
+        qr = q(r)
+        for alpha in range(3):
+            for beta in range(3):
+                lam[:, alpha, beta] += qr * rvec[:, alpha] * rvec[:, beta]
 
-        self.positions = atoms.positions.copy()
-        self.cell = atoms.get_cell().copy()
-        
-        self.energy_free = energy
-        self.energy_zero = energy
+        return np.sum(lam, axis=0)
+
+    def deriv(self, spline):
+        """Wrapper for extracting the derivative from a spline"""
+        def d_spline(aspline):
+            return spline(aspline, 1)
+
+        return d_spline
 
     def plot(self, name=''):
         """Plot the individual curves"""
 
         try:
             import matplotlib.pyplot as plt
-        
+
         except ImportError:
             raise NotAvailable('This needs matplotlib module.')
 
@@ -657,12 +740,12 @@ blank
             rho = self.rho
         else:
             rho = np.linspace(0, 10.0, 50)
-        
+
         plt.subplot(nrow, 2, 1)
         self.elem_subplot(rho, self.embedded_energy,
                           r'$\rho$', r'Embedding Energy $F(\bar\rho)$',
                           name, plt)
-        
+
         plt.subplot(nrow, 2, 2)
         self.elem_subplot(r, self.electron_density,
                           r'$r$', r'Electron Density $\rho(r)$', name, plt)
@@ -676,7 +759,7 @@ blank
             plt.subplot(nrow, 2, 5)
             self.multielem_subplot(r, self.d,
                                    r'$r$', r'Dipole Energy', name, plt)
-            
+
             plt.subplot(nrow, 2, 6)
             self.multielem_subplot(r, self.q,
                                    r'$r$', r'Quadrupole Energy', name, plt)
@@ -700,61 +783,4 @@ blank
                 plt.plot(curvex, curvey[i, j](curvex), label=label)
         plt.legend()
 
-    def angular_forces(self, mu_i, mu, lam_i, lam, r, rvec, form1, form2):
-        # calculate the extra components for the adp forces
-        # rvec are the relative positions to atom i
-        psi = np.zeros(mu.shape)
-        for gamma in range(3):
-            term1 = (mu_i[gamma] - mu[:, gamma]) * self.d[form1][form2](r)
-
-            term2 = np.sum((mu_i - mu) * self.d_d[form1][form2](r)[:, np.newaxis]
-                           * (rvec * rvec[:, gamma][:, np.newaxis]
-                              / r[:, np.newaxis]), axis=1)
-            
-            term3 = 2 * np.sum((lam_i[:, gamma] + lam[:, :, gamma])
-                               * rvec * self.q[form1][form2](r)[:, np.newaxis],
-                               axis=1)
-            term4 = 0.0
-            for alpha in range(3):
-                for beta in range(3):
-                    rs = rvec[:, alpha] * rvec[:, beta] * rvec[:, gamma]
-                    term4 += ((lam_i[alpha, beta] + lam[:, alpha, beta]) *
-                              self.d_q[form1][form2](r) * rs) / r
-                    
-            term5 = ((lam_i.trace() + lam.trace(axis1=1, axis2=2)) *
-                     (self.d_q[form1][form2](r) * r
-                      + 2 * self.q[form1][form2](r)) * rvec[:, gamma]) / 3.
-
-            # the minus for term5 is a correction on the adp
-            # formulation given in the 2005 Mishin Paper and is posted
-            # on the NIST website with the AlH potential
-            psi[:, gamma] = term1 + term2 + term3 + term4 - term5
-
-        return np.sum(psi, axis=0)
-
-    def eam_dipole(self, r, rvec, d):
-        # calculate the dipole contribution
-        mu = np.sum((rvec * d(r)[:, np.newaxis]), axis=0)
-
-        return mu  # sign to agree with lammps
-
-    def eam_quadrupole(self, r, rvec, q):
-        # slow way of calculating the quadrupole contribution
-        r = np.sqrt(np.sum(rvec**2, axis=1))
-    
-        lam = np.zeros([rvec.shape[0], 3, 3])
-        qr = q(r)
-        for alpha in range(3):
-            for beta in range(3):
-                lam[:, alpha, beta] += qr * rvec[:, alpha] * rvec[:, beta]
-            
-        return np.sum(lam, axis=0)
-
-    def deriv(self, spline):
-        """Wrapper for extracting the derivative from a spline"""
-        def d_spline(aspline):
-            return spline(aspline, 1)
-
-        return d_spline
-
-#print 'done'
+#print 'done eam'
