@@ -70,7 +70,7 @@ class OPLSff:
 
             def add_line():
                 line = fileobj.readline().strip()
-                if len(line) <= 1: # end of the block
+                if not len(line): # end of the block
                     return False
                 line = line.split('#')[0] # get rid of comments
                 if len(line) > symlen:
@@ -91,7 +91,6 @@ class OPLSff:
         read_block('bonds',      5, 2)
         read_block('angles',     8, 2)
         read_block('dihedrals', 11, 3)
-
         read_block('cutoffs',      5, 1)
 
         self.bonds = BondData(self.data['bonds'])
