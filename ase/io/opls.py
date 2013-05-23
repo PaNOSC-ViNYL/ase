@@ -69,7 +69,7 @@ class OPLSff:
             data = self.data[name]
 
             def add_line():
-                line = fileobj.readline()
+                line = fileobj.readline().strip()
                 if len(line) <= 1: # end of the block
                     return False
                 line = line.split('#')[0] # get rid of comments
