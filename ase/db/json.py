@@ -148,18 +148,25 @@ class JSONDatabase(NoDatabase):
 
     @lock
     @parallel
-    def update(self, ids, set_keywords):
+    def update(self, ids, add_keywords, add_key_value_pairs):
         bigdct = read_json(self.filename)
+        m = 0
         n = 0
         for id in ids:
-            keywords = bigdct[id].get('keywords', [])
-            for keyword in set_keywords:
-                if keyword not in keywords:
-                    keywords.append(keyword)
-                    n += 1
-        if n > 0:
-            write_json(self.filename, bigdct)
-        return n
+            dct = bigdct[id]
+            if add_keywords:
+                keywords = dct.setdefault('keywords', [])
+                for keyword in add_keywords:
+                    if keyword not in keywords:
+                        keywords.append(keyword)
+                        m += 1
+            if add_key_value_pairs:
+                key_value_pairs = dct.setdefault('key_value_pairs', {})
+                n -= len(key_value_pairs)
+                key_value_pairs.update(add_key_value_pairs)
+                n += len(key_value_pairs)
+        write_json(self.filename, bigdct)
+        return m, n
 
 
 def get_value(dct, key):

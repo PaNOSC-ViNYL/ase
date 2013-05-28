@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 import json
 import sqlite3
 
@@ -11,69 +11,79 @@ from ase.db.json import encode, numpyfy
 
 init_statements = """\
 create table systems (
- id text primary key,
- unique_id text,
- timestamp real,
- username text,
- numbers blob,
- positions blob,
- cell blob,
- pbc integer,
- initial_magmoms blob,
- initial_charges blob,
- masses blob,
- tags blob,
- moments blob,
- constraints text,
- calculator_name text,
- calculator_parameters text,
- energy real,
- free_energy real,
- forces blob,
- stress blob,
- magmoms blob,
- magmom blob,
- charges blob,
- data text); -- contains keywords and key_value_pairs also
+    id text primary key,
+    unique_id text unique,
+    timestamp real,
+    username text,
+    numbers blob,
+    positions blob,
+    cell blob,
+    pbc integer,
+    initial_magmoms blob,
+    initial_charges blob,
+    masses blob,
+    tags blob,
+    moments blob,
+    constraints text,
+    calculator_name text,
+    calculator_parameters text,
+    energy real,
+    free_energy real,
+    forces blob,
+    stress blob,
+    magmoms blob,
+    magmom blob,
+    charges blob,
+    data text); -- contains keywords and key_value_pairs also
 create index unique_id_index on systems(unique_id);
 create table species (
- Z integer,
- n integer,
- id text,
- foreign key (id) references systems(id));
+    Z integer,
+    n integer,
+    id text,
+    foreign key (id) references systems(id));
 create index species_index on species(Z);
 create table keywords (
- keyword text,
- id text,
- foreign key (id) references systems(id));
+    keyword text,
+    id text,
+    foreign key (id) references systems(id));
 create table text_key_values (
- key text,
- value text,
- id text,
- foreign key (id) references systems(id));
+    key text,
+    value text,
+    id text,
+    foreign key (id) references systems(id));
 create table number_key_values (
- key text,
- value real,
- id text,
- foreign key (id) references systems (id))
+    key text,
+    value real,
+    id text,
+    foreign key (id) references systems (id))
 """
+
+tables = ['systems', 'species', 'keywords',
+          'text_key_values', 'number_key_values']
 
 
 class SQLite3Database(NoDatabase):
-    def _write(self, id, atoms, keywords, key_value_pairs, data, replace):
-        con = sqlite3.connect(self.filename)
+    def _connect(self):
+        return sqlite3.connect(self.filename)
+
+    def _initialize(self, con):
         cur = con.execute(
             'select count(*) from sqlite_master where name="systems"')
-        if not cur.fetchone()[0]:
+        if cur.fetchone()[0] == 0:
             for statement in init_statements.split(';'):
                 con.execute(statement)
             con.commit()
+
+    def _write(self, id, atoms, keywords, key_value_pairs, data, replace):
+        con = self._connect()
+        self._initialize(con)
+        cur = con.cursor()
                 
         if isinstance(atoms, dict):
             dct = atoms
             unique_id = dct['unique_id']
-            cur = con.execute('select id from systems where unique_id=?',
-                              (unique_id,))
+            cur.execute('select id from systems where unique_id=?',
+                        (unique_id,))
             rows = cur.fetchall()
             if rows:
                 id = rows[0][0]
@@ -81,20 +91,14 @@ class SQLite3Database(NoDatabase):
             dct = self.collect_data(atoms)
 
         if id is None:
-            cur = con.execute('select count(*) from systems')
+            cur.execute('select count(*) from systems')
             nrows = cur.fetchone()[0]
             while id is None:
                 id = self.create_random_id(nrows)
-                cur = con.execute('select count(*) from systems where id=?',
-                                  id)
+                cur.execute('select count(*) from systems where id=?', id)
                 if cur.fetchone()[0] == 1:
                     id = None
             
-        if atoms is None:
-            row = (id, None, None, None, None, None, None, None, None, None,
-                   None, None, None, None, None, None, None, None, None, None,
-                   None, None, None, None)
-
         row = (id,
                dct['unique_id'],
                self.timestamp,
@@ -102,18 +106,20 @@ class SQLite3Database(NoDatabase):
                blob(dct.get('numbers')),
                blob(dct.get('positions')),
                blob(dct.get('cell')),
-               blob(dct.get('pbc')),
+               int(np.dot(dct.get('pbc'), [1, 2, 4])),
                blob(dct.get('magmoms')),
                blob(dct.get('charges')),
                blob(dct.get('masses')),
                blob(dct.get('tags')),
                blob(dct.get('moments')),
                dct.get('constraints'))
+
         if 'calculator_name' in dct:
             row += (dct['calculator_name'],
                     encode(dct['calculator_parameters']))
         else:
             row += (None, None)
+
         if 'results' in dct:
             r = dct['results']
             magmom = r.get('magmom')
@@ -129,24 +135,27 @@ class SQLite3Database(NoDatabase):
                     blob(r.get('charges')))
         else:
             row += (None, None, None, None, None, None, None)
+
         row += (encode({'data': data,
                         'keywords': keywords,
                         'key_value_pairs': key_value_pairs}),)
 
-        q = ', '.join('?' * len(row))
-        if replace:
-            con.execute('insert or replace into systems values (%s)' % q, row)
-        else:
-            try:
-                con.execute('insert into systems values (%s)' % q, row)
-            except sqlite3.IntegrityError:
-                raise IdCollisionError
+        cur.execute('select count(*) from systems where id=?', (id,))
+        new = (cur.fetchone()[0] == 0)
 
-        if atoms is not None:
-            count = np.bincount(atoms.numbers)
-            unique_numbers = count.nonzero()[0]
-            species = [(int(Z), int(count[Z]), id) for Z in unique_numbers]
-            con.executemany('insert into species values (?, ?, ?)', species)
+        if not (replace or new):
+            raise IdCollisionError
+
+        if not new:
+            self._delete(cur, [id])
+
+        q = ', '.join('?' * len(row))
+        cur.execute('insert into systems values (%s)' % q, row)
+
+        count = np.bincount(dct['numbers'])
+        unique_numbers = count.nonzero()[0]
+        species = [(int(Z), int(count[Z]), id) for Z in unique_numbers]
+        cur.executemany('insert into species values (?, ?, ?)', species)
 
         text_key_values = []
         number_key_values = []
@@ -159,20 +168,20 @@ class SQLite3Database(NoDatabase):
                 assert 0, value
  
         if text_key_values:
-            con.executemany('insert into text_key_values values (?, ?, ?)',
-                             text_key_values)
+            cur.executemany('insert into text_key_values values (?, ?, ?)',
+                            text_key_values)
         if number_key_values:
-            con.executemany('insert into number_key_values values (?, ?, ?)',
-                             number_key_values)
+            cur.executemany('insert into number_key_values values (?, ?, ?)',
+                            number_key_values)
         if keywords:
-            con.executemany('insert into keywords values (?, ?)',
+            cur.executemany('insert into keywords values (?, ?)',
                             [(keyword, id) for keyword in keywords])
 
         con.commit()
         con.close()
        
     def _get_dict(self, id):
-        con = sqlite3.connect(self.filename)
+        con = self._connect()
         c = con.cursor()
         if id in [-1, 0]:
             c.execute('select count(*) from systems')
@@ -191,7 +200,7 @@ class SQLite3Database(NoDatabase):
                'numbers': deblob(row[4], int),
                'positions': deblob(row[5], shape=(-1, 3)),
                'cell': deblob(row[6], shape=(3, 3)),
-               'pbc': deblob(row[7], bool)}
+               'pbc': (row[7] & np.array([1, 2, 4])).astype(bool)}
         if row[8] is not None:
             dct['magmoms'] = deblob(row[8])
         if row[9] is not None:
@@ -274,8 +283,9 @@ class SQLite3Database(NoDatabase):
             sql = 'explain query plan ' + sql
         if verbosity == 2:
             print(sql)
-        con = sqlite3.connect(self.filename)
-        cur = con.execute(sql)
+        con = self._connect()
+        cur = con.cursor()
+        cur.execute(sql)
         if explain:
             for row in cur.fetchall():
                 yield row
@@ -295,11 +305,15 @@ class SQLite3Database(NoDatabase):
                     yield self.row_to_dict(row)
         
     def delete(self, ids):
-        con = sqlite3.connect(self.filename)
-        cur = con.executemany('delete from systems where id=?',
-                              ((id,) for id in ids))
+        con = self._connect()
+        self._delete(con.cursor(), ids)
         con.commit()
         con.close()
+
+    def _delete(self, cur, ids):
+        for table in tables[::-1]:
+            cur.executemany('delete from {} where id=?'.format(table),
+                            ((id,) for id in ids))
 
 
 def blob(array):

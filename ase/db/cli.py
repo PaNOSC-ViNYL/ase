@@ -27,8 +27,8 @@ def run(args=sys.argv[1:]):
     add('--explain', action='store_true')
     add('-y', '--yes', action='store_true')
     add('-i', '--insert-into')
-    add('-k', '--set-keywords')
-    add('-K', '--set-key-value-pairs')
+    add('-k', '--add-keywords')
+    add('-K', '--add-key-value-pairs')
     add('--delete-keywords')
     add('--delete-key-value-pairs')
     add('--delete', action='store_true')
@@ -43,11 +43,6 @@ def run(args=sys.argv[1:]):
 
     if verbosity == 2:
         print(args)
-
-    if args.set_keywords:
-        set_keywords = args.set_keywords.split(',')
-    else:
-        set_keywords = []
 
     rows = con.select(args.selection, explain=args.explain,
                       verbosity=verbosity)
@@ -64,12 +59,28 @@ def run(args=sys.argv[1:]):
             print('%d %d %d %s' % row)
         return
 
+    if args.add_keywords:
+        add_keywords = args.add_keywords.split(',')
+    else:
+        add_keywords = []
+
+    add_key_value_pairs = {}
+    if args.add_key_value_pairs:
+        for pair in args.add_key_value_pairs.split(','):
+            key, value = pair.split('=')
+            try:
+                value = int(value)
+                value = float(value)
+            except ValueError:
+                pass
+            add_key_value_pairs[key] = value
+
     if args.insert_into:
         con2 = connect(args.insert_into)
         n = 0
         ids = []
         for dct in rows:
-            for keyword in set_keywords:
+            for keyword in add_keywords:
                 if keyword not in dct.keywords:
                     dct.keywords.append(keyword)
                     n += 1
@@ -86,10 +97,13 @@ def run(args=sys.argv[1:]):
         print('Inserted %s' % plural(len(ids), 'row'))
         return ids  
 
-    if set_keywords:
+    if add_keywords or add_key_value_pairs:
         ids = [dct['id'] for dct in rows]
-        n = con.update(ids, set_keywords)
-        print('Added %s' % plural(n, 'keyword'))
+        m, n = con.update(ids, add_keywords, add_key_value_pairs)
+        print('Added %s and %s (%s updated)' %
+              (plural(m, 'keyword'),
+               plural(n, 'key-value pair'),
+               plural(len(add_key_value_pairs) * len(ids) - n, 'pair')))
         return ids
 
     if args.delete:

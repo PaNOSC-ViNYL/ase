@@ -37,10 +37,12 @@ ops = {'<': operator.lt,
        '>': operator.gt}
 
 
-def connect(name, type='use_filename_extension', use_lock_file=False):
-    if type == 'use_filename_extension':
+def connect(name, type='extract_from_name', use_lock_file=False):
+    if type == 'extract_from_name':
         if name is None:
             type = None
+        elif name.startswith('postgres://'):
+            type = 'postgres'
         else:
             type = os.path.splitext(name)[1][1:]
 
@@ -51,6 +53,8 @@ def connect(name, type='use_filename_extension', use_lock_file=False):
         from ase.db.json import JSONDatabase as DB
     elif type == 'sqlite':
         from ase.db.sqlite import SQLite3Database as DB
+    elif type == 'postgres':
+        from ase.db.postgresql import PostgreSQLDatabase as DB
     else:
         assert 0
     return DB(name, use_lock_file=use_lock_file)
@@ -181,17 +185,24 @@ class NoDatabase:
 
     @lock
     @parallel
-    def update(self, ids, set_keywords):
+    def update(self, ids, add_keywords, add_key_value_pairs):
+        m = 0
         n = 0
         for id in ids:
             dct = self._get_dict(id)
             keywords = dct.get('keywords', [])
-            for keyword in set_keywords:
+            for keyword in add_keywords:
                 if keyword not in keywords:
                     keywords.append(keyword)
-                    n += 1
-            self._write(id, dct, keywords, None, data=None, replace=True)
-        return n
+                    m += 1
+            key_value_pairs = dct.get('key_value_pairs', {})
+            n -= len(key_value_pairs)
+            key_value_pairs.update(add_key_value_pairs)
+            n += len(key_value_pairs)
+            self.timestamp = dct['timestamp']
+            self._write(id, dct, keywords, key_value_pairs,
+                        data=dct.get('data', {}), replace=True)
+        return m, n
 
     @parallel_generator
     def select(self, expressions=None, **kwargs):
