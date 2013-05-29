@@ -793,6 +793,7 @@ class Hookean(FixConstraint):
             self.indices = [a1, a2]
         elif len(a2) == 3:
             self._type = 'point'
+            self.index = a1
             self.origin = np.array(a2)
         elif len(a2) == 4:
             self._type = 'plane'
