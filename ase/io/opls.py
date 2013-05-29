@@ -91,6 +91,8 @@ class OPLSff:
         read_block('bonds',      5, 2)
         read_block('angles',     8, 2)
         read_block('dihedrals', 11, 3)
+        if len(self.data['dihedrals']):
+            raise NotImplementedError('Dihedrals are not implemented.')
         read_block('cutoffs',      5, 1)
 
         self.bonds = BondData(self.data['bonds'])
