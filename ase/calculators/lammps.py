@@ -705,8 +705,7 @@ class prism:
         return (axy >= acc) or (axz >= acc) or (ayz >= acc)
         
 
-def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False, 
-                      prismobj=None, speclist=None):
+def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False, prismobj=None):
     """Method which writes atomic structure data to a LAMMPS data file."""
     if isinstance(fileobj, str):
         f = paropen(fileobj, 'w')
@@ -735,8 +734,6 @@ def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False,
         # To index elements in the LAMMPS data file 
         # (indices must correspond to order in the potential file)
         species = specorder
-    if speclist is None:
-        speclist = [species.index(symbols[i]) + 1 for i in len(atoms)]
     n_atom_types = len(species)
     f.write('%d  atom types\n' % n_atom_types)
 
@@ -757,7 +754,7 @@ def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False,
     f.write('Atoms \n\n')
     for i, r in enumerate(map(p.pos_to_lammps_str,
                               atoms.get_positions())):
-        s = speclist[i]
+        s = species.index(symbols[i]) + 1
         f.write('%6d %3d %s %s %s\n' % ((i+1, s)+tuple(r)))
     
     if close_file:
