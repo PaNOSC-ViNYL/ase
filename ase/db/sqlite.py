@@ -35,13 +35,11 @@ create table systems (
     magmom blob,
     charges blob,
     data text); -- contains keywords and key_value_pairs also
-create index unique_id_index on systems(unique_id);
 create table species (
     Z integer,
     n integer,
     id text,
     foreign key (id) references systems(id));
-create index species_index on species(Z);
 create table keywords (
     keyword text,
     id text,
@@ -58,6 +56,11 @@ create table number_key_values (
     foreign key (id) references systems (id))
 """
 
+index_statements = """\
+create index unique_id_index on systems(unique_id);
+create index species_index on species(Z)
+"""
+
 tables = ['systems', 'species', 'keywords',
           'text_key_values', 'number_key_values']
 
@@ -72,6 +75,9 @@ class SQLite3Database(NoDatabase):
         if cur.fetchone()[0] == 0:
             for statement in init_statements.split(';'):
                 con.execute(statement)
+            if self.create_indices:
+                for statement in index_statements.split(';'):
+                    con.execute(statement)
             con.commit()
 
     def _write(self, id, atoms, keywords, key_value_pairs, data, replace):
@@ -95,7 +101,7 @@ class SQLite3Database(NoDatabase):
             nrows = cur.fetchone()[0]
             while id is None:
                 id = self.create_random_id(nrows)
-                cur.execute('select count(*) from systems where id=?', id)
+                cur.execute('select count(*) from systems where id=?', (id,))
                 if cur.fetchone()[0] == 1:
                     id = None
             
@@ -233,7 +239,11 @@ class SQLite3Database(NoDatabase):
                 results['charges'] = deblob(row[22])
             if results:
                 dct['results'] = results
-            dct.update(numpyfy(json.loads(row[23])))
+
+        extra = numpyfy(json.loads(row[23]))
+        for key in ['keywords', 'key_value_pairs', 'data']:
+            if extra[key]:
+                dct[key] = extra[key]
         return dct
 
     def _select(self, keywords, cmps, explain, verbosity):
@@ -312,7 +322,7 @@ class SQLite3Database(NoDatabase):
 
     def _delete(self, cur, ids):
         for table in tables[::-1]:
-            cur.executemany('delete from {} where id=?'.format(table),
+            cur.executemany('delete from {0} where id=?'.format(table),
                             ((id,) for id in ids))
 
 

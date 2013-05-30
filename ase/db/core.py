@@ -37,7 +37,8 @@ ops = {'<': operator.lt,
        '>': operator.gt}
 
 
-def connect(name, type='extract_from_name', use_lock_file=False):
+def connect(name, type='extract_from_name', create_indices=True,
+            use_lock_file=False):
     if type == 'extract_from_name':
         if name is None:
             type = None
@@ -50,14 +51,15 @@ def connect(name, type='extract_from_name', use_lock_file=False):
         return NoDatabase()
 
     if type == 'json':
-        from ase.db.json import JSONDatabase as DB
-    elif type == 'sqlite':
-        from ase.db.sqlite import SQLite3Database as DB
-    elif type == 'postgres':
+        from ase.db.json import JSONDatabase
+        return JSONDatabase(name, use_lock_file=use_lock_file)
+    if type == 'sqlite':
+        from ase.db.sqlite import SQLite3Database
+        return SQLite3Database(name, create_indices, use_lock_file)
+    if type == 'postgres':
         from ase.db.postgresql import PostgreSQLDatabase as DB
-    else:
-        assert 0
-    return DB(name, use_lock_file=use_lock_file)
+        return PostgreSQLDatabase(name, create_indices)
+    assert 0
 
 
 class FancyDict(dict):
@@ -118,8 +120,10 @@ def parallel_generator(generator):
 
 
 class NoDatabase:
-    def __init__(self, filename=None, use_lock_file=False):
+    def __init__(self, filename=None, create_indices=True,
+                 use_lock_file=False):
         self.filename = filename
+        self.create_indices = create_indices
         if use_lock_file:
             self.lock = Lock(filename + '.lock')
         else:

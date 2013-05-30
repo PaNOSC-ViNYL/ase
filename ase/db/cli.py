@@ -34,6 +34,8 @@ def run(args=sys.argv[1:]):
     add('--delete', action='store_true')
     add('-v', '--verbose', action='store_true')
     add('-q', '--quiet', action='store_true')
+    add('-l', '--long', action='store_true')
+    add('--limit', type=int, default=500)
 
     args = parser.parse_args(args)
 
@@ -68,11 +70,13 @@ def run(args=sys.argv[1:]):
     if args.add_key_value_pairs:
         for pair in args.add_key_value_pairs.split(','):
             key, value = pair.split('=')
-            try:
-                value = int(value)
-                value = float(value)
-            except ValueError:
-                pass
+            for type in [int, float]:
+                try:
+                    value = type(value)
+                except ValueError:
+                    pass
+                else:
+                    break
             add_key_value_pairs[key] = value
 
     if args.insert_into:
@@ -118,10 +122,18 @@ def run(args=sys.argv[1:]):
 
     dcts = list(rows)
     if len(dcts) > 0:
+        if args.long:
+            long(dcts[0], verbosity)
+            return dcts[0]
         f = Formatter(columns=args.columns)
         return f.format(dcts)
 
     return []
+
+
+def long(name, dct, verbosity=1):
+    print(name)
+    print(dct)
 
 
 def cut(txt, length):
@@ -206,11 +218,11 @@ class Formatter:
         return (d.results.forces**2).sum(1).max()**0.5
 
     def keywords(self, d):
-        return ','.join(d.keywords)
+        return cut(','.join(d.keywords), 30)
 
     def keyvals(self, d):
-        return ','.join(['%s=%s' % (key, cut(value, 8))
-                         for key, value in d.key_value_pairs.items()])
+        return cut(','.join(['%s=%s' % (key, cut(str(value), 8))
+                             for key, value in d.key_value_pairs.items()]), 40)
 
     def charge(self, d):
         return d.results.charge
