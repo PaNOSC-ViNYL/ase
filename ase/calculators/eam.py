@@ -79,7 +79,7 @@ Running the Calculator
 EAM calculates the cohesive atom energy and forces. Internally the
 potential functions are defined by splines which may be directly
 supplied or created by reading the spline points from a data file from
-which a slpline function is created.  The LAMMPS compatible ``.alloy``
+which a spline function is created.  The LAMMPS compatible ``.alloy``
 and ``.adp`` formats are supported. The LAMMPS ``.eam`` format is
 slightly different from the ``.alloy`` format and is currently not
 supported.
@@ -102,10 +102,10 @@ Arguments
 =========================  ====================================================
 Keyword                    Description
 =========================  ====================================================
-``fileobj``                file of potential in ``.alloy`` or ``.adp`` format
+``potential``                file of potential in ``.alloy`` or ``.adp`` format
                            (This is generally all you need to supply)
 
-``elements[N]``            array of N element abreviations
+``elements[N]``            array of N element abbreviations
 
 ``embedded_energy[N]``     arrays of embedded energy functions
 
@@ -179,21 +179,24 @@ Notes/Issues
 * Although currently not fast, this calculator can be good for trying
   small calculations or for creating new potentials by matching baseline
   data such as from DFT results. The format for these potentials is
-  compatable with LAMMPS_ and so can be used either directly by LAMMPS or
+  compatible with LAMMPS_ and so can be used either directly by LAMMPS or
   with the ASE LAMMPS calculator interface.
 
 * Supported formats are the LAMMPS_ ``.alloy`` and ``.adp``. The
   ``.eam`` format is currently not supported. The form of the
   potential will be determined from the file suffix.
 
-* The breakdown of energy compontents are stored in the calculator instance
+* The breakdown of energy components are stored in the calculator instance
   ``.results['energy_components']``
 
-* Any supplied values will overide values read from the file.
+* Any supplied values will override values read from the file.
 
 * The derivative functions, if supplied, are only used to calculate
   forces.
 
+* There is a bug in early versions of scipy that will cause eam.py to
+  crash when trying to evaluate splines of a potential with one
+  neighbor such as caused by evaluating a dimer.
 
 .. _LAMMPS: http://lammps.sandia.gov/
 
@@ -346,7 +349,7 @@ End EAM Interface Documentation
         for i in range(self.Nelements):
             for j in range(i, self.Nelements):
                 if self.form == 'eam':  # not stored as rphi
-                    # should we igore the first point for eam ?
+                    # should we ignore the first point for eam ?
                     raise RuntimeError('.eam format not yet supported')
 
                     self.phi[i, j] = spline(
@@ -492,7 +495,7 @@ End EAM Interface Documentation
         self.neighbors.update(atoms)
 
     def calculate(self, atoms, properties, system_changes):
-        """Eam Calculator
+        """EAM Calculator
 
         atoms: Atoms object
             Contains positions, unit-cell, ...
