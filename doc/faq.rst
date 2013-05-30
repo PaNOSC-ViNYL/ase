@@ -8,7 +8,7 @@ Frequently Asked Questions
 ASE-GUI
 =======
 
-See also the :mod:`documantation for ag <gui>`.
+See also the :mod:`documentation for ag <gui>`.
 
 How do I export images from a trajectory to png or pov files?
 -------------------------------------------------------------
@@ -17,9 +17,9 @@ With ag, you can choose :menuselection:`File --> Save`, but this is
 not fun if you need to do it for many images.  Here is how to do it on
 the command line for a number of images::
 
-  ag images.traj@0 -o image0.pov 
-  ag images.traj@1 -o image1.pov 
-  ag images.traj@2 -o image2.pov 
+  ag images.traj@0 -o image0.pov
+  ag images.traj@1 -o image1.pov
+  ag images.traj@2 -o image2.pov
 
 If you have many images, it will be easier to do it using the Python
 interpreter:
@@ -73,4 +73,4 @@ Trying to checkout the code via SVN resulted::
  [~]$ svn checkout "https://svn.fysik.dtu.dk/projects/ase/trunk"
  svn: Unrecognized URL scheme 'https://svn.fysik.dtu.dk/projects/ase/trunk'
 
-This error is diplayed in case the library 'libsvn_ra_dav' is missing on your system. The library is used by SVN, but is not installed by default. 
+This error is diplayed in case the library 'libsvn_ra_dav' is missing on your system. The library is used by SVN, but is not installed by default.

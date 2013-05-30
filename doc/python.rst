@@ -27,7 +27,7 @@ You can execute Python code interactively by starting the interpreter
 like this::
 
   $ python
-  Python 2.5.1 (r251:54863, Mar  7 2008, 04:10:12) 
+  Python 2.5.1 (r251:54863, Mar  7 2008, 04:10:12)
   [GCC 4.1.3 20070929 (prerelease) (Ubuntu 4.1.2-16ubuntu2)] on linux2
   Type "help", "copyright", "credits" or "license" for more information.
   >>> print 'hello'
@@ -84,7 +84,7 @@ Python has the following predefined types:
 type         description            example
 ===========  =====================  ==========================
 ``bool``     boolean                ``False``
-``int``       integer                ``117``
+``int``      integer                ``117``
 ``float``    floating point number  ``1.78``
 ``complex``  complex number         ``0.5 + 2.0j``
 ``str``      string                 ``'abc'``
@@ -113,7 +113,7 @@ A ``list`` object is an ordered collection of arbitrary objects:
 'hmm'
 
 A ``tuple`` behaves like a ``list`` - except that it can't be modified
-inplace.  Objects of types ``list`` and ``dict`` are *mutable* - all
+in place.  Objects of types ``list`` and ``dict`` are *mutable* - all
 the other types listed in the table are *immutable*, which means that
 once an object has been created, it can not change.
 

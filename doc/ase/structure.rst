@@ -1,6 +1,6 @@
 .. module:: structure
 
-.. seealso:: 
+.. seealso::
 
    * The :mod:`lattice` module
    * The :mod:`~lattice.spacegroup` module
@@ -70,7 +70,7 @@ examples:
 >>> from ase.structure import graphene_nanoribbon
 >>> gnr1 = graphene_nanoribbon(3, 4, type='armchair', saturated=True)
 >>> gnr2 = graphene_nanoribbon(2, 6, type='zigzag', saturated=True,
->>>                            C_H=1.1, C_C=1.4, vacuum=6.0, 
+>>>                            C_H=1.1, C_C=1.4, vacuum=6.0,
 >>>                            magnetic=True, initial_mag=1.12)
 
 |gnr1| |gnr2|
@@ -81,7 +81,7 @@ examples:
 Special points in the Brillouin zone
 ====================================
 
-You can find the psecial points in the Brillouin zone:
+You can find the special points in the Brillouin zone:
 
 >>> from ase.structure import bulk
 >>> from ase.dft.kpoints import ibz_points, get_bandpath

@@ -5,7 +5,7 @@ Overview
 ========
 
 ASE is an Atomistic Simulation Environment written in the
-Python_ programming language with the aim of setting up, stearing, and
+Python_ programming language with the aim of setting up, steering, and
 analyzing atomistic simulations. The ASE has been constructed with a
 number of "design goals" that make it:
 
@@ -25,7 +25,7 @@ number of "design goals" that make it:
   Since ASE is based on the Python scripting language it is possible
   to perform very complicated simulation tasks without any code modifications.
   For example, a sequence of calculations may be performed with
-  the use of simple "for-loop" constructions. There exist ASE modules for 
+  the use of simple "for-loop" constructions. There exist ASE modules for
   performing many standard simulation tasks.
 
 - **Customizable**:
@@ -35,7 +35,7 @@ number of "design goals" that make it:
   energies, forces and stresses, :mod:`md` and :mod:`optimize` modules
   for controlling the motion of atoms, :mod:`constraint <constraints>`
   objects and filters for performing :mod:`nudged-elastic-band <neb>`
-  calculations etc. The modularity of the object-oriented code make it 
+  calculations etc. The modularity of the object-oriented code make it
   simple to contribute new functionality to ASE.
 
 - **Pythonic**:

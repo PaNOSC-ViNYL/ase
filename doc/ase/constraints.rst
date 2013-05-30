@@ -37,7 +37,7 @@ You must supply either the indices of the atoms that should be fixed
 or a mask. The mask is a list of booleans, one for each atom, being true
 if the atoms should be kept fixed.
 
-For example, to fix the positions of all the Cu atoms in a simulation 
+For example, to fix the positions of all the Cu atoms in a simulation
 with the indices keyword:
 
 >>> c = FixAtoms(indices=[atom.index for atom in atoms if atom.symbol == 'Cu'])
@@ -77,8 +77,8 @@ The FixBondLengths class
 ========================
 
 More than one bond length can be fixed by using this class. Especially
-for cases in which more than one bond length constraint is applied on 
-the same atom. It is done by specifying the indices of the two atoms 
+for cases in which more than one bond length constraint is applied on
+the same atom. It is done by specifying the indices of the two atoms
 forming the bond in pairs.
 
 .. class:: FixBondLengths(pairs)
@@ -88,9 +88,9 @@ Example of use::
   >>> c = FixBondLengths([[0, 1], [0, 2]])
   >>> atoms.set_constraint(c)
 
-Here the distances between atoms with indices 0 and 1 and atoms with 
-indices 0 and 2 will be fixed. The constraint is for the same purpose 
-as the FixBondLength class. 
+Here the distances between atoms with indices 0 and 1 and atoms with
+indices 0 and 2 will be fixed. The constraint is for the same purpose
+as the FixBondLength class.
 
 The FixedLine class
 ====================
@@ -168,14 +168,14 @@ For an example of use, see the :ref:`mhtutorial` tutorial.
 The FixInternals class
 ======================
 
-This class allows to fix an arbitrary number of bond lengths, angles 
-and dihedral angles. The defined constraints are satisfied self 
-consistently. To define the constraints one needs to specify the 
-atoms object on which the constraint works (needed for atomic 
-masses), a list of bond, angle and dihedral constraints. 
-Those constraint definitions are always list objects containing 
-the value to be set and a list of atomic indices. The epsilon value 
-specifies the accuracy to which the constraints are fullfilled.
+This class allows to fix an arbitrary number of bond lengths, angles
+and dihedral angles. The defined constraints are satisfied self
+consistently. To define the constraints one needs to specify the
+atoms object on which the constraint works (needed for atomic
+masses), a list of bond, angle and dihedral constraints.
+Those constraint definitions are always list objects containing
+the value to be set and a list of atomic indices. The epsilon value
+specifies the accuracy to which the constraints are fulfilled.
 
 .. class:: FixInternals(atoms, bonds=[bond1, bond2], \
     angles=[angle1], dihedrals=[dihedral1, dihedral2], epsilon=1.e-7)
@@ -190,9 +190,9 @@ Example of use::
     dihedral_indices1]
   >>> c = FixInternals(atoms, bonds=[bonds1], angles=[angles1], \
     dihedrals=[dihedral1])
-  >>> atoms.set_onstraint(c)
+  >>> atoms.set_constraint(c)
 
-This example defines a bond an angle and a dihedral angle constraint 
+This example defines a bond an angle and a dihedral angle constraint
 to be fixed at the same time.
 
 
@@ -251,16 +251,16 @@ A simple example::
   class MyConstraint:
       """Constrain an atom to move along a given direction only."""
       def __init__(self, a, direction):
-          self.a = a
-          self.dir = direction / sqrt(np.dot(direction, direction))
-  
+	  self.a = a
+	  self.dir = direction / sqrt(np.dot(direction, direction))
+
       def adjust_positions(self, oldpositions, newpositions):
-          step = newpositions[self.a] - oldpositions[self.a]
-          step = np.dot(step, self.dir)
-          newpositions[self.a] = oldpositions[self.a] + step * self.dir
-  
+	  step = newpositions[self.a] - oldpositions[self.a]
+	  step = np.dot(step, self.dir)
+	  newpositions[self.a] = oldpositions[self.a] + step * self.dir
+
       def adjust_forces(self, positions, forces):
-          forces[self.a] = self.dir * np.dot(forces[self.a], self.dir)
+	  forces[self.a] = self.dir * np.dot(forces[self.a], self.dir)
 
 
 

@@ -11,14 +11,14 @@ The two methods are described here:
 .. autofunction:: ase.io.read
 .. autofunction:: ase.io.write
 
-The :func:`read` function is only designed to retrive the atomic configuration
+The :func:`read` function is only designed to retrieve the atomic configuration
 from a file, but for the CUBE format you can import the function:
 
 .. function:: read_cube_data
 
 
 which will return a ``(data, atoms)`` tuple::
-   
+
   from ase.io.cube import read_cube_data
   data, atoms = read_cube_data('abc.cube')
 
@@ -35,7 +35,7 @@ Examples
     a = 3.61
     slab = fcc111('Cu', (2, 2, 3), a=a, vacuum=7.0)
     add_adsorbate(slab, adsorbate, 1.8, 'ontop')
- 
+
 Write PNG image::
 
     write('slab.png', slab * (3, 3, 1), rotation='10z,-80x')
@@ -56,7 +56,7 @@ Here is an example using ``bbox``::
 
     d = a / 2**0.5
     write('slab.pov', slab * (2, 2, 1),
-          bbox=(d, 0, 3 * d, d * 3**0.5))
+	  bbox=(d, 0, 3 * d, d * 3**0.5))
 
 .. image:: io3.png
 
@@ -82,7 +82,7 @@ array([[  5.10531096e+00,  -4.11836034e-16,   1.99569088e-16],
 >>> b.get_pbc()
 array([ True,  True,  True], dtype=bool)
 
-A script showing all of the povray parameters, and generating the image below, 
+A script showing all of the povray parameters, and generating the image below,
 can be found here: :trac:`doc/ase/save_pov.py`
 
 .. image:: NaCl_C6H6.png

@@ -37,13 +37,13 @@ it up in the :data:`atomic_numbers` dictionary:
 >>> covalent_radii[29]
 1.1699999999999999
 
-The covalent radii are taken from [Cordeo08]_. 
+The covalent radii are taken from [Cordeo08]_.
 The source of the van der Waals radii is given in vdw.py_.
 
 .. [Cordeo08] *Covalent radii revisited*,
     Beatriz Cordero, Verónica Gómez, Ana E. Platero-Prats, Marc Revés,
     Jorge Echeverría, Eduard Cremades, Flavia Barragán and Santiago Alvarez,
-    Dalton Trans., 2008, 2832-2838 DOI:10.1039/B801115J 
+    Dalton Trans., 2008, 2832-2838 DOI:10.1039/B801115J
 
 .. _vdw.py: https://trac.fysik.dtu.dk/projects/ase/browser/trunk/ase/data/vdw.py
 
@@ -70,7 +70,7 @@ Example:
 >>> from ase.data.molecules import molecule, g2, get_atomization_energy
 >>> g2[11]
 'H2O'
->>> atoms = molecule(g2[11]) 
+>>> atoms = molecule(g2[11])
 >>> get_atomization_energy(g2[11])
 232.57990000000001
 >>> from ase.units import kcal,mol
@@ -164,7 +164,7 @@ where sys1 is an s22 complex in the original geometry,
 while sys2 and sys3 are two different s22x5 geometries
 of the exact same complex. It is seen that the interaction
 energies for an s22 system and its s22x5 equivalent
-(indexed '_1.0') does not neccesarily match
+(indexed '_1.0') does not necessarily match
 when the energy offset-correction is turned off.
 The last two functions are convenience functions,
 giving the number of atoms in the two molecules

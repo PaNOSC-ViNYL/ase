@@ -18,7 +18,7 @@ Introduction
 The point of Wannier functions is the transform the extended Bloch
 eigenstates of a DFT calculation, into a smaller set of states
 designed to facilitate the analysis of e.g. chemical bonding. This is
-achived by designing the Wannier functions to be localized in real
+achieved by designing the Wannier functions to be localized in real
 space instead of energy (which would be the eigen states).
 
 The standard Wannier transformation is a unitary rotation of the Bloch
@@ -61,13 +61,13 @@ Usual invocation::
   wan = Wannier(nwannier=18, calc=GPAW('save.gpw'), fixedstates=15)
   wan.localize() # Optimize rotation to give maximal localization
   wan.save('file.pickle') # Save localization and rotation matrix
-  
+
   # Re-load using saved wannier data
   wan = Wannier(nwannier=18, calc=calc, fixedstates=15, file='file.pickle')
 
   # Write a cube file
   wan.write_cube(index=5, fname='wannierfunction5.cube')
-  
+
 For examples of how to use the **Wannier** class, see the `Wannier tutorial`_.
 
 .. _Wannier tutorial: https://wiki.fysik.dtu.dk/ase/tutorials/wannier.html

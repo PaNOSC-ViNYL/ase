@@ -21,7 +21,7 @@ for backward differences, 0 for centered differences, and 1 for
 forward differences.
 
 .. warning::
-   Using the *dacapo* caculator you must make sure that the symmetry
+   Using the *dacapo* calculator you must make sure that the symmetry
    program in dacapo finds the same number of symmetries for the
    displaced configurations in the vibrational modules as found in
    the ground state used as input.
@@ -43,4 +43,3 @@ This will create a NetCDF trajectory file *CO_vib_mode_0.traj*,
 corresponding to the highest frequency mode.
 ``scaling`` is an option argument, that will give the amplitude of
 the mode, default is 10.
-

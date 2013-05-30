@@ -53,7 +53,7 @@ Another example:
 >>> for atom in bulk:
 ...     if atom.symbol == 'Ni':
 ...         atom.magmom = 0.7  # set initial magnetic moment
-    
+
 
 The different properties of an atom can be obtained and changed via
 attributes (``position``, ``number``, ``tag``, ``momentum``, ``mass``,
@@ -68,7 +68,7 @@ array([ 1. ,  0. ,  2.5])
 >>> a2.magmom = 1.0
 
 That last line will set the initial magnetic moment that some
-calulators use (similar to the
+calculators use (similar to the
 :meth:`~ase.atoms.Atoms.set_initial_magnetic_moments` method).
 
 
@@ -105,7 +105,7 @@ array([[ 0.      ,  0.      ,  0.      ],
        [ 0.      , -0.629118,  0.629118],
        [ 0.629118, -0.629118, -0.629118],
        [-0.629118,  0.629118, -0.629118]])
-                                                   
+
 
 .. seealso::
 
@@ -117,4 +117,3 @@ array([[ 0.      ,  0.      ,  0.      ],
 
    :mod:`calculators`:
      Information about how to calculate forces and energies of atoms.
-

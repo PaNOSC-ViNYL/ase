@@ -14,7 +14,7 @@ Links to NumPy's webpage:
 .. _Numpy and Scipy Documentation: http://docs.scipy.org/doc
 .. _Numpy example list: http://www.scipy.org/Numpy_Example_List_With_Doc
 .. _Numpy functions by category:
-                        http://www.scipy.org/Numpy_Functions_by_Category
+			http://www.scipy.org/Numpy_Functions_by_Category
 
 ASE makes heavy use of an extension to Python called NumPy.  The
 NumPy module defines an :term:`ndarray` type that can hold large arrays of
@@ -40,26 +40,26 @@ array([[ 0.,  1.],
 The conventions of numpy's linear algebra package:
 
 >>> import numpy as np
->>> 
+>>>
 >>> # Make a random hermitian matrix, H
 >>> H = np.random.rand(6, 6) + 1.j * np.random.rand(6, 6)
 >>> H = H + H.T.conj()
->>> 
+>>>
 >>> # Determine eigenvalues and rotation matrix
 >>> eps, U = np.linalg.eigh(H)
->>> 
+>>>
 >>> # Sort eigenvalues
 >>> sorted_indices = eps.real.argsort()
 >>> eps = eps[sorted_indices]
 >>> U = U[:, sorted_indices]
->>> 
+>>>
 >>> # Make print of numpy arrays less messy:
 >>> np.set_printoptions(precision=3, suppress=True)
->>> 
+>>>
 >>> # Check that U diagonalizes H:
 >>> print np.dot(np.dot(U.T.conj(), H), U) - np.diag(eps)
 >>> print np.allclose(np.dot(np.dot(U.T.conj(), H), U), np.diag(eps))
->>> 
+>>>
 >>> # The eigenvectors of H are the *coloumns* of U:
 >>> np.allclose(np.dot(H, U[:, 3]), eps[3] * U[:, 3])
 >>> np.allclose(np.dot(H, U), eps * U)
@@ -79,7 +79,7 @@ Thus, for the arrays below:
 
 >>> M = np.arange(5 * 6).reshape(5, 6) # A matrix af shape (5, 6)
 >>> v5 = np.arange(5) + 10             # A vector of length 5
->>> v51 = v5[:, None]                  # A length 5 coulomn vector
+>>> v51 = v5[:, None]                  # A length 5 column vector
 >>> v6 = np.arange(6) - 12             # A vector of length 6
 >>> v16 = v6[None, :]                  # A length 6 row vector
 

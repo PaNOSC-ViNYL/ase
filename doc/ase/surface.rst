@@ -47,7 +47,7 @@ to add the vacuum and center the system.
 
 The atoms in the slab will have tags set to the layer number: First layer
 atoms will have tag=1, second layer atoms will have tag=2, and so on.
-Addsorbates get tag=0:
+Adsorbates get tag=0:
 
 >>> print atoms.get_tags()
 [3 3 3 3 2 2 2 2 1 1 1 1 0]
@@ -67,19 +67,19 @@ All the functions setting up surfaces take the same arguments.
 *size*:
   A tuple giving the system size in units of the minimal unit cell.
 
-*a*: 
+*a*:
   (optional) The lattice constant.  If specified, it overrides the
   expermental lattice constant of the element.  Must be specified if
   setting up a crystal structure different from the one found in
   nature.
 
-*c*: 
+*c*:
   (optional) Extra HCP lattice constant.  If specified, it overrides the
   expermental lattice constant of the element.  Can be specified if
   setting up a crystal structure different from the one found in
   nature and an ideal `c/a` ratio is not wanted (`c/a=(8/3)^{1/2}`).
 
-*vacuum*: 
+*vacuum*:
   The thickness of the vacuum layer.  The specified amount of
   vacuum appears on both sides of the slab.  Default value is None,
   meaning not to add any vacuum.  In that case a "vacuum" layer equal
@@ -91,7 +91,7 @@ All the functions setting up surfaces take the same arguments.
   forces the creation of a unit cell with orthogonal basis vectors.
   If the default is such a unit cell, this argument is not supported.
 
-Each function defines a number of standard adsorbtion sites that can
+Each function defines a number of standard adsorption sites that can
 later be used when adding an adsorbate with
 :func:`lattice.surface.add_adsorbate`.
 
@@ -167,7 +167,7 @@ Adding new utility functions
 If you need other surfaces than the ones above, the easiest is to look
 in the source file surface.py, and adapt one of the existing
 functions.  *Please* contribute any such function that you make
-either by cheking it into SVN or by mailing it to the developers.
+either by checking it into SVN or by mailing it to the developers.
 
 
 Adding adsorbates
