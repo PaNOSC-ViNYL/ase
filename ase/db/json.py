@@ -1,47 +1,24 @@
-#from __future__ import absolute_import  # PY24
+from __future__ import absolute_import
 import os
 import copy
 import warnings
+from json import JSONEncoder, loads
 
 import numpy as np
 
-if 1:
-    def encode(obj):
-        if isinstance(obj, (str, unicode)):
-            return '"' + obj + '"'
-        if isinstance(obj, (bool, np.bool_)):
-            return repr(obj).lower()
-        if isinstance(obj, (int, float)):
-            return repr(obj)
-        if isinstance(obj, dict):
-            return '{' + ', '.join(['"' + key + '": ' + encode(value)
-                                    for key, value in obj.items()]) + '}'
-        if isinstance(obj, complex):  # no complex in json
-            return 'null'
-        if obj is None:
-            return 'null'
-        if isinstance(obj, (list, tuple, np.ndarray)):
-            return '[' + ','.join([encode(value) for value in obj]) + ']'
-        if hasattr(obj, 'todict'):
-            return encode(obj.todict())
-        warnings.warn('%s object has no todict() method' %
-                      obj.__class__.__name__)
-        return '"' + obj.__class__.__name__ + '"'
-
-    def loads(txt):
-        return eval(txt, {'false': False, 'true': True, 'null': None})
-else:
-    from json import JSONEncoder, loads
-    class NDArrayEncoder(JSONEncoder):
-        def default(self, obj):
-            if isinstance(obj, np.ndarray):
-                return obj.tolist()
-            return JSONEncoder.default(self, obj)
-    encode = NDArrayEncoder().encode
-        
 from ase.parallel import world
 from ase.db import IdCollisionError
 from ase.db.core import NoDatabase, ops, parallel, lock
+
+
+class NDArrayEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return JSONEncoder.default(self, obj)
+
+
+encode = NDArrayEncoder().encode
 
 
 def numpyfy(obj):
