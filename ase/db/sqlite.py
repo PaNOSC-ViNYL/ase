@@ -1,12 +1,11 @@
 from __future__ import absolute_import, print_function
-import json
 import sqlite3
 
 import numpy as np
 
 from ase.db import IdCollisionError
 from ase.db.core import NoDatabase, ops
-from ase.db.json import encode, numpyfy
+from ase.db.json import encode, decode
 
 
 init_statements = """\
@@ -218,10 +217,10 @@ class SQLite3Database(NoDatabase):
         if row[12] is not None:
             dct['moments'] = deblob(row[12], shape=(-1, 3))
         if row[13] is not None:
-            dct['constraints'] = numpyfy(json.loads(row[13]))
+            dct['constraints'] = decode(row[13])
         if row[14] is not None:
             dct['calculator_name'] = row[14]
-            dct['calculator_parameters'] = numpyfy(json.loads(row[15]))
+            dct['calculator_parameters'] = decode(row[15])
             results = {}
             if row[16] is not None:
                 results['energy'] = row[16]
@@ -240,7 +239,7 @@ class SQLite3Database(NoDatabase):
             if results:
                 dct['results'] = results
 
-        extra = numpyfy(json.loads(row[23]))
+        extra = decode(row[23])
         for key in ['keywords', 'key_value_pairs', 'data']:
             if extra[key]:
                 dct[key] = extra[key]

@@ -1,8 +1,9 @@
 from __future__ import absolute_import
 import os
 import copy
+import datetime
 import warnings
-from json import JSONEncoder, loads
+from json import JSONEncoder, JSONDecoder
 
 import numpy as np
 
@@ -11,14 +12,26 @@ from ase.db import IdCollisionError
 from ase.db.core import NoDatabase, ops, parallel, lock
 
 
-class NDArrayEncoder(JSONEncoder):
+class MyEncoder(JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
+        if isinstance(obj, datetime.datetime):
+            return {'__datetime__': obj.isoformat()}
         return JSONEncoder.default(self, obj)
 
 
-encode = NDArrayEncoder().encode
+encode = MyEncoder().encode
+
+
+def object_hook(dct):
+    if '__datetime__' in dct:
+        return datetime.datetime.strptime(dct['__datetime__'],
+                                          "%Y-%m-%dT%H:%M:%S.%f")
+    return dct
+
+
+mydecode = JSONDecoder(object_hook=object_hook).decode
 
 
 def numpyfy(obj):
@@ -35,6 +48,10 @@ def numpyfy(obj):
     return obj
 
 
+def decode(txt):
+    return numpyfy(mydecode(txt))
+
+
 def write_json(name, results):
     if world.rank == 0:
         fd = open(name, 'w')
@@ -44,10 +61,10 @@ def write_json(name, results):
 
 def read_json(name):
     fd = open(name, 'r')
-    results = loads(fd.read())
+    results = decode(fd.read())
     fd.close()
     world.barrier()
-    return numpyfy(results)
+    return results
 
 
 class JSONDatabase(NoDatabase):
