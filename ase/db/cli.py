@@ -36,6 +36,7 @@ def run(args=sys.argv[1:]):
     add('-q', '--quiet', action='store_true')
     add('-l', '--long', action='store_true')
     add('--limit', type=int, default=500)
+    add('-p', '--python-expression')
 
     args = parser.parse_args(args)
 
@@ -125,6 +126,10 @@ def run(args=sys.argv[1:]):
         if args.long:
             long(dcts[0], verbosity)
             return dcts[0]
+        if args.python_expression:
+            for dct in dcts:
+                print(eval(args.python_expression, {'d': dct}))
+            return
         f = Formatter(columns=args.columns)
         return f.format(dcts)
 
