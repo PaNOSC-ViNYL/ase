@@ -43,6 +43,11 @@ When it is time for a new release of the code, here is what you have to do:
 * Add a link on :ref:`news` and update the information
   on the :ref:`download_and_install` page and the :ref:`releasenotes` page.
 
+* Add the new release on https://pypi.python.org/pypi/python-ase/:
+
+  - under the ``edit`` menu increase the version number to *3.1.0*
+  - under the ``files`` menu add the tar file as ``File Type`` ``Source``
+
 * Increase the version number in ase/version.py, and commit the change::
 
     cd ~/ase
@@ -51,3 +56,4 @@ When it is time for a new release of the code, here is what you have to do:
   Now the trunk is ready for work on the new version.
 
 * Send announcement email to the ``ase-users`` mailing list (see :ref:`mailing_lists`).
+
