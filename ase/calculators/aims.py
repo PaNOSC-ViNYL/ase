@@ -191,7 +191,7 @@ class Aims(FileIOCalculator):
             if key == 'kpts':
                 mp = kpts2mp(atoms, self.parameters.kpts)
                 output.write('%-35s%d %d %d\n' % (('k_grid',) + tuple(mp)))
-                dk = 0.5 - 0.5 / mp
+                dk = 0.5 - 0.5 / np.array(mp)
                 output.write('%-35s%d %d %d\n' % (('k_offset',) + tuple(dk)))
             elif key == 'species_dir':
                 continue

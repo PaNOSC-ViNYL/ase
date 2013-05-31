@@ -315,7 +315,8 @@ class Calculator:
                               'charges', 'magmoms']
         else:
             system_changes = []
-            if not equal(self.atoms.positions, atoms.positions):
+            if not equal(self.atoms.get_scaled_positions(),
+                         atoms.get_scaled_positions()):
                 system_changes.append('positions')
             if not equal(self.atoms.numbers, atoms.numbers):
                 system_changes.append('numbers')
