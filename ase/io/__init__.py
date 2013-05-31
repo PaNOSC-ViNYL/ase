@@ -125,8 +125,8 @@ def read(filename, index=-1, format=None):
         else:
             magmoms = None
 
-        atoms.calc = SinglePointDFTCalculator(energy, forces, None, magmoms,
-                                              atoms)
+        atoms.calc = SinglePointDFTCalculator(atoms, energy=energy,
+                                              forces=forces, magmoms=magmoms)
         kpts = []
         if r.has_array('IBZKPoints'):
             for w, kpt, eps_n, f_n in zip(r.get('IBZKPointWeights'), 

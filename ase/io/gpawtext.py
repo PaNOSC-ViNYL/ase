@@ -3,6 +3,7 @@ from ase.atoms import Atom, Atoms
 from ase.calculators.singlepoint import SinglePointDFTCalculator
 from ase.calculators.singlepoint import SinglePointKPoint
 
+
 def read_gpaw_text(fileobj, index=-1):
     if isinstance(fileobj, str):
         fileobj = open(fileobj, 'rU')
@@ -140,7 +141,9 @@ def read_gpaw_text(fileobj, index=-1):
             break
 
         if e is not None or f is not None:
-            calc = SinglePointDFTCalculator(e, f, None, magmoms, atoms, eFermi)
+            calc = SinglePointDFTCalculator(atoms, energy=e, forces=f,
+                                            stress=None, magmoms=magmoms,
+                                            eFermi=eFermi)
             if kpts is not None:
                 calc.kpts = kpts
             if dipole is not None:
