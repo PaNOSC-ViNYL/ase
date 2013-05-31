@@ -102,7 +102,7 @@ Arguments
 =========================  ====================================================
 Keyword                    Description
 =========================  ====================================================
-``potential``                file of potential in ``.alloy`` or ``.adp`` format
+``potential``              file of potential in ``.alloy`` or ``.adp`` format
                            (This is generally all you need to supply)
 
 ``elements[N]``            array of N element abbreviations
