@@ -12,7 +12,8 @@ def h2dft(name):
     par = required.get(name, {})
     calc = Calculator(label=name, xc='LDA', **par)
     h2 = molecule('H2', calculator=calc)
-    h2.center(vacuum=2.0)
+    if name in ['abinit']:  # only for calculators with cell
+        h2.center(vacuum=2.0)
     e2 = h2.get_potential_energy()
     calc.set(xc='PBE')
     e2pbe = h2.get_potential_energy()
