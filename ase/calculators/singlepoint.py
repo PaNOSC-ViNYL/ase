@@ -37,7 +37,7 @@ class SinglePointCalculator(Calculator):
                 self.results[property] = value
             else:
                 self.results[property] = np.array(value, float)
-        self.state = atoms.copy()
+        self.atoms = atoms.copy()
 
     def get_property(self, name, atoms):
         if name not in self.results or self.check_state(atoms):

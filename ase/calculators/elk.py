@@ -169,10 +169,10 @@ class ELK(FileIOCalculator):
                 raise ReadError
 
         # read state from elk.in because *.OUT do not provide enough digits!
-        self.state = read_elk(os.path.join(self.directory, 'elk.in'))
+        self.atoms = read_elk(os.path.join(self.directory, 'elk.in'))
         self.parameters = Parameters.read(os.path.join(self.directory,
                                                        'parameters.ase'))
-        self.initialize(self.state)
+        self.initialize(self.atoms)
         self.read_results()
 
     def read_results(self):
@@ -206,7 +206,7 @@ class ELK(FileIOCalculator):
 
     def read_forces(self):
         lines = open(self.out, 'r').readlines()
-        forces = np.zeros([len(self.state), 3])
+        forces = np.zeros([len(self.atoms), 3])
         forces = []
         atomnum = 0
         for line in lines:

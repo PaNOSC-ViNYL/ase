@@ -19,7 +19,7 @@ def run(name):
     epbe = al.get_potential_energy()
     print(e, epbe)
     calc = Calculator(name)
-    print calc.parameters, calc.results, calc.state
+    print calc.parameters, calc.results, calc.atoms
     assert not calc.calculation_required(al, ['energy'])
     al = calc.get_atoms()
     print al.get_potential_energy()

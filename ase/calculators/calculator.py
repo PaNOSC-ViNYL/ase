@@ -162,13 +162,13 @@ class Calculator:
             unit-cell updated from file.
         """
 
-        self.state = None  # copy of atoms object from last calculation
+        self.atoms = None  # copy of atoms object from last calculation
         self.results = {}  # calculated properties (energy, forces, ...)
         self.parameters = None  # calculational parameters
 
         if restart is not None:
             try:
-                self.read(restart)  # read parameters, state and results
+                self.read(restart)  # read parameters, atoms and results
             except ReadError:
                 if ignore_bad_restart_file:
                     self.reset()
@@ -187,13 +187,13 @@ class Calculator:
 
         if atoms is not None:
             atoms.calc = self
-            if self.state is not None:
-                # State was read from file.  Update atoms:
-                if not (equal(atoms.numbers, self.state.numbers) and
-                        (atoms.pbc == self.state.pbc).all()):
+            if self.atoms is not None:
+                # Atoms were read from file.  Update atoms:
+                if not (equal(atoms.numbers, self.atoms.numbers) and
+                        (atoms.pbc == self.atoms.pbc).all()):
                     raise RuntimeError('Atoms not compatible with file')
-                atoms.positions = self.state.positions
-                atoms.cell = self.state.cell
+                atoms.positions = self.atoms.positions
+                atoms.cell = self.atoms.cell
                 
         self.set(**kwargs)
 
@@ -234,7 +234,7 @@ class Calculator:
     def reset(self):
         """Clear all information from old calculation."""
 
-        self.state = None
+        self.atoms = None
         self.results = {}
 
     def read(self, label):
@@ -245,23 +245,23 @@ class Calculator:
         message from the calculation, a ReadError should also be
         raised.  In case of succes, these attributes must set:
 
-        state: Atoms object
+        atoms: Atoms object
             The state of the atoms from last calculation.
         parameters: Parameters object
             The parameter dictionary.
         results: dict
             Calculated properties like energy and forces.
 
-        The FileIOCalculator.read() method will typically read state
+        The FileIOCalculator.read() method will typically read atoms
         and parameters and get the results dict by calling the
         read_results() method."""
 
         self.set_label(label)
 
     def get_atoms(self):
-        if self.state is None:
+        if self.atoms is None:
             raise ValueError('Calculator has no atoms')
-        atoms = self.state.copy()
+        atoms = self.atoms.copy()
         atoms.calc = self
         return atoms
 
@@ -310,23 +310,23 @@ class Calculator:
 
     def check_state(self, atoms):
         """Check for system changes since last calculation."""
-        if self.state is None:
+        if self.atoms is None:
             system_changes = ['positions', 'numbers', 'cell', 'pbc',
                               'charges', 'magmoms']
         else:
             system_changes = []
-            if not equal(self.state.positions, atoms.positions):
+            if not equal(self.atoms.positions, atoms.positions):
                 system_changes.append('positions')
-            if not equal(self.state.numbers, atoms.numbers):
+            if not equal(self.atoms.numbers, atoms.numbers):
                 system_changes.append('numbers')
-            if not equal(self.state.cell, atoms.cell):
+            if not equal(self.atoms.cell, atoms.cell):
                 system_changes.append('cell')
-            if not equal(self.state.pbc, atoms.pbc):
+            if not equal(self.atoms.pbc, atoms.pbc):
                 system_changes.append('pbc')
-            if not equal(self.state.get_initial_magnetic_moments(),
+            if not equal(self.atoms.get_initial_magnetic_moments(),
                          atoms.get_initial_magnetic_moments()):
                 system_changes.append('magmoms')
-            if not equal(self.state.get_initial_charges(),
+            if not equal(self.atoms.get_initial_charges(),
                          atoms.get_initial_charges()):
                 system_changes.append('charges')
 
@@ -366,9 +366,9 @@ class Calculator:
             self.reset()
 
         if name not in self.results:
-            self.state = atoms.copy()
+            self.atoms = atoms.copy()
             try:
-                self.calculate(atoms, [name], system_changes)
+                self.calculate([name], system_changes)
             except Exception:
                 self.reset()
                 raise
@@ -384,11 +384,9 @@ class Calculator:
                 return True
         return False
         
-    def calculate(self, atoms, properties, system_changes):
+    def calculate(self, properties, system_changes):
         """Do the calculation.
 
-        atoms: Atoms object
-            Contains positions, unit-cell, ...
         properties: list of str
             List of what needs to be calculated.  Can be any combination
             of 'energy', 'forces', 'stress', 'dipole', 'charges', 'magmom'
@@ -447,8 +445,8 @@ class FileIOCalculator(Calculator):
             name = 'ASE_' + self.name.upper() + '_COMMAND'
             self.command = os.environ.get(name, self.command)
 
-    def calculate(self, atoms, properties=None, system_changes=None):
-        self.write_input(atoms, properties, system_changes)
+    def calculate(self, properties=None, system_changes=None):
+        self.write_input(self.atoms, properties, system_changes)
         if self.command is None:
             raise RuntimeError('Please set $%s environment variable ' %
                                ('ASE_' + self.name.upper() + '_COMMAND') +

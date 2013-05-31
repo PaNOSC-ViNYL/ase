@@ -11,12 +11,12 @@ class LennardJones(Calculator):
     def __init__(self, **kwargs):
         Calculator.__init__(self, **kwargs)
 
-    def calculate(self, atoms, properties, changes):
+    def calculate(self, properties, changes):
         epsilon = self.parameters.epsilon
         sigma = self.parameters.sigma
-        positions = atoms.get_positions()
+        positions = self.atoms.get_positions()
         energy = 0.0
-        forces = np.zeros((len(atoms), 3))
+        forces = np.zeros((len(self.atoms), 3))
         for i1, p1 in enumerate(positions):
             for i2, p2 in enumerate(positions[:i1]):
                 diff = p2 - p1

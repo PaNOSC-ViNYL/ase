@@ -142,12 +142,10 @@ def read_gpaw_text(fileobj, index=-1):
 
         if e is not None or f is not None:
             calc = SinglePointDFTCalculator(atoms, energy=e, forces=f,
-                                            stress=None, magmoms=magmoms,
+                                            dipole=dipole, magmoms=magmoms,
                                             eFermi=eFermi)
             if kpts is not None:
                 calc.kpts = kpts
-            if dipole is not None:
-                calc.set_dipole_moment(dipole)
             atoms.set_calculator(calc)
         if q is not None and len(atoms) > 0:
             n = len(atoms)
