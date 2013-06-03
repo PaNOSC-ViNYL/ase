@@ -233,10 +233,10 @@ def read_vasp_out(filename='OUTCAR',index = -1):
 
     try:          # try to read constraints, first from CONTCAR, then from POSCAR
         constr = read_vasp('CONTCAR').constraints
-    except:
+    except Exception:
         try:
             constr = read_vasp('POSCAR').constraints
-        except:
+        except Exception:
             constr = None
 
     if isinstance(filename, str):
