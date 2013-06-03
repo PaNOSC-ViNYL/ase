@@ -4,8 +4,12 @@ from ase.calculators.singlepoint import SinglePointCalculator
 from ase.parallel import paropen
 
 
-def read_lammps_dump(fileobj, index=-1):
-    """Method which reads a LAMMPS dump file."""
+def read_lammps_dump(fileobj, index=-1, order=True):
+    """Method which reads a LAMMPS dump file.
+
+    order: Order the particles according to their id. Might be faster to
+    switch it off.
+    """
     if isinstance(fileobj, str):
         f = paropen(fileobj)
     else:
@@ -107,6 +111,20 @@ def read_lammps_dump(fileobj, index=-1):
                 add_quantity(fields, forces, ['fx', 'fy', 'fz'])
                 add_quantity(fields, quaternions, ['c_q[1]', 'c_q[2]',
                                                    'c_q[3]', 'c_q[4]'])
+
+            if order:
+                def reorder(inlist):
+                    if not len(inlist):
+                        return inlist
+                    outlist = [None] * len(id)
+                    for i, v in zip(id, inlist):
+                        outlist[i - 1] = v
+                    return outlist
+                positions = reorder(positions)
+                scaled_positions = reorder(scaled_positions)
+                velocities = reorder(velocities)
+                forces = reorder(forces)
+                quaternions = reorder(quaternions)
 
             if len(quaternions):
                 images.append(Quaternions(symbols=types,
