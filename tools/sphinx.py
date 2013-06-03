@@ -47,9 +47,15 @@ def build(email):
     from ase.test import test
     from ase.version import version
 
+    if 'ASE_CALCULATORS' in os.environ:
+        calculators = os.environ['ASE_CALCULATORS'].split(',')
+    else:
+        calculators = []
+
     # Run test-suite:
     stream = open('test-results.txt', 'w')
-    results = test(verbosity=2, display=False, stream=stream)
+    results = test(verbosity=2, calculators=calculators,
+                   display=False, stream=stream)
     stream.close()
     if len(results.failures) > 0 or len(results.errors) > 0:
         if email is not None:
