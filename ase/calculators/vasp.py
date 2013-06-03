@@ -359,7 +359,7 @@ class Vasp(Calculator):
                 try :
                     #special_setup[self.input_params['setups'][m]] = int(m)
                     special_setups.append(int(m))
-                except Exception:
+                except ValueError:
                     #print 'setup ' + m + ' is a groups setup'
                     continue
             #print 'special_setups' , special_setups
