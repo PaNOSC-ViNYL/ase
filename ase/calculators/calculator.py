@@ -50,13 +50,17 @@ def equal(a, b, tol=None):
     """ndarray-enabled comparison function."""
     if isinstance(a, np.ndarray):
         b = np.array(b)
+        if a.shape != b.shape:
+            return False
         if tol is None:
-            return a.shape == b.shape and (a == b).all()
+            return (a == b).all()
         else:
-            return a.shape == b.shape and (np.abs(a - b) < tol).all()
+            return np.allclose(a, b, rtol=tol, atol=tol)
     if isinstance(b, np.ndarray):
         return equal(b, a, tol)
-    return a == b
+    if tol is None:
+        return a == b
+    return abs(a - b) < tol * abs(b) + tol
 
 
 def kptdensity2monkhorstpack(atoms, kptdensity=3.5, even=True):
@@ -308,27 +312,26 @@ class Calculator:
 
         return changed_parameters
 
-    def check_state(self, atoms):
+    def check_state(self, atoms, tol=1e-15):
         """Check for system changes since last calculation."""
         if self.atoms is None:
             system_changes = ['positions', 'numbers', 'cell', 'pbc',
                               'charges', 'magmoms']
         else:
             system_changes = []
-            if not equal(self.atoms.get_scaled_positions(),
-                         atoms.get_scaled_positions()):
+            if not equal(self.atoms.positions, atoms.positions, tol):
                 system_changes.append('positions')
             if not equal(self.atoms.numbers, atoms.numbers):
                 system_changes.append('numbers')
-            if not equal(self.atoms.cell, atoms.cell):
+            if not equal(self.atoms.cell, atoms.cell, tol):
                 system_changes.append('cell')
             if not equal(self.atoms.pbc, atoms.pbc):
                 system_changes.append('pbc')
             if not equal(self.atoms.get_initial_magnetic_moments(),
-                         atoms.get_initial_magnetic_moments()):
+                         atoms.get_initial_magnetic_moments(), tol):
                 system_changes.append('magmoms')
             if not equal(self.atoms.get_initial_charges(),
-                         atoms.get_initial_charges()):
+                         atoms.get_initial_charges(), tol):
                 system_changes.append('charges')
 
         return system_changes
