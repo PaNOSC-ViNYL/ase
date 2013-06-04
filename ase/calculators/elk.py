@@ -134,19 +134,23 @@ class ELK(FileIOCalculator):
         # atoms
         species = {}
         symbols = []
-        for a, (symbol, m) in enumerate(zip(atoms.get_chemical_symbols(), atoms.get_initial_magnetic_moments())):
+        for a, (symbol, m) in enumerate(
+            zip(atoms.get_chemical_symbols(),
+                atoms.get_initial_magnetic_moments())):
             if symbol in species:
                 species[symbol].append((a, m))
             else:
                 species[symbol] = [(a, m)]
                 symbols.append(symbol)
         fd.write('atoms\n%d\n' % len(species))
-        scaled = atoms.get_scaled_positions()
+        #scaled = atoms.get_scaled_positions(wrap=False)
+        scaled = np.linalg.solve(atoms.cell.T, atoms.positions.T).T
         for symbol in symbols:
             fd.write("'%s.in' : spfname\n" % symbol)
             fd.write('%d\n' % len(species[symbol]))
             for a, m in species[symbol]:
-                fd.write('%.14f %.14f %.14f 0.0 0.0 %.14f\n' % (tuple(scaled[a])+ (m,)))
+                fd.write('%.14f %.14f %.14f 0.0 0.0 %.14f\n' %
+                         (tuple(scaled[a])+ (m,)))
         # species
         species_path = self.parameters.get('species_dir')
         if species_path is None:
