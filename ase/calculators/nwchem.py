@@ -100,6 +100,8 @@ class NWChem(FileIOCalculator):
 
         if p.xc == 'RHF':
             task = 'scf'
+        elif p.xc == 'MP2':
+            task = 'mp2'
         else:
             if p.spinorbit:
                 task = 'sodft'
@@ -246,15 +248,17 @@ class NWChem(FileIOCalculator):
         lines = iter(text.split('\n'))
 
         # Energy:
+        estring = 'Total '
+        if self.parameters.xc == 'RHF':
+            estring += 'SCF'
+        elif self.parameters.xc == 'MP2':
+            estring += 'MP2'
+        else:
+            estring += 'DFT'
+        estring += ' energy'
         for line in lines:
-            estring = 'Total '
-            if self.parameters.xc == 'RHF':
-                estring += 'SCF'
-            else:
-                estring += 'DFT'
-            estring += ' energy'
             if line.find(estring) >= 0:
-                energy = float(line.split()[4])
+                energy = float(line.split()[-1])
                 break
         self.results['energy'] = energy * Hartree
 
@@ -286,7 +290,7 @@ class NWChem(FileIOCalculator):
                 for j in range(i + 4, i + 4 + len(self.state)):
                     word = lines[j].split()
                     gradients.append([float(word[k]) for k in range(5, 8)])
-                    
+
         self.results['forces'] = -np.array(gradients) * Hartree / Bohr
 
     def get_eigenvalues(self, kpt=0, spin=0):
