@@ -372,9 +372,8 @@ class Calculator:
             self.reset()
 
         if name not in self.results:
-            self.atoms = atoms.copy()
             try:
-                self.calculate([name], system_changes)
+                self.calculate(atoms, [name], system_changes)
             except Exception:
                 self.reset()
                 raise
@@ -390,7 +389,9 @@ class Calculator:
                 return True
         return False
         
-    def calculate(self, properties, system_changes):
+    def calculate(self, atoms=None, properties=['energy'],
+                  system_changes=['positions', 'numbers', 'cell',
+                                  'pbc', 'charges','magmoms']):
         """Do the calculation.
 
         properties: list of str
@@ -403,18 +404,25 @@ class Calculator:
             'pbc', 'charges' and 'magmoms'.
 
         Subclasses need to implement this, but can ignore properties
-        and system_changes if they want.
+        and system_changes if they want.  Calculated properties should
+        be inserted into results dictionary like shown in this dummy
+        example::
+
+            self.results = {'energy': 0.0,
+                            'forces': np.zeros((len(atoms), 3)),
+                            'stress': np.zeros(6),
+                            'dipole': np.zeros(3),
+                            'charges': np.zeros(len(atoms)),
+                            'magmom': 0.0,
+                            'magmoms': np.zeros(len(atoms))}
+
+        The subclass implementation should first call this
+        implementation to set the atoms attribute.
         """
 
-        # Dummy calculation:
-        self.results = {'energy': 0.0,
-                        'forces': np.zeros((len(atoms), 3)),
-                        'stress': np.zeros(6),
-                        'dipole': np.zeros(3),
-                        'charges': np.zeros(len(atoms)),
-                        'magmom': 0.0,
-                        'magmoms': np.zeros(len(atoms))}
-                        
+        if atoms is not None:
+            self.atoms = atoms.copy()
+
     def calculate_numerical_forces(self, atoms, d=0.001):
         """Calculate numerical forces using finite difference.
 
@@ -451,7 +459,10 @@ class FileIOCalculator(Calculator):
             name = 'ASE_' + self.name.upper() + '_COMMAND'
             self.command = os.environ.get(name, self.command)
 
-    def calculate(self, properties=None, system_changes=None):
+    def calculate(self, atoms=None, properties=['energy'],
+                  system_changes=['positions', 'numbers', 'cell',
+                                  'pbc', 'charges','magmoms']):
+        Calculator.calculate(self, atoms, properties, system_changes)
         self.write_input(self.atoms, properties, system_changes)
         if self.command is None:
             raise RuntimeError('Please set $%s environment variable ' %

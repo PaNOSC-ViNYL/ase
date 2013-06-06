@@ -494,7 +494,9 @@ End EAM Interface Documentation
                                       bothways=True)
         self.neighbors.update(atoms)
 
-    def calculate(self, properties, system_changes):
+    def calculate(self, atoms=None, properties=['energy'],
+                  system_changes=['positions', 'numbers', 'cell',
+                                  'pbc', 'charges','magmoms']):
         """EAM Calculator
 
         atoms: Atoms object
@@ -507,6 +509,8 @@ End EAM Interface Documentation
             any combination of these five: 'positions', 'numbers', 'cell',
             'pbc', 'charges' and 'magmoms'.
             """
+
+        Calculator.calculate(self, atoms, properties, system_changes)
 
         # we shouldn't really recalc if charges or magmos change
         if len(system_changes) > 0:  # something wrong with this way

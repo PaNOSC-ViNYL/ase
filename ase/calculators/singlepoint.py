@@ -63,13 +63,18 @@ class SinglePointDFTCalculator(SinglePointCalculator):
                                   args):
                 if value is not None:
                     results[key] = value
-            atoms, eFermi = args[-2:]
+            atoms = args[4]
+            if len(args) > 5:
+                eFermi = args[5]
+                if len(args) > 6:
+                    energies = args[6]
         else:
             if args:
                 atoms = args[0]
             else:
                 atoms = results.pop('atoms')
-            eFermi = results.pop('eFermi')
+            eFermi = results.pop('eFermi', None)
+            energies = results.pop('energies', None)
 
         SinglePointCalculator.__init__(self, atoms, **results)
 

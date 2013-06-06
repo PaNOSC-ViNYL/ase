@@ -2,20 +2,28 @@ import numpy as np
 
 from math import exp, sqrt
 
-from ase.calculators.lj import LennardJones
+from ase.calculators.calculator import Calculator
 
 
-class MorsePotential(LennardJones):
+class MorsePotential(Calculator):
     """Morse potential.
 
     Default values chosen to be similar as Lennard-Jones.
     """
 
+    implemented_properties = ['energy', 'forces']
     default_parameters = {'epsilon': 1.0,
                           'rho0': 6.0,
                           'r0': 1.0}
+    nolabel = True
 
-    def calculate(self, properties, changes):
+    def __init__(self, **kwargs):
+        Calculator.__init__(self, **kwargs)
+
+    def calculate(self, atoms=None, properties=['energy'],
+                  system_changes=['positions', 'numbers', 'cell',
+                                  'pbc', 'charges','magmoms']):
+        Calculator.calculate(self, atoms, properties, system_changes)
         epsilon = self.parameters.epsilon
         rho0 = self.parameters.rho0
         r0 = self.parameters.r0

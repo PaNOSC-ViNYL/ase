@@ -11,7 +11,10 @@ class LennardJones(Calculator):
     def __init__(self, **kwargs):
         Calculator.__init__(self, **kwargs)
 
-    def calculate(self, properties, changes):
+    def calculate(self, atoms=None, properties=['energy'],
+                  system_changes=['positions', 'numbers', 'cell',
+                                  'pbc', 'charges','magmoms']):
+        Calculator.calculate(self, atoms, properties, system_changes)
         epsilon = self.parameters.epsilon
         sigma = self.parameters.sigma
         positions = self.atoms.get_positions()
