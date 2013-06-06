@@ -95,10 +95,7 @@ class Images:
                     self.M[i] = atoms.get_magnetic_moments()
             except (RuntimeError, AttributeError):
                 self.M[i] = atoms.get_initial_magnetic_moments()
-            try:
-                self.q[i] = atoms.get_initial_charges()
-            except RuntimeError:
-                self.q[i] = np.nan
+            self.q[i] = atoms.get_initial_charges()
             
             # added support for tags
             try:
