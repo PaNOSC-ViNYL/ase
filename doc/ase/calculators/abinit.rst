@@ -30,7 +30,7 @@ where ``abinis`` is the executable.
 A directory containing the pseudopotential files (at least of
 :file:`.fhi` type) is also needed, and it is to be put in the
 environment variable :envvar:`ABINIT_PP_PATH`. Abinit does not provide
-tarballs of pseduopotentials so the easiest way is to download and
+tarballs of pseudopotentials so the easiest way is to download and
 unpack
 http://wiki.fysik.dtu.dk/abinit-files/abinit-pseudopotentials-2.tar.gz
 
@@ -51,7 +51,7 @@ Set the environment variables in your in your shell configuration file::
 
 
 ABINIT Calculator
-================= 
+=================
 
 Abinit does not specify a default value for the plane-wave cutoff
 energy.  You need to set them as in the example at the bottom of the
@@ -76,5 +76,5 @@ Example 1
 =========
 
 Here is an example of how to calculate the total energy for bulk Silicon:
-        
+
 .. literalinclude:: Si_abinit.py

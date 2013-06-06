@@ -75,6 +75,8 @@ class SinglePointDFTCalculator(SinglePointCalculator):
 
         if eFermi is not None:
             self.eFermi = eFermi
+        if energies is not None:
+            self.energies = energies
         self.kpts = None
 
     def get_fermi_level(self):

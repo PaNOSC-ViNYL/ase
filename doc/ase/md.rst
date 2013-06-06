@@ -22,7 +22,7 @@ you perform dynamics by calling its :meth:`run` method::
   dyn.run(1000)  # take 1000 steps
 
 A number of different algorithms can be used to perform molecular
-dynamics, with slightly different results.  
+dynamics, with slightly different results.
 
 Choosing the time step
 ======================
@@ -47,12 +47,12 @@ File output
 
 The time evolution of the system can be saved in a trajectory file,
 by creating a trajectory object, and attaching it to the dynamics
-object.  This is documented in the module :mod:`ase.io.trajectory`. 
+object.  This is documented in the module :mod:`ase.io.trajectory`.
 
 Unlike the geometry optimization classes, the molecular dynamics
 classes do not support giving a trajectory file name in the
 constructor.  Instead the trajectory must be attached explicitly to
-the dynamics, and it is *stongly recommended* to use the optional
+the dynamics, and it is *strongly recommended* to use the optional
 ``interval`` argument, so every time step is not written to the file.
 
 
@@ -73,7 +73,7 @@ The logging can be customized by explicitly attaching a
   from ase.md import MDLogger
   dyn = VelocityVerlet(atoms, dt=2*ase.units.fs)
   dyn.attach(MDLogger(dyn, atoms, 'md.log', header=False, stress=False,
-             peratom=True, mode="a"), interval=1000)
+	     peratom=True, mode="a"), interval=1000)
 
 This example will skip the header line and write energies per atom
 instead of total energies.  The parameters are
@@ -215,16 +215,16 @@ Berendsen NVT dynamics
 
 .. class:: NVTBerendsen(atoms, timestep, temperature, taut, fixcm)
 
-In Berendsen NVT simulations the velocities are scaled to achieve the desired 
+In Berendsen NVT simulations the velocities are scaled to achieve the desired
 temperature. The speed of the scaling is determined by the parameter taut.
 
-This method does not result proper NVT sampling but it usually is 
-sufficiently good in practise (with large taut). For discussion see 
+This method does not result proper NVT sampling but it usually is
+sufficiently good in practise (with large taut). For discussion see
 the gromacs manual at www.gromacs.org.
 
 *atoms*:
     The list of atoms.
-    
+
 *timestep*:
     The time step.
 
@@ -250,7 +250,7 @@ Constant NPT simulations (the isothermal-isobaric ensemble)
 
 .. module:: md.npt
 
-.. class:: NPT(atoms, timestep, temperature, externalstress, ttime, pfactor, mask=None) 
+.. class:: NPT(atoms, timestep, temperature, externalstress, ttime, pfactor, mask=None)
 
 Dynamics with constant pressure (or optionally, constant stress) and
 constant temperature (NPT or N,stress,T ensemble).  It uses the
@@ -331,7 +331,7 @@ It has the following methods:
 
   Change the mask.  Use with care, as you may "freeze" a
   fluctuation in the strain rate.
-  
+
 .. method:: NPT.set_strainrate(eps):
 
   Set the strain rate.  ``eps`` must be an upper-triangular matrix.
@@ -358,7 +358,7 @@ Physical Review A 41, p. 4552 (1990).
 [4] F. D. Di Tolla and M. Ronchetti, Physical Review E 48, p. 1726 (1993).
 
 .. seealso::
-    
+
    The :term:`API` documentation: :epydoc:`ase.md`
 
 
@@ -368,19 +368,19 @@ Berendsen NPT dynamics
 
 .. class:: NPTBerendsen(atoms, timestep, temperature, taut, fixcm, pressure, taup,compressibility)
 
-In Berendsen NPT simulations the velocities are scaled to achieve the desired 
+In Berendsen NPT simulations the velocities are scaled to achieve the desired
 temperature. The speed of the scaling is determined by the parameter taut.
 
-The atom positions and the simulation cell are scaled in order to achieve 
-the desired pressure. 
+The atom positions and the simulation cell are scaled in order to achieve
+the desired pressure.
 
-This method does not result proper NPT sampling but it usually is 
-sufficiently good in practise (with large taut and taup). For discussion see 
+This method does not result proper NPT sampling but it usually is
+sufficiently good in practise (with large taut and taup). For discussion see
 the gromacs manual at www.gromacs.org. or amber at ambermd.org
 
 *atoms*:
     The list of atoms.
-    
+
 *timestep*:
     The time step.
 
@@ -408,6 +408,5 @@ the gromacs manual at www.gromacs.org. or amber at ambermd.org
 
   # Room temperature simulation (300K, 0.1 fs time step, atmospheric pressure)
   dyn = NPTBerendsen(atoms, timestep=0.1*units.fs, temperature=300,
-                   taut=0.1*1000*units.fs, pressure = 1.01325,
-                   taup=1.0*1000*units.fs, compressibility=4.57e-5)
-
+		   taut=0.1*1000*units.fs, pressure = 1.01325,
+		   taup=1.0*1000*units.fs, compressibility=4.57e-5)

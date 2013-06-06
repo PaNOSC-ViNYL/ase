@@ -1,6 +1,8 @@
-import commands, os, string, tempfile, shutil
-from ase import write
+import os, string, tempfile, shutil
+from subprocess import Popen
+from ase.io import write
 from ase.units import Bohr
+
 
 class Bader:
     '''class for running bader analysis and extracting data from it.
@@ -52,7 +54,7 @@ class Bader:
     algorithm without lattice bias, J. Phys.: Condens. Matter 21
     084204 (2009).
     '''
-    def __init__(self,atoms):
+    def __init__(self, atoms):
         '''
  
         '''
@@ -61,14 +63,14 @@ class Bader:
         #get density and write cube file
         calc = atoms.get_calculator()
         ncfile = calc.get_nc()
-        base,ext = os.path.splitext(ncfile)
+        base, ext = os.path.splitext(ncfile)
 
-        x,y,z,density = calc.get_charge_density()
+        x, y, z, density = calc.get_charge_density()
         cubefile = base + '_charge_density.cube'
         self.densityfile = cubefile
 
         if not os.path.exists(cubefile):
-            write(cubefile, atoms,data=density*Bohr**3)
+            write(cubefile, atoms, data=density * Bohr ** 3)
         
         #cmd to run for bader analysis. check if output exists so we
         #don't run this too often.
@@ -78,15 +80,17 @@ class Bader:
             tempdir = tempfile.mkdtemp()
             
             cwd = os.getcwd()
+            abscubefile = os.path.abspath(cubefile)
             os.chdir(tempdir)
-            
             cmd = 'bader %s' % abscubefile
-            status,output = commands.getstatusoutput(cmd)
+
+            process = Popen(cmd)
+            status = Popen.wait()
             
             if status != 0:
-                print output
+                print process
 
-            shutil.copy2('ACF.dat',os.path.join(cwd,acf_file))
+            shutil.copy2('ACF.dat', os.path.join(cwd, acf_file))
             
             os.chdir(cwd)
             shutil.rmtree(tempdir)
@@ -95,12 +99,12 @@ class Bader:
         self.volumes = []
 
         #now parse the output
-        f = open(acf_file,'r')
+        f = open(acf_file, 'r')
         #skip 2 lines
         f.readline()
         f.readline()
 
-        for i,atom in enumerate(self.atoms):
+        for i, atom in enumerate(self.atoms):
             line = f.readline()
             fields = line.split()
             n = int(fields[0])
@@ -121,21 +125,21 @@ class Bader:
 
     def get_bader_volumes(self):
         'return volumes in Ang**3'
-        return [x*Bohr**3 for x in self.volumes]
+        return [x * Bohr ** 3 for x in self.volumes]
 
-    def write_atom_volume(self,atomlist):
+    def write_atom_volume(self, atomlist):
         '''write bader atom volumes to cube files.
         atomlist = [0,2] #for example
 
         -p sel_atom Write the selected atomic volumes, read from the
         subsequent list of volumes.
         '''
-        alist = string.join([str(x) for x in atomlist],' ')
-        cmd = 'bader -p sel_atom %s %s' % (alist,self.densityfile)
+        alist = string.join([str(x) for x in atomlist], ' ')
+        cmd = 'bader -p sel_atom %s %s' % (alist, self.densityfile)
         print cmd
         os.system(cmd)
         
-    def write_bader_volume(self,atomlist):
+    def write_bader_volume(self, atomlist):
         """write bader atom volumes to cube files.
 
         ::
@@ -145,8 +149,8 @@ class Bader:
         -p sel_bader Write the selected Bader volumes, read from the
         subsequent list of volumes.
         """
-        alist = string.join([str(x) for x in atomlist],' ')
-        cmd = 'bader -p sel_bader %s %s' % (alist,self.densityfile)
+        alist = string.join([str(x) for x in atomlist], ' ')
+        cmd = 'bader -p sel_bader %s %s' % (alist, self.densityfile)
         print cmd
         os.system(cmd)
 
@@ -195,7 +199,7 @@ class Bader:
         
 if __name__ == '__main__':
 
-    from Jacapo import *
+    from ase.calculators.jacapo import Jacapo
 
     atoms = Jacapo.read_atoms('ethylene.nc')
 
@@ -203,4 +207,4 @@ if __name__ == '__main__':
 
     print b.get_bader_charges()
     print b.get_bader_volumes()
-    b.write_atom_volume([3,4])
+    b.write_atom_volume([3, 4])

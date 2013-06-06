@@ -17,7 +17,7 @@ systems, as well as large biomolecular systems. The computational time
 depends only on the size of the 3D grid used to represent the electron
 density, and scales linearly with the total number of grid points. As
 the accuracy of the method depends on the grid spacing, it is
-recommended to check for convergnce in this parameter (which should
+recommended to check for convergence in this parameter (which should
 usually by smaller than the default value).
 
 The program takes cube input files. It does *not* support units, and
@@ -39,11 +39,11 @@ Note that it is strongly recommended to use version 0.26b or higher of
 the program, and the examples below refer to this version.
 
 .. [Bader] R. F. W. Bader.  Atoms in Molecules: A Quantum Theory.
-           Oxford University Press, New York, 1990.
+	   Oxford University Press, New York, 1990.
 
 .. [Tang]  W. Tang, E. Sanville, G. Henkelman.
-           A grid-based Bader analysis algorithm without lattice bias.
-           J. Phys.: Compute Mater. 21, 084204 (2009).
+	   A grid-based Bader analysis algorithm without lattice bias.
+	   J. Phys.: Compute Mater. 21, 084204 (2009).
 
 
 Example: The water molecule
@@ -73,13 +73,13 @@ summary of the Bader analysis::
 
   |     #         X           Y           Z        CHARGE     MIN DIST
   |  -----------------------------------------------------------------
-  |     1      7.0865      8.5038      9.0672      9.1121      1.3250 
-  |     2      7.0865      9.9461      7.9403      0.4440      0.2834 
-  |     3      7.0865      7.0615      7.9403      0.4440      0.2834 
+  |     1      7.0865      8.5038      9.0672      9.1121      1.3250
+  |     2      7.0865      9.9461      7.9403      0.4440      0.2834
+  |     3      7.0865      7.0615      7.9403      0.4440      0.2834
   |  -----------------------------------------------------------------
   |    NUMBER OF ELECTRONS:        9.99999
 
-Revealing that 0.56 electrons have been transfered from each
+Revealing that 0.56 electrons have been transferred from each
 Hydrogen atom to the Oxygen atom.
 
 The *BvAtxxxx.dat* files, are cube files for each Bader volume,

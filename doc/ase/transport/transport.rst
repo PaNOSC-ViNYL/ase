@@ -31,9 +31,9 @@ The Hamiltonian can thus be decomposed as:
     H = \begin{pmatrix}
       \ddots      & V_L         &             &             &     \\
       V_L^\dagger & H_L         & V_L         &             &     \\
-                  & V_L^\dagger & H_C         & V_R         &     \\
-                  &             & V_R^\dagger & H_R         & V_R \\
-                  &             &             & V_R^\dagger & \ddots
+		  & V_L^\dagger & H_C         & V_R         &     \\
+		  &             & V_R^\dagger & H_R         & V_R \\
+		  &             &             & V_R^\dagger & \ddots
     \end{pmatrix}
 
 where `H_{L/R}` describes the left/right principal layer, and `H_C`
@@ -46,7 +46,7 @@ direct coupling between the two leads. The principal layer must be so
 big that there is only coupling between nearest neighbor layers.
 
 Having defined `H_{L/R}`, `V_{L/R}`, and `H_C`, the elastic
-transmission function can be determined using the Nonequilibrium
+transmission function can be determined using the Non-equilibrium
 Green Function (NEGF) method.  This is achieved by the class:
 :class:`~ase.transport.calculators.TransportCalculator` (in
 ase.transport.calculators) which makes no requirement on the origin of
@@ -55,7 +55,7 @@ these five matrices.
 .. class:: ase.transport.calculators.TransportCalculator(energies, h, h1, h2, s=None, s1=None, s2=None, align_bf=False)
 
   Determine transport properties of device sandwiched between
-  semi-infinite leads using nonequillibrium Green function methods.
+  semi-infinite leads using non-equillibrium Green function methods.
 
   energies is the energy grid on which the transport properties should
   be determined.

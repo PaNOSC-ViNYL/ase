@@ -803,7 +803,7 @@ class EAM_Window(gtk.Window):
         if openr == gtk.RESPONSE_OK:
             param = {}
             filename = chooser.get_filename()
-            param['fileobj'] = filename
+            param['potential'] = filename
             setattr(self.owner, self.attrname, param)
 
         chooser.destroy()

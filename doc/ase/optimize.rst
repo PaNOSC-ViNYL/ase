@@ -24,7 +24,7 @@ The local optimization algorithms available in ASE are:
     `Performance test
     <https://wiki.fysik.dtu.dk/gpaw/devel/ase_optimize/ase_optimize.html>`_ for all
     ASE local optimizers.
- 
+
 
 
 
@@ -65,10 +65,10 @@ with the experimental geometry::
    d = 0.9575
    t = np.pi / 180 * 104.51
    water = Atoms('H2O',
-                 positions=[(d, 0, 0),
-                            (d * np.cos(t), d * np.sin(t), 0),
-                            (0, 0, 0)],
-                 calculator=EMT())
+		 positions=[(d, 0, 0),
+			    (d * np.cos(t), d * np.sin(t), 0),
+			    (0, 0, 0)],
+		 calculator=EMT())
    dyn = BFGS(water)
    dyn.run(fmax=0.05)
 
@@ -88,7 +88,7 @@ be followed during or after the run::
 
   dyn = BFGS(water, trajectory='H2O.traj')
   dyn.run(fmax=0.05)
-  
+
 Use the command ``ag H2O.traj`` to see what is going on (more here:
 :mod:`gui`).  The trajectory file can also be accessed using the
 module :mod:`ase.io.trajectory`.
@@ -157,22 +157,22 @@ LBFGS
 -----
 .. module:: optimize.lbfgs
 
-LBFGS is the limited memory version of the BFGS algorithm, where 
+LBFGS is the limited memory version of the BFGS algorithm, where
 the inverse of Hessian matrix is updated instead of the Hessian
 itself. Two ways exist for determining the atomic
-step: Standard ``LBFGS`` and ``LBFGSLineSearch``. For the 
-first one, both the directions and lengths of the atomic steps 
-are determined by the approximated Hessian matrix. While for the 
-latter one, the approximated Hessian matrix is only used to find 
-out the directions of the line searches and atomic steps, the 
-step lengths are determined by the forces. 
+step: Standard ``LBFGS`` and ``LBFGSLineSearch``. For the
+first one, both the directions and lengths of the atomic steps
+are determined by the approximated Hessian matrix. While for the
+latter one, the approximated Hessian matrix is only used to find
+out the directions of the line searches and atomic steps, the
+step lengths are determined by the forces.
 
 To start a structure optimization with LBFGS algorithm is similar to
 BFGS. A typical optimization should look like::
 
   dyn = LBFGS(atoms=system, trajectory='lbfgs.traj', restart='lbfgs.pckl')
 
-where the trajectory and the restart save the trajectory of the 
+where the trajectory and the restart save the trajectory of the
 optimization and the vectors needed to generate the Hessian Matrix.
 
 
@@ -205,7 +205,7 @@ masses of the atoms are not used, instead all masses are set to one.
 The MDmin algorithm exists in two flavors, one where each atom is
 tested and stopped individually, and one where all coordinates are
 treated as one long vector, and all momenta are set to zero if the
-dotproduct between the momentum vector and force vector (both of
+dot product between the momentum vector and force vector (both of
 length 3N) is zero.  This module implements the latter version.
 
 Although the algorithm is primitive, it performs very well because it
@@ -232,7 +232,7 @@ as::
 
 .. seealso::
 
-  :epydoc:`optimize.sciopt.SciPyFminBFGS`, 
+  :epydoc:`optimize.sciopt.SciPyFminBFGS`,
   :epydoc:`optimize.sciopt.SciPyFminCG`
 
 
@@ -271,18 +271,18 @@ Basin hopping
 -------------
 .. module:: optimize.basin
 
-The global optimization algorithm can be used quite similar as a 
+The global optimization algorithm can be used quite similar as a
 local optimization algorithm::
 
   from ase import *
   from ase.optimize.basin import BasinHopping
 
-  bh = BasinHopping(atoms=system,         # the system to optimize 
-                    temperature=100 * kB, # 'temperature' to overcome barriers
-                    dr=0.5,               # maximal stepwidth
-	       	    optimizer=LBFGS,      # optimizer to find local minima
+  bh = BasinHopping(atoms=system,         # the system to optimize
+		    temperature=100 * kB, # 'temperature' to overcome barriers
+		    dr=0.5,               # maximal stepwidth
+		    optimizer=LBFGS,      # optimizer to find local minima
 		    fmax=0.1,             # maximal force for the optimizer
-                    )
+		    )
 
 Read more about this algorithm here:
 
@@ -319,7 +319,7 @@ This algorithm utilizes a series of alternating steps of NVE molecular dynamics 
 
 This will run the algorithm until 10 steps are taken; alternatively, if totalsteps is not specified the algorithm will run indefinitely (or until stopped by a batch system). A number of optional arguments can be fed when initializing the algorithm as keyword pairs. The keywords and default values are:
 
- 
+
  | ``T0``: 1000.,  # K, initial MD 'temperature'
  | ``beta1``: 1.1,  # temperature adjustment parameter
  | ``beta2``: 1.1,  # temperature adjustment parameter

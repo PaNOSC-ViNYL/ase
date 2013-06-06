@@ -13,9 +13,9 @@ HCP
 ===
 
 Let's try to find the `a` and `c` lattice constants for HCP nickel
-using the :mod:`EMT <emt>` potential.  
+using the :mod:`EMT <emt>` potential.
 
-First, we make a good intial guess for `a` and `c` using the FCC nearest
+First, we make a good initial guess for `a` and `c` using the FCC nearest
 neighbor distance and the ideal `c/a` ratio:
 
 .. literalinclude:: lattice_constant.py

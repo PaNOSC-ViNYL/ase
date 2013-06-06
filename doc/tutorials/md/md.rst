@@ -42,11 +42,11 @@ Langevin, see the class below.
 The Langevin dynamics will then slowly adjust the total energy of the
 system so the temperature approaches the desired one.
 
-As a slightly less boring example, let us use this to melt a chunck of
+As a slightly less boring example, let us use this to melt a chunk of
 copper by starting the simulation without any momentum of the atoms
 (no kinetic energy), and with a desired temperature above the melting
 point.  We will also save information about the atoms in a trajectory
-file called moldyn3.traj.  
+file called moldyn3.traj.
 
 .. literalinclude:: moldyn3.py
 
@@ -73,7 +73,7 @@ Isolated particle MD
 ====================
 
 When simulating isolated particles with MD, it is sometimes preferable
-to set random momenta corresponding to a spefic temperature and let the
+to set random momenta corresponding to a specific temperature and let the
 system evolve freely. With a relatively high temperature, the is however
 a risk that the collection of atoms will drift out of the simulation box
 because the randomized momenta gave the center of mass a small but
