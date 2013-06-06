@@ -55,13 +55,13 @@ def read_lammps_dump(fileobj, index=-1, order=True):
 
             # determine cell tilt (triclinic case!)
             if (len(tilt) >= 3):
-                # for >=lammps-7Jul09 use labels behind 
+                # for >=lammps-7Jul09 use labels behind
                 # "ITEM: BOX BOUNDS" to assign tilt (vector) elements ...
                 if (len(tilt_items) >= 3):
                     xy = tilt[tilt_items.index('xy')]
                     xz = tilt[tilt_items.index('xz')]
                     yz = tilt[tilt_items.index('yz')]
-                # ... otherwise assume default order in 3rd column 
+                # ... otherwise assume default order in 3rd column
                 # (if the latter was present)
                 else:
                     xy = tilt[0]
@@ -79,7 +79,7 @@ def read_lammps_dump(fileobj, index=-1, order=True):
                     celldispx = lo[0] - xy
             else:
                 celldispx = lo[0]
-            celldispy = lo[1] 
+            celldispy = lo[1]
             celldispz = lo[2]
 
             cell = [[xhilo, 0, 0], [xy, yhilo, 0], [xz, yz, zhilo]]
@@ -93,9 +93,9 @@ def read_lammps_dump(fileobj, index=-1, order=True):
                         for label in labels])
                 
         if 'ITEM: ATOMS' in line:
-            # (reliably) identify values by labels behind 
+            # (reliably) identify values by labels behind
             # "ITEM: ATOMS" - requires >=lammps-7Jul09
-            # create corresponding index dictionary before 
+            # create corresponding index dictionary before
             # iterating over atoms to (hopefully) speed up lookups...
             atom_attributes = {}
             for (i, x) in enumerate(line.split()[2:]):
@@ -120,6 +120,7 @@ def read_lammps_dump(fileobj, index=-1, order=True):
                     for i, v in zip(id, inlist):
                         outlist[i - 1] = v
                     return outlist
+                types = reorder(types)
                 positions = reorder(positions)
                 scaled_positions = reorder(scaled_positions)
                 velocities = reorder(velocities)
@@ -137,7 +138,7 @@ def read_lammps_dump(fileobj, index=-1, order=True):
                                     cell=cell))
             elif len(scaled_positions):
                 images.append(Atoms(symbols=types,
-                                    scaled_positions=scaled_positions, 
+                                    scaled_positions=scaled_positions,
                                     celldisp=celldisp,
                                     cell=cell))
 

@@ -7,6 +7,7 @@ from ase.atoms import Atoms
 from ase.calculators.lammps import prism
 from ase.calculators.neighborlist import NeighborList
 from ase.data import atomic_masses, chemical_symbols
+from ase.io.lammps import read_lammps_dump
 
 
 def twochar(name):
@@ -124,8 +125,8 @@ class OPLSff:
 clear
 variable dump_file string "dump_traj"
 variable data_file string "dump_data"
-units metal 
-boundary p p f 
+units metal
+boundary p p f
 
 atom_style full
 """)
@@ -177,7 +178,7 @@ log /dev/stdout
         for i, r in enumerate(map(p.pos_to_lammps_str,
                                   atoms.get_positions())):
             q = 0  # charge will be overwritten
-            fileobj.write('%6d %3d %3d %s %s %s %s' % ((i + 1, 1, 
+            fileobj.write('%6d %3d %3d %s %s %s %s' % ((i + 1, 1,
                                                         tag[i] + 1, 
                                                         q)
                                                        + tuple(r)))
@@ -375,7 +376,8 @@ kspace_modify slab 3.0
             fileobj.write('set type ' + str(ia + 1))
             fileobj.write(' charge ' + str(data[atype][2]))
             fileobj.write(' # ' + atype + '\n')
-            
+
+
 class OPLSStructure(Atoms):
     default_map = {
         'BR': 'Br',
@@ -414,7 +416,7 @@ class OPLSStructure(Atoms):
                 types_map[symbol] = len(types)
                 types.append(symbol) 
             self.append(Atom(element, [float(x), float(y), float(z)],
-                             tag=types_map[symbol]                       ))
+                             tag=types_map[symbol]))
             self.types = types
 
     def split_symbol(self, string, translate=default_map):
@@ -437,3 +439,25 @@ class OPLSStructure(Atoms):
                 elem = elements[elem]
             res.append(Atom(elem, atom.position))
         return res
+
+    def update_from_lammps_dump(self, fileobj, check=True):
+        atoms = read_lammps_dump(fileobj)
+
+        if len(atoms) != len(self):
+            raise RuntimeError('Structure in ' + str(fileobj) +
+                               ' has wrong length: %d != %d' %
+                               (len(atoms), len(self)))
+
+        if check:
+            for a, b in zip(self, atoms):
+                # check that the atom types match
+                if not (a.tag + 1 == b.number):
+                    raise RuntimeError('Atoms index %d are of different '
+                                       'type (%d != %d)' 
+                                       % (a.index, a.tag + 1, b.number))
+
+        self.set_cell(atoms.get_cell())
+        self.set_positions(atoms.get_positions())
+        if atoms.get_velocities() is not None:
+            self.set_velocities(atoms.get_velocities())
+        # XXX what about energy and forces ???
