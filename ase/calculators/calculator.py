@@ -338,38 +338,42 @@ class Calculator:
 
         return system_changes
 
-    def get_potential_energy(self, atoms, force_consistent=False):
+    def get_potential_energy(self, atoms=None, force_consistent=False):
         energy = self.get_property('energy', atoms)
         if force_consistent:
             return self.results.get('free_energy', energy)
         else:
             return energy
 
-    def get_forces(self, atoms):
+    def get_forces(self, atoms=None):
         return self.get_property('forces', atoms).copy()
 
-    def get_stress(self, atoms):
+    def get_stress(self, atoms=None):
         return self.get_property('stress', atoms).copy()
 
-    def get_dipole_moment(self, atoms):
+    def get_dipole_moment(self, atoms=None):
         return self.get_property('dipole', atoms).copy()
 
-    def get_charges(self, atoms):
+    def get_charges(self, atoms=None):
         return self.get_property('charges', atoms)
 
-    def get_magnetic_moment(self, atoms):
+    def get_magnetic_moment(self, atoms=None):
         return self.get_property('magmom', atoms)
 
-    def get_magnetic_moments(self, atoms):
+    def get_magnetic_moments(self, atoms=None):
         return self.get_property('magmoms', atoms).copy()
 
-    def get_property(self, name, atoms):
+    def get_property(self, name, atoms=None):
         if name not in self.implemented_properties:
             raise NotImplementedError
 
-        system_changes = self.check_state(atoms)
-        if system_changes:
-            self.reset()
+        if atoms is None:
+            atoms = self.atoms
+            system_changes = []
+        else:
+            system_changes = self.check_state(atoms)
+            if system_changes:
+                self.reset()
 
         if name not in self.results:
             try:
