@@ -43,7 +43,7 @@ averaged current along the z-direction::
   from ase.dft.stm import STM
   from gpaw import GPAW
 
-  calc = GPAW('Al100.gpw')
+  calc = GPAW('Al100.gpw', parallel={'domain': 1})
   atoms = calc.get_atoms()
 
   stm = STM(atoms, symmetries=[0, 1, 2])
