@@ -199,7 +199,8 @@ latex_preamble = '\usepackage{amsmath}'
 #latex_use_modindex = True
 
 # Example configuration for intersphinx: refer to gpaw.
-intersphinx_mapping = {'http://wiki.fysik.dtu.dk/gpaw': None}
+intersphinx_mapping = {'gpaw': ('http://wiki.fysik.dtu.dk/gpaw', None),
+                       'python': ('http://docs.python.org/2.7', None)}
 
 # sphinx.ext.pngmath manual configuration
 # ---------------------------------------
