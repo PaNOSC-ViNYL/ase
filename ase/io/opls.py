@@ -52,6 +52,21 @@ class AnglesData:
         return None, None
     
 
+class DihedralsData:
+    def __init__(self, name_value_hash):
+        self.nvh = name_value_hash
+    
+    def name_value(self, aname, bname, cname, dname):
+        for name in [
+            (twochar(aname) + '-' + twochar(bname) + '-' + 
+             twochar(cname) + '-' + twochar(dname)),
+            (twochar(dname) + '-' + twochar(cname) + '-' + 
+             twochar(bname) + '-' + twochar(aname))]:
+            if name in self.nvh:
+                return name, self.nvh[name]
+        return None, None
+
+
 class OPLSff:
     def __init__(self, fileobj=None, warnings=0):
         self.warnings = warnings
@@ -98,19 +113,18 @@ class OPLSff:
         read_block('bonds', 5, 2)
         read_block('angles', 8, 2)
         read_block('dihedrals', 11, 3)
-        if len(self.data['dihedrals']):
-            raise NotImplementedError('Dihedrals are not implemented.')
         read_block('cutoffs', 5, 1)
 
         self.bonds = BondData(self.data['bonds'])
         self.angles = AnglesData(self.data['angles'])
+        self.dihedrals = DihedralsData(self.data['dihedrals'])
         self.cutoffs = CutoffList(self.data['cutoffs'])
 
     def write_lammps(self, atoms, prefix='lammps'):
         """Write input for a LAMMPS calculation."""
         self.prefix = prefix
-        btypes, atypes = self.write_lammps_atoms(atoms)
-        self.write_lammps_definitions(atoms, btypes, atypes)
+        btypes, atypes, dtypes = self.write_lammps_atoms(atoms)
+        self.write_lammps_definitions(atoms, btypes, atypes, dtypes)
         self.write_lammps_in()
 
     def write_lammps_in(self):
@@ -164,6 +178,10 @@ log /dev/stdout
         if len(alist):
             fileobj.write(str(len(alist)) + ' angles\n')
             fileobj.write(str(len(atypes)) + ' angle types\n')
+        dtypes, dlist = self.get_dihedrals()
+        if len(dlist):
+            fileobj.write(str(len(dlist)) + ' dihedrals\n')
+            fileobj.write(str(len(dtypes)) + ' dihedral types\n')
 
         # cell
         p = prism(atoms.get_cell())
@@ -219,7 +237,16 @@ log /dev/stdout
                                avals[1] + 1, avals[2] + 1, avals[3] + 1))
                 fileobj.write('# ' + atypes[avals[0]] + '\n')
 
-        return btypes, atypes
+        # dihedrals
+        if len(dlist):
+            fileobj.write('\nDihedrals\n\n')
+            for i, dvals in enumerate(dlist):
+                fileobj.write('%8d %6d %6d %6d %6d ' %
+                              (i + 1, dvals[0] + 1, 
+                               dvals[1] + 1, dvals[2] + 1, dvals[3] + 1))
+                fileobj.write('# ' + dtypes[dvals[0]] + '\n')
+
+        return btypes, atypes, dtypes
 
     def update_neighbor_list(self, atoms):
         cut = 0.5 * max(self.data['cutoffs'].values())
@@ -249,8 +276,8 @@ log /dev/stdout
                 cut = cutoffs.value(iname, jname)
                 if cut is None:
                     if self.warnings > 1:
-                        print ('Warning: cutoff %s-%s not found'
-                               % (iname, jname))
+                        print('Warning: cutoff %s-%s not found'
+                              % (iname, jname))
                     continue  # don't have it
                 dist = np.linalg.norm(atom.position - atoms[j].position
                                       - np.dot(offset, cell))
@@ -314,7 +341,62 @@ log /dev/stdout
                     ang_list.append([ang_types.index(name), i, j, k])
         return ang_types, ang_list
 
-    def write_lammps_definitions(self, atoms, btypes, atypes):
+    def get_dihedrals(self, atoms=None):
+        cutoffs = CutoffList(self.data['cutoffs'])
+        if atoms is not None:
+            self.update_neighbor_list(atoms)
+        else:
+            atoms = self.atoms
+         
+        types = atoms.get_types()
+        tags = atoms.get_tags()
+        cell = atoms.get_cell()
+        positions = atoms.get_positions()
+        dih_list = []
+        dih_types = []
+        for i, atom in enumerate(atoms):
+            iname = types[tags[i]]
+            indicesi, offsetsi = self.nl.get_neighbors(i)
+            for j, offsetj in zip(indicesi, offsetsi):
+                jname = types[tags[j]]
+                cut = cutoffs.value(iname, jname)
+                if cut is None:
+                    continue # don't have it
+                dist = np.linalg.norm(atom.position - atoms[j].position
+                                      - np.dot(offsetj, cell))
+                if dist > cut:
+                    continue # too far away
+                indicesj, offsetsj = self.nl.get_neighbors(j)
+                for k, offsetk in zip(indicesj, offsetsj):
+                    if k <= i:
+                        continue # avoid double count
+                    kname = types[tags[k]]
+                    cut = cutoffs.value(jname, kname)
+                    if cut is None:
+                        continue # don't have it
+                    dist = np.linalg.norm(atoms[k].position +
+                                          np.dot(offsetk, cell) - 
+                                          atoms[j].position)
+                    if dist > cut:
+                        continue # too far away
+                    indicesk, offsetsk = self.nl.get_neighbors(k)
+                    for l, offsetl in zip(indicesk, offsetsk):
+                        if l <= j:
+                            continue # avoid double count
+                        lname = types[tags[l]]
+                        cut = cutoffs.value(kname, lname)
+                        if cut is None:
+                            continue # don't have it
+                        name, val = self.dihedrals.name_value(iname, jname, 
+                                                              kname, lname)
+                        if name is None:
+                            continue # don't have it
+                        if name not in dih_types:
+                            dih_types.append(name)
+                        dih_list.append([dih_types.index(name), i, j, k, l])
+        return dih_types, dih_list
+
+    def write_lammps_definitions(self, atoms, btypes, atypes, dtypes):
         """Write force field definitions for LAMMPS."""
 
         fileobj = self.prefix + '_opls'
@@ -345,6 +427,16 @@ log /dev/stdout
                 for value in self.angles.nvh[atype]:
                     fileobj.write(' ' + str(value))
                 fileobj.write(' # ' + atype + '\n')
+
+        # dihedrals
+        if len(dtypes):
+            fileobj.write('\n# dihedrals\n')
+            fileobj.write('dihedral_style      harmonic\n')
+            for i, dtype in enumerate(dtypes):
+                fileobj.write('dihedral_coeff %6d' % (i + 1))
+                for value in self.dihedrals.nvh[dtype]:
+                    fileobj.write(' ' + str(value))
+                fileobj.write(' # ' + dtype + '\n')
 
         # Lennard Jones settings
         fileobj.write('\n# L-J parameters\n')
