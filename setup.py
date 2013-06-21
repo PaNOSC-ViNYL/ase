@@ -141,9 +141,7 @@ if svnversion and os.name not in ['ce', 'nt']: # MSI accepts only version X.X.X
 else:
     version = version_base
 
-scripts = ['tools/ag', 'tools/ASE2ase', 'tools/testase',
-           'tools/ase-cli', 'tools/ase-db',
-           'tools/foldtrajectory', 'tools/trajectoryinfo']
+scripts = ['tools/ag', 'tools/ase-cli', 'tools/ase-db', 'tools/ase-info']
 # provide bat executables in the tarball and always for Win
 if 'sdist' in sys.argv or os.name in ['ce', 'nt']:
     for s in scripts[:]:
