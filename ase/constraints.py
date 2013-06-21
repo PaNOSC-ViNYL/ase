@@ -43,7 +43,10 @@ class FixConstraint:
         of the underlying atoms object for the assignment of
         multiplied constraints to work.
         """
-        raise NotImplementedError
+        msg = ("Repeat is not compatible with your atoms' constraints."
+               " Use atoms.set_constraint() before calling repeat to "
+               "remove your constraints.")
+        raise NotImplementedError(msg)
 
 
 class FixConstraintSingle(FixConstraint):
