@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from ase.io import read
 from ase.constraints import FixAtoms
 from ase.calculators.siesta import Siesta

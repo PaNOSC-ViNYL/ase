@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import gtk
 from gettext import gettext as _
 from ase.gui.widgets import pack, Help, oops

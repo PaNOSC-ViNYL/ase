@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 from ase.io import read, write
 from ase.calculators.dftb import Dftb
 from ase.optimize import QuasiNewton

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2008, 2009
 # CAMd (see accompanying license files for details).
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """ An example for using gromacs calculator in ase.
     Atom positions are relaxed.
     A sample call:
