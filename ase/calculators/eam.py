@@ -30,6 +30,16 @@ well. However, the Angular Dependent Potential (ADP) [2]_ which is an
 extended version of EAM is able to model directional bonds and is also
 included in the EAM calculator.
 
+Generally all that is required to use this calculator is to supply a
+potential file or as a set of functions that describe the potential.
+The files containing the potentials for this calculator are not
+included but many suitable potentials can be downloaded from The
+Interatomic Potentials Repository Project at
+http://www.ctcms.nist.gov/potentials/
+
+Theory
+======
+
 A single element EAM potential is defined by three functions: the
 embedded energy, electron density and the pair potential.  A two
 element alloy contains the individual three functions for each element
@@ -68,11 +78,6 @@ where `\mu_i^\alpha` is the dipole vector, `\lambda_i^{\alpha\beta}`
 is the quadrupole tensor and `\nu_i` is the trace of
 `\lambda_i^{\alpha\beta}`.
 
-The files containing the potentials for this calculator are not
-included but many suitable potentials can be downloaded from The
-Interatomic Potentials Repository Project at
-http://www.ctcms.nist.gov/potentials/
-
 Running the Calculator
 ======================
 
@@ -95,6 +100,9 @@ For example::
     slab.set_calculator(mishin)
     slab.get_potential_energy()
     slab.get_forces()
+
+The breakdown of energy contribution from the indvidual components are
+stored in the calculator instance ``.results['energy_components']``
 
 Arguments
 =========
@@ -119,7 +127,7 @@ Keyword                    Description
 
 ``d_phi[N,N]``             arrays of derivative pair potentials functions
 
-``d[N], q[N,N]``           ADP dipole and quadrupole function
+``d[N,N], q[N,N]``         ADP dipole and quadrupole function
 
 ``d_d[N,N], d_q[N,N]``     ADP dipole and quadrupole derivative functions
 
@@ -185,9 +193,6 @@ Notes/Issues
 * Supported formats are the LAMMPS_ ``.alloy`` and ``.adp``. The
   ``.eam`` format is currently not supported. The form of the
   potential will be determined from the file suffix.
-
-* The breakdown of energy components are stored in the calculator instance
-  ``.results['energy_components']``
 
 * Any supplied values will override values read from the file.
 
