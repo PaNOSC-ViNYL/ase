@@ -25,7 +25,7 @@ project.  So, we need to install docutils and sphinx (version>= 0.5).
 Other requirements
 ==================
 
-When building the documentation, a number of png-files are generated.
+When building the documentation, a number of png-files are generated_.
 For that to work, you need the following installed:
 
 * matplotlib
@@ -36,13 +36,13 @@ For that to work, you need the following installed:
 * AUCTex
 * convert (ImageMagick)
 
+
 .. _using_sphinx:
 
 Using Sphinx
 ============
 
 .. highlight:: bash
-
 
 First, you should take a look at the documentation for Sphinx_ and
 reStructuredText_.
@@ -57,8 +57,9 @@ Then :command:`cd` to the :file:`doc` directory and build the html-pages::
 
 .. Note::
 
-   Make sure that you build the Sphinx documentation using the corresponding ASE version
-   by setting the environment variables :envvar:`$PYTHONPATH` and :envvar:`$PATH`.
+   Make sure that you build the Sphinx documentation using the
+   corresponding ASE version by setting the environment variables
+   :envvar:`$PYTHONPATH` and :envvar:`$PATH`.
 
 Make your changes to the ``.rst`` files, run the
 :command:`sphinx-build` command again, check the results and if things
@@ -74,7 +75,6 @@ To build a pdf-file, you do this::
   $ sphinx-build -b latex . _build
   $ cd _build
   $ make ase-manual.pdf
-
 
 
 Extensions to Sphinx
@@ -125,14 +125,30 @@ We have a couple of extensions to Sphinx:
 
    .. math:: \frac{1}{1+x^2}
 
-The implementation of these roles is here: :svn:`doc/ext.py`.  Our
-custom, obsolete, implementation of the math role and directive is
-here: :svn:`doc/mathpng.py`.  With sphinx >= 0.5 please use
-``sphinx.ext.pngmath``.
-
 
 .. _epydoc:  http://epydoc.sf.net
 
+
+.. _generated:
+
+Running Python code to create figures
+=====================================
+
+If you want to include a picture in your page, *you should not* check
+in the png-file to our SVN repositoy!  Instead, you should check in
+the Python script you used to generate the picture (you can also
+generate csv-files or pdf-files like this).  The first line of the
+script should look like this::
+
+    # creates: fig1.png fig2.png table1.csv
+
+Sphinx will run the script and generate the files that you can
+then use in your rst-file.  Examples:
+
+* :ref:`eos`.  Source: :trac:`doc/tutorials/eos/eos.py`,
+  :trac:`doc/tutorials/eos/eos.rst`
+* :ref:`lattice_constant`.  Source: :trac:`doc/tutorials/lattice_constant.py`,
+  :trac:`doc/tutorials/lattice_constant.rst`
 
 
 reStructedText in emacs

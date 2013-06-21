@@ -457,6 +457,25 @@ def rotate(atoms, a1, a2, b1, b2, rotate_cell=True, center=(0, 0, 0)):
     if rotate_cell:
         atoms.cell[:] = np.dot(atoms.cell, R.T)
 
+def minimize_tilt(atoms, fold_atoms=True):
+    """Minimize the tilt angle."""
+    cell_cc = atoms.get_cell()
+    pbc_c = atoms.get_pbc()
+    
+    # XXX use numpy magic
+    l2_c = np.array([np.dot(cell_cc[c], cell_cc[c]) for c in range(3)])
+    for c1 in range(3):
+        if pbc_c[c1]: # correct periodic axes only
+            for c2 in range(3):
+                if c1 != c2:
+                    n12 = np.floor(np.dot(cell_cc[c1], cell_cc[c2]) / 
+                                   l2_c[c2] + 0.5)
+                    cell_cc[c1] -= n12 * cell_cc[c2]
+    atoms.set_cell(cell_cc)
+
+    if fold_atoms:
+        atoms.set_scaled_positions(atoms.get_scaled_positions())
+
 #-----------------------------------------------------------------
 # Self test
 if __name__ == '__main__':
