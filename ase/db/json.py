@@ -54,13 +54,19 @@ def decode(txt):
 
 def write_json(name, results):
     if world.rank == 0:
-        fd = open(name, 'w')
+        if isinstance(name, str):
+            fd = open(name, 'w')
+        else:
+            fd = name
         fd.write(encode(results))
         fd.close()
 
 
 def read_json(name):
-    fd = open(name, 'r')
+    if isinstance(name, str):
+        fd = open(name, 'r')
+    else:
+        fd = name
     results = decode(fd.read())
     fd.close()
     world.barrier()
@@ -70,7 +76,7 @@ def read_json(name):
 class JSONDatabase(NoDatabase):
     def _write(self, id, atoms, keywords, key_value_pairs, data, replace):
         bigdct = {}
-        if os.path.isfile(self.filename):
+        if isinstance(self.filename, str) and os.path.isfile(self.filename):
             try:
                 bigdct = read_json(self.filename)
             except SyntaxError:
