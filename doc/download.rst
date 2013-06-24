@@ -370,27 +370,20 @@ directory (preferably using bash)::
 
   $ bash
   $ mkdir /tmp/testase.$$; cd /tmp/testase.*
-  $ testase.py 2>&1 | tee testase.log
-
-.. note:: 
-
-   In the development version of ASE, and in future stable versions,
-   the test script is just named :file:`testase`.
+  $ python -c "from ase.test import test; test(verbosity=2, display=True)" 2>&1 | tee testase.log
 
 .. note::
 
    The last test :trac:`ase/test/COCu111.py` requires closing
    the graphics windows to terminate the whole test-suite.
 
-If any of the tests fail,
-then please send us :file:`testase.log` (see :ref:`bugs`).
-
 .. note::
 
-   If matplotlib_ or pygtk_ is not installed, one of the tests will
-   fail - avoid this with::
+   If matplotlib_ or pygtk_ is not installed, this test will
+   fail - avoid this with ``display=False``.
 
-     $ testase.py --no-display
+If any of the tests fail,
+then please send us :file:`testase.log` (see :ref:`bugs`).
 
 
 Video tutorial
