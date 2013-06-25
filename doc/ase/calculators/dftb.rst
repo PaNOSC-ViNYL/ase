@@ -36,81 +36,55 @@ for the Slater-Koster files and what is the name of the executable):
   $ setenv DFTB_COMMAND ~/bin/DFTB+/dftb+_s081217.i686-linux   (an example)
 
 
-DftbPlus Calculator
-====================
-This is a preliminary version of the DftbPlus calculator, so all the
-DftbPlus features are unfortunately not there.
+DftbPlus Calculator (a FileIOCalculator)
+========================================
+The file 'geom.out.gen' contains the input and output geometry 
+and it will be updated during the dftb calculations.
 
-Use write_dftb=False to use your own 'dftb_in.hsd'-file with all the
-flavours you need. In that case ase only updates the coordinates of
-the system, otherwise file 'dftb_in.hsd' remains intact (see example 2
-below). However, in case of own 'dftb_in.hsd' file you need first read
-in atom position and atom type information of your system for ase (for
-instance a xyz-file), see example 2 below.
+If restart == None 
+                   it is assumed that a new input file 'dftb_hsd.in'
+                   will be written by ase using default keywords
+                   and the ones given by the user.
 
-The atom positions in file 'dftb_in.hsd' are updated during
-ASE geometry optimization.
+If restart != None 
+                   it is assumed that keywords are in file restart
 
-For the spin polarised calculations this ASE-interface generates parameters
-with GGA-PBE-spin parameters. If you need LDA use your own 'dftb_in.hsd'-file.
-
-Information of periodicity is taken from ase (see example1 below).
-
-
-For example::
-
-    calc = Dftb(label='o2',
-		write_dftb=True,
-		do_spin_polarized=True,
-		unpaired_electrons=2.0,
-		fermi_temperature=100.0,
-		scc=True)
+All Keywords to the dftb calculator can be set by ase. 
 
 
 Parameters
 ==========
-label: str
-    Prefix to use for filenames (label.txt, ...).
-    Default is 'dftb'.
-write_dftb: boolean
-    True: a minimal input file (name of which is always 'dftb_in.hsd')
-    is written based on values given here.
-    False: input file for dftb+ is not written. User must have
-    generated file 'dftb_in.hsd' in the working directory.
-    Use write_dftb=False to use your own 'dftb_in.hsd'-file.
-charge: float
-    Total charge of the system.
-include_dispersion: boolean
-    True: Default dispersion parameters are written in the
-    file 'dftb_in.hsd' (requires that also write_dftb_input_file==True)
-    False: dispersion parameters are not written here.
-do_spin_polarized: boolean
-    True: Spin polarized calculation
-    False: Spin unpolarized calculation
-unpaired_electrons: float
-    Number of spin unpaired electrons in the system.
-    Relevant only if do_spin_polarized==True
-fermi_temperature: float
-    Fermi temperature for electrons.
-scc: boolean
-    True: Do charge self consistent dftb+
-    False: No SCC, charges on atoms are not iterated
+        restart: str
+            If restart == None 
+            it is assumed that a new input file 'dftb_hsd.in'
+            will be written by ase using default keywords
+            and the ones given by the user.
 
-Example1: Geometry Optimization
+            If restart != None 
+            it is assumed that keywords are in file 'restart'
+        ignore_bad_restart_file: bool
+            Ignore broken or missing restart file.  By defauls, it is an
+            error if the restart file is missing or broken.
+        label: str
+            Name used for all files.  May contain a directory.
+        atoms: Atoms object
+            Optional Atoms object to which the calculator will be
+            attached.  When restarting, atoms will get its positions and
+            unit-cell updated from file.
+        kpts:
+            Brillouin zone sampling:
+
+            * ``(1,1,1)``: Gamma-point
+            * ``(n1,n2,n3)``: Monkhorst-Pack grid
+            * ``(n1,n2,n3,'gamma')``: Shifted Monkhorst-Pack grid that includes
+              `\Gamma`
+            * ``[(k11,k12,k13),(k21,k22,k23),...]``: Explicit list in units of the reciprocal lattice vectors
+            * ``kpts=3.5``: `\vec k`-point density as in 3.5 `\vec k`-points per
+              Å\ `^{-1}`.
+
+Example: Geometry Optimization
 ===============================
 
 .. literalinclude:: dftb_ex1_relax.py
 
-Example2: Geometry Optimization using your own 'dftb_in.hsd' file
-==================================================================
 
-.. literalinclude:: dftb_ex2_relax.py
-
-Input file for example 2 (h2o_1.xyz)
-
-.. literalinclude:: h2o_1.xyz
-
-You also need to have generated the file 'dftb_in.hsd', here is and example:
-change the variable 'Prefix' below
-
-.. literalinclude:: dftb_in.hsd
