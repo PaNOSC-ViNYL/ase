@@ -175,11 +175,11 @@ class NoDatabase:
         dct = self.get_dict(id, fancy=False)
         atoms = dict2atoms(dct, attach_calculator)
         if add_additional_information:
-            atoms.info = {'id': id,
-                          'unique_id': dct['unique_id'],
-                          'keywords': dct['keywords'],
-                          'key_value_pairs': dct['key_value_pairs'],
-                          'data': dct['data']}
+            atoms.info = {}
+            for key in ['id', 'unique_id', 'keywords', 'key_value_pairs',
+                        'data']:
+                if key in dct:
+                    atoms.info[key] = dct[key]
         return atoms
 
     def __getitem__(self, index):

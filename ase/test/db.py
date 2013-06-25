@@ -1,13 +1,19 @@
-from ase.cli import run as cli
-from ase.db.cli import run as db
+from ase.test import cli
+from ase.db import connect
+
+cmd = """
+ase-build H | ase-run emt -d x.json &&
+ase-build H2O | ase-run emt -d x.json &&
+ase-build O2 | ase-run emt -d x.json &&
+ase-build H2 | ase-run emt -f 0.02 -d x.json &&
+ase-build O2 | ase-run emt -f 0.02 -d x.json &&
+ase-build -x fcc Cu | ase-run emt -E 5 -d x.json &&
+ase-db x.json id=H --delete --yes &&
+ase-db x.json "H>0" -k hydro"""
+
 for name in ['x.json', 'x.sqlite']:#, 'postgres://localhost']:
-    cli('H H2O O O2 run -d %s' % name)
-    cli('H2 optimize -d %s' % name)
-    cli('O2 optimize -d %s' % name)
-    cli('-x fcc Cu eos -d %s' % name)
-    ids = db('%s' % name)
-    ids.sort()
-    print ids
-    db('%s id=H --delete --yes' % name)
-    db('%s H>0 -k emt' % name)
-    ids = db('%s' % name)
+    cli(cmd.replace('x.json', name))
+    con = connect(name)
+    assert len(list(con.select())) == 4
+    assert len(list(con.select('hydro'))) == 2
+

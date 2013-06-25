@@ -22,7 +22,10 @@ import ase.db as db
 
 
 def main():
-    Runner().parse()
+    runner = Runner()
+    runner.parse()
+    if runner.errors:
+        sys.exit(runner.errors)
 
 
 class Runner:
@@ -32,10 +35,10 @@ class Runner:
 
     calculator_name = None
 
-    def __init__(self, plugin=False):
-        self.plugin = plugin
+    def __init__(self):
         self.db = None
         self.opts = None
+        self.errors = 0
 
         if world.rank == 0:
             self.logfile = sys.stdout
@@ -98,7 +101,7 @@ class Runner:
         if self.calculator_name is None:
             self.calculator_name = names.pop(0)
 
-        if not self.plugin and self.opts.plugin:
+        if self.opts.plugin:
             runner = self.get_runner()
         else:
             runner = self
@@ -126,12 +129,13 @@ class Runner:
             if atoms is not None:
                 del atoms.calc  # release resources from last calculation
             atoms = self.build(name)
+            if name == '-':
+                name = atoms.info['id']
 
-            id = None
             skip = False
             if opts.skip:
                 try:
-                    id = self.db.write(None, None, replace=False)
+                    self.db.write(name, None, replace=False)
                 except db.IdCollisionError:
                     skip = True
         
@@ -147,11 +151,12 @@ class Runner:
                 except Exception:
                     self.log(name, 'FAILED')
                     traceback.print_exc(file=self.logfile)
+                    self.errors += 1
                 else:
                     tstop = time.time()
                     data['time'] = tstop - tstart
                     data['ase_run_name'] = name
-                    self.db.write(id, atoms, data=data)
+                    self.db.write(name, atoms, data=data)
 
         return atoms
     
@@ -174,7 +179,7 @@ class Runner:
         exec script in namespace
         for cls in namespace:
             if issubclass(namespace[cls], Runner):
-                runner = namespace[cls](plugin=True)
+                runner = namespace[cls]()
                 runner.opts = self.opts
                 runner.calculator_name = self.calculator_name
                 runner.parameter_namespace = self.parameter_namespace
@@ -198,7 +203,8 @@ class Runner:
 
     def build(self, name):
         if name == '-':
-            return db.connect(sys.stdin, 'json')[0]
+            con = db.connect(sys.stdin, 'json')
+            return con.get_atoms(add_additional_information=True)
         else:
             return read(name)
 
@@ -266,7 +272,7 @@ class Runner:
         
         traj = PickleTrajectory(self.get_filename(name, 'traj'), 'w', atoms)
         eps = 0.01
-        strains = np.linspace(1 - eps, 1 + eps, opts.points)
+        strains = np.linspace(1 - eps, 1 + eps, 5)#opts.points)
         v1 = atoms.get_volume()
         volumes = strains**3 * v1
         energies = []

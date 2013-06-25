@@ -81,7 +81,7 @@ def main():
         write(name + '.json', atoms)
     else:
         con = connect(sys.stdout, type='json')
-        con.write(None, atoms)
+        con.write(name, atoms)
 
 
 def build_molecule(name, opts):

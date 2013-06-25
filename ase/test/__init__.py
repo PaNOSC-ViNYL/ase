@@ -3,6 +3,7 @@ import os
 import platform
 import sys
 import unittest
+import subprocess
 from glob import glob
 
 import numpy as np
@@ -10,6 +11,9 @@ import numpy as np
 
 class NotAvailable(Exception):
     pass
+
+
+test_calculator_names = []
 
 
 # Custom test case/suite for embedding unittests in the test scripts
@@ -79,6 +83,7 @@ class ScriptTestCase(unittest.TestCase):
 
 def test(verbosity=1, calculators=[],
          dir=None, display=True, stream=sys.stdout):
+    test_calculator_names.extend(calculators)
     disable_calculators([name for name in calc_names
                          if name not in calculators])
     ts = unittest.TestSuite()
@@ -147,6 +152,14 @@ def disable_calculators(names):
             pass
         else:
             cls.__init__ = __init__
+
+
+def cli(command, calculator_name=None):
+    if (calculator_name is not None and
+        calculator_name not in test_calculator_names):
+        return
+    error = subprocess.call(' '.join(command.split('\n')), shell=True)
+    assert error == 0
 
 
 class World:
