@@ -86,12 +86,12 @@ class PickleTrajectory:
         """
         self.fd = filename
         if mode == 'r':
-            if isinstance(filename, str):
+            if isinstance(filename, (str, unicode)):
                 self.fd = open(filename, 'rb')
             self.read_header()
         elif mode == 'a':
             exists = True
-            if isinstance(filename, str):
+            if isinstance(filename, (str, unicode)):
                 exists = os.path.isfile(filename)
                 if exists:
                     exists = os.path.getsize(filename) > 0
@@ -106,7 +106,7 @@ class PickleTrajectory:
                     self.fd = devnull
         elif mode == 'w':
             if self.master:
-                if isinstance(filename, str):
+                if isinstance(filename, (str, unicode)):
                     if self.backup and os.path.isfile(filename):
                         try:
                             os.rename(filename, filename + '.bak')
