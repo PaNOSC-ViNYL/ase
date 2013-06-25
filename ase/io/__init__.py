@@ -285,7 +285,7 @@ def read(filename, index=-1, format=None):
         return read_db(filename, index)
 
     if format == 'lammps':
-        from ase.io.lammps import read_lammps_dump
+        from ase.io.lammpsp import read_lammps_dump
         return read_lammps_dump(filename, index)
 
     if format == 'eon':

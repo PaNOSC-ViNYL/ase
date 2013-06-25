@@ -14,7 +14,7 @@ LAMMPS_ (Large-scale Atomic/Molecular Massively Parallel Simulator) is a classic
 
 .. _LAMMPS: http://lammps.sandia.gov
 
-
+This is ASE implementation of the interface to LAMMPS_.
 
 Environment variables
 =====================
@@ -81,7 +81,7 @@ A simple example.
 ::
 
   from ase import Atoms, Atom
-  from ase.calculators.lammps import LAMMPS
+  from ase.calculators.lammpsp import LAMMPS
   
   a = [6.5, 6.5, 7.7]
   d = 2.3608

@@ -13,8 +13,8 @@ for manipulating atoms, analyzing simulations, visualization etc.
 Supported :mod:`calculators`:
 
    |abinit| |Asap| |CASTEP| |dftb| |elk| |exciting| |EMT| |fhi-aims| 
-   |fleur| Gaussian_ |gpaw| |hotbit| |jacapo| |lammps| Mopac_ |nwchem| |siesta|
-   |turbomole| |vasp| 
+   |fleur| Gaussian_ |gpaw| |hotbit| |jacapo| |lammps| Mopac_ |nwchem|
+   |siesta| |turbomole| |vasp| 
 
 .. |abinit| image:: _static/abinit.png
    :target: ase/calculators/abinit.html

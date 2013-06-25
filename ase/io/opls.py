@@ -4,10 +4,10 @@ import numpy as np
 
 from ase.atom import Atom
 from ase.atoms import Atoms
-from ase.calculators.lammps import prism
+from ase.calculators.lammpsp import prism
 from ase.calculators.neighborlist import NeighborList
 from ase.data import atomic_masses, chemical_symbols
-from ase.io.lammps import read_lammps_dump
+from ase.io.lammpsp import read_lammps_dump
 
 
 def twochar(name):
