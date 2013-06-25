@@ -1,5 +1,4 @@
 import sys
-import os.path
 import optparse
     
 import numpy as np
@@ -7,12 +6,10 @@ import numpy as np
 from ase.io import read, write
 from ase.db import connect
 from ase.lattice import bulk
-from ase.parallel import world
-from ase.visualize import view
 from ase.structure import molecule
 from ase.atoms import Atoms, string2symbols
 from ase.data import ground_state_magnetic_moments
-from ase.data import chemical_symbols, atomic_numbers, covalent_radii
+from ase.data import atomic_numbers, covalent_radii
 
 
 def main():
