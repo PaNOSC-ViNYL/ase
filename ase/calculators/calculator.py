@@ -382,6 +382,12 @@ class Calculator:
                 self.reset()
                 raise
 
+        if name == 'magmom' and 'magmom' not in self.results:
+            return 0.0
+
+        if name == 'magmoms' and 'magmoms' not in self.results:
+            return np.zeros(len(atoms))
+
         return self.results[name]
 
     def calculation_required(self, atoms, properties):
