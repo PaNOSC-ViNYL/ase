@@ -15,7 +15,7 @@ class ReadError(Exception):
 # Recognized names of calculators sorted alphabetically:
 names = ['abinit', 'aims', 'asap', 'castep', 'dftb', 'eam', 'elk', 'emt',
          'exciting', 'fleur', 'gpaw', 'gaussian', 'hotbit', 'jacapo',
-         'lammpsp', 'lj', 'mopac', 'morse',
+         'lammpsrun', 'lj', 'mopac', 'morse',
          'nwchem', 'siesta', 'turbomole', 'vasp']
 
 
@@ -23,7 +23,7 @@ special = {'eam': 'EAM',
            'elk': 'ELK',
            'emt': 'EMT',
            'fleur': 'FLEUR',
-           'lammpsp': 'LAMMPS',
+           'lammpsrun': 'LAMMPS',
            'lj': 'LennardJones',
            'morse': 'MorsePotential',
            'nwchem': 'NWChem'}

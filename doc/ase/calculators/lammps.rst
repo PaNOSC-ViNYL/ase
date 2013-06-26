@@ -81,7 +81,7 @@ A simple example.
 ::
 
   from ase import Atoms, Atom
-  from ase.calculators.lammpsp import LAMMPS
+  from ase.calculators.lammpsrun import LAMMPS
   
   a = [6.5, 6.5, 7.7]
   d = 2.3608

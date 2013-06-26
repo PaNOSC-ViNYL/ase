@@ -124,7 +124,7 @@ class CalculatorFactory:
 # Recognized names of calculators sorted alphabetically:
 calcnames = ['abinit', 'aims', 'asap', 'castep', 'dftb', 'elk', 'emt',
              'exciting', 'fleur', 'gpaw', 'gaussian', 'hotbit', 'jacapo',
-             'lammpsp', 'lj', 'mopac', 'morse',
+             'lammpsrun', 'lj', 'mopac', 'morse',
              'nwchem', 'siesta', 'turbomole', 'vasp']
 
 classnames = {'asap': 'EMT',
@@ -134,7 +134,7 @@ classnames = {'asap': 'EMT',
               'fleur': 'FLEUR',
               'gaussian': 'Gaussian',
               'jacapo': 'Jacapo',
-              'lammpsp': 'LAMMPS',
+              'lammpsrun': 'LAMMPS',
               'lj': 'LennardJones',
               'mopac': 'Mopac',
               'morse': 'MorsePotential',
@@ -191,7 +191,7 @@ def calculator_factory(name, **kwargs):
     module = __import__('ase.calculators.' + name, {}, None, [classname])
     Class = getattr(module, classname)
 
-    if name in ['emt', 'gaussian', 'lammpsp', 'lj', 'mopac', 'morse']:
+    if name in ['emt', 'gaussian', 'lammpsrun', 'lj', 'mopac', 'morse']:
         kpts = 'no k-points'
     else:
         kpts = None
