@@ -21,8 +21,9 @@ from ase.calculators.calculator import get_calculator, names as calculator_names
 import ase.db as db
 
 
-def main():
-    runner = Runner()
+def main(runner=None):
+    if runner is None:
+        runner = Runner()
     runner.parse()
     if runner.errors:
         sys.exit(runner.errors)
