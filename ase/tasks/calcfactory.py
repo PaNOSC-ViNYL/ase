@@ -124,7 +124,7 @@ class CalculatorFactory:
 # Recognized names of calculators sorted alphabetically:
 calcnames = ['abinit', 'aims', 'asap', 'castep', 'dftb', 'elk', 'emt',
              'exciting', 'fleur', 'gpaw', 'gaussian', 'hotbit', 'jacapo',
-             'lammpsrun', 'lj', 'mopac', 'morse',
+             'lammps', 'lj', 'mopac', 'morse',
              'nwchem', 'siesta', 'turbomole', 'vasp']
 
 classnames = {'asap': 'EMT',
@@ -134,7 +134,7 @@ classnames = {'asap': 'EMT',
               'fleur': 'FLEUR',
               'gaussian': 'Gaussian',
               'jacapo': 'Jacapo',
-              'lammpsrun': 'LAMMPS',
+              'lammps': 'LAMMPS',
               'lj': 'LennardJones',
               'mopac': 'Mopac',
               'morse': 'MorsePotential',
