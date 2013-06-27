@@ -5,15 +5,15 @@ http://www.dftb.org/
 
 markus.kaukonen@iki.fi
 
-The file 'geom.out.gen' contains the input and output geometry 
+The file 'geom.out.gen' contains the input and output geometry
 and it will be updated during the dftb calculations.
 
-If restart == None 
+If restart == None
                    it is assumed that a new input file 'dftb_hsd.in'
                    will be written by ase using default keywords
                    and the ones given by the user.
 
-If restart != None 
+If restart != None
                    it is assumed that keywords are in file restart
 
 The keywords are given, for instance, as follows::
@@ -35,12 +35,12 @@ import os
 
 import numpy as np
 
-from ase.io.dftb import write_dftb, read_dftb
-from ase.data import atomic_numbers
-from ase.calculators.calculator import FileIOCalculator, Parameters, kpts2mp, \
-    kptdensity2monkhorstpack, ReadError
+from ase.calculators.calculator import FileIOCalculator, kpts2mp
+
 
 class Dftb(FileIOCalculator):
+    """ A dftb+ calculator with ase-FileIOCalculator nomenclature
+    """
     if os.environ.has_key('DFTB_COMMAND'):
         command = os.environ['DFTB_COMMAND'] + ' > PREFIX.out'
     else:
@@ -48,17 +48,14 @@ class Dftb(FileIOCalculator):
 
     implemented_properties = ['energy', 'forces']
     
-    """
 
-        """
 
-    def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 label='dftb', atoms=None, kpts= None,
+    def __init__(self, restart = None, ignore_bad_restart_file = False,
+                 label = 'dftb', atoms = None, kpts = None,
                  **kwargs):
         """Construct a DFTB+ calculator.
  
         """
-        from ase.io import write, read
         from ase.dft.kpoints import monkhorst_pack
 
         if os.environ.has_key('DFTB_PREFIX'):
@@ -85,14 +82,14 @@ class Dftb(FileIOCalculator):
         if self.kpts != None:
             mpgrid = kpts2mp(atoms, self.kpts)
             mp = monkhorst_pack(mpgrid)
-            initkey='Hamiltonian_KPointsAndWeights'
-            self.parameters[initkey+'_']=''
+            initkey = 'Hamiltonian_KPointsAndWeights'
+            self.parameters[initkey+'_'] = ''
             for i, imp in enumerate(mp):
-                key = initkey+'_empty'+str(i)
-                self.parameters[key]=str(mp[i]).strip('[]')+' 1.0'
+                key = initkey + '_empty' + str(i)
+                self.parameters[key] = str(mp[i]).strip('[]') + ' 1.0'
 
         #the input file written only once
-        if restart==None:
+        if restart == None:
             self.write_dftb_in()
         else:
             if os.path.exists(restart):
@@ -107,24 +104,22 @@ class Dftb(FileIOCalculator):
         self.index_force_end = None
 
     def write_dftb_in(self):
-        #if the atoms have been generated they will be written in 
-        #file 'geom.out.gen' for dftb+
+        """ Write the innput file for the dftb+ calculation.
+            Geometry is taken always from the file 'geo_end.gen'.
+        """
         
         outfile = open('dftb_in.hsd','w')
-        #geometry is taken always from the file 'geo_end.gen'
         outfile.write('Geometry = GenFormat { \n')
         outfile.write('    <<< "geo_end.gen" \n')
         outfile.write('} \n')
         outfile.write(' \n')
 
         #--------MAIN KEYWORDS-------
-        sorted_parameters = sorted(self.parameters.items())
         previous_key = 'dummy_'
         myspace = ' '
         for key, value in sorted(self.parameters.items()):
             current_depth = key.rstrip('_').count('_')
             previous_depth = previous_key.rstrip('_').count('_')
-            #outfile.write(str(current_depth)+str(previous_depth))
             for my_backsclash in reversed(range(previous_depth-current_depth)):
                 outfile.write(3*(1+my_backsclash)*myspace + '} \n')
             outfile.write(3*current_depth*myspace)
@@ -138,7 +133,7 @@ class Dftb(FileIOCalculator):
             previous_key = key
         current_depth = key.rstrip('_').count('_')
         for my_backsclash in reversed(range(current_depth)):
-                outfile.write(3*my_backsclash*myspace + '} \n')
+            outfile.write(3*my_backsclash*myspace + '} \n')
         #output to 'results.tag' file (which has proper formatting)
         outfile.write('Options { \n')
         outfile.write('   WriteResultsTag = Yes  \n')
@@ -164,24 +159,25 @@ class Dftb(FileIOCalculator):
 
     def read_results(self):
         """ all results are read from results.tag file """
-        file = open('results.tag', 'r')
-        self.lines = file.readlines()
-        file.close()
+        from ase.io import read
+        myfile = open('results.tag', 'r')
+        self.lines = myfile.readlines()
+        myfile.close()
         if self.first_time:
             self.first_time = False
             # Energy line index
             for iline, line in enumerate(self.lines):
                 estring = 'total_energy'
                 if line.find(estring) >=0:
-                    self.index_energy=iline+1
+                    self.index_energy = iline + 1
                     break
             # Force line indexes
             for iline, line in enumerate(self.lines):
                 fstring = 'forces   '
-                if line.find(fstring) >=0:
-                    self.index_force_begin=iline+1
-                    line1=line.replace(':',',')
-                    self.index_force_end=iline+1+ \
+                if line.find(fstring) >= 0:
+                    self.index_force_begin = iline + 1
+                    line1 = line.replace(':', ',')
+                    self.index_force_end = iline + 1 + \
                         int(line1.split(',')[-1])
                     break
 
@@ -189,10 +185,11 @@ class Dftb(FileIOCalculator):
         # read geometry from file in case dftb+ has done steps
         # to move atoms, in that case forces are not read
         if int(self.parameters['Driver_MaxSteps']) > 0:
-                self.atoms = read('geo_end.gen')
-                self.results['forces'] = np.zeros([len(self.state), 3])
+            self.atoms = read('geo_end.gen')
+            self.results['forces'] = np.zeros([len(self.state), 3])
         else:
             self.read_forces()
+
 
     def read_energy(self):
         """Read Energy from dftb output file (results.tag)."""
@@ -210,7 +207,7 @@ class Dftb(FileIOCalculator):
         gradients = []
         for j in range(self.index_force_begin, self.index_force_end):
             word = self.lines[j].split()
-            gradients.append([float(word[k]) for k in range(0,3)])
+            gradients.append([float(word[k]) for k in range(0, 3)])
                     
         self.results['forces'] = np.array(gradients) * Hartree / Bohr
         
