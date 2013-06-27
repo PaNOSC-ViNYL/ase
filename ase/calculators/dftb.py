@@ -16,17 +16,18 @@ If restart == None
 If restart != None 
                    it is assumed that keywords are in file restart
 
-The keywords are given, for instance, as follows:
-Hamiltonian_SCC ='YES',
-Hamiltonian_SCCTolerance = 1.0E-008,
-Hamiltonian_MaxAngularMomentum = '',
-Hamiltonian_MaxAngularMomentum_O = '"p"',
-Hamiltonian_MaxAngularMomentum_H = '"s"',
-Hamiltonian_InitialCharges_= '',
-Hamiltonian_InitialCharges_AllAtomCharges_ = '',
-Hamiltonian_InitialCharges_AllAtomCharges_1 = -0.88081627,
-Hamiltonian_InitialCharges_AllAtomCharges_2 = 0.44040813,
-Hamiltonian_InitialCharges_AllAtomCharges_3 = 0.44040813,
+The keywords are given, for instance, as follows::
+
+    Hamiltonian_SCC ='YES',
+    Hamiltonian_SCCTolerance = 1.0E-008,
+    Hamiltonian_MaxAngularMomentum = '',
+    Hamiltonian_MaxAngularMomentum_O = '"p"',
+    Hamiltonian_MaxAngularMomentum_H = '"s"',
+    Hamiltonian_InitialCharges_ = '',
+    Hamiltonian_InitialCharges_AllAtomCharges_ = '',
+    Hamiltonian_InitialCharges_AllAtomCharges_1 = -0.88081627,
+    Hamiltonian_InitialCharges_AllAtomCharges_2 = 0.44040813,
+    Hamiltonian_InitialCharges_AllAtomCharges_3 = 0.44040813,
 
 """
 
