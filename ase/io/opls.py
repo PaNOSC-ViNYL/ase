@@ -178,7 +178,7 @@ log /dev/stdout
         if len(alist):
             fileobj.write(str(len(alist)) + ' angles\n')
             fileobj.write(str(len(atypes)) + ' angle types\n')
-        dtypes, dlist = self.get_dihedrals()
+        dtypes, dlist = self.get_dihedrals(alist, atypes)
         if len(dlist):
             fileobj.write(str(len(dlist)) + ' dihedrals\n')
             fileobj.write(str(len(dtypes)) + ' dihedral types\n')
@@ -241,9 +241,10 @@ log /dev/stdout
         if len(dlist):
             fileobj.write('\nDihedrals\n\n')
             for i, dvals in enumerate(dlist):
-                fileobj.write('%8d %6d %6d %6d %6d ' %
+                fileobj.write('%8d %6d %6d %6d %6d %6d ' %
                               (i + 1, dvals[0] + 1, 
-                               dvals[1] + 1, dvals[2] + 1, dvals[3] + 1))
+                               dvals[1] + 1, dvals[2] + 1, 
+                               dvals[3] + 1, dvals[4] + 1))
                 fileobj.write('# ' + dtypes[dvals[0]] + '\n')
 
         return btypes, atypes, dtypes
@@ -307,9 +308,13 @@ log /dev/stdout
         positions = atoms.get_positions()
         ang_list = []
         ang_types = []
+
+        # center atom *-i-*
         for i, atom in enumerate(atoms):
             iname = types[tags[i]]
             indicesi, offsetsi = self.nl.get_neighbors(i)
+
+            # search for first neighbor j-i-*
             for j, offsetj in zip(indicesi, offsetsi):
                 jname = types[tags[j]]
                 cut = cutoffs.value(iname, jname)
@@ -319,81 +324,95 @@ log /dev/stdout
                                       - np.dot(offsetj, cell))
                 if dist > cut:
                     continue # too far away
-                indicesj, offsetsj = self.nl.get_neighbors(j)
-                for k, offsetk in zip(indicesj, offsetsj):
-                    if k <= i:
+
+                # search for second neighbor j-i-k
+                for k, offsetk in zip(indicesi, offsetsi):
+                    if k <= j:
                         continue # avoid double count
                     kname = types[tags[k]]
-                    cut = cutoffs.value(jname, kname)
+                    cut = cutoffs.value(iname, kname)
                     if cut is None:
                         continue # don't have it
-                    dist = np.linalg.norm(atoms[k].position +
+                    dist = np.linalg.norm(atom.position -
                                           np.dot(offsetk, cell) - 
-                                          atoms[j].position)
+                                          atoms[k].position)
                     if dist > cut:
                         continue # too far away
-                    name, val = self.angles.name_value(iname, jname, 
+                    name, val = self.angles.name_value(jname, iname, 
                                                        kname)
                     if name is None:
                         continue # don't have it
                     if name not in ang_types:
                         ang_types.append(name)
-                    ang_list.append([ang_types.index(name), i, j, k])
+                    ang_list.append([ang_types.index(name), j, i, k])
+
         return ang_types, ang_list
 
-    def get_dihedrals(self, atoms=None):
+    def get_dihedrals(self, ang_types, ang_list):
+        'Dihedrals derived from angles.'
+
         cutoffs = CutoffList(self.data['cutoffs'])
-        if atoms is not None:
-            self.update_neighbor_list(atoms)
-        else:
-            atoms = self.atoms
-         
+
+        atoms = self.atoms
         types = atoms.get_types()
         tags = atoms.get_tags()
         cell = atoms.get_cell()
-        positions = atoms.get_positions()
+
         dih_list = []
         dih_types = []
-        for i, atom in enumerate(atoms):
+
+        def append(name, i, j, k ,l):
+            if name not in dih_types:
+                dih_types.append(name)
+            index = dih_types.index(name)
+            if (([index, i, j, k, l] not in dih_list) and
+                ([index, l, k, j, i] not in dih_list)    ):
+                dih_list.append([index, i, j, k, l])
+
+        for angle in ang_types:
+            l, i, j, k = angle
             iname = types[tags[i]]
+            jname = types[tags[j]]
+            kname = types[tags[k]]
+
+            # search for l-i-j-k
             indicesi, offsetsi = self.nl.get_neighbors(i)
-            for j, offsetj in zip(indicesi, offsetsi):
-                jname = types[tags[j]]
-                cut = cutoffs.value(iname, jname)
+            for l, offsetl in zip(indicesi, offsetsi):
+                if l == j:
+                    continue # avoid double count
+                lname = types[tags[l]]
+                cut = cutoffs.value(iname, lname)
                 if cut is None:
                     continue # don't have it
-                dist = np.linalg.norm(atom.position - atoms[j].position
-                                      - np.dot(offsetj, cell))
+                dist = np.linalg.norm(atoms[i].position - atoms[l].position
+                                      - np.dot(offsetl, cell))
                 if dist > cut:
                     continue # too far away
-                indicesj, offsetsj = self.nl.get_neighbors(j)
-                for k, offsetk in zip(indicesj, offsetsj):
-                    if k <= i:
-                        continue # avoid double count
-                    kname = types[tags[k]]
-                    cut = cutoffs.value(jname, kname)
-                    if cut is None:
-                        continue # don't have it
-                    dist = np.linalg.norm(atoms[k].position +
-                                          np.dot(offsetk, cell) - 
-                                          atoms[j].position)
-                    if dist > cut:
-                        continue # too far away
-                    indicesk, offsetsk = self.nl.get_neighbors(k)
-                    for l, offsetl in zip(indicesk, offsetsk):
-                        if l <= j:
-                            continue # avoid double count
-                        lname = types[tags[l]]
-                        cut = cutoffs.value(kname, lname)
-                        if cut is None:
-                            continue # don't have it
-                        name, val = self.dihedrals.name_value(iname, jname, 
-                                                              kname, lname)
-                        if name is None:
-                            continue # don't have it
-                        if name not in dih_types:
-                            dih_types.append(name)
-                        dih_list.append([dih_types.index(name), i, j, k, l])
+                name, val = self.dihedrals.name_value(lname, iname, 
+                                                      jname, kname)
+                if name is None:
+                    continue # don't have it
+                append(name, l, i, j, k)
+              
+            # search for i-j-k-l
+            indicesk, offsetsk = self.nl.get_neighbors(k)
+            for l, offsetl in zip(indicesk, offsetsk):
+                if l == j:
+                    continue # avoid double count
+                lname = types[tags[l]]
+                cut = cutoffs.value(kname, lname)
+                if cut is None:
+                    continue # don't have it
+                dist = np.linalg.norm(atoms[k].position - atoms[l].position
+                                      - np.dot(offsetl, cell))
+                if dist > cut:
+                    continue # too far away
+                name, val = self.dihedrals.name_value(iname, jname, 
+                                                      kname, lname)
+                if name is None:
+                    continue # don't have it
+                append(name, i, j, k, l)
+
         return dih_types, dih_list
 
     def write_lammps_definitions(self, atoms, btypes, atypes, dtypes):
@@ -431,7 +450,7 @@ log /dev/stdout
         # dihedrals
         if len(dtypes):
             fileobj.write('\n# dihedrals\n')
-            fileobj.write('dihedral_style      harmonic\n')
+            fileobj.write('dihedral_style      opls\n')
             for i, dtype in enumerate(dtypes):
                 fileobj.write('dihedral_coeff %6d' % (i + 1))
                 for value in self.dihedrals.nvh[dtype]:
