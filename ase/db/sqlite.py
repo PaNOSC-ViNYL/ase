@@ -248,45 +248,51 @@ class SQLite3Database(NoDatabase):
     def _select(self, keywords, cmps, explain, verbosity):
         tables = ['systems']
         where = []
-        if keywords:
-            tables.add('keywords')
-            for keyword in keywords:
-                where.append('systems.id=keywords.id and keywords.keyword=%r' %
-                             keyword)
+        args = []
+        for n, keyword in enumerate(keywords):
+            tables.append('keywords as keyword{}'.format(n))
+            where.append(
+                'systems.id=keyword{0}.id and keyword{0}.keyword=?'.format(n))
+            args.append(keyword)
         bad = {}
         for key, op, value in cmps:
             if isinstance(key, int):
                 bad[key] = bad.get(key, True) and ops[op](0, value)
         cmps2 = []
         nspecies = 0
+        ntext = 0
+        nnumber = 0
         for key, op, value in cmps:
             if key in ['id', 'energy', 'magmom', 'timestamp', 'username',
                        'calculator_name']:
-                where.append('systems.%s%s%r' % (key, op, value))
+                where.append('systems.{}{}?'.format(key, op))
+                args.append(value)
             elif key == 'natoms':
                 cmps2.append((key, ops[op], value))
             elif isinstance(key, int):
                 if bad[key]:
                     cmps2.append((key, ops[op], value))
                 else:
-                    tables += ['species as specie{}'.format(nspecies)]
+                    tables.append('species as specie{}'.format(nspecies))
                     where.append(('systems.id=specie{0}.id and ' +
-                                  'specie{0}.Z={1} and ' +
-                                  'specie{0}.n{2}{3}').format(
-                        nspecies, key, op, value))
+                                  'specie{0}.Z=? and ' +
+                                  'specie{0}.n{1}?').format(nspecies, op))
+                    args += [key, value]
                     nspecies += 1
             elif isinstance(value, str):
-                tables.add('text_key_values')
-                where.append('systems.id=text_key_values.id and ' +
-                             'text_key_values.key=%r and ' % key +
-                             'text_key_values.value%s%r' %
-                             (op, value))
+                tables.append('text_key_values as text{}'.format(ntext))
+                where.append(('systems.id=text{0}.id and ' +
+                              'text{0}.key=? and ' +
+                              'text{0}.value{1}?').format(ntext, op))
+                args += [key, value]
+                ntext += 1
             else:
-                tables.add('number_key_values')
-                where.append('systems.id=number_key_values.id and ' +
-                             'number_key_values.key=%r and ' % key +
-                             'number_key_values.value%s%r' %
-                             (op, value))
+                tables.append('number_key_values as number{}'.format(nnumber))
+                where.append(('systems.id=number{0}.id and ' +
+                              'number{0}.key=? and ' +
+                              'number{0}.value{1}?').format(nnumber, op))
+                args += [key, value]
+                nnumber += 1
                 
         sql = 'select systems.* from\n  ' + ', '.join(tables)
         if where:
@@ -294,10 +300,10 @@ class SQLite3Database(NoDatabase):
         if explain:
             sql = 'explain query plan ' + sql
         if verbosity == 2:
-            print(sql)
+            print(sql, args)
         con = self._connect()
         cur = con.cursor()
-        cur.execute(sql)
+        cur.execute(sql, args)
         if explain:
             for row in cur.fetchall():
                 yield row
