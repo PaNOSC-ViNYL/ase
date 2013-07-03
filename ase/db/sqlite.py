@@ -246,7 +246,7 @@ class SQLite3Database(NoDatabase):
         return dct
 
     def _select(self, keywords, cmps, explain, verbosity):
-        tables = set(['systems'])
+        tables = ['systems']
         where = []
         if keywords:
             tables.add('keywords')
@@ -258,6 +258,7 @@ class SQLite3Database(NoDatabase):
             if isinstance(key, int):
                 bad[key] = bad.get(key, True) and ops[op](0, value)
         cmps2 = []
+        nspecies = 0
         for key, op, value in cmps:
             if key in ['id', 'energy', 'magmom', 'timestamp', 'username',
                        'calculator_name']:
@@ -268,10 +269,12 @@ class SQLite3Database(NoDatabase):
                 if bad[key]:
                     cmps2.append((key, ops[op], value))
                 else:
-                    tables.add('species')
-                    where.append('systems.id=species.id and ' +
-                                 'species.Z=%d and species.n%s%d' %
-                                 (key, op, value))
+                    tables += ['species as specie{}'.format(nspecies)]
+                    where.append(('systems.id=specie{0}.id and ' +
+                                  'specie{0}.Z={1} and ' +
+                                  'specie{0}.n{2}{3}').format(
+                        nspecies, key, op, value))
+                    nspecies += 1
             elif isinstance(value, str):
                 tables.add('text_key_values')
                 where.append('systems.id=text_key_values.id and ' +
