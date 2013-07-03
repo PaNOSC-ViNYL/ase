@@ -457,6 +457,36 @@ def rotate(atoms, a1, a2, b1, b2, rotate_cell=True, center=(0, 0, 0)):
     if rotate_cell:
         atoms.cell[:] = np.dot(atoms.cell, R.T)
 
+def minimize_tilt_ij(atoms, fixed=0, modified=1, fold_atoms=True):
+    """Minimize the tilt angle for two given axes.
+
+    The problem is underdetermined. Therfore one can choose one axis 
+    that is kept fixed.
+    """
+    
+    orgcell_cc = atoms.get_cell()
+    pbc_c = atoms.get_pbc()
+    i = fixed
+    j = modified
+    if not (pbc_c[i] and pbc_c[j]):
+        raise RuntimeError('Axes have to be periodic')
+
+    prod_cc = np.dot(orgcell_cc, orgcell_cc.T)
+    cell_cc = 1. * orgcell_cc
+    nji = np.floor(- prod_cc[i, j] / prod_cc[i, i] + 0.5)
+    cell_cc[j] = orgcell_cc[j] + nji * cell_cc[i]
+
+    # sanity check
+    def volume(cell):
+        return np.abs(np.dot(cell[2], np.cross(cell[0], cell[1])))
+    V = volume(cell_cc)
+    assert(abs(volume(orgcell_cc) - V) / V < 1.e-10)
+
+    atoms.set_cell(cell_cc)
+
+    if fold_atoms:
+        atoms.set_scaled_positions(atoms.get_scaled_positions())
+
 def minimize_tilt(atoms, fold_atoms=True):
     """Minimize the tilt angle."""
     cell_cc = atoms.get_cell()
