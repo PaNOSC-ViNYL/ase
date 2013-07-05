@@ -59,7 +59,6 @@ class STM:
 
     #def save_ldos(self, filename='ldos.pckl'):
         
-
     def get_averaged_current(self, bias, z):
         self.calculate_ldos(bias)
         nz = self.ldos.shape[2]
@@ -73,7 +72,7 @@ class STM:
         return ((1 - dn) * self.ldos[:, :, n].mean() +
                 dn * self.ldos[:, :, (n + 1) % nz].mean())
     
-    def scan(self, current, bias):
+    def scan(self, bias, current):
         self.calculate_ldos(bias)
 
         L = self.cell[2, 2]
@@ -89,8 +88,8 @@ class STM:
         heights.shape = self.ldos.shape[:2]
         return heights
     
-    def linescan(self, current, bias, p1, p2, npoints=50):
-        heights = self.scan(current, bias)
+    def linescan(self, bias, current, p1, p2, npoints=50):
+        heights = self.scan(bias, current)
 
         p1 = np.asarray(p1)
         p2 = np.asarray(p2)
