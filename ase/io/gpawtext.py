@@ -7,10 +7,14 @@ def read_gpaw_text(fileobj, index=-1):
     if isinstance(fileobj, str):
         fileobj = open(fileobj, 'rU')
 
+    notfound = [] 
     def index_startswith(lines, string):
+        if string in notfound:
+            raise ValueError
         for i, line in enumerate(lines):
             if line.startswith(string):
                 return i
+        notfound.append(string)
         raise ValueError
 
     lines = fileobj.readlines()
