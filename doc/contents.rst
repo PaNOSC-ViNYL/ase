@@ -9,6 +9,7 @@ Contents
 * :ref:`faq`
 * :ref:`mailing_lists`
 * :ref:`glossary`
+* :ref:`license_info`
 
 * :ref:`devel`
 * :ref:`bugs`
@@ -28,6 +29,7 @@ The complete table of contents:
    faq
    glossary
    mailinglists
+   licenseinfo
 
    development/development
    bugs
