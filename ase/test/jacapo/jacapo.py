@@ -4,7 +4,8 @@ from ase import Atoms, Atom
 from ase.calculators.jacapo import Jacapo
 
 atoms = Atoms([Atom('H',[0,0,0])],
-            cell=(2,2,2))
+              cell=(2,2,2),
+              pbc=True)
 
 calc = Jacapo('Jacapo-test.nc',
               pw=200,
