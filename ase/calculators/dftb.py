@@ -153,6 +153,7 @@ class Dftb(FileIOCalculator):
         from ase.io import write
         FileIOCalculator.write_input(\
             self, atoms, properties, system_changes)
+        self.write_dftb_in()
         write('geo_end.gen', atoms)
 
     def read_results(self):
