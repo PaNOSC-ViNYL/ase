@@ -66,6 +66,11 @@ Finally we make a contour plot::
   p.colorbar()
   p.show()	
   
+If you want to plot more than a single unit cell, use this::
+
+  import numpy as np
+  h = np.tile(h, (3, 3))
+
 
 Linescans
 =========
