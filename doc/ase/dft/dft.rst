@@ -11,4 +11,5 @@ Density Functional Theory
    kpoints
    wannier
    dos
+   stm
    bader

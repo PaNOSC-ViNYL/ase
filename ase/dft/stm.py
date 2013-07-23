@@ -1,25 +1,39 @@
+import pickle
+
 import numpy as np
 
 
 class STM:
     def __init__(self, atoms, symmetries=None):
-        calc = atoms.get_calculator()
-        self.nbands = calc.get_number_of_bands()
-        self.weights = calc.get_k_point_weights()
-        self.nkpts = len(self.weights)
-        self.nspins = calc.get_number_of_spins()
-        self.eigs = np.array([[calc.get_eigenvalues(k, s)
-                               for k in range(self.nkpts)]
-                              for s in range(self.nspins)])
-        self.eigs -= calc.get_fermi_level()
-        self.calc = calc
-        self.cell = atoms.get_cell()
-        assert not self.cell[2, :2].any() and not self.cell[:2, 2].any()
-        self.ldos = None
-        self.bias = None
+        """Scanning tunneling microscope.
+
+        atoms: Atoms object or filename
+            Atoms to scan or name of file to read LDOS from.
+        symmetries: list of int
+            List of integers 0, 1, and/or 2 indicating which surface
+            symmetries have been used to reduce the number of k-points
+            for the DFT calculation.  The three integers correspond to
+            the following three symmetry operations::
+
+                 [-1  0]   [ 1  0]   [ 0  1]
+                 [ 0  1]   [ 0 -1]   [ 1  0]
+        """	
+
+        if isinstance(atoms, str):
+           with open(atoms) as f:
+               self.ldos, self.bias, self.cell = pickle.load(f)
+           self.atoms = None
+        else:
+            self.atoms = atoms
+            self.cell = atoms.cell
+            self.bias = None
+            self.ldos = None
+            assert not self.cell[2, :2].any() and not self.cell[:2, 2].any()
+
         self.symmetries = symmetries or []
                                
     def calculate_ldos(self, bias):
+        """Calculate local density of states for given bias."""
         if self.ldos is not None and bias == self.bias:
             return
 
@@ -30,14 +44,24 @@ class STM:
             emin = 0
             emax = bias
 
+        calc = self.atoms.calc
+
+        nbands = calc.get_number_of_bands()
+        weights = calc.get_k_point_weights()
+        nkpts = len(weights)
+        nspins = calc.get_number_of_spins()
+        eigs = np.array([[calc.get_eigenvalues(k, s)
+                          for k in range(nkpts)]
+                         for s in range(nspins)])
+        eigs -= calc.get_fermi_level()
         ldos = 0.0
-        for s in range(self.nspins):
-            for k in range(self.nkpts):
-                for n in range(self.nbands):
-                    e = self.eigs[s, k, n]
+        for s in range(nspins):
+            for k in range(nkpts):
+                for n in range(nbands):
+                    e = eigs[s, k, n]
                     if emin < e < emax:
-                        psi = self.calc.get_pseudo_wave_function(n, k, s)
-                        ldos += self.weights[k] * (psi * np.conj(psi)).real
+                        psi = calc.get_pseudo_wave_function(n, k, s)
+                        ldos += weights[k] * (psi * np.conj(psi)).real
 
         if 0 in self.symmetries:
             # (x,y) -> (-x,y)
@@ -57,9 +81,17 @@ class STM:
         self.ldos = ldos
         self.bias = bias
 
-    #def save_ldos(self, filename='ldos.pckl'):
+    def write(self, filename='stm.pckl'):
+        """Write local density of states to pickle file."""
+        with open(filename, 'w') as f:
+            pickle.dump((self.ldos, self.bias, self.cell), f,
+                        protocol=pickle.HIGHEST_PROTOCOL)
         
     def get_averaged_current(self, bias, z):
+        """Calculate avarage current at height z.
+
+        Use this to get an idea of what current to use when scanning."""
+
         self.calculate_ldos(bias)
         nz = self.ldos.shape[2]
 
@@ -73,6 +105,7 @@ class STM:
                 dn * self.ldos[:, :, (n + 1) % nz].mean())
     
     def scan(self, bias, current):
+        """Constant current 2-d scan."""
         self.calculate_ldos(bias)
 
         L = self.cell[2, 2]
@@ -89,6 +122,16 @@ class STM:
         return heights
     
     def linescan(self, bias, current, p1, p2, npoints=50):
+        """Constant current line scan.
+
+        Example::
+
+            stm = STM(...)
+            z = ...  # tip position
+            c = stm.get_averaged_current(-1.0, z)
+            stm.linescan(-1.0, c, (1.2, 0.0), (1.2, 3.0))
+        """
+
         heights = self.scan(bias, current)
 
         p1 = np.asarray(p1)
@@ -113,9 +156,6 @@ class STM:
                  f[0] * f[1] * heights[n0 + 1, n1 + 1])
             line[i] = z
         return np.linspace(0, s, npoints), line
-
-    def cube(self, filename, atoms=None):
-        pass
 
 
 def find_height(ldos, current, h):
