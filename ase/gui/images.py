@@ -127,7 +127,7 @@ class Images:
             i = 0
         else:
             i = self.nimages
-        for name in ('P', 'V', 'E', 'K', 'F', 'M', 'A', 'T'):
+        for name in ('P', 'V', 'E', 'K', 'F', 'M', 'A', 'T', 'D', 'q'):
             a = getattr(self, name)
             newa = np.empty( (i+1,) + a.shape[1:], a.dtype )
             if not self.next_append_clears:
@@ -137,6 +137,8 @@ class Images:
         self.P[i] = atoms.get_positions()
         self.V[i] = atoms.get_velocities()
         self.A[i] = atoms.get_cell()
+        self.D[i] = atoms.get_celldisp().reshape((3,))
+        self.q[i] = atoms.get_initial_charges()
         try:
             self.E[i] = atoms.get_potential_energy()
         except RuntimeError:
