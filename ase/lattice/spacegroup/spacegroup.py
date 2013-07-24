@@ -495,7 +495,10 @@ def format_symbol(symbol):
     s = s[0].upper() + s[1:].lower()
     for c in s:
         if c.isalpha():
-            fixed.append(' ' + c + ' ')
+            if len(fixed) and fixed[-1] == '/':
+                fixed.append(c)
+            else:
+                fixed.append(' ' + c + ' ')
         elif c.isspace():
             fixed.append(' ')
         elif c.isdigit():
@@ -503,7 +506,7 @@ def format_symbol(symbol):
         elif c == '-':
             fixed.append(' ' + c)
         elif c == '/':
-            fixed.append(' ' + c)
+            fixed.append(c)
     s = ''.join(fixed).strip()
     return ' '.join(s.split())
 
