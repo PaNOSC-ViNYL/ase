@@ -13,7 +13,7 @@ for manipulating atoms, analyzing simulations, visualization etc.
 Supported :mod:`calculators`:
 
    |abinit| |Asap| |CASTEP| |dftb| |elk| |exciting| |EMT| |fhi-aims| 
-   |fleur| Gaussian_ |gpaw| |hotbit| |jacapo| |lammps| Mopac_ |nwchem|
+   |fleur| Gaussian_ |gpaw| |hotbit| |jacapo| |jdftx| |lammps| Mopac_ |nwchem|
    |siesta| |turbomole| |vasp| 
 
 .. |abinit| image:: _static/abinit.png
@@ -51,6 +51,9 @@ Supported :mod:`calculators`:
    :align: middle
 .. |jacapo| image:: _static/jacapo.png
    :target: ase/calculators/jacapo.html
+   :align: middle
+.. |jdftx| image:: _static/jdftx.png
+   :target: http://sourceforge.net/p/jdftx/wiki/ASE%20Interface
    :align: middle
 .. |lammps| image:: _static/lammps.png
    :target: ase/calculators/lammps.html
