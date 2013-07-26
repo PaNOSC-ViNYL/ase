@@ -99,7 +99,7 @@ def setup(app):
 
 
 def create_png_files():
-    errcode = os.system('povray 2> /dev/null')
+    errcode = os.system('povray -h 2> /dev/null')
     if errcode:
         warnings.warn('No POVRAY!')
         # Replace write_pov with write_png:
