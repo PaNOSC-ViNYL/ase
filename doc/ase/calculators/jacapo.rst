@@ -63,12 +63,13 @@ Example
 Here is an example of how to calculate the total energy of a CO molecule::
         
   #!/usr/bin/env python
-  from ase import *
+  from ase.data.molecules import molecule
   from ase.calculators.jacapo import Jacapo
 
-  CO = data.molecules.molecule('CO')
+  CO = molecule('CO')
   CO.set_cell([6,6,6])
   CO.center()
+  CO.set_pbc(True)
 
   calc = Jacapo(nc='CO.nc',
                 atoms=CO,
@@ -79,7 +80,8 @@ Here is an example of how to calculate the total energy of a CO molecule::
   
 Note that all calculator parameters should be set in the calculator definition
 itself. Do not attempt to use the calc.set_* commands as they are intended to
-be internal to the calculator.
+be internal to the calculator. Note also that Dacapo can only operate with
+periodic boundary conditions, so be sure that pbc is set to True.
 
 Restarting from an old calculation
 ==================================
