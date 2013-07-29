@@ -130,7 +130,10 @@ class MinimaHopping:
                 atoms = io.read('qn%05i.traj' % (qncount - 1), index=-1)
                 self._previous_optimum = atoms.copy()
                 self._previous_energy = atoms.get_potential_energy()
-            atoms = io.read('qn%05i.traj' % qncount, index=-1)
+            if os.path.getsize('qn%05i.traj' % qncount) > 0:
+                atoms = io.read('qn%05i.traj' % qncount, index=-1)
+            else:
+                atoms = io.read('md%05i.traj' % qncount, index=-3)
             self._atoms.positions = atoms.get_positions()
             fmax = np.sqrt((atoms.get_forces() ** 2).sum(axis=1).max())
             if fmax < self._fmax:
