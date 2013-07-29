@@ -349,6 +349,17 @@ or your :file:`~/.cshrc` file::
 
 Instead of :envvar:`HOME`, you may use any other directory.
 
+Alternatively, you can install ASE to the user-specific site-packages
+directory with::
+
+  $ cd ase
+  $ python setup.py install --user
+
+This way, the ASE modules are found on the python path without any
+explicit configuration, though you still need to ensure that
+:file:`$HOME/.local/bin` (or on Windows,
+:file:`%APPDATA%/Python/Scripts`) is on your :envvar:`PATH`.
+
 .. index:: test
 
 Optional, **NOT** recommended way of installing ASE system-wide is::
