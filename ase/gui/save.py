@@ -176,6 +176,7 @@ class SaveWindow(gtk.Window):
 
         # Now we are ready to write the file!
         extra = {}
+        remove_hidden = False
         if self.is_graphics[suffix]:
             bbox = np.empty(4)
             size = np.array([self.gui.width, self.gui.height]) / self.gui.scale
@@ -185,11 +186,15 @@ class SaveWindow(gtk.Window):
             extra['show_unit_cell'] = self.gui.ui.get_widget('/MenuBar/ViewMenu/ShowUnitCell').get_active()
             extra['bbox'] = bbox
             extra['colors'] = self.gui.get_colors(rgb=True)
+            remove_hidden = True
         if len(indices) == 1:
             # Saving a single configuration is always possible.
-            write(filename, self.gui.images.get_atoms(indices[0]), **extra)
+            write(filename, self.gui.images.get_atoms(indices[0],
+                                                      remove_hidden=remove_hidden),
+                  **extra)
         elif self.support_multi[suffix]:
-            images = [self.gui.images.get_atoms(i) for i in indices]
+            images = [self.gui.images.get_atoms(i, remove_hidden=remove_hidden) 
+                      for i in indices]
             write(filename, images, **extra)
         else:
             # We want to write multiple images, but the file format does not support it.
@@ -199,7 +204,9 @@ class SaveWindow(gtk.Window):
             suffixpos = filename.rfind('.')
             filename = filename[:suffixpos] + '%05d' + filename[suffixpos:]
             for i, idx in enumerate(indices):
-                write(filename % (i,), self.gui.images.get_atoms(idx), **extra)
+                write(filename % (i,), 
+                      self.gui.images.get_atoms(idx, remove_hidden=remove_hidden),
+                      **extra)
             oops("Wrote %d files" % (len(indices),),
                  (filename % (0,)) + ' .. ' + (filename % (len(indices)-1,)))
         self.destroy()

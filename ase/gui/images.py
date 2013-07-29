@@ -331,7 +331,7 @@ class Images:
         else:
             write(filename, images, **kwargs)
 
-    def get_atoms(self, frame):
+    def get_atoms(self, frame, remove_hidden=False):
         atoms = Atoms(positions=self.P[frame],
                       numbers=self.Z,
                       magmoms=self.M[0],
@@ -346,8 +346,13 @@ class Images:
         if not self.dynamic.all():
             atoms.set_constraint(FixAtoms(mask=1-self.dynamic))
         
-        atoms.set_calculator(SinglePointCalculator(self.E[frame],
-                                                   self.F[frame],
+        # Remove hidden atoms if applicable
+        if remove_hidden:
+            atoms = atoms[self.visible]
+            f = self.F[frame][self.visible]
+        else:
+            f = self.F[frame]
+        atoms.set_calculator(SinglePointCalculator(self.E[frame], f,
                                                    None, None, atoms))
         return atoms
                            
