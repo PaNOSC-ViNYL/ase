@@ -3358,7 +3358,8 @@ s.recv(14)
 
         atoms = Atoms(symbols=symbols,
                       positions=pos,
-                      cell=cell)
+                      cell=cell,
+                      pbc=True)
 
         if 'AtomTags' in nc.variables:
             tags = nc.variables['AtomTags'][:]
