@@ -89,7 +89,7 @@ be followed during or after the run::
   dyn = BFGS(water, trajectory='H2O.traj')
   dyn.run(fmax=0.05)
 
-Use the command ``ag H2O.traj`` to see what is going on (more here:
+Use the command ``ase-gui H2O.traj`` to see what is going on (more here:
 :mod:`gui`).  The trajectory file can also be accessed using the
 module :mod:`ase.io.trajectory`.
 
@@ -139,10 +139,10 @@ assembled so far::
 This will read through each iteration stored in :file:`history.traj`,
 performing adjustments to the Hessian as appropriate.  Note that these
 steps will not be written to :file:`qn.traj`.  If restarting with more than
-one previous trajectory file, use :command:`ag` to concatenate them
+one previous trajectory file, use :command:`ase-gui` to concatenate them
 into a single trajectory file first::
 
-  $ ag part1.traj part2.traj -o history.traj
+  $ ase-gui part1.traj part2.traj -o history.traj
 
 The file :file:`history.traj` will then contain all necessary
 information.

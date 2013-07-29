@@ -45,7 +45,7 @@ different settings. Default duration is 5 s.
 
 Expert mode
 -----------
-Python interface to all ag functions, with numerous extra commands
+Python interface to all ase-gui functions, with numerous extra commands
 defined that help to modify and visualize a system. The commands come
 in two flavors, the first is interpreted on an atom-by-atom basis
 (e.g. operates on position, color, etc) and the second is based on the
@@ -111,14 +111,14 @@ frame		 provides and edits the frame number in a trajectory
 center		 centers system in its unit cell
 cov		 array of original covalent radii
 self		 expert mode window
-gui		 ag GUI object, this controls the entire ag session
-img		 ag images object, all physical data is stored here
+gui		 ase-gui GUI object, this controls the entire ase-gui session
+img		 ase-gui images object, all physical data is stored here
 ================ =====================================================
 
 To save data between commands, one has to assign variables to parent
 objects in the gui, e.g. via ``self.temp_var =
 R-img.P[0,:]``. DISCLAIMER: Doing so might risk the functionality
-of the entire ag session if you accidentally overwrite basic
+of the entire ase-gui session if you accidentally overwrite basic
 functionality of the gui or the image objects stored within.
 
 Finally, recurring selections of commands collected as scripts can be

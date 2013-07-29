@@ -21,7 +21,7 @@ It is highly recommended (but not required) to install also these:
 
 Matplotlib and libpng are needed for :mod:`writing png files <io>`, and
 together with pygtk are needed for ASE's simple GUI
-(called **ag**, see :mod:`gui`).
+(called **ase-gui**, see :mod:`gui`).
 Some of these packages may already be installed on your system.
 
 .. _matplotlib: http://matplotlib.sourceforge.net

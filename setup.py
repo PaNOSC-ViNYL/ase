@@ -142,7 +142,7 @@ else:
     version = version_base
 
 scripts = ['tools/ase-gui', 'tools/ase-db', 'tools/ase-info',
-           'tools/ase-build', 'tools/ase-run', 'tools/ag']
+           'tools/ase-build', 'tools/ase-run']
 # provide bat executables in the tarball and always for Win
 if 'sdist' in sys.argv or os.name in ['ce', 'nt']:
     for s in scripts[:]:
