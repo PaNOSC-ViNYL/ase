@@ -50,7 +50,10 @@ def read_gpaw_text(fileobj, index=-1):
             n, symbol, x, y, z = words
             symbols.append(symbol.split('.')[0])
             positions.append([float(x), float(y), float(z)])
-        atoms = Atoms(symbols=symbols, positions=positions, cell=cell, pbc=pbc)
+        if len(symbols):
+            atoms = Atoms(symbols=symbols, positions=positions, cell=cell, pbc=pbc)
+        else:
+            atoms = Atoms(cell=cell, pbc=pbc)
         lines = lines[i + 5:]
         ene = { 
             # key        position
