@@ -16,7 +16,7 @@ as well as many examples are available online:
 http://gilgamesh.cheme.cmu.edu/doc/software/jacapo/index.html
 
 Jacapo is included as an optional calculator in ASE and small differences to the
-above documentation may occur.
+above documentation may occur, and the documentation is no longer maintained.
 
 .. _Jacapo: http://gilgamesh.cheme.cmu.edu/doc/software/jacapo/index.html
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
@@ -60,24 +60,14 @@ keyword        type         description
 Example
 =======
 
-Here is an example of how to calculate the total energy of a CO molecule::
+Here is an example of how to calculate the total energy of a H atom.
+
+.. warning:: This is an example only - the parameters are not physically meaningful!
+
+.. literalinclude:: ../../../ase/test/jacapo/jacapo.py
+   :start-after: os
+   :end-before: os.system
         
-  #!/usr/bin/env python
-  from ase.data.molecules import molecule
-  from ase.calculators.jacapo import Jacapo
-
-  CO = molecule('CO')
-  CO.set_cell([6,6,6])
-  CO.center()
-  CO.set_pbc(True)
-
-  calc = Jacapo(nc='CO.nc',
-                atoms=CO,
-                pw=300,
-                nbands=8)
-  
-  print CO.get_potential_energy()
-  
 Note that all calculator parameters should be set in the calculator definition
 itself. Do not attempt to use the calc.set_* commands as they are intended to
 be internal to the calculator. Note also that Dacapo can only operate with
