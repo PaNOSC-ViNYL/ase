@@ -35,7 +35,8 @@ class RepulsivePotential(Calculator):
 def voids(atoms_in):
     """Find location and size of voids in a given structure.
 
-    Returns the voids as 'X' atoms.
+    Returns the voids as 'X' atoms. The atoms' charge is misused
+    to contain the voids' radius.
     """
     
     trials = 6  # XXX do not hardwire
