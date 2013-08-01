@@ -91,7 +91,7 @@ supported.
 
 For example::
 
-    from eam import EAM
+    from ase.calculators.eam import EAM
 
     mishin = EAM(potential='Al99.eam.alloy')
     mishin.write_potential('new.eam.alloy')
