@@ -1031,8 +1031,16 @@ class Vasp(Calculator):
 
     def read_nbands(self):
         for line in open('OUTCAR', 'r'):
+            line = self.strip_warnings(line)
             if line.rfind('NBANDS') > -1:
                 return int(line.split()[-1])
+
+    def strip_warnings(self, line):
+        # returns empty string instead of line from warnings in OUTCAR
+        if line[0] is "|":
+            return ""
+        else:
+            return line
 
     def read_convergence(self):
         """Method that checks whether a calculation has converged."""
