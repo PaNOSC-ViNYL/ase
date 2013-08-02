@@ -1036,8 +1036,8 @@ class Vasp(Calculator):
                 return int(line.split()[-1])
 
     def strip_warnings(self, line):
-        # returns empty string instead of line from warnings in OUTCAR
-        if line[0] is "|":
+        """Returns empty string instead of line from warnings in OUTCAR."""
+        if line[0] == "|":
             return ""
         else:
             return line
