@@ -1,6 +1,6 @@
 # creates: cc.png
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 import numpy as np
 import pylab as plt
 from ase.dft.kpoints import cc162_1x1

@@ -20,7 +20,7 @@ d = dos.get_dos()
 e = dos.get_energies()
 
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 import pylab as plt
 plt.figure(figsize=(5, 4))
 plt.plot(e, d)
