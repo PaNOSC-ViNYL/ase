@@ -590,6 +590,13 @@ class Atoms(object):
         else:
             self.set_array('charges', charges, float, ())
 
+    def set_charges(self, charges=None):
+        """Deprecated method. Use set_initial_charges."""
+        warnings.warn('ase.atoms.set_charges is deprecated. Please use ase.'
+                      'atoms.set_initial_charges instead.',
+                      DeprecationWarning, stacklevel=2)
+        self.set_initial_charges(charges)
+
     def get_initial_charges(self):
         """Get array of initial charges."""
         if 'charges' in self.arrays:
