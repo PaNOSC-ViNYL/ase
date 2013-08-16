@@ -132,8 +132,10 @@ class PickleTrajectory:
         self.atoms = atoms
 
     def read_header(self):
-        if os.path.getsize(self.fd.name) == 0:
-            return
+        if hasattr(self.fd, 'name'):
+            if os.path.isfile(self.fd.name):
+                if os.path.getsize(self.fd.name) == 0:
+                    return
         self.fd.seek(0)
         try:
             if self.fd.read(len('PickleTrajectory')) != 'PickleTrajectory':
