@@ -42,7 +42,7 @@ class PickleTrajectory:
             'r' is read mode, the file should already exist, and
             no atoms argument should be specified.
 
-            'w' is write mode.  If the file already exists, is it
+            'w' is write mode.  If the file already exists, it is
             renamed by appending .bak to the file name.  The atoms
             argument specifies the Atoms object to be written to the
             file, if not given it must instead be given as an argument
@@ -132,6 +132,8 @@ class PickleTrajectory:
         self.atoms = atoms
 
     def read_header(self):
+        if os.path.getsize(self.fd.name) == 0:
+            return
         self.fd.seek(0)
         try:
             if self.fd.read(len('PickleTrajectory')) != 'PickleTrajectory':
