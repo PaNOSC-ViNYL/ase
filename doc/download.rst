@@ -311,7 +311,7 @@ On the command prompt:
 .. _pygtk_win32: http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.24/
 
 .. _python-ase-win32.msi:
-    https://wiki.fysik.dtu.dk/ase-files/python-ase-3.6.1.2627.win32.msi
+    https://wiki.fysik.dtu.dk/ase-files/python-ase.win32.msi
 
 
 .. _manual_installation:
