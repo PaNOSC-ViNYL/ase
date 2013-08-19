@@ -30,7 +30,7 @@ def main(runner=None):
 
 
 class Runner:
-    names = None
+    names = []
 
     parameter_namespace = {}
 
@@ -84,6 +84,10 @@ class Runner:
         add('--eos-type', default='sjeos', help='Selects the type of eos.')
         add('-i', '--interactive-python-session', action='store_true',
            )# help=optparse.SUPPRESS)
+        add('-c', '--collection')
+        add('--modify', metavar='...',
+            help='Modify atoms with Python statement.  ' +
+            'Example: --modify="atoms.positions[-1,2]+=0.1".')
 
         self.opts, names = parser.parse_args(args)
 
@@ -122,7 +126,7 @@ class Runner:
 
         self.expand(names)
 
-        if not sys.stdin.isatty() and '-' not in names:
+        if not names:
             names.insert(0, '-')
 
         atoms = None
@@ -130,6 +134,9 @@ class Runner:
             if atoms is not None:
                 del atoms.calc  # release resources from last calculation
             atoms = self.build(name)
+            if opts.modify:
+                exec opts.modify in {'atoms': atoms}
+
             if name == '-':
                 name = atoms.info['id']
 
@@ -187,9 +194,14 @@ class Runner:
                 return runner
 
     def expand(self, names):
+        if not self.names and self.opts.collection:
+            con = db.connect(self.opts.collection)
+            self.names = [dct.id for dct in con.select()]
+        if not names:
+            names[:] = self.names
+            return
         if not self.names:
             return
-
         i = 0
         while i < len(names):
             name = names[i]
@@ -206,6 +218,9 @@ class Runner:
         if name == '-':
             con = db.connect(sys.stdin, 'json')
             return con.get_atoms(add_additional_information=True)
+        elif self.opts.collection:
+            con = db.connect(self.opts.collection)
+            return con.get_atoms(name)
         else:
             return read(name)
 

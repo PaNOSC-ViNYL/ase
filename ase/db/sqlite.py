@@ -306,7 +306,7 @@ class SQLite3Database(NoDatabase):
         cur.execute(sql, args)
         if explain:
             for row in cur.fetchall():
-                yield row
+                yield {'explain': row}
         else:
             for row in cur.fetchall():
                 if cmps2:

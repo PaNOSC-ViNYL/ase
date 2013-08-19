@@ -18,6 +18,8 @@ class MyEncoder(JSONEncoder):
             return obj.tolist()
         if isinstance(obj, datetime.datetime):
             return {'__datetime__': obj.isoformat()}
+        if hasattr(obj, 'todict'):
+            return obj.todict()
         return JSONEncoder.default(self, obj)
 
 
@@ -141,7 +143,7 @@ class JSONDatabase(NoDatabase):
             else:
                 for key, op, val in cmps:
                     value = get_value(dct, key)
-                    if value is None or not op(value, val):
+                    if not op(value, val):
                         break
                 else:
                     yield dct
@@ -179,7 +181,7 @@ def get_value(dct, key):
         return value
     if key in ['energy', 'magmom']:
         return dct.get('results', {}).get(key)
-    if key in ['id', 'timestamp', 'username', 'calculator']:
+    if key in ['id', 'timestamp', 'username', 'calculator_name']:
         return dct.get(key)
     if isinstance(key, int):
         return np.equal(dct['numbers'], key).sum()

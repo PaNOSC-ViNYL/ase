@@ -34,6 +34,8 @@ def run(args=sys.argv[1:]):
     add('--delete', action='store_true')
     add('-v', '--verbose', action='store_true')
     add('-q', '--quiet', action='store_true')
+    add('-s', '--sort')
+    add('-r', '--reverse', action='store_true')
     add('-l', '--long', action='store_true')
     add('--limit', type=int, default=500)
     add('-p', '--python-expression')
@@ -151,7 +153,7 @@ class Formatter:
     def __init__(self, columns):
         pass
 
-    def format(self, dcts, columns=None):
+    def format(self, dcts, columns=None, sort=None):
         columns = ['id', 'age', 'user', 'formula', 'calc',
                    'energy', 'fmax', 'pbc', 'size', 'keywords', 'keyvals',
                    'charge', 'mass', 'fixed', 'smax', 'magmom']

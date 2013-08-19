@@ -34,7 +34,8 @@ ops = {'<': operator.lt,
        '<=': operator.le,
        '=': operator.eq,
        '>=': operator.ge,
-       '>': operator.gt}
+       '>': operator.gt,
+       '!=': operator.ne}
 
 
 def connect(name, type='extract_from_name', create_indices=True,
@@ -59,7 +60,7 @@ def connect(name, type='extract_from_name', create_indices=True,
     if type == 'postgres':
         from ase.db.postgresql import PostgreSQLDatabase as DB
         return PostgreSQLDatabase(name, create_indices)
-    assert 0
+    raise ValueError('Unknown database type: ' + type)
 
 
 class FancyDict(dict):
@@ -238,7 +239,7 @@ class NoDatabase:
                     op = '>'
                 key = expression.split('<', 1)[0]
                 comparisons.append((key, op, value))
-            for op in ['<=', '>=', '<', '>', '=']:
+            for op in ['!=', '<=', '>=', '<', '>', '=']:
                 if op in expression:
                     break
             else:
@@ -275,13 +276,9 @@ class NoDatabase:
             cmps.append((Z, op, n))
         for dct in self._select(keywords, cmps, explain=explain,
                                 verbosity=verbosity):
-            if isinstance(dct, dict):
-                if filter is None or filter(dct):
-                    if fancy:
-                        dct = FancyDict(dct)
-                    yield dct
-            else:
-                # dct is a tuple from count or explain
+            if filter is None or filter(dct):
+                if fancy:
+                    dct = FancyDict(dct)
                 yield dct
                 
 
