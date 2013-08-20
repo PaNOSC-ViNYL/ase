@@ -7,6 +7,7 @@ import numpy as np
 from ase.db import connect
 from ase.db.core import float_to_time_string, T0, YEAR, dict2atoms
 from ase.atoms import Atoms
+from ase.data import atomic_masses
 
 
 def plural(n, word):
@@ -235,7 +236,9 @@ class Formatter:
         return d.results.charge
 
     def mass(self, d):
-        return d.masses.sum()
+        if 'masses' in d:
+            return d.masses.sum()
+        return atomic_masses[d.numbers].sum()
 
     def fixed(self, d):
         c = d.constraints
