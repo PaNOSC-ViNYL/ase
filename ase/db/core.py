@@ -54,7 +54,7 @@ def connect(name, type='extract_from_name', create_indices=True,
     if type == 'json':
         from ase.db.json import JSONDatabase
         return JSONDatabase(name, use_lock_file=use_lock_file)
-    if type == 'sqlite':
+    if type == 'db':
         from ase.db.sqlite import SQLite3Database
         return SQLite3Database(name, create_indices, use_lock_file)
     if type == 'postgres':

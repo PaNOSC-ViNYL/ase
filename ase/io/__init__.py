@@ -78,7 +78,7 @@ def read(filename, index=-1, format=None):
 
     """
     if isinstance(filename, str) and ('.json@' in filename or
-                                      '.sqlite@' in filename):
+                                      '.db@' in filename):
         filename, index = filename.rsplit('@', 1)
     else:
         if isinstance(filename, str):
@@ -140,7 +140,7 @@ def read(filename, index=-1, format=None):
 
         return atoms
 
-    if format in ['json', 'sqlite']:
+    if format in ['json', 'db']:
         from ase.db import connect
         return connect(filename, format)[index]
 
@@ -288,7 +288,7 @@ def read(filename, index=-1, format=None):
         from ase.io.gen import read_gen
         return read_gen(filename)
 
-    if format == 'db':
+    if format == 'cmr':
         from ase.io.cmr_io import read_db
         return read_db(filename, index)
 
@@ -448,7 +448,7 @@ def write(filename, images, format=None, **kwargs):
 ##                       'tmol': 'turbomole',
 ##                       }.get(suffix, suffix)
             
-    if format in ['json', 'sqlite']:
+    if format in ['json', 'db']:
         from ase.db import connect
         connect(filename, format).write(filename, images)
         return
@@ -497,7 +497,7 @@ def write(filename, images, format=None, **kwargs):
         writer.write_atoms(images[0])
         writer.close()
         return
-    elif format == 'db' or format == 'cmr':
+    elif format == 'cmr':
         from ase.io.cmr_io import write_db
         return write_db(filename, images, **kwargs)
     elif format == 'eon':
@@ -565,11 +565,11 @@ def filetype(filename):
     if s3.startswith('{"'):
         return 'json'
 
-    if filename.endswith('.sqlite'):
-        return 'sqlite'
-
-    if filename.lower().endswith('.db') or filename.lower().endswith('.cmr'):
+    if filename.endswith('.db'):
         return 'db'
+
+    if filename.lower().endswith('.cmr'):
+        return 'cmr'
 
     if is_tarfile(filename):
         return 'gpw'
