@@ -20,7 +20,7 @@ class STM:
         """	
 
         if isinstance(atoms, str):
-           with open(atoms) as f:
+           with open(atoms, 'rb') as f:
                self.ldos, self.bias, self.cell = pickle.load(f)
            self.atoms = None
         else:
@@ -83,7 +83,7 @@ class STM:
 
     def write(self, filename='stm.pckl'):
         """Write local density of states to pickle file."""
-        with open(filename, 'w') as f:
+        with open(filename, 'wb') as f:
             pickle.dump((self.ldos, self.bias, self.cell), f,
                         protocol=pickle.HIGHEST_PROTOCOL)
         
