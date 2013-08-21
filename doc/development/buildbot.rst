@@ -180,11 +180,79 @@ Install ``build-slave`` and dependencies::
   export PYTHONPATH=$HOME/buildbot-slave-el6:${PYTHONPATH}
   easy_install --install-dir=$HOME/buildbot-slave-el6 buildbot-slave
 
+Windows
++++++++
+
+``build-slave`` can be installed and configured to start as a service on
+Windows `<http://trac.buildbot.net/wiki/RunningBuildbotOnWindows>`_.
+This involves several steps:
+
+1. install Python(x,y) from https://code.google.com/p/pythonxy/wiki/Downloads
+
+2. configure distutils to use mingw. First enable showing file extensions::
+
+    Open a folder with IE -> Folder and search options-> View -> Folder Options:
+    Check: Show hidden files, ...; uncheck: Hide extensions for known file types.
+
+   Then, in notepad, create C:\\python27\\lib\\distutils\\distutils.cfg,
+   containing::
+
+    [build]
+    compiler=mingw32
+
+3. install ``build-slave`` on the command line::
+
+    C:\python27\scripts\easy_install.exe buildbot-slave
+
+4. create a local (domain ``computer-name``) user that will run the
+   ``buildbot`` service::
+
+     control panel->administrative tools->computer management->local users and groups->users->new user: buildslave-username.
+     Click the created user: member of: administrators->check names
+
+5. grant ``buildslave-username`` the ability to run the services.
+   Login as ``computer-name\buildslave-username``:
+   Run ``secpol.msc`` on the command line as administrator
+   (task bar->cmd->right click: run as administrator):
+
+   - Select the "Local Policies" folder
+   - Select the "User Rights Assignment" folder
+   - Double click "Log on as a service"
+   - Use "Add User or Group..." to add your user here.
+
+   Select the correct "from this location"
+   (may require login as the current domain administrator) and Enter the
+   object names: ``computer-name\buildslave-username``.
+
+6. on the command line install the ``buildbot`` service::
+
+    buildbot_service.py --user computer-name\buildslave-username --password thepassword --startup auto install
+
+7. start the service (for the moment it does not start any ``buildslave``,
+   because they are not configured yet)::
+
+     Start->Control Panel> Administrative Tools->Services->Buildbot (Start)
+
+   There are additional steps mentioned in the buildbot wiki, but it seems
+   just to work on Windows 7.
+
+8. run regedit as administrator (type "regedit" on the command line) and add
+   "directories" parameter of the String Value type, containing paths to all
+   your ``buildslave`` instances (they will be configured in the Configuration
+   section below)::
+
+     HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\Buildbot->paramaters->new (String Value): directories C:\python-ase-windows+7+AMD64+msc+2.7;C:\proj2
+
+9. configure ``buildslave`` instance as described in the Configuration section
+   below and start the service again (point 7.). Test that ``buildslave``
+   comes online, and verify that the service starts after reboot. 
+
 Configuration
 -------------
 
 After having installed the buildbot create a name which will identify
-your ``buildslave``. Obtain the first part of the name for your ``buildslave`` by
+your ``buildslave``.
+Obtain the first part of the name for your ``buildslave`` by
 running :svn:`doc/development/master.cfg`::
 
   python master.cfg
