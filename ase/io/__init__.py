@@ -362,6 +362,8 @@ def write(filename, images, format=None, **kwargs):
     EON reactant.con file      eon
     Gromacs coordinates        gro
     GROMOS96 (only positions)  g96
+    X3D                        x3d
+    X3DOM HTML                 html
 
     =========================  ===========
 
@@ -499,6 +501,10 @@ def write(filename, images, format=None, **kwargs):
     elif format == 'g96':
         from ase.io.gromos import write_gromos
         write_gromos(filename, images)
+        return
+    elif format == 'html':
+        from ase.io.x3d import write_html
+        write_html(filename, images)
         return
 
     format = {'traj': 'trajectory',
