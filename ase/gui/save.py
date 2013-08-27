@@ -185,7 +185,7 @@ class SaveWindow(gtk.Window):
             extra['rotation'] = self.gui.axes
             extra['show_unit_cell'] = self.gui.ui.get_widget('/MenuBar/ViewMenu/ShowUnitCell').get_active()
             extra['bbox'] = bbox
-            extra['colors'] = self.gui.get_colors(rgb=True)
+            extra['colors'] = self.gui.get_colors(rgb=True)[self.gui.images.visible]
             remove_hidden = True
         if len(indices) == 1:
             # Saving a single configuration is always possible.
