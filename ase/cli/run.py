@@ -58,7 +58,6 @@ class Runner:
         add('-t', '--tag',
             help='String tag added to filenames.')
         add('--plugin')
-        add('--after')
         add('-p', '--parameters', default='',
             metavar='key=value,...',
             help='Comma-separated key=value pairs of ' +
@@ -88,7 +87,9 @@ class Runner:
         add('--modify', metavar='...',
             help='Modify atoms with Python statement.  ' +
             'Example: --modify="atoms.positions[-1,2]+=0.1".')
-
+        add('--after', help='Perform operation after calculation.  ' +
+            'Example: --after="atoms.calc.write(...)"')
+            
         self.opts, names = parser.parse_args(args)
 
         if args is None and self.opts.interactive_python_session:
@@ -177,6 +178,10 @@ class Runner:
         if opts.equation_of_state:
             data.update(self.eos(atoms, name))
         data.update(self.calculate_once(atoms, name))
+
+        if opts.after:
+            exec opts.after in {'atoms': atoms, 'data': data}
+
         return data
 
     def get_plugin(self, name):
@@ -253,8 +258,6 @@ class Runner:
                 pass
 
         data = {}
-        if opts.after:
-            exec opts.after in {'atoms': atoms, 'data': data}
         
         return data
 
