@@ -1,4 +1,3 @@
-#!/usr/bin/python
 """This simple demo calculates the total energy of CO molecules
 using once LDA and once PBE as xc-functional. Obviously
 some parts in this scripts are longer than necessary, but are shown

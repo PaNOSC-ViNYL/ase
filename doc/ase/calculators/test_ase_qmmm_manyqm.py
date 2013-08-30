@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """ demo run for ase_qmmm_manyqm calculator """
 
 #  ./test_ase_qmmm_manyqm.py gromacs_mm-relax.g96

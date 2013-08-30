@@ -8,10 +8,14 @@ def read_gpaw_text(fileobj, index=-1):
     if isinstance(fileobj, str):
         fileobj = open(fileobj, 'rU')
 
+    notfound = [] 
     def index_startswith(lines, string):
+        if string in notfound:
+            raise ValueError
         for i, line in enumerate(lines):
             if line.startswith(string):
                 return i
+        notfound.append(string)
         raise ValueError
 
     lines = fileobj.readlines()
@@ -38,14 +42,19 @@ def read_gpaw_text(fileobj, index=-1):
         except ValueError:
             break
 
-        atoms = Atoms(cell=cell, pbc=pbc)
+        symbols = []
+        positions = []
         for line in lines[i + 1:]:
             words = line.split()
             if len(words) != 5:
                 break
             n, symbol, x, y, z = words
-            symbol = symbol.split('.')[0]
-            atoms.append(Atom(symbol, [float(x), float(y), float(z)]))
+            symbols.append(symbol.split('.')[0])
+            positions.append([float(x), float(y), float(z)])
+        if len(symbols):
+            atoms = Atoms(symbols=symbols, positions=positions, cell=cell, pbc=pbc)
+        else:
+            atoms = Atoms(cell=cell, pbc=pbc)
         lines = lines[i + 5:]
         ene = { 
             # key        position

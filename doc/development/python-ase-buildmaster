@@ -50,7 +50,7 @@ start() {
 	RETVAL=$?
 	if [ $RETVAL -eq 0 ]
 	then
-		sleep 1
+		sleep 5
 		su - $RUN_AS -s /bin/sh -c "cat $PYTHON_ASE_HOME/twistd.pid > $PIDFILE"
 		su - $RUN_AS -s /bin/sh -c "touch $LOCKFILE"
 		log_success_msg
@@ -64,7 +64,7 @@ stop() {
 	echo -n $"Shutting down python-ase buildmaster: "
 	kill $(su - $RUN_AS -s /bin/sh -c "cat $PIDFILE 2>/dev/null") > /dev/null 2>&1
 	RETVAL=$?
-	sleep 1
+	sleep 5
 	if [ $RETVAL -eq 0 ]
 	then
 		su - $RUN_AS -s /bin/sh -c "rm -f $PIDFILE $LOCKFILE"

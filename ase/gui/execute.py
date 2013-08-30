@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import __future__
 import gtk
 from gettext import gettext as _

@@ -293,7 +293,7 @@ def read(filename, index=-1, format=None):
         return read_db(filename, index)
 
     if format == 'lammps':
-        from ase.io.lammps import read_lammps_dump
+        from ase.io.lammpsrun import read_lammps_dump
         return read_lammps_dump(filename, index)
 
     if format == 'eon':
@@ -370,6 +370,8 @@ def write(filename, images, format=None, **kwargs):
     EON reactant.con file      eon
     Gromacs coordinates        gro
     GROMOS96 (only positions)  g96
+    X3D                        x3d
+    X3DOM HTML                 html
 
     =========================  ===========
 
@@ -511,6 +513,10 @@ def write(filename, images, format=None, **kwargs):
     elif format == 'g96':
         from ase.io.gromos import write_gromos
         write_gromos(filename, images)
+        return
+    elif format == 'html':
+        from ase.io.x3d import write_html
+        write_html(filename, images)
         return
 
     format = {'traj': 'trajectory',

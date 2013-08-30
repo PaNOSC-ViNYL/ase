@@ -31,6 +31,7 @@ class BEEF_Ensemble:
 
     def get_ensemble_energies(self, size=2000, seed=0):
         """Returns an array of ensemble total energies"""
+        self.seed = seed
         if rank == 0:
             print '\n'
             print '%s ensemble started' % self.xc

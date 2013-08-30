@@ -77,7 +77,10 @@ calculators attached.
 .. seealso::
 
    :mod:`optimize`:
-        Information about energy minimization (optimization).
+        Information about energy minimization (optimization). Note that you
+        cannot use the default optimizer, BFGSLineSearch, with NEBs. (This is
+        the optimizer imported when you import QuasiNewton.) If you would
+        like a quasi-newton optimizer, use BFGS instead.
 
    :mod:`calculators`:
         How to use calculators.
@@ -100,8 +103,8 @@ Trajectories
 
 The code::
 
-  from ase.optimize import QuasiNewton
-  optimizer = QuasiNewton(neb, trajectory='A2B.traj')
+  from ase.optimize import BFGS
+  optimizer = BFGS(neb, trajectory='A2B.traj')
 
 will write all images to one file.  The Trajectory object knows about
 NEB calculations, so it will write `M` images with `N` atoms at every

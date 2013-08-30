@@ -127,7 +127,7 @@ class Images:
             i = 0
         else:
             i = self.nimages
-        for name in ('P', 'V', 'E', 'K', 'F', 'M', 'A', 'T'):
+        for name in ('P', 'V', 'E', 'K', 'F', 'M', 'A', 'T', 'D', 'q'):
             a = getattr(self, name)
             newa = np.empty( (i+1,) + a.shape[1:], a.dtype )
             if not self.next_append_clears:
@@ -137,6 +137,8 @@ class Images:
         self.P[i] = atoms.get_positions()
         self.V[i] = atoms.get_velocities()
         self.A[i] = atoms.get_cell()
+        self.D[i] = atoms.get_celldisp().reshape((3,))
+        self.q[i] = atoms.get_initial_charges()
         try:
             self.E[i] = atoms.get_potential_energy()
         except RuntimeError:
@@ -329,7 +331,7 @@ class Images:
         else:
             write(filename, images, **kwargs)
 
-    def get_atoms(self, frame):
+    def get_atoms(self, frame, remove_hidden=False):
         atoms = Atoms(positions=self.P[frame],
                       numbers=self.Z,
                       magmoms=self.M[0],
@@ -344,9 +346,15 @@ class Images:
         if not self.dynamic.all():
             atoms.set_constraint(FixAtoms(mask=1-self.dynamic))
         
+        # Remove hidden atoms if applicable
+        if remove_hidden:
+            atoms = atoms[self.visible]
+            f = self.F[frame][self.visible]
+        else:
+            f = self.F[frame]
         atoms.set_calculator(SinglePointCalculator(atoms,
                                                    energy=self.E[frame],
-                                                   forces=self.F[frame]))
+                                                   forces=f))
         return atoms
                            
     def delete(self, i):

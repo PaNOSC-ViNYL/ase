@@ -2,7 +2,7 @@
 # creates:  diffusion-I.png  diffusion-T.png  diffusion-F.png diffusion-barrier.png
 import os
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 import pylab as plt
 from ase.io import read, write
 from ase.neb import fit

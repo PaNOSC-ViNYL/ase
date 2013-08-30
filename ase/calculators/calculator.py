@@ -17,7 +17,7 @@ all_properties = ['energy', 'forces', 'stress', 'dipole',
 # Recognized names of calculators sorted alphabetically:
 names = ['abinit', 'aims', 'asap', 'castep', 'dftb', 'eam', 'elk', 'emt',
          'exciting', 'fleur', 'gpaw', 'gaussian', 'hotbit', 'jacapo',
-         'lammps', 'lj', 'mopac', 'morse',
+         'lammps', 'lammpslib', 'lj', 'mopac', 'morse',
          'nwchem', 'siesta', 'turbomole', 'vasp']
 
 
@@ -26,6 +26,7 @@ special = {'eam': 'EAM',
            'emt': 'EMT',
            'fleur': 'FLEUR',
            'lammps': 'LAMMPS',
+           'lammpslib': 'LAMMPSlib',
            'lj': 'LennardJones',
            'morse': 'MorsePotential',
            'nwchem': 'NWChem'}

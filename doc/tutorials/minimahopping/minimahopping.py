@@ -1,6 +1,6 @@
 # creates:  hoppingsummary.png
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 from ase.optimize.minimahopping import MHPlot
 
 execfile('Cu2_Pt110.py')
