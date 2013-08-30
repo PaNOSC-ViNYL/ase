@@ -104,7 +104,7 @@ class STM:
         return ((1 - dn) * self.ldos[:, :, n].mean() +
                 dn * self.ldos[:, :, (n + 1) % nz].mean())
     
-    def scan(self, bias, current):
+    def scan(self, bias, current, z0=None):
         """Constant current 2-d scan."""
         self.calculate_ldos(bias)
 
@@ -116,12 +116,12 @@ class STM:
 
         heights = np.empty(ldos.shape[0])
         for i, a in enumerate(ldos):
-            heights[i] = find_height(a, current, h)
+            heights[i] = find_height(a, current, h, z0)
 
         heights.shape = self.ldos.shape[:2]
         return heights
     
-    def linescan(self, bias, current, p1, p2, npoints=50):
+    def linescan(self, bias, current, p1, p2, npoints=50, z0=None):
         """Constant current line scan.
 
         Example::
@@ -132,7 +132,7 @@ class STM:
             stm.linescan(-1.0, c, (1.2, 0.0), (1.2, 3.0))
         """
 
-        heights = self.scan(bias, current)
+        heights = self.scan(bias, current, z0)
 
         p1 = np.asarray(p1)
         p2 = np.asarray(p2)
@@ -158,8 +158,11 @@ class STM:
         return np.linspace(0, s, npoints), line
 
 
-def find_height(ldos, current, h):
-    n = len(ldos) - 1
+def find_height(ldos, current, h, z0=None):
+    if z0 is None:
+        n = len(ldos) - 1
+    else:
+        n = int(z0 / h)
     while n >= 0:
         if ldos[n] > current:
             break
