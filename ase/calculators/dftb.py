@@ -157,8 +157,12 @@ class Dftb(FileIOCalculator):
         write('geo_end.gen', atoms)
 
     def read_results(self):
-        """ all results are read from results.tag file """
+        """ all results are read from results.tag file 
+            It will be destroyed after it is read to avoid
+            reading it once again after some runtime error """
         from ase.io import read
+        from os import remove
+
         myfile = open('results.tag', 'r')
         self.lines = myfile.readlines()
         myfile.close()
@@ -188,22 +192,30 @@ class Dftb(FileIOCalculator):
             self.results['forces'] = np.zeros([len(self.state), 3])
         else:
             self.read_forces()
-
+        os.remove('results.tag')
+            
     def read_energy(self):
         """Read Energy from dftb output file (results.tag)."""
         from ase.units import Hartree
 
         # Energy:
-        energy = float(self.lines[self.index_energy].split()[0]) * Hartree
-        self.results['energy'] = energy
+        try:
+            energy = float(self.lines[self.index_energy].split()[0]) * Hartree
+            self.results['energy'] = energy
+        except:
+            raise RuntimeError('Problem in reading energy')
 
     def read_forces(self):
         """Read Forces from dftb output file (results.tag)."""
         from ase.units import Hartree, Bohr
 
-        gradients = []
-        for j in range(self.index_force_begin, self.index_force_end):
-            word = self.lines[j].split()
-            gradients.append([float(word[k]) for k in range(0, 3)])
+        try:
+            gradients = []
+            for j in range(self.index_force_begin, self.index_force_end):
+                word = self.lines[j].split()
+                gradients.append([float(word[k]) for k in range(0, 3)])
 
-        self.results['forces'] = np.array(gradients) * Hartree / Bohr
+            self.results['forces'] = np.array(gradients) * Hartree / Bohr
+
+        except:
+            raise RuntimeError('Problem in reading forces')
