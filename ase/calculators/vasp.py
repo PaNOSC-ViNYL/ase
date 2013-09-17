@@ -198,6 +198,8 @@ bool_keys = [
     'lnebcell',   # Turn on SS-NEB
     'lglobal',    # Optmizize NEB globally for LBFGS (IOPT = 1)
     'llineopt',   # Use force based line minimizer for translation (IOPT = 1)
+    'lbeefens',   # Switch on print of BEE energy contritions in OUTCAR
+    'lbeefbas',   # Switch off print of all BEEs in OUTCAR
 ]
 
 list_keys = [
@@ -1315,6 +1317,20 @@ class Vasp(Calculator):
 
         self.input_params['xc'] = xc_dict[xc_flag]
 
+    def get_nonselfconsistent_energies(self, bee_type):
+        """ Method that reads and returns BEE energy contributions
+            written in OUTCAR file.
+        """
+        assert bee_type == 'beefvdw'
+        p = os.popen('grep -32 "BEEF xc energy contributions" OUTCAR | tail -32','r')
+        s = p.readlines()
+        p.close()
+        xc = np.array([])
+        for i, l in enumerate(s):
+            l_ = float(l.split(":")[-1])
+            xc = np.append(xc, l_)
+        assert len(xc) == 32
+        return xc
 
 class VaspChargeDensity(object):
     """Class for representing VASP charge density"""
