@@ -4,6 +4,9 @@
 Making movies
 =============
 
+using recordmydesktop
+---------------------
+
 A video tutorial can be produced in the following way:
 
 - change the screen resolution to 1280x1024,
@@ -69,3 +72,29 @@ A video tutorial can be produced in the following way:
 .. _audacity: http://audacity.sourceforge.net/
 .. _avidemux: http://www.avidemux.org/
 
+using avconf to collect png files
+---------------------------------
+
+Load the trajectory and write the images out as single png files, e. g.:
+
+.. literalinclude:: writepngs.py
+
+In case you do not have avconv, install it (ubuntu)::
+
+  sudo apt-get install libav-tools libavcodec-extra-53 libavdevice-extra-53 libavformat-extra-53 libavutil-extra-51 libpostproc-extra-52 libswscale-extra-2
+
+Convert the png files to a movie (img.mov)::
+
+  avconv -i "%d.png" -r 25 -c:v libx264 -crf 20  -pix_fmt yuv420p img.mov
+
+the options are:
+
+-i "img%d.png" uses these files as the input, %d is a placeholder for the number
+
+-r 25 the desired frame rate, 25 FPS in this case
+
+-c:v libx264 use the h264 codec x264
+
+-crf 20 the video quality, 20 is pretty high, the default is 23
+
+-pix_fmt yuv420p a compatible pixel format
