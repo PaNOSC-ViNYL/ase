@@ -68,7 +68,8 @@ class SaveWindow(gtk.Window):
             fname = sys.argv[1]
         except IndexError:
             fname = ""
-        self.chooser.set_filename(fname)
+            self.chooser.set_current_folder(os.getcwd())
+        self.chooser.set_current_name(fname)
         self.add_filters(self.chooser)
         self.old_chooser_name = self.chooser.get_filter().get_name()
         self.chooser.connect('notify::filter', self.filter_changed)
