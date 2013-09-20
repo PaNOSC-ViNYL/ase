@@ -5,12 +5,12 @@
 Thermochemistry
 ===============
 
-ASE contains a :mod:`thermochemistry` module that lets the user derive commonly desired thermodynamic quantities from ASE output and some user-specified parameters. Two cases are currently handled by this module: the ideal-gas limit (in which translational and rotational degrees of freedom are taken into account) and the harmonic limit (generally used for adsorbates, in which all degrees of freedom are treated harmonically). Both cases rely on good vibrational energies being fed to the calculators, which can be calculated with the :mod:`vibrations` module.
+ASE contains a :mod:`thermochemistry` module that lets the user derive commonly desired thermodynamic quantities of molecules and crystalline solids from ASE output and some user-specified parameters. Three cases are currently handled by this module: the ideal-gas limit (in which translational and rotational degrees of freedom are taken into account), the harmonic limit (generally used for adsorbates, in which all degrees of freedom are treated harmonically), and a crystalline solid model (in which a lattice of N atoms is treated as a system of 3N independent harmonic oscillators). The first two cases rely on good vibrational energies being fed to the calculators, which can be calculated with the :mod:`vibrations` module. Likewise, the crystalline solid model depends on an accurate phonon density of states; this is readily calculated using the :mod:`phonons` module.
 
 Ideal-gas limit
 ===============
 
-The thermodynamic quantities of ideal gases are calculated by assuming that all spatial degrees of freedom are separable into translational, rotational, and vibrational degrees of freedom. The :class:`~ase.thermochemistry.IdealGasThermo` class supports calculation of enthalpy (:math:`H`), entropy (:math:`S`), and free energy (:math:`G`), and has the interface listed below.
+The thermodynamic quantities of ideal gases are calculated by assuming that all spatial degrees of freedom are independent and separable into translational, rotational, and vibrational degrees of freedom. The :class:`~ase.thermochemistry.IdealGasThermo` class supports calculation of enthalpy (:math:`H`), entropy (:math:`S`), and Gibbs free energy (:math:`G`), and has the interface listed below.
 
 .. autoclass:: ase.thermochemistry.IdealGasThermo
    :members:
@@ -39,40 +39,40 @@ The :class:`~ase.thermochemistry.IdealGasThermo` class would generally be called
         thermo = IdealGasThermo(vib_energies=vib_energies,
                                 electronicenergy=electronicenergy, atoms=atoms, 
                                 geometry='linear', symmetrynumber=2, spin=0)
-        G = thermo.get_free_energy(temperature=298.15, pressure=101325.)
+        G = thermo.get_gibbs_energy(temperature=298.15, pressure=101325.)
 
 This will give the thermodynamic summary output::
 
         Enthalpy components at T = 298.15 K:
         ===============================
-        E_elec                 0.000 eV
-        E_ZPE                  0.116 eV
+        E_elec                 0.263 eV
+        E_ZPE                  0.076 eV
         Cv_trans (0->T)        0.039 eV
         Cv_rot (0->T)          0.026 eV
         Cv_vib (0->T)          0.000 eV
         (C_v -> C_p)           0.026 eV
         -------------------------------
-        H                      0.206 eV
+        H                      0.429 eV
         ===============================
 
         Entropy components at T = 298.15 K and P = 101325.0 Pa:
         =================================================
-        S               T*S
+                                   S               T*S
         S_trans (1 atm)    0.0015579 eV/K        0.464 eV
-        S_rot              0.0004314 eV/K        0.129 eV
+        S_rot              0.0004101 eV/K        0.122 eV
         S_elec             0.0000000 eV/K        0.000 eV
-        S_vib              0.0000001 eV/K        0.000 eV
+        S_vib              0.0000016 eV/K        0.000 eV
         S (1 atm -> P)    -0.0000000 eV/K       -0.000 eV
         -------------------------------------------------
-        S                  0.0019893 eV/K        0.593 eV
+        S                  0.0019695 eV/K        0.587 eV
         =================================================
 
         Free energy components at T = 298.15 K and P = 101325.0 Pa:
         =======================
-           H          0.206 eV
-        -T*S         -0.593 eV
+            H          0.429 eV
+         -T*S         -0.587 eV
         -----------------------
-           G         -0.387 eV
+            G         -0.158 eV
         =======================
 
 
@@ -81,10 +81,87 @@ This will give the thermodynamic summary output::
 Harmonic limit
 ==============
 
-In the harmonic limit, all degrees of freedom are treated harmonically. The :class:`HarmonicThermo` class supports the calculation of internal energy, entropy, and free energy. This class uses all of the energies given to it in the vib_energies list; this is a list as can be generated with the .get_energies() method of :class:`ase.vibrations.Vibrations`, but the user should take care that all of these energies are real (non-imaginary). The class :class:`HarmonicThermo` has the interface described below.
+In the harmonic limit, all degrees of freedom are treated harmonically. The :class:`HarmonicThermo` class supports the calculation of internal energy, entropy, and Gibbs free energy. This class uses all of the energies given to it in the vib_energies list; this is a list as can be generated with the .get_energies() method of :class:`ase.vibrations.Vibrations`, but the user should take care that all of these energies are real (non-imaginary). The class :class:`HarmonicThermo` has the interface described below.
 
 .. autoclass:: ase.thermochemistry.HarmonicThermo
    :members:
+
+
+Crystals
+========
+
+In this model a crystalline solid is treated as a periodic system of independent harmonic oscillators. The :class:`~ase.thermochemistry.CrystalThermo` class supports the calculation of internal energy (:math:`U`), entropy (:math:`S`) and Helmholtz free energy (:math:`F`), and has the interface listed below.
+
+.. autoclass:: ase.thermochemistry.CrystalThermo
+   :members:
+
+Example
+-------
+
+The :class:`~ase.thermochemistry.CrystalThermo` class will generally be called after an energy optimization and a phonon vibrational analysis of the crystal. An example for bulk gold is::
+
+	from ase.lattice.spacegroup import crystal
+	from ase.calculators.emt import EMT
+	from ase.optimize import QuasiNewton
+	from ase.phonons import Phonons
+	from ase.thermochemistry import CrystalThermo
+
+	# Set up gold bulk and attach EMT calculator
+	a = 4.078
+	atoms = crystal('Au', (0.,0.,0.),
+		       spacegroup = 225,
+		       cellpar = [a, a, a, 90, 90, 90],
+		       pbc = (1, 1, 1))
+	calc = EMT()
+	atoms.set_calculator(calc)
+	qn = QuasiNewton(atoms)
+	qn.run(fmax = 0.05)
+	electronicenergy = atoms.get_potential_energy()
+
+	# Phonon analysis
+	N = 5
+	ph = Phonons(atoms, calc, supercell=(N, N, N), delta=0.05)
+	ph.run()
+	ph.read(acoustic=True)
+	phonon_energies, phonon_DOS = ph.dos(kpts=(40, 40, 40), npts=3000, delta=5e-4)
+
+	# Calculate the Helmholtz free energy
+	thermo = CrystalThermo(phonon_energies=phonon_energies,
+		               phonon_DOS = phonon_DOS,
+		               electronicenergy = electronicenergy,
+		               formula_units = 4)
+	F = thermo.get_helmholtz_energy(temperature=298.15)
+
+This will give the thermodynamic summary output::
+
+	Internal energy components at T = 298.15 K,
+	on a per-formula-unit basis:
+	===============================
+	E_elec                0.0022 eV
+	E_ZPE                 0.0135 eV
+	E_phonon              0.0629 eV
+	-------------------------------
+	U                     0.0786 eV
+	===============================
+
+	Entropy components at T = 298.15 K,
+	on a per-formula-unit basis:
+	=================================================
+		                   S               T*S
+	-------------------------------------------------
+	S                  0.0005316 eV/K       0.1585 eV
+	=================================================
+
+	Helmholtz free energy components at T = 298.15 K,
+	on a per-formula-unit basis:
+	=======================
+	    U         0.0786 eV
+	 -T*S        -0.1585 eV
+	-----------------------
+	    F        -0.0799 eV
+	=======================
+
+
 
 
 Background
@@ -142,7 +219,7 @@ where the translational, rotational, electronic, and vibrational components are 
 
 :math:`I_\text{A}` through :math:`I_\text{C}` are the three principle moments of inertia for a non-linear molecule. :math:`I` is the degenerate moment of inertia for a linear molecule. :math:`\sigma` is the symmetry number of the molecule.
 
-The ideal-gas free energy is then just calculated from the combination of the enthalpy and entropy:
+The ideal-gas Gibbs free energy is then just calculated from the combination of the enthalpy and entropy:
 
 .. math ::
    G(T,P) = H(T) - T\, S(T,P)
@@ -156,10 +233,43 @@ The ideal-gas free energy is then just calculated from the combination of the en
    S = k_\text{B} \sum_i^\text{harm DOF}
    \left[ \frac{\epsilon_i}{k_\text{B}T\left(e^{\epsilon_i/k_\text{B}T}-1\right)} - \ln \left( 1 - e^{-\epsilon_i/k_\text{B}T} \right)\right]
 
-and the free energy is calculated as
+and the Gibbs free energy is calculated as
 
 .. math ::
    G(T,P) = U(T) - T\, S(T,P)
 
 In this case, the number of harmonic energies (:math:`\epsilon_i`) used in the summation is generally :math:`3N`, where :math:`N` is the number of atoms in the adsorbate.
+
+**Crystalline solid**
+
+The derivation of the partition function for a crystalline solid is fairly straight-forward and can be found, for example, in Chapter 11 of McQuarrie, 2000. 
+
+   D.A. McQuarrie. *Statistical Mechanics*. University Science Books, 2000.
+
+The treatment implemented in the :class:`~ase.thermochemistry.CrystalThermo` class depends on introducing normal coordinates to the entire crystal and treating each atom in the lattice as an independent harmonic oscillator. This yields the partition function
+
+.. math ::
+   Z = \prod_{j=1}^\text{3N} \left( \frac{e^{-\frac{1}{2}\hbar\omega_j\beta}}{1 - e^{-\hbar\omega_j\beta}} \right) e^{-E_\text{elec} \beta}
+
+where :math:`\omega_j` are the :math:`3N` vibrational frequencies, :math:`E_\text{elec}` is the electronic energy of the crystalline solid, and :math:`\beta = \frac{1}{k_\text{B} T}`. Now, taking the logarithm of the partition function and replacing the resulting sum with an integral (assuming that the energy level spacing is essentially continuous) gives
+
+.. math ::
+   -\ln Z = E_\text{elec}\beta + \int_0^\infty \left[ \ln \left( 1 - e^{-\hbar\omega\beta} \right) + \frac{\hbar\omega\beta}{2} \right]\sigma (\omega) \text{d}\omega
+
+Here :math:`\sigma (\omega)` represents the degeneracy or phonon density of states as a function of vibrational frequency. Once this function has been determined (i.e. using the :mod:`phonons` module), it is a simple matter to calculate the canonical ensemble thermodynamic quantities; namely the internal energy, the entropy and the Helmholtz free energy.
+
+.. math ::
+   U(T) &= -\left( \frac{\partial \ln Z}{\partial \beta} \right)_\text{N,V} \\
+        &= E_\text{elec} + \int_0^\infty \left[ \frac{\hbar \omega}{e^{\hbar \omega \beta} - 1} + \frac{\hbar \omega}{2} \right]\sigma (\omega) \text{d}\omega
+
+.. math ::
+   S(T) &= \frac{U}{T} + k_\text{B} \ln Z \\
+        &= \int_0^\infty \left[ \frac{\hbar \omega}{T} \frac{1}{e^{\hbar \omega \beta} - 1} - k_\text{B} \ln \left(1 - e^{-\hbar \omega \beta} \right) \right]\sigma (\omega) \text{d}\omega
+
+.. math ::
+   F(T) = U(T) - T\, S(T,P)
+
+
+
+
 
