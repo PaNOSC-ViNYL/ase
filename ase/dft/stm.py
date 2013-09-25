@@ -104,8 +104,20 @@ class STM:
         return ((1 - dn) * self.ldos[:, :, n].mean() +
                 dn * self.ldos[:, :, (n + 1) % nz].mean())
     
-    def scan(self, bias, current, z0=None):
-        """Constant current 2-d scan."""
+    def scan(self, bias, current, z0=None, repeat=(1, 1)):
+        """Constant current 2-d scan.
+        
+        Returns three 2-d arrays (x, y, z) containing x-coordinates,
+        y-coordinates and heights.  These three arrays can be passed to
+        matplotlibs contourf() function like this:
+            
+        >>> import matplotlib.pyplot as plt
+        >>> plt.gca(aspect='equal')
+        >>> plt.contourf(x, y, z)
+        >>> plt.show()
+        
+        """
+        
         self.calculate_ldos(bias)
 
         L = self.cell[2, 2]
@@ -118,8 +130,14 @@ class STM:
         for i, a in enumerate(ldos):
             heights[i] = find_height(a, current, h, z0)
 
-        heights.shape = self.ldos.shape[:2]
-        return heights
+        s0 = heights.shape = self.ldos.shape[:2]
+        heights = np.tile(heights, repeat)
+        s = heights.shape
+
+        ij = np.indices(s, dtype=float).reshape((2, -1)).T
+        x, y = np.dot(ij / s0, self.cell[:2, :2]).T.reshape((2,) + s)
+
+        return x, y, heights
     
     def linescan(self, bias, current, p1, p2, npoints=50, z0=None):
         """Constant current line scan.
@@ -132,32 +150,38 @@ class STM:
             stm.linescan(-1.0, c, (1.2, 0.0), (1.2, 3.0))
         """
 
-        heights = self.scan(bias, current, z0)
+        heights = self.scan(bias, current, z0)[2]
 
-        p1 = np.asarray(p1)
-        p2 = np.asarray(p2)
+        p1 = np.asarray(p1, float)
+        p2 = np.asarray(p2, float)
         d = p2 - p1
         s = np.dot(d, d)**0.5
 
         cell = self.cell[:2, :2]
-        shape = np.array(self.ldos.shape[:2], float)
+        shape = np.array(heights.shape, float)
         M = np.linalg.inv(cell)
         line = np.empty(npoints)
         for i in range(npoints):
             p = p1 + i * d / (npoints - 1)
             q = np.dot(p, M) * shape
-            qi = q.astype(int)
-            n0, n1 = qi
-            f = q - qi
-            g = 1 - f
-            z = (g[0] * g[1] * heights[n0, n1] +
-                 f[0] * g[1] * heights[n0 + 1, n1] +
-                 g[0] * f[1] * heights[n0, n1 + 1] +
-                 f[0] * f[1] * heights[n0 + 1, n1 + 1])
-            line[i] = z
+            line[i] = interpolate(q, heights)
         return np.linspace(0, s, npoints), line
-
-
+        
+        
+def interpolate(q, heights):
+    qi = q.astype(int)
+    f = q - qi
+    g = 1 - f
+    qi %= heights.shape
+    n0, m0 = qi
+    n1, m1 = (qi + 1) % heights.shape
+    z = (g[0] * g[1] * heights[n0, m0] +
+         f[0] * g[1] * heights[n1, m0] +
+         g[0] * f[1] * heights[n0, m1] +
+         f[0] * f[1] * heights[n1, m1])
+    return z
+     
+     
 def find_height(ldos, current, h, z0=None):
     if z0 is None:
         n = len(ldos) - 1
