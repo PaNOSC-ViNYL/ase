@@ -1,8 +1,9 @@
-from ase.test import cli
+from ase.test import cli, require
 from ase.db import connect
 from ase.db.json import read_json
 from ase.calculators.nwchem import NWChem
 
+require('nwchem')
 cli("""ase-build O | ase-run nwchem -d oxygen.json &&
 ase-build O2 | ase-run nwchem -d oxygen.json""")
 conn = connect('oxygen.json')

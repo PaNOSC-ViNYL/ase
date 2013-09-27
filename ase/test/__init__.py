@@ -16,6 +16,11 @@ class NotAvailable(Exception):
 test_calculator_names = []
 
 
+def require(calcname):
+    if calcname not in test_calculator_names:
+        raise NotAvailable
+        
+        
 # Custom test case/suite for embedding unittests in the test scripts
 
 if sys.version_info < (2, 4, 0, 'final', 0):
