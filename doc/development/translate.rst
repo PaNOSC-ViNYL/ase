@@ -3,7 +3,8 @@
 Translate ASE
 =============
 
-You can contribute by translating the ASE GUI, :file:`ag`, into your language.
+You can contribute by translating the ASE GUI, :file:`ase-gui`, into your
+language.
 
 
 How to translate
@@ -61,17 +62,18 @@ next section.
 Check and commit your translation
 ---------------------------------
 
-* You can check the syntax by running :file:`msgfmt -cv ag.po`.  This will report any syntax errors.
+* You can check the syntax by running :file:`msgfmt -cv ag.po`.  This will
+  report any syntax errors.
 
-* You can test your translation in :file:`ag` directly.  First issue
+* You can test your translation in :file:`ase-gui` directly.  First issue
   the command :file:`make` in :file:`ase/gui/po`, then reinstall ASE
   using the usual procedure.  The translations will then be in the
   newly installed ASE.  If you translate into the same language as
   your computer's locale, you should see the translations when you
-  start :file:`ag` normally.  If you translate ASE into another
-  language, then run :file:`LANG={ll}_{LL}.UTF-8 ag`.  On some
+  start :file:`ase-gui` normally.  If you translate ASE into another
+  language, then run :file:`LANG={ll}_{LL}.UTF-8 ase-gui`.  On some
   operating systems you may need to run
-  :file:`LANGUAGE={ll}_{LL}.UTF-8 ag` instead.
+  :file:`LANGUAGE={ll}_{LL}.UTF-8 ase-gui` instead.
 
 Depending on your operating system, you may need to install
 :file:`gettext` or :file:`locales`.
@@ -100,7 +102,7 @@ or untranslated messages.  The obvious time to do this is shortly
 before a new stable release.
 
 If you are a committer, please run :file:`make` before committing and
-briefly check by running the translated ag that nothing is obviously horrible.
+briefly check by running the translated ase-gui that nothing is obviously horrible.
 
 .. _language code: http://www.gnu.org/software/gettext/manual/gettext.html#Language-Codes
 .. _country code: http://www.gnu.org/software/gettext/manual/gettext.html#Country-Codes

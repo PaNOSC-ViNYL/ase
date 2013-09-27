@@ -27,16 +27,16 @@ using the trajectory file with the help of the ASE :mod:`gui`. For
 example you can visualize the behaviour of the potential and total
 energies during the dynamics by doing::
 
-  $ ag -b si001+h2.traj -g i,e,e+ekin
+  $ ase-gui -b si001+h2.traj -g i,e,e+ekin
 
 The :option:`-b` option turns on plotting of bonds between the atoms.
 Check that the total energy is a conserved quantity in this
 microcanonical simulation.
 
 You can also use VMD to visualize the trajectory.  To do this, you
-need a ``.xyz`` file that you can write using :command:`ag`::
+need a ``.xyz`` file that you can write using :command:`ase-gui`::
 
-  $ ag si001+h2.traj -o si.xyz -r 2,2,1
+  $ ase-gui si001+h2.traj -o si.xyz -r 2,2,1
 
 Then simply open the file using VMD::
 

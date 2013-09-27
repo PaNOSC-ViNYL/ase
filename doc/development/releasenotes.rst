@@ -10,6 +10,8 @@ Development version in trunk
 
 :trac:`trunk <>`.
 
+* ASE's gui renamed from ``ag`` to ``ase-gui``.
+
 
 Version 3.7.0
 =============
@@ -61,11 +63,11 @@ Version 3.6.0
 * New command line tool: :ref:`command line tool` and tests based on it:
   abinit, elk, fleur, nwchem.
 
-* New crystal builder for ag
+* New crystal builder for ase-gui
 
 * Van der Waals radii in ase.data
 
-* ASE GUI (ag) now supports velocities for both graphs and coloring
+* ASE's GUI (ase-gui) now supports velocities for both graphs and coloring
 
 * Cleaned up some name-spaces:
 

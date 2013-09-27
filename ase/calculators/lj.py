@@ -11,14 +11,17 @@ class LennardJones(Calculator):
     def __init__(self, **kwargs):
         Calculator.__init__(self, **kwargs)
 
-    def calculate(self, atoms, properties, changes):
+    def calculate(self, atoms=None, properties=['energy'],
+                  system_changes=['positions', 'numbers', 'cell',
+                                  'pbc', 'charges','magmoms']):
+        Calculator.calculate(self, atoms, properties, system_changes)
         epsilon = self.parameters.epsilon
         sigma = self.parameters.sigma
         sigma2 = sigma**2
         
-        positions = atoms.get_positions()
+        positions = self.atoms.get_positions()
         energy = 0.0
-        forces = np.zeros((len(atoms), 3))
+        forces = np.zeros((len(self.atoms), 3))
 
         for i in range(len(positions) - 1):
             dist = positions[i, :] - positions[i + 1:, :]

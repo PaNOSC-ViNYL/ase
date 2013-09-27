@@ -15,22 +15,24 @@ import shutil
 
 long_description = """\
 ASE is a python package providing an open source Atomic Simulation
-Environment in the python scripting language."""
+Environment in the Python language."""
 
 
 if sys.version_info < (2, 4, 0, 'final', 0):
     raise SystemExit, 'Python 2.4 or later is required!'
 
 packages = ['ase',
-            'ase.asec',
+            'ase.cli',
             'ase.cluster',
             'ase.cluster.data',
+            'ase.db',
             'ase.io',
             'ase.md',
             'ase.dft',
             'ase.gui',
             'ase.gui.languages',
             'ase.data',
+            'ase.tasks',
             'ase.test',
             'ase.test.abinit',
             'ase.test.aims',
@@ -47,7 +49,6 @@ packages = ['ase',
             'ase.test.nwchem',
             'ase.test.tasks',
             'ase.test.vasp',
-            'ase.tasks',
             'ase.utils',
             'ase.lattice',
             'ase.lattice.spacegroup',
@@ -141,9 +142,8 @@ if svnversion and os.name not in ['ce', 'nt']: # MSI accepts only version X.X.X
 else:
     version = version_base
 
-scripts = ['tools/ag', 'tools/ase', 'tools/ASE2ase', 'tools/testase',
-           'tools/asec',
-           'tools/foldtrajectory', 'tools/trajectoryinfo']
+scripts = ['tools/ase-gui', 'tools/ase-db', 'tools/ase-info',
+           'tools/ase-build', 'tools/ase-run']
 # provide bat executables in the tarball and always for Win
 if 'sdist' in sys.argv or os.name in ['ce', 'nt']:
     for s in scripts[:]:

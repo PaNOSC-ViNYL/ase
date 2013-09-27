@@ -2,6 +2,7 @@
 # CAMd (see accompanying license files for details).
 
 import os
+import sys
 from optparse import OptionParser, SUPPRESS_HELP
 
 import ase.gui.i18n
@@ -71,7 +72,6 @@ def main():
     try:
         import ase
     except ImportError:
-        import sys
         from os.path import dirname, join, pardir
         sys.path.append(join(dirname(__file__), pardir))
 
@@ -93,8 +93,11 @@ def main():
                     parser.error(e.args[0])
                 else:
                     parser.error(e.args[1] + ': ' + e.filename)
-        else:
+        elif sys.stdin.isatty():
             images.initialize([Atoms()])
+        else:
+            from ase.db import connect
+            images.initialize([connect(sys.stdin, 'json')[0]])
 
         if opt.interpolate:
             images.interpolate(opt.interpolate)

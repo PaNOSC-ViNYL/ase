@@ -77,18 +77,22 @@ def read(filename, index=-1, format=None):
     =========================  =============
 
     """
-    if isinstance(filename, str):
-        p = filename.rfind('@')
-        if p != -1:
-            try:
-                index = string2index(filename[p + 1:])
-            except ValueError:
-                pass
-            else:
-                filename = filename[:p]
+    if isinstance(filename, str) and ('.json@' in filename or
+                                      '.db@' in filename):
+        filename, index = filename.rsplit('@', 1)
+    else:
+        if isinstance(filename, str):
+            p = filename.rfind('@')
+            if p != -1:
+                try:
+                    index = string2index(filename[p + 1:])
+                except ValueError:
+                    pass
+                else:
+                    filename = filename[:p]
 
-    if isinstance(index, str):
-        index = string2index(index)
+        if isinstance(index, str):
+            index = string2index(index)
 
     if format is None:
         format = filetype(filename)
@@ -121,8 +125,8 @@ def read(filename, index=-1, format=None):
         else:
             magmoms = None
 
-        atoms.calc = SinglePointDFTCalculator(energy, forces, None, magmoms,
-                                              atoms)
+        atoms.calc = SinglePointDFTCalculator(atoms, energy=energy,
+                                              forces=forces, magmoms=magmoms)
         kpts = []
         if r.has_array('IBZKPoints'):
             for w, kpt, eps_n, f_n in zip(r.get('IBZKPointWeights'), 
@@ -135,6 +139,10 @@ def read(filename, index=-1, format=None):
         atoms.calc.kpts = kpts
 
         return atoms
+
+    if format in ['json', 'db']:
+        from ase.db import connect
+        return connect(filename, format)[index]
 
     if format == 'castep':
         from ase.io.castep import read_castep
@@ -280,7 +288,7 @@ def read(filename, index=-1, format=None):
         from ase.io.gen import read_gen
         return read_gen(filename)
 
-    if format == 'db':
+    if format == 'cmr':
         from ase.io.cmr_io import read_db
         return read_db(filename, index)
 
@@ -446,7 +454,11 @@ def write(filename, images, format=None, **kwargs):
 ##                       'in': 'aims',
 ##                       'tmol': 'turbomole',
 ##                       }.get(suffix, suffix)
-
+            
+    if format in ['json', 'db']:
+        from ase.db import connect
+        connect(filename, format).write(filename, images)
+        return
     if format == 'castep_cell':
         from ase.io.castep import write_cell
         write_cell(filename, images, **kwargs)
@@ -492,7 +504,7 @@ def write(filename, images, format=None, **kwargs):
         writer.write_atoms(images[0])
         writer.close()
         return
-    elif format == 'db' or format == 'cmr':
+    elif format == 'cmr':
         from ase.io.cmr_io import write_db
         return write_db(filename, images, **kwargs)
     elif format == 'eon':
@@ -561,8 +573,14 @@ def filetype(filename):
     if len(s3) == 0:
         raise IOError('Empty file: ' + filename)
 
-    if filename.lower().endswith('.db') or filename.lower().endswith('.cmr'):
+    if s3.startswith('{"'):
+        return 'json'
+
+    if filename.endswith('.db'):
         return 'db'
+
+    if filename.lower().endswith('.cmr'):
+        return 'cmr'
 
     if is_tarfile(filename):
         return 'gpw'

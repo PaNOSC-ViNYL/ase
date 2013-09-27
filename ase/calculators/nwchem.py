@@ -123,7 +123,7 @@ class NWChem(FileIOCalculator):
                         f.write('  convergence %s %s\n' %
                                 (key, p.convergence[key]))
             if p.smearing is not None:
-                assert p.smearing[0].lower() == 'gaussian'
+                assert p.smearing[0].lower() == 'gaussian', p.smearing
                 f.write('  smear %s\n' % (p.smearing[1] / Hartree))
             if 'mult' not in p:
                 # Obtain multiplicity from magnetic momenta:
@@ -167,7 +167,7 @@ class NWChem(FileIOCalculator):
             positions.append([float(word) for word in words[1:]])
 
         self.parameters = Parameters.read(self.label + '.ase')
-        self.state = Atoms(symbols, positions,
+        self.atoms = Atoms(symbols, positions,
                            magmoms=self.parameters.pop('magmoms'))
         self.read_results()
 
@@ -238,7 +238,7 @@ class NWChem(FileIOCalculator):
                     value = value * Bohr
                     dipolemoment.append(value)
         if len(dipolemoment) == 0:
-            assert len(self.state) == 1
+            assert len(self.atoms) == 1
             dipolemoment = [0.0, 0.0, 0.0]
         return np.array(dipolemoment)
 
@@ -287,7 +287,7 @@ class NWChem(FileIOCalculator):
         for i, line in enumerate(lines):
             if line.find('ENERGY GRADIENTS') >= 0:
                 gradients = []
-                for j in range(i + 4, i + 4 + len(self.state)):
+                for j in range(i + 4, i + 4 + len(self.atoms)):
                     word = lines[j].split()
                     gradients.append([float(word[k]) for k in range(5, 8)])
 

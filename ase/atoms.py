@@ -568,19 +568,13 @@ class Atoms(object):
         """Get calculated local magnetic moments."""
         if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
-        if self._calc.get_spin_polarized():
-            return self._calc.get_magnetic_moments(self)
-        else:
-            return np.zeros(len(self))
+        return self._calc.get_magnetic_moments(self)
 
     def get_magnetic_moment(self):
         """Get calculated total magnetic moment."""
         if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
-        if self._calc.get_spin_polarized():
-            return self._calc.get_magnetic_moment(self)
-        else:
-            return 0.0
+        return self._calc.get_magnetic_moment(self)
 
     def set_initial_charges(self, charges=None):
         """Set the initial charges."""

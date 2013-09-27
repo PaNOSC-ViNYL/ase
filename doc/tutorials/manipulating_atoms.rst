@@ -85,7 +85,7 @@ Plot the whole system by bringing up the :mod:`gui`:
 .. image:: a1.png
    :scale: 35
 
-Within the viewer (called :mod:`ag <gui>` or :mod:`ase.gui <gui>`) it
+Within the viewer (called :mod:`ase-gui <gui>` or :mod:`ase.gui <gui>`) it
 is possible to repeat the unit cell in all three directions (using the
 :menuselection:`Repeat --> View` window).
 

@@ -8,18 +8,18 @@ Frequently Asked Questions
 ASE-GUI
 =======
 
-See also the :mod:`documentation for ag <gui>`.
+See also the :mod:`documentation for ase-gui <gui>`.
 
 How do I export images from a trajectory to png or pov files?
 -------------------------------------------------------------
 
-With ag, you can choose :menuselection:`File --> Save`, but this is
+With ase-gui, you can choose :menuselection:`File --> Save`, but this is
 not fun if you need to do it for many images.  Here is how to do it on
 the command line for a number of images::
 
-  ag images.traj@0 -o image0.pov
-  ag images.traj@1 -o image1.pov
-  ag images.traj@2 -o image2.pov
+  ase-gui images.traj@0 -o image0.pov
+  ase-gui images.traj@1 -o image1.pov
+  ase-gui images.traj@2 -o image2.pov
 
 If you have many images, it will be easier to do it using the Python
 interpreter:
@@ -35,8 +35,8 @@ Here, we also:
 
 * disable pausing between the images
 
-* set a rotation (choose :menuselection:`View --> Rotate ...` in ag to select
-  the best rotation angles)
+* set a rotation (choose :menuselection:`View --> Rotate ...` in ase-gui to
+  select the best rotation angles)
 
 Try:
 

@@ -125,7 +125,7 @@ The result of the latest iteration can be analysed like this:
 
 ::
 
-  $ ag A.traj A2B-?.traj B.traj -n -1 
+  $ ase-gui A.traj A2B-?.traj B.traj -n -1 
 
 .. highlight:: python
 

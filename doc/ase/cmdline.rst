@@ -205,7 +205,7 @@ Then do this::
 The relaxed EMT bondlength of 2.62 Å can be extracted from the
 created trajectory like this::
 
-    $ ag -tg "e,fmax,d(0,9)" Pt-m13-emt.traj
+    $ ase-gui -tg "e,fmax,d(0,9)" Pt-m13-emt.traj
     10.9824302706 2.27575724833 2.72
     10.0805658256 1.45353946744 2.68
     9.61654400875 0.447140179352 2.64
