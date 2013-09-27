@@ -29,7 +29,7 @@ def run(name):
     print al.get_potential_energy()
     print Calculator.read_atoms(label).get_potential_energy()
 
-names = ['abinit', 'aims', 'elk', 'gpaw']
+names = ['abinit', 'aims', 'elk']
 for name in names:
     try:
         run(name)
