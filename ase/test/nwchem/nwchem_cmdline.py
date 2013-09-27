@@ -1,9 +1,10 @@
-from ase.cli import run
+from ase.test import cli
 from ase.db import connect
 from ase.db.json import read_json
 from ase.calculators.nwchem import NWChem
 
-run('O2 O run -c nwchem -d oxygen.json')
+cli("""ase-build O | ase-run nwchem -d oxygen.json &&
+ase-build O2 | ase-run nwchem -d oxygen.json""")
 conn = connect('oxygen.json')
 dct = read_json('oxygen.json')
 for name in ['O2', 'O']:
