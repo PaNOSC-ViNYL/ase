@@ -1,5 +1,4 @@
 import sys
-import argparse
 from time import time
 
 import numpy as np
@@ -19,6 +18,7 @@ def plural(n, word):
 def run(args=sys.argv[1:]):
     if isinstance(args, str):
         args = args.split(' ')
+    import argparse
     parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
     add = parser.add_argument
     add('name', nargs=1)
