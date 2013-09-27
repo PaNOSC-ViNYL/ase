@@ -26,7 +26,7 @@ def read_xyz(fileobj, index=-1):
         del lines[:natoms + 2]
     return images[index]
 
-def write_xyz(fileobj, images):
+def write_xyz(fileobj, images, comment=''):
     if isinstance(fileobj, str):
         fileobj = paropen(fileobj, 'w')
 
@@ -36,6 +36,6 @@ def write_xyz(fileobj, images):
     symbols = images[0].get_chemical_symbols()
     natoms = len(symbols)
     for atoms in images:
-        fileobj.write('%d\n\n' % natoms)
+        fileobj.write('%d\n%s\n' % (natoms, comment) )
         for s, (x, y, z) in zip(symbols, atoms.get_positions()):
             fileobj.write('%-2s %22.15f %22.15f %22.15f\n' % (s, x, y, z))

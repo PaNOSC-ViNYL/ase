@@ -11,7 +11,7 @@ ase-build -x fcc Cu | ase-run emt -E 5 -d x.json &&
 ase-db x.json id=H --delete --yes &&
 ase-db x.json "H>0" -k hydro"""
 
-for name in ['x.json', 'x.sqlite']:#, 'postgres://localhost']:
+for name in ['x.json', 'x.db']:#, 'postgres://localhost']:
     cli(cmd.replace('x.json', name))
     con = connect(name)
     assert len(list(con.select())) == 4

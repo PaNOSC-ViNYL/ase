@@ -14,15 +14,17 @@ class BEEF_Ensemble:
             else:
                 if isinstance(atoms, Atoms):
                     calc = atoms.get_calculator()
+                    self.atoms = atoms
                 else:
                     calc = atoms
+                    self.atoms = calc.atoms
                 xc = calc.get_xc_functional()
             self.calc = calc
             self.e = e
             self.contribs = contribs
             self.xc = xc
             self.done = False
-            if self.xc in ['BEEF-vdW', 'BEEF-1']:
+            if self.xc in ['BEEF-vdW', 'BEEF', 'BEEF-1', 'PBE']:
                 self.beef_type = 'beefvdw'
             elif self.xc == 'mBEEF':
                 self.beef_type = 'mbeef'
@@ -34,11 +36,11 @@ class BEEF_Ensemble:
         self.seed = seed
         if rank == 0:
             print '\n'
-            print '%s ensemble started' % self.xc
+            print '%s ensemble started' % self.beef_type
 
         if self.contribs is None:
             self.contribs = self.calc.get_nonselfconsistent_energies(self.beef_type)
-            self.e = self.calc.get_potential_energy()
+            self.e = self.calc.get_potential_energy(self.atoms)
         if self.beef_type == 'beefvdw':
             assert len(self.contribs) == 32
             coefs = self.get_beefvdw_ensemble_coefs(size, seed)
@@ -49,7 +51,7 @@ class BEEF_Ensemble:
         self.done = True
 
         if rank == 0:
-            print '%s ensemble finished' % self.xc
+            print '%s ensemble finished' % self.beef_type
             print '\n'
 
         return self.de

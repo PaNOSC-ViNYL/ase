@@ -249,7 +249,8 @@ class IncompatibleCellError(ValueError):
 
 
 def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,  
-          maxstrain=0.5, distance=None, reorder=False):
+          maxstrain=0.5, distance=None, reorder=False,
+          output_strained=False):
     """Return a new Atoms instance with *atoms2* stacked on top of
     *atoms1* along the given axis. Periodicity in all directions is
     ensured.
@@ -278,6 +279,10 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
     If *reorder* is True, then the atoms will be reordred such that
     all atoms with the same symbol will follow sequensially after each
     other, eg: 'Al2MnAl10Fe' -> 'Al12FeMn'.    
+
+    If *output_strained* is True, then the strained versions of
+    *atoms1* and *atoms2* are returned in addition to the stacked
+    structure.
 
     Example:
 
@@ -339,6 +344,9 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
 
     atoms1.set_cell(cell1, scale_atoms=True)
     atoms2.set_cell(cell2, scale_atoms=True)
+    if output_strained:
+        atoms1_strained = atoms1.copy()
+        atoms2_strained = atoms2.copy()
 
     if distance is not None:
         from scipy.optimize import fmin
@@ -372,7 +380,10 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
     if reorder:
         atoms1 = sort(atoms1)
 
-    return atoms1
+    if output_strained:
+        return atoms1, atoms1_strained, atoms2_strained
+    else:
+        return atoms1
 
 
 def sort(atoms, tags=None):
@@ -457,6 +468,9 @@ def rotate(atoms, a1, a2, b1, b2, rotate_cell=True, center=(0, 0, 0)):
     if rotate_cell:
         atoms.cell[:] = np.dot(atoms.cell, R.T)
 
+
+
+
 def minimize_tilt_ij(atoms, modified=1, fixed=0, fold_atoms=True):
     """Minimize the tilt angle for two given axes.
 
@@ -495,6 +509,7 @@ def minimize_tilt(atoms, order=range(3), fold_atoms=True):
         for c2 in order[i1 + 1:]:
             if pbc_c[c1] and pbc_c[c2]:
                 minimize_tilt_ij(atoms, c1, c2, fold_atoms)
+
 
 #-----------------------------------------------------------------
 # Self test
