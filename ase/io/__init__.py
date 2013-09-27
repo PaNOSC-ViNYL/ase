@@ -414,6 +414,11 @@ def write(filename, images, format=None, **kwargs):
     ``image_plane``, ``camera_type``, ``point_lights``,
     ``area_light``, ``background``, ``textures``, ``celllinewidth``,
     ``bondlinewidth``, ``bondatoms``
+
+    The ``xyz`` format accepts a comment string using the ``comment`` keyword:
+
+    comment: str (default '')
+      Optional comment written on the second line of the file.
     """
 
     if format is None:
@@ -455,7 +460,7 @@ def write(filename, images, format=None, **kwargs):
         write_cif(filename, images)
     if format == 'xyz':
         from ase.io.xyz import write_xyz
-        write_xyz(filename, images)
+        write_xyz(filename, images, **kwargs)
         return
     if format == 'gen':
         from ase.io.gen import write_gen
