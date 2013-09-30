@@ -250,7 +250,7 @@ class SQLite3Database(NoDatabase):
         where = []
         args = []
         for n, keyword in enumerate(keywords):
-            tables.append('keywords as keyword{}'.format(n))
+            tables.append('keywords as keyword{0}'.format(n))
             where.append(
                 'systems.id=keyword{0}.id and keyword{0}.keyword=?'.format(n))
             args.append(keyword)
@@ -265,7 +265,7 @@ class SQLite3Database(NoDatabase):
         for key, op, value in cmps:
             if key in ['id', 'energy', 'magmom', 'timestamp', 'username',
                        'calculator_name']:
-                where.append('systems.{}{}?'.format(key, op))
+                where.append('systems.{0}{1}?'.format(key, op))
                 args.append(value)
             elif key == 'natoms':
                 cmps2.append((key, ops[op], value))
@@ -273,21 +273,21 @@ class SQLite3Database(NoDatabase):
                 if bad[key]:
                     cmps2.append((key, ops[op], value))
                 else:
-                    tables.append('species as specie{}'.format(nspecies))
+                    tables.append('species as specie{0}'.format(nspecies))
                     where.append(('systems.id=specie{0}.id and ' +
                                   'specie{0}.Z=? and ' +
                                   'specie{0}.n{1}?').format(nspecies, op))
                     args += [key, value]
                     nspecies += 1
             elif isinstance(value, str):
-                tables.append('text_key_values as text{}'.format(ntext))
+                tables.append('text_key_values as text{0}'.format(ntext))
                 where.append(('systems.id=text{0}.id and ' +
                               'text{0}.key=? and ' +
                               'text{0}.value{1}?').format(ntext, op))
                 args += [key, value]
                 ntext += 1
             else:
-                tables.append('number_key_values as number{}'.format(nnumber))
+                tables.append('number_key_values as number{0}'.format(nnumber))
                 where.append(('systems.id=number{0}.id and ' +
                               'number{0}.key=? and ' +
                               'number{0}.value{1}?').format(nnumber, op))
