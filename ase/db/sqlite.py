@@ -202,7 +202,7 @@ class SQLite3Database(NoDatabase):
                'unique_id': row[1],
                'timestamp': row[2],
                'username': row[3],
-               'numbers': deblob(row[4], int),
+               'numbers': deblob(row[4], np.int32),
                'positions': deblob(row[5], shape=(-1, 3)),
                'cell': deblob(row[6], shape=(3, 3)),
                'pbc': (row[7] & np.array([1, 2, 4])).astype(bool)}
@@ -213,7 +213,7 @@ class SQLite3Database(NoDatabase):
         if row[10] is not None:
             dct['masses'] = deblob(row[10])
         if row[11] is not None:
-            dct['tags'] = deblob(row[11], int)
+            dct['tags'] = deblob(row[11], np.int32)
         if row[12] is not None:
             dct['moments'] = deblob(row[12], shape=(-1, 3))
         if row[13] is not None:
@@ -339,6 +339,8 @@ def blob(array):
 
     if array is None:
         return None
+    if array.dtype == np.int64:
+        array = array.astype(np.int32)
     return buffer(array)
 
 
