@@ -12,11 +12,11 @@
 Common bulk crystals
 ====================
 
-.. autofunction:: ase.structure.bulk
+.. autofunction:: ase.lattice.bulk
 
 examples:
 
->>> from ase.structure import bulk
+>>> from ase.lattice import bulk
 >>> a1 = bulk('Cu', 'fcc', a=3.6)
 >>> a2 = bulk('Cu', 'fcc', a=3.6, orthorhombic=True)
 >>> a3 = bulk('Cu', 'fcc', a=3.6, cubic=True)
