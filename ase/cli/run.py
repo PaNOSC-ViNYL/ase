@@ -160,6 +160,9 @@ class Runner:
                 except Exception:
                     self.log(name, 'FAILED')
                     traceback.print_exc(file=self.logfile)
+                    tstop = time.time()
+                    data = {'time': tstop - tstart}
+                    self.db.write(name, None, keywords=['failed'], data=data)
                     self.errors += 1
                 else:
                     tstop = time.time()
