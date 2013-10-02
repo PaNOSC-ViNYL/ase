@@ -136,7 +136,7 @@ class Runner:
                 del atoms.calc  # release resources from last calculation
             atoms = self.build(name)
             if opts.modify:
-                exec opts.modify in {'atoms': atoms}
+                exec opts.modify in {'atoms': atoms, 'np': np}
 
             if name == '-':
                 name = atoms.info['id']
