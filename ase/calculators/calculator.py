@@ -236,7 +236,7 @@ class Calculator:
         default = self.get_default_parameters()
         return dict((key, value)
                     for key, value in self.parameters.items()
-                    if value != default[key])
+                    if key not in default or value != default[key])
 
     def reset(self):
         """Clear all information from old calculation."""
