@@ -1715,6 +1715,8 @@ class xdat2traj:
             del(lines[0:6])
         elif len(lines[4].split())==0:
             del(lines[0:5])
+        elif lines[7].split()[0]=='Direct':
+            del(lines[0:8])
         step = 0
         iatom = 0
         scaled_pos = []
@@ -1735,9 +1737,9 @@ class xdat2traj:
                 iatom = 0
                 step += 1
             else:
-
-                iatom += 1
-                scaled_pos.append([float(line.split()[n]) for n in range(3)])
+                if not line.split()[0]=='Direct':
+                    iatom += 1
+                    scaled_pos.append([float(line.split()[n]) for n in range(3)])
 
         # Write also the last image
         # I'm sure there is also more clever fix...
