@@ -14,6 +14,9 @@ all_properties = ['energy', 'forces', 'stress', 'dipole',
                   'charges', 'magmom', 'magmoms']
 
 
+all_changes = ['positions', 'numbers', 'cell', 'pbc', 'charges', 'magmoms']
+
+
 # Recognized names of calculators sorted alphabetically:
 names = ['abinit', 'aims', 'asap', 'castep', 'dftb', 'eam', 'elk', 'emt',
          'exciting', 'fleur', 'gpaw', 'gaussian', 'hotbit', 'jacapo',
@@ -318,8 +321,7 @@ class Calculator:
     def check_state(self, atoms, tol=1e-15):
         """Check for system changes since last calculation."""
         if self.atoms is None:
-            system_changes = ['positions', 'numbers', 'cell', 'pbc',
-                              'charges', 'magmoms']
+            system_changes = all_changes
         else:
             system_changes = []
             if not equal(self.atoms.positions, atoms.positions, tol):
@@ -401,8 +403,7 @@ class Calculator:
         return False
         
     def calculate(self, atoms=None, properties=['energy'],
-                  system_changes=['positions', 'numbers', 'cell',
-                                  'pbc', 'charges','magmoms']):
+                  system_changes=all_changes):
         """Do the calculation.
 
         properties: list of str
@@ -471,8 +472,7 @@ class FileIOCalculator(Calculator):
             self.command = os.environ.get(name, self.command)
 
     def calculate(self, atoms=None, properties=['energy'],
-                  system_changes=['positions', 'numbers', 'cell',
-                                  'pbc', 'charges','magmoms']):
+                  system_changes=all_changes):
         Calculator.calculate(self, atoms, properties, system_changes)
         self.write_input(self.atoms, properties, system_changes)
         if self.command is None:

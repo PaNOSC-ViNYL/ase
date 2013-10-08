@@ -1,40 +1,72 @@
 import numpy as np
-from ase.calculators.calculator import Calculator
+
+from ase.calculators.neighborlist import NeighborList
+from ase.calculators.calculator import Calculator, all_changes
 
 
 class LennardJones(Calculator):
-    implemented_properties = ['energy', 'forces']
+    implemented_properties = ['energy', 'forces', 'stress']
     default_parameters = {'epsilon': 1.0,
-                          'sigma': 1.0}
+                          'sigma': 1.0,
+                          'rc': None}
     nolabel = True
 
     def __init__(self, **kwargs):
         Calculator.__init__(self, **kwargs)
 
-    def calculate(self, atoms=None, properties=['energy'],
-                  system_changes=['positions', 'numbers', 'cell',
-                                  'pbc', 'charges','magmoms']):
+    def calculate(self, atoms=None,
+                  properties=['energy'],
+                  system_changes=all_changes):
         Calculator.calculate(self, atoms, properties, system_changes)
-        epsilon = self.parameters.epsilon
+
+        natoms = len(self.atoms)
+
         sigma = self.parameters.sigma
-        sigma2 = sigma**2
+        epsilon = self.parameters.epsilon
+        rc = self.parameters.rc
+        if rc is None:
+            rc = 3 * sigma
         
-        positions = self.atoms.get_positions()
+        if 'numbers' in system_changes:
+            self.nl = NeighborList([0.5 * rc + 0.25] * natoms,
+                                   self_interaction=False)
+
+        self.nl.update(self.atoms)
+        
+        positions = self.atoms.positions
+        cell = self.atoms.cell
+        
+        e0 = 4 * epsilon * ((sigma / rc)**12 - (sigma / rc)**6)
+        
         energy = 0.0
-        forces = np.zeros((len(self.atoms), 3))
+        forces = np.zeros((natoms, 3))
+        stress = np.zeros((3, 3))
 
-        for i in range(len(positions) - 1):
-            dist = positions[i, :] - positions[i + 1:, :]
-            d2 = (dist**2).sum(axis=1)
-            c6 = (sigma2 / d2) ** 3
-            c12 = c6 ** 2
-
-            energy += sum(4 * epsilon * (c12 - c6))
-            ljf = (24 * epsilon * (2 * c12 - c6) / d2)
-            ljf = ljf.reshape((len(d2), 1)) * dist
-            
-            forces[i + 1:, :] -= ljf
-            forces[i, :] += ljf.sum(axis=0)
-
+        for a1 in range(natoms):
+            neighbors, offsets = self.nl.get_neighbors(a1)
+            cells = np.dot(offsets, cell)
+            d = positions[neighbors] + cells - positions[a1]
+            r2 = (d**2).sum(1)
+            c6 = (sigma**2 / r2)**3
+            c6[r2 > rc**2] = 0.0
+            energy -= e0 * np.count_nonzero(c6)
+            c12 = c6**2
+            energy += 4 * epsilon * (c12 - c6).sum()
+            f = (24 * epsilon * (2 * c12 - c6) / r2)[:, np.newaxis] * d
+            #print d
+            #print r2**.5
+            #print offsets
+            #print f
+            #print neighbors
+            forces[a1] -= f.sum(axis=0)
+            for a2, f2 in zip(neighbors, f):
+                forces[a2] += f2
+            stress += np.dot(f.T, d)
+        
+        #stress = np.dot(stress, cell)
+        stress += stress.T.copy()
+        stress *= -0.5 / self.atoms.get_volume()
+        
         self.results['energy'] = energy
         self.results['forces'] = forces
+        self.results['stress'] = stress.flat[[0, 4, 8, 5, 2, 1]]
