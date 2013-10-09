@@ -51,7 +51,7 @@ for v1 in range(3):
     print(v1, v2, s, abs(s - sigma_vv[v1, v2]))
     assert abs(s - sigma_vv[v1, v2]) < 1e-7
 
-opt = MDMin(UnitCellFilter(a),dt=0.01)
+opt = MDMin(UnitCellFilter(a), dt=0.01)
 opt.run(fmax=0.5)
 print(a.cell)
 for i in range(3):
@@ -62,5 +62,3 @@ for i in range(3):
             y /= 2
         print(i, j, x, (x - y) / x)
         assert abs((x - y) / x) < 0.01
-        
-              

@@ -1,3 +1,5 @@
+from __future__ import division
+
 import numpy as np
 
 from ase.calculators.neighborlist import NeighborList
@@ -28,8 +30,7 @@ class LennardJones(Calculator):
             rc = 3 * sigma
         
         if 'numbers' in system_changes:
-            self.nl = NeighborList([0.5 * rc + 0.25] * natoms,
-                                   self_interaction=False)
+            self.nl = NeighborList([rc / 2] * natoms, self_interaction=False)
 
         self.nl.update(self.atoms)
         
@@ -49,7 +50,7 @@ class LennardJones(Calculator):
             r2 = (d**2).sum(1)
             c6 = (sigma**2 / r2)**3
             c6[r2 > rc**2] = 0.0
-            energy -= e0 * np.count_nonzero(c6)
+            energy -= e0 * (c6 != 0.0).sum()
             c12 = c6**2
             energy += 4 * epsilon * (c12 - c6).sum()
             f = (24 * epsilon * (2 * c12 - c6) / r2)[:, np.newaxis] * d
