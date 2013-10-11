@@ -310,7 +310,7 @@ class SQLite3Database(NoDatabase):
         else:
             for row in cur.fetchall():
                 if cmps2:
-                    numbers = deblob(row[4], int)
+                    numbers = deblob(row[4], np.int32)
                     for key, op, value in cmps2:
                         if key == 'natoms':
                             if not op(len(numbers), value):
