@@ -62,7 +62,7 @@ def run(args=sys.argv[1:]):
 
     if args.explain:
         for row in rows:
-            print('%d %d %d %s' % row)
+            print('%d %d %s' % row['explain'])
         return
 
     if args.add_keywords:
