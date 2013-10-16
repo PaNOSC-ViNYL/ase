@@ -678,6 +678,8 @@ class Vasp(Calculator):
 
     def get_stress(self, atoms):
         self.update(atoms)
+        if self.stress is None:
+              raise NotImplementedError
         return self.stress
 
     def read_stress(self):
