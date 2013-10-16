@@ -9,11 +9,11 @@ try:
 except ImportError:
     wraps = lambda f: lambda g: g  # PY24
 
+from ase.utils import Lock
 from ase.atoms import Atoms
-from ase.parallel import world
 from ase.data import atomic_numbers
 from ase.constraints import FixAtoms
-from ase.utils import Lock
+from ase.parallel import world, broadcast
 from ase.calculators.calculator import get_calculator
 from ase.calculators.singlepoint import SinglePointCalculator
 

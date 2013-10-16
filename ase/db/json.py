@@ -71,7 +71,6 @@ def read_json(name):
         fd = name
     results = decode(fd.read())
     fd.close()
-    world.barrier()
     return results
 
 
