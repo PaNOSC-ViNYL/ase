@@ -92,7 +92,7 @@ class ELK(FileIOCalculator):
             vkloff = []  # is this below correct?
             for nk in mp:
                 if nk % 2 == 0:  # shift kpoint away from gamma point
-                    vkloff.append(0.5 / nk)
+                    vkloff.append(0.5)
                 else:
                     vkloff.append(0)
             inp['vkloff'] = vkloff
