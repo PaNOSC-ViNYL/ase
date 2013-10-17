@@ -181,6 +181,7 @@ the :meth:`set` method:
    gromacs
    jacapo
    lammps
+   lammpsrun
    nwchem
    siesta
    turbomole
