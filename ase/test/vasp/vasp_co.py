@@ -10,6 +10,7 @@ from ase.test.vasp import installed
 assert installed()
 
 from ase import Atoms
+from ase.io import write
 from ase.calculators.vasp import Vasp
 import numpy as np
 
@@ -34,6 +35,7 @@ calc = Vasp(
 
 co.set_calculator(calc)
 en = co.get_potential_energy()
+write('vasp_co.traj', co)
 assert abs(en + 14.918933) < 5e-3
 
 # Secondly, check that restart from the previously created VASP output works
