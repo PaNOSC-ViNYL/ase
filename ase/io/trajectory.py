@@ -8,7 +8,8 @@ import errno
 try:
     WindowsError
 except NameError:
-    class WindowsError(OSError): pass
+    class WindowsError(OSError):
+        pass
 
 from ase.calculators.singlepoint import SinglePointCalculator, all_properties
 from ase.atoms import Atoms
@@ -497,14 +498,20 @@ def write_trajectory(filename, images):
     for atoms in images:
         # Avoid potentially expensive calculations:
         calc = atoms.get_calculator()
-        if calc is None:
+        if hasattr(calc, 'check_state'):
+            nochange = len(calc.check_state(atoms)) == 0
+            for property in all_properties:
+                if not (nochange and property in calc.results):
+                    setattr(traj, 'write_' + property, False)
+        elif hasattr(calc, 'calculation_required'):
+            # Old interface:
+            for property in all_properties:
+                if calc.calculation_required(atoms, [property]):
+                    setattr(traj, 'write_' + property, False)
+        else:
             for property in all_properties:
                 setattr(traj, 'write_' + property, False)
             break
-        nochange = len(calc.check_state(atoms)) == 0
-        for property in all_properties:
-            setattr(traj, 'write_' + property,
-                    nochange and property in calc.results)
 
     for atoms in images:
         traj.write(atoms)
