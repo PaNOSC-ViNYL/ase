@@ -13,7 +13,7 @@ from ase.utils import Lock
 from ase.atoms import Atoms
 from ase.data import atomic_numbers
 from ase.constraints import FixAtoms
-from ase.parallel import world, broadcast
+from ase.parallel import world, broadcast, DummyMPI
 from ase.calculators.calculator import get_calculator
 from ase.calculators.singlepoint import SinglePointCalculator
 
@@ -126,14 +126,14 @@ class NoDatabase:
         self.filename = filename
         self.create_indices = create_indices
         if use_lock_file:
-            self.lock = Lock(filename + '.lock')
+            self.lock = Lock(filename + '.lock', world=DummyMPI())
         else:
             self.lock = None
 
         self.timestamp = None  # timestamp form last write
 
-    @lock
     @parallel
+    @lock
     def write(self, id, atoms, keywords=[], key_value_pairs={}, data={},
               timestamp=None, replace=True):
         if timestamp is None:

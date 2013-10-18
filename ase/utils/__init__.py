@@ -65,7 +65,7 @@ class Lock:
 
     def acquire(self):
         while True:
-            fd = opencew(self.name)
+            fd = opencew(self.name, self.world)
             if fd is not None:
                 break
             time.sleep(1.0)
