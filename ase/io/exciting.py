@@ -1,11 +1,9 @@
 """
 This is the implementation of the exciting I/O functions
 The functions are called with read write using the format "exi"
-
-The module depends on lxml  http://lxml.de
 """
 
-from lxml import etree as ET
+import xml.etree.ElementTree as ET
 
 import numpy as np
 

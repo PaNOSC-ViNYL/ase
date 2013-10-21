@@ -1,15 +1,15 @@
 import os
+import xml.etree.ElementTree as ET
+
 import numpy as np
 
-from lxml import etree as ET
 from ase.io.exciting import atoms2etree
-
 from ase.units import Bohr, Hartree
 
 
 class Exciting:
     def __init__(self, dir='calc', paramdict=None,
-                 speciespath=os.environ['EXCITINGROOT'] + '/species',
+                 speciespath=None,
                  bin='excitingser', kpts=(1, 1, 1), **kwargs):
         """Exciting calculator object constructor
         
@@ -39,6 +39,8 @@ class Exciting:
         self.energy = None
         
         self.paramdict = paramdict
+        if speciespath is None:
+            speciespath = os.environ['EXCITINGROOT'] + '/species'
         self.speciespath = speciespath
         self.converged = False
         self.excitingbinary = bin
