@@ -73,15 +73,11 @@ route_keys = [\
 # int keys
 # Multiplicity and charge are not really route keywords, but we will
 # put them here anyways
-              'multiplicity',
-              'charge',
               'cachesize',
               'cbsextrapolate',
               'constants',
 # str keys
-              'method',
               'functional',
-              'basis',
               'maxdisk',
               'cphf',
               'density',
@@ -124,6 +120,10 @@ class Gaussian(FileIOCalculator):
                  label='g09', atoms=None, scratch=None, ioplist=list(),
                  basisfile=None, **kwargs):
 
+        """Constructs a Gaussian-calculator object.
+
+        """
+
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, **kwargs)
 
@@ -131,38 +131,28 @@ class Gaussian(FileIOCalculator):
         self.scratch = scratch
         self.basisfile = basisfile
 
-        # Initializing some stuff
-        self.link0_params = dict()
-        self.route_params = dict()
-        self.route_self_params = dict()
-
-        for key in link0_keys:
-            self.link0_params[key] = None
-        for key in route_keys:
-            self.route_params[key] = None
-        for key in route_self_keys:
-            self.route_self_params[key] = None
-
     def set(self, **kwargs):
         changed_parameters = FileIOCalculator.set(self, **kwargs)
         if changed_parameters:
             self.reset()
+        return changed_parameters
 
     def initialize(self, atoms):
-        if (self.route_params['multiplicity'] is None):
-            self.multiplicity = 1
-        else:
-            self.multiplicity = self.route_params['multiplicity']
-
 # Set some default behavior
-        if (self.route_params['method'] is None):
-            self.route_params['method'] = 'hf'
+        if ('multiplicity' not in self.parameters):
+            self.parameters['multiplicity'] = 1
 
-        if (self.route_params['basis'] is None):
-            self.route_params['basis'] = '6-31g*'
+        if ('charge' not in self.parameters):
+            self.parameters['charge'] = 0
 
-        if (self.route_self_params['force'] is None):
-            self.route_self_params['force'] = 'force'
+        if ('method' not in self.parameters):
+            self.parameters['method'] = 'hf'
+
+        if ('basis' not in self.parameters):
+            self.parameters['basis'] = '6-31g*'
+
+        if ('force' not in self.parameters):
+            self.parameters['force'] = 'force'
 
         self.converged = None
 
@@ -174,31 +164,23 @@ class Gaussian(FileIOCalculator):
         filename = self.label + '.com'
         inputfile = open(filename, 'w')
 
-# First print the Link0 commands
-        for key, val in self.link0_params.items():
-            if val is not None:
-                inputfile.write('%%%s=%s\n' % (key, val))
+        link0 = str()
+        route = '#p %s/%s' % (self.parameters['method'],
+                              self.parameters['basis'])
 
-# Print the route commands.  By default we will always use "#p" to start.
-        route = '#p %s/%s' % (self.route_params['method'],
-                              self.route_params['basis'])
-
-# Add keywords and IOp options
-# For the 'self' keywords, there are several suboptions available, and if more
-# than 1 is given, then they are wrapped in ()'s and separated by a ','.
-        for key, val in self.route_self_params.items():
-            if val is not None:
-                if (val == key):
+        for key, val in self.parameters.items():
+            if key.lower() in link0_keys:
+                link0 += ('%%%s=%s\n' % (key, val))
+            elif key.lower() in route_self_keys:
+                if (val.lower() == key.lower()):
                     route += (' ' + val)
                 else:
                     if ',' in val:
                         route += ' %s(%s)' % (key, val)
                     else:
                         route += ' %s=%s' % (key, val)
-
-        for key, val in self.route_params.items():
-            if (val is not None) and (key not in ['method', 'basis']):
-                route += ' %s=%s' % (key, str(val))
+            elif key.lower() in route_keys:
+                route += ' %s=%s' % (key, val)
 
         if (self.ioplist):
             route += ' IOp('
@@ -208,15 +190,12 @@ class Gaussian(FileIOCalculator):
                     route += ','
             route += ')'
 
+        inputfile.write(link0)
         inputfile.write(route)
         inputfile.write(' \n\n')
         inputfile.write('Gaussian input prepared by ASE\n\n')
-
-        if not self.route_params['charge']:
-            charge = 0
-        else:
-            charge = self.route_params['charge']
-        inputfile.write('%i %i\n' % (charge, self.multiplicity))
+        inputfile.write('%i %i\n' % (self.parameters['charge'],
+                                     self.parameters['multiplicity']))
 
         symbols = atoms.get_chemical_symbols()
         coordinates = atoms.get_positions()
@@ -228,7 +207,7 @@ class Gaussian(FileIOCalculator):
 
         inputfile.write('\n')
 
-        if (self.route_params['basis'].lower() == 'gen'):
+        if ('gen' in self.parameters['basis'].lower()):
             if (self.basisfile is None):
                 raise RuntimeError('Please set basisfile.')
             elif (not os.path.isfile(self.basisfile)):
