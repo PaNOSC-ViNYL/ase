@@ -55,42 +55,44 @@ Committers
 
 Here is the list of current committers:
 
-==========  ======================  ===================================
+==========  =========================  ===================================
 user name   real name
-==========  ======================  ===================================
-anpet       Andrew Peterson         andrew_peterson:brown,edu
-askhl       Ask Hjorth Larsen       asklarsen:gmail,com
-bjork       Jonas Bjork             jonbj:ifm,liu,se
-dlandis     David Landis            dlandis:fysik,dtu,dk
-dulak       Marcin Dulak            dulak:fysik,dtu,dk
-eojons      Elvar Örn Jónsson       elvar,jonsson:fysik,dtu,dk
-gdonval     Gaël Donval             gael,donval:cnrs-imn,fr
-getri       George Tritsaris        gtritsaris:seas,harvard,edu
-grabow      Lars Grabow             grabow:uh,edu
-hahansen    Heine Anton Hansen      hahansen:fysik,dtu,dk
-ivca        Ivano Eligio Castelli   ivca:fysik,dtu,dk
-jakobb      Jakob Blomquist         jakobb:fysik,dtu,dk
-jber        Jon Bergmann Maronsson  jber:fysik,dtu,dk
-jblomqvist  Janne Blomqvist         Janne,Blomqvist:tkk,fi
-jensj       Jens Jørgen Mortensen   jensj:fysik,dtu,dk
-jesperf     Jesper Friis            jesper,friis:sintef,no
-jingzhe     Jingzhe Chen            jingzhe:fysik,dtu,dk
-jkitchin    John Kitchin            jkitchin:andrew,cmu,edu
-jussie      Jussi Enkovaara         jussi,enkovaara:csc,fi
-kkaa        Kristen Kaasbjerg       kkaa:fysik,dtu,dk
-kleis       Jesper Kleis            kleis:fysik,dtu,dk
-kwj         Karsten Wedel Jacobsen  kwj:fysik,dtu,dk
-markus      Markus Kaukonen         markus,kaukonen:iki,fi
-miwalter    Michael Walter          Michael,Walter:fmf,uni-freiburg,de
-moses       Poul Georg Moses        poulgeorgmoses:gmail,com
-mvanin      Marco Vanin             mvanin:fysik,dtu,dk
-s032082     Christian Glinsvad      s032082:fysik,dtu,dk
-schiotz     Jakob Schiotz           schiotz:fysik,dtu,dk
-slabanja    Mattias Slabanja        slabanja:chalmers,se
-strange     Mikkel Strange          mikkel,strange:gmail,com
-tjiang      Tao Jiang               tjiang:fysik,dtu,dk
-tolsen      Thomas Olsen            tolsen:fysik,dtu,dk
-==========  ======================  ===================================
+==========  =========================  ===================================
+anpet       Andrew Peterson            andrew_peterson:brown,edu
+askhl       Ask Hjorth Larsen          asklarsen:gmail,com
+bjork       Jonas Bjork                jonbj:ifm,liu,se
+dlandis     David Landis               dlandis:fysik,dtu,dk
+dulak       Marcin Dulak               dulak:fysik,dtu,dk
+eojons      Elvar Örn Jónsson          elvar,jonsson:fysik,dtu,dk
+gdonval     Gaël Donval                gael,donval:cnrs-imn,fr
+getri       George Tritsaris           gtritsaris:seas,harvard,edu
+grabow      Lars Grabow                grabow:uh,edu
+hahansen    Heine Anton Hansen         hahansen:fysik,dtu,dk
+ivca        Ivano Eligio Castelli      ivca:fysik,dtu,dk
+jakobb      Jakob Blomquist            jakobb:fysik,dtu,dk
+jber        Jon Bergmann Maronsson     jber:fysik,dtu,dk
+jblomqvist  Janne Blomqvist            Janne,Blomqvist:tkk,fi
+jensj       Jens Jørgen Mortensen      jensj:fysik,dtu,dk
+jesperf     Jesper Friis               jesper,friis:sintef,no
+jesswe      Jess Wellendorff Pedersen  jesswe:fysik,dtu,dk
+jingzhe     Jingzhe Chen               jingzhe:fysik,dtu,dk
+jkitchin    John Kitchin               jkitchin:andrew,cmu,edu
+jussie      Jussi Enkovaara            jussi,enkovaara:csc,fi
+kkaa        Kristen Kaasbjerg          kkaa:fysik,dtu,dk
+kleis       Jesper Kleis               kleis:fysik,dtu,dk
+kwj         Karsten Wedel Jacobsen     kwj:fysik,dtu,dk
+markus      Markus Kaukonen            markus,kaukonen:iki,fi
+miwalter    Michael Walter             Michael,Walter:fmf,uni-freiburg,de
+moses       Poul Georg Moses           poulgeorgmoses:gmail,com
+mvanin      Marco Vanin                mvanin:fysik,dtu,dk
+s032082     Christian Glinsvad         s032082:fysik,dtu,dk
+schenkst    Stephan Schenk             stephan,schenk:basf,com
+schiotz     Jakob Schiotz              schiotz:fysik,dtu,dk
+slabanja    Mattias Slabanja           slabanja:chalmers,se
+strange     Mikkel Strange             mikkel,strange:gmail,com
+tjiang      Tao Jiang                  tjiang:fysik,dtu,dk
+tolsen      Thomas Olsen               tolsen:fysik,dtu,dk
+==========  =========================  ===================================
 
 
 Former committers:
