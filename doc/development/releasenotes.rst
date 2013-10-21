@@ -11,8 +11,6 @@ Development version in trunk
 :trac:`trunk <>`.
 
 * ASE's gui renamed from ``ag`` to ``ase-gui``.
-STM
-py26
 
 
 Version 3.7.0
