@@ -63,7 +63,7 @@ class ScriptTestCase(unittest.TestCase):
             raise RuntimeError('Keyboard interrupt')
         except ImportError, ex:
             module = ex.args[0].split()[-1].split('.')[0]
-            if module in ['scipy', 'cmr', 'Scientific']:
+            if module in ['scipy', 'cmr', 'Scientific', 'lxml']:
                 sys.__stdout__.write('(skipped) ')
             else:
                 raise
