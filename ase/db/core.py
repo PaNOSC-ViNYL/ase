@@ -94,11 +94,16 @@ def parallel(method):
         return method
     @wraps(method)
     def new_method(*args, **kwargs):
+        ex = None
+        result = None
         if world.rank == 0:
-            result = method(*args, **kwargs)
-        else:
-            result = None
-        result = broadcast(result)
+            try:
+                result = method(*args, **kwargs)
+            except Exception as ex:
+                pass
+        ex, result = broadcast((ex, result))
+        if ex is not None:
+            raise ex
         return result
     return new_method
 
