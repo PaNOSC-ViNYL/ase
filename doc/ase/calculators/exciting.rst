@@ -27,7 +27,7 @@ There are two ways to construct the exciting calculator.
 
 
 Constructor with Groundstate Keywords
---------------------
+-------------------------------------
 
 One is by giving parameters of the ground state in the
 constructor. The possible attributes can be found at
@@ -38,35 +38,11 @@ http://exciting-code.org/ref:groundstate
 
 Parameter Dictionary
 --------------------
+
 When the paramdict keyword is used, the calculator translates the dictionary given into the exciting XML file format.
 Note $EXCITINGROOT environmental variable should be set: details at http://exciting-code.org/tutorials
 
-.. highlight:: python
-
-::
-        import os
-        from ase import Atoms
-        from ase.calculators.exciting import Exciting
-
-        # test structure, not real
-        a = Atoms('N3O', [(0, 0, 0), (1, 0, 0), (0, 0, 1), (0.5, 0.5, 0.5)], pbc=True)
-
-        calculator = Exciting(dir='excitingtestfiles',
-                              speciespath=os.environ['EXCITINGROOT']+'/species',
-                              paramdict={ "title":{"text()":"N3O"},
-                                   "groundstate":{"ngridk":"1 2 3","tforce":"true"},
-                                   "relax":{},
-                                   "properties":{"dos":{},
-                                   "bandstructure":{"plot1d":{
-                                      "path":{ "steps":"100", 
-                                        "point":[{"coord":"0.75000   0.50000   0.25000", "label":"W"},    
-                                                 {"coord":"0.50000   0.50000   0.50000", "label":"L"},   
-                                                 {"coord":"0.00000   0.00000   0.00000", "label":"G"},  
-                                                 {"coord":"0.50000   0.50000   0.00000", "label":"X"},  
-                                                 {"coord":"0.75000   0.50000   0.25000", "label":"W"},  
-                                                 {"coord":"0.75000   0.37500   0.37500", "label":"K"}]}}}}})
-
-        calculator.write(a)
+.. literalinclude:: exciting.py
 
 The calculator constructure above is used to create this exciting input file:
 
@@ -110,6 +86,7 @@ The calculator constructure above is used to create this exciting input file:
         </bandstructure>
       </properties>
     </input>
+
 The translation follows the following rules:    
 String values are translated to attributes. Nested dictionaries are translated to sub elements. 
 A list of dictionaries is translated to a list of sub elements named after the key of which the list is the value.
@@ -126,7 +103,7 @@ Sometimes it is necessary to specify a fixed muffin tin radius different from th
 
 ::
 
-    atoms.new_array("rmt",np.array([-1.,-1.,2.3,2]*Bohr))
+    atoms.new_array('rmt', np.array([-1.0, -1.0, 2.3, 2.0] * Bohr))
 
 
 Each entry corresponds to one atom. If the rmt value is negative, the default value is used. This array is correctly updated if the atoms are added or removed.
