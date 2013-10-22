@@ -10,7 +10,14 @@ Development version in trunk
 
 :trac:`trunk <>`.
 
-* ASE's gui renamed from ``ag`` to ``ase-gui``.
+* ASE's :mod:`gui <gui>` renamed from ``ag`` to ``ase-gui``.
+* New :ref:`STM <stm>` module.
+* Python 2.6 is now a requirement.
+* Old the old :func:`ase.structure.bulk` functions is now deprecated.
+  Use the new one instead (:func:`ase.lattice.bulk`).
+* We're now using BuildBot for continous integration:
+  https://ase-buildbot.fysik.dtu.dk/waterfall
+* New interface to the JDFTx code.
 
 
 Version 3.7.0
