@@ -84,6 +84,8 @@ Supported :mod:`calculators`:
 News
 ====
 
+* :ref:`ASE version 3.8.0 <releasenotes>` released (22 October 2013).
+
 * :ref:`ASE version 3.7.0 <releasenotes>` released (13 May 2013).
 
 * :ref:`ASE version 3.6.0 <releasenotes>` released (24 February 2012).
