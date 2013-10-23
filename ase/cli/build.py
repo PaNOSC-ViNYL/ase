@@ -3,9 +3,10 @@ import optparse
     
 import numpy as np
 
-from ase.io import read, write
 from ase.db import connect
 from ase.lattice import bulk
+from ase.io import read, write
+from ase.visualize import view
 from ase.structure import molecule
 from ase.atoms import Atoms, string2symbols
 from ase.data import ground_state_magnetic_moments
@@ -75,6 +76,9 @@ def main():
             r = 3 * r
         atoms = atoms.repeat([int(c) for c in r])
 
+    if opts.gui:
+        view(atoms)
+        
     if args:
         write(args[0], atoms)
     elif sys.stdout.isatty():
