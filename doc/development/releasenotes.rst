@@ -11,7 +11,7 @@ Development version in trunk
 :trac:`trunk <>`.
 
 
-Version 3.7.0
+Version 3.8.0
 =============
 
 22 October 2013: :trac:`tags/3.8.0 <../tags/3.8.0>`.
