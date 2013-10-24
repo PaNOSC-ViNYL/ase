@@ -49,7 +49,8 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
         crystalstructure = xref
 
     if a is None:
-        assert xref == crystalstructure
+        if xref != crystalstructure:
+            raise ValueError('You need to specify the lattice constant.')
         a = ref['a']
 
     if crystalstructure == 'hcp':
