@@ -31,15 +31,3 @@ forward differences.
 
    This will show op as a python error 'Frames are not aligned'.
    This could be the case for other calculators as well.
-
-
-You can get a NetCDF trajectory corresponding to a specific mode by
-using:
-
->>> mode=0
->>> vib.create_mode_trajectory(mode=mode,scaling=5)
-
-This will create a NetCDF trajectory file *CO_vib_mode_0.traj*,
-corresponding to the highest frequency mode.
-``scaling`` is an option argument, that will give the amplitude of
-the mode, default is 10.
