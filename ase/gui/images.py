@@ -241,7 +241,7 @@ class Images:
         self.P += c[:, np.newaxis, :]
             
     def graph(self, expr):
-        """ routine to create the data in ag graphs, defined by the string expr.  """
+        """ routine to create the data in ase-gui graphs, defined by the string expr.  """
         import ase.units as units
         code = compile(expr + ',', 'atoms.py', 'eval')
 

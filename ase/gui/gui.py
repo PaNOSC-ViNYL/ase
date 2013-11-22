@@ -200,7 +200,7 @@ class GUI(View, Status):
              self.open),
              ('New', gtk.STOCK_NEW, _('_New'), '<control>N',
              _('New ase.gui window'),
-             lambda widget: os.system('ag &')),
+             lambda widget: os.system('ase-gui &')),
             ('Save', gtk.STOCK_SAVE, _('_Save'), '<control>S',
              _('Save current file'),
              self.save),

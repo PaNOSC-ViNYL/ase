@@ -7,9 +7,9 @@ from ase.io import write
 
 atoms = Atoms('Ag', cell=(2.7, 2.7, 2.7), pbc=True) * (18, 8, 8)
 
-# view with ag
+# view with ase-gui
 #view(atoms)
-rotation = '-70x, -20y, -2z' # found using ag menu 'view -> rotate'
+rotation = '-70x, -20y, -2z' # found using ase-gui menu 'view -> rotate'
 
 #Make colors
 from ase.utils import hsv

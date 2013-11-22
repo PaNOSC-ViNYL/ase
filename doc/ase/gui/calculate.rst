@@ -7,7 +7,7 @@ Calculate
 Set calculator
 --------------
 
-Allows ag to choose a calculator for internal computations (see
+Allows :mod:`gui` to choose a calculator for internal computations (see
 below). Different density functional codes and force fields, as well
 as the EMT calculator are available. For the FHI-aims and VASP
 calculators, it is also possible to export an entire set of input
