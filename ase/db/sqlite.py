@@ -165,7 +165,7 @@ class SQLite3Database(NoDatabase):
         text_key_values = []
         number_key_values = []
         for key, value in key_value_pairs.items():
-            if isinstance(value, str):
+            if isinstance(value, (str, unicode)):
                 text_key_values.append([key, value, id])
             elif isinstance(value, (float, int)):
                 number_key_values.append([key, float(value), id])

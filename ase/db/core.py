@@ -278,7 +278,7 @@ class NoDatabase:
         for symbol, n in kwargs.items():
             assert isinstance(n, int)
             Z = atomic_numbers[symbol]
-            cmps.append((Z, op, n))
+            cmps.append((Z, '=', n))
         for dct in self._select(keywords, cmps, explain=explain,
                                 verbosity=verbosity):
             if filter is None or filter(dct):
