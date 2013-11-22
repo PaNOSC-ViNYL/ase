@@ -63,7 +63,7 @@ the relaxation trajectory using the the ASE :mod:`gui`. For example
 you can visualize the relaxation trajectory from the command line by
 doing::
 
-  $ ag h2o_0.1.traj
+  $ ase-gui h2o_0.1.traj
 
 Note that you will get a trajectory file ``.traj`` for each energy
 shift in the loop.

@@ -111,7 +111,7 @@ NEB calculations, so it will write `M` images with `N` atoms at every
 iteration and not one big configuration containing `MN` atoms.
 
 The result of the latest iteration can now be analysed with this
-command: :command:`ag A2B.traj@-5:`.
+command: :command:`ase-gui A2B.traj@-5:`.
 
 For the example above, you can write the images to individual
 trajectory files like this::
