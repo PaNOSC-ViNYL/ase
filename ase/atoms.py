@@ -883,8 +883,9 @@ class Atoms(object):
         from ase.constraints import FixAtoms
         check_constraint = np.array([isinstance(c, FixAtoms)
                                      for c in self._constraints])
-        if len(self._constraints) > 0 and not check_constraint.all():
-            raise RuntimeError('Remove constraint using set_constraint() ' +
+        if (len(self._constraints) > 0 and (not check_constraint.all() or
+            type(i) == list)):
+            raise RuntimeError('Remove constraint using set_constraint() '
                                'before deleting atoms.')
         mask = np.ones(len(self), bool)
         mask[i] = False
