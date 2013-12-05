@@ -123,9 +123,25 @@ class OPLSff:
     def write_lammps(self, atoms, prefix='lammps'):
         """Write input for a LAMMPS calculation."""
         self.prefix = prefix
-        btypes, atypes, dtypes = self.write_lammps_atoms(atoms)
-        self.write_lammps_definitions(atoms, btypes, atypes, dtypes)
-        self.write_lammps_in()
+
+        if hasattr(atoms, 'connectivities'):
+            connectivities = atoms.connectivities
+        else:
+            btypes, blist = self.get_bonds(atoms)
+            atypes, alist = self.get_angles()
+            dtypes, dlist = self.get_dihedrals(alist, atypes)
+            connectivities = {
+                'bonds' : blist,
+                'bond types' : btypes,
+                'angles' : alist,
+                'angle types' : atypes,
+                'dihedrals' : dlist,
+                'dihedral types' : dtypes,
+                }
+            self.write_lammps_definitions(atoms, btypes, atypes, dtypes)
+            self.write_lammps_in()
+            
+        self.write_lammps_atoms(atoms, connectivities)
 
     def write_lammps_in(self):
         # XXX change this
@@ -159,26 +175,28 @@ log /dev/stdout
 """)
         fileobj.close()
 
-    def write_lammps_atoms(self, atoms):
-        """Write atoms infor for LAMMPS"""
+    def write_lammps_atoms(self, atoms, connectivities):
+        """Write atoms input for LAMMPS"""
         
-        fileobj = self.prefix + '_atoms'
-        if isinstance(fileobj, str):
-            fileobj = open(fileobj, 'w')
+        fname = self.prefix + '_atoms'
+        fileobj = open(fname, 'w')
 
         # header
         fileobj.write(fileobj.name + ' (by ' + str(self.__class__) + ')\n\n')
         fileobj.write(str(len(atoms)) + ' atoms\n')
         fileobj.write(str(len(atoms.types)) + ' atom types\n')
-        btypes, blist = self.get_bonds(atoms)
+        btypes = connectivities['bond types']
+        blist = connectivities['bonds']
         if len(blist):
             fileobj.write(str(len(blist)) + ' bonds\n')
             fileobj.write(str(len(btypes)) + ' bond types\n')
-        atypes, alist = self.get_angles()
+        atypes = connectivities['angle types']
+        alist = connectivities['angles']
         if len(alist):
             fileobj.write(str(len(alist)) + ' angles\n')
             fileobj.write(str(len(atypes)) + ' angle types\n')
-        dtypes, dlist = self.get_dihedrals(alist, atypes)
+        dtypes = connectivities['dihedral types']
+        dlist = connectivities['dihedrals']
         if len(dlist):
             fileobj.write(str(len(dlist)) + ' dihedrals\n')
             fileobj.write(str(len(dtypes)) + ' dihedral types\n')
@@ -226,7 +244,11 @@ log /dev/stdout
                 fileobj.write('%8d %6d %6d %6d ' %
                               (ib + 1, bvals[0] + 1, bvals[1] + 1, 
                                bvals[2] + 1))
-                fileobj.write('# ' + btypes[bvals[0]] + '\n')
+                try:
+                    fileobj.write('# ' + btypes[bvals[0]])
+                except:
+                    pass
+                fileobj.write('\n')
 
         # angles
         if len(alist):
@@ -235,7 +257,11 @@ log /dev/stdout
                 fileobj.write('%8d %6d %6d %6d %6d ' %
                               (ia + 1, avals[0] + 1, 
                                avals[1] + 1, avals[2] + 1, avals[3] + 1))
-                fileobj.write('# ' + atypes[avals[0]] + '\n')
+                try:
+                    fileobj.write('# ' + atypes[avals[0]])
+                except:
+                    pass
+                fileobj.write('\n')
 
         # dihedrals
         if len(dlist):
@@ -245,9 +271,11 @@ log /dev/stdout
                               (i + 1, dvals[0] + 1, 
                                dvals[1] + 1, dvals[2] + 1, 
                                dvals[3] + 1, dvals[4] + 1))
-                fileobj.write('# ' + dtypes[dvals[0]] + '\n')
-
-        return btypes, atypes, dtypes
+                try:
+                    fileobj.write('# ' + dtypes[dvals[0]])
+                except:
+                    pass
+                fileobj.write('\n')
 
     def update_neighbor_list(self, atoms):
         cut = 0.5 * max(self.data['cutoffs'].values())
@@ -572,3 +600,99 @@ class OPLSStructure(Atoms):
         if atoms.get_velocities() is not None:
             self.set_velocities(atoms.get_velocities())
         # XXX what about energy and forces ???
+
+    def read_connectivities(self, fileobj):
+        """Read positions, connectivities, etc."""
+        if isinstance(fileobj, str):
+            fileobj = open(fileobj, 'r')
+
+        lines = fileobj.readlines()
+        lines.pop(0)
+
+        def next_entry():
+            line = lines.pop(0).strip()
+            if(len(line) > 0):
+                lines.insert(0, line)
+
+        def next_key():
+            while(len(lines)):
+                line = lines.pop(0).strip()
+                if(len(line) > 0):
+                    lines.pop(0)
+                    return line
+            return None
+
+        next_entry()
+        header = {}
+        while(True):
+            line = lines.pop(0).strip()
+            if len(line):
+                w = line.split()
+                if len(w) == 2:
+                    header[w[1]] = int(w[0])
+                else:
+                    header[w[1] + ' ' + w[2]] = int(w[0])
+            else:
+                break
+
+        while(not lines.pop(0).startswith('Atoms')):
+            pass
+        lines.pop(0)
+
+        natoms = len(self)
+        positions = np.empty((natoms, 3))
+        for i in range(natoms):
+            w = lines.pop(0).split()
+            assert(int(w[0]) == (i + 1))
+            positions[i] = np.array([float(w[4 + c]) for c in range(3)])
+            ##            print(w, positions[i])
+
+        key = next_key()
+
+        velocities = None
+        if key == 'Velocities':
+            velocities = np.empty((natoms, 3))
+            for i in range(natoms):
+                w = lines.pop(0).split()
+                assert(int(w[0]) == (i + 1))
+                velocities[i] = np.array([float(w[1 + c]) for c in range(3)])
+            key = next_key()
+
+        if key == 'Masses':
+            while(len(lines.pop(0).strip()) > 0):
+                pass
+            key = next_key()
+
+        def read_list(key_string, length, debug=False):
+            if key != key_string:
+                return None, key
+
+            lst = []
+            while(len(lines)):
+                w = lines.pop(0).split()
+                if len(w) > length:
+                    lst.append([(int(w[1 + c]) - 1) for c in range(length)])
+                else:
+                    return lst, next_key()
+            return lst, None
+                    
+        bonds, key = read_list('Bonds', 3)
+        angles, key = read_list('Angles', 4)
+        dihedrals, key = read_list('Dihedrals', 5, True)
+
+        self.connectivities = {
+            'bonds' : bonds,
+            'angles' : angles,
+            'dihedrals' : dihedrals }
+
+        if 'bonds' in header:
+            assert(len(bonds) == header['bonds'])
+            self.connectivities['bond types'] = range(header['bond types'])
+        if 'angles' in header:
+            assert(len(angles) == header['angles'])
+            self.connectivities['angle types'] = range(header['angle types'])
+        if 'dihedrals' in header:
+            assert(len(dihedrals) == header['dihedrals'])
+            self.connectivities['dihedral types'] = range(
+                header['dihedral types'])
+    
