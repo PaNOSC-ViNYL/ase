@@ -93,11 +93,8 @@ def main():
                     parser.error(e.args[0])
                 else:
                     parser.error(e.args[1] + ': ' + e.filename)
-        elif sys.stdin.isatty():
-            images.initialize([Atoms()])
         else:
-            from ase.db import connect
-            images.initialize([connect(sys.stdin, 'json')[0]])
+            images.initialize([Atoms()])
 
         if opt.interpolate:
             images.interpolate(opt.interpolate)
