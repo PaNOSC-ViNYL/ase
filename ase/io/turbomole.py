@@ -1,3 +1,5 @@
+import numpy as np
+
 from ase.atoms import Atoms
 from ase.units import Bohr
 
@@ -162,7 +164,7 @@ def write_turbomole(filename, atoms):
     if atoms.constraints:
         for constr in atoms.constraints:
             if isinstance(constr, FixAtoms):
-                fix_index.extend(constr.index)
+                fix_index.extend(np.flatnonzero(constr.index))
     fix_index = np.unique(fix_index)
 
     fix_str = []
