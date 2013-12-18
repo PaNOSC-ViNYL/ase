@@ -13,7 +13,7 @@ from ase.calculators.singlepoint import SinglePointKPoint
 __all__ = ['read', 'write', 'PickleTrajectory', 'BundleTrajectory']
 
 
-def read(filename, index=-1, format=None):
+def read(filename, index=None, format=None):
     """Read Atoms object(s) from file.
 
     filename: str
@@ -80,6 +80,8 @@ def read(filename, index=-1, format=None):
     if isinstance(filename, str) and ('.json@' in filename or
                                       '.db@' in filename):
         filename, index = filename.rsplit('@', 1)
+        if index.isdigit():
+            index = int(index)
     else:
         if isinstance(filename, str):
             p = filename.rfind('@')
@@ -129,13 +131,12 @@ def read(filename, index=-1, format=None):
                                               forces=forces, magmoms=magmoms)
         kpts = []
         if r.has_array('IBZKPoints'):
-            for w, kpt, eps_n, f_n in zip(r.get('IBZKPointWeights'), 
+            for w, kpt, eps_n, f_n in zip(r.get('IBZKPointWeights'),
                                           r.get('IBZKPoints'),
                                           r.get('Eigenvalues'),
                                           r.get('OccupationNumbers')):
-                print eps_n.shape, f_n.shape
                 kpts.append(SinglePointKPoint(w, kpt[0], kpt[1],
-                                              eps_n[0], f_n[0]  )) # XXX
+                                              eps_n[0], f_n[0]))
         atoms.calc.kpts = kpts
 
         return atoms
@@ -144,6 +145,9 @@ def read(filename, index=-1, format=None):
         from ase.db import connect
         return connect(filename, format)[index]
 
+    if index is None:
+        index = -1
+        
     if format == 'castep':
         from ase.io.castep import read_castep
         return read_castep(filename, index)
@@ -320,7 +324,7 @@ def read(filename, index=-1, format=None):
         from ase.io.espresso import read_espresso_out
         return read_espresso_out(filename, index)
 
-    raise RuntimeError('File format descriptor '+format+' not recognized!')
+    raise RuntimeError('File format descriptor ' + format + ' not recognized!')
 
 
 def write(filename, images, format=None, **kwargs):
@@ -445,8 +449,8 @@ def write(filename, images, format=None, **kwargs):
             format = 'tmol'
         else:
             suffix = filename.split('.')[-1]
-            format = {'cell':'castep_cell',
-                    }.get(suffix, suffix) # XXX this does not make sense
+            format = {'cell': 'castep_cell',
+                      }.get(suffix, suffix)  # XXX this does not make sense
             # Maybe like this:
 ##             format = {'traj': 'trajectory',
 ##                       'nc': 'netcdf',
@@ -457,7 +461,7 @@ def write(filename, images, format=None, **kwargs):
             
     if format in ['json', 'db']:
         from ase.db import connect
-        connect(filename, format).write(filename, images)
+        connect(filename, format).write(images)
         return
     if format == 'castep_cell':
         from ase.io.castep import write_cell
@@ -602,7 +606,6 @@ def filetype(filename):
             return 'etsf'
         raise IOError('Unknown netCDF file!')
 
-
     if is_zipfile(filename):
         return 'vnl'
 
@@ -612,7 +615,8 @@ def filetype(filename):
     if lines[0].startswith('PickleTrajectory'):
         return 'traj'
 
-    if lines[1].startswith('OUTER LOOP:') or filename.lower().endswith('.cube'):
+    if (lines[1].startswith('OUTER LOOP:') or
+        filename.lower().endswith('.cube')):
         return 'cube'
 
     if '  ___ ___ ___ _ _ _  \n' in lines:
@@ -621,7 +625,6 @@ def filetype(filename):
     if (' &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n'
         in lines[:90]):
         return 'dacapo-text'
-
 
     for line in lines:
         if line[0] != '#':
@@ -664,7 +667,10 @@ def filetype(filename):
         if 'atom' in line:
             data = line.split()
             try:
-                a = Atoms(symbols=[data[4]],positions = [[float(data[1]),float(data[2]),float(data[3])]])
+                Atoms(symbols=[data[4]],
+                      positions=[[float(data[1]),
+                                  float(data[2]),
+                                  float(data[3])]])
                 return 'aims'
             except:
                 pass
@@ -691,7 +697,8 @@ def filetype(filename):
     if lines[0].startswith('$coord') or os.path.basename(filename) == 'coord':
         return 'tmol'
 
-    if lines[0].startswith('$grad') or os.path.basename(filename) == 'gradient':
+    if (lines[0].startswith('$grad') or
+        os.path.basename(filename) == 'gradient'):
         return 'tmol-gradient'
 
     if lines[0].startswith('Geometry'):

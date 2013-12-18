@@ -149,7 +149,7 @@ class Calculator:
     """
 
     implemented_properties = []
-    "Properties calculator can handle (energy, forces, ...)"
+    'Properties calculator can handle (energy, forces, ...)'
 
     default_parameters = {}
     'Default parameters'
@@ -162,7 +162,7 @@ class Calculator:
             Prefix for restart file.  May contain a directory.  Default
             is None: don't restart.
         ignore_bad_restart_file: bool
-            Ignore broken or missing restart file.  By defauls, it is an
+            Ignore broken or missing restart file.  By default, it is an
             error if the restart file is missing or broken.
         label: str
             Name used for all files.  May contain a directory.
@@ -449,7 +449,7 @@ class Calculator:
 
 
 class FileIOCalculator(Calculator):
-    "Base class for calculators that write input files and read output files."
+    """Base class for calculators that write/read input/output files."""
 
     command = None
     'Command used to start calculation'

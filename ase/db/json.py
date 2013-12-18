@@ -1,14 +1,12 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 import os
 import copy
 import datetime
-import warnings
 from json import JSONEncoder, JSONDecoder
 
 import numpy as np
 
 from ase.parallel import world
-from ase.db import IdCollisionError
 from ase.db.core import NoDatabase, ops, parallel, lock
 
 
@@ -29,16 +27,23 @@ encode = MyEncoder().encode
 def object_hook(dct):
     if '__datetime__' in dct:
         return datetime.datetime.strptime(dct['__datetime__'],
-                                          "%Y-%m-%dT%H:%M:%S.%f")
+                                          '%Y-%m-%dT%H:%M:%S.%f')
     return dct
 
 
 mydecode = JSONDecoder(object_hook=object_hook).decode
 
 
+def intkey(key):
+    if key[0].isdigit():
+        return int(key)
+    return key
+    
+    
 def numpyfy(obj):
     if isinstance(obj, dict):
-        return dict((key, numpyfy(value)) for key, value in obj.items())
+        return dict((intkey(key), numpyfy(value))
+                    for key, value in obj.items())
     if isinstance(obj, list) and len(obj) > 0:
         try:
             a = np.array(obj)
@@ -53,57 +58,40 @@ def numpyfy(obj):
 def decode(txt):
     return numpyfy(mydecode(txt))
 
-
-def write_json(name, results):
-    if world.rank == 0:
-        if isinstance(name, str):
-            fd = open(name, 'w')
-        else:
-            fd = name
-        fd.write(encode(results))
-        fd.close()
-
-
+    
 def read_json(name):
     if isinstance(name, str):
         fd = open(name, 'r')
     else:
         fd = name
-    results = decode(fd.read())
+    dct = decode(fd.read())
     fd.close()
-    return results
+    return dct
 
 
 class JSONDatabase(NoDatabase):
-    def _write(self, id, atoms, keywords, key_value_pairs, data, replace):
+    def _write(self, atoms, keywords, key_value_pairs, data):
         bigdct = {}
+        ids = []
+        nextid = 1
+
         if isinstance(self.filename, str) and os.path.isfile(self.filename):
             try:
-                bigdct = read_json(self.filename)
+                bigdct, ids, nextid = self._read_json()
             except SyntaxError:
                 pass
-            else:
-                if not replace and id in bigdct:
-                    raise IdCollisionError
 
         if isinstance(atoms, dict):
             dct = copy.deepcopy(atoms)
             unique_id = dct['unique_id']
-            for d in bigdct.values():
-                if d['unique_id'] == unique_id:
-                    id = d['id']
+            for id in ids:
+                if bigdct[id]['unique_id'] == unique_id:
                     break
+            else:
+                id = None
         else:
             dct = self.collect_data(atoms)
-
-        if id is None:
-            nrows = len(bigdct)
-            while id is None:
-                id = self.create_random_id(nrows)
-                if id in bigdct:
-                    id = None
-
-        dct['id'] = id
+            id = None
 
         if keywords:
             dct['keywords'] = keywords
@@ -111,46 +99,75 @@ class JSONDatabase(NoDatabase):
             dct['key_value_pairs'] = key_value_pairs
         if data:
             dct['data'] = data
-
+        
+        if id is None:
+            id = nextid
+            ids.append(id)
+            nextid += 1
+            
         bigdct[id] = dct
-        write_json(self.filename, bigdct)
+        self._write_json(bigdct, ids, nextid)
+
+    def _read_json(self):
+        bigdct = read_json(self.filename)
+        return bigdct, list(bigdct['ids']), bigdct['nextid']
+        
+    def _write_json(self, bigdct, ids, nextid):
+        if world.rank > 0:
+            return
+            
+        if isinstance(self.filename, str):
+            fd = open(self.filename, 'w')
+        else:
+            fd = self.filename
+        print('{', end='', file=fd)
+        for id in ids:
+            print('"{0}":\n{1},'.format(id, encode(bigdct[id])), file=fd)
+        print('"ids": {0},'.format(ids), file=fd)
+        print('"nextid": {0}}}'.format(nextid), file=fd)
+        fd.close()
 
     @lock
     @parallel
     def delete(self, ids):
-        bigdct = read_json(self.filename)
+        bigdct, myids, nextid = self._read_json()
         for id in ids:
             del bigdct[id]
-        write_json(self.filename, bigdct)
+            myids.remove(id)
+        self._write_json(bigdct, myids, nextid)
 
     def _get_dict(self, id):
-        bigdct = read_json(self.filename)
-        if id in [-1, 0]:
-            assert len(bigdct) == 1
-            id = bigdct.keys()[0]
-        return bigdct[id]
+        bigdct, ids, nextid = self._read_json()
+        if id is None:
+            assert len(ids) == 1
+            id = ids[0]
+        dct = bigdct[id]
+        dct['id'] = id
+        return dct
 
     def _select(self, keywords, cmps, explain=False, verbosity=1):
         if explain:
             return
-        bigdct = read_json(self.filename)
+        bigdct, ids, nextid = self._read_json()
         cmps = [(key, ops[op], val) for key, op, val in cmps]
-        for dct in bigdct.values():
+        for id in ids:
+            dct = bigdct[id]
             for keyword in keywords:
                 if 'keywords' not in dct or keyword not in dct['keywords']:
                     break
             else:
                 for key, op, val in cmps:
-                    value = get_value(dct, key)
+                    value = get_value(id, dct, key)
                     if not op(value, val):
                         break
                 else:
+                    dct['id'] = id
                     yield dct
 
     @lock
     @parallel
     def update(self, ids, add_keywords, add_key_value_pairs):
-        bigdct = read_json(self.filename)
+        bigdct, myids, nextid = self._read_json()
         m = 0
         n = 0
         for id in ids:
@@ -166,11 +183,11 @@ class JSONDatabase(NoDatabase):
                 n -= len(key_value_pairs)
                 key_value_pairs.update(add_key_value_pairs)
                 n += len(key_value_pairs)
-        write_json(self.filename, bigdct)
+        self._write_json(bigdct, myids, nextid)
         return m, n
 
 
-def get_value(dct, key):
+def get_value(id, dct, key):
     pairs = dct.get('key_value_pairs')
     if pairs is None:
         value = None
@@ -178,11 +195,13 @@ def get_value(dct, key):
         value = pairs.get(key)
     if value is not None:
         return value
-    if key in ['energy', 'magmom']:
-        return dct.get('results', {}).get(key)
-    if key in ['id', 'timestamp', 'username', 'calculator_name']:
+    if key in ['energy', 'magmom', 'timestamp', 'username']:
         return dct.get(key)
+    if key == 'calculator':
+        return dct.get('calculator_name')
     if isinstance(key, int):
         return np.equal(dct['numbers'], key).sum()
     if key == 'natoms':
         return len(dct['numbers'])
+    if key == 'id':
+        return id

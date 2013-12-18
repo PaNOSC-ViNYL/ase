@@ -2,7 +2,6 @@ import os
 import operator
 from time import time
 from random import randint
-from math import log, ceil
 
 try:
     from functools import wraps
@@ -14,7 +13,7 @@ from ase.atoms import Atoms
 from ase.data import atomic_numbers
 from ase.constraints import FixAtoms
 from ase.parallel import world, broadcast, DummyMPI
-from ase.calculators.calculator import get_calculator
+from ase.calculators.calculator import get_calculator, all_properties
 from ase.calculators.singlepoint import SinglePointCalculator
 
 
@@ -58,7 +57,7 @@ def connect(name, type='extract_from_name', create_indices=True,
         from ase.db.sqlite import SQLite3Database
         return SQLite3Database(name, create_indices, use_lock_file)
     if type == 'postgres':
-        from ase.db.postgresql import PostgreSQLDatabase as DB
+        from ase.db.postgresql import PostgreSQLDatabase
         return PostgreSQLDatabase(name, create_indices)
     raise ValueError('Unknown database type: ' + type)
 
@@ -66,7 +65,7 @@ def connect(name, type='extract_from_name', create_indices=True,
 class FancyDict(dict):
     def __getattr__(self, key):
         if key not in self:
-            return dict.__getattribute__(self, key)#raise KeyError
+            return dict.__getattribute__(self, key)
         value = self[key]
         if isinstance(value, dict):
             return FancyDict(value)
@@ -92,6 +91,7 @@ def lock(method):
 def parallel(method):
     if world.size == 1:
         return method
+        
     @wraps(method)
     def new_method(*args, **kwargs):
         ex = None
@@ -111,6 +111,7 @@ def parallel(method):
 def parallel_generator(generator):
     if world.size == 1:
         return generator
+        
     @wraps(generator)
     def new_generator(*args, **kwargs):
         if world.rank == 0:
@@ -139,22 +140,17 @@ class NoDatabase:
 
     @parallel
     @lock
-    def write(self, id, atoms, keywords=[], key_value_pairs={}, data={},
-              timestamp=None, replace=True):
+    def write(self, atoms, keywords=[], data={}, timestamp=None,
+              **key_value_pairs):
         if timestamp is None:
             timestamp = (time() - T0) / YEAR
         self.timestamp = timestamp
         if atoms is None:
             atoms = Atoms()
-        self._write(id, atoms, keywords, key_value_pairs, data, replace)
+        self._write(atoms, keywords, key_value_pairs, data)
 
-    def _write(self, id, atoms, keywords, key_value_pairs, data, replace):
+    def _write(self, atoms, keywords, key_value_pairs, data):
         pass
-
-    def create_random_id(self, n):
-        hexdigits = int(ceil(log((n + 1) * 100) / log(2) / 4))
-        id = '%x' % randint(16**(hexdigits - 1), 16**hexdigits - 1)
-        return id
 
     def collect_data(self, atoms):
         dct = atoms2dict(atoms)
@@ -164,71 +160,49 @@ class NoDatabase:
             dct['calculator_name'] = atoms.calc.name.lower()
             dct['calculator_parameters'] = atoms.calc.todict()
             if len(atoms.calc.check_state(atoms)) == 0:
-                dct['results'] = atoms.calc.results
-            else:
-                dct['results'] = {}
+                dct.update(atoms.calc.results)
         return dct
 
-    @parallel
-    def get_dict(self, id, fancy=True):
-        dct = self._get_dict(id)
-        if fancy:
-            dct = FancyDict(dct)
-        return dct
-
-    def get_atoms(self, id=0, attach_calculator=False,
-                  add_additional_information=False):
-        dct = self.get_dict(id, fancy=False)
+    def get_atoms(self, selection=None, attach_calculator=False,
+                  add_additional_information=False, **kwargs):
+        dct = self.get(selection, fancy=False, **kwargs)
         atoms = dict2atoms(dct, attach_calculator)
         if add_additional_information:
             atoms.info = {}
-            for key in ['id', 'unique_id', 'keywords', 'key_value_pairs',
-                        'data']:
+            for key in ['unique_id', 'keywords', 'key_value_pairs', 'data']:
                 if key in dct:
                     atoms.info[key] = dct[key]
         return atoms
 
-    def __getitem__(self, index):
-        if index == slice(None, None, None):
-            return [self[0]]
-        return self.get_atoms(index)
+    def __getitem__(self, selection):
+        if selection == slice(None, None, None):
+            return [self[None]]
+        return self.get_atoms(selection)
 
-    @lock
-    @parallel
-    def update(self, ids, add_keywords, add_key_value_pairs):
-        m = 0
-        n = 0
-        for id in ids:
-            dct = self._get_dict(id)
-            keywords = dct.get('keywords', [])
-            for keyword in add_keywords:
-                if keyword not in keywords:
-                    keywords.append(keyword)
-                    m += 1
-            key_value_pairs = dct.get('key_value_pairs', {})
-            n -= len(key_value_pairs)
-            key_value_pairs.update(add_key_value_pairs)
-            n += len(key_value_pairs)
-            self.timestamp = dct['timestamp']
-            self._write(id, dct, keywords, key_value_pairs,
-                        data=dct.get('data', {}), replace=True)
-        return m, n
+    def get(self, selection=None, fancy=True, **kwargs):
+        i = self.select(selection, fancy, **kwargs)
+        dct = i.next()
+        try:
+            i.next()
+        except StopIteration:
+            pass
+        else:
+            raise IndexError
+        if fancy:
+            dct = FancyDict(dct)
+        return dct
 
     @parallel_generator
-    def select(self, expressions=None, **kwargs):
-        username = kwargs.pop('username', None)  # PY24
-        charge = kwargs.pop('charge', None)
-        calculator = kwargs.pop('calculator', None)
-        filter = kwargs.pop('filter', None)
-        fancy = kwargs.pop('fancy', True)
-        explain = kwargs.pop('explain', False)
-        count = kwargs.pop('count', False)
-        verbosity = kwargs.pop('verbosity', 1)
-
-        if expressions is None:
+    def select(self, selection=None, fancy=True, filter=None, explain=False,
+               verbosity=1, **kwargs):
+        if selection is None:
             expressions = []
-        elif not isinstance(expressions, list):
-            expressions = expressions.split(',')
+        elif isinstance(selection, int):
+            expressions = [('id', '=', selection)]
+        elif isinstance(selection, list):
+            expressions = selection
+        else:
+            expressions = selection.split(',')
         keywords = []
         comparisons = []
         for expression in expressions:
@@ -252,14 +226,13 @@ class NoDatabase:
                 continue
             key, value = expression.split(op)
             comparisons.append((key, op, value))
-        cmps = []
+
+        cmps = [(key, '=', value) for key, value in kwargs.items()]
         for key, op, value in comparisons:
             if key == 'age':
                 key = 'timestamp'
-                op = {'<': '>', '<=': '>=', '>=': '<=', '>': '<'}.get(op, op)
+                op = {'<': '>', '<=': '>=', '>=': '<=', '>': '<'}[op]
                 value = (time() - T0) / YEAR - time_string_to_float(value)
-            elif key == 'calculator':
-                key = 'calculator_name'
             elif key in atomic_numbers:
                 key = atomic_numbers[key]
                 value = int(value)
@@ -269,16 +242,7 @@ class NoDatabase:
                 except ValueError:
                     assert op == '='
             cmps.append((key, op, value))
-        if username is not None:
-            cmps.append(('username', '=', username))
-        if charge is not None:
-            cmps.append(('charge', '=', charge))
-        if calculator is not None:
-            cmps.append(('claculator_name', '=', calculator))
-        for symbol, n in kwargs.items():
-            assert isinstance(n, int)
-            Z = atomic_numbers[symbol]
-            cmps.append((Z, '=', n))
+
         for dct in self._select(keywords, cmps, explain=explain,
                                 verbosity=verbosity):
             if filter is None or filter(dct):
@@ -286,6 +250,27 @@ class NoDatabase:
                     dct = FancyDict(dct)
                 yield dct
                 
+    @lock
+    @parallel
+    def update(self, ids, add_keywords, add_key_value_pairs):
+        m = 0
+        n = 0
+        for id in ids:
+            dct = self._get_dict(id)
+            keywords = dct.get('keywords', [])
+            for keyword in add_keywords:
+                if keyword not in keywords:
+                    keywords.append(keyword)
+                    m += 1
+            key_value_pairs = dct.get('key_value_pairs', {})
+            n -= len(key_value_pairs)
+            key_value_pairs.update(add_key_value_pairs)
+            n += len(key_value_pairs)
+            self.timestamp = dct['timestamp']
+            self._write(dct, keywords, key_value_pairs,
+                        data=dct.get('data', {}))
+        return m, n
+
 
 def atoms2dict(atoms):
     data = {
@@ -330,12 +315,16 @@ def dict2atoms(dct, attach_calculator=False):
                   momenta=dct.get('momenta'),
                   constraint=constraints)
 
-    results = dct.get('results')
     if attach_calculator:
         atoms.calc = get_calculator(dct['calculator_name'])(
             **dct['calculator_parameters'])
-    elif results:
-        atoms.calc = SinglePointCalculator(atoms, **results)
+    else:
+        results = {}
+        for prop in all_properties:
+            if prop in dct:
+                results[prop] = dct[prop]
+        if results:
+            atoms.calc = SinglePointCalculator(atoms, **results)
 
     return atoms
 

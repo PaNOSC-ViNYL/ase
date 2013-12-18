@@ -1565,7 +1565,7 @@ def symbols2numbers(symbols):
         symbols = string2symbols(symbols)
     numbers = []
     for s in symbols:
-        if isinstance(s, str):
+        if isinstance(s, (str, unicode)):
             numbers.append(atomic_numbers[s])
         else:
             numbers.append(s)

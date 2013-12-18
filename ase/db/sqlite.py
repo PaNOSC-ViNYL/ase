@@ -3,14 +3,13 @@ import sqlite3
 
 import numpy as np
 
-from ase.db import IdCollisionError
 from ase.db.core import NoDatabase, ops
 from ase.db.json import encode, decode
 
 
 init_statements = """\
 create table systems (
-    id text primary key,
+    id integer primary key autoincrement,
     unique_id text unique,
     timestamp real,
     username text,
@@ -22,7 +21,7 @@ create table systems (
     initial_charges blob,
     masses blob,
     tags blob,
-    moments blob,
+    momenta blob,
     constraints text,
     calculator_name text,
     calculator_parameters text,
@@ -57,6 +56,8 @@ create table number_key_values (
 
 index_statements = """\
 create index unique_id_index on systems(unique_id);
+create index timestamp_index on systems(timestamp);
+create index username_index on systems(username);
 create index species_index on species(Z)
 """
 
@@ -79,11 +80,13 @@ class SQLite3Database(NoDatabase):
                     con.execute(statement)
             con.commit()
 
-    def _write(self, id, atoms, keywords, key_value_pairs, data, replace):
+    def _write(self, atoms, keywords, key_value_pairs, data):
         con = self._connect()
         self._initialize(con)
         cur = con.cursor()
                 
+        id = None
+        
         if isinstance(atoms, dict):
             dct = atoms
             unique_id = dct['unique_id']
@@ -92,18 +95,11 @@ class SQLite3Database(NoDatabase):
             rows = cur.fetchall()
             if rows:
                 id = rows[0][0]
+                self._delete(cur, [id])
+
         else:
             dct = self.collect_data(atoms)
 
-        if id is None:
-            cur.execute('select count(*) from systems')
-            nrows = cur.fetchone()[0]
-            while id is None:
-                id = self.create_random_id(nrows)
-                cur.execute('select count(*) from systems where id=?', (id,))
-                if cur.fetchone()[0] == 1:
-                    id = None
-            
         row = (id,
                dct['unique_id'],
                self.timestamp,
@@ -116,7 +112,7 @@ class SQLite3Database(NoDatabase):
                blob(dct.get('charges')),
                blob(dct.get('masses')),
                blob(dct.get('tags')),
-               blob(dct.get('moments')),
+               blob(dct.get('momenta')),
                dct.get('constraints'))
 
         if 'calculator_name' in dct:
@@ -125,37 +121,28 @@ class SQLite3Database(NoDatabase):
         else:
             row += (None, None)
 
-        if 'results' in dct:
-            r = dct['results']
-            magmom = r.get('magmom')
-            if magmom is not None:
-                # magmom can be one or three numbers (non-collinear case)
-                magmom = np.array(magmom)
-            row += (r.get('energy'),
-                    r.get('free_energy'),
-                    blob(r.get('forces')),
-                    blob(r.get('stress')),
-                    blob(r.get('magmoms')),
-                    blob(magmom),
-                    blob(r.get('charges')))
-        else:
-            row += (None, None, None, None, None, None, None)
+        magmom = dct.get('magmom')
+        if magmom is not None:
+            # magmom can be one or three numbers (non-collinear case)
+            magmom = np.array(magmom)
+        row += (dct.get('energy'),
+                dct.get('free_energy'),
+                blob(dct.get('forces')),
+                blob(dct.get('stress')),
+                blob(dct.get('magmoms')),
+                blob(magmom),
+                blob(dct.get('charges')))
 
         row += (encode({'data': data,
                         'keywords': keywords,
                         'key_value_pairs': key_value_pairs}),)
 
-        cur.execute('select count(*) from systems where id=?', (id,))
-        new = (cur.fetchone()[0] == 0)
-
-        if not (replace or new):
-            raise IdCollisionError
-
-        if not new:
-            self._delete(cur, [id])
-
         q = ', '.join('?' * len(row))
         cur.execute('insert into systems values (%s)' % q, row)
+        
+        if id is None:
+            cur.execute('select seq from sqlite_sequence where name="systems"')
+            id = cur.fetchone()[0]
 
         count = np.bincount(dct['numbers'])
         unique_numbers = count.nonzero()[0]
@@ -188,7 +175,7 @@ class SQLite3Database(NoDatabase):
     def _get_dict(self, id):
         con = self._connect()
         c = con.cursor()
-        if id in [-1, 0]:
+        if id is None:
             c.execute('select count(*) from systems')
             assert c.fetchone()[0] == 1
             c.execute('select * from systems')
@@ -215,29 +202,26 @@ class SQLite3Database(NoDatabase):
         if row[11] is not None:
             dct['tags'] = deblob(row[11], np.int32)
         if row[12] is not None:
-            dct['moments'] = deblob(row[12], shape=(-1, 3))
+            dct['momenta'] = deblob(row[12], shape=(-1, 3))
         if row[13] is not None:
             dct['constraints'] = decode(row[13])
         if row[14] is not None:
             dct['calculator_name'] = row[14]
             dct['calculator_parameters'] = decode(row[15])
-            results = {}
-            if row[16] is not None:
-                results['energy'] = row[16]
-            if row[17] is not None:
-                results['free_energy'] = row[17]
-            if row[18] is not None:
-                results['forces'] = deblob(row[18], shape=(-1, 3))
-            if row[19] is not None:
-                results['stress'] = deblob(row[19])
-            if row[20] is not None:
-                results['magmoms'] = deblob(row[20])
-            if row[21] is not None:
-                results['magmom'] = deblob(row[21])[0]
-            if row[22] is not None:
-                results['charges'] = deblob(row[22])
-            if results:
-                dct['results'] = results
+        if row[16] is not None:
+            dct['energy'] = row[16]
+        if row[17] is not None:
+            dct['free_energy'] = row[17]
+        if row[18] is not None:
+            dct['forces'] = deblob(row[18], shape=(-1, 3))
+        if row[19] is not None:
+            dct['stress'] = deblob(row[19])
+        if row[20] is not None:
+            dct['magmoms'] = deblob(row[20])
+        if row[21] is not None:
+            dct['magmom'] = deblob(row[21])[0]
+        if row[22] is not None:
+            dct['charges'] = deblob(row[22])
 
         extra = decode(row[23])
         for key in ['keywords', 'key_value_pairs', 'data']:
@@ -263,8 +247,10 @@ class SQLite3Database(NoDatabase):
         ntext = 0
         nnumber = 0
         for key, op, value in cmps:
-            if key in ['id', 'energy', 'magmom', 'timestamp', 'username',
-                       'calculator_name']:
+            if key == 'calculator':
+                key = 'calculator_name'
+            if key in ['id', 'energy', 'magmom', 'timestamp',
+                       'username', 'calculator_name']:
                 where.append('systems.{0}{1}?'.format(key, op))
                 args.append(value)
             elif key == 'natoms':

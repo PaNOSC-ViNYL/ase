@@ -4,7 +4,7 @@ from time import time
 import numpy as np
 
 from ase.db import connect
-from ase.db.core import float_to_time_string, T0, YEAR, dict2atoms
+from ase.db.core import float_to_time_string, T0, YEAR
 from ase.atoms import Atoms
 from ase.data import atomic_masses
 
@@ -62,7 +62,7 @@ def run(args=sys.argv[1:]):
 
     if args.explain:
         for row in rows:
-            print('%d %d %s' % row['explain'])
+            print('%d %d %d %s' % row['explain'])
         return
 
     if args.add_keywords:
@@ -93,17 +93,17 @@ def run(args=sys.argv[1:]):
                     dct.keywords.append(keyword)
                     n += 1
             rollback = True
-            if 1:#try:
-                id = con2.write(dct.id, dct, timestamp=dct.timestamp)
+            if 1:  # try:
+                id = con2.write(dct, timestamp=dct.timestamp)
                 rollback = False
-            if 0:#finally:
+            if 0:  # finally:
                 if rollback:
                     con2.delete(ids)
                     return
             ids.append(id)
         print('Added %s' % plural(n, 'keyword'))
         print('Inserted %s' % plural(len(ids), 'row'))
-        return ids  
+        return ids
 
     if add_keywords or add_key_value_pairs:
         ids = [dct['id'] for dct in rows]
@@ -171,7 +171,7 @@ class Formatter:
                 except AttributeError:
                     s = ''
                 if isinstance(s, int):
-                    s = '%d' % s 
+                    s = '%d' % s
                 elif isinstance(s, float):
                     s = '%.3f' % s
                 else:
@@ -203,7 +203,7 @@ class Formatter:
         return Atoms(d.numbers).get_chemical_formula()
 
     def energy(self, d):
-        return d.results.energy
+        return d.energy
 
     def size(self, d):
         dims = d.pbc.sum()
@@ -223,7 +223,7 @@ class Formatter:
         return d.calculator_name
 
     def fmax(self, d):
-        return (d.results.forces**2).sum(1).max()**0.5
+        return (d.forces**2).sum(1).max()**0.5
 
     def keywords(self, d):
         return cut(','.join(d.keywords), 30)
@@ -233,7 +233,7 @@ class Formatter:
                              for key, value in d.key_value_pairs.items()]), 40)
 
     def charge(self, d):
-        return d.results.charge
+        return d.charge
 
     def mass(self, d):
         if 'masses' in d:
@@ -248,7 +248,7 @@ class Formatter:
             return '?'
 
     def smax(self, d):
-        return (d.results.stress**2).max()**0.5
+        return (d.stress**2).max()**0.5
 
     def magmom(self, d):
-        return d.results.magmom
+        return d.magmom

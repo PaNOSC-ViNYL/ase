@@ -17,7 +17,7 @@ from ase.constraints import FixAtoms, UnitCellFilter
 from ase.optimize import LBFGS
 from ase.io.trajectory import PickleTrajectory
 from ase.utils.eos import EquationOfState
-from ase.calculators.calculator import get_calculator, names as calculator_names
+from ase.calculators.calculator import get_calculator
 import ase.db as db
 
 
@@ -82,7 +82,7 @@ class Runner:
         add('-E', '--equation-of-state', help='Equation of state ...')
         add('--eos-type', default='sjeos', help='Selects the type of eos.')
         add('-i', '--interactive-python-session', action='store_true',
-           )# help=optparse.SUPPRESS)
+           )  # help=optparse.SUPPRESS)
         add('-c', '--collection')
         add('--modify', metavar='...',
             help='Modify atoms with Python statement.  ' +
@@ -99,7 +99,7 @@ class Runner:
             file.write('    execfile(os.environ["PYTHONSTARTUP"])\n')
             file.write('from ase.cli.run import Runner\n')
             file.write('atoms = Runner().parse(%r)\n' %
-                       sys.argv[1:])
+                       ([self.calculator_name] + sys.argv[1:]))
             file.flush()
             os.system('python -i %s' % file.name)
             return
@@ -139,7 +139,7 @@ class Runner:
                 exec opts.modify in {'atoms': atoms, 'np': np}
 
             if name == '-':
-                name = atoms.info['id']
+                name = atoms.info['key_value_pairs']['name']
 
             skip = False
             if opts.skip:
@@ -162,13 +162,12 @@ class Runner:
                     traceback.print_exc(file=self.logfile)
                     tstop = time.time()
                     data = {'time': tstop - tstart}
-                    self.db.write(name, None, keywords=['failed'], data=data)
+                    self.db.write(None, ['failed'], data=data)
                     self.errors += 1
                 else:
                     tstop = time.time()
                     data['time'] = tstop - tstart
-                    data['ase_run_name'] = name
-                    self.db.write(name, atoms, data=data)
+                    self.db.write(atoms, name=name, data=data)
 
         return atoms
     
@@ -294,7 +293,7 @@ class Runner:
         
         traj = PickleTrajectory(self.get_filename(name, 'traj'), 'w', atoms)
         eps = 0.01
-        strains = np.linspace(1 - eps, 1 + eps, 5)#opts.points)
+        strains = np.linspace(1 - eps, 1 + eps, 5)
         v1 = atoms.get_volume()
         volumes = strains**3 * v1
         energies = []
