@@ -107,7 +107,7 @@ def run(args=sys.argv[1:]):
 
     if add_keywords or add_key_value_pairs:
         ids = [dct['id'] for dct in rows]
-        m, n = con.update(ids, add_keywords, add_key_value_pairs)
+        m, n = con.update(ids, add_keywords, **add_key_value_pairs)
         print('Added %s and %s (%s updated)' %
               (plural(m, 'keyword'),
                plural(n, 'key-value pair'),

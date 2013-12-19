@@ -166,7 +166,7 @@ class JSONDatabase(NoDatabase):
 
     @lock
     @parallel
-    def update(self, ids, add_keywords, add_key_value_pairs):
+    def update(self, ids, add_keywords=[], **add_key_value_pairs):
         bigdct, myids, nextid = self._read_json()
         m = 0
         n = 0

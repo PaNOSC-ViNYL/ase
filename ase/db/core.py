@@ -252,7 +252,7 @@ class NoDatabase:
                 
     @lock
     @parallel
-    def update(self, ids, add_keywords, add_key_value_pairs):
+    def update(self, ids, add_keywords=[], **add_key_value_pairs):
         m = 0
         n = 0
         for id in ids:
