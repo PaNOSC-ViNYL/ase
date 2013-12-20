@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 from time import time
 
@@ -139,9 +140,45 @@ def run(args=sys.argv[1:]):
     return []
 
 
-def long(name, dct, verbosity=1):
-    print(name)
-    print(dct)
+def long(d, verbosity=1):
+    print('id:', d.id)
+    print('formula:', Atoms(d.numbers).get_chemical_formula())
+    print('username:', d.username)
+    print('age: {0}'.format(float_to_time_string((time() - T0) / YEAR -
+                                                 d.timestamp)))
+    print('calculator:', d.calculator_name)
+    print('energy: {0:.3f} eV'.format(d.energy))
+    if 'forces' in d:
+        print('maximum atomic force: {0:.3f} eV/Ang'.format(
+                  (d.forces**2).sum(1).max()**0.5))
+    if 'stress' in d:
+        print('stress tensor:', d.stress)
+    print('magnetic moment:', d.get('magmom', 0))
+    print('periodic boundary conditions:', d.pbc)
+    print('unit cell [Ang]:')
+    for axis in d.cell:
+        print('{0:10.3f}{1:10.3f}{2:10.3f}'.format(*axis))
+    dims = d.pbc.sum()
+    if dims == 1:
+        print('length: {0:.3f} Ang'.format(np.linalg.norm(d.cell[d.pbc][0])))
+    elif dims == 2:
+        print('area: {0:.3f} Ang^2'.format(
+                  np.linalg.norm(np.cross(*d.cell[d.pbc]))))
+    print('volume: {0:.3f} Ang^3'.format(abs(np.linalg.det(d.cell))))
+    if 'charge' in d:
+        print('charge: {0:.6f}'.format(d.charge))
+    if 'masses' in d:
+        m = d.masses.sum()
+    else:
+        m = atomic_masses[d.numbers].sum()
+    print('mass: {0:.3f} au'.format(m))
+    if d.get('keywords'):
+        print('keywords: ', ', '.join(d.keywords))
+    kvp = d.get('key_value_pairs')
+    if kvp:
+        print('key-value pairs:')
+        for key in sorted(kvp):
+            print('    {0}: {1}'.format(key, kvp[key]))
 
 
 def cut(txt, length):

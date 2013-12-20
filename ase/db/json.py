@@ -145,12 +145,15 @@ class JSONDatabase(NoDatabase):
         dct['id'] = id
         return dct
 
-    def _select(self, keywords, cmps, explain=False, verbosity=1):
+    def _select(self, keywords, cmps, explain, verbosity, limit):
         if explain:
             return
         bigdct, ids, nextid = self._read_json()
         cmps = [(key, ops[op], val) for key, op, val in cmps]
+        n = 0
         for id in ids:
+            if n == limit:
+                return
             dct = bigdct[id]
             for keyword in keywords:
                 if 'keywords' not in dct or keyword not in dct['keywords']:
@@ -162,6 +165,7 @@ class JSONDatabase(NoDatabase):
                         break
                 else:
                     dct['id'] = id
+                    n += 1
                     yield dct
 
     @lock

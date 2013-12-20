@@ -71,6 +71,9 @@ class FancyDict(dict):
             return FancyDict(value)
         return value
 
+    def __dir__(self):
+        return self.keys()
+        
 
 def lock(method):
     @wraps(method)
@@ -180,21 +183,46 @@ class NoDatabase:
         return self.get_atoms(selection)
 
     def get(self, selection=None, fancy=True, **kwargs):
-        i = self.select(selection, fancy, **kwargs)
-        dct = i.next()
-        try:
-            i.next()
-        except StopIteration:
-            pass
-        else:
-            raise IndexError
+        dcts = list(self.select(selection, fancy, limit=2, **kwargs))
+        assert len(dcts) == 1
+        dct = dcts[0]
         if fancy:
             dct = FancyDict(dct)
         return dct
 
     @parallel_generator
     def select(self, selection=None, fancy=True, filter=None, explain=False,
-               verbosity=1, **kwargs):
+               verbosity=1, limit=None, **kwargs):
+        """Select rows.
+        
+        Return iterator with results as dictionaries.  Selection is done
+        using key-value pairs, keywords and the special keys:
+            
+            age, username, calculator, energy, magmom, charge.
+        
+        selection: int, str or list
+            Can be:
+            
+            * an integer id
+            * a string like 'key=value', where '=' can also be one of
+              '<=', '<', '>', '>=' or '!='.
+            * a string like 'keyword'
+            * comma separated strings like 'key1<value1,key2=value2,keyword'
+            * list of strings or tuples: [('charge', '=', 1)].
+        fancy: bool
+            return fancy dictionary with keys as attributes (this is the
+            default).
+        filter: function
+            A function that takes as input a dictionary and returns True
+            or False.
+        explain: bool
+            Explain query plan.
+        verbosity: int
+            Possible values: 0, 1 or 2.
+        limit: int or None
+            Limit selection.
+        """
+        
         if selection is None:
             expressions = []
         elif isinstance(selection, int):
@@ -244,7 +272,7 @@ class NoDatabase:
             cmps.append((key, op, value))
 
         for dct in self._select(keywords, cmps, explain=explain,
-                                verbosity=verbosity):
+                                verbosity=verbosity, limit=limit):
             if filter is None or filter(dct):
                 if fancy:
                     dct = FancyDict(dct)

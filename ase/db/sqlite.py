@@ -229,7 +229,7 @@ class SQLite3Database(NoDatabase):
                 dct[key] = extra[key]
         return dct
 
-    def _select(self, keywords, cmps, explain, verbosity):
+    def _select(self, keywords, cmps, explain, verbosity, limit):
         tables = ['systems']
         where = []
         args = []
