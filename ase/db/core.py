@@ -143,18 +143,56 @@ class NoDatabase:
 
     @parallel
     @lock
-    def write(self, atoms, keywords=[], data={}, timestamp=None,
-              **key_value_pairs):
+    def write(self, atoms, keywords=[], key_value_pairs={}, data={},
+              timestamp=None, **kwargs):
+        """Write atoms to database with keywords and key-value pairs.
+        
+        atoms: Atoms object
+            Write atomic numbers, positions, unit cell and boundary
+            conditions.  If a calculator is attached, write also already
+            calculated properties such as the energy and forces.
+        keywords: list of str
+            List of keywords.
+        key_value_pairs: dict
+            Dictionary of key-value pairs.  Values must be strings or numbers.
+        data: dict
+            Extra stuff (not for searching).
+            
+        Key-value pairs can also be se using keyword arguments::
+            
+            connection.write(atoms, name='ABC', frequency=42.0)
+            
+        """
+        
         if timestamp is None:
             timestamp = (time() - T0) / YEAR
         self.timestamp = timestamp
         if atoms is None:
             atoms = Atoms()
-        self._write(atoms, keywords, key_value_pairs, data)
-
+        
+        kvp = dict(key_value_pairs)  # modify a copy
+        kvp.update(kwargs)
+        id = self._write(atoms, keywords, kvp, data)
+        return id
+        
     def _write(self, atoms, keywords, key_value_pairs, data):
-        pass
+        return 1
 
+    @parallel
+    @lock
+    def reserve(self, *keywords, **key_value_pairs):
+        for dct in self._select(keywords,
+                                [(key, '=', value)
+                                 for key, value in key_value_pairs.items()]):
+            return None
+
+        self.timestamp = (time() - T0) / YEAR
+        id = self._write(Atoms(), keywords, key_value_pairs, {})
+        return id
+        
+    def __delitem__(self, id):
+        self.delete([id])
+        
     def collect_data(self, atoms):
         dct = atoms2dict(atoms)
         dct['timestamp'] = self.timestamp

@@ -146,8 +146,10 @@ def long(d, verbosity=1):
     print('username:', d.username)
     print('age: {0}'.format(float_to_time_string((time() - T0) / YEAR -
                                                  d.timestamp)))
-    print('calculator:', d.calculator_name)
-    print('energy: {0:.3f} eV'.format(d.energy))
+    if 'calculator_name' in d:
+        print('calculator:', d.calculator_name)
+    if 'energy' in d:
+        print('energy: {0:.3f} eV'.format(d.energy))
     if 'forces' in d:
         print('maximum atomic force: {0:.3f} eV/Ang'.format(
                   (d.forces**2).sum(1).max()**0.5))

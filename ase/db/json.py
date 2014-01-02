@@ -107,7 +107,8 @@ class JSONDatabase(NoDatabase):
             
         bigdct[id] = dct
         self._write_json(bigdct, ids, nextid)
-
+        return id
+        
     def _read_json(self):
         bigdct = read_json(self.filename)
         return bigdct, list(bigdct['ids']), bigdct['nextid']
@@ -145,10 +146,13 @@ class JSONDatabase(NoDatabase):
         dct['id'] = id
         return dct
 
-    def _select(self, keywords, cmps, explain, verbosity, limit):
+    def _select(self, keywords, cmps, explain=False, verbosity=0, limit=None):
         if explain:
             return
-        bigdct, ids, nextid = self._read_json()
+        try:
+            bigdct, ids, nextid = self._read_json()
+        except IOError:
+            return
         cmps = [(key, ops[op], val) for key, op, val in cmps]
         n = 0
         for id in ids:

@@ -142,10 +142,11 @@ class Runner:
                 name = atoms.info['key_value_pairs']['name']
 
             skip = False
+            id = None
+            
             if opts.skip:
-                try:
-                    self.db.write(name, None, replace=False)
-                except db.IdCollisionError:
+                id = self.db.reserve(name=name)
+                if id is None:
                     skip = True
         
             if not skip:
@@ -162,12 +163,15 @@ class Runner:
                     traceback.print_exc(file=self.logfile)
                     tstop = time.time()
                     data = {'time': tstop - tstart}
-                    self.db.write(None, ['failed'], data=data)
+                    self.db.write(None, ['failed'], name=name, data=data)
                     self.errors += 1
                 else:
                     tstop = time.time()
                     data['time'] = tstop - tstart
                     self.db.write(atoms, name=name, data=data)
+                
+                if id:
+                    del self.db[id]
 
         return atoms
     

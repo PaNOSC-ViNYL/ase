@@ -171,7 +171,8 @@ class SQLite3Database(NoDatabase):
 
         con.commit()
         con.close()
-       
+        return id
+        
     def _get_dict(self, id):
         con = self._connect()
         c = con.cursor()
@@ -229,7 +230,7 @@ class SQLite3Database(NoDatabase):
                 dct[key] = extra[key]
         return dct
 
-    def _select(self, keywords, cmps, explain, verbosity, limit):
+    def _select(self, keywords, cmps, explain=False, verbosity=0, limit=None):
         tables = ['systems']
         where = []
         args = []
@@ -289,6 +290,7 @@ class SQLite3Database(NoDatabase):
             print(sql, args)
         con = self._connect()
         cur = con.cursor()
+        self._initialize(con)
         cur.execute(sql, args)
         if explain:
             for row in cur.fetchall():
