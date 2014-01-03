@@ -212,7 +212,7 @@ class BundleTrajectory:
                 if source is not None:
                     x = source()
                 else:
-                    x = atoms.arrays[label]
+                    x = atoms.get_array(label)
                 self.backend.write(framedir, label, x)
                 del x
                 if once:
@@ -399,7 +399,7 @@ class BundleTrajectory:
         else:
             lfn = os.path.join(self.filename, ("log-node%d.txt" % 
                                                (ase.parallel.rank,)))
-        self.logfile = open(lfn, "a")   # Append to log if it exists.
+        self.logfile = open(lfn, "a", 1)   # Append to log if it exists.
         if hasattr(self, 'logdata'):
             for text in self.logdata:
                 self.logfile.write(text + '\n')
@@ -589,6 +589,7 @@ class BundleTrajectory:
         """
         framedir = os.path.join(self.filename, "F" + str(frame))
         if self.master:
+            self.log("Making directory " + framedir)
             os.mkdir(framedir)
         return framedir
 
