@@ -158,7 +158,7 @@ class NoDatabase:
         data: dict
             Extra stuff (not for searching).
             
-        Key-value pairs can also be se using keyword arguments::
+        Key-value pairs can also be set using keyword arguments::
             
             connection.write(atoms, name='ABC', frequency=42.0)
             
@@ -181,6 +181,18 @@ class NoDatabase:
     @parallel
     @lock
     def reserve(self, *keywords, **key_value_pairs):
+        """Write empty row if not already present.
+        
+        Usage::
+            
+            id = connection.reserve('keyword1', 'keyword2', ...,
+                                    key1=value1, key2=value2, ...)
+        
+        Write an empty row with the given keywords and key-value pairs and
+        return the integer id.  If such a row already exists, don't write
+        anything and return None.
+        """
+        
         for dct in self._select(keywords,
                                 [(key, '=', value)
                                  for key, value in key_value_pairs.items()]):
@@ -206,6 +218,18 @@ class NoDatabase:
 
     def get_atoms(self, selection=None, attach_calculator=False,
                   add_additional_information=False, **kwargs):
+        """Get Atoms object.
+        
+        selection: int, str or list
+            See the select() method.
+        attach_calculator: bool
+            Attach calculator object to Atoms object (defaul value is
+            False).
+        add_additional_information: bool
+            Put keywords, key-value pairs and data into Atoms.info
+            dictionary.
+        """
+            
         dct = self.get(selection, fancy=False, **kwargs)
         atoms = dict2atoms(dct, attach_calculator)
         if add_additional_information:
@@ -221,6 +245,14 @@ class NoDatabase:
         return self.get_atoms(selection)
 
     def get(self, selection=None, fancy=True, **kwargs):
+        """Select a single row and return it as a dictionary.
+        
+        selection: int, str or list
+            See the select() method.
+        fancy: bool
+            return fancy dictionary with keys as attributes (this is the
+            default).
+        """
         dcts = list(self.select(selection, fancy, limit=2, **kwargs))
         assert len(dcts) == 1
         dct = dcts[0]
@@ -236,7 +268,7 @@ class NoDatabase:
         Return iterator with results as dictionaries.  Selection is done
         using key-value pairs, keywords and the special keys:
             
-            age, username, calculator, energy, magmom, charge.
+            age, username, calculator, energy, magmom and/or charge.
         
         selection: int, str or list
             Can be:
