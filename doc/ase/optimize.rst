@@ -240,10 +240,10 @@ BFGSLineSearch
 --------------
 .. module:: optimize.bfgslinesearch
 
-BFGSLineSearch is the BFGS algorithm with an line search mechanism
+BFGSLineSearch is the BFGS algorithm with a line search mechanism
 that enforces the step taken fulfills the Wolfe conditions, so that
 the energy and absolute value of the force decrease monotonically. Like
-the lbfgs algorithm the inverse of the Hessian Matrix is updated.
+the LBFGS algorithm the inverse of the Hessian Matrix is updated.
 
 The usage of BFGSLineSearch algorithm is similar to other BFGS type
 algorithms. A typical optimization should look like::
@@ -259,6 +259,9 @@ optimization and the information needed to generate the Hessian Matrix.
 
    In many of the examples, tests, exercises and tutorials,
    ``QuasiNewton`` is used -- it is a synonym for ``BFGSLineSearch``.
+
+The BFGSLineSearch algorithm is not compatible with nudged elastic band
+calculations.
 
 
 Global optimization
@@ -309,7 +312,7 @@ The minima hopping algorithm was developed and described by Goedecker:
   | `Minima hopping: An efficient search method for the global minimum of the potential energy surface of complex molecular systems`__
   | J. Chem. Phys., Vol. **120**, 9911 (2004)
 
-__ http://link.aip.org/link/doi/10.1063/1.1724816
+__ http://dx.doi.org/10.1063/1.1724816
 
 This algorithm utilizes a series of alternating steps of NVE molecular dynamics and local optimizations, and has two parameters that the code dynamically adjusts in response to the progress of the search. The first parameter is the initial temperature of the NVE simulation. Whenever a step finds a new minimum this temperature is decreased; if the step finds a previously found minimum the temperature is increased. The second dynamically adjusted parameter is :math:`E_\mathrm{diff}`, which is an energy threshold for accepting a newly found minimum. If the new minimum is no more than :math:`E_\mathrm{diff}` eV higher than the previous minimum, it is acccepted and :math:`E_\mathrm{diff}` is decreased; if it is more than :math:`E_\mathrm{diff}` eV higher it is rejected and :math:`E_\mathrm{diff}` is increased. The method is used as::
 
