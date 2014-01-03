@@ -209,14 +209,15 @@ class Formatter:
                     s = getattr(self, column)(dct)
                 except AttributeError:
                     s = ''
-                if isinstance(s, int):
-                    s = '%d' % s
-                elif isinstance(s, float):
-                    s = '%.3f' % s
                 else:
-                    signs[i] = -1
-                if len(s) > widths[i]:
-                    widths[i] = len(s)
+                    if isinstance(s, int):
+                        s = '%d' % s
+                    elif isinstance(s, float):
+                        s = '%.3f' % s
+                    else:
+                        signs[i] = -1
+                    if len(s) > widths[i]:
+                        widths[i] = len(s)
                 row.append(s)
             table.append(row)
             ids.append(dct.id)
