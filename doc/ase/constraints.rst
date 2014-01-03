@@ -126,13 +126,13 @@ Alternatively, this constraint can tether a single atom to a point in space, for
   >>> c = Hookean(a1=3, a2=atoms[3].position, rt=0.94, k=2.)
   >>> atoms.set_constraint(c)
 
-Reasonable values of the threshold and spring constant for some common bonds are below.
+Reasonable values of the threshold (rt) and spring constant (k) for some common bonds are below.
 
 .. list-table::
 
   * - Bond
-    - rt (threshold)
-    - k (spring constant)
+    - rt (Angstroms)
+    - k (eV Angstrom^-2)
   * - O-H
     - 1.40
     - 5
