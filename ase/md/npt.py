@@ -78,6 +78,8 @@ class NPT(MolecularDynamics):
         three Cartesian axes.  Set to (1,1,1) or None to allow
         a fully flexible computational box.  Set to (1,1,0)
         to disallow elongations along the z-axis etc.
+        mask may also be specified as a symmetric 3x3 array
+        indicating which strain values may change.
 
     Useful parameter values:
 
@@ -95,7 +97,7 @@ class NPT(MolecularDynamics):
     
     It has the following methods:
 
-    __call__(n)
+    run(n)
         Perform n timesteps.
     initialize()
         Estimates the dynamic variables for time=-1 to start
@@ -178,7 +180,7 @@ class NPT(MolecularDynamics):
         If set to None, all elements may change.  If set to a 3-vector
         of ones and zeros, elements which are zero specify directions
         along which the size of the computational box cannot change.
-        For example, if mask = {1,1,0} the length of the system along
+        For example, if mask = (1,1,0) the length of the system along
         the z-axis cannot change, although xz and yz shear is still
         possible.  To disable shear globally, set the mode to diagonal
         (not yet implemented).

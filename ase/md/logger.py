@@ -39,7 +39,7 @@ class MDLogger:
             self.logfile = logfile
             self.ownlogfile = False
         else:
-            self.logfile = open(logfile, mode)
+            self.logfile = open(logfile, mode, 1)
             self.ownlogfile = True
         self.stress = stress
         self.peratom = peratom
