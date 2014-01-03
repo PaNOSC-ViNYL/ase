@@ -131,8 +131,8 @@ Reasonable values of the threshold and spring constant for some common bonds are
 .. list-table::
 
   * - Bond
-    - threshhold_length
-    - springconstant
+    - rt (threshold)
+    - k (spring constant)
   * - O-H
     - 1.40
     - 5
@@ -154,10 +154,10 @@ Reasonable values of the threshold and spring constant for some common bonds are
 
 A third way this constraint can be applied is to apply a restorative force if an atom crosses a plane in space. For example::
 
-  >>> c = Hookean(a1=3, a2=(0, 0, 1, -7, k=10.)
+  >>> c = Hookean(a1=3, a2=(0, 0, 1, -7), k=10.)
   >>> atoms.set_constraint(c)
 
-This will apply a restorative force in the downward direction of magnitude k * (atom.z - 7) if the atom's vertical position exceeds 7 Angstroms. In other words, if the atom crosses to the (positive) normal side of the plane, the force is applied and directed towards the plane. (The same plane with the normal direction pointing in the -z direction would be given by (0, 0, -1, 7).)
+This will apply a restorative force on atom 3 in the downward direction of magnitude k * (atom.z - 7) if the atom's vertical position exceeds 7 Angstroms. In other words, if the atom crosses to the (positive) normal side of the plane, the force is applied and directed towards the plane. (The same plane with the normal direction pointing in the -z direction would be given by (0, 0, -1, 7).)
 
 For an example of use, see the :ref:`mhtutorial` tutorial.
 
