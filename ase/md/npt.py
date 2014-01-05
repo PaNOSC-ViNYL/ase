@@ -132,6 +132,7 @@ class NPT(MolecularDynamics):
     '''
 
     classname = "NPT"  # Used by the trajectory.
+    _npt_version = 2   # Version number, used for Asap compatibility.
     def __init__(self, atoms, 
                  timestep, temperature, externalstress, ttime, pfactor,
                  mask=None, trajectory=None, logfile=None, loginterval=1):
@@ -292,10 +293,8 @@ class NPT(MolecularDynamics):
         self.h_past = self.h
         self.h = h_future
         self.inv_h = linalg.inv(self.h)
-        # Do not throw away the q arrays, they are "magical" on parallel
-        # simulations (the contents migrate along with the atoms).
-        (self.q_past, self.q, self.q_future) = (self.q, self.q_future,
-                                                self.q_past)
+        self.q_past = self.q
+        self.q = self.q_future
         self._setbox_and_positions(self.h,self.q)
         self.eta_past = self.eta
         self.eta = eta_future
@@ -304,8 +303,6 @@ class NPT(MolecularDynamics):
         self._synchronize()  # for parallel simulations.
         self.zeta_integrated += dt * self.zeta
         force = self.forcecalculator()
-        # The periodic boundary conditions may have moved the atoms.
-        self.post_pbc_fix(fixfuture=0)  
         self._calculate_q_future(force)
         self.atoms.set_momenta(dot(self.q_future-self.q_past, self.h/(2*dt)) *
                                self._getmasses())
@@ -338,9 +335,8 @@ class NPT(MolecularDynamics):
             raise NotImplementedError, "Can (so far) only operate on lists of atoms where the computational box is an upper triangular matrix."
         self.inv_h = linalg.inv(self.h)
         # The contents of the q arrays should migrate in parallel simulations.
-        self._make_special_q_arrays()
-        self.q[:] = dot(self.atoms.get_positions(),
-                                self.inv_h) - 0.5
+        #self._make_special_q_arrays()
+        self.q = dot(self.atoms.get_positions(), self.inv_h) - 0.5
         # zeta and eta were set in __init__
         self._initialize_eta_h()
         deltazeta = dt * self.tfact * (atoms.get_kinetic_energy() -
@@ -389,22 +385,6 @@ class NPT(MolecularDynamics):
             self._warning(self.classname+": Setting the center-of-mass momentum to zero (was %.6g %.6g %.6g)" % tuple(cm))
         self.atoms.set_momenta(self.atoms.get_momenta()
                                - cm / self._getnatoms())
-    
-    def post_pbc_fix(self, fixfuture=1):
-        """Correct for atoms moved by the boundary conditions.
-
-        If the fixfuture argument is 1 (the default), q_future is also
-        corrected.  This is not necessary when post_pbc_fix() is called from
-        within Timestep(), but must be done when the user calls post_pbc_fix
-        (for example if a CNA calculation may have triggered a migration).
-        """
-        q = dot(self.atoms.get_positions(),
-                           self.inv_h) - 0.5
-        delta_q = floor(0.5 + (q - self.q))
-        self.q += delta_q
-        self.q_past += delta_q
-        if fixfuture:
-            self.q_future += delta_q
         
     def attach_atoms(self, atoms):
         """Assign atoms to a restored dynamics object.
@@ -425,9 +405,8 @@ class NPT(MolecularDynamics):
         if max(abs((h - self.h).ravel())) > limit:
             raise RuntimeError, "The unit cell of the atoms does not match the unit cell stored in the file."
         self.inv_h = linalg.inv(self.h)
-        self._make_special_q_arrays()
-        self.q[:] = dot(self.atoms.get_positions(),
-                                           self.inv_h) - 0.5
+        #self._make_special_q_arrays()
+        self.q = dot(self.atoms.get_positions(), self.inv_h) - 0.5
         self._calculate_q_past_and_future()
         self.initialized = 1
         
@@ -568,8 +547,8 @@ class NPT(MolecularDynamics):
         beta = dt * dot(self.h, dot(self.eta + 0.5 * self.zeta * id3,
                                     self.inv_h))
         inv_b = linalg.inv(beta + id3)
-        self.q_future[:] = dot(2*self.q + dot(self.q_past, beta - id3) + alpha,
-                               inv_b)
+        self.q_future = dot(2*self.q + dot(self.q_past, beta - id3) + alpha,
+                            inv_b)
 
     def _calculate_q_past_and_future(self):
         def ekin(p, m = self.atoms.get_masses()):
@@ -581,7 +560,7 @@ class NPT(MolecularDynamics):
         p = array(p0, copy=1)
         dt = self.dt
         for i in range(2):
-            self.q_past[:] = self.q - dt * dot(p / m, self.inv_h)
+            self.q_past = self.q - dt * dot(p / m, self.inv_h)
             self._calculate_q_future(self.atoms.get_forces())
             p = dot(self.q_future - self.q_past, self.h/(2*dt)) * m
             e = ekin(p)
@@ -632,9 +611,9 @@ class NPT(MolecularDynamics):
 
     def _setbox_and_positions(self, h, q):
         """Set the computational box and the positions."""
-        self.atoms.set_cell(h, scale_atoms=True)
+        self.atoms.set_cell(h, scale_atoms=True)  # Why scale_atoms ...
         r = dot(q + 0.5, h)
-        self.atoms.set_positions(r)
+        self.atoms.set_positions(r)               # ... they are overwritten here ???
 
     # A few helper methods, which have been placed in separate methods
     # so they can be replaced in the parallel version.
