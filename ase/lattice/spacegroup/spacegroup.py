@@ -180,12 +180,18 @@ class Spacegroup(object):
         retval.append('\n')
         return ''.join(retval)
 
-    def __eq__(self, other):
-        """Chech whether *self* and *other* refer to the same
-        spacegroup number and setting."""
-        if not isinstance(other, Spacegroup):
-            other = Spacegroup(other)
-        return self.no == other.no and self.setting == other.setting
+    def __cmp__(self, other):
+        """Compares *self* with *other* by number and setting."""
+        if self.no > other.no:
+            return 1
+        elif self.no < other.no:
+            return -1
+        elif self.setting > other.setting:
+            return 1
+        elif self.setting < other.setting:
+            return -1
+        else:
+            return 0
 
     def __index__(self):
         return self.no
