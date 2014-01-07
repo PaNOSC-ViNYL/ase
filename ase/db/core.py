@@ -39,6 +39,8 @@ ops = {'<': operator.lt,
 
 def connect(name, type='extract_from_name', create_indices=True,
             use_lock_file=False):
+    """Create connection to database."""
+    
     if type == 'extract_from_name':
         if name is None:
             type = None
@@ -48,7 +50,7 @@ def connect(name, type='extract_from_name', create_indices=True,
             type = os.path.splitext(name)[1][1:]
 
     if type is None:
-        return NoDatabase()
+        return Database()
 
     if type == 'json':
         from ase.db.json import JSONDatabase
@@ -129,7 +131,7 @@ def parallel_generator(generator):
     return new_generator
 
 
-class NoDatabase:
+class Database:
     def __init__(self, filename=None, create_indices=True,
                  use_lock_file=False):
         self.filename = filename
@@ -254,10 +256,10 @@ class NoDatabase:
             default).
         """
         dcts = list(self.select(selection, fancy, limit=2, **kwargs))
-        assert len(dcts) == 1
+        if not dcts:
+            raise KeyError('no match')
+        assert len(dcts) == 1, 'more than one row matched'
         dct = dcts[0]
-        if fancy:
-            dct = FancyDict(dct)
         return dct
 
     @parallel_generator
@@ -325,7 +327,12 @@ class NoDatabase:
             key, value = expression.split(op)
             comparisons.append((key, op, value))
 
-        cmps = [(key, '=', value) for key, value in kwargs.items()]
+        cmps = []
+        for key, value in kwargs.items():
+            if key in atomic_numbers:
+                key = atomic_numbers[key]
+            cmps.append((key, '=', value) )
+            
         for key, op, value in comparisons:
             if key == 'age':
                 key = 'timestamp'
@@ -346,11 +353,27 @@ class NoDatabase:
             if filter is None or filter(dct):
                 if fancy:
                     dct = FancyDict(dct)
+                    if 'key_value_pairs' in dct:
+                        dct.update(dct['key_value_pairs'])
                 yield dct
                 
     @lock
     @parallel
     def update(self, ids, add_keywords=[], **add_key_value_pairs):
+        """Update row(s).
+        
+        ids: int or list of int
+            ID's of rows to update.
+        add_keywords: list of str
+            List of keyword strings to add to rows.
+        add_key_value_pairs: dict
+            Key-value pairs to add.
+            
+        returns number of keywords and key-value pairs added.
+        """
+        
+        if isinstance(ids, int):
+            ids = [ids]
         m = 0
         n = 0
         for id in ids:
@@ -369,7 +392,11 @@ class NoDatabase:
                         data=dct.get('data', {}))
         return m, n
 
+    def delete(self, ids):
+        """Delete rows."""
+        raise NotImplementedError
 
+        
 def atoms2dict(atoms):
     data = {
         'numbers': atoms.numbers,

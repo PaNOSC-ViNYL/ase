@@ -7,7 +7,7 @@ from json import JSONEncoder, JSONDecoder
 import numpy as np
 
 from ase.parallel import world
-from ase.db.core import NoDatabase, ops, parallel, lock
+from ase.db.core import Database, ops, parallel, lock
 
 
 class MyEncoder(JSONEncoder):
@@ -69,7 +69,7 @@ def read_json(name):
     return dct
 
 
-class JSONDatabase(NoDatabase):
+class JSONDatabase(Database):
     def _write(self, atoms, keywords, key_value_pairs, data):
         bigdct = {}
         ids = []
@@ -111,7 +111,7 @@ class JSONDatabase(NoDatabase):
         
     def _read_json(self):
         bigdct = read_json(self.filename)
-        return bigdct, list(bigdct['ids']), bigdct['nextid']
+        return bigdct, bigdct['ids'].tolist(), bigdct['nextid']
         
     def _write_json(self, bigdct, ids, nextid):
         if world.rank > 0:
@@ -175,7 +175,11 @@ class JSONDatabase(NoDatabase):
     @lock
     @parallel
     def update(self, ids, add_keywords=[], **add_key_value_pairs):
+        if isinstance(ids, int):
+            ids = [ids]
+
         bigdct, myids, nextid = self._read_json()
+        
         m = 0
         n = 0
         for id in ids:

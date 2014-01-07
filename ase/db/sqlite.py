@@ -3,7 +3,7 @@ import sqlite3
 
 import numpy as np
 
-from ase.db.core import NoDatabase, ops
+from ase.db.core import Database, ops
 from ase.db.json import encode, decode
 
 
@@ -65,11 +65,15 @@ tables = ['systems', 'species', 'keywords',
           'text_key_values', 'number_key_values']
 
 
-class SQLite3Database(NoDatabase):
+class SQLite3Database(Database):
+    initialized = False
+    
     def _connect(self):
         return sqlite3.connect(self.filename)
 
     def _initialize(self, con):
+        if self.initialized:
+            return
         cur = con.execute(
             'select count(*) from sqlite_master where name="systems"')
         if cur.fetchone()[0] == 0:
@@ -79,7 +83,8 @@ class SQLite3Database(NoDatabase):
                 for statement in index_statements.split(';'):
                     con.execute(statement)
             con.commit()
-
+            self.initialized = True
+            
     def _write(self, atoms, keywords, key_value_pairs, data):
         con = self._connect()
         self._initialize(con)

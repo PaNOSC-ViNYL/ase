@@ -15,14 +15,15 @@ Quick links:
     - :mod:`atoms`
     - :mod:`calculators`
     - :mod:`constraints`
+  * - :mod:`db`
     - :mod:`dft`
-  * - :mod:`data`
+    - :mod:`data`
     - :mod:`gui`
-    - :mod:`infrared`
+  * - :mod:`infrared`
     - :mod:`io`
     - :mod:`lattice`
-  * - :mod:`md`
-    - :mod:`neb`
+    - :mod:`md`
+  * - :mod:`neb`
     - :mod:`optimize`
     - :mod:`parallel`
     - :mod:`phonons`
@@ -30,12 +31,14 @@ Quick links:
     - :mod:`structure`
     - :mod:`~ase.lattice.surface`
     - :mod:`transport`
-    - :mod:`thermochemistry`
-  * - :mod:`units`
+  * - :mod:`thermochemistry`
+    - :mod:`units`
     - :mod:`utils`
     - :mod:`vibrations`
-    - :mod:`visualize`
+  * - :mod:`visualize`
     - :mod:`vtk`
+    -
+    -
 
 
 .. seealso::
@@ -77,3 +80,4 @@ List of all modules:
    thermochemistry
    neighbors
    io/opls
+   db/db
