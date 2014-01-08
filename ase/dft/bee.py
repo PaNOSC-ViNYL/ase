@@ -18,8 +18,8 @@ class BEEF_Ensemble:
                 else:
                     calc = atoms
                     self.atoms = calc.atoms
-                xc = calc.get_xc_functional()
-            self.calc = calc
+                self.calc = calc
+                xc = self.calc.get_xc_functional()
             self.e = e
             self.contribs = contribs
             self.xc = xc
