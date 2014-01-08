@@ -139,7 +139,7 @@ class Database:
                  use_lock_file=False):
         self.filename = filename
         self.create_indices = create_indices
-        if use_lock_file:
+        if use_lock_file and isinstance(filename, str):
             self.lock = Lock(filename + '.lock', world=DummyMPI())
         else:
             self.lock = None
