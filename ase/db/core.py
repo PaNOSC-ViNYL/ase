@@ -1,12 +1,8 @@
 import os
 import operator
+import functools
 from time import time
 from random import randint
-
-try:
-    from functools import wraps
-except ImportError:
-    wraps = lambda f: lambda g: g  # PY24
 
 from ase.utils import Lock
 from ase.atoms import Atoms
@@ -38,8 +34,18 @@ ops = {'<': operator.lt,
 
 
 def connect(name, type='extract_from_name', create_indices=True,
-            use_lock_file=False):
-    """Create connection to database."""
+            use_lock_file=True):
+    """Create connection to database.
+    
+    name: str
+        Filename or address of database.
+    type: str
+        One of 'json', 'db' or 'pg' (JSON, SQLite, PostgreSQL).
+        Default is 'extract_from_name', which will ... guess the type
+        from the name.
+    use_lock_file: bool
+        You can turn this off iff you know what you are doing ...
+        """
     
     if type == 'extract_from_name':
         if name is None:
@@ -74,22 +80,17 @@ class FancyDict(dict):
         return value
 
     def __dir__(self):
-        return self.keys()
+        return self.keys()  # for tab-completion
         
 
 def lock(method):
-    @wraps(method)
+    @functools.wraps(method)
     def new_method(self, *args, **kwargs):
         if self.lock is None:
             return method(self, *args, **kwargs)
         else:
-            #with self.lock: PY24
-            #    return method(self, *args, **kwargs)
-            self.lock.acquire()
-            try:
+            with self.lock:
                 return method(self, *args, **kwargs)
-            finally:
-                self.lock.release()
     return new_method
 
 
@@ -97,7 +98,7 @@ def parallel(method):
     if world.size == 1:
         return method
         
-    @wraps(method)
+    @functools.wraps(method)
     def new_method(*args, **kwargs):
         ex = None
         result = None
@@ -117,7 +118,7 @@ def parallel_generator(generator):
     if world.size == 1:
         return generator
         
-    @wraps(generator)
+    @functools.wraps(generator)
     def new_generator(*args, **kwargs):
         if world.rank == 0:
             for result in generator(*args, **kwargs):
@@ -132,6 +133,8 @@ def parallel_generator(generator):
 
 
 class Database:
+    """Base class for all databases."""
+    
     def __init__(self, filename=None, create_indices=True,
                  use_lock_file=False):
         self.filename = filename
@@ -187,8 +190,8 @@ class Database:
         
         Usage::
             
-            id = connection.reserve('keyword1', 'keyword2', ...,
-                                    key1=value1, key2=value2, ...)
+            id = conn.reserve('keyword1', 'keyword2', ...,
+                              key1=value1, key2=value2, ...)
         
         Write an empty row with the given keywords and key-value pairs and
         return the integer id.  If such a row already exists, don't write
@@ -331,7 +334,7 @@ class Database:
         for key, value in kwargs.items():
             if key in atomic_numbers:
                 key = atomic_numbers[key]
-            cmps.append((key, '=', value) )
+            cmps.append((key, '=', value))
             
         for key, op, value in comparisons:
             if key == 'age':

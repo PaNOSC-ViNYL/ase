@@ -122,6 +122,8 @@ These names are special:
       - number of atoms
     * - energy
       - potential energy
+    * - charge
+      - total charge
     * - magmom
       - total magnetic moment
     * - calculator
