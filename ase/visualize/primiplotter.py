@@ -23,7 +23,14 @@ class PrimiPlotterBase:
         self.radius = radii
 
     def set_colors(self, colors):
-        """Explicitly set the colors of the atoms."""
+        """Explicitly set the colors of the atoms.
+        
+        The colors can either be a dictionary mapping tags to colors
+        or an array of colors, one per atom.
+        
+        Each color is specified as a greyscale value from 0.0 to 1.0
+        or as three RGB values from 0.0 to 1.0.
+        """
         self.colors = colors
 
     def set_color_function(self, colors):
@@ -352,6 +359,7 @@ class PrimiPlotter(PrimiPlotterBase):
         self.ownlogfile = False
         
     def set_output(self, device):
+        "Attach an output device to the plotter."
         self.outputdevice.append(device)
         device.set_dimensions(self.dims)
         device.set_owner(weakref.proxy(self))
@@ -522,9 +530,8 @@ class ParallelPrimiPlotter(PrimiPlotter):
     def __init__(self, *args, **kwargs):
         apply(PrimiPlotter.__init__, (self,)+args, kwargs)
         self.isparallel = 1
-        import Scientific.MPI
-        self.MPI = Scientific.MPI
-        self.mpi = Scientific.MPI.world
+        import ase.parallel
+        self.mpi = ase.parallel.world
         if self.mpi is None:
             raise RuntimeError, "MPI is not available."
         self.master = self.mpi.rank == 0
@@ -540,14 +547,14 @@ class ParallelPrimiPlotter(PrimiPlotter):
 
     def _getpositions(self):
         realpos = self.atoms.get_positions()
-        ghostpos = self.atoms.GetGhostCartesianPositions()
+        ghostpos = self.atoms.get_ghost_positions()
         self.numberofrealatoms = len(realpos)
         self.numberofghostatoms = len(ghostpos)
         return concatenate((realpos, ghostpos))
 
     def _getatomicnumbers(self):
         realz = self.atoms.get_atomic_numbers()
-        ghostz = self.atoms.GetGhostAtomicNumbers()
+        ghostz = self.atoms.get_ghost_atomic_numbers()
         return concatenate((realz, ghostz))
 
     def _getradius(self):
@@ -565,12 +572,10 @@ class ParallelPrimiPlotter(PrimiPlotter):
         # max(x) and min(x) only works for rank-1 arrays in Numeric version 17.
         maximal = maximum.reduce(coords[:,0:2])
         minimal = minimum.reduce(coords[:,0:2])
-        recvmax = zeros(2, maximal.typecode())
-        recvmin = zeros(2, minimal.typecode())
-        self.mpi.allreduce(maximal, recvmax, self.MPI.max)
-        self.mpi.allreduce(minimal, recvmin, self.MPI.min)
-        maxx, maxy = recvmax
-        minx, miny = recvmin
+        self.mpi.max(maximal)
+        self.mpi.min(minimal)
+        maxx, maxy = maximal
+        minx, miny = minimal
         return array([maxx + minx, maxy + miny, 0.0]) / 2.0
 
     def _computevisibility(self, xy, rad, invisible, id, zoom = 1):
@@ -587,12 +592,10 @@ class ParallelPrimiPlotter(PrimiPlotter):
         assert len(x) == len(self.atoms)
         maximal = array([max(x), max(y), max(radii[:n])])
         minimal = array([min(x), min(y)])
-        recvmax = zeros(3, maximal.typecode())
-        recvmin = zeros(2, minimal.typecode())
-        self.mpi.allreduce(maximal, recvmax, self.MPI.max)
-        self.mpi.allreduce(minimal, recvmin, self.MPI.min)
-        maxx, maxy, maxradius = recvmax
-        minx, miny = recvmin
+        self.mpi.max(maximal)
+        self.mpi.min(minimal)
+        maxx, maxy, maxradius = maximal
+        minx, miny = minimal
         deltax = maxx - minx + 2*maxradius
         deltay = maxy - miny + 2*maxradius
         scalex = self.dims[0] / deltax
@@ -602,9 +605,9 @@ class ParallelPrimiPlotter(PrimiPlotter):
 
     def _getcolors(self):
         col = PrimiPlotter._getcolors(self)
-        nghost = len(self.atoms.GetGhostCartesianPositions())
+        nghost = len(self.atoms.get_ghost_positions())
         newcolshape = (nghost + col.shape[0],) + col.shape[1:]
-        newcol = zeros(newcolshape, col.typecode())
+        newcol = zeros(newcolshape, col.dtype)
         newcol[:len(col)] = col
         return newcol
     
@@ -616,35 +619,35 @@ class ParallelPrimiPlotter(PrimiPlotter):
             ncol = colors.shape[1]  # 1 or 3.
             assert ncol == 3  # RGB values
         # If one processor says RGB, all must convert
-        ncolthis = array([ncol])
-        ncolmax = zeros((1,), ncolthis.typecode())
-        self.mpi.allreduce(ncolthis, ncolmax, self.MPI.max)
-        ncolmax = ncolmax[0]
+        ncolmax = self.mpi.max(ncol)
         if ncolmax > ncol:
             assert ncol == 1
             colors = colors[:,newaxis] + zeros(ncolmax)[newaxis,:]
             ncol = ncolmax
             assert colors.shape == (len(coords), ncol)
         # Now send data from slaves to master
-        data = zeros((len(coords)+1, 4+ncol), float)
-        data[:-1,:3] = coords
-        data[:-1,3] = radii
-        data[-1,-1] = 4+ncol  # Used to communicate shape
+        data = zeros((len(coords), 4+ncol), float)
+        data[:,:3] = coords
+        data[:,3] = radii
         if ncol == 1:
-            data[:-1,4] = colors
+            data[:,4] = colors
         else:
-            data[:-1,4:] = colors
+            data[:,4:] = colors
         if not self.master:
+            datashape = array(data.shape)
+            assert datashape.shape == (2,)
+            self.mpi.send(datashape, 0, self.mpitag)
             self.mpi.send(data, 0, self.mpitag)
         else:
-            total = [data[:-1]]  # Last row is the dimensions.
+            total = [data]  
             n = len(coords)
             colsmin = colsmax = 4+ncol
             for proc in range(1, self.mpi.size):
                 self._verb("Receiving from processor "+str(proc))
-                fdat = self.mpi.receive(float, proc, self.mpitag)[0]
-                fdat.shape = (-1, fdat[-1])
-                fdat = fdat[:-1]  # Last row is the dimensions.
+                datashape = zeros(2, int)
+                self.mpi.receive(datashape, proc, self.mpitag)
+                fdat = zeros(tuple(datashape))
+                self.mpi.receive(fdat, proc, self.mpitag)
                 total.append(fdat)
                 n = n + len(fdat)
                 if fdat.shape[1] < colsmin:
