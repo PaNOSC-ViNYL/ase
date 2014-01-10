@@ -13,6 +13,11 @@ def write_cfg(f, a):
     """
     if isinstance(f, str):
         f = paropen(f, 'w')
+    if isinstance(a, list):
+        if len(a) == 1:
+            a = a[0]
+        else:
+            raise RuntimeError('Cannot write sequence to single .cfg file.')
 
     f.write('Number of particles = %i\n' % len(a))
     f.write('A = 1.0 Angstrom\n')
