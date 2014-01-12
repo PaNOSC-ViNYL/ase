@@ -48,6 +48,10 @@ def extrapolate(x, y, n=-1.5, plot=0, reg=0, txt=None):
             print [a[0], 0], [A + B * a[0], A]
             pl.plot([a[0], 0], [A + B * a[0], A], '--', label='Regression')
             pl.legend(loc='upper left')
+    else:
+        A = 0
+        B = 0
+        sigma_A = 0
     if plot:
         pl.show()
         #pl.subplot(212)
@@ -61,4 +65,4 @@ def extrapolate(x, y, n=-1.5, plot=0, reg=0, txt=None):
         pl.show()
     if not txt is None:
         f.close()
-    return ext
+    return ext, A, B, sigma_A
