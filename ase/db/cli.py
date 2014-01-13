@@ -1,5 +1,6 @@
 from __future__ import print_function
 import sys
+import optparse
 from time import time
 
 import numpy as np
@@ -19,11 +20,9 @@ def plural(n, word):
 def run(args=sys.argv[1:]):
     if isinstance(args, str):
         args = args.split(' ')
-    import argparse
-    parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
-    add = parser.add_argument
-    add('name', nargs=1)
-    add('selection', nargs='?')
+    parser = optparse.OptionParser(usage='ase-db db-name [selection] ' +
+                                   '[options]')
+    add = parser.add_option
     add('-n', '--count', action='store_true')
     add('-c', '--columns', help='short/long+row-row')
     add('--explain', action='store_true')
@@ -34,46 +33,48 @@ def run(args=sys.argv[1:]):
     add('--delete-keywords')
     add('--delete-key-value-pairs')
     add('--delete', action='store_true')
-    add('-v', '--verbose', action='store_true')
-    add('-q', '--quiet', action='store_true')
+    add('-v', '--verbose', action='store_true', default=False)
+    add('-q', '--quiet', action='store_true', default=False)
     add('-s', '--sort')
     add('-r', '--reverse', action='store_true')
     add('-l', '--long', action='store_true')
     add('--limit', type=int, default=500)
     add('-p', '--python-expression')
 
-    args = parser.parse_args(args)
+    opts, args = parser.parse_args(args)
 
-    verbosity = 1 - args.quiet + args.verbose
+    verbosity = 1 - opts.quiet + opts.verbose
 
-    con = connect(args.name[0])
+    if not args:
+        parser.error('No database given')
+    con = connect(args.pop(0))
 
     if verbosity == 2:
-        print(args)
+        print(opts, args)
 
-    rows = con.select(args.selection, explain=args.explain,
+    rows = con.select(','.join(args), explain=opts.explain,
                       verbosity=verbosity)
 
-    if args.count:
+    if opts.count:
         n = 0
         for row in rows:
             n += 1
         print('%s' % plural(n, 'row'))
         return n
 
-    if args.explain:
+    if opts.explain:
         for row in rows:
             print('%d %d %d %s' % row['explain'])
         return
 
-    if args.add_keywords:
-        add_keywords = args.add_keywords.split(',')
+    if opts.add_keywords:
+        add_keywords = opts.add_keywords.split(',')
     else:
         add_keywords = []
 
     add_key_value_pairs = {}
-    if args.add_key_value_pairs:
-        for pair in args.add_key_value_pairs.split(','):
+    if opts.add_key_value_pairs:
+        for pair in opts.add_key_value_pairs.split(','):
             key, value = pair.split('=')
             for type in [int, float]:
                 try:
@@ -84,8 +85,8 @@ def run(args=sys.argv[1:]):
                     break
             add_key_value_pairs[key] = value
 
-    if args.insert_into:
-        con2 = connect(args.insert_into)
+    if opts.insert_into:
+        con2 = connect(opts.insert_into)
         n = 0
         ids = []
         for dct in rows:
@@ -115,9 +116,9 @@ def run(args=sys.argv[1:]):
                plural(len(add_key_value_pairs) * len(ids) - n, 'pair')))
         return ids
 
-    if args.delete:
+    if opts.delete:
         ids = [dct['id'] for dct in rows]
-        if ids and not args.yes:
+        if ids and not opts.yes:
             msg = 'Delete %s? (yes/no): ' % plural(len(ids), 'row')
             if raw_input(msg).lower() != 'yes':
                 return
@@ -127,14 +128,14 @@ def run(args=sys.argv[1:]):
 
     dcts = list(rows)
     if len(dcts) > 0:
-        if args.long:
+        if opts.long:
             long(dcts[0], verbosity)
             return dcts[0]
-        if args.python_expression:
+        if opts.python_expression:
             for dct in dcts:
-                print(eval(args.python_expression, {'d': dct}))
+                print(eval(opts.python_expression, {'d': dct}))
             return
-        f = Formatter(columns=args.columns)
+        f = Formatter(columns=opts.columns)
         return f.format(dcts)
 
     return []
