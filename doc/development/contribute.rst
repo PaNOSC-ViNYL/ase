@@ -85,6 +85,7 @@ markus      Markus Kaukonen            markus,kaukonen:iki,fi
 miwalter    Michael Walter             Michael,Walter:fmf,uni-freiburg,de
 moses       Poul Georg Moses           poulgeorgmoses:gmail,com
 mvanin      Marco Vanin                mvanin:fysik,dtu,dk
+pastewka    Lars Pastewka              lars,pastewka:iwm,fraunhofer,de
 s032082     Christian Glinsvad         s032082:fysik,dtu,dk
 schenkst    Stephan Schenk             stephan,schenk:basf,com
 schiotz     Jakob Schiotz              schiotz:fysik,dtu,dk
