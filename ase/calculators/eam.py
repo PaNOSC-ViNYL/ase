@@ -317,8 +317,8 @@ End EAM Interface Documentation
         self.rphi_data = np.zeros([self.Nelements, self.Nelements, self.nr])
 
         for i in range(self.Nelements):
-            for j in range(i, self.Nelements):
-                self.rphi_data[i, j] = np.float_(data[d:(d + self.nr)])
+            for j in range(i + 1):
+                self.rphi_data[j, i] = np.float_(data[d:(d + self.nr)])
                 d += self.nr
 
         self.r = np.arange(0, self.nr) * self.dr
@@ -396,15 +396,15 @@ End EAM Interface Documentation
         self.d_data = np.zeros([self.Nelements, self.Nelements, self.nr])
         # should be non symetrical combinations of 2
         for i in range(self.Nelements):
-            for j in range(i, self.Nelements):
-                self.d_data[i, j] = data[d:d + self.nr]
+            for j in range(i + 1):
+                self.d_data[j, i] = data[d:d + self.nr]
                 d += self.nr
 
         self.q_data = np.zeros([self.Nelements, self.Nelements, self.nr])
         # should be non symetrical combinations of 2
         for i in range(self.Nelements):
-            for j in range(i, self.Nelements):
-                self.q_data[i, j] = data[d:d + self.nr]
+            for j in range(i + 1):
+                self.q_data[j, i] = data[d:d + self.nr]
                 d += self.nr
 
     def write_potential(self, filename, nc=1, numformat='%.8e'):
