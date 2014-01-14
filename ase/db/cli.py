@@ -53,9 +53,13 @@ def run(args=sys.argv[1:]):
         print(opts, args)
 
     if args:
-        expressions = ','.join(args)
+        if len(args) == 1 and args[0].isdigit():
+            expressions = int(args[0])
+        else:
+            expressions = ','.join(args)
     else:
         expressions = []
+        
     rows = con.select(expressions, explain=opts.explain,
                       verbosity=verbosity)
 
