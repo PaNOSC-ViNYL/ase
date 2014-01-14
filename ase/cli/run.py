@@ -105,7 +105,11 @@ class Runner:
             return
 
         if self.calculator_name is None:
-            self.calculator_name = names.pop(0)
+            if names:
+                self.calculator_name = names.pop(0)
+            else:
+                parser.error('Missing calculator name')
+                
 
         if self.opts.plugin:
             runner = self.get_runner()
