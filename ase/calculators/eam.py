@@ -11,7 +11,7 @@ import os
 import numpy as np
 from ase.test import NotAvailable
 from ase.calculators.neighborlist import NeighborList
-from ase.calculators.calculator import Calculator
+from ase.calculators.calculator import Calculator, all_changes
 from scipy.interpolate import InterpolatedUnivariateSpline as spline
 
 
@@ -500,8 +500,7 @@ End EAM Interface Documentation
         self.neighbors.update(atoms)
 
     def calculate(self, atoms=None, properties=['energy'],
-                  system_changes=['positions', 'numbers', 'cell',
-                                  'pbc', 'charges','magmoms']):
+                  system_changes=all_changes):
         """EAM Calculator
 
         atoms: Atoms object
@@ -512,7 +511,7 @@ End EAM Interface Documentation
         system_changes: list of str
             List of what has changed since last calculation.  Can be
             any combination of these five: 'positions', 'numbers', 'cell',
-            'pbc', 'charges' and 'magmoms'.
+            'pbc', 'initial_charges' and 'initial_magmoms'.
             """
 
         Calculator.calculate(self, atoms, properties, system_changes)

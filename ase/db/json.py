@@ -8,6 +8,7 @@ import numpy as np
 
 from ase.parallel import world
 from ase.db.core import Database, ops, parallel, lock
+from ase.db.core import check_keywords, check_keys
 
 
 class MyEncoder(JSONEncoder):
@@ -71,6 +72,8 @@ def read_json(name):
 
 class JSONDatabase(Database):
     def _write(self, atoms, keywords, key_value_pairs, data):
+        Database._write(self, atoms, keywords, key_value_pairs, data)
+        
         bigdct = {}
         ids = []
         nextid = 1
@@ -175,6 +178,9 @@ class JSONDatabase(Database):
     @lock
     @parallel
     def update(self, ids, add_keywords=[], **add_key_value_pairs):
+        check_keywords(add_keywords)
+        check_keys(add_key_value_pairs)
+
         if isinstance(ids, int):
             ids = [ids]
 

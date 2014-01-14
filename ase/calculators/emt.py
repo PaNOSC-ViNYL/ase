@@ -7,7 +7,7 @@ import numpy as np
 from ase.data import chemical_symbols
 from ase.units import Bohr
 from ase.calculators.neighborlist import NeighborList
-from ase.calculators.calculator import Calculator
+from ase.calculators.calculator import Calculator, all_changes
 
 
 parameters = {
@@ -90,8 +90,7 @@ class EMT(Calculator):
                                self_interaction=False)
 
     def calculate(self, atoms=None, properties=['energy'],
-                  system_changes=['positions', 'numbers', 'cell',
-                                  'pbc', 'charges','magmoms']):
+                  system_changes=all_changes):
         Calculator.calculate(self, atoms, properties, system_changes)
 
         if 'numbers' in system_changes:

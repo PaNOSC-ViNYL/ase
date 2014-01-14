@@ -14,7 +14,8 @@ all_properties = ['energy', 'forces', 'stress', 'dipole',
                   'charges', 'magmom', 'magmoms']
 
 
-all_changes = ['positions', 'numbers', 'cell', 'pbc', 'charges', 'magmoms']
+all_changes = ['positions', 'numbers', 'cell', 'pbc',
+               'initial_charges', 'initial_magmoms']
 
 
 # Recognized names of calculators sorted alphabetically:
@@ -334,10 +335,10 @@ class Calculator:
                 system_changes.append('pbc')
             if not equal(self.atoms.get_initial_magnetic_moments(),
                          atoms.get_initial_magnetic_moments(), tol):
-                system_changes.append('magmoms')
+                system_changes.append('initial_magmoms')
             if not equal(self.atoms.get_initial_charges(),
                          atoms.get_initial_charges(), tol):
-                system_changes.append('charges')
+                system_changes.append('initial_charges')
 
         return system_changes
 
@@ -413,7 +414,7 @@ class Calculator:
         system_changes: list of str
             List of what has changed since last calculation.  Can be
             any combination of these five: 'positions', 'numbers', 'cell',
-            'pbc', 'charges' and 'magmoms'.
+            'pbc', 'initial_charges' and 'initial_magmoms'.
 
         Subclasses need to implement this, but can ignore properties
         and system_changes if they want.  Calculated properties should

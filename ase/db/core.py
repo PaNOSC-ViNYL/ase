@@ -1,4 +1,5 @@
 import os
+import re
 import operator
 import functools
 from time import time
@@ -9,8 +10,9 @@ from ase.atoms import Atoms
 from ase.data import atomic_numbers
 from ase.constraints import FixAtoms
 from ase.parallel import world, broadcast, DummyMPI
-from ase.calculators.calculator import get_calculator, all_properties
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.calculators.calculator import get_calculator, all_properties, \
+    all_changes
 
 
 T0 = 946681200.0  # January 1. 2000
@@ -32,6 +34,25 @@ ops = {'<': operator.lt,
        '>': operator.gt,
        '!=': operator.ne}
 
+word = re.compile('[_a-zA-Z][_0-9a-zA-Z]*$')
+
+reserved_keys = set(all_properties + all_changes +
+                    ['id', 'unique_id', 'timestamp', 'username',
+                     'momenta', 'constraints',
+                     'calculator_name', 'calculator_parameters'])
+
+
+def check_keywords(keywords):
+    for keyword in keywords:
+        if not word.match(keyword):
+            raise ValueError('Bad keyword: {0}'.format(keyword))
+
+
+def check_keys(keys):
+    for key in keys:
+        if not word.match(key) or key in reserved_keys:
+            raise ValueError('Bad key: {0}'.format(key))
+            
 
 def connect(name, type='extract_from_name', create_indices=True,
             use_lock_file=True):
@@ -177,10 +198,13 @@ class Database:
         
         kvp = dict(key_value_pairs)  # modify a copy
         kvp.update(kwargs)
+        
         id = self._write(atoms, keywords, kvp, data)
         return id
         
     def _write(self, atoms, keywords, key_value_pairs, data):
+        check_keywords(keywords)
+        check_keys(key_value_pairs)
         return 1
 
     @parallel
@@ -408,9 +432,9 @@ def atoms2dict(atoms):
         'positions': atoms.positions,
         'unique_id': '%x' % randint(16**31, 16**32 - 1)}
     if atoms.has('magmoms'):
-        data['magmoms'] = atoms.get_initial_magnetic_moments()
+        data['initial_magmoms'] = atoms.get_initial_magnetic_moments()
     if atoms.has('charges'):
-        data['charges'] = atoms.get_initial_charges()
+        data['initial_charges'] = atoms.get_initial_charges()
     if atoms.has('masses'):
         data['masses'] = atoms.get_masses()
     if atoms.has('tags'):
@@ -436,8 +460,8 @@ def dict2atoms(dct, attach_calculator=False):
                   dct['positions'],
                   cell=dct['cell'],
                   pbc=dct['pbc'],
-                  magmoms=dct.get('magmoms'),
-                  charges=dct.get('charges'),
+                  magmoms=dct.get('initial_magmoms'),
+                  charges=dct.get('initial_charges'),
                   tags=dct.get('tags'),
                   masses=dct.get('masses'),
                   momenta=dct.get('momenta'),

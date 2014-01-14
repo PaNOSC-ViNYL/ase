@@ -89,8 +89,8 @@ class Abinit(FileIOCalculator):
         kpts: list of three int
             Monkhost-Pack sampling.
         nbands: int
-            Number of bands.
-            For the values of occopt not equal to 0 or 2, nbands can be omitted.
+            Number of bands.  For the values of occopt not equal
+            to 0 or 2, nbands can be omitted.
         nstep: int
             Number of self-consistent field STEPS.
         width: float
@@ -147,15 +147,16 @@ class Abinit(FileIOCalculator):
 
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
 
-        if 'numbers' in system_changes or 'magmoms' in system_changes:
+        if ('numbers' in system_changes or
+            'initial_magmoms' in system_changes):
             self.initialize(atoms)
 
         fh = open(self.label + '.files', 'w')
 
-        fh.write('%s\n' % (self.prefix + '.in')) # input
-        fh.write('%s\n' % (self.prefix + '.txt')) # output
-        fh.write('%s\n' % (self.prefix + 'i')) # input
-        fh.write('%s\n' % (self.prefix + 'o')) # output
+        fh.write('%s\n' % (self.prefix + '.in'))  # input
+        fh.write('%s\n' % (self.prefix + '.txt'))  # output
+        fh.write('%s\n' % (self.prefix + 'i'))  # input
+        fh.write('%s\n' % (self.prefix + 'o'))  # output
         
         # XXX:
         # scratch files
@@ -239,7 +240,7 @@ class Abinit(FileIOCalculator):
 
         fh.write('#Definition of the unit cell\n')
         fh.write('acell\n')
-        fh.write('%.14f %.14f %.14f Angstrom\n' %  (1.0, 1.0, 1.0))
+        fh.write('%.14f %.14f %.14f Angstrom\n' % (1.0, 1.0, 1.0))
         fh.write('rprim\n')
         for v in atoms.cell:
             fh.write('%.14f %.14f %.14f\n' %  tuple(v))
@@ -259,7 +260,7 @@ class Abinit(FileIOCalculator):
         for Z in atoms.numbers:
             for n, Zs in enumerate(self.species):
                 if Z == Zs:
-                    self.types.append(n+1)
+                    self.types.append(n + 1)
         n_entries_int = 20  # integer entries per line
         for n, type in enumerate(self.types):
             fh.write(' %d' % (type))
@@ -563,13 +564,14 @@ class Abinit(FileIOCalculator):
         # kpt#   2, nband=  3, wtk=  0.04688, kpt=  0.1875  0.0625  0.0625 (reduced coord)
         # ...
         #
-        assert mode in ['eigenvalues' , 'occupations', 'ibz_k_points', 'k_point_weights'], 'mode not in [\'eigenvalues\' , \'occupations\', \'ibz_k_points\', \'k_point_weights\']'
+        assert mode in ['eigenvalues', 'occupations', 'ibz_k_points',
+                        'k_point_weights'], mode
         if self.get_spin_polarized():
             spin = {0: 1, 1: 0}[spin]
         if spin == 0:
-           spinname = ''
+            spinname = ''
         else:
-           spinname = 'SPIN UP'.lower()
+            spinname = 'SPIN UP'.lower()
         # number of lines of eigenvalues/occupations for a kpt
         nband = self.get_number_of_bands()
         n_entries_float = 8  # float entries per line

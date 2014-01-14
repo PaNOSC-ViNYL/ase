@@ -86,6 +86,8 @@ class SQLite3Database(Database):
             self.initialized = True
             
     def _write(self, atoms, keywords, key_value_pairs, data):
+        Database._write(self, atoms, keywords, key_value_pairs, data)
+        
         con = self._connect()
         self._initialize(con)
         cur = con.cursor()
@@ -113,8 +115,8 @@ class SQLite3Database(Database):
                blob(dct.get('positions')),
                blob(dct.get('cell')),
                int(np.dot(dct.get('pbc'), [1, 2, 4])),
-               blob(dct.get('magmoms')),
-               blob(dct.get('charges')),
+               blob(dct.get('initial_magmoms')),
+               blob(dct.get('initial_charges')),
                blob(dct.get('masses')),
                blob(dct.get('tags')),
                blob(dct.get('momenta')),
