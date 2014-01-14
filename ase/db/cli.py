@@ -52,7 +52,11 @@ def run(args=sys.argv[1:]):
     if verbosity == 2:
         print(opts, args)
 
-    rows = con.select(','.join(args), explain=opts.explain,
+    if args:
+        expressions = ','.join(args)
+    else:
+        expressions = []
+    rows = con.select(expressions, explain=opts.explain,
                       verbosity=verbosity)
 
     if opts.count:
