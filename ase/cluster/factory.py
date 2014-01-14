@@ -13,6 +13,8 @@ class ClusterFactory(ClusterBase):
     atomic_basis = np.array([[0., 0., 0.]])
 
     element_basis = None
+    
+    Cluster = Cluster   # Make it possible to change the class of the object returned.
 
     def __call__(self, symbols, surfaces, layers, latticeconstant=None,
                  center=None, vacuum=0.0, debug=0):
@@ -98,7 +100,7 @@ class ClusterFactory(ClusterBase):
         positions = positions - min + vacuum / 2.0
         self.center = self.center - min + vacuum / 2.0
 
-        return Cluster(symbols=numbers, positions=positions, cell=cell)
+        return self.Cluster(symbols=numbers, positions=positions, cell=cell)
 
     def set_atomic_numbers(self, symbols):
         "Extract atomic number from element"
