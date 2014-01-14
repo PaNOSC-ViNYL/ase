@@ -150,6 +150,7 @@ def parallel_generator(generator):
             result = broadcast(None)
             while result is not None:
                 yield result
+                result = broadcast(None)
     return new_generator
 
 
@@ -282,6 +283,7 @@ class Database:
             return fancy dictionary with keys as attributes (this is the
             default).
         """
+
         dcts = list(self.select(selection, fancy, limit=2, **kwargs))
         if not dcts:
             raise KeyError('no match')
