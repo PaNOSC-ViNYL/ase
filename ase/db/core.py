@@ -37,9 +37,9 @@ ops = {'<': operator.lt,
 word = re.compile('[_a-zA-Z][_0-9a-zA-Z]*$')
 
 reserved_keys = set(all_properties + all_changes +
-                    ['id', 'unique_id', 'timestamp', 'username',
+                    ['id', 'unique_id', 'timestamp', 'user',
                      'momenta', 'constraints',
-                     'calculator_name', 'calculator_parameters'])
+                     'calculator', 'calculator_parameters'])
 
 
 def check_keywords(keywords):
@@ -238,9 +238,9 @@ class Database:
     def collect_data(self, atoms):
         dct = atoms2dict(atoms)
         dct['timestamp'] = self.timestamp
-        dct['username'] = os.getenv('USER')
+        dct['user'] = os.getenv('USER')
         if atoms.calc is not None:
-            dct['calculator_name'] = atoms.calc.name.lower()
+            dct['calculator'] = atoms.calc.name.lower()
             dct['calculator_parameters'] = atoms.calc.todict()
             if len(atoms.calc.check_state(atoms)) == 0:
                 dct.update(atoms.calc.results)
@@ -299,7 +299,7 @@ class Database:
         Return iterator with results as dictionaries.  Selection is done
         using key-value pairs, keywords and the special keys:
             
-            age, username, calculator, energy, magmom and/or charge.
+            age, user, calculator, natoms, energy, magmom and/or charge.
         
         selection: int, str or list
             Can be:
@@ -470,7 +470,7 @@ def dict2atoms(dct, attach_calculator=False):
                   constraint=constraints)
 
     if attach_calculator:
-        atoms.calc = get_calculator(dct['calculator_name'])(
+        atoms.calc = get_calculator(dct['calculator'])(
             **dct['calculator_parameters'])
     else:
         results = {}

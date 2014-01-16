@@ -71,7 +71,7 @@ Show all details for a single row::
     $ ase-db abc.db id=3 -l
     id: 3
     formula: H
-    username: jensj
+    user: jensj
     age: 174s
     calculator: emt
     energy: 3.210 eV
@@ -128,11 +128,11 @@ These names are special:
       - total magnetic moment
     * - calculator
       - name of calculator
-    * - username
+    * - user
       - who did it
     * - age
-      - age of calculation (use smhdwMy for second, minute, hour, day, week,
-        month and year respectively)
+      - age of calculation (use s, m, h, d, w, M and y for second, minute,
+        hour, day, week, month and year respectively)
 
         
 Integration with other parts of ASE
@@ -220,7 +220,7 @@ Select a single row with the :meth:`~Database.get` method:
 >>> for k, v in d.items():
 ...     print '%-25s: %s' % (k, v)
 ... 
-username                 : jensj
+user                     : jensj
 key_value_pairs          : {u'relaxed': True}
 timestamp                : 14.0195850909
 energy                   : 1.07054126233
@@ -234,7 +234,7 @@ keywords                 : [u'molecule']
 pbc                      : [False False False]
 id                       : 2
 unique_id                : 22e4a2d64800987dd8d398c6cc9fd085
-calculator_name          : emt
+calculator               : emt
 
 Calculate the atomization energy and :meth:`~Database.update` a row in
 the database:

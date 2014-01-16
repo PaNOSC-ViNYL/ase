@@ -12,7 +12,7 @@ create table systems (
     id integer primary key autoincrement,
     unique_id text unique,
     timestamp real,
-    username text,
+    user text,
     numbers blob,
     positions blob,
     cell blob,
@@ -23,7 +23,7 @@ create table systems (
     tags blob,
     momenta blob,
     constraints text,
-    calculator_name text,
+    calculator text,
     calculator_parameters text,
     energy real,
     free_energy real,
@@ -57,8 +57,8 @@ create table number_key_values (
 index_statements = """\
 create index unique_id_index on systems(unique_id);
 create index timestamp_index on systems(timestamp);
-create index username_index on systems(username);
-create index calculator_index on systems(calculator_name);
+create index user_index on systems(user);
+create index calculator_index on systems(calculator);
 create index species_index on species(Z);
 create index keyword_index on keywords(keyword);
 create index text_index on text_key_values(key);
@@ -119,7 +119,7 @@ class SQLite3Database(Database):
         row = (id,
                dct['unique_id'],
                self.timestamp,
-               dct['username'],
+               dct['user'],
                blob(dct.get('numbers')),
                blob(dct.get('positions')),
                blob(dct.get('cell')),
@@ -131,8 +131,8 @@ class SQLite3Database(Database):
                blob(dct.get('momenta')),
                constraints)
 
-        if 'calculator_name' in dct:
-            row += (dct['calculator_name'],
+        if 'calculator' in dct:
+            row += (dct['calculator'],
                     encode(dct['calculator_parameters']))
         else:
             row += (None, None)
@@ -205,7 +205,7 @@ class SQLite3Database(Database):
         dct = {'id': row[0],
                'unique_id': row[1],
                'timestamp': row[2],
-               'username': row[3],
+               'user': row[3],
                'numbers': deblob(row[4], np.int32),
                'positions': deblob(row[5], shape=(-1, 3)),
                'cell': deblob(row[6], shape=(3, 3)),
@@ -223,7 +223,7 @@ class SQLite3Database(Database):
         if row[13] is not None:
             dct['constraints'] = decode(row[13])
         if row[14] is not None:
-            dct['calculator_name'] = row[14]
+            dct['calculator'] = row[14]
             dct['calculator_parameters'] = decode(row[15])
         if row[16] is not None:
             dct['energy'] = row[16]
@@ -264,10 +264,8 @@ class SQLite3Database(Database):
         ntext = 0
         nnumber = 0
         for key, op, value in cmps:
-            if key == 'calculator':
-                key = 'calculator_name'
             if key in ['id', 'energy', 'magmom', 'timestamp',
-                       'username', 'calculator_name']:
+                       'user', 'calculator']:
                 where.append('systems.{0}{1}?'.format(key, op))
                 args.append(value)
             elif key == 'natoms':

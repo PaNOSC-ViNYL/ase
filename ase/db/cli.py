@@ -17,7 +17,7 @@ def plural(n, word):
     return '%d %ss' % (n, word)
 
 
-description="""Selecton is a comma-separated list of
+description = """Selecton is a comma-separated list of
 selections where each selection is of the type "ID", "keyword" or
 "key=value".  Instead of "=", one can also use "<", "<=", ">=", ">"
 and  "!=" (these must be protected from the shell by using quotes).
@@ -57,18 +57,20 @@ def run(args=sys.argv[1:]):
         help='Add key-value pairs to selected rows.  Values must be numbers ' +
         'or strings and keys must follow the same rules as keywords.')
     add('--limit', type=int, default=500, metavar='N',
-        help='Limit number of rows (default is 500 rows).  Use --limit=0 ' +
-        'for no limit.')
+        help='Show only first N rows (default is 500 rows).  Use --limit=0 ' +
+        'to show all.')
     add('--delete', action='store_true',
         help='Delete selected rows.')
-    add('--delete-keywords',  metavar='key1=word1,word2,...')
-    add('--delete-key-value-pairs', metavar='key1=val1,key2=val2,...')
+    add('--delete-keywords',  metavar='key1=word1,word2,...',
+        help='Delete keywords for selected rows.')
+    add('--delete-key-value-pairs', metavar='key1=val1,key2=val2,...',
+        help='Delete key-value pairs for selected rows.')
     add('-y', '--yes', action='store_true',
         help='Say yes.')
     add('--explain', action='store_true',
         help='Explain query plan.')
     add('-p', '--python-expression', metavar='expression',
-        help="""Examples: "d.key", "d.keywords['keyword']", where""" +
+        help="""Examples: "d.key", "d.keywords['keyword']", where """ +
         '"d" is a dictionary representing a row.')
 
     opts, args = parser.parse_args(args)
@@ -158,8 +160,8 @@ def run(args=sys.argv[1:]):
         return ids
 
     if opts.python_expression:
-        for dct in rows:
-            row = eval(opts.python_expression, {'d': dct})
+        for n, dct in enumerate(rows):
+            row = eval(opts.python_expression, {'d': dct, 'n': n})
             if not isinstance(row, (list, tuple, np.ndarray)):
                 row = [row]
             print(', '.join(str(x) for x in row))
@@ -180,11 +182,11 @@ def run(args=sys.argv[1:]):
 def long(d, verbosity=1):
     print('id:', d.id)
     print('formula:', Atoms(d.numbers).get_chemical_formula())
-    print('username:', d.username)
+    print('user:', d.user)
     print('age: {0}'.format(float_to_time_string((time() - T0) / YEAR -
                                                  d.timestamp)))
-    if 'calculator_name' in d:
-        print('calculator:', d.calculator_name)
+    if 'calculator' in d:
+        print('calculator:', d.calculator)
     if 'energy' in d:
         print('energy: {0:.3f} eV'.format(d.energy))
     if 'forces' in d:
@@ -271,7 +273,7 @@ class Formatter:
         return float_to_time_string((time() - T0) / YEAR - d.timestamp)
 
     def user(self, d):
-        return d.username
+        return d.user
     
     def formula(self, d):
         return Atoms(d.numbers).get_chemical_formula()
@@ -294,7 +296,7 @@ class Formatter:
         return '%d%d%d' % tuple(d.pbc)
 
     def calc(self, d):
-        return d.calculator_name
+        return d.calculator
 
     def fmax(self, d):
         return (d.forces**2).sum(1).max()**0.5

@@ -218,10 +218,8 @@ def get_value(id, dct, key):
         value = pairs.get(key)
     if value is not None:
         return value
-    if key in ['energy', 'magmom', 'timestamp', 'username']:
+    if key in ['energy', 'magmom', 'timestamp', 'user', 'calculator']:
         return dct.get(key)
-    if key == 'calculator':
-        return dct.get('calculator_name')
     if isinstance(key, int):
         return np.equal(dct['numbers'], key).sum()
     if key == 'natoms':
