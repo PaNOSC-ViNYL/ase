@@ -100,7 +100,7 @@ def run(args=sys.argv[1:]):
         for row in rows:
             n += 1
         print('%s' % plural(n, 'row'))
-        return n
+        return
 
     if opts.explain:
         for row in rows:
@@ -127,27 +127,37 @@ def run(args=sys.argv[1:]):
 
     if opts.insert_into:
         con2 = connect(opts.insert_into)
-        n = 0
-        ids = []
+        nkw = 0
+        nkv = 0
+        nrows = 0
         for dct in rows:
             for keyword in add_keywords:
                 if keyword not in dct.keywords:
                     dct.keywords.append(keyword)
-                    n += 1
-            id = con2.write(dct, timestamp=dct.timestamp)
-            ids.append(id)
-        print('Added %s' % plural(n, 'keyword'))
-        print('Inserted %s' % plural(len(ids), 'row'))
-        return ids
+                    nkw += 1
+
+            kvp = dct['key_value_pairs']
+            nkv = -len(kvp)
+            kvp.update(add_key_value_pairs)
+            nkv += len(kvp)
+            con2.write(dct, timestamp=dct.timestamp)
+            nrows += 1
+            
+        print('Added %s and %s (%s updated)' %
+              (plural(nkw, 'keyword'),
+               plural(nkv, 'key-value pair'),
+               plural(len(add_key_value_pairs) * nrows - nkv, 'pair')))
+        print('Inserted %s' % plural(nrows, 'row'))
+        return
 
     if add_keywords or add_key_value_pairs:
         ids = [dct['id'] for dct in rows]
-        m, n = con.update(ids, add_keywords, **add_key_value_pairs)
+        nkw, nkv = con.update(ids, add_keywords, **add_key_value_pairs)
         print('Added %s and %s (%s updated)' %
-              (plural(m, 'keyword'),
-               plural(n, 'key-value pair'),
-               plural(len(add_key_value_pairs) * len(ids) - n, 'pair')))
-        return ids
+              (plural(nkw, 'keyword'),
+               plural(nkv, 'key-value pair'),
+               plural(len(add_key_value_pairs) * len(ids) - nkv, 'pair')))
+        return
 
     if opts.delete:
         ids = [dct['id'] for dct in rows]
@@ -157,7 +167,7 @@ def run(args=sys.argv[1:]):
                 return
         con.delete(ids)
         print('Deleted %s' % plural(len(ids), 'row'))
-        return ids
+        return
 
     if opts.python_expression:
         for n, dct in enumerate(rows):
@@ -165,18 +175,16 @@ def run(args=sys.argv[1:]):
             if not isinstance(row, (list, tuple, np.ndarray)):
                 row = [row]
             print(', '.join(str(x) for x in row))
-        return []
+        return
         
     dcts = list(rows)
     if len(dcts) > 0:
         if opts.long:
             long(dcts[0], verbosity)
-            return dcts[0]
+            return
         
         f = Formatter()
-        return f.format(dcts)
-
-    return []
+        f.format(dcts)
 
 
 def long(d, verbosity=1):

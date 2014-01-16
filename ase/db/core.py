@@ -39,7 +39,8 @@ word = re.compile('[_a-zA-Z][_0-9a-zA-Z]*$')
 reserved_keys = set(all_properties + all_changes +
                     ['id', 'unique_id', 'timestamp', 'user',
                      'momenta', 'constraints',
-                     'calculator', 'calculator_parameters'])
+                     'calculator', 'calculator_parameters',
+                     'keywords', 'key_value_pairs', 'data'])
 
 
 def check_keywords(keywords):

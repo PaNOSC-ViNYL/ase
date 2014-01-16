@@ -8,7 +8,7 @@ import numpy as np
 
 from ase.parallel import world
 from ase.db.core import Database, ops, parallel, lock
-from ase.db.core import check_keywords, check_keys
+from ase.db.core import check_keywords, check_keys, reserved_keys
 
 
 class MyEncoder(JSONEncoder):
@@ -85,7 +85,9 @@ class JSONDatabase(Database):
                 pass
 
         if isinstance(atoms, dict):
-            dct = copy.deepcopy(atoms)
+            dct = dict((key, atoms[key])
+                       for key in reserved_keys
+                       if key in atoms and key != 'id')
             unique_id = dct['unique_id']
             for id in ids:
                 if bigdct[id]['unique_id'] == unique_id:
