@@ -5,10 +5,12 @@ from time import time
 
 import numpy as np
 
+import ase.io
 from ase.db import connect
-from ase.db.core import float_to_time_string, T0, YEAR
 from ase.atoms import Atoms
 from ase.data import atomic_masses
+from ase.calculators.calculator import get_calculator
+from ase.db.core import float_to_time_string, T0, YEAR
 
 
 def plural(n, word):
@@ -49,6 +51,8 @@ def run(args=sys.argv[1:]):
         help='Long description of selected row (or first row selected)')
     add('-i', '--insert-into', metavar='db-name',
         help='Insert selected rows into another database.')
+    add('-a', '--add-from-file', metavar='[type:]filename',
+        help='Add results from file.')
     add('-k', '--add-keywords', metavar='word1,word2,...',
         help='Add keywords to selected rows.  Keywords can only contain ' +
         'letters, numbers and the underscore character and the first ' +
@@ -79,6 +83,7 @@ def run(args=sys.argv[1:]):
 
     if not args:
         parser.error('No database given')
+        
     con = connect(args.pop(0))
 
     if verbosity == 2:
@@ -91,9 +96,10 @@ def run(args=sys.argv[1:]):
             expressions = ','.join(args)
     else:
         expressions = []
-        
-    rows = con.select(expressions, explain=opts.explain,
-                      verbosity=verbosity, limit=opts.limit)
+    
+    if not opts.add_from_file:
+        rows = con.select(expressions, explain=opts.explain,
+                          verbosity=verbosity, limit=opts.limit)
 
     if opts.count:
         n = 0
@@ -150,6 +156,18 @@ def run(args=sys.argv[1:]):
         print('Inserted %s' % plural(nrows, 'row'))
         return
 
+    if opts.add_from_file:
+        filename = opts.add_from_file
+        if ':' in filename:
+            calculator_name, filename = name.split(':')
+            atoms = get_calculator(calculator_name)(filename).get_atoms()
+        else:
+            atoms = ase.io.read(filename)
+        con.write(atoms, add_keywords, key_value_pairs=add_key_value_pairs)
+        print('Added {0} from {1}'.format(atoms.get_chemical_formula(),
+                                          filename))
+        return
+        
     if add_keywords or add_key_value_pairs:
         ids = [dct['id'] for dct in rows]
         nkw, nkv = con.update(ids, add_keywords, **add_key_value_pairs)
