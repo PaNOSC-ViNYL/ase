@@ -11,6 +11,8 @@ class SinglePointCalculator(Calculator):
     boundary conditions are changed, then asking for
     energy/forces/stress will raise an exception."""
     
+    name = 'unknown'
+    
     def __init__(self, *args, **results):
         """Save energy, forces, stress, ... for the current configuration."""
         if args and isinstance(args[0], float):
