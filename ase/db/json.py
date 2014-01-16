@@ -152,10 +152,15 @@ class JSONDatabase(Database):
     def _select(self, keywords, cmps, explain=False, verbosity=0, limit=None):
         if explain:
             return
+            
         try:
             bigdct, ids, nextid = self._read_json()
         except IOError:
             return
+            
+        if not limit:
+            limit = -1
+            
         cmps = [(key, ops[op], val) for key, op, val in cmps]
         n = 0
         for id in ids:

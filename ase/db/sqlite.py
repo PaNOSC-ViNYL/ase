@@ -291,8 +291,13 @@ class SQLite3Database(Database):
         sql = 'select systems.* from\n  ' + ', '.join(tables)
         if where:
             sql += '\n  where\n  ' + ' and\n  '.join(where)
+            
         if explain:
             sql = 'explain query plan ' + sql
+            
+        if limit:
+            sql += '\nlimit {0}'.format(limit)
+            
         if verbosity == 2:
             print(sql, args)
         con = self._connect()

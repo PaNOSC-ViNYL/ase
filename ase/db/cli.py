@@ -61,7 +61,7 @@ def run(args=sys.argv[1:]):
         expressions = []
         
     rows = con.select(expressions, explain=opts.explain,
-                      verbosity=verbosity)
+                      verbosity=verbosity, limit=opts.limit)
 
     if opts.count:
         n = 0
