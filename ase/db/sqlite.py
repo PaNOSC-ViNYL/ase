@@ -58,7 +58,11 @@ index_statements = """\
 create index unique_id_index on systems(unique_id);
 create index timestamp_index on systems(timestamp);
 create index username_index on systems(username);
-create index species_index on species(Z)
+create index calculator_index on systems(calculator_name);
+create index species_index on species(Z);
+create index keyword_index on keywords(keyword);
+create index text_index on text_key_values(key);
+create index number_index on number_key_values(key)
 """
 
 tables = ['systems', 'species', 'keywords',
@@ -107,6 +111,11 @@ class SQLite3Database(Database):
         else:
             dct = self.collect_data(atoms)
 
+        if 'constraints' in dct:
+            constraints = encode(dct['constraints'])
+        else:
+            constraints = None
+            
         row = (id,
                dct['unique_id'],
                self.timestamp,
@@ -120,7 +129,7 @@ class SQLite3Database(Database):
                blob(dct.get('masses')),
                blob(dct.get('tags')),
                blob(dct.get('momenta')),
-               dct.get('constraints'))
+               constraints)
 
         if 'calculator_name' in dct:
             row += (dct['calculator_name'],

@@ -17,29 +17,59 @@ def plural(n, word):
     return '%d %ss' % (n, word)
 
 
+description="""Selecton is a comma-separated list of
+selections where each selection is of the type "ID", "keyword" or
+"key=value".  Instead of "=", one can also use "<", "<=", ">=", ">"
+and  "!=" (these must be protected from the shell by using quotes).
+Special keys: id, user, calculator, age, natoms, energy, magmom,
+and charge.  Chemical symbols can also be used to select number of
+specific atomic species (H, He, Li, ...)."""
+
+examples = ['calculator=nwchem',
+            'age<1d',
+            'natoms=1',
+            'user=alice',
+            '2.2<bandgap<4.1',
+            'Cu>=10']
+
 def run(args=sys.argv[1:]):
     if isinstance(args, str):
         args = args.split(' ')
-    parser = optparse.OptionParser(usage='ase-db db-name [selection] ' +
-                                   '[options]')
+    parser = optparse.OptionParser(
+        usage='Usage: %prog db-name [selection] [options]',
+        description=description,
+        epilog='Selection examples: ' + ', '.join(examples) + '.')
+    
     add = parser.add_option
-    add('-n', '--count', action='store_true')
-    add('-c', '--columns', help='short/long+row-row')
-    add('--explain', action='store_true')
-    add('-y', '--yes', action='store_true')
-    add('-i', '--insert-into')
-    add('-k', '--add-keywords')
-    add('-K', '--add-key-value-pairs')
-    add('--delete-keywords')
-    add('--delete-key-value-pairs')
-    add('--delete', action='store_true')
     add('-v', '--verbose', action='store_true', default=False)
     add('-q', '--quiet', action='store_true', default=False)
-    add('-s', '--sort')
-    add('-r', '--reverse', action='store_true')
-    add('-l', '--long', action='store_true')
-    add('--limit', type=int, default=500)
-    add('-p', '--python-expression')
+    add('-n', '--count', action='store_true',
+        help='Count number of selected rows.')
+    add('-l', '--long', action='store_true',
+        help='Long description of selected row (or first row selected)')
+    add('-i', '--insert-into', metavar='db-name',
+        help='Insert selected rows into another database.')
+    add('-k', '--add-keywords', metavar='word1,word2,...',
+        help='Add keywords to selected rows.  Keywords can only contain ' +
+        'letters, numbers and the underscore character and the first ' +
+        'character can not be a number.')
+    add('-K', '--add-key-value-pairs', metavar='key1=val1,key2=val2,...',
+        help='Add key-value pairs to selected rows.  Values must be numbers ' +
+        'or strings and keys must follow the same rules as keywords.')
+    add('--limit', type=int, default=500, metavar='N',
+        help='Limit number of rows (default is 500 rows).  Use --limit=0 ' +
+        'for no limit.')
+    add('--delete', action='store_true',
+        help='Delete selected rows.')
+    add('--delete-keywords',  metavar='key1=word1,word2,...')
+    add('--delete-key-value-pairs', metavar='key1=val1,key2=val2,...')
+    add('-y', '--yes', action='store_true',
+        help='Say yes.')
+    add('--explain', action='store_true',
+        help='Explain query plan.')
+    add('-p', '--python-expression', metavar='expression',
+        help="""Examples: "d.key", "d.keywords['keyword']", where""" +
+        '"d" is a dictionary representing a row.')
 
     opts, args = parser.parse_args(args)
 
@@ -102,14 +132,7 @@ def run(args=sys.argv[1:]):
                 if keyword not in dct.keywords:
                     dct.keywords.append(keyword)
                     n += 1
-            rollback = True
-            if 1:  # try:
-                id = con2.write(dct, timestamp=dct.timestamp)
-                rollback = False
-            if 0:  # finally:
-                if rollback:
-                    con2.delete(ids)
-                    return
+            id = con2.write(dct, timestamp=dct.timestamp)
             ids.append(id)
         print('Added %s' % plural(n, 'keyword'))
         print('Inserted %s' % plural(len(ids), 'row'))
@@ -134,16 +157,21 @@ def run(args=sys.argv[1:]):
         print('Deleted %s' % plural(len(ids), 'row'))
         return ids
 
+    if opts.python_expression:
+        for dct in rows:
+            row = eval(opts.python_expression, {'d': dct})
+            if not isinstance(row, (list, tuple, np.ndarray)):
+                row = [row]
+            print(', '.join(str(x) for x in row))
+        return []
+        
     dcts = list(rows)
     if len(dcts) > 0:
         if opts.long:
             long(dcts[0], verbosity)
             return dcts[0]
-        if opts.python_expression:
-            for dct in dcts:
-                print(eval(opts.python_expression, {'d': dct}))
-            return
-        f = Formatter(columns=opts.columns)
+        
+        f = Formatter()
         return f.format(dcts)
 
     return []
@@ -199,9 +227,6 @@ def cut(txt, length):
 
 
 class Formatter:
-    def __init__(self, columns):
-        pass
-
     def format(self, dcts, columns=None, sort=None):
         columns = ['id', 'age', 'user', 'formula', 'calc',
                    'energy', 'fmax', 'pbc', 'size', 'keywords', 'keyvals',
@@ -295,6 +320,10 @@ class Formatter:
             return ''
         if len(c) > 1:
             return '?'
+        c = c[0]
+        if 'mask' in c:
+            return sum(c['mask'])
+        return len(c['indices'])
 
     def smax(self, d):
         return (d.stress**2).max()**0.5
