@@ -49,12 +49,16 @@ Every row in the database contains:
   increasing for each new row
 * a unique ID which is a 128 bit random number which should be globally
   unique (at least in the lifetime of our universe)
+* constraints (if present)
+* user-name
+* creation time
 
 
 Command-line tool
 =================
 
-The :program:`ase-db` command can be used to query databases and for manipulating keywords and key-value pairs.  Try::
+The :program:`ase-db` command can be used to query databases and for
+manipulating keywords and key-value pairs.  Try::
     
     $ ase-db --help
     
@@ -164,7 +168,8 @@ or
 >>> import ase.db
 >>> c = ase.db.connect('abc.db')
 
-Do a calculation for a hydrogen molecule:
+Let's do a calculation for a hydrogen molecule and write some results to a
+database:
     
 >>> from ase import Atoms
 >>> from ase.calculators.emt import EMT
@@ -174,8 +179,8 @@ Do a calculation for a hydrogen molecule:
 array([[ 0.        ,  0.        , -9.80290573],
        [ 0.        ,  0.        ,  9.80290573]])
 
-Write a row to the database with keyword 'molecule' and a key-value pair
-('relaxed', ``False``):
+Write a row to the database with keyword ``'molecule'`` and a key-value pair
+(``'relaxed'``, ``False``):
     
 >>> c.write(h2, ['molecule'], relaxed=False)
 1

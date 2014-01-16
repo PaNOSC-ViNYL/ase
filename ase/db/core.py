@@ -43,12 +43,6 @@ reserved_keys = set(all_properties + all_changes +
                      'keywords', 'key_value_pairs', 'data'])
 
 
-def check_keywords(keywords):
-    for keyword in keywords:
-        if not word.match(keyword):
-            raise ValueError('Bad keyword: {0}'.format(keyword))
-
-
 def check_keys(keys):
     for key in keys:
         if not word.match(key) or key in reserved_keys:
@@ -205,7 +199,6 @@ class Database:
         return id
         
     def _write(self, atoms, keywords, key_value_pairs, data):
-        check_keywords(keywords)
         check_keys(key_value_pairs)
         return 1
 
