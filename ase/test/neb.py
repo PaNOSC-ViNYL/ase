@@ -17,6 +17,9 @@ for i in range(nimages):
 images[-1].positions[6, 1] = 2 - images[0].positions[6, 1]
 neb = NEB(images)
 neb.interpolate()
+if 0:  # verify that initial images make sense
+    from ase.visualize import view
+    view(neb.images)
 
 for image in images[1:]:
     image.set_calculator(MorsePotential())
