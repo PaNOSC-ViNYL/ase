@@ -14,7 +14,7 @@ def main():
     opts, args = p.parse_args()
 
     if len(args) == 0:
-        p.error('Usage: ase.info file.traj [file2.traj ...]')
+        p.error('Incorrect number of arguments')
 
     for f in args:
         if os.path.isfile(f):
