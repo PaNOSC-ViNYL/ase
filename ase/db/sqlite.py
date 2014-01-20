@@ -29,6 +29,7 @@ create table systems (
     free_energy real,
     forces blob,
     stress blob,
+    dipole blob,
     magmoms blob,
     magmom blob,
     charges blob,
@@ -145,6 +146,7 @@ class SQLite3Database(Database):
                 dct.get('free_energy'),
                 blob(dct.get('forces')),
                 blob(dct.get('stress')),
+                blob(dct.get('dipole')),
                 blob(dct.get('magmoms')),
                 blob(magmom),
                 blob(dct.get('charges')))
@@ -234,13 +236,15 @@ class SQLite3Database(Database):
         if row[19] is not None:
             dct['stress'] = deblob(row[19])
         if row[20] is not None:
-            dct['magmoms'] = deblob(row[20])
+            dct['dipole'] = deblob(row[20])
         if row[21] is not None:
-            dct['magmom'] = deblob(row[21])[0]
+            dct['magmoms'] = deblob(row[21])
         if row[22] is not None:
-            dct['charges'] = deblob(row[22])
+            dct['magmom'] = deblob(row[22])[0]
+        if row[23] is not None:
+            dct['charges'] = deblob(row[23])
 
-        extra = decode(row[23])
+        extra = decode(row[24])
         for key in ['keywords', 'key_value_pairs', 'data']:
             if extra[key]:
                 dct[key] = extra[key]

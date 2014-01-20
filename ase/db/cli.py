@@ -223,6 +223,9 @@ def long(d, verbosity=1):
         for s in d.stress:
             print('{0:10.3f}'.format(s), end='')
         print()
+    if 'dipole' in d:
+        print('dipole moment [e*Ang]: {0:10.3f}, {1:10.3f}, {2:10.3f}'.format(
+            *d.dipole))
     print('magnetic moment:', d.get('magmom', 0))
     print('periodic boundary conditions:', d.pbc)
     print('unit cell [Ang]:')

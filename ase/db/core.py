@@ -60,7 +60,7 @@ def connect(name, type='extract_from_name', create_indices=True,
         Default is 'extract_from_name', which will ... guess the type
         from the name.
     use_lock_file: bool
-        You can turn this off iff you know what you are doing ...
+        You can turn this off if you know what you are doing ...
         """
     
     if type == 'extract_from_name':
