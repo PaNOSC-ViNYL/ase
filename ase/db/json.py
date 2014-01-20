@@ -153,6 +153,7 @@ class JSONDatabase(Database):
 
     def _select(self, keywords, cmps, explain=False, verbosity=0, limit=None):
         if explain:
+            yield {'explain': (0, 0, 0, 'scan table')}
             return
             
         try:

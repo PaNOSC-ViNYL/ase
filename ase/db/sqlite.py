@@ -255,10 +255,13 @@ class SQLite3Database(Database):
             where.append(
                 'systems.id=keyword{0}.id and keyword{0}.keyword=?'.format(n))
             args.append(keyword)
+            
+        # Special handling of "H=0" and "H<2" type of selections:
         bad = {}
         for key, op, value in cmps:
             if isinstance(key, int):
                 bad[key] = bad.get(key, True) and ops[op](0, value)
+                
         cmps2 = []
         nspecies = 0
         ntext = 0

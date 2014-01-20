@@ -159,7 +159,7 @@ def run(args=sys.argv[1:]):
     if opts.add_from_file:
         filename = opts.add_from_file
         if ':' in filename:
-            calculator_name, filename = name.split(':')
+            calculator_name, filename = filename.split(':')
             atoms = get_calculator(calculator_name)(filename).get_atoms()
         else:
             atoms = ase.io.read(filename)
@@ -219,7 +219,10 @@ def long(d, verbosity=1):
         print('maximum atomic force: {0:.3f} eV/Ang'.format(
                   (d.forces**2).sum(1).max()**0.5))
     if 'stress' in d:
-        print('stress tensor:', d.stress)
+        print('stress tensor: (xx, yy, zz, zy, zx, yx) eV/Ang^3')
+        for s in d.stress:
+            print('{0:10.3f}'.format(s), end='')
+        print()
     print('magnetic moment:', d.get('magmom', 0))
     print('periodic boundary conditions:', d.pbc)
     print('unit cell [Ang]:')
@@ -246,6 +249,7 @@ def long(d, verbosity=1):
         print('key-value pairs:')
         for key in sorted(kvp):
             print('    {0}: {1}'.format(key, kvp[key]))
+    print('unique id:', d.unique_id)
 
 
 def cut(txt, length):
