@@ -528,7 +528,7 @@ class ParallelPrimiPlotter(PrimiPlotter):
     PrimiPlotter docstring for details.
     """
     def __init__(self, *args, **kwargs):
-        apply(PrimiPlotter.__init__, (self,)+args, kwargs)
+        PrimiPlotter.__init__(self, *args, **kwargs)
         self.isparallel = 1
         import ase.parallel
         self.mpi = ase.parallel.world
