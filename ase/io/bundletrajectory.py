@@ -467,6 +467,32 @@ class BundleTrajectory:
         self.datatypes = metadata['datatypes']
         self.state = 'read'
         
+    def _open_append(self, atoms):
+        if not os.path.exists(self.filename):
+            # OK, no old bundle.  Open as for write instead.
+            ase.parallel.barrier()
+            self._open_write(atoms)
+            return
+        if not self.is_bundle(self.filename):
+            raise IOError('Not a BundleTrajectory: ' + self.filename)
+        self.state = 'read'
+        metadata = self._read_metadata()
+        self.metadata = metadata
+        if metadata['version'] != self.version:
+            raise NotImplementedError(
+                "Cannot append to a BundleTrajectory version %s (supported version is %s)"
+                % (str(metadata['version']), str(self.version)))
+        if metadata['subtype'] not in ('normal', 'split'):
+            raise NotImplementedError(
+                "This version of ASE cannot append to BundleTrajectory subtype "
+                + metadata['subtype'])
+        self.subtype = metadata['subtype']
+        self._set_backend(metadata['backend'])
+        self.nframes = self._read_nframes()
+        self._open_log()
+        self.log('Opening "%s" in append mode (nframes=%i)' % (self.filename, self.nframes))
+        self.state = 'write'
+        
     def _write_nframes(self, n):
         "Write the number of frames in the bundle."
         assert self.state == 'write' or self.state == 'prewrite'
