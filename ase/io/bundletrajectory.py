@@ -492,6 +492,7 @@ class BundleTrajectory:
         self._open_log()
         self.log('Opening "%s" in append mode (nframes=%i)' % (self.filename, self.nframes))
         self.state = 'write'
+        self.atoms = atoms
         
     def _write_nframes(self, n):
         "Write the number of frames in the bundle."
