@@ -312,11 +312,14 @@ class SQLite3Database(Database):
         if explain:
             sql = 'explain query plan ' + sql
             
-        if limit:
+        limit = limit or -1
+        
+        if limit and not cmps2:
             sql += '\nlimit {0}'.format(limit)
             
         if verbosity == 2:
             print(sql, args, cmps2)
+
         con = self._connect()
         cur = con.cursor()
         self._initialize(con)
@@ -325,7 +328,10 @@ class SQLite3Database(Database):
             for row in cur.fetchall():
                 yield {'explain': row}
         else:
+            n = 0
             for row in cur.fetchall():
+                if n == limit:
+                    return
                 if cmps2:
                     numbers = deblob(row[5], np.int32)
                     for key, op, value in cmps2:
@@ -336,9 +342,11 @@ class SQLite3Database(Database):
                             break
                     else:
                         yield self.row_to_dict(row)
+                        n += 1
                 else:
                     yield self.row_to_dict(row)
-        
+                    n += 1
+                    
     def delete(self, ids):
         con = self._connect()
         self._delete(con.cursor(), ids)

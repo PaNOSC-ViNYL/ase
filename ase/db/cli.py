@@ -97,6 +97,9 @@ def run(args=sys.argv[1:]):
     else:
         expressions = []
     
+    if opts.count:
+        opts.limit = 0
+        
     if not opts.add_from_file:
         rows = con.select(expressions, explain=opts.explain,
                           verbosity=verbosity, limit=opts.limit)
