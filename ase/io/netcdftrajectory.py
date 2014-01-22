@@ -186,10 +186,18 @@ class NetCDFTrajectory:
             if self.netcdf_format not in self._netCDF4_to_scipy:
                 raise ValueError("NetCDF format '%s' not support by "
                                  "scipy.io.netcdf." % self.netcdf_format)
-            self.nc = netcdf_file(
-                filename, self.mode,
-                version=self._netCDF4_to_scipy[self.netcdf_format]
-                )
+            version = self._netCDF4_to_scipy[self.netcdf_format]
+            if version == 1:
+                # This supports older scipy.io.netcdf versions that do not
+                # support the 'version' argument
+                self.nc = netcdf_file(
+                    filename, self.mode
+                    )
+            else:
+                self.nc = netcdf_file(
+                    filename, self.mode,
+                    version=self._netCDF4_to_scipy[self.netcdf_format]
+                    )
         elif have_nc == NC_IS_PUPYNERE:
             if self.netcdf_format not in self._netCDF4_to_pupynere:
                 raise ValueError("NetCDF format '%s' not support by "
