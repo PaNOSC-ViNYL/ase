@@ -2,13 +2,16 @@
 netcdftrajectory - I/O trajectory files in the AMBER NetCDF convention
 
 More information on the AMBER NetCDF conventions can be found at
-http://ambermd.org/netcdf/nctraj.html. This module supports extensions to
-these conventions, in particular writing of additional fields.
+http://ambermd.org/netcdf/. This module supports extensions to
+these conventions, such as writing of additional fields and writing to
+HDF5 (NetCDF-4) files.
 
 A Python NetCDF module is required. Supported are
 
     netCDF4-python - http://code.google.com/p/netcdf4-python/
+
     scipy.io.netcdf - http://docs.scipy.org/doc/scipy/reference/io.html
+
     pupynere - https://bitbucket.org/robertodealmeida/pupynere/
 
 Availability is checked in the above order of preference. Note that
@@ -103,34 +106,47 @@ class NetCDFTrajectory:
         Parameters:
 
         filename:
-            The name of the parameter file.  Should end in .traj.
+            The name of the parameter file.  Should end in .nc.
 
         mode='r':
             The mode.
 
-            'r' is read mode, the file should already exist, and
-            no atoms argument should be specified.
+            'r' is read mode, the file should already exist, and no atoms
+            argument should be specified.
 
-            'w' is write mode.  If the file already exists, is it
-            renamed by appending .bak to the file name.  The atoms
-            argument specifies the Atoms object to be written to the
-            file, if not given it must instead be given as an argument
-            to the write() method.
+            'w' is write mode. The atoms argument specifies the Atoms object
+            to be written to the file, if not given it must instead be given
+            as an argument to the write() method.
 
-            'a' is append mode.  It acts a write mode, except that
-            data is appended to a preexisting file.
+            'a' is append mode.  It acts a write mode, except that data is
+            appended to a preexisting file.
 
         atoms=None:
             The Atoms object to be written in write or append mode.
 
         types_to_numbers=None:
-            Conversion of atom types to atomic numbers.
+            Dictionary for conversion of atom types to atomic numbers when
+            reading a trajectory file.
 
         double=True:
             Create new variable in double precision.
+
+        netcdf_format='NETCDF3_CLASSIC':
+            Format string for the underlying NetCDF file format. Only relevant
+            if a new file is created. More information can be found at
+            https://www.unidata.ucar.edu/software/netcdf/docs/netcdf/File-Format.html
+
+            'NETCDF3_CLASSIC' is the original binary format.
+
+            'NETCDF3_64BIT' can be used to write larger files.
+
+            'NETCDF4_CLASSIC' is HDF5 with some NetCDF limitations.
+
+            'NETCDF4' is HDF5.
         """
         if not have_nc:
-            raise RuntimeError('NetCDFTrajectory requires the netCDF4 module.')
+            raise RuntimeError('NetCDFTrajectory requires a NetCDF Python '
+                               'module.')
 
         self.nc = None
 
