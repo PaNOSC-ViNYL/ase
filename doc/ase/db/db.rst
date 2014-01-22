@@ -51,7 +51,7 @@ Every row in the database contains:
   unique (at least in the lifetime of our universe)
 * constraints (if present)
 * user-name
-* creation time
+* creation and modification time
 
 
 Command-line tool
@@ -227,7 +227,8 @@ Select a single row with the :meth:`~Database.get` method:
 ... 
 user                     : jensj
 key_value_pairs          : {u'relaxed': True}
-timestamp                : 14.0195850909
+ctime                    : 14.0195850909
+mtime                    : 14.0195850909
 energy                   : 1.07054126233
 relaxed                  : True
 calculator_parameters    : {}
@@ -258,6 +259,39 @@ Delete a single row:
 >>> del c[c.get(relaxed=0).id]
 
 or use the :meth:`~Database.delete` method to delete several rows.
+
+
+Extracting Atoms objects from the database
+------------------------------------------
+
+If you want an Atoms object insted of a dictionary, you should use the
+:meth:`~Database.get_atoms` method:
+
+>>> h2 = c.get_atoms(H=2)
+
+or if you want the original EMT calculator attached:
+    
+>>> h2 = c.get_atoms(H=2, attach_calcuolator=True)
+
+
+Add additional data
+-------------------
+
+When you write a row to a database using the :meth:`~Database.write` method,
+you can add string keywords and key-value pairs where the values can be
+strings, floating point numbers, integers and booleans:
+    
+>>> c.write(atoms, ['project42', 'ABC'], functional='LDA', distance=7.2)
+
+More complicated data can be written like this:
+
+>>> c.write(atoms, ..., data={'parents': [7, 34, 14], 'stuff': ...})
+
+and accessed like this:
+
+>>> d = c.get(...)
+>>> d.data.parents
+[7, 34, 14]
 
 
 More details
