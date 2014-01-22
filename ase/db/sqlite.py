@@ -3,7 +3,7 @@ import sqlite3
 
 import numpy as np
 
-from ase.db.core import Database, ops
+from ase.db.core import Database, ops, now
 from ase.db.json import encode, decode
 
 
@@ -11,7 +11,8 @@ init_statements = """\
 create table systems (
     id integer primary key autoincrement,
     unique_id text unique,
-    timestamp real,
+    ctime real,
+    mtime real,
     user text,
     numbers blob,
     positions blob,
@@ -57,7 +58,7 @@ create table number_key_values (
 
 index_statements = """\
 create index unique_id_index on systems(unique_id);
-create index timestamp_index on systems(timestamp);
+create index ctime_index on systems(ctime);
 create index user_index on systems(user);
 create index calculator_index on systems(calculator);
 create index species_index on species(Z);
@@ -108,7 +109,7 @@ class SQLite3Database(Database):
             if rows:
                 id = rows[0][0]
                 self._delete(cur, [id])
-
+            dct['mtime'] = now()
         else:
             dct = self.collect_data(atoms)
 
@@ -119,7 +120,8 @@ class SQLite3Database(Database):
             
         row = (id,
                dct['unique_id'],
-               self.timestamp,
+               dct['ctime'],
+               dct['mtime'],
                dct['user'],
                blob(dct.get('numbers')),
                blob(dct.get('positions')),
@@ -206,45 +208,46 @@ class SQLite3Database(Database):
     def row_to_dict(self, row):
         dct = {'id': row[0],
                'unique_id': row[1],
-               'timestamp': row[2],
-               'user': row[3],
-               'numbers': deblob(row[4], np.int32),
-               'positions': deblob(row[5], shape=(-1, 3)),
-               'cell': deblob(row[6], shape=(3, 3)),
-               'pbc': (row[7] & np.array([1, 2, 4])).astype(bool)}
-        if row[8] is not None:
-            dct['magmoms'] = deblob(row[8])
+               'ctime': row[2],
+               'mtime': row[3],
+               'user': row[4],
+               'numbers': deblob(row[5], np.int32),
+               'positions': deblob(row[6], shape=(-1, 3)),
+               'cell': deblob(row[7], shape=(3, 3)),
+               'pbc': (row[8] & np.array([1, 2, 4])).astype(bool)}
         if row[9] is not None:
-            dct['charges'] = deblob(row[9])
+            dct['magmoms'] = deblob(row[9])
         if row[10] is not None:
-            dct['masses'] = deblob(row[10])
+            dct['charges'] = deblob(row[10])
         if row[11] is not None:
-            dct['tags'] = deblob(row[11], np.int32)
+            dct['masses'] = deblob(row[11])
         if row[12] is not None:
-            dct['momenta'] = deblob(row[12], shape=(-1, 3))
+            dct['tags'] = deblob(row[12], np.int32)
         if row[13] is not None:
-            dct['constraints'] = decode(row[13])
+            dct['momenta'] = deblob(row[13], shape=(-1, 3))
         if row[14] is not None:
-            dct['calculator'] = row[14]
-            dct['calculator_parameters'] = decode(row[15])
-        if row[16] is not None:
-            dct['energy'] = row[16]
+            dct['constraints'] = decode(row[14])
+        if row[15] is not None:
+            dct['calculator'] = row[15]
+            dct['calculator_parameters'] = decode(row[16])
         if row[17] is not None:
-            dct['free_energy'] = row[17]
+            dct['energy'] = row[17]
         if row[18] is not None:
-            dct['forces'] = deblob(row[18], shape=(-1, 3))
+            dct['free_energy'] = row[18]
         if row[19] is not None:
-            dct['stress'] = deblob(row[19])
+            dct['forces'] = deblob(row[19], shape=(-1, 3))
         if row[20] is not None:
-            dct['dipole'] = deblob(row[20])
+            dct['stress'] = deblob(row[20])
         if row[21] is not None:
-            dct['magmoms'] = deblob(row[21])
+            dct['dipole'] = deblob(row[21])
         if row[22] is not None:
-            dct['magmom'] = deblob(row[22])[0]
+            dct['magmoms'] = deblob(row[22])
         if row[23] is not None:
-            dct['charges'] = deblob(row[23])
+            dct['magmom'] = deblob(row[23])[0]
+        if row[24] is not None:
+            dct['charges'] = deblob(row[24])
 
-        extra = decode(row[24])
+        extra = decode(row[25])
         for key in ['keywords', 'key_value_pairs', 'data']:
             if extra[key]:
                 dct[key] = extra[key]
@@ -271,8 +274,8 @@ class SQLite3Database(Database):
         ntext = 0
         nnumber = 0
         for key, op, value in cmps:
-            if key in ['id', 'energy', 'magmom', 'timestamp',
-                       'user', 'calculator']:
+            if key in ['id', 'energy', 'magmom', 'ctime', 'user',
+                       'calculator']:
                 where.append('systems.{0}{1}?'.format(key, op))
                 args.append(value)
             elif key == 'natoms':
@@ -313,7 +316,7 @@ class SQLite3Database(Database):
             sql += '\nlimit {0}'.format(limit)
             
         if verbosity == 2:
-            print(sql, args)
+            print(sql, args, cmps2)
         con = self._connect()
         cur = con.cursor()
         self._initialize(con)
@@ -324,7 +327,7 @@ class SQLite3Database(Database):
         else:
             for row in cur.fetchall():
                 if cmps2:
-                    numbers = deblob(row[4], np.int32)
+                    numbers = deblob(row[5], np.int32)
                     for key, op, value in cmps2:
                         if key == 'natoms':
                             if not op(len(numbers), value):

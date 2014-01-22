@@ -15,9 +15,14 @@ from ase.calculators.calculator import get_calculator, all_properties, \
     all_changes
 
 
-T0 = 946681200.0  # January 1. 2000
-
+T2000 = 946681200.0  # January 1. 2000
 YEAR = 31557600.0  # 365.25 days
+
+
+def now():
+    """Return time since January 1. 2000 in years."""
+    return (time() - T2000) / YEAR
+        
 
 seconds = {'s': 1,
            'm': 60,
@@ -37,7 +42,7 @@ ops = {'<': operator.lt,
 word = re.compile('[_a-zA-Z][_0-9a-zA-Z]*$')
 
 reserved_keys = set(all_properties + all_changes +
-                    ['id', 'unique_id', 'timestamp', 'user',
+                    ['id', 'unique_id', 'ctime', 'mtime', 'user',
                      'momenta', 'constraints',
                      'calculator', 'calculator_parameters',
                      'keywords', 'key_value_pairs', 'data'])
@@ -160,13 +165,10 @@ class Database:
             self.lock = Lock(filename + '.lock', world=DummyMPI())
         else:
             self.lock = None
-
-        self.timestamp = None  # timestamp form last write
-
+            
     @parallel
     @lock
-    def write(self, atoms, keywords=[], key_value_pairs={}, data={},
-              timestamp=None, **kwargs):
+    def write(self, atoms, keywords=[], key_value_pairs={}, data={}, **kwargs):
         """Write atoms to database with keywords and key-value pairs.
         
         atoms: Atoms object
@@ -186,9 +188,6 @@ class Database:
             
         """
         
-        if timestamp is None:
-            timestamp = (time() - T0) / YEAR
-        self.timestamp = timestamp
         if atoms is None:
             atoms = Atoms()
         
@@ -222,7 +221,6 @@ class Database:
                                  for key, value in key_value_pairs.items()]):
             return None
 
-        self.timestamp = (time() - T0) / YEAR
         id = self._write(Atoms(), keywords, key_value_pairs, {})
         return id
         
@@ -231,7 +229,7 @@ class Database:
         
     def collect_data(self, atoms):
         dct = atoms2dict(atoms)
-        dct['timestamp'] = self.timestamp
+        dct['ctime'] = dct['mtime'] = now()
         dct['user'] = os.getenv('USER')
         if atoms.calc is not None:
             dct['calculator'] = atoms.calc.name.lower()
@@ -358,9 +356,9 @@ class Database:
             
         for key, op, value in comparisons:
             if key == 'age':
-                key = 'timestamp'
+                key = 'ctime'
                 op = {'<': '>', '<=': '>=', '>=': '<=', '>': '<'}[op]
-                value = (time() - T0) / YEAR - time_string_to_float(value)
+                value = now() - time_string_to_float(value)
             elif key in atomic_numbers:
                 key = atomic_numbers[key]
                 value = int(value)
@@ -410,7 +408,6 @@ class Database:
             n -= len(key_value_pairs)
             key_value_pairs.update(add_key_value_pairs)
             n += len(key_value_pairs)
-            self.timestamp = dct['timestamp']
             self._write(dct, keywords, key_value_pairs,
                         data=dct.get('data', {}))
         return m, n

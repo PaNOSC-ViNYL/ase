@@ -1,13 +1,12 @@
 from __future__ import absolute_import, print_function
 import os
-import copy
 import datetime
 from json import JSONEncoder, JSONDecoder
 
 import numpy as np
 
 from ase.parallel import world
-from ase.db.core import Database, ops, parallel, lock
+from ase.db.core import Database, ops, parallel, lock, now
 from ase.db.core import check_keys, reserved_keys
 
 
@@ -94,6 +93,7 @@ class JSONDatabase(Database):
                     break
             else:
                 id = None
+            dct['mtime'] = now()
         else:
             dct = self.collect_data(atoms)
             id = None
@@ -193,6 +193,8 @@ class JSONDatabase(Database):
 
         bigdct, myids, nextid = self._read_json()
         
+        t = now()
+        
         m = 0
         n = 0
         for id in ids:
@@ -208,6 +210,8 @@ class JSONDatabase(Database):
                 n -= len(key_value_pairs)
                 key_value_pairs.update(add_key_value_pairs)
                 n += len(key_value_pairs)
+            dct['mtime'] = t
+            
         self._write_json(bigdct, myids, nextid)
         return m, n
 
@@ -220,7 +224,7 @@ def get_value(id, dct, key):
         value = pairs.get(key)
     if value is not None:
         return value
-    if key in ['energy', 'magmom', 'timestamp', 'user', 'calculator']:
+    if key in ['energy', 'magmom', 'ctime', 'user', 'calculator']:
         return dct.get(key)
     if isinstance(key, int):
         return np.equal(dct['numbers'], key).sum()

@@ -1,7 +1,6 @@
 from __future__ import print_function
 import sys
 import optparse
-from time import time
 
 import numpy as np
 
@@ -10,7 +9,7 @@ from ase.db import connect
 from ase.atoms import Atoms
 from ase.data import atomic_masses
 from ase.calculators.calculator import get_calculator
-from ase.db.core import float_to_time_string, T0, YEAR
+from ase.db.core import float_to_time_string, now
 
 
 def plural(n, word):
@@ -33,6 +32,7 @@ examples = ['calculator=nwchem',
             'user=alice',
             '2.2<bandgap<4.1',
             'Cu>=10']
+
 
 def run(args=sys.argv[1:]):
     if isinstance(args, str):
@@ -65,7 +65,7 @@ def run(args=sys.argv[1:]):
         'to show all.')
     add('--delete', action='store_true',
         help='Delete selected rows.')
-    add('--delete-keywords',  metavar='key1=word1,word2,...',
+    add('--delete-keywords', metavar='key1=word1,word2,...',
         help='Delete keywords for selected rows.')
     add('--delete-key-value-pairs', metavar='key1=val1,key2=val2,...',
         help='Delete key-value pairs for selected rows.')
@@ -146,7 +146,7 @@ def run(args=sys.argv[1:]):
             nkv = -len(kvp)
             kvp.update(add_key_value_pairs)
             nkv += len(kvp)
-            con2.write(dct, timestamp=dct.timestamp)
+            con2.write(dct)
             nrows += 1
             
         print('Added %s and %s (%s updated)' %
@@ -209,8 +209,7 @@ def long(d, verbosity=1):
     print('id:', d.id)
     print('formula:', Atoms(d.numbers).get_chemical_formula())
     print('user:', d.user)
-    print('age: {0}'.format(float_to_time_string((time() - T0) / YEAR -
-                                                 d.timestamp)))
+    print('age: {0}'.format(float_to_time_string(now() - d.ctime)))
     if 'calculator' in d:
         print('calculator:', d.calculator)
     if 'energy' in d:
@@ -303,7 +302,7 @@ class Formatter:
         return d.id
     
     def age(self, d):
-        return float_to_time_string((time() - T0) / YEAR - d.timestamp)
+        return float_to_time_string(now() - d.ctime)
 
     def user(self, d):
         return d.user
