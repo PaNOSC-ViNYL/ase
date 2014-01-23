@@ -3,14 +3,11 @@ Python 3 strategy
 
 * One codebase for both 2 and 3.
 
-* Use "print(...)" if possible::
+* Use ``print(...)`` and add this line as the fist line::
 
-    print 'bla bla'   # no
-    print('bla bla')  # yes
-    print 'bla bla:', x       # no
-    print('bla bla: %s' % x)  # yes
+    from __future__ import print_function
 
 * Don't do this: ``print >> f, ...``.  Use ``f.write(... + '\n')`` or
-  ``ase.utils.prnt(..., file=f)``.
+  ``print(..., file=f)``.
 
 * More help here: http://packages.python.org/six/
