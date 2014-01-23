@@ -46,13 +46,13 @@ try:
 except:
     pass
 
-if not have_nc:
-    # Check for scipy
-    try:
-        from scipy.io.netcdf import netcdf_file
-        have_nc = NC_IS_SCIPY
-    except:
-        pass
+#if not have_nc:
+#    # Check for scipy
+#    try:
+#        from scipy.io.netcdf import netcdf_file
+#        have_nc = NC_IS_SCIPY
+#    except:
+#        pass
 
 if not have_nc:
     # Check for pupynere (comes with ASE)
