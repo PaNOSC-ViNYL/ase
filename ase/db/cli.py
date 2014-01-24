@@ -137,25 +137,26 @@ def run(args=sys.argv[1:]):
     if opts.insert_into:
         con2 = connect(opts.insert_into)
         nkw = 0
-        nkv = 0
+        nkvp = 0
         nrows = 0
         for dct in rows:
+            keywords = dct.get('keywords', [])
             for keyword in add_keywords:
-                if keyword not in dct.keywords:
-                    dct.keywords.append(keyword)
+                if keyword not in keywords:
+                    keywords.append(keyword)
                     nkw += 1
 
             kvp = dct['key_value_pairs']
-            nkv = -len(kvp)
+            nkvp = -len(kvp)
             kvp.update(add_key_value_pairs)
-            nkv += len(kvp)
-            con2.write(dct)
+            nkvp += len(kvp)
+            con2.write(dct, keywords, **kvp)
             nrows += 1
             
         print('Added %s and %s (%s updated)' %
               (plural(nkw, 'keyword'),
-               plural(nkv, 'key-value pair'),
-               plural(len(add_key_value_pairs) * nrows - nkv, 'pair')))
+               plural(nkvp, 'key-value pair'),
+               plural(len(add_key_value_pairs) * nrows - nkvp, 'pair')))
         print('Inserted %s' % plural(nrows, 'row'))
         return
 
