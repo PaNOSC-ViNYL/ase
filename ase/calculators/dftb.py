@@ -186,12 +186,10 @@ class Dftb(FileIOCalculator):
 
         self.read_energy()
         # read geometry from file in case dftb+ has done steps
-        # to move atoms, in that case forces are not read
+        # to move atoms
         if int(self.parameters['Driver_MaxSteps']) > 0:
             self.atoms = read('geo_end.gen')
-            self.results['forces'] = np.zeros([len(self.state), 3])
-        else:
-            self.read_forces()
+        self.read_forces()
         os.remove('results.tag')
             
     def read_energy(self):
