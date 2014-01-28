@@ -54,7 +54,7 @@ All Keywords to the dftb calculator can be set by ase.
 
 Parameters
 ==========
-        restart: str
+        restart: str (default None)
             If restart == None 
             it is assumed that a new input file 'dftb_hsd.in'
             will be written by ase using default keywords
@@ -62,16 +62,16 @@ Parameters
 
             If restart != None 
             it is assumed that keywords are in file 'restart'
-        ignore_bad_restart_file: bool
+        ignore_bad_restart_file: bool (default False)
             Ignore broken or missing restart file.  By defauls, it is an
             error if the restart file is missing or broken.
-        label: str
+        label: str (default 'dftb')
             Name used for all files.  May contain a directory.
-        atoms: Atoms object
+        atoms: Atoms object (default None)
             Optional Atoms object to which the calculator will be
             attached.  When restarting, atoms will get its positions and
             unit-cell updated from file.
-        kpts:
+        kpts: (default None)
             Brillouin zone sampling:
 
             * ``(1,1,1)``: Gamma-point
@@ -81,10 +81,32 @@ Parameters
             * ``[(k11,k12,k13),(k21,k22,k23),...]``: Explicit list in units of the reciprocal lattice vectors
             * ``kpts=3.5``: `\vec k`-point density as in 3.5 `\vec k`-points per
               Å\ `^{-1}`.
+        run_manyDftb_steps: bool (default False)
+            If True the Dftb calculator is running many steps by its own.
+	    If False all the relaxations/ molecular dynamis is done by ASE
 
-Example: Geometry Optimization
-===============================
+Example: Geometry Optimization by ASE
+=====================================
 
 .. literalinclude:: dftb_ex1_relax.py
+
+Example: Geometry Optimization by DFTB
+======================================
+
+.. literalinclude:: dftb_ex2_relaxbyDFTB.py
+
+Example: NVE md followed by NVT md (both by DFTB)
+=================================================
+
+This is unphysical because of at least two reasons
+
+- oxygen does not have spin here::
+
+- the berendsen coupling is too strong (0.01 here should be 0.0001)::
+
+
+.. literalinclude:: dftb_ex3_make_2h2o.py
+
+
 
 
