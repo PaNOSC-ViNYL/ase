@@ -49,7 +49,8 @@ class Dftb(FileIOCalculator):
     implemented_properties = ['energy', 'forces']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 label='dftb', atoms=None, kpts=None,
+                 label='dftb', atoms=None, kpts=None, 
+                 run_manyDftb_steps = False,
                  **kwargs):
         """Construct a DFTB+ calculator.
         """
@@ -61,16 +62,30 @@ class Dftb(FileIOCalculator):
         else:
             slako_dir = './'
 
-        self.default_parameters = dict(
-            Hamiltonian_='DFTB',
-            Driver_='ConjugateGradient',
-            Driver_MaxForceComponent='1E-4',
-            Driver_MaxSteps=0,
-            Hamiltonian_SlaterKosterFiles_='Type2FileNames',
-            Hamiltonian_SlaterKosterFiles_Prefix=slako_dir,
-            Hamiltonian_SlaterKosterFiles_Separator='"-"',
-            Hamiltonian_SlaterKosterFiles_Suffix='".skf"'
+        # to run Dftb as energy and force calculator use
+        # Driver_MaxSteps=0,
+        if run_manyDftb_steps:
+            #minimisation of molecular dynamics is run by native DFTB+
+            self.default_parameters = dict(
+                Hamiltonian_='DFTB',
+                Hamiltonian_SlaterKosterFiles_='Type2FileNames',
+                Hamiltonian_SlaterKosterFiles_Prefix=slako_dir,
+                Hamiltonian_SlaterKosterFiles_Separator='"-"',
+                Hamiltonian_SlaterKosterFiles_Suffix='".skf"'
+                )
+        else:
+            #using ase to get forces and energy only (single point calculation)
+            self.default_parameters = dict(
+                Hamiltonian_='DFTB',
+                Driver_='ConjugateGradient',
+                Driver_MaxForceComponent='1E-4',
+                Driver_MaxSteps=0,
+                Hamiltonian_SlaterKosterFiles_='Type2FileNames',
+                Hamiltonian_SlaterKosterFiles_Prefix=slako_dir,
+                Hamiltonian_SlaterKosterFiles_Separator='"-"',
+                Hamiltonian_SlaterKosterFiles_Suffix='".skf"'
             )
+
 
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, **kwargs)
@@ -185,10 +200,6 @@ class Dftb(FileIOCalculator):
                     break
 
         self.read_energy()
-        # read geometry from file in case dftb+ has done steps
-        # to move atoms
-        if int(self.parameters['Driver_MaxSteps']) > 0:
-            self.atoms = read('geo_end.gen')
         self.read_forces()
         os.remove('results.tag')
             

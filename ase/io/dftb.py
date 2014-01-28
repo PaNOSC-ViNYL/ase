@@ -67,6 +67,60 @@ def read_dftb(filename='dftb_in.hsd'):
 
     return atoms
 
+def read_dftb_velocities(atoms, filename='geo_end.xyz'):
+    """Method to read velocities (AA/ps) from DFTB+ output file geo_end.xyz
+    """
+    from ase import Atoms
+    from ase.units import second
+    #AA/ps -> ase units
+    AngdivPs2ASE = 1.0/(1e-12*second)
+
+
+    if isinstance(filename, str):
+        myfile = open(filename)
+
+    lines = myfile.readlines()
+    #remove empty lines
+    lines_ok = []
+    for line in lines:
+        if line.rstrip():
+            lines_ok.append(line)
+    
+    velocities = []
+    natoms = atoms.get_number_of_atoms()
+    last_lines = lines_ok[-natoms:]
+    for iline, line in enumerate(last_lines):
+        inp = line.split()
+        velocities.append([float(inp[4])*AngdivPs2ASE,
+                           float(inp[5])*AngdivPs2ASE,
+                           float(inp[6])*AngdivPs2ASE])
+
+    atoms.set_velocities(velocities)
+    return atoms
+
+def write_dftb_velocities(atoms, filename='velocities.txt'):
+    """Method to write velocities (in atomic units) from ASE
+       to a file to be read by dftb+
+    """
+    from ase import Atoms
+    from ase.units import AUT, Bohr
+    #ase units -> atomic units
+    ASE2au = Bohr / AUT
+
+    if isinstance(filename, str):
+        myfile = open(filename, 'w')
+    else: # Assume it's a 'file-like object'
+        myfile = filename
+    
+    velocities = atoms.get_velocities()
+    for velocity in velocities:
+        myfile.write(' %19.16f %19.16f %19.16f \n' 
+                %(  velocity[0] / ASE2au, 
+                    velocity[1] / ASE2au, 
+                    velocity[2] / ASE2au))
+                     
+    return
+
 
 def write_dftb(filename, atoms):
     """Method to write atom structure in DFTB+ format
