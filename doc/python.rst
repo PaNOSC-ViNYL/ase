@@ -143,10 +143,12 @@ therefore be used as dictionary keys, lists cannot.
    ['q', 'w', 'e']
 
    The line b = a gives a new name to the array, and both names now
-   refer to the same list.  However, often a new object is created and
+   refer to the same list.  
+
+   However, often a new object is created and
    named at the same time, in this example the number 42 is *not*
    modified, a new number 47 is created and given the name ``d``.  And
-   again later, ``e`` is a name for the number 47, but then a *new*
+   later, ``e`` is a name for the number 47, but then a *new*
    number 48 is created, and ``e`` now refers to that number:
 
    >>> c = 42 
@@ -163,7 +165,8 @@ therefore be used as dictionary keys, lists cannot.
 .. note::
 
    Another very important type is the :term:`ndarray` type described
-   here: :ref:`numpy`.
+   here: :ref:`numpy`.  It is an array type for efficient numerics,
+   and is heavily used in ASE.
 
 
 
