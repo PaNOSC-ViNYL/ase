@@ -221,7 +221,24 @@ class Database:
                                  for key, value in key_value_pairs.items()]):
             return None
 
-        id = self._write(Atoms(), keywords, key_value_pairs, {})
+        atoms = Atoms()
+        
+        calc_name = key_value_pairs.pop('calculator', None)
+        
+        if calc_name:
+            # Allow use of calculator key
+            assert calc_name.lower() == calc_name
+            
+            # Fake calculator class:
+            class Fake:
+                name = calc_name
+                todict = lambda self: {}
+                check_state = lambda self, atoms: ['positions']
+            
+            atoms.calc = Fake()
+            
+        id = self._write(atoms, keywords, key_value_pairs, {})
+        
         return id
         
     def __delitem__(self, id):
