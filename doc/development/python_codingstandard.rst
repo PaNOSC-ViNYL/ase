@@ -108,7 +108,7 @@ Writing documentation in the code
 
 Here is an example of how to write good docstrings:
 
-  http://projects.scipy.org/numpy/browser/trunk/doc/example.py
+  https://github.com/numpy/numpy/blob/master/doc/example.py
 
 
 .. _pep8py:
