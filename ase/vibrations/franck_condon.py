@@ -1,5 +1,5 @@
 from operator import mul
-from itertools import combinations,product,chain
+from itertools import combinations, product, chain
 from math import factorial
 
 import numpy as np
