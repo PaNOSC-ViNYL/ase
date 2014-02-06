@@ -99,14 +99,9 @@ Example: NVE md followed by NVT md (both by DFTB)
 =================================================
 
 This is unphysical because of at least two reasons
-
-- oxygen does not have spin here::
-
-- the berendsen coupling is too strong (0.01 here should be 0.0001)::
-
-
+- oxygen does not have spin here
+- the berendsen coupling is too strong (0.01 here should be 0.0001)
 .. literalinclude:: dftb_ex3_make_2h2o.py
-
 
 
 
