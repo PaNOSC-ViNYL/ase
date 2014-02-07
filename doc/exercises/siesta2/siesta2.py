@@ -17,7 +17,7 @@ p[1,2]= -1.5
 atoms.set_momenta(p)
 
 # Keep some atoms fixed during the simulation
-atoms.set_constraint(FixAtoms(indices=range(18,38)))
+atoms.set_constraint(FixAtoms(indices=list(range(18,38))))
 
 # Set the calculator and attach it to the system
 calc = Siesta('si001+h2',basis='SZ',xc='PBE',meshcutoff=50*units.Ry)

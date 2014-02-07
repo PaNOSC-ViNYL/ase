@@ -27,4 +27,4 @@ relax.run(steps=20)
 e0 = initial.get_potential_energy()
 for config in configs:
     d = config[-2].position - config[-1].position
-    print np.linalg.norm(d), config.get_potential_energy() - e0
+    print(np.linalg.norm(d), config.get_potential_energy() - e0)

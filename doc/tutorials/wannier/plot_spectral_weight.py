@@ -9,7 +9,7 @@ weight_n = pl.sum(abs(wan.V_knw[0])**2, 1)
 N = len(weight_n)
 F = wan.fixedstates_k[0]
 pl.figure(1, figsize=(12, 4))
-pl.bar(range(1, N+1), weight_n, width=0.65, bottom=0,
+pl.bar(list(range(1, N+1)), weight_n, width=0.65, bottom=0,
         color='k', edgecolor='k', linewidth=None,
        align='center', orientation='vertical')
 pl.plot([F+.5, F+.5], [0, 1], 'k--')

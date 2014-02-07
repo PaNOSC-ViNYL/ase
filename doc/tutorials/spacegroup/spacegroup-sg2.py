@@ -1,1 +1,1 @@
-print sg
+print(sg)

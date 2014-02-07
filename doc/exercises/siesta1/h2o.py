@@ -33,19 +33,19 @@ for e_s in e_shifts:
     dyn = QuasiNewton(h2o, trajectory='h2o_%s.traj' % e_s)
     dyn.run(fmax=0.02)      # Perform the relaxation      
     E = h2o.get_potential_energy()
-    print                                # Make the output more readable      
-    print "E_shift: %.2f" %e_s       
-    print "----------------"
-    print "Total Energy: %.4f" % E       # Print total energy      
+    print()                                # Make the output more readable      
+    print("E_shift: %.2f" %e_s)       
+    print("----------------")
+    print("Total Energy: %.4f" % E)       # Print total energy      
     d = h2o.get_distance(0,2)
-    print "Bond length: %.4f" % d        # Print bond length      
+    print("Bond length: %.4f" % d)        # Print bond length      
     p = h2o.positions
     d1 = p[0] - p[2]
     d2 = p[1] - p[2]
     r = np.dot(d1, d2) / (np.linalg.norm(d1) * np.linalg.norm(d2))
     angle = np.arccos(r) / pi * 180
-    print "Bond angle: %.4f" % angle      # Print bond angle
+    print("Bond angle: %.4f" % angle)      # Print bond angle
     endtime = time.time()
     walltime = endtime - starttime
-    print 'Wall time: %.5f' % walltime
-    print                                # Make the output more readable      
+    print('Wall time: %.5f' % walltime)
+    print()                                # Make the output more readable      

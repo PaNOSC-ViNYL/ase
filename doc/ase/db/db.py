@@ -14,7 +14,7 @@ BFGS(h2).run(fmax=0.01)
 c.write(h2, ['molecule'], relaxed=True, data={'abc': [1, 2, 3]})
 
 for d in c.select('molecule'):
-    print d.forces[0, 2], d.relaxed
+    print(d.forces[0, 2], d.relaxed)
 
 h = Atoms('H')
 h.calc = EMT()
@@ -23,14 +23,14 @@ c.write(h)
 
 d = c.get(relaxed=1, calculator='emt')
 for k, v in d.items():
-    print '%-25s: %s' % (k, v)
+    print('%-25s: %s' % (k, v))
 
-print d.data.abc
+print(d.data.abc)
 
 e2 = d.energy
 e1 = c.get(H=1).energy
 ae = 2 * e1 - e2
-print ae
+print(ae)
 
 id = c.get(relaxed=1).id
 c.update(id, atomization_energy=ae)

@@ -36,12 +36,12 @@ mask = [atom.symbol == 'Cu' for atom in slab]
 slab.set_constraint(FixAtoms(mask=mask))
 relax = QuasiNewton(slab)
 relax.run(fmax=0.05)
-print 'initial state:', slab.get_potential_energy()
+print('initial state:', slab.get_potential_energy())
 write('N2.traj', slab)
 
 # Now the final state.
 # Move the second N atom to a neighboring hollow site:
 slab[-1].position = (x + a, y, z)
 relax.run()
-print 'final state:  ', slab.get_potential_energy()
+print('final state:  ', slab.get_potential_energy())
 write('2N.traj', slab)

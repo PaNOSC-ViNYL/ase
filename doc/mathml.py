@@ -12,7 +12,7 @@ def math_role(role, rawtext, text, lineno, inliner,
     latex = rawtext[i+1:-1]
     try:
         mathml_tree = parse_latex_math(latex, inline=True)
-    except SyntaxError, msg:
+    except SyntaxError as msg:
         msg = inliner.reporter.error(msg, line=lineno)
         prb = inliner.problematic(rawtext, rawtext, msg)
         return [prb], [msg]
@@ -32,7 +32,7 @@ except ImportError:
         latex = ''.join(content)
         try:
             mathml_tree = parse_latex_math(latex, inline=False)
-        except SyntaxError, msg:
+        except SyntaxError as msg:
             error = state_machine.reporter.error(
                 msg, nodes.literal_block(block_text, block_text), line=lineno)
             return [error]
@@ -51,7 +51,7 @@ else:
             latex = ' '.join(self.content)
             try:
                 mathml_tree = parse_latex_math(latex, inline=False)
-            except SyntaxError, msg:
+            except SyntaxError as msg:
                 error = self.state_machine.reporter.error(
                     msg, nodes.literal_block(self.block_text, self.block_text),
                     line=self.lineno)
@@ -105,7 +105,7 @@ class math:
         
         self.children = []
         if children is not None:
-            if type(children) is list:
+            if isinstance(children, list):
                 for child in children:
                     self.append(child)
             else:

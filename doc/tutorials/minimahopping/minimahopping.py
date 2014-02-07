@@ -3,7 +3,7 @@ import matplotlib
 #matplotlib.use('Agg')
 from ase.optimize.minimahopping import MHPlot
 
-execfile('Cu2_Pt110.py')
+exec(compile(open('Cu2_Pt110.py').read(), 'Cu2_Pt110.py', 'exec'))
 mhplot = MHPlot()
 mhplot.save_figure('hoppingsummary.png')
 # Clean up directory.

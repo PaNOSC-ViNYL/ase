@@ -23,6 +23,6 @@ slab.set_constraint(constraint)
 dyn = QuasiNewton(slab, trajectory='N2Cu.traj')
 dyn.run(fmax=0.05)
 
-print 'Adsorption energy:', e_slab + e_N2 - slab.get_potential_energy()
+print('Adsorption energy:', e_slab + e_N2 - slab.get_potential_energy())
 
 #view(slab)

@@ -28,7 +28,7 @@ try:
     ext_png_math = 'sphinx.ext.pngmath'
 except ImportError:
     ext_png_math = 'mathpng'
-    print 'Warning: sphinx uses custom mathpng.py: please update to sphinx >= 5.0'
+    print('Warning: sphinx uses custom mathpng.py: please update to sphinx >= 5.0')
 
 
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
@@ -41,7 +41,7 @@ try:
     from sphinx.ext import intersphinx
     extensions.append('sphinx.ext.intersphinx')
 except ImportError:
-    print 'Warning: no sphinx.ext.intersphinx available: please update to sphinx >= 5.0'
+    print('Warning: no sphinx.ext.intersphinx available: please update to sphinx >= 5.0')
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

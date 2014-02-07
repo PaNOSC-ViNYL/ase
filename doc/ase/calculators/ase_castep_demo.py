@@ -50,10 +50,10 @@ mol.set_calculator(calc)
 
 # Check for correct input
 if calc.dryrun_ok():
-    print('%s : %s ' % (mol.calc._label, mol.get_potential_energy()))
+    print(('%s : %s ' % (mol.calc._label, mol.get_potential_energy())))
 else:
     print("Found error in input")
-    print(calc._error)
+    print((calc._error))
 
 
 # Read all settings from previous calculation
@@ -67,4 +67,4 @@ mol.calc.param.xc_functional = 'PBE'
 # don't forget to set an appropriate label
 mol.calc._label = 'CO_PBE'
 # Recalculate the potential energy
-print('%s : %s ' % (mol.calc._label, mol.get_potential_energy()))
+print(('%s : %s ' % (mol.calc._label, mol.get_potential_energy())))

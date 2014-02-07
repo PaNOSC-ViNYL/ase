@@ -12,4 +12,4 @@ calc = Vasp(prec = 'Accurate',
             lreal = False)
 NaCl.set_calculator(calc)
 
-print NaCl.get_magnetic_moment()
+print(NaCl.get_magnetic_moment())

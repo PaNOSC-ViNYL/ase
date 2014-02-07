@@ -7,5 +7,5 @@ volumes = [ag.get_volume() for ag in configs]
 energies = [ag.get_potential_energy() for ag in configs]
 eos = EquationOfState(volumes, energies)
 v0, e0, B = eos.fit()
-print B / kJ * 1.0e24, 'GPa'
+print(B / kJ * 1.0e24, 'GPa')
 eos.plot('Ag-eos.png')
