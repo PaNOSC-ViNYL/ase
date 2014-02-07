@@ -144,11 +144,11 @@ class Execute(gtk.Window):
         if self.selected.get_active():
             indices = np.where(S)[0]
         else:
-            indices = range(n)
+            indices = list(range(n))
 
         ans = getattr(gui,'expert_mode_answers',[])
 
-        loop_images = range(N)
+        loop_images = list(range(N))
         if self.images_only.get_active():
             loop_images = [self.gui.frame]
 
@@ -223,7 +223,7 @@ class Execute(gtk.Window):
                         self.add_text(repr(eval(cmd)))
                         ans += [eval(cmd)]
                     except:
-                        exec code
+                        exec(code)
                     gui.set_frame(frame)
                     if gui.movie_window is not None:
                         gui.movie_window.frame_number.value = frame
@@ -248,7 +248,7 @@ class Execute(gtk.Window):
                             self.add_text(repr(eval(cmd)))
                             ans += [eval(cmd)]
                         except:
-                            exec code
+                            exec(code)
                         S[a] = s
                         img.P[i][a] = x, y, z
                         img.Z[a] = Z

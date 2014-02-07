@@ -115,7 +115,7 @@ if __name__ == '__main__':
 
         sg = FINDSYM(Jacapo.read_atoms(ncfile),outfile=options.o)
 
-        print sg.get_space_group()
+        print(sg.get_space_group())
     
         if options.f is not None:
-            print sg
+            print(sg)

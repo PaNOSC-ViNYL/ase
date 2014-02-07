@@ -31,10 +31,10 @@ else:
     neb.interpolate()
 
     for a in images:
-        print a.positions[0], a.get_potential_energy()
+        print(a.positions[0], a.get_potential_energy())
 
     dyn = MDMin(neb, dt=0.1, trajectory='mep1.traj')
     #dyn = QuasiNewton(neb)
-    print dyn.run(fmax=0.01, steps=25)
+    print(dyn.run(fmax=0.01, steps=25))
     for a in images:
-        print a.positions[0], a.get_potential_energy()
+        print(a.positions[0], a.get_potential_energy())

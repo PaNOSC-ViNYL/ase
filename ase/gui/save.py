@@ -158,7 +158,7 @@ class SaveWindow(gtk.Window):
         if self.radio_thisconf.get_active():
             indices = [self.gui.frame]
         elif self.radio_allconf.get_active():
-            indices = range(self.gui.images.nimages)
+            indices = list(range(self.gui.images.nimages))
         elif self.radio_someconf.get_active():
             txt = self.whichconf.get_text()
             if not txt:
@@ -169,7 +169,7 @@ class SaveWindow(gtk.Window):
             except ValueError:
                 oops("ERROR: Failed to parse image specification '%s'" % (txt,))
                 return
-            indices = range(self.gui.images.nimages)[slice]
+            indices = list(range(self.gui.images.nimages))[slice]
             if isinstance(indices, int):
                 indices = [indices]
         else:

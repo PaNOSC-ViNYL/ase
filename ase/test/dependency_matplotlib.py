@@ -24,5 +24,5 @@ if locals().get('display'):
     try:
         import matplotlib
     except ImportError:
-        print >> sys.stderr, msg
+        print(msg, file=sys.stderr)
         raise

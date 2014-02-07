@@ -24,7 +24,8 @@ import numpy as np
 import os
 import shutil
 import time
-import cPickle as pickle
+import pickle as pickle
+import collections
 
 class BundleTrajectory:
     """Reads and writes atoms into a .bundle directory.
@@ -629,7 +630,7 @@ class BundleTrajectory:
 
         All other arguments are stored, and passed to the function.
         """
-        if not callable(function):
+        if not isinstance(function, collections.Callable):
             raise ValueError("Callback object must be callable.")
         self.pre_observers.append((function, interval, args, kwargs))
 
@@ -642,7 +643,7 @@ class BundleTrajectory:
 
         All other arguments are stored, and passed to the function.
         """
-        if not callable(function):
+        if not isinstance(function, collections.Callable):
             raise ValueError("Callback object must be callable.")
         self.post_observers.append((function, interval, args, kwargs))
 
@@ -806,27 +807,27 @@ def print_bundletrajectory_info(filename):
     Mainly intended to be called from a command line tool.
     """
     if not BundleTrajectory.is_bundle(filename):
-        raise ValueError, "Not a BundleTrajectory!"
+        raise ValueError('Not a BundleTrajectory!')
     if BundleTrajectory.is_empty_bundle(filename):
-        print filename, "is an empty BundleTrajectory."
+        print((filename, 'is an empty BundleTrajectory.'))
         return
     # Read the metadata
     f = open(os.path.join(filename, 'metadata'))
     metadata = pickle.load(f)
     f.close()
-    print "Metadata information of BundleTrajectory '%s':" % (filename,)
+    print("Metadata information of BundleTrajectory '%s':" % (filename,))
     for k, v in metadata.items():
         if k != 'datatypes':
-            print "  %s: %s" % (k, v)
+            print("  %s: %s" % (k, v))
     f = open(os.path.join(filename, 'frames'))
     nframes = int(f.read())
-    print "Number of frames: %i" % (nframes,)
-    print "Data types:"
+    print("Number of frames: %i" % (nframes,))
+    print("Data types:")
     for k, v in metadata['datatypes'].items():
         if v == 'once':
-            print "  %s: First frame only." % (k,)
+            print("  %s: First frame only." % (k,))
         elif v:
-            print "  %s: All frames." % (k,)
+            print("  %s: All frames." % (k,))
     # Look at first frame
     if metadata['backend'] == 'pickle':
         backend = PickleBundleBackend(True)
@@ -835,21 +836,21 @@ def print_bundletrajectory_info(filename):
                                   % (metadata['backend'],))
     frame = os.path.join(filename, "F0")
     small = backend.read_small(frame)
-    print "Contents of first frame:"
+    print("Contents of first frame:")
     for k, v in small.items():
         if k == 'constraints':
             if v:
-                print "  %i constraints are present"
+                print("  %i constraints are present")
             else:
-                print "  Constraints are absent."
+                print("  Constraints are absent.")
         elif k == 'pbc':
-            print "  Periodic boundary conditions: %s" % (str(v),)
+            print("  Periodic boundary conditions: %s" % (str(v),))
         elif k == 'natoms':
-            print "  Number of atoms: %i" % (v,)
+            print("  Number of atoms: %i" % (v,))
         elif hasattr(v, 'shape'):
-            print "  %s: shape = %s, type = %s" % (k, str(v.shape), str(v.dtype))
+            print("  %s: shape = %s, type = %s" % (k, str(v.shape), str(v.dtype)))
         else:
-            print "  %s: %s" % (k, str(v))
+            print("  %s: %s" % (k, str(v)))
     # Read info from separate files.
     for k, v in metadata['datatypes'].items():
         if v and not k in small:
@@ -859,7 +860,7 @@ def print_bundletrajectory_info(filename):
             else:
                 shape = info
                 dtype = 'unknown'
-            print "  %s: shape = %s, type = %s" % (k, str(shape), dtype)
+            print("  %s: shape = %s, type = %s" % (k, str(shape), dtype))
                 
             
             

@@ -318,7 +318,7 @@ class View:
     def show_labels(self, action, active):
         an = active.get_name()
         if an == "AtomIndex":
-            self.labels = [range(self.images.natoms)] * self.images.nimages
+            self.labels = [list(range(self.images.natoms))] * self.images.nimages
         elif an == "NoLabel":
             self.labels = None
         elif an == "MagMom":
@@ -530,7 +530,7 @@ class View:
                 # eigenvektor der diagonal matrix
                 phi = atan(El_p_diag[1][0][1] / El_p_diag[1][0][0])
                 tupl = []
-                alpha = np.array(range(16)) * 2 * np.pi / 16
+                alpha = np.array(list(range(16))) * 2 * np.pi / 16
                 El_xy = np.array([sqrt(1. / (El_p_diag[0][0])) *
                                   np.cos(alpha)*np.cos(phi) 
                                   - sqrt(1./(El_p_diag[0][1])) * 

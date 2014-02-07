@@ -44,7 +44,7 @@ for image in images:
     image.set_constraint(constraint)
 
 for image in images:  # O-H(shared) distance
-    print image.get_distance(1, 2), image.get_potential_energy()
+    print(image.get_distance(1, 2), image.get_potential_energy())
 
 # Relax initial and final states:
 if 1:
@@ -61,10 +61,10 @@ if 1:
 neb.interpolate()
 
 for image in images:
-    print image.get_distance(1, 2), image.get_potential_energy()
+    print(image.get_distance(1, 2), image.get_potential_energy())
 
 dyn = BFGS(neb, trajectory='emt_h3o2m.traj')
 dyn.run(fmax=0.05)
 
 for image in images:
-    print image.get_distance(1, 2), image.get_potential_energy()
+    print(image.get_distance(1, 2), image.get_potential_energy())

@@ -117,7 +117,7 @@ class LAMMPS:
         else:
             self.tmp_dir=os.path.realpath(tmp_dir)
             if not os.path.isdir(self.tmp_dir):
-                os.mkdir(self.tmp_dir, 0755)
+                os.mkdir(self.tmp_dir, 0o755)
         
         for f in files:
             shutil.copy(f, os.path.join(self.tmp_dir, os.path.basename(f)))
@@ -160,8 +160,8 @@ class LAMMPS:
             # below
             cell = 2 * np.max(np.abs(self.atoms.get_positions())) * np.eye(3)
         else: 
-            print "WARNING: semi-periodic ASE cell detected -"
-            print "         translation to proper LAMMPS input cell might fail"
+            print("WARNING: semi-periodic ASE cell detected -")
+            print("         translation to proper LAMMPS input cell might fail")
             cell = self.atoms.get_cell()
         self.prism = prism(cell)
         self.run()
@@ -431,8 +431,8 @@ class LAMMPS:
                     if m:
                         # create a dictionary between each of the thermo_style args
                         # and it's corresponding value
-                        thermo_content.append(dict(zip(self._custom_thermo_args, 
-                                                       map(float, m.groups()))))
+                        thermo_content.append(dict(list(zip(self._custom_thermo_args, 
+                                                       list(map(float, m.groups()))))))
             else:
                 line = f.readline()
 
@@ -675,9 +675,9 @@ class prism:
         # Two-stage fold, first into box, then into semi-open interval
         # (within the given precission).
         d = [x % (1-self.dir_prec) for x in 
-             map(dec.Decimal, map(repr, np.mod(self.car2dir(v) + self.eps, 1.0)))]
+             map(dec.Decimal, list(map(repr, np.mod(self.car2dir(v) + self.eps, 1.0))))]
         return tuple([self.f2qs(x) for x in 
-                      self.dir2car(map(float, d))])
+                      self.dir2car(list(map(float, d)))])
         
     def get_lammps_prism(self):
         A = self.A
@@ -776,14 +776,14 @@ if __name__ == '__main__':
                      cell=[a0]*3,
                      pbc=True)
         # test get_forces
-        print 'forces for a = %f' % a0
-        print calc.get_forces(bulk)
+        print('forces for a = %f' % a0)
+        print(calc.get_forces(bulk))
         # single points for various lattice constants
         bulk.set_calculator(calc)
         for n in range(-5,5,1):
             a = a0 * (1 + n/100.0)
             bulk.set_cell([a]*3)
-            print 'a : %f , total energy : %f' % (a, bulk.get_potential_energy())
+            print('a : %f , total energy : %f' % (a, bulk.get_potential_energy()))
 
     calc.clean()
 

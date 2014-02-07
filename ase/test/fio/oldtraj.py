@@ -1,6 +1,6 @@
 """Check that we can read old version 1 PickleTrajectories."""
-import cPickle as pickle
-from StringIO import StringIO
+import pickle as pickle
+from io import StringIO
 
 import numpy as np
 

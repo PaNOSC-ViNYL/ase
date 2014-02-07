@@ -24,9 +24,9 @@ slab.set_constraint(constraint)
 dyn = QuasiNewton(slab)
 dyn.run(fmax=0.05)
 Z = slab.get_positions()[:, 2]
-print Z[0] - Z[1]
-print Z[1] - Z[2]
-print Z[2] - Z[3]
+print(Z[0] - Z[1])
+print(Z[1] - Z[2])
+print(Z[2] - Z[3])
 
 b = 1.2
 h = 1.5
@@ -61,7 +61,7 @@ neb = NEB(images, climb=not True)
 neb.interpolate()
 
 for image in images:
-    print image.positions[-1], image.get_potential_energy()
+    print(image.positions[-1], image.get_potential_energy())
 
 #dyn = MDMin(neb, dt=0.4)
 #dyn = FIRE(neb, dt=0.01)
@@ -71,7 +71,7 @@ dyn = BFGS(neb, maxstep=0.04, trajectory='mep.traj')
 dyn.run(fmax=0.05)
 
 for image in images:
-    print image.positions[-1], image.get_potential_energy()
+    print(image.positions[-1], image.get_potential_energy())
 
 if locals().get('display'):
     import os

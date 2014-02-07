@@ -23,22 +23,22 @@ class BatchTest:
         self.txt = sys.stdout # ?
 
     def run_single_test(self, formula):
-        print >> self.txt, self.test.name, formula, '...',
+        print(self.test.name, formula, '...', end=' ', file=self.txt)
         self.txt.flush()
         filename = self.test.get_filename(formula)
         if os.path.exists(filename):
-            print >> self.txt, 'Skipped.'
+            print('Skipped.', file=self.txt)
             return
         try:
             open(filename, 'w').close() # Empty file
             system, calc = self.test.setup(formula)
             self.test.run(formula, system, filename)
-            print >> self.txt, 'OK!'
+            print('OK!', file=self.txt)
             self.txt.flush()
         except self.test.exceptions:
-            print >> self.txt, 'Failed!'
+            print('Failed!', file=self.txt)
             traceback.print_exc(file=self.txt)
-            print >> self.txt
+            print(file=self.txt)
             self.txt.flush()
 
     def run(self, formulas):
@@ -64,12 +64,12 @@ class BatchTest:
                 filename = self.test.get_filename(formula)
                 results = self.test.retrieve(formula, filename)
                 if verbose:
-                    print >> self.txt, 'Loaded:', formula, filename
+                    print('Loaded:', formula, filename, file=self.txt)
                 yield formula, results
             except (IOError, RuntimeError, TypeError):
                 # XXX which errors should we actually catch?
                 if verbose:
-                    print >> self.txt, 'Error:', formula, '[%s]' % filename
+                    print('Error:', formula, '[%s]' % filename, file=self.txt)
                     traceback.print_exc(file=self.txt)
 
 
@@ -242,18 +242,18 @@ def main():
     test1 = BatchTest(EMTEnergyTest(name1, vacuum=3.0))
     test2 = BatchTest(EMTBondLengthTest(name2, vacuum=3.0))
 
-    print 'Energy test'
-    print '-----------'
+    print('Energy test')
+    print('-----------')
     test1.run(formulas + atoms)
 
-    print
-    print 'Bond length test'
-    print '----------------'
+    print()
+    print('Bond length test')
+    print('----------------')
     test2.run(dimers)
 
-    print
-    print 'Atomization energies'
-    print '--------------------'
+    print()
+    print('Atomization energies')
+    print('--------------------')
     atomic_energies = dict(test1.collect(atoms))
     molecular_energies = dict(test1.collect(formulas))
     atomization_energies = {}
@@ -262,15 +262,15 @@ def main():
         atomic = [atomic_energies[s] for s in system.get_chemical_symbols()]
         atomization_energy = energy - sum(atomic)
         atomization_energies[formula] = atomization_energy
-        print formula.rjust(10), '%.02f' % atomization_energy
+        print(formula.rjust(10), '%.02f' % atomization_energy)
 
-    print
-    print 'Bond lengths'
-    print '------------'
+    print()
+    print('Bond lengths')
+    print('------------')
     for formula, (d_i, e_i, d0, e0, poly) in test2.collect(dimers):
         system = molecule(formula)
         bref = np.linalg.norm(system.positions[1] - system.positions[0])
-        print formula.rjust(10), '%6.3f' % d0, '  g2ref =', '%2.3f' % bref
+        print(formula.rjust(10), '%6.3f' % d0, '  g2ref =', '%2.3f' % bref)
 
         
 if __name__ == '__main__':

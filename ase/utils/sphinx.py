@@ -90,12 +90,12 @@ def epydoc_role_tmpl(package_name, urlroot,
             module = __import__('.'.join(components[:n]))
     except ImportError:
         if module is None:
-            print 'epydoc: could not process: %s' % str(components)
+            print('epydoc: could not process: %s' % str(components))
             raise
         for component in components[1:n]:
             module = getattr(module, component)
             ref = '.'.join(components[:n])
-            if isinstance(module, (type, types.ClassType)):
+            if isinstance(module, type):
                 ref += '-class.html'
             else:
                 ref += '-module.html'
@@ -157,14 +157,14 @@ def create_png_files():
                                 run = True
                                 break
                     if run:
-                        print('running:', join(dirpath, filename))
+                        print(('running:', join(dirpath, filename)))
                         os.chdir(dirpath)
                         plt.figure()
                         try:
-                            execfile(filename, {})
+                            exec(compile(open(filename).read(), filename, 'exec'), {})
                         finally:
                             os.chdir(olddir)
                         for file in line.split()[2:]:
-                            print(dirpath, file)
+                            print((dirpath, file))
         if '.svn' in dirnames:
             dirnames.remove('.svn')

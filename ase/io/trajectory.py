@@ -1,8 +1,12 @@
 import os
 import sys
-import cPickle as pickle
 import warnings
 import errno
+import collections
+try:
+    import pickle as pickle
+except ImportError:
+    import pickle
 
 # pass for WindowsError on non-Win platforms
 try:
@@ -87,12 +91,12 @@ class PickleTrajectory:
         """
         self.fd = filename
         if mode == 'r':
-            if isinstance(filename, (str, unicode)):
+            if isinstance(filename, str):
                 self.fd = open(filename, 'rb')
             self.read_header()
         elif mode == 'a':
             exists = True
-            if isinstance(filename, (str, unicode)):
+            if isinstance(filename, str):
                 exists = os.path.isfile(filename)
                 if exists:
                     exists = os.path.getsize(filename) > 0
@@ -107,11 +111,11 @@ class PickleTrajectory:
                     self.fd = devnull
         elif mode == 'w':
             if self.master:
-                if isinstance(filename, (str, unicode)):
+                if isinstance(filename, str):
                     if self.backup and os.path.isfile(filename):
                         try:
                             os.rename(filename, filename + '.bak')
-                        except WindowsError, e:
+                        except WindowsError as e:
                             # this must run on Win only! Not atomic!
                             if e.errno != errno.EEXIST:
                                 raise
@@ -336,7 +340,7 @@ class PickleTrajectory:
         del self.offsets[1:]
         return self
 
-    def next(self):
+    def __next__(self):
         try:
             return self[len(self.offsets) - 1]
         except IndexError:
@@ -384,7 +388,7 @@ class PickleTrajectory:
 
         All other arguments are stored, and passed to the function.
         """
-        if not callable(function):
+        if not isinstance(function, collections.Callable):
             raise ValueError('Callback object must be callable.')
         self.pre_observers.append((function, interval, args, kwargs))
 
@@ -397,7 +401,7 @@ class PickleTrajectory:
 
         All other arguments are stored, and passed to the function.
         """
-        if not callable(function):
+        if not isinstance(function, collections.Callable):
             raise ValueError('Callback object must be callable.')
         self.post_observers.append((function, interval, args, kwargs))
 
@@ -414,7 +418,7 @@ def stringnify_info(info):
     unpicklable values are dropped and a warning is issued."""
     stringnified = {}
     for k, v in info.items():
-        if not isinstance(k, basestring):
+        if not isinstance(k, str):
             warnings.warn('Non-string info-dict key is not stored in ' +
                           'trajectory: ' + repr(k), UserWarning)
             continue
@@ -548,24 +552,24 @@ def print_trajectory_info(filename):
         raise ValueError('Not a PickleTrajectory file!')
     # Head header
     header = pickle.load(f)
-    print('Header information of trajectory file %r:' % filename)
-    print('  Version: %d' % header.get('version', 1))
-    print('  Boundary conditions: %s' % header['pbc'])
-    print('  Atomic numbers: shape = %s, type = %s' %
-          (header['numbers'].shape, header['numbers'].dtype))
+    print(('Header information of trajectory file %r:' % filename))
+    print(('  Version: %d' % header.get('version', 1)))
+    print(('  Boundary conditions: %s' % header['pbc']))
+    print(('  Atomic numbers: shape = %s, type = %s' %
+          (header['numbers'].shape, header['numbers'].dtype)))
     if header.get('tags') is None:
         print('  Tags are absent.')
     else:
-        print('  Tags: shape = %s, type = %s' %
-              (header['tags'].shape, header['tags'].dtype))
+        print(('  Tags: shape = %s, type = %s' %
+              (header['tags'].shape, header['tags'].dtype)))
     if header.get('masses') is None:
         print('  Masses are absent.')
     else:
-        print('  Masses: shape = %s, type = %s' %
-              (header['masses'].shape, header['masses'].dtype))
+        print(('  Masses: shape = %s, type = %s' %
+              (header['masses'].shape, header['masses'].dtype)))
     constraints = dict2constraints(header)
     if constraints:
-        print('  %d constraints are present.' % len(constraints))
+        print(('  %d constraints are present.' % len(constraints)))
     else:
         print('  No constraints.')
 
@@ -576,20 +580,20 @@ def print_trajectory_info(filename):
     print('Contents of first frame:')
     for k, v in frame.items():
         if hasattr(v, 'shape'):
-            print('  %s: shape = %s, type = %s' % (k, v.shape, v.dtype))
+            print(('  %s: shape = %s, type = %s' % (k, v.shape, v.dtype)))
         else:
-            print('  %s: %s' % (k, v))
+            print(('  %s: %s' % (k, v)))
     after_frame = f.tell()
     kB = 1024
     MB = 1024 * kB
     GB = 1024 * MB
     framesize = after_frame - after_header
     if framesize >= GB:
-        print('Frame size: %.2f GB' % (1.0 * framesize / GB))
+        print(('Frame size: %.2f GB' % (1.0 * framesize / GB)))
     elif framesize >= MB:
-        print('Frame size: %.2f MB' % (1.0 * framesize / MB))
+        print(('Frame size: %.2f MB' % (1.0 * framesize / MB)))
     else:
-        print('Frame size: %.2f kB' % (1.0 * framesize / kB))
+        print(('Frame size: %.2f kB' % (1.0 * framesize / kB)))
 
     # Print information about file size
     try:
@@ -598,11 +602,11 @@ def print_trajectory_info(filename):
         print('No information about the file size.')
     else:
         if filesize >= GB:
-            print('File size: %.2f GB' % (1.0 * filesize / GB))
+            print(('File size: %.2f GB' % (1.0 * filesize / GB)))
         elif filesize >= MB:
-            print('File size: %.2f MB' % (1.0 * filesize / MB))
+            print(('File size: %.2f MB' % (1.0 * filesize / MB)))
         else:
-            print('File size: %.2f kB' % (1.0 * filesize / kB))
+            print(('File size: %.2f kB' % (1.0 * filesize / kB)))
 
         nframes = (filesize - after_header) // framesize
         offset = nframes * framesize + after_header - filesize
@@ -610,10 +614,10 @@ def print_trajectory_info(filename):
             if nframes == 1:
                 print('Trajectory contains 1 frame.')
             else:
-                print('Trajectory contains %d frames.' % nframes)
+                print(('Trajectory contains %d frames.' % nframes))
         else:
-            print('Trajectory appears to contain approximately %d frames,' %
-                  nframes)
-            print('but the file size differs by %d bytes from the expected' %
-                  -offset)
+            print(('Trajectory appears to contain approximately %d frames,' %
+                  nframes))
+            print(('but the file size differs by %d bytes from the expected' %
+                  -offset))
             print('value.')

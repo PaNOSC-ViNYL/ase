@@ -39,7 +39,7 @@ class TriclinicFactory(Bravais):
     def make_crystal_basis(self):
         "Make the basis matrix for the crystal unit cell and the system unit cell."
         lattice = self.latticeconstant
-        if type(lattice) == type({}):
+        if isinstance(lattice, type({})):
             a = lattice['a']
             try:
                 b = lattice['b']
@@ -56,7 +56,7 @@ class TriclinicFactory(Bravais):
             if len(lattice) == 6:
                 (a,b,c,alpha,beta,gamma) = lattice
             else:
-                raise ValueError, "Improper lattice constants for triclinic crystal."
+                raise ValueError("Improper lattice constants for triclinic crystal.")
 
         degree = np.pi / 180.0
         cosa = np.cos(alpha*degree)

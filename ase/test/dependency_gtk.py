@@ -24,5 +24,5 @@ if locals().get('display'):
     try:
         import gtk
     except ImportError:
-        print >> sys.stderr, msg
+        print(msg, file=sys.stderr)
         raise

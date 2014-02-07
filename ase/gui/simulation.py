@@ -127,11 +127,11 @@ class Simulation(gtk.Window):
                      constraint=constraint)
 
     def begin(self, **kwargs):
-        if self.gui.simulation.has_key('progress'):
+        if 'progress' in self.gui.simulation:
             self.gui.simulation['progress'].begin(**kwargs)
 
     def end(self):
-        if self.gui.simulation.has_key('progress'):
+        if 'progress' in self.gui.simulation:
             self.gui.simulation['progress'].end()
 
     def prepare_store_atoms(self):

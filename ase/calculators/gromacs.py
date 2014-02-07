@@ -18,7 +18,7 @@ from ase import units
 import numpy as np
 from ase.io.gromos import read_gromos, write_gromos
 from ase.io import read
-from general import Calculator
+from .general import Calculator
 
 string_keys = [
     'define',
@@ -183,13 +183,13 @@ class Gromacs(Calculator):
         self.write_parameters()
 
         # a possible prefix for gromacs programs
-        if os.environ.has_key('GMXCMD_PREF'):
+        if 'GMXCMD_PREF' in os.environ:
             self.prefix = os.environ['GMXCMD_PREF']
         else:
             self.prefix = ''
 
         # a possible postfix for gromacs programs
-        if os.environ.has_key('GMXCMD_POST'):
+        if 'GMXCMD_POST' in os.environ:
             self.postfix = os.environ['GMXCMD_POST']
         else:
             self.postfix = ''
@@ -218,7 +218,7 @@ class Gromacs(Calculator):
     def set(self, **kwargs):
         """ Setting values for the parameters of the gromacs calculator """
         for key in kwargs:
-            if self.string_params.has_key(key):
+            if key in self.string_params:
                 self.string_params[key] = kwargs[key]
             else:
                 raise TypeError('Parameter not defined: ' + key)
@@ -319,7 +319,7 @@ class Gromacs(Calculator):
     def get_command(self):
         """Return command string for gromacs mdrun.  """
         command = None
-        if os.environ.has_key('GMXCMD'):
+        if 'GMXCMD' in os.environ:
             command = self.prefix + os.environ['GMXCMD'] + self.postfix
         return command
 

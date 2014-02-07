@@ -27,8 +27,8 @@ else:
 try:
     import Scientific
     version = Scientific.__version__.split('.')
-    print 'Found ScientificPython version: ', Scientific.__version__
-    if map(int, version) < [2, 8]:
+    print('Found ScientificPython version: ', Scientific.__version__)
+    if list(map(int, version)) < [2, 8]:
         print('ScientificPython 2.8 or greater required for numpy support')
         raise ImportError
 except ImportError:
@@ -48,7 +48,7 @@ only_one_image = ['cube', 'png', 'eps', 'cfg', 'struct', 'etsf', 'gen',
                   'json', 'db']
 
 for format in w:
-    print format, 'O',
+    print(format, 'O', end=' ')
     fname1 = 'io-test.1.' + format
     fname2 = 'io-test.2.' + format
     write(fname1, atoms, format=format)
@@ -56,7 +56,7 @@ for format in w:
         write(fname2, images, format=format)
 
     if format in r:
-        print 'I'
+        print('I')
         a1 = read(fname1)
         assert np.all(np.abs(a1.get_positions() -
                              atoms.get_positions()) < 1e-6)
@@ -75,4 +75,4 @@ for format in w:
             else:
                 assert len(a4) == 2
     else:
-        print
+        print()

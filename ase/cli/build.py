@@ -68,7 +68,7 @@ def main():
             np.tile(magmoms, len(atoms) // len(magmoms)))
 
     if opts.modify:
-        exec opts.modify in {'atoms': atoms}
+        exec(opts.modify, {'atoms': atoms})
 
     if opts.repeat is not None:
         r = opts.repeat.split(',')

@@ -21,7 +21,7 @@ http://cms.mpi.univie.ac.at/vasp/
 import os
 import sys
 import re
-from general import Calculator
+from .general import Calculator
 from os.path import join, isfile, islink
 
 import numpy as np
@@ -298,23 +298,23 @@ class Vasp(Calculator):
 
     def set(self, **kwargs):
         for key in kwargs:
-            if self.float_params.has_key(key):
+            if key in self.float_params:
                 self.float_params[key] = kwargs[key]
-            elif self.exp_params.has_key(key):
+            elif key in self.exp_params:
                 self.exp_params[key] = kwargs[key]
-            elif self.string_params.has_key(key):
+            elif key in self.string_params:
                 self.string_params[key] = kwargs[key]
-            elif self.int_params.has_key(key):
+            elif key in self.int_params:
                 self.int_params[key] = kwargs[key]
-            elif self.bool_params.has_key(key):
+            elif key in self.bool_params:
                 self.bool_params[key] = kwargs[key]
-            elif self.list_params.has_key(key):
+            elif key in self.list_params:
                 self.list_params[key] = kwargs[key]
-            elif self.special_params.has_key(key):
+            elif key in self.special_params:
                 self.special_params[key] = kwargs[key]
-            elif self.dict_params.has_key(key):
+            elif key in self.dict_params:
                 self.dict_params[key] = kwargs[key]
-            elif self.input_params.has_key(key):
+            elif key in self.input_params:
                 self.input_params[key] = kwargs[key]
             else:
                 raise TypeError('Parameter not defined: ' + key)
@@ -371,7 +371,7 @@ class Vasp(Calculator):
             if m in special_setups:
                 pass
             else:
-                if not symbols.has_key(symbol):
+                if symbol not in symbols:
                     symbols[symbol] = 1
                 else:
                     symbols[symbol] += 1
@@ -387,7 +387,7 @@ class Vasp(Calculator):
                 else:
                     if atom.symbol == symbol:
                         self.sort.append(m)
-        self.resort = range(len(self.sort))
+        self.resort = list(range(len(self.sort)))
         for n in range(len(self.resort)):
             self.resort[self.sort[n]] = n
         self.atoms_sorted = atoms[self.sort]
@@ -429,7 +429,7 @@ class Vasp(Calculator):
                     self.ppp_list.append(filename+'.Z')
                     break
             if not found:
-                print 'Looking for %s' % name
+                print('Looking for %s' % name)
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
         #print 'symbols', symbols
         for symbol in symbols:
@@ -451,11 +451,11 @@ class Vasp(Calculator):
                     self.ppp_list.append(filename+'.Z')
                     break
             if not found:
-                print '''Looking for %s
+                print('''Looking for %s
                 The pseudopotentials are expected to be in:
                 LDA:  $VASP_PP_PATH/potpaw/
                 PBE:  $VASP_PP_PATH/potpaw_PBE/
-                PW91: $VASP_PP_PATH/potpaw_GGA/'''  % name
+                PW91: $VASP_PP_PATH/potpaw_GGA/'''  % name)
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
         self.converged = None
         self.setups_changed = None
@@ -535,13 +535,13 @@ class Vasp(Calculator):
             pass
         elif isinstance(p['txt'], str):
             sys.stderr = open(p['txt'], 'w')
-        if os.environ.has_key('VASP_COMMAND'):
+        if 'VASP_COMMAND' in os.environ:
             vasp = os.environ['VASP_COMMAND']
             exitcode = os.system('%s > %s' % (vasp, self.out))
-        elif os.environ.has_key('VASP_SCRIPT'):
+        elif 'VASP_SCRIPT' in os.environ:
             vasp = os.environ['VASP_SCRIPT']
             locals={}
-            execfile(vasp, {}, locals)
+            exec(compile(open(vasp).read(), vasp, 'exec'), {}, locals)
             exitcode = locals['exitcode']
         else:
             raise RuntimeError('Please set either VASP_COMMAND or VASP_SCRIPT environment variable')
@@ -565,8 +565,8 @@ class Vasp(Calculator):
             atoms = ase.io.read('CONTCAR', format='vasp')[self.resort]
         else:
             atoms = ase.io.read('CONTCAR', format='vasp')
-            self.sort = range(len(atoms))
-            self.resort = range(len(atoms))
+            self.sort = list(range(len(atoms)))
+            self.resort = list(range(len(atoms)))
         self.atoms = atoms.copy()
         self.read_incar()
         self.read_outcar()
@@ -824,7 +824,7 @@ class Vasp(Calculator):
                     incar.write(' IBRION = 3\n POTIM = 0.0\n')
                     for key, val in self.int_params.items():
                         if key == 'iopt' and val == None:
-                            print 'WARNING: optimization is set to LFBGS (IOPT = 1)'
+                            print('WARNING: optimization is set to LFBGS (IOPT = 1)')
                             incar.write(' IOPT = 1\n')
                     for key, val in self.exp_params.items():
                         if key == 'ediffg' and val == None:
@@ -861,9 +861,9 @@ class Vasp(Calculator):
             if val is not None:
                 incar.write(' %s = ' % key.upper())
                 if key == 'lreal':
-                    if type(val) == str:
+                    if isinstance(val, str):
                         incar.write(val+'\n')
-                    elif type(val) == bool:
+                    elif isinstance(val, bool):
                        if val:
                            incar.write('.TRUE.\n')
                        else:
@@ -1650,13 +1650,13 @@ class VaspDos(object):
         # First we have a block with total and total integrated DOS
         ndos = int(f.readline().split()[2])
         dos = []
-        for nd in xrange(ndos):
+        for nd in range(ndos):
             dos.append(np.array([float(x) for x in f.readline().split()]))
         self._total_dos = np.array(dos).T
         # Next we have one block per atom, if INCAR contains the stuff
         # necessary for generating site-projected DOS
         dos = []
-        for na in xrange(natoms):
+        for na in range(natoms):
             line = f.readline()
             if line == '':
                 # No site-projected DOS
@@ -1665,7 +1665,7 @@ class VaspDos(object):
             line = f.readline().split()
             cdos = np.empty((ndos, len(line)))
             cdos[0] = np.array(line)
-            for nd in xrange(1, ndos):
+            for nd in range(1, ndos):
                 line = f.readline().split()
                 cdos[nd] = np.array([float(x) for x in line])
             dos.append(cdos.T)
@@ -1699,10 +1699,10 @@ class xdat2traj:
             self.calc = calc
         if not sort:
             if not hasattr(self.calc, 'sort'):
-                self.calc.sort = range(len(self.atoms))
+                self.calc.sort = list(range(len(self.atoms)))
         else:
             self.calc.sort = sort
-        self.calc.resort = range(len(self.calc.sort))
+        self.calc.resort = list(range(len(self.calc.sort)))
         for n in range(len(self.calc.resort)):
             self.calc.resort[self.calc.sort[n]] = n
         self.out = ase.io.trajectory.PickleTrajectory(self.trajectory, mode='w')

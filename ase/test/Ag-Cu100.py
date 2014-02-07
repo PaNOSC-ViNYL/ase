@@ -27,7 +27,7 @@ images = [initial.copy() for i in range(6)]
 neb = NEB(images, climb=True)
 
 # Set constraints and calculator:
-constraint = FixAtoms(range(len(initial) - 1))
+constraint = FixAtoms(list(range(len(initial) - 1)))
 for image in images:
     image.set_calculator(EMT())
     image.set_constraint(constraint)
@@ -46,7 +46,7 @@ dyn2.run(fmax=0.01)
 neb.interpolate()
 
 for image in images:
-    print image.positions[-1], image.get_potential_energy()
+    print(image.positions[-1], image.get_potential_energy())
 
 #dyn = MDMin(neb, dt=0.4)
 #dyn = FIRE(neb, dt=0.4)
@@ -54,12 +54,12 @@ dyn = BFGS(neb, trajectory='mep.traj')
 dyn.run(fmax=0.05)
 
 for image in images:
-    print image.positions[-1], image.get_potential_energy()
+    print(image.positions[-1], image.get_potential_energy())
 
 a = images[0]
 vib = Vibrations(a, [4])
 vib.run()
-print vib.get_frequencies()
+print(vib.get_frequencies())
 vib.summary()
-print vib.get_mode(-1)
+print(vib.get_mode(-1))
 vib.write_mode(-1, nimages=20)

@@ -24,9 +24,9 @@ def read_xyz(fileobj, index=-1):
     if isinstance(index, int):
         if index < 0:
             tmpsnp = lastsnap + index
-            trbl = range(tmpsnp, tmpsnp + 1, 1)
+            trbl = list(range(tmpsnp, tmpsnp + 1, 1))
         else:
-            trbl = range(index, index + 1, 1)
+            trbl = list(range(index, index + 1, 1))
         rtnndx = -1
     elif isinstance(index, slice):
         start = index.start
@@ -46,7 +46,7 @@ def read_xyz(fileobj, index=-1):
         elif stop < 0:
             stop = lastsnap + stop
 
-        trbl = range(start, stop, step)
+        trbl = list(range(start, stop, step))
 
         if step < 0:
             rvrs = True

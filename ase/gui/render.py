@@ -283,7 +283,7 @@ class Render(gtk.Window):
         return colors
         
     def ok(self, *args):
-        print "Rendering povray image(s): "
+        print("Rendering povray image(s): ")
         scale = self.gui.scale*self.height.get_value()/self.gui.height
         bbox = np.empty(4)
         size = np.array([self.width.get_value(), self.height.get_value()]) / scale
@@ -304,7 +304,7 @@ class Render(gtk.Window):
         if self.single_frame.get_active():
             frames = [self.gui.frame]
         else:
-            frames = range(self.nimages)
+            frames = list(range(self.nimages))
         initial_frame = self.gui.frame
         for frame in frames:
             self.gui.set_frame(frame)
@@ -312,16 +312,16 @@ class Render(gtk.Window):
             atoms = self.gui.images.get_atoms(frame)
             self.set_outputname()        
             filename = self.outputname.get_text()
-            print " | Writing files for image", filename, "..."
+            print(" | Writing files for image", filename, "...")
             write_pov(filename,
                       atoms,
                       radii = self.gui.images.r,
                       **povray_settings)
             if not self.keep_files.get_active():
-                print " | Deleting temporary file ", filename
+                print(" | Deleting temporary file ", filename)
                 system("rm "+filename)
                 filename = filename[:-4] + '.ini'
-                print " | Deleting temporary file ", filename
+                print(" | Deleting temporary file ", filename)
                 system("rm "+filename)
         self.gui.set_frame(initial_frame)
         self.set_outputname()        

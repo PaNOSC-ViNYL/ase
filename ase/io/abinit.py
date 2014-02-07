@@ -20,7 +20,7 @@ def read_abinit(filename='abinit.in'):
         f = filename
 
     lines = f.readlines()
-    if type(filename) == str:
+    if isinstance(filename, str):
         f.close()
 
     full_file = ''
@@ -210,5 +210,5 @@ def write_abinit(filename, atoms, cartesian=False, long_format=True):
             f.write(cform % dcoord)
         f.write('\n')
 
-    if type(filename) == str:
+    if isinstance(filename, str):
         f.close()

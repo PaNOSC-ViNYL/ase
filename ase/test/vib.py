@@ -10,9 +10,9 @@ n2 = Atoms('N2',
 QuasiNewton(n2).run(fmax=0.01)
 vib = Vibrations(n2)
 vib.run()
-print(vib.get_frequencies())
+print((vib.get_frequencies()))
 vib.summary()
-print(vib.get_mode(-1))
+print((vib.get_mode(-1)))
 vib.write_mode(n=None, nimages=20)
 vib_energies = vib.get_energies()
 

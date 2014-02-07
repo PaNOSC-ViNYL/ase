@@ -80,7 +80,7 @@ def find_lamda(upperlimit,Gbar,b,radius):
 def get_hessian_inertia(eigenvalues):
         # return number of negative modes
         n = 0
-        print 'eigenvalues ',eigenvalues[0],eigenvalues[1],eigenvalues[2]
+        print('eigenvalues ',eigenvalues[0],eigenvalues[1],eigenvalues[2])
         while eigenvalues[n]<0:
                 n+=1
         return n 
@@ -161,21 +161,21 @@ class GoodOldQuasiNewton(Optimizer):
         self.set_hessian(hessian) 
 
     def read_hessian(self,filename): 
-        import cPickle
+        import pickle
         f = open(filename,'r')
-        self.set_hessian(cPickle.load(f))
+        self.set_hessian(pickle.load(f))
         f.close()
 
     def write_hessian(self,filename): 
-        import cPickle
+        import pickle
         f = paropen(filename,'w')
-        cPickle.dump(self.get_hessian(),f)
+        pickle.dump(self.get_hessian(),f)
         f.close()
 
     def write_to_restartfile(self):
-        import cPickle
+        import pickle
         f = paropen(self.restartfile,'w')
-        cPickle.dump((self.oldpos,
+        pickle.dump((self.oldpos,
                       self.oldG,
                       self.oldenergy,
                       self.radius,
@@ -202,7 +202,7 @@ class GoodOldQuasiNewton(Optimizer):
         self.oldG = copy.copy(G)
 
         if self.verbosity: 
-                print 'hessian ',self.hessian
+                print('hessian ',self.hessian)
 
 
         
@@ -246,7 +246,7 @@ class GoodOldQuasiNewton(Optimizer):
 
 
     def update_hessian_bofill(self,pos,G):                                                                     
-        print 'update Bofill'
+        print('update Bofill')
         n = len(self.hessian)                                                                               
         dgrad = G - self.oldG                                                                               
         dpos  = pos - self.oldpos                                                                           
@@ -416,8 +416,8 @@ class GoodOldQuasiNewton(Optimizer):
         n = len(hessian)
         for i in range(n): 
             for j in range(n): 
-                print "%2.4f " %(hessian[i][j]),
-            print " "
+                print("%2.4f " %(hessian[i][j]), end=' ')
+            print(" ")
 
 
     

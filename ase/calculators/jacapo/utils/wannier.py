@@ -23,7 +23,7 @@ def translate(array,translation):
         size=array.shape
         for dim in range(len(translation)):
             axis=dim-len(translation)
-            newarray=np.concatenate((np.take(newarray,range(translation[dim],size[axis]),axis),np.take(newarray,range(translation[dim]),axis)),axis)
+            newarray=np.concatenate((np.take(newarray,list(range(translation[dim],size[axis])),axis),np.take(newarray,list(range(translation[dim])),axis)),axis)
         return newarray.copy()
 
 def cartesian2scaled(basis,cart):
@@ -71,7 +71,7 @@ class Translation_Operator:
         basis_pos = np.arange(length/2,0,-1)
         basis = np.concatenate((basis_neg,basis_pos),-1)
         prefactor=np.exp(-complex(0,1)*2*np.pi*coordinates/length)
-        translation=map(lambda x,prefactor=prefactor:prefactor**x,basis)
+        translation=list(map(lambda x,prefactor=prefactor:prefactor**x,basis))
         return np.array(translation)
 
     def operate(self,state):
@@ -119,9 +119,9 @@ def coordinate_array_from_unit_vectors(shape, gridunitvectors,
                 for nunitvector in range(gridunitvectors.shape[0]):
                         # Finding the indices from which the coordinate grid
                         # is spanned
-                        indices=map(lambda i,f=indexfunction,l=shape[nunitvector]:f(i,l),range(shape[nunitvector]))
+                        indices=list(map(lambda i,f=indexfunction,l=shape[nunitvector]:f(i,l),list(range(shape[nunitvector]))))
                         coordinatefunc=lambda i,v=gridunitvectors[nunitvector,dim]:i*v
-                        coordinates=np.add.outer(coordinates,map(coordinatefunc,indices))
+                        coordinates=np.add.outer(coordinates,list(map(coordinatefunc,indices)))
                 coordinatelist.append(coordinates)
         return np.array(coordinatelist)
 
@@ -171,7 +171,8 @@ class Wannier:
       
    def get_list_of_wave_functions(self):
       if self.get_spin() == None or self.get_bands() == None:
-          raise "Bands and spin must be set before wave function list can be created"
+          raise RuntimeError('Bands and spin must be set before wave ' +
+                             'function list can be created')
 
       if self.has_changed:
           listofwavefct = []
@@ -186,7 +187,7 @@ class Wannier:
           self.has_changed = False
       return self.listofwavefct
 
-   def set_bands(self,numberofbands):	
+   def set_bands(self,numberofbands):   
       self.numberofbands = numberofbands
       self.has_changed = True
       
@@ -200,13 +201,14 @@ class Wannier:
 
       #print 'DacapoWannier: Initialize ZIBlochMatrix ..'
       if self.get_bands() == None or self.get_spin() == None:
-          raise "Bands and spin must be set before wannier localization matrix can be calculated"
-     	
+          raise RuntimeError('Bands and spin must be set before wannier ' +
+                             'localization matrix can be calculated')
+        
       phi=np.swapaxes(np.array(self.get_list_of_wave_functions()[kpoint]),0,1)
       # K1 and reciprocal lattice vector G_I  given kpoint K
       # that fulfills the criteria : K1-K-K0+G1=0
       list1,list2 = self.get_gg_list(kpoint,nextkpoint,G_I)
-				
+                                
       a=np.take(phi,list1,axis=0)
       a=np.swapaxes(a,0,1)
       phi1 = np.swapaxes(np.array(self.get_list_of_wave_functions()[nextkpoint]),0,1)
@@ -225,51 +227,51 @@ class Wannier:
 
        GI is one of
        [[1,0,0],[0,1,0],[0,0,1],[1,1,0],[1,0,1],[0,1,1]]
-			 
+                         
        The layout of fourier components is 
        1   2   3   4   5   6   7   8   ngx = 8 
-       0   1   2   3   4  -3  -2  -1	n*2pi/L	
+       0   1   2   3   4  -3  -2  -1    n*2pi/L 
        """
 
        numberplanewaves = len(self.get_list_of_wave_functions()[kpt1][0])
        reciprocalindex = self.get_fft_index()[kpt1]
 
        ngrids = self.get_grid_dimensions()
-			
+                        
        # setup the mapping from the 3D FFT grid to the wavefuction list
        map2 = self.get_index_map(kpt2) 
-		
+                
        gglist = []
        # print "Generating plane wave index list for direction ",GI," kpt12 ",kpt1,kpt2
        list1 = []
        list2 = []
-	   
+           
        # find G,G+GI
        for n in range(numberplanewaves):
            index = reciprocalindex[:,n]
-	   index = index - 1
-	   # find G,G+GI
-	   for dir in range(3): 
-	       index[dir] += GI[dir]
-	       if index[dir]>=ngrids[dir]:
-	           # wrap around
-		   index[dir] = 0
-				
+           index = index - 1
+           # find G,G+GI
+           for dir in range(3): 
+               index[dir] += GI[dir]
+               if index[dir]>=ngrids[dir]:
+                   # wrap around
+                   index[dir] = 0
+                                
            # now find the corresponding index into phi(kpt2)
            n1 = map2[index[0],index[1],index[2]]
 
            if n1>=0:
               list1.append(n)
               list2.append(n1)
-			
+                        
        # print '  Number of elements in GG list ',len(list1)
        return list1,list2
 
-		
+                
 
    def get_index_map(self,kpt):
        """ generate mapping from 3D FFT grid to the wavefunction list
-		
+                
        A negative number is returned from map(g1,g2,g3) is the
        grid point does not exists in the wavefunction list
        """
@@ -279,12 +281,12 @@ class Wannier:
 
        numberplanewaves = len(self.get_list_of_wave_functions()[kpt][0])
        reciprocalindex = self.get_fft_index()[kpt]
-			
+                        
        for n in range(numberplanewaves):
            i0 = reciprocalindex[0][n]-1
-	   i1 = reciprocalindex[1][n]-1
-	   i2 = reciprocalindex[2][n]-1
-	   map_to_wflist[i0,i1,i2] = n
+           i1 = reciprocalindex[1][n]-1
+           i2 = reciprocalindex[2][n]-1
+           map_to_wflist[i0,i1,i2] = n
 
        return map_to_wflist
 
@@ -381,7 +383,7 @@ class Wannier:
                 elif len(data[0])==3:
                     r_c = scaled2cartesian(atoms.get_cell(),data[0])
                 else:
-                    print "First element in initial data must be of the form [atom] or [c1,c2,c3], where the latter is scaled coordinates of the center"
+                    print("First element in initial data must be of the form [atom] or [c1,c2,c3], where the latter is scaled coordinates of the center")
                 if len(data)==4:
                     # m is specified        
                     detaileddata.append([r_c,data[1],data[2],data[3]])
@@ -396,7 +398,7 @@ class Wannier:
    def get_origin_index(self):
 
         griddim = self.get_repeated_grid_dimensions()
-        originindex = map(lambda coor:int(coor),list(np.multiply(np.array([0.5,0.5,0.5]),griddim)))
+        originindex = [int(coor) for coor in list(np.multiply(np.array([0.5,0.5,0.5]),griddim))]
         return originindex
 
    def get_cartesian_coordinates(self):
@@ -409,7 +411,7 @@ class Wannier:
         # origincoord is in scaled coordinates:
         origincoord=-np.array(np.array(originindex,np.float)/griddim)
         origincart = scaled2cartesian(basis,origincoord)
-        gridunitvectors = np.array(map(lambda unitvector,shape:unitvector/shape,basis,griddim))
+        gridunitvectors = np.array(list(map(lambda unitvector,shape:unitvector/shape,basis,griddim)))
         c = coordinate_array_from_unit_vectors(shape=griddim,
                                            gridunitvectors=gridunitvectors,
                                            origin=origincart)
@@ -447,7 +449,8 @@ class Wannier:
    def setup_m_matrix(self,listofeigenstates,bzkpoints):
 
         if self.data == None or self.kpointgrid == None:
-            raise "Must set data, kpointgrid, spin before calculating M matrix"
+            raise RuntimeError(
+                'Must set data, kpointgrid, spin before calculating M matrix')
 
         fftindex = self.get_fft_index()
 
@@ -472,7 +475,7 @@ class Wannier:
             orbital = self.get_cubic_harmonic_at_origin(l,m)*np.exp(-dist/a)
             orbital_fft = coordinates_from_function_values(griddim,orbital)
             transop.set_cartesian_translation_coordinates(r_c)
-	    orbital_fft = transop.operate(orbital_fft)
+            orbital_fft = transop.operate(orbital_fft)
             for kpt in range(nkpoints):
                 kpoint = bzkpoints[kpt]
                 kptnumber = cartesian2scaled(large_rec_basis,scaled2cartesian(rec_basis,kpoint))
@@ -561,7 +564,7 @@ class Wannier:
        Ulist=[]
        clist=[]
        if not hasattr(self,'mmatrix'):
-           raise "Must setup M Matrix first!"
+           raise RuntimeError('Must setup M Matrix first!')
        coeffmatrix=self.mmatrix
        for kpt in range(nkpt):
            #First normalize the columns of coeffmatrix
@@ -592,7 +595,7 @@ class Wannier:
            if L[kpt]>0:
                test = self.get_orthonormality_factor(c)
                if test>1.0e-3:
-                   print "ERROR: Columns of c not orthogonal!"
+                   print("ERROR: Columns of c not orthogonal!")
                    
            U[:N[kpt],:numberoforbitals]=coeffmatrix[kpt][:N[kpt]]
            U[N[kpt]:,:numberoforbitals]=np.dot(dagger(c),coeffmatrix[kpt][N[kpt]:])
@@ -609,7 +612,7 @@ class Wannier:
            # Test whether columns are orthonormal
            test = self.get_orthonormality_factor(U)
            if test>1.0e-3:
-               print "ERROR: Columns of U not orthogonal for kpoint",kpt
+               print("ERROR: Columns of U not orthogonal for kpoint",kpt)
            Ulist.append(U)
            clist.append(c)
 

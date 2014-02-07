@@ -45,7 +45,7 @@ def read_struct(filename, ase = True):
     elif lattice == 'CYZ':
         lattice = 'A'
     else:
-        print 'TEST needed'
+        print('TEST needed')
     pos = np.array([])
     atomtype = []
     rmt = []
@@ -166,5 +166,5 @@ def c2p(lattice):
         cell = np.array([[2.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0], [-1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0], [-1.0 / 3.0, -2.0/3.0, 1.0 / 3.0]])
 
     else:
-        print 'lattice is ' + lattice + '!'
+        print('lattice is ' + lattice + '!')
     return cell

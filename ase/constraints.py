@@ -799,7 +799,7 @@ class Hookean(FixConstraint):
         the -z direction would be given by (A, B, C, D) = (0, 0, -1, 7).
         """
 
-        if type(a2) == int:
+        if isinstance(a2, int):
             self._type = 'two atoms'
             self.indices = [a1, a2]
         elif len(a2) == 3:
@@ -1136,7 +1136,7 @@ class UnitCellFilter(Filter):
         - 0.0001 eV/A^3 = 0.02 GPa
         """
 
-        Filter.__init__(self, atoms, indices=range(len(atoms)))
+        Filter.__init__(self, atoms, indices=list(range(len(atoms))))
 
         self.atoms = atoms
         self.strain = np.zeros(6)

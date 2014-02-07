@@ -21,8 +21,8 @@ import glob
 
 import pprint
 
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 
 import tarfile
 import zipfile
@@ -886,8 +886,8 @@ if __name__ == '__main__':
     if not os.path.exists(dir): os.makedirs(dir)
     os.chdir(dir)
     try:
-        resp = urllib2.urlopen(src)
-        urllib.urlretrieve(src, filename=name)
+        resp = urllib.request.urlopen(src)
+        urllib.request.urlretrieve(src, filename=name)
         z = zipfile.ZipFile(name)
         try:  # new in 2.6
             z.extractall()
@@ -924,7 +924,7 @@ if __name__ == '__main__':
             data[s] = d
         pprint.pprint(data)
     # AttributeError if unzip not found
-    except (urllib2.HTTPError, AttributeError):
+    except (urllib.error.HTTPError, AttributeError):
         pass
     os.chdir('..')
     # run with emt

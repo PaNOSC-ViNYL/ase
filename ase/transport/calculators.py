@@ -119,7 +119,7 @@ class TransportCalculator:
             elif key in ['energies', 'eigenchannels', 'dos', 'pdos']:
                 self.uptodate = False
             elif key not in self.input_parameters:
-                raise KeyError, '\'%s\' not a vaild keyword' % key
+                raise KeyError('\'%s\' not a vaild keyword' % key)
 
         self.input_parameters.update(kwargs)
         log = self.input_parameters['logfile']
@@ -140,7 +140,7 @@ class TransportCalculator:
         if self.initialized:
             return
 
-        print >> self.log, '# Initializing calculator...'
+        print('# Initializing calculator...', file=self.log)
 
         p = self.input_parameters
         if p['s'] == None:
@@ -208,7 +208,7 @@ class TransportCalculator:
         if align_bf != None:
             diff = (h_mm[align_bf, align_bf] - h1_ii[align_bf, align_bf]) \
                    / s_mm[align_bf, align_bf]
-            print >> self.log, '# Aligning scat. H to left lead H. diff=', diff
+            print('# Aligning scat. H to left lead H. diff=', diff, file=self.log)
             h_mm -= diff * s_mm
 
         # Setup lead self-energies
@@ -224,7 +224,7 @@ class TransportCalculator:
                                             p['eta2'])]
         box = p['box']
         if box is not None:
-            print 'Using box probe!'
+            print('Using box probe!')
             self.selfenergies.append(
                 BoxProbe(eta=box[0], a=box[1], b=box[2], energies=box[3],
                          S=s_mm, T=0.3))
@@ -268,7 +268,7 @@ class TransportCalculator:
             else:
                 self.T_e[e] = np.trace(T_mm).real
 
-            print >> self.log, energy, self.T_e[e]
+            print(energy, self.T_e[e], file=self.log)
             self.log.flush()
 
             if p['dos']:
@@ -290,7 +290,7 @@ class TransportCalculator:
         sa_ii = self.greenfunction.S[:pl1, :pl1]
         c1 = np.abs(h_ii - ha_ii).max()
         c2 = np.abs(s_ii - sa_ii).max()
-        print 'Conv (h,s)=%.2e, %2.e' % (c1, c2)
+        print('Conv (h,s)=%.2e, %2.e' % (c1, c2))
 
     def plot_pl_convergence(self):
         self.initialize()

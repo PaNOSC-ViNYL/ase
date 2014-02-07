@@ -146,10 +146,10 @@ class InfraRed(Vibrations):
         assert nfree in [2, 4]
         self.atoms = atoms
         if atoms.constraints:
-            print "WARNING! \n Your Atoms object is constrained. Some forces may be unintended set to zero. \n"
+            print("WARNING! \n Your Atoms object is constrained. Some forces may be unintended set to zero. \n")
         self.calc = atoms.get_calculator()
         if indices is None:
-            indices = range(len(atoms))
+            indices = list(range(len(atoms)))
         self.indices = np.asarray(indices)
         self.nfree = nfree
         self.name = name+'-d%.3f' % delta

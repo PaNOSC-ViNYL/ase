@@ -366,13 +366,13 @@ class AseQmmmManyqm:
             index_str = ''
             for index in index_out:
                 index_str += str(index) + ' '
-            print ('%s' % index_str)
+            print(('%s' % index_str))
             print('')
 
         if ( len(self.qms) != nqm_regions):
             print ('Number of set of QM atoms does not match with nqm_regions')
-            print ('self.qms %s' % str(self.qms))
-            print ('nqm_regions %s' % str(nqm_regions))
+            print(('self.qms %s' % str(self.qms)))
+            print(('nqm_regions %s' % str(nqm_regions)))
             sys.exit()
         if ( len(self.qms) != len(qm_calculators)):
             print ('Number of set of QM atoms does not match with')
@@ -411,12 +411,12 @@ class AseQmmmManyqm:
         (self.third_qms, self.set_third_qms) = \
             self.get_next_neighbors\
             (self.second_qms, self.set_qms_edge)
-        print('self.qms %s' % self.qms)
-        print('QM edge, MM edge %s' \
-                  % str(self.qms_edge)+' '+ str(self.mms_edge))
-        print('MM second N of Link %s' % str(self.second_mms))
-        print('QM second N of Link %s' % str(self.second_qms))
-        print('QM third N of Link %s' % str(self.third_qms))
+        print(('self.qms %s' % self.qms))
+        print(('QM edge, MM edge %s' \
+                  % str(self.qms_edge)+' '+ str(self.mms_edge)))
+        print(('MM second N of Link %s' % str(self.second_mms)))
+        print(('QM second N of Link %s' % str(self.second_qms)))
+        print(('QM third N of Link %s' % str(self.third_qms)))
 
         if link_info == 'byFILE':
             self.read_eq_distances_from_file()
@@ -485,7 +485,7 @@ class AseQmmmManyqm:
             os.remove(self.mm_calculator.topology_filename+'.orig')
         except:
             pass
-        print('%s' % str(self.mm_calculator.topology_filename))
+        print(('%s' % str(self.mm_calculator.topology_filename)))
         os.system('cp ' + self.mm_calculator.topology_filename + ' ' +\
                       self.mm_calculator.topology_filename + '.orig')
 
@@ -582,12 +582,12 @@ class AseQmmmManyqm:
                                         len(self.qms_edge[iqm]))
             if (len(self.qms[iqm]) != len(self.qm_charges[iqm])):
                 print('Problem in reading charges')
-                print('len(self.qms[iqm]) %s' % str(len(self.qms[iqm])))
-                print('len(self.qm_charges[iqm]) %s' \
-                          % str(len(self.qm_charges[iqm])))
+                print(('len(self.qms[iqm]) %s' % str(len(self.qms[iqm]))))
+                print(('len(self.qm_charges[iqm]) %s' \
+                          % str(len(self.qm_charges[iqm]))))
                 print('Check the output of QM program')
-                print('iqm, qm %s' % str(iqm)+ ' '+ str(qm))
-                print('self.qm_charges[iqm] %s' % str(self.qm_charges[iqm]))
+                print(('iqm, qm %s' % str(iqm)+ ' '+ str(qm)))
+                print(('self.qm_charges[iqm] %s' % str(self.qm_charges[iqm])))
                 sys.exit()
 
     def calculate_single_qm(self, myqm, mycalculator):
@@ -873,7 +873,7 @@ class AseQmmmManyqm:
                 except:
                     print('error in reading gromacs topology')
                     print('line is')
-                    print('%s' % lines_change[iline])
+                    print(('%s' % lines_change[iline]))
                     sys.exit()
         return lines_before, comment_lines, lines_ok, lines_after
 
@@ -904,7 +904,7 @@ class AseQmmmManyqm:
             if int(lines_ok[iline].split()[0]) != atom_nr:
                 print('2: error in reading gromacs topology')
                 print('line is')
-                print('%s' % lines_ok[iline])
+                print(('%s' % lines_ok[iline]))
                 sys.exit()
         
         # get the total charge of non-link H atoms in the current qm system
@@ -1004,8 +1004,8 @@ class AseQmmmManyqm:
                 else:
                     print('WARNING:')
                     print('qm system cannot be bond to H atoms')
-                    print('problem atom index is (numbering from 1): %s' \
-                              % str(index+1))
+                    print(('problem atom index is (numbering from 1): %s' \
+                              % str(index+1)))
                     print('if this is water H you should consider including it')
                     print('in QM')
                     #sys.exit()
@@ -1083,7 +1083,7 @@ class AseQmmmManyqm:
         import os
 
         print('in get_eq_distances_xy, topfilename=')
-        print ('%s' % topfilename)
+        print(('%s' % topfilename))
         for qm in self.qms_edge:
             equilibrium_distance_xy = []
             for iqm in qm:
@@ -1172,8 +1172,8 @@ class AseQmmmManyqm:
                             break
                 if interaction == 'empty':
                     print('QM-MM bond not found in topology')
-                    print('atoms are: QM, MM: (from 1 indexing) %s' \
-                        % str(qmatom+1) + str(mmatom+1))
+                    print(('atoms are: QM, MM: (from 1 indexing) %s' \
+                        % str(qmatom+1) + str(mmatom+1)))
                     sys.exit()
                 for line in lines_tpr:
                     if ('functype['+interaction+']=BONDS') in line:
@@ -1317,7 +1317,7 @@ class AseQmmmManyqm:
         self.force_constants = []
         self.qmatom_types = []
         self.mmatom_types = []
-        print('Reading X-H and other data from file: %s' % filename)
+        print(('Reading X-H and other data from file: %s' % filename))
 
         for qm in self.qms_edge:
             equilibrium_distance_xy = []
@@ -1371,7 +1371,7 @@ class AseQmmmManyqm:
                 self.equilibrium_distances_xh\
                     [i_qm_region][index_x] = current_x
             print('current X-H bond lengths [nm]')
-            print('%s' % str(x))
+            print(('%s' % str(x)))
             self.link_atoms = self.get_link_atoms(\
                 self.qms_edge, self.mms_edge,\
                     self.force_constants,\
@@ -1412,8 +1412,8 @@ class AseQmmmManyqm:
         # edgeQMatom-linkH distance(s) in [nm] in that qm region
         for i_qm_region in range(len(self.qms_edge)):
             print('NOW running : ')
-            print('QM region for optimising edge-linkH distances %s'\
-                % str(i_qm_region))
+            print(('QM region for optimising edge-linkH distances %s'\
+                % str(i_qm_region)))
             x = self.equilibrium_distances_xh[i_qm_region][:]
             xopt = fmin(qm_bond_energy_function, \
                             x,\
@@ -1422,9 +1422,9 @@ class AseQmmmManyqm:
             for index_xopt, current_xopt in enumerate(xopt):
                 self.equilibrium_distances_xh\
                     [i_qm_region][index_xopt] = current_xopt
-                print('i_qm_region, i_link_atom, optimal X-H bond[nm] %s' \
+                print(('i_qm_region, i_link_atom, optimal X-H bond[nm] %s' \
                     % (str(i_qm_region) + ' ' + str(index_xopt) \
-                           + ' ' + str(current_xopt)))
+                           + ' ' + str(current_xopt))))
 
 
     def define_QM_clusters_in_vacuum(self, system):

@@ -45,7 +45,7 @@ def read_netcdf(filename, index=-1):
     if isinstance(index, int):
         indices = [index]
     else:
-        indices = range(nimages)[index]
+        indices = list(range(nimages))[index]
 
     images = []
     for i in indices:

@@ -185,7 +185,7 @@ def run(args=sys.argv[1:]):
         ids = [dct['id'] for dct in rows]
         if ids and not opts.yes:
             msg = 'Delete %s? (yes/no): ' % plural(len(ids), 'row')
-            if raw_input(msg).lower() != 'yes':
+            if input(msg).lower() != 'yes':
                 return
         con.delete(ids)
         print('Deleted %s' % plural(len(ids), 'row'))
@@ -202,7 +202,7 @@ def run(args=sys.argv[1:]):
     dcts = list(rows)
     if len(dcts) > 0:
         if opts.long:
-            long(dcts[0], verbosity)
+            int(dcts[0], verbosity)
             return
         
         f = Formatter()

@@ -134,7 +134,7 @@ class Dftb(FileIOCalculator):
             current_depth = key.rstrip('_').count('_')
             previous_depth = previous_key.rstrip('_').count('_')
             for my_backsclash in reversed(\
-                range(previous_depth - current_depth)):
+                list(range(previous_depth - current_depth))):
                 outfile.write(3 * (1 + my_backsclash) * myspace + '} \n')
             outfile.write(3 * current_depth * myspace)
             if key.endswith('_'):
@@ -146,7 +146,7 @@ class Dftb(FileIOCalculator):
                 outfile.write(key.rsplit('_')[-1] + ' = ' + str(value) + ' \n')
             previous_key = key
         current_depth = key.rstrip('_').count('_')
-        for my_backsclash in reversed(range(current_depth)):
+        for my_backsclash in reversed(list(range(current_depth))):
             outfile.write(3 * my_backsclash * myspace + '} \n')
         #output to 'results.tag' file (which has proper formatting)
         outfile.write('Options { \n')

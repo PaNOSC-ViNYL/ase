@@ -13,5 +13,5 @@ tests = [
 
 for test in tests:
     filename = ase.__path__[0] + '/optimize/test/' + test
-    execfile(filename, {})
+    exec(compile(open(filename).read(), filename, 'exec'), {})
 

@@ -264,7 +264,7 @@ class ColorWindow(gtk.Window):
         "We use per-tag colors."
         # Find which tags are in use
         tags = self.gui.images.T
-        existingtags = range(tags.min(), tags.max()+1)
+        existingtags = list(range(tags.min(), tags.max()+1))
         if not hasattr(self, 'colordata_tags') or len(self.colordata_tags) != len(existingtags):
             colors = self.get_named_colors(len(existingtags))
             self.colordata_tags = [[x, y] for x, y in
@@ -398,7 +398,7 @@ class ColorWindow(gtk.Window):
             nq = ((q - self.colormode_charge_data[0]) * 
                   self.colormode_charge_data[1])
             nq = np.clip(nq.astype(int), 0, len(oldcolors)-1)
-            print "nq = ", nq
+            print("nq = ", nq)
             colors[:] = oldcolors[nq]
         elif self.colormode == 'same':
             oldcolor = self.actual_colordata[0][1]

@@ -411,8 +411,7 @@ def sort(atoms, tags=None):
         tags = atoms.get_chemical_symbols()
     else:
         tags = list(tags)
-    deco = [(tag, i) for i, tag in enumerate(tags)]
-    deco.sort()
+    deco = sorted([(tag, i) for i, tag in enumerate(tags)])
     indices = [i for tag, i in deco]
     return atoms[indices]
 
@@ -501,7 +500,7 @@ def minimize_tilt_ij(atoms, modified=1, fixed=0, fold_atoms=True):
     if fold_atoms:
         atoms.set_scaled_positions(atoms.get_scaled_positions())
 
-def minimize_tilt(atoms, order=range(3), fold_atoms=True):
+def minimize_tilt(atoms, order=list(range(3)), fold_atoms=True):
     """Minimize the tilt angles of the unit cell."""
     pbc_c = atoms.get_pbc()
     
@@ -515,4 +514,4 @@ def minimize_tilt(atoms, order=range(3), fold_atoms=True):
 # Self test
 if __name__ == '__main__':
     import doctest
-    print 'doctest: ', doctest.testmod()
+    print('doctest: ', doctest.testmod())

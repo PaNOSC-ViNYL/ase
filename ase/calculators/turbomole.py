@@ -53,9 +53,9 @@ class Turbomole(Calculator):
             # check the error output
             if 'abnormally' in error:
                 raise OSError(error)
-            print 'TM command: ', command, 'successfully executed'
-        except OSError, e:
-            print >> sys.stderr, 'Execution failed:', e
+            print('TM command: ', command, 'successfully executed')
+        except OSError as e:
+            print('Execution failed:', e, file=sys.stderr)
             sys.exit(1)
 
     def get_potential_energy(self, atoms):
@@ -67,13 +67,13 @@ class Turbomole(Calculator):
             self.execute(self.calculate_energy + ' > ASE.TM.energy.out')
             # check for convergence of dscf cycle
             if os.path.isfile('dscf_problem'):
-                print 'Turbomole scf energy calculation did not converge'
+                print('Turbomole scf energy calculation did not converge')
                 raise RuntimeError(
                     'Please run Turbomole define and come thereafter back')
             # read energy
             self.read_energy()
         else:
-            print 'taking old values (E)'
+            print('taking old values (E)')
         self.update_energy = False
         return self.e_total
 
@@ -90,7 +90,7 @@ class Turbomole(Calculator):
             # read forces
             self.read_forces()
         else:
-            print 'taking old values (F)'
+            print('taking old values (F)')
         self.update_forces = False
         return self.forces.copy()
     
@@ -148,7 +148,7 @@ class Turbomole(Calculator):
         # $end line
         nline -= 1
         # read gradients
-        for i in xrange(iline, nline):
+        for i in range(iline, nline):
             line = lines[i].replace('D', 'E')
             tmp = np.array([[float(f) for f in line.split()[0:3]]])
             forces = np.concatenate((forces, tmp))  

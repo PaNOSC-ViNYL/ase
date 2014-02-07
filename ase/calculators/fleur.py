@@ -148,7 +148,7 @@ class FLEUR:
         stat = p.wait()
         out = p.stdout.read()
         err = p.stderr.read()
-        print mode, ': stat= ', stat, ' out= ', out, ' err=', err
+        print(mode, ': stat= ', stat, ' out= ', out, ' err=', err)
         # special handling of exit status from density generation and regular fleur.x
         if mode in ['density']:
             if '!' in err:
@@ -484,7 +484,7 @@ class FLEUR:
                                 r = float(rorig) + self.rmt[s] / Bohr
                             else:
                                 r = self.rmt[s] / Bohr
-                            print s, rorig, r
+                            print(s, rorig, r)
                             lines[ln] = lines[ln].replace(rorig, ("%.6f" % r))
 
         # write everything back to inp

@@ -27,8 +27,8 @@ images.append(final)
 # three topmost layers):
 mask = initial.positions[:, 2] < 0.5 * h
 constraint = FixAtoms(mask=mask)
-print mask
-print 'Fixed atoms:', constraint.fixed
+print(mask)
+print('Fixed atoms:', constraint.fixed)
 
 for image in images:
     # Let all images use an EMT calculator:

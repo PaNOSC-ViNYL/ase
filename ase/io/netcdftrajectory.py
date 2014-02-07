@@ -32,6 +32,8 @@ import ase.version
 
 from ase.data import atomic_masses
 from ase.lattice.spacegroup.cell import cellpar_to_cell, cell_to_cellpar
+import collections
+from functools import reduce
 
 NC_NOT_FOUND = 0
 NC_IS_NETCDF4 = 1
@@ -506,7 +508,7 @@ class NetCDFTrajectory:
 
         All other arguments are stored, and passed to the function.
         """
-        if not callable(function):
+        if not isinstance(function, collections.Callable):
             raise ValueError('Callback object must be callable.')
         self.pre_observers.append((function, interval, args, kwargs))
 
@@ -520,7 +522,7 @@ class NetCDFTrajectory:
 
         All other arguments are stored, and passed to the function.
         """
-        if not callable(function):
+        if not isinstance(function, collections.Callable):
             raise ValueError('Callback object must be callable.')
         self.post_observers.append((function, interval, args, kwargs))
 

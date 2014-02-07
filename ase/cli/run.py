@@ -140,7 +140,7 @@ class Runner:
                 del atoms.calc  # release resources from last calculation
             atoms = self.build(name)
             if opts.modify:
-                exec opts.modify in {'atoms': atoms, 'np': np}
+                exec(opts.modify, {'atoms': atoms, 'np': np})
 
             if name == '-':
                 name = atoms.info['key_value_pairs']['name']
@@ -190,7 +190,7 @@ class Runner:
         data.update(self.calculate_once(atoms, name))
 
         if opts.after:
-            exec opts.after in {'atoms': atoms, 'data': data}
+            exec(opts.after, {'atoms': atoms, 'data': data})
 
         return data
 
@@ -199,7 +199,7 @@ class Runner:
         script = f.read()
         f.close()
         namespace = {}
-        exec script in namespace
+        exec(script, namespace)
         for cls in namespace:
             if issubclass(namespace[cls], Runner):
                 runner = namespace[cls]()

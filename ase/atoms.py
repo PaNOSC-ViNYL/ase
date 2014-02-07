@@ -489,7 +489,7 @@ class Atoms(object):
     def set_tags(self, tags):
         """Set tags for all atoms. If only one tag is supplied, it is
         applied to all atoms."""
-        if type(tags) == int:
+        if isinstance(tags, int):
             tags = [tags] * len(self)
         self.set_array('tags', tags, int, ())
 
@@ -884,7 +884,7 @@ class Atoms(object):
         check_constraint = np.array([isinstance(c, FixAtoms)
                                      for c in self._constraints])
         if (len(self._constraints) > 0 and (not check_constraint.all() or
-            type(i) == list)):
+            isinstance(i, list))):
             raise RuntimeError('Remove constraint using set_constraint() '
                                'before deleting atoms.')
         mask = np.ones(len(self), bool)
@@ -893,7 +893,7 @@ class Atoms(object):
             self.arrays[name] = a[mask]
         if len(self._constraints) > 0:
             for n in range(len(self._constraints)):
-                self._constraints[n].delete_atom(range(len(mask))[i])
+                self._constraints[n].delete_atom(list(range(len(mask)))[i])
 
     def pop(self, i=-1):
         """Remove and return atom at index *i* (default last)."""
@@ -1393,7 +1393,7 @@ class Atoms(object):
         """Get the current calculated pressure, assume isotropic medium.
             in Bar
         """
-        if type(stress) == type(1.0) or type(stress) == type(1):
+        if isinstance(stress, type(1.0)) or isinstance(stress, type(1)):
             return -stress * 1e-5 / units.Pascal
         elif stress.shape == (3, 3):
             return (-(stress[0, 0] + stress[1, 1] + stress[2, 2]) / 3.0) * \
@@ -1565,7 +1565,7 @@ def symbols2numbers(symbols):
         symbols = string2symbols(symbols)
     numbers = []
     for s in symbols:
-        if isinstance(s, (str, unicode)):
+        if isinstance(s, str):
             numbers.append(atomic_numbers[s])
         else:
             numbers.append(s)

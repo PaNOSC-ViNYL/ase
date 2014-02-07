@@ -124,12 +124,12 @@ class Mopac(Calculator):
 
         f = 1
         # write coordinates
-        for iat in xrange(len(atoms)):
+        for iat in range(len(atoms)):
             atom = atoms[iat]
             xyz = atom.position
             mopac_input += ' %2s' % atom.symbol
             # write x, y, z
-            for idir in xrange(3):
+            for idir in range(3):
                 mopac_input += '    %16.5f %i' % (xyz[idir], f)
             mopac_input += '\n'
 

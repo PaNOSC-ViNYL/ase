@@ -429,7 +429,7 @@ class SetCalculator(SetupWindow):
         self.emt_setup.set_active(state["emtsetup"])
         self.check.set_active(state["check"])
         for p in self.paramdicts:
-            if state.has_key(p):
+            if p in state:
                 setattr(self, p, state[p])
             
     def lj_check(self):
@@ -443,7 +443,7 @@ class SetCalculator(SetupWindow):
             return False
         try:
             self.atoms.set_calculator(asap3.LennardJones(**self.lj_parameters))
-        except (asap3.AsapError, TypeError, ValueError), e:
+        except (asap3.AsapError, TypeError, ValueError) as e:
             oops(_("Could not create useful Lennard-Jones calculator."),
                  str(e))
             return False
@@ -478,7 +478,7 @@ class SetCalculator(SetupWindow):
                 self.atoms.set_calculator(emt(provider()))
             else:
                 self.atoms.set_calculator(emt())
-        except (asap3.AsapError, TypeError, ValueError), e:
+        except (asap3.AsapError, TypeError, ValueError) as e:
             oops(_("Could not attach EMT calculator to the atoms."),
                  str(e))
             return False
@@ -1324,12 +1324,12 @@ class AIMS_Window(gtk.Window):
             key[3] = False
         for child in self.expert_vbox.children():
             self.expert_vbox.remove(child)
-        if os.environ.has_key('AIMS_COMMAND'):
+        if 'AIMS_COMMAND' in os.environ:
             text = os.environ['AIMS_COMMAND']
         else:
             text = ""
         self.run_command.set_text(text)
-        if os.environ.has_key('AIMS_SPECIES_DIR'):
+        if 'AIMS_SPECIES_DIR' in os.environ:
             text = os.environ['AIMS_SPECIES_DIR']
         else:
             text = ""
@@ -1368,7 +1368,7 @@ class AIMS_Window(gtk.Window):
                 key = option[0].get_text().strip()
                 val = option[1].get_text().strip()
                 if key == 'output':
-                    if param.has_key('output'): 
+                    if 'output' in param: 
                         param[key] += [val]
                     else:
                         param[key] = [val]
@@ -1649,7 +1649,7 @@ class VASP_Window(gtk.Window):
                 self.prec.set_active(i)
 
         # cutoff energy
-        if os.environ.has_key('VASP_PP_PATH'):
+        if 'VASP_PP_PATH' in os.environ:
             self.encut_min_default, self.encut_max_default = self.get_min_max_cutoff()
         else:
             self.encut_max_default = 400.0
@@ -1721,11 +1721,11 @@ class VASP_Window(gtk.Window):
         # run command and location of POTCAR files:
         pack(vbox, gtk.Label(_('VASP execution command: ')))
         self.run_command = pack(vbox, gtk.Entry(max=0))
-        if os.environ.has_key('VASP_COMMAND'):
+        if 'VASP_COMMAND' in os.environ:
             self.run_command.set_text(os.environ['VASP_COMMAND'])
         pack(vbox, gtk.Label(_('Directory for species defaults: ')))
         self.pp_path = pack(vbox, gtk.Entry(max=0))
-        if os.environ.has_key('VASP_PP_PATH'):
+        if 'VASP_PP_PATH' in os.environ:
             self.pp_path.set_text(os.environ['VASP_PP_PATH'])
 
         # Buttons at the bottom

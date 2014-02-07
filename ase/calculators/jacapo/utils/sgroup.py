@@ -147,7 +147,7 @@ class SGROUP:
             temparray=zeros((3,3))
             temptau = [0,0,0]
             if int(string.split(self.output[index+1],':')[-1]) != s+1:
-                raise Exception,'this symmetry operator %i does not match index' % s
+                raise Exception('this symmetry operator %i does not match index' % s)
                                
             x,y,z,tau = [float(var) for var in string.split(self.output[index+2])]
             temparray[0] = [x,y,z]
@@ -195,8 +195,8 @@ if __name__ == '__main__':
 
         sg = SGROUP(Jacapo.read_atoms(ncfile),outfile=options.o)
 
-        print sg.get_space_group()
+        print(sg.get_space_group())
     
         if options.f is not None:
-            print sg
+            print(sg)
 

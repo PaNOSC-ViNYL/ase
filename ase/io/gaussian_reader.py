@@ -92,7 +92,7 @@ class GaussianReader:
                     if len(s)==2:
                         new_dict[s[0]]=self.auto_type(s[1])
                     else:
-                        print "Warning: unexpected input ",s
+                        print("Warning: unexpected input ",s)
                     position = position + 1
 
     def __iter__(self):

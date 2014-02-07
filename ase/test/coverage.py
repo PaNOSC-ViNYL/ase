@@ -1,4 +1,4 @@
 from ase import Atoms
-print Atoms()
-print Atoms('H2O')
+print(Atoms())
+print(Atoms('H2O'))
 #...

@@ -32,15 +32,15 @@ def parprint(*args, **kwargs):
             kwargs[key] = defaults[key]
 
     for arg in args[:-1]:
-        print >> kwargs['file'], arg,
+        print(arg, end=' ', file=kwargs['file'])
     if len(args):
         last = args[-1]
     else:
         last = ''
     if kwargs['end'] == '\n':
-        print >> kwargs['file'], last
+        print(last, file=kwargs['file'])
     else:
-        print >> kwargs['file'], last,
+        print(last, end=' ', file=kwargs['file'])
 
 
 class DummyMPI:

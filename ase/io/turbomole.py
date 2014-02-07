@@ -51,7 +51,7 @@ def read_turbomole(filename='coord'):
             else:
                 myconstraints.append(False)
             
-    if type(filename) == str:
+    if isinstance(filename, str):
         f.close()
 
     atoms = Atoms(positions = atoms_pos, symbols = atom_symbols, pbc = False)

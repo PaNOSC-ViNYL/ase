@@ -18,5 +18,5 @@ def read_defaults():
     name = os.path.expanduser('~/.ase/gui.py')
     config = gui_default_settings
     if os.path.exists(name):
-        execfile(name)
+        exec(compile(open(name).read(), name, 'exec'))
     return config

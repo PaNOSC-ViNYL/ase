@@ -1,4 +1,4 @@
-from cStringIO import StringIO
+from io import StringIO
 from ase.atoms import Atoms
 from ase.io.xyz import read_xyz
 
@@ -30,7 +30,7 @@ def read_nwchem(filename):
         else:
             i += 1
 
-    if type(filename) == str:
+    if isinstance(filename, str):
         f.close()
 
     return atoms

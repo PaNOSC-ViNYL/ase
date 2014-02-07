@@ -67,7 +67,7 @@ class Displacement:
         self.calc = calc
         
         # Displace all atoms in the unit cell by default
-        self.indices = range(len(atoms))
+        self.indices = list(range(len(atoms)))
         self.name = name
         self.delta = delta
         self.N_c = supercell
@@ -628,10 +628,10 @@ class Phonons(Displacement):
                 indices = np.where(omega2_l < 0)[0]
 
                 if verbose:
-                    print ("WARNING, %i imaginary frequencies at "
+                    print(("WARNING, %i imaginary frequencies at "
                            "q = (% 5.2f, % 5.2f, % 5.2f) ; (omega_q =% 5.3e*i)"
                            % (len(indices), q_c[0], q_c[1], q_c[2],
-                              omega_l[indices][0].imag))
+                              omega_l[indices][0].imag)))
                 
                 omega_l[indices] = -1 * np.sqrt(np.abs(omega2_l[indices].real))
 

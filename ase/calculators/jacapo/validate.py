@@ -123,7 +123,7 @@ def valid_pseudopotentials(x):
 
     dacapopath = get_dacapopath()
     if dacapopath is None:
-        raise Exception, 'No $DACAPOPATH found. please set it in .cshrc or .bashrc'
+        raise Exception('No $DACAPOPATH found. please set it in .cshrc or .bashrc')
 
     from ase.data import chemical_symbols
     for key in x:
@@ -175,23 +175,23 @@ def valid_ados(x):
                   'cutoff']
     for key in x:
         if key not in valid_keys:
-            print '%s not in %s' % (key, str(valid_keys))
+            print('%s not in %s' % (key, str(valid_keys)))
             return False
         if key == 'energywindow':
             if not len(x['energywindow']) == 2:
-                print '%s is bad' % key
+                print('%s is bad' % key)
                 return False
         if key == 'energywidth':
             if not valid_float(x['energywidth']):
-                print key, ' is bad'
+                print(key, ' is bad')
                 return False
         elif key == 'npoints':
             if not valid_int(x['npoints']):
-                print key, ' is bad'
+                print(key, ' is bad')
                 return False
         elif key == 'cutoff':
             if not valid_float(x['cutoff']):
-                print key, ' is bad'
+                print(key, ' is bad')
                 return False
     return True
 
@@ -205,14 +205,14 @@ def valid_decoupling(x):
             return False
         elif key == 'ngaussians':
             if not valid_int(x[key]):
-                print key
+                print(key)
                 return False
         elif key == 'ecutoff':
             if not valid_int_or_float(x[key]):
                 return False
         elif key == 'gausswidth':
             if not valid_float(x[key]):
-                print key, x[key]
+                print(key, x[key])
                 return False
     return True
 

@@ -18,8 +18,7 @@ def formula(Z):
         else:
             hist[z] = 1
     text = ''
-    Z = hist.keys()
-    Z.sort()
+    Z = sorted(hist.keys())
     for z in Z:
         text += symbols[z]
         n = hist[z]

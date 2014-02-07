@@ -125,7 +125,8 @@ class vtkPipeline:
         self.filters += (vtkish_filter,)
 
     def extend(self, vtkish_filters):
-        map(self.append, vtkish_filters)
+        for f in vtkish_filters:
+            self.append(f)
 
     def __contains__(self, vtkish_candidate):
         if vtkish_candidate == self:
@@ -183,7 +184,7 @@ class vtkSurfaceSmootherPipeline(vtkPolyDataPipeline):
         relax = self.grid.get_relaxation_factor()
 
         if relax is not None:
-            print 'relax=',relax
+            print('relax=',relax)
             #vtk_subdiv = vtkButterflySubdivisionFilter()
             vtk_subdiv = vtkLinearSubdivisionFilter()
             self.append(vtk_subdiv)

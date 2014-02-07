@@ -88,7 +88,7 @@ def main():
             from ase.io import string2index
             try:
                 images.read(args, string2index(opt.image_number))
-            except IOError, e:
+            except IOError as e:
                 if len(e.args) == 1:
                     parser.error(e.args[0])
                 else:
@@ -121,8 +121,8 @@ def main():
                 data = images.graph(opt.graph)
                 for line in data.T:
                     for x in line:
-                        print x,
-                    print
+                        print(x, end=' ')
+                    print()
         else:
             from ase.gui.gui import GUI
             import ase.gui.gtkexcepthook
@@ -137,8 +137,8 @@ def main():
         pass
     except Exception:
         traceback.print_exc()
-        print(_("""
+        print((_("""
 An exception occurred!  Please report the issue to
 ase-developers@listserv.fysik.dtu.dk - thanks!  Please also report this if
 it was a user error, so that a better error message can be provided
-next time."""))
+next time.""")))

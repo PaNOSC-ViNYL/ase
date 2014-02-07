@@ -35,7 +35,7 @@ class SimpleCubicFactory(Bravais):
     def get_lattice_constant(self):
         "Get the lattice constant of an element with cubic crystal structure."
         if _refstate[self.atomicnumber]['symmetry'] != self.xtal_name:
-            raise ValueError, (("Cannot guess the %s lattice constant of"
+            raise ValueError(("Cannot guess the %s lattice constant of"
                                 + " an element with crystal structure %s.")
                                % (self.xtal_name,
                                   _refstate[self.atomicnumber]['symmetry']))
@@ -73,11 +73,11 @@ class SimpleCubicFactory(Bravais):
             if isinstance(idx[i], str) and (idx[i].lower() == "ortho" or
                                             idx[i].lower() == "orthogonal"):
                 if self.debug:
-                    print "Calculating orthogonal direction", i
-                    print  idx[i-2], "X", idx[i-1],  
+                    print("Calculating orthogonal direction", i)
+                    print(idx[i-2], "X", idx[i-1], end=' ')  
                 idx[i] = reduceindex(cross(idx[i-2], idx[i-1]))
                 if self.debug:
-                    print "=", idx[i]
+                    print("=", idx[i])
                 
 
 SimpleCubic = SimpleCubicFactory()

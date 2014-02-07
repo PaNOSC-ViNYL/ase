@@ -40,9 +40,9 @@ class Images:
                         shapes.append(shape[an])
                     self.shapes = np.array(shapes)
                 else:
-                    print 'shape file has wrong format'
+                    print('shape file has wrong format')
             else: 
-                print 'no shapesfile found: default shapes were used!'
+                print('no shapesfile found: default shapes were used!')
 		  
         else:
             self.shapes = None
@@ -310,7 +310,7 @@ class Images:
                     self.dynamic[con.index] = False
 
     def write(self, filename, rotations='', show_unit_cell=False, bbox=None, **kwargs):
-        indices = range(self.nimages)
+        indices = list(range(self.nimages))
         p = filename.rfind('@')
         if p != -1:
             try:

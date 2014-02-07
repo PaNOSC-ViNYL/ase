@@ -69,7 +69,7 @@ def get_calculator_gpaw():
         assert mpi.size % 3 == 0
         s = mpi.size // 3
         r0 = mpi.rank // s * s
-        comm = range(r0, r0 + s)
+        comm = list(range(r0, r0 + s))
     else:
         comm = mpi.world
     calc = GPAW(h=0.25,

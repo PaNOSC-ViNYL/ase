@@ -96,7 +96,7 @@ def read_gromacs(filename):
             mycell += [[floatvect1[1], floatvect2[0], floatvect0[2]]]
             atoms.set_cell(mycell)
             atoms.set_pbc(True)
-            print "9N"
+            print("9N")
         except:
             mycell = []
             #gromacs manual (manual.gromacs.org/online/gro.html) says:

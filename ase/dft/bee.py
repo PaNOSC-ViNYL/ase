@@ -35,8 +35,8 @@ class BEEF_Ensemble:
         """Returns an array of ensemble total energies"""
         self.seed = seed
         if rank == 0:
-            print '\n'
-            print '%s ensemble started' % self.beef_type
+            print('\n')
+            print('%s ensemble started' % self.beef_type)
 
         if self.contribs is None:
             self.contribs = self.calc.get_nonselfconsistent_energies(self.beef_type)
@@ -51,14 +51,14 @@ class BEEF_Ensemble:
         self.done = True
 
         if rank == 0:
-            print '%s ensemble finished' % self.beef_type
-            print '\n'
+            print('%s ensemble finished' % self.beef_type)
+            print('\n')
 
         return self.de
 
     def get_beefvdw_ensemble_coefs(self, size=2000, seed=0):
         """Pertubation coefficients of the BEEF-vdW ensemble"""
-        from pars_beefvdw import uiOmega as omega
+        from .pars_beefvdw import uiOmega as omega
         assert np.shape(omega) == (31, 31)
 
         W, V, generator = self.eigendecomposition(omega, seed)
@@ -76,7 +76,7 @@ class BEEF_Ensemble:
 
     def get_mbeef_ensemble_coefs(self, size=2000, seed=0):
         """Pertubation coefficients of the mBEEF ensemble"""
-        from pars_mbeef import uiOmega as omega
+        from .pars_mbeef import uiOmega as omega
         assert np.shape(omega) == (64, 64)
 
         W, V, generator = self.eigendecomposition(omega, seed)
@@ -91,7 +91,7 @@ class BEEF_Ensemble:
 
     def write(self, fname):
         """Write ensemble data file"""
-        import cPickle as pickle
+        import pickle as pickle
         isinstance(fname, str)
         if fname[-4:] != '.bee':
             fname += '.bee'
@@ -105,7 +105,7 @@ class BEEF_Ensemble:
             f.close()
 
     def read(self, fname, all=False):
-        import cPickle as pickle
+        import pickle as pickle
         isinstance(fname, str)
         if fname[-4:] != '.bee':
             fname += '.bee'

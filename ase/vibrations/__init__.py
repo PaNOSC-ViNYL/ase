@@ -92,7 +92,7 @@ class Vibrations:
         assert nfree in [2, 4]
         self.atoms = atoms
         if indices is None:
-            indices = range(len(atoms))
+            indices = list(range(len(atoms)))
         self.indices = np.asarray(indices)
         self.name = name
         self.delta = delta

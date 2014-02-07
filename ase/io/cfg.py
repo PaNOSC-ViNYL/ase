@@ -35,7 +35,7 @@ def write_cfg(f, a):
                 entry_count += a.get_array(x).shape[1]
 
     vels = a.get_velocities()
-    if type(vels) == np.ndarray:
+    if isinstance(vels, np.ndarray):
         entry_count += 3
     else:
         f.write('.NO_VELOCITY.\n')
@@ -64,7 +64,7 @@ def write_cfg(f, a):
         x, y, z = spos[i.index, :]
         s =  '%e %e %e ' % ( x, y, z )
 
-        if type(vels) == np.ndarray:
+        if isinstance(vels, np.ndarray):
             vx, vy, vz  = vels[i.index, :]
             s  = s + ' %e %e %e ' % ( vx, vy, vz )
 

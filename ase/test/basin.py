@@ -44,8 +44,8 @@ for GlobalOptimizer in [BasinHopping(s,
         GlobalOptimizer(totalsteps=10)
         Emin = s.get_potential_energy()
         smin = s
-    print "N=", N, 'minimal energy found', Emin, 
-    print ' global minimum:', E_global[N]
+    print("N=", N, 'minimal energy found', Emin, end=' ') 
+    print(' global minimum:', E_global[N])
 
     # recalc energy
     smin.set_calculator(LennardJones())

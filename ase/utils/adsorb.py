@@ -199,7 +199,7 @@ def build():
         script += ['view(slab)']
 
     if opt.python:
-        print('\n'.join(script))
+        print(('\n'.join(script)))
 
 
 if __name__ == '__main__':

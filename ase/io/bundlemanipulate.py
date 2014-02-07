@@ -12,7 +12,7 @@ original data without invalidating the copy.
 
 from ase.io.bundletrajectory import BundleTrajectory
 import os
-import cPickle as pickle
+import pickle as pickle
 
 def copy_frames(inbundle, outbundle, start=0, end=-1, step=1,
                 verbose=False):
@@ -32,9 +32,9 @@ def copy_frames(inbundle, outbundle, start=0, end=-1, step=1,
         raise ValueError("copy_frames: Invalid end value.")
     if step == 0:
         raise ValueError("copy_frames: Invalid step value (zero)")
-    frames = range(start, end, step)
+    frames = list(range(start, end, step))
     if verbose:
-        print "Copying the frames", frames
+        print("Copying the frames", frames)
     
     # Make the new bundle directory
     os.mkdir(outbundle)
@@ -44,7 +44,7 @@ def copy_frames(inbundle, outbundle, start=0, end=-1, step=1,
     
     for nout, nin in enumerate(frames):
         if verbose:
-            print "F%i -> F%i" % (nin, nout)
+            print("F%i -> F%i" % (nin, nout))
         indir = os.path.join(inbundle, "F"+str(nin))
         outdir = os.path.join(outbundle, "F"+str(nout))
         os.mkdir(outdir)
@@ -55,7 +55,7 @@ def copy_frames(inbundle, outbundle, start=0, end=-1, step=1,
             os.link(fromfile, tofile)
         if nout == 0 and nin != 0:
             if verbose:
-                print "F0 -> F0 (supplemental)"
+                print("F0 -> F0 (supplemental)")
             # Data for first frame must be supplemented with
             # data from the first frame of the source bundle.
             firstnames = os.listdir(os.path.join(inbundle, "F0"))
@@ -63,7 +63,7 @@ def copy_frames(inbundle, outbundle, start=0, end=-1, step=1,
             for name in firstnames:
                 if name not in names:
                     if verbose:
-                        print "   ", name
+                        print("   ", name)
                     fromfile = os.path.join(inbundle, "F0", name)
                     tofile = os.path.join(outdir, name)
                     os.link(fromfile, tofile)

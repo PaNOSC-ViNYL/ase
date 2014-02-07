@@ -11,7 +11,7 @@ is compatible with the open source Atomic Simulation
 Environment in the python scripting language."""
 
 if sys.version_info < (2, 3, 0, 'final', 0):
-    raise SystemExit, 'Python 2.3 or later is required!'
+    raise SystemExit('Python 2.3 or later is required!')
 
 packages = ['Jacapo']
 
@@ -22,7 +22,7 @@ tools = ['tools/ncsum',
          'tools/stripnetcdf']
 
 # Get the current version number:
-execfile('version.py')
+exec(compile(open('version.py').read(), 'version.py', 'exec'))
 
 setup(name = 'python-Jacapo',
       version=version,

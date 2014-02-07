@@ -20,9 +20,9 @@ from numpy import arange
 
 # Modified from scipy_optimize
 abs = absolute
-import __builtin__
-pymin = __builtin__.min
-pymax = __builtin__.max
+import builtins
+pymin = builtins.min
+pymax = builtins.max
 __version__="0.1"
 
 class BFGSLineSearch(Optimizer):
@@ -71,7 +71,7 @@ class BFGSLineSearch(Optimizer):
         self.load_restart = True    
 
     def reset(self):
-        print 'reset'
+        print('reset')
         self.H = None
         self.r0 = None
         self.g0 = None
@@ -127,17 +127,17 @@ class BFGSLineSearch(Optimizer):
                 or self.replay):
                 return
             if self.no_update == True:
-                print 'skip update'
+                print('skip update')
                 return
 
             try: # this was handled in numeric, let it remaines for more safety
                 rhok = 1.0 / (np.dot(dg,dr))
             except ZeroDivisionError:
                 rhok = 1000.0
-                print "Divide-by-zero encountered: rhok assumed large"
+                print("Divide-by-zero encountered: rhok assumed large")
             if isinf(rhok): # this is patch for np
                 rhok = 1000.0
-                print "Divide-by-zero encountered: rhok assumed large"
+                print("Divide-by-zero encountered: rhok assumed large")
             A1 = self.I - dr[:, np.newaxis] * dg[np.newaxis, :] * rhok
             A2 = self.I - dg[:, np.newaxis] * dr[np.newaxis, :] * rhok
             H0 = self.H

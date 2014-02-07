@@ -18,16 +18,16 @@ def run(name):
     e = al.get_potential_energy()
     calc.set(xc='PBE', kpts=(2, 2, 2))
     epbe = al.get_potential_energy()
-    print(e, epbe)
+    print((e, epbe))
     calc = Calculator(name)
-    print calc.parameters, calc.results, calc.atoms
+    print(calc.parameters, calc.results, calc.atoms)
     assert not calc.calculation_required(al, ['energy'])
     al = calc.get_atoms()
-    print al.get_potential_energy()
+    print(al.get_potential_energy())
     label = 'dir/' + name + '-2'
     calc = Calculator(label=label, atoms=al, xc='LDA', kpts=1.0, **par)
-    print al.get_potential_energy()
-    print Calculator.read_atoms(label).get_potential_energy()
+    print(al.get_potential_energy())
+    print(Calculator.read_atoms(label).get_potential_energy())
 
 names = ['abinit', 'aims', 'elk']
 for name in names:

@@ -38,14 +38,14 @@ images = [initial.copy() for i in range(7)]
 neb = NEB(images)
 
 # Set constraints and calculator:
-indices = np.compress(initial.positions[:, 2] < -5.0, range(len(initial)))
+indices = np.compress(initial.positions[:, 2] < -5.0, list(range(len(initial))))
 constraint = FixAtoms(indices)
 for image in images:
     image.set_calculator(ASAP())
     image.constraints.append(constraint)
 
 # Displace last image:
-for i in xrange(1,8,1):
+for i in range(1,8,1):
     images[-1].positions[-i] += (d/2, -h1/3, 0)
 
 write('initial.traj', images[0])
@@ -60,7 +60,7 @@ if 0:
 neb.interpolate()
 
 for image in images:
-    print image.positions[-1], image.get_potential_energy()
+    print(image.positions[-1], image.get_potential_energy())
 
 traj = PickleTrajectory('mep.traj', 'w')
 
@@ -71,4 +71,4 @@ dyn.attach(neb.writer(traj))
 dyn.run(fmax=0.01,steps=150)
 
 for image in images:
-    print image.positions[-1], image.get_potential_energy()
+    print(image.positions[-1], image.get_potential_energy())

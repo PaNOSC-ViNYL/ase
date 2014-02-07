@@ -19,7 +19,7 @@ assert m[0].tag == 42
 momenta = m.get_momenta()
 m = Atoms('LiH')
 for a in m:
-    print a.symbol
+    print(a.symbol)
 for a in m:  
     if a.symbol == 'H':
         a.z = 0.75
@@ -27,4 +27,4 @@ assert m.get_distance(0, 1) == 0.75
 a = m.pop()
 m += a
 del m[:1]
-print m
+print(m)
