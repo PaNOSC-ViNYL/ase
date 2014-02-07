@@ -1,3 +1,4 @@
+from __future__ import print_function
 # husk:
 # Exit*2?  remove pylab.show()
 # close button

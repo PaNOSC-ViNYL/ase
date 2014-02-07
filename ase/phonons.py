@@ -1,3 +1,4 @@
+from __future__ import print_function
 """Module for calculating phonons of periodic systems."""
 
 import sys

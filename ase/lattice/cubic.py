@@ -1,3 +1,4 @@
+from __future__ import print_function
 """Function-like objects creating cubic lattices (SC, FCC, BCC and Diamond).
 
 The following lattice creators are defined:

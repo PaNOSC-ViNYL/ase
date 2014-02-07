@@ -1,3 +1,4 @@
+from __future__ import print_function
 """Atomic structure.
 
 This mudule contains helper functions for setting up nanotubes and

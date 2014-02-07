@@ -1,3 +1,4 @@
+from __future__ import print_function
 """bundletrajectory - a module for I/O from large MD simulations.
 
 The BundleTrajectory class writes trajectory into a directory with the

@@ -1,3 +1,4 @@
+from __future__ import print_function
 """This module defines an ASE interface to SIESTA.
 
 http://www.uam.es/departamentos/ciencias/fismateriac/siesta

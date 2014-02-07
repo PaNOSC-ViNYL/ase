@@ -1,3 +1,4 @@
+from __future__ import print_function
 '''
 python module for ASE2-free and Numeric-free dacapo
 

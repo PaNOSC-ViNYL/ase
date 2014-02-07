@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 from gettext import gettext as _
 import gtk

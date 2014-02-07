@@ -1,3 +1,4 @@
+from __future__ import print_function
 import gtk
 from gettext import gettext as _
 from ase.gui.widgets import pack, Help, oops

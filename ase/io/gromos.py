@@ -1,3 +1,4 @@
+from __future__ import print_function
 """ write gromos96 geometry files 
 (the exact file format is copied from the freely available 
 gromacs package, http://www.gromacs.org

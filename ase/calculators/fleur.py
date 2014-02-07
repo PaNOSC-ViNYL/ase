@@ -1,3 +1,4 @@
+from __future__ import print_function
 """This module defines an ASE interface to FLAPW code FLEUR.
 
 http://www.flapw.de

@@ -1,3 +1,4 @@
+from __future__ import print_function
 """Function-like object creating hexagonal lattices.
 
 The following lattice creators are defined:

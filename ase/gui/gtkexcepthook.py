@@ -1,3 +1,4 @@
+from __future__ import print_function
 # vim: sw=4 ts=4:
 #
 # (c) 2003 Gustavo J A M Carneiro gjc at inescporto.pt

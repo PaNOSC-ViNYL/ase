@@ -1,3 +1,4 @@
+from __future__ import print_function
 """This module defines extensible classes for running tests on molecules.
 
 Use this to compare different calculators, XC functionals and so on by

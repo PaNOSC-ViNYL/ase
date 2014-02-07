@@ -1,3 +1,4 @@
+from __future__ import print_function
 """Lattice data - Face Centered Cubic"""
 
 import numpy as np

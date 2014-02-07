@@ -1,3 +1,4 @@
+from __future__ import print_function
 # encoding: utf-8
 """colors.py - select how to color the atoms in the GUI."""
 

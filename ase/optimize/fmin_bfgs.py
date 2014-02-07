@@ -1,3 +1,4 @@
+from __future__ import print_function
 #__docformat__ = "restructuredtext en"
 # ******NOTICE***************
 # optimize.py module by Travis E. Oliphant
