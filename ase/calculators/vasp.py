@@ -834,8 +834,12 @@ class Vasp(Calculator):
                 incar.write(' %s = ' % key.upper())
                 if key in ('dipol', 'eint', 'ropt', 'rwigs'):
                     [incar.write('%.4f ' % x) for x in val]
+                # ldau_luj is a dictionary that encodes all the
+                # data. It is not a vasp keyword. An alternative to
+                # the dictionary is to to use 'ldauu', 'ldauj',
+                # 'ldaul', which are vasp keywords.
                 elif key in ('ldauu', 'ldauj', 'ldaul') and \
-                    not self.dict_params.has('ldau_luj'):
+                    self.dict_params['ldau_luj'] is None:
                     [incar.write('%.4f ' % x) for x in val]
                 elif key in ('ferwe', 'ferdo'):
                     [incar.write('%.1f ' % x) for x in val]
