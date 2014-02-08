@@ -835,7 +835,7 @@ class Vasp(Calculator):
                 if key in ('dipol', 'eint', 'ropt', 'rwigs'):
                     [incar.write('%.4f ' % x) for x in val]
                 elif key in ('ldauu', 'ldauj', 'ldaul') and \
-                    not self.dict_keys.has('ldau_luj'):
+                    not self.dict_params.has('ldau_luj'):
                     [incar.write('%.4f ' % x) for x in val]
                 elif key in ('ferwe', 'ferdo'):
                     [incar.write('%.1f ' % x) for x in val]
