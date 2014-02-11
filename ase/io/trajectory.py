@@ -144,7 +144,7 @@ class PickleTrajectory:
                     return
         self.fd.seek(0)
         try:
-            if self.fd.read(len('PickleTrajectory')) != 'PickleTrajectory':
+            if self.fd.read(len('PickleTrajectory')) != b'PickleTrajectory':
                 raise IOError('This is not a trajectory file!')
             d = pickle.load(self.fd)
         except EOFError:
@@ -243,7 +243,7 @@ class PickleTrajectory:
         self.write_counter += 1
 
     def write_header(self, atoms):
-        self.fd.write('PickleTrajectory')
+        self.fd.write(b'PickleTrajectory')
         if atoms.has('tags'):
             tags = atoms.get_tags()
         else:

@@ -120,7 +120,7 @@ class Spacegroup(object):
             will be used.
         """
         if isinstance(spacegroup, Spacegroup):
-            for k, v in spacegroup.__dict__.iteritems():
+            for k, v in spacegroup.__dict__.items():
                 setattr(self, k, v)
             return 
         if not datafile:

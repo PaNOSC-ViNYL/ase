@@ -402,7 +402,7 @@ End CASTEP Interface Documentation
                 self._castep_version = local_castep_version
 
         # processes optional arguments in kw style
-        for keyword, value in kwargs.iteritems():
+        for keyword, value in kwargs.items():
             # first fetch special keywords issued by ASE CLI
             if keyword == 'kpts':
                 self.__setattr__('kpoint_mp_grid', '%s %s %s' % tuple(value))
@@ -1216,7 +1216,7 @@ End CASTEP Interface Documentation
         """Parse a param file and merge it into the current parameters."""
         INT_TOKEN = 'ASE_INTERFACE'
         if isinstance(param, CastepParam):
-            for key, option in param._options.iteritems():
+            for key, option in param._options.items():
                 if option.value  is not None:
                     self.param.__setattr__(key, option.value)
             return
@@ -1383,7 +1383,7 @@ End CASTEP Interface Documentation
                 print("For sake of numerical consistency and efficiency")
                 print("this is discouraged.")
         if self.cell.species_pot.value:
-            for (species, pspot) in pspots.iteritems():
+            for (species, pspot) in pspots.items():
                 orig_pspot_file = os.path.join(self._castep_pp_path, pspot)
                 cp_pspot_file = os.path.join(directory, pspot)
                 if os.path.exists(orig_pspot_file)\
@@ -1616,7 +1616,7 @@ class CastepParam(object):
     def __repr__(self):
         expr = ''
         if [x for x in self._options.values() if x.value is not None]:
-            for key, option in sorted(self._options.iteritems()):
+            for key, option in sorted(self._options.items()):
                 if option.value is not None:
                     expr += ("%20s : %s\n" % (key, option.value))
         else:
@@ -1712,7 +1712,7 @@ class CastepCell(object):
     def __repr__(self):
         expr = ''
         if [x for x in self._options.values() if x.value is not None]:
-            for key, option in sorted(self._options.iteritems()):
+            for key, option in sorted(self._options.items()):
                 if option.value is not None:
                     expr += ("%20s : %s\n" % (key, option.value))
         else:

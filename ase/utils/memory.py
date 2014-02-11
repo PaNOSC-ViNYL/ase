@@ -40,7 +40,7 @@ class MemoryBase(object, DictMixin):
         s = object.__repr__(self)
         w = max(list(map(len, self._keys)))
         unit = 'MB'
-        for k,v in self.iteritems():
+        for k,v in self.items():
             res = '<N/A>'
             if not np.isnan(v):
                 res = '%8.3f %s' % (v/self._scale[unit], unit)
@@ -167,7 +167,7 @@ class MemoryBase(object, DictMixin):
         2-tuple; but raise KeyError if D is empty"""
         if self.verbose>=1: print('MemoryBase.popitem')
 
-        for k,v in self.iteritems():
+        for k,v in self.items():
             if not np.isnan(v):
                 del self[k]
                 return (k,v)

@@ -258,7 +258,7 @@ def main():
     atomic_energies = dict(test1.collect(atoms))
     molecular_energies = dict(test1.collect(formulas))
     atomization_energies = {}
-    for formula, energy in molecular_energies.iteritems():
+    for formula, energy in molecular_energies.items():
         system = molecule(formula)
         atomic = [atomic_energies[s] for s in system.get_chemical_symbols()]
         atomization_energy = energy - sum(atomic)

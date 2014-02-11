@@ -252,7 +252,7 @@ class NetCDFTrajectory:
             self.numbers = self.types_to_numbers[self.numbers]
         self.masses = atomic_masses[self.numbers]
 
-        for name, var in self.nc.variables.iteritems():
+        for name, var in self.nc.variables.items():
             # _default_vars is taken care of already
             if name not in self._default_vars:
                 if len(var.dimensions) >= 2:

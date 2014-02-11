@@ -21,9 +21,8 @@ from numpy import arange
 
 # Modified from scipy_optimize
 abs = absolute
-import builtins
-pymin = builtins.min
-pymax = builtins.max
+pymin = min
+pymax = max
 __version__="0.1"
 
 class BFGSLineSearch(Optimizer):

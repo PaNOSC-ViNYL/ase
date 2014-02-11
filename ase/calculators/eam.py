@@ -240,7 +240,7 @@ End EAM Interface Documentation
                       'skin', 'form', 'Z', 'nr', 'nrho', 'mass')
 
         # set any additional keyword arguments
-        for arg, val in self.parameters.iteritems():
+        for arg, val in self.parameters.items():
             if arg in valid_args:
                 setattr(self, arg, val)
             else:

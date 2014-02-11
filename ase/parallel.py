@@ -7,7 +7,7 @@ import pickle
 import numpy as np
 
 
-def paropen(name, mode='r', buffering=0):
+def paropen(name, mode='r'):
     """MPI-safe version of open function.
 
     In read mode, the file is opened on all nodes.  In write and
@@ -16,7 +16,7 @@ def paropen(name, mode='r', buffering=0):
     """
     if rank > 0 and mode[0] != 'r':
         name = '/dev/null'
-    return open(name, mode, buffering)
+    return open(name, mode)
 
 
 def parprint(*args, **kwargs):

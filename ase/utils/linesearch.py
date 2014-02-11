@@ -1,7 +1,6 @@
 import numpy as np
-import builtins
-pymin = builtins.min
-pymax = builtins.max
+pymin = min
+pymax = max
 
 class LineSearch:
     def __init__(self,  xtol=1e-14):

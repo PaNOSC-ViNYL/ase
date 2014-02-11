@@ -341,7 +341,7 @@ def read_cell(filename, _=None):
             )
 
     fixed_atoms = []
-    for (species, nic), value in raw_constraints.iteritems():
+    for (species, nic), value in raw_constraints.items():
         absolute_nr = atoms.calc._get_absolute_number(species, nic)
         if len(value) == 3:
             fixed_atoms.append(absolute_nr)
@@ -478,10 +478,10 @@ def write_param(filename, param, check_checkfile=False,
         out.write('# calc._export_settings = False\n')
         out.write('# If stated, this will be automatically processed\n')
         out.write('# by ase.io.castep.read_seed()\n')
-        for option, value in sorted(interface_options.iteritems()):
+        for option, value in sorted(interface_options.items()):
             out.write('# ASE_INTERFACE %s : %s\n' % (option, value))
     out.write('#######################################################\n\n')
-    for keyword, opt in sorted(param._options.iteritems()):
+    for keyword, opt in sorted(param._options.items()):
         if opt.type == 'Defined':
             if opt.value is not None:
                 out.write('%s\n' % (option))

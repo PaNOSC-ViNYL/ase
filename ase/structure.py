@@ -277,21 +277,18 @@ def molecule(name, data=None, **kwargs):
     kwargs currently not used.  """
     if data is None:
         from ase.data.g2 import data
+        
     if name not in data.keys():
         raise NotImplementedError('%s not in data.' % (name))
-    args = data[name].copy()
-    # accept only the following Atoms constructor arguments
-    # XXX: should we accept all Atoms arguments?
-    for k in args.keys():
-        if k not in [
-            'symbols', 'positions', 'numbers',
-            'tags', 'masses',
-            'magmoms', 'charges',
-            'info',
-            ]:
-            args.pop(k)
-    # kwargs overwrites data
-    args.update(kwargs)
+        
+    args = {}
+    dct = data[name]
+    for k in ['symbols', 'positions', 'numbers', 'tags', 'masses',
+              'magmoms', 'charges', 'info']:
+        if k in dct:
+            args[k] = dct[k]
+            
+    args.update(kwargs)  # kwargs overwrites data
     return Atoms(**args)
 
 

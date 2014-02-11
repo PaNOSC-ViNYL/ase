@@ -43,7 +43,7 @@ def write_cfg(f, a):
     f.write('entry_count = %i\n' % entry_count)
 
     i = 0
-    for name, aux in a.arrays.iteritems():
+    for name, aux in a.arrays.items():
         if not name in cfg_default_fields:
             if len(aux.shape) == 1:
                 f.write('auxiliary[%i] = %s [a.u.]\n' % ( i, name ))
@@ -68,7 +68,7 @@ def write_cfg(f, a):
             vx, vy, vz  = vels[i.index, :]
             s  = s + ' %e %e %e ' % ( vx, vy, vz )
 
-        for name, aux in a.arrays.iteritems():
+        for name, aux in a.arrays.items():
             if not name in cfg_default_fields:
                 if len(aux.shape) == 1:
                     s += ' %e' % aux[i.index]
