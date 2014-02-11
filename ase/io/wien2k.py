@@ -6,6 +6,7 @@ import numpy as np
 from ase.atoms import Atoms, Atom
 from ase.units import Bohr, Ry
 
+
 def read_scf(filename):
     try:
         f = open(filename + '.scf', 'r')
@@ -95,7 +96,7 @@ def read_struct(filename, ase = True):
 def write_struct(filename, atoms2 = None, rmt = None, lattice = 'P', zza=None):
     atoms=atoms2.copy()
     atoms.set_scaled_positions(atoms.get_scaled_positions())
-    f = file(filename, 'w')
+    f = open(filename, 'w')
     f.write('ASE generated\n')
     nat = len(atoms)
     if rmt == None:
