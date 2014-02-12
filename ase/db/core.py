@@ -383,7 +383,7 @@ class Database:
                 try:
                     value = float(value)
                 except ValueError:
-                    assert op == '='
+                    assert op == '=' or op == '!='
             cmps.append((key, op, value))
 
         for dct in self._select(keywords, cmps, explain=explain,

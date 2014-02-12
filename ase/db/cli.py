@@ -390,4 +390,4 @@ class Formatter:
         return (d.stress**2).max()**0.5
 
     def magmom(self, d):
-        return d.magmom
+        return d.magmom or ''
