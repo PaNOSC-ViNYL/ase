@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 
 msg = "\nThe gtk python module is missing or not installed properly.\n"

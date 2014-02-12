@@ -1,14 +1,17 @@
 from __future__ import print_function
 import os
 import sys
-import warnings
 import errno
+import pickle
+import warnings
 import collections
-try:
-    import pickle as pickle
-except ImportError:
-    import pickle
 
+# Python 3 stuff:
+try:
+    unicode
+except NameError:
+    unicode = str
+    
 # pass for WindowsError on non-Win platforms
 try:
     WindowsError
@@ -92,12 +95,12 @@ class PickleTrajectory:
         """
         self.fd = filename
         if mode == 'r':
-            if isinstance(filename, str):
+            if isinstance(filename, (str, unicode)):
                 self.fd = open(filename, 'rb')
             self.read_header()
         elif mode == 'a':
             exists = True
-            if isinstance(filename, str):
+            if isinstance(filename, (str, unicode)):
                 exists = os.path.isfile(filename)
                 if exists:
                     exists = os.path.getsize(filename) > 0
@@ -112,7 +115,7 @@ class PickleTrajectory:
                     self.fd = devnull
         elif mode == 'w':
             if self.master:
-                if isinstance(filename, str):
+                if isinstance(filename, (str, unicode)):
                     if self.backup and os.path.isfile(filename):
                         try:
                             os.rename(filename, filename + '.bak')

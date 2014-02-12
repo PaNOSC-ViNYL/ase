@@ -152,7 +152,7 @@ def givens(a, b):
       [    ] . [ ] = [ ]
       [-s c]   [b]   [0]
     """
-    sgn = lambda x: cmp(x, 0)
+    sgn = np.sign
     if b == 0:
         c = sgn(a)
         s = 0

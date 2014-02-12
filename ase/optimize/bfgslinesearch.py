@@ -122,9 +122,11 @@ class BFGSLineSearch(Optimizer):
             return
         else:
             dr = r - r0
-            dg = g - g0 
-            if not ((self.alpha_k > 0 and abs(np.dot(g,p0))-abs(np.dot(g0,p0)) < 0) \
-                or self.replay):
+            dg = g - g0
+            # self.alpha_k can be None!!!
+            if not ((self.alpha_k or 0 > 0 and
+                     abs(np.dot(g,p0)) - abs(np.dot(g0,p0)) < 0)
+                    or self.replay):
                 return
             if self.no_update == True:
                 print('skip update')
