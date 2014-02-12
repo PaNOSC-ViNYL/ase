@@ -73,8 +73,12 @@ def run(args=sys.argv[1:]):
         help='Say yes.')
     add('--explain', action='store_true',
         help='Explain query plan.')
+    add('-c', '--columns', metavar='col1,col2,...',
+        help='Specify columns to show.  Precede the column specification ' +
+        'with a "+" in order to add columns to the default set of columns.  ' +
+        'Precede by a "-" to remove columns.')
     add('-p', '--python-expression', metavar='expression',
-        help="""Examples: "d.key", "d.keywords['keyword']", where """ +
+        help="""Examples: "d.id", "d.mykey", where """ +
         '"d" is a dictionary representing a row.')
 
     opts, args = parser.parse_args(args)
@@ -205,7 +209,7 @@ def run(args=sys.argv[1:]):
             long(dcts[0], verbosity)
             return
         
-        f = Formatter()
+        f = Formatter(opts.columns)
         f.format(dcts)
 
 
@@ -265,20 +269,39 @@ def cut(txt, length):
 
 
 class Formatter:
-    def format(self, dcts, columns=None, sort=None):
-        columns = ['id', 'age', 'user', 'formula', 'calc',
-                   'energy', 'fmax', 'pbc', 'size', 'keywords', 'keyvals',
-                   'charge', 'mass', 'fixed', 'smax', 'magmom']
-        table = [columns]
-        widths = [0 for column in columns]
-        signs = [1 for column in columns]  # left or right adjust
+    def __init__(self, cols):
+        self.columns = ['id', 'age', 'user', 'formula', 'calc',
+                        'energy', 'fmax', 'pbc', 'size', 'keywords', 'keyvals',
+                        'charge', 'mass', 'fixed', 'smax', 'magmom']
+        if cols is not None:
+            if cols[0] == '+':
+                cols = cols[1:]
+            elif cols[0] != '-':
+                self.columns = []
+            for col in cols.split(','):
+                if col[0] == '-':
+                    self.columns.remove(col[1:])
+                else:
+                    self.columns.append(col.lstrip('+'))
+        
+        self.funcs = []
+        for col in self.columns:
+            f = getattr(self, col, None)
+            if f is None:
+                f = lambda dct, col=col: eval(col, {'d': dct})
+            self.funcs.append(f)
+            
+    def format(self, dcts, sort=None):
+        table = [self.columns]
+        widths = [0 for col in self.columns]
+        signs = [1 for col in self.columns]  # left or right adjust
         ids = []
         fd = sys.stdout
         for dct in dcts:
             row = []
-            for i, column in enumerate(columns):
+            for i, f in enumerate(self.funcs):
                 try:
-                    s = getattr(self, column)(dct)
+                    s = f(dct)
                 except AttributeError:
                     s = ''
                 else:
@@ -293,8 +316,8 @@ class Formatter:
                 row.append(s)
             table.append(row)
             ids.append(dct.id)
-        widths = [w and max(w, len(column))
-                  for w, column in zip(widths, columns)]
+        widths = [w and max(w, len(col))
+                  for w, col in zip(widths, self.columns)]
         for row in table:
             fd.write('|'.join('%*s' % (w * sign, s)
                               for w, sign, s in zip(widths, signs, row)
