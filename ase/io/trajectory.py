@@ -341,7 +341,7 @@ class PickleTrajectory:
         del self.offsets[1:]
         return self
 
-    def __next__(self):
+    def next(self):
         try:
             return self[len(self.offsets) - 1]
         except IndexError:

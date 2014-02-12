@@ -182,14 +182,14 @@ class Vibrations:
         for a in self.indices:
             for i in 'xyz':
                 name = '%s.%d%s' % (self.name, a, i)
-                fminus = pickle.load(open(name + '-.pckl'))
-                fplus = pickle.load(open(name + '+.pckl'))
+                fminus = pickle.load(open(name + '-.pckl', 'rb'))
+                fplus = pickle.load(open(name + '+.pckl', 'rb'))
                 if self.method == 'frederiksen':
                     fminus[a] -= fminus.sum(0)
                     fplus[a] -= fplus.sum(0)
                 if self.nfree == 4:
-                    fminusminus = pickle.load(open(name + '--.pckl'))
-                    fplusplus = pickle.load(open(name + '++.pckl'))
+                    fminusminus = pickle.load(open(name + '--.pckl', 'rb'))
+                    fplusplus = pickle.load(open(name + '++.pckl', 'rb'))
                     if self.method == 'frederiksen':
                         fminusminus[a] -= fminusminus.sum(0)
                         fplusplus[a] -= fplusplus.sum(0)
@@ -216,13 +216,13 @@ class Vibrations:
                                'the vibrated atoms. Use Atoms.set_masses()'
                                ' to set all masses to non-zero values.')
 
-        self.im = np.repeat(m[self.indices] ** -0.5, 3)
+        self.im = np.repeat(m[self.indices]**-0.5, 3)
         omega2, modes = np.linalg.eigh(self.im[:, None] * H * self.im)
         self.modes = modes.T.copy()
 
         # Conversion factor:
         s = units._hbar * 1e10 / sqrt(units._e * units._amu)
-        self.hnu = s * omega2.astype(complex) ** 0.5
+        self.hnu = s * omega2.astype(complex)**0.5
 
     def get_energies(self, method='standard', direction='central'):
         """Get vibration energies in eV."""
