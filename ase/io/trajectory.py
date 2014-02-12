@@ -349,6 +349,8 @@ class PickleTrajectory:
             return self[len(self.offsets) - 1]
         except IndexError:
             raise StopIteration
+    
+    __next__ = next
 
     def guess_offsets(self):
         size = os.path.getsize(self.fd.name)

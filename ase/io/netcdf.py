@@ -1,6 +1,7 @@
 """Read and write ASE2's netCDF trajectory files."""
 
-from ase.io.pupynere import NetCDFFile
+from scipy.io.netcdf import NetCDFFile
+
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 
