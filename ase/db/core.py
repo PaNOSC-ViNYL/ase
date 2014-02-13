@@ -92,6 +92,7 @@ def connect(name, type='extract_from_name', create_indices=True,
 
 
 class FancyDict(dict):
+    """Dictionary with keys available as attributes also."""
     def __getattr__(self, key):
         if key not in self:
             return dict.__getattribute__(self, key)
@@ -105,6 +106,7 @@ class FancyDict(dict):
         
 
 def lock(method):
+    """Decorator for using a lock-file."""
     @functools.wraps(method)
     def new_method(self, *args, **kwargs):
         if self.lock is None:
@@ -116,6 +118,7 @@ def lock(method):
 
 
 def parallel(method):
+    """Decorator for broadcasting from master to slaves using MPI."""
     if world.size == 1:
         return method
         
@@ -136,6 +139,7 @@ def parallel(method):
 
 
 def parallel_generator(generator):
+    """Decorator for broadcasting yields from master to slaves using MPI."""
     if world.size == 1:
         return generator
         

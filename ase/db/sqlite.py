@@ -3,7 +3,7 @@ import sqlite3
 
 import numpy as np
 
-from ase.db.core import Database, ops, now
+from ase.db.core import Database, ops, now, lock, parallel
 from ase.db.json import encode, decode
 
 
@@ -347,6 +347,8 @@ class SQLite3Database(Database):
                     yield self.row_to_dict(row)
                     n += 1
                     
+    @parallel
+    @lock
     def delete(self, ids):
         con = self._connect()
         self._delete(con.cursor(), ids)

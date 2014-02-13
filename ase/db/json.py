@@ -133,8 +133,8 @@ class JSONDatabase(Database):
         print('"nextid": {0}}}'.format(nextid), file=fd)
         fd.close()
 
-    @lock
     @parallel
+    @lock
     def delete(self, ids):
         bigdct, myids, nextid = self._read_json()
         for id in ids:
@@ -183,8 +183,8 @@ class JSONDatabase(Database):
                     n += 1
                     yield dct
 
-    @lock
     @parallel
+    @lock
     def update(self, ids, add_keywords=[], **add_key_value_pairs):
         check_keys(add_key_value_pairs)
 
