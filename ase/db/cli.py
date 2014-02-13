@@ -77,6 +77,8 @@ def run(args=sys.argv[1:]):
         help='Specify columns to show.  Precede the column specification ' +
         'with a "+" in order to add columns to the default set of columns.  ' +
         'Precede by a "-" to remove columns.')
+    add('-s', '--sort', metavar='column',
+        help='Sort rows using column.  Default is to sort after ID.')
     add('-p', '--python-expression', metavar='expression',
         help="""Examples: "d.id", "d.mykey", where """ +
         '"d" is a dictionary representing a row.')
@@ -209,7 +211,7 @@ def run(args=sys.argv[1:]):
             long(dcts[0], verbosity)
             return
         
-        f = Formatter(opts.columns)
+        f = Formatter(opts.columns, opts.sort)
         f.format(dcts)
 
 
@@ -269,10 +271,13 @@ def cut(txt, length):
 
 
 class Formatter:
-    def __init__(self, cols):
+    def __init__(self, cols, sort):
+        self.sort = sort
+        
         self.columns = ['id', 'age', 'user', 'formula', 'calc',
                         'energy', 'fmax', 'pbc', 'size', 'keywords', 'keyvals',
                         'charge', 'mass', 'fixed', 'smax', 'magmom']
+        
         if cols is not None:
             if cols[0] == '+':
                 cols = cols[1:]
@@ -318,6 +323,13 @@ class Formatter:
             ids.append(dct.id)
         widths = [w and max(w, len(col))
                   for w, col in zip(widths, self.columns)]
+        
+        if self.sort:
+            headline = table.pop(0)
+            n = self.columns.index(self.sort)
+            table.sort(key=lambda row: row[n])
+            table.insert(0, headline)
+            
         for row in table:
             fd.write('|'.join('%*s' % (w * sign, s)
                               for w, sign, s in zip(widths, signs, row)
