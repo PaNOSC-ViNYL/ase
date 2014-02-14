@@ -290,6 +290,18 @@ class Vasp(Calculator):
             self.restart_load()
             return
 
+        if (('ldauu' in kwargs)
+            and ('ldaul' in kwargs)
+            and ('ldauj' in kwargs)
+            and ('ldau_luj' in kwargs)):
+            raise NotImplementedError(
+                '''You can either specify ldaul, ldauu, and ldauj OR ldau_luj.
+ldau_luj is not a VASP keyword. It is a dictionary that specifies L, U and J for each
+chemical species in the atoms object. For example for a water molecule:
+                
+ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
+                      'O':{'L':2, 'U':4.0, 'J':0.9}}''')
+
         self.nbands = self.int_params['nbands']
         self.atoms = None
         self.positions = None
@@ -838,9 +850,12 @@ class Vasp(Calculator):
                 # data. It is not a vasp keyword. An alternative to
                 # the dictionary is to to use 'ldauu', 'ldauj',
                 # 'ldaul', which are vasp keywords.
-                elif key in ('ldauu', 'ldauj', 'ldaul') and \
+                elif key in ('ldauu', 'ldauj') and \
                     self.dict_params['ldau_luj'] is None:
                     [incar.write('%.4f ' % x) for x in val]
+                elif key in ('ldaul') and \
+                    self.dict_params['ldau_luj'] is None:
+                    [incar.write('%d ' % x) for x in val]
                 elif key in ('ferwe', 'ferdo'):
                     [incar.write('%.1f ' % x) for x in val]
                 elif key in ('iband', 'kpuse'):
