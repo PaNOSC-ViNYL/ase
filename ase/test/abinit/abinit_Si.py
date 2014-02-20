@@ -15,6 +15,7 @@ calc = Abinit(label='Si',
               nbands=8,  # one can specify any abinit keywords
               ecut=10 * Ry,  # warning - used to speedup the test
               kpts=[4, 4, 4],  # warning - used to speedup the test
+              chksymbreak=0,
               )
 
 # one can specify abinit keywords also using set
