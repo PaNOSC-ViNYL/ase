@@ -152,7 +152,7 @@ def run(args=sys.argv[1:]):
                     keywords.append(keyword)
                     nkw += 1
 
-            kvp = dct['key_value_pairs']
+            kvp = dct.get('key_value_pairs', {})
             nkvp = -len(kvp)
             kvp.update(add_key_value_pairs)
             nkvp += len(kvp)
