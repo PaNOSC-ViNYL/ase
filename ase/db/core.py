@@ -47,6 +47,8 @@ reserved_keys = set(all_properties + all_changes +
                      'calculator', 'calculator_parameters',
                      'keywords', 'key_value_pairs', 'data'])
 
+numeric_keys = set(['id', 'energy', 'magmom', 'charge', 'natoms'])
+
 
 def check_keys(keys):
     for key in keys:
@@ -383,11 +385,14 @@ class Database:
             elif key in atomic_numbers:
                 key = atomic_numbers[key]
                 value = int(value)
-            else:
+            elif isinstance(value, str):
                 try:
                     value = float(value)
                 except ValueError:
                     assert op == '=' or op == '!='
+            if key in numeric_keys and not isinstance(value, (int, float)):
+                msg = 'Wrong type for "{0}{1}{2}" - must be a number'
+                raise ValueError(msg.format(key, op, value))
             cmps.append((key, op, value))
 
         for dct in self._select(keywords, cmps, explain=explain,

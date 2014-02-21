@@ -144,8 +144,15 @@ def read(filename, index=None, format=None):
         return atoms
 
     if format in ['json', 'db']:
-        from ase.db import connect
-        return connect(filename, format)[index]
+        from ase.db.core import connect, dict2atoms
+        if index == slice(None, None):
+            index = None
+        images = [dict2atoms(d)
+                  for d in connect(filename, format).select(index)]
+        if len(images) == 1:
+            return images[0]
+        else:
+            return images
 
     if index is None:
         index = -1

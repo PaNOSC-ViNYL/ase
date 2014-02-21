@@ -34,7 +34,7 @@ examples = ['calculator=nwchem',
             'Cu>=10']
 
 
-def run(args=sys.argv[1:]):
+def main(args=sys.argv[1:]):
     if isinstance(args, str):
         args = args.split(' ')
     parser = optparse.OptionParser(
@@ -87,6 +87,17 @@ def run(args=sys.argv[1:]):
 
     verbosity = 1 - opts.quiet + opts.verbose
 
+    try: 
+        run(opts, args, verbosity)
+    except Exception as x:
+        if verbosity < 2:
+            print('{0}: {1}'.format(x.__class__.__name__, x.message))
+            sys.exit(1)
+        else:
+            raise
+
+        
+def run(opts, args, verbosity):
     if not args:
         parser.error('No database given')
         
@@ -204,7 +215,7 @@ def run(args=sys.argv[1:]):
                 row = [row]
             print(', '.join(str(x) for x in row))
         return
-        
+
     dcts = list(rows)
     if len(dcts) > 0:
         if opts.long:
