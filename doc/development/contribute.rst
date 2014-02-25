@@ -81,6 +81,7 @@ jussie      Jussi Enkovaara            jussi,enkovaara:csc,fi
 kkaa        Kristen Kaasbjerg          kkaa:fysik,dtu,dk
 kleis       Jesper Kleis               kleis:fysik,dtu,dk
 kwj         Karsten Wedel Jacobsen     kwj:fysik,dtu,dk
+lassebv     Lasse Vilhelmsen           lassebv:phys,au,dk
 markus      Markus Kaukonen            markus,kaukonen:iki,fi
 miwalter    Michael Walter             Michael,Walter:fmf,uni-freiburg,de
 moses       Poul Georg Moses           poulgeorgmoses:gmail,com
