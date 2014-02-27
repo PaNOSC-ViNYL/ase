@@ -164,6 +164,9 @@ def read_gpaw_text(fileobj, index=-1):
         if len(images) > 0 and e is None:
             break
 
+        if q is not None and len(atoms) > 0:
+            n = len(atoms)
+            atoms.set_initial_charges([q / n] * n)
         if e is not None or f is not None:
             calc = SinglePointDFTCalculator(atoms, energy=e, forces=f,
                                             dipole=dipole, magmoms=magmoms,
@@ -171,9 +174,6 @@ def read_gpaw_text(fileobj, index=-1):
             if kpts is not None:
                 calc.kpts = kpts
             atoms.set_calculator(calc)
-        if q is not None and len(atoms) > 0:
-            n = len(atoms)
-            atoms.set_initial_charges([q / n] * n)
 
         images.append(atoms)
         lines = lines[i:]
