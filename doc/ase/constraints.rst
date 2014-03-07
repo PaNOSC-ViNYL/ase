@@ -313,9 +313,15 @@ hydrogen atoms are returned.
 The UnitCellFilter class
 ========================
 
+.. module:: UnitCellFilter
+   :synopsis: UnitCellFilter
+
 .. autoclass:: ase.constraints.UnitCellFilter
 
 The StrainFilter class
 ======================
+
+.. module:: StrainFilter
+   :synopsis: StrainFilter
 
 .. autoclass:: ase.constraints.StrainFilter
