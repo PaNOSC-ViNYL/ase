@@ -10,11 +10,14 @@ for manipulating atoms, analyzing simulations, visualization etc.
 
   The old ASE-2 webpage has moved to http://wiki.fysik.dtu.dk/ase2.
 
-Supported :mod:`calculators`:
+Actively maintained :mod:`calculators`:
 
-   |abinit| |Asap| |CASTEP| |dftb| |elk| |exciting| |EMT| |fhi-aims| 
-   |fleur| Gaussian_ |gpaw| |hotbit| |jacapo| |jdftx| |lammps| Mopac_ |nwchem|
-   |siesta| |turbomole| |vasp| 
+   |abinit| |Asap| |elk| |EMT| |fhi-aims| Gaussian_ |gpaw| |nwchem|
+
+Supported :mod:`calculators` (we are looking for maintainers!):
+
+   |CASTEP| |dftb| |exciting| |fleur| |hotbit| |jacapo| |jdftx| |lammps|
+   Mopac_ |siesta| |turbomole| |vasp|
 
 .. |abinit| image:: _static/abinit.png
    :target: ase/calculators/abinit.html
