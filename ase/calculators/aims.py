@@ -117,7 +117,7 @@ class Aims(FileIOCalculator):
     implemented_properties = ['energy', 'forces', 'stress', 'dipole']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 label=os.curdir, atoms=None, radmul=None, cubes=None, **kwargs):
+                 label=os.curdir, atoms=None, cubes=None, radmul=None, tier=None, **kwargs):
         """Construct FHI-aims calculator.
         
         The keyword arguments (kwargs) can be one of the ASE standard
@@ -130,12 +130,15 @@ class Aims(FileIOCalculator):
             Cube file specification.
         radmul: int
             Set radial multiplier for the basis set of all atomic species.
+        tier: int or array of ints
+            Set basis set tier for all atomic species.
         """
 
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, **kwargs)
         self.cubes = cubes
         self.radmul = radmul
+        self.tier = tier
 
     def set_label(self, label):
         self.label = label
@@ -269,21 +272,74 @@ class Aims(FileIOCalculator):
             raise RuntimeError(
                 'Missing species directory!  Use species_dir ' +
                 'parameter or set $AIMS_SPECIES_DIR environment variable.')
-
         control = open(filename, 'a')
         symbols = atoms.get_chemical_symbols()
         symbols2 = []
         for n, symbol in enumerate(symbols):
             if symbol not in symbols2:
                 symbols2.append(symbol)
-        for symbol in symbols2:
+        if self.tier is not None:
+            if isinstance(self.tier, int):
+                self.tierlist = np.ones(len(symbols2),'int') * self.tier
+            elif isinstance(self.tier, list):
+                assert len(self.tier) == len(symbols2)
+                self.tierlist = self.tier
+
+        for i, symbol in enumerate(symbols2):
             fd = os.path.join(species_path, '%02i_%s_default' %
                               (atomic_numbers[symbol], symbol))
+            reached_tiers = False
             for line in open(fd, 'r'):
+                if self.tier is not None:
+                    if 'First tier' in line:
+                        reached_tiers = True
+                        self.targettier = self.tierlist[i]
+                        self.foundtarget = False
+                        self.do_uncomment = True
+                    if reached_tiers:
+                        line = self.format_tiers(line)
                 control.write(line)
+            if self.tier is not None and not self.foundtarget:
+                raise RuntimeError(
+                    "Basis tier %i not found for element %s"\
+                    % (self.targettier, symbol))
         control.close()
+
         if self.radmul is not None:
             self.set_radial_multiplier()
+
+    def format_tiers(self, line):
+        if 'meV' in line:
+            assert line[0] == '#'
+            if 'tier' in line and 'Further' not in line:
+                tier = line.split(" tier")[0]
+                tier = tier.split('"')[-1]
+                current_tier = self.translate_tier(tier)
+                if current_tier == self.targettier:
+                    self.foundtarget = True
+                elif current_tier > self.targettier:
+                    self.do_uncomment = False
+            else:
+                self.do_uncomment = False
+            return line
+        elif self.do_uncomment and line[0] == '#':
+            return line[1:]
+        elif not self.do_uncomment and line[0] != '#':
+            return '#'+line
+        else:
+            return line
+
+    def translate_tier(self, tier):
+        if tier.lower() == 'first':
+            return 1
+        elif tier.lower() == 'second':
+            return 2
+        elif tier.lower() == 'third':
+            return 3
+        elif tier.lower() == 'fourth':
+            return 4
+        else:
+            return -1
 
     def set_radial_multiplier(self):
         assert isinstance(self.radmul, int)
