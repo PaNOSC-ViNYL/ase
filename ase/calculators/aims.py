@@ -117,7 +117,7 @@ class Aims(FileIOCalculator):
     implemented_properties = ['energy', 'forces', 'stress', 'dipole']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 label=os.curdir, atoms=None, cubes=None, **kwargs):
+                 label=os.curdir, atoms=None, radmul=None, cubes=None, **kwargs):
         """Construct FHI-aims calculator.
         
         The keyword arguments (kwargs) can be one of the ASE standard
@@ -128,11 +128,14 @@ class Aims(FileIOCalculator):
 
         cubes: AimsCube object
             Cube file specification.
+        radmul: int
+            Set radial multiplier for the basis set of all atomic species.
         """
 
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, **kwargs)
         self.cubes = cubes
+        self.radmul = radmul
 
     def set_label(self, label):
         self.label = label
@@ -258,6 +261,7 @@ class Aims(FileIOCalculator):
             self.read_dipole()
 
     def write_species(self, atoms, filename='control.in'):
+        self.ctrlname = filename
         species_path = self.parameters.get('species_dir')
         if species_path is None:
             species_path = os.environ.get('AIMS_SPECIES_DIR')
@@ -278,6 +282,23 @@ class Aims(FileIOCalculator):
             for line in open(fd, 'r'):
                 control.write(line)
         control.close()
+        if self.radmul is not None:
+            self.set_radial_multiplier()
+
+    def set_radial_multiplier(self):
+        assert isinstance(self.radmul, int)
+        newctrl = self.ctrlname+'.new'
+        fin = open(self.ctrlname, 'r')
+        fout = open(newctrl, 'w')
+        newline = "    radial_multiplier   %i\n" % self.radmul
+        for line in fin:
+            if '    radial_multiplier' in line:
+                fout.write(newline)
+            else:
+                fout.write(line)
+        fin.close()
+        fout.close()
+        os.rename(newctrl, self.ctrlname)
 
     def get_dipole_moment(self, atoms):
         if ('dipole' not in self.parameters.get('output', []) or
