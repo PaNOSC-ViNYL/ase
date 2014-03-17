@@ -110,7 +110,6 @@ class Runner:
             else:
                 parser.error('Missing calculator name')
                 
-
         if self.opts.plugin:
             runner = self.get_runner()
         else:
@@ -369,7 +368,7 @@ def str2dict(s, namespace={}, sep='='):
         if value[0] == '{':
             assert value[-1] == '}'
             value = str2dict(value[1:-1], namespace, ':')
-        if value[0] == '(':
+        elif value[0] == '(':
             assert value[-1] == ')'
             value = [myeval(t) for t in value[1:-1].split(',')]
         else:
