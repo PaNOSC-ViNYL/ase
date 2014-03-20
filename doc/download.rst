@@ -7,7 +7,7 @@ Installation requirements
 The following packages are required for basic ASE functionality:
 
 1) Python_ 2.6 - 2.7.
-2) NumPy_.
+2) NumPy_ (multithreading in numpy is not supported by ASE).
 
 .. _Python: http://www.python.org
 .. _NumPy: http://www.numpy.org/
