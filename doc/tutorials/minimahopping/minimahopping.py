@@ -1,11 +1,8 @@
-# creates:  hoppingsummary.png
-import matplotlib
-#matplotlib.use('Agg')
-from ase.optimize.minimahopping import MHPlot
+# creates:  summary.png
 
 execfile('Cu2_Pt110.py')
-mhplot = MHPlot()
-mhplot.save_figure('hoppingsummary.png')
+execfile('mhsummary.py')
+
 # Clean up directory.
 import os
 os.remove('hop.log')
