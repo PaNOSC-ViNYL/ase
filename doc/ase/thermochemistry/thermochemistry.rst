@@ -18,62 +18,14 @@ The thermodynamic quantities of ideal gases are calculated by assuming that all 
 Example
 -------
 
-The :class:`~ase.thermochemistry.IdealGasThermo` class would generally be called after an energy optimization and a vibrational analysis. The user needs to supply certain parameters if the entropy or free energy are desired, such as the geometry and symmetry number. An example on the nitrogen molecule is::
+The :class:`~ase.thermochemistry.IdealGasThermo` class would generally be called after an energy optimization and a vibrational analysis. The user needs to supply certain parameters if the entropy or free energy are desired, such as the geometry and symmetry number. An example on the nitrogen molecule is:
 
-        from ase.data.molecules import molecule
-        from ase.calculators.emt import EMT
-        from ase.optimize import QuasiNewton
-        from ase.vibrations import Vibrations
-        from ase.thermochemistry import IdealGasThermo
+.. literalinclude:: nitrogen.py
 
-        atoms = molecule('N2')
-        atoms.set_calculator(EMT())
-        dyn = QuasiNewton(atoms)
-        dyn.run(fmax=0.01)
-        electronicenergy = atoms.get_potential_energy()
 
-        vib = Vibrations(atoms)
-        vib.run()
-        vib_energies = vib.get_energies()
+This will give the thermodynamic summary output:
 
-        thermo = IdealGasThermo(vib_energies=vib_energies,
-                                electronicenergy=electronicenergy, atoms=atoms, 
-                                geometry='linear', symmetrynumber=2, spin=0)
-        G = thermo.get_gibbs_energy(temperature=298.15, pressure=101325.)
-
-This will give the thermodynamic summary output::
-
-        Enthalpy components at T = 298.15 K:
-        ===============================
-        E_elec                 0.263 eV
-        E_ZPE                  0.076 eV
-        Cv_trans (0->T)        0.039 eV
-        Cv_rot (0->T)          0.026 eV
-        Cv_vib (0->T)          0.000 eV
-        (C_v -> C_p)           0.026 eV
-        -------------------------------
-        H                      0.429 eV
-        ===============================
-
-        Entropy components at T = 298.15 K and P = 101325.0 Pa:
-        =================================================
-                                   S               T*S
-        S_trans (1 atm)    0.0015579 eV/K        0.464 eV
-        S_rot              0.0004101 eV/K        0.122 eV
-        S_elec             0.0000000 eV/K        0.000 eV
-        S_vib              0.0000016 eV/K        0.000 eV
-        S (1 atm -> P)    -0.0000000 eV/K       -0.000 eV
-        -------------------------------------------------
-        S                  0.0019695 eV/K        0.587 eV
-        =================================================
-
-        Free energy components at T = 298.15 K and P = 101325.0 Pa:
-        =======================
-            H          0.429 eV
-         -T*S         -0.587 eV
-        -----------------------
-            G         -0.158 eV
-        =======================
+.. literalinclude:: nitrogen.txt
 
 
 
@@ -98,70 +50,14 @@ In this model a crystalline solid is treated as a periodic system of independent
 Example
 -------
 
-The :class:`~ase.thermochemistry.CrystalThermo` class will generally be called after an energy optimization and a phonon vibrational analysis of the crystal. An example for bulk gold is::
+The :class:`~ase.thermochemistry.CrystalThermo` class will generally be called after an energy optimization and a phonon vibrational analysis of the crystal. An example for bulk gold is:
 
-	from ase.lattice.spacegroup import crystal
-	from ase.calculators.emt import EMT
-	from ase.optimize import QuasiNewton
-	from ase.phonons import Phonons
-	from ase.thermochemistry import CrystalThermo
-
-	# Set up gold bulk and attach EMT calculator
-	a = 4.078
-	atoms = crystal('Au', (0.,0.,0.),
-		       spacegroup = 225,
-		       cellpar = [a, a, a, 90, 90, 90],
-		       pbc = (1, 1, 1))
-	calc = EMT()
-	atoms.set_calculator(calc)
-	qn = QuasiNewton(atoms)
-	qn.run(fmax = 0.05)
-	electronicenergy = atoms.get_potential_energy()
-
-	# Phonon analysis
-	N = 5
-	ph = Phonons(atoms, calc, supercell=(N, N, N), delta=0.05)
-	ph.run()
-	ph.read(acoustic=True)
-	phonon_energies, phonon_DOS = ph.dos(kpts=(40, 40, 40), npts=3000, delta=5e-4)
-
-	# Calculate the Helmholtz free energy
-	thermo = CrystalThermo(phonon_energies=phonon_energies,
-		               phonon_DOS = phonon_DOS,
-		               electronicenergy = electronicenergy,
-		               formula_units = 4)
-	F = thermo.get_helmholtz_energy(temperature=298.15)
-
-This will give the thermodynamic summary output::
-
-	Internal energy components at T = 298.15 K,
-	on a per-formula-unit basis:
-	===============================
-	E_elec                0.0022 eV
-	E_ZPE                 0.0135 eV
-	E_phonon              0.0629 eV
-	-------------------------------
-	U                     0.0786 eV
-	===============================
-
-	Entropy components at T = 298.15 K,
-	on a per-formula-unit basis:
-	=================================================
-		                   S               T*S
-	-------------------------------------------------
-	S                  0.0005316 eV/K       0.1585 eV
-	=================================================
-
-	Helmholtz free energy components at T = 298.15 K,
-	on a per-formula-unit basis:
-	=======================
-	    U         0.0786 eV
-	 -T*S        -0.1585 eV
-	-----------------------
-	    F        -0.0799 eV
-	=======================
+.. literalinclude:: gold.py
 
 
+This will give the thermodynamic summary output:
+
+.. literalinclude:: gold.txt
 
 
 Background

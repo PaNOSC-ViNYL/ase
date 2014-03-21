@@ -70,6 +70,7 @@ List of all modules:
    neb
    vibrations
    phonons
+   thermochemistry/thermochemistry
    infrared
    md
    dft/dft
@@ -77,7 +78,6 @@ List of all modules:
    data
    trajectory
    utils
-   thermochemistry
    neighbors
    io/opls
    db/db
