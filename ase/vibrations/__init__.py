@@ -47,7 +47,7 @@ class Vibrations:
     Example:
 
     >>> from ase import Atoms
-    >>> from ase.calculators import EMT
+    >>> from ase.calculators.emt import EMT
     >>> from ase.optimize import BFGS
     >>> from ase.vibrations import Vibrations
     >>> n2 = Atoms('N2', [(0, 0, 0), (0, 0, 1.1)],
