@@ -784,11 +784,11 @@ class Hookean(FixConstraint):
            3) a plane given as (A, B, C, D) in A x + B y + C z + D = 0.
         k : float
            Hooke's law (spring) constant to apply when distance
-           exceeds threshold_length.
+           exceeds threshold_length. Units of eV A^-2.
         rt : float
            The threshold length below which there is no force. The
            length is 1) between two atoms, 2) between atom and point.
-           This argument is not supplied in case 3.
+           This argument is not supplied in case 3. Units of A.
 
         If a plane is specified, the Hooke's law force is applied if the atom
         is on the normal side of the plane. For instance, the plane with
