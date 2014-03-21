@@ -236,7 +236,7 @@ The ideal-gas Gibbs free energy is then just calculated from the combination of 
 and the Gibbs free energy is calculated as
 
 .. math ::
-   G(T,P) = U(T) - T\, S(T,P)
+   G(T) = U(T) - T\, S(T)
 
 In this case, the number of harmonic energies (:math:`\epsilon_i`) used in the summation is generally :math:`3N`, where :math:`N` is the number of atoms in the adsorbate.
 
