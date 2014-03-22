@@ -23,15 +23,16 @@ Set environment variables in your configuration file:
 - bash::
 
   $ TURBODIR=/my_disk/my_name/TURBOMOLE
-  $ PATH=$PATH:$TURBODIR/scripts
-  $ PATH=$PATH:$TURBODIR/bin/‘sysname‘
+  $ PATH=$TURBODIR/scripts:$PATH
+  $ PATH=$TURBODIR/bin/sysname:$PATH
 
 - csh/tcsh::
 
   $ setenv TURBODIR /my_disk/my_name/TURBOMOLE
-  $ set path=($path ${TURBODIR}/scripts)
-  $ set path=($path ${TURBODIR}/bin/`sysname`)
+  $ set path=(${TURBODIR}/scripts $path)
+  $ set path=(${TURBODIR}/bin/sysname $path)
 
+where `sysname` could be, e.g.: `x86_64-unknown-linux-gnu`.
 
 Turbomole Calculator
 ==================== 
@@ -44,36 +45,19 @@ Turbomole files are updated during the ASE-run.
 
 Do not use internal coordinates, only cartesians are allowed.
 
-In the coord file one can fix atoms the turbomole way (writing a 'f' in the 
-end of the line in the coord file).
-
 Ase-Turbomole uses turbomole programs 'ridft' and 'rdgrad' 
 if keyword '$ricore' is present in the Turbomole's control file. 
 Otherwise programs 'dscf' and 'grad' are used.
 
 
-Example1: Geometry Optimization
-===============================
+Example1: Single-point energy
+=============================
 
+Here is an example of how to calculate the total energy of H2
+:svn:`ase/test/turbomole/turbomole_H2.py`.
 
-.. literalinclude:: turbomole_ex1_relax.py
+Example2: NEB 
+=============
 
-
-Example2: Diffusion run using NEB 
-==================================
-
-
-.. literalinclude:: turbomole_ex2_diffuse_usingNEB.py
-
-
-Example3: Diffusion run using NEB, Restart old calculation
-==========================================================
-
-.. literalinclude:: turbomole_ex3_restart_diffuse_usingNEB.py
- 
-
-For developers: python files affected by the turbomole interface
-================================================================
-
-.. literalinclude:: turbomole_changes.txt
-
+Here is an example of how to calculate a proton transfer barrier in H3O2-:
+:svn:`ase/test/turbomole/turbomole_h3o2m.py`.
