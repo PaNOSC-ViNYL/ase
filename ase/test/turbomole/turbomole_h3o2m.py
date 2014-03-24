@@ -15,11 +15,11 @@ from ase.calculators.turbomole import Turbomole
 for f in ['coord',
           'basis',
           'energy',
-	  'gradients',
-	  'alpha',
-	  'beta',
+          'gradients',
+          'alpha',
+          'beta',
           'mos',
-	  'forceapprox',
+          'forceapprox',
           'statistics',
           'dscf_problem',
           'control']:
@@ -81,7 +81,7 @@ if 1:
 neb.interpolate()
 if 1:
     for image in images:
-	print image.get_distance(1, 2), image.get_potential_energy()
+        print image.get_distance(1, 2), image.get_potential_energy()
 
 dyn = BFGS(neb, trajectory='turbomole_h3o2m.traj')
 dyn.run(fmax=0.10)
