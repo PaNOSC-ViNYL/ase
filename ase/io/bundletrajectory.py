@@ -471,7 +471,7 @@ class BundleTrajectory:
         if not os.path.exists(self.filename):
             # OK, no old bundle.  Open as for write instead.
             ase.parallel.barrier()
-            self._open_write(atoms)
+            self._open_write(atoms, False)
             return
         if not self.is_bundle(self.filename):
             raise IOError('Not a BundleTrajectory: ' + self.filename)

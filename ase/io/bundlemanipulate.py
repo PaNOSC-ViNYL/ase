@@ -14,16 +14,18 @@ from ase.io.bundletrajectory import BundleTrajectory
 import os
 import cPickle as pickle
 
-def copy_frames(inbundle, outbundle, start=0, end=-1, step=1,
+def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
                 verbose=False):
     """Copies selected frame from one bundle to the next."""
     if not (isinstance(start, int) and
-            isinstance(end, int) and
+            (isinstance(end, int) or end is None) and
             isinstance(step, int)):
         raise TypeError("copy_frames: start, end and step must be integers.")
     metadata, nframes = read_bundle_info(inbundle)
     if start < 0:
         start += nframes
+    if end is None:
+        end = nframes
     if end < 0:
         end += nframes
     if start < 0 or (start > nframes-1 and end > 0):
@@ -82,7 +84,9 @@ def copy_frames(inbundle, outbundle, start=0, end=-1, step=1,
                     raise RuntimeError("Cannot combine data from F0 and F%i since the number of fragments has changed"
                                        % (nin,))
             data0.update(data1)  # Data in frame overrides data from frame 0.
-            f = open(os.path.join(outdir, "smalldata.pickle"), "w")
+            smallname = os.path.join(outdir, "smalldata.pickle")
+            os.unlink(smallname) 
+            f = open(smallname, "w")
             pickle.dump(data0, f, -1)
             f.close()
     # Finally, write the number of frames
