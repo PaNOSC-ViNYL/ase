@@ -29,20 +29,26 @@ class BFGSLineSearch(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', maxstep=.2,
                  trajectory=None, c1=.23, c2=0.46, alpha=10., stpmax=50.,
                  use_free_energy=True):
-        """Minimize a function using the BFGS algorithm.
+        """Optimize atomic positions in the BFGSLineSearch algorithm, which
+        uses both forces and potential energy information.
 
-        Notes:
+        Parameters:
 
-            Optimize the function, f, whose gradient is given by fprime
-            using the quasi-Newton method of Broyden, Fletcher, Goldfarb,
-            and Shanno (BFGS) See Wright, and Nocedal 'Numerical
-            Optimization', 1999, pg. 198.
-
-        *See Also*:
-
-          scikits.openopt : SciKit which offers a unified syntax to call
-                            this and other solvers.
-
+        restart: string
+            Pickle file used to store hessian matrix. If set, file with 
+            such a name will be searched and hessian matrix stored will
+            be used, if the file exists.
+        trajectory: string
+            Pickle file used to store trajectory of atomic movement.
+        maxstep: float
+            Used to set the maximum distance an atom can move per
+            iteration (default value is 0.2 Angstroms).
+        logfile: string
+            Text file used to write summary information.
+        use_free_energy: True/False (default True)
+            If True (the default), will use the energy before it is
+            extrapolated to 0 K; that is, the energy consistent with the
+            forces (if available on the chosen calculator).
         """
         self.maxstep = maxstep
         self.stpmax = stpmax
@@ -148,16 +154,16 @@ class BFGSLineSearch(Optimizer):
     def func(self, x):
         """Objective function for use of the optimizers"""
         self.atoms.set_positions(x.reshape(-1, 3))
-        calc = self.atoms.get_calculator()
+        atoms = self.atoms
         self.function_calls += 1
         # Scale the problem as SciPy uses I as initial Hessian.
         if self.use_free_energy:
             try:
-                return calc.get_potential_energy(self.atoms,force_consistent=True) / self.alpha
+                return atoms.get_potential_energy(force_consistent=True) / self.alpha
             except TypeError:
-                return calc.get_potential_energy(self.atoms) / self.alpha
+                return atoms.get_potential_energy() / self.alpha
         else:
-            return calc.get_potential_energy(self.atoms) / self.alpha
+            return atoms.get_potential_energy() / self.alpha
     
     def fprime(self, x):
         """Gradient of the objective function for use of the optimizers"""

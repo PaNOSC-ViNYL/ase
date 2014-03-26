@@ -638,11 +638,20 @@ class Atoms(object):
         self.calc.initialize(self)
         self.calc.calculate(self)
 
-    def get_potential_energy(self):
-        """Calculate potential energy."""
+    def get_potential_energy(self, force_consistent=False):
+        """Calculate potential energy.
+        When supported by the calculator, either the energy extrapolated
+        to zero Kelvin or the energy consistent with the forces (the free
+        energy) can be returned.
+        """
         if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
-        return self._calc.get_potential_energy(self)
+        if force_consistent:
+            energy = self._calc.get_potential_energy(self,
+                                    force_consistent=force_consistent)
+        else:
+            energy = self._calc.get_potential_energy(self)
+        return energy
 
     def get_potential_energies(self):
         """Calculate the potential energies of all the atoms.
