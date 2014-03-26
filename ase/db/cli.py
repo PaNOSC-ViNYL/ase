@@ -82,6 +82,8 @@ def main(args=sys.argv[1:]):
     add('-p', '--python-expression', metavar='expression',
         help="""Examples: "d.id", "d.mykey", where """ +
         '"d" is a dictionary representing a row.')
+    add('-b', '--browse', action='store_true',
+        help='Open results in web-browser.')
 
     opts, args = parser.parse_args(args)
 
@@ -101,10 +103,18 @@ def run(opts, args, verbosity):
     if not args:
         parser.error('No database given')
         
-    con = connect(args.pop(0))
-
     if verbosity == 2:
-        print(opts, args)
+        print('Options:')
+        for k, v in opts.__dict__.items():
+            print('    {0:24}{1}'.format(k + ':', v))
+        print('Arguments:', ', '.join(args))
+
+    if opts.browse:
+        from .browse import browse
+        browse(opts, args)
+        return
+        
+    con = connect(args.pop(0))
 
     if args:
         if len(args) == 1 and args[0].isdigit():
