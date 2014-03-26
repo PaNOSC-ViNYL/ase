@@ -268,11 +268,14 @@ class Database:
         selection: int, str or list
             See the select() method.
         attach_calculator: bool
-            Attach calculator object to Atoms object (defaul value is
+            Attach calculator object to Atoms object (default value is
             False).
         add_additional_information: bool
             Put keywords, key-value pairs and data into Atoms.info
             dictionary.
+        
+        In addition, one can use keyword arguments to select specific
+        key-value pairs.
         """
             
         dct = self.get(selection, fancy=False, **kwargs)
@@ -350,7 +353,7 @@ class Database:
         keywords = []
         comparisons = []
         for expression in expressions:
-            if not isinstance(expression, str):
+            if isinstance(expression, (list, tuple)):
                 comparisons.append(expression)
                 continue
             if expression.count('<') == 2:
