@@ -505,7 +505,9 @@ class Atoms(object):
         if len(self.constraints) > 0 and momenta is not None:
             momenta = np.array(momenta)  # modify a copy
             for constraint in self.constraints:
-                constraint.adjust_forces(self.arrays['positions'], momenta)
+                if hasattr(constraint, 'adjust_momenta'):
+                    constraint.adjust_momenta(self.arrays['positions'],
+                                              momenta)
         self.set_array('momenta', momenta, float, (3,))
 
     def set_velocities(self, velocities):

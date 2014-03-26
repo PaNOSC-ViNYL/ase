@@ -48,6 +48,10 @@ class FixConstraint:
                "remove your constraints.")
         raise NotImplementedError(msg)
 
+    def adjust_momenta(self, positions, momenta):
+        """Adjusts momenta in identical manner to forces."""
+        self.adjust_forces(positions, momenta)
+
 
 class FixConstraintSingle(FixConstraint):
     """Base class for classes that fix a single atom."""
@@ -845,6 +849,9 @@ class Hookean(FixConstraint):
                 forces[self.indices[1]] -= direction * magnitude
             else:
                 forces[self.index] += direction * magnitude
+
+    def adjust_momenta(self, positions, momenta):
+        pass
 
     def adjust_potential_energy(self, positions, forces):
         """Returns the difference to the potential energy due to an active
