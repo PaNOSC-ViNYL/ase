@@ -262,6 +262,20 @@ A simple example::
       def adjust_forces(self, positions, forces):
 	  forces[self.a] = self.dir * np.dot(forces[self.a], self.dir)
 
+A constraint can optionally have two additional methods, which
+will be ignored if missing:
+
+.. method:: adjust_momenta(positions, momenta)
+
+   Adjust the *momenta* array inplace.
+
+.. method:: adjust_potential_energy(positions, energy)
+
+   Provide the difference in the *potential energy* due to the constraint.
+   (Note that inplace adjustment is not possible for energy, which is a
+   float.)
+
+
 
 
 
