@@ -638,8 +638,14 @@ class Atoms(object):
         self.calc.initialize(self)
         self.calc.calculate(self)
 
-    def get_potential_energy(self, force_consistent=False):
+    def get_potential_energy(self, force_consistent=False,
+                             apply_constraint=True):
         """Calculate potential energy.
+
+        Ask the attached calculator to calculate the potential energy and
+        apply constraints.  Use *apply_constraint=False* to get the raw
+        forces.
+
         When supported by the calculator, either the energy extrapolated
         to zero Kelvin or the energy consistent with the forces (the free
         energy) can be returned.
@@ -651,6 +657,12 @@ class Atoms(object):
                                     force_consistent=force_consistent)
         else:
             energy = self._calc.get_potential_energy(self)
+        if apply_constraint:
+            constraints = [c for c in self.constraints
+                           if hasattr(c, 'adjust_potential_energy')]
+            for constraint in constraints:
+                energy += constraint.adjust_potential_energy(
+                    self.arrays['positions'], energy)
         return energy
 
     def get_potential_energies(self):

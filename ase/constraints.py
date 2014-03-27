@@ -44,8 +44,8 @@ class FixConstraint:
         multiplied constraints to work.
         """
         msg = ("Repeat is not compatible with your atoms' constraints."
-               " Use atoms.set_constraint() before calling repeat to "
-               "remove your constraints.")
+               ' Use atoms.set_constraint() before calling repeat to '
+               'remove your constraints.')
         raise NotImplementedError(msg)
 
     def adjust_momenta(self, positions, momenta):
@@ -85,7 +85,8 @@ class FixAtoms(FixConstraint):
         --------
         Fix all Copper atoms:
 
-        >>> c = FixAtoms(mask=[s == 'Cu' for s in atoms.get_chemical_symbols()])
+        >>> mask = [s == 'Cu' for s in atoms.get_chemical_symbols()]
+        >>> c = FixAtoms(mask=mask)
         >>> atoms.set_constraint(c)
 
         Fix all atoms with z-coordinate less than 1.0 Angstrom:
@@ -572,7 +573,6 @@ class FixInternals(FixConstraint):
             return 'FixBondLengthAlt(%s, %d, %d)' % \
                 (repr(self.bond), self.indices[0], self.indices[1])
 
-
     class FixAngle:
         """Constraint object for fixing an angle within
         FixInternals."""
@@ -774,9 +774,9 @@ class Hookean(FixConstraint):
     def __init__(self, a1, a2, k, rt=None):
         """Forces two atoms to stay close together by applying no force if
         they are below a threshold length, rt, and applying a Hookean
-        restorative force when the distance between them exceeds rt. Can also be
-        used to tether an atom to a fixed point in space or to a distance above
-        a plane.
+        restorative force when the distance between them exceeds rt. Can
+        also be used to tether an atom to a fixed point in space or to a
+        distance above a plane.
 
         Parameters
         ----------
@@ -841,7 +841,7 @@ class Hookean(FixConstraint):
             p2 = self.origin
         displace = p2 - p1
         bondlength = np.linalg.norm(displace)
-        if (bondlength > self.threshold) and (self.threshold > 0):
+        if bondlength > self.threshold:
             magnitude = self.spring * (bondlength - self.threshold)
             direction = displace / np.linalg.norm(displace)
             if self._type == 'two atoms':
@@ -853,9 +853,10 @@ class Hookean(FixConstraint):
     def adjust_momenta(self, positions, momenta):
         pass
 
-    def adjust_potential_energy(self, positions, forces):
+    def adjust_potential_energy(self, positions, energy):
         """Returns the difference to the potential energy due to an active
-        constraint."""
+        constraint. (That is, the quantity returned is to be added to the
+        potential energy.)"""
         if self._type == 'plane':
             A, B, C, D = self.plane
             x, y, z = positions[self.index]
@@ -865,9 +866,17 @@ class Hookean(FixConstraint):
                 return 0.5 * self.spring * d**2
             else:
                 return 0.
+        if self._type == 'two atoms':
+            p1, p2 = positions[self.indices]
+        elif self._type == 'point':
+            p1 = positions[self.index]
+            p2 = self.origin
+        displace = p2 - p1
+        bondlength = np.linalg.norm(displace)
+        if bondlength > self.threshold:
+            return 0.5 * self.spring * (bondlength - self.threshold)**2
         else:
-            raise NotImplementedError('Adjust potential energy only '
-                                      'implemented for plane.')
+            return 0.
 
     def __repr__(self):
         if self._type == 'two atoms':
