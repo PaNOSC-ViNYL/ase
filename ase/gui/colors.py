@@ -97,8 +97,8 @@ class ColorWindow(gtk.Window):
         # the charge is used.
         self.charge_label = gtk.Label(_("This should not be displayed!"))
         pack(self.charge_box, [self.charge_label])
-        self.charge_min = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
-        self.charge_max = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
+        self.charge_min = gtk.Adjustment(0.0, -100.0, 100.0, 0.05)
+        self.charge_max = gtk.Adjustment(0.0, -100.0, 100.0, 0.05)
         self.charge_steps = gtk.Adjustment(10, 2, 500, 1)
         charge_apply = gtk.Button(_('Update'))
         charge_apply.connect('clicked', self.set_charge_colors)
