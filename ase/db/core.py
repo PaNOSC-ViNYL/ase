@@ -288,9 +288,7 @@ class Database:
         return atoms
 
     def __getitem__(self, selection):
-        if selection == slice(None, None, None):
-            return [self[None]]
-        return self.get_atoms(selection)
+        return self.get(selection)
 
     def get(self, selection=None, fancy=True, **kwargs):
         """Select a single row and return it as a dictionary.
@@ -468,13 +466,21 @@ def atoms2dict(atoms):
     return data
 
 
+def dict2constraint(dct):
+    if '__name__' in dct:  # backwards compatibility
+        dct = {'kwargs': dct.copy()}
+        dct['name'] = dct['kwargs'].pop('__name__')
+        
+    modulename, name = dct['name'].rsplit('.', 1)
+    module = __import__(modulename, fromlist=[name])
+    constraint = getattr(module, name)(**dct['kwargs'])
+    return constraint
+
+            
 def dict2atoms(dct, attach_calculator=False):
     constraint_dicts = dct.get('constraints')
     if constraint_dicts:
-        constraints = []
-        for c in constraint_dicts:
-            assert c.pop('__name__') == 'ase.constraints.FixAtoms'
-            constraints.append(FixAtoms(**c))
+        constraints = [dict2constraint(c) for c in constraint_dicts]
     else:
         constraints = None
 

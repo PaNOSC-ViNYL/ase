@@ -347,6 +347,8 @@ class Atoms(object):
 
         if dtype is not None:
             a = np.array(a, dtype)
+            if len(a) == 0 and shape is not None:
+                a.shape = (-1,) + shape 
         else:
             a = a.copy()
 

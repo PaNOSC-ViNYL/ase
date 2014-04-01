@@ -1,3 +1,4 @@
+import numpy as np
 from ase.test import cli
 from ase.db import connect
 
@@ -17,3 +18,5 @@ for name in ['y.json', 'y.db']:#, 'postgres://localhost']:
     assert len(list(con.select())) == 5
     assert len(list(con.select('hydro'))) == 2
 
+id = con.reserve(abc=7)
+assert con[id].abc == 7

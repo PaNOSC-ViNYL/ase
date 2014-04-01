@@ -9,7 +9,7 @@ from ase.db import connect
 from ase.atoms import Atoms
 from ase.data import atomic_masses
 from ase.calculators.calculator import get_calculator
-from ase.db.core import float_to_time_string, now
+from ase.db.core import float_to_time_string, now, dict2constraint
 
 
 def plural(n, word):
@@ -391,7 +391,15 @@ class Formatter:
         return d.calculator
 
     def fmax(self, d):
-        return (d.forces**2).sum(1).max()**0.5
+        forces = d.forces
+        constraints = [dict2constraint(c) for c in d.constraints]
+        print(forces)
+        if constraints:
+            forces = forces.copy()
+            for constraint in constraints:
+                constraint.adjust_forces(d.positions, forces)
+                print(forces)
+        return (forces**2).sum(1).max()**0.5
 
     def keywords(self, d):
         return cut(','.join(d.keywords), 30)
