@@ -5,6 +5,7 @@ from ase.structure import molecule
 from ase.calculators.emt import EMT
 from ase.constraints import FixAtoms, FixBondLength
 
+
 for name in ['y2.db', 'y2.json']:
     c = connect(name)
     id = c.reserve(abc=7)
