@@ -391,7 +391,17 @@ class Formatter:
         return d.calculator
 
     def fmax(self, d):
-        return (d.forces**2).sum(1).max()**0.5
+        c = d.constraints
+        if c is None:
+            f = d.forces
+        if len(c) > 1:
+            f = d.forces
+        c = c[0]
+        if 'mask' in c:
+            f = d.forces[np.invert(c['mask'])]
+        else:
+            f = d.forces
+        return (f**2).sum(axis=1).max()**0.5
 
     def keywords(self, d):
         return cut(','.join(d.keywords), 30)
