@@ -1,0 +1,57 @@
+<!doctype html>
+<title>Browse ASE database</title>
+<link rel=stylesheet type=text/css href="/style.css">
+<form action="/">
+    <input type=text name=query value="{{ q.query }}">
+    <input type=submit>
+</form>
+Rows: {{ q.rows|length }} (limited to first 500) Time: {{ q.time }}
+<table>
+    <tr>
+        <th></th>
+{% for c in q.columns %}
+        <th>{{ c }}
+            <a href="/?m=remove,column={{ c }}">-</a>
+        </th>
+{% endfor %}
+    </tr>
+{% for row in q.rows %}
+    {% set n = loop.index0 %}
+    <tr class={{ loop.cycle('even', 'odd') }}>
+        <td>
+            <a href="/?m=toggle,n={{ n }}">
+                {{ '+-'[row.more] }}
+            </a>
+        </td>
+    {% for s in row.strings %}
+        {% if q.right[loop.index0] -%}
+        <td class=right>{{ s }}</td>
+        {% else %}
+        <td>{{ s }}</td>
+        {% endif %}
+    {% endfor %}
+    </tr>
+    {% if row.more %}
+    <tr>
+        <td colspan={{ row.strings|length + 1 }}>
+            <a href="/?m=gui,n={{ n }}">
+                <img src="/{{ row.dct.id }}.png">
+            </a>
+        {% for key, value in row.dct.key_value_pairs.items() %}
+            <a href="/?m=toggle,key={{ key }}">{{ key }}</a>:{{ value }}
+        {% endfor %}
+        {% if row.dct.keywords %}
+        <br>
+        Keywords: {{ row.dct.keywords|join(' ') }}
+        {% endif %}
+        <br>
+        Unit-cell: [
+        {%- for axis in row.cellstring -%}
+        {% if row.dct.pbc[loop.index0] %} <span> {% else %} <span class=notperiodic> {% endif -%}
+        {{ axis }}</span>{% if not loop.last %}, {% endif -%}
+        {% endfor %}]
+        </td>
+    </tr>
+    {% endif %}
+{% endfor %}
+</table>

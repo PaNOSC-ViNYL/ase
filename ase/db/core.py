@@ -8,7 +8,6 @@ from random import randint
 from ase.utils import Lock
 from ase.atoms import Atoms
 from ase.data import atomic_numbers
-from ase.constraints import FixAtoms
 from ase.parallel import world, broadcast, DummyMPI
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.calculators.calculator import get_calculator, all_properties, \
@@ -340,7 +339,7 @@ class Database:
             Limit selection.
         """
         
-        if selection is None:
+        if selection is None or selection == '':
             expressions = []
         elif isinstance(selection, int):
             expressions = [('id', '=', selection)]

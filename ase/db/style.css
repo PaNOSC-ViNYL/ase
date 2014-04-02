@@ -1,0 +1,8 @@
+table, th, td {border: 1px solid black; border-collapse: collapse}
+.right {text-align: right}
+tr.even {background-color: #FFEEEE}
+td.right {text-align: right}
+a {text-decoration: none}
+a:hover {background-color:#FF704D;}
+img {float: right}
+.notperiodic {color: grey}
