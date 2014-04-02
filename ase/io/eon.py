@@ -31,6 +31,7 @@ def read_reactant_con(fileobj):
     f.readline()  # 0.0000 TIME  (??)
     cell_lengths = f.readline().split()
     cell_angles = f.readline().split()
+    cell_angles.append(cell_angles.pop(0))
     cellpar = [float(x) for x in cell_lengths + cell_angles]
     f.readline()  # 0 0     (??)
     f.readline()  # 0 0 0   (??)
@@ -96,7 +97,7 @@ def write_reactant_con(fileobj, images):
 
     a, b, c, alpha, beta, gamma = cell_to_cellpar(atoms.cell)
     out.append('%-10.6f  %-10.6f  %-10.6f' % (a, b, c))
-    out.append('%-10.6f  %-10.6f  %-10.6f' % (alpha, beta, gamma))
+    out.append('%-10.6f  %-10.6f  %-10.6f' % (gamma, alpha, beta))
 
     out.append('0 0')    # ??
     out.append('0 0 0')  # ??
