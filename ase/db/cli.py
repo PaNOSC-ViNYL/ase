@@ -55,7 +55,7 @@ def main(args=sys.argv[1:]):
     add('-n', '--count', action='store_true',
         help='Count number of selected rows.')
     add('-l', '--long', action='store_true',
-        help='Long description of selected row (or first row selected)')
+        help='Long description of selected row')
     add('-i', '--insert-into', metavar='db-name',
         help='Insert selected rows into another database.')
     add('-a', '--add-from-file', metavar='[type:]filename',
@@ -87,8 +87,7 @@ def main(args=sys.argv[1:]):
     add('-s', '--sort', metavar='column',
         help='Sort rows using column.  Default is to sort after ID.')
     add('-p', '--python-expression', metavar='expression',
-        help="""Examples: "d.id", "d.mykey", where """ +
-        '"d" is a dictionary representing a row.')
+        help='Examples: "id,energy", "id,mykey".')
     add('-w', '--open-web-browser', action='store_true',
         help='Open results in web-browser.')
 
@@ -111,8 +110,11 @@ def main(args=sys.argv[1:]):
         
 def run(opts, args, verbosity):
     filename = args.pop(0)
-    expressions = ','.join(args)
-        
+    query = ','.join(args)
+
+    if query.isdigit():
+        query = int(query)
+    
     if verbosity == 2:
         print('Options:')
         for k, v in opts.__dict__.items():
@@ -153,13 +155,13 @@ def run(opts, args, verbosity):
         
     if opts.count:
         n = 0
-        for dct in con.select(expressions):
+        for dct in con.select(query):
             n += 1
         print('%s' % plural(n, 'row'))
         return
 
     if opts.explain:
-        for dct in con.select(expressions, explain=True,
+        for dct in con.select(query, explain=True,
                               verbosity=verbosity, limit=opts.limit):
             print('%d %d %d %s' % dct['explain'])
         return
@@ -169,7 +171,7 @@ def run(opts, args, verbosity):
         nkw = 0
         nkvp = 0
         nrows = 0
-        for dct in con.select(expressions, limit=opts.limit):
+        for dct in con.select(query, limit=opts.limit):
             keywords = dct.get('keywords', [])
             for keyword in add_keywords:
                 if keyword not in keywords:
@@ -191,7 +193,7 @@ def run(opts, args, verbosity):
         return
 
     if add_keywords or add_key_value_pairs:
-        ids = [dct['id'] for dct in con.select(expressions, limit=opts.limit)]
+        ids = [dct['id'] for dct in con.select(query, limit=opts.limit)]
         nkw, nkv = con.update(ids, add_keywords, **add_key_value_pairs)
         print('Added %s and %s (%s updated)' %
               (plural(nkw, 'keyword'),
@@ -200,7 +202,7 @@ def run(opts, args, verbosity):
         return
 
     if opts.delete:
-        ids = [dct['id'] for dct in con.select(expressions, limit=opts.limit)]
+        ids = [dct['id'] for dct in con.select(query, limit=opts.limit)]
         if ids and not opts.yes:
             msg = 'Delete %s? (yes/no): ' % plural(len(ids), 'row')
             if raw_input(msg).lower() != 'yes':
@@ -210,15 +212,15 @@ def run(opts, args, verbosity):
         return
 
     if opts.python_expression:
-        for n, dct in enumerate(con.select(expressions, limit=opts.limit)):
-            row = eval(opts.python_expression, {'d': dct, 'n': n})
+        for dct in con.select(query, limit=opts.limit):
+            row = eval(opts.python_expression, dct)
             if not isinstance(row, (list, tuple, np.ndarray)):
                 row = [row]
             print(', '.join(str(x) for x in row))
         return
 
     if opts.long:
-        dct = con.get(expressions)
+        dct = con.get(query)
         summary = Summary(dct)
         if opts.open_web_browser:
             from ase.db.web import run
@@ -226,7 +228,7 @@ def run(opts, args, verbosity):
         else:
             summary.write()
     else:
-        rows = Rows(con, expressions, opts.limit, verbosity, opts.columns)
+        rows = Rows(con, query, opts.limit, verbosity, opts.columns)
         if opts.open_web_browser:
             from ase.db.web import run
             run(rows)
@@ -264,8 +266,6 @@ class Rows:
         
     def search(self, query):
         self.query = query
-        if not isinstance(query, int) and query.isdigit():
-            query = int(query)
         self.columns = self.columns_original
         self.rows = [Row(d, self.columns)
                      for d in self.connection.select(query)]
@@ -367,9 +367,8 @@ class Row:
         self.strings = []
         numbers = set()
         for value, column in zip(self.values, columns):
-            if column == 'formula':
-                pass
-                #'{0}<sub>{1}</sub>'.format(symbol, n) if n > 1 else symbol
+            if column == 'formula' and mode == 'ascii':
+                value = value.replace('<sub>', '').replace('</sub>', '')
             elif isinstance(value, int):
                 value = str(value)
                 numbers.add(column)
@@ -390,9 +389,7 @@ class Row:
         return float_to_time_string(now() - d.ctime)
 
     def formula(self, d):
-        return ''.join(
-            '{0}<sub>{1}</sub>'.format(symbol, n) if n > 1 else symbol
-            for symbol, n in hill(d.numbers))
+        return hill(d.numbers)
 
     def volume(self, d):
         return abs(np.linalg.det(d.cell))
@@ -401,24 +398,19 @@ class Row:
         return ''.join('-P'[p] for p in d.pbc)
 
     def fmax(self, d):
-        forces = d.forces
-        constraints = [dict2constraint(c) for c in d.constraints]
-        if constraints:
-            forces = forces.copy()
-            for constraint in constraints:
-                constraint.adjust_forces(d.positions, forces)
+        forces = dict2forces(d)
         return (forces**2).sum(1).max()**0.5
 
     def keywords(self, d):
         return cut(','.join(d.keywords), 30)
 
     def keys(self, d):
-        return cut(','.join(['%s=%s' % (key, cut(str(value), 8))
+        return cut(','.join(['%s=%s' % (key, cut(str(value), 11))
                              for key, value in d.key_value_pairs.items()]), 40)
 
     def mass(self, d):
         if 'masses' in d:
-            return d.masses.sum()
+            return d.masses.sum() 
         return atomic_masses[d.numbers].sum()
 
     def smax(self, d):
@@ -431,19 +423,93 @@ def hill(numbers):
         s = chemical_symbols[Z]
         d[s] = d.get(s, 0) + 1
     result = [(s, d.pop(s)) for s in 'CH' if s in d]
-    result += [(s, d[s]) for s in sorted(d.keys())]
-    return result
+    result += [(s, d[s]) for s in sorted(d)]
+    return ''.join(
+        '{0}<sub>{1}</sub>'.format(symbol, n) if n > 1 else symbol
+        for symbol, n in result)
     
     
-def long(d, verbosity=1):
-    print('id:', d.id)
-    print('formula:', Atoms(d.numbers).get_chemical_formula())
-    print('user:', d.user)
-    print('age: {0}'.format(float_to_time_string(now() - d.ctime)))
-    if 'calculator' in d:
-        print('calculator:', d.calculator)
-    if 'energy' in d:
-        print('energy: {0:.3f} eV'.format(d.energy))
+def dict2forces(d):
+    forces = d.get('forces')
+    if forces is None:
+        return None
+        
+    constraints = [dict2constraint(c) for c in d.get('constraints', [])]
+    if constraints:
+        forces = forces.copy()
+        for constraint in constraints:
+            constraint.adjust_forces(d.positions, forces)
+            
+    return forces
+
+        
+class Summary:
+    def __init__(self, dct):
+        self.dct = dct
+        forces = dict2forces(dct)
+        if forces is None:
+            fmax = None
+            self.forces = None
+        else:
+            fmax = (forces**2).sum(1).max()**0.5
+            self.forces = []
+            for n, f in enumerate(forces):
+                if n < 5 or n >= N - 5:
+                    f = ', '.join('{0:10.3f}'.format(x) for x in f)
+                    symbol = chemical_symbols[dct.numbers[n]]
+                    self.forces.append((n, symbol, f))
+                elif n == 5:
+                    self.forces.append(('', '', '...'))
+        
+        if 'masses' in dct:
+            mass = dct.masses.sum()
+        else:
+            mass = atomic_masses[dct.numbers].sum()
+            
+        table = [
+            ('id', dct.id),
+            ('age', float_to_time_string(now() - dct.ctime, True)),
+            ('formula', hill(dct.numbers)),
+            ('user', dct.user),
+            ('calculator', dct.get('calculator')),
+            ('energy [eV]', dct.get('energy')),
+            ('fmax [eV/Ang]', fmax),
+            ('charge [|e|]', dct.get('charge')),
+            ('mass [au]', mass),
+            ('unique id', dct.unique_id),
+            ('volume [Ang^3]', abs(np.linalg.det(dct.cell))),
+            ('pbc', '({0[0]}, {0[1]}, {0[2]})'.format(dct.pbc))]
+        self.table = [(name, value) for name, value in table
+                      if value is not None]
+
+        if 'key_value_pairs' in dct:
+            self.key_value_pairs = sorted(dct.key_value_pairs.items())
+        else:
+            self.key_value_pairs = None
+
+        if 'keywords' in dct:
+            self.keywords = sorted(dct.keywords)
+        else:
+            self.keywords = None
+        
+        self.data = '...'
+        
+    def write(self, fd=sys.stdout):
+        width = max(len(name) for name, value in self.table)
+        for name, value in self.table:
+            print('{0:{width}}|{1}'.format(name, value, width=width), file=fd)
+        if self.forces:
+            print('\nForces in ev/Ang:', file=fd)
+            for n, symbol, f in self.forces:
+                print('{0:4}|{1:2}|{2}'.format(n, symbol, f), file=fd)
+
+        if self.key_value_pairs:
+            print('\nKey-value pairs:', file=fd)
+            width = max(len(key) for key, value in self.key_value_pairs)
+            for key, value in self.key_value_pairs:
+                print('{0:{width}}|{1}'.format(key, value, width=width),
+                      file=fd)
+"""
     if 'forces' in d:
         print('maximum atomic force: {0:.3f} eV/Ang'.format(
                   (d.forces**2).sum(1).max()**0.5))
@@ -455,25 +521,9 @@ def long(d, verbosity=1):
     if 'dipole' in d:
         print('dipole moment [e*Ang]: {0:10.3f}, {1:10.3f}, {2:10.3f}'.format(
             *d.dipole))
-    print('magnetic moment:', d.get('magmom', 0))
-    print('periodic boundary conditions:', d.pbc)
     print('unit cell [Ang]:')
     for axis in d.cell:
         print('{0:10.3f}{1:10.3f}{2:10.3f}'.format(*axis))
-    dims = d.pbc.sum()
-    if dims == 1:
-        print('length: {0:.3f} Ang'.format(np.linalg.norm(d.cell[d.pbc][0])))
-    elif dims == 2:
-        print('area: {0:.3f} Ang^2'.format(
-                  np.linalg.norm(np.cross(*d.cell[d.pbc]))))
-    print('volume: {0:.3f} Ang^3'.format(abs(np.linalg.det(d.cell))))
-    if 'charge' in d:
-        print('charge: {0:.6f}'.format(d.charge))
-    if 'masses' in d:
-        m = d.masses.sum()
-    else:
-        m = atomic_masses[d.numbers].sum()
-    print('mass: {0:.3f} au'.format(m))
     if d.get('keywords'):
         print('keywords: ', ', '.join(d.keywords))
     kvp = d.get('key_value_pairs')
@@ -481,4 +531,4 @@ def long(d, verbosity=1):
         print('key-value pairs:')
         for key in sorted(kvp):
             print('    {0}: {1}'.format(key, kvp[key]))
-    print('unique id:', d.unique_id)
+"""

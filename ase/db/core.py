@@ -31,6 +31,14 @@ seconds = {'s': 1,
            'M': 2629800,
            'y': YEAR}
 
+longwords = {'s': 'second',
+             'm': 'minute',
+             'h': 'hour',
+             'd': 'day',
+             'w': 'week',
+             'M': 'month',
+             'y': 'year'}
+
 ops = {'<': operator.lt,
        '<=': operator.le,
        '=': operator.eq,
@@ -522,9 +530,13 @@ def time_string_to_float(s):
     return seconds[s[i:]] * int(s[:i]) / YEAR
 
 
-def float_to_time_string(t):
+def float_to_time_string(t, long=False):
     t *= YEAR
     for s in 'yMwdhms':
-        if t / seconds[s] > 5:
+        x = t / seconds[s]
+        if x > 5:
             break
-    return '%d%s' % (round(t / seconds[s]), s)
+    if long:
+        return '{0:.3f} {1}s'.format(x, longwords[s])
+    else:
+        return '{0:.0f}{1}'.format(round(x), s)

@@ -4,8 +4,10 @@
 <form action="/">
     <input type=text name=query value="{{ q.query }}">
     <input type=submit>
+    <input type=button>
 </form>
-Rows: {{ q.rows|length }} (limited to first 500) Time: {{ q.time }}
+Rows: {{ q.rows|length }} (limited to first
+<input type=text name=limit value=500>) Time: {{ q.time }}
 <table>
     <tr>
         <th></th>

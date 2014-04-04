@@ -165,7 +165,7 @@ def cli(command, calculator_name=None):
         return
     error = subprocess.call(' '.join(command.split('\n')), shell=True)
     assert error == 0
-
+    
 
 class World:
     """Class for testing parallelization with MPI"""
