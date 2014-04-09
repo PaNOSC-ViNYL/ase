@@ -34,8 +34,7 @@ def get_svnversion_from_svn(dir):
     cmd = popen3('svnversion -n '+dir)[1] # assert we are in the project dir
     output = cmd.read().strip()
     cmd.close()
-    if output.startswith('exported') or output.startswith('Unversioned'):
-        # we build from exported source (e.g. rpmbuild)
+    if not output[0].isdigit():
         output = None
     return output
 
