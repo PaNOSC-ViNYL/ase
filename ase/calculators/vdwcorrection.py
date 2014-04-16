@@ -37,6 +37,9 @@ vdWDB_Chu04jcp = {
     'Te' : [40, 445],
     'I'  : [35, 385],
 }
+vdWDB_alphaC6 = vdWDB_Chu04jcp
+# Au from J. Luder et al. Phys. Rev. B 89 (2014) 045416
+vdWDB_alphaC6['Au'] = [5.6, 197]
 
 # C6 values and vdW radii from 
 # S. Grimme, J Comput Chem 27 (2006) 1787-1799
@@ -98,7 +101,7 @@ class vdWTkatchenko09prl:
     def __init__(self,                  
                  hirshfeld=None, vdwradii=None, calculator=None,
                  Rmax = 10, # maximal radius for periodic calculations
-                 vdWDB_alphaC6 = vdWDB_Chu04jcp, # 
+                 vdWDB_alphaC6 = vdWDB_alphaC6,
                  ):
         self.hirshfeld = hirshfeld
         if calculator is None:
