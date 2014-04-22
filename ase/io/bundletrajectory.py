@@ -271,6 +271,7 @@ class BundleTrajectory:
         "Closes the trajectory."
         self.state = 'closed'
         lf = getattr(self, 'logfile', None)
+        self.backend.close(log=lf)
         if lf is not None:
             lf.close()
             del self.logfile
@@ -738,6 +739,13 @@ class PickleBundleBackend:
             data.append(pickle.load(f))
             f.close()
         return np.concatenate(data)
+    
+    def close(self, log=None):
+        """Close anything that needs to be closed by the backend.
+        
+        The default backend does nothing here.
+        """
+        pass
     
 def read_bundletrajectory(filename, index=-1):
     """Reads one or more atoms objects from a BundleTrajectory.
