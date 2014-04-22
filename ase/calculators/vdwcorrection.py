@@ -2,6 +2,8 @@
 
 import numpy as np
 from ase.units import Bohr, Hartree
+from ase.utils import prnt
+from ase.calculators.calculator import Calculator
 
 
 # dipole polarizabilities and C6 values from 
@@ -92,22 +94,27 @@ vdWDB_Grimme06jcc = {
     'Xe' : [29.99, 1.881],
     }
 
-class vdWTkatchenko09prl:
-    """vdW correction after Tkatchenko and Scheffler PRL 102 (2009) 073005.
-
-    hirshfeld: the Hirshfeld partitioning object
-    calculator: the calculator to get the PBE energy
-    """
+class vdWTkatchenko09prl(Calculator):
+    """vdW correction after Tkatchenko and Scheffler PRL 102 (2009) 073005."""
+    implemented_properties = ['energy', 'forces', 'stress']
     def __init__(self,                  
                  hirshfeld=None, vdwradii=None, calculator=None,
                  Rmax = 10, # maximal radius for periodic calculations
                  vdWDB_alphaC6 = vdWDB_alphaC6,
                  ):
+        """Constructor
+
+        Parameters
+        ==========
+        hirshfeld: the Hirshfeld partitioning object
+        calculator: the calculator to get the PBE energy
+        """
         self.hirshfeld = hirshfeld
         if calculator is None:
             self.calculator = self.hirshfeld.get_calculator()
         else:
             self.calculator = calculator
+        self.txt = self.calculator.txt
         self.vdwradii = vdwradii
         self.vdWDB_alphaC6 = vdWDB_alphaC6
         self.Rmax = Rmax
@@ -201,6 +208,17 @@ class vdWTkatchenko09prl:
                                                diff / r                 )
         self.energy += EvdW / 2. # double counting
         self.forces += forces / 2. # double counting
+
+        prnt(('\n' + self.__class__.__name__), file=self.txt)
+        prnt('vdW correction: %g' % (EvdW / 2.), file=self.txt)
+        prnt('Energy:         %g' % self.energy, file=self.txt)
+        prnt('\nForces in eV/Ang:')
+        c = Hartree / Bohr
+        symbols = self.atoms.get_chemical_symbols()
+        for ia, symbol in enumerate(symbols):
+            prnt('%3d %-2s %10.5f %10.5f %10.5f' %
+                 ((ia, symbol) + tuple(self.forces[ia])), 
+                 file=self.txt)
         
     def damping(self, RAB, R0A, R0B,
                 d = 20,   # steepness of the step function
