@@ -4,7 +4,6 @@ import optparse
 
 import ase.io
 from ase.db import connect
-from ase.atoms import Atoms
 from ase.visualize import view
 from ase.data import atomic_masses, chemical_symbols
 from ase.calculators.calculator import get_calculator
@@ -115,12 +114,6 @@ def run(opts, args, verbosity):
     if query.isdigit():
         query = int(query)
     
-    if verbosity == 2:
-        print('Options:')
-        for k, v in opts.__dict__.items():
-            print('    {0:24}{1}'.format(k + ':', v))
-        print('Arguments:', ', '.join(args))
-
     if opts.add_keywords:
         add_keywords = opts.add_keywords.split(',')
     else:
@@ -171,7 +164,7 @@ def run(opts, args, verbosity):
         nkw = 0
         nkvp = 0
         nrows = 0
-        for dct in con.select(query, limit=opts.limit):
+        for dct in con.select(query):
             keywords = dct.get('keywords', [])
             for keyword in add_keywords:
                 if keyword not in keywords:
@@ -193,7 +186,7 @@ def run(opts, args, verbosity):
         return
 
     if add_keywords or add_key_value_pairs:
-        ids = [dct['id'] for dct in con.select(query, limit=opts.limit)]
+        ids = [dct['id'] for dct in con.select(query)]
         nkw, nkv = con.update(ids, add_keywords, **add_key_value_pairs)
         print('Added %s and %s (%s updated)' %
               (plural(nkw, 'keyword'),
@@ -202,7 +195,7 @@ def run(opts, args, verbosity):
         return
 
     if opts.delete:
-        ids = [dct['id'] for dct in con.select(query, limit=opts.limit)]
+        ids = [dct['id'] for dct in con.select(query)]
         if ids and not opts.yes:
             msg = 'Delete %s? (yes/no): ' % plural(len(ids), 'row')
             if raw_input(msg).lower() != 'yes':
@@ -212,7 +205,7 @@ def run(opts, args, verbosity):
         return
 
     if opts.python_expression:
-        for dct in con.select(query, limit=opts.limit):
+        for dct in con.select(query):
             row = eval(opts.python_expression, dct)
             if not isinstance(row, (list, tuple, np.ndarray)):
                 row = [row]
@@ -241,6 +234,9 @@ class Rows:
                  columns=None):
         self.connection = connection
         self.query = ''
+        self.limit = limit
+        self.verbosity = verbosity
+        
         self.rows = []
         self.time = 0.0
         
@@ -260,15 +256,15 @@ class Rows:
                 else:
                     self.columns.append(col.lstrip('+'))
                     
-        self.columns_original = list(self.columns)
+        self.columns_original = self.columns
         
         self.search(query)
         
     def search(self, query):
         self.query = query
-        self.columns = self.columns_original
+        self.columns = list(self.columns_original)
         self.rows = [Row(d, self.columns)
-                     for d in self.connection.select(query)]
+                     for d in self.connection.select(query, verbosity=self.verbosity)]
 
         delete = set(range(len(self.columns)))
         for row in self.rows:
@@ -356,7 +352,7 @@ class Row:
             else:
                 try:
                     value = f(self.dct)
-                except AttributeError:
+                except (AttributeError, TypeError):
                     value = None
             self.values.append(value)
             
@@ -410,7 +406,7 @@ class Row:
 
     def mass(self, d):
         if 'masses' in d:
-            return d.masses.sum() 
+            return d.masses.sum()
         return atomic_masses[d.numbers].sum()
 
     def smax(self, d):
@@ -452,14 +448,18 @@ class Summary:
             self.forces = None
         else:
             fmax = (forces**2).sum(1).max()**0.5
+            N = len(forces)
             self.forces = []
             for n, f in enumerate(forces):
                 if n < 5 or n >= N - 5:
-                    f = ', '.join('{0:10.3f}'.format(x) for x in f)
+                    f = tuple('{0:10.3f}'.format(x) for x in f)
                     symbol = chemical_symbols[dct.numbers[n]]
-                    self.forces.append((n, symbol, f))
+                    self.forces.append((n, symbol) + f)
                 elif n == 5:
-                    self.forces.append(('', '', '...'))
+                    self.forces.append((' ...', '',
+                                        '       ...',
+                                        '       ...',
+                                        '       ...'))
         
         if 'masses' in dct:
             mass = dct.masses.sum()
@@ -500,8 +500,8 @@ class Summary:
             print('{0:{width}}|{1}'.format(name, value, width=width), file=fd)
         if self.forces:
             print('\nForces in ev/Ang:', file=fd)
-            for n, symbol, f in self.forces:
-                print('{0:4}|{1:2}|{2}'.format(n, symbol, f), file=fd)
+            for f in self.forces:
+                print('{0:4}|{1:2}|{2}|{3}|{4}'.format(*f), file=fd)
 
         if self.key_value_pairs:
             print('\nKey-value pairs:', file=fd)

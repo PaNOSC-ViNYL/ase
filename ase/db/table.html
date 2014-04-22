@@ -2,26 +2,38 @@
 <title>Browse ASE database</title>
 <link rel=stylesheet type=text/css href="/style.css">
 <form action="/">
-    <input type=text name=query value="{{ q.query }}">
-    <input type=submit>
-    <input type=button>
+    <input type=text name=query value="{{ q.query }}" onchange="this.form.submit()">
+    <input type=text name=sort value="{{ q.query }}">
+    <select name=addcolumn onchange="this.form.submit()">
+    <option value=a1>a1</option>
+    <option value=a2>a2</option>
+    <option value=a3>a3</option>
+    </select>
+    <select name=extract onchange="this.form.submit()">
+    <option value=db>db</option>
+    <option value=json>json</option>
+    <option value=csv>csv</option>
+    <option value=py>py</option>
+    </select>
+    <br>
+Found {{ q.totalrows }} rows (showing first {{ q.rows|length }})
+Limit:
+<input type=text name=limit value={{ q.limit }}> Time: {{ q.time }}+{{ q.time }}
 </form>
-Rows: {{ q.rows|length }} (limited to first
-<input type=text name=limit value=500>) Time: {{ q.time }}
 <table>
     <tr>
         <th></th>
 {% for c in q.columns %}
         <th>{{ c }}
-            <a href="/?m=remove,column={{ c }}">-</a>
+            <a href="/?m=remove&column={{ c }}">-</a>
         </th>
-{% endfor %}
+{%- endfor %}
     </tr>
 {% for row in q.rows %}
     {% set n = loop.index0 %}
     <tr class={{ loop.cycle('even', 'odd') }}>
         <td>
-            <a href="/?m=toggle,n={{ n }}">
+            <a href="/?m=toggle&n={{ n }}">
                 {{ '+-'[row.more] }}
             </a>
         </td>
@@ -36,11 +48,11 @@ Rows: {{ q.rows|length }} (limited to first
     {% if row.more %}
     <tr>
         <td colspan={{ row.strings|length + 1 }}>
-            <a href="/?m=gui,n={{ n }}">
+            <a href="/?m=gui&n={{ n }}">
                 <img src="/{{ row.dct.id }}.png">
             </a>
         {% for key, value in row.dct.key_value_pairs.items() %}
-            <a href="/?m=toggle,key={{ key }}">{{ key }}</a>:{{ value }}
+            <a href="/?m=toggle&key={{ key }}">{{ key }}</a>:{{ value }}
         {% endfor %}
         {% if row.dct.keywords %}
         <br>
@@ -51,7 +63,7 @@ Rows: {{ q.rows|length }} (limited to first
         {%- for axis in row.cellstring -%}
         {% if row.dct.pbc[loop.index0] %} <span> {% else %} <span class=notperiodic> {% endif -%}
         {{ axis }}</span>{% if not loop.last %}, {% endif -%}
-        {% endfor %}]
+        {% endfor %}] <a href="/{{ row.dct.id }}">more ...</a>
         </td>
     </tr>
     {% endif %}

@@ -35,7 +35,8 @@ class App:
     def __call__(self, env, s):
         q = env['QUERY_STRING']
         path = env['PATH_INFO']
-
+        D(q,path)
+        
         if path == '/style.css':
             s('200 OK', [('Content-type', 'text/css')])
             D(__file__)
@@ -54,7 +55,7 @@ class App:
         s('200 OK', [('Content-type', 'text/html')])
         args = {}
         if q:
-            for k, v in (x.split('=') for x in q.split(',')):
+            for k, v in (x.split('=') for x in q.split('&')):
                 if v.isdigit():
                     v = int(v)
                 args[k] = v

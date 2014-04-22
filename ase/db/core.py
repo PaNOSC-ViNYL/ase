@@ -46,6 +46,8 @@ ops = {'<': operator.lt,
        '>': operator.gt,
        '!=': operator.ne}
 
+invop = {'<': '>=', '<=': '>', '>=': '<', '>': '<=', '=': '!=', '!=': '='}
+
 word = re.compile('[_a-zA-Z][_0-9a-zA-Z]*$')
 
 reserved_keys = set(all_properties + all_changes +
@@ -388,7 +390,7 @@ class Database:
         for key, op, value in comparisons:
             if key == 'age':
                 key = 'ctime'
-                op = {'<': '>', '<=': '>=', '>=': '<=', '>': '<'}[op]
+                op = invop[op]
                 value = now() - time_string_to_float(value)
             elif key in atomic_numbers:
                 key = atomic_numbers[key]
