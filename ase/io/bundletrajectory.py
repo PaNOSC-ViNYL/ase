@@ -323,16 +323,16 @@ class BundleTrajectory:
         data['constraint'] = smalldata['constraints']
         if self.subtype == 'split':
             self.backend.set_fragments(smalldata['fragments'])
-            atom_id = self.backend.read_split(framedir, 'ID')
+            self.atom_id = self.backend.read_split(framedir, 'ID')
         else:
-            atom_id = None
+            self.atom_id = None
         atoms = ase.Atoms(**data)
         natoms = smalldata['natoms']
         for name in ('positions', 'numbers', 'tags', 'masses',
                      'momenta'):
             if self.datatypes.get(name):
                 atoms.arrays[name] = self._read_data(framezero, framedir,
-                                                     name, atom_id)
+                                                     name, self.atom_id)
                 assert len(atoms.arrays[name]) == natoms
                 
         # Create the atoms object
@@ -368,7 +368,8 @@ class BundleTrajectory:
             raise IndexError('Trajectory index %d out of range [0, %d['
                              % (n, self.nframes))
         framedir = os.path.join(self.filename, 'F' + str(n))
-        return self.backend.read(framedir, name) 
+        framezero = os.path.join(self.filename, 'F0')
+        return self._read_data(framezero, framedir, name, self.atom_id) 
 
     def _read_data(self, f0, f, name, atom_id):
         "Read single data item."
@@ -722,8 +723,13 @@ class PickleBundleBackend:
         self.nfrag = nfrag
         
     def read_split(self, framedir, name):
-        "Read data from multiple files."
+        """Read data from multiple files.
+        
+        Falls back to reading from single file if that is how data is stored."""
         data = []
+        if os.path.exists(os.path.join(framedir, name + '.pickle')):
+            # Not stored in split form!
+            return self.read(framedir, name)
         for i in range(self.nfrag):
             suf = "_%d" % (i,)
             fn = os.path.join(framedir, name + suf + '.pickle')
