@@ -123,12 +123,18 @@ class vdWTkatchenko09prl(Calculator):
         self.sR = 0.94
         self.d = 20
 
+    def calculation_required(self, atoms, quantities):
+        if self.calculator.calculation_required(
+            atoms, quantities):
+            return True
+        return not hasattr(self.energy)                
+
     def update(self, atoms=None):
+        if not self.calculation_required(atoms, ['energy', 'forces']):
+            return
+
         if atoms is None:
             atoms = self.calculator.get_atoms()
-        if (self.atoms and 
-            (self.atoms.get_positions() == atoms.get_positions()).all()):
-            return
         self.energy = self.calculator.get_potential_energy(atoms)
         self.forces = self.calculator.get_forces(atoms)
         self.atoms = atoms.copy()
