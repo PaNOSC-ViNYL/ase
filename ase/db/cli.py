@@ -326,31 +326,30 @@ class Rows:
         
         self.keys = sorted(allkeys)
 
-    def write(self, fd=sys.stdout):
+    def write(self):
         self.format()
         L = [[len(s) for s in row.strings]
              for row in self.rows]
         L.append([len(c) for c in self.columns])
         N = np.max(L, axis=0)
-        print('Rows:', len(self.rows), end='', file=fd)
+        print('Rows:', len(self.rows), end='')
         if self.limit:
-            print(' (limited to first {0})'.format(self.limit), file=fd)
+            print(' (limited to first {0})'.format(self.limit))
         else:
-            print(file=fd)
+            print()
 
         if len(self.rows) == 0:
             return
             
         fmt = '{0:{align}{width}}'
         print('|'.join(fmt.format(c, align='<>'[a], width=w)
-                       for c, a, w in zip(self.columns, self.right, N)),
-              file=fd)
+                       for c, a, w in zip(self.columns, self.right, N)))
         for row in self.rows:
             print('|'.join(fmt.format(c, align='<>'[a], width=w)
                            for c, a, w in
-                           zip(row.strings, self.right, N)), file=fd)
+                           zip(row.strings, self.right, N)))
         if self.keys:
-            print('Keys:', ', '.join(self.keys), file=fd)
+            print('Keys:', ', '.join(self.keys))
 
                 
 class Row:
@@ -464,6 +463,9 @@ def dict2forces(d):
 class Summary:
     def __init__(self, dct):
         self.dct = dct
+        
+        self.cell = [['{0:.3f}'.format(a) for a in axis] for axis in dct.cell]
+        
         forces = dict2forces(dct)
         if forces is None:
             fmax = None
@@ -482,7 +484,11 @@ class Summary:
                                         '       ...',
                                         '       ...',
                                         '       ...'))
-        
+                    
+        self.stress = dct.get('stress')
+        if self.stress is not None:
+            self.stress = ', '.join('{0:.3f}'.format(s) for s in self.stress)
+            
         if 'masses' in dct:
             mass = dct.masses.sum()
         else:
@@ -499,8 +505,7 @@ class Summary:
             ('charge [|e|]', dct.get('charge')),
             ('mass [au]', mass),
             ('unique id', dct.unique_id),
-            ('volume [Ang^3]', abs(np.linalg.det(dct.cell))),
-            ('pbc', '({0[0]}, {0[1]}, {0[2]})'.format(dct.pbc))]
+            ('volume [Ang^3]', abs(np.linalg.det(dct.cell)))]
         self.table = [(name, value) for name, value in table
                       if value is not None]
 
@@ -513,44 +518,57 @@ class Summary:
             self.keywords = sorted(dct.keywords)
         else:
             self.keywords = None
+            
+        self.dipole = dct.get('dipole')
+        if self.dipole is not None:
+            self.dipole = ', '.join('{0:.3f}'.format(d) for d in self.dipole)
         
-        self.data = '...'
+        self.data = dct.get('data')
+        if self.data:
+            self.data = ', '.join(self.data.keys())
+            
+        self.constraints = dct.get('constraints')
+        if self.constraints:
+            self.constraints = ', '.join(d[name] for d in self.constraints)
         
-    def write(self, fd=sys.stdout):
+    def write(self):
+        dct = self.dct
+        
         width = max(len(name) for name, value in self.table)
         for name, value in self.table:
-            print('{0:{width}}|{1}'.format(name, value, width=width), file=fd)
-        if self.forces:
-            print('\nForces in ev/Ang:', file=fd)
-            for f in self.forces:
-                print('{0:4}|{1:2}|{2}|{3}|{4}'.format(*f), file=fd)
+            print('{0:{width}}|{1}'.format(name, value, width=width))
 
+        print('\nUnit cell in Ang:')
+        print('axis|periodic|     x     |     y     |    z')
+        c = 1
+        for p, axis in zip(dct.pbc, self.cell):
+            print('   {0}|     {1}|{2[0]:>11}|{2[1]:>11}|{2[2]:>11}'.format(
+                c, [' no', 'yes'][p], axis))
+            c += 1
+            
         if self.key_value_pairs:
-            print('\nKey-value pairs:', file=fd)
+            print('\nKey-value pairs:')
             width = max(len(key) for key, value in self.key_value_pairs)
             for key, value in self.key_value_pairs:
-                print('{0:{width}}|{1}'.format(key, value, width=width),
-                      file=fd)
-"""
-    if 'forces' in d:
-        print('maximum atomic force: {0:.3f} eV/Ang'.format(
-                  (d.forces**2).sum(1).max()**0.5))
-    if 'stress' in d:
-        print('stress tensor: (xx, yy, zz, zy, zx, yx) eV/Ang^3')
-        for s in d.stress:
-            print('{0:10.3f}'.format(s), end='')
-        print()
-    if 'dipole' in d:
-        print('dipole moment [e*Ang]: {0:10.3f}, {1:10.3f}, {2:10.3f}'.format(
-            *d.dipole))
-    print('unit cell [Ang]:')
-    for axis in d.cell:
-        print('{0:10.3f}{1:10.3f}{2:10.3f}'.format(*axis))
-    if d.get('keywords'):
-        print('keywords: ', ', '.join(d.keywords))
-    kvp = d.get('key_value_pairs')
-    if kvp:
-        print('key-value pairs:')
-        for key in sorted(kvp):
-            print('    {0}: {1}'.format(key, kvp[key]))
-"""
+                print('{0:{width}}|{1}'.format(key, value, width=width))
+                
+        if self.keywords:
+            print('\nKeywords:', ', '.join(self.keywords))
+                
+        if self.forces:
+            print('\nForces in ev/Ang:')
+            for f in self.forces:
+                print('{0:4}|{1:2}|{2}|{3}|{4}'.format(*f))
+
+        if self.stress:
+            print('\nStress tensor (xx, yy, zz, zy, zx, yx) in eV/Ang^3:')
+            print('   ', self.stress)
+
+        if self.dipole:
+            print('\nDipole moment in e*Ang: ({0})'.format(self.dipole))
+        
+        if self.constraints:
+            print('\nConstraints:', self.constraints)
+            
+        if self.data:
+            print('\nData:', self.data)
