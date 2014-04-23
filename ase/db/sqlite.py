@@ -1,5 +1,6 @@
 from __future__ import absolute_import, print_function
 import sqlite3
+import warnings
 
 import numpy as np
 
@@ -34,7 +35,10 @@ create table systems (
     magmoms blob,
     magmom blob,
     charges blob,
-    data text); -- contains keywords and key_value_pairs also
+    keywords text,
+    key_value_pairs text,
+    data text,
+    natoms integer);
 create table species (
     Z integer,
     n integer,
@@ -118,12 +122,14 @@ class SQLite3Database(Database):
         else:
             constraints = None
             
+        numbers = dct.get('numbers')
+        
         row = (id,
                dct['unique_id'],
                dct['ctime'],
                dct['mtime'],
                dct['user'],
-               blob(dct.get('numbers')),
+               blob(numbers),
                blob(dct.get('positions')),
                blob(dct.get('cell')),
                int(np.dot(dct.get('pbc'), [1, 2, 4])),
@@ -151,11 +157,11 @@ class SQLite3Database(Database):
                 blob(dct.get('dipole')),
                 blob(dct.get('magmoms')),
                 blob(magmom),
-                blob(dct.get('charges')))
-
-        row += (encode({'data': data,
-                        'keywords': keywords,
-                        'key_value_pairs': key_value_pairs}),)
+                blob(dct.get('charges')),
+                encode(keywords),
+                encode(key_value_pairs),
+                encode(data),
+                len(numbers))
 
         q = ', '.join('?' * len(row))
         cur.execute('insert into systems values (%s)' % q, row)
@@ -206,6 +212,9 @@ class SQLite3Database(Database):
         return self.row_to_dict(row)
 
     def row_to_dict(self, row):
+        if len(row) == 26:
+            row = self._old2new(row)
+            
         dct = {'id': row[0],
                'unique_id': row[1],
                'ctime': row[2],
@@ -247,12 +256,23 @@ class SQLite3Database(Database):
         if row[24] is not None:
             dct['charges'] = deblob(row[24])
 
-        extra = decode(row[25])
-        for key in ['keywords', 'key_value_pairs', 'data']:
-            if extra[key]:
-                dct[key] = extra[key]
+        for key, column in zip(['keywords', 'key_value_pairs', 'data'],
+                               row[25:28]):
+            x = decode(column)
+            if x:
+                dct[key] = x
+                
         return dct
 
+    def _old2new(self, row):
+        warnings.warn('Please convert to new format. ' +
+                      'Use: ase-db old.db -i new.db')
+        extra = decode(row[25])
+        return row[:-1] + (encode(extra['keywords']),
+                           encode(extra['key_value_pairs']),
+                           encode(extra['data']),
+                           42)
+        
     def _select(self, keywords, cmps, explain=False, verbosity=0, limit=None):
         tables = ['systems']
         where = []
@@ -269,17 +289,14 @@ class SQLite3Database(Database):
             if isinstance(key, int):
                 bad[key] = bad.get(key, True) and ops[op](0, value)
                 
-        cmps2 = []
         nspecies = 0
         ntext = 0
         nnumber = 0
         for key, op, value in cmps:
             if key in ['id', 'energy', 'magmom', 'ctime', 'user',
-                       'calculator']:
+                       'calculator', 'natoms']:
                 where.append('systems.{0}{1}?'.format(key, op))
                 args.append(value)
-            elif key == 'natoms':
-                cmps2.append((key, ops[op], value))
             elif isinstance(key, int):
                 if bad[key]:
                     where.append(
@@ -318,11 +335,11 @@ class SQLite3Database(Database):
             
         limit = limit or -1
         
-        if limit and not cmps2:
+        if limit:
             sql += '\nLIMIT {0}'.format(limit)
             
         if verbosity == 2:
-            print(sql, args, cmps2)
+            print(sql, args)
 
         con = self._connect()
         cur = con.cursor()
@@ -332,24 +349,8 @@ class SQLite3Database(Database):
             for row in cur.fetchall():
                 yield {'explain': row}
         else:
-            n = 0
             for row in cur.fetchall():
-                if n == limit:
-                    return
-                if cmps2:
-                    numbers = deblob(row[5], np.int32)
-                    for key, op, value in cmps2:
-                        if key == 'natoms':
-                            if not op(len(numbers), value):
-                                break
-                        elif not op((numbers == key).sum(), value):
-                            break
-                    else:
-                        yield self.row_to_dict(row)
-                        n += 1
-                else:
-                    yield self.row_to_dict(row)
-                    n += 1
+                yield self.row_to_dict(row)
                     
     @parallel
     @lock

@@ -175,7 +175,7 @@ def run(opts, args, verbosity):
             nkvp = -len(kvp)
             kvp.update(add_key_value_pairs)
             nkvp += len(kvp)
-            con2.write(dct, keywords, **kvp)
+            con2.write(dct, keywords, data=dct.get('data'), **kvp)
             nrows += 1
             
         print('Added %s and %s (%s updated)' %
@@ -240,7 +240,6 @@ class Rows:
         self.sort = sort
         
         self.rows = []
-        self.time = 0.0
         
         self.columns = ['id', 'age', 'user', 'formula', 'calculator',
                         'energy', 'fmax', 'pbc', 'volume',
@@ -325,7 +324,7 @@ class Rows:
         right.add('age')
         self.right = [column in right for column in self.columns]
         
-        self.keys = ['id'] + sorted(allkeys)
+        self.keys = sorted(allkeys)
 
     def write(self, fd=sys.stdout):
         self.format()
@@ -333,10 +332,15 @@ class Rows:
              for row in self.rows]
         L.append([len(c) for c in self.columns])
         N = np.max(L, axis=0)
-        print('Rows:', len(self.rows), '(limited to first 500) Time:',
-              self.time, file=fd)
+        print('Rows:', len(self.rows), end='', file=fd)
+        if self.limit:
+            print(' (limited to first {0})'.format(self.limit), file=fd)
+        else:
+            print(file=fd)
+
         if len(self.rows) == 0:
             return
+            
         fmt = '{0:{align}{width}}'
         print('|'.join(fmt.format(c, align='<>'[a], width=w)
                        for c, a, w in zip(self.columns, self.right, N)),
@@ -345,6 +349,8 @@ class Rows:
             print('|'.join(fmt.format(c, align='<>'[a], width=w)
                            for c, a, w in
                            zip(row.strings, self.right, N)), file=fd)
+        if self.keys:
+            print('Keys:', ', '.join(self.keys), file=fd)
 
                 
 class Row:
