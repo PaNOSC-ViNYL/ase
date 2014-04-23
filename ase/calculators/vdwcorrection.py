@@ -127,7 +127,7 @@ class vdWTkatchenko09prl(Calculator):
         if self.calculator.calculation_required(
             atoms, quantities):
             return True
-        return not hasattr(self.energy)                
+        return not hasattr(self, 'energy')              
 
     def update(self, atoms=None):
         if not self.calculation_required(atoms, ['energy', 'forces']):
