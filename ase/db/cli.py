@@ -221,7 +221,8 @@ def run(opts, args, verbosity):
         else:
             summary.write()
     else:
-        rows = Rows(con, query, opts.limit, verbosity, opts.columns)
+        rows = Rows(con, query, opts.limit, verbosity, opts.columns,
+                    opts.sort)
         if opts.open_web_browser:
             from ase.db.web import run
             run(rows)
@@ -231,11 +232,12 @@ def run(opts, args, verbosity):
 
 class Rows:
     def __init__(self, connection, query='', limit=50, verbosity=1,
-                 columns=None):
+                 columns=None, sort=None):
         self.connection = connection
         self.query = ''
         self.limit = limit
         self.verbosity = verbosity
+        self.sort = sort
         
         self.rows = []
         self.time = 0.0
@@ -263,8 +265,11 @@ class Rows:
     def search(self, query):
         self.query = query
         self.columns = list(self.columns_original)
+        
+        limit = self.limit if not self.sort else 0
         self.rows = [Row(d, self.columns)
-                     for d in self.connection.select(query, verbosity=self.verbosity)]
+                     for d in self.connection.select(
+                         query, verbosity=self.verbosity, limit=limit)]
 
         delete = set(range(len(self.columns)))
         for row in self.rows:
@@ -277,6 +282,17 @@ class Rows:
                 del row.values[n]
         for n in delete:
             del self.columns[n]
+            
+        if self.sort:
+            reverse = self.sort[0] == '-'
+            n = self.columns.index(self.sort.lstrip('-'))
+            
+            def key(row):
+                return row.values[n]
+                
+            self.rows = sorted(self.rows, key=key, reverse=reverse)
+            if self.limit:
+                self.rows = self.rows[:self.limit]
                 
     def toggle(self, key=None, n=None):
         if n is not None:
