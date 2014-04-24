@@ -6,6 +6,7 @@ add vacuum layers and add adsorbates.
 """
 
 from math import sqrt
+from operator import itemgetter
 
 import numpy as np
 
@@ -13,6 +14,7 @@ from ase.atom import Atom
 from ase.atoms import Atoms
 from ase.data import reference_states, atomic_numbers
 from ase.lattice.general_surface import surface
+from ase.lattice.cubic import FaceCenteredCubic
 
 
 def fcc100(symbol, size, a=None, vacuum=None):
@@ -21,6 +23,7 @@ def fcc100(symbol, size, a=None, vacuum=None):
     Supported special adsorption sites: 'ontop', 'bridge', 'hollow'."""
     return _surface(symbol, 'fcc', '100', size, a, None, vacuum)
 
+
 def fcc110(symbol, size, a=None, vacuum=None):
     """FCC(110) surface.
  
@@ -28,11 +31,13 @@ def fcc110(symbol, size, a=None, vacuum=None):
     'shortbridge','hollow'."""
     return _surface(symbol, 'fcc', '110', size, a, None, vacuum)
 
+
 def bcc100(symbol, size, a=None, vacuum=None):
     """BCC(100) surface.
  
     Supported special adsorption sites: 'ontop', 'bridge', 'hollow'."""
     return _surface(symbol, 'bcc', '100', size, a, None, vacuum)
+
 
 def bcc110(symbol, size, a=None, vacuum=None, orthogonal=False):
     """BCC(110) surface.
@@ -44,6 +49,7 @@ def bcc110(symbol, size, a=None, vacuum=None, orthogonal=False):
     for size=(i,j,k) with j even."""
     return _surface(symbol, 'bcc', '110', size, a, None, vacuum, orthogonal)
 
+
 def bcc111(symbol, size, a=None, vacuum=None, orthogonal=False):
     """BCC(111) surface.
  
@@ -53,6 +59,7 @@ def bcc111(symbol, size, a=None, vacuum=None, orthogonal=False):
     for size=(i,j,k) with j even."""
     return _surface(symbol, 'bcc', '111', size, a, None, vacuum, orthogonal)
 
+
 def fcc111(symbol, size, a=None, vacuum=None, orthogonal=False):
     """FCC(111) surface.
  
@@ -61,6 +68,7 @@ def fcc111(symbol, size, a=None, vacuum=None, orthogonal=False):
     Use *orthogonal=True* to get an orthogonal unit cell - works only
     for size=(i,j,k) with j even."""
     return _surface(symbol, 'fcc', '111', size, a, None, vacuum, orthogonal)
+
 
 def hcp0001(symbol, size, a=None, c=None, vacuum=None, orthogonal=False):
     """HCP(0001) surface.
@@ -80,11 +88,13 @@ def hcp10m10(symbol, size, a=None, c=None, vacuum=None):
     Works only for size=(i,j,k) with j even."""
     return _surface(symbol, 'hcp', '10m10', size, a, c, vacuum)
 
+
 def diamond100(symbol, size, a=None, vacuum=None):
     """DIAMOND(100) surface.
 
     Supported special adsorption sites: 'ontop'."""
     return _surface(symbol, 'diamond', '100', size, a, None, vacuum)
+
 
 def diamond111(symbol, size, a=None, vacuum=None, orthogonal=False):
     """DIAMOND(111) surface.
@@ -93,7 +103,8 @@ def diamond111(symbol, size, a=None, vacuum=None, orthogonal=False):
 
     if orthogonal:
         raise NotImplementedError("Can't do orthogonal cell yet!")
-    return _surface(symbol, 'diamond', '111', size, a, None, vacuum, orthogonal)
+    return _surface(symbol, 'diamond', '111', size, a, None, vacuum,
+                    orthogonal)
 
     
 def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
@@ -146,9 +157,8 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
     if 'cell' not in info:
         info['cell'] = slab.get_cell()[:2, :2]
 
-    
     pos = np.array([0.0, 0.0])  # (x, y) part
-    spos = np.array([0.0, 0.0]) # part relative to unit cell
+    spos = np.array([0.0, 0.0])  # part relative to unit cell
     if offset is not None:
         spos += np.asarray(offset, float)
 
@@ -338,5 +348,42 @@ def _surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
     
     return slab
 
-    
-        
+
+def fcc211(symbol, size, a=None, vacuum=None):
+    """FCC(211) surface.
+
+    Does not currently support special adsorption sites.
+
+    Currently only implemented for *orthogonal=True* with size specified
+    as (i, j, k), where i, j, and k are number of atoms in each direction.
+    i must be divisible by 3 to accomodate the step width.
+    """
+    if size[0] % 3 != 0:
+        raise NotImplementedError('First dimension of size must be '
+                                  'divisible by 3.')
+    atoms = FaceCenteredCubic(symbol,
+                              directions=[[1, -1, -1],
+                                          [0, 2, -2],
+                                          [2, 1, 1]],
+                              miller=(None, None, (2, 1, 1)),
+                              latticeconstant=a,
+                              size=(1, 1, 1),
+                              pbc=True)
+    z = (size[2] + 1) // 2
+    atoms = atoms.repeat((size[0] // 3, size[1], z))
+    if size[2] % 2:  # Odd: remove bottom layer and shrink cell.
+        remove_list = [atom.index for atom in atoms
+                       if atom.z < atoms[1].z]
+        del atoms[remove_list]
+        dz = atoms[0].z
+        atoms.translate((0., 0., -dz))
+        atoms.cell[2][2] -= dz
+    atoms.center(vacuum=vacuum, axis=2)
+    # Renumber systematically from top down.
+    orders = [(atom.index, round(atom.x, 3), round(atom.y, 3),
+                -round(atom.z, 3), atom.index) for atom in atoms]
+    orders.sort(key=itemgetter(3, 1, 2))
+    newatoms = atoms.copy()
+    for index, order in enumerate(orders):
+        newatoms[index].position = atoms[order[0]].position.copy()
+    return newatoms
