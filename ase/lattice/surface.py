@@ -349,7 +349,7 @@ def _surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
     return slab
 
 
-def fcc211(symbol, size, a=None, vacuum=None):
+def fcc211(symbol, size, a=None, vacuum=None, orthogonal=True):
     """FCC(211) surface.
 
     Does not currently support special adsorption sites.
@@ -358,6 +358,9 @@ def fcc211(symbol, size, a=None, vacuum=None):
     as (i, j, k), where i, j, and k are number of atoms in each direction.
     i must be divisible by 3 to accomodate the step width.
     """
+    if not orthogonal:
+        raise NotImplementedError('Only implemented for orthogonal '
+                                  'unit cells.')
     if size[0] % 3 != 0:
         raise NotImplementedError('First dimension of size must be '
                                   'divisible by 3.')
