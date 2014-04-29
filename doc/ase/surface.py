@@ -24,7 +24,7 @@ def save(name, slab):
 
 for name in surfaces:
     f = eval(name)
-    for kwargs in [{'orthogonal': False}, {'orthogonal': True}]:
+    for kwargs in [{}, {'orthogonal': False}, {'orthogonal': True}]:
         print name, kwargs
         try:
             slab = f(symbols[name[:3]], (3, 4, 5), vacuum=4, **kwargs)
@@ -39,7 +39,7 @@ for name in surfaces:
                 add_adsorbate(slab, adsorbates.get(site, 'F'), h, site)
         except KeyError:
             pass 
-        if kwargs['orthogonal'] == True:
+        if kwargs.get('orthogonal', None):
             name += 'o'
         save(name, slab)
 
