@@ -218,7 +218,7 @@ class vdWTkatchenko09prl(Calculator):
         prnt(('\n' + self.__class__.__name__), file=self.txt)
         prnt('vdW correction: %g' % (EvdW / 2.), file=self.txt)
         prnt('Energy:         %g' % self.energy, file=self.txt)
-        prnt('\nForces in eV/Ang:')
+        prnt('\nForces in eV/Ang:', file=self.txt)
         c = Hartree / Bohr
         symbols = self.atoms.get_chemical_symbols()
         for ia, symbol in enumerate(symbols):
