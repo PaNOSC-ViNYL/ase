@@ -528,8 +528,9 @@ class Summary:
             self.data = ', '.join(self.data.keys())
             
         self.constraints = dct.get('constraints')
+        
         if self.constraints:
-            self.constraints = ', '.join(d[name] for d in self.constraints)
+            self.constraints = ', '.join(d['name'] for d in self.constraints)
         
     def write(self):
         dct = self.dct
