@@ -2,8 +2,8 @@
 <title>Browse ASE database</title>
 <link rel=stylesheet type=text/css href="/style.css">
 <form action="/">
-    <input type=text name=query value="{{ q.query }}" onchange="this.form.submit()">
-    <input type=text name=sort value="{{ q.query }}">
+    <input type=text name=query value="{{ t.query }}" onchange="this.form.submit()">
+    <input type=text name=sort value="{{ t.query }}">
     <select name=addcolumn onchange="this.form.submit()">
     <option value=a1>a1</option>
     <option value=a2>a2</option>
@@ -16,20 +16,20 @@
     <option value=py>py</option>
     </select>
     <br>
-Found {{ q.totalrows }} rows (showing first {{ q.rows|length }})
+Found {{ t.totalrows }} rows (showing first {{ t.rows|length }})
 Limit:
-<input type=text name=limit value={{ q.limit }}> Time: {{ q.time }}+{{ q.time }}
+<input type=text name=limit value={{ t.limit }}>
 </form>
 <table>
     <tr>
         <th></th>
-{% for c in q.columns %}
+{% for c in t.columns %}
         <th>{{ c }}
             <a href="/?m=remove&column={{ c }}">-</a>
         </th>
 {%- endfor %}
     </tr>
-{% for row in q.rows %}
+{% for row in t.rows %}
     {% set n = loop.index0 %}
     <tr class={{ loop.cycle('even', 'odd') }}>
         <td>
@@ -38,7 +38,7 @@ Limit:
             </a>
         </td>
     {% for s in row.strings %}
-        {% if q.right[loop.index0] -%}
+        {% if t.right[loop.index0] -%}
         <td class=right>{{ s }}</td>
         {% else %}
         <td>{{ s }}</td>
