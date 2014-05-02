@@ -9,6 +9,7 @@ object.
 
 import warnings
 from math import cos, sin
+import collections
 
 import numpy as np
 
@@ -1000,8 +1001,10 @@ class Atoms(object):
         # Now, decide how much each basis vector should be made longer
         if axis is None:
             axes = (0, 1, 2)
-        else:
+        elif not isinstance(axis, collections.Iterable):
             axes = (axis,)
+        else:
+            axes = axis
         p = self.arrays['positions']
         longer = np.zeros(3)
         shift = np.zeros(3)
