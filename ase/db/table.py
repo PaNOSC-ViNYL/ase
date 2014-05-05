@@ -14,7 +14,7 @@ def plural(n, word):
 
     
 def cut(txt, length):
-    if len(txt) <= length:
+    if len(txt) <= length or length == 0:
         return txt
     return txt[:length - 3] + '...'    
 
@@ -47,12 +47,13 @@ def dict2forces(d):
     
 class Table:
     def __init__(self, connection, query='', limit=50, verbosity=1,
-                 columns=None, sort=None):
+                 columns=None, sort=None, cut=35):
         self.connection = connection
         self.query = ''
         self.limit = limit
         self.verbosity = verbosity
         self.sort = sort
+        self.cut = cut
         
         self.rows = []
         
@@ -81,7 +82,7 @@ class Table:
         self.columns = list(self.columns_original)
         
         limit = self.limit if not self.sort else 0
-        self.rows = [Row(d, self.columns)
+        self.rows = [Row(d, self.columns, self.cut)
                      for d in self.connection.select(
                          query, verbosity=self.verbosity, limit=limit)]
 
@@ -169,8 +170,9 @@ class Table:
 
                 
 class Row:
-    def __init__(self, dct, columns):
+    def __init__(self, dct, columns, cut=40):
         self.dct = dct
+        self.cut = cut
         self.values = None
         self.strings = None
         self.more = False
@@ -235,11 +237,11 @@ class Row:
         return (forces**2).sum(1).max()**0.5
 
     def keywords(self, d):
-        return cut(','.join(d.keywords), 30)
+        return cut(','.join(d.keywords), self.cut)
 
     def keys(self, d):
-        return cut(','.join(['%s=%s' % (key, cut(str(value), 11))
-                             for key, value in d.key_value_pairs.items()]), 40)
+        return cut(','.join(['{0}={1}'.format(*item)
+                             for item in d.key_value_pairs.items()]), self.cut)
 
     def mass(self, d):
         if 'masses' in d:

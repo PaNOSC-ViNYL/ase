@@ -81,6 +81,9 @@ def main(args=sys.argv[1:]):
         'Precede by a "-" to remove columns.')
     add('-s', '--sort', metavar='column',
         help='Sort rows using column.  Default is to sort after ID.')
+    add('--cut', type=int, default=35, help='Cut keywords and key-value ' +
+        'columns after CUT characters.  Use --cut=0 to disable cutting. ' +
+        'Default is 35 characters')
     add('-p', '--python-expression', metavar='expression',
         help='Examples: "id,energy", "id,mykey".')
     add('-w', '--open-web-browser', action='store_true',
@@ -219,7 +222,7 @@ def run(opts, args, verbosity):
             summary.write()
     else:
         table = Table(con, query, opts.limit, verbosity, opts.columns,
-                      opts.sort)
+                      opts.sort, opts.cut)
         if opts.open_web_browser:
             from ase.db.web import run
             run(table)
