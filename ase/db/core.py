@@ -8,7 +8,6 @@ from random import randint
 from ase.utils import Lock
 from ase.atoms import Atoms
 from ase.data import atomic_numbers
-from ase.constraints import FixAtoms
 from ase.parallel import world, broadcast, DummyMPI
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.calculators.calculator import get_calculator, all_properties, \
@@ -32,12 +31,22 @@ seconds = {'s': 1,
            'M': 2629800,
            'y': YEAR}
 
+longwords = {'s': 'second',
+             'm': 'minute',
+             'h': 'hour',
+             'd': 'day',
+             'w': 'week',
+             'M': 'month',
+             'y': 'year'}
+
 ops = {'<': operator.lt,
        '<=': operator.le,
        '=': operator.eq,
        '>=': operator.ge,
        '>': operator.gt,
        '!=': operator.ne}
+
+invop = {'<': '>=', '<=': '>', '>=': '<', '>': '<=', '=': '!=', '!=': '='}
 
 word = re.compile('[_a-zA-Z][_0-9a-zA-Z]*$')
 
@@ -288,9 +297,7 @@ class Database:
         return atoms
 
     def __getitem__(self, selection):
-        if selection == slice(None, None, None):
-            return [self[None]]
-        return self.get_atoms(selection)
+        return self.get(selection)
 
     def get(self, selection=None, fancy=True, **kwargs):
         """Select a single row and return it as a dictionary.
@@ -342,7 +349,7 @@ class Database:
             Limit selection.
         """
         
-        if selection is None:
+        if selection is None or selection == '':
             expressions = []
         elif isinstance(selection, int):
             expressions = [('id', '=', selection)]
@@ -383,7 +390,7 @@ class Database:
         for key, op, value in comparisons:
             if key == 'age':
                 key = 'ctime'
-                op = {'<': '>', '<=': '>=', '>=': '<=', '>': '<'}[op]
+                op = invop[op]
                 value = now() - time_string_to_float(value)
             elif key in atomic_numbers:
                 key = atomic_numbers[key]
@@ -468,13 +475,21 @@ def atoms2dict(atoms):
     return data
 
 
+def dict2constraint(dct):
+    if '__name__' in dct:  # backwards compatibility
+        dct = {'kwargs': dct.copy()}
+        dct['name'] = dct['kwargs'].pop('__name__')
+        
+    modulename, name = dct['name'].rsplit('.', 1)
+    module = __import__(modulename, fromlist=[name])
+    constraint = getattr(module, name)(**dct['kwargs'])
+    return constraint
+
+            
 def dict2atoms(dct, attach_calculator=False):
     constraint_dicts = dct.get('constraints')
     if constraint_dicts:
-        constraints = []
-        for c in constraint_dicts:
-            assert c.pop('__name__') == 'ase.constraints.FixAtoms'
-            constraints.append(FixAtoms(**c))
+        constraints = [dict2constraint(c) for c in constraint_dicts]
     else:
         constraints = None
 
@@ -517,9 +532,13 @@ def time_string_to_float(s):
     return seconds[s[i:]] * int(s[:i]) / YEAR
 
 
-def float_to_time_string(t):
+def float_to_time_string(t, long=False):
     t *= YEAR
     for s in 'yMwdhms':
-        if t / seconds[s] > 5:
+        x = t / seconds[s]
+        if x > 5:
             break
-    return '%d%s' % (round(t / seconds[s]), s)
+    if long:
+        return '{0:.3f} {1}s'.format(x, longwords[s])
+    else:
+        return '{0:.0f}{1}'.format(round(x), s)

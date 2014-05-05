@@ -1,9 +1,10 @@
 from __future__ import absolute_import, print_function
 import sqlite3
+import warnings
 
 import numpy as np
 
-from ase.db.core import Database, ops, now, lock, parallel
+from ase.db.core import Database, ops, now, lock, parallel, invop
 from ase.db.json import encode, decode
 
 
@@ -34,7 +35,10 @@ create table systems (
     magmoms blob,
     magmom blob,
     charges blob,
-    data text); -- contains keywords and key_value_pairs also
+    keywords text,
+    key_value_pairs text,
+    data text,
+    natoms integer);
 create table species (
     Z integer,
     n integer,
@@ -73,6 +77,7 @@ tables = ['systems', 'species', 'keywords',
 
 class SQLite3Database(Database):
     initialized = False
+    _allow_reading_old_format = False
     
     def _connect(self):
         return sqlite3.connect(self.filename)
@@ -118,12 +123,14 @@ class SQLite3Database(Database):
         else:
             constraints = None
             
+        numbers = dct.get('numbers')
+        
         row = (id,
                dct['unique_id'],
                dct['ctime'],
                dct['mtime'],
                dct['user'],
-               blob(dct.get('numbers')),
+               blob(numbers),
                blob(dct.get('positions')),
                blob(dct.get('cell')),
                int(np.dot(dct.get('pbc'), [1, 2, 4])),
@@ -151,11 +158,11 @@ class SQLite3Database(Database):
                 blob(dct.get('dipole')),
                 blob(dct.get('magmoms')),
                 blob(magmom),
-                blob(dct.get('charges')))
-
-        row += (encode({'data': data,
-                        'keywords': keywords,
-                        'key_value_pairs': key_value_pairs}),)
+                blob(dct.get('charges')),
+                encode(keywords),
+                encode(key_value_pairs),
+                encode(data),
+                len(numbers))
 
         q = ', '.join('?' * len(row))
         cur.execute('insert into systems values (%s)' % q, row)
@@ -206,6 +213,9 @@ class SQLite3Database(Database):
         return self.row_to_dict(row)
 
     def row_to_dict(self, row):
+        if len(row) == 26:
+            row = self._old2new(row)
+            
         dct = {'id': row[0],
                'unique_id': row[1],
                'ctime': row[2],
@@ -247,12 +257,24 @@ class SQLite3Database(Database):
         if row[24] is not None:
             dct['charges'] = deblob(row[24])
 
-        extra = decode(row[25])
-        for key in ['keywords', 'key_value_pairs', 'data']:
-            if extra[key]:
-                dct[key] = extra[key]
+        for key, column in zip(['keywords', 'key_value_pairs', 'data'],
+                               row[25:28]):
+            x = decode(column)
+            if x:
+                dct[key] = x
+                
         return dct
 
+    def _old2new(self, row):
+        if not self._allow_reading_old_format:
+            raise IOError('Please convert to new format. ' +
+                          'Use: ase-db old.db -i new.db')
+        extra = decode(row[25])
+        return row[:-1] + (encode(extra['keywords']),
+                           encode(extra['key_value_pairs']),
+                           encode(extra['data']),
+                           42)
+        
     def _select(self, keywords, cmps, explain=False, verbosity=0, limit=None):
         tables = ['systems']
         where = []
@@ -269,56 +291,57 @@ class SQLite3Database(Database):
             if isinstance(key, int):
                 bad[key] = bad.get(key, True) and ops[op](0, value)
                 
-        cmps2 = []
         nspecies = 0
         ntext = 0
         nnumber = 0
         for key, op, value in cmps:
             if key in ['id', 'energy', 'magmom', 'ctime', 'user',
-                       'calculator']:
+                       'calculator', 'natoms']:
                 where.append('systems.{0}{1}?'.format(key, op))
                 args.append(value)
-            elif key == 'natoms':
-                cmps2.append((key, ops[op], value))
             elif isinstance(key, int):
                 if bad[key]:
-                    cmps2.append((key, ops[op], value))
+                    where.append(
+                        'NOT EXISTS (SELECT id FROM species WHERE\n' +
+                        '  species.id=systems.id AND species.Z==? AND ' +
+                        'species.n{0}?)'.format(invop[op]))
+                    args += [key, value]
                 else:
-                    tables.append('species as specie{0}'.format(nspecies))
-                    where.append(('systems.id=specie{0}.id and ' +
-                                  'specie{0}.Z=? and ' +
+                    tables.append('species AS specie{0}'.format(nspecies))
+                    where.append(('systems.id=specie{0}.id AND ' +
+                                  'specie{0}.Z=? AND ' +
                                   'specie{0}.n{1}?').format(nspecies, op))
                     args += [key, value]
                     nspecies += 1
             elif isinstance(value, str):
-                tables.append('text_key_values as text{0}'.format(ntext))
-                where.append(('systems.id=text{0}.id and ' +
-                              'text{0}.key=? and ' +
+                tables.append('text_key_values AS text{0}'.format(ntext))
+                where.append(('systems.id=text{0}.id AND ' +
+                              'text{0}.key=? AND ' +
                               'text{0}.value{1}?').format(ntext, op))
                 args += [key, value]
                 ntext += 1
             else:
-                tables.append('number_key_values as number{0}'.format(nnumber))
-                where.append(('systems.id=number{0}.id and ' +
-                              'number{0}.key=? and ' +
+                tables.append('number_key_values AS number{0}'.format(nnumber))
+                where.append(('systems.id=number{0}.id AND ' +
+                              'number{0}.key=? AND ' +
                               'number{0}.value{1}?').format(nnumber, op))
                 args += [key, value]
                 nnumber += 1
                 
-        sql = 'select systems.* from\n  ' + ', '.join(tables)
+        sql = 'SELECT systems.* FROM\n  ' + ', '.join(tables)
         if where:
-            sql += '\n  where\n  ' + ' and\n  '.join(where)
+            sql += '\n  WHERE\n  ' + ' AND\n  '.join(where)
             
         if explain:
-            sql = 'explain query plan ' + sql
+            sql = 'EXPLAIN QUERY PLAN ' + sql
             
         limit = limit or -1
         
-        if limit and not cmps2:
-            sql += '\nlimit {0}'.format(limit)
+        if limit:
+            sql += '\nLIMIT {0}'.format(limit)
             
         if verbosity == 2:
-            print(sql, args, cmps2)
+            print(sql, args)
 
         con = self._connect()
         cur = con.cursor()
@@ -328,24 +351,8 @@ class SQLite3Database(Database):
             for row in cur.fetchall():
                 yield {'explain': row}
         else:
-            n = 0
             for row in cur.fetchall():
-                if n == limit:
-                    return
-                if cmps2:
-                    numbers = deblob(row[5], np.int32)
-                    for key, op, value in cmps2:
-                        if key == 'natoms':
-                            if not op(len(numbers), value):
-                                break
-                        elif not op((numbers == key).sum(), value):
-                            break
-                    else:
-                        yield self.row_to_dict(row)
-                        n += 1
-                else:
-                    yield self.row_to_dict(row)
-                    n += 1
+                yield self.row_to_dict(row)
                     
     @parallel
     @lock

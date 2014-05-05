@@ -116,7 +116,10 @@ class JSONDatabase(Database):
         
     def _read_json(self):
         bigdct = read_json(self.filename)
-        return bigdct, bigdct['ids'].tolist(), bigdct['nextid']
+        ids = bigdct['ids']
+        if not isinstance(ids, list):
+            ids = ids.tolist()
+        return bigdct, ids, bigdct['nextid']
         
     def _write_json(self, bigdct, ids, nextid):
         if world.rank > 0:

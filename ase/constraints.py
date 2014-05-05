@@ -147,11 +147,11 @@ class FixAtoms(FixConstraint):
         return 'FixAtoms(indices=%s)' % ints2string(self.index)
 
     def todict(self):
-        dct = {'__name__': 'ase.constraints.FixAtoms'}
+        dct = {'name': 'ase.constraints.FixAtoms'}
         if self.index.dtype == bool:
-            dct['mask'] = self.index
+            dct['kwargs'] = {'mask': self.index}
         else:
-            dct['indices'] = self.index
+            dct['kwargs'] = {'indices': self.index}
         return dct
 
     def repeat(self, m, n):
@@ -243,7 +243,7 @@ class FixBondLength(FixConstraint):
         forces[self.indices] += (-d, d)
 
     def index_shuffle(self, ind):
-        'Shuffle the indices of the two atoms in this constraint'
+        """Shuffle the indices of the two atoms in this constraint"""
         newa = [-1, -1]  # Signal error
         for new, old in slice2enlist(ind):
             for i, a in enumerate(self.indices):
@@ -259,13 +259,17 @@ class FixBondLength(FixConstraint):
     def __repr__(self):
         return 'FixBondLength(%d, %d)' % tuple(self.indices)
 
+    def todict(self):
+        return {'name': 'ase.constraints.FixBondLength',
+                'kwargs': {'a1': self.indices[0], 'a2': self.indices[1]}}
 
+        
 class FixedMode(FixConstraint):
     """Constrain atoms to move along directions orthogonal to
     a given mode only."""
 
     def __init__(self, mode):
-        self.mode = (np.asarray(mode) / np.sqrt((mode **2).sum())).reshape(-1)
+        self.mode = (np.asarray(mode) / np.sqrt((mode**2).sum())).reshape(-1)
 
     def adjust_positions(self, oldpositions, newpositions):
         newpositions = newpositions.ravel()

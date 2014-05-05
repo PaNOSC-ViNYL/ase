@@ -12,7 +12,7 @@ for name in ['O2', 'O']:
     d = c.get([('name', '=', name)])
     id = d.id
     e1 = d.energy
-    e2 = c[id].get_potential_energy()
+    e2 = c.get_atoms(id).get_potential_energy()
     e3 = NWChem.read_atoms(name).get_potential_energy()
     e4 = dct[id]['energy']
     assert e1 == e2 == e3 == e4
