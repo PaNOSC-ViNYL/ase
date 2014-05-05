@@ -974,20 +974,18 @@ class Atoms(object):
 
         self.arrays['positions'] += np.array(displacement)
 
-    def center(self, vacuum=None, axis=None):
+    def center(self, vacuum=None, axis=(0, 1, 2)):
         """Center atoms in unit cell.
 
         Centers the atoms in the unit cell, so there is the same
         amount of vacuum on all sides.
 
-        Parameters:
-
-        vacuum (default: None): If specified adjust the amount of
-        vacuum when centering.  If vacuum=10.0 there will thus be 10
-        Angstrom of vacuum on each side.
-
-        axis (default: None): If specified, only act on the specified
-        axis.  Default: Act on all axes.
+        vacuum: float (default: None)
+            If specified adjust the amount of vacuum when centering.
+            If vacuum=10.0 there will thus be 10 Angstrom of vacuum
+            on each side.
+        axis: int or sequence of ints
+            Axis or axes to act on.  Default: Act on all axes.
         """
         # Find the orientations of the faces of the unit cell
         c = self.get_cell()
@@ -999,9 +997,7 @@ class Atoms(object):
                 dirs[i] *= -1
 
         # Now, decide how much each basis vector should be made longer
-        if axis is None:
-            axes = (0, 1, 2)
-        elif not isinstance(axis, collections.Iterable):
+        if isinstance(axis, int):
             axes = (axis,)
         else:
             axes = axis
