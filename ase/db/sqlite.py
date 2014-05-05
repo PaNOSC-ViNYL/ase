@@ -185,7 +185,9 @@ class SQLite3Database(Database):
             elif isinstance(value, (float, int)):
                 number_key_values.append([key, float(value), id])
             else:
-                assert 0, value
+                raise ValueError(
+                    'Key-values must be of type str, bool, int or float: ' +
+                    '"{0}"'.format(value))
  
         if text_key_values:
             cur.executemany('insert into text_key_values values (?, ?, ?)',

@@ -191,6 +191,12 @@ class JSONDatabase(Database):
     def update(self, ids, add_keywords=[], **add_key_value_pairs):
         check_keys(add_key_value_pairs)
 
+        for value in add_key_value_pairs.values():
+            assert isinstance(value, (int, float, str))
+            
+        for keyword in add_keywords:
+            assert isinstance(keyword, str)
+            
         if isinstance(ids, int):
             ids = [ids]
 

@@ -414,8 +414,8 @@ class Database:
                         dct.update(dct['key_value_pairs'])
                 yield dct
                 
-    @lock
     @parallel
+    @lock
     def update(self, ids, add_keywords=[], **add_key_value_pairs):
         """Update row(s).
         
