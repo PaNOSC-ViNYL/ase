@@ -51,6 +51,9 @@ class App:
             start_response('200 OK', [('Content-type', 'image/png')])
             return self.png(path[1:])
             
+        if path.endswith('.ico'):
+            return
+            
         if path != '/':
             start_response('200 OK', [('Content-type', 'text/html')])
             return self.summary(path[1:])
@@ -86,5 +89,3 @@ class App:
         #s('200 OK', [('Content-Disposition',
         #              'attachment; filename="myfile.json"')])
         #return ['{}'.encode()]
-            
-        

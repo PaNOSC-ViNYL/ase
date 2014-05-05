@@ -77,6 +77,7 @@ tables = ['systems', 'species', 'keywords',
 
 class SQLite3Database(Database):
     initialized = False
+    _allow_reading_old_format = False
     
     def _connect(self):
         return sqlite3.connect(self.filename)
@@ -265,8 +266,9 @@ class SQLite3Database(Database):
         return dct
 
     def _old2new(self, row):
-        warnings.warn('Please convert to new format. ' +
-                      'Use: ase-db old.db -i new.db')
+        if not self._allow_reading_old_format:
+            raise IOError('Please convert to new format. ' +
+                          'Use: ase-db old.db -i new.db')
         extra = decode(row[25])
         return row[:-1] + (encode(extra['keywords']),
                            encode(extra['key_value_pairs']),
