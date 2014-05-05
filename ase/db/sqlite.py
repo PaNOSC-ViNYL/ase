@@ -171,10 +171,11 @@ class SQLite3Database(Database):
             cur.execute('select seq from sqlite_sequence where name="systems"')
             id = cur.fetchone()[0]
 
-        count = np.bincount(dct['numbers'])
-        unique_numbers = count.nonzero()[0]
-        species = [(int(Z), int(count[Z]), id) for Z in unique_numbers]
-        cur.executemany('insert into species values (?, ?, ?)', species)
+        if len(numbers) > 0:
+            count = np.bincount(numbers)
+            unique_numbers = count.nonzero()[0]
+            species = [(int(Z), int(count[Z]), id) for Z in unique_numbers]
+            cur.executemany('insert into species values (?, ?, ?)', species)
 
         text_key_values = []
         number_key_values = []
@@ -215,7 +216,7 @@ class SQLite3Database(Database):
     def row_to_dict(self, row):
         if len(row) == 26:
             row = self._old2new(row)
-            
+
         dct = {'id': row[0],
                'unique_id': row[1],
                'ctime': row[2],
@@ -385,7 +386,10 @@ def deblob(buf, dtype=float, shape=None):
 
     if buf is None:
         return None
-    array = np.frombuffer(buf, dtype)
+    if len(buf) == 0:
+        array = np.zeros(0, dtype)
+    else:
+        array = np.frombuffer(buf, dtype)
     if shape is not None:
         array.shape = shape
     return array
