@@ -62,6 +62,7 @@ float_keys = [
     'param1',     # Exchange parameter
     'param2',     # Exchange parameter
     'pomass',     # mass of ions in am
+    'pstress',    #  
     'sigma',      # broadening in eV
     'spring',     # spring constant for NEB
     'time',       # special control tag
