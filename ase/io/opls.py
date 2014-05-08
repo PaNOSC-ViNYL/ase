@@ -523,8 +523,8 @@ class OPLSStructure(Atoms):
         'C0': 'Ca',
         }
 
-    def __init__(self, filename=None):
-        Atoms.__init__(self)
+    def __init__(self, filename=None, *args, **kwargs):
+        Atoms.__init__(self, *args, **kwargs)
         if filename:
             self.read_labeled_xyz(filename)
 
