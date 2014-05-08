@@ -262,6 +262,9 @@ class ELK(FileIOCalculator):
     def get_ibz_k_points(self):
         return self.read_kpts(mode='ibz_k_points')
 
+    def get_k_point_weights(self):
+        return self.read_kpts(mode='k_point_weights')
+
     def get_fermi_level(self):
         return self.read_fermi()
 
@@ -281,9 +284,9 @@ class ELK(FileIOCalculator):
         values = []
         for line in text:
             if mode == 'ibz_k_points':
-                b = [float(c.strip()) for c in line.split()[1:-3]]
+                b = [float(c.strip()) for c in line.split()[1:4]]
             else:
-                b = [float(c.strip()) for c in line.split()[-2]]
+                b = float(line.split()[-2])
             values.append(b)
         if len(values) == 0:
             values = None
