@@ -271,7 +271,7 @@ class SQLite3Database(Database):
     def _old2new(self, row):
         if not self._allow_reading_old_format:
             raise IOError('Please convert to new format. ' +
-                          'Use: ase-db old.db -i new.db')
+                          'Use: python -m ase.db.convert ' + self.filename)
         extra = decode(row[25])
         return row[:-1] + (encode(extra['keywords']),
                            encode(extra['key_value_pairs']),

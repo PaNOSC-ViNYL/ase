@@ -163,7 +163,6 @@ def run(opts, args, verbosity):
         nkw = 0
         nkvp = 0
         nrows = 0
-        con._allow_reading_old_format = True
         for dct in con.select(query):
             keywords = dct.get('keywords', [])
             for keyword in add_keywords:
