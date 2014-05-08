@@ -368,7 +368,7 @@ class ELK(FileIOCalculator):
                 beg = beg
                 end = beg + nstsv / 2
             else:
-                beg = beg - nstsv / 2
+                beg = beg + nstsv / 2
                 end = end
         values = []
         for line in text[beg:end]:
