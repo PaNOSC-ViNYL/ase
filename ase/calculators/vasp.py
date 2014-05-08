@@ -120,6 +120,7 @@ int_keys = [
     'istart',     # startjob: 0-new 1-cont 2-samecut
     'isym',       # symmetry: 0-nonsym 1-usesym 2-usePAWsym
     'iwavpr',     # prediction of wf.: 0-non 1-charg 2-wave 3-comb
+    'kpar',       # k-point parallelization paramater
     'ldauprint',  # 0-silent, 1-occ. matrix written to OUTCAR, 2-1+pot. matrix written
     'ldautype',   # L(S)DA+U: 1-Liechtenstein 2-Dudarev 4-Liechtenstein(LDAU)
     'lmaxmix',    #
