@@ -324,7 +324,7 @@ class BundleTrajectory:
         data['constraint'] = smalldata['constraints']
         if self.subtype == 'split':
             self.backend.set_fragments(smalldata['fragments'])
-            self.atom_id = self.backend.read_split(framedir, 'ID')
+            self.atom_id, dummy = self.backend.read_split(framedir, 'ID')
         else:
             self.atom_id = None
         atoms = ase.Atoms(**data)
@@ -382,10 +382,11 @@ class BundleTrajectory:
                 d = self.backend.read(f, name)
         elif self.subtype == 'split':
             if self.datatypes[name] == 'once':
-                d = self.backend.read_split(f0, name)
+                d, issplit = self.backend.read_split(f0, name)
             else:
-                d = self.backend.read_split(f, name)
-            if atom_id is not None:
+                d, issplit = self.backend.read_split(f, name)
+            if issplit:
+                assert atom_id is not None
                 assert len(d) == len(atom_id)
                 d = d[atom_id]
         return d
@@ -726,11 +727,15 @@ class PickleBundleBackend:
     def read_split(self, framedir, name):
         """Read data from multiple files.
         
-        Falls back to reading from single file if that is how data is stored."""
+        Falls back to reading from single file if that is how data is stored.
+
+        Returns the data and a flag indicating if the data was really read from
+        split files.
+        """
         data = []
         if os.path.exists(os.path.join(framedir, name + '.pickle')):
             # Not stored in split form!
-            return self.read(framedir, name)
+            return (self.read(framedir, name), False)
         for i in range(self.nfrag):
             suf = "_%d" % (i,)
             fn = os.path.join(framedir, name + suf + '.pickle')
@@ -738,7 +743,7 @@ class PickleBundleBackend:
             shape = pickle.load(f)  # Discarded.
             data.append(pickle.load(f))
             f.close()
-        return np.concatenate(data)
+        return (np.concatenate(data), True)
     
     def close(self, log=None):
         """Close anything that needs to be closed by the backend.
