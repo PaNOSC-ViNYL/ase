@@ -520,13 +520,23 @@ kspace_modify slab 3.0
 class OPLSStructure(Atoms):
     default_map = {
         'BR': 'Br',
+        'Be': 'Be',
         'C0': 'Ca',
+        'Li': 'Li',
+        'Mg': 'Mg',
+        'Al': 'Al',
+        'Ar': 'Ar',
         }
 
     def __init__(self, filename=None, *args, **kwargs):
         Atoms.__init__(self, *args, **kwargs)
         if filename:
             self.read_labeled_xyz(filename)
+        else:
+            self.types = []
+            for atom in self:
+                if atom.symbol not in self.types:
+                    self.types.append(atom.symbol)
 
     def append(self, atom):
         """Append atom to end."""
@@ -601,8 +611,11 @@ class OPLSStructure(Atoms):
             self.set_velocities(atoms.get_velocities())
         # XXX what about energy and forces ???
 
-    def read_connectivities(self, fileobj):
-        """Read positions, connectivities, etc."""
+    def read_connectivities(self, fileobj, update_types=False):
+        """Read positions, connectivities, etc.
+
+        update_types: update atom types from the masses
+        """
         if isinstance(fileobj, str):
             fileobj = open(fileobj, 'r')
 
@@ -659,8 +672,30 @@ class OPLSStructure(Atoms):
             key = next_key()
 
         if key == 'Masses':
-            while(len(lines.pop(0).strip()) > 0):
-                pass
+            ntypes = len(self.types)
+            masses = np.empty((ntypes))
+            for i in range(ntypes):
+                w = lines.pop(0).split()
+                assert(int(w[0]) == (i + 1))
+                masses[i] = float(w[1])
+
+            if update_types:
+                # get the elements from the masses
+                # this ensures that we have the right elements
+                # even when reading from a lammps dump file
+                typemap = {}
+                types = []
+                ams = atomic_masses[:]
+                ams[np.isnan(ams)] = 0
+                for i, mass in enumerate(masses):
+                    m2 = (ams - mass)**2
+                    typemap[self.types[i]] = chemical_symbols[m2.argmin()]
+                    types.append(typemap[self.types[i]])
+    ##                print(self.types[i], '->', typemap[self.types[i]])
+                for atom in self:
+                    atom.symbol = typemap[atom.symbol]
+                self.types = types
+            
             key = next_key()
 
         def read_list(key_string, length, debug=False):
