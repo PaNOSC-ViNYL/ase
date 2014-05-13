@@ -91,7 +91,7 @@ def connect(name, type='extract_from_name', create_indices=True,
         return Database()
 
     if type == 'json':
-        from ase.db.json import JSONDatabase
+        from ase.db.jsondb import JSONDatabase
         return JSONDatabase(name, use_lock_file=use_lock_file)
     if type == 'db':
         from ase.db.sqlite import SQLite3Database

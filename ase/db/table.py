@@ -2,7 +2,7 @@ from __future__ import print_function
 
 from ase.visualize import view
 from ase.data import atomic_masses, chemical_symbols
-from ase.db.core import float_to_time_string, now, dict2constraint, dict2atoms
+from ase.db.core import float_to_time_string, now, dict2constraint
 
 import numpy as np
 
@@ -16,7 +16,7 @@ def plural(n, word):
 def cut(txt, length):
     if len(txt) <= length or length == 0:
         return txt
-    return txt[:length - 3] + '...'    
+    return txt[:length - 3] + '...'
 
 
 def hill(numbers):
@@ -109,11 +109,10 @@ class Table:
             if self.limit:
                 self.rows = self.rows[:self.limit]
                 
-    def toggle(self, key=None, n=None):
-        if n is not None:
-            self.rows[n].toggle()
-            return
+    def moreless(self, n):
+        self.rows[n].toggle()
             
+    def toggle(self, key):
         if key in self.columns:
             self.columns.remove(key)
         else:
@@ -126,9 +125,9 @@ class Table:
         for row in self.rows:
             row.set_columns(self.columns)
         
-    def gui(self, n):
-        dct = self.rows[n].dct
-        view(dict2atoms(dct))
+    def gui(self, id):
+        atoms = self.connection.get_atoms(id)
+        view(atoms)
     
     def format(self, mode='ascii'):
         right = set()

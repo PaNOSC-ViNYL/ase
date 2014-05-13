@@ -1,7 +1,7 @@
 from __future__ import absolute_import, print_function
 import os
 import datetime
-from json import JSONEncoder, JSONDecoder
+import json
 
 import numpy as np
 
@@ -10,7 +10,7 @@ from ase.db.core import Database, ops, parallel, lock, now
 from ase.db.core import check_keys, reserved_keys
 
 
-class MyEncoder(JSONEncoder):
+class MyEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
@@ -18,7 +18,7 @@ class MyEncoder(JSONEncoder):
             return {'__datetime__': obj.isoformat()}
         if hasattr(obj, 'todict'):
             return obj.todict()
-        return JSONEncoder.default(self, obj)
+        return json.JSONEncoder.default(self, obj)
 
 
 encode = MyEncoder().encode
@@ -31,7 +31,7 @@ def object_hook(dct):
     return dct
 
 
-mydecode = JSONDecoder(object_hook=object_hook).decode
+mydecode = json.JSONDecoder(object_hook=object_hook).decode
 
 
 def intkey(key):
@@ -134,7 +134,9 @@ class JSONDatabase(Database):
             print('"{0}":\n{1},'.format(id, encode(bigdct[id])), file=fd)
         print('"ids": {0},'.format(ids), file=fd)
         print('"nextid": {0}}}'.format(nextid), file=fd)
-        fd.close()
+
+        if fd is not self.filename:
+            fd.close()
 
     @parallel
     @lock

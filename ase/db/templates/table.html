@@ -1,31 +1,30 @@
 <!doctype html>
 <title>Browse ASE database</title>
-<link rel=stylesheet type=text/css href="/style.css">
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 <form action="/">
-    <input type=text name=query value="{{ t.query }}" onchange="this.form.submit()">
-    <input type=text name=sort value="{{ t.query }}">
-    <select name=addcolumn onchange="this.form.submit()">
-    <option value=a1>a1</option>
-    <option value=a2>a2</option>
-    <option value=a3>a3</option>
-    </select>
-    <select name=extract onchange="this.form.submit()">
-    <option value=db>db</option>
-    <option value=json>json</option>
-    <option value=csv>csv</option>
-    <option value=py>py</option>
-    </select>
-    <br>
+Search: <input type=text name=query value="{{ t.query }}" onchange="this.form.submit()"><br>
+Sort: <input type=text name=sort value="{{ t.query }}"><br>
+<select name=addcolumn onchange="this.form.submit()">
+<option value=a1>a1</option>
+<option value=a2>a2</option>
+<option value=a3>a3</option>
+</select>
+<br>
 Found {{ t.totalrows }} rows (showing first {{ t.rows|length }})
 Limit:
 <input type=text name=limit value={{ t.limit }}>
 </form>
+Download:
+<a href="/sqlite">db</a>,
+<a href="/json">json</a>,
+<a href="/csv">csv</a>
+
 <table>
     <tr>
         <th></th>
 {% for c in t.columns %}
         <th>{{ c }}
-            <a href="/?m=remove&column={{ c }}">-</a>
+            <a href="/?remove={{ c }}">-</a>
         </th>
 {%- endfor %}
     </tr>
@@ -33,10 +32,11 @@ Limit:
     {% set n = loop.index0 %}
     <tr class={{ loop.cycle('even', 'odd') }}>
         <td>
-            <a href="/?m=toggle&n={{ n }}">
+            <a href="/?moreless={{ n }}">
                 {{ '+-'[row.more] }}
             </a>
         </td>
+    {% autoescape false %}
     {% for s in row.strings %}
         {% if t.right[loop.index0] -%}
         <td class=right>{{ s }}</td>
@@ -44,15 +44,16 @@ Limit:
         <td>{{ s }}</td>
         {% endif %}
     {% endfor %}
+    {% endautoescape %}
     </tr>
     {% if row.more %}
     <tr>
         <td colspan={{ row.strings|length + 1 }}>
-            <a href="/?m=gui&n={{ n }}">
-                <img src="/{{ row.dct.id }}.png">
+            <a href="/gui/{{ row.dct.id }}">
+                <img src="/image/{{ row.dct.id }}.png">
             </a>
         {% for key, value in row.dct.key_value_pairs.items() %}
-            <a href="/?m=toggle&key={{ key }}">{{ key }}</a>:{{ value }}
+            <a href="/?toggle={{ key }}">{{ key }}</a>:{{ value }}
         {% endfor %}
         {% if row.dct.keywords %}
         <br>
@@ -63,9 +64,12 @@ Limit:
         {%- for axis in row.cellstring -%}
         {% if row.dct.pbc[loop.index0] %} <span> {% else %} <span class=notperiodic> {% endif -%}
         {{ axis }}</span>{% if not loop.last %}, {% endif -%}
-        {% endfor %}] <a href="/{{ row.dct.id }}">more ...</a>
+        {% endfor %}] <a href="/summary/{{ row.dct.id }}">more ...</a>
         </td>
     </tr>
     {% endif %}
 {% endfor %}
 </table>
+{% for key in t.keys %}
+<a href="/?toggle={{ key }}">{{ key }}</a>
+{% endfor %}

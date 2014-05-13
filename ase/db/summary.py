@@ -66,7 +66,7 @@ class Summary:
             self.key_value_pairs = None
 
         if 'keywords' in dct:
-            self.keywords = sorted(dct.keywords)
+            self.keywords = ', '.join(sorted(dct.keywords))
         else:
             self.keywords = None
             
@@ -104,7 +104,7 @@ class Summary:
                 print('{0:{width}}|{1}'.format(key, value, width=width))
                 
         if self.keywords:
-            print('\nKeywords:', ', '.join(self.keywords))
+            print('\nKeywords:', self.keywords)
                 
         if self.forces:
             print('\nForces in ev/Ang:')
