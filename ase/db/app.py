@@ -15,15 +15,7 @@ from flask import Flask, render_template, request, send_from_directory
 
 
 app = Flask(__name__)
-
-
-def D(*a, **k):
-    print(*a, file=sys.stderr, **k)
-
-con = ase.db.connect('new.db')
-table = Table(con)
-    
-#webbrowser.open('http://localhost:8000', new=1)
+table = None
 
 
 @app.route('/image/<name>')
@@ -137,4 +129,6 @@ def sqlite(id):
 
     
 if __name__ == '__main__':
+    con = ase.db.connect(sys.argv[1])
+    globals()['table'] = Table(con)
     app.run(debug=True)

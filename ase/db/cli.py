@@ -214,16 +214,13 @@ def run(opts, args, verbosity):
     if opts.long:
         dct = con.get(query)
         summary = Summary(dct)
-        if opts.open_web_browser:
-            from ase.db.web import run
-            run(summary=summary)
-        else:
-            summary.write()
+        summary.write()
     else:
         table = Table(con, query, opts.limit, verbosity, opts.columns,
                       opts.sort, opts.cut)
         if opts.open_web_browser:
-            from ase.db.web import run
-            run(table)
+            import ase.db.app as app
+            app.table = table
+            app.app.run(debug=True)
         else:
             table.write()

@@ -47,12 +47,12 @@ def dict2forces(d):
     
 class Table:
     def __init__(self, connection, query='', limit=250, verbosity=1,
-                 columns=None, sort='id', cut=35):
+                 columns=None, sort=None, cut=35):
         self.connection = connection
         self.query = ''
         self.limit = limit
         self.verbosity = verbosity
-        self.sort = sort
+        self.sort = sort or 'id'
         self.cut = cut
         
         self.rows = []

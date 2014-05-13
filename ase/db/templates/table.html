@@ -52,14 +52,16 @@ Add/remove key-column:
             <a href="/gui/{{ row.dct.id }}">
                 <img src="/image/{{ row.dct.id }}.png">
             </a>
+        {% if row.dct.key_value_pairs %}
         {% for key, value in row.dct.key_value_pairs.items() %}
             <a href="/?toggle={{ key }}">{{ key }}</a>:{{ value }}
         {% endfor %}
-        {% if row.dct.keywords %}
         <br>
-        Keywords: {{ row.dct.keywords|join(' ') }}
         {% endif %}
+        {% if row.dct.keywords %}
+        Keywords: {{ row.dct.keywords|join(' ') }}
         <br>
+        {% endif %}
         <a href="/summary/{{ row.dct.id }}">more ...</a>
         </td>
     </tr>
