@@ -46,8 +46,8 @@ def dict2forces(d):
 
     
 class Table:
-    def __init__(self, connection, query='', limit=50, verbosity=1,
-                 columns=None, sort=None, cut=35):
+    def __init__(self, connection, query='', limit=250, verbosity=1,
+                 columns=None, sort='id', cut=35):
         self.connection = connection
         self.query = ''
         self.limit = limit
@@ -77,11 +77,16 @@ class Table:
         
         self.search(query)
         
-    def search(self, query):
-        self.query = query
-        self.columns = list(self.columns_original)
-        
-        limit = self.limit if not self.sort else 0
+    def search(self, query, limit=None):
+        if limit is not None:
+            self.limit = limit
+            
+        if query != self.query:
+            self.query = query
+            self.columns = list(self.columns_original)
+            self.sort = 'id'
+            
+        limit = self.limit if self.sort == 'id' else 0
         self.rows = [Row(d, self.columns, self.cut)
                      for d in self.connection.select(
                          query, verbosity=self.verbosity, limit=limit)]
@@ -98,7 +103,7 @@ class Table:
         for n in delete:
             del self.columns[n]
             
-        if self.sort:
+        if self.sort != 'id':
             reverse = self.sort[0] == '-'
             n = self.columns.index(self.sort.lstrip('-'))
             
@@ -108,6 +113,15 @@ class Table:
             self.rows = sorted(self.rows, key=key, reverse=reverse)
             if self.limit:
                 self.rows = self.rows[:self.limit]
+                
+    def toggle_sort(self, column):
+        if column == self.sort:
+            self.sort = '-' + column
+        elif '-' + column == self.sort:
+            self.sort = 'id'
+        else:
+            self.sort = column
+        self.search(self.query)
                 
     def moreless(self, n):
         self.rows[n].toggle()
@@ -213,10 +227,6 @@ class Row:
                 value = ''
             self.strings.append(value)
         
-        if self.more:
-            self.cellstring = ['({0:.3f}, {1:.3f}, {2:.3f})'.format(*axis)
-                               for axis in self.dct.cell]
-            
         return numbers
         
     def age(self, d):

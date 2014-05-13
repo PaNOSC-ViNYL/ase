@@ -49,6 +49,15 @@ def index():
     elif 'toggle' in request.args:
         key = request.args['toggle']
         table.toggle(key)
+    elif 'sort' in request.args:
+        column = request.args['sort']
+        table.toggle_sort(column)
+    elif 'query' in request.args:
+        try:
+            limit = int(request.args.get('limit'))
+        except ValueError:
+            limit = None
+        table.search(request.args['query'], limit)
         
     table.format('html')
 
@@ -92,7 +101,7 @@ def download(f):
         text, name = f(*args, **kwargs)
         headers = [('Content-Disposition',
                     'attachment; filename="{0}"'.format(name)),
-                   ]#('Content-type', 'application/sqlite3')]
+                   ]  #('Content-type', 'application/sqlite3')]
         return text, 200, headers
     return ff
     

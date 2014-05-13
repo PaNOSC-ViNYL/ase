@@ -3,28 +3,28 @@
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 <form action="/">
 Search: <input type=text name=query value="{{ t.query }}" onchange="this.form.submit()"><br>
-Sort: <input type=text name=sort value="{{ t.query }}"><br>
-<select name=addcolumn onchange="this.form.submit()">
-<option value=a1>a1</option>
-<option value=a2>a2</option>
-<option value=a3>a3</option>
-</select>
-<br>
-Found {{ t.totalrows }} rows (showing first {{ t.rows|length }})
+Rows: {{ t.rows|length }}
 Limit:
-<input type=text name=limit value={{ t.limit }}>
+<input type=text name=limit value={{ t.limit }} onchange="this.form.submit()">
 </form>
 Download:
 <a href="/sqlite">db</a>,
 <a href="/json">json</a>,
 <a href="/csv">csv</a>
+<br>
+Add/remove key-column:
+{% for key in t.keys %}
+<a href="/?toggle={{ key }}">{{ key }}</a>
+{% endfor %}
 
 <table>
     <tr>
         <th></th>
 {% for c in t.columns %}
-        <th>{{ c }}
-            <a href="/?remove={{ c }}">-</a>
+        <th>
+        {%- if t.sort == c %}v {% elif t.sort == '-' + c %}^ {% endif -%}
+        <a href="/?sort={{ c }}">{{ c }}</a>
+            <a href="/?toggle={{ c }}">-</a>
         </th>
 {%- endfor %}
     </tr>
@@ -60,16 +60,9 @@ Download:
         Keywords: {{ row.dct.keywords|join(' ') }}
         {% endif %}
         <br>
-        Unit-cell: [
-        {%- for axis in row.cellstring -%}
-        {% if row.dct.pbc[loop.index0] %} <span> {% else %} <span class=notperiodic> {% endif -%}
-        {{ axis }}</span>{% if not loop.last %}, {% endif -%}
-        {% endfor %}] <a href="/summary/{{ row.dct.id }}">more ...</a>
+        <a href="/summary/{{ row.dct.id }}">more ...</a>
         </td>
     </tr>
     {% endif %}
 {% endfor %}
 </table>
-{% for key in t.keys %}
-<a href="/?toggle={{ key }}">{{ key }}</a>
-{% endfor %}
