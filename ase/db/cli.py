@@ -100,7 +100,7 @@ def main(args=sys.argv[1:]):
         run(opts, args, verbosity)
     except Exception as x:
         if verbosity < 2:
-            print('{0}: {1}'.format(x.__class__.__name__, x.message))
+            print('{0}: {1}'.format(x.__class__.__name__, x))
             sys.exit(1)
         else:
             raise
