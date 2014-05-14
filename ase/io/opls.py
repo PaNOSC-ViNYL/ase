@@ -537,6 +537,7 @@ class OPLSStructure(Atoms):
             for atom in self:
                 if atom.symbol not in self.types:
                     self.types.append(atom.symbol)
+                atom.tag = self.types.index(atom.symbol)
 
     def append(self, atom):
         """Append atom to end."""
@@ -683,17 +684,31 @@ class OPLSStructure(Atoms):
                 # get the elements from the masses
                 # this ensures that we have the right elements
                 # even when reading from a lammps dump file
+                def newtype(element, types):
+                    if len(element) > 1:
+                        # can not extend, we are restricted to
+                        # two characters
+                        return element
+                    count = 0
+                    for type in types:
+                        if type[0] == element:
+                            count += 1
+                    label = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                    return (element + label[count])
+                
+                symbolmap = {}
                 typemap = {}
                 types = []
                 ams = atomic_masses[:]
                 ams[np.isnan(ams)] = 0
                 for i, mass in enumerate(masses):
                     m2 = (ams - mass)**2
-                    typemap[self.types[i]] = chemical_symbols[m2.argmin()]
+                    symbolmap[self.types[i]] = chemical_symbols[m2.argmin()]
+                    typemap[self.types[i]] = newtype(
+                        chemical_symbols[m2.argmin()], types)
                     types.append(typemap[self.types[i]])
-    ##                print(self.types[i], '->', typemap[self.types[i]])
                 for atom in self:
-                    atom.symbol = typemap[atom.symbol]
+                    atom.symbol = symbolmap[atom.symbol]
                 self.types = types
             
             key = next_key()
