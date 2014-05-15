@@ -43,7 +43,7 @@ class Images:
                     print 'shape file has wrong format'
             else: 
                 print 'no shapesfile found: default shapes were used!'
-		  
+                  
         else:
             self.shapes = None
         self.P = np.empty((self.nimages, self.natoms, 3))
@@ -417,11 +417,14 @@ class Images:
         F = np.empty((self.nimages, self.natoms, 3))
         A = np.empty((self.nimages, 3, 3))
         E = np.empty(self.nimages)
+        T = np.empty((self.nimages, self.natoms), int)
+        D = np.empty((self.nimages, 3))
         P[0] = self.P[0]
         V[0] = self.V[0]
         F[0] = self.F[0]
         A[0] = self.A[0]
         E[0] = self.E[0]
+        T[:] = self.T[0]
         for i in range(1, m + 1):
             x = i / (m + 1.0)
             y = 1 - x
@@ -430,16 +433,20 @@ class Images:
             F[i] = y * self.F[0] + x * self.F[1]
             A[i] = y * self.A[0] + x * self.A[1]
             E[i] = y * self.E[0] + x * self.E[1]
+            D[i] = y * self.D[0] + x * self.D[1]
         P[-1] = self.P[1]
         V[-1] = self.V[1]
         F[-1] = self.F[1]
         A[-1] = self.A[1]
         E[-1] = self.E[1]
+        D[-1] = self.D[1]
         self.P = P
         self.V = V
         self.F = F
         self.A = A
         self.E = E
+        self.T = T
+        self.D = D
         self.filenames[1:1] = [None] * m
 
 if __name__ == '__main__':
