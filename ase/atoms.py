@@ -1374,7 +1374,7 @@ class Atoms(object):
             D = np.dot(Dr - np.round(Dr) * self._pbc, self._cell)
         return np.linalg.norm(D)
 
-    def set_distance(self, a0, a1, distance, fix=0.5):
+    def set_distance(self, a0, a1, distance, fix=0.5, mic=False):
         """Set the distance between two atoms.
 
         Set the distance between atoms *a0* and *a1* to *distance*.
@@ -1384,6 +1384,9 @@ class Atoms(object):
 
         R = self.arrays['positions']
         D = R[a1] - R[a0]
+        if mic:
+            Dr = np.linalg.solve(self._cell.T, D)
+            D = np.dot(Dr - np.round(Dr) * self._pbc, self._cell)
         x = 1.0 - distance / np.linalg.norm(D)
         R[a0] += (x * fix) * D
         R[a1] -= (x * (1.0 - fix)) * D
