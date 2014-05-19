@@ -1,10 +1,9 @@
-from __future__ import print_function
 import io
 import os
 import sys
+import os.path
 import tempfile
 import functools
-import webbrowser
 
 import ase.db
 from ase.io.png import write_png
@@ -16,15 +15,38 @@ from flask import Flask, render_template, request, send_from_directory
 
 app = Flask(__name__)
 table = None
+tmpdir = tempfile.mkdtemp()
 
 
+@app.route('/open_row/<int:n>')
+def open_row(n):
+    table.moreless(n)
+    row = table.rows[n]
+    if row.more:
+        return render_template('more.html', row=row)
+    else:
+        return ''
+    
+    
 @app.route('/image/<name>')
 def image(name):
-    if not os.path.isfile('/tmp/' + name):
+    print name
+    path = os.path.join(tmpdir, name)
+    if not os.path.isfile(path):
         id = int(name[:-4])
-        a = table.connection.get_atoms(id)
-        write_png('/tmp/' + name, a, show_unit_cell=1)
-    return send_from_directory('/tmp', name)
+        atoms = table.connection.get_atoms(id)
+        if atoms:
+            size = atoms.positions.ptp(0)
+            i = size.argmin()
+            rotation = ['-90y', '90x', ''][i]
+            size[i] = 0.0
+            scale = min(20, 20 / size.max() * 10.0)
+        else:
+            scale = 20
+            rotation = ''
+        write_png(path, atoms, show_unit_cell=1,
+                  rotation=rotation, scale=scale)
+    return send_from_directory(tmpdir, name)
     
     
 @app.route('/gui/<int:id>')
@@ -93,7 +115,7 @@ def download(f):
         text, name = f(*args, **kwargs)
         headers = [('Content-Disposition',
                     'attachment; filename="{0}"'.format(name)),
-                   ]  #('Content-type', 'application/sqlite3')]
+                   ]  # ('Content-type', 'application/sqlite3')]
         return text, 200, headers
     return ff
     

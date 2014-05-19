@@ -1,6 +1,7 @@
 <!doctype html>
 <title>Browse ASE database</title>
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+<script src="{{ url_for('static', filename='table.js') }}">
 <form action="/">
 Search: <input type=text name=query value="{{ t.query }}" onchange="this.form.submit()"><br>
 Rows: {{ t.rows|length }}
@@ -17,7 +18,7 @@ Add/remove key-column:
 <a href="/?toggle={{ key }}">{{ key }}</a>
 {% endfor %}
 
-<table>
+<table id=rows>
     <tr>
         <th></th>
 {% for c in t.columns %}
@@ -31,10 +32,8 @@ Add/remove key-column:
 {% for row in t.rows %}
     {% set n = loop.index0 %}
     <tr class={{ loop.cycle('even', 'odd') }}>
-        <td>
-            <a href="/?moreless={{ n }}">
+        <td onclick="open_row(this, {{ n }});">
                 {{ '+-'[row.more] }}
-            </a>
         </td>
     {% autoescape false %}
     {% for s in row.strings %}
@@ -47,24 +46,7 @@ Add/remove key-column:
     {% endautoescape %}
     </tr>
     {% if row.more %}
-    <tr>
-        <td colspan={{ row.strings|length + 1 }}>
-            <a href="/gui/{{ row.dct.id }}">
-                <img src="/image/{{ row.dct.id }}.png">
-            </a>
-        {% if row.dct.key_value_pairs %}
-        {% for key, value in row.dct.key_value_pairs.items() %}
-            <a href="/?toggle={{ key }}">{{ key }}</a>:{{ value }}
-        {% endfor %}
-        <br>
-        {% endif %}
-        {% if row.dct.keywords %}
-        Keywords: {{ row.dct.keywords|join(' ') }}
-        <br>
-        {% endif %}
-        <a href="/summary/{{ row.dct.id }}">more ...</a>
-        </td>
-    </tr>
+    {% include "more.html" %}
     {% endif %}
 {% endfor %}
 </table>

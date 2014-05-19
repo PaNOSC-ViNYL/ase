@@ -1,0 +1,20 @@
+    <tr>
+        <td colspan={{ row.strings|length + 1 }}>
+        {% if row.dct.numbers|length %}
+            <a href="/gui/{{ row.dct.id }}">
+                <img src="/image/{{ row.dct.id }}.png">
+            </a>
+        {% endif %}
+        {% if row.dct.key_value_pairs %}
+        {% for key, value in row.dct.key_value_pairs.items() %}
+            <a href="/?toggle={{ key }}">{{ key }}</a>:{{ value }}
+        {% endfor %}
+        <br>
+        {% endif %}
+        {% if row.dct.keywords %}
+        Keywords: {{ row.dct.keywords|join(' ') }}
+        <br>
+        {% endif %}
+        <a href="/summary/{{ row.dct.id }}">more ...</a>
+        </td>
+    </tr>
