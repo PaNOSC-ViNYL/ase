@@ -492,7 +492,7 @@ class NetCDFTrajectory:
 
     def __len__(self):
         if self._frame_dim in self.nc.dimensions:
-            return len(self._get_variable(self._positions_var)[:])
+            return self._get_variable(self._positions_var).shape[0]
         else:
             return 0
 
