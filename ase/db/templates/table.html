@@ -1,7 +1,7 @@
 <!doctype html>
 <title>Browse ASE database</title>
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
-<script src="{{ url_for('static', filename='table.js') }}">
+<script src="{{ url_for('static', filename='table.js') }}"></script>
 <form action="/">
 Search: <input type=text name=query value="{{ t.query }}" onchange="this.form.submit()"><br>
 Rows: {{ t.rows|length }}
