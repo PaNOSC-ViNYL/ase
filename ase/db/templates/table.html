@@ -14,29 +14,29 @@ Download:
 <a href="/csv">csv</a>
 <br>
 Add/remove key-column:
-{% for key in t.keys %}
+{% for key in t.keys -%}
 <a href="/?toggle={{ key }}">{{ key }}</a>
 {% endfor %}
 
 <table id=rows>
     <tr>
         <th></th>
-{% for c in t.columns %}
+{%- for c in t.columns %}
         <th>
-        {%- if t.sort == c %}v {% elif t.sort == '-' + c %}^ {% endif -%}
+        {% if t.sort == c %}v {% elif t.sort == '-' + c %}^ {% endif -%}
         <a href="/?sort={{ c }}">{{ c }}</a>
             <a href="/?toggle={{ c }}">-</a>
         </th>
 {%- endfor %}
     </tr>
-{% for row in t.rows %}
+{% for row in t.rows -%}
     {% set n = loop.index0 %}
     <tr class={{ loop.cycle('even', 'odd') }}>
-        <td onclick="open_row(this, {{ n }});">
+        <td class=click onclick="open_row(this, {{ n }});">
                 {{ '+-'[row.more] }}
         </td>
-    {% autoescape false %}
-    {% for s in row.strings %}
+    {%- autoescape false -%}
+    {%- for s in row.strings -%}
         {% if t.right[loop.index0] -%}
         <td class=right>{{ s }}</td>
         {% else %}

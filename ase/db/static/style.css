@@ -4,5 +4,5 @@ tr.even {background-color: #FFEEEE}
 td.right {text-align: right}
 a {text-decoration: none}
 a:hover {background-color:#FF704D;}
-img {float: right}
-.notperiodic {color: grey}
+td.click:hover {background-color:#FF704D;}
+img.right {float: right}

@@ -71,7 +71,7 @@ def index():
             limit = int(request.args.get('limit'))
         except ValueError:
             limit = None
-        table.search(request.args['query'], limit)
+        table.search(request.args['query'].encode(), limit)
         
     table.format('html')
 
