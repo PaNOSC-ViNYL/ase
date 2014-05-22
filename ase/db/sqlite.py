@@ -228,9 +228,9 @@ class SQLite3Database(Database):
                'cell': deblob(row[7], shape=(3, 3)),
                'pbc': (row[8] & np.array([1, 2, 4])).astype(bool)}
         if row[9] is not None:
-            dct['magmoms'] = deblob(row[9])
+            dct['initial_magmoms'] = deblob(row[9])
         if row[10] is not None:
-            dct['charges'] = deblob(row[10])
+            dct['initial_charges'] = deblob(row[10])
         if row[11] is not None:
             dct['masses'] = deblob(row[11])
         if row[12] is not None:
