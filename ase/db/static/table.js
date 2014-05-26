@@ -1,5 +1,5 @@
 function open_row(x, n) {
-    r = x.parentNode.rowIndex;
+    r = x.rowIndex;
     request = XMLHttpRequest();
     request.open('GET', '/open_row/' + n, true);
     request.onload = function() {

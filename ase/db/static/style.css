@@ -3,6 +3,6 @@ table, th, td {border: 1px solid black; border-collapse: collapse}
 tr.even {background-color: #FFEEEE}
 td.right {text-align: right}
 a {text-decoration: none}
-a:hover {background-color:#FF704D;}
-td.click:hover {background-color:#FF704D;}
+a:hover {background-color:#FFCCCC;}
+tr.click:hover {background-color:#FFCCCC;}
 img.right {float: right}

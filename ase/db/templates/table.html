@@ -20,7 +20,6 @@ Add/remove key-column:
 
 <table id=rows>
     <tr>
-        <th></th>
 {%- for c in t.columns %}
         <th>
         {% if t.sort == c %}v {% elif t.sort == '-' + c %}^ {% endif -%}
@@ -31,10 +30,8 @@ Add/remove key-column:
     </tr>
 {% for row in t.rows -%}
     {% set n = loop.index0 %}
-    <tr class={{ loop.cycle('even', 'odd') }}>
-        <td class=click onclick="open_row(this, {{ n }});">
-                {{ '+-'[row.more] }}
-        </td>
+    <tr class="click {{ loop.cycle('even', 'odd') }}"
+        onclick="open_row(this, {{ n }});">
     {%- autoescape false -%}
     {%- for s in row.strings -%}
         {% if t.right[loop.index0] -%}
