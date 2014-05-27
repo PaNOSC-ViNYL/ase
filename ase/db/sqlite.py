@@ -13,7 +13,7 @@ create table systems (
     unique_id text unique,
     ctime real,
     mtime real,
-    user text,
+    username text,
     numbers blob,
     positions blob,
     cell blob,
@@ -41,28 +41,28 @@ create table systems (
 create table species (
     Z integer,
     n integer,
-    id text,
+    id integer,
     foreign key (id) references systems(id));
 create table keywords (
     keyword text,
-    id text,
+    id integer,
     foreign key (id) references systems(id));
 create table text_key_values (
     key text,
     value text,
-    id text,
+    id integer,
     foreign key (id) references systems(id));
 create table number_key_values (
     key text,
     value real,
-    id text,
+    id integer,
     foreign key (id) references systems (id))
 """
 
 index_statements = """\
 create index unique_id_index on systems(unique_id);
 create index ctime_index on systems(ctime);
-create index user_index on systems(user);
+create index username_index on systems(username);
 create index calculator_index on systems(calculator);
 create index species_index on species(Z);
 create index keyword_index on keywords(keyword);
@@ -77,6 +77,7 @@ tables = ['systems', 'species', 'keywords',
 class SQLite3Database(Database):
     initialized = False
     _allow_reading_old_format = False
+    default = 'NULL'  # used for autoincrement id
     
     def _connect(self):
         return sqlite3.connect(self.filename)
@@ -84,6 +85,7 @@ class SQLite3Database(Database):
     def _initialize(self, con):
         if self.initialized:
             return
+
         cur = con.execute(
             'select count(*) from sqlite_master where name="systems"')
         if cur.fetchone()[0] == 0:
@@ -94,7 +96,13 @@ class SQLite3Database(Database):
                     con.execute(statement)
             con.commit()
             self.initialized = True
-            
+        else:
+            cur = con.execute(
+                'select count(*) from sqlite_master where name="user_index"')
+            if cur.fetchone()[0] == 1:
+                # Old version with "user" instead of "username" column
+                self.version = 1
+                
     def _write(self, atoms, keywords, key_value_pairs, data):
         Database._write(self, atoms, keywords, key_value_pairs, data)
         
@@ -124,8 +132,7 @@ class SQLite3Database(Database):
             
         numbers = dct.get('numbers')
         
-        row = (id,
-               dct['unique_id'],
+        row = (dct['unique_id'],
                dct['ctime'],
                dct['mtime'],
                dct['user'],
@@ -163,12 +170,10 @@ class SQLite3Database(Database):
                 encode(data),
                 len(numbers))
 
-        q = ', '.join('?' * len(row))
-        cur.execute('insert into systems values (%s)' % q, row)
+        q = self.default + ', ' + ', '.join('?' * len(row))
+        cur.execute('insert into systems values ({0})'.format(q), row)
         
-        if id is None:
-            cur.execute('select seq from sqlite_sequence where name="systems"')
-            id = cur.fetchone()[0]
+        id = self.get_last_id(cur)
 
         if len(numbers) > 0:
             count = np.bincount(numbers)
@@ -200,6 +205,11 @@ class SQLite3Database(Database):
 
         con.commit()
         con.close()
+        return id
+        
+    def get_last_id(self, cur):
+        cur.execute('select seq from sqlite_sequence where name="systems"')
+        id = cur.fetchone()[0]
         return id
         
     def _get_dict(self, id):
@@ -299,6 +309,8 @@ class SQLite3Database(Database):
         for key, op, value in cmps:
             if key in ['id', 'energy', 'magmom', 'ctime', 'user',
                        'calculator', 'natoms']:
+                if key == 'user' and self.version == 2:
+                    key = 'username'
                 where.append('systems.{0}{1}?'.format(key, op))
                 args.append(value)
             elif isinstance(key, int):
@@ -337,8 +349,6 @@ class SQLite3Database(Database):
         if explain:
             sql = 'EXPLAIN QUERY PLAN ' + sql
             
-        limit = limit or -1
-        
         if limit:
             sql += '\nLIMIT {0}'.format(limit)
             

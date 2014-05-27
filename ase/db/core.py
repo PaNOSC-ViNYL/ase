@@ -171,6 +171,8 @@ def parallel_generator(generator):
 
 class Database:
     """Base class for all databases."""
+
+    version = 2
     
     def __init__(self, filename=None, create_indices=True,
                  use_lock_file=False):
