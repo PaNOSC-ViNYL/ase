@@ -59,7 +59,7 @@ class Table:
         
         self.columns = ['id', 'age', 'user', 'formula', 'calculator',
                         'energy', 'fmax', 'pbc', 'volume',
-                        'keywords', 'keys',
+                        #'keywords', 'keys',
                         'charge', 'mass', 'smax', 'magmom']
         
         if columns is not None:
