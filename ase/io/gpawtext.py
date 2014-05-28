@@ -1,5 +1,5 @@
 import numpy as np
-from ase.atoms import Atom, Atoms
+from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointDFTCalculator
 from ase.calculators.singlepoint import SinglePointKPoint
 
@@ -8,7 +8,8 @@ def read_gpaw_text(fileobj, index=-1):
     if isinstance(fileobj, str):
         fileobj = open(fileobj, 'rU')
 
-    notfound = [] 
+    notfound = []
+    
     def index_startswith(lines, string):
         if string in notfound:
             raise ValueError
@@ -52,16 +53,16 @@ def read_gpaw_text(fileobj, index=-1):
             symbols.append(symbol.split('.')[0])
             positions.append([float(x), float(y), float(z)])
         if len(symbols):
-            atoms = Atoms(symbols=symbols, positions=positions, cell=cell, pbc=pbc)
+            atoms = Atoms(symbols=symbols, positions=positions,
+                          cell=cell, pbc=pbc)
         else:
             atoms = Atoms(cell=cell, pbc=pbc)
         lines = lines[i + 5:]
-        ene = { 
+        ene = {
             # key        position
-            'Kinetic:' : 1,
-            'Potential:' : 2,
-            'XC:' : 4,
-            }
+            'Kinetic:': 1,
+            'Potential:': 2,
+            'XC:': 4}
         try:
             i = lines.index('-------------------------\n')
         except ValueError:
@@ -86,14 +87,15 @@ def read_gpaw_text(fileobj, index=-1):
         else:
             try:
                 eFermi = float(lines[ii].split()[2])
-            except ValueError: # we have two Fermi levels
+            except ValueError:  # we have two Fermi levels
                 fields = lines[ii].split()
+                
                 def strip(string):
                     for rubbish in '[],':
                         string = string.replace(rubbish, '')
                     return string
                 eFermi = [float(strip(fields[2])),
-                          float(strip(fields[3])) ]
+                          float(strip(fields[3]))]
         # read Eigenvalues and occupations
         ii1 = ii2 = 1e32
         try:
@@ -120,7 +122,7 @@ def read_gpaw_text(fileobj, index=-1):
             kpts[0].eps_n = vals[1]
             kpts[0].f_n = vals[2]
             if vals.shape[0] > 3:
-                kpts.append(SinglePointKPoint(1, 0, 1))
+                kpts.append(SinglePointKPoint(1, 1, 0))
                 kpts[1].eps_n = vals[3]
                 kpts[1].f_n = vals[4]
         # read charge
