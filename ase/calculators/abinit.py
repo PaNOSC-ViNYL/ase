@@ -28,6 +28,7 @@ keys_with_units = {
     'zmmaxdispllength': 'Ang',
     'zmmaxdisplangle': 'rad',
     'ecut': 'eV',
+    'pawecutdg': 'eV',
     'dmenergytolerance': 'eV',
     'electronictemperature': 'eV',
     'oneta': 'eV',
