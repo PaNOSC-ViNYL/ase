@@ -40,7 +40,7 @@ class PostgreSQLDatabase(SQLite3Database):
     
     def _connect(self):
         con = psycopg2.connect(database='postgres', user='ase', password='ase',
-                               host='localhost')
+                               host=self.filename)
         return Connection(con)
 
     def _initialize(self, con):

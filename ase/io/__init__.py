@@ -79,8 +79,10 @@ def read(filename, index=None, format=None):
     =========================  =============
 
     """
-    if isinstance(filename, str) and ('.json@' in filename or
-                                      '.db@' in filename):
+    if isinstance(filename, str) and (
+        '.json@' in filename or
+        '.db@' in filename or
+        filename.startswith('pg://') and '@' in filename):
         filename, index = filename.rsplit('@', 1)
         if index.isdigit():
             index = int(index)
@@ -143,7 +145,7 @@ def read(filename, index=None, format=None):
 
         return atoms
 
-    if format in ['json', 'db']:
+    if format in ['json', 'db', 'postgresql']:
         from ase.db.core import connect, dict2atoms
         if index == slice(None, None):
             index = None
@@ -580,6 +582,9 @@ def filetype(filename):
             return 'eon'
         else:
             raise IOError('Directory: ' + filename)
+
+    if filename.startswith('pg://'):
+        return 'postgresql'
 
     fileobj = open(filename, 'rU')
     s3 = fileobj.read(3)

@@ -82,8 +82,8 @@ def connect(name, type='extract_from_name', create_indices=True,
     if type == 'extract_from_name':
         if name is None:
             type = None
-        elif name.startswith('postgres://'):
-            type = 'postgres'
+        elif name.startswith('pg://'):
+            type = 'postgresql'
         else:
             type = os.path.splitext(name)[1][1:]
 
@@ -96,9 +96,9 @@ def connect(name, type='extract_from_name', create_indices=True,
     if type == 'db':
         from ase.db.sqlite import SQLite3Database
         return SQLite3Database(name, create_indices, use_lock_file)
-    if type == 'postgres':
+    if type == 'postgresql':
         from ase.db.postgresql import PostgreSQLDatabase
-        return PostgreSQLDatabase(name, create_indices)
+        return PostgreSQLDatabase(name[5:])
     raise ValueError('Unknown database type: ' + type)
 
 
