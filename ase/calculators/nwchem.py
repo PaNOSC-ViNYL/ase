@@ -108,7 +108,9 @@ class NWChem(FileIOCalculator):
             else:
                 task = 'dft'
             xc = {'LDA': 'slater pw91lda',
-                  'PBE': 'xpbe96 cpbe96'}.get(p.xc, p.xc)
+                  'PBE': 'xpbe96 cpbe96',
+                  'revPBE' : 'revpbe cpbe96',
+                  'RPBE' : 'rpbe cpbe96'}.get(p.xc, p.xc)
             f.write('\n' + task + '\n')
             f.write('  xc ' + xc + '\n')
             for key in p.convergence:
@@ -139,8 +141,7 @@ class NWChem(FileIOCalculator):
                            'so', 'xc', 'spinorbit', 'convergence', 'smearing',
                            'raw', 'mult', 'task']:
                     continue
-                value = p[key]
-                f.write('%s %s\n' % (key, value))
+                f.write(u"  {0} {1}\n".format(key, p[key]))
             f.write('end\n')
 
         if p.raw:
