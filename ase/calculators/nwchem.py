@@ -88,8 +88,8 @@ class NWChem(FileIOCalculator):
             if len(lines) > 1:
                 formatted += string
             else:
-                formatted += '  * library ' + string + '\n'
-            return formatted + 'end\n'
+                formatted += '  * library ' + string
+            return formatted + '\nend\n'
 
         basis = format_basis_set(p.basis)
         if p.ecp is not None:
