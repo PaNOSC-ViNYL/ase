@@ -109,8 +109,8 @@ class NWChem(FileIOCalculator):
                 task = 'dft'
             xc = {'LDA': 'slater pw91lda',
                   'PBE': 'xpbe96 cpbe96',
-                  'revPBE' : 'revpbe cpbe96',
-                  'RPBE' : 'rpbe cpbe96'}.get(p.xc, p.xc)
+                  'revPBE': 'revpbe cpbe96',
+                  'RPBE': 'rpbe cpbe96'}.get(p.xc, p.xc)
             f.write('\n' + task + '\n')
             f.write('  xc ' + xc + '\n')
             for key in p.convergence:
