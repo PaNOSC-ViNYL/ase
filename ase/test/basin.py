@@ -3,7 +3,6 @@ from math import pi, sqrt
 from ase import Atoms, io, optimize
 from ase.calculators.lj import LennardJones
 from ase.optimize.basin import BasinHopping
-from ase.optimize.minimahopping import MinimaHopping
 from ase.io import PickleTrajectory, read
 from ase.units import kB
 
@@ -31,10 +30,6 @@ for GlobalOptimizer in [BasinHopping(s,
                                      dr=0.5,
                                      trajectory=ftraj,
                                      optimizer_logfile=None),
-                        MinimaHopping(atoms=s,
-                                      T0=100,
-                                      optimizer=optimize.FIRE,
-                                      minima_traj=ftraj)
                         ]:
 
     if str(GlobalOptimizer.__class__) == 'ase.optimize.basin.BasinHopping':

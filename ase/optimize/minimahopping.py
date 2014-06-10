@@ -50,9 +50,10 @@ class MinimaHopping:
         self._temperature = self._T0
         self._Ediff = self._Ediff0
 
-    def __call__(self, totalsteps=None):
-        """Run the minima hopping algorithm. The total number of steps can
-        be specified, other wise runs indefinitely (or until stopped by
+    def __call__(self, totalsteps=None, maxtemp=None):
+        """Run the minima hopping algorithm. Can specify stopping criteria
+        with total steps allowed or maximum searching temperature allowed.
+        If neither is specified, runs indefinitely (or until stopped by
         batching software)."""
         self._startup()
         while True:
@@ -61,6 +62,12 @@ class MinimaHopping:
                           '%i allowed. Increase totalsteps if resuming.'
                           % (self._counter, totalsteps))
                 return
+            if (maxtemp and self._temperature >= maxtemp):
+                self._log('msg', 'Run terminated. Temperature is %.2f K;'
+                          ' max temperature allowed %.2f K.'
+                          % (self._temperature, maxtemp))
+                return
+
             self._previous_optimum = self._atoms.copy()
             self._previous_energy = self._atoms.get_potential_energy()
             self._molecular_dynamics()
