@@ -318,3 +318,34 @@ def fit0(E, F, R):
     Sfit[-1] = s[-1]
     Efit[-1] = E[-1]
     return s, E, Sfit, Efit, lines
+
+
+def get_NEB_plot(images):
+    """Returns a figure object of the NEB fit to the given images."""
+    from matplotlib import pyplot
+    if not hasattr(images, 'repeat'):
+        from ase.gui.images import Images
+        images = Images(images)
+    N = images.repeat.prod()
+    natoms = images.natoms // N
+    R = images.P[:, :natoms]
+    E = images.E
+    F = images.F[:, :natoms]
+    s, E, Sfit, Efit, lines = fit0(E, F, R)
+    fig = pyplot.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(s, E, 'o')
+    for x, y in lines:
+        ax.plot(x, y, '-g')
+    ax.plot(Sfit, Efit, 'k-')
+    ax.set_xlabel('path [$\AA$]')
+    ax.set_ylabel('energy [eV]')
+    Ef = max(Efit) - E[0]
+    Er = max(Efit) - E[-1]
+    dE = E[-1] - E[0]
+    #ax.set_title('Maximum: %.3f eV' % max(Efit))
+    ax.set_title('$E_\mathrm{f} \\approx$ %.3f eV; '
+                 '$E_\mathrm{r} \\approx$ %.3f eV; '
+                 '$\\Delta E$ = %.3f eV'
+                 % (Ef, Er, dE))
+    return fig
