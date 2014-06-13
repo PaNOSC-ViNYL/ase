@@ -657,7 +657,7 @@ class MinModeAtoms:
             self.calculate_real_forces_and_energies(**kwargs)
         if real and pos is None:
             return self.forces0
-        elif real and pos != None:
+        elif real and pos is not None:
             old_pos = self.atoms.get_positions()
             self.atoms.set_positions(pos)
             forces = self.atoms.get_forces()

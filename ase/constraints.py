@@ -503,7 +503,7 @@ class FixInternals(FixConstraint):
 
         list_constraints = [r.ravel() for r in list_constraints]
         aa = np.column_stack(list_constraints)
-        (aa, bb) = np.linalg.qr(aa, mode='full')
+        (aa, bb) = np.linalg.qr(aa)
         #Projektion
         hh = []
         for i, constraint in enumerate(self.constraints):
