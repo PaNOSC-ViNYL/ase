@@ -185,19 +185,19 @@ log /dev/stdout
         fileobj.write(fileobj.name + ' (by ' + str(self.__class__) + ')\n\n')
         fileobj.write(str(len(atoms)) + ' atoms\n')
         fileobj.write(str(len(atoms.types)) + ' atom types\n')
-        btypes = connectivities['bond types']
         blist = connectivities['bonds']
         if len(blist):
+            btypes = connectivities['bond types']
             fileobj.write(str(len(blist)) + ' bonds\n')
             fileobj.write(str(len(btypes)) + ' bond types\n')
-        atypes = connectivities['angle types']
         alist = connectivities['angles']
         if len(alist):
+            atypes = connectivities['angle types']
             fileobj.write(str(len(alist)) + ' angles\n')
             fileobj.write(str(len(atypes)) + ' angle types\n')
-        dtypes = connectivities['dihedral types']
         dlist = connectivities['dihedrals']
         if len(dlist):
+            dtypes = connectivities['dihedral types']
             fileobj.write(str(len(dlist)) + ' dihedrals\n')
             fileobj.write(str(len(dtypes)) + ' dihedral types\n')
 
@@ -715,7 +715,7 @@ class OPLSStructure(Atoms):
 
         def read_list(key_string, length, debug=False):
             if key != key_string:
-                return None, key
+                return [], key
 
             lst = []
             while(len(lines)):
