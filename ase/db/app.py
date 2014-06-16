@@ -30,8 +30,7 @@ def open_row(n):
     
 @app.route('/image/<name>')
 def image(name):
-    print name
-    path = os.path.join(tmpdir, name)
+    path = os.path.join(tmpdir, name).encode()
     if not os.path.isfile(path):
         id = int(name[:-4])
         atoms = table.connection.get_atoms(id)
