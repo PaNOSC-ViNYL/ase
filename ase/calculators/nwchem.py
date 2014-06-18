@@ -131,7 +131,11 @@ class NWChem(FileIOCalculator):
                 f.write('  smear %s\n' % (p.smearing[1] / Hartree))
             if 'mult' not in p:
                 # Obtain multiplicity from magnetic momenta:
-                mult = 1 + atoms.get_initial_magnetic_moments().sum()
+                tot_magmom = atoms.get_initial_magnetic_moments().sum()
+                if tot_magmom < 0:
+                    mult = tot_magmom - 1  # fill minority bands
+                else:
+                    mult = tot_magmom + 1
             else:
                 mult = p.mult
             if mult != int(mult):
@@ -227,7 +231,11 @@ class NWChem(FileIOCalculator):
         magmom = None
         for line in open(self.label + '.out'):
             if line.find('Spin multiplicity') != -1:  # last one
-                magmom = float(line.split(':')[-1].strip()) - 1
+                magmom = float(line.split(':')[-1].strip())
+                if magmom < 0:
+                    magmom += 1
+                else:
+                    magmom -= 1
         return magmom
 
     def read_dipole_moment(self):
