@@ -46,7 +46,8 @@ Download
 Latest stable release
 =====================
 
-The latest stable release can be obtained from ``svn`` or as a ``tarball``.
+The latest stable release can be obtained from SVN or as a
+`tar-file <http://xkcd.com/1168/>`__.
 
 .. note::
 
@@ -63,7 +64,7 @@ When using svn please set the following variable:
    setenv ASE_TAGS https://svn.fysik.dtu.dk/projects/ase/tags/
 
 ======= =========== ============================================ =============================
-Release Date        Retrieve as svn checkout                     Retrieve as tarball
+Release Date        Retrieve as svn checkout                     Retrieve as tar-file
 ======= =========== ============================================ =============================
  3.8.1_ Nov 22 2013 ``svn co -r 3440 $ASE_TAGS/3.8.1 ase-3.8.1`` python-ase-3.8.1.3440.tar.gz_
  3.8.0_ Oct 22 2013 ``svn co -r 3420 $ASE_TAGS/3.8.0 ase-3.8.0`` python-ase-3.8.0.3420.tar.gz_
@@ -341,7 +342,7 @@ to the requested version, e.g.:
    $ cd $HOME
    $ ln -s ase-3.8.0 ase
     
-- if retrieved as ``tarball``::
+- if retrieved as tar-file::
 
    $ cd $HOME
    $ tar zxf python-ase-3.8.0.3420.tar.gz
