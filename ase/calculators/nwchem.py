@@ -42,6 +42,7 @@ class NWChem(FileIOCalculator):
         ecp=None,
         so=None,
         spinorbit=False,
+        odft=False,
         raw='')  # additional outside of dft block control string
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
@@ -136,10 +137,12 @@ class NWChem(FileIOCalculator):
                 raise RuntimeError('Noninteger multiplicity not possible. ' +
                                    'Check initial magnetic moments.')
             f.write('  mult %d\n' % mult)
+            if p.odft:
+                f.write('  odft\n') # open shell aka spin polarized dft
             for key in sorted(p.keys()):
                 if key in ['charge', 'geometry', 'basis', 'basispar', 'ecp',
                            'so', 'xc', 'spinorbit', 'convergence', 'smearing',
-                           'raw', 'mult', 'task']:
+                           'raw', 'mult', 'task', 'odft']:
                     continue
                 f.write(u"  {0} {1}\n".format(key, p[key]))
             f.write('end\n')
