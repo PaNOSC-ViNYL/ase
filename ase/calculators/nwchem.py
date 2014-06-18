@@ -138,7 +138,7 @@ class NWChem(FileIOCalculator):
                                    'Check initial magnetic moments.')
             f.write('  mult %d\n' % mult)
             if p.odft:
-                f.write('  odft\n') # open shell aka spin polarized dft
+                f.write('  odft\n')  # open shell aka spin polarized dft
             for key in sorted(p.keys()):
                 if key in ['charge', 'geometry', 'basis', 'basispar', 'ecp',
                            'so', 'xc', 'spinorbit', 'convergence', 'smearing',
