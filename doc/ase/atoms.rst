@@ -297,7 +297,7 @@ List-methods
 
 Note that the ``del`` method can be used with the more powerful numpy-style indexing, as in the second example above. This can be combined with python list comprehension in order to selectively delete atoms within an ASE Atoms object. For example, the below code creates an ethanol molecule and subsequently strips all the hydrogen atoms from it::
 
-  from ase.data.molecules import molecule
+  from ase.structure import molecule
   atoms = molecule('CH3CH2OH')
   del atoms[[atom.index for atom in atoms if atom.symbol=='H']]
 

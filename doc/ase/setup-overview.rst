@@ -8,7 +8,6 @@ Creating atomic structures
    structure
    surface
    lattice
-   molecules
 
 ASE contains a number of modules for setting up atomic structures,
 mainly molecules, bulk crystals and surfaces.  Some of these modules
@@ -60,6 +59,7 @@ Read more: :ref:`general-crystal-section`.
 
 **Molecules**
 
-Some common molecules are available in the :mod:`~data.molecules` module.
+Some common molecules can be constructed using the
+:func:`ase.structure.molecule` function.
 
-Read more: :ref:`molecules-section`.
+Read more: :ref:`molecular-data`.

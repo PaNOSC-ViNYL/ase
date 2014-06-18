@@ -2,7 +2,7 @@
 
 import numpy as np
 from ase import Atoms
-from ase.data.molecules import molecule
+from ase.structure import molecule
 from ase.io import write
 
 a = 3.92 # Experimental lattice constant

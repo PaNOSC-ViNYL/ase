@@ -1,4 +1,4 @@
-from ase.data.molecules import molecule
+from ase.structure import molecule
 from ase.calculators.emt import EMT
 from ase.optimize import QuasiNewton
 from ase.vibrations import Vibrations

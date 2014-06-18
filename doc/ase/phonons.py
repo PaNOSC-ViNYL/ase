@@ -37,7 +37,7 @@ omega_e *= 1000
 
 # Plot phonon dispersion
 import matplotlib
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 import pylab as plt
 
 plt.figure(1, (8, 6))

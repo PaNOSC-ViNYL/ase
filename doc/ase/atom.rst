@@ -80,7 +80,6 @@ calculators use (similar to the
    ``a1`` by accident.
 
 
-
 Getting an Atom from an Atoms object
 ------------------------------------
 
@@ -88,7 +87,8 @@ Indexing an :class:`Atoms` object returns an :class:`Atom` object
 still remembering that it belongs to the collective :class:`Atoms`:
 Modifying it will also change the atoms object:
 
->>> atoms = ase.data.molecules.molecule('CH4')
+>>> from ase.structures import molecule
+>>> atoms = molecule('CH4')
 >>> atoms.get_positions()
 array([[ 0.      ,  0.      ,  0.      ],
        [ 0.629118,  0.629118,  0.629118],

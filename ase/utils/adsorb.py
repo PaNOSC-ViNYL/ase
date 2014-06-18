@@ -7,12 +7,12 @@ import numpy as np
 
 from ase.lattice.surface import fcc111, hcp0001, bcc110, bcc100, diamond111, \
     add_adsorbate
-from ase.structure import estimate_lattice_constant
+from ase.structure import estimate_lattice_constant, molecule
 from ase.data import reference_states, atomic_numbers, covalent_radii
 from ase.io import write
 from ase.visualize import view
 from ase.atoms import Atoms, string2symbols
-from ase.data.molecules import molecule
+
 
 def build():
     p = OptionParser(usage='%prog  [options] [ads@]surf [output file]',
@@ -146,7 +146,7 @@ def build():
     slab.pbc = 1
     script += ['slab.pbc = True']
     
-    name = '%dx%d%s%s' % (n, m, surf, face) 
+    name = '%dx%d%s%s' % (n, m, surf, face)
 
     if ads:
         site = 'ontop'
@@ -155,13 +155,13 @@ def build():
 
         name = site + '-' + ads + '@' + name
         symbols = string2symbols(ads)
-        nads = len(symbols) 
+        nads = len(symbols)
         if nads == 1:
             script[:0] = ['from ase import Atoms']
             script += ['ads = Atoms(%r)' % ads]
             ads = Atoms(ads)
         else:
-            script[:0] = ['from ase.data.molecules import molecule']
+            script[:0] = ['from ase.structure import molecule']
             script += ['ads = molecule(%r)' % ads]
             ads = molecule(ads)
 

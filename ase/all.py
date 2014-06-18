@@ -29,7 +29,6 @@ from ase.dimer import DimerControl, DimerAtoms, DimerTranslate, \
 from ase.visualize import view
 from ase.data import chemical_symbols, atomic_numbers, atomic_names, \
      atomic_masses, covalent_radii, reference_states
-from ase.data.molecules import molecule
 from ase.structure import *
 #from ase.lattice import bulk
 

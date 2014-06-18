@@ -6,7 +6,7 @@ from ase import Atoms
 from ase.calculators.dftb import Dftb
 from ase.optimize import QuasiNewton
 from ase.io import write
-from ase.data.molecules import molecule
+from ase.structure import molecule
 from ase.md.verlet import VelocityVerlet
 from ase.md import MDLogger
 from ase.units import *

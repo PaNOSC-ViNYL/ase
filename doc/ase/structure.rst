@@ -7,6 +7,19 @@
    * The :mod:`~lattice.surface` module
 
 
+Molecules
+=========
+
+The G2-database of common molecules is available:
+
+.. autofunction:: ase.structure.molecule
+
+Example::
+
+>>> from ase.structure import molecule
+>>> atoms = molecule('H2O')
+
+
 .. _bulk-crystal-section:
 
 Common bulk crystals

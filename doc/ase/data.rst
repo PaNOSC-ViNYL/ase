@@ -47,34 +47,29 @@ The source of the van der Waals radii is given in vdw.py_.
 
 .. _vdw.py: https://trac.fysik.dtu.dk/projects/ase/browser/trunk/ase/data/vdw.py
 
-.. _molecular data:
+.. _molecular-data:
 
 Molecular data
 ==============
 
-The G1, G2, and G3-databases are available in the :mod:`molecules` module.
+The G1, G2, and G3-databases are available.  Example:
 
-Example:
-
->>> from ase.data.molecules import molecule
+>>> from ase.structure import molecule
 >>> atoms = molecule('H2O')
 
 All molecular members of each database is conveniently contained in a list
-of strings (g1, g2, g3), and one can look up the
+of strings (g1, g2, g3), ??? and one can look up the
 experimental atomization energy for each molecule.
 This is extrapolated from experimental heats of formation at room temperature,
 using calculated zero-point energies and thermal corrections.
 
 Example:
 
->>> from ase.data.molecules import molecule, g2, get_atomization_energy
->>> g2[11]
-'H2O'
->>> atoms = molecule(g2[11])
->>> get_atomization_energy(g2[11])
+>>> from ase.data.g2 import get_atomization_energy
+>>> get_atomization_energy('H2O')
 232.57990000000001
 >>> from ase.units import kcal,mol
->>> get_atomization_energy(g2[11])*kcal/mol
+>>> get_atomization_energy('H2O')*kcal/mol
 10.08562144637833
 
 where the last line converts the experimental atomization energy of H2O

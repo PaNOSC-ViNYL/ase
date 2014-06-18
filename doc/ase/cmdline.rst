@@ -8,6 +8,8 @@
 Command line tool
 =================
 
+.. warning:: This was an experiment that went bad!  Don't use it!
+
 The :program:`ase` program can be used to do calculations with
 :ref:`ASE supported calculators<supported calculators>` on the command
 line without having to write a Python script.  The syntax is::
@@ -20,7 +22,7 @@ several ways to specify the system or systems to perform the
 calculations on:
 
 * Chemical names: ``H2O`` or ``Fe``.
-  Default :ref:`molecule<molecules-section>` definitions are used.
+  Default :ref:`molecule <molecular-data>` definitions are used.
 * Range of chemical symbols: ``Sc-Zn`` (3d-metals)
 * Special names: ``G2``, ``G2_1`` or ``S22``
 * File names: ``benzene.xyz`` or ``slab.traj``
@@ -64,7 +66,7 @@ General options:
                     Find optimal bondlength and vibration frequency for
                     dimer molecules or optimal volume and bulk modulus for
                     bulk systems using N points and a variation from -x %
-		    to +x % for the bondlength or lattice constants.
+                    to +x % for the bondlength or lattice constants.
 --constrain-tags=<T1,T2,...>
                     Constrain atoms with tags T1, T2, ...
 -k <K1,K2,K3>, --monkhorst-pack=<K1,K2,K3>
@@ -172,7 +174,7 @@ Batch jobs
 
 Suppose you want to run a large number of similar calculations like
 relaxing the structure of all the molecules in the :ref:`G2-1 database
-<molecular data>`.  You could do that by submitting this job to your
+<molecular-data>`.  You could do that by submitting this job to your
 compute cluster::
 
     $ ase gpaw G2_1 -v 6.0 -p xc=vdW-DF,h=0.18 -R 0.02
