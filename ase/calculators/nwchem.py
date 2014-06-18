@@ -6,6 +6,7 @@ import os
 
 import numpy as np
 
+from warnings import warn
 from ase.atoms import Atoms
 from ase.units import Hartree, Bohr
 from ase.io.nwchem import write_nwchem
@@ -271,6 +272,7 @@ class NWChem(FileIOCalculator):
         kpts = []
         for line in lines:
             if line.find('Molecular Orbital Analysis') >= 0:
+                last_eps = -99999.0
                 spin += 1
                 kpts.append(KPoint(spin))
             if spin >= 0:
@@ -278,8 +280,15 @@ class NWChem(FileIOCalculator):
                     line = line.lower().replace('d', 'e')
                     line = line.replace('=', ' ')
                     word = line.split()
-                    kpts[spin].f_n.append(float(word[3]))
-                    kpts[spin].eps_n.append(float(word[5]))
+                    this_occ = float(word[3])
+                    this_eps = float(word[5])
+                    kpts[spin].f_n.append(this_occ)
+                    kpts[spin].eps_n.append(this_eps)
+                    if this_occ < 0.1 and this_eps < last_eps:
+                        warn('HOMO above LUMO - if this is not an exicted ' +
+                            'state - this might be introduced by levelshift.',
+                                    RuntimeWarning)
+                    last_eps = this_eps
         self.kpts = kpts
 
     def read_forces(self):
