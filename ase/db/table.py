@@ -19,6 +19,12 @@ def cut(txt, length):
     return txt[:length - 3] + '...'
 
 
+def cutlist(lst, length):
+    if len(lst) <= length or length == 0:
+        return lst
+    return lst[:9] + ['... ({0} more)'.format(len(lst) - 9)]
+
+    
 def hill(numbers):
     d = {}
     for Z in numbers:
@@ -146,15 +152,18 @@ class Table:
     def format(self, mode='ascii'):
         right = set()
         allkeys = set()
+        allkeywords = set()
         for row in self.rows:
             numbers = row.format(self.columns, mode)
             right.update(numbers)
             allkeys.update(row.dct.key_value_pairs)
+            allkeywords.update(row.dct.keywords)
             
         right.add('age')
         self.right = [column in right for column in self.columns]
         
         self.keys = sorted(allkeys)
+        self.keywords = sorted(allkeywords)
 
     def write(self):
         self.format()
@@ -162,15 +171,7 @@ class Table:
              for row in self.rows]
         L.append([len(c) for c in self.columns])
         N = np.max(L, axis=0)
-        print('Rows:', len(self.rows), end='')
-        if self.limit:
-            print(' (limited to first {0})'.format(self.limit))
-        else:
-            print()
 
-        if len(self.rows) == 0:
-            return
-            
         fmt = '{0:{align}{width}}'
         print('|'.join(fmt.format(c, align='<>'[a], width=w)
                        for c, a, w in zip(self.columns, self.right, N)))
@@ -178,10 +179,19 @@ class Table:
             print('|'.join(fmt.format(c, align='<>'[a], width=w)
                            for c, a, w in
                            zip(row.strings, self.right, N)))
-        if self.keys:
-            print('Keys:', ', '.join(self.keys))
 
-                
+        print('Rows:', len(self.rows), end='')
+        if self.limit:
+            print(' (limited to first {0})'.format(self.limit))
+        else:
+            print()
+
+        if self.keys:
+            print('Keys:', ', '.join(cutlist(self.keys, self.cut)))
+        if self.keywords:
+            print('Keywords:', ', '.join(cutlist(self.keywords, self.cut)))
+
+            
 class Row:
     def __init__(self, dct, columns, cut=40):
         self.dct = dct
