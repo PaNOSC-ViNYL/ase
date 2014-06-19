@@ -47,3 +47,7 @@ Add/remove key-column:
     {% endif %}
 {% endfor %}
 </table>
+Keywords found:
+{% for keyword in t.keywords -%}
+{{ keyword }}
+{% endfor %}
