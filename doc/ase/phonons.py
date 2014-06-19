@@ -36,8 +36,6 @@ omega_e, dos_e = ph.dos(kpts=(50, 50, 50), npts=5000, delta=1e-4)
 omega_e *= 1000
 
 # Plot phonon dispersion
-import matplotlib
-matplotlib.use('Agg')
 import pylab as plt
 
 plt.figure(1, (8, 6))
