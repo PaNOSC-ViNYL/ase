@@ -100,6 +100,7 @@ exp_keys = [
 string_keys = [
     'algo',       # algorithm: Normal (Davidson) | Fast | Very_Fast (RMM-DIIS)
     'gga',        # xc-type: PW PB LM or 91
+    'metagga'     #
     'prec',       # Precission of calculation (Low, Normal, Accurate)
     'system',     # name of System
     'tebeg',      #
