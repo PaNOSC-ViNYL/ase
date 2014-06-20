@@ -1,6 +1,6 @@
 function open_row(x, n) {
     r = x.rowIndex;
-    request = XMLHttpRequest();
+    request = new XMLHttpRequest();
     request.open('GET', '/open_row/' + n, true);
     request.onload = function() {
         data = request.responseText;

@@ -15,7 +15,7 @@ Download:
 <br>
 Add/remove key-column:
 {% for key in t.keys -%}
-<a href="/?toggle={{ key }}">{{ key }}</a>
+<a href="/?toggle={{ key }}">{{ key }}</a>{% if not loop.last %},{% endif %}
 {% endfor %}
 
 <table id=rows>
@@ -47,7 +47,4 @@ Add/remove key-column:
     {% endif %}
 {% endfor %}
 </table>
-Keywords found:
-{% for keyword in t.keywords -%}
-{{ keyword }}
-{% endfor %}
+Keywords found: {{ t.keywords|join(', ') }}

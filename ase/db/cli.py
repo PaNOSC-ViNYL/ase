@@ -5,11 +5,8 @@ import optparse
 import ase.io
 from ase.db import connect
 from ase.db.table import Table
-from ase.visualize import view
 from ase.db.summary import Summary
-from ase.data import atomic_masses, chemical_symbols
 from ase.calculators.calculator import get_calculator
-from ase.db.core import float_to_time_string, now, dict2constraint, dict2atoms
 
 import numpy as np
 
@@ -196,7 +193,7 @@ def run(opts, args, verbosity):
     if opts.delete:
         ids = [dct['id'] for dct in con.select(query)]
         if ids and not opts.yes:
-            msg = 'Delete %s? (yes/no): ' % plural(len(ids), 'row')
+            msg = 'Delete %s? (yes/No): ' % plural(len(ids), 'row')
             if raw_input(msg).lower() != 'yes':
                 return
         con.delete(ids)
