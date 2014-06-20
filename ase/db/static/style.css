@@ -2,7 +2,8 @@ table, th, td {border: 1px solid black; border-collapse: collapse}
 .right {text-align: right}
 tr.even {background-color: #FFEEEE}
 td.right {text-align: right}
-a {text-decoration: none}
-a:hover {background-color:#FFCCCC;}
-tr.click:hover {background-color:#FFCCCC;}
+a {color: #880000; text-decoration: none}
+a:hover {background-color:#FFCCCC}
+tr.click:hover {background-color:#FFCCCC}
 img.right {float: right}
+div.bar {background-color: #EEEEEE; width: 100%; padding: 10px; border: 1px solid black}

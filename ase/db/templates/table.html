@@ -1,7 +1,10 @@
-<!doctype html>
-<title>Browse ASE database</title>
-<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+{% extends "layout.html" %}
+{% block title %}Browse ASE database{% endblock %}
+{% block head %}
+{{ super() }}
 <script src="{{ url_for('static', filename='table.js') }}"></script>
+{% endblock %}
+{% block content %}
 <form action="/">
 Search: <input type=text name=query value="{{ t.query }}" onchange="this.form.submit()"><br>
 Rows: {{ t.rows|length }}
@@ -48,3 +51,5 @@ Add/remove key-column:
 {% endfor %}
 </table>
 Keywords found: {{ t.keywords|join(', ') }}
+<br>
+{% endblock content %}

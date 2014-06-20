@@ -7,12 +7,13 @@
         {% endif %}
         {% if row.dct.key_value_pairs %}
         {% for key, value in row.dct.key_value_pairs.items() %}
-            <a href="/?toggle={{ key }}">{{ key }}</a>:{{ value }}
+            <a href="/?toggle={{ key }}">{{ key }}</a>: {{ value }}
+            {%- if not loop.last %},{% endif %}
         {% endfor %}
         <br>
         {% endif %}
         {% if row.dct.keywords %}
-        Keywords: {{ row.dct.keywords|join(' ') }}
+        Keywords: {{ row.dct.keywords|join(', ') }}
         <br>
         {% endif %}
         <a href="/summary/{{ row.dct.id }}">more ...</a>

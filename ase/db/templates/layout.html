@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+{% block head %}
+<title>{% block title %}{% endblock %}</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+{% endblock %}
+</head>
+<body>
+<div class="bar">
+<a href="https://wiki.fysik.dtu.dk/ase/">ASE</a> |
+<a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html">ase.db</a>
+</div>
+<br>
+{% block content %}
+{% endblock %}
+<br>
+<div class="bar">
+<a href="https://wiki.fysik.dtu.dk/ase/">ASE</a> |
+<a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html">ase.db</a> |
+<a href="http://www.python.org/">Python</a> |
+<a href="http://flask.pocoo.org/">Flask</a>
+</div>
+</body>
+</html>

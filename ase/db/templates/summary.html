@@ -1,7 +1,7 @@
-<!doctype html>
+{% extends "layout.html" %}
 {% set d = s.dct %}
-<title>Summary</title>
-<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+{% block title %}Summary{% endblock %}
+{% block content %}
 {% if d.numbers|length %}
 <a href="/gui/{{ d.id }}">
 <img src="/image/{{ d.id }}.png">
@@ -78,3 +78,4 @@ Constraints: {{ s.constraints }}
 {% if s.data %}
 Data keys: {{ s.data }}
 {% endif %}
+{% endblock content %}
