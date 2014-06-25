@@ -1,18 +1,20 @@
-function open_row(x, n) {
-    r = x.rowIndex;
-    request = new XMLHttpRequest();
-    request.open('GET', '/open_row/' + n, true);
-    request.onload = function() {
-        data = request.responseText;
-        var table = document.getElementById('rows');
-        if (data) {
-            var row = table.insertRow(r + 1);
-            var cell = row.insertCell(0);
+function open_row(row, id, tid) {
+    var table = document.getElementById('rows');
+    r = row.rowIndex;
+    if (row.classList.contains('open')) {
+        row.classList.remove('open');
+        table.deleteRow(r + 1);
+    } else {
+        request = new XMLHttpRequest();
+        request.open('GET', '/open_row/' + id + '?x=' + tid, true);
+        request.onload = function() {
+            data = request.responseText;
+            var newrow = table.insertRow(r + 1);
+            row.classList.add('open');
+            var cell = newrow.insertCell(0);
             cell.colSpan = 100;
             cell.innerHTML = data;
-        } else {
-            table.deleteRow(r + 1);
         }
+        request.send();
     }
-    request.send();
 }

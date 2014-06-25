@@ -4,8 +4,8 @@ import optparse
 
 import ase.io
 from ase.db import connect
-from ase.db.table import Table
 from ase.db.summary import Summary
+from ase.db.table import Table, all_columns
 from ase.calculators.calculator import get_calculator
 
 import numpy as np
@@ -76,7 +76,7 @@ def main(args=sys.argv[1:]):
         help='Specify columns to show.  Precede the column specification ' +
         'with a "+" in order to add columns to the default set of columns.  ' +
         'Precede by a "-" to remove columns.')
-    add('-s', '--sort', metavar='column',
+    add('-s', '--sort', metavar='column', default='id',
         help='Sort rows using column.  Default is to sort after ID.')
     add('--cut', type=int, default=35, help='Cut keywords and key-value ' +
         'columns after CUT characters.  Use --cut=0 to disable cutting. ' +
@@ -213,11 +213,24 @@ def run(opts, args, verbosity):
         summary = Summary(dct)
         summary.write()
     else:
-        table = Table(con, query, opts.limit, verbosity, opts.columns,
-                      opts.sort, opts.cut)
         if opts.open_web_browser:
             import ase.db.app as app
-            app.table = table
+            app.connection = con
             app.app.run(debug=True)
         else:
+            columns = list(all_columns)
+            c = opts.columns
+            if c:
+                if c[0] == '+':
+                    c = c[1:]
+                elif c[0] != '-':
+                    columns = []
+                for col in c.split(','):
+                    if col[0] == '-':
+                        columns.remove(col[1:])
+                    else:
+                        columns.append(col.lstrip('+'))
+        
+            table = Table(con, verbosity, opts.cut)
+            table.select(query, columns, opts.sort, opts.limit)
             table.write()

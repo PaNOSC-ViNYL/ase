@@ -6,10 +6,12 @@
 {% endblock %}
 {% block content %}
 <form action="/">
-Search: <input type=text name=query value="{{ t.query }}" onchange="this.form.submit()"><br>
+Search:
+<input type=text name=query value="{{ query }}" onchange="this.form.submit()">
+<br>
 Rows: {{ t.rows|length }}
 Limit:
-<input type=text name=limit value={{ t.limit }} onchange="this.form.submit()">
+<input type=text name=limit value={{ limit }} onchange="this.form.submit()">
 </form>
 Download:
 <a href="/sqlite">db</a>,
@@ -18,23 +20,22 @@ Download:
 <br>
 Add/remove key-column:
 {% for key in t.keys -%}
-<a href="/?toggle={{ key }}">{{ key }}</a>{% if not loop.last %},{% endif %}
+<a href="/?x={{ tid }}&amp;toggle={{ key }}">{{ key }}</a>{% if not loop.last %},{% endif %}
 {% endfor %}
 
 <table id=rows>
     <tr>
 {%- for c in t.columns %}
         <th>
-        {% if t.sort == c %}v {% elif t.sort == '-' + c %}^ {% endif -%}
-        <a href="/?sort={{ c }}">{{ c }}</a>
-            <a href="/?toggle={{ c }}">-</a>
+        {% if sort == c %}v {% elif sort == '-' + c %}^ {% endif -%}
+        <a href="/?x={{ tid }}&amp;sort={{ c }}">{{ c }}</a>
+            <a href="/?x={{ tid }}&amp;toggle={{ c }}">-</a>
         </th>
 {%- endfor %}
     </tr>
 {% for row in t.rows -%}
-    {% set n = loop.index0 %}
     <tr class="click {{ loop.cycle('even', 'odd') }}"
-        onclick="open_row(this, {{ n }});">
+        onclick="open_row(this, {{ row.dct.id }}, {{ tid }});">
     {%- autoescape false -%}
     {%- for s in row.strings -%}
         {% if t.right[loop.index0] -%}
@@ -45,9 +46,6 @@ Add/remove key-column:
     {% endfor %}
     {% endautoescape %}
     </tr>
-    {% if row.more %}
-    {% include "more.html" %}
-    {% endif %}
 {% endfor %}
 </table>
 Keywords found: {{ t.keywords|join(', ') }}

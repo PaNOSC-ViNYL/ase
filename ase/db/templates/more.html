@@ -1,21 +1,21 @@
     <tr>
-        <td colspan={{ row.strings|length + 1 }}>
-        {% if row.dct.numbers|length %}
-            <a href="/gui/{{ row.dct.id }}">
-                <img class=right src="/image/{{ row.dct.id }}.png">
+        <td colspan=99>
+        {% if dct.numbers|length %}
+            <a href="/gui/{{ id }}">
+                <img class=right src="/image/{{ id }}.png">
             </a>
         {% endif %}
-        {% if row.dct.key_value_pairs %}
-        {% for key, value in row.dct.key_value_pairs.items() %}
-            <a href="/?toggle={{ key }}">{{ key }}</a>: {{ value }}
+        {% if dct.key_value_pairs %}
+        {% for key, value in dct.key_value_pairs.items() %}
+            <a href="/?x={{ tid }}&amp;toggle={{ key }}">{{ key }}</a>: {{ value }}
             {%- if not loop.last %},{% endif %}
         {% endfor %}
         <br>
         {% endif %}
-        {% if row.dct.keywords %}
-        Keywords: {{ row.dct.keywords|join(', ') }}
+        {% if dct.keywords %}
+        Keywords: {{ dct.keywords|join(', ') }}
         <br>
         {% endif %}
-        <a href="/summary/{{ row.dct.id }}">more ...</a>
+        <a href="/id/{{ id }}">more ...</a>
         </td>
     </tr>

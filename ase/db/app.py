@@ -6,26 +6,68 @@ import tempfile
 import functools
 
 import ase.db
+from ase.db.table import Table, all_columns
+from ase.visualize import view
 from ase.io.png import write_png
 from ase.db.summary import Summary
-from ase.db.table import Table
 
 from flask import Flask, render_template, request, send_from_directory
 
 
 app = Flask(__name__)
-table = None
+connection = None
+tables = {}
 tmpdir = tempfile.mkdtemp()
+next_table_id = 1
 
-
-@app.route('/open_row/<int:n>')
-def open_row(n):
-    table.moreless(n)
-    row = table.rows[n]
-    if row.more:
-        return render_template('more.html', row=row)
+                
+@app.route('/')
+def index():
+    global next_table_id
+    table_id = int(request.args.get('x', '0'))
+    if table_id == 0:
+        table_id = next_table_id
+        next_table_id += 1
+        query = ''
+        columns = list(all_columns)
+        sort = 'id'
+        limit = 100
     else:
-        return ''
+        query, columns, sort, limit = tables[table_id]
+
+    if 'toggle' in request.args:
+        column = request.args['toggle']
+        if column in columns:
+            columns.remove(column)
+        else:
+            columns.append(column)
+    elif 'sort' in request.args:
+        column = request.args['sort']
+        if column == sort:
+            sort = '-' + column
+        elif '-' + column == sort:
+            sort = 'id'
+        else:
+            sort = column
+    elif 'query' in request.args:
+        query = request.args['query'].encode()
+        limit = int(request.args.get('limit', '0'))
+        columns = all_columns
+        sort = 'id'
+    
+    table = Table(connection)
+    table.select(query, columns, sort, limit)
+    tables[table_id] = query, table.columns, sort, limit
+    table.format('html')
+    return render_template('table.html', t=table, query=query, sort=sort,
+                           limit=limit, tid=table_id)
+
+    
+@app.route('/open_row/<int:id>')
+def open_row(id):
+    table_id = int(request.args['x'])
+    return render_template('more.html',
+                           dct=connection.get(id), id=id, tid=table_id)
     
     
 @app.route('/image/<name>')
@@ -33,7 +75,7 @@ def image(name):
     path = os.path.join(tmpdir, name).encode()
     if not os.path.isfile(path):
         id = int(name[:-4])
-        atoms = table.connection.get_atoms(id)
+        atoms = connection.get_atoms(id)
         if atoms:
             size = atoms.positions.ptp(0)
             i = size.argmin()
@@ -50,36 +92,14 @@ def image(name):
     
 @app.route('/gui/<int:id>')
 def gui(id):
-    table.gui(id)
+    atoms = connection.get_atoms(id)
+    view(atoms)
     return '', 204, []
         
         
-@app.route('/')
-def index():
-    if 'moreless' in request.args:
-        n = int(request.args['moreless'])
-        table.moreless(n)
-    elif 'toggle' in request.args:
-        key = request.args['toggle']
-        table.toggle(key)
-    elif 'sort' in request.args:
-        column = request.args['sort']
-        table.toggle_sort(column)
-    elif 'query' in request.args:
-        try:
-            limit = int(request.args.get('limit'))
-        except ValueError:
-            limit = None
-        table.search(request.args['query'].encode(), limit)
-        
-    table.format('html')
-
-    return render_template('table.html', t=table)
-
-    
-@app.route('/summary/<int:id>')
+@app.route('/id/<int:id>')
 def summary(id):
-    s = Summary(table.connection.get(id), 'html')
+    s = Summary(connection.get(id), 'html')
     return render_template('summary.html', s=s)
 
     
@@ -150,6 +170,5 @@ def sqlite(id):
 
     
 if __name__ == '__main__':
-    con = ase.db.connect(sys.argv[1])
-    globals()['table'] = Table(con)
+    globals()['connection'] = ase.db.connect(sys.argv[1])
     app.run(debug=True)
