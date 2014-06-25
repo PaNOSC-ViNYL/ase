@@ -199,10 +199,12 @@ bool_keys = [
     'ltangentold', # Old central difference tangent
     'ldneb',      # Turn on modified double nudging
     'lnebcell',   # Turn on SS-NEB
-    'lglobal',    # Optmizize NEB globally for LBFGS (IOPT = 1)
+    'lglobal',    # Optmize NEB globally for LBFGS (IOPT = 1)
     'llineopt',   # Use force based line minimizer for translation (IOPT = 1)
-    'lbeefens',   # Switch on print of BEE energy contritions in OUTCAR
+    'lbeefens',   # Switch on print of BEE energy contributions in OUTCAR
     'lbeefbas',   # Switch off print of all BEEs in OUTCAR
+    'lcalcpol',   # macroscopic polarization (vasp5.2). 'lcalceps'
+    'lcalceps',   # Macroscopic dielectric properties and Born effective charge tensors (vasp 5.2)
 ]
 
 list_keys = [
