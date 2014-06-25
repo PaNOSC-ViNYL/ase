@@ -87,6 +87,7 @@ float_keys = [
     'ftimeinc',   # Factor to inc. dt
     'falpha',     # Parameter for velocity damping
     'falphadec',  # Factor to dec. alpha
+    'clz',        # electron count for core level shift
 ]
 
 exp_keys = [
@@ -162,6 +163,10 @@ int_keys = [
     'snl',        # Maximum dimentionality of the Lanczos matrix
     'lbfgsmem',   # Steps saved for inverse Hessian for IOPT = 1 (LBFGS)
     'fnmin',      # Max iter. before adjusting dt and alpha for IOPT = 7 (FIRE)
+    'icorelevel', # core level shifts
+    'clnt',       # species index
+    'cln',        # main quantum number of excited core electron
+    'cll',        # l quantum number of excited core electron
 ]
 
 bool_keys = [
