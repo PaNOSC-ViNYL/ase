@@ -69,7 +69,6 @@ class Table:
         self.keywords = None
         
     def select(self, query, columns, sort, limit):
-        print(query, columns, sort, limit)
         self.limit = limit
         
         if sort != 'id':
