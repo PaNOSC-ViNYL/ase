@@ -9,10 +9,9 @@
 import time
 import numpy as np
 from numpy import atleast_1d, eye, mgrid, argmin, zeros, shape, empty, \
-     squeeze, vectorize, asarray, absolute, sqrt, Inf, asfarray, isinf
+    squeeze, vectorize, asarray, absolute, sqrt, Inf, asfarray, isinf
 from ase.utils.linesearch import LineSearch
 from ase.optimize.optimize import Optimizer
-from numpy import arange
 
 
 # These have been copied from Numeric's MLab.py
@@ -23,19 +22,19 @@ abs = absolute
 import __builtin__
 pymin = __builtin__.min
 pymax = __builtin__.max
-__version__="0.1"
+__version__ = '0.1'
+
 
 class BFGSLineSearch(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', maxstep=.2,
-                 trajectory=None, c1=.23, c2=0.46, alpha=10., stpmax=50.,
-                 use_free_energy=True):
+                 trajectory=None, c1=0.23, c2=0.46, alpha=10.0, stpmax=50.0):
         """Optimize atomic positions in the BFGSLineSearch algorithm, which
         uses both forces and potential energy information.
 
         Parameters:
 
         restart: string
-            Pickle file used to store hessian matrix. If set, file with 
+            Pickle file used to store hessian matrix. If set, file with
             such a name will be searched and hessian matrix stored will
             be used, if the file exists.
         trajectory: string
@@ -45,10 +44,6 @@ class BFGSLineSearch(Optimizer):
             iteration (default value is 0.2 Angstroms).
         logfile: string
             Text file used to write summary information.
-        use_free_energy: True/False (default True)
-            If True (the default), will use the energy before it is
-            extrapolated to 0 K; that is, the energy consistent with the
-            forces (if available on the chosen calculator).
         """
         self.maxstep = maxstep
         self.stpmax = stpmax
@@ -68,7 +63,6 @@ class BFGSLineSearch(Optimizer):
         self.alpha_k = None
         self.no_update = False
         self.replay = False
-        self.use_free_energy = use_free_energy
 
         Optimizer.__init__(self, atoms, restart, logfile, trajectory)
 
@@ -154,16 +148,9 @@ class BFGSLineSearch(Optimizer):
     def func(self, x):
         """Objective function for use of the optimizers"""
         self.atoms.set_positions(x.reshape(-1, 3))
-        atoms = self.atoms
         self.function_calls += 1
-        # Scale the problem as SciPy uses I as initial Hessian.
-        if self.use_free_energy:
-            try:
-                return atoms.get_potential_energy(force_consistent=True) / self.alpha
-            except TypeError:
-                return atoms.get_potential_energy() / self.alpha
-        else:
-            return atoms.get_potential_energy() / self.alpha
+        # Scale the problem as SciPy uses I as initial Hessian:
+        return self.atoms.get_potential_energy() / self.alpha
     
     def fprime(self, x):
         """Gradient of the objective function for use of the optimizers"""
