@@ -152,7 +152,7 @@ def run(opts, args, verbosity):
     if opts.explain:
         for dct in con.select(query, explain=True,
                               verbosity=verbosity, limit=opts.limit):
-            print('%d %d %d %s' % dct['explain'])
+            print(dct['explain'])
         return
 
     if opts.insert_into:
