@@ -80,7 +80,7 @@ class SQLite3Database(Database):
     default = 'NULL'  # used for autoincrement id
     
     def _connect(self):
-        return sqlite3.connect(self.filename)
+        return sqlite3.connect(self.filename, timeout=600)
 
     def _initialize(self, con):
         if self.initialized:
