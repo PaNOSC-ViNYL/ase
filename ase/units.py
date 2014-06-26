@@ -37,6 +37,7 @@ GPa = 1e9 * Pascal
 
 Debye = 1.0 / 1e11 / _e / _c
 alpha = _e**2 / (4 * pi * _eps0) / _hbar / _c # fine structure constant
+invcm = 100 * _c * _hplanck / _e              # cm^-1 energy unit
 
 # Derived atomic units that have no assigned name:
 _aut = _hbar / (alpha**2 * _me * _c**2)      # atomic unit of time, s

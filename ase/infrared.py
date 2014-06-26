@@ -282,37 +282,10 @@ class InfraRed(Vibrations):
         normalize=True ensures the integral over the peaks to give the 
         intensity.
         """
-
-        self.type = type.lower()
-        assert self.type in ['gaussian', 'lorentzian']
-        if not npts: 
-            npts = (end-start)/width*10+1
         frequencies = self.get_frequencies(method, direction).real
         intensities = self.intensities
-        prefactor = 1 
-        if type == 'lorentzian':
-            intensities = intensities * width * pi / 2.
-            if normalize:
-                prefactor = 2. / width / pi
-        else:
-            sigma = width / 2. / sqrt(2. * log(2.))
-            if normalize:
-                prefactor = 1. / sigma / sqrt(2 * pi)
-        #Make array with spectrum data
-        spectrum = np.empty(npts,np.float)
-        energies = np.empty(npts,np.float)
-        ediff = (end-start)/float(npts-1)
-        energies = np.arange(start, end+ediff/2, ediff)
-        for i, energy in enumerate(energies):
-            energies[i] = energy
-            if type == 'lorentzian':
-                spectrum[i] = (intensities * 0.5 * width / pi / (
-                        (frequencies - energy)**2 + 0.25 * width**2)).sum()
-            else:
-                spectrum[i] = (intensities * 
-                               np.exp(-(frequencies - energy)**2 / 
-                                       2. / sigma**2)).sum()
-        return [energies, prefactor * spectrum]
+        return self.fold(frequencies, intensities,
+                         start, end, npts, width, type, normalize)
 
     def write_spectra(self, out='ir-spectra.dat', start=800, end=4000, 
                       npts=None, width=10, 

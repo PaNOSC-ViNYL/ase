@@ -3,7 +3,7 @@
 """Vibrational modes."""
 
 import pickle
-from math import sin, pi, sqrt
+from math import sin, pi, sqrt, log
 from os import remove
 from os.path import isfile, getsize
 import sys
@@ -235,7 +235,7 @@ class Vibrations:
     def get_frequencies(self, method='standard', direction='central'):
         """Get vibration frequencies in cm^-1."""
 
-        s = 0.01 * units._e / units._c / units._hplanck
+        s = 1. / units.invcm
         return s * self.get_energies(method, direction)
 
     def summary(self, method='standard', direction='central', freq=None,
@@ -338,3 +338,70 @@ class Vibrations:
                          (symbols[i], pos[0], pos[1], pos[2],
                           mode[i, 0], mode[i, 1], mode[i, 2]))
         fd.close()
+
+    def fold(self, frequencies, intensities,
+             start=800, end=4000, npts=None, width=4, 
+             type='Gaussian', normalize=False):
+        """Fold frequencies and intensities within the given range
+        and folding method (Gaussian/Lorentzian). 
+        The energy unit is cm^-1.
+        normalize=True ensures the integral over the peaks to give the 
+        intensity.
+        """
+
+        self.type = type.lower()
+        assert self.type in ['gaussian', 'lorentzian']
+        if not npts: 
+            npts = (end - start) / width * 10 + 1
+        prefactor = 1 
+        if type == 'lorentzian':
+            intensities = intensities * width * pi / 2.
+            if normalize:
+                prefactor = 2. / width / pi
+        else:
+            sigma = width / 2. / sqrt(2. * log(2.))
+            if normalize:
+                prefactor = 1. / sigma / sqrt(2 * pi)
+
+        # Make array with spectrum data
+        spectrum = np.empty(npts,np.float)
+        energies = np.empty(npts,np.float)
+        ediff = (end - start) / float(npts - 1)
+        energies = np.arange(start, end + ediff / 2, ediff)
+        for i, energy in enumerate(energies):
+            energies[i] = energy
+            if type == 'lorentzian':
+                spectrum[i] = (intensities * 0.5 * width / pi / (
+                        (frequencies - energy)**2 + 0.25 * width**2)).sum()
+            else:
+                spectrum[i] = (intensities * 
+                               np.exp(-(frequencies - energy)**2 / 
+                                       2. / sigma**2)).sum()
+        return [energies, prefactor * spectrum]
+
+    def write_dos(self, out='vib-dos.dat', start=800, end=4000, 
+                  npts=None, width=10, 
+                  type='Gaussian', method='standard', direction='central'):
+        """Write out the vibrational density of states to file.
+
+        First column is the wavenumber in cm^-1, the second column the 
+        folded vibrational density of states.
+        Start and end points, and width of the Gaussian/Lorentzian 
+        should be given in cm^-1."""
+        frequencies = self.get_frequencies(method, direction).real
+        intensities = np.ones(len(frequencies))
+        energies, spectrum = self.fold(frequencies, intensities,
+                         start, end, npts, width, type)
+
+        # Write out spectrum in file.
+        outdata = np.empty([len(energies), 2])
+        outdata.T[0] = energies
+        outdata.T[1] = spectrum
+        fd = open(out, 'w')
+        fd.write('# %s folded, width=%g cm^-1\n' % (type.title(), width))
+        fd.write('# [cm^-1] arbitrary\n')
+        for row in outdata:
+            fd.write('%.3f  %15.5e\n' % 
+                     (row[0], row[1]))
+        fd.close()
+
