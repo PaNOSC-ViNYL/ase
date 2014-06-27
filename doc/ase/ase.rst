@@ -81,3 +81,4 @@ List of all modules:
    neighbors
    io/opls
    db/db
+   dimermethod
