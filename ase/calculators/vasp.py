@@ -377,26 +377,25 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         # Determine the number of atoms of each atomic species
         # sorted after atomic species
         special_setups = []
-        symbols = {}
+        symbols = []
+        symbolcount = {}
         if self.input_params['setups']:
             for m in self.input_params['setups']:
                 try :
-                    #special_setup[self.input_params['setups'][m]] = int(m)
                     special_setups.append(int(m))
-                except ValueError:
-                    #print 'setup ' + m + ' is a groups setup'
+                except ValueError:                
                     continue
-            #print 'special_setups' , special_setups
-
+ 
         for m,atom in enumerate(atoms):
             symbol = atom.symbol
             if m in special_setups:
                 pass
             else:
-                if not symbols.has_key(symbol):
-                    symbols[symbol] = 1
+                if symbol not in symbols:
+                    symbols.append(symbol)
+                    symbolcount[symbol] = 1
                 else:
-                    symbols[symbol] += 1
+                    symbolcount[symbol] += 1
 
         # Build the sorting list
         self.sort = []
@@ -418,13 +417,13 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         # create a list of their paths.
         self.symbol_count = []
         for m in special_setups:
-            self.symbol_count.append([atomtypes[m],1])
+            self.symbol_count.append([atomtypes[m], 1])
         for m in symbols:
-            self.symbol_count.append([m,symbols[m]])
-        #print 'self.symbol_count',self.symbol_count
+            self.symbol_count.append([m, symbolcount[m]])
+
         sys.stdout.flush()
         xc = '/'
-        #print 'p[xc]',p['xc']
+            
         if p['xc'] == 'PW91':
             xc = '_gga/'
         elif p['xc'] == 'PBE':
