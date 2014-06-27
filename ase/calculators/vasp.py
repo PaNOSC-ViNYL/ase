@@ -594,7 +594,7 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         self.set_results(atoms)
         self.read_kpoints()
         self.read_potcar()
-#        self.old_incar_params = self.incar_params.copy()
+
         self.old_input_params = self.input_params.copy()
         self.converged = self.read_convergence()
 
