@@ -17,15 +17,23 @@ from ase.calculators.singlepoint import SinglePointCalculator
 
 # Handy vector methods
 norm = np.linalg.norm
+
+
 def normalize(vector):
     """Create a unit vector along *vector*"""
     return vector / norm(vector)
+
+    
 def parallel_vector(vector, base):
     """Extract the components of *vector* that are parallel to *base*"""
     return np.vdot(vector, base) * base
+
+    
 def perpendicular_vector(vector, base):
     """Remove the components of *vector* that are parallel to *base*"""
     return vector - parallel_vector(vector, base)
+
+    
 def rotate_vectors(v1i, v2i, angle):
     """Rotate vectors *v1i* and *v2i* by *angle*"""
     cAng = cos(angle)
@@ -35,6 +43,7 @@ def rotate_vectors(v1i, v2i, angle):
     # Ensure the length of the input and output vectors is equal
     return normalize(v1o) * norm(v1i), normalize(v2o) * norm(v2i)
 
+
 class DimerEigenmodeSearch:
     """An implementation of the Dimer's minimum eigenvalue mode search.
 
@@ -43,14 +52,14 @@ class DimerEigenmodeSearch:
 
     Parameters:
 
-    atoms : MinModeAtoms object
+    atoms: MinModeAtoms object
         MinModeAtoms is an extension to the Atoms object, which includes
         information about the lowest eigenvalue mode.
-    control : DimerControl object
+    control: DimerControl object
         Contains the parameters necessary for the eigenmode search.
         If no control object is supplied a default DimerControl
         will be created and used.
-    basis : list of xyz-values
+    basis: list of xyz-values
         Eigenmode. Must be an ndarray of shape (n, 3).
         It is possible to constrain the eigenmodes to be orthogonal
         to this given eigenmode.
@@ -62,14 +71,14 @@ class DimerEigenmodeSearch:
 
     References:
 
-    .. [1] Henkelman and Jonsson, JCP 111, 7010 (1999)
-    .. [2] Olsen, Kroes, Henkelman, Arnaldsson, and Jonsson, JCP 121,
-           9776 (2004).
-    .. [3] Heyden, Bell, and Keil, JCP 123, 224101 (2005).
-    .. [4] Kastner and Sherwood, JCP 128, 014106 (2008).
+    * Henkelman and Jonsson, JCP 111, 7010 (1999)
+    * Olsen, Kroes, Henkelman, Arnaldsson, and Jonsson, JCP 121,
+      9776 (2004).
+    * Heyden, Bell, and Keil, JCP 123, 224101 (2005).
+    * Kastner and Sherwood, JCP 128, 014106 (2008).
 
     """
-    def __init__(self, atoms, control=None, eigenmode=None, basis=None, \
+    def __init__(self, atoms, control=None, eigenmode=None, basis=None,
                  **kwargs):
         if hasattr(atoms, 'get_eigenmode'):
             self.atoms = atoms
@@ -115,10 +124,10 @@ class DimerEigenmodeSearch:
         extrapolate = self.control.get_parameter('extrapolate_forces')
 
         while not stoprot:
-            if self.forces1E == None:
+            if self.forces1E is None:
                 self.update_virtual_forces()
             else:
-                self.update_virtual_forces(extrapolated_forces = True)
+                self.update_virtual_forces(extrapolated_forces=True)
             self.forces1A = self.forces1
             self.update_curvature()
             f_rot_A = self.get_rotational_force()
