@@ -5,18 +5,15 @@ http://www.gromacs.org/
 
 import os
 from glob import glob
-from os.path import join, isfile, islink
+from os.path import isfile
 
 import numpy as np
 
-from ase.data import atomic_numbers
-from ase.data import chemical_symbols
-from ase.io.gromacs import read_gromacs
-from ase.calculators.calculator import FileIOCalculator, Parameters, \
-    ReadError
+from ase.calculators.calculator import FileIOCalculator, Parameters, ReadError
+
 
 def do_clean():
-    """ remove gromacs backup files """
+    """Remove gromacs backup files"""
     files = glob('#*')
     for f in files:
         try:
@@ -24,24 +21,29 @@ def do_clean():
         except OSError:
             pass
 
+            
 class Gromacs(FileIOCalculator):
     """Class for doing GROMACS calculations.
+    
     Before running a gromacs calculation you must prepare the input files
     separately (pdb2gmx and grompp for instance.)
 
     Input parameters for gromacs runs (the .mdp file)
-    are given in self.params and can be set when initializing the calculator 
+    are given in self.params and can be set when initializing the calculator
     or by method set_own.
-    for Example 
-    CALC_MM_RELAX = Gromacs()
-    CALC_MM_RELAX.set_own_params('integrator', 'steep', 'use steepest descent')
+    for Example::
+        
+        CALC_MM_RELAX = Gromacs()
+        CALC_MM_RELAX.set_own_params('integrator', 'steep',
+                                     'use steepest descent')
 
     Run command line arguments for gromacs related programs:
-    pdb2gmx, grompp, mdrun, g_energy, g_traj
-    These can be given as:
-    CALC_MM_RELAX = Gromacs()
-    CALC_MM_RELAX.set_own_params_runs(
-        'force_field','oplsaa','oplsaa force field')         
+    pdb2gmx, grompp, mdrun, g_energy, g_traj.
+    These can be given as::
+        
+        CALC_MM_RELAX = Gromacs()
+        CALC_MM_RELAX.set_own_params_runs(
+            'force_field','oplsaa','oplsaa force field')
 
 
     """
@@ -50,51 +52,42 @@ class Gromacs(FileIOCalculator):
     command = 'mdrun < PREFIX.files > PREFIX.log'
 
     default_parameters = dict(
-        index_filename = 'index.ndx',
-        define = '-DFLEXIBLE',
-        integrator = 'cg',
-        nsteps = '10000',
-        nstfout = '10',
-        nstlog = '10',
-        nstenergy = '10',
-        nstlist = '10',
-        ns_type = 'grid',
-        pbc = 'xyz',
-        rlist = '1.15',
-        coulombtype = 'PME-Switch',
-        rcoulomb = '0.8',
-        vdwtype = 'shift',
-        rvdw = '0.8',
-        rvdw_switch = '0.75',
-        DispCorr = 'Ener')
+        index_filename='index.ndx',
+        define='-DFLEXIBLE',
+        integrator='cg',
+        nsteps='10000',
+        nstfout='10',
+        nstlog='10',
+        nstenergy='10',
+        nstlist='10',
+        ns_type='grid',
+        pbc='xyz',
+        rlist='1.15',
+        coulombtype='PME-Switch',
+        rcoulomb='0.8',
+        vdwtype='shift',
+        rvdw='0.8',
+        rvdw_switch='0.75',
+        DispCorr='Ener')
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='gromacs', atoms=None,
-                 do_qmmm = False, freeze_qm = False, clean=True, **kwargs):
+                 do_qmmm=False, freeze_qm=False, clean=True, **kwargs):
         """Construct GROMACS-calculator object.
 
-        Parameters
-        ==========
+        Parameters:
+
         label: str
             Prefix to use for filenames (label.in, label.txt, ...).
             Default is 'gromacs'.
-
-        do_qmmm : boolean
+        do_qmmm: bool
             Is gromacs used as mm calculator for a qm/mm calculation
-
-        freeze_qm : boolean
+        freeze_qm: bool
             In qm/mm are the qm atoms kept fixed at their initial positions
-
-        clean :     boolean
+        clean: bool
             Remove gromacs backup files
 
-        Examples
-        ========
-
-
-
         """
-        from glob import glob
         #self.label = label
         self.do_qmmm = do_qmmm
         self.freeze_qm = freeze_qm
@@ -121,7 +114,7 @@ class Gromacs(FileIOCalculator):
                                   label, atoms, **kwargs)
 
         self.params_runs = {}
-        self.params_runs['init_structure'] = self.label+'.pdb'
+        self.params_runs['init_structure'] = self.label + '.pdb'
         self.params_runs['water'] = 'tip3p'
         self.params_runs['force_field'] = 'oplsaa'
         self.params_runs['extra_mdrun_parameters'] = ' -nt 1 '
@@ -131,20 +124,18 @@ class Gromacs(FileIOCalculator):
         self.params_runs['extra_genbox_parameters'] = ' '
 
         #these below are required by qm/mm
-        self.topology_filename = self.label+'.top'
+        self.topology_filename = self.label + '.top'
         self.force_field = self.params_runs.get('force_field')
         self.name = 'Gromacs'
 
         # clean up gromacs backups
-        if self.clean: 
+        if self.clean:
             do_clean()
 
         if self.do_qmmm:
             self.parameters['integrator'] = 'md'
             self.parameters['nsteps'] = '0'
-            self.write_gromacs_qmmm_files()            
-
-
+            self.write_gromacs_qmmm_files()
 
     def generate_g96file(self):
         """ from current coordinates (self.structure_file)
@@ -165,14 +156,15 @@ class Gromacs(FileIOCalculator):
                       ' > /dev/null 2>&1')        
 
     def run_genbox(self):
-        """ run gromacs program genbox, typically to solvate the system 
+        """ run gromacs program genbox, typically to solvate the system
         writing to the input structure
         as extra parameter you need to define the file containing the solvent
 
-        for instance
-        CALC_MM_RELAX = Gromacs()
-        CALC_MM_RELAX.set_own_params_runs(
-            'extra_genbox_parameters','-cs spc216.gro')
+        for instance::
+            
+            CALC_MM_RELAX = Gromacs()
+            CALC_MM_RELAX.set_own_params_runs(
+                'extra_genbox_parameters','-cs spc216.gro')
         """
         command = 'genbox' + ' '
         os.system(command + \
@@ -347,7 +339,7 @@ class Gromacs(FileIOCalculator):
         """Read results from Gromacs's text-output file."""
         FileIOCalculator.read(self, label)
         filename = self.label + '.txt'
-        if not os.path.isfile(filename):
+        if not isfile(filename):
             raise ReadError
 
         self.atoms = read_abinit(self.label + '.in')
@@ -425,7 +417,6 @@ class Gromacs(FileIOCalculator):
             raise RuntimeError
         #
         self.niter = self.read_number_of_iterations()
-
 
     def initialize(self, atoms):
         numbers = atoms.get_atomic_numbers().copy()
