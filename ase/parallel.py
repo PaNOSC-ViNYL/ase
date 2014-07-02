@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import time
 import atexit
@@ -20,27 +21,10 @@ def paropen(name, mode='r', buffering=0):
 
 def parprint(*args, **kwargs):
     """MPI-safe print - prints only from master.
-
-    Tries to adopt python 3 behaviour.
     """
     if rank > 0:
-        return
-    defaults = {'end': '\n',
-                'file': sys.stdout }
-    for key in defaults:
-        if not key in kwargs:
-            kwargs[key] = defaults[key]
-
-    for arg in args[:-1]:
-        print >> kwargs['file'], arg,
-    if len(args):
-        last = args[-1]
-    else:
-        last = ''
-    if kwargs['end'] == '\n':
-        print >> kwargs['file'], last
-    else:
-        print >> kwargs['file'], last,
+        kwargs['file'] = open('/dev/null', 'w')
+    print(*args, **kwargs)
 
 
 class DummyMPI:
