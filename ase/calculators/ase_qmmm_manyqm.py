@@ -418,6 +418,30 @@ class AseQmmmManyqm:
         print('QM second N of Link %s' % str(self.second_qms))
         print('QM third N of Link %s' % str(self.third_qms))
 
+        #check that MM topology exists:
+        if not(os.path.exists(mm_calculator.topology_filename)):
+            print "NO TOPOLOGY FILE:", mm_calculator.topology_filename
+            print "use: CALC_MM.generate_topology_and_g96file()"
+            sys.exit()
+
+        #check that MM run file (.tpr) exists:
+        if not(os.path.exists(mm_calculator.label+'.tpr')):
+            print "NO MM run file FILE:", mm_calculator.label+'.tpr'
+            print "use: CALC_MM.write_input(atoms)"
+            print "use: CALC_MM.generate_gromacs_run_file()"
+            sys.exit()
+        #check that force field files exist
+        if 'GMXDATA' in os.environ:
+            gromacs_home = os.environ['GMXDATA'].split(':')[0]
+        else:
+            gromacs_home = '/usr/local/gromacs/share/gromacs/'
+        ff_filename = gromacs_home+ '/top/' \
+            + mm_calculator.force_field + '.ff/ffbonded.itp'
+        if not(os.path.exists(mm_calculator.topology_filename)):
+            print "NO force field file:", ff_filename
+            print "use: GMXDATA environmental variable"
+            sys.exit()
+
         if link_info == 'byFILE':
             self.read_eq_distances_from_file()
         else:
@@ -560,7 +584,7 @@ class AseQmmmManyqm:
         mm.set_calculator(self.mm_calculator)
         if (self.mm_calculator.name == 'Gromacs'):
             try:
-                os.remove(self.mm_calculator.base_filename+'.log')
+                os.remove(self.mm_calculator.label+'.log')
             except:
                 pass
         self.mm_calculator.update(mm)
@@ -751,10 +775,10 @@ class AseQmmmManyqm:
             if (('QM' in line) or ('Qm' in line) or ('qm' in line)):
                 qm_region_names.append(line.split()[1])
 
-        infile = open(self.mm_calculator.base_filename+'.mdp','r')
+        infile = open(self.mm_calculator.label+'.mdp','r')
         lines = infile.readlines()
         infile.close()
-        outfile = open(self.mm_calculator.base_filename+'.mdp','w')
+        outfile = open(self.mm_calculator.label+'.mdp','w')
         for line1 in lines:
             outfile.write(line1)
         outfile.write(';qm regions should not MM-interact with themselves \n')
@@ -1093,13 +1117,13 @@ class AseQmmmManyqm:
         #get the version of the topology file where one sees the bond 
         # force constants (file is named as gromacs.top.dump)
         try:
-            os.remove(self.mm_calculator.base_filename+'.tpr.dump')
+            os.remove(self.mm_calculator.label+'.tpr.dump')
         except OSError:
             pass
 
-        os.system('gmxdump -s '+ self.mm_calculator.base_filename\
+        os.system('gmxdump -s '+ self.mm_calculator.label\
                       +'.tpr > ' + \
-                  self.mm_calculator.base_filename+ \
+                  self.mm_calculator.label+ \
                       '.tpr.dump 2>/dev/null')
         if 'GMXDATA' in os.environ:
             gromacs_home = os.environ['GMXDATA'].split(':')[0]
@@ -1109,7 +1133,7 @@ class AseQmmmManyqm:
         #read the bonded force constants of this force field in order to 
         #get an estimate for X-Y bond constant
         linesff = open(gromacs_home+ '/top/'+ force_field+ \
-                         '.ff/ffbonded.itp', 'r').readlines()
+                           '.ff/ffbonded.itp', 'r').readlines()
         oklinesff = []
         start = False
 
@@ -1127,7 +1151,7 @@ class AseQmmmManyqm:
                                          '.ff/ffnonbonded.itp', 'r').readlines()
 
         #read the types of interaction for bond stretching
-        lines_tpr = open(self.mm_calculator.base_filename+\
+        lines_tpr = open(self.mm_calculator.label+\
                              '.tpr.dump', 'r').readlines()
 
         #read the topology file to get QM atom type
@@ -1140,6 +1164,7 @@ class AseQmmmManyqm:
             if start:
                 if (not line.startswith(';')) or (not line.strip()):
                     oklines_top.append(line)
+                    #print line
             if '[ atoms' in line:
                 start = True
 
@@ -1161,6 +1186,7 @@ class AseQmmmManyqm:
                 # get the index for interaction 
                 interaction = 'empty'
                 for line in lines_tpr:
+                    print line
                     if (' type' in line) and ('BONDS' in line):
                         if (qmatom == int(line.split()[3])) and \
                                 (mmatom == int(line.split()[4])):
@@ -1173,7 +1199,7 @@ class AseQmmmManyqm:
                 if interaction == 'empty':
                     print('QM-MM bond not found in topology')
                     print('atoms are: QM, MM: (from 1 indexing) %s' \
-                        % str(qmatom+1) + str(mmatom+1))
+                        % str(qmatom+1) + '  ' + str(mmatom+1))
                     sys.exit()
                 for line in lines_tpr:
                     if ('functype['+interaction+']=BONDS') in line:
