@@ -1,19 +1,11 @@
 """ test run for gromacs calculator """
-
-from ase.test import NotAvailable
-
 from ase.calculators.gromacs import Gromacs
 
-if Gromacs().get_command() is None:
-    raise NotAvailable('Gromacs required')
-
-import sys, os, glob
-from ase.io import read, write
 
 GRO_INIT_FILE = 'hise_box.gro'
 
-#write structure file 
-outfile=open('hise_box.gro','w')
+# write structure file
+outfile = open('hise_box.gro', 'w')
 outfile.write('HISE for testing  \n')
 outfile.write('   20 \n')
 outfile.write('    3HISE     N    1   1.966   1.938   1.722 \n')
@@ -60,53 +52,40 @@ outfile.close()
 #os.system(command)
 
 CALC_MM_RELAX = Gromacs(
-    init_structure_file = GRO_INIT_FILE,
-    structure_file = 'gromacs_mm-relax.g96',
-    force_field='charmm27', 
-    water_model='tip3p',    
-    base_filename = 'gromacs_mm-relax',
-    doing_qmmm = False, freeze_qm = False,
-    index_filename = 'index.ndx',
-    extra_mdrun_parameters = ' -nt 1 ',
-    define = '-DFLEXIBLE',
-    integrator = 'cg',
-    nsteps = '10000',
-    nstfout = '10',
-    nstlog = '10',
-    nstenergy = '10',
-    nstlist = '10',
-    ns_type = 'grid',
-    pbc = 'xyz',
-    rlist = '0.7',
-    coulombtype = 'PME-Switch',
-    rcoulomb = '0.6',
-    vdwtype = 'shift',
-    rvdw = '0.6',
-    rvdw_switch = '0.55',
-    DispCorr = 'Ener')
+    init_structure_file=GRO_INIT_FILE,
+    structure_file='gromacs_mm-relax.g96',
+    force_field='charmm27',
+    water_model='tip3p',
+    base_filename='gromacs_mm-relax',
+    doing_qmmm=False, freeze_qm=False,
+    index_filename='index.ndx',
+    extra_mdrun_parameters=' -nt 1 ',
+    define='-DFLEXIBLE',
+    integrator='cg',
+    nsteps='10000',
+    nstfout='10',
+    nstlog='10',
+    nstenergy='10',
+    nstlist='10',
+    ns_type='grid',
+    pbc='xyz',
+    rlist='0.7',
+    coulombtype='PME-Switch',
+    rcoulomb='0.6',
+    vdwtype='shift',
+    rvdw='0.6',
+    rvdw_switch='0.55',
+    DispCorr='Ener')
 
-#pdb2gmx -ff charmm27 -f hise_box.gro -o gromacs_mm-relax.g96 -p gromacs_mm-relax.top  
+#pdb2gmx -ff charmm27 -f hise_box.gro -o gromacs_mm-relax.g96 \
+#-p gromacs_mm-relax.top
 CALC_MM_RELAX.generate_topology_and_g96file()
-#grompp -f gromacs_mm-relax.mdp -c gromacs_mm-relax.g96 -p gromacs_mm-relax.top -n index.ndx -o gromacs_mm-relax.tpr -maxwarn 100
+#grompp -f gromacs_mm-relax.mdp -c gromacs_mm-relax.g96 \
+#-p gromacs_mm-relax.top -n index.ndx -o gromacs_mm-relax.tpr -maxwarn 100
 CALC_MM_RELAX.generate_gromacs_run_file()
 CALC_MM_RELAX.run()
 atoms = CALC_MM_RELAX.get_atoms()
 final_energy = CALC_MM_RELAX.get_potential_energy(atoms)
 #print "final energy", final_energy
-# clean 
-files = glob.glob('gromacs_mm-relax*')
-files.append('hise_box.gro')
-files.append('inputGenergy.txt')
-files.append('inputGtraj.txt')
-files.append('mdout.mdp')
-files.append('MM.log')
-files.append('posre.itp')
-files.append('tmp_ene.del')
-for file in files:
-    try:
-        os.remove(file)
-    except OSError:
-        pass
-
 assert abs(final_energy + 4.06503308131) < 5e-3
 
