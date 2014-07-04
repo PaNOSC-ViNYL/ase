@@ -26,44 +26,10 @@ MM part.
 For example: (setting for the MM part of a QM/MM run, 
 parameter '-nt 1' for serial run)::
 
-  CALC_MM = Gromacs(
-    init_structure_file = infile_name,
-    structure_file = 'gromacs_qm.g96', \
-    force_field='oplsaa', 
-    water_model='tip3p',
-    base_filename = 'gromacs_qm',
-    doing_qmmm = True, freeze_qm = False,
-    index_filename = 'index.ndx',
-    extra_mdrun_parameters = ' -nt 1 ',
-    define = '-DFLEXIBLE',
-    integrator = 'md',
-    nsteps = '0',
-    nstfout = '1',
-    nstlog = '1',
-    nstenergy = '1',
-    nstlist = '1',
-    ns_type = 'grid',
-    pbc = 'xyz',
-    rlist = '1.15',
-    coulombtype = 'PME-Switch',
-    rcoulomb = '0.8',
-    vdwtype = 'shift',
-    rvdw = '0.8',
-    rvdw_switch = '0.75',
-    DispCorr = 'Ener')
+  CALC_MM = Gromacs(doing_qmmm = True)
+  CALC_MM.set_own_params_runs('extra_mdrun_parameters', ' -nt 1 ')
 
-For example: (setting for a MM calculation, useful when keeping QM fixed 
-and relaxing MM only, parameter '-nt 1' for serial run)::
-         
-  CALC_MM_RELAX = Gromacs(
-    init_structure_file = infile_name,
-    structure_file = 'gromacs_mm-relax.g96',
-    force_field='oplsaa', 
-    water_model='tip3p',
-    base_filename = 'gromacs_mm-relax',
-    doing_qmmm = False, freeze_qm = True,
-    index_filename = 'index.ndx',
-    extra_mdrun_parameters = ' -nt 1 ',
+Here default values for MM input are::
     define = '-DFLEXIBLE',
     integrator = 'cg',
     nsteps = '10000',
@@ -79,7 +45,25 @@ and relaxing MM only, parameter '-nt 1' for serial run)::
     vdwtype = 'shift',
     rvdw = '0.8',
     rvdw_switch = '0.75',
-    DispCorr = 'Ener')
+    DispCorr = 'Ener'
+
+The input values can be changed by::
+    CALC_MM.set_own_params(
+        'nsteps','99999' 'Number of steps')
+
+The arguments for gromacs programs can be changed by::
+    CALC_MM.set_own_params_runs(
+        'extra_pdb2gmx_parameters','-ignh')
+    CALC_MM.set_own_params_runs(
+        'init_structure','1GM2.pdb')
+    CALC_MM.set_own_params_runs(
+        'extra_mdrun_parameters', ' -nt 1 ')
+    CALC_MM.set_own_params_runs(
+        'extra_grompp_parameters', ' ')
+    CALC_MM.set_own_params_runs(
+        'extra_editconf_parameters', ' ')
+    CALC_MM.set_own_params_runs(
+        'extra_genbox_parameters', ' ')
 
 
 Parameters
@@ -89,33 +73,19 @@ http://www.gromacs.org/Documentation/Manual
 
 and extra (ie. non-gromacs) parameter: 
 
-init_structure_file: str
-    Name of the input structure file for gromacs
-    (only pdb2gmx uses this)
-structure_file: str
-    Name of the structure file for gromacs
-    (in all other context that the initial input file)
-force_field: str
-    Name of the force field for gromacs
-water_model: str
-    Name of the water model for gromacs
-base_filename: str
-    The generated Gromacs file names have this string  
-    as the common part in their names (except structure files).
-doing_qmmm: logical
+do_qmmm: logical      (default False)
     If true we run only single step of gromacs 
     (to get MM forces and energies in QM/MM)
-freeze_qm: logical
+freeze_qm: logical    (default False)
     If true, the qm atoms will be kept fixed
     (The list of qm atoms is taken from file 'index_filename', below)
-index_filename: string
-    Name of the index file for gromacs
-extra_pdb2gmx_parameters: str
-    extra parameter(s) to be passed to gromacs programm 'pdb2gmx'
-extra_grompp_parameters: str
-    extra parameter(s) to be passed to gromacs program 'grompp'
-extra_mdrun_parameters: str
-    extra parameter(s) to be passed to gromacs program 'mdrun'
+clean:       logical  (default True)
+    If true old gromacs files are cleaned
+force_field: str      (default oplsaa)
+    Name of the force field for gromacs
+water_model: str      (default tip3p)
+    Name of the water model for gromacs
+
 
 Environmental variables:
 ========================
@@ -135,27 +105,6 @@ Initial pdb coordinates (file his.pdb):
 
 .. literalinclude:: his.pdb
 
-First generate the initial structure in gromacs format (.gro)
-
->>> pdb2gmx -f his.pdb -o hish.gro -ff oplsaa -water tip3p 
-
-(pdb2gmx seems strangely to give the molecule hish.gro a total charge of 
--0.110 but this is not a problem for us now, this is just an example)
-
-Then setup a periodic simulation box
- 
->>> editconf -f hish.gro -o hish_box.gro -box 3 3 3
-
-Solvate histidine in a water box
-
->>> genbox -cp hish_box.gro -cs spc216.gro -o hish_waterbox.gro
-
-Generate index file for gromacs groups
-
->>> make_ndx -f hish_waterbox.gro
->>> q<ENTER>
-
-Finally, relax the structure.
 The sample file for relaxation:
 
 .. literalinclude:: gromacs_example_mm_relax.py
