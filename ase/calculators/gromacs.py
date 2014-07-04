@@ -42,16 +42,17 @@ class Gromacs(FileIOCalculator):
     Input parameters for gromacs runs (the .mdp file)
     are given in self.params and can be set when initializing the calculator
     or by method set_own.
-    for Example
-    CALC_MM_RELAX = Gromacs()
-    CALC_MM_RELAX.set_own_params('integrator', 'steep', 'use steepest descent')
+    for example::
+        
+        CALC_MM_RELAX = Gromacs()
+        CALC_MM_RELAX.set_own_params('integrator', 'steep',
+                                     'use steepest descent')
 
     Run command line arguments for gromacs related programs:
-    pdb2gmx, grompp, mdrun, g_energy, g_traj
-    These can be given as:
-    CALC_MM_RELAX = Gromacs()
-    CALC_MM_RELAX.set_own_params_runs(
-        'force_field','oplsaa')         
+    pdb2gmx, grompp, mdrun, g_energy, g_traj.  These can be given as::
+        
+        CALC_MM_RELAX = Gromacs()
+        CALC_MM_RELAX.set_own_params_runs('force_field', 'oplsaa')         
     """
 
     implemented_properties = ['energy', 'forces']
@@ -189,15 +190,15 @@ class Gromacs(FileIOCalculator):
                       ' > /dev/null 2>&1')        
 
     def run_genbox(self):
-        """ run gromacs program genbox, typically to solvate the system 
+        """Run gromacs program genbox, typically to solvate the system
         writing to the input structure
         as extra parameter you need to define the file containing the solvent
 
-        for instance:
+        for instance::
 
            CALC_MM_RELAX = Gromacs()
            CALC_MM_RELAX.set_own_params_runs(
-                'extra_genbox_parameters','-cs spc216.gro')
+                'extra_genbox_parameters', '-cs spc216.gro')
         """
         command = 'genbox' + ' '
         os.system(command + \
