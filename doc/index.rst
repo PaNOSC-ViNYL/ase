@@ -12,7 +12,8 @@ for manipulating atoms, analyzing simulations, visualization etc.
 
 Actively maintained :mod:`calculators`:
 
-   |abinit| |Asap| |elk| |EMT| |fhi-aims| Gaussian_ |gpaw| |nwchem|
+   |abinit| |Asap| |elk| |EMT| |fhi-aims| Gaussian_ |gpaw|
+   |gromacs| |nwchem|
 
 Supported :mod:`calculators` (we are looking for maintainers!):
 
@@ -48,6 +49,9 @@ Supported :mod:`calculators` (we are looking for maintainers!):
    :align: middle
 .. |gpaw| image:: _static/gpaw.png
    :target: http://wiki.fysik.dtu.dk/gpaw
+   :align: middle
+.. |gromacs| image:: _static/gromacs.png
+   :target: http://www.gromacs.org/
    :align: middle
 .. |hotbit| image:: _static/hotbit.png
    :target: https://trac.cc.jyu.fi/projects/hotbit
