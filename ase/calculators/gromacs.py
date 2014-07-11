@@ -225,7 +225,7 @@ class Gromacs(FileIOCalculator):
                           + ' -e ' + self.label + '.edr ' \
                           + ' -g ' + self.label + '.log -ffout ' \
                           + ' -rerun ' + self.label + '.g96 ' \
-                      ' ' + self.params_runs.get('extra_mdrun_parameters') +\
+                          + self.params_runs.get('extra_mdrun_parameters') \
                           + ' > mm.log 2>&1')
         else:
             os.system(command \

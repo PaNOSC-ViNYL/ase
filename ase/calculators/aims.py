@@ -57,6 +57,7 @@ string_keys = [
     'qpe_calc',
     'xc',
     'species_dir',
+    'run_command',
 ]
 
 int_keys = [
@@ -133,18 +134,25 @@ class Aims(FileIOCalculator):
         tier: int or array of ints
             Set basis set tier for all atomic species.
         """
-
+        try:
+            self.outfilename = kwargs.get('run_command').split()[-1]
+        except:
+            self.outfilename = 'aims.out'
+        
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
-                                  label, atoms, **kwargs)
+                                  label, atoms, 
+                                  command = kwargs.get('run_command'),
+                                  **kwargs)
         self.cubes = cubes
         self.radmul = radmul
         self.tier = tier
+
 
     def set_label(self, label):
         self.label = label
         self.directory = label
         self.prefix = ''
-        self.out = os.path.join(label, 'aims.out')
+        self.out = os.path.join(label, self.outfilename)
 
     def check_state(self, atoms):
         system_changes = FileIOCalculator.check_state(self, atoms)
@@ -199,7 +207,7 @@ class Aims(FileIOCalculator):
                 output.write('%-35s%d %d %d\n' % (('k_grid',) + tuple(mp)))
                 dk = 0.5 - 0.5 / np.array(mp)
                 output.write('%-35s%f %f %f\n' % (('k_offset',) + tuple(dk)))
-            elif key == 'species_dir':
+            elif key == 'species_dir' or key == 'run_command':
                 continue
             elif key == 'smearing':
                 name = self.parameters.smearing[0].lower()

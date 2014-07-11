@@ -348,8 +348,8 @@ class AseQmmmManyqm:
 
         #det unique name for each qm region 
         # (the output file of each qm calculation)
-        for i in range(len(self.qm_calculators)):
-            self.qm_calculators[i].set(output_template = 'aims'+str(i))
+        #for i in range(len(self.qm_calculators)):
+        #    self.qm_calculators[i].set(output_template = 'aims'+str(i))
 
         self.link_systems = None
 
@@ -588,6 +588,9 @@ class AseQmmmManyqm:
             except:
                 pass
         self.mm_calculator.update(mm)
+        #self.mm_calculator.run()
+        #self.mm_calculator.calculate(atoms=mm, properties=['energy', 'forces'])
+                                     
         self.mm_energy = 0
         
         self.mm_energy += mm.get_potential_energy()
@@ -1186,7 +1189,7 @@ class AseQmmmManyqm:
                 # get the index for interaction 
                 interaction = 'empty'
                 for line in lines_tpr:
-                    print line
+                    #print line
                     if (' type' in line) and ('BONDS' in line):
                         if (qmatom == int(line.split()[3])) and \
                                 (mmatom == int(line.split()[4])):
