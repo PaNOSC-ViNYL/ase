@@ -73,6 +73,17 @@ class ELK(FileIOCalculator):
 
         fd = open(os.path.join(self.directory, 'elk.in'), 'w')
 
+        # handle custom specifications of rmt
+        # (absolute or relative to default) in Bohr
+        # rmt = {'H': 0.7, 'O': -0.2, ...}
+
+        if self.parameters.get('rmt', None) is not None:
+            self.rmt = self.parameters['rmt'].copy()
+            assert len(self.rmt.keys()) == len(list(set(self.rmt.keys()))), 'redundant rmt definitions'
+            self.parameters.pop('rmt') # this is not an elk keyword!
+        else:
+            self.rmt = None
+
         inp = {}
         inp.update(self.parameters)
 
@@ -159,8 +170,52 @@ class ELK(FileIOCalculator):
             raise RuntimeError(
                 'Missing species directory!  Use species_dir ' +
                 'parameter or set $ELK_SPECIES_PATH environment variable.')
-        # if sppath is present in elk.in it overwrites species blocks!
-        fd.write("sppath\n'%s'\n\n" % species_path)
+        # custom species definitions
+        if self.rmt is not None:
+            fd.write("\n")
+            sfile = os.path.join(os.environ['ELK_SPECIES_PATH'], 'elk.in')
+            assert os.path.exists(sfile)
+            slines = open(sfile, 'r').readlines()
+            # remove unused species
+            for s in self.rmt.keys():
+                if s not in species.keys():
+                    self.rmt.pop(s)
+            # add undefined species with defaults
+            for s in species.keys():
+                if s not in self.rmt.keys():
+                    # use default rmt for undefined species
+                    self.rmt.update({s: 0.0})
+            # write custom species into elk.in
+            skeys = list(set(self.rmt.keys())) # unique
+            skeys.sort()
+            for s in skeys:
+                found = False
+                for n, line in enumerate(slines):
+                    if line.find("'" + s + "'") > -1:
+                        begline = n - 1
+                for n, line in enumerate(slines[begline:]):
+                    if not line.strip(): # first empty line
+                        endline = n
+                        found = True
+                        break
+                assert found
+                fd.write("species\n")
+                # set rmt on third line
+                rmt = self.rmt[s]
+                assert isinstance(rmt, (float,int))
+                if rmt <= 0.0: # relative
+                    # split needed because H is defined with comments
+                    newrmt = float(slines[begline + 3].split()[0].strip()) + rmt
+                else:
+                    newrmt = rmt
+                slines[begline + 3] = '%6s\n' % str(newrmt)
+                for l in slines[begline: begline + endline]:
+                    fd.write('%s' % l)
+                fd.write("\n")
+        else:
+            # use default species
+            # if sppath is present in elk.in it overwrites species blocks!
+            fd.write("sppath\n'%s'\n\n" % os.environ['ELK_SPECIES_PATH'])
 
     def read(self, label):
         FileIOCalculator.read(self, label)
