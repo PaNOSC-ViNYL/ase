@@ -73,4 +73,7 @@ calc = ELK(tasks=0, label=label,
 atoms.set_calculator(calc)
 e2 = atoms.get_potential_energy()
 
+# restore ELK_SPECIES_PATH
+os.environ['ELK_SPECIES_PATH'] = ELK_SPECIES_PATH
+
 assert abs(e1 - e2) < 1.0e-4
