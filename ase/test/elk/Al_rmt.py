@@ -1,5 +1,6 @@
 import os
 
+from ase.test import NotAvailable
 from ase.lattice import bulk
 from ase.calculators.calculator import kpts2mp
 from ase.calculators.elk import ELK
@@ -8,7 +9,8 @@ atoms = bulk('Al', 'bcc', a=4.0)
 
 # save ELK_SPECIES_PATH
 ELK_SPECIES_PATH = os.environ.get('ELK_SPECIES_PATH', None)
-assert ELK_SPECIES_PATH is not None
+if ELK_SPECIES_PATH is None:
+    raise NotAvailable('ELK_SPECIES_PATH not set.')
 
 # find rmt of the default species
 sfile = os.path.join(os.environ['ELK_SPECIES_PATH'], 'elk.in')
