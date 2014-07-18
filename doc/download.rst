@@ -203,47 +203,39 @@ If you prefer to install from sources follow :ref:`manual_installation`.
 
 The currently supported systems include (issue the commands below **as root**):
 
-- RHEL/CentOS 6::
+- Fedora::
 
-    yum install wget
-    cd /etc/yum.repos.d/
-    wget http://download.opensuse.org/repositories/home:/dtufys/CentOS_CentOS-6/home:dtufys.repo
     yum install python-ase
-    yum install python-matplotlib # optionally
 
-- Fedora 17::
+- RHEL/CentOS - available after enabling https://fedoraproject.org/wiki/EPEL::
 
-    yum install wget
-    cd /etc/yum.repos.d/
-    wget http://download.opensuse.org/repositories/home:/dtufys/Fedora_17/home:dtufys.repo
     yum install python-ase
-    yum install python-matplotlib # optionally
 
-- openSUSE 12.2::
+- openSUSE 13.1::
 
-    zypper ar -f http://download.opensuse.org/repositories/home:/dtufys/openSUSE_12.2/home:dtufys.repo
+    zypper ar -f http://download.opensuse.org/repositories/home:/dtufys/openSUSE_13.1/home:dtufys.repo
     yast -i python-ase
     yast -i python-matplotlib # optionally
 
-- Debian 6.0::
+- Debian 7.0::
 
-    sudo bash -c 'echo "deb http://download.opensuse.org/repositories/home:/dtufys/Debian_6.0 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
+    sudo bash -c 'echo "deb http://download.opensuse.org/repositories/home:/dtufys/Debian_7.0 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
     wget http://download.opensuse.org/repositories/home:/dtufys/Debian_6.0/Release.key && sudo apt-key add Release.key && rm Release.key
     sudo apt-get update
     sudo apt-get install python-ase
     sudo apt-get install python-matplotlib # optionally
 
-- Ubuntu 12.04::
+- Ubuntu 14.04::
 
-    sudo bash -c 'echo "deb http://download.opensuse.org/repositories/home:/dtufys/xUbuntu_12.04 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
-    wget http://download.opensuse.org/repositories/home:/dtufys/xUbuntu_12.04/Release.key && sudo apt-key add Release.key && rm Release.key
+    sudo bash -c 'echo "deb http://download.opensuse.org/repositories/home:/dtufys/xUbuntu_14.04 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
+    wget http://download.opensuse.org/repositories/home:/dtufys/xUbuntu_14.04/Release.key && sudo apt-key add Release.key && rm Release.key
     sudo apt-get update
     sudo apt-get install python-ase
     sudo apt-get install python-matplotlib # optionally
 
   .. note::
 
-    Alternative packages for ubuntu are provided at `Ubuntu package
+    Alternative packages for Ubuntu are provided at `Ubuntu package
     <https://wiki.fysik.dtu.dk/gpaw/install/Linux/Ubuntu_ppa.html#ubuntupackage>`_.
 
 For the full list of supported distributions check
