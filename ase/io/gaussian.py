@@ -82,7 +82,7 @@ def read_gaussian_out(filename, index=-1, quantity='atoms'):
     elif (quantity == 'forces'):
         return forces
     elif (quantity == 'dipole'):
-        return data['Dipole']
+        return np.array(data['Dipole'])
     elif (quantity == 'atoms'):
         return atoms
     elif (quantity == 'version'):
