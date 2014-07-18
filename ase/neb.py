@@ -151,18 +151,27 @@ class SingleCalculatorNEB(NEB):
         self.calculators = [None] * self.nimages
         self.energies_ok = False
  
-    def interpolate(self, initial=0, final=-1):
+    def interpolate(self, initial=0, final=-1, mic=False):
         """Interpolate linearly between initial and final images."""
         if final < 0:
             final = self.nimages + final
         n = final - initial
         pos1 = self.images[initial].get_positions()
         pos2 = self.images[final].get_positions()
-        d = (pos2 - pos1) / n
+        dist = (pos2 - pos1) 
+        if mic:
+            cell = self.images[initial].get_cell()
+            assert((cell == self.images[final].get_cell()).all())
+            pbc = self.images[initial].get_pbc()
+            assert(( pbc == self.images[final].get_pbc()).all())
+            for ia, D in enumerate(dist):
+                Dr = np.linalg.solve(cell.T, D)
+                dist[ia] = np.dot(Dr - np.round(Dr) * pbc, cell)
+        dist /= n
         for i in range(1, n):
-            self.images[initial + i].set_positions(pos1 + i * d)
+            self.images[initial + i].set_positions(pos1 + i * dist)
 
-    def refine(self, steps=1, begin=0, end=-1):
+    def refine(self, steps=1, begin=0, end=-1, mic=False):
         """Refine the NEB trajectory."""
         if end < 0:
             end = self.nimages + end
@@ -174,7 +183,7 @@ class SingleCalculatorNEB(NEB):
                 self.calculators.insert(j + 1, None)
             self.k[j:j + 1] = [self.k[j] * (steps + 1)] * (steps + 1)
             self.nimages = len(self.images)
-            self.interpolate(j, j + steps + 1)
+            self.interpolate(j, j + steps + 1, mic=mic)
             j += steps + 1
 
     def set_positions(self, positions):
