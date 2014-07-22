@@ -222,24 +222,39 @@ class FixBondLengths(FixConstraint):
 
 class FixBondLength(FixConstraint):
     """Constraint object for fixing a bond length."""
-    def __init__(self, a1, a2):
+    def __init__(self, a1, a2, mic=None):
         """Fix distance between atoms with indices a1 and a2."""
         self.indices = [a1, a2]
+        self.constraint_force = None
+        self.mic = mic
 
     def adjust_positions(self, old, new):
         p1, p2 = old[self.indices]
         d = p2 - p1
+        if self.mic:
+            Dr = np.linalg.solve(self.mic.get_cell().T, d)
+            d = np.dot(Dr - np.round(Dr) * self.mic.get_pbc(),
+                       self.mic.get_cell())
         p = sqrt(np.dot(d, d))
         q1, q2 = new[self.indices]
         d = q2 - q1
+        if self.mic:
+            Dr = np.linalg.solve(self.mic.get_cell().T, d)
+            d = np.dot(Dr - np.round(Dr) * self.mic.get_pbc(),
+                       self.mic.get_cell())
         q = sqrt(np.dot(d, d))
         d *= 0.5 * (p - q) / q
         new[self.indices] = (q1 - d, q2 + d)
 
     def adjust_forces(self, positions, forces):
         d = np.subtract.reduce(positions[self.indices])
+        if self.mic:
+            Dr = np.linalg.solve(self.mic.get_cell().T, d)
+            d = np.dot(Dr - np.round(Dr) * self.mic.get_pbc(),
+                       self.mic.get_cell())
         d2 = np.dot(d, d)
         d *= 0.5 * np.dot(np.subtract.reduce(forces[self.indices]), d) / d2
+        self.constraint_force = d
         forces[self.indices] += (-d, d)
 
     def index_shuffle(self, ind):
@@ -255,6 +270,9 @@ class FixBondLength(FixConstraint):
 
     def copy(self):
         return FixBondLength(*self.indices)
+
+    def get_constraint_force(self):
+        return self.constraint_force
 
     def __repr__(self):
         return 'FixBondLength(%d, %d)' % tuple(self.indices)
