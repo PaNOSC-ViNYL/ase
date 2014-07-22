@@ -37,9 +37,8 @@ def hill(numbers):
         d[s] = d.get(s, 0) + 1
     result = [(s, d.pop(s)) for s in 'CH' if s in d]
     result += [(s, d[s]) for s in sorted(d)]
-    return ''.join(
-        '{0}<sub>{1}</sub>'.format(symbol, n) if n > 1 else symbol
-        for symbol, n in result)
+    return ''.join('{0}{1}'.format(symbol, n) if n > 1 else symbol
+                   for symbol, n in result)
     
     
 def dict2forces(d):
@@ -104,12 +103,12 @@ class Table:
             if self.limit:
                 self.rows = self.rows[:self.limit]
                 
-    def format(self, mode='ascii'):
+    def format(self, subscript=None):
         right = set()
         allkeys = set()
         allkeywords = set()
         for row in self.rows:
-            numbers = row.format(self.columns, mode)
+            numbers = row.format(self.columns, subscript)
             right.update(numbers)
             allkeys.update(row.dct.key_value_pairs)
             allkeywords.update(row.dct.keywords)
@@ -135,6 +134,9 @@ class Table:
                            for c, a, w in
                            zip(row.strings, self.right, N)))
 
+        if self.verbosity == 0:
+            return
+            
         print('Rows:', len(self.rows), end='')
         if self.limit:
             print(' (limited to first {0})'.format(self.limit))
@@ -145,6 +147,11 @@ class Table:
             print('Keys:', ', '.join(cutlist(self.keys, self.cut)))
         if self.keywords:
             print('Keywords:', ', '.join(cutlist(self.keywords, self.cut)))
+            
+    def write_csv(self):
+        print(', '.join(self.columns))
+        for row in self.rows:
+            print(', '.join(str(val) for val in row.values))        
 
             
 class Row:
@@ -176,12 +183,12 @@ class Row:
     def toggle(self):
         self.more = not self.more
         
-    def format(self, columns, mode):
+    def format(self, columns, subscript=None):
         self.strings = []
         numbers = set()
         for value, column in zip(self.values, columns):
-            if column == 'formula' and mode == 'ascii':
-                value = value.replace('<sub>', '').replace('</sub>', '')
+            if column == 'formula' and subscript:
+                value = subscript.sub(r'<sub>\1</sub>', value)
             elif isinstance(value, int):
                 value = str(value)
                 numbers.add(column)

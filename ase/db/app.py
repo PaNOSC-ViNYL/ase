@@ -1,5 +1,6 @@
 import io
 import os
+import re
 import sys
 import os.path
 import tempfile
@@ -19,6 +20,9 @@ connection = None
 tables = {}
 tmpdir = tempfile.mkdtemp()
 next_table_id = 1
+
+# Find numbers in formulas so that we can convert H2O to H<sub>2</sub>O:
+SUBSCRIPT = re.compile(r'(\d+)')
 
                 
 @app.route('/')
@@ -58,7 +62,7 @@ def index():
     table = Table(connection)
     table.select(query, columns, sort, limit)
     tables[table_id] = query, table.columns, sort, limit
-    table.format('html')
+    table.format(SUBSCRIPT)
     return render_template('table.html', t=table, query=query, sort=sort,
                            limit=limit, tid=table_id)
 

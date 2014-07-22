@@ -83,6 +83,8 @@ def main(args=sys.argv[1:]):
         'Default is 35 characters')
     add('-p', '--python-expression', metavar='expression',
         help='Examples: "id,energy", "id,mykey".')
+    add('--csv', action='store_true',
+        help='Write comma-separated-values file.')
     add('-w', '--open-web-browser', action='store_true',
         help='Open results in web-browser.')
 
@@ -130,6 +132,10 @@ def run(opts, args, verbosity):
 
     con = connect(filename)
     
+    def out(*args):
+        if verbosity > 0:
+            print(*args)
+            
     if opts.add_from_file:
         filename = opts.add_from_file
         if ':' in filename:
@@ -138,8 +144,8 @@ def run(opts, args, verbosity):
         else:
             atoms = ase.io.read(filename)
         con.write(atoms, add_keywords, key_value_pairs=add_key_value_pairs)
-        print('Added {0} from {1}'.format(atoms.get_chemical_formula(),
-                                          filename))
+        out('Added {0} from {1}'.format(atoms.get_chemical_formula(),
+                                        filename))
         return
         
     if opts.count:
@@ -174,20 +180,20 @@ def run(opts, args, verbosity):
             con2.write(dct, keywords, data=dct.get('data'), **kvp)
             nrows += 1
             
-        print('Added %s and %s (%s updated)' %
-              (plural(nkw, 'keyword'),
-               plural(nkvp, 'key-value pair'),
-               plural(len(add_key_value_pairs) * nrows - nkvp, 'pair')))
-        print('Inserted %s' % plural(nrows, 'row'))
+        out('Added %s and %s (%s updated)' %
+            (plural(nkw, 'keyword'),
+             plural(nkvp, 'key-value pair'),
+             plural(len(add_key_value_pairs) * nrows - nkvp, 'pair')))
+        out('Inserted %s' % plural(nrows, 'row'))
         return
 
     if add_keywords or add_key_value_pairs:
         ids = [dct['id'] for dct in con.select(query)]
         nkw, nkv = con.update(ids, add_keywords, **add_key_value_pairs)
-        print('Added %s and %s (%s updated)' %
-              (plural(nkw, 'keyword'),
-               plural(nkv, 'key-value pair'),
-               plural(len(add_key_value_pairs) * len(ids) - nkv, 'pair')))
+        out('Added %s and %s (%s updated)' %
+            (plural(nkw, 'keyword'),
+             plural(nkv, 'key-value pair'),
+             plural(len(add_key_value_pairs) * len(ids) - nkv, 'pair')))
         return
 
     if opts.delete:
@@ -197,7 +203,7 @@ def run(opts, args, verbosity):
             if raw_input(msg).lower() != 'yes':
                 return
         con.delete(ids)
-        print('Deleted %s' % plural(len(ids), 'row'))
+        out('Deleted %s' % plural(len(ids), 'row'))
         return
 
     if opts.python_expression:
@@ -233,4 +239,7 @@ def run(opts, args, verbosity):
         
             table = Table(con, verbosity, opts.cut)
             table.select(query, columns, opts.sort, opts.limit)
-            table.write()
+            if opts.csv:
+                table.write_csv()
+            else:
+                table.write()
