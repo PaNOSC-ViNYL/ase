@@ -58,7 +58,7 @@ def index():
     elif 'query' in request.args:
         query = request.args['query'].encode()
         limit = int(request.args.get('limit', '0'))
-        columns = all_columns
+        columns = list(all_columns)
         sort = 'id'
         opened = set()
         
@@ -174,4 +174,4 @@ def sqlite(id):
     
 if __name__ == '__main__':
     globals()['connection'] = ase.db.connect(sys.argv[1])
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
