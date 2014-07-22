@@ -15,9 +15,9 @@ Limit:
 <input type=text name=limit value={{ limit }} onchange="this.form.submit()">
 </form>
 Download:
-<a href="/sqlite">db</a>,
-<a href="/json">json</a>,
-<a href="/csv">csv</a>
+<a href="/sqlite?x={{ tid }}">db</a>,
+<a href="/json?x={{ tid }}">json</a>,
+<a href="/csv?x={{ tid }}">csv</a>
 <br>
 Add/remove key-column:
 {% for key in t.keys -%}
@@ -27,11 +27,11 @@ Add/remove key-column:
 <table id=rows>
     <tr>
 {%- for c in t.columns %}
-        <th>
-        {% if sort == c %}&#x2193; {% elif sort == '-' + c %}&#x2191; {% endif -%}
-        <a href="/?x={{ tid }}&amp;sort={{ c }}">{{ c }}</a>
-            <a href="/?x={{ tid }}&amp;toggle={{ c }}">&#x2715;</a>
-        </th>
+<th>
+{% if sort == c %}&#x2193; {% elif sort == '-' + c %}&#x2191; {% endif -%}
+<a href="/?x={{ tid }}&amp;sort={{ c }}">{{ c }}</a>
+<a href="/?x={{ tid }}&amp;toggle={{ c }}">&#x2715;</a>
+</th>
 {%- endfor %}
     </tr>
 {% for row in t.rows -%}

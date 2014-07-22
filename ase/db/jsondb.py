@@ -80,7 +80,7 @@ class JSONDatabase(Database):
         if isinstance(self.filename, str) and os.path.isfile(self.filename):
             try:
                 bigdct, ids, nextid = self._read_json()
-            except SyntaxError:
+            except (SyntaxError, ValueError):
                 pass
 
         if isinstance(atoms, dict):

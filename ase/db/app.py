@@ -1,4 +1,3 @@
-import io
 import os
 import re
 import sys
@@ -116,30 +115,19 @@ def summary(id):
     return render_template('summary.html', s=s)
 
     
-def tojson(dicts):
-    fd = io.BytesIO()
-    con = ase.db.connect(fd, 'json', use_lock_file=False)
-    writedb(con, dicts)
-    return fd.getvalue()
-    
-
-def tosqlite(dicts):
-    fd, name = tempfile.mkstemp(suffix='.db')
+def tofile(query, type, limit=0):
+    fd, name = tempfile.mkstemp(suffix='.' + type)
     con = ase.db.connect(name, use_lock_file=False)
-    writedb(con, dicts)
+    for dct in connection.select(query, limit=limit):
+        con.write(dct,
+                  keywords=dct.get('keywords', []),
+                  data=dct.get('data', {}),
+                  **dct.get('key_value_pairs', {}))
     os.close(fd)
     data = open(name).read()
     os.unlink(name)
     return data
     
-
-def writedb(con, dicts):
-    for dct in dicts:
-        con.write(dct,
-                  keywords=dct.get('keywords', []),
-                  data=dct.get('data', {}),
-                  **dct.get('key_value_pairs', {}))
-
 
 def download(f):
     @functools.wraps(f)
@@ -155,30 +143,32 @@ def download(f):
 @app.route('/json')
 @download
 def jsonall():
-    data = tojson(row.dct for row in table.rows)
+    table_id = int(request.args['x'])
+    query, columns, sort, limit, opened = tables[table_id]
+    data = tofile(query, 'json', limit)
     return data, 'selection.json'
 
 
 @app.route('/json/<int:id>')
 @download
 def json(id):
-    dct = table.connection.get(id)
-    data = tojson([dct])
+    data = tofile(id, 'json')
     return data, '{0}.json'.format(id)
 
 
 @app.route('/sqlite')
 @download
 def sqliteall():
-    data = tosqlite(row.dct for row in table.rows)
+    table_id = int(request.args['x'])
+    query, columns, sort, limit, opened = tables[table_id]
+    data = tofile(query, 'db', limit)
     return data, 'selection.db'.format(id)
 
     
 @app.route('/sqlite/<int:id>')
 @download
 def sqlite(id):
-    dct = table.connection.get(id)
-    data = tosqlite([dct])
+    data = tofile(id, 'db')
     return data, '{0}.db'.format(id)
 
     
