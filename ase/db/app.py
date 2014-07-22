@@ -29,20 +29,23 @@ SUBSCRIPT = re.compile(r'(\d+)')
 def index():
     global next_table_id
     table_id = int(request.args.get('x', '0'))
-    if table_id == 0:
+    if table_id not in tables:
         table_id = next_table_id
         next_table_id += 1
         query = ''
         columns = list(all_columns)
         sort = 'id'
         limit = 100
+        opened = set()
     else:
-        query, columns, sort, limit = tables[table_id]
+        query, columns, sort, limit, opened = tables[table_id]
 
     if 'toggle' in request.args:
         column = request.args['toggle']
         if column in columns:
             columns.remove(column)
+            if column == sort.lstrip('-'):
+                sort = 'id'
         else:
             columns.append(column)
     elif 'sort' in request.args:
@@ -58,18 +61,24 @@ def index():
         limit = int(request.args.get('limit', '0'))
         columns = all_columns
         sort = 'id'
-    
+        opened = set()
+        
     table = Table(connection)
     table.select(query, columns, sort, limit)
-    tables[table_id] = query, table.columns, sort, limit
+    tables[table_id] = query, table.columns, sort, limit, opened
     table.format(SUBSCRIPT)
     return render_template('table.html', t=table, query=query, sort=sort,
-                           limit=limit, tid=table_id)
+                           limit=limit, tid=table_id, opened=opened)
 
     
 @app.route('/open_row/<int:id>')
 def open_row(id):
     table_id = int(request.args['x'])
+    opened = tables[table_id][-1]
+    if id in opened:
+        opened.remove(id)
+        return ''
+    opened.add(id)
     return render_template('more.html',
                            dct=connection.get(id), id=id, tid=table_id)
     

@@ -7,6 +7,7 @@
 {% block content %}
 <form action="/">
 Search:
+<input type=hidden name=x value="{{ tid }}">
 <input type=text name=query value="{{ query }}" onchange="this.form.submit()">
 <br>
 Rows: {{ t.rows|length }}
@@ -27,9 +28,9 @@ Add/remove key-column:
     <tr>
 {%- for c in t.columns %}
         <th>
-        {% if sort == c %}v {% elif sort == '-' + c %}^ {% endif -%}
+        {% if sort == c %}&#x2193; {% elif sort == '-' + c %}&#x2191; {% endif -%}
         <a href="/?x={{ tid }}&amp;sort={{ c }}">{{ c }}</a>
-            <a href="/?x={{ tid }}&amp;toggle={{ c }}">-</a>
+            <a href="/?x={{ tid }}&amp;toggle={{ c }}">&#x2715;</a>
         </th>
 {%- endfor %}
     </tr>
@@ -46,6 +47,11 @@ Add/remove key-column:
     {% endfor %}
     {% endautoescape %}
     </tr>
+    {% set dct=row.dct %}
+    {% set id=dct.id %}
+    {% if id in opened %}
+    {% include "more.html" %}
+    {% endif %}
 {% endfor %}
 </table>
 Keywords found: {{ t.keywords|join(', ') }}

@@ -54,7 +54,7 @@ master_doc = 'contents'
 
 # General substitutions.
 project = 'ASE'
-copyright = '2008, CAMd'
+copyright = '2014, CAMd'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
