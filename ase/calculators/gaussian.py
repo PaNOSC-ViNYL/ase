@@ -127,6 +127,15 @@ class Gaussian(FileIOCalculator):
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, **kwargs)
 
+        if restart is not None:
+            try:
+                self.read(restart)
+            except ReadError:
+                if ignore_bad_restart_file:
+                    self.reset()
+                else:
+                    raise
+
         self.ioplist = ioplist
         self.scratch = scratch
         self.basisfile = basisfile
@@ -142,7 +151,6 @@ class Gaussian(FileIOCalculator):
         if ('multiplicity' not in self.parameters):
             tot_magmom = atoms.get_initial_magnetic_moments().sum()
             self.parameters['multiplicity'] = tot_magmom + 1
-            print self.parameters['multiplicity']
 
         if ('charge' not in self.parameters):
             self.parameters['charge'] = 0
@@ -180,7 +188,10 @@ class Gaussian(FileIOCalculator):
                     if ',' in val:
                         route += ' %s(%s)' % (key, val)
                     else:
-                        route += ' %s=%s' % (key, val)
+                        route += ' %s=%s' % (key, val) 
+#            elif key.lower() in route_keys:# and key.lower() not in ['method', 'basis', 'charge', 'multiplicity']:
+#                 route += ' %s=%s' % (key, val)
+
             elif key.lower() in route_keys:
                 route += ' %s=%s' % (key, val)
 
@@ -234,6 +245,12 @@ class Gaussian(FileIOCalculator):
     def read(self, label):
         """Used to read the results of a previous calculation if restarting"""
         FileIOCalculator.read(self, label)
+
+        from ase.io.gaussian import read_gaussian_out
+        filename = self.label + '.log'
+
+        self.atoms = read_gaussian_out(filename, quantity='atoms')
+        self.read_results()
 
     def read_results(self):
         """Reads the output file using GaussianReader"""
