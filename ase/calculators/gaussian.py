@@ -140,7 +140,9 @@ class Gaussian(FileIOCalculator):
     def initialize(self, atoms):
 # Set some default behavior
         if ('multiplicity' not in self.parameters):
-            self.parameters['multiplicity'] = 1
+            tot_magmom = atoms.get_initial_magnetic_moments().sum()
+            self.parameters['multiplicity'] = tot_magmom + 1
+            print self.parameters['multiplicity']
 
         if ('charge' not in self.parameters):
             self.parameters['charge'] = 0
