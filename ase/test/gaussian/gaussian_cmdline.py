@@ -3,7 +3,7 @@ from ase.db import connect
 from ase.db.jsondb import read_json
 from ase.calculators.gaussian import Gaussian
 
-#require('gaussian')
+require('gaussian')
 cli("""\
 ase-build O | ase-run gaussian -d oxygen.json &&
 ase-build O2 | ase-run gaussian -d oxygen.json""")
