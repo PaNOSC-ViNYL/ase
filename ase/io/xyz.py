@@ -1,6 +1,3 @@
-import re
-import numpy as np
-
 from ase.atoms import Atoms
 from ase.parallel import paropen
 
@@ -69,14 +66,6 @@ def read_xyz(fileobj, index=-1):
         line = fileobj.readline()
         line = fileobj.readline()
 
-        # XMOL extended xyz format
-        # see http://www.pierrehirel.info/codes/atomsk/en/format_xyz.html
-        cell = None
-        coordstr = re.findall(r'Lattice="(.*?)"', line)
-        if len(coordstr):
-            cell = np.array(
-                [float(word) for word in coordstr[0].split()]).reshape((3,3))
-
         symbols = []
         positions = []
         for ln in range(natoms):
@@ -89,7 +78,7 @@ def read_xyz(fileobj, index=-1):
 
         current = (index + 1) * lnsnp
 
-        images.append(Atoms(symbols=symbols, positions=positions, cell=cell))
+        images.append(Atoms(symbols=symbols, positions=positions))
 
     if rvrs:
         images.reverse()
@@ -97,7 +86,7 @@ def read_xyz(fileobj, index=-1):
     return images[rtnndx]
 
 
-def write_xyz(fileobj, images, comment=None):
+def write_xyz(fileobj, images, comment=''):
     if isinstance(fileobj, str):
         fileobj = paropen(fileobj, 'w')
 
@@ -107,13 +96,6 @@ def write_xyz(fileobj, images, comment=None):
     symbols = images[0].get_chemical_symbols()
     natoms = len(symbols)
     for atoms in images:
-        if comment is None:
-            # XMOL extended xyz format
-            # see http://www.pierrehirel.info/codes/atomsk/en/format_xyz.html
-            comm = ('Lattice="' + ' '.join([
-                str(c) for c in atoms.get_cell().flat]) + '"')
-        else:
-            comm = comment
-        fileobj.write('%d\n%s\n' % (natoms, comm))
+        fileobj.write('%d\n%s\n' % (natoms, comment))
         for s, (x, y, z) in zip(symbols, atoms.get_positions()):
             fileobj.write('%-2s %22.15f %22.15f %22.15f\n' % (s, x, y, z))
