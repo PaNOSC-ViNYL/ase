@@ -4,10 +4,10 @@ from ase.db.jsondb import read_json
 from ase.calculators.nwchem import NWChem
 
 require('nwchem')
-cli("""ase-build O | ase-run nwchem -d oxygen.json &&
-ase-build O2 | ase-run nwchem -d oxygen.json""")
-c = connect('oxygen.json')
-dct = read_json('oxygen.json')
+cli("""ase-build O | ase-run nwchem -d nwchem_cmdline.json &&
+ase-build O2 | ase-run nwchem -d nwchem_cmdline.json""")
+c = connect('nwchem_cmdline.json')
+dct = read_json('nwchem_cmdline.json')
 for name in ['O2', 'O']:
     d = c.get([('name', '=', name)])
     id = d.id

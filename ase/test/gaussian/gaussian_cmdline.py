@@ -5,10 +5,10 @@ from ase.calculators.gaussian import Gaussian
 
 require('gaussian')
 cli("""\
-ase-build O | ase-run gaussian -d oxygen.json &&
-ase-build O2 | ase-run gaussian -d oxygen.json""")
-c = connect('oxygen.json')
-dct = read_json('oxygen.json')
+ase-build O | ase-run gaussian -d gaussian_cmdline.json &&
+ase-build O2 | ase-run gaussian -d gaussian_cmdline.json""")
+c = connect('gaussian_cmdline.json')
+dct = read_json('gaussian_cmdline.json')
 for name in ['O2', 'O']:
     d = c.get([('name', '=', name)])
     id = d.id
