@@ -49,9 +49,17 @@ def write_cfg(f, a):
                 f.write('auxiliary[%i] = %s [a.u.]\n' % ( i, name ))
                 i += 1
             else:
-                for j in range(aux.shape[1]):
-                    f.write('auxiliary[%i] = %s_%1.1i [a.u.]\n' % ( i, name, j ))
-                    i += 1
+                if aux.shape[1] == 3:
+                    for j in range(3):
+                        f.write('auxiliary[%i] = %s_%s [a.u.]\n' % \
+                                    ( i, name, chr(ord('x')+j) ))
+                        i += 1
+                    
+                else:
+                    for j in range(aux.shape[1]):
+                        f.write('auxiliary[%i] = %s_%1.1i [a.u.]\n' % \
+                                    ( i, name, j ))
+                        i += 1
 
     # Distinct elements
     spos = a.get_scaled_positions()
