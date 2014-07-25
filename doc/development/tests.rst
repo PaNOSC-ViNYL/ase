@@ -8,9 +8,12 @@ All additions and modifications to ASE should be tested.
 
 .. index:: testase
 
-Test scripts should be put in the :trac:`ase/test` directory.  The
-scripts in this directory may be run by using the script
-:svn:`tools/testase` or by using the function:
+Test scripts should be put in the :trac:`ase/test` directory.  
+Run all tests with::
+
+  python -c "from ase.test import test; test(2)"
+
+It is using the function:
 
 .. function:: test.test(verbosity=1, dir=None)
     
