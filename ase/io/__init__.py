@@ -76,6 +76,7 @@ def read(filename, index=None, format=None):
     Gaussian output file       gaussian_out
     Quantum espresso in file   esp_in
     Quantum espresso out file  esp_out
+    Extended XYZ file          extxyz
     =========================  =============
 
     """
@@ -175,8 +176,8 @@ def read(filename, index=None, format=None):
         from ase.io.exciting import read_exciting
         return read_exciting(filename, index)
 
-    if format == 'xyz':
-        from ase.io.xyz import read_xyz
+    if format in ['xyz', 'extxyz']:
+        from ase.io.extxyz import read_xyz
         return read_xyz(filename, index)
 
     if format == 'traj':
@@ -387,7 +388,7 @@ def write(filename, images, format=None, **kwargs):
     GROMOS96 (only positions)  g96
     X3D                        x3d
     X3DOM HTML                 html
-
+    Extended XYZ file          extxyz
     =========================  ===========
 
     The use of additional keywords is format specific.
@@ -486,8 +487,13 @@ def write(filename, images, format=None, **kwargs):
         from ase.io.cif import write_cif
         write_cif(filename, images)
     if format == 'xyz':
-        from ase.io.xyz import write_xyz
-        write_xyz(filename, images, **kwargs)
+        from ase.io.extxyz import write_xyz
+        write_xyz(filename, images, columns=['symbols', 'positions'],
+                  write_info=False, **kwargs)
+        return
+    if format == 'extxyz':
+        from ase.io.extxyz import write_xyz
+        write_xyz(filename, images, **kwargs)        
         return
     if format == 'gen':
         from ase.io.gen import write_gen

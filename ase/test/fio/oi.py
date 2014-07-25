@@ -15,7 +15,7 @@ extra = np.array([ 2.3, 4.2 ])
 atoms.set_array('extra', extra)
 atoms *= (1, 1, 2)
 images = [atoms.copy(), atoms.copy()]
-r = ['xyz', 'traj', 'cube', 'pdb', 'cfg', 'struct', 'cif', 'gen']
+r = ['xyz', 'traj', 'cube', 'pdb', 'cfg', 'struct', 'cif', 'gen', 'extxyz']
 
 try:
     import json
@@ -60,9 +60,9 @@ for format in w:
         a1 = read(fname1)
         assert np.all(np.abs(a1.get_positions() -
                              atoms.get_positions()) < 1e-6)
-        if format in ['traj', 'cube', 'cfg', 'struct', 'gen']:
+        if format in ['traj', 'cube', 'cfg', 'struct', 'gen', 'extxyz']:
             assert np.all(np.abs(a1.get_cell() - atoms.get_cell()) < 1e-6)
-        if format in ['cfg']:
+        if format in ['cfg', 'extxyz']:
             assert np.all(np.abs(a1.get_array('extra') -
                                  atoms.get_array('extra')) < 1e-6)
         if format not in only_one_image:
