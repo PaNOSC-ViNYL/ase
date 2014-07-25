@@ -112,7 +112,7 @@ def epydoc_role_tmpl(package_name, urlroot,
     return [node], []
 
 
-def create_png_files():
+def create_png_files(run_all_python_files=False, exclude=[]):
     errcode = os.system('povray -h 2> /dev/null')
     if errcode:
         warnings.warn('No POVRAY!')
@@ -136,6 +136,8 @@ def create_png_files():
         for filename in filenames:
             if filename.endswith('.py'):
                 path = join(dirpath, filename)
+                if path in exclude:
+                    continue
                 lines = open(path).readlines()
                 try:
                     line = lines[0]
@@ -143,9 +145,11 @@ def create_png_files():
                     continue
                 if 'coding: utf-8' in line:
                     line = lines[1]
-                if line.startswith('# creates:'):
+                run = False
+                if run_all_python_files:
+                    run = True
+                elif line.startswith('# creates:'):
                     t0 = os.stat(path)[ST_MTIME]
-                    run = False
                     for file in line.split()[2:]:
                         try:
                             t = os.stat(join(dirpath, file))[ST_MTIME]
@@ -156,15 +160,13 @@ def create_png_files():
                             if t < t0:
                                 run = True
                                 break
-                    if run:
-                        print('running:', join(dirpath, filename))
-                        os.chdir(dirpath)
-                        plt.figure()
-                        try:
-                            execfile(filename, {})
-                        finally:
-                            os.chdir(olddir)
-                        for file in line.split()[2:]:
-                            print(dirpath, file)
+                if run:
+                    print('running:', join(dirpath, filename))
+                    os.chdir(dirpath)
+                    plt.figure()
+                    try:
+                        execfile(filename, {})
+                    finally:
+                        os.chdir(olddir)
         if '.svn' in dirnames:
             dirnames.remove('.svn')
