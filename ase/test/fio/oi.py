@@ -65,6 +65,9 @@ for format in w:
         if format in ['cfg', 'extxyz']:
             assert np.all(np.abs(a1.get_array('extra') -
                                  atoms.get_array('extra')) < 1e-6)
+        if format in ['extxyz']:
+            assert np.all(a1.get_pbc() == atoms.get_pbc())            
+
         if format not in only_one_image:
             a2 = read(fname2)
             a3 = read(fname2, index=0)

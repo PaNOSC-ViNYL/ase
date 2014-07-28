@@ -109,9 +109,9 @@ def key_val_dict_to_str(d, sep=' '):
     if len(d) == 0:
         return ''
     s = ''
-    type_val_map = {(bool, True): None,
+    type_val_map = {(bool, True): 'T',
                     (bool, False): 'F',
-                    (np.bool_, True): None,
+                    (np.bool_, True): 'T',
                     (np.bool_, False): 'F'}
 
     s = ''
@@ -260,6 +260,14 @@ def read_xyz(fileobj, index=-1):
 
         info = key_val_str_to_dict(line)
 
+        pbc = None
+        if 'pbc' in info:
+            pbc = info['pbc']
+            del info['pbc']
+        elif 'Lattice' in info:
+            # default pbc for extxyz file containing Lattice is True in all directions
+            pbc = [True, True, True]
+
         cell = None
         if 'Lattice' in info:
             # NB: ASE cell is transpose of extended XYZ lattice
@@ -271,11 +279,6 @@ def read_xyz(fileobj, index=-1):
             info['Properties'] = 'species:S:1:pos:R:3'
         properties, names, dtype, convs = parse_properties(info['Properties'])
         del info['Properties']
-
-        pbc = None
-        if 'pbc' in info:
-            pbc = info['pbc']
-            del info['pbc']
 
         data = []
         for ln in range(natoms):
@@ -391,7 +394,9 @@ def output_column_format(atoms, columns, arrays, write_info=True):
 
     comment = lattice_str + ' Properties=' + props_str
     if write_info:
-        comment += ' ' + key_val_dict_to_str(atoms.info)
+        info = atoms.info.copy()       # shallow copy to allow adding keys
+        info['pbc'] = atoms.get_pbc()  # save periodic boundary conditions
+        comment += ' ' + key_val_dict_to_str(info)
 
     dtype = np.dtype(dtypes)
     fmt = ''.join(formats) + '\n'
