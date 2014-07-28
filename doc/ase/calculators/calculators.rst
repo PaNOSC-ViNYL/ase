@@ -1,4 +1,4 @@
-.. module:: calculators
+.. module:: ase.calculators
    :synopsis: Energy, force and stress calculators.
 
 ===========
@@ -27,7 +27,7 @@ RuntimeError: Atoms object has no calculator.
 -42.0
 
 Here, we used the :meth:`~ase.atoms.Atoms.set_calculator` method to attach
-an instance of the :class:`~abinit.Abinit` class and then
+an instance of the :mod:`ase.calculators.abinit.Abinit` class and then
 we asked for the energy.
 
 Alternatively, a calculator can be attached like this::
@@ -56,33 +56,33 @@ The calculators can be divided in three groups:
 3) Pure python implementations included in the ASE package: EMT, EAM,
    Lennard-Jones and Morse.
 
-======================  ===========================================
-name                    description
-======================  ===========================================
-Asap_                   Highly efficient EMT code
-GPAW_                   Real-space/plane-wave/LCAO PAW code
-Hotbit_                 DFT based tight binding
-:mod:`abinit`           Plane-wave pseudopotential code
-:mod:`castep`           Plane-wave pseudopotential code
-:mod:`dftb`             DFT based tight binding
-:mod:`eam`              Embedded Atom Method
-elk                     Full Potential LAPW code
-:mod:`exciting`         Full Potential LAPW code
-:mod:`FHI-aims`         Numeric atomic orbital, full potential code
-:mod:`fleur`            Full Potential LAPW code
-gaussian                Gaussian based electronic structure code
-:mod:`gromacs`          Classical molecular dynamics code
-:mod:`jacapo`           Plane-wave ultra-soft pseudopotential code
-:mod:`lammps`           Classical molecular dynamics code
+=================================  ===========================================
+name                               description
+=================================  ===========================================
+Asap_                              Highly efficient EMT code
+GPAW_                              Real-space/plane-wave/LCAO PAW code
+Hotbit_                            DFT based tight binding
+:mod:`~ase.calculators.abinit`     Plane-wave pseudopotential code
+:mod:`~ase.calculators.castep`     Plane-wave pseudopotential code
+:mod:`~ase.calculators.dftb`       DFT based tight binding
+:mod:`~ase.calculators.eam`        Embedded Atom Method
+elk                                Full Potential LAPW code
+:mod:`~ase.calculators.exciting`   Full Potential LAPW code
+:mod:`~ase.calculators.aims`       Numeric atomic orbital, full potential code
+:mod:`~ase.calculators.fleur`      Full Potential LAPW code
+gaussian                           Gaussian based electronic structure code
+:mod:`~ase.calculators.gromacs`    Classical molecular dynamics code
+:mod:`~ase.calculators.jacapo`     Plane-wave ultra-soft pseudopotential code
+:mod:`~ase.calculators.lammps`     Classical molecular dynamics code
 mopac                   ...
-:mod:`nwchem`           Gaussian based electronic structure code
-:mod:`siesta`           LCAO pseudopotential code
-:mod:`turbomole`        Fast atom orbital code
-:mod:`vasp`             Plane-wave PAW code
-:mod:`emt`              Effective Medium Theory calculator
-lj                      Lennard-Jones potential
-morse                   Morse potential
-======================  ===========================================
+:mod:`~ase.calculators.nwchem`     Gaussian based electronic structure code
+:mod:`~ase.calculators.siesta`     LCAO pseudopotential code
+:mod:`~ase.calculators.turbomole`  Fast atom orbital code
+:mod:`~ase.calculators.vasp`       Plane-wave PAW code
+:mod:`~ase.calculators.emt`        Effective Medium Theory calculator
+lj                                 Lennard-Jones potential
+morse                              Morse potential
+=================================  ===========================================
 
 The calculators included in ASE are used like this:
 
@@ -103,9 +103,9 @@ Calculator keywords
 Example for a hypothetical ABC calculator:
 
 .. class:: ABC(restart=None, ignore_bad_restart_file=False, label=None,
-	       atoms=None, parameters=None, command='abc > PREFIX.abc',
-	       xc=None, kpts=[1, 1, 1], smearing=None,
-	       charge=0.0, nbands=None, **kwargs)
+               atoms=None, parameters=None, command='abc > PREFIX.abc',
+               xc=None, kpts=[1, 1, 1], smearing=None,
+               charge=0.0, nbands=None, **kwargs)
 
    Create ABC calculator
 
@@ -134,18 +134,18 @@ Example for a hypothetical ABC calculator:
        * ``(1,1,1)``: Gamma-point
        * ``(n1,n2,n3)``: Monkhorst-Pack grid
        * ``(n1,n2,n3,'gamma')``: Shifted Monkhorst-Pack grid that includes
-	 `\Gamma`
+         `\Gamma`
        * ``[(k11,k12,k13),(k21,k22,k23),...]``: Explicit list in units of the
-	 reciprocal lattice vectors
+         reciprocal lattice vectors
        * ``kpts=3.5``: `\vec k`-point density as in 3.5 `\vec k`-points per
-	 Å\ `^{-1}`.
+         Å\ `^{-1}`.
    smearing: tuple
        The smearing of occupation numbers.  Must be a tuple:
 
        * ``('Fermi-Dirac', width)``
        * ``('Gaussian', width)``
        * ``('Methfessel-Paxton', width, n)``, where `n` is the order
-	 (`n=0` is the same as ``'Gaussian'``)
+         (`n=0` is the same as ``'Gaussian'``)
 
        Lower-case names are also allowed.  The ``width`` parameter is
        given in eV units.
@@ -192,7 +192,7 @@ the :meth:`set` method:
 QMMM
 ====
 
-For QMMM caculations, see :mod:`ase_qmmm_manyqm`.
+For QMMM caculations, see :mod:`ase.calculators.ase_qmmm_manyqm`.
 
 
 Calculator interface

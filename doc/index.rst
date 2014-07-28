@@ -10,12 +10,12 @@ for manipulating atoms, analyzing simulations, visualization etc.
 
   The old ASE-2 webpage has moved to http://wiki.fysik.dtu.dk/ase2.
 
-Actively maintained :mod:`calculators`:
+Actively maintained :mod:`ase.calculators`:
 
    |abinit| |Asap| |elk| |EMT| |fhi-aims| Gaussian_ |gpaw|
    |gromacs| |nwchem|
 
-Supported :mod:`calculators` (we are looking for maintainers!):
+Supported :mod:`ase.calculators` (we are looking for maintainers!):
 
    |CASTEP| |dftb| |exciting| |fleur| |hotbit| |jacapo| |jdftx| |lammps|
    Mopac_ |siesta| |turbomole| |vasp|
@@ -113,8 +113,8 @@ News
 
 * :ref:`ASE version 3.1.0 <download_and_install>` released (27 March 2009).
 
-* Improved :mod:`vibrations` module: More accurate and
-  possibility to calculate :mod:`infrared intensities <infrared>` (13
+* Improved :mod:`ase.vibrations` module: More accurate and
+  possibility to calculate :mod:`infrared intensities <ase.infrared>` (13
   March 2009).
 
 * :ref:`ASE version 3.0.0 <download_and_install>` released (13 November 2008).

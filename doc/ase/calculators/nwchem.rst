@@ -1,4 +1,4 @@
-.. module:: nwchem
+.. module:: ase.calculators.nwchem
 
 ======
 NWChem

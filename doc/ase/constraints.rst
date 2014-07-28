@@ -1,10 +1,9 @@
-.. module:: constraints
+.. module:: ase.constraints
    :synopsis: Constraining some degrees of freedom
 
 ===========
 Constraints
 ===========
-
 
 When performing minimizations or dynamics one may wish to keep some
 degrees of freedom in the system fixed. One way of doing this is by
@@ -25,6 +24,7 @@ Changing such atom positions can be achieved:
     atoms.set_constraint()
 
   and using the :meth:`~ase.atoms.Atoms.set_positions` method.
+
 
 The FixAtoms class
 ==================
@@ -47,6 +47,7 @@ or with the mask keyword:
 
 >>> c = FixAtoms(mask=[atom.symbol == 'Cu' for atom in atoms])
 >>> atoms.set_constraint(c)
+
 
 The FixBondLength class
 =======================
@@ -92,41 +93,57 @@ Here the distances between atoms with indices 0 and 1 and atoms with
 indices 0 and 2 will be fixed. The constraint is for the same purpose
 as the FixBondLength class.
 
+
 The FixedLine class
 ====================
 
-.. autoclass:: ase.constraints.FixedLine
+.. autoclass:: FixedLine
+
 
 The FixedPlane class
 ====================
 
-.. autoclass:: ase.constraints.FixedPlane
+.. autoclass:: FixedPlane
 
 Example of use: :ref:`constraints_diffusion_tutorial`.
+
 
 The FixedMode class
 ===================
 
-.. autoclass:: ase.constraints.FixedMode
+.. autoclass:: FixedMode
 
-A mode is a list of vectors specifying a direction for each atom. It often comes from :meth:`ase.vibrations.Vibrations.get_mode`.
+A mode is a list of vectors specifying a direction for each atom. It often
+comes from :meth:`ase.vibrations.Vibrations.get_mode`.
+
 
 The Hookean class
-====================
+=================
 
-This class of constraints, based on Hooke's Law, is generally used to conserve molecular identity in optimization schemes and can be used in three different ways. In the first, it applies a Hookean restorative force between two atoms if the distance between them exceeds a threshold. This is useful to maintain the identity of molecules in quenched molecular dynamics, without changing the degrees of freedom or violating conservation of energy. When the distance between the two atoms is less than the threshold length, this constraint is completely inactive.
+This class of constraints, based on Hooke's Law, is generally used to
+conserve molecular identity in optimization schemes and can be used in three
+different ways. In the first, it applies a Hookean restorative force between
+two atoms if the distance between them exceeds a threshold. This is useful to
+maintain the identity of molecules in quenched molecular dynamics, without
+changing the degrees of freedom or violating conservation of energy. When the
+distance between the two atoms is less than the threshold length, this
+constraint is completely inactive.
 
 The below example tethers atoms at indices 3 and 4 together::
 
   >>> c = Hookean(a1=3, a2=4, rt=1.79, k=5.)
   >>> atoms.set_constraint(c)
 
-Alternatively, this constraint can tether a single atom to a point in space, for example to prevent the top layer of a slab from subliming during a high-temperature MD simulation. An example of tethering atom at index 3 to its original position::
+Alternatively, this constraint can tether a single atom to a point in space,
+for example to prevent the top layer of a slab from subliming during a
+high-temperature MD simulation. An example of tethering atom at index 3 to its
+original position:
 
-  >>> c = Hookean(a1=3, a2=atoms[3].position, rt=0.94, k=2.)
-  >>> atoms.set_constraint(c)
+>>> c = Hookean(a1=3, a2=atoms[3].position, rt=0.94, k=2.)
+>>> atoms.set_constraint(c)
 
-Reasonable values of the threshold (rt) and spring constant (k) for some common bonds are below.
+Reasonable values of the threshold (rt) and spring constant (k) for some
+common bonds are below.
 
 .. list-table::
 
@@ -165,6 +182,7 @@ For an example of use, see the :ref:`mhtutorial` tutorial.
 
   In previous versions of ASE, this was known as the BondSpring constraint.
 
+  
 The FixInternals class
 ======================
 
@@ -196,7 +214,6 @@ This example defines a bond an angle and a dihedral angle constraint
 to be fixed at the same time.
 
 
-
 Combining constraints
 =====================
 
@@ -222,13 +239,13 @@ fixed while relaxing it on a fixed ruthenium surface::
   >>> atoms.set_constraint([fa, fb])
 
 When applying more than one constraint they are passed as a list in
-the :meth:`set_constraint` method, and they will be applied one after
-the other.
+the :meth:`~ase.atoms.Atoms.set_constraint` method, and they will be applied
+one after the other.
 
 Important: If wanting to fix the length of more than one bond in the
-simulation, do not supply a list of :class:`~ase.constraints.FixBondLength`
+simulation, do not supply a list of :class:`FixBondLength`
 instances; instead, use a single instance of
-:class:`~ase.constraints.FixBondLengths`.
+:class:`FixBondLengths`.
 
 
 Making your own constraint class
@@ -251,16 +268,16 @@ A simple example::
   class MyConstraint:
       """Constrain an atom to move along a given direction only."""
       def __init__(self, a, direction):
-	  self.a = a
-	  self.dir = direction / sqrt(np.dot(direction, direction))
+          self.a = a
+          self.dir = direction / sqrt(np.dot(direction, direction))
 
       def adjust_positions(self, oldpositions, newpositions):
-	  step = newpositions[self.a] - oldpositions[self.a]
-	  step = np.dot(step, self.dir)
-	  newpositions[self.a] = oldpositions[self.a] + step * self.dir
+          step = newpositions[self.a] - oldpositions[self.a]
+          step = np.dot(step, self.dir)
+          newpositions[self.a] = oldpositions[self.a] + step * self.dir
 
       def adjust_forces(self, positions, forces):
-	  forces[self.a] = self.dir * np.dot(forces[self.a], self.dir)
+          forces[self.a] = self.dir * np.dot(forces[self.a], self.dir)
 
 A constraint can optionally have two additional methods, which
 will be ignored if missing:
@@ -274,9 +291,6 @@ will be ignored if missing:
    Provide the difference in the *potential energy* due to the constraint.
    (Note that inplace adjustment is not possible for energy, which is a
    float.)
-
-
-
 
 
 The Filter class
@@ -324,18 +338,13 @@ In all three filters only the hydrogen atoms are made
 visible.  When asking for the positions only the positions of the
 hydrogen atoms are returned.
 
+
 The UnitCellFilter class
 ========================
 
-.. module:: UnitCellFilter
-   :synopsis: UnitCellFilter
-
-.. autoclass:: ase.constraints.UnitCellFilter
+.. autoclass:: UnitCellFilter
 
 The StrainFilter class
 ======================
 
-.. module:: StrainFilter
-   :synopsis: StrainFilter
-
-.. autoclass:: ase.constraints.StrainFilter
+.. autoclass:: StrainFilter

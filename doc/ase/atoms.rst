@@ -1,10 +1,10 @@
-.. module:: atoms
+.. module:: ase.atoms
 
 ================
 The Atoms object
 ================
 
-The :class:`~ase.atoms.Atoms` object is a collection of atoms.  Here
+The :class:`Atoms` object is a collection of atoms.  Here
 is how to define a CO molecule::
 
   from ase import Atoms
@@ -44,15 +44,15 @@ Here, two more optional keyword arguments were used:
   specific axes.
 
 You can also use the following methods to work with the unit cell and
-the boundary conditions: :meth:`~ase.atoms.Atoms.set_pbc`,
-:meth:`~ase.atoms.Atoms.set_cell`, :meth:`~ase.atoms.Atoms.get_cell`,
-and :meth:`~ase.atoms.Atoms.get_pbc`.
+the boundary conditions: :meth:`~Atoms.set_pbc`,
+:meth:`~Atoms.set_cell`, :meth:`~Atoms.get_cell`,
+and :meth:`~Atoms.get_pbc`.
 
 
 Working with the array methods of Atoms objects
 ===============================================
 
-Like with a single :class:`~atom.Atom` the properties of a collection of atoms
+Like with a single :class:`~ase.atom.Atom` the properties of a collection of atoms
 can be accessed and changed with get- and set-methods. For example
 the positions of the atoms can be addressed as
 
@@ -70,78 +70,76 @@ array([[ 2.,  0.,  0.],
 Here is the full list of the get/set methods operating on all the
 atoms at once.  The get methods return an array of quantities, one for
 each atom; the set methods take similar arrays.
-E.g. :meth:`~ase.atoms.Atoms.get_positions` return N * 3 numbers,
-:meth:`~ase.atoms.Atoms.get_atomic_numbers` return N integers.
+E.g. :meth:`~Atoms.get_positions` return N * 3 numbers,
+:meth:`~Atoms.get_atomic_numbers` return N integers.
 
 *These methods return copies of the internal arrays, it is thus safe
 to modify the returned arrays.*
 
 .. list-table::
 
-  * - :meth:`~ase.atoms.Atoms.get_atomic_numbers`
-    - :meth:`~ase.atoms.Atoms.set_atomic_numbers`
-  * - :meth:`~ase.atoms.Atoms.get_charges`
-    - :meth:`~ase.atoms.Atoms.set_charges`
-  * - :meth:`~ase.atoms.Atoms.get_chemical_symbols`
-    - :meth:`~ase.atoms.Atoms.set_chemical_symbols`
-  * - :meth:`~ase.atoms.Atoms.get_initial_magnetic_moments`
-    - :meth:`~ase.atoms.Atoms.set_initial_magnetic_moments`
-  * - :meth:`~ase.atoms.Atoms.get_magnetic_moments`
+  * - :meth:`~Atoms.get_atomic_numbers`
+    - :meth:`~Atoms.set_atomic_numbers`
+  * - :meth:`~Atoms.get_charges`
+    - :meth:`~Atoms.set_charges`
+  * - :meth:`~Atoms.get_chemical_symbols`
+    - :meth:`~Atoms.set_chemical_symbols`
+  * - :meth:`~Atoms.get_initial_magnetic_moments`
+    - :meth:`~Atoms.set_initial_magnetic_moments`
+  * - :meth:`~Atoms.get_magnetic_moments`
     -
-  * - :meth:`~ase.atoms.Atoms.get_masses`
-    - :meth:`~ase.atoms.Atoms.set_masses`
-  * - :meth:`~ase.atoms.Atoms.get_momenta`
-    - :meth:`~ase.atoms.Atoms.set_momenta`
-  * - :meth:`~ase.atoms.Atoms.get_forces`
+  * - :meth:`~Atoms.get_masses`
+    - :meth:`~Atoms.set_masses`
+  * - :meth:`~Atoms.get_momenta`
+    - :meth:`~Atoms.set_momenta`
+  * - :meth:`~Atoms.get_forces`
     -
-  * - :meth:`~ase.atoms.Atoms.get_positions`
-    - :meth:`~ase.atoms.Atoms.set_positions`
-  * - :meth:`~ase.atoms.Atoms.get_potential_energies`
+  * - :meth:`~Atoms.get_positions`
+    - :meth:`~Atoms.set_positions`
+  * - :meth:`~Atoms.get_potential_energies`
     - 
-  * - :meth:`~ase.atoms.Atoms.get_scaled_positions`
-    - :meth:`~ase.atoms.Atoms.set_scaled_positions`
-  * - :meth:`~ase.atoms.Atoms.get_stresses`
+  * - :meth:`~Atoms.get_scaled_positions`
+    - :meth:`~Atoms.set_scaled_positions`
+  * - :meth:`~Atoms.get_stresses`
     -
-  * - :meth:`~ase.atoms.Atoms.get_tags`
-    - :meth:`~ase.atoms.Atoms.set_tags`
-  * - :meth:`~ase.atoms.Atoms.get_velocities`
-    - :meth:`~ase.atoms.Atoms.set_velocities`
+  * - :meth:`~Atoms.get_tags`
+    - :meth:`~Atoms.set_tags`
+  * - :meth:`~Atoms.get_velocities`
+    - :meth:`~Atoms.set_velocities`
 
 There are also a number of get/set methods that operate on quantities
 common to all the atoms or defined for the collection of atoms:
 
 .. list-table::
 
-  * - :meth:`~ase.atoms.Atoms.get_calculator`
-    - :meth:`~ase.atoms.Atoms.set_calculator`
-  * - :meth:`~ase.atoms.Atoms.get_cell`
-    - :meth:`~ase.atoms.Atoms.set_cell`
-  * - :meth:`~ase.atoms.Atoms.get_center_of_mass`
+  * - :meth:`~Atoms.get_calculator`
+    - :meth:`~Atoms.set_calculator`
+  * - :meth:`~Atoms.get_cell`
+    - :meth:`~Atoms.set_cell`
+  * - :meth:`~Atoms.get_center_of_mass`
     - 
-  * - :meth:`~ase.atoms.Atoms.get_kinetic_energy`
+  * - :meth:`~Atoms.get_kinetic_energy`
     - 
-  * - :meth:`~ase.atoms.Atoms.get_magnetic_moment`
+  * - :meth:`~Atoms.get_magnetic_moment`
     - 
-  * - :meth:`~ase.atoms.Atoms.get_name`
+  * - :meth:`~Atoms.get_number_of_atoms`
     - 
-  * - :meth:`~ase.atoms.Atoms.get_number_of_atoms`
+  * - :meth:`~Atoms.get_pbc`
+    - :meth:`~Atoms.set_pbc`
+  * - :meth:`~Atoms.get_potential_energy`
     - 
-  * - :meth:`~ase.atoms.Atoms.get_pbc`
-    - :meth:`~ase.atoms.Atoms.set_pbc`
-  * - :meth:`~ase.atoms.Atoms.get_potential_energy`
+  * - :meth:`~Atoms.get_stress`
     - 
-  * - :meth:`~ase.atoms.Atoms.get_stress`
+  * - :meth:`~Atoms.get_total_energy`
     - 
-  * - :meth:`~ase.atoms.Atoms.get_total_energy`
-    - 
-  * - :meth:`~ase.atoms.Atoms.get_volume`
+  * - :meth:`~Atoms.get_volume`
     - 
 
 
 Unit cell and boundary conditions
 =================================
 
-The :class:`~ase.atoms.Atoms` object holds a unit cell which by
+The :class:`Atoms` object holds a unit cell which by
 default is the 3x3 unit matrix as can be seen from
 
 >>> a.get_cell()
@@ -151,7 +149,7 @@ array([[ 1.,  0.,  0.],
 
 
 The cell can be defined or changed using the
-:meth:`~ase.atoms.Atoms.set_cell` method. Changing the unit cell
+:meth:`~Atoms.set_cell` method. Changing the unit cell
 does per default not move the atoms:
 
 >>> a.set_cell(2 * identity(3))
@@ -173,7 +171,7 @@ array([[ 1. ,  0. ,  0. ],
        [ 0.5,  0.5,  0. ],
        [ 1. ,  1. ,  0. ]])
 
-The :meth:`~ase.atoms.Atoms.set_pbc` method specifies whether
+The :meth:`~Atoms.set_pbc` method specifies whether
 periodic boundary conditions are to be used in the directions of the
 three vectors of the unit cell.  A slab calculation with periodic
 boundary conditions in *x* and *y* directions and free boundary
@@ -187,8 +185,8 @@ Special attributes
 ==================
 
 It is also possible to work directly with the attributes
-:attr:`~ase.atoms.Atoms.positions`, :attr:`~ase.atoms.Atoms.numbers`,
-:attr:`~ase.atoms.Atoms.pbc` and :attr:`~ase.atoms.Atoms.cell`.  Here
+:attr:`~Atoms.positions`, :attr:`~Atoms.numbers`,
+:attr:`~Atoms.pbc` and :attr:`~Atoms.cell`.  Here
 we change the position of the 2nd atom (which has count number 1
 because Python starts counting at zero) and the type of the first
 atom:
@@ -224,7 +222,7 @@ Adding a calculator
 
 A calculator can be attached to the atoms with the purpose
 of calculating energies and forces on the atoms. ASE works with many
-different :mod:`calculators`.
+different :mod:`ase.calculators`.
 
 A calculator object *calc* is attached to the atoms like this:
 
@@ -244,22 +242,22 @@ potential energy is that the atoms might also have a kinetic energy
 >>> a.get_kinetic_energy()
 
 In case of a DFT calculator, it is up to the user to check exactly what
-the :meth:`~ase.atoms.Atoms.get_potential_energy` method returns. For
+the :meth:`~Atoms.get_potential_energy` method returns. For
 example it may be the result of a calculation with a finite
 temperature smearing of the occupation numbers extrapolated to zero
 temperature.  More about this can be found for the different
-:mod:`calculators`.
+:mod:`ase.calculators`.
 
 The following methods can only be called if a calculator is present:
 
-* :meth:`~ase.atoms.Atoms.get_potential_energy`
-* :meth:`~ase.atoms.Atoms.get_potential_energies`
-* :meth:`~ase.atoms.Atoms.get_forces`
-* :meth:`~ase.atoms.Atoms.get_stress`
-* :meth:`~ase.atoms.Atoms.get_stresses`
-* :meth:`~ase.atoms.Atoms.get_total_energy`
-* :meth:`~ase.atoms.Atoms.get_magnetic_moments`
-* :meth:`~ase.atoms.Atoms.get_magnetic_moment`
+* :meth:`~Atoms.get_potential_energy`
+* :meth:`~Atoms.get_potential_energies`
+* :meth:`~Atoms.get_forces`
+* :meth:`~Atoms.get_stress`
+* :meth:`~Atoms.get_stresses`
+* :meth:`~Atoms.get_total_energy`
+* :meth:`~Atoms.get_magnetic_moments`
+* :meth:`~Atoms.get_magnetic_moment`
 
 Not all of these methods are supported by all calculators.
 
@@ -273,15 +271,15 @@ List-methods
     - example
   * - ``+``
     - ``wire2 = wire + co``
-  * - ``+=``, :meth:`~ase.atoms.Atoms.extend`
+  * - ``+=``, :meth:`~Atoms.extend`
     - ``wire += co``
 
       ``wire.extend(co)``
-  * - :meth:`~ase.atoms.Atoms.append`
+  * - :meth:`~Atoms.append`
     - ``wire.append(Atom('H'))``
   * - ``*``
     - ``wire3 = wire * (3, 1, 1)``
-  * - ``*=``, :meth:`~ase.atoms.Atoms.repeat`
+  * - ``*=``, :meth:`~Atoms.repeat`
     - ``wire *= (3, 1, 1)``
 
       ``wire.repeat((3, 1, 1))``
@@ -291,7 +289,7 @@ List-methods
     - ``del wire3[0]``
 
       ``del wire3[[1,3]]``
-  * - :meth:`~ase.atoms.Atoms.pop`
+  * - :meth:`~Atoms.pop`
     - ``oxygen = wire2.pop()``
 
 
@@ -305,30 +303,29 @@ Note that the ``del`` method can be used with the more powerful numpy-style inde
 Other methods
 =============
 
-* :meth:`~ase.atoms.Atoms.center`
-* :meth:`~ase.atoms.Atoms.translate`
-* :meth:`~ase.atoms.Atoms.rotate`
-* :meth:`~ase.atoms.Atoms.rotate_euler`
-* :meth:`~ase.atoms.Atoms.get_dihedral`
-* :meth:`~ase.atoms.Atoms.set_dihedral`
-* :meth:`~ase.atoms.Atoms.rotate_dihedral`
-* :meth:`~ase.atoms.Atoms.rattle`
-* :meth:`~ase.atoms.Atoms.set_constraint`
-* :meth:`~ase.atoms.Atoms.set_distance`
-* :meth:`~ase.atoms.Atoms.copy`
-* :meth:`~ase.atoms.Atoms.get_center_of_mass`
-* :meth:`~ase.atoms.Atoms.get_distance`
-* :meth:`~ase.atoms.Atoms.get_volume`
-* :meth:`~ase.atoms.Atoms.has`
-* :meth:`~ase.atoms.Atoms.edit`
-* :meth:`~ase.atoms.Atoms.identical_to`
+* :meth:`~Atoms.center`
+* :meth:`~Atoms.translate`
+* :meth:`~Atoms.rotate`
+* :meth:`~Atoms.rotate_euler`
+* :meth:`~Atoms.get_dihedral`
+* :meth:`~Atoms.set_dihedral`
+* :meth:`~Atoms.rotate_dihedral`
+* :meth:`~Atoms.rattle`
+* :meth:`~Atoms.set_constraint`
+* :meth:`~Atoms.set_distance`
+* :meth:`~Atoms.copy`
+* :meth:`~Atoms.get_center_of_mass`
+* :meth:`~Atoms.get_distance`
+* :meth:`~Atoms.get_volume`
+* :meth:`~Atoms.has`
+* :meth:`~Atoms.edit`
 
 
 
 List of all Methods
 ===================
 
-.. autoclass:: ase.atoms.Atoms
+.. autoclass:: Atoms
    :members:
 
 

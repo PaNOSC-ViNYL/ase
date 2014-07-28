@@ -52,7 +52,7 @@ Adsorbates get tag=0:
 >>> print atoms.get_tags()
 [3 3 3 3 2 2 2 2 1 1 1 1 0]
 
-This can be useful for setting up :mod:`constraints` (see
+This can be useful for setting up :mod:`ase.constraints` (see
 :ref:`diffusion_tutorial`).
 
 
@@ -93,7 +93,7 @@ All the functions setting up surfaces take the same arguments.
 
 Each function defines a number of standard adsorption sites that can
 later be used when adding an adsorbate with
-:func:`lattice.surface.add_adsorbate`.
+:func:`ase.lattice.surface.add_adsorbate`.
 
 
 The following functions are provided
@@ -180,6 +180,7 @@ After a slab has been created, a vacuum layer can be added.  It is
 also possible to add one or more adsorbates.
 
 .. autofunction:: ase.lattice.surface.add_adsorbate
+.. autofunction:: ase.lattice.surface.add_vacuum
 
 
 .. _general-surface-section:

@@ -1,4 +1,4 @@
-.. module:: gui
+.. module:: ase.gui
    :synopsis: Simple graphical user-interface for ASE.
 
 

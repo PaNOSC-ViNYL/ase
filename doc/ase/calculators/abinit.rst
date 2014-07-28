@@ -1,4 +1,4 @@
-.. module:: abinit
+.. module:: ase.calculators.abinit
 
 ======
 ABINIT
@@ -20,18 +20,21 @@ Environment variables
 
 .. highlight:: bash
 
-The environment variable :envvar:`ASE_ABINIT_COMMAND` must be set to
-something like this::
+.. envvar:: ASE_ABINIT_COMMAND
 
-  abinis < PREFIX.files > PREFIX.log
+    Must be set to something like this::
 
-where ``abinis`` is the executable.
+        abinis < PREFIX.files > PREFIX.log
 
-A directory containing the pseudopotential files (at least of
-:file:`.fhi` type) is also needed, and it is to be put in the
-environment variable :envvar:`ABINIT_PP_PATH`. Abinit does not provide
-tarballs of pseudopotentials so the easiest way is to download and
-unpack
+    where ``abinis`` is the executable.
+
+.. envvar:: ABINIT_PP_PATH
+
+    A directory containing the pseudopotential files (at least of
+    :file:`.fhi` type).
+
+Abinit does not provide tarballs of pseudopotentials so the easiest way is to
+download and unpack
 http://wiki.fysik.dtu.dk/abinit-files/abinit-pseudopotentials-2.tar.gz
 
 Set the environment variables in your in your shell configuration file::

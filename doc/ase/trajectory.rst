@@ -5,12 +5,12 @@
 Trajectory files
 ================
 
-The :mod:`io.trajectory` module defines Trajectory objects, that is
-objects storing the temporal evolution of a simulation.  A Trajectory
-file contains one or more :class:`~ase.atoms.Atoms` objects, usually to be interpreted as
-a time series, although that is not a requirement.
+The :mod:`ase.io.trajectory` module defines Trajectory objects, that is
+objects storing the temporal evolution of a simulation.  A Trajectory file
+contains one or more :class:`~ase.atoms.Atoms` objects, usually to be
+interpreted as a time series, although that is not a requirement.
 
-The :mod:`io.trajectory` module currently defines two kinds of
+The :mod:`ase.io.trajectory` module currently defines two kinds of
 Trajectory files, the PickleTrajectory and the BundleTrajectory.
 PickleTrajectory is the recommended Trajectory format,
 BundleTrajectory is only intended for large molecular dynamics
@@ -18,6 +18,7 @@ simulations (large meaning millions of atoms).
 
 In the future, other kinds of Trajectories may be defined, with
 similar Python interface but with different underlying file formats.
+
 
 PickleTrajectory
 ================
@@ -31,6 +32,7 @@ Note that there is apparently no methods for reading the trajectory.
 Reading is instead done by indexing the trajectory, or by iterating
 over the trajectory: ``traj[0]`` and ``traj[-1]`` return the first and
 last :class:`~ase.atoms.Atoms` object in the trajectory.
+
 
 Examples
 --------
@@ -73,6 +75,3 @@ The function :func:`ase.io.write` can write a single
 
 The function :func:`ase.io.read` can read an :class:`~ase.atoms.Atoms`
 object from a Trajectory file, per default it reads the last one.
-
-
-

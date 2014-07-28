@@ -1,4 +1,4 @@
-.. module:: db
+.. module:: ase.db
 
 ====================
 A database for atoms
@@ -158,7 +158,7 @@ Python Interface
 
 .. module:: ase.db.core
 
-First, we :func:`~ase.db.connect` to the database:
+First, we :func:`connect` to the database:
     
 >>> from ase.db import connect
 >>> c = connect('abc.db')
@@ -297,7 +297,7 @@ and accessed like this:
 More details
 ------------
 
-.. autofunction:: ase.db.connect
+.. autofunction:: connect
 
 .. autoclass:: ase.db.core.Database
     :members:

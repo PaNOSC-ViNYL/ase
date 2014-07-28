@@ -289,6 +289,7 @@ class Vibrations:
             return 0.5 * freq.real.sum() / s
 
     def get_mode(self, n):
+        """Get mode number ."""
         mode = np.zeros((len(self.atoms), 3))
         mode[self.indices] = (self.modes[n] * self.im).reshape((-1, 3))
         return mode

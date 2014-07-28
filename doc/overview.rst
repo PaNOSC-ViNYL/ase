@@ -14,7 +14,7 @@ number of "design goals" that make it:
 
   Setting up an atomistic total energy calculation or molecular
   dynamics simulation with ASE is simple and straightforward.  ASE can
-  be used via a :mod:`graphical user interface <gui>`, a :ref:`command
+  be used via a :mod:`graphical user interface <ase.gui>`, a :ref:`command
   line tool` and the Python language.  Python scripts are
   easy to follow (see :ref:`python_info` for a short introduction).
   It is simple for new users to get access to all of the functionality
@@ -31,10 +31,10 @@ number of "design goals" that make it:
 - **Customizable**:
 
   The Python code in ASE is structured in modules intended for
-  different purposes. There are :mod:`calculators` for calculating
-  energies, forces and stresses, :mod:`md` and :mod:`optimize` modules
-  for controlling the motion of atoms, :mod:`constraint <constraints>`
-  objects and filters for performing :mod:`nudged-elastic-band <neb>`
+  different purposes. There are :mod:`ase.calculators` for calculating
+  energies, forces and stresses, :mod:`ase.md` and :mod:`ase.optimize` modules
+  for controlling the motion of atoms, :mod:`constraints <ase.constraints>`
+  objects and filters for performing :mod:`nudged-elastic-band <ase.neb>`
   calculations etc. The modularity of the object-oriented code make it
   simple to contribute new functionality to ASE.
 

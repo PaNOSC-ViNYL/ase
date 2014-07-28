@@ -1,4 +1,4 @@
-.. module:: test
+.. module:: ase.test
 
 ================
 Testing the code

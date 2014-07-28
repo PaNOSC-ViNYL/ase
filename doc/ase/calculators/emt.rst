@@ -1,4 +1,4 @@
-.. module::  emt
+.. module::  ase.calculators.emt
    :synopsis: Effective Medium Theory
 
 ==========================

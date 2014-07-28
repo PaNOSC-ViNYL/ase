@@ -1,4 +1,4 @@
-.. module:: turbomole
+.. module:: ase.calculators.turbomole
 
 =========
 TURBOMOLE

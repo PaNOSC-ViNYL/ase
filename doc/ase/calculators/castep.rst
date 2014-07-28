@@ -1,4 +1,4 @@
-.. module:: castep
+.. module:: ase.calculators.castep
 
 ========
 CASTEP

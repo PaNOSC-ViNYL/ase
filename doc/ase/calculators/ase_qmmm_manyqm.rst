@@ -1,4 +1,4 @@
-.. module:: ase_qmmm_manyqm
+.. module:: ase.calculators.ase_qmmm_manyqm
 
 ===============
 ase_qmmm_manyqm
@@ -95,8 +95,8 @@ keyword              type       default value   description
                                                 or 
                                                 'byFile':the 
                                                 edge_qm_atom-link_h_atom 
-					        distances are read from 
-					        a file
+                                                distances are read from 
+                                                a file
 ==================   =========  ==============  =============================
 
 

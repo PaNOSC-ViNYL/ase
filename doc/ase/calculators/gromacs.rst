@@ -1,4 +1,4 @@
-.. module:: gromacs
+.. module:: ase.calculators.gromacs
 
 =======
 Gromacs

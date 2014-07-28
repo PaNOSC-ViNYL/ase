@@ -1,4 +1,4 @@
-.. module::  jacapo
+.. module::  ase.calculators.jacapo
    :synopsis: ASE python interface for Dacapo
 
 ==========================================================

@@ -16,7 +16,7 @@ script, atoms can be created like this:
 
 The first argument to the constructor of an :class:`Atom` object is
 the chemical symbol, and the second argument is the position in Å
-units (see :mod:`units`).  The position can be any numerical sequence
+units (see :mod:`ase.units`).  The position can be any numerical sequence
 of length three.  The properties of an atom can also be set using
 keywords like it is done in the *a2* and *a3* examples above.
 
@@ -83,8 +83,8 @@ calculators use (similar to the
 Getting an Atom from an Atoms object
 ------------------------------------
 
-Indexing an :class:`Atoms` object returns an :class:`Atom` object
-still remembering that it belongs to the collective :class:`Atoms`:
+Indexing an :class:`~ase.atoms.Atoms` object returns an :class:`Atom` object
+still remembering that it belongs to the collective :class:`~ase.atoms.Atoms`:
 Modifying it will also change the atoms object:
 
 >>> from ase.structures import molecule
@@ -112,8 +112,8 @@ array([[ 0.      ,  0.      ,  0.      ],
    :epydoc:`atom.Atom`:
      All the details!
 
-   :mod:`atoms`:
+   :mod:`ase.atoms`:
      More information about how to use collections of atoms.
 
-   :mod:`calculators`:
+   :mod:`ase.calculators`:
      Information about how to calculate forces and energies of atoms.

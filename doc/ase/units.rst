@@ -1,4 +1,4 @@
-.. module:: units
+.. module:: ase.units
 
 =====
 Units
@@ -30,6 +30,7 @@ Examples:
 >>> 0.1 * fs
 0.009822693531550318
 >>> print '1 Hartree = '+str(Hartree*mol/kcal)+' kcal/mol'
+
 
 =======================
 The ``ase.data`` module

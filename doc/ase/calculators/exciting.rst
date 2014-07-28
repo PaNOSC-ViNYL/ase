@@ -1,4 +1,4 @@
-.. module:: exciting
+.. module:: ase.calculators.exciting
 
 ========
 exciting

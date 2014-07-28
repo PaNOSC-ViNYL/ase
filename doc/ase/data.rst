@@ -1,4 +1,4 @@
-.. module:: data
+.. module:: ase.data
 
 ===============
 The data module

@@ -1,4 +1,4 @@
-.. module:: dft.kpoints
+.. module:: ase.dft.kpoints
    :synopsis: Brillouin zone sampling
 
 =======================
@@ -12,7 +12,7 @@ reciprocal unit cell.
 Monkhorst-Pack
 --------------
 
-.. autofunction:: ase.dft.kpoints.monkhorst_pack
+.. autofunction:: monkhorst_pack
 
 The k-points are given as [MonkhorstPack]_:
 
@@ -23,7 +23,7 @@ The k-points are given as [MonkhorstPack]_:
 where `n_i=1,2,...,N_i`, ``size`` = `(N_1, N_2, N_3)` and the
 `\mathbf{b}_i`'s are reciprocal lattice vectors.
 
-.. autofunction:: ase.dft.kpoints.get_monkhorst_pack_size_and_offset
+.. autofunction:: get_monkhorst_pack_size_and_offset
 
 Example:
 
@@ -48,14 +48,14 @@ Chadi-Cohen
 
 Predefined sets of **k**-points:
 
-.. data:: dft.kpoints.cc6_1x1
-.. data:: dft.kpoints.cc12_2x3
-.. data:: dft.kpoints.cc18_sq3xsq3
-.. data:: dft.kpoints.cc18_1x1
-.. data:: dft.kpoints.cc54_sq3xsq3
-.. data:: dft.kpoints.cc54_1x1
-.. data:: dft.kpoints.cc162_sq3xsq3
-.. data:: dft.kpoints.cc162_1x1
+.. data:: cc6_1x1
+.. data:: cc12_2x3
+.. data:: cc18_sq3xsq3
+.. data:: cc18_1x1
+.. data:: cc54_sq3xsq3
+.. data:: cc54_1x1
+.. data:: cc162_sq3xsq3
+.. data:: cc162_1x1
 
 
 Naming convention: ``cc18_sq3xsq3`` is 18 **k**-points for a

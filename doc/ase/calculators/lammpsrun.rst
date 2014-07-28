@@ -1,4 +1,4 @@
-.. module:: LAMMPSrun
+.. module:: ase.calculators.LAMMPSrun
 
 =========
 LAMMPSrun
@@ -67,7 +67,7 @@ keyword         type       default value   description
                                            pairs corresponding to 
                                            commands and arguments.
                                            Command-argument pairs 
-					   provided here will
+                                           provided here will
                                            be used for overriding the
                                            the calculator defaults.
 ==============  =========  ==============  =============================
@@ -98,6 +98,6 @@ Setting up an OPLS calculation
 ==============================
 
 There are some modules to facilitate the setup of an OPLS force field 
-calculation, see :mod:`opls`.
+calculation, see :mod:`ase.io.opls`.
 
 

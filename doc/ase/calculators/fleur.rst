@@ -1,4 +1,4 @@
-.. module:: fleur
+.. module:: ase.calculators.fleur
 
 =====
 FLEUR

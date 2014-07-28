@@ -3,7 +3,7 @@
 ======================
 Structure optimization
 ======================
-.. module:: optimize
+.. module:: ase.optimize
    :synopsis: Structure Optimization
 
 The optimization algorithms can be roughly divided into local
@@ -22,10 +22,8 @@ The local optimization algorithms available in ASE are:
 .. seealso::
 
     `Performance test
-    <https://wiki.fysik.dtu.dk/gpaw/devel/ase_optimize/ase_optimize.html>`_ for all
-    ASE local optimizers.
-
-
+    <https://wiki.fysik.dtu.dk/gpaw/devel/ase_optimize/ase_optimize.html>`_
+    for all ASE local optimizers.
 
 
 ``MDMin`` and ``FIRE`` both use Newtonian dynamics with added
@@ -51,7 +49,7 @@ should be less than *fmax*:
 
 BFGS
 ----
-.. module:: optimize.qn
+.. module:: ase.optimize.qn
    :synopsis: Quasi-Newton
 
 The ``BFGS`` object is one of the minimizers in the ASE package. The below
@@ -65,10 +63,10 @@ with the experimental geometry::
    d = 0.9575
    t = np.pi / 180 * 104.51
    water = Atoms('H2O',
-		 positions=[(d, 0, 0),
-			    (d * np.cos(t), d * np.sin(t), 0),
-			    (0, 0, 0)],
-		 calculator=EMT())
+                 positions=[(d, 0, 0),
+                            (d * np.cos(t), d * np.sin(t), 0),
+                            (0, 0, 0)],
+                 calculator=EMT())
    dyn = BFGS(water)
    dyn.run(fmax=0.05)
 
@@ -90,22 +88,21 @@ be followed during or after the run::
   dyn.run(fmax=0.05)
 
 Use the command ``ase-gui H2O.traj`` to see what is going on (more here:
-:mod:`gui`).  The trajectory file can also be accessed using the
+:mod:`ase.gui`).  The trajectory file can also be accessed using the
 module :mod:`ase.io.trajectory`.
 
 The ``attach`` method takes an optional argument ``interval=n`` that can
 be used to tell the structure optimizer object to write the
 configuration to the trajectory file only every ``n`` steps.
 
-During a structure optimization, the :class:`BFGS` and
-:class:`LBFGS` optimizers use two quantities to decide where to move
-the atoms on each step:
+During a structure optimization, the BFGS and LBFGS optimizers use two
+quantities to decide where to move the atoms on each step:
 
- * the forces on each atom, as returned by the associated :class:`Calculator`
-   object
- * the Hessian matrix, i.e. the matrix of second derivatives
-   :math:`\frac{\partial^2 E}{\partial x_i \partial x_j}` of the
-   total energy with respect to nuclear coordinates.
+* the forces on each atom, as returned by the associated
+  :class:`~ase.calculators.calculator.Calculator` object
+* the Hessian matrix, i.e. the matrix of second derivatives
+  :math:`\frac{\partial^2 E}{\partial x_i \partial x_j}` of the
+  total energy with respect to nuclear coordinates.
 
 If the atoms are close to the minimum, such that the potential energy
 surface is locally quadratic, the Hessian and forces accurately
@@ -155,7 +152,7 @@ retained by replaying the trajectory as above.
 
 LBFGS
 -----
-.. module:: optimize.lbfgs
+.. module:: ase.optimize.lbfgs
 
 LBFGS is the limited memory version of the BFGS algorithm, where
 the inverse of Hessian matrix is updated instead of the Hessian
@@ -178,7 +175,7 @@ optimization and the vectors needed to generate the Hessian Matrix.
 
 FIRE
 ----
-.. module:: optimize.fire
+.. module:: ase.optimize.fire
 
 Read about this algorithm here:
 
@@ -191,7 +188,7 @@ __ http://dx.doi.org/10.1103/PhysRevLett.97.170201
 
 MDMin
 -----
-.. module:: optimize.mdmin
+.. module:: ase.optimize.mdmin
 
 The MDmin algorithm is a modification of the usual velocity-Verlet
 molecular dynamics algorithm.  Newtons second law is solved
@@ -218,7 +215,7 @@ Newton*.
 
 SciPy optimizers
 ----------------
-.. module:: optimize.sciopt
+.. module:: ase.optimize.sciopt
 
 SciPy provides a number of optimizers. An interface module for a couple of
 these have been written for ASE. Most notable are the optimizers SciPyFminBFGS
@@ -238,7 +235,7 @@ as::
 
 BFGSLineSearch
 --------------
-.. module:: optimize.bfgslinesearch
+.. module:: ase.optimize.bfgslinesearch
 
 BFGSLineSearch is the BFGS algorithm with a line search mechanism
 that enforces the step taken fulfills the Wolfe conditions, so that
@@ -272,7 +269,7 @@ There are currently two global optimisation algorithms available.
 
 Basin hopping
 -------------
-.. module:: optimize.basin
+.. module:: ase.optimize.basin
 
 The global optimization algorithm can be used quite similar as a
 local optimization algorithm::
@@ -281,11 +278,11 @@ local optimization algorithm::
   from ase.optimize.basin import BasinHopping
 
   bh = BasinHopping(atoms=system,         # the system to optimize
-		    temperature=100 * kB, # 'temperature' to overcome barriers
-		    dr=0.5,               # maximal stepwidth
-		    optimizer=LBFGS,      # optimizer to find local minima
-		    fmax=0.1,             # maximal force for the optimizer
-		    )
+                    temperature=100 * kB, # 'temperature' to overcome barriers
+                    dr=0.5,               # maximal stepwidth
+                    optimizer=LBFGS,      # optimizer to find local minima
+                    fmax=0.1,             # maximal force for the optimizer
+                    )
 
 Read more about this algorithm here:
 

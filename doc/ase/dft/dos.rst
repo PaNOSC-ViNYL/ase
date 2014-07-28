@@ -1,4 +1,4 @@
-.. module:: dft.dos
+.. module:: ase.dft.dos
    :synopsis: Density of states
 
 =================
@@ -34,8 +34,7 @@ method, as in the following example::
 More details
 ------------
 
-.. autoclass:: ase.dft.dos.DOS
+.. autoclass:: DOS
    :members: get_energies, get_dos
 
-.. automodule:: ase.dft
-   :members: get_distribution_moment
+.. autofunction:: ase.dft.get_distribution_moment

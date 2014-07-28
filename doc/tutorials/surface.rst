@@ -19,7 +19,7 @@ Here is a picture of the system after the relaxation:
 
 .. image:: surface.png
 
-Please have a look at the following script :svn:`doc/tutorials/N2Cu.py`:
+Please have a look at the following script :download:`N2Cu.py`:
 
 .. literalinclude:: N2Cu.py
 
@@ -55,8 +55,8 @@ common crystal structures. Let us make a Cu (111) surface::
 Calculators
 ----------- 
 
-Many :mod:`calculators` can be used with ASE, including
-:mod:`~calculators.emt`, Asap_, Dacapo_, GPAW_, Abinit_, Vasp_.
+Many :mod:`ase.calculators` can be used with ASE, including
+:mod:`~ase.calculators.emt`, Asap_, Dacapo_, GPAW_, Abinit_, Vasp_.
 See the ASE home page for the full list.
   
 .. _Asap: http://wiki.fysik.dtu.dk/asap
@@ -88,7 +88,7 @@ the :meth:`~ase.atoms.Atoms.get_potential_energy` method from the
 Structure relaxation
 --------------------
 
-Let's use the :mod:`QuasiNewton <optimize.qn>` minimizer to optimize the
+Let's use the :mod:`QuasiNewton <ase.optimize.qn>` minimizer to optimize the
 structure of the N2 molecule adsorbed on the Cu surface. First add the
 adsorbate to the Cu slab, for example in the on-top position::
   
@@ -96,7 +96,7 @@ adsorbate to the Cu slab, for example in the on-top position::
   add_adsorbate(slab, molecule, h, 'ontop')
 
 In order to speed up the relaxation, let us keep the Cu atoms fixed in
-the slab by using :class:`~constraints.FixAtoms` from the
+the slab by using :class:`~ase.constraints.FixAtoms` from the
 :mod:`~ase.constraints` module. Only the N2 molecule is then allowed
 to relax to the equilibrium structure::
 
@@ -104,7 +104,7 @@ to relax to the equilibrium structure::
   constraint = FixAtoms(mask=[a.symbol != 'N' for a in slab])
   slab.set_constraint(constraint)
 
-Now attach the :mod:`QuasiNewton <optimize.qn>` minimizer to the
+Now attach the :mod:`QuasiNewton <ase.optimize.qn>` minimizer to the
 system and save the trajectory file. Run the minimizer with the
 convergence criteria that the force on all atoms should be less than
 some ``fmax``::
@@ -162,13 +162,13 @@ doing::
 Visualization
 -------------
 
-The simplest way to visualize the atoms is the :func:`~visualize.view`
+The simplest way to visualize the atoms is the :func:`~ase.visualize.view`
 function::
 
   from ase.visualize import view
   view(slab)
 
-This will pop up a :mod:`gui` window.  Alternative viewers can be used
+This will pop up a :mod:`ase.gui` window.  Alternative viewers can be used
 by specifying the optional keyword ``viewer=...`` - use one of
 'ase.gui', 'gopenmol', 'vmd', or 'rasmol'. (Note that these alternative
 viewers are not a part of ASE and will need to be installed by the user
@@ -183,9 +183,9 @@ Molecular dynamics
 ------------------
 
 Let us look at the nitrogen molecule as an example of molecular
-dynamics with the :class:`VelocityVerlet <md.verlet.VelocityVerlet>`
+dynamics with the :class:`VelocityVerlet <ase.md.verlet.VelocityVerlet>`
 algorithm. We first create the :class:`VelocityVerlet
-<md.verlet.VelocityVerlet>` object giving it the molecule and the time
+<ase.md.verlet.VelocityVerlet>` object giving it the molecule and the time
 step for the integration of Newton's law. We then perform the dynamics
 by calling its :meth:`run` method and giving it the number of steps to
 take::

@@ -2,27 +2,28 @@
 Molecular dynamics
 ==================
 
-.. module:: md
+.. module:: ase.md
    :synopsis: Molecular Dynamics
 
 Typical computer simulations involve moving the atoms around, either
 to optimize a structure (energy minimization) or to do molecular
 dynamics.  This chapter discusses molecular dynamics, energy
-minimization algorithms will be discussed in the :mod:`optimize`
+minimization algorithms will be discussed in the :mod:`ase.optimize`
 section.
 
 A molecular dynamics object will operate on the atoms by moving them
 according to their forces - it integrates Newton's second law
 numerically.  A typical molecular dynamics simulation will use the
 `Velocity Verlet dynamics`_.  You create the
-:class:`VelocityVerlet` object, giving it the atoms and a time step, and then
-you perform dynamics by calling its :meth:`run` method::
+:class:`ase.md.verlet.VelocityVerlet` object, giving it the atoms and a time
+step, and then you perform dynamics by calling its :meth:`run` method::
 
   dyn = VelocityVerlet(atoms, 5.0 * units.fs)
   dyn.run(1000)  # take 1000 steps
 
 A number of different algorithms can be used to perform molecular
 dynamics, with slightly different results.
+
 
 Choosing the time step
 ======================
@@ -68,12 +69,12 @@ for each timestep, specifying the ``loginterval`` argument will chance
 this to a more reasonable frequency.
 
 The logging can be customized by explicitly attaching a
-:class:`ase.md.MDLogger` object to the dynamics::
+:class:`MDLogger` object to the dynamics::
 
   from ase.md import MDLogger
   dyn = VelocityVerlet(atoms, dt=2*ase.units.fs)
   dyn.attach(MDLogger(dyn, atoms, 'md.log', header=False, stress=False,
-	     peratom=True, mode="a"), interval=1000)
+             peratom=True, mode="a"), interval=1000)
 
 This example will skip the header line and write energies per atom
 instead of total energies.  The parameters are
@@ -100,7 +101,6 @@ cyclic reference to the dynamics.
    such as Jacapo, to not terminate correctly.)
 
 
-
 Constant NVE simulations (the microcanonical ensemble)
 ======================================================
 
@@ -120,10 +120,11 @@ constant, but if significant structural changes occurs they may result
 in temperature changes.  If external work is done on the system, the
 temperature is likely to rise significantly.
 
+
 Velocity Verlet dynamics
 ------------------------
 
-.. module:: md.verlet
+.. module:: ase.md.verlet
 
 .. class:: VelocityVerlet(atoms, timestep)
 
@@ -134,7 +135,6 @@ a too large time step will immediately be obvious, as the energy will
 increase with time, often very rapidly.
 
 Example: See the tutorial :ref:`md_tutorial`.
-
 
 
 Constant NVT simulations (the canonical ensemble)
@@ -152,10 +152,9 @@ introduced into the Hamiltonian.
 Langevin dynamics
 -----------------
 
-.. module:: md.langevin
+.. module:: ase.md.langevin
 
 .. class:: Langevin(atoms, timestep, temperature, friction)
-
 
 The Langevin class implements Langevin dynamics, where a (small)
 friction term and a fluctuating force are added to Newton's second law
@@ -194,7 +193,6 @@ to zero in the part of the system where the phenomenon being studied
 is located.
 
 
-
 Nosé-Hoover dynamics
 --------------------
 
@@ -211,7 +209,7 @@ special case of NPT dynamics.
 
 Berendsen NVT dynamics
 -----------------------
-.. module:: md.nvtberendsen
+.. module:: ase.md.nvtberendsen
 
 .. class:: NVTBerendsen(atoms, timestep, temperature, taut, fixcm)
 
@@ -248,7 +246,7 @@ the gromacs manual at www.gromacs.org.
 Constant NPT simulations (the isothermal-isobaric ensemble)
 ===========================================================
 
-.. module:: md.npt
+.. module:: ase.md.npt
 
 .. class:: NPT(atoms, timestep, temperature, externalstress, ttime, pfactor, mask=None)
 
@@ -364,7 +362,7 @@ Physical Review A 41, p. 4552 (1990).
 
 Berendsen NPT dynamics
 -----------------------
-.. module:: md.nptberendsen
+.. module:: ase.md.nptberendsen
 
 .. class:: NPTBerendsen(atoms, timestep, temperature, taut, fixcm, pressure, taup,compressibility)
 
@@ -408,5 +406,5 @@ the gromacs manual at www.gromacs.org. or amber at ambermd.org
 
   # Room temperature simulation (300K, 0.1 fs time step, atmospheric pressure)
   dyn = NPTBerendsen(atoms, timestep=0.1*units.fs, temperature=300,
-		   taut=0.1*1000*units.fs, pressure = 1.01325,
-		   taup=1.0*1000*units.fs, compressibility=4.57e-5)
+                   taut=0.1*1000*units.fs, pressure = 1.01325,
+                   taup=1.0*1000*units.fs, compressibility=4.57e-5)

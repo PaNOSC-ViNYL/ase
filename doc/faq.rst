@@ -8,7 +8,7 @@ Frequently Asked Questions
 ASE-GUI
 =======
 
-See also the :mod:`documentation for ase-gui <gui>`.
+See also the :mod:`documentation for ase-gui <ase.gui>`.
 
 How do I export images from a trajectory to png or pov files?
 -------------------------------------------------------------

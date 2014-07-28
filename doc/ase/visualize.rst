@@ -1,4 +1,4 @@
-.. module:: visualize
+.. module:: ase.visualize
 
 Visualization
 =============
@@ -6,27 +6,26 @@ Visualization
 .. function:: view(atoms, data=None, viewer=None, repeat=None)
 
 This provides an interface to various visualization tools, such as
-:mod:`ase.gui <gui>`, :mod:`ase.visualize.vtk <vtk>`, RasMol_, VMD_, VTK_, gOpenMol_, or
-Avogadro_. The default viewer is the ase.gui, described in the
-:mod:`gui` module. The simplest invocation is::
+:mod:`ase.gui`, :mod:`ase.visualize.vtk <vtk>`, RasMol_, VMD_, VTK_,
+gOpenMol_, or Avogadro_. The default viewer is the ase.gui, described in the
+:mod:`gui` module. The simplest invocation is:
 
-  >>> from ase import view
-  >>> view(atoms)
+>>> from ase import view
+>>> view(atoms)
 
-where ``atoms`` is any :class:`Atoms` object.  Alternative viewers can
-be used by specifying the optional keyword ``viewer=...`` - use one of
-'ase.gui', 'gopenmol', 'vmd', or 'rasmol'.  The VMD and Avogadro
-viewers can take an optional ``data`` argument to show 3D data, such
-as charge density::
+where ``atoms`` is any :class:`~ase.atoms.Atoms` object.  Alternative viewers
+can be used by specifying the optional keyword ``viewer=...`` - use one of
+'ase.gui', 'gopenmol', 'vmd', or 'rasmol'.  The VMD and Avogadro viewers can
+take an optional ``data`` argument to show 3D data, such as charge density:
 
-  >>> view(atoms, viewer='VMD', data=array)
+>>> view(atoms, viewer='VMD', data=array)
 
 If you do not wish to open an interactive gui, but rather visualize
 your structure by dumping directly to a graphics file; you can use the
-``write`` command of the :mod:`io` module, which can write 'eps',
-'png', and 'pov' files directly, like this::
+``write`` command of the :mod:`ase.io` module, which can write 'eps',
+'png', and 'pov' files directly, like this:
 
-  >>> write('image.png', atoms)
+>>> write('image.png', atoms)
 
 .. _RasMol: http://openrasmol.org/
 .. _VMD: http://www.ks.uiuc.edu/Research/vmd/
@@ -36,9 +35,9 @@ your structure by dumping directly to a graphics file; you can use the
 
 
 VTK
-------------
+---
 
-.. module:: visualize.vtk
+.. module:: ase.visualize.vtk
 
 The Visualization Toolkit (VTK_) is a powerful platform-independent graphics
 engine, which comes as an open source graphics toolkit licensed under the 
@@ -58,20 +57,20 @@ For visualization purposes within ASE, two different VTK-approaches are
 supported, namely:
 
 :Scripted on-the-fly rendering:
-	ASE includes VTK-scripting for easy data visualization using the
-	:mod:`vtk` module. Development is in progress, so you might want to
-	check out the latest development release from SVN 
-	(see :ref:`latest_development_release`).
+        ASE includes VTK-scripting for easy data visualization using the
+        :mod:`vtk` module. Development is in progress, so you might want to
+        check out the latest development release from SVN 
+        (see :ref:`latest_development_release`).
 
 :Interactive rendering:
-	MayaVi_ is an easy-to-use GUI for VTK. With Enthought's traits-based
-	VTK-wrapper (TVTK_), constructing VTK pipelines has been simplified greatly
-	by introducing three basic concepts: data sources, filters and visualization
-	modules. MayaVi also supports the VTK file formats, including the flexible
-	VTK XML, which in ASE can be used to export atomic positions, forces and 
-	volume data using the ``write`` command in the :mod:`io` module.
+        MayaVi_ is an easy-to-use GUI for VTK. With Enthought's traits-based
+        VTK-wrapper (TVTK_), constructing VTK pipelines has been simplified greatly
+        by introducing three basic concepts: data sources, filters and visualization
+        modules. MayaVi also supports the VTK file formats, including the flexible
+        VTK XML, which in ASE can be used to export atomic positions, forces and 
+        volume data using the ``write`` command in the :mod:`io` module.
 
-.. XXX -	`VTK Designer`_ is a visual editor for creating and editing VTK pipelines.
+.. XXX -        `VTK Designer`_ is a visual editor for creating and editing VTK pipelines.
 
 .. _Qt: http://www.qtsoftware.com/products
 .. _Tk: http://www.tcl.tk/about
@@ -86,13 +85,12 @@ This is particularly useful for non-interactive ray tracing, batch isosurface
 generation and in-situ visualization of simulation data in cluster computing.
 
 .. seealso::
-	ParaView_ is a VTK-based open-source, multi-platform data analysis and
-	visualization application for extremely large data-sets using distributed 
-	memory computing resources and parallel rendering through MPI_.
+        ParaView_ is a VTK-based open-source, multi-platform data analysis and
+        visualization application for extremely large data-sets using distributed 
+        memory computing resources and parallel rendering through MPI_.
 
 .. _MPI: http://www.mpi-forum.org
 .. _ParaView: http://www.paraview.org
-
 
 
 PrimiPlotter
@@ -100,13 +98,11 @@ PrimiPlotter
 
 The PrimiPlotter is intended to do on-the-fly plotting of the
 positions of the atoms during long molecular dynamics simulations.
-The module :mod:`ase.visualize.primiplotter` contains the PrimiPlotter
-and the various output modules, see below.
-
+The module :mod:`ase.visualize.primiplotter` contains the
+PrimiPlotter and the various output modules, see below.
 
 .. autoclass:: ase.visualize.primiplotter.PrimiPlotter
    :inherited-members:
-
 
 
 FieldPlotter
@@ -123,7 +119,3 @@ is at least 5-10 times larger than the number of pixels in the plot.
 
 .. autoclass:: ase.visualize.fieldplotter.FieldPlotter
    :inherited-members:
-
-
-
-

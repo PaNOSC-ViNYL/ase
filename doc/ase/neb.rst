@@ -2,7 +2,7 @@
 Nudged elastic band
 ===================
 
-.. module:: neb
+.. module:: ase.neb
    :synopsis: Nudged Elastic Band method.
 
 The Nudged Elastic Band method is a technique for finding transition paths
@@ -33,7 +33,7 @@ The NEB class
 
 This module defines one class:
 
-.. autoclass:: ase.neb.NEB
+.. autoclass:: NEB
 
 Example of use, between initial and final state which have been previously
 saved in A.traj and B.traj::
@@ -76,13 +76,13 @@ calculators attached.
 
 .. seealso::
 
-   :mod:`optimize`:
+   :mod:`ase.optimize`:
         Information about energy minimization (optimization). Note that you
         cannot use the default optimizer, BFGSLineSearch, with NEBs. (This is
         the optimizer imported when you import QuasiNewton.) If you would
         like a quasi-newton optimizer, use BFGS instead.
 
-   :mod:`calculators`:
+   :mod:`ase.calculators`:
         How to use calculators.
 
    :ref:`tutorials`:
@@ -95,7 +95,8 @@ calculators attached.
 
   If there are `M` images and each image has `N` atoms, then the NEB
   object behaves like one big Atoms object with `MN` atoms, so its
-  :meth:`get_positions` method will return a `MN \times 3` array.
+  :meth:`~ase.atoms.Atoms.get_positions` method will return a `MN \times 3`
+  array.
 
 
 Trajectories

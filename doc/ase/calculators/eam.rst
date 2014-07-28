@@ -1,4 +1,4 @@
-.. module:: eam
+.. module:: ase.calculators.eam
 
 ===
 EAM

@@ -1,4 +1,4 @@
-.. module:: dft
+.. module:: ase.dft
    :synopsis: Tools specific to DFT calculators
 
 

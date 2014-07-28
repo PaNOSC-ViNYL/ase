@@ -16,8 +16,8 @@ If you are not familiar with Python please read :ref:`python_info`.
 ASE
 ---
 
-Most of the tutorials will use the :mod:`EMT <emt>` potential, but any
-other :mod:`Calculator <calculators>` could be plugged in instead.
+Most of the tutorials will use the :mod:`EMT <ase.calculators.emt>` potential,
+but any other :mod:`Calculator <ase.calculators>` could be plugged in instead.
 
 .. toctree::
    :maxdepth: 3
@@ -36,6 +36,7 @@ other :mod:`Calculator <calculators>` could be plugged in instead.
    wannier/wannier
    minimahopping/minimahopping
  
+   
 NumPy
 -----
 
@@ -46,6 +47,7 @@ If your ASE scripts make extensive use of matrices you may want to familiarize y
 
    ../numpy
 
+
 Further reading
 ---------------
 
@@ -54,7 +56,7 @@ For more details:
 * Look at the documentation for the individual :mod:`modules <ase>`.
 * See the automatically generated documentation ``Epydoc``: :epydoc:`ase`.
 * Browse the `source code`_ online.
-* Have a look at :mod:`~calculators.siesta` exercises:
+* Have a look at :mod:`~ase.calculators.siesta` exercises:
 
 .. toctree::
    :maxdepth: 3
@@ -62,6 +64,7 @@ For more details:
    ../exercises/exercises
 
 .. _source code: http://trac.fysik.dtu.dk/projects/ase/browser/trunk
+
 
 Videos
 ------

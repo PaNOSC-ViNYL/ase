@@ -1,4 +1,4 @@
-.. module:: infrared
+.. module:: ase.infrared
 
 
 ====================

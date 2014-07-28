@@ -5,7 +5,7 @@ Diffusion of gold atom on Al(100) surface (constraint)
 ======================================================
 
 In this tutorial, we will calculate the energy barrier that was found
-using the :mod:`NEB <neb>` method in the :ref:`diffusion_tutorial`
+using the :mod:`NEB <ase.neb>` method in the :ref:`diffusion_tutorial`
 tutorial.  Here, we use a siple :class:`~ase.constraints.FixedPlane`
 constraint that forces the Au atom to relax in the *yz*-plane only:
 
@@ -23,7 +23,7 @@ Here is a side-view of the path (unit cell repeated twice):
 
 .. seealso::
 
-   * :mod:`neb`
-   * :mod:`constraints`
+   * :mod:`ase.neb`
+   * :mod:`ase.constraints`
    * :ref:`diffusion_tutorial`
-   * :func:`~lattice.surface.fcc100`
+   * :func:`~ase.lattice.surface.fcc100`

@@ -199,7 +199,27 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
     # Attach the adsorbate
     slab.extend(ads)
 
+    
+def add_vacuum(atoms, vacuum):
+    """Add vacuum layer to the atoms.
 
+    Parameters:
+ 
+    atoms: An Atoms object most likely created by one of the
+    ase.lattice modules.
+ 
+    vacuum: The thickness of the vacuum layer (in Angstrom).
+    """
+    uc = atoms.get_cell()
+    normal = np.cross(uc[0], uc[1])
+    costheta = np.dot(normal, uc[2]) / np.sqrt(np.dot(normal, normal) *
+                                               np.dot(uc[2], uc[2]))
+    length = np.sqrt(np.dot(uc[2], uc[2]))
+    newlength = length + vacuum / costheta
+    uc[2] *= newlength / length
+    atoms.set_cell(uc)
+    
+    
 def _surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
     """Function to build often used surfaces.
 

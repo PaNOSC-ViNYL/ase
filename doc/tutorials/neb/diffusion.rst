@@ -27,10 +27,10 @@ Now, do the NEB calculation:
 
 .. seealso::
 
-   * :mod:`neb`
-   * :mod:`constraints`
+   * :mod:`ase.neb`
+   * :mod:`ase.constraints`
    * :ref:`constraints_diffusion_tutorial`
-   * :func:`~lattice.surface.fcc100`
+   * :func:`~ase.lattice.surface.fcc100`
    
 
 

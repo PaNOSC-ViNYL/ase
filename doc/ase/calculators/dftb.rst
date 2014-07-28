@@ -1,4 +1,4 @@
-.. module:: dftb
+.. module:: ase.calculators.dftb
 
 =========
 DftbPlus
@@ -83,7 +83,7 @@ Parameters
               Å\ `^{-1}`.
         run_manyDftb_steps: bool (default False)
             If True the Dftb calculator is running many steps by its own.
-	    If False all the relaxations/ molecular dynamis is done by ASE
+            If False all the relaxations/ molecular dynamis is done by ASE
 
 Example: Geometry Optimization by ASE
 =====================================

@@ -1,4 +1,4 @@
-.. module:: phonons
+.. module:: ase.phonons
 
 Phonon calculations
 -------------------
