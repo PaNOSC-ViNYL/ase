@@ -16,6 +16,8 @@ import numpy as np
 
 from ase.atoms import Atoms
 from ase.parallel import paropen
+from ase.calculators.calculator import all_properties
+from ase.calculators.singlepoint import SinglePointCalculator
 
 __all__ = ['read_xyz', 'write_xyz']
 
@@ -334,6 +336,18 @@ def read_xyz(fileobj, index=-1):
 
         if duplicate_numbers is not None:
             atoms.set_atomic_numbers(duplicate_numbers)
+
+        # Load results of previous calculations into SinglePointCalculator
+        results = {}
+        for key in atoms.info.keys():
+            if key in all_properties:
+                results[key] = atoms.info[key]
+        for key in atoms.arrays.keys():
+            if key in all_properties:
+                results[key] = atoms.arrays[key]
+        if results != {}:
+            calculator = SinglePointCalculator(atoms, **results)
+            atoms.set_calculator(calculator)
 
         images.append(atoms)
         current = (index + 1) * lnsnp
