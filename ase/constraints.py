@@ -200,8 +200,8 @@ def ints2string(x, threshold=10):
 
 
 class FixBondLengths(FixConstraint):
-    def __init__(self, pairs, iterations=10):
-        self.constraints = [FixBondLength(a1, a2)
+    def __init__(self, pairs, iterations=10, atoms=None, mic=False):
+        self.constraints = [FixBondLength(a1, a2, atoms=atoms, mic=mic)
                             for a1, a2 in pairs]
         self.iterations = iterations
 
