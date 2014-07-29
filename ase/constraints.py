@@ -222,7 +222,7 @@ class FixBondLengths(FixConstraint):
 
 class FixBondLength(FixConstraint):
     """Constraint object for fixing a bond length."""
-    def __init__(self, a1, a2, mic=False, atoms=None):
+    def __init__(self, a1, a2, atoms=None, mic=False):
         """Fix distance between atoms with indices a1 and a2."""
         self.indices = [a1, a2]
         self.constraint_force = None
