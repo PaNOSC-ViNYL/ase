@@ -8,7 +8,7 @@ import numpy as np
 
 
 class Summary:
-    def __init__(self, dct, mode='ascii'):
+    def __init__(self, dct, subscript=None):
         self.dct = dct
         
         self.cell = [['{0:.3f}'.format(a) for a in axis] for axis in dct.cell]
@@ -42,8 +42,8 @@ class Summary:
             mass = atomic_masses[dct.numbers].sum()
             
         formula = hill(dct.numbers)
-        if mode == 'ascii':
-            formula = formula.replace('<sub>', '').replace('</sub>', '')
+        if subscript:
+            formula = subscript.sub(r'<sub>\1</sub>', formula)
             
         table = [
             ('id', dct.id),

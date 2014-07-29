@@ -111,7 +111,7 @@ def gui(id):
         
 @app.route('/id/<int:id>')
 def summary(id):
-    s = Summary(connection.get(id), 'html')
+    s = Summary(connection.get(id), SUBSCRIPT)
     return render_template('summary.html', s=s)
 
     
