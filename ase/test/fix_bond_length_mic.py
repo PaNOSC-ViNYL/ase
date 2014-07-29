@@ -8,10 +8,7 @@ for mic in [False, True]:
     a = ase.Atoms('CCC', positions=[[1,0,5],[0,1,5],[-1,0.5,5]], cell=[10,10,10], pbc=True)
     a.set_scaled_positions(a.get_scaled_positions()%1.0)
     a.set_calculator(LennardJones())
-    if mic:
-        a.set_constraint(FixBondLength(0, 2, mic=a))
-    else:
-        a.set_constraint(FixBondLength(0, 2))
+    a.set_constraint(FixBondLength(0, 2, mic=mic, atoms=a))
 
     dist = a.get_distance(0, 2, mic=mic)
 

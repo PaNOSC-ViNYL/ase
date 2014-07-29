@@ -222,11 +222,18 @@ class FixBondLengths(FixConstraint):
 
 class FixBondLength(FixConstraint):
     """Constraint object for fixing a bond length."""
-    def __init__(self, a1, a2, mic=None):
+    def __init__(self, a1, a2, mic=False, atoms=None):
         """Fix distance between atoms with indices a1 and a2."""
         self.indices = [a1, a2]
         self.constraint_force = None
-        self.mic = mic
+        self.mic = None
+        if mic:
+            if atoms is None:
+                raise RuntimeError('Please provide an atoms '
+                                   'object with mic=True.')
+            # Note: self.mic stores the atoms object that
+            # is required for the cell and pbc flags.
+            self.mic = atoms
 
     def adjust_positions(self, old, new):
         p1, p2 = old[self.indices]
