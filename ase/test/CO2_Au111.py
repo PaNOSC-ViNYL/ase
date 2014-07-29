@@ -31,7 +31,7 @@ for mic in [ False, True ]:
     else:
         constraint = FixBondLengths([[-3,-2],[-3,-1]])
     slab.set_constraint(constraint)
-    dyn = BFGS(slab, trajectory='relax.traj')
+    dyn = BFGS(slab, trajectory='relax_%s.traj' % ('mic' if mic else 'no_mic'))
     dyn.run(fmax=0.05)
     assert abs(slab.get_distance(-3, -2, mic=mic) - d0) < 1e-9
     assert abs(slab.get_distance(-3, -1, mic=mic) - d1) < 1e-9
