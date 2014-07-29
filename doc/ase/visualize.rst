@@ -8,7 +8,7 @@ Visualization
 This provides an interface to various visualization tools, such as
 :mod:`ase.gui`, :mod:`ase.visualize.vtk <vtk>`, RasMol_, VMD_, VTK_,
 gOpenMol_, or Avogadro_. The default viewer is the ase.gui, described in the
-:mod:`gui` module. The simplest invocation is:
+:mod:`ase.gui` module. The simplest invocation is:
 
 >>> from ase import view
 >>> view(atoms)

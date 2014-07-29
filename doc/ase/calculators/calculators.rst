@@ -27,7 +27,7 @@ RuntimeError: Atoms object has no calculator.
 -42.0
 
 Here, we used the :meth:`~ase.atoms.Atoms.set_calculator` method to attach
-an instance of the :mod:`ase.calculators.abinit.Abinit` class and then
+an instance of the :mod:`ase.calculators.abinit` class and then
 we asked for the energy.
 
 Alternatively, a calculator can be attached like this::
