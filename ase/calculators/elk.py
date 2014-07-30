@@ -241,6 +241,7 @@ class ELK(FileIOCalculator):
         self.read_energy()
         if self.parameters.get('tforce'):
             self.read_forces()
+        self.width = self.read_electronic_temperature()
         self.nbands = self.read_number_of_bands()
         self.nelect = self.read_number_of_electrons()
         self.niter = self.read_number_of_iterations()
@@ -283,6 +284,9 @@ class ELK(FileIOCalculator):
         return converged
 
     # more methods
+    def get_electronic_temperature(self):
+        return self.width*Hartree
+
     def get_number_of_bands(self):
         return self.nbands
 
@@ -386,13 +390,13 @@ class ELK(FileIOCalculator):
         return magmom
 
     def read_electronic_temperature(self):
-        swidth = None
+        width = None
         text = open(self.out).read().lower()
         for line in iter(text.split('\n')):
             if line.rfind('smearing width :') > -1:
-                swidth = float(line.split(':')[1].strip())
+                width = float(line.split(':')[1].strip())
                 break
-        return Hartree*swidth
+        return width
 
     def read_eigenvalues(self, kpt=0, spin=0, mode='eigenvalues'):
         """ Returns list of last eigenvalues, occupations
