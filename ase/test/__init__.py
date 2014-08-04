@@ -48,7 +48,6 @@ class CustomTextTestRunner(unittest.TextTestRunner):
             sys.stderr = stderr_old
         return testresult
 
-# -------------------------------------------------------------------
 
 class ScriptTestCase(unittest.TestCase):
     def __init__(self, methodname='testfile', filename=None, display=True):
@@ -103,7 +102,7 @@ def test(verbosity=1, calculators=[],
             # relative to ase/test (__path__[0])
             testdir = os.path.join(__path__[0], dir)
     files = glob(testdir + '/*')
-    sdirtests = [] # tests from subdirectories: only one level assumed
+    sdirtests = []  # tests from subdirectories: only one level assumed
     tests = []
     for f in files:
         if os.path.isdir(f):
@@ -115,9 +114,11 @@ def test(verbosity=1, calculators=[],
                 tests.append(f)
     tests.sort()
     sdirtests.sort()
-    tests.extend(sdirtests) # run test subdirectories at the end
-    lasttest = None # is COCu111.py in the current set
+    tests.extend(sdirtests)  # run test subdirectories at the end
+    lasttest = None  # is COCu111.py in the current set
     for test in tests:
+        if test.endswith('vtk_data.py'):
+            continue
         if test.endswith('__init__.py'):
             continue
         if test.endswith('COCu111.py'):
@@ -176,6 +177,7 @@ class World:
     def get_rank(self, rank):
         return CPU(self, rank)
 
+        
 class CPU:
     def __init__(self, world, rank):
         self.world = world
