@@ -215,16 +215,17 @@ class vdWTkatchenko09prl(Calculator):
         self.energy += EvdW / 2. # double counting
         self.forces += forces / 2. # double counting
 
-        prnt(('\n' + self.__class__.__name__), file=self.txt)
-        prnt('vdW correction: %g' % (EvdW / 2.), file=self.txt)
-        prnt('Energy:         %g' % self.energy, file=self.txt)
-        prnt('\nForces in eV/Ang:', file=self.txt)
-        c = Hartree / Bohr
-        symbols = self.atoms.get_chemical_symbols()
-        for ia, symbol in enumerate(symbols):
-            prnt('%3d %-2s %10.5f %10.5f %10.5f' %
-                 ((ia, symbol) + tuple(self.forces[ia])), 
-                 file=self.txt)
+        if self.txt:
+            prnt(('\n' + self.__class__.__name__), file=self.txt)
+            prnt('vdW correction: %g' % (EvdW / 2.), file=self.txt)
+            prnt('Energy:         %g' % self.energy, file=self.txt)
+            prnt('\nForces in eV/Ang:', file=self.txt)
+            c = Hartree / Bohr
+            symbols = self.atoms.get_chemical_symbols()
+            for ia, symbol in enumerate(symbols):
+                prnt('%3d %-2s %10.5f %10.5f %10.5f' %
+                     ((ia, symbol) + tuple(self.forces[ia])), 
+                     file=self.txt)
         
     def damping(self, RAB, R0A, R0B,
                 d = 20,   # steepness of the step function
