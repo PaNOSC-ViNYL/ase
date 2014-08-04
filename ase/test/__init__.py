@@ -1,12 +1,14 @@
 import os
-
-import platform
 import sys
+import platform
 import unittest
 import subprocess
 from glob import glob
 
 import numpy as np
+
+from ase.parallel import paropen
+from ase.calculators.calculator import names as calc_names, get_calculator
 
 
 class NotAvailable(Exception):
@@ -20,19 +22,6 @@ def require(calcname):
     if calcname not in test_calculator_names:
         raise NotAvailable
         
-        
-# Custom test case/suite for embedding unittests in the test scripts
-
-if sys.version_info < (2, 4, 0, 'final', 0):
-    class CustomTestCase(unittest.TestCase):
-        assertTrue = unittest.TestCase.failUnless
-        assertFalse = unittest.TestCase.failIf
-else:
-    from unittest import TestCase as CustomTestCase
-
-from ase.parallel import paropen
-from ase.calculators.calculator import names as calc_names, get_calculator
-
 
 class CustomTextTestRunner(unittest.TextTestRunner):
     def __init__(self, logname, descriptions=1, verbosity=1):
