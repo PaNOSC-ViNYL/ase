@@ -251,6 +251,8 @@ class NetCDFTrajectory:
         self.masses = atomic_masses[self.numbers]
 
         for name, var in self.nc.variables.iteritems():
+            # This can be unicode which confuses ASE
+            name = str(name)
             # _default_vars is taken care of already
             if name not in self._default_vars:
                 if len(var.dimensions) >= 2:
