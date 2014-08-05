@@ -5,10 +5,10 @@ from ase.cluster.cubic import FaceCenteredCubic
 from ase.data import atomic_numbers, reference_states
 
 delta = 1e-10
-_debug = None
+_debug = False
 
 def wulff_construction(symbol, surfaces, energies, size, structure,
-                       rounding="closest", latticeconstant=None, debug=0):
+                       rounding="closest", latticeconstant=None, debug=False, maxiter=100):
     """Create a cluster using the Wulff construction.
 
     A cluster is created with approximately the number of atoms
@@ -161,7 +161,7 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
         if len(atoms) >= size:
             above = atoms
         iter += 1
-        if iter == 100:
+        if iter == maxiter:
             raise RuntimeError("Runaway iteration.")
     if rounding == "below":
         if debug:
