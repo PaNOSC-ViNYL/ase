@@ -256,7 +256,7 @@ class NetCDFTrajectory:
                 self.n_atoms = len(self.nc.dimensions[self._atom_dim])
             else:
                 self.n_atoms = self.nc.dimensions[self._atom_dim]
-        self.numbers = self._get_variable(self._numbers_var)[:]
+        self.numbers = np.array(self._get_variable(self._numbers_var))
         if self.types_to_numbers is not None:
             self.numbers = self.types_to_numbers[self.numbers]
         self.masses = atomic_masses[self.numbers]
@@ -478,7 +478,7 @@ class NetCDFTrajectory:
                 origin = np.zeros([3], dtype=float)
 
             # Read positions
-            positions = self.nc.variables[self._positions_var][i]
+            positions = np.array(self.nc.variables[self._positions_var][i])
 
             # Determine cell size for non-periodic directions
             for dim in np.arange(3)[np.logical_not(pbc)]:
