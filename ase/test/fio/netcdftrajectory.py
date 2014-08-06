@@ -1,5 +1,3 @@
-import sys
-
 from ase.test import NotAvailable
 
 import ase.io.netcdftrajectory as netcdftrajectory
@@ -79,6 +77,8 @@ if netcdftrajectory.have_nc == netcdftrajectory.NC_IS_NETCDF4:
     co.append(o)
     co.pbc = True
     t.write(co)
+del t
+os.remove('1.nc')
 
 # append to a nonexisting file
 if netcdftrajectory.have_nc == netcdftrajectory.NC_IS_NETCDF4:
@@ -100,4 +100,5 @@ t = NetCDFTrajectory(fname)
 a = t[-1]
 assert a.pbc[0] and not a.pbc[1] and not a.pbc[2]
 assert abs(a.get_distance(0, 1) - d) < 1e-6
+del t 
 os.remove(fname)
