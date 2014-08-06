@@ -45,6 +45,8 @@ def read_gaussian_out(filename, index=-1, quantity='atoms'):
     positions = np.array(data['Positions'])
     method = data['Method']
     version = data['Version']
+    charge = data['Charge']
+    multiplicity = data['Multiplicity']
 
     if method.lower()[1:] in allowed_dft_functionals:
         method = 'HF'
@@ -87,7 +89,8 @@ def read_gaussian_out(filename, index=-1, quantity='atoms'):
         return atoms
     elif (quantity == 'version'):
         return version
-
+    elif (quantity == 'multiplicity'):
+        return multiplicity
 
 def read_gaussian(filename):
     """Reads a Gaussian input file"""
