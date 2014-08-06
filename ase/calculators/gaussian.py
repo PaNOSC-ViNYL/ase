@@ -32,8 +32,7 @@ For more information on the Link0 commands see:
 For more information on the route section keywords, see:
     http://www.gaussian.com/g_tech/g_ur/l_keywords09.htm
 """
-link0_keys = [\
-              'chk',
+link0_keys = ['chk',
               'mem',
               'rwf',
               'int',
@@ -44,8 +43,7 @@ link0_keys = [\
               'save',
               'nosave',
               'nprocshared',
-              'nproc',
-             ]
+              'nproc']
 
 # This one is a little strange.  Gaussian has several keywords where you just
 # specify the keyword, but the keyword itself has several options.
@@ -66,17 +64,16 @@ route_self_keys = ['opt',
                    'sp',
                    'sparse',
                    'stable',
-                   'volume',
-                  ]
+                   'volume']
 
-route_keys = [\
-# int keys
-# Multiplicity and charge are not really route keywords, but we will
-# put them here anyways
+route_keys = [
+              # int keys
+              # Multiplicity and charge are not really route keywords,
+              # but we will put them here anyways
               'cachesize',
               'cbsextrapolate',
               'constants',
-# str keys
+              # str keys
               'functional',
               'maxdisk',
               'cphf',
@@ -100,11 +97,10 @@ route_keys = [\
               'symmetry',
               'td',
               'units',
-# Float keys
+              # Float keys
               'pressure',
               'scale',
-              'temperature',
-             ]
+              'temperature']
 
 
 class Gaussian(FileIOCalculator):
@@ -150,13 +146,16 @@ class Gaussian(FileIOCalculator):
         """Writes the input file"""
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
 
-        self.parameters.initial_magmoms = atoms.get_initial_magnetic_moments().tolist()
+        magmoms = atoms.get_initial_magnetic_moments().tolist()
+        self.parameters.initial_magmoms = magmoms
         self.parameters.write(self.label + '.ase')
 
 # Set default behavior
         if ('multiplicity' not in self.parameters):
             tot_magmom = atoms.get_initial_magnetic_moments().sum()
             mult = tot_magmom + 1
+        else:
+            mult = self.parameters['multiplicity']
 
         if ('charge' not in self.parameters):
             self.parameters['charge'] = 0
@@ -187,7 +186,7 @@ class Gaussian(FileIOCalculator):
                     if ',' in val:
                         route += ' %s(%s)' % (key, val)
                     else:
-                        route += ' %s=%s' % (key, val) 
+                        route += ' %s=%s' % (key, val)
 
             elif key.lower() in route_keys:
                 route += ' %s=%s' % (key, val)
@@ -221,8 +220,8 @@ class Gaussian(FileIOCalculator):
             if (self.basisfile is None):
                 raise RuntimeError('Please set basisfile.')
             elif (not os.path.isfile(self.basisfile)):
-                raise RuntimeError('Basis file %s does not exist.' \
-                % self.basisfile)
+                error = 'Basis file %s does not exist.' % self.basisfile
+                raise RuntimeError(error)
             else:
                 f2 = open(self.basisfile, 'r')
                 inputfile.write(f2.read())
@@ -251,7 +250,8 @@ class Gaussian(FileIOCalculator):
 
         self.atoms = read_gaussian_out(filename, quantity='atoms')
         self.parameters = Parameters.read(self.label + '.ase')
-        self.atoms.set_initial_magnetic_moments(self.parameters.pop('initial_magmoms'))
+        initial_magmoms = self.parameters.pop('initial_magmoms')
+        self.atoms.set_initial_magnetic_moments(initial_magmoms)
         self.read_results()
 
     def read_results(self):
@@ -262,7 +262,8 @@ class Gaussian(FileIOCalculator):
         self.results['energy'] = read_gaussian_out(filename, quantity='energy')
         self.results['forces'] = read_gaussian_out(filename, quantity='forces')
         self.results['dipole'] = read_gaussian_out(filename, quantity='dipole')
-        self.results['magmom'] = read_gaussian_out(filename, quantity='multiplicity') - 1
+        self.results['magmom'] = read_gaussian_out(filename,
+                                                   quantity='multiplicity') - 1
 
     def clean(self):
         """Cleans up from a previous run"""
