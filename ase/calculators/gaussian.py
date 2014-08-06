@@ -146,11 +146,14 @@ class Gaussian(FileIOCalculator):
             self.reset()
         return changed_parameters
 
-    def initialize(self, atoms):
-# Set some default behavior
+    def write_input(self, atoms, properties=None, system_changes=None):
+        """Writes the input file"""
+        FileIOCalculator.write_input(self, atoms, properties, system_changes)
+
+# Set default behavior
         if ('multiplicity' not in self.parameters):
             tot_magmom = atoms.get_initial_magnetic_moments().sum()
-            self.parameters['multiplicity'] = tot_magmom + 1
+            mult = tot_magmom + 1
 
         if ('charge' not in self.parameters):
             self.parameters['charge'] = 0
@@ -163,13 +166,6 @@ class Gaussian(FileIOCalculator):
 
         if ('force' not in self.parameters):
             self.parameters['force'] = 'force'
-
-        self.converged = None
-
-    def write_input(self, atoms, properties=None, system_changes=None):
-        """Writes the input file"""
-        FileIOCalculator.write_input(self, atoms, properties, system_changes)
-        self.initialize(atoms)
 
         filename = self.label + '.com'
         inputfile = open(filename, 'w')
@@ -189,8 +185,6 @@ class Gaussian(FileIOCalculator):
                         route += ' %s(%s)' % (key, val)
                     else:
                         route += ' %s=%s' % (key, val) 
-#            elif key.lower() in route_keys:# and key.lower() not in ['method', 'basis', 'charge', 'multiplicity']:
-#                 route += ' %s=%s' % (key, val)
 
             elif key.lower() in route_keys:
                 route += ' %s=%s' % (key, val)
@@ -208,7 +202,7 @@ class Gaussian(FileIOCalculator):
         inputfile.write(' \n\n')
         inputfile.write('Gaussian input prepared by ASE\n\n')
         inputfile.write('%i %i\n' % (self.parameters['charge'],
-                                     self.parameters['multiplicity']))
+                                     mult))
 
         symbols = atoms.get_chemical_symbols()
         coordinates = atoms.get_positions()
@@ -274,25 +268,6 @@ class Gaussian(FileIOCalculator):
                     os.remove(f)
             except OSError:
                 pass
-
-    def read_convergence(self):
-        """Determines if calculations converged"""
-        converged = False
-
-        gauss_dir = os.environ['GAUSS_EXEDIR']
-        test = '(Enter ' + gauss_dir + '/l9999.exe)'
-
-        f = open(self.label + '.log', 'r')
-        lines = f.readlines()
-        f.close()
-
-        for line in lines:
-            if (line.rfind(test) > -1):
-                converged = True
-            else:
-                converged = False
-
-        return converged
 
     def get_version(self):
         return self.read_output(self.label + '.log', 'version')
