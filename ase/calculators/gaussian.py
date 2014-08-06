@@ -19,7 +19,7 @@ See accompanying license files for details.
 """
 import os
 
-from ase.calculators.calculator import FileIOCalculator
+from ase.calculators.calculator import FileIOCalculator, Parameters, ReadError
 
 """
 Gaussian has two generic classes of keywords:  link0 and route.
@@ -150,6 +150,9 @@ class Gaussian(FileIOCalculator):
         """Writes the input file"""
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
 
+        self.parameters.initial_magmoms = atoms.get_initial_magnetic_moments().tolist()
+        self.parameters.write(self.label + '.ase')
+
 # Set default behavior
         if ('multiplicity' not in self.parameters):
             tot_magmom = atoms.get_initial_magnetic_moments().sum()
@@ -243,7 +246,12 @@ class Gaussian(FileIOCalculator):
         from ase.io.gaussian import read_gaussian_out
         filename = self.label + '.log'
 
+        if not os.path.isfile(filename):
+            raise ReadError
+
         self.atoms = read_gaussian_out(filename, quantity='atoms')
+        self.parameters = Parameters.read(self.label + '.ase')
+        self.atoms.set_initial_magnetic_moments(self.parameters.pop('initial_magmoms'))
         self.read_results()
 
     def read_results(self):
@@ -254,6 +262,7 @@ class Gaussian(FileIOCalculator):
         self.results['energy'] = read_gaussian_out(filename, quantity='energy')
         self.results['forces'] = read_gaussian_out(filename, quantity='forces')
         self.results['dipole'] = read_gaussian_out(filename, quantity='dipole')
+        self.results['magmom'] = read_gaussian_out(filename, quantity='multiplicity') - 1
 
     def clean(self):
         """Cleans up from a previous run"""
