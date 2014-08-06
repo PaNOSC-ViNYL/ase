@@ -32,7 +32,7 @@ def h2dft(name):
         print m1
     print(2 * e1 - e2)
     print(2 * e1pbe - e2pbe)
-    print e1,e2,e1pbe,e2pbe
+    print e1, e2, e1pbe, e2pbe
     calc = Calculator(name)
     print calc.parameters, calc.results, calc.atoms
     assert not calc.calculation_required(h1, ['energy'])
