@@ -81,18 +81,23 @@ if netcdftrajectory.have_nc == netcdftrajectory.NC_IS_NETCDF4:
     t.write(co)
 
 # append to a nonexisting file
-fname = '2.nc'
-if os.path.isfile(fname):
-    os.remove(fname)
-t = NetCDFTrajectory(fname, 'a', co)
+if netcdftrajectory.have_nc == netcdftrajectory.NC_IS_NETCDF4:
+    fname = '2.nc'
+    if os.path.isfile(fname):
+        os.remove(fname)
+    t = NetCDFTrajectory(fname, 'a', co)
+    del t
+
+fname = '3.nc'
+t = NetCDFTrajectory(fname, 'w', co)
 # File is not created before first write
-a.set_pbc([True,False,False])
-d = a.get_distance(0,1)
+a.set_pbc([True, False, False])
+d = a.get_distance(0, 1)
 t.write(a)
 del t
 # Check pbc
 t = NetCDFTrajectory(fname)
 a = t[-1]
 assert a.pbc[0] and not a.pbc[1] and not a.pbc[2]
-assert abs(a.get_distance(0,1)-d) < 1e-6
+assert abs(a.get_distance(0, 1) - d) < 1e-6
 os.remove(fname)

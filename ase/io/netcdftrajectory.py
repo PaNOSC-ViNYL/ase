@@ -189,9 +189,12 @@ class NetCDFTrajectory:
 
         self.filename = filename
         if keep_open is None:
-            self.keep_open = self.mode=='r'
+            # Only netCDF4-python supports append to files
+            self.keep_open = self.mode == 'r' or have_nc != NC_IS_NETCDF4
         else:
             self.keep_open = keep_open
+        if (mode == 'a' or not self.keep_open) and have_nc != NC_IS_NETCDF4:
+            raise RuntimeError('netCDF4-python is required for append mode.')
 
     def __del__(self):
         self.close()
@@ -326,7 +329,7 @@ class NetCDFTrajectory:
             self._get_variable(self._velocities_var)[i] = \
                 atoms.get_momenta() / atoms.get_masses().reshape(-1, 1)
         a, b, c, alpha, beta, gamma = cell_to_cellpar(atoms.get_cell())
-        cell_lengths = np.array([a, b, c])*atoms.pbc
+        cell_lengths = np.array([a, b, c]) * atoms.pbc
         self._get_variable(self._cell_lengths_var)[i] = cell_lengths
         self._get_variable(self._cell_angles_var)[i] = [alpha, beta, gamma]
         if arrays is not None:
@@ -464,7 +467,8 @@ class NetCDFTrajectory:
         N = self._len()
         if 0 <= i < N:
             # Non-periodic boundaries have cell_length == 0.0
-            cell_lengths = self.nc.variables[self._cell_lengths_var][i]
+            cell_lengths = \
+                np.array(self.nc.variables[self._cell_lengths_var][i])
             pbc = np.abs(cell_lengths > 1e-6)
 
             # Do we have a cell origin?
@@ -478,8 +482,8 @@ class NetCDFTrajectory:
 
             # Determine cell size for non-periodic directions
             for dim in np.arange(3)[np.logical_not(pbc)]:
-                origin[dim] = positions[:,dim].min()
-                cell_lengths[dim] = positions[:,dim].max()-origin[dim]
+                origin[dim] = positions[:, dim].min()
+                cell_lengths[dim] = positions[:, dim].max() - origin[dim]
 
             # Construct cell shape from cell lengths and angles
             cell = cellpar_to_cell(
@@ -501,7 +505,7 @@ class NetCDFTrajectory:
 
             # Create atoms object
             atoms = ase.Atoms(
-                positions=positions-origin.reshape(1,-1),
+                positions=positions - origin.reshape(1, -1),
                 numbers=self.numbers,
                 cell=cell,
                 momenta=momenta,
