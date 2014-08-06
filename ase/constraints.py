@@ -223,7 +223,11 @@ class FixBondLengths(FixConstraint):
 class FixBondLength(FixConstraint):
     """Constraint object for fixing a bond length."""
     def __init__(self, a1, a2, atoms=None, mic=False):
-        """Fix distance between atoms with indices a1 and a2."""
+        """Fix distance between atoms with indices a1 and a2. If mic is
+        True, follows the minimum image convention to keep constant the
+        shortest distance between a1 and a2 in any periodic direction.
+        atoms only needs to be supplied if mic=True.
+        """
         self.indices = [a1, a2]
         self.constraint_force = None
         self.mic = None
@@ -276,6 +280,8 @@ class FixBondLength(FixConstraint):
         self.indices = newa
 
     def copy(self):
+        if self.mic:
+            raise NotImplementedError('Not implemented for mic.')
         return FixBondLength(*self.indices)
 
     def get_constraint_force(self):
@@ -285,6 +291,8 @@ class FixBondLength(FixConstraint):
         return 'FixBondLength(%d, %d)' % tuple(self.indices)
 
     def todict(self):
+        if self.mic:
+            raise NotImplementedError('Not implemented for mic.')
         return {'name': 'ase.constraints.FixBondLength',
                 'kwargs': {'a1': self.indices[0], 'a2': self.indices[1]}}
 
