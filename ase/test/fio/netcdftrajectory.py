@@ -78,7 +78,6 @@ if netcdftrajectory.have_nc == netcdftrajectory.NC_IS_NETCDF4:
     co.pbc = True
     t.write(co)
 del t
-os.remove('1.nc')
 
 # append to a nonexisting file
 if netcdftrajectory.have_nc == netcdftrajectory.NC_IS_NETCDF4:

@@ -225,7 +225,7 @@ class NetCDFTrajectory:
                 self.nc = netcdf_file(
                     self.filename, self.mode,
                     version=self._netCDF4_to_scipy[self.netcdf_format]
-                    )
+                )
         elif have_nc == NC_IS_PUPYNERE:
             if self.netcdf_format not in self._netCDF4_to_pupynere:
                 raise ValueError("NetCDF format '%s' not supported by "
@@ -489,12 +489,12 @@ class NetCDFTrajectory:
             cell = cellpar_to_cell(
                 list(cell_lengths) +
                 list(self.nc.variables[self._cell_angles_var][i])
-                )
+            )
 
             # Compute momenta from velocities (if present)
             if self._has_variable(self._velocities_var):
                 momenta = self.nc.variables[self._velocities_var][i] * \
-                          self.masses.reshape(-1, 1)
+                    self.masses.reshape(-1, 1)
             else:
                 momenta = None
 
@@ -512,7 +512,7 @@ class NetCDFTrajectory:
                 masses=self.masses,
                 pbc=pbc,
                 info=info
-                )
+            )
 
             # Attach additional arrays found in the NetCDF file
             for name in self.extra_per_frame_vars:
