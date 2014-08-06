@@ -10,6 +10,7 @@ add_adsorbate(slab, 'Au', 1.7, 'hollow')
 slab.center(axis=2, vacuum=4.0)
 
 # Make sure the structure is correct:
+#from ase.visualize import view
 #view(slab)
 
 # Fix second and third layers:
