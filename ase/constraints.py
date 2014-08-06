@@ -848,6 +848,23 @@ class Hookean(FixConstraint):
         self.threshold = rt
         self.spring = k
 
+    def todict(self):
+        dct = {'name': 'ase.constraints.Hookean'}
+        dct['kwargs'] = {'rt': self.threshold,
+                         'k': self.spring}
+        if self._type == 'two atoms':
+            dct['kwargs']['a1'] = self.indices[0]
+            dct['kwargs']['a2'] = self.indices[1]
+        elif self._type == 'point':
+            dct['kwargs']['a1'] = self.index
+            dct['kwargs']['a2'] = self.origin
+        elif self._type == 'plane':
+            dct['kwargs']['a1'] = self.index
+            dct['kwargs']['a2'] = self.plane
+        else:
+            raise NotImplementedError('Bad type: %s' % self._type)
+        return dct
+
     def adjust_positions(self, oldpositions, newpositions):
         pass
 
