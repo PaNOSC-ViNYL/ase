@@ -90,6 +90,8 @@ def read_gaussian_out(filename, index=-1, quantity='atoms'):
         return version
     elif (quantity == 'multiplicity'):
         return multiplicity
+    elif (quantity == 'charge'):
+        return charge
 
 
 def read_gaussian(filename):
