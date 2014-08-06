@@ -91,9 +91,9 @@ if netcdftrajectory.have_nc == netcdftrajectory.NC_IS_NETCDF4:
 fname = '3.nc'
 t = NetCDFTrajectory(fname, 'w', co)
 # File is not created before first write
-a.set_pbc([True, False, False])
-d = a.get_distance(0, 1)
-t.write(a)
+co.set_pbc([True, False, False])
+d = co.get_distance(0, 1)
+t.write(co)
 del t
 # Check pbc
 t = NetCDFTrajectory(fname)
