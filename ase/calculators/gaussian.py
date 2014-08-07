@@ -112,6 +112,11 @@ class Gaussian(FileIOCalculator):
     implemented_properties = ['energy', 'forces', 'charges', 'dipole']
     command = 'g09 < PREFIX.com > PREFIX.log'
 
+    default_parameters = {'charge': 0,
+                          'method': 'hf',
+                          'basis': '6-31g*',
+                          'force': 'force'}
+
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='g09', atoms=None, scratch=None, ioplist=list(),
                  basisfile=None, **kwargs):
@@ -166,18 +171,6 @@ class Gaussian(FileIOCalculator):
             mult = tot_magmom + 1
         else:
             mult = self.parameters['multiplicity']
-
-        if ('charge' not in self.parameters):
-            self.parameters['charge'] = 0
-
-        if ('method' not in self.parameters):
-            self.parameters['method'] = 'hf'
-
-        if ('basis' not in self.parameters):
-            self.parameters['basis'] = '6-31g*'
-
-        if ('force' not in self.parameters):
-            self.parameters['force'] = 'force'
 
         filename = self.label + '.com'
         inputfile = open(filename, 'w')
