@@ -34,6 +34,37 @@ your structure by dumping directly to a graphics file; you can use the
 .. _Avogadro: http://avogadro.openmolecules.net/
 
 
+Mayavi
+------
+
+The :func:`~ase.visualize.mlab.plot` function will show contour plots using
+the :mod:`mayavi.mlab` module:
+
+.. autofunction:: ase.visualize.mlab.plot
+
+You can use this command-line tool::
+    
+    python -m ase.visualize.mlab abc.cube
+    
+to plot data from a cube-file or alternatively a wave function or an electron
+density from a calculator restart file::
+    
+    python -m ase.visualize.mlab -C gpaw abc.gpw
+
+Options:
+    
+-h, --help            show this help message and exit
+-n INDEX, --band-index=INDEX
+                      Band index counting from zero.
+-s SPIN, --spin-index=SPIN
+                      Spin index: zero or one.
+-c CONTOURS, --contours=CONTOURS
+                      Use "-c 3" for 3 contours or "-c -0.5,0.5" for
+                      specific values.
+-C NAME, --calculator-name=NAME
+                      Name of calculator.
+
+                      
 VTK
 ---
 
@@ -58,7 +89,8 @@ supported, namely:
 
 :Scripted on-the-fly rendering:
         ASE includes VTK-scripting for easy data visualization using the
-        :mod:`vtk` module. Development is in progress, so you might want to
+        :mod:`ase.visualize.vtk` module. Development is in progress, so
+        you might want to
         check out the latest development release from SVN 
         (see :ref:`latest_development_release`).
 
@@ -68,7 +100,7 @@ supported, namely:
         by introducing three basic concepts: data sources, filters and visualization
         modules. MayaVi also supports the VTK file formats, including the flexible
         VTK XML, which in ASE can be used to export atomic positions, forces and 
-        volume data using the ``write`` command in the :mod:`io` module.
+        volume data using the ``write`` command in the :mod:`ase.io` module.
 
 .. XXX -        `VTK Designer`_ is a visual editor for creating and editing VTK pipelines.
 

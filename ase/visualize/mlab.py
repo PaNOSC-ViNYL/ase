@@ -1,0 +1,108 @@
+from __future__ import print_function
+import optparse
+
+import numpy as np
+
+from ase.data import covalent_radii
+from ase.io.cube import read_cube_data
+from ase.data.colors import cpk_colors
+from ase.calculators.calculator import get_calculator
+
+
+def plot(atoms, data, contours):
+    """Plot atoms, unit-cell and iso-surfaces using Mayavi.
+    
+    Parameters:
+        
+    atoms: Atoms object
+        Positions, atomiz numbers and unit-cell.
+    data: 3-d ndarray of float
+        Data for iso-surfaces.
+    countours: list of float
+        Contour values.
+    """
+    
+    from mayavi import mlab  # delayed import - very slow
+
+    mlab.figure(1, bgcolor=(1, 1, 1))  # make a white figure
+
+    # Plot the atoms as spheres:
+    for pos, Z in zip(atoms.positions, atoms.numbers):
+        mlab.points3d(*pos,
+                      scale_factor=covalent_radii[Z],
+                      resolution=20,
+                      color=tuple(cpk_colors[Z]))
+
+    # Draw the unit cell:
+    A = atoms.cell
+    for i1, a in enumerate(A):
+        i2 = (i1 + 1) % 3
+        i3 = (i1 + 2) % 3
+        for b in [np.zeros(3), A[i2]]:
+            for c in [np.zeros(3), A[i3]]:
+                p1 = b + c
+                p2 = p1 + a
+                mlab.plot3d([p1[0], p2[0]],
+                            [p1[1], p2[1]],
+                            [p1[2], p2[2]],
+                            tube_radius=0.1)
+
+    x, y, z = np.dot(np.indices(data.shape, float).T / data.shape,
+                     atoms.cell).T
+    mlab.contour3d(x, y, z, data, contours=contours,
+                   transparent=True, opacity=0.5)
+    mlab.show()
+
+
+description = """\
+Plot iso-surfaces from a cube-file or a wave function or an electron
+density from a calculator-restart file."""
+
+
+def main():
+    parser = optparse.OptionParser(usage='%prog [options] filename',
+                                   description=description)
+    add = parser.add_option
+    add('-n', '--band-index', type=int, metavar='INDEX',
+        help='Band index counting from zero.')
+    add('-s', '--spin-index', type=int, metavar='SPIN',
+        help='Spin index: zero or one.')
+    add('-c', '--contours', default='2',
+        help='Use "-c 3" for 3 contours or "-c -0.5,0.5" for specific values.')
+    add('-C', '--calculator-name', metavar='NAME', help='Name of calculator.')
+    
+    opts, args = parser.parse_args()
+    if len(args) != 1:
+        parser.error('Incorrect number of arguments')
+        
+    arg = args[0]
+    if arg.endswith('.cube'):
+        data, atoms = read_cube_data(arg)
+    else:
+        calc = get_calculator(opts.calculator_name)(arg, txt=None)
+        atoms = calc.get_atoms()
+        if opts.band_index is None:
+            data = calc.get_pseudo_density(opts.spin_index)
+        else:
+            data = calc.get_pseudo_wave_function(opts.band_index,
+                                                 opts.spin_index or 0)
+            if data.dtype == complex:
+                data = abs(data)
+                
+    mn = data.min()
+    mx = data.max()
+    print('Min: %16.6f' % mn)
+    print('Max: %16.6f' % mx)
+        
+    if opts.contours.isdigit():
+        n = int(opts.contours)
+        d = (mx - mn) / n
+        contours = np.linspace(mn + d / 2, mx - d / 2, n).tolist()
+    else:
+        contours = [float(x) for x in opts.contours.split(',')]
+        
+    plot(atoms, data, contours)
+    
+
+if __name__ == '__main__':
+    main()
