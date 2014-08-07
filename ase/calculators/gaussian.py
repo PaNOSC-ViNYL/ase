@@ -142,6 +142,16 @@ class Gaussian(FileIOCalculator):
             self.reset()
         return changed_parameters
 
+    def check_state(self, atoms):
+        system_changes = FileIOCalculator.check_state(self, atoms)
+
+        ignore = ['cell', 'pbc']
+        for change in system_changes:
+            if change in ignore:
+                system_changes.remove(change)
+
+        return system_changes
+
     def write_input(self, atoms, properties=None, system_changes=None):
         """Writes the input file"""
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
