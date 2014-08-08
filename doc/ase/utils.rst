@@ -4,6 +4,9 @@
 Utillity functions and classes
 ==============================
 
+.. autofunction:: ase.utils.opencew
+.. autofunction:: ase.utils.gcd
+
 
 .. index:: Bulk modulus
 
