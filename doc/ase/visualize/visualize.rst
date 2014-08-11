@@ -53,16 +53,8 @@ density from a calculator restart file::
 
 Options:
     
--h, --help            show this help message and exit
--n INDEX, --band-index=INDEX
-                      Band index counting from zero.
--s SPIN, --spin-index=SPIN
-                      Spin index: zero or one.
--c CONTOURS, --contours=CONTOURS
-                      Use "-c 3" for 3 contours or "-c -0.5,0.5" for
-                      specific values.
--C NAME, --calculator-name=NAME
-                      Name of calculator.
+.. include:: mlab_options.txt
+    :start-after: Options:
 
                       
 VTK
