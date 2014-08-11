@@ -67,7 +67,7 @@ Plot iso-surfaces from a cube-file or a wave function or an electron
 density from a calculator-restart file."""
 
 
-def main():
+def main(args=None):
     parser = optparse.OptionParser(usage='%prog [options] filename',
                                    description=description)
     add = parser.add_option
@@ -80,7 +80,7 @@ def main():
     add('-r', '--repeat', help='Example: "-r 2,2,2".')
     add('-C', '--calculator-name', metavar='NAME', help='Name of calculator.')
     
-    opts, args = parser.parse_args()
+    opts, args = parser.parse_args(args)
     if len(args) != 1:
         parser.error('Incorrect number of arguments')
         
