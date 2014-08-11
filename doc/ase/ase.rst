@@ -63,7 +63,7 @@ List of all modules:
    setup-overview
    optimize
    parallel
-   visualize
+   visualize/visualize
    visualize/vtk
    calculators/calculators
    constraints
