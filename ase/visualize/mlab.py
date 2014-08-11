@@ -22,7 +22,10 @@ def plot(atoms, data, contours):
         Contour values.
     """
     
-    from mayavi import mlab  # delayed import - very slow
+    # Delay slow imports:
+    from mayavi import mlab
+    from tvtk.api import tvtk
+    import mayavi.tools.pipeline
 
     mlab.figure(1, bgcolor=(1, 1, 1))  # make a white figure
 
@@ -47,10 +50,15 @@ def plot(atoms, data, contours):
                             [p1[2], p2[2]],
                             tube_radius=0.1)
 
-    x, y, z = np.dot(np.indices(data.shape, float).T / data.shape,
-                     atoms.cell).T
-    mlab.contour3d(x, y, z, data, contours=contours,
-                   transparent=True, opacity=0.5)
+    pts = np.dot(np.indices(data.shape, float).T / data.shape,
+                 atoms.cell).reshape((-1, 3))
+    sgrid = tvtk.StructuredGrid(dimensions=data.shape)
+    sgrid.points = pts
+    sgrid.point_data.scalars = np.ravel(data.copy())
+    sgrid.point_data.scalars.name = 'scalars'
+    mayavi.tools.pipeline.iso_surface(sgrid, contours=contours,
+                                      transparent=True, opacity=0.5,
+                                      colormap='hot')
     mlab.show()
 
 
@@ -69,6 +77,7 @@ def main():
         help='Spin index: zero or one.')
     add('-c', '--contours', default='2',
         help='Use "-c 3" for 3 contours or "-c -0.5,0.5" for specific values.')
+    add('-r', '--repeat', help='Example: "-r 2,2,2".')
     add('-C', '--calculator-name', metavar='NAME', help='Name of calculator.')
     
     opts, args = parser.parse_args()
@@ -100,6 +109,11 @@ def main():
         contours = np.linspace(mn + d / 2, mx - d / 2, n).tolist()
     else:
         contours = [float(x) for x in opts.contours.split(',')]
+
+    if opts.repeat:
+        repeat = [int(r) for r in opts.repeat.split(',')]
+        data = np.tile(data, repeat)
+        atoms *= repeat
         
     plot(atoms, data, contours)
     
