@@ -51,7 +51,7 @@ def plot(atoms, data, contours):
                             tube_radius=0.1)
 
     pts = np.dot(np.indices(data.shape, float).T / data.shape,
-                 atoms.cell).reshape((-1, 3))
+                 atoms.cell).T.reshape((3, -1)).T
     sgrid = tvtk.StructuredGrid(dimensions=data.shape)
     sgrid.points = pts
     sgrid.point_data.scalars = np.ravel(data.copy())
