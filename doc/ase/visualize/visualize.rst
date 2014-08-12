@@ -34,15 +34,13 @@ your structure by dumping directly to a graphics file; you can use the
 .. _Avogadro: http://avogadro.openmolecules.net/
 
 
+.. module:: ase.visualize.mlab
+
 Mayavi
 ------
 
-The :func:`~ase.visualize.mlab.plot` function will show contour plots using
-the :mod:`mayavi.mlab` module:
-
-.. autofunction:: ase.visualize.mlab.plot
-
-You can use this command-line tool::
+The :func:`ase.visualize.mlab.plot` function can be used from the
+command-line::
     
     python -m ase.visualize.mlab abc.cube
     
@@ -55,6 +53,8 @@ Options:
     
 .. include:: mlab_options.txt
     :start-after: Options:
+
+.. autofunction:: ase.visualize.mlab.plot
 
                       
 VTK
