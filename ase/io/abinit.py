@@ -5,6 +5,7 @@ Atoms object in ABINIT input format.
 """
 
 import os
+import re
 
 def read_abinit(filename='abinit.in'):
     """Import ABINIT input file.
@@ -26,7 +27,8 @@ def read_abinit(filename='abinit.in'):
     full_file = ''
     for line in lines:
         if '#' in line:
-            meat, comment = line.split('#')
+            meat = line.split('#')[0]
+            comment = line.split('#')[1:]  # there can be multiple # in a line
         else:
             meat = line
         full_file = full_file + meat + ' '
@@ -53,7 +55,12 @@ def read_abinit(filename='abinit.in'):
     index = tokens.index("typat")
     typat = []
     for i in range(natom):
-        typat.append(int(tokens[index+1+i]))
+        t = tokens[index+1+i]
+        if '*' in t:  # e.g. typat 4*1 3*2 ...
+            typat.extend([int(t) for t in ((t.split('*')[1] + ' ') * int(t.split('*')[0])).split()])
+        else:
+            typat.append(int(t))
+        if len(typat) == natom: break
 
     index = tokens.index("znucl")
     znucl = []
