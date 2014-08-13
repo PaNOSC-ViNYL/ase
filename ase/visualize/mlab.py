@@ -75,8 +75,9 @@ def main(args=None):
         help='Band index counting from zero.')
     add('-s', '--spin-index', type=int, metavar='SPIN',
         help='Spin index: zero or one.')
-    add('-c', '--contours', default='2',
-        help='Use "-c 3" for 3 contours or "-c -0.5,0.5" for specific values.')
+    add('-c', '--contours', default='4',
+        help='Use "-c 3" for 3 contours or "-c -0.5,0.5" for specific ' +
+        'values.  Default is four contours.')
     add('-r', '--repeat', help='Example: "-r 2,2,2".')
     add('-C', '--calculator-name', metavar='NAME', help='Name of calculator.')
     
@@ -102,13 +103,19 @@ def main(args=None):
     mx = data.max()
     print('Min: %16.6f' % mn)
     print('Max: %16.6f' % mx)
-        
+    
     if opts.contours.isdigit():
         n = int(opts.contours)
         d = (mx - mn) / n
         contours = np.linspace(mn + d / 2, mx - d / 2, n).tolist()
     else:
         contours = [float(x) for x in opts.contours.split(',')]
+        
+    if len(contours) == 1:
+        print('1 contour:', contours[0])
+    else:
+        print('%d contours: %.6f, ..., %.6f' %
+              (len(contours), contours[0], contours[-1]))
 
     if opts.repeat:
         repeat = [int(r) for r in opts.repeat.split(',')]
