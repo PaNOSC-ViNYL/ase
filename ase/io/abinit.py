@@ -20,31 +20,24 @@ def read_abinit(filename='abinit.in'):
     else: # Assume it's a file-like object
         f = filename
 
-    lines = f.readlines()
+    lines = []
+    for line in f.readlines():
+        meat = line.split('#', 1)[0]
+        lines.append(meat)
+    tokens = ' '.join(lines).lower().split()
+
     if type(filename) == str:
         f.close()
-
-    full_file = ''
-    for line in lines:
-        if '#' in line:
-            meat = line.split('#')[0]
-            comment = line.split('#')[1:]  # there can be multiple # in a line
-        else:
-            meat = line
-        full_file = full_file + meat + ' '
-
-    full_file.strip()
-    tokens = full_file.lower().split()
 
     # note that the file can not be scanned sequentially
 
     index = tokens.index("acell")
     unit = 1.0
-    if(tokens[index+4].lower()[:3] != 'ang'):
+    if(tokens[index + 4].lower()[:3] != 'ang'):
         unit = units.Bohr
-    acell = [unit*float(tokens[index+1]),
-             unit*float(tokens[index+2]),
-             unit*float(tokens[index+3])]
+    acell = [unit * float(tokens[index + 1]),
+             unit * float(tokens[index + 2]),
+             unit * float(tokens[index + 3])]
 
     index = tokens.index("natom")
     natom = int(tokens[index+1])
