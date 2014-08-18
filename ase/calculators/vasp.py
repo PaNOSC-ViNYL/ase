@@ -592,7 +592,8 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         self.read_incar()
         self.read_outcar()
         self.set_results(atoms)
-        self.read_kpoints()
+        if 'kspacing' not in self.float_params:
+            self.read_kpoints()
         self.read_potcar()
 
         self.old_input_params = self.input_params.copy()
