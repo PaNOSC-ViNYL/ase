@@ -64,9 +64,9 @@ def main(args=sys.argv[1:]):
         'to show all.')
     add('--delete', action='store_true',
         help='Delete selected rows.')
-    add('--delete-keywords', metavar='key1=word1,word2,...',
+    add('--delete-keywords', metavar='keyword1,keyword2,...',
         help='Delete keywords for selected rows.')
-    add('--delete-key-value-pairs', metavar='key1=val1,key2=val2,...',
+    add('--delete-key-value-pairs', metavar='key1,key2,...',
         help='Delete key-value pairs for selected rows.')
     add('-y', '--yes', action='store_true',
         help='Say yes.')
@@ -117,6 +117,11 @@ def run(opts, args, verbosity):
     else:
         add_keywords = []
 
+    if opts.delete_keywords:
+        delete_keywords = opts.delete_keywords.split(',')
+    else:
+        delete_keywords = []
+
     add_key_value_pairs = {}
     if opts.add_key_value_pairs:
         for pair in opts.add_key_value_pairs.split(','):
@@ -129,6 +134,11 @@ def run(opts, args, verbosity):
                 else:
                     break
             add_key_value_pairs[key] = value
+
+    if opts.delete_key_value_pairs:
+        delete_key_value_pairs = opts.delete_key_value_pairs.split(',')
+    else:
+        delete_key_value_pairs = []
 
     con = connect(filename)
     
@@ -204,6 +214,15 @@ def run(opts, args, verbosity):
                 return
         con.delete(ids)
         out('Deleted %s' % plural(len(ids), 'row'))
+        return
+
+    if delete_keywords or delete_key_value_pairs:
+        ids = [dct['id'] for dct in con.select(query)]
+        nkw, nkv = con.delete_keywords_and_key_value_pairs(
+            ids, delete_keywords, delete_key_value_pairs)
+        print('Removed %s and %s' %
+              (plural(nkw, 'keyword'),
+               plural(nkv, 'key-value pair')))
         return
 
     if opts.python_expression:

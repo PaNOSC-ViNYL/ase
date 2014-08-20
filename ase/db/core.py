@@ -450,6 +450,42 @@ class Database:
                         data=dct.get('data', {}))
         return m, n
 
+    @parallel
+    @lock
+    def delete_keywords_and_key_value_pairs(self, ids, delete_keywords=[],
+                                            delete_key_value_pairs=[]):
+        """Delete keywords and/or key_value_pairs from row(s).
+
+        ids: int or list of int
+            ID's of rows to delete from.
+        delete_keywords: list of str
+            List of keyword strings to remove to rows.
+        delete_key_value_pairs: list of str
+            Key-value pairs to remove.
+
+        returns number of keywords and key-value pairs removed.
+        """
+
+        if isinstance(ids, int):
+            ids = [ids]
+        m = 0
+        n = 0
+        for id in ids:
+            dct = self._get_dict(id)
+            keywords = dct.get('keywords', [])
+            for keyword in delete_keywords:
+                if keyword in keywords:
+                    keywords.remove(keyword)
+                    m += 1
+            key_value_pairs = dct.get('key_value_pairs', {})
+            n += len(key_value_pairs)
+            for k in delete_key_value_pairs:
+                key_value_pairs.pop(k, None)
+            n -= len(key_value_pairs)
+            self._write(dct, keywords, key_value_pairs,
+                        data=dct.get('data', {}))
+        return m, n
+
     def delete(self, ids):
         """Delete rows."""
         raise NotImplementedError
