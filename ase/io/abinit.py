@@ -4,9 +4,6 @@ Atoms object in ABINIT input format.
 
 """
 
-import os
-import re
-
 def read_abinit(filename='abinit.in'):
     """Import ABINIT input file.
 
@@ -102,11 +99,11 @@ def read_abinit(filename='abinit.in'):
         atoms = Atoms(cell=rprim, positions=xangs, numbers=numbers, pbc=True)
     
     try:
-        i = tokens.index('nsppol')
+        ii = tokens.index('nsppol')
     except ValueError:
         nsppol = None
     else:
-        nsppol = int(tokens[i + 1])
+        nsppol = int(tokens[ii + 1])
 
     if nsppol == 2:
         index = tokens.index('spinat')
@@ -121,7 +118,7 @@ def write_abinit(filename, atoms, cartesian=False, long_format=True):
     """Method to write abinit input files."""
 
     import numpy as np
-    from ase import Atoms, data
+    from ase import data
 
     if isinstance(filename, str):
         f = open(filename, 'w')
