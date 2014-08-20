@@ -1,4 +1,3 @@
-import numpy as np
 from ase import Atoms
 from ase.db import connect
 from ase.structure import molecule
