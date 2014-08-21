@@ -387,7 +387,7 @@ def blob(array):
         return None
     if array.dtype == np.int64:
         array = array.astype(np.int32)
-    return buffer(array)
+    return buffer(np.ascontiguousarray(array))
 
 
 def deblob(buf, dtype=float, shape=None):
