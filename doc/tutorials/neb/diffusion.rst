@@ -16,6 +16,12 @@ Now, do the NEB calculation:
 
 .. literalinclude:: diffusion2.py
 
+Visualize the results with::
+
+   ase-gui neb.traj 
+
+and select Tools->NEB.
+
 |ts| |barrier|
 
 .. note::
