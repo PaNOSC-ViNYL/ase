@@ -86,7 +86,7 @@ class NetCDFTrajectory:
     # Default field names. If it is a list, check for any of these names upon
     # opening. Upon writing, use the first name.
     _time_var = 'time'
-    _numbers_var = ['Z', 'atom_types']
+    _numbers_var = ['Z', 'atom_types', 'type']
     _positions_var = 'coordinates'
     _velocities_var = 'velocities'
     _cell_origin_var = 'cell_origin'
@@ -99,7 +99,8 @@ class NetCDFTrajectory:
                            [_cell_angles_var]])
 
     def __init__(self, filename, mode='r', atoms=None, types_to_numbers=None,
-                 double=True, netcdf_format='NETCDF3_CLASSIC', keep_open=None):
+                 double=True, netcdf_format='NETCDF3_CLASSIC', keep_open=None,
+                 index_var='id', index_offset=-1):
         """
         A NetCDFTrajectory can be created in read, write or append mode.
 
@@ -148,6 +149,15 @@ class NetCDFTrajectory:
             Keep the file open during consecutive read/write operations.
             Default is to close file between writes to minimize chance of data
             corruption, but keep file open if file is opened in read mode.
+
+        index_var='id':
+            Name of variable containing the atom indices. Atoms are reordered
+            by this index upon reading if this variable is present. Default
+            value is for LAMMPS output.
+
+        index_offset=-1:
+            Set to 0 if atom index is zero based, set to -1 if atom index is
+            one based. Default value is for LAMMPS output.
         """
         if not have_nc:
             raise RuntimeError('NetCDFTrajectory requires a NetCDF Python '
@@ -166,6 +176,11 @@ class NetCDFTrajectory:
         self.types_to_numbers = None
         if types_to_numbers:
             self.types_to_numbers = np.array(types_to_numbers)
+
+        self.index_var = index_var
+        self.index_offset = index_offset
+
+        self._default_vars += [self.index_var]
 
         # 'l' should be a valid type according to the netcdf4-python
         # documentation, but does not appear to work.
@@ -256,7 +271,11 @@ class NetCDFTrajectory:
                 self.n_atoms = len(self.nc.dimensions[self._atom_dim])
             else:
                 self.n_atoms = self.nc.dimensions[self._atom_dim]
-        self.numbers = np.array(self._get_variable(self._numbers_var)[:])
+        numbers_var = self._get_variable(self._numbers_var, exc=False)
+        if numbers_var is None:
+            self.numbers = np.ones(self.n_atoms, dtype=int)
+        else:
+            self.numbers = np.array(numbers_var[:])
         if self.types_to_numbers is not None:
             self.numbers = self.types_to_numbers[self.numbers]
         self.masses = atomic_masses[self.numbers]
@@ -420,14 +439,16 @@ class NetCDFTrajectory:
                 t = type
             self.nc.createVariable(array_name, t, dims)
 
-    def _get_variable(self, name):
+    def _get_variable(self, name, exc=True):
         if isinstance(name, list):
             for n in name:
                 if n in self.nc.variables:
                     return self.nc.variables[n]
-            raise RuntimeError('None of the variables {0} was found in the '
-                               'NetCDF trajectory.'.format(
-                                   reduce(lambda x, y: x + ', ' + y, name)))
+            if exc:
+                raise RuntimeError('None of the variables {0} was found in the '
+                                   'NetCDF trajectory.'.format(
+                                       reduce(lambda x, y: x + ', ' + y, name)))
+            return None
         else:
             return self.nc.variables[name]
 
@@ -477,8 +498,16 @@ class NetCDFTrajectory:
             else:
                 origin = np.zeros([3], dtype=float)
 
+            # Do we have an index variable?
+            if self._has_variable(self.index_var):
+                index = np.array(self.nc.variables[self.index_var][i][:]) +\
+                    self.index_offset
+            else:
+                index = np.arange(self.n_atoms)
+
             # Read positions
-            positions = np.array(self.nc.variables[self._positions_var][i][:])
+            positions_var = self.nc.variables[self._positions_var]
+            positions = np.array(positions_var[i][index])
 
             # Determine cell size for non-periodic directions
             for dim in np.arange(3)[np.logical_not(pbc)]:
@@ -493,7 +522,7 @@ class NetCDFTrajectory:
 
             # Compute momenta from velocities (if present)
             if self._has_variable(self._velocities_var):
-                momenta = self.nc.variables[self._velocities_var][i] * \
+                momenta = self.nc.variables[self._velocities_var][i][index] * \
                     self.masses.reshape(-1, 1)
             else:
                 momenta = None
@@ -516,7 +545,7 @@ class NetCDFTrajectory:
 
             # Attach additional arrays found in the NetCDF file
             for name in self.extra_per_frame_vars:
-                atoms.set_array(name, self.nc.variables[name][i])
+                atoms.set_array(name, self.nc.variables[name][i][index])
             for name in self.extra_per_file_vars:
                 atoms.set_array(name, self.nc.variables[name][:])
             self._close()
