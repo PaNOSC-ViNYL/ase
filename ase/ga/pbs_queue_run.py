@@ -73,7 +73,7 @@ class PBSQueueRun(object):
         p = Popen(['`which {0}` -u `whoami`'.format(self.qstat_command)],
                   shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE,
                   close_fds=True)
-        (_, fout) = (p.stdin, p.stdout)
+        fout = p.stdout
         lines = fout.readlines()
         n_running = 0
         for l in lines:

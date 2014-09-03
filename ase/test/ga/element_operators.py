@@ -9,7 +9,7 @@ a2.info['confid'] = 2
 cations = ['Sr', 'Ba', 'Ca', 'Mg']
 anions = ['Cl', 'F', 'Br']
 op = OnePointElementCrossover([cations, anions],
-                            [3,2], [.25, .5])
+                            [3, 2], [.25, .5])
 
 a3, desc = op.get_new_individual([a1, a2])
 
@@ -19,7 +19,7 @@ assert len(set([i for i in syms if i in anions])) < 3
 
 from ase.ga.element_mutations import RandomElementMutation
 
-op = RandomElementMutation([cations, anions], [3,2], [.25, .5])
+op = RandomElementMutation([cations, anions], [3, 2], [.25, .5])
 a4, desc = op.get_new_individual([a1])
 syms = a4.get_chemical_symbols()
 

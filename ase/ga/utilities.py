@@ -134,11 +134,12 @@ def get_distance_matrix(atoms, self_distance=1000):
     dm = np.zeros([len(atoms), len(atoms)])
     for i in xrange(len(atoms)):
         dm[i][i] = self_distance
-        for j in xrange(i+1, len(atoms)):
+        for j in xrange(i + 1, len(atoms)):
             rij = atoms.get_distance(i, j)
             dm[i][j] = rij
             dm[j][i] = rij
     return dm
+
 
 def get_rdf(atoms, rmax, nbins, distance_matrix=None):
     """
@@ -148,26 +149,27 @@ def get_rdf(atoms, rmax, nbins, distance_matrix=None):
     dm = distance_matrix
     if dm is None:
         dm = get_distance_matrix(atoms)
-    rdf = np.zeros(nbins+1)
-    dr = float(rmax/nbins)
+    rdf = np.zeros(nbins + 1)
+    dr = float(rmax / nbins)
     for i in xrange(len(atoms)):
-        for j in xrange(i+1, len(atoms)):
+        for j in xrange(i + 1, len(atoms)):
             rij = dm[i][j]
-            index = int(math.ceil(rij/dr))
+            index = int(math.ceil(rij / dr))
             if index <= nbins:
                 rdf[index] += 1
 
     # Normalize
-    phi = len(atoms)/atoms.get_volume()
+    phi = len(atoms) / atoms.get_volume()
     norm = 2.0 * math.pi * dr * phi * len(atoms)
 
     dists = [0]
-    for i in xrange(1, nbins+1):
+    for i in xrange(1, nbins + 1):
         rrr = (i - 0.5) * dr
         dists.append(rrr)
         rdf[i] /= (norm * ((rrr**2) + (dr**2) / 12.))
 
     return rdf, np.array(dists)
+
 
 def get_nndist(atoms, distance_matrix):
     """
@@ -176,13 +178,14 @@ def get_nndist(atoms, distance_matrix):
     The estimate comes from the first peak in the radial distribution
     function.
     """
-    rmax = np.sqrt(sum([sum(c**2) for c in atoms.cell]))/2.
+    rmax = np.sqrt(sum([sum(c**2) for c in atoms.cell])) / 2.
     nbins = 400
     rdf, dists = get_rdf(atoms, rmax, nbins, distance_matrix)
     i = 0
     while np.gradient(rdf)[i] >= 0:
         i += 1
     return dists[i]
+
 
 def get_nnmat(atoms):
     """
@@ -223,5 +226,3 @@ def get_nnmat(atoms):
     # makes a single list out of a list of lists
     nnlist = np.reshape(nnmat, (len(nnmat)**2))
     return nnlist
-
-

@@ -33,7 +33,7 @@ For **medium sized alloy clusters** in:
 
    | S. Lysgaard, D. D. Landis, T. Bligaard and T. Vegge
    | `Genetic Algorithm Procreation Operators for Alloy Nanoparticle Catalysts`__
-   | Topics in Catalysis, Vol **57**, No. 1-4, pp. 33-39
+   | Topics in Catalysis, Vol **57**, No. 1-4, pp. 33-39, (2014)
    
    __ http://dx.doi.org/10.1007/s11244-013-0160-9
    

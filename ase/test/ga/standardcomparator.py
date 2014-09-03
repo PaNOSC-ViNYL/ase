@@ -2,8 +2,8 @@ from ase.ga.standard_comparators import InteratomicDistanceComparator
 from ase import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 
-a1 = Atoms('AgAgAg', positions = [[0,0,0], [1.5,0,0], [1.5, 1.5, 0]])
-a2 = Atoms('AgAgAg', positions = [[0,0,0], [1.4,0,0], [1.5, 1.5, 0]])
+a1 = Atoms('AgAgAg', positions=[[0, 0, 0], [1.5, 0, 0], [1.5, 1.5, 0]])
+a2 = Atoms('AgAgAg', positions=[[0, 0, 0], [1.4, 0, 0], [1.5, 1.5, 0]])
 
 e1 = 1.0
 e2 = 0.8
@@ -34,11 +34,11 @@ assert not comp3.looks_like(a1, a2)
 
 from ase.ga.standard_comparators import EnergyComparator
 
-hard_E_comp = EnergyComparator(dE = 1.0)
-assert hard_E_comp.looks_like(a1,a2)
+hard_E_comp = EnergyComparator(dE=1.0)
+assert hard_E_comp.looks_like(a1, a2)
 
-soft_E_comp = EnergyComparator(dE = .01)
-assert not soft_E_comp.looks_like(a1,a2)
+soft_E_comp = EnergyComparator(dE=.01)
+assert not soft_E_comp.looks_like(a1, a2)
 
 from ase.ga.atoms_attach import enable_raw_score_methods
 from ase.ga.standard_comparators import RawScoreComparator

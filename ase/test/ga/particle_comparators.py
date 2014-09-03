@@ -1,14 +1,13 @@
 from ase.cluster import Icosahedron
 from ase.ga.particle_comparator import NNMatComparator
 from ase.ga.utilities import get_nnmat
-from random import shuffle
 from ase.ga.particle_mutations import RandomPermutation
 
 ico1 = Icosahedron('Cu', 4)
 ico1.info['confid'] = 1
 ico2 = Icosahedron('Ni', 4)
-ico1.numbers[:55] = [28]*55
-ico2.numbers[:92] = [29]*92
+ico1.numbers[:55] = [28] * 55
+ico2.numbers[:92] = [29] * 92
 
 ico1.info['data'] = {}
 ico1.info['data']['nnmat'] = get_nnmat(ico1)

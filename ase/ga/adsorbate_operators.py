@@ -94,9 +94,9 @@ class AdsorbateOperator(OffspringCreator):
             view(atoms)
             sys.exit()
 
-        print('removing', ads_ind, [atoms[i].symbol for i in ads_ind], pos)
-        for i in ads_ind:
-            atoms.pop(i)
+        print('removing', ads_ind, [atoms[j].symbol for j in ads_ind], pos)
+        for k in ads_ind:
+            atoms.pop(k)
 
         return True
 

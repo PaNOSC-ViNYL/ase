@@ -6,8 +6,8 @@ from ase.lattice.surface import fcc111
 from ase.constraints import FixAtoms
 
 # first create two random starting candidates
-slab = fcc111('Au', size=(4,4,2), vacuum=10.0, orthogonal = True)
-slab.set_constraint(FixAtoms(mask = slab.positions[:,2] <=10.))
+slab = fcc111('Au', size=(4, 4, 2), vacuum=10.0, orthogonal=True)
+slab.set_constraint(FixAtoms(mask=slab.positions[:, 2] <= 10.))
 
 pos = slab.get_positions()
 cell = slab.get_cell()
@@ -17,15 +17,15 @@ v2 = cell[1, :] * 0.8
 v3 = cell[2, :]
 v3[2] = 3.
 
-cd = closest_distances_generator(atom_numbers = [47, 79],
-                                 ratio_of_covalent_radii = 0.7)
+cd = closest_distances_generator(atom_numbers=[47, 79],
+                                 ratio_of_covalent_radii=0.7)
 
 atom_numbers = 2 * [47] + 2 * [79]
 
-sg = StartGenerator(slab = slab,
-                    atom_numbers = atom_numbers,
-                    closest_allowed_distances = cd,
-                    box_to_place_in = [p0, [v1, v2, v3]])
+sg = StartGenerator(slab=slab,
+                    atom_numbers=atom_numbers,
+                    closest_allowed_distances=cd,
+                    box_to_place_in=[p0, [v1, v2, v3]])
 
 c1 = sg.get_new_candidate()
 c1.info['confid'] = 1

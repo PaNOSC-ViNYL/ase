@@ -9,8 +9,8 @@ from ase.constraints import FixAtoms
 
 db_file = 'gadb_logics_test.db'
 
-slab = fcc111('Au', size=(4,4,2), vacuum=10.0, orthogonal = True)
-slab.set_constraint(FixAtoms(mask = slab.positions[:,2] <=10.))
+slab = fcc111('Au', size=(4, 4, 2), vacuum=10.0, orthogonal=True)
+slab.set_constraint(FixAtoms(mask=slab.positions[:, 2] <= 10.))
 
 # define the volume in which the adsorbed cluster is optimized
 # the volume is defined by a corner position (p0)
@@ -23,18 +23,18 @@ v2 = cell[1, :] * 0.8
 v3 = cell[2, :]
 v3[2] = 3.
 
-# define the closest distance two atoms of a given species can be to each other
-cd = closest_distances_generator(atom_numbers = [47, 79],
-                                 ratio_of_covalent_radii = 0.7)
+# define the closest distance between two atoms of a given species
+cd = closest_distances_generator(atom_numbers=[47, 79],
+                                 ratio_of_covalent_radii=0.7)
 
 # Define the composition of the atoms to optimize
 atom_numbers = 2 * [47] + 2 * [79]
 
 # create the starting population
-sg = StartGenerator(slab = slab,
-                    atom_numbers = atom_numbers,
-                    closest_allowed_distances = cd,
-                    box_to_place_in = [p0, [v1, v2, v3]])
+sg = StartGenerator(slab=slab,
+                    atom_numbers=atom_numbers,
+                    closest_allowed_distances=cd,
+                    box_to_place_in=[p0, [v1, v2, v3]])
 
 # generate the starting population
 starting_population = [sg.get_new_candidate() for i in xrange(20)]

@@ -8,18 +8,18 @@ import sys
 
 fname = sys.argv[1]
 
-print 'Now relaxing {}'.format(fname)
+print('Now relaxing {}'.format(fname))
 a = read(fname)
 
 a.set_calculator(EMT())
 dyn = BFGS(a, trajectory=None, logfile=None)
 vb = VariansBreak(a, dyn)
 dyn.attach(vb.write)
-dyn.run(fmax = 0.05)
+dyn.run(fmax=0.05)
 
 enable_raw_score_methods(a)
 a.set_raw_score(-a.get_potential_energy())
 
 write(fname[:-5] + '_done.traj', a)
 
-print 'Done relaxing {}'.format(fname)
+print('Done relaxing {}'.format(fname))

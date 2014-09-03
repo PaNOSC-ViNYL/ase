@@ -101,7 +101,8 @@ class Population(object):
         return [a.copy() for a in self.pop]
 
     def get_population_after_generation(self, gen):
-        """ Returns a copy of the population as it where after generation gen"""
+        """ Returns a copy of the population as it where
+        after generation gen"""
         all_candidates = [c for c in self.all_cand
                           if c.info['key_value_pairs']['generation'] <= gen]
         cands = [all_candidates[0]]
@@ -114,7 +115,7 @@ class Population(object):
                     cands.append(b)
         pop = cands[:self.pop_size]
         return [a.copy() for a in pop]
-        
+
     def __add_candidate__(self, a):
         """ Adds a single candidate to the population. """
 
@@ -133,7 +134,8 @@ class Population(object):
                                                             self.all_cand,
                                                             self.comparator)
                     self.pop.append(a)
-                    self.pop.sort(key=lambda x: x.get_raw_score(), reverse=True)
+                    self.pop.sort(key=lambda x: x.get_raw_score(),
+                                  reverse=True)
                 return
 
         # the new candidate needs to be added, so remove the highest
@@ -151,7 +153,7 @@ class Population(object):
     def __get_fitness__(self, indecies, with_history=True):
         """Calculates the fitness using the formula from
             L.B. Vilhelmsen et al., JACS, 2012, 134 (30), pp 12807-12816
-        
+
         Sign change on the fitness compared to the formulation in the
         abovementioned paper due to maximizing raw_score instead of
         minimizing energy. (Set raw_score=-energy to optimize the energy)

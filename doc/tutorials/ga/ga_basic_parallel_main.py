@@ -31,7 +31,8 @@ parallel_local_run = ParallelLocalRun(data_connection=da,
 atom_numbers_to_optimize = da.get_atom_numbers_to_optimize()
 n_to_optimize = len(atom_numbers_to_optimize)
 slab = da.get_slab()
-blmin = closest_distances_generator(get_all_atom_types(slab, atom_numbers_to_optimize), 
+all_atom_types = get_all_atom_types(slab, atom_numbers_to_optimize)
+blmin = closest_distances_generator(all_atom_types,
                                     ratio_of_covalent_radii=0.7)
 
 comp = InteratomicDistanceComparator(n_top=n_to_optimize,
@@ -61,17 +62,17 @@ population = Population(data_connection=da,
 
 # test n_to_test new candidates
 for i in xrange(n_to_test):
-    print 'Now starting configuration number {0}'.format(i)
+    print('Now starting configuration number {0}'.format(i))
     a1, a2 = population.get_two_candidates()
     a3, desc = pairing.pair_candidates(a1, a2)
-    if a3 == None:
+    if a3 is None:
         continue
     da.add_unrelaxed_candidate(a3, description=desc)
 
     # Check if we want to do a mutation
     if random() < mutation_probability:
         a3_mut, desc = mutations.mutate(a3)
-        if a3_mut != None:
+        if a3_mut is not None:
             da.add_unrelaxed_step(a3_mut, desc)
             a3 = a3_mut
 

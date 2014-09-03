@@ -44,7 +44,7 @@ class StartGenerator(object):
         if box_to_place_in is None:
             p0 = np.array([0., 0., 0.])
             cell = self.slab.get_cell()
-            self.box = [p0, [cell[0,:], cell[1,:], cell[2,:]]]
+            self.box = [p0, [cell[0, :], cell[1, :], cell[2, :]]]
         else:
             self.box = box_to_place_in
 

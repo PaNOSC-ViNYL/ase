@@ -42,7 +42,7 @@ pop.update()
 # Run the algorithm
 for _ in xrange(num_gens):
     if cc.converged():
-        print 'converged'
+        print('converged')
         break
     for i in xrange(population_size):
         a1, a2 = pop.get_two_candidates(with_history=False)
@@ -55,6 +55,6 @@ for _ in xrange(num_gens):
         db.add_relaxed_step(a3)
 
     pop.update()
-    
+
     # Print the current population to monitor the evolution
-    print ['-'.join(p.get_chemical_symbols()) for p in pop.pop]
+    print(['-'.join(p.get_chemical_symbols()) for p in pop.pop])

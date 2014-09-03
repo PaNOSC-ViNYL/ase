@@ -22,7 +22,7 @@ Basic outline of the search
 
 1. Choose the phase space of your problem. Is the number of possible individuals large enough to prevent a full screening and is the fitness function too discontinuous for a traditional optimization by derivation? If so continue.
 #. Choose model structures and calculate references in those structures. Put the results somewhere accesible for a script initiated by the genetic algorithm.
-#. Choose suitable parameters like population size, convergence criteria etc.
+#. Choose suitable parameters like population size (general rule of thumb for the population size: :mol:`log_2(N) < pop size < 2log_2(N)`, where N is the size of the phase space), convergence criteria etc.
 #. Create the initial population
 #. Choose procreation operators, i.e. how should offspring be produced. New operators can easily be created by modifying the existing operators.
 #. Run the algorithm

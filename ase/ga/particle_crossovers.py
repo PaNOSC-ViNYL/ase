@@ -1,3 +1,4 @@
+"""Crossover operations originally intended for medium sized particles"""
 import random
 import numpy as np
 from itertools import chain
@@ -7,12 +8,13 @@ from ase.ga.offspring_creator import OffspringCreator
 
 
 class Crossover(OffspringCreator):
-    """Base class for all particle crossovers."""
+    """Base class for all particle crossovers.
+    Do not call this class directly."""
     def __init__(self):
         OffspringCreator.__init__(self)
         self.descriptor = 'Crossover'
 
-        
+
 class CutSpliceCrossover(Crossover):
     """Crossover that cuts two particles through a plane in space and
     merges two halfes from different particles together.
@@ -55,8 +57,6 @@ class CutSpliceCrossover(Crossover):
         f.translate(-f.get_center_of_mass())
         m.translate(-m.get_center_of_mass())
         
-        inv = random.choice([1, -1])
-        
         # Get the signed distance to the cutting plane
         # We want one side from f and the other side from m
         fmap = [np.dot(x, e) for x in f.get_positions()]
@@ -66,7 +66,8 @@ class CutSpliceCrossover(Crossover):
         
         off = len(ain) - len(f)
         
-        # Translating f and m to get the correct number of atoms in the offspring
+        # Translating f and m to get the correct number of atoms
+        # in the offspring
         if off < 0:
             # too few
             # move f and m away from the plane
@@ -79,7 +80,7 @@ class CutSpliceCrossover(Crossover):
             dist = abs(ain[-abs(off)]) + eps
             f.translate(-e * dist)
             m.translate(e * dist)
-                
+
         # Determine the contributing parts from f and m
         tmpf, tmpm = Atoms(), Atoms()
         for atom in f:
@@ -95,8 +96,9 @@ class CutSpliceCrossover(Crossover):
         if self.keep_composition:
             opt_sm = sorted(f.numbers)
             cur_sm = sorted(list(tmpf.numbers) + list(tmpm.numbers))
-            # correct_by: dictionary that specifies how many of the atom_numbers should
-            # be removed (a negative number) or added (a positive number)
+            # correct_by: dictionary that specifies how many
+            # of the atom_numbers should be removed (a negative number)
+            # or added (a positive number)
             correct_by = dict([(j, opt_sm.count(j)) for j in set(opt_sm)])
             for n in cur_sm:
                 correct_by[n] -= 1
@@ -121,7 +123,7 @@ class CutSpliceCrossover(Crossover):
             d = [-np.dot(e, sv)] * 2
             d[0] += np.sqrt(np.dot(e, sv)**2 - lsv**2 + min_dist**2)
             d[1] -= np.sqrt(np.dot(e, sv)**2 - lsv**2 + min_dist**2)
-            l = sorted(map(abs, d))[0] / 2. + eps
+            l = sorted([abs(i) for i in d])[0] / 2. + eps
             if l > maxl:
                 maxl = l
         tmpf.translate(e * maxl)
@@ -130,11 +132,11 @@ class CutSpliceCrossover(Crossover):
         # Put the two parts together
         for atom in chain(tmpf, tmpm):
             indi.append(atom)
-        
+
         return (self.finalize_individual(indi),
                 self.descriptor + ': {0} {1}'.format(f.info['confid'],
                                                      m.info['confid']))
-        
+
     def get_vectors_below_min_dist(self, atoms):
         """Generator function that returns each vector (between atoms)
         that is shorter than the minimum distance for those atom types
@@ -144,20 +146,20 @@ class CutSpliceCrossover(Crossover):
         for i in range(len(atoms)):
             pos = atoms[i].position
             f = lambda x: np.linalg.norm(x - pos)
-            for j, d in enumerate(map(f, ap[i:])):
+            for j, d in enumerate([f(k) for k in ap[i:]]):
                 if d == 0:
                     continue
                 min_dist = self.blmin[tuple(sorted((an[i], an[j + i])))]
                 if d < min_dist:
                     yield atoms[i].position - atoms[j + i].position, min_dist
-        
+
     def get_shortest_dist_vector(self, atoms):
         mind = 10000.
         ap = atoms.get_positions()
         for i in range(len(atoms)):
             pos = atoms[i].position
             f = lambda x: np.linalg.norm(x - pos)
-            for j, d in enumerate(map(f, ap[i:])):
+            for j, d in enumerate([f(k) for k in ap[i:]]):
                 if d == 0:
                     continue
                 if d < mind:

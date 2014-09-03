@@ -1,6 +1,7 @@
 """Classes that determine convergence of an algorithm run
 based on population stagnation or max raw score reached"""
 
+
 class Convergence(object):
     """
     Base class for all convergence object to be based on.

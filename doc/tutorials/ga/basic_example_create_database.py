@@ -2,8 +2,6 @@ from ase.ga.data import PrepareDB
 from ase.ga.startgenerator import StartGenerator
 from ase.ga.utilities import closest_distances_generator
 from ase.ga.utilities import get_all_atom_types
-from ase.io import read
-from ase.visualize import view
 from ase.constraints import FixAtoms
 import numpy as np
 from ase.lattice.surface import fcc111
@@ -11,8 +9,8 @@ from ase.lattice.surface import fcc111
 db_file = 'gadb.db'
 
 # create the surface
-slab = fcc111('Au', size=(4,4,1), vacuum=10.0, orthogonal = True)
-slab.set_constraint(FixAtoms(mask = len(slab) * [True]))
+slab = fcc111('Au', size=(4, 4, 1), vacuum=10.0, orthogonal=True)
+slab.set_constraint(FixAtoms(mask=len(slab) * [True]))
 
 # define the volume in which the adsorbed cluster is optimized
 # the volume is defined by a corner position (p0)
@@ -30,26 +28,27 @@ atom_numbers = 2 * [47] + 2 * [79]
 
 # define the closest distance two atoms of a given species can be to each other
 unique_atom_types = get_all_atom_types(slab, atom_numbers)
-cd = closest_distances_generator(atom_numbers = unique_atom_types,
-                                 ratio_of_covalent_radii = 0.7)
+cd = closest_distances_generator(atom_numbers=unique_atom_types,
+                                 ratio_of_covalent_radii=0.7)
 
 # create the starting population
-sg = StartGenerator(slab = slab,
-                    atom_numbers = atom_numbers, 
-                    closest_allowed_distances = cd,
-                    box_to_place_in = [p0, [v1, v2, v3]])
+sg = StartGenerator(slab=slab,
+                    atom_numbers=atom_numbers,
+                    closest_allowed_distances=cd,
+                    box_to_place_in=[p0, [v1, v2, v3]])
 
 # generate the starting population
 population_size = 20
 starting_population = [sg.get_new_candidate() for i in xrange(population_size)]
 
-# view(starting_population) # uncomment this line to see the starting population
+# from ase.visualize import view   # uncomment these lines
+# view(starting_population)        # to see the starting population
 
 # create the database to store information in
-d = PrepareDB(db_file_name = db_file,
+d = PrepareDB(db_file_name=db_file,
               simulation_cell=slab,
               stoichiometry=atom_numbers,)
               # population_size=population_size)
-              
+
 for a in starting_population:
     d.add_unrelaxed_candidate(a)

@@ -22,7 +22,8 @@ class RattleMutation(OffspringCreator):
         rattle_strength: Strength with which the atoms are moved.
         rattle_prop: The probability with which each atom is rattled.
     """
-    def __init__(self, blmin, n_top, rattle_strength=0.8, rattle_prop=0.4, verbose=False):
+    def __init__(self, blmin, n_top, rattle_strength=0.8,
+                 rattle_prop=0.4, verbose=False):
         OffspringCreator.__init__(self, verbose)
         self.blmin = blmin
         self.n_top = n_top

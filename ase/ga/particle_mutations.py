@@ -123,12 +123,13 @@ class RandomPermutation(Mutation):
     def __init__(self, num_muts=1):
         Mutation.__init__(self, num_muts)
         self.descriptor = 'RandomPermutation'
-        
+
     def get_new_individual(self, parents):
         f = parents[0].copy()
-        
-        assert len(set(f.numbers)) > 1, 'Permutations with one atomic type is not valid'
-        
+
+        diffatoms = len(set(f.numbers))
+        assert diffatoms > 1, 'Permutations with one atomic type is not valid'
+
         indi = self.initialize_individual(f)
         indi.info['data']['parents'] = [f.info['confid']]
         
@@ -147,9 +148,10 @@ class RandomPermutation(Mutation):
 
 
 class COM2surfPermutation(Mutation):
-    """The Center Of Mass to surface (COM2surf) permutation operator described in
+    """The Center Of Mass to surface (COM2surf) permutation operator
+    described in
     S. Lysgaard et al., Top. Catal., 2014, 57 (1-4), pp 33-39
-    
+
     Parameters:
     
     elements: which elements should be included in this permutation,
@@ -159,8 +161,8 @@ class COM2surfPermutation(Mutation):
         If less than minimum ratio is present in the core, the region defining
         the core will be extended untill the minimum ratio is met, and vice
         versa for the surface region. It has the potential reach the
-        recursive limit if an element has a smaller total ratio in the complete
-        particle. In that case remember to decrease this min_ratio.
+        recursive limit if an element has a smaller total ratio in the
+        complete particle. In that case remember to decrease this min_ratio.
 
     num_muts: the number of times to perform this operation.
     """
@@ -173,19 +175,21 @@ class COM2surfPermutation(Mutation):
     def get_new_individual(self, parents):
         f = parents[0].copy()
     
-        assert len(set(f.numbers)) > 1, 'Permutations with one atomic type is not valid'
-        
+        diffatoms = len(set(f.numbers))
+        assert diffatoms > 1, 'Permutations with one atomic type is not valid'
+
         indi = self.initialize_individual(f)
         indi.info['data']['parents'] = [f.info['confid']]
-        
+
         for _ in xrange(self.num_muts):
-            atomic_conf = self.get_atomic_configuration(f, elements=self.elements)
+            elems = self.elements
+            atomic_conf = self.get_atomic_configuration(f, elements=elems)
             core = self.get_core_indices(f, atomic_conf, self.min_ratio)
             shell = self.get_shell_indices(f, atomic_conf, self.min_ratio)
             permuts = self.get_list_of_possible_permutations(f, core, shell)
             swap = random.choice(permuts)
             self.interchange2(f, *swap)
-            
+
         for atom in f:
             indi.append(atom)
             
@@ -196,7 +200,8 @@ class COM2surfPermutation(Mutation):
         """Recursive function that returns the indices in the core subject to
         the min_ratio constraint. The indices are found from the supplied
         atomic configuration."""
-        elements = list(set([atoms[i].symbol for subl in atomic_conf for i in subl]))
+        elements = list(set([atoms[i].symbol
+                             for subl in atomic_conf for i in subl]))
         
         core = [i for subl in atomic_conf[:1 + recurs] for i in subl]
         while len(core) < 1:
@@ -204,16 +209,19 @@ class COM2surfPermutation(Mutation):
             core = [i for subl in atomic_conf[:1 + recurs] for i in subl]
             
         for elem in elements:
-            ratio = len([i for i in core if atoms[i].symbol == elem]) / float(len(core))
+            ratio = len([i for i in core
+                         if atoms[i].symbol == elem]) / float(len(core))
             if ratio < min_ratio:
-                return self.get_core_indices(atoms, atomic_conf, min_ratio, recurs + 1)
+                return self.get_core_indices(atoms, atomic_conf,
+                                             min_ratio, recurs + 1)
         return core
                 
     def get_shell_indices(self, atoms, atomic_conf, min_ratio, recurs=0):
-        """Recursive function that returns the indices in the surface subject to
-        the min_ratio constraint. The indices are found from the supplied
-        atomic configuration."""
-        elements = list(set([atoms[i].symbol for subl in atomic_conf for i in subl]))
+        """Recursive function that returns the indices in the surface
+        subject to the min_ratio constraint. The indices are found from
+        the supplied atomic configuration."""
+        elements = list(set([atoms[i].symbol
+                             for subl in atomic_conf for i in subl]))
         
         shell = [i for subl in atomic_conf[-1 - recurs:] for i in subl]
         while len(shell) < 1:
@@ -221,20 +229,24 @@ class COM2surfPermutation(Mutation):
             shell = [i for subl in atomic_conf[-1 - recurs:] for i in subl]
             
         for elem in elements:
-            ratio = len([i for i in shell if atoms[i].symbol == elem]) / float(len(shell))
+            ratio = len([i for i in shell
+                         if atoms[i].symbol == elem]) / float(len(shell))
             if ratio < min_ratio:
-                return self.get_shell_indices(atoms, atomic_conf, min_ratio, recurs + 1)
+                return self.get_shell_indices(atoms, atomic_conf,
+                                              min_ratio, recurs + 1)
         return shell
 
 
 class _NeighborhoodPermutation(Mutation):
-    """Helper class that holds common functions to all permutations that look at the
-    neighborhoods of each atoms."""
-    def get_possible_poor2rich_permutations(self, atoms, inverse=False, recurs=0, distance_matrix=None):
+    """Helper class that holds common functions to all permutations
+    that look at the neighborhoods of each atoms."""
+    def get_possible_poor2rich_permutations(self, atoms, inverse=False,
+                                            recurs=0, distance_matrix=None):
         dm = distance_matrix
         if dm is None:
             dm = get_distance_matrix(atoms)
-        ## Adding a small value (0.2) to overcome slight variations the average bond length
+        # Adding a small value (0.2) to overcome slight variations
+        # in the average bond length
         nndist = get_nndist(atoms, dm) + 0.2
         same_neighbors = {}
         
@@ -249,12 +261,16 @@ class _NeighborhoodPermutation(Mutation):
         sorted_same = sorted(same_neighbors.iteritems(), key=f)
         if inverse:
             sorted_same.reverse()
-        poor_indices = [j[0] for j in sorted_same if abs(j[1] - sorted_same[0][1]) <= recurs]
-        rich_indices = [j[0] for j in sorted_same if abs(j[1] - sorted_same[-1][1]) <= recurs]
-        permuts = self.get_list_of_possible_permutations(atoms, poor_indices, rich_indices)
+        poor_indices = [j[0] for j in sorted_same
+                        if abs(j[1] - sorted_same[0][1]) <= recurs]
+        rich_indices = [j[0] for j in sorted_same
+                        if abs(j[1] - sorted_same[-1][1]) <= recurs]
+        permuts = self.get_list_of_possible_permutations(atoms, poor_indices,
+                                                         rich_indices)
         
         if len(permuts) == 0:
-            return self.get_possible_poor2rich_permutations(atoms, inverse, recurs + 1, dm)
+            return self.get_possible_poor2rich_permutations(atoms, inverse,
+                                                            recurs + 1, dm)
         return permuts
             
         
@@ -278,7 +294,8 @@ class Poor2richPermutation(_NeighborhoodPermutation):
     def get_new_individual(self, parents):
         f = parents[0].copy()
     
-        assert len(set(f.numbers)) > 1, 'Permutations with one atomic type is not valid'
+        diffatoms = len(set(f.numbers))
+        assert diffatoms > 1, 'Permutations with one atomic type is not valid'
         
         indi = self.initialize_individual(f)
         indi.info['data']['parents'] = [f.info['confid']]
@@ -320,7 +337,8 @@ class Rich2poorPermutation(_NeighborhoodPermutation):
     def get_new_individual(self, parents):
         f = parents[0].copy()
     
-        assert len(set(f.numbers)) > 1, 'Permutations with one atomic type is not valid'
+        diffatoms = len(set(f.numbers))
+        assert diffatoms > 1, 'Permutations with one atomic type is not valid'
         
         indi = self.initialize_individual(f)
         indi.info['data']['parents'] = [f.info['confid']]
@@ -329,7 +347,8 @@ class Rich2poorPermutation(_NeighborhoodPermutation):
             atoms = f.copy()
             del atoms[[atom.index for atom in atoms
                        if atom.symbol not in self.elements]]
-            permuts = self.get_possible_poor2rich_permutations(atoms, inverse=True)
+            permuts = self.get_possible_poor2rich_permutations(atoms,
+                                                               inverse=True)
             swap = random.choice(permuts)
             self.interchange2(f, *swap)
             

@@ -12,6 +12,7 @@ from ase.ga.utilities import closest_distances_generator
 from ase.ga.utilities import get_all_atom_types
 from ase.ga.pbs_queue_run import PBSQueueRun
 
+
 def jtg(job_name, traj_file):
     s = '#!/bin/sh\n'
     s += '#PBS -l nodes=1:ppn=12\n'
@@ -29,7 +30,7 @@ mutation_probability = 0.3
 da = DataConnection('gadb.db')
 tmp_folder = 'tmp_folder/'
 # The PBS queing interface is created
-pbs_run = PBSQueueRun(da, 
+pbs_run = PBSQueueRun(da,
                       tmp_folder=tmp_folder,
                       job_prefix='Ag2Au2_opt',
                       n_simul=5,
@@ -38,7 +39,8 @@ pbs_run = PBSQueueRun(da,
 atom_numbers_to_optimize = da.get_atom_numbers_to_optimize()
 n_to_optimize = len(atom_numbers_to_optimize)
 slab = da.get_slab()
-blmin = closest_distances_generator(get_all_atom_types(slab, atom_numbers_to_optimize), 
+all_atom_types = get_all_atom_types(slab, atom_numbers_to_optimize)
+blmin = closest_distances_generator(all_atom_types,
                                     ratio_of_covalent_radii=0.7)
 
 comp = InteratomicDistanceComparator(n_top=n_to_optimize,
@@ -53,7 +55,8 @@ mutations = MutationSelector([1., 1., 1.],
                               PermutationMutation(n_to_optimize)])
 
 # Relax all unrelaxed structures (e.g. the starting population)
-while da.get_number_of_unrelaxed_candidates() > 0 and not pbs_run.enough_jobs_running():
+while (da.get_number_of_unrelaxed_candidates() > 0
+       and not pbs_run.enough_jobs_running()):
     a = da.get_an_unrelaxed_candidate()
     pbs_run.relax(a)
 
@@ -63,18 +66,19 @@ population = Population(data_connection=da,
                         comparator=comp)
 
 # Submit new candidates until enough are running
-while not pbs_run.enough_jobs_running() and len(population.get_current_population()) > 2:
+while (not pbs_run.enough_jobs_running()
+       and len(population.get_current_population()) > 2):
     a1, a2 = population.get_two_candidates()
     a3, desc = pairing.pair_candidates(a1, a2)
-    if a3 == None:
+    if a3 is None:
         continue
-    da.add_unrelaxed_candidate(a3, description = desc)
+    da.add_unrelaxed_candidate(a3, description=desc)
 
     if random() < mutation_probability:
         a3_mut, desc = mutations.mutate(a3)
-        if a3_mut != None:
+        if a3_mut is not None:
             da.add_unrelaxed_step(a3_mut, desc)
-            a3 = a3_mut            
+            a3 = a3_mut
     pbs_run.relax(a3)
 
 write('all_candidates.traj', da.get_all_relaxed_candidates())
