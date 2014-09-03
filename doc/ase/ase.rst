@@ -18,26 +18,26 @@ Quick links:
   * - :mod:`~ase.db`
     - :mod:`~ase.dft`
     - :mod:`~ase.data`
-    - :mod:`~ase.gui`
-  * - :mod:`~ase.infrared`
+    - :mod:`~ase.ga`
+  * - :mod:`~ase.gui`
+    - :mod:`~ase.infrared`
     - :mod:`~ase.io`
     - :mod:`~ase.lattice`
-    - :mod:`~ase.md`
-  * - :mod:`~ase.neb`
+  * - :mod:`~ase.md`
+    - :mod:`~ase.neb`
     - :mod:`~ase.optimize`
     - :mod:`~ase.parallel`
-    - :mod:`~ase.phonons`
-  * - :mod:`~ase.lattice.spacegroup`
+  * - :mod:`~ase.phonons`
+    - :mod:`~ase.lattice.spacegroup`
     - :mod:`~ase.structure`
     - :mod:`~ase.lattice.surface`
-    - :mod:`~ase.transport`
-  * - :mod:`~ase.thermochemistry`
+  * - :mod:`~ase.transport`
+    - :mod:`~ase.thermochemistry`
     - :mod:`~ase.units`
     - :mod:`~ase.utils`
-    - :mod:`~ase.vibrations`
-  * - :mod:`~ase.visualize`
+  * - :mod:`~ase.vibrations`
+    - :mod:`~ase.visualize`
     - :mod:`~ase.visualize.vtk`
-    -
     -
 
 
@@ -81,4 +81,5 @@ List of all modules:
    neighbors
    io/opls
    db/db
+   ga
    dimermethod
