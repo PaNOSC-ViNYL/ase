@@ -37,7 +37,7 @@ class AdsorbateOperator(OffspringCreator):
         sites_list: a list of dictionaries, each dictionary should be of the
             following form:
             {'height': h, 'normal': n, 'adsorbate_position': ap,
-             'site': si, 'surface': su}
+            'site': si, 'surface': su}
 
         min_adsorbate_distance: the radius of the sphere inside which no other
             adsorbates should be found
@@ -174,7 +174,7 @@ class AddAdsorbate(AdsorbateOperator):
 
     Supply a list of adsorption_sites of the form:
     [{'adsorbate_position':[.., .., ..], 'normal':surface_normal_vector,
-      'height':height, 'site':site, 'surface':surface}, {...}, ...]
+    'height':height, 'site':site, 'surface':surface}, {...}, ...]
 
     The adsorbate will be positioned at:
     adsorbate_position + surface_normal_vector * height

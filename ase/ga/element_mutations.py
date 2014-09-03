@@ -149,11 +149,15 @@ class RandomElementMutation(ElementMutation):
 def mendeleiev_table():
     """Returns the mendeleiev table as a python list of lists.
     Each cell contains either None or a pair (symbol, atomic number),
-    or a list of pairs for the cells * and **.
+    or a list of pairs for the cells \* and \**.
     """
     import re
-    elems = """HHeLiBeBCNOFNeNaMgAlSiPSClArKCaScTiVCrMnFeCoNiCuZnGaGeAsSeBrKrRbSrYZrNbMoTcRuRhPdAgCdInSnSbTeIXeCsBaLaCePrNdPmSmEuGdTbDyHoErTmYbLuHfTaWReOsIrPtAuHgTlPbBiPoAtRnFrRaAcThPaUNpPuAmCmBkCfEsFmMdNoLrRfDbSgBhHsMtDsRgUubUutUuqUupUuhUusUuo"""
-    L = [(e, i + 1) for (i, e) in enumerate(re.compile('[A-Z][a-z]*').findall(elems))]
+    elems = 'HHeLiBeBCNOFNeNaMgAlSiPSClArKCaScTiVCrMnFeCoNiCuZnGaGeAsSeBrKrRb'
+    elems += 'SrYZrNbMoTcRuRhPdAgCdInSnSbTeIXeCsBaLaCePrNdPmSmEuGdTbDyHoErTm'
+    elems += 'YbLuHfTaWReOsIrPtAuHgTlPbBiPoAtRnFrRaAcThPaUNpPuAmCmBkCfEsFmMd'
+    elems += 'NoLrRfDbSgBhHsMtDsRgUubUutUuqUupUuhUusUuo'
+    L = [(e, i + 1)
+         for (i, e) in enumerate(re.compile('[A-Z][a-z]*').findall(elems))]
     for i, j in ((88, 103), (56, 71)):
         L[i] = L[i:j]
         L[i + 1:] = L[j:]

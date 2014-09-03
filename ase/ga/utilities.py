@@ -193,9 +193,7 @@ def get_nnmat(atoms):
     the order is determined by self.elements.
     Example: self.elements = ["Cu", "Ni"]
     get_nnmat returns a single list [Cu-Cu bonds/N(Cu),
-                                     Cu-Ni bonds/N(Cu),
-                                     Ni-Cu bonds/N(Ni),
-                                     Ni-Ni bonds/N(Ni)]
+    Cu-Ni bonds/N(Cu), Ni-Cu bonds/N(Ni), Ni-Ni bonds/N(Ni)]
     where N(element) is the number of atoms of the type element
     in the atoms object.
 
