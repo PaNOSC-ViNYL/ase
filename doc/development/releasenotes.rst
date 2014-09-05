@@ -9,7 +9,8 @@ Development version in trunk
 ============================
 
 :trac:`trunk <>`.
-
+	  
+* Genetic algorithm implemented; :mod:`ase.ga`
 
 Version 3.8.0
 =============
