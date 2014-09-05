@@ -7,7 +7,7 @@ import numpy as np
 
 from ase.parallel import world
 from ase.db.core import Database, ops, parallel, lock, now
-from ase.db.core import check_keys, reserved_keys
+from ase.db.core import check, reserved_keys
 
 
 class MyEncoder(json.JSONEncoder):
@@ -191,13 +191,7 @@ class JSONDatabase(Database):
     @parallel
     @lock
     def update(self, ids, add_keywords=[], **add_key_value_pairs):
-        check_keys(add_key_value_pairs)
-
-        for value in add_key_value_pairs.values():
-            assert isinstance(value, (int, float, str))
-            
-        for keyword in add_keywords:
-            assert isinstance(keyword, str)
+        check(add_keywords, add_key_value_pairs)
             
         if isinstance(ids, int):
             ids = [ids]

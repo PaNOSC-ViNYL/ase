@@ -1,7 +1,7 @@
 import psycopg2
 
 from ase.db.sqlite import init_statements, index_statements
-from ase.db.sqlite import tables, SQLite3Database
+from ase.db.sqlite import all_tables, SQLite3Database
 
 
 class Connection:
@@ -58,12 +58,12 @@ def reset():
 
     cur.execute("select count(*) from pg_tables where tablename='systems'")
     if cur.fetchone()[0] == 1:
-        cur.execute('drop table %s cascade' % ', '.join(tables))
+        cur.execute('drop table %s cascade' % ', '.join(all_tables))
         cur.execute('drop role ase')
         cur.execute("create role ase login password 'ase'")
         con.commit()
 
-    sql = init_statements
+    sql = ';\n'.join(init_statements)
     for a, b in [('blob', 'bytea'),
                  ('real', 'double precision'),
                  ('id integer primary key autoincrement',
@@ -71,9 +71,9 @@ def reset():
         sql = sql.replace(a, b)
         
     cur.execute(sql)
-    cur.execute(index_statements)
+    cur.execute(';\n'.join(index_statements))
     cur.execute('grant all privileges on %s to ase' %
-                ', '.join(tables + ['systems_id_seq']))
+                ', '.join(all_tables + ['systems_id_seq']))
     con.commit()
 
 

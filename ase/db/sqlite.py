@@ -7,8 +7,8 @@ from ase.db.core import Database, ops, now, lock, parallel, invop
 from ase.db.jsondb import encode, decode
 
 
-init_statements = """\
-create table systems (
+init_statements = [
+    """create table systems (
     id integer primary key autoincrement,
     unique_id text unique,
     ctime real,
@@ -37,41 +37,39 @@ create table systems (
     keywords text,
     key_value_pairs text,
     data text,
-    natoms integer);
-create table species (
+    natoms integer)""",
+    """create table species (
     Z integer,
     n integer,
     id integer,
-    foreign key (id) references systems(id));
-create table keywords (
+    foreign key (id) references systems(id))""",
+    """create table keywords (
     keyword text,
     id integer,
-    foreign key (id) references systems(id));
-create table text_key_values (
+    foreign key (id) references systems(id))""",
+    """create table text_key_values (
     key text,
     value text,
     id integer,
-    foreign key (id) references systems(id));
-create table number_key_values (
+    foreign key (id) references systems(id))""",
+    """create table number_key_values (
     key text,
     value real,
     id integer,
-    foreign key (id) references systems (id))
-"""
+    foreign key (id) references systems (id))"""]
 
-index_statements = """\
-create index unique_id_index on systems(unique_id);
-create index ctime_index on systems(ctime);
-create index username_index on systems(username);
-create index calculator_index on systems(calculator);
-create index species_index on species(Z);
-create index keyword_index on keywords(keyword);
-create index text_index on text_key_values(key);
-create index number_index on number_key_values(key)
-"""
+index_statements = [
+    'create index unique_id_index on systems(unique_id)',
+    'create index ctime_index on systems(ctime)',
+    'create index username_index on systems(username)',
+    'create index calculator_index on systems(calculator)',
+    'create index species_index on species(Z)',
+    'create index keyword_index on keywords(keyword)',
+    'create index text_index on text_key_values(key)',
+    'create index number_index on number_key_values(key)']
 
-tables = ['systems', 'species', 'keywords',
-          'text_key_values', 'number_key_values']
+all_tables = ['systems', 'species', 'keywords',
+              'text_key_values', 'number_key_values']
 
 
 class SQLite3Database(Database):
@@ -89,10 +87,10 @@ class SQLite3Database(Database):
         cur = con.execute(
             'select count(*) from sqlite_master where name="systems"')
         if cur.fetchone()[0] == 0:
-            for statement in init_statements.split(';'):
+            for statement in init_statements:
                 con.execute(statement)
             if self.create_indices:
-                for statement in index_statements.split(';'):
+                for statement in index_statements:
                     con.execute(statement)
             con.commit()
             self.initialized = True
@@ -120,7 +118,8 @@ class SQLite3Database(Database):
             rows = cur.fetchall()
             if rows:
                 id = rows[0][0]
-                self._delete(cur, [id])
+                self._delete(cur, [id], ['keywords', 'text_key_values',
+                                         'number_key_values'])
             dct['mtime'] = now()
         else:
             dct = self.collect_data(atoms)
@@ -170,28 +169,34 @@ class SQLite3Database(Database):
                 encode(data),
                 len(numbers))
 
-        q = self.default + ', ' + ', '.join('?' * len(row))
-        cur.execute('insert into systems values ({0})'.format(q), row)
+        if id is None:
+            q = self.default + ', ' + ', '.join('?' * len(row))
+            cur.execute('insert into systems values ({0})'.format(q),
+                        row)
+        else:
+            q = ', '.join(line.split()[0].lstrip() + '=?'
+                          for line in init_statements[0].splitlines()[2:])
+            cur.execute('UPDATE systems SET {0} WHERE id=?'.format(q),
+                        row + (id,))
         
-        id = self.get_last_id(cur)
-
-        if len(numbers) > 0:
-            count = np.bincount(numbers)
-            unique_numbers = count.nonzero()[0]
-            species = [(int(Z), int(count[Z]), id) for Z in unique_numbers]
-            cur.executemany('insert into species values (?, ?, ?)', species)
+        if id is None:
+            id = self.get_last_id(cur)
+            
+            if len(numbers) > 0:
+                count = np.bincount(numbers)
+                unique_numbers = count.nonzero()[0]
+                species = [(int(Z), int(count[Z]), id) for Z in unique_numbers]
+                cur.executemany('insert into species values (?, ?, ?)',
+                                species)
 
         text_key_values = []
         number_key_values = []
         for key, value in key_value_pairs.items():
-            if isinstance(value, (str, unicode)):
-                text_key_values.append([key, value, id])
-            elif isinstance(value, (float, int)):
+            if isinstance(value, (float, int)):
                 number_key_values.append([key, float(value), id])
             else:
-                raise ValueError(
-                    'Key-values must be of type str, bool, int or float: ' +
-                    '"{0}"'.format(value))
+                assert isinstance(value, (str, unicode))
+                text_key_values.append([key, value, id])
  
         if text_key_values:
             cur.executemany('insert into text_key_values values (?, ?, ?)',
@@ -374,8 +379,9 @@ class SQLite3Database(Database):
         con.commit()
         con.close()
 
-    def _delete(self, cur, ids):
-        for table in tables[::-1]:
+    def _delete(self, cur, ids, tables=None):
+        tables = tables or all_tables[::-1]
+        for table in tables:
             cur.executemany('delete from {0} where id=?'.format(table),
                             ((id,) for id in ids))
 
