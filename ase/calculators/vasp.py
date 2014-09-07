@@ -88,6 +88,21 @@ float_keys = [
     'falpha',     # Parameter for velocity damping
     'falphadec',  # Factor to dec. alpha
     'clz',        # electron count for core level shift
+    'vdw_radius', # Cutoff radius for Grimme's DFT-D2 and DFT-D3 and Tkatchenko
+                  # and Scheffler's DFT-TS dispersion corrections
+    'vdw_scaling',# Global scaling parameter for Grimme's DFT-D2 dispersion
+                  # correction
+    'vdw_d',      # Global damping parameter for Grimme's DFT-D2 and Tkatchenko
+                  # and Scheffler's DFT-TS dispersion corrections
+    'vdw_cnradius', # Cutoff radius for calculating coordination number in
+                    # Grimme's DFT-D3 dispersion correction
+    'vdw_s6',     # Damping parameter for Grimme's DFT-D2 and DFT-D3 and
+                  # Tkatchenko and Scheffler's DFT-TS dispersion corrections
+    'vdw_s8',     # Damping parameter for Grimme's DFT-D3 dispersion correction
+    'vdw_sr',     # Scaling parameter for Grimme's DFT-D2 and DFT-D3 and
+                  # Tkatchenko and Scheffler's DFT-TS dispersion correction
+    'vdw_a1',     # Damping parameter for Grimme's DFT-D3 dispersion correction
+    'vdw_a2',     # Damping parameter for Grimme's DFT-D3 dispersion correction
 ]
 
 exp_keys = [
@@ -167,6 +182,14 @@ int_keys = [
     'clnt',       # species index
     'cln',        # main quantum number of excited core electron
     'cll',        # l quantum number of excited core electron
+    'ivdw',       # Choose which dispersion correction method to use
+    'nbandsgw',   # Number of bands for GW
+    'nbandso',    # Number of occupied bands for electron-hole treatment
+    'nbandsv',    # Number of virtual bands for electron-hole treatment
+    'ncore',      # Number of cores per band, equal to number of cores divided
+                  # by npar
+    'mdalgo',     # Determines which MD method of Tomas Bucko to use
+    'nedos',      # Number of grid points in DOS
 ]
 
 bool_keys = [
@@ -210,6 +233,15 @@ bool_keys = [
     'lbeefbas',   # Switch off print of all BEEs in OUTCAR
     'lcalcpol',   # macroscopic polarization (vasp5.2). 'lcalceps'
     'lcalceps',   # Macroscopic dielectric properties and Born effective charge tensors (vasp 5.2)
+
+    'lvdw',       # Turns on dispersion correction
+    'lvdw_ewald', # Turns on Ewald summation for Grimme's DFT-D2 and Tkatchenko
+                  # and Scheffler's DFT-TS dispersion correction
+    'lspectral',  # Use the spectral method to calculate independent particle
+                  # polarizability
+    'lrpa',       # Include local field effects on the Hartree level only
+    'lwannier90', # Switches on the interface between VASP and WANNIER90
+    'lsorbit',    # Enable spin-orbit coupling
 ]
 
 list_keys = [
@@ -227,6 +259,16 @@ list_keys = [
     'ldauj',      # the INCAR (since it needs to know information about atomic
                   # species. In case of conflict 'ldau_luj' gets written out
                   # when a calculation is set up
+
+    'random_seed',# List of ints used to seed RNG for advanced MD routines (Bucko)
+    'vdw_c6',     # List of floats of C6 parameters (J nm^6 mol^-1) for each
+                  # species (DFT-D2 and DFT-TS)
+    'vdw_c6au',   # List of floats of C6 parameters (a.u.) for each species (DFT-TS)
+    'vdw_r0',     # List of floats of R0 parameters (angstroms) for each
+                  # species (DFT-D2 and DFT-TS)
+    'vdw_r0au',   # List of floats of R0 parameters (a.u.) for each species (DFT-TS)
+    'vdw_alpha',  # List of floats of free-atomic polarizabilities for each
+                  # species (DFT-TS)
 ]
 
 special_keys = [
