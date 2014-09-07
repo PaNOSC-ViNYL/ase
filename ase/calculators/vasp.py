@@ -44,7 +44,8 @@ float_keys = [
     'bmix',       # tags for mixing
     'bmix_mag',   #
     'deper',      # relative stopping criterion for optimization of eigenvalue
-    'ebreak',     # absolute stopping criterion for optimization of eigenvalues (EDIFF/N-BANDS/4)
+    'ebreak',     # absolute stopping criterion for optimization of eigenvalues
+                  # (EDIFF/N-BANDS/4)
     'efield',     # applied electrostatic field
     'emax',       # energy-range for DOSCAR file
     'emin',       #
@@ -53,7 +54,7 @@ float_keys = [
     'encutgw',    # energy cutoff for response function
     'encutfock',  # FFT grid in the HF related routines
     'hfscreen',   # attribute to change from PBE0 to HSE
-    'kspacing', # determines the number of k-points if the KPOINTS
+    'kspacing',   # determines the number of k-points if the KPOINTS
                   # file is not present. KSPACING is the smallest
                   # allowed spacing between k-points in units of
                   # $\AA$^{-1}$.
@@ -62,39 +63,42 @@ float_keys = [
     'param1',     # Exchange parameter
     'param2',     # Exchange parameter
     'pomass',     # mass of ions in am
-    'pstress',    # add this stress to the stress tensor, and energy E = V * pstress 
+    'pstress',    # add this stress to the stress tensor, and energy E = V *
+                  # pstress
     'sigma',      # broadening in eV
     'spring',     # spring constant for NEB
     'time',       # special control tag
     'weimin',     # maximum weight for a band to be considered empty
     'zab_vdw',    # vdW-DF parameter
     'zval',       # ionic valence
-#The next keywords pertain to the VTST add-ons from Graeme Henkelman's group at UT Austin
+    # The next keywords pertain to the VTST add-ons from Graeme Henkelman's
+    # group at UT Austin
     'jacobian',   # Weight of lattice to atomic motion
     'ddr',        # (DdR) dimer separation
     'drotmax',    # (DRotMax) number of rotation steps per translation step
     'dfnmin',     # (DFNMin) rotational force below which dimer is not rotated
     'dfnmax',     # (DFNMax) rotational force below which dimer rotation stops
     'stol',       # convergence ratio for minimum eigenvalue
-    'sdr',        # finite difference for setting up Lanczos matrix and step size when translating
+    'sdr',        # finite difference for setting up Lanczos matrix and step
+                  # size when translating
     'maxmove',    # Max step for translation for IOPT > 0
     'invcurve',   # Initial curvature for LBFGS (IOPT = 1)
     'timestep',   # Dynamical timestep for IOPT = 3 and IOPT = 7
     'sdalpha',    # Ratio between force and step size for IOPT = 4
-#The next keywords pertain to IOPT = 7 (i.e. FIRE)
+    # The next keywords pertain to IOPT = 7 (i.e. FIRE)
     'ftimemax',   # Max time step
     'ftimedec',   # Factor to dec. dt
     'ftimeinc',   # Factor to inc. dt
     'falpha',     # Parameter for velocity damping
     'falphadec',  # Factor to dec. alpha
     'clz',        # electron count for core level shift
-    'vdw_radius', # Cutoff radius for Grimme's DFT-D2 and DFT-D3 and Tkatchenko
-                  # and Scheffler's DFT-TS dispersion corrections
-    'vdw_scaling',# Global scaling parameter for Grimme's DFT-D2 dispersion
-                  # correction
+    'vdw_radius',  # Cutoff radius for Grimme's DFT-D2 and DFT-D3 and
+                   # Tkatchenko and Scheffler's DFT-TS dispersion corrections
+    'vdw_scaling',  # Global scaling parameter for Grimme's DFT-D2 dispersion
+                    # correction
     'vdw_d',      # Global damping parameter for Grimme's DFT-D2 and Tkatchenko
                   # and Scheffler's DFT-TS dispersion corrections
-    'vdw_cnradius', # Cutoff radius for calculating coordination number in
+    'vdw_cnradius',  # Cutoff radius for calculating coordination number in
                     # Grimme's DFT-D3 dispersion correction
     'vdw_s6',     # Damping parameter for Grimme's DFT-D2 and DFT-D3 and
                   # Tkatchenko and Scheffler's DFT-TS dispersion corrections
@@ -109,7 +113,8 @@ exp_keys = [
     'ediff',      # stopping-criterion for electronic upd.
     'ediffg',     # stopping-criterion for ionic upd.
     'symprec',    # precession in symmetry routines
-#The next keywords pertain to the VTST add-ons from Graeme Henkelman's group at UT Austin
+    # The next keywords pertain to the VTST add-ons from Graeme Henkelman's
+    # group at UT Austin
     'fdstep',     # Finite diference step for IOPT = 1 or 2
 ]
 
@@ -138,7 +143,8 @@ int_keys = [
     'isym',       # symmetry: 0-nonsym 1-usesym 2-usePAWsym
     'iwavpr',     # prediction of wf.: 0-non 1-charg 2-wave 3-comb
     'kpar',       # k-point parallelization paramater
-    'ldauprint',  # 0-silent, 1-occ. matrix written to OUTCAR, 2-1+pot. matrix written
+    'ldauprint',  # 0-silent, 1-occ. matrix written to OUTCAR, 2-1+pot. matrix
+                  # written
     'ldautype',   # L(S)DA+U: 1-Liechtenstein 2-Dudarev 4-Liechtenstein(LDAU)
     'lmaxmix',    #
     'lorbit',     # create PROOUT
@@ -155,8 +161,10 @@ int_keys = [
     'nelm',       # nr. of electronic steps (default 60)
     'nelmdl',     # nr. of initial electronic steps
     'nelmin',
-    'nfree',      # number of steps per DOF when calculting Hessian using finitite differences
-    'nkred',      # define sub grid of q-points for HF with nkredx=nkredy=nkredz
+    'nfree',      # number of steps per DOF when calculting Hessian using
+                  # finite differences
+    'nkred',      # define sub grid of q-points for HF with
+                  # nkredx=nkredy=nkredz
     'nkredx',      # define sub grid of q-points in x direction for HF
     'nkredy',      # define sub grid of q-points in y direction for HF
     'nkredz',      # define sub grid of q-points in z direction for HF
@@ -171,14 +179,17 @@ int_keys = [
     'vdwgr',      # extra keyword for Andris program
     'vdwrn',      # extra keyword for Andris program
     'voskown',    # use Vosko, Wilk, Nusair interpolation
-#The next keywords pertain to the VTST add-ons from Graeme Henkelman's group at UT Austin
-    'ichain',     # Flag for controlling which method is being used (0=NEB, 1=DynMat, 2=Dimer, 3=Lanczos)
-                  # if ichain > 3, then both IBRION and POTIM are automatically set in the INCAR file
-    'iopt',       # Controls which optimizer to use.  for iopt > 0, ibrion = 3 and potim = 0.0
+    # The next keywords pertain to the VTST add-ons from Graeme Henkelman's
+    # group at UT Austin
+    'ichain',     # Flag for controlling which method is being used (0=NEB,
+                  # 1=DynMat, 2=Dimer, 3=Lanczos) if ichain > 3, then both
+                  # IBRION and POTIM are automatically set in the INCAR file
+    'iopt',       # Controls which optimizer to use.  for iopt > 0, ibrion = 3
+                  # and potim = 0.0
     'snl',        # Maximum dimentionality of the Lanczos matrix
     'lbfgsmem',   # Steps saved for inverse Hessian for IOPT = 1 (LBFGS)
     'fnmin',      # Max iter. before adjusting dt and alpha for IOPT = 7 (FIRE)
-    'icorelevel', # core level shifts
+    'icorelevel',  # core level shifts
     'clnt',       # species index
     'cln',        # main quantum number of excited core electron
     'cll',        # l quantum number of excited core electron
@@ -199,7 +210,8 @@ bool_keys = [
                   # point (e.g. includes the $\Gamma$ point)
                   # (KGAMMA=.TRUE.)
     'laechg',     # write AECCAR0/AECCAR1/AECCAR2
-    'lasph',      # non-spherical contributions to XC energy (and pot for VASP.5.X)
+    'lasph',      # non-spherical contributions to XC energy (and pot for
+                  # VASP.5.X)
     'lasync',     # overlap communcation with calculations
     'lcharg',     #
     'lcorr',      # Harris-correction to forces
@@ -210,21 +222,23 @@ bool_keys = [
     'lepsilon',   # enables to calculate and to print the BEC tensors
     'lhfcalc',    # switch to turn on Hartree Fock calculations
     'loptics',    # calculate the frequency dependent dielectric matrix
-    'lpard',      # evaluate partial (band and/or k-point) decomposed charge density
+    'lpard',      # evaluate partial (band and/or k-point) decomposed charge
+                  # density
     'lplane',     # parallelisation over the FFT grid
-    'lscalapack', # switch off scaLAPACK
+    'lscalapack',  # switch off scaLAPACK
     'lscalu',     # switch of LU decomposition
     'lsepb',      # write out partial charge of each band seperately?
     'lsepk',      # write out partial charge of each k-point seperately?
     'lthomas',    #
     'luse_vdw',   # Invoke vdW-DF implementation by Klimes et. al
-    'lvdw',	  # Invoke DFT-D2 method of Grimme
+    'lvdw',   # Invoke DFT-D2 method of Grimme
     'lvhar',      # write Hartree potential to LOCPOT (vasp 5.x)
     'lvtot',      # create WAVECAR/CHGCAR/LOCPOT
     'lwave',      #
-#The next keywords pertain to the VTST add-ons from Graeme Henkelman's group at UT Austin
+    # The next keywords pertain to the VTST add-ons from Graeme Henkelman's
+    # group at UT Austin
     'lclimb',     # Turn on CI-NEB
-    'ltangentold', # Old central difference tangent
+    'ltangentold',  # Old central difference tangent
     'ldneb',      # Turn on modified double nudging
     'lnebcell',   # Turn on SS-NEB
     'lglobal',    # Optmize NEB globally for LBFGS (IOPT = 1)
@@ -232,15 +246,16 @@ bool_keys = [
     'lbeefens',   # Switch on print of BEE energy contributions in OUTCAR
     'lbeefbas',   # Switch off print of all BEEs in OUTCAR
     'lcalcpol',   # macroscopic polarization (vasp5.2). 'lcalceps'
-    'lcalceps',   # Macroscopic dielectric properties and Born effective charge tensors (vasp 5.2)
+    'lcalceps',   # Macroscopic dielectric properties and Born effective charge
+                  # tensors (vasp 5.2)
 
     'lvdw',       # Turns on dispersion correction
-    'lvdw_ewald', # Turns on Ewald summation for Grimme's DFT-D2 and Tkatchenko
-                  # and Scheffler's DFT-TS dispersion correction
+    'lvdw_ewald',  # Turns on Ewald summation for Grimme's DFT-D2 and
+                   # Tkatchenko and Scheffler's DFT-TS dispersion correction
     'lspectral',  # Use the spectral method to calculate independent particle
                   # polarizability
     'lrpa',       # Include local field effects on the Hartree level only
-    'lwannier90', # Switches on the interface between VASP and WANNIER90
+    'lwannier90',  # Switches on the interface between VASP and WANNIER90
     'lsorbit',    # Enable spin-orbit coupling
 ]
 
@@ -260,13 +275,16 @@ list_keys = [
                   # species. In case of conflict 'ldau_luj' gets written out
                   # when a calculation is set up
 
-    'random_seed',# List of ints used to seed RNG for advanced MD routines (Bucko)
+    'random_seed',  # List of ints used to seed RNG for advanced MD routines
+                    # (Bucko)
     'vdw_c6',     # List of floats of C6 parameters (J nm^6 mol^-1) for each
                   # species (DFT-D2 and DFT-TS)
-    'vdw_c6au',   # List of floats of C6 parameters (a.u.) for each species (DFT-TS)
+    'vdw_c6au',   # List of floats of C6 parameters (a.u.) for each species
+                  # (DFT-TS)
     'vdw_r0',     # List of floats of R0 parameters (angstroms) for each
                   # species (DFT-D2 and DFT-TS)
-    'vdw_r0au',   # List of floats of R0 parameters (a.u.) for each species (DFT-TS)
+    'vdw_r0au',   # List of floats of R0 parameters (a.u.) for each species
+                  # (DFT-TS)
     'vdw_alpha',  # List of floats of free-atomic polarizabilities for each
                   # species (DFT-TS)
 ]
@@ -276,7 +294,8 @@ special_keys = [
 ]
 
 dict_keys = [
-    'ldau_luj',   # dictionary with L(S)DA+U parameters, e.g. {'Fe':{'L':2, 'U':4.0, 'J':0.9}, ...}
+    'ldau_luj',   # dictionary with L(S)DA+U parameters, e.g. {'Fe':{'L':2,
+                  # 'U':4.0, 'J':0.9}, ...}
 ]
 
 keys = [
@@ -285,9 +304,13 @@ keys = [
     # 'WEIMIN, EBREAK, DEPER    special control tags
 ]
 
+
 class Vasp(Calculator):
     name = 'Vasp'
-    def __init__(self, restart=None, output_template='vasp', track_output=False,
+
+    def __init__(self, restart=None,
+                 output_template='vasp',
+                 track_output=False,
                  **kwargs):
         self.float_params = {}
         self.exp_params = {}
@@ -317,20 +340,25 @@ class Vasp(Calculator):
         self.string_params['prec'] = 'Normal'
 
         if kwargs.get('xc', None):
-            if kwargs['xc'] not in ['PW91','LDA','PBE']:
+            if kwargs['xc'] not in ['PW91', 'LDA', 'PBE']:
                 raise ValueError(
                     '%s not supported for xc! use one of: PW91, LDA or PBE.' %
                     kwargs['xc'])
-            self.input_params = {'xc': kwargs['xc']} # exchange correlation functional
+            # exchange correlation functional
+            self.input_params = {'xc': kwargs['xc']}
+
         else:
-            self.input_params = {'xc': 'PW91'} # exchange correlation functional
+            # exchange correlation functional
+            self.input_params = {'xc': 'PW91'}
+
         self.input_params.update({
             'setups':     None,    # Special setups (e.g pv, sv, ...)
             'txt':        '-',     # Where to send information
-            'kpts':       (1,1,1), # k-points
+            'kpts':       (1, 1, 1),  # k-points
             'gamma':      False,   # Option to use gamma-sampling instead
                                    # of Monkhorst-Pack
-            'kpts_nintersections': None,  # number of points between points in band structures
+            'kpts_nintersections': None,  # number of points between points in
+                                          # band structures
             'reciprocal': False,   # Option to write explicit k-points in units
                                    # of reciprocal lattice vectors
             })
@@ -347,11 +375,12 @@ class Vasp(Calculator):
             and ('ldauj' in kwargs)
             and ('ldau_luj' in kwargs)):
             raise NotImplementedError(
-                '''You can either specify ldaul, ldauu, and ldauj OR ldau_luj.
-ldau_luj is not a VASP keyword. It is a dictionary that specifies L, U and J for each
-chemical species in the atoms object. For example for a water molecule:
-                
-ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
+                'You can either specify ldaul, ldauu, and ldauj OR ldau_luj.'
+                'ldau_luj is not a VASP keyword. It is a dictionary that'
+                ' specifies'
+                'L, U and J for each chemical species in the atoms object. '
+                'For example for a water molecule:'
+                '''ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
                       'O':{'L':2, 'U':4.0, 'J':0.9}}''')
 
         self.nbands = self.int_params['nbands']
@@ -362,23 +391,23 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
 
     def set(self, **kwargs):
         for key in kwargs:
-            if self.float_params.has_key(key):
+            if key in self.float_params:
                 self.float_params[key] = kwargs[key]
-            elif self.exp_params.has_key(key):
+            elif key in self.exp_params:
                 self.exp_params[key] = kwargs[key]
-            elif self.string_params.has_key(key):
+            elif key in self.string_params:
                 self.string_params[key] = kwargs[key]
-            elif self.int_params.has_key(key):
+            elif key in self.int_params:
                 self.int_params[key] = kwargs[key]
-            elif self.bool_params.has_key(key):
+            elif key in self.bool_params:
                 self.bool_params[key] = kwargs[key]
-            elif self.list_params.has_key(key):
+            elif key in self.list_params:
                 self.list_params[key] = kwargs[key]
-            elif self.special_params.has_key(key):
+            elif key in self.special_params:
                 self.special_params[key] = kwargs[key]
-            elif self.dict_params.has_key(key):
+            elif key in self.dict_params:
                 self.dict_params[key] = kwargs[key]
-            elif self.input_params.has_key(key):
+            elif key in self.input_params:
                 self.input_params[key] = kwargs[key]
             else:
                 raise TypeError('Parameter not defined: ' + key)
@@ -423,12 +452,12 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         symbolcount = {}
         if self.input_params['setups']:
             for m in self.input_params['setups']:
-                try :
+                try:
                     special_setups.append(int(m))
-                except ValueError:                
+                except ValueError:
                     continue
- 
-        for m,atom in enumerate(atoms):
+
+        for m, atom in enumerate(atoms):
             symbol = atom.symbol
             if m in special_setups:
                 pass
@@ -444,7 +473,7 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         self.sort.extend(special_setups)
 
         for symbol in symbols:
-            for m,atom in enumerate(atoms):
+            for m, atom in enumerate(atoms):
                 if m in special_setups:
                     pass
                 else:
@@ -465,7 +494,7 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
 
         sys.stdout.flush()
         xc = '/'
-            
+
         if p['xc'] == 'PW91':
             xc = '_gga/'
         elif p['xc'] == 'PBE':
@@ -482,7 +511,7 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
             found = False
             for path in pppaths:
                 filename = join(path, name)
-                #print 'filename', filename
+
                 if isfile(filename) or islink(filename):
                     found = True
                     self.ppp_list.append(filename)
@@ -494,7 +523,7 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
             if not found:
                 print 'Looking for %s' % name
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
-        #print 'symbols', symbols
+
         for symbol in symbols:
             try:
                 name = 'potpaw'+xc.upper()+symbol + p['setups'][symbol]
@@ -504,7 +533,7 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
             found = False
             for path in pppaths:
                 filename = join(path, name)
-                #print 'filename', filename
+
                 if isfile(filename) or islink(filename):
                     found = True
                     self.ppp_list.append(filename)
@@ -518,11 +547,10 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
                 The pseudopotentials are expected to be in:
                 LDA:  $VASP_PP_PATH/potpaw/
                 PBE:  $VASP_PP_PATH/potpaw_PBE/
-                PW91: $VASP_PP_PATH/potpaw_GGA/'''  % name
+                PW91: $VASP_PP_PATH/potpaw_GGA/''' % name
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
         self.converged = None
         self.setups_changed = None
-
 
     def calculate(self, atoms):
         """Generate necessary files in the working directory and run VASP.
@@ -549,7 +577,7 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         self.run()
         # Read output
         atoms_sorted = ase.io.read('CONTCAR', format='vasp')
-        if self.int_params['ibrion']>-1 and self.int_params['nsw']>0:
+        if self.int_params['ibrion'] > -1 and self.int_params['nsw'] > 0:
             # Update atomic positions and unit cell with the ones read
             # from CONTCAR.
             atoms.positions = atoms_sorted[self.resort].positions
@@ -561,8 +589,8 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         self.read(atoms)
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
-            if (self.int_params['lorbit']>=10
-                or (self.int_params['lorbit']!=None
+            if (self.int_params['lorbit'] >= 10
+                or (if self.int_params['lorbit'] is not None
                     and self.list_params['rwigs'])):
                 self.magnetic_moments = self.read_magnetic_moments(atoms)
             else:
@@ -591,23 +619,24 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         else:
             self.out = self.output_template+'.out'
         stderr = sys.stderr
-        p=self.input_params
+        p = self.input_params
         if p['txt'] is None:
             sys.stderr = devnull
         elif p['txt'] == '-':
             pass
         elif isinstance(p['txt'], str):
             sys.stderr = open(p['txt'], 'w')
-        if os.environ.has_key('VASP_COMMAND'):
+        if 'VASP_COMMAND' in os.environ:
             vasp = os.environ['VASP_COMMAND']
             exitcode = os.system('%s > %s' % (vasp, self.out))
-        elif os.environ.has_key('VASP_SCRIPT'):
+        elif 'VASP_SCRIPT' in os.environ:
             vasp = os.environ['VASP_SCRIPT']
-            locals={}
+            locals = {}
             execfile(vasp, {}, locals)
             exitcode = locals['exitcode']
         else:
-            raise RuntimeError('Please set either VASP_COMMAND or VASP_SCRIPT environment variable')
+            raise RuntimeError('Please set either VASP_COMMAND'
+                               ' or VASP_SCRIPT environment variable')
         sys.stderr = stderr
         if exitcode != 0:
             raise RuntimeError('Vasp exited with exit code: %d.  ' % exitcode)
@@ -676,7 +705,7 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
     def read_version(self):
         version = None
         for line in open('OUTCAR'):
-            if line.find(' vasp.') != -1: # find the first occurence
+            if line.find(' vasp.') != -1:  # find the first occurence
                 version = line[len(' vasp.'):].split()[0]
                 break
         return version
@@ -695,7 +724,8 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
     def read_number_of_iterations(self):
         niter = None
         for line in open('OUTCAR'):
-            if line.find('- Iteration') != -1: # find the last iteration number
+            # find the last iteration number
+            if line.find('- Iteration') != -1:
                 niter = int(line.split(')')[0].split('(')[-1].strip())
         return niter
 
@@ -721,7 +751,8 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         for n, line in enumerate(lines):
             if line.find('TITEL') != -1:
                 symbol = line.split('=')[1].split()[1].split('_')[0].strip()
-                valence = float(lines[n+4].split(';')[1].split('=')[1].split()[0].strip())
+                valence = float(lines[n+4].split(';')[1]
+                                .split('=')[1].split()[0].strip())
                 nelect.append((symbol, valence))
         return nelect
 
@@ -743,16 +774,16 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
     def get_stress(self, atoms):
         self.update(atoms)
         if self.stress is None:
-              raise NotImplementedError
+            raise NotImplementedError
         return self.stress
 
     def read_stress(self):
         stress = None
         for line in open('OUTCAR'):
             if line.find(' in kB  ') != -1:
-                stress = -np.array([float(a) for a in line.split()[2:]]) \
-                         [[0, 1, 2, 4, 5, 3]] \
-                         * 1e-1 * ase.units.GPa
+                stress = (-np.array([float(a) for a
+                                     in line.split()[2:]])[[0, 1, 2, 4, 5, 3]]
+                          * 1e-1 * ase.units.GPa)
         return stress
 
     def read_ldau(self):
@@ -765,7 +796,7 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         for line in open('OUTCAR'):
             if line.find('TITEL') != -1:    # What atoms are present
                 atomtypes.append(line.split()[3].split('_')[0].split('.')[0])
-            if line.find('LDAUTYPE') != -1: # Is this a DFT+U calculation
+            if line.find('LDAUTYPE') != -1:  # Is this a DFT+U calculation
                 ldautype = int(line.split('=')[-1])
                 ldau = True
                 ldau_luj = {}
@@ -777,8 +808,10 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
                 J = line.split('=')[-1].split()
         # create dictionary
         if ldau:
-            for i,symbol in enumerate(atomtypes):
-                ldau_luj[symbol] = {'L': int(L[i]), 'U': float(U[i]), 'J': float(J[i])}
+            for i, symbol in enumerate(atomtypes):
+                ldau_luj[symbol] = {'L': int(L[i]),
+                                    'U': float(U[i]),
+                                    'J': float(J[i])}
             self.dict_params['ldau_luj'] = ldau_luj
         return ldau, ldauprint, ldautype, ldau_luj
 
@@ -852,13 +885,11 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         return self.magnetic_moment
 
     def get_magnetic_moments(self, atoms):
-        if self.int_params['lorbit']>=10 or self.list_params['rwigs']:
+        if self.int_params['lorbit'] >= 10 or self.list_params['rwigs']:
             self.update(atoms)
             return self.magnetic_moments
         else:
             return None
-        #raise RuntimeError(
-        #        "The combination %s for lorbit with %s for rwigs not supported to calculate magnetic moments" % (p['lorbit'], p['rwigs']))
 
     def get_dipole_moment(self, atoms):
         """Returns total dipole moment of the system."""
@@ -887,11 +918,12 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
                 if key == 'ichain' and val > 0:
                     incar.write(' IBRION = 3\n POTIM = 0.0\n')
                     for key, val in self.int_params.items():
-                        if key == 'iopt' and val == None:
-                            print 'WARNING: optimization is set to LFBGS (IOPT = 1)'
+                        if key == 'iopt' and if val is None:
+                            print ('WARNING: optimization is '
+                                   'set to LFBGS (IOPT = 1)')
                             incar.write(' IOPT = 1\n')
                     for key, val in self.exp_params.items():
-                        if key == 'ediffg' and val == None:
+                        if key == 'ediffg' and val is None:
                             RuntimeError('Please set EDIFFG < 0')
         for key, val in self.list_params.items():
             if val is not None:
@@ -919,7 +951,9 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
                             list[-1][0] += 1
                         else:
                             list.append([1, val[n]])
-                    [incar.write('%i*%.4f ' % (mom[0], mom[1])) for mom in list]
+                    [incar.write('%i*%.4f ' % (mom[0],
+                                               mom[1]))
+                     for mom in list]
                 incar.write('\n')
         for key, val in self.bool_params.items():
             if val is not None:
@@ -935,16 +969,17 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
                     if type(val) == str:
                         incar.write(val+'\n')
                     elif type(val) == bool:
-                       if val:
-                           incar.write('.TRUE.\n')
-                       else:
-                           incar.write('.FALSE.\n')
+                        if val:
+                            incar.write('.TRUE.\n')
+                        else:
+                            incar.write('.FALSE.\n')
         for key, val in self.dict_params.items():
             if val is not None:
                 if key == 'ldau_luj':
                     llist = ulist = jlist = ''
                     for symbol in self.symbol_count:
-                        luj = val.get(symbol[0], {'L':-1, 'U': 0.0, 'J': 0.0}) # default: No +U
+                        #  default: No +U
+                        luj = val.get(symbol[0], {'L': -1, 'U': 0.0, 'J': 0.0})
                         llist += ' %i' % luj['L']
                         ulist += ' %.3f' % luj['U']
                         jlist += ' %.3f' % luj['J']
@@ -972,8 +1007,8 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         p = self.input_params
         kpoints = open('KPOINTS', 'w')
         kpoints.write('KPOINTS created by Atomic Simulation Environment\n')
-        shape=np.array(p['kpts']).shape
-        if len(shape)==1:
+        shape = np.array(p['kpts']).shape
+        if len(shape) == 1:
             kpoints.write('0\n')
             if p['gamma']:
                 kpoints.write('Gamma\n')
@@ -981,7 +1016,7 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
                 kpoints.write('Monkhorst-Pack\n')
             [kpoints.write('%i ' % kpt) for kpt in p['kpts']]
             kpoints.write('\n0 0 0\n')
-        elif len(shape)==2:
+        elif len(shape) == 2:
             kpoints.write('%i \n' % (len(p['kpts'])))
             if p['reciprocal']:
                 kpoints.write('Reciprocal\n')
@@ -989,16 +1024,16 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
                 kpoints.write('Cartesian\n')
             for n in range(len(p['kpts'])):
                 [kpoints.write('%f ' % kpt) for kpt in p['kpts'][n]]
-                if shape[1]==4:
+                if shape[1] == 4:
                     kpoints.write('\n')
-                elif shape[1]==3:
+                elif shape[1] == 3:
                     kpoints.write('1.0 \n')
         kpoints.close()
 
-    def write_potcar(self,suffix = ""):
+    def write_potcar(self, suffix=""):
         """Writes the POTCAR file."""
         import tempfile
-        potfile = open('POTCAR'+suffix,'w')
+        potfile = open('POTCAR'+suffix, 'w')
         for filename in self.ppp_list:
             if filename.endswith('R'):
                 for line in open(filename, 'r'):
@@ -1025,7 +1060,7 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
 
     # Methods for reading information from OUTCAR files:
     def read_energy(self, all=None):
-        [energy_free, energy_zero]=[0, 0]
+        [energy_free, energy_zero] = [0, 0]
         if all:
             energy_free = []
             energy_zero = []
@@ -1051,20 +1086,21 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         in the OUTCAR file be returned, in other case only the
         forces for the last ionic configuration is returned."""
 
-        file = open('OUTCAR','r')
+        file = open('OUTCAR', 'r')
         lines = file.readlines()
         file.close()
-        n=0
+        n = 0
         if all:
             all_forces = []
         for line in lines:
             if line.rfind('TOTAL-FORCE') > -1:
-                forces=[]
+                forces = []
                 for i in range(len(atoms)):
-                    forces.append(np.array([float(f) for f in lines[n+2+i].split()[3:6]]))
+                    forces.append(np.array([float(f) for f in
+                                            lines[n+2+i].split()[3:6]]))
                 if all:
                     all_forces.append(np.array(forces)[self.resort])
-            n+=1
+            n += 1
         if all:
             return np.array(all_forces)
         else:
@@ -1072,17 +1108,17 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
 
     def read_fermi(self):
         """Method that reads Fermi energy from OUTCAR file"""
-        E_f=None
+        E_f = None
         for line in open('OUTCAR', 'r'):
             if line.rfind('E-fermi') > -1:
-                E_f=float(line.split()[2])
+                E_f = float(line.split()[2])
         return E_f
 
     def read_dipole(self):
-        dipolemoment=np.zeros([1,3])
+        dipolemoment = np.zeros([1, 3])
         for line in open('OUTCAR', 'r'):
             if line.rfind('dipolmoment') > -1:
-                dipolemoment=np.array([float(f) for f in line.split()[1:4]])
+                dipolemoment = np.array([float(f) for f in line.split()[1:4]])
         return dipolemoment
 
     def read_magnetic_moments(self, atoms):
@@ -1097,11 +1133,11 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         return np.array(magnetic_moments)[self.resort]
 
     def read_magnetic_moment(self):
-        n=0
-        for line in open('OUTCAR','r'):
+        n = 0
+        for line in open('OUTCAR', 'r'):
             if line.rfind('number of electron  ') > -1:
-                magnetic_moment=float(line.split()[-1])
-            n+=1
+                magnetic_moment = float(line.split()[-1])
+            n += 1
         return magnetic_moment
 
     def read_nbands(self):
@@ -1128,7 +1164,7 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
                     break
             if line.rfind('EDIFF  ') > -1:
                 ediff = float(line.split()[2])
-            if line.rfind('total energy-change')>-1:
+            if line.rfind('total energy-change') > -1:
                 # I saw this in an atomic oxygen calculation. it
                 # breaks this code, so I am checking for it here.
                 if 'MIXING' in line:
@@ -1144,7 +1180,7 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
                     # replace last occurence of - (assumed exponent) with -e
                     bsplit = b.split('-')
                     bsplit[-1] = 'e' + bsplit[-1]
-                    b = '-'.join(bsplit).replace('-e','e-')
+                    b = '-'.join(bsplit).replace('-e', 'e-')
                 b = float(b)
                 if [abs(a), abs(b)] < [ediff, ediff]:
                     converged = True
@@ -1153,8 +1189,8 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
                     continue
         # Then if ibrion in [1,2,3] check whether ionic relaxation
         # condition been fulfilled
-        if (self.int_params['ibrion'] in [1,2,3]
-            and self.int_params['nsw'] not in [0]) :
+        if (self.int_params['ibrion'] in [1, 2, 3]
+            and self.int_params['nsw'] not in [0]):
             if not self.read_relaxed():
                 converged = False
             else:
@@ -1167,12 +1203,13 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         n = 0
         i = 0
         for line in lines:
-            if line.rfind('Following cartesian coordinates')>-1:
+            if line.rfind('Following cartesian coordinates') > -1:
                 m = n+2
-                while i==0:
-                    ibz_kpts.append([float(lines[m].split()[p]) for p in range(3)])
+                while i == 0:
+                    ibz_kpts.append([float(lines[m].split()[p])
+                                     for p in range(3)])
                     m += 1
-                    if lines[m]==' \n':
+                    if lines[m] == ' \n':
                         i = 1
             if i == 1:
                 continue
@@ -1200,7 +1237,8 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         lines = file.readlines()
         file.close()
         eigs = []
-        for n in range(8+kpt*(self.nbands+2), 8+kpt*(self.nbands+2)+self.nbands):
+        for n in range(8 + kpt * (self.nbands + 2),
+                       8 + kpt * (self.nbands + 2) + self.nbands):
             eigs.append(float(lines[n].split()[spin+1]))
         return np.array(eigs)
 
@@ -1209,13 +1247,14 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         nspins = self.get_number_of_spins()
         start = 0
         if nspins == 1:
-            for n, line in enumerate(lines): # find it in the last iteration
+            for n, line in enumerate(lines):  # find it in the last iteration
                 m = re.search(' k-point *'+str(kpt+1)+' *:', line)
                 if m is not None:
                     start = n
         else:
             for n, line in enumerate(lines):
-                if line.find(' spin component '+str(spin+1)) != -1: # find it in the last iteration
+                # find it in the last iteration
+                if line.find(' spin component '+str(spin+1)) != -1:
                     start = n
             for n2, line2 in enumerate(lines[start:]):
                 m = re.search(' k-point *'+str(kpt+1)+' *:', line2)
@@ -1236,15 +1275,16 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
                 return True
         return False
 
-# The below functions are used to restart a calculation and are under early constructions
+# The below functions are used to restart a calculation and are under early
+# constructions
 
     def read_incar(self, filename='INCAR'):
         """Method that imports settings from INCAR file."""
 
         self.spinpol = False
-        file=open(filename, 'r')
+        file = open(filename, 'r')
         file.readline()
-        lines=file.readlines()
+        lines = file.readlines()
         for line in lines:
             try:
                 # Make multiplications easier to spot
@@ -1264,7 +1304,8 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
                     self.string_params[key] = str(data[2])
                 elif key in int_keys:
                     if key == 'ispin':
-                        # JRK added. not sure why we would want to leave ispin out
+                        # JRK added. not sure why we would want to leave ispin
+                        # out
                         self.int_params[key] = int(data[2])
                         if int(data[2]) == 2:
                             self.spinpol = True
@@ -1281,12 +1322,12 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
                                'ldauu', 'ldaul', 'ldauj'):
                         for a in data[2:]:
                             if a in ["!", "#"]:
-                               break
+                                break
                             list.append(float(a))
                     elif key in ('iband', 'kpuse'):
                         for a in data[2:]:
                             if a in ["!", "#"]:
-                               break
+                                break
                             list.append(int(a))
                     self.list_params[key] = list
                     if key == 'magmom':
@@ -1306,7 +1347,8 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
                         self.list_params['magmom'] = list
                         list = np.array(list)
                         if self.atoms is not None:
-                                self.atoms.set_initial_magnetic_moments(list[self.resort])
+                            self.atoms.set_initial_magnetic_moments(
+                                list[self.resort])
                 elif key in special_keys:
                     if key == 'lreal':
                         if 'true' in data[2].lower():
@@ -1316,7 +1358,8 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
                         else:
                             self.special_params[key] = data[2]
             except KeyError:
-                raise IOError('Keyword "%s" in INCAR is not known by calculator.' % key)
+                raise IOError('Keyword "%s" in INCAR is'
+                              'not known by calculator.' % key)
             except IndexError:
                 raise IOError('Value missing for keyword "%s".' % key)
 
@@ -1327,7 +1370,7 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         file.close()
         for line in lines:
             if line.rfind('ISPIN') > -1:
-                if int(line.split()[2])==2:
+                if int(line.split()[2]) == 2:
                     self.spinpol = True
                 else:
                     self.spinpol = None
@@ -1338,11 +1381,11 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         self.stress = self.read_stress()
         self.nbands = self.read_nbands()
         self.read_ldau()
-        p=self.int_params
-        q=self.list_params
+        p = self.int_params
+        q = self.list_params
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
-            if p['lorbit']>=10 or (p['lorbit']!=None and q['rwigs']):
+            if p['lorbit'] >= 10 or (p['lorbit'] is None and q['rwigs']):
                 self.magnetic_moments = self.read_magnetic_moments(self.atoms)
             else:
                 self.magnetic_moments = None
@@ -1354,14 +1397,16 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         file.close()
         ktype = lines[2].split()[0].lower()[0]
         if ktype in ['g', 'm']:
-            if ktype=='g':
+            if ktype == 'g':
                 self.set(gamma=True)
             kpts = np.array([int(lines[3].split()[i]) for i in range(3)])
             self.set(kpts=kpts)
         elif ktype in ['c', 'k']:
-            raise NotImplementedError('Only Monkhorst-Pack and gamma centered grid supported for restart.')
+            raise NotImplementedError('Only Monkhorst-Pack and gamma centered'
+                                      ' grid supported for restart.')
         else:
-            raise NotImplementedError('Only Monkhorst-Pack and gamma centered grid supported for restart.')
+            raise NotImplementedError('Only Monkhorst-Pack and gamma centered '
+                                      'grid supported for restart.')
 
     def read_potcar(self):
         """ Method that reads the Exchange Correlation functional from POTCAR file.
@@ -1382,11 +1427,11 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
             raise ValueError('LEXCH flag not found in POTCAR file.')
 
         # Values of parameter LEXCH and corresponding XC-functional
-        xc_dict = {'PE':'PBE', '91':'PW91', 'CA':'LDA'}
+        xc_dict = {'PE': 'PBE', '91': 'PW91', 'CA': 'LDA'}
 
         if xc_flag not in xc_dict.keys():
-            raise ValueError(
-                'Unknown xc-functional flag found in POTCAR, LEXCH=%s' % xc_flag)
+            raise ValueError('Unknown xc-functional flag found in POTCAR,'
+                             ' LEXCH=%s' % xc_flag)
 
         self.input_params['xc'] = xc_dict[xc_flag]
 
@@ -1395,7 +1440,9 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
             written in OUTCAR file.
         """
         assert bee_type == 'beefvdw'
-        p = os.popen('grep -32 "BEEF xc energy contributions" OUTCAR | tail -32','r')
+        cmd = 'grep -32 "BEEF xc energy contributions" OUTCAR | tail -32'
+        p = os.popen(cmd,
+                     'r')
         s = p.readlines()
         p.close()
         xc = np.array([])
@@ -1405,6 +1452,7 @@ ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
         assert len(xc) == 32
         return xc
 
+
 class VaspChargeDensity(object):
     """Class for representing VASP charge density"""
 
@@ -1412,14 +1460,14 @@ class VaspChargeDensity(object):
         # Instance variables
         self.atoms = []   # List of Atoms objects
         self.chg = []     # Charge density
-        self.chgdiff = [] # Charge density difference, if spin polarized
+        self.chgdiff = []  # Charge density difference, if spin polarized
         self.aug = ''     # Augmentation charges, not parsed just a big string
-        self.augdiff = '' # Augmentation charge differece, is spin polarized
+        self.augdiff = ''  # Augmentation charge differece, is spin polarized
 
         # Note that the augmentation charge is not a list, since they
         # are needed only for CHGCAR files which store only a single
         # image.
-        if filename != None:
+        if filename is not None:
             self.read(filename)
 
     def is_spin_polarized(self):
@@ -1443,7 +1491,7 @@ class VaspChargeDensity(object):
         # First, just read it in
         for zz in range(chg.shape[2]):
             for yy in range(chg.shape[1]):
-                chg[:, yy, zz] = np.fromfile(fobj, count = chg.shape[0],
+                chg[:, yy, zz] = np.fromfile(fobj, count=chg.shape[0],
                                              sep=' ')
         chg /= volume
 
@@ -1487,9 +1535,10 @@ class VaspChargeDensity(object):
             # Check if the file has a spin-polarized charge density part, and
             # if so, read it in.
             fl = f.tell()
-            # First check if the file has an augmentation charge part (CHGCAR file.)
+            # First check if the file has an augmentation charge part (CHGCAR
+            # file.)
             line1 = f.readline()
-            if line1=='':
+            if line1 == '':
                 break
             elif line1.find('augmentation') != -1:
                 augs = [line1]
@@ -1526,11 +1575,11 @@ class VaspChargeDensity(object):
 
         """
         # Make a 1D copy of chg, must take transpose to get ordering right
-        chgtmp=chg.T.ravel()
+        chgtmp = chg.T.ravel()
         # Multiply by volume
-        chgtmp=chgtmp*volume
+        chgtmp = chgtmp*volume
         # Must be a tuple to pass to string conversion
-        chgtmp=tuple(chgtmp)
+        chgtmp = tuple(chgtmp)
         # CHG format - 10 columns
         if format.lower() == 'chg':
             # Write all but the last row
@@ -1538,26 +1587,32 @@ class VaspChargeDensity(object):
                 fobj.write(' %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\
  %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\n' % chgtmp[ii*10:(ii+1)*10]
                            )
-            # If the last row contains 10 values then write them without a newline
-            if len(chgtmp)%10==0:
+            # If the last row contains 10 values then write them without a
+            # newline
+            if len(chgtmp) % 10 == 0:
                 fobj.write(' %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\
  %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G' % chgtmp[len(chgtmp)-10:len(chgtmp)])
             # Otherwise write fewer columns without a newline
             else:
-                for ii in range(len(chgtmp)%10):
-                    fobj.write((' %#11.5G') % chgtmp[len(chgtmp)-len(chgtmp)%10+ii])
+                for ii in range(len(chgtmp) % 10):
+                    fobj.write((' %#11.5G')
+                               % chgtmp[len(chgtmp)-len(chgtmp) % 10+ii])
         # Other formats - 5 columns
         else:
             # Write all but the last row
             for ii in range((len(chgtmp)-1)/5):
-                fobj.write(' %17.10E %17.10E %17.10E %17.10E %17.10E\n' % chgtmp[ii*5:(ii+1)*5])
-            # If the last row contains 5 values then write them without a newline
-            if len(chgtmp)%5==0:
-                fobj.write(' %17.10E %17.10E %17.10E %17.10E %17.10E' % chgtmp[len(chgtmp)-5:len(chgtmp)])
+                fobj.write(' %17.10E %17.10E %17.10E %17.10E %17.10E\n'
+                           % chgtmp[ii*5:(ii+1)*5])
+            # If the last row contains 5 values then write them without a
+            # newline
+            if len(chgtmp) % 5 == 0:
+                fobj.write(' %17.10E %17.10E %17.10E %17.10E %17.10E'
+                           % chgtmp[len(chgtmp)-5:len(chgtmp)])
             # Otherwise write fewer columns without a newline
             else:
-                for ii in range(len(chgtmp)%5):
-                    fobj.write((' %17.10E') % chgtmp[len(chgtmp)-len(chgtmp)%5+ii])
+                for ii in range(len(chgtmp) % 5):
+                    fobj.write((' %17.10E')
+                               % chgtmp[len(chgtmp)-len(chgtmp) % 5 + ii])
         # Write a newline whatever format it is
         fobj.write('\n')
         # Clean up
@@ -1574,7 +1629,7 @@ class VaspChargeDensity(object):
 
         """
         import ase.io.vasp as aiv
-        if format == None:
+        if format is None:
             if filename.lower().find('chgcar') != -1:
                 format = 'chgcar'
             elif filename.lower().find('chg') != -1:
@@ -1586,7 +1641,7 @@ class VaspChargeDensity(object):
         f = open(filename, 'w')
         for ii, chg in enumerate(self.chg):
             if format == 'chgcar' and ii != len(self.chg) - 1:
-                continue # Write only the last image for CHGCAR
+                continue  # Write only the last image for CHGCAR
             aiv.write_vasp(f, self.atoms[ii], direct=True, long_format=False)
             f.write('\n')
             for dim in chg.shape:
@@ -1677,25 +1732,25 @@ class VaspDos(object):
             return self._site_dos[atom, orbital + 1, :]
         n = self._site_dos.shape[1]
         if n == 4:
-            norb = {'s':1, 'p':2, 'd':3}
+            norb = {'s': 1, 'p': 2, 'd': 3}
         elif n == 7:
-            norb = {'s+':1, 's-up':1, 's-':2, 's-down':2,
-                    'p+':3, 'p-up':3, 'p-':4, 'p-down':4,
-                    'd+':5, 'd-up':5, 'd-':6, 'd-down':6}
+            norb = {'s+': 1, 's-up': 1, 's-': 2, 's-down': 2,
+                    'p+': 3, 'p-up': 3, 'p-': 4, 'p-down': 4,
+                    'd+': 5, 'd-up': 5, 'd-': 6, 'd-down': 6}
         elif n == 10:
-            norb = {'s':1, 'py':2, 'pz':3, 'px':4,
-                    'dxy':5, 'dyz':6, 'dz2':7, 'dxz':8,
-                    'dx2':9}
+            norb = {'s': 1, 'py': 2, 'pz': 3, 'px': 4,
+                    'dxy': 5, 'dyz': 6, 'dz2': 7, 'dxz': 8,
+                    'dx2': 9}
         elif n == 19:
-            norb = {'s+':1, 's-up':1, 's-':2, 's-down':2,
-                    'py+':3, 'py-up':3, 'py-':4, 'py-down':4,
-                    'pz+':5, 'pz-up':5, 'pz-':6, 'pz-down':6,
-                    'px+':7, 'px-up':7, 'px-':8, 'px-down':8,
-                    'dxy+':9, 'dxy-up':9, 'dxy-':10, 'dxy-down':10,
-                    'dyz+':11, 'dyz-up':11, 'dyz-':12, 'dyz-down':12,
-                    'dz2+':13, 'dz2-up':13, 'dz2-':14, 'dz2-down':14,
-                    'dxz+':15, 'dxz-up':15, 'dxz-':16, 'dxz-down':16,
-                    'dx2+':17, 'dx2-up':17, 'dx2-':18, 'dx2-down':18}
+            norb = {'s+': 1, 's-up': 1, 's-': 2, 's-down': 2,
+                    'py+': 3, 'py-up': 3, 'py-': 4, 'py-down': 4,
+                    'pz+': 5, 'pz-up': 5, 'pz-': 6, 'pz-down': 6,
+                    'px+': 7, 'px-up': 7, 'px-': 8, 'px-down': 8,
+                    'dxy+': 9, 'dxy-up': 9, 'dxy-': 10, 'dxy-down': 10,
+                    'dyz+': 11, 'dyz-up': 11, 'dyz-': 12, 'dyz-down': 12,
+                    'dz2+': 13, 'dz2-up': 13, 'dz2-': 14, 'dz2-down': 14,
+                    'dxz+': 15, 'dxz-up': 15, 'dxz-': 16, 'dxz-down': 16,
+                    'dx2+': 17, 'dx2-up': 17, 'dx2-': 18, 'dx2-down': 18}
         return self._site_dos[atom, norb[orbital.lower()], :]
 
     def _get_dos(self):
@@ -1745,6 +1800,7 @@ class VaspDos(object):
 
 import pickle
 
+
 class xdat2traj:
     def __init__(self, trajectory=None, atoms=None, poscar=None,
                  xdatcar=None, sort=None, calc=None):
@@ -1776,19 +1832,20 @@ class xdat2traj:
         self.calc.resort = range(len(self.calc.sort))
         for n in range(len(self.calc.resort)):
             self.calc.resort[self.calc.sort[n]] = n
-        self.out = ase.io.trajectory.PickleTrajectory(self.trajectory, mode='w')
+        self.out = ase.io.trajectory.PickleTrajectory(self.trajectory,
+                                                      mode='w')
         self.energies = self.calc.read_energy(all=True)[1]
         self.forces = self.calc.read_forces(self.atoms, all=True)
 
     def convert(self):
         lines = open(self.xdatcar).readlines()
-        if len(lines[7].split())==0:
+        if len(lines[7].split()) == 0:
             del(lines[0:8])
-        elif len(lines[5].split())==0:
+        elif len(lines[5].split()) == 0:
             del(lines[0:6])
-        elif len(lines[4].split())==0:
+        elif len(lines[4].split()) == 0:
             del(lines[0:5])
-        elif lines[7].split()[0]=='Direct':
+        elif lines[7].split()[0] == 'Direct':
             del(lines[0:8])
         step = 0
         iatom = 0
@@ -1810,9 +1867,10 @@ class xdat2traj:
                 iatom = 0
                 step += 1
             else:
-                if not line.split()[0]=='Direct':
+                if not line.split()[0] == 'Direct':
                     iatom += 1
-                    scaled_pos.append([float(line.split()[n]) for n in range(3)])
+                    scaled_pos.append([float(line.split()[n])
+                                       for n in range(3)])
 
         # Write also the last image
         # I'm sure there is also more clever fix...
