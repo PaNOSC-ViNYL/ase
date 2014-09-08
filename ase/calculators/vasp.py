@@ -590,7 +590,7 @@ class Vasp(Calculator):
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
             if (self.int_params['lorbit'] >= 10
-                or (if self.int_params['lorbit'] is not None
+                or (self.int_params['lorbit'] is not None
                     and self.list_params['rwigs'])):
                 self.magnetic_moments = self.read_magnetic_moments(atoms)
             else:
@@ -918,7 +918,7 @@ class Vasp(Calculator):
                 if key == 'ichain' and val > 0:
                     incar.write(' IBRION = 3\n POTIM = 0.0\n')
                     for key, val in self.int_params.items():
-                        if key == 'iopt' and if val is None:
+                        if key == 'iopt' and val is None:
                             print ('WARNING: optimization is '
                                    'set to LFBGS (IOPT = 1)')
                             incar.write(' IOPT = 1\n')
