@@ -19,6 +19,7 @@ connection = None
 tables = {}
 tmpdir = tempfile.mkdtemp()
 next_table_id = 1
+open_ase_gui = True
 
 # Find numbers in formulas so that we can convert H2O to H<sub>2</sub>O:
 SUBSCRIPT = re.compile(r'(\d+)')
@@ -104,8 +105,9 @@ def image(name):
     
 @app.route('/gui/<int:id>')
 def gui(id):
-    atoms = connection.get_atoms(id)
-    view(atoms)
+    if open_ase_gui:
+        atoms = connection.get_atoms(id)
+        view(atoms)
     return '', 204, []
         
         
@@ -174,4 +176,5 @@ def sqlite(id):
     
 if __name__ == '__main__':
     globals()['connection'] = ase.db.connect(sys.argv[1])
+    globals()['open_ase_gui'] = False
     app.run(host='0.0.0.0', port=5000, debug=False)
