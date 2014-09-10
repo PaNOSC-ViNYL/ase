@@ -4,6 +4,7 @@ from operator import itemgetter
 
 from ase.ga.offspring_creator import OffspringCreator
 from ase.ga.utilities import get_distance_matrix, get_nndist
+from ase import Atoms
 
 
 class Mutation(OffspringCreator):
@@ -90,30 +91,35 @@ class RandomMutation(Mutation):
         self.descriptor = 'RandomMutation'
         self.length = length
 
-    def get_new_individual(self, parents):
-        f = parents[0]
+    def mutate(self, atoms):
+        """ Does the actual mutation. """
+        tbm = random.choice(range(len(atoms)))
 
-        indi = self.initialize_individual(f)
-        indi.info['data']['parents'] = [f.info['confid']]
-
-        tbm = random.choice(range(len(f)))
-
-        for a in f:
+        indi = Atoms()
+        for a in atoms:
             if a.index == tbm:
                 a.position += self.random_vector(self.length)
             indi.append(a)
-            
+        return indi
+
+    def get_new_individual(self, parents):
+        f = parents[0]
+
+        indi = self.mutate(f)
+        indi = self.initialize_individual(f, indi)
+        indi.info['data']['parents'] = [f.info['confid']]
+
         return (self.finalize_individual(indi),
                 self.descriptor + ': {0}'.format(f.info['confid']))
-        
-    def random_vector(self, l):
+
+    @classmethod
+    def random_vector(cls, l):
         """return random vector of length l"""
-        
         vec = np.array([random.random() * 2 - 1 for i in range(3)])
         vl = np.linalg.norm(vec)
         return np.array([v * l / vl for v in vec])
 
-        
+
 class RandomPermutation(Mutation):
     """Permutes two random atoms.
 
@@ -319,7 +325,7 @@ class Rich2poorPermutation(_NeighborhoodPermutation):
     """
     The rich to poor (Rich2poor) permutation operator described in
     S. Lysgaard et al., Top. Catal., 2014, 57 (1-4), pp 33-39
-    
+
     Permutes two atoms from regions rich in the same elements, to
     regions short of the same elements.
     (Inverse of Poor2richPermutation)
@@ -328,7 +334,7 @@ class Rich2poorPermutation(_NeighborhoodPermutation):
 
     elements: Which elements to take into account in this permutation
     """
-    def __init__(self, elements=[], num_muts=1):
+    def __init__(self, elements=None, num_muts=1):
         _NeighborhoodPermutation.__init__(self, num_muts)
         self.descriptor = 'Rich2poorPermutation'
         self.elements = elements
@@ -336,24 +342,63 @@ class Rich2poorPermutation(_NeighborhoodPermutation):
 
     def get_new_individual(self, parents):
         f = parents[0].copy()
-    
+
         diffatoms = len(set(f.numbers))
         assert diffatoms > 1, 'Permutations with one atomic type is not valid'
-        
+
         indi = self.initialize_individual(f)
         indi.info['data']['parents'] = [f.info['confid']]
-        
+
+        if self.elements is None:
+            elems = list(set(f.get_chemical_symbols()))
+        else:
+            elems = self.elements
         for _ in xrange(self.num_muts):
             atoms = f.copy()
             del atoms[[atom.index for atom in atoms
-                       if atom.symbol not in self.elements]]
+                       if atom.symbol not in elems]]
             permuts = self.get_possible_poor2rich_permutations(atoms,
                                                                inverse=True)
             swap = random.choice(permuts)
             self.interchange2(f, *swap)
-            
+
         for atom in f:
             indi.append(atom)
-            
+
+        return (self.finalize_individual(indi),
+                self.descriptor + ': {0}'.format(f.info['confid']))
+
+
+class SymmetricSubstitute(Mutation):
+    """Permute all atoms within a subshell of the symmetric particle.
+    The atoms within a subshell all have the same distance to the center,
+    these are all equivalent under the particle point group symmetry.
+
+    """
+    def __init__(self, elements=None, num_muts=1):
+        Mutation.__init__(self, num_muts)
+        self.descriptor = 'SymmetricSubstitute'
+        self.elements = elements
+
+    def substitute(self, atoms):
+        """Does the actual substitution"""
+        atoms = atoms.copy()
+        aconf = self.get_atomic_configuration(atoms,
+                                              elements=self.elements)
+        itbm = random.randint(0, len(aconf) - 1)
+        to_element = random.choice(self.elements)
+
+        for i in aconf[itbm]:
+            atoms[i].symbol = to_element
+
+        return atoms
+
+    def get_new_individual(self, parents):
+        f = parents[0]
+
+        indi = self.substitute(f)
+        indi = self.initialize_individual(f, indi)
+        indi.info['data']['parents'] = [f.info['confid']]
+
         return (self.finalize_individual(indi),
                 self.descriptor + ': {0}'.format(f.info['confid']))

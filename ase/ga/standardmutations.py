@@ -31,11 +31,18 @@ class RattleMutation(OffspringCreator):
         self.rattle_prop = rattle_prop
         self.descriptor = 'RattleMutation'
 
-    def get_new_individual(self, atoms):
+    def get_new_individual(self, parents):
+        f = parents[0]
+
+        indi = self.mutate(f)
+        indi = self.initialize_individual(f, indi)
+        indi.info['data']['parents'] = [f.info['confid']]
+
+        return self.finalize_individual(indi), 'mutation: rattle'
+
+    def mutate(self, atoms):
         """ Does the actual mutation. """
         slab = atoms[0:len(atoms) - self.n_top]
-        slab = self.initialize_individual(atoms, slab)
-        slab.info['data']['parents'] = [atoms.info['confid']]
         pos_ref = atoms.get_positions()[-self.n_top:]
         num_top = atoms.numbers[-self.n_top:]
         st = 2. * self.rattle_strength
@@ -56,9 +63,9 @@ class RattleMutation(OffspringCreator):
         if count == 1000:
             return None, 'rattle'
         tot = slab + top
-        return self.finalize_individual(tot), 'mutation: rattle'
+        return tot
 
-
+        
 class PermutationMutation(OffspringCreator):
     """Mutation that permutes a percentage of the atom types in the cluster.
 
@@ -74,10 +81,18 @@ class PermutationMutation(OffspringCreator):
         self.probability = probability
         self.descriptor = 'PermutationMutation'
 
-    def get_new_individual(self, atoms):
+    def get_new_individual(self, parents):
+        f = parents[0]
+
+        indi = self.mutate(f)
+        indi = self.initialize_individual(f, indi)
+        indi.info['data']['parents'] = [f.info['confid']]
+
+        return self.finalize_individual(indi), 'mutation: permutation'
+
+    def mutate(self, atoms):
         """ Does the actual mutation. """
-        a = self.initialize_individual(atoms, atoms.copy())
-        a.info['data']['parents'] = [atoms.info['confid']]
+        a = atoms.copy()
         s = self.n_top
         p = a.get_positions()[-s:]
         n = a.numbers[-s:]
@@ -95,7 +110,7 @@ class PermutationMutation(OffspringCreator):
         p_tot = a.get_positions()
         p_tot[-s:] = p
         a.set_positions(p_tot)
-        return self.finalize_individual(a), 'mutation: permutation'
+        return a
 
 
 class MirrorMutation(OffspringCreator):
@@ -119,7 +134,16 @@ class MirrorMutation(OffspringCreator):
         self.reflect = reflect
         self.descriptor = 'MirrorMutation'
 
-    def get_new_individual(self, atoms):
+    def get_new_individual(self, parents):
+        f = parents[0]
+
+        indi = self.mutate(f)
+        indi = self.initialize_individual(f, indi)
+        indi.info['data']['parents'] = [f.info['confid']]
+
+        return self.finalize_individual(indi), 'mutation: mirror'
+
+    def mutate(self, atoms):
         """ Do the mutation of the atoms input. """
 
         reflect = self.reflect
@@ -132,9 +156,6 @@ class MirrorMutation(OffspringCreator):
         for u in unique_types:
             nu[u] = sum(num == u)
             
-        slab = self.initialize_individual(atoms, slab)
-        slab.info['data']['parents'] = [atoms.info['confid']]
-
         n_tries = 1000
         counter = 0
         changed = False
@@ -222,5 +243,5 @@ class MirrorMutation(OffspringCreator):
                 changed = True
             tot = slab + cand
         if counter == n_tries:
-            return (None, 'mutation: mirror')
-        return (self.finalize_individual(tot), 'mutation: mirror')
+            return None
+        return tot

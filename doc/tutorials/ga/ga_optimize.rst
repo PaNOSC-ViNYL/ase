@@ -81,7 +81,7 @@ structure that needs to be optimized.
   distribute the starting population.
 
 As an example we will find the structure of a
-:mol:Ag_2Au_2` cluster on a Au(111) surface using the
+:mol:`Ag_2Au_2` cluster on a Au(111) surface using the
 EMT optimizer.
 
 The script doing all the initialisations should be run in the folder

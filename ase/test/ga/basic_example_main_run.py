@@ -59,14 +59,14 @@ population = Population(data_connection=da,
 for i in xrange(n_to_test):
     print('Now starting configuration number {0}'.format(i))
     a1, a2 = population.get_two_candidates()
-    a3, desc = pairing.get_new_individual(a1, a2)
+    a3, desc = pairing.get_new_individual([a1, a2])
     if a3 == None:
         continue
     da.add_unrelaxed_candidate(a3, description=desc)
 
     # Check if we want to do a mutation
     if random() < mutation_probability:
-        a3_mut, desc = mutations.get_new_individual(a3)
+        a3_mut, desc = mutations.get_new_individual([a3])
         if a3_mut != None:
             da.add_unrelaxed_step(a3_mut, desc)
             a3 = a3_mut

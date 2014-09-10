@@ -71,10 +71,10 @@ class OperationSelector(object):
             if self.rho[i] > v:
                 return i
 
-    def get_new_individual(self, candidate):
+    def get_new_individual(self, candidate_list):
         """Choose operator and use it on the candidate. """
         to_use = self.__get_index__()
-        return self.oplist[to_use].get_new_individual(candidate)
+        return self.oplist[to_use].get_new_individual(candidate_list)
 
     def get_operator(self):
         """Choose operator and return it."""

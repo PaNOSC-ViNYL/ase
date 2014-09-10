@@ -33,7 +33,7 @@ c1.info['confid'] = 1
 # first verify that the rattle mutation works
 rmut = RattleMutation(cd, n_top, rattle_strength=0.8, rattle_prop=0.4)
 
-c2, desc = rmut.get_new_individual(c1)
+c2, desc = rmut.get_new_individual([c1])
 
 assert np.all(c1.numbers == c2.numbers)
 
@@ -57,7 +57,7 @@ for p in dp:
 
 mmut = PermutationMutation(n_top, probability=0.5)
 
-c3, desc = mmut.get_new_individual(c1)
+c3, desc = mmut.get_new_individual([c1])
 assert np.all(c1.numbers == c3.numbers)
 
 top1 = c1[-n_top:]

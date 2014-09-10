@@ -4,7 +4,7 @@ from ase.ga.data import DataConnection
 from ase.ga.population import Population
 from ase.ga.standard_comparators import InteratomicDistanceComparator
 from ase.ga.cutandsplicepairing import CutAndSplicePairing
-from ase.ga.standardmutations import MutationSelector
+from ase.ga.offspring_creator import OperationSelector
 from ase.ga.standardmutations import MirrorMutation
 from ase.ga.standardmutations import RattleMutation
 from ase.ga.standardmutations import PermutationMutation
@@ -49,10 +49,10 @@ comp = InteratomicDistanceComparator(n_top=n_to_optimize,
                                      dE=0.02,
                                      mic=False)
 pairing = CutAndSplicePairing(slab, n_to_optimize, blmin)
-mutations = MutationSelector([1., 1., 1.],
-                             [MirrorMutation(blmin, n_to_optimize),
-                              RattleMutation(blmin, n_to_optimize),
-                              PermutationMutation(n_to_optimize)])
+mutations = OperationSelector([1., 1., 1.],
+                              [MirrorMutation(blmin, n_to_optimize),
+                               RattleMutation(blmin, n_to_optimize),
+                               PermutationMutation(n_to_optimize)])
 
 # Relax all unrelaxed structures (e.g. the starting population)
 while (da.get_number_of_unrelaxed_candidates() > 0
@@ -69,13 +69,13 @@ population = Population(data_connection=da,
 while (not pbs_run.enough_jobs_running()
        and len(population.get_current_population()) > 2):
     a1, a2 = population.get_two_candidates()
-    a3, desc = pairing.pair_candidates(a1, a2)
+    a3, desc = pairing.get_new_individual([a1, a2])
     if a3 is None:
         continue
     da.add_unrelaxed_candidate(a3, description=desc)
 
     if random() < mutation_probability:
-        a3_mut, desc = mutations.mutate(a3)
+        a3_mut, desc = mutations.get_new_individual([a3])
         if a3_mut is not None:
             da.add_unrelaxed_step(a3_mut, desc)
             a3 = a3_mut

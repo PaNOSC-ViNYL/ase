@@ -139,14 +139,24 @@ class CutAndSplicePairing(OffspringCreator):
         return Atoms(numbers=num,
                      positions=pos_new, pbc=a1.get_pbc(), cell=a1.get_cell())
 
-    def get_new_individual(self, a1, a2, test_dist_to_slab=True):
+    def get_new_individual(self, parents):
         """ The method called by the user that
         returns the paired structure. """
+        f, m = parents
 
-        indi = self.initialize_individual(a1, self.slab)
-        indi.info['data']['parents'] = [a1.info['confid'], a2.info['confid']]
+        indi = self.cross(f, m)
+        indi = self.initialize_individual(f, indi)
+        indi.info['data']['parents'] = [f.info['confid'],
+                                        m.info['confid']]
+        desc = 'pairing: {0} {1}'.format(f.info['confid'],
+                                         m.info['confid'])
         
-        if len(a1) != len(indi) + self.n_top:
+        return self.finalize_individual(indi), desc
+
+    def cross(self, a1, a2, test_dist_to_slab=True):
+        """Crosses the two atoms objects and returns one"""
+        
+        if len(a1) != len(self.slab) + self.n_top:
             raise ValueError('Wrong size of structure to optimize')
         if len(a1) != len(a2):
             raise ValueError('The two structures do not have the same length')
@@ -186,7 +196,7 @@ class CutAndSplicePairing(OffspringCreator):
             # Check if the candidate is valid
             too_close = atoms_too_close(top, self.blmin)
             if not too_close and test_dist_to_slab:
-                too_close = atoms_too_close_two_sets(indi,
+                too_close = atoms_too_close_two_sets(self.slab,
                                                      top, self.blmin)
 
             # Verify that the generated structure contains atoms from
@@ -210,7 +220,6 @@ class CutAndSplicePairing(OffspringCreator):
             counter += 1
 
         if counter == n_max:
-            return (None, '')
-        desc = 'pairing: {0} {1}'.format(a1.info['confid'], a2.info['confid'])
+            return None
         
-        return self.finalize_individual(indi + top), desc
+        return self.slab + top

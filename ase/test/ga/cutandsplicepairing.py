@@ -36,7 +36,7 @@ n_top = len(atom_numbers)
 
 pairing = CutAndSplicePairing(slab, n_top, cd)
 
-c3, desc = pairing.get_new_individual(c1, c2)
+c3, desc = pairing.get_new_individual([c1, c2])
 
 # verify that the stoichiometry is preserved
 assert np.all(c3.numbers == c1.numbers)
