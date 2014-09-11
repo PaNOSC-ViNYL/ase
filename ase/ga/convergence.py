@@ -32,15 +32,16 @@ class GenerationRepetitionConvergence(Convergence):
 
     Parameters:
 
-    number_of_generations: How many generations need to be equal
-       before convergence.
+    number_of_generations: int
+        How many generations need to be equal before convergence.
 
-    number_of_individuals: How many of the fittest individuals
-       should be included in the convergence test. Default is -1
-       meaning all in the population.
+    number_of_individuals: int
+        How many of the fittest individuals should be included in the
+        convergence test. Default is -1 meaning all in the population.
 
-    max_generations: The maximum number of generations the GA
-       is allowed to run.
+    max_generations: int
+        The maximum number of generations the GA is allowed to run.
+        Default is indefinite.
     """
     def __init__(self, population_instance, number_of_generations,
                  number_of_individuals=-1, max_generations=100000000):

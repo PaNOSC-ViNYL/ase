@@ -96,10 +96,11 @@ class DataConnection(object):
         except KeyError:
             print("raw_score not put in atoms.info['key_value_pairs']")
         gaid = a.info['confid']
-        self.c.write(a, gaid=gaid, relaxed=1,
-                     generation=self.get_generation_number(),
-                     key_value_pairs=a.info['key_value_pairs'],
-                     data=a.info['data'])
+        relax_id = self.c.write(a, gaid=gaid, relaxed=1,
+                                generation=self.get_generation_number(),
+                                key_value_pairs=a.info['key_value_pairs'],
+                                data=a.info['data'])
+        a.info['relax_id'] = relax_id
 
 #         if not np.array_equal(a.numbers, self.atom_numbers):
 #             raise ValueError('Wrong stoichiometry')
@@ -197,6 +198,7 @@ class DataConnection(object):
                 continue
             t = self.get_atoms(id=v.id)
             t.info['confid'] = v.gaid
+            t.info['relax_id'] = v.id
             trajs.append(t)
             self.already_returned.append(v.gaid)
         trajs.sort(key=lambda x: x.get_raw_score(), reverse=True)
@@ -212,6 +214,7 @@ class DataConnection(object):
         for v in entries:
             t = self.get_atoms(id=v.id)
             t.info['confid'] = v.gaid
+            t.info['relax_id'] = v.id
             trajs.append(t)
         trajs.sort(key=lambda x: x.get_raw_score(), reverse=True)
         return trajs

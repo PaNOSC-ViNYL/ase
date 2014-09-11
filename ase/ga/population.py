@@ -3,6 +3,7 @@ proposing structures to pair. """
 from random import randrange, random
 from math import tanh, sqrt
 
+from ase.db.core import now
 
 def count_looks_like(a, all_cand, comp):
     """ Utility method for counting occurences. """
@@ -16,24 +17,33 @@ def count_looks_like(a, all_cand, comp):
 
 
 class Population(object):
-    """
-       Population class which maintains the current population
-       and proposes which candidates to pair together.
+    """Population class which maintains the current population
+    and proposes which candidates to pair together.
 
-       Parameters:
+    Parameters:
 
-       data_connection: DataConnection object
-       population_size: The number of candidates in the population
-       comparator: Comparator object which can tell if two
-       configurations are equal.
+    data_connection: DataConnection object
+    population_size: int
+        The number of candidates in the population
+    comparator: Comparator object
+        this will tell if two configurations are equal.
+        Default compare atoms objects directly.
+    logfile: str - filename
+        Text file that contains information about the population
+        The format is:
+        timestamp: generation(if available): id1,id2,id3...\n
+        Using this file greatly speeds up convergence checks.
+        Default None meaning that no file is written.
     """
-    def __init__(self, data_connection, population_size, comparator=None):
+    def __init__(self, data_connection, population_size,
+                 comparator=None, logfile=None):
         self.dc = data_connection
         self.pop_size = population_size
         if comparator is None:
             from ase.ga.standard_comparators import AtomsComparator
             comparator = AtomsComparator()
         self.comparator = comparator
+        self.logfile = logfile
         self.pop = []
         self.pairs = None
         self.all_cand = None
@@ -94,6 +104,7 @@ class Population(object):
             self.__add_candidate__(a)
             self.all_cand.append(a)
         self.__calc_participation__()
+        self._write_log()
 
     def get_current_population(self):
         """ Returns a copy of the current population. """
@@ -103,6 +114,16 @@ class Population(object):
     def get_population_after_generation(self, gen):
         """ Returns a copy of the population as it where
         after generation gen"""
+        if self.logfile is not None:
+            f = open(self.logfile, 'r')
+            gens = {}
+            for l in f:
+                _, no, popul = l.split(':')
+                gens[int(no)] = popul.split(',')
+            f.close()
+            return [c.copy() for c in self.all_cand[::-1]
+                    if c.info['relax_id'] in gens[gen]]
+
         all_candidates = [c for c in self.all_cand
                           if c.info['key_value_pairs']['generation'] <= gen]
         cands = [all_candidates[0]]
@@ -213,3 +234,20 @@ class Population(object):
             c2id = c2.info['confid']
             used_before = (min([c1id, c2id]), max([c1id, c2id])) in self.pairs
         return (c1.copy(), c2.copy())
+
+    def _write_log(self):
+        """Writes the population to a logfile.
+        The format is:
+        timestamp: generation(if available): id1,id2,id3..."""
+        if self.logfile is not None:
+            ids = [str(a.info['relax_id']) for a in self.pop]
+            try:
+                latest = self.all_cand[-1]
+                max_gen = latest.info['key_value_pairs']['generation']
+            except KeyError:
+                max_gen = ' '
+            f = open(self.logfile, 'a')
+            f.write('{time}: {gen}: {pop}\n'.format(time=now(),
+                                                    pop=','.join(ids),
+                                                    gen=max_gen))
+            f.close()
