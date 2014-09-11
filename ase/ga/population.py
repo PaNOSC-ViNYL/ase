@@ -5,8 +5,9 @@ from math import tanh, sqrt
 
 from ase.db.core import now
 
+
 def count_looks_like(a, all_cand, comp):
-    """ Utility method for counting occurences. """
+    """Utility method for counting occurences."""
     n = 0
     for b in all_cand:
         if a.info['confid'] == b.info['confid']:
@@ -23,15 +24,18 @@ class Population(object):
     Parameters:
 
     data_connection: DataConnection object
+        Bla bla bla.
     population_size: int
-        The number of candidates in the population
+        The number of candidates in the population.
     comparator: Comparator object
         this will tell if two configurations are equal.
         Default compare atoms objects directly.
-    logfile: str - filename
+    logfile: str
         Text file that contains information about the population
-        The format is:
-        timestamp: generation(if available): id1,id2,id3...\n
+        The format is::
+            
+            timestamp: generation(if available): id1,id2,id3...
+            
         Using this file greatly speeds up convergence checks.
         Default None meaning that no file is written.
     """
