@@ -7,9 +7,6 @@ from ase.structure import molecule
 from ase.ga.offspring_creator import OffspringCreator
 from ase.calculators.neighborlist import NeighborList as aseNeighborList
 
-from ase.visualize import view
-import sys
-
 
 class AdsorbateOperator(OffspringCreator):
     """Base class for all operators that add, move or remove adsorbates.
@@ -32,20 +29,25 @@ class AdsorbateOperator(OffspringCreator):
 
         Parameters:
 
-        atoms: the atoms object that the adsorbate will be added to
+        atoms: Atoms object
+            the atoms object that the adsorbate will be added to
 
-        sites_list: a list of dictionaries, each dictionary should be of the
+        sites_list: list
+            a list of dictionaries, each dictionary should be of the
             following form:
             {'height': h, 'normal': n, 'adsorbate_position': ap,
             'site': si, 'surface': su}
 
-        min_adsorbate_distance: the radius of the sphere inside which no other
+        min_adsorbate_distance: float
+            the radius of the sphere inside which no other
             adsorbates should be found
         """
         i = 0
         while self.is_site_occupied(atoms, sites_list[i],
                                     min_adsorbate_distance):
             i += 1
+            if i >= len(sites_list):
+                return False
         site = sites_list[i]
 
         ## Make the correct position
@@ -89,12 +91,8 @@ class AdsorbateOperator(OffspringCreator):
 
         ads_ind = self.get_adsorbate_indices(atoms, pos)
         ads_ind.sort(reverse=True)
-        if len(ads_ind) > 2:
-            print(ads_ind)
-            view(atoms)
-            sys.exit()
 
-        print('removing', ads_ind, [atoms[j].symbol for j in ads_ind], pos)
+        # print('removing', ads_ind, [atoms[j].symbol for j in ads_ind], pos)
         for k in ads_ind:
             atoms.pop(k)
 
@@ -145,7 +143,7 @@ class AdsorbateOperator(OffspringCreator):
                  for a in atoms if a.symbol in ads]
         for d in dists:
             if d < min_adsorbate_distance:
-                print('under min d', d, pos)
+                # print('under min d', d, pos)
                 site['occupied'] = 1
                 return True
         return False
@@ -346,7 +344,6 @@ class MoveAdsorbate(AdsorbateOperator):
 
             removed = self.remove_adsorbate(indi, self.adsorption_sites,
                                             for_move=True)
-            print('removed?', removed)
 
             random.shuffle(self.adsorption_sites)
             if self.surface_preference_to is not None:
@@ -361,7 +358,6 @@ class MoveAdsorbate(AdsorbateOperator):
 
             added = self.add_adsorbate(indi, self.adsorption_sites,
                                        self.min_adsorbate_distance)
-            print('added?', added)
 
             if (not removed) or (not added):
                 break

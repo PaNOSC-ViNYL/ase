@@ -31,6 +31,8 @@ Here we would like to predict the most stable fcc alloys. In this tutorial we on
 
 __ `EMT potential`_
 
+For a real application of the algorithm it is necessary to use a more sophisticated calculator, in that case each individual calculation is performed on a cluster by submitting to a queuing system. How this is achieved in the algorithm is covered in :ref:`genetic_algorithm_optimization_tutorial`.
+
 .. defined for an alloy :mol:`ABC_2`: A + B + 2C -> :mol:`ABC_2` as: `\Delta H_f = E_{ABC2} - E_A - E_B - 2E_C`
 
 
@@ -75,7 +77,7 @@ Run the algorithm
 					
 In this script we run a generational GA as opposed to the pool GA outlined in :ref:`genetic_algorithm_optimization_tutorial`. This is achieved by having two for-loops; the innermost loop runs the number of times specified by the population size it corresponds to one generation. The outermost loop runs as many generations as specified in ``num_gens``. The function :func:`pop.update()` is called after the innermost loop has finished thereby only adding individuals to the population after a whole generation is calculated.
 
-After each generation is finished the population is printed to the screen so we can follow the evolution. The calculated individuals are continuously added to ``fcc_alloys.db``, we can evaluate them directly by doing from the command line::
+After each generation is finished the population is printed to the screen so we can follow the evolution. The calculated individuals are continuously added to ``fcc_alloys.db``, we can evaluate them directly by doing from the command line (in another shell instance if the GA is still running)::
 
     $ ase-db fcc_alloys.db -c +atoms_string,raw_score,generation,hof -s raw_score
 
@@ -119,7 +121,7 @@ Instead of only using random operations we can include some that mutates element
 
 These operators takes advantage of the fact that chemically like elements (close in the periodic table) exhibit similar properties and the substitution of one to a chemically similar elements could refine the properties of an alloy in the population. A natural extension of these operators would be to use a different ordering of the elements than the periodic table; e.g. Pettifor chemical scale, electronegativity, etc.
 
-Note how we have set the probabilities for selecting operators as: Crossover:Mutation 1:1, RandomMutation:NeighborhoodMutation 1:1. This is to prevent the search from being purely local.
+Note how we have set the probabilities for selecting operators differently. The probability for ``RandomElementMutation`` is equal to the sum of the *move* mutations. Similarly the probability of ``OnePointElementCrossover`` is equal to the sum of all the mutation operators. This is to prevent the search from being purely local.
 
 
 Prevent identical calculations from being performed
