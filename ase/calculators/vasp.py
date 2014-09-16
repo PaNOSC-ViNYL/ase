@@ -1287,8 +1287,10 @@ class Vasp(Calculator):
         lines = file.readlines()
         for line in lines:
             try:
-                # Make multiplications easier to spot
+                # Make multiplication, comments, and parameters easier to spot
                 line = line.replace("*", " * ")
+                line = line.replace("=", " = ")
+                line = line.replace("#", "# ")
                 data = line.split()
                 # Skip empty and commented lines.
                 if len(data) == 0:
