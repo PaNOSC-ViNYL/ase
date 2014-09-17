@@ -46,7 +46,7 @@ Quick links:
    * :ref:`tutorials`
    * :epydoc:`Automatically generated documentation <ase>` (:term:`API`)
    * :trac:`Source code <>`
-
+   * Presentation about ASE: :download:`ase-talk.pdf`
 
 
 List of all modules:
