@@ -18,8 +18,8 @@ ASE is a python package providing an open source Atomic Simulation
 Environment in the Python language."""
 
 
-if sys.version_info < (2, 4, 0, 'final', 0):
-    raise SystemExit, 'Python 2.4 or later is required!'
+if sys.version_info < (2, 6, 0, 'final', 0):
+    raise SystemExit('Python 2.6 or later is required!')
 
 packages = ['ase',
             'ase.cli',
@@ -63,9 +63,10 @@ packages = ['ase',
             'ase.calculators',
             'ase.calculators.jacapo']
 
-package_dir={'ase': 'ase'}
+package_dir = {'ase': 'ase'}
 
-package_data={'ase': ['lattice/spacegroup/spacegroup.dat']}
+package_data = {'ase': ['lattice/spacegroup/spacegroup.dat']}
+
 
 class test(Command):
     description = 'build and run test suite; exit code is number of failures'
@@ -107,6 +108,7 @@ class test(Command):
                 raise SystemExit(len(results.failures) + len(results.errors))
         finally:
             os.chdir(origcwd)
+
 
 class build_py(_build_py):
     """Custom distutils command to build translations."""
@@ -153,7 +155,7 @@ if 'sdist' in sys.argv or os.name in ['ce', 'nt']:
 # data_files needs (directory, files-in-this-directory) tuples
 data_files = []
 for dirname, dirnames, filenames in os.walk('doc'):
-    if '.svn' not in dirname: # skip .svn dirs
+    if '.svn' not in dirname:  # skip .svn dirs
         fileslist = []
         for filename in filenames:
             fullname = os.path.join(dirname, filename)
