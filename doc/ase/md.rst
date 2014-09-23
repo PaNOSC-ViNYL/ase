@@ -364,7 +364,7 @@ Berendsen NPT dynamics
 -----------------------
 .. module:: ase.md.nptberendsen
 
-.. class:: NPTBerendsen(atoms, timestep, temperature, taut, fixcm, pressure, taup,compressibility)
+.. class:: NPTBerendsen(atoms, timestep, temperature, taut, pressure, taup, compressibility, fixcm)
 
 In Berendsen NPT simulations the velocities are scaled to achieve the desired
 temperature. The speed of the scaling is determined by the parameter taut.
@@ -388,10 +388,6 @@ the gromacs manual at www.gromacs.org. or amber at ambermd.org
 *taut*:
     Time constant for Berendsen temperature coupling.
 
-*fixcm*:
-    If True, the position and momentum of the center of mass is
-    kept unperturbed.  Default: True.
-
 *pressure*:
     The desired pressure, in bar (1 bar = 1e5 Pa).
 
@@ -401,6 +397,9 @@ the gromacs manual at www.gromacs.org. or amber at ambermd.org
 *compressibility*:
     The compressibility of the material, water 4.57E-5 bar-1, in bar-1
 
+*fixcm*:
+    If True, the position and momentum of the center of mass is
+    kept unperturbed.  Default: True.
 
 ::
 
