@@ -43,7 +43,7 @@ def get_mic_distance(p1, p2, cell, pbc):
             scaled[:, i] %= 1.0
     P = np.dot(scaled, cell)
 
-    pbc_directions = [[-1, 1] * direction + [0] for direction in pbc]
+    pbc_directions = [[-1, 1] * int(direction) + [0] for direction in pbc]
     translations = np.mat(list(itertools.product(*pbc_directions))).T
     p0r = np.tile(np.reshape(P[0, :], (3, 1)), (1, translations.shape[1]))
     p1r = np.tile(np.reshape(P[1, :], (3, 1)), (1, translations.shape[1]))

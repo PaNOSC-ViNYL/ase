@@ -247,14 +247,15 @@ class Population(object):
             timestamp: generation(if available): id1,id2,id3..."""
         if self.logfile is not None:
             ids = [str(a.info['relax_id']) for a in self.pop]
-            try:
-                gen_nums = [c.info['key_value_pairs']['generation']
-                            for c in self.all_cand]
-                max_gen = max(gen_nums)
-            except KeyError:
-                max_gen = ' '
-            f = open(self.logfile, 'a')
-            f.write('{time}: {gen}: {pop}\n'.format(time=now(),
-                                                    pop=','.join(ids),
-                                                    gen=max_gen))
-            f.close()
+            if ids != []:
+                try:
+                    gen_nums = [c.info['key_value_pairs']['generation']
+                                for c in self.all_cand]
+                    max_gen = max(gen_nums)
+                except KeyError:
+                    max_gen = ' '
+                f = open(self.logfile, 'a')
+                f.write('{time}: {gen}: {pop}\n'.format(time=now(),
+                                                        pop=','.join(ids),
+                                                        gen=max_gen))
+                f.close()
