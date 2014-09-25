@@ -14,7 +14,7 @@
 # screen-dump
 # icon
 # ag-community-server
-# translate option: record all translations, 
+# translate option: record all translations,
 # and check for missing translations.
 
 #TODO: Add possible way of choosing orinetations. \
@@ -198,8 +198,8 @@ class GUI(View, Status):
             ('Open', gtk.STOCK_OPEN, _('_Open'), '<control>O',
              _('Create a new file'),
              self.open),
-             ('New', gtk.STOCK_NEW, _('_New'), '<control>N',
-             _('New ase.gui window'),
+            ('New', gtk.STOCK_NEW, _('_New'), '<control>N',
+             _('New ase-gui window'),
              lambda widget: os.system('ase-gui &')),
             ('Save', gtk.STOCK_SAVE, _('_Save'), '<control>S',
              _('Save current file'),

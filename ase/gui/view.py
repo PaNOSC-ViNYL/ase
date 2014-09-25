@@ -798,7 +798,7 @@ class View:
                                  (-s * a, -s * b, c)])
             self.axes = np.dot(self.axes0, rotation)
             if self.images.natoms > 0:
-                com = self.X[:self.images.natoms].mean(0) 
+                com = self.X[:self.images.natoms].mean(0)
             else:
                 com = self.images.A[self.frame].mean(0)
             self.center = com - np.dot(com - self.center0,
@@ -837,16 +837,16 @@ class View:
         
     # Redraw the screen from the backing pixmap
     def expose_event(self, drawing_area, event):
-        x , y, width, height = event.area
+        x, y, width, height = event.area
         gc = self.background_gc
         drawing_area.window.draw_drawable(gc, self.pixmap,
                                           x, y, x, y, width, height)
 
     def external_viewer(self, action):
         name = action.get_name()
-        command = {'Avogadro' : 'avogadro',
+        command = {'Avogadro': 'avogadro',
                    'XMakeMol': 'xmakemol -f',
-                   'RasMol':'rasmol -xyz',
+                   'RasMol': 'rasmol -xyz',
                    'VMD': 'vmd'}[name]
         fd, filename = tempfile.mkstemp('.xyz', 'ase.gui-')
         os.close(fd)
