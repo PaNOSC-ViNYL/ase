@@ -21,6 +21,10 @@ class DevNull:
 
     def close(self):
         pass
+    
+    def isatty(self):
+        return False
+        
 
 devnull = DevNull()
 
