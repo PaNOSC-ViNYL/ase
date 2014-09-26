@@ -266,9 +266,6 @@ def read_xyz(fileobj, index=-1):
         if 'pbc' in info:
             pbc = info['pbc']
             del info['pbc']
-        elif 'Lattice' in info:
-            # default pbc for extxyz file containing Lattice is True in all directions
-            pbc = [True, True, True]
 
         cell = None
         if 'Lattice' in info:
