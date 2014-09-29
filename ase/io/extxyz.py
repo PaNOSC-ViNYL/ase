@@ -129,7 +129,7 @@ def key_val_dict_to_str(d, sep=' '):
 
         if val is None:
             s = s + '%s%s' % (key, sep)
-        elif type(val) == type('') and ' ' in val:
+        elif isinstance(val, basestring) and ' ' in val:
             s = s + '%s="%s"%s' % (key, val, sep)
         else:
             s = s + '%s=%s%s' % (key, str(val), sep)
@@ -265,7 +265,8 @@ def read_xyz(fileobj, index=-1):
             pbc = info['pbc']
             del info['pbc']
         elif 'Lattice' in info:
-            # default pbc for extxyz file containing Lattice is True in all directions
+            # default pbc for extxyz file containing Lattice
+            # is True in all directions
             pbc = [True, True, True]
 
         cell = None
@@ -401,8 +402,9 @@ def output_column_format(atoms, columns, arrays, write_info=True):
         property_ncols.append(ncol)
 
     props_str = ':'.join([':'.join(x) for x in
-                        zip(property_names, property_types,
-                            [str(ncol) for ncol in property_ncols])])
+                          zip(property_names,
+                              property_types,
+                              [str(nc) for nc in property_ncols])])
 
     comment = lattice_str + ' Properties=' + props_str
     info = {}
