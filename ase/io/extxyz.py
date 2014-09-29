@@ -77,13 +77,11 @@ def key_val_str_to_dict(s):
                     numvalue.append(float(x))
             if len(numvalue) == 1:
                 numvalue = numvalue[0]         # Only one number
-            elif len(numvalue) == 3:
-                numvalue = np.array(numvalue)  # 3-vector
             elif len(numvalue) == 9:
-                # 3x3 matrix, fortran ordering
+                # special case: 3x3 matrix, fortran ordering
                 numvalue = np.array(numvalue).reshape((3, 3), order='F')
             else:
-                raise ValueError
+                numvalue = np.array(numvalue)  # vector
             value = numvalue
         except ValueError:
             pass
@@ -266,6 +264,9 @@ def read_xyz(fileobj, index=-1):
         if 'pbc' in info:
             pbc = info['pbc']
             del info['pbc']
+        elif 'Lattice' in info:
+            # default pbc for extxyz file containing Lattice is True in all directions
+            pbc = [True, True, True]
 
         cell = None
         if 'Lattice' in info:
@@ -404,10 +405,11 @@ def output_column_format(atoms, columns, arrays, write_info=True):
                             [str(ncol) for ncol in property_ncols])])
 
     comment = lattice_str + ' Properties=' + props_str
+    info = {}
     if write_info:
-        info = atoms.info.copy()       # shallow copy to allow adding keys
-        info['pbc'] = atoms.get_pbc()  # save periodic boundary conditions
-        comment += ' ' + key_val_dict_to_str(info)
+        info.update(atoms.info)
+    info['pbc'] = atoms.get_pbc()  # always save periodic boundary conditions
+    comment += ' ' + key_val_dict_to_str(info)
 
     dtype = np.dtype(dtypes)
     fmt = ''.join(formats) + '\n'
