@@ -297,11 +297,6 @@ class Jacapo:
 
         if len(kwargs) > 0:
 
-            if 'stress' in kwargs:
-                raise DacapoInput, '''\
-                stress keyword is deprecated.
-                you must use calculate_stress instead'''
-
             #make sure to set calculator on atoms if it was in kwargs
             #and do this first, since some parameters need info from atoms
             if 'atoms' in kwargs:
