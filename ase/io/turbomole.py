@@ -164,10 +164,10 @@ def write_turbomole(filename, atoms):
     if atoms.constraints:
         for constr in atoms.constraints:
             if isinstance(constr, FixAtoms):
-		if 'indices' in constr.todict().keys():
-		  fix_index['indices'].extend(constr.todict()['indices'])
-		if 'mask' in constr.todict().keys():
-		  fix_index['mask'] += constr.todict()['mask']
+                if 'indices' in constr.todict().keys():
+                    fix_index['indices'].extend(constr.todict()['indices'])
+                if 'mask' in constr.todict().keys():
+                    fix_index['mask'] += constr.todict()['mask']
 
     fix_index['indices'] = np.unique(fix_index['indices'])
     fix_index['mask'] = np.transpose(np.nonzero(fix_index['mask']))

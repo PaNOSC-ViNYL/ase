@@ -59,8 +59,8 @@ class FranckCondon:
         np.append(indices, np.where(self.frequencies >= self.maxfreq)) 
         S=np.delete(S, indices)
         frequencies = np.delete(self.frequencies, indices)
-	
-        return S, frequencies		
+        
+        return S, frequencies
 
     def get_Franck_Condon_factors(self, order, temp, forces):
         """Return FC factors and corresponding frequencies up to given order.
@@ -69,7 +69,7 @@ class FranckCondon:
         T= temperature in K. Vibronic levels are occupied by a 
         Boltzman distribution.
         forces= forces on atoms in the exited electronic state"""
- 	
+        
         S, f = self.get_Huang_Rhys_factors(forces)
         n = order + 1
         T = temp
@@ -88,7 +88,7 @@ class FranckCondon:
         for i in range(len(freq_nn)):
             freq_nn[i] = freq_nn[i][0] + freq_nn[i][1]
    
-        indices2 = []	
+        indices2 = []
         for i, y in enumerate(freq):
             ind = [j for j,x in enumerate(freq_nn) if x%y==0.]# or x/y==3.]
             indices2.append(ind)
@@ -112,27 +112,27 @@ class FranckCondon:
         ##Franck-Condon factors
         E = freq / 8065.5
         f_n = [[] * i for i in range(n)]
-	
+        
         for j in range(0,n):
-            f_n[j] = np.exp(-E * j /( kB * T))	
-	
+            f_n[j] = np.exp(-E * j /( kB * T))
+        
         #partition function
         Z=np.empty(len(S))
-        Z=np.sum(f_n,0)	
-	
+        Z=np.sum(f_n,0)
+        
         #occupation probability
         w_n=[[]*k for k in range(n)]
         for l in range(n):
             w_n[l]=f_n[l]/Z
-	
+        
         # overlap wavefunctions
         O_n = [[] * m for m in range(n)]
-	O_neg = [[] * m for m in range(n)]
-        for o in range(n):	
+        O_neg = [[] * m for m in range(n)]
+        for o in range(n):
             O_n[o] = [[] * p for p in range(n)]
             O_neg[o] = [[] * p for p in range(n - 1)]
-            for q in range(o, n + o):		
-                a = np.minimum(o, q)	
+            for q in range(o, n + o):
+                a = np.minimum(o, q)
                 summe=[]
                 for k in range(a+1):
                     s = ((-1)**(q - k) * np.sqrt(S)**(o + q - 2 * k) *
@@ -144,9 +144,9 @@ class FranckCondon:
                                (factorial(o) * factorial(q))**(0.5) * 
                                summe)**2 * w_n[o]
             for q in range(n - 1):
-                O_neg[o][q] = [0 * b for b in range(len(S))]	
+                O_neg[o][q] = [0 * b for b in range(len(S))]
             for q in range(o-1, -1, -1):
-                a = np.minimum(o,q)	
+                a = np.minimum(o,q)
                 summe = []
                 for k in range(a+1):
                     s=((-1)**(q - k) * np.sqrt(S)**(o + q - 2 * k) * 
@@ -156,7 +156,7 @@ class FranckCondon:
                 summe = np.sum(summe, 0)
                 O_neg[o][q] = (np.exp(-S / 2) / 
                                (factorial(o) * factorial(q))**(0.5) * 
-                               summe)**2 * w_n[o]	
+                               summe)**2 * w_n[o]
         O_neg = np.delete(O_neg, 0, 0)
 
         #Franck-Condon factors
@@ -164,7 +164,7 @@ class FranckCondon:
         FC_n=np.sum(O_n,0)
         zero=reduce(mul,FC_n[0])
         FC_neg=[[]*i for i in range(n-2)]
-    	FC_neg=np.sum(O_neg,0)    
+        FC_neg=np.sum(O_neg,0)    
         FC_n=np.delete(FC_n,0,0)
 
         #combination FC factors
@@ -172,7 +172,7 @@ class FranckCondon:
         for i in range(len(FC_nn)):
             FC_nn[i]=FC_nn[i][0]*FC_nn[i][1]
 
-	FC_nn=np.delete(FC_nn, indices2)
+        FC_nn=np.delete(FC_nn, indices2)
 
         FC=[[]*x for x in range(3)]
         FC[0].append(FC_neg[0])
@@ -194,9 +194,3 @@ the 0-0 transition.
 quanta exitations. Third list are combinations of two normal modes 
 (including combinations of higher quanta exitations). """ 
         return FC, frequencies
-
-
-
-		
-        
-        

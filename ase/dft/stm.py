@@ -17,7 +17,7 @@ class STM:
 
                  [-1  0]   [ 1  0]   [ 0  1]
                  [ 0  1]   [ 0 -1]   [ 1  0]
-        """	
+        """
 
         if isinstance(atoms, str):
            with open(atoms, 'rb') as f:

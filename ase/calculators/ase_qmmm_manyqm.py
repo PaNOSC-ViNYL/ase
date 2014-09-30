@@ -148,7 +148,7 @@ def get_qm_atoms(indexfilename='index.ndx'):
             qms.append(qm)
     return qms
 
-class LinkAtom:	
+class LinkAtom:
     """
     Class for information about a single link-atom 
     (it terminates a QM cluster)
@@ -1287,7 +1287,7 @@ class AseQmmmManyqm:
                              str(qmregion_count)+'\n')
             for qmatom, mmatom,  eq_xy, eq_xh, qmtype, mmtype in zip\
                     (qm, mm, eqs_xy, eqs_xh,\
-		    qmtypes, mmtypes):
+                    qmtypes, mmtypes):
                 outfile.write('qm-link-atom-index (from 1): '+str(qmatom)+'\n')
                 outfile.write('qm-link-atom-type: '+str(qmtype)+'\n')
                 outfile.write('mm-link-atom-index (from 1): '+str(mmatom)+'\n')
