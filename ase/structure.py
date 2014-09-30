@@ -253,12 +253,12 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
             arm_right_saturation = Atoms(saturate_element + '2', pbc=(1, 0, 1),
                                          cell=[4 * b, 2 * vacuum, 3 * C_C])
             arm_right_saturation.positions = [
-                [- sqrt(3) / 2 * C_H, 0, C_H * 0.5], 
+                [- sqrt(3) / 2 * C_H, 0, C_H * 0.5],
                 [- sqrt(3) / 2 * C_H, 0, 2 * C_C - C_H * 0.5]]
             arm_left_saturation = Atoms(saturate_element + '2', pbc=(1, 0, 1),
                                         cell=[4 * b, 2 * vacuum, 3 * C_C])
             arm_left_saturation.positions = [
-                [b * 2 + sqrt(3) / 2 * C_H, 0, C_C / 2 - C_H * 0.5], 
+                [b * 2 + sqrt(3) / 2 * C_H, 0, C_C / 2 - C_H * 0.5],
                 [b * 2 + sqrt(3) / 2 * C_H, 0, 3 * C_C / 2.0 + C_H * 0.5]]
             arm_right_saturation.positions[:, 0] -= 4 * b * (n - 1)
             atoms += arm_right_saturation.repeat((1, 1, m))
@@ -292,92 +292,6 @@ def molecule(name, data=None, **kwargs):
     # kwargs overwrites data
     args.update(kwargs)
     return Atoms(**args)
-
-
-def bulk(name, crystalstructure, a=None, c=None, covera=None,
-         orthorhombic=False, cubic=False):
-    """Helper function for creating bulk systems.
-
-    name: str
-        Chemical symbol or symbols as in 'MgO' or 'NaCl'.
-    crystalstructure: str
-        Must be one of sc, fcc, bcc, hcp, diamond, zincblende or
-        rocksalt.
-    a: float
-        Lattice constant.
-    c: float
-        Lattice constant.
-    covera: float
-        c/a raitio used for hcp.  Defaults to ideal ratio.
-    orthorhombic: bool
-        Construct orthorhombic unit cell instead of primitive cell
-        which is the default.
-    cubic: bool
-        Construct cubic unit cell.
-    """
-
-    warnings.warn('This function is deprecated.  Use the ' +
-                  'ase.lattice.bulk() function instead.')
-
-    if a is not None:
-        a = float(a)
-    if c is not None:
-        c = float(c)
-
-    if covera is not None and  c is not None:
-        raise ValueError("Don't specify both c and c/a!")
-
-    if covera is None and c is None:
-        covera = sqrt(8.0 / 3.0)
-
-    if a is None:
-        a = estimate_lattice_constant(name, crystalstructure, covera)
-
-    if covera is None and c is not None:
-        covera = c / a
-
-    x = crystalstructure.lower()
-
-    if orthorhombic and x != 'sc':
-        return _orthorhombic_bulk(name, x, a, covera)
-
-    if cubic and x == 'bcc':
-        return _orthorhombic_bulk(name, x, a, covera)
-
-    if cubic and x != 'sc':
-        return _cubic_bulk(name, x, a)
-
-    if x == 'sc':
-        atoms = Atoms(name, cell=(a, a, a), pbc=True)
-    elif x == 'fcc':
-        b = a / 2
-        atoms = Atoms(name, cell=[(0, b, b), (b, 0, b), (b, b, 0)], pbc=True)
-    elif x == 'bcc':
-        b = a / 2
-        atoms = Atoms(name, cell=[(-b, b, b), (b, -b, b), (b, b, -b)],
-                      pbc=True)
-    elif x == 'hcp':
-        atoms = Atoms(2 * name,
-                      scaled_positions=[(0, 0, 0),
-                                        (1.0 / 3.0, 1.0 / 3.0, 0.5)],
-                      cell=[(a, 0, 0),
-                            (a / 2, a * sqrt(3) / 2, 0),
-                            (0, 0, covera * a)],
-                      pbc=True)
-    elif x == 'diamond':
-        atoms = bulk(2 * name, 'zincblende', a)
-    elif x == 'zincblende':
-        s1, s2 = string2symbols(name)
-        atoms = bulk(s1, 'fcc', a) + bulk(s2, 'fcc', a)
-        atoms.positions[1] += a / 4
-    elif x == 'rocksalt':
-        s1, s2 = string2symbols(name)
-        atoms = bulk(s1, 'fcc', a) + bulk(s2, 'fcc', a)
-        atoms.positions[1, 0] += a / 2
-    else:
-        raise ValueError('Unknown crystal structure: ' + crystalstructure)
-
-    return atoms
 
 
 def estimate_lattice_constant(name, crystalstructure, covera):

@@ -349,7 +349,7 @@ class Atoms(object):
         if dtype is not None:
             a = np.array(a, dtype)
             if len(a) == 0 and shape is not None:
-                a.shape = (-1,) + shape 
+                a.shape = (-1,) + shape
         else:
             a = a.copy()
 
@@ -413,19 +413,13 @@ class Atoms(object):
         """Get integer array of atomic numbers."""
         return self.arrays['numbers'].copy()
 
+    def get_chemical_symbols(self):
+        """Get list of chemical symbol strings."""
+        return [chemical_symbols[Z] for Z in self.arrays['numbers']]
+
     def set_chemical_symbols(self, symbols):
         """Set chemical symbols."""
         self.set_array('numbers', symbols2numbers(symbols), int, ())
-
-    def get_chemical_symbols(self, reduce=False):
-        """Get list of chemical symbol strings."""
-        if reduce:
-            warnings.warn('ase.atoms.get_chemical_symbols(reduce=True) is ' +
-                          'deprecated. Please use ase.atoms.get_chemical' +
-                          '_formula(mode="reduce") instead.',
-                          DeprecationWarning, stacklevel=2)
-            return self.get_chemical_formula(mode='reduce')
-        return [chemical_symbols[Z] for Z in self.arrays['numbers']]
 
     def get_chemical_formula(self, mode='hill'):
         """Get the chemial formula as a string based on the chemical symbols.
@@ -588,13 +582,6 @@ class Atoms(object):
             self.set_array('charges', None)
         else:
             self.set_array('charges', charges, float, ())
-
-    def set_charges(self, charges=None):
-        """Deprecated method. Use set_initial_charges."""
-        warnings.warn('ase.atoms.set_charges is deprecated. Please use ase.'
-                      'atoms.set_initial_charges instead.',
-                      DeprecationWarning, stacklevel=2)
-        self.set_initial_charges(charges)
 
     def get_initial_charges(self):
         """Get array of initial charges."""
@@ -1495,13 +1482,6 @@ class Atoms(object):
     pbc = property(_get_pbc, set_pbc,
                    doc='Attribute for direct manipulation ' +
                    'of the periodic boundary condition flags.')
-
-    def get_name(self):
-        import warnings
-        warnings.warn('ase.atoms.get_name is deprecated. Please use ase.' +
-                      'atoms.get_chemical_formula(mode="hill") instead.',
-                      DeprecationWarning, stacklevel=2)
-        return self.get_chemical_formula(mode='hill')
 
     def write(self, filename, format=None, **kwargs):
         """Write yourself to a file."""

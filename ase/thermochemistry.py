@@ -191,16 +191,6 @@ class HarmonicThermo(ThermoChem):
         write('=' * 23)
         return G
 
-    def get_free_energy(self, temperature, verbose=True):
-        """Deprecated: use 'get_gibbs_energy' instead."""
-        import warnings
-        warnings.warn('get_free_energy is deprecated. Please use '
-                      'get_gibbs_energy instead.',
-                      DeprecationWarning, stacklevel=2)
-        G = self.get_gibbs_energy(temperature, verbose)
-        return G
-
-
 class IdealGasThermo(ThermoChem):
     """Class for calculating thermodynamic properties of a molecule
     based on statistical mechanical treatments in the ideal gas
@@ -407,16 +397,6 @@ class IdealGasThermo(ThermoChem):
         write(fmt % ('G', G))
         write('=' * 23)
         return G
-
-    def get_free_energy(self, temperature, pressure, verbose=True):
-        """Deprecated: use 'get_gibbs_energy' instead."""
-        import warnings
-        warnings.warn('get_free_energy is deprecated. Please use '
-                      'get_gibbs_energy instead.',
-                      DeprecationWarning, stacklevel=2)
-        G = self.get_gibbs_energy(temperature, pressure, verbose)
-        return G
-
 
 class CrystalThermo(ThermoChem):
     """Class for calculating thermodynamic properties of a crystalline

@@ -401,15 +401,6 @@ class FixCartesian(FixConstraintSingle):
         return 'FixCartesian(indice=%s mask=%s)' % (self.a, self.mask)
 
 
-class fix_cartesian(FixCartesian):
-    'Backwards compatibility for FixCartesian.'
-    def __init__(self, a, mask=(1, 1, 1)):
-        import warnings
-        super(fix_cartesian, self).__init__(a, mask)
-        warnings.warn('fix_cartesian is deprecated. Please use FixCartesian'
-                      ' instead.', DeprecationWarning, stacklevel=2)
-
-
 class FixScaled(FixConstraintSingle):
     'Fix an atom in the directions of the unit vectors.'
     def __init__(self, cell, a, mask=(1, 1, 1)):
@@ -437,15 +428,6 @@ class FixScaled(FixConstraintSingle):
         return 'FixScaled(%s, %d, %s)' % (repr(self.cell),
                                           self.a,
                                           repr(self.mask))
-
-
-class fix_scaled(FixScaled):
-    'Backwards compatibility for FixScaled.'
-    def __init__(self, cell, a, mask=(1, 1, 1)):
-        import warnings
-        super(fix_scaled, self).__init__(cell, a, mask)
-        warnings.warn('fix_scaled is deprecated. Please use FixScaled '
-                      'instead.', DeprecationWarning, stacklevel=2)
 
 
 # TODO: Better interface might be to use dictionaries in place of very
@@ -950,13 +932,6 @@ class Hookean(FixConstraint):
         else:
             return Hookean(a1=self.index, a2=self.plane,
                            k=self.spring)
-
-
-class BondSpring(FixConstraint):
-    """Deprecated in favor of Hookean constraint."""
-    def __init__(self, a1, a2, threshhold_length, springconstant):
-        raise RuntimeError('The BondSpring constraint has been deprecated.'
-                           ' Use Hookean instead.')
 
 
 class Filter:

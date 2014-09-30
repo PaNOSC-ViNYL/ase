@@ -184,31 +184,3 @@ class Atom(object):
     x = xyzproperty(0)
     y = xyzproperty(1)
     z = xyzproperty(2)
-
-    def _get(self, name):
-        """Helper function for deprecated get methods."""
-        warnings.warn('Use atom.%s' % name, stacklevel=3)
-        return getattr(self, name)
-
-    def _set(self, name, value):
-        """Helper function for deprecated set methods."""
-        warnings.warn('Use atom.%s = ...' % name, stacklevel=3)
-        setattr(self, name, value)
-
-    def get_symbol(self): return self._get('symbol')
-    def get_atomic_number(self): return self._get('number')
-    def get_position(self): return self._get('position')
-    def get_tag(self): return self._get('tag')
-    def get_momentum(self): return self._get('momentum')
-    def get_mass(self): return self._get('mass')
-    def get_initial_magnetic_moment(self): return self._get('magmom')
-    def get_charge(self): return self._get('charge')
-
-    def set_symbol(self, value): self._set('symbol', value)
-    def set_atomic_number(self, value): self._set('number', value)
-    def set_position(self, value): self._set('position', value)
-    def set_tag(self, value): self._set('tag', value)
-    def set_momentum(self, value): self._set('momentum', value)
-    def set_mass(self, value): self._set('mass', value)
-    def set_initial_magnetic_moment(self, value): self._set('magmom', value)
-    def set_charge(self, value): self._set('charge', value)

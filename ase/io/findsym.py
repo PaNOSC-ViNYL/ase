@@ -13,7 +13,7 @@ def write_findsym(fileobj, images):
     natoms = len(symbols)
 
     for atoms in images:
-        formula  = atoms.get_chemical_symbols(True)
+        formula  = atoms.get_chemical_symbols()
         accuracy = 1.0e-4
 
         # Write Comment
