@@ -4,11 +4,8 @@ Atomic Simulation Environment
 
 The Atomic Simulation Environment (ASE) is the common part of the
 simulation tools developed at CAMd_.  ASE provides Python_ modules
-for manipulating atoms, analyzing simulations, visualization etc.
-
-.. note::
-
-  The old ASE-2 webpage has moved to http://wiki.fysik.dtu.dk/ase2.
+for manipulating and visualizing atoms, running and analyzing simulations,
+The code is freely available under the `GNU LGPL license`_. 
 
 Actively maintained :mod:`ase.calculators`:
 
@@ -135,4 +132,5 @@ News
 .. _revision 1000: http://www.camd.dtu.dk/Events/Seneste_nyt.aspx?guid={08853DD1-D037-47C8-ACEF-1EA40A88BB6C}
 .. _Sphinx: http://sphinx.pocoo.org
 .. _CAMd: http://www.camd.dtu.dk
+.. _GNU LGPL license: https://wiki.fysik.dtu.dk/ase/licenseinfo.html
 
