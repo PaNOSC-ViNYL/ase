@@ -11,7 +11,6 @@ from pickle import dump, load
 import numpy as np
 
 from ase.parallel import paropen
-from ase.calculators.dacapo import Dacapo
 from ase.dft.kpoints import get_monkhorst_pack_size_and_offset
 from ase.transport.tools import dagger, normalize
 
