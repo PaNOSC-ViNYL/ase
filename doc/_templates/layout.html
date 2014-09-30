@@ -22,11 +22,6 @@
         {%- endfor %}
 
 
-       <li class="right"><a href="{{ pathto('faq') }}" title="Frequently Asked Questions">FAQ</a> |</li>
-       <li class="right"><a href="{{ pathto('ase/ase') }}" title="Documentation">documentation</a> |</li>
-        <li class="right"><a href="{{ pathto('tutorials/tutorials') }}" title="Tutorials">tutorials</a> |</li>
-        <li class="right"><a href="{{ pathto('download') }}" title="Download and installation">download</a> |</li>
-
         {%- block rootrellink %}
         <a href="{{ pathto('index') }}"><img class="logo" src="{{ pathto('_static/' + logo, 1) }}" alt="Logo" align="absmiddle"/></a>
         {%- endblock %}
