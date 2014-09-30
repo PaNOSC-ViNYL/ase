@@ -102,8 +102,6 @@ with a basis):
   - ``L1_2`` = ``AuCu3``
   - ``L1_0`` = ``AuCu``
 
-.. _me: http://www.fysik.dtu.dk/~schiotz
-
 Usage
 -----
 

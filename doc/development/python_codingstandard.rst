@@ -143,14 +143,6 @@ Run pylint on a module like this::
     
     [~]$ pylint path/to/module/root/dir
 
-
-Output from pylint run on ASE
------------------------------
-
-* pylint_ase_
-
-.. _pylint_ase: http://dcwww.fys.dtu.dk/~s052580/pylint/ase
-
 .. _epydoc:
 
 Run epydoc on your code

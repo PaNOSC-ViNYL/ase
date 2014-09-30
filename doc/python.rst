@@ -61,10 +61,10 @@ execute it like any other executable.
      from ase import *
 
    and point the :envvar:`PYTHONSTARTUP` environment variable at it (see
-   here_ for details).
+   rlcompleter_ for details).
 
 
-   .. _here: http://www.python.org/doc/current/lib/module-rlcompleter.html
+   .. _rlcompleter: https://docs.python.org/2/library/rlcompleter.html
 
 
 .. tip::

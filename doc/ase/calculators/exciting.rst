@@ -40,7 +40,7 @@ Parameter Dictionary
 --------------------
 
 When the paramdict keyword is used, the calculator translates the dictionary given into the exciting XML file format.
-Note $EXCITINGROOT environmental variable should be set: details at http://exciting-code.org/tutorials
+Note $EXCITINGROOT environmental variable should be set: details at http://exciting-code.org/tutorials-boron
 
 .. literalinclude:: exciting.py
 

@@ -24,7 +24,7 @@ together with pygtk are needed for ASE's simple GUI
 (called **ase-gui**, see :mod:`ase.gui`).
 Some of these packages may already be installed on your system.
 
-.. _matplotlib: http://matplotlib.sourceforge.net
+.. _matplotlib: http://matplotlib.org/
 .. _libpng: http://www.libpng.org/pub/png/libpng.html
 .. _pygtk: http://www.pygtk.org
 .. _SciPy: http://www.scipy.org/

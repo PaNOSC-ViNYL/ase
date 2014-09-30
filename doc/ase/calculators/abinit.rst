@@ -60,9 +60,7 @@ Abinit does not specify a default value for the plane-wave cutoff
 energy.  You need to set them as in the example at the bottom of the
 page, otherwise calculations will fail.  Calculations wihout k-points
 are not parallelized by default and will fail! To enable band
-paralellization specify ``Number of BanDs in a BLOCK`` (``nbdblock``)
---- see
-`<http://www.abinit.org/Infos_v5.2/tutorial/lesson_parallelism.html>`_.
+paralellization specify ``Number of BanDs in a BLOCK`` (``nbdblock``).
 
 
 Pseudopotentials
@@ -72,7 +70,7 @@ Pseudopotentials in the ABINIT format are available on the
 `pseudopotentials`_ website.  A database of user contributed
 pseudopotentials is also available there.
 
-.. _pseudopotentials: http://www.abinit.org/Psps/?text=psps
+.. _pseudopotentials: http://www.abinit.org/downloads/atomic-data-files
 
 
 Example 1

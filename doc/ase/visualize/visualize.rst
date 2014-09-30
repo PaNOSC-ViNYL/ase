@@ -96,7 +96,7 @@ supported, namely:
 
 .. XXX -        `VTK Designer`_ is a visual editor for creating and editing VTK pipelines.
 
-.. _Qt: http://www.qtsoftware.com/products
+.. _Qt: http://qt-project.org/
 .. _Tk: http://www.tcl.tk/about
 .. _VTK Designer: http://www.vcreatelogic.com/oss/vtkdesigner
 .. _MayaVi: http://code.enthought.com/projects/mayavi

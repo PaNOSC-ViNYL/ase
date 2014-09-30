@@ -106,7 +106,7 @@ News
 
 * :ref:`ASE version 3.2 <download_and_install>` released (4 September 2009).
 
-* ASE has reached `revision 1000`_ (16 July 2009).
+* ASE has reached revision 1000 (16 July 2009).
 
 * :ref:`ASE version 3.1.0 <download_and_install>` released (27 March 2009).
 
@@ -129,7 +129,6 @@ News
   electronic structure course at CAMd_.  (10 Jan 2008)
 
 
-.. _revision 1000: http://www.camd.dtu.dk/Events/Seneste_nyt.aspx?guid={08853DD1-D037-47C8-ACEF-1EA40A88BB6C}
 .. _Sphinx: http://sphinx.pocoo.org
 .. _CAMd: http://www.camd.dtu.dk
 .. _GNU LGPL license: https://wiki.fysik.dtu.dk/ase/licenseinfo.html

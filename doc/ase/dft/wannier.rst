@@ -69,9 +69,7 @@ Usual invocation::
   # Write a cube file
   wan.write_cube(index=5, fname='wannierfunction5.cube')
 
-For examples of how to use the **Wannier** class, see the `Wannier tutorial`_.
-
-.. _Wannier tutorial: https://wiki.fysik.dtu.dk/ase/tutorials/wannier.html
+For examples of how to use the **Wannier** class, see the :ref:`wannier_tutorial` tutorial.
 
 .. autoclass:: Wannier
    :members:
