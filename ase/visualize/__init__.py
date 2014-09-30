@@ -3,17 +3,12 @@ import tempfile
 
 from ase.io import write
 import ase.parallel as parallel
-from ase.old import OldASEListOfAtomsWrapper
 
 
 def view(atoms, data=None, viewer='ase-gui', repeat=None, block=False):
     # Ignore for parallel calculations:
     if parallel.size != 1:
         return
-
-    if hasattr(atoms, 'GetUnitCell'):
-        # Convert old ASE ListOfAtoms to new style.
-        atoms = OldASEListOfAtomsWrapper(atoms).copy()
 
     vwr = viewer.lower()
     

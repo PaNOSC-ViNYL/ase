@@ -129,11 +129,7 @@ class Atoms(object):
 
         atoms = None
 
-        if hasattr(symbols, 'GetUnitCell'):
-            from ase.old import OldASEListOfAtomsWrapper
-            atoms = OldASEListOfAtomsWrapper(symbols)
-            symbols = None
-        elif hasattr(symbols, 'get_positions'):
+        if hasattr(symbols, 'get_positions'):
             atoms = symbols
             symbols = None
         elif (isinstance(symbols, (list, tuple)) and
