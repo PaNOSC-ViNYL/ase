@@ -21,47 +21,13 @@ Environment in the Python language."""
 if sys.version_info < (2, 6, 0, 'final', 0):
     raise SystemExit('Python 2.6 or later is required!')
 
-packages = ['ase',
-            'ase.cli',
-            'ase.cluster',
-            'ase.cluster.data',
-            'ase.db',
-            'ase.io',
-            'ase.md',
-            'ase.dft',
-            'ase.gui',
-            'ase.gui.languages',
-            'ase.data',
-            'ase.tasks',
-            'ase.test',
-            'ase.test.abinit',
-            'ase.test.aims',
-            'ase.test.castep',
-            'ase.test.cmr',
-            'ase.test.elk',
-            'ase.test.exciting',
-            'ase.test.fio',
-            'ase.test.fleur',
-            'ase.test.gaussian',
-            'ase.test.gromacs',
-            'ase.test.jacapo',
-            'ase.test.mopac',
-            'ase.test.nwchem',
-            'ase.test.tasks',
-            'ase.test.turbomole',
-            'ase.test.vasp',
-            'ase.utils',
-            'ase.lattice',
-            'ase.lattice.spacegroup',
-            'ase.examples',
-            'ase.optimize',
-            'ase.optimize.test',
-            'ase.vibrations',
-            'ase.visualize',
-            'ase.visualize.vtk',
-            'ase.transport',
-            'ase.calculators',
-            'ase.calculators.jacapo']
+
+packages = ['ase']
+for dirname, dirnames, filenames in os.walk('ase'):
+    for subdirname in dirnames:
+        fullname = os.path.join(dirname, subdirname)
+        if '.svn' not in fullname:
+            packages.append(fullname.replace('/', '.'))
 
 package_dir = {'ase': 'ase'}
 
