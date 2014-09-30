@@ -21,13 +21,10 @@ Environment in the Python language."""
 if sys.version_info < (2, 6, 0, 'final', 0):
     raise SystemExit('Python 2.6 or later is required!')
 
-
-packages = ['ase']
+packages = []
 for dirname, dirnames, filenames in os.walk('ase'):
-    for subdirname in dirnames:
-        fullname = os.path.join(dirname, subdirname)
-        if '.svn' not in fullname:
-            packages.append(fullname.replace('/', '.'))
+        if '__init__.py' in filenames:
+            packages.append(dirname.replace('/', '.'))
 
 package_dir = {'ase': 'ase'}
 
@@ -106,7 +103,8 @@ class build_py(_build_py):
 # Get the current version number:
 execfile('ase/svnversion_io.py')  # write ase/svnversion.py and get svnversion
 execfile('ase/version.py')        # get version_base
-if svnversion and os.name not in ['ce', 'nt']: # MSI accepts only version X.X.X
+if svnversion and os.name not in ['ce', 'nt']:
+    # MSI accepts only version X.X.X
     version = version_base + '.' + svnversion
 else:
     version = version_base
