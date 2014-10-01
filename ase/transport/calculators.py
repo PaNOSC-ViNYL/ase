@@ -3,7 +3,7 @@ import numpy as np
 from numpy import linalg
 from ase.transport.selfenergy import LeadSelfEnergy, BoxProbe
 from ase.transport.greenfunction import GreenFunction
-from ase.transport.tools import subdiagonalize, cutcoupling, tri2full, dagger,\
+from ase.transport.tools import subdiagonalize, cutcoupling, dagger,\
     rotate_matrix
 
 
@@ -387,9 +387,7 @@ class TransportCalculator:
         lambda_l_ii = self.selfenergies[0].get_lambda(energy)
         lambda_r_ii = self.selfenergies[1].get_lambda(energy)
 
-        if self.greenfunction.S is None:
-            s_s_qsrt_ii = s_s_isqrt = np.identity(len(g_s_ii))
-        else:
+        if self.greenfunction.S is not None:
             s_mm = self.greenfunction.S
             s_s_i, s_s_ii = linalg.eig(s_mm)
             s_s_i = np.abs(s_s_i)
