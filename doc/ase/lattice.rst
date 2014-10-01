@@ -87,7 +87,7 @@ with a basis):
 
 * The rhombohedral (or trigonal) lattices are not implemented.  They
   will be implemented when the need arises (and if somebody can tell
-  me_ the precise definition of the 4-number Miller indices - I only
+  us the precise definition of the 4-number Miller indices - we only
   know that they are "almost the same as in hexagonal lattices").
 
 * ``lattice.compounds``
@@ -101,6 +101,7 @@ with a basis):
   - ``B3`` = ``ZnS`` = ``Zincblende``
   - ``L1_2`` = ``AuCu3``
   - ``L1_0`` = ``AuCu``
+
 
 Usage
 -----
