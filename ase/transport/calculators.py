@@ -15,17 +15,17 @@ class TransportCalculator:
     def __init__(self, **kwargs):
         """Create the transport calculator.
 
-        Parameters
-        ==========
+        Parameters:
+
         h : (N, N) ndarray
-            Hamiltonian matrix for the central region. 
+            Hamiltonian matrix for the central region.
         s : {None, (N, N) ndarray}, optional
-            Overlap matrix for the central region. 
+            Overlap matrix for the central region.
             Use None for an orthonormal basis.
         h1 : (N1, N1) ndarray
             Hamiltonian matrix for lead1.
         h2 : {None, (N2, N2) ndarray}, optional
-            Hamiltonian matrix for lead2. You may use None if lead1 and lead2 
+            Hamiltonian matrix for lead2. You may use None if lead1 and lead2
             are identical.
         s1 : {None, (N1, N1) ndarray}, optional
             Overlap matrix for lead1. Use None for an orthonomormal basis.
@@ -35,30 +35,30 @@ class TransportCalculator:
         hc2 : {None, (N2, N} ndarray), optional
             Hamiltonian coupling matrix between the first principal
             layer in lead2 and the central region.
-        sc1 : {None, (N1, N) ndarray}, optional  
+        sc1 : {None, (N1, N) ndarray}, optional
             Overlap coupling matrix between the first principal
             layer in lead1 and the central region.
-        sc2 : {None, (N2, N) ndarray}, optional  
+        sc2 : {None, (N2, N) ndarray}, optional
             Overlap coupling matrix between the first principal
             layer in lead2 and the central region.
         energies : {None, array_like}, optional
             Energy points for which calculated transport properties are
             evaluated.
         eta : {1.0e-5, float}, optional
-            Infinitesimal for the central region Green function. 
+            Infinitesimal for the central region Green function.
         eta1/eta2 : {1.0e-5, float}, optional
             Infinitesimal for lead1/lead2 Green function.
         align_bf : {None, int}, optional
-            Use align_bf=m to shift the central region 
+            Use align_bf=m to shift the central region
             by a constant potential such that the m'th onsite element
             in the central region is aligned to the m'th onsite element
             in lead1 principal layer.
-        logfile : {None, str}, optional 
+        logfile : {None, str}, optional
             Write a logfile to file with name `logfile`.
             Use '-' to write to std out.
         eigenchannels: {0, int}, optional
-            Number of eigenchannel transmission coefficients to 
-            calculate. 
+            Number of eigenchannel transmission coefficients to
+            calculate.
         pdos : {None, (N,) array_like}, optional
             Specify which basis functions to calculate the
             projected density of states for.
@@ -68,11 +68,11 @@ class TransportCalculator:
             YYY
             
         If hc1/hc2 are None, they are assumed to be identical to
-        the coupling matrix elements between neareste neighbor 
+        the coupling matrix elements between neareste neighbor
         principal layers in lead1/lead2.
 
-        Examples
-        ========
+        Examples:
+
         >>> import numpy as np
         >>> h = np.array((0,)).reshape((1,1))
         >>> h1 = np.array((0, -1, -1, 0)).reshape(2,2)
@@ -99,13 +99,13 @@ class TransportCalculator:
                                  'eta1': 1e-5,
                                  'eta2': 1e-5,
                                  'eta': 1e-5,
-                                 'logfile': None, # '-',
+                                 'logfile': None,
                                  'eigenchannels': 0,
                                  'dos': False,
                                  'pdos': [],
                                  }
-        self.initialized = False # Changed Hamiltonians?
-        self.uptodate = False # Changed energy grid?
+        self.initialized = False  # Changed Hamiltonians?
+        self.uptodate = False  # Changed energy grid?
         self.set(**kwargs)
 
     def set(self, **kwargs):
@@ -119,7 +119,7 @@ class TransportCalculator:
             elif key in ['energies', 'eigenchannels', 'dos', 'pdos']:
                 self.uptodate = False
             elif key not in self.input_parameters:
-                raise KeyError, '\'%s\' not a vaild keyword' % key
+                raise KeyError('%r not a vaild keyword' % key)
 
         self.input_parameters.update(kwargs)
         log = self.input_parameters['logfile']
