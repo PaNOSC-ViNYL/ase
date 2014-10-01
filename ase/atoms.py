@@ -9,7 +9,6 @@ object.
 
 import warnings
 from math import cos, sin
-import collections
 
 import numpy as np
 
@@ -591,7 +590,7 @@ class Atoms(object):
         if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
         try:
-            charges = self._calc.get_charges(self)
+            return self._calc.get_charges(self)
         except AttributeError:
             raise NotImplementedError
 
@@ -639,8 +638,8 @@ class Atoms(object):
         if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
         if force_consistent:
-            energy = self._calc.get_potential_energy(self,
-                                    force_consistent=force_consistent)
+            energy = self._calc.get_potential_energy(
+                self, force_consistent=force_consistent)
         else:
             energy = self._calc.get_potential_energy(self)
         if apply_constraint:
@@ -893,7 +892,7 @@ class Atoms(object):
         check_constraint = np.array([isinstance(c, FixAtoms)
                                      for c in self._constraints])
         if (len(self._constraints) > 0 and (not check_constraint.all() or
-            type(i) == list)):
+                                            isinstance(i, list))):
             raise RuntimeError('Remove constraint using set_constraint() '
                                'before deleting atoms.')
         mask = np.ones(len(self), bool)
@@ -1469,7 +1468,7 @@ class Atoms(object):
         return self._cell
 
     cell = property(_get_cell, set_cell, doc='Attribute for direct ' +
-                       'manipulation of the unit cell.')
+                    'manipulation of the unit cell.')
 
     def _get_pbc(self):
         """Return reference to pbc-flags for in-place manipulations."""
