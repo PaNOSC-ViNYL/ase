@@ -2,10 +2,8 @@
 
 import numpy as np
 
-#from ase.md import MolecularDynamics
 from ase.md.nvtberendsen import NVTBerendsen
 import ase.units as units
-#import math
 
 
 class NPTBerendsen(NVTBerendsen):
@@ -44,13 +42,13 @@ class NPTBerendsen(NVTBerendsen):
 
     """
 
-    def __init__(self, atoms, timestep, temperature, taut=0.5e3*units.fs,
-                 pressure = 1.01325, taup=1e3*units.fs,
+    def __init__(self, atoms, timestep, temperature, taut=0.5e3 * units.fs,
+                 pressure=1.01325, taup=1e3 * units.fs,
                  compressibility=4.57e-5, fixcm=True,
                  trajectory=None, logfile=None, loginterval=1):
 
         NVTBerendsen.__init__(self, atoms, timestep, temperature, taut, fixcm,
-                              trajectory, 
+                              trajectory,
                               logfile, loginterval)
         self.taup = taup
         self.pressure = pressure
@@ -80,17 +78,15 @@ class NPTBerendsen(NVTBerendsen):
     def get_timestep(self):
         return self.dt
 
-
-
     def scale_positions_and_cell(self):
         """ Do the Berendsen pressure coupling,
         scale the atom positon and the simulation cell."""
 
         taupscl = self.dt / self.taup
-        stress = self.atoms.get_stress()
-        old_pressure = self.atoms.get_isotropic_pressure(stress)
-        scl_pressure = 1.0 - taupscl * self.compressibility / 3.0 * \
-                       (self.pressure - old_pressure)
+        stress = self.atoms.get_stress(voigt=False)
+        old_pressure = -stress.trace() / 3 * 1e-5 / units.Pascal
+        scl_pressure = (1.0 - taupscl * self.compressibility / 3.0 *
+                        (self.pressure - old_pressure))
 
         #print "old_pressure", old_pressure
         #print "volume scaling by:", scl_pressure
@@ -116,8 +112,9 @@ class NPTBerendsen(NVTBerendsen):
             psum = p.sum(axis=0) / float(len(p))
             p = p - psum
 
-        self.atoms.set_positions(self.atoms.get_positions() +
-             self.dt * p / self.atoms.get_masses()[:,np.newaxis])
+        self.atoms.set_positions(
+            self.atoms.get_positions() +
+            self.dt * p / self.atoms.get_masses()[:, np.newaxis])
 
         # We need to store the momenta on the atoms before calculating
         # the forces, as in a parallel Asap calculation atoms may
@@ -129,9 +126,9 @@ class NPTBerendsen(NVTBerendsen):
         f = self.atoms.get_forces()
         atoms.set_momenta(self.atoms.get_momenta() + 0.5 * self.dt * f)
 
-
         return f
 
+        
 class Inhomogeneous_NPTBerendsen(NPTBerendsen):
     """Berendsen (constant N, P, T) molecular dynamics.
     
@@ -171,21 +168,22 @@ class Inhomogeneous_NPTBerendsen(NPTBerendsen):
         """ Do the Berendsen pressure coupling,
         scale the atom positon and the simulation cell."""
 
-        taupscl = self.dt  * self.compressibility / self.taup / 3.0
+        taupscl = self.dt * self.compressibility / self.taup / 3.0
         stress = - self.atoms.get_stress() * 1e-5 / units.Pascal
         if stress.shape == (6,):
             stress = stress[:3]
-        elif stress.shape == (3,3):
+        elif stress.shape == (3, 3):
             stress = [stress[i][i] for i in range(3)]
         else:
-            raise ValueError("Cannot use a stress tensor of shape " + str(stress.shape))
+            raise ValueError('Cannot use a stress tensor of shape ' +
+                             str(stress.shape))
         pbc = self.atoms.get_pbc()
         scl_pressurex = 1.0 - taupscl * (self.pressure - stress[0]) * pbc[0]
         scl_pressurey = 1.0 - taupscl * (self.pressure - stress[1]) * pbc[1]
         scl_pressurez = 1.0 - taupscl * (self.pressure - stress[2]) * pbc[2]
         
         cell = self.atoms.get_cell()
-        cell = np.array([scl_pressurex * cell[0],scl_pressurey * cell[1],scl_pressurez * cell[2]])
+        cell = np.array([scl_pressurex * cell[0],
+                         scl_pressurey * cell[1],
+                         scl_pressurez * cell[2]])
         self.atoms.set_cell(cell, scale_atoms=True)
-
-
