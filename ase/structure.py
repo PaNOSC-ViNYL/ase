@@ -282,19 +282,18 @@ def molecule(name, data=None, **kwargs):
     # accept only the following Atoms constructor arguments
     # XXX: should we accept all Atoms arguments?
     for k in args.keys():
-        if k not in [
-            'symbols', 'positions', 'numbers',
-            'tags', 'masses',
-            'magmoms', 'charges',
-            'info',
-            ]:
-            args.pop(k)
+        if k not in ['symbols', 'positions', 'numbers',
+                     'tags', 'masses',
+                     'magmoms', 'charges',
+                     'info']:
+            args.pop()
     # kwargs overwrites data
     args.update(kwargs)
     return Atoms(**args)
 
 
 def estimate_lattice_constant(name, crystalstructure, covera):
+    from ase.lattice import bulk
     atoms = bulk(name, crystalstructure, 1.0, covera)
     v0 = atoms.get_volume()
     v = 0.0
