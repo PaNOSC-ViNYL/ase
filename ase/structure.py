@@ -286,7 +286,7 @@ def molecule(name, data=None, **kwargs):
                      'tags', 'masses',
                      'magmoms', 'charges',
                      'info']:
-            args.pop()
+            args.pop(k)
     # kwargs overwrites data
     args.update(kwargs)
     return Atoms(**args)
