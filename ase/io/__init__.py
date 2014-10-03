@@ -77,6 +77,7 @@ def read(filename, index=None, format=None):
     Quantum espresso in file   esp_in
     Quantum espresso out file  esp_out
     Extended XYZ file          extxyz
+    NWChem input file          nw
     =========================  =============
 
     """
@@ -336,6 +337,10 @@ def read(filename, index=None, format=None):
         from ase.io.espresso import read_espresso_out
         return read_espresso_out(filename, index)
 
+    if format == 'nw':
+        from ase.io.nwchem import read_nwchem_input
+        return read_nwchem_input(filename)
+
     raise RuntimeError('File format descriptor ' + format + ' not recognized!')
 
 
@@ -493,7 +498,7 @@ def write(filename, images, format=None, **kwargs):
         return
     if format == 'extxyz':
         from ase.io.extxyz import write_xyz
-        write_xyz(filename, images, **kwargs)        
+        write_xyz(filename, images, **kwargs)
         return
     if format == 'gen':
         from ase.io.gen import write_gen
@@ -770,5 +775,8 @@ def filetype(filename):
 
     if filename.lower().endswith('.out'):
         return 'esp_out'
+
+    if filename.endswith('.nw'):
+        return 'nw'
 
     return 'xyz'

@@ -1,11 +1,10 @@
 from cStringIO import StringIO
-from ase.atoms import Atoms
 from ase.io.xyz import read_xyz
+
 
 def read_nwchem(filename):
     """Method to read geometry from a nwchem output
     """
-    from ase import Atoms, Atom
 
     f = filename
     if isinstance(filename, str):
@@ -15,7 +14,7 @@ def read_nwchem(filename):
 
     i = 0
     while i < len(lines):
-        if lines[i].find('XYZ format geometry') >=0:
+        if lines[i].find('XYZ format geometry') >= 0:
             natoms = int(lines[i + 2].split()[0])
             string = ''
             for j in range(2, natoms + 4):
@@ -35,15 +34,43 @@ def read_nwchem(filename):
 
     return atoms
 
+
+def read_nwchem_input(filename):
+    """Method to read geometry from an NWChem input file."""
+    f = filename
+    if isinstance(filename, str):
+        f = open(filename)
+    lines = f.readlines()
+
+    # Find geometry region of input file.
+    stopline = 0
+    for index, line in enumerate(lines):
+        if line.startswith('geometry'):
+            startline = index + 1
+            stopline = -1
+        elif (line.startswith('end') and stopline == -1):
+            stopline = index
+    # Format and send to read_xyz.
+    xyz_text = '%i\n' % (stopline - startline)
+    xyz_text += ' geometry\n'
+    for line in lines[startline:stopline]:
+        xyz_text += line
+    atoms = read_xyz(StringIO(xyz_text))
+    atoms.set_cell((0., 0., 0.))  # no unit cell defined
+
+    if type(filename) == str:
+        f.close()
+
+    return atoms
+
+
 def write_nwchem(filename, atoms, geometry=None):
     """Method to write nwchem coord file
     """
 
-    import numpy as np
-
     if isinstance(filename, str):
         f = open(filename, 'w')
-    else: # Assume it's a 'file-like object'
+    else:  # Assume it's a 'file-like object'
         f = filename
 
     # autosym and autoz are defaults
@@ -55,12 +82,12 @@ def write_nwchem(filename, atoms, geometry=None):
     else:
         f.write('geometry\n')
     for atom in atoms:
-        if atom.tag == -71: # 71 is ascii G (Ghost)
+        if atom.tag == -71:  # 71 is ascii G (Ghost)
             symbol = 'bq' + atom.symbol
         else:
             symbol = atom.symbol
         f.write('  ' + symbol + ' ' +
                 str(atom.position[0]) + ' ' +
                 str(atom.position[1]) + ' ' +
-                str(atom.position[2]) + '\n' )
+                str(atom.position[2]) + '\n')
     f.write('end\n')
