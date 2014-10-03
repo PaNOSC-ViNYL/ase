@@ -30,6 +30,7 @@ def parprint(*args, **kwargs):
 class DummyMPI:
     rank = 0
     size = 1
+
     def sum(self, a):
         if isinstance(a, np.ndarray) and a.ndim > 0:
             pass
@@ -128,6 +129,7 @@ def register_parallel_cleanup_function():
 
     atexit.register(cleanup)
 
+    
 def distribute_cpus(size, comm):
     """Distribute cpus to tasks and calculators.
 
@@ -148,4 +150,4 @@ def distribute_cpus(size, comm):
     ranks = np.arange(r0, r0 + size)
     mycomm = comm.new_communicator(ranks)
 
-    return mycomm, comm.size / size, tasks_rank 
+    return mycomm, comm.size / size, tasks_rank

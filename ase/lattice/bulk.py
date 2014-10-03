@@ -1,3 +1,4 @@
+from __future__ import division
 from math import sqrt
 
 from ase.atoms import Atoms, string2symbols
@@ -15,13 +16,13 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
         Chemical symbol or symbols as in 'MgO' or 'NaCl'.
     crystalstructure: str
         Must be one of sc, fcc, bcc, hcp, diamond, zincblende,
-        rocksalt, cesiumchloride, or fluorite.
+        rocksalt, cesiumchloride, fluorite or wurtzite.
     a: float
         Lattice constant.
     c: float
         Lattice constant.
     covera: float
-        c/a raitio used for hcp.  Use sqrt(8/3.0) for ideal ratio.
+        c/a raitio used for hcp.  Default is ideal ratio: sqrt(8/3).
     orthorhombic: bool
         Construct orthorhombic unit cell instead of primitive cell
         which is the default.
@@ -29,21 +30,16 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
         Construct cubic unit cell if possible.
     """
 
-    if a is not None:
-        a = float(a)
-    if c is not None:
-        c = float(c)
-
     if covera is not None and c is not None:
         raise ValueError("Don't specify both c and c/a!")
 
+    xref = None
+    
     if name in chemical_symbols:
         Z = atomic_numbers[name]
         ref = reference_states[Z]
         if ref is not None:
             xref = ref['symmetry']
-        else:
-            xref = None
 
     if crystalstructure is None:
         crystalstructure = xref
@@ -61,7 +57,7 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
             if xref == 'hcp':
                 covera = ref['c/a']
             else:
-                covera = sqrt(8.0 / 3.0)
+                covera = sqrt(8 / 3)
 
     if orthorhombic and crystalstructure != 'sc':
         return _orthorhombic_bulk(name, crystalstructure, a, covera)
@@ -84,7 +80,7 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
     elif crystalstructure == 'hcp':
         atoms = Atoms(2 * name,
                       scaled_positions=[(0, 0, 0),
-                                        (1.0 / 3.0, 2.0 / 3.0, 0.5)],
+                                        (1 / 3, 2 / 3, 0.5)],
                       cell=[(a, 0, 0),
                             (-a / 2, a * sqrt(3) / 2, 0),
                             (0, 0, covera * a)],
@@ -107,7 +103,17 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
         s1, s2, s3 = string2symbols(name)
         atoms = bulk(s1, 'fcc', a) + bulk(s2, 'fcc', a) + bulk(s3, 'fcc', a)
         atoms.positions[1, :] += a / 4
-        atoms.positions[2, :] += a * 3. / 4
+        atoms.positions[2, :] += a * 3 / 4
+    elif crystalstructure == 'wurtzite':
+        atoms = Atoms(2 * name,
+                      scaled_positions=[(0, 0, 0),
+                                        (1 / 3, 2 / 3, 0.125),
+                                        (1 / 3, 2 / 3, 0.5),
+                                        (0, 0, 0.625)],
+                      cell=[(a, 0, 0),
+                            (-a / 2, a * sqrt(3) / 2, 0),
+                            (0, 0, a * sqrt(8 / 3))],
+                      pbc=True)
     else:
         raise ValueError('Unknown crystal structure: ' + crystalstructure)
 
@@ -127,8 +133,8 @@ def _orthorhombic_bulk(name, crystalstructure, a, covera=None):
                       cell=(a, a * sqrt(3), covera * a),
                       scaled_positions=[(0, 0, 0),
                                         (0.5, 0.5, 0),
-                                        (0.5, 1.0 / 6.0, 0.5),
-                                        (0, 2.0 / 3.0, 0.5)],
+                                        (0.5, 1 / 6, 0.5),
+                                        (0, 2 / 3, 0.5)],
                       pbc=True)
     elif crystalstructure == 'diamond':
         atoms = _orthorhombic_bulk(2 * name, 'zincblende', a)

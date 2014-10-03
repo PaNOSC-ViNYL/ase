@@ -36,7 +36,7 @@ def main():
         help='Crystal structure.',
         choices=['sc', 'fcc', 'bcc', 'hcp', 'diamond',
                  'zincblende', 'rocksalt', 'cesiumchloride',
-                 'fluorite'])
+                 'fluorite', 'wurtzite'])
     add('-a', '--lattice-constant', default='',
         help='Lattice constant(s) in Angstrom.')
     add('--orthorhombic', action='store_true',
