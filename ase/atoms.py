@@ -1366,9 +1366,36 @@ class Atoms(object):
         D = R[No_list] - R[No_i]
         if mic:
             Dr = np.linalg.solve(self._cell, D.T)
-            D = np.dot(self._cell, Dr - (self._pbc * np.round(Dr).T).T)
-        return np.sqrt((D.T**2).sum(1))
+            D = np.dot(self._cell, Dr - (self._pbc * np.round(Dr).T).T).T
+        return np.sqrt((D**2).sum(1))
 
+    def get_distances_all(self, mic=False):
+        """Return distances of all of the atoms with all of the atoms.
+
+        Use mic=True to use the Minimum Image Convention.
+        """
+        L = len(self)
+        D = None
+        for i in range(L):
+            R = self.arrays['positions']
+            iD = R[range(i, L)] - R[i]
+            if D == None:
+                D = iD
+            else:
+                D = np.append(D, iD, axis=0)
+        if mic:
+            Dr = np.linalg.solve(self._cell, D.T)
+            D = np.dot(self._cell, Dr - (self._pbc * np.round(Dr).T).T).T
+        results = np.sqrt((D**2).sum(1))
+        ret = np.empty([L, L])
+        n = 0
+        for i in range(L):
+            for ii in range(i, L):
+                ret[i, ii] = results[n]
+                ret[ii, i] = ret[i, ii]
+                n += 1
+        return ret
+        
     def set_distance(self, a0, a1, distance, fix=0.5, mic=False):
         """Set the distance between two atoms.
 
