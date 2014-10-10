@@ -1356,30 +1356,30 @@ class Atoms(object):
             D = np.dot(Dr - np.round(Dr) * self._pbc, self._cell)
         return np.linalg.norm(D)
 
-    def get_distances(self, No_i, No_list, mic=False):
+    def get_distances(self, a, indices, mic=False):
         """Return distances of atom No.i with a list of atoms
 
         Use mic=True to use the Minimum Image Convention.
         """
 
         R = self.arrays['positions']
-        D = R[No_list] - R[No_i]
+        D = R[indices] - R[a]
         if mic:
             Dr = np.linalg.solve(self._cell, D.T)
             D = np.dot(self._cell, Dr - (self._pbc * np.round(Dr).T).T).T
         return np.sqrt((D**2).sum(1))
 
-    def get_distances_all(self, mic=False):
+    def get_all_distances(self, mic=False):
         """Return distances of all of the atoms with all of the atoms.
 
         Use mic=True to use the Minimum Image Convention.
         """
         L = len(self)
         D = None
+        R = self.arrays['positions']
         for i in range(L):
-            R = self.arrays['positions']
-            iD = R[range(i, L)] - R[i]
-            if D == None:
+            iD = R[i:] - R[i]
+            if D is None:
                 D = iD
             else:
                 D = np.append(D, iD, axis=0)

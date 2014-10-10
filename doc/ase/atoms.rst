@@ -316,6 +316,8 @@ Other methods
 * :meth:`~Atoms.copy`
 * :meth:`~Atoms.get_center_of_mass`
 * :meth:`~Atoms.get_distance`
+* :meth:`~Atoms.get_distances`
+* :meth:`~Atoms.get_all_distance`
 * :meth:`~Atoms.get_volume`
 * :meth:`~Atoms.has`
 * :meth:`~Atoms.edit`
