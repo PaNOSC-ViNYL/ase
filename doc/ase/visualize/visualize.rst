@@ -10,7 +10,7 @@ This provides an interface to various visualization tools, such as
 gOpenMol_, or Avogadro_. The default viewer is the ase.gui, described in the
 :mod:`ase.gui` module. The simplest invocation is:
 
->>> from ase import view
+>>> from ase.visualize import view
 >>> view(atoms)
 
 where ``atoms`` is any :class:`~ase.atoms.Atoms` object.  Alternative viewers
@@ -63,8 +63,8 @@ VTK
 .. module:: ase.visualize.vtk
 
 The Visualization Toolkit (VTK_) is a powerful platform-independent graphics
-engine, which comes as an open source graphics toolkit licensed under the 
-`BSD license`_. It is available for a wide range of programming languages, 
+engine, which comes as an open source graphics toolkit licensed under the
+`BSD license`_. It is available for a wide range of programming languages,
 including easily scriptable interfaces in Python and Tcl_.
 
 .. _BSD license: http://en.wikipedia.org/wiki/BSD_licenses
@@ -83,7 +83,7 @@ supported, namely:
         ASE includes VTK-scripting for easy data visualization using the
         :mod:`ase.visualize.vtk` module. Development is in progress, so
         you might want to
-        check out the latest development release from SVN 
+        check out the latest development release from SVN
         (see :ref:`latest_development_release`).
 
 :Interactive rendering:
@@ -91,7 +91,7 @@ supported, namely:
         VTK-wrapper (TVTK_), constructing VTK pipelines has been simplified greatly
         by introducing three basic concepts: data sources, filters and visualization
         modules. MayaVi also supports the VTK file formats, including the flexible
-        VTK XML, which in ASE can be used to export atomic positions, forces and 
+        VTK XML, which in ASE can be used to export atomic positions, forces and
         volume data using the ``write`` command in the :mod:`ase.io` module.
 
 .. XXX -        `VTK Designer`_ is a visual editor for creating and editing VTK pipelines.
@@ -110,7 +110,7 @@ generation and in-situ visualization of simulation data in cluster computing.
 
 .. seealso::
         ParaView_ is a VTK-based open-source, multi-platform data analysis and
-        visualization application for extremely large data-sets using distributed 
+        visualization application for extremely large data-sets using distributed
         memory computing resources and parallel rendering through MPI_.
 
 .. _MPI: http://www.mpi-forum.org

@@ -1035,7 +1035,7 @@ class Atoms(object):
         positions -= com  # translate center of mass to origin
         masses = self.get_masses()
 
-        #initialize elements of the inertial tensor
+        # Initialize elements of the inertial tensor
         I11 = I22 = I33 = I12 = I13 = I23 = 0.0
         for i in range(len(self)):
             x, y, z = positions[i]
