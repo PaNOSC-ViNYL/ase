@@ -191,7 +191,7 @@ class JSONDatabase(Database):
     @parallel
     @lock
     def update(self, ids, add_keywords=[], **add_key_value_pairs):
-        check(add_keywords, add_key_value_pairs)
+        check(add_key_value_pairs)
             
         if isinstance(ids, int):
             ids = [ids]
