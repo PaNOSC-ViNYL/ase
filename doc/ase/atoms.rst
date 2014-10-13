@@ -97,7 +97,7 @@ to modify the returned arrays.*
   * - :meth:`~Atoms.get_positions`
     - :meth:`~Atoms.set_positions`
   * - :meth:`~Atoms.get_potential_energies`
-    - 
+    -
   * - :meth:`~Atoms.get_scaled_positions`
     - :meth:`~Atoms.set_scaled_positions`
   * - :meth:`~Atoms.get_stresses`
@@ -117,23 +117,23 @@ common to all the atoms or defined for the collection of atoms:
   * - :meth:`~Atoms.get_cell`
     - :meth:`~Atoms.set_cell`
   * - :meth:`~Atoms.get_center_of_mass`
-    - 
+    -
   * - :meth:`~Atoms.get_kinetic_energy`
-    - 
+    -
   * - :meth:`~Atoms.get_magnetic_moment`
-    - 
+    -
   * - :meth:`~Atoms.get_number_of_atoms`
-    - 
+    -
   * - :meth:`~Atoms.get_pbc`
     - :meth:`~Atoms.set_pbc`
   * - :meth:`~Atoms.get_potential_energy`
-    - 
+    -
   * - :meth:`~Atoms.get_stress`
-    - 
+    -
   * - :meth:`~Atoms.get_total_energy`
-    - 
+    -
   * - :meth:`~Atoms.get_volume`
-    - 
+    -
 
 
 Unit cell and boundary conditions
@@ -317,7 +317,7 @@ Other methods
 * :meth:`~Atoms.get_center_of_mass`
 * :meth:`~Atoms.get_distance`
 * :meth:`~Atoms.get_distances`
-* :meth:`~Atoms.get_all_distance`
+* :meth:`~Atoms.get_all_distances`
 * :meth:`~Atoms.get_volume`
 * :meth:`~Atoms.has`
 * :meth:`~Atoms.edit`
