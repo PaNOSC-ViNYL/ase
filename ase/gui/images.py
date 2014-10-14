@@ -2,13 +2,12 @@ from math import sqrt
 
 import numpy as np
 
-from ase.data import covalent_radii
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
-from ase.io import read, write, string2index
 from ase.constraints import FixAtoms
+from ase.data import covalent_radii
 from ase.gui.defaults import read_defaults
-from ase.quaternions import Quaternion
+from ase.io import read, write, string2index
 
 
 class Images:
@@ -41,7 +40,7 @@ class Images:
                     self.shapes = np.array(shapes)
                 else:
                     print 'shape file has wrong format'
-            else: 
+            else:
                 print 'no shapesfile found: default shapes were used!'
                   
         else:
@@ -102,17 +101,16 @@ class Images:
                 self.T[i] = atoms.get_tags()
             except RuntimeError:
                 self.T[i] = 0
-                
 
         if warning:
             print('WARNING: Not all images have the same bondary conditions!')
             
         self.selected = np.zeros(self.natoms, bool)
-        self.selected_ordered  = []
+        self.selected_ordered = []
         self.atoms_to_rotate_0 = np.zeros(self.natoms, bool)
         self.visible = np.ones(self.natoms, bool)
         self.nselected = 0
-        self.set_dynamic(constraints = images[0].constraints)
+        self.set_dynamic(constraints=images[0].constraints)
         self.repeat = np.ones(3, int)
         self.set_radii(config['radii_scale'])
         
@@ -129,7 +127,7 @@ class Images:
             i = self.nimages
         for name in ('P', 'V', 'E', 'K', 'F', 'M', 'A', 'T', 'D', 'q'):
             a = getattr(self, name)
-            newa = np.empty( (i+1,) + a.shape[1:], a.dtype )
+            newa = np.empty((i + 1,) + a.shape[1:], a.dtype)
             if not self.next_append_clears:
                 newa[:-1] = a
             setattr(self, name, newa)
@@ -158,14 +156,14 @@ class Images:
             if i == 0:
                 self.T[i] = 0
             else:
-                self.T[i] = self.T[i-1]
+                self.T[i] = self.T[i - 1]
         self.nimages = i + 1
         self.filenames.append(filename)
         self.set_dynamic()
         return self.nimages
         
     def set_radii(self, scale):
-        if self.shapes == None:
+        if self.shapes is None:
             self.r = self.covalent_radii[self.Z] * scale
         else:
             self.r = np.sqrt(np.sum(self.shapes**2, axis=1)) * scale
@@ -174,7 +172,7 @@ class Images:
         images = []
         names = []
         for filename in filenames:
-            i = read(filename, index,filetype)
+            i = read(filename, index, filetype)
             
             if not isinstance(i, list):
                 i = [i]
@@ -182,6 +180,11 @@ class Images:
             names.extend([filename] * len(i))
             
         self.initialize(images, names)
+
+        for image in images:
+            if 'radii' in image.info:
+                self.set_radii(image.info['radii'])
+                break
     
     def import_atoms(self, filename, cur_frame):
         if filename:
@@ -273,7 +276,7 @@ class Images:
             return angle*180.0/np.pi
         # get number of mobile atoms for temperature calculation
         ndynamic = 0
-        for dyn in self.dynamic: 
+        for dyn in self.dynamic:
             if dyn: ndynamic += 1
         S = self.selected
         D = self.dynamic[:, np.newaxis]
@@ -302,14 +305,15 @@ class Images:
                 s += sqrt(((self.P[i + 1] - R)**2).sum())
         return xy
 
-    def set_dynamic(self, constraints = None):
+    def set_dynamic(self, constraints=None):
         self.dynamic = np.ones(self.natoms, bool)
         if constraints is not None:
-            for con in constraints: 
-                if isinstance(con,FixAtoms):
+            for con in constraints:
+                if isinstance(con, FixAtoms):
                     self.dynamic[con.index] = False
 
-    def write(self, filename, rotations='', show_unit_cell=False, bbox=None, **kwargs):
+    def write(self, filename, rotations='', show_unit_cell=False, bbox=None,
+              **kwargs):
         indices = range(self.nimages)
         p = filename.rfind('@')
         if p != -1:
@@ -325,7 +329,7 @@ class Images:
 
         images = [self.get_atoms(i) for i in indices]
         if len(filename) > 4 and filename[-4:] in ['.eps', '.png', '.pov']:
-            write(filename, images, 
+            write(filename, images,
                   rotation=rotations, show_unit_cell=show_unit_cell,
                   bbox=bbox, **kwargs)
         else:
@@ -344,7 +348,7 @@ class Images:
         
         # check for constrained atoms and add them accordingly:
         if not self.dynamic.all():
-            atoms.set_constraint(FixAtoms(mask=1-self.dynamic))
+            atoms.set_constraint(FixAtoms(mask=1 - self.dynamic))
         
         # Remove hidden atoms if applicable
         if remove_hidden:
@@ -448,7 +452,3 @@ class Images:
         self.T = T
         self.D = D
         self.filenames[1:1] = [None] * m
-
-if __name__ == '__main__':
-    import os
-    os.system('python gui.py')
