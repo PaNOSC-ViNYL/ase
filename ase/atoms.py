@@ -1375,14 +1375,11 @@ class Atoms(object):
         Use mic=True to use the Minimum Image Convention.
         """
         L = len(self)
-        D = None
+        D = []
         R = self.arrays['positions']
         for i in range(L):
-            iD = R[i:] - R[i]
-            if D is None:
-                D = iD
-            else:
-                D = np.append(D, iD, axis=0)
+            D.append(R[i:] - R[i])
+        D = np.concatenate(D)
         if mic:
             Dr = np.linalg.solve(self._cell, D.T)
             D = np.dot(self._cell, Dr - (self._pbc * np.round(Dr).T).T).T

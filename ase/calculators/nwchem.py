@@ -190,7 +190,7 @@ class NWChem(FileIOCalculator):
         self.nvector = self.read_number_of_bands()
         self.results['magmom'] = self.read_magnetic_moment()
         dipole = self.read_dipole_moment()
-        if dipole != None:
+        if dipole is not None:
             self.results['dipole'] = dipole
 
     def get_ibz_k_points(self):
@@ -244,11 +244,9 @@ class NWChem(FileIOCalculator):
     def read_dipole_moment(self):
         dipolemoment = []
         for line in open(self.label + '.out'):
-            for component in [
-                '1   1 0 0',
-                '1   0 1 0',
-                '1   0 0 1'
-                ]:
+            for component in ['1   1 0 0',
+                              '1   0 1 0',
+                              '1   0 0 1']:
                 if line.find(component) != -1:
                     value = float(line.split(component)[1].split()[0])
                     value = value * Bohr
@@ -299,8 +297,8 @@ class NWChem(FileIOCalculator):
                     kpts[spin].eps_n.append(this_eps)
                     if this_occ < 0.1 and this_eps < last_eps:
                         warn('HOMO above LUMO - if this is not an exicted ' +
-                            'state - this might be introduced by levelshift.',
-                                    RuntimeWarning)
+                             'state - this might be introduced by levelshift.',
+                             RuntimeWarning)
                     last_eps = this_eps
         self.kpts = kpts
 
