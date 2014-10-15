@@ -372,11 +372,10 @@ class ColorWindow(gtk.Window):
             self.gui.toggle_show_bonds(None)
         coords = self.gui.coordination
         existing = range(0, coords.max() + 1)
-        if (not hasattr(self, 'colordata_coordination') or 
-            len(self.colordata_coordination) != len(existing)):
-            colors = self.get_named_colors(len(existing))
+        if not hasattr(self, 'colordata_coordination'):
+            colors = self.get_named_colors(len(named_colors))
             self.colordata_coordination = [[x, y] for x, y in
-                                           zip(existing, colors)]
+                                           enumerate(colors)]
         self.actual_colordata = self.colordata_coordination
         self.color_labels = [(str(x) + ':') 
                              for x, y in self.colordata_coordination]
