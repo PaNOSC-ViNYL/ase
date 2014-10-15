@@ -19,6 +19,7 @@ from ase.gui.defaults import read_defaults
 from ase.utils import rotate
 from ase.quaternions import Quaternion
 
+
 class View:
     def __init__(self, vbox, rotations):
         self.colormode = 'jmol'  # The default colors
@@ -97,7 +98,9 @@ class View:
 
             filenames = self.images.filenames
             filename = filenames[frame]
-            if self.frame is None or filename != filenames[self.frame] or filename is None:
+            if (self.frame is None or
+                filename != filenames[self.frame] or
+                filename is None):
                 if filename is None:
                     filename = 'ase.gui'
             filename = basename(filename)
@@ -193,12 +196,16 @@ class View:
                         pbc=self.images.pbc))
         nb = nl.nneighbors + nl.npbcneighbors
         self.bonds = np.empty((nb, 5), int)
+        self.coordination = np.zeros((self.images.natoms), dtype=int)
         if nb == 0:
             return
         
         n1 = 0
         for a in range(self.images.natoms):
             indices, offsets = nl.get_neighbors(a)
+            self.coordination[a] += len(indices)
+            for a2 in indices:
+                self.coordination[a2] += 1
             n2 = n1 + len(indices)
             self.bonds[n1:n2, 0] = a
             self.bonds[n1:n2, 1] = indices
@@ -218,17 +225,18 @@ class View:
         self.menu_change = 1
         self.atoms_to_rotate = None
         for c_mode in ['Rotate', 'Orient', 'Move']:
-              self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' % c_mode).set_active(False)
+            self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' %
+                               c_mode).set_active(False)
         self.light_green_markings = 0
-        self.menu_change = 0        
+        self.menu_change = 0
         self.draw()
         
-                      
     def toggle_mode(self, mode):
         self.menu_change = 1
         i_sum = 0
         for c_mode in ['Rotate', 'Orient', 'Move']:
-            i_sum += self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' % c_mode).get_active() 
+            i_sum += self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' %
+                                        c_mode).get_active()
         if i_sum == 0 or (i_sum == 1 and sum(self.images.selected) == 0):
             self.reset_tools_modes()
             return()
@@ -243,12 +251,14 @@ class View:
 
         for c_mode in ['Rotate', 'Orient', 'Move']:
             if c_mode != mode:
-                  self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' % c_mode).set_active(False) 
+                self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' %
+                                   c_mode).set_active(False) 
         
-        if self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' % mode).get_active():
+        if self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' %
+                              mode).get_active():
             self.atoms_to_rotate_0 = self.images.selected.copy()
             for i in range(len(self.images.selected)):
-               self.images.selected[i] = False
+                self.images.selected[i] = False
             self.light_green_markings = 1
         else:
             try: 
@@ -263,10 +273,13 @@ class View:
                       
     def toggle_move_mode(self, action):
         """
-        Toggles the move mode, where the selected atoms can be moved with the arrow
-        keys and pg up/dn. If the shift key is pressed, the movement will be reduced.
+        Toggles the move mode, where the selected atoms 
+        can be moved with the arrow
+        keys and pg up/dn. If the shift key is pressed, 
+        the movement will be reduced.
         
-        The movement will be relative to the current rotation of the coordinate system.
+        The movement will be relative to the current 
+        rotation of the coordinate system.
         
         The implementation of the move mode is found in the gui.scroll
         """
@@ -471,6 +484,10 @@ class View:
                   self.colormode_charge_data[1]        )
             nq = np.clip(nq.astype(int), 0, len(self.colors)-1)
             colors = np.array(colarray)[nq]
+        elif self.colormode == 'coordination':
+            if not hasattr(self, 'coordination'):
+                self.bind(self.frame)
+            colors = np.array(colarray)[self.coordination]
         elif self.colormode == 'manual':
             colors = colarray
         elif self.colormode == 'same':
@@ -798,7 +815,7 @@ class View:
                                  (-s * a, -s * b, c)])
             self.axes = np.dot(self.axes0, rotation)
             if self.images.natoms > 0:
-                com = self.X[:self.images.natoms].mean(0)
+                com = self.X[:self.images.natoms].mean(0) 
             else:
                 com = self.images.A[self.frame].mean(0)
             self.center = com - np.dot(com - self.center0,
@@ -837,16 +854,16 @@ class View:
         
     # Redraw the screen from the backing pixmap
     def expose_event(self, drawing_area, event):
-        x, y, width, height = event.area
+        x , y, width, height = event.area
         gc = self.background_gc
         drawing_area.window.draw_drawable(gc, self.pixmap,
                                           x, y, x, y, width, height)
 
     def external_viewer(self, action):
         name = action.get_name()
-        command = {'Avogadro': 'avogadro',
-                   'XMakeMol': 'xmakemol -f',
-                   'RasMol': 'rasmol -xyz',
+        command = {'Avogadro' : 'avogadro',
+                   'XMakeMol' : 'xmakemol -f',
+                   'RasMol':'rasmol -xyz',
                    'VMD': 'vmd'}[name]
         fd, filename = tempfile.mkstemp('.xyz', 'ase.gui-')
         os.close(fd)

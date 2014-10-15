@@ -47,6 +47,8 @@ class ColorWindow(gtk.Window):
         self.radio_force = gtk.RadioButton(self.radio_jmol, _('By force'))
         self.radio_velocity = gtk.RadioButton(self.radio_jmol, _('By velocity'))
         self.radio_charge = gtk.RadioButton(self.radio_jmol, _('By charge'))
+        self.radio_coordination = gtk.RadioButton(
+            self.radio_jmol, _('By coordination'))
         self.radio_manual = gtk.RadioButton(self.radio_jmol, _('Manually specified'))
         self.radio_same = gtk.RadioButton(self.radio_jmol, _('All the same color'))
         self.force_box = gtk.VBox()
@@ -54,7 +56,8 @@ class ColorWindow(gtk.Window):
         self.charge_box = gtk.VBox()
         for widget in (self.radio_jmol, self.radio_atno, self.radio_tag,
                        self.radio_force, self.force_box, self.radio_velocity,
-                       self.radio_charge, self.charge_box,
+                       self.radio_charge, self.charge_box, 
+                       self.radio_coordination,
                        self.velocity_box, self.radio_manual, self.radio_same):
             pack(self.methodbox, [widget])
             if isinstance(widget, gtk.RadioButton):
@@ -194,6 +197,8 @@ class ColorWindow(gtk.Window):
             self.radio_velocity.set_active(True)
         elif cm == 'charge':
             self.radio_charge.set_active(True)
+        elif cm == 'coordination':
+            self.radio_coordination.set_active(True)
         elif cm == 'manual':
             self.radio_manual.set_active(True)
         elif cm == 'same':
@@ -225,6 +230,8 @@ class ColorWindow(gtk.Window):
         elif widget is self.radio_charge:
             self.show_charge_stuff()
             self.set_charge_colors()
+        elif widget is self.radio_coordination:
+            self.set_coordination_colors()
         elif widget is self.radio_manual:
             self.set_manual_colors()
         elif widget is self.radio_same:
@@ -359,6 +366,23 @@ class ColorWindow(gtk.Window):
         factor = self.charge_steps.value / (qmax - qmin)
         self.colormode_charge_data = (qmin, factor)
 
+    def set_coordination_colors(self, *args):
+        "Use coordination as basis for the colors."
+        if not hasattr(self.gui, 'coordination'):
+            self.gui.toggle_show_bonds(None)
+        coords = self.gui.coordination
+        existing = range(coords.min(), coords.max() + 1)
+        if (not hasattr(self, 'colordata_coordination') or 
+            len(self.colordata_coordination) != len(existing)):
+            colors = self.get_named_colors(len(existing))
+            self.colordata_coordination = [[x, y] for x, y in
+                                           zip(existing, colors)]
+        self.actual_colordata = self.colordata_coordination
+        self.color_labels = [(str(x) + ':') 
+                             for x, y in self.colordata_coordination]
+        self.make_colorwin()
+        self.colormode = 'coordination'
+
     def set_manual_colors(self):
         "Set colors of all atoms from the last selection."
         # We cannot directly make np.arrays of the colors, as they may
@@ -398,8 +422,12 @@ class ColorWindow(gtk.Window):
             nq = ((q - self.colormode_charge_data[0]) * 
                   self.colormode_charge_data[1])
             nq = np.clip(nq.astype(int), 0, len(oldcolors)-1)
-            print "nq = ", nq
+##            print "nq = ", nq
             colors[:] = oldcolors[nq]
+        elif self.colormode == 'coordination':
+            oldcolors = np.array([None] * len(self.actual_colordata))
+            oldcolors[:] = [y for x, y in self.actual_colordata]
+            print self.gui.images.bonds
         elif self.colormode == 'same':
             oldcolor = self.actual_colordata[0][1]
             if len(colors) == len(oldcolor):
