@@ -37,6 +37,7 @@ class NWChem(FileIOCalculator):
                      'gradient': None,
                      'lshift': None,
                      # set lshift to 0.0 for nolevelshifting
+                     'damp': None,
                      },
         basis='3-21G',
         basispar=None,
@@ -188,7 +189,9 @@ class NWChem(FileIOCalculator):
         self.nelect = self.read_number_of_electrons()
         self.nvector = self.read_number_of_bands()
         self.results['magmom'] = self.read_magnetic_moment()
-        self.results['dipole'] = self.read_dipole_moment()
+        dipole = self.read_dipole_moment()
+        if dipole != None:
+            self.results['dipole'] = dipole
 
     def get_ibz_k_points(self):
         return np.array([0., 0., 0.])
@@ -251,8 +254,10 @@ class NWChem(FileIOCalculator):
                     value = value * Bohr
                     dipolemoment.append(value)
         if len(dipolemoment) == 0:
-            assert len(self.atoms) == 1
-            dipolemoment = [0.0, 0.0, 0.0]
+            if len(self.atoms) == 1:
+                dipolemoment = [0.0, 0.0, 0.0]
+            else:
+                return None
         return np.array(dipolemoment)
 
     def read_energy(self):
