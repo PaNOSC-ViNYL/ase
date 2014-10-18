@@ -122,6 +122,25 @@ It will check the PEP8_ conventions for you.  Try::
 
   $ pep8.py --help
 
+.. _autopep8py:
+
+Run autopep8.py on your code
+============================
+
+Another method of enforcing PEP8_ is using a tool such as 
+`autopep8.py <https://github.com/hhatto/autopep8>`_. These tools tend to be
+very effective at cleaning up code, but should be used carefully and code
+should be retested after cleaning it. Try::
+
+  $ autopep8.py --help
+
+.. attention::
+
+   There is a common issue with pep8 where spaces are added around the power
+   operator.  Code such as "x**2" should not be changed to "x ** 2".  This
+   issue is not fixed in pep8 as of the time of this writing, but a small
+   `change <http://listserv.fysik.dtu.dk/pipermail/gpaw-developers/2014-October/005075.html>`_
+   to autopep8 has been effective to prevent this change.
 
 .. _pylint:
 
