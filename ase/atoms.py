@@ -1373,26 +1373,24 @@ class Atoms(object):
         """Return distances of all of the atoms with all of the atoms.
 
         Use mic=True to use the Minimum Image Convention.
+        Use squared=True to return the squared distances.
         """
         L = len(self)
-        D = []
         R = self.arrays['positions']
+
+        D = []
         for i in range(L):
-            D.append(R[i:] - R[i])
+            D.append(R - R[i])
         D = np.concatenate(D)
+
         if mic:
             Dr = np.linalg.solve(self._cell, D.T)
             D = np.dot(self._cell, Dr - (self._pbc * np.round(Dr).T).T).T
-        results = np.sqrt((D**2).sum(1))
-        ret = np.empty([L, L])
-        n = 0
-        for i in range(L):
-            for ii in range(i, L):
-                ret[i, ii] = results[n]
-                ret[ii, i] = ret[i, ii]
-                n += 1
-        return ret
-        
+
+        results = np.sqrt((D**2).sum(1)) 
+        results.shape = (L, L)
+        return results
+
     def set_distance(self, a0, a1, distance, fix=0.5, mic=False):
         """Set the distance between two atoms.
 
