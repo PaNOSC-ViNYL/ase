@@ -20,9 +20,9 @@ class STM:
         """
 
         if isinstance(atoms, str):
-           with open(atoms, 'rb') as f:
-               self.ldos, self.bias, self.cell = pickle.load(f)
-           self.atoms = None
+            with open(atoms, 'rb') as f:
+                self.ldos, self.bias, self.cell = pickle.load(f)
+            self.atoms = None
         else:
             self.atoms = atoms
             self.cell = atoms.cell
@@ -192,7 +192,7 @@ def find_height(ldos, current, h, z0=None):
             break
         n -= 1
     else:
-        raise RuntimeError('Tip crash!')
+        return 0.0
 
     c2, c1 = ldos[n:n + 2]
     return (n + 1 - (current - c1) / (c2 - c1)) * h
