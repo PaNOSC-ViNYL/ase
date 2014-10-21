@@ -30,7 +30,7 @@ Some of these packages may already be installed on your system.
 .. _SciPy: http://www.scipy.org/
 
 
-Specific information for different operating systems 
+Specific information for different operating systems
 is provided at :ref:`installation`.
 
 .. _download:
@@ -337,7 +337,7 @@ to the requested version, e.g.:
 - if retrieved as tar-file::
 
    $ cd $HOME
-   $ tar zxf python-ase-3.8.0.3420.tar.gz
+   $ tar -xf python-ase-3.8.0.3420.tar.gz
    $ ln -s python-ase-3.8.0.3420 ase
 
 It is sufficient to
