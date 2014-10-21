@@ -1,9 +1,8 @@
-from math import sin, cos, pi, sqrt
-
 import numpy as np
 
-from ase.atoms import Atoms, Atom
+from ase import Atoms
 from ase.units import Bohr, Ry
+
 
 def read_scf(filename):
     try:
@@ -18,7 +17,8 @@ def read_scf(filename):
     except:
         return None
 
-def read_struct(filename, ase = True):
+        
+def read_struct(filename, ase=True):
     f = open(filename, 'r')
     pip = f.readlines()
     lattice = pip[1][0:3]
@@ -62,7 +62,7 @@ def read_struct(filename, ase = True):
             pos = np.append(pos, np.array([[float(pip[iline][12:22]),
                                             float(pip[iline][25:35]),
                                             float(pip[iline][38:48])]]),
-                            axis = 0)
+                            axis=0)
         indif += 1
         iline += 1
         neq[iat] = int(pip[iline][15:17])
@@ -71,7 +71,7 @@ def read_struct(filename, ase = True):
             pos = np.append(pos, np.array([[float(pip[iline][12:22]),
                                             float(pip[iline][25:35]),
                                             float(pip[iline][38:48])]]),
-                            axis = 0)
+                            axis=0)
             indif += 1
             iline += 1
         for i in range(indif - indifini):
@@ -80,32 +80,33 @@ def read_struct(filename, ase = True):
         iline += 4
     if ase:
         cell2 = coorsys(cell)
-        atoms = Atoms(atomtype, pos, pbc = True)
-        atoms.set_cell(cell2, scale_atoms = True)
+        atoms = Atoms(atomtype, pos, pbc=True)
+        atoms.set_cell(cell2, scale_atoms=True)
         cell2 = np.dot(c2p(lattice), cell2)
         if lattice == 'R':
-            atoms.set_cell(cell2, scale_atoms = True)
+            atoms.set_cell(cell2, scale_atoms=True)
         else:
             atoms.set_cell(cell2)
         return atoms
     else:
         return cell, lattice, pos, atomtype, rmt
 
-def write_struct(filename, atoms2 = None, rmt = None, lattice = 'P', zza=None):
-    atoms=atoms2.copy()
+        
+def write_struct(filename, atoms2=None, rmt=None, lattice='P', zza=None):
+    atoms = atoms2.copy()
     atoms.set_scaled_positions(atoms.get_scaled_positions())
     f = file(filename, 'w')
     f.write('ASE generated\n')
     nat = len(atoms)
-    if rmt == None:
+    if rmt is None:
         rmt = [2.0] * nat
-    f.write(lattice+'   LATTICE,NONEQUIV.ATOMS:%3i\nMODE OF CALC=RELA\n'%nat)
+        f.write(lattice +
+                '   LATTICE,NONEQUIV.ATOMS:%3i\nMODE OF CALC=RELA\n' % nat)
     cell = atoms.get_cell()
     metT = np.dot(cell, np.transpose(cell))
     cell2 = cellconst(metT)
     cell2[0:3] = cell2[0:3] / Bohr
     f.write(('%10.6f' * 6) % tuple(cell2) + '\n')
-    #print atoms.get_positions()[0]
     if zza is None:
         zza = atoms.get_atomic_numbers()
     for ii in range(nat):
@@ -115,7 +116,7 @@ def write_struct(filename, atoms2 = None, rmt = None, lattice = 'P', zza=None):
         f.write('          MULT= 1          ISPLIT= 1\n')
         zz = zza[ii]
         if zz > 71:
-            ro = 0.000005 
+            ro = 0.000005
         elif zz > 36:
             ro = 0.00001
         elif zz > 18:
@@ -129,15 +130,18 @@ def write_struct(filename, atoms2 = None, rmt = None, lattice = 'P', zza=None):
         f.write('                     %9.7f %9.7f %9.7f\n' % (0.0, 0.0, 1.0))
     f.write('   0\n')
 
+    
 def cellconst(metT):
+    """ metT=np.dot(cell,cell.T) """
     aa = np.sqrt(metT[0, 0])
     bb = np.sqrt(metT[1, 1])
     cc = np.sqrt(metT[2, 2])
     gamma = np.arccos(metT[0, 1] / (aa * bb)) / np.pi * 180.0
-    beta  = np.arccos(metT[0, 2] / (aa * cc)) / np.pi * 180.0
+    beta = np.arccos(metT[0, 2] / (aa * cc)) / np.pi * 180.0
     alpha = np.arccos(metT[1, 2] / (bb * cc)) / np.pi * 180.0
     return np.array([aa, bb, cc, alpha, beta, gamma])
 
+    
 def coorsys(latconst):
     a = latconst[0]
     b = latconst[1]
@@ -145,15 +149,16 @@ def coorsys(latconst):
     cal = np.cos(latconst[3] * np.pi / 180.0)
     cbe = np.cos(latconst[4] * np.pi / 180.0)
     cga = np.cos(latconst[5] * np.pi / 180.0)
-    sal = np.sin(latconst[3] * np.pi / 180.0)
-    sbe = np.sin(latconst[4] * np.pi / 180.0)
     sga = np.sin(latconst[5] * np.pi / 180.0)
     return np.array([[a, b * cga, c * cbe],
                      [0, b * sga, c * (cal - cbe * cga) / sga],
-                     [0, 0, c * np.sqrt(1 - cal**2 - cbe**2 - cga**2 + 2 * cal * cbe * cga) / sga]]).transpose()
+                     [0, 0, c * np.sqrt(1 - cal**2 - cbe**2 - cga**2 +
+                                        2 * cal * cbe * cga) / sga]
+                     ]).transpose()
 
+    
 def c2p(lattice):
-    # apply as eg. cell2 = np.dot(ct.c2p('F'), cell)
+    """ apply as eg. cell2 = np.dot(c2p('F'), cell)"""
     if lattice == 'P':
         cell = np.eye(3)
     elif lattice == 'F':
@@ -162,8 +167,12 @@ def c2p(lattice):
         cell = np.array([[-0.5, 0.5, 0.5], [0.5, -0.5, 0.5], [0.5, 0.5, -0.5]])
     elif lattice == 'C':
         cell = np.array([[0.5, 0.5, 0.0], [0.5, -0.5, 0.0], [0.0, 0.0, -1.0]])
+    elif lattice == 'B':
+        cell = np.array([[0.5, 0.0, 0.5], [0.0, 1.0, 0.0], [0.5, 0.0, -0.5]])
     elif lattice == 'R':
-        cell = np.array([[2.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0], [-1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0], [-1.0 / 3.0, -2.0/3.0, 1.0 / 3.0]])
+        cell = np.array([[2.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0],
+                         [-1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0],
+                         [-1.0 / 3.0, -2.0 / 3.0, 1.0 / 3.0]])
 
     else:
         print 'lattice is ' + lattice + '!'
