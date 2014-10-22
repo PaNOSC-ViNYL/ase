@@ -89,7 +89,7 @@ To prevent clutter we import the relax function from the following script:
 					
 The relaxation script is naturally similar to the script we used to calculate the references_. 
 
-*Note* that the global optimum is :mol:`PtNi_3` with a -0.11 eV heat of formation, whereas the second worst alloy is :mol:`AlNi_3` heat of formation 0.26 eV. This result is in complete contrast to the conclusion obtained in [Jóhannesson]_, where :mol:`AlNi_3` is the most stable alloy within the phase space chosen here. Obviously there is a limit to the predictive power of EMT!
+*Note* that the global optimum is :mol:`PtNi_3` with a -0.12 eV heat of formation, whereas the second worst alloy is :mol:`AlNi_3` heat of formation 0.26 eV. This result is in complete contrast to the conclusion obtained in [Jóhannesson]_, where :mol:`AlNi_3` is the most stable alloy within the phase space chosen here. Obviously there is a limit to the predictive power of EMT!
 					
 Extending the algorithm
 =======================
