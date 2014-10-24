@@ -50,7 +50,7 @@ class Dynamics:
     def get_number_of_steps(self):
         return self.nsteps
 
-    def insert_observer(self, function, position=0, interval=1, 
+    def insert_observer(self, function, position=0, interval=1,
                         *args, **kwargs):
         """Insert an observer."""
         if not callable(function):
@@ -60,8 +60,11 @@ class Dynamics:
     def attach(self, function, interval=1, *args, **kwargs):
         """Attach callback function.
 
-        At every *interval* steps, call *function* with arguments
-        *args* and keyword arguments *kwargs*."""
+        If *interval > 0*, at every *interval* steps, call *function* with arguments
+        *args* and keyword arguments *kwargs*.
+
+        If *interval <= 0*, after step *interval*, call *function* with arguments
+        *args* and keyword arguments *kwargs*.  This is currently zero indexed."""
 
         if not hasattr(function, '__call__'):
             function = function.write
@@ -69,7 +72,16 @@ class Dynamics:
 
     def call_observers(self):
         for function, interval, args, kwargs in self.observers:
-            if self.nsteps % interval == 0:
+            call = False
+            # Call every interval iterations
+            if interval > 0:
+                if (self.nsteps % interval) == 0:
+                    call = True
+            # Call only on iteration interval
+            elif interval <= 0:
+                if self.nsteps == abs(interval):
+                    call = True
+            if call:
                 function(*args, **kwargs)
 
 
@@ -98,6 +110,7 @@ class Optimizer(Dynamics):
         else:
             self.read()
             barrier()
+
     def initialize(self):
         pass
 
