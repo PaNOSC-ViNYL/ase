@@ -96,7 +96,8 @@ class Table:
             n = columns.index(sort.lstrip('-'))
             
             def key(row):
-                return row.values[n]
+                x = row.values[n]
+                return (x is None, x)
                 
             self.rows = sorted(self.rows, key=key, reverse=reverse)
             
