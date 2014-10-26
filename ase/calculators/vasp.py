@@ -663,7 +663,7 @@ class Vasp(Calculator):
         self.read_incar()
         self.read_outcar()
         self.set_results(atoms)
-        if 'kspacing' not in self.float_params:
+        if not self.float_params['kspacing']:
             self.read_kpoints()
         self.read_potcar()
 
