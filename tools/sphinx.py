@@ -1,20 +1,17 @@
 #!/usr/bin/python
 import os
 import sys
-import time
-import glob
-import trace
 import tempfile
 
 if '--dir' in sys.argv:
     i = sys.argv.index('--dir')
-    dir = sys.argv[i+1]
+    dir = sys.argv[i + 1]
 else:
     dir = None
 
 if '--email' in sys.argv:
     i = sys.argv.index('--email')
-    email = sys.argv[i+1]
+    email = sys.argv[i + 1]
 else:
     email = None
 
@@ -26,12 +23,13 @@ else:
 
 if '--tarfiledir' in sys.argv:
     i = sys.argv.index('--tarfiledir')
-    tarfiledir = sys.argv[i+1]
+    tarfiledir = sys.argv[i + 1]
 else:
     tarfiledir = None
 
 tmpdir = tempfile.mkdtemp(prefix='ase-sphinx-', dir=dir)
 os.chdir(tmpdir)
+
 
 def build(email):
     if os.system('svn checkout ' +
@@ -89,12 +87,14 @@ def build(email):
             fd.write(''.join(errors))
             fd.close()
             if 1 and email is not None:
-                x = os.system('mail -s "ASE: EpyDoc errors" %s < epydoc.errors' % email)
+                x = os.system(
+                    'mail -s "ASE: EpyDoc errors" %s < epydoc.errors' % email)
                 assert x == 0
 
         os.chdir('doc')
         os.mkdir('_build')
-        if os.system('PYTHONPATH=%s/lib/python sphinx-build . _build' % tmpdir) != 0:
+        if os.system('PYTHONPATH=%s/lib/python sphinx-build . _build' %
+                     tmpdir) != 0:
             raise RuntimeError('Sphinx failed!')
         os.system('cd _build; cp _static/searchtools.js .; ' +
                   'sed -i s/snapshot.tar/%s.tar/ download.html' % version)
@@ -103,11 +103,15 @@ def build(email):
             if os.system('PYTHONPATH=%s/lib/python ' % tmpdir +
                          'sphinx-build -b latex . _build 2> error') != 0:
                 raise RuntimeError('Sphinx failed!')
-            os.system(
-                'grep -v "WARNING: unusable reference target found" error 1>&2')
+            os.system('grep -v "WARNING: unusable reference target found"' +
+                      'error 1>&2')
+            # Don't serve mixed content:
+            assert os.system(
+                'cd _build; find -name "*.html" | xargs sed -i ' +
+                '"s%http://cdn.mathjax.org%https://cdn.mathjax.org%"') == 0
             
             os.chdir('_build')
-            #os.system('cd ../..; ln -s doc/_static')
+            # os.system('cd ../..; ln -s doc/_static')
             if os.system('make ase-manual.pdf 2>&1') != 0:
                 raise RuntimeError('pdflatex failed!')
         else:
