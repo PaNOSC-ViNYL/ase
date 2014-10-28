@@ -13,7 +13,7 @@ db = PrepareDB('fcc_alloys.db',
                metals=metals)
 
 # Create starting population
-for i in xrange(population_size):
-    atoms_string = [random.choice(metals) for _ in xrange(4)]
+for i in range(population_size):
+    atoms_string = [random.choice(metals) for _ in range(4)]
     db.add_unrelaxed_candidate(Atoms(atoms_string),
                                atoms_string=''.join(atoms_string))

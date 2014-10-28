@@ -1,10 +1,15 @@
 .. _fcc_alloys_tutorial:
 
-=================================
- GA Search for stable FCC alloys
-=================================
+===============================
+GA Search for stable FCC alloys
+===============================
 
-In this tutorial we will emulate an older paper [Jóhannesson]_ and determine the most stable FCC alloy using the genetic algorithm. Since the purpose is only the tutorial we will limit the phase space to the elements supported by the `EMT potential`_. The search is also equivalent to the recent search for mixed metal ammines with superior properties for ammonia storage described here:
+In this tutorial we will emulate an older paper [Jóhannesson]_ and determine
+the most stable FCC alloy using the genetic algorithm. Since the purpose is
+only the tutorial we will limit the phase space to the elements supported by
+the `EMT potential`_. The search is also equivalent to the recent search for
+mixed metal ammines with superior properties for ammonia storage described
+here:
 
 .. _`EMT potential`: https://wiki.fysik.dtu.dk/ase/ase/calculators/emt.html#module-ase.calculators.emt
 
@@ -20,14 +25,32 @@ In this tutorial we will emulate an older paper [Jóhannesson]_ and determine th
 Basic outline of the search
 ===========================
 
-1. Choose the phase space of your problem. Is the number of possible individuals large enough to prevent a full screening and is the fitness function too discontinuous for a traditional optimization by derivation? If so continue.
-#. Choose model structures and calculate references in those structures. Put the results somewhere accesible for a script initiated by the genetic algorithm.
-#. Choose suitable parameters like population size (general rule of thumb for the population size: :mol:`log_2(N) < pop size < 2log_2(N)`, where N is the size of the phase space), convergence criteria etc.
-#. Create the initial population.
-#. Choose procreation operators, i.e. how should offspring be produced. New operators can easily be created by modifying the existing operators.
-#. Run the algorithm.
+1. Choose the phase space of your problem. Is the number of possible
+   individuals large enough to prevent a full screening and is the fitness
+   function too discontinuous for a traditional optimization by derivation? If
+   so continue.
 
-Here we would like to predict the most stable fcc alloys. In this tutorial we only have the `EMT potential`__ available thus we are limited to the supported metal elements: Al, Ni, Cu, Pd, Ag, Pt and Au. We limit ourselves to at most 4 different metals in one structure, thereby having only `7^4 = 2401` candidates in the phase space, symmetry would make this number even lower but the number is fitting for this tutorial.
+2. Choose model structures and calculate references in those structures. Put
+   the results somewhere accesible for a script initiated by the genetic
+   algorithm.
+
+3. Choose suitable parameters like population size (general rule of thumb for
+   the population size: `log_2(N)` < pop size < `2log_2(N)`, where `N` is the
+   size of the phase space), convergence criteria etc.
+
+4. Create the initial population.
+
+5. Choose procreation operators, i.e. how should offspring be produced. New
+   operators can easily be created by modifying the existing operators.
+
+6. Run the algorithm.
+
+Here we would like to predict the most stable fcc alloys. In this tutorial we
+only have the `EMT potential`__ available thus we are limited to the
+supported metal elements: Al, Ni, Cu, Pd, Ag, Pt and Au. We limit ourselves
+to at most 4 different metals in one structure, thereby having only `7^4 =
+2401` candidates in the phase space, symmetry would make this number even
+lower but the number is fitting for this tutorial.
 
 __ `EMT potential`_
 
@@ -47,34 +70,34 @@ be in a central database server where keywords distinguish
 between different references or dedicated separate
 databases for each different type of reference calculations.
 
-In the following script, :download:`ga_fcc_references.py`, we put the references in the database file *refs.db*. Our model structure is fcc which is loaded with :func:`ase.lattice.cubic.FaceCenteredCubic`. We perform a volume relaxation to find the optimal lattice constant and lowest energy, which we save in the database as key-value pairs for quick retrieval. 
+In the following script, :download:`ga_fcc_references.py`, we put the references in the database file *refs.db*. Our model structure is fcc which is loaded with :func:`ase.lattice.cubic.FaceCenteredCubic`. We perform a volume relaxation to find the optimal lattice constant and lowest energy, which we save in the database as key-value pairs for quick retrieval.
 
 .. literalinclude:: ga_fcc_references.py
-					
-					
+                                        
+                                        
 Initial population
 ==================
 
 We choose a population size of 10 individuals and create the initial population by randomly selecting four elements for each starting individual.
 
 .. literalinclude:: ga_fcc_alloys_start.py
-					
+                                        
 Note how we add the population size and metals as extra key-value pairs when we create the database *fcc_alloys.db*. We can then retrieve these parameters later when running the main script to avoid having to input the same parameters twice.
 
 We can study our initial population by doing (on the command-line)::
   
     $ ase-db fcc_alloys.db -c +atoms_string
-	
+        
 the term ``atoms_string`` determines the order in which the elements are put into the model structure. So it is possible to fully describe an individual by just providing the ``atoms_string``.
-	
-	
+        
+        
 .. _`main script`:
 
 Run the algorithm
 =================
 
 .. literalinclude:: ga_fcc_alloys_main.py
-					
+                                        
 In this script we run a generational GA as opposed to the pool GA outlined in :ref:`genetic_algorithm_optimization_tutorial`. This is achieved by having two for-loops; the innermost loop runs the number of times specified by the population size it corresponds to one generation. The outermost loop runs as many generations as specified in ``num_gens``. The function :func:`pop.update()` is called after the innermost loop has finished thereby only adding individuals to the population after a whole generation is calculated.
 
 After each generation is finished the population is printed to the screen so we can follow the evolution. The calculated individuals are continuously added to ``fcc_alloys.db``, we can evaluate them directly by doing from the command line (in another shell instance if the GA is still running)::
@@ -84,13 +107,13 @@ After each generation is finished the population is printed to the screen so we 
 To prevent clutter we import the relax function from the following script:
 
 .. _`relaxation script`:
-					
+                                        
 .. literalinclude:: ga_fcc_alloys_relax.py
-					
-The relaxation script is naturally similar to the script we used to calculate the references_. 
+                                        
+The relaxation script is naturally similar to the script we used to calculate the references_.
 
 *Note* that the global optimum is :mol:`PtNi_3` with a -0.12 eV heat of formation, whereas the second worst alloy is :mol:`AlNi_3` heat of formation 0.26 eV. This result is in complete contrast to the conclusion obtained in [Jóhannesson]_, where :mol:`AlNi_3` is the most stable alloy within the phase space chosen here. Obviously there is a limit to the predictive power of EMT!
-					
+                                        
 Extending the algorithm
 =======================
 
@@ -129,7 +152,7 @@ Prevent identical calculations from being performed
 
 In the current `main script`_ there is no check to determine whether an identical calculation has been performed, this is easy to check in this regime where model structures are used and we can just use the ``atoms_string``. We insert the following in the inner loop::
 
-  for i in xrange(population_size):
+  for i in range(population_size):
       dup = True
       while dup:
           a1, a2 = pop.get_two_candidates(with_history=False)
@@ -140,6 +163,7 @@ In the current `main script`_ there is no check to determine whether an identica
 
 Since the fcc model structure is completely symmetric we could compare sorted versions of the ``atoms_string``, thereby ruling out individuals containing the same elements in different order.
 
+
 Reuse of calculations between algorithm runs
 --------------------------------------------
 
@@ -148,7 +172,7 @@ Since genetic algorithms are inherently random in nature one can never be sure t
 We do the following from the command line to create a new database file containing only the relaxed structures::
 
     $ ase-db fcc_alloys.db relaxed=1 -i all_relaxed.db
-	
+        
 We subsequently add this to the `relaxation script`_::
   
   def relax(input_atoms, ref_db):
@@ -160,19 +184,19 @@ We subsequently add this to the `relaxation script`_::
       except KeyError:
           # Open connection to the database with reference data
           db = connect(ref_db)
-		  
+                  
       # Omitting lines up to the point where hof has been calculated
-	  ...
-	  
+          ...
+          
       else:
           hof = dct.hof
           latticeconstant = dct.latticeconstant
           save_relax = False
       # Place the calculated parameters in the info dictionary of the
       # input_atoms object
-	  
+          
       ...
-	  
+          
       # Put this at the very end
       if save_relax:
           relaxed_db.write(input_atoms,relaxed=1,

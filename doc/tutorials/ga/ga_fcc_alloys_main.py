@@ -40,11 +40,11 @@ while db.get_number_of_unrelaxed_candidates() > 0:
 pop.update()
 
 # Run the algorithm
-for _ in xrange(num_gens):
+for _ in range(num_gens):
     if cc.converged():
         print('converged')
         break
-    for i in xrange(population_size):
+    for i in range(population_size):
         a1, a2 = pop.get_two_candidates(with_history=False)
         op = operation_selector.get_operator()
         a3, desc = op.get_new_individual([a1, a2])

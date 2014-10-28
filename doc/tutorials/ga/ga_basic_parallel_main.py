@@ -61,7 +61,7 @@ population = Population(data_connection=da,
                         comparator=comp)
 
 # test n_to_test new candidates
-for i in xrange(n_to_test):
+for i in range(n_to_test):
     print('Now starting configuration number {0}'.format(i))
     a1, a2 = population.get_two_candidates()
     a3, desc = pairing.get_new_individual([a1, a2])

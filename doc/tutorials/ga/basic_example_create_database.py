@@ -39,7 +39,7 @@ sg = StartGenerator(slab=slab,
 
 # generate the starting population
 population_size = 20
-starting_population = [sg.get_new_candidate() for i in xrange(population_size)]
+starting_population = [sg.get_new_candidate() for i in range(population_size)]
 
 # from ase.visualize import view   # uncomment these lines
 # view(starting_population)        # to see the starting population
