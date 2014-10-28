@@ -2,20 +2,53 @@
 Atomic Simulation Environment
 =============================
 
-The Atomic Simulation Environment (ASE) is the common part of the
-simulation tools developed at CAMd_.  ASE provides Python_ modules
-for manipulating and visualizing atoms, running and analyzing simulations,
-The code is freely available under the `GNU LGPL license`_. 
+The Atomistic Simulation Environment (ASE) is a set of tools and Python_
+modules for setting up, manipulating, running, visualizing and analyzing
+atomistic simulations.  The code is freely available under the `GNU LGPL
+license`_.
 
-Actively maintained :mod:`ase.calculators`:
+.. _Python: http://www.python.org
+.. _GNU LGPL license: https://wiki.fysik.dtu.dk/ase/licenseinfo.html
 
-   |abinit| |Asap| |elk| |EMT| |fhi-aims| Gaussian_ |gpaw|
-   |gromacs| |nwchem|
+Alphabetical list of all modules:
+    
+.. list-table::
 
-Supported :mod:`ase.calculators` (we are looking for maintainers!):
+  * - :mod:`~ase.atom`
+    - :mod:`~ase.atoms`
+    - :mod:`~ase.calculators`
+    - :mod:`~ase.constraints`
+  * - :mod:`~ase.db`
+    - :mod:`~ase.dft`
+    - :mod:`~ase.data`
+    - :mod:`~ase.ga`
+  * - :mod:`~ase.gui`
+    - :mod:`~ase.infrared`
+    - :mod:`~ase.io`
+    - :mod:`~ase.lattice`
+  * - :mod:`~ase.md`
+    - :mod:`~ase.neb`
+    - :mod:`~ase.optimize`
+    - :mod:`~ase.parallel`
+  * - :mod:`~ase.phonons`
+    - :mod:`~ase.lattice.spacegroup`
+    - :mod:`~ase.structure`
+    - :mod:`~ase.lattice.surface`
+  * - :mod:`~ase.transport`
+    - :mod:`~ase.thermochemistry`
+    - :mod:`~ase.units`
+    - :mod:`~ase.utils`
+  * - :mod:`~ase.vibrations`
+    - :mod:`~ase.visualize`
+    - :mod:`~ase.visualize.vtk`
+    -
 
-   |CASTEP| |dftb| |exciting| |fleur| |hotbit| |jacapo| |jdftx| |lammps|
-   Mopac_ |siesta| |turbomole| |vasp|
+:mod:`Calculators <ase.calculators>`:
+
+|abinit| |Asap| |CASTEP| |dftb| |elk| |exciting| |EMT| |fhi-aims| |fleur|
+|gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem| |siesta|
+|turbomole| |vasp| Gaussian_ Mopac_
+
 
 .. |abinit| image:: _static/abinit.png
    :target: ase/calculators/abinit.html
@@ -34,7 +67,7 @@ Supported :mod:`ase.calculators` (we are looking for maintainers!):
    :align: middle
 .. |exciting| image:: _static/exciting.png
    :target: ase/calculators/exciting.html
-   :align: middle   
+   :align: middle
 .. |dftb| image:: _static/dftb.png
    :target: ase/calculators/dftb.html
    :align: middle
@@ -70,20 +103,15 @@ Supported :mod:`ase.calculators` (we are looking for maintainers!):
    :align: middle
 .. |turbomole| image:: _static/tm_logo_l.png
    :target: ase/calculators/turbomole.html
-   :align: middle 
+   :align: middle
 .. |vasp| image:: _static/vasp.png
    :target: ase/calculators/vasp.html
    :align: middle
 
-.. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _Gaussian: http://www.gaussian.com/
-.. _MMTK: http://dirac.cnrs-orleans.fr/MMTK
 .. _Mopac: http://openmopac.net/
-.. _Python: http://www.python.org
-.. _Trac: http://trac.fysik.dtu.dk/projects/ase/report/1
 
 .. _news:
-
 
 News
 ====
@@ -130,6 +158,5 @@ News
 
 
 .. _Sphinx: http://sphinx.pocoo.org
+.. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _CAMd: http://www.camd.dtu.dk
-.. _GNU LGPL license: https://wiki.fysik.dtu.dk/ase/licenseinfo.html
-
