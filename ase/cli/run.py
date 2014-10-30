@@ -17,29 +17,24 @@ from ase.constraints import FixAtoms, UnitCellFilter
 from ase.optimize import LBFGS
 from ase.io.trajectory import PickleTrajectory
 from ase.utils.eos import EquationOfState
-from ase.calculators.calculator import get_calculator
+from ase.calculators.calculator import get_calculator, names as calcnames
 import ase.db as db
 
 
-def main(runner=None):
-    if runner is None:
-        runner = Runner()
+def main():
+    runner = Runner()
     runner.parse()
     if runner.errors:
         sys.exit(runner.errors)
 
 
 class Runner:
-    names = []
-
-    parameter_namespace = {}
-
-    calculator_name = None
-
     def __init__(self):
         self.db = None
         self.opts = None
         self.errors = 0
+        self.names = []
+        self.calculator_name = None
 
         if world.rank == 0:
             self.logfile = sys.stdout
@@ -47,49 +42,8 @@ class Runner:
             self.logfile = devnull
 
     def parse(self, args=None):
-        # create the top-level parser
-        parser = optparse.OptionParser(
-            usage='%prog calculator [options] [name, name, ...]')
-        add = parser.add_option
-        add('-q', '--quiet', action='store_const', const=0, default=1,
-            dest='verbosity')
-        add('-V', '--verbose', action='store_const', const=2, default=1,
-            dest='verbosity')
-        add('-t', '--tag',
-            help='String tag added to filenames.')
-        add('--plugin')
-        add('-p', '--parameters', default='',
-            metavar='key=value,...',
-            help='Comma-separated key=value pairs of ' +
-            'calculator specific parameters.')
-        add('-d', '--database',
-            help='Use a filename with a ".sqlite" extension for a sqlite3 ' +
-            'database or a ".json" extension for a simple json database.  ' +
-            'Default is no database')
-        add('-S', '--skip', action='store_true',
-            help='Skip calculations already done.')
-        add('--properties', default='efsdMm',
-            help='Default value is "efsdMm" meaning calculate energy, ' +
-            'forces, stress, dipole moment, total magnetic moment and ' +
-            'atomic magnetic moments.')
-        add('-f', '--maximum-force', type=float,
-            help='Relax internal coordinates.')
-        add('--constrain-tags',
-            metavar='T1,T2,...',
-            help='Constrain atoms with tags T1, T2, ...')
-        add('-s', '--maximum-stress', type=float,
-            help='Relax unit-cell and internal coordinates.')
-        add('-E', '--equation-of-state', help='Equation of state ...')
-        add('--eos-type', default='sjeos', help='Selects the type of eos.')
-        add('-i', '--interactive-python-session', action='store_true',
-           )  # help=optparse.SUPPRESS)
-        add('-c', '--collection')
-        add('--modify', metavar='...',
-            help='Modify atoms with Python statement.  ' +
-            'Example: --modify="atoms.positions[-1,2]+=0.1".')
-        add('--after', help='Perform operation after calculation.  ' +
-            'Example: --after="atoms.calc.write(...)"')
-            
+        parser = self.make_parser()
+        self.add_options(parser)
         self.opts, names = parser.parse_args(args)
 
         if args is None and self.opts.interactive_python_session:
@@ -110,13 +64,50 @@ class Runner:
             else:
                 parser.error('Missing calculator name')
                 
-        if self.opts.plugin:
-            runner = self.get_runner()
-        else:
-            runner = self
-
-        atoms = runner.run(names)
+        atoms = self.run(names)
         return atoms
+        
+    def make_parser(self):
+        parser = optparse.OptionParser(
+            usage='ase-run calculator [options] [system, ...]',
+            description="Run calculation with one of ASE's calculators: " +
+            ', '.join(calcnames) + '.')
+        return parser
+        
+    def add_options(self, parser):
+        add = parser.add_option
+        add('-t', '--tag',
+            help='String tag added to filenames.')
+        add('-p', '--parameters', default='',
+            metavar='key=value,...',
+            help='Comma-separated key=value pairs of ' +
+            'calculator specific parameters.')
+        add('-d', '--database',
+            help='Use a filename with a ".db" extension for a sqlite3 ' +
+            'database or a ".json" extension for a simple json database.  ' +
+            'Default is no database')
+        add('-S', '--skip', action='store_true',
+            help='Skip calculations already done.')
+        add('--properties', default='efsdMm',
+            help='Default value is "efsdMm" meaning calculate energy, ' +
+            'forces, stress, dipole moment, total magnetic moment and ' +
+            'atomic magnetic moments.')
+        add('-f', '--maximum-force', type=float,
+            help='Relax internal coordinates.')
+        add('--constrain-tags',
+            metavar='T1,T2,...',
+            help='Constrain atoms with tags T1, T2, ...')
+        add('-s', '--maximum-stress', type=float,
+            help='Relax unit-cell and internal coordinates.')
+        add('-E', '--equation-of-state', help='Equation of state ...')
+        add('--eos-type', default='sjeos', help='Selects the type of eos.')
+        add('-i', '--interactive-python-session', action='store_true')
+        add('-c', '--collection')
+        add('--modify', metavar='...',
+            help='Modify atoms with Python statement.  ' +
+            'Example: --modify="atoms.positions[-1,2]+=0.1".')
+        add('--after', help='Perform operation after calculation.  ' +
+            'Example: --after="atoms.calc.write(...)"')
 
     def log(self, *args, **kwargs):
         print(file=self.logfile, *args, **kwargs)
@@ -193,20 +184,6 @@ class Runner:
 
         return data
 
-    def get_plugin(self, name):
-        f = open(self.opts.plugin)
-        script = f.read()
-        f.close()
-        namespace = {}
-        exec script in namespace
-        for cls in namespace:
-            if issubclass(namespace[cls], Runner):
-                runner = namespace[cls]()
-                runner.opts = self.opts
-                runner.calculator_name = self.calculator_name
-                runner.parameter_namespace = self.parameter_namespace
-                return runner
-
     def expand(self, names):
         if not self.names and self.opts.collection:
             con = db.connect(self.opts.collection)
@@ -240,16 +217,11 @@ class Runner:
 
     def set_calculator(self, atoms, name):
         cls = get_calculator(self.calculator_name)
-        parameters = self.get_parameters()
+        parameters = str2dict(self.opts.parameters)
         if getattr(cls, 'nolabel', False):
             atoms.calc = cls(**parameters)
         else:
             atoms.calc = cls(label=self.get_filename(name), **parameters)
-
-    def get_parameters(self):
-        namespace = self.parameter_namespace
-        parameters = str2dict(self.opts.parameters, namespace)
-        return parameters
 
     def calculate_once(self, atoms, name):
         opts = self.opts

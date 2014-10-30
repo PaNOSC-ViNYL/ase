@@ -1,21 +1,18 @@
 """This module defines the Atom object."""
 
-import warnings
-
 import numpy as np
 
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 
 
-#         singular,    plural,     default value
+# Singular, plural, default value:
 names = {'position': ('positions', np.zeros(3)),
-         'number':   ('numbers',   0),
-         'tag':      ('tags',      0),
-         'momentum': ('momenta',   np.zeros(3)),
-         'mass':     ('masses',    None),
-         'magmom':   ('magmoms',   0.0),
-         'charge':   ('charges',   0.0)
-         }
+         'number': ('numbers', 0),
+         'tag': ('tags', 0),
+         'momentum': ('momenta', np.zeros(3)),
+         'mass': ('masses', None),
+         'magmom': ('magmoms', 0.0),
+         'charge': ('charges', 0.0)}
 
 
 def atomproperty(name, doc):
