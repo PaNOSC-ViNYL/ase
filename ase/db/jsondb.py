@@ -98,12 +98,13 @@ class JSONDatabase(Database):
             dct = self.collect_data(atoms)
             id = None
 
-        if keywords:
-            dct['keywords'] = keywords
-        if key_value_pairs:
-            dct['key_value_pairs'] = key_value_pairs
-        if data:
-            dct['data'] = data
+        for key, value in [('keywords', keywords),
+                           ('key_value_pairs', key_value_pairs),
+                           ('data', data)]:
+            if value:
+                dct[key] = value
+            else:
+                dct.pop(key, None)
         
         if id is None:
             id = nextid

@@ -5,7 +5,7 @@ A database for atoms
 ====================
 
 ASE has its own database that can be used for storing and retrieving atoms and
-associated data in a compact and convenient way.  
+associated data in a compact and convenient way.
     
 .. note::
 
@@ -64,7 +64,7 @@ manipulating keywords and key-value pairs.  Try::
     
 Example: Show all rows of SQLite database abc.db::
  
-    $ ase-db abc.db 
+    $ ase-db abc.db
     id|age|user |formula|calc|energy| fmax|pbc|keywords|keyvals      | mass
      1|6s |jensj|H2     |emt | 1.419|9.803|000|molecule|relaxed=False|2.016
      2|5s |jensj|H2     |emt | 1.071|0.000|000|molecule|relaxed=True |2.016
@@ -108,6 +108,8 @@ Here are some example query strings:
       - 10 or more atoms
     * - H<3
       - less than 3 hydrogen atoms
+    * - formula=H2O
+      - Exactly two hydrogens and one oxygen
     * - id=2345
       - specific id
     * - age<1h
@@ -124,6 +126,8 @@ These names are special:
       - integer identifier
     * - natoms
       - number of atoms
+    * - formula
+      - formula
     * - energy
       - potential energy
     * - charge
@@ -202,7 +206,7 @@ Loop over selected rows using the :meth:`~Database.select` method:
     
 >>> for d in c.select('molecule'):
 ...     print d.forces[0, 2], d.relaxed
-... 
+...
 -9.8029057329 False
 -9.2526347333e-05 True
 
@@ -224,7 +228,7 @@ Select a single row with the :meth:`~Database.get` method:
 >>> d = c.get(relaxed=1, calculator='emt')
 >>> for k, v in d.items():
 ...     print '%-25s: %s' % (k, v)
-... 
+...
 user                     : jensj
 key_value_pairs          : {u'relaxed': True}
 ctime                    : 14.0195850909

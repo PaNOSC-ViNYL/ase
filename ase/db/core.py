@@ -1,17 +1,18 @@
+import collections
+import functools
+import operator
 import os
 import re
-import operator
-import functools
-from time import time
 from random import randint
+from time import time
 
-from ase.utils import Lock
-from ase.atoms import Atoms
-from ase.data import atomic_numbers
-from ase.parallel import world, broadcast, DummyMPI
-from ase.calculators.singlepoint import SinglePointCalculator
+from ase.atoms import Atoms, symbols2numbers
 from ase.calculators.calculator import get_calculator, all_properties, \
     all_changes
+from ase.calculators.singlepoint import SinglePointCalculator
+from ase.data import atomic_numbers
+from ase.parallel import world, broadcast, DummyMPI
+from ase.utils import Lock
 
 
 T2000 = 946681200.0  # January 1. 2000
@@ -328,7 +329,8 @@ class Database:
         Return iterator with results as dictionaries.  Selection is done
         using key-value pairs, keywords and the special keys:
             
-            age, user, calculator, natoms, energy, magmom and/or charge.
+            formula, age, user, calculator, natoms, energy, magmom
+            and/or charge.
         
         selection: int, str or list
             Can be:
@@ -387,15 +389,22 @@ class Database:
 
         cmps = []
         for key, value in kwargs.items():
-            if key in atomic_numbers:
-                key = atomic_numbers[key]
-            cmps.append((key, '=', value))
+            comparisons.append((key, '=', value))
             
         for key, op, value in comparisons:
             if key == 'age':
                 key = 'ctime'
                 op = invop[op]
                 value = now() - time_string_to_float(value)
+            elif key == 'formula':
+                assert op == '='
+                numbers = symbols2numbers(value)
+                count = collections.defaultdict(int)
+                for Z in numbers:
+                    count[Z] += 1
+                cmps.extend((Z, '=', count[Z]) for Z in count)
+                key = 'natoms'
+                value = len(numbers)
             elif key in atomic_numbers:
                 key = atomic_numbers[key]
                 value = int(value)
