@@ -1,4 +1,3 @@
-import numpy as np
 from ase.test import cli
 from ase.db import connect
 
@@ -14,7 +13,7 @@ ase-db y.json "H>0" -k hydro,bla -K abc=42,foo=bar &&
 ase-db y.json "H>0" --delete-keywords bla &&
 ase-db y.json "H>0" --delete-key-value-pairs foo"""
 
-for name in ['y.json', 'y.db']:  #, 'postgres://localhost']:
+for name in ['y.json', 'y.db']:  # , 'postgres://localhost']:
     cli(cmd.replace('y.json', name))
     con = connect(name)
     assert len(list(con.select())) == 5
