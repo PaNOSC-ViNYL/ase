@@ -38,6 +38,7 @@ def plot(atoms, data, contours):
 
     # Draw the unit cell:
     A = atoms.cell
+    print('A=%s' % str(A))
     for i1, a in enumerate(A):
         i2 = (i1 + 1) % 3
         i3 = (i1 + 2) % 3
@@ -50,15 +51,17 @@ def plot(atoms, data, contours):
                             [p1[2], p2[2]],
                             tube_radius=0.1)
 
-    pts = np.dot(np.indices(data.shape, float).T / data.shape,
-                 atoms.cell).T.reshape((3, -1)).T
-    sgrid = tvtk.StructuredGrid(dimensions=data.shape)
-    sgrid.points = pts
-    sgrid.point_data.scalars = np.ravel(data.copy())
-    sgrid.point_data.scalars.name = 'scalars'
-    mayavi.tools.pipeline.iso_surface(sgrid, contours=contours,
-                                      transparent=True, opacity=0.5,
-                                      colormap='hot')
+    cp = mlab.contour3d(data, contours=contours)
+    # Do some tvtk magic in order to allow for non-orthogonal unit cells
+    polydata = cp.actor.actors[0].mapper.input
+    pts = np.array(polydata.points)
+    # Transform the points to the unit cell
+    polydata.points = np.dot(pts, A / data.shape)
+    
+    # Apparently we need this to redraw the figure, maybe it can be done in
+    # another way?
+    mlab.view(azimuth=155, elevation=70, distance='auto')
+    # Show the 3d plot
     mlab.show()
 
 
