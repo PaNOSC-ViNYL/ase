@@ -87,7 +87,8 @@ def main(args=sys.argv[1:]):
         help='Write comma-separated-values file.')
     add('-w', '--open-web-browser', action='store_true',
         help='Open results in web-browser.')
-
+    add('--no-lock-file', action='store_true', help="Don't use lock-files")
+        
     opts, args = parser.parse_args(args)
 
     if not args:
@@ -140,7 +141,7 @@ def run(opts, args, verbosity):
     else:
         delete_key_value_pairs = []
 
-    con = connect(filename)
+    con = connect(filename, use_lock_file=not opts.no_lock_file)
     
     def out(*args):
         if verbosity > 0:
@@ -172,7 +173,7 @@ def run(opts, args, verbosity):
         return
 
     if opts.insert_into:
-        con2 = connect(opts.insert_into)
+        con2 = connect(opts.insert_into, use_lock_file=not opts.no_lock_file)
         nkw = 0
         nkvp = 0
         nrows = 0
