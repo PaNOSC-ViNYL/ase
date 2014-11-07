@@ -8,6 +8,7 @@ import os
 
 import numpy as np
 
+from ase.units import Hartree
 from ase.io.aims import write_aims, read_aims
 from ase.data import atomic_numbers
 from ase.calculators.calculator import FileIOCalculator, Parameters, kpts2mp, \
@@ -436,6 +437,179 @@ class Aims(FileIOCalculator):
             if line.rfind('Have a nice day') > -1:
                 converged = True
         return converged
+
+    def get_number_of_iterations(self):
+        return self.read_number_of_iterations()
+
+    def read_number_of_iterations(self):
+        niter = None
+        lines = open(self.out, 'r').readlines()
+        for n, line in enumerate(lines):
+            if line.rfind('| Number of self-consistency cycles') > -1:
+                niter = int(line.split(':')[-1].strip())
+        return niter
+
+    def get_electronic_temperature(self):
+        return self.read_electronic_temperature()
+
+    def read_electronic_temperature(self):
+        width = None
+        lines = open(self.out, 'r').readlines()
+        for n, line in enumerate(lines):
+            if line.rfind('Occupation type:') > -1:
+                width = float(line.split('=')[-1].strip().split()[0])
+        return width
+
+    def get_number_of_electrons(self):
+        return self.read_number_of_electrons()
+
+    def read_number_of_electrons(self):
+        nelect = None
+        lines = open(self.out, 'r').readlines()
+        for n, line in enumerate(lines):
+            if line.rfind('The structure contains') > -1:
+                nelect = float(line.split()[-2].strip())
+        return nelect
+
+    def get_number_of_bands(self):
+        return self.read_number_of_bands()
+
+    def read_number_of_bands(self):
+        nband = None
+        lines = open(self.out, 'r').readlines()
+        for n, line in enumerate(lines):
+            if line.rfind('Total number of basis functions') > -1:
+                nband = int(line.split(':')[-1].strip())
+        return nband
+
+    def get_k_point_weights(self):
+        return self.read_kpts(mode='k_point_weights')
+
+    def get_bz_k_points(self):
+        raise NotImplementedError
+
+    def get_ibz_k_points(self):
+        return self.read_kpts(mode='ibz_k_points')
+
+    def get_spin_polarized(self):
+        return self.read_number_of_spins()
+
+    def get_number_of_spins(self):
+        return 1 + self.get_spin_polarized()
+
+    def read_number_of_spins(self):
+        spinpol = None
+        lines = open(self.out, 'r').readlines()
+        for n, line in enumerate(lines):
+            if line.rfind('| Number of spin channels') > -1:
+                spinpol = int(line.split(':')[-1].strip()) - 1
+        return spinpol
+
+    def read_magnetic_moment(self):
+        magmom = None
+        if not self.get_spin_polarized():
+            magmom = 0.0
+        else: # only for spinpolarized system Magnetisation is printed
+            for line in open(self.label + '.txt'):
+                if line.find('Magnetisation') != -1: # last one
+                    magmom = float(line.split('=')[-1].strip())
+        return magmom
+
+    def get_fermi_level(self):
+        return self.read_fermi()
+
+    def get_eigenvalues(self, kpt=0, spin=0):
+        return self.read_eigenvalues(kpt, spin, 'eigenvalues')
+
+    def get_occupations(self, kpt=0, spin=0):
+        return self.read_eigenvalues(kpt, spin, 'occupations')
+
+    def read_fermi(self):
+        E_f = None
+        lines = open(self.out, 'r').readlines()
+        for n, line in enumerate(lines):
+            if line.rfind('| Chemical potential (Fermi level) in eV') > -1:
+                E_f = float(line.split(':')[-1].strip())
+        return E_f
+
+    def read_kpts(self, mode='ibz_k_points'):
+        """ Returns list of kpts weights or kpts coordinates.  """
+        values = []
+        assert mode in ['ibz_k_points' , 'k_point_weights'], 'mode not in [\'ibz_k_points\' , \'k_point_weights\']'
+        lines = open(self.out, 'r').readlines()
+        kpts = None
+        for n, line in enumerate(lines):
+            if line.rfind('K-points in task') > -1:
+                kpts = int(line.split(':')[-1].strip())
+                kptsstart = n
+                break
+        assert not kpts is None
+        text = lines[kptsstart + 1:]
+        values = []
+        for line in text[:kpts]:
+            if mode == 'ibz_k_points':
+                b = [float(c.strip()) for c in line.split()[4:7]]
+            else:
+                b = float(line.split()[-1])
+            values.append(b)
+        if len(values) == 0:
+            values = None
+        return np.array(values)
+
+    def read_eigenvalues(self, kpt=0, spin=0, mode='eigenvalues'):
+        """ Returns list of last eigenvalues, occupations
+        for given kpt and spin.  """
+        values = []
+        assert mode in ['eigenvalues' , 'occupations'], 'mode not in [\'eigenvalues\' , \'occupations\']'
+        lines = open(self.out, 'r').readlines()
+        # number of kpts
+        kpts = None
+        for n, line in enumerate(lines):
+            if line.rfind('K-points in task') > -1:
+                kpts = int(line.split(':')[-1].strip())
+                break
+        assert not kpts is None
+        assert kpt + 1 <= kpts
+        # find last (eigenvalues)
+        eigvalstart = None
+        for n, line in enumerate(lines):
+            if line.rfind('Preliminary charge convergence reached') > -1:
+                eigvalstart = n
+                break
+        assert not eigvalstart is None
+        lines = lines[eigvalstart:]
+        for n, line in enumerate(lines):
+            if line.rfind('Writing Kohn-Sham eigenvalues') > -1:
+                eigvalstart = n
+                break
+        assert not eigvalstart is None
+        text = lines[eigvalstart + 1:] # remove first 1 line
+        # find the requested k-point
+        nbands = self.read_number_of_bands()
+        sppol = self.get_spin_polarized()
+        beg = (nbands + 4 + int(sppol)*1) * kpt * (sppol + 1) + 3 + sppol * 2 + kpt * sppol
+        if self.get_spin_polarized():
+            if spin == 0:
+                beg = beg
+                end = beg + nbands
+            else:
+                beg = beg + nbands + 5
+                end = beg + nbands
+        else:
+            end = beg + nbands
+        values = []
+        for line in text[beg:end]:
+            # aims prints stars for large values ...
+            line = line.replace('**************', '         10000')
+            b = [float(c.strip()) for c in line.split()[1:]]
+            values.append(b)
+        if mode == 'eigenvalues':
+            values = [Hartree*v[1] for v in values]
+        else:
+            values = [v[0] for v in values]
+        if len(values) == 0:
+            values = None
+        return np.array(values)
 
 
 class AimsCube:
