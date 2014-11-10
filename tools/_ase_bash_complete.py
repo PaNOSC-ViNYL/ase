@@ -43,7 +43,8 @@ elif command == 'ase-run':
         words = glob(word + '*')
 elif command == 'ase-build':
     if previous in ['-x', '--crystal-structure']:
-        words = 'fcc hcp'.split()
+        words = ['sc', 'fcc', 'bcc', 'hcp', 'diamond', 'zincblende',
+                 'rocksalt', 'cesiumchloride', 'fluorite', 'wurtzite']
     elif word[:1] == '-':
         words = options(
             'hMvxarg',

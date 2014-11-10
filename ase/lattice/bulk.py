@@ -5,7 +5,7 @@ from ase.atoms import Atoms, string2symbols
 from ase.data import reference_states, atomic_numbers, chemical_symbols
 
 
-def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
+def bulk(name, crystalstructure=None, a=None, c=None, covera=None, u=None,
          orthorhombic=False, cubic=False):
     """Creating bulk systems.
 
@@ -23,6 +23,8 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
         Lattice constant.
     covera: float
         c/a raitio used for hcp.  Default is ideal ratio: sqrt(8/3).
+    u: float
+        Internal coordinate for Wurtzite structure.
     orthorhombic: bool
         Construct orthorhombic unit cell instead of primitive cell
         which is the default.
@@ -49,12 +51,12 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
             raise ValueError('You need to specify the lattice constant.')
         a = ref['a']
 
-    if crystalstructure == 'hcp':
+    if crystalstructure in ['hcp', 'wurtzite']:
         cubic = False
         if c is not None:
             covera = c / a
         elif covera is None:
-            if xref == 'hcp':
+            if xref == crystalstructure:
                 covera = ref['c/a']
             else:
                 covera = sqrt(8 / 3)
@@ -105,14 +107,15 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None,
         atoms.positions[1, :] += a / 4
         atoms.positions[2, :] += a * 3 / 4
     elif crystalstructure == 'wurtzite':
+        u = u or 0.25 + 1 / 3 / covera**2
         atoms = Atoms(2 * name,
                       scaled_positions=[(0, 0, 0),
-                                        (1 / 3, 2 / 3, 0.125),
+                                        (1 / 3, 2 / 3, 0.5 - u),
                                         (1 / 3, 2 / 3, 0.5),
-                                        (0, 0, 0.625)],
+                                        (0, 0, 1 - u)],
                       cell=[(a, 0, 0),
                             (-a / 2, a * sqrt(3) / 2, 0),
-                            (0, 0, a * sqrt(8 / 3))],
+                            (0, 0, a * covera)],
                       pbc=True)
     else:
         raise ValueError('Unknown crystal structure: ' + crystalstructure)
