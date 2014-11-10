@@ -164,7 +164,7 @@ def sqliteall():
     table_id = int(request.args['x'])
     query, columns, sort, limit, opened = tables[table_id]
     data = tofile(query, 'db', limit)
-    return data, 'selection.db'.format(id)
+    return data, 'selection.db'
 
     
 @app.route('/sqlite/<int:id>')
@@ -173,7 +173,12 @@ def sqlite(id):
     data = tofile(id, 'db')
     return data, '{0}.db'.format(id)
 
-    
+
+@app.route('/robots.txt')
+def robots():
+    return 'User-agent: *\nDisallow: /\n', 200
+
+
 if __name__ == '__main__':
     globals()['connection'] = ase.db.connect(sys.argv[1])
     globals()['open_ase_gui'] = False
