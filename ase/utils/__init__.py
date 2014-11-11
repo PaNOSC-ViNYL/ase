@@ -5,6 +5,8 @@ from math import sin, cos, radians, atan2, degrees
 
 import numpy as np
 
+from ase.data import chemical_symbols
+
 
 class DevNull:
     def write(self, string):
@@ -98,6 +100,21 @@ class OpenLock:
 
     def __exit__(self, type, value, tb):
         pass
+
+
+def hill(numbers):
+    """Convert list of atomic numbers to a chemical formula as a string.
+    
+    Elements are alphabetically ordered with C and H first."""
+    
+    d = {}
+    for Z in numbers:
+        symb = chemical_symbols[Z]
+        d[symb] = d.get(symb, 0) + 1
+    result = [(s, d.pop(s)) for s in 'CH' if s in d]
+    result += [(s, d[s]) for s in sorted(d)]
+    return ''.join('{0}{1}'.format(symbol, n) if n > 1 else symbol
+                   for symbol, n in result)
 
 
 def prnt(*args, **kwargs):

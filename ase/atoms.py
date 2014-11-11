@@ -421,7 +421,7 @@ class Atoms(object):
 
         Parameters:
 
-        mode:
+        mode: str
             There are three different modes available:
 
             'all': The list of chemical symbols are contracted to at string,
@@ -1387,7 +1387,7 @@ class Atoms(object):
             Dr = np.linalg.solve(self._cell, D.T)
             D = np.dot(self._cell, Dr - (self._pbc * np.round(Dr).T).T).T
 
-        results = np.sqrt((D**2).sum(1)) 
+        results = np.sqrt((D**2).sum(1))
         results.shape = (L, L)
         return results
 

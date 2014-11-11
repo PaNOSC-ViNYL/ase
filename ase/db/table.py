@@ -1,14 +1,14 @@
 from __future__ import print_function
 
-from ase.data import atomic_masses, chemical_symbols
-from ase.db.core import float_to_time_string, now, dict2constraint
-
 import numpy as np
+
+from ase.data import atomic_masses
+from ase.db.core import float_to_time_string, now, dict2constraint
+from ase.utils import hill
 
 
 all_columns = ['id', 'age', 'user', 'formula', 'calculator',
                'energy', 'fmax', 'pbc', 'volume',
-               #'keywords', 'keys',
                'charge', 'mass', 'smax', 'magmom']
 
 
@@ -29,17 +29,6 @@ def cutlist(lst, length):
         return lst
     return lst[:9] + ['... ({0} more)'.format(len(lst) - 9)]
 
-    
-def hill(numbers):
-    d = {}
-    for Z in numbers:
-        s = chemical_symbols[Z]
-        d[s] = d.get(s, 0) + 1
-    result = [(s, d.pop(s)) for s in 'CH' if s in d]
-    result += [(s, d[s]) for s in sorted(d)]
-    return ''.join('{0}{1}'.format(symbol, n) if n > 1 else symbol
-                   for symbol, n in result)
-    
     
 def dict2forces(d):
     forces = d.get('forces')
@@ -152,7 +141,7 @@ class Table:
     def write_csv(self):
         print(', '.join(self.columns))
         for row in self.rows:
-            print(', '.join(str(val) for val in row.values))        
+            print(', '.join(str(val) for val in row.values))
 
             
 class Row:

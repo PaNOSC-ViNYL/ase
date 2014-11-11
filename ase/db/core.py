@@ -12,7 +12,7 @@ from ase.calculators.calculator import get_calculator, all_properties, \
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.data import atomic_numbers
 from ase.parallel import world, broadcast, DummyMPI
-from ase.utils import Lock
+from ase.utils import hill, Lock
 
 
 T2000 = 946681200.0  # January 1. 2000
@@ -115,6 +115,8 @@ class FancyDict(dict):
             return FancyDict(value)
         return value
 
+    formula = property(lambda self: hill(self.numbers))
+    
     def __dir__(self):
         return self.keys()  # for tab-completion
         
