@@ -265,6 +265,42 @@ Delete a single row:
 or use the :meth:`~Database.delete` method to delete several rows.
 
 
+Dictionary representation of rows
+---------------------------------
+
+The first 9 keys (from "id" to "positions") are always present --- the rest
+may be there:
+    
+=====================  =================================  ============  ======
+key                    description                        datatype      shape
+=====================  =================================  ============  ======
+id                     Local database id                  int
+unique_id              Globally unique hexadecimal id     str
+ctime                  Creation time                      float
+mtime                  Modification time                  float
+user                   User name                          str
+numbers                Atomic numbers                     int           (N,)
+pbc                    Periodic boundary condition flags  bool          (3,)
+cell                   Unit cell                          float         (3, 3)
+positions              Atomic positions                   float         (N, 3)
+initial_magmoms        Initial atomic magnetic moments    float         (N,)
+initial_charges        Initial atomic charges             float         (N,)
+masses                 Atomic masses                      float         (N,)
+tags                   Tags                               int           (N,)
+momenta                Atomic momenta                     float         (N, 3)
+constraints            Constraints                        list of dict
+energy                 Total energy                       float
+forces                 Atomic forces                      float         (N, 3)
+stress                 Stress tensor                      float         (6,)
+dipole                 Electrical dipole                  float         (3,)
+charges                Atomic charges                     float         (N,)
+magmom                 Magnetic moment                    float
+magmoms                Atomic magnetic moments            float         (N,)
+calculator             Calculator name                    str
+calculator_parameters  Calculator parameters              dict
+=====================  =================================  ============  ======
+
+
 Extracting Atoms objects from the database
 ------------------------------------------
 
