@@ -86,6 +86,7 @@ class SQLite3Database(Database):
 
         cur = con.execute(
             'select count(*) from sqlite_master where name="systems"')
+        self.version = 2
         if cur.fetchone()[0] == 0:
             for statement in init_statements:
                 con.execute(statement)
@@ -93,13 +94,13 @@ class SQLite3Database(Database):
                 for statement in index_statements:
                     con.execute(statement)
             con.commit()
-            self.initialized = True
         else:
             cur = con.execute(
                 'select count(*) from sqlite_master where name="user_index"')
             if cur.fetchone()[0] == 1:
                 # Old version with "user" instead of "username" column
                 self.version = 1
+        self.initialized = True
                 
     def _write(self, atoms, keywords, key_value_pairs, data):
         Database._write(self, atoms, keywords, key_value_pairs, data)
@@ -198,15 +199,17 @@ class SQLite3Database(Database):
                 assert isinstance(value, (str, unicode))
                 text_key_values.append([key, value, id])
  
-        if text_key_values:
-            cur.executemany('insert into text_key_values values (?, ?, ?)',
-                            text_key_values)
-        if number_key_values:
-            cur.executemany('insert into number_key_values values (?, ?, ?)',
-                            number_key_values)
-        if keywords:
-            cur.executemany('insert into keywords values (?, ?)',
-                            [(keyword, id) for keyword in keywords])
+        cur.executemany('insert into text_key_values values (?, ?, ?)',
+                        text_key_values)
+        cur.executemany('insert into number_key_values values (?, ?, ?)',
+                        number_key_values)
+        cur.executemany('insert into keywords values (?, ?)',
+                        [(keyword, id) for keyword in keywords])
+        
+        # Insert keys in keywords table also so that it is easy to query
+        # for the existance of keys:
+        cur.executemany('insert into keywords values (?, ?)',
+                        [(key, id) for key in key_value_pairs])
 
         con.commit()
         con.close()

@@ -101,7 +101,7 @@ Here are some example query strings:
     :widths: 25 75
     
     * - v3
-      - has 'v3' keyword
+      - has 'v3' key or keyword
     * - abc=H
       - has key 'abc' with value 'H'
     * - v3,abc=H

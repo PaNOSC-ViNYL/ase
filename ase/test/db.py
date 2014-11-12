@@ -21,6 +21,9 @@ for name in ['y.json', 'y.db']:  # , 'postgres://localhost']:
     assert con.get_atoms(H=1)[0].magmom == 1
     assert len(list(con.select('bla'))) == 0
     assert len(list(con.select(abc=42))) == 3
+    assert len(list(con.select('abc'))) == 3
+    assert len(list(con.select('abc,bla'))) == 0
+    assert len(list(con.select('abc,hydro'))) == 3
     assert len(list(con.select(foo='bar'))) == 0
     assert len(list(con.select(formula='H2'))) == 1
     assert len(list(con.select(formula='H2O'))) == 1

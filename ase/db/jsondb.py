@@ -177,7 +177,9 @@ class JSONDatabase(Database):
                 return
             dct = bigdct[id]
             for keyword in keywords:
-                if 'keywords' not in dct or keyword not in dct['keywords']:
+                if not (('keywords' in dct and keyword in dct['keywords']) or
+                        ('key_value_pairs' in dct and
+                         keyword in dct['key_value_pairs'])):
                     break
             else:
                 for key, op, val in cmps:
