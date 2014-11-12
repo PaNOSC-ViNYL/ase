@@ -54,6 +54,8 @@ Every row in the database contains:
 * creation and modification time
 
 
+.. _ase-db command:
+    
 Command-line tool
 =================
 
@@ -88,7 +90,11 @@ Show all details for a single row::
          0.000     0.000     1.000
     volume: 1.000 Ang^3
     mass: 1.008 au
-                       
+
+    
+Querying
+--------
+
 Here are some example query strings:
     
 .. list-table::

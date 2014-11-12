@@ -1,6 +1,9 @@
 {% extends "layout.html" %}
 {% set d = s.dct %}
 {% block title %}Summary{% endblock %}
+{% block bar1 %}
+SUMMARY
+{% endblock %}
 {% block content %}
 {% if d.numbers|length %}
 <a href="/gui/{{ d.id }}">

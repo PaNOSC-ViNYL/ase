@@ -16,6 +16,7 @@ from flask import Flask, render_template, request, send_from_directory
 
 app = Flask(__name__)
 connection = None
+home = ''
 tables = {}
 tmpdir = tempfile.mkdtemp()
 next_table_id = 1
@@ -68,7 +69,7 @@ def index():
     tables[table_id] = query, table.columns, sort, limit, opened
     table.format(SUBSCRIPT)
     return render_template('table.html', t=table, query=query, sort=sort,
-                           limit=limit, tid=table_id, opened=opened)
+                           limit=limit, tid=table_id, opened=opened, home=home)
 
     
 @app.route('/open_row/<int:id>')
@@ -114,7 +115,7 @@ def gui(id):
 @app.route('/id/<int:id>')
 def summary(id):
     s = Summary(connection.get(id), SUBSCRIPT)
-    return render_template('summary.html', s=s)
+    return render_template('summary.html', s=s, home=home)
 
     
 def tofile(query, type, limit=0):
@@ -181,5 +182,6 @@ def robots():
 
 if __name__ == '__main__':
     globals()['connection'] = ase.db.connect(sys.argv[1])
+    globals()['home'] = sys.argv[2]
     globals()['open_ase_gui'] = False
     app.run(host='0.0.0.0', port=5000, debug=False)

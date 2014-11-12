@@ -7,18 +7,30 @@
 {% endblock %}
 </head>
 <body>
+<div class="bar1">
+{% block bar1 %}
+{% endblock %}
+</div>
 <div class="bar">
-<a href="https://wiki.fysik.dtu.dk/ase/">ASE</a> |
-<a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html">ase.db</a>
+{{ home|safe }}
+<a href="https://wiki.fysik.dtu.dk/ase/">ASE</a> ::
+<a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html">ase.db</a> ::
+<a href="http://www.python.org/">Python</a> ::
+<a href="http://docs.scipy.org/doc/numpy/reference/">NumPy</a>
 </div>
 <br>
 {% block content %}
 {% endblock %}
 <br>
 <div class="bar">
-<a href="https://wiki.fysik.dtu.dk/ase/">ASE</a> |
-<a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html">ase.db</a> |
-<a href="http://www.python.org/">Python</a>
+{{ home|safe }}
+<a href="https://wiki.fysik.dtu.dk/ase/">ASE</a> ::
+<a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html">ase.db</a> ::
+<a href="http://www.python.org/">Python</a> ::
+<a href="http://docs.scipy.org/doc/numpy/reference/">NumPy</a>
+</div>
+<div class="footer">
+Created using <a href="http://flask.pocoo.org/">Flask</a>
 </div>
 </body>
 </html>

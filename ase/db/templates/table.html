@@ -4,25 +4,34 @@
 {{ super() }}
 <script src="{{ url_for('static', filename='table.js') }}"></script>
 {% endblock %}
+{% block bar1 %}
+BROWSE DATABASE
+{% endblock %}
 {% block content %}
 <form action="/">
 Search:
-<input type=hidden name=x value="{{ tid }}">
-<input type=text name=query value="{{ query }}" onchange="this.form.submit()">
+<input type=hidden name=x value={{ tid }}>
+<input type=text name=query value="{{ query }}" onchange="this.form.submit()" size=80>
+<a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html#querying">help</a>
 <br>
-Rows: {{ t.rows|length }}
-Limit:
-<input type=text name=limit value={{ limit }} onchange="this.form.submit()">
+Maximum number of rows:
+<input type=text name=limit value={{ limit }} onchange="this.form.submit()" size=6>
 </form>
+<br>
+Rows found: {{ t.rows|length }}
+<br>
 Download:
 <a href="/sqlite?x={{ tid }}">db</a>,
-<a href="/json?x={{ tid }}">json</a>,
-<a href="/csv?x={{ tid }}">csv</a>
+<a href="/json?x={{ tid }}">json</a>
 <br>
 Add/remove key-column:
 {% for key in t.keys -%}
 <a href="/?x={{ tid }}&amp;toggle={{ key }}">{{ key }}</a>{% if not loop.last %},{% endif %}
 {% endfor %}
+{% if t.keywords %}
+<br>
+Keywords found: {{ t.keywords|join(', ') }}
+{% endif %}
 
 <table id=rows>
     <tr>
@@ -54,6 +63,4 @@ Add/remove key-column:
     {% endif %}
 {% endfor %}
 </table>
-Keywords found: {{ t.keywords|join(', ') }}
-<br>
 {% endblock content %}
