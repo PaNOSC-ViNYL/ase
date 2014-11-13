@@ -194,7 +194,7 @@ class JSONDatabase(Database):
     @parallel
     @lock
     def update(self, ids, add_keywords=[], **add_key_value_pairs):
-        check(add_key_value_pairs)
+        check(add_keywords, add_key_value_pairs)
             
         if isinstance(ids, int):
             ids = [ids]
@@ -207,14 +207,17 @@ class JSONDatabase(Database):
         n = 0
         for id in ids:
             dct = bigdct[id]
+            keywords = dct.setdefault('keywords', [])
+            key_value_pairs = dct.setdefault('key_value_pairs', {})
             if add_keywords:
-                keywords = dct.setdefault('keywords', [])
                 for keyword in add_keywords:
+                    assert keyword not in key_value_pairs
                     if keyword not in keywords:
                         keywords.append(keyword)
                         m += 1
             if add_key_value_pairs:
-                key_value_pairs = dct.setdefault('key_value_pairs', {})
+                for keyword in keywords:
+                    assert keyword not in add_key_value_pairs
                 n -= len(key_value_pairs)
                 key_value_pairs.update(add_key_value_pairs)
                 n += len(key_value_pairs)

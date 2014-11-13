@@ -1,3 +1,13 @@
+"""SQLite3 backend.
+
+Versions:
+
+1) Added 3 more columns.
+2) Changec "user" to "username".
+3) Now adding keys to keyword table and added an "information" table containing
+   a version number.
+"""
+
 from __future__ import absolute_import, print_function
 import sqlite3
 
@@ -7,66 +17,72 @@ from ase.db.core import Database, ops, now, lock, parallel, invop
 from ase.db.jsondb import encode, decode
 
 
+VERSION = 3
+
 init_statements = [
-    """create table systems (
-    id integer primary key autoincrement,
-    unique_id text unique,
-    ctime real,
-    mtime real,
-    username text,
-    numbers blob,
-    positions blob,
-    cell blob,
-    pbc integer,
-    initial_magmoms blob,
-    initial_charges blob,
-    masses blob,
-    tags blob,
-    momenta blob,
-    constraints text,
-    calculator text,
-    calculator_parameters text,
-    energy real,
-    free_energy real,
-    forces blob,
-    stress blob,
-    dipole blob,
-    magmoms blob,
-    magmom blob,
-    charges blob,
-    keywords text,
-    key_value_pairs text,
-    data text,
-    natoms integer)""",
-    """create table species (
-    Z integer,
-    n integer,
-    id integer,
-    foreign key (id) references systems(id))""",
-    """create table keywords (
-    keyword text,
-    id integer,
-    foreign key (id) references systems(id))""",
-    """create table text_key_values (
-    key text,
-    value text,
-    id integer,
-    foreign key (id) references systems(id))""",
-    """create table number_key_values (
-    key text,
-    value real,
-    id integer,
-    foreign key (id) references systems (id))"""]
+    """CREATE TABLE systems (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    unique_id TEXT UNIQUE,
+    ctime REAL,
+    mtime REAL,
+    username TEXT,
+    numbers BLOB,
+    positions BLOB,
+    cell BLOB,
+    pbc INTEGER,
+    initial_magmoms BLOB,
+    initial_charges BLOB,
+    masses BLOB,
+    tags BLOB,
+    momenta BLOB,
+    constraints TEXT,
+    calculator TEXT,
+    calculator_parameters TEXT,
+    energy REAL,
+    free_energy REAL,
+    forces BLOB,
+    stress BLOB,
+    dipole BLOB,
+    magmoms BLOB,
+    magmom BLOB,
+    charges BLOB,
+    keywords TEXT,
+    key_value_pairs TEXT,
+    data TEXT,
+    natoms INTEGER)""",
+    """CREATE TABLE species (
+    Z INTEGER,
+    n INTEGER,
+    id INTEGER,
+    FOREIGN KEY (id) REFERENCES systems(id))""",
+    """CREATE TABLE keywords (
+    keyword TEXT,
+    id INTEGER,
+    FOREIGN KEY (id) REFERENCES systems(id))""",
+    """CREATE TABLE text_key_values (
+    key TEXT,
+    value TEXT,
+    id INTEGER,
+    FOREIGN KEY (id) REFERENCES systems(id))""",
+    """CREATE TABLE number_key_values (
+    key TEXT,
+    value REAL,
+    id INTEGER,
+    FOREIGN KEY (id) REFERENCES systems (id))""",
+    """CREATE TABLE information (
+    name TEXT,
+    value TEXT)""",
+    """INSERT INTO information VALUES ("version", "{0}")""".format(VERSION)]
 
 index_statements = [
-    'create index unique_id_index on systems(unique_id)',
-    'create index ctime_index on systems(ctime)',
-    'create index username_index on systems(username)',
-    'create index calculator_index on systems(calculator)',
-    'create index species_index on species(Z)',
-    'create index keyword_index on keywords(keyword)',
-    'create index text_index on text_key_values(key)',
-    'create index number_index on number_key_values(key)']
+    'CREATE INDEX unique_id_index ON systems(unique_id)',
+    'CREATE INDEX ctime_index ON systems(ctime)',
+    'CREATE INDEX username_index ON systems(username)',
+    'CREATE INDEX calculator_index ON systems(calculator)',
+    'CREATE INDEX species_index ON species(Z)',
+    'CREATE INDEX keyword_index ON keywords(keyword)',
+    'CREATE INDEX text_index ON text_key_values(key)',
+    'CREATE INDEX number_index ON number_key_values(key)']
 
 all_tables = ['systems', 'species', 'keywords',
               'text_key_values', 'number_key_values']
@@ -85,8 +101,8 @@ class SQLite3Database(Database):
             return
 
         cur = con.execute(
-            'select count(*) from sqlite_master where name="systems"')
-        self.version = 2
+            'SELECT COUNT(*) FROM sqlite_master WHERE name="systems"')
+
         if cur.fetchone()[0] == 0:
             for statement in init_statements:
                 con.execute(statement)
@@ -94,12 +110,22 @@ class SQLite3Database(Database):
                 for statement in index_statements:
                     con.execute(statement)
             con.commit()
+            self.version = VERSION
         else:
             cur = con.execute(
-                'select count(*) from sqlite_master where name="user_index"')
+                'SELECT COUNT(*) FROM sqlite_master WHERE name="user_index"')
             if cur.fetchone()[0] == 1:
                 # Old version with "user" instead of "username" column
                 self.version = 1
+            else:
+                try:
+                    cur = con.execute(
+                        'SELECT value FROM information WHERE name="version"')
+                except sqlite3.OperationalError:
+                    self.version = 2
+                else:
+                    self.version = int(cur.fetchone()[0])
+                    
         self.initialized = True
                 
     def _write(self, atoms, keywords, key_value_pairs, data):
@@ -114,7 +140,7 @@ class SQLite3Database(Database):
         if isinstance(atoms, dict):
             dct = atoms
             unique_id = dct['unique_id']
-            cur.execute('select id from systems where unique_id=?',
+            cur.execute('SELECT id FROM systems WHERE unique_id=?',
                         (unique_id,))
             rows = cur.fetchall()
             if rows:
@@ -172,7 +198,7 @@ class SQLite3Database(Database):
 
         if id is None:
             q = self.default + ', ' + ', '.join('?' * len(row))
-            cur.execute('insert into systems values ({0})'.format(q),
+            cur.execute('INSERT INTO systems VALUES ({0})'.format(q),
                         row)
         else:
             q = ', '.join(line.split()[0].lstrip() + '=?'
@@ -187,7 +213,7 @@ class SQLite3Database(Database):
                 count = np.bincount(numbers)
                 unique_numbers = count.nonzero()[0]
                 species = [(int(Z), int(count[Z]), id) for Z in unique_numbers]
-                cur.executemany('insert into species values (?, ?, ?)',
+                cur.executemany('INSERT INTO species VALUES (?, ?, ?)',
                                 species)
 
         text_key_values = []
@@ -199,16 +225,16 @@ class SQLite3Database(Database):
                 assert isinstance(value, (str, unicode))
                 text_key_values.append([key, value, id])
  
-        cur.executemany('insert into text_key_values values (?, ?, ?)',
+        cur.executemany('INSERT INTO text_key_values VALUES (?, ?, ?)',
                         text_key_values)
-        cur.executemany('insert into number_key_values values (?, ?, ?)',
+        cur.executemany('INSERT INTO number_key_values VALUES (?, ?, ?)',
                         number_key_values)
-        cur.executemany('insert into keywords values (?, ?)',
+        cur.executemany('INSERT INTO keywords VALUES (?, ?)',
                         [(keyword, id) for keyword in keywords])
         
         # Insert keys in keywords table also so that it is easy to query
         # for the existance of keys:
-        cur.executemany('insert into keywords values (?, ?)',
+        cur.executemany('INSERT INTO keywords VALUES (?, ?)',
                         [(key, id) for key in key_value_pairs])
 
         con.commit()
@@ -216,7 +242,7 @@ class SQLite3Database(Database):
         return id
         
     def get_last_id(self, cur):
-        cur.execute('select seq from sqlite_sequence where name="systems"')
+        cur.execute('SELECT seq FROM sqlite_sequence WHERE name="systems"')
         id = cur.fetchone()[0]
         return id
         
@@ -224,11 +250,11 @@ class SQLite3Database(Database):
         con = self._connect()
         c = con.cursor()
         if id is None:
-            c.execute('select count(*) from systems')
+            c.execute('SELECT COUNT(*) FROM systems')
             assert c.fetchone()[0] == 1
-            c.execute('select * from systems')
+            c.execute('SELECT * FROM systems')
         else:
-            c.execute('select * from systems where id=?', (id,))
+            c.execute('SELECT * FROM systems WHERE id=?', (id,))
         row = c.fetchone()
         return self.row_to_dict(row)
 
@@ -300,11 +326,11 @@ class SQLite3Database(Database):
         where = []
         args = []
         for n, keyword in enumerate(keywords):
-            tables.append('keywords as keyword{0}'.format(n))
+            tables.append('keywords AS keyword{0}'.format(n))
             where.append(
-                'systems.id=keyword{0}.id and keyword{0}.keyword=?'.format(n))
+                'systems.id=keyword{0}.id AND keyword{0}.keyword=?'.format(n))
             args.append(keyword)
-            
+
         # Special handling of "H=0" and "H<2" type of selections:
         bad = {}
         for key, op, value in cmps:
@@ -385,7 +411,7 @@ class SQLite3Database(Database):
     def _delete(self, cur, ids, tables=None):
         tables = tables or all_tables[::-1]
         for table in tables:
-            cur.executemany('delete from {0} where id=?'.format(table),
+            cur.executemany('DELETE FROM {0} WHERE id=?'.format(table),
                             ((id,) for id in ids))
 
 
@@ -413,3 +439,11 @@ def deblob(buf, dtype=float, shape=None):
     if shape is not None:
         array.shape = shape
     return array
+
+
+if __name__ == '__main__':
+    import sys
+    from ase.db import connect
+    con = connect(sys.argv[1])
+    con._initialize(con._connect())
+    print('Version:', con.version)

@@ -60,12 +60,14 @@ reserved_keys = set(all_properties + all_changes +
 numeric_keys = set(['id', 'energy', 'magmom', 'charge', 'natoms'])
 
 
-def check(key_value_pairs):
+def check(keywords, key_value_pairs):
     for key, value in key_value_pairs.items():
         if not word.match(key) or key in reserved_keys:
             raise ValueError('Bad key: {0}'.format(key))
         if not isinstance(value, (int, float, str, unicode)):
             raise ValueError('Bad value: {0}'.format(value))
+    for keyword in keywords:
+        assert keyword not in key_value_pairs
 
             
 def connect(name, type='extract_from_name', create_indices=True,
@@ -217,7 +219,7 @@ class Database:
         return id
         
     def _write(self, atoms, keywords, key_value_pairs, data):
-        check(key_value_pairs)
+        check(keywords, key_value_pairs)
         return 1
 
     @parallel

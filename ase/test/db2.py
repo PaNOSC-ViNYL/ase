@@ -38,3 +38,10 @@ for name in ['y2.json', 'y2.db']:
 
     c.update(id, grr='hmm')
     assert c.get(C=1).id == id
+
+    try:
+        c.update(id, ['grr'])
+    except AssertionError:
+        pass
+    else:
+        2 / 0
