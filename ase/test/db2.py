@@ -1,8 +1,9 @@
 from ase import Atoms
-from ase.db import connect
-from ase.structure import molecule
 from ase.calculators.emt import EMT
 from ase.constraints import FixAtoms, FixBondLength
+from ase.db import connect
+from ase.structure import molecule
+from ase.test import MustRaise
 
 
 for name in ['y2.json', 'y2.db']:
@@ -39,9 +40,8 @@ for name in ['y2.json', 'y2.db']:
     c.update(id, grr='hmm')
     assert c.get(C=1).id == id
 
-    try:
+    with MustRaise(AssertionError):
         c.update(id, ['grr'])
-    except AssertionError:
-        pass
-    else:
-        2 / 0
+    with MustRaise(AssertionError):
+        c.write(ch4, ['foo'], foo='bar')
+

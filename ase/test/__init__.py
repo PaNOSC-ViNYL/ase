@@ -166,6 +166,20 @@ class World:
     def get_rank(self, rank):
         return CPU(self, rank)
 
+
+class MustRaise:
+    """Context manager for checking raising of exceptions."""
+    def __init__(self, exception):
+        self.exception = exception
+        
+    def __enter__(self):
+        pass
+        
+    def __exit__(self, exc_type, exc_value, tb):
+        if exc_type is None:
+            raise RuntimeError('Failed to fail: ' + str(self.exception))
+        return issubclass(exc_type, self.exception)
+        
         
 class CPU:
     def __init__(self, world, rank):
