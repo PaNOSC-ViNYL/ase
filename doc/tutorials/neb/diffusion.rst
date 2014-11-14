@@ -46,6 +46,14 @@ and select Tools->NEB.
 .. |barrier| image:: diffusion-barrier.png
 
 
+Restarting NEB
+==============
+
+Restart NEB from the trajectory file:
+
+.. literalinclude:: diffusion4.py
+
+
 Parallelizing over images with MPI
 ==================================
 
@@ -55,7 +63,7 @@ one image each. In order to be able to run python with MPI
 you need a special parallel python interpreter, for example gpaw-python.
 
 The example below can then be run
-with `mpiexec -np 3 gpaw-python diffusion3.py`:
+with ``mpiexec -np 3 gpaw-python diffusion3.py``:
 
 .. literalinclude:: diffusion3.py
 

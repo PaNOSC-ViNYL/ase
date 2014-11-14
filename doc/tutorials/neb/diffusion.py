@@ -9,6 +9,7 @@ from ase.neb import fit
 if 1:
     execfile('diffusion1.py')
     execfile('diffusion2.py')
+    execfile('diffusion4.py')
 images = read('neb.traj@-5:')
 for name, a in zip('ITF', images[::2]):
     cell = a.get_cell()
