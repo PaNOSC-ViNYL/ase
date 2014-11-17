@@ -1343,7 +1343,7 @@ class Atoms(object):
         self.set_positions(positions +
                            rs.normal(scale=stdev, size=positions.shape))
 
-    def get_distance(self, a0, a1, mic=False):
+    def get_distance(self, a0, a1, mic=False, vector=False):
         """Return distance between two atoms.
 
         Use mic=True to use the Minimum Image Convention.
@@ -1354,6 +1354,8 @@ class Atoms(object):
         if mic:
             Dr = np.linalg.solve(self._cell.T, D)
             D = np.dot(Dr - np.round(Dr) * self._pbc, self._cell)
+        if vector:
+            return D
         return np.linalg.norm(D)
 
     def get_distances(self, a, indices, mic=False):
