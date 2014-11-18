@@ -174,22 +174,29 @@ class Vibrations:
         assert self.method in ['standard', 'frederiksen']
         assert self.direction in ['central', 'forward', 'backward']
 
+        def load(fname):
+            f = pickle.load(open(fname))
+            if not hasattr(f, 'shape'):
+                # output from InfraRed
+                return f[0]
+            return f
+
         n = 3 * len(self.indices)
         H = np.empty((n, n))
         r = 0
         if direction != 'central':
-            feq = pickle.load(open(self.name + '.eq.pckl'))
+            feq = load(self.name + '.eq.pckl')
         for a in self.indices:
             for i in 'xyz':
                 name = '%s.%d%s' % (self.name, a, i)
-                fminus = pickle.load(open(name + '-.pckl'))
-                fplus = pickle.load(open(name + '+.pckl'))
+                fminus = load(name + '-.pckl')
+                fplus = load(name + '+.pckl')
                 if self.method == 'frederiksen':
                     fminus[a] -= fminus.sum(0)
                     fplus[a] -= fplus.sum(0)
                 if self.nfree == 4:
-                    fminusminus = pickle.load(open(name + '--.pckl'))
-                    fplusplus = pickle.load(open(name + '++.pckl'))
+                    fminusminus = load(name + '--.pckl')
+                    fplusplus = load(name + '++.pckl')
                     if self.method == 'frederiksen':
                         fminusminus[a] -= fminusminus.sum(0)
                         fplusplus[a] -= fplusplus.sum(0)
