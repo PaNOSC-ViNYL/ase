@@ -28,6 +28,8 @@ class BEEF_Ensemble:
                 self.beef_type = 'beefvdw'
             elif self.xc == 'mBEEF':
                 self.beef_type = 'mbeef'
+            elif self.xc == 'mBEEF-vdW':
+                self.beef_type = 'mbeefvdw'
             else:
                 raise NotImplementedError('No ensemble for xc = %s' % self.xc)
 
@@ -47,6 +49,9 @@ class BEEF_Ensemble:
         elif self.beef_type == 'mbeef':
             assert len(self.contribs) == 64
             coefs = self.get_mbeef_ensemble_coefs(size, seed)
+        elif self.beef_type == 'mbeefvdw':
+            assert len(self.contribs) == 28
+            coefs = self.get_mbeefvdw_ensemble_coefs(size, seed)
         self.de = np.dot(coefs, self.contribs)
         self.done = True
 
@@ -78,6 +83,16 @@ class BEEF_Ensemble:
         """Pertubation coefficients of the mBEEF ensemble"""
         from pars_mbeef import uiOmega as omega
         assert np.shape(omega) == (64, 64)
+
+        W, V, generator = self.eigendecomposition(omega, seed)
+        mu, sigma = 0.0, 1.0
+        rand = np.array(generator.normal(mu, sigma, (len(W), size)))
+        return (np.sqrt(2.)*np.dot(np.dot(V, np.diag(np.sqrt(W))), rand)[:]).T
+
+    def get_mbeefvdw_ensemble_coefs(self, size=2000, seed=0):
+        """Pertubation coefficients of the mBEEF-vdW ensemble"""
+        from pars_mbeefvdw import uiOmega as omega
+        assert np.shape(omega) == (28,28)
 
         W, V, generator = self.eigendecomposition(omega, seed)
         mu, sigma = 0.0, 1.0
