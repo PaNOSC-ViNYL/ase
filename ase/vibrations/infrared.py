@@ -259,6 +259,7 @@ class InfraRed(Vibrations):
                 e = e.imag
             else:
                 c = ' '
+                e = e.real
             parprint(('%3d %6.1f%s  %7.1f%s  ' + iu_format) % 
                      (n, 1000 * e, c, s * e, c, iu * self.intensities[n]),
                      file=log)
