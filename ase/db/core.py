@@ -428,31 +428,6 @@ class Database:
                 
     @parallel
     @lock
-    def update(self, ids, **add_key_value_pairs):
-        """Update row(s).
-        
-        ids: int or list of int
-            ID's of rows to update.
-        add_key_value_pairs: dict
-            Key-value pairs to add.
-            
-        returns number of key-value pairs added.
-        """
-        
-        if isinstance(ids, int):
-            ids = [ids]
-        n = 0
-        for id in ids:
-            dct = self._get_dict(id)
-            key_value_pairs = dct.get('key_value_pairs', {})
-            n -= len(key_value_pairs)
-            key_value_pairs.update(add_key_value_pairs)
-            n += len(key_value_pairs)
-            self._write(dct, key_value_pairs, data=dct.get('data', {}))
-        return n
-
-    @parallel
-    @lock
     def delete_key_value_pairs(self, ids, delete_key_value_pairs=[]):
         """Delete key_value_pairs from row(s).
 

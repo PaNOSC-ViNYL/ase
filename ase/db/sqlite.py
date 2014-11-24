@@ -412,6 +412,36 @@ class SQLite3Database(Database):
                     
     @parallel
     @lock
+    def update(self, ids, block_size=1000, **add_key_value_pairs):
+        """Update row(s).
+        
+        ids: int or list of int
+            ID's of rows to update.
+        add_key_value_pairs: dict
+            Key-value pairs to add.
+            
+        returns number of key-value pairs added.
+        """
+        
+        if isinstance(ids, int):
+            ids = [ids]
+            
+        B = block_size
+        nblocks = (len(ids) - 1) // B + 1
+        n = 0
+        for b in range(nblocks):
+            dcts = [self._get_dict(id) for id in ids[b * B:(b + 1) * B]]
+            with self:
+                for dct in dcts:
+                    key_value_pairs = dct.get('key_value_pairs', {})
+                    n -= len(key_value_pairs)
+                    key_value_pairs.update(add_key_value_pairs)
+                    n += len(key_value_pairs)
+                    self._write(dct, key_value_pairs, data=dct.get('data', {}))
+        return n
+
+    @parallel
+    @lock
     def delete(self, ids):
         con = self._connect()
         self._delete(con.cursor(), ids)

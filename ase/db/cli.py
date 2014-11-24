@@ -157,16 +157,17 @@ def run(opts, args, verbosity):
         return
 
     if opts.insert_into:
-        con2 = connect(opts.insert_into, use_lock_file=not opts.no_lock_file)
         nkvp = 0
         nrows = 0
-        for dct in con.select(query):
-            kvp = dct.get('key_value_pairs', {})
-            nkvp = -len(kvp)
-            kvp.update(add_key_value_pairs)
-            nkvp += len(kvp)
-            con2.write(dct, data=dct.get('data'), **kvp)
-            nrows += 1
+        with connect(opts.insert_into,
+                     use_lock_file=not opts.no_lock_file) as con2:
+            for dct in con.select(query):
+                kvp = dct.get('key_value_pairs', {})
+                nkvp = -len(kvp)
+                kvp.update(add_key_value_pairs)
+                nkvp += len(kvp)
+                con2.write(dct, data=dct.get('data'), **kvp)
+                nrows += 1
             
         out('Added %s (%s updated)' %
             (plural(nkvp, 'key-value pair'),
