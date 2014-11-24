@@ -28,10 +28,6 @@ Add/remove key-column:
 {% for key in t.keys -%}
 <a href="/?x={{ tid }}&amp;toggle={{ key }}">{{ key }}</a>{% if not loop.last %},{% endif %}
 {% endfor %}
-{% if t.keywords %}
-<br>
-Keywords found: {{ t.keywords|join(', ') }}
-{% endif %}
 
 <table id=rows>
     <tr>
