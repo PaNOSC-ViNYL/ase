@@ -26,8 +26,6 @@ import functools
 
 import numpy as np
 
-import gpaw.mpi as mpi
-
 wrap = 1e-6 * 2**32
 
 # Global variables:
