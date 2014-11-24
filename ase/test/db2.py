@@ -44,4 +44,3 @@ for name in ['y2.json', 'y2.db']:
         c.update(id, ['grr'])
     with MustRaise(AssertionError):
         c.write(ch4, ['foo'], foo='bar')
-
