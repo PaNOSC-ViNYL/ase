@@ -92,10 +92,24 @@ class SQLite3Database(Database):
     initialized = False
     _allow_reading_old_format = False
     default = 'NULL'  # used for autoincrement id
+    connection = None
+    version = None
     
     def _connect(self):
         return sqlite3.connect(self.filename, timeout=600)
 
+    def __enter__(self):
+        self.connection = self._connect()
+        return self
+        
+    def __exit__(self, exc_type, exc_value, tb):
+        if exc_type is None:
+            self.connection.commit()
+        else:
+            self.connection.rollback()
+        self.connection.close()
+        self.connection = None
+        
     def _initialize(self, con):
         if self.initialized:
             return
@@ -131,7 +145,7 @@ class SQLite3Database(Database):
     def _write(self, atoms, key_value_pairs, data):
         Database._write(self, atoms, key_value_pairs, data)
         
-        con = self._connect()
+        con = self.connection or self._connect()
         self._initialize(con)
         cur = con.cursor()
                 
@@ -231,8 +245,9 @@ class SQLite3Database(Database):
         cur.executemany('INSERT INTO keys VALUES (?, ?)',
                         [(key, id) for key in key_value_pairs])
 
-        con.commit()
-        con.close()
+        if self.connection is None:
+            con.commit()
+            con.close()
         return id
         
     def get_last_id(self, cur):
