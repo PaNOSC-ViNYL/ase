@@ -44,7 +44,7 @@ Every row in the database contains:
 * calculator name and parameters (if a calculator is present)
 * already calculated properties such as energy and forces
   (if a calculator is present)
-* keywords and key-value pairs (for finding the calculation again)
+* key-value pairs (for finding the calculation again)
 * an integer ID (unique for each database) starting with 1 and always
   increasing for each new row
 * a unique ID which is a 128 bit random number which should be globally
@@ -60,36 +60,17 @@ Command-line tool
 =================
 
 The :program:`ase-db` command can be used to query databases and for
-manipulating keywords and key-value pairs.  Try::
+manipulating key-value pairs.  Try::
     
     $ ase-db --help
     
-Example: Show all rows of SQLite database abc.db::
- 
-    $ ase-db abc.db
-    id|age|user |formula|calc|energy| fmax|pbc|keywords|keyvals      | mass
-     1|6s |jensj|H2     |emt | 1.419|9.803|000|molecule|relaxed=False|2.016
-     2|5s |jensj|H2     |emt | 1.071|0.000|000|molecule|relaxed=True |2.016
-     3|5s |jensj|H      |emt | 3.210|0.000|000|        |             |1.008
+Example: Show all rows of SQLite database abc.db:
     
-Show all details for a single row::
+.. literalinclude:: ase-db.out
     
-    $ ase-db abc.db id=3 -l
-    id: 3
-    formula: H
-    user: jensj
-    age: 174s
-    calculator: emt
-    energy: 3.210 eV
-    maximum atomic force: 0.000 eV/Ang
-    magnetic moment: 0
-    periodic boundary conditions: [False False False]
-    unit cell [Ang]:
-         1.000     0.000     0.000
-         0.000     1.000     0.000
-         0.000     0.000     1.000
-    volume: 1.000 Ang^3
-    mass: 1.008 au
+Show all details for a single row:
+    
+.. literalinclude:: ase-db-long.out
 
     
 Querying
@@ -101,7 +82,7 @@ Here are some example query strings:
     :widths: 25 75
     
     * - v3
-      - has 'v3' key or keyword
+      - has 'v3' key
     * - abc=H
       - has key 'abc' with value 'H'
     * - v3,abc=H
@@ -189,10 +170,9 @@ database:
 array([[ 0.        ,  0.        , -9.80290573],
        [ 0.        ,  0.        ,  9.80290573]])
 
-Write a row to the database with keyword ``'molecule'`` and a key-value pair
-(``'relaxed'``, ``False``):
+Write a row to the database with a key-value pair (``'relaxed'``, ``False``):
     
->>> c.write(h2, ['molecule'], relaxed=False)
+>>> c.write(h2, relaxed=False)
 1
 
 The :meth:`~Database.write` method returns an integer id.
@@ -205,12 +185,12 @@ BFGS:   0  12:49:25        1.419427       9.8029
 BFGS:   1  12:49:25        1.070582       0.0853
 BFGS:   2  12:49:25        1.070544       0.0236
 BFGS:   3  12:49:25        1.070541       0.0001
->>> c.write(h2, ['molecule'], relaxed=True)
+>>> c.write(h2, relaxed=True)
 2
 
 Loop over selected rows using the :meth:`~Database.select` method:
     
->>> for d in c.select('molecule'):
+>>> for d in c.select(relaxed=True):
 ...     print d.forces[0, 2], d.relaxed
 ...
 -9.8029057329 False
@@ -237,20 +217,20 @@ Select a single row with the :meth:`~Database.get` method:
 ...
 user                     : jensj
 key_value_pairs          : {u'relaxed': True}
-ctime                    : 14.0195850909
-mtime                    : 14.0195850909
 energy                   : 1.07054126233
+positions                : [[ ... ]]
+calculator               : emt
 relaxed                  : True
 calculator_parameters    : {}
 cell                     : [[ 1.  0.  0.] [ 0.  1.  0.] [ 0.  0.  1.]]
 numbers                  : [1 1]
 forces                   : [[ ... ]]
-positions                : [[ ... ]]
-keywords                 : [u'molecule']
+mtime                    : 14.8975933527
 pbc                      : [False False False]
+data                     : {u'abc': array([1, 2, 3])}
 id                       : 2
-unique_id                : 22e4a2d64800987dd8d398c6cc9fd085
-calculator               : emt
+unique_id                : bd6e07125cf7a46569a3ed361a2edbe8
+ctime                    : 14.8975933527
 
 Calculate the atomization energy and :meth:`~Database.update` a row in
 the database:
@@ -258,11 +238,11 @@ the database:
 >>> e2 = d.energy
 >>> e1 = c.get(H=1).energy
 >>> ae = 2 * e1 - e2
->>> print ae
+>>> print(ae)
 5.34945873767
 >>> id = c.get(relaxed=1).id
 >>> c.update(id, atomization_energy=ae)
-(0, 1)
+1
 
 Delete a single row:
     
@@ -317,17 +297,17 @@ If you want an Atoms object insted of a dictionary, you should use the
 
 or if you want the original EMT calculator attached:
     
->>> h2 = c.get_atoms(H=2, attach_calcuolator=True)
+>>> h2 = c.get_atoms(H=2, attach_calculator=True)
 
 
 Add additional data
 -------------------
 
 When you write a row to a database using the :meth:`~Database.write` method,
-you can add string keywords and key-value pairs where the values can be
+you can add key-value pairs where the values can be
 strings, floating point numbers, integers and booleans:
     
->>> c.write(atoms, ['project42', 'ABC'], functional='LDA', distance=7.2)
+>>> c.write(atoms, functional='LDA', distance=7.2)
 
 More complicated data can be written like this:
 

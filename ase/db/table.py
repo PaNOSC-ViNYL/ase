@@ -54,7 +54,6 @@ class Table:
         self.id = None
         self.right = None
         self.keys = None
-        self.keywords = None
         
     def select(self, query, columns, sort, limit):
         self.limit = limit
@@ -96,18 +95,15 @@ class Table:
     def format(self, subscript=None):
         right = set()
         allkeys = set()
-        allkeywords = set()
         for row in self.rows:
             numbers = row.format(self.columns, subscript)
             right.update(numbers)
             allkeys.update(row.dct.key_value_pairs)
-            allkeywords.update(row.dct.keywords)
             
         right.add('age')
         self.right = [column in right for column in self.columns]
         
         self.keys = sorted(allkeys)
-        self.keywords = sorted(allkeywords)
 
     def write(self):
         self.format()
@@ -128,15 +124,13 @@ class Table:
             return
             
         print('Rows:', len(self.rows), end='')
-        if self.limit:
+        if self.limit and len(self.rows) == self.limit:
             print(' (limited to first {0})'.format(self.limit))
         else:
             print()
 
         if self.keys:
             print('Keys:', ', '.join(cutlist(self.keys, self.cut)))
-        if self.keywords:
-            print('Keywords:', ', '.join(cutlist(self.keywords, self.cut)))
             
     def write_csv(self):
         print(', '.join(self.columns))
@@ -154,8 +148,6 @@ class Row:
         self.set_columns(columns)
         if 'key_value_pairs' not in dct:
             dct['key_value_pairs'] = {}
-        if 'keywords' not in dct:
-            dct['keywords'] = []
         
     def set_columns(self, columns):
         self.values = []
@@ -206,9 +198,6 @@ class Row:
     def fmax(self, d):
         forces = dict2forces(d)
         return (forces**2).sum(1).max()**0.5
-
-    def keywords(self, d):
-        return cut(','.join(d.keywords), self.cut)
 
     def keys(self, d):
         return cut(','.join(['{0}={1}'.format(*item)

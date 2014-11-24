@@ -66,11 +66,6 @@ class Summary:
         else:
             self.key_value_pairs = None
 
-        if 'keywords' in dct:
-            self.keywords = ', '.join(sorted(dct.keywords))
-        else:
-            self.keywords = None
-            
         self.dipole = dct.get('dipole')
         if self.dipole is not None:
             self.dipole = ', '.join('{0:.3f}'.format(d) for d in self.dipole)
@@ -103,9 +98,6 @@ class Summary:
             width = max(len(key) for key, value in self.key_value_pairs)
             for key, value in self.key_value_pairs:
                 print('{0:{width}}|{1}'.format(key, value, width=width))
-                
-        if self.keywords:
-            print('\nKeywords:', self.keywords)
                 
         if self.forces:
             print('\nForces in ev/Ang:')

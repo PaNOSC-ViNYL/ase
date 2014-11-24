@@ -30,17 +30,11 @@ for name in ['y2.json', 'y2.db']:
     f3 = c.get_atoms(C=1).get_forces()
     assert abs(f1 - f3).max() < 1e-14
 
-    try:
+    with MustRaise(ValueError):
         c.update(id, abc={'a': 42})
-    except ValueError:
-        pass
-    else:
-        2 / 0
 
     c.update(id, grr='hmm')
     assert c.get(C=1).id == id
 
-    with MustRaise(AssertionError):
-        c.update(id, ['grr'])
-    with MustRaise(AssertionError):
-        c.write(ch4, ['foo'], foo='bar')
+    with MustRaise(ValueError):
+        c.write(ch4, foo=['bar', 2])

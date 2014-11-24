@@ -18,7 +18,7 @@ def plural(n, word):
 
     
 description = """Selecton is a comma-separated list of
-selections where each selection is of the type "ID", "keyword" or
+selections where each selection is of the type "ID", "key" or
 "key=value".  Instead of "=", one can also use "<", "<=", ">=", ">"
 and  "!=" (these must be protected from the shell by using quotes).
 Special keys: id, user, calculator, age, natoms, energy, magmom,
@@ -52,11 +52,7 @@ def main(args=sys.argv[1:]):
         help='Insert selected rows into another database.')
     add('-a', '--add-from-file', metavar='[type:]filename',
         help='Add results from file.')
-    add('-k', '--add-keywords', metavar='word1,word2,...',
-        help='Add keywords to selected rows.  Keywords can only contain ' +
-        'letters, numbers and the underscore character and the first ' +
-        'character can not be a number.')
-    add('-K', '--add-key-value-pairs', metavar='key1=val1,key2=val2,...',
+    add('-k', '--add-key-value-pairs', metavar='key1=val1,key2=val2,...',
         help='Add key-value pairs to selected rows.  Values must be numbers ' +
         'or strings and keys must follow the same rules as keywords.')
     add('--limit', type=int, default=500, metavar='N',
@@ -64,8 +60,6 @@ def main(args=sys.argv[1:]):
         'to show all.')
     add('--delete', action='store_true',
         help='Delete selected rows.')
-    add('--delete-keywords', metavar='keyword1,keyword2,...',
-        help='Delete keywords for selected rows.')
     add('--delete-key-value-pairs', metavar='key1,key2,...',
         help='Delete key-value pairs for selected rows.')
     add('-y', '--yes', action='store_true',
@@ -113,16 +107,6 @@ def run(opts, args, verbosity):
     if query.isdigit():
         query = int(query)
     
-    if opts.add_keywords:
-        add_keywords = opts.add_keywords.split(',')
-    else:
-        add_keywords = []
-
-    if opts.delete_keywords:
-        delete_keywords = opts.delete_keywords.split(',')
-    else:
-        delete_keywords = []
-
     add_key_value_pairs = {}
     if opts.add_key_value_pairs:
         for pair in opts.add_key_value_pairs.split(','):
@@ -154,7 +138,7 @@ def run(opts, args, verbosity):
             atoms = get_calculator(calculator_name)(filename).get_atoms()
         else:
             atoms = ase.io.read(filename)
-        con.write(atoms, add_keywords, key_value_pairs=add_key_value_pairs)
+        con.write(atoms, key_value_pairs=add_key_value_pairs)
         out('Added {0} from {1}'.format(atoms.get_chemical_formula(),
                                         filename))
         return
@@ -174,36 +158,27 @@ def run(opts, args, verbosity):
 
     if opts.insert_into:
         con2 = connect(opts.insert_into, use_lock_file=not opts.no_lock_file)
-        nkw = 0
         nkvp = 0
         nrows = 0
         for dct in con.select(query):
-            keywords = dct.get('keywords', [])
-            for keyword in add_keywords:
-                if keyword not in keywords:
-                    keywords.append(keyword)
-                    nkw += 1
-
             kvp = dct.get('key_value_pairs', {})
             nkvp = -len(kvp)
             kvp.update(add_key_value_pairs)
             nkvp += len(kvp)
-            con2.write(dct, keywords, data=dct.get('data'), **kvp)
+            con2.write(dct, data=dct.get('data'), **kvp)
             nrows += 1
             
-        out('Added %s and %s (%s updated)' %
-            (plural(nkw, 'keyword'),
-             plural(nkvp, 'key-value pair'),
+        out('Added %s (%s updated)' %
+            (plural(nkvp, 'key-value pair'),
              plural(len(add_key_value_pairs) * nrows - nkvp, 'pair')))
         out('Inserted %s' % plural(nrows, 'row'))
         return
 
-    if add_keywords or add_key_value_pairs:
+    if add_key_value_pairs:
         ids = [dct['id'] for dct in con.select(query)]
-        nkw, nkv = con.update(ids, add_keywords, **add_key_value_pairs)
-        out('Added %s and %s (%s updated)' %
-            (plural(nkw, 'keyword'),
-             plural(nkv, 'key-value pair'),
+        nkv = con.update(ids, **add_key_value_pairs)
+        out('Added %s (%s updated)' %
+            (plural(nkv, 'key-value pair'),
              plural(len(add_key_value_pairs) * len(ids) - nkv, 'pair')))
         return
 
@@ -217,13 +192,10 @@ def run(opts, args, verbosity):
         out('Deleted %s' % plural(len(ids), 'row'))
         return
 
-    if delete_keywords or delete_key_value_pairs:
+    if delete_key_value_pairs:
         ids = [dct['id'] for dct in con.select(query)]
-        nkw, nkv = con.delete_keywords_and_key_value_pairs(
-            ids, delete_keywords, delete_key_value_pairs)
-        print('Removed %s and %s' %
-              (plural(nkw, 'keyword'),
-               plural(nkv, 'key-value pair')))
+        nkv = con.delete_key_value_pairs(ids, delete_key_value_pairs)
+        print('Removed', plural(nkv, 'key-value pair'))
         return
 
     if opts.python_expression:
