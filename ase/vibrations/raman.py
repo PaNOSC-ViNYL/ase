@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """Resonant Raman intensities"""
-
+from __future__ import print_function
 import pickle
 import os
 from math import sin, pi, sqrt, exp, log
@@ -13,8 +13,7 @@ import ase.units as units
 from ase.io.trajectory import PickleTrajectory
 from ase.parallel import rank, barrier, parprint, paropen
 from ase.vibrations import Vibrations
-
-from gpaw.utilities.timing import Timer
+from ase.utils.timing import Timer
 
 class ResonantRaman(Vibrations):
     """Class for calculating vibrational modes and 
@@ -76,8 +75,11 @@ class ResonantRaman(Vibrations):
         if not hasattr(self, 'modes'):
             self.read()
 
-        kss0 = self.exobj(
-            self.exname + '.eq.excitations', **self.exkwargs)
+        if not hasattr(self, 'kss0'):
+            self.kss0 = self.exobj(
+                self.exname + '.eq.excitations', **self.exkwargs)
+            self.kssminus = []
+            self.kssplus = []
 
         ndof = 3 * len(self.indices)
         H = np.empty((ndof, ndof))
@@ -97,10 +99,6 @@ class ResonantRaman(Vibrations):
                            (ex_e.energy * eu + omega + 1j * gamma))
             return result
             
-        if not hasattr(self, 'kssminus'):
-            self.kssminus = []
-            self.kssplus = []
-
         r = 0
         for a in self.indices:
             for i in 'xyz':
@@ -118,8 +116,8 @@ class ResonantRaman(Vibrations):
                     kssminus = self.kssminus[r]
                     kssplus = self.kssplus[r]
                 amplitudes[r] = pre * (
-                    kappa(kssplus, kss0, omega, gamma) - 
-                    kappa(kssminus, kss0, omega, gamma))
+                    kappa(kssplus, self.kss0, omega, gamma) - 
+                    kappa(kssminus, self.kss0, omega, gamma))
                 r += 1
         
         # map to modes
