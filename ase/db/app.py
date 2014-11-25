@@ -123,7 +123,6 @@ def tofile(query, type, limit=0):
     con = ase.db.connect(name, use_lock_file=False)
     for dct in connection.select(query, limit=limit):
         con.write(dct,
-                  keywords=dct.get('keywords', []),
                   data=dct.get('data', {}),
                   **dct.get('key_value_pairs', {}))
     os.close(fd)
