@@ -180,6 +180,16 @@ Install ``build-slave`` and dependencies::
   export PYTHONPATH=$HOME/buildbot-slave-el6:${PYTHONPATH}
   easy_install --install-dir=$HOME/buildbot-slave-el6 buildbot-slave
 
+RHEL7
++++++
+
+Install ``build-slave`` and dependencies::
+
+  mkdir ~/buildbot-slave-el7
+  export PATH=$HOME/buildbot-slave-el7:${PATH}
+  export PYTHONPATH=$HOME/buildbot-slave-el7:${PYTHONPATH}
+  easy_install --install-dir=$HOME/buildbot-slave-el7 buildbot-slave
+
 Windows
 +++++++
 
