@@ -70,6 +70,12 @@ def read_json(name):
 
 
 class JSONDatabase(Database):
+    def __enter__(self):
+        return self
+        
+    def __exit__(self, exc_type, exc_value, tb):
+        pass
+        
     def _write(self, atoms, key_value_pairs, data):
         Database._write(self, atoms, key_value_pairs, data)
         
