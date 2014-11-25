@@ -60,8 +60,8 @@ def main(args=sys.argv[1:]):
         'to show all.')
     add('--delete', action='store_true',
         help='Delete selected rows.')
-    add('--delete-key-value-pairs', metavar='key1,key2,...',
-        help='Delete key-value pairs for selected rows.')
+    add('--delete-keys', metavar='key1,key2,...',
+        help='Delete keys for selected rows.')
     add('-y', '--yes', action='store_true',
         help='Say yes.')
     add('--explain', action='store_true',
@@ -120,10 +120,10 @@ def run(opts, args, verbosity):
                     break
             add_key_value_pairs[key] = value
 
-    if opts.delete_key_value_pairs:
-        delete_key_value_pairs = opts.delete_key_value_pairs.split(',')
+    if opts.delete_keys:
+        delete_keys = opts.delete_keys.split(',')
     else:
-        delete_key_value_pairs = []
+        delete_keys = []
 
     con = connect(filename, use_lock_file=not opts.no_lock_file)
     
@@ -175,12 +175,14 @@ def run(opts, args, verbosity):
         out('Inserted %s' % plural(nrows, 'row'))
         return
 
-    if add_key_value_pairs:
+    if add_key_value_pairs or delete_keys:
         ids = [dct['id'] for dct in con.select(query)]
-        nkv = con.update(ids, **add_key_value_pairs)
+        m, n = con.update(ids, delete_keys, **add_key_value_pairs)
         out('Added %s (%s updated)' %
-            (plural(nkv, 'key-value pair'),
-             plural(len(add_key_value_pairs) * len(ids) - nkv, 'pair')))
+            (plural(m, 'key-value pair'),
+             plural(len(add_key_value_pairs) * len(ids) - m, 'pair')))
+        out('Removed', plural(n, 'key-value pair'))
+
         return
 
     if opts.delete:
@@ -191,12 +193,6 @@ def run(opts, args, verbosity):
                 return
         con.delete(ids)
         out('Deleted %s' % plural(len(ids), 'row'))
-        return
-
-    if delete_key_value_pairs:
-        ids = [dct['id'] for dct in con.select(query)]
-        nkv = con.delete_key_value_pairs(ids, delete_key_value_pairs)
-        print('Removed', plural(nkv, 'key-value pair'))
         return
 
     if opts.python_expression:

@@ -192,30 +192,29 @@ class JSONDatabase(Database):
                     n += 1
                     yield dct
 
-    @parallel
-    @lock
-    def update(self, ids, **add_key_value_pairs):
-        check(add_key_value_pairs)
-            
-        if isinstance(ids, int):
-            ids = [ids]
-
+    def _update(self, ids, delete_keys, add_key_value_pairs):
         bigdct, myids, nextid = self._read_json()
         
         t = now()
         
+        m = 0
         n = 0
         for id in ids:
             dct = bigdct[id]
-            if add_key_value_pairs:
-                key_value_pairs = dct.setdefault('key_value_pairs', {})
-                n -= len(key_value_pairs)
-                key_value_pairs.update(add_key_value_pairs)
-                n += len(key_value_pairs)
+            kvp = dct.get('key_value_pairs', {})
+            n += len(kvp)
+            for key in delete_keys:
+                kvp.pop(key, None)
+            n -= len(kvp)
+            m -= len(kvp)
+            kvp.update(add_key_value_pairs)
+            m += len(kvp)
+            if kvp:
+                dct['key_value_pairs'] = kvp
             dct['mtime'] = t
             
         self._write_json(bigdct, myids, nextid)
-        return n
+        return m, n
 
 
 def get_value(id, dct, key):

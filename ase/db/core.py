@@ -428,29 +428,34 @@ class Database:
                 
     @parallel
     @lock
-    def delete_key_value_pairs(self, ids, delete_key_value_pairs=[]):
-        """Delete key_value_pairs from row(s).
-
+    def update(self, ids, delete_keys=[], block_size=1000,
+               **add_key_value_pairs):
+        """Update row(s).
+        
         ids: int or list of int
-            ID's of rows to delete from.
-        delete_key_value_pairs: list of str
-            Key-value pairs to remove.
-
-        returns number of key-value pairs removed.
+            ID's of rows to update.
+        delete_keys: list of str
+            Keys to remove.
+            
+        Use keyword argumnts to add new keys-value pairs.
+            
+        Returns number of key-value pairs added and removed.
         """
+        check(add_key_value_pairs)
 
         if isinstance(ids, int):
             ids = [ids]
-        n = 0
-        for id in ids:
-            dct = self._get_dict(id)
-            key_value_pairs = dct.get('key_value_pairs', {})
-            n += len(key_value_pairs)
-            for k in delete_key_value_pairs:
-                key_value_pairs.pop(k, None)
-            n -= len(key_value_pairs)
-            self._write(dct, key_value_pairs, data=dct.get('data', {}))
-        return n
+            
+        B = block_size
+        nblocks = (len(ids) - 1) // B + 1
+        M = 0
+        N = 0
+        for b in range(nblocks):
+            m, n = self._update(ids[b * B:(b + 1) * B], delete_keys,
+                                add_key_value_pairs)
+            M += m
+            N += n
+        return M, N
 
     def delete(self, ids):
         """Delete rows."""

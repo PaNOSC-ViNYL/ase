@@ -330,7 +330,10 @@ class SQLite3Database(Database):
                                encode(extra['data']),
                                42)
         else:
-            return row[:-4] + row[-3:]
+            keywords = decode(row[-4])
+            kvp = decode(row[-3])
+            kvp.update(dict((keyword, 1) for keyword in keywords))
+            return row[:-4] + (encode(kvp),) + row[-2:]
         
     def _select(self, keys, cmps, explain=False, verbosity=0, limit=None):
         tables = ['systems']
@@ -410,35 +413,34 @@ class SQLite3Database(Database):
             for row in cur.fetchall():
                 yield self.row_to_dict(row)
                     
-    @parallel
-    @lock
-    def update(self, ids, block_size=1000, **add_key_value_pairs):
+    def _update(self, ids, delete_keys, add_key_value_pairs):
         """Update row(s).
         
         ids: int or list of int
             ID's of rows to update.
+        delete_keys: list of str
+            Keys to remove.
         add_key_value_pairs: dict
             Key-value pairs to add.
             
-        returns number of key-value pairs added.
+        Returns number of key-value pairs added and keys removed.
         """
         
-        if isinstance(ids, int):
-            ids = [ids]
-            
-        B = block_size
-        nblocks = (len(ids) - 1) // B + 1
+        dcts = [self._get_dict(id) for id in ids]
+        m = 0
         n = 0
-        for b in range(nblocks):
-            dcts = [self._get_dict(id) for id in ids[b * B:(b + 1) * B]]
-            with self:
-                for dct in dcts:
-                    key_value_pairs = dct.get('key_value_pairs', {})
-                    n -= len(key_value_pairs)
-                    key_value_pairs.update(add_key_value_pairs)
-                    n += len(key_value_pairs)
-                    self._write(dct, key_value_pairs, data=dct.get('data', {}))
-        return n
+        with self:
+            for dct in dcts:
+                kvp = dct.get('key_value_pairs', {})
+                n += len(kvp)
+                for key in delete_keys:
+                    kvp.pop(key, None)
+                n -= len(kvp)
+                m -= len(kvp)
+                kvp.update(add_key_value_pairs)
+                m += len(kvp)
+                self._write(dct, kvp, data=dct.get('data', {}))
+        return m, n
 
     @parallel
     @lock
