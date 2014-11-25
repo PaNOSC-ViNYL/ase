@@ -55,19 +55,17 @@ reserved_keys = set(all_properties + all_changes +
                     ['id', 'unique_id', 'ctime', 'mtime', 'user',
                      'momenta', 'constraints',
                      'calculator', 'calculator_parameters',
-                     'keywords', 'key_value_pairs', 'data'])
+                     'key_value_pairs', 'data'])
 
 numeric_keys = set(['id', 'energy', 'magmom', 'charge', 'natoms'])
 
 
-def check(keywords, key_value_pairs):
+def check(key_value_pairs):
     for key, value in key_value_pairs.items():
         if not word.match(key) or key in reserved_keys:
             raise ValueError('Bad key: {0}'.format(key))
         if not isinstance(value, (int, float, str, unicode)):
             raise ValueError('Bad value: {0}'.format(value))
-    for keyword in keywords:
-        assert keyword not in key_value_pairs
 
             
 def connect(name, type='extract_from_name', create_indices=True,
@@ -189,15 +187,13 @@ class Database:
             
     @parallel
     @lock
-    def write(self, atoms, keywords=[], key_value_pairs={}, data={}, **kwargs):
-        """Write atoms to database with keywords and key-value pairs.
+    def write(self, atoms, key_value_pairs={}, data={}, **kwargs):
+        """Write atoms to database with key-value pairs.
         
         atoms: Atoms object
             Write atomic numbers, positions, unit cell and boundary
             conditions.  If a calculator is attached, write also already
             calculated properties such as the energy and forces.
-        keywords: list of str
-            List of keywords.
         key_value_pairs: dict
             Dictionary of key-value pairs.  Values must be strings or numbers.
         data: dict
@@ -215,29 +211,28 @@ class Database:
         kvp = dict(key_value_pairs)  # modify a copy
         kvp.update(kwargs)
         
-        id = self._write(atoms, keywords, kvp, data)
+        id = self._write(atoms, kvp, data)
         return id
         
-    def _write(self, atoms, keywords, key_value_pairs, data):
-        check(keywords, key_value_pairs)
+    def _write(self, atoms, key_value_pairs, data):
+        check(key_value_pairs)
         return 1
 
     @parallel
     @lock
-    def reserve(self, *keywords, **key_value_pairs):
+    def reserve(self, **key_value_pairs):
         """Write empty row if not already present.
         
         Usage::
             
-            id = conn.reserve('keyword1', 'keyword2', ...,
-                              key1=value1, key2=value2, ...)
+            id = conn.reserve(key1=value1, key2=value2, ...)
         
-        Write an empty row with the given keywords and key-value pairs and
+        Write an empty row with the given key-value pairs and
         return the integer id.  If such a row already exists, don't write
         anything and return None.
         """
         
-        for dct in self._select(keywords,
+        for dct in self._select([],
                                 [(key, '=', value)
                                  for key, value in key_value_pairs.items()]):
             return None
@@ -253,12 +248,16 @@ class Database:
             # Fake calculator class:
             class Fake:
                 name = calc_name
-                todict = lambda self: {}
-                check_state = lambda self, atoms: ['positions']
+                
+                def todict(self):
+                    return {}
+                
+                def check_state(self, atoms):
+                    return ['positions']
             
             atoms.calc = Fake()
             
-        id = self._write(atoms, keywords, key_value_pairs, {})
+        id = self._write(atoms, key_value_pairs, {})
         
         return id
         
@@ -286,8 +285,7 @@ class Database:
             Attach calculator object to Atoms object (default value is
             False).
         add_additional_information: bool
-            Put keywords, key-value pairs and data into Atoms.info
-            dictionary.
+            Put key-value pairs and data into Atoms.info dictionary.
         
         In addition, one can use keyword arguments to select specific
         key-value pairs.
@@ -297,7 +295,7 @@ class Database:
         atoms = dict2atoms(dct, attach_calculator)
         if add_additional_information:
             atoms.info = {}
-            for key in ['unique_id', 'keywords', 'key_value_pairs', 'data']:
+            for key in ['unique_id', 'key_value_pairs', 'data']:
                 if key in dct:
                     atoms.info[key] = dct[key]
         return atoms
@@ -328,7 +326,7 @@ class Database:
         """Select rows.
         
         Return iterator with results as dictionaries.  Selection is done
-        using key-value pairs, keywords and the special keys:
+        using key-value pairs and the special keys:
             
             formula, age, user, calculator, natoms, energy, magmom
             and/or charge.
@@ -339,8 +337,8 @@ class Database:
             * an integer id
             * a string like 'key=value', where '=' can also be one of
               '<=', '<', '>', '>=' or '!='.
-            * a string like 'keyword'
-            * comma separated strings like 'key1<value1,key2=value2,keyword'
+            * a string like 'key'
+            * comma separated strings like 'key1<value1,key2=value2,key'
             * list of strings or tuples: [('charge', '=', 1)].
         fancy: bool
             return fancy dictionary with keys as attributes (this is the
@@ -364,7 +362,7 @@ class Database:
             expressions = selection
         else:
             expressions = selection.split(',')
-        keywords = []
+        keys = []
         comparisons = []
         for expression in expressions:
             if isinstance(expression, (list, tuple)):
@@ -383,7 +381,7 @@ class Database:
                 if op in expression:
                     break
             else:
-                keywords.append(expression)
+                keys.append(expression)
                 continue
             key, value = expression.split(op)
             comparisons.append((key, op, value))
@@ -419,7 +417,7 @@ class Database:
                 raise ValueError(msg.format(key, op, value))
             cmps.append((key, op, value))
 
-        for dct in self._select(keywords, cmps, explain=explain,
+        for dct in self._select(keys, cmps, explain=explain,
                                 verbosity=verbosity, limit=limit):
             if filter is None or filter(dct):
                 if fancy:
@@ -430,73 +428,34 @@ class Database:
                 
     @parallel
     @lock
-    def update(self, ids, add_keywords=[], **add_key_value_pairs):
+    def update(self, ids, delete_keys=[], block_size=1000,
+               **add_key_value_pairs):
         """Update row(s).
         
         ids: int or list of int
             ID's of rows to update.
-        add_keywords: list of str
-            List of keyword strings to add to rows.
-        add_key_value_pairs: dict
-            Key-value pairs to add.
+        delete_keys: list of str
+            Keys to remove.
             
-        returns number of keywords and key-value pairs added.
+        Use keyword argumnts to add new keys-value pairs.
+            
+        Returns number of key-value pairs added and removed.
         """
-        
-        if isinstance(ids, int):
-            ids = [ids]
-        m = 0
-        n = 0
-        for id in ids:
-            dct = self._get_dict(id)
-            keywords = dct.get('keywords', [])
-            for keyword in add_keywords:
-                if keyword not in keywords:
-                    keywords.append(keyword)
-                    m += 1
-            key_value_pairs = dct.get('key_value_pairs', {})
-            n -= len(key_value_pairs)
-            key_value_pairs.update(add_key_value_pairs)
-            n += len(key_value_pairs)
-            self._write(dct, keywords, key_value_pairs,
-                        data=dct.get('data', {}))
-        return m, n
-
-    @parallel
-    @lock
-    def delete_keywords_and_key_value_pairs(self, ids, delete_keywords=[],
-                                            delete_key_value_pairs=[]):
-        """Delete keywords and/or key_value_pairs from row(s).
-
-        ids: int or list of int
-            ID's of rows to delete from.
-        delete_keywords: list of str
-            List of keyword strings to remove to rows.
-        delete_key_value_pairs: list of str
-            Key-value pairs to remove.
-
-        returns number of keywords and key-value pairs removed.
-        """
+        check(add_key_value_pairs)
 
         if isinstance(ids, int):
             ids = [ids]
-        m = 0
-        n = 0
-        for id in ids:
-            dct = self._get_dict(id)
-            keywords = dct.get('keywords', [])
-            for keyword in delete_keywords:
-                if keyword in keywords:
-                    keywords.remove(keyword)
-                    m += 1
-            key_value_pairs = dct.get('key_value_pairs', {})
-            n += len(key_value_pairs)
-            for k in delete_key_value_pairs:
-                key_value_pairs.pop(k, None)
-            n -= len(key_value_pairs)
-            self._write(dct, keywords, key_value_pairs,
-                        data=dct.get('data', {}))
-        return m, n
+            
+        B = block_size
+        nblocks = (len(ids) - 1) // B + 1
+        M = 0
+        N = 0
+        for b in range(nblocks):
+            m, n = self._update(ids[b * B:(b + 1) * B], delete_keys,
+                                add_key_value_pairs)
+            M += m
+            N += n
+        return M, N
 
     def delete(self, ids):
         """Delete rows."""

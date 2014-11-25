@@ -3,9 +3,10 @@
 Versions:
 
 1) Added 3 more columns.
-2) Changec "user" to "username".
+2) Changed "user" to "username".
 3) Now adding keys to keyword table and added an "information" table containing
    a version number.
+4) Got rid of keywords.
 """
 
 from __future__ import absolute_import, print_function
@@ -17,7 +18,7 @@ from ase.db.core import Database, ops, now, lock, parallel, invop
 from ase.db.jsondb import encode, decode
 
 
-VERSION = 3
+VERSION = 4
 
 init_statements = [
     """CREATE TABLE systems (
@@ -46,7 +47,6 @@ init_statements = [
     magmoms BLOB,
     magmom BLOB,
     charges BLOB,
-    keywords TEXT,
     key_value_pairs TEXT,
     data TEXT,
     natoms INTEGER)""",
@@ -55,8 +55,8 @@ init_statements = [
     n INTEGER,
     id INTEGER,
     FOREIGN KEY (id) REFERENCES systems(id))""",
-    """CREATE TABLE keywords (
-    keyword TEXT,
+    """CREATE TABLE keys (
+    key TEXT,
     id INTEGER,
     FOREIGN KEY (id) REFERENCES systems(id))""",
     """CREATE TABLE text_key_values (
@@ -80,11 +80,11 @@ index_statements = [
     'CREATE INDEX username_index ON systems(username)',
     'CREATE INDEX calculator_index ON systems(calculator)',
     'CREATE INDEX species_index ON species(Z)',
-    'CREATE INDEX keyword_index ON keywords(keyword)',
+    'CREATE INDEX key_index ON keys(key)',
     'CREATE INDEX text_index ON text_key_values(key)',
     'CREATE INDEX number_index ON number_key_values(key)']
 
-all_tables = ['systems', 'species', 'keywords',
+all_tables = ['systems', 'species', 'keys',
               'text_key_values', 'number_key_values']
 
 
@@ -92,10 +92,24 @@ class SQLite3Database(Database):
     initialized = False
     _allow_reading_old_format = False
     default = 'NULL'  # used for autoincrement id
+    connection = None
+    version = None
     
     def _connect(self):
         return sqlite3.connect(self.filename, timeout=600)
 
+    def __enter__(self):
+        self.connection = self._connect()
+        return self
+        
+    def __exit__(self, exc_type, exc_value, tb):
+        if exc_type is None:
+            self.connection.commit()
+        else:
+            self.connection.rollback()
+        self.connection.close()
+        self.connection = None
+        
     def _initialize(self, con):
         if self.initialized:
             return
@@ -128,10 +142,10 @@ class SQLite3Database(Database):
                     
         self.initialized = True
                 
-    def _write(self, atoms, keywords, key_value_pairs, data):
-        Database._write(self, atoms, keywords, key_value_pairs, data)
+    def _write(self, atoms, key_value_pairs, data):
+        Database._write(self, atoms, key_value_pairs, data)
         
-        con = self._connect()
+        con = self.connection or self._connect()
         self._initialize(con)
         cur = con.cursor()
                 
@@ -145,7 +159,7 @@ class SQLite3Database(Database):
             rows = cur.fetchall()
             if rows:
                 id = rows[0][0]
-                self._delete(cur, [id], ['keywords', 'text_key_values',
+                self._delete(cur, [id], ['keys', 'text_key_values',
                                          'number_key_values'])
             dct['mtime'] = now()
         else:
@@ -191,7 +205,6 @@ class SQLite3Database(Database):
                 blob(dct.get('magmoms')),
                 blob(magmom),
                 blob(dct.get('charges')),
-                encode(keywords),
                 encode(key_value_pairs),
                 encode(data),
                 len(numbers))
@@ -229,16 +242,12 @@ class SQLite3Database(Database):
                         text_key_values)
         cur.executemany('INSERT INTO number_key_values VALUES (?, ?, ?)',
                         number_key_values)
-        cur.executemany('INSERT INTO keywords VALUES (?, ?)',
-                        [(keyword, id) for keyword in keywords])
-        
-        # Insert keys in keywords table also so that it is easy to query
-        # for the existance of keys:
-        cur.executemany('INSERT INTO keywords VALUES (?, ?)',
+        cur.executemany('INSERT INTO keys VALUES (?, ?)',
                         [(key, id) for key in key_value_pairs])
 
-        con.commit()
-        con.close()
+        if self.connection is None:
+            con.commit()
+            con.close()
         return id
         
     def get_last_id(self, cur):
@@ -259,7 +268,7 @@ class SQLite3Database(Database):
         return self.row_to_dict(row)
 
     def row_to_dict(self, row):
-        if len(row) == 26:
+        if len(row) != 28:
             row = self._old2new(row)
 
         dct = {'id': row[0],
@@ -303,8 +312,7 @@ class SQLite3Database(Database):
         if row[24] is not None:
             dct['charges'] = deblob(row[24])
 
-        for key, column in zip(['keywords', 'key_value_pairs', 'data'],
-                               row[25:28]):
+        for key, column in zip(['key_value_pairs', 'data'], row[25:27]):
             x = decode(column)
             if x:
                 dct[key] = x
@@ -315,21 +323,26 @@ class SQLite3Database(Database):
         if not self._allow_reading_old_format:
             raise IOError('Please convert to new format. ' +
                           'Use: python -m ase.db.convert ' + self.filename)
-        extra = decode(row[25])
-        return row[:-1] + (encode(extra['keywords']),
-                           encode(extra['key_value_pairs']),
-                           encode(extra['data']),
-                           42)
+        if len(row) == 26:
+            extra = decode(row[25])
+            return row[:-1] + (encode(extra['keywords']),
+                               encode(extra['key_value_pairs']),
+                               encode(extra['data']),
+                               42)
+        else:
+            keywords = decode(row[-4])
+            kvp = decode(row[-3])
+            kvp.update(dict((keyword, 1) for keyword in keywords))
+            return row[:-4] + (encode(kvp),) + row[-2:]
         
-    def _select(self, keywords, cmps, explain=False, verbosity=0, limit=None):
+    def _select(self, keys, cmps, explain=False, verbosity=0, limit=None):
         tables = ['systems']
         where = []
         args = []
-        for n, keyword in enumerate(keywords):
-            tables.append('keywords AS keyword{0}'.format(n))
-            where.append(
-                'systems.id=keyword{0}.id AND keyword{0}.keyword=?'.format(n))
-            args.append(keyword)
+        for n, key in enumerate(keys):
+            tables.append('keys AS keys{0}'.format(n))
+            where.append('systems.id=keys{0}.id AND keys{0}.key=?'.format(n))
+            args.append(key)
 
         # Special handling of "H=0" and "H<2" type of selections:
         bad = {}
@@ -400,6 +413,35 @@ class SQLite3Database(Database):
             for row in cur.fetchall():
                 yield self.row_to_dict(row)
                     
+    def _update(self, ids, delete_keys, add_key_value_pairs):
+        """Update row(s).
+        
+        ids: int or list of int
+            ID's of rows to update.
+        delete_keys: list of str
+            Keys to remove.
+        add_key_value_pairs: dict
+            Key-value pairs to add.
+            
+        Returns number of key-value pairs added and keys removed.
+        """
+        
+        dcts = [self._get_dict(id) for id in ids]
+        m = 0
+        n = 0
+        with self:
+            for dct in dcts:
+                kvp = dct.get('key_value_pairs', {})
+                n += len(kvp)
+                for key in delete_keys:
+                    kvp.pop(key, None)
+                n -= len(kvp)
+                m -= len(kvp)
+                kvp.update(add_key_value_pairs)
+                m += len(kvp)
+                self._write(dct, kvp, data=dct.get('data', {}))
+        return m, n
+
     @parallel
     @lock
     def delete(self, ids):

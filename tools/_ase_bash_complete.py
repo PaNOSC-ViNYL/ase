@@ -22,13 +22,14 @@ def options(short, long):
 if command == 'ase-db':
     if word[:1] == '-':
         words = options(
-            'hvqnliakKycspw',
+            'hvqnliakycspw',
             'help verbose quiet count long insert-into add-from-file ' +
-            'add-keywords add-key-value-pairs limit delete delete-keyword ' +
-            'delete-key-value yes columns sort cut  python csv ' +
+            'add-key-value-pairs limit delete ' +
+            'delete-keys yes columns sort cut  python csv ' +
             'open-web-browser')
     elif previous == 'ase-db':
-        words = glob(word + '*.db') + glob(word + '*.json')
+        words = [w for w in glob(word + '*')
+                 if w.endswith('.db') or w.endswith('.json')]
     else:
         words = glob(word + '*')
 elif command == 'ase-run':
@@ -56,7 +57,7 @@ elif command == 'ase-info':
     if word[:1] == '-':
         words = options('h', 'help')
     else:
-        words = glob(word + '*.traj')
+        words = [w for w in glob(word + '*') if w.endswith('.traj')]
 else:  # ase-gui
     if word[:1] == '-':
         words = options(

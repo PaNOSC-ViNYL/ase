@@ -70,8 +70,8 @@ def read_json(name):
 
 
 class JSONDatabase(Database):
-    def _write(self, atoms, keywords, key_value_pairs, data):
-        Database._write(self, atoms, keywords, key_value_pairs, data)
+    def _write(self, atoms, key_value_pairs, data):
+        Database._write(self, atoms, key_value_pairs, data)
         
         bigdct = {}
         ids = []
@@ -98,8 +98,7 @@ class JSONDatabase(Database):
             dct = self.collect_data(atoms)
             id = None
 
-        for key, value in [('keywords', keywords),
-                           ('key_value_pairs', key_value_pairs),
+        for key, value in [('key_value_pairs', key_value_pairs),
                            ('data', data)]:
             if value:
                 dct[key] = value
@@ -160,7 +159,7 @@ class JSONDatabase(Database):
         dct['id'] = id
         return dct
 
-    def _select(self, keywords, cmps, explain=False, verbosity=0, limit=None):
+    def _select(self, keys, cmps, explain=False, verbosity=0, limit=None):
         if explain:
             yield {'explain': (0, 0, 0, 'scan table')}
             return
@@ -179,10 +178,9 @@ class JSONDatabase(Database):
             if n == limit:
                 return
             dct = bigdct[id]
-            for keyword in keywords:
-                if not (('keywords' in dct and keyword in dct['keywords']) or
-                        ('key_value_pairs' in dct and
-                         keyword in dct['key_value_pairs'])):
+            for key in keys:
+                if not ('key_value_pairs' in dct and
+                        key in dct['key_value_pairs']):
                     break
             else:
                 for key, op, val in cmps:
@@ -194,14 +192,7 @@ class JSONDatabase(Database):
                     n += 1
                     yield dct
 
-    @parallel
-    @lock
-    def update(self, ids, add_keywords=[], **add_key_value_pairs):
-        check(add_keywords, add_key_value_pairs)
-            
-        if isinstance(ids, int):
-            ids = [ids]
-
+    def _update(self, ids, delete_keys, add_key_value_pairs):
         bigdct, myids, nextid = self._read_json()
         
         t = now()
@@ -210,20 +201,16 @@ class JSONDatabase(Database):
         n = 0
         for id in ids:
             dct = bigdct[id]
-            keywords = dct.setdefault('keywords', [])
-            key_value_pairs = dct.setdefault('key_value_pairs', {})
-            if add_keywords:
-                for keyword in add_keywords:
-                    assert keyword not in key_value_pairs
-                    if keyword not in keywords:
-                        keywords.append(keyword)
-                        m += 1
-            if add_key_value_pairs:
-                for keyword in keywords:
-                    assert keyword not in add_key_value_pairs
-                n -= len(key_value_pairs)
-                key_value_pairs.update(add_key_value_pairs)
-                n += len(key_value_pairs)
+            kvp = dct.get('key_value_pairs', {})
+            n += len(kvp)
+            for key in delete_keys:
+                kvp.pop(key, None)
+            n -= len(kvp)
+            m -= len(kvp)
+            kvp.update(add_key_value_pairs)
+            m += len(kvp)
+            if kvp:
+                dct['key_value_pairs'] = kvp
             dct['mtime'] = t
             
         self._write_json(bigdct, myids, nextid)
