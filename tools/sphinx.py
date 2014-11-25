@@ -103,7 +103,7 @@ def build(email):
             if os.system('PYTHONPATH=%s/lib/python ' % tmpdir +
                          'sphinx-build -b latex . _build 2> error') != 0:
                 raise RuntimeError('Sphinx failed!')
-            os.system('grep -v "WARNING: unusable reference target found"' +
+            os.system('grep -v "WARNING: unusable reference target found" ' +
                       'error 1>&2')
             # Don't serve mixed content:
             assert os.system(
