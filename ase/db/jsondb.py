@@ -7,7 +7,7 @@ import numpy as np
 
 from ase.parallel import world
 from ase.db.core import Database, ops, parallel, lock, now
-from ase.db.core import check, reserved_keys
+from ase.db.core import reserved_keys
 
 
 class MyEncoder(json.JSONEncoder):
