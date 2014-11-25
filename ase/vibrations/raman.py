@@ -4,8 +4,7 @@
 from __future__ import print_function
 import pickle
 import os
-from math import sin, pi, sqrt, exp, log
-from sys import stdout
+import sys
 
 import numpy as np
 
@@ -14,6 +13,9 @@ from ase.io.trajectory import PickleTrajectory
 from ase.parallel import rank, barrier, parprint, paropen
 from ase.vibrations import Vibrations
 from ase.utils.timing import Timer
+
+# XXX remove gpaw dependence
+from gpaw.output import get_txt
 
 class ResonantRaman(Vibrations):
     """Class for calculating vibrational modes and 
@@ -36,6 +38,7 @@ class ResonantRaman(Vibrations):
                  nfree=2, 
                  directions=None,
                  exkwargs={},   # kwargs to be passed to Excitations
+                 txt='-',
              ):
         assert(nfree == 2)
         Vibrations.__init__(self, atoms, indices, gsname, delta, nfree)
@@ -53,10 +56,7 @@ class ResonantRaman(Vibrations):
         self.exkwargs = exkwargs
 
         self.timer = Timer()
-        if rank > 0:
-            self.txt = open('/dev/null', 'w')
-        else:
-            self.txt = stdout 
+        self.txt = get_txt(txt, rank)
 
     def calculate(self, filename, fd):
         self.timer.start('Ground state')
@@ -75,50 +75,63 @@ class ResonantRaman(Vibrations):
         if not hasattr(self, 'modes'):
             self.read()
 
-        if not hasattr(self, 'kss0'):
-            self.kss0 = self.exobj(
-                self.exname + '.eq.excitations', **self.exkwargs)
-            self.kssminus = []
-            self.kssplus = []
+        if not hasattr(self, 'ex0'):
+            eu = units.Hartree
+            def get_me_tensor(exname, n, form='v'):
+                def outer(ex):
+                    me = ex.get_dipole_me(form=form)
+                    return np.outer(me, me.conj())
+                ex_p = self.exobj(exname, **self.exkwargs)
+                if len(ex_p) != n:
+                    raise RuntimeError(
+                        ('excitations {0} of wrong length: {1} != {2}' +
+                         ' exkwargs={3}').format(
+                             exname, len(ex_p), n, self.exkwargs))
+                m_ccp = np.empty((3, 3, len(ex_p)), dtype=complex)
+                for p, ex in enumerate(ex_p):
+                    m_ccp[:,:,p] = outer(ex)
+                return m_ccp
 
+            self.timer.start('reading excitations')
+            ex_p = self.exobj(self.exname + '.eq.excitations', 
+                              **self.exkwargs)
+            n = len(ex_p)
+            self.ex0 = np.array([ex.energy * eu for ex in ex_p])
+            self.exminus = []
+            self.explus = []
+            for a in self.indices:
+                for i in 'xyz':
+                    name = '%s.%d%s' % (self.exname, a, i)
+                    self.exminus.append(get_me_tensor(
+                        name + '-.excitations', n))
+                    self.explus.append(get_me_tensor(
+                        name + '+.excitations', n))
+            self.timer.stop('reading excitations')
+
+        self.timer.start('amplitudes')
+
+        self.timer.start('init')
         ndof = 3 * len(self.indices)
-        H = np.empty((ndof, ndof))
         amplitudes = np.zeros((ndof, 3, 3), dtype=complex)
         pre = 1. / (2 * self.delta)
+        self.timer.stop('init')
         
-        def kappa(exl_f, exl_e, omega, gamma, form='v', eu=units.Hartree):
+        def kappa(me_ccp, e_p, omega, gamma, form='v'):
             """Kappa tensor after Profeta and Mauri
             PRB 63 (2001) 245415"""
-            result = np.zeros((3,3), dtype=complex)
-            for ex_f, ex_e in zip(exl_f, exl_e):
-                # XXX can we savely assume the same ordering ?
-                me = ex_f.get_dipole_me(form=form)
-                result += (np.outer(me, me.conj()) / 
-                           (ex_e.energy * eu - omega - 1j * gamma))
-                result += (np.outer(me, me.conj()) / 
-                           (ex_e.energy * eu + omega + 1j * gamma))
-            return result
-            
+            result = (me_ccp / (e_p - omega - 1j * gamma) +
+                      me_ccp.conj() / (e_p + omega + 1j * gamma))
+            return result.sum(2)
+
         r = 0
         for a in self.indices:
             for i in 'xyz':
-                try:
-                    kssminus = self.kssminus[r]
-                    kssplus = self.kssplus[r]
-                except IndexError:
-                    name = '%s.%d%s' % (self.exname, a, i)
-                    self.kssminus.append(
-                        self.exobj(name + '-.excitations', 
-                                   **self.exkwargs))
-                    self.kssplus.append(
-                        self.exobj(name + '+.excitations', 
-                                   **self.exkwargs))
-                    kssminus = self.kssminus[r]
-                    kssplus = self.kssplus[r]
                 amplitudes[r] = pre * (
-                    kappa(kssplus, self.kss0, omega, gamma) - 
-                    kappa(kssminus, self.kss0, omega, gamma))
+                    kappa(self.explus[r], self.ex0, omega, gamma) - 
+                    kappa(self.exminus[r], self.ex0, omega, gamma))
                 r += 1
+
+        self.timer.stop('amplitudes')
         
         # map to modes
         am = np.dot(amplitudes.T, self.modes.T).T
@@ -210,7 +223,7 @@ class ResonantRaman(Vibrations):
 
     def summary(self, omega, gamma=0.1,
                 method='standard', direction='central', 
-                intensity_unit='(D/A)2/amu', log=stdout):
+                intensity_unit='(D/A)2/amu', log=sys.stdout):
         """Print summary for given omega [eV]"""
         hnu = self.get_energies(method, direction)
         s = 0.01 * units._e / units._c / units._hplanck
