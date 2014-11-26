@@ -35,9 +35,10 @@ mydecode = json.JSONDecoder(object_hook=object_hook).decode
 
 
 def intkey(key):
-    if key[0].isdigit():
+    try:
         return int(key)
-    return key
+    except ValueError:
+        return key
     
     
 def numpyfy(obj):

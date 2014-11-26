@@ -2,6 +2,7 @@ from ase import Atoms
 from ase.calculators.emt import EMT
 from ase.constraints import FixAtoms, FixBondLength
 from ase.db import connect
+from ase.io import read
 from ase.structure import molecule
 from ase.test import MustRaise
 
@@ -24,7 +25,9 @@ for name in ['y2.json', 'y2.db']:
     print(f1)
     
     c.delete([d.id for d in c.select(C=1)])
-    id = c.write(ch4)
+    id = c.write(ch4, data={'1-butyne': 'bla-bla'})
+    a = read(name + '@' + str(id))
+    
     f2 = c.get(C=1).forces
     assert abs(f2.sum(0)).max() < 1e-14
     f3 = c.get_atoms(C=1).get_forces()
