@@ -7,6 +7,7 @@ Utillity functions and classes
 .. autofunction:: ase.utils.opencew
 .. autofunction:: ase.utils.gcd
 
+Timing is facilitated with the :class:`~ase.utils.timing.Timer`.
 
 .. index:: Bulk modulus
 

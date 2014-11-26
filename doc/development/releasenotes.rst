@@ -17,6 +17,8 @@ Development version in trunk
 
 * The :func:`ase.lattice.bulk` function can now build the Wurtzite structure.
 
+* The :class:`ase.utils.timer.Timer` was moved from GPAW to ASE.
+
 
 Version 3.8.0
 =============
