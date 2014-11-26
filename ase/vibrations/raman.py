@@ -10,8 +10,7 @@ import sys
 import numpy as np
 
 import ase.units as units
-from ase.io.trajectory import PickleTrajectory
-from ase.parallel import rank, barrier, parprint, paropen
+from ase.parallel import rank, parprint, paropen
 from ase.vibrations import Vibrations
 from ase.utils.timing import Timer
 
@@ -176,7 +175,7 @@ class ResonantRaman(Vibrations):
             if normalize:
                 prefactor = 2. / width / np.pi
         else:
-            sigma = width / 2. / np.sqrt(2. * log(2.))
+            sigma = width / 2. / np.sqrt(2. * np.log(2.))
             if normalize:
                 prefactor = 1. / sigma / np.sqrt(2 * np.pi)
         #Make array with spectrum data
@@ -214,8 +213,6 @@ class ResonantRaman(Vibrations):
                                                type, method, direction)
 
         #Write out spectrum in file. First column is absolute intensities. 
-        #Second column is absorbance scaled so that data runs from 1 to 0
-        spectrum2 = 1. - spectrum / spectrum.max()
         outdata = np.empty([len(energies), 3])
         outdata.T[0] = energies
         outdata.T[1] = spectrum
