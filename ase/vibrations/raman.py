@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """Resonant Raman intensities"""
+
 from __future__ import print_function
 import pickle
 import os
@@ -17,27 +18,28 @@ from ase.utils.timing import Timer
 # XXX remove gpaw dependence
 from gpaw.output import get_txt
 
+
 class ResonantRaman(Vibrations):
-    """Class for calculating vibrational modes and 
+    """Class for calculating vibrational modes and
     resonant Raman intensities using finite difference.
 
-    atoms: 
+    atoms:
       Atoms object
     Excitations:
       Class to calculate the excitations. The class object is
       initialized as Excitations(atoms.get_calculator()) or
-      by reading form a file as Excitations('filename', **exkwargs). 
+      by reading form a file as Excitations('filename', **exkwargs).
       The file is written by calling the method
       Excitations.write('filename').
     """
     def __init__(self, atoms, Excitations,
-                 indices=None, 
-                 gsname='rraman', # name for ground state calculations
-                 exname=None,     # name for excited state calculations
-                 delta=0.01, 
-                 nfree=2, 
+                 indices=None,
+                 gsname='rraman',  # name for ground state calculations
+                 exname=None,      # name for excited state calculations
+                 delta=0.01,
+                 nfree=2,
                  directions=None,
-                 exkwargs={},   # kwargs to be passed to Excitations
+                 exkwargs={},      # kwargs to be passed to Excitations
                  txt='-',
              ):
         assert(nfree == 2)
@@ -48,9 +50,9 @@ class ResonantRaman(Vibrations):
         self.exname = exname + '-d%.3f' % delta
 
         if directions is None:
-            self.directions = np.asarray([0, 1, 2])
+            self.directions = np.array([0, 1, 2])
         else:
-            self.directions = np.asarray(directions)
+            self.directions = np.array(directions)
 
         self.exobj = Excitations
         self.exkwargs = exkwargs
@@ -59,6 +61,7 @@ class ResonantRaman(Vibrations):
         self.txt = get_txt(txt, rank)
 
     def calculate(self, filename, fd):
+        """Call ground and excited state calculation"""
         self.timer.start('Ground state')
         forces = self.atoms.get_forces()
         if rank == 0:
@@ -77,6 +80,7 @@ class ResonantRaman(Vibrations):
 
         if not hasattr(self, 'ex0'):
             eu = units.Hartree
+
             def get_me_tensor(exname, n, form='v'):
                 def outer(ex):
                     me = ex.get_dipole_me(form=form)
@@ -89,11 +93,11 @@ class ResonantRaman(Vibrations):
                              exname, len(ex_p), n, self.exkwargs))
                 m_ccp = np.empty((3, 3, len(ex_p)), dtype=complex)
                 for p, ex in enumerate(ex_p):
-                    m_ccp[:,:,p] = outer(ex)
+                    m_ccp[:, :, p] = outer(ex)
                 return m_ccp
 
             self.timer.start('reading excitations')
-            ex_p = self.exobj(self.exname + '.eq.excitations', 
+            ex_p = self.exobj(self.exname + '.eq.excitations',
                               **self.exkwargs)
             n = len(ex_p)
             self.ex0 = np.array([ex.energy * eu for ex in ex_p])
@@ -127,7 +131,7 @@ class ResonantRaman(Vibrations):
         for a in self.indices:
             for i in 'xyz':
                 amplitudes[r] = pre * (
-                    kappa(self.explus[r], self.ex0, omega, gamma) - 
+                    kappa(self.explus[r], self.ex0, omega, gamma) -
                     kappa(self.exminus[r], self.ex0, omega, gamma))
                 r += 1
 
@@ -140,9 +144,9 @@ class ResonantRaman(Vibrations):
     def get_intensities(self, omega, gamma=0.1):
         return self.get_intensity_tensor(omega, gamma).sum(axis=1).sum(axis=1)
 
-    def get_spectrum(self, omega, gamma=0.1, 
-                     start=200, end=4000, npts=None, width=4, 
-                     type='Gaussian', method='standard', direction='central', 
+    def get_spectrum(self, omega, gamma=0.1,
+                     start=200, end=4000, npts=None, width=4,
+                     type='Gaussian', method='standard', direction='central',
                      intensity_unit='????', normalize=False):
         """Get resonant Raman spectrum.
 
@@ -163,26 +167,26 @@ class ResonantRaman(Vibrations):
         intensities = self.get_intensities(omega, gamma)
         prefactor = 1 
         if type == 'lorentzian':
-            intensities = intensities * width * pi / 2.
+            intensities = intensities * width * np.pi / 2.
             if normalize:
-                prefactor = 2. / width / pi
+                prefactor = 2. / width / np.pi
         else:
-            sigma = width / 2. / sqrt(2. * log(2.))
+            sigma = width / 2. / np.sqrt(2. * log(2.))
             if normalize:
-                prefactor = 1. / sigma / sqrt(2 * pi)
+                prefactor = 1. / sigma / np.sqrt(2 * np.pi)
         #Make array with spectrum data
-        spectrum = np.empty(npts,np.float)
-        energies = np.empty(npts,np.float)
-        ediff = (end-start)/float(npts-1)
-        energies = np.arange(start, end+ediff/2, ediff)
+        spectrum = np.empty(npts, np.float)
+        energies = np.empty(npts, np.float)
+        ediff = (end - start) / float(npts - 1)
+        energies = np.arange(start, end + ediff / 2, ediff)
         for i, energy in enumerate(energies):
             energies[i] = energy
             if type == 'lorentzian':
-                spectrum[i] = (intensities * 0.5 * width / pi / (
+                spectrum[i] = (intensities * 0.5 * width / np.pi / (
                         (frequencies - energy)**2 + 0.25 * width**2)).sum()
             else:
-                spectrum[i] = (intensities * 
-                               np.exp(-(frequencies - energy)**2 / 
+                spectrum[i] = (intensities *
+                               np.exp(-(frequencies - energy)**2 /
                                        2. / sigma**2)).sum()
         return [energies, prefactor * spectrum]
 
