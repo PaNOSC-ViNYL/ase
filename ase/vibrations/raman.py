@@ -24,13 +24,19 @@ class ResonantRaman(Vibrations):
     resonant Raman intensities using finite difference.
 
     atoms:
-      Atoms object
+        Atoms object
     Excitations:
-      Class to calculate the excitations. The class object is
-      initialized as Excitations(atoms.get_calculator()) or
-      by reading form a file as Excitations('filename', **exkwargs).
-      The file is written by calling the method
-      Excitations.write('filename').
+        Class to calculate the excitations. The class object is
+        initialized as::
+            
+            Excitations(atoms.get_calculator())
+            
+        or by reading form a file as::
+            
+            Excitations('filename', **exkwargs)
+            
+        The file is written by calling the method
+        Excitations.write('filename').
     """
     def __init__(self, atoms, Excitations,
                  indices=None,
@@ -40,8 +46,7 @@ class ResonantRaman(Vibrations):
                  nfree=2,
                  directions=None,
                  exkwargs={},      # kwargs to be passed to Excitations
-                 txt='-',
-             ):
+                 txt='-'):
         assert(nfree == 2)
         Vibrations.__init__(self, atoms, indices, gsname, delta, nfree)
         self.name = gsname + '-d%.3f' % delta
