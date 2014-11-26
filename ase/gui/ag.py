@@ -1,9 +1,8 @@
 # Copyright 2008, 2009
 # CAMd (see accompanying license files for details).
-
-import os
+from __future__ import print_function
 import sys
-from optparse import OptionParser, SUPPRESS_HELP
+from optparse import OptionParser
 
 import ase.gui.i18n
 from gettext import gettext as _
@@ -11,6 +10,7 @@ from gettext import gettext as _
 # Grrr, older versions (pre-python2.7) of optparse have a bug
 # which prevents non-ascii descriptions.  How do we circumvent this?
 # For now, we'll have to use English in the command line options then.
+
 
 def build_parser():
     parser = OptionParser(usage='%prog [options] [file[, file2, ...]]',
@@ -62,6 +62,8 @@ def build_parser():
     parser.add_option('-s', '--scale', dest='radii_scale', metavar='FLOAT',
                       default=None, type=float,
                       help='Scale covalent radii.')
+    parser.add_option('-v', '--verbose', action='store_true',
+                      help='Verbose mode.')
     return parser
 
 
@@ -121,24 +123,22 @@ def main():
                 data = images.graph(opt.graph)
                 for line in data.T:
                     for x in line:
-                        print x,
-                    print
+                        print(x, end=' ')
+                    print()
         else:
             from ase.gui.gui import GUI
             import ase.gui.gtkexcepthook
             gui = GUI(images, opt.rotations, opt.show_unit_cell, opt.bonds)
             gui.run(opt.graph)
 
-    import traceback
-
     try:
         run(opt, args)
     except KeyboardInterrupt:
         pass
-    except Exception:
-        traceback.print_exc()
-        print(_("""
-An exception occurred!  Please report the issue to
-ase-developers@listserv.fysik.dtu.dk - thanks!  Please also report this if
-it was a user error, so that a better error message can be provided
-next time."""))
+    except Exception as x:
+        if opt.verbose:
+            raise
+        else:
+            print('{0}: {1}'.format(x.__class__.__name__, x), file=sys.stderr)
+            print(_('To get a full traceback, use: ase-gui --verbose'),
+                  file=sys.stderr)
