@@ -70,7 +70,7 @@ class InfraRed(Vibrations):
     
     >>> from ase.io import read
     >>> from ase.calculators.vasp import Vasp
-    >>> from ase.infrared import InfraRed
+    >>> from ase.vibrations.infrared import InfraRed
     >>> water = read('water.traj')  # read pre-relaxed structure of water molecule
     >>> calc = Vasp(prec='Accurate',
     ...             ediff=1E-8,
