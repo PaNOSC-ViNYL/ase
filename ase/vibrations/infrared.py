@@ -4,14 +4,13 @@
 """Infrared intensities"""
 
 import pickle
-from math import sin, pi, sqrt, exp, log
+from math import sqrt
 from sys import stdout
 
 import numpy as np
 
 import ase.units as units
-from ase.io.trajectory import PickleTrajectory
-from ase.parallel import rank, barrier, parprint, paropen
+from ase.parallel import parprint, paropen
 from ase.vibrations import Vibrations
 
 
@@ -60,7 +59,8 @@ class InfraRed(Vibrations):
         supported. Default is 2 which will displace each atom +delta
         and -delta in each cartesian direction.
     directions: list of int
-        Cartesian coordinates to calculate the gradient of the dipole moment in. 
+        Cartesian coordinates to calculate the gradient 
+        of the dipole moment in. 
         For example directions = 2 only dipole moment in the z-direction will
         be considered, whereas for directions = [0, 1] only the dipole
         moment in the xy-plane will be considered. Default behavior is to
@@ -142,17 +142,19 @@ class InfraRed(Vibrations):
 
 
     """
-    def __init__(self, atoms, indices=None, name='ir', delta=0.01, nfree=2, directions=None):
+    def __init__(self, atoms, indices=None, name='ir', delta=0.01, 
+                 nfree=2, directions=None):
         assert nfree in [2, 4]
         self.atoms = atoms
         if atoms.constraints:
-            print "WARNING! \n Your Atoms object is constrained. Some forces may be unintended set to zero. \n"
+            print('WARNING! \n Your Atoms object is constrained. ' +
+            'Some forces may be unintended set to zero. \n')
         self.calc = atoms.get_calculator()
         if indices is None:
             indices = range(len(atoms))
         self.indices = np.asarray(indices)
         self.nfree = nfree
-        self.name = name+'-d%.3f' % delta
+        self.name = name + '-d%.3f' % delta
         self.delta = delta
         self.H = None
         if directions is None:
@@ -166,13 +168,15 @@ class InfraRed(Vibrations):
         self.direction = direction.lower()
         assert self.method in ['standard', 'frederiksen']
         if direction != 'central':
-            raise NotImplementedError('Only central difference is implemented at the moment.')
+            raise NotImplementedError(
+                'Only central difference is implemented at the moment.')
 
         # Get "static" dipole moment and forces
         name = '%s.eq.pckl' % self.name
         [forces_zero, dipole_zero] = pickle.load(open(name))
         self.dipole_zero = (sum(dipole_zero**2)**0.5) / units.Debye
-        self.force_zero = max([sum((forces_zero[j])**2)**0.5 for j in self.indices])
+        self.force_zero = max([sum((forces_zero[j])**2)**0.5 
+                               for j in self.indices])
 
         ndof = 3 * len(self.indices)
         H = np.empty((ndof, ndof))
@@ -184,8 +188,10 @@ class InfraRed(Vibrations):
                 [fminus, dminus] = pickle.load(open(name + '-.pckl'))
                 [fplus, dplus] = pickle.load(open(name + '+.pckl'))
                 if self.nfree == 4:
-                    [fminusminus, dminusminus] = pickle.load(open(name + '--.pckl'))
-                    [fplusplus, dplusplus] = pickle.load(open(name + '++.pckl'))
+                    [fminusminus, dminusminus] = pickle.load(
+                        open(name + '--.pckl'))
+                    [fplusplus, dplusplus] = pickle.load(
+                        open(name + '++.pckl'))
                 if self.method == 'frederiksen':
                     fminus[a] += -fminus.sum(0)
                     fplus[a] += -fplus.sum(0)
@@ -196,8 +202,10 @@ class InfraRed(Vibrations):
                     H[r] = (fminus - fplus)[self.indices].ravel() / 2.0
                     dpdx[r] = (dminus - dplus)
                 if self.nfree == 4:
-                    H[r] = (-fminusminus+8*fminus-8*fplus+fplusplus)[self.indices].ravel() / 12.0
-                    dpdx[r] = (-dplusplus + 8*dplus - 8*dminus +dminusminus) / 6.0
+                    H[r] = (-fminusminus + 8 * fminus - 8 * fplus +
+                            fplusplus)[self.indices].ravel() / 12.0
+                    dpdx[r] = (-dplusplus + 8 * dplus - 8 * dminus + 
+                               dminusminus) / 6.0
                 H[r] /= 2 * self.delta
                 dpdx[r] /= 2 * self.delta
                 for n in range(3):
@@ -215,7 +223,9 @@ class InfraRed(Vibrations):
         self.modes = modes.T.copy()
 
         # Calculate intensities
-        dpdq = np.array([dpdx[j]/sqrt(m[self.indices[j/3]]*units._amu/units._me) for j in range(ndof)])
+        dpdq = np.array([dpdx[j] / sqrt(m[self.indices[j / 3]] * 
+                                        units._amu / units._me) 
+                         for j in range(ndof)])
         dpdQ = np.dot(dpdq.T, modes)
         dpdQ = dpdQ.T
         intensities = np.array([sum(dpdQ[j]**2) for j in range(ndof)])
@@ -223,8 +233,8 @@ class InfraRed(Vibrations):
         s = units._hbar * 1e10 / sqrt(units._e * units._amu)
         self.hnu = s * omega2.astype(complex)**0.5
         # Conversion factor from atomic units to (D/Angstrom)^2/amu.
-        conv = (1.0 / units.Debye)**2*units._amu/units._me
-        self.intensities = intensities*conv
+        conv = (1.0 / units.Debye)**2 * units._amu / units._me
+        self.intensities = intensities * conv
 
     def intensity_prefactor(self, intensity_unit):
         if intensity_unit == '(D/A)2/amu':
