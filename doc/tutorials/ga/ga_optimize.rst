@@ -6,30 +6,30 @@ Optimization with a Genetic Algorithm
 
 A genetic algorithm (GA) has been implemented for global structure
 optimization within ase. The optimizer consists of its own module
-:mod:`ase.ga` which includes all classes needed for the optimizer. 
+:mod:`ase.ga` which includes all classes needed for the optimizer.
 
-Details about the implemented method is described in the supplemental
-material of 
+The method was first described in the supplemental material of
 
    | L. B. Vilhelmsen and B. Hammer
    | `Systematic Study of Au6 to Au12 Gold Clusters on MgO(100) F Centers Using Density-Functional Theory`__
    | Physical Review Letters, Vol. 108 (Mar 2012), 126101
 
-   __ http://dx.doi.org/10.1103/physrevlett.108.126101 
+   __ http://dx.doi.org/10.1103/physrevlett.108.126101
 
-and in the main text of
+and a full account of the method is given in
 
-   | L. B. Vilhelmsen, K. S. Walton and D. S. Sholl
-   | `Structure and Mobility of Metal Clusters in MOFs: Au, Pd, and AuPd Clusters in MOF-74`__
-   | Journal of the American Chemical Society, Vol. 134, No. 30, pp. 12807-12816
+   | L. B. Vilhelmsen and B. Hammer
+   | `A genetic algorithm for first principles global optimization of supported nano structures`__
+   | Journal of Chemical Physics, Vol 141, 044711 (2014)
 
-   __ http://dx.doi.org/10.1021/ja305004a 
+   __ http://dx.doi.org/10.1063/1.4886337
 
 Any questions about how to use the GA can be asked at the mailing
 list.
 
+
 A Brief Overview of the Implementation
-====================================== 
+======================================
 
 The GA relies on the ase.db module for tracking which structures have
 been found. Before the GA optimization starts the user therefore needs
