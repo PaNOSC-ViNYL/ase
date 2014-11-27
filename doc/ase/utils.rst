@@ -8,7 +8,7 @@ Utillity functions and classes
 .. autofunction:: ase.utils.gcd
 
 Timing is facilitated with the :class:`~ase.utils.timing.Timer` class
-that can be accesed most easily by the 
+that can be accessed most easily by the 
 :class:`~ase.utils.timing.timer` class:
 
 .. autoclass:: ase.utils.timing.timer
