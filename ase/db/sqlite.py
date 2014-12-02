@@ -335,7 +335,7 @@ class SQLite3Database(Database):
             kvp.update(dict((keyword, 1) for keyword in keywords))
             return row[:-4] + (encode(kvp),) + row[-2:]
         
-    def _select(self, keys, cmps, explain=False, verbosity=0, limit=None):
+    def create_select_statement(self, keys, cmps, what='systems.*'):
         tables = ['systems']
         where = []
         args = []
@@ -389,10 +389,14 @@ class SQLite3Database(Database):
                 args += [key, value]
                 nnumber += 1
                 
-        sql = 'SELECT systems.* FROM\n  ' + ', '.join(tables)
+        sql = 'SELECT {0} FROM\n  '.format(what) + ', '.join(tables)
         if where:
             sql += '\n  WHERE\n  ' + ' AND\n  '.join(where)
-            
+        return sql, args
+        
+    def _select(self, keys, cmps, explain=False, verbosity=0, limit=None):
+        sql, args = self.create_select_statement(keys, cmps)
+        
         if explain:
             sql = 'EXPLAIN QUERY PLAN ' + sql
             
@@ -403,8 +407,8 @@ class SQLite3Database(Database):
             print(sql, args)
 
         con = self._connect()
-        cur = con.cursor()
         self._initialize(con)
+        cur = con.cursor()
         cur.execute(sql, args)
         if explain:
             for row in cur.fetchall():
@@ -413,6 +417,17 @@ class SQLite3Database(Database):
             for row in cur.fetchall():
                 yield self.row_to_dict(row)
                     
+    @parallel
+    @lock
+    def count(self, selection=None, **kwargs):
+        keys, cmps = self.parse_selection(selection, **kwargs)
+        sql, args = self.create_select_statement(keys, cmps, 'COUNT(*)')
+        con = self._connect()
+        self._initialize(con)
+        cur = con.cursor()
+        cur.execute(sql, args)
+        return cur.fetchone()[0]
+        
     def _update(self, ids, delete_keys, add_key_value_pairs):
         """Update row(s).
         

@@ -320,40 +320,7 @@ class Database:
         dct = dcts[0]
         return dct
 
-    @parallel_generator
-    def select(self, selection=None, fancy=True, filter=None, explain=False,
-               verbosity=1, limit=None, **kwargs):
-        """Select rows.
-        
-        Return iterator with results as dictionaries.  Selection is done
-        using key-value pairs and the special keys:
-            
-            formula, age, user, calculator, natoms, energy, magmom
-            and/or charge.
-        
-        selection: int, str or list
-            Can be:
-            
-            * an integer id
-            * a string like 'key=value', where '=' can also be one of
-              '<=', '<', '>', '>=' or '!='.
-            * a string like 'key'
-            * comma separated strings like 'key1<value1,key2=value2,key'
-            * list of strings or tuples: [('charge', '=', 1)].
-        fancy: bool
-            return fancy dictionary with keys as attributes (this is the
-            default).
-        filter: function
-            A function that takes as input a dictionary and returns True
-            or False.
-        explain: bool
-            Explain query plan.
-        verbosity: int
-            Possible values: 0, 1 or 2.
-        limit: int or None
-            Limit selection.
-        """
-        
+    def parse_selection(self, selection, **kwargs):
         if selection is None or selection == '':
             expressions = []
         elif isinstance(selection, int):
@@ -416,7 +383,43 @@ class Database:
                 msg = 'Wrong type for "{0}{1}{2}" - must be a number'
                 raise ValueError(msg.format(key, op, value))
             cmps.append((key, op, value))
+        return keys, cmps
 
+    @parallel_generator
+    def select(self, selection=None, fancy=True, filter=None, explain=False,
+               verbosity=1, limit=None, **kwargs):
+        """Select rows.
+        
+        Return iterator with results as dictionaries.  Selection is done
+        using key-value pairs and the special keys:
+            
+            formula, age, user, calculator, natoms, energy, magmom
+            and/or charge.
+        
+        selection: int, str or list
+            Can be:
+            
+            * an integer id
+            * a string like 'key=value', where '=' can also be one of
+              '<=', '<', '>', '>=' or '!='.
+            * a string like 'key'
+            * comma separated strings like 'key1<value1,key2=value2,key'
+            * list of strings or tuples: [('charge', '=', 1)].
+        fancy: bool
+            return fancy dictionary with keys as attributes (this is the
+            default).
+        filter: function
+            A function that takes as input a dictionary and returns True
+            or False.
+        explain: bool
+            Explain query plan.
+        verbosity: int
+            Possible values: 0, 1 or 2.
+        limit: int or None
+            Limit selection.
+        """
+        
+        keys, cmps = self.parse_selection(selection, **kwargs)
         for dct in self._select(keys, cmps, explain=explain,
                                 verbosity=verbosity, limit=limit):
             if filter is None or filter(dct):
@@ -426,6 +429,12 @@ class Database:
                         dct.update(dct['key_value_pairs'])
                 yield dct
                 
+    def count(self, selection=None, **kwargs):
+        n = 0
+        for dct in self.select(selection, **kwargs):
+            n += 1
+        return n
+        
     @parallel
     @lock
     def update(self, ids, delete_keys=[], block_size=1000,

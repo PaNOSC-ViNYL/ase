@@ -61,7 +61,7 @@ class Table:
         if sort != 'id':
             limit = 0
            
-        self.rows = [Row(d, columns, self.cut)
+        self.rows = [Row(d, columns)
                      for d in self.connection.select(
                          query, verbosity=self.verbosity, limit=limit)]
 
@@ -139,9 +139,8 @@ class Table:
 
             
 class Row:
-    def __init__(self, dct, columns, cut=40):
+    def __init__(self, dct, columns):
         self.dct = dct
-        self.cut = cut
         self.values = None
         self.strings = None
         self.more = False
@@ -198,10 +197,6 @@ class Row:
     def fmax(self, d):
         forces = dict2forces(d)
         return (forces**2).sum(1).max()**0.5
-
-    def keys(self, d):
-        return cut(','.join(['{0}={1}'.format(*item)
-                             for item in d.key_value_pairs.items()]), self.cut)
 
     def mass(self, d):
         if 'masses' in d:

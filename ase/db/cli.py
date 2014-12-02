@@ -144,9 +144,7 @@ def run(opts, args, verbosity):
         return
         
     if opts.count:
-        n = 0
-        for dct in con.select(query):
-            n += 1
+        n = con.count(query)
         print('%s' % plural(n, 'row'))
         return
 
