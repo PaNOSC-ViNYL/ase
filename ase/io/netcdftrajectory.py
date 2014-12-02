@@ -85,6 +85,9 @@ class NetCDFTrajectory:
 
     # Default field names. If it is a list, check for any of these names upon
     # opening. Upon writing, use the first name.
+    _spatial_var = 'spatial'
+    _cell_spatial_var = 'cell_spatial'
+    _cell_angular_var = 'cell_angular'
     _time_var = 'time'
     _numbers_var = ['Z', 'atom_types', 'type']
     _positions_var = 'coordinates'
@@ -393,6 +396,24 @@ class NetCDFTrajectory:
             self.nc.createDimension(self._cell_spatial_dim, 3)
         if not self._cell_angular_dim in self.nc.dimensions:
             self.nc.createDimension(self._cell_angular_dim, 3)
+        if not self._label_dim in self.nc.dimensions:
+            self.nc.createDimension(self._label_dim, 5)
+
+        # Self-describing variables from AMBER convention
+        if not self._has_variable(self._spatial_var):
+            self.nc.createVariable(self._spatial_var, 'S1',
+                                   (self._spatial_dim,))
+            self.nc.variables[self._spatial_var][:] = ['x', 'y', 'z']
+        if not self._has_variable(self._cell_spatial_var):
+            self.nc.createVariable(self._cell_spatial_dim, 'S1',
+                                   (self._cell_spatial_dim,))
+            self.nc.variables[self._cell_spatial_var][:] = ['a', 'b', 'c']
+        if not self._has_variable(self._cell_angular_var):
+            self.nc.createVariable(self._cell_angular_var, 'S1',
+                                   (self._cell_angular_dim, self._label_dim,))
+            self.nc.variables[self._cell_angular_var][0] = [x for x in 'alpha']
+            self.nc.variables[self._cell_angular_var][1] = [x for x in 'beta ']
+            self.nc.variables[self._cell_angular_var][2] = [x for x in 'gamma']
 
         if not self._has_variable(self._numbers_var):
             self.nc.createVariable(self._numbers_var[0], 'i',
