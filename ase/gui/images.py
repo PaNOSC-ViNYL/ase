@@ -91,7 +91,10 @@ class Images:
                 if init_magmom:
                     self.M[i] = atoms.get_initial_magnetic_moments()
                 else:
-                    self.M[i] = atoms.get_magnetic_moments()
+                    M = atoms.get_magnetic_moments()
+                    if M.ndim == 2:
+                        M = M[:, 2]
+                    self.M[i] = M
             except (RuntimeError, AttributeError):
                 self.M[i] = atoms.get_initial_magnetic_moments()
             self.q[i] = atoms.get_initial_charges()
