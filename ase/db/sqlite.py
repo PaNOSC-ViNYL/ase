@@ -386,7 +386,7 @@ class SQLite3Database(Database):
                 where.append(('systems.id=number{0}.id AND ' +
                               'number{0}.key=? AND ' +
                               'number{0}.value{1}?').format(nnumber, op))
-                args += [key, value]
+                args += [key, float(value)]
                 nnumber += 1
                 
         sql = 'SELECT {0} FROM\n  '.format(what) + ', '.join(tables)
