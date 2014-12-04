@@ -348,7 +348,10 @@ class Database:
                 if op in expression:
                     break
             else:
-                keys.append(expression)
+                if expression in atomic_numbers:
+                    comparisons.append((expression, '>', 0))
+                else:
+                    keys.append(expression)
                 continue
             key, value = expression.split(op)
             comparisons.append((key, op, value))
@@ -383,6 +386,7 @@ class Database:
                 msg = 'Wrong type for "{0}{1}{2}" - must be a number'
                 raise ValueError(msg.format(key, op, value))
             cmps.append((key, op, value))
+            
         return keys, cmps
 
     @parallel_generator
