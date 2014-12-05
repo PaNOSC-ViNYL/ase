@@ -78,6 +78,7 @@ def read(filename, index=None, format=None):
     Quantum espresso out file  esp_out
     Extended XYZ file          extxyz
     NWChem input file          nw
+    Materials Studio file      xsd
     =========================  =============
 
     """
@@ -340,6 +341,10 @@ def read(filename, index=None, format=None):
     if format == 'nw':
         from ase.io.nwchem import read_nwchem_input
         return read_nwchem_input(filename)
+
+    if format == 'xsd':
+        from ase.io.xsd import read_xsd
+        return read_xsd(filename)
 
     raise RuntimeError('File format descriptor ' + format + ' not recognized!')
 
@@ -737,7 +742,7 @@ def filetype(filename):
 
     if filename.lower().endswith('.cell'):
         return 'castep_cell'
-    if s3 == '<?x':
+    if s3 == '<?x' and not filename.endswith('xsd'):
         from ase.io.vtkxml import probe_vtkxml
         xmltype = probe_vtkxml(filename)
         if xmltype == 'ImageData':
@@ -778,5 +783,8 @@ def filetype(filename):
 
     if filename.endswith('.nw'):
         return 'nw'
+
+    if filename.endswith('xsd'):
+        return 'xsd'
 
     return 'xyz'
