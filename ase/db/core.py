@@ -75,7 +75,8 @@ def connect(name, type='extract_from_name', create_indices=True,
     name: str
         Filename or address of database.
     type: str
-        One of 'json', 'db' or 'pg' (JSON, SQLite, PostgreSQL).
+        One of 'json', 'db', 'postgresql', 'mysql'
+        (JSON, SQLite, PostgreSQL, MySQL/MariaDB).
         Default is 'extract_from_name', which will ... guess the type
         from the name.
     use_lock_file: bool
@@ -85,8 +86,10 @@ def connect(name, type='extract_from_name', create_indices=True,
     if type == 'extract_from_name':
         if name is None:
             type = None
-        elif name.startswith('pg://'):
+        elif name.startswith('postgresql://'):
             type = 'postgresql'
+        elif name.startswith('mysql://'):
+            type = 'mysql'
         else:
             type = os.path.splitext(name)[1][1:]
 
@@ -102,6 +105,9 @@ def connect(name, type='extract_from_name', create_indices=True,
     if type == 'postgresql':
         from ase.db.postgresql import PostgreSQLDatabase
         return PostgreSQLDatabase(name[5:])
+    if type == 'mysql':
+        from ase.db.mysql import MySQLDatabase
+        return MySQLDatabase(name[5:])
     raise ValueError('Unknown database type: ' + type)
 
 
