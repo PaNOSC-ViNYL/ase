@@ -48,7 +48,7 @@ class PostgreSQLDatabase(SQLite3Database):
     def get_last_id(self, cur):
         cur.execute('select last_value from systems_id_seq')
         id = cur.fetchone()[0]
-        return id
+        return int(id)
 
 
 def reset():
