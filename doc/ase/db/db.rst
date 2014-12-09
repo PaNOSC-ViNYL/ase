@@ -20,8 +20,6 @@ SQLite3_:
     with a ``.db`` extension.
 PostgreSQL_:
     Server based database.
-MariaDB_ or MySQL:
-    Server based database.
 
 The JSON and SQLite3 back-ends work "out of the box", whereas PostgreSQL
 requires a server.
@@ -32,7 +30,6 @@ used to query and manipulate databases and also a `Python interface`_.
 .. _JSON: http://www.json.org/
 .. _SQLite3: http://www.sqlite.org/
 .. _PostgreSQL: http://www.postgresql.org/
-.. _MariaDB: http://mariadb.org/
 
 .. contents::
     

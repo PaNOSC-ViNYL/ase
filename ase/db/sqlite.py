@@ -55,24 +55,24 @@ init_statements = [
     n INTEGER,
     id INTEGER,
     FOREIGN KEY (id) REFERENCES systems(id))""",
-    """CREATE TABLE keywords (
-    keyword TEXT,
+    """CREATE TABLE keys (
+    key TEXT,
     id INTEGER,
     FOREIGN KEY (id) REFERENCES systems(id))""",
     """CREATE TABLE text_key_values (
-    keyword TEXT,
+    key TEXT,
     value TEXT,
     id INTEGER,
     FOREIGN KEY (id) REFERENCES systems(id))""",
     """CREATE TABLE number_key_values (
-    keyword TEXT,
+    key TEXT,
     value REAL,
     id INTEGER,
-    FOREIGN KEY (id) REFERENCES systems(id))""",
+    FOREIGN KEY (id) REFERENCES systems (id))""",
     """CREATE TABLE information (
     name TEXT,
     value TEXT)""",
-    """INSERT INTO information VALUES ('version', '{0}')""".format(VERSION)]
+    """INSERT INTO information VALUES ("version", "{0}")""".format(VERSION)]
 
 index_statements = [
     'CREATE INDEX unique_id_index ON systems(unique_id)',
@@ -80,11 +80,11 @@ index_statements = [
     'CREATE INDEX username_index ON systems(username)',
     'CREATE INDEX calculator_index ON systems(calculator)',
     'CREATE INDEX species_index ON species(Z)',
-    'CREATE INDEX keyword_index ON keywords(keyword)',
-    'CREATE INDEX text_index ON text_key_values(keyword)',
-    'CREATE INDEX number_index ON number_key_values(keyword)']
+    'CREATE INDEX key_index ON keys(key)',
+    'CREATE INDEX text_index ON text_key_values(key)',
+    'CREATE INDEX number_index ON number_key_values(key)']
 
-all_tables = ['systems', 'species', 'keywords',
+all_tables = ['systems', 'species', 'keys',
               'text_key_values', 'number_key_values']
 
 
@@ -159,7 +159,7 @@ class SQLite3Database(Database):
             rows = cur.fetchall()
             if rows:
                 id = rows[0][0]
-                self._delete(cur, [id], ['keywords', 'text_key_values',
+                self._delete(cur, [id], ['keys', 'text_key_values',
                                          'number_key_values'])
             dct['mtime'] = now()
         else:
@@ -242,7 +242,7 @@ class SQLite3Database(Database):
                         text_key_values)
         cur.executemany('INSERT INTO number_key_values VALUES (?, ?, ?)',
                         number_key_values)
-        cur.executemany('INSERT INTO keywords VALUES (?, ?)',
+        cur.executemany('INSERT INTO keys VALUES (?, ?)',
                         [(key, id) for key in key_value_pairs])
 
         if self.connection is None:
@@ -340,8 +340,8 @@ class SQLite3Database(Database):
         where = []
         args = []
         for n, key in enumerate(keys):
-            tables.append('keywords AS keys{0}'.format(n))
-            where.append('systems.id=keys{0}.id AND keys{0}.keyword=?'.format(n))
+            tables.append('keys AS keys{0}'.format(n))
+            where.append('systems.id=keys{0}.id AND keys{0}.key=?'.format(n))
             args.append(key)
 
         # Special handling of "H=0" and "H<2" type of selections:
@@ -377,14 +377,14 @@ class SQLite3Database(Database):
             elif isinstance(value, str):
                 tables.append('text_key_values AS text{0}'.format(ntext))
                 where.append(('systems.id=text{0}.id AND ' +
-                              'text{0}.keyword=? AND ' +
+                              'text{0}.key=? AND ' +
                               'text{0}.value{1}?').format(ntext, op))
                 args += [key, value]
                 ntext += 1
             else:
                 tables.append('number_key_values AS number{0}'.format(nnumber))
                 where.append(('systems.id=number{0}.id AND ' +
-                              'number{0}.keyword=? AND ' +
+                              'number{0}.key=? AND ' +
                               'number{0}.value{1}?').format(nnumber, op))
                 args += [key, float(value)]
                 nnumber += 1
