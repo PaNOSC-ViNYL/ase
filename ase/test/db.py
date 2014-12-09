@@ -27,5 +27,5 @@ for name in ['y.json', 'y.db']:  # , 'postgresql://localhost', 'mysql://localhos
     assert len(list(con.select(formula='H2'))) == 1
     assert len(list(con.select(formula='H2O'))) == 1
 
-id = con.reserve(abc=7)
-assert con[id].abc == 7
+    id = con.reserve(abc=7)
+    assert con[id].abc == 7
