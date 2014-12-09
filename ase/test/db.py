@@ -12,7 +12,7 @@ ase-db y.json natoms=1,Cu=1 --delete --yes &&
 ase-db y.json "H>0" -k hydro=1,abc=42,foo=bar &&
 ase-db y.json "H>0" --delete-keys foo"""
 
-for name in ['y.json', 'y.db']:  # , 'postgres://localhost']:
+for name in ['y.json', 'y.db']:  # , 'postgresql://localhost', 'mysql://localhost']:
     cli(cmd.replace('y.json', name))
     con = connect(name)
     assert len(list(con.select())) == 5

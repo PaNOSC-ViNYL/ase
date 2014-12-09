@@ -68,11 +68,11 @@ init_statements = [
     key TEXT,
     value REAL,
     id INTEGER,
-    FOREIGN KEY (id) REFERENCES systems (id))""",
+    FOREIGN KEY (id) REFERENCES systems(id))""",
     """CREATE TABLE information (
     name TEXT,
     value TEXT)""",
-    """INSERT INTO information VALUES ("version", "{0}")""".format(VERSION)]
+    """INSERT INTO information VALUES ('version', '{0}')""".format(VERSION)]
 
 index_statements = [
     'CREATE INDEX unique_id_index ON systems(unique_id)',
