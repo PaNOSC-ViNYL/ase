@@ -3,7 +3,8 @@ import os
 from ase.atoms import Atoms
 from ase.parallel import rank
 
-class BEEF_Ensemble:
+
+class BEEFEnsemble:
     """BEEF type ensemble error estimation"""
     def __init__(self, atoms=None, e=None, contribs=None, xc=None):
         if (atoms is not None or contribs is not None or xc is not None):
@@ -41,7 +42,8 @@ class BEEF_Ensemble:
             print '%s ensemble started' % self.beef_type
 
         if self.contribs is None:
-            self.contribs = self.calc.get_nonselfconsistent_energies(self.beef_type)
+            self.contribs = self.calc.get_nonselfconsistent_energies(
+                self.beef_type)
             self.e = self.calc.get_potential_energy(self.atoms)
         if self.beef_type == 'beefvdw':
             assert len(self.contribs) == 32
@@ -70,7 +72,7 @@ class BEEF_Ensemble:
         RandV = generator.randn(31, size)
 
         for j in range(size):
-            v = RandV[:,j]
+            v = RandV[:, j]
             coefs_i = (np.dot(np.dot(V, np.diag(np.sqrt(W))), v)[:])
             if j == 0:
                 ensemble_coefs = coefs_i
@@ -87,20 +89,21 @@ class BEEF_Ensemble:
         W, V, generator = self.eigendecomposition(omega, seed)
         mu, sigma = 0.0, 1.0
         rand = np.array(generator.normal(mu, sigma, (len(W), size)))
-        return (np.sqrt(2.)*np.dot(np.dot(V, np.diag(np.sqrt(W))), rand)[:]).T
+        return (np.sqrt(2) * np.dot(np.dot(V, np.diag(np.sqrt(W))),
+                                    rand)[:]).T
 
     def get_mbeefvdw_ensemble_coefs(self, size=2000, seed=0):
         """Pertubation coefficients of the mBEEF-vdW ensemble"""
         from pars_mbeefvdw import uiOmega as omega
-        assert np.shape(omega) == (28,28)
+        assert np.shape(omega) == (28, 28)
 
         W, V, generator = self.eigendecomposition(omega, seed)
         mu, sigma = 0.0, 1.0
         rand = np.array(generator.normal(mu, sigma, (len(W), size)))
-        return (np.sqrt(2.)*np.dot(np.dot(V, np.diag(np.sqrt(W))), rand)[:]).T
+        return (np.sqrt(2) * np.dot(np.dot(V, np.diag(np.sqrt(W))), rand)[:]).T
 
     def eigendecomposition(self, omega, seed=0):
-        u, s, v = np.linalg.svd(omega) # unsafe: W, V = np.linalg.eig(omega)
+        u, s, v = np.linalg.svd(omega)  # unsafe: W, V = np.linalg.eig(omega)
         generator = np.random.RandomState(seed)
         return s, v.T, generator
 
