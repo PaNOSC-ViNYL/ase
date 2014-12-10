@@ -77,6 +77,7 @@ class SinglePointDFTCalculator(SinglePointCalculator):
                 atoms = results.pop('atoms')
             eFermi = results.pop('eFermi', None)
             energies = results.pop('energies', None)
+            eref = results.pop('Eref', None)
 
         SinglePointCalculator.__init__(self, atoms, **results)
 
@@ -84,6 +85,8 @@ class SinglePointDFTCalculator(SinglePointCalculator):
             self.eFermi = eFermi
         if energies is not None:
             self.energies = energies
+        if eref is not None:
+            self.eref = eref
         self.kpts = None
 
     def get_fermi_level(self):

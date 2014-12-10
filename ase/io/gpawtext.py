@@ -58,6 +58,11 @@ def read_gpaw_text(fileobj, index=-1):
         else:
             atoms = Atoms(cell=cell, pbc=pbc)
         lines = lines[i + 5:]
+        try:
+            ii = index_startswith(lines, 'Reference Energy:')
+            Eref = float(lines[ii].split()[-1])
+        except ValueError:
+            Eref = None
         ene = {
             # key        position
             'Kinetic:': 1,
@@ -172,7 +177,7 @@ def read_gpaw_text(fileobj, index=-1):
         if e is not None or f is not None:
             calc = SinglePointDFTCalculator(atoms, energy=e, forces=f,
                                             dipole=dipole, magmoms=magmoms,
-                                            eFermi=eFermi)
+                                            eFermi=eFermi, Eref=Eref)
             if kpts is not None:
                 calc.kpts = kpts
             atoms.set_calculator(calc)
