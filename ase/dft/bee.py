@@ -135,3 +135,9 @@ class BEEFEnsemble:
             return e, de, contribs, seed, xc
         else:
             return e, de
+
+            
+def BEEF_Ensemble(*args, **kwargs):
+    import warnings
+    warnings.warn('Please use BEEFEnsemble instead of BEEF_Ensemble.')
+    return BEEFEnsemble(*args, **kwargs)
