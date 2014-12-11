@@ -157,7 +157,6 @@ class Runner:
                     traceback.print_exc(file=self.logfile)
                     tstop = time.time()
                     data = {'time': tstop - tstart}
-                    self.db.write(None, ['failed'], name=name, data=data)
                     self.errors += 1
                 else:
                     tstop = time.time()
