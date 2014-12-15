@@ -374,7 +374,7 @@ class SQLite3Database(Database):
                                   'specie{0}.n{1}?').format(nspecies, op))
                     args += [key, value]
                     nspecies += 1
-            elif isinstance(value, str):
+            elif isinstance(value, (str, unicode)):
                 tables.append('text_key_values AS text{0}'.format(ntext))
                 where.append(('systems.id=text{0}.id AND ' +
                               'text{0}.key=? AND ' +

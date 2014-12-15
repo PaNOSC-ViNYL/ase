@@ -383,7 +383,7 @@ class Database:
             elif key in atomic_numbers:
                 key = atomic_numbers[key]
                 value = int(value)
-            elif isinstance(value, str):
+            elif isinstance(value, (str, unicode)):
                 try:
                     value = float(value)
                 except ValueError:
