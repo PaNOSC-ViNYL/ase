@@ -880,7 +880,7 @@ class DeltaCodesDFTTask(BulkTask):
 
 if __name__ == '__main__':
     # download and create the project databases
-    src = 'https://molmod.ugent.be/sites/default/files/Delta_v3-0_0.zip'
+    src = 'https://molmod.ugent.be/sites/default/files/Delta_v3-0.zip'
     name = os.path.basename(src)
     dir = 'Delta'
     if not os.path.exists(dir): os.makedirs(dir)
