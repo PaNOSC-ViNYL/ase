@@ -182,8 +182,8 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
     elif isinstance(adsorbate, Atom):
         ads = Atoms([adsorbate])
     else:
-        # Hope it is a useful string or something like that
-        ads = Atoms(adsorbate)
+        # Assume it is a string representing a single Atom
+        ads = Atoms([Atom(adsorbate)])
 
     # Get the z-coordinate:
     try:
