@@ -93,6 +93,7 @@ schenkst    Stephan Schenk             stephan,schenk:basf,com
 schiotz     Jakob Schiotz              schiotz:fysik,dtu,dk
 slabanja    Mattias Slabanja           slabanja:chalmers,se
 strange     Mikkel Strange             mikkel,strange:gmail,com
+tgmaxson    Tristan Maxson             tgmaxson:gmail,com
 tjiang      Tao Jiang                  tjiang:fysik,dtu,dk
 tolsen      Thomas Olsen               tolsen:fysik,dtu,dk
 ==========  =========================  ===================================
