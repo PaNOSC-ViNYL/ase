@@ -104,6 +104,10 @@ After each generation is finished the population is printed to the screen so we 
 
     $ ase-db fcc_alloys.db -c +atoms_string,raw_score,generation,hof -s raw_score
 
+*Note:* When reading the database using ase-db, it might be necessary to increase the number of shown entries, e.g. ``ase-db fcc-alloys.db --limit N``, where ``N`` is the number of entries to show (as default the first 500 entries are shown, ``--limit 0`` will show all. For further info use the help: ``ase-db –help``, or consult the `ase-db manual`_).
+
+.. _`ase-db manual`: https://wiki.fysik.dtu.dk/ase/ase/db/db.html#module-ase.db
+
 To prevent clutter we import the relax function from the following script:
 
 .. _`relaxation script`:
@@ -139,7 +143,7 @@ Instead of only using random operations we can include some that mutates element
                             MoveUpMutation([metals]),
                             MoveLeftMutation([metals]),
                             MoveRightMutation([metals]),
-                            OnePointElementCrossover([metals])
+                            OnePointElementCrossover([metals])])
   mut_selector = MutationSelector(*oclist)
 
 These operators takes advantage of the fact that chemically like elements (close in the periodic table) exhibit similar properties and the substitution of one to a chemically similar elements could refine the properties of an alloy in the population. A natural extension of these operators would be to use a different ordering of the elements than the periodic table; e.g. Pettifor chemical scale, electronegativity, etc.

@@ -145,11 +145,16 @@ class CutAndSplicePairing(OffspringCreator):
         f, m = parents
 
         indi = self.cross(f, m)
+        desc = 'pairing: {0} {1}'.format(f.info['confid'],
+                                         m.info['confid'])
+        # It is ok for an operator to return None
+        # It means that it could not make a legal offspring
+        # within a reasonable amount of time
+        if indi is None:
+            return indi, desc
         indi = self.initialize_individual(f, indi)
         indi.info['data']['parents'] = [f.info['confid'],
                                         m.info['confid']]
-        desc = 'pairing: {0} {1}'.format(f.info['confid'],
-                                         m.info['confid'])
         
         return self.finalize_individual(indi), desc
 

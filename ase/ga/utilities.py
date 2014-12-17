@@ -3,7 +3,6 @@ from ase.data import covalent_radii
 import itertools
 import numpy as np
 from ase.io import write, read
-import sqlite3
 import os
 import time
 import math
@@ -58,6 +57,7 @@ def db_call_with_error_tol(db_cursor, expression, args=[]):
          some extra error tolerance when calling the SQLite db is
          employed.
     """
+    import sqlite3
     i = 0
     while i < 10:
         try:

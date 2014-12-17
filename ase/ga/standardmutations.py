@@ -35,6 +35,9 @@ class RattleMutation(OffspringCreator):
         f = parents[0]
 
         indi = self.mutate(f)
+        if indi is None:
+            return indi, 'mutation: rattle'
+            
         indi = self.initialize_individual(f, indi)
         indi.info['data']['parents'] = [f.info['confid']]
 
@@ -85,6 +88,9 @@ class PermutationMutation(OffspringCreator):
         f = parents[0]
 
         indi = self.mutate(f)
+        if indi is None:
+            return indi, 'mutation: permutation'
+            
         indi = self.initialize_individual(f, indi)
         indi.info['data']['parents'] = [f.info['confid']]
 
@@ -138,6 +144,9 @@ class MirrorMutation(OffspringCreator):
         f = parents[0]
 
         indi = self.mutate(f)
+        if indi is None:
+            return indi, 'mutation: mirror'
+            
         indi = self.initialize_individual(f, indi)
         indi.info['data']['parents'] = [f.info['confid']]
 
