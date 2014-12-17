@@ -397,7 +397,7 @@ class Database:
 
     @parallel_generator
     def select(self, selection=None, fancy=True, filter=None, explain=False,
-               verbosity=1, limit=None, **kwargs):
+               verbosity=1, limit=None, offset=0, **kwargs):
         """Select rows.
         
         Return iterator with results as dictionaries.  Selection is done
@@ -431,7 +431,8 @@ class Database:
         
         keys, cmps = self.parse_selection(selection, **kwargs)
         for dct in self._select(keys, cmps, explain=explain,
-                                verbosity=verbosity, limit=limit):
+                                verbosity=verbosity,
+                                limit=limit, offset=offset):
             if filter is None or filter(dct):
                 if fancy:
                     dct = FancyDict(dct)

@@ -166,7 +166,8 @@ class JSONDatabase(Database):
         dct['id'] = id
         return dct
 
-    def _select(self, keys, cmps, explain=False, verbosity=0, limit=None):
+    def _select(self, keys, cmps, explain=False, verbosity=0,
+                limit=None, offset=0):
         if explain:
             yield {'explain': (0, 0, 0, 'scan table')}
             return
@@ -177,12 +178,12 @@ class JSONDatabase(Database):
             return
             
         if not limit:
-            limit = -1
+            limit = -offset - 1
             
         cmps = [(key, ops[op], val) for key, op, val in cmps]
         n = 0
         for id in ids:
-            if n == limit:
+            if n - offset == limit:
                 return
             dct = bigdct[id]
             for key in keys:
@@ -195,9 +196,10 @@ class JSONDatabase(Database):
                     if not op(value, val):
                         break
                 else:
-                    dct['id'] = id
+                    if n >= offset:
+                        dct['id'] = id
+                        yield dct
                     n += 1
-                    yield dct
 
     def _update(self, ids, delete_keys, add_key_value_pairs):
         bigdct, myids, nextid = self._read_json()

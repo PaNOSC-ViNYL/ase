@@ -394,7 +394,8 @@ class SQLite3Database(Database):
             sql += '\n  WHERE\n  ' + ' AND\n  '.join(where)
         return sql, args
         
-    def _select(self, keys, cmps, explain=False, verbosity=0, limit=None):
+    def _select(self, keys, cmps, explain=False, verbosity=0,
+                limit=None, offset=0):
         sql, args = self.create_select_statement(keys, cmps)
         
         if explain:
@@ -402,6 +403,9 @@ class SQLite3Database(Database):
             
         if limit:
             sql += '\nLIMIT {0}'.format(limit)
+
+        if offset:
+            sql += '\nOFFSET {0}'.format(offset)
             
         if verbosity == 2:
             print(sql, args)

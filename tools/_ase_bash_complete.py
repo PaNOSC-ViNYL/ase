@@ -22,10 +22,10 @@ def options(short, long):
 if command == 'ase-db':
     if word[:1] == '-':
         words = options(
-            'hvqnliakycspw',
-            'help verbose quiet count long insert-into add-from-file ' +
-            'add-key-value-pairs limit delete ' +
-            'delete-keys yes columns sort cut  python csv ' +
+            'hvqnliakycspwL',
+            'help verbose quiet count long insert-into add-from-file '
+            'add-key-value-pairs limit offset delete '
+            'delete-keys yes columns sort cut  python csv '
             'open-web-browser')
     elif previous == 'ase-db':
         words = [w for w in glob(word + '*')
@@ -36,7 +36,7 @@ elif command == 'ase-run':
     if word[:1] == '-':
         words = options(
             'htpdSfsEic',
-            'help tag parameter database skip properties maximum-force ' +
+            'help tag parameter database skip properties maximum-force '
             'constrain-tags maximum-stress equation-of-state modify after')
     elif previous == 'ase-run':
         words = 'emt nwchem'.split()
@@ -49,7 +49,7 @@ elif command == 'ase-build':
     elif word[:1] == '-':
         words = options(
             'hMvxarg',
-            'help magnetic-moment modify vacuum unit-cell bond-length ' +
+            'help magnetic-moment modify vacuum unit-cell bond-length '
             'crystal-structure lattice-constant orthorhombic cubic repeat gui')
     else:
         words = glob(word + '*')
@@ -61,7 +61,7 @@ elif command == 'ase-info':
 else:  # ase-gui
     if word[:1] == '-':
         words = options(
-            'hnurRogtbs', 'help image-number show-unit-cell repeat ' +
+            'hnurRogtbs', 'help image-number show-unit-cell repeat '
             'rotations output graph terminal aneb interpolate bonds scale')
     else:
         words = glob(word + '*')

@@ -55,15 +55,18 @@ class Table:
         self.right = None
         self.keys = None
         
-    def select(self, query, columns, sort, limit):
+    def select(self, query, columns, sort, limit, offset):
         self.limit = limit
+        self.offset = offset
         
         if sort != 'id':
             limit = 0
+            offset = 0
            
         self.rows = [Row(d, columns)
                      for d in self.connection.select(
-                         query, verbosity=self.verbosity, limit=limit)]
+                         query, verbosity=self.verbosity,
+                         limit=limit, offset=offset)]
 
         delete = set(range(len(columns)))
         for row in self.rows:
@@ -90,7 +93,7 @@ class Table:
             self.rows = sorted(self.rows, key=key, reverse=reverse)
             
             if self.limit:
-                self.rows = self.rows[:self.limit]
+                self.rows = self.rows[self.offset:self.offset + self.limit]
                 
     def format(self, subscript=None):
         right = set()
