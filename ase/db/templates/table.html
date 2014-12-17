@@ -24,10 +24,10 @@ Download:
 <a href="/sqlite?x={{ cid }}">db</a>,
 <a href="/json?x={{ cid }}">json</a>
 <br>
-Add/remove key-column:
+Add column:
 {% for key in t.keys -%}
 <a href="/?x={{ cid }}&amp;toggle={{ key }}">{{ key }}</a>{% if not loop.last %},{% endif %}
-{% endfor %}
+{% endfor %} Reset
 
 <br>
 {% for page, name in pages %}

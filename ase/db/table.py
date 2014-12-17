@@ -77,11 +77,11 @@ class Table:
         for row in self.rows:
             for n in delete:
                 del row.values[n]
+                
+        self.columns = list(columns)
         for n in delete:
-            del columns[n]
+            del self.columns[n]
             
-        self.columns = columns
-        
         if sort != 'id':
             reverse = sort[0] == '-'
             n = columns.index(sort.lstrip('-'))

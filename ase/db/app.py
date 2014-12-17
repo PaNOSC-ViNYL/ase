@@ -46,16 +46,7 @@ def index():
     else:
         query, nrows, page, columns, sort, limit, opened = connections[con_id]
 
-    if 'toggle' in request.args:
-        column = request.args['toggle']
-        if column in columns:
-            columns.remove(column)
-            if column == sort.lstrip('-'):
-                sort = 'id'
-                page = 0
-        else:
-            columns.append(column)
-    elif 'sort' in request.args:
+    if 'sort' in request.args:
         column = request.args['sort']
         if column == sort:
             sort = '-' + column
@@ -67,20 +58,31 @@ def index():
     elif 'query' in request.args:
         query = request.args['query'].encode()
         limit = min(int(request.args.get('limit', limit)), 200)
-        columns = list(all_columns)
+        #columns = list(all_columns)
         sort = 'id'
         opened = set()
         page = 0
         nrows = None
     elif 'page' in request.args:
         page = int(request.args['page'])
+
+    if 'toggle' in request.args:
+        tcolumns = request.args['toggle'].split(',')
+        for column in tcolumns:
+            if column in columns:
+                columns.remove(column)
+                if column == sort.lstrip('-'):
+                    sort = 'id'
+                    page = 0
+            else:
+                columns.append(column)
         
     if nrows is None:
         nrows = db.count(query)
         
     table = Table(db)
     table.select(query, columns, sort, limit, offset=page * limit)
-    con = Connection(query, nrows, page, table.columns, sort, limit, opened)
+    con = Connection(query, nrows, page, columns, sort, limit, opened)
     connections[con_id] = con
     table.format(SUBSCRIPT)
     return render_template('table.html', t=table, con=con, cid=con_id,
@@ -223,6 +225,7 @@ def pages(page, nrows, limit):
         nxt = -1
     pages.append((nxt, 'next'))
     return pages
+
     
 if __name__ == '__main__':
     globals()['db'] = ase.db.connect(sys.argv[1])
