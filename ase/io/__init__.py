@@ -46,6 +46,7 @@ def read(filename, index=None, format=None):
     XYZ-file                   xyz
     VASP POSCAR/CONTCAR file   vasp
     VASP OUTCAR file           vasp_out
+    VASP XDATCAR file          vasp_xdatcar
     SIESTA STRUCT file         struct_out
     ABINIT input file          abinit
     V_Sim ascii file           v_sim
@@ -221,6 +222,10 @@ def read(filename, index=None, format=None):
     if format == 'vasp_out':
         from ase.io.vasp import read_vasp_out
         return read_vasp_out(filename, index)
+
+    if format == 'vasp_xdatcar':
+        from ase.io.vasp import read_vasp_xdatcar
+        return read_vasp_xdatcar(filename, index)
 
     if format == 'abinit':
         from ase.io.abinit import read_abinit
@@ -668,6 +673,9 @@ def filetype(filename):
 
     if 'OUTCAR' in filename_v:
         return 'vasp_out'
+
+    if 'XDATCAR' in filename_v:
+        return 'vasp_xdatcar'
 
     if filename.lower().endswith('.exi'):
         return 'exi'

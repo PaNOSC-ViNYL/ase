@@ -282,6 +282,7 @@ def read_vasp_out(filename='OUTCAR',index = -1):
                 # reset energy for LAST set of atoms, not current one -
                 # VASP 5.11? and up
                 images[-1].calc.results['energy'] = energy
+                images[-1].calc.set(energy=energy)
             ecount += 1
         if 'magnetization (x)' in line:
             magnetization = []
@@ -289,11 +290,13 @@ def read_vasp_out(filename='OUTCAR',index = -1):
                 magnetization += [float(data[n + 4 + i].split()[4])]
         if 'POSITION          ' in line:
             forces = []
+            positions = []
             for iatom in range(natoms):
                 temp = data[n+2+iatom].split()
                 atoms += Atom(symbols[iatom],
                               [float(temp[0]), float(temp[1]), float(temp[2])])
                 forces += [[float(temp[3]),float(temp[4]),float(temp[5])]]
+                positions += [[float(temp[0]),float(temp[1]),float(temp[2])]]
                 atoms.set_calculator(SinglePointCalculator(atoms,
                                                            energy=energy,
                                                            forces=forces))
@@ -302,7 +305,6 @@ def read_vasp_out(filename='OUTCAR',index = -1):
                 images[-1].calc.magmoms = np.array(magnetization, float)
             atoms = Atoms(pbc = True, constraint = constr)
             poscount += 1
-
 
     # return requested images, code borrowed from ase/io/trajectory.py
     if isinstance(index, int):
@@ -330,6 +332,64 @@ def read_vasp_out(filename='OUTCAR',index = -1):
                 if stop < 0:
                     stop += len(images)
         return [images[i] for i in range(start, stop, step)]
+
+def read_vasp_xdatcar(filename, index=-1):
+    """Import XDATCAR file
+
+       Reads all positions from the XDATCAR and returns a list of
+       Atoms objects.  Useful for viewing optimizations runs
+       from VASP5.x
+
+       Constraints ARE NOT stored in the XDATCAR, and as such, Atoms
+       objects retrieved from the XDATCAR will not have constraints set.
+    """
+
+    import numpy as np
+    from ase import Atoms
+
+    images = list()
+
+    with open(filename, 'r') as xdatcar:
+        xdatcar.readline()
+        xdatcar.readline()
+
+        xx = [float(x) for x in xdatcar.readline().split()]       
+        yy = [float(y) for y in xdatcar.readline().split()]
+        zz = [float(z) for z in xdatcar.readline().split()]
+        cell = np.array([xx, yy, zz])
+
+        symbols = xdatcar.readline().split()
+        numbers = [int(n) for n in xdatcar.readline().split()]
+        total = sum(numbers)
+
+        atomic_formula = str()
+        for n, sym in enumerate(symbols):
+            atomic_formula += '%s%s' % (sym, numbers[n])
+
+        count = 0
+        nimage = 0
+        coords = list()
+
+        for line in xdatcar:
+            if 'Direct configuration=' in line:
+                nimage += 1
+            else:
+                coord = [float(x) for x in line.split()]
+                coords.append(coord)
+                count += 1
+
+            if count == total:
+                image = Atoms(atomic_formula, cell=cell, pbc=True)
+                image.set_scaled_positions(coords)
+                images.append(image)
+
+                count = 0
+                coords = list()
+
+    if not index:
+        return images
+    else:
+        return images[index]
 
 def write_vasp(filename, atoms, label='', direct=False, sort=None, symbol_count = None, long_format=True, vasp5=False):
     """Method to write VASP position (POSCAR/CONTCAR) files.
