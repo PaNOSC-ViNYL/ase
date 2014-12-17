@@ -31,7 +31,8 @@ def read_reactant_con(fileobj):
     f.readline()  # 0.0000 TIME  (??)
     cell_lengths = f.readline().split()
     cell_angles = f.readline().split()
-    cell_angles.append(cell_angles.pop(0))
+    # Different order of angles in EON.
+    cell_angles = [cell_angles[2], cell_angles[1], cell_angles[0]]
     cellpar = [float(x) for x in cell_lengths + cell_angles]
     f.readline()  # 0 0     (??)
     f.readline()  # 0 0 0   (??)
@@ -45,21 +46,21 @@ def read_reactant_con(fileobj):
     fixed = []
     for n in range(ntypes):
         symbol = f.readline().strip()
-        symbols.extend([symbol]*natoms[n])
-        f.readline() # Coordinates of Component n
+        symbols.extend([symbol] * natoms[n])
+        masses.extend([atommasses[n]] * natoms[n])
+        f.readline()  # Coordinates of Component n
         for i in range(natoms[n]):
             row = f.readline().split()
             coords.append([float(x) for x in row[:3]])
-            masses.extend([atommasses[n]]*natoms[n])
             fixed.append(bool(int(row[3])))
 
     if isinstance(fileobj, str):
         f.close()
 
-    atoms = Atoms(symbols=symbols, 
-                  positions=coords, 
+    atoms = Atoms(symbols=symbols,
+                  positions=coords,
                   masses=masses,
-                  cell=cellpar_to_cell(cellpar), 
+                  cell=cellpar_to_cell(cellpar),
                   constraint=FixAtoms(mask=fixed),
                   info=dict(comment=comment))
     
@@ -97,7 +98,7 @@ def write_reactant_con(fileobj, images):
 
     a, b, c, alpha, beta, gamma = cell_to_cellpar(atoms.cell)
     out.append('%-10.6f  %-10.6f  %-10.6f' % (a, b, c))
-    out.append('%-10.6f  %-10.6f  %-10.6f' % (gamma, alpha, beta))
+    out.append('%-10.6f  %-10.6f  %-10.6f' % (gamma, beta, alpha))
 
     out.append('0 0')    # ??
     out.append('0 0 0')  # ??
@@ -113,6 +114,7 @@ def write_reactant_con(fileobj, images):
     out.append(' '.join([str(n) for n in natoms]))
     out.append(' '.join([str(n) for n in atommasses]))
 
+    atom_id = 0
     for n in range(ntypes):
         fixed = np.array([False] * len(atoms))
         out.append(atomtypes[n])
@@ -131,12 +133,12 @@ def write_reactant_con(fileobj, images):
                 fixed = np.zeros((natoms[n], ), dtype=int)
                 for i in c.index:
                     fixed[i] = 1
-        for i, (xyz, fix) in enumerate(zip(coords, fixed)):
-            out.append('%10.5f %10.5f %10.5f  %d     %d' % 
-                       (tuple(xyz) + (fix, i)))
-
+        for xyz, fix in zip(coords, fixed):
+            out.append('%22.17f %22.17f %22.17f %d %4d' %
+                       (tuple(xyz) + (fix, atom_id)))
+            atom_id += 1
     f.write('\n'.join(out))
+    f.write('\n')
 
     if isinstance(fileobj, str):
         f.close()
-
