@@ -39,7 +39,7 @@ def index():
         query = ''
         columns = list(all_columns)
         sort = 'id'
-        limit = 100
+        limit = 25
         opened = set()
         nrows = None
         page = 0
