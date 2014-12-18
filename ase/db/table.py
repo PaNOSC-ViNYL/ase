@@ -84,7 +84,7 @@ class Table:
             
         if sort != 'id':
             reverse = sort[0] == '-'
-            n = columns.index(sort.lstrip('-'))
+            n = self.columns.index(sort.lstrip('-'))
             
             def key(row):
                 x = row.values[n]

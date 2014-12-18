@@ -58,7 +58,6 @@ def index():
     elif 'query' in request.args:
         query = request.args['query'].encode()
         limit = min(int(request.args.get('limit', limit)), 200)
-        #columns = list(all_columns)
         sort = 'id'
         opened = set()
         page = 0
@@ -68,14 +67,17 @@ def index():
 
     if 'toggle' in request.args:
         tcolumns = request.args['toggle'].split(',')
-        for column in tcolumns:
-            if column in columns:
-                columns.remove(column)
-                if column == sort.lstrip('-'):
-                    sort = 'id'
-                    page = 0
-            else:
-                columns.append(column)
+        if tcolumns == ['reset']:
+            columns = all_columns
+        else:
+            for column in tcolumns:
+                if column in columns:
+                    columns.remove(column)
+                    if column == sort.lstrip('-'):
+                        sort = 'id'
+                        page = 0
+                else:
+                    columns.append(column)
         
     if nrows is None:
         nrows = db.count(query)
@@ -85,9 +87,13 @@ def index():
     con = Connection(query, nrows, page, columns, sort, limit, opened)
     connections[con_id] = con
     table.format(SUBSCRIPT)
+    addcolumns = table.keys + [column for column in all_columns
+                               if column not in table.columns]
+
     return render_template('table.html', t=table, con=con, cid=con_id,
                            home=home, pages=pages(page, nrows, limit),
                            nrows=nrows,
+                           addcolumns=addcolumns,
                            row1=page * limit + 1,
                            row2=min((page + 1) * limit, nrows))
 

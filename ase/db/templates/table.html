@@ -25,9 +25,9 @@ Download:
 <a href="/json?x={{ cid }}">json</a>
 <br>
 Add column:
-{% for key in t.keys -%}
+{% for key in addcolumns -%}
 <a href="/?x={{ cid }}&amp;toggle={{ key }}">{{ key }}</a>{% if not loop.last %},{% endif %}
-{% endfor %} Reset
+{% endfor %} (<a href="/?x={{ cid }}&amp;toggle=reset">Reset</a>)
 
 <br>
 {% for page, name in pages %}
