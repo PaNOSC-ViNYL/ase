@@ -25,7 +25,7 @@ def save(name, slab):
 for name in surfaces:
     f = eval(name)
     for kwargs in [{}, {'orthogonal': False}, {'orthogonal': True}]:
-        print name, kwargs
+        print(name, kwargs)
         try:
             slab = f(symbols[name[:3]], (3, 4, 5), vacuum=4, **kwargs)
         except (TypeError, NotImplementedError):

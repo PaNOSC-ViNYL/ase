@@ -7,9 +7,9 @@ NaCl = Atoms([Atom('Na', [0, 0, 0], magmom=1.928),
               Atom('Cl', [0, 0, d], magmom=0.75)],
              cell=a)
 
-calc = Vasp(prec = 'Accurate', 
-            xc = 'PBE', 
-            lreal = False)
+calc = Vasp(prec='Accurate',
+            xc='PBE',
+            lreal=False)
 NaCl.set_calculator(calc)
 
-print NaCl.get_magnetic_moment()
+print(NaCl.get_magnetic_moment())

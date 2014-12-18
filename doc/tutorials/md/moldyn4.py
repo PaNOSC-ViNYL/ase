@@ -40,8 +40,8 @@ dyn = VelocityVerlet(atoms, 5*units.fs, trajectory='moldyn4.traj') # save trajec
 def printenergy(a=atoms):    #store a reference to atoms in the definition.
     epot = a.get_potential_energy() / len(a)
     ekin = a.get_kinetic_energy() / len(a)
-    print ("Energy per atom: Epot = %.3feV  Ekin = %.3feV (T=%3.0fK)  Etot = %.3feV" %
-           (epot, ekin, ekin/(1.5*units.kB), epot+ekin))
+    print("Energy per atom: Epot = %.3feV  Ekin = %.3feV (T=%3.0fK)  Etot = %.3feV" %
+          (epot, ekin, ekin/(1.5*units.kB), epot+ekin))
 dyn.attach(printenergy, interval=10)
 
 # Now run the dynamics
