@@ -151,6 +151,7 @@ def create_png_files(run_all_python_files=False, exclude=[]):
                 elif line.startswith('# creates:'):
                     t0 = os.stat(path)[ST_MTIME]
                     for file in line.split()[2:]:
+                        file = file.rstrip(',')
                         try:
                             t = os.stat(join(dirpath, file))[ST_MTIME]
                         except OSError:
