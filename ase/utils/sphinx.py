@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import types
 import warnings
@@ -90,7 +91,7 @@ def epydoc_role_tmpl(package_name, urlroot,
             module = __import__('.'.join(components[:n]))
     except ImportError:
         if module is None:
-            print 'epydoc: could not process: %s' % str(components)
+            print('epydoc: could not process:', str(components))
             raise
         for component in components[1:n]:
             module = getattr(module, component)
