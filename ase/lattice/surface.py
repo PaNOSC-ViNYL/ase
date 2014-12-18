@@ -14,6 +14,13 @@ from ase.atom import Atom
 from ase.atoms import Atoms
 from ase.data import reference_states, atomic_numbers
 from ase.lattice.cubic import FaceCenteredCubic
+from ase.lattice.general_surface import surface
+
+__all__ = ['surface', 'add_adsorbate', 'add_vacuum',
+           'bcc100', 'bcc110', 'bcc111',
+           'diamond100', 'diamond111',
+           'fcc100', 'fcc110', 'fcc111', 'fcc211',
+           'hcp0001', 'hcp10m10']
 
 
 def fcc100(symbol, size, a=None, vacuum=None):
@@ -403,7 +410,7 @@ def fcc211(symbol, size, a=None, vacuum=None, orthogonal=True):
     atoms.center(vacuum=vacuum, axis=2)
     # Renumber systematically from top down.
     orders = [(atom.index, round(atom.x, 3), round(atom.y, 3),
-                -round(atom.z, 3), atom.index) for atom in atoms]
+               -round(atom.z, 3), atom.index) for atom in atoms]
     orders.sort(key=itemgetter(3, 1, 2))
     newatoms = atoms.copy()
     for index, order in enumerate(orders):
