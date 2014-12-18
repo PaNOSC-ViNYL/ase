@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# creates:  surface.png
-import os
+# creates: surface.png
 from ase.io import read, write
 execfile('N2Cu.py')
 image = read('N2Cu.traj@-1')
