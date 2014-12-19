@@ -189,7 +189,9 @@ class timer:
     """Decorator for timing a method call.
     
     Example::
-        
+
+        from ase.utils.timing import timer, Timer
+
         class A:
             def __init__(self):
                 self.timer = Timer()
