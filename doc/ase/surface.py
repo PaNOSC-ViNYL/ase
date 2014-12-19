@@ -2,10 +2,7 @@
 
 from ase import Atoms
 from ase.io import write
-from ase.lattice.surface import (fcc100, fcc110, bcc100, fcc111,
-                                 bcc110, bcc111, hcp0001, hcp10m10,
-                                 diamond100, diamond111, add_adsorbate,
-                                 fcc211)
+import ase.lattice.surface as surface
 
 
 surfaces = ['fcc100', 'fcc110', 'bcc100', 'hcp10m10', 'diamond100',
@@ -23,7 +20,7 @@ def save(name, slab):
           scale=10)
 
 for name in surfaces:
-    f = eval(name)
+    f = eval('surface.' + name)
     for kwargs in [{}, {'orthogonal': False}, {'orthogonal': True}]:
         print(name, kwargs)
         try:
@@ -36,7 +33,7 @@ for name in surfaces:
                     h = 1.5
                 else:
                     h = 1.2
-                add_adsorbate(slab, adsorbates.get(site, 'F'), h, site)
+                surface.add_adsorbate(slab, adsorbates.get(site, 'F'), h, site)
         except KeyError:
             pass
         if kwargs.get('orthogonal', None):
