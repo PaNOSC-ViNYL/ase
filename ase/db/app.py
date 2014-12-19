@@ -58,7 +58,7 @@ def index():
     elif 'query' in request.args:
         query = request.args['query'].encode()
         try:
-            limit = min(int(request.args.get('limit', limit)), 200)
+            limit = max(1, min(int(request.args.get('limit', limit)), 200))
         except ValueError:
             pass
         sort = 'id'
