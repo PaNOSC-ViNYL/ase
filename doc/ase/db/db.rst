@@ -84,11 +84,17 @@ Here are some example query strings:
 .. list-table::
     :widths: 25 75
     
+    * - Cu
+      - contains copper
+    * - H<3
+      - less than 3 hydrogen atoms
+    * - Cu,H<3
+      - contains copper and has less than 3 hydrogen atoms
     * - v3
       - has 'v3' key
-    * - abc=H
-      - has key 'abc' with value 'H'
-    * - v3,abc=H
+    * - abc=bla-bla
+      - has key 'abc' with value 'bla-bla'
+    * - v3,abc=bla-bla
       - both of the above
     * - calculator=nwchem
       - calculations done with NWChem
@@ -96,8 +102,6 @@ Here are some example query strings:
       - 'bandgap' key has value between 2.2 and 3.0
     * - natoms>=10
       - 10 or more atoms
-    * - H<3
-      - less than 3 hydrogen atoms
     * - formula=H2O
       - Exactly two hydrogens and one oxygen
     * - id=2345
