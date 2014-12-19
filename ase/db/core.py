@@ -184,7 +184,7 @@ class Database:
     """Base class for all databases."""
     def __init__(self, filename=None, create_indices=True,
                  use_lock_file=False):
-        if filename is not None:
+        if isinstance(filename, str):
             filename = os.path.expanduser(filename)
         self.filename = filename
         self.create_indices = create_indices
