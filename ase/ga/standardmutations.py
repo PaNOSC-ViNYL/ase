@@ -64,7 +64,7 @@ class RattleMutation(OffspringCreator):
                 tc = atoms_too_close_two_sets(top, slab, self.blmin)
             count += 1
         if count == 1000:
-            return None, 'rattle'
+            return None
         tot = slab + top
         return tot
 
