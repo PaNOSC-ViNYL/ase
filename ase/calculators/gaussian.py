@@ -97,6 +97,7 @@ route_keys = [
               'symmetry',
               'td',
               'units',
+              'population',
               # Float keys
               'pressure',
               'scale',
