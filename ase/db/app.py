@@ -71,7 +71,7 @@ def index():
     if 'toggle' in request.args:
         tcolumns = request.args['toggle'].split(',')
         if tcolumns == ['reset']:
-            columns = all_columns
+            columns = list(all_columns)
         else:
             for column in tcolumns:
                 if column in columns:
