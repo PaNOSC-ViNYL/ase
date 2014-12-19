@@ -90,8 +90,8 @@ def index():
     con = Connection(query, nrows, page, columns, sort, limit, opened)
     connections[con_id] = con
     table.format(SUBSCRIPT)
-    addcolumns = table.keys + [column for column in all_columns
-                               if column not in table.columns]
+    addcolumns = [column for column in all_columns + table.keys
+                  if column not in table.columns]
 
     return render_template('table.html', t=table, con=con, cid=con_id,
                            home=home, pages=pages(page, nrows, limit),
