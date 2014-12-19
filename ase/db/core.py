@@ -10,7 +10,7 @@ from ase.atoms import Atoms, symbols2numbers
 from ase.calculators.calculator import get_calculator, all_properties, \
     all_changes
 from ase.calculators.singlepoint import SinglePointCalculator
-from ase.data import atomic_numbers
+from ase.data import atomic_numbers, chemical_symbols
 from ase.parallel import world, broadcast, DummyMPI
 from ase.utils import hill, Lock
 
@@ -125,6 +125,9 @@ class FancyDict(dict):
     
     def __dir__(self):
         return self.keys()  # for tab-completion
+        
+    symbols = property(lambda self: [chemical_symbols[Z]
+                                     for Z in self.numbers])
         
 
 def lock(method):
