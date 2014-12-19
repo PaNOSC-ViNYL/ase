@@ -6,6 +6,23 @@ import pickle
 
 import numpy as np
 
+from ase.utils import devnull
+
+
+def get_txt(txt, rank):
+    if hasattr(txt, 'write'):
+        # Note: User-supplied object might write to files from many ranks.
+        return txt
+    elif rank == 0:
+        if txt is None:
+            return devnull
+        elif txt == '-':
+            return sys.stdout
+        else:
+            return open(txt, 'w', 1)
+    else:
+        return devnull
+
 
 def paropen(name, mode='r', buffering=0):
     """MPI-safe version of open function.

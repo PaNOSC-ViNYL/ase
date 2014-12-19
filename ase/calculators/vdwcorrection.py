@@ -4,7 +4,7 @@ import numpy as np
 from ase.units import Bohr, Hartree
 from ase.utils import prnt
 from ase.calculators.calculator import Calculator
-
+from ase.parallel import rank, get_txt
 
 # dipole polarizabilities and C6 values from 
 # X. Chu and A. Dalgarno, J. Chem. Phys. 121 (2004) 4083
@@ -101,6 +101,7 @@ class vdWTkatchenko09prl(Calculator):
                  hirshfeld=None, vdwradii=None, calculator=None,
                  Rmax = 10, # maximal radius for periodic calculations
                  vdWDB_alphaC6 = vdWDB_alphaC6,
+                 txt='-',
                  ):
         """Constructor
 
@@ -114,7 +115,10 @@ class vdWTkatchenko09prl(Calculator):
             self.calculator = self.hirshfeld.get_calculator()
         else:
             self.calculator = calculator
-        self.txt = self.calculator.txt
+        if txt is None:
+            self.txt = self.calculator.txt
+        else:
+            self.txt = get_txt(txt, rank)
         self.vdwradii = vdwradii
         self.vdWDB_alphaC6 = vdWDB_alphaC6
         self.Rmax = Rmax
