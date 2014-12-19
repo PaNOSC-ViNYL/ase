@@ -57,7 +57,10 @@ def index():
         page = 0
     elif 'query' in request.args:
         query = request.args['query'].encode()
-        limit = min(int(request.args.get('limit', limit)), 200)
+        try:
+            limit = min(int(request.args.get('limit', limit)), 200)
+        except ValueError:
+            pass
         sort = 'id'
         opened = set()
         page = 0
