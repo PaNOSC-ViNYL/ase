@@ -15,11 +15,11 @@ Download:
 <a href="/sqlite/{{ d.id }}">db</a>,
 <a href="/json/{{ d.id }}">json</a>
 <table>
-{% for name, value in s.table %}
+<tr><th>name</th><th>unit</th><th>value</th></tr>
+{% for name, unit, value in s.table %}
     <tr class={{ loop.cycle('even', 'odd') }}>
-        <td>
-        {{ name }}
-        </td>
+        <td> {{ name }} </td>
+        <td> {{ unit }} </td>
         <td>{{ value|safe }}</td>
     </tr>
 {% endfor %}
