@@ -184,7 +184,9 @@ class Database:
     """Base class for all databases."""
     def __init__(self, filename=None, create_indices=True,
                  use_lock_file=False):
-        self.filename = os.path.expanduser(filename)
+        if filename is not None:
+            filename = os.path.expanduser(filename)
+        self.filename = filename
         self.create_indices = create_indices
         if use_lock_file and isinstance(filename, str):
             self.lock = Lock(filename + '.lock', world=DummyMPI())
