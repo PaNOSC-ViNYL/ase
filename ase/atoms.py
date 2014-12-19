@@ -1347,6 +1347,7 @@ class Atoms(object):
         """Return distance between two atoms.
 
         Use mic=True to use the Minimum Image Convention.
+        vector=True gives the distance vector (from a0 to a1).
         """
 
         R = self.arrays['positions']
@@ -1358,10 +1359,11 @@ class Atoms(object):
             return D
         return np.linalg.norm(D)
 
-    def get_distances(self, a, indices, mic=False):
+    def get_distances(self, a, indices, mic=False, vector=False):
         """Return distances of atom No.i with a list of atoms
 
         Use mic=True to use the Minimum Image Convention.
+        vector=True gives the distance vector (from a to self[indices]).
         """
 
         R = self.arrays['positions']
@@ -1369,6 +1371,8 @@ class Atoms(object):
         if mic:
             Dr = np.linalg.solve(self._cell, D.T)
             D = np.dot(self._cell, Dr - (self._pbc * np.round(Dr).T).T).T
+        if vector:
+            return D
         return np.sqrt((D**2).sum(1))
 
     def get_all_distances(self, mic=False):
