@@ -151,7 +151,7 @@ class Atom(object):
         return value
 
     def set(self, name, value):
-        """Set attribute."""
+        """Set name attribute to value."""
         if name == 'symbol':
             name = 'number'
             value = atomic_numbers[value]
