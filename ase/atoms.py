@@ -1255,11 +1255,10 @@ class Atoms(object):
                 j += 1
 
     def set_dihedral(self, list, angle, mask=None):
-        """
-        set the dihedral angle between vectors list[0]->list[1] and
+        """Set the dihedral angle between vectors list[0]->list[1] and
         list[2]->list[3] by changing the atom indexed by list[3]
         if mask is not None, all the atoms described in mask
-        (read: the entire subgroup) are moved
+        (read: the entire subgroup) are moved.
 
         example: the following defines a very crude
         ethane-like molecule and twists one half of it by 30 degrees.
