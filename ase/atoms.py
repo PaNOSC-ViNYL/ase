@@ -306,6 +306,7 @@ class Atoms(object):
         self._cell = cell
 
     def set_celldisp(self, celldisp):
+        """Set the unit cell displacement vectors."""
         celldisp = np.array(celldisp, float)
         self._celldisp = celldisp
 
