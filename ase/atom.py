@@ -127,7 +127,7 @@ class Atom(object):
         self.atoms = None
         
     def get_raw(self, name):
-        """Get attribute, return None if not explicitely set."""
+        """Get name attribute, return None if not explicitely set."""
         if name == 'symbol':
             return chemical_symbols[self.get_raw('number')]
 
