@@ -44,6 +44,7 @@ def abcproperty(index):
 
     return property(getter, setter, doc='ABC'[index] + '-coordinate')
 
+
 def xyzproperty(index):
     """Helper function to easily create Atom XYZ-property."""
 
