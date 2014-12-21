@@ -1456,6 +1456,11 @@ class Atoms(object):
             return NotImplemented
 
     def __ne__(self, other):
+        """Check if two atoms objects are not equal.
+
+        Any differences in positions, atomic numbers, unit cell or
+        periodic boundary condtions make atoms objects not equal.
+        """
         eq = self.__eq__(other)
         if eq is NotImplemented:
             return eq
