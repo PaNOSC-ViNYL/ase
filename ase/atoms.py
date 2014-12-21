@@ -1510,7 +1510,11 @@ class Atoms(object):
                    'of the periodic boundary condition flags.')
 
     def write(self, filename, format=None, **kwargs):
-        """Write yourself to a file."""
+        """Write atoms object to a file.
+
+        see ase.io.write for formats.
+        **kwargs are passed to ase.io.write.
+        """
         from ase.io import write
         write(filename, self, format, **kwargs)
 
