@@ -1360,7 +1360,7 @@ class Atoms(object):
         return np.linalg.norm(D)
 
     def get_distances(self, a, indices, mic=False, vector=False):
-        """Return distances of atom No.i with a list of atoms
+        """Return distances of atom No.i with a list of atoms.
 
         Use mic=True to use the Minimum Image Convention.
         vector=True gives the distance vector (from a to self[indices]).
