@@ -310,7 +310,7 @@ class Atoms(object):
         self._celldisp = celldisp
 
     def get_celldisp(self):
-        """Get the unit cell displacement vectors ."""
+        """Get the unit cell displacement vectors."""
         return self._celldisp.copy()
 
     def get_cell(self):
