@@ -1435,7 +1435,7 @@ class Atoms(object):
         self.arrays['positions'][:] = np.dot(scaled, self._cell)
 
     def get_temperature(self):
-        """Get the temperature. in Kelvin"""
+        """Get the temperature in Kelvin."""
         ekin = self.get_kinetic_energy() / len(self)
         return ekin / (1.5 * units.kB)
 
