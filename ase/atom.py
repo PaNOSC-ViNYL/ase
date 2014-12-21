@@ -179,7 +179,7 @@ class Atom(object):
                 self.atoms.new_array(plural, array)
 
     def delete(self, name):
-        """Delete attribute."""
+        """Delete name attribute."""
         assert self.atoms is None
         assert name not in ['number', 'symbol', 'position']
         self.data[name] = None
