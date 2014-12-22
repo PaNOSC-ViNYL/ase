@@ -110,7 +110,7 @@ class Gaussian(FileIOCalculator):
     """
     name = 'Gaussian'
 
-    implemented_properties = ['energy', 'forces', 'charges', 'dipole']
+    implemented_properties = ['energy', 'forces', 'dipole']
     command = 'g09 < PREFIX.com > PREFIX.log'
 
     default_parameters = {'charge': 0,
