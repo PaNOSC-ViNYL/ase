@@ -20,7 +20,8 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
 
     symbol: The chemical symbol (or atomic number) of the desired element.
 
-    surfaces: A list of surfaces.
+    surfaces: A list of surfaces. Each surface is an (h, k, l) tuple or
+    list of integers.
 
     energies: A list of surface energies for the surfaces.
 
