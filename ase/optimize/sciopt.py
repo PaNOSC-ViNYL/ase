@@ -19,7 +19,7 @@ class SciPyOptimizer(Optimizer):
     Only the call to the optimizer is still needed
     """
     def __init__(self, atoms, logfile='-', trajectory=None,
-                 callback_always=False, alpha=70.0):
+                 callback_always=False, alpha=70.0, master=None):
         """Initialize object
 
         Parameters:
@@ -36,7 +36,7 @@ class SciPyOptimizer(Optimizer):
 
         """
         restart = None
-        Optimizer.__init__(self, atoms, restart, logfile, trajectory)
+        Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
         self.force_calls = 0
         self.callback_always = callback_always
         self.H0 = alpha

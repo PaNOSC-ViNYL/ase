@@ -17,7 +17,7 @@ class LBFGS(Optimizer):
     """
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  maxstep=None, memory=100, damping=1.0, alpha=70.0,
-                 use_line_search=False):
+                 use_line_search=False, master=None):
         """
         Parameters:
 
@@ -52,7 +52,7 @@ class LBFGS(Optimizer):
             a lower value also means risk of instability.
             
         """
-        Optimizer.__init__(self, atoms, restart, logfile, trajectory)
+        Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
 
         if maxstep is not None:
             if maxstep > 1.0:

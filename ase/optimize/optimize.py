@@ -27,10 +27,11 @@ class Dynamics:
         PickleTrajectory will be constructed.  Use *None* for no
         trajectory.
     """
-    def __init__(self, atoms, logfile, trajectory):
+    def __init__(self, atoms, logfile, trajectory, master=None):
         self.atoms = atoms
-
-        if rank != 0:
+        if master is None:
+            master = rank == 0
+        if not master:
             logfile = None
         elif isinstance(logfile, str):
             if logfile == '-':
@@ -44,7 +45,8 @@ class Dynamics:
 
         if trajectory is not None:
             if isinstance(trajectory, str):
-                trajectory = PickleTrajectory(trajectory, 'w', atoms)
+                trajectory = PickleTrajectory(trajectory, mode='w', atoms=atoms,
+                                              master=master)
             self.attach(trajectory)
 
     def get_number_of_steps(self):
@@ -87,7 +89,7 @@ class Dynamics:
 
 class Optimizer(Dynamics):
     """Base-class for all structure optimization classes."""
-    def __init__(self, atoms, restart, logfile, trajectory):
+    def __init__(self, atoms, restart, logfile, trajectory, master=None):
         """Structure optimizer object.
 
         atoms: Atoms object
@@ -102,7 +104,7 @@ class Optimizer(Dynamics):
             PickleTrajectory will be constructed.  Use *None* for no
             trajectory.
         """
-        Dynamics.__init__(self, atoms, logfile, trajectory)
+        Dynamics.__init__(self, atoms, logfile, trajectory, master)
         self.restart = restart
 
         if restart is None or not isfile(restart):

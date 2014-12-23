@@ -7,7 +7,7 @@ from ase.optimize.optimize import Optimizer
 
 class BFGS(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
-                 maxstep=None):
+                 maxstep=None, master=None):
         """BFGS optimizer.
 
         Parameters:
@@ -23,7 +23,7 @@ class BFGS(Optimizer):
             iteration (default value is 0.04 Å).
         """
         
-        Optimizer.__init__(self, atoms, restart, logfile, trajectory)
+        Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
 
         if maxstep is not None:
             if maxstep > 1.0:

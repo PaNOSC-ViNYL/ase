@@ -26,8 +26,9 @@ class BasinHopping(Dynamics):
                  trajectory='lowest.traj',
                  optimizer_logfile='-',
                  local_minima_trajectory='local_minima.traj',
-                 adjust_cm=True):
-        Dynamics.__init__(self, atoms, logfile, trajectory)
+                 adjust_cm=True,
+                 master=None):
+        Dynamics.__init__(self, atoms, logfile, trajectory, master)
         self.kT = temperature
         self.optimizer = optimizer
         self.fmax = fmax

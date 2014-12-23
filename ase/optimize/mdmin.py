@@ -5,8 +5,8 @@ from ase.optimize.optimize import Optimizer
 
 class MDMin(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
-                 dt=None):
-        Optimizer.__init__(self, atoms, restart, logfile, trajectory)
+                 dt=None, master=None):
+        Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
 
         if dt is not None:
             self.dt = dt

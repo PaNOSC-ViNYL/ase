@@ -27,7 +27,8 @@ __version__ = '0.1'
 
 class BFGSLineSearch(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', maxstep=.2,
-                 trajectory=None, c1=0.23, c2=0.46, alpha=10.0, stpmax=50.0):
+                 trajectory=None, c1=0.23, c2=0.46, alpha=10.0, stpmax=50.0,
+                 master=None):
         """Optimize atomic positions in the BFGSLineSearch algorithm, which
         uses both forces and potential energy information.
 
@@ -64,7 +65,7 @@ class BFGSLineSearch(Optimizer):
         self.no_update = False
         self.replay = False
 
-        Optimizer.__init__(self, atoms, restart, logfile, trajectory)
+        Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
 
     def read(self):
         self.r0, self.g0, self.e0, self.task, self.H = self.load()

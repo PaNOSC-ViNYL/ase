@@ -99,9 +99,9 @@ class GoodOldQuasiNewton(Optimizer):
                 hessianupdate='BFGS',hessian=None,forcemin=True,
                 verbosity=None,maxradius=None,
                 diagonal=20.,radius=None,
-                transitionstate = False):
+                transitionstate = False, master=None):
             
-        Optimizer.__init__(self, atoms, restart, logfile, trajectory)
+        Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
 
         self.eps = 1e-12
         self.hessianupdate = hessianupdate
