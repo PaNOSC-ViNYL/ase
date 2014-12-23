@@ -6,6 +6,30 @@ from ase.optimize.optimize import Optimizer
 class MDMin(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  dt=None, master=None):
+        """Parameters:
+
+        atoms: Atoms object
+            The Atoms object to relax.
+
+        restart: string
+            Pickle file used to store hessian matrix. If set, file with
+            such a name will be searched and hessian matrix stored will
+            be used, if the file exists.
+
+        trajectory: string
+            Pickle file used to store trajectory of atomic movement.
+
+        maxstep: float
+            Used to set the maximum distance an atom can move per
+            iteration (default value is 0.2 Angstroms).
+
+        logfile: string
+            Text file used to write summary information.
+
+        master: boolean
+            Defaults to None, which causes only rank 0 to save files.  If
+            set to true,  this rank will save files.
+        """
         Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
 
         if dt is not None:

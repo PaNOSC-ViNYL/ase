@@ -34,17 +34,28 @@ class BFGSLineSearch(Optimizer):
 
         Parameters:
 
+        atoms: Atoms object
+            The Atoms object to relax.
+
         restart: string
             Pickle file used to store hessian matrix. If set, file with
             such a name will be searched and hessian matrix stored will
             be used, if the file exists.
+        
         trajectory: string
             Pickle file used to store trajectory of atomic movement.
+
         maxstep: float
             Used to set the maximum distance an atom can move per
             iteration (default value is 0.2 Angstroms).
-        logfile: string
-            Text file used to write summary information.
+        
+        logfile: file object or str
+            If *logfile* is a string, a file with that name will be opened.
+            Use '-' for stdout.
+
+        master: boolean
+            Defaults to None, which causes only rank 0 to save files.  If
+            set to true,  this rank will save files.
         """
         self.maxstep = maxstep
         self.stpmax = stpmax

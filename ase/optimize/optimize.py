@@ -13,21 +13,29 @@ from ase.io.trajectory import PickleTrajectory
 
 
 class Dynamics:
-    """Base-class for all MD and structure optimization classes.
-
-    Dynamics(atoms, logfile)
-
-    atoms: Atoms object
-        The Atoms object to operate on
-    logfile: file object or str
-        If *logfile* is a string, a file with that name will be opened.
-        Use '-' for stdout.
-    trajectory: Trajectory object or str
-        Attach trajectory object.  If *trajectory* is a string a
-        PickleTrajectory will be constructed.  Use *None* for no
-        trajectory.
-    """
+    """Base-class for all MD and structure optimization classes."""
     def __init__(self, atoms, logfile, trajectory, master=None):
+        """Dynamics object.
+
+        Parameters:
+
+        atoms: Atoms object
+            The Atoms object to operate on.
+
+        logfile: file object or str
+            If *logfile* is a string, a file with that name will be opened.
+            Use '-' for stdout.
+
+        trajectory: Trajectory object or str
+            Attach trajectory object.  If *trajectory* is a string a
+            PickleTrajectory will be constructed.  Use *None* for no
+            trajectory.
+
+        master: boolean
+            Defaults to None, which causes only rank 0 to save files.  If
+            set to true,  this rank will save files.
+        """
+
         self.atoms = atoms
         if master is None:
             master = rank == 0
@@ -92,17 +100,26 @@ class Optimizer(Dynamics):
     def __init__(self, atoms, restart, logfile, trajectory, master=None):
         """Structure optimizer object.
 
+        Parameters:
+
         atoms: Atoms object
             The Atoms object to relax.
+        
         restart: str
             Filename for restart file.  Default value is *None*.
+        
         logfile: file object or str
             If *logfile* is a string, a file with that name will be opened.
             Use '-' for stdout.
+        
         trajectory: Trajectory object or str
             Attach trajectory object.  If *trajectory* is a string a
             PickleTrajectory will be constructed.  Use *None* for no
             trajectory.
+
+        master: boolean
+            Defaults to None, which causes only rank 0 to save files.  If
+            set to true,  this rank will save files.
         """
         Dynamics.__init__(self, atoms, logfile, trajectory, master)
         self.restart = restart

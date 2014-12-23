@@ -26,9 +26,20 @@ class BasinHopping(Dynamics):
                  trajectory='lowest.traj',
                  optimizer_logfile='-',
                  local_minima_trajectory='local_minima.traj',
-                 adjust_cm=True,
-                 master=None):
-        Dynamics.__init__(self, atoms, logfile, trajectory, master)
+                 adjust_cm=True):
+        """Parameters:
+
+        atoms: Atoms object
+            The Atoms object to operate on.
+
+        trajectory: string
+            Pickle file used to store trajectory of atomic movement.
+
+        logfile: file object or str
+            If *logfile* is a string, a file with that name will be opened.
+            Use '-' for stdout.
+        """
+        Dynamics.__init__(self, atoms, logfile, trajectory)
         self.kT = temperature
         self.optimizer = optimizer
         self.fmax = fmax

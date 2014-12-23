@@ -7,6 +7,27 @@ class FIRE(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  dt=0.1, maxmove=0.2, dtmax=1.0, Nmin=5, finc=1.1, fdec=0.5,
                  astart=0.1, fa=0.99, a=0.1, master=None):
+        """Parameters:
+
+        atoms: Atoms object
+            The Atoms object to relax.
+
+        restart: string
+            Pickle file used to store hessian matrix. If set, file with
+            such a name will be searched and hessian matrix stored will
+            be used, if the file exists.
+
+        trajectory: string
+            Pickle file used to store trajectory of atomic movement.
+
+        logfile: file object or str
+            If *logfile* is a string, a file with that name will be opened.
+            Use '-' for stdout.
+
+        master: boolean
+            Defaults to None, which causes only rank 0 to save files.  If
+            set to true,  this rank will save files.
+        """
         Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
 
         self.dt = dt

@@ -18,16 +18,19 @@ class LBFGS(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  maxstep=None, memory=100, damping=1.0, alpha=70.0,
                  use_line_search=False, master=None):
-        """
-        Parameters:
+        """Parameters:
+
+        atoms: Atoms object
+            The Atoms object to relax.
 
         restart: string
             Pickle file used to store vectors for updating the inverse of
             Hessian matrix. If set, file with such a name will be searched
             and information stored will be used, if the file exists.
 
-        logfile: string
-            Where should output go. None for no output, '-' for stdout.
+        logfile: file object or str
+            If *logfile* is a string, a file with that name will be opened.
+            Use '-' for stdout.
 
         trajectory: string
             Pickle file used to store trajectory of atomic movement.
@@ -50,7 +53,10 @@ class LBFGS(Optimizer):
             conservative value of 70.0 is the default, but number of needed
             steps to converge might be less if a lower value is used. However,
             a lower value also means risk of instability.
-            
+
+        master: boolean
+            Defaults to None, which causes only rank 0 to save files.  If
+            set to true,  this rank will save files.
         """
         Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
 
