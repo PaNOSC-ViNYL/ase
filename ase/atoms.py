@@ -1379,7 +1379,6 @@ class Atoms(object):
         """Return distances of all of the atoms with all of the atoms.
 
         Use mic=True to use the Minimum Image Convention.
-        Use squared=True to return the squared distances.
         """
         L = len(self)
         R = self.arrays['positions']
