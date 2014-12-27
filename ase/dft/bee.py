@@ -127,10 +127,11 @@ def readbee(fname, all=False):
         fname += '.bee'
     with open(fname, 'r') as f:
         e, de, contribs, seed, xc = pickle.load(f)
+    de += e
     if all:
-        return e, de, contribs, seed, xc
+        return de, contribs, seed, xc
     else:
-        return e, de
+        return de
 
             
 def BEEF_Ensemble(*args, **kwargs):
