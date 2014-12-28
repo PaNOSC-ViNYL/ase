@@ -10,7 +10,7 @@ from ase.parallel import rank
 
 class BEEFEnsemble:
     """BEEF type ensemble error estimation"""
-    def __init__(self, atoms=None, e=None, contribs=None, xc=None):
+    def __init__(self, atoms=None, e=None, contribs=None, xc=None, verbose=True):
         if (atoms is not None or contribs is not None or xc is not None):
             if atoms is None:
                 assert e is not None
@@ -28,6 +28,7 @@ class BEEFEnsemble:
             self.e = e
             self.contribs = contribs
             self.xc = xc
+            self.verbose = verbose
             self.done = False
             if self.xc in ['BEEF-vdW', 'BEEF', 'PBE']:
                 self.beef_type = 'beefvdw'
@@ -41,7 +42,7 @@ class BEEFEnsemble:
     def get_ensemble_energies(self, size=2000, seed=0):
         """Returns an array of ensemble total energies"""
         self.seed = seed
-        if rank == 0:
+        if rank == 0 and self.verbose:
             print(self.beef_type, 'ensemble started')
 
         if self.contribs is None:
@@ -60,7 +61,7 @@ class BEEFEnsemble:
         self.de = np.dot(coefs, self.contribs)
         self.done = True
 
-        if rank == 0:
+        if rank == 0 and self.verbose:
             print(self.beef_type, 'ensemble finished')
 
         return self.e + self.de
