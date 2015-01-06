@@ -14,6 +14,7 @@ import numpy as np
 
 from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
+from ase.utils import basestring
 import ase.units as units
 
 
@@ -1601,7 +1602,7 @@ def symbols2numbers(symbols):
         symbols = string2symbols(symbols)
     numbers = []
     for s in symbols:
-        if isinstance(s, (str, unicode)):
+        if isinstance(s, basestring):
             numbers.append(atomic_numbers[s])
         else:
             numbers.append(s)

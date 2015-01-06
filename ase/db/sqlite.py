@@ -16,6 +16,7 @@ import numpy as np
 
 from ase.db.core import Database, ops, now, lock, parallel, invop
 from ase.db.jsondb import encode, decode
+from ase.utils import basestring
 
 
 VERSION = 4
@@ -235,7 +236,7 @@ class SQLite3Database(Database):
             if isinstance(value, (float, int)):
                 number_key_values.append([key, float(value), id])
             else:
-                assert isinstance(value, (str, unicode))
+                assert isinstance(value, basestring)
                 text_key_values.append([key, value, id])
  
         cur.executemany('INSERT INTO text_key_values VALUES (?, ?, ?)',
@@ -374,7 +375,7 @@ class SQLite3Database(Database):
                                   'specie{0}.n{1}?').format(nspecies, op))
                     args += [key, value]
                     nspecies += 1
-            elif isinstance(value, (str, unicode)):
+            elif isinstance(value, basestring):
                 tables.append('text_key_values AS text{0}'.format(ntext))
                 where.append(('systems.id=text{0}.id AND ' +
                               'text{0}.key=? AND ' +

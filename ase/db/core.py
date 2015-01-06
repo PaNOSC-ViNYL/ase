@@ -12,7 +12,7 @@ from ase.calculators.calculator import get_calculator, all_properties, \
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.data import atomic_numbers, chemical_symbols
 from ase.parallel import world, broadcast, DummyMPI
-from ase.utils import hill, Lock
+from ase.utils import hill, Lock, basestring
 
 
 T2000 = 946681200.0  # January 1. 2000
@@ -64,7 +64,7 @@ def check(key_value_pairs):
     for key, value in key_value_pairs.items():
         if not word.match(key) or key in reserved_keys:
             raise ValueError('Bad key: {0}'.format(key))
-        if not isinstance(value, (int, float, str, unicode)):
+        if not isinstance(value, (int, float, basestring)):
             raise ValueError('Bad value: {0}'.format(value))
 
             
@@ -388,7 +388,7 @@ class Database:
             elif key in atomic_numbers:
                 key = atomic_numbers[key]
                 value = int(value)
-            elif isinstance(value, (str, unicode)):
+            elif isinstance(value, basestring):
                 try:
                     value = float(value)
                 except ValueError:

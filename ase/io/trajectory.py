@@ -14,7 +14,7 @@ except NameError:
 from ase.calculators.singlepoint import SinglePointCalculator, all_properties
 from ase.atoms import Atoms
 from ase.parallel import rank, barrier
-from ase.utils import devnull
+from ase.utils import devnull, basestring
 
 
 class PickleTrajectory:
@@ -87,12 +87,12 @@ class PickleTrajectory:
         """
         self.fd = filename
         if mode == 'r':
-            if isinstance(filename, (str, unicode)):
+            if isinstance(filename, basestring):
                 self.fd = open(filename, 'rb')
             self.read_header()
         elif mode == 'a':
             exists = True
-            if isinstance(filename, (str, unicode)):
+            if isinstance(filename, basestring):
                 exists = os.path.isfile(filename)
                 if exists:
                     exists = os.path.getsize(filename) > 0
@@ -107,7 +107,7 @@ class PickleTrajectory:
                     self.fd = devnull
         elif mode == 'w':
             if self.master:
-                if isinstance(filename, (str, unicode)):
+                if isinstance(filename, basestring):
                     if self.backup and os.path.isfile(filename):
                         try:
                             os.rename(filename, filename + '.bak')
