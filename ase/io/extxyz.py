@@ -469,7 +469,7 @@ def write_xyz(fileobj, images, columns=None, write_info=True):
             elif column == 'symbols':
                 arrays[column] = np.array(symbols)
             else:
-                raise ValueError('Missing array %s')
+                raise ValueError('Missing array %s' % column)
 
         comm, ncols, dtype, fmt = output_column_format(atoms, columns, arrays,
                                                        write_info)
