@@ -8,6 +8,17 @@ import numpy as np
 from ase.data import chemical_symbols
 
 
+# Python 2+3 compatibility stuff:
+if sys.version_info[0] == 3:
+    import builtins
+    exec_ = getattr(builtins, 'exec')
+    basestring = str
+else:
+    def exec_(code, globals):
+        exec('exec code in globals')
+    basestring = basestring
+    
+
 class DevNull:
     def write(self, string):
         pass
@@ -173,7 +184,7 @@ def givens(a, b):
       [    ] . [ ] = [ ]
       [-s c]   [b]   [0]
     """
-    sgn = lambda x: cmp(x, 0)
+    sgn = np.sign
     if b == 0:
         c = sgn(a)
         s = 0
@@ -248,12 +259,12 @@ def hsv(array, s=.9, v=.9):
         rgb[:] = hsv2rgb(h, s, v)
     return np.reshape(result, array.shape + (3,))
 
-## This code does the same, but requires pylab
-## def cmap(array, name='hsv'):
-##     import pylab
-##     a = (array + array.min()) / array.ptp()
-##     rgba = getattr(pylab.cm, name)(a)
-##     return rgba[:-1] # return rgb only (not alpha)
+# This code does the same, but requires pylab
+# def cmap(array, name='hsv'):
+#     import pylab
+#     a = (array + array.min()) / array.ptp()
+#     rgba = getattr(pylab.cm, name)(a)
+#     return rgba[:-1] # return rgb only (not alpha)
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
