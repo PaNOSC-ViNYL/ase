@@ -151,6 +151,22 @@ Also the :program:`ase-gui` program can read from databases using the
 same syntax.
         
 
+.. _ase-db-web:
+
+Browse database with your web-browser
+=====================================
+
+You can use your web-browser to look at and query databases like this::
+    
+    $ ase-db abc.db -w
+    $ firefox http://0.0.0.0:5000/
+    
+Click individual rows to see details.  See the CMR_ web-page for an example of
+how this works.
+
+.. _CMR: https://cmrdb.fysik.dtu.dk/
+
+
 Python Interface
 ================
 
