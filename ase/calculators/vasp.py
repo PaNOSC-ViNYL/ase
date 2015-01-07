@@ -121,7 +121,7 @@ exp_keys = [
 string_keys = [
     'algo',       # algorithm: Normal (Davidson) | Fast | Very_Fast (RMM-DIIS)
     'gga',        # xc-type: PW PB LM or 91
-    'metagga'     #
+    'metagga',    #
     'prec',       # Precission of calculation (Low, Normal, Accurate)
     'system',     # name of System
     'tebeg',      #
@@ -337,7 +337,7 @@ class Vasp(Calculator):
         for key in dict_keys:
             self.dict_params[key] = None
 
-        self.string_params['prec'] = 'Normal'
+        # self.string_params['prec'] = 'Normal'
 
         if kwargs.get('xc', None):
             if kwargs['xc'] not in ['PW91', 'LDA', 'PBE']:
