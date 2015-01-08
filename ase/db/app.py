@@ -1,29 +1,62 @@
+"""WSGI Flask-app for browsing a database.
+
+You can launch Flask's local webserver like this::
+    
+    $ ase-db abc.db -w
+    
+For a real webserver, you need to set the $ASE_DB_APP_CONFIG environment
+variable to point to a configuration file like this::
+    
+    ASE_DB_NAME = '/path/to/db-file/abc.db'
+    ASE_DB_HOMEPAGE = '<a href="https://home.page.dk">HOME</a> ::'
+    
+Start with something like::
+    
+    twistd web --wsgi=ase.db.app.app --port=8000
+    
+"""
+
+import collections
+import functools
 import os
 import re
-import sys
-import collections
-import os.path
 import tempfile
-import functools
 
 import ase.db
-from ase.db.table import Table, all_columns
-from ase.visualize import view
 from ase.io.png import write_png
 from ase.db.summary import Summary
+from ase.db.table import Table, all_columns
+from ase.visualize import view
 
 from flask import Flask, render_template, request, send_from_directory
 
-Connection = collections.namedtuple('Connection',
-                                    ['query', 'nrows', 'page',
-                                     'columns', 'sort', 'limit', 'opened'])
+# every client-connetions gets one of these tuples:
+Connection = collections.namedtuple(
+    'Connection',
+    ['query',  # query string
+     'nrows',  # number of rows matched
+     'page',  # page number
+     'columns',  # what columns to show
+     'sort',  # what column to sort after
+     'limit',  # number of rows per page
+     'opened'  # list of id's in the table that are open
+     ])
+
 app = Flask(__name__)
+
 db = None
 home = ''
-connections = {}
-tmpdir = tempfile.mkdtemp()
-next_con_id = 1
 open_ase_gui = True
+
+if 'ASE_DB_APP_CONFIG' in os.environ:
+    app.config.from_envvar('ASE_DB_APP_CONFIG')
+    db = ase.db.connect(app.config['ASE_DB_NAME'])
+    home = app.config['ASE_DB_HOMEPAGE']
+    open_ase_gui = False
+
+next_con_id = 1
+connections = {}
+tmpdir = tempfile.mkdtemp()  # used to cache png-files
 
 # Find numbers in formulas so that we can convert H2O to H<sub>2</sub>O:
 SUBSCRIPT = re.compile(r'(\d+)')
@@ -234,10 +267,3 @@ def pages(page, nrows, limit):
         nxt = -1
     pages.append((nxt, 'next'))
     return pages
-
-    
-if __name__ == '__main__':
-    globals()['db'] = ase.db.connect(sys.argv[1])
-    globals()['home'] = sys.argv[2]
-    globals()['open_ase_gui'] = False
-    app.run(host='0.0.0.0', port=5000, debug=False)
