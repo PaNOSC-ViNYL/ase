@@ -24,12 +24,17 @@ Download:
 <a href="/sqlite?x={{ cid }}">db</a>,
 <a href="/json?x={{ cid }}">json</a>
 <br>
-Add column:
+<form action="/">
+Add
+<input type=hidden name=x value={{ cid }}>
+<select name=toggle onchange="this.form.submit()">
+<option value="">column</option>
 {% for key in addcolumns -%}
-<a href="/?x={{ cid }}&amp;toggle={{ key }}">{{ key }}</a>{% if not loop.last %},{% endif %}
-{% endfor %} (<a href="/?x={{ cid }}&amp;toggle=reset">Reset</a>)
-
-<br>
+<option value={{ key }}>{{ key }}</option>
+{% endfor %}
+</select>
+<a href="/?x={{ cid }}&amp;toggle=reset">Reset</a>
+</form>
 {% for page, name in pages %}
 {% if page < 0 %}
 {{ name }}
