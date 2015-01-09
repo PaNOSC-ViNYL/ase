@@ -19,6 +19,16 @@ def read_gpaw_text(fileobj, index=-1):
         notfound.append(string)
         raise ValueError
 
+    def read_forces(lines, ii):
+        f = []
+        for i in range(ii + 1, ii + 1 + len(atoms)):
+            try:
+                x, y, z = lines[i].split()[-3:]
+                f.append((float(x), float(y), float(z)))
+            except (ValueError, IndexError), m:
+                raise IOError('Malformed GPAW log file: %s' % m)
+        return f, i
+
     lines = fileobj.readlines()
     images = []
     while True:
@@ -160,13 +170,17 @@ def read_gpaw_text(fileobj, index=-1):
         except ValueError:
             f = None
         else:
-            f = []
-            for i in range(ii + 1, ii + 1 + len(atoms)):
-                try:
-                    x, y, z = lines[i].split()[-3:]
-                    f.append((float(x), float(y), float(z)))
-                except (ValueError, IndexError), m:
-                    raise IOError('Malformed GPAW log file: %s' % m)
+            f, i = read_forces(lines, ii)
+
+        try:
+            ii = index_startswith(lines, 'vdW correction:')
+        except ValueError:
+            f = None
+        else:
+            line = lines[ii + 1]
+            assert line.startswith('Energy:')
+            e = float(line.split()[-1])
+            f, i = read_forces(lines, ii + 3)
 
         if len(images) > 0 and e is None:
             break
