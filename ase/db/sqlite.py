@@ -357,7 +357,7 @@ class SQLite3Database(Database):
         for key, op, value in cmps:
             if key in ['id', 'energy', 'magmom', 'ctime', 'user',
                        'calculator', 'natoms']:
-                if key == 'user' and self.version == 2:
+                if key == 'user' and self.version >= 2:
                     key = 'username'
                 where.append('systems.{0}{1}?'.format(key, op))
                 args.append(value)
@@ -397,6 +397,9 @@ class SQLite3Database(Database):
         
     def _select(self, keys, cmps, explain=False, verbosity=0,
                 limit=None, offset=0):
+        con = self._connect()
+        self._initialize(con)
+
         sql, args = self.create_select_statement(keys, cmps)
         
         if explain:
@@ -411,8 +414,6 @@ class SQLite3Database(Database):
         if verbosity == 2:
             print(sql, args)
 
-        con = self._connect()
-        self._initialize(con)
         cur = con.cursor()
         cur.execute(sql, args)
         if explain:
