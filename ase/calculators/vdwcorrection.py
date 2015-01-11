@@ -101,7 +101,7 @@ class vdWTkatchenko09prl(Calculator):
                  hirshfeld=None, vdwradii=None, calculator=None,
                  Rmax = 10, # maximal radius for periodic calculations
                  vdWDB_alphaC6 = vdWDB_alphaC6,
-                 txt='-',
+                 txt=None,
                  ):
         """Constructor
 
