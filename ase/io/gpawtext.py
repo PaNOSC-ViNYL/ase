@@ -175,7 +175,7 @@ def read_gpaw_text(fileobj, index=-1):
         try:
             ii = index_startswith(lines, 'vdW correction:')
         except ValueError:
-            f = None
+            pass
         else:
             line = lines[ii + 1]
             assert line.startswith('Energy:')
