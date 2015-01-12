@@ -1,11 +1,8 @@
 from math import pi
-import pickle
 
 import numpy as np
 
 from ase.atoms import Atoms
-from ase.parallel import world, rank, distribute_cpus
-from ase.utils import opencew
 
 
 def make_test_dft_calculation():
@@ -86,8 +83,21 @@ class TestCalculator:
 
     def get_fermi_level(self):
         return 0.0
+    
+    def get_pseudo_density(self):
+        n = 0.0
+        for w, eps, psi in zip(self.weights, self.eps[:, 0], self.psi):
+            if eps >= 0.0:
+                continue
+            n += w * (psi * psi.conj()).real
 
+        n[1:] += n[:0:-1].copy()
+        n[:, 1:] += n[:, :0:-1].copy()
+        n += n.transpose((1, 0, 2)).copy()
+        n /= 8
+        return n
 
+        
 class TestPotential:
     def get_forces(self, atoms):
         E = 0.0

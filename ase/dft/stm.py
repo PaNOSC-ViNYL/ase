@@ -4,7 +4,7 @@ import numpy as np
 
 
 class STM:
-    def __init__(self, atoms, symmetries=None):
+    def __init__(self, atoms, symmetries=None, use_density=False):
         """Scanning tunneling microscope.
 
         atoms: Atoms object or filename
@@ -17,8 +17,13 @@ class STM:
 
                  [-1  0]   [ 1  0]   [ 0  1]
                  [ 0  1]   [ 0 -1]   [ 1  0]
+                 
+        use_density: bool
+            Use the electron density instead of the LDOS.
         """
 
+        self.use_density = use_density
+        
         if isinstance(atoms, str):
             with open(atoms, 'rb') as f:
                 self.ldos, self.bias, self.cell = pickle.load(f)
@@ -37,14 +42,20 @@ class STM:
         if self.ldos is not None and bias == self.bias:
             return
 
+        self.bias = bias
+
+        calc = self.atoms.calc
+
+        if self.use_density:
+            self.ldos = calc.get_pseudo_density()
+            return
+            
         if bias < 0:
             emin = bias
             emax = 0.0
         else:
             emin = 0
             emax = bias
-
-        calc = self.atoms.calc
 
         nbands = calc.get_number_of_bands()
         weights = calc.get_k_point_weights()
@@ -79,7 +90,6 @@ class STM:
             ldos *= 0.5
             
         self.ldos = ldos
-        self.bias = bias
 
     def write(self, filename='stm.pckl'):
         """Write local density of states to pickle file."""
