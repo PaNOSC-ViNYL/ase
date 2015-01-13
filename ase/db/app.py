@@ -209,7 +209,7 @@ def download(f):
 @app.route('/xyz/<int:id>')
 @download
 def xyz(id):
-    fd = io.StringIO()
+    fd = io.BytesIO()
     from ase.io.xyz import write_xyz
     write_xyz(fd, db.get_atoms(id))
     data = fd.getvalue()
