@@ -18,19 +18,21 @@ Start with something like::
 
 import collections
 import functools
+import io
 import os
 import re
 import tempfile
 
-import ase.db
-from ase.io.png import write_png
-from ase.db.summary import Summary
-from ase.db.table import Table, all_columns
-from ase.visualize import view
-
 from flask import Flask, render_template, request, send_from_directory
 
-# every client-connetions gets one of these tuples:
+import ase.db
+from ase.db.summary import Summary
+from ase.db.table import Table, all_columns
+from ase.io.png import write_png
+from ase.visualize import view
+
+
+# Every client-connetions gets one of these tuples:
 Connection = collections.namedtuple(
     'Connection',
     ['query',  # query string
@@ -45,8 +47,8 @@ Connection = collections.namedtuple(
 app = Flask(__name__)
 
 db = None
-home = ''
-open_ase_gui = True
+home = ''  # link to homepage
+open_ase_gui = True  # click image to open ase-gui
 
 if 'ASE_DB_APP_CONFIG' in os.environ:
     app.config.from_envvar('ASE_DB_APP_CONFIG')
@@ -203,6 +205,16 @@ def download(f):
         return text, 200, headers
     return ff
     
+    
+@app.route('/xyz/<int:id>')
+@download
+def xyz(id):
+    fd = io.StringIO()
+    from ase.io.xyz import write_xyz
+    write_xyz(fd, db.get_atoms(id))
+    data = fd.getvalue()
+    return data, '{0}.xyz'.format(id)
+
     
 @app.route('/json')
 @download
