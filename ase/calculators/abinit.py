@@ -304,24 +304,27 @@ class Abinit(FileIOCalculator):
 
         # Energy [Hartree]:
         # Warning: Etotal could mean both electronic energy and free energy!
-        for line in iter(text.split('\n')):
-            if line.rfind('>>>>> internal e=') > -1:
-                etotal = float(line.split('=')[-1])*Hartree
-                for line1 in iter(text.split('\n')):
-                    if line1.rfind('>>>>>>>>> etotal=') > -1:
-                        efree = float(line1.split('=')[-1])*Hartree
-                        break
-                else:
-                    raise RuntimeError
-                break
+        etotal = None
+        efree = None
+        if 'PAW method is used'.lower() in text:  # read DC energy according to M. Torrent
+            for line in iter(text.split('\n')):
+                if line.rfind('>>>>> internal e=') > -1:
+                    etotal = float(line.split('=')[-1])*Hartree  # second occurence!
+            for line in iter(text.split('\n')):
+                if line.rfind('>>>> etotal (dc)=') > -1:
+                    efree = float(line.split('=')[-1])*Hartree
         else:
-            for line2 in iter(text.split('\n')):
-                if line2.rfind('>>>>>>>>> etotal=') > -1:
-                    etotal = float(line2.split('=')[-1])*Hartree
-                    efree = etotal
+            for line in iter(text.split('\n')):
+                if line.rfind('>>>>> internal e=') > -1:
+                    etotal = float(line.split('=')[-1])*Hartree  # first occurence!
                     break
-            else:
-                raise RuntimeError
+            for line in iter(text.split('\n')):
+                if line.rfind('>>>>>>>>> etotal=') > -1:
+                    efree = float(line.split('=')[-1])*Hartree
+        if etotal is None:
+            raise RuntimeError('Total energy not found')
+        if efree is None:
+            efree = etotal
 
         # Energy extrapolated to zero Kelvin:
         self.results['energy'] = (etotal + efree) / 2
