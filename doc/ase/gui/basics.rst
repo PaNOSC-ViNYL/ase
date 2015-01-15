@@ -11,47 +11,47 @@ Visualizing a system with ase-gui is straight-forward using a regular
 mouse. The scroll function allows to change the magnification, the
 left mouse button selects atoms, the right mouse button allows to
 rotate, and the middle button allows to translate the system on the
-screen. 
+screen.
 
 Depending on the number of selected atoms, ase-gui automatically measures
-different quantities: 
+different quantities:
 
 ================================= ======================================
-Selection			  measurement
+Selection                         measurement
 ================================= ======================================
 single atom                       xyz position and atomic symbol
 two atoms                         interatomic distance and symbols
 three atoms                       all three internal angles and
-      				  symbols 
+                                  symbols
 four atoms, selected sequentially Measures the dihedral angle,
-     	    	     		  e.g. the angle between bonds 12 and 34
-more than four atoms		  chemical composition of selection. 
+                                  e.g. the angle between bonds 12 and 34
+more than four atoms              chemical composition of selection.
 ================================= ======================================
 
-ase-gui can save the following file formats: 
+ase-gui can save the following file formats:
 
 =========== =================================
 File format Comment
 =========== =================================
-xyz 	    XYZ file
-traj	    ASE trajectory
-pdb	    PDB file
-cube	    Gaussian cube file
-py 	    Python script
-vnl	    VNL file
-png	    Portable Network Graphics
-pov	    Persistance of Vision
-eps	    Encapsulated PostScript
-in	    FHI-aims geometry input
-POSCAR	    VASP geometry input
-bundle	    ASE bundle trajectory
-cif	    Crystallographic Information File
+xyz         XYZ file
+traj        ASE trajectory
+pdb         PDB file
+cube        Gaussian cube file
+py          Python script
+vnl         VNL file
+png         Portable Network Graphics
+pov         Persistance of Vision
+eps         Encapsulated PostScript
+in          FHI-aims geometry input
+POSCAR      VASP geometry input
+bundle      ASE bundle trajectory
+cif         Crystallographic Information File
 =========== =================================
 
 Files
 -----
 
-The :program:`ase-gui` program can read all the file formats the ASE's
+The :ref:`ase-gui` program can read all the file formats the ASE's
 :func:`~ase.io.read` function can understand.
 
 ::
@@ -82,7 +82,7 @@ the :option:`-n` or :option:`--image-number` option::
 
 .. tip::
 
-  Type :program:`ase-gui -h` for a description of all command line options.
+  Type :command:`ase-gui -h` for a description of all command line options.
 
 
 Writing files
@@ -99,7 +99,7 @@ documentation.
 Interactive use
 ---------------
 
-The :program:`ase-gui` program can also be launched directly from a Python
+The :ref:`ase-gui` program can also be launched directly from a Python
 script or interactive session:
 
 >>> from ase import *
@@ -133,7 +133,7 @@ function of the distance between atom 0 and 5::
   $ ase-gui -g "d(0,5),e-E[0]" x.traj
   $ ase-gui -t -g "d(0,5),e-E[0]" x.traj > x.dat  # No GUI, write data to stdout
 
-The symbols are the same as used in the plotting data function. 
+The symbols are the same as used in the plotting data function.
 
 
 Defaults for ase-gui

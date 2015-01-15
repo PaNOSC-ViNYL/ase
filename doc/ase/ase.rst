@@ -44,6 +44,7 @@ Quick links:
 .. seealso::
 
    * :ref:`tutorials`
+   * :ref:`cli`
    * :epydoc:`Automatically generated documentation <ase>` (:term:`API`)
    * :trac:`Source code <>`
    * Presentation about ASE: :download:`ase-talk.pdf`

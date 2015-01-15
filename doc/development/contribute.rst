@@ -3,8 +3,7 @@ How to contribute
 =================
 
 Discussion of ASE development takes place on the :ref:`ase-developer
-<mailing_lists>` mailing list, and also sometimes on the #gpaw IRC
-channel on freenode.
+<mailing_lists>` mailing list and on the #ase IRC channel on freenode.
 
 We welcome new developers who would like to help work on improving
 ASE.  If you would like to contribute, your should first tell us what
@@ -44,7 +43,7 @@ trunk.  There could also be some more work to do like:
 Once everyone is happy, the patch can be applied.  This patch-feedback
 loop is not something we have invented to prevent you from
 contributing - it should be viewed as an opportunity for you to learn
-how to write code that fits into the ASE codebase.  
+how to write code that fits into the ASE codebase.
 
 After a couple of contributions, we will probably trust you enough to
 add you as a committer.
@@ -102,7 +101,7 @@ tolsen      Thomas Olsen               tolsen:fysik,dtu,dk
 Former committers:
 
 ==========  ======================  ===================================
-anro        Anthony Goodrow         anro:fysik,dtu,dk 
+anro        Anthony Goodrow         anro:fysik,dtu,dk
 carstenr    Carsten Rostgaard       carstenr:fysik,dtu,dk
 hanke       Felix Hanke             F,Hanke:liverpool,ac,uk
 s042606     Janosch Michael Rauba   s042606:fysik,dtu,dk

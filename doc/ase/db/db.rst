@@ -23,10 +23,10 @@ PostgreSQL_:
 MariaDB_ or MySQL:
     Server based database.
 
-The JSON and SQLite3 back-ends work "out of the box", whereas PostgreSQL
-requires a server.
+The JSON and SQLite3 back-ends work "out of the box", whereas PostgreSQL and
+MariaDB requires a server.
 
-There is a `command-line tool`_ called :program:`ase-db` that can be
+There is a command-line tool called :ref:`ase-db` that can be
 used to query and manipulate databases and also a `Python interface`_.
 
 .. _JSON: http://www.json.org/
@@ -57,12 +57,12 @@ Every row in the database contains:
 * creation and modification time
 
 
-.. _ase-db command:
+.. _ase-db:
     
-Command-line tool
-=================
+ase-db
+======
 
-The :program:`ase-db` command can be used to query databases and for
+The :ref:`ase-db` command-line tool can be used to query databases and for
 manipulating key-value pairs.  Try::
     
     $ ase-db --help
@@ -75,6 +75,10 @@ Show all details for a single row:
     
 .. literalinclude:: ase-db-long.out
 
+.. seealso::
+    
+    * :ref:`cli`
+    
     
 Querying
 --------
@@ -147,7 +151,7 @@ ASE's :func:`ase.io.read` function can also read directly from databases:
 >>> a = read('abc.db@id=42')  # same thing
 >>> b = read('abc.db@v3,abc=H')
 
-Also the :program:`ase-gui` program can read from databases using the
+Also the :ref:`ase-gui` program can read from databases using the
 same syntax.
         
 

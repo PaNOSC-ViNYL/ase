@@ -19,6 +19,14 @@ Development version in trunk
 
 * The :class:`ase.utils.timer.Timer` was moved from GPAW to ASE.
 
+* New :mod:`ase.db` module.
+
+* New functions: :func:`ase.lattice.surface.fcc211`,
+  :func:`ase.visualize.mlab.plot`, :func:`ase.atoms.Atoms.get_distances()`,
+  :func:`ase.atoms.Atoms.get_all_distances()`.
+
+* :ref:`bash completion` can now be enabled.
+
 
 Version 3.8.0
 =============

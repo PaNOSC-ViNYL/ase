@@ -4,14 +4,16 @@
 
 .. index:: gui, ag, ase-gui
 
+.. _ase-gui:
+
 =======
-ASE-GUI
+ase-gui
 =======
 
 The graphical user-interface allows users to visualize, manipulate,
 and render molecular systems and atoms objects. It also allows to
 setup and run a number of calculations and can be used to transfer
-between different file formats. 
+between different file formats.
 
 .. image:: ag.png
    :height: 200 pt

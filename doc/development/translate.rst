@@ -3,7 +3,7 @@
 Translate ASE
 =============
 
-You can contribute by translating the ASE GUI, :file:`ase-gui`, into your
+You can contribute by translating the ASE GUI, :ref:`ase-gui`, into your
 language.
 
 
@@ -65,12 +65,12 @@ Check and commit your translation
 * You can check the syntax by running :file:`msgfmt -cv ag.po`.  This will
   report any syntax errors.
 
-* You can test your translation in :file:`ase-gui` directly.  First issue
+* You can test your translation in :ref:`ase-gui` directly.  First issue
   the command :file:`make` in :file:`ase/gui/po`, then reinstall ASE
   using the usual procedure.  The translations will then be in the
   newly installed ASE.  If you translate into the same language as
   your computer's locale, you should see the translations when you
-  start :file:`ase-gui` normally.  If you translate ASE into another
+  start :ref:`ase-gui` normally.  If you translate ASE into another
   language, then run :file:`LANG={ll}_{LL}.UTF-8 ase-gui`.  On some
   operating systems you may need to run
   :file:`LANGUAGE={ll}_{LL}.UTF-8 ase-gui` instead.
