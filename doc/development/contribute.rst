@@ -54,56 +54,6 @@ Committers
 
 Here is the list of current committers:
 
-==========  =========================  ===================================
-user name   real name
-==========  =========================  ===================================
-anpet       Andrew Peterson            andrew_peterson:brown,edu
-askhl       Ask Hjorth Larsen          asklarsen:gmail,com
-bjork       Jonas Bjork                jonbj:ifm,liu,se
-dlandis     David Landis               dlandis:fysik,dtu,dk
-dulak       Marcin Dulak               dulak:fysik,dtu,dk
-eojons      Elvar Örn Jónsson          elvar,jonsson:fysik,dtu,dk
-ehermes     Eric Hermes                ehermes:chem,wisc,edu
-gdonval     Gaël Donval                gael,donval:cnrs-imn,fr
-getri       George Tritsaris           gtritsaris:seas,harvard,edu
-grabow      Lars Grabow                grabow:uh,edu
-hahansen    Heine Anton Hansen         hahansen:fysik,dtu,dk
-ivca        Ivano Eligio Castelli      ivca:fysik,dtu,dk
-jakobb      Jakob Blomquist            jakobb:fysik,dtu,dk
-jber        Jon Bergmann Maronsson     jber:fysik,dtu,dk
-jblomqvist  Janne Blomqvist            Janne,Blomqvist:tkk,fi
-jensj       Jens Jørgen Mortensen      jensj:fysik,dtu,dk
-jesperf     Jesper Friis               jesper,friis:sintef,no
-jesswe      Jess Wellendorff Pedersen  jesswe:fysik,dtu,dk
-jingzhe     Jingzhe Chen               jingzhe:fysik,dtu,dk
-jkitchin    John Kitchin               jkitchin:andrew,cmu,edu
-jussie      Jussi Enkovaara            jussi,enkovaara:csc,fi
-kkaa        Kristen Kaasbjerg          kkaa:fysik,dtu,dk
-kleis       Jesper Kleis               kleis:fysik,dtu,dk
-kwj         Karsten Wedel Jacobsen     kwj:fysik,dtu,dk
-lassebv     Lasse Vilhelmsen           lassebv:phys,au,dk
-markus      Markus Kaukonen            markus,kaukonen:iki,fi
-miwalter    Michael Walter             Michael,Walter:fmf,uni-freiburg,de
-moses       Poul Georg Moses           poulgeorgmoses:gmail,com
-mvanin      Marco Vanin                mvanin:fysik,dtu,dk
-pastewka    Lars Pastewka              lars,pastewka:iwm,fraunhofer,de
-s032082     Christian Glinsvad         s032082:fysik,dtu,dk
-schenkst    Stephan Schenk             stephan,schenk:basf,com
-schiotz     Jakob Schiotz              schiotz:fysik,dtu,dk
-slabanja    Mattias Slabanja           slabanja:chalmers,se
-strange     Mikkel Strange             mikkel,strange:gmail,com
-tgmaxson    Tristan Maxson             tgmaxson:gmail,com
-tjiang      Tao Jiang                  tjiang:fysik,dtu,dk
-tolsen      Thomas Olsen               tolsen:fysik,dtu,dk
-==========  =========================  ===================================
-
-
-Former committers:
-
-==========  ======================  ===================================
-anro        Anthony Goodrow         anro:fysik,dtu,dk
-carstenr    Carsten Rostgaard       carstenr:fysik,dtu,dk
-hanke       Felix Hanke             F,Hanke:liverpool,ac,uk
-s042606     Janosch Michael Rauba   s042606:fysik,dtu,dk
-s052580     Troels Kofoed Jacobsen  s052580:fysik,dtu,dk
-==========  ======================  ===================================
+.. csv-table::
+    :file: ../../AUTHORS.csv
+    :header: "real name", "user name", "email"
