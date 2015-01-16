@@ -55,5 +55,5 @@ Committers
 Here is the list of current committers:
 
 .. csv-table::
-    :file: ../../AUTHORS.csv
+    :file: committers.csv
     :header: "real name", "user name", "email"
