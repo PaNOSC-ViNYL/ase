@@ -324,7 +324,7 @@ class Abinit(FileIOCalculator):
         if efree is None:
             raise RuntimeError('Total energy not found')
         if etotal is None:
-            etotal = free
+            etotal = efree
 
         # Energy extrapolated to zero Kelvin:
         self.results['energy'] = (etotal + efree) / 2
