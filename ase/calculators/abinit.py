@@ -321,10 +321,10 @@ class Abinit(FileIOCalculator):
             for line in iter(text.split('\n')):
                 if line.rfind('>>>>>>>>> etotal=') > -1:
                     efree = float(line.split('=')[-1])*Hartree
-        if etotal is None:
-            raise RuntimeError('Total energy not found')
         if efree is None:
-            efree = etotal
+            raise RuntimeError('Total energy not found')
+        if etotal is None:
+            etotal = free
 
         # Energy extrapolated to zero Kelvin:
         self.results['energy'] = (etotal + efree) / 2
@@ -462,7 +462,7 @@ class Abinit(FileIOCalculator):
         # only in log file!
         for line in open(self.label + '.log'):  # find last one
             if line.find('tsmear') != -1:
-                width = float(line.split('=')[1].strip())
+                width = float(line.split()[1].strip())
         return width
 
     def get_number_of_electrons(self):
