@@ -194,7 +194,7 @@ def interpolate(q, heights):
      
 def find_height(ldos, current, h, z0=None):
     if z0 is None:
-        n = len(ldos) - 1
+        n = len(ldos) - 2
     else:
         n = int(z0 / h)
     while n >= 0:
