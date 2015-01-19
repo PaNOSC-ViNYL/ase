@@ -52,13 +52,13 @@ if netcdftrajectory.have_nc == netcdftrajectory.NC_IS_NETCDF4:
 else:
     assert len(t) == 5
 
+# Change atom type and append
 co[0].number = 1
-try:
-    t.write(co)
-except ValueError:
-    pass
-else:
-    assert False
+t.write(co)
+t2 = NetCDFTrajectory('1.nc', 'r')
+co2 = t2[-1]
+assert (co2.numbers == co.numbers).all()
+del t2
 
 if netcdftrajectory.have_nc == netcdftrajectory.NC_IS_NETCDF4:
     co[0].number = 6

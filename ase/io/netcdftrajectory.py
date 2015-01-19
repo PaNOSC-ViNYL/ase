@@ -274,14 +274,6 @@ class NetCDFTrajectory:
                 self.n_atoms = len(self.nc.dimensions[self._atom_dim])
             else:
                 self.n_atoms = self.nc.dimensions[self._atom_dim]
-        numbers_var = self._get_variable(self._numbers_var, exc=False)
-        if numbers_var is None:
-            self.numbers = np.ones(self.n_atoms, dtype=int)
-        else:
-            self.numbers = np.array(numbers_var[:])
-        if self.types_to_numbers is not None:
-            self.numbers = self.types_to_numbers[self.numbers]
-        self.masses = atomic_masses[self.numbers]
 
         for name, var in self.nc.variables.iteritems():
             # This can be unicode which confuses ASE
@@ -328,23 +320,17 @@ class NetCDFTrajectory:
             return
 
         if not self.has_header:
-            self._write_header(atoms)
+            self._define_file_structure(atoms)
         else:
             if len(atoms) != self.n_atoms:
                 raise ValueError('Bad number of atoms!')
-            if self.frame > 0:
-                if (atoms.numbers != self.numbers).any():
-                    raise ValueError('Bad atomic numbers!')
-            else:
-                self.numbers = atoms.get_atomic_numbers()
-                self._get_variable(self._numbers_var)[:] = \
-                    atoms.get_atomic_numbers()
 
         if frame is None:
             i = self.frame
         else:
             i = frame
 
+        self._get_variable(self._numbers_var)[i] = atoms.get_atomic_numbers()
         self._get_variable(self._positions_var)[i] = atoms.get_positions()
         if atoms.has('momenta'):
             self._add_velocities()
@@ -417,7 +403,7 @@ class NetCDFTrajectory:
 
         if not self._has_variable(self._numbers_var):
             self.nc.createVariable(self._numbers_var[0], 'i',
-                                   (self._atom_dim,))
+                                   (self._frame_dim, self._atom_dim,))
         if not self._has_variable(self._positions_var):
             self.nc.createVariable(self._positions_var, 'f4',
                                    (self._frame_dim, self._atom_dim,
@@ -469,9 +455,13 @@ class NetCDFTrajectory:
                 raise RuntimeError('None of the variables {0} was found in the '
                                    'NetCDF trajectory.'.format(
                                        reduce(lambda x, y: x + ', ' + y, name)))
-            return None
         else:
-            return self.nc.variables[name]
+            if name in self.nc.variables:
+                return self.nc.variables[name]
+            if exc:
+                raise RuntimeError('Variables {0} was found in the NetCDF '
+                                   'trajectory.'.format(name))
+        return None
 
     def _has_variable(self, name):
         if isinstance(name, list):
@@ -482,11 +472,14 @@ class NetCDFTrajectory:
         else:
             return name in self.nc.variables
 
-    def _write_header(self, atoms):
-        self._define_file_structure(atoms)
-
-        self._get_variable(self._numbers_var)[:] = \
-            np.asarray(atoms.get_atomic_numbers())
+    def _get_data(self, name, frame, exc=True):
+        var = self._get_variable(name, exc=exc)
+        if var is None:
+            return None
+        if var.dimensions[0] == self._frame_dim:
+            return var[frame, ...]
+        else:
+            return var[...]
 
     def close(self):
         """Close the trajectory file."""
@@ -526,9 +519,18 @@ class NetCDFTrajectory:
             else:
                 index = np.arange(self.n_atoms)
 
+            # Read element numbers
+            self.numbers = self._get_data(self._numbers_var, i, exc=False)
+            if self.numbers is None:
+                self.numbers = np.ones(self.n_atoms, dtype=int)
+            else:
+                self.numbers = np.array(self.numbers[index])
+            if self.types_to_numbers is not None:
+                self.numbers = self.types_to_numbers[self.numbers]
+            self.masses = atomic_masses[self.numbers]
+
             # Read positions
-            positions_var = self.nc.variables[self._positions_var]
-            positions = np.array(positions_var[i][index])
+            positions = np.array(self._get_data(self._positions_var, i)[index])
 
             # Determine cell size for non-periodic directions
             for dim in np.arange(3)[np.logical_not(pbc)]:
@@ -542,11 +544,9 @@ class NetCDFTrajectory:
             )
 
             # Compute momenta from velocities (if present)
-            if self._has_variable(self._velocities_var):
-                momenta = self.nc.variables[self._velocities_var][i][index] * \
-                    self.masses.reshape(-1, 1)
-            else:
-                momenta = None
+            momenta = self._get_data(self._velocities_var, i, exc=False)
+            if momenta is not None:
+                momenta = momenta[index] * self.masses.reshape(-1, 1)
 
             # Fill info dict with additional data found in the NetCDF file
             info = {}
