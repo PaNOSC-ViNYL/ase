@@ -179,7 +179,7 @@ def get_nndist(atoms, distance_matrix):
     function.
     """
     rmax = np.sqrt(sum([sum(c**2) for c in atoms.cell])) / 2.
-    nbins = 400
+    nbins = 200
     rdf, dists = get_rdf(atoms, rmax, nbins, distance_matrix)
     i = 0
     while np.gradient(rdf)[i] >= 0:

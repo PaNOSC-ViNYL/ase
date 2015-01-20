@@ -138,19 +138,24 @@ class RandomPermutation(Mutation):
 
         indi = self.initialize_individual(f)
         indi.info['data']['parents'] = [f.info['confid']]
-        
+
         for _ in xrange(self.num_muts):
-            i1 = random.randrange(len(f))
-            i2 = random.randrange(len(f))
-            while f[i1].symbol == f[i2].symbol:
-                i2 = random.randrange(len(f))
-            self.interchange2(f, i1, i2)
-            
+            RandomPermutation.mutate(f)
+
         for atom in f:
             indi.append(atom)
-            
+
         return (self.finalize_individual(indi),
                 self.descriptor + ': {0}'.format(f.info['confid']))
+
+    @classmethod
+    def mutate(cls, atoms):
+        """Do the actual permutation."""
+        i1 = random.randrange(len(atoms))
+        i2 = random.randrange(len(atoms))
+        while atoms[i1].symbol == atoms[i2].symbol:
+            i2 = random.randrange(len(atoms))
+        Mutation.interchange2(atoms, i1, i2)
 
 
 class COM2surfPermutation(Mutation):
@@ -177,10 +182,10 @@ class COM2surfPermutation(Mutation):
         self.descriptor = 'COM2surfPermutation'
         self.min_ratio = min_ratio
         self.elements = elements
-        
+
     def get_new_individual(self, parents):
         f = parents[0].copy()
-    
+
         diffatoms = len(set(f.numbers))
         assert diffatoms > 1, 'Permutations with one atomic type is not valid'
 
@@ -189,64 +194,83 @@ class COM2surfPermutation(Mutation):
 
         for _ in xrange(self.num_muts):
             elems = self.elements
-            atomic_conf = self.get_atomic_configuration(f, elements=elems)
-            core = self.get_core_indices(f, atomic_conf, self.min_ratio)
-            shell = self.get_shell_indices(f, atomic_conf, self.min_ratio)
-            permuts = self.get_list_of_possible_permutations(f, core, shell)
-            swap = random.choice(permuts)
-            self.interchange2(f, *swap)
+            COM2surfPermutation.mutate(f, elems, self.min_ratio)
 
         for atom in f:
             indi.append(atom)
-            
+
         return (self.finalize_individual(indi),
                 self.descriptor + ': {0}'.format(f.info['confid']))
-        
-    def get_core_indices(self, atoms, atomic_conf, min_ratio, recurs=0):
+
+    @classmethod
+    def mutate(cls, atoms, elements, min_ratio):
+        """Performs the COM2surf permutation."""
+        atomic_conf = Mutation.get_atomic_configuration(atoms,
+                                                        elements=elements)
+        core = COM2surfPermutation.get_core_indices(atoms,
+                                                    atomic_conf,
+                                                    min_ratio)
+        shell = COM2surfPermutation.get_shell_indices(atoms,
+                                                      atomic_conf,
+                                                      min_ratio)
+        permuts = Mutation.get_list_of_possible_permutations(atoms,
+                                                             core,
+                                                             shell)
+        swap = random.choice(permuts)
+        Mutation.interchange2(atoms, *swap)
+
+    @classmethod
+    def get_core_indices(cls, atoms, atomic_conf, min_ratio, recurs=0):
         """Recursive function that returns the indices in the core subject to
         the min_ratio constraint. The indices are found from the supplied
         atomic configuration."""
         elements = list(set([atoms[i].symbol
                              for subl in atomic_conf for i in subl]))
-        
+
         core = [i for subl in atomic_conf[:1 + recurs] for i in subl]
         while len(core) < 1:
             recurs += 1
             core = [i for subl in atomic_conf[:1 + recurs] for i in subl]
-            
+
         for elem in elements:
             ratio = len([i for i in core
                          if atoms[i].symbol == elem]) / float(len(core))
             if ratio < min_ratio:
-                return self.get_core_indices(atoms, atomic_conf,
-                                             min_ratio, recurs + 1)
+                return COM2surfPermutation.get_core_indices(atoms,
+                                                            atomic_conf,
+                                                            min_ratio,
+                                                            recurs + 1)
         return core
-                
-    def get_shell_indices(self, atoms, atomic_conf, min_ratio, recurs=0):
+
+    @classmethod
+    def get_shell_indices(cls, atoms, atomic_conf, min_ratio, recurs=0):
         """Recursive function that returns the indices in the surface
         subject to the min_ratio constraint. The indices are found from
         the supplied atomic configuration."""
         elements = list(set([atoms[i].symbol
                              for subl in atomic_conf for i in subl]))
-        
+
         shell = [i for subl in atomic_conf[-1 - recurs:] for i in subl]
         while len(shell) < 1:
             recurs += 1
             shell = [i for subl in atomic_conf[-1 - recurs:] for i in subl]
-            
+
         for elem in elements:
             ratio = len([i for i in shell
                          if atoms[i].symbol == elem]) / float(len(shell))
             if ratio < min_ratio:
-                return self.get_shell_indices(atoms, atomic_conf,
-                                              min_ratio, recurs + 1)
+                return COM2surfPermutation.get_shell_indices(atoms,
+                                                             atomic_conf,
+                                                             min_ratio,
+                                                             recurs + 1)
         return shell
 
 
 class _NeighborhoodPermutation(Mutation):
     """Helper class that holds common functions to all permutations
     that look at the neighborhoods of each atoms."""
-    def get_possible_poor2rich_permutations(self, atoms, inverse=False,
+    @classmethod
+    def get_possible_poor2rich_permutations(cls, atoms, inverse=False,
                                             recurs=0, distance_matrix=None):
         dm = distance_matrix
         if dm is None:
@@ -271,19 +295,21 @@ class _NeighborhoodPermutation(Mutation):
                         if abs(j[1] - sorted_same[0][1]) <= recurs]
         rich_indices = [j[0] for j in sorted_same
                         if abs(j[1] - sorted_same[-1][1]) <= recurs]
-        permuts = self.get_list_of_possible_permutations(atoms, poor_indices,
-                                                         rich_indices)
-        
+        permuts = Mutation.get_list_of_possible_permutations(atoms,
+                                                             poor_indices,
+                                                             rich_indices)
+
         if len(permuts) == 0:
-            return self.get_possible_poor2rich_permutations(atoms, inverse,
-                                                            recurs + 1, dm)
+            _NP = _NeighborhoodPermutation
+            return _NP.get_possible_poor2rich_permutations(atoms, inverse,
+                                                           recurs + 1, dm)
         return permuts
-            
-        
+
+
 class Poor2richPermutation(_NeighborhoodPermutation):
     """The poor to rich (Poor2rich) permutation operator described in
     S. Lysgaard et al., Top. Catal., 2014, 57 (1-4), pp 33-39
-    
+
     Permutes two atoms from regions short of the same elements, to
     regions rich in the same elements.
     (Inverse of Rich2poorPermutation)
@@ -307,20 +333,25 @@ class Poor2richPermutation(_NeighborhoodPermutation):
         indi.info['data']['parents'] = [f.info['confid']]
         
         for _ in xrange(self.num_muts):
-            atoms = f.copy()
-            del atoms[[atom.index for atom in atoms
-                       if atom.symbol not in self.elements]]
-            permuts = self.get_possible_poor2rich_permutations(atoms)
-            swap = random.choice(permuts)
-            self.interchange2(f, *swap)
-            
+            Poor2richPermutation.mutate(atoms, self.elements)
+
         for atom in f:
             indi.append(atom)
-            
+
         return (self.finalize_individual(indi),
                 self.descriptor + ': {0}'.format(f.info['confid']))
 
-        
+    @classmethod
+    def mutate(cls, atoms, elements):
+        _NP = _NeighborhoodPermutation
+        ac = atoms.copy()
+        del atoms[[atom.index for atom in ac
+                   if atom.symbol not in elements]]
+        permuts = _NP.get_possible_poor2rich_permutations(ac)
+        swap = random.choice(permuts)
+        Mutation.interchange2(atoms, *swap)
+
+
 class Rich2poorPermutation(_NeighborhoodPermutation):
     """
     The rich to poor (Rich2poor) permutation operator described in
@@ -354,19 +385,24 @@ class Rich2poorPermutation(_NeighborhoodPermutation):
         else:
             elems = self.elements
         for _ in xrange(self.num_muts):
-            atoms = f.copy()
-            del atoms[[atom.index for atom in atoms
-                       if atom.symbol not in elems]]
-            permuts = self.get_possible_poor2rich_permutations(atoms,
-                                                               inverse=True)
-            swap = random.choice(permuts)
-            self.interchange2(f, *swap)
+            Rich2poorPermutation.mutate(f, elems)
 
         for atom in f:
             indi.append(atom)
 
         return (self.finalize_individual(indi),
                 self.descriptor + ': {0}'.format(f.info['confid']))
+        
+        @classmethod
+        def mutate(cls, atoms, elements):
+            _NP = _NeighborhoodPermutation
+            ac = atoms.copy()
+            del atoms[[atom.index for atom in ac
+                       if atom.symbol not in elements]]
+            permuts = _NP.get_possible_poor2rich_permutations(ac,
+                                                              inverse=True)
+            swap = random.choice(permuts)
+            Mutation.interchange2(atoms, *swap)
 
 
 class SymmetricSubstitute(Mutation):
