@@ -333,7 +333,7 @@ class Poor2richPermutation(_NeighborhoodPermutation):
         indi.info['data']['parents'] = [f.info['confid']]
         
         for _ in xrange(self.num_muts):
-            Poor2richPermutation.mutate(atoms, self.elements)
+            Poor2richPermutation.mutate(f, self.elements)
 
         for atom in f:
             indi.append(atom)
