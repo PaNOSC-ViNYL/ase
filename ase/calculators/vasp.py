@@ -541,18 +541,14 @@ class Vasp(Calculator):
                     break
                 elif isfile(filename + '.Z') or islink(filename + '.Z'):
                     found = True
-                    self.ppp_list.append(filename+'.Z')
+                    self.ppp_list.append(filename + '.Z')
                     break
             if not found:
                 print('''Looking for %s
                 The pseudopotentials are expected to be in:
                 LDA:  $VASP_PP_PATH/potpaw/
                 PBE:  $VASP_PP_PATH/potpaw_PBE/
-<<<<<<< .working
-                PW91: $VASP_PP_PATH/potpaw_GGA/'''  % name)
-=======
-                PW91: $VASP_PP_PATH/potpaw_GGA/''' % name
->>>>>>> .merge-right.r4055
+                PW91: $VASP_PP_PATH/potpaw_GGA/''' % name)
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
         self.converged = None
         self.setups_changed = None
@@ -923,14 +919,9 @@ class Vasp(Calculator):
                 if key == 'ichain' and val > 0:
                     incar.write(' IBRION = 3\n POTIM = 0.0\n')
                     for key, val in self.int_params.items():
-<<<<<<< .working
                         if key == 'iopt' and val == None:
-                            print('WARNING: optimization is set to LFBGS (IOPT = 1)')
-=======
-                        if key == 'iopt' and val is None:
-                            print ('WARNING: optimization is '
-                                   'set to LFBGS (IOPT = 1)')
->>>>>>> .merge-right.r4055
+                            print('WARNING: optimization is '
+                                  'set to LFBGS (IOPT = 1)')
                             incar.write(' IOPT = 1\n')
                     for key, val in self.exp_params.items():
                         if key == 'ediffg' and val is None:
