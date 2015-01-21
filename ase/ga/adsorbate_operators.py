@@ -18,6 +18,15 @@ class AdsorbateOperator(OffspringCreator):
         self.adsorbate = self.convert_adsorbate(adsorbate)
         self.descriptor = 'AdsorbateOperator'
 
+    @classmethod
+    def initialize_individual(cls, parent, indi=None):
+        indi = OffspringCreator.initialize_individual(parent, indi=indi)
+        if 'unrelaxed_adsorbates' in parent.info['key_value_pairs']:
+            unrelaxed = parent.info['key_value_pairs']['unrelaxed_adsorbates']
+        else:
+            unrelaxed = []
+        indi.info['key_value_pairs']['unrelaxed_adsorbates'] = unrelaxed
+        
     def get_new_individual(self, parents):
         raise NotImplementedError
 
@@ -63,6 +72,13 @@ class AdsorbateOperator(OffspringCreator):
         ads.translate(pos - ads[0].position)
 
         atoms.extend(ads)
+        
+        # Setting the indices of the unrelaxed adsorbates for the cut-
+        # relax-paste function to be executed in the calculation script.
+        # There it should also reset the parameter to [], to indicate
+        # that the adsorbates have been relaxed.
+        ads_indices = sorted([len(atoms) - k - 1 for k in range(len(ads))])
+        atoms.info['key_value_pairs']['unrelaxed_adsorbates'] = ads_indices
 
         return True
 

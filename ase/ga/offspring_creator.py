@@ -39,10 +39,9 @@ class OffspringCreator(object):
         supplied in the parameter indi."""
         if indi is None:
             indi = Atoms(pbc=parent.get_pbc(), cell=parent.get_cell())
-        indi.info['keywords'] = []
-        ## key_value_pairs for numbers and strings
+        # key_value_pairs for numbers and strings
         indi.info['key_value_pairs'] = {}
-        ## data for lists and the like
+        # data for lists and the like
         indi.info['data'] = {}
 
         return indi
