@@ -6,7 +6,7 @@ Installation requirements
 
 The following packages are required for basic ASE functionality:
 
-1) Python2_ version 2.6 or later. Python3 not supported yet.
+1) Python2_ version 2.6 or newer. Python3 is not supported yet.
 2) NumPy_.
 
 .. _Python2: http://www.python.org
