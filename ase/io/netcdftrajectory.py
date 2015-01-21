@@ -12,10 +12,8 @@ A Python NetCDF module is required. Supported are
 
     scipy.io.netcdf - http://docs.scipy.org/doc/scipy/reference/io.html
 
-    pupynere - https://bitbucket.org/robertodealmeida/pupynere/
-
 Availability is checked in the above order of preference. Note that
-scipy.io.netcdf and pupynere cannot write HDF5 NetCDF-4 files.
+scipy.io.netcdf cannot write HDF5 NetCDF-4 files.
 
 NetCDF files can be directly visualized using the libAtoms flavor of
 AtomEye (http://www.libatoms.org/),
@@ -36,7 +34,6 @@ from ase.lattice.spacegroup.cell import cellpar_to_cell, cell_to_cellpar
 NC_NOT_FOUND = 0
 NC_IS_NETCDF4 = 1
 NC_IS_SCIPY = 2
-NC_IS_PUPYNERE = 3
 
 have_nc = NC_NOT_FOUND
 # Check if we have netCDF4-python
@@ -46,24 +43,14 @@ try:
 except:
     pass
 
-#if not have_nc:
-#    # Check for scipy
-#    try:
-#        from scipy.io.netcdf import netcdf_file
-#        have_nc = NC_IS_SCIPY
-#    except:
-#        pass
-
 if not have_nc:
-    # Check for pupynere (comes with ASE)
-    try:
-        from ase.io.pupynere import netcdf_file
-        have_nc = NC_IS_PUPYNERE
-    except:
-        pass
-
-
-### Read/write NetCDF trajectories
+    # Check for scipy
+    netcdf_file = None  # Someone should fix scipy support or remove it
+#     try:
+#         from scipy.io.netcdf import netcdf_file
+#         have_nc = NC_IS_SCIPY
+#     except:
+#         pass
 
 
 class NetCDFTrajectory:
@@ -73,7 +60,6 @@ class NetCDFTrajectory:
 
     # netCDF4-python format strings to scipy.io.netcdf version numbers
     _netCDF4_to_scipy = {'NETCDF3_CLASSIC': 1, 'NETCDF3_64BIT': 2}
-    _netCDF4_to_pupynere = ['NETCDF3_CLASSIC']
 
     # Default dimension names
     _frame_dim = 'frame'
@@ -98,8 +84,8 @@ class NetCDFTrajectory:
 
     _default_vars = reduce(lambda x, y: x + y,
                            [_numbers_var, [_positions_var], [_velocities_var],
-                           [_cell_origin_var], [_cell_lengths_var],
-                           [_cell_angles_var]])
+                            [_cell_origin_var], [_cell_lengths_var],
+                            [_cell_angles_var]])
 
     def __init__(self, filename, mode='r', atoms=None, types_to_numbers=None,
                  double=True, netcdf_format='NETCDF3_CLASSIC', keep_open=None,
@@ -170,8 +156,7 @@ class NetCDFTrajectory:
 
         self.numbers = None
         self.pre_observers = []   # Callback functions before write
-        self.post_observers = []  # Callback functions after write
-                                  # are called
+        self.post_observers = []  # Callback functions after write are called
 
         self.has_header = False
         self._set_atoms(atoms)
@@ -244,11 +229,6 @@ class NetCDFTrajectory:
                     self.filename, self.mode,
                     version=self._netCDF4_to_scipy[self.netcdf_format]
                 )
-        elif have_nc == NC_IS_PUPYNERE:
-            if self.netcdf_format not in self._netCDF4_to_pupynere:
-                raise ValueError("NetCDF format '%s' not supported by "
-                                 "ase.io.pupynere." % self.netcdf_format)
-            self.nc = netcdf_file(self.filename, self.mode)
         else:
             # Should not happen
             raise RuntimeError('Internal error: Unknown *have_nc* value.')
@@ -372,17 +352,17 @@ class NetCDFTrajectory:
         if not hasattr(self.nc, 'programVersion'):
             self.nc.programVersion = ase.version.version
 
-        if not self._frame_dim in self.nc.dimensions:
+        if self._frame_dim not in self.nc.dimensions:
             self.nc.createDimension(self._frame_dim, None)
-        if not self._spatial_dim in self.nc.dimensions:
+        if self._spatial_dim not in self.nc.dimensions:
             self.nc.createDimension(self._spatial_dim, 3)
-        if not self._atom_dim in self.nc.dimensions:
+        if self._atom_dim not in self.nc.dimensions:
             self.nc.createDimension(self._atom_dim, len(atoms))
-        if not self._cell_spatial_dim in self.nc.dimensions:
+        if self._cell_spatial_dim not in self.nc.dimensions:
             self.nc.createDimension(self._cell_spatial_dim, 3)
-        if not self._cell_angular_dim in self.nc.dimensions:
+        if self._cell_angular_dim not in self.nc.dimensions:
             self.nc.createDimension(self._cell_angular_dim, 3)
-        if not self._label_dim in self.nc.dimensions:
+        if self._label_dim not in self.nc.dimensions:
             self.nc.createDimension(self._label_dim, 5)
 
         # Self-describing variables from AMBER convention
@@ -452,9 +432,9 @@ class NetCDFTrajectory:
                 if n in self.nc.variables:
                     return self.nc.variables[n]
             if exc:
-                raise RuntimeError('None of the variables {0} was found in the '
-                                   'NetCDF trajectory.'.format(
-                                       reduce(lambda x, y: x + ', ' + y, name)))
+                raise RuntimeError(
+                    'None of the variables {0} was found in the '
+                    'NetCDF trajectory.'.format(', '.join(name)))
         else:
             if name in self.nc.variables:
                 return self.nc.variables[name]
@@ -508,13 +488,14 @@ class NetCDFTrajectory:
 
             # Do we have a cell origin?
             if self._has_variable(self._cell_origin_var):
-                origin = np.array(self.nc.variables[self._cell_origin_var][i][:])
+                origin = np.array(
+                    self.nc.variables[self._cell_origin_var][i][:])
             else:
                 origin = np.zeros([3], dtype=float)
 
             # Do we have an index variable?
             if self._has_variable(self.index_var):
-                index = np.array(self.nc.variables[self.index_var][i][:]) +\
+                index = np.array(self.nc.variables[self.index_var][i][:]) + \
                     self.index_offset
             else:
                 index = np.arange(self.n_atoms)
