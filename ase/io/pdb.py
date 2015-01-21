@@ -2,6 +2,7 @@ import numpy as np
 
 from ase.atoms import Atom, Atoms
 from ase.parallel import paropen
+from ase.lattice.spacegroup.cell import cellpar_to_cell
 
 """Module to read and write atoms in PDB file format"""
 
@@ -10,13 +11,25 @@ def read_pdb(fileobj, index=-1):
     """Read PDB files.
 
     The format is assumed to follow the description given in
+    http://www.wwpdb.org/documentation/format32/sect8.html and
     http://www.wwpdb.org/documentation/format32/sect9.html."""
     if isinstance(fileobj, str):
         fileobj = open(fileobj)
 
     images = []
+    orig = np.identity(3)
+    trans = np.zeros(3)
     atoms = Atoms()
     for line in fileobj.readlines():
+        if line.startswith('CRYST1'):
+            cellpar = [float(word) for word in line[6:54].split()]
+            atoms.set_cell(cellpar_to_cell(cellpar))
+        for c in range(3):
+            if line.startswith('ORIGX' + '123'[c]):
+                pars = [float(word) for word in line[10:55].split()]
+                orig[c] = pars[:3]
+                trans[c] = pars[3]
+            
         if line.startswith('ATOM') or line.startswith('HETATM'):
             try:
                 # Atom name is arbitrary and does not necessarily contain the element symbol.
@@ -26,6 +39,7 @@ def read_pdb(fileobj, index=-1):
                 position = np.array([float(words[0]), 
                                      float(words[1]),
                                      float(words[2])])
+                position = np.dot(orig, position) + trans
                 atoms.append(Atom(symbol, position))
             except:
                 pass

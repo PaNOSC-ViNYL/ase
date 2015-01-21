@@ -46,6 +46,7 @@ def read(filename, index=None, format=None):
     XYZ-file                   xyz
     VASP POSCAR/CONTCAR file   vasp
     VASP OUTCAR file           vasp_out
+    VASP XDATCAR file          vasp_xdatcar
     SIESTA STRUCT file         struct_out
     ABINIT input file          abinit
     V_Sim ascii file           v_sim
@@ -76,11 +77,16 @@ def read(filename, index=None, format=None):
     Gaussian output file       gaussian_out
     Quantum espresso in file   esp_in
     Quantum espresso out file  esp_out
+    Extended XYZ file          extxyz
+    NWChem input file          nw
+    Materials Studio file      xsd
     =========================  =============
 
     """
-    if isinstance(filename, str) and ('.json@' in filename or
-                                      '.db@' in filename):
+    if isinstance(filename, str) and (
+        '.json@' in filename or
+        '.db@' in filename or
+        filename.startswith('pg://') and '@' in filename):
         filename, index = filename.rsplit('@', 1)
         if index.isdigit():
             index = int(index)
@@ -143,9 +149,16 @@ def read(filename, index=None, format=None):
 
         return atoms
 
-    if format in ['json', 'db']:
-        from ase.db import connect
-        return connect(filename, format)[index]
+    if format in ['json', 'db', 'postgresql']:
+        from ase.db.core import connect, dict2atoms
+        if index == slice(None, None):
+            index = None
+        images = [dict2atoms(d)
+                  for d in connect(filename, format).select(index)]
+        if len(images) == 1:
+            return images[0]
+        else:
+            return images
 
     if index is None:
         index = -1
@@ -166,8 +179,8 @@ def read(filename, index=None, format=None):
         from ase.io.exciting import read_exciting
         return read_exciting(filename, index)
 
-    if format == 'xyz':
-        from ase.io.xyz import read_xyz
+    if format in ['xyz', 'extxyz']:
+        from ase.io.extxyz import read_xyz
         return read_xyz(filename, index)
 
     if format == 'traj':
@@ -209,6 +222,10 @@ def read(filename, index=None, format=None):
     if format == 'vasp_out':
         from ase.io.vasp import read_vasp_out
         return read_vasp_out(filename, index)
+
+    if format == 'vasp_xdatcar':
+        from ase.io.vasp import read_vasp_xdatcar
+        return read_vasp_xdatcar(filename, index)
 
     if format == 'abinit':
         from ase.io.abinit import read_abinit
@@ -326,6 +343,14 @@ def read(filename, index=None, format=None):
         from ase.io.espresso import read_espresso_out
         return read_espresso_out(filename, index)
 
+    if format == 'nw':
+        from ase.io.nwchem import read_nwchem_input
+        return read_nwchem_input(filename)
+
+    if format == 'xsd':
+        from ase.io.xsd import read_xsd
+        return read_xsd(filename)
+
     raise RuntimeError('File format descriptor ' + format + ' not recognized!')
 
 
@@ -378,7 +403,7 @@ def write(filename, images, format=None, **kwargs):
     GROMOS96 (only positions)  g96
     X3D                        x3d
     X3DOM HTML                 html
-
+    Extended XYZ file          extxyz
     =========================  ===========
 
     The use of additional keywords is format specific.
@@ -477,7 +502,12 @@ def write(filename, images, format=None, **kwargs):
         from ase.io.cif import write_cif
         write_cif(filename, images)
     if format == 'xyz':
-        from ase.io.xyz import write_xyz
+        from ase.io.extxyz import write_xyz
+        write_xyz(filename, images, columns=['symbols', 'positions'],
+                  write_info=False, **kwargs)
+        return
+    if format == 'extxyz':
+        from ase.io.extxyz import write_xyz
         write_xyz(filename, images, **kwargs)
         return
     if format == 'gen':
@@ -574,8 +604,11 @@ def filetype(filename):
         else:
             raise IOError('Directory: ' + filename)
 
+    if filename.startswith('pg://'):
+        return 'postgresql'
+
     fileobj = open(filename, 'brU')
-    s3 = fileobj.read(3).decode()
+    s3 = fileobj.read(3)
     if len(s3) == 0:
         raise IOError('Empty file: ' + filename)
 
@@ -640,6 +673,9 @@ def filetype(filename):
 
     if 'OUTCAR' in filename_v:
         return 'vasp_out'
+
+    if 'XDATCAR' in filename_v:
+        return 'vasp_xdatcar'
 
     if filename.lower().endswith('.exi'):
         return 'exi'
@@ -714,7 +750,7 @@ def filetype(filename):
 
     if filename.lower().endswith('.cell'):
         return 'castep_cell'
-    if s3 == '<?x':
+    if s3 == '<?x' and not filename.endswith('xsd'):
         from ase.io.vtkxml import probe_vtkxml
         xmltype = probe_vtkxml(filename)
         if xmltype == 'ImageData':
@@ -752,5 +788,11 @@ def filetype(filename):
 
     if filename.lower().endswith('.out'):
         return 'esp_out'
+
+    if filename.endswith('.nw'):
+        return 'nw'
+
+    if filename.endswith('xsd'):
+        return 'xsd'
 
     return 'xyz'

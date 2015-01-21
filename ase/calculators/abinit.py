@@ -28,6 +28,7 @@ keys_with_units = {
     'zmmaxdispllength': 'Ang',
     'zmmaxdisplangle': 'rad',
     'ecut': 'eV',
+    'pawecutdg': 'eV',
     'dmenergytolerance': 'eV',
     'electronictemperature': 'eV',
     'oneta': 'eV',
@@ -83,34 +84,6 @@ class Abinit(FileIOCalculator):
         label: str
             Prefix to use for filenames (label.in, label.txt, ...).
             Default is 'abinit'.
-        xc: str
-            Exchange-correlation functional.  Must be one of LDA, PBE,
-            revPBE, RPBE.
-        kpts: list of three int
-            Monkhost-Pack sampling.
-        nbands: int
-            Number of bands.  For the values of occopt not equal
-            to 0 or 2, nbands can be omitted.
-        nstep: int
-            Number of self-consistent field STEPS.
-        width: float
-            Fermi-distribution width in eV.
-            Default is 0.04 Hartree.
-        ecut: float
-            Planewave cutoff energy in eV.
-            No default.
-        charge: float
-            Total charge of the system.
-            Default is 0.
-        npulayit: int
-            Number of old densities to use for Pulay mixing.
-        diemix: float
-            Mixing parameter between zero and one for density mixing.
-        diemac: float
-            Model DIElectric MACroscopic constant.
-            The value of diemac should usually be bigger than 1.0d0,
-            on physical grounds. If you let diemac to its default value,
-            you might even never obtain the self-consistent convergence!
 
         Examples
         ========
@@ -331,24 +304,27 @@ class Abinit(FileIOCalculator):
 
         # Energy [Hartree]:
         # Warning: Etotal could mean both electronic energy and free energy!
-        for line in iter(text.split('\n')):
-            if line.rfind('>>>>> internal e=') > -1:
-                etotal = float(line.split('=')[-1])*Hartree
-                for line1 in iter(text.split('\n')):
-                    if line1.rfind('>>>>>>>>> etotal=') > -1:
-                        efree = float(line1.split('=')[-1])*Hartree
-                        break
-                else:
-                    raise RuntimeError
-                break
+        etotal = None
+        efree = None
+        if 'PAW method is used'.lower() in text:  # read DC energy according to M. Torrent
+            for line in iter(text.split('\n')):
+                if line.rfind('>>>>> internal e=') > -1:
+                    etotal = float(line.split('=')[-1])*Hartree  # second occurence!
+            for line in iter(text.split('\n')):
+                if line.rfind('>>>> etotal (dc)=') > -1:
+                    efree = float(line.split('=')[-1])*Hartree
         else:
-            for line2 in iter(text.split('\n')):
-                if line2.rfind('>>>>>>>>> etotal=') > -1:
-                    etotal = float(line2.split('=')[-1])*Hartree
-                    efree = etotal
+            for line in iter(text.split('\n')):
+                if line.rfind('>>>>> internal e=') > -1:
+                    etotal = float(line.split('=')[-1])*Hartree  # first occurence!
                     break
-            else:
-                raise RuntimeError
+            for line in iter(text.split('\n')):
+                if line.rfind('>>>>>>>>> etotal=') > -1:
+                    efree = float(line.split('=')[-1])*Hartree
+        if efree is None:
+            raise RuntimeError('Total energy not found')
+        if etotal is None:
+            etotal = efree
 
         # Energy extrapolated to zero Kelvin:
         self.results['energy'] = (etotal + efree) / 2
@@ -366,6 +342,7 @@ class Abinit(FileIOCalculator):
         else:
             raise RuntimeError
         #
+        self.width = self.read_electronic_temperature()
         self.nband = self.read_number_of_bands()
         self.niter = self.read_number_of_iterations()
         self.nelect = self.read_number_of_electrons()
@@ -478,7 +455,15 @@ class Abinit(FileIOCalculator):
         return niter
 
     def get_electronic_temperature(self):
-        return self.parameters.width
+        return self.width * Hartree
+
+    def read_electronic_temperature(self):
+        width = None
+        # only in log file!
+        for line in open(self.label + '.log'):  # find last one
+            if line.find('tsmear') != -1:
+                width = float(line.split()[1].strip())
+        return width
 
     def get_number_of_electrons(self):
         return self.nelect

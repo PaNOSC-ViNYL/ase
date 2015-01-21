@@ -19,11 +19,21 @@ class SciPyOptimizer(Optimizer):
     Only the call to the optimizer is still needed
     """
     def __init__(self, atoms, logfile='-', trajectory=None,
-                 callback_always=False, alpha=70.0):
+                 callback_always=False, alpha=70.0, master=None):
         """Initialize object
 
         Parameters:
 
+        atoms: Atoms object
+            The Atoms object to relax.
+
+        trajectory: string
+            Pickle file used to store trajectory of atomic movement.
+
+        logfile: file object or str
+            If *logfile* is a string, a file with that name will be opened.
+            Use '-' for stdout.
+        
         callback_always: book
             Should the callback be run after each force call (also in the
             linesearch)
@@ -34,9 +44,12 @@ class SciPyOptimizer(Optimizer):
             steps to converge might be less if a lower value is used. However,
             a lower value also means risk of instability.
 
+        master: boolean
+            Defaults to None, which causes only rank 0 to save files.  If
+            set to true,  this rank will save files.
         """
         restart = None
-        Optimizer.__init__(self, atoms, restart, logfile, trajectory)
+        Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
         self.force_calls = 0
         self.callback_always = callback_always
         self.H0 = alpha
@@ -146,22 +159,44 @@ class SciPyGradientlessOptimizer(Optimizer):
 
     Only the call to the optimizer is still needed
 
-    Note: If you redefien x0() and f(), you don't even need an atoms object.
+    Note: If you redefine x0() and f(), you don't even need an atoms object.
     Redefining these also allows you to specify an arbitrary objective
     function.
 
     XXX: This is still a work in progress
     """
     def __init__(self, atoms, logfile='-', trajectory=None,
-                 callback_always=False):
-        """Parameters:
+                 callback_always=False, master=None):
+        """Initialize object
+
+        Parameters:
+
+        atoms: Atoms object
+            The Atoms object to relax.
+
+        trajectory: string
+            Pickle file used to store trajectory of atomic movement.
+
+        logfile: file object or str
+            If *logfile* is a string, a file with that name will be opened.
+            Use '-' for stdout.
 
         callback_always: book
             Should the callback be run after each force call (also in the
             linesearch)
+
+        alpha: float
+            Initial guess for the Hessian (curvature of energy surface). A
+            conservative value of 70.0 is the default, but number of needed
+            steps to converge might be less if a lower value is used. However,
+            a lower value also means risk of instability.
+
+        master: boolean
+            Defaults to None, which causes only rank 0 to save files.  If
+            set to true,  this rank will save files.
         """
         restart = None
-        Optimizer.__init__(self, atoms, restart, logfile, trajectory)
+        Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
         self.function_calls = 0
         self.callback_always = callback_always
 

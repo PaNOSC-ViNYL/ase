@@ -9,6 +9,23 @@ Development version in trunk
 ============================
 
 :trac:`trunk <>`.
+          
+* Genetic algorithm implemented; :mod:`ase.ga`. This can be used
+  for the optimization of: atomic cluster structure, materials
+  properties by use of template structures. Extension to other projects
+  related to atomic simulations should be straightforward.
+
+* The :func:`ase.lattice.bulk` function can now build the Wurtzite structure.
+
+* The :class:`ase.utils.timing.Timer` was moved from GPAW to ASE.
+
+* New :mod:`ase.db` module.
+
+* New functions: :func:`ase.lattice.surface.fcc211`,
+  :func:`ase.visualize.mlab.plot`, :func:`ase.atoms.Atoms.get_distances()`,
+  :func:`ase.atoms.Atoms.get_all_distances()`.
+
+* :ref:`bash completion` can now be enabled.
 
 
 Version 3.8.0
@@ -124,7 +141,7 @@ Version 3.5.0
   * Povray render facility.
   * Updated expert user mode.
   * Enabled customization of colours and atomic radii.
-  * Enabled user default settings via :file:`~/.ase/gui.py`. 
+  * Enabled user default settings via :file:`~/.ase/gui.py`.
 
 * :mod:`Database library <data>` expanded to include:
   

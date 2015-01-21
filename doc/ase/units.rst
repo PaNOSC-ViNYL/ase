@@ -1,4 +1,4 @@
-.. module:: units
+.. module:: ase.units
 
 =====
 Units
@@ -18,7 +18,7 @@ Other units are
 
 Examples:
 
->>> from ase import *
+>>> from ase.units import *
 >>> 2 * Bohr
 1.0583545150138329
 >>> 25 * Rydberg
@@ -31,6 +31,7 @@ Examples:
 0.009822693531550318
 >>> print '1 Hartree = '+str(Hartree*mol/kcal)+' kcal/mol'
 
+
 =======================
 The ``ase.data`` module
 =======================
@@ -40,6 +41,7 @@ This module defines the following variables: ``atomic_masses``,
 ``cpk_colors`` and ``reference_states``.  All of these are lists that
 should be indexed with an atomic number:
 
+>>> from ase.data import atomic_names, atomic_masses
 >>> atomic_names[92]
 'Uranium'
 >>> atomic_masses[2]
@@ -48,6 +50,7 @@ should be indexed with an atomic number:
 If you don't know the atomic number of some element, then you can look
 it up in the ``atomic_numbers`` dictionary:
 
+>>> from ase.data import atomic_numbers, covalent_radii
 >>> atomic_numbers['Cu']
 29
 >>> covalent_radii[29]

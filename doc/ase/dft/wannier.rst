@@ -1,4 +1,4 @@
-.. module:: dft.wannier
+.. module:: ase.dft.wannier
    :synopsis: Maximally localized Wannier functions
 
 =====================================
@@ -12,6 +12,7 @@ class :class:`Wannier`. The page is organized as follows:
 * `The Wannier class`_ : A description of how the Wannier class is
   used, and the methods defined within.
 
+  
 Introduction
 ============
 
@@ -68,11 +69,10 @@ Usual invocation::
   # Write a cube file
   wan.write_cube(index=5, fname='wannierfunction5.cube')
 
-For examples of how to use the **Wannier** class, see the `Wannier tutorial`_.
+For examples of how to use the **Wannier** class, see the
+:ref:`wannier tutorial` tutorial.
 
-.. _Wannier tutorial: https://wiki.fysik.dtu.dk/ase/tutorials/wannier.html
-
-.. autoclass:: ase.dft.wannier.Wannier
+.. autoclass:: Wannier
    :members:
 
 In Dacapo, the inialwannier keyword can be a list as described below:
@@ -113,5 +113,5 @@ In Dacapo, the inialwannier keyword can be a list as described below:
    symmetry to reduce the number of **k**-points by a factor 2.
    The shift can be performed like this::
 
-     from ase import *
+     from ase.dft.kpoints import monkhorst_pack
      kpts = monkhorst_pack((15, 9, 9)) + [2e-5, 0, 0]

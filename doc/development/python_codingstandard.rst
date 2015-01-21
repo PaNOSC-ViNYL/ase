@@ -4,6 +4,8 @@
 Coding Conventions
 ==================
 
+The code *must* be compatible with the oldest supported version of python
+as given on the :ref:`download_and_install` page.
 
 Importing modules
 =================
@@ -108,7 +110,7 @@ Writing documentation in the code
 
 Here is an example of how to write good docstrings:
 
-  http://projects.scipy.org/numpy/browser/trunk/doc/example.py
+  https://github.com/numpy/numpy/blob/master/doc/example.py
 
 
 .. _pep8py:
@@ -122,6 +124,25 @@ It will check the PEP8_ conventions for you.  Try::
 
   $ pep8.py --help
 
+.. _autopep8py:
+
+Run autopep8.py on your code
+============================
+
+Another method of enforcing PEP8_ is using a tool such as 
+`autopep8.py <https://github.com/hhatto/autopep8>`_. These tools tend to be
+very effective at cleaning up code, but should be used carefully and code
+should be retested after cleaning it. Try::
+
+  $ autopep8.py --help
+
+.. attention::
+
+   There is a common issue with pep8 where spaces are added around the power
+   operator.  Code such as "x**2" should not be changed to "x ** 2".  This
+   issue is not fixed in pep8 as of the time of this writing, but a small
+   `change <http://listserv.fysik.dtu.dk/pipermail/gpaw-developers/2014-October/005075.html>`_
+   to autopep8 has been effective to prevent this change.
 
 .. _pylint:
 
@@ -142,14 +163,6 @@ Run pylint on a single file like this::
 Run pylint on a module like this::
     
     [~]$ pylint path/to/module/root/dir
-
-
-Output from pylint run on ASE
------------------------------
-
-* pylint_ase_
-
-.. _pylint_ase: http://dcwww.fys.dtu.dk/~s052580/pylint/ase
 
 .. _epydoc:
 

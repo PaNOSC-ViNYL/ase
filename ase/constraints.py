@@ -44,9 +44,13 @@ class FixConstraint:
         multiplied constraints to work.
         """
         msg = ("Repeat is not compatible with your atoms' constraints."
-               " Use atoms.set_constraint() before calling repeat to "
-               "remove your constraints.")
+               ' Use atoms.set_constraint() before calling repeat to '
+               'remove your constraints.')
         raise NotImplementedError(msg)
+
+    def adjust_momenta(self, positions, momenta):
+        """Adjusts momenta in identical manner to forces."""
+        self.adjust_forces(positions, momenta)
 
 
 class FixConstraintSingle(FixConstraint):
@@ -81,7 +85,8 @@ class FixAtoms(FixConstraint):
         --------
         Fix all Copper atoms:
 
-        >>> c = FixAtoms(mask=[s == 'Cu' for s in atoms.get_chemical_symbols()])
+        >>> mask = [s == 'Cu' for s in atoms.get_chemical_symbols()]
+        >>> c = FixAtoms(mask=mask)
         >>> atoms.set_constraint(c)
 
         Fix all atoms with z-coordinate less than 1.0 Angstrom:
@@ -142,11 +147,11 @@ class FixAtoms(FixConstraint):
         return 'FixAtoms(indices=%s)' % ints2string(self.index)
 
     def todict(self):
-        dct = {'__name__': 'ase.constraints.FixAtoms'}
+        dct = {'name': 'ase.constraints.FixAtoms'}
         if self.index.dtype == bool:
-            dct['mask'] = self.index
+            dct['kwargs'] = {'mask': self.index}
         else:
-            dct['indices'] = self.index
+            dct['kwargs'] = {'indices': self.index}
         return dct
 
     def repeat(self, m, n):
@@ -195,8 +200,8 @@ def ints2string(x, threshold=10):
 
 
 class FixBondLengths(FixConstraint):
-    def __init__(self, pairs, iterations=10):
-        self.constraints = [FixBondLength(a1, a2)
+    def __init__(self, pairs, iterations=10, atoms=None, mic=False):
+        self.constraints = [FixBondLength(a1, a2, atoms=atoms, mic=mic)
                             for a1, a2 in pairs]
         self.iterations = iterations
 
@@ -217,28 +222,54 @@ class FixBondLengths(FixConstraint):
 
 class FixBondLength(FixConstraint):
     """Constraint object for fixing a bond length."""
-    def __init__(self, a1, a2):
-        """Fix distance between atoms with indices a1 and a2."""
+    def __init__(self, a1, a2, atoms=None, mic=False):
+        """Fix distance between atoms with indices a1 and a2. If mic is
+        True, follows the minimum image convention to keep constant the
+        shortest distance between a1 and a2 in any periodic direction.
+        atoms only needs to be supplied if mic=True.
+        """
         self.indices = [a1, a2]
+        self.constraint_force = None
+        self.mic = None
+        if mic:
+            if atoms is None:
+                raise RuntimeError('Please provide an atoms '
+                                   'object with mic=True.')
+            # Note: self.mic stores the atoms object that
+            # is required for the cell and pbc flags.
+            self.mic = atoms
 
     def adjust_positions(self, old, new):
         p1, p2 = old[self.indices]
         d = p2 - p1
+        if self.mic:
+            Dr = np.linalg.solve(self.mic.get_cell().T, d)
+            d = np.dot(Dr - np.round(Dr) * self.mic.get_pbc(),
+                       self.mic.get_cell())
         p = sqrt(np.dot(d, d))
         q1, q2 = new[self.indices]
         d = q2 - q1
+        if self.mic:
+            Dr = np.linalg.solve(self.mic.get_cell().T, d)
+            d = np.dot(Dr - np.round(Dr) * self.mic.get_pbc(),
+                       self.mic.get_cell())
         q = sqrt(np.dot(d, d))
         d *= 0.5 * (p - q) / q
         new[self.indices] = (q1 - d, q2 + d)
 
     def adjust_forces(self, positions, forces):
         d = np.subtract.reduce(positions[self.indices])
+        if self.mic:
+            Dr = np.linalg.solve(self.mic.get_cell().T, d)
+            d = np.dot(Dr - np.round(Dr) * self.mic.get_pbc(),
+                       self.mic.get_cell())
         d2 = np.dot(d, d)
         d *= 0.5 * np.dot(np.subtract.reduce(forces[self.indices]), d) / d2
+        self.constraint_force = d
         forces[self.indices] += (-d, d)
 
     def index_shuffle(self, ind):
-        'Shuffle the indices of the two atoms in this constraint'
+        """Shuffle the indices of the two atoms in this constraint"""
         newa = [-1, -1]  # Signal error
         for new, old in slice2enlist(ind):
             for i, a in enumerate(self.indices):
@@ -249,18 +280,29 @@ class FixBondLength(FixConstraint):
         self.indices = newa
 
     def copy(self):
+        if self.mic:
+            raise NotImplementedError('Not implemented for mic.')
         return FixBondLength(*self.indices)
+
+    def get_constraint_force(self):
+        return self.constraint_force
 
     def __repr__(self):
         return 'FixBondLength(%d, %d)' % tuple(self.indices)
 
+    def todict(self):
+        if self.mic:
+            raise NotImplementedError('Not implemented for mic.')
+        return {'name': 'ase.constraints.FixBondLength',
+                'kwargs': {'a1': self.indices[0], 'a2': self.indices[1]}}
 
+        
 class FixedMode(FixConstraint):
     """Constrain atoms to move along directions orthogonal to
     a given mode only."""
 
     def __init__(self, mode):
-        self.mode = (np.asarray(mode) / np.sqrt((mode **2).sum())).reshape(-1)
+        self.mode = (np.asarray(mode) / np.sqrt((mode**2).sum())).reshape(-1)
 
     def adjust_positions(self, oldpositions, newpositions):
         newpositions = newpositions.ravel()
@@ -359,15 +401,6 @@ class FixCartesian(FixConstraintSingle):
         return 'FixCartesian(indice=%s mask=%s)' % (self.a, self.mask)
 
 
-class fix_cartesian(FixCartesian):
-    'Backwards compatibility for FixCartesian.'
-    def __init__(self, a, mask=(1, 1, 1)):
-        import warnings
-        super(fix_cartesian, self).__init__(a, mask)
-        warnings.warn('fix_cartesian is deprecated. Please use FixCartesian'
-                      ' instead.', DeprecationWarning, stacklevel=2)
-
-
 class FixScaled(FixConstraintSingle):
     'Fix an atom in the directions of the unit vectors.'
     def __init__(self, cell, a, mask=(1, 1, 1)):
@@ -395,15 +428,6 @@ class FixScaled(FixConstraintSingle):
         return 'FixScaled(%s, %d, %s)' % (repr(self.cell),
                                           self.a,
                                           repr(self.mask))
-
-
-class fix_scaled(FixScaled):
-    'Backwards compatibility for FixScaled.'
-    def __init__(self, cell, a, mask=(1, 1, 1)):
-        import warnings
-        super(fix_scaled, self).__init__(cell, a, mask)
-        warnings.warn('fix_scaled is deprecated. Please use FixScaled '
-                      'instead.', DeprecationWarning, stacklevel=2)
 
 
 # TODO: Better interface might be to use dictionaries in place of very
@@ -494,7 +518,7 @@ class FixInternals(FixConstraint):
 
         list_constraints = [r.ravel() for r in list_constraints]
         aa = np.column_stack(list_constraints)
-        (aa, bb) = np.linalg.qr(aa, mode='full')
+        (aa, bb) = np.linalg.qr(aa)
         #Projektion
         hh = []
         for i, constraint in enumerate(self.constraints):
@@ -567,7 +591,6 @@ class FixInternals(FixConstraint):
         def __repr__(self):
             return 'FixBondLengthAlt(%s, %d, %d)' % \
                 (repr(self.bond), self.indices[0], self.indices[1])
-
 
     class FixAngle:
         """Constraint object for fixing an angle within
@@ -770,9 +793,9 @@ class Hookean(FixConstraint):
     def __init__(self, a1, a2, k, rt=None):
         """Forces two atoms to stay close together by applying no force if
         they are below a threshold length, rt, and applying a Hookean
-        restorative force when the distance between them exceeds rt. Can also be
-        used to tether an atom to a fixed point in space or to a distance above
-        a plane.
+        restorative force when the distance between them exceeds rt. Can
+        also be used to tether an atom to a fixed point in space or to a
+        distance above a plane.
 
         Parameters
         ----------
@@ -784,11 +807,11 @@ class Hookean(FixConstraint):
            3) a plane given as (A, B, C, D) in A x + B y + C z + D = 0.
         k : float
            Hooke's law (spring) constant to apply when distance
-           exceeds threshold_length.
+           exceeds threshold_length. Units of eV A^-2.
         rt : float
            The threshold length below which there is no force. The
            length is 1) between two atoms, 2) between atom and point.
-           This argument is not supplied in case 3.
+           This argument is not supplied in case 3. Units of A.
 
         If a plane is specified, the Hooke's law force is applied if the atom
         is on the normal side of the plane. For instance, the plane with
@@ -815,6 +838,23 @@ class Hookean(FixConstraint):
         self.threshold = rt
         self.spring = k
 
+    def todict(self):
+        dct = {'name': 'ase.constraints.Hookean'}
+        dct['kwargs'] = {'rt': self.threshold,
+                         'k': self.spring}
+        if self._type == 'two atoms':
+            dct['kwargs']['a1'] = self.indices[0]
+            dct['kwargs']['a2'] = self.indices[1]
+        elif self._type == 'point':
+            dct['kwargs']['a1'] = self.index
+            dct['kwargs']['a2'] = self.origin
+        elif self._type == 'plane':
+            dct['kwargs']['a1'] = self.index
+            dct['kwargs']['a2'] = self.plane
+        else:
+            raise NotImplementedError('Bad type: %s' % self._type)
+        return dct
+
     def adjust_positions(self, oldpositions, newpositions):
         pass
 
@@ -837,7 +877,7 @@ class Hookean(FixConstraint):
             p2 = self.origin
         displace = p2 - p1
         bondlength = np.linalg.norm(displace)
-        if (bondlength > self.threshold) and (self.threshold > 0):
+        if bondlength > self.threshold:
             magnitude = self.spring * (bondlength - self.threshold)
             direction = displace / np.linalg.norm(displace)
             if self._type == 'two atoms':
@@ -846,9 +886,13 @@ class Hookean(FixConstraint):
             else:
                 forces[self.index] += direction * magnitude
 
-    def adjust_potential_energy(self, positions, forces):
+    def adjust_momenta(self, positions, momenta):
+        pass
+
+    def adjust_potential_energy(self, positions, energy):
         """Returns the difference to the potential energy due to an active
-        constraint."""
+        constraint. (That is, the quantity returned is to be added to the
+        potential energy.)"""
         if self._type == 'plane':
             A, B, C, D = self.plane
             x, y, z = positions[self.index]
@@ -858,9 +902,17 @@ class Hookean(FixConstraint):
                 return 0.5 * self.spring * d**2
             else:
                 return 0.
+        if self._type == 'two atoms':
+            p1, p2 = positions[self.indices]
+        elif self._type == 'point':
+            p1 = positions[self.index]
+            p2 = self.origin
+        displace = p2 - p1
+        bondlength = np.linalg.norm(displace)
+        if bondlength > self.threshold:
+            return 0.5 * self.spring * (bondlength - self.threshold)**2
         else:
-            raise NotImplementedError('Adjust potential energy only '
-                                      'implemented for plane.')
+            return 0.
 
     def __repr__(self):
         if self._type == 'two atoms':
@@ -880,13 +932,6 @@ class Hookean(FixConstraint):
         else:
             return Hookean(a1=self.index, a2=self.plane,
                            k=self.spring)
-
-
-class BondSpring(FixConstraint):
-    """Deprecated in favor of Hookean constraint."""
-    def __init__(self, a1, a2, threshhold_length, springconstant):
-        raise RuntimeError('The BondSpring constraint has been deprecated.'
-                           ' Use Hookean instead.')
 
 
 class Filter:

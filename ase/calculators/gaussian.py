@@ -19,7 +19,7 @@ See accompanying license files for details.
 """
 import os
 
-from ase.calculators.calculator import FileIOCalculator
+from ase.calculators.calculator import FileIOCalculator, Parameters, ReadError
 
 """
 Gaussian has two generic classes of keywords:  link0 and route.
@@ -32,8 +32,7 @@ For more information on the Link0 commands see:
 For more information on the route section keywords, see:
     http://www.gaussian.com/g_tech/g_ur/l_keywords09.htm
 """
-link0_keys = [\
-              'chk',
+link0_keys = ['chk',
               'mem',
               'rwf',
               'int',
@@ -44,8 +43,7 @@ link0_keys = [\
               'save',
               'nosave',
               'nprocshared',
-              'nproc',
-             ]
+              'nproc']
 
 # This one is a little strange.  Gaussian has several keywords where you just
 # specify the keyword, but the keyword itself has several options.
@@ -66,17 +64,16 @@ route_self_keys = ['opt',
                    'sp',
                    'sparse',
                    'stable',
-                   'volume',
-                  ]
+                   'volume']
 
-route_keys = [\
-# int keys
-# Multiplicity and charge are not really route keywords, but we will
-# put them here anyways
+route_keys = [
+              # int keys
+              # Multiplicity and charge are not really route keywords,
+              # but we will put them here anyways
               'cachesize',
               'cbsextrapolate',
               'constants',
-# str keys
+              # str keys
               'functional',
               'maxdisk',
               'cphf',
@@ -100,11 +97,11 @@ route_keys = [\
               'symmetry',
               'td',
               'units',
-# Float keys
+              'population',
+              # Float keys
               'pressure',
               'scale',
-              'temperature',
-             ]
+              'temperature']
 
 
 class Gaussian(FileIOCalculator):
@@ -113,8 +110,13 @@ class Gaussian(FileIOCalculator):
     """
     name = 'Gaussian'
 
-    implemented_properties = ['energy', 'forces', 'charges', 'dipole']
+    implemented_properties = ['energy', 'forces', 'dipole']
     command = 'g09 < PREFIX.com > PREFIX.log'
+
+    default_parameters = {'charge': 0,
+                          'method': 'hf',
+                          'basis': '6-31g*',
+                          'force': 'force'}
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='g09', atoms=None, scratch=None, ioplist=list(),
@@ -127,6 +129,15 @@ class Gaussian(FileIOCalculator):
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, **kwargs)
 
+        if restart is not None:
+            try:
+                self.read(restart)
+            except ReadError:
+                if ignore_bad_restart_file:
+                    self.reset()
+                else:
+                    raise
+
         self.ioplist = ioplist
         self.scratch = scratch
         self.basisfile = basisfile
@@ -137,29 +148,30 @@ class Gaussian(FileIOCalculator):
             self.reset()
         return changed_parameters
 
-    def initialize(self, atoms):
-# Set some default behavior
-        if ('multiplicity' not in self.parameters):
-            self.parameters['multiplicity'] = 1
+    def check_state(self, atoms):
+        system_changes = FileIOCalculator.check_state(self, atoms)
 
-        if ('charge' not in self.parameters):
-            self.parameters['charge'] = 0
+        ignore = ['cell', 'pbc']
+        for change in system_changes:
+            if change in ignore:
+                system_changes.remove(change)
 
-        if ('method' not in self.parameters):
-            self.parameters['method'] = 'hf'
-
-        if ('basis' not in self.parameters):
-            self.parameters['basis'] = '6-31g*'
-
-        if ('force' not in self.parameters):
-            self.parameters['force'] = 'force'
-
-        self.converged = None
+        return system_changes
 
     def write_input(self, atoms, properties=None, system_changes=None):
         """Writes the input file"""
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
-        self.initialize(atoms)
+
+        magmoms = atoms.get_initial_magnetic_moments().tolist()
+        self.parameters.initial_magmoms = magmoms
+        self.parameters.write(self.label + '.ase')
+
+# Set default behavior
+        if ('multiplicity' not in self.parameters):
+            tot_magmom = atoms.get_initial_magnetic_moments().sum()
+            mult = tot_magmom + 1
+        else:
+            mult = self.parameters['multiplicity']
 
         filename = self.label + '.com'
         inputfile = open(filename, 'w')
@@ -179,6 +191,7 @@ class Gaussian(FileIOCalculator):
                         route += ' %s(%s)' % (key, val)
                     else:
                         route += ' %s=%s' % (key, val)
+
             elif key.lower() in route_keys:
                 route += ' %s=%s' % (key, val)
 
@@ -195,7 +208,7 @@ class Gaussian(FileIOCalculator):
         inputfile.write(' \n\n')
         inputfile.write('Gaussian input prepared by ASE\n\n')
         inputfile.write('%i %i\n' % (self.parameters['charge'],
-                                     self.parameters['multiplicity']))
+                                     mult))
 
         symbols = atoms.get_chemical_symbols()
         coordinates = atoms.get_positions()
@@ -211,8 +224,8 @@ class Gaussian(FileIOCalculator):
             if (self.basisfile is None):
                 raise RuntimeError('Please set basisfile.')
             elif (not os.path.isfile(self.basisfile)):
-                raise RuntimeError('Basis file %s does not exist.' \
-                % self.basisfile)
+                error = 'Basis file %s does not exist.' % self.basisfile
+                raise RuntimeError(error)
             else:
                 f2 = open(self.basisfile, 'r')
                 inputfile.write(f2.read())
@@ -233,6 +246,18 @@ class Gaussian(FileIOCalculator):
         """Used to read the results of a previous calculation if restarting"""
         FileIOCalculator.read(self, label)
 
+        from ase.io.gaussian import read_gaussian_out
+        filename = self.label + '.log'
+
+        if not os.path.isfile(filename):
+            raise ReadError
+
+        self.atoms = read_gaussian_out(filename, quantity='atoms')
+        self.parameters = Parameters.read(self.label + '.ase')
+        initial_magmoms = self.parameters.pop('initial_magmoms')
+        self.atoms.set_initial_magnetic_moments(initial_magmoms)
+        self.read_results()
+
     def read_results(self):
         """Reads the output file using GaussianReader"""
         from ase.io.gaussian import read_gaussian_out
@@ -241,6 +266,8 @@ class Gaussian(FileIOCalculator):
         self.results['energy'] = read_gaussian_out(filename, quantity='energy')
         self.results['forces'] = read_gaussian_out(filename, quantity='forces')
         self.results['dipole'] = read_gaussian_out(filename, quantity='dipole')
+        self.results['magmom'] = read_gaussian_out(filename,
+                                                   quantity='multiplicity') - 1
 
     def clean(self):
         """Cleans up from a previous run"""
@@ -255,25 +282,6 @@ class Gaussian(FileIOCalculator):
                     os.remove(f)
             except OSError:
                 pass
-
-    def read_convergence(self):
-        """Determines if calculations converged"""
-        converged = False
-
-        gauss_dir = os.environ['GAUSS_EXEDIR']
-        test = '(Enter ' + gauss_dir + '/l9999.exe)'
-
-        f = open(self.label + '.log', 'r')
-        lines = f.readlines()
-        f.close()
-
-        for line in lines:
-            if (line.rfind(test) > -1):
-                converged = True
-            else:
-                converged = False
-
-        return converged
 
     def get_version(self):
         return self.read_output(self.label + '.log', 'version')

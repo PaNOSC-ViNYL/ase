@@ -4,8 +4,6 @@ Atoms object in ABINIT input format.
 
 """
 
-import os
-
 def read_abinit(filename='abinit.in'):
     """Import ABINIT input file.
 
@@ -19,30 +17,24 @@ def read_abinit(filename='abinit.in'):
     else: # Assume it's a file-like object
         f = filename
 
-    lines = f.readlines()
+    lines = []
+    for line in f.readlines():
+        meat = line.split('#', 1)[0]
+        lines.append(meat)
+    tokens = ' '.join(lines).lower().split()
+
     if isinstance(filename, str):
         f.close()
-
-    full_file = ''
-    for line in lines:
-        if '#' in line:
-            meat, comment = line.split('#')
-        else:
-            meat = line
-        full_file = full_file + meat + ' '
-
-    full_file.strip()
-    tokens = full_file.lower().split()
 
     # note that the file can not be scanned sequentially
 
     index = tokens.index("acell")
     unit = 1.0
-    if(tokens[index+4].lower()[:3] != 'ang'):
+    if(tokens[index + 4].lower()[:3] != 'ang'):
         unit = units.Bohr
-    acell = [unit*float(tokens[index+1]),
-             unit*float(tokens[index+2]),
-             unit*float(tokens[index+3])]
+    acell = [unit * float(tokens[index + 1]),
+             unit * float(tokens[index + 2]),
+             unit * float(tokens[index + 3])]
 
     index = tokens.index("natom")
     natom = int(tokens[index+1])
@@ -53,7 +45,12 @@ def read_abinit(filename='abinit.in'):
     index = tokens.index("typat")
     typat = []
     for i in range(natom):
-        typat.append(int(tokens[index+1+i]))
+        t = tokens[index+1+i]
+        if '*' in t:  # e.g. typat 4*1 3*2 ...
+            typat.extend([int(t) for t in ((t.split('*')[1] + ' ') * int(t.split('*')[0])).split()])
+        else:
+            typat.append(int(t))
+        if len(typat) == natom: break
 
     index = tokens.index("znucl")
     znucl = []
@@ -102,11 +99,11 @@ def read_abinit(filename='abinit.in'):
         atoms = Atoms(cell=rprim, positions=xangs, numbers=numbers, pbc=True)
     
     try:
-        i = tokens.index('nsppol')
+        ii = tokens.index('nsppol')
     except ValueError:
         nsppol = None
     else:
-        nsppol = int(tokens[i + 1])
+        nsppol = int(tokens[ii + 1])
 
     if nsppol == 2:
         index = tokens.index('spinat')
@@ -121,7 +118,7 @@ def write_abinit(filename, atoms, cartesian=False, long_format=True):
     """Method to write abinit input files."""
 
     import numpy as np
-    from ase import Atoms, data
+    from ase import data
 
     if isinstance(filename, str):
         f = open(filename, 'w')

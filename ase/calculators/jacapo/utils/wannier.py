@@ -58,7 +58,7 @@ class Translation_Operator:
 
     def get_coordinates(self):
         trans_cartes = self.get_cartesian_translation_coordinates()
-        #trans_coor = np.linalg.solve(np.transpose(self.get_basis()),trans_cartes) 
+        #trans_coor = np.linalg.solve(np.transpose(self.get_basis()),trans_cartes)
         trans_coor = cartesian2scaled(self.get_basis(),trans_cartes)
         return np.multiply(trans_coor,self.get_dimensions())
 
@@ -78,7 +78,7 @@ class Translation_Operator:
     def operate(self,state):
         translation = np.multiply.outer(self.get_translational_diagonal(0),self.get_translational_diagonal(1))
         translation = np.multiply.outer(translation,self.get_translational_diagonal(2))
-        return np.multiply(translation,state)       
+        return np.multiply(translation,state)
 
 def coordinate_array_from_unit_vectors(shape, gridunitvectors,
                                        origin=[0, 0, 0], indexfunction=None):
@@ -87,24 +87,24 @@ def coordinate_array_from_unit_vectors(shape, gridunitvectors,
         of a space defined by 'gridunitvecors'. 'gridunitvectors' is in turn a
         list containing the vectors defining the cells of the grid, i.e. the
         vectors between neighboring grid points. These vectors are spanned
-        according to the specified shape. 
+        according to the specified shape.
 
-        'origin' -- specifies the origin of the returned coordinate array. 
+        'origin' -- specifies the origin of the returned coordinate array.
         
-        'indexfunction' -- is a lambda expression that defines the indices 
-        with which each of the specified gridunitvectors are to be multiplied. 
+        'indexfunction' -- is a lambda expression that defines the indices
+        with which each of the specified gridunitvectors are to be multiplied.
         'indexfunction' must take two arguments, 'i' and 'length' - default
-        is 'lambda i,length:i'. During exection the input index 'i' will run 
+        is 'lambda i,length:i'. During exection the input index 'i' will run
         over the interval 0,1,..., 'length' -1.
 
         **An Example**
 
-        To obtain a coordinate array of shape (10,10) with 
+        To obtain a coordinate array of shape (10,10) with
         'gridunitvectors' =[[2,0],[0,1]] and the origin at [10,0] use:
 
         'CoordinateArrayFromUnitVectors((10,10),[[2,0],[0,1],[10,0])'
 
-        Note that the output array will be of shape 
+        Note that the output array will be of shape
         (< *dimension* > ,  < *spatialcoordinates* >).
         """
         
@@ -150,11 +150,11 @@ class Wannier:
       self.set_spin(None)
       self.has_changed = True
 
-   def set_spin(self,spin): 
+   def set_spin(self,spin):
       self.spin = spin
       self.has_changed = True
 
-   def get_spin(self): 
+   def get_spin(self):
       return self.spin
 
    def get_fft_index(self):
@@ -188,11 +188,11 @@ class Wannier:
           self.has_changed = False
       return self.listofwavefct
 
-   def set_bands(self,numberofbands):   
+   def set_bands(self,numberofbands):
       self.numberofbands = numberofbands
       self.has_changed = True
       
-   def get_bands(self): 
+   def get_bands(self):
       return self.numberofbands
 
    def get_zi_bloch_matrix(self,dirG,kpoint,nextkpoint,G_I):
@@ -202,7 +202,7 @@ class Wannier:
 
       #print 'DacapoWannier: Initialize ZIBlochMatrix ..'
       if self.get_bands() == None or self.get_spin() == None:
-          raise RuntimeError('Bands and spin must be set before wannier ' +
+          raise RuntimeError('Bands and spin must be set before wannier '
                              'localization matrix can be calculated')
         
       phi=np.swapaxes(np.array(self.get_list_of_wave_functions()[kpoint]),0,1)
@@ -229,9 +229,9 @@ class Wannier:
        GI is one of
        [[1,0,0],[0,1,0],[0,0,1],[1,1,0],[1,0,1],[0,1,1]]
                          
-       The layout of fourier components is 
-       1   2   3   4   5   6   7   8   ngx = 8 
-       0   1   2   3   4  -3  -2  -1    n*2pi/L 
+       The layout of fourier components is
+       1   2   3   4   5   6   7   8   ngx = 8
+       0   1   2   3   4  -3  -2  -1    n*2pi/L
        """
 
        numberplanewaves = len(self.get_list_of_wave_functions()[kpt1][0])
@@ -240,7 +240,7 @@ class Wannier:
        ngrids = self.get_grid_dimensions()
                         
        # setup the mapping from the 3D FFT grid to the wavefuction list
-       map2 = self.get_index_map(kpt2) 
+       map2 = self.get_index_map(kpt2)
                 
        gglist = []
        # print "Generating plane wave index list for direction ",GI," kpt12 ",kpt1,kpt2
@@ -252,7 +252,7 @@ class Wannier:
            index = reciprocalindex[:,n]
            index = index - 1
            # find G,G+GI
-           for dir in range(3): 
+           for dir in range(3):
                index[dir] += GI[dir]
                if index[dir]>=ngrids[dir]:
                    # wrap around
@@ -330,7 +330,7 @@ class Wannier:
         lst=[[1,0,0],[0,1,0],[0,0,1],[1,1,0],[1,0,1],[0,1,1]]
 
         # find direction corresponding to GI
-        dir = lst.index(GI.tolist()) 
+        dir = lst.index(GI.tolist())
 
         natoms = nlprojpsi.shape[2]
         nbands = self.get_bands()
@@ -386,7 +386,7 @@ class Wannier:
                 else:
                     print("First element in initial data must be of the form [atom] or [c1,c2,c3], where the latter is scaled coordinates of the center")
                 if len(data)==4:
-                    # m is specified        
+                    # m is specified
                     detaileddata.append([r_c,data[1],data[2],data[3]])
                 else:
                     # Orbitals with all allowed m values are produced
@@ -456,13 +456,13 @@ class Wannier:
         fftindex = self.get_fft_index()
 
         unitcell=self.get_repeated_unit_cell()
-        griddim = self.get_repeated_grid_dimensions()    
+        griddim = self.get_repeated_grid_dimensions()
         data = self.get_detailed_data()
         nkpoints = len(bzkpoints)
         nbands = len(listofeigenstates[0])
         M = np.zeros([nkpoints,nbands,len(data)],np.complex)
         orbital = np.zeros(griddim,np.complex)
-        dist = self.get_distance_array_at_origin() 
+        dist = self.get_distance_array_at_origin()
 
         transop = Translation_Operator(griddim,unitcell)
         rec_basis = 2*np.pi*np.linalg.inv(np.transpose(self.calc.get_atoms().get_cell()))

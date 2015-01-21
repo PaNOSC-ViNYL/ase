@@ -4,7 +4,7 @@ from ase.calculators.calculator import get_calculator
 
 
 required = {'abinit': dict(ecut=200, toldfe=0.0001, chksymbreak=0),
-            'aims': dict(sc_accuracy_eev=5.e-3),
+            'aims': dict(sc_accuracy_rho=5.e-3),
             'elk': dict(tasks=0, rgkmax=5.0),
             'gpaw': dict(mode='pw')}
 

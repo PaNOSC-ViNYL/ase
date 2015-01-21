@@ -17,7 +17,7 @@ script:
 
 |eos|
 
-A quicker way to do this analysis, is to use the :mod:`gui` tool:
+A quicker way to do this analysis, is to use the :mod:`ase.gui` tool:
 
 .. highlight:: bash
 

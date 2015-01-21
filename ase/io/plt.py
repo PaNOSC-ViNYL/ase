@@ -10,7 +10,7 @@ def write_plt(filename, atoms, data):
 
     if cell.ndim == 2:
         c = cell.copy()
-        cell = c.diagonal()
+        cell = c.diagonal().copy()
         c.flat[::4] = 0.0
         if c.any():
             raise ValueError('Unit cell must be orthorhombic!')

@@ -31,8 +31,7 @@ allowed_dft_functionals = ['lsda',  # = 'svwn'
                            'm062x',
                            'tpssh',
                            'tpsstpss',
-                           'wb97xd',
-                          ]
+                           'wb97xd']
 
 
 def read_gaussian_out(filename, index=-1, quantity='atoms'):
@@ -45,6 +44,8 @@ def read_gaussian_out(filename, index=-1, quantity='atoms'):
     positions = np.array(data['Positions'])
     method = data['Method']
     version = data['Version']
+    charge = data['Charge']
+    multiplicity = data['Multiplicity']
 
     if method.lower()[1:] in allowed_dft_functionals:
         method = 'HF'
@@ -82,11 +83,15 @@ def read_gaussian_out(filename, index=-1, quantity='atoms'):
     elif (quantity == 'forces'):
         return forces
     elif (quantity == 'dipole'):
-        return data['Dipole']
+        return np.array(data['Dipole'])
     elif (quantity == 'atoms'):
         return atoms
     elif (quantity == 'version'):
         return version
+    elif (quantity == 'multiplicity'):
+        return multiplicity
+    elif (quantity == 'charge'):
+        return charge
 
 
 def read_gaussian(filename):

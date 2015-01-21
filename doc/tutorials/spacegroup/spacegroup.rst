@@ -1,4 +1,4 @@
-.. module:: lattice.spacegroup
+.. module:: ase.lattice.spacegroup
 
 ===============================
 Using the spacegroup subpackage
@@ -8,6 +8,7 @@ The most evident usage of the spacegroup subpackage is to set up an
 initial unit of a bulk structure. For this you only need to supply the
 unique atoms and their scaled positions, space group and lattice
 parameters.
+
 
 Examples of setting up bulk structures
 ======================================
@@ -32,6 +33,7 @@ arguments, of which the most important are:
         Cell parameters with angles in degree. Is not used when ``cell``
         is given.
 
+        
 Aluminium (fcc)
 ---------------
 
@@ -42,12 +44,14 @@ Aluminium (fcc)
 The *spacegroup* argument can also be entered with its Hermann-Mauguin
 symbol, e.g. *spacegroup=225* is equivalent to *spacegroup='F m -3 m'*.
 
+
 Iron (bcc)
 ----------
 
 .. image:: spacegroup-fe.png
 
 .. literalinclude:: spacegroup-fe.py
+
 
 Magnesium (hcp)
 ---------------
@@ -56,12 +60,14 @@ Magnesium (hcp)
 
 .. literalinclude:: spacegroup-mg.py
 
+
 Diamond
 -------
 
 .. image:: spacegroup-diamond.png
 
 .. literalinclude:: spacegroup-diamond.py
+
 
 Sodium chloride
 ---------------
@@ -70,12 +76,14 @@ Sodium chloride
 
 .. literalinclude:: spacegroup-nacl.py
 
+
 Rutile
 ------
 
 .. image:: spacegroup-rutile.png
 
 .. literalinclude:: spacegroup-rutile.py
+
 
 CoSb3 skutterudite
 ------------------
@@ -91,7 +99,7 @@ in the unit cell.
 
 Often this structure is visualised with the Cobalt atoms on the
 corners. This can easily be accomplished with ASE using
-**ase.utils.geomegry.cut()**. Below is the *origo* argument used to
+:func:`ase.utils.geometry.cut`. Below is the *origo* argument used to
 put the Cobalt atom on the corners and *extend* to include all corner
 and edge atoms, even those belonging to neighbouring unit cells.
 
@@ -103,11 +111,11 @@ and edge atoms, even those belonging to neighbouring unit cells.
 The Spacegroup class
 ====================
 
-The :epydoc:`ase.lattice.spacegroup.Spacegroup` class is used
-internally by the **ase.lattice.spacegroup.crystal()** function, but
+The :class:`ase.lattice.spacegroup.Spacegroup` class is used
+internally by the :func:`ase.lattice.spacegroup.crystal` function, but
 might sometimes also be useful if you want to know e.g. the symmetry
 operations of a given space group. Instances of the
-:epydoc:`ase.lattice.spacegroup.Spacegroup` class are immutable
+:class:`ase.lattice.spacegroup.Spacegroup` class are immutable
 objects holding space group information, such as symmetry operations.
 
 Let us e.g. consider the fcc structure. To print information about the

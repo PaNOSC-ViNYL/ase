@@ -1,4 +1,4 @@
-.. module:: abinit
+.. module:: ase.calculators.abinit
 
 ======
 ABINIT
@@ -20,18 +20,21 @@ Environment variables
 
 .. highlight:: bash
 
-The environment variable :envvar:`ASE_ABINIT_COMMAND` must be set to
-something like this::
+.. envvar:: ASE_ABINIT_COMMAND
 
-  abinis < PREFIX.files > PREFIX.log
+    Must be set to something like this::
 
-where ``abinis`` is the executable.
+        abinis < PREFIX.files > PREFIX.log
 
-A directory containing the pseudopotential files (at least of
-:file:`.fhi` type) is also needed, and it is to be put in the
-environment variable :envvar:`ABINIT_PP_PATH`. Abinit does not provide
-tarballs of pseudopotentials so the easiest way is to download and
-unpack
+    where ``abinis`` is the executable.
+
+.. envvar:: ABINIT_PP_PATH
+
+    A directory containing the pseudopotential files (at least of
+    :file:`.fhi` type).
+
+Abinit does not provide tarballs of pseudopotentials so the easiest way is to
+download and unpack
 http://wiki.fysik.dtu.dk/abinit-files/abinit-pseudopotentials-2.tar.gz
 
 Set the environment variables in your in your shell configuration file::
@@ -57,9 +60,7 @@ Abinit does not specify a default value for the plane-wave cutoff
 energy.  You need to set them as in the example at the bottom of the
 page, otherwise calculations will fail.  Calculations wihout k-points
 are not parallelized by default and will fail! To enable band
-paralellization specify ``Number of BanDs in a BLOCK`` (``nbdblock``)
---- see
-`<http://www.abinit.org/Infos_v5.2/tutorial/lesson_parallelism.html>`_.
+paralellization specify ``Number of BanDs in a BLOCK`` (``nbdblock``).
 
 
 Pseudopotentials
@@ -69,12 +70,11 @@ Pseudopotentials in the ABINIT format are available on the
 `pseudopotentials`_ website.  A database of user contributed
 pseudopotentials is also available there.
 
-.. _pseudopotentials: http://www.abinit.org/Psps/?text=psps
+.. _pseudopotentials: http://www.abinit.org/downloads/atomic-data-files
 
 
 Example 1
 =========
 
-Here is an example of how to calculate the total energy for bulk Silicon:
-
-.. literalinclude:: Si_abinit.py
+Here is an example of how to calculate the total energy for bulk Silicon
+:svn:`ase/test/abinit/abinit_Si.py`.

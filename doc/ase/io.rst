@@ -1,15 +1,15 @@
-.. module:: io
+.. module:: ase.io
    :synopsis: File input-output module
 
 
 File input and output
 =====================
 
-The :mod:`io` module has two basic functions: :func:`read` and :func:`write`.
-The two methods are described here:
+The :mod:`ase.io` module has two basic functions: :func:`read` and
+:func:`write`. The two methods are described here:
 
-.. autofunction:: ase.io.read
-.. autofunction:: ase.io.write
+.. autofunction:: read
+.. autofunction:: write
 
 The :func:`read` function is only designed to retrieve the atomic configuration
 from a file, but for the CUBE format you can import the function:
@@ -21,7 +21,6 @@ which will return a ``(data, atoms)`` tuple::
 
   from ase.io.cube import read_cube_data
   data, atoms = read_cube_data('abc.cube')
-
 
 
 Examples
@@ -56,7 +55,7 @@ Here is an example using ``bbox``::
 
     d = a / 2**0.5
     write('slab.pov', slab * (2, 2, 1),
-	  bbox=(d, 0, 3 * d, d * 3**0.5))
+          bbox=(d, 0, 3 * d, d * 3**0.5))
 
 .. image:: io3.png
 
@@ -83,9 +82,9 @@ array([[  5.10531096e+00,  -4.11836034e-16,   1.99569088e-16],
 array([ True,  True,  True], dtype=bool)
 
 A script showing all of the povray parameters, and generating the image below,
-can be found here: :trac:`doc/ase/save_pov.py`
+can be found here: :download:`save_pov.py`
 
 .. image:: NaCl_C6H6.png
 
 An other example showing how to change colors and textures in pov can
-be found here: :trac:`doc/tutorials/saving_graphics.py`
+be found here: :download:`../tutorials/saving_graphics.py`.

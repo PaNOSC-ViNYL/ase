@@ -8,6 +8,7 @@ import os
 
 import numpy as np
 
+from ase.units import Hartree
 from ase.io.aims import write_aims, read_aims
 from ase.data import atomic_numbers
 from ase.calculators.calculator import FileIOCalculator, Parameters, kpts2mp, \
@@ -57,6 +58,7 @@ string_keys = [
     'qpe_calc',
     'xc',
     'species_dir',
+    'run_command',
 ]
 
 int_keys = [
@@ -117,7 +119,7 @@ class Aims(FileIOCalculator):
     implemented_properties = ['energy', 'forces', 'stress', 'dipole']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 label=os.curdir, atoms=None, cubes=None, **kwargs):
+                 label=os.curdir, atoms=None, cubes=None, radmul=None, tier=None, **kwargs):
         """Construct FHI-aims calculator.
         
         The keyword arguments (kwargs) can be one of the ASE standard
@@ -128,17 +130,30 @@ class Aims(FileIOCalculator):
 
         cubes: AimsCube object
             Cube file specification.
+        radmul: int
+            Set radial multiplier for the basis set of all atomic species.
+        tier: int or array of ints
+            Set basis set tier for all atomic species.
         """
-
+        try:
+            self.outfilename = kwargs.get('run_command').split()[-1]
+        except:
+            self.outfilename = 'aims.out'
+        
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
-                                  label, atoms, **kwargs)
+                                  label, atoms, 
+                                  command = kwargs.get('run_command'),
+                                  **kwargs)
         self.cubes = cubes
+        self.radmul = radmul
+        self.tier = tier
+
 
     def set_label(self, label):
         self.label = label
         self.directory = label
         self.prefix = ''
-        self.out = os.path.join(label, 'aims.out')
+        self.out = os.path.join(label, self.outfilename)
 
     def check_state(self, atoms):
         system_changes = FileIOCalculator.check_state(self, atoms)
@@ -158,7 +173,7 @@ class Aims(FileIOCalculator):
             self.reset()
         return changed_parameters
 
-    def write_input(self, atoms, properties=None, system_changes=None):
+    def write_input(self, atoms, properties=None, system_changes=None, ghosts=None):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
 
         have_lattice_vectors = atoms.pbc.any()
@@ -168,7 +183,7 @@ class Aims(FileIOCalculator):
             raise RuntimeError('Found lattice vectors but no k-grid!')
         if not have_lattice_vectors and have_k_grid:
             raise RuntimeError('Found k-grid but no lattice vectors!')
-        write_aims(os.path.join(self.directory, 'geometry.in'), atoms)
+        write_aims(os.path.join(self.directory, 'geometry.in'), atoms, ghosts)
         self.write_control(atoms, os.path.join(self.directory, 'control.in'))
         self.write_species(atoms, os.path.join(self.directory, 'control.in'))
         self.parameters.write(os.path.join(self.directory, 'parameters.ase'))
@@ -193,7 +208,7 @@ class Aims(FileIOCalculator):
                 output.write('%-35s%d %d %d\n' % (('k_grid',) + tuple(mp)))
                 dk = 0.5 - 0.5 / np.array(mp)
                 output.write('%-35s%f %f %f\n' % (('k_offset',) + tuple(dk)))
-            elif key == 'species_dir':
+            elif key == 'species_dir' or key == 'run_command':
                 continue
             elif key == 'smearing':
                 name = self.parameters.smearing[0].lower()
@@ -258,6 +273,7 @@ class Aims(FileIOCalculator):
             self.read_dipole()
 
     def write_species(self, atoms, filename='control.in'):
+        self.ctrlname = filename
         species_path = self.parameters.get('species_dir')
         if species_path is None:
             species_path = os.environ.get('AIMS_SPECIES_DIR')
@@ -265,19 +281,89 @@ class Aims(FileIOCalculator):
             raise RuntimeError(
                 'Missing species directory!  Use species_dir ' +
                 'parameter or set $AIMS_SPECIES_DIR environment variable.')
-
         control = open(filename, 'a')
         symbols = atoms.get_chemical_symbols()
         symbols2 = []
         for n, symbol in enumerate(symbols):
             if symbol not in symbols2:
                 symbols2.append(symbol)
-        for symbol in symbols2:
+        if self.tier is not None:
+            if isinstance(self.tier, int):
+                self.tierlist = np.ones(len(symbols2),'int') * self.tier
+            elif isinstance(self.tier, list):
+                assert len(self.tier) == len(symbols2)
+                self.tierlist = self.tier
+
+        for i, symbol in enumerate(symbols2):
             fd = os.path.join(species_path, '%02i_%s_default' %
                               (atomic_numbers[symbol], symbol))
+            reached_tiers = False
             for line in open(fd, 'r'):
+                if self.tier is not None:
+                    if 'First tier' in line:
+                        reached_tiers = True
+                        self.targettier = self.tierlist[i]
+                        self.foundtarget = False
+                        self.do_uncomment = True
+                    if reached_tiers:
+                        line = self.format_tiers(line)
                 control.write(line)
+            if self.tier is not None and not self.foundtarget:
+                raise RuntimeError(
+                    "Basis tier %i not found for element %s"\
+                    % (self.targettier, symbol))
         control.close()
+
+        if self.radmul is not None:
+            self.set_radial_multiplier()
+
+    def format_tiers(self, line):
+        if 'meV' in line:
+            assert line[0] == '#'
+            if 'tier' in line and 'Further' not in line:
+                tier = line.split(" tier")[0]
+                tier = tier.split('"')[-1]
+                current_tier = self.translate_tier(tier)
+                if current_tier == self.targettier:
+                    self.foundtarget = True
+                elif current_tier > self.targettier:
+                    self.do_uncomment = False
+            else:
+                self.do_uncomment = False
+            return line
+        elif self.do_uncomment and line[0] == '#':
+            return line[1:]
+        elif not self.do_uncomment and line[0] != '#':
+            return '#'+line
+        else:
+            return line
+
+    def translate_tier(self, tier):
+        if tier.lower() == 'first':
+            return 1
+        elif tier.lower() == 'second':
+            return 2
+        elif tier.lower() == 'third':
+            return 3
+        elif tier.lower() == 'fourth':
+            return 4
+        else:
+            return -1
+
+    def set_radial_multiplier(self):
+        assert isinstance(self.radmul, int)
+        newctrl = self.ctrlname+'.new'
+        fin = open(self.ctrlname, 'r')
+        fout = open(newctrl, 'w')
+        newline = "    radial_multiplier   %i\n" % self.radmul
+        for line in fin:
+            if '    radial_multiplier' in line:
+                fout.write(newline)
+            else:
+                fout.write(line)
+        fin.close()
+        fout.close()
+        os.rename(newctrl, self.ctrlname)
 
     def get_dipole_moment(self, atoms):
         if ('dipole' not in self.parameters.get('output', []) or
@@ -351,6 +437,179 @@ class Aims(FileIOCalculator):
             if line.rfind('Have a nice day') > -1:
                 converged = True
         return converged
+
+    def get_number_of_iterations(self):
+        return self.read_number_of_iterations()
+
+    def read_number_of_iterations(self):
+        niter = None
+        lines = open(self.out, 'r').readlines()
+        for n, line in enumerate(lines):
+            if line.rfind('| Number of self-consistency cycles') > -1:
+                niter = int(line.split(':')[-1].strip())
+        return niter
+
+    def get_electronic_temperature(self):
+        return self.read_electronic_temperature()
+
+    def read_electronic_temperature(self):
+        width = None
+        lines = open(self.out, 'r').readlines()
+        for n, line in enumerate(lines):
+            if line.rfind('Occupation type:') > -1:
+                width = float(line.split('=')[-1].strip().split()[0])
+        return width
+
+    def get_number_of_electrons(self):
+        return self.read_number_of_electrons()
+
+    def read_number_of_electrons(self):
+        nelect = None
+        lines = open(self.out, 'r').readlines()
+        for n, line in enumerate(lines):
+            if line.rfind('The structure contains') > -1:
+                nelect = float(line.split()[-2].strip())
+        return nelect
+
+    def get_number_of_bands(self):
+        return self.read_number_of_bands()
+
+    def read_number_of_bands(self):
+        nband = None
+        lines = open(self.out, 'r').readlines()
+        for n, line in enumerate(lines):
+            if line.rfind('Total number of basis functions') > -1:
+                nband = int(line.split(':')[-1].strip())
+        return nband
+
+    def get_k_point_weights(self):
+        return self.read_kpts(mode='k_point_weights')
+
+    def get_bz_k_points(self):
+        raise NotImplementedError
+
+    def get_ibz_k_points(self):
+        return self.read_kpts(mode='ibz_k_points')
+
+    def get_spin_polarized(self):
+        return self.read_number_of_spins()
+
+    def get_number_of_spins(self):
+        return 1 + self.get_spin_polarized()
+
+    def read_number_of_spins(self):
+        spinpol = None
+        lines = open(self.out, 'r').readlines()
+        for n, line in enumerate(lines):
+            if line.rfind('| Number of spin channels') > -1:
+                spinpol = int(line.split(':')[-1].strip()) - 1
+        return spinpol
+
+    def read_magnetic_moment(self):
+        magmom = None
+        if not self.get_spin_polarized():
+            magmom = 0.0
+        else: # only for spinpolarized system Magnetisation is printed
+            for line in open(self.label + '.txt'):
+                if line.find('Magnetisation') != -1: # last one
+                    magmom = float(line.split('=')[-1].strip())
+        return magmom
+
+    def get_fermi_level(self):
+        return self.read_fermi()
+
+    def get_eigenvalues(self, kpt=0, spin=0):
+        return self.read_eigenvalues(kpt, spin, 'eigenvalues')
+
+    def get_occupations(self, kpt=0, spin=0):
+        return self.read_eigenvalues(kpt, spin, 'occupations')
+
+    def read_fermi(self):
+        E_f = None
+        lines = open(self.out, 'r').readlines()
+        for n, line in enumerate(lines):
+            if line.rfind('| Chemical potential (Fermi level) in eV') > -1:
+                E_f = float(line.split(':')[-1].strip())
+        return E_f
+
+    def read_kpts(self, mode='ibz_k_points'):
+        """ Returns list of kpts weights or kpts coordinates.  """
+        values = []
+        assert mode in ['ibz_k_points' , 'k_point_weights'], 'mode not in [\'ibz_k_points\' , \'k_point_weights\']'
+        lines = open(self.out, 'r').readlines()
+        kpts = None
+        for n, line in enumerate(lines):
+            if line.rfind('K-points in task') > -1:
+                kpts = int(line.split(':')[-1].strip())
+                kptsstart = n
+                break
+        assert not kpts is None
+        text = lines[kptsstart + 1:]
+        values = []
+        for line in text[:kpts]:
+            if mode == 'ibz_k_points':
+                b = [float(c.strip()) for c in line.split()[4:7]]
+            else:
+                b = float(line.split()[-1])
+            values.append(b)
+        if len(values) == 0:
+            values = None
+        return np.array(values)
+
+    def read_eigenvalues(self, kpt=0, spin=0, mode='eigenvalues'):
+        """ Returns list of last eigenvalues, occupations
+        for given kpt and spin.  """
+        values = []
+        assert mode in ['eigenvalues' , 'occupations'], 'mode not in [\'eigenvalues\' , \'occupations\']'
+        lines = open(self.out, 'r').readlines()
+        # number of kpts
+        kpts = None
+        for n, line in enumerate(lines):
+            if line.rfind('K-points in task') > -1:
+                kpts = int(line.split(':')[-1].strip())
+                break
+        assert not kpts is None
+        assert kpt + 1 <= kpts
+        # find last (eigenvalues)
+        eigvalstart = None
+        for n, line in enumerate(lines):
+            if line.rfind('Preliminary charge convergence reached') > -1:
+                eigvalstart = n
+                break
+        assert not eigvalstart is None
+        lines = lines[eigvalstart:]
+        for n, line in enumerate(lines):
+            if line.rfind('Writing Kohn-Sham eigenvalues') > -1:
+                eigvalstart = n
+                break
+        assert not eigvalstart is None
+        text = lines[eigvalstart + 1:] # remove first 1 line
+        # find the requested k-point
+        nbands = self.read_number_of_bands()
+        sppol = self.get_spin_polarized()
+        beg = (nbands + 4 + int(sppol)*1) * kpt * (sppol + 1) + 3 + sppol * 2 + kpt * sppol
+        if self.get_spin_polarized():
+            if spin == 0:
+                beg = beg
+                end = beg + nbands
+            else:
+                beg = beg + nbands + 5
+                end = beg + nbands
+        else:
+            end = beg + nbands
+        values = []
+        for line in text[beg:end]:
+            # aims prints stars for large values ...
+            line = line.replace('**************', '         10000')
+            b = [float(c.strip()) for c in line.split()[1:]]
+            values.append(b)
+        if mode == 'eigenvalues':
+            values = [Hartree*v[1] for v in values]
+        else:
+            values = [v[0] for v in values]
+        if len(values) == 0:
+            values = None
+        return np.array(values)
 
 
 class AimsCube:

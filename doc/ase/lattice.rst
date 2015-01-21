@@ -3,14 +3,15 @@
 General crystal structures and surfaces
 =======================================
 
-.. module:: lattice
+.. module:: ase.lattice
 
 Modules for creating crystal structures are found in the module
-:mod:`lattice`.  Most Bravais lattices are implemented, as
+:mod:`ase.lattice`.  Most Bravais lattices are implemented, as
 are a few important lattices with a basis.  The modules can create
 lattices with any orientation (see below).  These modules can be used
 to create surfaces with any crystal structure and any orientation by
-later adding a vacuum layer with :func:`lattice.surface.add_vacuum`.
+later adding a vacuum layer with :func:`ase.lattice.surface.add_vacuum`.
+
 
 Example
 -------
@@ -23,7 +24,7 @@ x-axis, [1,1,-2] along the y-axis and [1,1,1] along the z-axis, use::
                             size=(2,2,3), symbol='Cu', pbc=(1,1,0))
 
 The minimal unit cell is repeated 2*2*3 times.  The lattice constant
-is taken from the database of lattice constants in :mod:`data` module.
+is taken from the database of lattice constants in :mod:`ase.data` module.
 There are periodic boundary conditions along the *x* and *y* axis, but
 free boundary conditions along the *z* axis. Since the three directions
 are perpendicular, a (111) surface is created.
@@ -34,7 +35,7 @@ along the second axis, and [111] along the third axis use::
   from ase.lattice.cubic import BodyCenteredCubic
   atoms = BodyCenteredCubic(directions=[[1,0,0], [0,1,0], [1,1,1]],
                             size=(2,2,3), symbol='Cu', pbc=(1,1,0),
-			    latticeconstant=4.0)
+                            latticeconstant=4.0)
 
 Since BCC is not the natural crystal structure for Cu, a lattice
 constant has to be specified.  Note that since the repeat directions
@@ -86,7 +87,7 @@ with a basis):
 
 * The rhombohedral (or trigonal) lattices are not implemented.  They
   will be implemented when the need arises (and if somebody can tell
-  me_ the precise definition of the 4-number Miller indices - I only
+  us the precise definition of the 4-number Miller indices - we only
   know that they are "almost the same as in hexagonal lattices").
 
 * ``lattice.compounds``
@@ -101,7 +102,6 @@ with a basis):
   - ``L1_2`` = ``AuCu3``
   - ``L1_0`` = ``AuCu``
 
-.. _me: http://www.fysik.dtu.dk/~schiotz
 
 Usage
 -----
@@ -200,7 +200,6 @@ this::
   Diamond = DiamondFactory()
 
 
-
 Lattices with more than one element
 ```````````````````````````````````
 
@@ -248,8 +247,8 @@ use the simple cubic lattice with a larger basis::
       "A factory for creating NaCl (B1, Rocksalt) lattices."
 
       bravais_basis = [[0, 0, 0], [0, 0, 0.5], [0, 0.5, 0], [0, 0.5, 0.5],
-		       [0.5, 0, 0], [0.5, 0, 0.5], [0.5, 0.5, 0],
-		       [0.5, 0.5, 0.5]]
+                       [0.5, 0, 0], [0.5, 0, 0.5], [0.5, 0.5, 0],
+                       [0.5, 0.5, 0.5]]
       element_basis = (0, 1, 1, 0, 1, 0, 0, 1)
 
 

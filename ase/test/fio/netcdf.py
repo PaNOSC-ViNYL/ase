@@ -1,5 +1,5 @@
 import numpy as np
-from ase.io.pupynere import NetCDFFile
+from scipy.io.netcdf import NetCDFFile
 
 # Write array
 a1 = np.random.rand(5, 5)

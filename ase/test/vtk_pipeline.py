@@ -3,15 +3,14 @@ from ase.visualize.vtk import requirevtk
 requirevtk()
 
 import sys, unittest
-from ase.test import CustomTestCase, CustomTextTestRunner
+from ase.test import CustomTextTestRunner
 
 from vtk import vtkContourFilter, vtkPolyDataNormals, \
                 vtkLinearSubdivisionFilter, vtkPolyDataMapper
 from ase.visualize.vtk.pipeline import vtkPolyDataPipeline
 
-# -------------------------------------------------------------------
 
-class UTPipeline(CustomTestCase):
+class UTPipeline(unittest.TestCase):
     """
     Abstract test case class - TODO."""
 

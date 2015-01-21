@@ -509,7 +509,7 @@ class LAMMPS:
         xhilo = (hi[0] - lo[0]) - xy - xz
         yhilo = (hi[1] - lo[1]) - yz
         zhilo = (hi[2] - lo[2])
-	
+        
 # The simulation box bounds are included in each snapshot and if the box is triclinic (non-orthogonal), 
 # then the tilt factors are also printed; see the region prism command for a description of tilt factors. 
 # For triclinic boxes the box bounds themselves (first 2 quantities on each line) are a true "bounding box" 
@@ -519,20 +519,20 @@ class LAMMPS:
 # This *should* extract the lattice vectors that LAMMPS uses from the true "bounding box" printed in the dump file
 # It might fail in some cases (negative tilts?!) due to the MIN / MAX construction of these box corners:
 #
-#	void Domain::set_global_box() 
-#	[...]
-#	  if (triclinic) {
-#	    [...]
-#	    boxlo_bound[0] = MIN(boxlo[0],boxlo[0]+xy);
-#	    boxlo_bound[0] = MIN(boxlo_bound[0],boxlo_bound[0]+xz);
-#	    boxlo_bound[1] = MIN(boxlo[1],boxlo[1]+yz);
-#	    boxlo_bound[2] = boxlo[2];
+#       void Domain::set_global_box() 
+#       [...]
+#         if (triclinic) {
+#           [...]
+#           boxlo_bound[0] = MIN(boxlo[0],boxlo[0]+xy);
+#           boxlo_bound[0] = MIN(boxlo_bound[0],boxlo_bound[0]+xz);
+#           boxlo_bound[1] = MIN(boxlo[1],boxlo[1]+yz);
+#           boxlo_bound[2] = boxlo[2];
 #
-#	    boxhi_bound[0] = MAX(boxhi[0],boxhi[0]+xy);
-#	    boxhi_bound[0] = MAX(boxhi_bound[0],boxhi_bound[0]+xz);
-#	    boxhi_bound[1] = MAX(boxhi[1],boxhi[1]+yz);
-#	    boxhi_bound[2] = boxhi[2];
-#	  }
+#           boxhi_bound[0] = MAX(boxhi[0],boxhi[0]+xy);
+#           boxhi_bound[0] = MAX(boxhi_bound[0],boxhi_bound[0]+xz);
+#           boxhi_bound[1] = MAX(boxhi[1],boxhi[1]+yz);
+#           boxhi_bound[2] = boxhi[2];
+#         }
 # [ lammps-7Jul09/src/domain.cpp ]
 #
         cell = [[xhilo,0,0],[xy,yhilo,0],[xz,yz,zhilo]]
@@ -704,7 +704,8 @@ class prism:
         return (axy >= acc) or (axz >= acc) or (ayz >= acc)
         
 
-def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False, prismobj=None):
+def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False,
+                      prismobj=None, velocities=False):
     """Method which writes atomic structure data to a LAMMPS data file."""
     if isinstance(fileobj, str):
         f = paropen(fileobj, 'w')
@@ -755,6 +756,11 @@ def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False, prismobj
                               atoms.get_positions())):
         s = species.index(symbols[i]) + 1
         f.write('%6d %3d %s %s %s\n' % ((i+1, s)+tuple(r)))
+
+    if velocities and atoms.get_velocities() is not None:
+        f.write('\n\nVelocities \n\n')
+        for i, v in enumerate(atoms.get_velocities()):
+            f.write('%6d %s %s %s\n' % ((i+1,)+tuple(v)))
     
     if close_file:
         f.close()

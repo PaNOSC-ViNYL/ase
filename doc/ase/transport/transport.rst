@@ -1,12 +1,12 @@
-.. module:: transport
+.. module:: ase.transport
    :synopsis: Electron transport
 
 ==================
 Electron transport
 ==================
 
-The :mod:`transport` module of ASE assumes the generic setup of the system in
-question sketched below:
+The :mod:`ase.transport` module of ASE assumes the generic setup of the system
+in question sketched below:
 
 . . . |setup| . . .
 
@@ -31,9 +31,9 @@ The Hamiltonian can thus be decomposed as:
     H = \begin{pmatrix}
       \ddots      & V_L         &             &             &     \\
       V_L^\dagger & H_L         & V_L         &             &     \\
-		  & V_L^\dagger & H_C         & V_R         &     \\
-		  &             & V_R^\dagger & H_R         & V_R \\
-		  &             &             & V_R^\dagger & \ddots
+                  & V_L^\dagger & H_C         & V_R         &     \\
+                  &             & V_R^\dagger & H_R         & V_R \\
+                  &             &             & V_R^\dagger & \ddots
     \end{pmatrix}
 
 where `H_{L/R}` describes the left/right principal layer, and `H_C`
@@ -80,7 +80,8 @@ This module is stand-alone in the sense that it makes no requirement
 on the origin of these five matrices. They can be model Hamiltonians
 or derived from different kinds of electronic structure codes.
 
-For an example of how to use the :mod:`transport` module, see the GPAW
+For an example of how to use the :mod:`ase.transport` module, see the GPAW
 exercise on `electron transport`_
 
-.. _electron transport: http://wiki.fysik.dtu.dk/gpaw/exercises/transport/transport.html
+.. _electron transport: http://wiki.fysik.dtu.dk/gpaw/exercises/transport/
+                        transport.html

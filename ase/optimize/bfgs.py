@@ -7,23 +7,35 @@ from ase.optimize.optimize import Optimizer
 
 class BFGS(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
-                 maxstep=None):
+                 maxstep=None, master=None):
         """BFGS optimizer.
 
         Parameters:
+
+        atoms: Atoms object
+            The Atoms object to relax.
 
         restart: string
             Pickle file used to store hessian matrix. If set, file with 
             such a name will be searched and hessian matrix stored will
             be used, if the file exists.
+        
         trajectory: string
             Pickle file used to store trajectory of atomic movement.
+
+        logfile: file object or str
+            If *logfile* is a string, a file with that name will be opened.
+            Use '-' for stdout.
+ 
         maxstep: float
             Used to set the maximum distance an atom can move per
             iteration (default value is 0.04 Å).
-        """
         
-        Optimizer.__init__(self, atoms, restart, logfile, trajectory)
+        master: boolean
+            Defaults to None, which causes only rank 0 to save files.  If
+            set to true,  this rank will save files.
+        """
+        Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
 
         if maxstep is not None:
             if maxstep > 1.0:

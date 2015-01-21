@@ -1,13 +1,13 @@
-.. module:: vibrations
+.. module:: ase.vibrations
 
 Vibration analysis
 ------------------
 
 You can calculate the vibrational modes of a an
 :class:`~ase.atoms.Atoms` object in the harmonic approximation using
-the :class:`~ase.vibration.Vibrations`.
+the :class:`Vibrations`.
 
-.. autoclass:: ase.vibrations.Vibrations
+.. autoclass:: Vibrations
    :members:
 
 name is a string that is prefixed to the names of all the files

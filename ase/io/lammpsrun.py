@@ -4,7 +4,7 @@ from ase.calculators.singlepoint import SinglePointCalculator
 from ase.parallel import paropen
 
 
-def read_lammps_dump(fileobj, index=-1, order=True):
+def read_lammps_dump(fileobj, index=-1, order=True, atomsobj=Atoms):
     """Method which reads a LAMMPS dump file.
 
     order: Order the particles according to their id. Might be faster to
@@ -133,14 +133,13 @@ def read_lammps_dump(fileobj, index=-1, order=True):
                                           cell=cell, celldisp=celldisp,
                                           quaternions=quaternions))
             elif len(positions):
-                images.append(Atoms(symbols=types,
-                                    positions=positions, celldisp=celldisp,
-                                    cell=cell))
+                images.append(atomsobj(
+                    symbols=types, positions=positions,
+                    celldisp=celldisp, cell=cell))
             elif len(scaled_positions):
-                images.append(Atoms(symbols=types,
-                                    scaled_positions=scaled_positions,
-                                    celldisp=celldisp,
-                                    cell=cell))
+                images.append(atomsobj(
+                    symbols=types, scaled_positions=scaled_positions,
+                    celldisp=celldisp, cell=cell))
 
             if len(velocities):
                 images[-1].set_velocities(velocities)

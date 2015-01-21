@@ -1,3 +1,5 @@
+.. _wannier tutorial:
+    
 =================================
 Partly occupied Wannier Functions
 =================================

@@ -10,6 +10,7 @@ add_adsorbate(slab, 'Au', 1.7, 'hollow')
 slab.center(axis=2, vacuum=4.0)
 
 # Make sure the structure is correct:
+#from ase.visualize import view
 #view(slab)
 
 # Fix second and third layers:
@@ -25,8 +26,8 @@ slab.set_constraint([fixlayers, plane])
 # Use EMT potential:
 slab.set_calculator(EMT())
 
-# Initial state:
 for i in range(5):
     qn = QuasiNewton(slab, trajectory='mep%d.traj' % i)
     qn.run(fmax=0.05)
+    # Move gold atom along x-axis:
     slab[-1].x += slab.get_cell()[0, 0] / 8

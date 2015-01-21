@@ -1,6 +1,5 @@
 from __future__ import print_function
 import os
-import types
 import warnings
 from os.path import join
 from stat import ST_MTIME
@@ -148,6 +147,7 @@ def create_png_files():
                     t0 = os.stat(path)[ST_MTIME]
                     run = False
                     for file in line.split()[2:]:
+                        file = file.rstrip(',')
                         try:
                             t = os.stat(join(dirpath, file))[ST_MTIME]
                         except OSError:
@@ -158,14 +158,15 @@ def create_png_files():
                                 run = True
                                 break
                     if run:
-                        print(('running:', join(dirpath, filename)))
+                        print('running:', join(dirpath, filename))
                         os.chdir(dirpath)
                         plt.figure()
                         try:
-                            exec(compile(open(filename).read(), filename, 'exec'), {})
+                            exec(open(filename).read())
                         finally:
                             os.chdir(olddir)
                         for file in line.split()[2:]:
                             print((dirpath, file))
+
         if '.svn' in dirnames:
             dirnames.remove('.svn')

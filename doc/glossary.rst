@@ -66,4 +66,4 @@ Glossary
 
 
     
-.. _Epydoc: http://epydoc.sourceforge.net
+.. _Epydoc: http://epydoc.sourceforge.net/

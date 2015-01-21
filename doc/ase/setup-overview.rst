@@ -8,7 +8,6 @@ Creating atomic structures
    structure
    surface
    lattice
-   molecules
 
 ASE contains a number of modules for setting up atomic structures,
 mainly molecules, bulk crystals and surfaces.  Some of these modules
@@ -18,7 +17,7 @@ flexibility and ease-of-use.
 
 **Common bulk crystals**
 
-The :func:`ase.structure.bulk` function can be used to create the most
+The :func:`ase.lattice.bulk` function can be used to create the most
 common bulk crystal structures.  The function creates a single unit cell
 oriented such that the number of atoms in the cell is minimal.
 
@@ -27,7 +26,7 @@ Read more: :ref:`bulk-crystal-section`.
 
 **Common surfaces**
 
-The :mod:`lattice.surface` module contains a number of 
+The :mod:`ase.lattice.surface` module contains a number of 
 functions for creating the most common surfaces in a minimal unit
 cell, and for adding adsorbates to these surfaces.
 
@@ -45,7 +44,7 @@ Read more:  :ref:`nanotubes-section` and :ref:`nanoribbons-section`.
 
 **Generally oriented bulk crystals and surfaces**
 
-The :mod:`lattice` module contains functions for creating most common
+The :mod:`ase.lattice` module contains functions for creating most common
 crystal structures with arbitrary orientation.  The user can specify
 the desired Miller index along the three axes of the simulation, and
 the smallest periodic structure fulfilling this specification is
@@ -60,6 +59,7 @@ Read more: :ref:`general-crystal-section`.
 
 **Molecules**
 
-Some common molecules are available in the :mod:`~data.molecules` module.
+Some common molecules can be constructed using the
+:func:`ase.structure.molecule` function.
 
-Read more: :ref:`molecules-section`.
+Read more: :ref:`molecular-data`.

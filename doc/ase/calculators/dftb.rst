@@ -1,4 +1,4 @@
-.. module:: dftb
+.. module:: ase.calculators.dftb
 
 =========
 DftbPlus
@@ -83,7 +83,7 @@ Parameters
               Å\ `^{-1}`.
         run_manyDftb_steps: bool (default False)
             If True the Dftb calculator is running many steps by its own.
-	    If False all the relaxations/ molecular dynamis is done by ASE
+            If False all the relaxations/ molecular dynamis is done by ASE
 
 Example: Geometry Optimization by ASE
 =====================================
@@ -99,14 +99,9 @@ Example: NVE md followed by NVT md (both by DFTB)
 =================================================
 
 This is unphysical because of at least two reasons
-
-- oxygen does not have spin here::
-
-- the berendsen coupling is too strong (0.01 here should be 0.0001)::
-
-
+- oxygen does not have spin here
+- the berendsen coupling is too strong (0.01 here should be 0.0001)
 .. literalinclude:: dftb_ex3_make_2h2o.py
-
 
 
 

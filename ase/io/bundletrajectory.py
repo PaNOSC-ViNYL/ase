@@ -273,6 +273,7 @@ class BundleTrajectory:
         "Closes the trajectory."
         self.state = 'closed'
         lf = getattr(self, 'logfile', None)
+        self.backend.close(log=lf)
         if lf is not None:
             lf.close()
             del self.logfile
@@ -325,16 +326,16 @@ class BundleTrajectory:
         data['constraint'] = smalldata['constraints']
         if self.subtype == 'split':
             self.backend.set_fragments(smalldata['fragments'])
-            atom_id = self.backend.read_split(framedir, 'ID')
+            self.atom_id, dummy = self.backend.read_split(framedir, 'ID')
         else:
-            atom_id = None
+            self.atom_id = None
         atoms = ase.Atoms(**data)
         natoms = smalldata['natoms']
         for name in ('positions', 'numbers', 'tags', 'masses',
                      'momenta'):
             if self.datatypes.get(name):
                 atoms.arrays[name] = self._read_data(framezero, framedir,
-                                                     name, atom_id)
+                                                     name, self.atom_id)
                 assert len(atoms.arrays[name]) == natoms
                 
         # Create the atoms object
@@ -370,7 +371,8 @@ class BundleTrajectory:
             raise IndexError('Trajectory index %d out of range [0, %d['
                              % (n, self.nframes))
         framedir = os.path.join(self.filename, 'F' + str(n))
-        return self.backend.read(framedir, name) 
+        framezero = os.path.join(self.filename, 'F0')
+        return self._read_data(framezero, framedir, name, self.atom_id) 
 
     def _read_data(self, f0, f, name, atom_id):
         "Read single data item."
@@ -382,10 +384,11 @@ class BundleTrajectory:
                 d = self.backend.read(f, name)
         elif self.subtype == 'split':
             if self.datatypes[name] == 'once':
-                d = self.backend.read_split(f0, name)
+                d, issplit = self.backend.read_split(f0, name)
             else:
-                d = self.backend.read_split(f, name)
-            if atom_id is not None:
+                d, issplit = self.backend.read_split(f, name)
+            if issplit:
+                assert atom_id is not None
                 assert len(d) == len(atom_id)
                 d = d[atom_id]
         return d
@@ -473,7 +476,7 @@ class BundleTrajectory:
         if not os.path.exists(self.filename):
             # OK, no old bundle.  Open as for write instead.
             ase.parallel.barrier()
-            self._open_write(atoms)
+            self._open_write(atoms, False)
             return
         if not self.is_bundle(self.filename):
             raise IOError('Not a BundleTrajectory: ' + self.filename)
@@ -724,8 +727,17 @@ class PickleBundleBackend:
         self.nfrag = nfrag
         
     def read_split(self, framedir, name):
-        "Read data from multiple files."
+        """Read data from multiple files.
+        
+        Falls back to reading from single file if that is how data is stored.
+
+        Returns the data and a flag indicating if the data was really read from
+        split files.
+        """
         data = []
+        if os.path.exists(os.path.join(framedir, name + '.pickle')):
+            # Not stored in split form!
+            return (self.read(framedir, name), False)
         for i in range(self.nfrag):
             suf = "_%d" % (i,)
             fn = os.path.join(framedir, name + suf + '.pickle')
@@ -733,7 +745,14 @@ class PickleBundleBackend:
             shape = pickle.load(f)  # Discarded.
             data.append(pickle.load(f))
             f.close()
-        return np.concatenate(data)
+        return (np.concatenate(data), True)
+    
+    def close(self, log=None):
+        """Close anything that needs to be closed by the backend.
+        
+        The default backend does nothing here.
+        """
+        pass
     
 def read_bundletrajectory(filename, index=-1):
     """Reads one or more atoms objects from a BundleTrajectory.

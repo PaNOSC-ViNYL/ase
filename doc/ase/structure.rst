@@ -1,10 +1,23 @@
-.. module:: structure
+.. module:: ase.structure
 
 .. seealso::
 
-   * The :mod:`lattice` module
-   * The :mod:`~lattice.spacegroup` module
-   * The :mod:`~lattice.surface` module
+   * The :mod:`ase.lattice` module
+   * The :mod:`~ase.lattice.spacegroup` module
+   * The :mod:`~ase.lattice.surface` module
+
+
+Molecules
+=========
+
+The G2-database of common molecules is available:
+
+.. autofunction:: molecule
+
+Example::
+
+>>> from ase.structure import molecule
+>>> atoms = molecule('H2O')
 
 
 .. _bulk-crystal-section:
@@ -45,7 +58,7 @@ array([[ 3.6,  0. ,  0. ],
 Nanotubes
 =========
 
-.. autofunction:: ase.structure.nanotube
+.. autofunction:: nanotube
 
 examples:
 
@@ -58,12 +71,13 @@ examples:
 .. |cnt1| image:: cnt1.png
 .. |cnt2| image:: cnt2.png
 
+
 .. _nanoribbons-section:
 
 Graphene nanoribbons
 ====================
 
-.. autofunction:: ase.structure.graphene_nanoribbon
+.. autofunction:: graphene_nanoribbon
 
 examples:
 
@@ -77,21 +91,3 @@ examples:
 
 .. |gnr1| image:: gnr1.png
 .. |gnr2| image:: gnr2.png
-
-Special points in the Brillouin zone
-====================================
-
-You can find the special points in the Brillouin zone:
-
->>> from ase.structure import bulk
->>> from ase.dft.kpoints import ibz_points, get_bandpath
->>> si = bulk('Si', 'diamond', a=5.459)
->>> points = ibz_points['fcc']
->>> G = points['Gamma']
->>> X = points['X']
->>> W = points['W']
->>> K = points['K']
->>> L = points['L']
->>> kpts, x, X = get_bandpath([W, L, G, X, W, K], si.cell)
->>> print len(kpts), len(x), len(X)
-50 50 6

@@ -1,12 +1,14 @@
 import os
-
-import platform
 import sys
+import platform
 import unittest
 import subprocess
 from glob import glob
 
 import numpy as np
+
+from ase.parallel import paropen
+from ase.calculators.calculator import names as calc_names, get_calculator
 
 
 class NotAvailable(Exception):
@@ -20,19 +22,6 @@ def require(calcname):
     if calcname not in test_calculator_names:
         raise NotAvailable
         
-        
-# Custom test case/suite for embedding unittests in the test scripts
-
-if sys.version_info < (2, 4, 0, 'final', 0):
-    class CustomTestCase(unittest.TestCase):
-        assertTrue = unittest.TestCase.failUnless
-        assertFalse = unittest.TestCase.failIf
-else:
-    from unittest import TestCase as CustomTestCase
-
-from ase.parallel import paropen
-from ase.calculators.calculator import names as calc_names, get_calculator
-
 
 class CustomTextTestRunner(unittest.TextTestRunner):
     def __init__(self, logname, descriptions=1, verbosity=1):
@@ -48,7 +37,6 @@ class CustomTextTestRunner(unittest.TextTestRunner):
             sys.stderr = stderr_old
         return testresult
 
-# -------------------------------------------------------------------
 
 class ScriptTestCase(unittest.TestCase):
     def __init__(self, methodname='testfile', filename=None, display=True):
@@ -103,7 +91,7 @@ def test(verbosity=1, calculators=[],
             # relative to ase/test (__path__[0])
             testdir = os.path.join(__path__[0], dir)
     files = glob(testdir + '/*')
-    sdirtests = [] # tests from subdirectories: only one level assumed
+    sdirtests = []  # tests from subdirectories: only one level assumed
     tests = []
     for f in files:
         if os.path.isdir(f):
@@ -115,9 +103,11 @@ def test(verbosity=1, calculators=[],
                 tests.append(f)
     tests.sort()
     sdirtests.sort()
-    tests.extend(sdirtests) # run test subdirectories at the end
-    lasttest = None # is COCu111.py in the current set
+    tests.extend(sdirtests)  # run test subdirectories at the end
+    lasttest = None  # is COCu111.py in the current set
     for test in tests:
+        if test.endswith('vtk_data.py'):
+            continue
         if test.endswith('__init__.py'):
             continue
         if test.endswith('COCu111.py'):
@@ -165,7 +155,7 @@ def cli(command, calculator_name=None):
         return
     error = subprocess.call(' '.join(command.split('\n')), shell=True)
     assert error == 0
-
+    
 
 class World:
     """Class for testing parallelization with MPI"""
@@ -176,6 +166,21 @@ class World:
     def get_rank(self, rank):
         return CPU(self, rank)
 
+
+class MustRaise:
+    """Context manager for checking raising of exceptions."""
+    def __init__(self, exception):
+        self.exception = exception
+        
+    def __enter__(self):
+        pass
+        
+    def __exit__(self, exc_type, exc_value, tb):
+        if exc_type is None:
+            raise RuntimeError('Failed to fail: ' + str(self.exception))
+        return issubclass(exc_type, self.exception)
+        
+        
 class CPU:
     def __init__(self, world, rank):
         self.world = world

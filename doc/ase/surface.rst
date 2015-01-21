@@ -24,7 +24,7 @@ Example
 To setup an Al(111) surface with a hydrogen atom adsorbed in an on-top
 position::
 
-  from ase.lattice.surface import *
+  from ase.lattice.surface import fcc111
   slab = fcc111('Al', size=(2,2,3), vacuum=10.0)
 
 This will produce a slab 2x2x3 times the minimal possible size, with a
@@ -34,7 +34,7 @@ each side.
 To set up the same surface with with a hydrogen atom adsorbed in an on-top
 position 1.5 Å above the top layer::
 
-  from ase.lattice.surface import *
+  from ase.lattice.surface import fcc111, add_adsorbate
   slab = fcc111('Al', size=(2,2,3))
   add_adsorbate(slab, 'H', 1.5, 'ontop')
   slab.center(vacuum=10.0, axis=2)
@@ -52,7 +52,7 @@ Adsorbates get tag=0:
 >>> print atoms.get_tags()
 [3 3 3 3 2 2 2 2 1 1 1 1 0]
 
-This can be useful for setting up :mod:`constraints` (see
+This can be useful for setting up :mod:`ase.constraints` (see
 :ref:`diffusion_tutorial`).
 
 
@@ -93,7 +93,7 @@ All the functions setting up surfaces take the same arguments.
 
 Each function defines a number of standard adsorption sites that can
 later be used when adding an adsorbate with
-:func:`lattice.surface.add_adsorbate`.
+:func:`ase.lattice.surface.add_adsorbate`.
 
 
 The following functions are provided
@@ -117,6 +117,7 @@ diamond100  |diamond100|
 
 
 .. function:: fcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
+.. function:: fcc211(symbol, size, a=None, vacuum=0.0, orthogonal=True)
 .. function:: bcc110(symbol, size, a=None, vacuum=0.0, orthogonal=False)
 .. function:: bcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
 .. function:: hcp0001(symbol, size, a=None, c=None, vacuum=0.0, orthogonal=False)
@@ -124,13 +125,14 @@ diamond100  |diamond100|
 
 These can give both non-orthorhombic and orthorhombic cells:
 
-==========  ============  ===============
-fcc111      |fcc111|      |fcc111o|
-bcc110      |bcc110|      |bcc110o|
-bcc111      |bcc111|      |bcc111o|
-hcp0001     |hcp0001|     |hcp0001o|
-diamond111  |diamond111|  not implemented
-==========  ============  ===============
+==========  ===============  ===============
+fcc111      |fcc111|         |fcc111o|
+fcc211      not implemented  |fcc211o|
+bcc110      |bcc110|         |bcc110o|
+bcc111      |bcc111|         |bcc111o|
+hcp0001     |hcp0001|        |hcp0001o|
+diamond111  |diamond111|     not implemented
+==========  ===============  ===============
 
 The adsorption sites are marked with:
 
@@ -152,6 +154,7 @@ ontop    hollow    fcc    hcp    bridge    shortbridge  longbridge
 .. |bcc111|   image:: bcc111.png
 .. |hcp0001|  image:: hcp0001.png
 .. |fcc111o|  image:: fcc111o.png
+.. |fcc211o|  image:: fcc211o.png
 .. |bcc110o|  image:: bcc110o.png
 .. |bcc111o|  image:: bcc111o.png
 .. |hcp0001o| image:: hcp0001o.png
@@ -177,6 +180,7 @@ After a slab has been created, a vacuum layer can be added.  It is
 also possible to add one or more adsorbates.
 
 .. autofunction:: ase.lattice.surface.add_adsorbate
+.. autofunction:: ase.lattice.surface.add_vacuum
 
 
 .. _general-surface-section:

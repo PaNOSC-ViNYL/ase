@@ -263,7 +263,7 @@ class GUI(View, Status):
             ('Rotate', None, _('Rotate ...'), None,
              '',
              self.rotate_window),
-            ('Colors', None, _('Colors ...'), None, '',
+            ('Colors', None, _('Colors ...'), 'C', '',
              self.colors_window),
             # TRANSLATORS: verb
             ('Focus', gtk.STOCK_ZOOM_FIT, _('Focus'), 'F',
@@ -707,7 +707,7 @@ class GUI(View, Status):
             mom = self.add_entries[3].get_text()
             pos = self.add_entries[4].get_text().lower()
 
-            if paste is not None: 
+            if paste is not None:
                 a = paste.copy()
             else:
                 a = None
@@ -715,10 +715,10 @@ class GUI(View, Status):
             if a is None:
                 try:
                     a = ase.Atoms([ase.Atom(molecule)])
-                except:      
+                except:
                     try:
-                        import ase.data.molecules
-                        a = ase.data.molecules.molecule(molecule)
+                        import ase.structure
+                        a = ase.structure.molecule(molecule)
                     except:
                         try:
                             a = ase.io.read(molecule, -1)

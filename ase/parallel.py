@@ -6,6 +6,23 @@ import pickle
 
 import numpy as np
 
+from ase.utils import devnull
+
+
+def get_txt(txt, rank):
+    if hasattr(txt, 'write'):
+        # Note: User-supplied object might write to files from many ranks.
+        return txt
+    elif rank == 0:
+        if txt is None:
+            return devnull
+        elif txt == '-':
+            return sys.stdout
+        else:
+            return open(txt, 'w', 1)
+    else:
+        return devnull
+
 
 def paropen(name, mode='r'):
     """MPI-safe version of open function.
@@ -21,32 +38,15 @@ def paropen(name, mode='r'):
 
 def parprint(*args, **kwargs):
     """MPI-safe print - prints only from master.
-
-    Tries to adopt python 3 behaviour.
     """
-    if rank > 0:
-        return
-    defaults = {'end': '\n',
-                'file': sys.stdout }
-    for key in defaults:
-        if not key in kwargs:
-            kwargs[key] = defaults[key]
-
-    for arg in args[:-1]:
-        print(arg, end=' ', file=kwargs['file'])
-    if len(args):
-        last = args[-1]
-    else:
-        last = ''
-    if kwargs['end'] == '\n':
-        print(last, file=kwargs['file'])
-    else:
-        print(last, end=' ', file=kwargs['file'])
+    if rank == 0:
+        print(*args, **kwargs)
 
 
 class DummyMPI:
     rank = 0
     size = 1
+
     def sum(self, a):
         if isinstance(a, np.ndarray) and a.ndim > 0:
             pass
@@ -87,7 +87,6 @@ if '_gpaw' in sys.modules:
 elif 'asapparallel3' in sys.modules:
     # http://wiki.fysik.dtu.dk/Asap
     # We cannot import asap3.mpi here, as that creates an import deadlock
-    #from asap3.mpi import world
     import asapparallel3
     world = asapparallel3.Communicator()
 elif 'Scientific_mpi' in sys.modules:
@@ -145,6 +144,7 @@ def register_parallel_cleanup_function():
 
     atexit.register(cleanup)
 
+    
 def distribute_cpus(size, comm):
     """Distribute cpus to tasks and calculators.
 
@@ -165,4 +165,4 @@ def distribute_cpus(size, comm):
     ranks = np.arange(r0, r0 + size)
     mycomm = comm.new_communicator(ranks)
 
-    return mycomm, comm.size / size, tasks_rank 
+    return mycomm, comm.size / size, tasks_rank

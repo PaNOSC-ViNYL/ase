@@ -9,7 +9,7 @@ import sys
 import numpy as np
 
 from ase.units import Hartree, Bohr
-from ase.io.turbomole import write_turbomole
+from ase.io.turbomole import read_turbomole,write_turbomole
 from ase.calculators.general import Calculator
 
 
@@ -35,7 +35,7 @@ class Turbomole(Calculator):
         # atoms must be set
         self.atoms = None
         
-        # POST-HF method 
+        # POST-HF method
         self.post_HF  = post_HF
 
     def initialize(self, atoms):
@@ -61,6 +61,7 @@ class Turbomole(Calculator):
 
     def get_potential_energy(self, atoms):
         # update atoms
+        self.updated = self.e_total is None
         self.set_atoms(atoms)
         # if update of energy is neccessary
         if self.update_energy:
@@ -73,13 +74,19 @@ class Turbomole(Calculator):
                     'Please run Turbomole define and come thereafter back')
             # read energy
             self.read_energy()
+<<<<<<< .working
         else:
             print('taking old values (E)')
+=======
+        #else:
+        #    print 'taking old values (E)'
+>>>>>>> .merge-right.r4055
         self.update_energy = False
         return self.e_total
 
     def get_forces(self, atoms):
         # update atoms
+        self.updated = self.forces is None
         self.set_atoms(atoms)
         # complete energy calculations
         if self.update_energy:
@@ -90,8 +97,13 @@ class Turbomole(Calculator):
             self.execute(self.calculate_forces + ' > ASE.TM.forces.out')
             # read forces
             self.read_forces()
+<<<<<<< .working
         else:
             print('taking old values (F)')
+=======
+        #else:
+        #    print 'taking old values (F)'
+>>>>>>> .merge-right.r4055
         self.update_forces = False
         return self.forces.copy()
     
@@ -100,10 +112,16 @@ class Turbomole(Calculator):
         
     def set_atoms(self, atoms):
         if self.atoms == atoms:
-            return
-        # performs an update of the atoms 
-        Calculator.set_atoms(self, atoms)
+            if (self.updated and os.path.isfile('coord')):
+                self.updated = False
+                a = read_turbomole().get_positions()
+                if np.allclose(a,atoms.get_positions(), rtol=0, atol=1e-13):
+                    return
+            else:
+                return
+        # performs an update of the atoms
         write_turbomole('coord', atoms)
+        Calculator.set_atoms(self, atoms)
         # energy and forces must be re-calculated
         self.update_energy = True
         self.update_forces = True
@@ -152,6 +170,6 @@ class Turbomole(Calculator):
         for i in range(iline, nline):
             line = lines[i].replace('D', 'E')
             tmp = np.array([[float(f) for f in line.split()[0:3]]])
-            forces = np.concatenate((forces, tmp))  
+            forces = np.concatenate((forces, tmp))
         # Note the '-' sign for turbomole, to get forces
         self.forces = (-np.delete(forces, np.s_[0:1], axis=0)) * Hartree / Bohr

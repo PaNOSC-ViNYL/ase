@@ -8,7 +8,7 @@ We use the Sphinx_ tool to generate the documentation (both HTML
 and PDF_).  The documentation is stored in SVN as text files in the
 :trac:`doc` directory using the reStructuredText_ markup language.
 
-.. _reStructuredText: http://docutils.sf.net/rst.html
+.. _reStructuredText: http://docutils.sourceforge.net/rst.html
 .. _Sphinx: http://sphinx.pocoo.org
 .. _PDF: ../ase-manual.pdf
 
@@ -19,7 +19,7 @@ Installing Docutils and Sphinx
 The reStructuredText_ parser that Sphinx needs, is part of the Docutils_
 project.  So, we need to install docutils and sphinx (version>= 0.5).
 
-.. _Docutils: http://docutils.sf.net
+.. _Docutils: http://docutils.sourceforge.net/
 
 
 Other requirements
@@ -126,7 +126,7 @@ We have a couple of extensions to Sphinx:
    .. math:: \frac{1}{1+x^2}
 
 
-.. _epydoc:  http://epydoc.sf.net
+.. _epydoc:  http://epydoc.sourceforge.net/
 
 
 .. _generated:

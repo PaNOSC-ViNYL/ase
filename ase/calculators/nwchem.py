@@ -6,6 +6,7 @@ import os
 
 import numpy as np
 
+from warnings import warn
 from ase.atoms import Atoms
 from ase.units import Hartree, Bohr
 from ase.io.nwchem import write_nwchem
@@ -36,12 +37,14 @@ class NWChem(FileIOCalculator):
                      'gradient': None,
                      'lshift': None,
                      # set lshift to 0.0 for nolevelshifting
+                     'damp': None,
                      },
         basis='3-21G',
         basispar=None,
         ecp=None,
         so=None,
         spinorbit=False,
+        odft=False,
         raw='')  # additional outside of dft block control string
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
@@ -88,8 +91,8 @@ class NWChem(FileIOCalculator):
             if len(lines) > 1:
                 formatted += string
             else:
-                formatted += '  * library ' + string + '\n'
-            return formatted + 'end\n'
+                formatted += '  * library ' + string
+            return formatted + '\nend\n'
 
         basis = format_basis_set(p.basis)
         if p.ecp is not None:
@@ -108,7 +111,9 @@ class NWChem(FileIOCalculator):
             else:
                 task = 'dft'
             xc = {'LDA': 'slater pw91lda',
-                  'PBE': 'xpbe96 cpbe96'}.get(p.xc, p.xc)
+                  'PBE': 'xpbe96 cpbe96',
+                  'revPBE': 'revpbe cpbe96',
+                  'RPBE': 'rpbe cpbe96'}.get(p.xc, p.xc)
             f.write('\n' + task + '\n')
             f.write('  xc ' + xc + '\n')
             for key in p.convergence:
@@ -127,20 +132,25 @@ class NWChem(FileIOCalculator):
                 f.write('  smear %s\n' % (p.smearing[1] / Hartree))
             if 'mult' not in p:
                 # Obtain multiplicity from magnetic momenta:
-                mult = 1 + atoms.get_initial_magnetic_moments().sum()
+                tot_magmom = atoms.get_initial_magnetic_moments().sum()
+                if tot_magmom < 0:
+                    mult = tot_magmom - 1  # fill minority bands
+                else:
+                    mult = tot_magmom + 1
             else:
                 mult = p.mult
             if mult != int(mult):
                 raise RuntimeError('Noninteger multiplicity not possible. ' +
                                    'Check initial magnetic moments.')
             f.write('  mult %d\n' % mult)
+            if p.odft:
+                f.write('  odft\n')  # open shell aka spin polarized dft
             for key in sorted(p.keys()):
                 if key in ['charge', 'geometry', 'basis', 'basispar', 'ecp',
                            'so', 'xc', 'spinorbit', 'convergence', 'smearing',
-                           'raw', 'mult', 'task']:
+                           'raw', 'mult', 'task', 'odft']:
                     continue
-                value = p[key]
-                f.write('%s %s\n' % (key, value))
+                f.write(u"  {0} {1}\n".format(key, p[key]))
             f.write('end\n')
 
         if p.raw:
@@ -179,7 +189,9 @@ class NWChem(FileIOCalculator):
         self.nelect = self.read_number_of_electrons()
         self.nvector = self.read_number_of_bands()
         self.results['magmom'] = self.read_magnetic_moment()
-        self.results['dipole'] = self.read_dipole_moment()
+        dipole = self.read_dipole_moment()
+        if dipole is not None:
+            self.results['dipole'] = dipole
 
     def get_ibz_k_points(self):
         return np.array([0., 0., 0.])
@@ -222,24 +234,28 @@ class NWChem(FileIOCalculator):
         magmom = None
         for line in open(self.label + '.out'):
             if line.find('Spin multiplicity') != -1:  # last one
-                magmom = float(line.split(':')[-1].strip()) - 1
+                magmom = float(line.split(':')[-1].strip())
+                if magmom < 0:
+                    magmom += 1
+                else:
+                    magmom -= 1
         return magmom
 
     def read_dipole_moment(self):
         dipolemoment = []
         for line in open(self.label + '.out'):
-            for component in [
-                '1   1 0 0',
-                '1   0 1 0',
-                '1   0 0 1'
-                ]:
+            for component in ['1   1 0 0',
+                              '1   0 1 0',
+                              '1   0 0 1']:
                 if line.find(component) != -1:
                     value = float(line.split(component)[1].split()[0])
                     value = value * Bohr
                     dipolemoment.append(value)
         if len(dipolemoment) == 0:
-            assert len(self.atoms) == 1
-            dipolemoment = [0.0, 0.0, 0.0]
+            if len(self.atoms) == 1:
+                dipolemoment = [0.0, 0.0, 0.0]
+            else:
+                return None
         return np.array(dipolemoment)
 
     def read_energy(self):
@@ -267,6 +283,7 @@ class NWChem(FileIOCalculator):
         kpts = []
         for line in lines:
             if line.find('Molecular Orbital Analysis') >= 0:
+                last_eps = -99999.0
                 spin += 1
                 kpts.append(KPoint(spin))
             if spin >= 0:
@@ -274,8 +291,15 @@ class NWChem(FileIOCalculator):
                     line = line.lower().replace('d', 'e')
                     line = line.replace('=', ' ')
                     word = line.split()
-                    kpts[spin].f_n.append(float(word[3]))
-                    kpts[spin].eps_n.append(float(word[5]))
+                    this_occ = float(word[3])
+                    this_eps = float(word[5])
+                    kpts[spin].f_n.append(this_occ)
+                    kpts[spin].eps_n.append(this_eps)
+                    if this_occ < 0.1 and this_eps < last_eps:
+                        warn('HOMO above LUMO - if this is not an exicted ' +
+                             'state - this might be introduced by levelshift.',
+                             RuntimeWarning)
+                    last_eps = this_eps
         self.kpts = kpts
 
     def read_forces(self):

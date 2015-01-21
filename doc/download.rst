@@ -6,10 +6,10 @@ Installation requirements
 
 The following packages are required for basic ASE functionality:
 
-1) Python_ 2.6 - 2.7.
+1) Python2_ version 2.6 or newer. Python3 is not supported yet.
 2) NumPy_.
 
-.. _Python: http://www.python.org
+.. _Python2: http://www.python.org
 .. _NumPy: http://www.numpy.org/
 
 It is highly recommended (but not required) to install also these:
@@ -19,18 +19,18 @@ It is highly recommended (but not required) to install also these:
 5) pygtk_.
 6) SciPy_.
 
-Matplotlib and libpng are needed for :mod:`writing png files <io>`, and
+Matplotlib and libpng are needed for :mod:`writing png files <ase.io>`, and
 together with pygtk are needed for ASE's simple GUI
-(called **ase-gui**, see :mod:`gui`).
+(called **ase-gui**, see :mod:`ase.gui`).
 Some of these packages may already be installed on your system.
 
-.. _matplotlib: http://matplotlib.sourceforge.net
+.. _matplotlib: http://matplotlib.org/
 .. _libpng: http://www.libpng.org/pub/png/libpng.html
 .. _pygtk: http://www.pygtk.org
 .. _SciPy: http://www.scipy.org/
 
 
-Specific information for different operating systems 
+Specific information for different operating systems
 is provided at :ref:`installation`.
 
 .. _download:
@@ -46,7 +46,8 @@ Download
 Latest stable release
 =====================
 
-The latest stable release can be obtained from ``svn`` or as a ``tarball``.
+The latest stable release can be obtained from SVN or as a
+`tar-file <http://xkcd.com/1168/>`__.
 
 .. note::
 
@@ -63,7 +64,7 @@ When using svn please set the following variable:
    setenv ASE_TAGS https://svn.fysik.dtu.dk/projects/ase/tags/
 
 ======= =========== ============================================ =============================
-Release Date        Retrieve as svn checkout                     Retrieve as tarball
+Release Date        Retrieve as svn checkout                     Retrieve as tar-file
 ======= =========== ============================================ =============================
  3.8.1_ Nov 22 2013 ``svn co -r 3440 $ASE_TAGS/3.8.1 ase-3.8.1`` python-ase-3.8.1.3440.tar.gz_
  3.8.0_ Oct 22 2013 ``svn co -r 3420 $ASE_TAGS/3.8.0 ase-3.8.0`` python-ase-3.8.0.3420.tar.gz_
@@ -202,47 +203,39 @@ If you prefer to install from sources follow :ref:`manual_installation`.
 
 The currently supported systems include (issue the commands below **as root**):
 
-- RHEL/CentOS 6::
+- Fedora::
 
-    yum install wget
-    cd /etc/yum.repos.d/
-    wget http://download.opensuse.org/repositories/home:/dtufys/CentOS_CentOS-6/home:dtufys.repo
     yum install python-ase
-    yum install python-matplotlib # optionally
 
-- Fedora 17::
+- RHEL/CentOS - available after enabling https://fedoraproject.org/wiki/EPEL::
 
-    yum install wget
-    cd /etc/yum.repos.d/
-    wget http://download.opensuse.org/repositories/home:/dtufys/Fedora_17/home:dtufys.repo
     yum install python-ase
-    yum install python-matplotlib # optionally
 
-- openSUSE 12.2::
+- openSUSE 13.1::
 
-    zypper ar -f http://download.opensuse.org/repositories/home:/dtufys/openSUSE_12.2/home:dtufys.repo
+    zypper ar -f http://download.opensuse.org/repositories/home:/dtufys/openSUSE_13.1/home:dtufys.repo
     yast -i python-ase
     yast -i python-matplotlib # optionally
 
-- Debian 6.0::
+- Debian 7.0::
 
-    sudo bash -c 'echo "deb http://download.opensuse.org/repositories/home:/dtufys/Debian_6.0 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
+    sudo bash -c 'echo "deb http://download.opensuse.org/repositories/home:/dtufys/Debian_7.0 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
     wget http://download.opensuse.org/repositories/home:/dtufys/Debian_6.0/Release.key && sudo apt-key add Release.key && rm Release.key
     sudo apt-get update
     sudo apt-get install python-ase
     sudo apt-get install python-matplotlib # optionally
 
-- Ubuntu 12.04::
+- Ubuntu 14.04::
 
-    sudo bash -c 'echo "deb http://download.opensuse.org/repositories/home:/dtufys/xUbuntu_12.04 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
-    wget http://download.opensuse.org/repositories/home:/dtufys/xUbuntu_12.04/Release.key && sudo apt-key add Release.key && rm Release.key
+    sudo bash -c 'echo "deb http://download.opensuse.org/repositories/home:/dtufys/xUbuntu_14.04 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
+    wget http://download.opensuse.org/repositories/home:/dtufys/xUbuntu_14.04/Release.key && sudo apt-key add Release.key && rm Release.key
     sudo apt-get update
     sudo apt-get install python-ase
     sudo apt-get install python-matplotlib # optionally
 
   .. note::
 
-    Alternative packages for ubuntu are provided at `Ubuntu package
+    Alternative packages for Ubuntu are provided at `Ubuntu package
     <https://wiki.fysik.dtu.dk/gpaw/install/Linux/Ubuntu_ppa.html#ubuntupackage>`_.
 
 For the full list of supported distributions check
@@ -341,10 +334,10 @@ to the requested version, e.g.:
    $ cd $HOME
    $ ln -s ase-3.8.0 ase
     
-- if retrieved as ``tarball``::
+- if retrieved as tar-file::
 
    $ cd $HOME
-   $ tar zxf python-ase-3.8.0.3420.tar.gz
+   $ tar -xf python-ase-3.8.0.3420.tar.gz
    $ ln -s python-ase-3.8.0.3420 ase
 
 It is sufficient to

@@ -1,4 +1,4 @@
-.. module:: vasp
+.. module:: ase.calculators.vasp
 
 ====
 VASP
@@ -66,7 +66,7 @@ keyword         type       default value   description
 ``kpts``        *seq*      `\Gamma`-point  **k**-point sampling
 ``gamma``       ``bool``   None            `\Gamma`-point centered 
                                            **k**-point sampling
-``reciprocal``  ``bool``   None		   Use reciprocal units if
+``reciprocal``  ``bool``   None            Use reciprocal units if
                                            **k**-points are specified 
                                            explicitly
 ``prec``        ``str``                    Accuracy of calculation

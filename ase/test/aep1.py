@@ -4,7 +4,7 @@ from ase.calculators.calculator import get_calculator
 
 
 required = {'abinit': dict(ecut=200, toldfe=0.0001),
-            'aims': dict(sc_accuracy_eev=5.e-3),
+            'aims': dict(sc_accuracy_rho=5.e-3),
             'gpaw': dict(mode='lcao', basis='sz(dzp)', realspace=False)}
 
 
@@ -30,9 +30,9 @@ def h2dft(name):
         pass
     else:
         print(m1)
-    print((2 * e1 - e2))
-    print((2 * e1pbe - e2pbe))
-    print(e1,e2,e1pbe,e2pbe)
+    print(2 * e1 - e2)
+    print(2 * e1pbe - e2pbe)
+    print(e1, e2, e1pbe, e2pbe)
     calc = Calculator(name)
     print(calc.parameters, calc.results, calc.atoms)
     assert not calc.calculation_required(h1, ['energy'])
@@ -43,7 +43,7 @@ def h2dft(name):
     print(h1.get_potential_energy())
     print(Calculator.read_atoms(label).get_potential_energy())
 
-names = ['abinit', 'nwchem']
+names = ['abinit', 'aims', 'gaussian', 'nwchem']
 for name in names:
     try:
         h2dft(name)

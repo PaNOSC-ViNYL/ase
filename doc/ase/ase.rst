@@ -12,41 +12,42 @@ Quick links:
 .. list-table::
 
   * - :mod:`~ase.atom`
-    - :mod:`atoms`
-    - :mod:`calculators`
-    - :mod:`constraints`
-  * - :mod:`db`
-    - :mod:`dft`
-    - :mod:`data`
-    - :mod:`gui`
-  * - :mod:`infrared`
-    - :mod:`io`
-    - :mod:`lattice`
-    - :mod:`md`
-  * - :mod:`neb`
-    - :mod:`optimize`
-    - :mod:`parallel`
-    - :mod:`phonons`
-  * - :mod:`~lattice.spacegroup`
-    - :mod:`structure`
+    - :mod:`~ase.atoms`
+    - :mod:`~ase.calculators`
+    - :mod:`~ase.constraints`
+  * - :mod:`~ase.db`
+    - :mod:`~ase.dft`
+    - :mod:`~ase.data`
+    - :mod:`~ase.ga`
+  * - :mod:`~ase.gui`
+    - :mod:`~ase.infrared`
+    - :mod:`~ase.io`
+    - :mod:`~ase.lattice`
+  * - :mod:`~ase.md`
+    - :mod:`~ase.neb`
+    - :mod:`~ase.optimize`
+    - :mod:`~ase.parallel`
+  * - :mod:`~ase.phonons`
+    - :mod:`~ase.lattice.spacegroup`
+    - :mod:`~ase.structure`
     - :mod:`~ase.lattice.surface`
-    - :mod:`transport`
-  * - :mod:`thermochemistry`
-    - :mod:`units`
-    - :mod:`utils`
-    - :mod:`vibrations`
-  * - :mod:`visualize`
-    - :mod:`vtk`
-    -
+  * - :mod:`~ase.transport`
+    - :mod:`~ase.thermochemistry`
+    - :mod:`~ase.units`
+    - :mod:`~ase.utils`
+  * - :mod:`~ase.vibrations`
+    - :mod:`~ase.visualize`
+    - :mod:`~ase.visualize.vtk`
     -
 
 
 .. seealso::
 
    * :ref:`tutorials`
+   * :ref:`cli`
    * :epydoc:`Automatically generated documentation <ase>` (:term:`API`)
    * :trac:`Source code <>`
-
+   * Presentation about ASE: :download:`ase-talk.pdf`
 
 
 List of all modules:
@@ -63,13 +64,14 @@ List of all modules:
    setup-overview
    optimize
    parallel
-   visualize
+   visualize/visualize
    visualize/vtk
    calculators/calculators
    constraints
    neb
    vibrations
    phonons
+   thermochemistry/thermochemistry
    infrared
    md
    dft/dft
@@ -77,7 +79,8 @@ List of all modules:
    data
    trajectory
    utils
-   thermochemistry
    neighbors
    io/opls
    db/db
+   ga
+   dimermethod

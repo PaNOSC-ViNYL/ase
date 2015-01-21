@@ -1,5 +1,5 @@
 # This makefile is used to update templates for internationalization ("i18n")
-# of ag.
+# of ase-gui.
 
 # INSTRUCTIONS
 # ------------
@@ -10,6 +10,14 @@
 # To create a translation template for a new language (e.g. de_DE.UTF8), run:
 #     LANG=de_DE.UTF8 make init
 # 
+# After writing translations, you need to run 'make' again to generate the
+# binary translation files loaded by the programme.
+#
+# Then you can run 'LANG=de_DE.UTF8 ase-gui' and your translations should be
+# visible if you have a developer installation.
+#
+# For distutils installation, the po-files are globbed from setup.py so
+# they are automatically included when you run install.
 
 # List of files calling gettext.
 TRANSLATIONFILES=../ag.py ../calculator.py ../colors.py ../constraints.py ../crystal.py ../debug.py ../dft.py ../energyforces.py ../execute.py ../graphene.py ../graphs.py ../gtkexcepthook.py ../gui.py ../minimize.py ../movie.py ../nanoparticle.py ../nanotube.py ../progress.py ../pybutton.py ../quickinfo.py ../render.py ../repeat.py ../rotate.py ../scaling.py ../settings.py ../setupwindow.py ../simulation.py ../status.py ../surfaceslab.py ../widgets.py

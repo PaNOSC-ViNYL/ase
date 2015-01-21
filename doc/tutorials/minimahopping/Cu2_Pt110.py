@@ -3,7 +3,6 @@ from ase.lattice.surface import fcc110
 from ase.optimize.minimahopping import MinimaHopping
 from ase.calculators.emt import EMT
 from ase.constraints import FixAtoms, Hookean
-from ase.optimize import BFGS
 
 # Make the Pt 110 slab.
 atoms = fcc110('Pt', (2, 2, 2), vacuum=7.)
@@ -28,6 +27,5 @@ atoms.set_calculator(calc)
 # Instantiate and run the minima hopping algorithm.
 hop = MinimaHopping(atoms,
                     Ediff0=2.5,
-                    optimizer=BFGS,
                     T0=4000.)
 hop(totalsteps=10)

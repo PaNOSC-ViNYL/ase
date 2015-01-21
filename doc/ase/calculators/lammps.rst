@@ -1,4 +1,4 @@
-.. module:: lammps
+.. module:: ase.calculators.lammps
 
 ==================
 LAMMPS Calculators

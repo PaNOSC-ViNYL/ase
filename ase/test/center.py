@@ -5,6 +5,7 @@ from math import pi, sqrt, cos
 from ase import data
 from ase.lattice.cubic import FaceCenteredCubic
 
+
 def checkang(a, b, phi):
     "Check the angle between two vectors."
     cosphi = np.dot(a,b) / sqrt(np.dot(a,a) * np.dot(b,b))
@@ -70,13 +71,21 @@ checkang(c[0], c[2], pi/4)
 checkang(c[1], c[2], pi/2)
 assert np.abs(2 * a0 + 2* vac - c[2,2]) < 1e-10
 
+a2 = atoms.copy()
+
 # Add vacuum in all directions
 vac = 4.0
 atoms.center(vacuum=vac)
 c = atoms.get_cell()
-checkang(c[0], c[1], pi/2)
-checkang(c[0], c[2], pi/4)
-checkang(c[1], c[2], pi/2)
-assert np.abs(4.5 * a0 + 2* vac - c[1,1]) < 1e-10
-assert np.abs(2 * a0 + 2* vac - c[2,2]) < 1e-10
+checkang(c[0], c[1], pi / 2)
+checkang(c[0], c[2], pi / 4)
+checkang(c[1], c[2], pi / 2)
+assert np.abs(4.5 * a0 + 2 * vac - c[1, 1]) < 1e-10
+assert np.abs(2 * a0 + 2 * vac - c[2, 2]) < 1e-10
 
+# One axis at the time:
+for i in range(3):
+    a2.center(vacuum=vac, axis=i)
+
+assert abs(atoms.positions - a2.positions).max() < 1e-12
+assert abs(atoms.cell - a2.cell).max() < 1e-12

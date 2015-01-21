@@ -2,7 +2,9 @@
 
 import numpy as np
 from ase.units import Bohr, Hartree
-
+from ase.utils import prnt
+from ase.calculators.calculator import Calculator
+from ase.parallel import rank, get_txt
 
 # dipole polarizabilities and C6 values from 
 # X. Chu and A. Dalgarno, J. Chem. Phys. 121 (2004) 4083
@@ -37,6 +39,9 @@ vdWDB_Chu04jcp = {
     'Te' : [40, 445],
     'I'  : [35, 385],
 }
+vdWDB_alphaC6 = vdWDB_Chu04jcp
+# Au from J. Luder et al. Phys. Rev. B 89 (2014) 045416
+vdWDB_alphaC6['Au'] = [5.6, 197]
 
 # C6 values and vdW radii from 
 # S. Grimme, J Comput Chem 27 (2006) 1787-1799
@@ -89,22 +94,31 @@ vdWDB_Grimme06jcc = {
     'Xe' : [29.99, 1.881],
     }
 
-class vdWTkatchenko09prl:
-    """vdW correction after Tkatchenko and Scheffler PRL 102 (2009) 073005.
-
-    hirshfeld: the Hirshfeld partitioning object
-    calculator: the calculator to get the PBE energy
-    """
+class vdWTkatchenko09prl(Calculator):
+    """vdW correction after Tkatchenko and Scheffler PRL 102 (2009) 073005."""
+    implemented_properties = ['energy', 'forces']
     def __init__(self,                  
                  hirshfeld=None, vdwradii=None, calculator=None,
                  Rmax = 10, # maximal radius for periodic calculations
-                 vdWDB_alphaC6 = vdWDB_Chu04jcp, # 
+                 vdWDB_alphaC6 = vdWDB_alphaC6,
+                 txt=None,
                  ):
+        """Constructor
+
+        Parameters
+        ==========
+        hirshfeld: the Hirshfeld partitioning object
+        calculator: the calculator to get the PBE energy
+        """
         self.hirshfeld = hirshfeld
         if calculator is None:
             self.calculator = self.hirshfeld.get_calculator()
         else:
             self.calculator = calculator
+        if txt is None:
+            self.txt = self.calculator.txt
+        else:
+            self.txt = get_txt(txt, rank)
         self.vdwradii = vdwradii
         self.vdWDB_alphaC6 = vdWDB_alphaC6
         self.Rmax = Rmax
@@ -113,14 +127,30 @@ class vdWTkatchenko09prl:
         self.sR = 0.94
         self.d = 20
 
-    def update(self, atoms=None):
+        Calculator.__init__(self)
+
+    def calculation_required(self, atoms, quantities):
+        if self.calculator.calculation_required(
+            atoms, quantities):
+            return True
+        for quantity in quantities:
+            if quantity not in self.results:
+                return True
+        return False
+
+    def calculate(self, atoms=None, properties=['energy'], 
+                  system_changes=[]):
+        Calculator.calculate(self, atoms, properties, system_changes)
+        self.update(atoms, properties)
+
+    def update(self, atoms=None, properties=['energy', 'forces']):
+        if not self.calculation_required(atoms, properties):
+            return
+
         if atoms is None:
             atoms = self.calculator.get_atoms()
-        if (self.atoms and 
-            (self.atoms.get_positions() == atoms.get_positions()).all()):
-            return
-        self.energy = self.calculator.get_potential_energy(atoms)
-        self.forces = self.calculator.get_forces(atoms)
+        self.results['energy'] = self.calculator.get_potential_energy(atoms)
+        self.results['forces'] = self.calculator.get_forces(atoms)
         self.atoms = atoms.copy()
 
         if self.vdwradii is not None:
@@ -169,7 +199,7 @@ class vdWTkatchenko09prl:
 
         positions = atoms.get_positions()
         EvdW = 0.0
-        forces = 0. * self.forces
+        forces = 0. * self.results['forces']
         # loop over all atoms in the cell
         for ia, posa in enumerate(positions):
             # loop over all atoms in the cell (and neighbour cells for PBC)
@@ -196,8 +226,21 @@ class vdWTkatchenko09prl:
                                 forces[ia] -= ((Fdamp - 6 * Edamp / r) *
                                                C6eff_aa[ia, ib] / r6 *
                                                diff / r                 )
-        self.energy += EvdW / 2. # double counting
-        self.forces += forces / 2. # double counting
+        self.results['energy'] += EvdW / 2. # double counting
+        self.results['forces'] += forces / 2. # double counting
+
+        if self.txt:
+            prnt(('\n' + self.__class__.__name__), file=self.txt)
+            prnt('vdW correction: %g' % (EvdW / 2.), file=self.txt)
+            prnt('Energy:         %g' % self.results['energy'], 
+                 file=self.txt)
+            prnt('\nForces in eV/Ang:', file=self.txt)
+            c = Hartree / Bohr
+            symbols = self.atoms.get_chemical_symbols()
+            for ia, symbol in enumerate(symbols):
+                prnt('%3d %-2s %10.5f %10.5f %10.5f' %
+                     ((ia, symbol) + tuple(self.results['forces'][ia])), 
+                     file=self.txt)
         
     def damping(self, RAB, R0A, R0B,
                 d = 20,   # steepness of the step function
@@ -212,13 +255,3 @@ class vdWTkatchenko09prl:
         chi = np.exp(-d * (x - 1.0))
         return 1.0 / (1.0 + chi), d * scale * chi / (1.0 + chi)**2
  
-    def get_potential_energy(self, atoms=None):
-        self.update(atoms)
-        return self.energy
-
-    def get_forces(self, atoms):
-        self.update(atoms)
-        return self.forces
-
-    def get_stress(self, atoms):
-        return np.zeros(6)

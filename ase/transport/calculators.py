@@ -4,7 +4,7 @@ import numpy as np
 from numpy import linalg
 from ase.transport.selfenergy import LeadSelfEnergy, BoxProbe
 from ase.transport.greenfunction import GreenFunction
-from ase.transport.tools import subdiagonalize, cutcoupling, tri2full, dagger,\
+from ase.transport.tools import subdiagonalize, cutcoupling, dagger,\
     rotate_matrix
 
 
@@ -16,17 +16,17 @@ class TransportCalculator:
     def __init__(self, **kwargs):
         """Create the transport calculator.
 
-        Parameters
-        ==========
+        Parameters:
+
         h : (N, N) ndarray
-            Hamiltonian matrix for the central region. 
+            Hamiltonian matrix for the central region.
         s : {None, (N, N) ndarray}, optional
-            Overlap matrix for the central region. 
+            Overlap matrix for the central region.
             Use None for an orthonormal basis.
         h1 : (N1, N1) ndarray
             Hamiltonian matrix for lead1.
         h2 : {None, (N2, N2) ndarray}, optional
-            Hamiltonian matrix for lead2. You may use None if lead1 and lead2 
+            Hamiltonian matrix for lead2. You may use None if lead1 and lead2
             are identical.
         s1 : {None, (N1, N1) ndarray}, optional
             Overlap matrix for lead1. Use None for an orthonomormal basis.
@@ -36,30 +36,30 @@ class TransportCalculator:
         hc2 : {None, (N2, N} ndarray), optional
             Hamiltonian coupling matrix between the first principal
             layer in lead2 and the central region.
-        sc1 : {None, (N1, N) ndarray}, optional  
+        sc1 : {None, (N1, N) ndarray}, optional
             Overlap coupling matrix between the first principal
             layer in lead1 and the central region.
-        sc2 : {None, (N2, N) ndarray}, optional  
+        sc2 : {None, (N2, N) ndarray}, optional
             Overlap coupling matrix between the first principal
             layer in lead2 and the central region.
         energies : {None, array_like}, optional
             Energy points for which calculated transport properties are
             evaluated.
         eta : {1.0e-5, float}, optional
-            Infinitesimal for the central region Green function. 
+            Infinitesimal for the central region Green function.
         eta1/eta2 : {1.0e-5, float}, optional
             Infinitesimal for lead1/lead2 Green function.
         align_bf : {None, int}, optional
-            Use align_bf=m to shift the central region 
+            Use align_bf=m to shift the central region
             by a constant potential such that the m'th onsite element
             in the central region is aligned to the m'th onsite element
             in lead1 principal layer.
-        logfile : {None, str}, optional 
+        logfile : {None, str}, optional
             Write a logfile to file with name `logfile`.
             Use '-' to write to std out.
         eigenchannels: {0, int}, optional
-            Number of eigenchannel transmission coefficients to 
-            calculate. 
+            Number of eigenchannel transmission coefficients to
+            calculate.
         pdos : {None, (N,) array_like}, optional
             Specify which basis functions to calculate the
             projected density of states for.
@@ -69,11 +69,11 @@ class TransportCalculator:
             YYY
             
         If hc1/hc2 are None, they are assumed to be identical to
-        the coupling matrix elements between neareste neighbor 
+        the coupling matrix elements between neareste neighbor
         principal layers in lead1/lead2.
 
-        Examples
-        ========
+        Examples:
+
         >>> import numpy as np
         >>> h = np.array((0,)).reshape((1,1))
         >>> h1 = np.array((0, -1, -1, 0)).reshape(2,2)
@@ -100,13 +100,13 @@ class TransportCalculator:
                                  'eta1': 1e-5,
                                  'eta2': 1e-5,
                                  'eta': 1e-5,
-                                 'logfile': None, # '-',
+                                 'logfile': None,
                                  'eigenchannels': 0,
                                  'dos': False,
                                  'pdos': [],
                                  }
-        self.initialized = False # Changed Hamiltonians?
-        self.uptodate = False # Changed energy grid?
+        self.initialized = False  # Changed Hamiltonians?
+        self.uptodate = False  # Changed energy grid?
         self.set(**kwargs)
 
     def set(self, **kwargs):
@@ -120,7 +120,7 @@ class TransportCalculator:
             elif key in ['energies', 'eigenchannels', 'dos', 'pdos']:
                 self.uptodate = False
             elif key not in self.input_parameters:
-                raise KeyError('\'%s\' not a vaild keyword' % key)
+                raise KeyError('%r not a vaild keyword' % key)
 
         self.input_parameters.update(kwargs)
         log = self.input_parameters['logfile']
@@ -148,11 +148,11 @@ class TransportCalculator:
             p['s'] = np.identity(len(p['h']))
         
         identical_leads = False
-        if p['h2'] == None:   
+        if p['h2'] == None:
             p['h2'] = p['h1'] # Lead2 is idendical to lead1
             identical_leads = True
  
-        if p['s1'] == None: 
+        if p['s1'] == None:
             p['s1'] = np.identity(len(p['h1']))
        
         if p['s2'] == None and not identical_leads:
@@ -213,13 +213,13 @@ class TransportCalculator:
             h_mm -= diff * s_mm
 
         # Setup lead self-energies
-        # All infinitesimals must be > 0 
+        # All infinitesimals must be > 0
         assert np.all(np.array((p['eta'], p['eta1'], p['eta2'])) > 0.0)
-        self.selfenergies = [LeadSelfEnergy((h1_ii, s1_ii), 
+        self.selfenergies = [LeadSelfEnergy((h1_ii, s1_ii),
                                             (h1_ij, s1_ij),
                                             (h1_im, s1_im),
                                             p['eta1']),
-                             LeadSelfEnergy((h2_ii, s2_ii), 
+                             LeadSelfEnergy((h2_ii, s2_ii),
                                             (h2_ij, s2_ij),
                                             (h2_im, s2_im),
                                             p['eta2'])]
@@ -295,7 +295,7 @@ class TransportCalculator:
 
     def plot_pl_convergence(self):
         self.initialize()
-        pl1 = len(self.input_parameters['h1']) / 2       
+        pl1 = len(self.input_parameters['h1']) / 2
         hlead = self.selfenergies[0].h_ii.real.diagonal()
         hprincipal = self.greenfunction.H.real.diagonal[:pl1]
 
@@ -337,8 +337,8 @@ class TransportCalculator:
         ht_mm, st_mm, c_mm, e_m = subdiagonalize(h_mm, s_mm, bfs)
         if apply:
             self.uptodate = False
-            h_mm[:] = ht_mm 
-            s_mm[:] = st_mm 
+            h_mm[:] = ht_mm
+            s_mm[:] = st_mm
             # Rotate coupling between lead and central region
             for alpha, sigma in enumerate(self.selfenergies):
                 sigma.h_im[:] = np.dot(sigma.h_im, c_mm)
@@ -388,13 +388,11 @@ class TransportCalculator:
         lambda_l_ii = self.selfenergies[0].get_lambda(energy)
         lambda_r_ii = self.selfenergies[1].get_lambda(energy)
 
-        if self.greenfunction.S is None:
-            s_s_qsrt_ii = s_s_isqrt = np.identity(len(g_s_ii))
-        else:
+        if self.greenfunction.S is not None:
             s_mm = self.greenfunction.S
             s_s_i, s_s_ii = linalg.eig(s_mm)
             s_s_i = np.abs(s_s_i)
-            s_s_sqrt_i = np.sqrt(s_s_i) # sqrt of eigenvalues  
+            s_s_sqrt_i = np.sqrt(s_s_i) # sqrt of eigenvalues
             s_s_sqrt_ii = np.dot(s_s_ii * s_s_sqrt_i, dagger(s_s_ii))
             s_s_isqrt_ii = np.dot(s_s_ii / s_s_sqrt_i, dagger(s_s_ii))
 

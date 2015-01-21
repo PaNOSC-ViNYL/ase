@@ -90,7 +90,7 @@ class Movie(gtk.Window):
             self.direction = cmp(step, 0)
             
     def new_frame(self, widget):
-        self.gui.set_frame(int(self.frame_number.value))
+        self.gui.set_coordinates(int(self.frame_number.value))
 
     def play(self, widget=None):
         if self.id is not None:

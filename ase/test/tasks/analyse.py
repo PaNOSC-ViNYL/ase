@@ -125,6 +125,7 @@ def plot_single(xdata, ydata, std,
          num=1,
          ):
     import matplotlib
+    matplotlib.rc('text', usetex=False)
     import pylab
     import matplotlib.font_manager
 
@@ -185,6 +186,7 @@ def plot(runs, data,
         stats['converged'].append(len([s for s in c if s is not None]))
     import matplotlib
     #matplotlib.use('Agg')
+    matplotlib.rc('text', usetex=False)
     from matplotlib import pylab, ticker
     num=1
     scale = [i for i in range(len(runs))]

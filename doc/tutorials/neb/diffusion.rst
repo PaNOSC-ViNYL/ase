@@ -16,6 +16,12 @@ Now, do the NEB calculation:
 
 .. literalinclude:: diffusion2.py
 
+Visualize the results with::
+
+   ase-gui neb.traj 
+
+and select Tools->NEB.
+
 |ts| |barrier|
 
 .. note::
@@ -27,10 +33,10 @@ Now, do the NEB calculation:
 
 .. seealso::
 
-   * :mod:`neb`
-   * :mod:`constraints`
+   * :mod:`ase.neb`
+   * :mod:`ase.constraints`
    * :ref:`constraints_diffusion_tutorial`
-   * :func:`~lattice.surface.fcc100`
+   * :func:`~ase.lattice.surface.fcc100`
    
 
 
@@ -40,12 +46,24 @@ Now, do the NEB calculation:
 .. |barrier| image:: diffusion-barrier.png
 
 
-Parallelizing over images
-=========================
+Restarting NEB
+==============
+
+Restart NEB from the trajectory file:
+
+.. literalinclude:: diffusion4.py
+
+
+Parallelizing over images with MPI
+==================================
 
 Instead of having one process do the calculations for all three
 internal images in turn, it will be faster to have three processes do
-one image each.  This can be done like this:
+one image each. In order to be able to run python with MPI
+you need a special parallel python interpreter, for example gpaw-python.
+
+The example below can then be run
+with ``mpiexec -np 3 gpaw-python diffusion3.py``:
 
 .. literalinclude:: diffusion3.py
 

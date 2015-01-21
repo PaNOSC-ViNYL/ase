@@ -26,6 +26,6 @@ forces2 = water2.get_forces()
 energy2 = water2.get_potential_energy()
 positions2 = water2.get_positions()
 
-assert abs(energy - energy2) < 1e-14
-assert abs(forces - forces2).max() < 1e-14
-assert abs(positions - positions2).max() < 1e-14
+assert abs(energy - energy2) < 1e-7
+assert abs(forces - forces2).max() < 1e-9
+assert abs(positions - positions2).max() < 1e-6

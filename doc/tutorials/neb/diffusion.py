@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # creates:  diffusion-I.png  diffusion-T.png  diffusion-F.png diffusion-barrier.png
-import os
-import matplotlib
+#import matplotlib
 #matplotlib.use('Agg')
 import pylab as plt
 from ase.io import read, write
@@ -9,6 +8,7 @@ from ase.neb import fit
 if 1:
     exec(compile(open('diffusion1.py').read(), 'diffusion1.py', 'exec'))
     exec(compile(open('diffusion2.py').read(), 'diffusion2.py', 'exec'))
+    execfile('diffusion4.py')
 images = read('neb.traj@-5:')
 for name, a in zip('ITF', images[::2]):
     cell = a.get_cell()

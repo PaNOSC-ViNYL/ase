@@ -7,7 +7,9 @@ class NeighborList:
     """Neighbor list object.
 
     cutoffs: list of float
-        List of cutoff radii - one for each atom.
+        List of cutoff radii - one for each atom. If the spheres (defined by
+        their cutoff radii) of two atoms overlap, they will be counted as
+        neighbors.
     skin: float
         If no atom has moved more than the skin-distance since the
         last call to the ``update()`` method, then the neighbor list
@@ -19,15 +21,15 @@ class NeighborList:
     bothways: bool
         Return all neighbors.  Default is to return only "half" of
         the neighbors.
-    
+
     Example::
 
       nl = NeighborList([2.3, 1.7])
       nl.update(atoms)
       indices, offsets = nl.get_neighbors(0)
-      
+
     """
-    
+
     def __init__(self, cutoffs, skin=0.3, sorted=False, self_interaction=True,
                  bothways=False):
         self.cutoffs = np.asarray(cutoffs) + skin
@@ -42,16 +44,16 @@ class NeighborList:
         if self.nupdates == 0:
             self.build(atoms)
             return True
-        
+
         if ((self.pbc != atoms.get_pbc()).any() or
             (self.cell != atoms.get_cell()).any() or
             ((self.positions - atoms.get_positions())**2).sum(1).max() >
             self.skin**2):
             self.build(atoms)
             return True
-        
+
         return False
-    
+
     def build(self, atoms):
         """Build the list."""
         self.positions = atoms.get_positions()
@@ -72,11 +74,11 @@ class NeighborList:
                 scaled0[:, i] %= 1.0
                 v = icell[:, i]
                 h = 1 / sqrt(np.dot(v, v))
-                n =  int(2 * rcmax / h) + 1
+                n = int(2 * rcmax / h) + 1
             else:
                 n = 0
             N.append(n)
-            
+
         offsets = (scaled0 - scaled).round().astype(int)
         positions0 = np.dot(scaled0, self.cell)
         natoms = len(atoms)
@@ -139,7 +141,7 @@ class NeighborList:
                     mask = np.logical_not(mask)
                     self.neighbors[a] = self.neighbors[a][mask]
                     self.displacements[a] = self.displacements[a][mask]
-                
+
         self.nupdates += 1
 
     def get_neighbors(self, a):
@@ -156,5 +158,5 @@ class NeighborList:
         Notice that if get_neighbors(a) gives atom b as a neighbor,
         then get_neighbors(b) will not return a as a neighbor - unless
         bothways=True was used."""
-        
+
         return self.neighbors[a], self.displacements[a]

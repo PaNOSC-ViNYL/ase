@@ -151,18 +151,27 @@ class SingleCalculatorNEB(NEB):
         self.calculators = [None] * self.nimages
         self.energies_ok = False
  
-    def interpolate(self, initial=0, final=-1):
+    def interpolate(self, initial=0, final=-1, mic=False):
         """Interpolate linearly between initial and final images."""
         if final < 0:
             final = self.nimages + final
         n = final - initial
         pos1 = self.images[initial].get_positions()
         pos2 = self.images[final].get_positions()
-        d = (pos2 - pos1) / n
+        dist = (pos2 - pos1) 
+        if mic:
+            cell = self.images[initial].get_cell()
+            assert((cell == self.images[final].get_cell()).all())
+            pbc = self.images[initial].get_pbc()
+            assert(( pbc == self.images[final].get_pbc()).all())
+            for ia, D in enumerate(dist):
+                Dr = np.linalg.solve(cell.T, D)
+                dist[ia] = np.dot(Dr - np.round(Dr) * pbc, cell)
+        dist /= n
         for i in range(1, n):
-            self.images[initial + i].set_positions(pos1 + i * d)
+            self.images[initial + i].set_positions(pos1 + i * dist)
 
-    def refine(self, steps=1, begin=0, end=-1):
+    def refine(self, steps=1, begin=0, end=-1, mic=False):
         """Refine the NEB trajectory."""
         if end < 0:
             end = self.nimages + end
@@ -174,7 +183,7 @@ class SingleCalculatorNEB(NEB):
                 self.calculators.insert(j + 1, None)
             self.k[j:j + 1] = [self.k[j] * (steps + 1)] * (steps + 1)
             self.nimages = len(self.images)
-            self.interpolate(j, j + steps + 1)
+            self.interpolate(j, j + steps + 1, mic=mic)
             j += steps + 1
 
     def set_positions(self, positions):
@@ -318,3 +327,34 @@ def fit0(E, F, R):
     Sfit[-1] = s[-1]
     Efit[-1] = E[-1]
     return s, E, Sfit, Efit, lines
+
+
+def get_NEB_plot(images):
+    """Returns a figure object of the NEB fit to the given images."""
+    from matplotlib import pyplot
+    if not hasattr(images, 'repeat'):
+        from ase.gui.images import Images
+        images = Images(images)
+    N = images.repeat.prod()
+    natoms = images.natoms // N
+    R = images.P[:, :natoms]
+    E = images.E
+    F = images.F[:, :natoms]
+    s, E, Sfit, Efit, lines = fit0(E, F, R)
+    fig = pyplot.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(s, E, 'o')
+    for x, y in lines:
+        ax.plot(x, y, '-g')
+    ax.plot(Sfit, Efit, 'k-')
+    ax.set_xlabel('path [$\AA$]')
+    ax.set_ylabel('energy [eV]')
+    Ef = max(Efit) - E[0]
+    Er = max(Efit) - E[-1]
+    dE = E[-1] - E[0]
+    #ax.set_title('Maximum: %.3f eV' % max(Efit))
+    ax.set_title('$E_\mathrm{f} \\approx$ %.3f eV; '
+                 '$E_\mathrm{r} \\approx$ %.3f eV; '
+                 '$\\Delta E$ = %.3f eV'
+                 % (Ef, Er, dE))
+    return fig

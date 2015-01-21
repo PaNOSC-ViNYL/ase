@@ -1,4 +1,4 @@
-.. module:: FHI-aims
+.. module:: ase.calculators.aims
 
 ========
 FHI-aims
@@ -28,16 +28,16 @@ or as shell variables:
 keyword          description
 ===============  ====================================================
 ``run_command``   The full command required to run FHI-aims from
-		  a shell, including anything to do with an MPI
-		  wrapper script and the number of tasks.
-		  An alternative way to set this command is via the
-		  shell variable ``AIMS_COMMAND``, which is checked
-		  upon initialization and when starting a run.
+                  a shell, including anything to do with an MPI
+                  wrapper script and the number of tasks.
+                  An alternative way to set this command is via the
+                  shell variable ``AIMS_COMMAND``, which is checked
+                  upon initialization and when starting a run.
 ``species_dir``   Directory where the species defaults are located
-		  that should be used. Can also be specified with
-		  the system variable ``AIMS_SPECIES_DIR``.
+                  that should be used. Can also be specified with
+                  the system variable ``AIMS_SPECIES_DIR``.
 ``xc``            The minimal physical specification: what kind of
-		  calculation should be done.
+                  calculation should be done.
 ===============  ====================================================
 
 In addition, you might want to specify at least one of self-consistency
@@ -50,10 +50,10 @@ Two general options might come in useful to post process the output:
 keyword              description
 ===================  ====================================================
 ``output_template``  Base name for the output, in case the calculator
-		     is called multiple times within a single script.
+                     is called multiple times within a single script.
 ``track_output``     ``True/False`` - if ``True`` all the output files
-		     will be kept, while the number of calls to the
-		     calculator is encoded in the output file name.
+                     will be kept, while the number of calls to the
+                     calculator is encoded in the output file name.
 ===================  ====================================================
 
 List of keywords
@@ -80,13 +80,13 @@ Describing the basic physics of the system:
 ============================  ======
 keyword                       type
 ============================  ======
-``xc``			      str
+``xc``                        str
 ``charge``                    float
-``spin``		      str
-``relativistic``	      list
+``spin``                      str
+``relativistic``              list
 ``use_dipole_correction``     bool
 ``vdw_correction_hirshfeld``  str
-``k_grid``		      list
+``k_grid``                    list
 ============================  ======
 
 Driving relaxations and molecular dynamics:
@@ -94,14 +94,14 @@ Driving relaxations and molecular dynamics:
 ============================  ======
 keyword                       type
 ============================  ======
-``relax_geometry``	      list
+``relax_geometry``            list
 ``max_relaxation_steps``      int
-``n_max_pulay``		      int
-``sc_iter_limit``	      int
-``restart_relaxations``	      bool
-``MD_run``		      list
-``MD_schedule``		      list
-``MD_segment``		      list
+``n_max_pulay``               int
+``sc_iter_limit``             int
+``restart_relaxations``       bool
+``MD_run``                    list
+``MD_schedule``               list
+``MD_segment``                list
 ============================  ======
 
 Output options:
@@ -109,8 +109,8 @@ Output options:
 ============================  ========
 keyword                       type
 ============================  ========
-``output_level``	      str
-``output``		      list
+``output_level``              str
+``output``                    list
 ``cubes``                     AimsCube
 ============================  ========
 
@@ -122,11 +122,11 @@ Keywords for accuracy settings:
 ============================  ======
 keyword                       type
 ============================  ======
-``sc_accuracy_eev``	      exp
-``sc_accuracy_etot``	      exp
-``sc_accuracy_forces``	      exp
-``sc_accuracy_rho``	      exp
-``compute_forces``	      bool
+``sc_accuracy_eev``           exp
+``sc_accuracy_etot``          exp
+``sc_accuracy_forces``        exp
+``sc_accuracy_rho``           exp
+``compute_forces``            bool
 ============================  ======
 
 Keywords to adjust the SCF-cycle
@@ -134,19 +134,19 @@ Keywords to adjust the SCF-cycle
 ============================  ======
 keyword                       type
 ============================  ======
-``charge_mix_param``	      float
-``prec_mix_param``	      float
-``spin_mix_param``	      float
-``KS_method``		      str
-``restart``		      str
-``restart_read_only``	      str
-``restart_write_only``	      srt
-``preconditioner``	      list
-``mixer``		      str
-``empty_states``	      int
-``ini_linear_mixing``	      int
-``mixer_threshold``	      list
-``occupation_type``	      list
+``charge_mix_param``          float
+``prec_mix_param``            float
+``spin_mix_param``            float
+``KS_method``                 str
+``restart``                   str
+``restart_read_only``         str
+``restart_write_only``        srt
+``preconditioner``            list
+``mixer``                     str
+``empty_states``              int
+``ini_linear_mixing``         int
+``mixer_threshold``           list
+``occupation_type``           list
 ============================  ======
 
 Note::
@@ -172,10 +172,10 @@ The possible arguments for AimsCube are:
 ============================  ========
 keyword                       type
 ============================  ========
-``origin``		      list
-``edges``		      3x3-array
-``points``		      list
-``plots``		      list
+``origin``                    list
+``edges``                     3x3-array
+``points``                    list
+``plots``                     list
 ============================  ========
 
 The possible values for the entry of plots

@@ -18,53 +18,18 @@ ASE is a python package providing an open source Atomic Simulation
 Environment in the Python language."""
 
 
-if sys.version_info < (2, 4, 0, 'final', 0):
-    raise SystemExit('Python 2.4 or later is required!')
+if sys.version_info < (2, 6, 0, 'final', 0):
+    raise SystemExit('Python 2.6 or later is required!')
 
-packages = ['ase',
-            'ase.cli',
-            'ase.cluster',
-            'ase.cluster.data',
-            'ase.db',
-            'ase.io',
-            'ase.md',
-            'ase.dft',
-            'ase.gui',
-            'ase.gui.languages',
-            'ase.data',
-            'ase.tasks',
-            'ase.test',
-            'ase.test.abinit',
-            'ase.test.aims',
-            'ase.test.castep',
-            'ase.test.cmr',
-            'ase.test.elk',
-            'ase.test.exciting',
-            'ase.test.fio',
-            'ase.test.fleur',
-            'ase.test.gaussian',
-            'ase.test.gromacs',
-            'ase.test.jacapo',
-            'ase.test.mopac',
-            'ase.test.nwchem',
-            'ase.test.tasks',
-            'ase.test.vasp',
-            'ase.utils',
-            'ase.lattice',
-            'ase.lattice.spacegroup',
-            'ase.examples',
-            'ase.optimize',
-            'ase.optimize.test',
-            'ase.vibrations',
-            'ase.visualize',
-            'ase.visualize.vtk',
-            'ase.transport',
-            'ase.calculators',
-            'ase.calculators.jacapo']
+packages = []
+for dirname, dirnames, filenames in os.walk('ase'):
+        if '__init__.py' in filenames:
+            packages.append(dirname.replace('/', '.'))
 
-package_dir={'ase': 'ase'}
+package_dir = {'ase': 'ase'}
 
-package_data={'ase': ['lattice/spacegroup/spacegroup.dat']}
+package_data = {'ase': ['lattice/spacegroup/spacegroup.dat']}
+
 
 class test(Command):
     description = 'build and run test suite; exit code is number of failures'
@@ -107,6 +72,7 @@ class test(Command):
         finally:
             os.chdir(origcwd)
 
+
 class build_py(_build_py):
     """Custom distutils command to build translations."""
     def __init__(self, *args, **kwargs):
@@ -137,7 +103,8 @@ class build_py(_build_py):
 # Get the current version number:
 exec(compile(open('ase/svnversion_io.py').read(), 'ase/svnversion_io.py', 'exec'))  # write ase/svnversion.py and get svnversion
 exec(compile(open('ase/version.py').read(), 'ase/version.py', 'exec'))        # get version_base
-if svnversion and os.name not in ['ce', 'nt']: # MSI accepts only version X.X.X
+if svnversion and os.name not in ['ce', 'nt']:
+    # MSI accepts only version X.X.X
     version = version_base + '.' + svnversion
 else:
     version = version_base
@@ -152,7 +119,7 @@ if 'sdist' in sys.argv or os.name in ['ce', 'nt']:
 # data_files needs (directory, files-in-this-directory) tuples
 data_files = []
 for dirname, dirnames, filenames in os.walk('doc'):
-    if '.svn' not in dirname: # skip .svn dirs
+    if '.svn' not in dirname:  # skip .svn dirs
         fileslist = []
         for filename in filenames:
             fullname = os.path.join(dirname, filename)
@@ -164,8 +131,8 @@ setup(name='python-ase',
       version=version,
       description='Atomic Simulation Environment',
       url='https://wiki.fysik.dtu.dk/ase',
-      maintainer='CAMd',
-      maintainer_email='camd@fysik.dtu.dk',
+      maintainer='ASE-community',
+      maintainer_email='ase-developers@listserv.fysik.dtu.dk',
       license='LGPLv2.1+',
       platforms=['linux'],
       packages=packages,

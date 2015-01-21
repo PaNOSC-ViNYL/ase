@@ -4,15 +4,15 @@ import numpy as np
 
 from ase import Atoms
 from ase.io import write
-from ase.data.molecules import molecule
+from ase.structure import molecule
 
-a = 5.64 # Lattice constant for NaCl
+a = 5.64  # Lattice constant for NaCl
 cell = [a / np.sqrt(2), a / np.sqrt(2), a]
 atoms = Atoms(symbols='Na2Cl2', pbc=True, cell=cell,
               scaled_positions=[(.0, .0, .0),
                                 (.5, .5, .5),
                                 (.5, .5, .0),
-                                (.0, .0, .5),]) * (3, 4, 2) + molecule('C6H6')
+                                (.0, .0, .5)]) * (3, 4, 2) + molecule('C6H6')
 
 # Move molecule to 3.5Ang from surface, and translate one unit cell in xy
 atoms.positions[-12:, 2] += atoms.positions[:-12, 2].max() + 3.5
@@ -23,7 +23,7 @@ atoms.cell = cell
 
 # View used to start ag, and find desired viewing angle
 #view(atoms)
-rot='35x,63y,36z' # found using ag: 'view -> rotate'
+rot = '35x,63y,36z'  # found using ag: 'view -> rotate'
 
 # Common kwargs for eps, png, pov
 kwargs = {

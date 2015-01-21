@@ -1,9 +1,9 @@
-.. module:: parallel
+.. module:: ase.parallel
 
 =====================
 Parallel calculations
 =====================
 
-.. autofunction:: ase.parallel.paropen
+.. autofunction:: paropen
 
-.. autofunction:: ase.parallel.parprint
+.. autofunction:: parprint

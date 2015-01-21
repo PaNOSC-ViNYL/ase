@@ -1,21 +1,18 @@
 """This module defines the Atom object."""
 
-import warnings
-
 import numpy as np
 
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 
 
-#         singular,    plural,     default value
+# Singular, plural, default value:
 names = {'position': ('positions', np.zeros(3)),
-         'number':   ('numbers',   0),
-         'tag':      ('tags',      0),
-         'momentum': ('momenta',   np.zeros(3)),
-         'mass':     ('masses',    None),
-         'magmom':   ('magmoms',   0.0),
-         'charge':   ('charges',   0.0)
-         }
+         'number': ('numbers', 0),
+         'tag': ('tags', 0),
+         'momentum': ('momenta', np.zeros(3)),
+         'mass': ('masses', None),
+         'magmom': ('magmoms', 0.0),
+         'charge': ('charges', 0.0)}
 
 
 def atomproperty(name, doc):
@@ -31,6 +28,21 @@ def atomproperty(name, doc):
         self.delete(name)
 
     return property(getter, setter, deleter, doc)
+
+
+def abcproperty(index):
+    """Helper function to easily create Atom ABC-property."""
+
+    def getter(self):
+        spos = self.atoms.get_scaled_positions()
+        return spos[self.index][index]
+
+    def setter(self, value):
+        spos = self.atoms.get_scaled_positions()
+        spos[self.index][index] = value
+        self.atoms.set_scaled_positions(spos)
+
+    return property(getter, setter, doc='ABC'[index] + '-coordinate')
 
 
 def xyzproperty(index):
@@ -90,7 +102,7 @@ class Atom(object):
                 magmom = np.array(magmom, float)
             d['magmom'] = magmom
             d['charge'] = charge
-
+            
         self.index = index
         self.atoms = atoms
 
@@ -116,7 +128,7 @@ class Atom(object):
         self.atoms = None
         
     def get_raw(self, name):
-        """Get attribute, return None if not explicitely set."""
+        """Get name attribute, return None if not explicitely set."""
         if name == 'symbol':
             return chemical_symbols[self.get_raw('number')]
 
@@ -130,7 +142,7 @@ class Atom(object):
             return None
 
     def get(self, name):
-        """Get attribute, return default if not explicitely set."""
+        """Get name attribute, return default if not explicitely set."""
         value = self.get_raw(name)
         if value is None:
             if name == 'mass':
@@ -140,7 +152,7 @@ class Atom(object):
         return value
 
     def set(self, name, value):
-        """Set attribute."""
+        """Set name attribute to value."""
         if name == 'symbol':
             name = 'number'
             value = atomic_numbers[value]
@@ -168,7 +180,7 @@ class Atom(object):
                 self.atoms.new_array(plural, array)
 
     def delete(self, name):
-        """Delete attribute."""
+        """Delete name attribute."""
         assert self.atoms is None
         assert name not in ['number', 'symbol', 'position']
         self.data[name] = None
@@ -185,30 +197,7 @@ class Atom(object):
     y = xyzproperty(1)
     z = xyzproperty(2)
 
-    def _get(self, name):
-        """Helper function for deprecated get methods."""
-        warnings.warn('Use atom.%s' % name, stacklevel=3)
-        return getattr(self, name)
-
-    def _set(self, name, value):
-        """Helper function for deprecated set methods."""
-        warnings.warn('Use atom.%s = ...' % name, stacklevel=3)
-        setattr(self, name, value)
-
-    def get_symbol(self): return self._get('symbol')
-    def get_atomic_number(self): return self._get('number')
-    def get_position(self): return self._get('position')
-    def get_tag(self): return self._get('tag')
-    def get_momentum(self): return self._get('momentum')
-    def get_mass(self): return self._get('mass')
-    def get_initial_magnetic_moment(self): return self._get('magmom')
-    def get_charge(self): return self._get('charge')
-
-    def set_symbol(self, value): self._set('symbol', value)
-    def set_atomic_number(self, value): self._set('number', value)
-    def set_position(self, value): self._set('position', value)
-    def set_tag(self, value): self._set('tag', value)
-    def set_momentum(self, value): self._set('momentum', value)
-    def set_mass(self, value): self._set('mass', value)
-    def set_initial_magnetic_moment(self, value): self._set('magmom', value)
-    def set_charge(self, value): self._set('charge', value)
+    scaled_position = atomproperty('scaled_position', 'ABC-coordinates')
+    a = abcproperty(0)
+    b = abcproperty(1)
+    c = abcproperty(2)

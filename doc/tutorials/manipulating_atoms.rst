@@ -77,7 +77,7 @@ array([[ 0.        ,  0.        ,  0.        ],
        [ 1.25511454,  2.17392215,  0.        ],
        [ 3.76534361,  2.17392215,  0.        ]])
 
-Plot the whole system by bringing up the :mod:`gui`:
+Plot the whole system by bringing up the :mod:`ase.gui`:
 
 >>> from ase.visualize import view
 >>> view(atoms)
@@ -85,9 +85,9 @@ Plot the whole system by bringing up the :mod:`gui`:
 .. image:: a1.png
    :scale: 35
 
-Within the viewer (called :mod:`ase-gui <gui>` or :mod:`ase.gui <gui>`) it
-is possible to repeat the unit cell in all three directions (using the
-:menuselection:`Repeat --> View` window).
+Within the viewer (called :mod:`ase-gui <ase.gui>`) it is possible to repeat
+the unit cell in all three directions (using the :menuselection:`Repeat -->
+View` window).
 
 .. image:: a2.png
    :scale: 35

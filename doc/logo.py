@@ -10,14 +10,16 @@ HHH  H  HH
 H H   H H
 H H HH  HHH"""
 
-d = 0.8
+d = 1.2
 
 logo = Atoms()
 for i, line in enumerate(ase.split('\n')):
     for j, c in enumerate(line):
         if c == 'H':
             logo.append(Atom('H', [d * j, d * i, 0]))
-logo.center(vacuum=2.0)
+logo.set_cell((15, 15, 2))
+logo.center()
+#logo.center(vacuum=2.0)
 
 #view(logo)
 
@@ -42,7 +44,7 @@ if 1:
     import pylab as p
     i = p.imshow(a.T, aspect=True)
     i.write_png('ase.png')
-    os.system('convert ase.png -resize 50x25 ase.png')
+    os.system('convert ase.png -geometry 256x256! ase256.png')
     #p.axis('off')
     p.show()
     #p.savefig('ase.png', dpi=8)

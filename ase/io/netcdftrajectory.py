@@ -12,10 +12,8 @@ A Python NetCDF module is required. Supported are
 
     scipy.io.netcdf - http://docs.scipy.org/doc/scipy/reference/io.html
 
-    pupynere - https://bitbucket.org/robertodealmeida/pupynere/
-
 Availability is checked in the above order of preference. Note that
-scipy.io.netcdf and pupynere cannot write HDF5 NetCDF-4 files.
+scipy.io.netcdf cannot write HDF5 NetCDF-4 files.
 
 NetCDF files can be directly visualized using the libAtoms flavor of
 AtomEye (http://www.libatoms.org/),
@@ -38,7 +36,6 @@ from functools import reduce
 NC_NOT_FOUND = 0
 NC_IS_NETCDF4 = 1
 NC_IS_SCIPY = 2
-NC_IS_PUPYNERE = 3
 
 have_nc = NC_NOT_FOUND
 # Check if we have netCDF4-python
@@ -48,34 +45,23 @@ try:
 except:
     pass
 
-#if not have_nc:
-#    # Check for scipy
-#    try:
-#        from scipy.io.netcdf import netcdf_file
-#        have_nc = NC_IS_SCIPY
-#    except:
-#        pass
-
 if not have_nc:
-    # Check for pupynere (comes with ASE)
-    try:
-        from ase.io.pupynere import netcdf_file
-        have_nc = NC_IS_PUPYNERE
-    except:
-        pass
-
-
-### Read/write NetCDF trajectories
+    # Check for scipy
+    netcdf_file = None  # Someone should fix scipy support or remove it
+#     try:
+#         from scipy.io.netcdf import netcdf_file
+#         have_nc = NC_IS_SCIPY
+#     except:
+#         pass
 
 
 class NetCDFTrajectory:
     """
-    Reads/writes Atoms objects into an AMBER-stlye .nc trajectory file.
+    Reads/writes Atoms objects into an AMBER-style .nc trajectory file.
     """
 
     # netCDF4-python format strings to scipy.io.netcdf version numbers
     _netCDF4_to_scipy = {'NETCDF3_CLASSIC': 1, 'NETCDF3_64BIT': 2}
-    _netCDF4_to_pupynere = ['NETCDF3_CLASSIC']
 
     # Default dimension names
     _frame_dim = 'frame'
@@ -87,8 +73,11 @@ class NetCDFTrajectory:
 
     # Default field names. If it is a list, check for any of these names upon
     # opening. Upon writing, use the first name.
+    _spatial_var = 'spatial'
+    _cell_spatial_var = 'cell_spatial'
+    _cell_angular_var = 'cell_angular'
     _time_var = 'time'
-    _numbers_var = ['Z', 'atom_types']
+    _numbers_var = ['Z', 'atom_types', 'type']
     _positions_var = 'coordinates'
     _velocities_var = 'velocities'
     _cell_origin_var = 'cell_origin'
@@ -97,11 +86,12 @@ class NetCDFTrajectory:
 
     _default_vars = reduce(lambda x, y: x + y,
                            [_numbers_var, [_positions_var], [_velocities_var],
-                           [_cell_origin_var], [_cell_lengths_var],
-                           [_cell_angles_var]])
+                            [_cell_origin_var], [_cell_lengths_var],
+                            [_cell_angles_var]])
 
     def __init__(self, filename, mode='r', atoms=None, types_to_numbers=None,
-                 double=True, netcdf_format='NETCDF3_CLASSIC'):
+                 double=True, netcdf_format='NETCDF3_CLASSIC', keep_open=None,
+                 index_var='id', index_offset=-1):
         """
         A NetCDFTrajectory can be created in read, write or append mode.
 
@@ -145,6 +135,20 @@ class NetCDFTrajectory:
             'NETCDF4_CLASSIC' is HDF5 with some NetCDF limitations.
 
             'NETCDF4' is HDF5.
+
+        keep_open=None:
+            Keep the file open during consecutive read/write operations.
+            Default is to close file between writes to minimize chance of data
+            corruption, but keep file open if file is opened in read mode.
+
+        index_var='id':
+            Name of variable containing the atom indices. Atoms are reordered
+            by this index upon reading if this variable is present. Default
+            value is for LAMMPS output.
+
+        index_offset=-1:
+            Set to 0 if atom index is zero based, set to -1 if atom index is
+            one based. Default value is for LAMMPS output.
         """
         if not have_nc:
             raise RuntimeError('NetCDFTrajectory requires a NetCDF Python '
@@ -153,17 +157,20 @@ class NetCDFTrajectory:
         self.nc = None
 
         self.numbers = None
-        self.pbc = None
         self.pre_observers = []   # Callback functions before write
-        self.post_observers = []  # Callback functions after write
-                                  # are called
+        self.post_observers = []  # Callback functions after write are called
 
         self.has_header = False
-        self.set_atoms(atoms)
+        self._set_atoms(atoms)
 
         self.types_to_numbers = None
         if types_to_numbers:
             self.types_to_numbers = np.array(types_to_numbers)
+
+        self.index_var = index_var
+        self.index_offset = index_offset
+
+        self._default_vars += [self.index_var]
 
         # 'l' should be a valid type according to the netcdf4-python
         # documentation, but does not appear to work.
@@ -185,21 +192,31 @@ class NetCDFTrajectory:
         else:
             self.n_atoms = None
 
-        self._open(filename)
+        self.filename = filename
+        if keep_open is None:
+            # Only netCDF4-python supports append to files
+            self.keep_open = self.mode == 'r' or have_nc != NC_IS_NETCDF4
+        else:
+            self.keep_open = keep_open
+        if (mode == 'a' or not self.keep_open) and have_nc != NC_IS_NETCDF4:
+            raise RuntimeError('netCDF4-python is required for append mode.')
 
     def __del__(self):
         self.close()
 
-    def _open(self, filename):
+    def _open(self):
         """
         Opens the file.
 
         For internal use only.
         """
-        if self.mode == 'a' and not os.path.exists(filename):
+        if self.nc is not None:
+            return
+        if self.mode == 'a' and not os.path.exists(self.filename):
             self.mode = 'w'
         if have_nc == NC_IS_NETCDF4:
-            self.nc = Dataset(filename, self.mode, format=self.netcdf_format)
+            self.nc = Dataset(self.filename, self.mode,
+                              format=self.netcdf_format)
         elif have_nc == NC_IS_SCIPY:
             if self.netcdf_format not in self._netCDF4_to_scipy:
                 raise ValueError("NetCDF format '%s' not supported by "
@@ -208,51 +225,41 @@ class NetCDFTrajectory:
             if version == 1:
                 # This supports older scipy.io.netcdf versions that do not
                 # support the 'version' argument
-                self.nc = netcdf_file(
-                    filename, self.mode
-                    )
+                self.nc = netcdf_file(self.filename, self.mode)
             else:
                 self.nc = netcdf_file(
-                    filename, self.mode,
+                    self.filename, self.mode,
                     version=self._netCDF4_to_scipy[self.netcdf_format]
-                    )
-        elif have_nc == NC_IS_PUPYNERE:
-            if self.netcdf_format not in self._netCDF4_to_pupynere:
-                raise ValueError("NetCDF format '%s' not supported by "
-                                 "ase.io.pupynere." % self.netcdf_format)
-            self.nc = netcdf_file(filename, self.mode)
+                )
         else:
             # Should not happen
             raise RuntimeError('Internal error: Unknown *have_nc* value.')
 
         self.frame = 0
         if self.mode == 'r' or self.mode == 'a':
-            self.read_header()
-            self.frame = len(self)
+            self._read_header()
+            self.frame = self._len()
 
-    def set_atoms(self, atoms=None):
+    def _set_atoms(self, atoms=None):
         """
         Associate an Atoms object with the trajectory.
 
-        Mostly for internal use.
+        For internal use only.
         """
         if atoms is not None and not hasattr(atoms, 'get_positions'):
             raise TypeError('"atoms" argument is not an Atoms object.')
         self.atoms = atoms
 
-    def read_header(self):
-        self.pbc = np.array([True, True, True])
+    def _read_header(self):
         if not self.n_atoms:
             if have_nc == NC_IS_NETCDF4:
                 self.n_atoms = len(self.nc.dimensions[self._atom_dim])
             else:
                 self.n_atoms = self.nc.dimensions[self._atom_dim]
-        self.numbers = self._get_variable(self._numbers_var)[:]
-        if self.types_to_numbers is not None:
-            self.numbers = self.types_to_numbers[self.numbers]
-        self.masses = atomic_masses[self.numbers]
 
         for name, var in self.nc.variables.items():
+            # This can be unicode which confuses ASE
+            name = str(name)
             # _default_vars is taken care of already
             if name not in self._default_vars:
                 if len(var.dimensions) >= 2:
@@ -277,6 +284,7 @@ class NetCDFTrajectory:
         If the atoms argument is not given, the atoms object specified
         when creating the trajectory object is used.
         """
+        self._open()
         self._call_observers(self.pre_observers)
         if atoms is None:
             atoms = self.atoms
@@ -294,32 +302,25 @@ class NetCDFTrajectory:
             return
 
         if not self.has_header:
-            self.write_header(atoms)
+            self._define_file_structure(atoms)
         else:
-            if (atoms.pbc != self.pbc).any():
-                raise ValueError('Bad periodic boundary conditions!')
-            elif len(atoms) != self.n_atoms:
+            if len(atoms) != self.n_atoms:
                 raise ValueError('Bad number of atoms!')
-            if self.frame > 0:
-                if (atoms.numbers != self.numbers).any():
-                    raise ValueError('Bad atomic numbers!')
-            else:
-                self.numbers = atoms.get_atomic_numbers()
-                self._get_variable(self._numbers_var)[:] = \
-                    atoms.get_atomic_numbers()
 
         if frame is None:
             i = self.frame
         else:
             i = frame
 
+        self._get_variable(self._numbers_var)[i] = atoms.get_atomic_numbers()
         self._get_variable(self._positions_var)[i] = atoms.get_positions()
         if atoms.has('momenta'):
             self._add_velocities()
             self._get_variable(self._velocities_var)[i] = \
                 atoms.get_momenta() / atoms.get_masses().reshape(-1, 1)
         a, b, c, alpha, beta, gamma = cell_to_cellpar(atoms.get_cell())
-        self._get_variable(self._cell_lengths_var)[i] = [a, b, c]
+        cell_lengths = np.array([a, b, c]) * atoms.pbc
+        self._get_variable(self._cell_lengths_var)[i] = cell_lengths
         self._get_variable(self._cell_angles_var)[i] = [alpha, beta, gamma]
         if arrays is not None:
             for array in arrays:
@@ -331,14 +332,17 @@ class NetCDFTrajectory:
 
         self._call_observers(self.post_observers)
         self.frame += 1
+        self._close()
 
     def write_arrays(self, atoms, frame, arrays):
+        self._open()
         self._call_observers(self.pre_observers)
         for array in arrays:
             data = atoms.get_array(array)
             self._add_array(atoms, array, data.dtype, data.shape)
             self._get_variable(array)[frame] = data
         self._call_observers(self.post_observers)
+        self._close()
 
     def _define_file_structure(self, atoms):
         if not hasattr(self.nc, 'Conventions'):
@@ -350,20 +354,38 @@ class NetCDFTrajectory:
         if not hasattr(self.nc, 'programVersion'):
             self.nc.programVersion = ase.version.version
 
-        if not self._frame_dim in self.nc.dimensions:
+        if self._frame_dim not in self.nc.dimensions:
             self.nc.createDimension(self._frame_dim, None)
-        if not self._spatial_dim in self.nc.dimensions:
+        if self._spatial_dim not in self.nc.dimensions:
             self.nc.createDimension(self._spatial_dim, 3)
-        if not self._atom_dim in self.nc.dimensions:
+        if self._atom_dim not in self.nc.dimensions:
             self.nc.createDimension(self._atom_dim, len(atoms))
-        if not self._cell_spatial_dim in self.nc.dimensions:
+        if self._cell_spatial_dim not in self.nc.dimensions:
             self.nc.createDimension(self._cell_spatial_dim, 3)
-        if not self._cell_angular_dim in self.nc.dimensions:
+        if self._cell_angular_dim not in self.nc.dimensions:
             self.nc.createDimension(self._cell_angular_dim, 3)
+        if self._label_dim not in self.nc.dimensions:
+            self.nc.createDimension(self._label_dim, 5)
+
+        # Self-describing variables from AMBER convention
+        if not self._has_variable(self._spatial_var):
+            self.nc.createVariable(self._spatial_var, 'S1',
+                                   (self._spatial_dim,))
+            self.nc.variables[self._spatial_var][:] = ['x', 'y', 'z']
+        if not self._has_variable(self._cell_spatial_var):
+            self.nc.createVariable(self._cell_spatial_dim, 'S1',
+                                   (self._cell_spatial_dim,))
+            self.nc.variables[self._cell_spatial_var][:] = ['a', 'b', 'c']
+        if not self._has_variable(self._cell_angular_var):
+            self.nc.createVariable(self._cell_angular_var, 'S1',
+                                   (self._cell_angular_dim, self._label_dim,))
+            self.nc.variables[self._cell_angular_var][0] = [x for x in 'alpha']
+            self.nc.variables[self._cell_angular_var][1] = [x for x in 'beta ']
+            self.nc.variables[self._cell_angular_var][2] = [x for x in 'gamma']
 
         if not self._has_variable(self._numbers_var):
             self.nc.createVariable(self._numbers_var[0], 'i',
-                                   (self._atom_dim,))
+                                   (self._frame_dim, self._atom_dim,))
         if not self._has_variable(self._positions_var):
             self.nc.createVariable(self._positions_var, 'f4',
                                    (self._frame_dim, self._atom_dim,
@@ -406,16 +428,22 @@ class NetCDFTrajectory:
                 t = type
             self.nc.createVariable(array_name, t, dims)
 
-    def _get_variable(self, name):
+    def _get_variable(self, name, exc=True):
         if isinstance(name, list):
             for n in name:
                 if n in self.nc.variables:
                     return self.nc.variables[n]
-            raise RuntimeError('None of the variables {0} was found in the '
-                               'NetCDF trajectory.'.format(
-                                   reduce(lambda x, y: x + ', ' + y, name)))
+            if exc:
+                raise RuntimeError(
+                    'None of the variables {0} was found in the '
+                    'NetCDF trajectory.'.format(', '.join(name)))
         else:
-            return self.nc.variables[name]
+            if name in self.nc.variables:
+                return self.nc.variables[name]
+            if exc:
+                raise RuntimeError('Variables {0} was found in the NetCDF '
+                                   'trajectory.'.format(name))
+        return None
 
     def _has_variable(self, name):
         if isinstance(name, list):
@@ -426,11 +454,14 @@ class NetCDFTrajectory:
         else:
             return name in self.nc.variables
 
-    def write_header(self, atoms):
-        self._define_file_structure(atoms)
-
-        self._get_variable(self._numbers_var)[:] = \
-            np.asarray(atoms.get_atomic_numbers())
+    def _get_data(self, name, frame, exc=True):
+        var = self._get_variable(name, exc=exc)
+        if var is None:
+            return None
+        if var.dimensions[0] == self._frame_dim:
+            return var[frame, ...]
+        else:
+            return var[...]
 
     def close(self):
         """Close the trajectory file."""
@@ -438,31 +469,67 @@ class NetCDFTrajectory:
             self.nc.close()
             self.nc = None
 
-    def __getitem__(self, i=-1):
-        if isinstance(i, slice):
-            return [self[j] for j in range(*i.indices(len(self)))]
+    def _close(self):
+        if not self.keep_open:
+            self.close()
+            if self.mode == 'w':
+                self.mode = 'a'
 
-        N = len(self)
+    def __getitem__(self, i=-1):
+        self._open()
+
+        if isinstance(i, slice):
+            return [self[j] for j in range(*i.indices(self._len()))]
+
+        N = self._len()
         if 0 <= i < N:
-            # Construct cell shape from cell lengths and angles
-            cell = cellpar_to_cell(
-                list(self.nc.variables[self._cell_lengths_var][i]) +
-                list(self.nc.variables[self._cell_angles_var][i])
-                )
+            # Non-periodic boundaries have cell_length == 0.0
+            cell_lengths = \
+                np.array(self.nc.variables[self._cell_lengths_var][i][:])
+            pbc = np.abs(cell_lengths > 1e-6)
 
             # Do we have a cell origin?
             if self._has_variable(self._cell_origin_var):
-                origin = np.array(self.nc.variables[self._cell_origin_var][i])
+                origin = np.array(
+                    self.nc.variables[self._cell_origin_var][i][:])
             else:
                 origin = np.zeros([3], dtype=float)
-            origin.shape = (1, -1)
+
+            # Do we have an index variable?
+            if self._has_variable(self.index_var):
+                index = np.array(self.nc.variables[self.index_var][i][:]) + \
+                    self.index_offset
+            else:
+                index = np.arange(self.n_atoms)
+
+            # Read element numbers
+            self.numbers = self._get_data(self._numbers_var, i, exc=False)
+            if self.numbers is None:
+                self.numbers = np.ones(self.n_atoms, dtype=int)
+            else:
+                self.numbers = np.array(self.numbers[index])
+            if self.types_to_numbers is not None:
+                self.numbers = self.types_to_numbers[self.numbers]
+            self.masses = atomic_masses[self.numbers]
+
+            # Read positions
+            positions = np.array(self._get_data(self._positions_var, i)[index])
+
+            # Determine cell size for non-periodic directions
+            for dim in np.arange(3)[np.logical_not(pbc)]:
+                origin[dim] = positions[:, dim].min()
+                cell_lengths[dim] = positions[:, dim].max() - origin[dim]
+
+            # Construct cell shape from cell lengths and angles
+            cell = cellpar_to_cell(
+                list(cell_lengths) +
+                list(self.nc.variables[self._cell_angles_var][i])
+            )
 
             # Compute momenta from velocities (if present)
-            if self._has_variable(self._velocities_var):
-                momenta = self.nc.variables[self._velocities_var][i] * \
-                          self.masses.reshape(-1, 1)
-            else:
-                momenta = None
+            momenta = self._get_data(self._velocities_var, i, exc=False)
+            if momenta is not None:
+                momenta = momenta[index] * self.masses.reshape(-1, 1)
 
             # Fill info dict with additional data found in the NetCDF file
             info = {}
@@ -471,32 +538,40 @@ class NetCDFTrajectory:
 
             # Create atoms object
             atoms = ase.Atoms(
-                positions=self.nc.variables[self._positions_var][i] - origin,
+                positions=positions - origin.reshape(1, -1),
                 numbers=self.numbers,
                 cell=cell,
                 momenta=momenta,
                 masses=self.masses,
-                pbc=self.pbc,
+                pbc=pbc,
                 info=info
-                )
+            )
 
             # Attach additional arrays found in the NetCDF file
             for name in self.extra_per_frame_vars:
-                atoms.set_array(name, self.nc.variables[name][i])
+                atoms.set_array(name, self.nc.variables[name][i][index])
             for name in self.extra_per_file_vars:
                 atoms.set_array(name, self.nc.variables[name][:])
+            self._close()
             return atoms
 
         i = N + i
         if i < 0 or i >= N:
+            self._close()
             raise IndexError('Trajectory index out of range.')
         return self[i]
 
-    def __len__(self):
+    def _len(self):
         if self._frame_dim in self.nc.dimensions:
-            return len(self._get_variable(self._positions_var)[:])
+            return int(self._get_variable(self._positions_var).shape[0])
         else:
             return 0
+
+    def __len__(self):
+        self._open()
+        n_frames = self._len()
+        self._close()
+        return n_frames
 
     def pre_write_attach(self, function, interval=1, *args, **kwargs):
         """

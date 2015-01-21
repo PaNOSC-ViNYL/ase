@@ -71,7 +71,7 @@ def read_aims(filename):
     return atoms
 
 
-def write_aims(filename, atoms):
+def write_aims(filename, atoms, ghosts=None):
     """Method to write FHI-aims geometry files.
 
     Writes the atoms positions and constraints (only FixAtoms is
@@ -109,16 +109,24 @@ def write_aims(filename, atoms):
             elif isinstance(constr, FixCartesian):
                 fix_cart[constr.a] = -constr.mask+1
 
+    if ghosts is None:
+        ghosts = np.zeros(len(atoms))
+    else:
+        assert len(ghosts) == len(atoms)
     for i, atom in enumerate(atoms):
-        fd.write('atom ')
+        if ghosts[i] == 1:
+            atomstring = 'empty '
+        else:
+            atomstring = 'atom '
+        fd.write(atomstring)
         for pos in atom.position:
             fd.write('%16.16f ' % pos)
         fd.write(atom.symbol)
         fd.write('\n')
-# (1) all coords are constrained:
+        # (1) all coords are constrained:
         if fix_cart[i].all():
             fd.write('constrain_relaxation .true.\n')
-# (2) some coords are constrained:
+        # (2) some coords are constrained:
         elif fix_cart[i].any():
             xyz = fix_cart[i]
             for n in range(3):

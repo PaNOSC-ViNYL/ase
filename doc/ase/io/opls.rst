@@ -2,11 +2,12 @@
 Setting up an OPLS force field calculation
 ==========================================
 
-.. module:: opls
+.. module:: ase.io.opls
    :synopsis: OPLS force field
 
 In order to facilitate the definition of structures for the use
 of OPLS force fields, there are some helper classes.
+
 
 Modified xyz
 ============
@@ -20,6 +21,7 @@ Then we can read and view the structure using:
 
 .. literalinclude:: view_172_mod.py
 
+
 Defining the force field
 ========================
 
@@ -32,7 +34,6 @@ We can write LAMMPS input using the information above:
 
 .. literalinclude:: write_lammps.py
 
-which writes the LAMMPS input files ``lmp_atoms`` defining atoms, 
-bonds, etc., and
-``lmp_opls`` defining the corresponding OPLS force field.
-A rudimentary ``lmp_in`` is also written.
+which writes the LAMMPS input files ``lmp_atoms`` defining atoms,  bonds,
+etc., and ``lmp_opls`` defining the corresponding OPLS force field. A
+rudimentary ``lmp_in`` is also written.
