@@ -99,5 +99,5 @@ t = NetCDFTrajectory(fname)
 a = t[-1]
 assert a.pbc[0] and not a.pbc[1] and not a.pbc[2]
 assert abs(a.get_distance(0, 1) - d) < 1e-6
-del t 
+del t
 os.remove(fname)
