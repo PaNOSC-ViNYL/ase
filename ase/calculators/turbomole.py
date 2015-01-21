@@ -9,14 +9,14 @@ import sys
 import numpy as np
 
 from ase.units import Hartree, Bohr
-from ase.io.turbomole import read_turbomole,write_turbomole
+from ase.io.turbomole import read_turbomole, write_turbomole
 from ase.calculators.general import Calculator
 
 
 class Turbomole(Calculator):
     def __init__(self, label='turbomole',
                  calculate_energy='dscf', calculate_forces='grad',
-                 post_HF = False):
+                 post_HF=False):
         self.label = label
         self.converged = False
         
@@ -36,7 +36,7 @@ class Turbomole(Calculator):
         self.atoms = None
         
         # POST-HF method
-        self.post_HF  = post_HF
+        self.post_HF = post_HF
 
     def initialize(self, atoms):
         self.numbers = atoms.get_atomic_numbers().copy()
@@ -74,13 +74,7 @@ class Turbomole(Calculator):
                     'Please run Turbomole define and come thereafter back')
             # read energy
             self.read_energy()
-<<<<<<< .working
-        else:
-            print('taking old values (E)')
-=======
-        #else:
-        #    print 'taking old values (E)'
->>>>>>> .merge-right.r4055
+
         self.update_energy = False
         return self.e_total
 
@@ -97,13 +91,7 @@ class Turbomole(Calculator):
             self.execute(self.calculate_forces + ' > ASE.TM.forces.out')
             # read forces
             self.read_forces()
-<<<<<<< .working
-        else:
-            print('taking old values (F)')
-=======
-        #else:
-        #    print 'taking old values (F)'
->>>>>>> .merge-right.r4055
+
         self.update_forces = False
         return self.forces.copy()
     
