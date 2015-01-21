@@ -107,6 +107,8 @@ float_keys = [
                   # Tkatchenko and Scheffler's DFT-TS dispersion correction
     'vdw_a1',     # Damping parameter for Grimme's DFT-D3 dispersion correction
     'vdw_a2',     # Damping parameter for Grimme's DFT-D3 dispersion correction
+    'eb_k',       # solvent permitivity in Vaspsol
+    'tau',        # surface tension parameter in Vaspsol
 ]
 
 exp_keys = [
@@ -257,6 +259,7 @@ bool_keys = [
     'lrpa',       # Include local field effects on the Hartree level only
     'lwannier90',  # Switches on the interface between VASP and WANNIER90
     'lsorbit',    # Enable spin-orbit coupling
+    'lsol',       # turn on solvation for Vaspsol
 ]
 
 list_keys = [
