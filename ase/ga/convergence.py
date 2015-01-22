@@ -91,3 +91,12 @@ class RawScoreConvergence(Convergence):
         if abs(cur_pop[0].get_raw_score() - self.max_raw_score) <= self.eps:
             return True
         return False
+
+        
+class NeverConvergence(object):
+    """Test class that never converges."""
+    def __init__(self):
+        pass
+        
+    def converged(self):
+        return False

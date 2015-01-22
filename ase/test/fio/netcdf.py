@@ -1,5 +1,11 @@
 import numpy as np
-from scipy.io.netcdf import NetCDFFile
+
+from ase.test import NotAvailable
+
+try:
+    from scipy.io.netcdf import NetCDFFile
+except ImportError:
+    raise NotAvailable('Scipy too old')
 
 # Write array
 a1 = np.random.rand(5, 5)

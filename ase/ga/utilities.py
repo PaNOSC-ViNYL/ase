@@ -178,7 +178,7 @@ def get_nndist(atoms, distance_matrix):
     The estimate comes from the first peak in the radial distribution
     function.
     """
-    rmax = np.sqrt(sum([sum(c**2) for c in atoms.cell])) / 2.
+    rmax = 10.  # No bonds longer than 10 angstrom expected
     nbins = 200
     rdf, dists = get_rdf(atoms, rmax, nbins, distance_matrix)
     i = 0
