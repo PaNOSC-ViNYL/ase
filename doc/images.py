@@ -1,5 +1,8 @@
 import os.path
-from urllib.request import urlretrieve
+try:
+    from urllib.request import urlretrieve
+except ImportError:
+    from urllib import urlretrieve
 
 url = 'http://wiki.fysik.dtu.dk/ase-files/'
 

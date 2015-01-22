@@ -9,6 +9,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+from ase.utils import exec_
+
 
 def mol_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     n = []
@@ -162,7 +164,8 @@ def create_png_files():
                         os.chdir(dirpath)
                         plt.figure()
                         try:
-                            exec(open(filename).read())
+                            exec_(compile(open(filename).read(), filename,
+                                         'exec'), {})
                         finally:
                             os.chdir(olddir)
                         for file in line.split()[2:]:
