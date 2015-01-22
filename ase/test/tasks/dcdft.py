@@ -16,14 +16,9 @@ From here::
 """
 
 import os
-
 import glob
-
 import pprint
-
-import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
-
+import urllib
 import tarfile
 import zipfile
 
@@ -32,13 +27,20 @@ import numpy as np
 from numpy import array
 
 from ase import Atoms
-from ase import units
 import ase.io
 
 from ase.tasks.io import read_json
 from ase.tasks.bulk import BulkTask
 
 from ase.utils.eos import EquationOfState
+from ase.test import NotAvailable
+
+try:
+    import urllib2
+except ImportError:
+    raise NotAvailable
+
+
 
 class FullEquationOfState(EquationOfState):
 
@@ -887,7 +889,7 @@ if __name__ == '__main__':
     os.chdir(dir)
     try:
         resp = urllib.request.urlopen(src)
-        urllib.request.urlretrieve(src, filename=name)
+        urllib.urlretrieve(src, filename=name)
         z = zipfile.ZipFile(name)
         try:  # new in 2.6
             z.extractall()
@@ -924,7 +926,7 @@ if __name__ == '__main__':
             data[s] = d
         pprint.pprint(data)
     # AttributeError if unzip not found
-    except (urllib.error.HTTPError, AttributeError):
+    except (urllib2.HTTPError, AttributeError):
         pass
     os.chdir('..')
     # run with emt

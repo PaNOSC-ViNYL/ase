@@ -3,6 +3,7 @@
 # Copyright (C) 2007  CAMP
 # Please see the accompanying LICENSE file for further information.
 
+from __future__ import print_function
 from distutils.core import setup, Command
 from distutils.command.build_py import build_py as _build_py
 from glob import glob
