@@ -1,5 +1,5 @@
-from __future__ import print_function
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 """This module defines an interface to CASTEP for
     use by the ASE (Webpage: http://wiki.fysik.dtu.dk/ase)
 

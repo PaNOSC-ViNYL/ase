@@ -208,8 +208,8 @@ class CutAndSplicePairing(OffspringCreator):
             # both parents
             n1 = -1 * np.ones((N, ))
             n2 = -1 * np.ones((N, ))
-            for i in xrange(N):
-                for j in xrange(N):
+            for i in range(N):
+                for j in range(N):
                     if np.all(a1.positions[j, :] == top.positions[i, :]):
                         n1[i] = j
                         break

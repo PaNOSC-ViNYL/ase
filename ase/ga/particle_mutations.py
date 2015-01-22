@@ -139,7 +139,7 @@ class RandomPermutation(Mutation):
         indi = self.initialize_individual(f)
         indi.info['data']['parents'] = [f.info['confid']]
 
-        for _ in xrange(self.num_muts):
+        for _ in range(self.num_muts):
             RandomPermutation.mutate(f)
 
         for atom in f:
@@ -192,7 +192,7 @@ class COM2surfPermutation(Mutation):
         indi = self.initialize_individual(f)
         indi.info['data']['parents'] = [f.info['confid']]
 
-        for _ in xrange(self.num_muts):
+        for _ in range(self.num_muts):
             elems = self.elements
             COM2surfPermutation.mutate(f, elems, self.min_ratio)
 
@@ -284,7 +284,7 @@ class _NeighborhoodPermutation(Mutation):
             return x[1]
         for i, atom in enumerate(atoms):
             same_neighbors[i] = 0
-            neighbors = [j for j in xrange(len(dm[i])) if dm[i][j] < nndist]
+            neighbors = [j for j in range(len(dm[i])) if dm[i][j] < nndist]
             for n in neighbors:
                 if atoms[n].symbol == atom.symbol:
                     same_neighbors[i] += 1
@@ -332,7 +332,7 @@ class Poor2richPermutation(_NeighborhoodPermutation):
         indi = self.initialize_individual(f)
         indi.info['data']['parents'] = [f.info['confid']]
         
-        for _ in xrange(self.num_muts):
+        for _ in range(self.num_muts):
             Poor2richPermutation.mutate(f, self.elements)
 
         for atom in f:
@@ -384,7 +384,7 @@ class Rich2poorPermutation(_NeighborhoodPermutation):
             elems = list(set(f.get_chemical_symbols()))
         else:
             elems = self.elements
-        for _ in xrange(self.num_muts):
+        for _ in range(self.num_muts):
             Rich2poorPermutation.mutate(f, elems)
 
         for atom in f:
