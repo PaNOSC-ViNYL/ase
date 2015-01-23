@@ -38,7 +38,7 @@ class MemoryBase(object, DictMixin):
         x.__repr__() <==> repr(x)"""
         if self.verbose>=2: print('MemoryBase.__repr__')
         s = object.__repr__(self)
-        w = max(list(map(len, self._keys)))
+        w = max(map(len, self._keys))
         unit = 'MB'
         for k,v in self.items():
             res = '<N/A>'

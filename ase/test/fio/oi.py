@@ -12,7 +12,7 @@ atoms = Atoms('AuH',
               positions=[(c, c, 0), (c, c, d)],
               cell=(a, a, 2 * d),
               pbc=(0, 0, 1))
-extra = np.array([ 2.3, 4.2 ])
+extra = np.array([2.3, 4.2])
 atoms.set_array('extra', extra)
 atoms *= (1, 1, 2)
 images = [atoms.copy(), atoms.copy()]
@@ -67,15 +67,16 @@ for format in w:
             assert np.all(np.abs(a1.get_array('extra') -
                                  atoms.get_array('extra')) < 1e-6)
         if format in ['extxyz']:
-            assert np.all(a1.get_pbc() == atoms.get_pbc())            
+            assert np.all(a1.get_pbc() == atoms.get_pbc())
 
         if format not in only_one_image:
             a2 = read(fname2)
             a3 = read(fname2, index=0)
             a4 = read(fname2, index=slice(None))
             if format in ['cif'] and sys.platform in ['win32']:
-                pass  # Fails on Windows:
-                      # https://trac.fysik.dtu.dk/projects/ase/ticket/62
+                # Fails on Windows:
+                # https://trac.fysik.dtu.dk/projects/ase/ticket/62
+                pass
             else:
                 assert len(a4) == 2
     else:

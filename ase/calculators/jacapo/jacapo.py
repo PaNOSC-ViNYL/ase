@@ -1881,7 +1881,7 @@ than density cutoff %i' % (pw, dw))
         # get number of multi centers
         ncenters = len(_listofmcenters_)
         # get max number of orbitals any center
-        max_orbitals = max(list(map(len, _listofmcenters_)))
+        max_orbitals = max(map(len, _listofmcenters_))
 
         mmatrix = np.zeros([ncenters, max_orbitals, 4], np.float)
         ncenter = 0
@@ -3899,7 +3899,7 @@ s.recv(14)
         nc.close()
 
         xcfuncs = [xc.tostring().strip() for xc in xcfuncs]
-        edict = dict(list(zip(xcfuncs, funcenergies)))
+        edict = dict(zip(xcfuncs, funcenergies))
 
         if len(functional) == 0:
             #get all energies by default

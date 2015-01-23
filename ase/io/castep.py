@@ -231,7 +231,7 @@ def read_cell(filename, _=None):
                     print('%BLOCK LATTICE_CART (assuming Angstrom instead)')
                     tokens, l = get_tokens(lines, l)
                 for _ in range(3):
-                    lat_vec = list(map(float, tokens[0:3]))
+                    lat_vec = [float(a) for a in tokens[0:3]]
                     lat.append(lat_vec)
                     tokens, l = get_tokens(lines, l)
                 if tokens[0].upper() != "%ENDBLOCK":
@@ -246,7 +246,7 @@ def read_cell(filename, _=None):
                     print('read_cell: Warning - ignoring unit specifier in')
                     print('%BLOCK LATTICE_ABC (assuming Angstrom instead)')
                     tokens, l = get_tokens(lines, l)
-                a, b, c = list(map(float, tokens[0:3]))
+                a, b, c = map(float, tokens[0:3])
                 tokens, l = get_tokens(lines, l)
                 alpha, beta, gamma = [radians(float(phi)) for phi in tokens[0:3]]
                 tokens, l = get_tokens(lines, l)
@@ -270,7 +270,7 @@ def read_cell(filename, _=None):
                     tokens, l = get_tokens(lines, l)
                 while len(tokens) == 4:
                     spec.append(tokens[0])
-                    pos.append(list(map(float, tokens[1:4])))
+                    pos.append([float(p) for p in tokens[1:4]])
                     tokens, l = get_tokens(lines, l)
                 if tokens[0].upper() != "%ENDBLOCK":
                     print('read_cell: Warning - ignoring invalid lines in')
@@ -282,7 +282,7 @@ def read_cell(filename, _=None):
                 tokens, l = get_tokens(lines, l)
                 while len(tokens) == 4:
                     spec.append(tokens[0])
-                    pos.append(list(map(float, tokens[1:4])))
+                    pos.append([float(p) for p in tokens[1:4]])
                     tokens, l = get_tokens(lines, l)
                 if tokens[0].upper() != "%ENDBLOCK":
                     print('read_cell: Warning - ignoring invalid lines')
