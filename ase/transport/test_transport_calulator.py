@@ -1,3 +1,4 @@
+from __future__ import print_function
 from ase.transport.calculators import TransportCalculator
 import numpy as np
 
@@ -5,7 +6,7 @@ import numpy as np
 def write(fname,xs,ys):
     fd = open(fname,'w')
     for x,y in zip(xs,ys):
-        print >> fd, x, y
+        print(x, y, file=fd)
     fd.close()
 
 H_lead = np.zeros([4,4])
@@ -68,9 +69,9 @@ write('T_rot.dat', tcalc.energies,T_rot)
 write('pdos0_rot.dat', tcalc.energies, pdos_rot[0])
 write('pdos1_rot.dat', tcalc.energies, pdos_rot[1])
 
-print 'Subspace eigenvalues:', eps
+print('Subspace eigenvalues:', eps)
 assert sum(abs(eps-(-0.8, 0.8))) < 2.0e-15, 'Subdiagonalization. error'
-print 'Max deviation of T after the rotation:', np.abs(T-T_rot).max()
+print('Max deviation of T after the rotation:', np.abs(T-T_rot).max())
 assert max(abs(T-T_rot)) < 2.0e-15, 'Subdiagonalization. error'
 
 #remove coupling

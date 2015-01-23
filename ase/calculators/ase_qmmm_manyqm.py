@@ -1,12 +1,13 @@
+from __future__ import print_function
 """QM/MM interface with QM=FHI-aims, MM=gromacs
 
 QM could be something else, but you need to read in qm-atom charges
-from the qm program (in method 'get_qm_charges') 
+from the qm program (in method 'get_qm_charges')
 
 
 One can have many QM regions, each with a different calculator.
 There can be only one MM calculator, which is calculating the whole
-system. 
+system.
 
 
 Non-bonded interactions:
@@ -19,21 +20,21 @@ MM-MM:
   by MM calculator
 QM-MM:
   by MM using MM vdw parameters and QM charges.
-Different QM different QM: 
+Different QM different QM:
   by MM using QM and MM charges and MM-vdw parameters
 
-The Hirschfeld charges (or other atomic charges) 
-on QM atoms are calculated by QM in a H terminated cluster in vacuum. 
-The charge of QM atom next to MM atom (edge-QM-atom) 
-and its H neighbors are set as in the classical force field. 
-The extra(missing) charge results from: 
+The Hirschfeld charges (or other atomic charges)
+on QM atoms are calculated by QM in a H terminated cluster in vacuum.
+The charge of QM atom next to MM atom (edge-QM-atom)
+and its H neighbors are set as in the classical force field.
+The extra(missing) charge results from:
 
 1) linkH atoms
-2) The edge-QM atoms, and their qm-H neighbors, 
+2) The edge-QM atoms, and their qm-H neighbors,
    have their original MM charges.
-3) and the fact that the charge of the QM fraction 
+3) and the fact that the charge of the QM fraction
    is not usually an integer when using the original MM charges.
-   It is added equally to all QM atoms 
+   It is added equally to all QM atoms
    (not being linkH and not being edge-QM-atom or its H neighbor)
    so that the total charge of the MM-fragment involving QM atoms
    will be the same as in the original MM-description.
@@ -44,37 +45,37 @@ The QM-QM vdw interaction s could be done by the FHI-aims if desired
 
 Bonded interactions::
 
-  E= 
-  E_qm(QM-H)         ; qm energy of H terminated QM cluster(s) 
+  E=
+  E_qm(QM-H)         ; qm energy of H terminated QM cluster(s)
   + E_mm(ALL ATOMS)  ; mm energy of all atoms,
-                     ; except for terms in which all MM-interacting atoms are 
+                     ; except for terms in which all MM-interacting atoms are
                      ; in the same QM region
 
 Forces do not act on link atoms but they are positioned by scaling.
 Forces on link atoms are given to their QM and MM neighbors by chain rule.
 (see J. Chem. Theory Comput. 2011, 7, 761-777).
-The optimal edge-qm-atom-linkH bond length is calculated 
+The optimal edge-qm-atom-linkH bond length is calculated
 by QM in 'get_eq_qm_atom_link_h_distances'
 or they are read from a file.
 
 
 Questions & Comments markus.kaukonen@iki.fi
 
-I'm especially interested in cases when we need two or more 
-QM regions. For instance two redox centers in a protein, 
+I'm especially interested in cases when we need two or more
+QM regions. For instance two redox centers in a protein,
 cathode and anode of a fuel cell ... you name it!
 
 
 Some things to improve:
 
 1) Water topology issue (at the moment water cannot be in QM),
-   Its topology should be put into the main 
+   Its topology should be put into the main
    topology file, not in a separate file.
 
 2) point charges and periodicity (if desired) to the QM calculation
    (now in vacuum)
 
-3) Eichinger type of link atom treatment with fitted force constants for 
+3) Eichinger type of link atom treatment with fitted force constants for
    linkH-QMedge (bond strecth)
    linkH-QMedge-QMnextTOedge (angle terms)
 
@@ -82,7 +83,7 @@ Some things to improve:
    This is not easily possible without loading extra stuff from
    ftp://ftp.gromacs.org/pub/contrib/xd...e-1.1.1.tar.gz.
 
-5) Utilize gromacs-python wrapper: (just found this today 31.12.2012...) 
+5) Utilize gromacs-python wrapper: (just found this today 31.12.2012...)
    http://orbeckst.github.com/GromacsWrapper/index.html#
 """
 
@@ -103,7 +104,7 @@ def get_neighbor_list(system):
     import os
     import pickle
 
-    NEIGHBOR_FILE = 'neighbor_list_for_ase_qmmm.txt' 
+    NEIGHBOR_FILE = 'neighbor_list_for_ase_qmmm.txt'
 
     if os.path.exists(NEIGHBOR_FILE):
         print('Reading qm/mm neighbor list from file:')
@@ -125,8 +126,8 @@ def get_neighbor_list(system):
     return neighbor_list
 
 def get_qm_atoms(indexfilename='index.ndx'):
-    """  
-    Read the indexes of all QM atoms (there may be many QM regions) 
+    """
+    Read the indexes of all QM atoms (there may be many QM regions)
     """
 
     infile = open(indexfilename,'r')
@@ -150,7 +151,7 @@ def get_qm_atoms(indexfilename='index.ndx'):
 
 class LinkAtom:
     """
-    Class for information about a single link-atom 
+    Class for information about a single link-atom
     (it terminates a QM cluster)
 
     qm_region_index and link_atom_index refer to the following indexing system:
@@ -159,7 +160,7 @@ class LinkAtom:
     qm_region_index=1,  link_atom_index=1
 
     link_atom_index_in_qm tells which index in qm system the link atom has
-    for instance 
+    for instance
     qm_region_index=1, link_atom_index_in_qm=20
     means that link atom is 21'st atom in the second qm system
 
@@ -184,7 +185,7 @@ class LinkAtom:
 
 
     def set_link_atom(self, atom):
-        """ set an ase-atom to be the link atom """  
+        """ set an ase-atom to be the link atom """
         self.atom = atom
 
     def set_link_atom_qm_region_index(self, qm_region_index):
@@ -224,12 +225,12 @@ class LinkAtom:
         self.equilibrium_distance_xh = equilibrium_distance_xh
 
     def set_equilibrium_distance_xy(self, equilibrium_distance_xy):
-        """set the equilibrium edge-qm -- 
+        """set the equilibrium edge-qm --
            edge-mm distance (by MM-force field)"""
         self.equilibrium_distance_xy = equilibrium_distance_xy
 
     def get_link_atom(self):
-        """ get an ase-atom to be the link atom """ 
+        """ get an ase-atom to be the link atom """
         return self.atom
 
     def get_link_atom_qm_region_index(self):
@@ -269,7 +270,7 @@ class LinkAtom:
         return self.equilibrium_distance_xh
 
     def get_equilibrium_distance_xy(self):
-        """get the equilibrium edge-qm -- 
+        """get the equilibrium edge-qm --
            edge-mm distance (by MM-force field)"""
         return self.equilibrium_distance_xy
 
@@ -279,14 +280,14 @@ class AseQmmmManyqm:
     
     We can have many QM regions, each with a different calculator.
     There can be only one MM calculator, which is calculating the whole
-    system. 
+    system.
 
     Numeration of atoms starts from 0. (in qms, mms)
 
     In qm calculations link atom(s) come(s) last.
 
     For any qm region, the optimal bond lengths for all edge_atom-link_atom
-    pairs are optimized by QM simultaneously at the beginning of 
+    pairs are optimized by QM simultaneously at the beginning of
     the run when the flag link_info='byQM' is used (by method . The positions of other a
 
     """
@@ -297,7 +298,7 @@ class AseQmmmManyqm:
         """ Set initial values to each qm and mm calculator.
         Additionally set information for the qm/mm interface.
 
-        The information about qm and mm indexes is read from 
+        The information about qm and mm indexes is read from
         a file 'index.ndx'
         Which can be generated with a gromacs tool 'make_ndx'
         http://www.gromacs.org/Documentation/Gromacs_Utilities/make_ndx
@@ -323,7 +324,7 @@ class AseQmmmManyqm:
         from ase.io import read, write
         import os, glob
 
-        # clean 
+        # clean
         files = glob.glob('test-*')
         for file in files:
             try:
@@ -340,13 +341,13 @@ class AseQmmmManyqm:
         self.e_delta_stretch = None
 
         self.nqm_regions = nqm_regions
-        self.qm_calculators = qm_calculators 
-        self.mm_calculator = mm_calculator 
+        self.qm_calculators = qm_calculators
+        self.mm_calculator = mm_calculator
 
         self.qmatom_types = []
         self.mmatom_types = []
 
-        #det unique name for each qm region 
+        #det unique name for each qm region
         # (the output file of each qm calculation)
         #for i in range(len(self.qm_calculators)):
         #    self.qm_calculators[i].set(output_template = 'aims'+str(i))
@@ -366,17 +367,17 @@ class AseQmmmManyqm:
             index_str = ''
             for index in index_out:
                 index_str += str(index) + ' '
-            print ('%s' % index_str)
+            print('%s' % index_str)
             print('')
 
-        if ( len(self.qms) != nqm_regions):
-            print ('Number of set of QM atoms does not match with nqm_regions')
-            print ('self.qms %s' % str(self.qms))
-            print ('nqm_regions %s' % str(nqm_regions))
+        if len(self.qms) != nqm_regions:
+            print('Number of set of QM atoms does not match with nqm_regions')
+            print('self.qms %s' % str(self.qms))
+            print('nqm_regions %s' % str(nqm_regions))
             sys.exit()
-        if ( len(self.qms) != len(qm_calculators)):
-            print ('Number of set of QM atoms does not match with')
-            print ('the number of QM calculators')
+        if len(self.qms) != len(qm_calculators):
+            print('Number of set of QM atoms does not match with')
+            print('the number of QM calculators')
             sys.exit()
 
 
@@ -412,8 +413,8 @@ class AseQmmmManyqm:
             self.get_next_neighbors\
             (self.second_qms, self.set_qms_edge)
         print('self.qms %s' % self.qms)
-        print('QM edge, MM edge %s' \
-                  % str(self.qms_edge)+' '+ str(self.mms_edge))
+        print('QM edge, MM edge %s'
+              % str(self.qms_edge)+' '+ str(self.mms_edge))
         print('MM second N of Link %s' % str(self.second_mms))
         print('QM second N of Link %s' % str(self.second_qms))
         print('QM third N of Link %s' % str(self.third_qms))
@@ -449,7 +450,7 @@ class AseQmmmManyqm:
             #get QM-MM bond lengths
             self.get_eq_distances_xy(\
                 topfilename=mm_calculator.topology_filename,\
-                    force_field= mm_calculator.force_field)   
+                    force_field= mm_calculator.force_field)
 
             #get QM-linkH distances by QM for all link atoms
             self.get_eq_qm_atom_link_h_distances(system_tmp)
@@ -494,7 +495,7 @@ class AseQmmmManyqm:
         self.qm_energies = []
         self.qm_forces = []
         self.qm_charges = []
-        self.sum_qm_charge = [] 
+        self.sum_qm_charge = []
         for iqm, qm in enumerate(self.qmsystems):
             self.qm_energies.append(0.0)
             self.qm_forces.append(None)
@@ -514,9 +515,9 @@ class AseQmmmManyqm:
                       self.mm_calculator.topology_filename + '.orig')
 
         #remove some classical bonded interaction in the topology file
-        # this need to be done only once, because the bond topology 
+        # this need to be done only once, because the bond topology
         # is unchanged during a QM/MM run
-        #(QM charges can be updated in the topology, however) 
+        #(QM charges can be updated in the topology, however)
 
         # the original topology is generated when calling Gromacs(
         # in the main script setting up QM, MM and minimization
@@ -610,8 +611,8 @@ class AseQmmmManyqm:
             if (len(self.qms[iqm]) != len(self.qm_charges[iqm])):
                 print('Problem in reading charges')
                 print('len(self.qms[iqm]) %s' % str(len(self.qms[iqm])))
-                print('len(self.qm_charges[iqm]) %s' \
-                          % str(len(self.qm_charges[iqm])))
+                print('len(self.qm_charges[iqm]) %s'
+                      % str(len(self.qm_charges[iqm])))
                 print('Check the output of QM program')
                 print('iqm, qm %s' % str(iqm)+ ' '+ str(qm))
                 print('self.qm_charges[iqm] %s' % str(self.qm_charges[iqm]))
@@ -634,7 +635,7 @@ class AseQmmmManyqm:
         # update QM charges to MM topology file
         self.set_qm_charges_to_mm_topology()
 
-        #generate gromacs run file (.tpr) base on new topology 
+        #generate gromacs run file (.tpr) base on new topology
         self.mm_calculator.generate_gromacs_run_file()
         self.calculate_mm()
                         
@@ -650,7 +651,7 @@ class AseQmmmManyqm:
         #loop over qm regions
         for qm, qm_force in zip(self.qms, self.qm_forces):
             #loop over qm atoms in a qm region
-            #set forces to the all-atom set (the all atom set does not 
+            #set forces to the all-atom set (the all atom set does not
             # have link atoms)
             for iqm_atom, qm_atom in enumerate(qm):
                 self.forces[qm_atom] = self.forces[qm_atom] + \
@@ -661,15 +662,15 @@ class AseQmmmManyqm:
     def get_link_atoms(self, qm_links, mm_links, \
                         force_constants,\
                         equilibrium_distances_xh, equilibrium_distances_xy):
-        """  
+        """
         QM atoms can be bonded to MM atoms. In this case one sets
-        an extra H atom (a link atom). 
+        an extra H atom (a link atom).
 
         The positions of the all link H atoms in all qm regions are
         set along QM-MM and bond with length defined by:
 
         J. Chem. Theory Comput 2011, 7, 761-777, Eq 1
-        r_XH = r_XY_current*(r_XH_from_qm_calculation /r_XY_from_forceField) 
+        r_XH = r_XY_current*(r_XH_from_qm_calculation /r_XY_from_forceField)
 
         """
         import math
@@ -684,9 +685,9 @@ class AseQmmmManyqm:
                 dz = (self.positions[mmatom, 2] - self.positions[qmatom, 2])
                 d = math.sqrt(dx* dx+ dy* dy+ dz* dz)
                 
-                unit_x = dx/ d 
-                unit_y = dy/ d  
-                unit_z = dz/ d 
+                unit_x = dx/ d
+                unit_y = dy/ d
+                unit_z = dz/ d
                 xh_bond_length = \
                     d*\
                     self.equilibrium_distances_xh[i_qm_region][i_link_atom]/\
@@ -715,12 +716,12 @@ class AseQmmmManyqm:
 
 
     def get_link_atom_forces(self, action):
-        """ Add forces due to link atom to QM atom 
-        and to MM atom next to each link atom. 
+        """ Add forces due to link atom to QM atom
+        and to MM atom next to each link atom.
 
         Top Curr Chem (2007) 268: 173-290
         QM/MM Methods for Biological Systems
-        Hans Martin Senn and Walter Thiel 
+        Hans Martin Senn and Walter Thiel
 
         Eqs. 10(p192), 12(p193), 16a, 16b(p 194)
 
@@ -762,10 +763,10 @@ class AseQmmmManyqm:
 
 
     def add_energy_exclusion_group(self, indexfilename='index.ndx'):
-        """ 
+        """
         Add energy exclusions for MM calculations.
         This is the way to block non-bonded MM (coulomb&vdW)
-        interactions within a single QM region. 
+        interactions within a single QM region.
         """
         
         infile = open(indexfilename,'r')
@@ -800,10 +801,10 @@ class AseQmmmManyqm:
         return
 
     def add_exclusions(self):
-        """ 
+        """
         Add energy exclusions for MM calculations.
         This is the way to block non-bonded MM (coulomb&vdW)
-        interactions within a single QM region. 
+        interactions within a single QM region.
         """
         
 
@@ -826,8 +827,8 @@ class AseQmmmManyqm:
                         for qm_atom2 in qm_region:
                             if qm_atom1 != qm_atom2:
                                 outfile.write(str(qm_atom2 + 1) + ' ')
-                        outfile.write('\n')           
-                outfile.write('\n') 
+                        outfile.write('\n')
+                outfile.write('\n')
             outfile.write(line)
 
 
@@ -838,10 +839,10 @@ class AseQmmmManyqm:
 
     def get_qm_charges(self, i_current_qm, calculator='Aims',
                        number_of_link_atoms = 0):
-        """ 
+        """
         Get partial charges on QM atoms.
         The charges at link atoms are not returned.
-        """ 
+        """
         if calculator == 'Aims':
             infile = open('aims'+str(i_current_qm)+'.out','r')
             lines = infile.readlines()
@@ -882,7 +883,7 @@ class AseQmmmManyqm:
                 do_lines_before = False
                 do_lines_change = True
 
-        #kill comments and empty lines, 
+        #kill comments and empty lines,
         #get the charge in the topology file
         comment_lines = []
         lines_ok = []
@@ -906,21 +907,21 @@ class AseQmmmManyqm:
 
 
     def set_qm_charges_to_mm_topology(self):
-        """ Set qm charges to qm atoms of MM topology based on 
+        """ Set qm charges to qm atoms of MM topology based on
         a QM calculation.
         1) The charges of link atoms are neglected.
         2) The charge of a qm atom next to the link atom is set to be the
-        same value as in the original topology file. (trying to 
+        same value as in the original topology file. (trying to
         avoid the artificial polarization due to qmAtom-linkH).
         3) the total charge of the system (all QM and MM atoms) should be
-        the same as in the original classical system. Therefore, all the 
+        the same as in the original classical system. Therefore, all the
         QM atoms will gain/loose an equal amount of charge in the MM topology
         file.
         """
 
         infile = open(self.mm_calculator.topology_filename,'r')
         lines = infile.readlines()
-        infile.close()        
+        infile.close()
 
         (lines_before, comment_lines, lines_ok, lines_after) = \
             self.get_topology_lines(lines)
@@ -935,8 +936,8 @@ class AseQmmmManyqm:
                 sys.exit()
         
         # get the total charge of non-link H atoms in the current qm system
-        # The charges of edge atoms and their H neighbors 
-        # are taken from topology 
+        # The charges of edge atoms and their H neighbors
+        # are taken from topology
         # (they are unchanged, it is not from QM calculations)
         for iqm, qm in enumerate(self.qms):
             charges = self.qm_charges[iqm]
@@ -950,9 +951,9 @@ class AseQmmmManyqm:
                     qm_charge_no_link_edge_mm + charge
                     n_qm_charge_atoms = n_qm_charge_atoms + 1
 
-            # correct the total charge to be equal the original one 
+            # correct the total charge to be equal the original one
             # in the topology file by
-            # adding/ substracting missing/extra charge on 
+            # adding/ substracting missing/extra charge on
             # non-edge and non-single neighbor next neib QM atoms
             change_charge = \
                 ( self.classical_target_charge_sums[iqm] - \
@@ -999,8 +1000,8 @@ class AseQmmmManyqm:
 
 
     def get_edge_qm_and_mm_atoms(self, qms, system):
-        """  Get neighbors of QM atoms (MM-link-atoms) that are not in QM 
-        (there may be many QM regions) 
+        """  Get neighbors of QM atoms (MM-link-atoms) that are not in QM
+        (there may be many QM regions)
         edge-QM atom can NOT be neighbored by H atom(s)
         also get edge-QM atoms
         """
@@ -1031,14 +1032,14 @@ class AseQmmmManyqm:
                 else:
                     print('WARNING:')
                     print('qm system cannot be bond to H atoms')
-                    print('problem atom index is (numbering from 1): %s' \
-                              % str(index+1))
+                    print('problem atom index is (numbering from 1): %s' %
+                          str(index+1))
                     print('if this is water H you should consider including it')
                     print('in QM')
                     #sys.exit()
 
 
-            #get indexes of QM edge atoms, 
+            #get indexes of QM edge atoms,
             # one qm atom can be more then one time an edge atom
             # (then this QM atom will have more than one link atoms)
             for link_mm_atom in oklink_mm_atoms:
@@ -1059,7 +1060,7 @@ class AseQmmmManyqm:
         """  Get neighbors of all atoms in 'atom_indexes'
         that are not in 'prohibited_set'.
 
-        'atom_indexes' is a list of list in which atom indexes belonging 
+        'atom_indexes' is a list of list in which atom indexes belonging
         of each QM region is a separate list, that is
         [[QM1 atom_indexes], [QM2 atom_indexes], ...]
         """
@@ -1079,11 +1080,11 @@ class AseQmmmManyqm:
         return list_neibs, set_list_neibs
 
     def get_constant_charge_qms(self, set_qms_edge, set_second_qms):
-        """ get indices of all qm atoms whose charge in MM 
-        calculations is taken from the original MM-topology 
-        (not from the QM calculation). These atoms are edge QM atoms 
+        """ get indices of all qm atoms whose charge in MM
+        calculations is taken from the original MM-topology
+        (not from the QM calculation). These atoms are edge QM atoms
         and their neighbors in QM which have only one neighbor.
-        At least C(edge-qm)-H(second-edge-qm) and C(edge-qm)=O(second-edge-qm) 
+        At least C(edge-qm)-H(second-edge-qm) and C(edge-qm)=O(second-edge-qm)
         """
 
         set_charge_exclusion = set_qms_edge
@@ -1097,12 +1098,12 @@ class AseQmmmManyqm:
 
     def get_eq_distances_xy(\
         self, topfilename = 'gromos.top', force_field = 'oplsaa'):
-        """  
-        The link atom is positioned as in 
+        """
+        The link atom is positioned as in
         J. Chem. Theory Comput 2011, 7, 761-777, Eq 1
 
-        For this purpose we need the equilibrium length of each 
-        QM-MM covalent bond. Those are obtained here from the 
+        For this purpose we need the equilibrium length of each
+        QM-MM covalent bond. Those are obtained here from the
         files of the force field.
 
         """
@@ -1110,14 +1111,14 @@ class AseQmmmManyqm:
         import os
 
         print('in get_eq_distances_xy, topfilename=')
-        print ('%s' % topfilename)
+        print('%s' % topfilename)
         for qm in self.qms_edge:
             equilibrium_distance_xy = []
             for iqm in qm:
                 equilibrium_distance_xy.append(0.0)
             self.equilibrium_distances_xy.append(equilibrium_distance_xy)
 
-        #get the version of the topology file where one sees the bond 
+        #get the version of the topology file where one sees the bond
         # force constants (file is named as gromacs.top.dump)
         try:
             os.remove(self.mm_calculator.label+'.tpr.dump')
@@ -1133,7 +1134,7 @@ class AseQmmmManyqm:
         else:
             gromacs_home = '/usr/local/gromacs/share/gromacs/'
 
-        #read the bonded force constants of this force field in order to 
+        #read the bonded force constants of this force field in order to
         #get an estimate for X-Y bond constant
         linesff = open(gromacs_home+ '/top/'+ force_field+ \
                            '.ff/ffbonded.itp', 'r').readlines()
@@ -1186,7 +1187,7 @@ class AseQmmmManyqm:
             for qmatom, mmatom, eqxy in \
                     zip(qm0, mm0, eqsxy):
                 #find qm-mm bond in topology file (indexes from 0)
-                # get the index for interaction 
+                # get the index for interaction
                 interaction = 'empty'
                 for line in lines_tpr:
                     #print line
@@ -1201,8 +1202,8 @@ class AseQmmmManyqm:
                             break
                 if interaction == 'empty':
                     print('QM-MM bond not found in topology')
-                    print('atoms are: QM, MM: (from 1 indexing) %s' \
-                        % str(qmatom+1) + '  ' + str(mmatom+1))
+                    print('atoms are: QM, MM: (from 1 indexing) %s' %
+                          str(qmatom + 1) + '  ' + str(mmatom + 1))
                     sys.exit()
                 for line in lines_tpr:
                     if ('functype['+interaction+']=BONDS') in line:
@@ -1212,7 +1213,7 @@ class AseQmmmManyqm:
                 for line in oklines_top:
                     if (int(line.split()[0] ) == qmatom+ 1):
                         qmatom_type = line.split()[1]
-                        #oplsaa atom type has a double name, 
+                        #oplsaa atom type has a double name,
                         #the other one is used in file ffbonded.itp
                         break
                 if (qmatom_type == 'empty'):
@@ -1230,12 +1231,12 @@ class AseQmmmManyqm:
                         print('problem in QM atom type')
                         print('with OPLSAA force field dual atom types')
                         sys.exit()
-                #get type of the true link-MM atom 
+                #get type of the true link-MM atom
                 mmatom_type = 'empty'
                 for line in oklines_top:
                     if (int(line.split()[0] ) == mmatom+ 1):
                         mmatom_type = line.split()[1]
-                        #oplsaa atom type has a double name, 
+                        #oplsaa atom type has a double name,
                         #the other one is used in file ffbonded.itp
                         break
                 if (mmatom_type == 'empty'):
@@ -1301,15 +1302,15 @@ class AseQmmmManyqm:
         self.qmatom_types = ok_qmatom_types
         self.mmatom_types = ok_mmatom_types
 
-        return 
+        return
 
     def write_eq_distances_to_file(
-        self, 
+        self,
         qm_links, filename='linkDATAout.txt'):
-        """  
-        Write classical bond equilibrium lengths 
-        for XY (X in QM, Y in MM) 
-        Write QM calculated XH(link atom) bond length (X in QM, H link atom) 
+        """
+        Write classical bond equilibrium lengths
+        for XY (X in QM, Y in MM)
+        Write QM calculated XH(link atom) bond length (X in QM, H link atom)
         """
 
         outfile = open(filename, 'w')
@@ -1331,13 +1332,13 @@ class AseQmmmManyqm:
                 outfile.write(str(data)+' ')
                 outfile.write('\n')
         outfile.close()
-        return 
+        return
 
 
     def read_eq_distances_from_file(self, filename='linkDATAin.txt'):
-        """  
-        Read classical bond equilibrium lengths 
-        for XY (X in QM, Y in MM) or XH (X in QM, H link atom) 
+        """
+        Read classical bond equilibrium lengths
+        for XY (X in QM, Y in MM) or XH (X in QM, H link atom)
         """
 
         myfile = open(filename, 'r')
@@ -1372,11 +1373,11 @@ class AseQmmmManyqm:
             self.qmatom_types.append(qmatom_type)
             self.mmatom_types.append(mmatom_type)
         myfile.close()
-        return 
+        return
 
     def get_eq_qm_atom_link_h_distances(self, system_tmp):
         """ get equilibrium QMatom-linkH distances
-        for all linkH:s 
+        for all linkH:s
         by  QM  """
 
 
@@ -1387,9 +1388,9 @@ class AseQmmmManyqm:
         from scipy.optimize import fmin
 
         def qm_bond_energy_function(x, system_tmp, i_qm_region):
-            """ get the qm energy of a single qm system with a given 
+            """ get the qm energy of a single qm system with a given
             edge-qm-atom---link-h-atom distances of that qm region
-            The qm region is i_qm_region, all 
+            The qm region is i_qm_region, all
             edge-qm-atom---link-h-atom distance in this qm_region are
             optimized simultaneously
             """
@@ -1437,12 +1438,12 @@ class AseQmmmManyqm:
             self.force_constants.append(force_constants)
             self.equilibrium_distances_xh.append(equilibrium_distances_xh)
 
-        #loop over qm regions. To get optimal simultaneous 
+        #loop over qm regions. To get optimal simultaneous
         # edgeQMatom-linkH distance(s) in [nm] in that qm region
         for i_qm_region in range(len(self.qms_edge)):
             print('NOW running : ')
-            print('QM region for optimising edge-linkH distances %s'\
-                % str(i_qm_region))
+            print('QM region for optimising edge-linkH distances %s' %
+                  str(i_qm_region))
             x = self.equilibrium_distances_xh[i_qm_region][:]
             xopt = fmin(qm_bond_energy_function, \
                             x,\
@@ -1452,13 +1453,12 @@ class AseQmmmManyqm:
                 self.equilibrium_distances_xh\
                     [i_qm_region][index_xopt] = current_xopt
                 print('i_qm_region, i_link_atom, optimal X-H bond[nm] %s' \
-                    % (str(i_qm_region) + ' ' + str(index_xopt) \
-                           + ' ' + str(current_xopt)))
-
+                      % (str(i_qm_region) + ' ' + str(index_xopt) \
+                         + ' ' + str(current_xopt)))
 
     def define_QM_clusters_in_vacuum(self, system):
         """ Returns Each QM system as an Atoms object
-        We get a list of these Atoms objects 
+        We get a list of these Atoms objects
         (in case we have many QM regions).
         """
         from ase import Atoms
@@ -1482,7 +1482,7 @@ class AseQmmmManyqm:
     def kill_top_lines_containing_only_qm_atoms(self, \
                                               intopfilename, \
                                               qms, outtopfilename):
-        """ 
+        """
             Delete all lines in the topology file that contain only qm atoms
             in bonded sections
             (bonds, angles or dihedrals)
@@ -1497,11 +1497,11 @@ class AseQmmmManyqm:
         infile = open(intopfilename,'r')
         lines = infile.readlines()
         infile.close()
-        outfile = sys.stdout    
+        outfile = sys.stdout
         oklines = []
 
         accept = True
-        check = ''            
+        check = ''
         for line in lines:
             if (('[ bonds' in line)):
                 oklines.append(line)
@@ -1522,20 +1522,20 @@ class AseQmmmManyqm:
             elif ('[' in line):
                 oklines.append(line)
                 accept = True
-                check = ''    
+                check = ''
             elif line in ['\n']:
                 oklines.append(line)
                 accept = True
-                check = ''  
+                check = ''
             elif accept:
                 oklines.append(line)
             else:
                 indexes = [int(float(s)-1.0) \
                                for s in line.split() if s.isdigit()]
                 indexes1 = [int(s) for s in line.split() if s.isdigit()]
-                if indexes == []:# this takes comment line 
+                if indexes == []:# this takes comment line
                                  #after bond, angle, dihedral
-                    oklines.append(line)                
+                    oklines.append(line)
                 elif check == 'bond':
                     bondedatoms = set(indexes[0:2])
                     #set empty bond intereaction for qm-qm bonds (type 5)
@@ -1546,7 +1546,7 @@ class AseQmmmManyqm:
                             ('5').rjust(8) + '\n'
                         oklines.append(newline)
                     else:
-                        oklines.append(line)                
+                        oklines.append(line)
                 elif check == 'angle':
                     bondedatoms = set(indexes[0:3])
                     if (bondedatoms.issubset(qm)):
@@ -1558,19 +1558,19 @@ class AseQmmmManyqm:
                     if (bondedatoms.issubset(qm)):
                         pass
                     else:
-                        oklines.append(line)                
+                        oklines.append(line)
                 elif check == 'pair':
                     bondedatoms = set(indexes[0:2])
                     if (bondedatoms.issubset(qm)):
                         pass
                     else:
-                        oklines.append(line)                
+                        oklines.append(line)
         outfile = open(outtopfilename,'w')
         for line in oklines:
             outfile.write(line)
         outfile.close()
 
-        return 
+        return
 
 
     def get_classical_target_charge_sums(self, intopfilename, qms):
@@ -1578,11 +1578,11 @@ class AseQmmmManyqm:
         these are qm atoms that are not link-atoms or edge-qm atoms
 
         xxx this has a problem:
-        Water is in .itp files, not in topology... 
+        Water is in .itp files, not in topology...
         """
         infile = open(intopfilename,'r')
         lines = infile.readlines()
-        infile.close()        
+        infile.close()
 
         (lines_before, comment_lines, ok_lines, lines_after) = \
             self.get_topology_lines(lines)

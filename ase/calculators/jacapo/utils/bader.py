@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os, string, tempfile, shutil
 from subprocess import Popen
 from ase.io import write
@@ -88,7 +89,7 @@ class Bader:
             status = Popen.wait()
             
             if status != 0:
-                print process
+                print(process)
 
             shutil.copy2('ACF.dat', os.path.join(cwd, acf_file))
             
@@ -136,7 +137,7 @@ class Bader:
         '''
         alist = string.join([str(x) for x in atomlist], ' ')
         cmd = 'bader -p sel_atom %s %s' % (alist, self.densityfile)
-        print cmd
+        print(cmd)
         os.system(cmd)
         
     def write_bader_volume(self, atomlist):
@@ -151,7 +152,7 @@ class Bader:
         """
         alist = string.join([str(x) for x in atomlist], ' ')
         cmd = 'bader -p sel_bader %s %s' % (alist, self.densityfile)
-        print cmd
+        print(cmd)
         os.system(cmd)
 
     def write_atom_index(self):
@@ -159,7 +160,7 @@ class Bader:
         density file.
         '''
         cmd = 'bader -p atom_index %s' % (self.densityfile)
-        print cmd
+        print(cmd)
         os.system(cmd)
 
     def write_bader_index(self):
@@ -168,7 +169,7 @@ class Bader:
         density file.
         '''
         cmd = 'bader -p bader_index %s' % (self.densityfile)
-        print cmd
+        print(cmd)
         os.system(cmd)
 
     def write_all_atom(self):
@@ -180,7 +181,7 @@ class Bader:
         volume is closest to the atom.
         '''
         cmd = 'bader -p all_atom %s' % (self.densityfile)
-        print cmd
+        print(cmd)
         os.system(cmd)
 
     def write_all_bader(self):
@@ -194,7 +195,7 @@ class Bader:
         should be used with caution.
         '''
         cmd = 'bader -p all_bader %s' % (self.densityfile)
-        print cmd
+        print(cmd)
         os.system(cmd)
         
 if __name__ == '__main__':
@@ -205,6 +206,6 @@ if __name__ == '__main__':
 
     b = Bader(atoms)
 
-    print b.get_bader_charges()
-    print b.get_bader_volumes()
+    print(b.get_bader_charges())
+    print(b.get_bader_volumes())
     b.write_atom_volume([3, 4])

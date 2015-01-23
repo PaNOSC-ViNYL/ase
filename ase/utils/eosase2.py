@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 
 import numpy as np
 
@@ -28,7 +29,7 @@ except ImportError:
         popt, pcov, infodict, mesg, ier = leastsq(func, p0, args=args, full_output=1)
 
         if ier not in [1,2,3,4]:
-            raise RuntimeError, "Optimal parameters not found: " + mesg
+            raise RuntimeError("Optimal parameters not found: " + mesg)
         # end of this part
         return popt, pcov
 
@@ -198,7 +199,7 @@ class EquationOfStateASE2:
         parabola_vmin = -b/2/c
 
         if not (minvol < parabola_vmin and parabola_vmin < maxvol):
-            print 'Warning the minimum volume of a fitted parabola is not in your volumes. You may not have a minimum in your dataset'
+            print('Warning the minimum volume of a fitted parabola is not in your volumes. You may not have a minimum in your dataset')
 
         # evaluate the parabola at the minimum to estimate the groundstate energy
         E0 = parabola(parabola_vmin, a, b, c)

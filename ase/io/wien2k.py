@@ -45,7 +45,7 @@ def read_struct(filename, ase=True):
     elif lattice == 'CYZ':
         lattice = 'A'
     else:
-        print 'TEST needed'
+        raise RuntimeError('TEST needed')
     pos = np.array([])
     atomtype = []
     rmt = []
@@ -95,7 +95,7 @@ def read_struct(filename, ase=True):
 def write_struct(filename, atoms2=None, rmt=None, lattice='P', zza=None):
     atoms = atoms2.copy()
     atoms.set_scaled_positions(atoms.get_scaled_positions())
-    f = file(filename, 'w')
+    f = open(filename, 'w')
     f.write('ASE generated\n')
     nat = len(atoms)
     if rmt is None:
@@ -175,5 +175,5 @@ def c2p(lattice):
                          [-1.0 / 3.0, -2.0 / 3.0, 1.0 / 3.0]])
 
     else:
-        print 'lattice is ' + lattice + '!'
+        raise ValueError('lattice is ' + lattice + '!')
     return cell

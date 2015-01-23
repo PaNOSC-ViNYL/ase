@@ -235,7 +235,7 @@ class AddAdsorbate(AdsorbateOperator):
         for atom in f:
             indi.append(atom)
 
-        for _ in xrange(self.num_muts):
+        for _ in range(self.num_muts):
             random.shuffle(self.adsorption_sites)
 
             if self.surface_preference is not None:
@@ -287,7 +287,7 @@ class RemoveAdsorbate(AdsorbateOperator):
         for atom in f:
             indi.append(atom)
 
-        for _ in xrange(self.num_muts):
+        for _ in range(self.num_muts):
             random.shuffle(self.adsorption_sites)
 
             if self.surface_preference is not None:
@@ -346,7 +346,7 @@ class MoveAdsorbate(AdsorbateOperator):
         for atom in f:
             indi.append(atom)
 
-        for _ in xrange(self.num_muts):
+        for _ in range(self.num_muts):
             random.shuffle(self.adsorption_sites)
             if self.surface_preference_from is not None:
                 def func(x):

@@ -19,7 +19,7 @@ class EPS:
 
         if radii is None:
             radii = covalent_radii[self.numbers]
-        elif type(radii) is float:
+        elif isinstance(radii, float):
             radii = covalent_radii[self.numbers] * radii
         else:
             radii = np.array(radii)

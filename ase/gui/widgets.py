@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 from gettext import gettext as _
 import gtk
@@ -119,7 +120,7 @@ def pack(vbox, widgets, end=False, bottom=False, expand=False, padding=0):
     else:
         vbox.pack_start(hbox, expand, expand, padding)
     for widget in widgets:
-        if type(widget) is gtk.Entry:
+        if isinstance(widget, gtk.Entry):
             widget.set_size_request(widget.get_max_length() * 9, 24)
         widget.show()
         if end and widget is widgets[-1]:
@@ -151,8 +152,8 @@ def oops(message, message2=None):
     try:
         dialog.format_secondary_text(message2)
     except AttributeError:
-        print >>sys.stderr, message
-        print >>sys.stderr, message2
+        print(message, file=sys.stderr)
+        print(message2, file=sys.stderr)
     dialog.connect('response', lambda x, y, dialog=dialog: dialog.destroy())
     dialog.show()
 

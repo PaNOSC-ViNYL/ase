@@ -1,6 +1,6 @@
 """Check that we can read old version 1 PickleTrajectories."""
-import cPickle as pickle
-from StringIO import StringIO
+import pickle as pickle
+from io import BytesIO
 
 import numpy as np
 
@@ -13,8 +13,8 @@ a = Atoms('FOO')
 
 def v1(a):
     """Create old version-1 trajectory."""
-    fd = StringIO()
-    fd.write('PickleTrajectory')
+    fd = BytesIO()
+    fd.write(b'PickleTrajectory')
     d = {'pbc': a.pbc,
          'numbers': a.numbers,
          'tags': None,
@@ -25,15 +25,15 @@ def v1(a):
          'cell': a.cell,
          'momenta': None}
     pickle.dump(d, fd, protocol=-1)
-    return StringIO(fd.getvalue())
+    return BytesIO(fd.getvalue())
 
 
 def v2(a):
     """Create new version-2 trajectory."""
-    fd = StringIO()
+    fd = BytesIO()
     t = PickleTrajectory(fd, 'w')
     t.write(a)
-    return StringIO(fd.getvalue())
+    return BytesIO(fd.getvalue())
 
 
 class MyFixAtoms(FixAtoms):

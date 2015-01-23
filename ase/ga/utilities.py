@@ -36,7 +36,7 @@ def get_mic_distance(p1, p2, cell, pbc):
     ct = cell.T
     pos = np.mat((p1, p2))
     scaled = np.linalg.solve(ct, pos.T).T
-    for i in xrange(3):
+    for i in range(3):
         if pbc[i]:
             scaled[:, i] %= 1.0
             scaled[:, i] %= 1.0
@@ -95,8 +95,8 @@ def atoms_too_close(a, bl):
     """ Checks if any atoms in a are too close, as defined by
         the distances in the bl dictionary. """
     num = a.numbers
-    for i in xrange(len(a)):
-        for j in xrange(i + 1, len(a)):
+    for i in range(len(a)):
+        for j in range(i + 1, len(a)):
             if a.get_distance(i, j, True) < bl[(num[i], num[j])]:
                 return True
     return False
@@ -107,8 +107,8 @@ def atoms_too_close_two_sets(a, b, bl):
         as defined by the bl dictionary. """
     tot = a + b
     num = tot.numbers
-    for i in xrange(len(a)):
-        for j in xrange(len(a), len(tot)):
+    for i in range(len(a)):
+        for j in range(len(a), len(tot)):
             if tot.get_distance(i, j, True) < bl[(num[i], num[j])]:
                 return True
     return False
@@ -132,9 +132,9 @@ def get_distance_matrix(atoms, self_distance=1000):
         elements ([i][i])
     """
     dm = np.zeros([len(atoms), len(atoms)])
-    for i in xrange(len(atoms)):
+    for i in range(len(atoms)):
         dm[i][i] = self_distance
-        for j in xrange(i + 1, len(atoms)):
+        for j in range(i + 1, len(atoms)):
             rij = atoms.get_distance(i, j)
             dm[i][j] = rij
             dm[j][i] = rij
@@ -151,8 +151,8 @@ def get_rdf(atoms, rmax, nbins, distance_matrix=None):
         dm = get_distance_matrix(atoms)
     rdf = np.zeros(nbins + 1)
     dr = float(rmax / nbins)
-    for i in xrange(len(atoms)):
-        for j in xrange(i + 1, len(atoms)):
+    for i in range(len(atoms)):
+        for j in range(i + 1, len(atoms)):
             rij = dm[i][j]
             index = int(math.ceil(rij / dr))
             if index <= nbins:
@@ -163,7 +163,7 @@ def get_rdf(atoms, rmax, nbins, distance_matrix=None):
     norm = 2.0 * math.pi * dr * phi * len(atoms)
 
     dists = [0]
-    for i in xrange(1, nbins + 1):
+    for i in range(1, nbins + 1):
         rrr = (i - 0.5) * dr
         dists.append(rrr)
         rdf[i] /= (norm * ((rrr**2) + (dr**2) / 12.))
@@ -211,12 +211,12 @@ def get_nnmat(atoms):
     nnmat = np.zeros((len(elements), len(elements)))
     dm = get_distance_matrix(atoms)
     nndist = get_nndist(atoms, dm) + 0.2
-    for i in xrange(len(atoms)):
-        row = [j for j in xrange(len(elements))
+    for i in range(len(atoms)):
+        row = [j for j in range(len(elements))
                if atoms[i].symbol == elements[j]][0]
-        neighbors = [j for j in xrange(len(dm[i])) if dm[i][j] < nndist]
+        neighbors = [j for j in range(len(dm[i])) if dm[i][j] < nndist]
         for n in neighbors:
-            column = [j for j in xrange(len(elements))
+            column = [j for j in range(len(elements))
                       if atoms[n].symbol == elements[j]][0]
             nnmat[row][column] += 1
     # divide by the number of that type of atoms in the structure

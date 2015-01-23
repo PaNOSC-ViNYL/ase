@@ -70,7 +70,7 @@ class ElementMutation(OffspringCreator):
         if diff_elems_in == max_diff_elem:
             # No more different elements allowed -> one element mutation
             ltbm = []  # list to be mutated
-            for i in xrange(len(atoms)):
+            for i in range(len(atoms)):
                 if atoms[i].symbol == atoms[itbm].symbol:
                     ltbm.append(i)
         else:

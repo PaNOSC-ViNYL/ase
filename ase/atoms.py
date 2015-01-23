@@ -483,7 +483,7 @@ class Atoms(object):
     def set_tags(self, tags):
         """Set tags for all atoms. If only one tag is supplied, it is
         applied to all atoms."""
-        if type(tags) == int:
+        if isinstance(tags, int):
             tags = [tags] * len(self)
         self.set_array('tags', tags, int, ())
 

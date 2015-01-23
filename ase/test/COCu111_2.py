@@ -26,9 +26,9 @@ initial.set_constraint(constraint)
 dyn = Optimizer(initial)
 dyn.run(fmax=0.05)
 Z = initial.get_positions()[:, 2]
-print Z[0] - Z[1]
-print Z[1] - Z[2]
-print Z[2] - Z[3]
+print(Z[0] - Z[1])
+print(Z[1] - Z[2])
+print(Z[2] - Z[3])
 
 b = 1.2
 h = 1.5

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 
 msg = "\nThe gtk python module is missing or not installed properly.\n"
@@ -24,5 +25,5 @@ if locals().get('display'):
     try:
         import gtk
     except ImportError:
-        print >> sys.stderr, msg
+        print(msg, file=sys.stderr)
         raise

@@ -37,7 +37,7 @@ sg = StartGenerator(slab=slab,
                     box_to_place_in=[p0, [v1, v2, v3]])
 
 # generate the starting population
-starting_population = [sg.get_new_candidate() for i in xrange(20)]
+starting_population = [sg.get_new_candidate() for i in range(20)]
 
 d = PrepareDB(db_file_name=db_file,
               simulation_cell=slab,

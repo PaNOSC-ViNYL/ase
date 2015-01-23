@@ -58,20 +58,20 @@ def _is_block(val):
     # Tell whether value is a block-value or an ordinary value.
     # A block is represented as a list of lists of strings,
     # and a ordinary value is represented as a list of strings
-    if type(val) is list and \
+    if isinstance(val, list) and \
        len(val) > 0 and \
-       type(val[0]) is list:
+       isinstance(val[0], list):
         return True
     return False
     
 def _get_stripped_lines(fd):
     # Remove comments, leading blanks, and empty lines
-    return filter(None, [L.split('#')[0].strip() for L in fd])
+    return [_f for _f in [L.split('#')[0].strip() for L in fd] if _f]
 
 def _read_fdf_lines(file, inodes=[]):
     # Read lines and resolve includes
 
-    if type(file) is str:
+    if isinstance(file, str):
         file = open(file, 'r')
     fst = fstat(file.fileno())
     inode = (fst.st_dev, fst.st_ino)

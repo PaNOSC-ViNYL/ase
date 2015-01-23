@@ -10,6 +10,7 @@ import numpy as np
 
 from ase.parallel import rank, barrier
 from ase.io.trajectory import PickleTrajectory
+import collections
 
 
 class Dynamics:
@@ -63,7 +64,7 @@ class Dynamics:
     def insert_observer(self, function, position=0, interval=1,
                         *args, **kwargs):
         """Insert an observer."""
-        if not callable(function):
+        if not isinstance(function, collections.Callable):
             function = function.write
         self.observers.insert(position, (function, interval, args, kwargs))
 

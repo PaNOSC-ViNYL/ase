@@ -18,19 +18,19 @@ for i in range(5):
 del traj
 traj = PickleTrajectory('1.traj', 'a')
 co = traj[-1]
-print co.positions
+print(co.positions)
 co.positions[:] += 1
 traj.write(co)
 del traj
 t = PickleTrajectory('1.traj', 'a')
-print t[-1].positions
-print '.--------'
+print(t[-1].positions)
+print('.--------')
 for a in t:
-    print 1, a.positions[-1,2]
+    print(1, a.positions[-1,2])
 co.positions[:] += 1
 t.write(co)
 for a in t:
-    print 2, a.positions[-1,2]
+    print(2, a.positions[-1,2])
 assert len(t) == 7
 
 co[0].number = 1

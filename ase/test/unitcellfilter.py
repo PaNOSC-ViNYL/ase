@@ -26,8 +26,8 @@ else:
     cu.cell[1,0] += 0.05
     cu *= (6, 6, 3)
     cu.set_calculator(EMT())
-    print cu.get_forces()
-    print cu.get_stress()
+    print(cu.get_forces())
+    print(cu.get_stress())
     f = UnitCellFilter(cu)
     opt = MDMin(f,dt=0.01)
     t = PickleTrajectory('Cu-hcp.traj', 'w', cu)

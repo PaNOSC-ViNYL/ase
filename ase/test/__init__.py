@@ -46,11 +46,11 @@ class ScriptTestCase(unittest.TestCase):
 
     def testfile(self):
         try:
-            execfile(self.filename, {'display': self.display})
+            exec(compile(open(self.filename).read(), self.filename, 'exec'), {'display': self.display})
         except KeyboardInterrupt:
             raise RuntimeError('Keyboard interrupt')
-        except ImportError, ex:
-            module = ex.args[0].split()[-1].split('.')[0]
+        except ImportError as ex:
+            module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
             if module in ['scipy', 'cmr', 'Scientific', 'lxml']:
                 sys.__stdout__.write('(skipped) ')
             else:
@@ -121,7 +121,7 @@ def test(verbosity=1, calculators=[],
     operating_system += ' ' + ' '.join(platform.dist())
     python = platform.python_version() + ' ' + platform.python_compiler()
     python += ' ' + ' '.join(platform.architecture())
-    print 'python %s on %s' % (python, operating_system)
+    print('python %s on %s' % (python, operating_system))
 
     from ase.utils import devnull
     sys.stdout = devnull

@@ -101,7 +101,7 @@ try:
         eos = eos2(e, volumes, energies)
         stdout_save = sys.stdout
         sys.stdout = devnull
-        print eos
+        print(eos)
         results[e] = (eos.GetV0(), eos.GetEnergy(), eos.GetBulkModulus()/eVA3ToGPA)
         sys.stdout = stdout_save
 except (ImportError, TypeError, ValueError):

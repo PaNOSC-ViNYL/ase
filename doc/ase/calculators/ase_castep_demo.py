@@ -4,7 +4,8 @@ some parts in this scripts are longer than necessary, but are shown
 to demonstrate some more features."""
 
 import ase
-import ase.calculators.castep, ase.io.castep
+import ase.calculators.castep
+import ase.io.castep
 
 calc = ase.calculators.castep.Castep()
 directory = 'CASTEP_ASE_DEMO'

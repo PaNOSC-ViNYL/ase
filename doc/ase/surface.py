@@ -20,7 +20,7 @@ def save(name, slab):
           scale=10)
 
 for name in surfaces:
-    f = eval('surface.' + name)
+    f = getattr(surface, name)
     for kwargs in [{}, {'orthogonal': False}, {'orthogonal': True}]:
         print(name, kwargs)
         try:

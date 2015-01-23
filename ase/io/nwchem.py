@@ -1,4 +1,4 @@
-from cStringIO import StringIO
+from io import BytesIO
 from ase.io.xyz import read_xyz
 
 
@@ -29,7 +29,7 @@ def read_nwchem(filename):
         else:
             i += 1
 
-    if type(filename) == str:
+    if isinstance(filename, str):
         f.close()
 
     return atoms
@@ -55,7 +55,7 @@ def read_nwchem_input(filename):
     xyz_text += ' geometry\n'
     for line in lines[startline:stopline]:
         xyz_text += line
-    atoms = read_xyz(StringIO(xyz_text))
+    atoms = read_xyz(BytesIO(xyz_text))
     atoms.set_cell((0., 0., 0.))  # no unit cell defined
 
     if type(filename) == str:

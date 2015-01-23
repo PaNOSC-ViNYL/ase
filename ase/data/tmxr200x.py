@@ -1,7 +1,8 @@
+from __future__ import print_function
 import os
 import pprint
 import re
-from urllib import urlretrieve
+from urllib.request import urlretrieve
 import zipfile
 
 import datetime
@@ -143,7 +144,7 @@ def read_geometries(filename, dir='.'):
                 v1, v2, v3 = output.split()[2].split('.')
                 v1, v2, v3 = int(v1), int(v2), int(v3)
                 if not (v1 > 2 or ((v1 == 2) and (v2 >= 2))):
-                    print compound + ': skipped - version of babel does not support gzmat format'
+                    print(compound + ': skipped - version of babel does not support gzmat format')
                     continue # this one is given in z-matrix format
                 finame = compound.replace('(', '').replace(')', '') + '.orig'
                 foname = finame.split('.')[0] + '.xyz'
@@ -174,7 +175,7 @@ def read_geometries(filename, dir='.'):
                 if not (error.find('0 molecules') != -1):
                     atoms = ase.io.read(foname)
                 else:
-                    print compound + ': babel conversion failed'
+                    print(compound + ': babel conversion failed')
                     continue # conversion failed
             else:
                 positions = entries[3].replace(',', ' ').split('\\')[1:]
@@ -236,8 +237,7 @@ def main():
         atoms = []
         for formula, geometry in geometries:
             atoms.extend(list(set(geometry.get_chemical_symbols())))
-        atoms=list(set(atoms))
-        atoms.sort()
+        atoms=sorted(set(atoms))
         for atom in atoms:
             magmom=ground_state_magnetic_moments[atomic_numbers[atom]]
             data[atom] = {

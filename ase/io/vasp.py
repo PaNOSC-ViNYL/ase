@@ -175,7 +175,7 @@ def read_vasp(filename='CONTCAR'):
 
     for i, num in enumerate(numofatoms):
         numofatoms[i] = int(num)
-        [atom_symbols.append(atomtypes[i]) for na in xrange(numofatoms[i])]
+        [atom_symbols.append(atomtypes[i]) for na in range(numofatoms[i])]
 
     # Check if Selective dynamics is switched on
     sdyn = f.readline()
@@ -191,7 +191,7 @@ def read_vasp(filename='CONTCAR'):
     atoms_pos = np.empty((tot_natoms, 3))
     if selective_dynamics:
         selective_flags = np.empty((tot_natoms, 3), dtype=bool)
-    for atom in xrange(tot_natoms):
+    for atom in range(tot_natoms):
         ac = f.readline().split()
         atoms_pos[atom] = (float(ac[0]), float(ac[1]), float(ac[2]))
         if selective_dynamics:
@@ -200,7 +200,7 @@ def read_vasp(filename='CONTCAR'):
                 curflag.append(flag == 'F')
             selective_flags[atom] = curflag
     # Done with all reading
-    if type(filename) == str:
+    if isinstance(filename, str):
         f.close()
     if cartesian:
         atoms_pos *= lattice_constant
@@ -518,5 +518,5 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
                 f.write('%4s' % s)
         f.write('\n')
 
-    if type(filename) == str:
+    if isinstance(filename, str):
         f.close()

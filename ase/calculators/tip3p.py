@@ -79,14 +79,14 @@ class TIP3P:
         self.forces = np.zeros((natoms, 3))
         
         if world.size == 1:
-            mya = range(nH2O - 1)
+            mya = list(range(nH2O - 1))
         else:
             rank = world.rank
             size = world.size
             assert nH2O // (2 * size) == 0
             mynH2O = nH2O // 2 // size
-            mya = (range(rank * n, (rank + 1) * n) +
-                   range((size - rank - 1) * n, (size - rank) * n))
+            mya = (list(range(rank * n, (rank + 1) * n)) +
+                   list(range((size - rank - 1) * n, (size - rank) * n)))
 
         q = np.empty(3)
         q[:] = qH * (units.Hartree * units.Bohr)**0.5

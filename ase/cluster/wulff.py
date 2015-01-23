@@ -1,6 +1,6 @@
+from __future__ import print_function
 import numpy as np
 
-from ase.data import atomic_numbers
 
 delta = 1e-10
 _debug = False
@@ -48,17 +48,12 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
     _debug = debug
 
     if debug:
-        print 'Wulff: Aiming for cluster with %i atoms (%s)' % (size, rounding)
+        print('Wulff: Aiming for cluster with %i atoms (%s)' %
+              (size, rounding))
         
-    if rounding not in ['above', 'below', 'closest']:
-        raise ValueError('Invalid rounding: %s' % rounding)
+        if rounding not in ['above', 'below', 'closest']:
+            raise ValueError('Invalid rounding: %s' % rounding)
     
-    # Interpret symbol
-    #if isinstance(symbol, str):
-    #    atomic_number = atomic_numbers[symbol]
-    #else:
-    #    atomic_number = symbol
-
     # Interpret structure, if it is a string.
     if isinstance(structure, str):
         if structure == 'fcc':
@@ -69,7 +64,7 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
             from ase.cluster.cubic import SimpleCubic as structure
         elif structure == 'hcp':
             from ase.cluster.hexagonal import \
-                                      HexagonalClosedPacked as structure
+                HexagonalClosedPacked as structure
         elif structure == 'graphite':
             from ase.cluster.hexagonal import Graphite as structure
         else:
@@ -100,13 +95,12 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
     wanted_size = size ** (1.0 / 3.0)
     max_e = max(energies)
     factor = wanted_size / max_e
-    #layers = np.array([int(round(factor * e)) for e in energies])
     atoms, layers = make_atoms(symbol, surfaces, energies, factor, structure,
                                latticeconstant)
     if len(atoms) == 0:
         # Probably the cluster is very flat
         if debug:
-            print 'First try made an empty cluster, trying again.'
+            print('First try made an empty cluster, trying again.')
         factor = 1 / energies_sum.min()
         atoms, layers = make_atoms(symbol, surfaces, energies, factor,
                                    structure, latticeconstant)
@@ -117,11 +111,11 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
     old_factor = factor
     old_layers = layers
     old_atoms = atoms
-    factor *= (size / len(atoms)) ** (1.0 / 3.0)
+    factor *= (size / len(atoms))**(1.0 / 3.0)
     atoms, layers = make_atoms(symbol, surfaces, energies, factor,
                                structure, latticeconstant)
     if len(atoms) == 0:
-        print 'Second guess gave an empty cluster, discarding it.'
+        print('Second guess gave an empty cluster, discarding it.')
         atoms = old_atoms
         factor = old_factor
         layers = old_layers
@@ -141,7 +135,7 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
         if len(atoms) < size:
             # Find a larger cluster
             if debug:
-                print 'Making a larger cluster.'
+                print('Making a larger cluster.')
             factor = ((layers + 0.5 + delta) / energies).min()
             atoms, new_layers = make_atoms(symbol, surfaces, energies, factor,
                                            structure, latticeconstant)
@@ -151,7 +145,7 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
         else:
             # Find a smaller cluster
             if debug:
-                print 'Making a smaller cluster.'
+                print('Making a smaller cluster.')
             factor = ((layers - 0.5 - delta) / energies).max()
             atoms, new_layers = make_atoms(symbol, surfaces, energies, factor,
                                            structure, latticeconstant)
@@ -167,11 +161,11 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
             raise RuntimeError('Runaway iteration.')
     if rounding == 'below':
         if debug:
-            print 'Choosing smaller cluster with %i atoms' % (len(below),)
+            print('Choosing smaller cluster with %i atoms' % len(below))
         return below
     elif rounding == 'above':
         if debug:
-            print 'Choosing larger cluster with %i atoms' % (len(above),)
+            print('Choosing larger cluster with %i atoms' % len(above))
         return above
     else:
         assert rounding == 'closest'
@@ -180,18 +174,16 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
         else:
             atoms = below
         if debug:
-            print 'Choosing closest cluster with %i atoms' % (len(atoms),)
+            print('Choosing closest cluster with %i atoms' % len(atoms))
         return atoms
 
 
 def make_atoms(symbol, surfaces, energies, factor, structure, latticeconstant):
     layers1 = factor * np.array(energies)
     layers = np.round(layers1).astype(int)
-    #layers = np.array([int(round(factor * e)) for e in energies])
     atoms = structure(symbol, surfaces, layers,
                       latticeconstant=latticeconstant)
     if _debug:
-        print 'Created a cluster with %i atoms: %s' % (len(atoms),
-                                                       str(layers))
-        #print layers1
+        print('Created a cluster with %i atoms: %s' % (len(atoms),
+                                                       str(layers)))
     return (atoms, layers)

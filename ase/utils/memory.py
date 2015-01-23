@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import numpy as np
 
@@ -28,18 +29,18 @@ class MemoryBase(object, DictMixin):
 
     def __init__(self, verbose=0):
         self.verbose = verbose
-        if self.verbose>=2: print 'MemoryBase.__init__'
+        if self.verbose>=2: print('MemoryBase.__init__')
         object.__init__(self)
         self._values = np.empty(len(self._keys), dtype=np.float)
 
     def __repr__(self):
         """Return a representation of recorded VM statistics.
         x.__repr__() <==> repr(x)"""
-        if self.verbose>=2: print 'MemoryBase.__repr__'
+        if self.verbose>=2: print('MemoryBase.__repr__')
         s = object.__repr__(self)
         w = max(map(len, self._keys))
         unit = 'MB'
-        for k,v in self.iteritems():
+        for k,v in self.items():
             res = '<N/A>'
             if not np.isnan(v):
                 res = '%8.3f %s' % (v/self._scale[unit], unit)
@@ -49,13 +50,13 @@ class MemoryBase(object, DictMixin):
     def __len__(self):
         """Number of VM keys which have not been outdated.
         x.__len__() <==> len(x)"""
-        if self.verbose>=3: print 'MemoryBase.__len__'
+        if self.verbose>=3: print('MemoryBase.__len__')
         return np.sum(~np.isnan(self._values))
 
     def __getitem__(self, key):
         """Return floating point number associated with a VM key.
         x.__getitem__(y) <==> x[y]"""
-        if self.verbose>=2: print 'MemoryBase.__getitem__'
+        if self.verbose>=2: print('MemoryBase.__getitem__')
         if key not in self:
             raise KeyError(key)
         i = self.keys().index(key)
@@ -63,28 +64,28 @@ class MemoryBase(object, DictMixin):
 
     def __setitem__(self, key, value):
         """x.__setitem__(i, y) <==> x[i]=y"""
-        if self.verbose>=2: print 'MemoryBase.__setitem__'
+        if self.verbose>=2: print('MemoryBase.__setitem__')
         raise Exception('Virtual member function.')
 
     def __delitem__(self, key):
         """x.__delitem__(y) <==> del x[y]"""
-        if self.verbose>=2: print 'MemoryBase.__delitem__'
+        if self.verbose>=2: print('MemoryBase.__delitem__')
         raise Exception('Virtual member function.')
 
     def clear(self):
         """D.clear() -> None.  Remove all items from D."""
-        if self.verbose>=1: print 'MemoryBase.clear'
+        if self.verbose>=1: print('MemoryBase.clear')
         raise Exception('Virtual member function.')
 
     def update(self, other=None):
         """D.update(E) -> None.  Update D from E: for k in E.keys(): D[k] = E[k]"""
-        if self.verbose>=1: print 'MemoryBase.update'
+        if self.verbose>=1: print('MemoryBase.update')
         DictMixin.update(self, other)
 
     def copy(self):
         """Return a shallow copy of a VM statistics instance.
         D.copy() -> a shallow copy of D"""
-        if self.verbose>=1: print 'MemoryBase.copy'
+        if self.verbose>=1: print('MemoryBase.copy')
         res = object.__new__(self.__class__)
         MemoryBase.__init__(res, self.verbose)
         DictMixin.update(res, self)
@@ -93,25 +94,25 @@ class MemoryBase(object, DictMixin):
     def has_key(self, key): #necessary to avoid infinite recursion
         """Return boolean to indicate whether key is a supported VM key.
         D.has_key(k) -> True if D has a key k, else False"""
-        if self.verbose>=3: print 'MemoryBase.has_key'
+        if self.verbose>=3: print('MemoryBase.has_key')
         return key in self._keys
 
     def keys(self):
         """Return list of supported VM keys.
         D.keys() -> list of D's keys"""
-        if self.verbose>=3: print 'MemoryBase.keys'
+        if self.verbose>=3: print('MemoryBase.keys')
         return list(self._keys)
 
     def values(self):
         """Return list of recorded VM statistics.
         D.values() -> list of D's values"""
-        if self.verbose>=3: print 'MemoryBase.values'
+        if self.verbose>=3: print('MemoryBase.values')
         return list(self._values)
 
     def get(self, key, default=None):
         """Return floating point number associated with a VM key.
         D.get(k[,d]) -> D[k] if k in D, else d.  d defaults to None."""
-        if self.verbose>=1: print 'MemoryBase.get'
+        if self.verbose>=1: print('MemoryBase.get')
         v = self[key]
 
         if type(default) in [int,float]:
@@ -127,7 +128,7 @@ class MemoryBase(object, DictMixin):
     def setdefault(self, key, default=None):
         """Return floating point number associated with a VM key.
         D.setdefault(k[,d]) -> D.get(k,d), also set D[k]=d if k not in D"""
-        if self.verbose>=1: print 'MemoryBase.setdefault'
+        if self.verbose>=1: print('MemoryBase.setdefault')
         v = self[key]
 
         if type(default) in [int,float]:
@@ -146,7 +147,7 @@ class MemoryBase(object, DictMixin):
         D.pop(k[,d]) -> v, remove specified key and return the corresponding value
         If key is not found, d is returned if given, otherwise KeyError is raised"""
 
-        if self.verbose>=1: print 'MemoryBase.pop'
+        if self.verbose>=1: print('MemoryBase.pop')
         v = self[key]
 
         if type(default) in [int,float]:
@@ -164,9 +165,9 @@ class MemoryBase(object, DictMixin):
         """Return floating point number for some not-yet outdated VM key.
         D.popitem() -> (k, v), remove and return some (key, value) pair as a
         2-tuple; but raise KeyError if D is empty"""
-        if self.verbose>=1: print 'MemoryBase.popitem'
+        if self.verbose>=1: print('MemoryBase.popitem')
 
-        for k,v in self.iteritems():
+        for k,v in self.items():
             if not np.isnan(v):
                 del self[k]
                 return (k,v)
@@ -174,8 +175,8 @@ class MemoryBase(object, DictMixin):
 
     def __add__(self, other):
         """x.__add__(y) <==> x+y"""
-        if self.verbose>=1: print 'MemoryBase.__add__(%s,%s)' \
-            % (object.__repr__(self), object.__repr__(other))
+        if self.verbose>=1: print('MemoryBase.__add__(%s,%s)' \
+            % (object.__repr__(self), object.__repr__(other)))
         res = self.copy()
         if isinstance(other, MemoryBase):
             res._values.__iadd__(other._values)
@@ -187,8 +188,8 @@ class MemoryBase(object, DictMixin):
 
     def __sub__(self, other):
         """x.__sub__(y) <==> x-y"""
-        if self.verbose>=1: print 'MemoryBase.__sub__(%s,%s)' \
-            % (object.__repr__(self), object.__repr__(other))
+        if self.verbose>=1: print('MemoryBase.__sub__(%s,%s)' \
+            % (object.__repr__(self), object.__repr__(other)))
         res = self.copy()
         if isinstance(other, MemoryBase):
             res._values.__isub__(other._values)
@@ -200,8 +201,8 @@ class MemoryBase(object, DictMixin):
 
     def __radd__(self, other):
         """x.__radd__(y) <==> y+x"""
-        if self.verbose>=1: print 'MemoryBase.__radd__(%s,%s)' \
-            % (object.__repr__(self), object.__repr__(other))
+        if self.verbose>=1: print('MemoryBase.__radd__(%s,%s)' \
+            % (object.__repr__(self), object.__repr__(other)))
         res = self.copy()
         if isinstance(other, MemoryBase):
             res._values.__iadd__(other._values)
@@ -213,8 +214,8 @@ class MemoryBase(object, DictMixin):
 
     def __rsub__(self, other):
         """x.__rsub__(y) <==> y-x"""
-        if self.verbose>=1: print 'MemoryBase.__rsub__(%s,%s)' \
-            % (object.__repr__(self), object.__repr__(other))
+        if self.verbose>=1: print('MemoryBase.__rsub__(%s,%s)' \
+            % (object.__repr__(self), object.__repr__(other)))
         res = self.copy()
         res._values.__imul__(-1.0)
         if isinstance(other, MemoryBase):
@@ -236,7 +237,7 @@ class MemoryStatistics(MemoryBase):
     def __setitem__(self, key, value):
         """Set VM key to a floating point number.
         x.__setitem__(i, y) <==> x[i]=y"""
-        if self.verbose>=2: print 'MemoryStatistics.__setitem__'
+        if self.verbose>=2: print('MemoryStatistics.__setitem__')
         if key not in self:
             raise KeyError(key)
         if type(value) in [int,float]:
@@ -249,7 +250,7 @@ class MemoryStatistics(MemoryBase):
     def __delitem__(self, key):
         """Mark a VK key as outdated.
         x.__delitem__(y) <==> del x[y]"""
-        if self.verbose>=2: print 'MemoryStatistics.__delitem__'
+        if self.verbose>=2: print('MemoryStatistics.__delitem__')
         if key not in self:
             raise KeyError(key)
         self[key] = np.nan
@@ -257,19 +258,19 @@ class MemoryStatistics(MemoryBase):
     def clear(self):
         """Mark all supported VM keys as outdated.
         D.clear() -> None.  Remove all items from D."""
-        if self.verbose>=1: print 'MemoryStatistics.clear'
+        if self.verbose>=1: print('MemoryStatistics.clear')
         self._values[:] = np.nan
 
     def refresh(self):
         """Refresh all outdated VM keys by reading /proc/<pid>/status."""
-        if self.verbose>=1: print 'MemoryBase.refresh'
+        if self.verbose>=1: print('MemoryBase.refresh')
 
         # NB: Linux /proc is for humans; Solaris /proc is for programs!
         # TODO: Use pipe from 'prstat -p <pid>' or 'pmap -x <pid> 1 1'
 
         # Skip refresh if none are outdated (i.e. nan)
         if not np.isnan(self._values).any():
-            if self.verbose>=2: print 'refresh: skipping...'
+            if self.verbose>=2: print('refresh: skipping...')
             return
 
         try:
@@ -281,7 +282,7 @@ class MemoryStatistics(MemoryBase):
                 if k in self and np.isnan(self[k]):
                     t, s = v.strip().split(None, 1)
                     if self.verbose >= 2:
-                        print 'refresh: k=%s, t=%s, s=%s' % (k, t, s)
+                        print('refresh: k=%s, t=%s, s=%s' % (k, t, s))
                     self[k] = float(t) * self._scale[s.upper()]
 
             f.close()
@@ -292,7 +293,7 @@ class MemoryStatistics(MemoryBase):
     def update(self, other=None):
         """Update VM statistics from a supplied dict, else clear and refresh.
         D.update(E) -> None.  Update D from E: for k in E.keys(): D[k] = E[k]"""
-        if self.verbose>=1: print 'MemoryStatistics.update'
+        if self.verbose>=1: print('MemoryStatistics.update')
 
         # Call to update without arguments has special meaning
         if other is None:
@@ -303,8 +304,8 @@ class MemoryStatistics(MemoryBase):
 
     def __iadd__(self, other):
         """x.__iadd__(y) <==> x+=y"""
-        if self.verbose>=1: print 'MemoryStatistics.__iadd__(%s,%s)' \
-            % (object.__repr__(self), object.__repr__(other))
+        if self.verbose>=1: print('MemoryStatistics.__iadd__(%s,%s)' \
+            % (object.__repr__(self), object.__repr__(other)))
         if isinstance(other, MemoryBase):
             self._values.__iadd__(other._values)
         elif type(other) in [int,float]:
@@ -315,8 +316,8 @@ class MemoryStatistics(MemoryBase):
 
     def __isub__(self, other):
         """x.__isub__(y) <==> x-=y"""
-        if self.verbose>=1: print 'MemoryStatistics.__isub__(%s,%s)' \
-            % (object.__repr__(self), object.__repr__(other))
+        if self.verbose>=1: print('MemoryStatistics.__isub__(%s,%s)' \
+            % (object.__repr__(self), object.__repr__(other)))
         if isinstance(other, MemoryBase):
             self._values.__isub__(other._values)
         elif type(other) in [int,float]:
@@ -344,9 +345,9 @@ class MemorySingleton(MemoryBase, Singleton):
     makes it suitable for recording the initial overhead of starting Python."""
 
     def __init__(self, verbose=0):
-        if verbose>=1: print 'MemorySingleton.__init__'
+        if verbose>=1: print('MemorySingleton.__init__')
         if '_values' not in vars(self):
-            if verbose>=1: print 'MemorySingleton.__init__ FIRST!'
+            if verbose>=1: print('MemorySingleton.__init__ FIRST!')
             # Hack to circumvent singleton immutability
             self.__class__ = MemoryStatistics
             self.__init__(verbose)
@@ -355,31 +356,31 @@ class MemorySingleton(MemoryBase, Singleton):
     def __setitem__(self, key, value):
         """Disabled for the singleton.
         x.__setitem__(i, y) <==> x[i]=y"""
-        if self.verbose>=2: print 'MemorySingleton.__setitem__'
+        if self.verbose>=2: print('MemorySingleton.__setitem__')
         raise ReferenceError('Singleton is immutable.')
 
     def __delitem__(self, key):
         """Disabled for the singleton.
         x.__delitem__(y) <==> del x[y]"""
-        if self.verbose>=2: print 'MemorySingleton.__delitem__'
+        if self.verbose>=2: print('MemorySingleton.__delitem__')
         raise ReferenceError('Singleton is immutable.')
 
     def clear(self):
         """Disabled for the singleton.
         D.clear() -> None.  Remove all items from D."""
-        if self.verbose>=1: print 'MemorySingleton.clear'
+        if self.verbose>=1: print('MemorySingleton.clear')
         raise ReferenceError('Singleton is immutable.')
 
     def update(self):
         """Disabled for the singleton.
         D.update(E) -> None.  Update D from E: for k in E.keys(): D[k] = E[k]"""
-        if self.verbose>=1: print 'MemorySingleton.update'
+        if self.verbose>=1: print('MemorySingleton.update')
         raise ReferenceError('Singleton is immutable.')
 
     def copy(self):
         """Return a shallow non-singleton copy of a VM statistics instance.
         D.copy() -> a shallow copy of D"""
-        if self.verbose>=1: print 'MemorySingleton.copy'
+        if self.verbose>=1: print('MemorySingleton.copy')
         # Hack to circumvent singleton self-copy
         self.__class__ = MemoryStatistics
         res = self.copy()
@@ -405,7 +406,7 @@ def shapegen(size, ndims, ecc=0.5):
                     The eccentricity of the distribution
     """
     assert type(size) in [int,float] and size>=1
-    assert type(ndims) is int and ndims>=1
+    assert isinstance(ndims, int) and ndims>=1
     assert type(ecc) in [int,float] and ecc>0 and ecc<1
 
     for i in range(ndims-1):
@@ -428,9 +429,9 @@ def shapeopt(maxseed, size, ndims, ecc=0.5):
         ecc=0.5:    float in ]0,1[
                     The eccentricity of the distribution
     """
-    assert type(maxseed) is int and maxseed>=1
+    assert isinstance(maxseed, int) and maxseed>=1
     assert type(size) in [int,float] and size>=1
-    assert type(ndims) is int and ndims>=1
+    assert isinstance(ndims, int) and ndims>=1
     assert type(ecc) in [int,float] and ecc>0 and ecc<1
 
     digits_best = np.inf

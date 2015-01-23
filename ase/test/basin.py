@@ -32,15 +32,15 @@ for GlobalOptimizer in [BasinHopping(s,
                                      optimizer_logfile=None),
                         ]:
 
-    if str(GlobalOptimizer.__class__) == 'ase.optimize.basin.BasinHopping':
+    if isinstance(GlobalOptimizer, BasinHopping):
         GlobalOptimizer.run(10)
         Emin, smin = GlobalOptimizer.get_minimum()
     else:
         GlobalOptimizer(totalsteps=10)
         Emin = s.get_potential_energy()
         smin = s
-    print "N=", N, 'minimal energy found', Emin, 
-    print ' global minimum:', E_global[N]
+    print("N=", N, 'minimal energy found', Emin,
+          ' global minimum:', E_global[N])
 
     # recalc energy
     smin.set_calculator(LennardJones())

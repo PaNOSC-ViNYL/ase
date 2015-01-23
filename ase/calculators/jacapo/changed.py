@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 
 import logging
@@ -35,7 +36,7 @@ def kpts_changed(calc, x):
     elif len(np.array(x).shape) == 2:
         listofkpts = np.array(x)
     else:
-        raise Exception, 'apparent invalid setting for kpts'
+        raise Exception('apparent invalid setting for kpts')
 
     grid = calc.get_kpts()
     
@@ -52,7 +53,7 @@ def electronic_minimization_changed(calc, x):
 
     for key in myx:
         if myx[key] != x[key]:
-            print key, myx[key], ' changed to ', x[key]
+            print(key, myx[key], ' changed to ', x[key])
             return True
     return False
 
@@ -136,11 +137,11 @@ def dipole_changed(calc, x):
         return True
 
     # both x and pars is a dictionary
-    if (type(pars) == type(dict) and
-        type(pars) == type(x)):
+    if (isinstance(pars, type(dict)) and
+        isinstance(pars, type(x))):
         for key in x:
             if key == 'position':    # dipole layer position is never writen to the nc file
-                print 'need to do something special'
+                print('need to do something special')
                 continue
             if x[key] != pars[key]:
                 return True

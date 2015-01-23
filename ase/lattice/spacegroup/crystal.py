@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright (C) 2010, Jesper Friis
 # (see accompanying license files for details).
 
@@ -11,8 +12,8 @@ import numpy as np
 
 import ase
 from ase.atoms import string2symbols
-from spacegroup import Spacegroup
-from cell import cellpar_to_cell
+from .spacegroup import Spacegroup
+from .cell import cellpar_to_cell
 
 __all__ = ['crystal']
 
@@ -156,7 +157,7 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
 
 def parse_symbols(symbols):
     """Return `sumbols` as a sequence of element symbols."""
-    if isinstance(symbols, basestring):
+    if isinstance(symbols, str):
         symbols = string2symbols(symbols)
     return symbols
 
@@ -169,5 +170,5 @@ def parse_symbols(symbols):
 # Self test
 if __name__ == '__main__':
     import doctest
-    print 'doctest: ', doctest.testmod()
+    print('doctest: ', doctest.testmod())
     

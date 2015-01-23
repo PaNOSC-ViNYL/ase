@@ -1,3 +1,4 @@
+from __future__ import print_function
 # encoding: utf-8
 """colors.py - select how to color the atoms in the GUI."""
 
@@ -13,6 +14,7 @@ import colorsys
 named_colors = ('Green', 'Yellow', 'Blue', 'Red', 'Orange', 'Cyan',
                 'Magenta', 'Black', 'White', 'Grey', 'Violet', 'Brown',
                 'Navy')
+
 
 class ColorWindow(gtk.Window):
     "A window for selecting how to color the atoms."
@@ -56,7 +58,7 @@ class ColorWindow(gtk.Window):
         self.charge_box = gtk.VBox()
         for widget in (self.radio_jmol, self.radio_atno, self.radio_tag,
                        self.radio_force, self.force_box, self.radio_velocity,
-                       self.radio_charge, self.charge_box, 
+                       self.radio_charge, self.charge_box,
                        self.radio_coordination,
                        self.velocity_box, self.radio_manual, self.radio_same):
             pack(self.methodbox, [widget])
@@ -96,7 +98,7 @@ class ColorWindow(gtk.Window):
                                  gtk.Label('  '),
                                  velocity_apply])
         self.velocity_box.hide()
-        # Now fill in the box for additional information in case 
+        # Now fill in the box for additional information in case
         # the charge is used.
         self.charge_label = gtk.Label(_("This should not be displayed!"))
         pack(self.charge_box, [self.charge_label])
@@ -214,7 +216,7 @@ class ColorWindow(gtk.Window):
                 self.force_box.hide()
             if widget is self.radio_velocity:
                 self.velocity_box.hide()
-            return  
+            return
         if widget is self.radio_jmol:
             self.set_jmol_colors()
         elif widget is self.radio_atno:
@@ -271,7 +273,7 @@ class ColorWindow(gtk.Window):
         "We use per-tag colors."
         # Find which tags are in use
         tags = self.gui.images.T
-        existingtags = range(tags.min(), tags.max()+1)
+        existingtags = range(tags.min(), tags.max() + 1)
         if not hasattr(self, 'colordata_tags') or len(self.colordata_tags) != len(existingtags):
             colors = self.get_named_colors(len(existingtags))
             self.colordata_tags = [[x, y] for x, y in
@@ -377,7 +379,7 @@ class ColorWindow(gtk.Window):
             self.colordata_coordination = [[x, y] for x, y in
                                            enumerate(colors)]
         self.actual_colordata = self.colordata_coordination
-        self.color_labels = [(str(x) + ':') 
+        self.color_labels = [(str(x) + ':')
                              for x, y in self.colordata_coordination]
         self.make_colorwin()
         self.colormode = 'coordination'
@@ -418,10 +420,9 @@ class ColorWindow(gtk.Window):
             oldcolors = np.array([None] * len(self.actual_colordata))
             oldcolors[:] = [y for x, y in self.actual_colordata]
             q = self.gui.images.q[self.gui.frame]
-            nq = ((q - self.colormode_charge_data[0]) * 
+            nq = ((q - self.colormode_charge_data[0]) *
                   self.colormode_charge_data[1])
             nq = np.clip(nq.astype(int), 0, len(oldcolors)-1)
-##            print "nq = ", nq
             colors[:] = oldcolors[nq]
         elif self.colormode == 'coordination':
             oldcolors = np.array([None] * len(self.actual_colordata))
@@ -485,7 +486,7 @@ class ColorWindow(gtk.Window):
             qmin_frame = self.gui.images.q[self.gui.frame].min()
             qmax_frame = self.gui.images.q[self.gui.frame].max()
             txt = (_('Min, max charge: %.2f, %.2f (this frame),' +
-                     '%.2f, %.2f (all frames)') 
+                     '%.2f, %.2f (all frames)')
                    % (qmin_frame, qmax_frame, qmin, qmax))
         else:
             txt = _("Min, max charge: %.2f, %.2f.") % (qmin, qmax,)

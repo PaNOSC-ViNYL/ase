@@ -326,7 +326,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
                 deformation = np.diag(1.0 + d * deform_axes)
                 self.atoms.set_cell(np.dot(undef_cell, deformation),
                                     scale_atoms=True)
-                if self.gui.simulation.has_key('progress'):
+                if 'progress' in self.gui.simulation:
                     self.gui.simulation['progress'].set_scale_progress(i)
                 if self.radio_relax_on.get_active():
                     algo = getattr(ase.optimize, mininame)
@@ -368,7 +368,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
                     self.atoms.set_cell(np.dot(undef_cell, deformation),
                                         scale_atoms=True)
                     if self.radio_relax_on.get_active():
-                        if self.gui.simulation.has_key('progress'):
+                        if 'progress' in self.gui.simulation:
                             self.gui.simulation['progress'].set_scale_progress(
                                 len(steps))
                         algo = getattr(ase.optimize, mininame)

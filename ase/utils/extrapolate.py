@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import sys
 from ase.parallel import paropen
@@ -11,18 +12,18 @@ def extrapolate(x, y, n=-1.5, plot=0, reg=0, txt=None):
     
     if txt is None:
         f = sys.stdout
-    elif type(txt) is str:
+    elif isinstance(txt, str):
         f = paropen(txt, 'a')
     else:
         f = txt
     assert len(x) == len(y)
     ext = []
-    print  >> f, 'Two-point extrapolation:'
+    print('Two-point extrapolation:', file=f)
     for i in range(len(x)-1):
         alpha = (y[i] - y[i+1]) / (x[i]**n - x[i+1]**n)
         ext.append(y[i+1] - alpha*x[i+1]**n)
-        print >> f, '    ', x[i], '-', x[i+1], ':', ext[-1]
-    print >> f
+        print('    ', x[i], '-', x[i+1], ':', ext[-1], file=f)
+    print(file=f)
 
     if plot:
         import pylab as pl
@@ -40,12 +41,12 @@ def extrapolate(x, y, n=-1.5, plot=0, reg=0, txt=None):
         sigma_y = (1./(N-2.) * np.sum((b - A - B * a)**2))**0.5
         sigma_A = sigma_y * (np.sum(a**2) / delta)**0.5
         
-        print >> f, 'Linear regression using last %s points:' % N
-        print >> f, '    Extrapolated result:', A
-        print >> f, '    Uncertainty:', sigma_A
-        print >> f
+        print('Linear regression using last %s points:' % N, file=f)
+        print('    Extrapolated result:', A, file=f)
+        print('    Uncertainty:', sigma_A, file=f)
+        print(file=f)
         if plot:
-            print [a[0], 0], [A + B * a[0], A]
+            print([a[0], 0], [A + B * a[0], A])
             pl.plot([a[0], 0], [A + B * a[0], A], '--', label='Regression')
             pl.legend(loc='upper left')
     else:

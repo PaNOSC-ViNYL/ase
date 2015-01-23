@@ -294,10 +294,10 @@ class SetupBulkCrystal(SetupWindow):
                     if basis_count:
                         symbol_str += ','
                         symbol += [el[0].get_text()]
-                        exec 'basis += [[float('+el[1].get_text()+'),float('+el[2].get_text()+'),float('+el[3].get_text()+')]]'
+                        exec('basis += [[float('+el[1].get_text()+'),float('+el[2].get_text()+'),float('+el[3].get_text()+')]]')
                     else:
                         symbol = el[0].get_text()
-                        exec 'basis = [[float('+el[1].get_text()+'),float('+el[2].get_text()+'),float('+el[3].get_text()+')]]'
+                        exec('basis = [[float('+el[1].get_text()+'),float('+el[2].get_text()+'),float('+el[3].get_text()+')]]')
                     basis_str += '['+el[1].get_text()+','+el[2].get_text()+','+el[3].get_text()+'],'
             basis_str = basis_str[:-1]
             if basis_count:

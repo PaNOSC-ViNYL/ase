@@ -1,3 +1,4 @@
+from __future__ import print_function
 """This module defines an ASE interface to SIESTA.
 
 http://www.uam.es/departamentos/ciencias/fismateriac/siesta
@@ -224,7 +225,7 @@ class Siesta:
             "to the gamma point only. kpt must be 0."
 
         # In denchar, band numbering starts from 1
-        assert type(band) is int and band >= 0
+        assert isinstance(band, int) and band >= 0
         band = band+1
 
         if spin is None:
@@ -315,7 +316,7 @@ class Siesta:
             raise RuntimeError('No denchar executable found. Make sure it is in the path.')
         else:
             import sys
-            print >>sys.stderr, ''.join(p.stderr.readlines())
+            print(''.join(p.stderr.readlines()), file=sys.stderr)
             raise RuntimeError('Execution of denchar failed!')
 
 
@@ -329,7 +330,7 @@ class Siesta:
 
         siesta = os.environ['SIESTA_SCRIPT']
         locals = {'label': self.label}
-        execfile(siesta, {}, locals)
+        exec(compile(open(siesta).read(), siesta, 'exec'), {}, locals)
         exitcode = locals['exitcode']
         if exitcode != 0:
             raise RuntimeError(('Siesta exited with exit code: %d.  ' +
@@ -587,7 +588,7 @@ class Siesta:
         filename_xv = filename[:-2] + 'XV'
         #assert isfile(filename_xv), 'Missing jobname.XV file'
         if isfile(filename_xv):
-            print 'Reading supercell and atom data from ' + filename_xv
+            print('Reading supercell and atom data from ' + filename_xv)
             fd = open(filename_xv, 'r')
             dat.cell = np.zeros((3, 3)) # Supercell
             for a_vec in dat.cell:
@@ -607,40 +608,40 @@ class Siesta:
         dat.is_gammay_only = is_gamma_only
         dat.nuotot, dat.ns, dat.mnh = getrecord(fileobj, 'l')
         nuotot, ns, mnh = dat.nuotot, dat.ns, dat.mnh
-        print 'Number of orbitals found: %i' % nuotot
+        print('Number of orbitals found: %i' % nuotot)
         dat.numh = numh = np.array([getrecord(fileobj, 'l')
                                     for i in range(nuotot)], 'l')
         dat.maxval = max(numh)
         dat.listhptr = listhptr = np.zeros(nuotot, 'l')
         listhptr[0] = 0
-        for oi in xrange(1, nuotot):
+        for oi in range(1, nuotot):
             listhptr[oi] = listhptr[oi - 1] + numh[oi - 1]
         dat.listh = listh = np.zeros(mnh, 'l')
 
-        print 'Reading sparse info'
-        for oi in xrange(nuotot):
-            for mi in xrange(numh[oi]):
+        print('Reading sparse info')
+        for oi in range(nuotot):
+            for mi in range(numh[oi]):
                 listh[listhptr[oi] + mi] = getrecord(fileobj, 'l')
 
         dat.nuotot_sc = max(listh)
         dat.h_sparse = h_sparse = np.zeros((mnh, ns), float)
         dat.s_sparse = s_sparse = np.zeros(mnh, float)
-        print 'Reading H'
-        for si in xrange(ns):
-            for oi in xrange(nuotot):
-                for mi in xrange(numh[oi]):
+        print('Reading H')
+        for si in range(ns):
+            for oi in range(nuotot):
+                for mi in range(numh[oi]):
                     h_sparse[listhptr[oi] + mi, si] = getrecord(fileobj, 'd')
-        print 'Reading S'
-        for oi in xrange(nuotot):
-            for mi in xrange(numh[oi]):
+        print('Reading S')
+        for oi in range(nuotot):
+            for mi in range(numh[oi]):
                 s_sparse[listhptr[oi] + mi] = getrecord(fileobj, 'd')
 
         dat.qtot, dat.temperature = getrecord(fileobj, 'd')
         if not is_gamma_only:
-            print 'Reading X'
+            print('Reading X')
             dat.xij_sparse = xij_sparse = np.zeros([3, mnh], float)
-            for oi in xrange(nuotot):
-                for mi in xrange(numh[oi]):
+            for oi in range(nuotot):
+                for mi in range(numh[oi]):
                     xij_sparse[:, listhptr[oi] + mi] = getrecord(fileobj, 'd')
         fileobj.close()
 
@@ -682,7 +683,7 @@ class Siesta:
 
         """
         if not hasattr(self, '_dat'):# XXX Crude check if data is avail.
-            print 'Please read in data first by calling the method read_hs.'
+            print('Please read in data first by calling the method read_hs.')
             return None, None
         dot = np.dot
         dat = self._dat
@@ -697,7 +698,7 @@ class Siesta:
         numh, listhptr, listh = dat.numh, dat.listhptr, dat.listh
         indxuo = np.mod(np.arange(dat.nuotot_sc), dat.nuotot)
 
-        for iuo in xrange(dat.nuotot):
+        for iuo in range(dat.nuotot):
             for j in range(numh[iuo]):
                 ind =  listhptr[iuo] + j
                 jo = listh[ind] - 1
@@ -825,7 +826,7 @@ def get_bf_centers(symbols, positions, basis):
     """
     centers_ic = []
     dict_basis = False
-    if type(basis)==dict:
+    if isinstance(basis, dict):
         dict_basis = True
     for symbol, pos in zip(symbols, positions):
         if dict_basis:

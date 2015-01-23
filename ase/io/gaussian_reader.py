@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright (C) 2010 by CAMd, DTU
 # Please see the accompanying LICENSE file for further information.
 
@@ -92,7 +93,7 @@ class GaussianReader:
                     if len(s)==2:
                         new_dict[s[0]]=self.auto_type(s[1])
                     else:
-                        print "Warning: unexpected input ",s
+                        print("Warning: unexpected input ",s)
                     position = position + 1
 
     def __iter__(self):

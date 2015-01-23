@@ -50,7 +50,7 @@ all = reader.find(name_value_list=[('calculator', 'EMT')],
                   keyword_list=[project_id])
 
 all.print_table(0, columns=["formula", "ase_potential_energy"])
-print
+print()
 
 group = cmr.create_group()
 group_vars = {"reaction":reaction, "output":"group.db"}
@@ -58,7 +58,7 @@ sum = 0.0
 for (formula, coef) in reaction:
         data = all.get("formula", formula)
         if data is None:
-           print "%s is missing"%formula
+           print("%s is missing"%formula)
            sum = None
            break
         sum += coef*data["ase_potential_energy"]
@@ -66,7 +66,7 @@ for (formula, coef) in reaction:
 
 group_vars["result"] = sum
 group.write(group_vars)
-print "Energy: ",sum
+print("Energy: ",sum)
 group.dump()
 
 # clean

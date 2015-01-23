@@ -1,6 +1,5 @@
 from __future__ import print_function
 import os
-import types
 import warnings
 from os.path import join
 from stat import ST_MTIME
@@ -9,6 +8,8 @@ from docutils.parsers.rst.roles import set_classes
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+from ase.utils import exec_
 
 
 def mol_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
@@ -91,12 +92,12 @@ def epydoc_role_tmpl(package_name, urlroot,
             module = __import__('.'.join(components[:n]))
     except ImportError:
         if module is None:
-            print('epydoc: could not process:', str(components))
+            print('epydoc: could not process: %s' % str(components))
             raise
         for component in components[1:n]:
             module = getattr(module, component)
             ref = '.'.join(components[:n])
-            if isinstance(module, (type, types.ClassType)):
+            if isinstance(module, type):
                 ref += '-class.html'
             else:
                 ref += '-module.html'
@@ -113,7 +114,7 @@ def epydoc_role_tmpl(package_name, urlroot,
     return [node], []
 
 
-def create_png_files(run_all_python_files=False, exclude=[]):
+def create_png_files():
     errcode = os.system('povray -h 2> /dev/null')
     if errcode:
         warnings.warn('No POVRAY!')
@@ -137,8 +138,6 @@ def create_png_files(run_all_python_files=False, exclude=[]):
         for filename in filenames:
             if filename.endswith('.py'):
                 path = join(dirpath, filename)
-                if path in exclude:
-                    continue
                 lines = open(path).readlines()
                 try:
                     line = lines[0]
@@ -146,11 +145,9 @@ def create_png_files(run_all_python_files=False, exclude=[]):
                     continue
                 if 'coding: utf-8' in line:
                     line = lines[1]
-                run = False
-                if run_all_python_files:
-                    run = True
-                elif line.startswith('# creates:'):
+                if line.startswith('# creates:'):
                     t0 = os.stat(path)[ST_MTIME]
+                    run = False
                     for file in line.split()[2:]:
                         file = file.rstrip(',')
                         try:
@@ -162,13 +159,17 @@ def create_png_files(run_all_python_files=False, exclude=[]):
                             if t < t0:
                                 run = True
                                 break
-                if run:
-                    print('running:', join(dirpath, filename))
-                    os.chdir(dirpath)
-                    plt.figure()
-                    try:
-                        execfile(filename, {})
-                    finally:
-                        os.chdir(olddir)
+                    if run:
+                        print('running:', join(dirpath, filename))
+                        os.chdir(dirpath)
+                        plt.figure()
+                        try:
+                            exec_(compile(open(filename).read(),
+                                          filename, 'exec'), {})
+                        finally:
+                            os.chdir(olddir)
+                        for file in line.split()[2:]:
+                            print(dirpath, file)
+
         if '.svn' in dirnames:
             dirnames.remove('.svn')

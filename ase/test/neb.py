@@ -10,7 +10,7 @@ fmax = 0.05
 
 nimages = 3
 
-print [a.get_potential_energy() for a in PickleTrajectory('H.traj')]
+print([a.get_potential_energy() for a in PickleTrajectory('H.traj')])
 images = [PickleTrajectory('H.traj')[-1]]
 for i in range(nimages):
     images.append(images[0].copy())
@@ -29,7 +29,7 @@ dyn = BFGS(neb, trajectory='mep.traj')
 dyn.run(fmax=fmax)
 
 for a in neb.images:
-    print a.positions[-1], a.get_potential_energy()
+    print(a.positions[-1], a.get_potential_energy())
 
 results = [images[2].get_potential_energy()]
 
@@ -58,7 +58,7 @@ for t in threads:
 for t in threads:
     t.join()
 
-print results
+print(results)
 assert abs(results[0] - results[1]) < 1e-13
 
 

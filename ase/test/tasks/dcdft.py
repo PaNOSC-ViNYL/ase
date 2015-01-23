@@ -16,14 +16,9 @@ From here::
 """
 
 import os
-
 import glob
-
 import pprint
-
 import urllib
-import urllib2
-
 import tarfile
 import zipfile
 
@@ -32,13 +27,20 @@ import numpy as np
 from numpy import array
 
 from ase import Atoms
-from ase import units
 import ase.io
 
 from ase.tasks.io import read_json
 from ase.tasks.bulk import BulkTask
 
 from ase.utils.eos import EquationOfState
+from ase.test import NotAvailable
+
+try:
+    import urllib2
+except ImportError:
+    raise NotAvailable
+
+
 
 class FullEquationOfState(EquationOfState):
 
@@ -886,7 +888,7 @@ if __name__ == '__main__':
     if not os.path.exists(dir): os.makedirs(dir)
     os.chdir(dir)
     try:
-        resp = urllib2.urlopen(src)
+        resp = urllib.request.urlopen(src)
         urllib.urlretrieve(src, filename=name)
         z = zipfile.ZipFile(name)
         try:  # new in 2.6

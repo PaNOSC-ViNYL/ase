@@ -1,3 +1,4 @@
+from __future__ import print_function
 """This module defines an ASE interface to Turbomole
 
 http://www.turbomole.com/
@@ -8,14 +9,14 @@ import sys
 import numpy as np
 
 from ase.units import Hartree, Bohr
-from ase.io.turbomole import read_turbomole,write_turbomole
+from ase.io.turbomole import read_turbomole, write_turbomole
 from ase.calculators.general import Calculator
 
 
 class Turbomole(Calculator):
     def __init__(self, label='turbomole',
                  calculate_energy='dscf', calculate_forces='grad',
-                 post_HF = False):
+                 post_HF=False):
         self.label = label
         self.converged = False
         
@@ -34,8 +35,8 @@ class Turbomole(Calculator):
         # atoms must be set
         self.atoms = None
         
-        # POST-HF method 
-        self.post_HF  = post_HF
+        # POST-HF method
+        self.post_HF = post_HF
 
     def initialize(self, atoms):
         self.numbers = atoms.get_atomic_numbers().copy()
@@ -53,9 +54,9 @@ class Turbomole(Calculator):
             # check the error output
             if 'abnormally' in error:
                 raise OSError(error)
-            #print 'TM command: ', command, 'successfully executed'
-        except OSError, e:
-            print >> sys.stderr, 'Execution failed:', e
+            print('TM command: ', command, 'successfully executed')
+        except OSError as e:
+            print('Execution failed:', e, file=sys.stderr)
             sys.exit(1)
 
     def get_potential_energy(self, atoms):
@@ -68,13 +69,12 @@ class Turbomole(Calculator):
             self.execute(self.calculate_energy + ' > ASE.TM.energy.out')
             # check for convergence of dscf cycle
             if os.path.isfile('dscf_problem'):
-                print 'Turbomole scf energy calculation did not converge'
+                print('Turbomole scf energy calculation did not converge')
                 raise RuntimeError(
                     'Please run Turbomole define and come thereafter back')
             # read energy
             self.read_energy()
-        #else:
-        #    print 'taking old values (E)'
+
         self.update_energy = False
         return self.e_total
 
@@ -91,8 +91,7 @@ class Turbomole(Calculator):
             self.execute(self.calculate_forces + ' > ASE.TM.forces.out')
             # read forces
             self.read_forces()
-        #else:
-        #    print 'taking old values (F)'
+
         self.update_forces = False
         return self.forces.copy()
     
@@ -100,7 +99,7 @@ class Turbomole(Calculator):
         return self.stress
         
     def set_atoms(self, atoms):
-        if self.atoms == atoms: 
+        if self.atoms == atoms:
             if (self.updated and os.path.isfile('coord')):
                 self.updated = False
                 a = read_turbomole().get_positions()
@@ -108,7 +107,7 @@ class Turbomole(Calculator):
                     return
             else:
                 return
-        # performs an update of the atoms 
+        # performs an update of the atoms
         write_turbomole('coord', atoms)
         Calculator.set_atoms(self, atoms)
         # energy and forces must be re-calculated
@@ -156,9 +155,9 @@ class Turbomole(Calculator):
         # $end line
         nline -= 1
         # read gradients
-        for i in xrange(iline, nline):
+        for i in range(iline, nline):
             line = lines[i].replace('D', 'E')
             tmp = np.array([[float(f) for f in line.split()[0:3]]])
-            forces = np.concatenate((forces, tmp))  
+            forces = np.concatenate((forces, tmp))
         # Note the '-' sign for turbomole, to get forces
         self.forces = (-np.delete(forces, np.s_[0:1], axis=0)) * Hartree / Bohr

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 
 import numpy as np
@@ -117,14 +118,14 @@ class Exciting:
             
     def dicttoxml(self, pdict, element):
         for key, value in pdict.items():
-            if (type(value) is str and key == 'text()'):
+            if (isinstance(value, str) and key == 'text()'):
                 element.text = value
-            elif (type(value) is str):
+            elif (isinstance(value, str)):
                 element.attrib[key] = value
-            elif (type(value) is list):
+            elif (isinstance(value, list)):
                 for item in value:
                     self.dicttoxml(item, ET.SubElement(element, key))
-            elif (type(value) is dict):
+            elif (isinstance(value, dict)):
                 if(element.findall(key) == []):
                     self.dicttoxml(value, ET.SubElement(element, key))
                 else:

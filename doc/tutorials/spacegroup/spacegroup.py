@@ -2,13 +2,13 @@
 
 import ase.io
 
-execfile('spacegroup-al.py')
-execfile('spacegroup-mg.py')
-execfile('spacegroup-fe.py')
-execfile('spacegroup-diamond.py')
-execfile('spacegroup-nacl.py')
-execfile('spacegroup-rutile.py')
-execfile('spacegroup-skutterudite.py')
+exec(compile(open('spacegroup-al.py').read(), 'spacegroup-al.py', 'exec'))
+exec(compile(open('spacegroup-mg.py').read(), 'spacegroup-mg.py', 'exec'))
+exec(compile(open('spacegroup-fe.py').read(), 'spacegroup-fe.py', 'exec'))
+exec(compile(open('spacegroup-diamond.py').read(), 'spacegroup-diamond.py', 'exec'))
+exec(compile(open('spacegroup-nacl.py').read(), 'spacegroup-nacl.py', 'exec'))
+exec(compile(open('spacegroup-rutile.py').read(), 'spacegroup-rutile.py', 'exec'))
+exec(compile(open('spacegroup-skutterudite.py').read(), 'spacegroup-skutterudite.py', 'exec'))
 
 for name in ['al', 'mg', 'fe', 'diamond', 'nacl', 'rutile', 'skutterudite']:
     atoms = globals()[name]
@@ -24,5 +24,5 @@ for name in ['al', 'mg', 'fe', 'diamond', 'nacl', 'rutile', 'skutterudite']:
                  celllinewidth=0.05,
                  )
 
-execfile('spacegroup-cosb3.py')
+exec(compile(open('spacegroup-cosb3.py').read(), 'spacegroup-cosb3.py', 'exec'))
     

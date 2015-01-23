@@ -1,7 +1,8 @@
+from __future__ import print_function
 import os
 import pprint
 import re
-from urllib import urlretrieve
+from urllib.request import urlretrieve
 import zipfile
 import shutil
 
@@ -75,7 +76,7 @@ def read_charge_filter(s):
 
 def read_charge(filename, dir='.'):
     fh = open(os.path.join(dir, filename), 'rb')
-    lines = filter(read_charge_filter, fh.readlines())
+    lines = list(filter(read_charge_filter, fh.readlines()))
     charge = []
     for line in lines:
         sline = line.split()
@@ -102,7 +103,7 @@ def read_number_of_unpaired_electrons_filter(s):
 
 def read_number_of_unpaired_electrons(filename, dir='.'):
     fh = open(os.path.join(dir, filename), 'rb')
-    lines = filter(read_number_of_unpaired_electrons_filter, fh.readlines())
+    lines = list(filter(read_number_of_unpaired_electrons_filter, fh.readlines()))
     number_of_unpaired_electrons = []
     for line in lines:
         sline = line.split()
@@ -126,7 +127,7 @@ def read_geometry_filter(s):
 
 def read_geometry(filename, dir='.'):
     fh = open(os.path.join(dir, filename), 'rb')
-    lines = filter(read_geometry_filter, fh.readlines())
+    lines = list(filter(read_geometry_filter, fh.readlines()))
     # return geometry in ASE format
     geometry = []
     for line in lines:

@@ -12,10 +12,10 @@ a = Atoms('N3O',
 write('geo.exi', a)
 b = read('geo.exi')
 
-print a
-print a.get_positions()
-print b
-print b.get_positions()
+print(a)
+print(a.get_positions())
+print(b)
+print(b.get_positions())
 
 calculator = Exciting(dir='excitingtestfiles',
                       kpts=(4, 4, 3),

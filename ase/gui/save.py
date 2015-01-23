@@ -1,15 +1,14 @@
 # encoding: utf-8
-"""save.py - Window for saving one or more configurations.
-"""
+"""save.py - Window for saving one or more configurations."""
 
 import gtk
 from gettext import gettext as _
-from copy import copy
 from ase.gui.widgets import pack, cancel_apply_ok, oops, help
 from ase.io import string2index, write
 import numpy as np
 import sys
 import os
+
 
 class SaveWindow(gtk.Window):
     # List of valid file types - translation occurs when *using* this list!
@@ -48,12 +47,12 @@ class SaveWindow(gtk.Window):
         vbox2.show()
         self.radio_thisconf = gtk.RadioButton(
             None, _('Save this configuration only (#%s).') % self.frame)
-        self.radio_allconf = gtk.RadioButton(self.radio_thisconf, 
+        self.radio_allconf = gtk.RadioButton(self.radio_thisconf,
                                              _('Save all configurations.'))
-        self.radio_someconf = gtk.RadioButton(self.radio_thisconf, 
+        self.radio_someconf = gtk.RadioButton(self.radio_thisconf,
                                              _('Save some configurations: '))
         self.whichconf = gtk.Entry(max=20)
-        pack(vbox2, [self.radio_thisconf])    
+        pack(vbox2, [self.radio_thisconf])
         pack(vbox2, [self.radio_allconf])
         pack(vbox2, [self.radio_someconf, self.whichconf])
         if self.gui.images.nimages <= 1:
@@ -116,7 +115,7 @@ class SaveWindow(gtk.Window):
             # Change away from valid suffix, replace old with new.
             newfilename = fileprefix + '.' + newsuffix
         else:
-            # Old suffix does not match old file type - do nothing, perhaps user knows 
+            # Old suffix does not match old file type - do nothing, perhaps user knows
             # what he is doing...
             return
         # Change the filename
@@ -194,7 +193,7 @@ class SaveWindow(gtk.Window):
                                                       remove_hidden=remove_hidden),
                   **extra)
         elif self.support_multi[suffix]:
-            images = [self.gui.images.get_atoms(i, remove_hidden=remove_hidden) 
+            images = [self.gui.images.get_atoms(i, remove_hidden=remove_hidden)
                       for i in indices]
             write(filename, images, **extra)
         else:
@@ -205,7 +204,7 @@ class SaveWindow(gtk.Window):
             suffixpos = filename.rfind('.')
             filename = filename[:suffixpos] + '%05d' + filename[suffixpos:]
             for i, idx in enumerate(indices):
-                write(filename % (i,), 
+                write(filename % (i,),
                       self.gui.images.get_atoms(idx, remove_hidden=remove_hidden),
                       **extra)
             oops("Wrote %d files" % (len(indices),),
@@ -215,7 +214,7 @@ class SaveWindow(gtk.Window):
     def add_filters(self, chooser):
         # Add file type filters
         self.name_to_suffix = {}
-        self.is_graphics = {} 
+        self.is_graphics = {}
         self.support_multi = {}
         for name, suffix, graphics, multi in self.filetypes:
             if suffix is None:

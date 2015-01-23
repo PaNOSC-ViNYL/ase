@@ -1,3 +1,3 @@
 # creates: Ag-eos.png
-execfile('eos1.py')
-execfile('eos2.py')
+exec(compile(open('eos1.py').read(), 'eos1.py', 'exec'))
+exec(compile(open('eos2.py').read(), 'eos2.py', 'exec'))

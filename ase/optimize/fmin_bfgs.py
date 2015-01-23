@@ -1,3 +1,4 @@
+from __future__ import print_function
 #__docformat__ = "restructuredtext en"
 # ******NOTICE***************
 # optimize.py module by Travis E. Oliphant
@@ -16,9 +17,9 @@ from ase.utils.linesearch import LineSearch
 
 # Copied and modified from scipy_optimize
 abs = absolute
-import __builtin__
-pymin = __builtin__.min
-pymax = __builtin__.max
+import builtins
+pymin = builtins.min
+pymax = builtins.max
 __version__="0.7"
 _epsilon = sqrt(numpy.finfo(float).eps)
 
@@ -150,10 +151,10 @@ def fmin_bfgs(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf,
             rhok = 1.0 / (numpy.dot(yk,sk))
         except ZeroDivisionError:
             rhok = 1000.0
-            print "Divide-by-zero encountered: rhok assumed large"
+            print("Divide-by-zero encountered: rhok assumed large")
         if isinf(rhok): # this is patch for numpy
             rhok = 1000.0
-            print "Divide-by-zero encountered: rhok assumed large"
+            print("Divide-by-zero encountered: rhok assumed large")
         A1 = I - sk[:,numpy.newaxis] * yk[numpy.newaxis,:] * rhok
         A2 = I - yk[:,numpy.newaxis] * sk[numpy.newaxis,:] * rhok
         Hk = numpy.dot(A1,numpy.dot(Hk,A2)) + rhok * sk[:,numpy.newaxis] \
@@ -163,28 +164,28 @@ def fmin_bfgs(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf,
         fval = old_fval
     if warnflag == 2:
         if disp:
-            print "Warning: Desired error not necessarily achieved" \
-                  "due to precision loss"
-            print "         Current function value: %f" % fval
-            print "         Iterations: %d" % k
-            print "         Function evaluations: %d" % func_calls[0]
-            print "         Gradient evaluations: %d" % grad_calls[0]
+            print("Warning: Desired error not necessarily achieved" \
+                  "due to precision loss")
+            print("         Current function value: %f" % fval)
+            print("         Iterations: %d" % k)
+            print("         Function evaluations: %d" % func_calls[0])
+            print("         Gradient evaluations: %d" % grad_calls[0])
 
     elif k >= maxiter:
         warnflag = 1
         if disp:
-            print "Warning: Maximum number of iterations has been exceeded"
-            print "         Current function value: %f" % fval
-            print "         Iterations: %d" % k
-            print "         Function evaluations: %d" % func_calls[0]
-            print "         Gradient evaluations: %d" % grad_calls[0]
+            print("Warning: Maximum number of iterations has been exceeded")
+            print("         Current function value: %f" % fval)
+            print("         Iterations: %d" % k)
+            print("         Function evaluations: %d" % func_calls[0])
+            print("         Gradient evaluations: %d" % grad_calls[0])
     else:
         if disp:
-            print "Optimization terminated successfully."
-            print "         Current function value: %f" % fval
-            print "         Iterations: %d" % k
-            print "         Function evaluations: %d" % func_calls[0]
-            print "         Gradient evaluations: %d" % grad_calls[0]
+            print("Optimization terminated successfully.")
+            print("         Current function value: %f" % fval)
+            print("         Iterations: %d" % k)
+            print("         Function evaluations: %d" % func_calls[0])
+            print("         Gradient evaluations: %d" % grad_calls[0])
 
     if full_output:
         retlist = xk, fval, gfk, Hk, func_calls[0], grad_calls[0], warnflag
@@ -261,7 +262,7 @@ def zoom(a_lo, a_hi, phi_lo, phi_hi, derphi_lo,
     delta2 = 0.1  # quadratic interpolant check
     phi_rec = phi0
     a_rec = 0
-    while 1:
+    while True:
         # interpolate to find a trial step length between a_lo and a_hi
         # Need to choose interpolation here.  Use cubic interpolation and then if the
         #  result is within delta * dalpha or outside of the interval bounded by a_lo or a_hi
@@ -416,7 +417,7 @@ def line_search(f, myfprime, xk, pk, gfk, old_fval, old_old_fval,
 
     i = 1
     maxiter = 10
-    while 1:         # bracketing phase
+    while True:         # bracketing phase
         if alpha1 == 0:
             break
         if (phi_a1 > phi0 + c1*alpha1*derphi0) or \

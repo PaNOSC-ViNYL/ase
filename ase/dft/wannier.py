@@ -1,3 +1,4 @@
+from __future__ import print_function
 """ Maximally localized Wannier Functions
 
     Find the set of maximally localized Wannier functions
@@ -29,7 +30,7 @@ def gram_schmidt_single(U, n):
     """Orthogonalize columns of U to column n"""
     N = len(U.T)
     v_n = U.T[n]
-    indices = range(N)
+    indices = list(range(N))
     del indices[indices.index(n)]
     for i in indices:
         v_i = U.T[i]
@@ -58,8 +59,8 @@ def neighbor_k_search(k_c, G_c, kpt_kc, tol=1e-4):
             if np.linalg.norm(k1_c - k_c - G_c + k0_c) < tol:
                 return k1, k0_c
 
-    print 'Wannier: Did not find matching kpoint for kpt=', k_c
-    print 'Probably non-uniform k-point grid'
+    print('Wannier: Did not find matching kpoint for kpt=', k_c)
+    print('Probably non-uniform k-point grid')
     raise NotImplementedError
 
 
@@ -115,12 +116,12 @@ def steepest_descent(func, step=.005, tolerance=1e-6, **kwargs):
         func.step(dF * step, **kwargs)
         fvalue = func.get_functional_value()
         count += 1
-        print 'SteepestDescent: iter=%s, value=%s' % (count, fvalue)
+        print('SteepestDescent: iter=%s, value=%s' % (count, fvalue))
 
 
 def md_min(func, step=.25, tolerance=1e-6, verbose=False, **kwargs):
     if verbose:
-        print 'Localize with step =', step, 'and tolerance =', tolerance
+        print('Localize with step =', step, 'and tolerance =', tolerance)
         t = -time()
     fvalueold = 0.
     fvalue = fvalueold + 10
@@ -137,11 +138,11 @@ def md_min(func, step=.25, tolerance=1e-6, verbose=False, **kwargs):
             step *= 0.5
         count += 1
         if verbose:
-            print 'MDmin: iter=%s, step=%s, value=%s' % (count, step, fvalue)
+            print('MDmin: iter=%s, step=%s, value=%s' % (count, step, fvalue))
     if verbose:
         t += time()
-        print '%d iterations in %0.2f seconds (%0.2f ms/iter), endstep = %s' %(
-            count, t, t * 1000. / count, step)
+        print('%d iterations in %0.2f seconds (%0.2f ms/iter), endstep = %s' %(
+            count, t, t * 1000. / count, step))
 
 
 def rotation_from_projection2(proj_nw, fixed):
@@ -149,7 +150,7 @@ def rotation_from_projection2(proj_nw, fixed):
     Nb, Nw = proj_nw.shape
     M = fixed
     L = Nw - M
-    print 'M=%i, L=%i, Nb=%i, Nw=%i' % (M, L, Nb, Nw) 
+    print('M=%i, L=%i, Nb=%i, Nw=%i' % (M, L, Nb, Nw)) 
     U_ww = np.zeros((Nw, Nw), dtype=proj_nw.dtype)
     c_ul = np.zeros((Nb-M, L), dtype=proj_nw.dtype)
     for V_n in V_ni.T:
@@ -276,7 +277,7 @@ class Wannier:
         sign = -1
         classname = calc.__class__.__name__
         if classname in ['Dacapo', 'Jacapo']:
-            print 'Using ' + classname
+            print('Using ' + classname)
             sign = +1
             
         self.nwannier = nwannier
@@ -302,21 +303,21 @@ class Wannier:
             if fixedstates is None:
                 self.fixedstates_k = np.array([nwannier] * self.Nk, int)
             else:
-                if type(fixedstates) is int:
+                if isinstance(fixedstates, int):
                     fixedstates = [fixedstates] * self.Nk
                 self.fixedstates_k = np.array(fixedstates, int)
         else:
             # Setting number of fixed states and EDF from specified energy.
             # All states below this energy (relative to Fermi level) are fixed.
             fixedenergy += calc.get_fermi_level()
-            print fixedenergy
+            print(fixedenergy)
             self.fixedstates_k = np.array(
                 [calc.get_eigenvalues(k, spin).searchsorted(fixedenergy)
                  for k in range(self.Nk)], int)
         self.edf_k = self.nwannier - self.fixedstates_k
         if verbose:
-            print 'Wannier: Fixed states            : %s' % self.fixedstates_k
-            print 'Wannier: Extra degrees of freedom: %s' % self.edf_k
+            print('Wannier: Fixed states            : %s' % self.fixedstates_k)
+            print('Wannier: Extra degrees of freedom: %s' % self.edf_k)
 
         # Set the list of neighboring k-points k1, and the "wrapping" k0,
         # such that k1 - k - G + k0 = 0
@@ -489,8 +490,8 @@ class Wannier:
         for dir in directions:
             d[dir] = np.abs(self.Z_dww[dir].diagonal())**2 *self.weight_d[dir]
         index = np.argsort(d)[0]
-        print 'Index:', index
-        print 'Spread:', d[index]           
+        print('Index:', index)
+        print('Spread:', d[index])           
 
     def translate(self, w, R):
         """Translate the w'th Wannier function
@@ -585,14 +586,14 @@ class Wannier:
         Warning: This method moves all Wannier functions to cell (0, 0, 0)
         """
         if self.verbose:
-            print 'Translating all Wannier functions to cell (0, 0, 0)'
+            print('Translating all Wannier functions to cell (0, 0, 0)')
         self.translate_all_to_cell()
         max = (self.kptgrid - 1) / 2
         N1, N2, N3 = max
         Hk = np.zeros([self.nwannier, self.nwannier], complex)
-        for n1 in xrange(-N1, N1 + 1):
-            for n2 in xrange(-N2, N2 + 1):
-                for n3 in xrange(-N3, N3 + 1):
+        for n1 in range(-N1, N1 + 1):
+            for n2 in range(-N2, N2 + 1):
+                for n3 in range(-N3, N3 + 1):
                     R = np.array([n1, n2, n3], float)
                     hop_ww = self.get_hopping(R)
                     phase = np.exp(+2.j * pi * np.dot(R, kpt_c))
@@ -629,7 +630,7 @@ class Wannier:
         wanniergrid = np.zeros(largedim, dtype=complex)
         for k, kpt_c in enumerate(self.kpt_kc):
             # The coordinate vector of wannier functions
-            if type(index) == int:
+            if isinstance(index, int):
                 vec_n = self.V_knw[k, :, index]
             else:   
                 vec_n = np.dot(self.V_knw[k], index)
@@ -640,9 +641,9 @@ class Wannier:
                     n, k, self.spin, pad=True)
 
             # Distribute the small wavefunction over large cell:
-            for n1 in xrange(N1):
-                for n2 in xrange(N2):
-                    for n3 in xrange(N3): # sign?
+            for n1 in range(N1):
+                for n2 in range(N2):
+                    for n3 in range(N3): # sign?
                         e = np.exp(-2.j * pi * np.dot([n1, n2, n3], kpt_c))
                         wanniergrid[n1 * dim[0]:(n1 + 1) * dim[0],
                                     n2 * dim[1]:(n2 + 1) * dim[1],
@@ -727,7 +728,7 @@ class Wannier:
         
         dU = []
         dC = []
-        for k in xrange(self.Nk):
+        for k in range(self.Nk):
             M = self.fixedstates_k[k]
             L = self.edf_k[k]
             U_ww = self.U_kww[k]

@@ -438,7 +438,7 @@ class Database:
         for dct in self._select(keys, cmps, explain=explain,
                                 verbosity=verbosity,
                                 limit=limit, offset=offset):
-            if filter is None or filter(dct):
+            if filter is None or list(filter(dct)):
                 if fancy:
                     dct = FancyDict(dct)
                     if 'key_value_pairs' in dct:

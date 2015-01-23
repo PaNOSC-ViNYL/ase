@@ -190,7 +190,7 @@ def run(opts, args, verbosity):
         ids = [dct['id'] for dct in con.select(query)]
         if ids and not opts.yes:
             msg = 'Delete %s? (yes/No): ' % plural(len(ids), 'row')
-            if raw_input(msg).lower() != 'yes':
+            if input(msg).lower() != 'yes':
                 return
         con.delete(ids)
         out('Deleted %s' % plural(len(ids), 'row'))

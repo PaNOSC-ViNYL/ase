@@ -21,7 +21,7 @@ class Convergence(object):
     def populate_pops(self, to_gen):
         """Populate the pops dictionary with how the population
         looked after i number of generations."""
-        for i in xrange(to_gen):
+        for i in range(to_gen):
             if i not in self.pops.keys():
                 self.pops[i] = self.pop.get_population_after_generation(i)
 
@@ -70,7 +70,7 @@ class GenerationRepetitionConvergence(Convergence):
 
         duplicate_gens = 1
         latest_pop = self.pops[cur_gen_num - 1]
-        for i in xrange(cur_gen_num - 2, -1, -1):
+        for i in range(cur_gen_num - 2, -1, -1):
             test_pop = self.pops[i]
             if test_pop[:self.numindis] == latest_pop[:self.numindis]:
                 duplicate_gens += 1

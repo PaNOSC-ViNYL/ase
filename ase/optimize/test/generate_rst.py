@@ -3,7 +3,7 @@ import re
 dirlist = os.listdir('.')
 name = '.*\.csv'
 filterre = re.compile(name)
-dirlist = filter(filterre.search, dirlist)
+dirlist = list(filter(filterre.search, dirlist))
 namelist = [d.strip('.csv') for d in dirlist]
 
 f = open('testoptimize.rst', 'w')
@@ -40,7 +40,7 @@ for name in namelist:
     )
     for line in lines:
         if len(line):
-            print line.split(',')
+            print(line.split(','))
             f.write(
                 '%-15s %5s %17s %10s %s\n' % tuple(line.split(','))
             )

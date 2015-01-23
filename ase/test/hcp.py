@@ -11,7 +11,7 @@ from ase.calculators.emt import EMT
 
 a0 = 3.52 / np.sqrt(2)
 c0 = np.sqrt(8 / 3.0) * a0
-print '%.4f %.3f' % (a0, c0 / a0)
+print('%.4f %.3f' % (a0, c0 / a0))
 for i in range(3):
     traj = PickleTrajectory('Ni.traj', 'w')
     eps = 0.01
@@ -30,7 +30,7 @@ for i in range(3):
     p = polyfit(ac, energies, 2)
     from scipy.optimize import fmin_bfgs
     a0, c0 = fmin_bfgs(p, (a0, c0))
-    print '%.4f %.3f' % (a0, c0 / a0)
+    print('%.4f %.3f' % (a0, c0 / a0))
 assert abs(a0 - 2.466) < 0.001
 assert abs(c0 / a0 - 1.632) < 0.005
 

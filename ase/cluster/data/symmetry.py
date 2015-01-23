@@ -1,4 +1,4 @@
-from fcc import *
+from .fcc import *
 import numpy as np
 
 def get_all_symmetries(symmetries=None, max=99):

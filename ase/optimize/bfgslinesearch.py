@@ -1,3 +1,4 @@
+from __future__ import print_function
 #__docformat__ = "restructuredtext en"
 # ******NOTICE***************
 # optimize.py module by Travis E. Oliphant
@@ -19,9 +20,8 @@ from ase.optimize.optimize import Optimizer
 
 # Modified from scipy_optimize
 abs = absolute
-import __builtin__
-pymin = __builtin__.min
-pymax = __builtin__.max
+pymin = min
+pymax = max
 __version__ = '0.1'
 
 
@@ -83,7 +83,7 @@ class BFGSLineSearch(Optimizer):
         self.load_restart = True    
 
     def reset(self):
-        print 'reset'
+        print('reset')
         self.H = None
         self.r0 = None
         self.g0 = None
@@ -134,22 +134,24 @@ class BFGSLineSearch(Optimizer):
             return
         else:
             dr = r - r0
-            dg = g - g0 
-            if not ((self.alpha_k > 0 and abs(np.dot(g,p0))-abs(np.dot(g0,p0)) < 0) \
-                or self.replay):
+            dg = g - g0
+            # self.alpha_k can be None!!!
+            if not ((self.alpha_k or 0 > 0 and
+                     abs(np.dot(g,p0)) - abs(np.dot(g0,p0)) < 0)
+                    or self.replay):
                 return
             if self.no_update == True:
-                print 'skip update'
+                print('skip update')
                 return
 
             try: # this was handled in numeric, let it remaines for more safety
                 rhok = 1.0 / (np.dot(dg,dr))
             except ZeroDivisionError:
                 rhok = 1000.0
-                print "Divide-by-zero encountered: rhok assumed large"
+                print("Divide-by-zero encountered: rhok assumed large")
             if isinf(rhok): # this is patch for np
                 rhok = 1000.0
-                print "Divide-by-zero encountered: rhok assumed large"
+                print("Divide-by-zero encountered: rhok assumed large")
             A1 = self.I - dr[:, np.newaxis] * dg[np.newaxis, :] * rhok
             A2 = self.I - dg[:, np.newaxis] * dr[np.newaxis, :] * rhok
             H0 = self.H

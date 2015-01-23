@@ -1,4 +1,5 @@
 import os
+import sys
 import locale
 import gettext
 
@@ -12,4 +13,7 @@ localedir = '%s/po/' % os.path.dirname(__file__)
 gettext.bindtextdomain(domain, localedir)
 gettext.textdomain(domain)
 translation = gettext.translation(domain, localedir, fallback=True)
-translation.install(unicode=True)
+if sys.version_info[0] == 2:
+    translation.install(unicode=True)
+else:
+    translation.install()

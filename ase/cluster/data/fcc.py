@@ -1,8 +1,9 @@
+from __future__ import print_function
 """Lattice data - Face Centered Cubic"""
 
 import numpy as np
 from math import sqrt
-from symmetry import *
+from .symmetry import *
 
 #Definition of symmetries
 basesymmetries = [np.matrix([[-1, 0, 0],  #Mirror x-axis
@@ -95,7 +96,7 @@ def surface_centering(surfaces, basis='100', debug=0):
             dx -= 1
 
         if debug:
-            print '(%i, %i, %i)' % (dx, dy, dz)
+            print('(%i, %i, %i)' % (dx, dy, dz))
     elif basis == '110':
         #Centering within the basis {[1,1,0], [1,0,1], [0,1,1]}
         dl1 = ((surfaces[6] - surfaces[7]) // 4) * 2
@@ -120,8 +121,8 @@ def surface_centering(surfaces, basis='100', debug=0):
         dz = (d2 + d3) // 2
 
         if debug:
-            print ('(%i, %i, %i) -> (%i, %i, %i) -> (%i, %i, %i)' %
-                   (dl1, dl2, dl3, d1, d2, d3, dx, dy, dz))
+            print('(%i, %i, %i) -> (%i, %i, %i) -> (%i, %i, %i)' %
+                  (dl1, dl2, dl3, d1, d2, d3, dx, dy, dz))
     else:
         dx, dy, dz = 0
 

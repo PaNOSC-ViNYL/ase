@@ -43,7 +43,7 @@ def run(args=sys.argv[1:], calcname='emt', task=None):
 
         if taskname.endswith('.py'):
             locals = {}
-            execfile(taskname, locals, locals)
+            exec(compile(open(taskname).read(), taskname, 'exec'), locals, locals)
             tasks = [task for task in locals.values() if isinstance(task, Task)]
             assert len(tasks) == 1
             task = tasks[0]

@@ -2,7 +2,7 @@
 
 import numpy as np
 from math import sqrt
-from symmetry import *
+from .symmetry import *
 
 #Definition of symmetries (in hcp basis)
 basesymmetries = [np.matrix([[1, 0, 0],   #Mirror y-axis

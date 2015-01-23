@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 
 from numpy import linalg
@@ -140,18 +141,18 @@ class TransportCalculator:
         if self.initialized:
             return
 
-        print >> self.log, '# Initializing calculator...'
+        print('# Initializing calculator...', file=self.log)
 
         p = self.input_parameters
         if p['s'] == None:
             p['s'] = np.identity(len(p['h']))
         
         identical_leads = False
-        if p['h2'] == None:   
+        if p['h2'] == None:
             p['h2'] = p['h1'] # Lead2 is idendical to lead1
             identical_leads = True
  
-        if p['s1'] == None: 
+        if p['s1'] == None:
             p['s1'] = np.identity(len(p['h1']))
        
         if p['s2'] == None and not identical_leads:
@@ -208,23 +209,23 @@ class TransportCalculator:
         if align_bf != None:
             diff = (h_mm[align_bf, align_bf] - h1_ii[align_bf, align_bf]) \
                    / s_mm[align_bf, align_bf]
-            print >> self.log, '# Aligning scat. H to left lead H. diff=', diff
+            print('# Aligning scat. H to left lead H. diff=', diff, file=self.log)
             h_mm -= diff * s_mm
 
         # Setup lead self-energies
-        # All infinitesimals must be > 0 
+        # All infinitesimals must be > 0
         assert np.all(np.array((p['eta'], p['eta1'], p['eta2'])) > 0.0)
-        self.selfenergies = [LeadSelfEnergy((h1_ii, s1_ii), 
+        self.selfenergies = [LeadSelfEnergy((h1_ii, s1_ii),
                                             (h1_ij, s1_ij),
                                             (h1_im, s1_im),
                                             p['eta1']),
-                             LeadSelfEnergy((h2_ii, s2_ii), 
+                             LeadSelfEnergy((h2_ii, s2_ii),
                                             (h2_ij, s2_ij),
                                             (h2_im, s2_im),
                                             p['eta2'])]
         box = p['box']
         if box is not None:
-            print 'Using box probe!'
+            print('Using box probe!')
             self.selfenergies.append(
                 BoxProbe(eta=box[0], a=box[1], b=box[2], energies=box[3],
                          S=s_mm, T=0.3))
@@ -268,7 +269,7 @@ class TransportCalculator:
             else:
                 self.T_e[e] = np.trace(T_mm).real
 
-            print >> self.log, energy, self.T_e[e]
+            print(energy, self.T_e[e], file=self.log)
             self.log.flush()
 
             if p['dos']:
@@ -290,11 +291,11 @@ class TransportCalculator:
         sa_ii = self.greenfunction.S[:pl1, :pl1]
         c1 = np.abs(h_ii - ha_ii).max()
         c2 = np.abs(s_ii - sa_ii).max()
-        print 'Conv (h,s)=%.2e, %2.e' % (c1, c2)
+        print('Conv (h,s)=%.2e, %2.e' % (c1, c2))
 
     def plot_pl_convergence(self):
         self.initialize()
-        pl1 = len(self.input_parameters['h1']) / 2       
+        pl1 = len(self.input_parameters['h1']) / 2
         hlead = self.selfenergies[0].h_ii.real.diagonal()
         hprincipal = self.greenfunction.H.real.diagonal[:pl1]
 
@@ -336,8 +337,8 @@ class TransportCalculator:
         ht_mm, st_mm, c_mm, e_m = subdiagonalize(h_mm, s_mm, bfs)
         if apply:
             self.uptodate = False
-            h_mm[:] = ht_mm 
-            s_mm[:] = st_mm 
+            h_mm[:] = ht_mm
+            s_mm[:] = st_mm
             # Rotate coupling between lead and central region
             for alpha, sigma in enumerate(self.selfenergies):
                 sigma.h_im[:] = np.dot(sigma.h_im, c_mm)
@@ -391,7 +392,7 @@ class TransportCalculator:
             s_mm = self.greenfunction.S
             s_s_i, s_s_ii = linalg.eig(s_mm)
             s_s_i = np.abs(s_s_i)
-            s_s_sqrt_i = np.sqrt(s_s_i) # sqrt of eigenvalues  
+            s_s_sqrt_i = np.sqrt(s_s_i) # sqrt of eigenvalues
             s_s_sqrt_ii = np.dot(s_s_ii * s_s_sqrt_i, dagger(s_s_ii))
             s_s_isqrt_ii = np.dot(s_s_ii / s_s_sqrt_i, dagger(s_s_ii))
 

@@ -12,7 +12,7 @@ def random_pos(box):
     vspan = box[1]
     r = np.random.random((1, len(vspan)))
     pos = p0.copy()
-    for i in xrange(len(vspan)):
+    for i in range(len(vspan)):
         pos += vspan[i] * r[0, i]
     return pos
 
@@ -59,7 +59,7 @@ class StartGenerator(object):
         order = range(N)
         shuffle(order)
         num = range(N)
-        for i in xrange(N):
+        for i in range(N):
             num[i] = self.atom_numbers[order[i]]
         blmin = self.blmin
 
@@ -67,7 +67,7 @@ class StartGenerator(object):
         while True:
             pos = np.zeros((N, 3))
             # Make each new position one at a time.
-            for i in xrange(N):
+            for i in range(N):
                 pos_found = False
                 pi = None
                 while not pos_found:
@@ -76,7 +76,7 @@ class StartGenerator(object):
                         break
                     isolated = True
                     too_close = False
-                    for j in xrange(i):
+                    for j in range(i):
                         d = get_mic_distance(pi, pos[j], cell, pbc)
                         bij_min = blmin[(num[i], num[j])]
                         bij_max = bij_min * 2.
@@ -93,7 +93,7 @@ class StartGenerator(object):
 
             # Put everything back in the original order.
             pos_ordered = np.zeros((N, 3))
-            for i in xrange(N):
+            for i in range(N):
                 pos_ordered[order[i]] = pos[i]
             pos = pos_ordered
             top = Atoms(self.atom_numbers, positions=pos, pbc=pbc, cell=cell)
@@ -101,8 +101,8 @@ class StartGenerator(object):
             # At last it is verified that the new cluster is not too close
             # to the slab it is supported on.
             tf = False
-            for i in xrange(len(self.slab)):
-                for j in xrange(len(top)):
+            for i in range(len(self.slab)):
+                for j in range(len(top)):
                     dmin = blmin[(self.slab.numbers[i], top.numbers[j])]
                     d = get_mic_distance(self.slab.positions[i],
                                          top.positions[j], cell, pbc)

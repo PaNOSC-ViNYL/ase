@@ -1,3 +1,4 @@
+from __future__ import print_function
 """ write gromos96 geometry files 
 (the exact file format is copied from the freely available 
 gromacs package, http://www.gromacs.org
@@ -51,8 +52,8 @@ def read_gromos(fileobj, index=-1):
                 else:
                     symbols.append(symbol[0].lower().capitalize())
             if symbols[-1] not in chemical_symbols:
-                print 'Symbol not in chemical symbols, please check',\
-                    symbols[-1]
+                print('Symbol not in chemical symbols, please check',\
+                    symbols[-1])
                 sys.exit()
         if read_box:
             try:

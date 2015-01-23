@@ -60,7 +60,7 @@ def opencew(filename, world=None):
             ok = 0
         else:
             ok = 1
-            fd = os.fdopen(fd, 'w')
+            fd = os.fdopen(fd, 'wb')
     else:
         ok = 0
         fd = devnull

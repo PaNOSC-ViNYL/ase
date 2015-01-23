@@ -5,8 +5,8 @@ def test(xyz):
     a = rotate(xyz)
     ixyz = '%sx,%sy,%sz' % irotate(a)
     a2 = rotate(ixyz)
-    print xyz
-    print ixyz
+    print(xyz)
+    print(ixyz)
     #print np.around(a-a2, 5)
     assert abs(a-a2).max() < 1e-10
 

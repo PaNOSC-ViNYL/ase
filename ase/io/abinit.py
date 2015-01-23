@@ -23,7 +23,7 @@ def read_abinit(filename='abinit.in'):
         lines.append(meat)
     tokens = ' '.join(lines).lower().split()
 
-    if type(filename) == str:
+    if isinstance(filename, str):
         f.close()
 
     # note that the file can not be scanned sequentially
@@ -207,5 +207,5 @@ def write_abinit(filename, atoms, cartesian=False, long_format=True):
             f.write(cform % dcoord)
         f.write('\n')
 
-    if type(filename) == str:
+    if isinstance(filename, str):
         f.close()

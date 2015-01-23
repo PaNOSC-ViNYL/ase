@@ -1,3 +1,3 @@
 # creates lmp_atoms lmp_opls lmp_in
 
-execfile('write_lammps.py')
+exec(compile(open('write_lammps.py').read(), 'write_lammps.py', 'exec'))

@@ -1,3 +1,4 @@
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 """This module defines I/O routines with CASTEP files.
 The key idea is that all function accept or return  atoms objects.
@@ -200,7 +201,7 @@ def read_cell(filename, _=None):
                     if c in line:
                         icomment = min(line.index(c))
                     else:
-                        icomment = len(line) 
+                        icomment = len(line)
                 tokens = line[:icomment].split()
                 return tokens, l + 1
         tokens = ""
@@ -230,7 +231,7 @@ def read_cell(filename, _=None):
                     print('%BLOCK LATTICE_CART (assuming Angstrom instead)')
                     tokens, l = get_tokens(lines, l)
                 for _ in range(3):
-                    lat_vec = map(float, tokens[0:3])
+                    lat_vec = [float(a) for a in tokens[0:3]]
                     lat.append(lat_vec)
                     tokens, l = get_tokens(lines, l)
                 if tokens[0].upper() != "%ENDBLOCK":
@@ -247,8 +248,7 @@ def read_cell(filename, _=None):
                     tokens, l = get_tokens(lines, l)
                 a, b, c = map(float, tokens[0:3])
                 tokens, l = get_tokens(lines, l)
-                alpha, beta, gamma = map(lambda phi: radians(float(phi)),
-                                                             tokens[0:3])
+                alpha, beta, gamma = [radians(float(phi)) for phi in tokens[0:3]]
                 tokens, l = get_tokens(lines, l)
                 if tokens[0].upper() != "%ENDBLOCK":
                     print('read_cell: Warning - ignoring additional lines in')
@@ -270,7 +270,7 @@ def read_cell(filename, _=None):
                     tokens, l = get_tokens(lines, l)
                 while len(tokens) == 4:
                     spec.append(tokens[0])
-                    pos.append(map(float, tokens[1:4]))
+                    pos.append([float(p) for p in tokens[1:4]])
                     tokens, l = get_tokens(lines, l)
                 if tokens[0].upper() != "%ENDBLOCK":
                     print('read_cell: Warning - ignoring invalid lines in')
@@ -282,7 +282,7 @@ def read_cell(filename, _=None):
                 tokens, l = get_tokens(lines, l)
                 while len(tokens) == 4:
                     spec.append(tokens[0])
-                    pos.append(map(float, tokens[1:4]))
+                    pos.append([float(p) for p in tokens[1:4]])
                     tokens, l = get_tokens(lines, l)
                 if tokens[0].upper() != "%ENDBLOCK":
                     print('read_cell: Warning - ignoring invalid lines')
@@ -341,7 +341,7 @@ def read_cell(filename, _=None):
             )
 
     fixed_atoms = []
-    for (species, nic), value in raw_constraints.iteritems():
+    for (species, nic), value in raw_constraints.items():
         absolute_nr = atoms.calc._get_absolute_number(species, nic)
         if len(value) == 3:
             fixed_atoms.append(absolute_nr)
@@ -355,7 +355,7 @@ def read_cell(filename, _=None):
             constraints.append(constraint)
         else:
             print('Error: Found %s statements attached to atoms %s'
-    % (len(value), absolute_nr))
+                  % (len(value), absolute_nr))
     constraints.append(ase.constraints.FixAtoms(fixed_atoms))
     atoms.set_constraint(constraints)
 
@@ -478,10 +478,10 @@ def write_param(filename, param, check_checkfile=False,
         out.write('# calc._export_settings = False\n')
         out.write('# If stated, this will be automatically processed\n')
         out.write('# by ase.io.castep.read_seed()\n')
-        for option, value in sorted(interface_options.iteritems()):
+        for option, value in sorted(interface_options.items()):
             out.write('# ASE_INTERFACE %s : %s\n' % (option, value))
     out.write('#######################################################\n\n')
-    for keyword, opt in sorted(param._options.iteritems()):
+    for keyword, opt in sorted(param._options.items()):
         if opt.type == 'Defined':
             if opt.value is not None:
                 out.write('%s\n' % (option))

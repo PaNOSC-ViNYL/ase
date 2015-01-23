@@ -24,7 +24,7 @@ def get_txt(txt, rank):
         return devnull
 
 
-def paropen(name, mode='r', buffering=0):
+def paropen(name, mode='r'):
     """MPI-safe version of open function.
 
     In read mode, the file is opened on all nodes.  In write and
@@ -33,15 +33,14 @@ def paropen(name, mode='r', buffering=0):
     """
     if rank > 0 and mode[0] != 'r':
         name = '/dev/null'
-    return open(name, mode, buffering)
+    return open(name, mode)
 
 
 def parprint(*args, **kwargs):
     """MPI-safe print - prints only from master.
     """
-    if rank > 0:
-        kwargs['file'] = open('/dev/null', 'w')
-    print(*args, **kwargs)
+    if rank == 0:
+        print(*args, **kwargs)
 
 
 class DummyMPI:
@@ -88,7 +87,6 @@ if '_gpaw' in sys.modules:
 elif 'asapparallel3' in sys.modules:
     # http://wiki.fysik.dtu.dk/Asap
     # We cannot import asap3.mpi here, as that creates an import deadlock
-    #from asap3.mpi import world
     import asapparallel3
     world = asapparallel3.Communicator()
 elif 'Scientific_mpi' in sys.modules:

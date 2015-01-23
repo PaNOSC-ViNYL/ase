@@ -79,6 +79,7 @@ from mmap import mmap, ACCESS_READ
 
 from numpy import fromstring, ndarray, dtype, empty, array, asarray
 from numpy import little_endian as LITTLE_ENDIAN
+from functools import reduce
 
 
 ABSENT       = '\x00\x00\x00\x00\x00\x00\x00\x00' 
@@ -178,7 +179,7 @@ class netcdf_file(object):
         shape = tuple([self.dimensions[dim] for dim in dimensions]) 
         shape_ = tuple([dim or 0 for dim in shape])  # replace None with 0 for numpy
 
-        if isinstance(type, basestring): type = dtype(type)
+        if isinstance(type, str): type = dtype(type)
         typecode, size = type.char, type.itemsize
         dtype_ = '>%s' % typecode
         if size > 1: dtype_ += str(size)
@@ -243,12 +244,11 @@ class netcdf_file(object):
             # Sort variables non-recs first, then recs.
             variables = self.variables.items()
             if True: # Backwards compatible with Python versions < 2.4
-                keys = [(v._shape and not v.isrec, k) for k, v in variables]
-                keys.sort()
+                keys = sorted([(v._shape and not v.isrec, k) for k, v in variables])
                 keys.reverse()
                 variables = [k for isrec, k in keys]
             else: # Python version must be >= 2.4
-                variables.sort(key=lambda (k, v): v._shape and not v.isrec)
+                variables.sort(key=lambda k_v: k_v[1]._shape and not k_v[1].isrec)
                 variables.reverse()
                 variables = [k for (k, v) in variables]
 

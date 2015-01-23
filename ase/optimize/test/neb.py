@@ -6,11 +6,11 @@ from ase.calculators.emt import EMT
 from ase.neb import NEB
 from ase.lattice.surface import fcc100, add_adsorbate
 from ase.optimize.test import run_test
-from gpaw import GPAW, Mixer, PoissonSolver
+from gpaw import GPAW
 import gpaw.mpi as mpi
 
-
 name = 'neb'
+
 
 def get_atoms():
     # 2x2-Al(001) surface with 3 layers and an
@@ -61,9 +61,11 @@ def get_atoms():
 
     return neb
 
+    
 def get_calculator_emt():
     return EMT()
 
+    
 def get_calculator_gpaw():
     if mpi.parallel:
         assert mpi.size % 3 == 0

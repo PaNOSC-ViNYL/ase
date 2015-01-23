@@ -10,7 +10,8 @@ from ase.parallel import rank
 
 class BEEFEnsemble:
     """BEEF type ensemble error estimation"""
-    def __init__(self, atoms=None, e=None, contribs=None, xc=None, verbose=True):
+    def __init__(self, atoms=None, e=None, contribs=None, xc=None,
+                 verbose=True):
         if (atoms is not None or contribs is not None or xc is not None):
             if atoms is None:
                 assert e is not None
@@ -131,7 +132,7 @@ def readbee(fname, all=False):
     if all:
         return e, de, contribs, seed, xc
     else:
-        return e+de
+        return e + de
 
 
 def BEEF_Ensemble(*args, **kwargs):

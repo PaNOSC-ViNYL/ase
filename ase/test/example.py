@@ -17,12 +17,9 @@ dyn = QuasiNewton(atoms, maxstep=0.2)
 dyn.attach(traj.write)
 dyn.run(fmax=0.01, steps=100)
 
-print atoms
+print(atoms)
 del atoms[-1]
-print atoms
+print(atoms)
 del atoms[5]
-print atoms
+print(atoms)
 assert len(atoms.constraints[0].index) == 5
-
-
-

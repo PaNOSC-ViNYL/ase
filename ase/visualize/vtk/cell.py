@@ -34,12 +34,12 @@ class vtkUnitCellModule(vtkPolyDataModule):
             for c,a in enumerate([(0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 1, 0), \
                                   (0, 0, 1), (1, 0, 1), (0, 1, 1), (1, 1, 1)]):
                 corners[c] = np.dot(a, cell)
-            self.bbox = np.array(zip(np.min(corners, axis=0), \
-                                     np.max(corners, axis=0))).ravel()
+            self.bbox = np.array(list(zip(np.min(corners, axis=0), \
+                                     np.max(corners, axis=0)))).ravel()
             self.vtk_outline.SetCorners(corners.ravel())
             self.vtk_outline.SetBoxTypeToOriented()
         else:
-            self.bbox = np.array(zip(np.zeros(3),cell.diagonal())).ravel()
+            self.bbox = np.array(list(zip(np.zeros(3),cell.diagonal()))).ravel()
         self.vtk_outline.SetBounds(self.bbox)
 
         vtkPolyDataModule.__init__(self, self.vtk_outline)

@@ -737,12 +737,12 @@ class OPLSStructure(Atoms):
 
         if 'bonds' in header:
             assert(len(bonds) == header['bonds'])
-            self.connectivities['bond types'] = range(header['bond types'])
+            self.connectivities['bond types'] = list(range(header['bond types']))
         if 'angles' in header:
             assert(len(angles) == header['angles'])
-            self.connectivities['angle types'] = range(header['angle types'])
+            self.connectivities['angle types'] = list(range(header['angle types']))
         if 'dihedrals' in header:
             assert(len(dihedrals) == header['dihedrals'])
-            self.connectivities['dihedral types'] = range(
-                header['dihedral types'])
+            self.connectivities['dihedral types'] = list(range(
+                header['dihedral types']))
     

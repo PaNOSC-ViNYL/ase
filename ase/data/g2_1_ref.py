@@ -246,8 +246,7 @@ diatomic = {
 # The Journal of Chemical Physics, Vol 122, 234102 (2005)
 
 def convert(input, column):
-    keys = input.keys()
-    keys.sort()
+    keys = sorted(input.keys())
     data = {}
     for k in keys:
         data[k] = input[k][column]

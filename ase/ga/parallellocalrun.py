@@ -66,7 +66,7 @@ class ParallelLocalRun(object):
         lines = [l for l in lines if l.find('defunct') == -1]
 
         stopped_runs = []
-        for i in xrange(len(self.running_pids) - 1, -1, -1):
+        for i in range(len(self.running_pids) - 1, -1, -1):
             found = False
             for l in lines:
                 if l.find(str(self.running_pids[i][1])) != -1:

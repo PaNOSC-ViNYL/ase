@@ -15,7 +15,7 @@ a = Atoms('4X',
                      (0, 1, 0),
                      (0.1, 0.2, 0.7)],
           calculator=TestPotential())
-print a.get_forces()
+print(a.get_forces())
 md = VelocityVerlet(a, dt=0.5 * fs, logfile='-', loginterval=500)
 traj = PickleTrajectory('4N.traj', 'w', a)
 md.attach(traj.write, 100)

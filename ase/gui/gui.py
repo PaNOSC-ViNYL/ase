@@ -1,3 +1,4 @@
+from __future__ import print_function
 # husk:
 # Exit*2?  remove pylab.show()
 # close button
@@ -407,8 +408,8 @@ class GUI(View, Status):
 
         try:
             mergeid = ui.add_ui_from_string(ui_info)
-        except gobject.GError, msg:
-            print _('building menus failed: %s') % msg
+        except gobject.GError as msg:
+            print(_('building menus failed: %s') % msg)
 
         vbox.pack_start(ui.get_widget('/MenuBar'), False, False, 0)
         
@@ -521,7 +522,7 @@ class GUI(View, Status):
                     for jx in range(self.images.nimages):
                         self.images.P[jx][i] += add
         elif atom_rotate:
-            from rot_tools import rotate_about_vec, \
+            from .rot_tools import rotate_about_vec, \
                                   rotate_vec
             sel = self.images.selected
             if sum(sel) == 0:
@@ -620,7 +621,7 @@ class GUI(View, Status):
         elif atom_orient:
             to_vec  = np.array([dx, dy, dz])
 
-            from rot_tools import rotate_vec_into_newvec
+            from .rot_tools import rotate_vec_into_newvec
             rot_mat = rotate_vec_into_newvec(self.orient_normal, to_vec)
             self.axes = rot_mat
             

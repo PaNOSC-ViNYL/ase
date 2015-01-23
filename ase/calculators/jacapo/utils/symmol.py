@@ -1,3 +1,4 @@
+from __future__ import print_function
 #!/usr/bin/env python
 '''
 interface to symmol
@@ -121,10 +122,10 @@ if __name__ == '__test__':
                 positions = molecules.data[mol]['positions'])
     
     sg = SYMMOL(atoms)
-    print sg.get_point_group()
-    print sg.get_moments_of_inertia()
-    print atoms.get_moments_of_inertia()
-    print sg.get_symmetry_operators()
+    print(sg.get_point_group())
+    print(sg.get_moments_of_inertia())
+    print(atoms.get_moments_of_inertia())
+    print(sg.get_symmetry_operators())
 
 if __name__ == '__main__':
     from ase.calculators.jacapo import *
@@ -147,10 +148,10 @@ if __name__ == '__main__':
 
         sy = SYMMOL(Jacapo.read_atoms(ncfile),outfile=options.o)
 
-        print 'Point group = ',sy.get_point_group()
-        print 'Moments of inertia = ',sy.get_moments_of_inertia()
-        print 'Symmetry operators = ',sy.get_symmetry_operators()
+        print('Point group = ',sy.get_point_group())
+        print('Moments of inertia = ',sy.get_moments_of_inertia())
+        print('Symmetry operators = ',sy.get_symmetry_operators())
         if options.f is not None:
-            print sy
+            print(sy)
 
  

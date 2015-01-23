@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright (C) 2010, Jesper Friis
 # (see accompanying license files for details).
 
@@ -9,7 +10,7 @@ import numpy as np
 
 def get_layers(atoms, miller, tolerance=0.001):
     """Returns two arrays describing which layer each atom belongs
-    to and the distance between the layers and origo. 
+    to and the distance between the layers and origo.
 
     Parameters:
 
@@ -60,10 +61,8 @@ def get_layers(atoms, miller, tolerance=0.001):
     return tags, levels
 
 
-
-
-def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None, 
-        origo=(0, 0, 0), nlayers=None, extend=1.0, tolerance=0.01, 
+def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
+        origo=(0, 0, 0), nlayers=None, extend=1.0, tolerance=0.01,
         maxatoms=None):
     """Cuts out a cell defined by *a*, *b*, *c* and *origo* from a
     sufficiently repeated copy of *atoms*.
@@ -89,13 +88,13 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
         integer, the b-vector will be the scaled vector from *origo* to the
         atom with index *b*.
     c: None | int | 3 floats
-        The c-vector in scaled coordinates of the cell to cut out. 
-        if integer, the c-vector will be the scaled vector from *origo* to 
-        the atom with index *c*. 
+        The c-vector in scaled coordinates of the cell to cut out.
+        if integer, the c-vector will be the scaled vector from *origo* to
+        the atom with index *c*.
         If *None* it will be along cross(a, b) converted to real space
         and normalised with the cube root of the volume. Note that this
         in general is not perpendicular to a and b for non-cubic
-        systems. For cubic systems however, this is redused to 
+        systems. For cubic systems however, this is redused to
         c = cross(a, b).
     clength: None | float
         If not None, the length of the c-vector will be fixed to
@@ -146,14 +145,14 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
     # Then cut out the slab
     >>> al111 = cut(aluminium, (1,-1,0), (0,1,-1), nlayers=3)
     >>>
-    # Visualisation of the skutterudite unit cell 
+    # Visualisation of the skutterudite unit cell
     #
     # Again, create a skutterudite unit cell
     >>> a = 9.04
     >>> skutterudite = crystal(
-    ...     ('Co', 'Sb'), 
-    ...     basis=[(0.25,0.25,0.25), (0.0, 0.335, 0.158)], 
-    ...     spacegroup=204, 
+    ...     ('Co', 'Sb'),
+    ...     basis=[(0.25,0.25,0.25), (0.0, 0.335, 0.158)],
+    ...     spacegroup=204,
     ...     cellpar=[a, a, a, 90, 90, 90])
     >>>
     # Then use *origo* to put 'Co' at the corners and *extend* to
@@ -184,7 +183,7 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
     if c is None:
         metric = np.dot(cell, cell.T)
         vol = np.sqrt(np.linalg.det(metric))
-        h = np.cross(a, b) 
+        h = np.cross(a, b)
         H = np.linalg.solve(metric.T, h.T)
         c = vol*H/vol**(1./3.)
     c = np.array(c, dtype=float)
@@ -193,7 +192,7 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
         # Recursive increase the length of c until we have at least
         # *nlayers* atomic layers parallell to the a-b plane
         while True:
-            at = cut(atoms, a, b, c, origo=origo, extend=extend, 
+            at = cut(atoms, a, b, c, origo=origo, extend=extend,
                         tolerance=tolerance)
             scaled = at.get_scaled_positions()
             d = scaled[:,2]
@@ -204,11 +203,11 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
                 mask = np.concatenate(([True], np.diff(d[keys]) > tol))
                 tags = np.cumsum(mask)[ikeys] - 1
                 levels = d[keys][mask]
-                if (maxatoms is None or len(at) < maxatoms or 
-                    len(levels) > nlayers): 
+                if (maxatoms is None or len(at) < maxatoms or
+                    len(levels) > nlayers):
                     break
                 tol *= 0.9
-            if len(levels) > nlayers: 
+            if len(levels) > nlayers:
                 break
             c *= 2
 
@@ -221,9 +220,9 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
 
     # Create a new atoms object, repeated and translated such that
     # it completely covers the new cell
-    scorners_newcell = np.array([[0., 0., 0.], [0., 0., 1.], 
-                                 [0., 1., 0.], [0., 1., 1.], 
-                                 [1., 0., 0.], [1., 0., 1.], 
+    scorners_newcell = np.array([[0., 0., 0.], [0., 0., 1.],
+                                 [0., 1., 0.], [0., 1., 1.],
+                                 [1., 0., 0.], [1., 0., 1.],
                                  [1., 1., 0.], [1., 1., 1.]])
     corners = np.dot(scorners_newcell, newcell*extend)
     scorners = np.linalg.solve(cell.T, corners.T).T
@@ -248,7 +247,7 @@ class IncompatibleCellError(ValueError):
     pass
 
 
-def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,  
+def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
           maxstrain=0.5, distance=None, reorder=False,
           output_strained=False):
     """Return a new Atoms instance with *atoms2* stacked on top of
@@ -278,7 +277,7 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
 
     If *reorder* is True, then the atoms will be reordred such that
     all atoms with the same symbol will follow sequensially after each
-    other, eg: 'Al2MnAl10Fe' -> 'Al12FeMn'.    
+    other, eg: 'Al2MnAl10Fe' -> 'Al12FeMn'.
 
     If *output_strained* is True, then the strained versions of
     *atoms1* and *atoms2* are returned in addition to the stacked
@@ -290,14 +289,14 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
     >>> from ase.lattice.spacegroup import crystal
     >>>
     # Create an Ag(110)-Si(110) interface with three atomic layers
-    # on each side. 
+    # on each side.
     >>> a_ag = 4.09
-    >>> ag = crystal(['Ag'], basis=[(0,0,0)], spacegroup=225, 
+    >>> ag = crystal(['Ag'], basis=[(0,0,0)], spacegroup=225,
     ...              cellpar=[a_ag, a_ag, a_ag, 90., 90., 90.])
     >>> ag110 = cut(ag, (0, 0, 3), (-1.5, 1.5, 0), nlayers=3)
     >>>
     >>> a_si = 5.43
-    >>> si = crystal(['Si'], basis=[(0,0,0)], spacegroup=227, 
+    >>> si = crystal(['Si'], basis=[(0,0,0)], spacegroup=227,
     ...              cellpar=[a_si, a_si, a_si, 90., 90., 90.])
     >>> si110 = cut(si, (0, 0, 2), (-1, 1, 0), nlayers=3)
     >>>
@@ -306,7 +305,7 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
     >>>
     # Once more, this time adjusted such that the distance between
     # the closest Ag and Si atoms will be 2.3 Angstrom (requires scipy).
-    >>> interface2 = stack(ag110, si110, 
+    >>> interface2 = stack(ag110, si110,
     ...                    maxstrain=1, distance=2.3)   # doctest:+ELLIPSIS
     Optimization terminated successfully.
         ...
@@ -315,7 +314,7 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
     atoms1 = atoms1.copy()
     atoms2 = atoms2.copy()
 
-    if (np.sign(np.linalg.det(atoms1.cell)) != 
+    if (np.sign(np.linalg.det(atoms1.cell)) !=
         np.sign(np.linalg.det(atoms2.cell))):
         raise IncompatibleCellError('*atoms1* amd *atoms2* must both either '
                                     'have a lefthanded or a righanded cell.')
@@ -397,7 +396,7 @@ def sort(atoms, tags=None):
     >>>
     # Two unit cells of NaCl
     >>> a = 5.64
-    >>> nacl = crystal(['Na', 'Cl'], [(0, 0, 0), (0.5, 0.5, 0.5)], 
+    >>> nacl = crystal(['Na', 'Cl'], [(0, 0, 0), (0.5, 0.5, 0.5)],
     ... spacegroup=225, cellpar=[a, a, a, 90, 90, 90]).repeat((2, 1, 1))
     >>> nacl.get_chemical_symbols()
     ['Na', 'Na', 'Na', 'Na', 'Cl', 'Cl', 'Cl', 'Cl', 'Na', 'Na', 'Na', 'Na', 'Cl', 'Cl', 'Cl', 'Cl']
@@ -411,8 +410,7 @@ def sort(atoms, tags=None):
         tags = atoms.get_chemical_symbols()
     else:
         tags = list(tags)
-    deco = [(tag, i) for i, tag in enumerate(tags)]
-    deco.sort()
+    deco = sorted([(tag, i) for i, tag in enumerate(tags)])
     indices = [i for tag, i in deco]
     return atoms[indices]
 
@@ -469,12 +467,10 @@ def rotate(atoms, a1, a2, b1, b2, rotate_cell=True, center=(0, 0, 0)):
         atoms.cell[:] = np.dot(atoms.cell, R.T)
 
 
-
-
 def minimize_tilt_ij(atoms, modified=1, fixed=0, fold_atoms=True):
     """Minimize the tilt angle for two given axes.
 
-    The problem is underdetermined. Therefore one can choose one axis 
+    The problem is underdetermined. Therefore one can choose one axis
     that is kept fixed.
     """
     
@@ -501,6 +497,7 @@ def minimize_tilt_ij(atoms, modified=1, fixed=0, fold_atoms=True):
     if fold_atoms:
         atoms.set_scaled_positions(atoms.get_scaled_positions())
 
+        
 def minimize_tilt(atoms, order=range(3), fold_atoms=True):
     """Minimize the tilt angles of the unit cell."""
     pbc_c = atoms.get_pbc()
@@ -511,8 +508,7 @@ def minimize_tilt(atoms, order=range(3), fold_atoms=True):
                 minimize_tilt_ij(atoms, c1, c2, fold_atoms)
 
 
-#-----------------------------------------------------------------
 # Self test
 if __name__ == '__main__':
     import doctest
-    print 'doctest: ', doctest.testmod()
+    print('doctest: ', doctest.testmod())

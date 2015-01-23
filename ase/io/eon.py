@@ -104,7 +104,7 @@ def write_reactant_con(fileobj, images):
     out.append('0 0 0')  # ??
 
     symbols = atoms.get_chemical_symbols()
-    massdict = dict(zip(symbols, atoms.get_masses()))
+    massdict = dict(list(zip(symbols, atoms.get_masses())))
     atomtypes = sorted(massdict.keys())
     atommasses = [massdict[at] for at in atomtypes]
     natoms = [symbols.count(at) for at in atomtypes]

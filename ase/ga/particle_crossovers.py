@@ -104,7 +104,7 @@ class CutSpliceCrossover(Crossover):
                 correct_by[n] -= 1
             correct_in = random.choice([tmpf, tmpm])
             to_add, to_rem = [], []
-            for num, amount in correct_by.iteritems():
+            for num, amount in correct_by.items():
                 if amount > 0:
                     to_add.extend([num] * amount)
                 elif amount < 0:

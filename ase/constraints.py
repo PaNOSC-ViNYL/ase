@@ -12,11 +12,11 @@ def slice2enlist(s):
     """Convert a slice object into a list of (new, old) tuples."""
     if isinstance(s, (list, tuple)):
         return enumerate(s)
-    if s.step == None:
+    if s.step is None:
         step = 1
     else:
         step = s.step
-    if s.start == None:
+    if s.start is None:
         start = 0
     else:
         start = s.start
@@ -156,7 +156,6 @@ class FixAtoms(FixConstraint):
 
     def repeat(self, m, n):
         i0 = 0
-        l = len(self.index)
         natoms = 0
         if isinstance(m, int):
             m = (m, m, m)
@@ -437,7 +436,7 @@ class FixInternals(FixConstraint):
 
     Allows fixing bonds, angles, and dihedrals."""
     def __init__(self, atoms=None, bonds=None, angles=None, dihedrals=None,
-             epsilon=1.e-7, _copy_init=None):
+                 epsilon=1.e-7, _copy_init=None):
         if _copy_init is None:
             if atoms is None:
                 raise ValueError('Atoms object has to be defined.')
@@ -465,7 +464,7 @@ class FixInternals(FixConstraint):
                                                          masses_dihedral))
             self.epsilon = epsilon
 
-        #copy case for __init__
+        # copy case for __init__
         else:
             self.constraints = _copy_init
             self.n = len(self.constraints)
@@ -484,7 +483,7 @@ class FixInternals(FixConstraint):
         raise ValueError('Shake did not converge.')
 
     def adjust_forces(self, positions, forces):
-        #Project out translations and rotations and all other constraints
+        """Project out translations and rotations and all other constraints"""
         N = len(forces)
         list2_constraints = list(np.zeros((6, N, 3)))
         tx, ty, tz, rx, ry, rz = list2_constraints
@@ -496,7 +495,7 @@ class FixInternals(FixConstraint):
         tz[:, 2] = 1.0
         ff = forces.ravel()
         
-        #Calculate the center of mass
+        # Calculate the center of mass
         center = positions.sum(axis=0) / N
 
         rx[:, 1] = -(positions[:, 2] - center[2])
@@ -506,20 +505,20 @@ class FixInternals(FixConstraint):
         rz[:, 0] = -(positions[:, 1] - center[1])
         rz[:, 1] = positions[:, 0] - center[0]
         
-        #Normalizing transl., rotat. constraints
+        # Normalizing transl., rotat. constraints
         for r in list2_constraints:
             r /= np.linalg.norm(r.ravel())
         
-        #Add all angle, etc. constraint vectors
+        # Add all angle, etc. constraint vectors
         for constraint in self.constraints:
             constraint.adjust_forces(positions, forces)
             list_constraints.insert(0, constraint.h)
-        #QR DECOMPOSITION - GRAM SCHMIDT
+        # QR DECOMPOSITION - GRAM SCHMIDT
 
         list_constraints = [r.ravel() for r in list_constraints]
         aa = np.column_stack(list_constraints)
         (aa, bb) = np.linalg.qr(aa)
-        #Projektion
+        # Projection
         hh = []
         for i, constraint in enumerate(self.constraints):
             hh.append(aa[:, i] * np.row_stack(aa[:, i]))
@@ -547,7 +546,7 @@ class FixInternals(FixConstraint):
     def __str__(self):
         return '\n'.join([repr(c) for c in self.constraints])
 
-    #Classes for internal use in FixInternals
+    # Classes for internal use in FixInternals
     class FixBondLengthAlt:
         """Constraint subobject for fixing bond length within FixInternals."""
         def __init__(self, bond, indices, masses, maxstep=0.01):
@@ -682,14 +681,10 @@ class FixInternals(FixConstraint):
 
         def set_h_vectors(self, pos):
             r12 = pos[self.indices[1]] - pos[self.indices[0]]
-            r12_len = np.linalg.norm(r12)
-            e12 = r12 / r12_len
             r23 = pos[self.indices[2]] - pos[self.indices[1]]
             r23_len = np.linalg.norm(r23)
             e23 = r23 / r23_len
             r34 = pos[self.indices[3]] - pos[self.indices[2]]
-            r34_len = np.linalg.norm(r34)
-            e34 = r34 / r34_len
             a = -r12 - np.dot(-r12, e23) * e23
             a_len = np.linalg.norm(a)
             ea = a / a_len
@@ -706,14 +701,8 @@ class FixInternals(FixConstraint):
 
         def adjust_positions(self, oldpositions, newpositions):
             r12 = newpositions[self.indices[1]] - newpositions[self.indices[0]]
-            r12_len = np.linalg.norm(r12)
-            e12 = r12 / r12_len
             r23 = newpositions[self.indices[2]] - newpositions[self.indices[1]]
-            r23_len = np.linalg.norm(r23)
-            e23 = r23 / r23_len
             r34 = newpositions[self.indices[3]] - newpositions[self.indices[2]]
-            r34_len = np.linalg.norm(r34)
-            e34 = r34 / r34_len
             n1 = np.cross(r12, r23)
             n1_len = np.linalg.norm(n1)
             n1e = n1 / n1_len
@@ -745,14 +734,10 @@ class FixInternals(FixConstraint):
 
         def adjust_forces(self, positions, forces):
             r12 = positions[self.indices[1]] - positions[self.indices[0]]
-            r12_len = np.linalg.norm(r12)
-            e12 = r12 / r12_len
             r23 = positions[self.indices[2]] - positions[self.indices[1]]
             r23_len = np.linalg.norm(r23)
             e23 = r23 / r23_len
             r34 = positions[self.indices[3]] - positions[self.indices[2]]
-            r34_len = np.linalg.norm(r34)
-            e34 = r34 / r34_len
             a = -r12 - np.dot(-r12, e23) * e23
             a_len = np.linalg.norm(a)
             ea = a / a_len
@@ -822,7 +807,7 @@ class Hookean(FixConstraint):
         the -z direction would be given by (A, B, C, D) = (0, 0, -1, 7).
         """
 
-        if type(a2) == int:
+        if isinstance(a2, int):
             self._type = 'two atoms'
             self.indices = [a1, a2]
         elif len(a2) == 3:

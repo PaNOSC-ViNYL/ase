@@ -98,8 +98,8 @@ class STM:
         #tip and surface greenfunction matrices.
         nbf1_small = nbf1 #XXX Change this for efficiency in the future
         nbf2_small = nbf2 #XXX -||-
-        coupling_list1 = range(nbf1_small)# XXX -||-
-        coupling_list2 = range(nbf2_small)# XXX -||-
+        coupling_list1 = list(range(nbf1_small))# XXX -||-
+        coupling_list2 = list(range(nbf2_small))# XXX -||-
         self.gft1_emm = np.zeros((nenergies, nbf1_small, nbf1_small), complex) 
         self.gft2_emm = np.zeros((nenergies, nbf2_small, nbf2_small), complex)
  
@@ -191,8 +191,7 @@ class STM:
         """
         energies = self.energies
         T_e = self.get_transmission(v_12, v_11_2, v_22_1)
-        bias_window = -np.array([bias * self.w, bias * (self.w - 1)])
-        bias_window.sort()
+        bias_window = sorted(-np.array([bias * self.w, bias * (self.w - 1)]))
         self.bias_window = bias_window
         #print 'bias window', np.around(bias_window,3)
         #print 'Shift of tip lead do to the bias:', self.selfenergy1.bias
