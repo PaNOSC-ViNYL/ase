@@ -68,7 +68,7 @@ class FullEquationOfState(EquationOfState):
         eV/Angstrom^3 - to get the value in GPa, do this::
 
           v0, e0, B0, B1, R = eos.fit()
-          print B0 / kJ * 1.0e24, 'GPa'
+          print(B0 / kJ * 1.0e24, 'GPa')
 
         """
 
