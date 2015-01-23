@@ -1,5 +1,6 @@
-from .fcc import *
+from ase.cluster.data.fcc import *
 import numpy as np
+
 
 def get_all_symmetries(symmetries=None, max=99):
     if symmetries is None:
@@ -9,7 +10,8 @@ def get_all_symmetries(symmetries=None, max=99):
 
     for i, l in enumerate(symmetries):
         for j, m, in enumerate(symmetries):
-            if len(symmetries_all) == max: break
+            if len(symmetries_all) == max:
+                break
             v = l * m
 
             exist = False
@@ -25,7 +27,8 @@ def get_all_symmetries(symmetries=None, max=99):
     for i, l in enumerate(symmetries):
         for j, m, in enumerate(symmetries):
             for k, n in enumerate(symmetries):
-                if len(symmetries_all) == max: break
+                if len(symmetries_all) == max:
+                    break
                 v = l * m * n
 
                 exist = False
@@ -41,9 +44,13 @@ def get_all_symmetries(symmetries=None, max=99):
     #print 'There are %i symmetry operations.' % len(symmetries_all)
     return symmetries_all
 
-def get_neighbor_symmetries(symmetries=None, neighbor_positions=None, neighbor_numbers=None):
-    if symmetries is None or neighbor_positions is None or neighbor_numbers is None:
-        raise Warning('Both symmetries, positions and numbers for the neighbors are needed.')
+    
+def get_neighbor_symmetries(symmetries=None, neighbor_positions=None,
+                            neighbor_numbers=None):
+    if (symmetries is None or neighbor_positions is None or
+        neighbor_numbers is None):
+        raise Warning('Both symmetries, positions and numbers for the '
+                      'neighbors are needed.')
 
     neighbor_symmetries = []
 
@@ -58,9 +65,12 @@ def get_neighbor_symmetries(symmetries=None, neighbor_positions=None, neighbor_n
 
     return neighbor_symmetries
 
-def get_surface_symmetries(symmetries=None, surface_names=None, surface_numbers=None):
+    
+def get_surface_symmetries(symmetries=None, surface_names=None,
+                           surface_numbers=None):
     if symmetries is None or surface_names is None or surface_numbers is None:
-        raise Warning('Both symmetries, names and numbers for the surfaces are needed.')
+        raise Warning('Both symmetries, names and numbers for the surfaces '
+                      'are needed.')
 
     surface_symmetries = []
 
@@ -75,6 +85,7 @@ def get_surface_symmetries(symmetries=None, surface_names=None, surface_numbers=
 
     return np.array(surface_symmetries, int)
 
+    
 def apply_neighbor_symmetry(neighbors=None, symmetry=None):
     if neighbors is None or symmetry is None:
         raise Warning('Both neighbor list and symmetry list are needed.')

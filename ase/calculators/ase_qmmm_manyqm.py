@@ -421,15 +421,15 @@ class AseQmmmManyqm:
 
         #check that MM topology exists:
         if not(os.path.exists(mm_calculator.topology_filename)):
-            print "NO TOPOLOGY FILE:", mm_calculator.topology_filename
-            print "use: CALC_MM.generate_topology_and_g96file()"
+            print('NO TOPOLOGY FILE:', mm_calculator.topology_filename)
+            print('use: CALC_MM.generate_topology_and_g96file()')
             sys.exit()
 
         #check that MM run file (.tpr) exists:
         if not(os.path.exists(mm_calculator.label+'.tpr')):
-            print "NO MM run file FILE:", mm_calculator.label+'.tpr'
-            print "use: CALC_MM.write_input(atoms)"
-            print "use: CALC_MM.generate_gromacs_run_file()"
+            print('NO MM run file FILE:', mm_calculator.label + '.tpr')
+            print('use: CALC_MM.write_input(atoms)')
+            print('use: CALC_MM.generate_gromacs_run_file()')
             sys.exit()
         #check that force field files exist
         if 'GMXDATA' in os.environ:
@@ -439,8 +439,8 @@ class AseQmmmManyqm:
         ff_filename = gromacs_home+ '/top/' \
             + mm_calculator.force_field + '.ff/ffbonded.itp'
         if not(os.path.exists(mm_calculator.topology_filename)):
-            print "NO force field file:", ff_filename
-            print "use: GMXDATA environmental variable"
+            print('NO force field file:', ff_filename)
+            print('use: GMXDATA environmental variable')
             sys.exit()
 
         if link_info == 'byFILE':
@@ -1168,7 +1168,6 @@ class AseQmmmManyqm:
             if start:
                 if (not line.startswith(';')) or (not line.strip()):
                     oklines_top.append(line)
-                    #print line
             if '[ atoms' in line:
                 start = True
 
@@ -1190,7 +1189,6 @@ class AseQmmmManyqm:
                 # get the index for interaction
                 interaction = 'empty'
                 for line in lines_tpr:
-                    #print line
                     if (' type' in line) and ('BONDS' in line):
                         if (qmatom == int(line.split()[3])) and \
                                 (mmatom == int(line.split()[4])):
