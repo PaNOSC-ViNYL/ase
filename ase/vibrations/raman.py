@@ -154,22 +154,22 @@ class ResonantRaman(Vibrations):
                      intensity_unit='????', normalize=False):
         """Get resonant Raman spectrum.
 
-        The method returns wavenumbers in cm^-1 with corresponding 
+        The method returns wavenumbers in cm^-1 with corresponding
         absolute infrared intensity.
-        Start and end point, and width of the Gaussian/Lorentzian should 
+        Start and end point, and width of the Gaussian/Lorentzian should
         be given in cm^-1.
-        normalize=True ensures the integral over the peaks to give the 
+        normalize=True ensures the integral over the peaks to give the
         intensity.
         """
 
         self.type = type.lower()
         assert self.type in ['gaussian', 'lorentzian']
 
-        if not npts: 
+        if not npts:
             npts = (end - start) / width * 10 + 1
         frequencies = self.get_frequencies(method, direction).real
         intensities = self.get_intensities(omega, gamma)
-        prefactor = 1 
+        prefactor = 1
         if type == 'lorentzian':
             intensities = intensities * width * np.pi / 2.
             if normalize:
@@ -195,24 +195,24 @@ class ResonantRaman(Vibrations):
         return [energies, prefactor * spectrum]
 
     def write_spectra(self, omega, gamma,
-                      out='resonant-raman-spectra.dat', 
-                      start=200, end=4000, 
-                      npts=None, width=10, 
-                      type='Gaussian', method='standard', 
+                      out='resonant-raman-spectra.dat',
+                      start=200, end=4000,
+                      npts=None, width=10,
+                      type='Gaussian', method='standard',
                       direction='central'):
         """Write out spectrum to file.
 
-        First column is the wavenumber in cm^-1, the second column the 
+        First column is the wavenumber in cm^-1, the second column the
         absolute infrared intensities, and
-        the third column the absorbance scaled so that data runs 
-        from 1 to 0. Start and end 
-        point, and width of the Gaussian/Lorentzian should be given 
+        the third column the absorbance scaled so that data runs
+        from 1 to 0. Start and end
+        point, and width of the Gaussian/Lorentzian should be given
         in cm^-1."""
         energies, spectrum = self.get_spectrum(omega, gamma,
-                                               start, end, npts, width, 
+                                               start, end, npts, width,
                                                type, method, direction)
 
-        #Write out spectrum in file. First column is absolute intensities. 
+        #Write out spectrum in file. First column is absolute intensities.
         outdata = np.empty([len(energies), 3])
         outdata.T[0] = energies
         outdata.T[1] = spectrum
@@ -223,12 +223,12 @@ class ResonantRaman(Vibrations):
         fd.write('# [cm^-1]  [a.u.]\n')
 
         for row in outdata:
-            fd.write('%.3f  %15.5g\n' % 
+            fd.write('%.3f  %15.5g\n' %
                      (row[0], row[1]))
         fd.close()
 
     def summary(self, omega, gamma=0.1,
-                method='standard', direction='central', 
+                method='standard', direction='central',
                 intensity_unit='(D/A)2/amu', log=sys.stdout):
         """Print summary for given omega [eV]"""
         hnu = self.get_energies(method, direction)
@@ -251,11 +251,11 @@ class ResonantRaman(Vibrations):
             else:
                 c = ' '
                 e = e.real
-            parprint(('%3d %6.1f%s  %7.1f%s  %9.3g') % 
+            parprint('%3d %6.1f%s  %7.1f%s  %9.3g' %
                      (n, 1000 * e, c, s * e, c, intensities[n]),
                      file=log)
         parprint('-------------------------------------', file=log)
-        parprint('Zero-point energy: %.3f eV' % self.get_zero_point_energy(), 
+        parprint('Zero-point energy: %.3f eV' % self.get_zero_point_energy(),
                  file=log)
 
     def __del__(self):

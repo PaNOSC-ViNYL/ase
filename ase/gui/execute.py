@@ -15,7 +15,7 @@ class Execute(gtk.Window):
     There are two types of commands, one set only applies to the global image and
     one set applies to all atoms. If the command line contains any of the atom
     commands, then it is executed separately for all atoms and for all images.
-    Otherwise it is executed only once per image. 
+    Otherwise it is executed only once per image.
 
     Please do not mix global and atom commands."""
     
@@ -109,7 +109,7 @@ class Execute(gtk.Window):
             self.rgb_data += [[i, rgb]]
         self.gui.colordata = self.rgb_data
         self.gui.colors = list(self.colors)
-        self.gui.colormode = 'manual'        
+        self.gui.colormode = 'manual'
         self.cmd.grab_focus()
 
     def execute(self, widget=None, cmd = None):
@@ -148,7 +148,7 @@ class Execute(gtk.Window):
 
         ans = getattr(gui,'expert_mode_answers',[])
 
-        loop_images = list(range(N))
+        loop_images = range(N)
         if self.images_only.get_active():
             loop_images = [self.gui.frame]
 
@@ -168,7 +168,7 @@ class Execute(gtk.Window):
                 index_based = True
 
         name = os.path.expanduser('~/.ase/'+cmd)
-        # check various special commands: 
+        # check various special commands:
         if os.path.exists(name):   # run script from default directory
             self.run_script(name)
         elif cmd == 'del S':       # delete selection
@@ -257,7 +257,7 @@ class Execute(gtk.Window):
                         if Z != Zold:
                             img.r[a] = cov[Z] * 0.89
                             r,g,b = jmol_colors[Z]
-                        gui.colordata[a] = [a,[r,g,b]]                            
+                        gui.colordata[a] = [a,[r,g,b]]
                         color = tuple([int(65535*x) for x in [r,g,b]])
                         gui.colors[a] = new(alloc(*color))
                         img.M[i][a] = m

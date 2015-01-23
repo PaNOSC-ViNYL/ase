@@ -106,7 +106,7 @@ assert not p1._options == p2._options, "Changed one CastepParam, but the still l
 assert c.calculation_required(lattice), 'Calculator does not fetch that a calculation is required'
 
 if not c.dryrun_ok():
-    print((c._error))
+    print(c._error)
     assert False, "Dryrun_ok does not work, where it should"
 else:
     print("Dryrun is ok")

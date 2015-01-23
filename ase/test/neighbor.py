@@ -4,11 +4,12 @@ from ase import Atoms
 from ase.calculators.neighborlist import NeighborList
 from ase.lattice import bulk
 
-atoms = Atoms(numbers=list(range(10)),
+atoms = Atoms(numbers=range(10),
               cell=[(0.2, 1.2, 1.4),
                     (1.4, 0.1, 1.6),
                     (1.3, 2.0, -0.1)])
 atoms.set_scaled_positions(3 * random.random((10, 3)) - 1)
+
 
 def count(nl, atoms):
     c = np.zeros(len(atoms), int)

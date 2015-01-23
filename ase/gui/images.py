@@ -35,7 +35,7 @@ class Images:
                 shapesfile.close()
                 if '#{type:(shape_x,shape_y,shape_z), .....,}' in lines[0]:
                     shape = eval(lines[1])
-                    shapes=[]
+                    shapes = []
                     for an in images[0].get_atomic_numbers():
                         shapes.append(shape[an])
                     self.shapes = np.array(shapes)
@@ -318,7 +318,7 @@ class Images:
 
     def write(self, filename, rotations='', show_unit_cell=False, bbox=None,
               **kwargs):
-        indices = list(range(self.nimages))
+        indices = range(self.nimages)
         p = filename.rfind('@')
         if p != -1:
             try:

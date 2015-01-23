@@ -49,7 +49,7 @@ class Dftb(FileIOCalculator):
     implemented_properties = ['energy', 'forces']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 label='dftb', atoms=None, kpts=None, 
+                 label='dftb', atoms=None, kpts=None,
                  run_manyDftb_steps = False,
                  **kwargs):
         """Construct a DFTB+ calculator.
@@ -133,8 +133,8 @@ class Dftb(FileIOCalculator):
         for key, value in sorted(self.parameters.items()):
             current_depth = key.rstrip('_').count('_')
             previous_depth = previous_key.rstrip('_').count('_')
-            for my_backsclash in reversed(\
-                list(range(previous_depth - current_depth))):
+            for my_backsclash in reversed(
+                range(previous_depth - current_depth)):
                 outfile.write(3 * (1 + my_backsclash) * myspace + '} \n')
             outfile.write(3 * current_depth * myspace)
             if key.endswith('_'):
@@ -146,7 +146,7 @@ class Dftb(FileIOCalculator):
                 outfile.write(key.rsplit('_')[-1] + ' = ' + str(value) + ' \n')
             previous_key = key
         current_depth = key.rstrip('_').count('_')
-        for my_backsclash in reversed(list(range(current_depth))):
+        for my_backsclash in reversed(range(current_depth)):
             outfile.write(3 * my_backsclash * myspace + '} \n')
         #output to 'results.tag' file (which has proper formatting)
         outfile.write('Options { \n')
@@ -172,7 +172,7 @@ class Dftb(FileIOCalculator):
         write('geo_end.gen', atoms)
 
     def read_results(self):
-        """ all results are read from results.tag file 
+        """ all results are read from results.tag file
             It will be destroyed after it is read to avoid
             reading it once again after some runtime error """
         from ase.io import read

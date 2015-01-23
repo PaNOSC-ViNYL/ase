@@ -324,8 +324,8 @@ class Bravais:
             # No basis - just place a single atom
             pos = np.dot(point, self.crystal_basis)
             if self.debug >= 2:
-                print(("Placing an atom at (%d,%d,%d) ~ (%.3f, %.3f, %.3f)."
-                       % (tuple(point) + tuple(pos))))
+                print('Placing an atom at (%d,%d,%d) ~ (%.3f, %.3f, %.3f).' %
+                      (tuple(point) + tuple(pos)))
             self.atoms[self.nput] = pos
             self.elements[self.nput] = self.atomicnumber
             self.nput += 1
@@ -333,9 +333,10 @@ class Bravais:
             for i, offset in enumerate(self.natural_bravais_basis):
                 pos = np.dot(point + offset, self.crystal_basis)
                 if self.debug >= 2:
-                    print(("Placing an atom at (%d+%f, %d+%f, %d+%f) ~ (%.3f, %.3f, %.3f)."
-                           % (point[0], offset[0], point[1], offset[1],
-                              point[2], offset[2], pos[0], pos[1], pos[2])))
+                    print('Placing an atom at (%d+%f, %d+%f, %d+%f) ~ '
+                          '(%.3f, %.3f, %.3f).' %
+                          (point[0], offset[0], point[1], offset[1],
+                           point[2], offset[2], pos[0], pos[1], pos[2]))
                 self.atoms[self.nput] = pos
                 if self.element_basis is None:
                     self.elements[self.nput] = self.atomicnumber
@@ -356,8 +357,8 @@ class Bravais:
         while change:
             change = False
             missing = 0
-            for i in (0,1,2):
-                (j,k) = self.other[i]
+            for i in (0, 1, 2):
+                j, k = self.other[i]
                 if directions[i] is None:
                     missing += 1
                     if miller[j] is not None and miller[k] is not None:

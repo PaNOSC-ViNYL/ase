@@ -164,12 +164,12 @@ def create_png_files():
                         os.chdir(dirpath)
                         plt.figure()
                         try:
-                            exec_(compile(open(filename).read(), filename,
-                                         'exec'), {})
+                            exec_(compile(open(filename).read(),
+                                          filename, 'exec'), {})
                         finally:
                             os.chdir(olddir)
                         for file in line.split()[2:]:
-                            print((dirpath, file))
+                            print(dirpath, file)
 
         if '.svn' in dirnames:
             dirnames.remove('.svn')

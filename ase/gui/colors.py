@@ -15,6 +15,7 @@ named_colors = ('Green', 'Yellow', 'Blue', 'Red', 'Orange', 'Cyan',
                 'Magenta', 'Black', 'White', 'Grey', 'Violet', 'Brown',
                 'Navy')
 
+
 class ColorWindow(gtk.Window):
     "A window for selecting how to color the atoms."
     def __init__(self, gui):
@@ -272,7 +273,7 @@ class ColorWindow(gtk.Window):
         "We use per-tag colors."
         # Find which tags are in use
         tags = self.gui.images.T
-        existingtags = list(range(tags.min(), tags.max()+1))
+        existingtags = range(tags.min(), tags.max() + 1)
         if not hasattr(self, 'colordata_tags') or len(self.colordata_tags) != len(existingtags):
             colors = self.get_named_colors(len(existingtags))
             self.colordata_tags = [[x, y] for x, y in

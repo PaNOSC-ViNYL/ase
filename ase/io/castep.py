@@ -39,7 +39,7 @@ def write_cell(filename, atoms, positions_frac=False, castep_cell=None,
 
     if os.path.isfile(filename) and not force_write:
         print('ase.io.castep.write_param: Set optional argument')
-        print(('force_write=True to overwrite %s.' % filename))
+        print('force_write=True to overwrite %s.' % filename)
         return False
 
     fd = open(filename, 'w')
@@ -201,7 +201,7 @@ def read_cell(filename, _=None):
                     if c in line:
                         icomment = min(line.index(c))
                     else:
-                        icomment = len(line) 
+                        icomment = len(line)
                 tokens = line[:icomment].split()
                 return tokens, l + 1
         tokens = ""
@@ -237,7 +237,7 @@ def read_cell(filename, _=None):
                 if tokens[0].upper() != "%ENDBLOCK":
                     print('read_cell: Warning - ignoring more than three')
                     print('lattice vectors in invalid %BLOCK LATTICE_CART')
-                    print(('%s ...' % tokens[0].upper()))
+                    print('%s ...' % tokens[0].upper())
                 have_lat = True
 
             elif tokens[1].upper() == "LATTICE_ABC" and not have_lat:
@@ -274,7 +274,7 @@ def read_cell(filename, _=None):
                     tokens, l = get_tokens(lines, l)
                 if tokens[0].upper() != "%ENDBLOCK":
                     print('read_cell: Warning - ignoring invalid lines in')
-                    print(('%%BLOCK POSITIONS_ABS:\n\t %s' % tokens))
+                    print('%%BLOCK POSITIONS_ABS:\n\t %s' % tokens)
                 have_pos = True
 
             elif tokens[1].upper() == "POSITIONS_FRAC" and not have_pos:
@@ -286,7 +286,7 @@ def read_cell(filename, _=None):
                     tokens, l = get_tokens(lines, l)
                 if tokens[0].upper() != "%ENDBLOCK":
                     print('read_cell: Warning - ignoring invalid lines')
-                    print(('%%BLOCK POSITIONS_FRAC:\n\t %s' % tokens))
+                    print('%%BLOCK POSITIONS_FRAC:\n\t %s' % tokens)
                 have_pos = True
             elif tokens[1].upper() == 'SPECIES_POT':
                 tokens, l = get_tokens(lines, l)
@@ -309,7 +309,7 @@ def read_cell(filename, _=None):
                     raw_constraints[(species, nic)].append(array(
                                                            [x, y, z]))
             else:
-                print(('Warning: the keyword %s is not' % tokens[1].upper()))
+                print('Warning: the keyword %s is not' % tokens[1].upper())
                 print('         interpreted in cell files')
                 while not tokens[0].upper() == '%ENDBLOCK':
                     tokens, l = get_tokens(lines, l)
@@ -320,7 +320,7 @@ def read_cell(filename, _=None):
             try:
                 calc.__setattr__(key, value)
             except:
-                print(("Problem setting calc.cell.%s = %s" % (key, value)))
+                print("Problem setting calc.cell.%s = %s" % (key, value))
                 raise
 
     if pos_frac:
@@ -354,8 +354,8 @@ def read_cell(filename, _=None):
                 direction=array(value[0], dtype=float32))
             constraints.append(constraint)
         else:
-            print(('Error: Found %s statements attached to atoms %s'
-    % (len(value), absolute_nr)))
+            print('Error: Found %s statements attached to atoms %s'
+                  % (len(value), absolute_nr))
     constraints.append(ase.constraints.FixAtoms(fixed_atoms))
     atoms.set_constraint(constraints)
 
@@ -465,7 +465,7 @@ def write_param(filename, param, check_checkfile=False,
     """
     if os.path.isfile(filename) and not force_write:
         print('ase.io.castep.write_param: Set optional argument')
-        print(('force_write=True to overwrite %s.' % filename))
+        print('force_write=True to overwrite %s.' % filename)
         return False
 
     out = paropen(filename, 'w')

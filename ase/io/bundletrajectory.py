@@ -18,7 +18,7 @@ following structure::
         F1 (dir)
 """
 
-import ase.parallel 
+import ase.parallel
 from ase.parallel import paropen
 from ase.calculators.singlepoint import SinglePointCalculator
 import numpy as np
@@ -198,7 +198,7 @@ class BundleTrajectory:
             except (RuntimeError, NotImplementedError):
                 self.datatypes['forces'] = False
             else:
-                self.backend.write(framedir, 'forces', x) 
+                self.backend.write(framedir, 'forces', x)
                 del x
         if datatypes.get('energies'):
             try:
@@ -206,7 +206,7 @@ class BundleTrajectory:
             except (RuntimeError, NotImplementedError):
                 self.datatypes['energies'] = False
             else:
-                self.backend.write(framedir, 'energies', x) 
+                self.backend.write(framedir, 'energies', x)
                 del x
         # Write any extra data
         for (label, source, once) in self.extra_data:
@@ -372,7 +372,7 @@ class BundleTrajectory:
                              % (n, self.nframes))
         framedir = os.path.join(self.filename, 'F' + str(n))
         framezero = os.path.join(self.filename, 'F0')
-        return self._read_data(framezero, framedir, name, self.atom_id) 
+        return self._read_data(framezero, framedir, name, self.atom_id)
 
     def _read_data(self, f0, f, name, atom_id):
         "Read single data item."
@@ -402,7 +402,7 @@ class BundleTrajectory:
         if self.master:
             lfn = os.path.join(self.filename, "log.txt")
         else:
-            lfn = os.path.join(self.filename, ("log-node%d.txt" % 
+            lfn = os.path.join(self.filename, ("log-node%d.txt" %
                                                (ase.parallel.rank,)))
         self.logfile = open(lfn, "a", 1)   # Append to log if it exists.
         if hasattr(self, 'logdata'):
@@ -418,12 +418,12 @@ class BundleTrajectory:
         if os.path.exists(self.filename):
             # The output directory already exists.
             if not self.is_bundle(self.filename):
-                raise IOError("Filename '" + self.filename + 
-                              "' already exists, but is not a BundleTrajectory." + 
+                raise IOError("Filename '" + self.filename +
+                              "' already exists, but is not a BundleTrajectory." +
                               "Cowardly refusing to remove it.")
             ase.parallel.barrier() # All must have time to see it exists.
             if self.is_empty_bundle(self.filename):
-                self.log('Deleting old "%s" as it is empty' % (self.filename,)) 
+                self.log('Deleting old "%s" as it is empty' % (self.filename,))
                 self.delete_bundle(self.filename)
             elif not backup:
                 self.log('Deleting old "%s" as backup is turned off.' % (self.filename,))
@@ -821,6 +821,7 @@ def write_bundletrajectory(filename, images):
         traj.write(atoms)
     traj.close()
 
+    
 def print_bundletrajectory_info(filename):
     """Prints information about a BundleTrajectory.
 
@@ -829,7 +830,7 @@ def print_bundletrajectory_info(filename):
     if not BundleTrajectory.is_bundle(filename):
         raise ValueError('Not a BundleTrajectory!')
     if BundleTrajectory.is_empty_bundle(filename):
-        print((filename, 'is an empty BundleTrajectory.'))
+        print(filename, 'is an empty BundleTrajectory.')
         return
     # Read the metadata
     f = open(os.path.join(filename, 'metadata'))

@@ -131,7 +131,7 @@ class Exciting:
                 else:
                     self.dicttoxml(value, element.findall(key)[0])
             else:
-                print(('cannot deal with', key, '=', value))
+                print('cannot deal with', key, '=', value)
                
     def read(self):
         """

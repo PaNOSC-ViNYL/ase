@@ -121,8 +121,8 @@ def surface_centering(surfaces, basis='100', debug=0):
         dz = (d2 + d3) // 2
 
         if debug:
-            print(('(%i, %i, %i) -> (%i, %i, %i) -> (%i, %i, %i)' %
-                   (dl1, dl2, dl3, d1, d2, d3, dx, dy, dz)))
+            print('(%i, %i, %i) -> (%i, %i, %i) -> (%i, %i, %i)' %
+                  (dl1, dl2, dl3, d1, d2, d3, dx, dy, dz))
     else:
         dx, dy, dz = 0
 

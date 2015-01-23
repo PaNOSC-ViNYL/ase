@@ -9,7 +9,7 @@ atoms = Atoms('H7',
                          (0, 2, 0),
                          (1, 2, 0),
                          (0.5, 0.5, 1)],
-              constraint=[FixAtoms(list(range(6)))],
+              constraint=[FixAtoms(range(6))],
               calculator=MorsePotential())
 
 traj = PickleTrajectory('H.traj', 'w', atoms)
@@ -23,6 +23,3 @@ print(atoms)
 del atoms[5]
 print(atoms)
 assert len(atoms.constraints[0].index) == 5
-
-
-

@@ -558,24 +558,24 @@ def print_trajectory_info(filename):
         raise ValueError('Not a PickleTrajectory file!')
     # Head header
     header = pickle.load(f)
-    print(('Header information of trajectory file %r:' % filename))
-    print(('  Version: %d' % header.get('version', 1)))
-    print(('  Boundary conditions: %s' % header['pbc']))
-    print(('  Atomic numbers: shape = %s, type = %s' %
-          (header['numbers'].shape, header['numbers'].dtype)))
+    print('Header information of trajectory file %r:' % filename)
+    print('  Version: %d' % header.get('version', 1))
+    print('  Boundary conditions: %s' % header['pbc'])
+    print('  Atomic numbers: shape = %s, type = %s' %
+          (header['numbers'].shape, header['numbers'].dtype))
     if header.get('tags') is None:
         print('  Tags are absent.')
     else:
-        print(('  Tags: shape = %s, type = %s' %
-              (header['tags'].shape, header['tags'].dtype)))
+        print('  Tags: shape = %s, type = %s' %
+              (header['tags'].shape, header['tags'].dtype))
     if header.get('masses') is None:
         print('  Masses are absent.')
     else:
-        print(('  Masses: shape = %s, type = %s' %
-              (header['masses'].shape, header['masses'].dtype)))
+        print('  Masses: shape = %s, type = %s' %
+              (header['masses'].shape, header['masses'].dtype))
     constraints = dict2constraints(header)
     if constraints:
-        print(('  %d constraints are present.' % len(constraints)))
+        print('  %d constraints are present.' % len(constraints))
     else:
         print('  No constraints.')
 
@@ -586,16 +586,16 @@ def print_trajectory_info(filename):
     print('Contents of first frame:')
     for k, v in frame.items():
         if hasattr(v, 'shape'):
-            print(('  %s: shape = %s, type = %s' % (k, v.shape, v.dtype)))
+            print('  %s: shape = %s, type = %s' % (k, v.shape, v.dtype))
         else:
-            print(('  %s: %s' % (k, v)))
+            print('  %s: %s' % (k, v))
     after_frame = f.tell()
     kB = 1024
     MB = 1024 * kB
     GB = 1024 * MB
     framesize = after_frame - after_header
     if framesize >= GB:
-        print(('Frame size: %.2f GB' % (1.0 * framesize / GB)))
+        print('Frame size: %.2f GB' % (1.0 * framesize / GB))
     elif framesize >= MB:
         print(('Frame size: %.2f MB' % (1.0 * framesize / MB)))
     else:

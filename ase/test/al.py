@@ -18,7 +18,7 @@ def run(name):
     e = al.get_potential_energy()
     calc.set(xc='PBE', kpts=(2, 2, 2))
     epbe = al.get_potential_energy()
-    print((e, epbe))
+    print(e, epbe)
     calc = Calculator(name)
     print(calc.parameters, calc.results, calc.atoms)
     assert not calc.calculation_required(al, ['energy'])
