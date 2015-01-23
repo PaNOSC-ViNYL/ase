@@ -15,9 +15,10 @@ import re
 import numpy as np
 
 from ase.atoms import Atoms
-from ase.parallel import paropen
 from ase.calculators.calculator import all_properties
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.parallel import paropen
+from ase.utils import basestring
 
 __all__ = ['read_xyz', 'write_xyz']
 

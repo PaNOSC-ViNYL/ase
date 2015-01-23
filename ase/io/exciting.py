@@ -88,12 +88,12 @@ def write_exciting(fileobj, images):
     -------
     """
     if isinstance(fileobj, str):
-        fileobj = paropen(fileobj, 'w')
+        fileobj = paropen(fileobj, 'wb')
     root = atoms2etree(images)
     fileobj.write(ET.tostring(root, method='xml',
+                              #encoding='UTF-8',
                               pretty_print=True,
-                              xml_declaration=True,
-                              encoding='UTF-8'))
+                              xml_declaration=True))
 
 
 def atoms2etree(images):

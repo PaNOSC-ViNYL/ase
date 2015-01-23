@@ -86,7 +86,7 @@ class ElementMutation(OffspringCreator):
                     break
                 if a.symbol in elems:
                     itbm_num_of_elems += 1
-            ltbm = all_chunks[itbm_num_of_elems /
+            ltbm = all_chunks[itbm_num_of_elems //
                               (int(min_percent_elem * len(elems_in))) - 1]
 
         elems.remove(atoms[itbm].symbol)

@@ -63,7 +63,7 @@ def db_call_with_error_tol(db_cursor, expression, args=[]):
         try:
             db_cursor.execute(expression, args)
             return
-        except sqlite3.OperationalError, e:
+        except sqlite3.OperationalError as e:
             print(e)
             time.sleep(2.)
         i += 1
@@ -86,7 +86,7 @@ def get_trajectory(fname):
     fname = str(fname)
     try:
         t = read(fname)
-    except IOError, e:
+    except IOError as e:
         print('get_trajectory error ' + e)
     return t
 

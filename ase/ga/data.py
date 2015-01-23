@@ -301,9 +301,7 @@ class PrepareDB(object):
 
         # Just put everything in data,
         # because we don't want to search the db for it.
-        data = {}
-        for k, v in kwargs.iteritems():
-            data[k] = v
+        data = dict(kwargs)
 
         self.c.write(simulation_cell, data=data,
                      simulation_cell=True)

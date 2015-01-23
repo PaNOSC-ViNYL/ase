@@ -440,11 +440,11 @@ End EAM Interface Documentation
             f.write('%d %f %f %s\n' % (self.Z[i], self.mass[i],
                                        self.a[i], str(self.lattice[i])))
             np.savetxt(f,
-                       self.embedded_energy[i](rhos).reshape(self.nrho / nc,
+                       self.embedded_energy[i](rhos).reshape(self.nrho // nc,
                                                              nc),
                        fmt=nc * [numformat])
             np.savetxt(f,
-                       self.electron_density[i](rs).reshape(self.nr / nc,
+                       self.electron_density[i](rs).reshape(self.nr // nc,
                                                             nc),
                        fmt=nc * [numformat])
 
@@ -453,7 +453,7 @@ End EAM Interface Documentation
         for i in range(self.Nelements):
             for j in range(i, self.Nelements):
                 np.savetxt(f,
-                           (rs * self.phi[i, j](rs)).reshape(self.nr / nc,
+                           (rs * self.phi[i, j](rs)).reshape(self.nr // nc,
                                                              nc),
                            fmt=nc * [numformat])
 
