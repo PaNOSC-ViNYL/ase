@@ -171,6 +171,10 @@ class CutAndSplicePairing(OffspringCreator):
         # Only consider the atoms to optimize
         a1 = a1[len(a1) - N: len(a1)]
         a2 = a2[len(a2) - N: len(a2)]
+        
+        # if not np.array_equal(a1.numbers, a2.numbers):
+        #     a1.numbers.sort()
+        #     a2.numbers.sort()
 
         if not np.array_equal(a1.numbers, a2.numbers):
             err = 'Trying to pair two structures with different stoichiometry'

@@ -92,6 +92,13 @@ class CutSpliceCrossover(Crossover):
                 atom.tag = 2
                 tmpm.append(atom)
 
+        # if len(tmpf + tmpm) != len(f):
+        #     print e, dist, len(tmpf), len(tmpm), len(f)
+        #     write('error.traj', tmpf + tmpm)
+        #     write('f.traj', f)
+        #     write('m.traj', m)
+        #     sys.exit()
+        
         # Check that the correct composition is employed
         if self.keep_composition:
             opt_sm = sorted(f.numbers)
