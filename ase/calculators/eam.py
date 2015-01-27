@@ -220,10 +220,12 @@ End EAM Interface Documentation
     default_parameters = dict(
         skin=1.0,
         potential=None,
-        header="""EAM/ADP potential file\nGenerated from eam.py\nblank\n""")
+        header=[b'EAM/ADP potential file\n',
+                b'Generated from eam.py\n',
+                b'blank\n'])
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
-                  label=os.curdir, atoms=None, **kwargs):
+                 label=os.curdir, atoms=None, **kwargs):
 
         if 'potential' in kwargs:
             self.read_potential(kwargs['potential'])
@@ -283,7 +285,7 @@ End EAM Interface Documentation
 
         self.Nelements = int(data[0])
         d = 1
-        self.elements = data[d:(d + self.Nelements)]
+        self.elements = data[d:d + self.Nelements]
         d += self.Nelements
 
         self.nrho = int(data[d])
@@ -413,7 +415,7 @@ End EAM Interface Documentation
         wide.  Note: array lengths need to be an exact multiple of nc
         """
 
-        f = open(filename, 'w')
+        f = open(filename, 'wb')
 
         assert self.nr % nc == 0
         assert self.nrho % nc == 0
@@ -421,13 +423,12 @@ End EAM Interface Documentation
         for line in self.header:
             f.write(line)
 
-        f.write('%d ' % self.Nelements)
-        for i in range(self.Nelements):
-            f.write('%s ' % str(self.elements[i]))
-        f.write('\n')
+        f.write('{0} '.format(self.Nelements).encode())
+        f.write(' '.join(self.elements).encode() + b'\n')
 
-        f.write('%d %f %d %f %f \n' %
-                (self.nrho, self.drho, self.nr, self.dr, self.cutoff))
+        f.write(('%d %f %d %f %f \n' %
+                 (self.nrho, self.drho, self.nr,
+                  self.dr, self.cutoff)).encode())
 
         # start of each section for each element
 #        rs = np.linspace(0, self.nr * self.dr, self.nr)
@@ -437,8 +438,9 @@ End EAM Interface Documentation
         rhos = np.arange(0, self.nrho) * self.drho
 
         for i in range(self.Nelements):
-            f.write('%d %f %f %s\n' % (self.Z[i], self.mass[i],
-                                       self.a[i], str(self.lattice[i])))
+            f.write(('%d %f %f %s\n' %
+                     (self.Z[i], self.mass[i],
+                      self.a[i], str(self.lattice[i]))).encode())
             np.savetxt(f,
                        self.embedded_energy[i](rhos).reshape(self.nrho // nc,
                                                              nc),
@@ -562,7 +564,7 @@ End EAM Interface Documentation
             rvec = (atoms.positions[neighbors] + offset -
                     atoms.positions[i])
 
-            ## calculate the distance to the nearest neighbors
+            # calculate the distance to the nearest neighbors
             r = np.sqrt(np.sum(np.square(rvec), axis=1))  # fast
 #            r = np.apply_along_axis(np.linalg.norm, 1, rvec)  # sloow
 
@@ -572,7 +574,7 @@ End EAM Interface Documentation
                 if not use.any():
                     continue
                 pair_energy += np.sum(self.phi[self.index[i], j_index](
-                        r[nearest][use])) / 2.
+                    r[nearest][use])) / 2.
 
                 density = np.sum(
                     self.electron_density[j_index](r[nearest][use]))
@@ -793,5 +795,3 @@ End EAM Interface Documentation
                 label = name + ' ' + self.elements[i] + '-' + self.elements[j]
                 plt.plot(curvex, curvey[i, j](curvex), label=label)
         plt.legend()
-
-#print 'done eam'
