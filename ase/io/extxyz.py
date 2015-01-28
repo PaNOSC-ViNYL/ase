@@ -439,7 +439,7 @@ def write_xyz(fileobj, images, columns=None, write_info=True):
         natoms = len(atoms)
 
         if columns is None:
-            columns = ['symbols'] + atoms.arrays.keys()
+            columns = ['symbols'] + list(atoms.arrays.keys())
 
         # Move symbols and positions to first two properties
         if 'symbols' in columns:
