@@ -27,6 +27,8 @@ Development version in trunk
 
 * :ref:`bash completion` can now be enabled.
 
+* Preliminary support for Python 3.
+
 
 Version 3.8.0
 =============
