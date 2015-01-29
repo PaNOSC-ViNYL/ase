@@ -56,9 +56,9 @@ class StartGenerator(object):
 
         # The ordering is shuffled so different atom
         # types are added in random order.
-        order = range(N)
+        order = list(range(N))
         shuffle(order)
-        num = range(N)
+        num = list(range(N))
         for i in range(N):
             num[i] = self.atom_numbers[order[i]]
         blmin = self.blmin

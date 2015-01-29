@@ -612,7 +612,7 @@ def filetype(filename):
     if len(s3) == 0:
         raise IOError('Empty file: ' + filename)
 
-    if s3.startswith('{"'):
+    if s3.startswith(b'{"'):
         return 'json'
 
     if filename.endswith('.db'):

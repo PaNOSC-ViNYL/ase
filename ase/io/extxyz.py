@@ -15,9 +15,10 @@ import re
 import numpy as np
 
 from ase.atoms import Atoms
-from ase.parallel import paropen
 from ase.calculators.calculator import all_properties
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.parallel import paropen
+from ase.utils import basestring
 
 __all__ = ['read_xyz', 'write_xyz']
 
@@ -330,7 +331,7 @@ def read_xyz(fileobj, index=-1):
                       pbc=pbc,
                       info=info)
 
-        for (name, array) in arrays.iteritems():
+        for name, array in arrays.items():
             atoms.new_array(name, array)
 
         if duplicate_numbers is not None:
@@ -366,6 +367,7 @@ def output_column_format(atoms, columns, arrays, write_info=True):
                'i': ('I', '%8d '),
                'O': ('S', '%s'),
                'S': ('S', '%s'),
+               'U': ('S', '%s'),
                'b': ('L', ' %.1s ')}
 
     # NB: Lattice is stored as tranpose of ASE cell,
@@ -437,7 +439,7 @@ def write_xyz(fileobj, images, columns=None, write_info=True):
         natoms = len(atoms)
 
         if columns is None:
-            columns = ['symbols'] + atoms.arrays.keys()
+            columns = ['symbols'] + list(atoms.arrays.keys())
 
         # Move symbols and positions to first two properties
         if 'symbols' in columns:

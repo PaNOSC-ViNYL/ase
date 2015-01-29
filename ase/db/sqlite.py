@@ -11,6 +11,7 @@ Versions:
 
 from __future__ import absolute_import, print_function
 import sqlite3
+import sys
 
 import numpy as np
 
@@ -18,6 +19,8 @@ from ase.db.core import Database, ops, now, lock, parallel, invop
 from ase.db.jsondb import encode, decode
 from ase.utils import basestring
 
+if sys.version > '3':
+    buffer = memoryview
 
 VERSION = 4
 

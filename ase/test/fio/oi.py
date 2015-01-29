@@ -45,6 +45,9 @@ except ImportError:
 else:
     w += ['png', 'eps']
 
+if sys.version_info[0] == 3:
+    r.remove('cif')
+    
 only_one_image = ['cube', 'png', 'eps', 'cfg', 'struct', 'etsf', 'gen',
                   'json', 'db']
 

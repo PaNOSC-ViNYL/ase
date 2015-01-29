@@ -239,7 +239,7 @@ class PickleTrajectory:
             d['info'] = stringnify_info(atoms.info)
 
         if self.master:
-            pickle.dump(d, self.fd, protocol=-1)
+            pickle.dump(d, self.fd, protocol=2)
         self.fd.flush()
         self.offsets.append(self.fd.tell())
         self._call_observers(self.post_observers)
@@ -261,8 +261,8 @@ class PickleTrajectory:
              'tags': tags,
              'masses': masses,
              'constraints': [],  # backwards compatibility
-             'constraints_string': pickle.dumps(atoms.constraints)}
-        pickle.dump(d, self.fd, protocol=-1)
+             'constraints_string': pickle.dumps(atoms.constraints, protocol=0)}
+        pickle.dump(d, self.fd, protocol=2)
         self.header_written = True
         self.offsets.append(self.fd.tell())
 
@@ -433,7 +433,7 @@ def stringnify_info(info):
             # Protocol 2 seems not to raise an exception when one
             # tries to pickle a file object, so by using that, we
             # might end up with file objects in inconsistent states.
-            s = pickle.dumps(v)
+            s = pickle.dumps(v, protocol=0)
         except:
             warnings.warn('Skipping not picklable info-dict item: ' +
                           '"%s" (%s)' % (k, sys.exc_info()[1]), UserWarning)
