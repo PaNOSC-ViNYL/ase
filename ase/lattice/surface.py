@@ -5,7 +5,7 @@ add vacuum layers and add adsorbates.
 
 """
 
-from math import sqrt
+from math import sqrt, hypot, acos
 from operator import itemgetter
 
 import numpy as np
@@ -416,3 +416,103 @@ def fcc211(symbol, size, a=None, vacuum=None, orthogonal=True):
     for index, order in enumerate(orders):
         newatoms[index].position = atoms[order[0]].position.copy()
     return newatoms
+
+
+def fcc111_root(symbol, root, size, a=None, vacuum=0.0,
+                orthogonal=False, search_zone=(20, 20)):
+    """FCC(111) surface maniupulated to repeat with *root*
+    number of atoms in each x/y plane.
+
+    The cell is generated as a rotated 60-120-60-120
+    cell in the x/y plane.  The rotation and size is chosen
+    to allow for the length of the cell vectors to be equal
+    to the root of *root* with a lattice constant of 2**0.5.
+
+    *root* should be given as a positive whole number."""
+    atomic_number = atomic_numbers[symbol]
+    if orthogonal:
+        raise NotImplementedError('Only implemented for orthogonal '
+                                  'unit cells.')
+    if a is None:
+        if reference_states[atomic_number]['symmetry'] == 'fcc':
+            a = reference_states[atomic_number]['a']
+        else:
+            raise ValueError("Can't guess lattice constant for %s-%s!"
+                             % ('fcc', symbol))
+
+    searchx, searchy = search_zone
+
+    def rhomb(x, y):
+        c = 0.5
+        s = (3**0.5) / 2.
+        return float(x + (c * y)), float(s * y)
+
+    desired = root**0.5
+    location = None
+
+    locations = []
+    for iy in range(searchy):
+        for ix in range(searchx):
+            x, y = rhomb(ix, iy)
+            locations.append([x, y])
+    distances = np.sqrt((np.array(locations)**2).sum(1))
+    for index, dist in enumerate(distances):
+        if abs(dist - desired) <= 1e-13:
+            location = locations[index]
+
+    if location is None:
+        raise ValueError(
+            "Can't find a root cell in the searched zone of size \
+             (%d, %d). A larger zone may be needed for large root values" %
+            search_zone)
+
+    angle = acos(location[0] / desired)
+
+    cutting_board = fcc111(symbol, (searchx, searchy, size[2]), a=2**0.5)
+    cutting_board.translate((-searchx, 0, 0))
+    cutting_board += fcc111(symbol, (searchx, searchy, size[2]), a=2**0.5)
+
+    cutting_board.rotate('z', -angle)
+
+    cutting_board.set_cell(((desired, 0, 0),
+                            (desired / 2, desired * ((3**0.5) / 2), 0),
+                            (0, 0, 2**0.5 * size[2])), scale_atoms=False)
+
+    cell = cutting_board.get_cell()
+
+    remove = []
+    for index, position in enumerate(cutting_board.positions):
+        if not (0 < position[0] < (cell[0][0] + cell[1][0])):
+            remove.append(index)
+        if not (0 < position[1] < cell[1][1]):
+            remove.append(index)
+    del cutting_board[remove]
+
+    def remove_doubles():
+        scaled = cutting_board.get_scaled_positions()
+
+        remove = []
+        for index, position in enumerate(scaled):
+            for inner_index in range(index):
+                inner_position = scaled[inner_index]
+                if hypot(position[0] - inner_position[0],
+                         position[1] - inner_position[1]) < 1e-10:
+                    remove.append(index)
+
+        del cutting_board[remove]
+
+        cutting_board.set_scaled_positions(
+            cutting_board.get_scaled_positions())
+
+    remove_doubles()
+    cutting_board.translate((0.1, 0.1, 0))
+    remove_doubles()
+
+    cell *= a / (2 ** (0.5))
+    cutting_board.set_cell(cell, scale_atoms=True)
+    cutting_board.adsorbate_info = {}
+
+    cutting_board *= (size[0], size[1], 1)
+    cutting_board.center(axis=2, vacuum=vacuum)
+
+    return cutting_board

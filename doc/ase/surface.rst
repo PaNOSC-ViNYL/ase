@@ -117,6 +117,7 @@ diamond100  |diamond100|
 
 
 .. function:: fcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
+.. function:: fcc111_root(symbol, root, size, a=None, vacuum=0.0, orthogonal=False, search_space=(20, 20))
 .. function:: fcc211(symbol, size, a=None, vacuum=0.0, orthogonal=True)
 .. function:: bcc110(symbol, size, a=None, vacuum=0.0, orthogonal=False)
 .. function:: bcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
@@ -127,6 +128,7 @@ These can give both non-orthorhombic and orthorhombic cells:
 
 ==========  ===============  ===============
 fcc111      |fcc111|         |fcc111o|
+fcc111_root varies on root   not_implemented
 fcc211      not implemented  |fcc211o|
 bcc110      |bcc110|         |bcc110o|
 bcc111      |bcc111|         |bcc111o|
