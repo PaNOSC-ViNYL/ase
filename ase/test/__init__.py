@@ -46,7 +46,9 @@ class ScriptTestCase(unittest.TestCase):
 
     def testfile(self):
         try:
-            exec(compile(open(self.filename).read(), self.filename, 'exec'), {'display': self.display})
+            with open(self.filename) as fd:
+                exec(compile(fd.read(), self.filename, 'exec'),
+                     {'display': self.display})
         except KeyboardInterrupt:
             raise RuntimeError('Keyboard interrupt')
         except ImportError as ex:
