@@ -126,15 +126,15 @@ diamond100  |diamond100|
 
 These can give both non-orthorhombic and orthorhombic cells:
 
-==========  ===============  ===============
-fcc111      |fcc111|         |fcc111o|
-fcc111_root varies on root   not_implemented
-fcc211      not implemented  |fcc211o|
-bcc110      |bcc110|         |bcc110o|
-bcc111      |bcc111|         |bcc111o|
-hcp0001     |hcp0001|        |hcp0001o|
-diamond111  |diamond111|     not implemented
-==========  ===============  ===============
+===========  ===============  ===============
+fcc111       |fcc111|         |fcc111o|
+fcc111_root  varies on root   not_implemented
+fcc211       not implemented  |fcc211o|
+bcc110       |bcc110|         |bcc110o|
+bcc111       |bcc111|         |bcc111o|
+hcp0001      |hcp0001|        |hcp0001o|
+diamond111   |diamond111|     not implemented
+===========  ===============  ===============
 
 The adsorption sites are marked with:
 
