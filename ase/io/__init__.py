@@ -607,7 +607,7 @@ def filetype(filename):
     if filename.startswith('pg://'):
         return 'postgresql'
 
-    fileobj = open(filename, 'brU')
+    fileobj = open(filename, 'rb')
     s3 = fileobj.read(3)
     if len(s3) == 0:
         raise IOError('Empty file: ' + filename)

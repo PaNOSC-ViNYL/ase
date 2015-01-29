@@ -21,11 +21,13 @@ class AdsorbateOperator(OffspringCreator):
     @classmethod
     def initialize_individual(cls, parent, indi=None):
         indi = OffspringCreator.initialize_individual(parent, indi=indi)
-        if 'unrelaxed_adsorbates' in parent.info['key_value_pairs']:
-            unrelaxed = parent.info['key_value_pairs']['unrelaxed_adsorbates']
+        if 'unrelaxed_adsorbates' in parent.info['data']:
+            unrelaxed = parent.info['data']['unrelaxed_adsorbates']
         else:
             unrelaxed = []
-        indi.info['key_value_pairs']['unrelaxed_adsorbates'] = unrelaxed
+        indi.info['data']['unrelaxed_adsorbates'] = unrelaxed
+        
+        return indi
         
     def get_new_individual(self, parents):
         raise NotImplementedError
@@ -78,7 +80,7 @@ class AdsorbateOperator(OffspringCreator):
         # There it should also reset the parameter to [], to indicate
         # that the adsorbates have been relaxed.
         ads_indices = sorted([len(atoms) - k - 1 for k in range(len(ads))])
-        atoms.info['key_value_pairs']['unrelaxed_adsorbates'] = ads_indices
+        atoms.info['data']['unrelaxed_adsorbates'].append(ads_indices)
 
         return True
 

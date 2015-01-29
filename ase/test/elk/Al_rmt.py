@@ -23,7 +23,7 @@ for name in ['Al']:
         if line.find("'" + name + "'") > -1:
             begline = n - 1
     for n, line in enumerate(slines[begline:]):
-        if not line.strip(): # first empty line
+        if not line.strip():  # first empty line
             endline = n
             found = True
             break

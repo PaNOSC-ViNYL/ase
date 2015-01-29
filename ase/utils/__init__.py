@@ -14,8 +14,8 @@ if sys.version_info[0] == 3:
     exec_ = getattr(builtins, 'exec')
     basestring = str
 else:
-    def exec_(code, globals):
-        exec('exec code in globals')
+    def exec_(code, dct):
+        exec('exec code in dct')
     basestring = basestring
     
 

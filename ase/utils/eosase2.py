@@ -177,7 +177,7 @@ class EquationOfStateASE2:
         eV/Angstrom^3 - to get the value in GPa, do this::
 
           v0, e0, B = eos.fit()
-          print B / kJ * 1.0e24, 'GPa'
+          print(B / kJ * 1.0e24, 'GPa')
 
         """
 

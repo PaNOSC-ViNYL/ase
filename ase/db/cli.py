@@ -164,7 +164,7 @@ def run(opts, args, verbosity):
                      use_lock_file=not opts.no_lock_file) as con2:
             for dct in con.select(query):
                 kvp = dct.get('key_value_pairs', {})
-                nkvp = -len(kvp)
+                nkvp -= len(kvp)
                 kvp.update(add_key_value_pairs)
                 nkvp += len(kvp)
                 con2.write(dct, data=dct.get('data'), **kvp)

@@ -4,7 +4,7 @@ import ase.io.netcdftrajectory as netcdftrajectory
 
 if not netcdftrajectory.have_nc:
     raise NotAvailable('No NetCDF module available (netCDF4-python, '
-                       'scipy.io.netcdf or ase.io.pupynere)')
+                       'scipy.io.netcdf)')
 
 import os
 from ase import Atom, Atoms

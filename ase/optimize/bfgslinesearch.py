@@ -80,7 +80,7 @@ class BFGSLineSearch(Optimizer):
 
     def read(self):
         self.r0, self.g0, self.e0, self.task, self.H = self.load()
-        self.load_restart = True    
+        self.load_restart = True
 
     def reset(self):
         print('reset')
@@ -93,7 +93,7 @@ class BFGSLineSearch(Optimizer):
 
     def step(self, f):
         atoms = self.atoms
-        from ase.neb import NEB 
+        from ase.neb import NEB
         if isinstance(atoms, NEB):
             raise TypeError('NEB calculations cannot use the BFGSLineSearch'
                             ' optimizer. Use BFGS or another optimizer.')
@@ -136,7 +136,7 @@ class BFGSLineSearch(Optimizer):
             dr = r - r0
             dg = g - g0
             # self.alpha_k can be None!!!
-            if not ((self.alpha_k or 0 > 0 and
+            if not (((self.alpha_k or 0) > 0 and
                      abs(np.dot(g,p0)) - abs(np.dot(g0,p0)) < 0)
                     or self.replay):
                 return
@@ -172,7 +172,7 @@ class BFGSLineSearch(Optimizer):
         self.force_calls += 1
         # Remember that forces are minus the gradient!
         # Scale the problem as SciPy uses I as initial Hessian.
-        f = self.atoms.get_forces().reshape(-1) 
+        f = self.atoms.get_forces().reshape(-1)
         return - f / self.alpha
 
     def replay_trajectory(self, traj):

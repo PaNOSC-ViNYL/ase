@@ -2,26 +2,25 @@ from __future__ import print_function
 """Lattice data - Face Centered Cubic"""
 
 import numpy as np
-from math import sqrt
-from .symmetry import *
+from ase.cluster.data.symmetry import *
 
-#Definition of symmetries
-basesymmetries = [np.matrix([[-1, 0, 0],  #Mirror x-axis
+# Definition of symmetries
+basesymmetries = [np.matrix([[-1, 0, 0],  # Mirror x-axis
                              [0, 1, 0],
                              [0, 0, 1]]),
-                  np.matrix([[1, 0, 0],   #Mirror y-axis
+                  np.matrix([[1, 0, 0],   # Mirror y-axis
                              [0, -1, 0],
                              [0, 0, 1]]),
-                  np.matrix([[1, 0, 0],   #Mirror z-axis
+                  np.matrix([[1, 0, 0],   # Mirror z-axis
                              [0, 1, 0],
                              [0, 0, -1]]),
-                  np.matrix([[1, 0, 0],   #Rotation x-axis (4-fold)
+                  np.matrix([[1, 0, 0],   # Rotation x-axis (4-fold)
                              [0, 0, -1],
                              [0, 1, 0]]),
-                  np.matrix([[0, 0, -1],  #Rotation y-axis (4-fold)
+                  np.matrix([[0, 0, -1],  # Rotation y-axis (4-fold)
                              [0, 1, 0],
                              [1, 0, 0]]),
-                  np.matrix([[0, 1, 0],   #Rotation z-axis (4-fold)
+                  np.matrix([[0, 1, 0],   # Rotation z-axis (4-fold)
                              [-1, 0, 0],
                              [0, 0, 1]]),
                   np.matrix([[0, 0, 1],   #Rotation (111)-axis (3-fold)

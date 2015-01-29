@@ -393,16 +393,16 @@ class Rich2poorPermutation(_NeighborhoodPermutation):
         return (self.finalize_individual(indi),
                 self.descriptor + ': {0}'.format(f.info['confid']))
         
-        @classmethod
-        def mutate(cls, atoms, elements):
-            _NP = _NeighborhoodPermutation
-            ac = atoms.copy()
-            del atoms[[atom.index for atom in ac
-                       if atom.symbol not in elements]]
-            permuts = _NP.get_possible_poor2rich_permutations(ac,
-                                                              inverse=True)
-            swap = random.choice(permuts)
-            Mutation.interchange2(atoms, *swap)
+    @classmethod
+    def mutate(cls, atoms, elements):
+        _NP = _NeighborhoodPermutation
+        ac = atoms.copy()
+        del atoms[[atom.index for atom in ac
+                   if atom.symbol not in elements]]
+        permuts = _NP.get_possible_poor2rich_permutations(ac,
+                                                          inverse=True)
+        swap = random.choice(permuts)
+        Mutation.interchange2(atoms, *swap)
 
 
 class SymmetricSubstitute(Mutation):

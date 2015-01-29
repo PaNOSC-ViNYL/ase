@@ -427,7 +427,7 @@ class ColorWindow(gtk.Window):
         elif self.colormode == 'coordination':
             oldcolors = np.array([None] * len(self.actual_colordata))
             oldcolors[:] = [y for x, y in self.actual_colordata]
-            print self.gui.images.bonds
+            print(self.gui.images.bonds)
         elif self.colormode == 'same':
             oldcolor = self.actual_colordata[0][1]
             if len(colors) == len(oldcolor):

@@ -1,8 +1,8 @@
 """Structure data - Hexagonal Closed Packed"""
 
 import numpy as np
-from math import sqrt
-from .symmetry import *
+from ase.cluster.data.symmetry import *
+
 
 #Definition of symmetries (in hcp basis)
 basesymmetries = [np.matrix([[1, 0, 0],   #Mirror y-axis
@@ -60,7 +60,7 @@ neighbor_names = [(1,0,0), (-1,0,0),
                   (1.0/3.0,2.0/3.0,-1.0/2.0), (1.0/3.0,-1.0/3.0,-1.0/2.0), (-2.0/3.0,-1.0/3.0,-1.0/2.0),
                   (2.0/3.0,1.0/3.0,1.0/2.0), (-1.0/3.0,-2.0/3.0,1.0/2.0), (-1.0/3.0,1.0/3.0,1.0/2.0),
                   (2.0/3.0,1.0/3.0,-1.0/2.0), (-1.0/3.0,-2.0/3.0,-1.0/2.0), (-1.0/3.0,1.0/3.0,-1.0/2.0),
-                  ] 
+                  ]
 
 neighbor_numbers = {}
 for i, n in enumerate(neighbor_names):
@@ -71,7 +71,7 @@ neighbor_positions = np.array(neighbor_names, dtype=float)
 neighbor_cutoff = 1.2
 neighbor_count = 16
 
-neighbor_mapping = {0:1, 1:0, 2:3, 3:2, 4:5, 5:4, 
+neighbor_mapping = {0:1, 1:0, 2:3, 3:2, 4:5, 5:4,
                     6:16, 7:17, 8:15, 9:13, 10:14, 11:12,
                     12:11, 13:9, 14:10, 15:8, 16:6, 17:7,
                     }
