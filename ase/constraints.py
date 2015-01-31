@@ -333,9 +333,9 @@ class FixedMode(FixConstraint):
 
 
 class FixedPlane(FixConstraintSingle):
-    """Constrain an atom *a* to move in a given plane only.
+    """Constrain an atom index *a* to move in a given plane only.
 
-    The plane is defined by its normal: *direction*."""
+    The plane is defined by its normal vector *direction*."""
 
     def __init__(self, a, direction):
         self.a = a
@@ -356,9 +356,9 @@ class FixedPlane(FixConstraintSingle):
 
 
 class FixedLine(FixConstraintSingle):
-    """Constrain an atom *a* to move on a given line only.
+    """Constrain an atom index *a* to move on a given line only.
 
-    The line is defined by its *direction*."""
+    The line is defined by its vector *direction*."""
 
     def __init__(self, a, direction):
         self.a = a
@@ -380,7 +380,7 @@ class FixedLine(FixConstraintSingle):
 
 
 class FixCartesian(FixConstraintSingle):
-    'Fix an atom in the directions of the cartesian coordinates.'
+    'Fix an atom index *a* in the directions of the cartesian coordinates.'
     def __init__(self, a, mask=(1, 1, 1)):
         self.a = a
         self.mask = -(np.array(mask) - 1)
@@ -401,7 +401,7 @@ class FixCartesian(FixConstraintSingle):
 
 
 class FixScaled(FixConstraintSingle):
-    'Fix an atom in the directions of the unit vectors.'
+    'Fix an atom index *a* in the directions of the unit vectors.'
     def __init__(self, cell, a, mask=(1, 1, 1)):
         self.cell = cell
         self.a = a
