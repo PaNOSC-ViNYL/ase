@@ -776,6 +776,9 @@ class MinModeAtoms:
         else:
             return getattr(self.atoms, attr)
 
+    def __len__(self):
+        return len(self.atoms)
+        
     def displace(self, displacement_vector=None, mask=None, method=None,
                  displacement_center=None, radius=None, number_of_atoms=None,
                  gauss_std=None, mic=True, log=True):
