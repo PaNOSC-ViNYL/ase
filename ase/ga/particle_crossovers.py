@@ -57,29 +57,35 @@ class CutSpliceCrossover(Crossover):
         f.translate(-f.get_center_of_mass())
         m.translate(-m.get_center_of_mass())
         
-        # Get the signed distance to the cutting plane
-        # We want one side from f and the other side from m
-        fmap = [np.dot(x, e) for x in f.get_positions()]
-        mmap = [-np.dot(x, e) for x in m.get_positions()]
-        ain = sorted([i for i in chain(fmap, mmap) if i > 0], reverse=True)
-        aout = sorted([i for i in chain(fmap, mmap) if i < 0], reverse=True)
-        
-        off = len(ain) - len(f)
-        
-        # Translating f and m to get the correct number of atoms
-        # in the offspring
-        if off < 0:
-            # too few
-            # move f and m away from the plane
-            dist = abs(aout[abs(off) - 1]) + eps
-            f.translate(e * dist)
-            m.translate(-e * dist)
-        elif off > 0:
-            # too many
-            # move f and m towards the plane
-            dist = abs(ain[-abs(off)]) + eps
-            f.translate(-e * dist)
-            m.translate(e * dist)
+        off = 1
+        while off != 0:
+            
+            # Get the signed distance to the cutting plane
+            # We want one side from f and the other side from m
+            fmap = [np.dot(x, e) for x in f.get_positions()]
+            mmap = [-np.dot(x, e) for x in m.get_positions()]
+            ain = sorted([i for i in chain(fmap, mmap) if i > 0],
+                         reverse=True)
+            aout = sorted([i for i in chain(fmap, mmap) if i < 0],
+                          reverse=True)
+
+            off = len(ain) - len(f)
+
+            # Translating f and m to get the correct number of atoms
+            # in the offspring
+            if off < 0:
+                # too few
+                # move f and m away from the plane
+                dist = abs(aout[abs(off) - 1]) + eps
+                f.translate(e * dist)
+                m.translate(-e * dist)
+            elif off > 0:
+                # too many
+                # move f and m towards the plane
+                dist = abs(ain[-abs(off)]) + eps
+                f.translate(-e * dist)
+                m.translate(e * dist)
+            eps *= .2
 
         # Determine the contributing parts from f and m
         tmpf, tmpm = Atoms(), Atoms()
@@ -92,17 +98,12 @@ class CutSpliceCrossover(Crossover):
                 atom.tag = 2
                 tmpm.append(atom)
 
-        # if len(tmpf + tmpm) != len(f):
-        #     print e, dist, len(tmpf), len(tmpm), len(f)
-        #     write('error.traj', tmpf + tmpm)
-        #     write('f.traj', f)
-        #     write('m.traj', m)
-        #     sys.exit()
-        
         # Check that the correct composition is employed
         if self.keep_composition:
             opt_sm = sorted(f.numbers)
-            cur_sm = sorted(list(tmpf.numbers) + list(tmpm.numbers))
+            tmpf_numbers = list(tmpf.numbers)
+            tmpm_numbers = list(tmpm.numbers)
+            cur_sm = sorted(tmpf_numbers + tmpm_numbers)
             # correct_by: dictionary that specifies how many
             # of the atom_numbers should be removed (a negative number)
             # or added (a positive number)
@@ -144,6 +145,15 @@ class CutSpliceCrossover(Crossover):
                 self.descriptor + ': {0} {1}'.format(f.info['confid'],
                                                      m.info['confid']))
 
+    def get_numbers(self, atoms):
+        """Returns the atomic numbers of the atoms object using only
+        the elements defined in self.elements"""
+        ac = atoms.copy()
+        if self.elements is not None:
+            del ac[[a.index for a in ac
+                    if a.symbol in self.elements]]
+        return ac.numbers
+        
     def get_vectors_below_min_dist(self, atoms):
         """Generator function that returns each vector (between atoms)
         that is shorter than the minimum distance for those atom types

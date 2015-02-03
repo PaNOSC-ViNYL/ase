@@ -2,6 +2,8 @@
 of a particle or given structure, using a supplied list of sites."""
 import numpy as np
 import random
+from itertools import chain
+
 from ase import Atoms, Atom
 from ase.structure import molecule
 from ase.ga.offspring_creator import OffspringCreator
@@ -16,13 +18,14 @@ class AdsorbateOperator(OffspringCreator):
     def __init__(self, adsorbate):
         OffspringCreator.__init__(self)
         self.adsorbate = self.convert_adsorbate(adsorbate)
+        self.adsorbate_set = set(self.adsorbate.get_chemical_symbols())
         self.descriptor = 'AdsorbateOperator'
 
     @classmethod
     def initialize_individual(cls, parent, indi=None):
         indi = OffspringCreator.initialize_individual(parent, indi=indi)
         if 'unrelaxed_adsorbates' in parent.info['data']:
-            unrelaxed = parent.info['data']['unrelaxed_adsorbates']
+            unrelaxed = list(parent.info['data']['unrelaxed_adsorbates'])
         else:
             unrelaxed = []
         indi.info['data']['unrelaxed_adsorbates'] = unrelaxed
@@ -81,6 +84,8 @@ class AdsorbateOperator(OffspringCreator):
         # that the adsorbates have been relaxed.
         ads_indices = sorted([len(atoms) - k - 1 for k in range(len(ads))])
         atoms.info['data']['unrelaxed_adsorbates'].append(ads_indices)
+        
+        # site['occupied'] = 1
 
         return True
 
@@ -99,7 +104,7 @@ class AdsorbateOperator(OffspringCreator):
                     return False
                 print('removal not possible will add instead')
                 return self.add_adsorbate(atoms, sites_list)
-        sites_list[i]['occupied'] = False
+        # sites_list[i]['occupied'] = 0
         site = sites_list[i]
 
         ## Make the correct position
@@ -110,40 +115,63 @@ class AdsorbateOperator(OffspringCreator):
         ads_ind = self.get_adsorbate_indices(atoms, pos)
         ads_ind.sort(reverse=True)
 
+        len_ads = len(self.adsorbate)
+        if len(ads_ind) != len_ads:
+            print('removing other than {0}'.format(len_ads), ads_ind, pos)
+            print(atoms.info)
+            random.shuffle(sites_list)
+            return self.remove_adsorbate(atoms, sites_list, for_move=for_move)
         # print('removing', ads_ind, [atoms[j].symbol for j in ads_ind], pos)
         for k in ads_ind:
             atoms.pop(k)
 
         return True
 
+    def get_all_adsorbate_indices(self, atoms):
+        ac = atoms.copy()
+        ads_ind = [a.index for a in ac
+                   if a.symbol in self.adsorbate_set]
+        mbl = 1.5  # max_bond_length
+        nl = aseNeighborList([mbl / 2. for i in ac],
+                             skin=0.0, self_interaction=False)
+        nl.update(ac)
+
+        adsorbates = []
+        while len(ads_ind) != 0:
+            i = int(ads_ind[0])
+            mol_ind = self._get_indices_in_adsorbate(ac, nl, i)
+            for ind in mol_ind:
+                ads_ind.remove(int(ind))
+            adsorbates.append(sorted(mol_ind))
+        return adsorbates
+
     def get_adsorbate_indices(self, atoms, position):
         """Returns the indices of the adsorbate at the supplied position"""
         dmin = 1000.
         for a in atoms:
-            d = np.linalg.norm(a.position - position)
-            if d < dmin:
-                dmin = d
-                ind = a.index
+            if a.symbol in self.adsorbate_set:
+                d = np.linalg.norm(a.position - position)
+                if d < dmin:
+                    dmin = d
+                    ind = a.index
 
-        mbl = 1.5  # max_bond_length
-        nl = aseNeighborList([mbl / 2. for i in atoms],
-                             skin=0.0, self_interaction=False)
-        nl.update(atoms)
-
-        return list(set(self._get_indices_in_adsorbate(atoms, nl, ind, [])))
-
+        for ads in self.get_all_adsorbate_indices(atoms):
+            if ind in ads:
+                return ads[:]
+        
     def _get_indices_in_adsorbate(self, atoms, neighborlist,
-                                  index, molecule_indices=[]):
+                                  index, molecule_indices=None):
         """Internal recursive function that help
         determine adsorbate indices"""
+        if molecule_indices is None:
+            molecule_indices = []
         mi = molecule_indices
         nl = neighborlist
         mi.append(index)
         neighbors, _ = nl.get_neighbors(index)
-        ads_syms = self.adsorbate.copy().get_chemical_symbols()
         for n in neighbors:
             if int(n) not in mi:
-                if atoms[int(n)].symbol in ads_syms:
+                if atoms[int(n)].symbol in self.adsorbate_set:
                     mi = self._get_indices_in_adsorbate(atoms, nl, n, mi)
         return mi
 
@@ -151,9 +179,9 @@ class AdsorbateOperator(OffspringCreator):
         """Returns True if the site on the atoms object is occupied by
         creating a sphere of radius min_adsorbate_distance and checking
         that no other adsorbate is inside the sphere."""
-        if site['occupied'] == 1:
-            return True
-        ads = self.adsorbate.get_chemical_symbols()
+        # if site['occupied']:
+        #     return True
+        ads = self.adsorbate_set
         height = site['height']
         normal = np.array(site['normal'])
         pos = np.array(site['adsorbate_position']) + normal * height
@@ -162,7 +190,7 @@ class AdsorbateOperator(OffspringCreator):
         for d in dists:
             if d < min_adsorbate_distance:
                 # print('under min d', d, pos)
-                site['occupied'] = 1
+                # site['occupied'] = 1
                 return True
         return False
 
@@ -219,8 +247,8 @@ class AddAdsorbate(AdsorbateOperator):
         if adsorption_sites is None:
             raise NotImplementedError
         ## Adding 0's to the end of all sites to specify not filled
-        for s in adsorption_sites:
-            s.update({'occupied': 0})
+        # for s in adsorption_sites:
+        #     s.update({'occupied': 0})
         self.adsorption_sites = adsorption_sites
         self.site_preference = site_preference
         self.surface_preference = surface_preference
@@ -237,20 +265,21 @@ class AddAdsorbate(AdsorbateOperator):
         for atom in f:
             indi.append(atom)
 
+        ads_sites = self.adsorption_sites[:]
         for _ in range(self.num_muts):
-            random.shuffle(self.adsorption_sites)
+            random.shuffle(ads_sites)
 
             if self.surface_preference is not None:
                 def func(x):
                     return x['surface'] == self.surface_preference
-                self.adsorption_sites.sort(key=func, reverse=True)
+                ads_sites.sort(key=func, reverse=True)
 
             if self.site_preference is not None:
                 def func(x):
                     return x['site'] == self.site_preference
-                self.adsorption_sites.sort(key=func, reverse=True)
+                ads_sites.sort(key=func, reverse=True)
 
-            added = self.add_adsorbate(indi, self.adsorption_sites,
+            added = self.add_adsorbate(indi, ads_sites,
                                        self.min_adsorbate_distance)
             if not added:
                 break
@@ -272,8 +301,8 @@ class RemoveAdsorbate(AdsorbateOperator):
         if adsorption_sites is None:
             raise NotImplementedError
         # Adding 0's to the end of all sites to specify not filled
-        for s in adsorption_sites:
-            s.update({'occupied': 0})
+        # for s in adsorption_sites:
+        #     s.update({'occupied': 0})
         self.adsorption_sites = adsorption_sites
         self.site_preference = site_preference
         self.surface_preference = surface_preference
@@ -289,20 +318,21 @@ class RemoveAdsorbate(AdsorbateOperator):
         for atom in f:
             indi.append(atom)
 
+        ads_sites = self.adsorption_sites[:]
         for _ in range(self.num_muts):
-            random.shuffle(self.adsorption_sites)
+            random.shuffle(ads_sites)
 
             if self.surface_preference is not None:
                 def func(x):
                     return x['surface'] == self.surface_preference
-                self.adsorption_sites.sort(key=func, reverse=True)
+                ads_sites.sort(key=func, reverse=True)
 
             if self.site_preference is not None:
                 def func(x):
                     return x['site'] == self.site_preference
-                self.adsorption_sites.sort(key=func, reverse=True)
+                ads_sites.sort(key=func, reverse=True)
 
-            removed = self.remove_adsorbate(indi, self.adsorption_sites)
+            removed = self.remove_adsorbate(indi, ads_sites)
 
             if not removed:
                 break
@@ -329,8 +359,8 @@ class MoveAdsorbate(AdsorbateOperator):
         if adsorption_sites is None:
             raise NotImplementedError
         ## Adding 0's to the end of all sites to specify not filled
-        for s in adsorption_sites:
-            s.update({'occupied': 0})
+        # for s in adsorption_sites:
+        #     s.update({'occupied': 0})
         self.adsorption_sites = adsorption_sites
         self.site_preference_from = site_preference_from
         self.surface_preference_from = surface_preference_from
@@ -347,34 +377,35 @@ class MoveAdsorbate(AdsorbateOperator):
 
         for atom in f:
             indi.append(atom)
-
+            
+        ads_sites = self.adsorption_sites[:]
         for _ in range(self.num_muts):
-            random.shuffle(self.adsorption_sites)
+            random.shuffle(ads_sites)
             if self.surface_preference_from is not None:
                 def func(x):
                     return x['surface'] == self.surface_preference_from
-                self.adsorption_sites.sort(key=func, reverse=True)
+                ads_sites.sort(key=func, reverse=True)
 
             if self.site_preference_from is not None:
                 def func(x):
                     return x['site'] == self.site_preference_from
-                self.adsorption_sites.sort(key=func, reverse=True)
+                ads_sites.sort(key=func, reverse=True)
 
-            removed = self.remove_adsorbate(indi, self.adsorption_sites,
+            removed = self.remove_adsorbate(indi, ads_sites,
                                             for_move=True)
 
-            random.shuffle(self.adsorption_sites)
+            random.shuffle(ads_sites)
             if self.surface_preference_to is not None:
                 def func(x):
                     return x['surface'] == self.surface_preference_to
-                self.adsorption_sites.sort(key=func, reverse=True)
+                ads_sites.sort(key=func, reverse=True)
 
             if self.site_preference_to is not None:
                 def func(x):
                     return x['site'] == self.site_preference_to
-                self.adsorption_sites.sort(key=func, reverse=True)
+                ads_sites.sort(key=func, reverse=True)
 
-            added = self.add_adsorbate(indi, self.adsorption_sites,
+            added = self.add_adsorbate(indi, ads_sites,
                                        self.min_adsorbate_distance)
 
             if (not removed) or (not added):
@@ -382,3 +413,201 @@ class MoveAdsorbate(AdsorbateOperator):
 
         return (self.finalize_individual(indi),
                 self.descriptor + ': {0}'.format(f.info['confid']))
+
+        
+class CutSpliceCrossoverWithAdsorbates(AdsorbateOperator):
+    """Crossover that cuts two particles through a plane in space and
+    merges two halfes from different particles together.
+
+    Implementation of the method presented in:
+    D. M. Deaven and K. M. Ho, Phys. Rev. Lett., 75, 2, 288-291 (1995)
+
+    It keeps the correct composition by randomly assigning elements in
+    the new particle. If some of the atoms in the two particle halves
+    are too close, the halves are moved away from each other perpendicular
+    to the cutting plane.
+
+    Parameters:
+
+    adsorbate: str or Atoms object
+        specifies the type of adsorbate, it will not be taken into account
+        when keeping the correct size and composition
+    
+    blmin: dictionary of minimum distance between atomic numbers.
+        e.g. {(28,29): 1.5}
+    
+    keep_composition: boolean that signifies if the composition should
+        be the same as in the parents.
+    """
+    def __init__(self, adsorbate, blmin, keep_composition=True):
+        AdsorbateOperator.__init__(self, adsorbate)
+        self.blmin = blmin
+        self.keep_composition = keep_composition
+        self.descriptor = 'CutSpliceCrossoverWithAdsorbates'
+        
+    def get_new_individual(self, parents):
+        f, m = parents
+        
+        indi = self.initialize_individual(f)
+        indi.info['data']['parents'] = [i.info['confid'] for i in parents]
+        
+        theta = random.random() * 2 * np.pi  # 0,2pi
+        phi = random.random() * np.pi  # 0,pi
+        e = np.array((np.sin(phi) * np.cos(theta),
+                      np.sin(theta) * np.sin(phi),
+                      np.cos(phi)))
+        eps = 0.0001
+        
+        # Move each particle to origo with their respective geometrical
+        # centers, without adsorbates
+        fna = self.get_atoms_without_adsorbates(f)
+        mna = self.get_atoms_without_adsorbates(m)
+        fna_geo_mid = np.average(fna.get_positions(), 0)
+        mna_geo_mid = np.average(mna.get_positions(), 0)
+        common_mid = (fna_geo_mid + mna_geo_mid) / 2.
+        f.translate(-common_mid)
+        m.translate(-common_mid)
+        
+        off = 1
+        while off != 0:
+            fna = self.get_atoms_without_adsorbates(f)
+            mna = self.get_atoms_without_adsorbates(m)
+
+            # Get the signed distance to the cutting plane
+            # We want one side from f and the other side from m
+            fmap = [np.dot(x, e) for x in fna.get_positions()]
+            mmap = [-np.dot(x, e) for x in mna.get_positions()]
+            ain = sorted([i for i in chain(fmap, mmap) if i > 0],
+                         reverse=True)
+            aout = sorted([i for i in chain(fmap, mmap) if i < 0],
+                          reverse=True)
+
+            off = len(ain) - len(fna)
+
+            # Translating f and m to get the correct number of atoms
+            # in the offspring
+            if off < 0:
+                # too few
+                # move f and m away from the plane
+                dist = abs(aout[abs(off) - 1]) + eps
+                f.translate(e * dist)
+                m.translate(-e * dist)
+            elif off > 0:
+                # too many
+                # move f and m towards the plane
+                dist = abs(ain[-abs(off)]) + eps
+                f.translate(-e * dist)
+                m.translate(e * dist)
+            eps /= 5.
+
+        fna = self.get_atoms_without_adsorbates(f)
+        mna = self.get_atoms_without_adsorbates(m)
+        
+        # Determine the contributing parts from f and m
+        tmpf, tmpm = Atoms(), Atoms()
+        for atom in fna:
+            if np.dot(atom.position, e) > 0:
+                atom.tag = 1
+                tmpf.append(atom)
+        for atom in mna:
+            if np.dot(atom.position, e) < 0:
+                atom.tag = 2
+                tmpm.append(atom)
+
+        # Place adsorbates from f and m in tmpf and tmpm
+        f_ads = self.get_all_adsorbate_indices(f)
+        m_ads = self.get_all_adsorbate_indices(m)
+        for ads in f_ads:
+            if np.dot(f[ads[0]].position, e) > 0:
+                for i in ads:
+                    f[i].tag = 1
+                    tmpf.append(f[i])
+        for ads in m_ads:
+            if np.dot(m[ads[0]].position, e) < 0:
+                for i in ads:
+                    m[i].tag = 2
+                    tmpf.append(m[i])
+                
+        tmpfna = self.get_atoms_without_adsorbates(tmpf)
+        tmpmna = self.get_atoms_without_adsorbates(tmpm)
+                
+        # Check that the correct composition is employed
+        if self.keep_composition:
+            opt_sm = sorted(fna.numbers)
+            tmpf_numbers = list(tmpfna.numbers)
+            tmpm_numbers = list(tmpmna.numbers)
+            cur_sm = sorted(tmpf_numbers + tmpm_numbers)
+            # correct_by: dictionary that specifies how many
+            # of the atom_numbers should be removed (a negative number)
+            # or added (a positive number)
+            correct_by = dict([(j, opt_sm.count(j)) for j in set(opt_sm)])
+            for n in cur_sm:
+                correct_by[n] -= 1
+            correct_in = random.choice([tmpf, tmpm])
+            to_add, to_rem = [], []
+            for num, amount in correct_by.items():
+                if amount > 0:
+                    to_add.extend([num] * amount)
+                elif amount < 0:
+                    to_rem.extend([num] * abs(amount))
+            for add, rem in zip(to_add, to_rem):
+                tbc = [a.index for a in correct_in if a.number == rem]
+                if len(tbc) == 0:
+                    pass
+                ai = random.choice(tbc)
+                correct_in[ai].number = add
+                
+        # Move the contributing apart if any distance is below blmin
+        maxl = 0.
+        for sv, min_dist in self.get_vectors_below_min_dist(tmpf + tmpm):
+            lsv = np.linalg.norm(sv)  # length of shortest vector
+            d = [-np.dot(e, sv)] * 2
+            d[0] += np.sqrt(np.dot(e, sv)**2 - lsv**2 + min_dist**2)
+            d[1] -= np.sqrt(np.dot(e, sv)**2 - lsv**2 + min_dist**2)
+            l = sorted([abs(i) for i in d])[0] / 2. + eps
+            if l > maxl:
+                maxl = l
+        tmpf.translate(e * maxl)
+        tmpm.translate(-e * maxl)
+        
+        # Translate particles halves back to the center
+        tmpf.translate(common_mid)
+        tmpm.translate(common_mid)
+
+        # Put the two parts together
+        for atom in chain(tmpf, tmpm):
+            indi.append(atom)
+
+        return (self.finalize_individual(indi),
+                self.descriptor + ': {0} {1}'.format(f.info['confid'],
+                                                     m.info['confid']))
+
+    def get_numbers(self, atoms):
+        """Returns the atomic numbers of the atoms object
+        without adsorbates"""
+        ac = atoms.copy()
+        del ac[[a.index for a in ac
+                if a.symbol in self.adsorbate_set]]
+        return ac.numbers
+        
+    def get_atoms_without_adsorbates(self, atoms):
+        ac = atoms.copy()
+        del ac[[a.index for a in ac
+                if a.symbol in self.adsorbate_set]]
+        return ac
+        
+    def get_vectors_below_min_dist(self, atoms):
+        """Generator function that returns each vector (between atoms)
+        that is shorter than the minimum distance for those atom types
+        (set during the initialization in blmin)."""
+        ap = atoms.get_positions()
+        an = atoms.numbers
+        for i in range(len(atoms)):
+            pos = atoms[i].position
+            f = lambda x: np.linalg.norm(x - pos)
+            for j, d in enumerate([f(k) for k in ap[i:]]):
+                if d == 0:
+                    continue
+                min_dist = self.blmin[tuple(sorted((an[i], an[j + i])))]
+                if d < min_dist:
+                    yield atoms[i].position - atoms[j + i].position, min_dist
