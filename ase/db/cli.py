@@ -7,16 +7,11 @@ from ase.db import connect
 from ase.db.summary import Summary
 from ase.db.table import Table, all_columns
 from ase.calculators.calculator import get_calculator
+from ase.utils import plural
 
 import numpy as np
 
 
-def plural(n, word):
-    if n == 1:
-        return '1 ' + word
-    return '%d %ss' % (n, word)
-
-    
 description = """Selecton is a comma-separated list of
 selections where each selection is of the type "ID", "key" or
 "key=value".  Instead of "=", one can also use "<", "<=", ">=", ">"

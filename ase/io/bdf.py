@@ -1,0 +1,341 @@
+from __future__ import print_function
+"""
+
+File layout::
+    
+    0: "BinaryDF" (magic prefix, ascii)
+    8: "........" (tag, ascii)
+    16: version (int64)
+    24: nitems (int64)
+    32: 40 (position of offsets, int64)
+    40: p0 (offset to json data, int64)
+    48: array1, array2, ... (8-byte aligned ndarrays)
+    p0: n (length of json data, int64)
+    p0+8: json data
+    p0+8+n: EOF
+
+"""
+
+# ordereddict, endianness, todict?
+
+import optparse
+
+import numpy as np
+
+from ase.db.jsondb import encode, decode
+from ase.utils import plural
+
+
+VERSION = 1
+N1 = 42  # block size - max number of items: 1, N1, N1*N1, N1*N1*N1, ...
+
+
+def bdfopen(filename, mode='r', index=None):
+    if mode == 'r':
+        return Reader(filename, index or 0)
+    if mode not in 'wa':
+        2 / 0
+    assert index is None
+    return Writer(filename, mode)
+
+
+def align(fd):
+    """Advance file descriptor to 8 byte alignment and return position."""
+    pos = fd.tell()
+    r = pos % 8
+    if r == 0:
+        return pos
+    fd.write(b'#' * (8 - r))
+    return pos + 8 - r
+
+
+def writeint(fd, n, pos=None):
+    """Write 64 bit integer n at pos or current position."""
+    if pos is not None:
+        fd.seek(pos)
+    np.array(n, np.int64).tofile(fd)
+    
+
+class Writer:
+    def __init__(self, fd, mode='w', data=None):
+        """Create writer object.
+
+        The data dictionary holds:
+
+        * data for type bool, int, float, complex and str
+        * shape and dtype for ndarrays
+
+        Other objects must have a write() method and a static
+        read() method."""
+
+        assert np.little_endian
+        
+        if data is None:
+            data = {}
+            if mode == 'w':
+                self.nitems = 0
+                self.pos0 = 40
+                self.offsets = np.array([-1], np.int64)
+
+                fd = open(fd, 'wb')
+            
+                # Write file format identifier:
+                fd.write(b'BinaryDF........')
+                np.array([VERSION, self.nitems, self.pos0],
+                         np.int64).tofile(fd)
+                self.offsets.tofile(fd)
+            elif mode == 'a':
+                fd = open(fd, 'r+b')
+            
+                version, self.nitems, self.pos0, offsets = read_header(fd)[1:]
+                assert version == VERSION
+                n = 1
+                while self.nitems > n:
+                    n *= N1
+                padding = np.zeros(n - self.nitems, np.int64)
+                self.offsets = np.concatenate((offsets, padding))
+                fd.seek(0, 2)
+            else:
+                2 / 0
+            
+        self.fd = fd
+        self.data = data
+        
+        # Shape and dtype of array beeing filled:
+        self.shape = (0,)
+        self.dtype = None
+        
+    def add_array(self, name, shape, dtype=float):
+        if isinstance(shape, int):
+            shape = (shape,)
+            
+        i = align(self.fd)
+        
+        self.data[name + '.'] = {'ndarray':
+                                 (shape,
+                                  np.dtype(dtype).name,
+                                  i)}
+            
+        assert self.shape[0] == 0, 'last array not done'
+        
+        self.dtype = dtype
+        self.shape = shape
+        
+    def fill(self, a):
+        assert a.dtype == self.dtype
+        if a.shape[1:] == self.shape[1:]:
+            assert a.shape[0] <= self.shape[0]
+            self.shape = (self.shape[0] - a.shape[0],) + self.shape[1:]
+        else:
+            assert a.shape == self.shape[1:]
+            self.shape = (self.shape[0] - 1,) + self.shape[1:]
+        assert self.shape[0] >= 0
+            
+        a.tofile(self.fd)
+
+    def sync(self):
+        """Write data dictionary.
+
+        Write bool, int, float, complex and str data, shapes and
+        dtypes for ndarrays and class names for other objects."""
+
+        assert self.shape[0] == 0
+        i = self.fd.tell()
+        s = encode(self.data).encode()
+        writeint(self.fd, len(s))
+        self.fd.write(s)
+        
+        n = len(self.offsets)
+        if self.nitems >= n:
+            offsets = np.zeros(n * N1, np.int64)
+            offsets[:n] = self.offsets
+            self.pos0 = align(self.fd)
+            offsets.tofile(self.fd)
+            writeint(self.fd, self.pos0, 32)
+            self.offsets = offsets
+            
+        self.offsets[self.nitems] = i
+        writeint(self.fd, i, self.pos0 + self.nitems * 8)
+        self.nitems += 1
+        writeint(self.fd, self.nitems, 24)
+        self.fd.flush()
+        self.fd.seek(0, 2)  # end of file
+        self.data = {}
+        
+    def write(self, **kwargs):
+        """Write data.
+
+        Use::
+
+            writer.write(n=7, s='abc', a=np.zeros(3), density=density).
+        """
+        
+        for name, value in kwargs.items():
+            if isinstance(value, (bool, int, float, complex,
+                                  dict, list, tuple, str)):
+                self.data[name] = value
+            elif isinstance(value, np.ndarray):
+                self.add_array(name, value.shape, value.dtype)
+                self.fill(value)
+            else:
+                value.write(self.child(name))
+      
+    def child(self, name):
+        dct = self.data[name + '.'] = {}
+        return Writer(self.fd, data=dct)
+        
+    def close(self):
+        self.sync()
+        self.fd.close()
+        
+        
+def read_header(fd):
+    fd.seek(0)
+    assert fd.read(8) == b'BinaryDF'
+    tag = fd.read(8).decode('ascii')
+    version, nitems, itemoffsets = np.fromfile(fd, np.int64, 3)
+    fd.seek(itemoffsets)
+    offsets = np.fromfile(fd, np.int64, nitems)
+    return tag, version, nitems, itemoffsets, offsets
+
+    
+class Reader:
+    def __init__(self, fd, index=0, data=None):
+        """Create hierarchy of readers.
+
+        Store data as attributes for easy access and to allow for
+        tab-completion."""
+        
+        assert np.little_endian
+
+        if isinstance(fd, str):
+            fd = open(fd, 'rb')
+        
+        self._fd = fd
+        
+        if data is None:
+            (self._tag, self._version, self._nitems, self._pos0,
+             self._offsets) = read_header(fd)
+            data = self._read_data(index)
+
+        self._data = {}
+        for name, value in data.items():
+            if name.endswith('.'):
+                if 'ndarray' in value:
+                    shape, dtype, offset = value['ndarray']
+                    value = NDArrayReader(fd,
+                                          shape,
+                                          np.dtype(dtype),
+                                          offset)
+                else:
+                    value = Reader(self._fd, data=value)
+                name = name[:-1]
+        
+            self._data[name] = value
+            
+    def get_tag(self):
+        return self._tag
+        
+    def __dir__(self):
+        return self._data.keys()  # needed for tab-completion
+
+    def __getattr__(self, attr):
+        value = self._data[attr]
+        if isinstance(value, NDArrayReader):
+            return value.read()
+        return value
+        
+    def get(self, attr, value=None):
+        try:
+            return self[attr]
+        except AttributeError:
+            return value
+            
+    def proxy(self, name):
+        value = self._data[name]
+        assert isinstance(value, NDArrayReader)
+        return value
+
+    def __len__(self):
+        return self._nitems
+        
+    def _read_data(self, index):
+        self._fd.seek(self._offsets[index])
+        size = np.fromfile(self._fd, np.int64, 1)[0]
+        data = decode(self._fd.read(size).decode())
+        return data
+        
+    def __getitem__(self, i):
+        data = self._read_data(i)
+        return Reader(self._fd, data=data)
+        
+    def tostr(self, indent='    '):
+        keys = sorted(self._data)
+        strings = []
+        for key in keys:
+            value = self._data[key]
+            if isinstance(value, NDArrayReader):
+                s = '<ndarray shape={0} dtype={1}>'.format(value.shape,
+                                                           value.dtype)
+            elif isinstance(value, Reader):
+                s = value.tostr(indent + '    ')
+            else:
+                s = repr(value)
+            strings.append('{0}{1}: {2}'.format(indent, key, s))
+        return '{\n' + ',\n'.join(strings) + '}'
+                
+        
+class NDArrayReader:
+    def __init__(self, fd, shape, dtype, offset):
+        self.fd = fd
+        self.shape = tuple(shape)
+        self.dtype = dtype
+        self.offset = offset
+        
+        self.ndim = len(self.shape)
+        self.itemsize = dtype.itemsize
+        self.size = np.prod(self.shape)
+        self.nbytes = self.size * self.itemsize
+        
+    def __len__(self):
+        return self.shape[0]
+        
+    def read(self):
+        return self[:]
+        
+    def __getitem__(self, i):
+        if isinstance(i, int):
+            return self[i:i + 1][0]
+        start, stop, step = i.indices(len(self))
+        offset = self.offset + start * self.nbytes // len(self)
+        self.fd.seek(offset)
+        count = (stop - start) * self.size // len(self)
+        a = np.fromfile(self.fd, self.dtype, count)
+        a.shape = (-1,) + self.shape[1:]
+        if step != 1:
+            return a[::step].copy()
+        return a
+
+        
+def main():
+    parser = optparse.OptionParser(
+        usage='Usage: %prog bdf-file [selection] [options]',
+        description='Show content of bdf-file')
+    
+    add = parser.add_option
+    add('-v', '--verbose', action='store_true')
+    add('-j', '--quiet', action='store_true')
+    opts, args = parser.parse_args()
+
+    if not args:
+        parser.error('No bdf-file given')
+
+    filename = args.pop(0)
+    b = bdfopen(filename)
+    print('{0}: {1}'.format(filename, plural(len(b), 'item')))
+    print(b.tostr())
+
+    
+if __name__ == '__main__':
+    main()
+    

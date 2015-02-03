@@ -5,7 +5,7 @@ from zipfile import is_zipfile
 
 from ase.atoms import Atoms
 from ase.units import Bohr, Hartree
-from ase.io.trajectory import PickleTrajectory
+#from ase.io.trajectory import PickleTrajectory
 from ase.io.bundletrajectory import BundleTrajectory
 from ase.io.netcdftrajectory import NetCDFTrajectory
 from ase.calculators.singlepoint import SinglePointDFTCalculator
