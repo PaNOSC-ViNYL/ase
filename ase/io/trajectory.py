@@ -6,12 +6,6 @@ import pickle
 import warnings
 import collections
 
-# Python 3 stuff:
-try:
-    unicode
-except NameError:
-    unicode = str
-    
 # pass for WindowsError on non-Win platforms
 try:
     WindowsError
@@ -75,10 +69,9 @@ class PickleTrajectory:
         self.numbers = None
         self.pbc = None
         self.sanitycheck = True
-        self.pre_observers = []   # Callback functions before write
+        self.pre_observers = []  # Callback functions before write
         self.post_observers = []  # Callback functions after write
-        self.write_counter = 0    # Counter used to determine when callbacks
-                                  # are called
+        self.write_counter = 0  # used to determine when callbacks are called
 
         self.offsets = []
         if master is None:

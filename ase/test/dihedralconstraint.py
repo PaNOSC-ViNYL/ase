@@ -1,14 +1,21 @@
-from ase.structure import molecule
+import sys
+
 from ase.calculators.emt import EMT
 from ase.constraints import FixInternals
 from ase.optimize.bfgs import BFGS
+from ase.structure import molecule
+from ase.test import NotAvailable
 
+
+if sys.version_info[0] == 3:
+    raise NotAvailable
+    
 system = molecule('CH3CH2OH')
 system.center(vacuum=5.0)
 system.rattle(stdev=0.3)
 
-#Angles, Bonds, Dihedrals are built up with  pairs of constraint 
-#value and indices defining the constraint
+# Angles, Bonds, Dihedrals are built up with  pairs of constraint
+# value and indices defining the constraint
 
 # Fix this dihedral angle to whatever it was from the start
 indices = [6, 0, 1, 2]

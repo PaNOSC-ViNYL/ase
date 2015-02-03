@@ -1,15 +1,19 @@
 """Check that we can read old version 1 PickleTrajectories."""
-import pickle as pickle
+import pickle
+import sys
 from io import BytesIO
 
-import numpy as np
-
-from ase.io.trajectory import PickleTrajectory
-from ase.constraints import FixAtoms
 from ase import Atoms
+from ase.constraints import FixAtoms
+from ase.io.trajectory import PickleTrajectory
+from ase.test import NotAvailable
+
+if sys.version_info[0] == 3:
+    raise NotAvailable
 
 
 a = Atoms('FOO')
+
 
 def v1(a):
     """Create old version-1 trajectory."""
@@ -66,5 +70,3 @@ except UserWarning:
     pass
 else:
     assert False
-
-#assert len(c3) == 0
