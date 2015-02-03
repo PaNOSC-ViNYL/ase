@@ -84,6 +84,9 @@ def main(args=sys.argv[1:]):
     add('-w', '--open-web-browser', action='store_true',
         help='Open results in web-browser.')
     add('--no-lock-file', action='store_true', help="Don't use lock-files")
+    add('--analyse', action='store_true',
+        help='Gathers statistics about tables and indices to help make '
+        'better query planning choices.')
         
     opts, args = parser.parse_args(args)
 
@@ -132,7 +135,11 @@ def run(opts, args, verbosity):
     def out(*args):
         if verbosity > 0:
             print(*args)
-            
+         
+    if opts.analyse:
+        con.analyse()
+        return
+        
     if opts.add_from_file:
         filename = opts.add_from_file
         if ':' in filename:

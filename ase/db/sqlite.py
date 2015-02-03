@@ -437,6 +437,11 @@ class SQLite3Database(Database):
         cur.execute(sql, args)
         return cur.fetchone()[0]
         
+    def analyse(self):
+        con = self._connect()
+        self._initialize(con)
+        con.execute('ANALYZE')
+        
     def _update(self, ids, delete_keys, add_key_value_pairs):
         """Update row(s).
         
