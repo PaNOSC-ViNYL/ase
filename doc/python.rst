@@ -221,7 +221,7 @@ A :term:`class` is defined like this:
 ...         self.c = b
 ...     def m(self, x):
 ...         return self.c * x
-...     def get_c(self)
+...     def get_c(self):
 ...         return self.c
 
 You can think of a class as a template for creating user defined
