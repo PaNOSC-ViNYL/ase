@@ -3,6 +3,7 @@
 # Copyright (C) 2007  CAMP
 # Please see the accompanying LICENSE file for further information.
 
+from __future__ import print_function
 from distutils.core import setup, Command
 from distutils.command.build_py import build_py as _build_py
 from glob import glob
@@ -67,7 +68,7 @@ class test(Command):
         try:
             results = _test(2, calculators, display=False)
             if results.failures or results.errors:
-                print >> sys.stderr, 'Test suite failed'
+                print('Test suite failed', file=sys.stderr)
                 raise SystemExit(len(results.failures) + len(results.errors))
         finally:
             os.chdir(origcwd)
@@ -101,8 +102,8 @@ class build_py(_build_py):
         return _build_py.get_outputs(self, *args, **kwargs) + self.mofiles
 
 # Get the current version number:
-execfile('ase/svnversion_io.py')  # write ase/svnversion.py and get svnversion
-execfile('ase/version.py')        # get version_base
+exec(compile(open('ase/svnversion_io.py').read(), 'ase/svnversion_io.py', 'exec'))  # write ase/svnversion.py and get svnversion
+exec(compile(open('ase/version.py').read(), 'ase/version.py', 'exec'))        # get version_base
 if svnversion and os.name not in ['ce', 'nt']:
     # MSI accepts only version X.X.X
     version = version_base + '.' + svnversion

@@ -32,7 +32,7 @@ def write_vti(filename, atoms, data):
 
     assert np.all(cell==np.diag(cell.diagonal())), 'Unit cell must be orthogonal'
 
-    bbox = np.array(zip(np.zeros(3),cell.diagonal())).ravel()
+    bbox = np.array(list(zip(np.zeros(3),cell.diagonal()))).ravel()
 
     # Create a VTK grid of structured points
     spts = vtkStructuredPoints()
@@ -122,7 +122,7 @@ def write_vtu(filename, atoms, data=None):
 
     assert np.all(cell==np.diag(cell.diagonal())), 'Unit cell must be orthogonal' #TODO bounding box with general unit cell?!
 
-    bbox = np.array(zip(np.zeros(3),cell.diagonal())).ravel()
+    bbox = np.array(list(zip(np.zeros(3),cell.diagonal()))).ravel()
 
     # Create a VTK grid of structured points
     ugd = vtkUnstructuredGrid()

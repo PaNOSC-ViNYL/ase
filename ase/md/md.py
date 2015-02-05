@@ -31,7 +31,7 @@ class MolecularDynamics(Dynamics):
         if not self.atoms.has('momenta'):
             self.atoms.set_momenta(np.zeros_like(f))
 
-        for step in xrange(steps):
+        for step in range(steps):
             f = self.step(f)
             self.nsteps += 1
             self.call_observers()

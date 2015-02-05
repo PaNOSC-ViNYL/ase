@@ -136,7 +136,7 @@ assembled so far::
 This will read through each iteration stored in :file:`history.traj`,
 performing adjustments to the Hessian as appropriate.  Note that these
 steps will not be written to :file:`qn.traj`.  If restarting with more than
-one previous trajectory file, use :command:`ase-gui` to concatenate them
+one previous trajectory file, use :ref:`ase-gui` to concatenate them
 into a single trajectory file first::
 
   $ ase-gui part1.traj part2.traj -o history.traj

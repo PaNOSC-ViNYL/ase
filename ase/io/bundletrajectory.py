@@ -1,3 +1,4 @@
+from __future__ import print_function
 """bundletrajectory - a module for I/O from large MD simulations.
 
 The BundleTrajectory class writes trajectory into a directory with the
@@ -17,14 +18,15 @@ following structure::
         F1 (dir)
 """
 
-import ase.parallel 
+import ase.parallel
 from ase.parallel import paropen
 from ase.calculators.singlepoint import SinglePointCalculator
 import numpy as np
 import os
 import shutil
 import time
-import cPickle as pickle
+import pickle as pickle
+import collections
 
 class BundleTrajectory:
     """Reads and writes atoms into a .bundle directory.
@@ -196,7 +198,7 @@ class BundleTrajectory:
             except (RuntimeError, NotImplementedError):
                 self.datatypes['forces'] = False
             else:
-                self.backend.write(framedir, 'forces', x) 
+                self.backend.write(framedir, 'forces', x)
                 del x
         if datatypes.get('energies'):
             try:
@@ -204,7 +206,7 @@ class BundleTrajectory:
             except (RuntimeError, NotImplementedError):
                 self.datatypes['energies'] = False
             else:
-                self.backend.write(framedir, 'energies', x) 
+                self.backend.write(framedir, 'energies', x)
                 del x
         # Write any extra data
         for (label, source, once) in self.extra_data:
@@ -370,7 +372,7 @@ class BundleTrajectory:
                              % (n, self.nframes))
         framedir = os.path.join(self.filename, 'F' + str(n))
         framezero = os.path.join(self.filename, 'F0')
-        return self._read_data(framezero, framedir, name, self.atom_id) 
+        return self._read_data(framezero, framedir, name, self.atom_id)
 
     def _read_data(self, f0, f, name, atom_id):
         "Read single data item."
@@ -400,7 +402,7 @@ class BundleTrajectory:
         if self.master:
             lfn = os.path.join(self.filename, "log.txt")
         else:
-            lfn = os.path.join(self.filename, ("log-node%d.txt" % 
+            lfn = os.path.join(self.filename, ("log-node%d.txt" %
                                                (ase.parallel.rank,)))
         self.logfile = open(lfn, "a", 1)   # Append to log if it exists.
         if hasattr(self, 'logdata'):
@@ -416,12 +418,12 @@ class BundleTrajectory:
         if os.path.exists(self.filename):
             # The output directory already exists.
             if not self.is_bundle(self.filename):
-                raise IOError("Filename '" + self.filename + 
-                              "' already exists, but is not a BundleTrajectory." + 
+                raise IOError("Filename '" + self.filename +
+                              "' already exists, but is not a BundleTrajectory." +
                               "Cowardly refusing to remove it.")
             ase.parallel.barrier() # All must have time to see it exists.
             if self.is_empty_bundle(self.filename):
-                self.log('Deleting old "%s" as it is empty' % (self.filename,)) 
+                self.log('Deleting old "%s" as it is empty' % (self.filename,))
                 self.delete_bundle(self.filename)
             elif not backup:
                 self.log('Deleting old "%s" as backup is turned off.' % (self.filename,))
@@ -632,7 +634,7 @@ class BundleTrajectory:
 
         All other arguments are stored, and passed to the function.
         """
-        if not callable(function):
+        if not isinstance(function, collections.Callable):
             raise ValueError("Callback object must be callable.")
         self.pre_observers.append((function, interval, args, kwargs))
 
@@ -645,7 +647,7 @@ class BundleTrajectory:
 
         All other arguments are stored, and passed to the function.
         """
-        if not callable(function):
+        if not isinstance(function, collections.Callable):
             raise ValueError("Callback object must be callable.")
         self.post_observers.append((function, interval, args, kwargs))
 
@@ -819,33 +821,34 @@ def write_bundletrajectory(filename, images):
         traj.write(atoms)
     traj.close()
 
+    
 def print_bundletrajectory_info(filename):
     """Prints information about a BundleTrajectory.
 
     Mainly intended to be called from a command line tool.
     """
     if not BundleTrajectory.is_bundle(filename):
-        raise ValueError, "Not a BundleTrajectory!"
+        raise ValueError('Not a BundleTrajectory!')
     if BundleTrajectory.is_empty_bundle(filename):
-        print filename, "is an empty BundleTrajectory."
+        print(filename, 'is an empty BundleTrajectory.')
         return
     # Read the metadata
     f = open(os.path.join(filename, 'metadata'))
     metadata = pickle.load(f)
     f.close()
-    print "Metadata information of BundleTrajectory '%s':" % (filename,)
+    print("Metadata information of BundleTrajectory '%s':" % (filename,))
     for k, v in metadata.items():
         if k != 'datatypes':
-            print "  %s: %s" % (k, v)
+            print("  %s: %s" % (k, v))
     f = open(os.path.join(filename, 'frames'))
     nframes = int(f.read())
-    print "Number of frames: %i" % (nframes,)
-    print "Data types:"
+    print("Number of frames: %i" % (nframes,))
+    print("Data types:")
     for k, v in metadata['datatypes'].items():
         if v == 'once':
-            print "  %s: First frame only." % (k,)
+            print("  %s: First frame only." % (k,))
         elif v:
-            print "  %s: All frames." % (k,)
+            print("  %s: All frames." % (k,))
     # Look at first frame
     if metadata['backend'] == 'pickle':
         backend = PickleBundleBackend(True)
@@ -854,21 +857,21 @@ def print_bundletrajectory_info(filename):
                                   % (metadata['backend'],))
     frame = os.path.join(filename, "F0")
     small = backend.read_small(frame)
-    print "Contents of first frame:"
+    print("Contents of first frame:")
     for k, v in small.items():
         if k == 'constraints':
             if v:
-                print "  %i constraints are present"
+                print("  %i constraints are present")
             else:
-                print "  Constraints are absent."
+                print("  Constraints are absent.")
         elif k == 'pbc':
-            print "  Periodic boundary conditions: %s" % (str(v),)
+            print("  Periodic boundary conditions: %s" % (str(v),))
         elif k == 'natoms':
-            print "  Number of atoms: %i" % (v,)
+            print("  Number of atoms: %i" % (v,))
         elif hasattr(v, 'shape'):
-            print "  %s: shape = %s, type = %s" % (k, str(v.shape), str(v.dtype))
+            print("  %s: shape = %s, type = %s" % (k, str(v.shape), str(v.dtype)))
         else:
-            print "  %s: %s" % (k, str(v))
+            print("  %s: %s" % (k, str(v)))
     # Read info from separate files.
     for k, v in metadata['datatypes'].items():
         if v and not k in small:
@@ -878,7 +881,7 @@ def print_bundletrajectory_info(filename):
             else:
                 shape = info
                 dtype = 'unknown'
-            print "  %s: shape = %s, type = %s" % (k, str(shape), dtype)
+            print("  %s: shape = %s, type = %s" % (k, str(shape), dtype))
                 
             
             

@@ -1,3 +1,4 @@
+from __future__ import print_function
 """An experimental package for making plots during a simulation.
 
 A PrimiPlotter can plot a list of atoms on one or more output devices.
@@ -7,6 +8,7 @@ from numpy import *
 from ase.visualize.colortable import color_table
 import ase.data
 import sys, os, time, weakref
+import collections
 
 class PrimiPlotterBase:
     "Base class for PrimiPlotter and Povrayplotter."
@@ -35,10 +37,10 @@ class PrimiPlotterBase:
 
     def set_color_function(self, colors):
         """Set a color function, to be used to color the atoms."""
-        if callable(colors):
+        if isinstance(colors, collections.Callable):
             self.colorfunction = colors
         else:
-            raise TypeError, "The color function is not callable."
+            raise TypeError("The color function is not callable.")
 
     def set_invisible(self, inv):
         """Choose invisible atoms."""
@@ -46,10 +48,10 @@ class PrimiPlotterBase:
 
     def set_invisibility_function(self, invfunc):
         """Set an invisibility function."""
-        if callable(invfunc):
+        if isinstance(invfunc, collections.Callable):
             self.invisibilityfunction = invfunc
         else:
-            raise TypeError, "The invisibility function is not callable."
+            raise TypeError("The invisibility function is not callable.")
 
     def set_cut(self, xmin=None, xmax=None, ymin=None, ymax=None,
                zmin=None, zmax=None):
@@ -101,8 +103,8 @@ class PrimiPlotterBase:
     def _stoptimer(self):
         elapsedtime = time.time() - self.starttime
         self.totaltime = self.totaltime + elapsedtime
-        print "plotting time %s sec (total %s sec)" % (elapsedtime,
-                                                       self.totaltime)
+        print("plotting time %s sec (total %s sec)" % (elapsedtime,
+                                                       self.totaltime))
 
     def _getpositions(self):
         return self.atoms.get_positions()
@@ -132,7 +134,7 @@ class PrimiPlotterBase:
     def _getcolors(self):
         # Try any explicitly given colors
         if self.colors is not None:
-            if type(self.colors) == type({}):
+            if isinstance(self.colors, type({})):
                 self.log("Explicit colors dictionary")
                 return _colorsfromdict(self.colors,
                                        asarray(self.atoms.get_tags(),int))
@@ -149,7 +151,7 @@ class PrimiPlotterBase:
         except AttributeError:
             c = None
         if c is not None:
-            if type(c) == type({}):
+            if isinstance(c, type({})):
                 self.log("Color dictionary from atoms.get_colors()")
                 return _colorsfromdict(c, asarray(self.atoms.get_tags(),int))
             else:
@@ -380,7 +382,7 @@ class PrimiPlotter(PrimiPlotterBase):
             radii = self._getradii()
             self._autoscale(coords, radii)
         else:
-            raise ValueError, "Unknown autoscale mode: ",+str(mode)
+            raise ValueError("Unknown autoscale mode: ").with_traceback(+str(mode))
 
     def set_scale(self, scale):
         self.autoscale("off")
@@ -449,7 +451,7 @@ class PrimiPlotter(PrimiPlotterBase):
         if typradius < 4.0:
             self.log("Refining visibility check.")
             if zoom >= 16:
-                raise RuntimeError, "Cannot check visibility - too deep recursion."
+                raise RuntimeError("Cannot check visibility - too deep recursion.")
             return self._computevisibility(xy*2, rad*2, invisible, id, zoom*2)
         else:
             self.log("Visibility(r_typ = %.1f pixels)" % (typradius,))
@@ -464,7 +466,7 @@ class PrimiPlotter(PrimiPlotterBase):
         # Atoms are visible if not hidden behind other atoms
         xy = floor(xy + 2*maxr + 0.5).astype(int)
         masks = {}
-        for i in xrange(len(rad)-1, -1, -1):
+        for i in range(len(rad)-1, -1, -1):
             if (i % 100000) == 0 and i:
                 self._verb(str(i))
             if not visible[i]:
@@ -533,7 +535,7 @@ class ParallelPrimiPlotter(PrimiPlotter):
         import ase.parallel
         self.mpi = ase.parallel.world
         if self.mpi is None:
-            raise RuntimeError, "MPI is not available."
+            raise RuntimeError("MPI is not available.")
         self.master = self.mpi.rank == 0
         self.mpitag = 42   # Reduce chance of collision with other modules.
         
@@ -807,7 +809,7 @@ class _PostScriptToFile(_PostScriptDevice):
     def __init__(self, prefix, compress = 0):
         self.compress = compress
         if "'" in prefix:
-            raise ValueError, "Filename may not contain a quote ('): "+prefix
+            raise ValueError("Filename may not contain a quote ('): "+prefix)
         if "%" in prefix:
             # Assume the user knows what (s)he is doing
             self.filenames = prefix
@@ -815,7 +817,7 @@ class _PostScriptToFile(_PostScriptDevice):
             self.filenames = prefix + "%04d" + self.suffix
             if compress:
                 if self.compr_suffix is None:
-                    raise RuntimeError, "Compression not supported."
+                    raise RuntimeError("Compression not supported.")
                 self.filenames = self.filenames + self.compr_suffix
         _PostScriptDevice.__init__(self)
 
@@ -832,7 +834,7 @@ class PostScriptFile(_PostScriptToFile):
             file = os.popen("gzip > '"+filename+"'", "w")
         else:
             file = open(filename, "w")
-        apply(plotmethod, (file, n)+args, kargs)
+        plotmethod(*(file, n)+args, **kargs)
         file.close()
 
 class _PS_via_PnmFile(_PostScriptToFile):
@@ -848,7 +850,7 @@ class _PS_via_PnmFile(_PostScriptToFile):
             
         cmd = (cmd+" > '%s'") % (self.dims[0], self.dims[1], filename)
         file = os.popen(cmd, "w")
-        apply(plotmethod, (file, n)+args, kargs)
+        plotmethod(*(file, n)+args, **kargs)
         file.close()
 
 class PnmFile(_PS_via_PnmFile):
@@ -878,7 +880,7 @@ class X11Window(_PostScriptDevice):
             file = os.popen(filename, "w")
             self.pipe = file
         kargs["noshowpage"] = 1
-        apply(plotmethod, (file, n)+args, kargs)
+        plotmethod(*(file, n)+args, **kargs)
         file.write("flushpage\n")
         file.flush()
 
@@ -896,13 +898,13 @@ def _rot(v, axis):
 
 def _colorsfromdict(dict, cls):
     """Extract colors from dictionary using cls as key."""
-    assert(type(dict) == type({}))
+    assert(isinstance(dict, type({})))
     # Allow local modifications, to replace strings with rgb values.
     dict = dict.copy()  
     isgray, isrgb = 0, 0
     for k in dict.keys():
         v = dict[k]
-        if type(v) == type("string"):
+        if isinstance(v, type("string")):
             v = color_table[v]
             dict[k] = v
         try:
@@ -911,7 +913,7 @@ def _colorsfromdict(dict, cls):
                 if not hasattr(v, "shape"):
                     dict[k] = array(v)   # Convert to array
             else:
-                raise RuntimeError, "Unrecognized color object "+repr(v)
+                raise RuntimeError("Unrecognized color object "+repr(v))
         except TypeError:
             isgray = 1 # Assume it is a number
     if isgray and isrgb:
@@ -925,7 +927,7 @@ def _colorsfromdict(dict, cls):
         colors = zeros((len(cls),3), float)
     else:
         colors = zeros((len(cls),), float)
-    for i in xrange(len(cls)):
+    for i in range(len(cls)):
         colors[i] = dict[cls[i]]
     return colors
 

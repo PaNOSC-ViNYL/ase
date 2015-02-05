@@ -1,14 +1,13 @@
 from ase import Atoms
-from ase.visualize import view
 from ase.calculators.emt import EMT
 from ase.constraints import FixAtoms
 from ase.optimize import QuasiNewton
-from ase.lattice.surface import fcc111,add_adsorbate
+from ase.lattice.surface import fcc111, add_adsorbate
 
 h = 1.85
 d = 1.10
 
-slab = fcc111('Cu', size=(4,4,2), vacuum=10.0)
+slab = fcc111('Cu', size=(4, 4, 2), vacuum=10.0)
 
 slab.set_calculator(EMT())
 e_slab = slab.get_potential_energy()
@@ -23,6 +22,4 @@ slab.set_constraint(constraint)
 dyn = QuasiNewton(slab, trajectory='N2Cu.traj')
 dyn.run(fmax=0.05)
 
-print 'Adsorption energy:', e_slab + e_N2 - slab.get_potential_energy()
-
-#view(slab)
+print('Adsorption energy:', e_slab + e_N2 - slab.get_potential_energy())

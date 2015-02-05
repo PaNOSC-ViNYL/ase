@@ -1,3 +1,4 @@
+from __future__ import print_function
 """plotting fields defined on atoms during a simulation."""
 
 from ase.visualize.primiplotter import PostScriptFile, PnmFile, GifFile, JpegFile, X11Window
@@ -22,7 +23,7 @@ class FieldPlotter(_PrimiPlotter):
         if plane in ("xy", "xz", "yz"):
             self.plane = plane
         else:
-            raise ValueError, "The argument to plotPlane must be 'xy', 'xz' or 'yz'."
+            raise ValueError("The argument to plotPlane must be 'xy', 'xz' or 'yz'.")
 
     def set_data_range(self, range1, range2=None):
         """Set the range of the data used when coloring.
@@ -51,7 +52,7 @@ class FieldPlotter(_PrimiPlotter):
             self.autorange = None
             self.range = (range1, range2)
         else:
-            raise ValueError, "Illegal argument(s) to set_data_range"
+            raise ValueError("Illegal argument(s) to set_data_range")
 
     def set_background(self, value):
         """Set the data value of the background.  See also set_background_color
@@ -91,19 +92,19 @@ class FieldPlotter(_PrimiPlotter):
     def set_colors(self, colors, reverse=False):
         colors = numpy.array(colors, numpy.float)
         if len(colors.shape) != 2:
-            raise ValueError, "Colors must be a 2D array."
+            raise ValueError("Colors must be a 2D array.")
         if reverse:
             colors[:,0] = 1 - colors[:,0]
             colors = numpy.array(colors[::-1,:])
             #print colors
         if colors[0,0] != 0.0 or colors[-1,0] != 1.0:
-            raise ValueError, "First row must define the value 0 and last row must define the value 1"
+            raise ValueError("First row must define the value 0 and last row must define the value 1")
         if colors.shape[1] == 2:
             self.colormode = 1
         elif colors.shape[1] == 4:
             self.colormode = 3
         else:
-            raise ValueError, "Color specification must be Nx2 (grey) or Nx4 (rgb) matrix."
+            raise ValueError("Color specification must be Nx2 (grey) or Nx4 (rgb) matrix.")
         self.colorfunction = InterpolatingFunction(colors[:,0], colors[:,1:])
         
     def plot(self, data=None):
@@ -127,7 +128,7 @@ class FieldPlotter(_PrimiPlotter):
         if data is None:
             data = self.datasource()
         if len(data) != len(self.atoms):
-            raise ValueError, ("Data has wrong length: %d instead of %d."
+            raise ValueError("Data has wrong length: %d instead of %d."
                                % (len(data), len(self.atoms)))
         
         invisible = self._getinvisible()
@@ -167,7 +168,7 @@ class FieldPlotter(_PrimiPlotter):
         elif self.plane == "yz":
             xy = coords[:,1:]
         else:
-            raise RuntimeError, "self.plane is bogus: "+str(self.plane)
+            raise RuntimeError("self.plane is bogus: "+str(self.plane))
         assert xy.shape[1] == 2
 
         self.log("plotting %d atoms on %d * %d (= %d) grid" %
@@ -175,7 +176,7 @@ class FieldPlotter(_PrimiPlotter):
                     len(sumarray.flat)))
                                                             
         xy = xy.astype(numpy.int)
-        for i in xrange(len(xy)):
+        for i in range(len(xy)):
             (x, y) = xy[i]
             d = data[i]
             if (x >= 0 and x < self.dims[0] and y >= 0 and y < self.dims[1]):
@@ -183,7 +184,7 @@ class FieldPlotter(_PrimiPlotter):
                 weight[x,y] += 1
             else:
                 nmiss += 1
-        print "... %d atoms fell outside plot." % (nmiss,)
+        print("... %d atoms fell outside plot." % (nmiss,))
 
         datamap = self._makedatamap(sumarray, weight, data.min(), data.max())
         self.log("Range of data map: [%f, %f]" %
@@ -207,7 +208,7 @@ class FieldPlotter(_PrimiPlotter):
         
     def _makedatamap(self, sumarray, weight, minimum, maximum):
         background = numpy.equal(weight, 0)
-        print "Number of background points:", sum(background.flat)
+        print("Number of background points:", sum(background.flat))
         datamap = sumarray / numpy.where(background, 1, weight)
         
         if self.background is not None:
@@ -254,7 +255,7 @@ class FieldPlotter(_PrimiPlotter):
 class InterpolatingFunction:
     def __init__(self, xpoints, ypoints):
         if len(xpoints) != len(ypoints):
-            raise ValueError, "Length of x and y arrays should be the same."
+            raise ValueError("Length of x and y arrays should be the same.")
         idx = xpoints.argsort()
         self.xpoints = xpoints[idx]
         self.ypoints = ypoints[idx]

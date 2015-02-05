@@ -11,12 +11,16 @@ Versions:
 
 from __future__ import absolute_import, print_function
 import sqlite3
+import sys
 
 import numpy as np
 
 from ase.db.core import Database, ops, now, lock, parallel, invop
 from ase.db.jsondb import encode, decode
+from ase.utils import basestring
 
+if sys.version > '3':
+    buffer = memoryview
 
 VERSION = 4
 
@@ -235,7 +239,7 @@ class SQLite3Database(Database):
             if isinstance(value, (float, int)):
                 number_key_values.append([key, float(value), id])
             else:
-                assert isinstance(value, (str, unicode))
+                assert isinstance(value, basestring)
                 text_key_values.append([key, value, id])
  
         cur.executemany('INSERT INTO text_key_values VALUES (?, ?, ?)',
@@ -356,7 +360,7 @@ class SQLite3Database(Database):
         for key, op, value in cmps:
             if key in ['id', 'energy', 'magmom', 'ctime', 'user',
                        'calculator', 'natoms']:
-                if key == 'user' and self.version == 2:
+                if key == 'user' and self.version >= 2:
                     key = 'username'
                 where.append('systems.{0}{1}?'.format(key, op))
                 args.append(value)
@@ -374,7 +378,7 @@ class SQLite3Database(Database):
                                   'specie{0}.n{1}?').format(nspecies, op))
                     args += [key, value]
                     nspecies += 1
-            elif isinstance(value, str):
+            elif isinstance(value, basestring):
                 tables.append('text_key_values AS text{0}'.format(ntext))
                 where.append(('systems.id=text{0}.id AND ' +
                               'text{0}.key=? AND ' +
@@ -394,7 +398,11 @@ class SQLite3Database(Database):
             sql += '\n  WHERE\n  ' + ' AND\n  '.join(where)
         return sql, args
         
-    def _select(self, keys, cmps, explain=False, verbosity=0, limit=None):
+    def _select(self, keys, cmps, explain=False, verbosity=0,
+                limit=None, offset=0):
+        con = self._connect()
+        self._initialize(con)
+
         sql, args = self.create_select_statement(keys, cmps)
         
         if explain:
@@ -402,12 +410,13 @@ class SQLite3Database(Database):
             
         if limit:
             sql += '\nLIMIT {0}'.format(limit)
+
+        if offset:
+            sql += '\nOFFSET {0}'.format(offset)
             
         if verbosity == 2:
             print(sql, args)
 
-        con = self._connect()
-        self._initialize(con)
         cur = con.cursor()
         cur.execute(sql, args)
         if explain:
@@ -427,6 +436,11 @@ class SQLite3Database(Database):
         cur = con.cursor()
         cur.execute(sql, args)
         return cur.fetchone()[0]
+        
+    def analyse(self):
+        con = self._connect()
+        self._initialize(con)
+        con.execute('ANALYZE')
         
     def _update(self, ids, delete_keys, add_key_value_pairs):
         """Update row(s).

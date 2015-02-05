@@ -215,7 +215,7 @@ class Task:
         try:
             data = self.calculate(name, atoms)
             if self.after:
-                exec self.after
+                exec(self.after)
         except KeyboardInterrupt:
             raise
         except Exception:
@@ -258,7 +258,7 @@ class Task:
                 np.tile(self.magmoms, len(system) // len(self.magmoms)))
 
         if self.modify:
-            exec self.modify
+            exec(self.modify)
 
         return system
 

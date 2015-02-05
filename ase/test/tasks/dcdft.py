@@ -16,14 +16,9 @@ From here::
 """
 
 import os
-
 import glob
-
 import pprint
-
 import urllib
-import urllib2
-
 import tarfile
 import zipfile
 
@@ -32,13 +27,20 @@ import numpy as np
 from numpy import array
 
 from ase import Atoms
-from ase import units
 import ase.io
 
 from ase.tasks.io import read_json
 from ase.tasks.bulk import BulkTask
 
 from ase.utils.eos import EquationOfState
+from ase.test import NotAvailable
+
+try:
+    import urllib2
+except ImportError:
+    raise NotAvailable
+
+
 
 class FullEquationOfState(EquationOfState):
 
@@ -66,7 +68,7 @@ class FullEquationOfState(EquationOfState):
         eV/Angstrom^3 - to get the value in GPa, do this::
 
           v0, e0, B0, B1, R = eos.fit()
-          print B0 / kJ * 1.0e24, 'GPa'
+          print(B0 / kJ * 1.0e24, 'GPa')
 
         """
 
@@ -880,13 +882,13 @@ class DeltaCodesDFTTask(BulkTask):
 
 if __name__ == '__main__':
     # download and create the project databases
-    src = 'https://molmod.ugent.be/sites/default/files/Delta_v3-0_0.zip'
+    src = 'https://molmod.ugent.be/sites/default/files/Delta_v3-0.zip'
     name = os.path.basename(src)
     dir = 'Delta'
     if not os.path.exists(dir): os.makedirs(dir)
     os.chdir(dir)
     try:
-        resp = urllib2.urlopen(src)
+        resp = urllib.request.urlopen(src)
         urllib.urlretrieve(src, filename=name)
         z = zipfile.ZipFile(name)
         try:  # new in 2.6

@@ -35,7 +35,7 @@ def write_cfg(f, a):
                 entry_count += a.get_array(x).shape[1]
 
     vels = a.get_velocities()
-    if type(vels) == np.ndarray:
+    if isinstance(vels, np.ndarray):
         entry_count += 3
     else:
         f.write('.NO_VELOCITY.\n')
@@ -43,7 +43,7 @@ def write_cfg(f, a):
     f.write('entry_count = %i\n' % entry_count)
 
     i = 0
-    for name, aux in a.arrays.iteritems():
+    for name, aux in a.arrays.items():
         if not name in cfg_default_fields:
             if len(aux.shape) == 1:
                 f.write('auxiliary[%i] = %s [a.u.]\n' % ( i, name ))
@@ -72,11 +72,11 @@ def write_cfg(f, a):
         x, y, z = spos[i.index, :]
         s =  '%e %e %e ' % ( x, y, z )
 
-        if type(vels) == np.ndarray:
+        if isinstance(vels, np.ndarray):
             vx, vy, vz  = vels[i.index, :]
             s  = s + ' %e %e %e ' % ( vx, vy, vz )
 
-        for name, aux in a.arrays.iteritems():
+        for name, aux in a.arrays.items():
             if not name in cfg_default_fields:
                 if len(aux.shape) == 1:
                     s += ' %e' % aux[i.index]

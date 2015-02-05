@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 
@@ -30,8 +31,8 @@ if locals().get('display'):
         open(f).close()
         from matplotlib.backends import backend_gdk
     except ImportError:
-        print >> sys.stderr, msg
+        print(msg, file=sys.stderr)
         raise
     except IOError:
-        print >> sys.stderr, ("\nThe backend file %s does not exist.\n" % f) + msg
+        print(("\nThe backend file %s does not exist.\n" % f) + msg, file=sys.stderr)
         raise

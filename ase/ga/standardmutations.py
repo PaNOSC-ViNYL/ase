@@ -35,6 +35,9 @@ class RattleMutation(OffspringCreator):
         f = parents[0]
 
         indi = self.mutate(f)
+        if indi is None:
+            return indi, 'mutation: rattle'
+            
         indi = self.initialize_individual(f, indi)
         indi.info['data']['parents'] = [f.info['confid']]
 
@@ -50,9 +53,9 @@ class RattleMutation(OffspringCreator):
         tc = True
         while tc and count < 1000:
             pos = pos_ref.copy()
-            for i in xrange(len(pos)):
+            for i in range(len(pos)):
                 if random() < self.rattle_prop:
-                    r = np.array([random() for r in xrange(3)])
+                    r = np.array([random() for r in range(3)])
                     pos[i] = pos[i] + st * (r - 0.5)
             top = Atoms(num_top, positions=pos,
                         cell=slab.get_cell(), pbc=slab.get_pbc())
@@ -61,7 +64,7 @@ class RattleMutation(OffspringCreator):
                 tc = atoms_too_close_two_sets(top, slab, self.blmin)
             count += 1
         if count == 1000:
-            return None, 'rattle'
+            return None
         tot = slab + top
         return tot
 
@@ -85,6 +88,9 @@ class PermutationMutation(OffspringCreator):
         f = parents[0]
 
         indi = self.mutate(f)
+        if indi is None:
+            return indi, 'mutation: permutation'
+            
         indi = self.initialize_individual(f, indi)
         indi.info['data']['parents'] = [f.info['confid']]
 
@@ -99,7 +105,7 @@ class PermutationMutation(OffspringCreator):
         n_un = list(set(n))
         assert len(n_un) > 1, 'Permutations with one atomic type is not valid'
         m = int(ceil(float(s) * self.probability / 2.))
-        for _ in xrange(m):
+        for _ in range(m):
             i = j = 0
             while n[i] == n[j]:
                 i = randrange(0, s)
@@ -138,6 +144,9 @@ class MirrorMutation(OffspringCreator):
         f = parents[0]
 
         indi = self.mutate(f)
+        if indi is None:
+            return indi, 'mutation: mirror'
+            
         indi = self.initialize_individual(f, indi)
         indi.info['data']['parents'] = [f.info['confid']]
 
@@ -211,7 +220,7 @@ class MirrorMutation(OffspringCreator):
                 if nu[n] % 2 == 0:
                     continue
                 while sum(n_use == n) > nu[n]:
-                    for i in xrange(int(len(n_use) / 2), len(n_use)):
+                    for i in range(int(len(n_use) / 2), len(n_use)):
                         if n_use[i] == n:
                             del p_use[i]
                             del n_use[i]
@@ -220,10 +229,10 @@ class MirrorMutation(OffspringCreator):
 
             # Make sure we have the correct number of atoms
             # and rearrange the atoms so they are in the right order
-            for i in xrange(len(n_use)):
+            for i in range(len(n_use)):
                 if num[i] == n_use[i]:
                     continue
-                for j in xrange(i + 1, len(n_use)):
+                for j in range(i + 1, len(n_use)):
                     if n_use[j] == num[i]:
                         tn = n_use[i]
                         tp = p_use[i]

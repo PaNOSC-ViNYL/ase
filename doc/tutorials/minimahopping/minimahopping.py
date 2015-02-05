@@ -1,6 +1,6 @@
 # creates:  summary.png
 
-execfile('Cu2_Pt110.py')
+exec(compile(open('Cu2_Pt110.py').read(), 'Cu2_Pt110.py', 'exec'))
 execfile('mhsummary.py')
 
 # Clean up directory.

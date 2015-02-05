@@ -15,7 +15,7 @@ class Execute(gtk.Window):
     There are two types of commands, one set only applies to the global image and
     one set applies to all atoms. If the command line contains any of the atom
     commands, then it is executed separately for all atoms and for all images.
-    Otherwise it is executed only once per image. 
+    Otherwise it is executed only once per image.
 
     Please do not mix global and atom commands."""
     
@@ -109,7 +109,7 @@ class Execute(gtk.Window):
             self.rgb_data += [[i, rgb]]
         self.gui.colordata = self.rgb_data
         self.gui.colors = list(self.colors)
-        self.gui.colormode = 'manual'        
+        self.gui.colormode = 'manual'
         self.cmd.grab_focus()
 
     def execute(self, widget=None, cmd = None):
@@ -144,7 +144,7 @@ class Execute(gtk.Window):
         if self.selected.get_active():
             indices = np.where(S)[0]
         else:
-            indices = range(n)
+            indices = list(range(n))
 
         ans = getattr(gui,'expert_mode_answers',[])
 
@@ -168,7 +168,7 @@ class Execute(gtk.Window):
                 index_based = True
 
         name = os.path.expanduser('~/.ase/'+cmd)
-        # check various special commands: 
+        # check various special commands:
         if os.path.exists(name):   # run script from default directory
             self.run_script(name)
         elif cmd == 'del S':       # delete selection
@@ -223,7 +223,7 @@ class Execute(gtk.Window):
                         self.add_text(repr(eval(cmd)))
                         ans += [eval(cmd)]
                     except:
-                        exec code
+                        exec(code)
                     gui.set_frame(frame)
                     if gui.movie_window is not None:
                         gui.movie_window.frame_number.value = frame
@@ -248,7 +248,7 @@ class Execute(gtk.Window):
                             self.add_text(repr(eval(cmd)))
                             ans += [eval(cmd)]
                         except:
-                            exec code
+                            exec(code)
                         S[a] = s
                         img.P[i][a] = x, y, z
                         img.Z[a] = Z
@@ -257,7 +257,7 @@ class Execute(gtk.Window):
                         if Z != Zold:
                             img.r[a] = cov[Z] * 0.89
                             r,g,b = jmol_colors[Z]
-                        gui.colordata[a] = [a,[r,g,b]]                            
+                        gui.colordata[a] = [a,[r,g,b]]
                         color = tuple([int(65535*x) for x in [r,g,b]])
                         gui.colors[a] = new(alloc(*color))
                         img.M[i][a] = m

@@ -48,8 +48,8 @@ top3 = c3[-n_top:]
 # verify that the positions in the new candidate come from c1 or c2
 n1 = -1 * np.ones((n_top, ))
 n2 = -1 * np.ones((n_top, ))
-for i in xrange(n_top):
-    for j in xrange(n_top):
+for i in range(n_top):
+    for j in range(n_top):
         if np.all(top1.positions[j, :] == top3.positions[i, :]):
             n1[i] = j
             break

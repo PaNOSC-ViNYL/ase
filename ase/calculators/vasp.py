@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright (C) 2008 CSC - Scientific Computing Ltd.
 """This module defines an ASE interface to VASP.
 
@@ -21,7 +22,7 @@ http://cms.mpi.univie.ac.at/vasp/
 import os
 import sys
 import re
-from general import Calculator
+from .general import Calculator
 from os.path import join, isfile, islink
 
 import numpy as np
@@ -107,6 +108,8 @@ float_keys = [
                   # Tkatchenko and Scheffler's DFT-TS dispersion correction
     'vdw_a1',     # Damping parameter for Grimme's DFT-D3 dispersion correction
     'vdw_a2',     # Damping parameter for Grimme's DFT-D3 dispersion correction
+    'eb_k',       # solvent permitivity in Vaspsol
+    'tau',        # surface tension parameter in Vaspsol
 ]
 
 exp_keys = [
@@ -121,7 +124,7 @@ exp_keys = [
 string_keys = [
     'algo',       # algorithm: Normal (Davidson) | Fast | Very_Fast (RMM-DIIS)
     'gga',        # xc-type: PW PB LM or 91
-    'metagga'     #
+    'metagga',    #
     'prec',       # Precission of calculation (Low, Normal, Accurate)
     'system',     # name of System
     'tebeg',      #
@@ -257,6 +260,7 @@ bool_keys = [
     'lrpa',       # Include local field effects on the Hartree level only
     'lwannier90',  # Switches on the interface between VASP and WANNIER90
     'lsorbit',    # Enable spin-orbit coupling
+    'lsol',       # turn on solvation for Vaspsol
 ]
 
 list_keys = [
@@ -337,7 +341,7 @@ class Vasp(Calculator):
         for key in dict_keys:
             self.dict_params[key] = None
 
-        self.string_params['prec'] = 'Normal'
+        # self.string_params['prec'] = 'Normal'
 
         if kwargs.get('xc', None):
             if kwargs['xc'] not in ['PW91', 'LDA', 'PBE']:
@@ -479,7 +483,7 @@ class Vasp(Calculator):
                 else:
                     if atom.symbol == symbol:
                         self.sort.append(m)
-        self.resort = range(len(self.sort))
+        self.resort = list(range(len(self.sort)))
         for n in range(len(self.resort)):
             self.resort[self.sort[n]] = n
         self.atoms_sorted = atoms[self.sort]
@@ -521,7 +525,7 @@ class Vasp(Calculator):
                     self.ppp_list.append(filename+'.Z')
                     break
             if not found:
-                print 'Looking for %s' % name
+                print('Looking for %s' % name)
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
 
         for symbol in symbols:
@@ -540,14 +544,14 @@ class Vasp(Calculator):
                     break
                 elif isfile(filename + '.Z') or islink(filename + '.Z'):
                     found = True
-                    self.ppp_list.append(filename+'.Z')
+                    self.ppp_list.append(filename + '.Z')
                     break
             if not found:
-                print '''Looking for %s
+                print('''Looking for %s
                 The pseudopotentials are expected to be in:
                 LDA:  $VASP_PP_PATH/potpaw/
                 PBE:  $VASP_PP_PATH/potpaw_PBE/
-                PW91: $VASP_PP_PATH/potpaw_GGA/''' % name
+                PW91: $VASP_PP_PATH/potpaw_GGA/''' % name)
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
         self.converged = None
         self.setups_changed = None
@@ -632,7 +636,7 @@ class Vasp(Calculator):
         elif 'VASP_SCRIPT' in os.environ:
             vasp = os.environ['VASP_SCRIPT']
             locals = {}
-            execfile(vasp, {}, locals)
+            exec(compile(open(vasp).read(), vasp, 'exec'), {}, locals)
             exitcode = locals['exitcode']
         else:
             raise RuntimeError('Please set either VASP_COMMAND'
@@ -657,8 +661,8 @@ class Vasp(Calculator):
             atoms = ase.io.read('CONTCAR', format='vasp')[self.resort]
         else:
             atoms = ase.io.read('CONTCAR', format='vasp')
-            self.sort = range(len(atoms))
-            self.resort = range(len(atoms))
+            self.sort = list(range(len(atoms)))
+            self.resort = list(range(len(atoms)))
         self.atoms = atoms.copy()
         self.read_incar()
         self.read_outcar()
@@ -918,9 +922,9 @@ class Vasp(Calculator):
                 if key == 'ichain' and val > 0:
                     incar.write(' IBRION = 3\n POTIM = 0.0\n')
                     for key, val in self.int_params.items():
-                        if key == 'iopt' and val is None:
-                            print ('WARNING: optimization is '
-                                   'set to LFBGS (IOPT = 1)')
+                        if key == 'iopt' and val == None:
+                            print('WARNING: optimization is '
+                                  'set to LFBGS (IOPT = 1)')
                             incar.write(' IOPT = 1\n')
                     for key, val in self.exp_params.items():
                         if key == 'ediffg' and val is None:
@@ -966,9 +970,9 @@ class Vasp(Calculator):
             if val is not None:
                 incar.write(' %s = ' % key.upper())
                 if key == 'lreal':
-                    if type(val) == str:
+                    if isinstance(val, str):
                         incar.write(val+'\n')
-                    elif type(val) == bool:
+                    elif isinstance(val, bool):
                         if val:
                             incar.write('.TRUE.\n')
                         else:
@@ -1778,13 +1782,13 @@ class VaspDos(object):
         # First we have a block with total and total integrated DOS
         ndos = int(f.readline().split()[2])
         dos = []
-        for nd in xrange(ndos):
+        for nd in range(ndos):
             dos.append(np.array([float(x) for x in f.readline().split()]))
         self._total_dos = np.array(dos).T
         # Next we have one block per atom, if INCAR contains the stuff
         # necessary for generating site-projected DOS
         dos = []
-        for na in xrange(natoms):
+        for na in range(natoms):
             line = f.readline()
             if line == '':
                 # No site-projected DOS
@@ -1793,7 +1797,7 @@ class VaspDos(object):
             line = f.readline().split()
             cdos = np.empty((ndos, len(line)))
             cdos[0] = np.array(line)
-            for nd in xrange(1, ndos):
+            for nd in range(1, ndos):
                 line = f.readline().split()
                 cdos[nd] = np.array([float(x) for x in line])
             dos.append(cdos.T)
@@ -1828,10 +1832,10 @@ class xdat2traj:
             self.calc = calc
         if not sort:
             if not hasattr(self.calc, 'sort'):
-                self.calc.sort = range(len(self.atoms))
+                self.calc.sort = list(range(len(self.atoms)))
         else:
             self.calc.sort = sort
-        self.calc.resort = range(len(self.calc.sort))
+        self.calc.resort = list(range(len(self.calc.sort)))
         for n in range(len(self.calc.resort)):
             self.calc.resort[self.calc.sort[n]] = n
         self.out = ase.io.trajectory.PickleTrajectory(self.trajectory,

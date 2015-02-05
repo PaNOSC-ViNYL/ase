@@ -390,7 +390,7 @@ class AnalyseOptimizersTask:
         for n, r in enumerate(runs):
             nd = [1 for k in datarun[r] if datarun[r][k]]
             if len(nd) == 0:
-                print 'skipped plotting empty data', r
+                print('skipped plotting empty data', r)
                 # no data for this run
                 i = plotruns.index(r)
                 plotruns.pop(i)

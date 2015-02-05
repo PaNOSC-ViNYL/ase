@@ -1,3 +1,4 @@
+from __future__ import print_function
 """Atomic structure.
 
 This mudule contains helper functions for setting up nanotubes and
@@ -64,7 +65,7 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
     nnnq = nnq[0]
 
     if verbose:
-        print 'the symmetry vector is', nnnp, nnnq
+        print('the symmetry vector is', nnnp, nnnq)
 
     lp = nnnp * nnnp + nnnq * nnnq + nnnp * nnnq
     r = a * sqrt(lp)
@@ -77,7 +78,7 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
     rs = c / (2.0 * np.pi)
 
     if verbose:
-        print 'radius=', rs, t
+        print('radius=', rs, t)
 
     q1 = np.arctan((sq3 * m) / (2 * n + m))
     q2 = np.arctan((sq3 * nnnq) / (2 * nnnp + nnnq))
@@ -152,9 +153,9 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
                   pbc=[False, False, True])
     atoms.center()
     if verbose:
-        print 'translation vector =', TransVec
-        print 'diameter = ', Diameter
-        print 'chiral angle = ', ChiralAngle
+        print('translation vector =', TransVec)
+        print('diameter = ', Diameter)
+        print('chiral angle = ', ChiralAngle)
     return atoms
 
 
@@ -276,19 +277,18 @@ def molecule(name, data=None, **kwargs):
     kwargs currently not used.  """
     if data is None:
         from ase.data.g2 import data
+        
     if name not in data.keys():
         raise NotImplementedError('%s not in data.' % (name))
-    args = data[name].copy()
-    # accept only the following Atoms constructor arguments
-    # XXX: should we accept all Atoms arguments?
-    for k in args.keys():
-        if k not in ['symbols', 'positions', 'numbers',
-                     'tags', 'masses',
-                     'magmoms', 'charges',
-                     'info']:
-            args.pop(k)
-    # kwargs overwrites data
-    args.update(kwargs)
+
+    args = {}
+    dct = data[name]
+    for k in ['symbols', 'positions', 'numbers', 'tags', 'masses',
+              'magmoms', 'charges', 'info']:
+        if k in dct:
+            args[k] = dct[k]
+            
+    args.update(kwargs)  # kwargs overwrites data
     return Atoms(**args)
 
 

@@ -70,7 +70,7 @@ class ElementMutation(OffspringCreator):
         if diff_elems_in == max_diff_elem:
             # No more different elements allowed -> one element mutation
             ltbm = []  # list to be mutated
-            for i in xrange(len(atoms)):
+            for i in range(len(atoms)):
                 if atoms[i].symbol == atoms[itbm].symbol:
                     ltbm.append(i)
         else:
@@ -86,7 +86,7 @@ class ElementMutation(OffspringCreator):
                     break
                 if a.symbol in elems:
                     itbm_num_of_elems += 1
-            ltbm = all_chunks[itbm_num_of_elems /
+            ltbm = all_chunks[itbm_num_of_elems //
                               (int(min_percent_elem * len(elems_in))) - 1]
 
         elems.remove(atoms[itbm].symbol)

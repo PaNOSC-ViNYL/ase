@@ -145,11 +145,16 @@ class CutAndSplicePairing(OffspringCreator):
         f, m = parents
 
         indi = self.cross(f, m)
+        desc = 'pairing: {0} {1}'.format(f.info['confid'],
+                                         m.info['confid'])
+        # It is ok for an operator to return None
+        # It means that it could not make a legal offspring
+        # within a reasonable amount of time
+        if indi is None:
+            return indi, desc
         indi = self.initialize_individual(f, indi)
         indi.info['data']['parents'] = [f.info['confid'],
                                         m.info['confid']]
-        desc = 'pairing: {0} {1}'.format(f.info['confid'],
-                                         m.info['confid'])
         
         return self.finalize_individual(indi), desc
 
@@ -166,6 +171,10 @@ class CutAndSplicePairing(OffspringCreator):
         # Only consider the atoms to optimize
         a1 = a1[len(a1) - N: len(a1)]
         a2 = a2[len(a2) - N: len(a2)]
+        
+        # if not np.array_equal(a1.numbers, a2.numbers):
+        #     a1.numbers.sort()
+        #     a2.numbers.sort()
 
         if not np.array_equal(a1.numbers, a2.numbers):
             err = 'Trying to pair two structures with different stoichiometry'
@@ -203,8 +212,8 @@ class CutAndSplicePairing(OffspringCreator):
             # both parents
             n1 = -1 * np.ones((N, ))
             n2 = -1 * np.ones((N, ))
-            for i in xrange(N):
-                for j in xrange(N):
+            for i in range(N):
+                for j in range(N):
                     if np.all(a1.positions[j, :] == top.positions[i, :]):
                         n1[i] = j
                         break

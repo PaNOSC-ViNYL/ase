@@ -1,3 +1,4 @@
+from __future__ import print_function
 # encoding: utf-8
 
 import gtk
@@ -124,7 +125,7 @@ class DefaultProgressIndicator(gtk.Window):
             raise AseGuiCancelException
 
     def cancel(self, widget):
-        print "CANCEL pressed."
+        print("CANCEL pressed.")
         # We cannot raise the exception here, as this function is
         # called by the GTK main loop.
         self.raisecancelexception = True

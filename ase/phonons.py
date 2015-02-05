@@ -1,3 +1,4 @@
+from __future__ import print_function
 """Module for calculating phonons of periodic systems."""
 
 import sys
@@ -22,6 +23,7 @@ from ase.parallel import rank, barrier
 from ase.dft import monkhorst_pack
 from ase.io.trajectory import PickleTrajectory
 from ase.utils import opencew
+
 
 class Displacement:
     """Abstract base class for phonon and el-ph supercell calculations.
@@ -80,7 +82,7 @@ class Displacement:
             # Center cell
             N_c = self.N_c
             self.offset = N_c[0] // 2 * (N_c[1] * N_c[2]) + N_c[1] // \
-                          2 * N_c[2] + N_c[2] // 2        
+                          2 * N_c[2] + N_c[2] // 2
 
     def __call__(self, *args, **kwargs):
         """Member function called in the ``run`` function."""
@@ -185,7 +187,7 @@ class Displacement:
                     
                     # Call derived class implementation of __call__
                     output = self.__call__(atoms_N)
-                    # Write output to file    
+                    # Write output to file
                     if rank == 0:
                         pickle.dump(output, fd)
                         sys.stdout.write('Writing %s\n' % filename)
@@ -218,7 +220,7 @@ class Phonons(Displacement):
                 nbj        d E           F-  - F+
                C     = ------------ ~  -------------  ,
                 mai     dR   dR          2 * delta
-                          mai  nbj       
+                          mai  nbj
 
     where F+/F- denotes the force in direction j on atom nb when atom ma is
     displaced in direction +i/-i. The force constants are related by various
@@ -236,7 +238,7 @@ class Phonons(Displacement):
     The acoustic sum-rule::
 
                            _ _
-                aj         \    bj    
+                aj         \    bj
                C  (R ) = -  )  C  (R )
                 ai  0      /__  ai  m
                           (m, b)
@@ -281,7 +283,7 @@ class Phonons(Displacement):
         Displacement.__init__(self, *args, **kwargs)
         
         # Attributes for force constants and dynamical matrix in real space
-        self.C_N = None  # in units of eV / Ang**2 
+        self.C_N = None  # in units of eV / Ang**2
         self.D_N = None  # in units of eV / Ang**2 / amu
         
         # Attributes for born charges and static dielectric tensor
@@ -315,7 +317,7 @@ class Phonons(Displacement):
         The charge neutrality sum-rule::
     
                    _ _
-                   \    a    
+                   \    a
                     )  Z   = 0
                    /__  ij
                     a
@@ -324,7 +326,7 @@ class Phonons(Displacement):
         ----------
         neutrality: bool
             Restore charge neutrality condition on calculated Born effective
-            charges. 
+            charges.
 
         """
 
@@ -409,7 +411,7 @@ class Phonons(Displacement):
 
                 # Slice out included atoms
                 C_Nav = C_av.reshape((N, len(self.atoms), 3))[:, self.indices]
-                index = 3*i + j                
+                index = 3*i + j
                 C_xNav[index] = C_Nav
 
         # Make unitcell index the first and reshape
@@ -452,7 +454,7 @@ class Phonons(Displacement):
         # Reshape force constants to (l, m, n) cell indices
         C_lmn = C_N.reshape(self.N_c + (3 * natoms, 3 * natoms))
 
-        # Shift reference cell to center index 
+        # Shift reference cell to center index
         if self.offset == 0:
             C_lmn = fft.fftshift(C_lmn, axes=(0, 1, 2)).copy()
         # Make force constants symmetric in indices -- in case of an even
@@ -591,15 +593,15 @@ class Phonons(Displacement):
                 qdotZ_av = np.dot(q_v, self.Z_avv).ravel()
                 C_na = 4 * pi * np.outer(qdotZ_av, qdotZ_av) / \
                        np.dot(q_v, np.dot(self.eps_vv, q_v)) / vol
-                self.C_na = C_na / units.Bohr**2 * units.Hartree                
+                self.C_na = C_na / units.Bohr**2 * units.Hartree
                 # Add mass prefactor and convert to eV / (Ang^2 * amu)
-                M_inv = np.outer(self.m_inv_x, self.m_inv_x)                
+                M_inv = np.outer(self.m_inv_x, self.m_inv_x)
                 D_na = C_na * M_inv / units.Bohr**2 * units.Hartree
                 self.D_na = D_na
-                D_N = self.D_N + D_na / np.prod(self.N_c) 
+                D_N = self.D_N + D_na / np.prod(self.N_c)
 
             ## if np.prod(self.N_c) == 1:
-            ## 
+            ##
             ##     q_av = np.tile(q_v, len(self.indices))
             ##     q_xx = np.vstack([q_av]*len(self.indices)*3)
             ##     D_m += q_xx
@@ -610,9 +612,9 @@ class Phonons(Displacement):
 
             if modes:
                 omega2_l, u_xl = la.eigh(D_q, UPLO='U')
-                # Sort eigenmodes according to eigenvalues (see below) and 
+                # Sort eigenmodes according to eigenvalues (see below) and
                 # multiply with mass prefactor
-                u_lx = (self.m_inv_x[:, np.newaxis] * 
+                u_lx = (self.m_inv_x[:, np.newaxis] *
                         u_xl[:, omega2_l.argsort()]).T.copy()
                 u_kl.append(u_lx.reshape((-1, len(self.indices), 3)))
             else:
@@ -628,10 +630,10 @@ class Phonons(Displacement):
                 indices = np.where(omega2_l < 0)[0]
 
                 if verbose:
-                    print ("WARNING, %i imaginary frequencies at "
-                           "q = (% 5.2f, % 5.2f, % 5.2f) ; (omega_q =% 5.3e*i)"
-                           % (len(indices), q_c[0], q_c[1], q_c[2],
-                              omega_l[indices][0].imag))
+                    print('WARNING, %i imaginary frequencies at '
+                          'q = (% 5.2f, % 5.2f, % 5.2f) ; (omega_q =% 5.3e*i)'
+                          % (len(indices), q_c[0], q_c[1], q_c[2],
+                             omega_l[indices][0].imag))
                 
                 omega_l[indices] = -1 * np.sqrt(np.abs(omega2_l[indices].real))
 

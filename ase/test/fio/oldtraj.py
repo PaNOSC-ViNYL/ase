@@ -1,20 +1,24 @@
 """Check that we can read old version 1 PickleTrajectories."""
-import cPickle as pickle
-from StringIO import StringIO
+import pickle
+import sys
+from io import BytesIO
 
-import numpy as np
-
-from ase.io.trajectory import PickleTrajectory
-from ase.constraints import FixAtoms
 from ase import Atoms
+from ase.constraints import FixAtoms
+from ase.io.trajectory import PickleTrajectory
+from ase.test import NotAvailable
+
+if sys.version_info[0] == 3:
+    raise NotAvailable
 
 
 a = Atoms('FOO')
 
+
 def v1(a):
     """Create old version-1 trajectory."""
-    fd = StringIO()
-    fd.write('PickleTrajectory')
+    fd = BytesIO()
+    fd.write(b'PickleTrajectory')
     d = {'pbc': a.pbc,
          'numbers': a.numbers,
          'tags': None,
@@ -25,15 +29,15 @@ def v1(a):
          'cell': a.cell,
          'momenta': None}
     pickle.dump(d, fd, protocol=-1)
-    return StringIO(fd.getvalue())
+    return BytesIO(fd.getvalue())
 
 
 def v2(a):
     """Create new version-2 trajectory."""
-    fd = StringIO()
+    fd = BytesIO()
     t = PickleTrajectory(fd, 'w')
     t.write(a)
-    return StringIO(fd.getvalue())
+    return BytesIO(fd.getvalue())
 
 
 class MyFixAtoms(FixAtoms):
@@ -66,5 +70,3 @@ except UserWarning:
     pass
 else:
     assert False
-
-#assert len(c3) == 0

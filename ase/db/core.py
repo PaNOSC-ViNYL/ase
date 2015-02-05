@@ -10,9 +10,9 @@ from ase.atoms import Atoms, symbols2numbers
 from ase.calculators.calculator import get_calculator, all_properties, \
     all_changes
 from ase.calculators.singlepoint import SinglePointCalculator
-from ase.data import atomic_numbers
+from ase.data import atomic_numbers, chemical_symbols
 from ase.parallel import world, broadcast, DummyMPI
-from ase.utils import hill, Lock
+from ase.utils import hill, Lock, basestring
 
 
 T2000 = 946681200.0  # January 1. 2000
@@ -64,7 +64,7 @@ def check(key_value_pairs):
     for key, value in key_value_pairs.items():
         if not word.match(key) or key in reserved_keys:
             raise ValueError('Bad key: {0}'.format(key))
-        if not isinstance(value, (int, float, str, unicode)):
+        if not isinstance(value, (int, float, basestring)):
             raise ValueError('Bad value: {0}'.format(value))
 
             
@@ -126,6 +126,9 @@ class FancyDict(dict):
     def __dir__(self):
         return self.keys()  # for tab-completion
         
+    symbols = property(lambda self: [chemical_symbols[Z]
+                                     for Z in self.numbers])
+        
 
 def lock(method):
     """Decorator for using a lock-file."""
@@ -184,6 +187,8 @@ class Database:
     """Base class for all databases."""
     def __init__(self, filename=None, create_indices=True,
                  use_lock_file=False):
+        if isinstance(filename, str):
+            filename = os.path.expanduser(filename)
         self.filename = filename
         self.create_indices = create_indices
         if use_lock_file and isinstance(filename, str):
@@ -383,7 +388,7 @@ class Database:
             elif key in atomic_numbers:
                 key = atomic_numbers[key]
                 value = int(value)
-            elif isinstance(value, str):
+            elif isinstance(value, basestring):
                 try:
                     value = float(value)
                 except ValueError:
@@ -397,7 +402,7 @@ class Database:
 
     @parallel_generator
     def select(self, selection=None, fancy=True, filter=None, explain=False,
-               verbosity=1, limit=None, **kwargs):
+               verbosity=1, limit=None, offset=0, **kwargs):
         """Select rows.
         
         Return iterator with results as dictionaries.  Selection is done
@@ -431,8 +436,9 @@ class Database:
         
         keys, cmps = self.parse_selection(selection, **kwargs)
         for dct in self._select(keys, cmps, explain=explain,
-                                verbosity=verbosity, limit=limit):
-            if filter is None or filter(dct):
+                                verbosity=verbosity,
+                                limit=limit, offset=offset):
+            if filter is None or list(filter(dct)):
                 if fancy:
                     dct = FancyDict(dct)
                     if 'key_value_pairs' in dct:

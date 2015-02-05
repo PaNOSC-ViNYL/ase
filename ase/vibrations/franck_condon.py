@@ -7,6 +7,7 @@ from array import *
 
 from ase.units import kg, C, _hbar, kB
 from ase.vibrations import Vibrations
+from functools import reduce
 
 class FranckCondon:
     def __init__(self, atoms, vibname, minfreq=None, maxfreq=None):

@@ -10,27 +10,37 @@ import numpy as np
 
 from ase.parallel import rank, barrier
 from ase.io.trajectory import PickleTrajectory
+import collections
 
 
 class Dynamics:
-    """Base-class for all MD and structure optimization classes.
+    """Base-class for all MD and structure optimization classes."""
+    def __init__(self, atoms, logfile, trajectory, master=None):
+        """Dynamics object.
 
-    Dynamics(atoms, logfile)
+        Parameters:
 
-    atoms: Atoms object
-        The Atoms object to operate on
-    logfile: file object or str
-        If *logfile* is a string, a file with that name will be opened.
-        Use '-' for stdout.
-    trajectory: Trajectory object or str
-        Attach trajectory object.  If *trajectory* is a string a
-        PickleTrajectory will be constructed.  Use *None* for no
-        trajectory.
-    """
-    def __init__(self, atoms, logfile, trajectory):
+        atoms: Atoms object
+            The Atoms object to operate on.
+
+        logfile: file object or str
+            If *logfile* is a string, a file with that name will be opened.
+            Use '-' for stdout.
+
+        trajectory: Trajectory object or str
+            Attach trajectory object.  If *trajectory* is a string a
+            PickleTrajectory will be constructed.  Use *None* for no
+            trajectory.
+
+        master: boolean
+            Defaults to None, which causes only rank 0 to save files.  If
+            set to true,  this rank will save files.
+        """
+
         self.atoms = atoms
-
-        if rank != 0:
+        if master is None:
+            master = rank == 0
+        if not master:
             logfile = None
         elif isinstance(logfile, str):
             if logfile == '-':
@@ -44,7 +54,8 @@ class Dynamics:
 
         if trajectory is not None:
             if isinstance(trajectory, str):
-                trajectory = PickleTrajectory(trajectory, 'w', atoms)
+                trajectory = PickleTrajectory(trajectory, mode='w', atoms=atoms,
+                                              master=master)
             self.attach(trajectory)
 
     def get_number_of_steps(self):
@@ -53,7 +64,7 @@ class Dynamics:
     def insert_observer(self, function, position=0, interval=1,
                         *args, **kwargs):
         """Insert an observer."""
-        if not callable(function):
+        if not isinstance(function, collections.Callable):
             function = function.write
         self.observers.insert(position, (function, interval, args, kwargs))
 
@@ -87,22 +98,31 @@ class Dynamics:
 
 class Optimizer(Dynamics):
     """Base-class for all structure optimization classes."""
-    def __init__(self, atoms, restart, logfile, trajectory):
+    def __init__(self, atoms, restart, logfile, trajectory, master=None):
         """Structure optimizer object.
+
+        Parameters:
 
         atoms: Atoms object
             The Atoms object to relax.
+        
         restart: str
             Filename for restart file.  Default value is *None*.
+        
         logfile: file object or str
             If *logfile* is a string, a file with that name will be opened.
             Use '-' for stdout.
+        
         trajectory: Trajectory object or str
             Attach trajectory object.  If *trajectory* is a string a
             PickleTrajectory will be constructed.  Use *None* for no
             trajectory.
+
+        master: boolean
+            Defaults to None, which causes only rank 0 to save files.  If
+            set to true,  this rank will save files.
         """
-        Dynamics.__init__(self, atoms, logfile, trajectory)
+        Dynamics.__init__(self, atoms, logfile, trajectory, master)
         self.restart = restart
 
         if restart is None or not isfile(restart):

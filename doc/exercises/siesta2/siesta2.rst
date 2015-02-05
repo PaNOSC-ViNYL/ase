@@ -18,8 +18,8 @@ Note that both H atoms are given an initial velocity towards the
 surface through the lines::
 
   p = atoms.get_momenta()
-  p[0,2]= -1.5 
-  p[1,2]= -1.5 
+  p[0,2]= -1.5
+  p[1,2]= -1.5
   atoms.set_momenta(p)
 
 Run the program, and check the results. You can visualize the dynamics
@@ -34,7 +34,7 @@ Check that the total energy is a conserved quantity in this
 microcanonical simulation.
 
 You can also use VMD to visualize the trajectory.  To do this, you
-need a ``.xyz`` file that you can write using :command:`ase-gui`::
+need a ``.xyz`` file that you can write using :ref:`ase-gui`::
 
   $ ase-gui si001+h2.traj -o si.xyz -r 2,2,1
 

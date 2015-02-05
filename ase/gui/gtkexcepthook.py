@@ -1,3 +1,4 @@
+from __future__ import print_function
 # vim: sw=4 ts=4:
 #
 # (c) 2003 Gustavo J A M Carneiro gjc at inescporto.pt
@@ -17,7 +18,7 @@
 # (The license is still whatever you want.)
 
 import inspect, linecache, pydoc, sys, traceback
-from cStringIO import StringIO
+from io import StringIO
 from gettext import gettext as _
 from smtplib import SMTP
 
@@ -38,7 +39,7 @@ def lookup (name, frame, lcls):
                 return 'global', frame.f_globals[name]
         elif '__builtins__' in frame.f_globals:
                 builtins = frame.f_globals['__builtins__']
-                if type (builtins) is dict:
+                if isinstance(builtins, dict):
                         if name in builtins:
                                 return 'builtin', builtins[name]
                 else:
@@ -58,7 +59,7 @@ def analyse (exctyp, value, tb):
                 args, varargs, varkw, lcls = inspect.getargvalues (frame)
 
                 def readline (lno=[lineno], *args):
-                        if args: print args
+                        if args: print(args)
                         try: return linecache.getline (fname, lno[0])
                         finally: lno[0] += 1
                 all, prev, name, scope = {}, None, '', None
@@ -93,7 +94,7 @@ def analyse (exctyp, value, tb):
 
                 trace.write (funcname +
                   inspect.formatargvalues (args, varargs, varkw, lcls, formatvalue=lambda v: '=' + pydoc.text.repr (v)) + '\n')
-                trace.write (''.join (['    ' + x.replace ('\t', '  ') for x in filter (lambda a: a.strip(), context)]))
+                trace.write (''.join (['    ' + x.replace ('\t', '  ') for x in [a for a in context if a.strip()]]))
                 if len (all):
                         trace.write ('  variables: %s\n' % str (all))
 

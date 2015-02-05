@@ -30,6 +30,21 @@ def atomproperty(name, doc):
     return property(getter, setter, deleter, doc)
 
 
+def abcproperty(index):
+    """Helper function to easily create Atom ABC-property."""
+
+    def getter(self):
+        spos = self.atoms.get_scaled_positions()
+        return spos[self.index][index]
+
+    def setter(self, value):
+        spos = self.atoms.get_scaled_positions()
+        spos[self.index][index] = value
+        self.atoms.set_scaled_positions(spos)
+
+    return property(getter, setter, doc='ABC'[index] + '-coordinate')
+
+
 def xyzproperty(index):
     """Helper function to easily create Atom XYZ-property."""
 
@@ -87,7 +102,7 @@ class Atom(object):
                 magmom = np.array(magmom, float)
             d['magmom'] = magmom
             d['charge'] = charge
-
+            
         self.index = index
         self.atoms = atoms
 
@@ -113,7 +128,7 @@ class Atom(object):
         self.atoms = None
         
     def get_raw(self, name):
-        """Get attribute, return None if not explicitely set."""
+        """Get name attribute, return None if not explicitely set."""
         if name == 'symbol':
             return chemical_symbols[self.get_raw('number')]
 
@@ -127,7 +142,7 @@ class Atom(object):
             return None
 
     def get(self, name):
-        """Get attribute, return default if not explicitely set."""
+        """Get name attribute, return default if not explicitely set."""
         value = self.get_raw(name)
         if value is None:
             if name == 'mass':
@@ -137,7 +152,7 @@ class Atom(object):
         return value
 
     def set(self, name, value):
-        """Set attribute."""
+        """Set name attribute to value."""
         if name == 'symbol':
             name = 'number'
             value = atomic_numbers[value]
@@ -165,7 +180,7 @@ class Atom(object):
                 self.atoms.new_array(plural, array)
 
     def delete(self, name):
-        """Delete attribute."""
+        """Delete name attribute."""
         assert self.atoms is None
         assert name not in ['number', 'symbol', 'position']
         self.data[name] = None
@@ -181,3 +196,8 @@ class Atom(object):
     x = xyzproperty(0)
     y = xyzproperty(1)
     z = xyzproperty(2)
+
+    scaled_position = atomproperty('scaled_position', 'ABC-coordinates')
+    a = abcproperty(0)
+    b = abcproperty(1)
+    c = abcproperty(2)

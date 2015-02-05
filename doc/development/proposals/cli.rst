@@ -63,9 +63,8 @@ Comments
 :command:`ase` and :command:`asec`:
 
     Replaced by new commands :command:`ase-build` and
-    :command:`ase-run`.  The old :command:`ase` command is documented
-    :ref:`here <command line tool>` and is hopefully not used a lot
-    since we propose to get rid of it.
+    :command:`ase-run`.  The old :command:`ase` command is hopefully not used
+    a lot since we propose to get rid of it.
 
 :command:`foldtrajectory`:
 

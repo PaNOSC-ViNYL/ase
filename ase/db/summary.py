@@ -47,18 +47,18 @@ class Summary:
             formula = subscript.sub(r'<sub>\1</sub>', formula)
             
         table = [
-            ('id', dct.id),
-            ('age', float_to_time_string(now() - dct.ctime, True)),
-            ('formula', formula),
-            ('user', dct.user),
-            ('calculator', dct.get('calculator')),
-            ('energy [eV]', dct.get('energy')),
-            ('fmax [eV/Ang]', fmax),
-            ('charge [|e|]', dct.get('charge')),
-            ('mass [au]', mass),
-            ('unique id', dct.unique_id),
-            ('volume [Ang^3]', abs(np.linalg.det(dct.cell)))]
-        self.table = [(name, value) for name, value in table
+            ('id', '', dct.id),
+            ('age', '', float_to_time_string(now() - dct.ctime, True)),
+            ('formula', '', formula),
+            ('user', '', dct.user),
+            ('calculator', '', dct.get('calculator')),
+            ('energy', 'eV', dct.get('energy')),
+            ('fmax', 'eV/Ang', fmax),
+            ('charge', '|e|', dct.get('charge')),
+            ('mass', 'au', mass),
+            ('unique id', '', dct.unique_id),
+            ('volume', 'Ang^3', abs(np.linalg.det(dct.cell)))]
+        self.table = [(name, unit, value) for name, unit, value in table
                       if value is not None]
 
         if 'key_value_pairs' in dct:
@@ -81,9 +81,11 @@ class Summary:
     def write(self):
         dct = self.dct
         
-        width = max(len(name) for name, value in self.table)
-        for name, value in self.table:
-            print('{0:{width}}|{1}'.format(name, value, width=width))
+        width = max(len(name) for name, unit, value in self.table)
+        print('{0:{width}}|unit  |value'.format('name', width=width))
+        for name, unit, value in self.table:
+            print('{0:{width}}|{1:6}|{2}'.format(name, unit, value,
+                                                 width=width))
 
         print('\nUnit cell in Ang:')
         print('axis|periodic|          x|          y|          z')

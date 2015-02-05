@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 from ase.units import Bohr
 
@@ -20,8 +21,8 @@ def attach_charges(atoms, fileobj='ACF.dat', displacement=1e-4):
             elif 'CHARGE' in headings.split():
                 j = headings.split().index('CHARGE')
             else:
-                print 'Can\'t find keyword "BADER" or "CHARGE".' \
-                +' Assuming the ACF.dat file has 6 columns.'
+                print('Can\'t find keyword "BADER" or "CHARGE".' \
+                +' Assuming the ACF.dat file has 6 columns.')
                 j = 4
                 assume6columns = True
         if sep in line: # Stop at last seperator line

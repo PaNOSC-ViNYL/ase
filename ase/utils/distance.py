@@ -20,13 +20,13 @@ def distance(s1, s2, permute=True):
     def align(struct, xaxis='x', yaxis='y'):
         """Align moments of inertia with the coordinate system."""
         Is, Vs = struct.get_moments_of_inertia(True)
-        IV = zip(Is, Vs)
-        IV.sort(cmp=lambda x, y: cmp(y[0], x[0]))
+        IV = list(zip(Is, Vs))
+        IV.sort(key=lambda x: x[0])
         struct.rotate(IV[0][1], xaxis)
         
         Is, Vs = struct.get_moments_of_inertia(True)
-        IV = zip(Is, Vs)
-        IV.sort(cmp=lambda x, y: cmp(x[0], y[0]))
+        IV = list(zip(Is, Vs))
+        IV.sort(key=lambda x: x[0])
         struct.rotate(IV[1][1], yaxis)
 
     align(s1)

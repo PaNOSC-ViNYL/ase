@@ -1,26 +1,64 @@
+"""WSGI Flask-app for browsing a database.
+
+You can launch Flask's local webserver like this::
+    
+    $ ase-db abc.db -w
+    
+For a real webserver, you need to set the $ASE_DB_APP_CONFIG environment
+variable to point to a configuration file like this::
+    
+    ASE_DB_NAME = '/path/to/db-file/abc.db'
+    ASE_DB_HOMEPAGE = '<a href="https://home.page.dk">HOME</a> ::'
+    
+Start with something like::
+    
+    twistd web --wsgi=ase.db.app.app --port=8000
+    
+"""
+
+import collections
+import functools
+import io
 import os
 import re
-import sys
-import os.path
 import tempfile
-import functools
-
-import ase.db
-from ase.db.table import Table, all_columns
-from ase.visualize import view
-from ase.io.png import write_png
-from ase.db.summary import Summary
 
 from flask import Flask, render_template, request, send_from_directory
 
+import ase.db
+from ase.db.summary import Summary
+from ase.db.table import Table, all_columns
+from ase.io.png import write_png
+from ase.visualize import view
+
+
+# Every client-connetions gets one of these tuples:
+Connection = collections.namedtuple(
+    'Connection',
+    ['query',  # query string
+     'nrows',  # number of rows matched
+     'page',  # page number
+     'columns',  # what columns to show
+     'sort',  # what column to sort after
+     'limit',  # number of rows per page
+     'opened'  # list of id's in the table that are open
+     ])
 
 app = Flask(__name__)
-connection = None
-home = ''
-tables = {}
-tmpdir = tempfile.mkdtemp()
-next_table_id = 1
-open_ase_gui = True
+
+db = None
+home = ''  # link to homepage
+open_ase_gui = True  # click image to open ase-gui
+
+if 'ASE_DB_APP_CONFIG' in os.environ:
+    app.config.from_envvar('ASE_DB_APP_CONFIG')
+    db = ase.db.connect(app.config['ASE_DB_NAME'])
+    home = app.config['ASE_DB_HOMEPAGE']
+    open_ase_gui = False
+
+next_con_id = 1
+connections = {}
+tmpdir = tempfile.mkdtemp()  # used to cache png-files
 
 # Find numbers in formulas so that we can convert H2O to H<sub>2</sub>O:
 SUBSCRIPT = re.compile(r'(\d+)')
@@ -28,28 +66,22 @@ SUBSCRIPT = re.compile(r'(\d+)')
                 
 @app.route('/')
 def index():
-    global next_table_id
-    table_id = int(request.args.get('x', '0'))
-    if table_id not in tables:
-        table_id = next_table_id
-        next_table_id += 1
+    global next_con_id
+    con_id = int(request.args.get('x', '0'))
+    if con_id not in connections:
+        con_id = next_con_id
+        next_con_id += 1
         query = ''
         columns = list(all_columns)
         sort = 'id'
-        limit = 100
+        limit = 25
         opened = set()
+        nrows = None
+        page = 0
     else:
-        query, columns, sort, limit, opened = tables[table_id]
+        query, nrows, page, columns, sort, limit, opened = connections[con_id]
 
-    if 'toggle' in request.args:
-        column = request.args['toggle']
-        if column in columns:
-            columns.remove(column)
-            if column == sort.lstrip('-'):
-                sort = 'id'
-        else:
-            columns.append(column)
-    elif 'sort' in request.args:
+    if 'sort' in request.args:
         column = request.args['sort']
         if column == sort:
             sort = '-' + column
@@ -57,31 +89,63 @@ def index():
             sort = 'id'
         else:
             sort = column
+        page = 0
     elif 'query' in request.args:
         query = request.args['query'].encode()
-        limit = int(request.args.get('limit', '0'))
-        columns = list(all_columns)
+        try:
+            limit = max(1, min(int(request.args.get('limit', limit)), 200))
+        except ValueError:
+            pass
         sort = 'id'
         opened = set()
+        page = 0
+        nrows = None
+    elif 'page' in request.args:
+        page = int(request.args['page'])
+
+    if 'toggle' in request.args:
+        tcolumns = request.args['toggle'].split(',')
+        if tcolumns == ['reset']:
+            columns = list(all_columns)
+        else:
+            for column in tcolumns:
+                if column in columns:
+                    columns.remove(column)
+                    if column == sort.lstrip('-'):
+                        sort = 'id'
+                        page = 0
+                else:
+                    columns.append(column)
         
-    table = Table(connection)
-    table.select(query, columns, sort, limit)
-    tables[table_id] = query, table.columns, sort, limit, opened
+    if nrows is None:
+        nrows = db.count(query)
+        
+    table = Table(db)
+    table.select(query, columns, sort, limit, offset=page * limit)
+    con = Connection(query, nrows, page, columns, sort, limit, opened)
+    connections[con_id] = con
     table.format(SUBSCRIPT)
-    return render_template('table.html', t=table, query=query, sort=sort,
-                           limit=limit, tid=table_id, opened=opened, home=home)
+    addcolumns = [column for column in all_columns + table.keys
+                  if column not in table.columns]
+
+    return render_template('table.html', t=table, con=con, cid=con_id,
+                           home=home, pages=pages(page, nrows, limit),
+                           nrows=nrows,
+                           addcolumns=addcolumns,
+                           row1=page * limit + 1,
+                           row2=min((page + 1) * limit, nrows))
 
     
 @app.route('/open_row/<int:id>')
 def open_row(id):
-    table_id = int(request.args['x'])
-    opened = tables[table_id][-1]
+    con_id = int(request.args['x'])
+    opened = connections[con_id].opened
     if id in opened:
         opened.remove(id)
         return ''
     opened.add(id)
     return render_template('more.html',
-                           dct=connection.get(id), id=id, tid=table_id)
+                           dct=db.get(id), id=id, cid=con_id)
     
     
 @app.route('/image/<name>')
@@ -89,7 +153,7 @@ def image(name):
     path = os.path.join(tmpdir, name).encode()
     if not os.path.isfile(path):
         id = int(name[:-4])
-        atoms = connection.get_atoms(id)
+        atoms = db.get_atoms(id)
         if atoms:
             size = atoms.positions.ptp(0)
             i = size.argmin()
@@ -107,21 +171,21 @@ def image(name):
 @app.route('/gui/<int:id>')
 def gui(id):
     if open_ase_gui:
-        atoms = connection.get_atoms(id)
+        atoms = db.get_atoms(id)
         view(atoms)
     return '', 204, []
         
         
 @app.route('/id/<int:id>')
 def summary(id):
-    s = Summary(connection.get(id), SUBSCRIPT)
+    s = Summary(db.get(id), SUBSCRIPT)
     return render_template('summary.html', s=s, home=home)
 
     
 def tofile(query, type, limit=0):
     fd, name = tempfile.mkstemp(suffix='.' + type)
     con = ase.db.connect(name, use_lock_file=False)
-    for dct in connection.select(query, limit=limit):
+    for dct in db.select(query, limit=limit):
         con.write(dct,
                   data=dct.get('data', {}),
                   **dct.get('key_value_pairs', {}))
@@ -142,12 +206,22 @@ def download(f):
     return ff
     
     
+@app.route('/xyz/<int:id>')
+@download
+def xyz(id):
+    fd = io.BytesIO()
+    from ase.io.xyz import write_xyz
+    write_xyz(fd, db.get_atoms(id))
+    data = fd.getvalue()
+    return data, '{0}.xyz'.format(id)
+
+    
 @app.route('/json')
 @download
 def jsonall():
-    table_id = int(request.args['x'])
-    query, columns, sort, limit, opened = tables[table_id]
-    data = tofile(query, 'json', limit)
+    con_id = int(request.args['x'])
+    con = connections[con_id]
+    data = tofile(con.query, 'json', con.limit)
     return data, 'selection.json'
 
 
@@ -161,9 +235,9 @@ def json(id):
 @app.route('/sqlite')
 @download
 def sqliteall():
-    table_id = int(request.args['x'])
-    query, columns, sort, limit, opened = tables[table_id]
-    data = tofile(query, 'db', limit)
+    con_id = int(request.args['x'])
+    con = connections[con_id]
+    data = tofile(con.query, 'db', con.limit)
     return data, 'selection.db'
 
     
@@ -179,8 +253,29 @@ def robots():
     return 'User-agent: *\nDisallow: /\n', 200
 
 
-if __name__ == '__main__':
-    globals()['connection'] = ase.db.connect(sys.argv[1])
-    globals()['home'] = sys.argv[2]
-    globals()['open_ase_gui'] = False
-    app.run(host='0.0.0.0', port=5000, debug=False)
+def pages(page, nrows, limit):
+    npages = (nrows + limit - 1) // limit
+    p1 = min(5, npages)
+    p2 = max(page - 4, p1)
+    p3 = min(page + 5, npages)
+    p4 = max(npages - 4, p3)
+    pgs = list(range(p1))
+    if p1 < p2:
+        pgs.append(-1)
+    pgs += list(range(p2, p3))
+    if p3 < p4:
+        pgs.append(-1)
+    pgs += list(range(p4, npages))
+    pages = [(page - 1, 'previous')]
+    for p in pgs:
+        if p == -1:
+            pages.append((-1, '...'))
+        elif p == page:
+            pages.append((-1, str(p + 1)))
+        else:
+            pages.append((p, str(p + 1)))
+    nxt = min(page + 1, npages - 1)
+    if nxt == page:
+        nxt = -1
+    pages.append((nxt, 'next'))
+    return pages

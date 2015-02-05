@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 from math import sqrt, exp
 
@@ -62,8 +63,8 @@ def subdiagonalize(h_ii, s_ii, index_j):
     
     #setup transformation matrix
     c_ii = np.identity(nb, complex)
-    for i in xrange(nb_sub):
-        for j in xrange(nb_sub):
+    for i in range(nb_sub):
+        for j in range(nb_sub):
             c_ii[index_j[i], index_j[j]] = v_jj[i, j]
 
     h1_ii = rotate_matrix(h_ii, c_ii)
@@ -241,11 +242,11 @@ def function_integral(function, calcutype):
             Xp = Xp[:-1] + xpk
             Wp = Wp[:-1] + [Wp[-1] + wpk[0]] + wpk[1:]
         if warn == 1:
-            print 'warning: Minimum step size reached,singularity possible'
+            print('warning: Minimum step size reached,singularity possible')
         elif warn == 2:
-            print 'warning: Maximum function count excced; singularity likely'
+            print('warning: Maximum function count excced; singularity likely')
         elif warn == 3:
-            print 'warning: Infinite or Not-a-Number function value encountered'
+            print('warning: Infinite or Not-a-Number function value encountered')
         else:
             pass
         
@@ -346,7 +347,7 @@ def quadlstep(f, Za, Zb, fa, fb, tol, trace, fcnt, hmin, calcutype,
     else:
         pass
     if trace:
-        print fcnt, np.real(Za), np.imag(Za), np.abs(Zh)
+        print(fcnt, np.real(Za), np.imag(Za), np.abs(Zh))
     #Check accurancy of integral over this subinterval
     XXk = [Xp[0], Xp[2], Xp[4], Xp[6]]
     WWk = [Wk[0], Wk[2], Wk[4], Wk[6]]
@@ -425,7 +426,7 @@ def mytextwrite1(filename, mat):
     df.seek(0)
     dim = mat.shape[0]
     if dim != mat.shape[1]:
-        print 'matwirte, matrix is not square'
+        print('matwirte, matrix is not square')
     for i in range(dim):
         for j in range(dim):
             df.write('%20.20e\n'% mat[i, j])

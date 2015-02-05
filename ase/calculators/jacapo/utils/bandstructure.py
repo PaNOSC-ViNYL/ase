@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -95,7 +96,7 @@ class BandStructure:
         if os.path.exists(outnc):
             self.calc = Jacapo(outnc)
         else:
-            print 'calculation of harris required'
+            print('calculation of harris required')
             self.calc.set_nc(outnc)
             #self.calc.debug=10
 
@@ -150,14 +151,14 @@ class BandStructure:
             thisline.set_linewidth(5)
             plt.draw() #needed to update linewidth
             
-            print 'Band %i selected' % self.handles.index(thisline)
+            print('Band %i selected' % self.handles.index(thisline))
             #you could insert code here to plot wavefunction, etc...
             
         fig.canvas.mpl_connect('pick_event',onpick)
 
         #we use indices for x. the tick labels are not shown and the distance
         #appears unimportant
-        xdata = range(len(eigenvalues))
+        xdata = list(range(len(eigenvalues)))
 
         nkpts, nbands = eigenvalues.shape
         for i in range(nbands):         

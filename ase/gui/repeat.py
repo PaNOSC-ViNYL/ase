@@ -1,10 +1,9 @@
 import gtk
-from math import sqrt
 from gettext import gettext as _
 
 import numpy as np
 
-from ase.gui.widgets import pack, Help
+from ase.gui.widgets import pack
 
 
 class Repeat(gtk.Window):
@@ -37,4 +36,3 @@ class Repeat(gtk.Window):
         for r in self.repeat:
             r.value = 1
         self.gui.set_coordinates()
-        

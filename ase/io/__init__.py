@@ -46,6 +46,7 @@ def read(filename, index=None, format=None):
     XYZ-file                   xyz
     VASP POSCAR/CONTCAR file   vasp
     VASP OUTCAR file           vasp_out
+    VASP XDATCAR file          vasp_xdatcar
     SIESTA STRUCT file         struct_out
     ABINIT input file          abinit
     V_Sim ascii file           v_sim
@@ -221,6 +222,10 @@ def read(filename, index=None, format=None):
     if format == 'vasp_out':
         from ase.io.vasp import read_vasp_out
         return read_vasp_out(filename, index)
+
+    if format == 'vasp_xdatcar':
+        from ase.io.vasp import read_vasp_xdatcar
+        return read_vasp_xdatcar(filename, index)
 
     if format == 'abinit':
         from ase.io.abinit import read_abinit
@@ -602,12 +607,12 @@ def filetype(filename):
     if filename.startswith('pg://'):
         return 'postgresql'
 
-    fileobj = open(filename, 'rU')
+    fileobj = open(filename, 'rb')
     s3 = fileobj.read(3)
     if len(s3) == 0:
         raise IOError('Empty file: ' + filename)
 
-    if s3.startswith('{"'):
+    if s3.startswith(b'{"'):
         return 'json'
 
     if filename.endswith('.db'):
@@ -642,22 +647,22 @@ def filetype(filename):
     fileobj.seek(0)
     lines = fileobj.readlines(1000)
 
-    if lines[0].startswith('PickleTrajectory'):
+    if lines[0].startswith(b'PickleTrajectory'):
         return 'traj'
 
-    if (lines[1].startswith('OUTER LOOP:') or
+    if (lines[1].startswith(b'OUTER LOOP:') or
         filename.lower().endswith('.cube')):
         return 'cube'
 
-    if '  ___ ___ ___ _ _ _  \n' in lines:
+    if b'  ___ ___ ___ _ _ _  \n' in lines:
         return 'gpaw-text'
 
-    if (' &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n'
+    if (b' &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n'
         in lines[:90]):
         return 'dacapo-text'
 
     for line in lines:
-        if line[0] != '#':
+        if line[0] != b'#':
             word = line.strip()
             if word in ['ANIMSTEPS', 'CRYSTAL', 'SLAB', 'POLYMER', 'MOLECULE']:
                 return 'xsf'
@@ -668,6 +673,9 @@ def filetype(filename):
 
     if 'OUTCAR' in filename_v:
         return 'vasp_out'
+
+    if 'XDATCAR' in filename_v:
+        return 'vasp_xdatcar'
 
     if filename.lower().endswith('.exi'):
         return 'exi'
@@ -692,9 +700,9 @@ def filetype(filename):
         line = fileobj.readline()
         if not line:
             break
-        if 'Invoking FHI-aims ...' in line:
+        if b'Invoking FHI-aims ...' in line:
             return 'aims_out'
-        if 'atom' in line:
+        if b'atom' in line:
             data = line.split()
             try:
                 Atoms(symbols=[data[4]],
@@ -724,14 +732,14 @@ def filetype(filename):
     if filename.endswith('I_info'):
         return 'Cmdft'
 
-    if lines[0].startswith('$coord') or os.path.basename(filename) == 'coord':
+    if lines[0].startswith(b'$coord') or os.path.basename(filename) == 'coord':
         return 'tmol'
 
-    if (lines[0].startswith('$grad') or
+    if (lines[0].startswith(b'$grad') or
         os.path.basename(filename) == 'gradient'):
         return 'tmol-gradient'
 
-    if lines[0].startswith('Geometry'):
+    if lines[0].startswith(b'Geometry'):
         return 'dftb'
 
     if filename.lower().endswith('.geom'):

@@ -175,7 +175,7 @@ class Vibrations:
         assert self.direction in ['central', 'forward', 'backward']
 
         def load(fname):
-            f = pickle.load(open(fname))
+            f = pickle.load(open(fname, 'rb'))
             if not hasattr(f, 'shape'):
                 # output from InfraRed
                 return f[0]
@@ -223,13 +223,13 @@ class Vibrations:
                                'the vibrated atoms. Use Atoms.set_masses()'
                                ' to set all masses to non-zero values.')
 
-        self.im = np.repeat(m[self.indices] ** -0.5, 3)
+        self.im = np.repeat(m[self.indices]**-0.5, 3)
         omega2, modes = np.linalg.eigh(self.im[:, None] * H * self.im)
         self.modes = modes.T.copy()
 
         # Conversion factor:
         s = units._hbar * 1e10 / sqrt(units._e * units._amu)
-        self.hnu = s * omega2.astype(complex) ** 0.5
+        self.hnu = s * omega2.astype(complex)**0.5
 
     def get_energies(self, method='standard', direction='central'):
         """Get vibration energies in eV."""
@@ -348,20 +348,20 @@ class Vibrations:
         fd.close()
 
     def fold(self, frequencies, intensities,
-             start=800, end=4000, npts=None, width=4, 
+             start=800, end=4000, npts=None, width=4,
              type='Gaussian', normalize=False):
         """Fold frequencies and intensities within the given range
-        and folding method (Gaussian/Lorentzian). 
+        and folding method (Gaussian/Lorentzian).
         The energy unit is cm^-1.
-        normalize=True ensures the integral over the peaks to give the 
+        normalize=True ensures the integral over the peaks to give the
         intensity.
         """
 
         self.type = type.lower()
         assert self.type in ['gaussian', 'lorentzian']
-        if not npts: 
+        if not npts:
             npts = (end - start) / width * 10 + 1
-        prefactor = 1 
+        prefactor = 1
         if type == 'lorentzian':
             intensities = intensities * width * pi / 2.
             if normalize:
@@ -382,19 +382,19 @@ class Vibrations:
                 spectrum[i] = (intensities * 0.5 * width / pi / (
                         (frequencies - energy)**2 + 0.25 * width**2)).sum()
             else:
-                spectrum[i] = (intensities * 
-                               np.exp(-(frequencies - energy)**2 / 
+                spectrum[i] = (intensities *
+                               np.exp(-(frequencies - energy)**2 /
                                        2. / sigma**2)).sum()
         return [energies, prefactor * spectrum]
 
-    def write_dos(self, out='vib-dos.dat', start=800, end=4000, 
-                  npts=None, width=10, 
+    def write_dos(self, out='vib-dos.dat', start=800, end=4000,
+                  npts=None, width=10,
                   type='Gaussian', method='standard', direction='central'):
         """Write out the vibrational density of states to file.
 
-        First column is the wavenumber in cm^-1, the second column the 
+        First column is the wavenumber in cm^-1, the second column the
         folded vibrational density of states.
-        Start and end points, and width of the Gaussian/Lorentzian 
+        Start and end points, and width of the Gaussian/Lorentzian
         should be given in cm^-1."""
         frequencies = self.get_frequencies(method, direction).real
         intensities = np.ones(len(frequencies))
@@ -409,7 +409,7 @@ class Vibrations:
         fd.write('# %s folded, width=%g cm^-1\n' % (type.title(), width))
         fd.write('# [cm^-1] arbitrary\n')
         for row in outdata:
-            fd.write('%.3f  %15.5e\n' % 
+            fd.write('%.3f  %15.5e\n' %
                      (row[0], row[1]))
         fd.close()
 

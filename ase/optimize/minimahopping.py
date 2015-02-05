@@ -558,9 +558,9 @@ class MHPlot:
             ax.set_xticklabels([])
         ax1.set_xlabel('step')
         tempax.set_ylabel('$T$, K')
-        ediffax.set_ylabel('$E_\mathrm{diff}$, eV')
+        ediffax.set_ylabel(r'$E_\mathrm{diff}$, eV')
         for ax in [ax1, ax2]:
-            ax.set_ylabel('$E_\mathrm{pot}$, eV')
+            ax.set_ylabel('r$E_\mathrm{pot}$, eV')
         ax = CombinedAxis(ax1, ax2, tempax, ediffax)
         self._set_zoomed_range(ax)
         ax1.spines['top'].set_visible(False)
@@ -594,14 +594,14 @@ class MHPlot:
         self._ax.plot([step, step + 0.5], [energy] * 2, '-',
                       color='k', linewidth=2.)
         if status == 'accepted':
-            self._ax.text(step + 0.51, energy, '$\checkmark$')
+            self._ax.text(step + 0.51, energy, r'$\checkmark$')
         elif status == 'rejected':
-            self._ax.text(step + 0.51, energy, '$\Uparrow$', color='red')
+            self._ax.text(step + 0.51, energy, r'$\Uparrow$', color='red')
         elif status == 'previously found minimum':
-            self._ax.text(step + 0.51, energy, '$\hookleftarrow$',
+            self._ax.text(step + 0.51, energy, r'$\hookleftarrow$',
                           color='red', va='center')
         elif status == 'previous minimum':
-            self._ax.text(step + 0.51, energy, '$\leftarrow$',
+            self._ax.text(step + 0.51, energy, r'$\leftarrow$',
                           color='red', va='center')
 
     def _plot_md(self, step, line):

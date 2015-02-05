@@ -2,7 +2,7 @@ def installed():
     import os
     from ase.test import NotAvailable
     # check if CASTEP_COMMAND is set a environment variable
-    if not os.environ.has_key('CASTEP_COMMAND'):
+    if 'CASTEP_COMMAND' not in os.environ:
         print("WARNING: Environment variable CASTEP_COMMAND is not set")
         print("Will set CASTEP_COMMAND  = castep for the sake of this test")
         print("Please change it if this does not run castep in your environment")

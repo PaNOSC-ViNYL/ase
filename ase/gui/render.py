@@ -1,3 +1,4 @@
+from __future__ import print_function
 import gtk
 from gettext import gettext as _
 from ase.gui.widgets import pack, Help, oops
@@ -6,6 +7,7 @@ from ase.gui.status import formula
 from os.path import basename
 from os import system
 import numpy as np
+
 
 class Render(gtk.Window):
     finish_list = ['ase2','ase3','glass','simple','pale','intermediate','vmd','jmol']
@@ -19,11 +21,11 @@ class Render(gtk.Window):
     An alternative selection method is based on a boolean
     expression in the entry box provided, using the
     variables x, y, z, or Z. For example, the expression
-    Z == 11 and x > 10 and y > 10 
-    will mark all sodium atoms with x or coordinates 
+    Z == 11 and x > 10 and y > 10
+    will mark all sodium atoms with x or coordinates
     larger than 10. In either case, the button labeled
     `Create new texture from selection` will enable
-    to change the attributes of the current selection. 
+    to change the attributes of the current selection.
     """)
     def __init__(self, gui):
         self.gui = gui
@@ -129,7 +131,7 @@ class Render(gtk.Window):
         self.keep_files_status = True
         self.window_open = gtk.CheckButton(_("Show output window"))
         self.window_open.set_active(True)
-        self.window_open_status = True 
+        self.window_open_status = True
         pack(vbox,[self.run_povray,self.keep_files,self.window_open])
         pack(vbox,[gtk.Label("")])
         cancel_but = gtk.Button(stock=gtk.STOCK_CANCEL)
@@ -236,7 +238,7 @@ class Render(gtk.Window):
                 self.window_open_status = self.window_open.get_active()
             self.window_open.set_active(False)
             self.window_open.set_sensitive(False)
-        self.set_outputname()        
+        self.set_outputname()
         
     def toggle_run_povray(self, *args):
         if self.run_povray.get_active():
@@ -283,7 +285,7 @@ class Render(gtk.Window):
         return colors
         
     def ok(self, *args):
-        print "Rendering povray image(s): "
+        print("Rendering povray image(s): ")
         scale = self.gui.scale*self.height.get_value()/self.gui.height
         bbox = np.empty(4)
         size = np.array([self.width.get_value(), self.height.get_value()]) / scale
@@ -291,7 +293,7 @@ class Render(gtk.Window):
         bbox[2:] = bbox[:2] + size
         povray_settings = {'run_povray'     : self.run_povray.get_active(),
                            'bbox'           : bbox,
-                           'rotation'       : self.gui.axes, 
+                           'rotation'       : self.gui.axes,
                            'show_unit_cell' : self.render_cell.get_active(),
                            'display'        : self.window_open.get_active(),
                            'transparent'    : self.transparent.get_active(),
@@ -310,18 +312,18 @@ class Render(gtk.Window):
             self.gui.set_frame(frame)
             povray_settings['colors'] = self.get_colors()
             atoms = self.gui.images.get_atoms(frame)
-            self.set_outputname()        
+            self.set_outputname()
             filename = self.outputname.get_text()
-            print " | Writing files for image", filename, "..."
+            print(" | Writing files for image", filename, "...")
             write_pov(filename,
                       atoms,
                       radii = self.gui.images.r,
                       **povray_settings)
             if not self.keep_files.get_active():
-                print " | Deleting temporary file ", filename
+                print(" | Deleting temporary file ", filename)
                 system("rm "+filename)
                 filename = filename[:-4] + '.ini'
-                print " | Deleting temporary file ", filename
+                print(" | Deleting temporary file ", filename)
                 system("rm "+filename)
         self.gui.set_frame(initial_frame)
-        self.set_outputname()        
+        self.set_outputname()

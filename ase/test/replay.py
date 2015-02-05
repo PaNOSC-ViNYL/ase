@@ -4,7 +4,6 @@ from ase.constraints import FixAtoms
 from ase.calculators.emt import EMT
 from ase.optimize import QuasiNewton
 from ase.io import read
-from ase.vibrations import Vibrations
 from ase.visualize import view
 
 # Distance between Cu atoms on a (100) surface:
@@ -30,7 +29,7 @@ dyn1.run(fmax=0.1)
 
 a = read('AgCu1.traj')
 a.set_calculator(EMT())
-print a.constraints
+print(a.constraints)
 dyn2 = QuasiNewton(a, trajectory='AgCu2.traj', logfile='AgCu2.log')
 dyn2.replay_trajectory('AgCu1.traj')
 dyn2.run(fmax=0.01)

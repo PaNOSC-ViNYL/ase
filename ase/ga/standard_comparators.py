@@ -8,7 +8,7 @@ def get_sorted_dist_list(atoms, mic=False):
     unique_types = set(numbers)
     pair_cor = dict()
     for n in unique_types:
-        i_un = [i for i in xrange(len(atoms)) if atoms[i].number == n]
+        i_un = [i for i in range(len(atoms)) if atoms[i].number == n]
         d = []
         for i, n1 in enumerate(i_un):
             for n2 in i_un[i + 1:]:
@@ -96,7 +96,7 @@ class SequentialComparator(object):
         if not isinstance(methods, list):
             methods = [methods]
         if logics is None:
-            logics = [i for i in xrange(len(methods))]
+            logics = [i for i in range(len(methods))]
         if not isinstance(logics, list):
             logics = [logics]
         assert len(logics) == len(methods)

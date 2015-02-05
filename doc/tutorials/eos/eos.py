@@ -1,5 +1,3 @@
-# creates:  Ag-eos.png
-execfile('eos1.py')
-import matplotlib
-#matplotlib.use('Agg')
-execfile('eos2.py')
+# creates: Ag-eos.png
+exec(compile(open('eos1.py').read(), 'eos1.py', 'exec'))
+exec(compile(open('eos2.py').read(), 'eos2.py', 'exec'))

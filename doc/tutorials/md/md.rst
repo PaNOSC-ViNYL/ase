@@ -83,7 +83,7 @@ Let us see what happens when we propagate a nanoparticle for a long time:
 
 .. literalinclude:: moldyn4.py
 
-After running the simulation, use :program:`ase-gui` to compare the results
+After running the simulation, use :ref:`ase-gui` to compare the results
 with how it looks if you comment out either the line that says `Stationary(atoms)`, `ZeroRotation(atoms)` or both.
 
 ::

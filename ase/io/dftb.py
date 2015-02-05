@@ -58,7 +58,7 @@ def read_dftb(filename='dftb_in.hsd'):
                 atoms_pos.append([float(xxx), float(yyy), float(zzz)])
 
             
-    if type(filename) == str:
+    if isinstance(filename, str):
         myfile.close()
 
     atoms = Atoms(positions = atoms_pos, symbols = atom_symbols, 
@@ -176,5 +176,5 @@ def write_dftb(filename, atoms):
         myfile.write(' %19.16f %19.16f %19.16f \n' 
                 %( box[2][0], box[2][1], box[2][2]))
 
-    if type(filename) == str:    
+    if isinstance(filename, str):    
         myfile.close()

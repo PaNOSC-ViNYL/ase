@@ -17,7 +17,17 @@ Development version in trunk
 
 * The :func:`ase.lattice.bulk` function can now build the Wurtzite structure.
 
-* The :class:`ase.utils.timer.Timer` was moved from GPAW to ASE.
+* The :class:`ase.utils.timing.Timer` was moved from GPAW to ASE.
+
+* New :mod:`ase.db` module.
+
+* New functions: :func:`ase.lattice.surface.fcc211`,
+  :func:`ase.visualize.mlab.plot`, :func:`ase.atoms.Atoms.get_distances()`,
+  :func:`ase.atoms.Atoms.get_all_distances()`.
+
+* :ref:`bash completion` can now be enabled.
+
+* Preliminary support for Python 3.
 
 
 Version 3.8.0

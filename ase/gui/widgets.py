@@ -1,7 +1,9 @@
+from __future__ import print_function
 import sys
 from gettext import gettext as _
 import gtk
 import re
+
 
 class Number(gtk.SpinButton):
     def __init__(self, value=0,
@@ -36,11 +38,13 @@ class Menu:
 
 class Help(gtk.Window):
     __instance = None
+
     def __new__(cls, *args, **kwargs):
         # Make this a singleton.
         if Help.__instance is None:
             Help.__instance = gtk.Window.__new__(cls, *args, **kwargs)
         return Help.__instance
+
     def __init__(self, text):
         # Now, __init__ may be called multiple times!
         if not hasattr(self, '_initialized'):
@@ -61,7 +65,7 @@ class Help(gtk.Window):
         close = gtk.Button(_('Close'))
         pack(vbox, [close])
         close.connect('clicked', self.destroy)
-        self.connect("delete-event", self.destroy) 
+        self.connect("delete-event", self.destroy)
         self.show_all()
 
     def set_text(self, text):
@@ -77,6 +81,7 @@ class Help(gtk.Window):
     def destroy(self, *args):
         self.hide()
         return True  # Prevents destruction of the window.
+    
         
 def help(text):
     button = gtk.Button(_('Help'))
@@ -104,6 +109,7 @@ class Window(gtk.Window):
         vbox.show()
         self.show()
 
+        
 def pack(vbox, widgets, end=False, bottom=False, expand=False, padding=0):
     if not isinstance(widgets, list):
         widgets.show()
@@ -119,7 +125,7 @@ def pack(vbox, widgets, end=False, bottom=False, expand=False, padding=0):
     else:
         vbox.pack_start(hbox, expand, expand, padding)
     for widget in widgets:
-        if type(widget) is gtk.Entry:
+        if type(widget) is gtk.Entry:  # isinstance does not work here
             widget.set_size_request(widget.get_max_length() * 9, 24)
         widget.show()
         if end and widget is widgets[-1]:
@@ -128,6 +134,7 @@ def pack(vbox, widgets, end=False, bottom=False, expand=False, padding=0):
             hbox.pack_start(widget, expand, expand, padding)
     return widgets
 
+    
 class cancel_apply_ok(gtk.HButtonBox):
     "Widget with Cancel, Apply and OK buttons.  The arguments are callbacks."
     def __init__(self, cancel, apply, ok):
@@ -141,7 +148,8 @@ class cancel_apply_ok(gtk.HButtonBox):
         for w in (cancel_but, apply_but, ok_but):
             self.pack_start(w, 0, 0)
             w.show()
-        #self.show_all()
+        # self.show_all()
+       
         
 def oops(message, message2=None):
     dialog = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
@@ -151,11 +159,11 @@ def oops(message, message2=None):
     try:
         dialog.format_secondary_text(message2)
     except AttributeError:
-        print >>sys.stderr, message
-        print >>sys.stderr, message2
+        print(message, file=sys.stderr)
+        print(message2, file=sys.stderr)
     dialog.connect('response', lambda x, y, dialog=dialog: dialog.destroy())
     dialog.show()
 
+    
 class AseGuiCancelException(Exception):
     pass
-        

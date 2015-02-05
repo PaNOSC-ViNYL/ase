@@ -1,26 +1,26 @@
+from __future__ import print_function
 """Lattice data - Face Centered Cubic"""
 
 import numpy as np
-from math import sqrt
-from symmetry import *
+from ase.cluster.data.symmetry import *
 
-#Definition of symmetries
-basesymmetries = [np.matrix([[-1, 0, 0],  #Mirror x-axis
+# Definition of symmetries
+basesymmetries = [np.matrix([[-1, 0, 0],  # Mirror x-axis
                              [0, 1, 0],
                              [0, 0, 1]]),
-                  np.matrix([[1, 0, 0],   #Mirror y-axis
+                  np.matrix([[1, 0, 0],   # Mirror y-axis
                              [0, -1, 0],
                              [0, 0, 1]]),
-                  np.matrix([[1, 0, 0],   #Mirror z-axis
+                  np.matrix([[1, 0, 0],   # Mirror z-axis
                              [0, 1, 0],
                              [0, 0, -1]]),
-                  np.matrix([[1, 0, 0],   #Rotation x-axis (4-fold)
+                  np.matrix([[1, 0, 0],   # Rotation x-axis (4-fold)
                              [0, 0, -1],
                              [0, 1, 0]]),
-                  np.matrix([[0, 0, -1],  #Rotation y-axis (4-fold)
+                  np.matrix([[0, 0, -1],  # Rotation y-axis (4-fold)
                              [0, 1, 0],
                              [1, 0, 0]]),
-                  np.matrix([[0, 1, 0],   #Rotation z-axis (4-fold)
+                  np.matrix([[0, 1, 0],   # Rotation z-axis (4-fold)
                              [-1, 0, 0],
                              [0, 0, 1]]),
                   np.matrix([[0, 0, 1],   #Rotation (111)-axis (3-fold)
@@ -95,7 +95,7 @@ def surface_centering(surfaces, basis='100', debug=0):
             dx -= 1
 
         if debug:
-            print '(%i, %i, %i)' % (dx, dy, dz)
+            print('(%i, %i, %i)' % (dx, dy, dz))
     elif basis == '110':
         #Centering within the basis {[1,1,0], [1,0,1], [0,1,1]}
         dl1 = ((surfaces[6] - surfaces[7]) // 4) * 2
@@ -120,8 +120,8 @@ def surface_centering(surfaces, basis='100', debug=0):
         dz = (d2 + d3) // 2
 
         if debug:
-            print ('(%i, %i, %i) -> (%i, %i, %i) -> (%i, %i, %i)' %
-                   (dl1, dl2, dl3, d1, d2, d3, dx, dy, dz))
+            print('(%i, %i, %i) -> (%i, %i, %i) -> (%i, %i, %i)' %
+                  (dl1, dl2, dl3, d1, d2, d3, dx, dy, dz))
     else:
         dx, dy, dz = 0
 

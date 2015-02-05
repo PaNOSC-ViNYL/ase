@@ -29,19 +29,19 @@ def h2dft(name):
     except NotImplementedError:
         pass
     else:
-        print m1
+        print(m1)
     print(2 * e1 - e2)
     print(2 * e1pbe - e2pbe)
-    print e1, e2, e1pbe, e2pbe
+    print(e1, e2, e1pbe, e2pbe)
     calc = Calculator(name)
-    print calc.parameters, calc.results, calc.atoms
+    print(calc.parameters, calc.results, calc.atoms)
     assert not calc.calculation_required(h1, ['energy'])
     h1 = calc.get_atoms()
-    print h1.get_potential_energy()
+    print(h1.get_potential_energy())
     label = 'dir/' + name + '-h1'
     calc = Calculator(label=label, atoms=h1, xc='LDA', **par)
-    print h1.get_potential_energy()
-    print Calculator.read_atoms(label).get_potential_energy()
+    print(h1.get_potential_energy())
+    print(Calculator.read_atoms(label).get_potential_energy())
 
 names = ['abinit', 'aims', 'gaussian', 'nwchem']
 for name in names:

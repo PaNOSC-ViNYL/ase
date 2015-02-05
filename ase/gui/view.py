@@ -252,7 +252,7 @@ class View:
         for c_mode in ['Rotate', 'Orient', 'Move']:
             if c_mode != mode:
                 self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' %
-                                   c_mode).set_active(False) 
+                                   c_mode).set_active(False)
         
         if self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' %
                               mode).get_active():
@@ -261,24 +261,24 @@ class View:
                 self.images.selected[i] = False
             self.light_green_markings = 1
         else:
-            try: 
+            try:
                 atr = self.atoms_to_rotate_0
                 for i in range(len(self.images.selected)):
                     self.images.selected[i] = atr[i]
             except:
-                pass                
+                pass
                 
         self.menu_change = 0
         self.draw()
                       
     def toggle_move_mode(self, action):
         """
-        Toggles the move mode, where the selected atoms 
+        Toggles the move mode, where the selected atoms
         can be moved with the arrow
-        keys and pg up/dn. If the shift key is pressed, 
+        keys and pg up/dn. If the shift key is pressed,
         the movement will be reduced.
         
-        The movement will be relative to the current 
+        The movement will be relative to the current
         rotation of the coordinate system.
         
         The implementation of the move mode is found in the gui.scroll
@@ -318,7 +318,7 @@ class View:
         self.orient_normal = np.array([1.0, 0.0, 0.0])
         sel_pos = []
         for i, j in enumerate(self.atoms_to_rotate_0):
-            if j: 
+            if j:
                 sel_pos.append(self.R[i])
         if len(sel_pos) == 2:
             self.orient_normal = sel_pos[0] - sel_pos[1]
@@ -331,7 +331,7 @@ class View:
     def show_labels(self, action, active):
         an = active.get_name()
         if an == "AtomIndex":
-            self.labels = [range(self.images.natoms)] * self.images.nimages
+            self.labels = [list(range(self.images.natoms))] * self.images.nimages
         elif an == "NoLabel":
             self.labels = None
         elif an == "MagMom":
@@ -384,7 +384,7 @@ class View:
         P = np.dot(self.X, self.axes)
         n = self.images.natoms
         P[:n] -= self.images.r[:, None]
-        P1 = P.min(0) 
+        P1 = P.min(0)
         P[:n] += 2 * self.images.r[:, None]
         P2 = P.max(0)
         self.center = np.dot(self.axes, (P1 + P2) / 2)
@@ -480,7 +480,7 @@ class View:
             colors = np.array(colarray)[nV]
         elif self.colormode == 'charge':
             Q = self.images.q[self.frame]
-            nq = ((Q - self.colormode_charge_data[0]) * 
+            nq = ((Q - self.colormode_charge_data[0]) *
                   self.colormode_charge_data[1]        )
             nq = np.clip(nq.astype(int), 0, len(self.colors)-1)
             colors = np.array(colarray)[nq]
@@ -529,9 +529,9 @@ class View:
                                       ])
                 # Ellipsoid rotated by quaternion as Matrix X' = R X R_transpose
                 El_r = np.dot(Q.rotation_matrix(),
-                              np.dot(Ellipsoid, 
+                              np.dot(Ellipsoid,
                                      np.transpose(Q.rotation_matrix())))
-                # Ellipsoid rotated by quaternion and axes as 
+                # Ellipsoid rotated by quaternion and axes as
                 # Matrix X' =  R_axes X' R_axes
                 El_v = np.dot(np.transpose(self.axes), np.dot(El_r, self.axes))
                 # Projection of rotated ellipsoid on xy plane
@@ -543,21 +543,21 @@ class View:
                         ])
                 # diagonal matrix der Ellipse gibt halbachsen
                 El_p_diag = np.linalg.eig(El_p)
-                # Winkel mit dem Ellipse in xy gedreht ist aus 
+                # Winkel mit dem Ellipse in xy gedreht ist aus
                 # eigenvektor der diagonal matrix
                 phi = atan(El_p_diag[1][0][1] / El_p_diag[1][0][0])
                 tupl = []
-                alpha = np.array(range(16)) * 2 * np.pi / 16
+                alpha = np.arange(16) * 2 * np.pi / 16
                 El_xy = np.array([sqrt(1. / (El_p_diag[0][0])) *
-                                  np.cos(alpha)*np.cos(phi) 
-                                  - sqrt(1./(El_p_diag[0][1])) * 
+                                  np.cos(alpha)*np.cos(phi)
+                                  - sqrt(1./(El_p_diag[0][1])) *
                                   np.sin(alpha) * np.sin(phi),
-                                  sqrt(1./(El_p_diag[0][0])) * 
+                                  sqrt(1./(El_p_diag[0][0])) *
                                   np.cos(alpha)*np.sin(phi)
-                                  + sqrt(1./(El_p_diag[0][1])) * 
+                                  + sqrt(1./(El_p_diag[0][1])) *
                                   np.sin(alpha) * np.cos(phi)])
 
-                tupl = (El_xy.transpose() * self.scale + 
+                tupl = (El_xy.transpose() * self.scale +
                         X[j][:2]).round().astype(int)
                 # XXX there must be a better way
                 tupl = [tuple(i) for i in tupl]
@@ -567,7 +567,7 @@ class View:
                 return self.pixmap.draw_arc(gc, fill, A[j, 0], A[j, 1], d[j],
                                             d[j], 0, 23040)
         else:
-            return self.pixmap.draw_arc(gc, fill, A[j, 0], A[j, 1], d[j], d[j], 
+            return self.pixmap.draw_arc(gc, fill, A[j, 0], A[j, 1], d[j], d[j],
                                         0, 23040)
 
     def arrow(self, begin, end):
@@ -635,7 +635,7 @@ class View:
                         # start labeling with atomic indexes
                         # to do: scale position and size with radius in some
                         # meaningful manner - pick a reference magnification
-                        # where it "looks good" and then go from there ... 
+                        # where it "looks good" and then go from there ...
                         nlabel = str(self.labels[self.frame][a])
                         colorl = self.foreground_gc
 
@@ -715,7 +715,7 @@ class View:
         color = self.foreground_gc
         line = self.pixmap.draw_line
         layout = self.drawing_area.create_pango_layout("Frame: " + n)
-        x = self.width - 3 - layout.get_size()[0] / pango.SCALE 
+        x = self.width - 3 - layout.get_size()[0] / pango.SCALE
         y = self.height - 5 - layout.get_size()[1] / pango.SCALE
         self.pixmap.draw_layout(self.foreground_gc, x, y, layout)
  
@@ -734,7 +734,7 @@ class View:
                 if a < self.images.natoms and hit[a]:
                     if event.state & gtk.gdk.CONTROL_MASK:
                         selected[a] = not selected[a]
-                        if selected[a]: 
+                        if selected[a]:
                             selected_ordered += [a]
                         elif len(selected_ordered) > 0:
                             if selected_ordered[-1] == a:
@@ -759,7 +759,7 @@ class View:
             if not (event.state & gtk.gdk.CONTROL_MASK):
                 selected[:] = False
             selected[indices] = True
-            if len(indices) == 1 and indices[0] not in self.images.selected_ordered: 
+            if len(indices) == 1 and indices[0] not in self.images.selected_ordered:
                 selected_ordered += [indices[0]]
             elif len(indices) > 1:
                 selected_ordered = []
@@ -815,7 +815,7 @@ class View:
                                  (-s * a, -s * b, c)])
             self.axes = np.dot(self.axes0, rotation)
             if self.images.natoms > 0:
-                com = self.X[:self.images.natoms].mean(0) 
+                com = self.X[:self.images.natoms].mean(0)
             else:
                 com = self.images.A[self.frame].mean(0)
             self.center = com - np.dot(com - self.center0,

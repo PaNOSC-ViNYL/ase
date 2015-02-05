@@ -18,9 +18,9 @@ def pa(array):
 
 def pc(array):
     """Povray color syntax"""
-    if type(array) == str:
+    if isinstance(array, str):
         return 'color ' + array
-    if type(array) == float:
+    if isinstance(array, float):
         return 'rgb <%.2f>*3' % array
     if len(array) == 3:
         return 'rgb <%.2f, %.2f, %.2f>' % tuple(array)
@@ -106,7 +106,7 @@ class POVRAY(EPS):
             else:
                 self.canvas_width = self.canvas_height * ratio
         elif self.canvas_height is not None:
-            raise RuntimeError, "Can't set *both* width and height!"
+            raise RuntimeError("Can't set *both* width and height!")
 
         # Distance to image plane from camera
         if self.image_plane is None:

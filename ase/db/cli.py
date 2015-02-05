@@ -53,11 +53,13 @@ def main(args=sys.argv[1:]):
     add('-a', '--add-from-file', metavar='[type:]filename',
         help='Add results from file.')
     add('-k', '--add-key-value-pairs', metavar='key1=val1,key2=val2,...',
-        help='Add key-value pairs to selected rows.  Values must be numbers ' +
+        help='Add key-value pairs to selected rows.  Values must be numbers '
         'or strings and keys must follow the same rules as keywords.')
-    add('--limit', type=int, default=500, metavar='N',
-        help='Show only first N rows (default is 500 rows).  Use --limit=0 ' +
+    add('-L', '--limit', type=int, default=500, metavar='N',
+        help='Show only first N rows (default is 500 rows).  Use --limit=0 '
         'to show all.')
+    add('--offset', type=int, default=0, metavar='N',
+        help='Skip first N rows.  By default, no rows are skipped')
     add('--delete', action='store_true',
         help='Delete selected rows.')
     add('--delete-keys', metavar='key1,key2,...',
@@ -67,13 +69,13 @@ def main(args=sys.argv[1:]):
     add('--explain', action='store_true',
         help='Explain query plan.')
     add('-c', '--columns', metavar='col1,col2,...',
-        help='Specify columns to show.  Precede the column specification ' +
-        'with a "+" in order to add columns to the default set of columns.  ' +
+        help='Specify columns to show.  Precede the column specification '
+        'with a "+" in order to add columns to the default set of columns.  '
         'Precede by a "-" to remove columns.')
     add('-s', '--sort', metavar='column', default='id',
         help='Sort rows using column.  Default is to sort after ID.')
-    add('--cut', type=int, default=35, help='Cut keywords and key-value ' +
-        'columns after CUT characters.  Use --cut=0 to disable cutting. ' +
+    add('--cut', type=int, default=35, help='Cut keywords and key-value '
+        'columns after CUT characters.  Use --cut=0 to disable cutting. '
         'Default is 35 characters')
     add('-p', '--python-expression', metavar='expression',
         help='Examples: "id,energy", "id,mykey".')
@@ -82,6 +84,9 @@ def main(args=sys.argv[1:]):
     add('-w', '--open-web-browser', action='store_true',
         help='Open results in web-browser.')
     add('--no-lock-file', action='store_true', help="Don't use lock-files")
+    add('--analyse', action='store_true',
+        help='Gathers statistics about tables and indices to help make '
+        'better query planning choices.')
         
     opts, args = parser.parse_args(args)
 
@@ -130,7 +135,11 @@ def run(opts, args, verbosity):
     def out(*args):
         if verbosity > 0:
             print(*args)
-            
+         
+    if opts.analyse:
+        con.analyse()
+        return
+        
     if opts.add_from_file:
         filename = opts.add_from_file
         if ':' in filename:
@@ -150,7 +159,8 @@ def run(opts, args, verbosity):
 
     if opts.explain:
         for dct in con.select(query, explain=True,
-                              verbosity=verbosity, limit=opts.limit):
+                              verbosity=verbosity,
+                              limit=opts.limit, offset=opts.offset):
             print(dct['explain'])
         return
 
@@ -161,7 +171,7 @@ def run(opts, args, verbosity):
                      use_lock_file=not opts.no_lock_file) as con2:
             for dct in con.select(query):
                 kvp = dct.get('key_value_pairs', {})
-                nkvp = -len(kvp)
+                nkvp -= len(kvp)
                 kvp.update(add_key_value_pairs)
                 nkvp += len(kvp)
                 con2.write(dct, data=dct.get('data'), **kvp)
@@ -187,7 +197,7 @@ def run(opts, args, verbosity):
         ids = [dct['id'] for dct in con.select(query)]
         if ids and not opts.yes:
             msg = 'Delete %s? (yes/No): ' % plural(len(ids), 'row')
-            if raw_input(msg).lower() != 'yes':
+            if input(msg).lower() != 'yes':
                 return
         con.delete(ids)
         out('Deleted %s' % plural(len(ids), 'row'))
@@ -208,7 +218,7 @@ def run(opts, args, verbosity):
     else:
         if opts.open_web_browser:
             import ase.db.app as app
-            app.connection = con
+            app.db = con
             app.app.run(host='0.0.0.0', debug=True)
         else:
             columns = list(all_columns)
@@ -225,7 +235,7 @@ def run(opts, args, verbosity):
                         columns.append(col.lstrip('+'))
         
             table = Table(con, verbosity, opts.cut)
-            table.select(query, columns, opts.sort, opts.limit)
+            table.select(query, columns, opts.sort, opts.limit, opts.offset)
             if opts.csv:
                 table.write_csv()
             else:

@@ -29,7 +29,7 @@ class VNLUnpickler(pickle.Unpickler):
         return pickle.Unpickler.find_class(self, module, name)
     
 def read_vnl(filename):
-    from cStringIO import StringIO
+    from io import StringIO
     vnl = VNLUnpickler(StringIO(ZipFile(filename).read('0_object'))).load()
     conf = vnl.data['__properties__']['Atomic Configuration'].data
     numbers = conf['_dataarray_']

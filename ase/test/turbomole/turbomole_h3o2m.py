@@ -81,10 +81,10 @@ if 1:
 neb.interpolate()
 if 1:
     for image in images:
-        print image.get_distance(1, 2), image.get_potential_energy()
+        print(image.get_distance(1, 2), image.get_potential_energy())
 
 dyn = BFGS(neb, trajectory='turbomole_h3o2m.traj')
 dyn.run(fmax=0.10)
 
 for image in images:
-    print image.get_distance(1, 2), image.get_potential_energy()
+    print(image.get_distance(1, 2), image.get_potential_energy())

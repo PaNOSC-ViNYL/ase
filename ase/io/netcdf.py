@@ -1,6 +1,7 @@
 """Read and write ASE2's netCDF trajectory files."""
 
-from ase.io.pupynere import NetCDFFile
+from scipy.io.netcdf import NetCDFFile
+
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 
@@ -45,7 +46,7 @@ def read_netcdf(filename, index=-1):
     if isinstance(index, int):
         indices = [index]
     else:
-        indices = range(nimages)[index]
+        indices = list(range(nimages))[index]
 
     images = []
     for i in indices:

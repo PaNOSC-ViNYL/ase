@@ -80,7 +80,7 @@ class OnePointElementCrossover(ElementCrossover):
         indi = self.initialize_individual(f)
         indi.info['data']['parents'] = [i.info['confid'] for i in parents]
 
-        cut_choices = [i for i in xrange(1, len(f) - 1)]
+        cut_choices = [i for i in range(1, len(f) - 1)]
         random.shuffle(cut_choices)
         for cut in cut_choices:
             fsyms = f.get_chemical_symbols()

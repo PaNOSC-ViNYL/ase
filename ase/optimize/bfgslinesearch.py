@@ -1,3 +1,4 @@
+from __future__ import print_function
 #__docformat__ = "restructuredtext en"
 # ******NOTICE***************
 # optimize.py module by Travis E. Oliphant
@@ -19,31 +20,42 @@ from ase.optimize.optimize import Optimizer
 
 # Modified from scipy_optimize
 abs = absolute
-import __builtin__
-pymin = __builtin__.min
-pymax = __builtin__.max
+pymin = min
+pymax = max
 __version__ = '0.1'
 
 
 class BFGSLineSearch(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', maxstep=.2,
-                 trajectory=None, c1=0.23, c2=0.46, alpha=10.0, stpmax=50.0):
+                 trajectory=None, c1=0.23, c2=0.46, alpha=10.0, stpmax=50.0,
+                 master=None):
         """Optimize atomic positions in the BFGSLineSearch algorithm, which
         uses both forces and potential energy information.
 
         Parameters:
 
+        atoms: Atoms object
+            The Atoms object to relax.
+
         restart: string
             Pickle file used to store hessian matrix. If set, file with
             such a name will be searched and hessian matrix stored will
             be used, if the file exists.
+        
         trajectory: string
             Pickle file used to store trajectory of atomic movement.
+
         maxstep: float
             Used to set the maximum distance an atom can move per
             iteration (default value is 0.2 Angstroms).
-        logfile: string
-            Text file used to write summary information.
+        
+        logfile: file object or str
+            If *logfile* is a string, a file with that name will be opened.
+            Use '-' for stdout.
+
+        master: boolean
+            Defaults to None, which causes only rank 0 to save files.  If
+            set to true,  this rank will save files.
         """
         self.maxstep = maxstep
         self.stpmax = stpmax
@@ -64,14 +76,14 @@ class BFGSLineSearch(Optimizer):
         self.no_update = False
         self.replay = False
 
-        Optimizer.__init__(self, atoms, restart, logfile, trajectory)
+        Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
 
     def read(self):
         self.r0, self.g0, self.e0, self.task, self.H = self.load()
-        self.load_restart = True    
+        self.load_restart = True
 
     def reset(self):
-        print 'reset'
+        print('reset')
         self.H = None
         self.r0 = None
         self.g0 = None
@@ -81,7 +93,7 @@ class BFGSLineSearch(Optimizer):
 
     def step(self, f):
         atoms = self.atoms
-        from ase.neb import NEB 
+        from ase.neb import NEB
         if isinstance(atoms, NEB):
             raise TypeError('NEB calculations cannot use the BFGSLineSearch'
                             ' optimizer. Use BFGS or another optimizer.')
@@ -122,22 +134,24 @@ class BFGSLineSearch(Optimizer):
             return
         else:
             dr = r - r0
-            dg = g - g0 
-            if not ((self.alpha_k > 0 and abs(np.dot(g,p0))-abs(np.dot(g0,p0)) < 0) \
-                or self.replay):
+            dg = g - g0
+            # self.alpha_k can be None!!!
+            if not (((self.alpha_k or 0) > 0 and
+                     abs(np.dot(g,p0)) - abs(np.dot(g0,p0)) < 0)
+                    or self.replay):
                 return
             if self.no_update == True:
-                print 'skip update'
+                print('skip update')
                 return
 
             try: # this was handled in numeric, let it remaines for more safety
                 rhok = 1.0 / (np.dot(dg,dr))
             except ZeroDivisionError:
                 rhok = 1000.0
-                print "Divide-by-zero encountered: rhok assumed large"
+                print("Divide-by-zero encountered: rhok assumed large")
             if isinf(rhok): # this is patch for np
                 rhok = 1000.0
-                print "Divide-by-zero encountered: rhok assumed large"
+                print("Divide-by-zero encountered: rhok assumed large")
             A1 = self.I - dr[:, np.newaxis] * dg[np.newaxis, :] * rhok
             A2 = self.I - dg[:, np.newaxis] * dr[np.newaxis, :] * rhok
             H0 = self.H
@@ -158,7 +172,7 @@ class BFGSLineSearch(Optimizer):
         self.force_calls += 1
         # Remember that forces are minus the gradient!
         # Scale the problem as SciPy uses I as initial Hessian.
-        f = self.atoms.get_forces().reshape(-1) 
+        f = self.atoms.get_forces().reshape(-1)
         return - f / self.alpha
 
     def replay_trajectory(self, traj):

@@ -1,7 +1,6 @@
 import numpy as np
-import __builtin__
-pymin = __builtin__.min
-pymax = __builtin__.max
+pymin = min
+pymax = max
 
 class LineSearch:
     def __init__(self,  xtol=1e-14):
@@ -47,7 +46,7 @@ class LineSearch:
         gval = gfk
         self.steps=[]
 
-        while 1:
+        while True:
             stp = self.step(alpha1, phi0, derphi0, c1, c2,
                                              self.xtol,
                                              self.isave, self.dsave)

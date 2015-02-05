@@ -1,5 +1,6 @@
-""" write gromos96 geometry files 
-(the exact file format is copied from the freely available 
+from __future__ import print_function
+""" write gromos96 geometry files
+(the exact file format is copied from the freely available
 gromacs package, http://www.gromacs.org
 its procedure src/gmxlib/confio.c (write_g96_conf)
 """
@@ -24,7 +25,7 @@ def read_gromos(fileobj, index=-1):
         fileobj = paropen(fileobj, 'r')
 
     if (index != -1):
-        print ('In gromos (g96) format only last frame can be read')
+        print('In gromos (g96) format only last frame can be read')
         sys.exit()
 
     lines = fileobj.readlines()
@@ -51,19 +52,19 @@ def read_gromos(fileobj, index=-1):
                 else:
                     symbols.append(symbol[0].lower().capitalize())
             if symbols[-1] not in chemical_symbols:
-                print 'Symbol not in chemical symbols, please check',\
-                    symbols[-1]
+                print('Symbol not in chemical symbols, please check',\
+                    symbols[-1])
                 sys.exit()
         if read_box:
             try:
                 b00, b11, b22, b10, b20, b01, b21, b02, b12 = line.split()[:9]
                 mycell = [(10.*float(b00), 10.*float(b01), 10.*float(b02)),
-                          (10.*float(b10), 10.*float(b11), 10.*float(b12)), 
+                          (10.*float(b10), 10.*float(b11), 10.*float(b12)),
                           (10.*float(b20), 10.*float(b21), 10.*float(b22))]
             except:
                 b00, b11, b22 = line.split()[:3]
                 mycell = [(10.*float(b00), 0.0, 0.0),
-                          (0.0, 10.*float(b11), 0.0), 
+                          (0.0, 10.*float(b11), 0.0),
                           (0.0, 0.0, 10.*float(b22))]
         if ('POSITION' in line):
             read_pos = True
@@ -102,7 +103,6 @@ def write_gromos(fileobj, images):
         gromos_atomtypes = images[-1].get_array('atomtypes')
     except:
         gromos_atomtypes = images[-1].get_chemical_symbols()
-    #print "gromos_atomtypes", gromos_atomtypes
 
     pos = images[-1].get_positions()
     pos = pos / 10.0
@@ -125,7 +125,6 @@ def write_gromos(fileobj, images):
         if resname != oldresname:
             oldresname = resname
             rescount = rescount + 1
-        #print xyz
         okresname = resname.lstrip('0123456789 ')
         fileobj.write('%5d %-5s %-5s%7d%15.9f%15.9f%15.9f\n' % \
                           (rescount, okresname, atomtype, count, \

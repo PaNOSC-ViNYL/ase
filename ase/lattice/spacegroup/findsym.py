@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright (C) 2012, Jesper Friis
 # (see accompanying license files for ASE).
 """
@@ -97,9 +98,9 @@ def parse(output):
     """Parse output from FINDSYM (Version 3.2.3, August 2007) and
     return a dict.  See docstring for findsym() for a description of
     the tokens."""
-    import StringIO
+    import io
     d = {}
-    f = StringIO.StringIO(output)
+    f = io.StringIO(output)
 
     line = f.readline()
     while not line.startswith('Lattice parameters'):
@@ -233,4 +234,4 @@ def unique(atoms, tol=1e-3, centering='P', types=None, isodata_dir=None):
 
 if __name__ == '__main__':
     import doctest
-    print 'doctest: ', doctest.testmod()
+    print('doctest: ', doctest.testmod())

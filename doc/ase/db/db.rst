@@ -23,10 +23,10 @@ PostgreSQL_:
 MariaDB_ or MySQL:
     Server based database.
 
-The JSON and SQLite3 back-ends work "out of the box", whereas PostgreSQL
-requires a server.
+The JSON and SQLite3 back-ends work "out of the box", whereas PostgreSQL and
+MariaDB requires a server.
 
-There is a `command-line tool`_ called :program:`ase-db` that can be
+There is a command-line tool called :ref:`ase-db` that can be
 used to query and manipulate databases and also a `Python interface`_.
 
 .. _JSON: http://www.json.org/
@@ -57,12 +57,12 @@ Every row in the database contains:
 * creation and modification time
 
 
-.. _ase-db command:
+.. _ase-db:
     
-Command-line tool
-=================
+ase-db
+======
 
-The :program:`ase-db` command can be used to query databases and for
+The :ref:`ase-db` command-line tool can be used to query databases and for
 manipulating key-value pairs.  Try::
     
     $ ase-db --help
@@ -75,6 +75,10 @@ Show all details for a single row:
     
 .. literalinclude:: ase-db-long.out
 
+.. seealso::
+    
+    * :ref:`cli`
+    
     
 Querying
 --------
@@ -84,11 +88,17 @@ Here are some example query strings:
 .. list-table::
     :widths: 25 75
     
+    * - Cu
+      - contains copper
+    * - H<3
+      - less than 3 hydrogen atoms
+    * - Cu,H<3
+      - contains copper and has less than 3 hydrogen atoms
     * - v3
       - has 'v3' key
-    * - abc=H
-      - has key 'abc' with value 'H'
-    * - v3,abc=H
+    * - abc=bla-bla
+      - has key 'abc' with value 'bla-bla'
+    * - v3,abc=bla-bla
       - both of the above
     * - calculator=nwchem
       - calculations done with NWChem
@@ -96,8 +106,6 @@ Here are some example query strings:
       - 'bandgap' key has value between 2.2 and 3.0
     * - natoms>=10
       - 10 or more atoms
-    * - H<3
-      - less than 3 hydrogen atoms
     * - formula=H2O
       - Exactly two hydrogens and one oxygen
     * - id=2345
@@ -143,9 +151,25 @@ ASE's :func:`ase.io.read` function can also read directly from databases:
 >>> a = read('abc.db@id=42')  # same thing
 >>> b = read('abc.db@v3,abc=H')
 
-Also the :program:`ase-gui` program can read from databases using the
+Also the :ref:`ase-gui` program can read from databases using the
 same syntax.
         
+
+.. _ase-db-web:
+
+Browse database with your web-browser
+=====================================
+
+You can use your web-browser to look at and query databases like this::
+    
+    $ ase-db abc.db -w
+    $ firefox http://0.0.0.0:5000/
+    
+Click individual rows to see details.  See the CMR_ web-page for an example of
+how this works.
+
+.. _CMR: https://cmrdb.fysik.dtu.dk/
+
 
 Python Interface
 ================

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from math import exp, pi, sin, sqrt, cos, acos
 import numpy as np
 
@@ -51,7 +52,7 @@ class XrDebye:
 
         f = {}
         def atomic(symbol):
-            if not f.has_key(symbol):
+            if symbol not in f:
                 if self.method == 'Iwasa':
                     f[symbol] = self.get_waasmaier(symbol, s)
                 else:
@@ -88,7 +89,7 @@ class XrDebye:
         if symbol == 'H':
             # XXXX implement analytical H
             return 0
-        elif waasmaier.has_key(symbol):
+        elif symbol in waasmaier:
             abc = waasmaier[symbol]
             f = abc[10]
             s2 = s*s
@@ -96,6 +97,6 @@ class XrDebye:
                 f += abc[2 * i] * exp(-abc[2 * i + 1] * s2)
             return f
         if self.warn:
-            print '<xrdebye::get_atomic> Element', symbol, 'not available'
+            print('<xrdebye::get_atomic> Element', symbol, 'not available')
         return 0
         

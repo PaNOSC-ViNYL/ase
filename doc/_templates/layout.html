@@ -42,16 +42,16 @@
           <h3>ASE</h3>
           <ul class="this-page-menu">
             <li><a href="{{ pathto('overview') }}">
-	      Overview</a></li>
+              Overview</a></li>
             <li><a href="{{ pathto('download') }}">
               Download</a></li>
             <li><a href="{{ pathto('tutorials/tutorials') }}">
-	      Tutorials</em></a></li>
+              Tutorials</em></a></li>
             <li><a href="{{ pathto('ase/ase') }}">
               Documentation</a></li>
             <li><a href="{{ pathto('faq') }}">FAQ</a></li>
             <li><a href="{{ pathto('mailinglists') }}">Mailing lists</a></li>
-	    <li><a href="{{ pathto('development/releasenotes') }}">Release notes</a></li>
+            <li><a href="{{ pathto('development/releasenotes') }}">Release notes</a></li>
             <li><a href="{{ pathto('licenseinfo') }}">License info</a></li>
             <li><a><p></a></li>
             <li><a href="{{ pathto('ase-manual')[:-4] + 'pdf' }}">
@@ -63,11 +63,13 @@
               Development</a></li>
             <li><a href="http://wiki.fysik.dtu.dk/ase/epydoc/ase-module.html">
               Epydoc</a></li>
-	    <li><a href="http://trac.fysik.dtu.dk/projects/ase/browser/trunk/">
+            <li><a href="http://trac.fysik.dtu.dk/projects/ase/browser/trunk/">
               Source code (svn)</a></li>
             <li><a href="{{ pathto('bugs') }}">Bugs!</a></li>
-	    <li><a href="http://trac.fysik.dtu.dk/projects/ase/report/1">
+            <li><a href="http://trac.fysik.dtu.dk/projects/ase/report/1">
               Bug Tracker</a></li>
+            <li><a href="https://ase-buildbot.fysik.dtu.dk/waterfall">
+              BuildBot</a></li>
           </ul>
           
           {%- block sidebartoc %}

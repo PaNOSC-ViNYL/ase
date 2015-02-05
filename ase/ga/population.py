@@ -197,7 +197,7 @@ class Population(object):
             M = [float(self.pop[i].info['n_paired']) for i in indecies]
             L = [float(self.pop[i].info['looks_like']) for i in indecies]
             f = [f[i] * 1. / sqrt(1. + M[i]) * 1. / sqrt(1. + L[i])
-                 for i in xrange(len(f))]
+                 for i in range(len(f))]
         return f
 
     def get_two_candidates(self, with_history=True):

@@ -97,11 +97,11 @@ def run_test(get_atoms, get_calculator, name,
         if hasattr(relax, 'force_calls'):
             fc = relax.force_calls
             if rank == 0:
-                print '%-15s %-15s %3i %8.3f (%3i) %s' % (name, optimizer, nsteps, E, fc, note)
+                print('%-15s %-15s %3i %8.3f (%3i) %s' % (name, optimizer, nsteps, E, fc, note))
         else:
             fc = nsteps
             if rank == 0:
-                print '%-15s %-15s %3i %8.3f       %s' % (name, optimizer, nsteps, E, note)
+                print('%-15s %-15s %3i %8.3f       %s' % (name, optimizer, nsteps, E, note))
 
         plotter.plot(optimizer, obs.get_E(), obs.get_fmax())
         format = '%s,%i,%i,%.5f,%i,%s\n'

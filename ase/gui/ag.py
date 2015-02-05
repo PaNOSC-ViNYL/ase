@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright 2008, 2009
 # CAMd (see accompanying license files for details).
 from __future__ import print_function
@@ -90,7 +91,7 @@ def main():
             from ase.io import string2index
             try:
                 images.read(args, string2index(opt.image_number))
-            except IOError, e:
+            except IOError as e:
                 if len(e.args) == 1:
                     parser.error(e.args[0])
                 else:

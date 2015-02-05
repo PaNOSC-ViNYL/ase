@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 
 from ase.data import atomic_numbers as ref_atomic_numbers
@@ -35,17 +36,17 @@ class ClusterFactory(ClusterBase):
         self.set_basis()
 
         if self.debug:
-            print "Lattice constant(s):", self.lattice_constant
-            print "Lattice basis:\n", self.lattice_basis
-            print "Resiprocal basis:\n", self.resiproc_basis
-            print "Atomic basis:\n", self.atomic_basis
+            print("Lattice constant(s):", self.lattice_constant)
+            print("Lattice basis:\n", self.lattice_basis)
+            print("Resiprocal basis:\n", self.resiproc_basis)
+            print("Atomic basis:\n", self.atomic_basis)
 
         self.set_surfaces_layers(surfaces, layers)
         self.set_lattice_size(center)
 
         if self.debug:
-            print "Center position:", self.center.round(2)
-            print "Base lattice size:", self.size
+            print("Center position:", self.center.round(2))
+            print("Base lattice size:", self.size)
 
         cluster = self.make_cluster(vacuum)
         cluster.symmetry = self.xtal_name
@@ -82,7 +83,7 @@ class ClusterFactory(ClusterBase):
             mask = np.less(r, rmax)
 
             if self.debug > 1:
-                print "Cutting %s at %i layers ~ %.3f A" % (s, l, rmax)
+                print("Cutting %s at %i layers ~ %.3f A" % (s, l, rmax))
 
             positions = positions[mask]
             numbers = numbers[mask]
@@ -162,7 +163,7 @@ class ClusterFactory(ClusterBase):
                     k[i] = np.floor(k[i])
 
             if self.debug > 1:
-                print "Spaning %i layers in %s in lattice basis ~ %s" % (l, s, k)
+                print("Spaning %i layers in %s in lattice basis ~ %s" % (l, s, k))
 
             max[k > max] = k[k > max]
             min[k < min] = k[k < min]

@@ -9,8 +9,8 @@ cosb3 = geometry.cut(skutterudite, origo=(0.25, 0.25, 0.25), extend=1.01)
 # Define the atomic bonds to show
 bondatoms = []
 symbols = cosb3.get_chemical_symbols()
-for i in xrange(len(cosb3)):
-    for j in xrange(i):
+for i in range(len(cosb3)):
+    for j in range(i):
         if (symbols[i] == symbols[j] == 'Co' and 
             cosb3.get_distance(i, j) < 4.53):
             bondatoms.append((i, j))

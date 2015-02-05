@@ -1,3 +1,4 @@
+from __future__ import print_function
 from math import sqrt
 
 import numpy as np
@@ -34,14 +35,14 @@ class Images:
                 shapesfile.close()
                 if '#{type:(shape_x,shape_y,shape_z), .....,}' in lines[0]:
                     shape = eval(lines[1])
-                    shapes=[]
+                    shapes = []
                     for an in images[0].get_atomic_numbers():
                         shapes.append(shape[an])
                     self.shapes = np.array(shapes)
                 else:
-                    print 'shape file has wrong format'
+                    print('shape file has wrong format')
             else:
-                print 'no shapesfile found: default shapes were used!'
+                print('no shapesfile found: default shapes were used!')
                   
         else:
             self.shapes = None

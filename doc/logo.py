@@ -35,7 +35,7 @@ if 0:
 
 
 if 1:
-    print calc.density.nt_sg.shape
+    print(calc.density.nt_sg.shape)
     n = calc.density.nt_sg[0, :, :, 10]
     #1c4e63
     c0 = np.array([19, 63, 82.0]).reshape((3, 1, 1)) / 255

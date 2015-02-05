@@ -1,3 +1,4 @@
+from __future__ import print_function
 '''Constant pressure/stress and temperature dynamics.
 
 Combined Nose-Hoover and Parrinello-Rahman dynamics, creating an NPT
@@ -164,15 +165,15 @@ class NPT(MolecularDynamics):
         Must be a symmetric 3x3 tensor, a 6-vector representing a symmetric
         3x3 tensor, or a number representing the pressure.
         """
-        if type(stress) == type(1.0) or type(stress) == type(1):
+        if isinstance(stress, type(1.0)) or isinstance(stress, type(1)):
             stress = array((-stress, -stress, -stress, 0.0, 0.0, 0.0))
         elif stress.shape == (3,3):
             if not self._issymmetric(stress):
-                raise ValueError, "The external stress must be a symmetric tensor."
+                raise ValueError("The external stress must be a symmetric tensor.")
             stress = array((stress[0,0], stress[1,1], stress[2,2], stress[1,2],
                             stress[0,2], stress[0,1]))
         elif stress.shape != (6,):
-            raise ValueError, "The external stress has the wrong shape."
+            raise ValueError("The external stress has the wrong shape.")
         self.externalstress = stress
 
     def set_mask(self, mask):
@@ -191,7 +192,8 @@ class NPT(MolecularDynamics):
         if not hasattr(mask, "shape"):
             mask = array(mask)        
         if mask.shape != (3,) and mask.shape != (3,3):
-            raise "The mask has the wrong shape (must be a 3-vector or 3x3 matrix)"
+            raise RuntimeError('The mask has the wrong shape ' +
+                               '(must be a 3-vector or 3x3 matrix)')
         else:
             mask = not_equal(mask, 0)  # Make sure it is 0/1
 
@@ -215,7 +217,7 @@ class NPT(MolecularDynamics):
     def set_strain_rate(self, rate):
         "Set the strain rate.  Must be an upper triangular 3x3 matrix."
         if not (rate.shape == (3,3) and self._isuppertriangular(rate)):
-            raise ValueError, "Strain rate must be an upper triangular matrix."
+            raise ValueError("Strain rate must be an upper triangular matrix.")
         self.eta = rate
         if self.initialized:
             # Recalculate h_past and eta_past so they match the current value.
@@ -231,9 +233,9 @@ class NPT(MolecularDynamics):
             self.initialize()
         else:
             if self.have_the_atoms_been_changed():
-                raise NotImplementedError, "You have modified the atoms since the last timestep."
+                raise NotImplementedError("You have modified the atoms since the last timestep.")
 
-        for i in xrange(steps):
+        for i in range(steps):
             self.step()
             self.nsteps += 1
             self.call_observers()
@@ -327,12 +329,12 @@ class NPT(MolecularDynamics):
         atoms = self.atoms
         self.h = self._getbox()
         if not self._isuppertriangular(self.h):
-            print "I am", self
-            print "self.h:"
-            print self.h
-            print "Min:", min((self.h[1,0], self.h[2,0], self.h[2,1]))
-            print "Max:", max((self.h[1,0], self.h[2,0], self.h[2,1]))
-            raise NotImplementedError, "Can (so far) only operate on lists of atoms where the computational box is an upper triangular matrix."
+            print("I am", self)
+            print("self.h:")
+            print(self.h)
+            print("Min:", min((self.h[1,0], self.h[2,0], self.h[2,1])))
+            print("Max:", max((self.h[1,0], self.h[2,0], self.h[2,1])))
+            raise NotImplementedError("Can (so far) only operate on lists of atoms where the computational box is an upper triangular matrix.")
         self.inv_h = linalg.inv(self.h)
         # The contents of the q arrays should migrate in parallel simulations.
         #self._make_special_q_arrays()
@@ -397,13 +399,13 @@ class NPT(MolecularDynamics):
         except AttributeError:
             pass
         else:
-            raise RuntimeError, "Cannot call attach_atoms on a dynamics which already has atoms."
+            raise RuntimeError("Cannot call attach_atoms on a dynamics which already has atoms.")
         MolecularDynamics.__init__(self, atoms, self.dt)
         ####self.atoms = atoms
         limit = 1e-6
         h = self._getbox()
         if max(abs((h - self.h).ravel())) > limit:
-            raise RuntimeError, "The unit cell of the atoms does not match the unit cell stored in the file."
+            raise RuntimeError("The unit cell of the atoms does not match the unit cell stored in the file.")
         self.inv_h = linalg.inv(self.h)
         #self._make_special_q_arrays()
         self.q = dot(self.atoms.get_positions(), self.inv_h) - 0.5

@@ -4,6 +4,8 @@
 Coding Conventions
 ==================
 
+The code *must* be compatible with the oldest supported version of python
+as given on the :ref:`download_and_install` page.
 
 Importing modules
 =================

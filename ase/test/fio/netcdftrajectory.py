@@ -4,7 +4,7 @@ import ase.io.netcdftrajectory as netcdftrajectory
 
 if not netcdftrajectory.have_nc:
     raise NotAvailable('No NetCDF module available (netCDF4-python, '
-                       'scipy.io.netcdf or ase.io.pupynere)')
+                       'scipy.io.netcdf)')
 
 import os
 from ase import Atom, Atoms
@@ -20,22 +20,23 @@ del traj
 if netcdftrajectory.have_nc == netcdftrajectory.NC_IS_NETCDF4:
     traj = NetCDFTrajectory('1.nc', 'a')
     co = traj[-1]
-    #print co.positions
+    print(co.positions)
     co.positions[:] += 1
     traj.write(co)
     del traj
     t = NetCDFTrajectory('1.nc', 'a')
 else:
     t = NetCDFTrajectory('1.nc', 'r')
-#print t[-1].positions
-#print '.--------'
+
+print(t[-1].positions)
+print('.--------')
 for i, a in enumerate(t):
     if i < 4:
-        #print 1, a.positions[-1, 2], 1.3 + i * 0.1
+        print(1, a.positions[-1, 2], 1.3 + i * 0.1)
         assert abs(a.positions[-1, 2] - 1.3 - i * 0.1) < 1e-6
         assert a.pbc.all()
     else:
-        #print 1, a.positions[-1, 2], 1.7 + i - 4
+        print(1, a.positions[-1, 2], 1.7 + i - 4)
         assert abs(a.positions[-1, 2] - 1.7 - i + 4) < 1e-6
         assert a.pbc.all()
 if netcdftrajectory.have_nc == netcdftrajectory.NC_IS_NETCDF4:
@@ -43,22 +44,22 @@ if netcdftrajectory.have_nc == netcdftrajectory.NC_IS_NETCDF4:
     t.write(co)
     for i, a in enumerate(t):
         if i < 4:
-            #print 2, a.positions[-1, 2], 1.3 + i * 0.1
+            print(2, a.positions[-1, 2], 1.3 + i * 0.1)
             assert abs(a.positions[-1, 2] - 1.3 - i * 0.1) < 1e-6
         else:
-            #print 2, a.positions[-1, 2], 1.7 + i - 4
+            print(2, a.positions[-1, 2], 1.7 + i - 4)
             assert abs(a.positions[-1, 2] - 1.7 - i + 4) < 1e-6
     assert len(t) == 7
 else:
     assert len(t) == 5
 
+# Change atom type and append
 co[0].number = 1
-try:
-    t.write(co)
-except ValueError:
-    pass
-else:
-    assert False
+t.write(co)
+t2 = NetCDFTrajectory('1.nc', 'r')
+co2 = t2[-1]
+assert (co2.numbers == co.numbers).all()
+del t2
 
 if netcdftrajectory.have_nc == netcdftrajectory.NC_IS_NETCDF4:
     co[0].number = 6
@@ -99,5 +100,5 @@ t = NetCDFTrajectory(fname)
 a = t[-1]
 assert a.pbc[0] and not a.pbc[1] and not a.pbc[2]
 assert abs(a.get_distance(0, 1) - d) < 1e-6
-del t 
+del t
 os.remove(fname)

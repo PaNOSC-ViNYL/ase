@@ -191,7 +191,7 @@ class SetupSurfaceSlab(SetupWindow):
         # Now create the atoms
         try:
             self.atoms = structinfo[4](**kw)
-        except ValueError, e:
+        except ValueError as e:
             # The values were illegal - for example some size
             # constants must be even for some structures.
             self.pybut.python = None

@@ -153,7 +153,7 @@ class NeighborList:
 
           indices, offsets = nl.get_neighbors(42)
           for i, offset in zip(indices, offsets):
-              print atoms.positions[i] + dot(offset, atoms.get_cell())
+              print(atoms.positions[i] + dot(offset, atoms.get_cell()))
 
         Notice that if get_neighbors(a) gives atom b as a neighbor,
         then get_neighbors(b) will not return a as a neighbor - unless

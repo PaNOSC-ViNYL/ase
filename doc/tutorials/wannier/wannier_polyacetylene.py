@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 
 from ase.dft import Wannier
@@ -18,10 +19,10 @@ ef = calc.get_fermi_level()
 f = open('KSbands.txt', 'w')
 for k, kpt_c in enumerate(calc.get_ibz_k_points()):
     for eps in calc.get_eigenvalues(kpt=k):
-        print >> f, kpt_c[0], eps - ef
+        print(kpt_c[0], eps - ef, file=f)
 
 # Print Wannier bandstructure
 f = open('WANbands.txt', 'w')
 for k in np.linspace(-.5, .5, 100):
     for eps in np.linalg.eigvalsh(wan.get_hamiltonian_kpoint([k, 0, 0])).real:
-        print >> f, k, eps - ef
+        print(k, eps - ef, file=f)

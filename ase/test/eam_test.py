@@ -67,9 +67,9 @@ mishin_check = EAM(potential='Al99-test.eam.alloy')
 al.set_calculator(mishin_check)
 mishin_check_energy = al.get_potential_energy()
 
-print 'Cohesive Energy for Al = ', mishin_approx_energy, ' eV'
+print('Cohesive Energy for Al = ', mishin_approx_energy, ' eV')
 
 error = (mishin_approx_energy - mishin_check_energy) / mishin_approx_energy
-print 'read/write check error = ', error
+print('read/write check error = ', error)
 
 assert abs(error) < 1e-4

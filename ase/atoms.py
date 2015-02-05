@@ -14,6 +14,7 @@ import numpy as np
 
 from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
+from ase.utils import basestring
 import ase.units as units
 
 
@@ -306,11 +307,12 @@ class Atoms(object):
         self._cell = cell
 
     def set_celldisp(self, celldisp):
+        """Set the unit cell displacement vectors."""
         celldisp = np.array(celldisp, float)
         self._celldisp = celldisp
 
     def get_celldisp(self):
-        """Get the unit cell displacement vectors ."""
+        """Get the unit cell displacement vectors."""
         return self._celldisp.copy()
 
     def get_cell(self):
@@ -481,7 +483,7 @@ class Atoms(object):
     def set_tags(self, tags):
         """Set tags for all atoms. If only one tag is supplied, it is
         applied to all atoms."""
-        if type(tags) == int:
+        if isinstance(tags, int):
             tags = [tags] * len(self)
         self.set_array('tags', tags, int, ())
 
@@ -1254,11 +1256,10 @@ class Atoms(object):
                 j += 1
 
     def set_dihedral(self, list, angle, mask=None):
-        """
-        set the dihedral angle between vectors list[0]->list[1] and
+        """Set the dihedral angle between vectors list[0]->list[1] and
         list[2]->list[3] by changing the atom indexed by list[3]
         if mask is not None, all the atoms described in mask
-        (read: the entire subgroup) are moved
+        (read: the entire subgroup) are moved.
 
         example: the following defines a very crude
         ethane-like molecule and twists one half of it by 30 degrees.
@@ -1347,6 +1348,7 @@ class Atoms(object):
         """Return distance between two atoms.
 
         Use mic=True to use the Minimum Image Convention.
+        vector=True gives the distance vector (from a0 to a1).
         """
 
         R = self.arrays['positions']
@@ -1358,10 +1360,11 @@ class Atoms(object):
             return D
         return np.linalg.norm(D)
 
-    def get_distances(self, a, indices, mic=False):
-        """Return distances of atom No.i with a list of atoms
+    def get_distances(self, a, indices, mic=False, vector=False):
+        """Return distances of atom No.i with a list of atoms.
 
         Use mic=True to use the Minimum Image Convention.
+        vector=True gives the distance vector (from a to self[indices]).
         """
 
         R = self.arrays['positions']
@@ -1369,13 +1372,14 @@ class Atoms(object):
         if mic:
             Dr = np.linalg.solve(self._cell, D.T)
             D = np.dot(self._cell, Dr - (self._pbc * np.round(Dr).T).T).T
+        if vector:
+            return D
         return np.sqrt((D**2).sum(1))
 
     def get_all_distances(self, mic=False):
         """Return distances of all of the atoms with all of the atoms.
 
         Use mic=True to use the Minimum Image Convention.
-        Use squared=True to return the squared distances.
         """
         L = len(self)
         R = self.arrays['positions']
@@ -1431,7 +1435,7 @@ class Atoms(object):
         self.arrays['positions'][:] = np.dot(scaled, self._cell)
 
     def get_temperature(self):
-        """Get the temperature. in Kelvin"""
+        """Get the temperature in Kelvin."""
         ekin = self.get_kinetic_energy() / len(self)
         return ekin / (1.5 * units.kB)
 
@@ -1452,6 +1456,11 @@ class Atoms(object):
             return NotImplemented
 
     def __ne__(self, other):
+        """Check if two atoms objects are not equal.
+
+        Any differences in positions, atomic numbers, unit cell or
+        periodic boundary condtions make atoms objects not equal.
+        """
         eq = self.__eq__(other)
         if eq is NotImplemented:
             return eq
@@ -1501,7 +1510,11 @@ class Atoms(object):
                    'of the periodic boundary condition flags.')
 
     def write(self, filename, format=None, **kwargs):
-        """Write yourself to a file."""
+        """Write atoms object to a file.
+
+        see ase.io.write for formats.
+        kwargs are passed to ase.io.write.
+        """
         from ase.io import write
         write(filename, self, format, **kwargs)
 
@@ -1589,7 +1602,7 @@ def symbols2numbers(symbols):
         symbols = string2symbols(symbols)
     numbers = []
     for s in symbols:
-        if isinstance(s, (str, unicode)):
+        if isinstance(s, basestring):
             numbers.append(atomic_numbers[s])
         else:
             numbers.append(s)

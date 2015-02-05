@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 
 import gtk
@@ -17,5 +18,5 @@ class Debug(gtk.Window):
 
     def enter(self, widget, entry):
         g = self.gui
-        print >> sys.stderr, eval(entry.get_text())
+        print(eval(entry.get_text()), file=sys.stderr)
     

@@ -776,6 +776,9 @@ class MinModeAtoms:
         else:
             return getattr(self.atoms, attr)
 
+    def __len__(self):
+        return len(self.atoms)
+        
     def displace(self, displacement_vector=None, mask=None, method=None,
                  displacement_center=None, radius=None, number_of_atoms=None,
                  gauss_std=None, mic=True, log=True):
@@ -851,7 +854,7 @@ class MinModeAtoms:
             c = displacement_center
             # Construct a distance list
             # The center is an atom
-            if type(c) is int:
+            if isinstance(c, int):
                 # Parse negative indexes
                 c = displacement_center % len(self)
                 d = [(k, self.get_distance(k, c, mic = mic)) for k in \
@@ -1133,7 +1136,7 @@ def read_eigenmode(mlog, index = -1):
     n_itr = (len(lines) / (n + 1)) - 2
 
     # Locate the correct image.
-    if type(index) == str:
+    if isinstance(index, str):
         if index.lower() == 'null':
             i = 0
         else:

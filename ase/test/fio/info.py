@@ -9,7 +9,7 @@ class Foo(object):
 
 
 if __name__ == '__main__':
-    import info  # import ourselves to make info.Foo reachable
+    from . import info  # import ourselves to make info.Foo reachable
 
     # Create a molecule with an info attribute
     info = dict(creation_date='2011-06-27', 
