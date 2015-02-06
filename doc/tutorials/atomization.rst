@@ -19,7 +19,7 @@ variable.
 
 Running the script will produce the output::
 
-  Nitrogen atom energy:  4.97 eV
-  Nitrogen molecule energy:  0.04 eV
-  Atomization energy:  9.90 eV
+  Nitrogen atom energy:  5.10 eV
+  Nitrogen molecule energy:  0.44 eV
+  Atomization energy:  9.76 eV
 
