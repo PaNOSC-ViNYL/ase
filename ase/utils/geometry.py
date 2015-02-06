@@ -76,7 +76,7 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
     directions (and will be treated correctly).
 
     Parameters:
-    
+
     atoms: Atoms instance
         This should correspond to a repeatable unit cell.
     a: int | 3 floats
@@ -168,7 +168,7 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
     origo = np.array(origo, dtype=float)
 
     scaled = (atoms.get_scaled_positions() - origo)%1.0
-    scaled %= 1.0 # needed to ensure that all numbers are *less* than one
+    scaled %= 1.0   # needed to ensure that all numbers are *less* than one
     atoms.set_scaled_positions(scaled)
 
     if isinstance(a, int):
@@ -195,7 +195,7 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
             at = cut(atoms, a, b, c, origo=origo, extend=extend,
                         tolerance=tolerance)
             scaled = at.get_scaled_positions()
-            d = scaled[:,2]
+            d = scaled[:, 2]
             keys = np.argsort(d)
             ikeys = np.argsort(keys)
             tol = tolerance
@@ -349,12 +349,14 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
 
     if distance is not None:
         from scipy.optimize import fmin
+
         def mindist(pos1, pos2):
             n1 = len(pos1)
             n2 = len(pos2)
             idx1 = np.arange(n1).repeat(n2)
             idx2 = np.tile(np.arange(n2), n1)
             return np.sqrt(((pos1[idx1] - pos2[idx2])**2).sum(axis=1).min())
+
         def func(x):
             t1, t2, h1, h2 = x[0:3], x[3:6], x[6], x[7]
             pos1 = atoms1.positions + t1
@@ -362,6 +364,7 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
             d1 = mindist(pos1, pos2 + (h1 + 1.0)*atoms1.cell[axis])
             d2 = mindist(pos2, pos1 + (h2 + 1.0)*atoms2.cell[axis])
             return (d1 - distance)**2 + (d2 - distance)**2
+
         atoms1.center()
         atoms2.center()
         x0 = np.zeros((8,))
@@ -399,10 +402,12 @@ def sort(atoms, tags=None):
     >>> nacl = crystal(['Na', 'Cl'], [(0, 0, 0), (0.5, 0.5, 0.5)],
     ... spacegroup=225, cellpar=[a, a, a, 90, 90, 90]).repeat((2, 1, 1))
     >>> nacl.get_chemical_symbols()
-    ['Na', 'Na', 'Na', 'Na', 'Cl', 'Cl', 'Cl', 'Cl', 'Na', 'Na', 'Na', 'Na', 'Cl', 'Cl', 'Cl', 'Cl']
+    ['Na', 'Na', 'Na', 'Na', 'Cl', 'Cl', 'Cl', 'Cl', 'Na', 'Na', 'Na',
+            'Na', 'Cl', 'Cl', 'Cl', 'Cl']
     >>> nacl_sorted = sort(nacl)
     >>> nacl_sorted.get_chemical_symbols()
-    ['Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Na', 'Na', 'Na', 'Na', 'Na', 'Na', 'Na', 'Na']
+    ['Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Na', 'Na', 'Na',
+            'Na', 'Na', 'Na', 'Na', 'Na']
     >>> np.all(nacl_sorted.cell == nacl.cell)
     True
     """
@@ -418,12 +423,12 @@ def sort(atoms, tags=None):
 def rotation_matrix(a1, a2, b1, b2):
     """Returns a rotation matrix that rotates the vectors *a1* in the
     direction of *a2* and *b1* in the direction of *b2*.
-    
+
     In the case that the angle between *a2* and *b2* is not the same
     as between *a1* and *b1*, a proper rotation matrix will anyway be
     constructed by first rotate *b2* in the *b1*, *b2* plane.
     """
-    from numpy.linalg import norm, det
+    from np.linalg import norm, det
     a1 = np.asarray(a1, dtype=float)/norm(a1)
     b1 = np.asarray(b1, dtype=float)/norm(b1)
     c1 = np.cross(a1, b1)
@@ -438,7 +443,7 @@ def rotation_matrix(a1, a2, b1, b2):
     theta = np.arccos(np.dot(a2, b2)) - np.arccos(np.dot(a1, b1))
     b3 = np.sin(theta)*a2 + np.cos(theta)*b2
     b3 /= norm(b3)      # clean out rounding errors...
-    
+
     A1 = np.array([a1, b1, c1])
     A2 = np.array([a2, b3, c2])
     R = np.linalg.solve(A1, A2).T
@@ -459,7 +464,7 @@ def rotate(atoms, a1, a2, b1, b2, rotate_cell=True, center=(0, 0, 0)):
     """
     if isinstance(center, str) and center.lower() == 'com':
         center = atoms.get_center_of_mass()
-    
+
     R = rotation_matrix(a1, a2, b1, b2)
     atoms.positions[:] = np.dot(atoms.positions - center, R.T) + center
 
@@ -473,7 +478,7 @@ def minimize_tilt_ij(atoms, modified=1, fixed=0, fold_atoms=True):
     The problem is underdetermined. Therefore one can choose one axis
     that is kept fixed.
     """
-    
+
     orgcell_cc = atoms.get_cell()
     pbc_c = atoms.get_pbc()
     i = fixed
@@ -497,16 +502,144 @@ def minimize_tilt_ij(atoms, modified=1, fixed=0, fold_atoms=True):
     if fold_atoms:
         atoms.set_scaled_positions(atoms.get_scaled_positions())
 
-        
+
 def minimize_tilt(atoms, order=range(3), fold_atoms=True):
     """Minimize the tilt angles of the unit cell."""
     pbc_c = atoms.get_pbc()
-    
+
     for i1, c1 in enumerate(order):
         for c2 in order[i1 + 1:]:
             if pbc_c[c1] and pbc_c[c2]:
                 minimize_tilt_ij(atoms, c1, c2, fold_atoms)
 
+
+def wrap(atoms, center=(0.5, 0.5, 0.5), pbc=None, inplace=False):
+    """Returns an atoms object with the positions changed by a
+    multiple of the unit cell vectors to fit inside the space
+    spanned by these vectors.
+
+    Parameters:
+
+    atoms: Atoms object
+    center: three floats | (0.5, 0.5, 0.5)
+        The positons in fractional coordinates that the new positions
+        will be nearest possible to.
+    pbc: None or 3 booleans | None
+        For each axis in the unit cell decides whether the positions
+        will be moved along this axis. None means that this information
+        will be taken from atoms.pbc
+    inplace: boolean | False
+        Decides whether the function will modify the input in place
+        and return a reference(True) or whether a new atoms object is
+        created(False).
+
+    Returns:
+
+    An Atoms object.
+
+    Example:
+
+    >>> import numpy as np
+    from ase.atoms import Atoms
+    from ase.utils.geometry import wrap
+    scaled_positions = np.array([ [ 2.0, 3.2, 4.3], ])
+    cell = np.array( [[5.43, 5.43, 0.0],
+                      [5.43,-5.43, 0.0],
+                      [0.00, 0.00,40.0],
+                      ])
+    atoms = Atoms(
+            scaled_positions=scaled_positions,
+            symbols=['Si'],
+            cell=cell,
+            pbc=[True, True, False],
+            )
+    new_atoms = wrap(atoms)
+    >>> new_atoms.get_scaled_positions()
+    array([0.0, 0.2, 4.3])
+    """
+    if not inplace:
+        atoms = atoms.copy()
+
+    if pbc is None:
+        pbc = atoms.get_pbc()
+    else:
+        pbc = np.array(pbc)
+
+    # Early escape if no directions are defined as periodic.
+    if not pbc.any():
+        return atoms
+
+    unit_cell = atoms.get_cell()[pbc]
+    center = np.array(center)[pbc]
+    positions = wrap_positions(atoms.get_positions(), unit_cell, center)
+    atoms.set_positions(positions)
+
+    return atoms
+
+
+def wrap_positions(positions, unit_cell, center):
+    """Returns an  array of positions changed by a
+    multiple of the unit cell vectors to fit inside the space
+    spanned by these vectors.
+
+    positions: Nx3 array of floats
+        The input positions.
+    unit_cell: 1x3, 2x3 or 3x3 array of floats
+        Only multiples of these vectors are used to shift the positions.
+    center: three floats | (0.5, 0.5, 0.5)
+        The positons in fractional coordinates that the new positions
+        will be nearest possible to.
+
+    Returns:
+
+    An Nx3 array containing the modified positons.
+    """
+
+    f_pos, remainder = convert_positions_to(positions, unit_cell)
+    shift = np.array(center) - np.array([0.5]*len(center)) + 1e-5
+    f_pos = ((f_pos + shift)%1 - shift)
+    pos = convert_positions_from(f_pos, unit_cell)
+    pos += remainder
+
+    return np.around(pos, 13)
+
+
+def convert_positions_to(positions, vectors):
+    """Returns positions expressed in a given basis vectors.
+
+    Returns:
+
+    new_positions: Nx3 array with the converted positions
+    remainder: Nx3 with the position vector left over when converting
+               to the new basis. Only non-zero if less than 3 vectors
+               are given.
+    """
+    M=np.transpose(np.matrix(vectors))
+    Minv = moore_penrose_inverse(M)
+    new_positions = np.transpose(Minv*np.transpose(np.matrix(positions)))
+    tmp = convert_positions_from(new_positions, vectors)
+    remainder = positions - tmp
+
+    return np.around(new_positions, 13), remainder
+
+
+def convert_positions_from(positions, vectors):
+    """Returns positions converted back from a given basis set.
+    """
+    M=np.transpose(np.matrix(vectors))
+    positions = np.transpose(M*np.transpose(np.matrix(positions)))
+
+    return np.around(positions, 13)
+
+
+def moore_penrose_inverse(A):
+    """Returns the Moore-Penrose inverse of a matrix.
+    """
+    A = np.matrix(A)
+    Ah = (A.conjugate()).transpose()
+    inverse = (Ah*A)**(-1)*Ah
+
+    return inverse
 
 # Self test
 if __name__ == '__main__':
