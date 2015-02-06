@@ -63,7 +63,7 @@ Then :command:`cd` to the :file:`doc` directory and build the html-pages::
 
 Make your changes to the ``.rst`` files, run the
 :command:`sphinx-build` command again, check the results and if things
-looks ok, commit::
+look ok, commit::
 
   $ emacs index.rst
   $ sphinx-build . _build
