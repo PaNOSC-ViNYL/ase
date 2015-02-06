@@ -61,12 +61,14 @@ class NEB:
         d1 = self.images[0].get_all_distances()
         d2 = self.images[-1].get_all_distances()
         d = (d2 - d1) / (self.nimages - 1)
+        old = []
         for i, image in enumerate(self.images):
+            old.append(image.calc)
             image.calc = IDPP(d1 + i * d)
         opt = BFGS(self, trajectory=traj, logfile=log)
         opt.run(fmax=0.1)
-        for i, image in enumerate(self.images):
-            image.calc = None
+        for image, calc in zip(self.images, old):
+            image.calc = calc
         
     def get_positions(self):
         positions = np.empty(((self.nimages - 2) * self.natoms, 3))
