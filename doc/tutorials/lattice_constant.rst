@@ -74,10 +74,14 @@ Results:
 Using the stress tensor
 =======================
 
-One can also use the stress tensor to optimize the unit cell::
+One can also use the stress tensor to optimize the unit cell. For this we cannot use the EMT calculator.::
 
     from ase.optimize import BFGS
     from ase.constraints import StrainFilter
+    from gpaw import GPAW, PW
+    ni = bulk('Ni', 'hcp', a=a0,c=c0)
+    calc = GPAW(mode=PW(200),xc='LDA',txt='Ni.out')
+    ni.set_calculator(calc)
     sf = StrainFilter(ni)
     opt = BFGS(sf)
     opt.run(0.005)
