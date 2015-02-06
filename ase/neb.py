@@ -3,8 +3,10 @@ from math import sqrt
 import numpy as np
 
 import ase.parallel as mpi
+from ase.calculators.calculator import Calculator
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import read
+from ase.optimize import BFGS
 
 
 class NEB:
@@ -38,7 +40,7 @@ class NEB:
 
         assert not parallel or world.size % (self.nimages - 2) == 0
 
-    def interpolate(self):
+    def interpolate(self, method='linear'):
         pos1 = self.images[0].get_positions()
         pos2 = self.images[-1].get_positions()
         d = (pos2 - pos1) / (self.nimages - 1.0)
@@ -50,6 +52,21 @@ class NEB:
             except AttributeError:
                 pass
             
+        if method == 'idpp':
+            self.idpp_interpolate(traj=None, log=None)
+            
+    def idpp_interpolate(self, traj='idpp.traj', log='idpp.log', fmax=0.1,
+                         optimizer=BFGS):
+        d1 = self.images[0].get_all_distances()
+        d2 = self.images[-1].get_all_distances()
+        d = (d2 - d1) / (self.nimages - 1)
+        for i, image in enumerate(self.images):
+            image.calc = IDPP(d1 + i * d)
+        opt = BFGS(self, trajectory=traj, logfile=log)
+        opt.run(fmax=0.1)
+        for i, image in enumerate(self.images):
+            image.calc = None
+        
     def get_positions(self):
         positions = np.empty(((self.nimages - 2) * self.natoms, 3))
         n1 = 0
@@ -138,6 +155,37 @@ class NEB:
         return (self.nimages - 2) * self.natoms
 
 
+class IDPP(Calculator):
+    """Image dependent pair potential.
+
+    See:
+
+        Improved initial guess for minimum energy path calculations.
+
+        Søren Smidstrup, Andreas Pedersen, Kurt Stokbro and Hannes Jónsson
+
+        Chem. Phys. 140, 214106 (2014)
+    """
+
+    implemented_properties = ['energy', 'forces']
+
+    def __init__(self, target):
+        Calculator.__init__(self)
+        self.target = target
+
+    def calculate(self, atoms, properties, system_changes):
+        Calculator.calculate(self, atoms, properties, system_changes)
+
+        d = atoms.get_all_distances()
+        d4 = d**4
+        d4.ravel()[::len(d) + 1] = 1  # avoid dividing by zero
+        self.results = {'energy': 0.5 * ((d - self.target)**2 / d4).sum()}
+        
+        if 'forces' in properties:
+            f = Calculator.calculate_numerical_forces(self, atoms)
+            self.results['forces'] = f
+
+            
 class SingleCalculatorNEB(NEB):
     def __init__(self, images, k=0.1, climb=False):
         if isinstance(images, str):
@@ -158,12 +206,12 @@ class SingleCalculatorNEB(NEB):
         n = final - initial
         pos1 = self.images[initial].get_positions()
         pos2 = self.images[final].get_positions()
-        dist = (pos2 - pos1) 
+        dist = (pos2 - pos1)
         if mic:
             cell = self.images[initial].get_cell()
             assert((cell == self.images[final].get_cell()).all())
             pbc = self.images[initial].get_pbc()
-            assert(( pbc == self.images[final].get_pbc()).all())
+            assert((pbc == self.images[final].get_pbc()).all())
             for ia, D in enumerate(dist):
                 Dr = np.linalg.solve(cell.T, D)
                 dist[ia] = np.dot(Dr - np.round(Dr) * pbc, cell)
@@ -313,10 +361,10 @@ def fit0(E, F, R):
             s0 = s[i - 1]
             s1 = s[i]
             x = np.linspace(s0, s1, 20, endpoint=False)
-            c = np.linalg.solve(np.array([(1, s0,   s0**2,     s0**3),
-                                          (1, s1,   s1**2,     s1**3),
-                                          (0,  1,  2 * s0, 3 * s0**2),
-                                          (0,  1,  2 * s1, 3 * s1**2)]),
+            c = np.linalg.solve(np.array([(1, s0, s0**2, s0**3),
+                                          (1, s1, s1**2, s1**3),
+                                          (0, 1, 2 * s0, 3 * s0**2),
+                                          (0, 1, 2 * s1, 3 * s1**2)]),
                                 np.array([E[i - 1], E[i], dEds0, dEds]))
             y = c[0] + x * (c[1] + x * (c[2] + x * c[3]))
             Sfit[(i - 1) * 20:i * 20] = x
@@ -352,7 +400,6 @@ def get_NEB_plot(images):
     Ef = max(Efit) - E[0]
     Er = max(Efit) - E[-1]
     dE = E[-1] - E[0]
-    #ax.set_title('Maximum: %.3f eV' % max(Efit))
     ax.set_title('$E_\mathrm{f} \\approx$ %.3f eV; '
                  '$E_\mathrm{r} \\approx$ %.3f eV; '
                  '$\\Delta E$ = %.3f eV'
