@@ -117,9 +117,11 @@ Install with::
 
   yum install buildbot-slave
 
-You can configure ``systemd`` service by creating
-:file:`python-ase-fedora-18-x86_64-gcc-2.7.service` file
-under ``/usr/lib/systemd/system``.
+Perform :ref:`bslave conf` now.
+
+After configuring buildbot-slave, you can configure ``systemd`` service by
+creating :file:`python-ase-fedora-18-x86_64-gcc-2.7.service` file under
+``/usr/lib/systemd/system``.
 
 .. literalinclude:: python-ase-fedora-18-x86_64-gcc-2.7.service
 
@@ -153,6 +155,9 @@ Configure a virtualenv, and then::
   pip install numpy
   pip install buildbot-slave
 
+Perform :ref:`bslave conf` now.
+
+
 RHEL5
 +++++
 
@@ -170,6 +175,9 @@ then::
   easy_install --install-dir=$HOME/buildbot-slave-el5 twisted==9.0.0  # ignore errors
   easy_install --install-dir=$HOME/buildbot-slave-el5 buildbot-slave
 
+Perform :ref:`bslave conf` now.
+
+
 RHEL6
 +++++
 
@@ -180,6 +188,9 @@ Install ``build-slave`` and dependencies::
   export PYTHONPATH=$HOME/buildbot-slave-el6:${PYTHONPATH}
   easy_install --install-dir=$HOME/buildbot-slave-el6 buildbot-slave
 
+Perform :ref:`bslave conf` now.
+
+
 RHEL7
 +++++
 
@@ -189,6 +200,9 @@ Install ``build-slave`` and dependencies::
   export PATH=$HOME/buildbot-slave-el7:${PATH}
   export PYTHONPATH=$HOME/buildbot-slave-el7:${PYTHONPATH}
   easy_install --install-dir=$HOME/buildbot-slave-el7 buildbot-slave
+
+Perform :ref:`bslave conf` now.
+
 
 Windows
 +++++++
@@ -253,10 +267,14 @@ This involves several steps:
 
      HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\Buildbot->paramaters->new (String Value): directories C:\python-ase-windows+7+AMD64+msc+2.7;C:\proj2
 
-9. configure ``buildslave`` instance as described in the Configuration section
-   below and start the service again (point 7.). Test that ``buildslave``
-   comes online, and verify that the service starts after reboot. 
+9. configure ``buildslave`` instance as described in the :ref:`bslave conf`
+   section below and start the service again (point 7.). Test that
+   ``buildslave`` comes online, and verify that the service starts after
+   reboot.
 
+   
+.. _bslave conf:
+    
 Configuration
 -------------
 
