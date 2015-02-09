@@ -179,16 +179,17 @@ class IDPP(Calculator):
     def calculate(self, atoms, properties, system_changes):
         Calculator.calculate(self, atoms, properties, system_changes)
 
-        d = atoms.get_all_distances()
+        P = atoms.positions
+        D = np.array([P - p for p in P])  # all distance vectors
+        d = (D**2).sum(2)**0.5
+        dd = d - self.target
+        d.ravel()[::len(d) + 1] = 1  # avoid dividing by zero
         d4 = d**4
-        d4.ravel()[::len(d) + 1] = 1  # avoid dividing by zero
-        self.results = {'energy': 0.5 * ((d - self.target)**2 / d4).sum()}
-        
-        if 'forces' in properties:
-            f = Calculator.calculate_numerical_forces(self, atoms)
-            self.results['forces'] = f
+        e = 0.5 * (dd**2 / d4).sum()
+        f = -2 * ((dd * (1 - 2 * dd / d) / d**5)[..., np.newaxis] * D).sum(0)
+        self.results = {'energy': e, 'forces': f}
 
-            
+
 class SingleCalculatorNEB(NEB):
     def __init__(self, images, k=0.1, climb=False):
         if isinstance(images, str):
