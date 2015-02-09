@@ -4,12 +4,12 @@ from __future__ import print_function
 File layout::
     
     0: "BinaryDF" (magic prefix, ascii)
-    8: "........" (tag, ascii)
-    16: version (int64)
-    24: nitems (int64)
-    32: 40 (position of offsets, int64)
-    40: p0 (offset to json data, int64)
-    48: array1, array2, ... (8-byte aligned ndarrays)
+    8: "                " (tag, ascii)
+    24: version (int64)
+    32: nitems (int64)
+    40: 48 (position of offsets, int64)
+    48: p0 (offset to json data, int64)
+    56: array1, array2, ... (8-byte aligned ndarrays)
     p0: n (length of json data, int64)
     p0+8: json data
     p0+8+n: EOF
@@ -22,7 +22,7 @@ import optparse
 
 import numpy as np
 
-from ase.db.jsondb import encode, decode
+from ase.io.jsonio import encode, decode
 from ase.utils import plural
 
 
@@ -30,13 +30,13 @@ VERSION = 1
 N1 = 42  # block size - max number of items: 1, N1, N1*N1, N1*N1*N1, ...
 
 
-def bdfopen(filename, mode='r', index=None):
+def bdfopen(filename, mode='r', index=None, tag=''):
     if mode == 'r':
         return Reader(filename, index or 0)
     if mode not in 'wa':
         2 / 0
     assert index is None
-    return Writer(filename, mode)
+    return Writer(filename, mode, tag)
 
 
 def align(fd):
@@ -57,7 +57,7 @@ def writeint(fd, n, pos=None):
     
 
 class Writer:
-    def __init__(self, fd, mode='w', data=None):
+    def __init__(self, fd, mode='w', tag='', data=None):
         """Create writer object.
 
         The data dictionary holds:
@@ -74,13 +74,13 @@ class Writer:
             data = {}
             if mode == 'w':
                 self.nitems = 0
-                self.pos0 = 40
+                self.pos0 = 48
                 self.offsets = np.array([-1], np.int64)
 
                 fd = open(fd, 'wb')
             
                 # Write file format identifier:
-                fd.write(b'BinaryDF........')
+                fd.write('BinaryDF{0:16}'.format(tag).encode('ascii'))
                 np.array([VERSION, self.nitems, self.pos0],
                          np.int64).tofile(fd)
                 self.offsets.tofile(fd)
@@ -151,13 +151,13 @@ class Writer:
             offsets[:n] = self.offsets
             self.pos0 = align(self.fd)
             offsets.tofile(self.fd)
-            writeint(self.fd, self.pos0, 32)
+            writeint(self.fd, self.pos0, 40)
             self.offsets = offsets
             
         self.offsets[self.nitems] = i
         writeint(self.fd, i, self.pos0 + self.nitems * 8)
         self.nitems += 1
-        writeint(self.fd, self.nitems, 24)
+        writeint(self.fd, self.nitems, 32)
         self.fd.flush()
         self.fd.seek(0, 2)  # end of file
         self.data = {}
@@ -188,11 +188,14 @@ class Writer:
         self.sync()
         self.fd.close()
         
+    def __len__(self):
+        return self.nitems
+        
         
 def read_header(fd):
     fd.seek(0)
     assert fd.read(8) == b'BinaryDF'
-    tag = fd.read(8).decode('ascii')
+    tag = fd.read(16).decode('ascii').rstrip()
     version, nitems, itemoffsets = np.fromfile(fd, np.int64, 3)
     fd.seek(itemoffsets)
     offsets = np.fromfile(fd, np.int64, nitems)
@@ -247,8 +250,8 @@ class Reader:
         
     def get(self, attr, value=None):
         try:
-            return self[attr]
-        except AttributeError:
+            return self.__getattr__(attr)
+        except KeyError:
             return value
             
     def proxy(self, name):
@@ -269,18 +272,20 @@ class Reader:
         data = self._read_data(i)
         return Reader(self._fd, data=data)
         
-    def tostr(self, indent='    '):
+    def tostr(self, verbose=False, indent='    '):
         keys = sorted(self._data)
         strings = []
         for key in keys:
             value = self._data[key]
+            if verbose and isinstance(value, NDArrayReader):
+                value = value.read()
             if isinstance(value, NDArrayReader):
                 s = '<ndarray shape={0} dtype={1}>'.format(value.shape,
                                                            value.dtype)
             elif isinstance(value, Reader):
-                s = value.tostr(indent + '    ')
+                s = value.tostr(verbose, indent + '    ')
             else:
-                s = repr(value)
+                s = str(value).replace('\n', '\n  ' + ' ' * len(key) + indent)
             strings.append('{0}{1}: {2}'.format(indent, key, s))
         return '{\n' + ',\n'.join(strings) + '}'
                 
@@ -319,23 +324,28 @@ class NDArrayReader:
         
 def main():
     parser = optparse.OptionParser(
-        usage='Usage: %prog bdf-file [selection] [options]',
+        usage='Usage: %prog [options] bdf-file [item number]',
         description='Show content of bdf-file')
     
     add = parser.add_option
     add('-v', '--verbose', action='store_true')
-    add('-j', '--quiet', action='store_true')
+    add('-j', '--json', action='store_true')
     opts, args = parser.parse_args()
 
     if not args:
         parser.error('No bdf-file given')
 
     filename = args.pop(0)
-    b = bdfopen(filename)
-    print('{0}: {1}'.format(filename, plural(len(b), 'item')))
-    print(b.tostr())
+    index = int(args.pop()) if args else 0
+    b = bdfopen(filename, 'r', index)
+    print('{0}  (tag:{1}'.format(filename, b._tag), end='')
+    if len(b) == 1:
+        print(')')
+    else:
+        print(', {0} items)'.format(len(b)))
+        print('item #{0}:'.format(index))
+    print(b.tostr(opts.verbose))
 
     
 if __name__ == '__main__':
     main()
-    
