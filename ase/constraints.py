@@ -377,6 +377,10 @@ class FixedLine(FixConstraintSingle):
 
     def __repr__(self):
         return 'FixedLine(%d, %s)' % (self.a, self.dir.tolist())
+        
+    def todict(self):
+        return {'name': 'ase.constraints.FixedLine',
+                'kwargs': {'a': self.a, 'direction': self.dir}}
 
 
 class FixCartesian(FixConstraintSingle):

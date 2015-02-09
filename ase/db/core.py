@@ -156,6 +156,7 @@ def parallel(method):
                 result = method(*args, **kwargs)
             except Exception as ex:
                 pass
+        print broadcast((ex, result))
         ex, result = broadcast((ex, result))
         if ex is not None:
             raise ex

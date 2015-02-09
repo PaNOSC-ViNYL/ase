@@ -64,12 +64,12 @@ class AdsorbateOperator(OffspringCreator):
                 return False
         site = sites_list[i]
 
-        ## Make the correct position
+        # Make the correct position
         height = site['height']
         normal = np.array(site['normal'])
         pos = np.array(site['adsorbate_position']) + normal * height
 
-        ## Rotate the adsorbate according to the normal
+        # Rotate the adsorbate according to the normal
         ads = self.adsorbate.copy()
         if len(ads) > 1:
             avg_pos = np.average(ads[1:].positions, 0)
@@ -97,7 +97,7 @@ class AdsorbateOperator(OffspringCreator):
         i = 0
         while not self.is_site_occupied(atoms, sites_list[i],
                                         min_adsorbate_distance=0.2):
-            ## very small min_adsorbate_distance used for testing
+            # very small min_adsorbate_distance used for testing
             i += 1
             if i >= len(sites_list):
                 if for_move:
@@ -107,7 +107,7 @@ class AdsorbateOperator(OffspringCreator):
         # sites_list[i]['occupied'] = 0
         site = sites_list[i]
 
-        ## Make the correct position
+        # Make the correct position
         height = site['height']
         normal = np.array(site['normal'])
         pos = np.array(site['adsorbate_position']) + normal * height
@@ -246,7 +246,7 @@ class AddAdsorbate(AdsorbateOperator):
 
         if adsorption_sites is None:
             raise NotImplementedError
-        ## Adding 0's to the end of all sites to specify not filled
+        # Adding 0's to the end of all sites to specify not filled
         # for s in adsorption_sites:
         #     s.update({'occupied': 0})
         self.adsorption_sites = adsorption_sites
@@ -358,7 +358,7 @@ class MoveAdsorbate(AdsorbateOperator):
 
         if adsorption_sites is None:
             raise NotImplementedError
-        ## Adding 0's to the end of all sites to specify not filled
+        # Adding 0's to the end of all sites to specify not filled
         # for s in adsorption_sites:
         #     s.update({'occupied': 0})
         self.adsorption_sites = adsorption_sites
@@ -604,8 +604,7 @@ class CutSpliceCrossoverWithAdsorbates(AdsorbateOperator):
         an = atoms.numbers
         for i in range(len(atoms)):
             pos = atoms[i].position
-            f = lambda x: np.linalg.norm(x - pos)
-            for j, d in enumerate([f(k) for k in ap[i:]]):
+            for j, d in enumerate([np.linalg.norm(k - pos) for k in ap[i:]]):
                 if d == 0:
                     continue
                 min_dist = self.blmin[tuple(sorted((an[i], an[j + i])))]
