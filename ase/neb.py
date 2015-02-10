@@ -344,6 +344,7 @@ def fit0(E, F, R):
         s.append(s[-1] + sqrt(((R[i + 1] - R[i])**2).sum()))
 
     lines = []
+    dEds0 = None
     for i in range(n):
         if i == 0:
             d = R[1] - R[0]
