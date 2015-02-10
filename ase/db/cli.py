@@ -87,7 +87,8 @@ def main(args=sys.argv[1:]):
     add('--analyse', action='store_true',
         help='Gathers statistics about tables and indices to help make '
         'better query planning choices.')
-        
+    add('-j', '--json', action='store_true',
+        help='Write json representation of selected row.')
     opts, args = parser.parse_args(args)
 
     if not args:
@@ -215,6 +216,11 @@ def run(opts, args, verbosity):
         dct = con.get(query)
         summary = Summary(dct)
         summary.write()
+    elif opts.json:
+        dct = con.get(query)
+        con2 = connect(sys.stdout, 'json', use_lock_file=False)
+        kvp = dct.get('key_value_pairs', {})
+        con2.write(dct, data=dct.get('data'), **kvp)
     else:
         if opts.open_web_browser:
             import ase.db.app as app
