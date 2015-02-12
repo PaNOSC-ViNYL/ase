@@ -1,26 +1,26 @@
 """ Class for handling several simultaneous jobs.
-The class has not been tested yet.
+The class has been tested on Niflheim-opteron4.
 """
 from multiprocessing import Pool
 import time
-import copy_reg
-import types
 from ase.io import write, read
 
+
 class MultiprocessingRun(object):
+    """Class that allows for the simultaneous relaxation of
+    several candidates on a cluster. Best used if each individual
+    calculation is too small for using a queueing system.
 
-    """ Class that allows for the simultaneous relaxation of
-    several candidates on the same computer.
-    The method is based on starting each relaxation with an
-    external python script and then monitoring when the
-    relaxations are done adding in the resulting structures
-    to the database.
-
-        Parameters:
+    Parameters:
+    
     data_connection: DataConnection object.
-    tmp_folder: Folder for temporary files
+    
+    tmp_folder: Folder for temporary files.
+    
     n_simul: The number of simultaneous relaxations.
-    calc_script: Reference to the relaxation script.
+    
+    relax_function: The relaxation function. This needs to return
+    the filename of the relaxed structure.
     """
     def __init__(self, data_connection, relax_function,
                  tmp_folder, n_simul=None):
@@ -31,11 +31,14 @@ class MultiprocessingRun(object):
         self.results = []
 
     def relax(self, a):
+        """Relax the atoms object a by submitting the relaxation
+        to the pool of cpus."""
         self.dc.mark_as_queued(a)
         fname = '{0}/cand{1}.traj'.format(self.tmp_folder,
                                           a.info['confid'])
         write(fname, a)
-        self.results.append(self.pool.apply_async(self.relax_function, [fname]))
+        self.results.append(self.pool.apply_async(self.relax_function,
+                                                  [fname]))
         self._cleanup()
         
     def _cleanup(self):
@@ -47,39 +50,8 @@ class MultiprocessingRun(object):
                 self.results.remove(r)
                 
     def finish_all(self):
+        """Checks that all calculations are finished, if not
+        wait and check again. Return when all are finished."""
         while len(self.results) > 0:
             self._cleanup()
             time.sleep(2.)
-
-def _pickle_method(method):
-    func_name = method.im_func.__name__
-    obj = method.im_self
-    cls = method.im_class
-    if func_name.startswith('__') and not func_name.endswith('__'):
-        #deal with mangled names
-        cls_name = cls.__name__.lstrip('_')
-        func_name = '_%s%s' % (cls_name, func_name)
-    return _unpickle_method, (func_name, obj, cls)
-
-def _unpickle_method(func_name, obj, cls):
-    if obj and func_name in obj.__dict__:
-        cls, obj = obj, None # if func_name is classmethod
-        try:
-            for cls in cls.__mro__:
-                try:
-                    func = cls.__dict__[func_name]
-                except KeyError:
-                    pass
-                else:
-                    break
-        except AttributeError:
-            func = cls.__dict__[func_name]
-        return func.__get__(obj, cls)
-    
-# def _pickle_method(m):
-#     if m.im_self is None:
-#         return getattr, (m.im_class, m.im_func.func_name)
-#     else:
-#         return getattr, (m.im_self, m.im_func.func_name)
-
-copy_reg.pickle(types.MethodType, _pickle_method)
