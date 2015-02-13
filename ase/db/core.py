@@ -3,16 +3,14 @@ import functools
 import operator
 import os
 import re
-from random import randint
 from time import time
 
 from ase.atoms import Atoms, symbols2numbers
-from ase.calculators.calculator import get_calculator, all_properties, \
-    all_changes
-from ase.calculators.singlepoint import SinglePointCalculator
-from ase.data import atomic_numbers, chemical_symbols
+from ase.db.row import atoms2dict, AtomsRow
+from ase.calculators.calculator import all_properties, all_changes
+from ase.data import atomic_numbers
 from ase.parallel import world, broadcast, DummyMPI
-from ase.utils import hill, Lock, basestring
+from ase.utils import Lock, basestring
 
 
 T2000 = 946681200.0  # January 1. 2000
@@ -111,25 +109,6 @@ def connect(name, type='extract_from_name', create_indices=True,
     raise ValueError('Unknown database type: ' + type)
 
 
-class FancyDict(dict):
-    """Dictionary with keys available as attributes also."""
-    def __getattr__(self, key):
-        if key not in self:
-            return dict.__getattribute__(self, key)
-        value = self[key]
-        if isinstance(value, dict):
-            return FancyDict(value)
-        return value
-
-    formula = property(lambda self: hill(self.numbers))
-    
-    def __dir__(self):
-        return self.keys()  # for tab-completion
-        
-    symbols = property(lambda self: [chemical_symbols[Z]
-                                     for Z in self.numbers])
-        
-
 def lock(method):
     """Decorator for using a lock-file."""
     @functools.wraps(method)
@@ -218,6 +197,8 @@ class Database:
         
         if atoms is None:
             atoms = Atoms()
+        elif isinstance(atoms, AtomsRow):
+            atoms = atoms.dct
         
         kvp = dict(key_value_pairs)  # modify a copy
         kvp.update(kwargs)
@@ -279,11 +260,6 @@ class Database:
         dct = atoms2dict(atoms)
         dct['ctime'] = dct['mtime'] = now()
         dct['user'] = os.getenv('USER')
-        if atoms.calc is not None:
-            dct['calculator'] = atoms.calc.name.lower()
-            dct['calculator_parameters'] = atoms.calc.todict()
-            if len(atoms.calc.check_state(atoms)) == 0:
-                dct.update(atoms.calc.results)
         return dct
 
     def get_atoms(self, selection=None, attach_calculator=False,
@@ -302,14 +278,8 @@ class Database:
         key-value pairs.
         """
             
-        dct = self.get(selection, fancy=False, **kwargs)
-        atoms = dict2atoms(dct, attach_calculator)
-        if add_additional_information:
-            atoms.info = {}
-            for key in ['unique_id', 'key_value_pairs', 'data']:
-                if key in dct:
-                    atoms.info[key] = dct[key]
-        return atoms
+        row = self.get(selection, **kwargs)
+        return row.toatoms(attach_calculator, add_additional_information)
 
     def __getitem__(self, selection):
         return self.get(selection)
@@ -402,7 +372,7 @@ class Database:
 
     @parallel_generator
     def select(self, selection=None, fancy=True, filter=None, explain=False,
-               verbosity=1, limit=None, offset=0, **kwargs):
+               verbosity=1, limit=None, offset=0, sort=None, **kwargs):
         """Select rows.
         
         Return iterator with results as dictionaries.  Selection is done
@@ -437,12 +407,12 @@ class Database:
         keys, cmps = self.parse_selection(selection, **kwargs)
         for dct in self._select(keys, cmps, explain=explain,
                                 verbosity=verbosity,
-                                limit=limit, offset=offset):
+                                limit=limit, offset=offset, sort=sort):
             if filter is None or list(filter(dct)):
                 if fancy:
-                    dct = FancyDict(dct)
                     if 'key_value_pairs' in dct:
                         dct.update(dct['key_value_pairs'])
+                    dct = AtomsRow(dct)
                 yield dct
                 
     def count(self, selection=None, **kwargs):
@@ -487,71 +457,6 @@ class Database:
         raise NotImplementedError
 
         
-def atoms2dict(atoms):
-    data = {
-        'numbers': atoms.numbers,
-        'pbc': atoms.pbc,
-        'cell': atoms.cell,
-        'positions': atoms.positions,
-        'unique_id': '%x' % randint(16**31, 16**32 - 1)}
-    if atoms.has('magmoms'):
-        data['initial_magmoms'] = atoms.get_initial_magnetic_moments()
-    if atoms.has('charges'):
-        data['initial_charges'] = atoms.get_initial_charges()
-    if atoms.has('masses'):
-        data['masses'] = atoms.get_masses()
-    if atoms.has('tags'):
-        data['tags'] = atoms.get_tags()
-    if atoms.has('momenta'):
-        data['momenta'] = atoms.get_momenta()
-    if atoms.constraints:
-        data['constraints'] = [c.todict() for c in atoms.constraints]
-    return data
-
-
-def dict2constraint(dct):
-    if '__name__' in dct:  # backwards compatibility
-        dct = {'kwargs': dct.copy()}
-        dct['name'] = dct['kwargs'].pop('__name__')
-        
-    modulename, name = dct['name'].rsplit('.', 1)
-    module = __import__(modulename, fromlist=[name])
-    constraint = getattr(module, name)(**dct['kwargs'])
-    return constraint
-
-            
-def dict2atoms(dct, attach_calculator=False):
-    constraint_dicts = dct.get('constraints')
-    if constraint_dicts:
-        constraints = [dict2constraint(c) for c in constraint_dicts]
-    else:
-        constraints = None
-
-    atoms = Atoms(dct['numbers'],
-                  dct['positions'],
-                  cell=dct['cell'],
-                  pbc=dct['pbc'],
-                  magmoms=dct.get('initial_magmoms'),
-                  charges=dct.get('initial_charges'),
-                  tags=dct.get('tags'),
-                  masses=dct.get('masses'),
-                  momenta=dct.get('momenta'),
-                  constraint=constraints)
-
-    if attach_calculator:
-        atoms.calc = get_calculator(dct['calculator'])(
-            **dct['calculator_parameters'])
-    else:
-        results = {}
-        for prop in all_properties:
-            if prop in dct:
-                results[prop] = dct[prop]
-        if results:
-            atoms.calc = SinglePointCalculator(atoms, **results)
-
-    return atoms
-
-
 def time_string_to_float(s):
     if isinstance(s, (float, int)):
         return s

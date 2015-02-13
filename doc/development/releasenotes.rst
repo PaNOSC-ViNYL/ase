@@ -29,6 +29,8 @@ Development version in trunk
 
 * Preliminary support for Python 3.
 
+* New improved method for initializing NEB calculations.
+
 
 Version 3.8.0
 =============
