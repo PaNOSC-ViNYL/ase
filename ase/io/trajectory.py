@@ -1,20 +1,14 @@
 from __future__ import print_function
 import os
-import sys
-import errno
-import pickle
-import warnings
-import collections
-
 
 from ase.calculators.singlepoint import SinglePointCalculator, all_properties
+from ase.constraints import dict2constraint
 from ase.atoms import Atoms
 from ase.io.bdf import bdfopen
 from ase.io.jsonio import encode
 from ase.io.pickletrajectory import PickleTrajectory
 from ase.parallel import rank, barrier
 from ase.utils import devnull, basestring
-
 
 
 class TrajectoryWriter:
@@ -140,6 +134,7 @@ class TrajectoryWriter:
             c.write(name=calc.name)
             for p in all:
                 if p in kw:
+
                     x=kw[p]
                 elif pr is not None and p in pr:
                     if p not in res:
@@ -230,13 +225,13 @@ class TrajectoryReader:
 
     def _read_header(self):
         b = self.backend
-        print(b._tag)
         if b.get_tag() != 'ASE-Trajectory':
             raise IOError('This is not a trajectory file!')
 
         self.pbc = b.pbc
         self.numbers = b.numbers
         self.masses = b.get('masses')
+        self.constraints = b.get('constraints', [])
 
     def close(self):
         """Close the trajectory file."""
@@ -250,7 +245,8 @@ class TrajectoryReader:
                       masses=self.masses,
                       pbc=self.pbc,
                       info=b.get('info'),
-                      constraint=encode(self.constraints),
+                      constraint=[dict2constraint(d)
+                                  for d in self.constraints],
                       momenta=b.get('momenta'),
                       magmoms=b.get('magmoms'),
                       charges=b.get('charges'),
@@ -277,7 +273,7 @@ class TrajectoryReader:
 
 
 def read_trajectory(filename, index=-1):
-    trj = Trajectory(filename, mode='r')
+    trj = TrajectoryReader(filename)
     if isinstance(index, int):
         return trj[index]
     else:
@@ -286,7 +282,7 @@ def read_trajectory(filename, index=-1):
 
 def write_trajectory(filename, images):
     """Write image(s) to trajectory."""
-    trj = Trajectory(filename, mode='w')
+    trj = TrajectoryWriter(filename, mode='w')
     if isinstance(images, Atoms):
         images = [images]
     for atoms in images:
