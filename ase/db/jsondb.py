@@ -1,13 +1,13 @@
 from __future__ import absolute_import, print_function
-import os
 import datetime
+import functools
 import json
+import os
 
 import numpy as np
 
+from ase.db.core import Database, ops, parallel, lock, now, reserved_keys
 from ase.parallel import world
-from ase.db.core import Database, ops, parallel, lock, now
-from ase.db.core import reserved_keys
 
 
 class MyEncoder(json.JSONEncoder):
@@ -167,9 +167,25 @@ class JSONDatabase(Database):
         return dct
 
     def _select(self, keys, cmps, explain=False, verbosity=0,
-                limit=None, offset=0):
+                limit=None, offset=0, sort=None):
         if explain:
             yield {'explain': (0, 0, 0, 'scan table')}
+            return
+            
+        if sort:
+            if sort[0] == '-':
+                reverse = True
+                sort = sort[1:]
+            else:
+                reverse = False
+            
+            rows = sorted(self._select(keys + [sort], cmps),
+                          key=functools.partial(get_value, key=sort),
+                          reverse=reverse)
+            if limit:
+                rows = rows[offset:offset + limit]
+            for dct in rows:
+                yield dct
             return
             
         try:
@@ -192,7 +208,7 @@ class JSONDatabase(Database):
                     break
             else:
                 for key, op, val in cmps:
-                    value = get_value(id, dct, key)
+                    value = get_value(dct, key, id)
                     if not op(value, val):
                         break
                 else:
@@ -226,7 +242,7 @@ class JSONDatabase(Database):
         return m, n
 
 
-def get_value(id, dct, key):
+def get_value(dct, key, id=None):
     pairs = dct.get('key_value_pairs')
     if pairs is None:
         value = None
@@ -241,4 +257,4 @@ def get_value(id, dct, key):
     if key == 'natoms':
         return len(dct['numbers'])
     if key == 'id':
-        return id
+        return id or dct['id']

@@ -1,6 +1,5 @@
 from __future__ import print_function
 
-from ase.db.table import dict2forces
 from ase.data import atomic_masses, chemical_symbols
 from ase.db.core import float_to_time_string, now
 from ase.utils import hill
@@ -14,7 +13,7 @@ class Summary:
         
         self.cell = [['{0:.3f}'.format(a) for a in axis] for axis in dct.cell]
         
-        forces = dict2forces(dct)
+        forces = dct.get('constrained_forces')
         if forces is None:
             fmax = None
             self.forces = None

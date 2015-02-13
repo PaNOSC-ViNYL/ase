@@ -150,11 +150,11 @@ def read(filename, index=None, format=None):
         return atoms
 
     if format in ['json', 'db', 'postgresql']:
-        from ase.db.core import connect, dict2atoms
         if index == slice(None, None):
             index = None
-        images = [dict2atoms(d)
-                  for d in connect(filename, format).select(index)]
+        from ase.db.core import connect
+        images = [row.toatoms()
+                  for row in connect(filename, format).select(index)]
         if len(images) == 1:
             return images[0]
         else:

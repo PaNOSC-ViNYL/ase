@@ -2,9 +2,7 @@ from __future__ import print_function
 
 import numpy as np
 
-from ase.data import atomic_masses
-from ase.db.core import float_to_time_string, now, dict2constraint
-from ase.utils import hill
+from ase.db.core import float_to_time_string, now
 
 
 all_columns = ['id', 'age', 'user', 'formula', 'calculator',
@@ -30,20 +28,6 @@ def cutlist(lst, length):
     return lst[:9] + ['... ({0} more)'.format(len(lst) - 9)]
 
     
-def dict2forces(d):
-    forces = d.get('forces')
-    if forces is None:
-        return None
-        
-    constraints = [dict2constraint(c) for c in d.get('constraints', [])]
-    if constraints:
-        forces = forces.copy()
-        for constraint in constraints:
-            constraint.adjust_forces(d.positions, forces)
-            
-    return forces
-
-    
 class Table:
     def __init__(self, connection, verbosity=1, cut=35):
         self.connection = connection
@@ -59,14 +43,13 @@ class Table:
         self.limit = limit
         self.offset = offset
         
-        if sort != 'id':
-            limit = 0
-            offset = 0
+        if sort == 'id':
+            sort = None
            
         self.rows = [Row(d, columns)
                      for d in self.connection.select(
                          query, verbosity=self.verbosity,
-                         limit=limit, offset=offset)]
+                         limit=limit, offset=offset, sort=sort)]
 
         delete = set(range(len(columns)))
         for row in self.rows:
@@ -81,19 +64,6 @@ class Table:
         self.columns = list(columns)
         for n in delete:
             del self.columns[n]
-            
-        if sort != 'id':
-            reverse = sort[0] == '-'
-            n = self.columns.index(sort.lstrip('-'))
-            
-            def key(row):
-                x = row.values[n]
-                return (x is None, x)
-                
-            self.rows = sorted(self.rows, key=key, reverse=reverse)
-            
-            if self.limit:
-                self.rows = self.rows[self.offset:self.offset + self.limit]
                 
     def format(self, subscript=None):
         right = set()
@@ -154,14 +124,12 @@ class Row:
     def set_columns(self, columns):
         self.values = []
         for c in columns:
-            f = getattr(self, c, None)
-            if f is None:
-                value = getattr(self.dct, c, None)
+            if c == 'age':
+                value = float_to_time_string(now() - self.dct.ctime)
+            elif c == 'pbc':
+                value = ''.join('FT'[p] for p in self.dct.pbc)
             else:
-                try:
-                    value = f(self.dct)
-                except (AttributeError, TypeError):
-                    value = None
+                value = getattr(self.dct, c, None)
             self.values.append(value)
             
     def toggle(self):
@@ -184,27 +152,3 @@ class Row:
             self.strings.append(value)
         
         return numbers
-        
-    def age(self, d):
-        return float_to_time_string(now() - d.ctime)
-
-    def formula(self, d):
-        return hill(d.numbers)
-
-    def volume(self, d):
-        return abs(np.linalg.det(d.cell))
-
-    def pbc(self, d):
-        return ''.join('-P'[p] for p in d.pbc)
-
-    def fmax(self, d):
-        forces = dict2forces(d)
-        return (forces**2).sum(1).max()**0.5
-
-    def mass(self, d):
-        if 'masses' in d:
-            return d.masses.sum()
-        return atomic_masses[d.numbers].sum()
-
-    def smax(self, d):
-        return (d.stress**2).max()**0.5

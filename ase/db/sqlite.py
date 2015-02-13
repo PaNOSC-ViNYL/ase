@@ -7,6 +7,7 @@ Versions:
 3) Now adding keys to keyword table and added an "information" table containing
    a version number.
 4) Got rid of keywords.
+5) Add fmax, smax, mass, volume, charge
 """
 
 from __future__ import absolute_import, print_function
@@ -15,23 +16,25 @@ import sys
 
 import numpy as np
 
+from ase import Atoms
+from ase.db.row import AtomsRow
 from ase.db.core import Database, ops, now, lock, parallel, invop
 from ase.db.jsondb import encode, decode
 from ase.utils import basestring
 
-if sys.version > '3':
+if sys.version >= '3':
     buffer = memoryview
 
-VERSION = 4
+VERSION = 5
 
 init_statements = [
     """CREATE TABLE systems (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- ID's, timestamps and user name
     unique_id TEXT UNIQUE,
     ctime REAL,
     mtime REAL,
     username TEXT,
-    numbers BLOB,
+    numbers BLOB,  -- stuff that defines an Atoms object
     positions BLOB,
     cell BLOB,
     pbc INTEGER,
@@ -40,10 +43,10 @@ init_statements = [
     masses BLOB,
     tags BLOB,
     momenta BLOB,
-    constraints TEXT,
+    constraints TEXT,  -- constraints and calculator
     calculator TEXT,
     calculator_parameters TEXT,
-    energy REAL,
+    energy REAL,  -- calculated properties
     free_energy REAL,
     forces BLOB,
     stress BLOB,
@@ -51,32 +54,43 @@ init_statements = [
     magmoms BLOB,
     magmom BLOB,
     charges BLOB,
-    key_value_pairs TEXT,
+    key_value_pairs TEXT,  -- key-value pairs and data as json
     data TEXT,
-    natoms INTEGER)""",
+    natoms INTEGER,  -- stuff for making queries faster
+    fmax REAL,
+    smax REAL,
+    volume REAL,
+    mass REAL,
+    charge REAL)""",
+    
     """CREATE TABLE species (
     Z INTEGER,
     n INTEGER,
     id INTEGER,
     FOREIGN KEY (id) REFERENCES systems(id))""",
+    
     """CREATE TABLE keys (
     key TEXT,
     id INTEGER,
     FOREIGN KEY (id) REFERENCES systems(id))""",
+    
     """CREATE TABLE text_key_values (
     key TEXT,
     value TEXT,
     id INTEGER,
     FOREIGN KEY (id) REFERENCES systems(id))""",
+    
     """CREATE TABLE number_key_values (
     key TEXT,
     value REAL,
     id INTEGER,
     FOREIGN KEY (id) REFERENCES systems(id))""",
+    
     """CREATE TABLE information (
     name TEXT,
     value TEXT)""",
-    """INSERT INTO information VALUES ('version', '{0}')""".format(VERSION)]
+    
+    "INSERT INTO information VALUES ('version', '{0}')".format(VERSION)]
 
 index_statements = [
     'CREATE INDEX unique_id_index ON systems(unique_id)',
@@ -144,6 +158,10 @@ class SQLite3Database(Database):
                 else:
                     self.version = int(cur.fetchone()[0])
                     
+        if self.version < VERSION and not self._allow_reading_old_format:
+            raise IOError('Please convert to new format. ' +
+                          'Use: python -m ase.db.convert ' + self.filename)
+            
         self.initialized = True
                 
     def _write(self, atoms, key_value_pairs, data):
@@ -155,8 +173,11 @@ class SQLite3Database(Database):
                 
         id = None
         
-        if isinstance(atoms, dict):
-            dct = atoms
+        if not isinstance(atoms, dict):
+            dct = self.collect_data(atoms)
+        else:
+            dct = atoms.copy()
+                
             unique_id = dct['unique_id']
             cur.execute('SELECT id FROM systems WHERE unique_id=?',
                         (unique_id,))
@@ -166,11 +187,11 @@ class SQLite3Database(Database):
                 self._delete(cur, [id], ['keys', 'text_key_values',
                                          'number_key_values'])
             dct['mtime'] = now()
-        else:
-            dct = self.collect_data(atoms)
+        
+        dct = AtomsRow(dct)
 
-        if 'constraints' in dct:
-            constraints = encode(dct['constraints'])
+        if 'constraints' in dct.dct:
+            constraints = encode(dct.dct['constraints'])
         else:
             constraints = None
             
@@ -210,8 +231,13 @@ class SQLite3Database(Database):
                 blob(magmom),
                 blob(dct.get('charges')),
                 encode(key_value_pairs),
-                encode(data),
-                len(numbers))
+                encode(data or None),
+                len(numbers),
+                dct.get('fmax'),
+                dct.get('smax'),
+                dct.volume,
+                dct.mass,
+                dct.charge)
 
         if id is None:
             q = self.default + ', ' + ', '.join('?' * len(row))
@@ -272,7 +298,7 @@ class SQLite3Database(Database):
         return self.row_to_dict(row)
 
     def row_to_dict(self, row):
-        if len(row) != 28:
+        if self.version < VERSION:
             row = self._old2new(row)
 
         dct = {'id': row[0],
@@ -295,7 +321,16 @@ class SQLite3Database(Database):
         if row[13] is not None:
             dct['momenta'] = deblob(row[13], shape=(-1, 3))
         if row[14] is not None:
-            dct['constraints'] = decode(row[14])
+            constraints = decode(row[14])
+            dct['constraints'] = []
+            for c in constraints:
+                # Convert to new format:
+                name = c.pop('__name__', None)
+                if name:
+                    c = {'name': name, 'kwargs': c}
+                if c['name'].startswith('ase'):
+                    c['name'] = c['name'].rsplit('.', 1)[1]
+                dct['constraints'].append(c)
         if row[15] is not None:
             dct['calculator'] = row[15]
             dct['calculator_parameters'] = decode(row[16])
@@ -315,34 +350,34 @@ class SQLite3Database(Database):
             dct['magmom'] = deblob(row[23])[0]
         if row[24] is not None:
             dct['charges'] = deblob(row[24])
-
-        for key, column in zip(['key_value_pairs', 'data'], row[25:27]):
-            x = decode(column)
-            if x:
-                dct[key] = x
+        if row[25] != '{}':
+            dct['key_value_pairs'] = decode(row[25])
+        if row[26] != 'null':
+            dct['data'] = row[26]
                 
         return dct
 
     def _old2new(self, row):
-        if not self._allow_reading_old_format:
-            raise IOError('Please convert to new format. ' +
-                          'Use: python -m ase.db.convert ' + self.filename)
+        if self.version == 4:
+            return row  # should be ok for reading by convert.py script
         if len(row) == 26:
             extra = decode(row[25])
-            return row[:-1] + (encode(extra['keywords']),
-                               encode(extra['key_value_pairs']),
-                               encode(extra['data']),
-                               42)
-        else:
+            return row[:-1] + (encode(extra['key_value_pairs']),
+                               encode(extra['data']))
+        elif len(row) == 29:
             keywords = decode(row[-4])
             kvp = decode(row[-3])
             kvp.update(dict((keyword, 1) for keyword in keywords))
             return row[:-4] + (encode(kvp),) + row[-2:]
+        assert False
         
-    def create_select_statement(self, keys, cmps, what='systems.*'):
+    def create_select_statement(self, keys, cmps,
+                                sort=None, order=None, sort_table=None,
+                                what='systems.*'):
         tables = ['systems']
         where = []
         args = []
+        
         for n, key in enumerate(keys):
             tables.append('keys AS keys{0}'.format(n))
             where.append('systems.id=keys{0}.id AND keys{0}.key=?'.format(n))
@@ -354,6 +389,7 @@ class SQLite3Database(Database):
             if isinstance(key, int):
                 bad[key] = bad.get(key, True) and ops[op](0, value)
                 
+        found_sort_table = False
         nspecies = 0
         ntext = 0
         nnumber = 0
@@ -384,6 +420,9 @@ class SQLite3Database(Database):
                               'text{0}.key=? AND ' +
                               'text{0}.value{1}?').format(ntext, op))
                 args += [key, value]
+                if sort_table == 'text_key_values' and sort == key:
+                    sort_table = 'text{0}'.format(ntext)
+                    found_sort_table = True
                 ntext += 1
             else:
                 tables.append('number_key_values AS number{0}'.format(nnumber))
@@ -391,19 +430,61 @@ class SQLite3Database(Database):
                               'number{0}.key=? AND ' +
                               'number{0}.value{1}?').format(nnumber, op))
                 args += [key, float(value)]
+                if sort_table == 'number_key_values' and sort == key:
+                    sort_table = 'number{0}'.format(nnumber)
+                    found_sort_table = True
                 nnumber += 1
                 
+        if sort:
+            if sort_table == 'systems':
+                if sort in ['energy', 'fmax', 'smax']:
+                    where.append('systems.{0} NOT NULL'.format(sort))
+            else:
+                if not found_sort_table:
+                    tables.append('{0} AS sort_table'.format(sort_table))
+                    where.append('systems.id=sort_table.id AND '
+                                 'sort_table.key=?')
+                    args.append(sort)
+                    sort_table = 'sort_table'
+                sort = 'value'
+            
         sql = 'SELECT {0} FROM\n  '.format(what) + ', '.join(tables)
         if where:
             sql += '\n  WHERE\n  ' + ' AND\n  '.join(where)
+        if sort:
+            sql += '\nORDER BY {0}.{1} {2}'.format(sort_table, sort, order)
+            
         return sql, args
         
     def _select(self, keys, cmps, explain=False, verbosity=0,
-                limit=None, offset=0):
+                limit=None, offset=0, sort=None):
         con = self._connect()
         self._initialize(con)
 
-        sql, args = self.create_select_statement(keys, cmps)
+        if sort:
+            if sort[0] == '-':
+                order = 'DESC'
+                sort = sort[1:]
+            else:
+                order = 'ASC'
+            if sort in ['id', 'energy', 'username', 'calculator', 'ctime',
+                        'fmax', 'smax', 'volume', 'mass']:
+                sort_table = 'systems'
+            else:
+                for dct in self._select(keys + [sort], cmps, limit=1):
+                    if isinstance(dct['key_value_pairs'][sort], basestring):
+                        sort_table = 'text_key_values'
+                    else:
+                        sort_table = 'number_key_values'
+                    break
+                else:
+                    return
+        else:
+            order = None
+            sort_table = None
+                
+        sql, args = self.create_select_statement(keys, cmps,
+                                                 sort, order, sort_table)
         
         if explain:
             sql = 'EXPLAIN QUERY PLAN ' + sql
@@ -430,7 +511,7 @@ class SQLite3Database(Database):
     @lock
     def count(self, selection=None, **kwargs):
         keys, cmps = self.parse_selection(selection, **kwargs)
-        sql, args = self.create_select_statement(keys, cmps, 'COUNT(*)')
+        sql, args = self.create_select_statement(keys, cmps, what='COUNT(*)')
         con = self._connect()
         self._initialize(con)
         cur = con.cursor()

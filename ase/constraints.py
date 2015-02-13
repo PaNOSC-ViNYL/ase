@@ -8,6 +8,12 @@ __all__ = ['FixCartesian', 'FixBondLength', 'FixedMode', 'FixConstraintSingle',
            'FixBondLengths', 'FixInternals']
 
 
+def dict2constraint(dct):
+    if dct['name'] not in __all__:
+        raise ValueError
+    return globals()[dct['name']](**dct['kwargs'])
+
+            
 def slice2enlist(s):
     """Convert a slice object into a list of (new, old) tuples."""
     if isinstance(s, (list, tuple)):
@@ -147,7 +153,7 @@ class FixAtoms(FixConstraint):
         return 'FixAtoms(indices=%s)' % ints2string(self.index)
 
     def todict(self):
-        dct = {'name': 'ase.constraints.FixAtoms'}
+        dct = {'name': 'FixAtoms'}
         if self.index.dtype == bool:
             dct['kwargs'] = {'mask': self.index}
         else:
@@ -292,7 +298,7 @@ class FixBondLength(FixConstraint):
     def todict(self):
         if self.mic:
             raise NotImplementedError('Not implemented for mic.')
-        return {'name': 'ase.constraints.FixBondLength',
+        return {'name': 'FixBondLength',
                 'kwargs': {'a1': self.indices[0], 'a2': self.indices[1]}}
 
         
@@ -828,7 +834,7 @@ class Hookean(FixConstraint):
         self.spring = k
 
     def todict(self):
-        dct = {'name': 'ase.constraints.Hookean'}
+        dct = {'name': 'Hookean'}
         dct['kwargs'] = {'rt': self.threshold,
                          'k': self.spring}
         if self._type == 'two atoms':
