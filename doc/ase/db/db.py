@@ -33,8 +33,8 @@ with open('ase-db-long.out', 'w') as fd:
     fd.write(output)
 
 d = c.get(relaxed=1, calculator='emt')
-for k, v in d.items():
-    print('%-25s: %s' % (k, v))
+#for k, v in d.items():
+#    print('%-25s: %s' % (k, v))
 
 print(d.data.abc)
 
