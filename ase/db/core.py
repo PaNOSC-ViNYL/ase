@@ -404,6 +404,14 @@ class Database:
             Limit selection.
         """
         
+        if sort:
+            if sort == 'age':
+                sort = '-ctime'
+            elif sort == '-age':
+                sort = 'ctime'
+            elif sort.lstrip('-') == 'user':
+                sort += 'name'
+            
         keys, cmps = self.parse_selection(selection, **kwargs)
         for dct in self._select(keys, cmps, explain=explain,
                                 verbosity=verbosity,
