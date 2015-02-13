@@ -67,8 +67,9 @@ class AtomsRow:
         return key in self.__dir__()
         
     def __dir__(self):
-        keys = self.dct.keys() + ['mass', 'volume', 'natoms', 'charge',
-                                  'constraints', 'symbols', 'formula']
+        keys = ['mass', 'volume', 'natoms', 'charge',
+                'constraints', 'symbols', 'formula']
+        keys.extend(self.dct.keys())
         if 'forces' in self.dct:
             keys += ['fmax', 'constrained_forces']
         if 'stress' in self.dct:
@@ -91,6 +92,10 @@ class AtomsRow:
             from ase.db.jsondb import decode
             return FancyDict(decode(self.dct['data']))
         raise AttributeError
+        
+    @property
+    def natoms(self):
+        return len(self.numbers)
         
     @property
     def formula(self):
