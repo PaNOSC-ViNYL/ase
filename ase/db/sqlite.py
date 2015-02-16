@@ -16,7 +16,6 @@ import sys
 
 import numpy as np
 
-from ase import Atoms
 from ase.db.row import AtomsRow
 from ase.db.core import Database, ops, now, lock, parallel, invop
 from ase.db.jsondb import encode, decode
@@ -550,7 +549,7 @@ class SQLite3Database(Database):
                 m -= len(kvp)
                 kvp.update(add_key_value_pairs)
                 m += len(kvp)
-                self._write(dct, kvp, data=dct.get('data', {}))
+                self._write(dct, kvp, data=decode(dct.get('data', 'null')))
         return m, n
 
     @parallel
