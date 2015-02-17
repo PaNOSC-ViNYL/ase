@@ -118,12 +118,15 @@ def hill(numbers):
     
     Elements are alphabetically ordered with C and H first."""
     
-    d = {}
-    for Z in numbers:
-        symb = chemical_symbols[Z]
-        d[symb] = d.get(symb, 0) + 1
-    result = [(s, d.pop(s)) for s in 'CH' if s in d]
-    result += [(s, d[s]) for s in sorted(d)]
+    if isinstance(numbers, dict):
+        count = numbers
+    else:
+        count = {}
+        for Z in numbers:
+            symb = chemical_symbols[Z]
+            count[symb] = count.get(symb, 0) + 1
+    result = [(s, count.pop(s)) for s in 'CH' if s in count]
+    result += [(s, count[s]) for s in sorted(count)]
     return ''.join('{0}{1}'.format(symbol, n) if n > 1 else symbol
                    for symbol, n in result)
 

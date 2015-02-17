@@ -78,6 +78,12 @@ class AtomsRow:
         
     def get(self, key, default=None):
         return getattr(self, key, default)
+
+    def count_atoms(self):
+        count = {}
+        for symbol in self.symbols:
+            count[symbol] = count.get(symbol, 0) + 1
+        return count
         
     def __getitem__(self, key):
         return getattr(self, key)
