@@ -5,19 +5,19 @@ from scipy.spatial import ConvexHull, Delaunay
 from ase.utils import hill
 
 
-class PhaseSpace:
+class PhaseDiagram:
     def __init__(self, references, verbose=True):
         """Phase-space.
         
         Example:
             
-        >>> ps = PhaseSpace([({'Cu': 1}, -3.5),
-        ...                  ({'Ni': 1}, -4.4),
-        ...                  ({'Cu': 1, 'Ni': 1}, -8.1)])
+        >>> pd = PhaseDiagram([({'Cu': 1}, -3.5),
+        ...                    ({'Ni': 1}, -4.4),
+        ...                    ({'Cu': 1, 'Ni': 1}, -8.1)])
         Species: Ni, Cu
         References: 3
         Simplices: 2
-        >>> ps.find(Cu=2, Ni=1)
+        >>> pd.find(Cu=2, Ni=1)
         reference         fraction         energy
         -----------------------------------------
         Cu              1.0000/  1         -3.500
@@ -79,8 +79,8 @@ class PhaseSpace:
         
         Example::
             
-            ps = PhaseSpace(...)
-            ps.find(Cu=2, Ni=1)
+            pd = PhaseDiagram(...)
+            pd.find(Cu=2, Ni=1)
             
         Returns energy, indices of references and coefficients."""
         
