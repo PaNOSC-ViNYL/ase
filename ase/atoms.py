@@ -1255,11 +1255,12 @@ class Atoms(object):
                 self.positions[i] = group[j].position
                 j += 1
 
-    def set_dihedral(self, list, angle, mask=None):
+    def set_dihedral(self, list, angle, mask=None, indices=None):
         """Set the dihedral angle between vectors list[0]->list[1] and
         list[2]->list[3] by changing the atom indexed by list[3]
         if mask is not None, all the atoms described in mask
-        (read: the entire subgroup) are moved.
+        (read: the entire subgroup) are moved. Alternatively to the mask,
+        the indices of the atoms to be rotated can be supplied.
 
         example: the following defines a very crude
         ethane-like molecule and twists one half of it by 30 degrees.
@@ -1270,9 +1271,12 @@ class Atoms(object):
         """
         # if not provided, set mask to the last atom in the
         # dihedral description
-        if mask is None:
+        if mask is None and indices is None:
             mask = np.zeros(len(self))
             mask[list[3]] = 1
+        elif indices:
+            mask = [index in indices for index in range(len(self))]
+
         # compute necessary in dihedral change, from current value
         current = self.get_dihedral(list)
         diff = angle - current
