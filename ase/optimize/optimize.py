@@ -54,8 +54,8 @@ class Dynamics:
 
         if trajectory is not None:
             if isinstance(trajectory, str):
-                trajectory = PickleTrajectory(trajectory, mode='w', atoms=atoms,
-                                              master=master)
+                trajectory = PickleTrajectory(trajectory, mode='w',
+                                              atoms=atoms, master=master)
             self.attach(trajectory)
 
     def get_number_of_steps(self):

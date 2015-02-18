@@ -313,7 +313,7 @@ class MinimaHopping:
                                          temp=self._temperature * units.kB,
                                          force_temp=True)
         traj = io.PickleTrajectory('md%05i.traj' % self._counter, 'a',
-                                self._atoms)
+                                   self._atoms)
         dyn = VelocityVerlet(self._atoms, dt=self._timestep * units.fs)
         log = MDLogger(dyn, self._atoms, 'md%05i.log' % self._counter,
                        header=True, stress=False, peratom=False)

@@ -540,7 +540,6 @@ def dict2constraints(d):
         try:
             return pickle.loads(d['constraints_string'])
         except (AttributeError, KeyError, EOFError, ImportError):
-            raise
             warnings.warn('Could not unpickle constraints!')
             return []
     else:
