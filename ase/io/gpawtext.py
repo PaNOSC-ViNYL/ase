@@ -192,6 +192,7 @@ def read_gpaw_text(fileobj, index=-1):
             calc = SinglePointDFTCalculator(atoms, energy=e, forces=f,
                                             dipole=dipole, magmoms=magmoms,
                                             eFermi=eFermi, Eref=Eref)
+            calc.name = 'gpaw'
             if kpts is not None:
                 calc.kpts = kpts
             atoms.set_calculator(calc)
