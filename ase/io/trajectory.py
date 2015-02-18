@@ -6,11 +6,17 @@ from ase.constraints import dict2constraint
 from ase.atoms import Atoms
 from ase.io.bdf import bdfopen
 from ase.io.jsonio import encode
-from ase.io.pickletrajectory import PickleTrajectory
+# from ase.io.pickletrajectory import PickleTrajectory
 from ase.parallel import rank, barrier
 from ase.utils import devnull, basestring
 
 
+def PickleTrajectory(filename, mode='r', atoms=None, master=None):
+    if mode == 'r':
+        return TrajectoryReader(filename)
+    return TrajectoryWriter(filename, mode, atoms, master=master)
+    
+    
 class TrajectoryWriter:
     """Writes Atoms objects to a .trj file."""
     def __init__(self, filename, mode='w', atoms=None, properties=None,
@@ -53,6 +59,7 @@ class TrajectoryWriter:
         self.master = master
         self.backup = backup
         self.atoms = atoms
+        self.properties = properties
         
         self.numbers = None
         self.pbc = None
@@ -61,23 +68,10 @@ class TrajectoryWriter:
         self._open(filename, mode)
 
     def _open(self, filename, mode):
-        """Opens the file."""
         self.fd = filename
         if mode == 'a':
-            exists = True
-            if isinstance(filename, basestring):
-                exists = os.path.isfile(filename)
-                if exists:
-                    exists = os.path.getsize(filename) > 0
-                if exists:
-                    self.fd = open(filename, 'rb')
-                    self.read_header()
-                    self.fd.close()
-                barrier()
-                if self.master:
-                    self.fd = open(filename, 'ab+')
-                else:
-                    self.fd = devnull
+            if self.master:
+                self.backend = bdfopen(filename, 'a', tag='ASE-Trajectory')
         elif mode == 'w':
             if self.master:
                 if self.backup and os.path.isfile(filename):
@@ -101,7 +95,6 @@ class TrajectoryWriter:
             # seems to be a NEB
             neb = atoms
             assert not neb.parallel
-            neb.get_energies_and_forces(all=True)
             for image in neb.images:
                 self.write(image)
             return
@@ -132,19 +125,25 @@ class TrajectoryWriter:
         if calc is not None:
             c = b.child('calculator')
             c.write(name=calc.name)
-            for p in all:
-                if p in kw:
+            changes = calc.check_state(atoms)
+            if changes:
+                results = {}
+            else:
+                results = calc.results
+            for prop in all_properties:
+                if prop in kwargs:
+                    x = kwargs[prop]
+                elif self.properties is not None and prop in self.properties:
+                    x = calc.get_property(prop)
+                else:
+                    x = results.get(prop)
+                if x is not None:
+                    if prop in ['stress', 'dipole']:
+                        x = x.tolist()
+                    c.write(**{prop: x})
 
-                    x=kw[p]
-                elif pr is not None and p in pr:
-                    if p not in res:
-                        calc.calc(p)
-                    x=res[p]
-                elif p in res:
-                    x=res[p]
-                write(p=x)
-
-        #d['info'] = stringnify_info(atoms.info)
+        if atoms.info:
+            b.write(info=atoms.info)
 
         b.sync()
         
@@ -252,7 +251,12 @@ class TrajectoryReader:
                       charges=b.get('charges'),
                       tags=b.get('tags'))
         if 'calculator' in b:
-            calc = SinglePointCalculator(atoms, **b.calculator.results)
+            results = {}
+            c = b.calculator
+            for prop in all_properties:
+                if prop in c:
+                    results[prop] = c.get(prop)
+            calc = SinglePointCalculator(atoms, **results)
             calc.name = b.calculator.name
             atoms.set_calculator(calc)
         return atoms
@@ -290,7 +294,8 @@ def write_trajectory(filename, images):
     trj.close()
 
     
-t = TrajectoryWriter('a.t', 'w')
-t.write(Atoms('H'))
-t.close()
-print(TrajectoryReader('a.t')[0])
+#t = TrajectoryWriter('a.t', 'w')
+#t.write(Atoms('H'))
+#t.write(Atoms('H'))
+#t.write(Atoms('H'))
+#print(TrajectoryReader('a.t')[2])

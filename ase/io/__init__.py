@@ -5,7 +5,7 @@ from zipfile import is_zipfile
 
 from ase.atoms import Atoms
 from ase.units import Bohr, Hartree
-#from ase.io.trajectory import PickleTrajectory
+from ase.io.trajectory import PickleTrajectory
 from ase.io.bundletrajectory import BundleTrajectory
 from ase.io.netcdftrajectory import NetCDFTrajectory
 from ase.calculators.singlepoint import SinglePointDFTCalculator
@@ -185,6 +185,10 @@ def read(filename, index=None, format=None):
 
     if format == 'traj':
         from ase.io.trajectory import read_trajectory
+        return read_trajectory(filename, index)
+
+    if format == 'trj':
+        from ase.io.pickletrajectory import read_trajectory
         return read_trajectory(filename, index)
 
     if format == 'bundle':
@@ -561,6 +565,7 @@ def write(filename, images, format=None, **kwargs):
         return
 
     format = {'traj': 'trajectory',
+              'trj': 'pickletrajectory',
               'nc': 'netcdf',
               'bundle': 'bundletrajectory'
               }.get(format, format)
@@ -646,9 +651,10 @@ def filetype(filename):
 
     fileobj.seek(0)
     lines = fileobj.readlines(1000)
-
-    if lines[0].startswith(b'PickleTrajectory'):
+    if lines[0].startswith(b'BinaryDF'):
         return 'traj'
+    if lines[0].startswith(b'PickleTrajectory'):
+        return 'trj'
 
     if (lines[1].startswith(b'OUTER LOOP:') or
         filename.lower().endswith('.cube')):

@@ -23,7 +23,7 @@ import optparse
 import numpy as np
 
 from ase.io.jsonio import encode, decode
-from ase.utils import plural
+from ase.utils import plural, basestring
 
 
 VERSION = 1
@@ -172,7 +172,7 @@ class Writer:
         
         for name, value in kwargs.items():
             if isinstance(value, (bool, int, float, complex,
-                                  dict, list, tuple, str)):
+                                  dict, list, tuple, basestring)):
                 self.data[name] = value
             elif isinstance(value, np.ndarray):
                 self.add_array(name, value.shape, value.dtype)
@@ -185,7 +185,8 @@ class Writer:
         return Writer(self.fd, data=dct)
         
     def close(self):
-        self.sync()
+        if self.data:
+            self.sync()
         self.fd.close()
         
     def __len__(self):
@@ -247,6 +248,9 @@ class Reader:
         if isinstance(value, NDArrayReader):
             return value.read()
         return value
+
+    def __contains__(self, key):
+        return key in self._data
         
     def get(self, attr, value=None):
         try:
@@ -267,7 +271,7 @@ class Reader:
         size = np.fromfile(self._fd, np.int64, 1)[0]
         data = decode(self._fd.read(size).decode())
         return data
-        
+    
     def __getitem__(self, i):
         data = self._read_data(i)
         return Reader(self._fd, data=data)
@@ -336,15 +340,13 @@ def main():
         parser.error('No bdf-file given')
 
     filename = args.pop(0)
-    index = int(args.pop()) if args else 0
-    b = bdfopen(filename, 'r', index)
-    print('{0}  (tag:{1}'.format(filename, b._tag), end='')
-    if len(b) == 1:
-        print(')')
-    else:
-        print(', {0} items)'.format(len(b)))
-        print('item #{0}:'.format(index))
-    print(b.tostr(opts.verbose))
+    b = bdfopen(filename, 'r')
+    indices= [int(args.pop())] if args else range(len(b))
+    print('{0}  (tag: "{1}", {2})'.format(filename, b.get_tag(),
+                                          plural(len(b), 'item')))
+    for i in indices:
+        print('item #{0}:'.format(i))
+        print(b[i].tostr(opts.verbose))
 
     
 if __name__ == '__main__':
