@@ -42,3 +42,5 @@ w.close()
 print(open('a.aff', 'r', 3).d)
 print(open('a.aff')[2].z)
 print(open('a.aff', index=3).proxy('psi')[0:3])
+for d in open('a.aff'):
+    print(d)

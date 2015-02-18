@@ -216,18 +216,22 @@ class Reader:
             fd = open(fd, 'rb')
         
         self._fd = fd
+        self._index = index
         
         if data is None:
             (self._tag, self._version, self._nitems, self._pos0,
              self._offsets) = read_header(fd)
             data = self._read_data(index)
-
+            
+        self.parse_data(data)
+        
+    def parse_data(self, data):
         self._data = {}
         for name, value in data.items():
             if name.endswith('.'):
                 if 'ndarray' in value:
                     shape, dtype, offset = value['ndarray']
-                    value = NDArrayReader(fd,
+                    value = NDArrayReader(self._fd,
                                           shape,
                                           np.dtype(dtype),
                                           offset)
@@ -252,6 +256,14 @@ class Reader:
     def __contains__(self, key):
         return key in self._data
         
+    def __iter__(self):
+        yield self
+        for i in range(self._index + 1, self._nitems):
+            self._index = i
+            data = self._read_data(i)
+            self.parse_data(data)
+            yield self
+    
     def get(self, attr, value=None):
         try:
             return self.__getattr__(attr)
@@ -272,9 +284,9 @@ class Reader:
         data = decode(self._fd.read(size).decode())
         return data
     
-    def __getitem__(self, i):
-        data = self._read_data(i)
-        return Reader(self._fd, data=data)
+    def __getitem__(self, index):
+        data = self._read_data(index)
+        return Reader(self._fd, index, data)
         
     def tostr(self, verbose=False, indent='    '):
         keys = sorted(self._data)
@@ -292,7 +304,10 @@ class Reader:
                 s = str(value).replace('\n', '\n  ' + ' ' * len(key) + indent)
             strings.append('{0}{1}: {2}'.format(indent, key, s))
         return '{\n' + ',\n'.join(strings) + '}'
-                
+           
+    def __str__(self):
+        return self.tostr(False, '').replace('\n', ' ')
+
         
 class NDArrayReader:
     def __init__(self, fd, shape, dtype, offset):
@@ -341,7 +356,7 @@ def main():
 
     filename = args.pop(0)
     b = affopen(filename, 'r')
-    indices= [int(args.pop())] if args else range(len(b))
+    indices = [int(args.pop())] if args else range(len(b))
     print('{0}  (tag: "{1}", {2})'.format(filename, b.get_tag(),
                                           plural(len(b), 'item')))
     for i in indices:

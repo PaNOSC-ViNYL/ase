@@ -5,10 +5,9 @@ from ase.calculators.singlepoint import SinglePointCalculator, all_properties
 from ase.constraints import dict2constraint
 from ase.atoms import Atoms
 from ase.io.aff import affopen
-from ase.io.jsonio import encode
+from ase.io.jsonio import encode, decode
 # from ase.io.pickletrajectory import PickleTrajectory
-from ase.parallel import rank, barrier
-from ase.utils import devnull, basestring
+from ase.parallel import rank
 
 
 def PickleTrajectory(filename, mode='r', atoms=None, master=None):
@@ -230,7 +229,7 @@ class TrajectoryReader:
         self.pbc = b.pbc
         self.numbers = b.numbers
         self.masses = b.get('masses')
-        self.constraints = b.get('constraints', [])
+        self.constraints = b.get('constraints', '[]')
 
     def close(self):
         """Close the trajectory file."""
@@ -245,7 +244,7 @@ class TrajectoryReader:
                       pbc=self.pbc,
                       info=b.get('info'),
                       constraint=[dict2constraint(d)
-                                  for d in self.constraints],
+                                  for d in decode(self.constraints)],
                       momenta=b.get('momenta'),
                       magmoms=b.get('magmoms'),
                       charges=b.get('charges'),
@@ -265,15 +264,8 @@ class TrajectoryReader:
         return len(self.backend)
 
     def __iter__(self):
-        return self
-
-    def __next__(self):
-        try:
-            return self[len(self.offsets) - 1]
-        except IndexError:
-            raise StopIteration
-    
-    next = __next__
+        for i in range(len(self)):
+            yield self[i]
 
 
 def read_trajectory(filename, index=-1):
@@ -292,10 +284,3 @@ def write_trajectory(filename, images):
     for atoms in images:
         trj.write(atoms)
     trj.close()
-
-    
-#t = TrajectoryWriter('a.t', 'w')
-#t.write(Atoms('H'))
-#t.write(Atoms('H'))
-#t.write(Atoms('H'))
-#print(TrajectoryReader('a.t')[2])

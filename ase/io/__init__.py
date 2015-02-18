@@ -651,7 +651,7 @@ def filetype(filename):
 
     fileobj.seek(0)
     lines = fileobj.readlines(1000)
-    if lines[0].startswith(b'BinaryDF'):
+    if lines[0].startswith(b'AFFormatASE-Trajectory'):
         return 'traj'
     if lines[0].startswith(b'PickleTrajectory'):
         return 'trj'
