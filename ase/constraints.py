@@ -224,6 +224,13 @@ class FixBondLengths(FixConstraint):
         return FixBondLengths([constraint.indices
                                for constraint in self.constraints])
 
+    def todict(self):
+        assert not self.constraints[0].mic
+        return {'name': 'FixBondLengths',
+                'kwargs': {'pairs': [constraint.indices
+                                     for constraint in self.constraints],
+                           'iterations': self.iterations}}
+
 
 class FixBondLength(FixConstraint):
     """Constraint object for fixing a bond length."""
