@@ -3,7 +3,7 @@ from __future__ import print_function
 
 File layout::
     
-    0: "BinaryDF" (magic prefix, ascii)
+    0: "AFFormat" (magic prefix, ascii)
     8: "                " (tag, ascii)
     24: version (int64)
     32: nitems (int64)
@@ -30,7 +30,7 @@ VERSION = 1
 N1 = 42  # block size - max number of items: 1, N1, N1*N1, N1*N1*N1, ...
 
 
-def bdfopen(filename, mode='r', index=None, tag=''):
+def affopen(filename, mode='r', index=None, tag=''):
     if mode == 'r':
         return Reader(filename, index or 0)
     if mode not in 'wa':
@@ -80,7 +80,7 @@ class Writer:
                 fd = open(fd, 'wb')
             
                 # Write file format identifier:
-                fd.write('BinaryDF{0:16}'.format(tag).encode('ascii'))
+                fd.write('AFFormat{0:16}'.format(tag).encode('ascii'))
                 np.array([VERSION, self.nitems, self.pos0],
                          np.int64).tofile(fd)
                 self.offsets.tofile(fd)
@@ -195,7 +195,7 @@ class Writer:
         
 def read_header(fd):
     fd.seek(0)
-    assert fd.read(8) == b'BinaryDF'
+    assert fd.read(8) == b'AFFormat'
     tag = fd.read(16).decode('ascii').rstrip()
     version, nitems, itemoffsets = np.fromfile(fd, np.int64, 3)
     fd.seek(itemoffsets)
@@ -328,8 +328,8 @@ class NDArrayReader:
         
 def main():
     parser = optparse.OptionParser(
-        usage='Usage: %prog [options] bdf-file [item number]',
-        description='Show content of bdf-file')
+        usage='Usage: %prog [options] aff-file [item number]',
+        description='Show content of aff-file')
     
     add = parser.add_option
     add('-v', '--verbose', action='store_true')
@@ -337,10 +337,10 @@ def main():
     opts, args = parser.parse_args()
 
     if not args:
-        parser.error('No bdf-file given')
+        parser.error('No aff-file given')
 
     filename = args.pop(0)
-    b = bdfopen(filename, 'r')
+    b = affopen(filename, 'r')
     indices= [int(args.pop())] if args else range(len(b))
     print('{0}  (tag: "{1}", {2})'.format(filename, b.get_tag(),
                                           plural(len(b), 'item')))

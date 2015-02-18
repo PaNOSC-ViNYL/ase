@@ -4,7 +4,7 @@ import os
 from ase.calculators.singlepoint import SinglePointCalculator, all_properties
 from ase.constraints import dict2constraint
 from ase.atoms import Atoms
-from ase.io.bdf import bdfopen
+from ase.io.aff import affopen
 from ase.io.jsonio import encode
 # from ase.io.pickletrajectory import PickleTrajectory
 from ase.parallel import rank, barrier
@@ -71,12 +71,12 @@ class TrajectoryWriter:
         self.fd = filename
         if mode == 'a':
             if self.master:
-                self.backend = bdfopen(filename, 'a', tag='ASE-Trajectory')
+                self.backend = affopen(filename, 'a', tag='ASE-Trajectory')
         elif mode == 'w':
             if self.master:
                 if self.backup and os.path.isfile(filename):
                     os.rename(filename, filename + '.old')
-                self.backend = bdfopen(filename, 'w', tag='ASE-Trajectory')
+                self.backend = affopen(filename, 'w', tag='ASE-Trajectory')
         else:
             raise ValueError('mode must be "w" or "a".')
 
@@ -219,7 +219,7 @@ class TrajectoryReader:
         self._open(filename)
 
     def _open(self, filename):
-        self.backend = bdfopen(filename, 'r')
+        self.backend = affopen(filename, 'r')
         self._read_header()
 
     def _read_header(self):
