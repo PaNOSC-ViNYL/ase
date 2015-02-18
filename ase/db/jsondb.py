@@ -6,7 +6,7 @@ import numpy as np
 
 from ase.db.core import Database, ops, parallel, lock, now, reserved_keys
 from ase.parallel import world
-from ase.io.json import encode, read_json
+from ase.io.jsonio import encode, read_json
 
 
 class JSONDatabase(Database):
