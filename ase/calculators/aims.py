@@ -601,6 +601,8 @@ class Aims(FileIOCalculator):
         for line in text[beg:end]:
             # aims prints stars for large values ...
             line = line.replace('**************', '         10000')
+            line = line.replace('***************', '          10000')
+            line = line.replace('****************', '           10000')
             b = [float(c.strip()) for c in line.split()[1:]]
             values.append(b)
         if mode == 'eigenvalues':
