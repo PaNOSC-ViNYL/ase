@@ -178,10 +178,12 @@ class RawScoreComparator(object):
 
             
 class NoComparator(object):
+    """Returns False allways. If you don't want any comparator."""
     def looks_like(self, *args):
         return False
         
         
 class AtomsComparator(object):
+    """Compares the Atoms objects directly."""
     def looks_like(self, a1, a2):
         return a1 == a2

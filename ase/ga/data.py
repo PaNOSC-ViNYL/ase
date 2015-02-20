@@ -57,9 +57,9 @@ class DataConnection(object):
     def __get_ids_of_all_unrelaxed_candidates__(self):
         """ Helper method used by the two above methods. """
 
-        all_unrelaxed_ids = [t.gaid for t in self.c.select(relaxed=0)]
-        all_relaxed_ids = [t.gaid for t in self.c.select(relaxed=1)]
-        all_queued_ids = [t.gaid for t in self.c.select(queued=1)]
+        all_unrelaxed_ids = set([t.gaid for t in self.c.select(relaxed=0)])
+        all_relaxed_ids = set([t.gaid for t in self.c.select(relaxed=1)])
+        all_queued_ids = set([t.gaid for t in self.c.select(queued=1)])
 
         actually_unrelaxed = [gaid for gaid in all_unrelaxed_ids
                               if (gaid not in all_relaxed_ids and

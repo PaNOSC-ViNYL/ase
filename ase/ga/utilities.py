@@ -125,7 +125,8 @@ def get_all_atom_types(slab, atom_numbers_to_optimize):
 
 
 def get_distance_matrix(atoms, self_distance=1000):
-    """ Returns a numpy matrix with the distances between the atoms
+    """ NB: This function is way slower than atoms.get_all_distances()
+        Returns a numpy matrix with the distances between the atoms
         in the supplied atoms object, with the indices of the matrix
         corresponding to the indices in the atoms object.
         The parameter self_distance will be put in the diagonal
@@ -148,7 +149,8 @@ def get_rdf(atoms, rmax, nbins, distance_matrix=None):
     """
     dm = distance_matrix
     if dm is None:
-        dm = get_distance_matrix(atoms)
+        # dm = get_distance_matrix(atoms)
+        dm = atoms.get_all_distances()
     rdf = np.zeros(nbins + 1)
     dr = float(rmax / nbins)
     for i in range(len(atoms)):
@@ -209,7 +211,8 @@ def get_nnmat(atoms):
         return atoms.info['data']['nnmat']
     elements = sorted(set(atoms.get_chemical_symbols()))
     nnmat = np.zeros((len(elements), len(elements)))
-    dm = get_distance_matrix(atoms)
+    # dm = get_distance_matrix(atoms)
+    dm = atoms.get_all_distances()
     nndist = get_nndist(atoms, dm) + 0.2
     for i in range(len(atoms)):
         row = [j for j in range(len(elements))
