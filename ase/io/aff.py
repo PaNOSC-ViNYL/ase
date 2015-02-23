@@ -254,6 +254,7 @@ class Reader:
             if name.endswith('.'):
                 if 'ndarray' in value:
                     shape, dtype, offset = value['ndarray']
+                    dtype = dtype.encode()  # compatibility with Numpy 1.4
                     value = NDArrayReader(self._fd,
                                           shape,
                                           np.dtype(dtype),
