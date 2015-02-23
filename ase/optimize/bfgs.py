@@ -97,8 +97,8 @@ class BFGS(Optimizer):
     def replay_trajectory(self, traj):
         """Initialize hessian from old trajectory."""
         if isinstance(traj, str):
-            from ase.io.trajectory import PickleTrajectory
-            traj = PickleTrajectory(traj, 'r')
+            from ase.io.trajectory import Trajectory
+            traj = Trajectory(traj, 'r')
         self.H = None
         atoms = traj[0]
         r0 = atoms.get_positions().ravel()

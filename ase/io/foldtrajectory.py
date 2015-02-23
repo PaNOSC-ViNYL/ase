@@ -18,20 +18,20 @@ can be considered as a bug!)
 
 from __future__ import print_function
 import sys
-from ase.io.trajectory import PickleTrajectory
+from ase.io.trajectory import Trajectory
 
 if len(sys.argv) != 3:
     print(__doc__)
     sys.exit(1)
     
-infile = PickleTrajectory(sys.argv[1])
+infile = Trajectory(sys.argv[1])
 outfile = None
 
 for atoms in infile:
     atoms.set_scaled_positions(atoms.get_scaled_positions())
     atoms.set_calculator(None)  # or the singlepointcalculator fails!
     if outfile is None:
-        outfile = PickleTrajectory(sys.argv[2], 'w')
+        outfile = Trajectory(sys.argv[2], 'w')
     outfile.write(atoms)
         
 outfile.close()

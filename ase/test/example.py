@@ -12,7 +12,7 @@ atoms = Atoms('H7',
               constraint=[FixAtoms(range(6))],
               calculator=MorsePotential())
 
-traj = PickleTrajectory('H.traj', 'w', atoms)
+traj = Trajectory('H.traj', 'w', atoms)
 dyn = QuasiNewton(atoms, maxstep=0.2)
 dyn.attach(traj.write)
 dyn.run(fmax=0.01, steps=100)

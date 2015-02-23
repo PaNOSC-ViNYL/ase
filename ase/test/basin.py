@@ -3,7 +3,7 @@ from math import pi, sqrt
 from ase import Atoms, io, optimize
 from ase.calculators.lj import LennardJones
 from ase.optimize.basin import BasinHopping
-from ase.io import PickleTrajectory, read
+from ase.io import Trajectory, read
 from ase.units import kB
 
 # Global minima from

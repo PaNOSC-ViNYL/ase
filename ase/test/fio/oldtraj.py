@@ -1,11 +1,11 @@
-"""Check that we can read old version 1 PickleTrajectories."""
+"""Check that we can read old version 1 Trajectories."""
 import pickle
 import sys
 from io import BytesIO
 
 from ase import Atoms
 from ase.constraints import FixAtoms
-from ase.io.trajectory import PickleTrajectory
+from ase.io.trajectory import Trajectory
 from ase.test import NotAvailable
 
 if sys.version_info[0] == 3:
@@ -35,7 +35,7 @@ def v1(a):
 def v2(a):
     """Create new version-2 trajectory."""
     fd = BytesIO()
-    t = PickleTrajectory(fd, 'w')
+    t = Trajectory(fd, 'w')
     t.write(a)
     return BytesIO(fd.getvalue())
 
@@ -49,11 +49,11 @@ t1 = v1(a)
 t2 = v2(a)
 
 # Read old trajectory:
-c1 = PickleTrajectory(t1)[0].constraints
+c1 = Trajectory(t1)[0].constraints
 assert c1[0].index[0] == 2
 
 # Read new trajectory:
-c2 = PickleTrajectory(t2)[0].constraints
+c2 = Trajectory(t2)[0].constraints
 assert c2[0].index[0] == 2
 
 a.constraints = MyFixAtoms(indices=[1])
@@ -65,7 +65,7 @@ del MyFixAtoms, a
 import warnings
 warnings.filterwarnings('error')
 try:
-    c3 = PickleTrajectory(t3)[0].constraints
+    c3 = Trajectory(t3)[0].constraints
 except UserWarning:
     pass
 else:

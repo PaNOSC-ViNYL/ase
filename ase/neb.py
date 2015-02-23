@@ -315,8 +315,8 @@ class SingleCalculatorNEB(NEB):
         return self.nimages
 
     def write(self, filename):
-        from ase.io.trajectory import PickleTrajectory
-        traj = PickleTrajectory(filename, 'w', self)
+        from ase.io.trajectory import Trajectory
+        traj = Trajectory(filename, 'w', self)
         traj.write()
         traj.close()
 

@@ -1,7 +1,7 @@
 import numpy as np
 
 from ase import Atoms
-from ase.io.trajectory import PickleTrajectory
+from ase.io.trajectory import Trajectory
 from ase.calculators.emt import EMT
 
 a = 4.0  # approximate lattice constant
@@ -11,7 +11,7 @@ ag = Atoms('Ag',
            pbc=1,
            calculator=EMT())  # use EMT potential
 cell = ag.get_cell()
-traj = PickleTrajectory('Ag.traj', 'w')
+traj = Trajectory('Ag.traj', 'w')
 for x in np.linspace(0.95, 1.05, 5):
     ag.set_cell(cell * x, scale_atoms=True)
     traj.write(ag)

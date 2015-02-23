@@ -9,7 +9,7 @@ from os.path import isfile
 import numpy as np
 
 from ase.parallel import rank, barrier
-from ase.io.trajectory import PickleTrajectory
+from ase.io.trajectory import Trajectory
 import collections
 
 
@@ -29,7 +29,7 @@ class Dynamics:
 
         trajectory: Trajectory object or str
             Attach trajectory object.  If *trajectory* is a string a
-            PickleTrajectory will be constructed.  Use *None* for no
+            Trajectory will be constructed.  Use *None* for no
             trajectory.
 
         master: boolean
@@ -54,7 +54,7 @@ class Dynamics:
 
         if trajectory is not None:
             if isinstance(trajectory, str):
-                trajectory = PickleTrajectory(trajectory, mode='w',
+                trajectory = Trajectory(trajectory, mode='w',
                                               atoms=atoms, master=master)
             self.attach(trajectory)
 
@@ -115,7 +115,7 @@ class Optimizer(Dynamics):
         
         trajectory: Trajectory object or str
             Attach trajectory object.  If *trajectory* is a string a
-            PickleTrajectory will be constructed.  Use *None* for no
+            Trajectory will be constructed.  Use *None* for no
             trajectory.
 
         master: boolean

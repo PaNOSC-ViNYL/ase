@@ -1,7 +1,7 @@
 from ase import Atoms
 from ase.calculators.emt import EMT
 from ase.md import VelocityVerlet
-from ase.io import PickleTrajectory
+from ase.io import Trajectory
 
 a = 3.6
 b = a / 2
@@ -15,7 +15,7 @@ md = VelocityVerlet(fcc, dt=0.1)
 def f():
     print(fcc.get_potential_energy(), fcc.get_total_energy())
 md.attach(f)
-md.attach(PickleTrajectory('Cu2.traj', 'w', fcc).write, interval=3)
+md.attach(Trajectory('Cu2.traj', 'w', fcc).write, interval=3)
 md.run(steps=20)
-fcc2 = PickleTrajectory('Cu2.traj', 'r')[-1]
+fcc2 = Trajectory('Cu2.traj', 'r')[-1]
 

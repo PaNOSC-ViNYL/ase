@@ -21,7 +21,7 @@ except ImportError:
 import ase.units as units
 from ase.parallel import rank, barrier
 from ase.dft import monkhorst_pack
-from ase.io.trajectory import PickleTrajectory
+from ase.io.trajectory import Trajectory
 from ase.utils import opencew
 
 
@@ -748,7 +748,7 @@ class Phonons(Displacement):
             # Repeat and multiply by Bloch phase factor
             mode_Nav = np.vstack(N * [mode_av]) * phase_Na[:, np.newaxis]
             
-            traj = PickleTrajectory('%s.mode.%d.traj' % (self.name, l), 'w')
+            traj = Trajectory('%s.mode.%d.traj' % (self.name, l), 'w')
             
             for x in np.linspace(0, 2*pi, nimages, endpoint=False):
                 atoms.set_positions((pos_Nav + np.exp(1.j * x) * mode_Nav).real)

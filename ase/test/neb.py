@@ -1,7 +1,7 @@
 import threading
 
 from ase.test import World
-from ase.io import PickleTrajectory
+from ase.io import Trajectory
 from ase.neb import NEB
 from ase.calculators.morse import MorsePotential
 from ase.optimize import BFGS
@@ -10,8 +10,8 @@ fmax = 0.05
 
 nimages = 3
 
-print([a.get_potential_energy() for a in PickleTrajectory('H.traj')])
-images = [PickleTrajectory('H.traj')[-1]]
+print([a.get_potential_energy() for a in Trajectory('H.traj')])
+images = [Trajectory('H.traj')[-1]]
 for i in range(nimages):
     images.append(images[0].copy())
 images[-1].positions[6, 1] = 2 - images[0].positions[6, 1]
@@ -34,7 +34,7 @@ for a in neb.images:
 results = [images[2].get_potential_energy()]
 
 def run_neb_calculation(cpu):
-    images = [PickleTrajectory('H.traj')[-1]]
+    images = [Trajectory('H.traj')[-1]]
     for i in range(nimages):
         images.append(images[0].copy())
     images[-1].positions[6, 1] = 2 - images[0].positions[6, 1]

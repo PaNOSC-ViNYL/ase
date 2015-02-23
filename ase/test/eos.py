@@ -12,7 +12,7 @@ except ImportError:
 
 from ase.lattice import bulk
 
-from ase.io.trajectory import PickleTrajectory
+from ase.io.trajectory import Trajectory
 
 from ase.calculators.emt import EMT
 
@@ -71,7 +71,7 @@ cell = b.get_cell()
 
 volumes = []
 energies = []
-traj = PickleTrajectory('eos.traj', 'w')
+traj = Trajectory('eos.traj', 'w')
 for x in np.linspace(0.97, 1.03, 5):
     b.set_cell(cell * x, scale_atoms=True)
     volumes.append(b.get_volume())

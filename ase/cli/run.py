@@ -15,7 +15,7 @@ from ase.parallel import world
 from ase.utils import devnull
 from ase.constraints import FixAtoms, UnitCellFilter
 from ase.optimize import LBFGS
-from ase.io.trajectory import PickleTrajectory
+from ase.io.trajectory import Trajectory
 from ase.utils.eos import EquationOfState
 from ase.calculators.calculator import get_calculator, names as calcnames
 import ase.db as db
@@ -248,7 +248,7 @@ class Runner:
             mask = [t in tags for t in atoms.get_tags()]
             atoms.constraints = FixAtoms(mask=mask)
         
-        trajectory = PickleTrajectory(self.get_filename(name, 'traj'), 'w',
+        trajectory = Trajectory(self.get_filename(name, 'traj'), 'w',
                                       atoms)
         if opts.maximum_stress:
             optimizer = LBFGS(UnitCellFilter(atoms), logfile=self.logfile)
@@ -269,7 +269,7 @@ class Runner:
     def eos(self, atoms, name):
         opts = self.opts
         
-        traj = PickleTrajectory(self.get_filename(name, 'traj'), 'w', atoms)
+        traj = Trajectory(self.get_filename(name, 'traj'), 'w', atoms)
         eps = 0.01
         strains = np.linspace(1 - eps, 1 + eps, 5)
         v1 = atoms.get_volume()

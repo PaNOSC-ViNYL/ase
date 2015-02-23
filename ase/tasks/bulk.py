@@ -8,7 +8,7 @@ import ase.optimize
 from ase.tasks.task import OptimizeTask
 from ase.data import chemical_symbols, reference_states
 from ase.utils.eos import EquationOfState
-from ase.io.trajectory import PickleTrajectory
+from ase.io.trajectory import Trajectory
 
 
 class BulkTask(OptimizeTask):
@@ -83,7 +83,7 @@ class BulkTask(OptimizeTask):
         else:
             strains = np.linspace(1 + x / v, 1 - x / v,  N)**(1./3)
         energies = []
-        traj = PickleTrajectory(self.get_filename(name, 'fit.traj'), 'w')
+        traj = Trajectory(self.get_filename(name, 'fit.traj'), 'w')
         for s in strains:
             atoms.set_cell(cell0 * s, scale_atoms=True)
             energies.append(atoms.get_potential_energy())
@@ -156,7 +156,7 @@ class BulkTask(OptimizeTask):
             # this performs first relaxation of internal degrees of freedom
             data = OptimizeTask.calculate(self, name, atoms)
             # writing traj from optimizer does not work for StrainFilter!
-            traj = PickleTrajectory(self.get_filename(name, 'traj'), 'a', atoms)
+            traj = Trajectory(self.get_filename(name, 'traj'), 'a', atoms)
             sf = StrainFilter(atoms)
             while not self.converged(atoms, sfmax=self.sfmax, fmax=self.fmax):
                 # take a step on the cell
@@ -170,7 +170,7 @@ class BulkTask(OptimizeTask):
             data = OptimizeTask.calculate(self, name, atoms)
             sf = StrainFilter(atoms)
             # writing traj from optimizer does not work for StrainFilter!
-            traj = PickleTrajectory(self.get_filename(name, 'traj'), 'w', atoms)
+            traj = Trajectory(self.get_filename(name, 'traj'), 'w', atoms)
             self.soptimize(name, sf, data, trajectory=traj)
             data['relaxed energy'] = atoms.get_potential_energy()
             data['relaxed volume'] = atoms.get_volume()

@@ -56,7 +56,7 @@ def writeint(fd, n, pos=None):
         fd.seek(pos)
     np.array(n, np.int64).tofile(fd)
     
-
+    
 class Writer:
     def __init__(self, fd, mode='w', tag='', data=None):
         """Create writer object.
@@ -191,6 +191,29 @@ class Writer:
         
     def __len__(self):
         return self.nitems
+        
+        
+class DummyWriter:
+    def add_array(self, name, shape, dtype=float):
+        pass
+        
+    def fill(self, a):
+        pass
+        
+    def sync(self):
+        pass
+        
+    def write(self, **kwargs):
+        pass
+        
+    def child(self, name):
+        return self
+        
+    def close(self):
+        pass
+        
+    def __len__(self):
+        return 0
         
         
 def read_header(fd):

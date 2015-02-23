@@ -1170,7 +1170,7 @@ class UnitCellFilter(Filter):
         >>> atoms = Atoms(...)
         >>> ucf = UnitCellFilter(atoms)
         >>> qn = QuasiNewton(ucf)
-        >>> traj = PickleTrajectory('TiO2.traj', 'w', atoms)
+        >>> traj = Trajectory('TiO2.traj', 'w', atoms)
         >>> qn.attach(traj)
         >>> qn.run(fmax=0.05)
 

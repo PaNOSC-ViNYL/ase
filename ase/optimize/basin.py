@@ -4,7 +4,7 @@ from ase.optimize.optimize import Dynamics
 from ase.optimize.fire import FIRE
 from ase.units import kB
 from ase.parallel import world
-from ase.io.trajectory import PickleTrajectory
+from ase.io.trajectory import Trajectory
 
 
 class BasinHopping(Dynamics):
@@ -52,7 +52,7 @@ class BasinHopping(Dynamics):
         self.optimizer_logfile = optimizer_logfile
         self.lm_trajectory = local_minima_trajectory
         if isinstance(local_minima_trajectory, str):
-            self.lm_trajectory = PickleTrajectory(local_minima_trajectory,
+            self.lm_trajectory = Trajectory(local_minima_trajectory,
                                                   'w', atoms)
 
         self.initialize()

@@ -1,26 +1,27 @@
 from __future__ import print_function
-import os
 
 from ase.calculators.singlepoint import SinglePointCalculator, all_properties
 from ase.constraints import dict2constraint
 from ase.atoms import Atoms
-from ase.io.aff import affopen
+from ase.io.aff import affopen, DummyWriter
 from ase.io.jsonio import encode, decode
-# from ase.io.pickletrajectory import PickleTrajectory
+from ase.io.pickletrajectory import PickleTrajectory
 from ase.parallel import rank
 
-
-def PickleTrajectory(filename, mode='r', atoms=None, master=None):
-    if mode == 'r':
-        return TrajectoryReader(filename)
-    return TrajectoryWriter(filename, mode, atoms, master=master)
+if 0:
+    def Trajectory(filename, mode='r', atoms=None, master=None):
+        if mode == 'r':
+            return TrajectoryReader(filename)
+        return TrajectoryWriter(filename, mode, atoms, master=master)
+else:
+    Trajectory = PickleTrajectory
     
     
 class TrajectoryWriter:
     """Writes Atoms objects to a .trj file."""
     def __init__(self, filename, mode='w', atoms=None, properties=None,
                  extra=[], master=None):
-        """A PickleTrajectory can be created in read, write or append mode.
+        """A Trajectory can be created in read, write or append mode.
 
         Parameters:
 
@@ -71,6 +72,8 @@ class TrajectoryWriter:
                 r = affopen(filename)
                 self.numbers = r.numbers
                 self.pbc = r.pbc
+        else:
+            self.backend = DummyWriter()
                 
     def write(self, atoms=None, **kwargs):
         """Write the atoms to the file.
@@ -167,7 +170,7 @@ class TrajectoryReader:
     """Reads/writes Atoms objects from/to a .trj file."""
     def __init__(self, filename, properties=None,
                  extra=[], master=None):
-        """A PickleTrajectory can be created in read, write or append mode.
+        """A Trajectory can be created in read, write or append mode.
 
         Parameters:
 
