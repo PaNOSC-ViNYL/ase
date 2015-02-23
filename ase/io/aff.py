@@ -16,8 +16,9 @@ File layout::
 
 """
 
-# ordereddict, endianness, todict?
+# endianness ???
 
+import os
 import optparse
 
 import numpy as np
@@ -69,10 +70,11 @@ class Writer:
         read() method."""
 
         assert np.little_endian
+        assert mode in 'aw'
         
         if data is None:
             data = {}
-            if mode == 'w':
+            if mode == 'w' or not os.path.isfile(fd):
                 self.nitems = 0
                 self.pos0 = 48
                 self.offsets = np.array([-1], np.int64)
@@ -84,7 +86,7 @@ class Writer:
                 np.array([VERSION, self.nitems, self.pos0],
                          np.int64).tofile(fd)
                 self.offsets.tofile(fd)
-            elif mode == 'a':
+            else:
                 fd = open(fd, 'r+b')
             
                 version, self.nitems, self.pos0, offsets = read_header(fd)[1:]
@@ -95,8 +97,6 @@ class Writer:
                 padding = np.zeros(n - self.nitems, np.int64)
                 self.offsets = np.concatenate((offsets, padding))
                 fd.seek(0, 2)
-            else:
-                2 / 0
             
         self.fd = fd
         self.data = data

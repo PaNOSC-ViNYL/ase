@@ -19,7 +19,7 @@ def PickleTrajectory(filename, mode='r', atoms=None, master=None):
 class TrajectoryWriter:
     """Writes Atoms objects to a .trj file."""
     def __init__(self, filename, mode='w', atoms=None, properties=None,
-                 extra=[], master=None, backup=True):
+                 extra=[], master=None):
         """A PickleTrajectory can be created in read, write or append mode.
 
         Parameters:
@@ -49,14 +49,10 @@ class TrajectoryWriter:
             Controls which process does the actual writing. The
             default is that process number 0 does this.  If this
             argument is given, processes where it is True will write.
-
-        backup=True:
-            Use backup=False to disable renaming of an existing file.
         """
         if master is None:
             master = (rank == 0)
         self.master = master
-        self.backup = backup
         self.atoms = atoms
         self.properties = properties
         
@@ -67,18 +63,15 @@ class TrajectoryWriter:
         self._open(filename, mode)
 
     def _open(self, filename, mode):
-        self.fd = filename
-        if mode == 'a':
-            if self.master:
-                self.backend = affopen(filename, 'a', tag='ASE-Trajectory')
-        elif mode == 'w':
-            if self.master:
-                if self.backup and os.path.isfile(filename):
-                    os.rename(filename, filename + '.old')
-                self.backend = affopen(filename, 'w', tag='ASE-Trajectory')
-        else:
+        if mode not in 'aw':
             raise ValueError('mode must be "w" or "a".')
-
+        if self.master:
+            self.backend = affopen(filename, mode, tag='ASE-Trajectory')
+            if len(self.backend) > 0:
+                r = affopen(filename)
+                self.numbers = r.numbers
+                self.pbc = r.pbc
+                
     def write(self, atoms=None, **kwargs):
         """Write the atoms to the file.
 
