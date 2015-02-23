@@ -19,6 +19,10 @@ Example::
 >>> from ase.structure import molecule
 >>> atoms = molecule('H2O')
 
+To see a list of available molecules in the default set, use::
+
+>>> from ase.data.g2 import data
+>>> data.viewkeys()
 
 .. _bulk-crystal-section:
 

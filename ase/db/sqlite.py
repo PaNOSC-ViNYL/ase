@@ -436,7 +436,7 @@ class SQLite3Database(Database):
                 
         if sort:
             if sort_table == 'systems':
-                if sort in ['energy', 'fmax', 'smax']:
+                if sort in ['energy', 'fmax', 'smax', 'calculator']:
                     where.append('systems.{0} NOT NULL'.format(sort))
             else:
                 if not found_sort_table:
@@ -466,8 +466,9 @@ class SQLite3Database(Database):
                 sort = sort[1:]
             else:
                 order = 'ASC'
-            if sort in ['id', 'energy', 'username', 'calculator', 'ctime',
-                        'fmax', 'smax', 'volume', 'mass']:
+            if sort in ['id', 'energy', 'username', 'calculator',
+                        'ctime', 'mtime',
+                        'fmax', 'smax', 'volume', 'mass', 'charge', 'natoms']:
                 sort_table = 'systems'
             else:
                 for dct in self._select(keys + [sort], cmps, limit=1):
@@ -548,7 +549,7 @@ class SQLite3Database(Database):
                 m -= len(kvp)
                 kvp.update(add_key_value_pairs)
                 m += len(kvp)
-                self._write(dct, kvp, data=dct.get('data', {}))
+                self._write(dct, kvp, data=decode(dct.get('data', 'null')))
         return m, n
 
     @parallel

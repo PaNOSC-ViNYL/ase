@@ -71,7 +71,7 @@ class Table:
         for row in self.rows:
             numbers = row.format(self.columns, subscript)
             right.update(numbers)
-            allkeys.update(row.dct.key_value_pairs)
+            allkeys.update(row.dct.get('key_value_pairs', {}))
             
         right.add('age')
         self.right = [column in right for column in self.columns]
@@ -118,8 +118,6 @@ class Row:
         self.strings = None
         self.more = False
         self.set_columns(columns)
-        if 'key_value_pairs' not in dct:
-            dct['key_value_pairs'] = {}
         
     def set_columns(self, columns):
         self.values = []
