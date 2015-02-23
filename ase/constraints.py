@@ -5,7 +5,7 @@ import numpy as np
 __all__ = ['FixCartesian', 'FixBondLength', 'FixedMode', 'FixConstraintSingle',
            'FixAtoms', 'UnitCellFilter', 'FixScaled', 'StrainFilter',
            'FixedPlane', 'Filter', 'FixConstraint', 'FixedLine',
-           'FixBondLengths', 'FixInternals']
+           'FixBondLengths', 'FixInternals', 'Hookean']
 
 
 def dict2constraint(dct):
