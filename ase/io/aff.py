@@ -346,7 +346,7 @@ class NDArrayReader:
         self.nbytes = self.size * self.itemsize
         
     def __len__(self):
-        return self.shape[0]
+        return int(self.shape[0])  # numpy-1.4!!!
         
     def read(self):
         return self[:]
