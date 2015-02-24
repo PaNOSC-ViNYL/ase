@@ -1,7 +1,10 @@
 from __future__ import print_function
-"""
+"""Simple and efficient pythonic file-format.
 
-File layout::
+Stores ndarrays as binary data and Python's built-in datatypes (int, float,
+bool, str, dict, list) as json.
+
+File layout for a single item::
     
     0: "AFFormat" (magic prefix, ascii)
     8: "                " (tag, ascii)
@@ -13,6 +16,31 @@ File layout::
     p0: n (length of json data, int64)
     p0+8: json data
     p0+8+n: EOF
+
+Writing:
+    
+>>> from ase.io.aff import affopen
+>>> w = affopen('x.aff', 'w')
+>>> w.write(a=np.ones(7), b=42, c='abc')
+>>> w.write(d=3.14)
+>>> w.close()
+    
+Reading:
+    
+>>> r = affopen('x.aff')
+>>> print(r.c)
+'abc'
+
+To see what's inside 'x.aff' do this::
+    
+    $ python -m ase.io.aff x.aff
+    x.aff  (tag: "", 1 item)
+    item #0:
+    {
+        a: <ndarray shape=(7,) dtype=float64>,
+        b: 42,
+        c: abc,
+        d: 3.14}
 
 """
 
@@ -32,6 +60,7 @@ N1 = 42  # block size - max number of items: 1, N1, N1*N1, N1*N1*N1, ...
 
 
 def affopen(filename, mode='r', index=None, tag=''):
+    """Open aff-file."""
     if mode == 'r':
         return Reader(filename, index or 0)
     if mode not in 'wa':
@@ -60,16 +89,17 @@ def writeint(fd, n, pos=None):
 class Writer:
     def __init__(self, fd, mode='w', tag='', data=None):
         """Create writer object.
+        
+        fd: str
+            Filename.
+        mode: str
+            Mode.  Must be 'w' for writing to a new file (overwriting an
+            existing one) and 'a' for appending to an existing file.
+        tag: str
+            Magic ID string.
+        """
 
-        The data dictionary holds:
-
-        * data for type bool, int, float, complex and str
-        * shape and dtype for ndarrays
-
-        Other objects must have a write() method and a static
-        read() method."""
-
-        assert np.little_endian
+        assert np.little_endian  # deal with this later
         assert mode in 'aw'
         
         if data is None:
@@ -106,6 +136,8 @@ class Writer:
         self.dtype = None
         
     def add_array(self, name, shape, dtype=float):
+        """Add ndarray object."""
+        
         if isinstance(shape, int):
             shape = (shape,)
             
@@ -137,7 +169,7 @@ class Writer:
         """Write data dictionary.
 
         Write bool, int, float, complex and str data, shapes and
-        dtypes for ndarrays and class names for other objects."""
+        dtypes for ndarrays."""
 
         assert self.shape[0] == 0
         i = self.fd.tell()
@@ -220,18 +252,15 @@ def read_header(fd):
     fd.seek(0)
     assert fd.read(8) == b'AFFormat'
     tag = fd.read(16).decode('ascii').rstrip()
-    version, nitems, itemoffsets = np.fromfile(fd, np.int64, 3)
-    fd.seek(itemoffsets)
+    version, nitems, pos0 = np.fromfile(fd, np.int64, 3)
+    fd.seek(pos0)
     offsets = np.fromfile(fd, np.int64, nitems)
-    return tag, version, nitems, itemoffsets, offsets
+    return tag, version, nitems, pos0, offsets
 
     
 class Reader:
     def __init__(self, fd, index=0, data=None):
-        """Create hierarchy of readers.
-
-        Store data as attributes for easy access and to allow for
-        tab-completion."""
+        """Create reader."""
         
         assert np.little_endian
 
@@ -246,9 +275,9 @@ class Reader:
              self._offsets) = read_header(fd)
             data = self._read_data(index)
             
-        self.parse_data(data)
+        self._parse_data(data)
         
-    def parse_data(self, data):
+    def _parse_data(self, data):
         self._data = {}
         for name, value in data.items():
             if name.endswith('.'):
@@ -266,6 +295,7 @@ class Reader:
             self._data[name] = value
             
     def get_tag(self):
+        """Return special tag string."""
         return self._tag
         
     def __dir__(self):
@@ -285,7 +315,7 @@ class Reader:
         for i in range(self._index + 1, self._nitems):
             self._index = i
             data = self._read_data(i)
-            self.parse_data(data)
+            self._parse_data(data)
             yield self
     
     def get(self, attr, value=None):
@@ -372,7 +402,6 @@ def main():
     
     add = parser.add_option
     add('-v', '--verbose', action='store_true')
-    add('-j', '--json', action='store_true')
     opts, args = parser.parse_args()
 
     if not args:
