@@ -8,7 +8,7 @@ from ase.io.jsonio import encode, decode
 from ase.io.pickletrajectory import PickleTrajectory
 from ase.parallel import rank
 
-if 0:
+if 1:
     def Trajectory(filename, mode='r', atoms=None, master=None):
         if mode == 'r':
             return TrajectoryReader(filename)
