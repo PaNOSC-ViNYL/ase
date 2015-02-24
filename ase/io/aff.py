@@ -190,7 +190,7 @@ class Writer:
         self.fd.close()
         
     def __len__(self):
-        return self.nitems
+        return int(self.nitems)
         
         
 class DummyWriter:
@@ -300,7 +300,7 @@ class Reader:
         return value
 
     def __len__(self):
-        return self._nitems
+        return int(self._nitems)
         
     def _read_data(self, index):
         self._fd.seek(self._offsets[index])
