@@ -30,6 +30,7 @@ class RattleMutation(OffspringCreator):
         self.rattle_strength = rattle_strength
         self.rattle_prop = rattle_prop
         self.descriptor = 'RattleMutation'
+        self.min_inputs = 1
 
     def get_new_individual(self, parents):
         f = parents[0]
@@ -83,6 +84,7 @@ class PermutationMutation(OffspringCreator):
         self.n_top = n_top
         self.probability = probability
         self.descriptor = 'PermutationMutation'
+        self.min_inputs = 1
 
     def get_new_individual(self, parents):
         f = parents[0]
@@ -139,6 +141,7 @@ class MirrorMutation(OffspringCreator):
         self.n_top = n_top
         self.reflect = reflect
         self.descriptor = 'MirrorMutation'
+        self.min_inputs = 1
 
     def get_new_individual(self, parents):
         f = parents[0]

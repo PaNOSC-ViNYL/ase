@@ -13,6 +13,7 @@ class Crossover(OffspringCreator):
     def __init__(self):
         OffspringCreator.__init__(self)
         self.descriptor = 'Crossover'
+        self.min_inputs = 2
 
 
 class CutSpliceCrossover(Crossover):

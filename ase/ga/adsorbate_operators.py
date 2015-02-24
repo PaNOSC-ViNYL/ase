@@ -254,6 +254,8 @@ class AddAdsorbate(AdsorbateOperator):
         self.surface_preference = surface_preference
 
         self.num_muts = 1
+        
+        self.min_inputs = 1
 
     def get_new_individual(self, parents):
         """Returns the new individual as an atoms object"""
@@ -266,6 +268,10 @@ class AddAdsorbate(AdsorbateOperator):
             indi.append(atom)
 
         ads_sites = self.adsorption_sites[:]
+        # if self.adsorption_sites is None:
+        #     ads_sites = Ads_sites.get_sites()
+        # else:
+        #     ads_sites = self.adsorption_sites[:]
         for _ in range(self.num_muts):
             random.shuffle(ads_sites)
 
@@ -308,6 +314,8 @@ class RemoveAdsorbate(AdsorbateOperator):
         self.surface_preference = surface_preference
 
         self.num_muts = 1
+        
+        self.min_inputs = 1
 
     def get_new_individual(self, parents):
         f = parents[0]
@@ -368,6 +376,8 @@ class MoveAdsorbate(AdsorbateOperator):
         self.surface_preference_to = surface_preference_to
 
         self.num_muts = 1
+        
+        self.min_inputs = 1
 
     def get_new_individual(self, parents):
         f = parents[0]
@@ -444,6 +454,8 @@ class CutSpliceCrossoverWithAdsorbates(AdsorbateOperator):
         self.blmin = blmin
         self.keep_composition = keep_composition
         self.descriptor = 'CutSpliceCrossoverWithAdsorbates'
+        
+        self.min_inputs = 2
         
     def get_new_individual(self, parents):
         f, m = parents

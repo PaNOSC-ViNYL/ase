@@ -71,6 +71,7 @@ class CutAndSplicePairing(OffspringCreator):
         self.slab = slab
         self.n_top = n_top
         self.descriptor = 'CutAndSplicePairing'
+        self.min_inputs = 2
 
     def _get_pairing_(self, a1, a2, cutting_plane, cutting_point):
         """ Pairs configuration a1 and a2 through the defined plane.

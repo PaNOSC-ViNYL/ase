@@ -1,7 +1,8 @@
 """ Implementaiton of a population for maintaining a GA population and
 proposing structures to pair. """
 from random import randrange, random
-from math import tanh, sqrt
+from math import tanh, sqrt, exp
+from operator import itemgetter
 
 from ase.db.core import now
 
@@ -239,6 +240,31 @@ class Population(object):
             used_before = (min([c1id, c2id]), max([c1id, c2id])) in self.pairs
         return (c1.copy(), c2.copy())
 
+    def get_one_candidate(self, with_history=True):
+        """Returns one candidate for mutation employing the
+        fitness criteria from
+        L.B. Vilhelmsen et al., JACS, 2012, 134 (30), pp 12807-12816
+        and the roulete wheel selection scheme described in
+        R.L. Johnston Dalton Transactions,
+        Vol. 22, No. 22. (2003), pp. 4193-4207
+        """
+        if len(self.pop) < 1:
+            self.update()
+            
+        if len(self.pop) < 1:
+            return None
+        
+        fit = self.__get_fitness__(range(len(self.pop)), with_history)
+        fmax = max(fit)
+        nnf = True
+        while nnf:
+            t = randrange(0, len(self.pop), 1)
+            if fit[t] > random() * fmax:
+                c1 = self.pop[t]
+                nnf = False
+                
+        return c1.copy()
+        
     def _write_log(self):
         """Writes the population to a logfile.
 
@@ -259,3 +285,101 @@ class Population(object):
                                                         pop=','.join(ids),
                                                         gen=max_gen))
                 f.close()
+
+
+class RandomPopulation(Population):
+    def __init__(self, data_connection, population_size,
+                 comparator=None, logfile=None, exclude_used_pairs=False,
+                 bad_candidates=0):
+        self.exclude_used_pairs = exclude_used_pairs
+        self.bad_candidates = bad_candidates
+        Population.__init__(self, data_connection, population_size,
+                            comparator, logfile)
+        
+    def __initialize_pop__(self):
+        """ Private method that initalizes the population when
+            the population is created. """
+
+        # Get all relaxed candidates from the database
+        all_cand = self.dc.get_all_relaxed_candidates()
+        all_cand.sort(key=lambda x: x.get_raw_score(), reverse=True)
+        # all_cand.sort(key=lambda x: x.get_potential_energy())
+
+        if len(all_cand) > 0:
+            # Fill up the population with the self.pop_size most stable
+            # unique candidates.
+            ratings = []
+            best_raw = all_cand[0].get_raw_score()
+            i = 0
+            while i < len(all_cand):
+                c = all_cand[i]
+                i += 1
+                eq = False
+                for a in self.pop:
+                    if self.comparator.looks_like(a, c):
+                        eq = True
+                        break
+                if not eq:
+                    if len(self.pop) < self.pop_size - self.bad_candidates:
+                        self.pop.append(c)
+                    else:
+                        exp_fact = exp(c.get_raw_score() / best_raw)
+                        ratings.append([c, (exp_fact - 1) * random()])
+            ratings.sort(key=itemgetter(1), reverse=True)
+
+            for i in range(self.bad_candidates):
+                self.pop.append(ratings[i][0])
+
+        for a in self.pop:
+            a.info['looks_like'] = count_looks_like(a, all_cand,
+                                                    self.comparator)
+
+        self.all_cand = all_cand
+        self.__calc_participation__()
+
+    def update(self):
+        """ The update method in Population will add to the end of
+        the population, that can't be used here since we might have
+        bad candidates that need to stay in the population, therefore
+        just recalc the population every time. """
+
+        self.pop = []
+        self.__initialize_pop__()
+
+        self._write_log()
+
+    def get_one_candidate(self):
+        """Returns one candidates at random."""
+        if len(self.pop) < 1:
+            self.update()
+            
+        if len(self.pop) < 1:
+            return None
+
+        t = randrange(0, len(self.pop), 1)
+        c = self.pop[t]
+        
+        return c.copy()
+        
+    def get_two_candidates(self):
+        """Returns two candidates at random."""
+        if len(self.pop) < 2:
+            self.update()
+
+        if len(self.pop) < 2:
+            return None
+
+        c1 = self.pop[0]
+        c2 = self.pop[0]
+        used_before = False
+        while c1.info['confid'] == c2.info['confid'] and not used_before:
+            t = randrange(0, len(self.pop), 1)
+            c1 = self.pop[t]
+            t = randrange(0, len(self.pop), 1)
+            c2 = self.pop[t]
+
+            c1id = c1.info['confid']
+            c2id = c2.info['confid']
+            used_before = (tuple(sorted([c1id, c2id])) in self.pairs
+                           and self.exclude_used_pairs)
+        return (c1.copy(), c2.copy())

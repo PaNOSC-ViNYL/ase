@@ -17,6 +17,13 @@ class OffspringCreator(object):
     def __init__(self, verbose=False):
         self.descriptor = 'OffspringCreator'
         self.verbose = verbose
+        self.min_inputs = 0
+
+    def get_min_inputs(self):
+        """Returns the number of inputs required for a mutation,
+        this is to know how many candidates should be selected
+        from the population."""
+        return self.min_inputs
 
     def get_new_individual(self, parents):
         """Function that returns a new individual.

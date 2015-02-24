@@ -38,6 +38,8 @@ class ElementMutation(OffspringCreator):
         else:
             self.min_percentage_elements = min_percentage_elements
         assert len(self.min_percentage_elements) == len(self.element_pools)
+        
+        self.min_inputs = 1
 
     def get_new_individual(self, parents):
         raise NotImplementedError

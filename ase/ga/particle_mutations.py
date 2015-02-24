@@ -14,6 +14,7 @@ class Mutation(OffspringCreator):
         OffspringCreator.__init__(self)
         self.descriptor = 'Mutation'
         self.num_muts = num_muts
+        self.min_inputs = 1
 
     @classmethod
     def interchange2(cls, atoms, i1, i2):
