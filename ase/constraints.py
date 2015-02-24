@@ -5,7 +5,7 @@ import numpy as np
 __all__ = ['FixCartesian', 'FixBondLength', 'FixedMode', 'FixConstraintSingle',
            'FixAtoms', 'UnitCellFilter', 'FixScaled', 'StrainFilter',
            'FixedPlane', 'Filter', 'FixConstraint', 'FixedLine',
-           'FixBondLengths', 'FixInternals']
+           'FixBondLengths', 'FixInternals', 'Hookean']
 
 
 def dict2constraint(dct):
@@ -223,6 +223,13 @@ class FixBondLengths(FixConstraint):
     def copy(self):
         return FixBondLengths([constraint.indices
                                for constraint in self.constraints])
+
+    def todict(self):
+        assert not self.constraints[0].mic
+        return {'name': 'FixBondLengths',
+                'kwargs': {'pairs': [constraint.indices
+                                     for constraint in self.constraints],
+                           'iterations': self.iterations}}
 
 
 class FixBondLength(FixConstraint):
@@ -1163,7 +1170,7 @@ class UnitCellFilter(Filter):
         >>> atoms = Atoms(...)
         >>> ucf = UnitCellFilter(atoms)
         >>> qn = QuasiNewton(ucf)
-        >>> traj = PickleTrajectory('TiO2.traj', 'w', atoms)
+        >>> traj = Trajectory('TiO2.traj', 'w', atoms)
         >>> qn.attach(traj)
         >>> qn.run(fmax=0.05)
 

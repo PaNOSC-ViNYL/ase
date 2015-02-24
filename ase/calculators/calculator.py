@@ -209,7 +209,7 @@ class Calculator:
         self.set(**kwargs)
 
         if not hasattr(self, 'name'):
-            self.name = self.__class__.__name__
+            self.name = self.__class__.__name__.lower()
 
     def set_label(self, label):
         """Set label and convert label to directory and prefix.
@@ -350,13 +350,13 @@ class Calculator:
             return energy
 
     def get_forces(self, atoms=None):
-        return self.get_property('forces', atoms).copy()
+        return self.get_property('forces', atoms)
 
     def get_stress(self, atoms=None):
-        return self.get_property('stress', atoms).copy()
+        return self.get_property('stress', atoms)
 
     def get_dipole_moment(self, atoms=None):
-        return self.get_property('dipole', atoms).copy()
+        return self.get_property('dipole', atoms)
 
     def get_charges(self, atoms=None):
         return self.get_property('charges', atoms)
@@ -365,7 +365,7 @@ class Calculator:
         return self.get_property('magmom', atoms)
 
     def get_magnetic_moments(self, atoms=None):
-        return self.get_property('magmoms', atoms).copy()
+        return self.get_property('magmoms', atoms)
 
     def get_property(self, name, atoms=None):
         if name not in self.implemented_properties:
@@ -392,7 +392,10 @@ class Calculator:
         if name == 'magmoms' and 'magmoms' not in self.results:
             return np.zeros(len(atoms))
 
-        return self.results[name]
+        result = self.results[name]
+        if isinstance(result, np.ndarray):
+            result = result.copy()
+        return result
 
     def calculation_required(self, atoms, properties):
         system_changes = self.check_state(atoms)

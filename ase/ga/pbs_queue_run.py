@@ -1,7 +1,7 @@
 """ Class for handling interaction with the PBS queuing system."""
 from ase.io import write
 import os
-from ase.io.trajectory import PickleTrajectory
+from ase.io.trajectory import Trajectory
 from subprocess import Popen, PIPE
 import time
 
@@ -93,7 +93,7 @@ class PBSQueueRun(object):
                     a = []
                     niter = 0
                     while len(a) == 0 and niter < 5:
-                        t = PickleTrajectory(fdone, 'r')
+                        t = Trajectory(fdone, 'r')
                         a = [ats for ats in t]
                         if len(a) == 0:
                             time.sleep(1.)

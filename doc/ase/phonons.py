@@ -65,10 +65,10 @@ ph.write_modes([l/2 for l in L], branches=[2], repeat=(8, 8, 8), kT=3e-4,
 
 # Generate png animation
 from subprocess import call
-from ase.io import PickleTrajectory, write
+from ase.io import Trajectory, write
 
 trajfile = 'phonon.mode.2.traj'
-trajectory = PickleTrajectory(trajfile, 'r')
+trajectory = Trajectory(trajfile, 'r')
 
 for i, atoms in enumerate(trajectory):
     write('picture%02i.png' %i, atoms, show_unit_cell=2,

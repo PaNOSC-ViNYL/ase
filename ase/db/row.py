@@ -7,6 +7,7 @@ from ase.constraints import dict2constraint
 from ase.calculators.calculator import get_calculator, all_properties
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.data import chemical_symbols, atomic_masses
+from ase.io.jsonio import decode
 from ase.utils import hill
 
 
@@ -95,7 +96,6 @@ class AtomsRow:
     @property
     def data(self):
         if 'data' in self.dct:
-            from ase.db.jsondb import decode
             return FancyDict(decode(self.dct['data']))
         raise AttributeError
         
@@ -162,7 +162,6 @@ class AtomsRow:
                       constraint=self.constraints)
     
         if attach_calculator:
-            from ase.db.jsondb import decode
             params = decode(self.get('calculator_parameters', '{}'))
             atoms.calc = get_calculator(self.calculator)(**params)
         else:

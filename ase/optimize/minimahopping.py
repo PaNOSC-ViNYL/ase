@@ -261,7 +261,7 @@ class MinimaHopping:
 
     def _record_minimum(self):
         """Adds the current atoms configuration to the minima list."""
-        traj = io.PickleTrajectory(self._minima_traj, 'a')
+        traj = io.Trajectory(self._minima_traj, 'a')
         traj.write(self._atoms)
         self._read_minima()
         self._log('msg', 'Recorded minima #%i.' % (len(self._minima) - 1))
@@ -273,7 +273,7 @@ class MinimaHopping:
             empty = os.path.getsize(self._minima_traj) == 0
         if os.path.exists(self._minima_traj):
             if not empty:
-                traj = io.PickleTrajectory(self._minima_traj, 'r')
+                traj = io.Trajectory(self._minima_traj, 'r')
                 self._minima = [atoms for atoms in traj]
             else:
                 self._minima = []
@@ -296,7 +296,7 @@ class MinimaHopping:
                           'qn%05i.traj.' % (resume, resume - 1))
                 atoms = io.read('qn%05i.traj' % (resume - 1), index=-1)
             else:
-                images = io.PickleTrajectory('md%05i.traj' % resume, 'r')
+                images = io.Trajectory('md%05i.traj' % resume, 'r')
                 for atoms in images:
                     energies.append(atoms.get_potential_energy())
                     oldpositions.append(atoms.positions.copy())
@@ -312,8 +312,8 @@ class MinimaHopping:
             MaxwellBoltzmannDistribution(self._atoms,
                                          temp=self._temperature * units.kB,
                                          force_temp=True)
-        traj = io.PickleTrajectory('md%05i.traj' % self._counter, 'a',
-                                self._atoms)
+        traj = io.Trajectory('md%05i.traj' % self._counter, 'a',
+                                   self._atoms)
         dyn = VelocityVerlet(self._atoms, dt=self._timestep * units.fs)
         log = MDLogger(dyn, self._atoms, 'md%05i.log' % self._counter,
                        header=True, stress=False, peratom=False)
@@ -610,7 +610,7 @@ class MHPlot:
             return
         energies = [self._data[step - 1][0]]
         file = os.path.join(self._rundirectory, 'md%05i.traj' % step)
-        traj = io.PickleTrajectory(file, 'r')
+        traj = io.Trajectory(file, 'r')
         for atoms in traj:
             energies.append(atoms.get_potential_energy())
         xi = step - 1 + .5
@@ -630,7 +630,7 @@ class MHPlot:
         file = os.path.join(self._rundirectory, 'qn%05i.traj' % index)
         if os.path.getsize(file) == 0:
             return
-        traj = io.PickleTrajectory(file, 'r')
+        traj = io.Trajectory(file, 'r')
         energies = [traj[0].get_potential_energy(),
                     traj[-1].get_potential_energy()]
         if index > 0:

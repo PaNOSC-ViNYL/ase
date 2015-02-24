@@ -18,7 +18,7 @@ import numpy as np
 
 from ase.db.row import AtomsRow
 from ase.db.core import Database, ops, now, lock, parallel, invop
-from ase.db.jsondb import encode, decode
+from ase.io.jsonio import encode, decode
 from ase.utils import basestring
 
 if sys.version >= '3':

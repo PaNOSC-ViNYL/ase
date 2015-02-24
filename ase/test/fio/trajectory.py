@@ -7,22 +7,22 @@ if sys.platform in ['win32']:
 
 import os
 from ase import Atom, Atoms
-from ase.io import PickleTrajectory
+from ase.io import Trajectory
 
 co = Atoms([Atom('C', (0, 0, 0)),
             Atom('O', (0, 0, 1.2))])
-traj = PickleTrajectory('1.traj', 'w', co)
+traj = Trajectory('1.traj', 'w', co)
 for i in range(5):
     co.positions[:, 2] += 0.1
     traj.write()
 del traj
-traj = PickleTrajectory('1.traj', 'a')
+traj = Trajectory('1.traj', 'a')
 co = traj[-1]
 print(co.positions)
 co.positions[:] += 1
 traj.write(co)
 del traj
-t = PickleTrajectory('1.traj', 'a')
+t = Trajectory('1.traj', 'a')
 print(t[-1].positions)
 print('.--------')
 for a in t:
@@ -66,7 +66,7 @@ t.write(co)
 fname = '2.traj'
 if os.path.isfile(fname):
     os.remove(fname)
-t = PickleTrajectory(fname, 'a', co)
+t = Trajectory(fname, 'a', co)
 del t
 os.remove(fname)
 

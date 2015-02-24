@@ -3,6 +3,7 @@ from math import pi
 import numpy as np
 
 from ase.atoms import Atoms
+from ase.calculators.calculator import Calculator
 
 
 def make_test_dft_calculation():
@@ -98,8 +99,10 @@ class TestCalculator:
         return n
 
         
-class TestPotential:
-    def get_forces(self, atoms):
+class TestPotential(Calculator):
+    implemented_properties = ['energy', 'forces']
+    def calculate(self, atoms, properties, system_changes):
+        Calculator.calculate(self, atoms, properties, system_changes)
         E = 0.0
         R = atoms.positions
         F = np.zeros_like(R)
@@ -110,15 +113,8 @@ class TestPotential:
             E += np.vdot(x, x)
             d[a] = 1
             F -= (x / d)[:, None] * D
-        self.energy = 0.25 * E
-        return F
-
-    def get_potential_energy(self, atoms):
-        self.get_forces(atoms)
-        return self.energy
-
-    def get_stress(self, atoms):
-        raise NotImplementedError
+        energy = 0.25 * E
+        self.results = {'energy': energy, 'forces': F}
 
 
 def numeric_force(atoms, a, i, d=0.001):

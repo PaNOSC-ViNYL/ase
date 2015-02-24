@@ -19,6 +19,12 @@ else:
     basestring = basestring
     
 
+def plural(n, word):
+    if n == 1:
+        return '1 ' + word
+    return '%d %ss' % (n, word)
+
+    
 class DevNull:
     def write(self, string):
         pass

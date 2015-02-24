@@ -2,7 +2,7 @@ from math import sqrt
 from ase import Atoms
 from ase.optimize.lbfgs import LBFGS
 from ase.constraints import StrainFilter, UnitCellFilter
-from ase.io import PickleTrajectory
+from ase.io import Trajectory
 from ase.optimize.lbfgs import LBFGS
 from ase.optimize.mdmin import MDMin
 try:
@@ -16,7 +16,7 @@ else:
     cu.set_calculator(EMT())
     f = UnitCellFilter(cu, [1, 1, 1, 0, 0, 0])
     opt = LBFGS(f)
-    t = PickleTrajectory('Cu-fcc.traj', 'w', cu)
+    t = Trajectory('Cu-fcc.traj', 'w', cu)
     opt.attach(t)
     opt.run(5.0)
 
@@ -30,7 +30,7 @@ else:
     print(cu.get_stress())
     f = UnitCellFilter(cu)
     opt = MDMin(f,dt=0.01)
-    t = PickleTrajectory('Cu-hcp.traj', 'w', cu)
+    t = Trajectory('Cu-hcp.traj', 'w', cu)
     opt.attach(t)
     opt.run(0.2)
 

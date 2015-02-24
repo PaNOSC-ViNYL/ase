@@ -1,5 +1,5 @@
 from ase import Atoms
-from ase.io import PickleTrajectory
+from ase.io import Trajectory
 
 class Foo(object):
     def __init__(self, value):
@@ -26,12 +26,12 @@ if __name__ == '__main__':
     assert atoms.info == info
 
     # Save molecule to trajectory
-    traj = PickleTrajectory('info.traj', 'w', atoms=molecule)
+    traj = Trajectory('info.traj', 'w', atoms=molecule)
     traj.write()
     del traj
 
     # Load molecule from trajectory 
-    t = PickleTrajectory('info.traj')
+    t = Trajectory('info.traj')
     atoms = t[-1]
     assert atoms.info == info
 

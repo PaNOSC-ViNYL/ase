@@ -1838,7 +1838,7 @@ class xdat2traj:
         self.calc.resort = list(range(len(self.calc.sort)))
         for n in range(len(self.calc.resort)):
             self.calc.resort[self.calc.sort[n]] = n
-        self.out = ase.io.trajectory.PickleTrajectory(self.trajectory,
+        self.out = ase.io.trajectory.Trajectory(self.trajectory,
                                                       mode='w')
         self.energies = self.calc.read_energy(all=True)[1]
         self.forces = self.calc.read_forces(self.atoms, all=True)
