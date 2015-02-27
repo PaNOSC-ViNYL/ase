@@ -25,7 +25,7 @@ def read_gpaw_text(fileobj, index=-1):
             try:
                 x, y, z = lines[i].split()[-3:]
                 f.append((float(x), float(y), float(z)))
-            except (ValueError, IndexError), m:
+            except (ValueError, IndexError) as m:
                 raise IOError('Malformed GPAW log file: %s' % m)
         return f, i
 
