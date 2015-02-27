@@ -83,5 +83,5 @@ class ParallelLocalRun(object):
                 a = read('{0}/cand{1}_done.traj'.format(tf,
                                                         confid))
                 self.dc.add_relaxed_step(a)
-            except IOError, e:
+            except IOError as e:
                 print(e)
