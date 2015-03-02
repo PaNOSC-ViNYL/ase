@@ -58,6 +58,8 @@ class SinglePointKPoint:
 
 class SinglePointDFTCalculator(SinglePointCalculator):
     def __init__(self, *args, **results):
+        self.bz_kpts = results.pop('bz_kpts', None)
+        self.ibz_kpts = results.pop('ibz_kpts', None)
         if args and isinstance(args[0], float):
             # Old interface:
             assert not results
@@ -95,10 +97,7 @@ class SinglePointDFTCalculator(SinglePointCalculator):
 
     def get_bz_k_points(self):
         """Return the k-points."""
-        if self.kpts is not None:
-            # we assume that only the gamma point is defined
-            return np.zeros((1, 3))
-        return None
+        return self.bz_kpts
 
     def get_number_of_spins(self):
         """Return the number of spins in the calculation.
@@ -118,7 +117,7 @@ class SinglePointDFTCalculator(SinglePointCalculator):
     
     def get_ibz_k_points(self):
         """Return k-points in the irreducible part of the Brillouin zone."""
-        return self.get_bz_k_points()
+        return self.ibz_kpts
 
     def get_occupation_numbers(self, kpt=0, spin=0):
         """Return occupation number array."""

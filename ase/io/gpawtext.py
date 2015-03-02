@@ -1,3 +1,4 @@
+import re
 import numpy as np
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointDFTCalculator
@@ -17,6 +18,16 @@ def read_gpaw_text(fileobj, index=-1):
             if line.startswith(string):
                 return i
         notfound.append(string)
+        raise ValueError
+
+    def index_pattern(lines, pattern):
+        repat = re.compile(pattern)
+        if pattern in notfound:
+            raise ValueError
+        for i, line in enumerate(lines):
+            if repat.match(line):
+                return i
+        notfound.append(pattern)
         raise ValueError
 
     def read_forces(lines, ii):
@@ -73,6 +84,17 @@ def read_gpaw_text(fileobj, index=-1):
             Eref = float(lines[ii].split()[-1])
         except ValueError:
             Eref = None
+        try:
+            ii = index_pattern(lines, '\d+ k-point')
+            word = lines[ii].split()
+            kx = int(word[2])
+            ky = int(word[4])
+            kz = int(word[6])
+            bz_kpts = (kx, ky, kz)
+            ibz_kpts = int(lines[ii + 1].split()[0])
+        except (ValueError, TypeError):
+            bz_kpts = None
+            ibz_kpts = None
         ene = {
             # key        position
             'Kinetic:': 1,
@@ -191,7 +213,9 @@ def read_gpaw_text(fileobj, index=-1):
         if e is not None or f is not None:
             calc = SinglePointDFTCalculator(atoms, energy=e, forces=f,
                                             dipole=dipole, magmoms=magmoms,
-                                            eFermi=eFermi, Eref=Eref)
+                                            eFermi=eFermi, Eref=Eref,
+                                            bz_kpts=bz_kpts, ibz_kpts=ibz_kpts,
+            )
             calc.name = 'gpaw'
             if kpts is not None:
                 calc.kpts = kpts
