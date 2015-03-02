@@ -905,6 +905,11 @@ class Vasp(Calculator):
 
     def write_incar(self, atoms, **kwargs):
         """Writes the INCAR file."""
+        # jrk 1/23/2015 I added this flag because this function has
+        # two places where magmoms get written. There is some
+        # complication when restarting that often leads to magmom
+        # getting written twice. this flag prevents that issue.
+        magmom_written = False
         incar = open('INCAR', 'w')
         incar.write('INCAR created by Atomic Simulation Environment\n')
         for key, val in self.float_params.items():
@@ -931,8 +936,8 @@ class Vasp(Calculator):
                             RuntimeError('Please set EDIFFG < 0')
         for key, val in self.list_params.items():
             if val is not None:
-                incar.write(' %s = ' % key.upper())
                 if key in ('dipol', 'eint', 'ropt', 'rwigs'):
+                    incar.write(' %s = ' % key.upper())
                     [incar.write('%.4f ' % x) for x in val]
                 # ldau_luj is a dictionary that encodes all the
                 # data. It is not a vasp keyword. An alternative to
@@ -940,15 +945,21 @@ class Vasp(Calculator):
                 # 'ldaul', which are vasp keywords.
                 elif key in ('ldauu', 'ldauj') and \
                     self.dict_params['ldau_luj'] is None:
+                    incar.write(' %s = ' % key.upper())
                     [incar.write('%.4f ' % x) for x in val]
                 elif key in ('ldaul') and \
                     self.dict_params['ldau_luj'] is None:
+                    incar.write(' %s = ' % key.upper())
                     [incar.write('%d ' % x) for x in val]
                 elif key in ('ferwe', 'ferdo'):
+                    incar.write(' %s = ' % key.upper())
                     [incar.write('%.1f ' % x) for x in val]
                 elif key in ('iband', 'kpuse'):
+                    incar.write(' %s = ' % key.upper())
                     [incar.write('%i ' % x) for x in val]
                 elif key == 'magmom':
+                    incar.write(' %s = ' % key.upper())
+                    magmom_written = True
                     list = [[1, val[0]]]
                     for n in range(1, len(val)):
                         if val[n] == val[n-1]:
@@ -990,7 +1001,8 @@ class Vasp(Calculator):
                     incar.write(' LDAUL =%s\n' % llist)
                     incar.write(' LDAUU =%s\n' % ulist)
                     incar.write(' LDAUJ =%s\n' % jlist)
-        if self.spinpol:
+
+        if self.spinpol and not magmom_written:
             if not self.int_params['ispin']:
                 incar.write(' ispin = 2\n'.upper())
             # Write out initial magnetic moments
@@ -1694,6 +1706,19 @@ class VaspDos(object):
         self.read_doscar(doscar)
         self.efermi = efermi
 
+        # we have determine the resort to correctly map ase atom index to the
+        # POSCAR.
+        self.sort = []
+        self.resort = []
+        if os.path.isfile('ase-sort.dat'):
+            file = open('ase-sort.dat', 'r')
+            lines = file.readlines()
+            file.close()
+            for line in lines:
+                data = line.split()
+                self.sort.append(int(data[0]))
+                self.resort.append(int(data[1]))
+
     def _set_efermi(self, efermi):
         """Set the Fermi level."""
         ef = efermi - self._efermi
@@ -1732,6 +1757,11 @@ class VaspDos(object):
         double in the above fashion if spin polarized.
 
         """
+        # Correct atom index for resorting if we need to. This happens when the
+        # ase-sort.dat file exists, and self.resort is not empty.
+        if self.resort:
+            atom = self.resort[atom]
+
         # Integer indexing for orbitals starts from 1 in the _site_dos array
         # since the 0th column contains the energies
         if isinstance(orbital, int):
