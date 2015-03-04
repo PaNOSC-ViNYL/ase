@@ -192,8 +192,15 @@ class DataConnection(object):
             candidates relaxed since last time this function was
             invoked. """
 
-        entries = self.c.select('relaxed=1,extinct=0', sort='-raw_score')
-        # entries = self.c.select(relaxed=1)
+        entries = list(self.c.select('relaxed=1', sort='-raw_score'))
+        # Checking that all rows has the extinct parameter
+        # if not just use all the rows
+        for dct in entries:
+            if 'extinct' not in dct:
+                break
+        else:
+            entries = self.c.select('relaxed=1,extinct=0',
+                                    sort='-raw_score')
 
         trajs = []
         for v in entries:
