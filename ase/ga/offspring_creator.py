@@ -47,7 +47,7 @@ class OffspringCreator(object):
         if indi is None:
             indi = Atoms(pbc=parent.get_pbc(), cell=parent.get_cell())
         # key_value_pairs for numbers and strings
-        indi.info['key_value_pairs'] = {}
+        indi.info['key_value_pairs'] = {'extinct': 0}
         # data for lists and the like
         indi.info['data'] = {}
 

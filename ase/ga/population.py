@@ -3,6 +3,7 @@ proposing structures to pair. """
 from random import randrange, random
 from math import tanh, sqrt, exp
 from operator import itemgetter
+import numpy as np
 
 from ase.db.core import now
 
@@ -124,7 +125,7 @@ class Population(object):
             gens = {}
             for l in f:
                 _, no, popul = l.split(':')
-                gens[int(no)] = popul.split(',')
+                gens[int(no)] = [int(i) for i in popul.split(',')]
             f.close()
             return [c.copy() for c in self.all_cand[::-1]
                     if c.info['relax_id'] in gens[gen]]
@@ -285,6 +286,46 @@ class Population(object):
                                                         pop=','.join(ids),
                                                         gen=max_gen))
                 f.close()
+                
+    def is_uniform(self, func, min_std, pop=None):
+        """Tests whether the current population is uniform or diverse.
+        Returns True if uniform, False otherwise.
+        
+        Parameters:
+        
+        func: function
+            that takes one argument an atoms object and returns a value that
+            will be used for testing against the rest of the population.
+        
+        min_std: int or float
+            The minimum standard deviation, if the population has a lower
+            std dev it is uniform.
+
+        pop: list, optional
+            use this list of Atoms objects instead of the current population.
+        """
+        if pop is None:
+            pop = self.pop
+        vals = [func(a) for a in pop]
+        stddev = np.std(vals)
+        if stddev < min_std:
+            return True
+        return False
+        
+    def mass_extinction(self, ids):
+        """Kills every candidate in the database with gaid in the
+        supplied list of ids. Typically used on the main part of the current
+        population if the diversity is to small.
+
+        Parameters:
+
+        ids: list
+            list of ids of candidates to be killed.
+        
+        """
+        for confid in ids:
+            self.dc.kill_candidate(confid)
+        self.pop = []
 
 
 class RandomPopulation(Population):
