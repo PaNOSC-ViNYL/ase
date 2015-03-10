@@ -125,7 +125,7 @@ def hill(numbers):
     Elements are alphabetically ordered with C and H first."""
     
     if isinstance(numbers, dict):
-        count = numbers
+        count = dict(numbers)
     else:
         count = {}
         for Z in numbers:
