@@ -7,6 +7,9 @@ import numpy as np
 class MyEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
+            if obj.dtype == complex:
+                return {'__complex_ndarray__': (obj.real.tolist(),
+                                                obj.imag.tolist())}
             return obj.tolist()
         if isinstance(obj, datetime.datetime):
             return {'__datetime__': obj.isoformat()}
@@ -22,6 +25,9 @@ def object_hook(dct):
     if '__datetime__' in dct:
         return datetime.datetime.strptime(dct['__datetime__'],
                                           '%Y-%m-%dT%H:%M:%S.%f')
+    if '__complex_ndarray__' in dct:
+        r, i = (np.array(x) for x in dct['__complex_ndarray__'])
+        return r + i * 1j
     return dct
 
 

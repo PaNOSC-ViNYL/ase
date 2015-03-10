@@ -1,3 +1,5 @@
+import numpy as np
+
 from ase import Atoms
 from ase.calculators.emt import EMT
 from ase.constraints import FixAtoms, FixBondLength
@@ -25,8 +27,13 @@ for name in ['y2.json', 'y2.db']:
     print(f1)
     
     c.delete([d.id for d in c.select(C=1)])
-    id = c.write(ch4, data={'1-butyne': 'bla-bla'})
+    chi = np.array([1 + 0.5j, 0.5])
+    id = c.write(ch4, data={'1-butyne': 'bla-bla', 'chi': chi})
     a = read(name + '@' + str(id))
+    
+    row = c.get(id)
+    print(row.data['1-butyne'], row.data.chi)
+    assert (row.data.chi == chi).all()
     
     f2 = c.get(C=1).forces
     assert abs(f2.sum(0)).max() < 1e-14

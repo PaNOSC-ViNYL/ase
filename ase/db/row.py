@@ -96,7 +96,10 @@ class AtomsRow:
     @property
     def data(self):
         if 'data' in self.dct:
-            return FancyDict(decode(self.dct['data']))
+            d = self.dct['data']
+            if not isinstance(d, dict):
+                d = decode(d)
+            return FancyDict(d)
         raise AttributeError
         
     @property
