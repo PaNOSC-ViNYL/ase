@@ -163,7 +163,7 @@ class Delaunay1D:
 #
 # Johnson JW, Oelkers EH, Helgeson HC (1992)
 # Comput Geosci 18(7):899.
-# doi:10.​1016/​0098-3004(92)90029
+# doi:10.1016/0098-3004(92)90029-Q
 #
 # and
 #
