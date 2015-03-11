@@ -96,8 +96,12 @@ class DataConnection(object):
         except KeyError:
             print("raw_score not put in atoms.info['key_value_pairs']")
         gaid = a.info['confid']
+        
+        if 'generation' not in a.info['key_value_pairs']:
+            g = self.get_generation_number()
+            a.info['key_value_pairs']['generation'] = g
+            
         relax_id = self.c.write(a, gaid=gaid, relaxed=1,
-                                generation=self.get_generation_number(),
                                 key_value_pairs=a.info['key_value_pairs'],
                                 data=a.info['data'])
         a.info['relax_id'] = relax_id
@@ -113,8 +117,10 @@ class DataConnection(object):
         kwargs = {'relaxed': 0,
                   'extinct': 0,
                   t: 1,
-                  'description': desc,
-                  'generation': self.get_generation_number()}
+                  'description': desc}
+        
+        if 'generation' not in candidate.info['key_value_pairs']:
+            kwargs.update({'generation': self.get_generation_number()})
 
         # if not np.array_equal(candidate.numbers, self.atom_numbers):
         #     raise ValueError('Wrong stoichiometry')
@@ -263,8 +269,9 @@ class DataConnection(object):
             return 0
         lg = size
         g = 0
+        all_candidates = list(self.c.select(relaxed=1))
         while lg > 0:
-            lg = len(list(self.c.select(relaxed=1, generation=g)))
+            lg = len([c for c in all_candidates if c.generation == g])
             if lg == size:
                 g += 1
             else:
