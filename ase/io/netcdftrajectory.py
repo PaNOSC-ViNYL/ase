@@ -325,8 +325,16 @@ class NetCDFTrajectory:
         if arrays is not None:
             for array in arrays:
                 data = atoms.get_array(array)
-                self._add_array(atoms, array, data.dtype, data.shape)
-                self._get_variable(array)[i] = data
+                if array in self.extra_per_file_vars:
+                    # This field exists but is per file data. Check that the
+                    # data remains consistent.
+                    if np.any(self._get_variable(array) != data):
+                        raise RuntimeError('Trying to write Atoms object with ' 
+                                           'incompatible data for the {} '
+                                           'array.'.format(array))
+                else:
+                    self._add_array(atoms, array, data.dtype, data.shape)
+                    self._get_variable(array)[i] = data
         if time is not None:
             self._add_time()
             self._get_variable(self._time_var)[i] = time
@@ -340,8 +348,16 @@ class NetCDFTrajectory:
         self._call_observers(self.pre_observers)
         for array in arrays:
             data = atoms.get_array(array)
-            self._add_array(atoms, array, data.dtype, data.shape)
-            self._get_variable(array)[frame] = data
+            if array in self.extra_per_file_vars:
+                # This field exists but is per file data. Check that the
+                # data remains consistent.
+                if np.any(self._get_variable(array) != data):
+                    raise RuntimeError('Trying to write Atoms object with '
+                                       'incompatible data for the {} '
+                                       'array.'.format(array))
+            else:
+                self._add_array(atoms, array, data.dtype, data.shape)
+                self._get_variable(array)[frame] = data
         self._call_observers(self.post_observers)
         self._close()
 
