@@ -312,7 +312,13 @@ class NetCDFTrajectory:
         else:
             i = frame
 
-        self._get_variable(self._numbers_var)[i] = atoms.get_atomic_numbers()
+        # Number can be per file variable
+        numbers = self._get_variable(self._numbers_var)
+        if numbers.dimensions[0] == self._frame_dim:
+            numbers[i] = atoms.get_atomic_numbers()
+        else:
+            if np.any(numbers != atoms.get_atomic_numbers()):
+                raise ValueError('Atomic numbers do not match!')
         self._get_variable(self._positions_var)[i] = atoms.get_positions()
         if atoms.has('momenta'):
             self._add_velocities()
@@ -329,9 +335,9 @@ class NetCDFTrajectory:
                     # This field exists but is per file data. Check that the
                     # data remains consistent.
                     if np.any(self._get_variable(array) != data):
-                        raise RuntimeError('Trying to write Atoms object with ' 
-                                           'incompatible data for the {} '
-                                           'array.'.format(array))
+                        raise ValueError('Trying to write Atoms object with '
+                                         'incompatible data for the {} '
+                                         'array.'.format(array))
                 else:
                     self._add_array(atoms, array, data.dtype, data.shape)
                     self._get_variable(array)[i] = data
@@ -352,9 +358,9 @@ class NetCDFTrajectory:
                 # This field exists but is per file data. Check that the
                 # data remains consistent.
                 if np.any(self._get_variable(array) != data):
-                    raise RuntimeError('Trying to write Atoms object with '
-                                       'incompatible data for the {} '
-                                       'array.'.format(array))
+                    raise ValueError('Trying to write Atoms object with '
+                                     'incompatible data for the {} '
+                                     'array.'.format(array))
             else:
                 self._add_array(atoms, array, data.dtype, data.shape)
                 self._get_variable(array)[frame] = data
