@@ -1,11 +1,13 @@
 from __future__ import division, print_function
 import collections
+import functools
 
 import numpy as np
 from scipy.spatial import ConvexHull, Delaunay
 
 import ase.units as units
 from ase.atoms import string2symbols
+from ase.units import kB
 from ase.utils import hill
 
 
@@ -28,6 +30,109 @@ def h2o(symbols):
     return components
 
     
+def bisect(A, X, Y, f):
+    a = []
+    for i in [0, -1]:
+        for j in [0, -1]:
+            if A[i, j] == -1:
+                A[i, j] = f(X[i], Y[j])
+            a.append(A[i, j])
+            
+    if np.ptp(a) == 0:
+        A[:] = a[0]
+        return
+    if a[0] == a[1]:
+        A[0] = a[0]
+    if a[1] == a[3]:
+        A[:, -1] = a[1]
+    if a[3] == a[2]:
+        A[-1] = a[3]
+    if a[2] == a[0]:
+        A[:, 0] = a[2]
+    if not (A == -1).any():
+        return
+    i = len(X) // 2
+    j = len(Y) // 2
+    bisect(A[:i + 1, :j + 1], X[:i + 1], Y[:j + 1], f)
+    bisect(A[:i + 1, j:], X[:i + 1], Y[j:], f)
+    bisect(A[i:, :j + 1], X[i:], Y[:j + 1], f)
+    bisect(A[i:, j:], X[i:], Y[j:], f)
+        
+    
+class Pourbaix:
+    def __init__(self, solids, T=300.0, **count):
+        self.kT = kB * T
+        self.solids = []
+        self.names = []
+        for refcount, energy in solids:
+            for symbol in refcount:
+                if symbol not in count:
+                    break
+            else:
+                self.solids.append((refcount, energy))
+                self.names.append(hill(refcount))
+                
+        self.count = count
+        
+        self.solution = []
+        for c, charge, e in h2o(self.count):
+            name = hill(c) + '-+'[charge > 0] * abs(charge) + '(aq)'
+            h = c.pop('H', 0)
+            o = c.get('O', 0)
+            if c:
+                self.solution.append((c, charge, h, o, e, name))
+                self.names.append(name)
+                print(c, charge, h, o, e, name)
+                
+    def decompose(self, U, pH, verbose=True):
+        alpha = np.log(10) * self.kT
+        refs = list(self.solids)
+        for count, charge, h, o, e, name in self.solution:
+            e -= (h - 2 * o) * pH * alpha
+            if name != 'H2O(aq)':
+                e -= 6 * alpha
+            else:
+                e += 2 * pH * alpha  # + 2 * U
+            e -= U * (charge + 2 * o - h)
+            refs.append((count, e, name))
+
+        if verbose:
+            for ref in refs:
+                print(ref)
+            
+        pd = PhaseDiagram(refs, verbose=verbose)
+        return pd.find(**self.count)
+        
+    def diagram(self, U, pH, plot=False):
+        a = np.empty((len(U), len(pH)), int)
+        a[:] = -1
+        colors = {}
+        f = functools.partial(self.colorfunction, colors=colors)
+        bisect(a, U, pH, f)
+        compositions = [None] * len(colors)
+        for indices, color in colors.items():
+            compositions[color] = ' + '.join(self.names[i] for i in indices)
+        if plot:
+            import matplotlib.pyplot as plt
+            plt.pcolormesh(pH, U, a)
+            for i, name in enumerate(compositions):
+                b = (a == i)
+                x = np.dot(b.sum(1), U) / b.sum()
+                y = np.dot(b.sum(0), pH) / b.sum()
+                plt.text(y, x, name, horizontalalignment='center')
+            plt.show()
+        return a, compositions
+        
+    def colorfunction(self, U, pH, colors):
+        energy, indices, coefs = self.decompose(U, pH, verbose=False)
+        indices = tuple(sorted(indices[coefs > 0]))
+        color = colors.get(indices)
+        if color is None:
+            color = len(colors)
+            colors[indices] = color
+        return color
+        
+
 class PhaseDiagram:
     def __init__(self, references, verbose=True):
         """Phase-space.
