@@ -99,6 +99,7 @@ class AtomsRow:
             d = self.dct['data']
             if not isinstance(d, dict):
                 d = decode(d)
+                self.dct['data'] = d
             return FancyDict(d)
         raise AttributeError
         
