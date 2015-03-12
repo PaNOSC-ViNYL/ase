@@ -116,7 +116,7 @@ list_keys = [
 
 class Aims(FileIOCalculator):
     command = 'aims.version.serial.x > aims.out'
-    implemented_properties = ['energy', 'forces', 'stress', 'dipole']
+    implemented_properties = ['energy', 'forces', 'stress', 'dipole', 'magmom']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label=os.curdir, atoms=None, cubes=None, radmul=None, tier=None, **kwargs):
@@ -497,6 +497,9 @@ class Aims(FileIOCalculator):
     def get_number_of_spins(self):
         return 1 + self.get_spin_polarized()
 
+    def get_magnetic_moment(self, atoms=None): 
+        return self.read_magnetic_moment()
+
     def read_number_of_spins(self):
         spinpol = None
         lines = open(self.out, 'r').readlines()
@@ -510,9 +513,9 @@ class Aims(FileIOCalculator):
         if not self.get_spin_polarized():
             magmom = 0.0
         else: # only for spinpolarized system Magnetisation is printed
-            for line in open(self.label + '.txt'):
-                if line.find('Magnetisation') != -1: # last one
-                    magmom = float(line.split('=')[-1].strip())
+            for line in open(self.out, 'r').readlines():
+                if line.find('N_up - N_down') != -1: # last one
+                    magmom = float(line.split(':')[-1].strip())
         return magmom
 
     def get_fermi_level(self):
