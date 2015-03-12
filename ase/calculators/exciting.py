@@ -14,7 +14,7 @@ class Exciting:
                  bin='excitingser', kpts=(1, 1, 1),
                  autormt=False, **kwargs):
         """Exciting calculator object constructor
-        
+
         dir: string
             directory in which to execute exciting
         paramdict: dict
@@ -22,18 +22,15 @@ class Exciting:
             translated to attributes, nested dictionaries are translated
             to sub elements. A list of dictionaries is translated to a
             list of sub elements named after the key of which the list
-            is the value.
-            
-            default: None
+            is the value.  Default: None
         speciespath: string
             Directory or URL to look up species files
         bin: string
-            Path or executable name of exciting
-            
-            default: ``excitingser``
+            Path or executable name of exciting.  Default: ``excitingser``
         kpts: integer list length 3
             Number of k-points
         autormt: bool
+            ...
         kwargs: dictionary like
             list of key value pairs to be converted into groundstate attributes
         
