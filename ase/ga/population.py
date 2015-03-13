@@ -27,11 +27,14 @@ class Population(object):
 
     data_connection: DataConnection object
         Bla bla bla.
+    
     population_size: int
         The number of candidates in the population.
+    
     comparator: Comparator object
         this will tell if two configurations are equal.
         Default compare atoms objects directly.
+    
     logfile: str
         Text file that contains information about the population
         The format is::
@@ -40,9 +43,13 @@ class Population(object):
 
         Using this file greatly speeds up convergence checks.
         Default None meaning that no file is written.
+    
+    use_extinct: boolean
+        Set this to True if mass extinction and the extinct key
+        are going to be used. Default is False.
     """
     def __init__(self, data_connection, population_size,
-                 comparator=None, logfile=None):
+                 comparator=None, logfile=None, use_extinct=False):
         self.dc = data_connection
         self.pop_size = population_size
         if comparator is None:
@@ -50,6 +57,7 @@ class Population(object):
             comparator = AtomsComparator()
         self.comparator = comparator
         self.logfile = logfile
+        self.use_extinct = use_extinct
         self.pop = []
         self.pairs = None
         self.all_cand = None
@@ -60,7 +68,8 @@ class Population(object):
             the population is created. """
 
         # Get all relaxed candidates from the database
-        all_cand = self.dc.get_all_relaxed_candidates()
+        ue = self.use_extinct
+        all_cand = self.dc.get_all_relaxed_candidates(use_extinct=ue)
         all_cand.sort(key=lambda x: x.get_raw_score(), reverse=True)
         # all_cand.sort(key=lambda x: x.get_potential_energy())
 
@@ -105,7 +114,8 @@ class Population(object):
         if len(self.pop) == 0:
             self.__initialize_pop__()
 
-        new_cand = self.dc.get_all_relaxed_candidates(only_new=True)
+        new_cand = self.dc.get_all_relaxed_candidates(only_new=True,
+                                                      use_extinct=self.use_extinct)
         for a in new_cand:
             self.__add_candidate__(a)
             self.all_cand.append(a)
@@ -331,18 +341,19 @@ class Population(object):
 class RandomPopulation(Population):
     def __init__(self, data_connection, population_size,
                  comparator=None, logfile=None, exclude_used_pairs=False,
-                 bad_candidates=0):
+                 bad_candidates=0, use_extinct=False):
         self.exclude_used_pairs = exclude_used_pairs
         self.bad_candidates = bad_candidates
         Population.__init__(self, data_connection, population_size,
-                            comparator, logfile)
+                            comparator, logfile, use_extinct)
         
     def __initialize_pop__(self):
         """ Private method that initalizes the population when
             the population is created. """
 
         # Get all relaxed candidates from the database
-        all_cand = self.dc.get_all_relaxed_candidates()
+        ue = self.use_extinct
+        all_cand = self.dc.get_all_relaxed_candidates(use_extinct=ue)
         all_cand.sort(key=lambda x: x.get_raw_score(), reverse=True)
         # all_cand.sort(key=lambda x: x.get_potential_energy())
 
