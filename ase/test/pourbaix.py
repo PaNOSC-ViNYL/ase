@@ -1,4 +1,7 @@
 from __future__ import print_function
+from ase.test import NotAvailable
+
+raise NotAvailable
 
 import numpy as np
 
