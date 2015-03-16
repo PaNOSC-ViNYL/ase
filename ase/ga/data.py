@@ -275,7 +275,7 @@ class DataConnection(object):
         all_candidates = list(self.c.select(relaxed=1))
         while lg > 0:
             lg = len([c for c in all_candidates if c.generation == g])
-            if lg == size:
+            if lg >= size:
                 g += 1
             else:
                 return g
