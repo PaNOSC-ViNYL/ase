@@ -114,8 +114,9 @@ class Population(object):
         if len(self.pop) == 0:
             self.__initialize_pop__()
 
+        ue = self.use_extinct
         new_cand = self.dc.get_all_relaxed_candidates(only_new=True,
-                                                      use_extinct=self.use_extinct)
+                                                      use_extinct=ue)
         for a in new_cand:
             self.__add_candidate__(a)
             self.all_cand.append(a)
@@ -156,7 +157,7 @@ class Population(object):
     def __add_candidate__(self, a):
         """ Adds a single candidate to the population. """
 
-        #check if the structure is too low in raw score
+        # check if the structure is too low in raw score
         if a.get_raw_score() < self.pop[-1].get_raw_score() \
                 and len(self.pop) == self.pop_size:
             return
