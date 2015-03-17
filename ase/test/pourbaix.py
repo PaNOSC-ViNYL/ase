@@ -50,15 +50,22 @@ if 0:
         if list(refcount) == ['O']:
             energy = 0.0
         refs.append((refcount, energy))
-else:
+if 0:
     refs = [({'O': 1}, 0.0),
             ({'O': 4, 'Ti': 2}, -17.511826939900217),
             ({'Sr': 4, 'O': 4}, -20.474907588620653),
             ({'Sr': 4}, 0.0),
             ({'Ti': 2}, 0.0)]
+else:
+    refs = [({'O': 1}, 0.0),
+            ({'Zn': 1}, 0.0),
+            ({'Zn': 2, 'O': 2}, -5.33991412178575),
+            ({'Zn': 4, 'O': 8}, -7.594)]
+            
 
-pb = Pourbaix(refs, Sr=1, Ti=1, O=3)
-print(pb.decompose(0, 0))
+#pb = Pourbaix(refs, Sr=1, Ti=1, O=3)
+pb = Pourbaix(refs, Zn=1, O=1)
+print(pb.decompose(0, 9))
 pH = np.linspace(-1, 15, 17)
 if 0:
     d, names = pb.diagram([0], pH)
@@ -70,7 +77,7 @@ if 0:
     for i, u in zip(d, U):
         print(u, names[i])
 
-if 0:
+if 1:
     U = np.linspace(-3, 3, 200)
     pH = np.linspace(-1, 15, 300)
     d, names = pb.diagram(U, pH, plot=True)

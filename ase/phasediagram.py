@@ -62,46 +62,90 @@ def bisect(A, X, Y, f):
 class Pourbaix:
     def __init__(self, solids, T=300.0, **count):
         self.kT = kB * T
-        self.solids = []
+        self.references = []
         self.names = []
         for refcount, energy in solids:
             for symbol in refcount:
                 if symbol not in count:
                     break
             else:
-                self.solids.append((refcount, energy))
+                self.references.append((refcount, 0, energy))
                 self.names.append(hill(refcount))
                 
         self.count = count
         
-        self.solution = []
         for c, charge, e in h2o(self.count):
             name = hill(c) + '-+'[charge > 0] * abs(charge) + '(aq)'
-            h = c.pop('H', 0)
-            o = c.get('O', 0)
-            if c:
-                self.solution.append((c, charge, h, o, e, name))
-                self.names.append(name)
-                print(c, charge, h, o, e, name)
+            self.references.append((c, charge, e))
+            self.names.append(name)
                 
-    def decompose(self, U, pH, verbose=True):
+        self.references.append(({}, -1, 0.0))
+        self.names.append('e-')
+        
+        self.N = {'e-': 0, 'H': 1}
+        for n, symbol in enumerate(count):
+            self.N[symbol] = n + 2
+                
+    def decompose(self, U, pH, verbose=True, concentration=1e-6):
+        """Decompose material.
+        
+        U: float
+            Potential in eV.
+        pH: float
+            pH value.
+        
+        Returns optimal coefficients and energy.
+        """
+        
         alpha = np.log(10) * self.kT
-        refs = list(self.solids)
-        for count, charge, h, o, e, name in self.solution:
-            e -= (h - 2 * o) * pH * alpha
-            if name != 'H2O(aq)':
-                e -= 6 * alpha
+        entropy = -np.log(concentration) * self.kT
+        
+        energies = []
+        bounds = []
+        
+        # We want to minimize np.dot(energies, x) under the constrints:
+        #
+        #     np.dot(x, eq2) == eq1
+        #
+        # with bounds[i,0] <= x[i] <= bounds[i, 1].
+        #
+        # Equations:  First two are charge and number of hydrogens, and
+        # the rest are the remaining species.
+        eq1 = [0, 0] + list(self.count.values())
+        eq2 = []
+        
+        for (count, charge, energy), name in zip(self.references, self.names):
+            eq = np.zeros(len(self.N))
+            eq[0] = charge
+            for symbol, n in count.items():
+                eq[self.N[symbol]] = n
+            eq2.append(eq)
+            if name in ['H2O(aq)', 'H+(aq)', 'e-']:
+                bounds.append((-np.inf, np.inf))
+                if name == 'e-':
+                    energy = -U
+                elif name == 'H+(aq)':
+                    energy = -pH * alpha
             else:
-                e += 2 * pH * alpha  # + 2 * U
-            e -= U * (charge + 2 * o - h)
-            refs.append((count, e, name))
+                bounds.append((0, 1))
+                if name.endswith('(aq)'):
+                    energy -= entropy
+            energies.append(energy)
+            if verbose:
+                print(name, energy)
 
+        try:
+            from scipy.optimize import linprog
+        except ImportError:
+            from ase.utils._linprog import linprog
+        result = linprog(energies, None, None, np.transpose(eq2), eq1, bounds)
+        
         if verbose:
-            for ref in refs:
-                print(ref)
-            
-        pd = PhaseDiagram(refs, verbose=verbose)
-        return pd.find(**self.count)
+            for name, c in zip(self.names, result.x):
+                if abs(c) > 1e-7:
+                    print(name, c)
+                    
+        return result.x, result.fun
         
     def diagram(self, U, pH, plot=False):
         a = np.empty((len(U), len(pH)), int)
@@ -124,8 +168,8 @@ class Pourbaix:
         return a, compositions
         
     def colorfunction(self, U, pH, colors):
-        energy, indices, coefs = self.decompose(U, pH, verbose=False)
-        indices = tuple(sorted(indices[coefs > 0]))
+        coefs, energy = self.decompose(U, pH, verbose=False)
+        indices = tuple(sorted(np.where(abs(coefs) > 1e-7)[0]))
         color = colors.get(indices)
         if color is None:
             color = len(colors)
