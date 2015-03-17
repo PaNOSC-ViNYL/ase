@@ -309,7 +309,7 @@ class Database:
         elif isinstance(selection, list):
             expressions = selection
         else:
-            expressions = selection.split(',')
+            expressions = [w.strip() for w in selection.split(',')]
         keys = []
         comparisons = []
         for expression in expressions:
