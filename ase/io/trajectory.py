@@ -295,14 +295,15 @@ class OldCalculatorWrapper:
         except AttributeError:
             self.name = calc.__class__.__name__.lower()
     
-    def get_property(self, prop, allow_calculation=True):
-        if not allow_calculation and self.calc.calculation_required([prop]):
+    def get_property(self, prop, atoms, allow_calculation=True):
+        if not allow_calculation and self.calc.calculation_required(atoms,
+                                                                    [prop]):
             return None
         method = 'get_' + {'energy': 'potential_energy',
                            'magmom': 'magnetic_moment',
                            'magmoms': 'magnetic_moments',
                            'dipole': 'dipole_moment'}.get(prop, prop)
-        return getattr(self.calc, method)()
+        return getattr(self.calc, method)(atoms)
 
 
 def convert(name):
