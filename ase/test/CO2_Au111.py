@@ -6,7 +6,7 @@ from ase.optimize import BFGS
 from ase.lattice.surface import fcc111, add_adsorbate
 
 
-for mic in [False, True]:
+for wrap in [False, True]:
     zpos = cos(134.3 / 2.0 * pi / 180.0) * 1.197
     xpos = sin(134.3 / 2.0 * pi / 180.0) * 1.19
     co2 = Atoms('COO', positions=[(-xpos + 1.2, 0, -zpos),
@@ -22,14 +22,12 @@ for mic in [False, True]:
 
     calc = EMT()
     slab.set_calculator(calc)
-    if mic:
-        # Remap into the cell so bond is actually wrapped.
+    if wrap:
+        # Remap into the cell so bond is actually wrapped:
         slab.set_scaled_positions(slab.get_scaled_positions() % 1.0)
-        constraint = FixBondLengths([[-3, -2], [-3, -1]], mic=True, atoms=slab)
-    else:
-        constraint = FixBondLengths([[-3, -2], [-3, -1]])
+    constraint = FixBondLengths([[-3, -2], [-3, -1]])
     slab.set_constraint(constraint)
-    dyn = BFGS(slab, trajectory='relax_%s.traj' % ('mic' if mic else 'no_mic'))
+    dyn = BFGS(slab, trajectory='relax_%d.traj' % wrap)
     dyn.run(fmax=0.05)
-    assert abs(slab.get_distance(-3, -2, mic=mic) - d0) < 1e-9
-    assert abs(slab.get_distance(-3, -1, mic=mic) - d1) < 1e-9
+    assert abs(slab.get_distance(-3, -2, mic=1) - d0) < 1e-9
+    assert abs(slab.get_distance(-3, -1, mic=1) - d1) < 1e-9

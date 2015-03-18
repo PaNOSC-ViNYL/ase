@@ -37,7 +37,7 @@ class PickleTrajectory:
     write_info = True
 
     def __init__(self, filename, mode='r', atoms=None, master=None,
-                 backup=True):
+                 backup=True, _warn=True):
         """A PickleTrajectory can be created in read, write or append mode.
 
         Parameters:
@@ -72,13 +72,21 @@ class PickleTrajectory:
             Use backup=False to disable renaming of an existing file.
         """
 
+        if _warn:
+            msg = 'Please stop using old trajectory files!'
+            if mode == 'r':
+                msg += ('\nConvert to the new future-proof format like this:\n'
+                        '\n    $ python -m ase.io.trajectory ' +
+                        filename + '\n')
+            warnings.warn(msg)
+        
         self.numbers = None
         self.pbc = None
         self.sanitycheck = True
-        self.pre_observers = []   # Callback functions before write
+        self.pre_observers = []  # Callback functions before write
         self.post_observers = []  # Callback functions after write
-        self.write_counter = 0    # Counter used to determine when callbacks
-                                  # are called
+        self.write_counter = 0  # Counter used to determine when callbacks
+                                # are called
 
         self.offsets = []
         if master is None:

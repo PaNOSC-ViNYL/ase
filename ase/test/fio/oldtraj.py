@@ -1,16 +1,19 @@
 """Check that we can read old version 1 Trajectories."""
+import functools
 import pickle
 import sys
 from io import BytesIO
 
 from ase import Atoms
 from ase.constraints import FixAtoms
-from ase.io.trajectory import Trajectory
+from ase.io.pickletrajectory import PickleTrajectory
 from ase.test import NotAvailable
 
 if sys.version_info[0] == 3:
     raise NotAvailable
 
+
+Trajectory = functools.partial(PickleTrajectory, _warn=False)
 
 a = Atoms('FOO')
 

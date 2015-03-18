@@ -41,9 +41,11 @@ class SinglePointCalculator(Calculator):
                 self.results[property] = np.array(value, float)
         self.atoms = atoms.copy()
 
-    def get_property(self, name, atoms):
+    def get_property(self, name, atoms=None, allow_calculation=True):
         if name not in self.results or self.check_state(atoms):
-            raise NotImplementedError
+            if allow_calculation:
+                raise NotImplementedError
+            return None
         return self.results[name]
 
     

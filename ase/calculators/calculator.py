@@ -367,7 +367,7 @@ class Calculator:
     def get_magnetic_moments(self, atoms=None):
         return self.get_property('magmoms', atoms)
 
-    def get_property(self, name, atoms=None):
+    def get_property(self, name, atoms=None, allow_calculation=True):
         if name not in self.implemented_properties:
             raise NotImplementedError
 
@@ -380,6 +380,8 @@ class Calculator:
                 self.reset()
 
         if name not in self.results:
+            if not allow_calculation:
+                return None
             try:
                 self.calculate(atoms, [name], system_changes)
             except Exception:

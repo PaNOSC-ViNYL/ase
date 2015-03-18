@@ -6,7 +6,7 @@ from ase.constraints import FixAtoms, FixBondLength
 from ase.db import connect
 from ase.io import read
 from ase.structure import molecule
-from ase.test import MustRaise
+from ase.test import must_raise
 
 
 for name in ['y2.json', 'y2.db']:
@@ -40,11 +40,11 @@ for name in ['y2.json', 'y2.db']:
     f3 = c.get_atoms(C=1).get_forces()
     assert abs(f1 - f3).max() < 1e-14
 
-    with MustRaise(ValueError):
+    with must_raise(ValueError):
         c.update(id, abc={'a': 42})
 
     c.update(id, grr='hmm')
     assert c.get(C=1).id == id
 
-    with MustRaise(ValueError):
+    with must_raise(ValueError):
         c.write(ch4, foo=['bar', 2])

@@ -183,11 +183,11 @@ def read(filename, index=None, format=None):
         from ase.io.extxyz import read_xyz
         return read_xyz(filename, index)
 
-    if format == 'trj':
+    if format == 'traj':
         from ase.io.trajectory import read_trajectory
         return read_trajectory(filename, index)
 
-    if format == 'traj':
+    if format == 'trj':
         from ase.io.pickletrajectory import read_trajectory
         return read_trajectory(filename, index)
 
@@ -564,7 +564,7 @@ def write(filename, images, format=None, **kwargs):
         write_html(filename, images)
         return
 
-    format = {'trj': 'trajectory',
+    format = {'traj': 'trajectory',
               'nc': 'netcdf',
               'bundle': 'bundletrajectory'
               }.get(format, format)
@@ -572,7 +572,7 @@ def write(filename, images, format=None, **kwargs):
 
     if format in ['vti', 'vts', 'vtu']:
         format = 'vtkxml'
-    elif format == 'traj':
+    elif format == 'trj':
         name = 'write_trajectory'
         format = 'pickletrajectory'
     elif format is None:
@@ -653,9 +653,9 @@ def filetype(filename):
     fileobj.seek(0)
     lines = fileobj.readlines(1000)
     if lines[0].startswith(b'AFFormatASE-Trajectory'):
-        return 'trj'
-    if lines[0].startswith(b'PickleTrajectory'):
         return 'traj'
+    if lines[0].startswith(b'PickleTrajectory'):
+        return 'trj'
 
     if (lines[1].startswith(b'OUTER LOOP:') or
         filename.lower().endswith('.cube')):

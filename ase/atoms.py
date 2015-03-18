@@ -500,8 +500,7 @@ class Atoms(object):
             momenta = np.array(momenta)  # modify a copy
             for constraint in self.constraints:
                 if hasattr(constraint, 'adjust_momenta'):
-                    constraint.adjust_momenta(self.arrays['positions'],
-                                              momenta)
+                    constraint.adjust_momenta(self, momenta)
         self.set_array('momenta', momenta, float, (3,))
 
     def set_velocities(self, velocities):
@@ -598,11 +597,10 @@ class Atoms(object):
 
     def set_positions(self, newpositions):
         """Set positions, honoring any constraints."""
-        positions = self.arrays['positions']
         if self.constraints:
             newpositions = np.array(newpositions, float)
             for constraint in self.constraints:
-                constraint.adjust_positions(positions, newpositions)
+                constraint.adjust_positions(self, newpositions)
 
         self.set_array('positions', newpositions, shape=(3,))
 
@@ -648,8 +646,7 @@ class Atoms(object):
             constraints = [c for c in self.constraints
                            if hasattr(c, 'adjust_potential_energy')]
             for constraint in constraints:
-                energy += constraint.adjust_potential_energy(
-                    self.arrays['positions'], energy)
+                energy += constraint.adjust_potential_energy(self, energy)
         return energy
 
     def get_potential_energies(self):
@@ -695,7 +692,7 @@ class Atoms(object):
         forces = self._calc.get_forces(self)
         if apply_constraint:
             for constraint in self.constraints:
-                constraint.adjust_forces(self.arrays['positions'], forces)
+                constraint.adjust_forces(self, forces)
         return forces
 
     def get_stress(self, voigt=True):

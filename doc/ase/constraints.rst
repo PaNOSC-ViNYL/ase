@@ -95,7 +95,7 @@ as the FixBondLength class.
 
 
 The FixedLine class
-====================
+===================
 
 .. autoclass:: FixedLine
 
@@ -195,7 +195,7 @@ Those constraint definitions are always list objects containing
 the value to be set and a list of atomic indices. The epsilon value
 specifies the accuracy to which the constraints are fulfilled.
 
-.. class:: FixInternals(atoms, bonds=[bond1, bond2], \
+.. class:: FixInternals(bonds=[bond1, bond2],
     angles=[angle1], dihedrals=[dihedral1, dihedral2], epsilon=1.e-7)
 
 Example of use::
@@ -204,13 +204,13 @@ Example of use::
   >>> angle_indices1 = [2, 3, 4]
   >>> dihedral_indices1 = [2, 3, 4, 5]
   >>> angle1 = [atoms.get_angle(angle_indices1), angle_indices1]
-  >>> dihedral1 = [atoms.get_dihedral(dihedral_indices1), \
-    dihedral_indices1]
-  >>> c = FixInternals(atoms, bonds=[bonds1], angles=[angles1], \
-    dihedrals=[dihedral1])
+  >>> dihedral1 = [atoms.get_dihedral(dihedral_indices1),
+  ...              dihedral_indices1]
+  >>> c = FixInternals(bonds=[bonds1], angles=[angles1],
+  ...                  dihedrals=[dihedral1])
   >>> atoms.set_constraint(c)
 
-This example defines a bond an angle and a dihedral angle constraint
+This example defines a bond, an angle and a dihedral angle constraint
 to be fixed at the same time.
 
 
@@ -271,22 +271,22 @@ A simple example::
           self.a = a
           self.dir = direction / sqrt(np.dot(direction, direction))
 
-      def adjust_positions(self, oldpositions, newpositions):
-          step = newpositions[self.a] - oldpositions[self.a]
+      def adjust_positions(self, atoms, newpositions):
+          step = newpositions[self.a] - atoms.positions[self.a]
           step = np.dot(step, self.dir)
-          newpositions[self.a] = oldpositions[self.a] + step * self.dir
+          newpositions[self.a] = atoms.positions[self.a] + step * self.dir
 
-      def adjust_forces(self, positions, forces):
+      def adjust_forces(self, atoms, forces):
           forces[self.a] = self.dir * np.dot(forces[self.a], self.dir)
 
 A constraint can optionally have two additional methods, which
 will be ignored if missing:
 
-.. method:: adjust_momenta(positions, momenta)
+.. method:: adjust_momenta(atoms, momenta)
 
    Adjust the *momenta* array inplace.
 
-.. method:: adjust_potential_energy(positions, energy)
+.. method:: adjust_potential_energy(atoms, energy)
 
    Provide the difference in the *potential energy* due to the constraint.
    (Note that inplace adjustment is not possible for energy, which is a

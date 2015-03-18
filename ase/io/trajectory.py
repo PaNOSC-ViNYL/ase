@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 from ase.calculators.singlepoint import SinglePointCalculator, all_properties
+from ase.calculators.calculator import Calculator
 from ase.constraints import dict2constraint
 from ase.atoms import Atoms
 from ase.io.aff import affopen, DummyWriter
@@ -8,13 +9,13 @@ from ase.io.jsonio import encode, decode
 from ase.io.pickletrajectory import PickleTrajectory
 from ase.parallel import rank
 
-if 0:
-    def Trajectory(filename, mode='r', atoms=None, master=None):
-        if mode == 'r':
-            return TrajectoryReader(filename)
-        return TrajectoryWriter(filename, mode, atoms, master=master)
-else:
-    Trajectory = PickleTrajectory
+__all__ = ['Trajectory', 'PickleTrajectory']
+
+
+def Trajectory(filename, mode='r', atoms=None, master=None):
+    if mode == 'r':
+        return TrajectoryReader(filename)
+    return TrajectoryWriter(filename, mode, atoms, master=master)
     
     
 class TrajectoryWriter:
@@ -107,6 +108,9 @@ class TrajectoryWriter:
         b.write(positions=atoms.get_positions(),
                 cell=atoms.get_cell().tolist())
         
+        if atoms.has('tags'):
+            b.write(tags=atoms.get_tags())
+
         if atoms.has('momenta'):
             b.write(momenta=atoms.get_momenta())
 
@@ -118,20 +122,21 @@ class TrajectoryWriter:
 
         calc = atoms.get_calculator()
         if calc is not None:
+            if not isinstance(calc, Calculator):
+                calc = OldCalculatorWrapper(calc)
             c = b.child('calculator')
             c.write(name=calc.name)
-            changes = calc.check_state(atoms)
-            if changes:
-                results = {}
-            else:
-                results = calc.results
             for prop in all_properties:
                 if prop in kwargs:
                     x = kwargs[prop]
                 elif self.properties is not None and prop in self.properties:
-                    x = calc.get_property(prop)
+                    x = calc.get_property(prop, atoms)
                 else:
-                    x = results.get(prop)
+                    try:
+                        x = calc.get_property(prop, atoms,
+                                              allow_calculation=False)
+                    except NotImplementedError:
+                        x = None
                 if x is not None:
                     if prop in ['stress', 'dipole']:
                         x = x.tolist()
@@ -280,3 +285,45 @@ def write_trajectory(filename, images):
     for atoms in images:
         trj.write(atoms)
     trj.close()
+
+    
+class OldCalculatorWrapper:
+    def __init__(self, calc):
+        self.calc = calc
+        try:
+            self.name = calc.name
+        except AttributeError:
+            self.name = calc.__class__.__name__.lower()
+    
+    def get_property(self, prop, allow_calculation=True):
+        if not allow_calculation and self.calc.calculation_required([prop]):
+            return None
+        method = 'get_' + {'energy': 'potential_energy',
+                           'magmom': 'magnetic_moment',
+                           'magmoms': 'magnetic_moments',
+                           'dipole': 'dipole_moment'}.get(prop, prop)
+        return getattr(self.calc, method)()
+
+
+def convert(name):
+    import os
+    t = TrajectoryWriter(name + '.new')
+    for atoms in PickleTrajectory(name, _warn=False):
+        t.write(atoms)
+    os.rename(name, name + '.old')
+    os.rename(name + '.new', name)
+    
+    
+def main():
+    import optparse
+    parser = optparse.OptionParser(usage='python -m ase.io.pickletrajectory '
+                                   'a1.traj [a2.traj ...]',
+                                   description='Convert old trajectory '
+                                   'file(s) to new format.')
+    opts, args = parser.parse_args()
+    for name in args:
+        convert(name)
+  
+        
+if __name__ == '__main__':
+    main()
