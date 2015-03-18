@@ -31,6 +31,10 @@ Development version in trunk
 
 * New improved method for initializing NEB calculations.
 
+* New pickle-free future-proof trajectory file format added.
+
+* Pourbaix diagrams.
+
 
 Version 3.8.0
 =============

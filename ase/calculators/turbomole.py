@@ -103,7 +103,7 @@ class Turbomole(Calculator):
             if (self.updated and os.path.isfile('coord')):
                 self.updated = False
                 a = read_turbomole().get_positions()
-                if np.allclose(a,atoms.get_positions(), rtol=0, atol=1e-13):
+                if np.allclose(a, atoms.get_positions(), rtol=0, atol=1e-13):
                     return
             else:
                 return
@@ -161,3 +161,13 @@ class Turbomole(Calculator):
             forces = np.concatenate((forces, tmp))
         # Note the '-' sign for turbomole, to get forces
         self.forces = (-np.delete(forces, np.s_[0:1], axis=0)) * Hartree / Bohr
+
+    def calculation_required(self, atoms, properties):
+        if self.atoms != atoms:
+            return True
+        for prop in properties:
+            if prop == 'energy' and self.e_total is None:
+                return True
+            elif prop == 'forces' and self.forces is None:
+                return True
+        return False

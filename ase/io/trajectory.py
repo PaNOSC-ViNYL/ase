@@ -303,8 +303,12 @@ class OldCalculatorWrapper:
                            'magmom': 'magnetic_moment',
                            'magmoms': 'magnetic_moments',
                            'dipole': 'dipole_moment'}.get(prop, prop)
-        return getattr(self.calc, method)(atoms)
-
+        try:
+            result = getattr(self.calc, method)(atoms)
+        except AttributeError:
+            raise NotImplementedError
+        return result
+        
 
 def convert(name):
     import os
