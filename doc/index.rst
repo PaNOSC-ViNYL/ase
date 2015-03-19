@@ -30,18 +30,19 @@ Alphabetical list of all modules:
     - :mod:`~ase.neb`
     - :mod:`~ase.optimize`
     - :mod:`~ase.parallel`
-  * - :mod:`~ase.phonons`
+  * - :mod:`~ase.phasediagram`
+    - :mod:`~ase.phonons`
     - :mod:`~ase.lattice.spacegroup`
     - :mod:`~ase.structure`
-    - :mod:`~ase.lattice.surface`
-  * - :mod:`~ase.transport`
+  * - :mod:`~ase.lattice.surface`
+    - :mod:`~ase.transport`
     - :mod:`~ase.thermochemistry`
     - :mod:`~ase.units`
-    - :mod:`~ase.utils`
-  * - :mod:`~ase.vibrations`
+  * - :mod:`~ase.utils`
+    - :mod:`~ase.vibrations`
     - :mod:`~ase.visualize`
-    - :mod:`~ase.visualize.vtk`
     -
+
 
 :mod:`Calculators <ase.calculators>`:
 

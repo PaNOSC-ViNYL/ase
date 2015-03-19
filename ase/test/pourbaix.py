@@ -6,7 +6,7 @@ raise NotAvailable
 import numpy as np
 
 import ase.db
-from ase.phasediagram import bisect, Pourbaix
+from ase.phasediagram import bisect, Pourbaix, solvated
 
 if 0:
     N = 80
@@ -50,12 +50,12 @@ if 0:
         if list(refcount) == ['O']:
             energy = 0.0
         refs.append((refcount, energy))
-if 0:
-    refs = [({'O': 1}, 0.0),
-            ({'O': 4, 'Ti': 2}, -17.511826939900217),
-            ({'Sr': 4, 'O': 4}, -20.474907588620653),
-            ({'Sr': 4}, 0.0),
-            ({'Ti': 2}, 0.0)]
+if 1:
+    refs = [#({'O': 1}, 0.0),
+            ('O4Ti2', -17.511826939900217),
+            ('Sr4O4', -20.474907588620653),
+            ('Sr4', 0.0),
+            ('Ti2', 0.0)]
 else:
     refs = [({'O': 1}, 0.0),
             ({'Zn': 1}, 0.0),
@@ -63,8 +63,8 @@ else:
             ({'Zn': 4, 'O': 8}, -7.594)]
             
 
-#pb = Pourbaix(refs, Sr=1, Ti=1, O=3)
-pb = Pourbaix(refs, Zn=1, O=1)
+pb = Pourbaix(refs + solvated('SrTi'), Sr=1, Ti=1, O=3)
+#pb = Pourbaix(refs, Zn=1, O=1)
 print(pb.decompose(0, 9))
 pH = np.linspace(-1, 15, 17)
 if 0:

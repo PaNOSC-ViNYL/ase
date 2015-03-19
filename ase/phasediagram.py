@@ -1,33 +1,85 @@
 from __future__ import division, print_function
-import collections
+import fractions
 import functools
+import re
 
 import numpy as np
 from scipy.spatial import ConvexHull, Delaunay
 
 import ase.units as units
 from ase.atoms import string2symbols
-from ase.units import kB
 from ase.utils import hill
 
 
-def h2o(symbols):
-    components = []
-    for line in aqueous.splitlines():
-        energy, formula = line.split(',')
-        charge = formula.count('+') - formula.count('-')
-        if charge:
-            formula = formula.rstrip('+-')
-        count = collections.defaultdict(int)
-        for symbol in string2symbols(formula):
-            count[symbol] += 1
+_solvated = []
+
+
+def parse_formula(formula):
+    aq = formula.endswith('(aq)')
+    if aq:
+        formula = formula[:-4]
+    charge = formula.count('+') - formula.count('-')
+    if charge:
+        formula = formula.rstrip('+-')
+    count = {}
+    for symbol in string2symbols(formula):
+        count[symbol] = count.get(symbol, 0) + 1
+    return count, charge, aq
+
+    
+def float2str(x):
+    f = fractions.Fraction(x).limit_denominator(100)
+    n = f.numerator
+    d = f.denominator
+    if abs(n / d - f) > 1e-6:
+        return '{0:.3f}'.format(f)
+    if d == 0:
+        return '0'
+    if f.denominator == 1:
+        return str(n)
+    return '{0}/{1}'.format(f.numerator, f.denominator)
+    
+    
+def solvated(symbols):
+    """Extract solvation energies from database.
+    
+    symbols: str
+        Extract only those molecules that contain the chemical elements
+        given by the symbols string (plus water and H+).
+        
+    Data from:
+
+        Johnson JW, Oelkers EH, Helgeson HC (1992)
+        Comput Geosci 18(7):899.
+        doi:10.1016/0098-3004(92)90029-Q
+
+    and:
+
+        Pourbaix M (1966)
+        Atlas of electrochemical equilibria in aqueous solutions.
+        No. v. 1 in Atlas of Electrochemical Equilibria in Aqueous Solutions.
+        Pergamon Press, New York.
+        
+    Returns list of (name, energy) tuples.
+    """
+
+    if isinstance(symbols, str):
+        symbols = set(string2symbols(symbols))
+    if len(_solvated) == 0:
+        for line in _aqueous.splitlines():
+            energy, formula = line.split(',')
+            count, charge, aq = parse_formula(formula + '(aq)')
+            energy = float(energy) * 0.001 * units.kcal / units.mol
+            _solvated.append(((count, charge, aq), energy))
+    references = []
+    for (count, charge, aq), energy in _solvated:
         for symbol in count:
-            if symbol not in ['H', 'O'] and symbol not in symbols:
+            if symbol not in 'HO' and symbol not in symbols:
                 break
         else:
-            energy = float(energy) * 0.001 * units.kcal / units.mol
-            components.append((dict(count), charge, energy))
-    return components
+            name = hill(count) + '-+'[charge > 0] * abs(charge) + '(aq)'
+            references.append((name, energy))
+    return references
 
     
 def bisect(A, X, Y, f):
@@ -57,33 +109,62 @@ def bisect(A, X, Y, f):
     bisect(A[:i + 1, j:], X[:i + 1], Y[j:], f)
     bisect(A[i:, :j + 1], X[i:], Y[:j + 1], f)
     bisect(A[i:, j:], X[i:], Y[j:], f)
-        
+
+    
+def print_results(results):
+    total_energy = 0.0
+    print('reference    coefficient      energy')
+    print('------------------------------------')
+    for name, coef, energy in results:
+        total_energy += coef * energy
+        if abs(coef) < 1e-7:
+            continue
+        print('{0:14}{1:>10}{2:12.3f}'.format(name, float2str(coef), energy))
+    print('------------------------------------')
+    print('Total energy: {0:22.3f}'.format(total_energy))
+    print('------------------------------------')
+
     
 class Pourbaix:
-    def __init__(self, solids, T=300.0, **count):
-        self.kT = kB * T
-        self.references = []
-        self.names = []
-        for refcount, energy in solids:
-            for symbol in refcount:
-                if symbol not in count:
-                    break
-            else:
-                self.references.append((refcount, 0, energy))
-                self.names.append(hill(refcount))
-                
-        self.count = count
+    def __init__(self, references, formula=None, T=300.0, **kwargs):
+        """Pourbaix object.
         
-        for c, charge, e in h2o(self.count):
-            name = hill(c) + '-+'[charge > 0] * abs(charge) + '(aq)'
-            self.references.append((c, charge, e))
-            self.names.append(name)
+        references: list of (name, energy) tuples
+            Examples of names: ZnO2, H+(aq), H2O(aq), Zn++(aq), ...
+        formula: str
+            Stoichiometry.  Example: ``'ZnO'``.  Can also be given as
+            keyword arguments: ``Pourbaix(refs, Zn=1, O=1)``.
+        T: float
+            Temperature in Kelvin.
+        """
+        
+        if formula:
+            assert not kwargs
+            kwargs = parse_formula(formula)[0]
+
+        self.kT = units.kB * T
+        self.references = []
+        for name, energy in references:
+            count, charge, aq = parse_formula(name)
+            for symbol in count:
+                if aq:
+                    if not (symbol in 'HO' or symbol in kwargs):
+                        break
+                else:
+                    if symbol not in kwargs:
+                        break
+            else:
+                name = hill(count) + '-+'[charge > 0] * abs(charge)
+                if aq:
+                    name += '(aq)'
+                self.references.append((count, charge, aq, energy, name))
                 
-        self.references.append(({}, -1, 0.0))
-        self.names.append('e-')
+        self.references.append(({}, -1, False, 0.0, 'e-'))  # an electron
+
+        self.count = kwargs
         
         self.N = {'e-': 0, 'H': 1}
-        for n, symbol in enumerate(count):
+        for n, symbol in enumerate(kwargs):
             self.N[symbol] = n + 2
                 
     def decompose(self, U, pH, verbose=True, concentration=1e-6):
@@ -93,6 +174,10 @@ class Pourbaix:
             Potential in eV.
         pH: float
             pH value.
+        verbose: bool
+            Default is True.
+        concentration: float
+            Concentration of solvated references.
         
         Returns optimal coefficients and energy.
         """
@@ -103,18 +188,18 @@ class Pourbaix:
         energies = []
         bounds = []
         
-        # We want to minimize np.dot(energies, x) under the constrints:
+        # We want to minimize np.dot(energies, x) under the constraints:
         #
         #     np.dot(x, eq2) == eq1
         #
         # with bounds[i,0] <= x[i] <= bounds[i, 1].
         #
-        # Equations:  First two are charge and number of hydrogens, and
+        # First two equations are charge and number of hydrogens, and
         # the rest are the remaining species.
+        
         eq1 = [0, 0] + list(self.count.values())
         eq2 = []
-        
-        for (count, charge, energy), name in zip(self.references, self.names):
+        for count, charge, aq, energy, name in self.references:
             eq = np.zeros(len(self.N))
             eq[0] = charge
             for symbol, n in count.items():
@@ -132,7 +217,7 @@ class Pourbaix:
                     energy -= entropy
             energies.append(energy)
             if verbose:
-                print(name, energy)
+                print('{0:10}{1:10.3f}'.format(name, energy))
 
         try:
             from scipy.optimize import linprog
@@ -141,31 +226,51 @@ class Pourbaix:
         result = linprog(energies, None, None, np.transpose(eq2), eq1, bounds)
         
         if verbose:
-            for name, c in zip(self.names, result.x):
-                if abs(c) > 1e-7:
-                    print(name, c)
+            print_results([(ref[4], c, ref[3])
+                           for ref, c in zip(self.references, result.x)])
                     
         return result.x, result.fun
         
     def diagram(self, U, pH, plot=False):
+        """Calculate Pourbaix diagram.
+        
+        U: list of float
+            Potentials in eV.
+        pH: list of float
+            pH values.
+        plot: bool
+            Show plot.
+        """
+        
         a = np.empty((len(U), len(pH)), int)
         a[:] = -1
         colors = {}
         f = functools.partial(self.colorfunction, colors=colors)
         bisect(a, U, pH, f)
         compositions = [None] * len(colors)
+        names = [ref[-1] for ref in self.references]
         for indices, color in colors.items():
-            compositions[color] = ' + '.join(self.names[i] for i in indices)
+            compositions[color] = ' + '.join(names[i] for i in indices
+                                             if names[i] not in
+                                             ['H2O(aq)', 'H+(aq)', 'e-'])
+        text = []
+        for i, name in enumerate(compositions):
+            b = (a == i)
+            x = np.dot(b.sum(1), U) / b.sum()
+            y = np.dot(b.sum(0), pH) / b.sum()
+            name = re.sub('([+-]+)', r'$^{\1}$', name)
+            name = re.sub('(\d+)', r'$_{\1}$', name)
+            text.append((x, y, name))
+
         if plot:
             import matplotlib.pyplot as plt
-            plt.pcolormesh(pH, U, a)
-            for i, name in enumerate(compositions):
-                b = (a == i)
-                x = np.dot(b.sum(1), U) / b.sum()
-                y = np.dot(b.sum(0), pH) / b.sum()
+            import matplotlib.cm as cm
+            plt.pcolormesh(pH, U, a, cmap=cm.Set2)
+            for x, y, name in text:
                 plt.text(y, x, name, horizontalalignment='center')
             plt.show()
-        return a, compositions
+        
+        return a, compositions, text
         
     def colorfunction(self, U, pH, colors):
         coefs, energy = self.decompose(U, pH, verbose=False)
@@ -178,18 +283,29 @@ class Pourbaix:
         
 
 class PhaseDiagram:
-    def __init__(self, references, verbose=True):
-        """Phase-space.
+    def __init__(self, references, filter='', verbose=True):
+        """Phase-diagram.
         
+        references: list of (name, energy) tuples
+            List of references.  The names can also be dics't like
+            ``{'Zn': 1, 'O': 2}`` which would be equivalent to ``'ZnO2'``.
+        filter: str or list of str
+            Use only those references that match the given filter.
+            Example: ``filter='ZnO'`` will select those that
+            contain zink or oxygen.
+        verbose: bool
+            Write information.
+            
         Example:
             
-        >>> pd = PhaseDiagram([({'Cu': 1}, -3.5),
-        ...                    ({'Ni': 1}, -4.4),
-        ...                    ({'Cu': 1, 'Ni': 1}, -8.1)])
+        >>> pd = PhaseDiagram([('Zn', 0.0),
+        ...                    ('O2', 0.0),
+        ...                    ('ZnO', 0.0),
+        ...                    ('ZnO2', 0.0)])
         Species: Ni, Cu
         References: 3
         Simplices: 2
-        >>> pd.find(Cu=2, Ni=1)
+        >>> pd.decompose(Zn=1, O=3)
         reference         fraction         energy
         -----------------------------------------
         Cu              1.0000/  1         -3.500
@@ -200,31 +316,37 @@ class PhaseDiagram:
 
         """
 
+        filter = parse_formula(filter)[0]
+
         self.verbose = verbose
         
         self.species = {}
-        self.nspecies = 0
-        self.systems = []
-        for reference in references:
-            count, energy = reference[:2]
-            if len(reference) == 3:
-                name = reference[2]
+        self.references = []
+        for name, energy in references:
+            if isinstance(name, str):
+                count = parse_formula(name)[0]
             else:
+                count = name
                 name = hill(count)
+               
+            if any(symbol not in filter for symbol in count):
+                continue
+                    
             natoms = 0
             for symbol, n in count.items():
                 natoms += n
                 if symbol not in self.species:
-                    self.species[symbol] = self.nspecies
-                    self.nspecies += 1
-            self.systems.append((count, energy, name, natoms))
+                    self.species[symbol] = len(self.species)
+            self.references.append((count, energy, name, natoms))
         
         if verbose:
             print('Species:', ', '.join(self.species))
-            print('References:', len(references))
-            
-        self.points = np.zeros((len(self.systems), self.nspecies + 1))
-        for s, (count, energy, name, natoms) in enumerate(self.systems):
+            print('References:', len(self.references))
+            for count, energy, name, natoms in self.references:
+                print('{0:10}{1:10.3f}'.format(name, energy))
+
+        self.points = np.zeros((len(self.references), len(self.species) + 1))
+        for s, (count, energy, name, natoms) in enumerate(self.references):
             for symbol, n in count.items():
                 self.points[s, self.species[symbol]] = n / natoms
             self.points[s, -1] = energy / natoms
@@ -242,26 +364,31 @@ class PhaseDiagram:
             print('Simplices:', ok.sum())
         
         # Create triangulation:
-        if self.nspecies == 2:
+        if len(self.species) == 2:
             D = Delaunay1D  # scipy's Delaunay doesn't like 1-d!
         else:
             D = Delaunay
         self.tri = D(self.points[self.vertices, 1:-1])
         
-    def plot(self):
-        pass
-        
-    def find(self, **kwargs):
+    def decompose(self, formula=None, **kwargs):
         """Find the combination of the references with the lowest energy.
+        
+        formula: str
+            Stoichiometry.  Example: ``'ZnO'``.  Can also be given as
+            keyword arguments: ``decompose(Zn=1, O=1)``.
         
         Example::
             
             pd = PhaseDiagram(...)
-            pd.find(Cu=2, Ni=1)
+            pd.decompose(Zn=1, O=3)
             
         Returns energy, indices of references and coefficients."""
         
-        point = np.zeros(self.nspecies)
+        if formula:
+            assert not kwargs
+            kwargs = parse_formula(formula)[0]
+
+        point = np.zeros(len(self.species))
         natoms = 0
         for symbol, n in kwargs.items():
             point[self.species[symbol]] = n
@@ -272,25 +399,30 @@ class PhaseDiagram:
         scaledcoefs = np.linalg.solve(points[:, :-1].T, point)
         energy = np.dot(scaledcoefs, points[:, -1])
         
-        if self.verbose:
-            print('reference         fraction         energy')
-            print('-----------------------------------------')
-
         coefs = []
+        results = []
         for coef, s in zip(scaledcoefs, indices):
-            count, e, name, natoms = self.systems[s]
+            count, e, name, natoms = self.references[s]
             coef /= natoms
             coefs.append(coef)
-            if self.verbose:
-                print('{0:15}{1:7.4f}/{2:3}{3:15.3f}'.format(name,
-                                                             coef * natoms,
-                                                             natoms,
-                                                             coef * e))
+            results.append((name, coef, e))
+
         if self.verbose:
-            print('-----------------------------------------')
-            print('Total energy: {0:27.3f}'.format(energy))
+            print_results(results)
             
         return energy, indices, np.array(coefs)
+        
+    def plot(self):
+        if len(self.species) == 2:
+            self.plot2d()
+        elif len(self.species) == 3:
+            self.plot3d()
+        else:
+            raise ValueError('...')
+            
+    def plot2d(self):
+        import matplotlib.pyplot as plt
+        plt
         
         
 class Delaunay1D:
@@ -308,20 +440,7 @@ class Delaunay1D:
         return i + 1
 
 
-# Data from:
-#
-# Johnson JW, Oelkers EH, Helgeson HC (1992)
-# Comput Geosci 18(7):899.
-# doi:10.1016/0098-3004(92)90029-Q
-#
-# and
-#
-# Pourbaix M (1966)
-# Atlas of electrochemical equilibria in aqueous solutions.
-# No. v. 1 in Atlas of Electrochemical Equilibria in Aqueous Solutions.
-# Pergamon Press, New York.
-
-aqueous = """\
+_aqueous = """\
 -525700,SiF6--
 -514100,Rh(SO4)3----
 -504800,Ru(SO4)3----
