@@ -382,8 +382,8 @@ This is one of the best ways to ruin a Linux system.
 Run the tests
 =============
 
-Make sure that everything works by running the :mod:`test
-suite <test>`.  This will create many files, so run the tests in a new
+Make sure that everything works by running the test
+suite.  This will create many files, so run the tests in a new
 directory (preferably using bash)::
 
   $ bash
