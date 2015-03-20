@@ -442,9 +442,10 @@ def fcc111_root(symbol, root, size, a=None, vacuum=0.0,
 
     searchx, searchy = search_zone
 
+    c = 0.5
+    s = (3**0.5) / 2.
+
     def rhomb(x, y):
-        c = 0.5
-        s = (3**0.5) / 2.
         return float(x + (c * y)), float(s * y)
 
     desired = root**0.5
