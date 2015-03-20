@@ -298,25 +298,6 @@ class PhaseDiagram:
             contain zink or oxygen.
         verbose: bool
             Write information.
-            
-        Example:
-            
-        >>> pd = PhaseDiagram([('Zn', 0.0),
-        ...                    ('O2', 0.0),
-        ...                    ('ZnO', 0.0),
-        ...                    ('ZnO2', 0.0)])
-        Species: Ni, Cu
-        References: 3
-        Simplices: 2
-        >>> pd.decompose(Zn=1, O=3)
-        reference         fraction         energy
-        -----------------------------------------
-        Cu              1.0000/  1         -3.500
-        CuNi            2.0000/  2         -8.100
-        -----------------------------------------
-        Total energy:                     -11.600
-        (-11.6, array([0, 2], dtype=int32), array([ 1.,  1.]))
-
         """
 
         filter = parse_formula(filter)[0]
