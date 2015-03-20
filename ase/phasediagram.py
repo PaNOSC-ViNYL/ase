@@ -185,9 +185,6 @@ class Pourbaix:
         alpha = np.log(10) * self.kT
         entropy = -np.log(concentration) * self.kT
         
-        energies = []
-        bounds = []
-        
         # We want to minimize np.dot(energies, x) under the constraints:
         #
         #     np.dot(x, eq2) == eq1
@@ -199,6 +196,9 @@ class Pourbaix:
         
         eq1 = [0, 0] + list(self.count.values())
         eq2 = []
+        energies = []
+        bounds = []
+        names = []
         for count, charge, aq, energy, name in self.references:
             eq = np.zeros(len(self.N))
             eq[0] = charge
@@ -215,10 +215,12 @@ class Pourbaix:
                 bounds.append((0, 1))
                 if name.endswith('(aq)'):
                     energy -= entropy
-            energies.append(energy)
             if verbose:
-                print('{0:10}{1:10.3f}'.format(name, energy))
-
+                print('{0:<5}{1:10}{2:10.3f}'.format(len(energies),
+                                                     name, energy))
+            energies.append(energy)
+            names.append(name)
+            
         try:
             from scipy.optimize import linprog
         except ImportError:
@@ -226,8 +228,7 @@ class Pourbaix:
         result = linprog(energies, None, None, np.transpose(eq2), eq1, bounds)
         
         if verbose:
-            print_results([(ref[4], c, ref[3])
-                           for ref, c in zip(self.references, result.x)])
+            print_results(zip(names, result.x, energies))
                     
         return result.x, result.fun
         
@@ -268,6 +269,8 @@ class Pourbaix:
             plt.pcolormesh(pH, U, a, cmap=cm.Set2)
             for x, y, name in text:
                 plt.text(y, x, name, horizontalalignment='center')
+            plt.xlabel('pH')
+            plt.ylabel('potential [eV]')
             plt.show()
         
         return a, compositions, text
@@ -329,7 +332,7 @@ class PhaseDiagram:
                 count = name
                 name = hill(count)
                
-            if any(symbol not in filter for symbol in count):
+            if filter and any(symbol not in filter for symbol in count):
                 continue
                     
             natoms = 0
@@ -342,8 +345,8 @@ class PhaseDiagram:
         if verbose:
             print('Species:', ', '.join(self.species))
             print('References:', len(self.references))
-            for count, energy, name, natoms in self.references:
-                print('{0:10}{1:10.3f}'.format(name, energy))
+            for i, (count, energy, name, natoms) in enumerate(self.references):
+                print('{0:<5}{1:10}{2:10.3f}'.format(i, name, energy))
 
         self.points = np.zeros((len(self.references), len(self.species) + 1))
         for s, (count, energy, name, natoms) in enumerate(self.references):
@@ -413,6 +416,10 @@ class PhaseDiagram:
         return energy, indices, np.array(coefs)
         
     def plot(self):
+        """Plot datapoints and convex hull.
+        
+        Works only for 2 and 3 components systems.
+        """
         if len(self.species) == 2:
             self.plot2d()
         elif len(self.species) == 3:
@@ -422,7 +429,18 @@ class PhaseDiagram:
             
     def plot2d(self):
         import matplotlib.pyplot as plt
-        plt
+        x, y = self.points[:, 1:].T
+        xsymbol = [symbol for symbol, id in self.species.items() if id == 1][0]
+        plt.plot(x, y, 'or')
+        for i, j in self.tri.simplices:
+            plt.plot([x[i], x[j]], [y[i], y[j]], '-g')
+        for count, energy, name, natoms in self.references:
+            name = re.sub('(\d+)', r'$_{\1}$', name)
+            plt.text(count.get(xsymbol, 0) / natoms, energy / natoms, name,
+                     horizontalalignment='center', verticalalignment='bottom')
+        plt.xlabel(xsymbol)
+        plt.ylabel('energy')
+        plt.show()
         
         
 class Delaunay1D:
