@@ -57,8 +57,8 @@ Let's create a Pourbaix diagram for ZnO from experimental numbers.
 >>>> print(refs)
 [('HO2Zn-(aq)', -4.801274772854441), ('O2Zn--(aq)', -4.0454382546928365), ('HOZn+(aq)', -3.5207324675582736), ('OZn(aq)', -2.9236086089762137), ('H2O(aq)', -2.458311658897383), ('Zn++(aq)', -1.5264168353005447), ('H+(aq)', 0.0)]
 
-We use the :func:`solvated` function to get solvation energies for zink
-containing molecules:
+We use the :func:`solvated` function to get solvation energies for zinc
+containing molecules (plus water and a proton):
     
 .. autofunction:: solvated
 
