@@ -1,4 +1,4 @@
-# creates: cuau.svg
+# creates: cuau.png
 from ase.phasediagram import PhaseDiagram
 refs = [('Cu', 0.0),
         ('Au', 0.0),
@@ -8,5 +8,5 @@ refs = [('Cu', 0.0),
 pd = PhaseDiagram(refs)
 pd.plot()
 import matplotlib.pyplot as plt
-plt.savefig('cuau.svg')
+plt.savefig('cuau.png')
 print(pd.decompose('Cu3Au'))

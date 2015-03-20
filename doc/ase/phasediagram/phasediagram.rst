@@ -27,7 +27,7 @@ The phase diagram looks like this:
     
 >>> pd.plot()
 
-.. image:: cuau.svg
+.. image:: cuau.png
 
 .. automethod:: PhaseDiagram.plot
 
