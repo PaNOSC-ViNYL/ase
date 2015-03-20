@@ -1,6 +1,7 @@
 @import "default.css";
 
 dl.function {background-color: #E0E0FF}
+dl.method {background-color: #E0E0FF}
 dl.class {background-color: #E0E0FF}
 
 img {border: none;}
