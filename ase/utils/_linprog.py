@@ -1,8 +1,10 @@
 """Copy of SciPy-0.15's scipy.optimize._linprog module."""
 from __future__ import division, print_function, absolute_import
+import collections
 
 import numpy as np
-from scipy.optimize import OptimizeResult
+
+OptimizeResult = collections.namedtuple('OptimizeResult', 'x, fun')
 
 
 def _pivot_col(T, tol=1.0E-12, bland=False):
@@ -335,9 +337,7 @@ def linprog(c, A_ub=None, b_ub=None, A_eq=None, b_eq=None,
         message = messages[status]
         if disp:
             print(message)
-        return OptimizeResult(x=np.nan, fun=-T[-1, -1], nit=nit1,
-                              status=status,
-                              message=message, success=False)
+        2 / 0
 
     # Phase 2
     nit2, status = _solve_simplex(T, n, basis, maxiter=maxiter - nit1, phase=2,
@@ -375,6 +375,4 @@ def linprog(c, A_ub=None, b_ub=None, A_eq=None, b_eq=None,
             print(messages[status])
             print("         Iterations: {:d}".format(nit2))
 
-    return OptimizeResult(x=x, fun=obj, nit=int(nit2), status=status,
-                          slack=slack,
-                          message=messages[status], success=(status == 0))
+    return OptimizeResult(x, obj)
