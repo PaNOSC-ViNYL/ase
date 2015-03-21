@@ -853,10 +853,10 @@ class Vasp(Calculator):
         self.update(self.atoms)
         return self.read_eigenvalues(kpt, spin)
 
-
     def get_occupation_numbers(self, kpt=0, spin=0):
         self.update(self.atoms)
         return self.read_occupation_numbers(kpt, spin)
+
     def get_fermi_level(self):
         return self.fermi
 
@@ -927,7 +927,7 @@ class Vasp(Calculator):
                 if key == 'ichain' and val > 0:
                     incar.write(' IBRION = 3\n POTIM = 0.0\n')
                     for key, val in self.int_params.items():
-                        if key == 'iopt' and val == None:
+                        if key == 'iopt' and val is None:
                             print('WARNING: optimization is '
                                   'set to LFBGS (IOPT = 1)')
                             incar.write(' IOPT = 1\n')
@@ -1870,7 +1870,7 @@ class xdat2traj:
         for n in range(len(self.calc.resort)):
             self.calc.resort[self.calc.sort[n]] = n
         self.out = ase.io.trajectory.Trajectory(self.trajectory,
-                                                      mode='w')
+                                                mode='w')
         self.energies = self.calc.read_energy(all=True)[1]
         self.forces = self.calc.read_forces(self.atoms, all=True)
 
