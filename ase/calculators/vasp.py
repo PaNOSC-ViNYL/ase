@@ -853,10 +853,10 @@ class Vasp(Calculator):
         self.update(self.atoms)
         return self.read_eigenvalues(kpt, spin)
 
+
     def get_occupation_numbers(self, kpt=0, spin=0):
         self.update(self.atoms)
         return self.read_occupation_numbers(kpt, spin)
-
     def get_fermi_level(self):
         return self.fermi
 
@@ -1336,7 +1336,8 @@ class Vasp(Calculator):
                         self.bool_params[key] = False
                 elif key in list_keys:
                     list = []
-                    if key in ('dipol', 'eint', 'ferwe', 'ropt', 'rwigs',
+                    if key in ('dipol', 'eint', 'ferwe', 'ferdo',
+                               'ropt', 'rwigs',
                                'ldauu', 'ldaul', 'ldauj'):
                         for a in data[2:]:
                             if a in ["!", "#"]:
