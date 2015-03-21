@@ -1835,9 +1835,6 @@ class VaspDos(object):
         self._site_dos = np.array(dos)
 
 
-import pickle
-
-
 class xdat2traj:
     def __init__(self, trajectory=None, atoms=None, poscar=None,
                  xdatcar=None, sort=None, calc=None):
