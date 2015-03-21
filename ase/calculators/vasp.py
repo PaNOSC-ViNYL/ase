@@ -1841,6 +1841,10 @@ import pickle
 class xdat2traj:
     def __init__(self, trajectory=None, atoms=None, poscar=None,
                  xdatcar=None, sort=None, calc=None):
+        """
+        trajectory is the name of the file to write the trajectory to
+        poscar is the name of the poscar file to read. Default: POSCAR
+        """
         if not poscar:
             self.poscar = 'POSCAR'
         else:
@@ -1893,13 +1897,7 @@ class xdat2traj:
                     self.out.write_header(self.atoms[self.calc.resort])
                 scaled_pos = np.array(scaled_pos)
                 self.atoms.set_scaled_positions(scaled_pos)
-                d = {'positions': self.atoms.get_positions()[self.calc.resort],
-                     'cell': self.atoms.get_cell(),
-                     'momenta': None,
-                     'energy': self.energies[step],
-                     'forces': self.forces[step],
-                     'stress': None}
-                pickle.dump(d, self.out.fd, protocol=-1)
+                self.out.write(self.atoms)
                 scaled_pos = []
                 iatom = 0
                 step += 1
@@ -1915,12 +1913,6 @@ class xdat2traj:
             self.out.write_header(self.atoms[self.calc.resort])
         scaled_pos = np.array(scaled_pos)
         self.atoms.set_scaled_positions(scaled_pos)
-        d = {'positions': self.atoms.get_positions()[self.calc.resort],
-             'cell': self.atoms.get_cell(),
-             'momenta': None,
-             'energy': self.energies[step],
-             'forces': self.forces[step],
-             'stress': None}
-        pickle.dump(d, self.out.fd, protocol=-1)
+        self.out.write(self.atoms)
 
-        self.out.fd.close()
+        self.out.close()
