@@ -356,11 +356,11 @@ class Vasp(Calculator):
             self.input_params = {'xc': 'PW91'}
 
         self.input_params.update({
-            'setups':     None,    # Special setups (e.g pv, sv, ...)
-            'txt':        '-',     # Where to send information
-            'kpts':       (1, 1, 1),  # k-points
-            'gamma':      False,   # Option to use gamma-sampling instead
-                                   # of Monkhorst-Pack
+            'setups': None,    # Special setups (e.g pv, sv, ...)
+            'txt': '-',     # Where to send information
+            'kpts': (1, 1, 1),  # k-points
+            'gamma': False,   # Option to use gamma-sampling instead
+                              # of Monkhorst-Pack
             'kpts_nintersections': None,  # number of points between points in
                                           # band structures
             'reciprocal': False,   # Option to write explicit k-points in units
@@ -511,7 +511,7 @@ class Vasp(Calculator):
         # Setting the pseudopotentials, first special setups and
         # then according to symbols
         for m in special_setups:
-            name = 'potpaw'+xc.upper() + p['setups'][str(m)] + '/POTCAR'
+            name = 'potpaw' + xc.upper() + p['setups'][str(m)] + '/POTCAR'
             found = False
             for path in pppaths:
                 filename = join(path, name)
@@ -522,7 +522,7 @@ class Vasp(Calculator):
                     break
                 elif isfile(filename + '.Z') or islink(filename + '.Z'):
                     found = True
-                    self.ppp_list.append(filename+'.Z')
+                    self.ppp_list.append(filename + '.Z')
                     break
             if not found:
                 print('Looking for %s' % name)
@@ -530,7 +530,7 @@ class Vasp(Calculator):
 
         for symbol in symbols:
             try:
-                name = 'potpaw'+xc.upper()+symbol + p['setups'][symbol]
+                name = 'potpaw' + xc.upper()+symbol + p['setups'][symbol]
             except (TypeError, KeyError):
                 name = 'potpaw' + xc.upper() + symbol
             name += '/POTCAR'
@@ -618,10 +618,10 @@ class Vasp(Calculator):
         """Method which explicitely runs VASP."""
 
         if self.track_output:
-            self.out = self.output_template+str(self.run_counts)+'.out'
+            self.out = self.output_template + str(self.run_counts) + '.out'
             self.run_counts += 1
         else:
-            self.out = self.output_template+'.out'
+            self.out = self.output_template + '.out'
         stderr = sys.stderr
         p = self.input_params
         if p['txt'] is None:
@@ -755,7 +755,7 @@ class Vasp(Calculator):
         for n, line in enumerate(lines):
             if line.find('TITEL') != -1:
                 symbol = line.split('=')[1].split()[1].split('_')[0].strip()
-                valence = float(lines[n+4].split(';')[1]
+                valence = float(lines[n + 4].split(';')[1]
                                 .split('=')[1].split()[0].strip())
                 nelect.append((symbol, valence))
         return nelect
@@ -962,7 +962,7 @@ class Vasp(Calculator):
                     magmom_written = True
                     list = [[1, val[0]]]
                     for n in range(1, len(val)):
-                        if val[n] == val[n-1]:
+                        if val[n] == val[n - 1]:
                             list[-1][0] += 1
                         else:
                             list.append([1, val[n]])
@@ -982,7 +982,7 @@ class Vasp(Calculator):
                 incar.write(' %s = ' % key.upper())
                 if key == 'lreal':
                     if isinstance(val, str):
-                        incar.write(val+'\n')
+                        incar.write(val + '\n')
                     elif isinstance(val, bool):
                         if val:
                             incar.write('.TRUE.\n')
@@ -1009,7 +1009,7 @@ class Vasp(Calculator):
             magmom = atoms.get_initial_magnetic_moments()[self.sort]
             list = [[1, magmom[0]]]
             for n in range(1, len(magmom)):
-                if magmom[n] == magmom[n-1]:
+                if magmom[n] == magmom[n - 1]:
                     list[-1][0] += 1
                 else:
                     list.append([1, magmom[n]])
@@ -1049,7 +1049,7 @@ class Vasp(Calculator):
     def write_potcar(self, suffix=""):
         """Writes the POTCAR file."""
         import tempfile
-        potfile = open('POTCAR'+suffix, 'w')
+        potfile = open('POTCAR' + suffix, 'w')
         for filename in self.ppp_list:
             if filename.endswith('R'):
                 for line in open(filename, 'r'):
@@ -1113,7 +1113,7 @@ class Vasp(Calculator):
                 forces = []
                 for i in range(len(atoms)):
                     forces.append(np.array([float(f) for f in
-                                            lines[n+2+i].split()[3:6]]))
+                                            lines[n + 2 + i].split()[3:6]]))
                 if all:
                     all_forces.append(np.array(forces)[self.resort])
             n += 1
@@ -1220,7 +1220,7 @@ class Vasp(Calculator):
         i = 0
         for line in lines:
             if line.rfind('Following cartesian coordinates') > -1:
-                m = n+2
+                m = n + 2
                 while i == 0:
                     ibz_kpts.append([float(lines[m].split()[p])
                                      for p in range(3)])
@@ -1255,7 +1255,7 @@ class Vasp(Calculator):
         eigs = []
         for n in range(8 + kpt * (self.nbands + 2),
                        8 + kpt * (self.nbands + 2) + self.nbands):
-            eigs.append(float(lines[n].split()[spin+1]))
+            eigs.append(float(lines[n].split()[spin + 1]))
         return np.array(eigs)
 
     def read_occupation_numbers(self, kpt=0, spin=0):
@@ -1264,24 +1264,24 @@ class Vasp(Calculator):
         start = 0
         if nspins == 1:
             for n, line in enumerate(lines):  # find it in the last iteration
-                m = re.search(' k-point *'+str(kpt+1)+' *:', line)
+                m = re.search(' k-point *' + str(kpt + 1)+' *:', line)
                 if m is not None:
                     start = n
         else:
             for n, line in enumerate(lines):
                 # find it in the last iteration
-                if line.find(' spin component '+str(spin+1)) != -1:
+                if line.find(' spin component ' + str(spin + 1)) != -1:
                     start = n
             for n2, line2 in enumerate(lines[start:]):
-                m = re.search(' k-point *'+str(kpt+1)+' *:', line2)
+                m = re.search(' k-point *' + str(kpt + 1) + ' *:', line2)
                 if m is not None:
                     start = start + n2
                     break
-        for n2, line2 in enumerate(lines[start+2:]):
+        for n2, line2 in enumerate(lines[start + 2:]):
             if not line2.strip():
                 break
         occ = []
-        for line in lines[start+2:start+2+n2]:
+        for line in lines[start + 2:start + 2 + n2]:
             occ.append(float(line.split()[2]))
         return np.array(occ)
 
@@ -1596,42 +1596,42 @@ class VaspChargeDensity(object):
         # Make a 1D copy of chg, must take transpose to get ordering right
         chgtmp = chg.T.ravel()
         # Multiply by volume
-        chgtmp = chgtmp*volume
+        chgtmp = chgtmp * volume
         # Must be a tuple to pass to string conversion
         chgtmp = tuple(chgtmp)
         # CHG format - 10 columns
         if format.lower() == 'chg':
             # Write all but the last row
-            for ii in range((len(chgtmp)-1)/10):
+            for ii in range((len(chgtmp) - 1) / 10):
                 fobj.write(' %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\
- %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\n' % chgtmp[ii*10:(ii+1)*10]
+ %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\n' % chgtmp[ii * 10:(ii + 1) * 10]
                            )
             # If the last row contains 10 values then write them without a
             # newline
             if len(chgtmp) % 10 == 0:
                 fobj.write(' %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\
- %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G' % chgtmp[len(chgtmp)-10:len(chgtmp)])
+ %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G' % chgtmp[len(chgtmp) - 10:len(chgtmp)])
             # Otherwise write fewer columns without a newline
             else:
                 for ii in range(len(chgtmp) % 10):
                     fobj.write((' %#11.5G')
-                               % chgtmp[len(chgtmp)-len(chgtmp) % 10+ii])
+                               % chgtmp[len(chgtmp) - len(chgtmp) % 10 + ii])
         # Other formats - 5 columns
         else:
             # Write all but the last row
-            for ii in range((len(chgtmp)-1)/5):
+            for ii in range((len(chgtmp) - 1) / 5):
                 fobj.write(' %17.10E %17.10E %17.10E %17.10E %17.10E\n'
-                           % chgtmp[ii*5:(ii+1)*5])
+                           % chgtmp[ii * 5:(ii + 1) * 5])
             # If the last row contains 5 values then write them without a
             # newline
             if len(chgtmp) % 5 == 0:
                 fobj.write(' %17.10E %17.10E %17.10E %17.10E %17.10E'
-                           % chgtmp[len(chgtmp)-5:len(chgtmp)])
+                           % chgtmp[len(chgtmp) - 5:len(chgtmp)])
             # Otherwise write fewer columns without a newline
             else:
                 for ii in range(len(chgtmp) % 5):
                     fobj.write((' %17.10E')
-                               % chgtmp[len(chgtmp)-len(chgtmp) % 5 + ii])
+                               % chgtmp[len(chgtmp) - len(chgtmp) % 5 + ii])
         # Write a newline whatever format it is
         fobj.write('\n')
         # Clean up
