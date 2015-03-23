@@ -205,11 +205,11 @@ The currently supported systems include (issue the commands below **as root**):
 
 - Fedora::
 
-    yum install python-ase
+    yum install -y python-ase
 
 - RHEL/CentOS - available after enabling https://fedoraproject.org/wiki/EPEL::
 
-    yum install python-ase
+    yum install -y python-ase
 
 - openSUSE 13.1::
 
@@ -220,18 +220,18 @@ The currently supported systems include (issue the commands below **as root**):
 - Debian 7.0::
 
     sudo bash -c 'echo "deb http://download.opensuse.org/repositories/home:/dtufys/Debian_7.0 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
-    wget http://download.opensuse.org/repositories/home:/dtufys/Debian_6.0/Release.key && sudo apt-key add Release.key && rm Release.key
+    wget http://download.opensuse.org/repositories/home:/dtufys/Debian_7.0/Release.key && sudo apt-key add Release.key && rm Release.key
     sudo apt-get update
-    sudo apt-get install python-ase
-    sudo apt-get install python-matplotlib # optionally
+    sudo apt-get -y install python-ase
+    sudo apt-get -y install python-matplotlib # optionally
 
 - Ubuntu 14.04::
 
     sudo bash -c 'echo "deb http://download.opensuse.org/repositories/home:/dtufys/xUbuntu_14.04 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
     wget http://download.opensuse.org/repositories/home:/dtufys/xUbuntu_14.04/Release.key && sudo apt-key add Release.key && rm Release.key
     sudo apt-get update
-    sudo apt-get install python-ase
-    sudo apt-get install python-matplotlib # optionally
+    sudo apt-get -y install python-ase
+    sudo apt-get -y install python-matplotlib # optionally
 
   .. note::
 
