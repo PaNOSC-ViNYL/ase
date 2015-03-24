@@ -259,14 +259,14 @@ class Pourbaix:
             b = (a == i)
             x = np.dot(b.sum(1), U) / b.sum()
             y = np.dot(b.sum(0), pH) / b.sum()
-            name = re.sub('([+-]+)', r'$^{\1}$', name)
+            name = re.sub('(\S)([+-]+)', r'\1$^{\2}$', name)
             name = re.sub('(\d+)', r'$_{\1}$', name)
             text.append((x, y, name))
 
         if plot:
             import matplotlib.pyplot as plt
             import matplotlib.cm as cm
-            plt.pcolormesh(pH, U, a, cmap=cm.Set2)
+            plt.pcolormesh(pH, U, a, cmap=cm.Accent)
             for x, y, name in text:
                 plt.text(y, x, name, horizontalalignment='center')
             plt.xlabel('pH')
