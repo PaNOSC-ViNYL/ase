@@ -68,16 +68,16 @@ def solvated(symbols):
     if len(_solvated) == 0:
         for line in _aqueous.splitlines():
             energy, formula = line.split(',')
-            count, charge, aq = parse_formula(formula + '(aq)')
+            name = formula + '(aq)'
+            count, charge, aq = parse_formula(name)
             energy = float(energy) * 0.001 * units.kcal / units.mol
-            _solvated.append(((count, charge, aq), energy))
+            _solvated.append((name, count, charge, aq, energy))
     references = []
-    for (count, charge, aq), energy in _solvated:
+    for name, count, charge, aq, energy in _solvated:
         for symbol in count:
             if symbol not in 'HO' and symbol not in symbols:
                 break
         else:
-            name = hill(count) + '-+'[charge > 0] * abs(charge) + '(aq)'
             references.append((name, energy))
     return references
 
@@ -154,9 +154,6 @@ class Pourbaix:
                     if symbol not in kwargs:
                         break
             else:
-                name = hill(count) + '-+'[charge > 0] * abs(charge)
-                if aq:
-                    name += '(aq)'
                 self.references.append((count, charge, aq, energy, name))
                 
         self.references.append(({}, -1, False, 0.0, 'e-'))  # an electron
@@ -213,7 +210,7 @@ class Pourbaix:
                     energy = -pH * alpha
             else:
                 bounds.append((0, 1))
-                if name.endswith('(aq)'):
+                if aq:
                     energy -= entropy
             if verbose:
                 print('{0:<5}{1:10}{2:10.3f}'.format(len(energies),
