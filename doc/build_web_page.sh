@@ -1,0 +1,52 @@
+# Update ASE:
+cd ase
+svn up
+cd ..
+
+# Name of tar-file containing the whole web-page:
+html=html.tar.gz
+
+changes=`find ase -newer $html | grep -v .svn`
+echo Changes:
+echo $changes
+
+if [ -n "$changes" ]
+then
+    # Create development snapshot tar-file:
+    cd ase
+    rm -r dist
+    python setup.py sdist > sdist.out
+    
+    cd doc
+    export PYTHONPATH=..:$PYTHONPATH
+    export PATH=$PATH:../tools
+    
+    # Clean up:
+    python -m ase.utils.sphinx clean
+    rm -rf build/*/*
+    
+    make html
+           
+    # Use https for mathjax:
+    cd build
+    find -name "*.html" | xargs \
+        sed -i "s%http://cdn.mathjax.org%https://cdn.mathjax.org%"
+        
+    # Set correct version of snapshot tar-file:
+    version=`python -c "from ase.version import version; print(version)"`
+    sed -i s/snapshot.tar/$version.tar/g html/download.html
+    
+    mv ../../dist/python-ase-*.tar.gz html
+    
+    cd ../..
+    epydoc --docformat restructuredtext --parse-only \
+           --name ASE --url http://wiki.fysik.dtu.dk/ase \
+           --show-imports --no-frames -v ase > epydoc.out
+    #check for '^|' ...
+    mv html doc/build/html/epydoc
+    
+    cd doc/build
+    tar -czf $html html
+    cp $html ../../..
+    cd ../../..
+fi
