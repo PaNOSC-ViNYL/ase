@@ -67,7 +67,7 @@ def check(key_value_pairs):
 
             
 def connect(name, type='extract_from_name', create_indices=True,
-            use_lock_file=True):
+            use_lock_file=True, append=True):
     """Create connection to database.
     
     name: str
@@ -79,7 +79,9 @@ def connect(name, type='extract_from_name', create_indices=True,
         from the name.
     use_lock_file: bool
         You can turn this off if you know what you are doing ...
-        """
+    append: bool
+        Use append=False to start a new database.
+    """
     
     if type == 'extract_from_name':
         if name is None:
@@ -94,6 +96,9 @@ def connect(name, type='extract_from_name', create_indices=True,
     if type is None:
         return Database()
 
+    if not append and world.rank == 0 and os.path.isfile(name):
+        os.remove(name)
+        
     if type == 'json':
         from ase.db.jsondb import JSONDatabase
         return JSONDatabase(name, use_lock_file=use_lock_file)
