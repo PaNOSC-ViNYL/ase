@@ -1,3 +1,10 @@
+if [ -f build-ase-webpage.lock ]
+then
+    echo "Locked"
+    exit
+fi
+touch build-ase-webpage.lock
+
 # Update ASE:
 cd ase
 svn up
@@ -51,3 +58,5 @@ then
     cp $html ../../..
     cd ../../..
 fi
+
+rm build-ase-webpage.lock
