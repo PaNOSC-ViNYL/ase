@@ -31,10 +31,10 @@ The convex hull looks like this:
 
 .. automethod:: PhaseDiagram.plot
 
-If you want to see what CuAu will decompose into, you can use the
+If you want to see what :mol:`Cu_3Au` will decompose into, you can use the
 :meth:`~PhaseDiagram.decompose` method:
     
->>> pd.decompose('Cu3Au')  # or pd.decompose(Cu=3, Au=1)
+>>> energy, indices, coefs = pd.decompose('Cu3Au')
 reference    coefficient      energy
 ------------------------------------
 Cu                     1       0.000
@@ -42,7 +42,10 @@ Cu2Au                  1      -0.700
 ------------------------------------
 Total energy:                 -0.700
 ------------------------------------
+>>> print(energy, indices, coefs)
 (-0.69999999999999996, array([0, 3], dtype=int32), array([ 1.,  1.]))
+
+Alternatively, one could have used ``pd.decompose(Cu=3, Au=1)``.
 
 .. automethod:: PhaseDiagram.decompose
 
