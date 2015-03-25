@@ -17,9 +17,10 @@ then
     rm -r dist
     python setup.py sdist > sdist.out
     
+    ase=`pwd`
     cd doc
-    export PYTHONPATH=..:$PYTHONPATH
-    export PATH=$PATH:../tools
+    export PYTHONPATH=$ase:$PYTHONPATH
+    export PATH=$PATH:$ase/tools
     
     # Clean up:
     python -m ase.utils.sphinx clean
