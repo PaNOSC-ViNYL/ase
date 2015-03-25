@@ -176,6 +176,7 @@ def create_png_files():
                               pyname, 'exec'), {})
             finally:
                 os.chdir(olddir)
+            plt.close()
             for outname in outnames:
                 print(dir, outname)
 

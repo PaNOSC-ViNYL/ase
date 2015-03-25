@@ -53,7 +53,9 @@ the :ref:`latest_development_release` and install it.
 Then :command:`cd` to the :file:`doc` directory and build the html-pages::
 
   $ cd ~/ase/doc
-  $ sphinx-build . _build
+  $ make
+
+This might take a long time the first time you do it.
 
 .. Note::
 
@@ -61,20 +63,18 @@ Then :command:`cd` to the :file:`doc` directory and build the html-pages::
    corresponding ASE version by setting the environment variables
    :envvar:`$PYTHONPATH` and :envvar:`$PATH`.
 
-Make your changes to the ``.rst`` files, run the
-:command:`sphinx-build` command again, check the results and if things
+Make your changes to the ``.rst`` files, run
+:command:`make` again, check the results and if things
 look ok, commit::
 
   $ emacs index.rst
-  $ sphinx-build . _build
-  $ firefox _build/index.html
+  $ make
+  $ firefox build/html/index.html
   $ svn ci -m "..." index.rst
 
 To build a pdf-file, you do this::
 
-  $ sphinx-build -b latex . _build
-  $ cd _build
-  $ make ase-manual.pdf
+  $ make latex
 
 
 Extensions to Sphinx
@@ -140,7 +140,7 @@ the Python script you used to generate the picture (you can also
 generate csv-files or pdf-files like this).  The first line of the
 script should look like this::
 
-    # creates: fig1.png fig2.png table1.csv
+    # creates: fig1.png, fig2.png, table1.csv
 
 Sphinx will run the script and generate the files that you can
 then use in your rst-file.  Examples:

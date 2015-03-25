@@ -51,61 +51,61 @@ Alphabetical list of all modules:
 |turbomole| |vasp| Gaussian_ Mopac_
 
 
-.. |abinit| image:: _static/abinit.png
+.. |abinit| image:: static/abinit.png
    :target: ase/calculators/abinit.html
    :align: middle
-.. |Asap| image:: _static/asap.png
+.. |Asap| image:: static/asap.png
    :target: http://wiki.fysik.dtu.dk/asap
    :align: middle
-.. |CASTEP| image:: _static/castep.png
+.. |CASTEP| image:: static/castep.png
    :target: ase/calculators/castep.html
    :align: middle
-.. |elk| image:: _static/elk.png
+.. |elk| image:: static/elk.png
    :target: http://elk.sourceforge.net/
    :align: middle
-.. |EMT| image:: _static/emt.png
+.. |EMT| image:: static/emt.png
    :target: ase/calculators/emt.html
    :align: middle
-.. |exciting| image:: _static/exciting.png
+.. |exciting| image:: static/exciting.png
    :target: ase/calculators/exciting.html
    :align: middle
-.. |dftb| image:: _static/dftb.png
+.. |dftb| image:: static/dftb.png
    :target: ase/calculators/dftb.html
    :align: middle
-.. |fhi-aims| image:: _static/fhi-aims.png
+.. |fhi-aims| image:: static/fhi-aims.png
    :target: ase/calculators/FHI-aims.html
    :align: middle
-.. |fleur| image:: _static/fleur.png
+.. |fleur| image:: static/fleur.png
    :target: ase/calculators/fleur.html
    :align: middle
-.. |gpaw| image:: _static/gpaw.png
+.. |gpaw| image:: static/gpaw.png
    :target: http://wiki.fysik.dtu.dk/gpaw
    :align: middle
-.. |gromacs| image:: _static/gromacs.png
+.. |gromacs| image:: static/gromacs.png
    :target: http://www.gromacs.org/
    :align: middle
-.. |hotbit| image:: _static/hotbit.png
+.. |hotbit| image:: static/hotbit.png
    :target: https://trac.cc.jyu.fi/projects/hotbit
    :align: middle
-.. |jacapo| image:: _static/jacapo.png
+.. |jacapo| image:: static/jacapo.png
    :target: ase/calculators/jacapo.html
    :align: middle
-.. |jdftx| image:: _static/jdftx.png
+.. |jdftx| image:: static/jdftx.png
    :target: http://sourceforge.net/p/jdftx/wiki/ASE%20Interface
    :align: middle
-.. |lammps| image:: _static/lammps.png
+.. |lammps| image:: static/lammps.png
    :target: ase/calculators/lammps.html
    :align: middle
-.. |nwchem| image:: _static/nwchem.png
+.. |nwchem| image:: static/nwchem.png
    :target: http://www.nwchem-sw.org
    :align: middle
-.. |siesta| image:: _static/siesta.png
+.. |siesta| image:: static/siesta.png
    :target: ase/calculators/siesta.html
    :align: middle
-.. |turbomole| image:: _static/tm_logo_l.png
+.. |turbomole| image:: static/tm_logo_l.png
    :target: ase/calculators/turbomole.html
    :align: middle
-.. |vasp| image:: _static/vasp.png
+.. |vasp| image:: static/vasp.png
    :target: ase/calculators/vasp.html
    :align: middle
 

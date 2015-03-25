@@ -1,6 +1,6 @@
 # creates: ase-db.out, ase-db-long.out
 import ase.db
-c = ase.db.connect('abc.db')
+c = ase.db.connect('abc.db', append=False)
 
 from ase import Atoms
 from ase.calculators.emt import EMT
