@@ -15,13 +15,12 @@ from ase.atoms import Atoms
 from ase.data import reference_states, atomic_numbers
 from ase.lattice.cubic import FaceCenteredCubic
 from ase.lattice.general_surface import surface
-from ase.lattice.hexagonal import Hexagonal
 
 __all__ = ['surface', 'add_adsorbate', 'add_vacuum',
            'bcc100', 'bcc110', 'bcc111',
            'diamond100', 'diamond111',
            'fcc100', 'fcc110', 'fcc111', 'fcc211',
-           'hcp0001', 'hcp10m10']
+           'hcp0001', 'hcp10m10','mx2']
 
 
 def fcc100(symbol, size, a=None, vacuum=None):
@@ -519,7 +518,7 @@ def fcc111_root(symbol, root, size, a=None, vacuum=0.0,
 
     return cutting_board
     
-def mx2(name, Type='2H', a=3.18, thickness=3.19, size=(1,1,1), vacuum=15.0):
+def mx2(formula='MoS2', Type='2H', a=3.18, thickness=3.19, size=(1,1,1), vacuum=15.0):
     """Helper function for creating 2D materials with hexagonal structures. 
     It is useful for molybdenum sulfide, graphene, ect."""
     
@@ -538,8 +537,8 @@ def mx2(name, Type='2H', a=3.18, thickness=3.19, size=(1,1,1), vacuum=15.0):
     
     cell=np.array([[a, 0., 0.],[-a * np.sin(np.pi/6.0), a * np.cos(np.pi/6.0), 0.],[0., 0., vacuum]])
     
-    atoms = Atoms(symbols=name, cell=cell, scaled_positions=bravais_basis, pbc=(1,1,1))    
-    
+    atoms = Atoms(symbols=formula, cell=cell, scaled_positions=bravais_basis, pbc=(1,1,1))    
+    atoms = atoms.repeat(size)
     
     return atoms
 
