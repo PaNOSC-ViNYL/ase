@@ -31,6 +31,7 @@ but any other :mod:`Calculator <ase.calculators>` could be plugged in instead.
    spacegroup/spacegroup
    dissociation
    neb/diffusion
+   neb/idpp
    constraints/diffusion
    md/md
    wannier/wannier

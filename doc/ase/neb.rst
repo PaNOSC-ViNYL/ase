@@ -19,13 +19,17 @@ Relevant literature References:
    formulation]
 
 2. 'Improved Tangent Estimate in the NEB method for Finding Minimum
-   Energy Paths and Saddle Points', Graeme Henkelman and Hannes
+   Energy Paths and Saddle Points', G. Henkelman and H.
    Jonsson, J. Chem. Phys. 113, 9978 (2000) [improved tangent
    estimates]
 
 3. 'A Climbing-Image NEB Method for Finding Saddle Points and Minimum
-   Energy Paths', Graeme Henkelman, Blas P. Uberuaga and Hannes
+   Energy Paths', G. Henkelman, B. P. Uberuaga and H.
    Jonsson, J. Chem. Phys. 113, 9901 (2000)
+   
+4. 'Improved initial guess for minimum energy path calculations.',
+   S. Smidstrup, A. Pedersen, K. Stokbro and H. Jonsson,
+   J. Chem. Phys. 140, 214106 (2014)
 
 
 The NEB class
@@ -63,12 +67,26 @@ of atoms within the list of images fed to the NEB. Do *not* use something
 like [initial for i in range(3)], as it will only create references to
 the original atoms object.
 
-Notice the use of the :meth:`~NEB.interpolate` method to get a good
+Notice the use of the :meth:`~NEB.interpolate` method to obtain an
 initial guess for the path from A to B.
+
+Interpolation
+=============
 
 .. method:: NEB.interpolate()
 
    Interpolate path linearly from initial to final state.
+
+.. method:: NEB.interpolate('idpp')
+
+   From a linear interpolation, create an improved path 
+   from initial to final state using the IDPP approach [4].
+   
+.. method:: NEB.idpp_interpolate()
+   
+   Generate an idpp pathway from a set of images. This differs 
+   from above in that an initial guess for the IDPP, other than 
+   linear interpolation can be provided.
 
 Only the internal images (not the endpoints) need have
 calculators attached.
@@ -89,7 +107,7 @@ calculators attached.
 
         * :ref:`diffusion_tutorial`
         * :ref:`neb2`
-
+        * :ref:`idpp_tutorial`
 
 .. note::
 
