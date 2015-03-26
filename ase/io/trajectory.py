@@ -13,6 +13,38 @@ __all__ = ['Trajectory', 'PickleTrajectory']
 
 
 def Trajectory(filename, mode='r', atoms=None, master=None):
+    """A Trajectory can be created in read, write or append mode.
+
+    Parameters:
+
+    filename:
+        The name of the parameter file.  Should end in .traj.
+
+    mode='r':
+        The mode.
+
+        'r' is read mode, the file should already exist, and
+        no atoms argument should be specified.
+
+        'w' is write mode.  If the file already exists, it is
+        renamed by appending .bak to the file name.  The atoms
+        argument specifies the Atoms object to be written to the
+        file, if not given it must instead be given as an argument
+        to the write() method.
+
+        'a' is append mode.  It acts a write mode, except that
+        data is appended to a preexisting file.
+
+    atoms=None:
+        The Atoms object to be written in write or append mode.
+
+    master=None:
+        Controls which process does the actual writing. The
+        default is that process number 0 does this.  If this
+        argument is given, processes where it is True will write.
+
+    The atoms and master arguments are ignores in read mode.
+    """
     if mode == 'r':
         return TrajectoryReader(filename)
     return TrajectoryWriter(filename, mode, atoms, master=master)
@@ -22,18 +54,15 @@ class TrajectoryWriter:
     """Writes Atoms objects to a .trj file."""
     def __init__(self, filename, mode='w', atoms=None, properties=None,
                  extra=[], master=None):
-        """A Trajectory can be created in read, write or append mode.
+        """A Trajectory writer, in write or append mode.
 
         Parameters:
 
         filename:
             The name of the parameter file.  Should end in .traj.
 
-        mode='r':
+        mode='w':
             The mode.
-
-            'r' is read mode, the file should already exist, and
-            no atoms argument should be specified.
 
             'w' is write mode.  If the file already exists, it is
             renamed by appending .bak to the file name.  The atoms
@@ -46,6 +75,11 @@ class TrajectoryWriter:
 
         atoms=None:
             The Atoms object to be written in write or append mode.
+
+        properties=None:
+            If specified, these calculator properties are saved in the
+            trajectory.  If not specified, all supported quantities are
+            saved.
 
         master=None:
             Controls which process does the actual writing. The
@@ -175,38 +209,12 @@ class TrajectoryReader:
     """Reads/writes Atoms objects from/to a .trj file."""
     def __init__(self, filename, properties=None,
                  extra=[], master=None):
-        """A Trajectory can be created in read, write or append mode.
+        """A Trajectory in read mode.
 
         Parameters:
 
         filename:
-            The name of the parameter file.  Should end in .traj.
-
-        mode='r':
-            The mode.
-
-            'r' is read mode, the file should already exist, and
-            no atoms argument should be specified.
-
-            'w' is write mode.  If the file already exists, it is
-            renamed by appending .bak to the file name.  The atoms
-            argument specifies the Atoms object to be written to the
-            file, if not given it must instead be given as an argument
-            to the write() method.
-
-            'a' is append mode.  It acts a write mode, except that
-            data is appended to a preexisting file.
-
-        atoms=None:
-            The Atoms object to be written in write or append mode.
-
-        master=None:
-            Controls which process does the actual writing. The
-            default is that process number 0 does this.  If this
-            argument is given, processes where it is True will write.
-
-        backup=True:
-            Use backup=False to disable renaming of an existing file.
+            The name of the parameter file.  Traditionally ends in .traj.
         """
         if master is None:
             master = (rank == 0)
@@ -324,7 +332,8 @@ def main():
     parser = optparse.OptionParser(usage='python -m ase.io.pickletrajectory '
                                    'a1.traj [a2.traj ...]',
                                    description='Convert old trajectory '
-                                   'file(s) to new format.')
+                                   'file(s) to new format. '
+                                   'The old file is kept as a1.traj.old.')
     opts, args = parser.parse_args()
     for name in args:
         convert(name)

@@ -6,24 +6,106 @@ Trajectory files
 ================
 
 The :mod:`ase.io.trajectory` module defines Trajectory objects, that is
-objects storing the temporal evolution of a simulation.  A Trajectory file
+objects storing the temporal evolution of a simulation or the path
+taken during an optimization.  A Trajectory file
 contains one or more :class:`~ase.atoms.Atoms` objects, usually to be
 interpreted as a time series, although that is not a requirement.
 
-The :mod:`ase.io.trajectory` module currently defines two kinds of
+The main Trajectory object writes in a file format, which is compatible across Python version.
+
+The :mod:`ase.io.trajectory` additionally defines two specialized kinds of
 Trajectory files, the PickleTrajectory and the BundleTrajectory.
-PickleTrajectory is the recommended Trajectory format,
+
+PickleTrajectory is the old (pre 2015) Trajectory format, is use is no
+longer recommended as compatibility between Python versions (and to a
+lesser degree between ASE vesions) cannot be guaranteed.  We strongly
+recommend to :ref:`convert your old PickleTrajectory files <convert>` as soon as possible.
+
 BundleTrajectory is only intended for large molecular dynamics
 simulations (large meaning millions of atoms).
 
 In the future, other kinds of Trajectories may be defined, with
 similar Python interface but with different underlying file formats.
 
+Trajectory
+==========
 
+The Trajectory function returns a Trajectory reading or writing
+object, depending on the mode.
+
+.. autofunction:: ase.io.Trajectory
+
+The function returns a TrajectoryReader or a TrajectoryWriter object.
+
+Reading a trajectory file is done by indexing the TrajectoryReader
+object, i.e. traj[0] reads the first configuration, traj[-1] reads the
+last, etc.
+
+Writing a trajectory file is done by calling the ``write`` method.  If no
+atoms object was given when creating the object, it must be given as
+an argument to the ``write`` method.
+
+Examples
+--------
+
+Reading a configuration::
+
+    from ase.io.trajectory import Trajectory
+    traj = PickleTrajectory("example.traj")
+    atoms = traj[-1]
+
+Reading all configurations::
+
+    traj = Trajectory("example.traj")
+    for atoms in traj:
+        # Analyze atoms
+
+Writing every 100th time step in a molecular dynamics simulation::
+
+    # dyn is the dynamics (e.g. VelocityVerlet, Langevin or similar)
+    traj = Trajectory("example.traj", "w", atoms)
+    dyn.attach(traj.write, interval=100)
+    dyn.run(10000)
+    traj.close()
+
+The TrajectoryReader and TrajectoryWriter objects
+-------------------------------------------------
+
+Usually, you only need the interface given above, but the reader and
+writer have a few additional methods, that can be useful.
+
+.. autoclass:: ase.io.trajectory.TrajectoryReader
+   :members:
+
+
+Note that there is apparently no methods for reading the trajectory.
+Reading is instead done by indexing the trajectory, or by iterating
+over the trajectory: ``traj[0]`` and ``traj[-1]`` return the first and
+last :class:`~ase.atoms.Atoms` object in the trajectory.
+
+.. autoclass:: ase.io.trajectory.TrajectoryWriter
+   :members:
+
+
+      
 PickleTrajectory
 ================
 
-The PickleTrajectory has the interface
+The *obsolete* PickleTrajectory uses the same object for reading and writing.
+
+**WARNING 1:** If your Atoms objects contains constraints, the
+constraint object is pickles and stored in the file.  Unfortunately,
+this means that if the object definition in ASE changes, you cannot
+read the trajectory file.  For this reason, we have made the new
+Trajectory format, where the contraint is stored in an
+implementation-independent format.
+
+**WARNING 2:** It is possible to write a malicious pickle file (and
+thus a malicious PickleTrajectory) that executes arbitrary code when
+reading the file.
+
+For the reasons above, we recommend not to use the PickleTrajectory
+format, and to :ref:`convert existing files <convert>` to the new format.
 
 .. autoclass:: ase.io.trajectory.PickleTrajectory
    :members:
@@ -34,29 +116,6 @@ over the trajectory: ``traj[0]`` and ``traj[-1]`` return the first and
 last :class:`~ase.atoms.Atoms` object in the trajectory.
 
 
-Examples
---------
-
-Reading a configuration::
-
-    from ase.io.trajectory import PickleTrajectory
-    traj = PickleTrajectory("example.traj")
-    atoms = traj[-1]
-
-Reading all configurations::
-
-    traj = PickleTrajectory("example.traj")
-    for atoms in traj:
-        # Analyze atoms
-
-Writing every 100th time step in a molecular dynamics simulation::
-
-    # dyn is the dynamics (e.g. VelocityVerlet, Langevin or similar)
-    traj = PickleTrajectory("example.traj", "w", atoms)
-    dyn.attach(traj.write, interval=100)
-    dyn.run(10000)
-    traj.close()
-
 
 BundleTrajectory
 ================
@@ -66,7 +125,20 @@ The BundleTrajectory has the interface
 .. autoclass:: ase.io.bundletrajectory.BundleTrajectory
    :members:
 
+      
+.. _convert:
 
+Converting old PickleTrajectory files to new Trajectory files
+-------------------------------------------------------------
+
+Please convert you old PickleTrajectory files before it is too late::
+
+  python -m ase.io.trajectory file1.traj [file2.traj ...]
+
+this will convert one or more files.  The original files is kept with
+extension ``.traj.old``
+
+      
 See also
 ========
 
