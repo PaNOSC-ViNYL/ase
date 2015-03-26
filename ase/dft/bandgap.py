@@ -1,7 +1,7 @@
 import numpy as np
 
 def get_band_gap(calc):
-    """Claculates the band gap - direct and indirect along with the 
+    """Calculates the band gap - direct and indirect along with the 
     relevant k-points. 
     Rerurns a list of [e_direct, e_indirect, (is ik), (ivs, ivk), (ics, ick)],
     where (is, ik) are the irreducible k-point/spin indeces of the direct gap 
@@ -64,4 +64,3 @@ def get_band_gap(calc):
     print '[%.3f %.3f %.3f]  ->  [%.3f %.3f %.3f]' % k_2c
     print 
     return [edir, ein, (sdir, kdir), (svin, kvin), (scin, kcin)]
-
