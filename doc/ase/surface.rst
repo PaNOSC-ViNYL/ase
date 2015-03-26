@@ -166,11 +166,13 @@ ontop    hollow    fcc    hcp    bridge    shortbridge  longbridge
 
 
 This can be used for MX2 structures such as MoS2 or graphene: 
+
 .. function:: mx2(formula, Type='2H', a=3.18, thickness=3.19, size=(1,1,1), vacuum=15.0)
+
 In the formula argument, three symbols should be specified eg. 'MoS2' or 'MoSS'. 
 The 'Type' argument accepts '2H', which has a mirror plane symmetry and '1T', which has an inversion symmetry.
 
-.. |MoS2| image:: mx2.png
+.. image:: mx2.png
 
 Adding new utility functions
 ````````````````````````````
