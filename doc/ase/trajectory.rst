@@ -5,6 +5,8 @@
 Trajectory files
 ================
 
+.. contents::
+   
 The :mod:`ase.io.trajectory` module defines Trajectory objects, that is
 objects storing the temporal evolution of a simulation or the path
 taken during an optimization.  A Trajectory file
@@ -26,6 +28,11 @@ simulations (large meaning millions of atoms).
 
 In the future, other kinds of Trajectories may be defined, with
 similar Python interface but with different underlying file formats.
+
+Typically, trajectories are used to store different configurations of
+the same system (i.e. the same atoms).  If you need to store
+configurations of different systems, the :mod:`ASE Database module
+<ase.db>` may be more appropriate.
 
 Trajectory
 ==========
@@ -94,15 +101,15 @@ PickleTrajectory
 The *obsolete* PickleTrajectory uses the same object for reading and writing.
 
 **WARNING 1:** If your Atoms objects contains constraints, the
-constraint object is pickles and stored in the file.  Unfortunately,
+constraint object is pickled and stored in the file.  Unfortunately,
 this means that if the object definition in ASE changes, you cannot
-read the trajectory file.  For this reason, we have made the new
-Trajectory format, where the contraint is stored in an
+read the trajectory file.  In the new
+Trajectory format the contraint is stored in an
 implementation-independent format.
 
 **WARNING 2:** It is possible to write a malicious pickle file (and
 thus a malicious PickleTrajectory) that executes arbitrary code when
-reading the file.
+reading the file.  The new Trajectory format cannot contain code.
 
 For the reasons above, we recommend not to use the PickleTrajectory
 format, and to :ref:`convert existing files <convert>` to the new format.
@@ -115,6 +122,18 @@ Reading is instead done by indexing the trajectory, or by iterating
 over the trajectory: ``traj[0]`` and ``traj[-1]`` return the first and
 last :class:`~ase.atoms.Atoms` object in the trajectory.
 
+      
+.. _convert:
+
+Converting old PickleTrajectory files to new Trajectory files
+-------------------------------------------------------------
+
+Please convert you old PickleTrajectory files before it is too late::
+
+  python -m ase.io.trajectory file1.traj [file2.traj ...]
+
+this will convert one or more files.  The original files are kept with
+extension ``.traj.old``
 
 
 BundleTrajectory
@@ -126,19 +145,6 @@ The BundleTrajectory has the interface
    :members:
 
       
-.. _convert:
-
-Converting old PickleTrajectory files to new Trajectory files
--------------------------------------------------------------
-
-Please convert you old PickleTrajectory files before it is too late::
-
-  python -m ase.io.trajectory file1.traj [file2.traj ...]
-
-this will convert one or more files.  The original files is kept with
-extension ``.traj.old``
-
-      
 See also
 ========
 
@@ -147,3 +153,6 @@ The function :func:`ase.io.write` can write a single
 
 The function :func:`ase.io.read` can read an :class:`~ase.atoms.Atoms`
 object from a Trajectory file, per default it reads the last one.
+
+The database modue :mod:`ase.db`.
+
