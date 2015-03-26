@@ -15,6 +15,7 @@ from ase.atoms import Atoms
 from ase.data import reference_states, atomic_numbers
 from ase.lattice.cubic import FaceCenteredCubic
 from ase.lattice.general_surface import surface
+from ase.lattice.hexagonal import Hexagonal
 
 __all__ = ['surface', 'add_adsorbate', 'add_vacuum',
            'bcc100', 'bcc110', 'bcc111',
@@ -517,3 +518,28 @@ def fcc111_root(symbol, root, size, a=None, vacuum=0.0,
     cutting_board.center(axis=2, vacuum=vacuum)
 
     return cutting_board
+    
+def mx2(name, Type='2H', a=3.18, thickness=3.19, size=(1,1,1), vacuum=15.0):
+    """Helper function for creating 2D materials with hexagonal structures. 
+    It is useful for molybdenum sulfide, graphene, ect."""
+    
+    
+    if Type == '2H':
+        bravais_basis = [(0., 0., 0.5),
+                         (2/3., 1/3., (0.5 * vacuum + 0.5 * 0.5 * thickness) / vacuum),
+                         (2/3., 1/3., (0.5 * vacuum - 0.5 * 0.5 * thickness) / vacuum)]
+    
+    elif Type == '1T':
+        bravais_basis = [(0., 0., 0.5),
+                         (2/3., 1/3., (0.5 * vacuum + 0.5 * 0.5 * thickness) / vacuum),
+                         (1/3., 2/3., (0.5 * vacuum - 0.5 * 0.5 * thickness) / vacuum)]
+    else: 
+        raise NotImplementedError("Structure not recognized")
+    
+    cell=np.array([[a, 0., 0.],[-a * np.sin(np.pi/6.0), a * np.cos(np.pi/6.0), 0.],[0., 0., vacuum]])
+    
+    atoms = Atoms(symbols=name, cell=cell, scaled_positions=bravais_basis, pbc=(1,1,1))    
+    
+    
+    return atoms
+
