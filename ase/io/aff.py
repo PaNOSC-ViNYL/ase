@@ -394,6 +394,14 @@ class NDArrayReader:
             return a[::step].copy()
         return a
 
+def print_aff_info(filename, verbose=False, *args):
+    b = affopen(filename, 'r')
+    indices = [int(args.pop())] if args else range(len(b))
+    print('{0}  (tag: "{1}", {2})'.format(filename, b.get_tag(),
+                                          plural(len(b), 'item')))
+    for i in indices:
+        print('item #{0}:'.format(i))
+        print(b[i].tostr(verbose))
         
 def main():
     parser = optparse.OptionParser(
@@ -408,13 +416,7 @@ def main():
         parser.error('No aff-file given')
 
     filename = args.pop(0)
-    b = affopen(filename, 'r')
-    indices = [int(args.pop())] if args else range(len(b))
-    print('{0}  (tag: "{1}", {2})'.format(filename, b.get_tag(),
-                                          plural(len(b), 'item')))
-    for i in indices:
-        print('item #{0}:'.format(i))
-        print(b[i].tostr(opts.verbose))
+    print_aff_info(filename, verbose=opts.verbose, *args)
 
     
 if __name__ == '__main__':
