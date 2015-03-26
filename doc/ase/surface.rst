@@ -165,6 +165,10 @@ ontop    hollow    fcc    hcp    bridge    shortbridge  longbridge
 .. |diamond111| image:: diamond111.png
 
 
+This can be used for MX2 structures such as MoS2 or graphene: 
+.. function:: mx2(name, Type='2H', a=3.18, thickness=3.19, size=(1,1,1), vacuum=15.0)
+
+.. |diamond111| image:: mx2.png
 
 Adding new utility functions
 ````````````````````````````
