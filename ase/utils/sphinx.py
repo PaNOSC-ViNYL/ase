@@ -131,6 +131,8 @@ def creates():
                                               for file in line.split()[2:]]
         if '.svn' in dirnames:
             dirnames.remove('.svn')
+        if 'build' in dirnames:
+            dirnames.remove('build')
 
                         
 def create_png_files():
