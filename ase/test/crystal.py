@@ -1,11 +1,15 @@
 import numpy as np
 
 from ase.lattice.spacegroup import crystal
+from ase.io import write
 
 
 # A diamond unit cell
-diamond = crystal('C', [(0,0,0)], spacegroup=227, 
+diamond = crystal('C', [(0, 0, 0)], spacegroup=227,
                   cellpar=[3.57, 3.57, 3.57, 90, 90, 90])
+
+# Check that we can write to trajectory:
+write('c.traj', diamond)
 
 assert len(diamond) == 8
 correct_pos = np.array([[ 0.  ,  0.  ,  0.  ],
@@ -19,11 +23,10 @@ correct_pos = np.array([[ 0.  ,  0.  ,  0.  ],
 assert np.allclose(diamond.get_scaled_positions(), correct_pos)
 
 
-
 # A CoSb3 skutterudite unit cell containing 32 atoms
-skutterudite = crystal(('Co', 'Sb'), 
-    basis=[(0.25,0.25,0.25), (0.0, 0.335, 0.158)], 
-    spacegroup=204, cellpar=[9.04, 9.04, 9.04, 90, 90, 90])
+skutterudite = crystal(('Co', 'Sb'),
+                       basis=[(0.25, 0.25, 0.25), (0.0, 0.335, 0.158)],
+                       spacegroup=204, cellpar=[9.04, 9.04, 9.04, 90, 90, 90])
 
 assert len(skutterudite) == 32
 

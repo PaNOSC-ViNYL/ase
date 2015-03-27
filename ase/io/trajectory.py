@@ -1,4 +1,5 @@
 from __future__ import print_function
+import warnings
 
 from ase.calculators.singlepoint import SinglePointCalculator, all_properties
 from ase.calculators.calculator import Calculator
@@ -176,8 +177,16 @@ class TrajectoryWriter:
                         x = x.tolist()
                     c.write(**{prop: x})
 
-        if atoms.info:
-            b.write(info=atoms.info)
+        info = {}
+        for key, value in atoms.info.items():
+            try:
+                encode(value)
+            except TypeError:
+                warnings.warn('Skipping "{0}" info.'.format(key))
+            else:
+                info[key] = value
+        if info:
+            b.write(info=info)
 
         b.sync()
         
