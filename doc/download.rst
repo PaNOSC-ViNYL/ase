@@ -1,8 +1,165 @@
 .. _download_and_install:
 
-=========================
-Installation requirements
-=========================
+==================
+Installation guide
+==================
+
+In order to choose the right method for installing ASE
+identify your computer system and your goals related to ASE.
+Is it a personal laptop or maybe an HPC cluster?
+Are you just trying out ASE or need a full development environment
+in order to participate in developing ASE?
+
+For the installation on personal laptops we recommend
+the binary packages provided for popular Linux distributions
+(:ref:`installationguide_package`)
+and MS Windows (:ref:`installationguide_windows`).
+
+Please skip to :ref:`installationguide_manual` if you prefer
+to install from sources.
+
+If you are on Mac OSX, please follow :ref:`installationguide_macosx`.
+
+
+.. _installationguide_package:
+
+Installation with package manager on Linux
+==========================================
+
+Install the binaries with the software package manager of your Linux
+distribution.
+
+This is **the preferred** way to install on a Linux system.
+
+If you prefer to install from sources follow :ref:`installationguide_manual`.
+
+The currently supported systems include (issue the commands below **as root**):
+
+- Fedora::
+
+    yum install -y python-ase
+
+- RHEL/CentOS - available after enabling https://fedoraproject.org/wiki/EPEL::
+
+    yum install -y python-ase
+
+- openSUSE 13.1::
+
+    zypper ar -f http://download.opensuse.org/repositories/home:/dtufys/openSUSE_13.1/home:dtufys.repo
+    yast -i python-ase
+    yast -i python-matplotlib # optionally
+
+- Debian 7.0::
+
+    sudo bash -c 'echo "deb http://download.opensuse.org/repositories/home:/dtufys/Debian_7.0 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
+    wget http://download.opensuse.org/repositories/home:/dtufys/Debian_7.0/Release.key && sudo apt-key add Release.key && rm Release.key
+    sudo apt-get update
+    sudo apt-get -y install python-ase
+    sudo apt-get -y install python-matplotlib # optionally
+
+- Ubuntu 14.04::
+
+    sudo bash -c 'echo "deb http://download.opensuse.org/repositories/home:/dtufys/xUbuntu_14.04 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
+    wget http://download.opensuse.org/repositories/home:/dtufys/xUbuntu_14.04/Release.key && sudo apt-key add Release.key && rm Release.key
+    sudo apt-get update
+    sudo apt-get -y install python-ase
+    sudo apt-get -y install python-matplotlib # optionally
+
+For the full list of supported distributions check
+https://build.opensuse.org/package/show?package=python-ase&project=home%3Adtufys
+
+After performing the installation do not forget to :ref:`running_tests`!
+
+
+.. _installationguide_macosx:
+
+Installation on OS X
+====================
+
+For installation with http://brew.sh please follow
+instructions at `Homebrew
+<https://wiki.fysik.dtu.dk/gpaw/install/MacOSX/homebrew.html>`_.
+
+After performing the installation do not forget to :ref:`running_tests`!
+
+
+.. _installationguide_windows:
+
+Installation on Windows
+=======================
+
+.. note::
+
+   ASE is not yet fully functional on Windows!
+   https://trac.fysik.dtu.dk/projects/ase/ticket/62
+
+On Windows the following packages need to installed.
+On the command prompt:
+
+.. note:: installation assumes the python TARGETDIR C:\\Python27,
+          leave also the default C:\\Program Files\\pythonxy.
+
+-  pythonxy_. Download the exe installer and install with::
+
+     Python(x,y)-2.7.2.2.exe /Log="%TMP%\pythonxy_install.log" /S
+
+.. note::
+
+   Open Task Manager and control when the process in finished.
+
+- pygtk_win32_. Download the msi **pygtk-all-in-one** installer.
+  Specify the correct TARGETDIR and install::
+
+     pygtk-all-in-one-2.24.2.win32-py2.7.msi TARGETDIR="%HOMEDRIVE%\Python27" ALLUSERS=1 /l*vx "%TMP%\pygtk_install.log" /passive
+
+.. note::
+
+   If performing clicking-installation make sure that the default
+   python Windows TARGETDIR is selected.
+
+- Download the python-ase-win32.msi_ installer and install with::
+
+     python-ase-X.X.X.win32.msi /l*vx "%TMP%\python-ase_install.log" /passive
+
+.. note::
+
+   You can build the msi ASE package on Windows with::
+
+      python setup.py bdist_msi
+
+   The msi package will be created under the *dist* directory.
+
+.. _pythonxy: http://code.google.com/p/pythonxy
+.. _pygtk_win32: http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.24/
+
+.. _python-ase-win32.msi:
+    https://wiki.fysik.dtu.dk/ase-files/python-ase.win32.msi
+
+After performing the installation do not forget to :ref:`running_tests`!
+
+
+.. _installationguide_manual:
+
+Manual installation
+===================
+
+ASE binaries are available only for the :ref:`latest_stable_release`,
+and all available ASE releases are listed at the :ref:`download` page.
+
+If you need a development version (or a historic version) of ASE
+perform a manual installation according to instructions below.
+Follow the same instructions if you are configuring ASE on an HPC cluster.
+
+This is the **preferred** way of manually installing ASE.
+It offers the following advantages:
+
+- installation is limited to standard user's account:
+  it does not pollute the root filesystem,
+
+- user gains access to version control updates, if necessary.
+
+Requirements
+------------
 
 The following packages are required for basic ASE functionality:
 
@@ -30,21 +187,71 @@ Some of these packages may already be installed on your system.
 .. _SciPy: http://www.scipy.org/
 
 
-Specific information for different operating systems
-is provided at :ref:`installation`.
+Installation process
+--------------------
+
+After the :ref:`download` of ASE source create the link
+to the requested version, e.g.:
+
+- if retrieved from ``svn``::
+
+   $ cd $HOME
+   $ ln -s ase-3.8.0 ase
+    
+- if retrieved as tar-file::
+
+   $ cd $HOME
+   $ tar -xf python-ase-3.8.0.3420.tar.gz
+   $ ln -s python-ase-3.8.0.3420 ase
+
+It is sufficient to
+put the directory :file:`$HOME/ase` in your :envvar:`PYTHONPATH`
+environment variable, and the directory :file:`$HOME/ase/tools` in
+your :envvar:`PATH` environment variable.  Do this permanently in
+your :file:`~/.bashrc` file::
+
+  export PYTHONPATH=$HOME/ase:$PYTHONPATH
+  export PATH=$HOME/ase/tools:$PATH
+
+or your :file:`~/.cshrc` file::
+
+  setenv PYTHONPATH ${HOME}/ase:${PYTHONPATH}
+  setenv PATH ${HOME}/ase/tools:${PATH}
+
+Instead of :envvar:`HOME`, you may use any other directory.
+
+Alternatively, you can install ASE to the user-specific site-packages
+directory with::
+
+  $ cd ase
+  $ python setup.py install --user
+
+This way, the ASE modules are found on the python path without any
+explicit configuration, though you still need to ensure that
+:file:`$HOME/.local/bin` (or on Windows,
+:file:`%APPDATA%/Python/Scripts`) is on your :envvar:`PATH`.
+
+.. index:: test
+
+Optional, **NOT** recommended way of installing ASE system-wide is::
+
+  $ cd ase
+  $ sudo python setup.py install
+
+This is one of the best ways to ruin a Linux system.
+
 
 .. _download:
 
-========
 Download
-========
+--------
 
 .. highlight:: bash
 
 .. _latest_stable_release:
 
 Latest stable release
-=====================
++++++++++++++++++++++
 
 The latest stable release can be obtained from SVN or as a
 `tar-file <http://xkcd.com/1168/>`__.
@@ -153,11 +360,10 @@ Release Date        Retrieve as svn checkout                     Retrieve as tar
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.0.0.657.tar.gz
 
 
-
 .. _latest_development_release:
 
 Latest development release
-==========================
+++++++++++++++++++++++++++
 
 The latest revision can be obtained like this::
 
@@ -168,213 +374,6 @@ or from the daily snapshot: `<python-ase-snapshot.tar.gz>`_.
 .. note::
 
    The recommended checkout path is :envvar:`$HOME`.
-
-
-.. _installation:
-
-============
-Installation
-============
-
-After performing the installation do not forget to :ref:`running_tests`!
-
-
-.. _macosx_installation:
-
-Installation on OS X
-====================
-
-For installation with http://mxcl.github.com/homebrew/ please follow
-instructions at `Homebrew
-<https://wiki.fysik.dtu.dk/gpaw/install/MacOSX/homebrew.html>`_.
-
-
-.. _pm_installation:
-
-Installation with package manager on Linux
-==========================================
-
-Install the binaries with the software package manager of your Linux
-distribution.
-
-This is **the preferred** way to install on a Linux system.
-
-If you prefer to install from sources follow :ref:`manual_installation`.
-
-The currently supported systems include (issue the commands below **as root**):
-
-- Fedora::
-
-    yum install -y python-ase
-
-- RHEL/CentOS - available after enabling https://fedoraproject.org/wiki/EPEL::
-
-    yum install -y python-ase
-
-- openSUSE 13.1::
-
-    zypper ar -f http://download.opensuse.org/repositories/home:/dtufys/openSUSE_13.1/home:dtufys.repo
-    yast -i python-ase
-    yast -i python-matplotlib # optionally
-
-- Debian 7.0::
-
-    sudo bash -c 'echo "deb http://download.opensuse.org/repositories/home:/dtufys/Debian_7.0 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
-    wget http://download.opensuse.org/repositories/home:/dtufys/Debian_7.0/Release.key && sudo apt-key add Release.key && rm Release.key
-    sudo apt-get update
-    sudo apt-get -y install python-ase
-    sudo apt-get -y install python-matplotlib # optionally
-
-- Ubuntu 14.04::
-
-    sudo bash -c 'echo "deb http://download.opensuse.org/repositories/home:/dtufys/xUbuntu_14.04 /" > /etc/apt/sources.list.d/home_dtufys.sources.list'
-    wget http://download.opensuse.org/repositories/home:/dtufys/xUbuntu_14.04/Release.key && sudo apt-key add Release.key && rm Release.key
-    sudo apt-get update
-    sudo apt-get -y install python-ase
-    sudo apt-get -y install python-matplotlib # optionally
-
-  .. note::
-
-    Alternative packages for Ubuntu are provided at `Ubuntu package
-    <https://wiki.fysik.dtu.dk/gpaw/install/Linux/Ubuntu_ppa.html#ubuntupackage>`_.
-
-For the full list of supported distributions check
-https://build.opensuse.org/package/show?package=python-ase&project=home%3Adtufys
-
-.. note::
-
-   Explore the repositories - more software packages are available!
-
-.. note::
-
-   If you prefer to install manually, proceed to :ref:`manual_installation`, or
-   alternatively, manually unpack the RPMS, e.g.::
-
-     # download the packages + dependencies (you can do that also manually!)
-     $ yumdownloader --resolve python-ase
-     # unpack into the current directory
-     $ find . -name "*.rpm" | xargs -t -I file sh -c "rpm2cpio file | cpio -idm"
-     # modify profile.d environment scripts
-     $ find . -name "*.*sh" | xargs -t -I file sh -c 'sed -i "s#PA=/usr#PA=$PWD/usr#" file'
-     # modify environment modules scripts
-     $ find . -name "*.modules" | xargs -t -I file sh -c 'sed -i "s# /usr# $PWD/usr#" file'
-     # make scripts executable
-     $ find . -name "*.*sh" | xargs -t -I file sh -c "chmod u+x file"
-     # source the scripts (example for bash)
-     $ for f in `find . -name "*.sh"`; do source $f; done
-     # verify the desired installation location is used
-     $ python -c "import ase; print ase.__file__"
-
-   This method works for all the RPM packages from the repository (like gpaw),
-   however not for the external, distribution provided packages,
-   which may require manually creating the environment scripts.
-
-
-Windows
-=======
-
-.. note::
-
-   ASE is not yet fully functional on Windows!
-   https://trac.fysik.dtu.dk/projects/ase/ticket/62
-
-On Windows the following packages need to installed.
-On the command prompt:
-
-.. note:: installation assumes the python TARGETDIR C:\\Python27,
-          leave also the default C:\\Program Files\\pythonxy.
-
--  pythonxy_. Download the exe installer and install with::
-
-     Python(x,y)-2.7.2.2.exe /Log="%TMP%\pythonxy_install.log" /S
-
-.. note::
-
-   Open Task Manager and control when the process in finished.
-
-- pygtk_win32_. Download the msi **pygtk-all-in-one** installer.
-  Specify the correct TARGETDIR and install::
-
-     pygtk-all-in-one-2.24.2.win32-py2.7.msi TARGETDIR="%HOMEDRIVE%\Python27" ALLUSERS=1 /l*vx "%TMP%\pygtk_install.log" /passive
-
-.. note::
-
-   If performing clicking-installation make sure that the default
-   python Windows TARGETDIR is selected.
-
-- Download the python-ase-win32.msi_ installer and install with::
-
-     python-ase-X.X.X.win32.msi /l*vx "%TMP%\python-ase_install.log" /passive
-
-.. note::
-
-   You can build the msi ASE package on Windows with::
-
-      python setup.py bdist_msi
-
-   The msi package will be created under the *dist* directory.
-
-.. _pythonxy: http://code.google.com/p/pythonxy
-.. _pygtk_win32: http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.24/
-
-.. _python-ase-win32.msi:
-    https://wiki.fysik.dtu.dk/ase-files/python-ase.win32.msi
-
-
-.. _manual_installation:
-
-Manual installation
-===================
-
-After the :ref:`download` of ASE source create the link
-to the requested version, e.g.:
-
-- if retrieved from ``svn``::
-
-   $ cd $HOME
-   $ ln -s ase-3.8.0 ase
-    
-- if retrieved as tar-file::
-
-   $ cd $HOME
-   $ tar -xf python-ase-3.8.0.3420.tar.gz
-   $ ln -s python-ase-3.8.0.3420 ase
-
-It is sufficient to
-put the directory :file:`$HOME/ase` in your :envvar:`PYTHONPATH`
-environment variable, and the directory :file:`$HOME/ase/tools` in
-your :envvar:`PATH` environment variable.  Do this permanently in
-your :file:`~/.bashrc` file::
-
-  export PYTHONPATH=$HOME/ase:$PYTHONPATH
-  export PATH=$HOME/ase/tools:$PATH
-
-or your :file:`~/.cshrc` file::
-
-  setenv PYTHONPATH ${HOME}/ase:${PYTHONPATH}
-  setenv PATH ${HOME}/ase/tools:${PATH}
-
-Instead of :envvar:`HOME`, you may use any other directory.
-
-Alternatively, you can install ASE to the user-specific site-packages
-directory with::
-
-  $ cd ase
-  $ python setup.py install --user
-
-This way, the ASE modules are found on the python path without any
-explicit configuration, though you still need to ensure that
-:file:`$HOME/.local/bin` (or on Windows,
-:file:`%APPDATA%/Python/Scripts`) is on your :envvar:`PATH`.
-
-.. index:: test
-
-Optional, **NOT** recommended way of installing ASE system-wide is::
-
-  $ cd ase
-  $ sudo python setup.py install
-
-This is one of the best ways to ruin a Linux system.
 
 
 .. _running_tests:
@@ -408,7 +407,7 @@ Video tutorial
 ==============
 
 In the video: :ref:`overview` of the features of ASE,
-followed by a :ref:`manual_installation` of ASE on a Linux system.
+followed by a :ref:`installationguide_manual` of ASE on a Linux system.
 
 .. note::
 

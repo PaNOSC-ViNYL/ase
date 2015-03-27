@@ -17,7 +17,7 @@ is a brief overview of the most basic features needed when developing ASE.
 
   This retrieves the code tree from the subversion repository.
   Prepend :envvar:`PYTHONPATH` and :envvar:`PATH` environment variables
-  as described at :ref:`manual_installation`.
+  as described at :ref:`installationguide_manual`.
 
 * Updating the working copy of the code (in the directory ``ase-svn``)::
 
