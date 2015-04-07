@@ -1,6 +1,6 @@
 import psycopg2
 
-from ase.db.sqlite import init_statements, index_statements
+from ase.db.sqlite import init_statements, index_statements, VERSION
 from ase.db.sqlite import all_tables, SQLite3Database
 
 
@@ -39,14 +39,17 @@ class PostgreSQLDatabase(SQLite3Database):
     default = 'DEFAULT'
     
     def _connect(self):
-        con = psycopg2.connect(database='postgres', user='ase', password='ase')
+        con = psycopg2.connect(database='postgres',
+                               user='ase',
+                               password='ase',
+                               host='localhost')
         return Connection(con)
 
     def _initialize(self, con):
-        pass
+        self.version = VERSION
     
     def get_last_id(self, cur):
-        cur.execute('select last_value from systems_id_seq')
+        cur.execute('SELECT last_value FROM systems_id_seq')
         id = cur.fetchone()[0]
         return int(id)
 
@@ -55,23 +58,22 @@ def reset():
     con = psycopg2.connect(database='postgres', user='postgres')
     cur = con.cursor()
 
-    cur.execute("select count(*) from pg_tables where tablename='systems'")
+    cur.execute("SELECT COUNT(*) FROM pg_tables WHERE tablename='systems'")
     if cur.fetchone()[0] == 1:
-        cur.execute('drop table %s cascade' % ', '.join(all_tables))
-        cur.execute('drop role ase')
-    cur.execute("create role ase login password 'ase'")
+        cur.execute('DROP TABLE %s CASCADE' % ', '.join(all_tables))
+        cur.execute('DROP ROLE ase')
+        cur.execute("CREATE ROLE ase LOGIN PASSWORD 'ase'")
     con.commit()
 
     sql = ';\n'.join(init_statements)
     for a, b in [('BLOB', 'BYTEA'),
                  ('REAL', 'DOUBLE PRECISION'),
-                 ('INTEGER PRIMARY KEY AUTOINCREMENT',
-                  'SERIAL PRIMARY KEY')]:
+                 ('INTEGER PRIMARY KEY AUTOINCREMENT', 'SERIAL PRIMARY KEY')]:
         sql = sql.replace(a, b)
         
     cur.execute(sql)
     cur.execute(';\n'.join(index_statements))
-    cur.execute('grant all privileges on %s to ase' %
+    cur.execute('GRANT ALL PRIVILEGES ON %s TO ase' %
                 ', '.join(all_tables + ['systems_id_seq']))
     con.commit()
 

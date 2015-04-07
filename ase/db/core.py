@@ -86,7 +86,7 @@ def connect(name, type='extract_from_name', create_indices=True,
     if type == 'extract_from_name':
         if name is None:
             type = None
-        elif name.startswith('postgresql://'):
+        elif name.startswith('pg://'):
             type = 'postgresql'
         elif name.startswith('mysql://'):
             type = 'mysql'
