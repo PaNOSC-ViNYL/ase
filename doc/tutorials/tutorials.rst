@@ -29,10 +29,11 @@ but any other :mod:`Calculator <ase.calculators>` could be plugged in instead.
    lattice_constant
    eos/eos
    spacegroup/spacegroup
-   dissociation
+   constraints/diffusion
+   selfdiffusion/al110
    neb/diffusion
    neb/idpp
-   constraints/diffusion
+   dissociation
    md/md
    wannier/wannier
    minimahopping/minimahopping
