@@ -2,6 +2,8 @@ from __future__ import print_function
 import sys
 import optparse
 
+import numpy as np
+
 import ase.io
 from ase.db import connect
 from ase.db.summary import Summary
@@ -9,8 +11,10 @@ from ase.db.table import Table, all_columns
 from ase.calculators.calculator import get_calculator
 from ase.utils import plural
 
-import numpy as np
-
+try:
+    input = raw_input  # Python 2+3 compatibility
+except NameError:
+    pass
 
 description = """Selecton is a comma-separated list of
 selections where each selection is of the type "ID", "key" or
