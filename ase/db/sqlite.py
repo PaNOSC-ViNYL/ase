@@ -105,6 +105,12 @@ all_tables = ['systems', 'species', 'keys',
               'text_key_values', 'number_key_values']
 
 
+def float_if_not_none(x):
+    """Convert numpy.float64 to float - old db-interfaces need that."""
+    if x is not None:
+        return float(x)
+
+
 class SQLite3Database(Database):
     initialized = False
     _allow_reading_old_format = False
@@ -232,11 +238,11 @@ class SQLite3Database(Database):
                 encode(key_value_pairs),
                 encode(data or None),
                 len(numbers),
-                dct.get('fmax'),
-                dct.get('smax'),
-                dct.volume,
-                dct.mass,
-                dct.charge)
+                float_if_not_none(dct.get('fmax')),
+                float_if_not_none(dct.get('smax')),
+                float(dct.volume),
+                float(dct.mass),
+                float(dct.charge))
 
         if id is None:
             q = self.default + ', ' + ', '.join('?' * len(row))
