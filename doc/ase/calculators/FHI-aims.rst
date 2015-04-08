@@ -60,7 +60,7 @@ In those cases, specifying a single string containing all the options is also po
 None of the keywords have any default within ASE, but do check the defaults
 set by FHI-aims.
 
-Describing the basic physics of the system:
+Example keywords describing the computational method used:
 
 ============================  ======
 keyword                       type
@@ -72,66 +72,6 @@ keyword                       type
 ``use_dipole_correction``     bool
 ``vdw_correction_hirshfeld``  str
 ``k_grid``                    list
-============================  ======
-
-Driving relaxations and molecular dynamics:
-
-============================  ======
-keyword                       type
-============================  ======
-``relax_geometry``            list
-``max_relaxation_steps``      int
-``n_max_pulay``               int
-``sc_iter_limit``             int
-``restart_relaxations``       bool
-``MD_run``                    list
-``MD_schedule``               list
-``MD_segment``                list
-============================  ======
-
-Output options:
-
-============================  ========
-keyword                       type
-============================  ========
-``output_level``              str
-``output``                    list
-``cubes``                     AimsCube
-============================  ========
-
-See below for a description of the volumetric cube file output
-interface AimsCube
-
-Keywords for accuracy settings:
-
-============================  ======
-keyword                       type
-============================  ======
-``sc_accuracy_eev``           exp
-``sc_accuracy_etot``          exp
-``sc_accuracy_forces``        exp
-``sc_accuracy_rho``           exp
-``compute_forces``            bool
-============================  ======
-
-Keywords to adjust the SCF-cycle
-
-============================  ======
-keyword                       type
-============================  ======
-``charge_mix_param``          float
-``prec_mix_param``            float
-``spin_mix_param``            float
-``KS_method``                 str
-``restart``                   str
-``restart_read_only``         str
-``restart_write_only``        srt
-``preconditioner``            list
-``mixer``                     str
-``empty_states``              int
-``ini_linear_mixing``         int
-``mixer_threshold``           list
-``occupation_type``           list
 ============================  ======
 
 Note::
