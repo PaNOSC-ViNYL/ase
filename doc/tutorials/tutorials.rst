@@ -20,20 +20,19 @@ Most of the tutorials will use the :mod:`EMT <ase.calculators.emt>` potential,
 but any other :mod:`Calculator <ase.calculators>` could be plugged in instead.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
 
    surface
-
    manipulating_atoms
    atomization
    lattice_constant
    eos/eos
-   spacegroup/spacegroup
    constraints/diffusion
    selfdiffusion/al110
    neb/diffusion
    neb/idpp
    dissociation
+   spacegroup/spacegroup
    md/md
    wannier/wannier
    minimahopping/minimahopping
