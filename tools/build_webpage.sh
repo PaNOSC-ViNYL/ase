@@ -19,6 +19,9 @@ echo $changes
 
 if [ -n "$changes" ]
 then
+    # Clean up:
+    rm -rf ase/doc/build
+    
     # Create development snapshot tar-file:
     cd ase
     rm -r dist
@@ -31,7 +34,6 @@ then
     
     # Clean up:
     python -m ase.utils.sphinx clean
-    rm -rf build/*/*
     
     make html
            
