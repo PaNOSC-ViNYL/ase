@@ -40,7 +40,7 @@ def read_gaussian_out(filename, index=-1, quantity='atoms'):
 
     data = GR(filename)[index]
 
-    formula = data['Chemical_formula']
+    formula = data['Chemical_formula'].split('(')[0]
     positions = np.array(data['Positions'])
     method = data['Method']
     version = data['Version']
