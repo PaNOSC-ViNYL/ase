@@ -17,8 +17,8 @@ Running the Calculator
 
 The default initialization command for the FHI-aims calculator is
 
-.. class:: Aims()
-
+.. autoclass:: Aims
+    
 In order to run a calculation, you have to ensure that at least the
 following ``str`` variables are specified, either in the initialization
 or as shell environment variables:
@@ -70,19 +70,20 @@ keyword                       type
 ``k_grid``                    list
 ============================  ======
 
-Note::
+.. note::
 
- Any argument can be changed after the initial construction of the
- calculator, simply by setting it with the method
+    Any argument can be changed after the initial construction of the
+    calculator, simply by setting it with the method
 
-   >>> calc.set(keyword=value)
+    >>> calc.set(keyword=value)
+
 
 Volumetric Data Output
 ======================
 
 The class
 
-.. class:: AimsCube(origin=(0,0,0),edges=[(0.1,0.0,0.0),(0.0,0.1,0.0),(0.0,0.0,0.1)],points=(50,50,50),plots=None)
+.. autoclass:: AimsCube
 
 describes an object that takes care of the volumetric
 output requests within FHI-aims. An object of this type can
@@ -109,3 +110,5 @@ Example
 Here is an example of how to obtain the geometry of a water molecule,
 assuming ``ASE_AIMS_COMMAND`` and ``AIMS_SPECIES_DIR`` are set:
 :svn:`ase/test/aims/H2O_aims.py`.
+
+.. literalinclude:: ../../../ase/test/aims/H2O_aims.py
