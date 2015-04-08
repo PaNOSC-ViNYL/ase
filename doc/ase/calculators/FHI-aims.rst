@@ -39,10 +39,6 @@ keyword          description
 ``xc``            which exchange-correlation functional is used.
 ===============  ====================================================
 
-In addition, you might want to specify at least one of self-consistency
-accuracy commands (see below) in order to avoid an excessively long
-calculation.
-
 
 List of keywords
 ================
