@@ -185,7 +185,5 @@ see below for an example.
 Example
 =======
 
-As an example, here is a possible setup to obtain
-the geometry of a water molecule:
-
-.. literalinclude:: H2O_aims.py
+Here is an example of how to obtain the geometry of a water molecule
+:svn:`ase/test/aims/H2O_aims.py`.
