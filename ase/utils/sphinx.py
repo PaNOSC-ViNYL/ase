@@ -1,10 +1,13 @@
 from __future__ import print_function
 import os
+import traceback
 import warnings
 from os.path import join
 from stat import ST_MTIME
+
 from docutils import nodes
 from docutils.parsers.rst.roles import set_classes
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -176,6 +179,10 @@ def create_png_files():
             try:
                 exec_(compile(open(pyname).read(),
                               pyname, 'exec'), {})
+            except KeyboardInterrupt:
+                return
+            except:
+                traceback.print_exc()
             finally:
                 os.chdir(olddir)
             plt.close()
