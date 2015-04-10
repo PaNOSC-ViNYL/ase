@@ -34,15 +34,38 @@ class Cursor:
     def executemany(self, statement, *args):
         self.cur.executemany(statement.replace('?', '%s'), *args)
 
+
+def parse_name(name):
+    """Parse user:password@host:port string.
+    
+    Defaults are ase:ase@localhost:5432.  Returns user, password, host, port.
+    """
+    if '@' in name:
+        user, host = name.split('@')
+    else:
+        user = 'ase'
+        host = name
+    if ':' in user:
+        user, password = user.split(':')
+    else:
+        password = 'ase'
+    if ':' in host:
+        host, port = host.split(':')
+        port = int(port)
+    else:
+        port = 5432
+    host = host or 'localhost'
+    return user, password, host, port
+    
     
 class PostgreSQLDatabase(SQLite3Database):
     default = 'DEFAULT'
     
     def _connect(self):
+        user, password, host, port = parse_name(self.filename)
         con = psycopg2.connect(database='postgres',
-                               user='ase',
-                               password='ase',
-                               host='localhost')
+                               user=user, password=password,
+                               host=host, port=port)
         return Connection(con)
 
     def _initialize(self, con):
