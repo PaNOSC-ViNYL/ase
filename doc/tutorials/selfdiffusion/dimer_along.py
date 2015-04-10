@@ -5,7 +5,7 @@ import numpy as np
 from math import sqrt
 
 from ase import Atoms, Atom
-from ase.io import PickleTrajectory
+from ase.io import Trajectory
 from ase.constraints import FixAtoms
 from ase.optimize import QuasiNewton
 from ase.calculators.emt import EMT
@@ -39,7 +39,7 @@ initial.set_calculator(EMT())
 QuasiNewton(initial).run(fmax=0.05)
 e0 = initial.get_potential_energy()
 
-traj = PickleTrajectory('dimer_along.traj', 'w', initial)
+traj = Trajectory('dimer_along.traj', 'w', initial)
 traj.write()
 
 # Making dimer mask list:
