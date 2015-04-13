@@ -1,6 +1,6 @@
 if [ -f build-ase-webpage.lock ]
 then
-    echo "Locked"
+    >&2 echo "Locked"
     exit
 fi
 touch build-ase-webpage.lock
@@ -20,10 +20,11 @@ echo $changes
 if [ -n "$changes" ]
 then
     # Clean up:
-    rm -rf ase/doc/build
+    rm -rf ase/doc/
     
     # Create development snapshot tar-file:
     cd ase
+    svn up
     rm -r dist
     python setup.py sdist > sdist.out
     
