@@ -229,7 +229,7 @@ class Pourbaix:
                     
         return result.x, result.fun
         
-    def diagram(self, U, pH, plot=False):
+    def diagram(self, U, pH, plot=True, show=True):
         """Calculate Pourbaix diagram.
         
         U: list of float
@@ -237,6 +237,8 @@ class Pourbaix:
         pH: list of float
             pH values.
         plot: bool
+            Create plot.
+        show: bool
             Show plot.
         """
         
@@ -268,7 +270,10 @@ class Pourbaix:
                 plt.text(y, x, name, horizontalalignment='center')
             plt.xlabel('pH')
             plt.ylabel('potential [eV]')
-            plt.show()
+            plt.xlim(min(pH), max(pH))
+            plt.ylim(min(U), max(U))
+            if show:
+                plt.show()
         
         return a, compositions, text
         
