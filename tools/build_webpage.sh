@@ -53,7 +53,9 @@ then
     epydoc --docformat restructuredtext --parse-only \
            --name ASE --url http://wiki.fysik.dtu.dk/ase \
            --show-imports --no-frames -v ase > epydoc.out
-    #check for '^|' ...
+    # Check for warnings:
+    >&2 grep '^|' epydoc.out
+
     mv html doc/build/html/epydoc
     
     cd doc/build
