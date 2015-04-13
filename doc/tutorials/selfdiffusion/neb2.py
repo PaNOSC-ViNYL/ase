@@ -8,7 +8,7 @@ from ase.io import write
 from ase.visualize import view
 from ase.constraints import FixAtoms
 from ase.optimize import QuasiNewton
-from ase.optimize import BFGS
+from ase.optimize import MDMin
 from ase.neb import NEB
 from ase.calculators.emt import EMT
 
@@ -58,7 +58,7 @@ neb = NEB(images)
 neb.interpolate()
 
 # Relax the NEB path:
-minimizer = BFGS(neb)
+minimizer = MDMin(neb)
 minimizer.run(fmax=0.05)
 
 # Write the path to a trajectory:
