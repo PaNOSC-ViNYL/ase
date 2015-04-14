@@ -177,8 +177,7 @@ def create_png_files():
             os.chdir(dir)
             plt.figure()
             try:
-                exec_(compile(open(pyname).read(),
-                              pyname, 'exec'), {})
+                exec_(compile(open(pyname).read(), pyname, 'exec'), {})
             except KeyboardInterrupt:
                 return
             except:

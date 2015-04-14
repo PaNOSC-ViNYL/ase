@@ -117,8 +117,8 @@ class Writer:
                 # File format identifier and other stuff:
                 a = np.array([VERSION, self.nitems, self.pos0], np.int64)
                 self.header = ('AFFormat{0:16}'.format(tag).encode('ascii') +
-                               a.tobytes() +
-                               self.offsets.tobytes())
+                               a.tostring() +
+                               self.offsets.tostring())
             else:
                 fd = open(fd, 'r+b')
             
