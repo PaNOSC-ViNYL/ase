@@ -102,6 +102,9 @@ class Writer:
         assert np.little_endian  # deal with this later
         assert mode in 'aw'
         
+        # Header to be written later:
+        self.header = b''
+        
         if data is None:
             data = {}
             if mode == 'w' or not os.path.isfile(fd):
@@ -110,12 +113,12 @@ class Writer:
                 self.offsets = np.array([-1], np.int64)
 
                 fd = open(fd, 'wb')
-            
-                # Write file format identifier:
-                fd.write('AFFormat{0:16}'.format(tag).encode('ascii'))
-                np.array([VERSION, self.nitems, self.pos0],
-                         np.int64).tofile(fd)
-                self.offsets.tofile(fd)
+
+                # File format identifier and other stuff:
+                a = np.array([VERSION, self.nitems, self.pos0], np.int64)
+                self.header = ('AFFormat{0:16}'.format(tag).encode('ascii') +
+                               a.tobytes() +
+                               self.offsets.tobytes())
             else:
                 fd = open(fd, 'r+b')
             
@@ -138,6 +141,8 @@ class Writer:
     def add_array(self, name, shape, dtype=float):
         """Add ndarray object."""
         
+        self._write_header()
+
         if isinstance(shape, int):
             shape = (shape,)
             
@@ -153,6 +158,11 @@ class Writer:
         self.dtype = dtype
         self.shape = shape
         
+    def _write_header(self):
+        if self.header:
+            self.fd.write(self.header)
+            self.header = b''
+            
     def fill(self, a):
         assert a.dtype == self.dtype
         if a.shape[1:] == self.shape[1:]:
@@ -170,6 +180,8 @@ class Writer:
 
         Write bool, int, float, complex and str data, shapes and
         dtypes for ndarrays."""
+
+        self._write_header()
 
         assert self.shape[0] == 0
         i = self.fd.tell()
@@ -202,6 +214,8 @@ class Writer:
             writer.write(n=7, s='abc', a=np.zeros(3), density=density).
         """
         
+        self._write_header()
+
         for name, value in kwargs.items():
             if isinstance(value, (bool, int, float, complex,
                                   dict, list, tuple, basestring)):
@@ -394,6 +408,7 @@ class NDArrayReader:
             return a[::step].copy()
         return a
 
+        
 def print_aff_info(filename, verbose=False, *args):
     b = affopen(filename, 'r')
     indices = [int(args.pop())] if args else range(len(b))
@@ -402,6 +417,7 @@ def print_aff_info(filename, verbose=False, *args):
     for i in indices:
         print('item #{0}:'.format(i))
         print(b[i].tostr(verbose))
+        
         
 def main():
     parser = optparse.OptionParser(

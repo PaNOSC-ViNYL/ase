@@ -53,3 +53,7 @@ if os.path.isfile(fname):
     os.remove(fname)
 t = Trajectory(fname, 'a', co)
 os.remove(fname)
+
+t = Trajectory('empty.traj', 'w')
+t.close()
+assert os.path.getsize('empty.traj') == 0
