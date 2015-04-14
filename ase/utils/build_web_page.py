@@ -23,6 +23,8 @@ def build(force_build, name='ase', env='', version=version):
     if not (force_build or changes):
         return
         
+    home = os.getcwd()
+    
     os.chdir(name)
 
     # Clean up:
@@ -39,9 +41,9 @@ def build(force_build, name='ase', env='', version=version):
 
     # Build web-page:
     os.chdir('doc')
-    subprocess.check_call(env + ' ' +
-                          'PYTHONPATH=../../lib/python:$PYTHONPATH '
-                          'PATH=../../bin:$PATH '
+    subprocess.check_call(env + ' PYTHONPATH='
+                          '{0}/lib/python:{0}/lib64/python:$PYTHONPATH '
+                          'PATH={0}/bin:$PATH '.format(home) +
                           'make html', shell=True)
            
     # Use https for mathjax:
