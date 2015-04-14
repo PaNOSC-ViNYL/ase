@@ -1,4 +1,5 @@
 from __future__ import print_function
+import glob
 import optparse
 import os
 import shutil
@@ -55,8 +56,8 @@ def build(force_build, name='ase', env='', version=version):
         'xargs sed -i s/snapshot.tar/{}.tar/g'.format(version),
         shell=True)
     
-    tar = 'python-{}-{}.tar.gz'.format(name, version)
-    os.rename('../dist/{}'.format(tar), 'build/html/{}'.format(tar))
+    tar = glob.glob('../dist/*.tar.gz')[0]
+    os.rename(tar, 'build/html/' + tar.split('/')[-1])
     
     os.chdir('..')
     output = subprocess.check_output(
