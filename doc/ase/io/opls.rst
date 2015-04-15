@@ -12,10 +12,10 @@ of OPLS force fields, there are some helper classes.
 Modified xyz
 ============
 
-Suppose, we define the ethanal molecule as an modified xyz file 
-(``172_mod.xyz``):
+Suppose, we define the ethanal molecule as extended xyz file 
+(``172_ext.xyz``):
 
-.. literalinclude:: 172_mod.xyz
+.. literalinclude:: 172_ext.xyz
 
 Then we can read and view the structure using:
 
