@@ -5,9 +5,6 @@ import os
 import shutil
 import subprocess
 import sys
-sys.path.insert(0, 'ase')
-
-from ase.version import version
 
 
 def svn_update(name='ase'):
@@ -18,9 +15,8 @@ def svn_update(name='ase'):
     return not lastline.startswith('At revision')
 
         
-def build(force_build, name='ase', env='', version=version):
-    changes = svn_update()
-    if not (force_build or changes):
+def build(force_build, name='ase', env=''):
+    if not force_build:
         return
         
     home = os.getcwd()
@@ -52,14 +48,14 @@ def build(force_build, name='ase', env='', version=version):
         'xargs sed -i "s|http://cdn.mathjax.org|https://cdn.mathjax.org|"',
         shell=True)
         
+    tar = glob.glob('../dist/*.tar.gz')[0].split('/')[-1]
+    os.rename('../dist/' + tar, 'build/html/' + tar)
+    
     # Set correct version of snapshot tar-file:
     subprocess.check_call(
         'find build/html -name download.html | '
-        'xargs sed -i s/snapshot.tar/{}.tar/g'.format(version),
+        'xargs sed -i s/snapshot.tar.gz/{}/g'.format(tar),
         shell=True)
-    
-    tar = glob.glob('../dist/*.tar.gz')[0]
-    os.rename(tar, 'build/html/' + tar.split('/')[-1])
     
     os.chdir('..')
     output = subprocess.check_output(
@@ -92,6 +88,10 @@ def build(force_build, name='ase', env='', version=version):
 
 
 def main(build=build):
+    """Build web-page if there are changes in the source.
+    
+    The optional build function is used by GPAW to build its web-page.
+    """
     if os.path.isfile('build-web-page.lock'):
         print('Locked', file=sys.stderr)
         return
@@ -105,7 +105,8 @@ def main(build=build):
                           'there are changes to the docs or code.')
         opts, args = parser.parse_args()
         assert len(args) == 0
-        build(opts.force_build)
+        changes = svn_update('ase')
+        build(opts.force_build or changes)
     finally:
         os.remove('build-web-page.lock')
 
