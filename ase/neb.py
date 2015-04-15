@@ -42,17 +42,8 @@ class NEB:
         assert not parallel or world.size % (self.nimages - 2) == 0
 
     def interpolate(self, method='linear'):
-        pos1 = self.images[0].get_positions()
-        pos2 = self.images[-1].get_positions()
-        d = (pos2 - pos1) / (self.nimages - 1.0)
-        for i in range(1, self.nimages - 1):
-            self.images[i].set_positions(pos1 + i * d)
-            # Parallel NEB with Jacapo needs this:
-            try:
-                self.images[i].get_calculator().set_atoms(self.images[i])
-            except AttributeError:
-                pass
-            
+        interpolate(self.images)
+
         if method == 'idpp':
             self.idpp_interpolate(traj=None, log=None)
             
@@ -410,3 +401,18 @@ def get_NEB_plot(images):
                  '$\\Delta E$ = %.3f eV'
                  % (Ef, Er, dE))
     return fig
+
+
+def interpolate(images):
+    """Given a list of images, linearly interpolate the positions of the
+    interior images."""
+    pos1 = images[0].get_positions()
+    pos2 = images[-1].get_positions()
+    d = (pos2 - pos1) / (len(images) - 1.0)
+    for i in range(1, len(images) - 1):
+        images[i].set_positions(pos1 + i * d)
+        # Parallel NEB with Jacapo needs this:
+        try:
+            images[i].get_calculator().set_atoms(images[i])
+        except AttributeError:
+            pass
