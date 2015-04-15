@@ -76,10 +76,11 @@ def build(force_build, name='ase', env='', version=version):
     os.rename('html', 'doc/build/html/epydoc')
     
     os.chdir('doc/build')
-    os.rename('html', name)
-    subprocess.check_call('tar -czf {0}.tar.gz {0}'.format(name),
+    dir = name + '-web-page'
+    os.rename('html', dir)
+    subprocess.check_call('tar -czf {0}.tar.gz {0}'.format(dir),
                           shell=True)
-    os.rename('{}.tar.gz'.format(name), '../../../{}.tar.gz'.format(name))
+    os.rename('{}.tar.gz'.format(dir), '../../../{}.tar.gz'.format(dir))
     os.chdir('../../..')
     try:
         shutil.rmtree('lib64')
