@@ -51,7 +51,7 @@ The total energy `E_{\rm tot}` of an arbitrary arrangement of atoms is
 given by the EAM potential as
 
 .. math::
-   E_{\rm tot} = \sum_i F(\bar\rho_i) + \frac{1}{2}\sum_{i\ne j} \phi(r_{ij})
+   E_\text{tot} = \sum_i F(\bar\rho_i) + \frac{1}{2}\sum_{i\ne j} \phi(r_{ij})
 
 and
 
@@ -69,10 +69,10 @@ atom and its neighbour for that bond.
 The ADP potential is defined as
 
 .. math::
-   E_{\rm tot} = \sum_i F(\bar\rho_i) + \frac{1}{2}\sum_{i\ne j} \phi(r_{ij})
-   + {1\over 2} \sum_{i,\alpha} (\mu_i^\alpha)^2
-   + {1\over 2} \sum_{i,\alpha,\beta} (\lambda_i^{\alpha\beta})^2
-   - {1 \over 6} \sum_i \nu_i^2
+   E_\text{tot} = \sum_i F(\bar\rho_i) + \frac{1}{2}\sum_{i\ne j} \phi(r_{ij})
+   + \frac{1}{2} \sum_{i,\alpha} (\mu_i^\alpha)^2
+   + \frac{1}{2} \sum_{i,\alpha,\beta} (\lambda_i^{\alpha\beta})^2
+   - \frac{1}{6} \sum_i \nu_i^2
 
 where `\mu_i^\alpha` is the dipole vector, `\lambda_i^{\alpha\beta}`
 is the quadrupole tensor and `\nu_i` is the trace of

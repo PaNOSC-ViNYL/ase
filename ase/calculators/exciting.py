@@ -30,7 +30,7 @@ class Exciting:
         kpts: integer list length 3
             Number of k-points
         autormt: bool
-            ???
+            Bla bla?
         kwargs: dictionary like
             list of key value pairs to be converted into groundstate attributes
         
