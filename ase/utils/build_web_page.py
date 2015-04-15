@@ -81,8 +81,11 @@ def build(force_build, name='ase', env='', version=version):
                           shell=True)
     os.rename('{}.tar.gz'.format(name), '../../../{}.tar.gz'.format(name))
     os.chdir('../../..')
+    try:
+        shutil.rmtree('lib64')
+    except OSError:
+        pass
     shutil.rmtree('lib')
-    shutil.rmtree('lib64')
     shutil.rmtree('bin')
     shutil.rmtree('share')
 
