@@ -198,6 +198,7 @@ class Database:
             
             connection.write(atoms, name='ABC', frequency=42.0)
             
+        Returns integer id of the new row.
         """
         
         if atoms is None:
