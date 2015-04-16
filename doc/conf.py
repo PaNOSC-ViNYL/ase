@@ -1,5 +1,6 @@
 import sys
 sys.path.append('.')
+assert sys.version >= '2.7'
 
 extensions = ['ext',
               'images',
