@@ -35,6 +35,10 @@ Development version in trunk
 
 * Pourbaix diagrams.
 
+* mx2() function.
+
+* bandgap ...
+
 
 Version 3.8.0
 =============
