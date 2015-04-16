@@ -264,12 +264,17 @@ class DummyWriter:
         
 def read_header(fd):
     fd.seek(0)
-    assert fd.read(8) == b'AFFormat'
+    if not fd.read(8) == b'AFFormat':
+        raise InvalidAFFError('This is not an AFF formatted file.')
     tag = fd.read(16).decode('ascii').rstrip()
     version, nitems, pos0 = np.fromfile(fd, np.int64, 3)
     fd.seek(pos0)
     offsets = np.fromfile(fd, np.int64, nitems)
     return tag, version, nitems, pos0, offsets
+
+
+class InvalidAFFError(Exception):
+    pass
 
     
 class Reader:

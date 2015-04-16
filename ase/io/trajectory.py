@@ -5,7 +5,7 @@ from ase.calculators.singlepoint import SinglePointCalculator, all_properties
 from ase.calculators.calculator import Calculator
 from ase.constraints import dict2constraint
 from ase.atoms import Atoms
-from ase.io.aff import affopen, DummyWriter
+from ase.io.aff import affopen, DummyWriter, InvalidAFFError
 from ase.io.jsonio import encode, decode
 from ase.io.pickletrajectory import PickleTrajectory
 from ase.parallel import rank
@@ -236,7 +236,15 @@ class TrajectoryReader:
         self._open(filename)
 
     def _open(self, filename):
-        self.backend = affopen(filename, 'r')
+        try:
+            self.backend = affopen(filename, 'r')
+        except InvalidAFFError:
+            raise RuntimeError('This is not a valid ASE trajectory file. '
+                               'If this is an old-format (version <3.9) '
+                               'PickleTrajectory file you can convert it '
+                               'with ase.io.trajectory.convert("%s") '
+                               'or:\n\n $ python -m ase.io.trajectory %s'
+                               % (filename, filename))
         self._read_header()
 
     def _read_header(self):
