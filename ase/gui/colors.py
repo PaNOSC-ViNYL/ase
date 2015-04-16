@@ -23,6 +23,7 @@ class ColorWindow(gtk.Window):
         self.gui = gui
         self.colormode = gui.colormode
         self.actual_colordata = None
+        self.colordata = {}
         self.set_title(_("Colors"))
         vbox = gtk.VBox()
         self.add(vbox)
@@ -67,17 +68,17 @@ class ColorWindow(gtk.Window):
         # Now fill in the box for additional information in case the force is used.
         self.force_label = gtk.Label(_("This should not be displayed!"))
         pack(self.force_box, [self.force_label])
-        self.force_min = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
-        self.force_max = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
-        self.force_steps = gtk.Adjustment(10, 2, 500, 1)
+        self.min = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
+        self.max = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
+        self.steps = gtk.Adjustment(10, 2, 500, 1)
         force_apply = gtk.Button(_('Update'))
         force_apply.connect('clicked', self.set_force_colors)
         pack(self.force_box, [gtk.Label(_('Min: ')),
-                              gtk.SpinButton(self.force_min, 1.0, 2),
+                              gtk.SpinButton(self.min, 1.0, 2),
                               gtk.Label(_('  Max: ')),
-                              gtk.SpinButton(self.force_max, 1.0, 2),
+                              gtk.SpinButton(self.max, 1.0, 2),
                               gtk.Label(_('  Steps: ')),
-                              gtk.SpinButton(self.force_steps, 1, 0),
+                              gtk.SpinButton(self.steps, 1, 0),
                               gtk.Label('  '),
                               force_apply])
         self.force_box.hide()
@@ -296,77 +297,45 @@ class ColorWindow(gtk.Window):
         self.make_colorwin()
         self.colormode = 'same'
 
-    def set_force_colors(self, *args):
-        "Use the forces as basis for the colors."
-        borders = np.linspace(self.force_min.value,
-                              self.force_max.value,
-                              self.force_steps.value,
+    def set_min_max_colors(self, mode, vmin, vmax, steps):
+        borders = np.linspace(vmin, vmax, steps,
                               endpoint=False)
         if self.scaletype_created is None:
             colors = self.new_color_scale([[0, [1,1,1]],
                                            [1, [0,0,1]]], len(borders))
-        elif (not hasattr(self, 'colordata_force') or
-            len(self.colordata_force) != len(borders)):
+        elif (mode not in  self.colordata or
+              len(self.colordata[mode]) != len(borders)):
             colors = self.get_color_scale(len(borders), self.scaletype_created)
         else:
-            colors = [y for x, y in self.colordata_force]
-        self.colordata_force = [[x, y] for x, y in zip(borders, colors)]
-        self.actual_colordata = self.colordata_force
-        self.color_labels = ["%.2f:" % x for x, y in self.colordata_force]
+            colors = [y for x, y in self.colordata[mode]]
+        self.colordata[mode] = [[x, y] for x, y in zip(borders, colors)]
+        self.actual_colordata = self.colordata[mode]
+        self.color_labels = ["%.2f:" % x for x, y in self.colordata[mode]]
         self.make_colorwin()
-        self.colormode = 'force'
-        fmin = self.force_min.value
-        fmax = self.force_max.value
-        factor = self.force_steps.value / (fmax -fmin)
-        self.colormode_force_data = (fmin, factor)
+        self.colormode = mode
+        factor = steps / (vmax - vmin)
+        self.colormode_data = (vmin, factor)
 
+    def set_force_colors(self, *args):
+        "Use forces as basis for the colors."
+        self.set_min_max_colors('force',
+                                self.min.value,
+                                self.max.value,
+                                self.steps.value)
+                            
     def set_velocity_colors(self, *args):
-        "Use the velocities as basis for the colors."
-        borders = np.linspace(self.velocity_min.value,
-                              self.velocity_max.value,
-                              self.velocity_steps.value,
-                              endpoint=False)
-        if self.scaletype_created is None:
-            colors = self.new_color_scale([[0, [1,1,1]],
-                                           [1, [1,0,0]]], len(borders))
-        elif (not hasattr(self, 'colordata_velocity') or
-            len(self.colordata_velocity) != len(borders)):
-            colors = self.get_color_scale(len(borders), self.scaletype_created)
-        else:
-            colors = [y for x, y in self.colordata_velocity]
-        self.colordata_velocity = [[x, y] for x, y in zip(borders, colors)]
-        self.actual_colordata = self.colordata_velocity
-        self.color_labels = ["%.2f:" % x for x, y in self.colordata_velocity]
-        self.make_colorwin()
-        self.colormode = 'velocity'
-        vmin = self.velocity_min.value
-        vmax = self.velocity_max.value
-        factor = self.velocity_steps.value / (vmax -vmin)
-        self.colormode_velocity_data = (vmin, factor)
+        "Use velocities as basis for the colors."
+        self.set_min_max_colors('velocity',
+                                self.velocity_min.value,
+                                self.velocity_max.value,
+                                self.velocity_steps.value)
 
     def set_charge_colors(self, *args):
-        "Use the charge as basis for the colors."
-        borders = np.linspace(self.charge_min.value,
-                              self.charge_max.value,
-                              self.charge_steps.value,
-                              endpoint=False)
-        if self.scaletype_created is None:
-            colors = self.new_color_scale([[0, [1,1,1]],
-                                           [1, [0,0,1]]], len(borders))
-        elif (not hasattr(self, 'colordata_charge') or
-            len(self.colordata_charge) != len(borders)):
-            colors = self.get_color_scale(len(borders), self.scaletype_created)
-        else:
-            colors = [y for x, y in self.colordata_charge]
-        self.colordata_charge = [[x, y] for x, y in zip(borders, colors)]
-        self.actual_colordata = self.colordata_charge
-        self.color_labels = ["%.2f:" % x for x, y in self.colordata_charge]
-        self.make_colorwin()
-        self.colormode = 'charge'
-        qmin = self.charge_min.value
-        qmax = self.charge_max.value
-        factor = self.charge_steps.value / (qmax - qmin)
-        self.colormode_charge_data = (qmin, factor)
+        "Use charge as basis for the colors."
+        self.set_min_max_colors('charge',
+                                self.charge_min.value,
+                                self.charge_max.value,
+                                self.charge_steps.value)
 
     def set_coordination_colors(self, *args):
         "Use coordination as basis for the colors."
@@ -457,8 +426,8 @@ class ColorWindow(gtk.Window):
         else:
             txt = _("Max force: %.2f.") % (fmax,)
         self.force_label.set_text(txt)
-        if self.force_max.value == 0.0:
-            self.force_max.value = fmax
+        if self.max.value == 0.0:
+            self.max.value = fmax
 
     def show_velocity_stuff(self):
         "Show and update widgets needed for selecting the velocity scale."
@@ -658,15 +627,15 @@ class ColorWindow(gtk.Window):
         if self.colormode == 'force':
             # Use integers instead for border values
             colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
-            self.gui.colormode_force_data = self.colormode_force_data
+            self.gui.colormode_force_data = self.colormode_data
         elif self.colormode == 'velocity':
             # Use integers instead for border values
             colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
-            self.gui.colormode_velocity_data = self.colormode_velocity_data
+            self.gui.colormode_velocity_data = self.colormode_data
         elif self.colormode == 'charge':
             # Use integers instead for border values
             colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
-            self.gui.colormode_charge_data = self.colormode_charge_data
+            self.gui.colormode_charge_data = self.colormode_data
         maxval = max([x for x, y in colordata])
         self.gui.colors = [None] * (maxval + 1)
         new = self.gui.drawing_area.window.new_gc
