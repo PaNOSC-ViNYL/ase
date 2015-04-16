@@ -8,7 +8,7 @@ from ase.atoms import Atoms
 from ase.io.aff import affopen, DummyWriter, InvalidAFFError
 from ase.io.jsonio import encode, decode
 from ase.io.pickletrajectory import PickleTrajectory
-from ase.parallel import rank
+from ase.parallel import rank, size
 
 __all__ = ['Trajectory', 'PickleTrajectory']
 
@@ -125,7 +125,7 @@ class TrajectoryWriter:
         if hasattr(atoms, 'interpolate'):
             # seems to be a NEB
             neb = atoms
-            assert not neb.parallel
+            assert not neb.parallel or size == 1
             for image in neb.images:
                 self.write(image)
             return
