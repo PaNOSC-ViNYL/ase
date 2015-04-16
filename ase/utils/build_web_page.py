@@ -37,6 +37,7 @@ def build(force_build, name='ase', env=''):
 
     # Build web-page:
     os.chdir('doc')
+    os.makedirs('build/html')  # Sphinx-1.1.3 needs this (1.2.2 is OK)
     subprocess.check_call(env + ' PYTHONPATH='
                           '{0}/lib/python:{0}/lib64/python:$PYTHONPATH '
                           'PATH={0}/bin:$PATH '.format(home) +
