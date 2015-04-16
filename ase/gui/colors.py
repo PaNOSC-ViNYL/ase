@@ -85,17 +85,14 @@ class ColorWindow(gtk.Window):
         # Now fill in the box for additional information in case the velocity is used.
         self.velocity_label = gtk.Label("This should not be displayed!")
         pack(self.velocity_box, [self.velocity_label])
-        self.velocity_min = gtk.Adjustment(0.0, 0.0, 100.0, 0.005)
-        self.velocity_max = gtk.Adjustment(0.0, 0.0, 100.0, 0.005)
-        self.velocity_steps = gtk.Adjustment(10, 2, 500, 1)
         velocity_apply = gtk.Button(_('Update'))
         velocity_apply.connect('clicked', self.set_velocity_colors)
         pack(self.velocity_box, [gtk.Label(_('Min: ')),
-                                 gtk.SpinButton(self.velocity_min, 1.0, 3),
+                                 gtk.SpinButton(self.min, 1.0, 3),
                                  gtk.Label(_('  Max: ')),
-                                 gtk.SpinButton(self.velocity_max, 1.0, 3),
+                                 gtk.SpinButton(self.max, 1.0, 3),
                                  gtk.Label(_('  Steps: ')),
-                                 gtk.SpinButton(self.velocity_steps, 1, 0),
+                                 gtk.SpinButton(self.steps, 1, 0),
                                  gtk.Label('  '),
                                  velocity_apply])
         self.velocity_box.hide()
@@ -103,17 +100,14 @@ class ColorWindow(gtk.Window):
         # the charge is used.
         self.charge_label = gtk.Label(_("This should not be displayed!"))
         pack(self.charge_box, [self.charge_label])
-        self.charge_min = gtk.Adjustment(0.0, -100.0, 100.0, 0.05)
-        self.charge_max = gtk.Adjustment(0.0, -100.0, 100.0, 0.05)
-        self.charge_steps = gtk.Adjustment(10, 2, 500, 1)
         charge_apply = gtk.Button(_('Update'))
         charge_apply.connect('clicked', self.set_charge_colors)
         pack(self.charge_box, [gtk.Label(_('Min: ')),
-                              gtk.SpinButton(self.charge_min, 10.0, 2),
+                              gtk.SpinButton(self.min, 10.0, 2),
                               gtk.Label(_('  Max: ')),
-                              gtk.SpinButton(self.charge_max, 10.0, 2),
+                              gtk.SpinButton(self.max, 10.0, 2),
                               gtk.Label(_('  Steps: ')),
-                              gtk.SpinButton(self.charge_steps, 1, 0),
+                              gtk.SpinButton(self.steps, 1, 0),
                               gtk.Label('  '),
                               charge_apply])
         self.charge_box.hide()
@@ -297,8 +291,8 @@ class ColorWindow(gtk.Window):
         self.make_colorwin()
         self.colormode = 'same'
 
-    def set_min_max_colors(self, mode, vmin, vmax, steps):
-        borders = np.linspace(vmin, vmax, steps,
+    def set_min_max_colors(self, mode):
+        borders = np.linspace(self.min.value, self.max.value, self.steps.value,
                               endpoint=False)
         if self.scaletype_created is None:
             colors = self.new_color_scale([[0, [1,1,1]],
@@ -313,29 +307,20 @@ class ColorWindow(gtk.Window):
         self.color_labels = ["%.2f:" % x for x, y in self.colordata[mode]]
         self.make_colorwin()
         self.colormode = mode
-        factor = steps / (vmax - vmin)
-        self.colormode_data = (vmin, factor)
+        factor = self.steps.value / (self.max.value - self.min.value)
+        self.colormode_data = (self.min.value, factor)
 
     def set_force_colors(self, *args):
         "Use forces as basis for the colors."
-        self.set_min_max_colors('force',
-                                self.min.value,
-                                self.max.value,
-                                self.steps.value)
+        self.set_min_max_colors('force')
                             
     def set_velocity_colors(self, *args):
         "Use velocities as basis for the colors."
-        self.set_min_max_colors('velocity',
-                                self.velocity_min.value,
-                                self.velocity_max.value,
-                                self.velocity_steps.value)
+        self.set_min_max_colors('velocity')
 
     def set_charge_colors(self, *args):
         "Use charge as basis for the colors."
-        self.set_min_max_colors('charge',
-                                self.charge_min.value,
-                                self.charge_max.value,
-                                self.charge_steps.value)
+        self.set_min_max_colors('charge')
 
     def set_coordination_colors(self, *args):
         "Use coordination as basis for the colors."
@@ -442,8 +427,8 @@ class ColorWindow(gtk.Window):
         else:
             txt = _("Max velocity: %.2f.") % (vmax,)
         self.velocity_label.set_text(txt)
-        if self.velocity_max.value == 0.0:
-            self.velocity_max.value = vmax
+        if self.max.value == 0.0:
+            self.max.value = vmax
         
     def show_charge_stuff(self):
         "Show and update widgets needed for selecting the charge scale."
@@ -460,8 +445,8 @@ class ColorWindow(gtk.Window):
         else:
             txt = _("Min, max charge: %.2f, %.2f.") % (qmin, qmax,)
         self.charge_label.set_text(txt)
-        self.charge_max.value = qmax
-        self.charge_min.value = qmin
+        self.max.value = qmax
+        self.min.value = qmin
 
     def make_colorwin(self):
         """Make the list of editable color entries.
