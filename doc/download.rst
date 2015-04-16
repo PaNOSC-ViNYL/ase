@@ -369,7 +369,7 @@ The latest revision can be obtained like this::
 
   $ svn checkout https://svn.fysik.dtu.dk/projects/ase/trunk ase
 
-or from the daily snapshot: `<python-ase-snapshot.tar.gz>`_.
+or from the daily snapshot: `<snapshot.tar.gz>`_.
 
 .. note::
 
