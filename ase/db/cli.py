@@ -72,7 +72,8 @@ def main(args=sys.argv[1:]):
         'with a "+" in order to add columns to the default set of columns.  '
         'Precede by a "-" to remove columns.')
     add('-s', '--sort', metavar='column', default='id',
-        help='Sort rows using column.  Default is to sort after ID.')
+        help='Sort rows using column.  Use -column for a descendin sort.  '
+        'Default is to sort after id.')
     add('--cut', type=int, default=35, help='Cut keywords and key-value '
         'columns after CUT characters.  Use --cut=0 to disable cutting. '
         'Default is 35 characters')

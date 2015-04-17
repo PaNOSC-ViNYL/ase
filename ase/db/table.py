@@ -43,9 +43,6 @@ class Table:
         self.limit = limit
         self.offset = offset
         
-        if sort == 'id':
-            sort = None
-           
         self.rows = [Row(d, columns)
                      for d in self.connection.select(
                          query, verbosity=self.verbosity,
