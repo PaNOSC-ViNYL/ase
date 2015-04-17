@@ -66,7 +66,7 @@ class ColorWindow(gtk.Window):
             if isinstance(widget, gtk.RadioButton):
                 widget.connect('toggled', self.method_radio_changed)
         # Now fill in the box for additional information in case the force is used.
-        self.force_label = gtk.Label(_("This should not be displayed!"))
+        self.force_label = gtk.Label(_("This should not be displayed in forces!"))
         pack(self.force_box, [self.force_label])
         self.min = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
         self.max = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
@@ -398,55 +398,50 @@ class ColorWindow(gtk.Window):
         self.make_colorwin()
         self.colormode = 'manual'
 
+    def get_min_max_text(self, mode, vmin, vmax, min_frame, max_frame):
+        nimages = self.gui.images.nimages
+        txt = 'Max {0}: {1:.2f}'.format(mode, vmax)
+        if nimages > 1:
+            txt += '(all frames), {0:.2f} (this frame)'.format(max_frame)
+        self.max.value = vmax 
+        if vmin is None:
+            self.min.value = 0.
+        else:
+            txt += ', Min {0:.2f}'.format(vmin)
+            if nimages > 1:
+                txt += '(all frames), {0:.2f} (this frame)'.format(min_frame)
+            self.min.value = vmin
+        return txt
+
     def show_force_stuff(self):
         "Show and update widgets needed for selecting the force scale."
         self.force_box.show()
-        F = np.sqrt(((self.gui.images.F*self.gui.images.dynamic[:,np.newaxis])**2).sum(axis=-1))
-        fmax = F.max()
-        nimages = self.gui.images.nimages
-        assert len(F) == nimages
-        if nimages > 1:
-            fmax_frame = self.gui.images.F[self.gui.frame].max()
-            txt = _("Max force: %.2f (this frame), %.2f (all frames)") % (fmax_frame, fmax)
-        else:
-            txt = _("Max force: %.2f.") % (fmax,)
-        self.force_label.set_text(txt)
-        if self.max.value == 0.0:
-            self.max.value = fmax
+        # XXX is this projected on some axis ? XXX
+        F = np.sqrt(((self.gui.images.F * 
+                      self.gui.images.dynamic[:,np.newaxis])**2).sum(axis=-1))
+        txt = self.get_min_max_text(
+            'force', None, F.max(), 
+            None, self.gui.images.F[self.gui.frame].max())
+        self.force_label.set_text(_(txt))
 
     def show_velocity_stuff(self):
         "Show and update widgets needed for selecting the velocity scale."
         self.velocity_box.show()
         V = np.sqrt((self.gui.images.V * self.gui.images.V).sum(axis=-1))
-        vmax = V.max()
-        nimages = self.gui.images.nimages
-        assert len(V) == nimages
-        if nimages > 1:
-            vmax_frame = self.gui.images.V[self.gui.frame].max()
-            txt = _("Max velocity: %.2f (this frame), %.2f (all frames)") % (vmax_frame, vmax)
-        else:
-            txt = _("Max velocity: %.2f.") % (vmax,)
-        self.velocity_label.set_text(txt)
-        if self.max.value == 0.0:
-            self.max.value = vmax
-        
+        Vframe = np.sqrt((self.gui.images.V[self.gui.frame] *
+                          self.gui.images.V[self.gui.frame]).sum(axis=-1))
+        txt = self.get_min_max_text(
+            'velocity', None, V.max(), None, Vframe.max())
+        self.velocity_label.set_text(_(txt))
+
     def show_charge_stuff(self):
         "Show and update widgets needed for selecting the charge scale."
         self.charge_box.show()
-        qmin = self.gui.images.q.min()
-        qmax = self.gui.images.q.max()
-        nimages = self.gui.images.nimages
-        if nimages > 1:
-            qmin_frame = self.gui.images.q[self.gui.frame].min()
-            qmax_frame = self.gui.images.q[self.gui.frame].max()
-            txt = (_('Min, max charge: %.2f, %.2f (this frame),' +
-                     '%.2f, %.2f (all frames)')
-                   % (qmin_frame, qmax_frame, qmin, qmax))
-        else:
-            txt = _("Min, max charge: %.2f, %.2f.") % (qmin, qmax,)
-        self.charge_label.set_text(txt)
-        self.max.value = qmax
-        self.min.value = qmin
+        txt = self.get_min_max_text(
+            'charge', self.gui.images.q.min(), self.gui.images.q.max(),
+            self.gui.images.q[self.gui.frame].min(),
+            self.gui.images.q[self.gui.frame].max())
+        self.charge_label.set_text(_(txt))
 
     def make_colorwin(self):
         """Make the list of editable color entries.
