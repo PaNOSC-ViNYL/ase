@@ -74,9 +74,9 @@ def kptdensity2monkhorstpack(atoms, kptdensity=3.5, even=True):
     atoms: Atoms object
         Contains unit cell and information about boundary conditions.
     kptdensity: float
-        K-point density.  Default value is 3.5 point per Ang^-1.
+        Required k-point density.  Default value is 3.5 point per Ang^-1.
     even: bool
-        Round to even numbers.
+        Round up to even numbers.
     """
 
     recipcell = atoms.get_reciprocal_cell()
@@ -85,9 +85,9 @@ def kptdensity2monkhorstpack(atoms, kptdensity=3.5, even=True):
         if atoms.pbc[i]:
             k = 2 * pi * sqrt((recipcell[i]**2).sum()) * kptdensity
             if even:
-                kpts.append(max(1, 2 * int(round(k / 2))))
+                kpts.append(2 * int(np.ceil(k / 2)))
             else:
-                kpts.append(max(1, int(round(k))))
+                kpts.append(int(np.ceil(k)))
         else:
             kpts.append(1)
     return np.array(kpts)
