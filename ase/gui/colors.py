@@ -50,6 +50,8 @@ class ColorWindow(gtk.Window):
         self.radio_force = gtk.RadioButton(self.radio_jmol, _('By force'))
         self.radio_velocity = gtk.RadioButton(self.radio_jmol, _('By velocity'))
         self.radio_charge = gtk.RadioButton(self.radio_jmol, _('By charge'))
+        self.radio_magnetic_moment = gtk.RadioButton(
+            self.radio_jmol, _('By magnetic moment'))
         self.radio_coordination = gtk.RadioButton(
             self.radio_jmol, _('By coordination'))
         self.radio_manual = gtk.RadioButton(self.radio_jmol, _('Manually specified'))
@@ -57,9 +59,12 @@ class ColorWindow(gtk.Window):
         self.force_box = gtk.VBox()
         self.velocity_box = gtk.VBox()
         self.charge_box = gtk.VBox()
+        self.magnetic_moment_box = gtk.VBox()
         for widget in (self.radio_jmol, self.radio_atno, self.radio_tag,
                        self.radio_force, self.force_box, self.radio_velocity,
                        self.radio_charge, self.charge_box,
+                       self.radio_magnetic_moment, 
+                       self.magnetic_moment_box,
                        self.radio_coordination,
                        self.velocity_box, self.radio_manual, self.radio_same):
             pack(self.methodbox, [widget])
@@ -72,7 +77,7 @@ class ColorWindow(gtk.Window):
         self.max = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
         self.steps = gtk.Adjustment(10, 2, 500, 1)
         force_apply = gtk.Button(_('Update'))
-        force_apply.connect('clicked', self.set_force_colors)
+        force_apply.connect('clicked', self.set_min_max_colors)
         pack(self.force_box, [gtk.Label(_('Min: ')),
                               gtk.SpinButton(self.min, 1.0, 2),
                               gtk.Label(_('  Max: ')),
@@ -86,7 +91,7 @@ class ColorWindow(gtk.Window):
         self.velocity_label = gtk.Label("This should not be displayed!")
         pack(self.velocity_box, [self.velocity_label])
         velocity_apply = gtk.Button(_('Update'))
-        velocity_apply.connect('clicked', self.set_velocity_colors)
+        velocity_apply.connect('clicked', self.set_min_max_colors)
         pack(self.velocity_box, [gtk.Label(_('Min: ')),
                                  gtk.SpinButton(self.min, 1.0, 3),
                                  gtk.Label(_('  Max: ')),
@@ -101,7 +106,7 @@ class ColorWindow(gtk.Window):
         self.charge_label = gtk.Label(_("This should not be displayed!"))
         pack(self.charge_box, [self.charge_label])
         charge_apply = gtk.Button(_('Update'))
-        charge_apply.connect('clicked', self.set_charge_colors)
+        charge_apply.connect('clicked', self.set_min_max_colors)
         pack(self.charge_box, [gtk.Label(_('Min: ')),
                               gtk.SpinButton(self.min, 10.0, 2),
                               gtk.Label(_('  Max: ')),
@@ -111,6 +116,22 @@ class ColorWindow(gtk.Window):
                               gtk.Label('  '),
                               charge_apply])
         self.charge_box.hide()
+        # Now fill in the box for additional information in case
+        # the magnetic moment is used.
+        self.magnetic_moment_label = gtk.Label(_(
+            "This should not be displayed!"))
+        pack(self.magnetic_moment_box, [self.magnetic_moment_label])
+        magnetic_moment_apply = gtk.Button(_('Update'))
+        magnetic_moment_apply.connect('clicked', self.set_min_max_colors)
+        pack(self.magnetic_moment_box, [gtk.Label(_('Min: ')),
+                                        gtk.SpinButton(self.min, 10.0, 2),
+                                        gtk.Label(_('  Max: ')),
+                                        gtk.SpinButton(self.max, 10.0, 2),
+                                        gtk.Label(_('  Steps: ')),
+                                        gtk.SpinButton(self.steps, 1, 0),
+                                        gtk.Label('  '),
+                                        magnetic_moment_apply])
+        self.magnetic_moment_box.hide()
         # Lower left: Create a color scale
         pack(self.scalebox, gtk.Label(""))
         lbl = gtk.Label(_('Create a color scale:'))
@@ -179,6 +200,10 @@ class ColorWindow(gtk.Window):
             self.radio_charge.set_sensitive(False)
         else:
             self.radio_charge.set_sensitive(True)
+        if not self.gui.images.M.any():
+            self.radio_magnetic_moment.set_sensitive(False)
+        else:
+            self.radio_magnetic_moment.set_sensitive(True)
         self.radio_manual.set_sensitive(self.gui.images.natoms <= 1000)
         # Now check what the current color mode is
         if cm == 'jmol':
@@ -194,6 +219,8 @@ class ColorWindow(gtk.Window):
             self.radio_velocity.set_active(True)
         elif cm == 'charge':
             self.radio_charge.set_active(True)
+        elif cm == 'magnetic moment':
+            self.radio_magnetic_moment.set_active(True)
         elif cm == 'coordination':
             self.radio_coordination.set_active(True)
         elif cm == 'manual':
@@ -220,13 +247,16 @@ class ColorWindow(gtk.Window):
             self.set_tag_colors()
         elif widget is self.radio_force:
             self.show_force_stuff()
-            self.set_force_colors()
+            self.set_min_max_colors('force')
         elif widget is self.radio_velocity:
             self.show_velocity_stuff()
-            self.set_velocity_colors()
+            self.set_min_max_colors('velocity')
         elif widget is self.radio_charge:
             self.show_charge_stuff()
-            self.set_charge_colors()
+            self.set_min_max_colors('charge')
+        elif widget is self.radio_magnetic_moment:
+            self.show_magnetic_moment_stuff()
+            self.set_min_max_colors('magnetic moment')
         elif widget is self.radio_coordination:
             self.set_coordination_colors()
         elif widget is self.radio_manual:
@@ -310,18 +340,6 @@ class ColorWindow(gtk.Window):
         factor = self.steps.value / (self.max.value - self.min.value)
         self.colormode_data = (self.min.value, factor)
 
-    def set_force_colors(self, *args):
-        "Use forces as basis for the colors."
-        self.set_min_max_colors('force')
-                            
-    def set_velocity_colors(self, *args):
-        "Use velocities as basis for the colors."
-        self.set_min_max_colors('velocity')
-
-    def set_charge_colors(self, *args):
-        "Use charge as basis for the colors."
-        self.set_min_max_colors('charge')
-
     def set_coordination_colors(self, *args):
         "Use coordination as basis for the colors."
         if not hasattr(self.gui, 'coordination'):
@@ -376,6 +394,14 @@ class ColorWindow(gtk.Window):
             q = self.gui.images.q[self.gui.frame]
             nq = ((q - self.colormode_charge_data[0]) *
                   self.colormode_charge_data[1])
+            nq = np.clip(nq.astype(int), 0, len(oldcolors)-1)
+            colors[:] = oldcolors[nq]
+        elif self.colormode == 'magnetic moment':
+            oldcolors = np.array([None] * len(self.actual_colordata))
+            oldcolors[:] = [y for x, y in self.actual_colordata]
+            q = self.gui.images.q[self.gui.frame]
+            nq = ((q - self.colormode_magnetic_moment_data[0]) *
+                  self.colormode_magnetic_moment_data[1])
             nq = np.clip(nq.astype(int), 0, len(oldcolors)-1)
             colors[:] = oldcolors[nq]
         elif self.colormode == 'coordination':
@@ -442,6 +468,15 @@ class ColorWindow(gtk.Window):
             self.gui.images.q[self.gui.frame].min(),
             self.gui.images.q[self.gui.frame].max())
         self.charge_label.set_text(_(txt))
+
+    def show_magnetic_moment_stuff(self):
+        "Show and update widgets needed for selecting the magn. mom. scale."
+        self.magnetic_moment_box.show()
+        txt = self.get_min_max_text(
+            'magnetic moment', self.gui.images.M.min(), self.gui.images.M.max(),
+            self.gui.images.M[self.gui.frame].min(),
+            self.gui.images.M[self.gui.frame].max())
+        self.magnetic_moment_label.set_text(_(txt))
 
     def make_colorwin(self):
         """Make the list of editable color entries.
@@ -616,6 +651,10 @@ class ColorWindow(gtk.Window):
             # Use integers instead for border values
             colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
             self.gui.colormode_charge_data = self.colormode_data
+        elif self.colormode == 'magnetic moment':
+            # Use integers instead for border values
+            colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
+            self.gui.colormode_data = self.colormode_data
         maxval = max([x for x, y in colordata])
         self.gui.colors = [None] * (maxval + 1)
         new = self.gui.drawing_area.window.new_gc

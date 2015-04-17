@@ -484,6 +484,12 @@ class View:
                   self.colormode_charge_data[1]        )
             nq = np.clip(nq.astype(int), 0, len(self.colors)-1)
             colors = np.array(colarray)[nq]
+        elif self.colormode == 'magnetic moment':
+            M = self.images.M[self.frame]
+            nm = ((M - self.colormode_data[0]) *
+                  self.colormode_data[1]        )
+            nm = np.clip(nm.astype(int), 0, len(self.colors)-1)
+            colors = np.array(colarray)[nm]
         elif self.colormode == 'coordination':
             if not hasattr(self, 'coordination'):
                 self.bind(self.frame)
