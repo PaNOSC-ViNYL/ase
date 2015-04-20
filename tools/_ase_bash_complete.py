@@ -34,7 +34,7 @@ if command == 'ase-db':
             'help verbose quiet count long insert-into add-from-file '
             'add-key-value-pairs limit offset delete '
             'delete-keys yes columns sort cut python csv '
-            'open-web-browser json')
+            'open-web-browser json unique')
     elif previous == 'ase-db':
         words = match(word, '.db', '.json')
 elif command == 'ase-run':

@@ -1,6 +1,7 @@
 from __future__ import print_function
 import sys
 import optparse
+from random import randint
 
 import numpy as np
 
@@ -89,6 +90,8 @@ def main(args=sys.argv[1:]):
         'better query planning choices.')
     add('-j', '--json', action='store_true',
         help='Write json representation of selected row.')
+    add('--unique', action='store_true',
+        help='Give rows a new unique id when using --insert-into.')
     opts, args = parser.parse_args(args)
 
     if not args:
@@ -175,6 +178,8 @@ def run(opts, args, verbosity):
                 nkvp -= len(kvp)
                 kvp.update(add_key_value_pairs)
                 nkvp += len(kvp)
+                if opts.unique:
+                    dct['unique_id'] = '%x' % randint(16**31, 16**32 - 1)
                 con2.write(dct, data=dct.get('data'), **kvp)
                 nrows += 1
             
