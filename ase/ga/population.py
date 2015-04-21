@@ -27,14 +27,14 @@ class Population(object):
 
     data_connection: DataConnection object
         Bla bla bla.
-    
+
     population_size: int
         The number of candidates in the population.
-    
+
     comparator: Comparator object
         this will tell if two configurations are equal.
         Default compare atoms objects directly.
-    
+
     logfile: str
         Text file that contains information about the population
         The format is::
@@ -43,7 +43,7 @@ class Population(object):
 
         Using this file greatly speeds up convergence checks.
         Default None meaning that no file is written.
-    
+
     use_extinct: boolean
         Set this to True if mass extinction and the extinct key
         are going to be used. Default is False.
@@ -105,7 +105,7 @@ class Population(object):
                 a.info['n_paired'] = 0
         self.pairs = pairs
 
-    def update(self):
+    def update(self, new_cand=None):
         """ New candidates can be added to the database
             after the population object has been created.
             This method extracts these new candidates from the
@@ -114,9 +114,11 @@ class Population(object):
         if len(self.pop) == 0:
             self.__initialize_pop__()
 
-        ue = self.use_extinct
-        new_cand = self.dc.get_all_relaxed_candidates(only_new=True,
-                                                      use_extinct=ue)
+        if new_cand is None:
+            ue = self.use_extinct
+            new_cand = self.dc.get_all_relaxed_candidates(only_new=True,
+                                                          use_extinct=ue)
+            
         for a in new_cand:
             self.__add_candidate__(a)
             self.all_cand.append(a)

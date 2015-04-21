@@ -15,10 +15,13 @@ class AdsorbateOperator(OffspringCreator):
 
     Don't use this operator directly!"""
 
-    def __init__(self, adsorbate):
+    def __init__(self, adsorbate, adsorption_sites=None):
         OffspringCreator.__init__(self)
         self.adsorbate = self.convert_adsorbate(adsorbate)
         self.adsorbate_set = set(self.adsorbate.get_chemical_symbols())
+        if adsorption_sites is None:
+            raise NotImplementedError
+        self.adsorption_sites = adsorption_sites
         self.descriptor = 'AdsorbateOperator'
 
     @classmethod
@@ -235,21 +238,16 @@ class AddAdsorbate(AdsorbateOperator):
     will be considered first.
     """
     def __init__(self, adsorbate,
-                 minimum_adsorbate_distance=2.,
+                 min_adsorbate_distance=2.,
                  adsorption_sites=None,
                  site_preference=None,
                  surface_preference=None):
-        AdsorbateOperator.__init__(self, adsorbate)
+        AdsorbateOperator.__init__(self, adsorbate,
+                                   adsorption_sites=adsorption_sites)
         self.descriptor = 'AddAdsorbate'
 
-        self.min_adsorbate_distance = minimum_adsorbate_distance
+        self.min_adsorbate_distance = min_adsorbate_distance
 
-        if adsorption_sites is None:
-            raise NotImplementedError
-        # Adding 0's to the end of all sites to specify not filled
-        # for s in adsorption_sites:
-        #     s.update({'occupied': 0})
-        self.adsorption_sites = adsorption_sites
         self.site_preference = site_preference
         self.surface_preference = surface_preference
 
@@ -301,15 +299,10 @@ class RemoveAdsorbate(AdsorbateOperator):
                  adsorption_sites=None,
                  site_preference=None,
                  surface_preference=None):
-        AdsorbateOperator.__init__(self, adsorbate)
+        AdsorbateOperator.__init__(self, adsorbate,
+                                   adsorption_sites=adsorption_sites)
         self.descriptor = 'RemoveAdsorbate'
 
-        if adsorption_sites is None:
-            raise NotImplementedError
-        # Adding 0's to the end of all sites to specify not filled
-        # for s in adsorption_sites:
-        #     s.update({'occupied': 0})
-        self.adsorption_sites = adsorption_sites
         self.site_preference = site_preference
         self.surface_preference = surface_preference
 
@@ -353,23 +346,18 @@ class MoveAdsorbate(AdsorbateOperator):
     """This operator removes an adsorbate from the surface and adds it
     again at a different position, i.e. effectively moving the adsorbate."""
     def __init__(self, adsorbate,
-                 minimum_adsorbate_distance=2.,
+                 min_adsorbate_distance=2.,
                  adsorption_sites=None,
                  site_preference_from=None,
                  surface_preference_from=None,
                  site_preference_to=None,
                  surface_preference_to=None):
-        AdsorbateOperator.__init__(self, adsorbate)
+        AdsorbateOperator.__init__(self, adsorbate,
+                                   adsorption_sites=adsorption_sites)
         self.descriptor = 'MoveAdsorbate'
 
-        self.min_adsorbate_distance = minimum_adsorbate_distance
+        self.min_adsorbate_distance = min_adsorbate_distance
 
-        if adsorption_sites is None:
-            raise NotImplementedError
-        # Adding 0's to the end of all sites to specify not filled
-        # for s in adsorption_sites:
-        #     s.update({'occupied': 0})
-        self.adsorption_sites = adsorption_sites
         self.site_preference_from = site_preference_from
         self.surface_preference_from = surface_preference_from
         self.site_preference_to = site_preference_to
@@ -449,10 +437,15 @@ class CutSpliceCrossoverWithAdsorbates(AdsorbateOperator):
     keep_composition: boolean that signifies if the composition should
         be the same as in the parents.
     """
-    def __init__(self, adsorbate, blmin, keep_composition=True):
-        AdsorbateOperator.__init__(self, adsorbate)
+    def __init__(self, adsorbate, blmin, keep_composition=True,
+                 fix_coverage=False, adsorption_sites=None,
+                 min_adsorbate_distance=2.):
+        AdsorbateOperator.__init__(self, adsorbate,
+                                   adsorption_sites=adsorption_sites)
         self.blmin = blmin
         self.keep_composition = keep_composition
+        self.fix_coverage = fix_coverage
+        self.min_adsorbate_distance = min_adsorbate_distance
         self.descriptor = 'CutSpliceCrossoverWithAdsorbates'
         
         self.min_inputs = 2
@@ -460,6 +453,10 @@ class CutSpliceCrossoverWithAdsorbates(AdsorbateOperator):
     def get_new_individual(self, parents):
         f, m = parents
         
+        if self.fix_coverage:
+            # Count number of adsorbates
+            adsorbates_in_parents = len(self.get_all_adsorbate_indices(f))
+            
         indi = self.initialize_individual(f)
         indi.info['data']['parents'] = [i.info['confid'] for i in parents]
         
@@ -589,6 +586,22 @@ class CutSpliceCrossoverWithAdsorbates(AdsorbateOperator):
         # Put the two parts together
         for atom in chain(tmpf, tmpm):
             indi.append(atom)
+            
+        if self.fix_coverage:
+            # Remove or add adsorbates as needed
+            adsorbates_in_child = self.get_all_adsorbate_indices(indi)
+            diff = len(adsorbates_in_child) - adsorbates_in_parents
+            if diff < 0:
+                # Add adsorbates
+                for _ in range(abs(diff)):
+                    self.add_adsorbate(indi, self.adsorption_sites,
+                                       self.min_adsorbate_distance)
+            elif diff > 0:
+                # Remove adsorbates
+                tbr = random.sample(adsorbates_in_child, diff)  # to be removed
+                for adsorbate_indices in sorted(tbr, reverse=True):
+                    for i in adsorbate_indices[::-1]:
+                        indi.pop(i)
 
         return (self.finalize_individual(indi),
                 self.descriptor + ': {0} {1}'.format(f.info['confid'],
