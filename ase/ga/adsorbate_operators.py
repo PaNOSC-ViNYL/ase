@@ -441,7 +441,7 @@ class CutSpliceCrossoverWithAdsorbates(AdsorbateOperator):
                  fix_coverage=False, adsorption_sites=None,
                  min_adsorbate_distance=2.):
         if not fix_coverage:
-            #Trick the AdsorbateOperator class to accept no adsorption_sites
+            # Trick the AdsorbateOperator class to accept no adsorption_sites
             adsorption_sites = [1]
         AdsorbateOperator.__init__(self, adsorbate,
                                    adsorption_sites=adsorption_sites)
