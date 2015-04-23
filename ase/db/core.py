@@ -166,6 +166,15 @@ def parallel_generator(generator):
                 result = broadcast(None)
     return new_generator
 
+    
+def convert_str_to_float_or_str(value):
+    """Safe eval()"""
+    try:
+        value = float(value)
+    except ValueError:
+        value = {'True': 1.0, 'False': 0.0}.get(value, value)
+    return value
+    
 
 class Database:
     """Base class for all databases."""
@@ -365,10 +374,7 @@ class Database:
                 key = atomic_numbers[key]
                 value = int(value)
             elif isinstance(value, basestring):
-                try:
-                    value = float(value)
-                except ValueError:
-                    assert op == '=' or op == '!='
+                value = convert_str_to_float_or_str(value)
             if key in numeric_keys and not isinstance(value, (int, float)):
                 msg = 'Wrong type for "{0}{1}{2}" - must be a number'
                 raise ValueError(msg.format(key, op, value))

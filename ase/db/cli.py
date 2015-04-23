@@ -7,6 +7,7 @@ import numpy as np
 
 import ase.io
 from ase.db import connect
+from ase.db.core import convert_str_to_float_or_str
 from ase.db.summary import Summary
 from ase.db.table import Table, all_columns
 from ase.calculators.calculator import get_calculator
@@ -120,14 +121,7 @@ def run(opts, args, verbosity):
     if opts.add_key_value_pairs:
         for pair in opts.add_key_value_pairs.split(','):
             key, value = pair.split('=')
-            for type in [int, float]:
-                try:
-                    value = type(value)
-                except ValueError:
-                    pass
-                else:
-                    break
-            add_key_value_pairs[key] = value
+            add_key_value_pairs[key] = convert_str_to_float_or_str(value)
 
     if opts.delete_keys:
         delete_keys = opts.delete_keys.split(',')
