@@ -14,10 +14,11 @@ class OffspringCreator(object):
     verbose: Be verbose and print some stuff
 
     """
-    def __init__(self, verbose=False):
+    def __init__(self, verbose=False, num_muts=1):
         self.descriptor = 'OffspringCreator'
         self.verbose = verbose
         self.min_inputs = 0
+        self.num_muts = num_muts
 
     def get_min_inputs(self):
         """Returns the number of inputs required for a mutation,

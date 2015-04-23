@@ -10,10 +10,9 @@ from ase import Atoms
 class Mutation(OffspringCreator):
     """Base class for all particle mutation type operators.
     Do not call this class directly."""
-    def __init__(self, num_muts):
-        OffspringCreator.__init__(self)
+    def __init__(self, num_muts=1):
+        OffspringCreator.__init__(self, num_muts=num_muts)
         self.descriptor = 'Mutation'
-        self.num_muts = num_muts
         self.min_inputs = 1
 
     @classmethod
@@ -88,7 +87,7 @@ class Mutation(OffspringCreator):
 class RandomMutation(Mutation):
     """Moves a random atom the supplied length in a random direction."""
     def __init__(self, length=2., num_muts=1):
-        Mutation.__init__(self, num_muts)
+        Mutation.__init__(self, num_muts=num_muts)
         self.descriptor = 'RandomMutation'
         self.length = length
 
@@ -128,7 +127,7 @@ class RandomPermutation(Mutation):
 
     num_muts: the number of times to perform this operation."""
     def __init__(self, num_muts=1):
-        Mutation.__init__(self, num_muts)
+        Mutation.__init__(self, num_muts=num_muts)
         self.descriptor = 'RandomPermutation'
 
     def get_new_individual(self, parents):
@@ -179,7 +178,7 @@ class COM2surfPermutation(Mutation):
     num_muts: the number of times to perform this operation.
     """
     def __init__(self, elements=None, min_ratio=0.25, num_muts=1):
-        Mutation.__init__(self, num_muts)
+        Mutation.__init__(self, num_muts=num_muts)
         self.descriptor = 'COM2surfPermutation'
         self.min_ratio = min_ratio
         self.elements = elements
@@ -320,7 +319,7 @@ class Poor2richPermutation(_NeighborhoodPermutation):
     elements: Which elements to take into account in this permutation
     """
     def __init__(self, elements=[], num_muts=1):
-        _NeighborhoodPermutation.__init__(self, num_muts)
+        _NeighborhoodPermutation.__init__(self, num_muts=num_muts)
         self.descriptor = 'Poor2richPermutation'
         self.elements = elements
 
@@ -367,10 +366,9 @@ class Rich2poorPermutation(_NeighborhoodPermutation):
     elements: Which elements to take into account in this permutation
     """
     def __init__(self, elements=None, num_muts=1):
-        _NeighborhoodPermutation.__init__(self, num_muts)
+        _NeighborhoodPermutation.__init__(self, num_muts=num_muts)
         self.descriptor = 'Rich2poorPermutation'
         self.elements = elements
-        self.num_muts = num_muts
 
     def get_new_individual(self, parents):
         f = parents[0].copy()
@@ -413,7 +411,7 @@ class SymmetricSubstitute(Mutation):
 
     """
     def __init__(self, elements=None, num_muts=1):
-        Mutation.__init__(self, num_muts)
+        Mutation.__init__(self, num_muts=num_muts)
         self.descriptor = 'SymmetricSubstitute'
         self.elements = elements
 
@@ -445,7 +443,7 @@ class RandomSubstitute(Mutation):
     """Substitutes one atom with another atom type. The possible atom types
     are supplied in the parameter elements"""
     def __init__(self, elements=None, num_muts=1):
-        Mutation.__init__(self, num_muts)
+        Mutation.__init__(self, num_muts=num_muts)
         self.descriptor = 'RandomSubstitute'
         self.elements = elements
 

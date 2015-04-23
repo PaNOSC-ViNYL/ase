@@ -15,8 +15,8 @@ class AdsorbateOperator(OffspringCreator):
 
     Don't use this operator directly!"""
 
-    def __init__(self, adsorbate, adsorption_sites=None):
-        OffspringCreator.__init__(self)
+    def __init__(self, adsorbate, adsorption_sites=None, num_muts=1):
+        OffspringCreator.__init__(self, num_muts=num_muts)
         self.adsorbate = self.convert_adsorbate(adsorbate)
         self.adsorbate_set = set(self.adsorbate.get_chemical_symbols())
         if adsorption_sites is None:
@@ -241,9 +241,11 @@ class AddAdsorbate(AdsorbateOperator):
                  min_adsorbate_distance=2.,
                  adsorption_sites=None,
                  site_preference=None,
-                 surface_preference=None):
+                 surface_preference=None,
+                 num_muts=1):
         AdsorbateOperator.__init__(self, adsorbate,
-                                   adsorption_sites=adsorption_sites)
+                                   adsorption_sites=adsorption_sites,
+                                   num_muts=num_muts)
         self.descriptor = 'AddAdsorbate'
 
         self.min_adsorbate_distance = min_adsorbate_distance
@@ -251,8 +253,6 @@ class AddAdsorbate(AdsorbateOperator):
         self.site_preference = site_preference
         self.surface_preference = surface_preference
 
-        self.num_muts = 1
-        
         self.min_inputs = 1
 
     def get_new_individual(self, parents):
@@ -298,16 +298,16 @@ class RemoveAdsorbate(AdsorbateOperator):
     def __init__(self, adsorbate,
                  adsorption_sites=None,
                  site_preference=None,
-                 surface_preference=None):
+                 surface_preference=None,
+                 num_muts=1):
         AdsorbateOperator.__init__(self, adsorbate,
-                                   adsorption_sites=adsorption_sites)
+                                   adsorption_sites=adsorption_sites,
+                                   num_muts=num_muts)
         self.descriptor = 'RemoveAdsorbate'
 
         self.site_preference = site_preference
         self.surface_preference = surface_preference
 
-        self.num_muts = 1
-        
         self.min_inputs = 1
 
     def get_new_individual(self, parents):
@@ -351,9 +351,11 @@ class MoveAdsorbate(AdsorbateOperator):
                  site_preference_from=None,
                  surface_preference_from=None,
                  site_preference_to=None,
-                 surface_preference_to=None):
+                 surface_preference_to=None,
+                 num_muts=1):
         AdsorbateOperator.__init__(self, adsorbate,
-                                   adsorption_sites=adsorption_sites)
+                                   adsorption_sites=adsorption_sites,
+                                   num_muts=num_muts)
         self.descriptor = 'MoveAdsorbate'
 
         self.min_adsorbate_distance = min_adsorbate_distance
@@ -363,8 +365,6 @@ class MoveAdsorbate(AdsorbateOperator):
         self.site_preference_to = site_preference_to
         self.surface_preference_to = surface_preference_to
 
-        self.num_muts = 1
-        
         self.min_inputs = 1
 
     def get_new_individual(self, parents):
@@ -440,6 +440,9 @@ class CutSpliceCrossoverWithAdsorbates(AdsorbateOperator):
     def __init__(self, adsorbate, blmin, keep_composition=True,
                  fix_coverage=False, adsorption_sites=None,
                  min_adsorbate_distance=2.):
+        if not fix_coverage:
+            #Trick the AdsorbateOperator class to accept no adsorption_sites
+            adsorption_sites = [1]
         AdsorbateOperator.__init__(self, adsorbate,
                                    adsorption_sites=adsorption_sites)
         self.blmin = blmin

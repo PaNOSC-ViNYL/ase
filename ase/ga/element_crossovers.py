@@ -137,4 +137,4 @@ class TwoPointElementCrossover(ElementCrossover):
         self.descriptor = 'TwoPointElementCrossover'
 
     def get_new_individual(self, parents):
-        pass
+        raise NotImplementedError
