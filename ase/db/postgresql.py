@@ -84,8 +84,9 @@ def reset():
     cur.execute("SELECT COUNT(*) FROM pg_tables WHERE tablename='systems'")
     if cur.fetchone()[0] == 1:
         cur.execute('DROP TABLE %s CASCADE' % ', '.join(all_tables))
+        cur.execute('DROP TABLE information CASCADE')
         cur.execute('DROP ROLE ase')
-        cur.execute("CREATE ROLE ase LOGIN PASSWORD 'ase'")
+    cur.execute("CREATE ROLE ase LOGIN PASSWORD 'ase'")
     con.commit()
 
     sql = ';\n'.join(init_statements)
