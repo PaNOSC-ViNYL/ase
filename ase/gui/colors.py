@@ -639,19 +639,8 @@ class ColorWindow(gtk.Window):
                  "%s: %s" % self.color_errors.values()[0])
             return False
         colordata = self.actual_colordata
-        if self.colormode == 'force':
-            # Use integers instead for border values
-            colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
-            self.gui.colormode_force_data = self.colormode_data
-        elif self.colormode == 'velocity':
-            # Use integers instead for border values
-            colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
-            self.gui.colormode_velocity_data = self.colormode_data
-        elif self.colormode == 'charge':
-            # Use integers instead for border values
-            colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
-            self.gui.colormode_charge_data = self.colormode_data
-        elif self.colormode == 'magnetic moment':
+        if self.colormode in [
+                'force', 'velocity', 'charge', 'magnetic moment']:
             # Use integers instead for border values
             colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
             self.gui.colormode_data = self.colormode_data

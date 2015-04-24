@@ -469,19 +469,19 @@ class View:
         elif self.colormode == 'force':
             F = self.images.F[self.frame]
             F = np.sqrt(((F*self.images.dynamic[:,np.newaxis])**2).sum(axis=-1))  # The absolute force
-            nF = (F - self.colormode_force_data[0]) * self.colormode_force_data[1]
+            nF = (F - self.colormode_data[0]) * self.colormode_data[1]
             nF = np.clip(nF.astype(int), 0, len(self.colors)-1)
             colors = np.array(colarray)[nF]
         elif self.colormode == 'velocity':
             V = self.images.V[self.frame]
             V = np.sqrt((V*V).sum(axis=-1))  # The absolute velocity
-            nV = (V - self.colormode_velocity_data[0]) * self.colormode_velocity_data[1]
+            nV = (V - self.colormode_data[0]) * self.colormode_data[1]
             nV = np.clip(nV.astype(int), 0, len(self.colors)-1)
             colors = np.array(colarray)[nV]
         elif self.colormode == 'charge':
             Q = self.images.q[self.frame]
-            nq = ((Q - self.colormode_charge_data[0]) *
-                  self.colormode_charge_data[1]        )
+            nq = ((Q - self.colormode_data[0]) *
+                  self.colormode_data[1]        )
             nq = np.clip(nq.astype(int), 0, len(self.colors)-1)
             colors = np.array(colarray)[nq]
         elif self.colormode == 'magnetic moment':
