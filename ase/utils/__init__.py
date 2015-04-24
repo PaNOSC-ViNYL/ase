@@ -2,6 +2,7 @@ import os
 import sys
 import time
 from math import sin, cos, radians, atan2, degrees
+from contextlib import contextmanager
 
 import numpy as np
 
@@ -18,6 +19,17 @@ else:
         exec('exec code in dct')
     basestring = basestring
     
+
+@contextmanager
+def seterr(**kwargs):
+    """Set how floating-point errors are handled.
+    
+    See np.seterr() for more details.
+    """
+    old = np.seterr(**kwargs)
+    yield
+    np.seterr(**old)
+
 
 def plural(n, word):
     if n == 1:
