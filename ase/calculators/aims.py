@@ -479,7 +479,7 @@ class Aims(FileIOCalculator):
         nband = None
         lines = open(self.out, 'r').readlines()
         for n, line in enumerate(lines):
-            if line.rfind('Total number of basis functions') > -1:
+            if line.rfind('Number of Kohn-Sham states') > -1:
                 nband = int(line.split(':')[-1].strip())
         return nband
 
@@ -577,6 +577,7 @@ class Aims(FileIOCalculator):
         # find last (eigenvalues)
         eigvalstart = None
         for n, line in enumerate(lines):
+            # eigenvalues come after Preliminary charge convergence reached
             if line.rfind('Preliminary charge convergence reached') > -1:
                 eigvalstart = n
                 break
