@@ -22,7 +22,8 @@ def h2(name, par):
 parameters = {
     'abinit': dict(ecut=200, toldfe=0.0001),
     'aims': dict(sc_accuracy_rho=5.e-3),
-    'gpaw': dict(mode='lcao', basis='sz(dzp)', realspace=False)}
+    'gpaw': dict(mode='lcao', basis='sz(dzp)', realspace=False),
+    'elk': dict(tasks=0, rgkmax=5.0)}
 
 for name in test_calculator_names:
     par = parameters.get(name, {})
