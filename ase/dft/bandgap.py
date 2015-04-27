@@ -1,11 +1,13 @@
+from __future__ import print_function
 import numpy as np
 
+
 def get_band_gap(calc):
-    """Calculates the band gap - direct and indirect along with the 
-    relevant k-points. 
+    """Calculates the band gap - direct and indirect along with the
+    relevant k-points.
     Rerurns a list of [e_direct, e_indirect, (is ik), (ivs, ivk), (ics, ick)],
-    where (is, ik) are the irreducible k-point/spin indeces of the direct gap 
-    and (ivs, ivk) and (ics, ick) are the irreducible spin and k-point indices 
+    where (is, ik) are the irreducible k-point/spin indeces of the direct gap
+    and (ivs, ivk) and (ics, ick) are the irreducible spin and k-point indices
     for the indirect gap in the valence and conduction bands respectively"""
     
     kpts_kc = calc.get_ibz_k_points()
@@ -14,7 +16,7 @@ def get_band_gap(calc):
     e_skn = np.array([[calc.get_eigenvalues(kpt=k, spin=s)
                        for k in range(Nk)]
                       for s in range(Ns)])
-    assert len(e_skn[0,0]) > 1
+    assert len(e_skn[0, 0]) > 1
 
     e_skn -= calc.get_fermi_level()
     ev_sk = []
@@ -48,19 +50,19 @@ def get_band_gap(calc):
     scin = kcin % Ns
     kcin = kcin % Nk
 
-    print 
-    print 'Direct gap: %.3f eV' % edir
+    print()
+    print('Direct gap: %.3f eV' % edir)
     k_c = kpts_kc[kdir]
     k_c = (k_c[0], k_c[1], k_c[2])
-    print 'Transition at spin   :   %d' % sdir
-    print 'Transition at k-point:  [%.3f %.3f %.3f]' % k_c
-    print 
-    print 'Indirect gap: %.3f eV' % ein
+    print('Transition at spin   :   %d' % sdir)
+    print('Transition at k-point:  [%.3f %.3f %.3f]' % k_c)
+    print()
+    print('Indirect gap: %.3f eV' % ein)
     kv_c = kpts_kc[kvin]
     kc_c = kpts_kc[kcin]
     k_2c = (kv_c[0], kv_c[1], kv_c[2], kc_c[0], kc_c[1], kc_c[2])
-    print 'Transition (v -> c) at spin   :   %d  ->  %d' % (svin, scin)
-    print 'Transition (v -> c) at k-point: ',
-    print '[%.3f %.3f %.3f]  ->  [%.3f %.3f %.3f]' % k_2c
-    print 
+    print('Transition (v -> c) at spin   :   %d  ->  %d' % (svin, scin))
+    print('Transition (v -> c) at k-point: ', end='')
+    print('[%.3f %.3f %.3f]  ->  [%.3f %.3f %.3f]' % k_2c)
+    print()
     return [edir, ein, (sdir, kdir), (svin, kvin), (scin, kcin)]
