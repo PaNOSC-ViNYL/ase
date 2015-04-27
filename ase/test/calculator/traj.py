@@ -11,12 +11,10 @@ def h2(name, par):
     h2.center(vacuum=2.0)
     h2.calc = get_calculator(name)(**par)
     e = h2.get_potential_energy()
-    f = h2.get_forces()
-    assert not h2.calc.calculation_required(h2, ['energy', 'forces'])
+    assert not h2.calc.calculation_required(h2, ['energy'])
     write('h2.traj', h2)
     h2 = read('h2.traj')
     assert abs(e - h2.get_potential_energy()) < 1e-12
-    assert abs(f - h2.get_forces()).max() < 1e-12
 
 
 parameters = {
