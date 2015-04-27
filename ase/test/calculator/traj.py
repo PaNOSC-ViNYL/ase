@@ -3,7 +3,7 @@ import os
 from ase.calculators.calculator import get_calculator
 from ase.io import read, write
 from ase.structure import molecule
-from ase.test import NotAvailable
+from ase.test import test_calculator_names
 
 
 def h2(name, par):
@@ -22,20 +22,13 @@ def h2(name, par):
 parameters = {
     'abinit': dict(ecut=200, toldfe=0.0001),
     'aims': dict(sc_accuracy_rho=5.e-3),
-    'gpaw': dict(mode='lcao', basis='sz(dzp)', realspace=False),
-    'jacapo': {},
-    'mopac': {},
-    'nwchem': {},
-    'vasp': {},
-    'turbomole': {},
-    'emt': {}}
+    'gpaw': dict(mode='lcao', basis='sz(dzp)', realspace=False)}
 
-for name, par in parameters.items():
+for name in test_calculator_names:
+    par = parameters.get(name, {})
     os.mkdir(name + '-test')
     os.chdir(name + '-test')
     try:
         h2(name, par)
-    except NotAvailable:
-        pass
     finally:
         os.chdir('..')
