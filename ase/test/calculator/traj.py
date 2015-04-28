@@ -24,10 +24,11 @@ parameters = {
     'aims': dict(sc_accuracy_rho=5.e-3, sc_accuracy_forces=1e-4, xc='LDA'),
     'gpaw': dict(mode='lcao', basis='sz(dzp)', realspace=False),
     'elk': dict(tasks=0, rgkmax=5.0, tforce=True, pbc=True),
-    'jacapo': dict(pbc=True)}
+    'jacapo': dict(pbc=True),
+    'vasp': dict(xc='LDA')}
 
-for name in test_calculator_names:
-    if name in ['gromacs']:
+for name in test_calculator_names + ['emt']:
+    if name in ['gromacs', 'elk', 'mopac']:
         continue
     par = parameters.get(name, {})
     os.mkdir(name + '-test')
