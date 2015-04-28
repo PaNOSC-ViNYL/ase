@@ -27,6 +27,8 @@ parameters = {
     'jacapo': dict(pbc=True)}
 
 for name in test_calculator_names:
+    if name in ['gromacs']:
+        continue
     par = parameters.get(name, {})
     os.mkdir(name + '-test')
     os.chdir(name + '-test')
