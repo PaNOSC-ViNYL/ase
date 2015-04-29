@@ -54,7 +54,7 @@ def parse_name(name):
         port = int(port)
     else:
         port = 5432
-    host = host or 'localhost'
+    host = host or None
     return user, password, host, port
     
     
