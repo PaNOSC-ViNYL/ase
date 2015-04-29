@@ -63,6 +63,8 @@ class PostgreSQLDatabase(SQLite3Database):
     
     def _connect(self):
         user, password, host, port = parse_name(self.filename)
+        if host == 'localhost':
+            host = None
         con = psycopg2.connect(database='postgres',
                                user=user, password=password,
                                host=host, port=port)
