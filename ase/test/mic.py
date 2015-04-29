@@ -1,18 +1,27 @@
 import ase
+import numpy as np
 
 tol = 1e-9
 
-a = ase.Atoms('CC', [[9.5,5,5],[0.5,5,5]], cell=[10,10,10], pbc=True)
+cell = np.array([
+    [1., 0., 0.],
+    [0.5, np.sqrt(3)/2, 0.],
+    [0., 0., 1.],
+    ]) * 10
 
-assert abs(a.get_distance(0,1)-9.0) < tol
-assert abs(a.get_distance(0,1,mic=True)-1.0) < tol
+pos = np.dot(np.array([[0., 0., 0.], [0.5, 0.5, 0.5]]), cell)
 
-a.set_distance(0,1, 1.5, mic=True)
+a = ase.Atoms('CC', pos, cell=cell, pbc=True)
 
-assert abs(a.get_distance(0,1)-8.5) < tol
-assert abs(a.get_distance(0,1,mic=True)-1.5) < tol
+assert abs(a.get_distance(0, 1) - 10.0) < tol
+assert abs(a.get_distance(0, 1, mic=True) - 5 * np.sqrt(2)) < tol
 
-a.set_distance(0,1, 1.5)
+a.set_distance(0, 1, 5, mic=True)
 
-assert abs(a.get_distance(0,1)-1.5) < tol
-assert abs(a.get_distance(0,1,mic=True)-1.5) < tol
+#assert abs(a.get_distance(0, 1) - 5) < tol
+assert abs(a.get_distance(0, 1, mic=True) - 5) < tol
+
+a.set_distance(0, 1, 1.5)
+
+assert abs(a.get_distance(0, 1) - 1.5) < tol
+assert abs(a.get_distance(0, 1, mic=True) - 1.5) < tol

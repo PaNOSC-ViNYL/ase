@@ -1344,6 +1344,41 @@ class Atoms(object):
         positions = self.arrays['positions']
         self.set_positions(positions +
                            rs.normal(scale=stdev, size=positions.shape))
+    def _mic(self, D):
+        D_len = tuple(np.linalg.norm(Di) for Di in D)
+
+        longest = 0
+        for Di_len in D_len:
+            if Di_len > longest:
+                longest = Di_len
+
+        normal = np.zeros((3, 3), dtype=float)
+        for i in xrange(3):
+            normal[i] = np.cross(self.cell[i], self.cell[(i + 1)%3])
+            normal[i] /= np.linalg.norm(normal[i])
+
+        n = np.zeros(3, dtype=int)
+        for i in xrange(3):
+            vert = abs(np.dot(self.cell[i], normal[(i + 1)%3]))
+            n[i] = int(np.ceil(longest / vert))
+        n *= self._pbc
+
+        shortest_len = list(D_len)
+        shortest = list(D)
+
+        for i in xrange(-n[0], n[0] + 1):
+            na = i * self.cell[0]
+            for j in xrange(-n[1], n[1] + 1):
+                nb = j * self.cell[1]
+                for k in xrange(-n[2], n[2] + 1):
+                    nc = k * self.cell[2]
+                    D_new = D + na + nb + nc
+                    for m, Di_new in enumerate(D_new):
+                        Di_new_len = np.linalg.norm(Di_new)
+                        if Di_new_len < shortest_len[m]:
+                            shortest[m] = Di_new.copy()
+                            shortest_len[m] = Di_new_len
+        return np.array(shortest)
 
     def get_distance(self, a0, a1, mic=False, vector=False):
         """Return distance between two atoms.
@@ -1355,8 +1390,7 @@ class Atoms(object):
         R = self.arrays['positions']
         D = R[a1] - R[a0]
         if mic:
-            Dr = np.linalg.solve(self._cell.T, D)
-            D = np.dot(Dr - np.round(Dr) * self._pbc, self._cell)
+            D = self._mic((D,))[0]
         if vector:
             return D
         return np.linalg.norm(D)
@@ -1371,8 +1405,7 @@ class Atoms(object):
         R = self.arrays['positions']
         D = R[indices] - R[a]
         if mic:
-            Dr = np.linalg.solve(self._cell, D.T)
-            D = np.dot(self._cell, Dr - (self._pbc * np.round(Dr).T).T).T
+            D = self._mic(D)
         if vector:
             return D
         return np.sqrt((D**2).sum(1))
@@ -1391,8 +1424,7 @@ class Atoms(object):
         D = np.concatenate(D)
 
         if mic:
-            Dr = np.linalg.solve(self._cell, D.T)
-            D = np.dot(self._cell, Dr - (self._pbc * np.round(Dr).T).T).T
+            D = self._mic(D)
 
         results = np.sqrt((D**2).sum(1))
         results.shape = (L, L)
@@ -1409,8 +1441,7 @@ class Atoms(object):
         R = self.arrays['positions']
         D = R[a1] - R[a0]
         if mic:
-            Dr = np.linalg.solve(self._cell.T, D)
-            D = np.dot(Dr - np.round(Dr) * self._pbc, self._cell)
+            D = self._mic((D,))[0]
         x = 1.0 - distance / np.linalg.norm(D)
         R[a0] += (x * fix) * D
         R[a1] -= (x * (1.0 - fix)) * D
