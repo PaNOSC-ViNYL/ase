@@ -11,7 +11,6 @@ def setup(app):
     pass
     
 for file in ['ase/ag.png',
-             'ase/dft/water_divide_surf.png',
              'ase/ase-talk.pdf']:
     if os.path.isfile(file):
         continue
