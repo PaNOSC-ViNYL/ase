@@ -542,12 +542,15 @@ class Aims(FileIOCalculator):
         assert mode in ['ibz_k_points', 'k_point_weights']
         lines = open(self.out, 'r').readlines()
         kpts = None
+        kptsstart = None
+        for n, line in enumerate(lines):
+            if line.rfind('| Number of k-points') > -1:
+                kpts = int(line.split(':')[-1].strip())
         for n, line in enumerate(lines):
             if line.rfind('K-points in task') > -1:
-                kpts = int(line.split(':')[-1].strip())
-                kptsstart = n
-                break
+                kptsstart = n  # last occurence of (
         assert not kpts is None
+        assert not kptsstart is None
         text = lines[kptsstart + 1:]
         values = []
         for line in text[:kpts]:
@@ -569,7 +572,7 @@ class Aims(FileIOCalculator):
         # number of kpts
         kpts = None
         for n, line in enumerate(lines):
-            if line.rfind('K-points in task') > -1:
+            if line.rfind('| Number of k-points') > -1:
                 kpts = int(line.split(':')[-1].strip())
                 break
         assert not kpts is None
