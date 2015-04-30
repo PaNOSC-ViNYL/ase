@@ -1344,6 +1344,7 @@ class Atoms(object):
         positions = self.arrays['positions']
         self.set_positions(positions +
                            rs.normal(scale=stdev, size=positions.shape))
+        
     def _mic(self, D):
         D_len = tuple(np.linalg.norm(Di) for Di in D)
 
@@ -1353,24 +1354,24 @@ class Atoms(object):
                 longest = Di_len
 
         normal = np.zeros((3, 3), dtype=float)
-        for i in xrange(3):
-            normal[i] = np.cross(self.cell[i], self.cell[(i + 1)%3])
+        for i in range(3):
+            normal[i] = np.cross(self.cell[i], self.cell[(i + 1) % 3])
             normal[i] /= np.linalg.norm(normal[i])
 
         n = np.zeros(3, dtype=int)
-        for i in xrange(3):
-            vert = abs(np.dot(self.cell[i], normal[(i + 1)%3]))
+        for i in range(3):
+            vert = abs(np.dot(self.cell[i], normal[(i + 1) % 3]))
             n[i] = int(np.ceil(longest / vert))
         n *= self._pbc
 
         shortest_len = list(D_len)
         shortest = list(D)
 
-        for i in xrange(-n[0], n[0] + 1):
+        for i in range(-n[0], n[0] + 1):
             na = i * self.cell[0]
-            for j in xrange(-n[1], n[1] + 1):
+            for j in range(-n[1], n[1] + 1):
                 nb = j * self.cell[1]
-                for k in xrange(-n[2], n[2] + 1):
+                for k in range(-n[2], n[2] + 1):
                     nc = k * self.cell[2]
                     D_new = D + na + nb + nc
                     for m, Di_new in enumerate(D_new):
