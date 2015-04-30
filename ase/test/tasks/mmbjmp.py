@@ -10,9 +10,9 @@ From this paper:
 
   http://arxiv.org/pdf/1210.7738v1.pdf
 
-  Data extracted with:
+Data extracted with:
 
-  * Table I::
+Table I::
 
      # header
      pdftotext -layout -f 2 -l 2 1210.7738v1.pdf - | "eaxp|mmBJ|Eg" \
