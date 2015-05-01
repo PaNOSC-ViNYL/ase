@@ -508,7 +508,7 @@ def write(filename, images, format=None, **kwargs):
     if format == 'xyz':
         from ase.io.extxyz import write_xyz
         write_xyz(filename, images, columns=['symbols', 'positions'],
-                  write_info=False, **kwargs)
+                  write_info=False, write_results=False, **kwargs)
         return
     if format == 'extxyz':
         from ase.io.extxyz import write_xyz

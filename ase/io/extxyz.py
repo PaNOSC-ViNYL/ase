@@ -358,7 +358,7 @@ def read_xyz(fileobj, index=-1):
     return images[rtnndx]
 
 
-def output_column_format(atoms, columns, arrays, write_info=True):
+def output_column_format(atoms, columns, arrays, write_info=True, results=None):
     """
     Helper function to build extended XYZ comment line
     """
@@ -412,6 +412,8 @@ def output_column_format(atoms, columns, arrays, write_info=True):
     info = {}
     if write_info:
         info.update(atoms.info)
+    if results is not None:
+        info.update(results)
     info['pbc'] = atoms.get_pbc()  # always save periodic boundary conditions
     comment += ' ' + key_val_dict_to_str(info)
 
@@ -421,13 +423,14 @@ def output_column_format(atoms, columns, arrays, write_info=True):
     return comment, property_ncols, dtype, fmt
 
 
-def write_xyz(fileobj, images, columns=None, write_info=True):
+def write_xyz(fileobj, images, columns=None, write_info=True, write_results=True):
     """
     Write output in extended XYZ format
 
     Optionally, specify which columns (arrays) to include in output,
     and whether to write the contents of the Atoms.info dict to the
-    XYZ comment line (default is True)
+    XYZ comment line (default is True) and the results of a
+    SinglePointCalculator attached to this Atoms.
     """
     if isinstance(fileobj, str):
         fileobj = paropen(fileobj, 'w')
@@ -439,46 +442,73 @@ def write_xyz(fileobj, images, columns=None, write_info=True):
         natoms = len(atoms)
 
         if columns is None:
-            columns = ['symbols'] + list(atoms.arrays.keys())
+            frame_columns = None
+        else:
+            frame_columns = columns[:]
+        
+        if frame_columns is None:
+            frame_columns = ['symbols'] + list(atoms.arrays.keys())
+
+        per_frame_results = {}
+        per_atom_results = {}
+        if write_results:
+            calculator = atoms.get_calculator()
+            if (calculator is not None and
+                isinstance(calculator, SinglePointCalculator)):
+                for key in all_properties:
+                    value = calculator.results.get(key, None)
+                    if value is None:
+                        # skip missing calculator results
+                        continue
+                    if isinstance(value, np.ndarray) and value.shape[0] == len(atoms):
+                        # per-atom quantities (forces, potential energies, stresses)
+                        per_atom_results[key] = value
+                    else:
+                        # per-frame quantities (potential energy, stress)
+                        per_frame_results[key] = value
 
         # Move symbols and positions to first two properties
-        if 'symbols' in columns:
-            i = columns.index('symbols')
-            columns[0], columns[i] = columns[i], columns[0]
+        if 'symbols' in frame_columns:
+            i = frame_columns.index('symbols')
+            frame_columns[0], frame_columns[i] = frame_columns[i], frame_columns[0]
 
-        if 'positions' in columns:
-            i = columns.index('positions')
-            columns[1], columns[i] = columns[i], columns[1]
+        if 'positions' in frame_columns:
+            i = frame_columns.index('positions')
+            frame_columns[1], frame_columns[i] = frame_columns[i], frame_columns[1]
 
         # Check first column "looks like" atomic symbols
-        if columns[0] in atoms.arrays:
-            symbols = atoms.arrays[columns[0]]
+        if frame_columns[0] in atoms.arrays:
+            symbols = atoms.arrays[frame_columns[0]]
         else:
             symbols = atoms.get_chemical_symbols()
         if not isinstance(symbols[0], basestring):
             raise ValueError('First column must be symbols-like')
 
         # Check second column "looks like" atomic positions
-        pos = atoms.arrays[columns[1]]
+        pos = atoms.arrays[frame_columns[1]]
         if pos.shape != (natoms, 3) or pos.dtype.kind != 'f':
             raise ValueError('Second column must be position-like')
 
         # Collect data to be written out
         arrays = {}
-        for column in columns:
+        for column in frame_columns:
             if column in atoms.arrays:
                 arrays[column] = atoms.arrays[column]
             elif column == 'symbols':
                 arrays[column] = np.array(symbols)
             else:
-                raise ValueError('Missing array %s' % column)
+                raise ValueError('Missing array "%s"' % column)
 
-        comm, ncols, dtype, fmt = output_column_format(atoms, columns, arrays,
-                                                       write_info)
+        if write_results:
+            frame_columns += per_atom_results.keys()
+            arrays.update(per_atom_results)
 
-        # Pack columns into record array
+        comm, ncols, dtype, fmt = output_column_format(atoms, frame_columns, arrays,
+                                                       write_info, per_frame_results)
+
+        # Pack frame_columns into record array
         data = np.zeros(natoms, dtype)
-        for column, ncol in zip(columns, ncols):
+        for column, ncol in zip(frame_columns, ncols):
             value = arrays[column]
             if ncol == 1:
                 data[column] = value
