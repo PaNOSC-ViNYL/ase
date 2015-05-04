@@ -40,10 +40,6 @@ results = [images[2].get_potential_energy()]
 nt_images = [read('mep.traj', index=_) for _ in range(-4, 0)]
 nebtools = NEBtools(nt_images)
 nt_fmax = nebtools.get_fmax()
-try:
-    fig = nebtools.plot_band()
-except ImportError:  # matplotlib must not be installed
-    pass
 Ef, dE = nebtools.get_barrier()
 assert nt_fmax < fmax
 
