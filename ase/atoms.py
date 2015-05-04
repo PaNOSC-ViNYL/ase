@@ -1424,11 +1424,14 @@ class Atoms(object):
         """
 
         R = self.arrays['positions']
-        D = R[a1] - R[a0]
+        D = np.array([R[a1] - R[a0]])
         if mic:
-            D, D_len = self._mic(np.array([D]))
+            D, D_len = self._mic(D)
+        else:
+            D_len = np.array([np.sqrt((D**2).sum())])
         if vector:
             return D[0]
+        
         return D_len[0]
 
     def get_distances(self, a, indices, mic=False, vector=False):
@@ -1442,6 +1445,8 @@ class Atoms(object):
         D = R[indices] - R[a]
         if mic:
             D, D_len = self._mic(D)
+        else:
+            D_len = np.sqrt((D**2).sum(1))
         if vector:
             return D
         return D_len
@@ -1461,6 +1466,8 @@ class Atoms(object):
 
         if mic:
             D, D_len = self._mic(D)
+        else:
+            D_len = np.sqrt((D**2).sum(1))
 
         results = np.zeros((L, L), dtype=float)
         start = 0
@@ -1478,9 +1485,11 @@ class Atoms(object):
         atom and *fix=0.5* (default) to fix the center of the bond."""
 
         R = self.arrays['positions']
-        D = R[a1] - R[a0]
+        D = np.array([R[a1] - R[a0]])
         if mic:
-            D, D_len = self._mic(np.array([D]))[0]
+            D, D_len = self._mic(D)
+        else:
+            D_len = np.array([np.sqrt((D**2).sum())])
         x = 1.0 - distance / D_len[0]
         R[a0] += (x * fix) * D[0]
         R[a1] -= (x * (1.0 - fix)) * D[0]
