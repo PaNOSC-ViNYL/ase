@@ -332,14 +332,8 @@ class SingleCalculatorNEB(NEB):
         return self
 
 
-def fit(images):
-    E = [i.get_potential_energy() for i in images]
-    F = [i.get_forces() for i in images]
-    R = [i.get_positions() for i in images]
-    return fit0(E, F, R)
-
-
 def fit0(E, F, R):
+    """Constructs curve parameters from the NEB images."""
     E = np.array(E) - E[0]
     n = len(E)
     Efit = np.empty((n - 1) * 20 + 1)
@@ -388,34 +382,72 @@ def fit0(E, F, R):
     return s, E, Sfit, Efit, lines
 
 
-def get_NEB_plot(images):
-    """Returns a figure object of the NEB fit to the given images."""
-    from matplotlib import pyplot
-    if not hasattr(images, 'repeat'):
-        from ase.gui.images import Images
-        images = Images(images)
-    N = images.repeat.prod()
-    natoms = images.natoms // N
-    R = images.P[:, :natoms]
-    E = images.E
-    F = images.F[:, :natoms]
-    s, E, Sfit, Efit, lines = fit0(E, F, R)
-    fig = pyplot.figure()
-    ax = fig.add_subplot(111)
-    ax.plot(s, E, 'o')
-    for x, y in lines:
-        ax.plot(x, y, '-g')
-    ax.plot(Sfit, Efit, 'k-')
-    ax.set_xlabel('path [$\AA$]')
-    ax.set_ylabel('energy [eV]')
-    Ef = max(Efit) - E[0]
-    Er = max(Efit) - E[-1]
-    dE = E[-1] - E[0]
-    ax.set_title('$E_\mathrm{f} \\approx$ %.3f eV; '
-                 '$E_\mathrm{r} \\approx$ %.3f eV; '
-                 '$\\Delta E$ = %.3f eV'
-                 % (Ef, Er, dE))
-    return fig
+class NEBtools:
+    """Class to make many of the common tools for NEB analysis available to
+    the user. Useful for scripting the output of many jobs. Initialize with
+    list of images which make up a single band."""
+
+    def __init__(self, images):
+        self._images = images
+
+    def get_barrier(self, fit=True):
+        """Returns the calculated barrier estimate from the NEB, along with
+        the Delta E of the elementary reaction. If fit=True, provides the
+        best estimate of the barrier based on the fit to the images; if
+        fit=False, bases that barrier only on the difference between the
+        max image and initial state."""
+        s, E, Sfit, Efit, lines = self.get_fit()
+        dE = E[-1] - E[0]
+        if fit:
+            Ef = max(Efit) - E[0]
+        else:
+            Ef = max(E) - E[0]
+        return Ef, dE
+
+    def plot_band(self, ax=None):
+        """Plots the NEB band on matplotlib axes object 'ax'. If ax=None
+        returns a new figure object."""
+        if not ax:
+            from matplotlib import pyplot
+            fig = pyplot.figure()
+            ax = fig.add_subplot(111)
+        else:
+            fig = None
+        s, E, Sfit, Efit, lines = self.get_fit()
+        ax.plot(s, E, 'o')
+        for x, y in lines:
+            ax.plot(x, y, '-g')
+        ax.plot(Sfit, Efit, 'k-')
+        ax.set_xlabel('path [$\AA$]')
+        ax.set_ylabel('energy [eV]')
+        Ef = max(Efit) - E[0]
+        Er = max(Efit) - E[-1]
+        dE = E[-1] - E[0]
+        ax.set_title('$E_\mathrm{f} \\approx$ %.3f eV; '
+                     '$E_\mathrm{r} \\approx$ %.3f eV; '
+                     '$\\Delta E$ = %.3f eV'
+                     % (Ef, Er, dE))
+        return fig
+
+    def get_fmax(self):
+        """Returns fmax, as used by optimizers with NEB."""
+        neb = NEB(self._images)
+        forces = neb.get_forces()
+        return np.sqrt((forces**2).sum(axis=1).max())
+
+    def get_fit(self):
+        """Returns the parameters for fitting images to band."""
+        images = self._images
+        if not hasattr(images, 'repeat'):
+            from ase.gui.images import Images
+            images = Images(images)
+        N = images.repeat.prod()
+        natoms = images.natoms // N
+        R = images.P[:, :natoms]
+        E = images.E
+        F = images.F[:, :natoms]
+        s, E, Sfit, Efit, lines = fit0(E, F, R)
+        return s, E, Sfit, Efit, lines
 
 
 def interpolate(images):

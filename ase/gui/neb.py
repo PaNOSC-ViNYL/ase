@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from ase.neb import get_NEB_plot
+from ase.neb import NEBtools
 
 
 def NudgedElasticBand(images):
-    fig = get_NEB_plot(images)
+    nebtools = NEBtools(images)
+    fig = nebtools.plot_band()
     fig.show()

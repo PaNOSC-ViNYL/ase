@@ -1,8 +1,8 @@
 import threading
 
 from ase.test import World
-from ase.io import Trajectory
-from ase.neb import NEB
+from ase.io import Trajectory, read
+from ase.neb import NEB, NEBtools
 from ase.calculators.morse import MorsePotential
 from ase.optimize import BFGS
 
@@ -21,10 +21,13 @@ if 0:  # verify that initial images make sense
     from ase.visualize import view
     view(neb.images)
 
-for image in images[1:]:
+for image in images:
     image.set_calculator(MorsePotential())
+images[0].get_potential_energy()
+images[-1].get_potential_energy()
 
-dyn = BFGS(neb, trajectory='mep.traj')
+
+dyn = BFGS(neb, trajectory='mep.traj', logfile='mep.log')
 
 dyn.run(fmax=fmax)
 
@@ -32,6 +35,15 @@ for a in neb.images:
     print(a.positions[-1], a.get_potential_energy())
 
 results = [images[2].get_potential_energy()]
+
+# Check NEB tools.
+nt_images = [read('mep.traj', index=_) for _ in range(-4, 0)]
+nebtools = NEBtools(nt_images)
+nt_fmax = nebtools.get_fmax()
+fig = nebtools.plot_band()
+Ef, dE = nebtools.get_barrier()
+assert nt_fmax < fmax
+
 
 def run_neb_calculation(cpu):
     images = [Trajectory('H.traj')[-1]]
@@ -60,5 +72,3 @@ for t in threads:
 
 print(results)
 assert abs(results[0] - results[1]) < 1e-13
-
-
