@@ -29,7 +29,7 @@ parameters = {
     'vasp': dict(xc='LDA')}
 
 for name in test_calculator_names + ['emt']:
-    if name in ['cp2k', 'gromacs', 'mopac', 'turbomole']:
+    if name in ['cp2k', 'gromacs', 'lammpslib', 'mopac', 'turbomole']:
         continue
     par = parameters.get(name, {})
     os.mkdir(name + '-test')
