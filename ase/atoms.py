@@ -1344,42 +1344,77 @@ class Atoms(object):
         positions = self.arrays['positions']
         self.set_positions(positions +
                            rs.normal(scale=stdev, size=positions.shape))
-        
+
     def _mic(self, D):
-        D_len = tuple(np.linalg.norm(Di) for Di in D)
+        """Finds the minimum-image representation of vector(s) D"""
+        # Calculate the 4 unique unit cell diagonal lengths
+        diags = np.sqrt((np.dot([
+            [1, 1, 1],
+            [-1, 1, 1],
+            [1, -1, 1],
+            [-1, -1, 1],
+            ], self.cell)**2).sum(1))
 
-        longest = 0
-        for Di_len in D_len:
-            if Di_len > longest:
-                longest = Di_len
+        # Try the old method. If the longest resulting distance is less than
+        # or equal to half the shortest diagonal of the unit cell, then the
+        # result is guaranteed to be correct. This should always be the case
+        # for unit cells with mutually orthogonal lattice vectors.
+        Dr = np.dot(D, np.linalg.inv(self._cell))
+        D = np.dot(Dr - np.round(Dr) * self._pbc, self._cell)
+        D_len = np.sqrt((D**2).sum(1))
+        if max(D_len) <= min(diags) / 2.:
+            return D, D_len
 
-        normal = np.zeros((3, 3), dtype=float)
-        for i in range(3):
-            normal[i] = np.cross(self.cell[i], self.cell[(i + 1) % 3])
-            normal[i] /= np.linalg.norm(normal[i])
+        # The cutoff radius is the longest direct distance between atoms
+        # or half the longest lattice vector, whichever is smaller
+        cutoff = min(max(D_len), max(diags) / 2.)
 
-        n = np.zeros(3, dtype=int)
-        for i in range(3):
-            vert = abs(np.dot(self.cell[i], normal[(i + 1) % 3]))
-            n[i] = int(np.ceil(longest / vert))
-        n *= self._pbc
+        # The number of neighboring images to search in each direction is
+        # equal to the ceiling of the cutoff distance (defined above) divided
+        # by the length of the projection of the lattice vector onto its
+        # corresponding surface normal. a's surface normal vector is e.g.
+        # b x c / (|b| |c|), so this projection is (a . (b x c)) / (|b| |c|).
+        # The numerator is just the lattice volume, so this can be simplified
+        # to V / (|b| |c|). This is rewritten as V |a| / (|a| |b| |c|)
+        # for vectorization purposes.
+        latt_len = np.sqrt((self.cell**2).sum(1))
+        n = self._pbc * np.array(np.ceil(cutoff * latt_len \
+                / (self.get_volume() * np.prod(latt_len))), dtype=int)
 
-        shortest_len = list(D_len)
-        shortest = list(D)
-
+        # Construct a list of translation vectors. For example, if we are
+        # searching only the nearest images (27 total), tvecs will be a
+        # 27x3 array of translation vectors. This is the only nested loop
+        # in the routine, and it takes a very small fraction of the total
+        # execution time, so it is not worth optimizing further.
+        tvecs = []
         for i in range(-n[0], n[0] + 1):
-            na = i * self.cell[0]
+            latt_a = i * self.cell[0]
             for j in range(-n[1], n[1] + 1):
-                nb = j * self.cell[1]
+                latt_ab = latt_a + j * self.cell[1]
                 for k in range(-n[2], n[2] + 1):
-                    nc = k * self.cell[2]
-                    D_new = D + na + nb + nc
-                    for m, Di_new in enumerate(D_new):
-                        Di_new_len = np.linalg.norm(Di_new)
-                        if Di_new_len < shortest_len[m]:
-                            shortest[m] = Di_new.copy()
-                            shortest_len[m] = Di_new_len
-        return np.array(shortest)
+                    tvecs.append(latt_ab + k * self.cell[2])
+        tvecs = np.array(tvecs)
+
+        # Translate the direct displacement vectors by each translation
+        # vector, and calculate the corresponding lengths.
+        D_trans = tvecs[np.newaxis] + D[:, np.newaxis]
+        D_trans_len = np.sqrt((D_trans**2).sum(2))
+
+        # Find which translation vector corresponds with the minimum image
+        # convention distance for each given pair of atoms. For symmetrical
+        # systems, there may be more than one translation vector corresponding
+        # to the MIC distance; this finds the first one in D_trans_len.
+        D_min_len = np.min(D_trans_len, axis=1)
+        smallest = D_trans_len.argmin(axis=1)
+
+        # This returns a MemoryError on my system, not sure why!
+        #return D_trans[:, smallest]
+
+        # The next best thing I could think of:
+        D_min = np.zeros_like(D)
+        for i, Di_trans in enumerate(D_trans):
+            D_min[i] = Di_trans[smallest[i]]
+        return D_min, D_min_len
 
     def get_distance(self, a0, a1, mic=False, vector=False):
         """Return distance between two atoms.
@@ -1391,10 +1426,10 @@ class Atoms(object):
         R = self.arrays['positions']
         D = R[a1] - R[a0]
         if mic:
-            D = self._mic((D,))[0]
+            D, D_len = self._mic(np.array([D]))
         if vector:
-            return D
-        return np.linalg.norm(D)
+            return D[0]
+        return D_len[0]
 
     def get_distances(self, a, indices, mic=False, vector=False):
         """Return distances of atom No.i with a list of atoms.
@@ -1406,10 +1441,10 @@ class Atoms(object):
         R = self.arrays['positions']
         D = R[indices] - R[a]
         if mic:
-            D = self._mic(D)
+            D, D_len = self._mic(D)
         if vector:
             return D
-        return np.sqrt((D**2).sum(1))
+        return D_len
 
     def get_all_distances(self, mic=False):
         """Return distances of all of the atoms with all of the atoms.
@@ -1420,16 +1455,19 @@ class Atoms(object):
         R = self.arrays['positions']
 
         D = []
-        for i in range(L):
-            D.append(R - R[i])
+        for i in range(L - 1):
+            D.append(R[i + 1:] - R[i])
         D = np.concatenate(D)
 
         if mic:
-            D = self._mic(D)
+            D, D_len = self._mic(D)
 
-        results = np.sqrt((D**2).sum(1))
-        results.shape = (L, L)
-        return results
+        results = np.zeros((L, L), dtype=float)
+        start = 0
+        for i in range(L - 1):
+            results[i, i + 1:] = D_len[start:start + L - i - 1]
+            start += L - i - 1
+        return results + results.T
 
     def set_distance(self, a0, a1, distance, fix=0.5, mic=False):
         """Set the distance between two atoms.
@@ -1442,10 +1480,10 @@ class Atoms(object):
         R = self.arrays['positions']
         D = R[a1] - R[a0]
         if mic:
-            D = self._mic((D,))[0]
-        x = 1.0 - distance / np.linalg.norm(D)
-        R[a0] += (x * fix) * D
-        R[a1] -= (x * (1.0 - fix)) * D
+            D, D_len = self._mic(np.array([D]))[0]
+        x = 1.0 - distance / D_len[0]
+        R[a0] += (x * fix) * D[0]
+        R[a1] -= (x * (1.0 - fix)) * D[0]
 
     def get_scaled_positions(self):
         """Get positions relative to unit cell.
