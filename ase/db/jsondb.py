@@ -4,9 +4,10 @@ import os
 
 import numpy as np
 
-from ase.db.core import Database, ops, parallel, lock, now, reserved_keys
-from ase.parallel import world
+from ase.db.core import Database, ops, parallel, lock, now
+from ase.db.row import AtomsRow
 from ase.io.jsonio import encode, read_json
+from ase.parallel import world
 
 
 class JSONDatabase(Database):
@@ -29,27 +30,42 @@ class JSONDatabase(Database):
             except (SyntaxError, ValueError):
                 pass
 
-        if isinstance(atoms, dict):
-            dct = dict((key, atoms[key])
-                       for key in reserved_keys
-                       if key in atoms and key != 'id')
-            unique_id = dct['unique_id']
+        if isinstance(atoms, AtomsRow):
+            row = atoms
+            unique_id = row.unique_id
             for id in ids:
                 if bigdct[id]['unique_id'] == unique_id:
                     break
             else:
                 id = None
-            dct['mtime'] = now()
+            mtime = now()
         else:
-            dct = self.collect_data(atoms)
+            row = AtomsRow(atoms)
+            row.ctime = mtime = now()
+            row.user = os.getenv('USER')
             id = None
 
-        for key, value in [('key_value_pairs', key_value_pairs),
-                           ('data', data)]:
-            if value:
-                dct[key] = value
-            else:
-                dct.pop(key, None)
+        dct = {}
+        for key in row.__dict__:
+            if key[0] == '_':
+                continue
+            if key in row._keys:
+                continue
+            dct[key] = row[key]
+
+        dct['mtime'] = mtime
+        
+        kvp = key_value_pairs or row.key_value_pairs
+        if kvp:
+            dct['key_value_pairs'] = kvp
+        
+        data = data or row.get('data')
+        if data:
+            dct['data'] = data
+            
+        constraints = row.get('constraints')
+        if constraints:
+            dct['constraints'] = constraints
         
         if id is None:
             id = nextid
@@ -96,14 +112,14 @@ class JSONDatabase(Database):
             myids.remove(id)
         self._write_json(bigdct, myids, nextid)
 
-    def _get_dict(self, id):
+    def _get_row(self, id):
         bigdct, ids, nextid = self._read_json()
         if id is None:
             assert len(ids) == 1
             id = ids[0]
         dct = bigdct[id]
         dct['id'] = id
-        return dct
+        return AtomsRow(dct)
 
     def _select(self, keys, cmps, explain=False, verbosity=0,
                 limit=None, offset=0, sort=None):
@@ -118,13 +134,15 @@ class JSONDatabase(Database):
             else:
                 reverse = False
             
+            def f(row):
+                return row[sort]
+                
             rows = sorted(self._select(keys + [sort], cmps),
-                          key=functools.partial(get_value, key=sort),
-                          reverse=reverse)
+                          key=f, reverse=reverse)
             if limit:
                 rows = rows[offset:offset + limit]
-            for dct in rows:
-                yield dct
+            for row in rows:
+                yield row
             return
             
         try:
@@ -140,20 +158,22 @@ class JSONDatabase(Database):
         for id in ids:
             if n - offset == limit:
                 return
-            dct = bigdct[id]
+            row = AtomsRow(bigdct[id])
+            row.id = id
             for key in keys:
-                if not ('key_value_pairs' in dct and
-                        key in dct['key_value_pairs']):
+                if key not in row:
                     break
             else:
                 for key, op, val in cmps:
-                    value = get_value(dct, key, id)
-                    if not op(value, val):
+                    if isinstance(key, int):
+                        value = np.equal(row.numbers, key).sum()
+                    else:
+                        value = row.get(key)
+                    if value is None or not op(value, val):
                         break
                 else:
                     if n >= offset:
-                        dct['id'] = id
-                        yield dct
+                        yield row
                     n += 1
 
     def _update(self, ids, delete_keys, add_key_value_pairs):
@@ -179,21 +199,3 @@ class JSONDatabase(Database):
             
         self._write_json(bigdct, myids, nextid)
         return m, n
-
-
-def get_value(dct, key, id=None):
-    pairs = dct.get('key_value_pairs')
-    if pairs is None:
-        value = None
-    else:
-        value = pairs.get(key)
-    if value is not None:
-        return value
-    if key in ['energy', 'magmom', 'ctime', 'user', 'calculator']:
-        return dct.get(key)
-    if isinstance(key, int):
-        return np.equal(dct['numbers'], key).sum()
-    if key == 'natoms':
-        return len(dct['numbers'])
-    if key == 'id':
-        return id or dct['id']
