@@ -93,7 +93,7 @@ class HeuslerMeinertCollection:
                     basis=[(1. / 4, 1. / 4, 1. / 4),
                            (0., 0., 0.),
                            (1. / 2, 1. / 2, 1. / 2)],
-                    spacegroup=225,
+                    spacegroup=sg,
                     cellpar=[a, a, a, 90, 90, 90],
                     primitive_cell=True)
         # set average moments on all atoms (add + 2.0)
