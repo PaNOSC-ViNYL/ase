@@ -9,29 +9,24 @@ From this paper:
   Phys. Rev. B 79, 085104 (2009) XXX
 
   http://arxiv.org/pdf/1210.7738v1.pdf
-
-Data extracted with:
-
-Table I::
-
-     # header
-     pdftotext -layout -f 2 -l 2 1210.7738v1.pdf - | "eaxp|mmBJ|Eg" \
-     | tr -d '\n' | sed -E 's/[ \t]+/ /g' \
-     | sed -n 's/NV/compound NV/p' \
-     | sed -n 's/Eg.*PBE/EgPBE/p' | sed -n 's/ mBJ.*Eg/ EgmBJ/p' \
-     | sed -e 's/^[ \t]*//' | sed -e 's/\s\+/,/g'
-
-     pdftotext -layout -f 2 -l 2 1210.7738v1.pdf - | grep -E "[0-9][0-9]*" \
-     | sed -n '/Co2 YZ Heusler compounds/,$p' | sed -n '/become half-metals in mBJLDA/q;p' \
-     | cut -c 62- | grep -v Heusler | sed '/^$/d' | sed -e 's/^[ \t]*//' \
-     | sed -n 's/2 /2/p' | sed 's/\xe2\x80\x94/-/g' | sed -e 's/\s\+/,/g'
-
 """
 
-import ase.units as units
+# Data extracted with:
+#     pdftotext -layout -f 2 -l 2 1210.7738v1.pdf - | "eaxp|mmBJ|Eg" \
+#     | tr -d '\n' | sed -E 's/[ \t]+/ /g' \
+#     | sed -n 's/NV/compound NV/p' \
+#     | sed -n 's/Eg.*PBE/EgPBE/p' | sed -n 's/ mBJ.*Eg/ EgmBJ/p' \
+#     | sed -e 's/^[ \t]*//' | sed -e 's/\s\+/,/g'
+#
+#     pdftotext -layout -f 2 -l 2 1210.7738v1.pdf - | grep -E "[0-9][0-9]*" \
+#     | sed -n '/Co2 YZ Heusler compounds/,$p' \
+#     | sed -n '/become half-metals in mBJLDA/q;p' \
+#     | cut -c 62- | grep -v Heusler | sed '/^$/d' | sed -e 's/^[ \t]*//' \
+#     | sed -n 's/2 /2/p' | sed 's/\xe2\x80\x94/-/g' | sed -e 's/\s\+/,/g'
+
 from ase.atoms import string2symbols
 from ase.lattice.spacegroup import crystal
-from ase.tasks.io import read_json
+
 
 class HeuslerMeinertCollection:
     data1 = """
@@ -88,22 +83,22 @@ class HeuslerMeinertCollection:
         # (compound is already as key in d)
         a = d[self.labels.index('aexp') - 1]
         if name in ['Cr2CoGa', 'Mn2CoAl', 'Mn2CoGe', 'Fe2CoSi']:
-        # http://en.wikipedia.org/wiki/Space_group
+            # http://en.wikipedia.org/wiki/Space_group
             sg = '216'
         else:
             sg = '225'
         symbols = string2symbols(name)
         symbols.pop(0)
         b = crystal(symbols=symbols,
-                    basis=[(1./4, 1./4, 1./4),
+                    basis=[(1. / 4, 1. / 4, 1. / 4),
                            (0., 0., 0.),
-                           (1./2, 1./2, 1./2)],
+                           (1. / 2, 1. / 2, 1. / 2)],
                     spacegroup=225,
                     cellpar=[a, a, a, 90, 90, 90],
                     primitive_cell=True)
         # set average moments on all atoms (add + 2.0)
         magmom = d[self.labels.index('mexp') - 1] + 2.0
-        m = [magmom/len(b)] * len(b)
+        m = [magmom / len(b)] * len(b)
         # break spin symmetry between atoms no. 1 and 2
         m[1] = m[1] + m[2]
         m[2] = - m[2]
