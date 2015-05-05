@@ -4,7 +4,7 @@
 #matplotlib.use('Agg')
 import pylab as plt
 from ase.io import read, write
-from ase.neb import fit
+from ase.neb import NEBtools
 if 1:
     exec(compile(open('diffusion1.py').read(), 'diffusion1.py', 'exec'))
     exec(compile(open('diffusion2.py').read(), 'diffusion2.py', 'exec'))
@@ -18,7 +18,7 @@ for name, a in zip('ITF', images[::2]):
     write('diffusion-%s.pov' % name, a, show_unit_cell=True,
           transparent=False, display=False, run_povray=True)
 
-s, E, Sfit, Efit, lines = fit(images)
+s, E, Sfit, Efit, lines = NEBtools(images).get_fit()
 assert abs(max(Efit) - 0.374) < 1e-3
 plt.figure(figsize=(4.5, 3))
 plt.plot(s, E, 'o')
