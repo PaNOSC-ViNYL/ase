@@ -84,9 +84,9 @@ class HeuslerMeinertCollection:
         a = d[self.labels.index('aexp') - 1]
         if name in ['Cr2CoGa', 'Mn2CoAl', 'Mn2CoGe', 'Fe2CoSi']:
             # http://en.wikipedia.org/wiki/Space_group
-            sg = '216'
+            sg = 216
         else:
-            sg = '225'
+            sg = 225
         symbols = string2symbols(name)
         symbols.pop(0)
         b = crystal(symbols=symbols,
