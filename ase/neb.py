@@ -390,19 +390,22 @@ class NEBtools:
     def __init__(self, images):
         self._images = images
 
-    def get_barrier(self, fit=True):
-        """Returns the calculated barrier estimate from the NEB, along with
-        the Delta E of the elementary reaction. If fit=True, provides the
-        best estimate of the barrier based on the fit to the images; if
-        fit=False, bases that barrier only on the difference between the
-        max image and initial state."""
+    def get_barrier(self, fit=True, raw=False):
+        """Returns the barrier estimate from the NEB, along with the
+        Delta E of the elementary reaction. If fit=True, the barrier is
+        estimated based on the interpolated fit to the images; if
+        fit=False, the barrier is taken as the maximum-energy image
+        without interpolation. Set raw=True to get the raw energy of the
+        transition state instead of the forward barrier."""
         s, E, Sfit, Efit, lines = self.get_fit()
         dE = E[-1] - E[0]
         if fit:
-            Ef = max(Efit) - E[0]
+            barrier = max(Efit)
         else:
-            Ef = max(E) - E[0]
-        return Ef, dE
+            barrier = max(E)
+        if raw:
+            barrier += self._images[0].get_potential_energy()
+        return barrier, dE
 
     def plot_band(self, ax=None):
         """Plots the NEB band on matplotlib axes object 'ax'. If ax=None
