@@ -1400,20 +1400,13 @@ class Atoms(object):
         D_trans = tvecs[np.newaxis] + D[:, np.newaxis]
         D_trans_len = np.sqrt((D_trans**2).sum(2))
 
-        # Find which translation vector corresponds with the minimum image
-        # convention distance for each given pair of atoms. For symmetrical
-        # systems, there may be more than one translation vector corresponding
+        # Find mic distances and correspongding vector(s) for each given pair of atoms. 
+        # For symmetrical systems, there may be more than one translation vector corresponding
         # to the MIC distance; this finds the first one in D_trans_len.
         D_min_len = np.min(D_trans_len, axis=1)
-        smallest = D_trans_len.argmin(axis=1)
+        D_min_ind = D_trans_len.argmin(axis=1)
+        D_min = D_trans[range(len(D_min_ind)),D_min_ind]
 
-        # This returns a MemoryError on my system, not sure why!
-        #return D_trans[:, smallest]
-
-        # The next best thing I could think of:
-        D_min = np.zeros_like(D)
-        for i, Di_trans in enumerate(D_trans):
-            D_min[i] = Di_trans[smallest[i]]
         return D_min, D_min_len
 
     def get_distance(self, a0, a1, mic=False, vector=False):
