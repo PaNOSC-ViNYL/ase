@@ -72,13 +72,19 @@ class AtomsRow:
         return (key for key in self.__dict__ if key[0] != '_')
         
     def get(self, key, default=None):
+        """Return value of key if present or default if not."""
         return getattr(self, key, default)
         
     @property
     def key_value_pairs(self):
+        """Return dict of key-value pairs."""
         return dict((key, self.get(key)) for key in self._keys)
         
     def count_atoms(self):
+        """Count atoms.
+        
+        Return dict mapping chemical symbol strings to number of atoms.
+        """
         count = {}
         for symbol in self.symbols:
             count[symbol] = count.get(symbol, 0) + 1
@@ -92,6 +98,7 @@ class AtomsRow:
         
     @property
     def constraints(self):
+        """List of constraints."""
         if not isinstance(self._constraints, list):
             # Lazy decoding:
             cs = decode(self._constraints)
@@ -108,6 +115,7 @@ class AtomsRow:
         
     @property
     def data(self):
+        """Data dict."""
         if self._data is None:
             raise AttributeError
         if not isinstance(self._data, dict):
@@ -116,23 +124,28 @@ class AtomsRow:
         
     @property
     def natoms(self):
+        """Number of atoms."""
         return len(self.numbers)
         
     @property
     def formula(self):
+        """Chemical formula string."""
         return hill(self.numbers)
     
     @property
     def symbols(self):
+        """List of chemical symbols."""
         return [chemical_symbols[Z] for Z in self.numbers]
         
     @property
     def fmax(self):
+        """Maximum atomic force."""
         forces = self.constrained_forces
         return (forces**2).sum(1).max()**0.5
         
     @property
     def constrained_forces(self):
+        """Forces after applying constraints."""
         forces = self.forces
         constraints = self.constraints
         if constraints:
@@ -144,20 +157,24 @@ class AtomsRow:
 
     @property
     def smax(self):
+        """Maximum stress tensor component."""
         return (self.stress**2).max()**0.5
 
     @property
     def mass(self):
+        """Total mass."""
         if 'masses' in self:
             return self.masses.sum()
         return atomic_masses[self.numbers].sum()
 
     @property
     def volume(self):
+        """Volume of unit cell."""
         return abs(np.linalg.det(self.cell))
 
     @property
     def charge(self):
+        """Total charge."""
         charges = self.get('inital_charges')
         if charges is None:
             return 0.0
@@ -165,6 +182,7 @@ class AtomsRow:
 
     def toatoms(self, attach_calculator=False,
                 add_additional_information=False):
+        """Create Atoms object."""
         atoms = Atoms(self.numbers,
                       self.positions,
                       cell=self.cell,

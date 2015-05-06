@@ -342,7 +342,7 @@ and accessed like this:
 [7, 34, 14]
 
 
-.. _row object:
+.. _row objects:
     
 Row objects
 -----------
@@ -353,7 +353,7 @@ There are three ways to get at the columns of a row:
 
 2) indexing (``row['key']``)
 
-3) the :meth:`~ase.db.row.AtomsRow.get``method (``row.get('key')``)
+3) the :meth:`~ase.db.row.AtomsRow.get` method (``row.get('key')``)
 
 The first two will fail if there is no ``key`` column whereas the last will
 just return ``None`` in that case.  Use ``row.get('key', ...)`` to use
