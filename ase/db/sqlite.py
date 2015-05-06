@@ -11,11 +11,13 @@ Versions:
 """
 
 from __future__ import absolute_import, print_function
+import os
 import sqlite3
 import sys
 
 import numpy as np
 
+from ase.data import atomic_numbers
 from ase.db.row import AtomsRow
 from ase.db.core import Database, ops, now, lock, parallel, invop
 from ase.io.jsonio import encode, decode
@@ -178,89 +180,97 @@ class SQLite3Database(Database):
                 
         id = None
         
-        if not isinstance(atoms, dict):
-            dct = self.collect_data(atoms)
+        if not isinstance(atoms, AtomsRow):
+            row = AtomsRow(atoms)
+            row.ctime = mtime = now()
+            row.user = os.getenv('USER')
         else:
-            dct = atoms.copy()
+            row = atoms
                 
-            unique_id = dct['unique_id']
             cur.execute('SELECT id FROM systems WHERE unique_id=?',
-                        (unique_id,))
-            rows = cur.fetchall()
-            if rows:
-                id = rows[0][0]
+                        (row.unique_id,))
+            results = cur.fetchall()
+            if results:
+                id = results[0][0]
                 self._delete(cur, [id], ['keys', 'text_key_values',
                                          'number_key_values'])
-            dct['mtime'] = now()
+            mtime = now()
         
-        dct = AtomsRow(dct)
-
-        if 'constraints' in dct.dct:
-            constraints = encode(dct.dct['constraints'])
+        constraints = row._constraints
+        if constraints:
+            if isinstance(constraints, list):
+                constraints = encode(constraints)
         else:
             constraints = None
             
-        numbers = dct.get('numbers')
-        
-        row = (dct['unique_id'],
-               dct['ctime'],
-               dct['mtime'],
-               dct['user'],
-               blob(numbers),
-               blob(dct.get('positions')),
-               blob(dct.get('cell')),
-               int(np.dot(dct.get('pbc'), [1, 2, 4])),
-               blob(dct.get('initial_magmoms')),
-               blob(dct.get('initial_charges')),
-               blob(dct.get('masses')),
-               blob(dct.get('tags')),
-               blob(dct.get('momenta')),
-               constraints)
+        values = (row.unique_id,
+                  row.ctime,
+                  mtime,
+                  row.user,
+                  blob(row.numbers),
+                  blob(row.positions),
+                  blob(row.cell),
+                  int(np.dot(row.pbc, [1, 2, 4])),
+                  blob(row.get('initial_magmoms')),
+                  blob(row.get('initial_charges')),
+                  blob(row.get('masses')),
+                  blob(row.get('tags')),
+                  blob(row.get('momenta')),
+                  constraints)
 
-        if 'calculator' in dct:
-            row += (dct['calculator'],
-                    encode(dct['calculator_parameters']))
+        if 'calculator' in row:
+            values += (row.calculator,
+                       encode(row.calculator_parameters))
         else:
-            row += (None, None)
+            values += (None, None)
 
-        magmom = dct.get('magmom')
+        magmom = row.get('magmom')
         if magmom is not None:
             # magmom can be one or three numbers (non-collinear case)
             magmom = np.array(magmom)
-        row += (dct.get('energy'),
-                dct.get('free_energy'),
-                blob(dct.get('forces')),
-                blob(dct.get('stress')),
-                blob(dct.get('dipole')),
-                blob(dct.get('magmoms')),
-                blob(magmom),
-                blob(dct.get('charges')),
-                encode(key_value_pairs),
-                encode(data or None),
-                len(numbers),
-                float_if_not_none(dct.get('fmax')),
-                float_if_not_none(dct.get('smax')),
-                float(dct.volume),
-                float(dct.mass),
-                float(dct.charge))
+            
+        if not key_value_pairs:
+            key_value_pairs = row.key_value_pairs
+        
+        if not data:
+            data = row._data
+        if not isinstance(data, str):
+            data = encode(data)
+        
+        values += (row.get('energy'),
+                   row.get('free_energy'),
+                   blob(row.get('forces')),
+                   blob(row.get('stress')),
+                   blob(row.get('dipole')),
+                   blob(row.get('magmoms')),
+                   blob(magmom),
+                   blob(row.get('charges')),
+                   encode(key_value_pairs),
+                   data,
+                   len(row.numbers),
+                   float_if_not_none(row.get('fmax')),
+                   float_if_not_none(row.get('smax')),
+                   float(row.volume),
+                   float(row.mass),
+                   float(row.charge))
 
         if id is None:
-            q = self.default + ', ' + ', '.join('?' * len(row))
+            q = self.default + ', ' + ', '.join('?' * len(values))
             cur.execute('INSERT INTO systems VALUES ({0})'.format(q),
-                        row)
+                        values)
         else:
             q = ', '.join(line.split()[0].lstrip() + '=?'
                           for line in init_statements[0].splitlines()[2:])
             cur.execute('UPDATE systems SET {0} WHERE id=?'.format(q),
-                        row + (id,))
+                        values + (id,))
         
         if id is None:
             id = self.get_last_id(cur)
-            
-            if len(numbers) > 0:
-                count = np.bincount(numbers)
-                unique_numbers = count.nonzero()[0]
-                species = [(int(Z), int(count[Z]), id) for Z in unique_numbers]
+
+            count = row.count_atoms()
+            if count:
+                species = [(atomic_numbers[symbol], n, id)
+                           for symbol, n in count.items()]
                 cur.executemany('INSERT INTO species VALUES (?, ?, ?)',
                                 species)
 
@@ -283,6 +293,7 @@ class SQLite3Database(Database):
         if self.connection is None:
             con.commit()
             con.close()
+            
         return id
         
     def get_last_id(self, cur):
@@ -290,7 +301,7 @@ class SQLite3Database(Database):
         id = cur.fetchone()[0]
         return id
         
-    def _get_dict(self, id):
+    def _get_row(self, id):
         con = self._connect()
         c = con.cursor()
         if id is None:
@@ -299,81 +310,72 @@ class SQLite3Database(Database):
             c.execute('SELECT * FROM systems')
         else:
             c.execute('SELECT * FROM systems WHERE id=?', (id,))
-        row = c.fetchone()
-        return self.row_to_dict(row)
+        values = c.fetchone()
 
-    def row_to_dict(self, row):
         if self.version < VERSION:
-            row = self._old2new(row)
+            values = self._old2new(values)
+        return self._convert_tuple_to_row(values)
 
-        dct = {'id': row[0],
-               'unique_id': row[1],
-               'ctime': row[2],
-               'mtime': row[3],
-               'user': row[4],
-               'numbers': deblob(row[5], np.int32),
-               'positions': deblob(row[6], shape=(-1, 3)),
-               'cell': deblob(row[7], shape=(3, 3)),
-               'pbc': (row[8] & np.array([1, 2, 4])).astype(bool)}
-        if row[9] is not None:
-            dct['initial_magmoms'] = deblob(row[9])
-        if row[10] is not None:
-            dct['initial_charges'] = deblob(row[10])
-        if row[11] is not None:
-            dct['masses'] = deblob(row[11])
-        if row[12] is not None:
-            dct['tags'] = deblob(row[12], np.int32)
-        if row[13] is not None:
-            dct['momenta'] = deblob(row[13], shape=(-1, 3))
-        if row[14] is not None:
-            constraints = decode(row[14])
-            dct['constraints'] = []
-            for c in constraints:
-                # Convert to new format:
-                name = c.pop('__name__', None)
-                if name:
-                    c = {'name': name, 'kwargs': c}
-                if c['name'].startswith('ase'):
-                    c['name'] = c['name'].rsplit('.', 1)[1]
-                dct['constraints'].append(c)
-        if row[15] is not None:
-            dct['calculator'] = row[15]
-            dct['calculator_parameters'] = decode(row[16])
-        if row[17] is not None:
-            dct['energy'] = row[17]
-        if row[18] is not None:
-            dct['free_energy'] = row[18]
-        if row[19] is not None:
-            dct['forces'] = deblob(row[19], shape=(-1, 3))
-        if row[20] is not None:
-            dct['stress'] = deblob(row[20])
-        if row[21] is not None:
-            dct['dipole'] = deblob(row[21])
-        if row[22] is not None:
-            dct['magmoms'] = deblob(row[22])
-        if row[23] is not None:
-            dct['magmom'] = deblob(row[23])[0]
-        if row[24] is not None:
-            dct['charges'] = deblob(row[24])
-        if row[25] != '{}':
-            dct['key_value_pairs'] = decode(row[25])
-        if row[26] != 'null':
-            dct['data'] = row[26]
+    def _convert_tuple_to_row(self, values):
+        dct = {'id': values[0],
+               'unique_id': values[1],
+               'ctime': values[2],
+               'mtime': values[3],
+               'user': values[4],
+               'numbers': deblob(values[5], np.int32),
+               'positions': deblob(values[6], shape=(-1, 3)),
+               'cell': deblob(values[7], shape=(3, 3)),
+               'pbc': (values[8] & np.array([1, 2, 4])).astype(bool)}
+        if values[9] is not None:
+            dct['initial_magmoms'] = deblob(values[9])
+        if values[10] is not None:
+            dct['initial_charges'] = deblob(values[10])
+        if values[11] is not None:
+            dct['masses'] = deblob(values[11])
+        if values[12] is not None:
+            dct['tags'] = deblob(values[12], np.int32)
+        if values[13] is not None:
+            dct['momenta'] = deblob(values[13], shape=(-1, 3))
+        if values[14] is not None:
+            dct['constraints'] = values[14]
+        if values[15] is not None:
+            dct['calculator'] = values[15]
+            dct['calculator_parameters'] = values[16]
+        if values[17] is not None:
+            dct['energy'] = values[17]
+        if values[18] is not None:
+            dct['free_energy'] = values[18]
+        if values[19] is not None:
+            dct['forces'] = deblob(values[19], shape=(-1, 3))
+        if values[20] is not None:
+            dct['stress'] = deblob(values[20])
+        if values[21] is not None:
+            dct['dipole'] = deblob(values[21])
+        if values[22] is not None:
+            dct['magmoms'] = deblob(values[22])
+        if values[23] is not None:
+            dct['magmom'] = deblob(values[23])[0]
+        if values[24] is not None:
+            dct['charges'] = deblob(values[24])
+        if values[25] != '{}':
+            dct['key_value_pairs'] = decode(values[25])
+        if values[26] != 'null':
+            dct['data'] = values[26]
                 
-        return dct
+        return AtomsRow(dct)
 
-    def _old2new(self, row):
+    def _old2new(self, values):
         if self.version == 4:
-            return row  # should be ok for reading by convert.py script
-        if len(row) == 26:
-            extra = decode(row[25])
-            return row[:-1] + (encode(extra['key_value_pairs']),
-                               encode(extra['data']))
-        elif len(row) == 29:
-            keywords = decode(row[-4])
-            kvp = decode(row[-3])
+            return values  # should be ok for reading by convert.py script
+        if len(values) == 26:
+            extra = decode(values[25])
+            return values[:-1] + (encode(extra['key_value_pairs']),
+                                  encode(extra['data']))
+        elif len(values) == 29:
+            keywords = decode(values[-4])
+            kvp = decode(values[-3])
             kvp.update(dict((keyword, 1) for keyword in keywords))
-            return row[:-4] + (encode(kvp),) + row[-2:]
+            return values[:-4] + (encode(kvp),) + values[-2:]
         assert False
         
     def create_select_statement(self, keys, cmps,
@@ -510,8 +512,8 @@ class SQLite3Database(Database):
             for row in cur.fetchall():
                 yield {'explain': row}
         else:
-            for row in cur.fetchall():
-                yield self.row_to_dict(row)
+            for values in cur.fetchall():
+                yield self._convert_tuple_to_row(values)
                     
     @parallel
     @lock
@@ -542,12 +544,12 @@ class SQLite3Database(Database):
         Returns number of key-value pairs added and keys removed.
         """
         
-        dcts = [self._get_dict(id) for id in ids]
+        rows = [self._get_row(id) for id in ids]
         m = 0
         n = 0
         with self:
-            for dct in dcts:
-                kvp = dct.get('key_value_pairs', {})
+            for row in rows:
+                kvp = row.key_value_pairs
                 n += len(kvp)
                 for key in delete_keys:
                     kvp.pop(key, None)
@@ -555,7 +557,7 @@ class SQLite3Database(Database):
                 m -= len(kvp)
                 kvp.update(add_key_value_pairs)
                 m += len(kvp)
-                self._write(dct, kvp, data=decode(dct.get('data', 'null')))
+                self._write(row, kvp, None)
         return m, n
 
     @parallel

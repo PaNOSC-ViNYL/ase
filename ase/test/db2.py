@@ -29,16 +29,20 @@ for name in ['y2.json', 'y2.db']:
     c.delete([d.id for d in c.select(C=1)])
     chi = np.array([1 + 0.5j, 0.5])
     id = c.write(ch4, data={'1-butyne': 'bla-bla', 'chi': chi})
-    a = read(name + '@' + str(id))
-    
+
     row = c.get(id)
     print(row.data['1-butyne'], row.data.chi)
     assert (row.data.chi == chi).all()
     
+    assert len(c.get_atoms(C=1).constraints) == 2
+
     f2 = c.get(C=1).forces
     assert abs(f2.sum(0)).max() < 1e-14
     f3 = c.get_atoms(C=1).get_forces()
     assert abs(f1 - f3).max() < 1e-14
+    a = read(name + '@' + str(id))
+    f4 = a.get_forces()
+    assert abs(f1 - f4).max() < 1e-14
 
     with must_raise(ValueError):
         c.update(id, abc={'a': 42})

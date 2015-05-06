@@ -20,11 +20,9 @@ SQLite3_:
     with a ``.db`` extension.
 PostgreSQL_:
     Server based database.
-MariaDB_ or MySQL:
-    Server based database.
 
-The JSON and SQLite3 back-ends work "out of the box", whereas PostgreSQL and
-MariaDB requires a server.
+The JSON and SQLite3 back-ends work "out of the box", whereas PostgreSQL
+requires a server.
 
 There is a command-line tool called :ref:`ase-db` that can be
 used to query and manipulate databases and also a `Python interface`_.
@@ -32,7 +30,7 @@ used to query and manipulate databases and also a `Python interface`_.
 .. _JSON: http://www.json.org/
 .. _SQLite3: http://www.sqlite.org/
 .. _PostgreSQL: http://www.postgresql.org/
-.. _MariaDB: http://mariadb.org/
+
 
 .. contents::
     
@@ -179,12 +177,12 @@ Python Interface
 First, we :func:`connect` to the database:
     
 >>> from ase.db import connect
->>> c = connect('abc.db')
+>>> con = connect('abc.db')
 
 or
 
 >>> import ase.db
->>> c = ase.db.connect('abc.db')
+>>> con = ase.db.connect('abc.db')
 
 Let's do a calculation for a hydrogen molecule and write some results to a
 database:
@@ -199,7 +197,7 @@ array([[ 0.        ,  0.        , -9.80290573],
 
 Write a row to the database with a key-value pair (``'relaxed'``, ``False``):
     
->>> c.write(h2, relaxed=False)
+>>> con.write(h2, relaxed=False)
 1
 
 The :meth:`~Database.write` method returns an integer id.
@@ -212,20 +210,19 @@ BFGS:   0  12:49:25        1.419427       9.8029
 BFGS:   1  12:49:25        1.070582       0.0853
 BFGS:   2  12:49:25        1.070544       0.0236
 BFGS:   3  12:49:25        1.070541       0.0001
->>> c.write(h2, relaxed=True)
+>>> con.write(h2, relaxed=True)
 2
 
 Loop over selected rows using the :meth:`~Database.select` method:
     
->>> for d in c.select(relaxed=True):
-...     print d.forces[0, 2], d.relaxed
+>>> for row in con.select(relaxed=True):
+...     print row.forces[0, 2], row.relaxed
 ...
 -9.8029057329 False
 -9.2526347333e-05 True
 
-The :meth:`~Database.select` method will generate dictionaries that one can
-loop over.  The dictionaries are special in the sense that keys can be
-accessed as attributes also (``d.relaxed == d['relaxed']``).
+The :meth:`~Database.select` method will generate :ref:`row objects`
+that one can loop over.
 
 Write the energy of an isolated hydrogen atom to the database:
 
@@ -233,47 +230,45 @@ Write the energy of an isolated hydrogen atom to the database:
 >>> h.calc = EMT()
 >>> h.get_potential_energy()
 3.21
->>> c.write(h)
+>>> con.write(h)
 3
 
 Select a single row with the :meth:`~Database.get` method:
     
->>> d = c.get(relaxed=1, calculator='emt')
->>> for k, v in d.items():
-...     print '%-25s: %s' % (k, v)
+>>> row = con.get(relaxed=1, calculator='emt')
+>>> for key in row:
+...    print('{0:22}: {1}'.format(key, row[key]))
 ...
-user                     : jensj
-key_value_pairs          : {u'relaxed': True}
-energy                   : 1.07054126233
-positions                : [[ ... ]]
-calculator               : emt
-relaxed                  : True
-calculator_parameters    : {}
-cell                     : [[ 1.  0.  0.] [ 0.  1.  0.] [ 0.  0.  1.]]
-numbers                  : [1 1]
-forces                   : [[ ... ]]
-mtime                    : 14.8975933527
-pbc                      : [False False False]
-data                     : {u'abc': array([1, 2, 3])}
-id                       : 2
-unique_id                : bd6e07125cf7a46569a3ed361a2edbe8
-ctime                    : 14.8975933527
+pbc                   : [False False False]
+relaxed               : True
+calculator_parameters : {}
+user                  : jensj
+mtime                 : 15.3439399027
+calculator            : emt
+ctime                 : 15.3439399027
+positions             : [[ ... ]]
+id                    : 2
+cell                  : [[ 1.  0.  0.] [ 0.  1.  0.] [ 0.  0.  1.]]
+forces                : [[ ... ]]
+energy                : 1.07054126233
+unique_id             : bce90ff3ea7661690b54f9794c1d7ef6
+numbers               : [1 1]
 
 Calculate the atomization energy and :meth:`~Database.update` a row in
 the database:
     
->>> e2 = d.energy
->>> e1 = c.get(H=1).energy
+>>> e2 = row.energy
+>>> e1 = con.get(H=1).energy
 >>> ae = 2 * e1 - e2
 >>> print(ae)
 5.34945873767
->>> id = c.get(relaxed=1).id
->>> c.update(id, atomization_energy=ae)
+>>> id = con.get(relaxed=1).id
+>>> con.update(id, atomization_energy=ae)
 1
 
 Delete a single row:
     
->>> del c[c.get(relaxed=0).id]
+>>> del con[con.get(relaxed=0).id]
 
 or use the :meth:`~Database.delete` method to delete several rows.
 
@@ -320,11 +315,11 @@ Extracting Atoms objects from the database
 If you want an Atoms object insted of a dictionary, you should use the
 :meth:`~Database.get_atoms` method:
 
->>> h2 = c.get_atoms(H=2)
+>>> h2 = con.get_atoms(H=2)
 
 or if you want the original EMT calculator attached:
     
->>> h2 = c.get_atoms(H=2, attach_calculator=True)
+>>> h2 = con.get_atoms(H=2, attach_calculator=True)
 
 
 Add additional data
@@ -334,17 +329,39 @@ When you write a row to a database using the :meth:`~Database.write` method,
 you can add key-value pairs where the values can be
 strings, floating point numbers, integers and booleans:
     
->>> c.write(atoms, functional='LDA', distance=7.2)
+>>> con.write(atoms, functional='LDA', distance=7.2)
 
 More complicated data can be written like this:
 
->>> c.write(atoms, ..., data={'parents': [7, 34, 14], 'stuff': ...})
+>>> con.write(atoms, ..., data={'parents': [7, 34, 14], 'stuff': ...})
 
 and accessed like this:
 
->>> d = c.get(...)
->>> d.data.parents
+>>> row = cob.get(...)
+>>> row.data.parents
 [7, 34, 14]
+
+
+.. _row objects:
+    
+Row objects
+-----------
+
+There are three ways to get at the columns of a row:
+    
+1) as attributes (``row.key``)
+
+2) indexing (``row['key']``)
+
+3) the :meth:`~ase.db.row.AtomsRow.get` method (``row.get('key')``)
+
+The first two will fail if there is no ``key`` column whereas the last will
+just return ``None`` in that case.  Use ``row.get('key', ...)`` to use
+another default value.
+
+.. autoclass:: ase.db.row.AtomsRow
+    :members:
+    :member-order: bysource
 
 
 More details
