@@ -68,6 +68,9 @@ class AtomsRow:
     def __contains__(self, key):
         return key in self.__dict__
         
+    def __iter__(self):
+        return (key for key in self.__dict__ if key[0] != '_')
+        
     def get(self, key, default=None):
         return getattr(self, key, default)
         
