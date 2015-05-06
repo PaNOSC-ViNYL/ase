@@ -79,8 +79,9 @@ def main(args=sys.argv[1:]):
     add('--cut', type=int, default=35, help='Cut keywords and key-value '
         'columns after CUT characters.  Use --cut=0 to disable cutting. '
         'Default is 35 characters')
-    add('-p', '--python-expression', metavar='expression',
-        help='Examples: "id,energy", "id,mykey".')
+    add('-p', '--plot', metavar='[a,b:]x,y1,y2,...',
+        help='Example: "-p x,y": plot y row against x row. Use '
+        '"-p a:x,y" to make a plot for each value of a.')
     add('--csv', action='store_true',
         help='Write comma-separated-values file.')
     add('-w', '--open-web-browser', action='store_true',
@@ -203,12 +204,30 @@ def run(opts, args, verbosity):
         out('Deleted %s' % plural(len(ids), 'row'))
         return
 
-    if opts.python_expression:
-        for dct in con.select(query):
-            row = eval(opts.python_expression, dct)
-            if not isinstance(row, (list, tuple, np.ndarray)):
-                row = [row]
-            print(', '.join(str(x) for x in row))
+    if opts.plot:
+        if ':' in opts.plot:
+            tags, keys = opts.plot.split(':')
+            tags = tags.split(',')
+        else:
+            tags = []
+            keys = opts.plot
+        keys = keys.split(',')
+        import collections
+        plots = collections.defaultdict(list)
+        X = {}
+        for row in con.select(query):
+            name = ','.join(row[tag] for tag in tags)
+            x = row.get(keys[0])
+            if x is not None:
+                if isinstance(x, str) and x not in X:
+                    X[x] = len(X)
+                plots[name].append([x] + [row.get(key) for key in keys[1:]])
+        import matplotlib.pyplot as plt
+        for name, plot in plots.items():
+            
+            plt.plot(*zip(*plot), label=name)
+        plt.legend()
+        plt.show()
         return
 
     if opts.long:
