@@ -1355,14 +1355,13 @@ class Atoms(object):
             [-1, -1, 1],
             ], self.cell)**2).sum(1))
 
-        # Try the old method. If the longest resulting distance is less than
-        # or equal to half the shortest diagonal of the unit cell, then the
-        # result is guaranteed to be correct. This should always be the case
-        # for unit cells with mutually orthogonal lattice vectors.
+        # calculate 'mic' vecotors (D) and lengths (D_len) using simple method
         Dr = np.dot(D, np.linalg.inv(self._cell))
         D = np.dot(Dr - np.round(Dr) * self._pbc, self._cell)
         D_len = np.sqrt((D**2).sum(1))
-        if max(D_len) <= min(diags) / 2.:
+        # return mic vecotors and lengths for only orthorhombic cells,
+        # as the results may be wrong for non-orthorhombic cells
+        if max(diags)-min(diags) < 1e-6:
             return D, D_len
 
         # The cutoff radius is the longest direct distance between atoms
