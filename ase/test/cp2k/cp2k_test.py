@@ -7,9 +7,6 @@ http://www.cp2k.org
 Author: Ole Schütt <ole.schuett@mat.ethz.ch>
 """
 
-from __future__ import division, print_function
-
-import os
 import numpy as np
 
 from ase.structure import molecule
@@ -136,7 +133,6 @@ def test_MD():
     print('passed test "H2_MD"')
 
 
-#=============================================================================
 def test_stress():
     """Adopted from ase/test/stress.py"""
 
@@ -231,7 +227,7 @@ def test_stress():
 
     print('passed test "stress"')
 
-#=============================================================================
+
 def main():
     test_H2_LDA()
     test_H2_PBE()
@@ -242,13 +238,5 @@ def main():
     test_MD()
     test_stress()
 
-#=============================================================================
-if(__name__ == '__main__'):
-    main()
-elif(__name__ == '__builtin__'):
-    if("CP2K" in os.environ.get('ASE_CALCULATORS', '').upper()):
-        main()
-    else:
-        print('"CP2K" not in $ASE_CALCULATORS, skipping cp2k_test.py')
 
-#EOF
+main()
