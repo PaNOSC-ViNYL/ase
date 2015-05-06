@@ -1355,13 +1355,13 @@ class Atoms(object):
             [-1, -1, 1],
             ], self.cell)**2).sum(1))
 
-        # calculate 'mic' vecotors (D) and lengths (D_len) using simple method
+        # calculate 'mic' vectors (D) and lengths (D_len) using simple method
         Dr = np.dot(D, np.linalg.inv(self._cell))
         D = np.dot(Dr - np.round(Dr) * self._pbc, self._cell)
         D_len = np.sqrt((D**2).sum(1))
-        # return mic vecotors and lengths for only orthorhombic cells,
+        # return mic vectors and lengths for only orthorhombic cells,
         # as the results may be wrong for non-orthorhombic cells
-        if max(diags)-min(diags) < 1e-6:
+        if (max(diags) - min(diags)) / max(diags) < 1e-9:
             return D, D_len
 
         # The cutoff radius is the longest direct distance between atoms
@@ -1399,12 +1399,13 @@ class Atoms(object):
         D_trans = tvecs[np.newaxis] + D[:, np.newaxis]
         D_trans_len = np.sqrt((D_trans**2).sum(2))
 
-        # Find mic distances and correspongding vector(s) for each given pair of atoms. 
-        # For symmetrical systems, there may be more than one translation vector corresponding
-        # to the MIC distance; this finds the first one in D_trans_len.
+        # Find mic distances and corresponding vector(s) for each given pair
+        # of atoms. For symmetrical systems, there may be more than one
+        # translation vector corresponding to the MIC distance; this finds the
+        # first one in D_trans_len.
         D_min_len = np.min(D_trans_len, axis=1)
         D_min_ind = D_trans_len.argmin(axis=1)
-        D_min = D_trans[range(len(D_min_ind)),D_min_ind]
+        D_min = D_trans[range(len(D_min_ind)), D_min_ind]
 
         return D_min, D_min_len
 
