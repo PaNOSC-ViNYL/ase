@@ -4,7 +4,9 @@ Vagrant.configure(2) do |config|
   # centos7 configure to run python-sphinx
   config.vm.define "centos7_python_sphinx" do |centos7_python_sphinx|
     centos7_python_sphinx.vm.box = "puppetlabs/centos-7.0-64-nocm"
-    centos7_python_sphinx.vm.box_url = 'https://vagrantcloud.com/puppetlabs/boxes/centos-7.0-64-nocm'
+    centos7_python_sphinx.vm.box_url = 'puppetlabs/centos-7.0-64-nocm'
+    # old vagrant may need the full url of the box
+    #centos7_python_sphinx.vm.box_url = 'https://atlas.hashicorp.com/puppetlabs/boxes/centos-7.0-64-nocm/versions/1.0.1/providers/virtualbox.box'
     centos7_python_sphinx.vm.network "forwarded_port", guest: 80, host: 8080
   end
   config.vm.define "centos7_python_sphinx" do |centos7_python_sphinx|
