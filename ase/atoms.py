@@ -1479,6 +1479,7 @@ class Atoms(object):
 
         R = self.arrays['positions']
         D = np.array([R[a1] - R[a0]])
+
         if mic:
             D, D_len = self._mic(D)
         else:
