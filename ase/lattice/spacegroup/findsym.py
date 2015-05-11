@@ -27,7 +27,7 @@ Example
 # No problem with a more complex structure...
 >>> skutterudite = crystal(('Co', 'Sb'),
 ...                        basis=[(0.25,0.25,0.25), (0.0, 0.335, 0.158)],
-...                        spacegroup=204, 
+...                        spacegroup=204,
 ...                        cellpar=9.04)
 >>> d = findsym(skutterudite)
 >>> d['spacegroup']
@@ -55,11 +55,11 @@ def make_input(atoms, tol=1e-3, centering='P', types=None):
     if types is None:
         types = atoms.numbers
     s = []
-    s.append(atoms.get_name())
+    s.append(atoms.get_chemical_formula())
     s.append('%g  tolerance' % tol)
     s.append('2    form of lattice parameters: to be entered as lengths '
              'and angles')
-    s.append('%g %g %g %g %g %g    a,b,c,alpha,beta,gamma' % 
+    s.append('%g %g %g %g %g %g    a,b,c,alpha,beta,gamma' %
              tuple(ase.lattice.spacegroup.cell.cell_to_cellpar(atoms.cell)))
     s.append('2    form of vectors defining unit cell')  # ??
     s.append('%s    centering (P=unknown)' % centering)
@@ -86,11 +86,12 @@ def run(atoms, tol=1e-3, centering='P', types=None, isodata_dir=None):
                           'findsym and data_space.txt?' % path)
     env = os.environ.copy()
     env['ISODATA'] = isodata_dir + os.sep
-    p = subprocess.Popen([findsym], stdin=subprocess.PIPE, 
+    p = subprocess.Popen([findsym], stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE, env=env)
+    
     stdout = p.communicate(make_input(atoms, tol, centering, types))[0]
-    #if os.path.exists('findsym.log'):
-    #    os.remove('findsym.log')
+    # if os.path.exists('findsym.log'):
+    #     os.remove('findsym.log')
     return stdout
     
 
@@ -98,64 +99,57 @@ def parse(output):
     """Parse output from FINDSYM (Version 3.2.3, August 2007) and
     return a dict.  See docstring for findsym() for a description of
     the tokens."""
-    import io
     d = {}
-    f = io.StringIO(output)
+    lines = output.splitlines()
 
-    line = f.readline()
-    while not line.startswith('Lattice parameters'):
-        line = f.readline()
-        assert line, 'Cannot find line starting with "Lattice parameters"'
-    d['cellpar'] = np.array([float(v) for v in f.readline().split()])
-    #d['centering'] = f.readline().split()[1]  # seems not to make sence...
+    def search_for_line(line_str):
+        check_line = [i for i, line in enumerate(lines)
+                      if line.startswith(line_str)]
+        return check_line
 
+    i_cellpar = search_for_line('Lattice parameters')[0]
+
+    d['cellpar'] = np.array([float(v) for v in
+                             lines[i_cellpar + 1].split()])
+
+    i_natoms = search_for_line('Number of atoms in unit cell')[0]
+    natoms = int(lines[i_natoms + 1].split()[0])
+    
     # Determine number of atoms from atom types, since the number of
     # atoms is written with only 3 digits, which crashes the parser
     # for more than 999 atoms
-    while not line.startswith('Type of each atom'):
-        line = f.readline()
-        assert line, 'Cannot find line starting with "Type of each atom"'
-    line = f.readline()
-    types = []
-    while not line.startswith('Position of each atom'):
-        types.extend([int(n) for n in line.split()])
-        line = f.readline()
-        assert line, 'Cannot find line starting with "Position of each atom"'
-    natoms = len(types)
 
-    while not line.startswith('Space Group '):
-        line = f.readline()
-        assert line, 'Cannot find line starting with "Space Group "'
-    tokens = line.split()
+    i_spg = search_for_line('Space Group')[0]
+    tokens = lines[i_spg].split()
+
     d['spacegroup'] = int(tokens[2])
-    #d['symbol_nonconventional'] = tokens[3]
+    # d['symbol_nonconventional'] = tokens[3]
     d['symbol'] = tokens[4]
 
-    d['origin'] = np.array([float(v) for v in f.readline().split()[2:]])
-    f.readline()
-    d['abc'] = np.array([[float(v) for v in f.readline().split()] 
-                         for i in range(3)]).T
+    i_origin = search_for_line('Origin at')[0]
+    d['origin'] = np.array([float(v) for v in lines[i_origin].split()[2:]])
 
-    while not line.startswith('Wyckoff position'):
-        line = f.readline()
-        assert line, 'Cannot find line starting with "Wyckoff position"'
+    i_abc = search_for_line('Vectors a,b,c')[0]
+    d['abc'] = np.array([[float(v) for v in line.split()]
+                         for line in lines[i_abc + 1:i_abc + 4]]).T
+
+    i_wyck_start = search_for_line('Wyckoff position')
     d['wyckoff'] = []
     d['tags'] = -np.ones(natoms, dtype=int)
-    tag = 0
-    while not line.startswith('---'):
-        tokens = line.split()
-        line = f.readline()
-        assert line, 'Cannot find line starting with "Wyckoff position"'
+    
+    i_wyck_stop = i_wyck_start[1:]
+    i_wyck_stop += [i_wyck_start[0] + natoms + 3]
+
+    # sort the tags to the indivual atoms
+    for tag, (i_start, i_stop) in enumerate(zip(i_wyck_start,
+                                                i_wyck_stop)):
+        tokens = lines[i_start].split()
         d['wyckoff'].append(tokens[2].rstrip(','))
-        while not line.startswith('Wyckoff position') and not line.startswith('---'):
-            tokens = line.split()
-            n = int(tokens[0])
-            d['tags'][n-1] = tag
-            line = f.readline()
-        tag += 1
+        i_tag = [int(line.split()[0]) - 1
+                 for line in lines[i_start + 1:i_stop]]
+        d['tags'][i_tag] = tag
 
     return d
-
 
 
 def findsym(atoms, tol=1e-3, centering='P', types=None, isodata_dir=None):
@@ -209,7 +203,7 @@ def findsym(atoms, tol=1e-3, centering='P', types=None, isodata_dir=None):
 def unique(atoms, tol=1e-3, centering='P', types=None, isodata_dir=None):
     """Returns an Atoms object containing only one atom from each unique site.
     """
-    d = findsym(atoms, tol=tol, centering=centering, types=types, 
+    d = findsym(atoms, tol=tol, centering=centering, types=types,
                 isodata_dir=isodata_dir)
     mask = np.concatenate(([True], np.diff(d['tags']) != 0)) * (d['tags'] >= 0)
     at = atoms[mask]
@@ -220,9 +214,12 @@ def unique(atoms, tol=1e-3, centering='P', types=None, isodata_dir=None):
     C *= c
     from numpy.linalg import norm
     from numpy import cos, pi
-    assert abs(np.dot(A, B) - (norm(A) * norm(B) * cos(gamma * pi / 180.))) < 1e-5
-    assert abs(np.dot(A, C) - (norm(A) * norm(C) * cos(beta * pi / 180.))) < 1e-5
-    assert abs(np.dot(B, C) - (norm(B) * norm(C) * cos(alpha * pi / 180.))) < 1e-5
+    assert abs(np.dot(A, B) -
+               (norm(A) * norm(B) * cos(gamma * pi / 180.))) < 1e-5
+    assert abs(np.dot(A, C) -
+               (norm(A) * norm(C) * cos(beta * pi / 180.))) < 1e-5
+    assert abs(np.dot(B, C) -
+               (norm(B) * norm(C) * cos(alpha * pi / 180.))) < 1e-5
     at.cell = np.array([A, B, C])
     for k in 'origin', 'spacegroup', 'wyckoff':
         at.info[k] = d[k]
@@ -234,4 +231,4 @@ def unique(atoms, tol=1e-3, centering='P', types=None, isodata_dir=None):
 
 if __name__ == '__main__':
     import doctest
-    print('doctest: ', doctest.testmod())
+    print('doctest:', doctest.testmod())

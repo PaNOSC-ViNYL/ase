@@ -42,14 +42,12 @@ def view(atoms, data=None, viewer='ase-gui', repeat=None, block=False):
         raise RuntimeError('Unknown viewer: ' + viewer)
 
     fd, filename = tempfile.mkstemp('.' + format, 'ase-')
-    fd = os.fdopen(fd, 'w')
     if repeat is not None:
         atoms = atoms.repeat()
     if data is None:
-        write(fd, atoms, format=format)
+        write(filename, atoms, format=format)
     else:
-        write(fd, atoms, format=format, data=data)
-    fd.close()
+        write(filename, atoms, format=format, data=data)
     if block:
         os.system('%s %s' % (command, filename))
         os.remove(filename)

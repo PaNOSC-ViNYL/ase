@@ -11,9 +11,10 @@ from ase.units import Bohr, Hartree
 class Exciting:
     def __init__(self, dir='calc', paramdict=None,
                  speciespath=None,
-                 bin='excitingser', kpts=(1, 1, 1), **kwargs):
+                 bin='excitingser', kpts=(1, 1, 1),
+                 autormt=False, **kwargs):
         """Exciting calculator object constructor
-        
+
         dir: string
             directory in which to execute exciting
         paramdict: dict
@@ -21,17 +22,15 @@ class Exciting:
             translated to attributes, nested dictionaries are translated
             to sub elements. A list of dictionaries is translated to a
             list of sub elements named after the key of which the list
-            is the value.
-            
-            default: None
+            is the value.  Default: None
         speciespath: string
             Directory or URL to look up species files
         bin: string
-            Path or executable name of exciting
-            
-            default: ``excitingser``
+            Path or executable name of exciting.  Default: ``excitingser``
         kpts: integer list length 3
             Number of k-points
+        autormt: bool
+            Bla bla?
         kwargs: dictionary like
             list of key value pairs to be converted into groundstate attributes
         
@@ -45,6 +44,7 @@ class Exciting:
         self.speciespath = speciespath
         self.converged = False
         self.excitingbinary = bin
+        self.autormt = autormt
         self.groundstate_attributes = kwargs
         if  (not 'ngridk' in kwargs.keys() and (not (self.paramdict))):
             self.groundstate_attributes['ngridk'] = ' '.join(map(str, kpts))
@@ -96,8 +96,8 @@ class Exciting:
             os.mkdir(self.dir)
         root = atoms2etree(atoms)
         root.find('structure').attrib['speciespath'] = self.speciespath
-        root.find('structure').attrib['autormt'] = 'false'
-       
+        root.find('structure').attrib['autormt'] = str(self.autormt).lower()
+
         if(self.paramdict):
             self.dicttoxml(self.paramdict, root)
             fd = open('%s/input.xml' % self.dir, 'w')

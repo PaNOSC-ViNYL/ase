@@ -174,7 +174,7 @@ def read_aims_output(filename, index = -1):
             calc = read_aims_calculator(fd)
             calc.out = filename
             found_aims_calculator = True
-        if "Number of atoms" in line:
+        if "| Number of atoms                   :" in line:
             inp = line.split()
             n_atoms = int(inp[5])
         if "| Unit cell:" in line:

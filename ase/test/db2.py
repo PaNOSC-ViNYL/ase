@@ -1,10 +1,12 @@
+import numpy as np
+
 from ase import Atoms
 from ase.calculators.emt import EMT
 from ase.constraints import FixAtoms, FixBondLength
 from ase.db import connect
 from ase.io import read
 from ase.structure import molecule
-from ase.test import MustRaise
+from ase.test import must_raise
 
 
 for name in ['y2.json', 'y2.db']:
@@ -25,19 +27,28 @@ for name in ['y2.json', 'y2.db']:
     print(f1)
     
     c.delete([d.id for d in c.select(C=1)])
-    id = c.write(ch4, data={'1-butyne': 'bla-bla'})
-    a = read(name + '@' + str(id))
+    chi = np.array([1 + 0.5j, 0.5])
+    id = c.write(ch4, data={'1-butyne': 'bla-bla', 'chi': chi})
+
+    row = c.get(id)
+    print(row.data['1-butyne'], row.data.chi)
+    assert (row.data.chi == chi).all()
     
+    assert len(c.get_atoms(C=1).constraints) == 2
+
     f2 = c.get(C=1).forces
     assert abs(f2.sum(0)).max() < 1e-14
     f3 = c.get_atoms(C=1).get_forces()
     assert abs(f1 - f3).max() < 1e-14
+    a = read(name + '@' + str(id))
+    f4 = a.get_forces()
+    assert abs(f1 - f4).max() < 1e-14
 
-    with MustRaise(ValueError):
+    with must_raise(ValueError):
         c.update(id, abc={'a': 42})
 
     c.update(id, grr='hmm')
     assert c.get(C=1).id == id
 
-    with MustRaise(ValueError):
+    with must_raise(ValueError):
         c.write(ch4, foo=['bar', 2])

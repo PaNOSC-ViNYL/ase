@@ -169,7 +169,7 @@ class World:
         return CPU(self, rank)
 
 
-class MustRaise:
+class must_raise:
     """Context manager for checking raising of exceptions."""
     def __init__(self, exception):
         self.exception = exception

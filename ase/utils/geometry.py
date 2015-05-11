@@ -394,6 +394,7 @@ def sort(atoms, tags=None):
     None, it will be used instead. A stable sorting algorithm is used.
 
     Example:
+        
     >>> import ase
     >>> from ase.lattice.spacegroup import crystal
     >>>

@@ -93,7 +93,8 @@ class ELK(FileIOCalculator):
                       'REVPBE': 21,
                       'PBESOL': 22,
                       'WC06': 26,
-                      'AM05': 30}[self.parameters.xc]
+                      'AM05': 30,
+                      'mBJLDA': (100, 208, 12)}[self.parameters.xc]
             inp['xctype'] = xctype
             del inp['xc']
 
@@ -299,7 +300,7 @@ class ELK(FileIOCalculator):
     def get_number_of_spins(self):
         return 1 + int(self.spinpol)
 
-    def get_magnetic_moment(self, atoms):
+    def get_magnetic_moment(self, atoms=None):
         return self.magnetic_moment
 
     def get_magnetic_moments(self, atoms):

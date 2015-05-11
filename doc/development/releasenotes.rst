@@ -32,7 +32,17 @@ Development version in trunk
 * New :meth:`ase.atoms.Atoms.wrap` method and
   :func:`ase.utils.geometry.wrap_positions` function.
 
-  
+* New improved method for initializing NEB calculations.
+
+* New pickle-free future-proof trajectory file format added.
+
+* Pourbaix diagrams.
+
+* mx2() function.
+
+* bandgap ...
+
+
 Version 3.8.0
 =============
 

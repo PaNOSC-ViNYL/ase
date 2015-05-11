@@ -1,0 +1,31 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+Vagrant.configure(2) do |config|
+  # centos7 configure to run python-sphinx
+  config.vm.define "centos7_python_sphinx" do |centos7_python_sphinx|
+    centos7_python_sphinx.vm.box = "puppetlabs/centos-7.0-64-nocm"
+    centos7_python_sphinx.vm.box_url = 'puppetlabs/centos-7.0-64-nocm'
+    # old vagrant may need the full url of the box
+    #centos7_python_sphinx.vm.box_url = 'https://atlas.hashicorp.com/puppetlabs/boxes/centos-7.0-64-nocm/versions/1.0.1/providers/virtualbox.box'
+    centos7_python_sphinx.vm.network "forwarded_port", guest: 80, host: 8080
+  end
+  config.vm.define "centos7_python_sphinx" do |centos7_python_sphinx|
+    centos7_python_sphinx.vm.provision :shell, :inline => "yum -y install https://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm"
+    centos7_python_sphinx.vm.provision :shell, :inline => "yum -y update"
+    centos7_python_sphinx.vm.provision :shell, :inline => "yum -y install httpd"
+    centos7_python_sphinx.vm.provision :shell, :inline => "yum -y install subversion"
+    centos7_python_sphinx.vm.provision :shell, :inline => "yum -y install numpy"
+    centos7_python_sphinx.vm.provision :shell, :inline => "yum -y install scipy"
+    centos7_python_sphinx.vm.provision :shell, :inline => "yum -y install python-matplotlib"
+    centos7_python_sphinx.vm.provision :shell, :inline => "yum -y install epydoc"
+    centos7_python_sphinx.vm.provision :shell, :inline => "yum -y install python-pep8"
+    centos7_python_sphinx.vm.provision :shell, :inline => "yum -y install pylint"
+    centos7_python_sphinx.vm.provision :shell, :inline => "yum -y install pyflakes"
+    centos7_python_sphinx.vm.provision :shell, :inline => "yum -y install ImageMagick"
+    centos7_python_sphinx.vm.provision :shell, :inline => "yum -y install python-sphinx"
+    centos7_python_sphinx.vm.provision :shell, :inline => "systemctl start httpd.service"
+    centos7_python_sphinx.vm.provision :shell, :inline => "systemctl enable httpd.service"
+    centos7_python_sphinx.vm.provision :shell, :inline => "systemctl stop firewalld.service"
+    centos7_python_sphinx.vm.provision :shell, :inline => "systemctl disable firewalld.service"
+  end
+end

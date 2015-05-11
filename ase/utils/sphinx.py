@@ -1,10 +1,13 @@
 from __future__ import print_function
 import os
+import traceback
 import warnings
 from os.path import join
 from stat import ST_MTIME
+
 from docutils import nodes
 from docutils.parsers.rst.roles import set_classes
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -114,6 +117,27 @@ def epydoc_role_tmpl(package_name, urlroot,
     return [node], []
 
 
+def creates():
+    """Generator for Python scripts and their output filenames."""
+    for dirpath, dirnames, filenames in os.walk('.'):
+        for filename in filenames:
+            if filename.endswith('.py'):
+                path = join(dirpath, filename)
+                lines = open(path).readlines()
+                if len(lines) == 0:
+                    continue
+                line = lines[0]
+                if 'coding: utf-8' in line:
+                    line = lines[1]
+                if line.startswith('# creates:'):
+                    yield dirpath, filename, [file.rstrip(',')
+                                              for file in line.split()[2:]]
+        if '.svn' in dirnames:
+            dirnames.remove('.svn')
+        if 'build' in dirnames:
+            dirnames.remove('build')
+
+                        
 def create_png_files():
     errcode = os.system('povray -h 2> /dev/null')
     if errcode:
@@ -134,42 +158,77 @@ def create_png_files():
 
     olddir = os.getcwd()
 
-    for dirpath, dirnames, filenames in os.walk('.'):
-        for filename in filenames:
-            if filename.endswith('.py'):
-                path = join(dirpath, filename)
-                lines = open(path).readlines()
-                try:
-                    line = lines[0]
-                except IndexError:
-                    continue
-                if 'coding: utf-8' in line:
-                    line = lines[1]
-                if line.startswith('# creates:'):
-                    t0 = os.stat(path)[ST_MTIME]
-                    run = False
-                    for file in line.split()[2:]:
-                        file = file.rstrip(',')
-                        try:
-                            t = os.stat(join(dirpath, file))[ST_MTIME]
-                        except OSError:
-                            run = True
-                            break
-                        else:
-                            if t < t0:
-                                run = True
-                                break
-                    if run:
-                        print('running:', join(dirpath, filename))
-                        os.chdir(dirpath)
-                        plt.figure()
-                        try:
-                            exec_(compile(open(filename).read(),
-                                          filename, 'exec'), {})
-                        finally:
-                            os.chdir(olddir)
-                        for file in line.split()[2:]:
-                            print(dirpath, file)
+    for dir, pyname, outnames in creates():
+        path = join(dir, pyname)
+        t0 = os.stat(path)[ST_MTIME]
+        run = False
+        for outname in outnames:
+            try:
+                t = os.stat(join(dir, outname))[ST_MTIME]
+            except OSError:
+                run = True
+                break
+            else:
+                if t < t0:
+                    run = True
+                    break
+        if run:
+            print('running:', path)
+            os.chdir(dir)
+            plt.figure()
+            try:
+                exec_(compile(open(pyname).read(), pyname, 'exec'), {})
+            except KeyboardInterrupt:
+                return
+            except:
+                traceback.print_exc()
+            finally:
+                os.chdir(olddir)
+            plt.close()
+            for outname in outnames:
+                print(dir, outname)
 
-        if '.svn' in dirnames:
-            dirnames.remove('.svn')
+                
+def clean():
+    """Remove all generated files."""
+    for dir, pyname, outnames in creates():
+        for outname in outnames:
+            if os.path.isfile(os.path.join(dir, outname)):
+                os.remove(os.path.join(dir, outname))
+
+
+def visual_inspection():
+    """Manually inspect generated files."""
+    import subprocess
+    images = []
+    text = []
+    pdf = []
+    for dir, pyname, outnames in creates():
+        for outname in outnames:
+            path = os.path.join(dir, outname)
+            ext = path.rsplit('.', 1)[1]
+            if ext == 'pdf':
+                pdf.append(path)
+            elif ext in ['csv', 'txt', 'out']:
+                text.append(path)
+            else:
+                images.append(path)
+    subprocess.call(['eog'] + images)
+    subprocess.call(['evince'] + pdf)
+    subprocess.call(['more'] + text)
+
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description='Process generated files.')
+    parser.add_argument('command', nargs='?', default='list',
+                        choices=['list', 'inspect', 'clean'])
+    args = parser.parse_args()
+    if args.command == 'clean':
+        clean()
+    elif args.command == 'list':
+        for dir, pyname, outnames in creates():
+            for outname in outnames:
+                print(os.path.join(dir, outname))
+    else:
+        visual_inspection()

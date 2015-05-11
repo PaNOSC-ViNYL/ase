@@ -193,3 +193,9 @@ Implementation
   * read output file(s)
 
 * Helper function to deal with ``kpts`` keyword.
+
+Testing
+=======
+
+An interface must pass the tests located under :svn:`ase/test/calculator/`.
+

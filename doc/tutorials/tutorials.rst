@@ -20,18 +20,19 @@ Most of the tutorials will use the :mod:`EMT <ase.calculators.emt>` potential,
 but any other :mod:`Calculator <ase.calculators>` could be plugged in instead.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
 
    surface
-
    manipulating_atoms
    atomization
    lattice_constant
    eos/eos
-   spacegroup/spacegroup
-   dissociation
-   neb/diffusion
    constraints/diffusion
+   selfdiffusion/al110
+   neb/diffusion
+   neb/idpp
+   dissociation
+   spacegroup/spacegroup
    md/md
    wannier/wannier
    minimahopping/minimahopping
@@ -75,9 +76,9 @@ The following video tutorials are available:
 
  - **Overview and installation of ASE**, by Anthony Goodrow (duration: ~5min 30sec; size: 26 MB) - en: |oi_en|
 
-.. |oi_en| image:: ../_static/United_States_of_America.png
+.. |oi_en| image:: ../static/United_States_of_America.png
    :target: https://wiki.fysik.dtu.dk/ase-files/oi_en.avi
 
-.. |oi_cn| image:: ../_static/China.png
+.. |oi_cn| image:: ../static/China.png
    :target: https://wiki.fysik.dtu.dk/ase-files/oi_ch.avi
 

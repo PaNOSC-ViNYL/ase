@@ -1,6 +1,6 @@
 import psycopg2
 
-from ase.db.sqlite import init_statements, index_statements
+from ase.db.sqlite import init_statements, index_statements, VERSION
 from ase.db.sqlite import all_tables, SQLite3Database
 
 
@@ -34,19 +34,47 @@ class Cursor:
     def executemany(self, statement, *args):
         self.cur.executemany(statement.replace('?', '%s'), *args)
 
+
+def parse_name(name):
+    """Parse user:password@host:port string.
+    
+    Defaults are ase:ase@localhost:5432.  Returns user, password, host, port.
+    """
+    if '@' in name:
+        user, host = name.split('@')
+    else:
+        user = 'ase'
+        host = name
+    if ':' in user:
+        user, password = user.split(':')
+    else:
+        password = 'ase'
+    if ':' in host:
+        host, port = host.split(':')
+        port = int(port)
+    else:
+        port = 5432
+    host = host or None
+    return user, password, host, port
+    
     
 class PostgreSQLDatabase(SQLite3Database):
     default = 'DEFAULT'
     
     def _connect(self):
-        con = psycopg2.connect(database='postgres', user='ase', password='ase')
+        user, password, host, port = parse_name(self.filename)
+        if host == 'localhost':
+            host = None
+        con = psycopg2.connect(database='postgres',
+                               user=user, password=password,
+                               host=host, port=port)
         return Connection(con)
 
     def _initialize(self, con):
-        pass
+        self.version = VERSION
     
     def get_last_id(self, cur):
-        cur.execute('select last_value from systems_id_seq')
+        cur.execute('SELECT last_value FROM systems_id_seq')
         id = cur.fetchone()[0]
         return int(id)
 
@@ -55,23 +83,23 @@ def reset():
     con = psycopg2.connect(database='postgres', user='postgres')
     cur = con.cursor()
 
-    cur.execute("select count(*) from pg_tables where tablename='systems'")
+    cur.execute("SELECT COUNT(*) FROM pg_tables WHERE tablename='systems'")
     if cur.fetchone()[0] == 1:
-        cur.execute('drop table %s cascade' % ', '.join(all_tables))
-        cur.execute('drop role ase')
-    cur.execute("create role ase login password 'ase'")
+        cur.execute('DROP TABLE %s CASCADE' % ', '.join(all_tables))
+        cur.execute('DROP TABLE information CASCADE')
+        cur.execute('DROP ROLE ase')
+    cur.execute("CREATE ROLE ase LOGIN PASSWORD 'ase'")
     con.commit()
 
     sql = ';\n'.join(init_statements)
     for a, b in [('BLOB', 'BYTEA'),
                  ('REAL', 'DOUBLE PRECISION'),
-                 ('INTEGER PRIMARY KEY AUTOINCREMENT',
-                  'SERIAL PRIMARY KEY')]:
+                 ('INTEGER PRIMARY KEY AUTOINCREMENT', 'SERIAL PRIMARY KEY')]:
         sql = sql.replace(a, b)
         
     cur.execute(sql)
     cur.execute(';\n'.join(index_statements))
-    cur.execute('grant all privileges on %s to ase' %
+    cur.execute('GRANT ALL PRIVILEGES ON %s TO ase' %
                 ', '.join(all_tables + ['systems_id_seq']))
     con.commit()
 

@@ -17,7 +17,7 @@ def build_parser():
     parser = OptionParser(usage='%prog [options] [file[, file2, ...]]',
                           version='%prog 0.1',
                           description='See the online manual ' +
-                          '(https://wiki.fysik.dtu.dk/ase/ase/gui.html) ' +
+                          '(https://wiki.fysik.dtu.dk/ase/ase/gui/gui.html) ' +
                           'for more information.')
     parser.add_option('-n', '--image-number',
                       default=':', metavar='NUMBER',
@@ -43,7 +43,7 @@ def build_parser():
                       help='Plot x,y1,y2,... graph from configurations or '
                       'write data to sdtout in terminal mode.  Use the '
                       'symbols: i, s, d, fmax, e, ekin, A, R, E and F.  See '
-                      'https://wiki.fysik.dtu.dk/ase/ase/gui.html'
+                      'https://wiki.fysik.dtu.dk/ase/ase/gui/gui.html'
                       '#plotting-data for more details.')
     parser.add_option('-t', '--terminal',
                       action='store_true',

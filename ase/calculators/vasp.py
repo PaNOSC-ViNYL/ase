@@ -356,11 +356,11 @@ class Vasp(Calculator):
             self.input_params = {'xc': 'PW91'}
 
         self.input_params.update({
-            'setups':     None,    # Special setups (e.g pv, sv, ...)
-            'txt':        '-',     # Where to send information
-            'kpts':       (1, 1, 1),  # k-points
-            'gamma':      False,   # Option to use gamma-sampling instead
-                                   # of Monkhorst-Pack
+            'setups': None,    # Special setups (e.g pv, sv, ...)
+            'txt': '-',     # Where to send information
+            'kpts': (1, 1, 1),  # k-points
+            'gamma': False,   # Option to use gamma-sampling instead
+                              # of Monkhorst-Pack
             'kpts_nintersections': None,  # number of points between points in
                                           # band structures
             'reciprocal': False,   # Option to write explicit k-points in units
@@ -511,7 +511,7 @@ class Vasp(Calculator):
         # Setting the pseudopotentials, first special setups and
         # then according to symbols
         for m in special_setups:
-            name = 'potpaw'+xc.upper() + p['setups'][str(m)] + '/POTCAR'
+            name = 'potpaw' + xc.upper() + p['setups'][str(m)] + '/POTCAR'
             found = False
             for path in pppaths:
                 filename = join(path, name)
@@ -522,7 +522,7 @@ class Vasp(Calculator):
                     break
                 elif isfile(filename + '.Z') or islink(filename + '.Z'):
                     found = True
-                    self.ppp_list.append(filename+'.Z')
+                    self.ppp_list.append(filename + '.Z')
                     break
             if not found:
                 print('Looking for %s' % name)
@@ -530,7 +530,7 @@ class Vasp(Calculator):
 
         for symbol in symbols:
             try:
-                name = 'potpaw'+xc.upper()+symbol + p['setups'][symbol]
+                name = 'potpaw' + xc.upper()+symbol + p['setups'][symbol]
             except (TypeError, KeyError):
                 name = 'potpaw' + xc.upper() + symbol
             name += '/POTCAR'
@@ -618,10 +618,10 @@ class Vasp(Calculator):
         """Method which explicitely runs VASP."""
 
         if self.track_output:
-            self.out = self.output_template+str(self.run_counts)+'.out'
+            self.out = self.output_template + str(self.run_counts) + '.out'
             self.run_counts += 1
         else:
-            self.out = self.output_template+'.out'
+            self.out = self.output_template + '.out'
         stderr = sys.stderr
         p = self.input_params
         if p['txt'] is None:
@@ -755,7 +755,7 @@ class Vasp(Calculator):
         for n, line in enumerate(lines):
             if line.find('TITEL') != -1:
                 symbol = line.split('=')[1].split()[1].split('_')[0].strip()
-                valence = float(lines[n+4].split(';')[1]
+                valence = float(lines[n + 4].split(';')[1]
                                 .split('=')[1].split()[0].strip())
                 nelect.append((symbol, valence))
         return nelect
@@ -905,6 +905,11 @@ class Vasp(Calculator):
 
     def write_incar(self, atoms, **kwargs):
         """Writes the INCAR file."""
+        # jrk 1/23/2015 I added this flag because this function has
+        # two places where magmoms get written. There is some
+        # complication when restarting that often leads to magmom
+        # getting written twice. this flag prevents that issue.
+        magmom_written = False
         incar = open('INCAR', 'w')
         incar.write('INCAR created by Atomic Simulation Environment\n')
         for key, val in self.float_params.items():
@@ -922,7 +927,7 @@ class Vasp(Calculator):
                 if key == 'ichain' and val > 0:
                     incar.write(' IBRION = 3\n POTIM = 0.0\n')
                     for key, val in self.int_params.items():
-                        if key == 'iopt' and val == None:
+                        if key == 'iopt' and val is None:
                             print('WARNING: optimization is '
                                   'set to LFBGS (IOPT = 1)')
                             incar.write(' IOPT = 1\n')
@@ -931,8 +936,8 @@ class Vasp(Calculator):
                             RuntimeError('Please set EDIFFG < 0')
         for key, val in self.list_params.items():
             if val is not None:
-                incar.write(' %s = ' % key.upper())
                 if key in ('dipol', 'eint', 'ropt', 'rwigs'):
+                    incar.write(' %s = ' % key.upper())
                     [incar.write('%.4f ' % x) for x in val]
                 # ldau_luj is a dictionary that encodes all the
                 # data. It is not a vasp keyword. An alternative to
@@ -940,18 +945,24 @@ class Vasp(Calculator):
                 # 'ldaul', which are vasp keywords.
                 elif key in ('ldauu', 'ldauj') and \
                     self.dict_params['ldau_luj'] is None:
+                    incar.write(' %s = ' % key.upper())
                     [incar.write('%.4f ' % x) for x in val]
                 elif key in ('ldaul') and \
                     self.dict_params['ldau_luj'] is None:
+                    incar.write(' %s = ' % key.upper())
                     [incar.write('%d ' % x) for x in val]
                 elif key in ('ferwe', 'ferdo'):
+                    incar.write(' %s = ' % key.upper())
                     [incar.write('%.1f ' % x) for x in val]
                 elif key in ('iband', 'kpuse'):
+                    incar.write(' %s = ' % key.upper())
                     [incar.write('%i ' % x) for x in val]
                 elif key == 'magmom':
+                    incar.write(' %s = ' % key.upper())
+                    magmom_written = True
                     list = [[1, val[0]]]
                     for n in range(1, len(val)):
-                        if val[n] == val[n-1]:
+                        if val[n] == val[n - 1]:
                             list[-1][0] += 1
                         else:
                             list.append([1, val[n]])
@@ -971,7 +982,7 @@ class Vasp(Calculator):
                 incar.write(' %s = ' % key.upper())
                 if key == 'lreal':
                     if isinstance(val, str):
-                        incar.write(val+'\n')
+                        incar.write(val + '\n')
                     elif isinstance(val, bool):
                         if val:
                             incar.write('.TRUE.\n')
@@ -990,14 +1001,15 @@ class Vasp(Calculator):
                     incar.write(' LDAUL =%s\n' % llist)
                     incar.write(' LDAUU =%s\n' % ulist)
                     incar.write(' LDAUJ =%s\n' % jlist)
-        if self.spinpol:
+
+        if self.spinpol and not magmom_written:
             if not self.int_params['ispin']:
                 incar.write(' ispin = 2\n'.upper())
             # Write out initial magnetic moments
             magmom = atoms.get_initial_magnetic_moments()[self.sort]
             list = [[1, magmom[0]]]
             for n in range(1, len(magmom)):
-                if magmom[n] == magmom[n-1]:
+                if magmom[n] == magmom[n - 1]:
                     list[-1][0] += 1
                 else:
                     list.append([1, magmom[n]])
@@ -1037,7 +1049,7 @@ class Vasp(Calculator):
     def write_potcar(self, suffix=""):
         """Writes the POTCAR file."""
         import tempfile
-        potfile = open('POTCAR'+suffix, 'w')
+        potfile = open('POTCAR' + suffix, 'w')
         for filename in self.ppp_list:
             if filename.endswith('R'):
                 for line in open(filename, 'r'):
@@ -1101,7 +1113,7 @@ class Vasp(Calculator):
                 forces = []
                 for i in range(len(atoms)):
                     forces.append(np.array([float(f) for f in
-                                            lines[n+2+i].split()[3:6]]))
+                                            lines[n + 2 + i].split()[3:6]]))
                 if all:
                     all_forces.append(np.array(forces)[self.resort])
             n += 1
@@ -1208,7 +1220,7 @@ class Vasp(Calculator):
         i = 0
         for line in lines:
             if line.rfind('Following cartesian coordinates') > -1:
-                m = n+2
+                m = n + 2
                 while i == 0:
                     ibz_kpts.append([float(lines[m].split()[p])
                                      for p in range(3)])
@@ -1243,7 +1255,7 @@ class Vasp(Calculator):
         eigs = []
         for n in range(8 + kpt * (self.nbands + 2),
                        8 + kpt * (self.nbands + 2) + self.nbands):
-            eigs.append(float(lines[n].split()[spin+1]))
+            eigs.append(float(lines[n].split()[spin + 1]))
         return np.array(eigs)
 
     def read_occupation_numbers(self, kpt=0, spin=0):
@@ -1252,24 +1264,24 @@ class Vasp(Calculator):
         start = 0
         if nspins == 1:
             for n, line in enumerate(lines):  # find it in the last iteration
-                m = re.search(' k-point *'+str(kpt+1)+' *:', line)
+                m = re.search(' k-point *' + str(kpt + 1)+' *:', line)
                 if m is not None:
                     start = n
         else:
             for n, line in enumerate(lines):
                 # find it in the last iteration
-                if line.find(' spin component '+str(spin+1)) != -1:
+                if line.find(' spin component ' + str(spin + 1)) != -1:
                     start = n
             for n2, line2 in enumerate(lines[start:]):
-                m = re.search(' k-point *'+str(kpt+1)+' *:', line2)
+                m = re.search(' k-point *' + str(kpt + 1) + ' *:', line2)
                 if m is not None:
                     start = start + n2
                     break
-        for n2, line2 in enumerate(lines[start+2:]):
+        for n2, line2 in enumerate(lines[start + 2:]):
             if not line2.strip():
                 break
         occ = []
-        for line in lines[start+2:start+2+n2]:
+        for line in lines[start + 2:start + 2 + n2]:
             occ.append(float(line.split()[2]))
         return np.array(occ)
 
@@ -1324,7 +1336,8 @@ class Vasp(Calculator):
                         self.bool_params[key] = False
                 elif key in list_keys:
                     list = []
-                    if key in ('dipol', 'eint', 'ferwe', 'ropt', 'rwigs',
+                    if key in ('dipol', 'eint', 'ferwe', 'ferdo',
+                               'ropt', 'rwigs',
                                'ldauu', 'ldaul', 'ldauj'):
                         for a in data[2:]:
                             if a in ["!", "#"]:
@@ -1583,42 +1596,42 @@ class VaspChargeDensity(object):
         # Make a 1D copy of chg, must take transpose to get ordering right
         chgtmp = chg.T.ravel()
         # Multiply by volume
-        chgtmp = chgtmp*volume
+        chgtmp = chgtmp * volume
         # Must be a tuple to pass to string conversion
         chgtmp = tuple(chgtmp)
         # CHG format - 10 columns
         if format.lower() == 'chg':
             # Write all but the last row
-            for ii in range((len(chgtmp)-1)/10):
+            for ii in range((len(chgtmp) - 1) / 10):
                 fobj.write(' %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\
- %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\n' % chgtmp[ii*10:(ii+1)*10]
+ %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\n' % chgtmp[ii * 10:(ii + 1) * 10]
                            )
             # If the last row contains 10 values then write them without a
             # newline
             if len(chgtmp) % 10 == 0:
                 fobj.write(' %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\
- %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G' % chgtmp[len(chgtmp)-10:len(chgtmp)])
+ %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G' % chgtmp[len(chgtmp) - 10:len(chgtmp)])
             # Otherwise write fewer columns without a newline
             else:
                 for ii in range(len(chgtmp) % 10):
                     fobj.write((' %#11.5G')
-                               % chgtmp[len(chgtmp)-len(chgtmp) % 10+ii])
+                               % chgtmp[len(chgtmp) - len(chgtmp) % 10 + ii])
         # Other formats - 5 columns
         else:
             # Write all but the last row
-            for ii in range((len(chgtmp)-1)/5):
+            for ii in range((len(chgtmp) - 1) / 5):
                 fobj.write(' %17.10E %17.10E %17.10E %17.10E %17.10E\n'
-                           % chgtmp[ii*5:(ii+1)*5])
+                           % chgtmp[ii * 5:(ii + 1) * 5])
             # If the last row contains 5 values then write them without a
             # newline
             if len(chgtmp) % 5 == 0:
                 fobj.write(' %17.10E %17.10E %17.10E %17.10E %17.10E'
-                           % chgtmp[len(chgtmp)-5:len(chgtmp)])
+                           % chgtmp[len(chgtmp) - 5:len(chgtmp)])
             # Otherwise write fewer columns without a newline
             else:
                 for ii in range(len(chgtmp) % 5):
                     fobj.write((' %17.10E')
-                               % chgtmp[len(chgtmp)-len(chgtmp) % 5 + ii])
+                               % chgtmp[len(chgtmp) - len(chgtmp) % 5 + ii])
         # Write a newline whatever format it is
         fobj.write('\n')
         # Clean up
@@ -1694,6 +1707,19 @@ class VaspDos(object):
         self.read_doscar(doscar)
         self.efermi = efermi
 
+        # we have determine the resort to correctly map ase atom index to the
+        # POSCAR.
+        self.sort = []
+        self.resort = []
+        if os.path.isfile('ase-sort.dat'):
+            file = open('ase-sort.dat', 'r')
+            lines = file.readlines()
+            file.close()
+            for line in lines:
+                data = line.split()
+                self.sort.append(int(data[0]))
+                self.resort.append(int(data[1]))
+
     def _set_efermi(self, efermi):
         """Set the Fermi level."""
         ef = efermi - self._efermi
@@ -1732,6 +1758,11 @@ class VaspDos(object):
         double in the above fashion if spin polarized.
 
         """
+        # Correct atom index for resorting if we need to. This happens when the
+        # ase-sort.dat file exists, and self.resort is not empty.
+        if self.resort:
+            atom = self.resort[atom]
+
         # Integer indexing for orbitals starts from 1 in the _site_dos array
         # since the 0th column contains the energies
         if isinstance(orbital, int):
@@ -1804,12 +1835,13 @@ class VaspDos(object):
         self._site_dos = np.array(dos)
 
 
-import pickle
-
-
 class xdat2traj:
     def __init__(self, trajectory=None, atoms=None, poscar=None,
                  xdatcar=None, sort=None, calc=None):
+        """
+        trajectory is the name of the file to write the trajectory to
+        poscar is the name of the poscar file to read. Default: POSCAR
+        """
         if not poscar:
             self.poscar = 'POSCAR'
         else:
@@ -1838,8 +1870,8 @@ class xdat2traj:
         self.calc.resort = list(range(len(self.calc.sort)))
         for n in range(len(self.calc.resort)):
             self.calc.resort[self.calc.sort[n]] = n
-        self.out = ase.io.trajectory.PickleTrajectory(self.trajectory,
-                                                      mode='w')
+        self.out = ase.io.trajectory.Trajectory(self.trajectory,
+                                                mode='w')
         self.energies = self.calc.read_energy(all=True)[1]
         self.forces = self.calc.read_forces(self.atoms, all=True)
 
@@ -1862,13 +1894,7 @@ class xdat2traj:
                     self.out.write_header(self.atoms[self.calc.resort])
                 scaled_pos = np.array(scaled_pos)
                 self.atoms.set_scaled_positions(scaled_pos)
-                d = {'positions': self.atoms.get_positions()[self.calc.resort],
-                     'cell': self.atoms.get_cell(),
-                     'momenta': None,
-                     'energy': self.energies[step],
-                     'forces': self.forces[step],
-                     'stress': None}
-                pickle.dump(d, self.out.fd, protocol=-1)
+                self.out.write(self.atoms)
                 scaled_pos = []
                 iatom = 0
                 step += 1
@@ -1884,12 +1910,6 @@ class xdat2traj:
             self.out.write_header(self.atoms[self.calc.resort])
         scaled_pos = np.array(scaled_pos)
         self.atoms.set_scaled_positions(scaled_pos)
-        d = {'positions': self.atoms.get_positions()[self.calc.resort],
-             'cell': self.atoms.get_cell(),
-             'momenta': None,
-             'energy': self.energies[step],
-             'forces': self.forces[step],
-             'stress': None}
-        pickle.dump(d, self.out.fd, protocol=-1)
+        self.out.write(self.atoms)
 
-        self.out.fd.close()
+        self.out.close()

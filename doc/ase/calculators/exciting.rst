@@ -4,7 +4,7 @@
 exciting
 ========
 
-.. image:: ../../_static/exciting.png
+.. image:: ../../static/exciting.png
 
 Introduction
 ============
@@ -19,7 +19,7 @@ region. The website is http://exciting-code.org/
 The module depends on lxml  http://lxml.de
 
 
-There are two ways to construct the exciting calculator. 
+There are two ways to construct the exciting calculator.
 
 1. Using keyword arguments to specify groundstate attributes
 2. Use paramdict to specify an input file  structure with a data structure of dictionaries.
@@ -87,10 +87,10 @@ The calculator constructure above is used to create this exciting input file:
       </properties>
     </input>
 
-The translation follows the following rules:    
-String values are translated to attributes. Nested dictionaries are translated to sub elements. 
+The translation follows the following rules:
+String values are translated to attributes. Nested dictionaries are translated to sub elements.
 A list of dictionaries is translated to a list of sub elements named after the key of which the list is the value.
-The special key "text()" results in text content of the enclosing tag. 
+The special key "text()" results in text content of the enclosing tag.
  
 
 Muffin Tin Radius

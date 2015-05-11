@@ -1,3 +1,5 @@
+import os
+
 from ase import Atoms
 from ase.calculators.aims import Aims, AimsCube
 from ase.optimize import QuasiNewton

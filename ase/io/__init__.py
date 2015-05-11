@@ -5,14 +5,14 @@ from zipfile import is_zipfile
 
 from ase.atoms import Atoms
 from ase.units import Bohr, Hartree
-from ase.io.trajectory import PickleTrajectory
+from ase.io.trajectory import Trajectory, PickleTrajectory
 from ase.io.bundletrajectory import BundleTrajectory
 from ase.io.netcdftrajectory import NetCDFTrajectory
 from ase.calculators.singlepoint import SinglePointDFTCalculator
 from ase.calculators.singlepoint import SinglePointKPoint
 
-__all__ = ['read', 'write', 'PickleTrajectory', 'BundleTrajectory',
-           'NetCDFTrajectory']
+__all__ = ['read', 'write', 'Trajectory', 'PickleTrajectory',
+           'BundleTrajectory', 'NetCDFTrajectory']
 
 
 def read(filename, index=None, format=None):
@@ -82,6 +82,10 @@ def read(filename, index=None, format=None):
     Materials Studio file      xsd
     =========================  =============
 
+    Many formats allow on open file-like object to be passed instead
+    of ``filename``. In this case the format cannot be auto-decected,
+    so the ``format`` argument should be explicitly given.
+    
     """
     if isinstance(filename, str) and (
         '.json@' in filename or
@@ -150,11 +154,11 @@ def read(filename, index=None, format=None):
         return atoms
 
     if format in ['json', 'db', 'postgresql']:
-        from ase.db.core import connect, dict2atoms
         if index == slice(None, None):
             index = None
-        images = [dict2atoms(d)
-                  for d in connect(filename, format).select(index)]
+        from ase.db.core import connect
+        images = [row.toatoms()
+                  for row in connect(filename, format).select(index)]
         if len(images) == 1:
             return images[0]
         else:
@@ -185,6 +189,10 @@ def read(filename, index=None, format=None):
 
     if format == 'traj':
         from ase.io.trajectory import read_trajectory
+        return read_trajectory(filename, index)
+
+    if format == 'trj':
+        from ase.io.pickletrajectory import read_trajectory
         return read_trajectory(filename, index)
 
     if format == 'bundle':
@@ -406,6 +414,10 @@ def write(filename, images, format=None, **kwargs):
     Extended XYZ file          extxyz
     =========================  ===========
 
+    Many formats allow on open file-like object to be passed instead
+    of ``filename``. In this case the format cannot be auto-decected,
+    so the ``format`` argument should be explicitly given.
+
     The use of additional keywords is format specific.
 
     The ``cube`` and ``plt`` formats accept (plt requires it) a ``data``
@@ -504,7 +516,7 @@ def write(filename, images, format=None, **kwargs):
     if format == 'xyz':
         from ase.io.extxyz import write_xyz
         write_xyz(filename, images, columns=['symbols', 'positions'],
-                  write_info=False, **kwargs)
+                  write_info=False, write_results=False, **kwargs)
         return
     if format == 'extxyz':
         from ase.io.extxyz import write_xyz
@@ -568,8 +580,10 @@ def write(filename, images, format=None, **kwargs):
 
     if format in ['vti', 'vts', 'vtu']:
         format = 'vtkxml'
-
-    if format is None:
+    elif format == 'trj':
+        name = 'write_trajectory'
+        format = 'pickletrajectory'
+    elif format is None:
         format = filetype(filename)
 
     try:
@@ -646,9 +660,10 @@ def filetype(filename):
 
     fileobj.seek(0)
     lines = fileobj.readlines(1000)
-
-    if lines[0].startswith(b'PickleTrajectory'):
+    if lines[0].startswith(b'AFFormatASE-Trajectory'):
         return 'traj'
+    if lines[0].startswith(b'PickleTrajectory'):
+        return 'trj'
 
     if (lines[1].startswith(b'OUTER LOOP:') or
         filename.lower().endswith('.cube')):

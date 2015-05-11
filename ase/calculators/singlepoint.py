@@ -41,9 +41,11 @@ class SinglePointCalculator(Calculator):
                 self.results[property] = np.array(value, float)
         self.atoms = atoms.copy()
 
-    def get_property(self, name, atoms):
+    def get_property(self, name, atoms=None, allow_calculation=True):
         if name not in self.results or self.check_state(atoms):
-            raise NotImplementedError
+            if allow_calculation:
+                raise NotImplementedError
+            return None
         return self.results[name]
 
     
@@ -58,6 +60,8 @@ class SinglePointKPoint:
 
 class SinglePointDFTCalculator(SinglePointCalculator):
     def __init__(self, *args, **results):
+        self.bz_kpts = results.pop('bz_kpts', None)
+        self.ibz_kpts = results.pop('ibz_kpts', None)
         if args and isinstance(args[0], float):
             # Old interface:
             assert not results
@@ -95,10 +99,7 @@ class SinglePointDFTCalculator(SinglePointCalculator):
 
     def get_bz_k_points(self):
         """Return the k-points."""
-        if self.kpts is not None:
-            # we assume that only the gamma point is defined
-            return np.zeros((1, 3))
-        return None
+        return self.bz_kpts
 
     def get_number_of_spins(self):
         """Return the number of spins in the calculation.
@@ -118,7 +119,7 @@ class SinglePointDFTCalculator(SinglePointCalculator):
     
     def get_ibz_k_points(self):
         """Return k-points in the irreducible part of the Brillouin zone."""
-        return self.get_bz_k_points()
+        return self.ibz_kpts
 
     def get_occupation_numbers(self, kpt=0, spin=0):
         """Return occupation number array."""
@@ -139,3 +140,31 @@ class SinglePointDFTCalculator(SinglePointCalculator):
                 if kpt.s == spin:
                     return kpt.eps_n
         return None
+
+    def get_homo_lumo(self):
+        """Return HOMO and LUMO energies."""
+        if self.kpts is None:
+            raise RuntimeError('No kpts')
+        eHs = []
+        eLs = []
+        for kpt in self.kpts:
+            eH, eL = self.get_homo_lumo_by_spin(kpt.s)
+            eHs.append(eH)
+            eLs.append(eL)
+        return np.array(eHs).max(), np.array(eLs).min()
+        
+    def get_homo_lumo_by_spin(self, spin=0):
+        """Return HOMO and LUMO energies for a give spin."""
+        if self.kpts is None:
+            raise RuntimeError('No kpts')
+        for kpt in self.kpts:
+            if kpt.s == spin:
+                eH = -1.e32
+                eL = 1.e32
+                for e, f in zip(kpt.eps_n, kpt.f_n):
+                    if e <= self.eFermi:
+                        eH = max(eH, e)
+                    else:
+                        eL = min(eL, e)
+                return eH, eL
+        raise RuntimeError('No kpt with spin {0}'.format(s))

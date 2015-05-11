@@ -312,7 +312,13 @@ class NetCDFTrajectory:
         else:
             i = frame
 
-        self._get_variable(self._numbers_var)[i] = atoms.get_atomic_numbers()
+        # Number can be per file variable
+        numbers = self._get_variable(self._numbers_var)
+        if numbers.dimensions[0] == self._frame_dim:
+            numbers[i] = atoms.get_atomic_numbers()
+        else:
+            if np.any(numbers != atoms.get_atomic_numbers()):
+                raise ValueError('Atomic numbers do not match!')
         self._get_variable(self._positions_var)[i] = atoms.get_positions()
         if atoms.has('momenta'):
             self._add_velocities()
@@ -325,9 +331,18 @@ class NetCDFTrajectory:
         if arrays is not None:
             for array in arrays:
                 data = atoms.get_array(array)
-                self._add_array(atoms, array, data.dtype, data.shape)
-                self._get_variable(array)[i] = data
+                if array in self.extra_per_file_vars:
+                    # This field exists but is per file data. Check that the
+                    # data remains consistent.
+                    if np.any(self._get_variable(array) != data):
+                        raise ValueError('Trying to write Atoms object with '
+                                         'incompatible data for the {} '
+                                         'array.'.format(array))
+                else:
+                    self._add_array(atoms, array, data.dtype, data.shape)
+                    self._get_variable(array)[i] = data
         if time is not None:
+            self._add_time()
             self._get_variable(self._time_var)[i] = time
 
         self._call_observers(self.post_observers)
@@ -339,8 +354,16 @@ class NetCDFTrajectory:
         self._call_observers(self.pre_observers)
         for array in arrays:
             data = atoms.get_array(array)
-            self._add_array(atoms, array, data.dtype, data.shape)
-            self._get_variable(array)[frame] = data
+            if array in self.extra_per_file_vars:
+                # This field exists but is per file data. Check that the
+                # data remains consistent.
+                if np.any(self._get_variable(array) != data):
+                    raise ValueError('Trying to write Atoms object with '
+                                     'incompatible data for the {} '
+                                     'array.'.format(array))
+            else:
+                self._add_array(atoms, array, data.dtype, data.shape)
+                self._get_variable(array)[frame] = data
         self._call_observers(self.post_observers)
         self._close()
 
@@ -401,6 +424,10 @@ class NetCDFTrajectory:
             self.nc.createVariable(self._cell_angles_var, 'd',
                                    (self._frame_dim, self._cell_angular_dim))
             self.nc.variables[self._cell_angles_var].units = 'degree'
+
+    def _add_time(self):
+        if not self._has_variable(self._time_var):
+            self.nc.createVariable(self._time_var, 'f8', (self._frame_dim,))
 
     def _add_velocities(self):
         if not self._has_variable(self._velocities_var):

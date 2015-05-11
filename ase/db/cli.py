@@ -1,22 +1,23 @@
 from __future__ import print_function
 import sys
 import optparse
-
-import ase.io
-from ase.db import connect
-from ase.db.summary import Summary
-from ase.db.table import Table, all_columns
-from ase.calculators.calculator import get_calculator
+from random import randint
 
 import numpy as np
 
+import ase.io
+from ase.db import connect
+from ase.db.core import convert_str_to_float_or_str
+from ase.db.summary import Summary
+from ase.db.table import Table, all_columns
+from ase.calculators.calculator import get_calculator
+from ase.utils import plural
 
-def plural(n, word):
-    if n == 1:
-        return '1 ' + word
-    return '%d %ss' % (n, word)
+try:
+    input = raw_input  # Python 2+3 compatibility
+except NameError:
+    pass
 
-    
 description = """Selecton is a comma-separated list of
 selections where each selection is of the type "ID", "key" or
 "key=value".  Instead of "=", one can also use "<", "<=", ">=", ">"
@@ -73,12 +74,14 @@ def main(args=sys.argv[1:]):
         'with a "+" in order to add columns to the default set of columns.  '
         'Precede by a "-" to remove columns.')
     add('-s', '--sort', metavar='column', default='id',
-        help='Sort rows using column.  Default is to sort after ID.')
+        help='Sort rows using column.  Use -column for a descendin sort.  '
+        'Default is to sort after id.')
     add('--cut', type=int, default=35, help='Cut keywords and key-value '
         'columns after CUT characters.  Use --cut=0 to disable cutting. '
         'Default is 35 characters')
-    add('-p', '--python-expression', metavar='expression',
-        help='Examples: "id,energy", "id,mykey".')
+    add('-p', '--plot', metavar='[a,b:]x,y1,y2,...',
+        help='Example: "-p x,y": plot y row against x row. Use '
+        '"-p a:x,y" to make a plot for each value of a.')
     add('--csv', action='store_true',
         help='Write comma-separated-values file.')
     add('-w', '--open-web-browser', action='store_true',
@@ -87,7 +90,10 @@ def main(args=sys.argv[1:]):
     add('--analyse', action='store_true',
         help='Gathers statistics about tables and indices to help make '
         'better query planning choices.')
-        
+    add('-j', '--json', action='store_true',
+        help='Write json representation of selected row.')
+    add('--unique', action='store_true',
+        help='Give rows a new unique id when using --insert-into.')
     opts, args = parser.parse_args(args)
 
     if not args:
@@ -116,14 +122,7 @@ def run(opts, args, verbosity):
     if opts.add_key_value_pairs:
         for pair in opts.add_key_value_pairs.split(','):
             key, value = pair.split('=')
-            for type in [int, float]:
-                try:
-                    value = type(value)
-                except ValueError:
-                    pass
-                else:
-                    break
-            add_key_value_pairs[key] = value
+            add_key_value_pairs[key] = convert_str_to_float_or_str(value)
 
     if opts.delete_keys:
         delete_keys = opts.delete_keys.split(',')
@@ -174,6 +173,8 @@ def run(opts, args, verbosity):
                 nkvp -= len(kvp)
                 kvp.update(add_key_value_pairs)
                 nkvp += len(kvp)
+                if opts.unique:
+                    dct['unique_id'] = '%x' % randint(16**31, 16**32 - 1)
                 con2.write(dct, data=dct.get('data'), **kvp)
                 nrows += 1
             
@@ -203,18 +204,41 @@ def run(opts, args, verbosity):
         out('Deleted %s' % plural(len(ids), 'row'))
         return
 
-    if opts.python_expression:
-        for dct in con.select(query):
-            row = eval(opts.python_expression, dct)
-            if not isinstance(row, (list, tuple, np.ndarray)):
-                row = [row]
-            print(', '.join(str(x) for x in row))
+    if opts.plot:
+        if ':' in opts.plot:
+            tags, keys = opts.plot.split(':')
+            tags = tags.split(',')
+        else:
+            tags = []
+            keys = opts.plot
+        keys = keys.split(',')
+        import collections
+        plots = collections.defaultdict(list)
+        X = {}
+        for row in con.select(query):
+            name = ','.join(row[tag] for tag in tags)
+            x = row.get(keys[0])
+            if x is not None:
+                if isinstance(x, str) and x not in X:
+                    X[x] = len(X)
+                plots[name].append([x] + [row.get(key) for key in keys[1:]])
+        import matplotlib.pyplot as plt
+        for name, plot in plots.items():
+            
+            plt.plot(*zip(*plot), label=name)
+        plt.legend()
+        plt.show()
         return
 
     if opts.long:
         dct = con.get(query)
         summary = Summary(dct)
         summary.write()
+    elif opts.json:
+        dct = con.get(query)
+        con2 = connect(sys.stdout, 'json', use_lock_file=False)
+        kvp = dct.get('key_value_pairs', {})
+        con2.write(dct, data=dct.get('data'), **kvp)
     else:
         if opts.open_web_browser:
             import ase.db.app as app

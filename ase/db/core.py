@@ -3,16 +3,14 @@ import functools
 import operator
 import os
 import re
-from random import randint
 from time import time
 
 from ase.atoms import Atoms, symbols2numbers
-from ase.calculators.calculator import get_calculator, all_properties, \
-    all_changes
-from ase.calculators.singlepoint import SinglePointCalculator
-from ase.data import atomic_numbers, chemical_symbols
+from ase.db.row import atoms2dict, AtomsRow
+from ase.calculators.calculator import all_properties, all_changes
+from ase.data import atomic_numbers
 from ase.parallel import world, broadcast, DummyMPI
-from ase.utils import hill, Lock, basestring
+from ase.utils import Lock, basestring
 
 
 T2000 = 946681200.0  # January 1. 2000
@@ -69,7 +67,7 @@ def check(key_value_pairs):
 
             
 def connect(name, type='extract_from_name', create_indices=True,
-            use_lock_file=True):
+            use_lock_file=True, append=True):
     """Create connection to database.
     
     name: str
@@ -81,21 +79,24 @@ def connect(name, type='extract_from_name', create_indices=True,
         from the name.
     use_lock_file: bool
         You can turn this off if you know what you are doing ...
-        """
+    append: bool
+        Use append=False to start a new database.
+    """
     
     if type == 'extract_from_name':
         if name is None:
             type = None
-        elif name.startswith('postgresql://'):
+        elif name.startswith('pg://'):
             type = 'postgresql'
-        elif name.startswith('mysql://'):
-            type = 'mysql'
         else:
             type = os.path.splitext(name)[1][1:]
 
     if type is None:
         return Database()
 
+    if not append and world.rank == 0 and os.path.isfile(name):
+        os.remove(name)
+        
     if type == 'json':
         from ase.db.jsondb import JSONDatabase
         return JSONDatabase(name, use_lock_file=use_lock_file)
@@ -105,30 +106,8 @@ def connect(name, type='extract_from_name', create_indices=True,
     if type == 'postgresql':
         from ase.db.postgresql import PostgreSQLDatabase
         return PostgreSQLDatabase(name[5:])
-    if type == 'mysql':
-        from ase.db.mysql import MySQLDatabase
-        return MySQLDatabase(name[5:])
     raise ValueError('Unknown database type: ' + type)
 
-
-class FancyDict(dict):
-    """Dictionary with keys available as attributes also."""
-    def __getattr__(self, key):
-        if key not in self:
-            return dict.__getattribute__(self, key)
-        value = self[key]
-        if isinstance(value, dict):
-            return FancyDict(value)
-        return value
-
-    formula = property(lambda self: hill(self.numbers))
-    
-    def __dir__(self):
-        return self.keys()  # for tab-completion
-        
-    symbols = property(lambda self: [chemical_symbols[Z]
-                                     for Z in self.numbers])
-        
 
 def lock(method):
     """Decorator for using a lock-file."""
@@ -182,6 +161,15 @@ def parallel_generator(generator):
                 result = broadcast(None)
     return new_generator
 
+    
+def convert_str_to_float_or_str(value):
+    """Safe eval()"""
+    try:
+        value = float(value)
+    except ValueError:
+        value = {'True': 1.0, 'False': 0.0}.get(value, value)
+    return value
+    
 
 class Database:
     """Base class for all databases."""
@@ -214,6 +202,7 @@ class Database:
             
             connection.write(atoms, name='ABC', frequency=42.0)
             
+        Returns integer id of the new row.
         """
         
         if atoms is None:
@@ -275,17 +264,6 @@ class Database:
     def __delitem__(self, id):
         self.delete([id])
         
-    def collect_data(self, atoms):
-        dct = atoms2dict(atoms)
-        dct['ctime'] = dct['mtime'] = now()
-        dct['user'] = os.getenv('USER')
-        if atoms.calc is not None:
-            dct['calculator'] = atoms.calc.name.lower()
-            dct['calculator_parameters'] = atoms.calc.todict()
-            if len(atoms.calc.check_state(atoms)) == 0:
-                dct.update(atoms.calc.results)
-        return dct
-
     def get_atoms(self, selection=None, attach_calculator=False,
                   add_additional_information=False, **kwargs):
         """Get Atoms object.
@@ -302,19 +280,13 @@ class Database:
         key-value pairs.
         """
             
-        dct = self.get(selection, fancy=False, **kwargs)
-        atoms = dict2atoms(dct, attach_calculator)
-        if add_additional_information:
-            atoms.info = {}
-            for key in ['unique_id', 'key_value_pairs', 'data']:
-                if key in dct:
-                    atoms.info[key] = dct[key]
-        return atoms
+        row = self.get(selection, **kwargs)
+        return row.toatoms(attach_calculator, add_additional_information)
 
     def __getitem__(self, selection):
         return self.get(selection)
 
-    def get(self, selection=None, fancy=True, **kwargs):
+    def get(self, selection=None, **kwargs):
         """Select a single row and return it as a dictionary.
         
         selection: int, str or list
@@ -324,12 +296,11 @@ class Database:
             default).
         """
 
-        dcts = list(self.select(selection, fancy, limit=2, **kwargs))
-        if not dcts:
+        rows = list(self.select(selection, limit=2, **kwargs))
+        if not rows:
             raise KeyError('no match')
-        assert len(dcts) == 1, 'more than one row matched'
-        dct = dcts[0]
-        return dct
+        assert len(rows) == 1, 'more than one row matched'
+        return rows[0]
 
     def parse_selection(self, selection, **kwargs):
         if selection is None or selection == '':
@@ -339,7 +310,7 @@ class Database:
         elif isinstance(selection, list):
             expressions = selection
         else:
-            expressions = selection.split(',')
+            expressions = [w.strip() for w in selection.split(',')]
         keys = []
         comparisons = []
         for expression in expressions:
@@ -389,10 +360,7 @@ class Database:
                 key = atomic_numbers[key]
                 value = int(value)
             elif isinstance(value, basestring):
-                try:
-                    value = float(value)
-                except ValueError:
-                    assert op == '=' or op == '!='
+                value = convert_str_to_float_or_str(value)
             if key in numeric_keys and not isinstance(value, (int, float)):
                 msg = 'Wrong type for "{0}{1}{2}" - must be a number'
                 raise ValueError(msg.format(key, op, value))
@@ -401,11 +369,11 @@ class Database:
         return keys, cmps
 
     @parallel_generator
-    def select(self, selection=None, fancy=True, filter=None, explain=False,
-               verbosity=1, limit=None, offset=0, **kwargs):
+    def select(self, selection=None, filter=None, explain=False,
+               verbosity=1, limit=None, offset=0, sort=None, **kwargs):
         """Select rows.
         
-        Return iterator with results as dictionaries.  Selection is done
+        Return AtomsRow iterator with results.  Selection is done
         using key-value pairs and the special keys:
             
             formula, age, user, calculator, natoms, energy, magmom
@@ -420,12 +388,8 @@ class Database:
             * a string like 'key'
             * comma separated strings like 'key1<value1,key2=value2,key'
             * list of strings or tuples: [('charge', '=', 1)].
-        fancy: bool
-            return fancy dictionary with keys as attributes (this is the
-            default).
         filter: function
-            A function that takes as input a dictionary and returns True
-            or False.
+            A function that takes as input a row and returns True or False.
         explain: bool
             Explain query plan.
         verbosity: int
@@ -434,20 +398,24 @@ class Database:
             Limit selection.
         """
         
+        if sort:
+            if sort == 'age':
+                sort = '-ctime'
+            elif sort == '-age':
+                sort = 'ctime'
+            elif sort.lstrip('-') == 'user':
+                sort += 'name'
+            
         keys, cmps = self.parse_selection(selection, **kwargs)
-        for dct in self._select(keys, cmps, explain=explain,
+        for row in self._select(keys, cmps, explain=explain,
                                 verbosity=verbosity,
-                                limit=limit, offset=offset):
-            if filter is None or list(filter(dct)):
-                if fancy:
-                    dct = FancyDict(dct)
-                    if 'key_value_pairs' in dct:
-                        dct.update(dct['key_value_pairs'])
-                yield dct
+                                limit=limit, offset=offset, sort=sort):
+            if filter is None or filter(row):
+                yield row
                 
     def count(self, selection=None, **kwargs):
         n = 0
-        for dct in self.select(selection, **kwargs):
+        for row in self.select(selection, **kwargs):
             n += 1
         return n
         
@@ -487,71 +455,6 @@ class Database:
         raise NotImplementedError
 
         
-def atoms2dict(atoms):
-    data = {
-        'numbers': atoms.numbers,
-        'pbc': atoms.pbc,
-        'cell': atoms.cell,
-        'positions': atoms.positions,
-        'unique_id': '%x' % randint(16**31, 16**32 - 1)}
-    if atoms.has('magmoms'):
-        data['initial_magmoms'] = atoms.get_initial_magnetic_moments()
-    if atoms.has('charges'):
-        data['initial_charges'] = atoms.get_initial_charges()
-    if atoms.has('masses'):
-        data['masses'] = atoms.get_masses()
-    if atoms.has('tags'):
-        data['tags'] = atoms.get_tags()
-    if atoms.has('momenta'):
-        data['momenta'] = atoms.get_momenta()
-    if atoms.constraints:
-        data['constraints'] = [c.todict() for c in atoms.constraints]
-    return data
-
-
-def dict2constraint(dct):
-    if '__name__' in dct:  # backwards compatibility
-        dct = {'kwargs': dct.copy()}
-        dct['name'] = dct['kwargs'].pop('__name__')
-        
-    modulename, name = dct['name'].rsplit('.', 1)
-    module = __import__(modulename, fromlist=[name])
-    constraint = getattr(module, name)(**dct['kwargs'])
-    return constraint
-
-            
-def dict2atoms(dct, attach_calculator=False):
-    constraint_dicts = dct.get('constraints')
-    if constraint_dicts:
-        constraints = [dict2constraint(c) for c in constraint_dicts]
-    else:
-        constraints = None
-
-    atoms = Atoms(dct['numbers'],
-                  dct['positions'],
-                  cell=dct['cell'],
-                  pbc=dct['pbc'],
-                  magmoms=dct.get('initial_magmoms'),
-                  charges=dct.get('initial_charges'),
-                  tags=dct.get('tags'),
-                  masses=dct.get('masses'),
-                  momenta=dct.get('momenta'),
-                  constraint=constraints)
-
-    if attach_calculator:
-        atoms.calc = get_calculator(dct['calculator'])(
-            **dct['calculator_parameters'])
-    else:
-        results = {}
-        for prop in all_properties:
-            if prop in dct:
-                results[prop] = dct[prop]
-        if results:
-            atoms.calc = SinglePointCalculator(atoms, **results)
-
-    return atoms
-
-
 def time_string_to_float(s):
     if isinstance(s, (float, int)):
         return s

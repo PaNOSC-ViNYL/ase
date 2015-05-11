@@ -179,8 +179,8 @@ class BFGSLineSearch(Optimizer):
         """Initialize hessian from old trajectory."""
         self.replay = True
         if isinstance(traj, str):
-            from ase.io.trajectory import PickleTrajectory
-            traj = PickleTrajectory(traj, 'r')
+            from ase.io.trajectory import Trajectory
+            traj = Trajectory(traj, 'r')
         atoms = traj[0]
         r0 = None
         g0 = None

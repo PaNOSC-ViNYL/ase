@@ -133,6 +133,9 @@ class Spacegroup(object):
 
     def __repr__(self):
         return 'Spacegroup(%d, setting=%d)' % (self.no, self.setting)
+
+    def todict(self):
+        return {'number': self.no, 'setting': self.setting}
     
     def __str__(self):
         """Return a string representation of the space group data in

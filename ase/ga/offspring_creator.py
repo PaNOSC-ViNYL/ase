@@ -14,9 +14,17 @@ class OffspringCreator(object):
     verbose: Be verbose and print some stuff
 
     """
-    def __init__(self, verbose=False):
+    def __init__(self, verbose=False, num_muts=1):
         self.descriptor = 'OffspringCreator'
         self.verbose = verbose
+        self.min_inputs = 0
+        self.num_muts = num_muts
+
+    def get_min_inputs(self):
+        """Returns the number of inputs required for a mutation,
+        this is to know how many candidates should be selected
+        from the population."""
+        return self.min_inputs
 
     def get_new_individual(self, parents):
         """Function that returns a new individual.
@@ -40,7 +48,7 @@ class OffspringCreator(object):
         if indi is None:
             indi = Atoms(pbc=parent.get_pbc(), cell=parent.get_cell())
         # key_value_pairs for numbers and strings
-        indi.info['key_value_pairs'] = {}
+        indi.info['key_value_pairs'] = {'extinct': 0}
         # data for lists and the like
         indi.info['data'] = {}
 

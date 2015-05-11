@@ -9,7 +9,7 @@ from ase.tasks.task import OptimizeTask
 from ase.data import covalent_radii, atomic_numbers
 from ase.data import ground_state_magnetic_moments
 from ase.utils.eos import EquationOfState
-from ase.io.trajectory import PickleTrajectory
+from ase.io.trajectory import Trajectory
 import ase.units as units
 
 
@@ -97,7 +97,7 @@ class MoleculeTask(OptimizeTask):
         d0 = atoms.get_distance(0, 1)
         distances = np.linspace(d0 * (1 - x), d0 * (1 + x), N)
         energies = []
-        traj = PickleTrajectory(self.get_filename(name, 'fit.traj'), 'w')
+        traj = Trajectory(self.get_filename(name, 'fit.traj'), 'w')
         for d in distances:
             atoms.set_distance(0, 1, d)
             energies.append(atoms.get_potential_energy())

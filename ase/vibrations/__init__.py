@@ -11,7 +11,7 @@ import sys
 import numpy as np
 
 import ase.units as units
-from ase.io.trajectory import PickleTrajectory
+from ase.io.trajectory import Trajectory
 from ase.parallel import rank, paropen
 from ase.utils import opencew
 
@@ -312,7 +312,7 @@ class Vibrations:
         mode = self.get_mode(n) * sqrt(kT / abs(self.hnu[n]))
         p = self.atoms.positions.copy()
         n %= 3 * len(self.indices)
-        traj = PickleTrajectory('%s.%d.traj' % (self.name, n), 'w')
+        traj = Trajectory('%s.%d.traj' % (self.name, n), 'w')
         calc = self.atoms.get_calculator()
         self.atoms.set_calculator()
         for x in np.linspace(0, 2 * pi, nimages, endpoint=False):

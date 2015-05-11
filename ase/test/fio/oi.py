@@ -4,6 +4,7 @@ import sys
 import numpy as np
 from ase import Atoms
 from ase.io import write, read
+from ase.calculators.singlepoint import SinglePointCalculator
 
 a = 5.0
 d = 1.9
@@ -17,6 +18,13 @@ atoms.set_array('extra', extra)
 atoms *= (1, 1, 2)
 images = [atoms.copy(), atoms.copy()]
 r = ['xyz', 'traj', 'cube', 'pdb', 'cfg', 'struct', 'cif', 'gen', 'extxyz']
+
+# attach some results to the Atoms. These are serialised by the extxyz writer.
+spc = SinglePointCalculator(atoms,
+                            energy=-1.0,
+                            stress=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+                            forces=-1.0*atoms.get_positions())
+atoms.set_calculator(spc)
 
 try:
     import json
@@ -71,6 +79,9 @@ for format in w:
                                  atoms.get_array('extra')) < 1e-6)
         if format in ['extxyz']:
             assert np.all(a1.get_pbc() == atoms.get_pbc())
+            assert np.all(a1.get_potential_energy() == atoms.get_potential_energy())
+            assert np.all(a1.get_stress() == atoms.get_stress())            
+            assert np.all(abs(a1.get_forces() - atoms.get_forces()) < 1e-6)
 
         if format not in only_one_image:
             a2 = read(fname2)

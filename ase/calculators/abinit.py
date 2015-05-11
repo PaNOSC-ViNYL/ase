@@ -421,7 +421,7 @@ class Abinit(FileIOCalculator):
                                       for name in filenames])
                         name = hghtemplate % (number, symbol.lower(), str(Z))
                     elif pps == 'hgh.k':
-                        selector = min  # Semicore - highest electron count
+                        selector = max  # Semicore - highest electron count
                         Z = selector(
                             [int(os.path.split(name)[1].split('-')[1][:-6][1:])
                              for name in filenames])

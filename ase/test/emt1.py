@@ -1,7 +1,7 @@
 from ase import Atoms
 from ase.calculators.emt import EMT
 from ase.constraints import FixBondLength
-from ase.io import PickleTrajectory
+from ase.io import Trajectory
 from ase.optimize import BFGS
 
 a = 3.6
@@ -16,7 +16,7 @@ print(e0)
 
 d0 = cu.get_distance(0, 1)
 cu.set_constraint(FixBondLength(0, 1))
-t = PickleTrajectory('cu2ag.traj', 'w', cu)
+t = Trajectory('cu2ag.traj', 'w', cu)
 qn = BFGS(cu)
 qn.attach(t.write)
 def f(): print(cu.get_distance(0,1))

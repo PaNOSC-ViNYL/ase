@@ -16,8 +16,8 @@ class ElementMutation(OffspringCreator):
     """The base class for all operators where the elements
     of the atoms objects are mutated"""
     def __init__(self, element_pool, max_diff_elements,
-                 min_percentage_elements, verbose):
-        OffspringCreator.__init__(self, verbose)
+                 min_percentage_elements, verbose, num_muts=1):
+        OffspringCreator.__init__(self, verbose, num_muts=num_muts)
         if not isinstance(element_pool[0], (list, np.ndarray)):
             self.element_pools = [element_pool]
         else:
@@ -38,6 +38,8 @@ class ElementMutation(OffspringCreator):
         else:
             self.min_percentage_elements = min_percentage_elements
         assert len(self.min_percentage_elements) == len(self.element_pools)
+        
+        self.min_inputs = 1
 
     def get_new_individual(self, parents):
         raise NotImplementedError
@@ -123,9 +125,11 @@ class RandomElementMutation(ElementMutation):
         An individual could be "D,B,B,C,x,x,x,x,z,z,z,z"
     """
     def __init__(self, element_pool, max_diff_elements=None,
-                 min_percentage_elements=None, verbose=False):
+                 min_percentage_elements=None, verbose=False,
+                 num_muts=1):
         ElementMutation.__init__(self, element_pool, max_diff_elements,
-                                 min_percentage_elements, verbose)
+                                 min_percentage_elements, verbose,
+                                 num_muts=num_muts)
         self.descriptor = 'RandomElementMutation'
 
     def get_new_individual(self, parents):
@@ -214,9 +218,11 @@ class MoveDownMutation(ElementMutation):
         An individual could be "D,B,B,C,x,x,x,x,z,z,z,z"
     """
     def __init__(self, element_pool, max_diff_elements=None,
-                 min_percentage_elements=None, verbose=False):
+                 min_percentage_elements=None, verbose=False,
+                 num_muts=1):
         ElementMutation.__init__(self, element_pool, max_diff_elements,
-                                 min_percentage_elements, verbose)
+                                 min_percentage_elements, verbose,
+                                 num_muts=num_muts)
         self.descriptor = 'MoveDownMutation'
 
     def get_new_individual(self, parents):
@@ -302,9 +308,10 @@ class MoveUpMutation(ElementMutation):
         An individual could be "D,B,B,C,x,x,x,x,z,z,z,z"
     """
     def __init__(self, element_pool, max_diff_elements=None,
-                 min_percentage_elements=None, verbose=False):
+                 min_percentage_elements=None, verbose=False, num_muts=1):
         ElementMutation.__init__(self, element_pool, max_diff_elements,
-                                 min_percentage_elements, verbose)
+                                 min_percentage_elements, verbose,
+                                 num_muts=num_muts)
         self.descriptor = 'MoveUpMutation'
         
     def get_new_individual(self, parents):
@@ -391,9 +398,10 @@ class MoveRightMutation(ElementMutation):
         An individual could be "D,B,B,C,x,x,x,x,z,z,z,z"
     """
     def __init__(self, element_pool, max_diff_elements=None,
-                 min_percentage_elements=None, verbose=False):
+                 min_percentage_elements=None, verbose=False, num_muts=1):
         ElementMutation.__init__(self, element_pool, max_diff_elements,
-                                 min_percentage_elements, verbose)
+                                 min_percentage_elements, verbose,
+                                 num_muts=num_muts)
         self.descriptor = 'MoveRightMutation'
         
     def get_new_individual(self, parents):
@@ -478,9 +486,10 @@ class MoveLeftMutation(ElementMutation):
         An individual could be "D,B,B,C,x,x,x,x,z,z,z,z"
     """
     def __init__(self, element_pool, max_diff_elements=None,
-                 min_percentage_elements=None, verbose=False):
+                 min_percentage_elements=None, verbose=False, num_muts=1):
         ElementMutation.__init__(self, element_pool, max_diff_elements,
-                                 min_percentage_elements, verbose)
+                                 min_percentage_elements, verbose,
+                                 num_muts=num_muts)
         self.descriptor = 'MoveLeftMutation'
 
     def get_new_individual(self, parents):

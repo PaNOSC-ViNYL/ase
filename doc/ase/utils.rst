@@ -28,7 +28,8 @@ Geometry tools
 ==============
 
 .. automodule:: ase.utils.geometry
-
+    :members:
+        
 
 Symmetry analysis
 =================

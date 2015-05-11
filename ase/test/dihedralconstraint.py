@@ -30,8 +30,7 @@ angle1 = system.get_angle(indices2)
 target_bondlength = 1.4
 indices_bondlength = [1, 2]
 
-constraint = FixInternals(system,
-                          bonds=[(target_bondlength, indices_bondlength)],
+constraint = FixInternals(bonds=[(target_bondlength, indices_bondlength)],
                           angles=[(angle1, indices2)],
                           dihedrals=[(dihedral1, indices)],
                           epsilon=1e-10)

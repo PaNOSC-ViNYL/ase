@@ -15,10 +15,13 @@ class AdsorbateOperator(OffspringCreator):
 
     Don't use this operator directly!"""
 
-    def __init__(self, adsorbate):
-        OffspringCreator.__init__(self)
+    def __init__(self, adsorbate, adsorption_sites=None, num_muts=1):
+        OffspringCreator.__init__(self, num_muts=num_muts)
         self.adsorbate = self.convert_adsorbate(adsorbate)
         self.adsorbate_set = set(self.adsorbate.get_chemical_symbols())
+        if adsorption_sites is None:
+            raise NotImplementedError
+        self.adsorption_sites = adsorption_sites
         self.descriptor = 'AdsorbateOperator'
 
     @classmethod
@@ -64,12 +67,12 @@ class AdsorbateOperator(OffspringCreator):
                 return False
         site = sites_list[i]
 
-        ## Make the correct position
+        # Make the correct position
         height = site['height']
         normal = np.array(site['normal'])
         pos = np.array(site['adsorbate_position']) + normal * height
 
-        ## Rotate the adsorbate according to the normal
+        # Rotate the adsorbate according to the normal
         ads = self.adsorbate.copy()
         if len(ads) > 1:
             avg_pos = np.average(ads[1:].positions, 0)
@@ -97,7 +100,7 @@ class AdsorbateOperator(OffspringCreator):
         i = 0
         while not self.is_site_occupied(atoms, sites_list[i],
                                         min_adsorbate_distance=0.2):
-            ## very small min_adsorbate_distance used for testing
+            # very small min_adsorbate_distance used for testing
             i += 1
             if i >= len(sites_list):
                 if for_move:
@@ -107,7 +110,7 @@ class AdsorbateOperator(OffspringCreator):
         # sites_list[i]['occupied'] = 0
         site = sites_list[i]
 
-        ## Make the correct position
+        # Make the correct position
         height = site['height']
         normal = np.array(site['normal'])
         pos = np.array(site['adsorbate_position']) + normal * height
@@ -141,7 +144,8 @@ class AdsorbateOperator(OffspringCreator):
             i = int(ads_ind[0])
             mol_ind = self._get_indices_in_adsorbate(ac, nl, i)
             for ind in mol_ind:
-                ads_ind.remove(int(ind))
+                if int(ind) in ads_ind:
+                    ads_ind.remove(int(ind))
             adsorbates.append(sorted(mol_ind))
         return adsorbates
 
@@ -235,25 +239,22 @@ class AddAdsorbate(AdsorbateOperator):
     will be considered first.
     """
     def __init__(self, adsorbate,
-                 minimum_adsorbate_distance=2.,
+                 min_adsorbate_distance=2.,
                  adsorption_sites=None,
                  site_preference=None,
-                 surface_preference=None):
-        AdsorbateOperator.__init__(self, adsorbate)
+                 surface_preference=None,
+                 num_muts=1):
+        AdsorbateOperator.__init__(self, adsorbate,
+                                   adsorption_sites=adsorption_sites,
+                                   num_muts=num_muts)
         self.descriptor = 'AddAdsorbate'
 
-        self.min_adsorbate_distance = minimum_adsorbate_distance
+        self.min_adsorbate_distance = min_adsorbate_distance
 
-        if adsorption_sites is None:
-            raise NotImplementedError
-        ## Adding 0's to the end of all sites to specify not filled
-        # for s in adsorption_sites:
-        #     s.update({'occupied': 0})
-        self.adsorption_sites = adsorption_sites
         self.site_preference = site_preference
         self.surface_preference = surface_preference
 
-        self.num_muts = 1
+        self.min_inputs = 1
 
     def get_new_individual(self, parents):
         """Returns the new individual as an atoms object"""
@@ -266,6 +267,10 @@ class AddAdsorbate(AdsorbateOperator):
             indi.append(atom)
 
         ads_sites = self.adsorption_sites[:]
+        # if self.adsorption_sites is None:
+        #     ads_sites = Ads_sites.get_sites()
+        # else:
+        #     ads_sites = self.adsorption_sites[:]
         for _ in range(self.num_muts):
             random.shuffle(ads_sites)
 
@@ -294,20 +299,17 @@ class RemoveAdsorbate(AdsorbateOperator):
     def __init__(self, adsorbate,
                  adsorption_sites=None,
                  site_preference=None,
-                 surface_preference=None):
-        AdsorbateOperator.__init__(self, adsorbate)
+                 surface_preference=None,
+                 num_muts=1):
+        AdsorbateOperator.__init__(self, adsorbate,
+                                   adsorption_sites=adsorption_sites,
+                                   num_muts=num_muts)
         self.descriptor = 'RemoveAdsorbate'
 
-        if adsorption_sites is None:
-            raise NotImplementedError
-        # Adding 0's to the end of all sites to specify not filled
-        # for s in adsorption_sites:
-        #     s.update({'occupied': 0})
-        self.adsorption_sites = adsorption_sites
         self.site_preference = site_preference
         self.surface_preference = surface_preference
 
-        self.num_muts = 1
+        self.min_inputs = 1
 
     def get_new_individual(self, parents):
         f = parents[0]
@@ -345,29 +347,26 @@ class MoveAdsorbate(AdsorbateOperator):
     """This operator removes an adsorbate from the surface and adds it
     again at a different position, i.e. effectively moving the adsorbate."""
     def __init__(self, adsorbate,
-                 minimum_adsorbate_distance=2.,
+                 min_adsorbate_distance=2.,
                  adsorption_sites=None,
                  site_preference_from=None,
                  surface_preference_from=None,
                  site_preference_to=None,
-                 surface_preference_to=None):
-        AdsorbateOperator.__init__(self, adsorbate)
+                 surface_preference_to=None,
+                 num_muts=1):
+        AdsorbateOperator.__init__(self, adsorbate,
+                                   adsorption_sites=adsorption_sites,
+                                   num_muts=num_muts)
         self.descriptor = 'MoveAdsorbate'
 
-        self.min_adsorbate_distance = minimum_adsorbate_distance
+        self.min_adsorbate_distance = min_adsorbate_distance
 
-        if adsorption_sites is None:
-            raise NotImplementedError
-        ## Adding 0's to the end of all sites to specify not filled
-        # for s in adsorption_sites:
-        #     s.update({'occupied': 0})
-        self.adsorption_sites = adsorption_sites
         self.site_preference_from = site_preference_from
         self.surface_preference_from = surface_preference_from
         self.site_preference_to = site_preference_to
         self.surface_preference_to = surface_preference_to
 
-        self.num_muts = 1
+        self.min_inputs = 1
 
     def get_new_individual(self, parents):
         f = parents[0]
@@ -439,15 +438,29 @@ class CutSpliceCrossoverWithAdsorbates(AdsorbateOperator):
     keep_composition: boolean that signifies if the composition should
         be the same as in the parents.
     """
-    def __init__(self, adsorbate, blmin, keep_composition=True):
-        AdsorbateOperator.__init__(self, adsorbate)
+    def __init__(self, adsorbate, blmin, keep_composition=True,
+                 fix_coverage=False, adsorption_sites=None,
+                 min_adsorbate_distance=2.):
+        if not fix_coverage:
+            # Trick the AdsorbateOperator class to accept no adsorption_sites
+            adsorption_sites = [1]
+        AdsorbateOperator.__init__(self, adsorbate,
+                                   adsorption_sites=adsorption_sites)
         self.blmin = blmin
         self.keep_composition = keep_composition
+        self.fix_coverage = fix_coverage
+        self.min_adsorbate_distance = min_adsorbate_distance
         self.descriptor = 'CutSpliceCrossoverWithAdsorbates'
+        
+        self.min_inputs = 2
         
     def get_new_individual(self, parents):
         f, m = parents
         
+        if self.fix_coverage:
+            # Count number of adsorbates
+            adsorbates_in_parents = len(self.get_all_adsorbate_indices(f))
+            
         indi = self.initialize_individual(f)
         indi.info['data']['parents'] = [i.info['confid'] for i in parents]
         
@@ -523,10 +536,19 @@ class CutSpliceCrossoverWithAdsorbates(AdsorbateOperator):
                     f[i].tag = 1
                     tmpf.append(f[i])
         for ads in m_ads:
-            if np.dot(m[ads[0]].position, e) < 0:
-                for i in ads:
-                    m[i].tag = 2
-                    tmpf.append(m[i])
+            pos = m[ads[0]].position
+            if np.dot(pos, e) < 0:
+                # If the adsorbate will sit too close to another adsorbate
+                # (below self.min_adsorbate_distance) do not add it.
+                dists = [np.linalg.norm(pos - a.position)
+                         for a in tmpf if a.tag == 1]
+                for d in dists:
+                    if d < self.min_adsorbate_distance:
+                        break
+                else:
+                    for i in ads:
+                        m[i].tag = 2
+                        tmpm.append(m[i])
                 
         tmpfna = self.get_atoms_without_adsorbates(tmpf)
         tmpmna = self.get_atoms_without_adsorbates(tmpm)
@@ -577,6 +599,22 @@ class CutSpliceCrossoverWithAdsorbates(AdsorbateOperator):
         # Put the two parts together
         for atom in chain(tmpf, tmpm):
             indi.append(atom)
+            
+        if self.fix_coverage:
+            # Remove or add adsorbates as needed
+            adsorbates_in_child = self.get_all_adsorbate_indices(indi)
+            diff = len(adsorbates_in_child) - adsorbates_in_parents
+            if diff < 0:
+                # Add adsorbates
+                for _ in range(abs(diff)):
+                    self.add_adsorbate(indi, self.adsorption_sites,
+                                       self.min_adsorbate_distance)
+            elif diff > 0:
+                # Remove adsorbates
+                tbr = random.sample(adsorbates_in_child, diff)  # to be removed
+                for adsorbate_indices in sorted(tbr, reverse=True):
+                    for i in adsorbate_indices[::-1]:
+                        indi.pop(i)
 
         return (self.finalize_individual(indi),
                 self.descriptor + ': {0} {1}'.format(f.info['confid'],
@@ -604,8 +642,7 @@ class CutSpliceCrossoverWithAdsorbates(AdsorbateOperator):
         an = atoms.numbers
         for i in range(len(atoms)):
             pos = atoms[i].position
-            f = lambda x: np.linalg.norm(x - pos)
-            for j, d in enumerate([f(k) for k in ap[i:]]):
+            for j, d in enumerate([np.linalg.norm(k - pos) for k in ap[i:]]):
                 if d == 0:
                     continue
                 min_dist = self.blmin[tuple(sorted((an[i], an[j + i])))]

@@ -23,6 +23,7 @@ class ColorWindow(gtk.Window):
         self.gui = gui
         self.colormode = gui.colormode
         self.actual_colordata = None
+        self.colordata = {}
         self.set_title(_("Colors"))
         vbox = gtk.VBox()
         self.add(vbox)
@@ -49,6 +50,8 @@ class ColorWindow(gtk.Window):
         self.radio_force = gtk.RadioButton(self.radio_jmol, _('By force'))
         self.radio_velocity = gtk.RadioButton(self.radio_jmol, _('By velocity'))
         self.radio_charge = gtk.RadioButton(self.radio_jmol, _('By charge'))
+        self.radio_magnetic_moment = gtk.RadioButton(
+            self.radio_jmol, _('By magnetic moment'))
         self.radio_coordination = gtk.RadioButton(
             self.radio_jmol, _('By coordination'))
         self.radio_manual = gtk.RadioButton(self.radio_jmol, _('Manually specified'))
@@ -56,45 +59,45 @@ class ColorWindow(gtk.Window):
         self.force_box = gtk.VBox()
         self.velocity_box = gtk.VBox()
         self.charge_box = gtk.VBox()
+        self.magnetic_moment_box = gtk.VBox()
         for widget in (self.radio_jmol, self.radio_atno, self.radio_tag,
                        self.radio_force, self.force_box, self.radio_velocity,
                        self.radio_charge, self.charge_box,
+                       self.radio_magnetic_moment, 
+                       self.magnetic_moment_box,
                        self.radio_coordination,
                        self.velocity_box, self.radio_manual, self.radio_same):
             pack(self.methodbox, [widget])
             if isinstance(widget, gtk.RadioButton):
                 widget.connect('toggled', self.method_radio_changed)
         # Now fill in the box for additional information in case the force is used.
-        self.force_label = gtk.Label(_("This should not be displayed!"))
+        self.force_label = gtk.Label(_("This should not be displayed in forces!"))
         pack(self.force_box, [self.force_label])
-        self.force_min = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
-        self.force_max = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
-        self.force_steps = gtk.Adjustment(10, 2, 500, 1)
+        self.min = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
+        self.max = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
+        self.steps = gtk.Adjustment(10, 2, 500, 1)
         force_apply = gtk.Button(_('Update'))
-        force_apply.connect('clicked', self.set_force_colors)
+        force_apply.connect('clicked', self.set_min_max_colors)
         pack(self.force_box, [gtk.Label(_('Min: ')),
-                              gtk.SpinButton(self.force_min, 1.0, 2),
+                              gtk.SpinButton(self.min, 1.0, 2),
                               gtk.Label(_('  Max: ')),
-                              gtk.SpinButton(self.force_max, 1.0, 2),
+                              gtk.SpinButton(self.max, 1.0, 2),
                               gtk.Label(_('  Steps: ')),
-                              gtk.SpinButton(self.force_steps, 1, 0),
+                              gtk.SpinButton(self.steps, 1, 0),
                               gtk.Label('  '),
                               force_apply])
         self.force_box.hide()
         # Now fill in the box for additional information in case the velocity is used.
         self.velocity_label = gtk.Label("This should not be displayed!")
         pack(self.velocity_box, [self.velocity_label])
-        self.velocity_min = gtk.Adjustment(0.0, 0.0, 100.0, 0.005)
-        self.velocity_max = gtk.Adjustment(0.0, 0.0, 100.0, 0.005)
-        self.velocity_steps = gtk.Adjustment(10, 2, 500, 1)
         velocity_apply = gtk.Button(_('Update'))
-        velocity_apply.connect('clicked', self.set_velocity_colors)
+        velocity_apply.connect('clicked', self.set_min_max_colors)
         pack(self.velocity_box, [gtk.Label(_('Min: ')),
-                                 gtk.SpinButton(self.velocity_min, 1.0, 3),
+                                 gtk.SpinButton(self.min, 1.0, 3),
                                  gtk.Label(_('  Max: ')),
-                                 gtk.SpinButton(self.velocity_max, 1.0, 3),
+                                 gtk.SpinButton(self.max, 1.0, 3),
                                  gtk.Label(_('  Steps: ')),
-                                 gtk.SpinButton(self.velocity_steps, 1, 0),
+                                 gtk.SpinButton(self.steps, 1, 0),
                                  gtk.Label('  '),
                                  velocity_apply])
         self.velocity_box.hide()
@@ -102,20 +105,33 @@ class ColorWindow(gtk.Window):
         # the charge is used.
         self.charge_label = gtk.Label(_("This should not be displayed!"))
         pack(self.charge_box, [self.charge_label])
-        self.charge_min = gtk.Adjustment(0.0, -100.0, 100.0, 0.05)
-        self.charge_max = gtk.Adjustment(0.0, -100.0, 100.0, 0.05)
-        self.charge_steps = gtk.Adjustment(10, 2, 500, 1)
         charge_apply = gtk.Button(_('Update'))
-        charge_apply.connect('clicked', self.set_charge_colors)
+        charge_apply.connect('clicked', self.set_min_max_colors)
         pack(self.charge_box, [gtk.Label(_('Min: ')),
-                              gtk.SpinButton(self.charge_min, 10.0, 2),
+                              gtk.SpinButton(self.min, 10.0, 2),
                               gtk.Label(_('  Max: ')),
-                              gtk.SpinButton(self.charge_max, 10.0, 2),
+                              gtk.SpinButton(self.max, 10.0, 2),
                               gtk.Label(_('  Steps: ')),
-                              gtk.SpinButton(self.charge_steps, 1, 0),
+                              gtk.SpinButton(self.steps, 1, 0),
                               gtk.Label('  '),
                               charge_apply])
         self.charge_box.hide()
+        # Now fill in the box for additional information in case
+        # the magnetic moment is used.
+        self.magnetic_moment_label = gtk.Label(_(
+            "This should not be displayed!"))
+        pack(self.magnetic_moment_box, [self.magnetic_moment_label])
+        magnetic_moment_apply = gtk.Button(_('Update'))
+        magnetic_moment_apply.connect('clicked', self.set_min_max_colors)
+        pack(self.magnetic_moment_box, [gtk.Label(_('Min: ')),
+                                        gtk.SpinButton(self.min, 10.0, 2),
+                                        gtk.Label(_('  Max: ')),
+                                        gtk.SpinButton(self.max, 10.0, 2),
+                                        gtk.Label(_('  Steps: ')),
+                                        gtk.SpinButton(self.steps, 1, 0),
+                                        gtk.Label('  '),
+                                        magnetic_moment_apply])
+        self.magnetic_moment_box.hide()
         # Lower left: Create a color scale
         pack(self.scalebox, gtk.Label(""))
         lbl = gtk.Label(_('Create a color scale:'))
@@ -184,6 +200,10 @@ class ColorWindow(gtk.Window):
             self.radio_charge.set_sensitive(False)
         else:
             self.radio_charge.set_sensitive(True)
+        if not self.gui.images.M.any():
+            self.radio_magnetic_moment.set_sensitive(False)
+        else:
+            self.radio_magnetic_moment.set_sensitive(True)
         self.radio_manual.set_sensitive(self.gui.images.natoms <= 1000)
         # Now check what the current color mode is
         if cm == 'jmol':
@@ -199,6 +219,8 @@ class ColorWindow(gtk.Window):
             self.radio_velocity.set_active(True)
         elif cm == 'charge':
             self.radio_charge.set_active(True)
+        elif cm == 'magnetic moment':
+            self.radio_magnetic_moment.set_active(True)
         elif cm == 'coordination':
             self.radio_coordination.set_active(True)
         elif cm == 'manual':
@@ -225,13 +247,16 @@ class ColorWindow(gtk.Window):
             self.set_tag_colors()
         elif widget is self.radio_force:
             self.show_force_stuff()
-            self.set_force_colors()
+            self.set_min_max_colors('force')
         elif widget is self.radio_velocity:
             self.show_velocity_stuff()
-            self.set_velocity_colors()
+            self.set_min_max_colors('velocity')
         elif widget is self.radio_charge:
             self.show_charge_stuff()
-            self.set_charge_colors()
+            self.set_min_max_colors('charge')
+        elif widget is self.radio_magnetic_moment:
+            self.show_magnetic_moment_stuff()
+            self.set_min_max_colors('magnetic moment')
         elif widget is self.radio_coordination:
             self.set_coordination_colors()
         elif widget is self.radio_manual:
@@ -296,77 +321,24 @@ class ColorWindow(gtk.Window):
         self.make_colorwin()
         self.colormode = 'same'
 
-    def set_force_colors(self, *args):
-        "Use the forces as basis for the colors."
-        borders = np.linspace(self.force_min.value,
-                              self.force_max.value,
-                              self.force_steps.value,
+    def set_min_max_colors(self, mode):
+        borders = np.linspace(self.min.value, self.max.value, self.steps.value,
                               endpoint=False)
         if self.scaletype_created is None:
             colors = self.new_color_scale([[0, [1,1,1]],
                                            [1, [0,0,1]]], len(borders))
-        elif (not hasattr(self, 'colordata_force') or
-            len(self.colordata_force) != len(borders)):
+        elif (mode not in  self.colordata or
+              len(self.colordata[mode]) != len(borders)):
             colors = self.get_color_scale(len(borders), self.scaletype_created)
         else:
-            colors = [y for x, y in self.colordata_force]
-        self.colordata_force = [[x, y] for x, y in zip(borders, colors)]
-        self.actual_colordata = self.colordata_force
-        self.color_labels = ["%.2f:" % x for x, y in self.colordata_force]
+            colors = [y for x, y in self.colordata[mode]]
+        self.colordata[mode] = [[x, y] for x, y in zip(borders, colors)]
+        self.actual_colordata = self.colordata[mode]
+        self.color_labels = ["%.2f:" % x for x, y in self.colordata[mode]]
         self.make_colorwin()
-        self.colormode = 'force'
-        fmin = self.force_min.value
-        fmax = self.force_max.value
-        factor = self.force_steps.value / (fmax -fmin)
-        self.colormode_force_data = (fmin, factor)
-
-    def set_velocity_colors(self, *args):
-        "Use the velocities as basis for the colors."
-        borders = np.linspace(self.velocity_min.value,
-                              self.velocity_max.value,
-                              self.velocity_steps.value,
-                              endpoint=False)
-        if self.scaletype_created is None:
-            colors = self.new_color_scale([[0, [1,1,1]],
-                                           [1, [1,0,0]]], len(borders))
-        elif (not hasattr(self, 'colordata_velocity') or
-            len(self.colordata_velocity) != len(borders)):
-            colors = self.get_color_scale(len(borders), self.scaletype_created)
-        else:
-            colors = [y for x, y in self.colordata_velocity]
-        self.colordata_velocity = [[x, y] for x, y in zip(borders, colors)]
-        self.actual_colordata = self.colordata_velocity
-        self.color_labels = ["%.2f:" % x for x, y in self.colordata_velocity]
-        self.make_colorwin()
-        self.colormode = 'velocity'
-        vmin = self.velocity_min.value
-        vmax = self.velocity_max.value
-        factor = self.velocity_steps.value / (vmax -vmin)
-        self.colormode_velocity_data = (vmin, factor)
-
-    def set_charge_colors(self, *args):
-        "Use the charge as basis for the colors."
-        borders = np.linspace(self.charge_min.value,
-                              self.charge_max.value,
-                              self.charge_steps.value,
-                              endpoint=False)
-        if self.scaletype_created is None:
-            colors = self.new_color_scale([[0, [1,1,1]],
-                                           [1, [0,0,1]]], len(borders))
-        elif (not hasattr(self, 'colordata_charge') or
-            len(self.colordata_charge) != len(borders)):
-            colors = self.get_color_scale(len(borders), self.scaletype_created)
-        else:
-            colors = [y for x, y in self.colordata_charge]
-        self.colordata_charge = [[x, y] for x, y in zip(borders, colors)]
-        self.actual_colordata = self.colordata_charge
-        self.color_labels = ["%.2f:" % x for x, y in self.colordata_charge]
-        self.make_colorwin()
-        self.colormode = 'charge'
-        qmin = self.charge_min.value
-        qmax = self.charge_max.value
-        factor = self.charge_steps.value / (qmax - qmin)
-        self.colormode_charge_data = (qmin, factor)
+        self.colormode = mode
+        factor = self.steps.value / (self.max.value - self.min.value)
+        self.colormode_data = (self.min.value, factor)
 
     def set_coordination_colors(self, *args):
         "Use coordination as basis for the colors."
@@ -424,6 +396,14 @@ class ColorWindow(gtk.Window):
                   self.colormode_charge_data[1])
             nq = np.clip(nq.astype(int), 0, len(oldcolors)-1)
             colors[:] = oldcolors[nq]
+        elif self.colormode == 'magnetic moment':
+            oldcolors = np.array([None] * len(self.actual_colordata))
+            oldcolors[:] = [y for x, y in self.actual_colordata]
+            q = self.gui.images.q[self.gui.frame]
+            nq = ((q - self.colormode_magnetic_moment_data[0]) *
+                  self.colormode_magnetic_moment_data[1])
+            nq = np.clip(nq.astype(int), 0, len(oldcolors)-1)
+            colors[:] = oldcolors[nq]
         elif self.colormode == 'coordination':
             oldcolors = np.array([None] * len(self.actual_colordata))
             oldcolors[:] = [y for x, y in self.actual_colordata]
@@ -444,55 +424,59 @@ class ColorWindow(gtk.Window):
         self.make_colorwin()
         self.colormode = 'manual'
 
+    def get_min_max_text(self, mode, vmin, vmax, min_frame, max_frame):
+        nimages = self.gui.images.nimages
+        txt = 'Max {0}: {1:.2f}'.format(mode, vmax)
+        if nimages > 1:
+            txt += '(all frames), {0:.2f} (this frame)'.format(max_frame)
+        self.max.value = vmax 
+        if vmin is None:
+            self.min.value = 0.
+        else:
+            txt += ', Min {0:.2f}'.format(vmin)
+            if nimages > 1:
+                txt += '(all frames), {0:.2f} (this frame)'.format(min_frame)
+            self.min.value = vmin
+        return txt
+
     def show_force_stuff(self):
         "Show and update widgets needed for selecting the force scale."
         self.force_box.show()
-        F = np.sqrt(((self.gui.images.F*self.gui.images.dynamic[:,np.newaxis])**2).sum(axis=-1))
-        fmax = F.max()
-        nimages = self.gui.images.nimages
-        assert len(F) == nimages
-        if nimages > 1:
-            fmax_frame = self.gui.images.F[self.gui.frame].max()
-            txt = _("Max force: %.2f (this frame), %.2f (all frames)") % (fmax_frame, fmax)
-        else:
-            txt = _("Max force: %.2f.") % (fmax,)
-        self.force_label.set_text(txt)
-        if self.force_max.value == 0.0:
-            self.force_max.value = fmax
+        # XXX is this projected on some axis ? XXX
+        F = np.sqrt(((self.gui.images.F * 
+                      self.gui.images.dynamic[:,np.newaxis])**2).sum(axis=-1))
+        txt = self.get_min_max_text(
+            'force', None, F.max(), 
+            None, self.gui.images.F[self.gui.frame].max())
+        self.force_label.set_text(_(txt))
 
     def show_velocity_stuff(self):
         "Show and update widgets needed for selecting the velocity scale."
         self.velocity_box.show()
         V = np.sqrt((self.gui.images.V * self.gui.images.V).sum(axis=-1))
-        vmax = V.max()
-        nimages = self.gui.images.nimages
-        assert len(V) == nimages
-        if nimages > 1:
-            vmax_frame = self.gui.images.V[self.gui.frame].max()
-            txt = _("Max velocity: %.2f (this frame), %.2f (all frames)") % (vmax_frame, vmax)
-        else:
-            txt = _("Max velocity: %.2f.") % (vmax,)
-        self.velocity_label.set_text(txt)
-        if self.velocity_max.value == 0.0:
-            self.velocity_max.value = vmax
-        
+        Vframe = np.sqrt((self.gui.images.V[self.gui.frame] *
+                          self.gui.images.V[self.gui.frame]).sum(axis=-1))
+        txt = self.get_min_max_text(
+            'velocity', None, V.max(), None, Vframe.max())
+        self.velocity_label.set_text(_(txt))
+
     def show_charge_stuff(self):
         "Show and update widgets needed for selecting the charge scale."
         self.charge_box.show()
-        qmin = self.gui.images.q.min()
-        qmax = self.gui.images.q.max()
-        nimages = self.gui.images.nimages
-        if nimages > 1:
-            qmin_frame = self.gui.images.q[self.gui.frame].min()
-            qmax_frame = self.gui.images.q[self.gui.frame].max()
-            txt = (_('Min, max charge: %.2f, %.2f (this frame),' +
-                     '%.2f, %.2f (all frames)')
-                   % (qmin_frame, qmax_frame, qmin, qmax))
-        else:
-            txt = _("Min, max charge: %.2f, %.2f.") % (qmin, qmax,)
-        self.charge_label.set_text(txt)
-        self.charge_max.value = qmax
-        self.charge_min.value = qmin
+        txt = self.get_min_max_text(
+            'charge', self.gui.images.q.min(), self.gui.images.q.max(),
+            self.gui.images.q[self.gui.frame].min(),
+            self.gui.images.q[self.gui.frame].max())
+        self.charge_label.set_text(_(txt))
+
+    def show_magnetic_moment_stuff(self):
+        "Show and update widgets needed for selecting the magn. mom. scale."
+        self.magnetic_moment_box.show()
+        txt = self.get_min_max_text(
+            'magnetic moment', self.gui.images.M.min(), self.gui.images.M.max(),
+            self.gui.images.M[self.gui.frame].min(),
+            self.gui.images.M[self.gui.frame].max())
+        self.magnetic_moment_label.set_text(_(txt))
 
     def make_colorwin(self):
         """Make the list of editable color entries.
@@ -655,18 +639,11 @@ class ColorWindow(gtk.Window):
                  "%s: %s" % self.color_errors.values()[0])
             return False
         colordata = self.actual_colordata
-        if self.colormode == 'force':
+        if self.colormode in [
+                'force', 'velocity', 'charge', 'magnetic moment']:
             # Use integers instead for border values
             colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
-            self.gui.colormode_force_data = self.colormode_force_data
-        elif self.colormode == 'velocity':
-            # Use integers instead for border values
-            colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
-            self.gui.colormode_velocity_data = self.colormode_velocity_data
-        elif self.colormode == 'charge':
-            # Use integers instead for border values
-            colordata = [[i, x[1]] for i, x in enumerate(self.actual_colordata)]
-            self.gui.colormode_charge_data = self.colormode_charge_data
+            self.gui.colormode_data = self.colormode_data
         maxval = max([x for x, y in colordata])
         self.gui.colors = [None] * (maxval + 1)
         new = self.gui.drawing_area.window.new_gc

@@ -9,7 +9,7 @@ from os.path import isfile
 import numpy as np
 
 from ase.parallel import rank, barrier
-from ase.io.trajectory import PickleTrajectory
+from ase.io.trajectory import Trajectory
 import collections
 
 
@@ -29,7 +29,7 @@ class Dynamics:
 
         trajectory: Trajectory object or str
             Attach trajectory object.  If *trajectory* is a string a
-            PickleTrajectory will be constructed.  Use *None* for no
+            Trajectory will be constructed.  Use *None* for no
             trajectory.
 
         master: boolean
@@ -54,8 +54,8 @@ class Dynamics:
 
         if trajectory is not None:
             if isinstance(trajectory, str):
-                trajectory = PickleTrajectory(trajectory, mode='w', atoms=atoms,
-                                              master=master)
+                trajectory = Trajectory(trajectory, mode='w',
+                                        atoms=atoms, master=master)
             self.attach(trajectory)
 
     def get_number_of_steps(self):
@@ -71,11 +71,12 @@ class Dynamics:
     def attach(self, function, interval=1, *args, **kwargs):
         """Attach callback function.
 
-        If *interval > 0*, at every *interval* steps, call *function* with arguments
-        *args* and keyword arguments *kwargs*.
+        If *interval > 0*, at every *interval* steps, call *function* with
+        arguments *args* and keyword arguments *kwargs*.
 
-        If *interval <= 0*, after step *interval*, call *function* with arguments
-        *args* and keyword arguments *kwargs*.  This is currently zero indexed."""
+        If *interval <= 0*, after step *interval*, call *function* with
+        arguments *args* and keyword arguments *kwargs*.  This is
+        currently zero indexed."""
 
         if not hasattr(function, '__call__'):
             function = function.write
@@ -115,7 +116,7 @@ class Optimizer(Dynamics):
         
         trajectory: Trajectory object or str
             Attach trajectory object.  If *trajectory* is a string a
-            PickleTrajectory will be constructed.  Use *None* for no
+            Trajectory will be constructed.  Use *None* for no
             trajectory.
 
         master: boolean
@@ -158,8 +159,8 @@ class Optimizer(Dynamics):
         if forces is None:
             forces = self.atoms.get_forces()
         if hasattr(self.atoms, 'get_curvature'):
-            return (forces**2).sum(axis=1).max() < self.fmax**2 and \
-                   self.atoms.get_curvature() < 0.0
+            return ((forces**2).sum(axis=1).max() < self.fmax**2 and
+                    self.atoms.get_curvature() < 0.0)
         return (forces**2).sum(axis=1).max() < self.fmax**2
 
     def log(self, forces):

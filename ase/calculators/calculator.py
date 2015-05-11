@@ -19,13 +19,14 @@ all_changes = ['positions', 'numbers', 'cell', 'pbc',
 
 
 # Recognized names of calculators sorted alphabetically:
-names = ['abinit', 'aims', 'asap', 'castep', 'dftb', 'eam', 'elk', 'emt',
-         'exciting', 'fleur', 'gaussian', 'gpaw', 'gromacs', 'hotbit',
+names = ['abinit', 'aims', 'asap', 'castep', 'cp2k', 'dftb', 'eam', 'elk',
+         'emt', 'exciting', 'fleur', 'gaussian', 'gpaw', 'gromacs', 'hotbit',
          'jacapo', 'lammps', 'lammpslib', 'lj', 'mopac', 'morse',
          'nwchem', 'siesta', 'turbomole', 'vasp']
 
 
-special = {'eam': 'EAM',
+special = {'cp2k': 'CP2K',
+           'eam': 'EAM',
            'elk': 'ELK',
            'emt': 'EMT',
            'fleur': 'FLEUR',
@@ -74,9 +75,9 @@ def kptdensity2monkhorstpack(atoms, kptdensity=3.5, even=True):
     atoms: Atoms object
         Contains unit cell and information about boundary conditions.
     kptdensity: float
-        K-point density.  Default value is 3.5 point per Ang^-1.
+        Required k-point density.  Default value is 3.5 point per Ang^-1.
     even: bool
-        Round to even numbers.
+        Round up to even numbers.
     """
 
     recipcell = atoms.get_reciprocal_cell()
@@ -85,9 +86,9 @@ def kptdensity2monkhorstpack(atoms, kptdensity=3.5, even=True):
         if atoms.pbc[i]:
             k = 2 * pi * sqrt((recipcell[i]**2).sum()) * kptdensity
             if even:
-                kpts.append(max(1, 2 * int(round(k / 2))))
+                kpts.append(2 * int(np.ceil(k / 2)))
             else:
-                kpts.append(max(1, int(round(k))))
+                kpts.append(int(np.ceil(k)))
         else:
             kpts.append(1)
     return np.array(kpts)
@@ -209,7 +210,7 @@ class Calculator:
         self.set(**kwargs)
 
         if not hasattr(self, 'name'):
-            self.name = self.__class__.__name__
+            self.name = self.__class__.__name__.lower()
 
     def set_label(self, label):
         """Set label and convert label to directory and prefix.
@@ -350,13 +351,13 @@ class Calculator:
             return energy
 
     def get_forces(self, atoms=None):
-        return self.get_property('forces', atoms).copy()
+        return self.get_property('forces', atoms)
 
     def get_stress(self, atoms=None):
-        return self.get_property('stress', atoms).copy()
+        return self.get_property('stress', atoms)
 
     def get_dipole_moment(self, atoms=None):
-        return self.get_property('dipole', atoms).copy()
+        return self.get_property('dipole', atoms)
 
     def get_charges(self, atoms=None):
         return self.get_property('charges', atoms)
@@ -365,9 +366,9 @@ class Calculator:
         return self.get_property('magmom', atoms)
 
     def get_magnetic_moments(self, atoms=None):
-        return self.get_property('magmoms', atoms).copy()
+        return self.get_property('magmoms', atoms)
 
-    def get_property(self, name, atoms=None):
+    def get_property(self, name, atoms=None, allow_calculation=True):
         if name not in self.implemented_properties:
             raise NotImplementedError
 
@@ -380,6 +381,8 @@ class Calculator:
                 self.reset()
 
         if name not in self.results:
+            if not allow_calculation:
+                return None
             try:
                 self.calculate(atoms, [name], system_changes)
             except Exception:
@@ -392,7 +395,10 @@ class Calculator:
         if name == 'magmoms' and 'magmoms' not in self.results:
             return np.zeros(len(atoms))
 
-        return self.results[name]
+        result = self.results[name]
+        if isinstance(result, np.ndarray):
+            result = result.copy()
+        return result
 
     def calculation_required(self, atoms, properties):
         system_changes = self.check_state(atoms)

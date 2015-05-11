@@ -1,5 +1,5 @@
+import optparse
 import os
-import sys
 
 from ase.db import connect
 from ase.db.sqlite import index_statements
@@ -22,7 +22,13 @@ def convert(name):
     os.rename(name, name[:-2] + 'old.db')
     os.rename(newname, name)
     
+    
+def main():
+    parser = optparse.OptionParser()
+    opts, args = parser.parse_args()
+    for name in args:
+        convert(name)
+  
         
 if __name__ == '__main__':
-    for name in sys.argv[1:]:
-        convert(name)
+    main()

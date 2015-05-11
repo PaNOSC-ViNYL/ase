@@ -22,6 +22,13 @@ mailing list::
   $ # do your thing ...
   $ svn diff > patch.txt
 
+Become inspired by the modern software development methods:
+https://www.youtube.com/watch?v=_I94-tJlovg
+https://www.youtube.com/watch?v=IBghnXBz3_w
+and how they apply to computational science in ASE:
+https://www.youtube.com/watch?v=WKoImDmYFQE
+https://www.youtube.com/watch?v=1-dUkyn_fZA
+
 Before you send the patch, *please* read our
 :ref:`python_codingstandard` and learn how to use pep8.py,
 pylint and epydoc:

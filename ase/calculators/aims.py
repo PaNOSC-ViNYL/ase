@@ -116,10 +116,11 @@ list_keys = [
 
 class Aims(FileIOCalculator):
     command = 'aims.version.serial.x > aims.out'
-    implemented_properties = ['energy', 'forces', 'stress', 'dipole']
+    implemented_properties = ['energy', 'forces', 'stress', 'dipole', 'magmom']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 label=os.curdir, atoms=None, cubes=None, radmul=None, tier=None, **kwargs):
+                 label=os.curdir, atoms=None, cubes=None, radmul=None,
+                 tier=None, **kwargs):
         """Construct FHI-aims calculator.
         
         The keyword arguments (kwargs) can be one of the ASE standard
@@ -141,13 +142,12 @@ class Aims(FileIOCalculator):
             self.outfilename = 'aims.out'
         
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
-                                  label, atoms, 
-                                  command = kwargs.get('run_command'),
+                                  label, atoms,
+                                  command=kwargs.get('run_command'),
                                   **kwargs)
         self.cubes = cubes
         self.radmul = radmul
         self.tier = tier
-
 
     def set_label(self, label):
         self.label = label
@@ -173,7 +173,8 @@ class Aims(FileIOCalculator):
             self.reset()
         return changed_parameters
 
-    def write_input(self, atoms, properties=None, system_changes=None, ghosts=None):
+    def write_input(self, atoms, properties=None, system_changes=None,
+                    ghosts=None):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
 
         have_lattice_vectors = atoms.pbc.any()
@@ -289,7 +290,7 @@ class Aims(FileIOCalculator):
                 symbols2.append(symbol)
         if self.tier is not None:
             if isinstance(self.tier, int):
-                self.tierlist = np.ones(len(symbols2),'int') * self.tier
+                self.tierlist = np.ones(len(symbols2), 'int') * self.tier
             elif isinstance(self.tier, list):
                 assert len(self.tier) == len(symbols2)
                 self.tierlist = self.tier
@@ -310,8 +311,8 @@ class Aims(FileIOCalculator):
                 control.write(line)
             if self.tier is not None and not self.foundtarget:
                 raise RuntimeError(
-                    "Basis tier %i not found for element %s"\
-                    % (self.targettier, symbol))
+                    "Basis tier %i not found for element %s" %
+                    (self.targettier, symbol))
         control.close()
 
         if self.radmul is not None:
@@ -334,7 +335,7 @@ class Aims(FileIOCalculator):
         elif self.do_uncomment and line[0] == '#':
             return line[1:]
         elif not self.do_uncomment and line[0] != '#':
-            return '#'+line
+            return '#' + line
         else:
             return line
 
@@ -352,7 +353,7 @@ class Aims(FileIOCalculator):
 
     def set_radial_multiplier(self):
         assert isinstance(self.radmul, int)
-        newctrl = self.ctrlname+'.new'
+        newctrl = self.ctrlname +'.new'
         fin = open(self.ctrlname, 'r')
         fout = open(newctrl, 'w')
         newline = "    radial_multiplier   %i\n" % self.radmul
@@ -478,7 +479,7 @@ class Aims(FileIOCalculator):
         nband = None
         lines = open(self.out, 'r').readlines()
         for n, line in enumerate(lines):
-            if line.rfind('Total number of basis functions') > -1:
+            if line.rfind('Number of Kohn-Sham states') > -1:
                 nband = int(line.split(':')[-1].strip())
         return nband
 
@@ -497,6 +498,9 @@ class Aims(FileIOCalculator):
     def get_number_of_spins(self):
         return 1 + self.get_spin_polarized()
 
+    def get_magnetic_moment(self, atoms=None):
+        return self.read_magnetic_moment()
+
     def read_number_of_spins(self):
         spinpol = None
         lines = open(self.out, 'r').readlines()
@@ -509,10 +513,10 @@ class Aims(FileIOCalculator):
         magmom = None
         if not self.get_spin_polarized():
             magmom = 0.0
-        else: # only for spinpolarized system Magnetisation is printed
-            for line in open(self.label + '.txt'):
-                if line.find('Magnetisation') != -1: # last one
-                    magmom = float(line.split('=')[-1].strip())
+        else:  # only for spinpolarized system Magnetisation is printed
+            for line in open(self.out, 'r').readlines():
+                if line.find('N_up - N_down') != -1:  # last one
+                    magmom = float(line.split(':')[-1].strip())
         return magmom
 
     def get_fermi_level(self):
@@ -535,15 +539,18 @@ class Aims(FileIOCalculator):
     def read_kpts(self, mode='ibz_k_points'):
         """ Returns list of kpts weights or kpts coordinates.  """
         values = []
-        assert mode in ['ibz_k_points' , 'k_point_weights'], 'mode not in [\'ibz_k_points\' , \'k_point_weights\']'
+        assert mode in ['ibz_k_points', 'k_point_weights']
         lines = open(self.out, 'r').readlines()
         kpts = None
+        kptsstart = None
+        for n, line in enumerate(lines):
+            if line.rfind('| Number of k-points') > -1:
+                kpts = int(line.split(':')[-1].strip())
         for n, line in enumerate(lines):
             if line.rfind('K-points in task') > -1:
-                kpts = int(line.split(':')[-1].strip())
-                kptsstart = n
-                break
+                kptsstart = n  # last occurence of (
         assert not kpts is None
+        assert not kptsstart is None
         text = lines[kptsstart + 1:]
         values = []
         for line in text[:kpts]:
@@ -560,12 +567,12 @@ class Aims(FileIOCalculator):
         """ Returns list of last eigenvalues, occupations
         for given kpt and spin.  """
         values = []
-        assert mode in ['eigenvalues' , 'occupations'], 'mode not in [\'eigenvalues\' , \'occupations\']'
+        assert mode in ['eigenvalues', 'occupations']
         lines = open(self.out, 'r').readlines()
         # number of kpts
         kpts = None
         for n, line in enumerate(lines):
-            if line.rfind('K-points in task') > -1:
+            if line.rfind('| Number of k-points') > -1:
                 kpts = int(line.split(':')[-1].strip())
                 break
         assert not kpts is None
@@ -573,6 +580,7 @@ class Aims(FileIOCalculator):
         # find last (eigenvalues)
         eigvalstart = None
         for n, line in enumerate(lines):
+            # eigenvalues come after Preliminary charge convergence reached
             if line.rfind('Preliminary charge convergence reached') > -1:
                 eigvalstart = n
                 break
@@ -583,11 +591,12 @@ class Aims(FileIOCalculator):
                 eigvalstart = n
                 break
         assert not eigvalstart is None
-        text = lines[eigvalstart + 1:] # remove first 1 line
+        text = lines[eigvalstart + 1:]  # remove first 1 line
         # find the requested k-point
         nbands = self.read_number_of_bands()
         sppol = self.get_spin_polarized()
-        beg = (nbands + 4 + int(sppol)*1) * kpt * (sppol + 1) + 3 + sppol * 2 + kpt * sppol
+        beg = ((nbands + 4 + int(sppol) * 1) * kpt * (sppol + 1) +
+               3 + sppol * 2 + kpt * sppol)
         if self.get_spin_polarized():
             if spin == 0:
                 beg = beg
@@ -601,10 +610,12 @@ class Aims(FileIOCalculator):
         for line in text[beg:end]:
             # aims prints stars for large values ...
             line = line.replace('**************', '         10000')
+            line = line.replace('***************', '          10000')
+            line = line.replace('****************', '           10000')
             b = [float(c.strip()) for c in line.split()[1:]]
             values.append(b)
         if mode == 'eigenvalues':
-            values = [Hartree*v[1] for v in values]
+            values = [Hartree * v[1] for v in values]
         else:
             values = [v[0] for v in values]
         if len(values) == 0:
@@ -618,8 +629,11 @@ class AimsCube:
                  edges=[(0.1, 0.0, 0.0), (0.0, 0.1, 0.0), (0.0, 0.0, 0.1)],
                  points=(50, 50, 50), plots=None):
         """parameters:
-        origin, edges, points = same as in the FHI-aims output
-        plots: what to print, same names as in FHI-aims """
+
+        origin, edges, points:
+            Same as in the FHI-aims output
+        plots:
+            what to print, same names as in FHI-aims """
 
         self.name = 'AimsCube'
         self.origin = origin

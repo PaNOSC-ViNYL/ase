@@ -1,6 +1,6 @@
 # creates: ase-db.out, ase-db-long.out
 import ase.db
-c = ase.db.connect('abc.db')
+c = ase.db.connect('abc.db', append=False)
 
 from ase import Atoms
 from ase.calculators.emt import EMT
@@ -32,13 +32,13 @@ with open('ase-db-long.out', 'w') as fd:
     output = subprocess.check_output(['ase-db', 'abc.db', 'relaxed=1', '-l'])
     fd.write(output)
 
-d = c.get(relaxed=1, calculator='emt')
-for k, v in d.items():
-    print('%-25s: %s' % (k, v))
+row = c.get(relaxed=1, calculator='emt')
+for key in row:
+    print('{0:22}: {1}'.format(key, row[key]))
 
-print(d.data.abc)
+print(row.data.abc)
 
-e2 = d.energy
+e2 = row.energy
 e1 = c.get(H=1).energy
 ae = 2 * e1 - e2
 print(ae)

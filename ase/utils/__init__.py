@@ -2,6 +2,7 @@ import os
 import sys
 import time
 from math import sin, cos, radians, atan2, degrees
+from contextlib import contextmanager
 
 import numpy as np
 
@@ -19,6 +20,23 @@ else:
     basestring = basestring
     
 
+@contextmanager
+def seterr(**kwargs):
+    """Set how floating-point errors are handled.
+    
+    See np.seterr() for more details.
+    """
+    old = np.seterr(**kwargs)
+    yield
+    np.seterr(**old)
+
+
+def plural(n, word):
+    if n == 1:
+        return '1 ' + word
+    return '%d %ss' % (n, word)
+
+    
 class DevNull:
     def write(self, string):
         pass
@@ -118,12 +136,15 @@ def hill(numbers):
     
     Elements are alphabetically ordered with C and H first."""
     
-    d = {}
-    for Z in numbers:
-        symb = chemical_symbols[Z]
-        d[symb] = d.get(symb, 0) + 1
-    result = [(s, d.pop(s)) for s in 'CH' if s in d]
-    result += [(s, d[s]) for s in sorted(d)]
+    if isinstance(numbers, dict):
+        count = dict(numbers)
+    else:
+        count = {}
+        for Z in numbers:
+            symb = chemical_symbols[Z]
+            count[symb] = count.get(symb, 0) + 1
+    result = [(s, count.pop(s)) for s in 'CH' if s in count]
+    result += [(s, count[s]) for s in sorted(count)]
     return ''.join('{0}{1}'.format(symbol, n) if n > 1 else symbol
                    for symbol, n in result)
 

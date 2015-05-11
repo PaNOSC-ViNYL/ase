@@ -4,7 +4,7 @@ from ase.atom import Atom
 from ase.atoms import Atoms
 from ase.units import *
 from ase.io import read, write
-from ase.io.trajectory import PickleTrajectory
+from ase.io.trajectory import Trajectory
 from ase.dft import STM, monkhorst_pack, DOS
 from ase.optimize.mdmin import MDMin
 from ase.optimize.lbfgs import HessLBFGS

@@ -501,8 +501,7 @@ class Atoms(object):
             momenta = np.array(momenta)  # modify a copy
             for constraint in self.constraints:
                 if hasattr(constraint, 'adjust_momenta'):
-                    constraint.adjust_momenta(self.arrays['positions'],
-                                              momenta)
+                    constraint.adjust_momenta(self, momenta)
         self.set_array('momenta', momenta, float, (3,))
 
     def set_velocities(self, velocities):
@@ -599,11 +598,10 @@ class Atoms(object):
 
     def set_positions(self, newpositions):
         """Set positions, honoring any constraints."""
-        positions = self.arrays['positions']
         if self.constraints:
             newpositions = np.array(newpositions, float)
             for constraint in self.constraints:
-                constraint.adjust_positions(positions, newpositions)
+                constraint.adjust_positions(self, newpositions)
 
         self.set_array('positions', newpositions, shape=(3,))
 
@@ -649,8 +647,7 @@ class Atoms(object):
             constraints = [c for c in self.constraints
                            if hasattr(c, 'adjust_potential_energy')]
             for constraint in constraints:
-                energy += constraint.adjust_potential_energy(
-                    self.arrays['positions'], energy)
+                energy += constraint.adjust_potential_energy(self, energy)
         return energy
 
     def get_potential_energies(self):
@@ -696,7 +693,7 @@ class Atoms(object):
         forces = self._calc.get_forces(self)
         if apply_constraint:
             for constraint in self.constraints:
-                constraint.adjust_forces(self.arrays['positions'], forces)
+                constraint.adjust_forces(self, forces)
         return forces
 
     def get_stress(self, voigt=True):
@@ -1256,11 +1253,12 @@ class Atoms(object):
                 self.positions[i] = group[j].position
                 j += 1
 
-    def set_dihedral(self, list, angle, mask=None):
+    def set_dihedral(self, list, angle, mask=None, indices=None):
         """Set the dihedral angle between vectors list[0]->list[1] and
         list[2]->list[3] by changing the atom indexed by list[3]
         if mask is not None, all the atoms described in mask
-        (read: the entire subgroup) are moved.
+        (read: the entire subgroup) are moved. Alternatively to the mask,
+        the indices of the atoms to be rotated can be supplied.
 
         example: the following defines a very crude
         ethane-like molecule and twists one half of it by 30 degrees.
@@ -1271,9 +1269,12 @@ class Atoms(object):
         """
         # if not provided, set mask to the last atom in the
         # dihedral description
-        if mask is None:
+        if mask is None and indices is None:
             mask = np.zeros(len(self))
             mask[list[3]] = 1
+        elif indices:
+            mask = [index in indices for index in range(len(self))]
+
         # compute necessary in dihedral change, from current value
         current = self.get_dihedral(list)
         diff = angle - current
@@ -1344,6 +1345,42 @@ class Atoms(object):
         positions = self.arrays['positions']
         self.set_positions(positions +
                            rs.normal(scale=stdev, size=positions.shape))
+        
+    def _mic(self, D):
+        D_len = tuple(np.linalg.norm(Di) for Di in D)
+
+        longest = 0
+        for Di_len in D_len:
+            if Di_len > longest:
+                longest = Di_len
+
+        normal = np.zeros((3, 3), dtype=float)
+        for i in range(3):
+            normal[i] = np.cross(self.cell[i], self.cell[(i + 1) % 3])
+            normal[i] /= np.linalg.norm(normal[i])
+
+        n = np.zeros(3, dtype=int)
+        for i in range(3):
+            vert = abs(np.dot(self.cell[i], normal[(i + 1) % 3]))
+            n[i] = int(np.ceil(longest / vert))
+        n *= self._pbc
+
+        shortest_len = list(D_len)
+        shortest = list(D)
+
+        for i in range(-n[0], n[0] + 1):
+            na = i * self.cell[0]
+            for j in range(-n[1], n[1] + 1):
+                nb = j * self.cell[1]
+                for k in range(-n[2], n[2] + 1):
+                    nc = k * self.cell[2]
+                    D_new = D + na + nb + nc
+                    for m, Di_new in enumerate(D_new):
+                        Di_new_len = np.linalg.norm(Di_new)
+                        if Di_new_len < shortest_len[m]:
+                            shortest[m] = Di_new.copy()
+                            shortest_len[m] = Di_new_len
+        return np.array(shortest)
 
     def get_distance(self, a0, a1, mic=False, vector=False):
         """Return distance between two atoms.
@@ -1355,8 +1392,7 @@ class Atoms(object):
         R = self.arrays['positions']
         D = R[a1] - R[a0]
         if mic:
-            Dr = np.linalg.solve(self._cell.T, D)
-            D = np.dot(Dr - np.round(Dr) * self._pbc, self._cell)
+            D = self._mic((D,))[0]
         if vector:
             return D
         return np.linalg.norm(D)
@@ -1371,8 +1407,7 @@ class Atoms(object):
         R = self.arrays['positions']
         D = R[indices] - R[a]
         if mic:
-            Dr = np.linalg.solve(self._cell, D.T)
-            D = np.dot(self._cell, Dr - (self._pbc * np.round(Dr).T).T).T
+            D = self._mic(D)
         if vector:
             return D
         return np.sqrt((D**2).sum(1))
@@ -1391,8 +1426,7 @@ class Atoms(object):
         D = np.concatenate(D)
 
         if mic:
-            Dr = np.linalg.solve(self._cell, D.T)
-            D = np.dot(self._cell, Dr - (self._pbc * np.round(Dr).T).T).T
+            D = self._mic(D)
 
         results = np.sqrt((D**2).sum(1))
         results.shape = (L, L)
@@ -1409,8 +1443,7 @@ class Atoms(object):
         R = self.arrays['positions']
         D = R[a1] - R[a0]
         if mic:
-            Dr = np.linalg.solve(self._cell.T, D)
-            D = np.dot(Dr - np.round(Dr) * self._pbc, self._cell)
+            D = self._mic((D,))[0]
         x = 1.0 - distance / np.linalg.norm(D)
         R[a0] += (x * fix) * D
         R[a1] -= (x * (1.0 - fix)) * D

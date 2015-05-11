@@ -20,7 +20,7 @@ __all__ = ['surface', 'add_adsorbate', 'add_vacuum',
            'bcc100', 'bcc110', 'bcc111',
            'diamond100', 'diamond111',
            'fcc100', 'fcc110', 'fcc111', 'fcc211',
-           'hcp0001', 'hcp10m10']
+           'hcp0001', 'hcp10m10','mx2']
 
 
 def fcc100(symbol, size, a=None, vacuum=None):
@@ -442,9 +442,10 @@ def fcc111_root(symbol, root, size, a=None, vacuum=0.0,
 
     searchx, searchy = search_zone
 
+    c = 0.5
+    s = (3**0.5) / 2.
+
     def rhomb(x, y):
-        c = 0.5
-        s = (3**0.5) / 2.
         return float(x + (c * y)), float(s * y)
 
     desired = root**0.5
@@ -516,3 +517,28 @@ def fcc111_root(symbol, root, size, a=None, vacuum=0.0,
     cutting_board.center(axis=2, vacuum=vacuum)
 
     return cutting_board
+    
+def mx2(formula='MoS2', Type='2H', a=3.18, thickness=3.19, size=(1,1,1), vacuum=15.0):
+    """Helper function for creating 2D materials with hexagonal structures. 
+    It is useful for molybdenum sulfide, graphene, ect."""
+    
+    
+    if Type == '2H':
+        bravais_basis = [(0., 0., 0.5),
+                         (2/3., 1/3., (0.5 * vacuum + 0.5 * 0.5 * thickness) / vacuum),
+                         (2/3., 1/3., (0.5 * vacuum - 0.5 * 0.5 * thickness) / vacuum)]
+    
+    elif Type == '1T':
+        bravais_basis = [(0., 0., 0.5),
+                         (2/3., 1/3., (0.5 * vacuum + 0.5 * 0.5 * thickness) / vacuum),
+                         (1/3., 2/3., (0.5 * vacuum - 0.5 * 0.5 * thickness) / vacuum)]
+    else: 
+        raise NotImplementedError("Structure not recognized")
+    
+    cell=np.array([[a, 0., 0.],[-a * np.sin(np.pi/6.0), a * np.cos(np.pi/6.0), 0.],[0., 0., vacuum]])
+    
+    atoms = Atoms(symbols=formula, cell=cell, scaled_positions=bravais_basis, pbc=(1,1,1))    
+    atoms = atoms.repeat(size)
+    
+    return atoms
+

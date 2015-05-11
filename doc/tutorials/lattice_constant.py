@@ -4,8 +4,8 @@ import numpy as np
 a0 = 3.52 / np.sqrt(2)
 c0 = np.sqrt(8 / 3.0) * a0
 
-from ase.io import PickleTrajectory
-traj = PickleTrajectory('Ni.traj', 'w')
+from ase.io import Trajectory
+traj = Trajectory('Ni.traj', 'w')
 
 from ase.lattice import bulk
 from ase.calculators.emt import EMT

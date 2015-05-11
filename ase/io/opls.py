@@ -8,6 +8,7 @@ from ase.calculators.lammpsrun import prism
 from ase.calculators.neighborlist import NeighborList
 from ase.data import atomic_masses, chemical_symbols
 from ase.io.lammpsrun import read_lammps_dump
+from ase.io import read
 
 
 def twochar(name):
@@ -531,7 +532,7 @@ class OPLSStructure(Atoms):
     def __init__(self, filename=None, *args, **kwargs):
         Atoms.__init__(self, *args, **kwargs)
         if filename:
-            self.read_labeled_xyz(filename)
+            self.read_extended_xyz(filename)
         else:
             self.types = []
             for atom in self:
@@ -543,31 +544,21 @@ class OPLSStructure(Atoms):
         """Append atom to end."""
         self.extend(Atoms([atom]))
 
-    def read_labeled_xyz(self, fileobj, map={}):
-        """Read xyz like file with labeled atoms."""
-        if isinstance(fileobj, str):
-            fileobj = open(fileobj)
+    def read_extended_xyz(self, fileobj, map={}):
+        """Read extended xyz file with labeled atoms."""
+        atoms = read(fileobj)
+        self.set_cell(atoms.get_cell())
+        self.set_pbc(atoms.get_pbc())
 
-        translate = dict(OPLSStructure.default_map.items() + map.items())
-
-        lines = fileobj.readlines()
-        L1 = lines[0].split()
-        if len(L1) == 1:
-            del lines[:2]
-            natoms = int(L1[0])
-        else:
-            natoms = len(lines)
         types = []
         types_map = {}
-        for line in lines[:natoms]:
-            symbol, x, y, z = line.split()[:4]
-            element, label = self.split_symbol(symbol, translate)
-            if symbol not in types:
-                types_map[symbol] = len(types)
-                types.append(symbol) 
-            self.append(Atom(element, [float(x), float(y), float(z)],
-                             tag=types_map[symbol]))
-            self.types = types
+        for atom, type in zip(atoms, atoms.get_array('type')):
+            if type not in types:
+                types_map[type] = len(types)
+                types.append(type) 
+            atom.tag = types_map[type]
+            self.append(atom)
+        self.types = types
 
     def split_symbol(self, string, translate=default_map):
 

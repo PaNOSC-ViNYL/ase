@@ -29,7 +29,7 @@ class DataConnection(object):
         if not os.path.isfile(self.db_file_name):
             raise IOError('DB file {0} not found'.format(self.db_file_name))
         self.c = ase.db.connect(self.db_file_name)
-        self.already_returned = []
+        self.already_returned = set()
 
         # slab = self.get_slab()
         # atom_numbers = list(slab.numbers)
@@ -57,9 +57,9 @@ class DataConnection(object):
     def __get_ids_of_all_unrelaxed_candidates__(self):
         """ Helper method used by the two above methods. """
 
-        all_unrelaxed_ids = [t.gaid for t in self.c.select(relaxed=0)]
-        all_relaxed_ids = [t.gaid for t in self.c.select(relaxed=1)]
-        all_queued_ids = [t.gaid for t in self.c.select(queued=1)]
+        all_unrelaxed_ids = set([t.gaid for t in self.c.select(relaxed=0)])
+        all_relaxed_ids = set([t.gaid for t in self.c.select(relaxed=1)])
+        all_queued_ids = set([t.gaid for t in self.c.select(queued=1)])
 
         actually_unrelaxed = [gaid for gaid in all_unrelaxed_ids
                               if (gaid not in all_relaxed_ids and
@@ -96,8 +96,12 @@ class DataConnection(object):
         except KeyError:
             print("raw_score not put in atoms.info['key_value_pairs']")
         gaid = a.info['confid']
+        
+        if 'generation' not in a.info['key_value_pairs']:
+            g = self.get_generation_number()
+            a.info['key_value_pairs']['generation'] = g
+            
         relax_id = self.c.write(a, gaid=gaid, relaxed=1,
-                                generation=self.get_generation_number(),
                                 key_value_pairs=a.info['key_value_pairs'],
                                 data=a.info['data'])
         a.info['relax_id'] = relax_id
@@ -111,9 +115,12 @@ class DataConnection(object):
         """ Adds a new candidate which needs to be relaxed. """
         t, desc = split_description(description)
         kwargs = {'relaxed': 0,
+                  'extinct': 0,
                   t: 1,
-                  'description': desc,
-                  'generation': self.get_generation_number()}
+                  'description': desc}
+        
+        if 'generation' not in candidate.info['key_value_pairs']:
+            kwargs.update({'generation': self.get_generation_number()})
 
         # if not np.array_equal(candidate.numbers, self.atom_numbers):
         #     raise ValueError('Wrong stoichiometry')
@@ -136,6 +143,7 @@ class DataConnection(object):
         gaid = candidate.info['confid']
         t, desc = split_description(description)
         kwargs = {'relaxed': 0,
+                  'extinct': 0,
                   t: 1,
                   'description': desc,
                   'gaid': gaid}
@@ -184,13 +192,24 @@ class DataConnection(object):
             frequency[c2] += 1
         return (frequency, pairs)
 
-    def get_all_relaxed_candidates(self, only_new=False):
-        """ Returns all candidates that have been relaxed. The optional
-            parameter only_new can be used to specify only to get
-            candidates relaxed since last time this function was
-            invoked. """
+    def get_all_relaxed_candidates(self, only_new=False, use_extinct=False):
+        """ Returns all candidates that have been relaxed.
 
-        entries = self.c.select(relaxed=1)
+        Parameters:
+
+        only_new: boolean (optional)
+            Used to specify only to get candidates relaxed since last
+            time this function was invoked. Default: False.
+
+        use_extinct: boolean (optional)
+            Set to True if the extinct key (and mass extinction) is going
+            to be used. Default: False."""
+
+        if use_extinct:
+            entries = self.c.select('relaxed=1,extinct=0',
+                                    sort='-raw_score')
+        else:
+            entries = self.c.select('relaxed=1', sort='-raw_score')
 
         trajs = []
         for v in entries:
@@ -200,15 +219,16 @@ class DataConnection(object):
             t.info['confid'] = v.gaid
             t.info['relax_id'] = v.id
             trajs.append(t)
-            self.already_returned.append(v.gaid)
-        trajs.sort(key=lambda x: x.get_raw_score(), reverse=True)
+            self.already_returned.add(v.gaid)
+        # trajs.sort(key=lambda x: x.get_raw_score(), reverse=True)
         return trajs
 
     def get_all_relaxed_candidates_after_generation(self, gen):
         """ Returns all candidates that have been relaxed up to
             and including the specified generation
         """
-        entries = self.c.select('relaxed=1,generation<={0}'.format(gen))
+        q = 'relaxed=1,extinct=0,generation<={0}'
+        entries = self.c.select(q.format(gen))
 
         trajs = []
         for v in entries:
@@ -252,9 +272,10 @@ class DataConnection(object):
             return 0
         lg = size
         g = 0
+        all_candidates = list(self.c.select(relaxed=1))
         while lg > 0:
-            lg = len(list(self.c.select(relaxed=1, generation=g)))
-            if lg == size:
+            lg = len([c for c in all_candidates if c.generation == g])
+            if lg >= size:
                 g += 1
             else:
                 return g
@@ -277,6 +298,13 @@ class DataConnection(object):
     def is_duplicate(self, **kwargs):
         """Check if the key-value pair is already present in the database"""
         return len(list(self.c.select(**kwargs))) > 0
+        
+    def kill_candidate(self, confid):
+        """Sets extinct=1 in the key_value_pairs of the candidate
+        with gaid=confid. This could be used in the
+        mass extinction operator."""
+        for dct in self.c.select(gaid=confid):
+            self.c.update(dct.id, extinct=1)
 
 
 class PrepareDB(object):
@@ -309,13 +337,13 @@ class PrepareDB(object):
     def add_unrelaxed_candidate(self, candidate, **kwargs):
         """ Add an unrelaxed starting candidate. """
         gaid = self.c.write(candidate, origin='StartingCandidateUnrelaxed',
-                            relaxed=False, generation=0, **kwargs)
+                            relaxed=False, generation=0, extinct=0, **kwargs)
         self.c.update(gaid, gaid=gaid)
 
     def add_relaxed_candidate(self, candidate):
         """ Add a relaxed starting candidate. """
         gaid = self.c.write(candidate, origin='StartingCandidateRelaxed',
-                            relaxed=True, generation=0)
+                            relaxed=True, generation=0, extinct=0)
         self.c.update(gaid, gaid=gaid)
 
 

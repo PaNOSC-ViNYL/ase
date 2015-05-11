@@ -3,7 +3,7 @@ from __future__ import print_function
 
 from ase.lattice.cubic import FaceCenteredCubic
 from ase.md.langevin import Langevin
-from ase.io.trajectory import PickleTrajectory
+from ase.io.trajectory import Trajectory
 from ase import units
 
 from asap3 import EMT  # Way too slow with ase.EMT !
@@ -36,7 +36,7 @@ def printenergy(a=atoms):  # store a reference to atoms in the definition.
 dyn.attach(printenergy, interval=50)
 
 # We also want to save the positions of all atoms after every 100th time step.
-traj = PickleTrajectory('moldyn3.traj', 'w', atoms)
+traj = Trajectory('moldyn3.traj', 'w', atoms)
 dyn.attach(traj.write, interval=50)
 
 # Now run the dynamics
