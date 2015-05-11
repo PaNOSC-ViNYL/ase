@@ -144,7 +144,8 @@ class AdsorbateOperator(OffspringCreator):
             i = int(ads_ind[0])
             mol_ind = self._get_indices_in_adsorbate(ac, nl, i)
             for ind in mol_ind:
-                ads_ind.remove(int(ind))
+                if int(ind) in ads_ind:
+                    ads_ind.remove(int(ind))
             adsorbates.append(sorted(mol_ind))
         return adsorbates
 
@@ -535,10 +536,19 @@ class CutSpliceCrossoverWithAdsorbates(AdsorbateOperator):
                     f[i].tag = 1
                     tmpf.append(f[i])
         for ads in m_ads:
-            if np.dot(m[ads[0]].position, e) < 0:
-                for i in ads:
-                    m[i].tag = 2
-                    tmpf.append(m[i])
+            pos = m[ads[0]].position
+            if np.dot(pos, e) < 0:
+                # If the adsorbate will sit too close to another adsorbate
+                # (below self.min_adsorbate_distance) do not add it.
+                dists = [np.linalg.norm(pos - a.position)
+                         for a in tmpf if a.tag == 1]
+                for d in dists:
+                    if d < self.min_adsorbate_distance:
+                        break
+                else:
+                    for i in ads:
+                        m[i].tag = 2
+                        tmpm.append(m[i])
                 
         tmpfna = self.get_atoms_without_adsorbates(tmpf)
         tmpmna = self.get_atoms_without_adsorbates(tmpm)

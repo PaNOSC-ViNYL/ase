@@ -288,7 +288,7 @@ class _NeighborhoodPermutation(Mutation):
             for n in neighbors:
                 if atoms[n].symbol == atom.symbol:
                     same_neighbors[i] += 1
-        sorted_same = sorted(same_neighbors.iteritems(), key=f)
+        sorted_same = sorted(same_neighbors.items(), key=f)
         if inverse:
             sorted_same.reverse()
         poor_indices = [j[0] for j in sorted_same
