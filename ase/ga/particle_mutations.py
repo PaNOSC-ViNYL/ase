@@ -169,6 +169,7 @@ class COM2surfPermutation(Mutation):
         for example: include all metals and exclude all adsorbates
     
     min_ratio: minimum ratio of each element in the core or surface region.
+        If elements=[a, b] then ratio of a is Na / (Na + Nb) (N: Number of).
         If less than minimum ratio is present in the core, the region defining
         the core will be extended untill the minimum ratio is met, and vice
         versa for the surface region. It has the potential reach the
@@ -205,6 +206,13 @@ class COM2surfPermutation(Mutation):
     @classmethod
     def mutate(cls, atoms, elements, min_ratio):
         """Performs the COM2surf permutation."""
+        ac = atoms.copy()
+        if elements is not None:
+            del ac[[a.index for a in ac if a.symbol not in elements]]
+        syms = ac.get_chemical_symbols()
+        for el in set(syms):
+            assert syms.count(el) / float(len(syms)) > min_ratio
+            
         atomic_conf = Mutation.get_atomic_configuration(atoms,
                                                         elements=elements)
         core = COM2surfPermutation.get_core_indices(atoms,

@@ -30,4 +30,3 @@ class NNMatComparator(object):
             return True
         else:
             return False
-
