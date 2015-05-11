@@ -29,7 +29,10 @@ Development version in trunk
 
 * Preliminary support for Python 3.
 
+* New :meth:`ase.atoms.Atoms.wrap` method and
+  :func:`ase.utils.geometry.wrap_positions` function.
 
+  
 Version 3.8.0
 =============
 

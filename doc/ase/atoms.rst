@@ -304,6 +304,7 @@ Other methods
 =============
 
 * :meth:`~Atoms.center`
+* :meth:`~Atoms.wrap`
 * :meth:`~Atoms.translate`
 * :meth:`~Atoms.rotate`
 * :meth:`~Atoms.rotate_euler`

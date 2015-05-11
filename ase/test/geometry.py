@@ -3,7 +3,7 @@
 import numpy as np
 
 from ase.lattice.spacegroup import crystal
-from ase.utils.geometry import get_layers, cut, stack, wrap
+from ase.utils.geometry import get_layers, cut, stack
 from ase.atoms import Atoms
 
 np.set_printoptions(suppress=True)
@@ -105,15 +105,13 @@ cell = np.array( [[5.43,  5.43,  0.0],
                   [5.43, -5.43,  0.0],
                   [0.00,  0.00, 40.0],
                   ])
-atoms = Atoms(
-        scaled_positions=scaled_positions,
-        symbols=['Si'],
-        cell=cell,
-        pbc=[True, True, False],
-        )
-new_atoms = wrap(atoms)
-correct_pos = np.array([ 0.0, 0.2, 4.3])
-assert np.allclose(correct_pos, new_atoms.get_scaled_positions())
+atoms = Atoms(scaled_positions=scaled_positions,
+              symbols=['Si'],
+              cell=cell,
+              pbc=[True, True, False])
+atoms.wrap()
+correct_pos = np.array([0.0, 0.2, 4.3])
+assert np.allclose(correct_pos, atoms.get_scaled_positions(wrap=False))
 
 positions = np.array([
      [ 4.0725, -4.0725, -1.3575],
@@ -135,7 +133,8 @@ atoms = Atoms(positions=positions,
               pbc=[True, True, False],
               )
 atoms.translate(np.array([6.1, -0.1, 10.1]))
-result_atoms = wrap(atoms)
+result_atoms = atoms.copy()
+result_atoms.wrap()
 correct_pos = np.array([
     [  4.7425,   1.2575,   8.7425],
     [  7.4575,  -1.4575,   8.7425],
@@ -147,9 +146,9 @@ correct_pos = np.array([
     [  0.67  ,  -0.1   ,  10.1   ],
     ])
 assert np.allclose(correct_pos, result_atoms.get_positions())
-assert result_atoms != atoms
 
-result_atoms = wrap(atoms, pbc=[False, True, False], inplace=True)
+result_atoms = atoms.copy()
+result_atoms.wrap(pbc=[False, True, False])
 
 correct_pos = np.array([
     [  4.7425,    1.2575,   8.7425],
@@ -162,4 +161,3 @@ correct_pos = np.array([
     [  6.1   ,    5.33  ,  10.1   ],
     ])
 assert np.allclose(correct_pos, result_atoms.get_positions())
-assert result_atoms == atoms

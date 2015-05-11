@@ -512,135 +512,54 @@ def minimize_tilt(atoms, order=range(3), fold_atoms=True):
             if pbc_c[c1] and pbc_c[c2]:
                 minimize_tilt_ij(atoms, c1, c2, fold_atoms)
 
-
-def wrap(atoms, center=(0.5, 0.5, 0.5), pbc=None, inplace=False):
-    """Returns an atoms object with the positions changed by a
-    multiple of the unit cell vectors to fit inside the space
-    spanned by these vectors.
+                
+def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
+                   eps=1e-7):
+    """Wrap positions to unit cell.
+    
+    Returns positions changed by a multiple of the unit cell vectors to
+    fit inside the space spanned by these vectors.
 
     Parameters:
 
-    atoms: Atoms object
-    center: three floats | (0.5, 0.5, 0.5)
+    positions: float ndarray of shape (n, 3)
+        Positions of the atoms
+    cell: float ndarray of shape (3, 3)
+        Unit cell vectors.
+    pbc: one or 3 bool
+        For each axis in the unit cell decides whether the positions
+        will be moved along this axis.
+    center: three float
         The positons in fractional coordinates that the new positions
         will be nearest possible to.
-    pbc: None or 3 booleans | None
-        For each axis in the unit cell decides whether the positions
-        will be moved along this axis. None means that this information
-        will be taken from atoms.pbc
-    inplace: boolean | False
-        Decides whether the function will modify the input in place
-        and return a reference(True) or whether a new atoms object is
-        created(False).
-
-    Returns:
-
-    An Atoms object.
-
+    eps: float
+        Small number to prevent slightly negative coordinates from beeing
+        wrapped.
+        
     Example:
 
-    >>> import numpy as np
-    from ase.atoms import Atoms
-    from ase.utils.geometry import wrap
-    scaled_positions = np.array([ [ 2.0, 3.2, 4.3], ])
-    cell = np.array( [[5.43, 5.43, 0.0],
-                      [5.43,-5.43, 0.0],
-                      [0.00, 0.00,40.0],
-                      ])
-    atoms = Atoms(
-            scaled_positions=scaled_positions,
-            symbols=['Si'],
-            cell=cell,
-            pbc=[True, True, False],
-            )
-    new_atoms = wrap(atoms)
-    >>> new_atoms.get_scaled_positions()
-    array([0.0, 0.2, 4.3])
+    >>> from ase.utils.geometry import wrap_positions
+    >>> wrap_positions([[-0.1, 1.01, -0.5]],
+    ...                [[1, 0, 0], [0, 1, 0], [0, 0, 4]],
+    ...                pbc=[1, 1, 0])
+    array([[ 0.9 ,  0.01, -0.5 ]])
     """
-    if not inplace:
-        atoms = atoms.copy()
+    
+    if not hasattr(pbc, '__len__'):
+        pbc = (pbc,) * 3
 
-    if pbc is None:
-        pbc = atoms.get_pbc()
-    else:
-        pbc = np.array(pbc)
+    shift = np.asarray(center) - 0.5 + eps * np.asarray(pbc, dtype=bool)
+    fractional = np.linalg.solve(np.asarray(cell).T,
+                                 np.asarray(positions).T).T + shift
 
-    # Early escape if no directions are defined as periodic.
-    if not pbc.any():
-        return atoms
+    for i, periodic in enumerate(pbc):
+        if periodic:
+            fractional[:, i] %= 1.0
+            fractional[:, i] -= shift[i]
+    
+    return np.dot(fractional, cell)
 
-    unit_cell = atoms.get_cell()[pbc]
-    center = np.array(center)[pbc]
-    positions = wrap_positions(atoms.get_positions(), unit_cell, center)
-    atoms.set_positions(positions)
-
-    return atoms
-
-
-def wrap_positions(positions, unit_cell, center):
-    """Returns an  array of positions changed by a
-    multiple of the unit cell vectors to fit inside the space
-    spanned by these vectors.
-
-    positions: Nx3 array of floats
-        The input positions.
-    unit_cell: 1x3, 2x3 or 3x3 array of floats
-        Only multiples of these vectors are used to shift the positions.
-    center: three floats | (0.5, 0.5, 0.5)
-        The positons in fractional coordinates that the new positions
-        will be nearest possible to.
-
-    Returns:
-
-    An Nx3 array containing the modified positons.
-    """
-
-    f_pos, remainder = convert_positions_to(positions, unit_cell)
-    shift = np.array(center) - np.array([0.5]*len(center)) + 1e-5
-    f_pos = ((f_pos + shift)%1 - shift)
-    pos = convert_positions_from(f_pos, unit_cell)
-    pos += remainder
-
-    return np.around(pos, 13)
-
-
-def convert_positions_to(positions, vectors):
-    """Returns positions expressed in a given basis vectors.
-
-    Returns:
-
-    new_positions: Nx3 array with the converted positions
-    remainder: Nx3 with the position vector left over when converting
-               to the new basis. Only non-zero if less than 3 vectors
-               are given.
-    """
-    M=np.transpose(np.matrix(vectors))
-    Minv = moore_penrose_inverse(M)
-    new_positions = np.transpose(Minv*np.transpose(np.matrix(positions)))
-    tmp = convert_positions_from(new_positions, vectors)
-    remainder = positions - tmp
-
-    return np.around(new_positions, 13), remainder
-
-
-def convert_positions_from(positions, vectors):
-    """Returns positions converted back from a given basis set.
-    """
-    M=np.transpose(np.matrix(vectors))
-    positions = np.transpose(M*np.transpose(np.matrix(positions)))
-
-    return np.around(positions, 13)
-
-
-def moore_penrose_inverse(A):
-    """Returns the Moore-Penrose inverse of a matrix.
-    """
-    A = np.matrix(A)
-    Ah = (A.conjugate()).transpose()
-    inverse = (Ah*A)**(-1)*Ah
-
-    return inverse
-
+    
 # Self test
 if __name__ == '__main__':
     import doctest
