@@ -36,9 +36,9 @@ assert a3.get_chemical_formula() == 'Cu35Ni20'
 aconf = op.get_atomic_configuration(a3)
 core = aconf[1]
 shell = aconf[-1]
-for i, sym in zip(core, 6*['Ni'] + 6*['Cu']):
+for i, sym in zip(core, 6 * ['Ni'] + 6 * ['Cu']):
     a3[i].symbol = sym
-for i, sym in zip(shell, 6*['Ni'] + 6*['Cu']):
+for i, sym in zip(shell, 6 * ['Ni'] + 6 * ['Cu']):
     a3[i].symbol = sym
 
 atomic_conf = op.get_atomic_configuration(a3, elements=['Cu'])[-2:]
