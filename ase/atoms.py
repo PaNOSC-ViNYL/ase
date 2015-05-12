@@ -12,10 +12,11 @@ from math import cos, sin
 
 import numpy as np
 
+import ase.units as units
 from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring
-import ase.units as units
+from ase.utils.geometry import wrap_positions
 
 
 class Atoms(object):
@@ -207,7 +208,7 @@ class Atoms(object):
             if scaled_positions is not None:
                 raise RuntimeError('Both scaled and cartesian positions set!')
         self.new_array('positions', positions, float, (3,))
-
+        
         self.set_constraint(constraint)
         self.set_tags(default(tags, 0))
         self.set_momenta(default(momenta, (0.0, 0.0, 0.0)))
@@ -1447,25 +1448,61 @@ class Atoms(object):
         R[a0] += (x * fix) * D
         R[a1] -= (x * (1.0 - fix)) * D
 
-    def get_scaled_positions(self):
+    def get_scaled_positions(self, wrap=True):
         """Get positions relative to unit cell.
 
-        Atoms outside the unit cell will be wrapped into the cell in
-        those directions with periodic boundary conditions so that the
-        scaled coordinates are between zero and one."""
+        If wrap is True, atoms outside the unit cell will be wrapped into
+        the cell in those directions with periodic boundary conditions
+        so that the scaled coordinates are between zero and one."""
 
-        scaled = np.linalg.solve(self._cell.T, self.arrays['positions'].T).T
-        for i in range(3):
-            if self._pbc[i]:
-                # Yes, we need to do it twice.
-                # See the scaled_positions.py test
-                scaled[:, i] %= 1.0
-                scaled[:, i] %= 1.0
-        return scaled
+        fractional = np.linalg.solve(self.cell.T, self.positions.T).T
+        
+        if wrap:
+            for i, periodic in enumerate(self.pbc):
+                if periodic:
+                    # Yes, we need to do it twice.
+                    # See the scaled_positions.py test.
+                    fractional[:, i] %= 1.0
+                    fractional[:, i] %= 1.0
+                    
+        return fractional
 
     def set_scaled_positions(self, scaled):
         """Set positions relative to unit cell."""
         self.arrays['positions'][:] = np.dot(scaled, self._cell)
+        
+    def wrap(self, center=(0.5, 0.5, 0.5), pbc=None, eps=1e-7):
+        """Wrap positions to unit cell.
+    
+        Parameters:
+    
+        center: three float
+            The positons in fractional coordinates that the new positions
+            will be nearest possible to.
+        pbc: one or 3 bool
+            For each axis in the unit cell decides whether the positions
+            will be moved along this axis.  By default, the boundary
+            conditions of the Atoms object will be used.
+        eps: float
+            Small number to prevent slightly negative coordinates from beeing
+            wrapped.
+            
+        See also the :func:`ase.utils.geometry.wrap_positions` function.
+        Example:
+    
+        >>> a = Atoms('H',
+        ...           [[-0.1, 1.01, -0.5]],
+        ...           cell=[[1, 0, 0], [0, 1, 0], [0, 0, 4]],
+        ...           pbc=[1, 1, 0])
+        >>> a.wrap()
+        >>> a.positions
+        array([[ 0.9 ,  0.01, -0.5 ]])
+        """
+        
+        if pbc is None:
+            pbc = self.pbc
+        self.positions[:] = wrap_positions(self.positions, self.cell,
+                                           pbc, center, eps)
 
     def get_temperature(self):
         """Get the temperature in Kelvin."""
