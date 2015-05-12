@@ -44,12 +44,12 @@ def get_band_gap(calc, direct=False, spin=None, output=sys.stdout):
                        for k in range(nk)]
                       for s in range(ns)])
     e_skn -= calc.get_fermi_level()
-    N_sk = (e_skn < 0.0).sum(2)
+    N_sk = (e_skn < 0.0).sum(2)  # number of occupied bands
     e_skn = np.array([[e_skn[s, k, N_sk[s, k] - 1:N_sk[s, k] + 1]
                        for k in range(nk)]
                       for s in range(ns)])
-    ev_sk = e_skn[:, :, 0]
-    ec_sk = e_skn[:, :, 1]
+    ev_sk = e_skn[:, :, 0]  # valence band
+    ec_sk = e_skn[:, :, 1]  # conduction band
     
     if ns == 1:
         gap, k1, k2 = find_gap(N_sk[0], ev_sk[0], ec_sk[0], direct)
@@ -65,21 +65,21 @@ def get_band_gap(calc, direct=False, spin=None, output=sys.stdout):
     else:
         gap, k1, k2 = find_gap(N_sk[spin], ev_sk[spin], ec_sk[spin], direct)
 
-    if fd is not None:
+    if output is not None:
         def sk(k):
             if isinstance(k, int):
                 return '[{0:.3f}, {1:.3f}, {2:.3f}]'.format(*kpts_kc[k])
             s, k = k
             return '(spin={0}, {1})'.format(s, sk(k))
             
-        p = functools.partial(print, file=fd)
+        p = functools.partial(print, file=output)
         if spin is not None:
             p('spin={0}: '.format(spin), end='')
         if gap == 0.0:
             p('No gap!')
         elif direct:
             p('Direct gap: {0:.3f} eV'.format(gap))
-            p('Transition at:', sk(k1), file=fd)
+            p('Transition at:', sk(k1))
         else:
             p('Gap: {0:.3f} eV'.format(gap))
             p('Transition (v -> c):')
