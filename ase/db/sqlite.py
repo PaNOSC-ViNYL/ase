@@ -234,7 +234,7 @@ class SQLite3Database(Database):
         
         if not data:
             data = row._data
-        if not isinstance(data, str):
+        if not isinstance(data, basestring):
             data = encode(data)
         
         values += (row.get('energy'),
