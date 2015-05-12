@@ -67,10 +67,11 @@ def get_band_gap(calc, direct=False, spin=None, output=sys.stdout):
 
     if output is not None:
         def sk(k):
-            if isinstance(k, int):
-                return '[{0:.3f}, {1:.3f}, {2:.3f}]'.format(*kpts_kc[k])
-            s, k = k
-            return '(spin={0}, {1})'.format(s, sk(k))
+            """Convert k or (s, k) to string."""
+            if isinstance(k, tuple):
+                s, k = k
+                return '(spin={0}, {1})'.format(s, sk(k))
+            return '[{0:.3f}, {1:.3f}, {2:.3f}]'.format(*kpts_kc[k])
             
         p = functools.partial(print, file=output)
         if spin is not None:
@@ -89,6 +90,7 @@ def get_band_gap(calc, direct=False, spin=None, output=sys.stdout):
 
     
 def find_gap(N_k, ev_k, ec_k, direct):
+    """Helper function."""
     if N_k.ptp() > 0:
         return 0.0, None, None
     if direct:
