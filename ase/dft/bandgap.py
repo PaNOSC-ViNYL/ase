@@ -1,68 +1,100 @@
 from __future__ import print_function
+import sys
+import functools
+
 import numpy as np
 
 
-def get_band_gap(calc):
-    """Calculates the band gap - direct and indirect along with the
-    relevant k-points.
-    Rerurns a list of [e_direct, e_indirect, (is ik), (ivs, ivk), (ics, ick)],
-    where (is, ik) are the irreducible k-point/spin indeces of the direct gap
-    and (ivs, ivk) and (ics, ick) are the irreducible spin and k-point indices
-    for the indirect gap in the valence and conduction bands respectively"""
+def get_band_gap(calc, direct=False, spin=None, output=sys.stdout):
+    """Calculates the band-gap.
+    
+    Parameters:
+        
+    calc: Calculator object
+        Electronic structure calculator object.
+    direct: bool
+        Calculate direct band-gap.
+    spin: int or None
+        For spin-polarized systems, you can use spin=0 or spin=1 to look only
+        at a single spin-channel.
+    output: file descriptor
+        Use output=None for no text output.
+
+    Rerurns a (gap, k1, k2) tuple where k1 and k2 are the indices of the
+    valence and conduction k-points.  For the spin-polarized case, a
+    (gap, (s1, k1), (s2, k2)) tuple is returned.
+    
+    Exapmle:
+        
+    >>> get_band_gap(silicon.calc)
+    Gap: 1.2 eV
+    Transition (v -> c):
+        [0.000, 0.000, 0.000] -> [0.500, 0.500, 0.000]
+    (1.2, 0, 5)
+    >>> get_band_gap(atoms.calc, direct=True)
+    Direct gap: 3.4 eV
+    Transition at: [0.000, 0.000, 0.000]
+    (3.4, 0, 0)
+    """
     
     kpts_kc = calc.get_ibz_k_points()
-    Nk = len(kpts_kc)
-    Ns = calc.get_number_of_spins()
+    nk = len(kpts_kc)
+    ns = calc.get_number_of_spins()
     e_skn = np.array([[calc.get_eigenvalues(kpt=k, spin=s)
-                       for k in range(Nk)]
-                      for s in range(Ns)])
-    assert len(e_skn[0, 0]) > 1
-
+                       for k in range(nk)]
+                      for s in range(ns)])
     e_skn -= calc.get_fermi_level()
-    ev_sk = []
-    ec_sk = []
-    for s in range(Ns):
-        for k in range(Nk):
-            ev_n = e_skn[s, k][e_skn[s, k] < 0]
-            if len(ev_n) == 0:
-                ev_sk.append(-np.inf)
-            else:
-                ev_sk.append(np.max(ev_n))
-            ec_n = e_skn[s, k][e_skn[s, k] > 0]
-            if len(ec_n) == 0:
-                ec_sk.append(np.inf)
-            else:
-                ec_sk.append(np.min(ec_n))
-    ev_sk, ec_sk = np.array(ev_sk), np.array(ec_sk)
+    N_sk = (e_skn < 0.0).sum(2)
+    e_skn = np.array([[e_skn[s, k, N_sk[s, k] - 1:N_sk[s, k] + 1]
+                       for k in range(nk)]
+                      for s in range(ns)])
+    ev_sk = e_skn[:, :, 0]
+    ec_sk = e_skn[:, :, 1]
+    
+    if ns == 1:
+        gap, k1, k2 = find_gap(N_sk[0], ev_sk[0], ec_sk[0], direct)
+    elif spin is None:
+        gap, k1, k2 = find_gap(N_sk.ravel(), ev_sk.ravel(), ec_sk.ravel(),
+                               direct)
+        if gap > 0.0:
+            k1 = divmod(k1, nk)
+            k2 = divmod(k2, nk)
+        else:
+            k1 = (None, None)
+            k2 = (None, None)
+    else:
+        gap, k1, k2 = find_gap(N_sk[spin], ev_sk[spin], ec_sk[spin], direct)
 
-    edir = np.min(ec_sk - ev_sk)
-    ein = np.min(ec_sk) - np.max(ev_sk)
+    if fd is not None:
+        def sk(k):
+            if isinstance(k, int):
+                return '[{0:.3f}, {1:.3f}, {2:.3f}]'.format(*kpts_kc[k])
+            s, k = k
+            return '(spin={0}, {1})'.format(s, sk(k))
+            
+        p = functools.partial(print, file=fd)
+        if spin is not None:
+            p('spin={0}: '.format(spin), end='')
+        if gap == 0.0:
+            p('No gap!')
+        elif direct:
+            p('Direct gap: {0:.3f} eV'.format(gap))
+            p('Transition at:', sk(k1), file=fd)
+        else:
+            p('Gap: {0:.3f} eV'.format(gap))
+            p('Transition (v -> c):')
+            p('   ', sk(k1), '->', sk(k2))
+    
+    return gap, k1, k2
 
-    kdir = np.argmin(ec_sk - ev_sk)
-    sdir = kdir % Ns
-    kdir = kdir % Nk
-
-    kvin = np.argmax(ev_sk)
-    svin = kvin % Ns
-    kvin = kvin % Nk
-
-    kcin = np.argmin(ec_sk)
-    scin = kcin % Ns
-    kcin = kcin % Nk
-
-    print()
-    print('Direct gap: %.3f eV' % edir)
-    k_c = kpts_kc[kdir]
-    k_c = (k_c[0], k_c[1], k_c[2])
-    print('Transition at spin   :   %d' % sdir)
-    print('Transition at k-point:  [%.3f %.3f %.3f]' % k_c)
-    print()
-    print('Indirect gap: %.3f eV' % ein)
-    kv_c = kpts_kc[kvin]
-    kc_c = kpts_kc[kcin]
-    k_2c = (kv_c[0], kv_c[1], kv_c[2], kc_c[0], kc_c[1], kc_c[2])
-    print('Transition (v -> c) at spin   :   %d  ->  %d' % (svin, scin))
-    print('Transition (v -> c) at k-point: ', end='')
-    print('[%.3f %.3f %.3f]  ->  [%.3f %.3f %.3f]' % k_2c)
-    print()
-    return [edir, ein, (sdir, kdir), (svin, kvin), (scin, kcin)]
+    
+def find_gap(N_k, ev_k, ec_k, direct):
+    if N_k.ptp() > 0:
+        return 0.0, None, None
+    if direct:
+        gap_k = ec_k - ev_k
+        k = gap_k.argmin()
+        return gap_k[k], k, k
+    kv = ev_k.argmax()
+    kc = ec_k.argmin()
+    return ec_k[kc] - ev_k[kv], kv, kc
