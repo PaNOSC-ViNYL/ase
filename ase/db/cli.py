@@ -1,9 +1,8 @@
 from __future__ import print_function
-import sys
+import collections
 import optparse
+import sys
 from random import randint
-
-import numpy as np
 
 import ase.io
 from ase.db import connect
@@ -212,20 +211,27 @@ def run(opts, args, verbosity):
             tags = []
             keys = opts.plot
         keys = keys.split(',')
-        import collections
         plots = collections.defaultdict(list)
         X = {}
-        for row in con.select(query):
+        labels = []
+        for row in con.select(query, sort=opts.sort):
             name = ','.join(row[tag] for tag in tags)
             x = row.get(keys[0])
             if x is not None:
-                if isinstance(x, str) and x not in X:
-                    X[x] = len(X)
+                if isinstance(x, (unicode, str)):
+                    if x not in X:
+                        X[x] = len(X)
+                        labels.append(x)
+                    x = X[x]
                 plots[name].append([x] + [row.get(key) for key in keys[1:]])
         import matplotlib.pyplot as plt
         for name, plot in plots.items():
-            
-            plt.plot(*zip(*plot), label=name)
+            xyy = zip(*plot)
+            x = xyy[0]
+            for y, key in zip(xyy[1:], keys[1:]):
+                plt.plot(x, y, label=name + key)
+        if X:
+            plt.xticks(range(len(labels)), labels, rotation=90)
         plt.legend()
         plt.show()
         return
