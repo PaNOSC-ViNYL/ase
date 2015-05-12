@@ -33,6 +33,14 @@ a3.info['confid'] = 3
 
 assert a3.get_chemical_formula() == 'Cu35Ni20'
 
+aconf = op.get_atomic_configuration(a3)
+core = aconf[1]
+shell = aconf[-1]
+for i, sym in zip(core, 6*['Ni'] + 6*['Cu']):
+    a3[i].symbol = sym
+for i, sym in zip(shell, 6*['Ni'] + 6*['Cu']):
+    a3[i].symbol = sym
+
 atomic_conf = op.get_atomic_configuration(a3, elements=['Cu'])[-2:]
 cu3 = len([item for sublist in atomic_conf for item in sublist])
 a4, desc = op.get_new_individual([a3])
