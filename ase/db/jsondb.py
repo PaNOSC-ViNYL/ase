@@ -1,5 +1,4 @@
 from __future__ import absolute_import, print_function
-import functools
 import os
 
 import numpy as np
@@ -169,6 +168,9 @@ class JSONDatabase(Database):
                         value = np.equal(row.numbers, key).sum()
                     else:
                         value = row.get(key)
+                        if key == 'pbc':
+                            assert op in [ops['='], ops['!=']]
+                            value = ''.join('FT'[x] for x in value)
                     if value is None or not op(value, val):
                         break
                 else:
