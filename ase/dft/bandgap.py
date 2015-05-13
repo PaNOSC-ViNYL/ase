@@ -24,17 +24,19 @@ def get_band_gap(calc, direct=False, spin=None, output=sys.stdout):
     valence and conduction k-points.  For the spin-polarized case, a
     (gap, (s1, k1), (s2, k2)) tuple is returned.
     
-    Exapmle:
+    Example:
         
-    >>> get_band_gap(silicon.calc)
+    >>> gap, k1, k2 = get_band_gap(silicon.calc)
     Gap: 1.2 eV
     Transition (v -> c):
         [0.000, 0.000, 0.000] -> [0.500, 0.500, 0.000]
-    (1.2, 0, 5)
-    >>> get_band_gap(atoms.calc, direct=True)
+    >>> print(gap, k1, k2)
+    1.2 0 5
+    >>> gap, k1, k2 = get_band_gap(atoms.calc, direct=True)
     Direct gap: 3.4 eV
     Transition at: [0.000, 0.000, 0.000]
-    (3.4, 0, 0)
+    >>> print(gap, k1, k2)
+    3.4 0 0
     """
     
     kpts_kc = calc.get_ibz_k_points()
