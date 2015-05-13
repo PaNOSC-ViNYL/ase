@@ -4,7 +4,7 @@ from ase.dft.bandgap import get_band_gap
 
 class Calculator:
     def __init__(self, e_skn):
-        self.e_skn = np.array(e_skn)
+        self.e_skn = np.array(e_skn, dtype=float)
         self.ns, self.nk, self.nb = self.e_skn.shape
     
     def get_ibz_k_points(self):
