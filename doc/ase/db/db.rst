@@ -112,6 +112,10 @@ Here are some example query strings:
       - not older than 1 hour
     * - age>1y
       - older than 1 year
+    * - pbc=TTT
+      - Periodic boundary conditions along all three axes
+    * - pbc=TTF
+      - Periodic boundary conditions along the first two axes (F=False, T=True)
 
 These names are special:
 
@@ -122,6 +126,8 @@ These names are special:
       - integer identifier
     * - natoms
       - number of atoms
+    * - pbc
+      - Periodic boundary conditions
     * - formula
       - formula
     * - energy
@@ -337,7 +343,7 @@ More complicated data can be written like this:
 
 and accessed like this:
 
->>> row = cob.get(...)
+>>> row = con.get(...)
 >>> row.data.parents
 [7, 34, 14]
 
