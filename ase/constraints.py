@@ -305,6 +305,10 @@ class FixedMode(FixConstraint):
             raise IndexError('All nonzero parts of mode not in slice')
         self.mode = mode[ind].ravel()
 
+    def todict(self):
+        return {'name': 'FixedMode',
+                'kwargs': {'mode': self.mode}}
+
     def __repr__(self):
         return 'FixedMode(%s)' % self.mode.tolist()
 
