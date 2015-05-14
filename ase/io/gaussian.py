@@ -62,15 +62,15 @@ def read_gaussian_out(filename, index=-1, quantity='atoms'):
         lines = f.readlines()
         f.close()
 
-        forces = list()
+        iforces = list()
         for n, line in enumerate(lines):
             if ('Forces (Hartrees/Bohr)' in line):
+                forces = list()
                 for j in range(len(atoms)):
                     forces += [[float(lines[n + j + 3].split()[2]),
                                 float(lines[n + j + 3].split()[3]),
                                 float(lines[n + j + 3].split()[4])]]
-        convert = ase.units.Hartree / ase.units.Bohr
-        forces = np.array(forces) * convert
+                iforces.append(np.array(forces))
     except:
         forces = None
 
@@ -81,6 +81,8 @@ def read_gaussian_out(filename, index=-1, quantity='atoms'):
     if (quantity == 'energy'):
         return energy
     elif (quantity == 'forces'):
+        convert = ase.units.Hartree / ase.units.Bohr
+        forces = np.array(iforces[index]) * convert
         return forces
     elif (quantity == 'dipole'):
         return np.array(data['Dipole'])
