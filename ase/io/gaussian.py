@@ -39,6 +39,10 @@ def read_gaussian_out(filename, index=-1, quantity='atoms'):
     energy = 0.0
 
     data = GR(filename)[index]
+    if isinstance(data, list):
+        msg = 'Cannot parse multiple images from Gaussian out files at this'
+        msg += ' time.  Please select a single image.'
+        raise RuntimeError(msg)
 
     formula = data['Chemical_formula'].split('(')[0]
     positions = np.array(data['Positions'])
