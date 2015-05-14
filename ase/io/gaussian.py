@@ -11,6 +11,7 @@ See accompanying license files for details.
 import numpy as np
 
 import ase.units
+from ase.data import chemical_symbols
 from ase.atoms import Atoms
 from ase.atom import Atom
 from ase.calculators.singlepoint import SinglePointCalculator
@@ -44,7 +45,11 @@ def read_gaussian_out(filename, index=-1, quantity='atoms'):
         msg += ' time.  Please select a single image.'
         raise RuntimeError(msg)
 
-    formula = data['Chemical_formula'].split('(')[0]
+    atomic_numbers = data['Atomic_numbers']
+    formula = str()
+    for number in atomic_numbers:
+        formula += chemical_symbols[number]
+
     positions = np.array(data['Positions'])
     method = data['Method']
     version = data['Version']
