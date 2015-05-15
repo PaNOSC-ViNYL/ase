@@ -1,7 +1,7 @@
 import ase
 import numpy as np
 tol = 1e-9
-
+from ase.visualize import view
 cell = np.array([
     [1., 0., 0.],
     [0.5, np.sqrt(3) / 2, 0.],
@@ -17,15 +17,24 @@ pos = np.dot(np.array([
 
 a = ase.Atoms('C4', pos, cell=cell, pbc=True)
 
+rpos=a.get_scaled_positions()
+
+d01F=np.linalg.norm(np.dot(rpos[1],cell))                     #non-mic distance between atom 0 and 1
+d01T=np.linalg.norm(np.dot(rpos[1]-np.array([0,1,0]),cell))   #    mic distance between atom 0 (image [0,1,0]) and 1
+d02F=np.linalg.norm(np.dot(rpos[2],cell))
+d02T=d02F
+d03F=np.linalg.norm(np.dot(rpos[3],cell))                     #non-mic distance between atom 0 and 3
+d03T=np.linalg.norm(np.dot(rpos[3]-np.array([0,1,0]),cell))   #    mic distance between atom 0 (image [0,1,0]) and 3
+
 # get_distance(mic=False)
-assert abs(a.get_distance(0, 1, mic=False) - 10.0) < tol
-assert abs(a.get_distance(0, 2, mic=False) - 4.0) < tol
-assert abs(a.get_distance(0, 3, mic=False) - 2.5*np.sqrt(7)) < tol
+assert abs(a.get_distance(0, 1, mic=False) - d01F) < tol
+assert abs(a.get_distance(0, 2, mic=False) - d02F) < tol
+assert abs(a.get_distance(0, 3, mic=False) - d03F) < tol
 
 # get_distance(mic=True)
-assert abs(a.get_distance(0, 1, mic=True) - 5 * np.sqrt(2)) < tol
-assert abs(a.get_distance(0, 2, mic=True) - 4.0) < tol
-assert abs(a.get_distance(0, 3, mic=True) - 2.5*np.sqrt(3)) < tol
+assert abs(a.get_distance(0, 1, mic=True) - d01T) < tol
+assert abs(a.get_distance(0, 2, mic=True) - d02T) < tol
+assert abs(a.get_distance(0, 3, mic=True) - d03T) < tol
 
 # get_distance(mic=False, vector=True)
 assert all(abs(a.get_distance(0, 1, mic=False, vector=True)
@@ -41,16 +50,16 @@ assert np.all(abs(a.get_distance(0, 2, mic=True, vector=True)
 
 # get_all_distances(mic=False)
 all_dist = a.get_all_distances(mic=False)
-assert abs(all_dist[0, 1] - 10.0) < tol
-assert abs(all_dist[0, 2] - 4.0) < tol
-assert abs(all_dist[0, 3] - 2.5*np.sqrt(7)) < tol
+assert abs(all_dist[0, 1] - d01F) < tol
+assert abs(all_dist[0, 2] - d02F) < tol
+assert abs(all_dist[0, 3] - d03F) < tol
 assert all(abs(np.diagonal(all_dist)) < tol)
 
 # get_all_distances(mic=True)
 all_dist_mic = a.get_all_distances(mic=True)
-assert abs(all_dist_mic[0, 1] - 5 * np.sqrt(2)) < tol
-assert abs(all_dist_mic[0, 2] - 4.0) < tol
-assert abs(all_dist_mic[0, 3] - 2.5*np.sqrt(3)) < tol
+assert abs(all_dist_mic[0, 1] - d01T) < tol
+assert abs(all_dist_mic[0, 2] - d02T) < tol
+assert abs(all_dist_mic[0, 3] - d03T) < tol
 assert all(abs(np.diagonal(all_dist)) < tol)
 
 # get_distances(mic=False)
