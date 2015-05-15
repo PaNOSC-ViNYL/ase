@@ -46,7 +46,11 @@ class SinglePointCalculator(Calculator):
             if allow_calculation:
                 raise NotImplementedError
             return None
-        return self.results[name]
+
+        result = self.results[name]
+        if isinstance(result, np.ndarray):
+            result = result.copy()
+        return result
 
     
 class SinglePointKPoint:
@@ -167,4 +171,4 @@ class SinglePointDFTCalculator(SinglePointCalculator):
                     else:
                         eL = min(eL, e)
                 return eH, eL
-        raise RuntimeError('No kpt with spin {0}'.format(s))
+        raise RuntimeError('No kpt with spin {0}'.format(spin))
