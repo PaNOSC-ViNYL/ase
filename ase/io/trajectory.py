@@ -170,7 +170,8 @@ class TrajectoryWriter:
                     try:
                         x = calc.get_property(prop, atoms,
                                               allow_calculation=False)
-                    except NotImplementedError:
+                    except (NotImplementedError, KeyError):
+                        # KeyError is needed for Jacapo.
                         x = None
                 if x is not None:
                     if prop in ['stress', 'dipole']:
