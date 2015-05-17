@@ -4,6 +4,7 @@
 http://www.cp2k.org
 Author: Ole Schütt <ole.schuett@mat.ethz.ch>
 '''
+from __future__ import print_function
 
 import os
 import os.path
@@ -58,6 +59,11 @@ Arguments:
 =========================  ====================================================
 Keyword                    Description
 =========================  ====================================================
+``auto_write``             Flag to enable the auto-write mode. If enabled the
+                           ``write()`` routine is called after every
+                           calculation, which mimics the behavior of the
+                           ``FileIOCalculator``. Default is ``False``.
+
 ``debug``                  Flag to enable debug mode. This will print all
                            communication between the CP2K-shell and the
                            CP2K-calculator. Default is ``False``.
@@ -119,6 +125,7 @@ Keyword                    Description
     command = None
 
     default_parameters = dict(
+        auto_write=False,
         xc='LDA',
         basis_set='DZVP-MOLOPT-SR-GTH',
         pseudo_potential='auto',
@@ -131,8 +138,8 @@ Keyword                    Description
         force_eval_method="Quickstep",
         inp='')
 
-    def __init__(self, label='PROJECT', restart=None,
-                 ignore_bad_restart_file=False, atoms=None, command=None,
+    def __init__(self, restart=None, ignore_bad_restart_file=False,
+                 label='cp2k', atoms=None, command=None,
                  debug=False, **kwargs):
         '''Construct CP2K-calculator object.'''
 
@@ -171,6 +178,15 @@ Keyword                    Description
         assert float(shell_version[1]) >= 1.0
         assert self._recv() == '* READY'
 
+        if restart is not None:
+            try:
+                self.read(restart)
+            except:
+                if ignore_bad_restart_file:
+                    self.reset()
+                else:
+                    raise
+
     def __del__(self):
         '''Release force_env and terminate cp2k_shell child process'''
         self._release_force_env()
@@ -187,6 +203,8 @@ Keyword                    Description
 
     def write(self, label):
         'Write atoms, parameters and calculated results into restart files.'
+        if self._debug:
+            print("Writting restart to: ", label)
         self.atoms.write(label + '_restart.traj')
         self.parameters.write(label + '_params.ase')
         open(label + '_results.ase', 'w').write(repr(self.results))
@@ -262,6 +280,9 @@ Keyword                    Description
         stress = np.array([stress[0, 0], stress[1, 1], stress[2, 2],
                            stress[1, 2], stress[0, 2], stress[0, 1]])
         self.results['stress'] = -1.0 * stress  # cp2k uses the opposite sign
+
+        if self.parameters.auto_write:
+            self.write(self.label)
 
     def _create_force_env(self):
         '''Instantiates a new force-environment'''
