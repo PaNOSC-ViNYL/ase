@@ -64,40 +64,30 @@ Keyword                    Description
                            calculation, which mimics the behavior of the
                            ``FileIOCalculator``. Default is ``False``.
 
-``debug``                  Flag to enable debug mode. This will print all
-                           communication between the CP2K-shell and the
-                           CP2K-calculator. Default is ``False``.
-
 ``basis_set``              Name of the basis set to be use.
                            The default is ``DZVP-MOLOPT-SR-GTH``.
-
-``pseudo_potential``       Name of the pseudo-potential to be use.
-                           Default is ``auto``. This tries to infer the
-                           potential from the employed XC-functional,
-                           otherwise it falls back to ``GTH-PBE``.
 
 ``basis_set_file``         Filename of the basis set file.
                            Default is ``BASIS_MOLOPT``.
                            Set the environment variable $CP2K_DATA_DIR
                            to enabled automatic file discovered.
 
-``potential_file``         Filename of the pseudo-potential file.
-                           Default is ``POTENTIAL``.
-                           Set the environment variable $CP2K_DATA_DIR
-                           to enabled automatic file discovered.
+``charge``                 The total charge of the system.
+                           Default is ``0``.
 
-``max_scf``                Maximum number of SCF iteration to be performed for
-                           one optimization. Default is ``50``.
+``command``                The command used to launch the CP2K-shell.
+                           If ``command`` is not passed as an argument to the
+                           constructor, the class-variable ``CP2K.command``,
+                           and then the environment variabel
+                           ``$ASE_CP2K_COMMAND`` are checked.
+                           Eventually, ``cp2k_shell`` is used as default.
 
 ``cutoff``                 The cutoff of the finest grid level.
                            Default is ``400 * Rydberg``.
 
-``charge``                 The total charge of the system.
-                           Default is ``0``.
-
-``uks``                    Requests an unrestricted Kohn-Sham calculations.
-                           This is need for spin-polarized systems, ie. with an
-                           odd number of electrons. Default is ``False``.
+``debug``                  Flag to enable debug mode. This will print all
+                           communication between the CP2K-shell and the
+                           CP2K-calculator. Default is ``False``.
 
 ``force_eval_method``      The method CP2K uses to evaluate energies and
                            forces.
@@ -109,12 +99,22 @@ Keyword                    Description
                            it to launch CP2K. Hence, this generic mechanism
                            gives access to all features of CP2K.
 
-``command``                The command used to launch the CP2K-shell.
-                           If ``command`` is not passed as an argument to the
-                           constructor, the class-variable ``CP2K.command``,
-                           and then the environment variabel
-                           ``$ASE_CP2K_COMMAND`` are checked.
-                           Eventually, ``cp2k_shell`` is used as default.
+``max_scf``                Maximum number of SCF iteration to be performed for
+                           one optimization. Default is ``50``.
+
+``potential_file``         Filename of the pseudo-potential file.
+                           Default is ``POTENTIAL``.
+                           Set the environment variable $CP2K_DATA_DIR
+                           to enabled automatic file discovered.
+
+``pseudo_potential``       Name of the pseudo-potential to be use.
+                           Default is ``auto``. This tries to infer the
+                           potential from the employed XC-functional,
+                           otherwise it falls back to ``GTH-PBE``.
+
+``uks``                    Requests an unrestricted Kohn-Sham calculations.
+                           This is need for spin-polarized systems, ie. with an
+                           odd number of electrons. Default is ``False``.
 =========================  ====================================================
 
 
@@ -126,17 +126,17 @@ Keyword                    Description
 
     default_parameters = dict(
         auto_write=False,
-        xc='LDA',
         basis_set='DZVP-MOLOPT-SR-GTH',
-        pseudo_potential='auto',
         basis_set_file='BASIS_MOLOPT',
-        potential_file='POTENTIAL',
-        max_scf=50,
-        cutoff=400 * Rydberg,
         charge=0,
-        uks=False,
+        cutoff=400 * Rydberg,
         force_eval_method="Quickstep",
-        inp='')
+        inp='',
+        max_scf=50,
+        potential_file='POTENTIAL',
+        pseudo_potential='auto',
+        uks=False,
+        xc='LDA')
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='cp2k', atoms=None, command=None,
