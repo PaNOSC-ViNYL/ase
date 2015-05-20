@@ -46,9 +46,7 @@ class JSONDatabase(Database):
 
         dct = {}
         for key in row.__dict__:
-            if key[0] == '_':
-                continue
-            if key in row._keys:
+            if key[0] == '_' or key in row._keys or key == 'id':
                 continue
             dct[key] = row[key]
 
