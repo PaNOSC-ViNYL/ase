@@ -402,7 +402,7 @@ class SQLite3Database(Database):
         nnumber = 0
         for key, op, value in cmps:
             if key in ['id', 'energy', 'magmom', 'ctime', 'user',
-                       'calculator', 'natoms', 'pbc']:
+                       'calculator', 'natoms', 'pbc', 'unique_id']:
                 if key == 'user' and self.version >= 2:
                     key = 'username'
                 elif key == 'pbc':
