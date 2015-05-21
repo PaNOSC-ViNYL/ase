@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+
 '''This module defines an ASE interface to CP2K.
 
 http://www.cp2k.org
 Author: Ole Schütt <ole.schuett@mat.ethz.ch>
 '''
+
 from __future__ import print_function
 
 import os
