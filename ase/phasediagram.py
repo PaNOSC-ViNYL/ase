@@ -145,6 +145,8 @@ class Pourbaix:
         self.kT = units.kB * T
         self.references = []
         for name, energy in references:
+            if name == 'O':
+                continue
             count, charge, aq = parse_formula(name)
             for symbol in count:
                 if aq:
@@ -160,9 +162,14 @@ class Pourbaix:
 
         self.count = kwargs
         
+        if 'O' not in self.count:
+            self.count['O'] = 0
+        
         self.N = {'e-': 0, 'H': 1}
-        for n, symbol in enumerate(kwargs):
-            self.N[symbol] = n + 2
+        for symbol in kwargs:
+            if symbol not in self.N:
+                self.N[symbol] = len(self.N)
+        print(self.N)
                 
     def decompose(self, U, pH, verbose=True, concentration=1e-6):
         """Decompose material.
