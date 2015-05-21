@@ -222,9 +222,7 @@ class SingleCalculatorNEB(NEB):
             assert((cell == self.images[final].get_cell()).all())
             pbc = self.images[initial].get_pbc()
             assert((pbc == self.images[final].get_pbc()).all())
-            for ia, D in enumerate(dist):
-                Dr = np.linalg.solve(cell.T, D)
-                dist[ia] = np.dot(Dr - np.round(Dr) * pbc, cell)
+            dist, D_len = find_mic(self.images[initial], dist)
         dist /= n
         for i in range(1, n):
             self.images[initial + i].set_positions(pos1 + i * dist)
