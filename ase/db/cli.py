@@ -1,9 +1,8 @@
 from __future__ import print_function
-import sys
+import collections
 import optparse
+import sys
 from random import randint
-
-import numpy as np
 
 import ase.io
 from ase.db import connect
@@ -79,8 +78,9 @@ def main(args=sys.argv[1:]):
     add('--cut', type=int, default=35, help='Cut keywords and key-value '
         'columns after CUT characters.  Use --cut=0 to disable cutting. '
         'Default is 35 characters')
-    add('-p', '--python-expression', metavar='expression',
-        help='Examples: "id,energy", "id,mykey".')
+    add('-p', '--plot', metavar='[a,b:]x,y1,y2,...',
+        help='Example: "-p x,y": plot y row against x row. Use '
+        '"-p a:x,y" to make a plot for each value of a.')
     add('--csv', action='store_true',
         help='Write comma-separated-values file.')
     add('-w', '--open-web-browser', action='store_true',
@@ -203,12 +203,37 @@ def run(opts, args, verbosity):
         out('Deleted %s' % plural(len(ids), 'row'))
         return
 
-    if opts.python_expression:
-        for dct in con.select(query):
-            row = eval(opts.python_expression, dct)
-            if not isinstance(row, (list, tuple, np.ndarray)):
-                row = [row]
-            print(', '.join(str(x) for x in row))
+    if opts.plot:
+        if ':' in opts.plot:
+            tags, keys = opts.plot.split(':')
+            tags = tags.split(',')
+        else:
+            tags = []
+            keys = opts.plot
+        keys = keys.split(',')
+        plots = collections.defaultdict(list)
+        X = {}
+        labels = []
+        for row in con.select(query, sort=opts.sort):
+            name = ','.join(row[tag] for tag in tags)
+            x = row.get(keys[0])
+            if x is not None:
+                if isinstance(x, (unicode, str)):
+                    if x not in X:
+                        X[x] = len(X)
+                        labels.append(x)
+                    x = X[x]
+                plots[name].append([x] + [row.get(key) for key in keys[1:]])
+        import matplotlib.pyplot as plt
+        for name, plot in plots.items():
+            xyy = zip(*plot)
+            x = xyy[0]
+            for y, key in zip(xyy[1:], keys[1:]):
+                plt.plot(x, y, label=name + key)
+        if X:
+            plt.xticks(range(len(labels)), labels, rotation=90)
+        plt.legend()
+        plt.show()
         return
 
     if opts.long:

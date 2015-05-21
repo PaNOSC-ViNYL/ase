@@ -24,6 +24,13 @@ equilibrium volume, energy, and bulk modulus for solids:
 .. seealso::  The :ref:`eos` tutorial.
 
 
+Geometry tools
+==============
+
+.. automodule:: ase.utils.geometry
+    :members:
+        
+
 Symmetry analysis
 =================
 

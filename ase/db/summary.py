@@ -60,10 +60,7 @@ class Summary:
         self.table = [(name, unit, value) for name, unit, value in table
                       if value is not None]
 
-        if 'key_value_pairs' in dct:
-            self.key_value_pairs = sorted(dct.key_value_pairs.items())
-        else:
-            self.key_value_pairs = None
+        self.key_value_pairs = sorted(dct.key_value_pairs.items()) or None
 
         self.dipole = dct.get('dipole')
         if self.dipole is not None:

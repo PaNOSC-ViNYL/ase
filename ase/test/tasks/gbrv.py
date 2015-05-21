@@ -2,7 +2,7 @@
 
 import numpy as np
 
-"""Collection of bulk systems.
+u"""Collection of bulk systems.
 
 From this paper:
 

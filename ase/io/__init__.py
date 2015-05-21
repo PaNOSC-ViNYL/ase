@@ -82,6 +82,10 @@ def read(filename, index=None, format=None):
     Materials Studio file      xsd
     =========================  =============
 
+    Many formats allow on open file-like object to be passed instead
+    of ``filename``. In this case the format cannot be auto-decected,
+    so the ``format`` argument should be explicitly given.
+    
     """
     if isinstance(filename, str) and (
         '.json@' in filename or
@@ -409,6 +413,10 @@ def write(filename, images, format=None, **kwargs):
     X3DOM HTML                 html
     Extended XYZ file          extxyz
     =========================  ===========
+
+    Many formats allow on open file-like object to be passed instead
+    of ``filename``. In this case the format cannot be auto-decected,
+    so the ``format`` argument should be explicitly given.
 
     The use of additional keywords is format specific.
 

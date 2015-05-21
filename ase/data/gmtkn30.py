@@ -2,7 +2,14 @@ from __future__ import print_function
 import os
 import pprint
 import re
-from urllib.request import urlretrieve
+try:
+    from urllib import urlretrieve
+except ImportError:
+    pass
+try:
+    from urllib.request import urlretrieve
+except ImportError:
+    pass
 import zipfile
 import shutil
 
@@ -16,7 +23,7 @@ from ase.atoms import Atoms
 from ase.data import atomic_numbers, chemical_symbols
 
 # databases from http://toc.uni-muenster.de/GMTKN/GMTKN30/GMTKN30main.html
-url_root = 'http://toc.uni-muenster.de/GMTKN/GMTKN30/'
+url_root = 'http://www.thch.uni-bonn.de/tc/downloads/GMTKN/GMTKN30/'
 # we may store all downloaded files locally
 # (a good idea, but need to ask permission from the authors)
 #url_root = './GMTKN30/'
@@ -288,7 +295,7 @@ def format_data(database, geometries, no_unpaired_electrons=[], charges=[]):
         # populate data
         data[system] = {
             'database': database,
-            'name': atoms.get_name(),
+            'name': atoms.get_chemical_formula(),
             'symbols': ''.join(atoms.get_chemical_symbols()),
             'magmoms': usemagmoms, # None or list
             'charges': usecharges, # None or list

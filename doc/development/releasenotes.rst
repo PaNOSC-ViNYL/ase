@@ -21,14 +21,23 @@ Development version in trunk
 
 * New :mod:`ase.db` module.
 
-* New functions: :func:`ase.lattice.surface.fcc211`,
-  :func:`ase.visualize.mlab.plot`, :func:`ase.atoms.Atoms.get_distances()`,
-  :func:`ase.atoms.Atoms.get_all_distances()`.
+* New functions: :func:`ase.lattice.surface.fcc211` and
+  :func:`ase.visualize.mlab.plot`.
+  
+* New :class:`~ase.atoms.Atoms` methods:
+  :meth:`ase.atoms.Atoms.get_distances()` and
+  :meth:`ase.atoms.Atoms.get_all_distances()`.
 
 * :ref:`bash completion` can now be enabled.
 
 * Preliminary support for Python 3.
 
+* Wrapping: new :meth:`ase.atoms.Atoms.wrap` method and
+  :func:`ase.utils.geometry.wrap_positions` function.  Also
+  added ``wrap=True`` keyword argument to
+  :meth:`ase.atoms.Atoms.get_scaled_positions` that can be used to turn
+  off wrapping.
+  
 * New improved method for initializing NEB calculations.
 
 * New pickle-free future-proof trajectory file format added.

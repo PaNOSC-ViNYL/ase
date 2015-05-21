@@ -93,7 +93,8 @@ class ELK(FileIOCalculator):
                       'REVPBE': 21,
                       'PBESOL': 22,
                       'WC06': 26,
-                      'AM05': 30}[self.parameters.xc]
+                      'AM05': 30,
+                      'mBJLDA': (100, 208, 12)}[self.parameters.xc]
             inp['xctype'] = xctype
             del inp['xc']
 
