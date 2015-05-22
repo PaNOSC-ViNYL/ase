@@ -4,7 +4,7 @@
 """Test suit for the CP2K ASE calulator.
 
 http://www.cp2k.org
-Author: Ole Schütt <ole.schuett@mat.ethz.ch>
+Author: Ole Schuett <ole.schuett@mat.ethz.ch>
 """
 
 from __future__ import division, print_function
@@ -30,4 +30,4 @@ def main():
 
 
 main()
-#EOF
+# EOF

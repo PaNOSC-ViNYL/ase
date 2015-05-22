@@ -4,7 +4,7 @@
 """Test suit for the CP2K ASE calulator.
 
 http://www.cp2k.org
-Author: Ole Schütt <ole.schuett@mat.ethz.ch>
+Author: Ole Schuett <ole.schuett@mat.ethz.ch>
 """
 
 from __future__ import division, print_function
@@ -20,7 +20,7 @@ def main():
     if "ASE_CP2K_COMMAND" not in os.environ:
         raise NotAvailable('$ASE_CP2K_COMMAND not defined')
 
-    calc = CP2K(label='test_O2', uks=True, cutoff=150*units.Rydberg,
+    calc = CP2K(label='test_O2', uks=True, cutoff=150 * units.Rydberg,
                 basis_set="SZV-MOLOPT-SR-GTH")
     o2 = molecule('O2', calculator=calc)
     o2.center(vacuum=2.0)
@@ -32,4 +32,4 @@ def main():
 
 
 main()
-#EOF
+# EOF

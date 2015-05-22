@@ -4,7 +4,7 @@
 """Test suit for the CP2K ASE calulator.
 
 http://www.cp2k.org
-Author: Ole Schütt <ole.schuett@mat.ethz.ch>
+Author: Ole Schuett <ole.schuett@mat.ethz.ch>
 """
 
 from __future__ import division, print_function
@@ -39,9 +39,9 @@ def main():
 
     energy_end = atoms.get_potential_energy() + atoms.get_kinetic_energy()
 
-    assert energy_start-energy_end < 1e-4
+    assert energy_start - energy_end < 1e-4
     print('passed test "H2_MD"')
 
 
 main()
-#EOF
+# EOF

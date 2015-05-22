@@ -4,7 +4,7 @@
 """Test suit for the CP2K ASE calulator.
 
 http://www.cp2k.org
-Author: Ole Schütt <ole.schuett@mat.ethz.ch>
+Author: Ole Schuett <ole.schuett@mat.ethz.ch>
 """
 
 from __future__ import division, print_function
@@ -57,7 +57,7 @@ def main():
     calc = CP2K(label="test_stress", inp=inp, force_eval_method="Fist")
 
     vol0 = 4 * 0.91615977036  # theoretical minimum
-    a0 = vol0**(1 / 3)
+    a0 = vol0 ** (1 / 3)
     a = bulk('Ar', 'fcc', a=a0)
     a.calc = calc
     a.set_cell(np.dot(a.cell,
@@ -69,8 +69,8 @@ def main():
     a *= (1, 2, 3)
     a.rattle()
     sigma_vv = a.get_stress(voigt=False)
-    #print(sigma_vv)
-    #print(a.get_potential_energy() / len(a))
+    # print(sigma_vv)
+    # print(a.get_potential_energy() / len(a))
     vol = a.get_volume()
 
     # compare stress tensor with numeric derivative
@@ -85,7 +85,7 @@ def main():
         a.set_cell(np.dot(cell, x), scale_atoms=True)
         em = a.calc.get_potential_energy(a, force_consistent=True)
         s = (ep - em) / 2 / deps / vol
-        #print(v, s, abs(s - sigma_vv[v, v]))
+        # print(v, s, abs(s - sigma_vv[v, v]))
         assert abs(s - sigma_vv[v, v]) < 1e-7
     for v1 in range(3):
         v2 = (v1 + 1) % 3
@@ -99,24 +99,24 @@ def main():
         a.set_cell(np.dot(cell, x), scale_atoms=True)
         em = a.calc.get_potential_energy(a, force_consistent=True)
         s = (ep - em) / deps / 4 / vol
-        #print(v1, v2, s, abs(s - sigma_vv[v1, v2]))
+        # print(v1, v2, s, abs(s - sigma_vv[v1, v2]))
         assert abs(s - sigma_vv[v1, v2]) < 1e-7
 
     # run a cell optimization, see if it finds back original crystal structure
     opt = MDMin(UnitCellFilter(a), dt=0.01, logfile=None)
     opt.run(fmax=0.5)
-    #print(a.cell)
+    # print(a.cell)
     for i in range(3):
         for j in range(3):
             x = np.dot(a.cell[i], a.cell[j])
-            y = (i + 1) * (j + 1) * a0**2 / 2
+            y = (i + 1) * (j + 1) * a0 ** 2 / 2
             if i != j:
                 y /= 2
-            #print(i, j, x, (x - y) / x)
+            # print(i, j, x, (x - y) / x)
             assert abs((x - y) / x) < 0.01
 
     print('passed test "stress"')
 
 
 main()
-#EOF
+# EOF

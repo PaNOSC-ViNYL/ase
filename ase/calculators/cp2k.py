@@ -3,7 +3,7 @@
 '''This module defines an ASE interface to CP2K.
 
 http://www.cp2k.org
-Author: Ole Schütt <ole.schuett@mat.ethz.ch>
+Author: Ole Schuett <ole.schuett@mat.ethz.ch>
 '''
 
 from __future__ import print_function
@@ -491,4 +491,4 @@ def parse_input(inp):
 
     return root_section
 
-#EOF
+# EOF

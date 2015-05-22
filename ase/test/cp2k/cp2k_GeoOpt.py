@@ -4,7 +4,7 @@
 """Test suit for the CP2K ASE calulator.
 
 http://www.cp2k.org
-Author: Ole Schütt <ole.schuett@mat.ethz.ch>
+Author: Ole Schuett <ole.schuett@mat.ethz.ch>
 """
 
 from __future__ import division, print_function
@@ -31,14 +31,14 @@ def main():
     # check distance
     dist = atoms.get_distance(0, 1)
     dist_ref = 0.7245595
-    assert (dist-dist_ref)/dist_ref < 1e-7
+    assert (dist - dist_ref) / dist_ref < 1e-7
 
     # check energy
     energy_ref = -30.7025616943
     energy = atoms.get_potential_energy()
-    assert (energy-energy_ref)/energy_ref < 1e-10
+    assert (energy - energy_ref) / energy_ref < 1e-10
     print('passed test "H2_GEO_OPT"')
 
 
 main()
-#EOF
+# EOF
