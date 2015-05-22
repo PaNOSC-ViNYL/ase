@@ -253,7 +253,7 @@ def run(opts, args, verbosity):
         else:
             columns = list(all_columns)
             c = opts.columns
-            if c.startswith('++'):
+            if c and c.startswith('++'):
                 keys = set()
                 for row in con.select(query,
                                       limit=opts.limit, offset=opts.offset):
