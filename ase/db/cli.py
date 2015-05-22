@@ -71,7 +71,7 @@ def main(args=sys.argv[1:]):
     add('-c', '--columns', metavar='col1,col2,...',
         help='Specify columns to show.  Precede the column specification '
         'with a "+" in order to add columns to the default set of columns.  '
-        'Precede by a "-" to remove columns.')
+        'Precede by a "-" to remove columns.  Use "++" for all.')
     add('-s', '--sort', metavar='column', default='id',
         help='Sort rows using column.  Use -column for a descendin sort.  '
         'Default is to sort after id.')
@@ -253,6 +253,16 @@ def run(opts, args, verbosity):
         else:
             columns = list(all_columns)
             c = opts.columns
+            if c.startswith('++'):
+                keys = set()
+                for row in con.select(query,
+                                      limit=opts.limit, offset=opts.offset):
+                    keys.update(row._keys)
+                columns.extend(keys)
+                if c[2:3] == ',':
+                    c = c[3:]
+                else:
+                    c = ''
             if c:
                 if c[0] == '+':
                     c = c[1:]
