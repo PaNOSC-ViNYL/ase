@@ -3,8 +3,6 @@ from ase.ga.particle_comparator import NNMatComparator
 from ase.ga.utilities import get_nnmat
 from ase.ga.particle_mutations import RandomPermutation
 
-from ase.test import NotAvailable; raise NotAvailable
-
 ico1 = Icosahedron('Cu', 4)
 ico1.info['confid'] = 1
 ico2 = Icosahedron('Ni', 4)
