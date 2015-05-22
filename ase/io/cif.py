@@ -21,7 +21,7 @@ def get_lineno(fileobj):
     try:
         fileobj.seek(0)
         s = fileobj.read(pos)
-        lineno = s.count('\n') 
+        lineno = s.count('\n')
     finally:
         fileobj.seek(pos)
     return lineno
@@ -30,7 +30,7 @@ def get_lineno(fileobj):
 def unread_line(fileobj):
     """Unread the last line read from *fileobj*."""
 
-    # If previous line ends with CRLF, we have to back up one extra 
+    # If previous line ends with CRLF, we have to back up one extra
     # character before entering the loop below
     if fileobj.tell() > 2:
         fileobj.seek(-2, 1)
@@ -54,7 +54,7 @@ def convert_value(value):
         return int(value)
     elif re.match(r'[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$', value):
         return float(value)
-    elif re.match(r'[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?\(\d+\)$', 
+    elif re.match(r'[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?\(\d+\)$',
                   value):
         return float(value[:value.index('(')])  # strip off uncertainties
     else:
@@ -104,9 +104,9 @@ def parse_loop(fileobj):
     tokens = []
     while True:
         lowerline = line.lower()
-        if (not line or 
-            line.startswith('_') or 
-            lowerline.startswith('data_') or 
+        if (not line or
+            line.startswith('_') or
+            lowerline.startswith('data_') or
             lowerline.startswith('loop_')):
             break
         if line.startswith('#'):
@@ -152,10 +152,10 @@ def parse_items(fileobj, line):
             unread_line(fileobj)
             break
         elif line.startswith(';'):
-            temp = parse_multiline_string(fileobj, line)
+            parse_multiline_string(fileobj, line)
         else:
-            raise ValueError('%s:%d: Unexpected CIF file entry: "%s"'%(
-                    fileobj.name, get_lineno(fileobj), line))
+            raise ValueError('%s:%d: Unexpected CIF file entry: "%s"' %
+                             (fileobj.name, get_lineno(fileobj), line))
     return tags
 
 
@@ -198,8 +198,8 @@ def tags2atoms(tags, store_tags=False, **kwargs):
     beta = tags['_cell_angle_beta']
     gamma = tags['_cell_angle_gamma']
 
-    scaled_positions = np.array([tags['_atom_site_fract_x'], 
-                                 tags['_atom_site_fract_y'], 
+    scaled_positions = np.array([tags['_atom_site_fract_x'],
+                                 tags['_atom_site_fract_y'],
                                  tags['_atom_site_fract_z']]).T
 
     symbols = []
@@ -209,7 +209,7 @@ def tags2atoms(tags, store_tags=False, **kwargs):
         labels = tags['_atom_site_label']
     for s in labels:
         # Strip off additional labeling on chemical symbols
-        m = re.search(r'([A-Z][a-z]?)', s)  
+        m = re.search(r'([A-Z][a-z]?)', s)
         symbol = m.group(0)
         symbols.append(symbol)
 
@@ -254,7 +254,7 @@ def tags2atoms(tags, store_tags=False, **kwargs):
             info.update(kwargs['info'])
         kwargs['info'] = info
 
-    atoms = crystal(symbols, basis=scaled_positions, 
+    atoms = crystal(symbols, basis=scaled_positions,
                     cellpar=[a, b, c, alpha, beta, gamma],
                     spacegroup=spacegroup, **kwargs)
     return atoms
@@ -262,7 +262,7 @@ def tags2atoms(tags, store_tags=False, **kwargs):
 
 def read_cif(fileobj, index=-1, store_tags=False, **kwargs):
     """Read Atoms object from CIF file. *index* specifies the data
-    block number or name (if string) to return.  
+    block number or name (if string) to return.
 
     If *index* is None or a slice object, a list of atoms objects will
     be returned. In the case of *index* is *None* or *slice(None)*,
@@ -318,9 +318,9 @@ def write_cif(fileobj, images):
         a = norm(cell[0])
         b = norm(cell[1])
         c = norm(cell[2])
-        alpha = arccos(dot(cell[1], cell[2])/(b*c))*180./pi
-        beta = arccos(dot(cell[0], cell[2])/(a*c))*180./pi
-        gamma = arccos(dot(cell[0], cell[1])/(a*b))*180./pi
+        alpha = arccos(dot(cell[1], cell[2]) / (b * c)) * 180 / pi
+        beta = arccos(dot(cell[0], cell[2]) / (a * c)) * 180 / pi
+        gamma = arccos(dot(cell[0], cell[1]) / (a * b)) * 180 / pi
 
         fileobj.write('_cell_length_a       %g\n' % a)
         fileobj.write('_cell_length_b       %g\n' % b)
@@ -331,7 +331,7 @@ def write_cif(fileobj, images):
         fileobj.write('\n')
 
         if atoms.pbc.all():
-            fileobj.write('_symmetry_space_group_name_H-M    %s\n' % 'P 1')
+            fileobj.write('_symmetry_space_group_name_H-M    %s\n' % '"P 1"')
             fileobj.write('_symmetry_int_tables_number       %d\n' % 1)
             fileobj.write('\n')
 
@@ -359,14 +359,12 @@ def write_cif(fileobj, images):
             else:
                 no[symbol] = 1
             fileobj.write(
-                '  %-8s %6.4f %7.5f  %7.5f  %7.5f  %4s  %6.3f  %s\n'%(
-                    '%s%d' % (symbol, no[symbol]), 
-                    1.0, 
-                    scaled[i][0], 
-                    scaled[i][1], 
-                    scaled[i][2],
-                    'Biso',
-                    1.0,
-                    symbol))
-
-    
+                '  %-8s %6.4f %7.5f  %7.5f  %7.5f  %4s  %6.3f  %s\n' %
+                ('%s%d' % (symbol, no[symbol]),
+                 1.0,
+                 scaled[i][0],
+                 scaled[i][1],
+                 scaled[i][2],
+                 'Biso',
+                 1.0,
+                 symbol))
