@@ -31,6 +31,8 @@ import ase
 import ase.io
 from ase.utils import devnull
 
+from ase.calculators.singlepoint import SinglePointCalculator
+
 # Parameters that can be set in INCAR. The values which are None
 # are not written and default parameters of VASP are used for them.
 
@@ -1894,6 +1896,10 @@ class xdat2traj:
                     self.out.write_header(self.atoms[self.calc.resort])
                 scaled_pos = np.array(scaled_pos)
                 self.atoms.set_scaled_positions(scaled_pos)
+                calc = SinglePointCalculator(self.atoms,
+                                             energy=self.energies[step],
+                                             forces=self.forces[step])
+                self.atoms.set_calculator(calc)
                 self.out.write(self.atoms)
                 scaled_pos = []
                 iatom = 0
@@ -1910,6 +1916,10 @@ class xdat2traj:
             self.out.write_header(self.atoms[self.calc.resort])
         scaled_pos = np.array(scaled_pos)
         self.atoms.set_scaled_positions(scaled_pos)
+        calc = SinglePointCalculator(self.atoms,
+                                     energy=self.energies[step],
+                                     forces=self.forces[step])
+        self.atoms.set_calculator(calc)
         self.out.write(self.atoms)
 
         self.out.close()
