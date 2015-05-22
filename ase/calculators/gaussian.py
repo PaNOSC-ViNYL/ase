@@ -67,8 +67,7 @@ route_self_keys = ['opt',
                    'population',
                    'volume']
 
-route_keys = [
-              # int keys
+route_keys = [# int keys
               # Multiplicity and charge are not really route keywords,
               # but we will put them here anyways
               'cachesize',
@@ -235,7 +234,7 @@ class Gaussian(FileIOCalculator):
                 error = 'Basis file %s does not exist.' % self.basisfile
                 raise RuntimeError(error)
             elif self.basisfile[0] == '@':
-                inputfile.write(self.basisfile+'\n\n')
+                inputfile.write(self.basisfile + '\n\n')
             else:
                 f2 = open(self.basisfile, 'r')
                 inputfile.write(f2.read())
