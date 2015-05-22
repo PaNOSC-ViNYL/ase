@@ -237,15 +237,15 @@ class FixBondLength(FixConstraint):
 
     def adjust_positions(self, atoms, new):
         p1, p2 = atoms.positions[self.indices]
-        d, p = find_mic(atoms, np.array([p2 - p1]))
+        d, p = find_mic(np.array([p2 - p1]), atoms._cell, atoms._pbc)
         q1, q2 = new[self.indices]
-        d, q = find_mic(atoms, np.array([q2 - q1]))
+        d, q = find_mic(np.array([q2 - q1]), atoms._cell, atoms._pbc)
         d *= 0.5 * (p - q) / q
         new[self.indices] = (q1 - d[0], q2 + d[0])
 
     def adjust_forces(self, atoms, forces):
         d = np.subtract.reduce(atoms.positions[self.indices])
-        d, p = find_mic(atoms, np.array([d]))
+        d, p = find_mic(np.array([d]), atoms._cell, atoms._pbc)
         d = d[0]
         d *= 0.5 * np.dot(np.subtract.reduce(forces[self.indices]), d) / p**2
         self.constraint_force = d

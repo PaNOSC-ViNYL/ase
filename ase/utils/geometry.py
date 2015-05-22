@@ -561,7 +561,7 @@ def minimize_tilt(atoms, order=range(3), fold_atoms=True):
                 minimize_tilt_ij(atoms, c1, c2, fold_atoms)
 
 
-def find_mic(atoms, D):
+def find_mic(D, cell, pbc=True):
     """Finds the minimum-image representation of vector(s) D"""
     # Calculate the 4 unique unit cell diagonal lengths
     diags = np.sqrt((np.dot([
@@ -569,11 +569,11 @@ def find_mic(atoms, D):
         [-1, 1, 1],
         [1, -1, 1],
         [-1, -1, 1],
-        ], atoms.cell)**2).sum(1))
+        ], cell)**2).sum(1))
 
     # calculate 'mic' vectors (D) and lengths (D_len) using simple method
-    Dr = np.dot(D, np.linalg.inv(atoms._cell))
-    D = np.dot(Dr - np.round(Dr) * atoms._pbc, atoms._cell)
+    Dr = np.dot(D, np.linalg.inv(cell))
+    D = np.dot(Dr - np.round(Dr) * pbc, cell)
     D_len = np.sqrt((D**2).sum(1))
     # return mic vectors and lengths for only orthorhombic cells,
     # as the results may be wrong for non-orthorhombic cells
@@ -592,9 +592,9 @@ def find_mic(atoms, D):
     # The numerator is just the lattice volume, so this can be simplified
     # to V / (|b| |c|). This is rewritten as V |a| / (|a| |b| |c|)
     # for vectorization purposes.
-    latt_len = np.sqrt((atoms.cell**2).sum(1))
-    n = atoms._pbc * np.array(np.ceil(cutoff * latt_len \
-            / (atoms.get_volume() * np.prod(latt_len))), dtype=int)
+    latt_len = np.sqrt((cell**2).sum(1))
+    n = pbc * np.array(np.ceil(cutoff * np.prod(latt_len) \
+            / (np.linalg.det(cell) * latt_len)), dtype=int)
 
     # Construct a list of translation vectors. For example, if we are
     # searching only the nearest images (27 total), tvecs will be a
@@ -603,11 +603,11 @@ def find_mic(atoms, D):
     # execution time, so it is not worth optimizing further.
     tvecs = []
     for i in range(-n[0], n[0] + 1):
-        latt_a = i * atoms.cell[0]
+        latt_a = i * cell[0]
         for j in range(-n[1], n[1] + 1):
-            latt_ab = latt_a + j * atoms.cell[1]
+            latt_ab = latt_a + j * cell[1]
             for k in range(-n[2], n[2] + 1):
-                tvecs.append(latt_ab + k * atoms.cell[2])
+                tvecs.append(latt_ab + k * cell[2])
     tvecs = np.array(tvecs)
 
     # Translate the direct displacement vectors by each translation

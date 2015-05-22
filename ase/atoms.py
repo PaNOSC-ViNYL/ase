@@ -1356,7 +1356,7 @@ class Atoms(object):
         R = self.arrays['positions']
         D = np.array([R[a1] - R[a0]])
         if mic:
-            D, D_len = find_mic(self, D)
+            D, D_len = find_mic(D, self._cell, self._pbc)
         else:
             D_len = np.array([np.sqrt((D**2).sum())])
         if vector:
@@ -1374,7 +1374,7 @@ class Atoms(object):
         R = self.arrays['positions']
         D = R[indices] - R[a]
         if mic:
-            D, D_len = find_mic(self, D)
+            D, D_len = find_mic(D, self._cell, self._pbc)
         else:
             D_len = np.sqrt((D**2).sum(1))
         if vector:
@@ -1395,7 +1395,7 @@ class Atoms(object):
         D = np.concatenate(D)
 
         if mic:
-            D, D_len = find_mic(self, D)
+            D, D_len = find_mic(D, self._cell, self._pbc)
         else:
             D_len = np.sqrt((D**2).sum(1))
 
@@ -1418,7 +1418,7 @@ class Atoms(object):
         D = np.array([R[a1] - R[a0]])
 
         if mic:
-            D, D_len = find_mic(self, D)
+            D, D_len = find_mic(D, self._cell, self._pbc)
         else:
             D_len = np.array([np.sqrt((D**2).sum())])
         x = 1.0 - distance / D_len[0]
