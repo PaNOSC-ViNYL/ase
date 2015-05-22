@@ -64,6 +64,7 @@ route_self_keys = ['opt',
                    'sp',
                    'sparse',
                    'stable',
+                   'population',
                    'volume']
 
 route_keys = [
@@ -97,7 +98,6 @@ route_keys = [
               'symmetry',
               'td',
               'units',
-              'population',
               # Float keys
               'pressure',
               'scale',
@@ -120,9 +120,12 @@ class Gaussian(FileIOCalculator):
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='g09', atoms=None, scratch=None, ioplist=list(),
-                 basisfile=None, **kwargs):
+                 basisfile=None, extra=None, addsec=None, **kwargs):
 
         """Constructs a Gaussian-calculator object.
+
+        extra: any extra text to be included in the input card
+        addsec: a list of strings to be included as "additional sections"
 
         """
 
@@ -141,6 +144,10 @@ class Gaussian(FileIOCalculator):
         self.ioplist = ioplist
         self.scratch = scratch
         self.basisfile = basisfile
+
+        # store extra parameters
+        self.extra = extra
+        self.addsec = addsec
 
     def set(self, **kwargs):
         changed_parameters = FileIOCalculator.set(self, **kwargs)
@@ -166,7 +173,7 @@ class Gaussian(FileIOCalculator):
         self.parameters.initial_magmoms = magmoms
         self.parameters.write(self.label + '.ase')
 
-# Set default behavior
+        # Set default behavior
         if ('multiplicity' not in self.parameters):
             tot_magmom = atoms.get_initial_magnetic_moments().sum()
             mult = tot_magmom + 1
@@ -195,12 +202,13 @@ class Gaussian(FileIOCalculator):
             elif key.lower() in route_keys:
                 route += ' %s=%s' % (key, val)
 
-        if (self.ioplist):
+        # include any other keyword(s)
+        if self.extra is not None:
+            route += ' ' + self.extra
+
+        if self.ioplist:
             route += ' IOp('
-            for iop in self.ioplist:
-                route += (' ' + iop)
-                if (len(self.ioplist) > 1) and (iop != len(self.ioplist) - 1):
-                    route += ','
+            route += ', '.join(self.ioplist)
             route += ')'
 
         inputfile.write(link0)
@@ -220,12 +228,14 @@ class Gaussian(FileIOCalculator):
 
         inputfile.write('\n')
 
-        if ('gen' in self.parameters['basis'].lower()):
-            if (self.basisfile is None):
+        if 'gen' in self.parameters['basis'].lower():
+            if self.basisfile is None:
                 raise RuntimeError('Please set basisfile.')
-            elif (not os.path.isfile(self.basisfile)):
+            elif not os.path.isfile(self.basisfile.rstrip('/N').lstrip('@')):
                 error = 'Basis file %s does not exist.' % self.basisfile
                 raise RuntimeError(error)
+            elif self.basisfile[0] == '@':
+                inputfile.write(self.basisfile+'\n\n')
             else:
                 f2 = open(self.basisfile, 'r')
                 inputfile.write(f2.read())
@@ -237,6 +247,10 @@ class Gaussian(FileIOCalculator):
             for v in cell:
                 line += 'TV %20.10f%20.10f%20.10f\n' % (v[0], v[1], v[2])
             inputfile.write(line)
+
+        # include optional additional sections
+        if self.addsec is not None:
+            inputfile.write('\n\n'.join(self.addsec))
 
         inputfile.write('\n\n')
 
