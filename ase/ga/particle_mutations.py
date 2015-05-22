@@ -152,7 +152,10 @@ class RandomPermutation(Mutation):
     @classmethod
     def mutate(cls, atoms, elements=None):
         """Do the actual permutation."""
-        indices = [a.index for a in atoms if a.symbol in elements]
+        if elements is None:
+            indices = range(len(atoms))
+        else:
+            indices = [a.index for a in atoms if a.symbol in elements]
         i1 = random.choice(indices)
         i2 = random.choice(indices)
         while atoms[i1].symbol == atoms[i2].symbol:
