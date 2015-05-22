@@ -54,33 +54,37 @@ def atoms2dict(atoms):
     
 class AtomsRow:
     def __init__(self, dct):
-        if not isinstance(dct, dict):
+        if isinstance(dct, dict):
+            dct = dct.copy()
+        else:
             dct = atoms2dict(dct)
-        self.dct = dct
-        
-    def __getattr__(self, key):
-        try:
-            return self.dct[key]
-        except KeyError:
-            raise AttributeError
+        self._constraints = dct.pop('constraints', [])
+        self._data = dct.pop('data', None)
+        kvp = dct.pop('key_value_pairs', {})
+        self._keys = list(kvp.keys())
+        self.__dict__.update(kvp)
+        self.__dict__.update(dct)
         
     def __contains__(self, key):
-        return key in self.__dir__()
+        return key in self.__dict__
         
-    def __dir__(self):
-        keys = ['mass', 'volume', 'natoms', 'charge',
-                'constraints', 'symbols', 'formula']
-        keys.extend(self.dct.keys())
-        if 'forces' in self.dct:
-            keys += ['fmax', 'constrained_forces']
-        if 'stress' in self.dct:
-            keys.append('smax')
-        return keys
+    def __iter__(self):
+        return (key for key in self.__dict__ if key[0] != '_')
         
     def get(self, key, default=None):
+        """Return value of key if present or default if not."""
         return getattr(self, key, default)
-
+        
+    @property
+    def key_value_pairs(self):
+        """Return dict of key-value pairs."""
+        return dict((key, self.get(key)) for key in self._keys)
+        
     def count_atoms(self):
+        """Count atoms.
+        
+        Return dict mapping chemical symbol strings to number of atoms.
+        """
         count = {}
         for symbol in self.symbols:
             count[symbol] = count.get(symbol, 0) + 1
@@ -90,41 +94,58 @@ class AtomsRow:
         return getattr(self, key)
         
     def __setitem__(self, key, value):
-        self.dct[key] = value
+        setattr(self, key, value)
         
     @property
     def constraints(self):
-        return [dict2constraint(d) for d in self.dct.get('constraints', [])]
+        """List of constraints."""
+        if not isinstance(self._constraints, list):
+            # Lazy decoding:
+            cs = decode(self._constraints)
+            self._constraints = []
+            for c in cs:
+                # Convert to new format:
+                name = c.pop('__name__', None)
+                if name:
+                    c = {'name': name, 'kwargs': c}
+                if c['name'].startswith('ase'):
+                    c['name'] = c['name'].rsplit('.', 1)[1]
+                self._constraints.append(c)
+        return [dict2constraint(d) for d in self._constraints]
         
     @property
     def data(self):
-        if 'data' in self.dct:
-            d = self.dct['data']
-            if not isinstance(d, dict):
-                d = decode(d)
-                self.dct['data'] = d
-            return FancyDict(d)
-        raise AttributeError
+        """Data dict."""
+        if self._data is None:
+            raise AttributeError
+        if not isinstance(self._data, dict):
+            self._data = decode(self._data)  # lazy decoding
+        return FancyDict(self._data)
         
     @property
     def natoms(self):
+        """Number of atoms."""
         return len(self.numbers)
         
     @property
     def formula(self):
+        """Chemical formula string."""
         return hill(self.numbers)
     
     @property
     def symbols(self):
+        """List of chemical symbols."""
         return [chemical_symbols[Z] for Z in self.numbers]
         
     @property
     def fmax(self):
+        """Maximum atomic force."""
         forces = self.constrained_forces
         return (forces**2).sum(1).max()**0.5
         
     @property
     def constrained_forces(self):
+        """Forces after applying constraints."""
         forces = self.forces
         constraints = self.constraints
         if constraints:
@@ -136,20 +157,24 @@ class AtomsRow:
 
     @property
     def smax(self):
+        """Maximum stress tensor component."""
         return (self.stress**2).max()**0.5
 
     @property
     def mass(self):
+        """Total mass."""
         if 'masses' in self:
             return self.masses.sum()
         return atomic_masses[self.numbers].sum()
 
     @property
     def volume(self):
+        """Volume of unit cell."""
         return abs(np.linalg.det(self.cell))
 
     @property
     def charge(self):
+        """Total charge."""
         charges = self.get('inital_charges')
         if charges is None:
             return 0.0
@@ -157,6 +182,7 @@ class AtomsRow:
 
     def toatoms(self, attach_calculator=False,
                 add_additional_information=False):
+        """Create Atoms object."""
         atoms = Atoms(self.numbers,
                       self.positions,
                       cell=self.cell,
@@ -182,8 +208,11 @@ class AtomsRow:
 
         if add_additional_information:
             atoms.info = {}
-            for key in ['unique_id', 'key_value_pairs', 'data']:
-                if key in self:
-                    atoms.info[key] = self[key]
+            atoms.info['unique_id'] = self.unique_id
+            if self._keys:
+                atoms.info['key_value_pairs'] = self.key_value_pairs
+            data = self.get('data')
+            if data:
+                atoms.info['data'] = data
                     
         return atoms

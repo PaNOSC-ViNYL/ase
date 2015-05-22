@@ -91,8 +91,8 @@ class AdsorptionSitesComparator(object):
             else:
                 counter[t_asa] -= 1
 
-        # diffs = len([k for k, v in counter.iteritems() if v != 0])
-        sumdiffs = sum([abs(v) for k, v in counter.iteritems()])
+        # diffs = len([k for k, v in counter.items() if v != 0])
+        sumdiffs = sum([abs(v) for k, v in counter.items()])
 
         if sumdiffs < self.min_diff_adsorption_sites:
             return True

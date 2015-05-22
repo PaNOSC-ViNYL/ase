@@ -211,3 +211,14 @@ For a complete example using GPAW_, see here_.
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
 .. _gpaw-python: https://wiki.fysik.dtu.dk/gpaw/documentation/manual.html#parallel-calculations
 .. _here: https://wiki.fysik.dtu.dk/gpaw/tutorials/neb/neb.html
+
+
+.. _nebtools:
+
+Analysis of output
+==================
+A class exists to help in automating the analysis of NEB jobs. See the :ref:`Diffusion Tutorial <diffusion_tutorial>` for some examples of its use.
+
+.. autoclass:: NEBtools
+   :members:
+

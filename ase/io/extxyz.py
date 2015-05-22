@@ -423,7 +423,7 @@ def output_column_format(atoms, columns, arrays, write_info=True, results=None):
     return comment, property_ncols, dtype, fmt
 
 
-def write_xyz(fileobj, images, columns=None, write_info=True, write_results=True):
+def write_xyz(fileobj, images, columns=None, write_info=True, write_results=True, append=False):
     """
     Write output in extended XYZ format
 
@@ -447,7 +447,9 @@ def write_xyz(fileobj, images, columns=None, write_info=True, write_results=True
             frame_columns = columns[:]
         
         if frame_columns is None:
-            frame_columns = ['symbols'] + list(atoms.arrays.keys())
+            frame_columns = (['symbols', 'positions'] +
+                             [key for key in atoms.arrays.keys() if
+                              key not in ['symbols', 'positions', 'species', 'pos']])
 
         per_frame_results = {}
         per_atom_results = {}

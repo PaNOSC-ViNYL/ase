@@ -8,9 +8,9 @@ ase-build O2 | ase-run emt -d y.json &&
 ase-build H2 | ase-run emt -f 0.02 -d y.json &&
 ase-build O2 | ase-run emt -f 0.02 -d y.json &&
 ase-build -x fcc Cu | ase-run emt -E 5 -d y.json &&
-ase-db y.json natoms=1,Cu=1 --delete --yes &&
-ase-db y.json "H>0" -k hydro=1,abc=42,foo=bar &&
-ase-db y.json "H>0" --delete-keys foo"""
+ase-db y.json -v natoms=1,Cu=1 --delete --yes &&
+ase-db y.json -v "H>0" -k hydro=1,abc=42,foo=bar &&
+ase-db y.json -v "H>0" --delete-keys foo"""
 
 for name in ['y.json', 'y.db']:
     cli(cmd.replace('y.json', name))

@@ -88,8 +88,6 @@ def connect(name, type='extract_from_name', create_indices=True,
             type = None
         elif name.startswith('pg://'):
             type = 'postgresql'
-        elif name.startswith('mysql://'):
-            type = 'mysql'
         else:
             type = os.path.splitext(name)[1][1:]
 
@@ -108,9 +106,6 @@ def connect(name, type='extract_from_name', create_indices=True,
     if type == 'postgresql':
         from ase.db.postgresql import PostgreSQLDatabase
         return PostgreSQLDatabase(name[5:])
-    if type == 'mysql':
-        from ase.db.mysql import MySQLDatabase
-        return MySQLDatabase(name[5:])
     raise ValueError('Unknown database type: ' + type)
 
 
@@ -212,8 +207,6 @@ class Database:
         
         if atoms is None:
             atoms = Atoms()
-        elif isinstance(atoms, AtomsRow):
-            atoms = atoms.dct
         
         kvp = dict(key_value_pairs)  # modify a copy
         kvp.update(kwargs)
@@ -271,12 +264,6 @@ class Database:
     def __delitem__(self, id):
         self.delete([id])
         
-    def collect_data(self, atoms):
-        dct = atoms2dict(atoms)
-        dct['ctime'] = dct['mtime'] = now()
-        dct['user'] = os.getenv('USER')
-        return dct
-
     def get_atoms(self, selection=None, attach_calculator=False,
                   add_additional_information=False, **kwargs):
         """Get Atoms object.
@@ -299,7 +286,7 @@ class Database:
     def __getitem__(self, selection):
         return self.get(selection)
 
-    def get(self, selection=None, fancy=True, **kwargs):
+    def get(self, selection=None, **kwargs):
         """Select a single row and return it as a dictionary.
         
         selection: int, str or list
@@ -309,12 +296,11 @@ class Database:
             default).
         """
 
-        dcts = list(self.select(selection, fancy, limit=2, **kwargs))
-        if not dcts:
+        rows = list(self.select(selection, limit=2, **kwargs))
+        if not rows:
             raise KeyError('no match')
-        assert len(dcts) == 1, 'more than one row matched'
-        dct = dcts[0]
-        return dct
+        assert len(rows) == 1, 'more than one row matched'
+        return rows[0]
 
     def parse_selection(self, selection, **kwargs):
         if selection is None or selection == '':
@@ -383,11 +369,11 @@ class Database:
         return keys, cmps
 
     @parallel_generator
-    def select(self, selection=None, fancy=True, filter=None, explain=False,
+    def select(self, selection=None, filter=None, explain=False,
                verbosity=1, limit=None, offset=0, sort=None, **kwargs):
         """Select rows.
         
-        Return iterator with results as dictionaries.  Selection is done
+        Return AtomsRow iterator with results.  Selection is done
         using key-value pairs and the special keys:
             
             formula, age, user, calculator, natoms, energy, magmom
@@ -402,12 +388,8 @@ class Database:
             * a string like 'key'
             * comma separated strings like 'key1<value1,key2=value2,key'
             * list of strings or tuples: [('charge', '=', 1)].
-        fancy: bool
-            return fancy dictionary with keys as attributes (this is the
-            default).
         filter: function
-            A function that takes as input a dictionary and returns True
-            or False.
+            A function that takes as input a row and returns True or False.
         explain: bool
             Explain query plan.
         verbosity: int
@@ -425,19 +407,15 @@ class Database:
                 sort += 'name'
             
         keys, cmps = self.parse_selection(selection, **kwargs)
-        for dct in self._select(keys, cmps, explain=explain,
+        for row in self._select(keys, cmps, explain=explain,
                                 verbosity=verbosity,
                                 limit=limit, offset=offset, sort=sort):
-            if filter is None or list(filter(dct)):
-                if fancy:
-                    if 'key_value_pairs' in dct:
-                        dct.update(dct['key_value_pairs'])
-                    dct = AtomsRow(dct)
-                yield dct
+            if filter is None or filter(row):
+                yield row
                 
     def count(self, selection=None, **kwargs):
         n = 0
-        for dct in self.select(selection, **kwargs):
+        for row in self.select(selection, **kwargs):
             n += 1
         return n
         

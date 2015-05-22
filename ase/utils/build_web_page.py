@@ -68,7 +68,7 @@ def build(force_build, name='ase', env=''):
     # Check for warnings:
     for line in output.splitlines():
         if line.startswith('|'):
-            print(line, file=sys.stderr)
+            print(line)
 
     os.rename('html', 'doc/build/html/epydoc')
     
