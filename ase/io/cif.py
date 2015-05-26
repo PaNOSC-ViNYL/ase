@@ -115,7 +115,10 @@ def parse_loop(fileobj):
         if line.startswith(';'):
             t = [parse_multiline_string(fileobj, line)]
         else:
-            t = shlex.split(line, posix=False)
+            if len(header) == 1:
+                t = [line]
+            else:
+                t = shlex.split(line, posix=False)
 
         line = fileobj.readline().strip()
 

@@ -80,6 +80,8 @@ def read_gaussian_out(filename, index=-1, quantity='atoms'):
                                 float(lines[n + j + 3].split()[3]),
                                 float(lines[n + j + 3].split()[4])]]
                 iforces.append(np.array(forces))
+        convert = ase.units.Hartree / ase.units.Bohr
+        forces = np.array(iforces) * convert
     except:
         forces = None
 
@@ -90,9 +92,7 @@ def read_gaussian_out(filename, index=-1, quantity='atoms'):
     if (quantity == 'energy'):
         return energy
     elif (quantity == 'forces'):
-        convert = ase.units.Hartree / ase.units.Bohr
-        forces = np.array(iforces[index]) * convert
-        return forces
+        return forces[index]
     elif (quantity == 'dipole'):
         return np.array(data['Dipole'])
     elif (quantity == 'atoms'):

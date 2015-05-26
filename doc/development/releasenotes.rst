@@ -48,6 +48,8 @@ Development version in trunk
 
 * bandgap ...
 
+* CP2K interface.
+
 
 Version 3.8.0
 =============
