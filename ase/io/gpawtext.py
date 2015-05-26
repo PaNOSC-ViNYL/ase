@@ -220,6 +220,8 @@ def read_gpaw_text(fileobj, index=-1):
             if kpts is not None:
                 calc.kpts = kpts
             atoms.set_calculator(calc)
+        if magmoms is not None:
+            atoms.set_initial_magnetic_moments(magmoms)
 
         images.append(atoms)
         lines = lines[i:]
