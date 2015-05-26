@@ -560,7 +560,72 @@ def minimize_tilt(atoms, order=range(3), fold_atoms=True):
             if pbc_c[c1] and pbc_c[c2]:
                 minimize_tilt_ij(atoms, c1, c2, fold_atoms)
 
-                
+
+def find_mic(D, cell, pbc=True):
+    """Finds the minimum-image representation of vector(s) D"""
+    # Calculate the 4 unique unit cell diagonal lengths
+    diags = np.sqrt((np.dot([[1, 1, 1],
+                             [-1, 1, 1],
+                             [1, -1, 1],
+                             [-1, -1, 1],
+                             ], cell)**2).sum(1))
+
+    # calculate 'mic' vectors (D) and lengths (D_len) using simple method
+    Dr = np.dot(D, np.linalg.inv(cell))
+    D = np.dot(Dr - np.round(Dr) * pbc, cell)
+    D_len = np.sqrt((D**2).sum(1))
+    # return mic vectors and lengths for only orthorhombic cells,
+    # as the results may be wrong for non-orthorhombic cells
+    if (max(diags) - min(diags)) / max(diags) < 1e-9:
+        return D, D_len
+
+    # The cutoff radius is the longest direct distance between atoms
+    # or half the longest lattice vector, whichever is smaller
+    cutoff = min(max(D_len), max(diags) / 2.)
+
+    # The number of neighboring images to search in each direction is
+    # equal to the ceiling of the cutoff distance (defined above) divided
+    # by the length of the projection of the lattice vector onto its
+    # corresponding surface normal. a's surface normal vector is e.g.
+    # b x c / (|b| |c|), so this projection is (a . (b x c)) / (|b| |c|).
+    # The numerator is just the lattice volume, so this can be simplified
+    # to V / (|b| |c|). This is rewritten as V |a| / (|a| |b| |c|)
+    # for vectorization purposes.
+    latt_len = np.sqrt((cell**2).sum(1))
+    V = abs(np.linalg.det(cell))
+    n = pbc * np.array(np.ceil(cutoff * np.prod(latt_len) /
+                               (V * latt_len)), dtype=int)
+
+    # Construct a list of translation vectors. For example, if we are
+    # searching only the nearest images (27 total), tvecs will be a
+    # 27x3 array of translation vectors. This is the only nested loop
+    # in the routine, and it takes a very small fraction of the total
+    # execution time, so it is not worth optimizing further.
+    tvecs = []
+    for i in range(-n[0], n[0] + 1):
+        latt_a = i * cell[0]
+        for j in range(-n[1], n[1] + 1):
+            latt_ab = latt_a + j * cell[1]
+            for k in range(-n[2], n[2] + 1):
+                tvecs.append(latt_ab + k * cell[2])
+    tvecs = np.array(tvecs)
+
+    # Translate the direct displacement vectors by each translation
+    # vector, and calculate the corresponding lengths.
+    D_trans = tvecs[np.newaxis] + D[:, np.newaxis]
+    D_trans_len = np.sqrt((D_trans**2).sum(2))
+
+    # Find mic distances and corresponding vector(s) for each given pair
+    # of atoms. For symmetrical systems, there may be more than one
+    # translation vector corresponding to the MIC distance; this finds the
+    # first one in D_trans_len.
+    D_min_len = np.min(D_trans_len, axis=1)
+    D_min_ind = D_trans_len.argmin(axis=1)
+    D_min = D_trans[range(len(D_min_ind)), D_min_ind]
+
+    return D_min, D_min_len
+
+
 # Self test
 if __name__ == '__main__':
     import doctest

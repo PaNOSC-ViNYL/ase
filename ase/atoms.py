@@ -16,7 +16,7 @@ import ase.units as units
 from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring
-from ase.utils.geometry import wrap_positions
+from ase.utils.geometry import wrap_positions, find_mic
 
 
 class Atoms(object):
@@ -1346,70 +1346,6 @@ class Atoms(object):
         self.set_positions(positions +
                            rs.normal(scale=stdev, size=positions.shape))
 
-    def _mic(self, D):
-        """Finds the minimum-image representation of vector(s) D"""
-        # Calculate the 4 unique unit cell diagonal lengths
-        diags = np.sqrt((np.dot([[1, 1, 1],
-                                 [-1, 1, 1],
-                                 [1, -1, 1],
-                                 [-1, -1, 1]],
-                                self.cell)**2).sum(1))
-
-        # calculate 'mic' vectors (D) and lengths (D_len) using simple method
-        Dr = np.dot(D, np.linalg.inv(self._cell))
-        D = np.dot(Dr - np.round(Dr) * self._pbc, self._cell)
-        D_len = np.sqrt((D**2).sum(1))
-        # return mic vectors and lengths for only orthorhombic cells,
-        # as the results may be wrong for non-orthorhombic cells
-        if (max(diags) - min(diags)) / max(diags) < 1e-9:
-            return D, D_len
-
-        # The cutoff radius is the longest direct distance between atoms
-        # or half the longest lattice vector, whichever is smaller
-        cutoff = min(max(D_len), max(diags) / 2.)
-
-        # The number of neighboring images to search in each direction is
-        # equal to the ceiling of the cutoff distance (defined above) divided
-        # by the length of the projection of the lattice vector onto its
-        # corresponding surface normal. a's surface normal vector is e.g.
-        # b x c / (|b| |c|), so this projection is (a . (b x c)) / (|b| |c|).
-        # The numerator is just the lattice volume, so this can be simplified
-        # to V / (|b| |c|). This is rewritten as V |a| / (|a| |b| |c|)
-        # for vectorization purposes.
-        latt_len = np.sqrt((self.cell**2).sum(1))
-        n = self._pbc * np.array(
-            np.ceil(cutoff * latt_len /
-                    (self.get_volume() * np.prod(latt_len))), dtype=int)
-
-        # Construct a list of translation vectors. For example, if we are
-        # searching only the nearest images (27 total), tvecs will be a
-        # 27x3 array of translation vectors. This is the only nested loop
-        # in the routine, and it takes a very small fraction of the total
-        # execution time, so it is not worth optimizing further.
-        tvecs = []
-        for i in range(-n[0], n[0] + 1):
-            latt_a = i * self.cell[0]
-            for j in range(-n[1], n[1] + 1):
-                latt_ab = latt_a + j * self.cell[1]
-                for k in range(-n[2], n[2] + 1):
-                    tvecs.append(latt_ab + k * self.cell[2])
-        tvecs = np.array(tvecs)
-
-        # Translate the direct displacement vectors by each translation
-        # vector, and calculate the corresponding lengths.
-        D_trans = tvecs[np.newaxis] + D[:, np.newaxis]
-        D_trans_len = np.sqrt((D_trans**2).sum(2))
-
-        # Find mic distances and corresponding vector(s) for each given pair
-        # of atoms. For symmetrical systems, there may be more than one
-        # translation vector corresponding to the MIC distance; this finds the
-        # first one in D_trans_len.
-        D_min_len = np.min(D_trans_len, axis=1)
-        D_min_ind = D_trans_len.argmin(axis=1)
-        D_min = D_trans[range(len(D_min_ind)), D_min_ind]
-
-        return D_min, D_min_len
-
     def get_distance(self, a0, a1, mic=False, vector=False):
         """Return distance between two atoms.
 
@@ -1420,7 +1356,7 @@ class Atoms(object):
         R = self.arrays['positions']
         D = np.array([R[a1] - R[a0]])
         if mic:
-            D, D_len = self._mic(D)
+            D, D_len = find_mic(D, self._cell, self._pbc)
         else:
             D_len = np.array([np.sqrt((D**2).sum())])
         if vector:
@@ -1438,7 +1374,7 @@ class Atoms(object):
         R = self.arrays['positions']
         D = R[indices] - R[a]
         if mic:
-            D, D_len = self._mic(D)
+            D, D_len = find_mic(D, self._cell, self._pbc)
         else:
             D_len = np.sqrt((D**2).sum(1))
         if vector:
@@ -1459,7 +1395,7 @@ class Atoms(object):
         D = np.concatenate(D)
 
         if mic:
-            D, D_len = self._mic(D)
+            D, D_len = find_mic(D, self._cell, self._pbc)
         else:
             D_len = np.sqrt((D**2).sum(1))
 
@@ -1482,7 +1418,7 @@ class Atoms(object):
         D = np.array([R[a1] - R[a0]])
 
         if mic:
-            D, D_len = self._mic(D)
+            D, D_len = find_mic(D, self._cell, self._pbc)
         else:
             D_len = np.array([np.sqrt((D**2).sum())])
         x = 1.0 - distance / D_len[0]

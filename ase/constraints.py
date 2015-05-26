@@ -1,4 +1,5 @@
 from math import sqrt
+from ase.utils.geometry import find_mic
 
 import numpy as np
 
@@ -236,24 +237,17 @@ class FixBondLength(FixConstraint):
 
     def adjust_positions(self, atoms, new):
         p1, p2 = atoms.positions[self.indices]
-        d = p2 - p1
-        Dr = np.linalg.solve(atoms.cell.T, d)
-        d = np.dot(Dr - np.round(Dr) * atoms.pbc, atoms.cell)
-        p = sqrt(np.dot(d, d))
+        d, p = find_mic(np.array([p2 - p1]), atoms._cell, atoms._pbc)
         q1, q2 = new[self.indices]
-        d = q2 - q1
-        Dr = np.linalg.solve(atoms.cell.T, d)
-        d = np.dot(Dr - np.round(Dr) * atoms.pbc, atoms.cell)
-        q = sqrt(np.dot(d, d))
+        d, q = find_mic(np.array([q2 - q1]), atoms._cell, atoms._pbc)
         d *= 0.5 * (p - q) / q
-        new[self.indices] = (q1 - d, q2 + d)
+        new[self.indices] = (q1 - d[0], q2 + d[0])
 
     def adjust_forces(self, atoms, forces):
         d = np.subtract.reduce(atoms.positions[self.indices])
-        Dr = np.linalg.solve(atoms.cell.T, d)
-        d = np.dot(Dr - np.round(Dr) * atoms.pbc, atoms.cell)
-        d2 = np.dot(d, d)
-        d *= 0.5 * np.dot(np.subtract.reduce(forces[self.indices]), d) / d2
+        d, p = find_mic(np.array([d]), atoms._cell, atoms._pbc)
+        d = d[0]
+        d *= 0.5 * np.dot(np.subtract.reduce(forces[self.indices]), d) / p**2
         self.constraint_force = d
         forces[self.indices] += (-d, d)
 
