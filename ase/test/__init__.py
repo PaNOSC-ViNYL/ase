@@ -140,6 +140,9 @@ def disable_calculators(names):
     def __init__(self, *args, **kwargs):
         raise NotAvailable
 
+    def __del__(self):
+        pass
+        
     for name in names:
         if name in ['emt', 'lj', 'eam', 'morse']:
             continue
@@ -149,6 +152,7 @@ def disable_calculators(names):
             pass
         else:
             cls.__init__ = __init__
+            cls.__del__ = __del__
 
 
 def cli(command, calculator_name=None):
