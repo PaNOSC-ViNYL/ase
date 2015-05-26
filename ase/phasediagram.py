@@ -169,7 +169,6 @@ class Pourbaix:
         for symbol in kwargs:
             if symbol not in self.N:
                 self.N[symbol] = len(self.N)
-        print(self.N)
                 
     def decompose(self, U, pH, verbose=True, concentration=1e-6):
         """Decompose material.
