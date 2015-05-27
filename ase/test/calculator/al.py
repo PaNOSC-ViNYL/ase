@@ -1,4 +1,3 @@
-import os
 from ase.test import NotAvailable
 from ase.lattice import bulk
 from ase.calculators.calculator import get_calculator
@@ -31,10 +30,7 @@ def run(name):
     print(al.get_potential_energy())
     print(Calculator.read_atoms(label).get_potential_energy())
 
-names = ['abinit', 'aims', 'elk']
-if 'ASE_CP2K_COMMAND' in os.environ:
-    names.append('cp2k')
-
+names = ['abinit', 'aims', 'elk', 'cp2k']
 for name in names:
     try:
         run(name)
