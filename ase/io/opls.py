@@ -145,34 +145,36 @@ class OPLSff:
         self.write_lammps_atoms(atoms, connectivities)
 
     def write_lammps_in(self):
-        # XXX change this
-        # XXX some input file for syntax checks
-        # XXX change this
         fileobj = self.prefix + '_in'
         if isinstance(fileobj, str):
             fileobj = open(fileobj, 'w')
-        fileobj.write("""
-# (written by ASE)
-clear
-variable dump_file string "dump_traj"
-variable data_file string "dump_data"
-units metal
-boundary p p f
+        fileobj.write("""# LAMPPS relaxation (written by ASE)
 
-atom_style full
+units           metal
+atom_style      full
+boundary        p p p
+#boundary       p p f
+
 """)
         fileobj.write('read_data ' + self.prefix + '_atoms\n')
         fileobj.write('include  ' + self.prefix + '_opls\n')
         fileobj.write("""
-### run
-fix fix_nve all nve
-dump dump_all all custom 1 trj_lammps id type x y z vx vy vz fx fy fz
-thermo_style custom step temp press cpu pxx pyy pzz pxy pxz pyz ke pe etotal vol lx ly lz atoms
-thermo_modify flush yes
-thermo 1
-run 0
-print "__end_of_ase_invoked_calculation__"
-log /dev/stdout
+kspace_style    pppm 1e-5
+#kspace_modify  slab 3.0
+
+neighbor        1.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+thermo          1000
+thermo_style    custom step temp press cpu pxx pyy pzz pxy pxz pyz ke pe etotal vol lx ly lz atoms
+
+dump            1 all xyz 1000 dump_relax.xyz
+dump_modify     1 sort id
+
+restart         100000 test_relax
+
+min_style       fire
+minimize        1.0e-14 1.0e-5 100000 100000
 """)
         fileobj.close()
 
@@ -214,7 +216,8 @@ log /dev/stdout
         tag = atoms.get_tags()
         for i, r in enumerate(map(p.pos_to_lammps_str,
                                   atoms.get_positions())):
-            q = 0  # charge will be overwritten
+            q = self.data['one'][atoms.types[tag[i]]][2]
+##            q = atoms[i].charge  # charge will be overwritten
             fileobj.write('%6d %3d %3d %s %s %s %s' % ((i + 1, 1,
                                                         tag[i] + 1, 
                                                         q)
@@ -501,13 +504,6 @@ log /dev/stdout
             fileobj.write(' # ' + atype + '\n')
         fileobj.write('pair_modify shift yes mix geometric\n')
 
-        # Coulomb
-        fileobj.write("""
-# Coulomb
-kspace_style pppm 1e-5
-kspace_modify slab 3.0
-""")
-        
         # Charges
         fileobj.write('\n# charges\n')
         for ia, atype in enumerate(atoms.types):
