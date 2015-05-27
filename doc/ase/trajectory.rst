@@ -13,26 +13,26 @@ taken during an optimization.  A Trajectory file
 contains one or more :class:`~ase.atoms.Atoms` objects, usually to be
 interpreted as a time series, although that is not a requirement.
 
-The main Trajectory object writes in a file format, which is compatible across Python version.
+The main Trajectory object writes in a file format, which is compatible
+across Python version.
 
 The :mod:`ase.io.trajectory` additionally defines two specialized kinds of
 Trajectory files, the PickleTrajectory and the BundleTrajectory.
 
-PickleTrajectory is the old (pre 2015) Trajectory format, is use is no
+PickleTrajectory is the old (pre 2015) Trajectory format, its use is no
 longer recommended as compatibility between Python versions (and to a
 lesser degree between ASE vesions) cannot be guaranteed.  We strongly
-recommend to :ref:`convert your old PickleTrajectory files <convert>` as soon as possible.
+recommend to :ref:`convert your old PickleTrajectory files <convert>` as soon
+as possible.
 
 BundleTrajectory is only intended for large molecular dynamics
 simulations (large meaning millions of atoms).
-
-In the future, other kinds of Trajectories may be defined, with
-similar Python interface but with different underlying file formats.
 
 Typically, trajectories are used to store different configurations of
 the same system (i.e. the same atoms).  If you need to store
 configurations of different systems, the :mod:`ASE Database module
 <ase.db>` may be more appropriate.
+
 
 Trajectory
 ==========
@@ -51,6 +51,7 @@ last, etc.
 Writing a trajectory file is done by calling the ``write`` method.  If no
 atoms object was given when creating the object, it must be given as
 an argument to the ``write`` method.
+
 
 Examples
 --------
@@ -75,6 +76,9 @@ Writing every 100th time step in a molecular dynamics simulation::
     dyn.run(10000)
     traj.close()
 
+    
+.. _new trajectory:
+    
 The TrajectoryReader and TrajectoryWriter objects
 -------------------------------------------------
 
@@ -84,7 +88,6 @@ writer have a few additional methods, that can be useful.
 .. autoclass:: ase.io.trajectory.TrajectoryReader
    :members:
 
-
 Note that there is apparently no methods for reading the trajectory.
 Reading is instead done by indexing the trajectory, or by iterating
 over the trajectory: ``traj[0]`` and ``traj[-1]`` return the first and
@@ -92,7 +95,6 @@ last :class:`~ase.atoms.Atoms` object in the trajectory.
 
 .. autoclass:: ase.io.trajectory.TrajectoryWriter
    :members:
-
 
       
 PickleTrajectory
@@ -148,11 +150,11 @@ The BundleTrajectory has the interface
 See also
 ========
 
-The function :func:`ase.io.write` can write a single
-:class:`~ase.atoms.Atoms` object to a Trajectory file.
+* The function :func:`ase.io.write` can write a single
+  :class:`~ase.atoms.Atoms` object to a Trajectory file.
 
-The function :func:`ase.io.read` can read an :class:`~ase.atoms.Atoms`
-object from a Trajectory file, per default it reads the last one.
+* The function :func:`ase.io.read` can read an :class:`~ase.atoms.Atoms`
+  object from a Trajectory file, per default it reads the last one.
 
-The database modue :mod:`ase.db`.
+* The database modue :mod:`ase.db`.
 

@@ -46,8 +46,8 @@ Alphabetical list of all modules:
 
 :mod:`Calculators <ase.calculators>`:
 
-|abinit| |Asap| |CASTEP| |dftb| |elk| |exciting| |EMT| |fhi-aims| |fleur|
-|gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem| |siesta|
+|abinit| |Asap| |CASTEP| |CP2K| |dftb| |elk| |exciting| |EMT| |fhi-aims|
+|fleur| |gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem| |siesta|
 |turbomole| |vasp| Gaussian_ Mopac_
 
 
@@ -59,6 +59,9 @@ Alphabetical list of all modules:
    :align: middle
 .. |CASTEP| image:: static/castep.png
    :target: ase/calculators/castep.html
+   :align: middle
+.. |CP2K| image:: static/cp2k.png
+   :target: ase/calculators/cp2k.html
    :align: middle
 .. |elk| image:: static/elk.png
    :target: http://elk.sourceforge.net/
