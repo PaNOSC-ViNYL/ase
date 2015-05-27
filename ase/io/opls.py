@@ -214,11 +214,14 @@ minimize        1.0e-14 1.0e-5 100000 100000
         # atoms
         fileobj.write('\nAtoms\n\n')
         tag = atoms.get_tags()
+        if atoms.has('molid'):
+            molid = atoms.get_array('molid')
+        else:
+            molid = [1] * len(atoms)
         for i, r in enumerate(map(p.pos_to_lammps_str,
                                   atoms.get_positions())):
             q = self.data['one'][atoms.types[tag[i]]][2]
-##            q = atoms[i].charge  # charge will be overwritten
-            fileobj.write('%6d %3d %3d %s %s %s %s' % ((i + 1, 1,
+            fileobj.write('%6d %3d %3d %s %s %s %s' % ((i + 1, molid[i],
                                                         tag[i] + 1, 
                                                         q)
                                                        + tuple(r)))
@@ -555,6 +558,11 @@ class OPLSStructure(Atoms):
             atom.tag = types_map[type]
             self.append(atom)
         self.types = types
+
+        # copy extra array info
+        for name, array in atoms.arrays.items():
+            if name not in self.arrays:
+                self.new_array(name, array)
 
     def split_symbol(self, string, translate=default_map):
 
