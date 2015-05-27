@@ -148,7 +148,7 @@ class OPLSff:
         fileobj = self.prefix + '_in'
         if isinstance(fileobj, str):
             fileobj = open(fileobj, 'w')
-        fileobj.write("""# LAMPPS relaxation (written by ASE)
+        fileobj.write("""# LAMMPS relaxation (written by ASE)
 
 units           metal
 atom_style      full
