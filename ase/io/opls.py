@@ -376,6 +376,9 @@ minimize        1.0e-14 1.0e-5 100000 100000
                     name, val = self.angles.name_value(jname, iname, 
                                                        kname)
                     if name is None:
+                        if self.warnings > 1:
+                            print('Warning: angles %s-%s-%s not found'
+                                  % (jname, iname, kname))
                         continue # don't have it
                     if name not in ang_types:
                         ang_types.append(name)
