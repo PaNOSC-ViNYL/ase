@@ -59,7 +59,7 @@ class DihedralsData:
     
     def name_value(self, aname, bname, cname, dname):
         for name in [
-            (twochar(aname) + '-' + twochar(bname) + '-' + 
+            (twochar(aname) + '-' + twochar(bname) + '-' +
              twochar(cname) + '-' + twochar(dname)),
             (twochar(dname) + '-' + twochar(cname) + '-' + 
              twochar(bname) + '-' + twochar(aname))]:
@@ -132,12 +132,12 @@ class OPLSff:
             atypes, alist = self.get_angles()
             dtypes, dlist = self.get_dihedrals(alist, atypes)
             connectivities = {
-                'bonds' : blist,
-                'bond types' : btypes,
-                'angles' : alist,
-                'angle types' : atypes,
-                'dihedrals' : dlist,
-                'dihedral types' : dtypes,
+                'bonds': blist,
+                'bond types': btypes,
+                'angles': alist,
+                'angle types': atypes,
+                'dihedrals': dlist,
+                'dihedral types': dtypes,
                 }
             self.write_lammps_definitions(atoms, btypes, atypes, dtypes)
             self.write_lammps_in()
@@ -299,7 +299,6 @@ minimize        1.0e-14 1.0e-5 100000 100000
         types = atoms.get_types()
         tags = atoms.get_tags()
         cell = atoms.get_cell()
-        positions = atoms.get_positions()
         bond_list = []
         bond_types = []
         for i, atom in enumerate(atoms):
@@ -340,7 +339,6 @@ minimize        1.0e-14 1.0e-5 100000 100000
         types = atoms.get_types()
         tags = atoms.get_tags()
         cell = atoms.get_cell()
-        positions = atoms.get_positions()
         ang_list = []
         ang_types = []
 
@@ -354,32 +352,32 @@ minimize        1.0e-14 1.0e-5 100000 100000
                 jname = types[tags[j]]
                 cut = cutoffs.value(iname, jname)
                 if cut is None:
-                    continue # don't have it
+                    continue  # don't have it
                 dist = np.linalg.norm(atom.position - atoms[j].position
                                       - np.dot(offsetj, cell))
                 if dist > cut:
-                    continue # too far away
+                    continue  # too far away
 
                 # search for second neighbor j-i-k
                 for k, offsetk in zip(indicesi, offsetsi):
                     if k <= j:
-                        continue # avoid double count
+                        continue  # avoid double count
                     kname = types[tags[k]]
                     cut = cutoffs.value(iname, kname)
                     if cut is None:
-                        continue # don't have it
+                        continue  # don't have it
                     dist = np.linalg.norm(atom.position -
                                           np.dot(offsetk, cell) - 
                                           atoms[k].position)
                     if dist > cut:
-                        continue # too far away
+                        continue  # too far away
                     name, val = self.angles.name_value(jname, iname, 
                                                        kname)
                     if name is None:
                         if self.warnings > 1:
                             print('Warning: angles %s-%s-%s not found'
                                   % (jname, iname, kname))
-                        continue # don't have it
+                        continue  # don't have it
                     if name not in ang_types:
                         ang_types.append(name)
                     ang_list.append([ang_types.index(name), j, i, k])
@@ -399,12 +397,12 @@ minimize        1.0e-14 1.0e-5 100000 100000
         dih_list = []
         dih_types = []
 
-        def append(name, i, j, k ,l):
+        def append(name, i, j, k, l):
             if name not in dih_types:
                 dih_types.append(name)
             index = dih_types.index(name)
             if (([index, i, j, k, l] not in dih_list) and
-                ([index, l, k, j, i] not in dih_list)    ):
+                ([index, l, k, j, i] not in dih_list)):
                 dih_list.append([index, i, j, k, l])
 
         for angle in ang_types:
@@ -729,9 +727,10 @@ class OPLSStructure(Atoms):
         dihedrals, key = read_list('Dihedrals', 5, True)
 
         self.connectivities = {
-            'bonds' : bonds,
-            'angles' : angles,
-            'dihedrals' : dihedrals }
+            'bonds': bonds,
+            'angles': angles,
+            'dihedrals': dihedrals 
+        }
 
         if 'bonds' in header:
             assert(len(bonds) == header['bonds'])
@@ -743,4 +742,3 @@ class OPLSStructure(Atoms):
             assert(len(dihedrals) == header['dihedrals'])
             self.connectivities['dihedral types'] = list(range(
                 header['dihedral types']))
-    
