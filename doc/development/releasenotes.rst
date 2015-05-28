@@ -38,17 +38,20 @@ Development version in trunk
   :meth:`ase.atoms.Atoms.get_scaled_positions` that can be used to turn
   off wrapping.
   
-* New improved method for initializing NEB calculations.
+* New improved method for initializing NEB calculations:
+  :meth:`ase.neb.NEB.interpolate`.
 
-* New pickle-free future-proof trajectory file format added.
+* New pickle-free future-proof trajectory file format added:
+  :ref:`new trajectory`.
 
-* Pourbaix diagrams.
+* We can now do :ref:`phase diagrams`.
 
-* mx2() function.
+* New :func:`ase.lattice.surface.mx2` function for 1T and 2H metal
+  dichalcogenides and friends.
 
-* bandgap ...
+* New :func:`ase.dft.bandgap.get_band_gap` function
 
-* CP2K interface.
+* :class:`~ase.calculators.cp2k.CP2K` interface.
 
 
 Version 3.8.0

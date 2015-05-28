@@ -5,6 +5,7 @@ add vacuum layers and add adsorbates.
 
 """
 
+from __future__ import division
 from math import sqrt, hypot, acos
 from operator import itemgetter
 
@@ -20,7 +21,7 @@ __all__ = ['surface', 'add_adsorbate', 'add_vacuum',
            'bcc100', 'bcc110', 'bcc111',
            'diamond100', 'diamond111',
            'fcc100', 'fcc110', 'fcc111', 'fcc211',
-           'hcp0001', 'hcp10m10','mx2']
+           'hcp0001', 'hcp10m10', 'mx2']
 
 
 def fcc100(symbol, size, a=None, vacuum=None):
@@ -518,27 +519,30 @@ def fcc111_root(symbol, root, size, a=None, vacuum=0.0,
 
     return cutting_board
     
-def mx2(formula='MoS2', Type='2H', a=3.18, thickness=3.19, size=(1,1,1), vacuum=15.0):
-    """Helper function for creating 2D materials with hexagonal structures. 
-    It is useful for molybdenum sulfide, graphene, ect."""
     
+def mx2(formula='MoS2', kind='2H', a=3.18, thickness=3.19,
+        size=(1, 1, 1), vacuum=7.5):
+    """Create three-layer 2D materials with hexagonal structure.
     
-    if Type == '2H':
-        bravais_basis = [(0., 0., 0.5),
-                         (2/3., 1/3., (0.5 * vacuum + 0.5 * 0.5 * thickness) / vacuum),
-                         (2/3., 1/3., (0.5 * vacuum - 0.5 * 0.5 * thickness) / vacuum)]
+    For metal dichalcogenites, ect.
     
-    elif Type == '1T':
-        bravais_basis = [(0., 0., 0.5),
-                         (2/3., 1/3., (0.5 * vacuum + 0.5 * 0.5 * thickness) / vacuum),
-                         (1/3., 2/3., (0.5 * vacuum - 0.5 * 0.5 * thickness) / vacuum)]
-    else: 
-        raise NotImplementedError("Structure not recognized")
+    The kind argument accepts '2H', which gives a mirror plane symmetry
+    and '1T', which gives an inversion symmetry."""
     
-    cell=np.array([[a, 0., 0.],[-a * np.sin(np.pi/6.0), a * np.cos(np.pi/6.0), 0.],[0., 0., vacuum]])
+    if kind == '2H':
+        basis = [(0, 0, 0),
+                 (2 / 3, 1 / 3, 0.5 * thickness),
+                 (2 / 3, 1 / 3, -0.5 * thickness)]
+    elif kind == '1T':
+        basis = [(0, 0, 0),
+                 (2 / 3, 1 / 3, 0.5 * thickness),
+                 (1 / 3, 2 / 3, -0.5 * thickness)]
+    else:
+        raise ValueError('Structure not recognized')
     
-    atoms = Atoms(symbols=formula, cell=cell, scaled_positions=bravais_basis, pbc=(1,1,1))    
-    atoms = atoms.repeat(size)
+    cell = [[a, 0, 0], [-a / 2, a * 3**0.5 / 2, 0], [0, 0, 1]]
+    
+    atoms = Atoms(formula, cell=cell, scaled_positions=basis, pbc=(1, 1, 0))
+    atoms.center(vacuum=vacuum, axis=2)
     
     return atoms
-

@@ -6,7 +6,8 @@ import ase.lattice.surface as surface
 
 
 surfaces = ['fcc100', 'fcc110', 'bcc100', 'hcp10m10', 'diamond100',
-            'fcc111', 'bcc110', 'bcc111', 'hcp0001', 'diamond111', 'fcc211', 'mx2']
+            'fcc111', 'bcc110', 'bcc111', 'hcp0001', 'diamond111', 'fcc211',
+            'mx2']
 
 symbols = {'fcc': 'Cu', 'bcc': 'Fe', 'hcp': 'Ru', 'dia': 'C', 'mx2': 'MoS2'}
 radii = {'fcc': 1.1, 'bcc': 1.06, 'hcp': 1.08, 'dia': 0.5, 'mx2': 1.0}

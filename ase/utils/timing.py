@@ -110,8 +110,7 @@ class Timer:
         
         inclusive = self.timers.copy()
         exclusive = self.timers.copy()
-        keys = exclusive.keys()
-        keys.sort()
+        keys = sorted(exclusive.keys())
         for names in keys:
             t = exclusive[names]
             if len(names) > 1:

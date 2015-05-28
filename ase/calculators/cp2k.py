@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-'''This module defines an ASE interface to CP2K.
+"""This module defines an ASE interface to CP2K.
 
 http://www.cp2k.org
 Author: Ole Schuett <ole.schuett@mat.ethz.ch>
-'''
+"""
 
 from __future__ import print_function
 
@@ -19,109 +19,95 @@ from ase.calculators.calculator import Calculator, all_changes, Parameters
 
 
 class CP2K(Calculator):
-    '''ASE-Calculator for CP2K.
+    """ASE-Calculator for CP2K.
 
-Introduction
-============
-CP2K is a program to perform atomistic and molecular simulations of solid
-state, liquid, molecular, and biological systems. It provides a general
-framework for different methods such as e.g., density functional theory (DFT)
-using a mixed Gaussian and plane waves approach (GPW) and classical pair and
-many-body potentials.
+    CP2K is a program to perform atomistic and molecular simulations of solid
+    state, liquid, molecular, and biological systems. It provides a general
+    framework for different methods such as e.g., density functional theory
+    (DFT) using a mixed Gaussian and plane waves approach (GPW) and classical
+    pair and many-body potentials.
 
-CP2K is freely available under the GPL license.
-It is written in Fortran 2003 and can be run efficiently in parallel.
+    CP2K is freely available under the GPL license.
+    It is written in Fortran 2003 and can be run efficiently in parallel.
 
-Check the CP2K-Website_ about how to obtain and install CP2K.
-Make sure that you also have the CP2K-shell available, since it is required
-by the CP2K-calulator.
+    Check http://www.cp2k.org about how to obtain and install CP2K.
+    Make sure that you also have the CP2K-shell available, since it is required
+    by the CP2K-calulator.
 
-How it works
-============
+    The CP2K-calculator relies on the CP2K-shell. The CP2K-shell was originally
+    designed for interactive sessions. When a calculator object is
+    instantiated, it launches a CP2K-shell as a subprocess in the background
+    and communications with it through stdin/stdout pipes. This has the
+    advantage that the CP2K process is kept alive for the whole lifetime of
+    the calculator object, i.e. there is no startup overhead for a sequence
+    of energy evaluations. Furthermore, the usage of pipes avoids slow file-
+    system I/O. This mechanism even works for MPI-parallelized runs, because
+    stdin/stdout of the first rank are forwarded by the MPI-environment to the
+    mpiexec-process.
 
-The CP2K-calculator relies on the CP2K-shell. The CP2K-shell was originally
-designed for interactive sessions. When a calculator object is instantiated,
-it launches a CP2K-shell as a subprocess in the background and communications
-with it through stdin/stdout pipes. This has the advantage that the CP2K
-process is kept alive for the whole lifetime of the calculator object,
-i.e. there is no startup overhead for a sequence of energy evaluations.
-Furthermore, the usage of pipes avoids slow file-system I/O. This mechanism
-even works for MPI-parallelized runs, because stdin/stdout of the first rank
-are forwarded by the MPI-environment to the mpiexec-process.
+    The command used by the calculator to launch the CP2K-shell is
+    ``cp2k_shell``. To run a parallelized simulation use something like this:
 
-The command used by the calculator to launch the CP2K-shell is ``cp2k_shell``.
-To run a parallelized simulation use something like this:
-
->>> CP2K.command="env OMP_NUM_THREADS=2 mpiexec -np 4 cp2k_shell.psmp"
+    >>> CP2K.command="env OMP_NUM_THREADS=2 mpiexec -np 4 cp2k_shell.psmp"
 
 
-Arguments:
-==========
+    Arguments:
 
-=========================  ====================================================
-Keyword                    Description
-=========================  ====================================================
-``auto_write``             Flag to enable the auto-write mode. If enabled the
-                           ``write()`` routine is called after every
-                           calculation, which mimics the behavior of the
-                           ``FileIOCalculator``. Default is ``False``.
-
-``basis_set``              Name of the basis set to be use.
-                           The default is ``DZVP-MOLOPT-SR-GTH``.
-
-``basis_set_file``         Filename of the basis set file.
-                           Default is ``BASIS_MOLOPT``.
-                           Set the environment variable $CP2K_DATA_DIR
-                           to enabled automatic file discovered.
-
-``charge``                 The total charge of the system.
-                           Default is ``0``.
-
-``command``                The command used to launch the CP2K-shell.
-                           If ``command`` is not passed as an argument to the
-                           constructor, the class-variable ``CP2K.command``,
-                           and then the environment variabel
-                           ``$ASE_CP2K_COMMAND`` are checked.
-                           Eventually, ``cp2k_shell`` is used as default.
-
-``cutoff``                 The cutoff of the finest grid level.
-                           Default is ``400 * Rydberg``.
-
-``debug``                  Flag to enable debug mode. This will print all
-                           communication between the CP2K-shell and the
-                           CP2K-calculator. Default is ``False``.
-
-``force_eval_method``      The method CP2K uses to evaluate energies and
-                           forces.
-                           The default is ``Quickstep``, which is CP2K's
-                           module for electronic structure methods like DFT.
-
-``inp``                    CP2K input template. If present, the calculator will
-                           augment the template, e.g. with coordinates, and use
-                           it to launch CP2K. Hence, this generic mechanism
-                           gives access to all features of CP2K.
-
-``max_scf``                Maximum number of SCF iteration to be performed for
-                           one optimization. Default is ``50``.
-
-``potential_file``         Filename of the pseudo-potential file.
-                           Default is ``POTENTIAL``.
-                           Set the environment variable $CP2K_DATA_DIR
-                           to enabled automatic file discovered.
-
-``pseudo_potential``       Name of the pseudo-potential to be use.
-                           Default is ``auto``. This tries to infer the
-                           potential from the employed XC-functional,
-                           otherwise it falls back to ``GTH-PBE``.
-
-``uks``                    Requests an unrestricted Kohn-Sham calculations.
-                           This is need for spin-polarized systems, ie. with an
-                           odd number of electrons. Default is ``False``.
-=========================  ====================================================
-
-
-.. _CP2K-Website: http://www.cp2k.org/
-'''
+    auto_write: bool
+        Flag to enable the auto-write mode. If enabled the
+        ``write()`` routine is called after every
+        calculation, which mimics the behavior of the
+        ``FileIOCalculator``. Default is ``False``.
+    basis_set: str
+        Name of the basis set to be use.
+        The default is ``DZVP-MOLOPT-SR-GTH``.
+    basis_set_file: str
+        Filename of the basis set file.
+        Default is ``BASIS_MOLOPT``.
+        Set the environment variable $CP2K_DATA_DIR
+        to enabled automatic file discovered.
+    charge: float
+        The total charge of the system.  Default is ``0``.
+    command: str
+        The command used to launch the CP2K-shell.
+        If ``command`` is not passed as an argument to the
+        constructor, the class-variable ``CP2K.command``,
+        and then the environment variabel
+        ``$ASE_CP2K_COMMAND`` are checked.
+        Eventually, ``cp2k_shell`` is used as default.
+    cutoff: float
+        The cutoff of the finest grid level.  Default is ``400 * Rydberg``.
+    debug: bool
+        Flag to enable debug mode. This will print all
+        communication between the CP2K-shell and the
+        CP2K-calculator. Default is ``False``.
+    force_eval_method: str
+        The method CP2K uses to evaluate energies and forces.
+        The default is ``Quickstep``, which is CP2K's
+        module for electronic structure methods like DFT.
+    inp: str
+        CP2K input template. If present, the calculator will
+        augment the template, e.g. with coordinates, and use
+        it to launch CP2K. Hence, this generic mechanism
+        gives access to all features of CP2K.
+    max_scf: int
+        Maximum number of SCF iteration to be performed for
+        one optimization. Default is ``50``.
+    potential_file: str
+        Filename of the pseudo-potential file.
+        Default is ``POTENTIAL``.
+        Set the environment variable $CP2K_DATA_DIR
+        to enabled automatic file discovered.
+    pseudo_potential: str
+        Name of the pseudo-potential to be use.
+        Default is ``auto``. This tries to infer the
+        potential from the employed XC-functional,
+        otherwise it falls back to ``GTH-PBE``.
+    uks: bool
+        Requests an unrestricted Kohn-Sham calculations.
+        This is need for spin-polarized systems, ie. with an
+        odd number of electrons. Default is ``False``.
+    """
 
     implemented_properties = ['energy', 'forces', 'stress']
     command = None
@@ -143,7 +129,7 @@ Keyword                    Description
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='cp2k', atoms=None, command=None,
                  debug=False, **kwargs):
-        '''Construct CP2K-calculator object.'''
+        """Construct CP2K-calculator object."""
 
         self._debug = debug
         self._force_env_id = None
@@ -190,7 +176,7 @@ Keyword                    Description
                     raise
 
     def __del__(self):
-        '''Release force_env and terminate cp2k_shell child process'''
+        """Release force_env and terminate cp2k_shell child process"""
         self._release_force_env()
         if self._child:
             self._send('EXIT')
@@ -198,7 +184,7 @@ Keyword                    Description
             self._child = None
 
     def set(self, **kwargs):
-        '''Set parameters like set(key1=value1, key2=value2, ...).'''
+        """Set parameters like set(key1=value1, key2=value2, ...)."""
         changed_parameters = Calculator.set(self, **kwargs)
         if changed_parameters:
             self.reset()
@@ -220,7 +206,7 @@ Keyword                    Description
 
     def calculate(self, atoms=None, properties=None,
                   system_changes=all_changes):
-        '''Do the calculation.'''
+        """Do the calculation."""
 
         if not properties:
             properties = ['energy']
@@ -287,7 +273,7 @@ Keyword                    Description
             self.write(self.label)
 
     def _create_force_env(self):
-        '''Instantiates a new force-environment'''
+        """Instantiates a new force-environment"""
         assert self._force_env_id is None
         label_dir = os.path.dirname(self.label)
         if len(label_dir) > 0 and not os.path.exists(label_dir):
@@ -309,14 +295,14 @@ Keyword                    Description
         assert self._recv() == '* READY'
 
     def _release_force_env(self):
-        '''Destroys the current force-environment'''
+        """Destroys the current force-environment"""
         if self._force_env_id:
             self._send('DESTROY %d' % self._force_env_id)
             assert self._recv() == '* READY'
             self._force_env_id = None
 
     def _generate_input(self):
-        '''Generates a CP2K input file'''
+        """Generates a CP2K input file"""
         p = self.parameters
         root = parse_input(p.inp)
         root.add_keyword('GLOBAL', 'PROJECT ' + self.label)
@@ -388,14 +374,14 @@ Keyword                    Description
         return '\n'.join(output_lines)
 
     def _send(self, line):
-        '''Send a line to the cp2k_shell'''
+        """Send a line to the cp2k_shell"""
         assert self._child.poll() is None  # child process still alive?
         if self._debug:
             print('Sending: ' + line)
         self._child.stdin.write(line + '\n')
 
     def _recv(self):
-        '''Receive a line from the cp2k_shell'''
+        """Receive a line from the cp2k_shell"""
         assert self._child.poll() is None  # child process still alive?
         line = self._child.stdout.readline().strip()
         if self._debug:
@@ -404,7 +390,7 @@ Keyword                    Description
 
 
 class InputSection(object):
-    '''Represents a section of a CP2K input file'''
+    """Represents a section of a CP2K input file"""
     def __init__(self, name, params=None):
         self.name = name.upper()
         self.params = params
@@ -412,7 +398,7 @@ class InputSection(object):
         self.subsections = []
 
     def write(self):
-        '''Outputs input section as string'''
+        """Outputs input section as string"""
         output = []
         for k in self.keywords:
             output.append(k)
@@ -427,7 +413,7 @@ class InputSection(object):
         return output
 
     def add_keyword(self, path, line, unique=True):
-        '''Adds a keyword to section.'''
+        """Adds a keyword to section."""
         parts = path.upper().split('/', 1)
         candidates = [s for s in self.subsections if s.name == parts[0]]
         if len(candidates) == 0:
@@ -453,7 +439,7 @@ class InputSection(object):
             candidates[0].keywords.append(line)
 
     def get_subsection(self, path):
-        '''Finds a subsection'''
+        """Finds a subsection"""
         parts = path.upper().split('/', 1)
         candidates = [s for s in self.subsections if s.name == parts[0]]
         if len(candidates) > 1:
@@ -466,7 +452,7 @@ class InputSection(object):
 
 
 def parse_input(inp):
-    '''Parses the given CP2K input string'''
+    """Parses the given CP2K input string"""
     root_section = InputSection('CP2K_INPUT')
     section_stack = [root_section]
 
@@ -490,5 +476,3 @@ def parse_input(inp):
             section_stack[-1].keywords.append(line)
 
     return root_section
-
-# EOF

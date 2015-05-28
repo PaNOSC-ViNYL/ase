@@ -1,5 +1,6 @@
 .. module:: ase.phasediagram
-
+.. _phase diagrams:
+    
 ====================================
 Phase diagrams and Pourbaix diagrams
 ====================================
