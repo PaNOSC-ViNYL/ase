@@ -9,7 +9,14 @@ Development version in trunk
 ============================
 
 :trac:`trunk <>`.
+
+* ...
           
+Version 3.9.0
+=============
+
+28 May 2015: :trac:`tags/3.9.0 <../tags/3.9.0>`.
+
 * Genetic algorithm implemented; :mod:`ase.ga`. This can be used
   for the optimization of: atomic cluster structure, materials
   properties by use of template structures. Extension to other projects

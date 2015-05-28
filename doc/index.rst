@@ -115,10 +115,13 @@ Alphabetical list of all modules:
 .. _Gaussian: http://www.gaussian.com/
 .. _Mopac: http://openmopac.net/
 
+
 .. _news:
 
 News
 ====
+
+* :ref:`ASE version 3.9.0 <releasenotes>` released (28 May 2015).
 
 * :ref:`ASE version 3.8.0 <releasenotes>` released (22 October 2013).
 

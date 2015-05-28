@@ -6,7 +6,7 @@ New release
 
 When it is time for a new release of the code, here is what you have to do:
 
-** **Warning:** use only three digits release numbers, e.g. *3.1.0*,
+** **Warning:** use only three digits release numbers, e.g. *3.9.0*,
 
 * Checkout the :ref:`latest_development_release`.
 
@@ -18,17 +18,17 @@ When it is time for a new release of the code, here is what you have to do:
   (to make sure **not** to include changes done by other developers
   in the meantime!)::
 
-    svn copy -r 845 https://svn.fysik.dtu.dk/projects/ase/trunk https://svn.fysik.dtu.dk/projects/ase/tags/3.1.0 -m "Version 3.1.0"
+    svn copy -r 845 https://svn.fysik.dtu.dk/projects/ase/trunk https://svn.fysik.dtu.dk/projects/ase/tags/3.9.0 -m "Version 3.9.0"
 
   **Note** the resulting tag's revision ``tags_revision``.
 
 * **Checkout** the source, specyfing the version number in the directory name::
 
-   svn co -r tags_revision https://svn.fysik.dtu.dk/projects/ase/tags/3.1.0 ase-3.1.0
+   svn co -r tags_revision https://svn.fysik.dtu.dk/projects/ase/tags/3.9.0 ase-3.9.0
 
 * Create the tar file::
 
-   cd ase-3.1.0
+   cd ase-3.9.0
    rm -f MANIFEST ase/svnversion.py*; python setup.py sdist
 
   Note that the ``tags_revision`` is put into the name of the
@@ -38,22 +38,23 @@ When it is time for a new release of the code, here is what you have to do:
 
 * Put the tar file on webX (set it read-able for all)::
 
-   scp dist/python-ase-3.1.0."tags_revision".tar.gz root@webX:/var/www/wiki/ase-files
+    scp dist/python-ase-3.9.0.4465.tar.gz root@webX:/var/www/wiki/ase-files
 
 * Add a link on :ref:`news` and update the information
   on the :ref:`download_and_install` page and the :ref:`releasenotes` page.
 
 * Add the new release on https://pypi.python.org/pypi/python-ase/:
 
-  - under the ``edit`` menu increase the version number to *3.1.0*
+  - under the ``edit`` menu increase the version number to *3.9.0*
   - under the ``files`` menu add the tar file as ``File Type`` ``Source``
 
 * Increase the version number in ase/version.py, and commit the change::
 
     cd ~/ase
-    svn ci -m "Version 3.2.0"
+    svn ci -m "Version 3.9.1"
 
   Now the trunk is ready for work on the new version.
 
-* Send announcement email to the ``ase-users`` mailing list (see :ref:`mailing_lists`).
+* Send announcement email to the ``ase-users`` mailing list (see
+  :ref:`mailing_lists`).
 
