@@ -93,15 +93,22 @@ Installation on Windows
    ASE is not yet fully functional on Windows!
    https://trac.fysik.dtu.dk/projects/ase/ticket/62
 
-On Windows the following packages need to installed.
-On the command prompt:
+Python(x,y), on both 32- and 64-bit Windows,
+requires Microsoft Visual C++ 2008 Redistributable Package (x86),
+download and install it from:
+https://www.microsoft.com/en-us/download/details.aspx?id=5582
+Use http://www.dependencywalker.com/ to find missing DLLs in case of
+"ImportError: DLL load failed: The specified module could not be found".
+
+Continue with:
 
 .. note:: installation assumes the python TARGETDIR C:\\Python27,
           leave also the default C:\\Program Files\\pythonxy.
 
--  pythonxy_. Download the exe installer and install with::
+-  pythonxy_. Download the *2.7.5.2* exe installer (other versions
+   may be incompatible)and install with::
 
-     Python(x,y)-2.7.2.2.exe /Log="%TMP%\pythonxy_install.log" /S
+     Python(x,y)-2.7.5.2.exe /Log="%TMP%\pythonxy_install.log" /S
 
 .. note::
 
