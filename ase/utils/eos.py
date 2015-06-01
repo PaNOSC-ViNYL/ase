@@ -9,8 +9,7 @@ try:
     import scipy
     from ase.utils.eosase2 import EquationOfStateASE2
 
-    class EquationOfState(EquationOfStateSJEOS, EquationOfStateASE2):
-
+    class EquationOfState:
         """Fit equation of state for bulk systems.
 
         The following equation is used::
@@ -56,22 +55,16 @@ try:
         """
         def __init__(self, volumes, energies, eos='sjeos'):
             if eos == 'sjeos':
-                EquationOfStateSJEOS.__init__(self, volumes, energies, eos)
+                eosclass = EquationOfStateSJEOS
             else:
-                # old ASE2 implementation
-                EquationOfStateASE2.__init__(self, volumes, energies, eos)
+                eosclass = EquationOfStateASE2  # old ASE2 implementation
+            self._impl = eosclass(volumes, energies, eos)
 
         def fit(self):
-            if self.eos_string == 'sjeos':
-                return EquationOfStateSJEOS.fit(self)
-            else:
-                return EquationOfStateASE2.fit(self)
+            return self._impl.fit()
 
         def plot(self, filename=None, show=None):
-            if self.eos_string == 'sjeos':
-                return EquationOfStateSJEOS.plot(self, filename, show)
-            else:
-                return EquationOfStateASE2.plot(self, filename, show)
+            return self._impl.plot(filename, show)
 
 except ImportError:
     # ase.utils.sjeos requires only numpy
