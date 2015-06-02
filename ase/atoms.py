@@ -9,6 +9,7 @@ object.
 
 import warnings
 from math import cos, sin
+import copy
 
 import numpy as np
 
@@ -171,6 +172,8 @@ class Atoms(object):
                 constraint = [c.copy() for c in atoms.constraints]
             if calculator is None:
                 calculator = atoms.get_calculator()
+            if info is None:
+                info = copy.deepcopy(atoms.info)
 
         self.arrays = {}
 
@@ -751,7 +754,6 @@ class Atoms(object):
 
     def copy(self):
         """Return a copy."""
-        import copy
         atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info)
 
         atoms.arrays = {}
