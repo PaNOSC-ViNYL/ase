@@ -38,7 +38,8 @@ class AdsorbateOperator(OffspringCreator):
     def get_new_individual(self, parents):
         raise NotImplementedError
 
-    def add_adsorbate(self, atoms, sites_list, min_adsorbate_distance=1.5):
+    def add_adsorbate(self, atoms, sites_list,
+                      min_adsorbate_distance=1.5, tilt_angle=0.):
         """Adds the adsorbate in self.adsorbate to the supplied atoms
         object at the first free site in the specified sites_list. A site
         is free if no other adsorbates can be found in a sphere of radius
@@ -77,6 +78,8 @@ class AdsorbateOperator(OffspringCreator):
         if len(ads) > 1:
             avg_pos = np.average(ads[1:].positions, 0)
             ads.rotate(avg_pos - ads[0].position, normal)
+            pvec = np.cross(np.random.rand(3) - ads[0].position, normal)
+            ads.rotate(pvec, tilt_angle, center=ads[0].position)
         ads.translate(pos - ads[0].position)
 
         atoms.extend(ads)
@@ -237,12 +240,16 @@ class AddAdsorbate(AdsorbateOperator):
 
     Site and surface preference can be supplied. If both are supplied site
     will be considered first.
+
+    Supplying a tilt angle will tilt the adsorbate with an angle relative
+    to the standard perpendicular to the surface
     """
     def __init__(self, adsorbate,
                  min_adsorbate_distance=2.,
                  adsorption_sites=None,
                  site_preference=None,
                  surface_preference=None,
+                 tilt_angle=None,
                  num_muts=1):
         AdsorbateOperator.__init__(self, adsorbate,
                                    adsorption_sites=adsorption_sites,
@@ -253,6 +260,8 @@ class AddAdsorbate(AdsorbateOperator):
 
         self.site_preference = site_preference
         self.surface_preference = surface_preference
+        
+        self.tilt_angle = tilt_angle or 0.
 
         self.min_inputs = 1
 
@@ -285,7 +294,8 @@ class AddAdsorbate(AdsorbateOperator):
                 ads_sites.sort(key=func, reverse=True)
 
             added = self.add_adsorbate(indi, ads_sites,
-                                       self.min_adsorbate_distance)
+                                       self.min_adsorbate_distance,
+                                       tilt_angle=self.tilt_angle)
             if not added:
                 break
 
@@ -440,7 +450,8 @@ class CutSpliceCrossoverWithAdsorbates(AdsorbateOperator):
     """
     def __init__(self, adsorbate, blmin, keep_composition=True,
                  fix_coverage=False, adsorption_sites=None,
-                 min_adsorbate_distance=2.):
+                 min_adsorbate_distance=2.,
+                 rotate_vectors=None, rotate_angles=None):
         if not fix_coverage:
             # Trick the AdsorbateOperator class to accept no adsorption_sites
             adsorption_sites = [1]
@@ -450,6 +461,8 @@ class CutSpliceCrossoverWithAdsorbates(AdsorbateOperator):
         self.keep_composition = keep_composition
         self.fix_coverage = fix_coverage
         self.min_adsorbate_distance = min_adsorbate_distance
+        self.rvecs = rotate_vectors
+        self.rangs = rotate_angles
         self.descriptor = 'CutSpliceCrossoverWithAdsorbates'
         
         self.min_inputs = 2
@@ -464,6 +477,28 @@ class CutSpliceCrossoverWithAdsorbates(AdsorbateOperator):
         indi = self.initialize_individual(f)
         indi.info['data']['parents'] = [i.info['confid'] for i in parents]
         
+        fna = self.get_atoms_without_adsorbates(f)
+        mna = self.get_atoms_without_adsorbates(m)
+        fna_geo_mid = np.average(fna.get_positions(), 0)
+        mna_geo_mid = np.average(mna.get_positions(), 0)
+        
+        if self.rvecs is not None:
+            if not isinstance(self.rvecs, list):
+                print('rotation vectors are not a list, skipping rotation')
+            else:
+                vec = random.choice(self.rvecs)
+                try:
+                    angle = random.choice(self.rangs)
+                except TypeError:
+                    angle = self.rangs
+                f.rotate(vec, angle, center=fna_geo_mid)
+                vec = random.choice(self.rvecs)
+                try:
+                    angle = random.choice(self.rangs)
+                except TypeError:
+                    angle = self.rangs
+                m.rotate(vec, angle, center=mna_geo_mid)
+                
         theta = random.random() * 2 * np.pi  # 0,2pi
         phi = random.random() * np.pi  # 0,pi
         e = np.array((np.sin(phi) * np.cos(theta),
@@ -473,10 +508,6 @@ class CutSpliceCrossoverWithAdsorbates(AdsorbateOperator):
         
         # Move each particle to origo with their respective geometrical
         # centers, without adsorbates
-        fna = self.get_atoms_without_adsorbates(f)
-        mna = self.get_atoms_without_adsorbates(m)
-        fna_geo_mid = np.average(fna.get_positions(), 0)
-        mna_geo_mid = np.average(mna.get_positions(), 0)
         common_mid = (fna_geo_mid + mna_geo_mid) / 2.
         f.translate(-common_mid)
         m.translate(-common_mid)

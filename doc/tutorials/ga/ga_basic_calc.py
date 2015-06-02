@@ -8,7 +8,7 @@ import sys
 
 fname = sys.argv[1]
 
-print('Now relaxing {}'.format(fname))
+print('Now relaxing {0}'.format(fname))
 a = read(fname)
 
 a.set_calculator(EMT())
@@ -22,4 +22,4 @@ a.set_raw_score(-a.get_potential_energy())
 
 write(fname[:-5] + '_done.traj', a)
 
-print('Done relaxing {}'.format(fname))
+print('Done relaxing {0}'.format(fname))
