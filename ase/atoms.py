@@ -7,6 +7,7 @@ This module defines the central object in the ASE package: the Atoms
 object.
 """
 
+import numbers
 import warnings
 from math import cos, sin
 import copy
@@ -857,7 +858,7 @@ class Atoms(object):
         the indexing in the subset returned.
 
         """
-        if isinstance(i, int):
+        if isinstance(i, numbers.Integral):
             natoms = len(self)
             if i < -natoms or i >= natoms:
                 raise IndexError('Index out of range.')
