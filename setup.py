@@ -102,14 +102,24 @@ class build_py(_build_py):
         return _build_py.get_outputs(self, *args, **kwargs) + self.mofiles
 
 # Get the current version number:
-exec(compile(open('ase/svnversion_io.py').read(), 'ase/svnversion_io.py', 'exec'))  # write ase/svnversion.py and get svnversion
-exec(compile(open('ase/version.py').read(), 'ase/version.py', 'exec'))        # get version_base
+exec(compile(open('ase/svnversion_io.py').read(), 'ase/svnversion_io.py',
+             'exec'))  # write ase/svnversion.py and get svnversion
+exec(compile(open('ase/version.py').read(), 'ase/version.py',
+             'exec'))  # get version_base
 if svnversion and os.name not in ['ce', 'nt']:
     # MSI accepts only version X.X.X
     version = version_base + '.' + svnversion
 else:
     version = version_base
 
+name = 'python-ase'
+
+# PyPI:
+if 0:
+    # python(3) setup.py sdist upload
+    version = '3.9.0'
+    name = 'ase'
+    
 scripts = ['tools/ase-gui', 'tools/ase-db', 'tools/ase-info',
            'tools/ase-build', 'tools/ase-run']
 # provide bat executables in the tarball and always for Win
@@ -128,7 +138,7 @@ for dirname, dirnames, filenames in os.walk('doc'):
                 fileslist.append(fullname)
         data_files.append(('share/python-ase/' + dirname, fileslist))
 
-setup(name='python-ase',
+setup(name=name,
       version=version,
       description='Atomic Simulation Environment',
       url='https://wiki.fysik.dtu.dk/ase',
@@ -143,4 +153,15 @@ setup(name='python-ase',
       data_files=data_files,
       long_description=long_description,
       cmdclass={'build_py': build_py,
-                'test': test})
+                'test': test},
+      classifiers=[
+          'Development Status :: 6 - Mature',
+          'License :: OSI Approved :: '
+          'GNU Lesser General Public License v2 or later (LGPLv2+)',
+          'Operating System :: OS Independent',
+          'Programming Language :: Python :: 2',
+          'Programming Language :: Python :: 2.6',
+          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3',
+          'Programming Language :: Python :: 3.4',
+          'Topic :: Scientific/Engineering :: Physics'])
