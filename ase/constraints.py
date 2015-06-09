@@ -904,6 +904,8 @@ class Filter:
 
         self.atoms = atoms
         self.constraints = []
+        # Make self.info a reference to the underlying atoms' info dictionary.
+        self.info = self.atoms.info
 
         if indices is None and mask is None:
             raise ValueError('Use "indices" or "mask".')
@@ -1021,6 +1023,7 @@ class Filter:
     def __getitem__(self, i):
         'Return an atom.'
         return self.atoms[self.index[i]]
+    
 
 
 class StrainFilter(Filter):
