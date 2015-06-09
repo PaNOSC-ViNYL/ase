@@ -638,7 +638,7 @@ def filetype(filename):
     if is_tarfile(filename):
         return 'gpw'
 
-    if s3 == 'CDF':
+    if s3 == b'CDF':
         from ase.io.pupynere import NetCDFFile
         nc = NetCDFFile(filename)
         if 'number_of_dynamic_atoms' in nc.dimensions:
@@ -679,7 +679,8 @@ def filetype(filename):
     for line in lines:
         if line[0] != b'#':
             word = line.strip()
-            if word in ['ANIMSTEPS', 'CRYSTAL', 'SLAB', 'POLYMER', 'MOLECULE']:
+            if word in [b'ANIMSTEPS', b'CRYSTAL', b'SLAB', b'POLYMER',
+                        b'MOLECULE']:
                 return 'xsf'
 
     filename_v = os.path.basename(filename)
@@ -765,7 +766,7 @@ def filetype(filename):
 
     if filename.lower().endswith('.cell'):
         return 'castep_cell'
-    if s3 == '<?x' and not filename.endswith('xsd'):
+    if s3 == b'<?x' and not filename.endswith('xsd'):
         from ase.io.vtkxml import probe_vtkxml
         xmltype = probe_vtkxml(filename)
         if xmltype == 'ImageData':
