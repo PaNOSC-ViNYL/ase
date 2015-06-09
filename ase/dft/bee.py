@@ -120,14 +120,14 @@ class BEEFEnsemble:
             if os.path.isfile(fname):
                 os.rename(fname, fname + '.old')
             obj = [self.e, self.de, self.contribs, self.seed, self.xc]
-            with open(fname, 'w') as f:
+            with open(fname, 'wb') as f:
                 pickle.dump(obj, f)
 
 
 def readbee(fname, all=False):
     if not fname.endswith('.bee'):
         fname += '.bee'
-    with open(fname, 'r') as f:
+    with open(fname, 'rb') as f:
         e, de, contribs, seed, xc = pickle.load(f)
     if all:
         return e, de, contribs, seed, xc
