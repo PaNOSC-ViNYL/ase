@@ -787,7 +787,7 @@ def filetype(filename):
     if filename.lower().endswith('.con'):
         return 'eon'
 
-    if 'ITEM: TIMESTEP\n' in lines:
+    if b'ITEM: TIMESTEP\n' in lines:
         return 'lammps'
 
     if filename.lower().endswith('.gro'):

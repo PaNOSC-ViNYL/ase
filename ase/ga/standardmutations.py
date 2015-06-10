@@ -250,7 +250,7 @@ class MirrorMutation(OffspringCreator):
             if tc:
                 continue
             tc = atoms_too_close_two_sets(slab, cand, self.blmin)
-            if not changed and counter > int(n_tries / 2):
+            if not changed and counter > n_tries // 2:
                 reflect = not reflect
                 changed = True
             tot = slab + cand
