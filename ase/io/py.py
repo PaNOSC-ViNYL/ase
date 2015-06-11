@@ -1,7 +1,7 @@
-from ase.atoms import Atoms
 
 
 def write_py(fileobj, images, **kwargs):
+    """Write to ASE-compatible python script."""
     if isinstance(fileobj, str):
         fileobj = open(fileobj, 'w')
 
@@ -17,7 +17,7 @@ def write_py(fileobj, images, **kwargs):
                       "          pbc=np.%s,\n"
                       "          cell=np.array(\n      %s,\n"
                       "          positions=np.array(\n      %s),\n" % (
-            image.get_chemical_symbols(reduce=True),
+            image.get_chemical_formula(mode='reduce'),
             repr(image.pbc),
             repr(image.cell)[6:],
             repr(image.positions)[6:]))
