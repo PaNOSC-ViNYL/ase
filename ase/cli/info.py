@@ -23,7 +23,7 @@ def main():
         print("File type of '{0}' appears to be of type '{1}'".format(f, ft))
         if ft == 'traj':
             print_aff_info(f)
-        elif tf == 'trj':
+        elif ft == 'trj':
             print_trajectory_info(f)
         elif ft == 'bundle':
             print_bundletrajectory_info(f)
