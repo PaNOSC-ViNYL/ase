@@ -876,6 +876,16 @@ class Hookean(FixConstraint):
         else:
             return 0.
 
+    def index_shuffle(self, ind):
+    # See docstring of superclass
+        if self._type == 'two atoms':
+            self.indices = [ind.index(self.indices[0]),
+                            ind.index(self.indices[1])]
+        elif self._type == 'point':
+            self.index = ind.index(self.index)
+        elif self._type == 'plane':
+            self.index = ind.index(self.index)
+
     def __repr__(self):
         if self._type == 'two atoms':
             return 'Hookean(%d, %d)' % tuple(self.indices)
