@@ -60,6 +60,10 @@ class DevNull:
 devnull = DevNull()
 
 
+# Only Windows has O_BINARY:
+CEW_FLAGS = os.O_CREAT | os.O_EXCL | os.O_WRONLY | getattr(os, 'O_BINARY', 0)
+
+
 def opencew(filename, world=None):
     """Create and open filename exclusively for writing.
 
@@ -73,7 +77,7 @@ def opencew(filename, world=None):
         
     if world.rank == 0:
         try:
-            fd = os.open(filename, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            fd = os.open(filename, CEW_FLAGS)
         except OSError:
             ok = 0
         else:

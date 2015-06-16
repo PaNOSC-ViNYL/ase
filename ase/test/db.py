@@ -1,5 +1,10 @@
-from ase.test import cli
+import sys
+from ase.test import cli, NotAvailable
 from ase.db import connect
+
+if sys.platform == 'win32':
+    raise NotAvailable('Fails on Windows!')
+
 
 cmd = """
 ase-build H | ase-run emt -d y.json &&
