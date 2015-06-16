@@ -55,6 +55,7 @@ class Summary:
             ('fmax', 'eV/Ang', fmax),
             ('charge', '|e|', dct.get('charge')),
             ('mass', 'au', mass),
+            ('magnetic moment', 'au', dct.get('magmom')),
             ('unique id', '', dct.unique_id),
             ('volume', 'Ang^3', abs(np.linalg.det(dct.cell)))]
         self.table = [(name, unit, value) for name, unit, value in table
