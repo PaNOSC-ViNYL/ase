@@ -8,7 +8,7 @@ from ase.atoms import Atoms
 from ase.io.aff import affopen, DummyWriter, InvalidAFFError
 from ase.io.jsonio import encode, decode
 from ase.io.pickletrajectory import PickleTrajectory
-from ase.parallel import rank, size
+from ase.parallel import world
 
 __all__ = ['Trajectory', 'PickleTrajectory']
 
@@ -88,7 +88,7 @@ class TrajectoryWriter:
             argument is given, processes where it is True will write.
         """
         if master is None:
-            master = (rank == 0)
+            master = (world.rank == 0)
         self.master = master
         self.atoms = atoms
         self.properties = properties
@@ -125,7 +125,7 @@ class TrajectoryWriter:
         if hasattr(atoms, 'interpolate'):
             # seems to be a NEB
             neb = atoms
-            assert not neb.parallel or size == 1
+            assert not neb.parallel or world.size == 1
             for image in neb.images:
                 self.write(image)
             return
@@ -212,7 +212,7 @@ class TrajectoryWriter:
         self.backend.close()
 
     def __len__(self):
-        return len(self.backend)
+        return world.sum(len(self.backend))
 
 
 class TrajectoryReader:
@@ -227,7 +227,7 @@ class TrajectoryReader:
             The name of the parameter file.  Traditionally ends in .traj.
         """
         if master is None:
-            master = (rank == 0)
+            master = (world.rank == 0)
         self.master = master
         
         self.numbers = None
