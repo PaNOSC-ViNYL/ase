@@ -13,76 +13,70 @@ from ase.parallel import world
 __all__ = ['Trajectory', 'PickleTrajectory']
 
 
-def Trajectory(filename, mode='r', atoms=None, master=None):
+def Trajectory(filename, mode='r', atoms=None, properties=None, master=None):
     """A Trajectory can be created in read, write or append mode.
 
     Parameters:
 
-    filename:
-        The name of the parameter file.  Should end in .traj.
-
-    mode='r':
-        The mode.
-
-        'r' is read mode, the file should already exist, and
+    filename: str
+        The name of the file.  Traditionally ends in .traj.
+    mode: str
+        The mode.  'r' is read mode, the file should already exist, and
         no atoms argument should be specified.
-
         'w' is write mode.  If the file already exists, it is
         renamed by appending .bak to the file name.  The atoms
         argument specifies the Atoms object to be written to the
         file, if not given it must instead be given as an argument
         to the write() method.
-
-        'a' is append mode.  It acts a write mode, except that
+        'a' is append mode.  It acts as write mode, except that
         data is appended to a preexisting file.
-
-    atoms=None:
+    atoms: Atoms object
         The Atoms object to be written in write or append mode.
-
-    master=None:
+    properties: list of str
+        If specified, these calculator properties are saved in the
+        trajectory.  If not specified, all supported quantities are
+        saved.  Possible values: energy, forces, stress, dipole,
+        charges, magmom and magmoms.
+    master: bool
         Controls which process does the actual writing. The
         default is that process number 0 does this.  If this
         argument is given, processes where it is True will write.
 
-    The atoms and master arguments are ignores in read mode.
+    The atoms, properties and master arguments are ignores in read mode.
     """
     if mode == 'r':
         return TrajectoryReader(filename)
-    return TrajectoryWriter(filename, mode, atoms, master=master)
+    return TrajectoryWriter(filename, mode, atoms, properties, master=master)
     
     
 class TrajectoryWriter:
-    """Writes Atoms objects to a .trj file."""
+    """Writes Atoms objects to a .traj file."""
     def __init__(self, filename, mode='w', atoms=None, properties=None,
                  extra=[], master=None):
         """A Trajectory writer, in write or append mode.
 
         Parameters:
 
-        filename:
-            The name of the parameter file.  Should end in .traj.
-
-        mode='w':
-            The mode.
-
+        filename: str
+            The name of the file.  Traditionally ends in .traj.
+        mode: str
+            The mode.  'r' is read mode, the file should already exist, and
+            no atoms argument should be specified.
             'w' is write mode.  If the file already exists, it is
             renamed by appending .bak to the file name.  The atoms
             argument specifies the Atoms object to be written to the
             file, if not given it must instead be given as an argument
             to the write() method.
-
-            'a' is append mode.  It acts a write mode, except that
+            'a' is append mode.  It acts as write mode, except that
             data is appended to a preexisting file.
-
-        atoms=None:
+        atoms: Atoms object
             The Atoms object to be written in write or append mode.
-
-        properties=None:
+        properties: list of str
             If specified, these calculator properties are saved in the
             trajectory.  If not specified, all supported quantities are
-            saved.
-
-        master=None:
+            saved.  Possible values: energy, forces, stress, dipole,
+            charges, magmom and magmoms.
+        master: bool
             Controls which process does the actual writing. The
             default is that process number 0 does this.  If this
             argument is given, processes where it is True will write.
@@ -116,6 +110,10 @@ class TrajectoryWriter:
 
         If the atoms argument is not given, the atoms object specified
         when creating the trajectory object is used.
+        
+        Use keyword arguments to add extra properties::
+            
+            writer.write(atoms, energy=117, dipole=[0, 0, 1.0])
         """
         b = self.backend
 
@@ -156,6 +154,10 @@ class TrajectoryWriter:
             b.write(charges=atoms.get_initial_charges())
 
         calc = atoms.get_calculator()
+        
+        if calc is None and len(kwargs) > 0:
+            calc = SinglePointCalculator(atoms)
+
         if calc is not None:
             if not isinstance(calc, Calculator):
                 calc = OldCalculatorWrapper(calc)
@@ -164,19 +166,23 @@ class TrajectoryWriter:
             for prop in all_properties:
                 if prop in kwargs:
                     x = kwargs[prop]
-                elif self.properties is not None and prop in self.properties:
-                    x = calc.get_property(prop, atoms)
                 else:
-                    try:
-                        x = calc.get_property(prop, atoms,
-                                              allow_calculation=False)
-                    except (NotImplementedError, KeyError):
-                        # KeyError is needed for Jacapo.
-                        x = None
+                    if self.properties is not None:
+                        if prop in self.properties:
+                            x = calc.get_property(prop, atoms)
+                        else:
+                            x = None
+                    else:
+                        try:
+                            x = calc.get_property(prop, atoms,
+                                                  allow_calculation=False)
+                        except (NotImplementedError, KeyError):
+                            # KeyError is needed for Jacapo.
+                            x = None
                 if x is not None:
                     if prop in ['stress', 'dipole']:
                         x = x.tolist()
-                    c.write(**{prop: x})
+                    c.write(prop, x)
 
         info = {}
         for key, value in atoms.info.items():
@@ -216,19 +222,12 @@ class TrajectoryWriter:
 
 
 class TrajectoryReader:
-    """Reads/writes Atoms objects from/to a .trj file."""
-    def __init__(self, filename, properties=None,
-                 extra=[], master=None):
+    """Reads Atoms objects from a .traj file."""
+    def __init__(self, filename):
         """A Trajectory in read mode.
 
-        Parameters:
-
-        filename:
-            The name of the parameter file.  Traditionally ends in .traj.
+        The filename traditionally ends in .traj.
         """
-        if master is None:
-            master = (world.rank == 0)
-        self.master = master
         
         self.numbers = None
         self.pbc = None

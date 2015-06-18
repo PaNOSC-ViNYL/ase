@@ -206,14 +206,20 @@ class Writer:
         self.fd.seek(0, 2)  # end of file
         self.data = {}
         
-    def write(self, **kwargs):
+    def write(self, *args, **kwargs):
         """Write data.
 
-        Use::
-
-            writer.write(n=7, s='abc', a=np.zeros(3), density=density).
+        Examples::
+            
+            writer.write('n', 7)
+            writer.write(n=7)
+            writer.write(n=7, s='abc', a=np.zeros(3), density=density)
         """
         
+        if args:
+            name, value = args
+            kwargs[name] = value
+            
         self._write_header()
 
         for name, value in kwargs.items():
@@ -381,6 +387,9 @@ class Reader:
     def __str__(self):
         return self.tostr(False, '').replace('\n', ' ')
 
+    def close(self):
+        self._fd.close()
+        
         
 class NDArrayReader:
     def __init__(self, fd, shape, dtype, offset):
