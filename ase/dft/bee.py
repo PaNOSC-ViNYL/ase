@@ -10,7 +10,7 @@ from ase.parallel import rank
 
 def ensemble(energy, contributions, xc, verbose=False):
     """Returns an array of ensemble total energies."""
-    ensemble = BEEFEnsemble(energy, contributions, xc, verbose)
+    ensemble = BEEFEnsemble(None, energy, contributions, xc, verbose)
     return ensemble.get_ensemble_energies()
     
 
