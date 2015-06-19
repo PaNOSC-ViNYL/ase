@@ -19,14 +19,19 @@ def write_xsf(fileobj, images, data=None):
     numbers = images[0].get_atomic_numbers()
     
     pbc = images[0].get_pbc()
+    npbc = sum(pbc)
     if pbc[2]:
         fileobj.write('CRYSTAL\n')
+        assert npbc == 3
     elif pbc[1]:
         fileobj.write('SLAB\n')
+        assert npbc == 2
     elif pbc[0]:
         fileobj.write('POLYMER\n')
+        assert npbc == 1
     else:
-        fileobj.write('MOLECULE\n')
+        fileobj.write('ATOMS\n')
+        assert npbc == 0
 
     for n, atoms in enumerate(images):
         if pbc.any():
@@ -35,7 +40,7 @@ def write_xsf(fileobj, images, data=None):
             for i in range(3):
                 fileobj.write(' %.14f %.14f %.14f\n' % tuple(cell[i]))
 
-        fileobj.write('PRIMCOORD %d\n' % (n + 1))
+            fileobj.write('PRIMCOORD %d\n' % (n + 1))
 
         # Get the forces if it's not too expensive:
         calc = atoms.get_calculator()
@@ -49,7 +54,8 @@ def write_xsf(fileobj, images, data=None):
 
         pos = atoms.get_positions()
 
-        fileobj.write(' %d 1\n' % len(pos))
+        if pbc.any():
+            fileobj.write(' %d 1\n' % len(pos))
         for a in range(len(pos)):
             fileobj.write(' %2d' % numbers[a])
             fileobj.write(' %20.14f %20.14f %20.14f' % tuple(pos[a]))
@@ -118,6 +124,7 @@ def read_xsf(fileobj, index=-1, read_data=False):
     elif 'POLYMER' in line:
         pbc = (True, False, False)
     else:
+        assert 'ATOMS' in line
         pbc = False
 
     images = []
@@ -136,19 +143,24 @@ def read_xsf(fileobj, index=-1, read_data=False):
                 readline()
             line = readline().strip()
 
-        assert 'PRIMCOORD' in line
+        if pbc:
+            assert 'PRIMCOORD' in line
+            natoms = int(readline().split()[0])
+            line = readline()
+        else:
+            natoms = None
 
-        natoms = int(readline().split()[0])
         numbers = []
         positions = []
-        for a in range(natoms):
-            line = readline().split()
-            symbol = line[0]
+        while line != '':
+            tokens = line.split()
+            symbol = tokens[0]
             if symbol.isdigit():
                 numbers.append(int(symbol))
             else:
                 numbers.append(atomic_numbers[symbol])
-            positions.append([float(x) for x in line[1:]])
+            positions.append([float(x) for x in tokens[1:]])
+            line = readline()
 
         positions = np.array(positions)
         if len(positions[0]) == 3:

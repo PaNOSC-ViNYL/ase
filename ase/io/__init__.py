@@ -680,7 +680,7 @@ def filetype(filename):
         if line[0] != b'#':
             word = line.strip()
             if word in [b'ANIMSTEPS', b'CRYSTAL', b'SLAB', b'POLYMER',
-                        b'MOLECULE']:
+                        b'MOLECULE', b'ATOMS']:
                 return 'xsf'
 
     filename_v = os.path.basename(filename)
