@@ -132,7 +132,7 @@ def read_xsf(fileobj, index=-1, read_data=False):
         cell = None
         if pbc:
             line = readline().strip()
-            assert 'PRIMVEC' in line
+            assert 'PRIMVEC' in line, line
             cell = []
             for i in range(3):
                 cell.append([float(x) for x in readline().split()])
@@ -146,13 +146,16 @@ def read_xsf(fileobj, index=-1, read_data=False):
         if pbc:
             assert 'PRIMCOORD' in line
             natoms = int(readline().split()[0])
-            line = readline()
+            lines = [readline() for _ in range(natoms)]
         else:
-            natoms = None
+            lines = []
+            while line != '':
+                lines.append(line)
+                line = readline()
 
         numbers = []
         positions = []
-        while line != '':
+        for line in lines:
             tokens = line.split()
             symbol = tokens[0]
             if symbol.isdigit():
@@ -160,7 +163,6 @@ def read_xsf(fileobj, index=-1, read_data=False):
             else:
                 numbers.append(atomic_numbers[symbol])
             positions.append([float(x) for x in tokens[1:]])
-            line = readline()
 
         positions = np.array(positions)
         if len(positions[0]) == 3:

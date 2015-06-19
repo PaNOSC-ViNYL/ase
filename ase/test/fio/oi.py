@@ -45,7 +45,8 @@ except ImportError:
 else:
     r += ['etsf']
 
-w = r + ['xsf', 'findsym']
+w = r + ['xsf',
+         'findsym']
 try:
     import matplotlib
 except ImportError:
@@ -63,9 +64,20 @@ for format in w:
     print(format, 'O', end=' ')
     fname1 = 'io-test.1.' + format
     fname2 = 'io-test.2.' + format
-    write(fname1, atoms, format=format)
-    if format not in only_one_image:
-        write(fname2, images, format=format)
+    if format == 'xsf':
+        # The xsf format supports only pbc=000, 100, 110, or 111.
+        # No crazy ideas like 001.  So let's try all the combinations
+        # writing all the files on top of each other.
+        atoms1 = atoms.copy()
+        for pbc in [1, 0, 0], [1, 1, 0], [1, 1, 1]:
+            atoms1.pbc = pbc
+            images1 = [atoms1] * 2
+            write(fname2, images1, format='xsf')
+            atoms2 = read(fname2)
+    else:
+        write(fname1, atoms, format=format)
+        if format not in only_one_image:
+            write(fname2, images, format=format)
 
     if format in r:
         print('I')
