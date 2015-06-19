@@ -255,7 +255,7 @@ class DummyWriter:
     def sync(self):
         pass
         
-    def write(self, **kwargs):
+    def write(self, *args, **kwargs):
         pass
         
     def child(self, name):
