@@ -6,7 +6,6 @@ import re
 from time import time
 
 from ase.atoms import Atoms, symbols2numbers
-from ase.db.row import atoms2dict, AtomsRow
 from ase.calculators.calculator import all_properties, all_changes
 from ase.data import atomic_numbers
 from ase.parallel import world, broadcast, DummyMPI

@@ -407,7 +407,7 @@ class SQLite3Database(Database):
                     key = 'username'
                 elif key == 'pbc':
                     assert op in ['=', '!=']
-                    value = np.dot([x == 'T' for x in value], [1, 2, 4])
+                    value = int(np.dot([x == 'T' for x in value], [1, 2, 4]))
                 where.append('systems.{0}{1}?'.format(key, op))
                 args.append(value)
             elif isinstance(key, int):
