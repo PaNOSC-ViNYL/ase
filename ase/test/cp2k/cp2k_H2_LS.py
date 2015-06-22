@@ -32,7 +32,7 @@ def main():
     energy = h2.get_potential_energy()
     energy_ref = -30.6989581747
     diff = abs((energy - energy_ref) / energy_ref)
-    assert diff < 1e-10
+    assert diff < 5e-7
     print('passed test "H2_LS"')
 
 
