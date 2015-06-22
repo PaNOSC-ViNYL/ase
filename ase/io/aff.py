@@ -48,7 +48,6 @@ To see what's inside 'x.aff' do this::
 
 import optparse
 import os
-import types
 
 import numpy as np
 
@@ -226,7 +225,7 @@ class Writer:
         for name, value in kwargs.items():
             if isinstance(value, (bool, int, float, complex,
                                   dict, list, tuple, basestring,
-                                  types.NoneType)):
+                                  type(None))):
                 self.data[name] = value
             elif isinstance(value, np.ndarray):
                 self.add_array(name, value.shape, value.dtype)
