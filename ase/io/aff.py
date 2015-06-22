@@ -46,8 +46,9 @@ To see what's inside 'x.aff' do this::
 
 # endianness ???
 
-import os
 import optparse
+import os
+import types
 
 import numpy as np
 
@@ -224,7 +225,8 @@ class Writer:
 
         for name, value in kwargs.items():
             if isinstance(value, (bool, int, float, complex,
-                                  dict, list, tuple, basestring)):
+                                  dict, list, tuple, basestring,
+                                  types.NoneType)):
                 self.data[name] = value
             elif isinstance(value, np.ndarray):
                 self.add_array(name, value.shape, value.dtype)
