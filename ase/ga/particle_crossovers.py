@@ -58,35 +58,31 @@ class CutSpliceCrossover(Crossover):
         f.translate(-f.get_center_of_mass())
         m.translate(-m.get_center_of_mass())
         
-        off = 1
-        while off != 0:
-            
-            # Get the signed distance to the cutting plane
-            # We want one side from f and the other side from m
-            fmap = [np.dot(x, e) for x in f.get_positions()]
-            mmap = [-np.dot(x, e) for x in m.get_positions()]
-            ain = sorted([i for i in chain(fmap, mmap) if i > 0],
-                         reverse=True)
-            aout = sorted([i for i in chain(fmap, mmap) if i < 0],
-                          reverse=True)
+        # Get the signed distance to the cutting plane
+        # We want one side from f and the other side from m
+        fmap = [np.dot(x, e) for x in f.get_positions()]
+        mmap = [-np.dot(x, e) for x in m.get_positions()]
+        ain = sorted([i for i in chain(fmap, mmap) if i > 0],
+                     reverse=True)
+        aout = sorted([i for i in chain(fmap, mmap) if i < 0],
+                      reverse=True)
 
-            off = len(ain) - len(f)
+        off = len(ain) - len(f)
 
-            # Translating f and m to get the correct number of atoms
-            # in the offspring
-            if off < 0:
-                # too few
-                # move f and m away from the plane
-                dist = abs(aout[abs(off) - 1]) + eps
-                f.translate(e * dist)
-                m.translate(-e * dist)
-            elif off > 0:
-                # too many
-                # move f and m towards the plane
-                dist = abs(ain[-abs(off)]) + eps
-                f.translate(-e * dist)
-                m.translate(e * dist)
-            eps *= .2
+        # Translating f and m to get the correct number of atoms
+        # in the offspring
+        if off < 0:
+            # too few
+            # move f and m away from the plane
+            dist = (abs(aout[abs(off) - 1]) + abs(aout[abs(off)])) * .5
+            f.translate(e * dist)
+            m.translate(-e * dist)
+        elif off > 0:
+            # too many
+            # move f and m towards the plane
+            dist = (abs(ain[-off - 1]) + abs(ain[-off])) * .5
+            f.translate(-e * dist)
+            m.translate(e * dist)
 
         # Determine the contributing parts from f and m
         tmpf, tmpm = Atoms(), Atoms()

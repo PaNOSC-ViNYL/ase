@@ -12,6 +12,7 @@ op = CutSpliceCrossover({(28, 29): 2.0, (28, 28): 2.0, (29, 29): 2.0},
 a3, desc = op.get_new_individual([ico1, ico2])
 
 assert len(set(a3.get_chemical_symbols())) == 2
+assert len(a3) == 55
 
 ico1.numbers[:20] = [28] * 20
 shuffle(ico1.numbers)
