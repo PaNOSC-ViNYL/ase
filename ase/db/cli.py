@@ -55,8 +55,8 @@ def main(args=sys.argv[1:]):
     add('-k', '--add-key-value-pairs', metavar='key1=val1,key2=val2,...',
         help='Add key-value pairs to selected rows.  Values must be numbers '
         'or strings and keys must follow the same rules as keywords.')
-    add('-L', '--limit', type=int, default=500, metavar='N',
-        help='Show only first N rows (default is 500 rows).  Use --limit=0 '
+    add('-L', '--limit', type=int, default=20, metavar='N',
+        help='Show only first N rows (default is 20 rows).  Use --limit=0 '
         'to show all.')
     add('--offset', type=int, default=0, metavar='N',
         help='Skip first N rows.  By default, no rows are skipped')
@@ -279,4 +279,4 @@ def run(opts, args, verbosity):
             if opts.csv:
                 table.write_csv()
             else:
-                table.write()
+                table.write(query)

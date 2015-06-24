@@ -4,7 +4,6 @@ import numpy as np
 import pickle
 
 from ase import Atoms
-from ase.data import chemical_symbols
 from ase.cluster.base import ClusterBase
 
 
@@ -26,7 +25,7 @@ class Cluster(Atoms, ClusterBase):
 
     def get_surfaces(self):
         """Returns the miller indexs of the stored surfaces of the cluster."""
-        if not self.surfaces is None:
+        if self.surfaces is not None:
             return self.surfaces.copy()
         else:
             return None
@@ -81,7 +80,7 @@ class Cluster(Atoms, ClusterBase):
         else:
             return 0.0
 
-    #Functions to store the cluster
+    # Functions to store the cluster
     def write(self, filename=None):
         if not isinstance(filename, str):
             raise Warning('You must specify a valid filename.')

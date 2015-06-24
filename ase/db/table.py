@@ -63,7 +63,7 @@ class Table:
             del self.columns[n]
                 
     def format(self, subscript=None):
-        right = set()
+        right = set()  # right-adjust numbers
         allkeys = set()
         for row in self.rows:
             numbers = row.format(self.columns, subscript)
@@ -75,7 +75,7 @@ class Table:
         
         self.keys = sorted(allkeys)
 
-    def write(self):
+    def write(self, query=None):
         self.format()
         L = [[len(s) for s in row.strings]
              for row in self.rows]
@@ -93,11 +93,13 @@ class Table:
         if self.verbosity == 0:
             return
             
-        print('Rows:', len(self.rows), end='')
-        if self.limit and len(self.rows) == self.limit:
-            print(' (limited to first {0})'.format(self.limit))
+        nrows = len(self.rows)
+        
+        if self.limit and nrows == self.limit:
+            n = self.connection.count(query)
+            print('Rows:', n, '(showing first {0})'.format(self.limit))
         else:
-            print()
+            print('Rows:', nrows)
 
         if self.keys:
             print('Keys:', ', '.join(cutlist(self.keys, self.cut)))
