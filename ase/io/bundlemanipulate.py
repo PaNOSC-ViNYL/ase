@@ -13,7 +13,7 @@ original data without invalidating the copy.
 
 from ase.io.bundletrajectory import BundleTrajectory
 import os
-import pickle as pickle
+import pickle
 
 def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
                 verbose=False):

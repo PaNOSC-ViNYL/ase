@@ -1,7 +1,7 @@
 import os
 import math
 import numpy as np
-import pickle as pickle
+import pickle
 
 from ase import Atoms
 from ase.data import chemical_symbols

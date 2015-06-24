@@ -25,7 +25,7 @@ import numpy as np
 import os
 import shutil
 import time
-import pickle as pickle
+import pickle
 import collections
 
 class BundleTrajectory:
