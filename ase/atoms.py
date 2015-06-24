@@ -619,15 +619,6 @@ class Atoms(object):
         else:
             return self.arrays['positions'].copy()
 
-    def get_calculation_done(self):
-        """Let the calculator calculate its thing,
-           using the current input.
-           """
-        if self.calc is None:
-            raise RuntimeError('Atoms object has no calculator.')
-        self.calc.initialize(self)
-        self.calc.calculate(self)
-
     def get_potential_energy(self, force_consistent=False,
                              apply_constraint=True):
         """Calculate potential energy.
