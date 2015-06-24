@@ -448,7 +448,7 @@ class SQLite3Database(Database):
         if sort:
             if sort_table == 'systems':
                 if sort in ['energy', 'fmax', 'smax', 'calculator']:
-                    where.append('systems.{0} NOT NULL'.format(sort))
+                    where.append('systems.{0} IS NOT NULL'.format(sort))
             else:
                 if not found_sort_table:
                     tables.append('{0} AS sort_table'.format(sort_table))
@@ -478,7 +478,7 @@ class SQLite3Database(Database):
             else:
                 order = 'ASC'
             if sort in ['id', 'energy', 'username', 'calculator',
-                        'ctime', 'mtime',
+                        'ctime', 'mtime', 'magmom', 'pbc',
                         'fmax', 'smax', 'volume', 'mass', 'charge', 'natoms']:
                 sort_table = 'systems'
             else:
