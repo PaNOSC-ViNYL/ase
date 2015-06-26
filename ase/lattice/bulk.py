@@ -62,7 +62,7 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None, u=None,
                 covera = sqrt(8 / 3)
 
     if orthorhombic and crystalstructure != 'sc':
-        return _orthorhombic_bulk(name, crystalstructure, a, covera)
+        return _orthorhombic_bulk(name, crystalstructure, a, covera, u)
 
     if cubic and crystalstructure in ['bcc', 'cesiumchloride']:
         return _orthorhombic_bulk(name, crystalstructure, a, covera)
@@ -123,7 +123,7 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None, u=None,
     return atoms
 
 
-def _orthorhombic_bulk(name, crystalstructure, a, covera=None):
+def _orthorhombic_bulk(name, crystalstructure, a, covera=None, u=None):
     if crystalstructure == 'fcc':
         b = a / sqrt(2)
         atoms = Atoms(2 * name, cell=(b, b, a), pbc=True,
@@ -156,6 +156,19 @@ def _orthorhombic_bulk(name, crystalstructure, a, covera=None):
     elif crystalstructure == 'cesiumchloride':
         atoms = Atoms(name, cell=(a, a, a), pbc=True,
                       scaled_positions=[(0, 0, 0), (0.5, 0.5, 0.5)])
+    elif crystalstructure == 'wurtzite':
+        u = u or 0.25 + 1 / 3 / covera**2
+        atoms = Atoms(4 * name,
+                      cell=(a, a * 3**0.5, covera * a),
+                      scaled_positions = [(0, 0, 0),
+                                          (0, 1 / 3, 0.5 - u),
+                                          (0, 1 / 3, 0.5),
+                                          (0, 0, 1 - u),
+                                          (0.5, 0.5, 0),
+                                          (0.5, 5 / 6, 0.5 - u),
+                                          (0.5, 5 / 6, 0.5),
+                                          (0.5, 0.5, 1 - u)],
+                      pbc=True)
     else:
         raise RuntimeError
 
