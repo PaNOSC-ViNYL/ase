@@ -6,6 +6,7 @@ from numpy.linalg import norm
 from lammps import lammps
 from ase.calculators.calculator import Calculator
 from ase.units import GPa
+import ase.units
 import ctypes
 
 # TODO
@@ -180,6 +181,10 @@ End LAMMPSlib Interface Documentation
 
     implemented_properties = ['energy', 'forces', 'stress']
 
+    #NB
+    started = False
+    initialized = False
+
     default_parameters = dict(
         atom_types=None,
         log_file=None,
@@ -188,7 +193,28 @@ End LAMMPSlib Interface Documentation
                        'atom_style atomic',
                        'atom_modify map array sort 0 0'])
 
+    def set_cell(self, atoms, change=False):
+        cell = self.convert_cell(atoms.get_cell())
+        xhi = cell[0, 0]
+        yhi = cell[1, 1]
+        zhi = cell[2, 2]
+        xy = cell[0, 1]
+        xz = cell[0, 2]
+        yz = cell[1, 2]
+
+        if change:
+            cell_cmd = 'change_box all     x final 0 {} y final 0 {} z final 0 {}      xy final {} xz final {} yz final {}'\
+                .format(xhi, yhi, zhi, xy, xz, yz)
+        else:
+            cell_cmd = 'region cell prism    0 {} 0 {} 0 {}     {} {} {}     units box'\
+                .format(xhi, yhi, zhi, xy, xz, yz)
+        self.lmp.command(cell_cmd)
+
     def calculate(self, atoms, properties, system_changes):
+        self.propagate(atoms, properties, system_changes, 0)
+
+    def propagate(self, atoms, properties, system_changes, n_steps, dt=None):
+
         """"atoms: Atoms object
             Contains positions, unit-cell, ...
         properties: list of str
@@ -206,18 +232,14 @@ End LAMMPSlib Interface Documentation
         self.atom_types = None
         self.coord_transform = None
 
-        if self.parameters.log_file == None:
-            cmd_args = ['-echo', 'log', '-log', 'none', '-screen', 'none']
-        else:
-            cmd_args = ['-echo', 'log', '-log', self.parameters.log_file,
-                        '-screen', 'none']
+	if not self.started:
+            self.start_lammps()
 
-        self.cmd_args = cmd_args
-
-        if not hasattr(self, 'lmp'):
-            self.lmp = lammps('', self.cmd_args)
-        
-        self.initialise_lammps(atoms)
+	#NB
+	if not self.initialized:
+	   self.initialise_lammps(atoms)
+        else: # still need to reset cell
+           self.set_cell(atoms, change=True)
 
         pos = atoms.get_positions()
 
@@ -235,8 +257,33 @@ End LAMMPSlib Interface Documentation
 #        self.lmp.put_coosrds(lmp_c_positions)
         self.lmp.scatter_atoms('x', 1, 3, lmp_c_positions)
 
+
+        if n_steps > 0:
+            vel = atoms.get_velocities()/(ase.units.Ang/(1.0e-12*ase.units.s))
+
+            # If necessary, transform the velocities to new coordinate system
+            if self.coord_transform != None:
+                vel = self.coord_transform * np.matrix.transpose(vel)
+                vel = np.matrix.transpose(vel)
+
+            # Convert ase velocities matrix to lammps-style velocities array
+            lmp_velocities = list(vel.ravel())
+
+            # Convert that lammps-style array into a C object
+            lmp_c_velocities =\
+                (ctypes.c_double * len(lmp_velocities))(*lmp_velocities)
+#            self.lmp.put_coosrds(lmp_c_velocities)
+            self.lmp.scatter_atoms('v', 1, 3, lmp_c_velocities)
+ 
         # Run for 0 time to calculate
-        self.lmp.command('run 0')
+        if dt is not None:
+            self.lmp.command('timestep %f' % (dt/(1.0e-12*ase.units.s)))
+        self.lmp.command('run %d' % n_steps)
+
+        if n_steps > 0:
+            # TODO this must be slower than native copy, but why is it broken?
+            atoms.set_positions(np.array([x for x in self.lmp.gather_atoms("x",1,3)]).reshape(-1,3))
+            atoms.set_velocities(np.array([v for v in self.lmp.gather_atoms("v",1,3)]).reshape(-1,3)*(ase.units.Ang/(1.0e-12*ase.units.s))) # TODO convert from ASE velo to lammps metal velo A/ps
 
         # Extract the forces and energy
 #        if 'energy' in properties:
@@ -313,12 +360,28 @@ End LAMMPSlib Interface Documentation
         else:
             return 's'
 
-    def initialise_lammps(self, atoms):
-        # Initialising commands
+    def start_lammps(self):
+        # start lammps process
+        if self.parameters.log_file == None:
+            cmd_args = ['-echo', 'log', '-log', 'none', '-screen', 'none']
+        else:
+            cmd_args = ['-echo', 'log', '-log', self.parameters.log_file,
+                        '-screen', 'none']
 
-        # Use metal units, Angstrom and eV
+        self.cmd_args = cmd_args
+
+        if not hasattr(self, 'lmp'):
+            self.lmp = lammps('', self.cmd_args)
+
+        # Use metal units: Angstrom, ps, and eV
         for cmd in self.parameters.lammps_header:
             self.lmp.command(cmd)
+
+        self.started=True
+
+    def initialise_lammps(self, atoms):
+
+        # Initialising commands
 
         # if the boundary command is in the supplied commands use that
         # otherwise use atoms pbc
@@ -331,18 +394,8 @@ End LAMMPSlib Interface Documentation
                 'boundary ' + ' '.join([self.lammpsbc(bc) for bc in pbc]))
 
         # Initialize cell
-        cell = self.convert_cell(atoms.get_cell())
-        xhi = cell[0, 0]
-        yhi = cell[1, 1]
-        zhi = cell[2, 2]
-        xy = cell[0, 1]
-        xz = cell[0, 2]
-        yz = cell[1, 2]
+        self.set_cell(atoms)
 
-        cell_cmd = 'region cell prism 0 {} 0 {} 0 {} {} {} {} units box'\
-            .format(xhi, yhi, zhi, xy, xz, yz)
-        self.lmp.command(cell_cmd)
-        
         # The default atom_types has atom type in alphabetic order
         # by atomic symbol
         symbols = np.asarray(atoms.get_chemical_symbols())
@@ -370,8 +423,13 @@ End LAMMPSlib Interface Documentation
 
         self.lmp.command('echo log') # turn back on
 
-        # Set masses, even though they don't matter
-        self.lmp.command('mass * 1.0')
+        # Set masses
+        masses = atoms.get_masses()
+        for sym in self.atom_types:
+            for i in range(len(atoms)):
+                if symbols[i] == sym:
+                    self.lmp.command('mass %d %f' % (self.atom_types[sym], masses[i]/(1.0e-3 * ase.units.kg /ase.units.mol))) # TODO convert from amu (ASE) to g/mole (metal))
+                    break
 
         # execute the user commands
         for cmd in self.parameters.lmpcmds:
@@ -397,5 +455,6 @@ End LAMMPSlib Interface Documentation
         # do we need this if we extract from a global ?
         self.lmp.command('variable pe equal pe')
 
+	self.initialized = True
 
 #print('done loading lammpslib')
