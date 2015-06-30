@@ -874,7 +874,7 @@ class Atoms(object):
         for con in atoms.constraints:
             if isinstance(con, FixConstraint):
                 try:
-                    con.index_shuffle(i)
+                    con.index_shuffle(self, i)
                 except IndexError:
                     condel.append(con)
         for con in condel:

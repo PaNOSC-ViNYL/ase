@@ -15,25 +15,17 @@ def dict2constraint(dct):
     return globals()[dct['name']](**dct['kwargs'])
 
             
-def slice2enlist(s):
+def slice2enlist(s, n):
     """Convert a slice object into a list of (new, old) tuples."""
     if isinstance(s, (list, tuple)):
         return enumerate(s)
-    if s.step is None:
-        step = 1
-    else:
-        step = s.step
-    if s.start is None:
-        start = 0
-    else:
-        start = s.start
-    return enumerate(range(start, s.stop, step))
+    return enumerate(range(*s.indices(n)))
 
 
 class FixConstraint:
     """Base class for classes that fix one or more atoms in some way."""
 
-    def index_shuffle(self, ind):
+    def index_shuffle(self, atoms, ind):
         """Change the indices.
 
         When the ordering of the atoms in the Atoms object changes,
@@ -66,10 +58,10 @@ class FixConstraint:
 class FixConstraintSingle(FixConstraint):
     """Base class for classes that fix a single atom."""
 
-    def index_shuffle(self, ind):
+    def index_shuffle(self, atoms, ind):
         """The atom index must be stored as self.a."""
         newa = -1   # Signal error
-        for new, old in slice2enlist(ind):
+        for new, old in slice2enlist(ind, len(atoms)):
             if old == self.a:
                 newa = new
                 break
@@ -132,13 +124,13 @@ class FixAtoms(FixConstraint):
     def adjust_forces(self, atoms, forces):
         forces[self.index] = 0.0
 
-    def index_shuffle(self, ind):
+    def index_shuffle(self, atoms, ind):
         # See docstring of superclass
         if self.index.dtype == bool:
             self.index = self.index[ind]
         else:
             index = []
-            for new, old in slice2enlist(ind):
+            for new, old in slice2enlist(ind, len(atoms)):
                 if old in self.index:
                     index.append(new)
             if len(index) == 0:
@@ -251,10 +243,10 @@ class FixBondLength(FixConstraint):
         self.constraint_force = d
         forces[self.indices] += (-d, d)
 
-    def index_shuffle(self, ind):
+    def index_shuffle(self, atoms, ind):
         """Shuffle the indices of the two atoms in this constraint"""
         newa = [-1, -1]  # Signal error
-        for new, old in slice2enlist(ind):
+        for new, old in slice2enlist(ind, len(atoms)):
             for i, a in enumerate(self.indices):
                 if old == a:
                     newa[i] = new
@@ -290,7 +282,7 @@ class FixedMode(FixConstraint):
         forces = forces.ravel()
         forces -= self.mode * np.dot(forces, self.mode)
 
-    def index_shuffle(self, ind):
+    def index_shuffle(self, atoms, ind):
         eps = 1e-12
         mode = self.mode.reshape(-1, 3)
         excluded = np.ones(len(mode), dtype=bool)
@@ -876,8 +868,8 @@ class Hookean(FixConstraint):
         else:
             return 0.
 
-    def index_shuffle(self, ind):
-    # See docstring of superclass
+    def index_shuffle(self, atoms, ind):
+        # See docstring of superclass
         if self._type == 'two atoms':
             self.indices = [ind.index(self.indices[0]),
                             ind.index(self.indices[1])]
@@ -1034,7 +1026,6 @@ class Filter:
         'Return an atom.'
         return self.atoms[self.index[i]]
     
-
 
 class StrainFilter(Filter):
     """Modify the supercell while keeping the scaled positions fixed.
