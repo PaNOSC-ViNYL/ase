@@ -163,8 +163,8 @@ class Res(object):
                     except ValueError:
                         info = dict()
                 elif tokens[0] == 'CELL' and len(tokens) == 8:
-                    abc = map(float, tokens[2:5])
-                    ang = map(float, tokens[5:8])
+                    abc = [float(tok) for tok in tokens[2:5]]
+                    ang = [float(tok) for tok in tokens[5:8]]
                 elif tokens[0] == 'SFAC':
                     for atom_line in lines[line_no:]:
                         if line.strip() == 'END':
@@ -173,8 +173,8 @@ class Res(object):
                             match = coord_patt.search(atom_line)
                             if match:
                                 sp.append(match.group(1))  # 1-indexed
-                                coords.append(map(float,   # 0-indexed
-                                                  match.groups()[2:5]))
+                                cs = match.groups()[2:5]
+                                coords.append([float(c) for c in cs ])
                         line_no += 1  # Make sure the global is updated
             line_no += 1
 
@@ -211,7 +211,7 @@ class Res(object):
                 if getattr(self, attribute) and attribute not in info:
                     info[attribute] = getattr(self, attribute)
             lines = ['TITL ' + ' '.join(['{0}={1}'.format(k, v)
-                                         for (k, v) in info.iteritems()])]
+                                         for (k, v) in info.items()])]
         else:
             lines = ['TITL ' + self.print_title()]
 
@@ -270,7 +270,7 @@ class Res(object):
         else:
             tokens.append('n - 1')
 
-        return ' '.join(map(str, tokens))
+        return ' '.join([str(tok) for tok in tokens])
 
 
 def read_res(filename, index=-1):
