@@ -53,8 +53,8 @@ class InteratomicDistanceComparator(object):
             return False
 
         # then we check the structure
-        a1top = a1[-self.n_top: len(a1)]
-        a2top = a2[-self.n_top: len(a2)]
+        a1top = a1[-self.n_top:]
+        a2top = a2[-self.n_top:]
         cum_diff, max_diff = self.__compare_structure__(a1top, a2top)
 
         if cum_diff < self.pair_cor_cum_diff and max_diff < self.pair_cor_max:
