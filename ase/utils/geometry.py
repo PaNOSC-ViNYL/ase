@@ -738,7 +738,7 @@ def niggli_reduce(atoms):
 
     # Once A2 and A5-A8 all evaluate to False, the unit cell will have
     # been fully reduced.
-    for count in xrange(10000):
+    for count in range(10000):
         if (G.a > G.b + G.epsilon or
                 (not np.abs(G.a - G.b) > G.epsilon
                     and np.abs(G.x) > np.abs(G.y) + G.epsilon)):
