@@ -217,7 +217,7 @@ class Res(object):
 
         # Cell
         abc_ang = cell_to_cellpar(self.atoms.get_cell())
-        fmt = '{{:.{0}f}}'.format(significant_figures)
+        fmt = '{{0:.{0}f}}'.format(significant_figures)
         cell = ' '.join([fmt.format(a) for a in abc_ang])
         lines.append('CELL 1.0 ' + cell)
 
