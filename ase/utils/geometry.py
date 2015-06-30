@@ -664,11 +664,9 @@ def niggli_reduce(atoms):
             self.y = 2 * np.dot(atoms.cell[0], atoms.cell[2])
             self.z = 2 * np.dot(atoms.cell[0], atoms.cell[1])
 
-            self._G = np.array([
-                [self.a, self.z / 2., self.y / 2.],
-                [self.z / 2., self.b, self.x / 2.],
-                [self.y / 2., self.x / 2., self.c],
-                ])
+            self._G = np.array([[self.a, self.z / 2., self.y / 2.],
+                                [self.z / 2., self.b, self.x / 2.],
+                                [self.y / 2., self.x / 2., self.c]])
 
             self._lmn()
 
@@ -727,7 +725,7 @@ def niggli_reduce(atoms):
             vb = b * np.array([np.cos(gamma), np.sin(gamma), 0])
             cx = np.cos(beta)
             cy = (np.cos(alpha) - np.cos(beta) * np.cos(gamma)) \
-                    / np.sin(gamma)
+                / np.sin(gamma)
             cz = np.sqrt(1. - cx * cx - cy * cy)
             vc = c * np.array([cx, cy, cz])
 
@@ -743,11 +741,9 @@ def niggli_reduce(atoms):
                 (not np.abs(G.a - G.b) > G.epsilon
                     and np.abs(G.x) > np.abs(G.y) + G.epsilon)):
             # Procedure A1
-            A = np.array([
-                [0, -1, 0],
-                [-1, 0, 0],
-                [0, 0, -1],
-                ])
+            A = np.array([[0, -1, 0],
+                          [-1, 0, 0],
+                          [0, 0, -1]])
             G.update(A)
             C = np.dot(C, A)
 
@@ -755,11 +751,9 @@ def niggli_reduce(atoms):
                 (not np.abs(G.b - G.c) > G.epsilon
                     and np.abs(G.y) > np.abs(G.z) + G.epsilon)):
             # Procedure A2
-            A = np.array([
-                [-1, 0, 0],
-                [0, 0, -1],
-                [0, -1, 0],
-                ])
+            A = np.array([[-1, 0, 0],
+                          [0, 0, -1],
+                          [0, -1, 0]])
             G.update(A)
             C = np.dot(C, A)
             continue
@@ -769,11 +763,9 @@ def niggli_reduce(atoms):
             i = -1 if G.l == -1 else 1
             j = -1 if G.m == -1 else 1
             k = -1 if G.n == -1 else 1
-            A = np.array([
-                [i, 0, 0],
-                [0, j, 0],
-                [0, 0, k],
-                ])
+            A = np.array([[i, 0, 0],
+                          [0, j, 0],
+                          [0, 0, k]])
             G.update(A)
             C = np.dot(C, A)
         else:
@@ -789,11 +781,9 @@ def niggli_reduce(atoms):
                     j = -1
                 if G.n == 0:
                     k = -1
-            A = np.array([
-                [i, 0, 0],
-                [0, j, 0],
-                [0, 0, k],
-                ])
+            A = np.array([[i, 0, 0],
+                          [0, j, 0],
+                          [0, 0, k]])
             G.update(A)
             C = np.dot(C, A)
 
@@ -803,11 +793,9 @@ def niggli_reduce(atoms):
                 or (not np.abs(G.b + G.x) > G.epsilon
                     and G.z < -G.epsilon)):
             # Procedure A5
-            A = np.array([
-                [1, 0, 0],
-                [0, 1, -np.sign(G.x)],
-                [0, 0, 1],
-                ], dtype=int)
+            A = np.array([[1, 0, 0],
+                          [0, 1, -np.sign(G.x)],
+                          [0, 0, 1]], dtype=int)
             G.update(A)
             C = np.dot(C, A)
         elif (np.abs(G.y) > G.a + G.epsilon
@@ -816,11 +804,9 @@ def niggli_reduce(atoms):
                 or (not np.abs(G.a + G.y) > G.epsilon
                     and G.z < -G.epsilon)):
             # Procedure A6
-            A = np.array([
-                [1, 0, -np.sign(G.y)],
-                [0, 1, 0],
-                [0, 0, 1],
-                ], dtype=int)
+            A = np.array([[1, 0, -np.sign(G.y)],
+                          [0, 1, 0],
+                          [0, 0, 1]], dtype=int)
             G.update(A)
             C = np.dot(C, A)
         elif (np.abs(G.z) > G.a + G.epsilon
@@ -829,22 +815,18 @@ def niggli_reduce(atoms):
                 or (not np.abs(G.a + G.z) > G.epsilon
                     and G.y < -G.epsilon)):
             # Procedure A7
-            A = np.array([
-                [1, -np.sign(G.z), 0],
-                [0, 1, 0],
-                [0, 0, 1],
-                ], dtype=int)
+            A = np.array([[1, -np.sign(G.z), 0],
+                          [0, 1, 0],
+                          [0, 0, 1]], dtype=int)
             G.update(A)
             C = np.dot(C, A)
         elif (G.x + G.y + G.z + G.a + G.b < -G.epsilon
                 or (not np.abs(G.x + G.y + G.z + G.a + G.b) > G.epsilon
                     and 2 * (G.a + G.y) + G.z > G.epsilon)):
             # Procedure A8
-            A = np.array([
-                [1, 0, 1],
-                [0, 1, 1],
-                [0, 0, 1],
-                ])
+            A = np.array([[1, 0, 1],
+                          [0, 1, 1],
+                          [0, 0, 1]])
             G.update(A)
             C = np.dot(C, A)
         else:
