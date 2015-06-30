@@ -80,6 +80,7 @@ def read(filename, index=None, format=None):
     Extended XYZ file          extxyz
     NWChem input file          nw
     Materials Studio file      xsd
+    SHELX format               res    
     =========================  =============
 
     Many formats allow on open file-like object to be passed instead
@@ -359,6 +360,10 @@ def read(filename, index=None, format=None):
         from ase.io.xsd import read_xsd
         return read_xsd(filename)
 
+    if format in ['shelx', 'res']:
+        from ase.io.res import read_res
+        return read_res(filename, index)
+
     raise RuntimeError('File format descriptor ' + format + ' not recognized!')
 
 
@@ -412,6 +417,7 @@ def write(filename, images, format=None, **kwargs):
     X3D                        x3d
     X3DOM HTML                 html
     Extended XYZ file          extxyz
+    SHELX format               res
     =========================  ===========
 
     Many formats allow on open file-like object to be passed instead
@@ -571,6 +577,10 @@ def write(filename, images, format=None, **kwargs):
         from ase.io.x3d import write_html
         write_html(filename, images)
         return
+    elif format in ['shelx', 'res']:
+        from ase.io.res import write_res
+        write_res(filename, images)
+        return    
 
     format = {'traj': 'trajectory',
               'nc': 'netcdf',
@@ -810,5 +820,11 @@ def filetype(filename):
 
     if filename.endswith('xsd'):
         return 'xsd'
+
+    if filename.lower().endswith('.extxyz'):
+        return 'extxyz'
+
+    if filename.lower().endswith('.res'):
+        return 'res'
 
     return 'xyz'

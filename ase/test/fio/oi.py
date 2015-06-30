@@ -17,7 +17,8 @@ extra = np.array([2.3, 4.2])
 atoms.set_array('extra', extra)
 atoms *= (1, 1, 2)
 images = [atoms.copy(), atoms.copy()]
-r = ['xyz', 'traj', 'cube', 'pdb', 'cfg', 'struct', 'cif', 'gen', 'extxyz']
+r = ['xyz', 'traj', 'cube', 'pdb', 'cfg', 'struct',
+     'cif', 'gen', 'extxyz', 'res']
 
 # attach some results to the Atoms. These are serialised by the extxyz writer.
 spc = SinglePointCalculator(atoms,
@@ -58,7 +59,7 @@ if sys.version_info[0] == 3:
     r.remove('cif')
     
 only_one_image = ['cube', 'png', 'eps', 'cfg', 'struct', 'etsf', 'gen',
-                  'json', 'db']
+                  'json', 'db', 'res']
 
 for format in w:
     print(format, 'O', end=' ')
@@ -92,7 +93,7 @@ for format in w:
         if format in ['extxyz']:
             assert np.all(a1.get_pbc() == atoms.get_pbc())
             assert np.all(a1.get_potential_energy() == atoms.get_potential_energy())
-            assert np.all(a1.get_stress() == atoms.get_stress())            
+            assert np.all(a1.get_stress() == atoms.get_stress())
             assert np.all(abs(a1.get_forces() - atoms.get_forces()) < 1e-6)
 
         if format not in only_one_image:
