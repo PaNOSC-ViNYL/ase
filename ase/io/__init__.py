@@ -631,6 +631,9 @@ def filetype(filename):
     if filename.startswith('pg://'):
         return 'postgresql'
 
+    if filename.lower().endswith('.res'):
+        return 'res'    
+
     fileobj = open(filename, 'rb')
     s3 = fileobj.read(3)
     if len(s3) == 0:
@@ -823,8 +826,5 @@ def filetype(filename):
 
     if filename.lower().endswith('.extxyz'):
         return 'extxyz'
-
-    if filename.lower().endswith('.res'):
-        return 'res'
 
     return 'xyz'
