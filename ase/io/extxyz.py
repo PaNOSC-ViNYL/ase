@@ -15,7 +15,7 @@ import re
 import numpy as np
 
 from ase.atoms import Atoms
-from ase.calculators.calculator import all_properties
+from ase.calculators.calculator import all_properties, Calculator
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.parallel import paropen
 from ase.utils import basestring
@@ -429,8 +429,8 @@ def write_xyz(fileobj, images, columns=None, write_info=True, write_results=True
 
     Optionally, specify which columns (arrays) to include in output,
     and whether to write the contents of the Atoms.info dict to the
-    XYZ comment line (default is True) and the results of a
-    SinglePointCalculator attached to this Atoms.
+    XYZ comment line (default is True) and the results of any
+    calculator attached to this Atoms.
     """
     if isinstance(fileobj, str):
         fileobj = paropen(fileobj, 'w')
@@ -456,7 +456,7 @@ def write_xyz(fileobj, images, columns=None, write_info=True, write_results=True
         if write_results:
             calculator = atoms.get_calculator()
             if (calculator is not None and
-                isinstance(calculator, SinglePointCalculator)):
+                isinstance(calculator, Calculator)):
                 for key in all_properties:
                     value = calculator.results.get(key, None)
                     if value is None:
