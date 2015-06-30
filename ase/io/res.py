@@ -232,7 +232,7 @@ class Res(object):
                 species_types.append(symbol)
         lines.append('SFAC ' + ' '.join(species_types))
 
-        fmt = '{{}} {{}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}} 1.0'
+        fmt = '{{0}} {{1}} {{2:.{0}f}} {{3:.{0}f}} {{4:.{0}f}} 1.0'
         fmtstr = fmt.format(significant_figures)
         for symbol, coords in zip(symbols, self.atoms_.get_positions()):
             lines.append(
