@@ -150,6 +150,8 @@ class CP2K(Calculator):
         else:
             self.command = 'cp2k_shell'  # default
 
+        assert 'cp2k_shell' in self.command
+
         Calculator.__init__(self, restart, ignore_bad_restart_file,
                             label, atoms, **kwargs)
 
