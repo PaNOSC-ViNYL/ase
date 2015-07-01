@@ -134,6 +134,7 @@ class CP2K(Calculator):
         self._debug = debug
         self._force_env_id = None
         self._child = None
+        self._shell_version = None
         self.label = None
         self.parameters = None
         self.results = None
@@ -155,15 +156,19 @@ class CP2K(Calculator):
         # launch cp2k_shell child process
         if self._debug:
             print(self.command)
-        cmd = self.command.split()
-        self._child = Popen(cmd, stdin=PIPE, stdout=PIPE, bufsize=1)
+        self._child = Popen(self.command, shell=True, stdin=PIPE, stdout=PIPE, bufsize=1)
         assert self._recv() == '* READY'
 
         # check version of shell
         self._send('VERSION')
         shell_version = self._recv().rsplit(":", 1)
+        assert self._recv() == '* READY'
         assert shell_version[0] == "CP2K Shell Version"
-        assert float(shell_version[1]) >= 1.0
+        self._shell_version = float(shell_version[1])
+        assert self._shell_version >= 1.0
+
+        # enable harsh mode, stops on any error
+        self._send('HARSH')
         assert self._recv() == '* READY'
 
         if restart is not None:
@@ -182,6 +187,7 @@ class CP2K(Calculator):
             self._send('EXIT')
             assert self._child.wait() == 0  # child process exited properly?
             self._child = None
+            self._shell_version = None
 
     def set(self, **kwargs):
         """Set parameters like set(key1=value1, key2=value2, ...)."""
@@ -281,18 +287,32 @@ class CP2K(Calculator):
             os.makedirs(label_dir)  # cp2k expects dirs to exist
 
         inp = self._generate_input()
-        if self._debug:
-            print(inp)
         inp_fn = self.label + '.inp'
-        f = open(inp_fn, 'w')
-        f.write(inp)
-        f.close()
-
         out_fn = self.label + '.out'
+        self._write_file(inp_fn, inp)
         self._send('LOAD %s %s' % (inp_fn, out_fn))
         self._force_env_id = int(self._recv())
         assert self._force_env_id > 0
         assert self._recv() == '* READY'
+
+    def _write_file(self, fn, content):
+        """Write content to a file"""
+        if self._debug:
+            print('Writting to file: ' + fn)
+            print(content)
+        if self._shell_version < 2.0:
+            f = open(fn, 'w')
+            f.write(content)
+            f.close()
+        else:
+            lines = content.split('\n')
+            self._send('WRITE_FILE')
+            self._send(fn)
+            self._send('%d' % len(lines))
+            for line in lines:
+                self._send(line)
+            self._send('*END')
+            assert self._recv() == '* READY'
 
     def _release_force_env(self):
         """Destroys the current force-environment"""
