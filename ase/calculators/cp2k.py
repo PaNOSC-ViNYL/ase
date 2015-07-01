@@ -158,7 +158,8 @@ class CP2K(Calculator):
         # launch cp2k_shell child process
         if self._debug:
             print(self.command)
-        self._child = Popen(self.command, shell=True, stdin=PIPE, stdout=PIPE, bufsize=1)
+        self._child = Popen(self.command, shell=True, universal_newlines=True,
+                            stdin=PIPE, stdout=PIPE, bufsize=1)
         assert self._recv() == '* READY'
 
         # check version of shell
