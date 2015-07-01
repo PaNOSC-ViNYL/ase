@@ -386,6 +386,12 @@ class FixScaled(FixConstraintSingle):
         scaled_forces[self.a] *= -(self.mask - 1)
         forces[self.a] = np.dot(scaled_forces, self.cell)[self.a]
 
+    def todict(self):
+        return {'name': 'FixScaled',
+                'kwargs': {'a': self.a,
+                           'cell': self.cell,
+                           'mask': self.mask}}
+
     def __repr__(self):
         return 'FixScaled(%s, %d, %s)' % (repr(self.cell),
                                           self.a,
