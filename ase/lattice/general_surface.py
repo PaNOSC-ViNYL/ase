@@ -9,8 +9,9 @@ def surface(lattice, indices, layers, vacuum=0.0, tol=1e-10):
     """Create surface from a given lattice and Miller indices.
     
     lattice: Atoms object or str
-        Bulk lattice structure of alloy or pure metal.  One can also
-        give the chemical symbol as a string, in which case the
+        Bulk lattice structure of alloy or pure metal.  Note that the
+        unit-cell must be the conventional cell - not the primitive cell.
+        One can also give the chemical symbol as a string, in which case the
         correct bulk lattice will be generated automatically.
     indices: sequence of three int
         Surface normal in Miller indices (h,k,l).
@@ -48,7 +49,7 @@ def surface(lattice, indices, layers, vacuum=0.0, tol=1e-10):
         k2 = np.dot(l * (k * a1 - h * a2) - k * (l * a1 - h * a3),
                     l * a2 - k * a3)
 
-        if abs(k2) > tol: 
+        if abs(k2) > tol:
             i = -int(round(k1 / k2))  # i corresponding to the optimal basis
             p, q = p + i * l, q - i * k
             
