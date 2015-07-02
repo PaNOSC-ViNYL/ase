@@ -65,7 +65,9 @@ route_self_keys = ['opt',
                    'sparse',
                    'stable',
                    'population',
-                   'volume']
+                   'volume',
+                   'densityfit',
+                   'nodensityfit']
 
 route_keys = [# int keys
               # Multiplicity and charge are not really route keywords,
@@ -78,7 +80,6 @@ route_keys = [# int keys
               'maxdisk',
               'cphf',
               'density',
-              'densityfit',
               'ept',
               'field',
               'geom',
@@ -89,7 +90,6 @@ route_keys = [# int keys
               'ircmax',
               'name',
               'nmr',
-              'nodensityfit',
               'oniom',
               'output',
               'punch',
