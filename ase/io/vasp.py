@@ -397,6 +397,88 @@ def read_vasp_xdatcar(filename, index=-1):
         return images[index]
 
 
+def read_vasp_xml(filename='vasprun.xml', index=-1):
+    """Parse vasprun.xml file.
+
+    Reads unit cell, atom positions, energies, forces, and constraints
+    from vasprun.xml file
+    """
+
+    import os
+    import numpy as np
+    import xml.etree.ElementTree as ET
+    from ase import Atoms, Atom
+    from ase.constraints import FixAtoms, FixScaled
+    from ase.calculators.singlepoint import SinglePointCalculator
+
+    tree = ET.parse(filename)
+    root = tree.getroot()
+
+    species = []
+    for entry in root.findall("atominfo/array[@name='atoms']/set/rc"):
+        species.append(entry[0].text.strip())
+    natoms = len(species)
+
+    cell = np.zeros((3, 3), dtype=float)
+    for i, vector in enumerate(root.find(
+        "structure[@name='initialpos']/crystal/varray[@name='basis']")):
+        cell[i] = np.array([float(val) for val in vector.text.split()])
+
+    constraints = []
+    fixed_indices = []
+    
+    for i, entry in enumerate(root.findall(
+        "structure[@name='initialpos']/varray[@name='selective']/v")):
+        flags = np.array(entry.text.split() == np.array(['F', 'F', 'F']))
+        if flags.all():
+            fixed_indices.append(i)
+        elif flags.any():
+            constraints.append(FixScaled(cell, i, flags))
+
+    if fixed_indices:
+        constraints.append(FixAtoms(fixed_indices))
+
+    base_atoms = Atoms(species, cell=cell, constraint=constraints, pbc=True)
+
+    images = []
+
+    if isinstance(index, int):
+        steps = [root.findall('calculation')[index]]
+    else:
+        steps = root.findall('calculation')[index]
+
+    for step in steps:
+        scpos = np.zeros((natoms, 3), dtype=float)
+        forces = np.zeros((natoms, 3), dtype=float)
+
+        # Workaround for VASP bug, e_0_energy contains the wrong value
+        # in calculation/energy, but calculation/scstep/energy does not
+        # include classical VDW corrections. So, first calculate
+        # e_0_energy - e_fr_energy from calculation/scstep/energy, then
+        # apply that correction to e_fr_energy from calculation/energy.
+        lastscf = step.findall('scstep/energy')[-1]
+
+        de = (float(lastscf.find('i[@name="e_0_energy"]').text)
+            - float(lastscf.find('i[@name="e_fr_energy"]').text))
+
+        energy = float(step.find('energy/i[@name="e_fr_energy"]').text) + de
+
+        for i, vector in enumerate(step.findall(
+            'structure/varray[@name="positions"]/v')):
+            scpos[i] = np.array([float(val) for val in vector.text.split()])
+
+        for i, vector in enumerate(step.findall('varray[@name="forces"]/v')):
+            forces[i] = np.array([float(val) for val in vector.text.split()])
+
+        atoms = base_atoms.copy()
+        atoms.set_scaled_positions(scpos)
+        atoms.set_calculator(
+            SinglePointCalculator(atoms, energy=energy, forces=forces))
+        images.append(atoms)
+
+    return images if len(images) > 1 else images[0]
+
+
 def write_vasp(filename, atoms, label='', direct=False, sort=None,
                symbol_count=None, long_format=True, vasp5=False):
     """Method to write VASP position (POSCAR/CONTCAR) files.
