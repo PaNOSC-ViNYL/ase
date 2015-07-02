@@ -118,19 +118,19 @@ def read_xsf(fileobj, index=-1, read_data=False):
         nimages = 1
 
     if 'CRYSTAL' in line:
-        pbc = True
+        pbc = (True, True, True)
     elif 'SLAB' in line:
         pbc = (True, True, False)
     elif 'POLYMER' in line:
         pbc = (True, False, False)
     else:
         assert 'ATOMS' in line
-        pbc = False
+        pbc = (False, False, False)
 
     images = []
     for n in range(nimages):
         cell = None
-        if pbc:
+        if any(pbc):
             line = readline().strip()
             assert 'PRIMVEC' in line, line
             cell = []
@@ -143,15 +143,21 @@ def read_xsf(fileobj, index=-1, read_data=False):
                 readline()
             line = readline().strip()
 
-        if pbc:
+        if any(pbc):
             assert 'PRIMCOORD' in line
             natoms = int(readline().split()[0])
             lines = [readline() for _ in range(natoms)]
         else:
             lines = []
-            while line != '':
+            while line != '' and not line.startswith('BEGIN'):
                 lines.append(line)
                 line = readline()
+                if line.startswith('BEGIN'):
+                    # We read "too far" and accidentally got the header
+                    # of the data section.  This happens only when parsing
+                    # ATOMS blocks, because one cannot infer their length.
+                    # We will remember the line until later then.
+                    data_header_line = line
 
         numbers = []
         positions = []
@@ -178,10 +184,14 @@ def read_xsf(fileobj, index=-1, read_data=False):
         images.append(image)
 
     if read_data:
+        if any(pbc):
+            line = readline()
+        else:
+            line = data_header_line
+        assert 'BEGIN_BLOCK_DATAGRID_3D' in line, line
+        name = readline()  # XXX what to do about this?
         line = readline()
-        assert 'BEGIN_BLOCK_DATAGRID_3D' in line
-        line = readline()
-        assert 'BEGIN_DATAGRID_3D' in line
+        assert 'BEGIN_DATAGRID_3D' in line, line
 
         shape = [int(x) for x in readline().split()]
         start = [float(x) for x in readline().split()]
@@ -189,7 +199,7 @@ def read_xsf(fileobj, index=-1, read_data=False):
         for i in range(3):
             readline()
             
-        n_data = shape[0]*shape[1]*shape[2]
+        n_data = shape[0] * shape[1] * shape[2]
         data = np.array([float(readline())
                          for s in range(n_data)]).reshape(shape[::-1])
         data = np.swapaxes(data, 0, 2)
