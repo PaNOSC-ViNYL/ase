@@ -100,7 +100,7 @@ def read_vasp(filename='CONTCAR'):
     the atom types are read from OUTCAR or POTCAR file.
     """
  
-    from ase import Atoms, Atom
+    from ase import Atoms
     from ase.constraints import FixAtoms, FixScaled
     from ase.data import chemical_symbols
     import numpy as np
@@ -230,7 +230,6 @@ def read_vasp_out(filename='OUTCAR', index=-1):
     Reads unitcell, atom positions, energies, and forces from the OUTCAR file
     and attempts to read constraints (if any) from CONTCAR/POSCAR, if present.
     """
-    import os
     import numpy as np
     from ase.calculators.singlepoint import SinglePointCalculator
     from ase import Atoms, Atom
@@ -404,10 +403,9 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
     from vasprun.xml file
     """
 
-    import os
     import numpy as np
     import xml.etree.ElementTree as ET
-    from ase import Atoms, Atom
+    from ase import Atoms
     from ase.constraints import FixAtoms, FixScaled
     from ase.calculators.singlepoint import SinglePointCalculator
 
@@ -421,14 +419,14 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
 
     cell = np.zeros((3, 3), dtype=float)
     for i, vector in enumerate(root.find(
-        "structure[@name='initialpos']/crystal/varray[@name='basis']")):
+            "structure[@name='initialpos']/crystal/varray[@name='basis']")):
         cell[i] = np.array([float(val) for val in vector.text.split()])
 
     constraints = []
     fixed_indices = []
     
     for i, entry in enumerate(root.findall(
-        "structure[@name='initialpos']/varray[@name='selective']/v")):
+            "structure[@name='initialpos']/varray[@name='selective']/v")):
         flags = np.array(entry.text.split() == np.array(['F', 'F', 'F']))
         if flags.all():
             fixed_indices.append(i)
@@ -459,12 +457,12 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         lastscf = step.findall('scstep/energy')[-1]
 
         de = (float(lastscf.find('i[@name="e_0_energy"]').text)
-            - float(lastscf.find('i[@name="e_fr_energy"]').text))
+                - float(lastscf.find('i[@name="e_fr_energy"]').text))
 
         energy = float(step.find('energy/i[@name="e_fr_energy"]').text) + de
 
         for i, vector in enumerate(step.findall(
-            'structure/varray[@name="positions"]/v')):
+                'structure/varray[@name="positions"]/v')):
             scpos[i] = np.array([float(val) for val in vector.text.split()])
 
         for i, vector in enumerate(step.findall('varray[@name="forces"]/v')):
