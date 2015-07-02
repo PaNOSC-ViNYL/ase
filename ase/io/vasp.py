@@ -409,41 +409,53 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
     from ase.constraints import FixAtoms, FixScaled
     from ase.calculators.singlepoint import SinglePointCalculator
 
-    tree = ET.parse(filename)
-    root = tree.getroot()
+    tree = ET.iterparse(filename)
 
-    species = []
-    for entry in root.findall("atominfo/array[@name='atoms']/set/rc"):
-        species.append(entry[0].text.strip())
-    natoms = len(species)
+    calculation = []
 
-    cell = np.zeros((3, 3), dtype=float)
-    for i, vector in enumerate(root.find(
-            "structure[@name='initialpos']/crystal/varray[@name='basis']")):
-        cell[i] = np.array([float(val) for val in vector.text.split()])
+    try:
+        for event, elem in tree:
+            if elem.tag == 'atominfo':
+                species = []
 
-    constraints = []
-    fixed_indices = []
-    
-    for i, entry in enumerate(root.findall(
-            "structure[@name='initialpos']/varray[@name='selective']/v")):
-        flags = np.array(entry.text.split() == np.array(['F', 'F', 'F']))
-        if flags.all():
-            fixed_indices.append(i)
-        elif flags.any():
-            constraints.append(FixScaled(cell, i, flags))
+                for entry in elem.findall("array[@name='atoms']/set/rc"):
+                    species.append(entry[0].text.strip())
+                natoms = len(species)
+            elif (elem.tag == 'structure' and 'name' in elem.attrib
+                    and elem.attrib['name'] == 'initialpos'):
+                cell = np.zeros((3, 3), dtype=float)
+                for i, v in enumerate(elem.find(
+                        "crystal/varray[@name='basis']")):
+                    cell[i] = np.array([float(val) for val in v.text.split()])
 
-    if fixed_indices:
-        constraints.append(FixAtoms(fixed_indices))
+                constraints = []
+                fixed_indices = []
 
-    base_atoms = Atoms(species, cell=cell, constraint=constraints, pbc=True)
+                for i, entry in enumerate(elem.findall(
+                        "varray[@name='selective']/v")):
+                    flags = (np.array(entry.text.split()
+                        == np.array(['F', 'F', 'F'])))
+                    if flags.all():
+                        fixed_indices.append(i)
+                    elif flags.any():
+                        constraints.append(FixScaled(cell, i, flags))
 
-    images = []
+                if fixed_indices:
+                    constraints.append(FixAtoms(fixed_indices))
+
+                base_atoms = Atoms(species, cell=cell, constraint=constraints,
+                                   pbc=True)
+            elif elem.tag == 'calculation':
+                calculation.append(elem)
+    except ET.ParseError:
+        pass
 
     if isinstance(index, int):
-        steps = [root.findall('calculation')[index]]
+        steps = [calculation[index]]
     else:
-        steps = root.findall('calculation')[index]
+        steps = calculation[index]
+
+    images = []
 
     for step in steps:
         scpos = np.zeros((natoms, 3), dtype=float)
