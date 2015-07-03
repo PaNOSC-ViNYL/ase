@@ -431,7 +431,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                 for i, v in enumerate(elem.find(
                         "crystal/varray[@name='basis']")):
                     cell_init[i] = np.array([
-                            float(val) for val in v.text.split()])
+                        float(val) for val in v.text.split()])
 
                 scpos_init = np.zeros((natoms, 3), dtype=float)
                 for i, v in enumerate(elem.find(
@@ -445,7 +445,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                 for i, entry in enumerate(elem.findall(
                         "varray[@name='selective']/v")):
                     flags = (np.array(entry.text.split()
-                            == np.array(['F', 'F', 'F'])))
+                                == np.array(['F', 'F', 'F'])))
                     if flags.all():
                         fixed_indices.append(i)
                     elif flags.any():
@@ -484,7 +484,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         lastscf = step.findall('scstep/energy')[-1]
 
         de = (float(lastscf.find('i[@name="e_0_energy"]').text)
-             - float(lastscf.find('i[@name="e_fr_energy"]').text))
+                - float(lastscf.find('i[@name="e_fr_energy"]').text))
 
         energy = float(step.find('energy/i[@name="e_fr_energy"]').text) + de
 
@@ -514,7 +514,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         atoms.set_scaled_positions(scpos)
         atoms.set_calculator(
             SinglePointCalculator(atoms, energy=energy, forces=forces,
-                    stress=stress_voigt))
+                        stress=stress_voigt))
         images.append(atoms)
 
     return images if len(images) > 1 else images[0]
