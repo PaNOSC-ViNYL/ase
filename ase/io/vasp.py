@@ -426,11 +426,12 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                 natoms = len(species)
             elif (elem.tag == 'structure'
                     and elem.attrib.get('name') == 'initialpos'):
-                cell = np.zeros((3, 3), dtype=float)
+                cell_init = np.zeros((3, 3), dtype=float)
 
                 for i, v in enumerate(elem.find(
                         "crystal/varray[@name='basis']")):
-                    cell[i] = np.array([float(val) for val in v.text.split()])
+                    cell_init[i] = np.array([
+                            float(val) for val in v.text.split()])
 
                 scpos_init = np.zeros((natoms, 3), dtype=float)
                 for i, v in enumerate(elem.find(
@@ -444,7 +445,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                 for i, entry in enumerate(elem.findall(
                         "varray[@name='selective']/v")):
                     flags = (np.array(entry.text.split()
-                        == np.array(['F', 'F', 'F'])))
+                            == np.array(['F', 'F', 'F'])))
                     if flags.all():
                         fixed_indices.append(i)
                     elif flags.any():
@@ -453,7 +454,10 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                 if fixed_indices:
                     constraints.append(FixAtoms(fixed_indices))
 
-                atoms_init = Atoms(species, cell=cell, constraint=constraints,
+                atoms_init = Atoms(species,
+                                   cell=cell_init,
+                                   scaled_positions=scpos_init,
+                                   constraint=constraints,
                                    pbc=True)
             elif elem.tag == 'calculation':
                 calculation.append(elem)
@@ -461,7 +465,6 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         if atoms_init is None:
             raise parse_error
         elif not calculation:
-            atoms_init.set_scaled_positions(scpos_init)
             images.append(atoms_init)
 
     if calculation:
@@ -481,9 +484,14 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         lastscf = step.findall('scstep/energy')[-1]
 
         de = (float(lastscf.find('i[@name="e_0_energy"]').text)
-                - float(lastscf.find('i[@name="e_fr_energy"]').text))
+             - float(lastscf.find('i[@name="e_fr_energy"]').text))
 
         energy = float(step.find('energy/i[@name="e_fr_energy"]').text) + de
+
+        cell = np.zeros((3, 3), dtype=float)
+        for i, vector in enumerate(step.find(
+                'structure/crystal/varray[@name="basis"]')):
+            cell[i] = np.array([float(val) for val in vector.text.split()])
 
         scpos = np.zeros((natoms, 3), dtype=float)
         for i, vector in enumerate(step.find(
@@ -502,10 +510,11 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         stress_voigt = stress.reshape(9)[[0, 4, 8, 5, 2, 1]]
 
         atoms = atoms_init.copy()
+        atoms.set_cell(cell)
         atoms.set_scaled_positions(scpos)
         atoms.set_calculator(
             SinglePointCalculator(atoms, energy=energy, forces=forces,
-                stress=stress_voigt))
+                    stress=stress_voigt))
         images.append(atoms)
 
     return images if len(images) > 1 else images[0]
