@@ -33,18 +33,24 @@ Reading:
 
 To see what's inside 'x.aff' do this::
     
-    $ python -m ase.io.aff x.aff
+    $ alias aff="python -m ase.io.aff"
+    $ aff x.aff
     x.aff  (tag: "", 1 item)
     item #0:
     {
+        _little_endian: True,
         a: <ndarray shape=(7,) dtype=float64>,
         b: 42,
         c: abc,
         d: 3.14}
 
-"""
+Versions:
+    
+1) Intial version.
 
-# endianness ???
+2) Added support for big endian machines.  Json data now has '_little_endian'
+   bool.
+"""
 
 import optparse
 import os
@@ -55,7 +61,7 @@ from ase.io.jsonio import encode, decode
 from ase.utils import plural, basestring
 
 
-VERSION = 1
+VERSION = 2
 N1 = 42  # block size - max number of items: 1, N1, N1*N1, N1*N1*N1, ...
 
 
@@ -83,7 +89,17 @@ def writeint(fd, n, pos=None):
     """Write 64 bit integer n at pos or current position."""
     if pos is not None:
         fd.seek(pos)
-    np.array(n, np.int64).tofile(fd)
+    a = np.array(n, np.int64)
+    if not np.little_endian:
+        a.byteswap(True)
+    a.tofile(fd)
+    
+
+def readints(fd, n):
+    a = np.fromfile(fd, np.int64, n)
+    if not np.little_endian:
+        a.byteswap(True)
+    return a
     
     
 class Writer:
@@ -99,14 +115,13 @@ class Writer:
             Magic ID string.
         """
 
-        assert np.little_endian  # deal with this later
         assert mode in 'aw'
         
         # Header to be written later:
         self.header = b''
         
         if data is None:
-            data = {}
+            data = {'_little_endian': np.little_endian}
             if mode == 'w' or not os.path.isfile(fd):
                 self.nitems = 0
                 self.pos0 = 48
@@ -116,6 +131,8 @@ class Writer:
 
                 # File format identifier and other stuff:
                 a = np.array([VERSION, self.nitems, self.pos0], np.int64)
+                if not np.little_endian:
+                    a.byteswap(True)
                 self.header = ('AFFormat{0:16}'.format(tag).encode('ascii') +
                                a.tostring() +
                                self.offsets.tostring())
@@ -194,7 +211,10 @@ class Writer:
             offsets = np.zeros(n * N1, np.int64)
             offsets[:n] = self.offsets
             self.pos0 = align(self.fd)
-            offsets.tofile(self.fd)
+            if np.little_endian:
+                offsets.tofile(self.fd)
+            else:
+                offsets.byteswap().tofile(self.fd)
             writeint(self.fd, self.pos0, 40)
             self.offsets = offsets
             
@@ -204,7 +224,7 @@ class Writer:
         writeint(self.fd, self.nitems, 32)
         self.fd.flush()
         self.fd.seek(0, 2)  # end of file
-        self.data = {}
+        self.data = {'_little_endian': np.little_endian}
         
     def write(self, *args, **kwargs):
         """Write data.
@@ -238,7 +258,9 @@ class Writer:
         return Writer(self.fd, data=dct)
         
     def close(self):
-        if self.data:
+        assert '_little_endian' in self.data
+        if len(self.data) > 1:
+            # There is more than the "_little_endian" key:
             self.sync()
         self.fd.close()
         
@@ -274,9 +296,9 @@ def read_header(fd):
     if not fd.read(8) == b'AFFormat':
         raise InvalidAFFError('This is not an AFF formatted file.')
     tag = fd.read(16).decode('ascii').rstrip()
-    version, nitems, pos0 = np.fromfile(fd, np.int64, 3)
+    version, nitems, pos0 = readints(fd, 3)
     fd.seek(pos0)
-    offsets = np.fromfile(fd, np.int64, nitems)
+    offsets = readints(fd, nitems)
     return tag, version, nitems, pos0, offsets
 
 
@@ -285,11 +307,9 @@ class InvalidAFFError(Exception):
 
     
 class Reader:
-    def __init__(self, fd, index=0, data=None):
+    def __init__(self, fd, index=0, data=None, little_endian=None):
         """Create reader."""
         
-        assert np.little_endian
-
         if isinstance(fd, str):
             fd = open(fd, 'rb')
         
@@ -300,6 +320,9 @@ class Reader:
             (self._tag, self._version, self._nitems, self._pos0,
              self._offsets) = read_header(fd)
             data = self._read_data(index)
+            self._little_endian = data.pop('_little_endian', True)
+        else:
+            self._little_endian = little_endian
             
         self._parse_data(data)
         
@@ -313,9 +336,11 @@ class Reader:
                     value = NDArrayReader(self._fd,
                                           shape,
                                           np.dtype(dtype),
-                                          offset)
+                                          offset,
+                                          self._little_endian)
                 else:
-                    value = Reader(self._fd, data=value)
+                    value = Reader(self._fd, data=value,
+                                   little_endian=self._little_endian)
                 name = name[:-1]
         
             self._data[name] = value
@@ -360,13 +385,13 @@ class Reader:
         
     def _read_data(self, index):
         self._fd.seek(self._offsets[index])
-        size = np.fromfile(self._fd, np.int64, 1)[0]
+        size = readints(self._fd, 1)[0]
         data = decode(self._fd.read(size).decode())
         return data
     
     def __getitem__(self, index):
         data = self._read_data(index)
-        return Reader(self._fd, index, data)
+        return Reader(self._fd, index, data, self._little_endian)
         
     def tostr(self, verbose=False, indent='    '):
         keys = sorted(self._data)
@@ -393,11 +418,12 @@ class Reader:
         
         
 class NDArrayReader:
-    def __init__(self, fd, shape, dtype, offset):
+    def __init__(self, fd, shape, dtype, offset, little_endian):
         self.fd = fd
         self.shape = tuple(shape)
         self.dtype = dtype
         self.offset = offset
+        self.little_endian = little_endian
         
         self.ndim = len(self.shape)
         self.itemsize = dtype.itemsize
@@ -412,6 +438,8 @@ class NDArrayReader:
         
     def __getitem__(self, i):
         if isinstance(i, int):
+            if i < 0:
+                i += len(self)
             return self[i:i + 1][0]
         start, stop, step = i.indices(len(self))
         offset = self.offset + start * self.nbytes // len(self)
@@ -420,7 +448,9 @@ class NDArrayReader:
         a = np.fromfile(self.fd, self.dtype, count)
         a.shape = (-1,) + self.shape[1:]
         if step != 1:
-            return a[::step].copy()
+            a = a[::step].copy()
+        if self.little_endian != np.little_endian:
+            a.byteswap(True)
         return a
 
         
