@@ -408,6 +408,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
     from ase import Atoms
     from ase.constraints import FixAtoms, FixScaled
     from ase.calculators.singlepoint import SinglePointCalculator
+    from ase.units import GPa
 
     tree = ET.iterparse(filename)
 
@@ -423,8 +424,8 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                 for entry in elem.find("array[@name='atoms']/set"):
                     species.append(entry[0].text.strip())
                 natoms = len(species)
-            elif (elem.tag == 'structure' and 'name' in elem.attrib
-                    and elem.attrib['name'] == 'initialpos'):
+            elif (elem.tag == 'structure'
+                    and elem.attrib.get('name') == 'initialpos'):
                 cell = np.zeros((3, 3), dtype=float)
 
                 for i, v in enumerate(elem.find(
@@ -472,9 +473,6 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         steps = []
 
     for step in steps:
-        scpos = np.zeros((natoms, 3), dtype=float)
-        forces = np.zeros((natoms, 3), dtype=float)
-
         # Workaround for VASP bug, e_0_energy contains the wrong value
         # in calculation/energy, but calculation/scstep/energy does not
         # include classical VDW corrections. So, first calculate
@@ -487,17 +485,27 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
 
         energy = float(step.find('energy/i[@name="e_fr_energy"]').text) + de
 
+        scpos = np.zeros((natoms, 3), dtype=float)
         for i, vector in enumerate(step.find(
                 'structure/varray[@name="positions"]')):
             scpos[i] = np.array([float(val) for val in vector.text.split()])
 
+        forces = np.zeros((natoms, 3), dtype=float)
         for i, vector in enumerate(step.find('varray[@name="forces"]')):
             forces[i] = np.array([float(val) for val in vector.text.split()])
+
+        stress = np.zeros((3, 3), dtype=float)
+        for i, vector in enumerate(step.find('varray[@name="stress"]')):
+            stress[i] = np.array([float(val) for val in vector.text.split()])
+
+        stress *= -0.1 * GPa
+        stress_voigt = stress.reshape(9)[[0, 4, 8, 5, 2, 1]]
 
         atoms = atoms_init.copy()
         atoms.set_scaled_positions(scpos)
         atoms.set_calculator(
-            SinglePointCalculator(atoms, energy=energy, forces=forces))
+            SinglePointCalculator(atoms, energy=energy, forces=forces,
+                stress=stress_voigt))
         images.append(atoms)
 
     return images if len(images) > 1 else images[0]
