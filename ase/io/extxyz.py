@@ -11,8 +11,6 @@ description of the Extended XYZ file format.
 Contributed by James Kermode <james.kermode@gmail.com>
 """
 
-from __future__ import print_function
-
 import re
 import numpy as np
 
@@ -217,8 +215,6 @@ def read_xyz(fileobj, index=-1):
         comment = fileobj.readline()
         for i in range(natoms):
             fileobj.readline()
-
-    print('extxyz frames', frames)
 
     rvrs = False
 
