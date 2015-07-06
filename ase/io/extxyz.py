@@ -11,6 +11,8 @@ description of the Extended XYZ file format.
 Contributed by James Kermode <james.kermode@gmail.com>
 """
 
+from __future__ import print_function
+
 import re
 import numpy as np
 
@@ -202,21 +204,27 @@ def read_xyz(fileobj, index=-1):
     if not isinstance(index, int) and not isinstance(index, slice):
         raise TypeError('Index argument is neither slice nor integer!')
 
+    # scan through entire file to find where the frames start
     fileobj.seek(0)
-    natoms = int(fileobj.readline())
+    frames = []
+    while fileobj:
+        frame_pos = fileobj.tell()
+        line = fileobj.readline()
+        if line == '':
+            break
+        natoms = int(line)
+        frames.append((frame_pos, natoms))
+        comment = fileobj.readline()
+        for i in range(natoms):
+            fileobj.readline()
 
-    for i, l in enumerate(fileobj):
-        pass
-
-    ln = i + 2
-    lnsnp = natoms + 2
-    lastsnap = ln // lnsnp
+    print('extxyz frames', frames)
 
     rvrs = False
 
     if isinstance(index, int):
         if index < 0:
-            tmpsnp = lastsnap + index
+            tmpsnp = len(frames) + index
             trbl = range(tmpsnp, tmpsnp + 1, 1)
         else:
             trbl = range(index, index + 1, 1)
@@ -229,15 +237,15 @@ def read_xyz(fileobj, index=-1):
         if start is None:
             start = 0
         elif start < 0:
-            start = lastsnap + start
+            start = len(frames) + start
 
         if step is None:
             step = 1
 
         if stop is None:
-            stop = lastsnap
+            stop = len(frames)
         elif stop < 0:
-            stop = lastsnap + stop
+            stop = len(frames) + stop
 
         trbl = range(start, stop, step)
 
@@ -248,17 +256,16 @@ def read_xyz(fileobj, index=-1):
         rtnndx = slice(len(trbl))
 
     images = []
-    current = 0
-
-    fileobj.seek(0)
 
     for index in trbl:
-        for lnndx in range(current, index * lnsnp):
-            line = fileobj.readline()
+        frame_pos, natoms = frames[index]
+        fileobj.seek(frame_pos)
 
+        # check for consistency with frame index table
+        assert int(fileobj.readline()) == natoms
+        
+        # comment line
         line = fileobj.readline()
-        line = fileobj.readline()
-
         info = key_val_str_to_dict(line)
 
         pbc = None
@@ -350,7 +357,6 @@ def read_xyz(fileobj, index=-1):
             atoms.set_calculator(calculator)
 
         images.append(atoms)
-        current = (index + 1) * lnsnp
 
     if rvrs:
         images.reverse()
