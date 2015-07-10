@@ -46,9 +46,9 @@ Alphabetical list of all modules:
 
 :mod:`Calculators <ase.calculators>`:
 
-|abinit| |Asap| |CASTEP| |CP2K| |dftb| |elk| |exciting| |EMT| |fhi-aims|
-|fleur| |gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem| |siesta|
-|turbomole| |vasp| Gaussian_ Mopac_
+|abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |dftb| |elk| |exciting| |EMT|
+|fhi-aims| |fleur| |gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
+|siesta| |turbomole| |vasp| Gaussian_ Mopac_
 
 
 .. |abinit| image:: static/abinit.png
@@ -56,6 +56,9 @@ Alphabetical list of all modules:
    :align: middle
 .. |Asap| image:: static/asap.png
    :target: http://wiki.fysik.dtu.dk/asap
+   :align: middle
+.. |Atomistica| image:: static/atomistica.png
+   :target: https://github.com/Atomistica/atomistica
    :align: middle
 .. |CASTEP| image:: static/castep.png
    :target: ase/calculators/castep.html
