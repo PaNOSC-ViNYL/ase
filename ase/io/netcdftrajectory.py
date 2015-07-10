@@ -90,7 +90,7 @@ class NetCDFTrajectory:
                             [_cell_angles_var]])
 
     def __init__(self, filename, mode='r', atoms=None, types_to_numbers=None,
-                 double=True, netcdf_format='NETCDF3_CLASSIC', keep_open=None,
+                 double=True, netcdf_format='NETCDF3_CLASSIC', keep_open=True,
                  index_var='id', index_offset=-1):
         """
         A NetCDFTrajectory can be created in read, write or append mode.
@@ -136,10 +136,11 @@ class NetCDFTrajectory:
 
             'NETCDF4' is HDF5.
 
-        keep_open=None:
+        keep_open=True:
             Keep the file open during consecutive read/write operations.
-            Default is to close file between writes to minimize chance of data
-            corruption, but keep file open if file is opened in read mode.
+            Set to false if you experience data corruption. This will close the
+            file after each read/write operation by comes with serious
+            performance penalty.
 
         index_var='id':
             Name of variable containing the atom indices. Atoms are reordered
