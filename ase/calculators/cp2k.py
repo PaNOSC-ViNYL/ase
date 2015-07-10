@@ -107,6 +107,10 @@ class CP2K(Calculator):
         Requests an unrestricted Kohn-Sham calculations.
         This is need for spin-polarized systems, ie. with an
         odd number of electrons. Default is ``False``.
+    xc: str
+        Name of exchange and correlation functional.
+        Accepts all functions supported by CP2K itself or libxc.
+        Default is ``LDA``.
     """
 
     implemented_properties = ['energy', 'forces', 'stress']
@@ -337,12 +341,17 @@ class CP2K(Calculator):
                          'BASIS_SET_FILE_NAME ' + p.basis_set_file)
         root.add_keyword('FORCE_EVAL/DFT',
                          'POTENTIAL_FILE_NAME ' + p.potential_file)
-        root.add_keyword('FORCE_EVAL/DFT/XC/XC_FUNCTIONAL',
-                         '_SECTION_PARAMETERS_ ' + p.xc)
         root.add_keyword('FORCE_EVAL/DFT/MGRID',
                          'CUTOFF [eV] %.20e' % p.cutoff)
         root.add_keyword('FORCE_EVAL/DFT/SCF', 'MAX_SCF %d' % p.max_scf)
         root.add_keyword('FORCE_EVAL/DFT/LS_SCF', 'MAX_SCF %d' % p.max_scf)
+
+        if p.xc.startswith("XC_"):
+            root.add_keyword('FORCE_EVAL/DFT/XC/XC_FUNCTIONAL/LIBXC',
+                             'FUNCTIONAL ' + p.xc)
+        else:
+            root.add_keyword('FORCE_EVAL/DFT/XC/XC_FUNCTIONAL',
+                             '_SECTION_PARAMETERS_ ' + p.xc)
 
         if p.uks:
             root.add_keyword('FORCE_EVAL/DFT', 'UNRESTRICTED_KOHN_SHAM ON')
