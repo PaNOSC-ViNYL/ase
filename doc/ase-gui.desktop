@@ -4,6 +4,7 @@ Name=ase-gui
 GenericName=ase-gui
 Comment=Atomic Simulation Environment GUI
 Categories=GTK;Science;Chemistry;Physics;Education;
+Keywords=Atom;Molecule;Cluster;Surface;Nanotube;Bulk;Crystal;
 Exec=ase-gui
 Icon=ase
 Terminal=false
