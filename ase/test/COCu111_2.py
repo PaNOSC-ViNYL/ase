@@ -23,6 +23,8 @@ Z = initial.get_positions()[:, 2]
 indices = [i for i, z in enumerate(Z) if z < Z.mean()]
 constraint = FixAtoms(indices=indices)
 initial.set_constraint(constraint)
+
+print('Relax initial image')
 dyn = Optimizer(initial)
 dyn.run(fmax=0.05)
 Z = initial.get_positions()[:, 2]
@@ -39,7 +41,7 @@ dyn = Optimizer(initial)
 dyn.run(fmax=0.05)
 #view(initial)
 
-# create final
+print('Relax final image')
 final = initial.copy()
 final.set_calculator(EMT())
 final.set_constraint(constraint)
@@ -50,12 +52,22 @@ dyn = Optimizer(final)
 dyn.run(fmax=0.1)
 #view(final)
 
-# create 2 intermediate step neb
+print('Create neb with 2 intermediate steps')
 neb = SingleCalculatorNEB([initial, final])
 neb.refine(2)
-neb.set_calculators(EMT())
 assert neb.n() == 4
 
+print('Optimize neb using a single calculator')
+neb.set_calculators(EMT())
+##print('0001', id(neb.images[0]), id(neb.images[0].get_calculator().atoms))
+dyn = Optimizer(neb, maxstep=0.04, trajectory='mep_2coarse.traj')
+dyn.run(fmax=0.1)
+#dyn.run(fmax=39.1)
+
+print('Optimize neb using a many calculators')
+neb = SingleCalculatorNEB([initial, final])
+neb.refine(2)
+neb.set_calculators([EMT() for i in range(neb.n())])
 dyn = Optimizer(neb, maxstep=0.04, trajectory='mep_2coarse.traj')
 dyn.run(fmax=0.1)
 #dyn.run(fmax=39.1)
@@ -66,6 +78,7 @@ neb = SingleCalculatorNEB('mep_2coarse.traj@-4:')
 # refine in the important region
 neb.refine(2, 1, 3)
 neb.set_calculators(EMT())
+print('Optimize refined neb using a single calculator')
 dyn = Optimizer(neb, maxstep=0.04, trajectory='mep_2fine.traj')
 dyn.run(fmax=0.1)
 assert len(neb.images) == 8
