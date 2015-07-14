@@ -207,7 +207,6 @@ class SingleCalculatorNEB(NEB):
                 images.append(atoms)
 
         NEB.__init__(self, images, k, climb, False)
-##        print('SingleCalculatorNEB.__init__', images[0].get_positions()-images[0].get_calculator().atoms.get_positions())
         self.calculators = [None] * self.nimages
         self.energies_ok = False
         self.first = True
