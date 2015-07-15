@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2014-10-07 21:29+0200\n"
-"PO-Revision-Date: 2015-07-02 21:43+0200\n"
+"POT-Creation-Date: 2015-07-15 17:25+0200\n"
+"PO-Revision-Date: 2015-07-15 17:26+0200\n"
 "Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
 "Language: da\n"
@@ -19,20 +19,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../ag.py:140
-msgid ""
-"\n"
-"An exception occurred!  Please report the issue to\n"
-"ase-developers@listserv.fysik.dtu.dk - thanks!  Please also report this if\n"
-"it was a user error, so that a better error message can be provided\n"
-"next time."
-msgstr ""
-"\n"
-"Der opstod en undtagelse!  Rapportér venligst dette problem til \n"
-"ase-developers@listserv.fysik.dtu.dk - mange tak!  Rapportér også gerne "
-"dette\n"
-"hvis det var en brugerfejl, så der kan gives en bedre fejlmeddelelse næste\n"
-"gang."
+#: ../ag.py:144
+msgid "To get a full traceback, use: ase-gui --verbose"
+msgstr "Kør ase-gui --verbose for at se det fulde traceback"
 
 #. Asap and GPAW may be imported if selected.
 #: ../calculator.py:18
@@ -762,162 +751,145 @@ msgstr ""
 "Hvis du virkelig tror det bør være tilgængeligt, så tilføj det venligst "
 "øverst i ase/calculators/vasp.py."
 
-#: ../colors.py:24
+#: ../colors.py:27
 msgid "Colors"
 msgstr "Farver"
 
 #. Upper left: Choose how the atoms are colored.
-#: ../colors.py:41
+#: ../colors.py:44
 msgid "Choose how the atoms are colored:"
 msgstr "Vælg hvordan atomerne farves:"
 
-#: ../colors.py:43
+#: ../colors.py:46
 msgid "By atomic number, default \"jmol\" colors"
 msgstr "Efter atomnummer; \"jmol\"-farver som standard"
 
-#: ../colors.py:45
+#: ../colors.py:48
 msgid "By atomic number, user specified"
 msgstr "Efter atomnummer, brugerdefineret"
 
-#: ../colors.py:46
+#: ../colors.py:49
 msgid "By tag"
 msgstr "Efter mærke"
 
-#: ../colors.py:47
+#: ../colors.py:50
 msgid "By force"
 msgstr "Efter kraft"
 
-#: ../colors.py:48
+#: ../colors.py:51
 msgid "By velocity"
 msgstr "Efter hastighed"
 
-#: ../colors.py:49
+#: ../colors.py:52
 msgid "By charge"
 msgstr "Efter ladning"
 
-#: ../colors.py:50
+#: ../colors.py:54
+msgid "By magnetic moment"
+msgstr "Efter magnetisk moment"
+
+#: ../colors.py:56
+msgid "By coordination"
+msgstr "Efter koordination"
+
+#: ../colors.py:57
 msgid "Manually specified"
 msgstr "Manuelt angivet"
 
-#: ../colors.py:51
+#: ../colors.py:58
 msgid "All the same color"
 msgstr "Alle med samme farve"
 
 #. Now fill in the box for additional information in case the force is used.
-#. Now fill in the box for additional information in case
-#. the charge is used.
-#: ../colors.py:63 ../colors.py:98
-msgid "This should not be displayed!"
-msgstr "Dette bør ikke blive vist!"
+#: ../colors.py:74
+msgid "This should not be displayed in forces!"
+msgstr "Dette bør ikke blive vist ved kræfter!"
 
-#: ../colors.py:68 ../colors.py:85 ../colors.py:103 ../rotate.py:25
+#: ../colors.py:79 ../colors.py:93 ../colors.py:108 ../colors.py:124
+#: ../rotate.py:25
 msgid "Update"
 msgstr "Opdatér"
 
-#: ../colors.py:70 ../colors.py:87 ../colors.py:105
+#: ../colors.py:81 ../colors.py:95 ../colors.py:110 ../colors.py:126
 msgid "Min: "
 msgstr "Min: "
 
-#: ../colors.py:72 ../colors.py:89 ../colors.py:107
+#: ../colors.py:83 ../colors.py:97 ../colors.py:112 ../colors.py:128
 msgid "  Max: "
 msgstr "  Maks: "
 
-#: ../colors.py:74 ../colors.py:91 ../colors.py:109
+#: ../colors.py:85 ../colors.py:99 ../colors.py:114 ../colors.py:130
 msgid "  Steps: "
 msgstr "  Trin: "
 
-#: ../colors.py:116
+#. Now fill in the box for additional information in case
+#. the charge is used.
+#: ../colors.py:106 ../colors.py:122
+msgid "This should not be displayed!"
+msgstr "Dette bør ikke blive vist!"
+
+#: ../colors.py:137
 msgid "Create a color scale:"
 msgstr "Opret en farveskala:"
 
-#: ../colors.py:119
+#: ../colors.py:140
 msgid "Black - white"
 msgstr "Sort - hvid"
 
-#: ../colors.py:120
+#: ../colors.py:141
 msgid "Black - red - yellow - white"
 msgstr "Sort - rød - gul - hvid"
 
-#: ../colors.py:121
+#: ../colors.py:142
 msgid "Black - green - white"
 msgstr "Sort - grøn - hvid"
 
-#: ../colors.py:122
+#: ../colors.py:143
 msgid "Black - blue - cyan"
 msgstr "Sort - blå - cyan"
 
-#: ../colors.py:123
+#: ../colors.py:144
 msgid "Blue - white - red"
 msgstr "Blå - hvid - rød"
 
-#: ../colors.py:124
+#: ../colors.py:145
 msgid "Hue"
 msgstr "Farvetone"
 
-#: ../colors.py:125
+#: ../colors.py:146
 msgid "Named colors"
 msgstr "Navngivne farver"
 
-#: ../colors.py:131
+#: ../colors.py:152
 msgid "Create"
 msgstr "Opret"
 
-#: ../colors.py:428
-#, python-format
-msgid "Max force: %.2f (this frame), %.2f (all frames)"
-msgstr "Maks. kraft: %.2f (dette billede), %.2f (alle billeder)"
-
-#: ../colors.py:430
-#, python-format
-msgid "Max force: %.2f."
-msgstr "Maks. kraft: %.2f."
-
-#: ../colors.py:444
-#, python-format
-msgid "Max velocity: %.2f (this frame), %.2f (all frames)"
-msgstr "Maks. hastighed: %.2f (dette billede), %.2f (alle billeder)"
-
-#: ../colors.py:446
-#, python-format
-msgid "Max velocity: %.2f."
-msgstr "Maks. hastighed: %.2f."
-
-#: ../colors.py:460
-#, python-format
-msgid "Min, max charge: %.2f, %.2f (this frame),"
-msgstr "Min., maks. ladning: %.2f, %.2f (dette billede),"
-
-#: ../colors.py:464
-#, python-format
-msgid "Min, max charge: %.2f, %.2f."
-msgstr "Min., maks. ladning: %.2f, %.2f."
-
-#: ../colors.py:505
+#: ../colors.py:517
 msgid "ERROR"
 msgstr "FEJL"
 
-#: ../colors.py:534
+#: ../colors.py:546
 msgid "ERR"
 msgstr "FEJL"
 
-#: ../colors.py:626
+#: ../colors.py:638
 msgid "Incorrect color specification"
 msgstr "Forkert farveangivelse"
 
-#: ../constraints.py:12 ../widgets.py:91
+#: ../constraints.py:12 ../widgets.py:96
 msgid "Constraints"
 msgstr "Begrænsninger"
 
 #: ../constraints.py:14 ../constraints.py:17 ../settings.py:16
-#: ../widgets.py:93 ../widgets.py:96
+#: ../widgets.py:98 ../widgets.py:101
 msgid "Constrain"
 msgstr "Begræns"
 
-#: ../constraints.py:15 ../settings.py:19 ../settings.py:34 ../widgets.py:94
+#: ../constraints.py:15 ../settings.py:19 ../settings.py:34 ../widgets.py:99
 msgid " selected atoms"
 msgstr " markerede atomer"
 
-#: ../constraints.py:18 ../widgets.py:97
+#: ../constraints.py:18 ../widgets.py:102
 msgid " immobile atoms:"
 msgstr " immobile atomer:"
 
@@ -933,8 +905,8 @@ msgstr " markerede atomer:"
 msgid "Clear constraints"
 msgstr "Ryd begrænsninger"
 
-#: ../constraints.py:25 ../dft.py:28 ../settings.py:52 ../widgets.py:61
-#: ../widgets.py:101
+#: ../constraints.py:25 ../dft.py:28 ../settings.py:52 ../widgets.py:65
+#: ../widgets.py:106
 msgid "Close"
 msgstr "Luk"
 
@@ -1106,7 +1078,7 @@ msgstr "Ingen gyldige atomer."
 msgid "Can't find lattice definition!"
 msgstr "Kan ikke finde gitterdefinition!"
 
-#: ../debug.py:11
+#: ../debug.py:12
 msgid "Debug"
 msgstr "Fejlsøgning"
 
@@ -1118,7 +1090,7 @@ msgstr "DFT"
 msgid "XC-functional: "
 msgstr "XC-funktional: "
 
-#: ../dft.py:22 ../repeat.py:15
+#: ../dft.py:22 ../repeat.py:14
 msgid "Repeat atoms:"
 msgstr "Gentag atomer:"
 
@@ -1314,7 +1286,7 @@ msgstr ""
 "Konstruér et grafénlag eller et grafénnanobånd.  Et nanobånd kan eventuelt\n"
 "mættes med hydrogen (eller et andet grundstof)."
 
-#: ../graphene.py:33 ../gui.py:344
+#: ../graphene.py:33 ../gui.py:345
 msgid "Graphene"
 msgstr "Grafén"
 
@@ -1453,15 +1425,15 @@ msgstr "ryd"
 msgid "Save data to file ... "
 msgstr "Gem data til fil ... "
 
-#: ../gtkexcepthook.py:117
+#: ../gtkexcepthook.py:118
 msgid "Bug Detected"
 msgstr "Fejl fundet"
 
-#: ../gtkexcepthook.py:121
+#: ../gtkexcepthook.py:122
 msgid "A programming error has been detected."
 msgstr "Der blev fundet en programmeringsfejl."
 
-#: ../gtkexcepthook.py:124
+#: ../gtkexcepthook.py:125
 msgid ""
 "It probably isn't fatal, but the details should be reported to the "
 "developers nonetheless."
@@ -1469,15 +1441,15 @@ msgstr ""
 "Den er nok ikke fatal, men detaljerne bør alligevel rapporteres til "
 "udviklerne."
 
-#: ../gtkexcepthook.py:140
+#: ../gtkexcepthook.py:141
 msgid "Report..."
 msgstr "Rapportér..."
 
-#: ../gtkexcepthook.py:144
+#: ../gtkexcepthook.py:145
 msgid "Details..."
 msgstr "Detaljer..."
 
-#: ../gtkexcepthook.py:160
+#: ../gtkexcepthook.py:161
 #, python-format
 msgid ""
 "From: buggy_application\"\n"
@@ -1493,602 +1465,602 @@ msgstr ""
 "%s"
 
 #. Show details...
-#: ../gtkexcepthook.py:173
+#: ../gtkexcepthook.py:174
 msgid "Bug Details"
 msgstr "Detaljer om fejl"
 
-#: ../gui.py:190
+#: ../gui.py:191
 msgid "_File"
 msgstr "_Fil"
 
-#: ../gui.py:191
+#: ../gui.py:192
 msgid "_Edit"
 msgstr "_Redigér"
 
-#: ../gui.py:192
+#: ../gui.py:193
 msgid "_View"
 msgstr "_Vis"
 
-#: ../gui.py:193
+#: ../gui.py:194
 msgid "_Tools"
 msgstr "_Værktøjer"
 
 #. TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
-#: ../gui.py:195
+#: ../gui.py:196
 msgid "_Setup"
 msgstr "_Byg"
 
-#: ../gui.py:196
+#: ../gui.py:197
 msgid "_Calculate"
 msgstr "_Beregn"
 
-#: ../gui.py:197
+#: ../gui.py:198
 msgid "_Help"
 msgstr "_Hjælp"
 
-#: ../gui.py:198
+#: ../gui.py:199
 msgid "_Open"
 msgstr "_Åbn"
 
-#: ../gui.py:199
+#: ../gui.py:200
 msgid "Create a new file"
 msgstr "Opret en ny fil"
 
-#: ../gui.py:201
+#: ../gui.py:202
 msgid "_New"
 msgstr "_Ny"
 
-#: ../gui.py:202
-msgid "New ase-gui window"
-msgstr "Nyt ase-gui-vindue"
+#: ../gui.py:203
+msgid "New ase.gui window"
+msgstr "Nyt ase.gui-vindue"
 
-#: ../gui.py:204
+#: ../gui.py:205
 msgid "_Save"
 msgstr "_Gem"
 
-#: ../gui.py:205
+#: ../gui.py:206
 msgid "Save current file"
 msgstr "Gem den aktuelle fil"
 
-#: ../gui.py:207
+#: ../gui.py:208
 msgid "_Quit"
 msgstr "_Afslut"
 
-#: ../gui.py:208
+#: ../gui.py:209
 msgid "Quit"
 msgstr "Afslut"
 
-#: ../gui.py:210
+#: ../gui.py:211
 msgid "Select _all"
 msgstr "Vælg _alle"
 
-#: ../gui.py:213
+#: ../gui.py:214
 msgid "_Invert selection"
 msgstr "_Omvend markering"
 
-#: ../gui.py:216
+#: ../gui.py:217
 msgid "Select _constrained atoms"
 msgstr "Vælg _fastgjorte atomer"
 
-#: ../gui.py:219
+#: ../gui.py:220
 msgid "Select _immobile atoms"
 msgstr "Vælg _immobile atomer"
 
-#: ../gui.py:222
+#: ../gui.py:223
 msgid "_Copy"
 msgstr "_Kopiér"
 
-#: ../gui.py:223
+#: ../gui.py:224
 msgid "Copy current selection and its orientation to clipboard"
 msgstr "Kopiér nuværende markering og dens orientering til udklipsholderen"
 
-#: ../gui.py:225
+#: ../gui.py:226
 msgid "_Paste"
 msgstr "_Indsæt"
 
-#: ../gui.py:226
+#: ../gui.py:227
 msgid "Insert current clipboard selection"
 msgstr "Indsæt nuværende markering fra udklipsholderen"
 
-#: ../gui.py:228
+#: ../gui.py:229
 msgid "_Modify"
 msgstr "_Ændr"
 
-#: ../gui.py:229
+#: ../gui.py:230
 msgid "Change tags, moments and atom types of the selected atoms"
 msgstr "Ændr mærker, impuls og atomnummer for de valgte atomer"
 
-#: ../gui.py:231
+#: ../gui.py:232
 msgid "_Add atoms"
 msgstr "_Tilføj atomer"
 
-#: ../gui.py:232
+#: ../gui.py:233
 msgid "Insert or import atoms and molecules"
 msgstr "Indsæt eller importér atomer og molekyler"
 
-#: ../gui.py:234
+#: ../gui.py:235
 msgid "_Delete selected atoms"
 msgstr "_Slet markerede atomer"
 
-#: ../gui.py:235
+#: ../gui.py:236
 msgid "Delete the selected atoms"
 msgstr "Slet de markerede atomer"
 
-#: ../gui.py:237
+#: ../gui.py:238
 msgid "_First image"
 msgstr "_Første billede"
 
-#: ../gui.py:240
+#: ../gui.py:241
 msgid "_Previous image"
 msgstr "_Forrige billede"
 
-#: ../gui.py:243
+#: ../gui.py:244
 msgid "_Next image"
 msgstr "_Næste billede"
 
-#: ../gui.py:246
+#: ../gui.py:247
 msgid "_Last image"
 msgstr "_Sidste billede"
 
-#: ../gui.py:249
+#: ../gui.py:250
 msgid "Show _Labels"
 msgstr "Vis _Etiketter"
 
-#: ../gui.py:250
+#: ../gui.py:251
 msgid "Hide selected atoms"
 msgstr "Skjul markerede atomer"
 
-#: ../gui.py:253
+#: ../gui.py:254
 msgid "Show selected atoms"
 msgstr "Vis markerede atomer"
 
-#: ../gui.py:256
+#: ../gui.py:257
 msgid "Quick Info ..."
 msgstr "Hurtig info ..."
 
-#: ../gui.py:259
+#: ../gui.py:260
 msgid "Repeat ..."
 msgstr "Gentag ..."
 
-#: ../gui.py:262
+#: ../gui.py:263
 msgid "Rotate ..."
 msgstr "Rotér ..."
 
-#: ../gui.py:265
+#: ../gui.py:266
 msgid "Colors ..."
 msgstr "Farver ..."
 
 #. TRANSLATORS: verb
-#: ../gui.py:268
+#: ../gui.py:269
 msgid "Focus"
 msgstr "Fokusér"
 
-#: ../gui.py:271
+#: ../gui.py:272
 msgid "Zoom in"
 msgstr "Zoom ind"
 
-#: ../gui.py:274
+#: ../gui.py:275
 msgid "Zoom out"
 msgstr "Zoom ud"
 
-#: ../gui.py:277
+#: ../gui.py:278
 msgid "Change View"
 msgstr "Skift perspektiv"
 
-#: ../gui.py:278
+#: ../gui.py:279
 msgid "Reset View"
 msgstr "Nulstil perspektiv"
 
-#: ../gui.py:281
+#: ../gui.py:282
 msgid "'xy' Plane"
 msgstr "'xy'-plan"
 
-#: ../gui.py:282
+#: ../gui.py:283
 msgid "'yz' Plane"
 msgstr "'yz'-plan"
 
-#: ../gui.py:283
+#: ../gui.py:284
 msgid "'zx' Plane"
 msgstr "'zx'-plan"
 
-#: ../gui.py:284
+#: ../gui.py:285
 msgid "'yx' Plane"
 msgstr "'yx'-plan"
 
-#: ../gui.py:285
+#: ../gui.py:286
 msgid "'zy' Plane"
 msgstr "'zy'-plan"
 
-#: ../gui.py:286
+#: ../gui.py:287
 msgid "'xz' Plane"
 msgstr "'xz'-plan"
 
-#: ../gui.py:287
+#: ../gui.py:288
 msgid "'a2 a3' Plane"
 msgstr "'a2 a3'-plan"
 
-#: ../gui.py:288
+#: ../gui.py:289
 msgid "'a3 a1' Plane"
 msgstr "'a3 a1'-plan"
 
-#: ../gui.py:289
+#: ../gui.py:290
 msgid "'a1 a2' Plane"
 msgstr "'a1 a2'-plan"
 
-#: ../gui.py:290
+#: ../gui.py:291
 msgid "'a3 a2' Plane"
 msgstr "'a3 a2'-plan"
 
-#: ../gui.py:291
+#: ../gui.py:292
 msgid "'a1 a3' Plane"
 msgstr "'a1 a3'-plan"
 
-#: ../gui.py:292
+#: ../gui.py:293
 msgid "'a2 a1' Plane"
 msgstr "'a2 a1'-plan"
 
-#: ../gui.py:293
+#: ../gui.py:294
 msgid "Settings ..."
 msgstr "Indstillinger ..."
 
-#: ../gui.py:296
+#: ../gui.py:297
 msgid "VMD"
 msgstr "VMD"
 
-#: ../gui.py:299
+#: ../gui.py:300
 msgid "RasMol"
 msgstr "RasMol"
 
-#: ../gui.py:302
+#: ../gui.py:303
 msgid "xmakemol"
 msgstr "xmakemol"
 
-#: ../gui.py:305
+#: ../gui.py:306
 msgid "avogadro"
 msgstr "avogadro"
 
-#: ../gui.py:308
+#: ../gui.py:309
 msgid "Graphs ..."
 msgstr "Grafer ..."
 
-#: ../gui.py:311
+#: ../gui.py:312
 msgid "Movie ..."
 msgstr "Film ..."
 
-#: ../gui.py:314
+#: ../gui.py:315
 msgid "Expert mode ..."
 msgstr "Eksperttilstand ..."
 
-#: ../gui.py:317
+#: ../gui.py:318
 msgid "Constraints ..."
 msgstr "Begrænsninger ..."
 
 # gemmer et billede af atomerne
-#: ../gui.py:320
+#: ../gui.py:321
 msgid "Render scene ..."
 msgstr "Tegn struktur ..."
 
-#: ../gui.py:323
+#: ../gui.py:324
 msgid "DFT ..."
 msgstr "DFT ..."
 
-#: ../gui.py:326
+#: ../gui.py:327
 msgid "NE_B"
 msgstr "NE_B"
 
-#: ../gui.py:329
+#: ../gui.py:330
 msgid "B_ulk Modulus"
 msgstr "K_ompressibilitetsmodul"
 
-#: ../gui.py:332
+#: ../gui.py:333
 msgid "_Bulk Crystal"
 msgstr "_Krystal"
 
-#: ../gui.py:333
+#: ../gui.py:334
 msgid "Create a bulk crystal with arbitrary orientation"
 msgstr "Opret en krystalstruktur med arbitrær orientering"
 
-#: ../gui.py:335
+#: ../gui.py:336
 msgid "_Surface slab"
 msgstr "_Overflade"
 
-#: ../gui.py:336
+#: ../gui.py:337
 msgid "Create the most common surfaces"
 msgstr "Opret de mest almindelige overflader"
 
-#: ../gui.py:338
+#: ../gui.py:339
 msgid "_Nanoparticle"
 msgstr "_Nanopartikel"
 
-#: ../gui.py:339
+#: ../gui.py:340
 msgid "Create a crystalline nanoparticle"
 msgstr "Opret en krystallinsk nanopartikel"
 
-#: ../gui.py:341
+#: ../gui.py:342
 msgid "Nano_tube"
 msgstr "Nano_rør"
 
-#: ../gui.py:342
+#: ../gui.py:343
 msgid "Create a nanotube"
 msgstr "Opret et nanorør"
 
-#: ../gui.py:345
+#: ../gui.py:346
 msgid "Create a graphene sheet or nanoribbon"
 msgstr "Opret et lag eller bånd af grafén"
 
-#: ../gui.py:347
+#: ../gui.py:348
 msgid "Set _Calculator"
 msgstr "Angiv _beregner"
 
-#: ../gui.py:348
+#: ../gui.py:349
 msgid "Set a calculator used in all calculation modules"
 msgstr "Angiv en beregner der skal bruges i alle beregningsmoduler"
 
-#: ../gui.py:350
+#: ../gui.py:351
 msgid "_Energy and Forces"
 msgstr "_Energi og kræfter"
 
-#: ../gui.py:351
+#: ../gui.py:352
 msgid "Calculate energy and forces"
 msgstr "Beregn energi og kræfter"
 
-#: ../gui.py:353
+#: ../gui.py:354
 msgid "Energy _Minimization"
 msgstr "Energi_minimering"
 
-#: ../gui.py:354
+#: ../gui.py:355
 msgid "Minimize the energy"
 msgstr "Minimér energien"
 
-#: ../gui.py:356
+#: ../gui.py:357
 msgid "Scale system"
 msgstr "Skalér systemet"
 
-#: ../gui.py:357
+#: ../gui.py:358
 msgid "Deform system by scaling it"
 msgstr "Deformér systemet ved skalering"
 
-#: ../gui.py:359
+#: ../gui.py:360
 msgid "_About"
 msgstr "_Om"
 
-#: ../gui.py:362
+#: ../gui.py:363
 msgid "Webpage ..."
 msgstr "Webside ..."
 
-#: ../gui.py:363
+#: ../gui.py:364
 msgid "Debug ..."
 msgstr "Fejlsøgning ..."
 
-#: ../gui.py:365
+#: ../gui.py:366
 msgid "Show _unit cell"
 msgstr "Vis _enhedscelle"
 
-#: ../gui.py:369
+#: ../gui.py:370
 msgid "Show _axes"
 msgstr "Vis _akser"
 
-#: ../gui.py:373
+#: ../gui.py:374
 msgid "Show _bonds"
 msgstr "Vis _bindinger"
 
-#: ../gui.py:377
+#: ../gui.py:378
 msgid "Show _velocities"
 msgstr "Vis _hastigheder"
 
-#: ../gui.py:381
+#: ../gui.py:382
 msgid "Show _forces"
 msgstr "Vis _kræfter"
 
-#: ../gui.py:385
+#: ../gui.py:386
 msgid "_Move atoms"
 msgstr "_Flyt atomer"
 
-#: ../gui.py:389
+#: ../gui.py:390
 msgid "_Rotate atoms"
 msgstr "_Rotér atomer"
 
-#: ../gui.py:393
+#: ../gui.py:394
 msgid "Orien_t atoms"
 msgstr "Orien_tér atomer"
 
-#: ../gui.py:399
+#: ../gui.py:400
 msgid "_None"
 msgstr "_Ingen"
 
-#: ../gui.py:400
+#: ../gui.py:401
 msgid "Atom _Index"
 msgstr "Atom _Indeks"
 
-#: ../gui.py:401
+#: ../gui.py:402
 msgid "_Magnetic Moments"
 msgstr "_Magnetiske Momenter"
 
-#: ../gui.py:402
+#: ../gui.py:403
 msgid "_Element Symbol"
 msgstr "_Kemisk symbol"
 
-#: ../gui.py:411
+#: ../gui.py:412
 #, python-format
 msgid "building menus failed: %s"
 msgstr "bygning af menuer mislykkedes: %s"
 
-#: ../gui.py:686 ../gui.py:1092 ../gui.py:1152
+#: ../gui.py:687 ../gui.py:1093 ../gui.py:1153
 msgid "Open ..."
 msgstr "Åbn ..."
 
-#: ../gui.py:690 ../gui.py:1095
+#: ../gui.py:691 ../gui.py:1096
 msgid "<<filename>>"
 msgstr "<<filnavn>>"
 
-#: ../gui.py:823
+#: ../gui.py:824
 msgid "Add atoms"
 msgstr "Tilføj atomer"
 
-#: ../gui.py:826
+#: ../gui.py:827
 msgid "Paste"
 msgstr "Indsæt"
 
-#: ../gui.py:832
+#: ../gui.py:833
 msgid "Insert atom or molecule"
 msgstr "Indsæt atom eller molekyle"
 
-#: ../gui.py:833 ../gui.py:959
+#: ../gui.py:834 ../gui.py:960
 msgid "Tag"
 msgstr "Mærke"
 
-#: ../gui.py:834 ../gui.py:960
+#: ../gui.py:835 ../gui.py:961
 msgid "Moment"
 msgstr "Moment"
 
-#: ../gui.py:835
+#: ../gui.py:836
 msgid "Position"
 msgstr "Position"
 
-#: ../gui.py:860
+#: ../gui.py:861
 msgid "_Load molecule"
 msgstr "_Indlæs molekyle"
 
-#: ../gui.py:864 ../gui.py:975
+#: ../gui.py:865 ../gui.py:976
 msgid "_OK"
 msgstr "_O.k."
 
-#: ../gui.py:868 ../gui.py:979
+#: ../gui.py:869 ../gui.py:980
 msgid "_Cancel"
 msgstr "_Annullér"
 
-#: ../gui.py:952
+#: ../gui.py:953
 msgid "Modify"
 msgstr "Ændr"
 
-#: ../gui.py:958
+#: ../gui.py:959
 msgid "Atom"
 msgstr "Atom"
 
-#: ../gui.py:1003
+#: ../gui.py:1004
 msgid "Confirmation"
 msgstr "Bekræftelse"
 
-#: ../gui.py:1007
+#: ../gui.py:1008
 msgid "Delete selected atom?"
 msgid_plural "Delete selected atoms?"
 msgstr[0] "Slet det valgte atom?"
 msgstr[1] "Slet de valgte atomer?"
 
-#: ../gui.py:1014
+#: ../gui.py:1015
 msgid "Cancel"
 msgstr "Annullér"
 
-#: ../gui.py:1100
+#: ../gui.py:1101
 msgid "Automatic"
 msgstr "Automatisk"
 
-#: ../gui.py:1101
+#: ../gui.py:1102
 msgid "Dacapo netCDF output file"
 msgstr "netCDF-uddatafil fra Dacapo"
 
-#: ../gui.py:1102
+#: ../gui.py:1103
 msgid "Virtual Nano Lab file"
 msgstr "Virtual Nano Lab-fil"
 
-#: ../gui.py:1103
+#: ../gui.py:1104
 msgid "ASE pickle trajectory"
 msgstr "Pickletrajectory fra ASE"
 
-#: ../gui.py:1104
+#: ../gui.py:1105
 msgid "ASE bundle trajectory"
 msgstr "Bundletrajectory fra ASE"
 
-#: ../gui.py:1105
+#: ../gui.py:1106
 msgid "GPAW text output"
 msgstr "Textudskrift fra GPAW"
 
-#: ../gui.py:1106
+#: ../gui.py:1107
 msgid "CUBE file"
 msgstr "CUBE-fil"
 
-#: ../gui.py:1107
+#: ../gui.py:1108
 msgid "XCrySDen Structure File"
 msgstr "XCrySDen-strukturfil"
 
-#: ../gui.py:1108
+#: ../gui.py:1109
 msgid "Dacapo text output"
 msgstr "Tekstudskrift fra Dacapo"
 
-#: ../gui.py:1109
+#: ../gui.py:1110
 msgid "XYZ-file"
 msgstr "XYZ-fil"
 
-#: ../gui.py:1110
+#: ../gui.py:1111
 msgid "VASP POSCAR/CONTCAR file"
 msgstr "POSCAR/CONTCAR-fil fra VASP"
 
-#: ../gui.py:1111
+#: ../gui.py:1112
 msgid "VASP OUTCAR file"
 msgstr "OUTCAR-fil fra VASP"
 
-#: ../gui.py:1112
+#: ../gui.py:1113
 msgid "Protein Data Bank"
 msgstr "Proteindatabank"
 
-#: ../gui.py:1113
+#: ../gui.py:1114
 msgid "CIF-file"
 msgstr "CIF-fil"
 
-#: ../gui.py:1114
+#: ../gui.py:1115
 msgid "FHI-aims geometry file"
 msgstr "FHI-aims-geometrifil"
 
-#: ../gui.py:1115
+#: ../gui.py:1116
 msgid "FHI-aims output file"
 msgstr "Uddatafil fra FHI-aims"
 
-#: ../gui.py:1116
+#: ../gui.py:1117
 msgid "TURBOMOLE coord file"
 msgstr "TURBOMOLE-koordinatfil"
 
 # exciting er et program
-#: ../gui.py:1117
+#: ../gui.py:1118
 msgid "exciting input"
 msgstr "exciting-inddata"
 
-#: ../gui.py:1118
+#: ../gui.py:1119
 msgid "WIEN2k structure file"
 msgstr "WIEN2k-strukturfil"
 
-#: ../gui.py:1119
+#: ../gui.py:1120
 msgid "DftbPlus input file"
 msgstr "DftbPlus-inddatafil"
 
-#: ../gui.py:1120
+#: ../gui.py:1121
 msgid "ETSF format"
 msgstr "ETSF-format"
 
-#: ../gui.py:1121
+#: ../gui.py:1122
 msgid "CASTEP geom file"
 msgstr "CASTEP-geom-fil"
 
-#: ../gui.py:1122
+#: ../gui.py:1123
 msgid "CASTEP output file"
 msgstr "Uddatafil fra CASTEP"
 
-#: ../gui.py:1123
+#: ../gui.py:1124
 msgid "CASTEP trajectory file"
 msgstr "Trajectory-fil fra CASTEP"
 
-#: ../gui.py:1124
+#: ../gui.py:1125
 msgid "DFTBPlus GEN format"
 msgstr "GEN-format fra DFTBPlus"
 
-#: ../gui.py:1130
+#: ../gui.py:1131
 msgid "File type:"
 msgstr "Filtype:"
 
-#: ../gui.py:1253
+#: ../gui.py:1254
 msgid "Not implemented!"
 msgstr "Ikke implementeret!"
 
-#: ../gui.py:1254
+#: ../gui.py:1255
 msgid "do you really need it?"
 msgstr "har du virkelig brug for dette?"
 
@@ -2096,11 +2068,11 @@ msgstr "har du virkelig brug for dette?"
 msgid "Algorithm: "
 msgstr "Algoritme: "
 
-#: ../minimize.py:26 ../progress.py:67
+#: ../minimize.py:26 ../progress.py:68
 msgid "Convergence criterion: F<sub>max</sub> = "
 msgstr "Konvergenskriterium: F<sub>max</sub> = "
 
-#: ../minimize.py:31 ../progress.py:70
+#: ../minimize.py:31 ../progress.py:71
 msgid "Max. number of steps: "
 msgstr "Maksimalt antal trin: "
 
@@ -2187,6 +2159,7 @@ msgstr ""
 "krystaller!\n"
 
 #: ../nanoparticle.py:27
+#, python-brace-format
 msgid ""
 "\n"
 "The nanoparticle module sets up a nano-particle or a cluster with a given\n"
@@ -2319,7 +2292,7 @@ msgstr "Sæt alle retninger til standardværdier"
 msgid "Particle size: "
 msgstr "Partikelstørrelse: "
 
-#: ../nanoparticle.py:229 ../nanoparticle.py:266 ../progress.py:196
+#: ../nanoparticle.py:229 ../nanoparticle.py:266 ../progress.py:197
 msgid "Number of atoms: "
 msgstr "Antal atomer: "
 
@@ -2445,102 +2418,102 @@ msgstr "Nanorør"
 msgid "Select roll-up vector (n,m) and tube length:"
 msgstr "Vælg oprulningsvektor (n,m) og rørlængde:"
 
-#: ../progress.py:25
+#: ../progress.py:26
 msgid "Progress"
 msgstr "Fremgang"
 
-#: ../progress.py:32
+#: ../progress.py:33
 msgid "Scaling deformation:"
 msgstr "Skaleringsdeformation:"
 
-#: ../progress.py:38
+#: ../progress.py:39
 #, python-format
 msgid "Step number %s of %s."
 msgstr "Trin nummer %s af %s."
 
 #. Minimization progress frame
 #. Box containing frame and spacing
-#: ../progress.py:53
+#: ../progress.py:54
 msgid "Energy minimization:"
 msgstr "Energiminimering:"
 
-#: ../progress.py:60
+#: ../progress.py:61
 msgid "Step number: "
 msgstr "Trinnummer: "
 
-#: ../progress.py:62
+#: ../progress.py:63
 msgid "F<sub>max</sub>: "
 msgstr "F<sub>max</sub>: "
 
-#: ../progress.py:102
+#: ../progress.py:103
 msgid "unknown"
 msgstr "ukendt"
 
-#: ../progress.py:179
+#: ../progress.py:180
 msgid "Status: "
 msgstr "Status: "
 
-#: ../progress.py:181
+#: ../progress.py:182
 msgid "Iteration: "
 msgstr "Iteration: "
 
-#: ../progress.py:184
+#: ../progress.py:185
 msgid "log<sub>10</sub>(change):"
 msgstr "log<sub>10</sub>(skift):"
 
-#: ../progress.py:187
+#: ../progress.py:188
 msgid "Wave functions: "
 msgstr "Bølgefunktioner: "
 
-#: ../progress.py:189
+#: ../progress.py:190
 msgid "Density: "
 msgstr "Tæthed: "
 
-#: ../progress.py:191
+#: ../progress.py:192
 msgid "Energy: "
 msgstr "Energi: "
 
-#: ../progress.py:194
+#: ../progress.py:195
 msgid "GPAW version: "
 msgstr "GPAW-version: "
 
-#: ../progress.py:197
+#: ../progress.py:198
 msgid "N/A"
 msgstr "-"
 
-#: ../progress.py:198
+#: ../progress.py:199
 msgid "Memory estimate: "
 msgstr "Hukommelsesestimat: "
 
-#: ../progress.py:233
+#: ../progress.py:234
 msgid "No info"
 msgstr "Ingen info"
 
-#: ../progress.py:243
+#: ../progress.py:244
 msgid "Initializing"
 msgstr "Klargør"
 
-#: ../progress.py:244
+#: ../progress.py:245
 msgid "Positions:"
 msgstr "Positioner:"
 
-#: ../progress.py:248
+#: ../progress.py:249
 msgid "Starting calculation"
 msgstr "Starter beregning"
 
-#: ../progress.py:285
+#: ../progress.py:286
 msgid "unchanged"
 msgstr "uændret"
 
-#: ../progress.py:295
+#: ../progress.py:296
 msgid "Self-consistency loop"
 msgstr "Selvkonsistensløkke"
 
-#: ../progress.py:300
+#: ../progress.py:301
 msgid "Calculating forces"
 msgstr "Beregner kræfter"
 
-#: ../progress.py:301
+#: ../progress.py:302
 msgid " (converged)"
 msgstr " (konvergeret)"
 
@@ -2603,6 +2576,8 @@ msgid ""
 "  %8.3f  %8.3f  %8.3f\n"
 "  %8.3f  %8.3f  %8.3f\n"
 "  %8.3f  %8.3f  %8.3f\n"
+"\n"
+"%s\n"
 "%s\n"
 msgstr ""
 "%s\n"
@@ -2613,17 +2588,33 @@ msgstr ""
 "  %8.3f  %8.3f  %8.3f\n"
 "  %8.3f  %8.3f  %8.3f\n"
 "  %8.3f  %8.3f  %8.3f\n"
+"\n"
+"%s\n"
 "%s\n"
 
-#: ../quickinfo.py:29
+#: ../quickinfo.py:31
 msgid "Quick Info"
 msgstr "Hurtig info"
 
-#: ../quickinfo.py:33
+#: ../quickinfo.py:35
 msgid "No atoms loaded."
 msgstr "Ingen atomer indlæst."
 
-#: ../render.py:13
+#: ../quickinfo.py:56
+msgid "no"
+msgstr "nej"
+
+#: ../quickinfo.py:56
+msgid "yes"
+msgstr "ja"
+
+#. TRANSLATORS: This has the form Periodic: no, no, yes
+#: ../quickinfo.py:60
+#, python-format
+msgid "Periodic: %s, %s, %s"
+msgstr "Periodisk: %s, %s, %s"
+
+#: ../render.py:15
 msgid ""
 "    Textures can be used to highlight different parts of\n"
 "    an atomic structure. This window applies the default\n"
@@ -2633,11 +2624,11 @@ msgid ""
 "    An alternative selection method is based on a boolean\n"
 "    expression in the entry box provided, using the\n"
 "    variables x, y, z, or Z. For example, the expression\n"
-"    Z == 11 and x > 10 and y > 10 \n"
-"    will mark all sodium atoms with x or coordinates \n"
+"    Z == 11 and x > 10 and y > 10\n"
+"    will mark all sodium atoms with x or coordinates\n"
 "    larger than 10. In either case, the button labeled\n"
 "    `Create new texture from selection` will enable\n"
-"    to change the attributes of the current selection. \n"
+"    to change the attributes of the current selection.\n"
 "    "
 msgstr ""
 "    Teksturer kan bruges til at fremhæve forskellige dele af en\n"
@@ -2654,113 +2645,113 @@ msgstr ""
 "    "
 
 # gemmer et billede af atomerne
-#: ../render.py:31
+#: ../render.py:33
 msgid "Render current view in povray ... "
 msgstr "Tegn nuværende struktur i povray ... "
 
-#: ../render.py:35
+#: ../render.py:37
 #, python-format
 msgid "Rendering %d atoms."
 msgstr "Tegner %d atomer."
 
-#: ../render.py:40
+#: ../render.py:42
 msgid "Render constraints"
 msgstr "Tegn begrænsninger"
 
-#: ../render.py:43
+#: ../render.py:45
 msgid "Width"
 msgstr "Bredde"
 
-#: ../render.py:44
+#: ../render.py:46
 msgid "     Height"
 msgstr "     Højde"
 
-#: ../render.py:51
+#: ../render.py:53
 msgid "Render unit cell"
 msgstr "Tegn _enhedscelle"
 
-#: ../render.py:60
+#: ../render.py:62
 msgid "Line width"
 msgstr "Linjebredde"
 
-#: ../render.py:62
+#: ../render.py:64
 msgid "Angstrom           "
 msgstr "Ångström           "
 
-#: ../render.py:72
+#: ../render.py:74
 msgid "Set"
 msgstr "Angiv"
 
-#: ../render.py:74
+#: ../render.py:76
 msgid "Output basename: "
 msgstr "Basisnavn for output: "
 
-#: ../render.py:76
+#: ../render.py:78
 msgid "               Filename: "
 msgstr "               Filnavn: "
 
-#: ../render.py:87
+#: ../render.py:89
 msgid " Default texture for atoms: "
 msgstr " Standardtekstur for atomer: "
 
-#: ../render.py:88
+#: ../render.py:90
 msgid "    transparency: "
 msgstr "    gennemsigtighed: "
 
-#: ../render.py:89
+#: ../render.py:91
 msgid "Define atom selection for new texture:"
 msgstr "Definér atommarkering til ny tekstur:"
 
-#: ../render.py:91
+#: ../render.py:93
 msgid "Select"
 msgstr "Vælg"
 
-#: ../render.py:95
+#: ../render.py:97
 msgid "Create new texture from selection"
 msgstr "Opret ny tekstur fra markering"
 
-#: ../render.py:97
+#: ../render.py:99
 msgid "Help on textures"
 msgstr "Hjælp til teksturer"
 
-#: ../render.py:110
+#: ../render.py:112
 msgid "Camera type: "
 msgstr "Kameratype: "
 
-#: ../render.py:111
+#: ../render.py:113
 msgid "     Camera distance"
 msgstr "     Kameraafstand"
 
-#: ../render.py:112
+#: ../render.py:114
 msgid "Render current frame"
 msgstr "Tegn det aktuelle billede"
 
-#: ../render.py:116
+#: ../render.py:118
 #, python-format
 msgid "Render all %d frames"
 msgstr "Tegn alle %d billeder"
 
-#: ../render.py:121
+#: ../render.py:123
 msgid "Transparent background"
 msgstr "Gennemsigtig baggrund"
 
-#: ../render.py:124
+#: ../render.py:126
 msgid "Run povray       "
 msgstr "Kør povray       "
 
-#: ../render.py:127
+#: ../render.py:129
 msgid "Keep povray files       "
 msgstr "Behold povray-filer       "
 
-#: ../render.py:130
+#: ../render.py:132
 msgid "Show output window"
 msgstr "Vis outputvindue"
 
-#: ../render.py:211
+#: ../render.py:213
 msgid "  transparency: "
 msgstr "  gennemsigtighed: "
 
-#: ../render.py:217
+#: ../render.py:219
 msgid ""
 "Can not create new texture! Must have some atoms selected to create a new "
 "material!"
@@ -2768,11 +2759,11 @@ msgstr ""
 "Kan ikke oprette ny tekstur! Der skal være atomer markeret for at kunne "
 "oprette nyt materiale!"
 
-#: ../repeat.py:13
+#: ../repeat.py:12
 msgid "Repeat"
 msgstr "Gentag"
 
-#: ../repeat.py:20
+#: ../repeat.py:19
 msgid "Set unit cell"
 msgstr "Angiv enhedscelle"
 
@@ -3061,17 +3052,17 @@ msgstr "Kør"
 msgid "No calculator: Use Calculate/Set Calculator on the menu."
 msgstr "Ingen beregner: Brug Beregn/Angiv beregner i menuen."
 
-#: ../status.py:37 ../status.py:39
+#: ../status.py:36 ../status.py:38
 msgid "Tip for status box ..."
 msgstr "Fif til statusboks ..."
 
 #. TRANSLATORS: mom refers to magnetic moment
-#: ../status.py:63
+#: ../status.py:62
 #, python-format
 msgid " tag=%(tag)s mom=%(mom)1.2f"
 msgstr " mærke=%(tag)s mom=%(mom)1.2f"
 
-#: ../status.py:104
+#: ../status.py:103
 msgid "dihedral"
 msgstr "dihedral"
 
@@ -3232,25 +3223,47 @@ msgstr "Ingen struktur angivet!"
 msgid "%(struct)s lattice constant unknown for %(element)s."
 msgstr "%(struct)s-gitterkonstant ukendt for %(element)s."
 
-#: ../widgets.py:54 ../widgets.py:82
+#: ../widgets.py:58 ../widgets.py:87
 msgid "Help"
 msgstr "Hjælp"
 
-#: ../widgets.py:99
+#: ../widgets.py:104
 msgid "Clear constraint"
 msgstr "Ryd begrænsninger"
 
-#~ msgid "To get a full traceback, use: ase-gui --verbose"
-#~ msgstr "Kør ase-gui --verbose for at se det fulde traceback"
+#~ msgid ""
+#~ "\n"
+#~ "An exception occurred!  Please report the issue to\n"
+#~ "ase-developers@listserv.fysik.dtu.dk - thanks!  Please also report this "
+#~ "if\n"
+#~ "it was a user error, so that a better error message can be provided\n"
+#~ "next time."
+#~ msgstr ""
+#~ "\n"
+#~ "Der opstod en undtagelse!  Rapportér venligst dette problem til \n"
+#~ "ase-developers@listserv.fysik.dtu.dk - mange tak!  Rapportér også gerne "
+#~ "dette\n"
+#~ "hvis det var en brugerfejl, så der kan gives en bedre fejlmeddelelse "
+#~ "næste\n"
+#~ "gang."
 
-#~ msgid "By magnetic moment"
-#~ msgstr "Efter magnetisk moment"
+#~ msgid "Max force: %.2f (this frame), %.2f (all frames)"
+#~ msgstr "Maks. kraft: %.2f (dette billede), %.2f (alle billeder)"
 
-#~ msgid "By coordination"
-#~ msgstr "Efter koordination"
+#~ msgid "Max force: %.2f."
+#~ msgstr "Maks. kraft: %.2f."
 
-#~ msgid "This should not be displayed in forces!"
-#~ msgstr "Dette bør ikke blive vist ved kræfter!"
+#~ msgid "Max velocity: %.2f (this frame), %.2f (all frames)"
+#~ msgstr "Maks. hastighed: %.2f (dette billede), %.2f (alle billeder)"
+
+#~ msgid "Max velocity: %.2f."
+#~ msgstr "Maks. hastighed: %.2f."
+
+#~ msgid "Min, max charge: %.2f, %.2f (this frame),"
+#~ msgstr "Min., maks. ladning: %.2f, %.2f (dette billede),"
+
+#~ msgid "Min, max charge: %.2f, %.2f."
+#~ msgstr "Min., maks. ladning: %.2f, %.2f."
 
 #~ msgid "Save ..."
 #~ msgstr "Gem ..."
