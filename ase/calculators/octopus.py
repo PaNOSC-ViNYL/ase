@@ -377,7 +377,7 @@ def generate_input(atoms, kwargs):
     atomskwargs = atoms2kwargs(atoms)
 
     # Use cell from Atoms object unless user specified BoxShape
-    use_ase_box = not 'boxshape' in kwargs
+    use_ase_box = 'boxshape' not in kwargs
     if use_ase_box:
         setvar('boxshape', atomskwargs['boxshape'])
         lsizeblock = list2block('lsize', atomskwargs['lsize'])
@@ -399,13 +399,13 @@ def generate_input(atoms, kwargs):
     else:
         output_tokens = []
 
-    if not 'forces' in output_tokens:
+    if 'forces' not in output_tokens:
         output_tokens.append('forces')
     setvar('output', ' + '.join(output_tokens))
     # It is illegal to have output forces without any OutputHow.
     # Even though the forces are written in the same format no matter
     # OutputHow.  Thus we have to make one up:
-    if not 'outputhow' in kwargs:
+    if 'outputhow' not in kwargs:
         kwargs['outputhow'] = 'xcrysden'
 
     if not 'SCFCalculateDipole'.lower() in kwargs:
@@ -560,7 +560,7 @@ class Octopus(FileIOCalculator):
         # What do we do if we need to restart octopus?
         # We can do the restart and dump the files.
         # But we have to manipulate output and outputhow.
-        if not 'density_sg' in self.results:
+        if 'density_sg' not in self.results:
             self.results['density_sg'] = self.read_vn('density', 'density')
         density_sg = self.results['density_sg']
         if spin is None:
@@ -571,7 +571,7 @@ class Octopus(FileIOCalculator):
 
     def get_effective_potential(self, spin=0, pad=True):
         # XXX ignores 'pad'
-        if not 'potential_sg' in self.results:
+        if 'potential_sg' not in self.results:
             self.results['potential_sg'] = self.read_vn('vks', 'potential')
         return self.results['potential_sg'][spin]
 
