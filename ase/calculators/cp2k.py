@@ -90,9 +90,14 @@ class CP2K(Calculator):
         augment the template, e.g. with coordinates, and use
         it to launch CP2K. Hence, this generic mechanism
         gives access to all features of CP2K.
+        Note, that most keywords accept ``None`` to disable the generation
+        of the corresponding input section.
     max_scf: int
         Maximum number of SCF iteration to be performed for
         one optimization. Default is ``50``.
+    poisson_solver: str
+        The poisson solver to be used. Currently, the only supported
+        values are ``auto`` and ``None``. Default is ``auto``.
     potential_file: str
         Filename of the pseudo-potential file.
         Default is ``POTENTIAL``.
@@ -103,6 +108,9 @@ class CP2K(Calculator):
         Default is ``auto``. This tries to infer the
         potential from the employed XC-functional,
         otherwise it falls back to ``GTH-PBE``.
+    stress_tensor: bool
+        Indicates whether the analytic stress-tensor should be calculated.
+        Default is ``True``.
     uks: bool
         Requests an unrestricted Kohn-Sham calculations.
         This is need for spin-polarized systems, ie. with an
@@ -111,6 +119,7 @@ class CP2K(Calculator):
         Name of exchange and correlation functional.
         Accepts all functions supported by CP2K itself or libxc.
         Default is ``LDA``.
+
     """
 
     implemented_properties = ['energy', 'forces', 'stress']
@@ -127,7 +136,9 @@ class CP2K(Calculator):
         max_scf=50,
         potential_file='POTENTIAL',
         pseudo_potential='auto',
+        stress_tensor=True,
         uks=False,
+        poisson_solver='auto',
         xc='LDA')
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
@@ -333,39 +344,43 @@ class CP2K(Calculator):
         p = self.parameters
         root = parse_input(p.inp)
         root.add_keyword('GLOBAL', 'PROJECT ' + self.label)
-        root.add_keyword('FORCE_EVAL', 'METHOD ' + p.force_eval_method)
-        root.add_keyword('FORCE_EVAL', 'STRESS_TENSOR ANALYTICAL')
-        root.add_keyword('FORCE_EVAL/PRINT/STRESS_TENSOR',
-                         '_SECTION_PARAMETERS_ ON')
-        root.add_keyword('FORCE_EVAL/DFT',
-                         'BASIS_SET_FILE_NAME ' + p.basis_set_file)
-        root.add_keyword('FORCE_EVAL/DFT',
-                         'POTENTIAL_FILE_NAME ' + p.potential_file)
-        root.add_keyword('FORCE_EVAL/DFT/MGRID',
-                         'CUTOFF [eV] %.20e' % p.cutoff)
-        root.add_keyword('FORCE_EVAL/DFT/SCF', 'MAX_SCF %d' % p.max_scf)
-        root.add_keyword('FORCE_EVAL/DFT/LS_SCF', 'MAX_SCF %d' % p.max_scf)
+        if p.force_eval_method:
+            root.add_keyword('FORCE_EVAL', 'METHOD ' + p.force_eval_method)
+        if p.stress_tensor:
+            root.add_keyword('FORCE_EVAL', 'STRESS_TENSOR ANALYTICAL')
+            root.add_keyword('FORCE_EVAL/PRINT/STRESS_TENSOR',
+                             '_SECTION_PARAMETERS_ ON')
+        if p.basis_set_file:
+            root.add_keyword('FORCE_EVAL/DFT',
+                             'BASIS_SET_FILE_NAME ' + p.basis_set_file)
+        if p.potential_file:
+            root.add_keyword('FORCE_EVAL/DFT',
+                             'POTENTIAL_FILE_NAME ' + p.potential_file)
+        if p.cutoff:
+            root.add_keyword('FORCE_EVAL/DFT/MGRID',
+                             'CUTOFF [eV] %.20e' % p.cutoff)
+        if p.max_scf:
+            root.add_keyword('FORCE_EVAL/DFT/SCF', 'MAX_SCF %d' % p.max_scf)
+            root.add_keyword('FORCE_EVAL/DFT/LS_SCF', 'MAX_SCF %d' % p.max_scf)
 
-        if p.xc.startswith("XC_"):
-            root.add_keyword('FORCE_EVAL/DFT/XC/XC_FUNCTIONAL/LIBXC',
-                             'FUNCTIONAL ' + p.xc)
-        else:
-            root.add_keyword('FORCE_EVAL/DFT/XC/XC_FUNCTIONAL',
-                             '_SECTION_PARAMETERS_ ' + p.xc)
+        if p.xc:
+            if p.xc.startswith("XC_"):
+                root.add_keyword('FORCE_EVAL/DFT/XC/XC_FUNCTIONAL/LIBXC',
+                                 'FUNCTIONAL ' + p.xc)
+            else:
+                root.add_keyword('FORCE_EVAL/DFT/XC/XC_FUNCTIONAL',
+                                 '_SECTION_PARAMETERS_ ' + p.xc)
 
         if p.uks:
             root.add_keyword('FORCE_EVAL/DFT', 'UNRESTRICTED_KOHN_SHAM ON')
 
-        if p.charge != 0:
+        if p.charge and p.charge != 0:
             root.add_keyword('FORCE_EVAL/DFT', 'CHARGE %d' % p.charge)
 
         # add Poisson solver if needed
-        if not any(self.atoms.get_pbc()):
+        if p.poisson_solver == 'auto' and not any(self.atoms.get_pbc()):
             root.add_keyword('FORCE_EVAL/DFT/POISSON', 'PERIODIC NONE')
             root.add_keyword('FORCE_EVAL/DFT/POISSON', 'PSOLVER  MT')
-
-        if root.get_subsection('FORCE_EVAL/SUBSYS'):
-            raise Exception('Section SUBSYS exists already')
 
         # write coords
         syms = self.atoms.get_chemical_symbols()
@@ -386,8 +401,8 @@ class CP2K(Calculator):
 
         # determine pseudo-potential
         potential = p.pseudo_potential
-        if p.pseudo_potential.lower() == 'auto':
-            if p.xc.upper() in ('LDA', 'PADE', 'BP', 'BLYP', 'PBE',):
+        if p.pseudo_potential == 'auto':
+            if p.xc and p.xc.upper() in ('LDA', 'PADE', 'BP', 'BLYP', 'PBE',):
                 potential = 'GTH-' + p.xc.upper()
             else:
                 msg = 'No matching pseudo potential found, using GTH-PBE'
@@ -395,12 +410,17 @@ class CP2K(Calculator):
                 potential = 'GTH-PBE'  # fall back
 
         # write atomic kinds
-        subsys = root.get_subsection('FORCE_EVAL/SUBSYS')
+        subsys = root.get_subsection('FORCE_EVAL/SUBSYS').subsections
+        kinds = dict([(s.params, s) for s in subsys if s.name == "KIND"])
         for elem in set(self.atoms.get_chemical_symbols()):
-            s = InputSection(name='KIND', params=elem)
-            s.keywords.append('BASIS_SET ' + p.basis_set)
-            s.keywords.append('POTENTIAL ' + potential)
-            subsys.subsections.append(s)
+            if elem not in kinds.keys():
+                s = InputSection(name='KIND', params=elem)
+                subsys.append(s)
+                kinds[elem] = s
+            if p.basis_set:
+                kinds[elem].keywords.append('BASIS_SET ' + p.basis_set)
+            if potential:
+                kinds[elem].keywords.append('POTENTIAL ' + potential)
 
         output_lines = ['!!! Generated by ASE !!!'] + root.write()
         return '\n'.join(output_lines)
@@ -477,7 +497,9 @@ class InputSection(object):
         if len(candidates) > 1:
             raise Exception('Multiple %s sections found ' % parts[0])
         if len(candidates) == 0:
-            return None
+            s = InputSection(name=parts[0])
+            self.subsections.append(s)
+            candidates = [s]
         if len(parts) == 1:
             return candidates[0]
         return candidates[0].get_subsection(parts[1])
