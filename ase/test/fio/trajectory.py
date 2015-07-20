@@ -9,6 +9,7 @@ if sys.platform in ['win32']:
 import os
 from ase import Atom, Atoms
 from ase.io import Trajectory, read
+from ase.constraints import FixBondLength
 
 co = Atoms([Atom('C', (0, 0, 0)),
             Atom('O', (0, 0, 1.2))])
@@ -69,3 +70,13 @@ e = b.get_potential_energy()
 assert e + 42 == 0
 with must_raise(NotImplementedError):
     f = b.get_forces()
+
+# Make sure constraints play well with momenta:
+a = Atoms('H2',
+          positions=[(0, 0, 0), (0, 0, 1)],
+          momenta=[(1, 0, 0), (0, 0, 0)])
+a.constraints = [FixBondLength(0, 1)]
+t = Trajectory('constraint.traj', 'w', a)
+t.write()
+b = read('constraint.traj')
+assert not (b.get_momenta() - a.get_momenta()).any()
