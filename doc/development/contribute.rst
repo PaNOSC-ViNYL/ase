@@ -30,12 +30,8 @@ https://www.youtube.com/watch?v=WKoImDmYFQE
 https://www.youtube.com/watch?v=1-dUkyn_fZA
 
 Before you send the patch, *please* read our
-:ref:`python_codingstandard` and learn how to use pep8.py,
-pylint and epydoc:
-
-* :ref:`pep8py`
-* :ref:`pylint`
-* :ref:`epydoc`
+:ref:`python_codingstandard` and learn how to use pep8
+and pyflakes.
 
 One of the current committers will look at the patch and give you some
 feedback.  Maybe the patch is fine and the committer will commit it to
