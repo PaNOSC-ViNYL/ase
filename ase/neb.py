@@ -209,6 +209,7 @@ class SingleCalculatorNEB(NEB):
         NEB.__init__(self, images, k, climb, False)
         self.calculators = [None] * self.nimages
         self.energies_ok = False
+        self.first = True
  
     def interpolate(self, initial=0, final=-1, mic=False):
         """Interpolate linearly between initial and final images."""
@@ -263,6 +264,7 @@ class SingleCalculatorNEB(NEB):
     def set_calculators(self, calculators):
         """Set new calculators to the images."""
         self.energies_ok = False
+        self.first = True
 
         if not isinstance(calculators, list):
             calculators = [calculators] * self.nimages
@@ -279,7 +281,7 @@ class SingleCalculatorNEB(NEB):
                 'len(calculators)=%d does not fit to len(images)=%d'
                 % (n, self.nimages))
 
-    def get_energies_and_forces(self, all=False):
+    def get_energies_and_forces(self):
         """Evaluate energies and forces and hide the calculators"""
         if self.energies_ok:
             return
@@ -300,15 +302,16 @@ class SingleCalculatorNEB(NEB):
                             forces=image.get_forces()))
                 self.emax = min(self.emax, image.get_potential_energy())
 
-        if all and self.calculators[0] is None:
+        if self.first:
             calculate_and_hide(0)
 
         # Do all images - one at a time:
         for i in range(1, self.nimages - 1):
             calculate_and_hide(i)
 
-        if all and self.calculators[-1] is None:
+        if self.first:
             calculate_and_hide(-1)
+            self.first = False
 
         self.energies_ok = True
        

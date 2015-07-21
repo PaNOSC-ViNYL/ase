@@ -160,7 +160,7 @@ class Res(object):
                 if tokens[0] == 'TITL':
                     try:
                         info = Res.parse_title(line)
-                    except ValueError:
+                    except (ValueError, IndexError):
                         info = dict()
                 elif tokens[0] == 'CELL' and len(tokens) == 8:
                     abc = [float(tok) for tok in tokens[2:5]]

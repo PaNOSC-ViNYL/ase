@@ -202,21 +202,25 @@ def read_xyz(fileobj, index=-1):
     if not isinstance(index, int) and not isinstance(index, slice):
         raise TypeError('Index argument is neither slice nor integer!')
 
+    # scan through entire file to find where the frames start
     fileobj.seek(0)
-    natoms = int(fileobj.readline())
-
-    for i, l in enumerate(fileobj):
-        pass
-
-    ln = i + 2
-    lnsnp = natoms + 2
-    lastsnap = ln // lnsnp
+    frames = []
+    while fileobj:
+        frame_pos = fileobj.tell()
+        line = fileobj.readline()
+        if line == '':
+            break
+        natoms = int(line)
+        frames.append((frame_pos, natoms))
+        comment = fileobj.readline()
+        for i in range(natoms):
+            fileobj.readline()
 
     rvrs = False
 
     if isinstance(index, int):
         if index < 0:
-            tmpsnp = lastsnap + index
+            tmpsnp = len(frames) + index
             trbl = range(tmpsnp, tmpsnp + 1, 1)
         else:
             trbl = range(index, index + 1, 1)
@@ -229,15 +233,15 @@ def read_xyz(fileobj, index=-1):
         if start is None:
             start = 0
         elif start < 0:
-            start = lastsnap + start
+            start = len(frames) + start
 
         if step is None:
             step = 1
 
         if stop is None:
-            stop = lastsnap
+            stop = len(frames)
         elif stop < 0:
-            stop = lastsnap + stop
+            stop = len(frames) + stop
 
         trbl = range(start, stop, step)
 
@@ -248,17 +252,16 @@ def read_xyz(fileobj, index=-1):
         rtnndx = slice(len(trbl))
 
     images = []
-    current = 0
-
-    fileobj.seek(0)
 
     for index in trbl:
-        for lnndx in range(current, index * lnsnp):
-            line = fileobj.readline()
+        frame_pos, natoms = frames[index]
+        fileobj.seek(frame_pos)
 
+        # check for consistency with frame index table
+        assert int(fileobj.readline()) == natoms
+        
+        # comment line
         line = fileobj.readline()
-        line = fileobj.readline()
-
         info = key_val_str_to_dict(line)
 
         pbc = None
@@ -350,7 +353,6 @@ def read_xyz(fileobj, index=-1):
             atoms.set_calculator(calculator)
 
         images.append(atoms)
-        current = (index + 1) * lnsnp
 
     if rvrs:
         images.reverse()
@@ -358,7 +360,8 @@ def read_xyz(fileobj, index=-1):
     return images[rtnndx]
 
 
-def output_column_format(atoms, columns, arrays, write_info=True, results=None):
+def output_column_format(atoms, columns, arrays,
+                         write_info=True, results=None):
     """
     Helper function to build extended XYZ comment line
     """
@@ -392,7 +395,8 @@ def output_column_format(atoms, columns, arrays, write_info=True, results=None):
         property_names.append(property_name)
         property_types.append(property_type)
 
-        if len(array.shape) == 1:
+        if (len(array.shape) == 1 or
+            (len(array.shape) == 2 and array.shape[1] == 1)):
             ncol = 1
             dtypes.append((column, dtype))
         else:
@@ -423,7 +427,8 @@ def output_column_format(atoms, columns, arrays, write_info=True, results=None):
     return comment, property_ncols, dtype, fmt
 
 
-def write_xyz(fileobj, images, columns=None, write_info=True, write_results=True, append=False):
+def write_xyz(fileobj, images, columns=None, write_info=True,
+              write_results=True, append=False):
     """
     Write output in extended XYZ format
 
@@ -449,7 +454,8 @@ def write_xyz(fileobj, images, columns=None, write_info=True, write_results=True
         if frame_columns is None:
             frame_columns = (['symbols', 'positions'] +
                              [key for key in atoms.arrays.keys() if
-                              key not in ['symbols', 'positions', 'species', 'pos']])
+                              key not in ['symbols', 'positions',
+                                          'species', 'pos']])
 
         per_frame_results = {}
         per_atom_results = {}
@@ -462,21 +468,24 @@ def write_xyz(fileobj, images, columns=None, write_info=True, write_results=True
                     if value is None:
                         # skip missing calculator results
                         continue
-                    if isinstance(value, np.ndarray) and value.shape[0] == len(atoms):
-                        # per-atom quantities (forces, potential energies, stresses)
+                    if (isinstance(value, np.ndarray) and
+                        value.shape[0] == len(atoms)):
+                        # per-atom quantities (forces, energies, stresses)
                         per_atom_results[key] = value
                     else:
-                        # per-frame quantities (potential energy, stress)
+                        # per-frame quantities (energy, stress)
                         per_frame_results[key] = value
 
         # Move symbols and positions to first two properties
         if 'symbols' in frame_columns:
             i = frame_columns.index('symbols')
-            frame_columns[0], frame_columns[i] = frame_columns[i], frame_columns[0]
+            frame_columns[0], frame_columns[i] = \
+              frame_columns[i], frame_columns[0]
 
         if 'positions' in frame_columns:
             i = frame_columns.index('positions')
-            frame_columns[1], frame_columns[i] = frame_columns[i], frame_columns[1]
+            frame_columns[1], frame_columns[i] = \
+              frame_columns[i], frame_columns[1]
 
         # Check first column "looks like" atomic symbols
         if frame_columns[0] in atoms.arrays:
@@ -505,15 +514,18 @@ def write_xyz(fileobj, images, columns=None, write_info=True, write_results=True
             frame_columns += per_atom_results.keys()
             arrays.update(per_atom_results)
 
-        comm, ncols, dtype, fmt = output_column_format(atoms, frame_columns, arrays,
-                                                       write_info, per_frame_results)
+        comm, ncols, dtype, fmt = output_column_format(atoms,
+                                                       frame_columns,
+                                                       arrays,
+                                                       write_info,
+                                                       per_frame_results)
 
         # Pack frame_columns into record array
         data = np.zeros(natoms, dtype)
         for column, ncol in zip(frame_columns, ncols):
             value = arrays[column]
             if ncol == 1:
-                data[column] = value
+                data[column] = np.squeeze(value)
             else:
                 for c in range(ncol):
                     data[column + str(c)] = value[:, c]

@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2015-05-21 17:01+0200\n"
-"PO-Revision-Date: 2015-05-21 17:15+0200\n"
+"POT-Creation-Date: 2015-07-15 17:25+0200\n"
+"PO-Revision-Date: 2015-07-15 17:29+0200\n"
 "Last-Translator: Max Ramirez <m.ramirez@mx.uni-saarland.de>\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
@@ -2609,6 +2609,8 @@ msgid ""
 "  %8.3f  %8.3f  %8.3f\n"
 "  %8.3f  %8.3f  %8.3f\n"
 "  %8.3f  %8.3f  %8.3f\n"
+"\n"
+"%s\n"
 "%s\n"
 msgstr ""
 "%s\n"
@@ -2619,15 +2621,31 @@ msgstr ""
 "  %8.3f  %8.3f  %8.3f\n"
 "  %8.3f  %8.3f  %8.3f\n"
 "  %8.3f  %8.3f  %8.3f\n"
+"\n"
+"%s\n"
 "%s\n"
 
-#: ../quickinfo.py:29
+#: ../quickinfo.py:31
 msgid "Quick Info"
 msgstr "Información rápida"
 
-#: ../quickinfo.py:33
+#: ../quickinfo.py:35
 msgid "No atoms loaded."
 msgstr "No hay átomos seleccionados."
+
+#: ../quickinfo.py:56
+msgid "no"
+msgstr "no"
+
+#: ../quickinfo.py:56
+msgid "yes"
+msgstr "sí"
+
+#. TRANSLATORS: This has the form Periodic: no, no, yes
+#: ../quickinfo.py:60
+#, python-format
+msgid "Periodic: %s, %s, %s"
+msgstr "Periódico: %s, %s, %s"
 
 #: ../render.py:15
 msgid ""
@@ -2649,7 +2667,8 @@ msgstr ""
 "    Las texturas pueden ser utilizadas para destacar diferentes partes\n"
 "    de una estructura atómica. Esta ventana aplica la textura por defecto\n"
 "    a la estructura completa. Opcionalmente, aplica una textura distinta\n"
-"    a subconjuntos de átomos, los cuales pueden ser seleccionados utilizando\n"
+"    a subconjuntos de átomos, los cuales pueden ser seleccionados "
+"utilizando\n"
 "    el ratón.\n"
 "    Además, en esta versión de ASE, se implementa un método de\n"
 "    selección alternativo, el cual está basado en expresiones\n"
@@ -3249,6 +3268,23 @@ msgstr "Ayuda"
 msgid "Clear constraint"
 msgstr "Borrar restricción"
 
+#~ msgid ""
+#~ "\n"
+#~ "An exception occurred!  Please report the issue to\n"
+#~ "ase-developers@listserv.fysik.dtu.dk - thanks!  Please also report this "
+#~ "if\n"
+#~ "it was a user error, so that a better error message can be provided\n"
+#~ "next time."
+#~ msgstr ""
+#~ "\n"
+#~ "Se produjo un error! Por favor, reporte el problema a\n"
+#~ "\n"
+#~ "ase-developers@listserv.fysik.dtu.dk \n"
+#~ "\n"
+#~ "Muchas gracias! Por favor, reporte también el problema si\n"
+#~ "fue un error de usuario, de esta forma podemos proveer un\n"
+#~ "mejor mensaje de error la próxima vez."
+
 #~ msgid "Max force: %.2f (this frame), %.2f (all frames)"
 #~ msgstr "Fuerza máx: %.2f (este cuadro), %.2f (todos los cuadros)"
 
@@ -3266,23 +3302,6 @@ msgstr "Borrar restricción"
 
 #~ msgid "Min, max charge: %.2f, %.2f."
 #~ msgstr "Carga mín, máx: %.2f, %.2f."
-
-#~ msgid ""
-#~ "\n"
-#~ "An exception occurred!  Please report the issue to\n"
-#~ "ase-developers@listserv.fysik.dtu.dk - thanks!  Please also report this "
-#~ "if\n"
-#~ "it was a user error, so that a better error message can be provided\n"
-#~ "next time."
-#~ msgstr ""
-#~ "\n"
-#~ "Se produjo un error! Por favor, reporte el problema a\n"
-#~ "\n"
-#~ "ase-developers@listserv.fysik.dtu.dk \n"
-#~ "\n"
-#~ "Muchas gracias! Por favor, reporte también el problema si\n"
-#~ "fue un error de usuario, de esta forma podemos proveer un\n"
-#~ "mejor mensaje de error la próxima vez."
 
 #~ msgid "Save ..."
 #~ msgstr "Guardar ..."

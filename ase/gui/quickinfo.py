@@ -20,6 +20,8 @@ Unit cell:
   %8.3f  %8.3f  %8.3f
   %8.3f  %8.3f  %8.3f
   %8.3f  %8.3f  %8.3f
+
+%s
 %s
 """)
 
@@ -49,8 +51,15 @@ class QuickInfo(gtk.Window):
             if nimg == 1:
                 imgtxt = singleimage
             else:
-                imgtxt = multiimage % (img, nimg-1)
-            txt = format % ((imgtxt, natoms) + tuple(uc.flat) + (uctxt,))
+                imgtxt = multiimage % (img, nimg - 1)
+            
+            periodic = [[_('no'), _('yes')][periodic]
+                        for periodic in images.pbc]
+            
+            # TRANSLATORS: This has the form Periodic: no, no, yes
+            pbcstring = _('Periodic: %s, %s, %s' % tuple(periodic))
+            txt = format % ((imgtxt, natoms) + tuple(uc.flat) + 
+                            (pbcstring,) + (uctxt,))
         label = gtk.Label(txt)
         pack(vbox, [label])
         but = gtk.Button(stock=gtk.STOCK_CLOSE)

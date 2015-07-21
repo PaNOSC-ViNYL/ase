@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2015-05-21 17:01+0200\n"
-"PO-Revision-Date: 2015-05-21 17:11+0200\n"
+"POT-Creation-Date: 2015-07-15 17:25+0200\n"
+"PO-Revision-Date: 2015-07-15 17:26+0200\n"
 "Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
 "Language: da\n"
@@ -2576,6 +2576,8 @@ msgid ""
 "  %8.3f  %8.3f  %8.3f\n"
 "  %8.3f  %8.3f  %8.3f\n"
 "  %8.3f  %8.3f  %8.3f\n"
+"\n"
+"%s\n"
 "%s\n"
 msgstr ""
 "%s\n"
@@ -2586,15 +2588,31 @@ msgstr ""
 "  %8.3f  %8.3f  %8.3f\n"
 "  %8.3f  %8.3f  %8.3f\n"
 "  %8.3f  %8.3f  %8.3f\n"
+"\n"
+"%s\n"
 "%s\n"
 
-#: ../quickinfo.py:29
+#: ../quickinfo.py:31
 msgid "Quick Info"
 msgstr "Hurtig info"
 
-#: ../quickinfo.py:33
+#: ../quickinfo.py:35
 msgid "No atoms loaded."
 msgstr "Ingen atomer indlæst."
+
+#: ../quickinfo.py:56
+msgid "no"
+msgstr "nej"
+
+#: ../quickinfo.py:56
+msgid "yes"
+msgstr "ja"
+
+#. TRANSLATORS: This has the form Periodic: no, no, yes
+#: ../quickinfo.py:60
+#, python-format
+msgid "Periodic: %s, %s, %s"
+msgstr "Periodisk: %s, %s, %s"
 
 #: ../render.py:15
 msgid ""
@@ -3213,6 +3231,22 @@ msgstr "Hjælp"
 msgid "Clear constraint"
 msgstr "Ryd begrænsninger"
 
+#~ msgid ""
+#~ "\n"
+#~ "An exception occurred!  Please report the issue to\n"
+#~ "ase-developers@listserv.fysik.dtu.dk - thanks!  Please also report this "
+#~ "if\n"
+#~ "it was a user error, so that a better error message can be provided\n"
+#~ "next time."
+#~ msgstr ""
+#~ "\n"
+#~ "Der opstod en undtagelse!  Rapportér venligst dette problem til \n"
+#~ "ase-developers@listserv.fysik.dtu.dk - mange tak!  Rapportér også gerne "
+#~ "dette\n"
+#~ "hvis det var en brugerfejl, så der kan gives en bedre fejlmeddelelse "
+#~ "næste\n"
+#~ "gang."
+
 #~ msgid "Max force: %.2f (this frame), %.2f (all frames)"
 #~ msgstr "Maks. kraft: %.2f (dette billede), %.2f (alle billeder)"
 
@@ -3230,22 +3264,6 @@ msgstr "Ryd begrænsninger"
 
 #~ msgid "Min, max charge: %.2f, %.2f."
 #~ msgstr "Min., maks. ladning: %.2f, %.2f."
-
-#~ msgid ""
-#~ "\n"
-#~ "An exception occurred!  Please report the issue to\n"
-#~ "ase-developers@listserv.fysik.dtu.dk - thanks!  Please also report this "
-#~ "if\n"
-#~ "it was a user error, so that a better error message can be provided\n"
-#~ "next time."
-#~ msgstr ""
-#~ "\n"
-#~ "Der opstod en undtagelse!  Rapportér venligst dette problem til \n"
-#~ "ase-developers@listserv.fysik.dtu.dk - mange tak!  Rapportér også gerne "
-#~ "dette\n"
-#~ "hvis det var en brugerfejl, så der kan gives en bedre fejlmeddelelse "
-#~ "næste\n"
-#~ "gang."
 
 #~ msgid "Save ..."
 #~ msgstr "Gem ..."

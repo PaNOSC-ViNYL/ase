@@ -100,7 +100,7 @@ def read_vasp(filename='CONTCAR'):
     the atom types are read from OUTCAR or POTCAR file.
     """
  
-    from ase import Atoms, Atom
+    from ase import Atoms
     from ase.constraints import FixAtoms, FixScaled
     from ase.data import chemical_symbols
     import numpy as np
@@ -230,7 +230,6 @@ def read_vasp_out(filename='OUTCAR', index=-1):
     Reads unitcell, atom positions, energies, and forces from the OUTCAR file
     and attempts to read constraints (if any) from CONTCAR/POSCAR, if present.
     """
-    import os
     import numpy as np
     from ase.calculators.singlepoint import SinglePointCalculator
     from ase import Atoms, Atom
@@ -395,6 +394,130 @@ def read_vasp_xdatcar(filename, index=-1):
         return images
     else:
         return images[index]
+
+
+def read_vasp_xml(filename='vasprun.xml', index=-1):
+    """Parse vasprun.xml file.
+
+    Reads unit cell, atom positions, energies, forces, and constraints
+    from vasprun.xml file
+    """
+
+    import numpy as np
+    import xml.etree.ElementTree as ET
+    from ase import Atoms
+    from ase.constraints import FixAtoms, FixScaled
+    from ase.calculators.singlepoint import SinglePointCalculator
+    from ase.units import GPa
+
+    tree = ET.iterparse(filename)
+
+    atoms_init = None
+    images = []
+    calculation = []
+
+    try:
+        for event, elem in tree:
+            if elem.tag == 'atominfo':
+                species = []
+
+                for entry in elem.find("array[@name='atoms']/set"):
+                    species.append(entry[0].text.strip())
+                natoms = len(species)
+            elif (elem.tag == 'structure'
+                    and elem.attrib.get('name') == 'initialpos'):
+                cell_init = np.zeros((3, 3), dtype=float)
+
+                for i, v in enumerate(elem.find(
+                        "crystal/varray[@name='basis']")):
+                    cell_init[i] = np.array([
+                        float(val) for val in v.text.split()])
+
+                scpos_init = np.zeros((natoms, 3), dtype=float)
+                for i, v in enumerate(elem.find(
+                        "varray[@name='positions']")):
+                    scpos_init[i] = np.array([
+                        float(val) for val in v.text.split()])
+
+                constraints = []
+                fixed_indices = []
+
+                for i, entry in enumerate(elem.findall(
+                        "varray[@name='selective']/v")):
+                    flags = (np.array(entry.text.split()
+                                == np.array(['F', 'F', 'F'])))
+                    if flags.all():
+                        fixed_indices.append(i)
+                    elif flags.any():
+                        constraints.append(FixScaled(cell, i, flags))
+
+                if fixed_indices:
+                    constraints.append(FixAtoms(fixed_indices))
+
+                atoms_init = Atoms(species,
+                                   cell=cell_init,
+                                   scaled_positions=scpos_init,
+                                   constraint=constraints,
+                                   pbc=True)
+            elif elem.tag == 'calculation':
+                calculation.append(elem)
+    except ET.ParseError as parse_error:
+        if atoms_init is None:
+            raise parse_error
+        elif not calculation:
+            images.append(atoms_init)
+
+    if calculation:
+        if isinstance(index, int):
+            steps = [calculation[index]]
+        else:
+            steps = calculation[index]
+    else:
+        steps = []
+
+    for step in steps:
+        # Workaround for VASP bug, e_0_energy contains the wrong value
+        # in calculation/energy, but calculation/scstep/energy does not
+        # include classical VDW corrections. So, first calculate
+        # e_0_energy - e_fr_energy from calculation/scstep/energy, then
+        # apply that correction to e_fr_energy from calculation/energy.
+        lastscf = step.findall('scstep/energy')[-1]
+
+        de = (float(lastscf.find('i[@name="e_0_energy"]').text)
+                - float(lastscf.find('i[@name="e_fr_energy"]').text))
+
+        energy = float(step.find('energy/i[@name="e_fr_energy"]').text) + de
+
+        cell = np.zeros((3, 3), dtype=float)
+        for i, vector in enumerate(step.find(
+                'structure/crystal/varray[@name="basis"]')):
+            cell[i] = np.array([float(val) for val in vector.text.split()])
+
+        scpos = np.zeros((natoms, 3), dtype=float)
+        for i, vector in enumerate(step.find(
+                'structure/varray[@name="positions"]')):
+            scpos[i] = np.array([float(val) for val in vector.text.split()])
+
+        forces = np.zeros((natoms, 3), dtype=float)
+        for i, vector in enumerate(step.find('varray[@name="forces"]')):
+            forces[i] = np.array([float(val) for val in vector.text.split()])
+
+        stress = np.zeros((3, 3), dtype=float)
+        for i, vector in enumerate(step.find('varray[@name="stress"]')):
+            stress[i] = np.array([float(val) for val in vector.text.split()])
+
+        stress *= -0.1 * GPa
+        stress_voigt = stress.reshape(9)[[0, 4, 8, 5, 2, 1]]
+
+        atoms = atoms_init.copy()
+        atoms.set_cell(cell)
+        atoms.set_scaled_positions(scpos)
+        atoms.set_calculator(
+            SinglePointCalculator(atoms, energy=energy, forces=forces,
+                        stress=stress_voigt))
+        images.append(atoms)
+
+    return images if len(images) > 1 else images[0]
 
 
 def write_vasp(filename, atoms, label='', direct=False, sort=None,

@@ -65,7 +65,7 @@ def read_cube(fileobj, index=-1, read_data=False):
     readline = fileobj.readline
     readline()  # Comment; ignored
     line = readline()  # Comment; but this one sometimes means something!
-    axes = range(3)
+    axes = list(range(3))
     if line.startswith('OUTER LOOP:'):
         maybe_axes = ['XYZ'.index(s[0]) for s in line.split()[2::3]]
         if maybe_axes != []:

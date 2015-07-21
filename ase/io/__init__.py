@@ -47,6 +47,7 @@ def read(filename, index=None, format=None):
     VASP POSCAR/CONTCAR file   vasp
     VASP OUTCAR file           vasp_out
     VASP XDATCAR file          vasp_xdatcar
+    VASP vasprun.xml file      vasp_xml
     SIESTA STRUCT file         struct_out
     ABINIT input file          abinit
     V_Sim ascii file           v_sim
@@ -235,6 +236,10 @@ def read(filename, index=None, format=None):
     if format == 'vasp_xdatcar':
         from ase.io.vasp import read_vasp_xdatcar
         return read_vasp_xdatcar(filename, index)
+
+    if format == 'vasp_xml':
+        from ase.io.vasp import read_vasp_xml
+        return read_vasp_xml(filename, index)
 
     if format == 'abinit':
         from ase.io.abinit import read_abinit
@@ -486,6 +491,8 @@ def write(filename, images, format=None, **kwargs):
             format = 'vasp'
         elif 'OUTCAR' in filename:
             format = 'vasp_out'
+        elif 'vasp' in filename and filename.endswith('.xml'):
+            format = 'vasp_xml'
         elif filename.endswith('etsf.nc'):
             format = 'etsf'
         elif filename.lower().endswith('.con'):
@@ -705,6 +712,9 @@ def filetype(filename):
 
     if 'XDATCAR' in filename_v:
         return 'vasp_xdatcar'
+
+    if 'vasp' in filename_v and filename_v.endswith('.xml'):
+        return 'vasp_xml'
 
     if filename.lower().endswith('.exi'):
         return 'exi'

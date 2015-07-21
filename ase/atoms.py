@@ -215,13 +215,13 @@ class Atoms(object):
         
         self.set_constraint(constraint)
         self.set_tags(default(tags, 0))
-        self.set_momenta(default(momenta, (0.0, 0.0, 0.0)))
         self.set_masses(default(masses, None))
         self.set_initial_magnetic_moments(default(magmoms, 0.0))
         self.set_initial_charges(default(charges, 0.0))
         if pbc is None:
             pbc = False
         self.set_pbc(pbc)
+        self.set_momenta(default(momenta, (0.0, 0.0, 0.0)))
 
         if info is None:
             self.info = {}
