@@ -12,6 +12,17 @@ Development version in trunk
 
 * ...
           
+Version 3.9.1
+=============
+
+21 Juli 2015: :trac:`tags/3.9.1 <../tags/3.9.1>`.
+
+* Added function for finding maximally-reduced Niggli unit cell:
+  :func:`ase.utils.geometry.niggli_reduce`.
+  
+* Octopus interface added.
+
+
 Version 3.9.0
 =============
 
