@@ -57,4 +57,3 @@ When it is time for a new release of the code, here is what you have to do:
 
 * Send announcement email to the ``ase-users`` mailing list (see
   :ref:`mailing_lists`).
-

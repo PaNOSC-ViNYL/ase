@@ -203,13 +203,13 @@ to the requested version, e.g.:
 - if retrieved from ``svn``::
 
    $ cd $HOME
-   $ ln -s ase-3.9.0 ase
+   $ ln -s ase-3.9.1 ase
     
 - if retrieved as tar-file::
 
    $ cd $HOME
-   $ tar -xf python-ase-3.9.0.4465.tar.gz
-   $ ln -s python-ase-3.9.0.4465 ase
+   $ tar -xf python-ase-3.9.1.4567.tar.gz
+   $ ln -s python-ase-3.9.1.4567 ase
 
 It is sufficient to
 put the directory :file:`$HOME/ase` in your :envvar:`PYTHONPATH`
@@ -280,6 +280,7 @@ When using svn please set the following variable:
 ======= =========== ============================================ =============================
 Release Date        Retrieve as svn checkout                     Retrieve as tar-file
 ======= =========== ============================================ =============================
+ 3.9.1_ Jul 21 2015 ``svn co -r 4567 $ASE_TAGS/3.9.1 ase-3.9.1`` python-ase-3.9.1.4567.tar.gz_
  3.9.0_ May 28 2015 ``svn co -r 4465 $ASE_TAGS/3.9.0 ase-3.9.0`` python-ase-3.9.0.4465.tar.gz_
  3.8.1_ Nov 22 2013 ``svn co -r 3440 $ASE_TAGS/3.8.1 ase-3.8.1`` python-ase-3.8.1.3440.tar.gz_
  3.8.0_ Oct 22 2013 ``svn co -r 3420 $ASE_TAGS/3.8.0 ase-3.8.0`` python-ase-3.8.0.3420.tar.gz_
@@ -294,6 +295,12 @@ Release Date        Retrieve as svn checkout                     Retrieve as tar
  3.1.0_ Mar 27 2009 ``svn co -r 846 $ASE_TAGS/3.1.0 ase-3.1.0``  python-ase-3.1.0.846.tar.gz_
  3.0.0_ Nov 13 2008 ``svn co -r 657 $ASE_TAGS/3.0.0 ase-3.0.0``  python-ase-3.0.0.657.tar.gz_
 ======= =========== ============================================ =============================
+
+.. _3.9.1:
+    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.9.1
+
+.. _python-ase-3.9.1.4567.tar.gz:
+    https://wiki.fysik.dtu.dk/ase-files/python-ase-3.9.1.4567.tar.gz
 
 .. _3.9.0:
     https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.9.0
