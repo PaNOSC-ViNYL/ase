@@ -62,7 +62,7 @@ elif command == 'ase-info':
 else:  # ase-gui
     if word[:1] == '-':
         words = options(
-            'hnurRogtbs', 'help image-number show-unit-cell repeat '
+            'hnurRogtbs', 'help image-number show-unit-cell repeat verbose '
             'rotations output graph terminal aneb interpolate bonds scale')
         
 for w in words:
