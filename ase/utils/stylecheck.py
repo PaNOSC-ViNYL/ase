@@ -112,11 +112,11 @@ def check_repository(to):
 
 parser = argparse.ArgumentParser(description='Run both pep8 and pyflakes '
                                  'on file(s).')
-parser.add_argument('--check-repositiory', action='store_true')
+parser.add_argument('--check-repository', action='store_true')
 parser.add_argument('--mail')
 parser.add_argument('filenames', nargs='*', metavar='filename')
 args = parser.parse_args()
-if args.check_repositiory:
+if args.check_repository:
     check_repository(args.mail)
 else:
     for name in args.filenames:
