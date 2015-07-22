@@ -1,0 +1,116 @@
+import numpy as np
+from ase import Atoms
+from ase.structure import molecule
+from ase.calculators.octopus import Octopus
+
+def getkwargs(**kwargs):
+    kwargs0 = dict(FromScratch=True,
+                   RestartWrite=False,
+                   stdout='"stdout.txt"',
+                   stderr='"stderr.txt"',
+                   Spacing=0.15)
+    kwargs0.update(kwargs)
+    return kwargs0
+
+def test_axis_layout():
+    system = Atoms('H')
+    a = 3.
+    system.cell = (a, a, a)
+    system.pbc = 1
+
+    for axis in range(3):
+        system.center()
+        system.positions[0, axis] = 0.0
+        calc = Octopus(**getkwargs(label='ink-%s' % 'xyz'[axis],
+                                   Output='density'))
+        system.set_calculator(calc)
+        system.get_potential_energy()
+        rho = calc.get_pseudo_density(pad=False)
+        #for dim in rho.shape:
+        #    assert dim % 2 == 1, rho.shape
+
+        maxpoint = np.unravel_index(rho.argmax(), rho.shape)
+        print 'axis=%d: %s/%s' % (axis, maxpoint, rho.shape)
+
+        expected_max = [dim // 2 for dim in rho.shape]
+        expected_max[axis] = 0
+        assert maxpoint == tuple(expected_max), '%s vs %s' % (maxpoint,
+                                                              expected_max)
+
+def test_integrals(pbc=True):
+    system = molecule('H2O')
+    a = 2.6006  # So the spacing does not divide exactly
+    system.cell = (a, a, a)
+    system.center()
+    system.pbc = pbc
+    spacing = 0.2
+    calc = Octopus(**getkwargs(label='ink-integrals-pbc-%s' % pbc,
+                               # Restart destroys normalization of output
+                               # ...........sometimes.
+                               RestartWrite=False,
+                               Output='density + potential + wfs',
+                               OutputHow='cube + xcrysden',
+                               ExtraStates=0,
+                               Spacing=spacing))
+    system.set_calculator(calc)
+    E = system.get_potential_energy()
+
+    if pbc:
+        Eref = -496.98663392
+    else:
+        Eref = -451.05348602
+    err = E - Eref
+    print('Energy=%f :: err=%e' % (E, err))
+    assert err < 1e-7
+
+    rho = calc.get_pseudo_density(pad=False)
+
+    ngpts = rho.size
+    vol = system.get_volume()
+    dv = vol / ngpts
+    dv1 = float(calc.kwargs['spacing'])**3
+
+    vol1 = dv1 * rho.size
+
+    v = calc.get_effective_potential(pad=False)
+
+    if pbc:  # spacing adjusted but cell constant
+        dv = system.get_volume() / rho.size
+    else:  # cell adjusted but spacing constant
+        dv = spacing**3
+
+    ne = rho.sum() * dv
+    err = abs(ne - 8.0)
+    print('nelectrons: %f, err: %e' % (ne, err))
+    assert err < 1e-12
+
+    for n in range(calc.get_number_of_bands()):
+        psi = calc.get_pseudo_wave_function(band=n, pad=True)
+        norm = (np.abs(psi)**2).sum() * dv
+        err = abs(norm - 1)
+        print('norm=%f :: err=%e' % (norm, err))
+        assert err < 1e-12
+
+    eps = calc.get_eigenvalues()
+    f = calc.get_occupation_numbers()
+    E_band = (eps * f).sum()
+    E_nv = (rho * v).sum() * dv
+    if pbc:
+        E_nl = -155.16024733 # Reference value from output.
+        E_kin_ref = 377.899824
+    else:
+        E_nl = -151.28372313 # Ref from output.
+        E_kin_ref = 396.66270596
+    E_kin_ours = E_band - E_nv - E_nl
+    err = abs(E_kin_ours - E_kin_ref)
+    print('E_band=%f :: E_nv=%f :: E_kin_ours=%f :: err=%e'
+          % (E_band, E_nv, E_kin_ours, err))
+    assert err < 5e-4  # Orig err: 6.8e-05 (pbc=False) and 3.47e-07 (pbc=True)
+
+def main():
+    test_axis_layout()
+    test_integrals(pbc=False)
+    test_integrals(pbc=True)
+
+if __name__ == '__main__':
+    main()
