@@ -1,5 +1,3 @@
-from subprocess import Popen, PIPE
-
 import numpy as np
 
 from ase import Atoms
