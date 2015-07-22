@@ -1,7 +1,12 @@
+from subprocess import Popen, PIPE
+
 import numpy as np
+
 from ase import Atoms
+from ase.calculators.interfacechecker import check_interface
+from ase.calculators.octopus import Octopus, OctopusIOError
 from ase.structure import molecule
-from ase.calculators.octopus import Octopus
+from ase.test import NotAvailable
 
 def getkwargs(**kwargs):
     kwargs0 = dict(FromScratch=True,
@@ -22,7 +27,7 @@ def test_axis_layout():
         system.center()
         system.positions[0, axis] = 0.0
         calc = Octopus(**getkwargs(label='ink-%s' % 'xyz'[axis],
-                                   Output='density'))
+                                   Output='density + potential + wfs'))
         system.set_calculator(calc)
         system.get_potential_energy()
         rho = calc.get_pseudo_density(pad=False)
@@ -36,6 +41,18 @@ def test_axis_layout():
         expected_max[axis] = 0
         assert maxpoint == tuple(expected_max), '%s vs %s' % (maxpoint,
                                                               expected_max)
+
+    errs = check_interface(calc)
+
+    for err in errs:
+        if err.code == 'not implemented':
+            continue
+
+        if err.methname == 'get_dipole_moment':
+            assert isinstance(err.error, OctopusIOError)
+        else:
+            raise AssertionError(err.error)
+            
 
 def test_integrals(pbc=True):
     system = molecule('H2O')
@@ -51,7 +68,8 @@ def test_integrals(pbc=True):
                                Output='density + potential + wfs',
                                OutputHow='cube + xcrysden',
                                ExtraStates=0,
-                               Spacing=spacing))
+                               Spacing=spacing,
+                               SCFCalculateDipole=True))
     system.set_calculator(calc)
     E = system.get_potential_energy()
 
@@ -107,10 +125,25 @@ def test_integrals(pbc=True):
           % (E_band, E_nv, E_kin_ours, err))
     assert err < 5e-4  # Orig err: 6.8e-05 (pbc=False) and 3.47e-07 (pbc=True)
 
+    errs = check_interface(calc)
+    for err in errs:
+        if err.code == 'not implemented':
+            continue
+        else:
+            raise AssertionError(err.error)
+
 def main():
+    try:
+        proc = Popen(['octopus', '--version'], stdout=PIPE)
+        version_text = proc.stdout.read()
+    except OSError:
+        raise NotAvailable
+    else:
+        print('Octopus version: %s' % version_text)
+        assert version_text.startswith('octopus tetricus')
+
     test_axis_layout()
     test_integrals(pbc=False)
     test_integrals(pbc=True)
 
-if __name__ == '__main__':
-    main()
+main()
