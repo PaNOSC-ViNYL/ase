@@ -1,6 +1,10 @@
 # coding=utf-8
-"""
-Octopus interfaces class, and some internal dependency
+"""ASE-interface to Octopus.
+
+Ask Hjorth Larsen <asklarsen@gmail.com>
+Carlos de Armas
+
+http://tddft.org/programs/octopus/
 """
 import os
 
@@ -438,7 +442,7 @@ def generate_input(atoms, kwargs):
 
     for key in kwargs:
         val = kwargs[key]
-        # Datatypes!  Float, string etc.
+        # Most datatypes are straightforward but blocks require some attention.
         if isinstance(val, list):
             append('')
             dict_data = list2block(key, val)
@@ -459,7 +463,7 @@ class Octopus(FileIOCalculator):
     The label is always assumed to be a directory."""
 
     implemented_properties = ['energy', 'forces',
-                              'dipole', 'charges',
+                              'dipole', #'charges',
                               'magmom', 'magmoms']
     # valores propios en las opciones output y outputhow
 
@@ -474,16 +478,19 @@ class Octopus(FileIOCalculator):
                                 'reducedcoordinates'])
 
     def __init__(self,
-                 restart=None,  # XXX todo
+                 restart=None,
                  label='ink-pool',
                  atoms=None,
-                 command='octopus',  # or None?
+                 command='octopus',
                  ignore_troublesome_keywords=None,
                  **kwargs):
         """Create Octopus calculator.
 
         Label is always taken as a subdirectory.
         Restart is taken to be a label (todo: this)."""
+
+        # XXX support the specially defined ASE parameters,
+        # "smear" etc.
 
         if ignore_troublesome_keywords:
             trouble = set(self.troublesome_keywords)
@@ -513,8 +520,8 @@ class Octopus(FileIOCalculator):
         kwargs = purify(kwargs)
         for keyword in kwargs:
             if keyword in self.troublesome_keywords:
-                msg = ('ASE-Octopus interface probably will misbehave with '
-                       'the %s parameter.  You may use '
+                msg = ('ASE-Octopus interface will probably misbehave with '
+                       'the %s parameter.  Optimists may use '
                        'Octopus(ignore_troublesome_keywords=[kw1, kw2, ...])'
                        'to override this.' % keyword)
                 raise OctopusKeywordError(msg)
@@ -544,6 +551,10 @@ class Octopus(FileIOCalculator):
         raise NotImplementedError
 
     def get_dipole_moment(self, atoms=None):
+        if not 'dipole' in self.results:
+            msg = ('Dipole moment not calculated.\n'
+                   'You may wish to use SCFCalculateDipole=True')
+            raise OctopusIOError(msg)
         return self.results['dipole']
 
     def get_stresses(self):
@@ -571,10 +582,12 @@ class Octopus(FileIOCalculator):
                                              keywordname)
             spin2, _atoms = self._read_array('%s-sp2.xsf' % basefname,
                                              keywordname)
-            return np.array([spin1, spin2])  # shape 2, nx, ny, nz
+            array = np.array([spin1, spin2])  # shape 2, nx, ny, nz
         else:
             array, _atoms = self._read_array('%s.xsf' % basefname, keywordname)
-            return array[None]  # shape 1, nx, ny, nx
+            array = array[None]  # shape 1, nx, ny, nx
+        assert len(array.shape) == 4
+        return array
 
     def _unpad_periodic(self, array):
         return unpad(self.get_atoms().pbc, array)
@@ -611,6 +624,8 @@ class Octopus(FileIOCalculator):
         return self._pad_correctly(density_g, pad)
 
     def get_effective_potential(self, spin=0, pad=True):
+        if spin is None:  # Annoying case because it works as an index!
+            raise ValueError('spin=None')
         if 'potential_sg' not in self.results:
             self.results['potential_sg'] = self.read_vn('vks', 'potential')
         array = self.results['potential_sg'][spin]
@@ -648,16 +663,11 @@ class Octopus(FileIOCalculator):
         tokens.append('-st%04d' % band_index)
         name = ''.join(tokens)
 
-        def load(fname):
-            path = self._getpath('static/%s' % fname)
-            array, atoms = fix_and_read_xsf(path, read_data=True)
-            return array
-
         if dtype == float:
-            array = load('%s.xsf' % name)
+            array, _atoms = self._read_array('%s.xsf' % name, 'wfs')
         else:
-            array_real = load('%s.real.xsf' % name)
-            array_imag = load('%s.imag.xsf' % name)
+            array_real, _atoms = self._read_array('%s.real.xsf' % name, 'wfs')
+            array_imag, _atoms  = self._read_array('%s.imag.xsf' % name, 'wfs')
             array = array_real + 1j * array_imag
 
         return self._pad_correctly(array, pad)
