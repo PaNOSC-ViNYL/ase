@@ -22,7 +22,7 @@ all_changes = ['positions', 'numbers', 'cell', 'pbc',
 names = ['abinit', 'aims', 'asap', 'castep', 'cp2k', 'dftb', 'eam', 'elk',
          'emt', 'exciting', 'fleur', 'gaussian', 'gpaw', 'gromacs', 'hotbit',
          'jacapo', 'lammps', 'lammpslib', 'lj', 'mopac', 'morse',
-         'nwchem', 'siesta', 'turbomole', 'vasp']
+         'nwchem', 'octopus', 'siesta', 'turbomole', 'vasp']
 
 
 special = {'cp2k': 'CP2K',
