@@ -76,6 +76,34 @@ class OctopusIOError(IOError):
     pass  # Cannot find output files
 
 
+def unpad(pbc, arr):
+    # Return non-padded array from padded array.
+    # This means removing the last element along all periodic directions.
+    if pbc[0]:
+        assert np.all(arr[0, :, :] == arr[-1, :, :])
+        arr = arr[0:-1, :, :]
+    if pbc[1]:
+        assert np.all(arr[:, 0, :] == arr[:, -1, :])
+        arr = arr[:, 0:-1, :]
+    if pbc[2]:
+        assert np.all(arr[:, :, 0] == arr[:, :, -1])
+        arr = arr[:, :, 0:-1]
+    return np.ascontiguousarray(arr)
+    
+def unpad_smarter(pbc, arr):
+    # 'Smarter' but less easy to understand version of the above.
+    slices = []
+    for c, is_periodic in enumerate(pbc):
+        if is_periodic:
+            left = np.take(arr, [0], axis=c)
+            right = np.take(arr, [-1], axis=c)
+            assert np.all(left == right)
+            slices.append(slice(0, -1))
+        else:
+            slices.append(slice(None))
+    return np.ascontiguousarray(arr[slices])
+
+
 # Octopus writes slightly broken XSF files.  This hack purports to fix them.
 def repair_brokenness_of_octopus_xsf(path):
     assert os.path.isfile(path), path
@@ -408,9 +436,6 @@ def generate_input(atoms, kwargs):
     if 'outputhow' not in kwargs:
         kwargs['outputhow'] = 'xcrysden'
 
-    if not 'SCFCalculateDipole'.lower() in kwargs:
-        setvar('SCFCalculateDipole', True)
-
     for key in kwargs:
         val = kwargs[key]
         # Datatypes!  Float, string etc.
@@ -524,13 +549,14 @@ class Octopus(FileIOCalculator):
     def get_stresses(self):
         raise NotImplementedError
 
-    def _read_array(self, fname, outputkeyword):
+    def _read_array(self, fname, outputkeyword=None):
         path = self._getpath('static/%s' % fname)
         if not os.path.exists(path):
-            msg = ('Path not found: %s\n'
-                   'It appears that the %s has not been saved.\n'
-                   'Be sure to specify Output=\'%s\' in the input.'
-                   % (path, outputkeyword, outputkeyword))
+            msg = 'Path not found: %s' % path
+            if outputkeyword is not None:
+                msg += ('\nIt appears that the %s has not been saved.\n'
+                        'Be sure to specify Output=\'%s\' in the input.'
+                        % (outputkeyword, outputkeyword))
             raise OctopusIOError(msg)
         # If this causes an error now that the file exists, things are
         # messed up.  Then it is better that the error propagates as normal
@@ -550,42 +576,53 @@ class Octopus(FileIOCalculator):
             array, _atoms = self._read_array('%s.xsf' % basefname, keywordname)
             return array[None]  # shape 1, nx, ny, nx
 
+    def _unpad_periodic(self, array):
+        return unpad(self.get_atoms().pbc, array)
+
+    def _pad_unperiodic(self, array):
+        pbc = self.get_atoms().pbc
+        orig_shape = array.shape
+        newshape = [orig_shape[c] + (0 if pbc[c] else 1) for c in range(3)]
+        out = np.zeros(newshape, dtype=array.dtype)
+        nx, ny, nz = orig_shape
+        out[:nx, :ny, :nz] = array
+        return out
+
+    def _pad_correctly(self, array, pad):
+        array = self._unpad_periodic(array)
+        if pad:
+            array = self._pad_unperiodic(array)
+        return array
+
     def get_pseudo_density(self, spin=None, pad=True):
         """Return pseudo-density array.
 
         If *spin* is not given, then the total density is returned.
         Otherwise, the spin up or down density is returned (spin=0 or
         1)."""
-        # XXX ignores 'pad'
-        # What do we do if we need to restart octopus?
-        # We can do the restart and dump the files.
-        # But we have to manipulate output and outputhow.
         if 'density_sg' not in self.results:
             self.results['density_sg'] = self.read_vn('density', 'density')
         density_sg = self.results['density_sg']
         if spin is None:
-            return density_sg.sum(axis=0)
+            density_g = density_sg.sum(axis=0)
         else:
             assert spin == 0 or (spin == 1 and len(density_sg) == 2)
-            return density_sg[spin]
+            density_g = density_sg[spin]
+        return self._pad_correctly(density_g, pad)
 
     def get_effective_potential(self, spin=0, pad=True):
-        # XXX ignores 'pad'
         if 'potential_sg' not in self.results:
             self.results['potential_sg'] = self.read_vn('vks', 'potential')
-        return self.results['potential_sg'][spin]
+        array = self.results['potential_sg'][spin]
+        return self._pad_correctly(array, pad)
 
     def get_pseudo_wave_function(self, band=0, kpt=0, spin=0, broadcast=True,
                                  pad=True):
         """Return pseudo-wave-function array."""
-        # there is not a kpt = 0 or a band = 0
-        # XXX ignore broadcast, pad
         assert band < self.get_number_of_bands()
 
         ibz_k_pts = self.get_ibz_k_points()
 
-        # Check boolean like ForceComplex correctly:
-        # yes/no true/false 1, 0, .......
         forcecomplex = self.kwargs.get('forcecomplex')
         if forcecomplex is not None:
             forcecomplex = octbool2bool(forcecomplex)
@@ -612,8 +649,8 @@ class Octopus(FileIOCalculator):
         name = ''.join(tokens)
 
         def load(fname):
-            array, atoms = fix_and_read_xsf(self._getpath('static/%s' % fname),
-                                            read_data=True)
+            path = self._getpath('static/%s' % fname)
+            array, atoms = fix_and_read_xsf(path, read_data=True)
             return array
 
         if dtype == float:
@@ -623,7 +660,7 @@ class Octopus(FileIOCalculator):
             array_imag = load('%s.imag.xsf' % name)
             array = array_real + 1j * array_imag
 
-        return array
+        return self._pad_correctly(array, pad)
 
     def get_number_of_spins(self):
         """Return the number of spins in the calculation.
@@ -662,8 +699,6 @@ class Octopus(FileIOCalculator):
         return self.results['occupations'][spin, kpt].copy()
 
     def get_eigenvalues(self, kpt=0, spin=0):
-        # in the way this is organised, is possible to seek
-        # for the specific kpt an spin combination
         return self.results['eigenvalues'][spin, kpt].copy()
 
     def _getpath(self, path):
@@ -768,8 +803,8 @@ class Octopus(FileIOCalculator):
                 nbands = len(states)
                 assert nbands > 0
             else:
-                #this asset is trigger in the second run if
-                #nbands is not re initialize
+                # this assert is triggered in the second run if
+                # nbands is not reinitialized
                 assert nbands == len(states)
             kpts.append(states)
             if len(states_down) > 0:
@@ -844,26 +879,26 @@ class Octopus(FileIOCalculator):
             self.results['magmom'] = 0.0
             self.results['magmoms'] = np.zeros(len(self.get_atoms()))
 
-        #reading dipole data
-        dipole = np.zeros(shape=[3, 2])
-        line = search('Dipole:')
-        line = fd.next()
-        for i in range(3):
-            line = line.replace('<', ' ')
-            line = line.replace('>', ' ')
-            line = line.replace('=', ' ')
-            line = line.replace('\n', ' ')
-            values = line.split()
-            dipole[i][0] = float(values[1])
-            dipole[i][1] = float(values[2])
+        # Read dipole data
+        try:
+            line = search('Dipole:')
+        except ValueError:
+            pass
+        else:
+            dipole = np.zeros(shape=[3, 2])
             line = fd.next()
+            for i in range(3):
+                line = line.replace('<', ' ')
+                line = line.replace('>', ' ')
+                line = line.replace('=', ' ')
+                line = line.replace('\n', ' ')
+                values = line.split()
+                dipole[i][0] = float(values[1])
+                dipole[i][1] = float(values[2])
+                line = fd.next()
 
-        self.results['dipole'] = dipole
+            self.results['dipole'] = dipole
 
-        # The forces are written in .xsf format according to octopus
-        # documentation.  ASE supports .xsf format according to xsf.py .
-        # Even so, the two things do not work together.  Thus we parse
-        # this file manually.
         forces_atoms = read_xsf(self._getpath('static/forces.xsf'))
         F_av = forces_atoms.get_forces()
         self.results['forces'] = F_av
@@ -871,8 +906,6 @@ class Octopus(FileIOCalculator):
     def write_input(self, atoms, properties=None, system_changes=None):
         FileIOCalculator.write_input(self, atoms, properties=properties,
                                      system_changes=system_changes)
-        # XXXX parallel / paropen
-        #self.write_atoms_to_file(atoms)
         txt = generate_input(atoms, self.kwargs)
         fd = open(self._getpath('inp'), 'w')
         fd.write(txt)
