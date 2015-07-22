@@ -6,7 +6,6 @@ from ase import Atoms
 from ase.calculators.interfacechecker import check_interface
 from ase.calculators.octopus import Octopus, OctopusIOError
 from ase.structure import molecule
-from ase.test import NotAvailable
 
 def getkwargs(**kwargs):
     kwargs0 = dict(FromScratch=True,
@@ -82,14 +81,6 @@ def test_integrals(pbc=True):
     assert err < 1e-7
 
     rho = calc.get_pseudo_density(pad=False)
-
-    ngpts = rho.size
-    vol = system.get_volume()
-    dv = vol / ngpts
-    dv1 = float(calc.kwargs['spacing'])**3
-
-    vol1 = dv1 * rho.size
-
     v = calc.get_effective_potential(pad=False)
 
     if pbc:  # spacing adjusted but cell constant
@@ -133,14 +124,14 @@ def test_integrals(pbc=True):
             raise AssertionError(err.error)
 
 def main():
-    try:
-        proc = Popen(['octopus', '--version'], stdout=PIPE)
-        version_text = proc.stdout.read()
-    except OSError:
-        raise NotAvailable
-    else:
-        print('Octopus version: %s' % version_text)
-        assert version_text.startswith('octopus tetricus')
+    #try:
+    #    proc = Popen(['octopus', '--version'], stdout=PIPE)
+    #    version_text = proc.stdout.read()
+    #except OSError:
+    #    raise NotAvailable
+    #else:
+    #    print('Octopus version: %s' % version_text)
+    #    assert version_text.startswith('octopus tetricus')
 
     test_axis_layout()
     test_integrals(pbc=False)
