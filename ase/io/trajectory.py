@@ -127,6 +127,9 @@ class TrajectoryWriter:
             for image in neb.images:
                 self.write(image)
             return
+        elif hasattr(atoms, 'atoms'):
+            # seems to be a Filter
+            atoms = atoms.atoms
 
         if len(b) == 0:
             self.write_header(atoms)
