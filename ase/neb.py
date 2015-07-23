@@ -49,7 +49,7 @@ class NEB:
 
         if method == 'idpp':
             self.idpp_interpolate(traj=None, log=None)
-            
+
     def idpp_interpolate(self, traj='idpp.traj', log='idpp.log', fmax=0.1,
                          optimizer=BFGS):
         d1 = self.images[0].get_all_distances()
@@ -63,7 +63,7 @@ class NEB:
         opt.run(fmax=0.1)
         for image, calc in zip(self.images, old):
             image.calc = calc
-        
+
     def get_positions(self):
         positions = np.empty(((self.nimages - 2) * self.natoms, 3))
         n1 = 0
@@ -85,7 +85,7 @@ class NEB:
                 image.get_calculator().set_atoms(image)
             except AttributeError:
                 pass
-        
+
     def get_forces(self):
         """Evaluate and return the forces."""
         images = self.images
@@ -124,7 +124,7 @@ class NEB:
                 error = self.world.sum(0.0)
                 if error:
                     raise RuntimeError('Parallel NEB failed!')
-                
+
             for i in range(1, self.nimages - 1):
                 root = (i - 1) * self.world.size // (self.nimages - 2)
                 self.world.broadcast(energies[i - 1:i], root)
@@ -132,21 +132,22 @@ class NEB:
 
         imax = 1 + np.argsort(energies)[-1]
         self.emax = energies[imax - 1]
-        
+
         tangent1 = find_mic(images[1].get_positions() -
-                images[0].get_positions(),
-                images[0].get_cell(), images[0].pbc)[0]
+                            images[0].get_positions(),
+                            images[0].get_cell(), images[0].pbc)[0]
         for i in range(1, self.nimages - 1):
             tangent2 = find_mic(images[i + 1].get_positions() -
-                        images[i].get_positions(), images[i].get_cell(),
-                        images[i].pbc)[0]
+                                images[i].get_positions(),
+                                images[i].get_cell(),
+                                images[i].pbc)[0]
             if i < imax:
                 tangent = tangent2
             elif i > imax:
                 tangent = tangent1
             else:
                 tangent = tangent1 + tangent2
-                
+
             tt = np.vdot(tangent, tangent)
             f = forces[i - 1]
             ft = np.vdot(f, tangent)
@@ -156,7 +157,7 @@ class NEB:
                 f -= ft / tt * tangent
                 f -= np.vdot(tangent1 * self.k[i - 1] -
                              tangent2 * self.k[i], tangent) / tt * tangent
-                
+
             tangent1 = tangent2
 
         return forces.reshape((-1, 3))
@@ -213,7 +214,7 @@ class SingleCalculatorNEB(NEB):
         self.calculators = [None] * self.nimages
         self.energies_ok = False
         self.first = True
- 
+
     def interpolate(self, initial=0, final=-1, mic=False):
         """Interpolate linearly between initial and final images."""
         if final < 0:
@@ -263,7 +264,7 @@ class SingleCalculatorNEB(NEB):
             else:
                 calculators.append(self.calculators[i])
         return calculators
-    
+
     def set_calculators(self, calculators):
         """Set new calculators to the images."""
         self.energies_ok = False
@@ -317,7 +318,7 @@ class SingleCalculatorNEB(NEB):
             self.first = False
 
         self.energies_ok = True
-       
+
     def get_forces(self):
         self.get_energies_and_forces()
         return NEB.get_forces(self)
@@ -379,7 +380,7 @@ def fit0(E, F, R):
             y = c[0] + x * (c[1] + x * (c[2] + x * c[3]))
             Sfit[(i - 1) * 20:i * 20] = x
             Efit[(i - 1) * 20:i * 20] = y
-        
+
         dEds0 = dEds
 
     Sfit[-1] = s[-1]
