@@ -133,10 +133,13 @@ class NEB:
         imax = 1 + np.argsort(energies)[-1]
         self.emax = energies[imax - 1]
         
-        tangent1 = images[1].get_positions() - images[0].get_positions()
+        tangent1 = find_mic(images[1].get_positions() -
+                images[0].get_positions(),
+                images[0].get_cell(), images[0].pbc)[0]
         for i in range(1, self.nimages - 1):
-            tangent2 = (images[i + 1].get_positions() -
-                        images[i].get_positions())
+            tangent2 = find_mic(images[i + 1].get_positions() -
+                        images[i].get_positions(), images[i].get_cell(),
+                        images[i].pbc)[0]
             if i < imax:
                 tangent = tangent2
             elif i > imax:
