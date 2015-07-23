@@ -12,6 +12,7 @@ import numpy as np
 
 from ase import Atoms
 from ase.calculators.calculator import FileIOCalculator
+# XXX raise ReadError upon bad read
 from ase.data import atomic_numbers
 from ase.io.xsf import read_xsf
 from ase.io.pdb import read_pdb
@@ -93,9 +94,11 @@ def unpad(pbc, arr):
         assert np.all(arr[:, :, 0] == arr[:, :, -1])
         arr = arr[:, :, 0:-1]
     return np.ascontiguousarray(arr)
+
     
 def unpad_smarter(pbc, arr):
     # 'Smarter' but less easy to understand version of the above.
+    # (untested I think)
     slices = []
     for c, is_periodic in enumerate(pbc):
         if is_periodic:
@@ -113,6 +116,7 @@ def repair_brokenness_of_octopus_xsf(path):
     assert os.path.isfile(path), path
 
     def replace(old, new):
+        # XXX Ouch... need to get rid of this
         os.system('sed -i s/%s/%s/ %s' % (old, new, path))
         
     replace('BEGIN_BLOCK_DATAGRID3D', 'BEGIN_BLOCK_DATAGRID_3D')
@@ -150,7 +154,7 @@ def list2block(name, rows):
     lines = []
     lines.append('%' + name)
     for row in rows:
-        lines.append(' ' + ' | '.join(map(str, row)))
+        lines.append(' ' + ' | '.join(str(obj) for obj in row))
     lines.append('%')
     return lines
 
@@ -194,7 +198,7 @@ def block2list(lines, header=None):
     for line in lines:
         if line.startswith('%'):  # Could also say line == '%' most likely.
             break
-        tokens = [token.strip() for token in line.split('|')]
+        tokens = [token.strip() for token in line.strip().split('|')]
         block.append(tokens)
     return name, block
 
@@ -230,11 +234,10 @@ def kwargs2cell(kwargs):
         kwargs.pop('boxshape', None)
         Lsize = kwargs.pop('lsize')
         assert len(Lsize) == 1
-        cell = [float(l) for l in Lsize[0]]
+        cell = [2 * float(l) for l in Lsize[0]]
         # TODO support LatticeVectors
     else:
         cell = None
-        #atoms = Atoms(pbc=pbc)
     return cell, kwargs
 
 
@@ -283,7 +286,7 @@ def kwargs2atoms(kwargs):
             sym = sym[1:-1]
             pos0 = np.zeros(3)
             ndim = kwargs.get('dimensions', 3)
-            pos0[:ndim] = map(float, row[1:])
+            pos0[:ndim] = [float(element) for element in row[1:]]
             number = atomic_numbers[sym]  # Use 0 ~ 'X' for unknown?
             numbers.append(number)
             positions.append(pos0)
@@ -318,10 +321,16 @@ def kwargs2atoms(kwargs):
     atoms = None
     if 'coordinates' in kwargs:
         numbers, positions = get_positions_from_block('coordinates')
-        atoms = Atoms(numbers=numbers, positions=positions)
+        if cell is not None:
+            positions[:, :] += np.array(cell)[None, :] / 2.0
+        atoms = Atoms(cell=cell, numbers=numbers, positions=positions)
     elif 'reducedcoordinates' in kwargs:
         numbers, rpositions = get_positions_from_block('reducedcoordinates')
-        atoms = Atoms(numbers=numbers, scaled_positions=rpositions)
+        if cell is None:
+            raise ValueError('Cannot figure out what the cell is, '
+                             'and thus cannot interpret reduced coordinates.')
+        rpositions += 0.5
+        atoms = Atoms(cell=cell, numbers=numbers, scaled_positions=rpositions)
     else:
         for keyword in ['xyzcoordinates', 'pdbcoordinates', 'xsfcoordinates']:
             atoms = read_atoms_from_file(keyword)
@@ -363,7 +372,7 @@ def atoms2kwargs(atoms):
     positions = atoms.positions.copy()
     positions -= Lsize[None, :]
 
-    coord_block = [[repr(sym)] + map(repr, pos)
+    coord_block = [[repr(sym)] + list(map(repr, pos))
                    for sym, pos in zip(atoms.get_chemical_symbols(),
                                        positions)]
     kwargs['coordinates'] = coord_block
@@ -382,8 +391,6 @@ def atoms2kwargs(atoms):
     # things from restart file into output files without trouble.
     #
     # Velocities etc.?
-    #
-    #Lsizeblock = list2block('Lsize', [map(repr, Lsize)])
     return kwargs
 
 
@@ -479,7 +486,7 @@ class Octopus(FileIOCalculator):
 
     def __init__(self,
                  restart=None,
-                 label='ink-pool',
+                 label=None,
                  atoms=None,
                  command='octopus',
                  ignore_troublesome_keywords=None,
@@ -487,10 +494,19 @@ class Octopus(FileIOCalculator):
         """Create Octopus calculator.
 
         Label is always taken as a subdirectory.
-        Restart is taken to be a label (todo: this)."""
+        Restart is taken to be a label."""
 
         # XXX support the specially defined ASE parameters,
         # "smear" etc.
+
+        if restart is not None:
+            if label is not None and restart != label:
+                raise ValueError('restart and label are mutually exclusive '
+                                 'or must at the very least coincide.')
+            label = restart
+
+        if label is None:
+            label = 'ink-pool'
 
         if ignore_troublesome_keywords:
             trouble = set(self.troublesome_keywords)
@@ -498,12 +514,15 @@ class Octopus(FileIOCalculator):
                 trouble.pop(keyword)
             # XXX test this
             self.troublesome_keywords = trouble
-        
+
+        self.kwargs = {}
+
         FileIOCalculator.__init__(self, restart=restart,
                                   ignore_bad_restart_file=False,
                                   label=label,
                                   atoms=atoms,
                                   command=command, **kwargs)
+        # The above call triggers set() so we can update self.kwargs.
 
     def set_label(self, label):
         # Octopus does not support arbitrary namings of all the output files.
@@ -527,7 +546,8 @@ class Octopus(FileIOCalculator):
                 raise OctopusKeywordError(msg)
 
         FileIOCalculator.set(self, **kwargs)
-        self.kwargs = kwargs
+        self.kwargs.update(kwargs)
+        # XXX should use 'Parameters' but don't know how
 
     def get_xc_functional(self):
         """Return the XC-functional identifier.
@@ -711,19 +731,19 @@ class Octopus(FileIOCalculator):
     def get_eigenvalues(self, kpt=0, spin=0):
         return self.results['eigenvalues'][spin, kpt].copy()
 
-    def _getpath(self, path):
-        return os.path.join(self.directory, path)
+    def _getpath(self, path, check=False):
+        path = os.path.join(self.directory, path)
+        if check:
+            if not os.path.exists(path):
+                raise OctopusIOError('No such file or directory: %s' % path)
+        return path
 
     def get_atoms(self):
         return FileIOCalculator.get_atoms(self)
 
     def read_results(self):
         """Read octopus output files and extract data."""
-
-        if self.atoms is None:
-            self.atoms = self.read_atoms()
-        
-        fd = open(self._getpath('static/info'))
+        fd = open(self._getpath('static/info', check=True))
 
         def search(token):
             initial_pos = fd.tell()
@@ -922,9 +942,36 @@ class Octopus(FileIOCalculator):
         fd.close()
 
     def read(self, label):
+        # XXX label of restart file may not be the same as actual label!
+        # This makes things rather tricky.  We first set the label to
+        # that of the restart file and arbitrarily expect the remaining code
+        # to rectify any consequent inconsistencies.
+        self.set_label(label)
+
         FileIOCalculator.read(self, label)
+        inp_path = self._getpath('inp')
+        fd = open(inp_path)
+        names, values = parse_input_file(fd)
+        kwargs = purify(dict(zip(names, values)))
+
+        self.atoms, kwargs = kwargs2atoms(kwargs)
+        self.kwargs.update(kwargs)
+
+        fd.close()
         self.read_results()
 
+    @classmethod
+    def recipe(cls, **kwargs):
+        system = Atoms()
+        calc = Octopus(CalculationMode='recipe', **kwargs)
+        system.set_calculator(calc)
+        try:
+            system.get_potential_energy()
+        except OctopusIOError:
+            pass
+        else:
+            raise OctopusIOError('Expected recipe, but found '
+                                 'useful physical output!')
 
 def main():
     from ase.lattice import bulk
