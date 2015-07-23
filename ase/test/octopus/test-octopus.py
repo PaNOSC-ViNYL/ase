@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import numpy as np
 
 from ase import Atoms
@@ -32,7 +34,7 @@ def test_axis_layout():
         #    assert dim % 2 == 1, rho.shape
 
         maxpoint = np.unravel_index(rho.argmax(), rho.shape)
-        print 'axis=%d: %s/%s' % (axis, maxpoint, rho.shape)
+        print('axis=%d: %s/%s' % (axis, maxpoint, rho.shape))
 
         expected_max = [dim // 2 for dim in rho.shape]
         expected_max[axis] = 0

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from ase.calculators.octopus import Octopus
 from ase.calculators.interfacechecker import check_interface
 from ase.structure import molecule
@@ -25,7 +27,7 @@ calc1 = Octopus(label)
 system = calc1.get_atoms()
 
 E = system.get_potential_energy()
-print 'energy', E
+print('energy', E)
 
 errs = check_interface(calc1)
 #view(system)
@@ -34,5 +36,5 @@ atoms = Octopus.read_atoms(label)
 errs = check_interface(atoms.calc)
 
 changes = calc1.check_state(atoms)
-print 'changes', changes
+print('changes', changes)
 assert len(changes) == 0
