@@ -72,7 +72,7 @@ class OctopusKeywordError(ValueError):
     pass  # Unhandled keywords
 
 
-class OctopusParseError(StandardError):
+class OctopusParseError(Exception):
     pass  # Cannot parse input file
 
 
