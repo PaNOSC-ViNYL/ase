@@ -4,19 +4,19 @@
 Writing documentation
 =====================
 
-We use the Sphinx_ tool to generate the documentation (both HTML
-and PDF_).  The documentation is stored in SVN as text files in the
-:trac:`doc` directory using the reStructuredText_ markup language.
+We use the Sphinx_ tool to generate the documentation.  The documentation is
+stored in SVN as text files in the :trac:`doc` directory using the
+reStructuredText_ markup language.
 
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html
 .. _Sphinx: http://sphinx.pocoo.org
-.. _PDF: ../ase-manual.pdf
 
 
 Installing Docutils and Sphinx
 ==============================
 
-If you prefer to configure Sphinx in a vitual machine see :ref:`sphinx_vagrant`.
+If you prefer to configure Sphinx in a vitual machine see
+:ref:`sphinx_vagrant`.
 
 The reStructuredText_ parser that Sphinx needs, is part of the Docutils_
 project.  So, we need to install docutils and sphinx (version>= 1.1.3).
@@ -28,11 +28,10 @@ Other requirements
 ==================
 
 When building the documentation, a number of png-files are generated_.
-For that to work, you need the following installed:
+For that to work, you *may* need the following installed:
 
 * scipy
 * matplotlib
-* epydoc
 * povray (optional)
 * dvipng
 * pdflatex
@@ -180,53 +179,8 @@ something like::
 
 In your ``.emacs`` file.
 
-.. _reStructuredText extension: http://docutils.sourceforge.net/tools/editors/emacs/rst.el
-
-
-Updating Sphinx
-===============
-
-Starting a new project with sphinx requires an initial configuration.
-This is achieved by running :command:`sphinx-quickstart`.
-When updating from a very old sphinx you may consider
-generating new configuration files and updating the old files accordingly.
-
-**Note** that the current project is configured up-to-date,
-so if you are "simply" writing the documentation
-you **must** skip the :command:`sphinx-quickstart` step
-and focus on :ref:`using_sphinx`.
-
-Here is how do you setup the GPAW project with sphinx:
-
- - :command:`cd` to the :file:`doc` directory,
-
- - run :command:`sphinx-quickstart`
-   and answer the questions (example given for GPAW)::
-
-    > Root path for the documentation [.]:
-
-    > Separate source and build directories (y/N) [n]:
-
-    > Name prefix for templates and static dir [.]: _
-
-    > Project name: GPAW
-    > Author name(s): 2008, CAMd et al.
-  
-    > Project version: 0.5
-    > Project release [0.5]:
-
-    > Source file suffix [.rst]:
-
-    > Name of your master document (without suffix) [index]: contents
-
-    > autodoc: automatically insert docstrings from modules (y/N) [n]: y
-    > doctest: automatically test code snippets in doctest blocks (y/N) [n]:
-    > intersphinx: link between Sphinx documentation of different projects (y/N) [n]: y
-
-   This will create :file:`doc/conf.py` and :file:`doc/contents.rst`.
-   Both these files need to be edited further
-   (:file:`doc/conf.py` may for example include
-   options for ``sphinx.ext.pngmath``)
+.. _reStructuredText extension: http://docutils.sourceforge.net/
+                                tools/editors/emacs/rst.el
 
 
 .. _sphinx_vagrant:
