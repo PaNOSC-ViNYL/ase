@@ -101,6 +101,7 @@ class TestCalculator:
         
 class TestPotential(Calculator):
     implemented_properties = ['energy', 'forces']
+    
     def calculate(self, atoms, properties, system_changes):
         Calculator.calculate(self, atoms, properties, system_changes)
         E = 0.0
