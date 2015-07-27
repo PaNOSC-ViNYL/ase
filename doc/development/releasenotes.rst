@@ -20,7 +20,7 @@ Version 3.9.1
 * Added function for finding maximally-reduced Niggli unit cell:
   :func:`ase.utils.geometry.niggli_reduce`.
   
-* Octopus interface added.
+* Octopus interface added (experimental).
 
 
 Version 3.9.0
