@@ -342,11 +342,11 @@ def read_xyz(fileobj, index=-1):
 
         # Load results of previous calculations into SinglePointCalculator
         results = {}
-        for key in atoms.info.keys():
+        for key in list(atoms.info.keys()):
             if key in all_properties:
                 results[key] = atoms.info[key]
                 del atoms.info[key]
-        for key in atoms.arrays.keys():
+        for key in list(atoms.arrays.keys()):
             if key in all_properties:
                 results[key] = atoms.arrays[key]
                 del atoms.arrays[key]
