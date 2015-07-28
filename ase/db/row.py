@@ -25,7 +25,7 @@ class FancyDict(dict):
         return self.keys()  # for tab-completion
         
 
-def atoms2dict(atoms):
+def atoms2dict(atoms, include_all_data=False):
     dct = {
         'numbers': atoms.numbers,
         'pbc': atoms.pbc,
@@ -49,6 +49,32 @@ def atoms2dict(atoms):
         dct['calculator_parameters'] = atoms.calc.todict()
         if len(atoms.calc.check_state(atoms)) == 0:
             dct.update(atoms.calc.results)
+
+    if include_all_data:
+        # add scalars from Atoms.info to dct['key_value_pairs'] and arrays to dct['data']
+        kvp = dct['key_value_pairs'] = {}
+        data = dct['data'] = {}
+        skip_keys = ['calculator', 'id', 'unique_id']
+        for (key, value) in atoms.info.items():
+            key = key.lower()
+            if key in skip_keys:
+                continue
+            if (isinstance(value, int)   or isinstance(value, basestring) or
+                isinstance(value, float) or isinstance(value, bool)):
+                # scalar key/value pairs
+                kvp[key] = value
+            else:
+                # more complicated data structures
+                data[key] = value
+
+        # add contents of Atoms.arrays to dct['data']
+        skip_arrays = ['numbers', 'positions', 'species']
+        for (key, value) in atoms.arrays.items():
+            if key in skip_arrays:
+                continue
+            key = key.lower()
+            data[key] = value
+        
     return dct
     
     
@@ -181,7 +207,8 @@ class AtomsRow:
         return charges.sum()
 
     def toatoms(self, attach_calculator=False,
-                add_additional_information=False):
+                add_additional_information=False,
+                add_to_info_and_arrays=False):
         """Create Atoms object."""
         atoms = Atoms(self.numbers,
                       self.positions,
@@ -206,6 +233,9 @@ class AtomsRow:
                 atoms.calc = SinglePointCalculator(atoms, **results)
                 atoms.calc.name = self.calculator
 
+        if add_additional_information and add_to_info_and_arrays:
+            raise ValueErorr('add_additional_informatio and add_to_info_and_arrays are mutually exclusive')
+
         if add_additional_information:
             atoms.info = {}
             atoms.info['unique_id'] = self.unique_id
@@ -214,5 +244,19 @@ class AtomsRow:
             data = self.get('data')
             if data:
                 atoms.info['data'] = data
-                    
+        elif add_to_info_and_arrays:
+            atoms.info['unique_id'] = self.unique_id
+            if self._keys:
+                atoms.info.update(self.key_value_pairs)
+            data = self.get('data')
+            if data:
+                for (key, value) in data.items():
+                    key = str(key) # avoid unicode strings
+                    value = np.array(value)
+                    if value.dtype.kind == 'U':
+                        value = value.astype(str)
+                    try:
+                        atoms.new_array(key, value)
+                    except (TypeError, ValueError):
+                        atoms.info[key] = value
         return atoms

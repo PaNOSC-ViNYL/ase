@@ -185,7 +185,8 @@ class Database:
             
     @parallel
     @lock
-    def write(self, atoms, key_value_pairs={}, data={}, **kwargs):
+    def write(self, atoms, key_value_pairs={}, data={},
+              add_from_info_and_arrays=False, **kwargs):
         """Write atoms to database with key-value pairs.
         
         atoms: Atoms object
@@ -196,6 +197,9 @@ class Database:
             Dictionary of key-value pairs.  Values must be strings or numbers.
         data: dict
             Extra stuff (not for searching).
+        add_from_info_and_arrays : bool
+            If True, add all information from atoms.info and atoms.arrays
+            to key_value_pairs and data
             
         Key-value pairs can also be set using keyword arguments::
             
@@ -209,8 +213,31 @@ class Database:
         
         kvp = dict(key_value_pairs)  # modify a copy
         kvp.update(kwargs)
+
+        dat = dict(data) # modify a copy
+
+        if add_from_info_and_arrays:
+            skip_keys = ['calculator', 'id', 'unique_id']
+            for (key, value) in atoms.info.items():
+                key = key.lower()
+                if key in skip_keys:
+                    continue
+                if (isinstance(value, int)   or isinstance(value, basestring) or
+                    isinstance(value, float) or isinstance(value, bool)):
+                    # scalar key/value pairs
+                    kvp[key] = value
+                else:
+                    # more complicated data structures
+                    dat[key] = value
+
+            skip_arrays = ['numbers', 'positions', 'species']
+            for (key, value) in atoms.arrays.items():
+                if key in skip_arrays:
+                    continue
+                key = key.lower()
+                dat[key] = value
         
-        id = self._write(atoms, kvp, data)
+        id = self._write(atoms, kvp, dat)
         return id
         
     def _write(self, atoms, key_value_pairs, data):
