@@ -3,6 +3,7 @@ from math import cos, sin
 import numpy as np
 import matplotlib.pyplot as plt
 
+import ase.units as units
 from ase import Atoms
 from ase.calculators.tip3p import (TIP3P, epsilon0, sigma0, rOH, thetaHOH,
                                    set_tip3p_charges)
@@ -12,24 +13,21 @@ from ase.optimize import BFGS
 
 r = rOH
 a = thetaHOH
-D = np.linspace(1.5, 2.5, 30)
 
+# From http://dx.doi.org/10.1063/1.445869
+eexp = 6.50 * units.kcal / units.mol
+dexp = 2.74
+aexp = 27
 
-def test(dimer):
-    E = []
-    F = []
-    for d in D:
-        dimer.positions[3:, 0] += d - (dimer.positions[5, 0] - r)
-        E.append(dimer.get_potential_energy())
-        F.append(dimer.get_forces())
-    return np.array(E), np.array(F)
-    
+D = np.linspace(2.5, 3.5, 30)
+
 i = LJInteractions({('O', 'O'): (epsilon0, sigma0)})
+
 for calc in [TIP3P(),
              QMMM1([0, 1, 2], TIP3P(), TIP3P(), TIP3P()),
              QMMM2([0, 1, 2], TIP3P(), TIP3P(), i)]:
     dimer = Atoms('H2OH2O',
-                  [(r * cos(a), r * sin(a), 0),
+                  [(r * cos(a), 0, r * sin(a)),
                    (r, 0, 0),
                    (0, 0, 0),
                    (r * cos(a / 2), r * sin(a / 2), 0),
@@ -38,7 +36,16 @@ for calc in [TIP3P(),
     set_tip3p_charges(dimer)
     dimer.calc = calc
 
-    E, F = test(dimer)
+    E = []
+    F = []
+    for d in D:
+        dimer.positions[3:, 0] += d - dimer.positions[5, 0]
+        E.append(dimer.get_potential_energy())
+        F.append(dimer.get_forces())
+    F = np.array(F)
+
+    plt.plot(D, E)
+    
     F1 = np.polyval(np.polyder(np.polyfit(D, E, 7)), D)
     F2 = F[:, :3, 0].sum(1)
     error = abs(F1 - F2).max()
@@ -52,8 +59,15 @@ for calc in [TIP3P(),
     opt.run(0.01)
 
     e0 = dimer.get_potential_energy()
-    d0 = dimer.get_distance(1, 5)
-    print(calc.name, e0, d0, error)
-    plt.plot(D, E)
+    d0 = dimer.get_distance(2, 5)
+    R = dimer.positions
+    v1 = R[1] - R[5]
+    v2 = R[5] - (R[3] + R[4]) / 2
+    a0 = np.arccos(np.dot(v1, v2) /
+                   (np.dot(v1, v1) * np.dot(v2, v2))**0.5) / np.pi * 180
+    fmt = '{0:>20}: {1:.3f} {2:.3f} {3:.1f}'
+    print(fmt.format(calc.name, -e0, d0, a0))
+    
+print(fmt.format('reference', eexp, dexp, aexp))
     
 plt.show()
