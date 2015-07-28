@@ -208,7 +208,7 @@ def read_xyz(fileobj, index=-1):
     while fileobj:
         frame_pos = fileobj.tell()
         line = fileobj.readline()
-        if line.strip() == '':
+        if line == '':
             break
         natoms = int(line)
         frames.append((frame_pos, natoms))

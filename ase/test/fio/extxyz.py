@@ -28,17 +28,3 @@ ase.io.write('multi.extxyz', images)
 read_images = ase.io.read('multi.extxyz@:')
 assert read_images == images
 os.unlink('multi.extxyz')
-
-# read xyz containing trailing blank line
-f = open("structure.xyz", 'w')
-f.write('''4
-Coordinates
-Mg        -4.25650        3.79180       -2.54123
-C         -1.15405        2.86652       -1.26699
-C         -5.53758        3.70936        0.63504
-C         -7.28250        4.71303       -3.82016
-
-''')
-f.close()
-a = ase.io.read('structure.xyz')
-os.unlink('structure.xyz')

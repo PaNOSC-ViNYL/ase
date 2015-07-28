@@ -1,18 +1,15 @@
 from __future__ import print_function
 import collections
 import optparse
-import os
 import sys
 from random import randint
-
-import numpy as np
 
 import ase.io
 from ase.db import connect
 from ase.db.core import convert_str_to_float_or_str
 from ase.db.summary import Summary
 from ase.db.table import Table, all_columns
-from ase.calculators.calculator import get_calculator, all_properties
+from ase.calculators.calculator import get_calculator
 from ase.utils import plural
 
 try:
@@ -53,16 +50,8 @@ def main(args=sys.argv[1:]):
         help='Long description of selected row')
     add('-i', '--insert-into', metavar='db-name',
         help='Insert selected rows into another database.')
-    add('-a', '--add-from-file', metavar='[type:]filename...',
+    add('-a', '--add-from-file', metavar='[type:]filename',
         help='Add results from file.')
-    add('-o', '--store-original-file', action='store_true',
-        help='When adding files with --add-from-file, include original filename and full contents')    
-    add('-x', '--extract-original-file', action='store_true',
-        help='Extract an original file stored with -o/--store-original-file')
-    add('-W', '--write-to-file', metavar='[type:]filename',
-        help='Write selected rows to file(s). Include format string for multiple files, e.g. file_%03d.xyz')
-    add('-A', '--all-data', action='store_true', default=False,
-        help="Include atoms.info and atoms.arrays dictionaries in key_value_pairs and data")
     add('-k', '--add-key-value-pairs', metavar='key1=val1,key2=val2,...',
         help='Add key-value pairs to selected rows.  Values must be numbers '
         'or strings and keys must follow the same rules as keywords.')
@@ -156,16 +145,7 @@ def run(opts, args, verbosity):
             atoms = get_calculator(calculator_name)(filename).get_atoms()
         else:
             atoms = ase.io.read(filename)
-            if isinstance(atoms, list):
-                raise RuntimeEror('multi-config file formats not yet supported')
-        data = {}            
-        if opts.store_original_file:
-            add_key_value_pairs['original_file_name'] = filename
-            with open(filename) as f:
-                original_file_contents = f.read()
-            data['original_file_contents'] = original_file_contents
-        con.write(atoms, key_value_pairs=add_key_value_pairs, data=data,
-                  add_from_info_and_arrays=opts.all_data)
+        con.write(atoms, key_value_pairs=add_key_value_pairs)
         out('Added {0} from {1}'.format(atoms.get_chemical_formula(),
                                         filename))
         return
@@ -201,54 +181,6 @@ def run(opts, args, verbosity):
             (plural(nkvp, 'key-value pair'),
              plural(len(add_key_value_pairs) * nrows - nkvp, 'pair')))
         out('Inserted %s' % plural(nrows, 'row'))
-        return
-
-    if opts.write_to_file:
-        filename = opts.write_to_file
-        if ':' in filename:
-            format, filename = filename.split(':')
-        else:
-            format = None
-        nrows = 0
-        list_of_atoms = []
-        for row in con.select(query):
-            atoms = row.toatoms(add_to_info_and_arrays=opts.all_data)
-            if 'original_file_contents' in atoms.info:
-                del atoms.info['original_file_contents']
-            list_of_atoms.append(atoms)
-            nrows += 1
-        if '%' in filename:
-            for i, atoms in enumerate(list_of_atoms):
-                ase.io.write(filename % i, atoms, format=format)
-        else:
-            if filename == '-':
-                if format is None: format = 'extxyz'
-                filename = sys.stdout
-            ase.io.write(filename, list_of_atoms, format=format)
-        out('Wrote %d rows.' % len(list_of_atoms))
-        return
-
-    if opts.extract_original_file:
-        nwrite = 0
-        nrow = 0
-        for row in con.select(query):
-            nrow += 1
-            if ('original_file_name' not in row.key_value_pairs or
-                'original_file_contents' not in row.data):
-                out('no original file stored for row id=%d' % row.id)
-                continue
-            original_file_name = row.key_value_pairs['original_file_name']
-            # restore to current working directory
-            original_file_name = os.path.basename(original_file_name)
-            if os.path.exists(original_file_name):
-                out('original_file_name %s already exists in current ' %
-                     original_file_name + 'working directory, skipping write')
-                continue
-            out('Writing %s' % original_file_name)            
-            with open(original_file_name, 'w') as original_file:
-                original_file.write(row.data['original_file_contents'])
-            nwrite += 1            
-        out('Extracted original output files for %d/%d selected rows' % (nwrite, nrow))
         return
 
     if add_key_value_pairs or delete_keys:

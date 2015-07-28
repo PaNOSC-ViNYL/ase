@@ -1585,8 +1585,8 @@ def create_castep_keywords(castep_command, filename='castep_keywords.py',
             sys.stdout.write(doc)
             sys.stdout.flush()
 
-            #raise Exception('create_castep_keywords: Could not process %s'
-            #    % option)
+            raise Exception('create_castep_keywords: Could not process %s'
+                % option)
 
     # write classes out
     for suffix in suffixes:
