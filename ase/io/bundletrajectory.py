@@ -135,6 +135,11 @@ class BundleTrajectory:
             self.log('Done writing NEB data')
             return
 
+        while hasattr(atoms, 'atoms_for_saving'):
+            # Seems to be a Filter or similar, instructing us to
+            # save the original atoms.
+            atoms = atoms.atoms_for_saving
+
         # OK, it is a real atoms object.  Write it.
         self._call_observers(self.pre_observers)
         self.log("Beginning to write frame " + str(self.nframes))

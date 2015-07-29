@@ -908,6 +908,10 @@ class Filter:
         mask : list of bool
            One boolean per atom indicating if the atom should remain
            visible or not.
+
+        If a Trajectory tries to save this object, it will instead
+        save the underlying Atoms object.  To prevent this, delete
+        the atoms_for_saving attribute.
         """
 
         self.atoms = atoms
@@ -926,6 +930,9 @@ class Filter:
         else:
             self.index = np.asarray(indices, int)
             self.n = len(self.index)
+
+        # Present the real atoms object to Trajectory and friends
+        self.atoms_for_saving = self.atoms
 
     def get_cell(self):
         """Returns the computational cell.
