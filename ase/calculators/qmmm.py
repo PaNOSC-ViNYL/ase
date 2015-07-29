@@ -85,7 +85,7 @@ class QMMM2(Calculator):
         self.mask = np.zeros(len(atoms), bool)
         self.mask[self.selection] = True
         
-        constraints = atoms.constraints
+        constraints = atoms.constraints  # avoid slicing of constraints
         atoms.constraints = []
         self.qmatoms = atoms[self.mask]
         self.mmatoms = atoms[~self.mask]
@@ -107,16 +107,19 @@ class QMMM2(Calculator):
         if self.qmatoms is None:
             self.initialize(atoms)
             
-        self.qmatoms.set_positions(atoms.positions[self.mask])
         self.mmatoms.set_positions(atoms.positions[~self.mask])
-        self.pc.set_positions(self.mmatoms.positions)
+        self.qmatoms.set_positions(atoms.positions[self.mask])
         
         if self.vacuum:
-            self.qmatoms.positions += (self.center -
-                                       self.qmatoms.positions.mean(axis=0))
+            shift = self.center - self.qmatoms.positions.mean(axis=0)
+            self.qmatoms.positions += shift
+        else:
+            shift = (0, 0, 0)
             
+        self.pc.set_positions(self.mmatoms.positions + shift)
+
         ienergy, iqmforces, immforces = self.interaction.calculate(
-            self.qmatoms, self.mmatoms)
+            self.qmatoms, self.mmatoms, shift)
         
         energy = (ienergy +
                   self.qmatoms.get_potential_energy() +
@@ -127,9 +130,6 @@ class QMMM2(Calculator):
         
         mmforces += self.pc.get_forces(self.qmatoms.calc)
         
-        if self.vacuum:
-            qmforces -= qmforces.mean(axis=0)
-
         forces = np.empty((len(atoms), 3))
         forces[self.mask] = qmforces + iqmforces
         forces[~self.mask] = mmforces + immforces
@@ -149,7 +149,7 @@ class LJInteractions:
             self.parameters[(Z1, Z2)] = epsilon, sigma
             self.parameters[(Z2, Z1)] = epsilon, sigma
         
-    def calculate(self, qmatoms, mmatoms):
+    def calculate(self, qmatoms, mmatoms, shift):
         qmforces = np.zeros_like(qmatoms.positions)
         mmforces = np.zeros_like(mmatoms.positions)
         species = set(mmatoms.numbers)
@@ -160,7 +160,7 @@ class LJInteractions:
                     continue
                 epsilon, sigma = self.parameters[(Z1, Z2)]
                 mask = (mmatoms.numbers == Z2)
-                d = mmatoms.positions[mask] - R1
+                d = mmatoms.positions[mask] + shift - R1
                 r2 = (d**2).sum(1)
                 s6 = (sigma**2 / r2)**3
                 s12 = s6**2

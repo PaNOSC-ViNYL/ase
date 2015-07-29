@@ -25,7 +25,9 @@ i = LJInteractions({('O', 'O'): (epsilon0, sigma0)})
 
 for calc in [TIP3P(),
              QMMM1([0, 1, 2], TIP3P(), TIP3P(), TIP3P()),
-             QMMM2([0, 1, 2], TIP3P(), TIP3P(), i)]:
+             QMMM1([0, 1, 2], TIP3P(), TIP3P(), TIP3P(), vacuum=3.0),
+             QMMM2([0, 1, 2], TIP3P(), TIP3P(), i),
+             QMMM2([0, 1, 2], TIP3P(), TIP3P(), i, vacuum=3.0)]:
     dimer = Atoms('H2OH2O',
                   [(r * cos(a), 0, r * sin(a)),
                    (r, 0, 0),
@@ -65,9 +67,9 @@ for calc in [TIP3P(),
     v2 = R[5] - (R[3] + R[4]) / 2
     a0 = np.arccos(np.dot(v1, v2) /
                    (np.dot(v1, v1) * np.dot(v2, v2))**0.5) / np.pi * 180
-    fmt = '{0:>20}: {1:.3f} {2:.3f} {3:.1f}'
-    print(fmt.format(calc.name, -e0, d0, a0))
+    fmt = '{0:>20}: {1:.3f} {2:.3f} {3:.3f} {4:.1f}'
+    print(fmt.format(calc.name, -min(E), -e0, d0, a0))
     
-print(fmt.format('reference', eexp, dexp, aexp))
+print(fmt.format('reference', 9.999, eexp, dexp, aexp))
     
 plt.show()
