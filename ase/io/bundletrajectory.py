@@ -747,7 +747,7 @@ class PickleBundleBackend:
             suf = "_%d" % (i,)
             fn = os.path.join(framedir, name + suf + '.pickle')
             f = open(fn)
-            shape = pickle.load(f)  # Discarded.
+            pickle.load(f)  # Discarding the shape.
             data.append(pickle.load(f))
             f.close()
         return (np.concatenate(data), True)
