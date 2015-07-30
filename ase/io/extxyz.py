@@ -84,7 +84,7 @@ def key_val_str_to_dict(s):
             else:
                 numvalue = np.array(numvalue)  # vector
             value = numvalue
-        except ValueError:
+        except (ValueError, OverflowError):
             pass
 
         # Parse boolean values: 'T' -> True, 'F' -> False,
