@@ -36,6 +36,7 @@ KEY_VALUE = re.compile(r'([A-Za-z_]+[A-Za-z0-9_]*)\s*=' +
                        r'\s*([-0-9A-Za-z_.:\[\]()e+-]+)\s*')
 KEY_RE = re.compile(r'([A-Za-z_]+[A-Za-z0-9_]*)\s*')
 
+UNPROCESSED_KEYS = ['uid']
 
 def key_val_str_to_dict(s):
     """
@@ -68,35 +69,36 @@ def key_val_str_to_dict(s):
             # default value is 'T' (True)
             value = 'T'
 
-        # Try to convert to (arrays of) floats, ints
-        try:
-            numvalue = []
-            for x in value.split():
-                if x.find('.') == -1:
-                    numvalue.append(int(float(x)))
+        if key.lower() not in UNPROCESSED_KEYS:
+            # Try to convert to (arrays of) floats, ints
+            try:
+                numvalue = []
+                for x in value.split():
+                    if x.find('.') == -1:
+                        numvalue.append(int(float(x)))
+                    else:
+                        numvalue.append(float(x))
+                if len(numvalue) == 1:
+                    numvalue = numvalue[0]         # Only one number
+                elif len(numvalue) == 9:
+                    # special case: 3x3 matrix, fortran ordering
+                    numvalue = np.array(numvalue).reshape((3, 3), order='F')
                 else:
-                    numvalue.append(float(x))
-            if len(numvalue) == 1:
-                numvalue = numvalue[0]         # Only one number
-            elif len(numvalue) == 9:
-                # special case: 3x3 matrix, fortran ordering
-                numvalue = np.array(numvalue).reshape((3, 3), order='F')
-            else:
-                numvalue = np.array(numvalue)  # vector
-            value = numvalue
-        except (ValueError, OverflowError):
-            pass
+                    numvalue = np.array(numvalue)  # vector
+                value = numvalue
+            except (ValueError, OverflowError):
+                pass
 
-        # Parse boolean values: 'T' -> True, 'F' -> False,
-        #                       'T T F' -> [True, True, False]
-        if isinstance(value, str):
-            str_to_bool = {'T': True, 'F': False}
+            # Parse boolean values: 'T' -> True, 'F' -> False,
+            #                       'T T F' -> [True, True, False]
+            if isinstance(value, str):
+                str_to_bool = {'T': True, 'F': False}
 
-            if len(value.split()) > 1:
-                if all([x in str_to_bool.keys() for x in value.split()]):
-                    value = [str_to_bool[x] for x in value.split()]
-            elif value in str_to_bool:
-                value = str_to_bool[value]
+                if len(value.split()) > 1:
+                    if all([x in str_to_bool.keys() for x in value.split()]):
+                        value = [str_to_bool[x] for x in value.split()]
+                elif value in str_to_bool:
+                    value = str_to_bool[value]
 
         d[key] = value
 
