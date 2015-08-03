@@ -159,7 +159,7 @@ def iread(filename, index=None, format=None, **kwargs):
     filename, index = parse_filename(filename, index)
     
     if index is None:
-        index = slice()
+        index = slice(None, None, None)
         
     if not isinstance(index, (slice, str)):
         index = slice(index, (index + 1) or None)

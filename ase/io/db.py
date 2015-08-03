@@ -6,6 +6,8 @@ def read_db(filename, index, **kwargs):
     if index == slice(-1, None):
         yield con.get().toatoms()
     else:
+        if index == slice(None, None, None):
+            index = None
         for row in con.select(index):
             yield row.toatoms()
 

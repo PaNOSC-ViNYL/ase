@@ -151,3 +151,7 @@ def atoms2etree(images):
                 atoms.get_array('mommenta')[aindex])
         
     return root
+
+    
+read_exi = read_exciting
+write_exi = write_exciting

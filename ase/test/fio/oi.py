@@ -24,27 +24,11 @@ r = ['xyz', 'traj', 'cube', 'pdb', 'cfg', 'struct',
 spc = SinglePointCalculator(atoms,
                             energy=-1.0,
                             stress=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-                            forces=-1.0*atoms.get_positions())
+                            forces=-1.0 * atoms.positions)
 atoms.set_calculator(spc)
 
-try:
-    import json
-except ImportError:
-    pass
-else:
-    r += ['json', 'db']
-
-try:
-    import Scientific
-    version = Scientific.__version__.split('.')
-    print('Found ScientificPython version: ', Scientific.__version__)
-    if list(map(int, version)) < [2, 8]:
-        print('ScientificPython 2.8 or greater required for numpy support')
-        raise ImportError
-except ImportError:
-    print('No Scientific python found. Check your PYTHONPATH')
-else:
-    r += ['etsf']
+r += ['json', 'db']
+r += ['etsf']
 
 w = r + ['xsf',
          'findsym']
