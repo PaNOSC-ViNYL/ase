@@ -85,6 +85,8 @@ def connect(name, type='extract_from_name', create_indices=True,
     if type == 'extract_from_name':
         if name is None:
             type = None
+        elif not isinstance(name, str):
+            type = 'json'
         elif name.startswith('pg://'):
             type = 'postgresql'
         else:
@@ -290,9 +292,6 @@ class Database:
         
         selection: int, str or list
             See the select() method.
-        fancy: bool
-            return fancy dictionary with keys as attributes (this is the
-            default).
         """
 
         rows = list(self.select(selection, limit=2, **kwargs))

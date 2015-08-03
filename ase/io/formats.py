@@ -1,11 +1,13 @@
+import collections
 import contextlib
+import functools
 import inspect
 import os
 import sys
 
-from ase.utils import import_module
 from ase.atoms import Atoms
-# from ase.parallel import run_generator_on_master, run_function_on_master
+from ase.utils import import_module
+from ase.db.core import parallel, parallel_generator
 
 format2modulename = dict(
     traj='trajectory',
@@ -23,12 +25,18 @@ extension2format = dict(
     shelx='res',
     con='eon')
 
+not_single = ['xyz', 'traj', 'trj', 'pdb', 'cif', 'extxyz', 'db', 'json',
+              'postgresql', 'xsf', 'findsym']
+not_acceptsfd = ['traj', 'db', 'postgresql',
+                 'struct', 'res', 'eps']
+
+IOFormat = collections.namedtuple('IOFormat', 'read, write, single, acceptsfd')
 # Will be filled at run-time:
-format_dicts = {}
+ioformats = {}
         
         
 def initialize(format):
-    if format in format_dicts:
+    if format in ioformats:
         return
     module_name = format2modulename.get(format, format)
     try:
@@ -37,17 +45,32 @@ def initialize(format):
         raise ValueError('File format not recognized: ' + format)
     read = getattr(module, 'read_' + format, None)
     write = getattr(module, 'write_' + format, None)
-    dct = {}
-    if write:
-        dct['write'] = write
-    if read:
-        dct['read'] = read
-    if not dct:
+    if read and not inspect.isgeneratorfunction(read):
+        read = functools.partial(convert_old_read_function, read)
+    if not read and not write:
         raise ValueError('File format not recognized: ' + format)
-    format_dicts[format] = dct
+    ioformats[format] = IOFormat(read, write,
+                                 format not in not_single,
+                                 format not in not_acceptsfd)
     
+
+def get_ioformat(format):
+    initialize(format)
+    return ioformats[format]
+    
+
+def convert_old_read_function(read, filename, index=None, **kwargs):
+    if index is None:
+        yield read(filename, **kwargs)
+    else:
+        images = read(filename, index, **kwargs)
+        #if isinstance(images, Atoms):
+            #images = [images]
+        for atoms in images:
+            yield atoms
         
-#@run_function_on_master
+        
+@parallel
 def write(filename, images, format=None, **kwargs):
     """Write Atoms object(s) to file.
 
@@ -66,8 +89,7 @@ def write(filename, images, format=None, **kwargs):
     so the ``format`` argument should be explicitly given.
 
     The use of additional keywords is format specific."""
-    if isinstance(images, Atoms):
-        images = [images]
+
     fd = None
     if isinstance(filename, str):
         if filename == '-':
@@ -77,26 +99,33 @@ def write(filename, images, format=None, **kwargs):
     else:
         fd = filename
     format = format or 'json'
-    initialize(format)
-    if len(images) > 1 and format not in ['traj', 'xyz']:
-        raise ValueError('{0}-format con only store 1 Atoms object.'
-                         .format(format))
-    write = format_dicts[format].get('write')
-    if write is None:
+
+    io = get_ioformat(format)
+
+    if isinstance(images, Atoms):
+        images = [images]
+        
+    if io.single:
+        if len(images) > 1:
+            raise ValueError('{0}-format can only store 1 Atoms object.'
+                             .format(format))
+        images = images[0]
+        
+    if io.write is None:
         raise ValueError("Can't write to {0}-format".format(format))
-    if format in ['traj', 'db']:
+    if not io.acceptsfd:
         if fd is not None:
             raise ValueError("Can't write {0}-format to file-descriptor"
                              .format(format))
-        write(filename, images, **kwargs)
+        io.write(filename, images, **kwargs)
     else:
         if fd is None:
             fd = open(filename, 'w')
-        write(fd, images, **kwargs)
+        io.write(fd, images, **kwargs)
         fd.close()
     
     
-def read(filename, index=None, format=None):
+def read(filename, index=None, format=None, **kwargs):
     """Read Atoms object(s) from file.
 
     filename: str
@@ -119,25 +148,18 @@ def read(filename, index=None, format=None):
     if index is None:
         index = -1
     if isinstance(index, (slice, str)):
-        return list(iread(filename, index, format))
+        return list(iread(filename, index, format, **kwargs))
     else:
-        return next(iread(filename, slice(index, None), format))
+        return next(iread(filename, slice(index, None), format, **kwargs))
     
         
-#@run_generator_on_master
-def iread(filename, index=None, format=None):
+@parallel_generator
+def iread(filename, index=None, format=None, **kwargs):
     if isinstance(index, str):
         index = string2index(index)
         
     filename, index = parse_filename(filename, index)
     
-    if isinstance(index, str):
-        import ase.db
-        con = ase.db.connect(filename)
-        for row in con.select(index):
-            yield row.toatoms()
-        return
-        
     if index is None:
         index = slice()
         
@@ -146,26 +168,29 @@ def iread(filename, index=None, format=None):
         
     if format is None:
         format = filetype(filename)
-    initialize(format)
-    read = format_dicts[format].get('read')
+
+    io = get_ioformat(format)
     
-    if not read:
+    if not io.read:
         raise ValueError("Can't read from {0}-format".format(format))
         
-    if inspect.isgeneratorfunction(read):
-        if isinstance(filename, str):
+    if io.single:
+        start = index.start
+        assert start is None or start == 0 or start == -1
+        index = None
+        
+    if isinstance(filename, str):
+        if io.acceptsfd:
             fd = open(filename)
         else:
-            fd = filename
-            
-        with contextlib.closing(fd):
-            for atoms in read(fd, index):
+            for atoms in io.read(filename, index, **kwargs):
                 yield atoms
+            return
     else:
-        images = read(filename, index)
-        if isinstance(images, Atoms):
-            images = [images]
-        for atoms in images:
+        assert io.acceptsfd
+        fd = filename
+    with contextlib.closing(fd):
+        for atoms in io.read(fd, index, **kwargs):
             yield atoms
     
     
@@ -219,7 +244,7 @@ def filetype(filename, read=True):
         
         if '.' in basename:
             ext = filename.rsplit('.', 1)[-1].lower()
-            if ext in ['xyz', 'cube']:
+            if ext in ['xyz', 'cube', 'json']:
                 return ext
 
         if 'POSCAR' in basename or 'CONTCAR' in basename:
