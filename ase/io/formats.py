@@ -31,8 +31,7 @@ not_acceptsfd = ['traj', 'db', 'postgresql',
                  'struct', 'res', 'eps']
 
 IOFormat = collections.namedtuple('IOFormat', 'read, write, single, acceptsfd')
-# Will be filled at run-time:
-ioformats = {}
+ioformats = {}  # will be filled at run-time
         
         
 def initialize(format):
@@ -148,12 +147,11 @@ def read(filename, index=None, format=None, **kwargs):
     if index is None:
         index = -1
     if isinstance(index, (slice, str)):
-        return list(iread(filename, index, format, **kwargs))
+        return list(_iread(filename, index, format, **kwargs))
     else:
-        return next(iread(filename, slice(index, None), format, **kwargs))
+        return next(_iread(filename, slice(index, None), format, **kwargs))
     
         
-@parallel_generator
 def iread(filename, index=None, format=None, **kwargs):
     if isinstance(index, str):
         index = string2index(index)
@@ -166,6 +164,12 @@ def iread(filename, index=None, format=None, **kwargs):
     if not isinstance(index, (slice, str)):
         index = slice(index, (index + 1) or None)
         
+    for atoms in _iread(filename, index, format, **kwargs):
+        yield atoms
+
+            
+@parallel_generator
+def _iread(filename, index, format, **kwargs):
     if format is None:
         format = filetype(filename)
 
@@ -189,6 +193,8 @@ def iread(filename, index=None, format=None, **kwargs):
     else:
         assert io.acceptsfd
         fd = filename
+        
+    # Make sure fd is closed in case loop doesn't finish:
     with contextlib.closing(fd):
         for atoms in io.read(fd, index, **kwargs):
             yield atoms

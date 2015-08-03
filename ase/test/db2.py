@@ -40,7 +40,7 @@ for name in ['y2.json', 'y2.db']:
     assert abs(f2.sum(0)).max() < 1e-14
     f3 = c.get_atoms(C=1).get_forces()
     assert abs(f1 - f3).max() < 1e-14
-    a = read(name + '@' + str(id))
+    a = read(name + '@id=' + str(id))[0]
     f4 = a.get_forces()
     assert abs(f1 - f4).max() < 1e-14
 
