@@ -298,15 +298,13 @@ class TrajectoryReader:
             yield self[i]
 
 
-def read_trajectory(filename, index=-1):
+def read_traj(filename, index):
     trj = TrajectoryReader(filename)
-    if isinstance(index, int):
-        return trj[index]
-    else:
-        return [trj[i] for i in range(*index.indices(len(trj)))]
+    for i in range(*index.indices(len(trj))):
+        yield trj[i]
 
 
-def write_trajectory(filename, images):
+def write_traj(filename, images):
     """Write image(s) to trajectory."""
     trj = TrajectoryWriter(filename, mode='w')
     if isinstance(images, Atoms):
