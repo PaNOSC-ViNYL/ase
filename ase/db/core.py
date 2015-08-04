@@ -66,7 +66,7 @@ def check(key_value_pairs):
 
             
 def connect(name, type='extract_from_name', create_indices=True,
-            use_lock_file=True, append=True):
+            use_lock_file=True, append=True, serial=False):
     """Create connection to database.
     
     name: str
@@ -100,7 +100,7 @@ def connect(name, type='extract_from_name', create_indices=True,
         
     if type == 'json':
         from ase.db.jsondb import JSONDatabase
-        return JSONDatabase(name, use_lock_file=use_lock_file)
+        return JSONDatabase(name, use_lock_file=use_lock_file, serial=serial)
     if type == 'db':
         from ase.db.sqlite import SQLite3Database
         return SQLite3Database(name, create_indices, use_lock_file)
@@ -129,6 +129,9 @@ def parallel(method):
         
     @functools.wraps(method)
     def new_method(*args, **kwargs):
+        # Hook to disable.  Use self.serial = True
+        if args and getattr(args[0], 'serial', True):
+            return method(*args, **kwargs)
         ex = None
         result = None
         if world.rank == 0:
@@ -175,7 +178,7 @@ def convert_str_to_float_or_str(value):
 class Database:
     """Base class for all databases."""
     def __init__(self, filename=None, create_indices=True,
-                 use_lock_file=False):
+                 use_lock_file=False, serial=False):
         if isinstance(filename, str):
             filename = os.path.expanduser(filename)
         self.filename = filename
@@ -184,6 +187,7 @@ class Database:
             self.lock = Lock(filename + '.lock', world=DummyMPI())
         else:
             self.lock = None
+        self.serial = serial
             
     @parallel
     @lock

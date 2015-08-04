@@ -1,5 +1,6 @@
 from ase.atoms import Atoms
 
+
 def read_dftb(filename='dftb_in.hsd'):
     """Method to read coordinates form DFTB+ input file dftb_in.hsd
     additionally read information about fixed atoms
@@ -7,8 +8,7 @@ def read_dftb(filename='dftb_in.hsd'):
     """
     from ase import Atoms
 
-    if isinstance(filename, str):
-        myfile = open(filename)
+    myfile = open(filename)
 
     lines = myfile.readlines()
     atoms_pos = []
@@ -17,24 +17,23 @@ def read_dftb(filename='dftb_in.hsd'):
     my_pbc = False
     mycell = []
 
-
     for iline, line in enumerate(lines):
         if (line.strip().startswith('#')):
             pass
         else:
             if ('TypeNames' in line):
                 col = line.split()
-                for i in range(3, len(col)-1):
+                for i in range(3, len(col) - 1):
                     type_names.append(col[i].strip("\""))
             elif ('Periodic' in line):
                 if ('Yes' in line):
                     my_pbc = True
             elif ('LatticeVectors' in line):
                 for imycell in range(3):
-                    extraline = lines[iline+imycell+1]
+                    extraline = lines[iline + imycell + 1]
                     cols = extraline.split()
-                    mycell.append(\
-                        [float(cols[0]),float(cols[1]),float(cols[2])])
+                    mycell.append(
+                        [float(cols[0]), float(cols[1]), float(cols[2])])
             else:
                 pass
 
@@ -61,12 +60,13 @@ def read_dftb(filename='dftb_in.hsd'):
     if isinstance(filename, str):
         myfile.close()
 
-    atoms = Atoms(positions = atoms_pos, symbols = atom_symbols, 
+    atoms = Atoms(positions = atoms_pos, symbols = atom_symbols,
                   cell = mycell, pbc = my_pbc)
 
 
     return atoms
 
+    
 def read_dftb_velocities(atoms, filename='geo_end.xyz'):
     """Method to read velocities (AA/ps) from DFTB+ output file geo_end.xyz
     """
@@ -75,9 +75,7 @@ def read_dftb_velocities(atoms, filename='geo_end.xyz'):
     #AA/ps -> ase units
     AngdivPs2ASE = 1.0/(1e-12*second)
 
-
-    if isinstance(filename, str):
-        myfile = open(filename)
+    myfile = open(filename)
 
     lines = myfile.readlines()
     #remove empty lines
@@ -114,9 +112,9 @@ def write_dftb_velocities(atoms, filename='velocities.txt'):
     
     velocities = atoms.get_velocities()
     for velocity in velocities:
-        myfile.write(' %19.16f %19.16f %19.16f \n' 
-                %(  velocity[0] / ASE2au, 
-                    velocity[1] / ASE2au, 
+        myfile.write(' %19.16f %19.16f %19.16f \n'
+                %(  velocity[0] / ASE2au,
+                    velocity[1] / ASE2au,
                     velocity[2] / ASE2au))
                      
     return
@@ -163,18 +161,18 @@ def write_dftb(filename, atoms):
             if chemsym[iatom] != chemsym[iatom-1]:
                 itype = itype+1
         myfile.write('%5i%5i  %19.16f %19.16f %19.16f \n' \
-                    %(iatom+1, itype, 
+                    %(iatom+1, itype,
                       coords[iatom][0], coords[iatom][1], coords[iatom][2]))
     # write box
     if (any(ispbc)):
         #dftb dummy
         myfile.write(' %19.16f %19.16f %19.16f \n' %(0, 0, 0))
-        myfile.write(' %19.16f %19.16f %19.16f \n' 
+        myfile.write(' %19.16f %19.16f %19.16f \n'
                 %( box[0][0], box[0][1], box[0][2]))
-        myfile.write(' %19.16f %19.16f %19.16f \n' 
+        myfile.write(' %19.16f %19.16f %19.16f \n'
                 %( box[1][0], box[1][1], box[1][2]))
-        myfile.write(' %19.16f %19.16f %19.16f \n' 
+        myfile.write(' %19.16f %19.16f %19.16f \n'
                 %( box[2][0], box[2][1], box[2][2]))
 
-    if isinstance(filename, str):    
+    if isinstance(filename, str):
         myfile.close()

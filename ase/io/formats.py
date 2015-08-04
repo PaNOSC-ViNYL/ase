@@ -1,34 +1,73 @@
 import collections
-import contextlib
 import functools
 import inspect
 import os
 import sys
 
+"""
+
+
+"""
 from ase.atoms import Atoms
 from ase.utils import import_module
 from ase.db.core import parallel, parallel_generator
 
+all_formats = [
+    'abinit', 'aims', 'aims_output', 'bundletrajectory', 'castep', 'castep_cell',
+    'castep_geom', 'cfg', 'cif', 'cmdft', 'cube', 'dacapo', 'dacapo_text',
+    'db', 'dftb', 'eon', 'eps', 'espresso_in', 'espresso_out', 'etsf', 'exciting', 'extxyz',
+    'findsym', 'gromos', 'gaussian', 'gaussian_out', 'gen', 'gpaw_text', 'gpw',
+    'gromacs', 'html', 'iwm', 'json', 'lammps', 'mol', 'nw', 'pdb', 'png',
+    'postgresq', 'pov', 'res', 'sdf', 'struct', 'struct_out', 'tmol',
+    'tmol_gradient', 'traj', 'trj', 'v_sim', 'vasp', 'vasp_out',
+    'vasp_xdatcar', 'vasp_xml', 'vti', 'vts', 'xsd', 'xsf', 'xyz']
+
+if 0:
+    import textwrap
+    print(textwrap.fill("'" + "', '".join(sorted(set(all_formats))) + "'",
+                        initial_indent='    ',
+                        subsequent_indent='    ',
+                        width=79))
+
+# Special cases:
 format2modulename = dict(
     traj='trajectory',
     json='db',
     postgresql='db',
-    cell='castep',
-    exi='exciting',
     tmol='turbomole',
     struct='wien2k',
-    gro='gromacs',
-    g96='gromos',
-    html='x3d')
+    html='x3d',
+    vti='vtkxml',
+    vts='vtkxml',
+    castep_cell='castep',
+    castep_geom='castep',
+    aims_out='aims',
+    dacapo_text='dacapo',
+    espresso_in='espresso',
+    espresso_out='espresso',
+    aims_output='aims',
+    )
 
 extension2format = dict(
     shelx='res',
-    con='eon')
+    con='eon',
+    cell='castep_cell',
+    geom='castep_geom',
+    out='espresso_out',
+    exi='exciting',
+    gro='gromacs',
+    g96='gromos',
+    log='gaussian_out',
+    com='gaussian',
+    )
 
-not_single = ['xyz', 'traj', 'trj', 'pdb', 'cif', 'extxyz', 'db', 'json',
-              'postgresql', 'xsf', 'findsym']
-not_acceptsfd = ['traj', 'db', 'postgresql',
-                 'struct', 'res', 'eps']
+stores_multiple_images = [
+    'xyz', 'traj', 'trj', 'pdb', 'cif', 'extxyz', 'db', 'json',
+    'postgresql', 'xsf', 'findsym']
+
+does_not_accept_a_file_descriptor = [
+    'traj', 'db', 'postgresql',
+    'etsf', 'dftb', 'aims', 'bundle', 'castep_cell', 'struct', 'res', 'eps']
 
 IOFormat = collections.namedtuple('IOFormat', 'read, write, single, acceptsfd')
 ioformats = {}  # will be filled at run-time
@@ -45,12 +84,13 @@ def initialize(format):
     read = getattr(module, 'read_' + format, None)
     write = getattr(module, 'write_' + format, None)
     if read and not inspect.isgeneratorfunction(read):
-        read = functools.partial(convert_old_read_function, read)
+        read = functools.partial(wrap_old_read_function, read)
     if not read and not write:
         raise ValueError('File format not recognized: ' + format)
-    ioformats[format] = IOFormat(read, write,
-                                 format not in not_single,
-                                 format not in not_acceptsfd)
+    ioformats[format] = IOFormat(
+        read, write,
+        format not in stores_multiple_images,
+        format not in does_not_accept_a_file_descriptor)
     
 
 def get_ioformat(format):
@@ -58,14 +98,11 @@ def get_ioformat(format):
     return ioformats[format]
     
 
-def convert_old_read_function(read, filename, index=None, **kwargs):
+def wrap_old_read_function(read, filename, index=None, **kwargs):
     if index is None:
         yield read(filename, **kwargs)
     else:
-        images = read(filename, index, **kwargs)
-        #if isinstance(images, Atoms):
-            #images = [images]
-        for atoms in images:
+        for atoms in read(filename, index, **kwargs):
             yield atoms
         
         
@@ -181,23 +218,26 @@ def _iread(filename, index, format, **kwargs):
     if io.single:
         start = index.start
         assert start is None or start == 0 or start == -1
-        index = None
+        args = ()
+    else:
+        args = (index,)
         
     if isinstance(filename, str):
         if io.acceptsfd:
             fd = open(filename)
         else:
-            for atoms in io.read(filename, index, **kwargs):
-                yield atoms
-            return
+            fd = filename
     else:
         assert io.acceptsfd
         fd = filename
         
     # Make sure fd is closed in case loop doesn't finish:
-    with contextlib.closing(fd):
-        for atoms in io.read(fd, index, **kwargs):
+    try:
+        for atoms in io.read(fd, *args, **kwargs):
             yield atoms
+    finally:
+        if not isinstance(fd, str):
+            fd.close()
     
     
 def parse_filename(filename, index):
@@ -235,13 +275,9 @@ def filetype(filename, read=True):
     """Try to guess the type of the file."""
     if isinstance(filename, str):
         if os.path.isdir(filename):
-            from ase.io.bundle import BundleTrajectory
-            if BundleTrajectory.is_bundle(filename):
-                return 'bundle'
-            elif os.path.basename(os.path.normpath(filename)) == 'states':
+            if os.path.basename(os.path.normpath(filename)) == 'states':
                 return 'eon'
-            else:
-                raise IOError('Directory: ' + filename)
+            return 'bundle'
 
         if filename.startswith('pg://'):
             return 'postgresql'
@@ -265,7 +301,9 @@ def filetype(filename, read=True):
             return 'tmol'
         if basename == 'gradient':
             return 'tmol-gradient'
-
+        if basename.endswith('I_info'):
+            return 'cmdft'
+            
         if not read:
             return extension2format.get(ext, ext)
     
@@ -314,7 +352,7 @@ def filetype(filename, read=True):
 if __name__ == '__main__':
     import optparse
     parser = optparse.OptionParser()
-    opts, filenames = parser.parse()
+    opts, filenames = parser.parse_args()
     n = max(len(filename) for filename in filenames) + 2
     for filename in filenames:
         try:

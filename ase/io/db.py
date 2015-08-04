@@ -2,7 +2,7 @@ import ase.db
 
 
 def read_db(filename, index, **kwargs):
-    con = ase.db.connect(filename, **kwargs)
+    con = ase.db.connect(filename, serial=True, **kwargs)
     if index == slice(-1, None):
         yield con.get().toatoms()
     else:
@@ -13,7 +13,7 @@ def read_db(filename, index, **kwargs):
 
 
 def write_db(filename, images, **kwargs):
-    con = ase.db.connect(filename, **kwargs)
+    con = ase.db.connect(filename, serial=True, **kwargs)
     for atoms in images:
         con.write(atoms)
 

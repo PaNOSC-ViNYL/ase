@@ -13,26 +13,24 @@ from ase.parallel import paropen
 import os
 
 
-__all__ = [
-        'read_castep',
-        'read_cell',
-        'read_geom',
-        'read_param',
-        'read_seed',
-        'write_cell',
-        'write_param',
-        ]
+__all__ = ['read_castep',
+           'read_castep_cell',
+           'read_castep_geom',
+           'read_param',
+           'read_seed',
+           'write_castep_cell',
+           'write_param']
 
 
-def write_cell(filename, atoms, positions_frac=False, castep_cell=None,
-    force_write=False):
+def write_castep_cell(filename, atoms, positions_frac=False, castep_cell=None,
+                      force_write=False):
     """This CASTEP export function write minimal information to
     a .cell file. If the atoms object is a trajectory, it will
     take the last image.
     """
     if atoms is None:
         print("Atoms object not initialized")
-        return  False
+        return False
     if isinstance(atoms, list):
         if len(atoms) > 1:
             atoms = atoms[-1]
@@ -171,7 +169,7 @@ def write_cell(filename, atoms, positions_frac=False, castep_cell=None,
     return True
 
 
-def read_cell(filename, _=None):
+def read_castep_cell(filename, _=None):
     """Read a .cell file and return an atoms object.
     Any value found that does not fit the atoms API
     will be stored in the atoms.calc attribute.
@@ -498,7 +496,7 @@ def write_param(filename, param, check_checkfile=False,
     out.close()
 
 
-def read_geom(filename, _=-1):
+def read_castep_geom(filename, _=-1):
     """Reads a .geom file produced by the CASTEP GeometryOptimization task and
     returns an atoms  object.
     The information about total free energy and forces of each atom for every
