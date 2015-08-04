@@ -30,12 +30,13 @@ images = [atoms, atoms]
 def check(a, format):
     assert abs(a.positions - atoms.positions).max() < 1e-6, (a.positions -
                                                              atoms.positions)
-    if format in ['traj', 'cube', 'cfg', 'struct', 'gen', 'extxyz']:
+    if format in ['traj', 'cube', 'cfg', 'struct', 'gen', 'extxyz',
+                  'db', 'json', 'trj']:
         assert abs(a.cell - atoms.cell).max() < 1e-6
     if format in ['cfg', 'extxyz']:
         assert abs(a.get_array('extra') -
                    atoms.get_array('extra')).max() < 1e-6
-    if format in ['extxyz']:
+    if format in ['extxyz', 'traj', 'trj', 'db', 'json']:
         assert (a.pbc == atoms.pbc).all()
         assert a.get_potential_energy() == atoms.get_potential_energy()
         assert (a.get_stress() == atoms.get_stress()).all()
@@ -46,7 +47,7 @@ for format in all_formats:
                   'postgresql']:
         continue
     io = get_ioformat(format)
-    print('{0:15}{1}{2}{3}{4}'.format(format,
+    print('{0:20}{1}{2}{3}{4}'.format(format,
                                       ' R'[bool(io.read)],
                                       ' W'[bool(io.write)],
                                       '+1'[io.single],

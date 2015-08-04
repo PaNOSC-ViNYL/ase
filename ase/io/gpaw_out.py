@@ -5,7 +5,7 @@ from ase.calculators.singlepoint import SinglePointDFTCalculator
 from ase.calculators.singlepoint import SinglePointKPoint
 
 
-def read_gpaw_text(fileobj, index=-1):
+def read_gpaw_out(fileobj, index):
     if isinstance(fileobj, str):
         fileobj = open(fileobj, 'rU')
 
@@ -151,7 +151,7 @@ def read_gpaw_text(fileobj, index=-1):
             words = lines[ii].split()
             vals = []
             while(len(words) > 2):
-                vals.append([float(word) for word in words])
+                vals.append([float(w) for w in words])
                 ii += 1
                 words = lines[ii].split()
             vals = np.array(vals).transpose()
@@ -214,8 +214,7 @@ def read_gpaw_text(fileobj, index=-1):
             calc = SinglePointDFTCalculator(atoms, energy=e, forces=f,
                                             dipole=dipole, magmoms=magmoms,
                                             eFermi=eFermi, Eref=Eref,
-                                            bz_kpts=bz_kpts, ibz_kpts=ibz_kpts,
-            )
+                                            bz_kpts=bz_kpts, ibz_kpts=ibz_kpts)
             calc.name = 'gpaw'
             if kpts is not None:
                 calc.kpts = kpts

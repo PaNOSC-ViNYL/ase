@@ -5,6 +5,10 @@ import os
 import sys
 
 """
+format 'abc' abc.py: read_abc, write_abc.  Add to
+does_not_accept_a_file_descriptor and stores_multiple_images lists
+
+
 
 
 """
@@ -16,11 +20,11 @@ all_formats = [
     'abinit', 'aims', 'aims_output', 'bundletrajectory', 'castep', 'castep_cell',
     'castep_geom', 'cfg', 'cif', 'cmdft', 'cube', 'dacapo', 'dacapo_text',
     'db', 'dftb', 'eon', 'eps', 'espresso_in', 'espresso_out', 'etsf', 'exciting', 'extxyz',
-    'findsym', 'gromos', 'gaussian', 'gaussian_out', 'gen', 'gpaw_text', 'gpw',
-    'gromacs', 'html', 'iwm', 'json', 'lammps', 'mol', 'nw', 'pdb', 'png',
-    'postgresq', 'pov', 'res', 'sdf', 'struct', 'struct_out', 'tmol',
-    'tmol_gradient', 'traj', 'trj', 'v_sim', 'vasp', 'vasp_out',
-    'vasp_xdatcar', 'vasp_xml', 'vti', 'vts', 'xsd', 'xsf', 'xyz']
+    'findsym', 'gromos', 'gaussian', 'gaussian_out', 'gen', 'gpaw_out', 'gpw',
+    'gromacs', 'iwm', 'json', 'lammps_dump', 'mol', 'nwchem', 'pdb', 'png',
+    'postgresql', 'pov', 'res', 'sdf', 'struct', 'struct_out', 'turbomole',
+    'turbomole_gradient', 'traj', 'trj', 'v_sim', 'vasp', 'vasp_out',
+    'vasp_xdatcar', 'vasp_xml', 'vti', 'vts', 'x3d', 'xsd', 'xsf', 'xyz']
 
 if 0:
     import textwrap
@@ -34,9 +38,7 @@ format2modulename = dict(
     traj='trajectory',
     json='db',
     postgresql='db',
-    tmol='turbomole',
     struct='wien2k',
-    html='x3d',
     vti='vtkxml',
     vts='vtkxml',
     castep_cell='castep',
@@ -46,7 +48,11 @@ format2modulename = dict(
     espresso_in='espresso',
     espresso_out='espresso',
     aims_output='aims',
-    )
+    gaussian_out='gaussian',
+    lammps_dump='lammpsrun',
+    struct_out='siesta',
+    turbomole_gradient='turbomole',
+    trj='pickletrajectory')
 
 extension2format = dict(
     shelx='res',
@@ -59,15 +65,17 @@ extension2format = dict(
     g96='gromos',
     log='gaussian_out',
     com='gaussian',
+    html='x3d',
+    nw='nwchem',
     )
 
 stores_multiple_images = [
     'xyz', 'traj', 'trj', 'pdb', 'cif', 'extxyz', 'db', 'json',
-    'postgresql', 'xsf', 'findsym']
+    'postgresql', 'xsf', 'findsym', 'gpaw_out', 'turbomole_gradient']
 
 does_not_accept_a_file_descriptor = [
     'traj', 'db', 'postgresql',
-    'etsf', 'dftb', 'aims', 'bundle', 'castep_cell', 'struct', 'res', 'eps']
+    'etsf', 'dftb', 'aims', 'bundletrajectory', 'castep_cell', 'struct', 'res', 'eps', 'gpaw_out', 'gromacs', 'x3d', 'pov', 'trj']
 
 IOFormat = collections.namedtuple('IOFormat', 'read, write, single, acceptsfd')
 ioformats = {}  # will be filled at run-time
@@ -126,14 +134,17 @@ def write(filename, images, format=None, **kwargs):
 
     The use of additional keywords is format specific."""
 
-    fd = None
     if isinstance(filename, str):
+        fd = None
         if filename == '-':
             fd = sys.stdout
+            filename = None
         elif format is None:
             format = filetype(filename, read=False)
     else:
         fd = filename
+        filename = None
+        
     format = format or 'json'
 
     io = get_ioformat(format)
@@ -149,16 +160,25 @@ def write(filename, images, format=None, **kwargs):
         
     if io.write is None:
         raise ValueError("Can't write to {0}-format".format(format))
-    if not io.acceptsfd:
-        if fd is not None:
-            raise ValueError("Can't write {0}-format to file-descriptor"
-                             .format(format))
-        io.write(filename, images, **kwargs)
-    else:
+        
+    # Special case for json-format:
+    if format == 'json' and len(images) > 1:
+        if filename is not None:
+            io.write(filename, images, **kwargs)
+            return
+        raise ValueError("Can't write more than one image to file-descriptor"
+                         'using json-format.')
+        
+    if io.acceptsfd:
         if fd is None:
             fd = open(filename, 'w')
         io.write(fd, images, **kwargs)
         fd.close()
+    else:
+        if fd is not None:
+            raise ValueError("Can't write {0}-format to file-descriptor"
+                             .format(format))
+        io.write(filename, images, **kwargs)
     
     
 def read(filename, index=None, format=None, **kwargs):
@@ -277,7 +297,7 @@ def filetype(filename, read=True):
         if os.path.isdir(filename):
             if os.path.basename(os.path.normpath(filename)) == 'states':
                 return 'eon'
-            return 'bundle'
+            return 'bundletrajectory'
 
         if filename.startswith('pg://'):
             return 'postgresql'
@@ -298,11 +318,13 @@ def filetype(filename, read=True):
         if 'vasp' in basename and basename.endswith('.xml'):
             return 'vasp_xml'
         if basename == 'coord':
-            return 'tmol'
+            return 'turbomole'
         if basename == 'gradient':
-            return 'tmol-gradient'
+            return 'turbomole_gradient'
         if basename.endswith('I_info'):
             return 'cmdft'
+        if basename == 'atoms.dat':
+            return 'iwm'
             
         if not read:
             return extension2format.get(ext, ext)
@@ -324,8 +346,8 @@ def filetype(filename, read=True):
     for format, magic in [('traj', b'AFFormatASE-Trajectory'),
                           ('trj', b'PickleTrajectory'),
                           ('etsf', b'CDF'),
-                          ('coord', b'$coord'),
-                          ('tmol', b'$grad'),
+                          ('turbomole', b'$coord'),
+                          ('turbomole_gradient', b'$grad'),
                           ('dftb', b'Geometry')]:
         if data.startswith(magic):
             return format
@@ -334,7 +356,7 @@ def filetype(filename, read=True):
                           ('esp_in', b'\n&system'),
                           ('esp_in', b'\n&SYSTEM'),
                           ('aims_out', b'\nInvoking FHI-aims ...'),
-                          ('lammps', b'\nITEM: TIMESTEP\n'),
+                          ('lammps_dump', b'\nITEM: TIMESTEP\n'),
                           ('xsf', b'\nANIMSTEPS'),
                           ('xsf', b'\nCRYSTAL'),
                           ('xsf', b'\nSLAB'),

@@ -9,10 +9,10 @@ def read_rho(fname):
     "Read unformatted Siesta charge density file"
 
     # TODO:
-    # 
+    #
     # Handle formatted and NetCDF files.
     #
-    # Siesta source code (at least 2.0.2) can possibly also 
+    # Siesta source code (at least 2.0.2) can possibly also
     # save RHO as a _formatted_ file (the source code seems
     # prepared, but there seems to be no fdf-options for it though).
     # Siesta >= 3 has support for saving RHO as a NetCDF file
@@ -22,14 +22,14 @@ def read_rho(fname):
     
     # Read (but ignore) unit cell vectors
     x = fh.readReals('d')
-    if len(x) != 3 * 3: 
+    if len(x) != 3 * 3:
         raise IOError('Failed to read cell vectors')
         
     # Read number of grid points and spin components
     x = fh.readInts()
     if len(x) != 4:
         raise IOError('Failed to read grid size')
-    gpts = x  # number of 'X', 'Y', 'Z', 'spin' gridpoints 
+    gpts = x  # number of 'X', 'Y', 'Z', 'spin' gridpoints
     
     rho = zeros(gpts)
     for ispin in range(gpts[3]):
@@ -96,7 +96,7 @@ def _read_fdf_lines(file, inodes=[]):
             fname = fname.strip()
 
             if w0 == '%block':
-                # "%block label < filename" means that the block contents should be read from filename 
+                # "%block label < filename" means that the block contents should be read from filename
                 if len(w) != 2:
                     raise IOError('Bad %%block-statement "%s < %s"' % (L, fname))
                 label = lbz(w[1])
@@ -138,7 +138,7 @@ def _read_fdf(fname, inodes=[]):
                 while True:
                     if len(lines) == 0:
                         raise IOError('Unexpected EOF reached in %s, '
-                                      'un-ended block %s' % (fname, label))                            
+                                      'un-ended block %s' % (fname, label))
                     w = lines.pop(0).split()
                     if lbz(w[0]) == '%endblock' and lbz(w[1]) == label:
                         break
@@ -217,7 +217,7 @@ def read_fdf(fname):
     return _read_fdf(fname)
 
 
-def read_struct(fname):
+def read_struct_out(fname):
     """Read a siesta struct file"""
     from ase.atoms import Atoms, Atom
 
@@ -232,12 +232,13 @@ def read_struct(fname):
     atoms = Atoms()
     for atom in f:
         Z, pos_x, pos_y, pos_z = atom.split()[1:]
-        atoms.append(Atom(int(Z), position = (float(pos_x), float(pos_y), float(pos_z))))
+        atoms.append(Atom(int(Z),
+                          position=(float(pos_x), float(pos_y), float(pos_z))))
 
     if len(atoms) != natoms:
         raise IOError('Badly structured input file')
     
-    atoms.set_cell(cell, scale_atoms = True)
+    atoms.set_cell(cell, scale_atoms=True)
 
     return atoms
     
