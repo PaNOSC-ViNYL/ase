@@ -1,3 +1,7 @@
+import pickle
+import subprocess
+import sys
+
 import gtk
 from gettext import gettext as _
 from ase.gui.widgets import pack, help
@@ -71,35 +75,12 @@ class Graphs(gtk.Window):
 
         data = self.gui.images.graph(expr)
         
-        import multiprocessing as mp
-        process = mp.Process(target=self.make_plot,
-                             args=(data, self.gui.frame, expr, type))
-        process.start()
+        process = subprocess.Popen([sys.executable, '-m', 'ase.gui.graphs'],
+                                   stdin=subprocess.PIPE)
+        pickle.dump((data, self.gui.frame, expr, type), process.stdin)
+        process.stdin.close()
         self.gui.graphs.append(process)
                    
-    def make_plot(self, data, i, expr, type):
-        import matplotlib.pyplot as plt
-        x = 2.5
-        plt.figure(figsize=(x * 2.5**0.5, x))
-        m = len(data)
-
-        if type is None:
-            if m == 1:
-                type = 'y'
-            else:
-                type = 'xy'
-                
-        if type == 'y':
-            for j in range(m):
-                plt.plot(data[j])
-                plt.plot([i], [data[j, i]], 'o')
-        else:
-            for j in range(1, m):
-                plt.plot(data[0], data[j])
-                plt.plot([data[0, i]], [data[j, i]], 'o')
-        plt.title(expr)
-        plt.show()
-
     python = plot
 
     def save(self, filename):
@@ -127,3 +108,31 @@ class Graphs(gtk.Window):
         for process in self.gui.graphs:
             process.terminate()
         self.gui.graphs = []
+
+
+def make_plot(data, i, expr, type):
+    import matplotlib.pyplot as plt
+    x = 2.5
+    plt.figure(figsize=(x * 2.5**0.5, x))
+    m = len(data)
+
+    if type is None:
+        if m == 1:
+            type = 'y'
+        else:
+            type = 'xy'
+            
+    if type == 'y':
+        for j in range(m):
+            plt.plot(data[j])
+            plt.plot([i], [data[j, i]], 'o')
+    else:
+        for j in range(1, m):
+            plt.plot(data[0], data[j])
+            plt.plot([data[0, i]], [data[j, i]], 'o')
+    plt.title(expr)
+    plt.show()
+
+    
+if __name__ == '__main__':
+    make_plot(*pickle.load(sys.stdin))

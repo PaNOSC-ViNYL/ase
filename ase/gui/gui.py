@@ -1080,7 +1080,7 @@ class GUI(View, Status):
         NudgedElasticBand(self.images)
         
     def bulk_modulus(self, action):
-        process = subprocess.Popen(['python', '-m', 'ase.utils.sjeos'],
+        process = subprocess.Popen([sys.executable, '-m', 'ase.utils.sjeos'],
                                    stdin=subprocess.PIPE)
         v = np.array([abs(np.linalg.det(A)) for A in self.images.A])
         e = self.images.E
