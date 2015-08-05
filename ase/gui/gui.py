@@ -28,6 +28,8 @@ import os
 import sys
 import weakref
 import pickle
+import subprocess
+
 from gettext import gettext as _
 from gettext import ngettext
 
@@ -1078,11 +1080,12 @@ class GUI(View, Status):
         NudgedElasticBand(self.images)
         
     def bulk_modulus(self, action):
-        from ase.gui.bulk_modulus import bulk_modulus
-        import multiprocessing as mp
-        process = mp.Process(target=bulk_modulus,
-                             args=(self.images,))
-        process.start()
+        process = subprocess.Popen(['python', '-m', 'ase.utils.sjeos'],
+                                   stdin=subprocess.PIPE)
+        v = np.array([abs(np.linalg.det(A)) for A in self.images.A])
+        e = self.images.E
+        pickle.dump((v, e), process.stdin)
+        process.stdin.close()
         self.graphs.append(process)
         
     def open(self, button=None, filenames=None):
