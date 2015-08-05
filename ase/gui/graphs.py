@@ -1,5 +1,3 @@
-from math import sqrt
-
 import gtk
 from gettext import gettext as _
 from ase.gui.widgets import pack, help
@@ -27,12 +25,10 @@ Symbols:
 <c>T</c>:\t\t\t\ttemperature (K)\
 """)
 
+
 class Graphs(gtk.Window):
     def __init__(self, gui):
         gtk.Window.__init__(self)
-        #self.window.set_position(gtk.WIN_POS_CENTER)
-        #self.window.connect("destroy", lambda w: gtk.main_quit())
-        #self.window.connect('delete_event', self.exit)
         self.set_title('Graphs')
         vbox = gtk.VBox()
         self.expr = pack(vbox, [gtk.Entry(64),
@@ -54,11 +50,10 @@ class Graphs(gtk.Window):
                              gtk.Label(' y1, y2, ...')])[0]
         button.connect('clicked', self.plot, 'y')
         save_button = gtk.Button(stock=gtk.STOCK_SAVE)
-        save_button.connect('clicked',self.save)
+        save_button.connect('clicked', self.save)
         clear_button = gtk.Button(_('clear'))
         clear_button.connect('clicked', self.clear)
-        pack(vbox, [save_button,clear_button])
-        
+        pack(vbox, [save_button, clear_button])
 
         self.add(vbox)
         vbox.show()
@@ -76,16 +71,16 @@ class Graphs(gtk.Window):
 
         data = self.gui.images.graph(expr)
         
-        import matplotlib
-        matplotlib.interactive(True)
-        matplotlib.use('GTKAgg')
-        #matplotlib.use('GTK', warn=False)# Not avail. in 0.91 (it is in 0.98)
-        import pylab
-        pylab.ion()
-
+        import multiprocessing as mp
+        process = mp.Process(target=self.make_plot,
+                             args=(data, self.gui.frame, expr, type))
+        process.start()
+        self.gui.graphs.append(process)
+                   
+    def make_plot(self, data, i, expr, type):
+        import matplotlib.pyplot as plt
         x = 2.5
-        self.gui.graphs.append(pylab.figure(figsize=(x * 2.5**0.5, x)))
-        i = self.gui.frame
+        plt.figure(figsize=(x * 2.5**0.5, x))
         m = len(data)
 
         if type is None:
@@ -96,14 +91,14 @@ class Graphs(gtk.Window):
                 
         if type == 'y':
             for j in range(m):
-                pylab.plot(data[j])
-                pylab.plot([i], [data[j, i]], 'o')
+                plt.plot(data[j])
+                plt.plot([i], [data[j, i]], 'o')
         else:
             for j in range(1, m):
-                pylab.plot(data[0], data[j])
-                pylab.plot([data[0, i]], [data[j, i]], 'o')
-        pylab.title(expr)
-        #pylab.show()
+                plt.plot(data[0], data[j])
+                plt.plot([data[0, i]], [data[j, i]], 'o')
+        plt.title(expr)
+        plt.show()
 
     python = plot
 
@@ -117,20 +112,18 @@ class Graphs(gtk.Window):
             filename = chooser.get_filename()
             expr = self.expr.get_text()
             data = self.gui.images.graph(expr)
-            expr = '# '+expr
-            fd = open(filename,'w')
+            expr = '# ' + expr
+            fd = open(filename, 'w')
             fd.write("%s \n" % (expr))
             for s in range(len(data[0])):
                 for i in range(len(data)):
-                    val = data[i,s]
+                    val = data[i, s]
                     fd.write("%12.8e\t" % (val))
                 fd.write("\n")
             fd.close()
         chooser.destroy()
 
     def clear(self, button):
-        import pylab
-        for graph in self.gui.graphs:
-            pylab.close(graph)
+        for process in self.gui.graphs:
+            process.terminate()
         self.gui.graphs = []
-        
