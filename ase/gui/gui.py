@@ -1,7 +1,5 @@
 from __future__ import print_function
 # husk:
-# Exit*2?  remove pylab.show()
-# close button
 # DFT
 # ADOS
 # grey-out stuff after one second: vmd, rasmol, ...
@@ -9,13 +7,10 @@ from __future__ import print_function
 # rasmol: set same rotation as ag
 # Graphs: save, Python, 3D
 # start from python (interactive mode?)
-# ascii-art option (colored)|
-# option -o (output) and -f (force overwrite)
 # surfacebuilder
 # screen-dump
 # icon
-# ag-community-server
-# translate option: record all translations, 
+# translate option: record all translations,
 # and check for missing translations.
 
 #TODO: Add possible way of choosing orinetations. \
@@ -33,6 +28,8 @@ import os
 import sys
 import weakref
 import pickle
+import subprocess
+
 from gettext import gettext as _
 from gettext import ngettext
 
@@ -84,7 +81,7 @@ ui_info = """\
       <menuitem action='Modify'/>
       <menuitem action='AddAtoms'/>
       <menuitem action='DeleteAtoms'/>
-      <separator/>      
+      <separator/>
       <menuitem action='First'/>
       <menuitem action='Previous'/>
       <menuitem action='Next'/>
@@ -234,7 +231,7 @@ class GUI(View, Status):
               self.add_atoms),
              ('DeleteAtoms', None, _('_Delete selected atoms'), 'BackSpace',
               _('Delete the selected atoms'),
-              self.delete_selected_atoms),             
+              self.delete_selected_atoms),
             ('First', gtk.STOCK_GOTO_FIRST, _('_First image'), 'Home',
              '',
              self.step),
@@ -375,7 +372,7 @@ class GUI(View, Status):
              'Bold',
              self.toggle_show_bonds,
              show_bonds),
-            ('ShowVelocities', None, _('Show _velocities'), 
+            ('ShowVelocities', None, _('Show _velocities'),
              '<control>G', 'Bold',
              self.toggle_show_velocities,
              False),
@@ -394,7 +391,7 @@ class GUI(View, Status):
             ('OrientAtoms', None, _('Orien_t atoms'), '<control>T',
              'Bold',
              self.toggle_orient_mode,
-             False)             
+             False)
             ])
         actions.add_radio_actions((
             ('NoLabel', None, _('_None'), None, None, 0),
@@ -420,8 +417,8 @@ class GUI(View, Status):
         self.window.connect('key-press-event', self.scroll)
         self.window.connect('scroll_event', self.scroll_event)
         self.window.show()
-        self.graphs = []       # List of open pylab windows
-        self.graph_wref = []   # List of weakrefs to Graph objects
+        self.graphs = []  # list of matplotlib processes
+        self.graph_wref = []  # list of weakrefs to Graph objects
         self.movie_window = None
         self.vulnerable_windows = []
         self.simulation = {}   # Used by modules on Calculate menu.
@@ -442,7 +439,6 @@ class GUI(View, Status):
 
         gtk.main()
     
-            
     def step(self, action):
         d = {'First': -10000000,
              'Previous': -1,
@@ -477,7 +473,7 @@ class GUI(View, Status):
         Settings(self)
         
     def scroll(self, window, event):
-        from copy import copy    
+        from copy import copy
         CTRL = event.state == gtk.gdk.CONTROL_MASK
         SHIFT = event.state == gtk.gdk.SHIFT_MASK
         dxdydz = {gtk.keysyms.KP_Add: ('zoom', 1.0 + (1-SHIFT)*0.2 + SHIFT*0.01, 0),
@@ -513,11 +509,11 @@ class GUI(View, Status):
         if (atom_move):
             rotmat = self.axes
             s = 0.1
-            if SHIFT: 
+            if SHIFT:
                 s = 0.01
             add = s * dir_vec
             for i in range(len(self.R)):
-                if self.atoms_to_rotate_0[i]: 
+                if self.atoms_to_rotate_0[i]:
                     self.R[i] += add
                     for jx in range(self.images.nimages):
                         self.images.P[jx][i] += add
@@ -529,13 +525,13 @@ class GUI(View, Status):
                 sel = self.atoms_to_rotate_0
             nsel = sum(sel)
             # this is the first one to get instatiated
-            if nsel != 2: 
+            if nsel != 2:
                 self.rot_vec = dir_vec
                 
             change = False
             z_axis = np.dot(self.axes, np.array([0, 0, 1]))
             if self.atoms_to_rotate == None:
-                change = True 
+                change = True
                 self.z_axis_old = z_axis.copy()
                 self.dx_change = [0, 0]
                 self.atoms_to_rotate = self.atoms_to_rotate_0.copy()
@@ -546,14 +542,14 @@ class GUI(View, Status):
                 self.dx_change = [0, 0]
                 
             for i in range(len(sel)):
-                if sel[i] != self.atoms_selected[i]: 
+                if sel[i] != self.atoms_selected[i]:
                     change = True
-            cz = [dx, dy+dz]      
+            cz = [dx, dy+dz]
             
-            if cz[0] or cz[1]: 
+            if cz[0] or cz[1]:
                 change = False
             if not(cz[0] * (self.dx_change[1])):
-                change = True 
+                change = True
             for i in range(2):
                 if cz[i] and self.dx_change[i]:
                     self.rot_vec = self.rot_vec * cz[i] * self.dx_change[i]
@@ -562,7 +558,7 @@ class GUI(View, Status):
                 
             if np.prod(self.z_axis_old != z_axis):
                 change = True
-            self.z_axis_old = z_axis.copy()           
+            self.z_axis_old = z_axis.copy()
             self.dx_change = copy(cz)
             dihedral_rotation = len(self.images.selected_ordered) == 4
 
@@ -572,7 +568,7 @@ class GUI(View, Status):
                 if nsel == 2 and sum(self.atoms_to_rotate) != 2:
                     asel = []
                     for i, j in enumerate(sel):
-                        if j: 
+                        if j:
                             asel.append(i)
                     a1, a2 = asel
 
@@ -581,7 +577,7 @@ class GUI(View, Status):
                         
                     rvy = np.cross(rvx,
                                    np.dot(self.axes,
-                                   np.array([0, 0, 1])))     
+                                   np.array([0, 0, 1])))
                     self.rot_vec = rvx * dx + rvy * (dy + dz)
                     self.dx_change = [dx, dy+dz]
                     
@@ -594,19 +590,19 @@ class GUI(View, Status):
             if dihedral_rotation:
                 sel = self.images.selected_ordered
                 rot_cen = self.R[sel[1]].copy()
-            elif nsel: 
+            elif nsel:
                 for i, b in enumerate( sel):
-                    if b: 
+                    if b:
                         rot_cen += self.R[i]
-                rot_cen /= float(nsel)     
+                rot_cen /= float(nsel)
 
             degrees = 5 * (1 - SHIFT) + SHIFT
             degrees = abs(sum(dxdydz)) * 3.1415 / 360.0 * degrees
             rotmat = rotate_about_vec(self.rot_vec, degrees)
             
-            # now rotate the atoms that are to be rotated            
+            # now rotate the atoms that are to be rotated
             for i in range(len(self.R)):
-                if self.atoms_to_rotate[i]: 
+                if self.atoms_to_rotate[i]:
                     self.R[i] -= rot_cen
                     for jx in range(self.images.nimages):
                         self.images.P[jx][i] -= rot_cen
@@ -644,7 +640,7 @@ class GUI(View, Status):
                 if not self.images.selected[li]:
                     del(atoms[li])
             for i in atoms:
-                i.position = np.dot(self.axes.T,i.position)       
+                i.position = np.dot(self.axes.T,i.position)
             ref = atoms[0].position
             for i in atoms:
                 if i.position[2] < ref[2]:
@@ -676,7 +672,7 @@ class GUI(View, Status):
         translated Z ang towards the user.
         
         If no molecules are selected, the COM of all the atoms will be used for the x-y components of the
-        active coordinate system, while the z-direction will be chosen from the nearest atom position 
+        active coordinate system, while the z-direction will be chosen from the nearest atom position
         along this direction.
         
         Note: If this option is used, all frames except the active one are deleted.
@@ -723,27 +719,27 @@ class GUI(View, Status):
                         try:
                             a = ase.io.read(molecule, -1)
                         except:
-                            self.add_entries[1].set_text('?' + molecule) 
+                            self.add_entries[1].set_text('?' + molecule)
                             return ()
 
             directions = np.transpose(self.axes)
             if a != None:
                 for i in a:
-                    try: 
+                    try:
                         i.set('tag',int(tag))
                     except:
-                        self.add_entries[2].set_text('?' + tag) 
+                        self.add_entries[2].set_text('?' + tag)
                         return ()
-                    try: 
+                    try:
                         i.magmom = float(mom)
-                    except: 
-                        self.add_entries[3].set_text('?' + mom) 
+                    except:
+                        self.add_entries[3].set_text('?' + mom)
                         return ()
                 if self.origin_radio.get_active() and paste:
                     a.translate(-paste.reference_position)
                 # apply the current rotation matrix to A
                 for i in a:
-                    i.position = np.dot(self.axes, i.position)       
+                    i.position = np.dot(self.axes, i.position)
                 # find the extent of the molecule in the local coordinate system
                 if self.centre_radio.get_active():
                     a_cen_pos = np.array([0.0, 0.0, 0.0])
@@ -754,8 +750,8 @@ class GUI(View, Status):
                         a_cen_pos[2] += np.dot(directions[2], i)
                         m_cen_pos = max(np.dot(-directions[2], i), m_cen_pos)
                         
-                    a_cen_pos[0] /= len(a.positions)      
-                    a_cen_pos[1] /= len(a.positions)      
+                    a_cen_pos[0] /= len(a.positions)
+                    a_cen_pos[1] /= len(a.positions)
                     a_cen_pos[2] /= len(a.positions)
                     a_cen_pos[2] -= m_cen_pos
                 else:
@@ -767,7 +763,7 @@ class GUI(View, Status):
                     for i in range(len(self.R)):
                         if self.images.selected[i]:
                             cen_pos += self.R[i]
-                    cen_pos /= sum(self.images.selected)   
+                    cen_pos /= sum(self.images.selected)
                 elif len(self.R) > 0:
                     px = 0.0
                     py = 0.0
@@ -795,7 +791,7 @@ class GUI(View, Status):
                 else:
                     cen_pos = np.array(eval(pos))
                 for i in a:
-                    i.position += cen_pos - a_cen_pos      
+                    i.position += cen_pos - a_cen_pos
 
               # and them to the molecule
                 atoms = self.images.get_atoms(self.frame)
@@ -806,7 +802,7 @@ class GUI(View, Status):
                 for i in range(len(a)):
                     self.images.selected[len(atoms) - i - 1] = True
 
-                self.draw()    
+                self.draw()
             self.add_entries[0].destroy()
 
         if data == 'Cancel':
@@ -838,9 +834,9 @@ class GUI(View, Status):
                 label = gtk.Label(i)
                 if not packed:
                     vbox.pack_start(label, True, True, 0)
-                else: 
+                else:
                     packed = True
-                    vbox.add(label)    
+                    vbox.add(label)
                 label.show()
   
                 entry = gtk.Entry()
@@ -884,9 +880,9 @@ class GUI(View, Status):
                 tag = self.add_entries[2].get_text()
                 mom = self.add_entries[3].get_text()
                 a = None
-                if symbol != 'X': 
+                if symbol != 'X':
                     try:
-                        a = ase.Atoms([ase.Atom(symbol)])  
+                        a = ase.Atoms([ase.Atom(symbol)])
                     except:
                         self.add_entries[1].set_text('?' + symbol)
                         return ()
@@ -895,19 +891,19 @@ class GUI(View, Status):
                     # and them to the molecule
                 atoms = self.images.get_atoms(self.frame)
                 for i in range(len(atoms)):
-                    if self.images.selected[i]:  
-                        if a: 
+                    if self.images.selected[i]:
+                        if a:
                             atoms[i].symbol = symbol
-                        try: 
-                            if tag != 'X': 
+                        try:
+                            if tag != 'X':
                                 atoms[i].tag = int(tag)
                         except:
                             self.add_entries[2].set_text('?' + tag)
                             return ()
-                        try: 
-                            if mom != 'X': 
+                        try:
+                            if mom != 'X':
                                 atoms[i].magmom = float(mom)
-                        except: 
+                        except:
                             self.add_entries[3].set_text('?' + mom)
                             return ()
                 self.new_atoms(atoms, init_magmom=True)
@@ -923,28 +919,28 @@ class GUI(View, Status):
 
                 # and finally select the new molecule for easy moving and rotation
                 self.images.selected = y
-                self.draw()    
+                self.draw()
           
-            self.add_entries[0].destroy()          
+            self.add_entries[0].destroy()
         if data == None and sum(self.images.selected):
             atoms = self.images.get_atoms(self.frame)
             s_tag = ''
-            s_mom = ''  
+            s_mom = ''
             s_symbol = ''
-          # Get the tags, moments and symbols of the selected atomsa  
+          # Get the tags, moments and symbols of the selected atomsa
             for i in range(len(atoms)):
                 if self.images.selected[i]:
-                    if not(s_tag): 
+                    if not(s_tag):
                         s_tag = str(atoms[i].tag)
-                    elif s_tag != str(atoms[i].tag): 
+                    elif s_tag != str(atoms[i].tag):
                         s_tag = 'X'
-                    if not(s_mom): 
+                    if not(s_mom):
                         s_mom = ("%2.2f" % (atoms[i].magmom))
-                    elif s_mom != ("%2.2f" % (atoms[i].magmom)): 
+                    elif s_mom != ("%2.2f" % (atoms[i].magmom)):
                         s_mom = 'X'
-                    if not(s_symbol): 
-                        s_symbol = str(atoms[i].symbol)       
-                    elif s_symbol != str(atoms[i].symbol): 
+                    if not(s_symbol):
+                        s_symbol = str(atoms[i].symbol)
+                    elif s_symbol != str(atoms[i].symbol):
                         s_symbol = 'X'
   
             self.add_entries = []
@@ -962,9 +958,9 @@ class GUI(View, Status):
                 label = gtk.Label(i)
                 if not pack:
                     vbox.pack_start(label, True, True, 0)
-                else: 
+                else:
                     pack = True
-                    vbox.add(label)    
+                    vbox.add(label)
                 label.show()
 
                 entry = gtk.Entry()
@@ -994,8 +990,8 @@ class GUI(View, Status):
                     del(atoms[li])
             self.new_atoms(atoms)
          
-            self.draw()    
-        if data:      
+            self.draw()
+        if data:
             self.delete_window.destroy()
              
         if not(data) and sum(self.images.selected):
@@ -1084,11 +1080,16 @@ class GUI(View, Status):
         NudgedElasticBand(self.images)
         
     def bulk_modulus(self, action):
-        from ase.gui.bulk_modulus import BulkModulus
-        BulkModulus(self.images)
+        process = subprocess.Popen([sys.executable, '-m', 'ase.utils.eos'],
+                                   stdin=subprocess.PIPE)
+        v = np.array([abs(np.linalg.det(A)) for A in self.images.A])
+        e = self.images.E
+        pickle.dump((v, e), process.stdin)
+        process.stdin.close()
+        self.graphs.append(process)
         
     def open(self, button=None, filenames=None):
-        if filenames == None:
+        if filenames is None:
             chooser = gtk.FileChooserDialog(
                 _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
                 (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
@@ -1099,12 +1100,12 @@ class GUI(View, Status):
             name_to_suffix = {}
             types = gtk.combo_box_new_text()
             for name, suffix in [(_('Automatic'), None),
-                                 (_('Dacapo netCDF output file'),'dacapo'),
-                                 (_('Virtual Nano Lab file'),'vnl'),
-                                 (_('ASE pickle trajectory'),'traj'),
-                                 (_('ASE bundle trajectory'),'bundle'),
-                                 (_('GPAW text output'),'gpaw-text'),
-                                 (_('CUBE file'),'cube'),
+                                 (_('Dacapo netCDF output file'), 'dacapo'),
+                                 (_('Virtual Nano Lab file'), 'vnl'),
+                                 (_('ASE pickle trajectory'), 'traj'),
+                                 (_('ASE bundle trajectory'), 'bundle'),
+                                 (_('GPAW text output'), 'gpaw-text'),
+                                 (_('CUBE file'), 'cube'),
                                  (_('XCrySDen Structure File'),'xsf'),
                                  (_('Dacapo text output'),'dacapo-text'),
                                  (_('XYZ-file'),'xyz'),
@@ -1142,7 +1143,7 @@ class GUI(View, Status):
                 return
 
         n_current = self.images.nimages
-        self.reset_tools_modes()     
+        self.reset_tools_modes()
         self.images.read(filenames, slice(None), name_to_suffix[filetype])
         self.set_colors()
         self.set_coordinates(self.images.nimages - 1, focus=True)
@@ -1246,6 +1247,8 @@ class GUI(View, Status):
         self.vulnerable_windows.append(weakref.ref(obj))
 
     def exit(self, button, event=None):
+        for process in self.graphs:
+            process.terminate()
         self.window.destroy()
         gtk.main_quit()
         return True
