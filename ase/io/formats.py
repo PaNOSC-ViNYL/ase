@@ -71,7 +71,7 @@ all_formats = {
     'vasp-xdatcar': ('VASP XDATCAR file', '1F'),
     'vasp-xml': ('VASP vasprun.xml file', '1F'),
     'vti': ('VTK XML Image Data', '1F'),
-    'vts': ('VTK XML Structured Grid', '1F'),
+    'vtu': ('VTK XML Unstructured Grid', '1F'),
     'x3d': ('X3D', '1S'),
     'xsd': ('Materials Studio file', '1F'),
     'xsf': ('XCrySDen Structure File', '+F'),
@@ -100,7 +100,7 @@ format2modulename = {
     'vasp-xdatcar': 'vasp',
     'vasp-xml': 'vasp',
     'vti': 'vtkxml',
-    'vts': 'vtkxml'}
+    'vtu': 'vtkxml'}
 
 extension2format = {
     'cell': 'castep-cell',

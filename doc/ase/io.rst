@@ -11,6 +11,13 @@ The :mod:`ase.io` module has two basic functions: :func:`read` and
 .. autofunction:: read
 .. autofunction:: write
 
+These are the file-formats that are recognized (formats with a ``+`` support
+multiple configurations):
+
+.. csv-table::
+    :file: io.csv
+    :header-rows: 1
+    
 The :func:`read` function is only designed to retrieve the atomic configuration
 from a file, but for the CUBE format you can import the function:
 
@@ -74,11 +81,11 @@ Use ASE's native format for writing all information:
 
 >>> write('slab.traj', slab)
 >>> b = read('slab.traj')
->>> b.get_cell()
+>>> b.cell
 array([[  5.10531096e+00,  -4.11836034e-16,   1.99569088e-16],
        [  2.55265548e+00,   4.42132899e+00,   7.11236625e-17],
        [  8.11559027e+00,   4.68553823e+00,   1.32527034e+01]])
->>> b.get_pbc()
+>>> b.pbc
 array([ True,  True,  True], dtype=bool)
 
 A script showing all of the povray parameters, and generating the image below,
