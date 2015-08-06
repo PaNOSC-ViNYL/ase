@@ -21,7 +21,7 @@ all_formats = [
     'castep_geom', 'cfg', 'cif', 'cmdft', 'cube', 'dacapo', 'dacapo_text',
     'db', 'dftb', 'eon', 'eps', 'espresso_in', 'espresso_out', 'etsf', 'exciting', 'extxyz',
     'findsym', 'gromos', 'gaussian', 'gaussian_out', 'gen', 'gpaw_out', 'gpw',
-    'gromacs', 'iwm', 'json', 'lammps_dump', 'mol', 'nwchem', 'pdb', 'png',
+    'gromacs', 'html', 'iwm', 'json', 'lammps_dump', 'mol', 'nwchem', 'pdb', 'png',
     'postgresql', 'pov', 'res', 'sdf', 'struct', 'struct_out', 'turbomole',
     'turbomole_gradient', 'traj', 'trj', 'v_sim', 'vasp', 'vasp_out',
     'vasp_xdatcar', 'vasp_xml', 'vti', 'vts', 'x3d', 'xsd', 'xsf', 'xyz']
@@ -52,7 +52,11 @@ format2modulename = dict(
     lammps_dump='lammpsrun',
     struct_out='siesta',
     turbomole_gradient='turbomole',
-    trj='pickletrajectory')
+    trj='pickletrajectory',
+    vasp_out='vasp',
+    vasp_xdatcar='vasp',
+    vasp_xml='vasp',
+    html='x3d')
 
 extension2format = dict(
     shelx='res',
@@ -60,14 +64,12 @@ extension2format = dict(
     cell='castep_cell',
     geom='castep_geom',
     out='espresso_out',
-    exi='exciting',
     gro='gromacs',
     g96='gromos',
     log='gaussian_out',
     com='gaussian',
-    html='x3d',
     nw='nwchem',
-    )
+    exi='exciting')
 
 stores_multiple_images = [
     'xyz', 'traj', 'trj', 'pdb', 'cif', 'extxyz', 'db', 'json',
@@ -75,7 +77,7 @@ stores_multiple_images = [
 
 does_not_accept_a_file_descriptor = [
     'traj', 'db', 'postgresql',
-    'etsf', 'dftb', 'aims', 'bundletrajectory', 'castep_cell', 'struct', 'res', 'eps', 'gpaw_out', 'gromacs', 'x3d', 'pov', 'trj']
+    'etsf', 'dftb', 'aims', 'bundletrajectory', 'castep_cell', 'struct', 'res', 'eps', 'gpaw_out', 'gromacs', 'x3d', 'pov', 'trj', 'html']
 
 IOFormat = collections.namedtuple('IOFormat', 'read, write, single, acceptsfd')
 ioformats = {}  # will be filled at run-time
@@ -88,6 +90,7 @@ def initialize(format):
     try:
         module = import_module('ase.io.' + module_name)
     except ImportError:
+        print(format, module_name)
         raise ValueError('File format not recognized: ' + format)
     read = getattr(module, 'read_' + format, None)
     write = getattr(module, 'write_' + format, None)
@@ -264,7 +267,8 @@ def parse_filename(filename, index):
     if not isinstance(filename, str) or '@' not in filename:
         return filename, index
     newindex = None
-    if ('.json@' in filename or '.db@' in filename or
+    if ('.json@' in filename or
+        '.db@' in filename or
         filename.startswith('pg://')):
         newfilename, newindex = filename.rsplit('@', 1)
     else:
@@ -368,7 +372,7 @@ def filetype(filename, read=True):
         if magic in data:
             return format
 
-    return ext
+    return extension2format.get(ext, ext)
         
     
 if __name__ == '__main__':

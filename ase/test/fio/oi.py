@@ -1,5 +1,4 @@
 from __future__ import print_function
-import sys
 
 import numpy as np
 from ase import Atoms
@@ -11,12 +10,12 @@ a = 5.0
 d = 1.9
 c = a / 2
 atoms = Atoms('AuH',
-              positions=[(c, c, 0), (c, c, d)],
-              cell=(a, a, 2 * d),
-              pbc=(0, 0, 1))
+              positions=[(0, c, c), (d, c, c)],
+              cell=(2 * d, a, a),
+              pbc=(1, 0, 0))
 extra = np.array([2.3, 4.2])
 atoms.set_array('extra', extra)
-atoms *= (1, 1, 2)
+atoms *= (2, 1, 1)
 
 # attach some results to the Atoms. These are serialised by the extxyz writer.
 spc = SinglePointCalculator(atoms,
@@ -44,7 +43,7 @@ def check(a, format):
     
 for format in all_formats:
     if format in ['abinit', 'castep_cell', 'dftb', 'eon', 'gaussian',
-                  'postgresql']:
+                  'postgresql', 'trj', 'vti', 'vts']:
         continue
     io = get_ioformat(format)
     print('{0:20}{1}{2}{3}{4}'.format(format,

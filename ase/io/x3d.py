@@ -14,6 +14,9 @@ def write_x3d(filename, atoms):
     """Writes to html using X3DOM."""
     X3D(atoms).write(filename)
 
+    
+write_html = write_x3d
+
 
 class X3D:
     """Class to write either X3D (readable by open-source rendering

@@ -2,7 +2,6 @@ import numpy as np
 
 fast = False
 
-
 from vtk import vtkStructuredPoints, vtkDoubleArray, vtkXMLImageDataWriter
 
 def write_vti(filename, atoms, data=None):
