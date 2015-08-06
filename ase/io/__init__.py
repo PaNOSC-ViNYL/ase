@@ -81,7 +81,7 @@ def read(filename, index=None, format=None):
     Extended XYZ file          extxyz
     NWChem input file          nw
     Materials Studio file      xsd
-    SHELX format               res    
+    SHELX format               res
     =========================  =============
 
     Many formats allow on open file-like object to be passed instead
@@ -587,7 +587,7 @@ def write(filename, images, format=None, **kwargs):
     elif format in ['shelx', 'res']:
         from ase.io.res import write_res
         write_res(filename, images)
-        return    
+        return
 
     format = {'traj': 'trajectory',
               'nc': 'netcdf',
@@ -639,7 +639,7 @@ def filetype(filename):
         return 'postgresql'
 
     if filename.lower().endswith('.res'):
-        return 'res'    
+        return 'res'
 
     fileobj = open(filename, 'rb')
     s3 = fileobj.read(3)

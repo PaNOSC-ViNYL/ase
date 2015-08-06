@@ -40,7 +40,7 @@ import gtk
 
 from ase.gui.view import View
 from ase.gui.status import Status
-from ase.gui.widgets import pack, help, Help, oops
+from ase.gui.widgets import pack, oops
 from ase.gui.settings import Settings
 from ase.gui.crystal import SetupBulkCrystal
 from ase.gui.surfaceslab import SetupSurfaceSlab
@@ -196,7 +196,7 @@ class GUI(View, Status):
             ('Open', gtk.STOCK_OPEN, _('_Open'), '<control>O',
              _('Create a new file'),
              self.open),
-             ('New', gtk.STOCK_NEW, _('_New'), '<control>N',
+            ('New', gtk.STOCK_NEW, _('_New'), '<control>N',
              _('New ase.gui window'),
              lambda widget: os.system('ase-gui &')),
             ('Save', gtk.STOCK_SAVE, _('_Save'), '<control>S',
@@ -217,21 +217,21 @@ class GUI(View, Status):
             ('SelectImmobile', None, _('Select _immobile atoms'), '<control>I',
              '',
              self.select_immobile_atoms),
-             ('Copy', None, _('_Copy'), '<control>C',
-              _('Copy current selection and its orientation to clipboard'),
-              self.copy_atoms),
-             ('Paste', None, _('_Paste'), '<control>V',
-              _('Insert current clipboard selection'),
-              self.paste_atoms),
-             ('Modify', None, _('_Modify'), '<control>Y',
-              _('Change tags, moments and atom types of the selected atoms'),
-              self.modify_atoms),
-             ('AddAtoms', None, _('_Add atoms'), '<control>A',
-              _('Insert or import atoms and molecules'),
-              self.add_atoms),
-             ('DeleteAtoms', None, _('_Delete selected atoms'), 'BackSpace',
-              _('Delete the selected atoms'),
-              self.delete_selected_atoms),
+            ('Copy', None, _('_Copy'), '<control>C',
+             _('Copy current selection and its orientation to clipboard'),
+             self.copy_atoms),
+            ('Paste', None, _('_Paste'), '<control>V',
+             _('Insert current clipboard selection'),
+             self.paste_atoms),
+            ('Modify', None, _('_Modify'), '<control>Y',
+             _('Change tags, moments and atom types of the selected atoms'),
+             self.modify_atoms),
+            ('AddAtoms', None, _('_Add atoms'), '<control>A',
+             _('Insert or import atoms and molecules'),
+             self.add_atoms),
+            ('DeleteAtoms', None, _('_Delete selected atoms'), 'BackSpace',
+             _('Delete the selected atoms'),
+             self.delete_selected_atoms),
             ('First', gtk.STOCK_GOTO_FIRST, _('_First image'), 'Home',
              '',
              self.step),
@@ -403,10 +403,7 @@ class GUI(View, Status):
         ui.insert_action_group(actions, 0)
         self.window.add_accel_group(ui.get_accel_group())
 
-        try:
-            mergeid = ui.add_ui_from_string(ui_info)
-        except gobject.GError as msg:
-            print(_('building menus failed: %s') % msg)
+        ui.add_ui_from_string(ui_info)
 
         vbox.pack_start(ui.get_widget('/MenuBar'), False, False, 0)
         
@@ -482,10 +479,6 @@ class GUI(View, Status):
                 gtk.keysyms.Down:  ( 0, -1 + CTRL, -CTRL),
                 gtk.keysyms.Right: (+1,  0, 0),
                 gtk.keysyms.Left:  (-1,  0, 0)}.get(event.keyval, None)
-        try:
-            inch = chr(event.keyval)
-        except:
-            inch = None
             
         sel = []
 
@@ -502,7 +495,6 @@ class GUI(View, Status):
             self._do_zoom(dy)
             return
 
-        d = self.scale * 0.1
         tvec = np.array([dx, dy, dz])
 
         dir_vec = np.dot(self.axes, tvec)
@@ -1142,14 +1134,13 @@ class GUI(View, Status):
             if not ok:
                 return
 
-        n_current = self.images.nimages
         self.reset_tools_modes()
         self.images.read(filenames, slice(None), name_to_suffix[filetype])
         self.set_colors()
         self.set_coordinates(self.images.nimages - 1, focus=True)
 
-    def import_atoms (self, button=None, filenames=None):
-        if filenames == None:
+    def import_atoms(self, button=None, filenames=None):
+        if filenames is None:
             chooser = gtk.FileChooserDialog(
                 _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
                 (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
@@ -1161,7 +1152,6 @@ class GUI(View, Status):
 
             if not ok:
                 return
-            
             
         self.images.import_atoms(filenames, self.frame)
         self.set_colors()
