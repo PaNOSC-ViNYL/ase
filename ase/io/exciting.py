@@ -74,24 +74,22 @@ def read_exciting(fileobj, index=-1):
     return atoms
 
 
-def write_exciting(fileobj, images):
+def write_exciting(filename, images):
     """writes exciting input structure in XML
     
     Parameters
     ----------
-    fileobj : File object
-        Filehandle to which data should be written
+    filename : str
+        Name of file to which data should be written.
     images : Atom Object or List of Atoms objects
-        This function will write the first Atoms object to file
+        This function will write the first Atoms object to file.
     
     Returns
     -------
     """
-    if isinstance(fileobj, str):
-        fileobj = paropen(fileobj, 'wb')
+    fileobj = open(filename, 'wb')
     root = atoms2etree(images)
     fileobj.write(ET.tostring(root, method='xml',
-                              #encoding='UTF-8',
                               pretty_print=True,
                               xml_declaration=True))
 

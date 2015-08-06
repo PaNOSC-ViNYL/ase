@@ -37,7 +37,7 @@ all_formats = {
     'espresso-in': ('Quantum espresso in file', '1F'),
     'espresso-out': ('Quantum espresso out file', '1F'),
     'etsf': ('ETSF format', '1S'),
-    'exciting': ('exciting input', '1F'),
+    'exciting': ('exciting input', '1S'),
     'extxyz': ('Extended XYZ file', '+F'),
     'findsym': ('FINDSYM-format', '+F'),
     'gaussian': ('Gaussian com (input) file', '1F'),
@@ -254,7 +254,7 @@ def iread(filename, index=None, format=None, **kwargs):
         
     filename, index = parse_filename(filename, index)
     
-    if index is None:
+    if index is None or index == ':':
         index = slice(None, None, None)
         
     if not isinstance(index, (slice, str)):

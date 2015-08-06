@@ -103,7 +103,8 @@ def connect(name, type='extract_from_name', create_indices=True,
         return JSONDatabase(name, use_lock_file=use_lock_file, serial=serial)
     if type == 'db':
         from ase.db.sqlite import SQLite3Database
-        return SQLite3Database(name, create_indices, use_lock_file)
+        return SQLite3Database(name, create_indices, use_lock_file,
+                               serial=serial)
     if type == 'postgresql':
         from ase.db.postgresql import PostgreSQLDatabase
         return PostgreSQLDatabase(name[5:])
@@ -130,7 +131,7 @@ def parallel(method):
     @functools.wraps(method)
     def new_method(*args, **kwargs):
         # Hook to disable.  Use self.serial = True
-        if args and getattr(args[0], 'serial', True):
+        if args and getattr(args[0], 'serial', False):
             return method(*args, **kwargs)
         ex = None
         result = None
@@ -153,6 +154,11 @@ def parallel_generator(generator):
         
     @functools.wraps(generator)
     def new_generator(*args, **kwargs):
+        # Hook to disable.  Use self.serial = True
+        if args and getattr(args[0], 'serial', False):
+            for result in generator(*args, **kwargs):
+                yield result
+            return
         if world.rank == 0:
             for result in generator(*args, **kwargs):
                 result = broadcast(result)
@@ -179,6 +185,13 @@ class Database:
     """Base class for all databases."""
     def __init__(self, filename=None, create_indices=True,
                  use_lock_file=False, serial=False):
+        """Database object.
+        
+        serial: bool
+            Let someone else handle parallelization.  Default behavior is
+            to interact with the database on the master only and then
+            distribute results to all slaves.
+        """
         if isinstance(filename, str):
             filename = os.path.expanduser(filename)
         self.filename = filename

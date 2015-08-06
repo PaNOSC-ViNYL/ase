@@ -1,4 +1,5 @@
 from __future__ import print_function
+import sys
 
 import numpy as np
 from ase import Atoms
@@ -43,8 +44,11 @@ def check(a, format):
     
 for format in all_formats:
     if format in ['abinit', 'castep_cell', 'dftb', 'eon', 'gaussian',
-                  'postgresql', 'trj', 'vti', 'vts']:
+                  'postgresql', 'trj', 'vti', 'vtu']:
         continue
+    if sys.version_info[0] == 3 and format in ['bundletrajectory', 'cif']:
+        continue
+
     io = get_ioformat(format)
     print('{0:20}{1}{2}{3}{4}'.format(format,
                                       ' R'[bool(io.read)],
