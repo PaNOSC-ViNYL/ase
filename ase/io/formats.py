@@ -16,92 +16,128 @@ from ase.atoms import Atoms
 from ase.utils import import_module
 from ase.db.core import parallel, parallel_generator
 
-all_formats = [
-    'abinit', 'aims', 'aims_output', 'bundletrajectory', 'castep', 'castep_cell',
-    'castep_geom', 'cfg', 'cif', 'cmdft', 'cube', 'dacapo', 'dacapo_text',
-    'db', 'dftb', 'eon', 'eps', 'espresso_in', 'espresso_out', 'etsf', 'exciting', 'extxyz',
-    'findsym', 'gromos', 'gaussian', 'gaussian_out', 'gen', 'gpaw_out', 'gpw',
-    'gromacs', 'html', 'iwm', 'json', 'lammps_dump', 'mol', 'nwchem', 'pdb', 'png',
-    'postgresql', 'pov', 'res', 'sdf', 'struct', 'struct_out', 'turbomole',
-    'turbomole_gradient', 'traj', 'trj', 'v_sim', 'vasp', 'vasp_out',
-    'vasp_xdatcar', 'vasp_xml', 'vti', 'vts', 'x3d', 'xsd', 'xsf', 'xyz']
-
-if 0:
-    import textwrap
-    print(textwrap.fill("'" + "', '".join(sorted(set(all_formats))) + "'",
-                        initial_indent='    ',
-                        subsequent_indent='    ',
-                        width=79))
+all_formats = {
+    'abinit': ('ABINIT input file', '1F'),
+    'aims': ('FHI-aims geometry file', '1S'),
+    'aims-output': ('FHI-aims output', '1F'),
+    'bundletrajectory': ('ASE bundle trajectory', '1S'),
+    'castep': ('CASTEP output file', '1F'),
+    'castep-cell': ('CASTEP geom file', '1S'),
+    'castep-geom': ('CASTEP trajectory file', '1F'),
+    'cfg': ('AtomEye configuration', '1F'),
+    'cif': ('CIF-file', '+F'),
+    'cmdft': ('CMDFT-file', '1F'),
+    'cube': ('CUBE file', '1F'),
+    'dacapo': ('Dacapo netCDF output file', '1F'),
+    'dacapo-text': ('Dacapo text output', '1F'),
+    'db': ('ASE SQLite database file', '+S'),
+    'dftb': ('DftbPlus input file', '1S'),
+    'eon': ('EON reactant.con file', '1F'),
+    'eps': ('Encapsulated Postscript', '1S'),
+    'espresso-in': ('Quantum espresso in file', '1F'),
+    'espresso-out': ('Quantum espresso out file', '1F'),
+    'etsf': ('ETSF format', '1S'),
+    'exciting': ('exciting input', '1F'),
+    'extxyz': ('Extended XYZ file', '+F'),
+    'findsym': ('FINDSYM-format', '+F'),
+    'gaussian': ('Gaussian com (input) file', '1F'),
+    'gaussian-out': ('Gaussian output file', '1F'),
+    'gen': ('DFTBPlus GEN format', '1F'),
+    'gpaw-out': ('GPAW text output', '+S'),
+    'gpw': ('GPAW restart-file', '1F'),
+    'gromacs': ('Gromacs coordinates', '1S'),
+    'gromos': ('Gromos96 geometry file', '1F'),
+    'html': ('X3DOM HTML', '1S'),
+    'iwm': ('?', '1F'),
+    'json': ('ASE JSON database file', '+F'),
+    'lammps-dump': ('LAMMPS dump file', '1F'),
+    'mol': ('?', '1F'),
+    'nwchem': ('NWChem input file', '1F'),
+    'pdb': ('Protein Data Bank', '+F'),
+    'png': ('Portable Network Graphics', '1F'),
+    'postgresql': ('ASE PostgreSQL database file', '+S'),
+    'pov': ('Persistance of Vision', '1S'),
+    'res': ('SHELX format', '1S'),
+    'sdf': ('?', '1F'),
+    'struct': ('WIEN2k structure file', '1S'),
+    'struct-out': ('SIESTA STRUCT file', '1F'),
+    'traj': ('ASE trajectory', '+S'),
+    'trj': ('Old ASE pickle trajectory', '+S'),
+    'turbomole': ('TURBOMOLE coord file', '1F'),
+    'turbomole-gradient': ('TURBOMOLE gradient file', '+F'),
+    'v-sim': ('V_Sim ascii file', '1F'),
+    'vasp': ('VASP POSCAR/CONTCAR file', '1F'),
+    'vasp-out': ('VASP OUTCAR file', '1F'),
+    'vasp-xdatcar': ('VASP XDATCAR file', '1F'),
+    'vasp-xml': ('VASP vasprun.xml file', '1F'),
+    'vti': ('VTK XML Image Data', '1F'),
+    'vts': ('VTK XML Structured Grid', '1F'),
+    'x3d': ('X3D', '1S'),
+    'xsd': ('Materials Studio file', '1F'),
+    'xsf': ('XCrySDen Structure File', '+F'),
+    'xyz': ('XYZ-file', '+F')}
 
 # Special cases:
-format2modulename = dict(
-    traj='trajectory',
-    json='db',
-    postgresql='db',
-    struct='wien2k',
-    vti='vtkxml',
-    vts='vtkxml',
-    castep_cell='castep',
-    castep_geom='castep',
-    aims_out='aims',
-    dacapo_text='dacapo',
-    espresso_in='espresso',
-    espresso_out='espresso',
-    aims_output='aims',
-    gaussian_out='gaussian',
-    lammps_dump='lammpsrun',
-    struct_out='siesta',
-    turbomole_gradient='turbomole',
-    trj='pickletrajectory',
-    vasp_out='vasp',
-    vasp_xdatcar='vasp',
-    vasp_xml='vasp',
-    html='x3d')
+format2modulename = {
+    'aims-out': 'aims',
+    'aims-output': 'aims',
+    'castep-cell': 'castep',
+    'castep-geom': 'castep',
+    'dacapo-text': 'dacapo',
+    'espresso-in': 'espresso',
+    'espresso-out': 'espresso',
+    'gaussian-out': 'gaussian',
+    'html': 'x3d',
+    'json': 'db',
+    'lammps-dump': 'lammpsrun',
+    'postgresql': 'db',
+    'struct': 'wien2k',
+    'struct-out': 'siesta',
+    'traj': 'trajectory',
+    'trj': 'pickletrajectory',
+    'turbomole-gradient': 'turbomole',
+    'vasp-out': 'vasp',
+    'vasp-xdatcar': 'vasp',
+    'vasp-xml': 'vasp',
+    'vti': 'vtkxml',
+    'vts': 'vtkxml'}
 
-extension2format = dict(
-    shelx='res',
-    con='eon',
-    cell='castep_cell',
-    geom='castep_geom',
-    out='espresso_out',
-    gro='gromacs',
-    g96='gromos',
-    log='gaussian_out',
-    com='gaussian',
-    nw='nwchem',
-    exi='exciting')
-
-stores_multiple_images = [
-    'xyz', 'traj', 'trj', 'pdb', 'cif', 'extxyz', 'db', 'json',
-    'postgresql', 'xsf', 'findsym', 'gpaw_out', 'turbomole_gradient']
-
-does_not_accept_a_file_descriptor = [
-    'traj', 'db', 'postgresql',
-    'etsf', 'dftb', 'aims', 'bundletrajectory', 'castep_cell', 'struct', 'res', 'eps', 'gpaw_out', 'gromacs', 'x3d', 'pov', 'trj', 'html']
+extension2format = {
+    'cell': 'castep-cell',
+    'com': 'gaussian',
+    'con': 'eon',
+    'exi': 'exciting',
+    'g96': 'gromos',
+    'geom': 'castep-geom',
+    'gro': 'gromacs',
+    'log': 'gaussian-out',
+    'nw': 'nwchem',
+    'out': 'espresso-out',
+    'shelx': 'res'}
 
 IOFormat = collections.namedtuple('IOFormat', 'read, write, single, acceptsfd')
 ioformats = {}  # will be filled at run-time
         
-        
+
 def initialize(format):
     if format in ioformats:
         return
-    module_name = format2modulename.get(format, format)
+    _format = format.replace('-', '_')
+    module_name = format2modulename.get(format, _format)
     try:
         module = import_module('ase.io.' + module_name)
     except ImportError:
-        print(format, module_name)
         raise ValueError('File format not recognized: ' + format)
-    read = getattr(module, 'read_' + format, None)
-    write = getattr(module, 'write_' + format, None)
+    read = getattr(module, 'read_' + _format, None)
+    write = getattr(module, 'write_' + _format, None)
     if read and not inspect.isgeneratorfunction(read):
         read = functools.partial(wrap_old_read_function, read)
     if not read and not write:
         raise ValueError('File format not recognized: ' + format)
-    ioformats[format] = IOFormat(
-        read, write,
-        format not in stores_multiple_images,
-        format not in does_not_accept_a_file_descriptor)
+    code = all_formats[format][1]
+    single = code[0] == '1'
+    acceptsfd = code[1] == 'F'
+    ioformats[format] = IOFormat(read, write, single, acceptsfd)
     
 
 def get_ioformat(format):
@@ -316,15 +352,15 @@ def filetype(filename, read=True):
         if 'POSCAR' in basename or 'CONTCAR' in basename:
             return 'vasp'
         if 'OUTCAR' in basename:
-            return 'vasp_out'
+            return 'vasp-out'
         if 'XDATCAR' in basename:
-            return 'vasp_xdatcar'
+            return 'vasp-xdatcar'
         if 'vasp' in basename and basename.endswith('.xml'):
-            return 'vasp_xml'
+            return 'vasp-xml'
         if basename == 'coord':
             return 'turbomole'
         if basename == 'gradient':
-            return 'turbomole_gradient'
+            return 'turbomole-gradient'
         if basename.endswith('I_info'):
             return 'cmdft'
         if basename == 'atoms.dat':
@@ -351,16 +387,16 @@ def filetype(filename, read=True):
                           ('trj', b'PickleTrajectory'),
                           ('etsf', b'CDF'),
                           ('turbomole', b'$coord'),
-                          ('turbomole_gradient', b'$grad'),
+                          ('turbomole-gradient', b'$grad'),
                           ('dftb', b'Geometry')]:
         if data.startswith(magic):
             return format
 
-    for format, magic in [('gpaw-text', b'  ___ ___ ___ _ _ _  \n'),
-                          ('esp_in', b'\n&system'),
-                          ('esp_in', b'\n&SYSTEM'),
-                          ('aims_out', b'\nInvoking FHI-aims ...'),
-                          ('lammps_dump', b'\nITEM: TIMESTEP\n'),
+    for format, magic in [('gpaw-out', b'  ___ ___ ___ _ _ _  \n'),
+                          ('espresso-in', b'\n&system'),
+                          ('espresso-in', b'\n&SYSTEM'),
+                          ('aims-out', b'\nInvoking FHI-aims ...'),
+                          ('lammps-dump', b'\nITEM: TIMESTEP\n'),
                           ('xsf', b'\nANIMSTEPS'),
                           ('xsf', b'\nCRYSTAL'),
                           ('xsf', b'\nSLAB'),
@@ -377,14 +413,21 @@ def filetype(filename, read=True):
     
 if __name__ == '__main__':
     import optparse
-    parser = optparse.OptionParser()
+    parser = optparse.OptionParser(
+        usage='python -m ase.io.formats file ...',
+        description='Determine file type(s).')
     opts, filenames = parser.parse_args()
-    n = max(len(filename) for filename in filenames) + 2
+    if filenames:
+        n = max(len(filename) for filename in filenames) + 2
     for filename in filenames:
         try:
             format = filetype(filename)
+            description, code = all_formats[format]
+            if code[0] == '+':
+                format += '+'
         except ValueError:
             format = '?'
+            description = ''
             
-        # get description ...
-        print('{0:{1}}{2}'.format(filename + ':', n, format))
+        print('{0:{1}}{2} ({3})'.format(filename + ':', n,
+                                        description, format))

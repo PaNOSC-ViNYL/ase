@@ -1,19 +1,9 @@
-from ase.atoms import Atoms
-from ase.parallel import paropen
-
 def write_findsym(fileobj, images):
-
-    if isinstance(fileobj, str):
-        fileobj = paropen(fileobj, 'w')
-
-    if not isinstance(images, (list, tuple)):
-        images = [images]
-
     symbols = images[0].get_chemical_symbols()
     natoms = len(symbols)
 
     for atoms in images:
-        formula  = atoms.get_chemical_symbols()
+        formula = atoms.get_chemical_symbols()
         accuracy = 1.0e-4
 
         # Write Comment
@@ -33,7 +23,7 @@ def write_findsym(fileobj, images):
 
         fileobj.write('%d\n' % natoms)
 
-        numbers  = atoms.get_atomic_numbers()
+        numbers = atoms.get_atomic_numbers()
         for n in numbers:
             fileobj.write('%d ' % (n))
 
@@ -41,4 +31,3 @@ def write_findsym(fileobj, images):
 
         for x, y, z in atoms.get_positions():
             fileobj.write('%22.15f %22.15f %22.15f\n' % (x, y, z))
-
