@@ -34,7 +34,7 @@ def save_dialog(gui):
     
     extra = {}
     remove_hidden = False
-    if format in ['png']:
+    if format in ['png', 'eps', 'pov']:
         bbox = np.empty(4)
         size = np.array([gui.width, gui.height]) / gui.scale
         bbox[0:2] = np.dot(gui.center, gui.axes[:, :2]) - size / 2
@@ -58,5 +58,4 @@ def save_dialog(gui):
         for i, atoms in enumerate(images):
             write(filename.format(i), atoms, **extra)
     else:
-        print(filename, images, extra)
         write(filename, images, **extra)
