@@ -10,7 +10,9 @@ Development version in trunk
 
 :trac:`trunk <>`.
 
-* ...
+* New iterator function :func:`ase.io.iread` for iteratively reading Atoms
+  objects from a file.
+
           
 Version 3.9.1
 =============

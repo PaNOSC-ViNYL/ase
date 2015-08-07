@@ -5,10 +5,11 @@
 File input and output
 =====================
 
-The :mod:`ase.io` module has two basic functions: :func:`read` and
-:func:`write`. The two methods are described here:
+The :mod:`ase.io` module has three basic functions: :func:`read`,
+:func:`iread` and :func:`write`. The methods are described here:
 
 .. autofunction:: read
+.. autofunction:: iread
 .. autofunction:: write
 
 These are the file-formats that are recognized (formats with a ``+`` support
