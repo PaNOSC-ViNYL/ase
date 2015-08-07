@@ -8,7 +8,8 @@ from time import time
 from ase.atoms import Atoms, symbols2numbers
 from ase.calculators.calculator import all_properties, all_changes
 from ase.data import atomic_numbers
-from ase.parallel import world, broadcast, DummyMPI
+from ase.parallel import (world, broadcast, DummyMPI,
+                          parallel_function, parallel_generator)
 from ase.utils import Lock, basestring
 
 
@@ -122,55 +123,6 @@ def lock(method):
                 return method(self, *args, **kwargs)
     return new_method
 
-
-def parallel(method):
-    """Decorator for broadcasting from master to slaves using MPI."""
-    if world.size == 1:
-        return method
-        
-    @functools.wraps(method)
-    def new_method(*args, **kwargs):
-        # Hook to disable.  Use self.serial = True
-        if args and getattr(args[0], 'serial', False):
-            return method(*args, **kwargs)
-        ex = None
-        result = None
-        if world.rank == 0:
-            try:
-                result = method(*args, **kwargs)
-            except Exception as ex:
-                pass
-        ex, result = broadcast((ex, result))
-        if ex is not None:
-            raise ex
-        return result
-    return new_method
-
-
-def parallel_generator(generator):
-    """Decorator for broadcasting yields from master to slaves using MPI."""
-    if world.size == 1:
-        return generator
-        
-    @functools.wraps(generator)
-    def new_generator(*args, **kwargs):
-        # Hook to disable.  Use self.serial = True
-        if args and getattr(args[0], 'serial', False):
-            for result in generator(*args, **kwargs):
-                yield result
-            return
-        if world.rank == 0:
-            for result in generator(*args, **kwargs):
-                result = broadcast(result)
-                yield result
-            broadcast(None)
-        else:
-            result = broadcast(None)
-            while result is not None:
-                yield result
-                result = broadcast(None)
-    return new_generator
-
     
 def convert_str_to_float_or_str(value):
     """Safe eval()"""
@@ -202,7 +154,7 @@ class Database:
             self.lock = None
         self.serial = serial
             
-    @parallel
+    @parallel_function
     @lock
     def write(self, atoms, key_value_pairs={}, data={}, **kwargs):
         """Write atoms to database with key-value pairs.
@@ -236,7 +188,7 @@ class Database:
         check(key_value_pairs)
         return 1
 
-    @parallel
+    @parallel_function
     @lock
     def reserve(self, **key_value_pairs):
         """Write empty row if not already present.
@@ -434,7 +386,7 @@ class Database:
             n += 1
         return n
         
-    @parallel
+    @parallel_function
     @lock
     def update(self, ids, delete_keys=[], block_size=1000,
                **add_key_value_pairs):

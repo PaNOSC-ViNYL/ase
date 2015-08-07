@@ -3,10 +3,10 @@ import os
 
 import numpy as np
 
-from ase.db.core import Database, ops, parallel, lock, now
+from ase.db.core import Database, ops, lock, now
 from ase.db.row import AtomsRow
 from ase.io.jsonio import encode, read_json
-from ase.parallel import world
+from ase.parallel import world, parallel_function
 
 
 class JSONDatabase(Database):
@@ -100,7 +100,7 @@ class JSONDatabase(Database):
         if fd is not self.filename:
             fd.close()
 
-    @parallel
+    @parallel_function
     @lock
     def delete(self, ids):
         bigdct, myids, nextid = self._read_json()
