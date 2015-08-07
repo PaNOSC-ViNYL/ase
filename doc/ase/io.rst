@@ -95,3 +95,11 @@ can be found here: :download:`save_pov.py`
 
 An other example showing how to change colors and textures in pov can
 be found here: :download:`../tutorials/saving_graphics.py`.
+
+
+Adding a new file-format to ASE
+===============================
+
+Try to model the read/write functions after the *xyz* format as implemented
+in :svn:`ase/io/xyz.py` and also read, understand and update
+:svn:`ase/io/formats.py`.

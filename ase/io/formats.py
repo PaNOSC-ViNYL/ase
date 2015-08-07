@@ -1,21 +1,41 @@
+"""File formats.
+
+This module implements the read() and write() functions in ase.io.  For each
+file format there is a namedtuple (IOFormat) that has the following elements:
+    
+* a read(filename, index, **kwargs) generator that will yield Atoms objects
+* a write(filename, images) function
+* a 'single' boolean (False if multiple configurations is supported)
+* a 'acceptsfd' boolean (True if file-descriptors ar accepted)
+
+There is a dict 'ioformats' that is filled with IOFormat objects as they are
+needed.  The 'initialize()' function will create the IOFormat object by
+looking at the all_formats dict and by importing the correct read/write
+functions from the correct module.  The 'single' and 'acceptsfd' bools are
+parsed from two-charcter string in the all_formats dict below.
+
+
+Example
+=======
+
+The xyz format is implemented in the ase/io/xyz.py file which has a
+read_xyz() generator and a write_xyz() function.
+
+"""
+
 import collections
 import functools
 import inspect
 import os
 import sys
 
-"""
-format 'abc' abc.py: read_abc, write_abc.  Add to
-does_not_accept_a_file_descriptor and stores_multiple_images lists
-
-
-
-
-"""
 from ase.atoms import Atoms
 from ase.utils import import_module
 from ase.db.core import parallel, parallel_generator
 
+IOFormat = collections.namedtuple('IOFormat', 'read, write, single, acceptsfd')
+ioformats = {}  # will be filled at run-time
+        
 all_formats = {
     'abinit': ('ABINIT input file', '1F'),
     'aims': ('FHI-aims geometry file', '1S'),
@@ -57,6 +77,7 @@ all_formats = {
     'png': ('Portable Network Graphics', '1F'),
     'postgresql': ('ASE PostgreSQL database file', '+S'),
     'pov': ('Persistance of Vision', '1S'),
+    'py': ('Python file', '+F'),
     'res': ('SHELX format', '1S'),
     'sdf': ('?', '1F'),
     'struct': ('WIEN2k structure file', '1S'),
@@ -115,21 +136,22 @@ extension2format = {
     'out': 'espresso-out',
     'shelx': 'res'}
 
-IOFormat = collections.namedtuple('IOFormat', 'read, write, single, acceptsfd')
-ioformats = {}  # will be filled at run-time
-        
 
 def initialize(format):
+    """Import read and write functions."""
     if format in ioformats:
-        return
+        return  # already done
+
     _format = format.replace('-', '_')
     module_name = format2modulename.get(format, _format)
     try:
         module = import_module('ase.io.' + module_name)
     except ImportError:
         raise ValueError('File format not recognized: ' + format)
+        
     read = getattr(module, 'read_' + _format, None)
     write = getattr(module, 'write_' + _format, None)
+    
     if read and not inspect.isgeneratorfunction(read):
         read = functools.partial(wrap_old_read_function, read)
     if not read and not write:
@@ -141,11 +163,13 @@ def initialize(format):
     
 
 def get_ioformat(format):
+    """Initialize and return IOFormat tuple."""
     initialize(format)
     return ioformats[format]
     
 
 def wrap_old_read_function(read, filename, index=None, **kwargs):
+    """Convert old read-functions to generators."""
     if index is None:
         yield read(filename, **kwargs)
     else:
@@ -157,19 +181,14 @@ def wrap_old_read_function(read, filename, index=None, **kwargs):
 def write(filename, images, format=None, **kwargs):
     """Write Atoms object(s) to file.
 
-    filename: str
-        Name of the file to write to.
+    filename: str or file
+        Name of the file to write to or a file descriptor.  The name '-'
+        means standard output.
     images: Atoms object or list of Atoms objects
         A single Atoms object or a list of Atoms objects.
     format: str
         Used to specify the file-format.  If not given, the
         file-format will be taken from suffix of the filename.
-
-    The accepted output formats:
-
-    Many formats allow on open file-like object to be passed instead
-    of ``filename``. In this case the format cannot be auto-decected,
-    so the ``format`` argument should be explicitly given.
 
     The use of additional keywords is format specific."""
 
@@ -184,7 +203,7 @@ def write(filename, images, format=None, **kwargs):
         fd = filename
         filename = None
         
-    format = format or 'json'
+    format = format or 'json'  # default is json
 
     io = get_ioformat(format)
 
@@ -223,12 +242,17 @@ def write(filename, images, format=None, **kwargs):
 def read(filename, index=None, format=None, **kwargs):
     """Read Atoms object(s) from file.
 
-    filename: str
-        Name of the file to read from.
-    index: int or slice
-        If the file contains several configurations, the last configuration
-        will be returned by default.  Use index=n to get configuration
-        number n (counting from zero).
+    filename: str or file
+        Name of the file to read from or a file descriptor.
+    index: int, slice or str
+        The last configuration will be returned by default.  Examples:
+            
+            * ``index=0``: first configuration
+            * ``index=-2``: second to last
+            * ``index=':'`` or ``index=slice(None)``: all
+            * ``index='-3:`` or ``index=slice(-3, None)``: three last
+            * ``index='::2`` or ``index=slice(0, None, 2)``: even
+            * ``index='1::2`` or ``index=slice(1, None, 2)``: odd
     format: str
         Used to specify the file-format.  If not given, the
         file-format will be guessed by the *filetype* function.
@@ -249,6 +273,11 @@ def read(filename, index=None, format=None, **kwargs):
     
         
 def iread(filename, index=None, format=None, **kwargs):
+    """Iterator for reading Atoms objects from file.
+    
+    Works as the `read` function, but yields one Atoms object at a time
+    instead of all at once."""
+    
     if isinstance(index, str):
         index = string2index(index)
         
