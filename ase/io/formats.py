@@ -1,12 +1,13 @@
 """File formats.
 
-This module implements the read() and write() functions in ase.io.  For each
-file format there is a namedtuple (IOFormat) that has the following elements:
+This module implements the read(), iread() and write() functions in ase.io.
+For each file format there is a namedtuple (IOFormat) that has the following
+elements:
     
 * a read(filename, index, **kwargs) generator that will yield Atoms objects
 * a write(filename, images) function
 * a 'single' boolean (False if multiple configurations is supported)
-* a 'acceptsfd' boolean (True if file-descriptors ar accepted)
+* a 'acceptsfd' boolean (True if file-descriptors are accepted)
 
 There is a dict 'ioformats' that is filled with IOFormat objects as they are
 needed.  The 'initialize()' function will create the IOFormat object by
@@ -31,11 +32,12 @@ import sys
 
 from ase.atoms import Atoms
 from ase.utils import import_module
-from ase.db.core import parallel, parallel_generator
+from ase.parallel import parallel_function, parallel_generator
 
 IOFormat = collections.namedtuple('IOFormat', 'read, write, single, acceptsfd')
 ioformats = {}  # will be filled at run-time
         
+# 1=single, +=multiple, F=accepts a file-descriptor, S=needs a file-name str
 all_formats = {
     'abinit': ('ABINIT input file', '1F'),
     'aims': ('FHI-aims geometry file', '1S'),
@@ -52,6 +54,7 @@ all_formats = {
     'dacapo-text': ('Dacapo text output', '1F'),
     'db': ('ASE SQLite database file', '+S'),
     'dftb': ('DftbPlus input file', '1S'),
+    'elk': ('ELK atoms definition', '1S'),
     'eon': ('EON reactant.con file', '1F'),
     'eps': ('Encapsulated Postscript', '1S'),
     'espresso-in': ('Quantum espresso in file', '1F'),
@@ -177,7 +180,7 @@ def wrap_old_read_function(read, filename, index=None, **kwargs):
             yield atoms
         
         
-@parallel
+@parallel_function
 def write(filename, images, format=None, **kwargs):
     """Write Atoms object(s) to file.
 

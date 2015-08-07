@@ -189,12 +189,12 @@ def read_xsf(fileobj, index=-1, read_data=False):
         else:
             line = data_header_line
         assert 'BEGIN_BLOCK_DATAGRID_3D' in line, line
-        name = readline()  # XXX what to do about this?
+        readline()  # name
         line = readline()
         assert 'BEGIN_DATAGRID_3D' in line, line
 
         shape = [int(x) for x in readline().split()]
-        start = [float(x) for x in readline().split()]
+        readline()  # start
 
         for i in range(3):
             readline()

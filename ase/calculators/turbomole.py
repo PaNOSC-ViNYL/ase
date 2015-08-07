@@ -9,7 +9,7 @@ import sys
 import numpy as np
 
 from ase.units import Hartree, Bohr
-from ase.io.turbomole import read_turbomole, write_turbomole
+from ase.io import read, write
 from ase.calculators.general import Calculator
 
 
@@ -102,13 +102,13 @@ class Turbomole(Calculator):
         if self.atoms == atoms:
             if (self.updated and os.path.isfile('coord')):
                 self.updated = False
-                a = read_turbomole().get_positions()
+                a = read('coord').get_positions()
                 if np.allclose(a, atoms.get_positions(), rtol=0, atol=1e-13):
                     return
             else:
                 return
         # performs an update of the atoms
-        write_turbomole('coord', atoms)
+        write('coord', atoms)
         Calculator.set_atoms(self, atoms)
         # energy and forces must be re-calculated
         self.update_energy = True
