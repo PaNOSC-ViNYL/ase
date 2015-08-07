@@ -52,7 +52,7 @@ from ase.gui.energyforces import EnergyForces
 from ase.gui.minimize import Minimize
 from ase.gui.scaling import HomogeneousDeformation
 from ase.gui.quickinfo import QuickInfo
-from ase.gui.save import SaveWindow
+from ase.gui.save import save_dialog
 from ase.version import version
 
 
@@ -201,7 +201,7 @@ class GUI(View, Status):
              lambda widget: os.system('ase-gui &')),
             ('Save', gtk.STOCK_SAVE, _('_Save'), '<control>S',
              _('Save current file'),
-             self.save),
+             lambda x: save_dialog(self)),
             ('Quit', gtk.STOCK_QUIT, _('_Quit'), '<control>Q',
              _('Quit'),
              self.exit),
@@ -1144,9 +1144,6 @@ class GUI(View, Status):
         self.set_colors()
         self.set_coordinates(self.images.nimages - 1, focus=True)
 
-    def save(self, menuitem):
-        SaveWindow(self)
-        
     def quick_info_window(self, menuitem):
         QuickInfo(self)
 

@@ -331,7 +331,7 @@ def _iread(filename, index, format, **kwargs):
             fd.close()
     
     
-def parse_filename(filename, index):
+def parse_filename(filename, index=None):
     if not isinstance(filename, str) or '@' not in filename:
         return filename, index
     newindex = None
