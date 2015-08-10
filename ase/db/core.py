@@ -8,8 +8,7 @@ from time import time
 from ase.atoms import Atoms, symbols2numbers
 from ase.calculators.calculator import all_properties, all_changes
 from ase.data import atomic_numbers
-from ase.parallel import (world, broadcast, DummyMPI,
-                          parallel_function, parallel_generator)
+from ase.parallel import world, DummyMPI, parallel_function, parallel_generator
 from ase.utils import Lock, basestring
 
 

@@ -2,7 +2,6 @@ from __future__ import print_function
 import warnings
 
 from ase.calculators.singlepoint import SinglePointCalculator, all_properties
-from ase.calculators.calculator import Calculator
 from ase.constraints import dict2constraint
 from ase.atoms import Atoms
 from ase.io.aff import affopen, DummyWriter, InvalidAFFError
@@ -163,7 +162,7 @@ class TrajectoryWriter:
             calc = SinglePointCalculator(atoms)
 
         if calc is not None:
-            if not isinstance(calc, Calculator):
+            if not hasattr(calc, 'get_property'):
                 calc = OldCalculatorWrapper(calc)
             c = b.child('calculator')
             c.write(name=calc.name)
