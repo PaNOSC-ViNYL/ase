@@ -2,7 +2,6 @@ from __future__ import print_function
 import warnings
 
 from ase.calculators.singlepoint import SinglePointCalculator, all_properties
-from ase.calculators.calculator import Calculator
 from ase.constraints import dict2constraint
 from ase.atoms import Atoms
 from ase.io.aff import affopen, DummyWriter, InvalidAFFError
@@ -163,7 +162,7 @@ class TrajectoryWriter:
             calc = SinglePointCalculator(atoms)
 
         if calc is not None:
-            if not isinstance(calc, Calculator):
+            if not hasattr(calc, 'get_property'):
                 calc = OldCalculatorWrapper(calc)
             c = b.child('calculator')
             c.write(name=calc.name)
@@ -298,15 +297,13 @@ class TrajectoryReader:
             yield self[i]
 
 
-def read_trajectory(filename, index=-1):
+def read_traj(filename, index):
     trj = TrajectoryReader(filename)
-    if isinstance(index, int):
-        return trj[index]
-    else:
-        return [trj[i] for i in range(*index.indices(len(trj)))]
+    for i in range(*index.indices(len(trj))):
+        yield trj[i]
 
 
-def write_trajectory(filename, images):
+def write_traj(filename, images):
     """Write image(s) to trajectory."""
     trj = TrajectoryWriter(filename, mode='w')
     if isinstance(images, Atoms):

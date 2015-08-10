@@ -538,3 +538,7 @@ def write_xyz(fileobj, images, columns=None, write_info=True,
         fileobj.write('%s\n' % comm)
         for i in range(natoms):
             fileobj.write(fmt % tuple(data[i]))
+
+
+read_extxyz = read_xyz
+write_extxyz = write_xyz

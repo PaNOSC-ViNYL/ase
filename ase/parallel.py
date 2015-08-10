@@ -1,8 +1,9 @@
 from __future__ import print_function
+import atexit
+import functools
+import pickle
 import sys
 import time
-import atexit
-import pickle
 
 import numpy as np
 
@@ -37,8 +38,7 @@ def paropen(name, mode='r'):
 
 
 def parprint(*args, **kwargs):
-    """MPI-safe print - prints only from master.
-    """
+    """MPI-safe print - prints only from master. """
     if rank == 0:
         print(*args, **kwargs)
 
@@ -120,6 +120,55 @@ def broadcast(obj, root=0, comm=world):
         return obj
     else:
         return pickle.loads(string.tostring())
+
+
+def parallel_function(func):
+    """Decorator for broadcasting from master to slaves using MPI."""
+    if world.size == 1:
+        return func
+        
+    @functools.wraps(func)
+    def new_func(*args, **kwargs):
+        # Hook to disable.  Use self.serial = True
+        if args and getattr(args[0], 'serial', False):
+            return func(*args, **kwargs)
+        ex = None
+        result = None
+        if world.rank == 0:
+            try:
+                result = func(*args, **kwargs)
+            except Exception as ex:
+                pass
+        ex, result = broadcast((ex, result))
+        if ex is not None:
+            raise ex
+        return result
+    return new_func
+
+
+def parallel_generator(generator):
+    """Decorator for broadcasting yields from master to slaves using MPI."""
+    if world.size == 1:
+        return generator
+        
+    @functools.wraps(generator)
+    def new_generator(*args, **kwargs):
+        # Hook to disable.  Use self.serial = True
+        if args and getattr(args[0], 'serial', False):
+            for result in generator(*args, **kwargs):
+                yield result
+            return
+        if world.rank == 0:
+            for result in generator(*args, **kwargs):
+                result = broadcast(result)
+                yield result
+            broadcast(None)
+        else:
+            result = broadcast(None)
+            while result is not None:
+                yield result
+                result = broadcast(None)
+    return new_generator
 
 
 def register_parallel_cleanup_function():

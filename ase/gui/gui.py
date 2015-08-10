@@ -52,7 +52,7 @@ from ase.gui.energyforces import EnergyForces
 from ase.gui.minimize import Minimize
 from ase.gui.scaling import HomogeneousDeformation
 from ase.gui.quickinfo import QuickInfo
-from ase.gui.save import SaveWindow
+from ase.gui.save import save_dialog
 from ase.version import version
 
 
@@ -201,7 +201,7 @@ class GUI(View, Status):
              lambda widget: os.system('ase-gui &')),
             ('Save', gtk.STOCK_SAVE, _('_Save'), '<control>S',
              _('Save current file'),
-             self.save),
+             lambda x: save_dialog(self)),
             ('Quit', gtk.STOCK_QUIT, _('_Quit'), '<control>Q',
              _('Quit'),
              self.exit),
@@ -1080,62 +1080,49 @@ class GUI(View, Status):
         process.stdin.close()
         self.graphs.append(process)
         
-    def open(self, button=None, filenames=None):
-        if filenames is None:
-            chooser = gtk.FileChooserDialog(
-                _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
-                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                 gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-            chooser.set_filename(_("<<filename>>"))
+    def open(self, button=None):
+        from ase.io.formats import all_formats, get_ioformat
+        formats = [(_('Automatic'), None)]
+        
+        def key(item):
+            return item[1][0]
+            
+        for format, (description, code) in sorted(all_formats.items(),
+                                                  key=key):
+            io = get_ioformat(format)
+            if io.read and description != '?':
+                formats.append((_(description), format))
+                
+        chooser = gtk.FileChooserDialog(
+            _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
+            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+             gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+        chooser.set_filename(_("<<filename>>"))
 
-            # Add a file type filter
-            name_to_suffix = {}
-            types = gtk.combo_box_new_text()
-            for name, suffix in [(_('Automatic'), None),
-                                 (_('Dacapo netCDF output file'), 'dacapo'),
-                                 (_('Virtual Nano Lab file'), 'vnl'),
-                                 (_('ASE pickle trajectory'), 'traj'),
-                                 (_('ASE bundle trajectory'), 'bundle'),
-                                 (_('GPAW text output'), 'gpaw-text'),
-                                 (_('CUBE file'), 'cube'),
-                                 (_('XCrySDen Structure File'),'xsf'),
-                                 (_('Dacapo text output'),'dacapo-text'),
-                                 (_('XYZ-file'),'xyz'),
-                                 (_('VASP POSCAR/CONTCAR file'),'vasp'),
-                                 (_('VASP OUTCAR file'),'vasp_out'),
-                                 (_('Protein Data Bank'),'pdb'),
-                                 (_('CIF-file'),'cif'),
-                                 (_('FHI-aims geometry file'),'aims'),
-                                 (_('FHI-aims output file'),'aims_out'),
-                                 (_('TURBOMOLE coord file'),'tmol'),
-                                 (_('exciting input'),'exi'),
-                                 (_('WIEN2k structure file'),'struct'),
-                                 (_('DftbPlus input file'),'dftb'),
-                                 (_('ETSF format'),'etsf.nc'),
-                                 (_('CASTEP geom file'),'cell'),
-                                 (_('CASTEP output file'),'castep'),
-                                 (_('CASTEP trajectory file'),'geom'),
-                                 (_('DFTBPlus GEN format'),'gen')
-                                ]:
-                types.append_text(name)
-                name_to_suffix[name] = suffix
-            types.set_active(0)
-            img_vbox = gtk.VBox()
-            pack(img_vbox, [gtk.Label(_('File type:')), types])
-            img_vbox.show()
-            chooser.set_extra_widget(img_vbox)
+        # Add a file type filter
+        name_to_format = {}
+        types = gtk.combo_box_new_text()
+        for name, format in formats:
+            types.append_text(name)
+            name_to_format[name] = format
+            
+        types.set_active(0)
+        img_vbox = gtk.VBox()
+        pack(img_vbox, [gtk.Label(_('File type:')), types])
+        img_vbox.show()
+        chooser.set_extra_widget(img_vbox)
 
-            ok = chooser.run() == gtk.RESPONSE_OK
-            if ok:
-                filenames = [chooser.get_filename()]
-                filetype = types.get_active_text()
-            chooser.destroy()
+        ok = chooser.run() == gtk.RESPONSE_OK
+        if ok:
+            filenames = [chooser.get_filename()]
+            filetype = types.get_active_text()
+        chooser.destroy()
 
-            if not ok:
-                return
+        if not ok:
+            return
 
         self.reset_tools_modes()
-        self.images.read(filenames, slice(None), name_to_suffix[filetype])
+        self.images.read(filenames, slice(None), name_to_format[filetype])
         self.set_colors()
         self.set_coordinates(self.images.nimages - 1, focus=True)
 
@@ -1157,9 +1144,6 @@ class GUI(View, Status):
         self.set_colors()
         self.set_coordinates(self.images.nimages - 1, focus=True)
 
-    def save(self, menuitem):
-        SaveWindow(self)
-        
     def quick_info_window(self, menuitem):
         QuickInfo(self)
 

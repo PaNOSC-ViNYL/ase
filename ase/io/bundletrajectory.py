@@ -28,6 +28,7 @@ import time
 import pickle
 import collections
 
+
 class BundleTrajectory:
     """Reads and writes atoms into a .bundle directory.
 
@@ -59,11 +60,12 @@ class BundleTrajectory:
         Use backup=False to disable renaming of an existing file.
     """
     slavelog = True  # Log from all nodes
+
     def __init__(self, filename, mode='r', atoms=None, backup=True):
         self.state = 'constructing'
         self.filename = filename
-        self.pre_observers = []   # Callback functions before write is performed
-        self.post_observers = []  # Callback functions after write is performed
+        self.pre_observers = []  # callback functions before write is performed
+        self.post_observers = []  # callback functions after write is performed
         self.master = ase.parallel.rank == 0
         self.extra_data = []
         self._set_defaults()
@@ -306,14 +308,15 @@ class BundleTrajectory:
                 self.logfile.write(text + '\n')
                 self.logfile.flush()
         else:
-            raise RuntimeError("Cannot write to log file in mode " + self.state)
+            raise RuntimeError('Cannot write to log file in mode ' +
+                               self.state)
 
     # __getitem__ is the main reading method.
     def __getitem__(self, n):
         return self._read(n)
 
     def _read(self, n):
-        "Read an atoms object from the BundleTrajectory."
+        """Read an atoms object from the BundleTrajectory."""
         if self.state != 'read':
             raise IOError('Cannot read in %s mode' % (self.state,))
         if n < 0:
@@ -418,7 +421,7 @@ class BundleTrajectory:
 
     def _open_write(self, atoms, backup):
         "Open a bundle trajectory for writing."
-        self.logfile = None # Enable delayed logging
+        self.logfile = None  # enable delayed logging
         self.atoms = atoms
         if os.path.exists(self.filename):
             # The output directory already exists.
@@ -426,12 +429,13 @@ class BundleTrajectory:
                 raise IOError("Filename '" + self.filename +
                               "' already exists, but is not a BundleTrajectory." +
                               "Cowardly refusing to remove it.")
-            ase.parallel.barrier() # All must have time to see it exists.
+            ase.parallel.barrier()  # all must have time to see it exists
             if self.is_empty_bundle(self.filename):
                 self.log('Deleting old "%s" as it is empty' % (self.filename,))
                 self.delete_bundle(self.filename)
             elif not backup:
-                self.log('Deleting old "%s" as backup is turned off.' % (self.filename,))
+                self.log('Deleting old "%s" as backup is turned off.' %
+                         (self.filename,))
                 self.delete_bundle(self.filename)
             else:
                 # Make a backup file
@@ -759,6 +763,7 @@ class PickleBundleBackend:
         """
         pass
     
+        
 def read_bundletrajectory(filename, index=-1):
     """Reads one or more atoms objects from a BundleTrajectory.
 
@@ -804,6 +809,7 @@ def read_bundletrajectory(filename, index=-1):
                     
         return [traj[i] for i in range(start, stop, step)]
 
+        
 def write_bundletrajectory(filename, images):
     """Write image(s) to a BundleTrajectory.
 
@@ -826,7 +832,7 @@ def write_bundletrajectory(filename, images):
         traj.write(atoms)
     traj.close()
 
-    
+
 def print_bundletrajectory_info(filename):
     """Prints information about a BundleTrajectory.
 
@@ -879,7 +885,7 @@ def print_bundletrajectory_info(filename):
             print("  %s: %s" % (k, str(v)))
     # Read info from separate files.
     for k, v in metadata['datatypes'].items():
-        if v and not k in small:
+        if v and k not in small:
             info = backend.read_info(frame, k)
             if info and isinstance(info[0], tuple):
                 shape, dtype = info
@@ -888,8 +894,7 @@ def print_bundletrajectory_info(filename):
                 dtype = 'unknown'
             print("  %s: shape = %s, type = %s" % (k, str(shape), dtype))
                 
-            
-            
+        
 if __name__ == '__main__':
     from ase.lattice.cubic import FaceCenteredCubic
     from ase.io import read, write
@@ -898,5 +903,3 @@ if __name__ == '__main__':
     atoms2 = read('test.bundle')
     assert (atoms.get_positions() == atoms2.get_positions()).all()
     assert (atoms.get_atomic_numbers() == atoms2.get_atomic_numbers()).all()
-    
-    

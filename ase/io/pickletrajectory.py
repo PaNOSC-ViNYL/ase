@@ -541,6 +541,10 @@ def write_trajectory(filename, images):
 
     traj.close()
 
+        
+read_trj = read_trajectory
+write_trj = write_trajectory
+
 
 def dict2constraints(d):
     """Convert dict unpickled from trajectory file to list of constraints."""

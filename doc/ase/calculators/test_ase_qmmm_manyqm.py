@@ -8,7 +8,7 @@ from ase.calculators.ase_qmmm_manyqm import AseQmmmManyqm
 from ase.optimize import BFGS
 
 import sys
-from ase.io.gromos import read_gromos
+from ase.io import read
 
 RUN_COMMAND = '/home/mka/bin/aims.071711_6.serial.x'
 SPECIES_DIR = '/home/mka/Programs/fhi-aims.071711_6/species_defaults/light/'
@@ -51,7 +51,7 @@ CALC_QM3.set(output = 'hirshfeld')
 CALC_MM = Gromacs(
     init_structure_file = infile_name,
     structure_file = 'gromacs_qm.g96', \
-    force_field = 'oplsaa', 
+    force_field = 'oplsaa',
     water_model = 'tip3p',
     base_filename = 'gromacs_qm',
     doing_qmmm = True, freeze_qm = False,
@@ -75,13 +75,13 @@ CALC_MM = Gromacs(
 CALC_MM.generate_topology_and_g96file()
 CALC_MM.generate_gromacs_run_file()
 
-CALC_QMMM = AseQmmmManyqm(nqm_regions = 3, 
-                          qm_calculators = [CALC_QM1, CALC_QM2, CALC_QM3], 
+CALC_QMMM = AseQmmmManyqm(nqm_regions = 3,
+                          qm_calculators = [CALC_QM1, CALC_QM2, CALC_QM3],
                           mm_calculator = CALC_MM,
                           link_info = 'byQM')
-#                         link_info = 'byFILE') 
+#                         link_info = 'byFILE')
 
-SYSTEM = read_gromos('gromacs_qm.g96')
+SYSTEM = read('gromacs_qm.g96')
 SYSTEM.set_calculator(CALC_QMMM)
 DYN = BFGS(SYSTEM)
 DYN.run(fmax = 0.05)

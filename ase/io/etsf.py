@@ -2,11 +2,19 @@ import numpy as np
 
 from ase.atoms import Atoms
 from ase.units import Bohr
-from ase.io.pupynere import NetCDFFile
+
+
+def read_etsf(filename):
+    yield ETSFReader(filename).read_atoms()
+    
+
+def write_etsf(filename, atoms):
+    ETSFWriter(filename).write_atoms(atoms)
 
 
 class ETSFReader:
     def __init__(self, filename):
+        from Scientific.IO.NetCDF import NetCDFFile
         self.nc = NetCDFFile(filename, 'r')
 
     def read_atoms(self):
@@ -20,8 +28,8 @@ class ETSFReader:
                      scaled_positions=spos,
                      cell=cell[:] * Bohr,
                      pbc=True)
-
-
+    
+    
 class ETSFWriter:
     def __init__(self, filename):
         from Scientific.IO.NetCDF import NetCDFFile

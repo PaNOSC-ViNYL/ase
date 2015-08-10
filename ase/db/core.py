@@ -8,7 +8,7 @@ from time import time
 from ase.atoms import Atoms, symbols2numbers
 from ase.calculators.calculator import all_properties, all_changes
 from ase.data import atomic_numbers
-from ase.parallel import world, broadcast, DummyMPI
+from ase.parallel import world, DummyMPI, parallel_function, parallel_generator
 from ase.utils import Lock, basestring
 
 
@@ -66,7 +66,7 @@ def check(key_value_pairs):
 
             
 def connect(name, type='extract_from_name', create_indices=True,
-            use_lock_file=True, append=True):
+            use_lock_file=True, append=True, serial=False):
     """Create connection to database.
     
     name: str
@@ -85,6 +85,8 @@ def connect(name, type='extract_from_name', create_indices=True,
     if type == 'extract_from_name':
         if name is None:
             type = None
+        elif not isinstance(name, str):
+            type = 'json'
         elif name.startswith('pg://'):
             type = 'postgresql'
         else:
@@ -98,10 +100,11 @@ def connect(name, type='extract_from_name', create_indices=True,
         
     if type == 'json':
         from ase.db.jsondb import JSONDatabase
-        return JSONDatabase(name, use_lock_file=use_lock_file)
+        return JSONDatabase(name, use_lock_file=use_lock_file, serial=serial)
     if type == 'db':
         from ase.db.sqlite import SQLite3Database
-        return SQLite3Database(name, create_indices, use_lock_file)
+        return SQLite3Database(name, create_indices, use_lock_file,
+                               serial=serial)
     if type == 'postgresql':
         from ase.db.postgresql import PostgreSQLDatabase
         return PostgreSQLDatabase(name[5:])
@@ -119,47 +122,6 @@ def lock(method):
                 return method(self, *args, **kwargs)
     return new_method
 
-
-def parallel(method):
-    """Decorator for broadcasting from master to slaves using MPI."""
-    if world.size == 1:
-        return method
-        
-    @functools.wraps(method)
-    def new_method(*args, **kwargs):
-        ex = None
-        result = None
-        if world.rank == 0:
-            try:
-                result = method(*args, **kwargs)
-            except Exception as ex:
-                pass
-        ex, result = broadcast((ex, result))
-        if ex is not None:
-            raise ex
-        return result
-    return new_method
-
-
-def parallel_generator(generator):
-    """Decorator for broadcasting yields from master to slaves using MPI."""
-    if world.size == 1:
-        return generator
-        
-    @functools.wraps(generator)
-    def new_generator(*args, **kwargs):
-        if world.rank == 0:
-            for result in generator(*args, **kwargs):
-                result = broadcast(result)
-                yield result
-            broadcast(None)
-        else:
-            result = broadcast(None)
-            while result is not None:
-                yield result
-                result = broadcast(None)
-    return new_generator
-
     
 def convert_str_to_float_or_str(value):
     """Safe eval()"""
@@ -173,7 +135,14 @@ def convert_str_to_float_or_str(value):
 class Database:
     """Base class for all databases."""
     def __init__(self, filename=None, create_indices=True,
-                 use_lock_file=False):
+                 use_lock_file=False, serial=False):
+        """Database object.
+        
+        serial: bool
+            Let someone else handle parallelization.  Default behavior is
+            to interact with the database on the master only and then
+            distribute results to all slaves.
+        """
         if isinstance(filename, str):
             filename = os.path.expanduser(filename)
         self.filename = filename
@@ -182,8 +151,9 @@ class Database:
             self.lock = Lock(filename + '.lock', world=DummyMPI())
         else:
             self.lock = None
+        self.serial = serial
             
-    @parallel
+    @parallel_function
     @lock
     def write(self, atoms, key_value_pairs={}, data={}, **kwargs):
         """Write atoms to database with key-value pairs.
@@ -217,7 +187,7 @@ class Database:
         check(key_value_pairs)
         return 1
 
-    @parallel
+    @parallel_function
     @lock
     def reserve(self, **key_value_pairs):
         """Write empty row if not already present.
@@ -290,9 +260,6 @@ class Database:
         
         selection: int, str or list
             See the select() method.
-        fancy: bool
-            return fancy dictionary with keys as attributes (this is the
-            default).
         """
 
         rows = list(self.select(selection, limit=2, **kwargs))
@@ -418,7 +385,7 @@ class Database:
             n += 1
         return n
         
-    @parallel
+    @parallel_function
     @lock
     def update(self, ids, delete_keys=[], block_size=1000,
                **add_key_value_pairs):

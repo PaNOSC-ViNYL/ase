@@ -10,26 +10,12 @@ from ase.data import covalent_radii
 from ase.data.colors import jmol_colors
 
 
-def write_x3d(filename, atoms, **parameters):
-    """Writes to x3d."""
-    if isinstance(atoms, list):
-        if len(atoms) > 1:
-            raise NotImplementedError('Cannot save more than one image at '
-                                      'a time to X3D format.')
-        else:
-            atoms = atoms[0]
-    X3D(atoms, **parameters).write(filename)
-
-
-def write_html(filename, atoms, **parameters):
+def write_x3d(filename, atoms):
     """Writes to html using X3DOM."""
-    if isinstance(atoms, list):
-        if len(atoms) > 1:
-            raise NotImplementedError('Cannot save more than one image at '
-                                      'a time to X3DOM html format.')
-        else:
-            atoms = atoms[0]
-    X3D(atoms, **parameters).write(filename)
+    X3D(atoms).write(filename)
+
+    
+write_html = write_x3d
 
 
 class X3D:

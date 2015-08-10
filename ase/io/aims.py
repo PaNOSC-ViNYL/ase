@@ -75,7 +75,7 @@ def write_aims(filename, atoms, ghosts=None):
     """Method to write FHI-aims geometry files.
 
     Writes the atoms positions and constraints (only FixAtoms is
-    supported at the moment). 
+    supported at the moment).
     """
 
     from ase.constraints import FixAtoms, FixCartesian
@@ -100,7 +100,7 @@ def write_aims(filename, atoms, ghosts=None):
             for i in range(3):
                 fd.write('%16.16f ' % vector[i])
             fd.write('\n')
-    fix_cart = np.zeros([len(atoms),3]) 
+    fix_cart = np.zeros([len(atoms),3])
 
     if atoms.constraints:
         for constr in atoms.constraints:
@@ -148,9 +148,9 @@ def read_energy(filename):
 
 
 def read_aims_output(filename, index = -1):
-    """  Import FHI-aims output files with all data available, i.e. relaxations, 
+    """  Import FHI-aims output files with all data available, i.e. relaxations,
     MD information, force information etc etc etc. """
-    from ase import Atoms, Atom 
+    from ase import Atoms, Atom
     from ase.calculators.singlepoint import SinglePointCalculator
     from ase.units import Ang, fs
     from ase.constraints import FixAtoms, FixCartesian
@@ -159,7 +159,7 @@ def read_aims_output(filename, index = -1):
     cell = []
     images = []
     fix = []
-    fix_cart = []    
+    fix_cart = []
     n_periodic = -1
     f = None
     pbc = False
@@ -228,7 +228,7 @@ def read_aims_output(filename, index = -1):
                         inp = fd.readline().split()
                     atoms.set_cell(cell)
                     inp = fd.readline().split()
-                atoms.append(Atom(inp[4],(inp[1],inp[2],inp[3])))  
+                atoms.append(Atom(inp[4],(inp[1],inp[2],inp[3])))
                 if molecular_dynamics:
                     inp = fd.readline().split()
         if "Atomic structure (and velocities)" in line:
@@ -237,7 +237,7 @@ def read_aims_output(filename, index = -1):
             velocities = []
             for i in range(n_atoms):
                 inp = fd.readline().split()
-                atoms.append(Atom(inp[4],(inp[1],inp[2],inp[3])))  
+                atoms.append(Atom(inp[4],(inp[1],inp[2],inp[3])))
                 inp = fd.readline().split()
                 velocities += [[float(inp[1])*v_unit,float(inp[2])*v_unit,float(inp[3])*v_unit]]
             atoms.set_velocities(velocities)
@@ -265,7 +265,7 @@ def read_aims_output(filename, index = -1):
                 atoms.pbc = True
             if not found_aims_calculator:
                 atoms.set_calculator(SinglePointCalculator(atoms, energy=e))
-            if not molecular_dynamics: 
+            if not molecular_dynamics:
                 if len(fix):
                     atoms.set_constraint([FixAtoms(indices=fix)]+fix_cart)
                 else:

@@ -14,9 +14,8 @@ from ase import Atoms
 from ase.calculators.calculator import FileIOCalculator
 # XXX raise ReadError upon bad read
 from ase.data import atomic_numbers
+from ase.io import read
 from ase.io.xsf import read_xsf
-from ase.io.pdb import read_pdb
-from ase.io.xyz import read_xyz
 
 # Representation of parameters from highest to lowest level of abstraction:
 #
@@ -299,15 +298,12 @@ def kwargs2atoms(kwargs):
         
         fname = kwargs.pop(keyword)
         fmt = keyword[:3].lower()
-        read_method = {'xyz': read_xyz,
-                       'pdb': read_pdb,
-                       'xsf': read_xsf}[fmt]
         # XXX test xyz, pbd and xsf
         if fmt == 'xsf' and 'xsfcoordinatesanimstep' in kwargs:
             anim_step = kwargs.pop('xsfcoordinatesanimstep')
             slice = slice(anim_step, anim_step + 1, 1)
             # XXX test animstep
-        images = read_method(fname, slice(None, None, 1))
+        images = read(fname, slice(None, None, 1), fmt)
         if len(images) != 1:
             raise OctopusParseError('Expected only one image.  Don\'t know '
                                     'what to do with %d images.' % len(images))

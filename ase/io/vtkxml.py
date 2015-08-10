@@ -1,16 +1,10 @@
 import numpy as np
-#from Numeric import asarray as Numeric_asarray
-
-#from ase.units import Bohr
-#from ase.parallel import paropen
 
 fast = False
 
-# -------------------------------------------------------------------
 
-from vtk import vtkStructuredPoints, vtkDoubleArray, vtkXMLImageDataWriter
-
-def write_vti(filename, atoms, data):
+def write_vti(filename, atoms, data=None):
+    from vtk import vtkStructuredPoints, vtkDoubleArray, vtkXMLImageDataWriter
 
     #if isinstance(fileobj, str):
     #    fileobj = paropen(fileobj, 'w')
@@ -87,19 +81,9 @@ def write_vti(filename, atoms, data):
     w.SetInput(spts)
     w.Write()
 
-# -------------------------------------------------------------------
-
-from vtk import vtkStructuredGrid, vtkPoints, vtkXMLStructuredGridWriter
-
-def write_vts(filename, atoms, data=None):
-    raise NotImplementedError
-
-# -------------------------------------------------------------------
-
-from vtk import vtkUnstructuredGrid, vtkPoints, vtkXMLUnstructuredGridWriter
 
 def write_vtu(filename, atoms, data=None):
-
+    from vtk import vtkUnstructuredGrid, vtkPoints, vtkXMLUnstructuredGridWriter
     #if isinstance(fileobj, str):
     #    fileobj = paropen(fileobj, 'w')
         
@@ -165,31 +149,3 @@ def write_vtu(filename, atoms, data=None):
     w.SetFileName(filename)
     w.SetInput(ugd)
     w.Write()
-
-
-# -------------------------------------------------------------------
-
-def read_vti(filename):
-    raise NotImplementedError
-
-def read_vts(filename):
-    raise NotImplementedError
-
-def read_vtu(filename):
-    raise NotImplementedError
-
-# -------------------------------------------------------------------
-
-from vtk import vtkXMLFileReadTester
-
-def probe_vtkxml(filename):
-    """something..."""
-
-    r = vtkXMLFileReadTester()
-    r.SetFileName(filename)
-
-    if r.TestReadFile():
-        return r.GetFileDataType()
-    else:
-        return None
-

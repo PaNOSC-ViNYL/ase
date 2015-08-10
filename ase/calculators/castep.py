@@ -39,8 +39,8 @@ from ase.parallel import paropen
 # a higher priority, assuming that personal folder will be
 # standardized at ~/.ase, watch [ase-developers]
 sys.path = ['',
-    os.path.expanduser('~/.ase'),
-    os.path.join(ase.__path__[0], 'calculators')] + sys.path
+            os.path.expanduser('~/.ase'),
+            os.path.join(ase.__path__[0], 'calculators')] + sys.path
 
 
 class Castep(Calculator):
@@ -309,21 +309,20 @@ End CASTEP Interface Documentation
             '_rename_existing_dir',
             '_set_atoms',
             '_track_output',
-            '_try_reuse',
-            ]
+            '_try_reuse']
 
     def __init__(self, directory='CASTEP', label='castep',
-        castep_command=None, check_castep_version=False,
-        castep_pp_path=None,
-        **kwargs):
+                 castep_command=None, check_castep_version=False,
+                 castep_pp_path=None,
+                 **kwargs):
 
         self.__name__ = 'Castep'
 
         # initialize the ase.calculators.general calculator
         Calculator.__init__(self)
 
-        from ase.io.castep import write_cell
-        self._write_cell = write_cell
+        from ase.io.castep import write_castep_cell
+        self._write_cell = write_castep_cell
 
         castep_keywords = import_castep_keywords()
         self.param = CastepParam()

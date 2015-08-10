@@ -5,12 +5,20 @@
 File input and output
 =====================
 
-The :mod:`ase.io` module has two basic functions: :func:`read` and
-:func:`write`. The two methods are described here:
+The :mod:`ase.io` module has three basic functions: :func:`read`,
+:func:`iread` and :func:`write`. The methods are described here:
 
 .. autofunction:: read
+.. autofunction:: iread
 .. autofunction:: write
 
+These are the file-formats that are recognized (formats with a ``+`` support
+multiple configurations):
+
+.. csv-table::
+    :file: io.csv
+    :header-rows: 1
+    
 The :func:`read` function is only designed to retrieve the atomic configuration
 from a file, but for the CUBE format you can import the function:
 
@@ -74,11 +82,11 @@ Use ASE's native format for writing all information:
 
 >>> write('slab.traj', slab)
 >>> b = read('slab.traj')
->>> b.get_cell()
+>>> b.cell
 array([[  5.10531096e+00,  -4.11836034e-16,   1.99569088e-16],
        [  2.55265548e+00,   4.42132899e+00,   7.11236625e-17],
        [  8.11559027e+00,   4.68553823e+00,   1.32527034e+01]])
->>> b.get_pbc()
+>>> b.pbc
 array([ True,  True,  True], dtype=bool)
 
 A script showing all of the povray parameters, and generating the image below,
@@ -88,3 +96,11 @@ can be found here: :download:`save_pov.py`
 
 An other example showing how to change colors and textures in pov can
 be found here: :download:`../tutorials/saving_graphics.py`.
+
+
+Adding a new file-format to ASE
+===============================
+
+Try to model the read/write functions after the *xyz* format as implemented
+in :svn:`ase/io/xyz.py` and also read, understand and update
+:svn:`ase/io/formats.py`.
