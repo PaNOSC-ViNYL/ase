@@ -7,6 +7,11 @@ from ase.io import write, read, iread
 from ase.io.formats import all_formats, get_ioformat
 from ase.calculators.singlepoint import SinglePointCalculator
 
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = 0
+    
 a = 5.0
 d = 1.9
 c = a / 2
@@ -46,9 +51,13 @@ for format in all_formats:
     if format in ['abinit', 'castep_cell', 'dftb', 'eon', 'gaussian',
                   'postgresql', 'trj', 'vti', 'vtu']:
         continue
+    
     if sys.version_info[0] == 3 and format in ['bundletrajectory', 'cif']:
         continue
 
+    if not matplotlib and format in ['eps', 'png']:
+        continue
+        
     io = get_ioformat(format)
     print('{0:20}{1}{2}{3}{4}'.format(format,
                                       ' R'[bool(io.read)],
