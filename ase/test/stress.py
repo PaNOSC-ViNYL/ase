@@ -5,10 +5,13 @@ from ase.calculators.lj import LennardJones
 from ase.constraints import UnitCellFilter
 from ase.optimize import MDMin
 
-
+# Theoretical infinite-cutoff LJ FCC unit cell parameters
 vol0 = 4 * 0.91615977036  # theoretical minimum
 a0 = vol0**(1 / 3)
+
 a = bulk('X', 'fcc', a=a0)
+cell0 = a.get_cell()
+
 a.calc = LennardJones()
 a.set_cell(np.dot(a.cell,
                   [[1.02, 0, 0.03],
@@ -17,48 +20,30 @@ a.set_cell(np.dot(a.cell,
            scale_atoms=True)
 
 a *= (1, 2, 3)
+cell0 *= np.array([1, 2, 3])[:, np.newaxis]
+
 a.rattle()
-sigma_vv = a.get_stress(voigt=False)
-print(sigma_vv)
-print(a.get_potential_energy() / len(a))
-vol = a.get_volume()
 
-deps = 1e-5
-cell = a.cell.copy()
-for v in range(3):
-    x = np.eye(3)
-    x[v, v] += deps
-    a.set_cell(np.dot(cell, x), scale_atoms=True)
-    ep = a.calc.get_potential_energy(a, force_consistent=True)
-    x[v, v] -= 2 * deps
-    a.set_cell(np.dot(cell, x), scale_atoms=True)
-    em = a.calc.get_potential_energy(a, force_consistent=True)
-    s = (ep - em) / 2 / deps / vol
-    print(v, s, abs(s - sigma_vv[v, v]))
-    assert abs(s - sigma_vv[v, v]) < 1e-7
-for v1 in range(3):
-    v2 = (v1 + 1) % 3
-    x = np.eye(3)
-    x[v1, v2] = deps
-    x[v2, v1] = deps
-    a.set_cell(np.dot(cell, x), scale_atoms=True)
-    ep = a.calc.get_potential_energy(a, force_consistent=True)
-    x[v1, v2] = -deps
-    x[v2, v1] = -deps
-    a.set_cell(np.dot(cell, x), scale_atoms=True)
-    em = a.calc.get_potential_energy(a, force_consistent=True)
-    s = (ep - em) / deps / 4 / vol
-    print(v1, v2, s, abs(s - sigma_vv[v1, v2]))
-    assert abs(s - sigma_vv[v1, v2]) < 1e-7
+# Verify analytical stress tensor against numerical value
+s_analytical = a.get_stress()
+s_numerical = a.calc.calculate_numerical_stress(a, 1e-5)
+s_p_err = 100 * (s_numerical - s_analytical) / s_numerical
 
+print("Analytical stress:\n", s_analytical)
+print("Numerical stress:\n", s_numerical)
+print("Percent error in stress:\n", s_p_err)
+assert np.all(abs(s_p_err) < 1e-5)
+
+# Minimize unit cell
 opt = MDMin(UnitCellFilter(a), dt=0.01)
 opt.run(fmax=0.5)
-print(a.cell)
-for i in range(3):
-    for j in range(3):
-        x = np.dot(a.cell[i], a.cell[j])
-        y = (i + 1) * (j + 1) * a0**2 / 2
-        if i != j:
-            y /= 2
-        print(i, j, x, (x - y) / x)
-        assert abs((x - y) / x) < 0.01
+
+# Verify minimized unit cell using Niggli tensors
+g_minimized = np.dot(a.cell, a.cell.T)
+g_theory = np.dot(cell0, cell0.T)
+g_p_err = 100 * (g_minimized - g_theory) / g_theory
+
+print("Minimized Niggli tensor:\n", g_minimized)
+print("Theoretical Niggli tensor:\n", g_theory)
+print("Percent error in Niggli tensor:\n", g_p_err)
+assert np.all(abs(g_p_err) < 1)
