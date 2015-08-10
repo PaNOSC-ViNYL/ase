@@ -17,6 +17,15 @@ def save_dialog(gui):
                                     gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL))
     dialog.set_current_name('.traj@:')
     dialog.set_current_folder(os.getcwd())
+    text = _('Append name with "@n" in order to write image number "n" '
+             'instead of the current image.\n'
+             'Append "@start:stop" or "@start:stop:step" if you want to write '
+             'a range of images.\n'
+             'You can leave out "start" and "stop" so that "name@:" will '
+             'give you all images.\n'
+             'Negative numbers count from the last image '
+             '("name@-1": last image, "name@-2:": last two).')
+    dialog.set_extra_widget(gtk.Label(text))
     response = dialog.run()
     if response == gtk.RESPONSE_OK:
         filename = dialog.get_filename()
