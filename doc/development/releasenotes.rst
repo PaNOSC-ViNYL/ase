@@ -13,6 +13,9 @@ Development version in trunk
 * New iterator function :func:`ase.io.iread` for iteratively reading Atoms
   objects from a file.
 
+* Two new decorators :func:`~ase.parallel.parallel_function` and
+  :func:`~ase.parallel.parallel_generator` added.
+  
           
 Version 3.9.1
 =============
