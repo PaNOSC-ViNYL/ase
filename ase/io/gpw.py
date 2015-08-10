@@ -3,10 +3,9 @@ from ase.calculators.singlepoint import SinglePointDFTCalculator
 from ase.calculators.singlepoint import SinglePointKPoint
 from ase.units import Bohr, Hartree
 
-import gpaw
-
 
 def read_gpw(filename):
+    import gpaw
     r = gpaw.io.open(filename, 'r')
     positions = r.get('CartesianPositions') * Bohr
     numbers = r.get('AtomicNumbers')
