@@ -364,7 +364,18 @@ def string2index(string):
 
 
 def filetype(filename, read=True):
-    """Try to guess the type of the file."""
+    """Try to guess the type of the file.
+    
+    First, special signatures in the filename will be checked for.  If that
+    does not identify the file type, then the first 2000 bytes of the file
+    will be read and analysed.  Turn off this second part by using
+    read=False.
+    
+    Can be used from the command-line also::
+        
+        $ python -m ase.io.formats filename ...
+    """
+    
     if isinstance(filename, str):
         if os.path.isdir(filename):
             if os.path.basename(os.path.normpath(filename)) == 'states':
@@ -403,7 +414,7 @@ def filetype(filename, read=True):
     
         fd = open(filename, 'rb')
     else:
-        ext = 'json'
+        ext = None
         fd = filename
         if fd is sys.stdin:
             return 'json'
@@ -411,6 +422,8 @@ def filetype(filename, read=True):
     data = fd.read(2000)
     if fd is not filename:
         fd.close()
+    else:
+        fd.seek(0)
         
     if len(data) == 0:
         raise IOError('Empty file: ' + filename)
@@ -452,12 +465,12 @@ if __name__ == '__main__':
     if filenames:
         n = max(len(filename) for filename in filenames) + 2
     for filename in filenames:
-        try:
-            format = filetype(filename)
+        format = filetype(filename)
+        if format:
             description, code = all_formats[format]
             if code[0] == '+':
                 format += '+'
-        except ValueError:
+        else:
             format = '?'
             description = ''
             
