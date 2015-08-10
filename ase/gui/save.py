@@ -15,6 +15,7 @@ def save_dialog(gui):
                                    gtk.FILE_CHOOSER_ACTION_SAVE,
                                    (gtk.STOCK_SAVE, gtk.RESPONSE_OK,
                                     gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL))
+    dialog.set_current_name('.traj@:')
     dialog.set_current_folder(os.getcwd())
     response = dialog.run()
     if response == gtk.RESPONSE_OK:
