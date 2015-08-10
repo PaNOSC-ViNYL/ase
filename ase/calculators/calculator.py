@@ -484,6 +484,7 @@ class Calculator:
 
             stress[i, j] = (eplus - eminus) / (4 * d * V)
             stress[j, i] = stress[i, j]
+        atoms.set_cell(cell, scale_atoms=True)
 
         if voigt:
             return stress.flat[[0, 4, 8, 5, 2, 1]]
