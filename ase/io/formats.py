@@ -345,8 +345,6 @@ def parse_filename(filename, index=None):
             newindex = string2index(newindex)
         except ValueError:
             return filename, index
-    if index is not None:
-        raise ValueError('Only one index is allowed')
     return newfilename, newindex
 
 

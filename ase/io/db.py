@@ -8,6 +8,8 @@ def read_db(filename, index, **kwargs):
     else:
         if index == slice(None, None, None):
             index = None
+        elif isinstance(index, str) and index.isdigit():
+            index = int(index)
         for row in con.select(index):
             yield row.toatoms()
 
