@@ -15,7 +15,7 @@ def save_dialog(gui):
                                    gtk.FILE_CHOOSER_ACTION_SAVE,
                                    (gtk.STOCK_SAVE, gtk.RESPONSE_OK,
                                     gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL))
-    dialog.set_current_name('.traj@:')
+    dialog.set_current_name('')
     dialog.set_current_folder(os.getcwd())
     text = _('Append name with "@n" in order to write image number "n" '
              'instead of the current image.\n'
