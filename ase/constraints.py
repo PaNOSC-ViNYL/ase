@@ -352,7 +352,7 @@ class FixCartesian(FixConstraintSingle):
     'Fix an atom index *a* in the directions of the cartesian coordinates.'
     def __init__(self, a, mask=(1, 1, 1)):
         self.a = a
-        self.mask = -(np.array(mask) - 1)
+        self.mask = ~np.asarray(mask, bool)
 
     def adjust_positions(self, atoms, new):
         step = new[self.a] - atoms.positions[self.a]
@@ -363,9 +363,14 @@ class FixCartesian(FixConstraintSingle):
         forces[self.a] *= self.mask
 
     def __repr__(self):
-        return 'FixCartesian(indice=%s mask=%s)' % (self.a, self.mask)
+        return 'FixCartesian(a={0}, mask={1})'.format(self.a,
+                                                      list(~self.mask))
 
+    def todict(self):
+        return {'name': 'FixCartesian',
+                'kwargs': {'a': self.a, 'mask': ~self.mask}}
 
+        
 class FixScaled(FixConstraintSingle):
     'Fix an atom index *a* in the directions of the unit vectors.'
     def __init__(self, cell, a, mask=(1, 1, 1)):
