@@ -48,8 +48,12 @@ def check(a, format):
         assert abs(a.get_forces() - atoms.get_forces()).max() < 1e-12
     
 for format in all_formats:
-    if format in ['abinit', 'castep_cell', 'dftb', 'eon', 'gaussian',
-                  'postgresql', 'trj', 'vti', 'vtu']:
+    if format in ['abinit', 'castep-cell', 'dftb', 'eon', 'gaussian']:
+        # Someone should do something ...
+        continue
+        
+    if format in ['postgresql', 'trj', 'vti', 'vtu']:
+        # Let's not worry about these.
         continue
     
     if sys.version_info[0] == 3 and format in ['bundletrajectory', 'cif']:
