@@ -11,6 +11,11 @@ try:
     import matplotlib
 except ImportError:
     matplotlib = 0
+
+try:
+    from lxml import etree
+except ImportError:
+    etree = 0
     
 a = 5.0
 d = 1.9
@@ -60,6 +65,9 @@ for format in all_formats:
         continue
 
     if not matplotlib and format in ['eps', 'png']:
+        continue
+
+    if not etree and format == 'exciting':
         continue
         
     io = get_ioformat(format)
