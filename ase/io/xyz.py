@@ -1,6 +1,5 @@
 from ase.atoms import Atoms
 
-
 def read_xyz(fileobj, index):
     lines = fileobj.readlines()
     natoms = int(lines[0])
@@ -16,6 +15,10 @@ def read_xyz(fileobj, index):
             positions.append([float(x), float(y), float(z)])
         yield Atoms(symbols=symbols, positions=positions)
 
+# read_xyz() function above is for reference only.
+# We use the implementation from extxyz module, which is backwards
+# compatible with standard XYZ format
+from ase.io.extxyz import read_extxyz as read_xyz
 
 def write_xyz(fileobj, images, comment=''):
     symbols = images[0].get_chemical_symbols()
@@ -24,3 +27,6 @@ def write_xyz(fileobj, images, comment=''):
         fileobj.write('%d\n%s\n' % (natoms, comment))
         for s, (x, y, z) in zip(symbols, atoms.positions):
             fileobj.write('%-2s %22.15f %22.15f %22.15f\n' % (s, x, y, z))
+
+
+
