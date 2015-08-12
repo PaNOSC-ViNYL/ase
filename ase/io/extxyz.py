@@ -33,7 +33,7 @@ REV_PROPERTY_NAME_MAP = dict(zip(PROPERTY_NAME_MAP.values(),
 KEY_QUOTED_VALUE = re.compile(r'([A-Za-z_]+[A-Za-z0-9_]*)' +
                               r'\s*=\s*["\{\}]([^"\{\}]+)["\{\}e+-]\s*')
 KEY_VALUE = re.compile(r'([A-Za-z_]+[A-Za-z0-9_]*)\s*=' +
-                       r'\s*([-0-9A-Za-z_.:\[\]()e+-]+)\s*')
+                       r'\s*([-0-9A-Za-z_.:\[\]()e+-/]+)\s*')
 KEY_RE = re.compile(r'([A-Za-z_]+[A-Za-z0-9_]*)\s*')
 
 UNPROCESSED_KEYS = ['uid']
