@@ -55,8 +55,8 @@ mutations = OperationSelector([1., 1., 1.],
                                PermutationMutation(n_to_optimize)])
 
 # Relax all unrelaxed structures (e.g. the starting population)
-while (da.get_number_of_unrelaxed_candidates() > 0
-       and not pbs_run.enough_jobs_running()):
+while (da.get_number_of_unrelaxed_candidates() > 0 and
+       not pbs_run.enough_jobs_running()):
     a = da.get_an_unrelaxed_candidate()
     pbs_run.relax(a)
 
@@ -66,8 +66,8 @@ population = Population(data_connection=da,
                         comparator=comp)
 
 # Submit new candidates until enough are running
-while (not pbs_run.enough_jobs_running()
-       and len(population.get_current_population()) > 2):
+while (not pbs_run.enough_jobs_running() and
+       len(population.get_current_population()) > 2):
     a1, a2 = population.get_two_candidates()
     a3, desc = pairing.get_new_individual([a1, a2])
     if a3 is None:

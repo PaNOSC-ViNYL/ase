@@ -83,6 +83,11 @@ class CutSpliceCrossover(Crossover):
             dist = (abs(ain[-off - 1]) + abs(ain[-off])) * .5
             f.translate(-e * dist)
             m.translate(e * dist)
+        if off != 0 and dist == 0:
+            # Exactly same position => we continue with the wrong number
+            # of atoms. What should be done? Fail or return None or
+            # remove one of the two atoms with exactly the same position.
+            pass
 
         # Determine the contributing parts from f and m
         tmpf, tmpm = Atoms(), Atoms()
@@ -155,12 +160,12 @@ class CutSpliceCrossover(Crossover):
         """Generator function that returns each vector (between atoms)
         that is shorter than the minimum distance for those atom types
         (set during the initialization in blmin)."""
+        norm = np.linalg.norm
         ap = atoms.get_positions()
         an = atoms.numbers
         for i in range(len(atoms)):
             pos = atoms[i].position
-            f = lambda x: np.linalg.norm(x - pos)
-            for j, d in enumerate([f(k) for k in ap[i:]]):
+            for j, d in enumerate([norm(k - pos) for k in ap[i:]]):
                 if d == 0:
                     continue
                 min_dist = self.blmin[tuple(sorted((an[i], an[j + i])))]
@@ -168,12 +173,12 @@ class CutSpliceCrossover(Crossover):
                     yield atoms[i].position - atoms[j + i].position, min_dist
 
     def get_shortest_dist_vector(self, atoms):
+        norm = np.linalg.norm
         mind = 10000.
         ap = atoms.get_positions()
         for i in range(len(atoms)):
             pos = atoms[i].position
-            f = lambda x: np.linalg.norm(x - pos)
-            for j, d in enumerate([f(k) for k in ap[i:]]):
+            for j, d in enumerate([norm(k - pos) for k in ap[i:]]):
                 if d == 0:
                     continue
                 if d < mind:
