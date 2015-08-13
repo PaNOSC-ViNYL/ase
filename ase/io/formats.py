@@ -231,10 +231,12 @@ def write(filename, images, format=None, **kwargs):
                          'using json-format.')
         
     if io.acceptsfd:
-        if fd is None:
+        open_new = (fd is None)
+        if open_new:
             fd = open(filename, 'w')
         io.write(fd, images, **kwargs)
-        fd.close()
+        if open_new:
+            fd.close()
     else:
         if fd is not None:
             raise ValueError("Can't write {0}-format to file-descriptor"
