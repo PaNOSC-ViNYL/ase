@@ -345,9 +345,9 @@ class SetupBulkCrystal(SetupWindow):
             self.gui.new_atoms(self.atoms)
             return True
         else:
-            oops(_("No valid atoms.",
-                   "You have not (yet) specified a consistent set of "
-                   "parameters."))
+            oops(_('No valid atoms.'),
+                 _('You have not (yet) specified a consistent set of '
+                   'parameters.'))
             return False
 
     def ok(self, *args):
