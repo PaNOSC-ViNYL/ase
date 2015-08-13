@@ -57,7 +57,7 @@ class QuickInfo(gtk.Window):
                         for periodic in images.pbc]
             
             # TRANSLATORS: This has the form Periodic: no, no, yes
-            pbcstring = _('Periodic: %s, %s, %s' % tuple(periodic))
+            pbcstring = _('Periodic: %s, %s, %s') % tuple(periodic)
             txt = format % ((imgtxt, natoms) + tuple(uc.flat) + 
                             (pbcstring,) + (uctxt,))
         label = gtk.Label(txt)
