@@ -351,8 +351,12 @@ def read_xyz(fileobj, index=-1):
                 # special case for stress- convert to Voigt 6-element form
                 if key.startswith('stress'):
                     stress = results[key]
-                    stress = np.array([stress[0, 0], stress[1, 1], stress[2, 2],
-                                      stress[1, 2], stress[0, 2], stress[0, 1]])
+                    stress = np.array([stress[0, 0],
+                                       stress[1, 1],
+                                       stress[2, 2],
+                                       stress[1, 2],
+                                       stress[0, 2],
+                                       stress[0, 1]])
                     results[key] = stress
                 del atoms.info[key]
         for key in list(atoms.arrays.keys()):
@@ -485,7 +489,8 @@ def write_xyz(fileobj, images, columns=None, write_info=True,
                         per_atom_results[key] = value
                     else:
                         # per-frame quantities (energy, stress)
-                        # special case for stress, which should be converted to 3x3 matrices before writing
+                        # special case for stress, which should be converted
+                        # to 3x3 matrices before writing
                         if key.startswith('stress'):
                             xx, yy, zz, yz, xz, xy = value
                             value = np.array([(xx, xy, xz),
