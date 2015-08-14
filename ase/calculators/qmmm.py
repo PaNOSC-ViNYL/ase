@@ -165,7 +165,7 @@ class LJInteractions:
                 s6 = (sigma**2 / r2)**3
                 s12 = s6**2
                 energy += 4 * epsilon * (s12 - s6).sum()
-                f = 24 * epsilon * (2 * s12 - s6) / r2 * d
+                f = 24 * epsilon * ((2 * s12 - s6) / r2)[:, np.newaxis] * d
                 F1 -= f.sum(0)
                 mmforces[mask] += f
         return energy, qmforces, mmforces
