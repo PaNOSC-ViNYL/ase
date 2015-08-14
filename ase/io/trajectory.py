@@ -22,11 +22,9 @@ def Trajectory(filename, mode='r', atoms=None, properties=None, master=None):
     mode: str
         The mode.  'r' is read mode, the file should already exist, and
         no atoms argument should be specified.
-        'w' is write mode.  If the file already exists, it is
-        renamed by appending .bak to the file name.  The atoms
-        argument specifies the Atoms object to be written to the
-        file, if not given it must instead be given as an argument
-        to the write() method.
+        'w' is write mode.  The atoms argument specifies the Atoms 
+        object to be written to the file, if not given it must instead
+        be given as an argument to the write() method.
         'a' is append mode.  It acts as write mode, except that
         data is appended to a preexisting file.
     atoms: Atoms object
@@ -61,11 +59,9 @@ class TrajectoryWriter:
         mode: str
             The mode.  'r' is read mode, the file should already exist, and
             no atoms argument should be specified.
-            'w' is write mode.  If the file already exists, it is
-            renamed by appending .bak to the file name.  The atoms
-            argument specifies the Atoms object to be written to the
-            file, if not given it must instead be given as an argument
-            to the write() method.
+            'w' is write mode.  The atoms argument specifies the Atoms 
+            object to be written to the file, if not given it must instead
+            be given as an argument to the write() method.
             'a' is append mode.  It acts as write mode, except that
             data is appended to a preexisting file.
         atoms: Atoms object
