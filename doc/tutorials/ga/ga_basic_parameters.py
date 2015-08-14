@@ -14,7 +14,8 @@ from ase.ga.pbs_queue_run import PBSQueueRun
 from ase.ga.atoms_attach import enable_parametrization_methods
 import numpy as np
 from ase.ga.utilities import get_atoms_connections, get_atoms_distribution
-from ase.ga.utilities import get_angles_distribution, get_rings, get_neighborlist
+from ase.ga.utilities import get_angles_distribution
+from ase.ga.utilities import get_rings, get_neighborlist
 
 
 def jtg(job_name, traj_file):
@@ -25,14 +26,16 @@ def jtg(job_name, traj_file):
     s += '#PBS -q q16\n'
     s += 'cd $PBS_O_WORKDIR\n'
     s += 'NPROCS==`wc -l < $PBS_NODEFILE`\n'
-    s += 'mpirun --mca mpi_warn_on_fork 0 -np $NPROCS gpaw-python calc_gpaw.py {0}\n'.format(traj_file)
+    s += 'mpirun --mca mpi_warn_on_fork 0 -np $NPROCS '
+    s += 'gpaw-python calc_gpaw.py {0}\n'.format(traj_file)
     return s
 
 
 def combine_parameters(conf):
     # Get and combine selected parameters
     parameters = []
-    gets = [get_atoms_connections(conf) + get_rings(conf) + get_angles_distribution(conf) + get_atoms_distribution(conf)]
+    gets = [get_atoms_connections(conf) + get_rings(conf) +
+            get_angles_distribution(conf) + get_atoms_distribution(conf)]
     for get in gets:
         parameters += get
     return parameters
@@ -40,7 +43,8 @@ def combine_parameters(conf):
 
 def should_we_skip(conf, comparison_energy, weights):
     parameters = combine_parameters(conf)
-    # Return if weights not defined (too few completed calculated structures to make a good fit)
+    # Return if weights not defined (too few completed
+    # calculated structures to make a good fit)
     if weights is None:
         return False
     regression_energy = sum(p * q for p, q in zip(weights, parameters))
@@ -120,10 +124,11 @@ while (not pbs_run.enough_jobs_running() and
        len(population.get_current_population()) > 2):
     a1, a2 = population.get_two_candidates()
 
-    # Selecting the "worst"  parent energy which the child should be compared to
-    comparison_energy_a1 = da.get_atoms(a1.info['relax_id']).get_potential_energy()
-    comparison_energy_a2 = da.get_atoms(a2.info['relax_id']).get_potential_energy()
-    comparison_energy = min(comparison_energy_a1, comparison_energy_a2)
+    # Selecting the "worst" parent energy
+    # which the child should be compared to
+    ce_a1 = da.get_atoms(a1.info['relax_id']).get_potential_energy()
+    ce_a2 = da.get_atoms(a2.info['relax_id']).get_potential_energy()
+    comparison_energy = min(ce_a1, ce_a2)
 
     a3, desc = pairing.get_new_individual([a1, a2])
     if a3 is None:
@@ -134,7 +139,8 @@ while (not pbs_run.enough_jobs_running() and
 
     if random() < mutation_probability:
         a3_mut, desc_mut = mutations.get_new_individual([a3])
-        if a3_mut is not None and not should_we_skip(a3_mut, comparison_energy, weights):
+        if (a3_mut is not None and
+            not should_we_skip(a3_mut, comparison_energy, weights)):
             da.add_unrelaxed_step(a3_mut, desc_mut)
             a3 = a3_mut
     pbs_run.relax(a3)
