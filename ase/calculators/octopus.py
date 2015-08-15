@@ -250,8 +250,12 @@ def boxshape_is_ase_compatible(kwargs):
         return boxshape is None and pdims > 0
 
 
-def kwargs2atoms(kwargs):
-    """Extract atoms object from keywords and return remaining keywords."""
+def kwargs2atoms(kwargs, directory=None):
+    """Extract atoms object from keywords and return remaining keywords.
+
+    Some keyword arguments may refer to files.  The directory keyword
+    may be necessary to resolve the paths correctly, and is used for
+    example when running 'ase-gui somedir/inp'."""
     kwargs = purify(kwargs)
 
     coord_keywords = ['coordinates',
@@ -292,63 +296,100 @@ def kwargs2atoms(kwargs):
         positions = np.array(positions)
         return numbers, positions
 
-    def read_atoms_from_file(keyword):
-        if keyword not in kwargs:
-            return None
-        
-        fname = kwargs.pop(keyword)
-        fmt = keyword[:3].lower()
+    def read_atoms_from_file(fname, fmt):
+        assert fname.startswith('"') and fname.endswith('"')
+        fname = fname[1:-1]
+        if directory is not None:
+            fname = os.path.join(directory, fname)
         # XXX test xyz, pbd and xsf
         if fmt == 'xsf' and 'xsfcoordinatesanimstep' in kwargs:
             anim_step = kwargs.pop('xsfcoordinatesanimstep')
-            slice = slice(anim_step, anim_step + 1, 1)
+            theslice = slice(anim_step, anim_step + 1, 1)
             # XXX test animstep
-        images = read(fname, slice(None, None, 1), fmt)
+        else:
+            theslice = slice(None, None, 1)
+        images = read(fname, theslice, fmt)
         if len(images) != 1:
             raise OctopusParseError('Expected only one image.  Don\'t know '
                                     'what to do with %d images.' % len(images))
         return images[0]
 
-    ndims = kwargs.get('dimensions', 3)
-    cell, kwargs = kwargs2cell(kwargs)
-    # XXX fix interaction between pbc and possibly existing pbc in XSF/etc.
+    # We will attempt to extract cell and pbc from kwargs if 'lacking'.
+    # But they might have been left unspecified on purpose.
+    #
+    # We need to keep track of these two variables "externally"
+    # because the Atoms object assigns values when they are not given.
+    cell = None
+    pbc = None
+    adjust_positions_by_half_cell = False
 
-    # XXX remember to pop
     atoms = None
-    if 'coordinates' in kwargs:
+    xsfcoords = kwargs.pop('xsfcoordinates', None)
+    if xsfcoords is not None:
+        atoms = read_atoms_from_file(xsfcoords, 'xsf')
+        # As it turns out, non-periodic xsf is not supported by octopus.
+        # Also, it only supports fully periodic or fully non-periodic....
+        # So the only thing that we can test here is 3D fully periodic.
+        if sum(atoms.pbc) != 3:
+            raise NotImplementedError('XSF not fully periodic with Octopus')
+        cell = atoms.cell
+        pbc = atoms.pbc
+        # Position adjustment doesn't actually matter but this should work
+        # most 'nicely':
+        adjust_positions_by_half_cell = False
+    xyzcoords = kwargs.pop('xyzcoordinates', None)
+    if xyzcoords is not None:
+        atoms = read_atoms_from_file(xyzcoords, 'xyz')
+        adjust_positions_by_half_cell = True
+    pdbcoords = kwargs.pop('pdbcoordinates', None)
+    if pdbcoords is not None:
+        atoms = read_atoms_from_file(pdbcoords, 'pdb')
+        pbc = atoms.pbc
+        adjust_positions_by_half_cell = True
+        # Due to an error in ASE pdb, we can only test the nonperiodic case.
+        if sum(atoms.pbc) != 0:
+            raise NotImplementedError('Periodic pdb not supported by ASE.')
+
+    if cell is None:
+        # cell could not be established from the file, so we set it on the
+        # Atoms now if possible:
+        cell, kwargs = kwargs2cell(kwargs)
+        if cell is not None and atoms is not None:
+            atoms.cell = cell
+        # In case of boxshape = sphere and similar, we still do not have
+        # a cell.
+
+    ndims = int(kwargs.get('dimensions', 3))
+    if ndims != 3:
+        raise NotImplementedError('Only 3D calculations supported.')
+
+    coords = kwargs.get('coordinates')
+    if coords is not None:
         numbers, positions = get_positions_from_block('coordinates')
-        if cell is not None:
-            positions[:, :] += np.array(cell)[None, :] / 2.0
+        adjust_positions_by_half_cell = True
         atoms = Atoms(cell=cell, numbers=numbers, positions=positions)
-    elif 'reducedcoordinates' in kwargs:
+    rcoords = kwargs.get('reducedcoordinates')
+    if rcoords is not None:
         numbers, rpositions = get_positions_from_block('reducedcoordinates')
         if cell is None:
             raise ValueError('Cannot figure out what the cell is, '
                              'and thus cannot interpret reduced coordinates.')
-        rpositions += 0.5
         atoms = Atoms(cell=cell, numbers=numbers, scaled_positions=rpositions)
-    else:
-        for keyword in ['xyzcoordinates', 'pdbcoordinates', 'xsfcoordinates']:
-            atoms = read_atoms_from_file(keyword)
-            if atoms is not None:
-                break
-        else:
-            raise OctopusParseError('Apparently there are no atoms.')
-
-    assert atoms is not None
+    if atoms is None:
+        raise OctopusParseError('Apparently there are no atoms.')
 
     # Either we have non-periodic BCs or the atoms object already
     # got its BCs from reading the file.  In the latter case
     # we shall override only if PeriodicDimensions was given specifically:
-    pdims = kwargs.pop('periodicdimensions', None)
-    if pdims is not None:
+
+    if pbc is None:
+        pdims = int(kwargs.pop('periodicdimensions', 0))
         pbc = np.zeros(3, dtype=bool)
-        pdims = int(pdims)
         pbc[:pdims] = True
         atoms.pbc = pbc
 
-    if cell is not None:
-        atoms.cell = cell
+    if cell is not None and adjust_positions_by_half_cell:
+        atoms.positions[:, :] += np.array(cell)[None, :] / 2.0
 
     return atoms, kwargs
 
@@ -405,9 +446,11 @@ def generate_input(atoms, kwargs):
         append('%s = %s' % (key, var))
 
     if 'units' in kwargs:
-        raise ValueError('Sorry, but we decide the units in the ASE '
-                         'interface for now.')
-    setvar('units', 'eV_Angstrom')
+        if kwargs['units'] != 'ev_angstrom':
+            raise ValueError('Sorry, but we decide the units in the ASE '
+                             'interface for now.')
+    else:
+        setvar('units', 'eV_Angstrom')
     
     atomskwargs = atoms2kwargs(atoms)
 
@@ -507,8 +550,7 @@ class Octopus(FileIOCalculator):
         if ignore_troublesome_keywords:
             trouble = set(self.troublesome_keywords)
             for keyword in ignore_troublesome_keywords:
-                trouble.pop(keyword)
-            # XXX test this
+                trouble.remove(keyword)
             self.troublesome_keywords = trouble
 
         self.kwargs = {}
