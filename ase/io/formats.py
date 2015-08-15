@@ -76,6 +76,7 @@ all_formats = {
     'lammps-dump': ('LAMMPS dump file', '1F'),
     'mol': ('?', '1F'),
     'nwchem': ('NWChem input file', '1F'),
+    'octopus': ('Octopus input file', '1F'),
     'pdb': ('Protein Data Bank', '+F'),
     'png': ('Portable Network Graphics', '1F'),
     'postgresql': ('ASE PostgreSQL database file', '+S'),
@@ -149,8 +150,9 @@ def initialize(format):
     module_name = format2modulename.get(format, _format)
     try:
         module = import_module('ase.io.' + module_name)
-    except ImportError:
-        raise ValueError('File format not recognized: ' + format)
+    except ImportError as err:
+        raise ValueError('File format not recognized: %s.  Error: %s'
+                         % (format, err))
         
     read = getattr(module, 'read_' + _format, None)
     write = getattr(module, 'write_' + _format, None)
@@ -314,10 +316,12 @@ def _iread(filename, index, format, **kwargs):
         args = ()
     else:
         args = (index,)
-        
+    
+    must_close_fd = False
     if isinstance(filename, str):
         if io.acceptsfd:
             fd = open(filename)
+            must_close_fd = True
         else:
             fd = filename
     else:
@@ -329,7 +333,7 @@ def _iread(filename, index, format, **kwargs):
         for atoms in io.read(fd, *args, **kwargs):
             yield atoms
     finally:
-        if not isinstance(fd, str):
+        if must_close_fd:
             fd.close()
     
     
@@ -387,6 +391,9 @@ def filetype(filename, read=True):
         
         basename = os.path.basename(filename)
         
+        if basename == 'inp':
+            return 'octopus'
+
         if '.' in basename:
             ext = filename.rsplit('.', 1)[-1].lower()
             if ext in ['xyz', 'cube', 'json']:
