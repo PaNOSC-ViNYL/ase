@@ -3,7 +3,7 @@
 This module implements the read(), iread() and write() functions in ase.io.
 For each file format there is a namedtuple (IOFormat) that has the following
 elements:
-    
+
 * a read(filename, index, **kwargs) generator that will yield Atoms objects
 * a write(filename, images) function
 * a 'single' boolean (False if multiple configurations is supported)
@@ -36,7 +36,7 @@ from ase.parallel import parallel_function, parallel_generator
 
 IOFormat = collections.namedtuple('IOFormat', 'read, write, single, acceptsfd')
 ioformats = {}  # will be filled at run-time
-        
+
 # 1=single, +=multiple, F=accepts a file-descriptor, S=needs a file-name str
 all_formats = {
     'abinit': ('ABINIT input file', '1F'),
@@ -153,10 +153,10 @@ def initialize(format):
     except ImportError as err:
         raise ValueError('File format not recognized: %s.  Error: %s'
                          % (format, err))
-        
+
     read = getattr(module, 'read_' + _format, None)
     write = getattr(module, 'write_' + _format, None)
-    
+
     if read and not inspect.isgeneratorfunction(read):
         read = functools.partial(wrap_old_read_function, read)
     if not read and not write:
@@ -165,7 +165,7 @@ def initialize(format):
     single = code[0] == '1'
     acceptsfd = code[1] == 'F'
     ioformats[format] = IOFormat(read, write, single, acceptsfd)
-    
+
 
 def get_ioformat(format):
     """Initialize and return IOFormat tuple."""
