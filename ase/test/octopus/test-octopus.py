@@ -16,6 +16,9 @@ def getkwargs(**kwargs):
     kwargs0.update(kwargs)
     return kwargs0
 
+# Verify that axes defined by ASE correspond correctly to axes
+# in Octopus, i.e., that input/output arrays are not rotated
+# incorrectly or similar due to C/Fortran conventions or other errors.
 def test_axis_layout():
     system = Atoms('H')
     a = 3.
@@ -53,6 +56,10 @@ def test_axis_layout():
             raise AssertionError(err.error)
             
 
+# Test that that density and wavefunctions are normalized properly.
+# Also does some tests of the energy; they should correspond to
+# certain reference values.  Probably this depends a bit too much on
+# octopus version though, so we will see if we need to revise this.
 def test_integrals(pbc=True):
     system = molecule('H2O')
     a = 2.6006  # So the spacing does not divide exactly
