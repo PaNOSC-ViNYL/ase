@@ -10,6 +10,7 @@ from ase.structure import molecule
 def getkwargs(**kwargs):
     kwargs0 = dict(FromScratch=True,
                    RestartWrite=False,
+                   BoxShape='parallelepiped',
                    stdout='"stdout.txt"',
                    stderr='"stderr.txt"',
                    Spacing=0.15)

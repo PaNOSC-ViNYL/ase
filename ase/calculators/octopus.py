@@ -16,6 +16,7 @@ from ase.calculators.calculator import FileIOCalculator
 from ase.data import atomic_numbers
 from ase.io import read
 from ase.io.xsf import read_xsf
+from ase.units import Bohr, Angstrom
 
 # Representation of parameters from highest to lowest level of abstraction:
 #
@@ -232,8 +233,10 @@ def kwargs2cell(kwargs):
     if boxshape_is_ase_compatible(kwargs):
         kwargs.pop('boxshape', None)
         Lsize = kwargs.pop('lsize')
+        if not isinstance(Lsize, list):
+            Lsize = [[Lsize] * 3]
         assert len(Lsize) == 1
-        cell = [2 * float(l) for l in Lsize[0]]
+        cell = np.array([2 * float(l) for l in Lsize[0]])
         # TODO support LatticeVectors
     else:
         cell = None
@@ -257,6 +260,16 @@ def kwargs2atoms(kwargs, directory=None):
     may be necessary to resolve the paths correctly, and is used for
     example when running 'ase-gui somedir/inp'."""
     kwargs = purify(kwargs)
+
+    # XXX the other 'units' keywords: input, output.
+    units = kwargs.pop('units', 'atomic').lower()
+    if units not in ['ev_angstrom', 'atomic']:
+        raise OctopusKeywordError('Unsupported units: %s' % units)
+    atomic_units = (units == 'atomic')
+    if atomic_units:
+        length_unit = Bohr
+    else:
+        length_unit = Angstrom
 
     coord_keywords = ['coordinates',
                       'xyzcoordinates',
@@ -288,7 +301,7 @@ def kwargs2atoms(kwargs, directory=None):
             assert sym.startswith("'") and sym.endswith("'")
             sym = sym[1:-1]
             pos0 = np.zeros(3)
-            ndim = kwargs.get('dimensions', 3)
+            ndim = int(kwargs.get('dimensions', 3))
             pos0[:ndim] = [float(element) for element in row[1:]]
             number = atomic_numbers[sym]  # Use 0 ~ 'X' for unknown?
             numbers.append(number)
@@ -297,7 +310,8 @@ def kwargs2atoms(kwargs, directory=None):
         return numbers, positions
 
     def read_atoms_from_file(fname, fmt):
-        assert fname.startswith('"') and fname.endswith('"')
+        assert fname.startswith('"') or fname.startswith("'")
+        assert fname[0] == fname[-1]
         fname = fname[1:-1]
         if directory is not None:
             fname = os.path.join(directory, fname)
@@ -327,6 +341,8 @@ def kwargs2atoms(kwargs, directory=None):
     xsfcoords = kwargs.pop('xsfcoordinates', None)
     if xsfcoords is not None:
         atoms = read_atoms_from_file(xsfcoords, 'xsf')
+        atoms.positions *= length_unit
+        atoms.cell *= length_unit
         # As it turns out, non-periodic xsf is not supported by octopus.
         # Also, it only supports fully periodic or fully non-periodic....
         # So the only thing that we can test here is 3D fully periodic.
@@ -340,6 +356,7 @@ def kwargs2atoms(kwargs, directory=None):
     xyzcoords = kwargs.pop('xyzcoordinates', None)
     if xyzcoords is not None:
         atoms = read_atoms_from_file(xyzcoords, 'xyz')
+        atoms.positions *= length_unit
         adjust_positions_by_half_cell = True
     pdbcoords = kwargs.pop('pdbcoordinates', None)
     if pdbcoords is not None:
@@ -347,6 +364,8 @@ def kwargs2atoms(kwargs, directory=None):
         pbc = atoms.pbc
         adjust_positions_by_half_cell = True
         # Due to an error in ASE pdb, we can only test the nonperiodic case.
+        #atoms.cell *= length_unit # XXX cell?  Not in nonperiodic case...
+        atoms.positions *= length_unit
         if sum(atoms.pbc) != 0:
             raise NotImplementedError('Periodic pdb not supported by ASE.')
 
@@ -354,6 +373,8 @@ def kwargs2atoms(kwargs, directory=None):
         # cell could not be established from the file, so we set it on the
         # Atoms now if possible:
         cell, kwargs = kwargs2cell(kwargs)
+        if cell is not None:
+            cell *= length_unit
         if cell is not None and atoms is not None:
             atoms.cell = cell
         # In case of boxshape = sphere and similar, we still do not have
@@ -366,6 +387,7 @@ def kwargs2atoms(kwargs, directory=None):
     coords = kwargs.get('coordinates')
     if coords is not None:
         numbers, positions = get_positions_from_block('coordinates')
+        positions *= length_unit
         adjust_positions_by_half_cell = True
         atoms = Atoms(cell=cell, numbers=numbers, positions=positions)
     rcoords = kwargs.get('reducedcoordinates')
@@ -397,7 +419,12 @@ def kwargs2atoms(kwargs, directory=None):
 def atoms2kwargs(atoms):
     kwargs = {}
 
-    kwargs['boxshape'] = 'parallelepiped'
+    kwargs['units'] = 'ev_angstrom'
+    # XXXX will always extract cell.  But probably we should leave that
+    # to the user, i.e., the user should probably specify BoxShape before
+    # anything is done.  We can set Lsize either way....
+    #kwargs['boxshape'] = 'parallelepiped'
+
     # TODO LatticeVectors parameter for non-orthogonal cells
     Lsize = 0.5 * np.diag(atoms.cell).copy()
     kwargs['lsize'] = [[repr(size) for size in Lsize]]
@@ -455,11 +482,14 @@ def generate_input(atoms, kwargs):
     atomskwargs = atoms2kwargs(atoms)
 
     # Use cell from Atoms object unless user specified BoxShape
-    use_ase_box = 'boxshape' not in kwargs
-    if use_ase_box:
-        setvar('boxshape', atomskwargs['boxshape'])
-        lsizeblock = list2block('lsize', atomskwargs['lsize'])
-        extend(lsizeblock)
+    #use_ase_box = 'boxshape' not in kwargs
+    #if 'boxshape' in kwargs:
+    #if use_ase_box:
+    #    setvar('boxshape', atomskwargs['boxshape'])
+    # Use Lsize no matter what.
+    assert 'lsize' not in kwargs
+    lsizeblock = list2block('lsize', atomskwargs['lsize'])
+    extend(lsizeblock)
 
     # Allow override or issue errors?
     pdim = 'periodicdimensions'
@@ -509,7 +539,7 @@ class Octopus(FileIOCalculator):
     The label is always assumed to be a directory."""
 
     implemented_properties = ['energy', 'forces',
-                              'dipole', #'charges',
+                              'dipole',
                               'magmom', 'magmoms']
     # valores propios en las opciones output y outputhow
 
@@ -571,7 +601,7 @@ class Octopus(FileIOCalculator):
 
     def set(self, **kwargs):
         """Set octopus input file parameters.
-        
+
         :param kwargs:
         """
         kwargs = purify(kwargs)
@@ -725,7 +755,7 @@ class Octopus(FileIOCalculator):
             array, _atoms = self._read_array('%s.xsf' % name, 'wfs')
         else:
             array_real, _atoms = self._read_array('%s.real.xsf' % name, 'wfs')
-            array_imag, _atoms  = self._read_array('%s.imag.xsf' % name, 'wfs')
+            array_imag, _atoms = self._read_array('%s.imag.xsf' % name, 'wfs')
             array = array_real + 1j * array_imag
 
         return self._pad_correctly(array, pad)
@@ -1010,6 +1040,7 @@ class Octopus(FileIOCalculator):
         else:
             raise OctopusIOError('Expected recipe, but found '
                                  'useful physical output!')
+
 
 def main():
     from ase.lattice import bulk
