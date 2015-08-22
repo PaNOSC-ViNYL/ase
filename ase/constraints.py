@@ -189,7 +189,7 @@ class FixAtoms(FixConstraint):
 
 def ints2string(x, threshold=None):
     """Convert ndarray of ints to string."""
-    if len(x) <= threshold or threshold is None:
+    if threshold is None or len(x) <= threshold:
         return str(x.tolist())
     return str(x[:threshold].tolist())[:-1] + ', ...]'
 
