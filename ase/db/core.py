@@ -380,6 +380,11 @@ class Database:
                 yield row
                 
     def count(self, selection=None, **kwargs):
+        """Count rows.
+        
+        See the select() method for the selection syntax.  Use db.count() or
+        len(db) to count all rows.
+        """
         n = 0
         for row in self.select(selection, **kwargs):
             n += 1
