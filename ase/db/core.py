@@ -385,18 +385,23 @@ class Database:
             n += 1
         return n
         
+    def __len__(self):
+        return self.count()
+        
     @parallel_function
     @lock
     def update(self, ids, delete_keys=[], block_size=1000,
                **add_key_value_pairs):
-        """Update row(s).
+        """Update and/or delete key-value pairs of row(s).
         
         ids: int or list of int
             ID's of rows to update.
         delete_keys: list of str
             Keys to remove.
+        block_size: int
+            Block-size for each transaction.
             
-        Use keyword argumnts to add new keys-value pairs.
+        Use keyword arguments to add new key-value pairs.
             
         Returns number of key-value pairs added and removed.
         """
