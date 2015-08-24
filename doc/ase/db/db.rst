@@ -378,3 +378,10 @@ More details
 .. autoclass:: ase.db.core.Database
     :members:
     :member-order: bysource
+    :exclude-members: write, reserve, update
+    
+    .. decorators hide these three from Sphinx, so we add them by hand:
+    
+    .. automethod:: write(atoms, key_value_pairs={}, data={}, **kwargs)
+    .. automethod:: reserve(**key_value_pairs)
+    .. automethod:: update(ids, delete_keys=[], block_size=1000, **add_key_value_pairs)
