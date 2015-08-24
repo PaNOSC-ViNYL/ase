@@ -53,8 +53,9 @@ def atoms2dict(atoms):
                     x = atoms.calc.get_property(prop, atoms, False)
                 except NotImplementedError:
                     pass
-                if x is not None:
-                    dct[prop] = x
+                else:
+                    if x is not None:
+                        dct[prop] = x
     return dct
     
     
