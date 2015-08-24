@@ -38,7 +38,6 @@ To see what's inside 'x.aff' do this::
     x.aff  (tag: "", 1 item)
     item #0:
     {
-        _little_endian: True,
         a: <ndarray shape=(7,) dtype=float64>,
         b: 42,
         c: abc,
@@ -48,8 +47,8 @@ Versions:
     
 1) Intial version.
 
-2) Added support for big endian machines.  Json data now has '_little_endian'
-   bool.
+2) Added support for big endian machines.  Json data may now have
+  _little_endian=False item.
 """
 
 import optparse
@@ -121,7 +120,10 @@ class Writer:
         self.header = b''
         
         if data is None:
-            data = {'_little_endian': np.little_endian}
+            if np.little_endian:
+                data = {}
+            else:
+                data = {'_little_endian': False}
             if mode == 'w' or not os.path.isfile(fd):
                 self.nitems = 0
                 self.pos0 = 48
@@ -224,7 +226,10 @@ class Writer:
         writeint(self.fd, self.nitems, 32)
         self.fd.flush()
         self.fd.seek(0, 2)  # end of file
-        self.data = {'_little_endian': np.little_endian}
+        if np.little_endian:
+            self.data = {}
+        else:
+            self.data = {'_little_endian': False}
         
     def write(self, *args, **kwargs):
         """Write data.
@@ -258,8 +263,8 @@ class Writer:
         return Writer(self.fd, data=dct)
         
     def close(self):
-        assert '_little_endian' in self.data
-        if len(self.data) > 1:
+        n = int('_little_endian' in self.data)
+        if len(self.data) > n:
             # There is more than the "_little_endian" key:
             self.sync()
         self.fd.close()
