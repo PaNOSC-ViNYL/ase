@@ -113,9 +113,9 @@ def check_repository(to):
             subject.append('PyFlakes warnings: {}'.format(nf))
         txt = '\n'.join(txt)
         if to:
-            mail(to, ' - '.join(subject), txt)
+            mail(to, ' - '.join(subject), grrr + txt)
         else:
-            print(grrr + txt)
+            print(txt)
         
 
 parser = argparse.ArgumentParser(description='Run both pep8 and pyflakes '
