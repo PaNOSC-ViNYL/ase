@@ -279,8 +279,8 @@ Delete a single row:
 or use the :meth:`~Database.delete` method to delete several rows.
 
 
-Dictionary representation of rows
----------------------------------
+Description of a row
+--------------------
 
 The first 9 keys (from "id" to "positions") are always present --- the rest
 may be there:
@@ -318,7 +318,8 @@ calculator_parameters  Calculator parameters              dict
 Extracting Atoms objects from the database
 ------------------------------------------
 
-If you want an Atoms object insted of a dictionary, you should use the
+If you want an :class:`~ase.atoms.Atoms` object insted of an
+:class:`~ase.db.row.AtomsRow` object, you should use the
 :meth:`~Database.get_atoms` method:
 
 >>> h2 = con.get_atoms(H=2)
@@ -370,11 +371,47 @@ another default value.
     :member-order: bysource
 
 
+Writing and updating many rows efficiently
+------------------------------------------
+
+If you do this::
+    
+    con = connect('mols.db')
+    for mol in molecules:
+        con.write(mol, ...)
+        
+the database will make sure that each molecule is written to permanent
+starage (typically a harddisk) before it moves on to the next molecule.  This
+can be quite slow.  To speed this up, you can write all the molecules in a
+single transaction like this::
+    
+    with connect('mols.db') as con:
+        for mol in molecules:
+            con.write(mol, ...)
+    
+When the for-loop is done, the database will commit (or roll back if there
+was an error) the transaction.
+    
+Similarly, the :meth:`~Database.update` method will do up to
+``block_size=1000`` rows in one transaction::
+    
+    # slow:
+    for row in con.select(...):
+        con.update(row.id, foo='bar')  # a single id
+    # faster:
+    ids = [row.id for row in con.select(...)]
+    con.update(ids, foo='bar')  # list of id's
+
+    
 More details
 ------------
 
+Use this function for getting a connection to a database:
+    
 .. autofunction:: connect
 
+Here is a description of the database object:
+    
 .. autoclass:: ase.db.core.Database
     :members:
     :member-order: bysource
