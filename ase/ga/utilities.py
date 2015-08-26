@@ -273,11 +273,11 @@ def get_angles_distribution(atoms, ang_grid=9):
                 if j != i:
                     a = atoms.get_angle([i, atom.index, j]) * 180 / pi
                     for k in range(ang_grid):
-                        if (k + 1) * 180 / ang_grid > a > k * 180 / ang_grid:
+                        if (k + 1) * 180. / ang_grid > a > k * 180. / ang_grid:
                             bins[k] += 1
     # Removing dobbelt counting
     for i in range(ang_grid):
-        bins[i] /= 2
+        bins[i] /= 2.
     return bins
 
 
@@ -321,21 +321,22 @@ def get_atoms_distribution(atoms, number_of_bins=5, max_distance=8,
     cell = atoms.get_cell()
     if center is None:
         # Center used for the atom distribution if None is supplied!
-        cx = sum(cell[:, 0]) / 2
-        cy = sum(cell[:, 1]) / 2
-        cz = sum(cell[:, 2]) / 2
+        cx = sum(cell[:, 0]) / 2.
+        cy = sum(cell[:, 1]) / 2.
+        cz = sum(cell[:, 2]) / 2.
         center = (cx, cy, cz)
     bins = [0] * number_of_bins
     for atom in atoms:
         if atom.number not in no_count_types:
             d = get_mic_distance(atom.position, center, cell, pbc)
             for k in range(number_of_bins - 1):
-                min_dis_cur_bin = k * max_distance / (number_of_bins - 1)
-                max_dis_cur_bin = (k + 1) * max_distance / (number_of_bins - 1)
+                min_dis_cur_bin = k * max_distance / (number_of_bins - 1.)
+                max_dis_cur_bin = ((k + 1) * max_distance /
+                                   (number_of_bins - 1.))
                 if min_dis_cur_bin < d < max_dis_cur_bin:
                     bins[k] += 1
             if d > max_distance:
-                bins[number_of_bins - 1]
+                bins[number_of_bins - 1] += 1
     return bins
 
 
