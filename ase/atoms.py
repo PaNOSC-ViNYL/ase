@@ -952,7 +952,7 @@ class Atoms(object):
 
         self.arrays['positions'] += np.array(displacement)
 
-    def center(self, vacuum=None, axis=(0, 1, 2), center=None):
+    def center(self, vacuum=None, axis=(0, 1, 2), about=None):
         """Center atoms in unit cell.
 
         Centers the atoms in the unit cell, so there is the same
@@ -964,9 +964,9 @@ class Atoms(object):
             on each side.
         axis: int or sequence of ints
             Axis or axes to act on.  Default: Act on all axes.
-        center: float or array (default: None)
-            If specified, center the atoms about the "center".
-            I.e., center=(0., 0., 0.) (or just "center=0.", interpreted
+        about: float or array (default: None)
+            If specified, center the atoms about <about>.
+            I.e., about=(0., 0., 0.) (or just "about=0.", interpreted
             identically), to center about the origin.
         """
         # Find the orientations of the faces of the unit cell
@@ -1009,10 +1009,10 @@ class Atoms(object):
         self.arrays['positions'] += translation
 
         # Optionally, translate to center about a point in space.
-        if center is not None:
+        if about is not None:
             for vector in self.cell:
                 self.positions -= vector / 2.0
-            self.positions += center
+            self.positions += about
 
     def get_center_of_mass(self, scaled=False):
         """Get the center of mass.
