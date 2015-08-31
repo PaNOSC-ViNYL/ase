@@ -580,7 +580,7 @@ def find_mic(D, cell, pbc=True):
         return D, D_len
 
     # The cutoff radius is the longest direct distance between atoms
-    # or half the longest lattice vector, whichever is smaller
+    # or half the longest lattice diagonal, whichever is smaller
     cutoff = min(max(D_len), max(diags) / 2.)
 
     # The number of neighboring images to search in each direction is

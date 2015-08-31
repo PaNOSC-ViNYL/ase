@@ -413,7 +413,6 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
     tree = ET.iterparse(filename)
 
     atoms_init = None
-    images = []
     calculation = []
 
     try:
@@ -465,7 +464,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         if atoms_init is None:
             raise parse_error
         elif not calculation:
-            images.append(atoms_init)
+            yield atoms_init
 
     if calculation:
         if isinstance(index, int):
@@ -515,9 +514,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         atoms.set_calculator(
             SinglePointCalculator(atoms, energy=energy, forces=forces,
                         stress=stress_voigt))
-        images.append(atoms)
-
-    return images if len(images) > 1 else images[0]
+        yield atoms
 
 
 def write_vasp(filename, atoms, label='', direct=False, sort=None,
