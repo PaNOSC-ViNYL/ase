@@ -497,23 +497,28 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                 'structure/varray[@name="positions"]')):
             scpos[i] = np.array([float(val) for val in vector.text.split()])
 
-        forces = np.zeros((natoms, 3), dtype=float)
-        for i, vector in enumerate(step.find('varray[@name="forces"]')):
-            forces[i] = np.array([float(val) for val in vector.text.split()])
+        forces = None
+        fblocks = step.find('varray[@name="forces"]')
+        if fblocks is not None:
+            forces = np.zeros((natoms, 3), dtype=float)
+            for i, vector in enumerate(fblocks):
+                forces[i] = np.array([float(val) for val in vector.text.split()])
 
-        stress = np.zeros((3, 3), dtype=float)
-        for i, vector in enumerate(step.find('varray[@name="stress"]')):
-            stress[i] = np.array([float(val) for val in vector.text.split()])
-
-        stress *= -0.1 * GPa
-        stress_voigt = stress.reshape(9)[[0, 4, 8, 5, 2, 1]]
+        stress = None
+        sblocks = step.find('varray[@name="stress"]')
+        if sblocks is not None:
+            stress = np.zeros((3, 3), dtype=float)
+            for i, vector in enumerate(sblocks):
+                stress[i] = np.array([float(val) for val in vector.text.split()])
+            stress *= -0.1 * GPa
+            stress = stress.reshape(9)[[0, 4, 8, 5, 2, 1]]
 
         atoms = atoms_init.copy()
         atoms.set_cell(cell)
         atoms.set_scaled_positions(scpos)
         atoms.set_calculator(
             SinglePointCalculator(atoms, energy=energy, forces=forces,
-                        stress=stress_voigt))
+                        stress=stress))
         yield atoms
 
 
