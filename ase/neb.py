@@ -343,7 +343,7 @@ def fit0(E, F, R, cell=None, pbc=None):
     Sfit = np.empty((n - 1) * 20 + 1)
 
     s = [0]
-    dR = np.zeros_like(R, dtype=float)
+    dR = np.zeros_like(R)
     for i in range(n):
         if i < n - 1:
             dR[i] = R[i + 1] - R[i]
