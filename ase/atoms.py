@@ -526,7 +526,7 @@ class Atoms(object):
         the masses argument is not given or for those elements of the
         masses list that are None, standard values are set."""
 
-        if masses == 'defaults':
+        if isinstance(masses, str) and masses == 'defaults':
             masses = atomic_masses[self.arrays['numbers']]
         elif isinstance(masses, (list, tuple)):
             newmasses = []
