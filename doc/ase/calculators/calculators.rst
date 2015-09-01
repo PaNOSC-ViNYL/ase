@@ -185,6 +185,7 @@ the :meth:`set` method:
    lammps
    lammpsrun
    nwchem
+   octopus
    siesta
    turbomole
    vasp

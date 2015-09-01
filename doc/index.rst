@@ -48,7 +48,7 @@ Alphabetical list of all modules:
 
 |abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |dftb| |elk| |exciting| |EMT|
 |fhi-aims| |fleur| |gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
-|siesta| |turbomole| |vasp| Gaussian_ Mopac_
+|octopus| |siesta| |turbomole| |vasp| Gaussian_ Mopac_
 
 
 .. |abinit| image:: static/abinit.png
@@ -104,6 +104,9 @@ Alphabetical list of all modules:
    :align: middle
 .. |nwchem| image:: static/nwchem.png
    :target: http://www.nwchem-sw.org
+   :align: middle
+.. |octopus| image:: static/octopus.png
+   :target: ase/calculators/octopus.html
    :align: middle
 .. |siesta| image:: static/siesta.png
    :target: ase/calculators/siesta.html
