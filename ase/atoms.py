@@ -1594,7 +1594,8 @@ class Atoms(object):
         self.extend(edited_atoms)
         self.set_constraint(edited_atoms._get_constraints())
         self.set_cell(edited_atoms.get_cell())
-        self.set_initial_magnetic_moments(edited_atoms.get_magnetic_moments())
+        self.set_initial_magnetic_moments(
+            edited_atoms.get_initial_magnetic_moments())
         self.set_tags(edited_atoms.get_tags())
         return
 
