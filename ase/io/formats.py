@@ -41,7 +41,7 @@ ioformats = {}  # will be filled at run-time
 all_formats = {
     'abinit': ('ABINIT input file', '1F'),
     'aims': ('FHI-aims geometry file', '1S'),
-    'aims-output': ('FHI-aims output', '1F'),
+    'aims-output': ('FHI-aims output', '1S'),
     'bundletrajectory': ('ASE bundle trajectory', '1S'),
     'castep': ('CASTEP output file', '1F'),
     'castep-cell': ('CASTEP geom file', '1S'),
@@ -104,7 +104,6 @@ all_formats = {
 
 # Special cases:
 format2modulename = {
-    'aims-out': 'aims',
     'aims-output': 'aims',
     'castep-cell': 'castep',
     'castep-geom': 'castep',
@@ -447,7 +446,7 @@ def filetype(filename, read=True):
     for format, magic in [('gpaw-out', b'  ___ ___ ___ _ _ _  \n'),
                           ('espresso-in', b'\n&system'),
                           ('espresso-in', b'\n&SYSTEM'),
-                          ('aims-out', b'\nInvoking FHI-aims ...'),
+                          ('aims-output', b'Invoking FHI-aims ...'),
                           ('lammps-dump', b'\nITEM: TIMESTEP\n'),
                           ('xsf', b'\nANIMSTEPS'),
                           ('xsf', b'\nCRYSTAL'),
