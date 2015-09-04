@@ -10,7 +10,12 @@ Development version in trunk
 
 :trac:`trunk <>`.
 
-* ...
+* New iterator function :func:`ase.io.iread` for iteratively reading Atoms
+  objects from a file.
+
+* Two new decorators :func:`~ase.parallel.parallel_function` and
+  :func:`~ase.parallel.parallel_generator` added.
+  
           
 Version 3.9.1
 =============
@@ -20,7 +25,7 @@ Version 3.9.1
 * Added function for finding maximally-reduced Niggli unit cell:
   :func:`ase.utils.geometry.niggli_reduce`.
   
-* Octopus interface added.
+* Octopus interface added (experimental).
 
 
 Version 3.9.0

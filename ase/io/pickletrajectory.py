@@ -190,6 +190,11 @@ class PickleTrajectory:
                 self.write(image)
             return
 
+        while hasattr(atoms, 'atoms_for_saving'):
+            # Seems to be a Filter or similar, instructing us to
+            # save the original atoms.
+            atoms = atoms.atoms_for_saving
+
         if len(self.offsets) == 0:
             self.write_header(atoms)
         else:
@@ -535,6 +540,10 @@ def write_trajectory(filename, images):
         traj.write(atoms)
 
     traj.close()
+
+        
+read_trj = read_trajectory
+write_trj = write_trajectory
 
 
 def dict2constraints(d):

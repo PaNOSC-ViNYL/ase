@@ -2,6 +2,7 @@ import numpy as np
 
 from ase.atoms import Atoms
 
+
 def write_plt(filename, atoms, data):
     if isinstance(atoms, Atoms):
         cell = atoms.get_cell()
@@ -34,6 +35,7 @@ def write_plt(filename, atoms, data):
     data.astype(np.float32).T.tofile(f)
     f.close()
 
+    
 def read_plt(fileobj):
     if isinstance(fileobj, str):
         fileobj = open(fileobj, 'rb')
@@ -42,19 +44,17 @@ def read_plt(fileobj):
     np.fromfile(fileobj, dtype=np.int32, count=2)
     # read dimensions
     dims = np.fromfile(fileobj, dtype=np.int32, count=3)
-    size = dims[0] * dims[1] * dims[2]
 
     # read cell
-    cell = np.zeros((3,3), np.float32)
+    cell = np.zeros((3, 3), np.float32)
     for c in range(3):
         beg, Lmd = np.fromfile(fileobj, dtype=np.float32, count=2)
         n = dims[c]
         if n % 2 == 0:
             cell[2 - c, 2 - c] = Lmd / (1 - 1. / n)
         else:
-           cell[2 - c, 2 - c] = Lmd / (1 - 1. / (n + 1))
+            cell[2 - c, 2 - c] = Lmd / (1 - 1. / (n + 1))
 
     # read data
     data = np.fromfile(fileobj, dtype=np.float32)
     return data.reshape(dims).T, cell
-    

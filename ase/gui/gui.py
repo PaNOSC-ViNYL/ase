@@ -1,7 +1,5 @@
 from __future__ import print_function
 # husk:
-# Exit*2?  remove pylab.show()
-# close button
 # DFT
 # ADOS
 # grey-out stuff after one second: vmd, rasmol, ...
@@ -9,30 +7,29 @@ from __future__ import print_function
 # rasmol: set same rotation as ag
 # Graphs: save, Python, 3D
 # start from python (interactive mode?)
-# ascii-art option (colored)|
-# option -o (output) and -f (force overwrite)
 # surfacebuilder
 # screen-dump
 # icon
-# ag-community-server
-# translate option: record all translations, 
+# translate option: record all translations,
 # and check for missing translations.
 
-#TODO: Add possible way of choosing orinetations. \
-#TODO: Two atoms defines a direction, three atoms their normal does
-#TODO: Align orientations chosen in Rot_selected v unselcted
-#TODO: Get the atoms_rotate_0 thing string
-#TODO: Use set atoms instead og the get atoms
-#TODO: Arrow keys will decide how the orientation changes
-#TODO: Undo redo que should be implemented
-#TODO: Update should have possibility to change positions
-#TODO: Window for rotation modes and move moves which can be chosen
-#TODO: WHen rotate and move / hide the movie menu
+# TODO: Add possible way of choosing orinetations. \
+# TODO: Two atoms defines a direction, three atoms their normal does
+# TODO: Align orientations chosen in Rot_selected v unselcted
+# TODO: Get the atoms_rotate_0 thing string
+# TODO: Use set atoms instead og the get atoms
+# TODO: Arrow keys will decide how the orientation changes
+# TODO: Undo redo que should be implemented
+# TODO: Update should have possibility to change positions
+# TODO: Window for rotation modes and move moves which can be chosen
+# TODO: WHen rotate and move / hide the movie menu
 
 import os
 import sys
 import weakref
 import pickle
+import subprocess
+
 from gettext import gettext as _
 from gettext import ngettext
 
@@ -43,7 +40,7 @@ import gtk
 
 from ase.gui.view import View
 from ase.gui.status import Status
-from ase.gui.widgets import pack, help, Help, oops
+from ase.gui.widgets import pack, oops
 from ase.gui.settings import Settings
 from ase.gui.crystal import SetupBulkCrystal
 from ase.gui.surfaceslab import SetupSurfaceSlab
@@ -55,9 +52,8 @@ from ase.gui.energyforces import EnergyForces
 from ase.gui.minimize import Minimize
 from ase.gui.scaling import HomogeneousDeformation
 from ase.gui.quickinfo import QuickInfo
-from ase.gui.save import SaveWindow
+from ase.gui.save import save_dialog
 from ase.version import version
-
 
 ui_info = """\
 <ui>
@@ -84,7 +80,7 @@ ui_info = """\
       <menuitem action='Modify'/>
       <menuitem action='AddAtoms'/>
       <menuitem action='DeleteAtoms'/>
-      <separator/>      
+      <separator/>
       <menuitem action='First'/>
       <menuitem action='Previous'/>
       <menuitem action='Next'/>
@@ -166,8 +162,11 @@ ui_info = """\
   </menubar>
 </ui>"""
 
+
 class GUI(View, Status):
-    def __init__(self, images, rotations='', show_unit_cell=True,
+    def __init__(self, images,
+                 rotations='',
+                 show_unit_cell=True,
                  show_bonds=False):
         # Try to change into directory of file you are viewing
         try:
@@ -177,9 +176,9 @@ class GUI(View, Status):
             pass
         self.images = images
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        #self.window.set_icon(gtk.gdk.pixbuf_new_from_file('guiase.png'))
+        # self.window.set_icon(gtk.gdk.pixbuf_new_from_file('guiase.png'))
         self.window.set_position(gtk.WIN_POS_CENTER)
-        #self.window.connect("destroy", lambda w: gtk.main_quit())
+        # self.window.connect("destroy", lambda w: gtk.main_quit())
         self.window.connect('delete_event', self.exit)
         vbox = gtk.VBox()
         self.window.add(vbox)
@@ -197,88 +196,57 @@ class GUI(View, Status):
             ('CalculateMenu', None, _('_Calculate')),
             ('HelpMenu', None, _('_Help')),
             ('Open', gtk.STOCK_OPEN, _('_Open'), '<control>O',
-             _('Create a new file'),
-             self.open),
-             ('New', gtk.STOCK_NEW, _('_New'), '<control>N',
-             _('New ase.gui window'),
-             lambda widget: os.system('ase-gui &')),
+             _('Create a new file'), self.open),
+            ('New', gtk.STOCK_NEW, _('_New'), '<control>N',
+             _('New ase.gui window'), lambda widget: os.system('ase-gui &')),
             ('Save', gtk.STOCK_SAVE, _('_Save'), '<control>S',
-             _('Save current file'),
-             self.save),
-            ('Quit', gtk.STOCK_QUIT, _('_Quit'), '<control>Q',
-             _('Quit'),
+             _('Save current file'), lambda x: save_dialog(self)),
+            ('Quit', gtk.STOCK_QUIT, _('_Quit'), '<control>Q', _('Quit'),
              self.exit),
-            ('SelectAll', None, _('Select _all'), None,
-             '',
-             self.select_all),
-            ('Invert', None, _('_Invert selection'), None,
-             '',
+            ('SelectAll', None, _('Select _all'), None, '', self.select_all),
+            ('Invert', None, _('_Invert selection'), None, '',
              self.invert_selection),
             ('SelectConstrained', None, _('Select _constrained atoms'), None,
-             '',
-             self.select_constrained_atoms),
+             '', self.select_constrained_atoms),
             ('SelectImmobile', None, _('Select _immobile atoms'), '<control>I',
-             '',
-             self.select_immobile_atoms),
-             ('Copy', None, _('_Copy'), '<control>C',
-              _('Copy current selection and its orientation to clipboard'),
-              self.copy_atoms),
-             ('Paste', None, _('_Paste'), '<control>V',
-              _('Insert current clipboard selection'),
-              self.paste_atoms),
-             ('Modify', None, _('_Modify'), '<control>Y',
-              _('Change tags, moments and atom types of the selected atoms'),
-              self.modify_atoms),
-             ('AddAtoms', None, _('_Add atoms'), '<control>A',
-              _('Insert or import atoms and molecules'),
-              self.add_atoms),
-             ('DeleteAtoms', None, _('_Delete selected atoms'), 'BackSpace',
-              _('Delete the selected atoms'),
-              self.delete_selected_atoms),             
-            ('First', gtk.STOCK_GOTO_FIRST, _('_First image'), 'Home',
-             '',
+             '', self.select_immobile_atoms),
+            ('Copy', None, _('_Copy'), '<control>C',
+             _('Copy current selection and its orientation to clipboard'),
+             self.copy_atoms),
+            ('Paste', None, _('_Paste'), '<control>V',
+             _('Insert current clipboard selection'), self.paste_atoms),
+            ('Modify', None, _('_Modify'), '<control>Y',
+             _('Change tags, moments and atom types of the selected atoms'),
+             self.modify_atoms),
+            ('AddAtoms', None, _('_Add atoms'), '<control>A',
+             _('Insert or import atoms and molecules'), self.add_atoms),
+            ('DeleteAtoms', None, _('_Delete selected atoms'), 'BackSpace',
+             _('Delete the selected atoms'), self.delete_selected_atoms),
+            ('First', gtk.STOCK_GOTO_FIRST, _('_First image'), 'Home', '',
              self.step),
             ('Previous', gtk.STOCK_GO_BACK, _('_Previous image'), 'Page_Up',
-             '',
+             '', self.step),
+            ('Next', gtk.STOCK_GO_FORWARD, _('_Next image'), 'Page_Down', '',
              self.step),
-            ('Next', gtk.STOCK_GO_FORWARD, _('_Next image'), 'Page_Down',
-             '',
-             self.step),
-            ('Last', gtk.STOCK_GOTO_LAST, _('_Last image'), 'End',
-             '',
+            ('Last', gtk.STOCK_GOTO_LAST, _('_Last image'), 'End', '',
              self.step),
             ('ShowLabels', None, _('Show _Labels')),
-            ('HideAtoms', None, _('Hide selected atoms'), None,
-             '',
+            ('HideAtoms', None, _('Hide selected atoms'), None, '',
              self.hide_selected),
-            ('ShowAtoms', None, _('Show selected atoms'), None,
-             '',
+            ('ShowAtoms', None, _('Show selected atoms'), None, '',
              self.show_selected),
-            ('QuickInfo', None, _('Quick Info ...'), None,
-             '',
+            ('QuickInfo', None, _('Quick Info ...'), None, '',
              self.quick_info_window),
-            ('Repeat', None, _('Repeat ...'), None,
-             '',
-             self.repeat_window),
-            ('Rotate', None, _('Rotate ...'), None,
-             '',
-             self.rotate_window),
-            ('Colors', None, _('Colors ...'), 'C', '',
-             self.colors_window),
+            ('Repeat', None, _('Repeat ...'), None, '', self.repeat_window),
+            ('Rotate', None, _('Rotate ...'), None, '', self.rotate_window),
+            ('Colors', None, _('Colors ...'), 'C', '', self.colors_window),
             # TRANSLATORS: verb
-            ('Focus', gtk.STOCK_ZOOM_FIT, _('Focus'), 'F',
-             '',
-             self.focus),
-            ('ZoomIn', gtk.STOCK_ZOOM_IN, _('Zoom in'), 'plus',
-             '',
-             self.zoom),
-            ('ZoomOut', gtk.STOCK_ZOOM_OUT, _('Zoom out'), 'minus',
-             '',
+            ('Focus', gtk.STOCK_ZOOM_FIT, _('Focus'), 'F', '', self.focus),
+            ('ZoomIn', gtk.STOCK_ZOOM_IN, _('Zoom in'), 'plus', '', self.zoom),
+            ('ZoomOut', gtk.STOCK_ZOOM_OUT, _('Zoom out'), 'minus', '',
              self.zoom),
             ('ChangeView', None, _('Change View')),
-            ('ResetView', None, _('Reset View'), 'equal',
-             '',
-             self.reset_view),
+            ('ResetView', None, _('Reset View'), 'equal', '', self.reset_view),
             ('xyPlane', None, _('\'xy\' Plane'), 'z', '', self.set_view),
             ('yzPlane', None, _('\'yz\' Plane'), 'x', '', self.set_view),
             ('zxPlane', None, _('\'zx\' Plane'), 'y', '', self.set_view),
@@ -288,144 +256,101 @@ class GUI(View, Status):
             ('a2a3Plane', None, _('\'a2 a3\' Plane'), '1', '', self.set_view),
             ('a3a1Plane', None, _('\'a3 a1\' Plane'), '2', '', self.set_view),
             ('a1a2Plane', None, _('\'a1 a2\' Plane'), '3', '', self.set_view),
-            ('a3a2Plane', None, _('\'a3 a2\' Plane'), '<alt>1', '', self.set_view),
-            ('a1a3Plane', None, _('\'a1 a3\' Plane'), '<alt>2', '', self.set_view),
-            ('a2a1Plane', None, _('\'a2 a1\' Plane'), '<alt>3', '', self.set_view),
-            ('Settings', gtk.STOCK_PREFERENCES, _('Settings ...'), None,
-             '',
+            ('a3a2Plane', None, _('\'a3 a2\' Plane'), '<alt>1', '',
+             self.set_view),
+            ('a1a3Plane', None, _('\'a1 a3\' Plane'), '<alt>2', '',
+             self.set_view),
+            ('a2a1Plane', None, _('\'a2 a1\' Plane'), '<alt>3', '',
+             self.set_view),
+            ('Settings', gtk.STOCK_PREFERENCES, _('Settings ...'), None, '',
              self.settings),
-            ('VMD', None, _('VMD'), None,
-             '',
-             self.external_viewer),
-            ('RasMol', None, _('RasMol'), None,
-             '',
-             self.external_viewer),
-            ('XMakeMol', None, _('xmakemol'), None,
-             '',
-             self.external_viewer),
-            ('Avogadro', None, _('avogadro'), None,
-             '',
-             self.external_viewer),
-            ('Graphs', None, _('Graphs ...'), None,
-             '',
-             self.plot_graphs),
-            ('Movie', None, _('Movie ...'), None,
-             '',
-             self.movie),
-            ('EModify', None, _('Expert mode ...'), '<control>E',
-             '',
+            ('VMD', None, _('VMD'), None, '', self.external_viewer),
+            ('RasMol', None, _('RasMol'), None, '', self.external_viewer),
+            ('XMakeMol', None, _('xmakemol'), None, '', self.external_viewer),
+            ('Avogadro', None, _('avogadro'), None, '', self.external_viewer),
+            ('Graphs', None, _('Graphs ...'), None, '', self.plot_graphs),
+            ('Movie', None, _('Movie ...'), None, '', self.movie),
+            ('EModify', None, _('Expert mode ...'), '<control>E', '',
              self.execute),
-            ('Constraints', None, _('Constraints ...'), None,
-             '',
+            ('Constraints', None, _('Constraints ...'), None, '',
              self.constraints_window),
-            ('RenderScene', None, _('Render scene ...'), None,
-             '',
+            ('RenderScene', None, _('Render scene ...'), None, '',
              self.render_window),
-            ('DFT', None, _('DFT ...'), None,
-             '',
-             self.dft_window),
-            ('NEB', None, _('NE_B'), None,
-             '',
-             self.NEB),
-            ('BulkModulus', None, _('B_ulk Modulus'), None,
-             '',
+            ('DFT', None, _('DFT ...'), None, '', self.dft_window),
+            ('NEB', None, _('NE_B'), None, '', self.NEB),
+            ('BulkModulus', None, _('B_ulk Modulus'), None, '',
              self.bulk_modulus),
             ('Bulk', None, _('_Bulk Crystal'), None,
              _("Create a bulk crystal with arbitrary orientation"),
              self.bulk_window),
             ('Surface', None, _('_Surface slab'), None,
-             _("Create the most common surfaces"),
-             self.surface_window),
+             _("Create the most common surfaces"), self.surface_window),
             ('Nanoparticle', None, _('_Nanoparticle'), None,
-             _("Create a crystalline nanoparticle"),
-             self.nanoparticle_window),
-            ('Nanotube', None, _('Nano_tube'), None,
-             _("Create a nanotube"),
+             _("Create a crystalline nanoparticle"), self.nanoparticle_window),
+            ('Nanotube', None, _('Nano_tube'), None, _("Create a nanotube"),
              self.nanotube_window),
             ('Graphene', None, _('Graphene'), None,
-             _("Create a graphene sheet or nanoribbon"),
-             self.graphene_window),
+             _("Create a graphene sheet or nanoribbon"), self.graphene_window),
             ('SetCalculator', None, _('Set _Calculator'), None,
              _("Set a calculator used in all calculation modules"),
              self.calculator_window),
             ('EnergyForces', None, _('_Energy and Forces'), None,
-             _("Calculate energy and forces"),
-             self.energy_window),
+             _("Calculate energy and forces"), self.energy_window),
             ('Minimize', None, _('Energy _Minimization'), None,
-             _("Minimize the energy"),
-             self.energy_minimize_window),
+             _("Minimize the energy"), self.energy_minimize_window),
             ('Scaling', None, _('Scale system'), None,
-             _("Deform system by scaling it"),
-             self.scaling_window),
-            ('About', None, _('_About'), None,
-             None,
-             self.about),
+             _("Deform system by scaling it"), self.scaling_window),
+            ('About', None, _('_About'), None, None, self.about),
             ('Webpage', gtk.STOCK_HELP, _('Webpage ...'), None, None, webpage),
-            ('Debug', None, _('Debug ...'), None, None, self.debug)])
+            ('Debug', None, _('Debug ...'), None, None, self.debug)
+        ])
         actions.add_toggle_actions([
-            ('ShowUnitCell', None, _('Show _unit cell'), '<control>U',
-             'Bold',
+            ('ShowUnitCell', None, _('Show _unit cell'), '<control>U', 'Bold',
              self.toggle_show_unit_cell,
-             show_unit_cell > 0),
-            ('ShowAxes', None, _('Show _axes'), None,
-             'Bold',
-             self.toggle_show_axes,
-             True),
-            ('ShowBonds', None, _('Show _bonds'), '<control>B',
-             'Bold',
+             show_unit_cell > 0), ('ShowAxes', None, _('Show _axes'), None,
+                                   'Bold', self.toggle_show_axes, True),
+            ('ShowBonds', None, _('Show _bonds'), '<control>B', 'Bold',
              self.toggle_show_bonds,
-             show_bonds),
-            ('ShowVelocities', None, _('Show _velocities'), 
-             '<control>G', 'Bold',
-             self.toggle_show_velocities,
-             False),
-            ('ShowForces', None, _('Show _forces'), '<control>F',
-             'Bold',
-             self.toggle_show_forces,
-             False),
-            ('MoveAtoms', None, _('_Move atoms'), '<control>M',
-             'Bold',
+             show_bonds), ('ShowVelocities', None, _('Show _velocities'),
+                           '<control>G', 'Bold', self.toggle_show_velocities,
+                           False), ('ShowForces', None, _('Show _forces'),
+                                    '<control>F', 'Bold',
+                                    self.toggle_show_forces, False),
+            ('MoveAtoms', None, _('_Move atoms'), '<control>M', 'Bold',
              self.toggle_move_mode,
-             False),
-            ('RotateAtoms', None, _('_Rotate atoms'), '<control>R',
-             'Bold',
-             self.toggle_rotate_mode,
-             False),
-            ('OrientAtoms', None, _('Orien_t atoms'), '<control>T',
-             'Bold',
-             self.toggle_orient_mode,
-             False)             
-            ])
-        actions.add_radio_actions((
-            ('NoLabel', None, _('_None'), None, None, 0),
-            ('AtomIndex', None, _('Atom _Index'), None, None, 1),
-            ('MagMom', None, _('_Magnetic Moments'), None, None, 2),
-            ('Element', None, _('_Element Symbol'), None, None, 3)),
-            0, self.show_labels)
+             False), ('RotateAtoms', None, _('_Rotate atoms'), '<control>R',
+                      'Bold', self.toggle_rotate_mode,
+                      False), ('OrientAtoms', None, _('Orien_t atoms'),
+                               '<control>T', 'Bold', self.toggle_orient_mode,
+                               False)
+        ])
+        actions.add_radio_actions(
+            (('NoLabel', None, _('_None'), None, None, 0),
+             ('AtomIndex', None, _('Atom _Index'), None, None, 1),
+             ('MagMom', None, _('_Magnetic Moments'), None, None, 2),
+             ('Element', None, _('_Element Symbol'), None, None, 3)), 0,
+            self.show_labels)
         self.ui = ui = gtk.UIManager()
         ui.insert_action_group(actions, 0)
         self.window.add_accel_group(ui.get_accel_group())
 
-        try:
-            mergeid = ui.add_ui_from_string(ui_info)
-        except gobject.GError as msg:
-            print(_('building menus failed: %s') % msg)
+        ui.add_ui_from_string(ui_info)
 
         vbox.pack_start(ui.get_widget('/MenuBar'), False, False, 0)
-        
+
         View.__init__(self, vbox, rotations)
         Status.__init__(self, vbox)
         vbox.show()
-        #self.window.set_events(gtk.gdk.BUTTON_PRESS_MASK)
+        # self.window.set_events(gtk.gdk.BUTTON_PRESS_MASK)
         self.window.connect('key-press-event', self.scroll)
         self.window.connect('scroll_event', self.scroll_event)
         self.window.show()
-        self.graphs = []       # List of open pylab windows
-        self.graph_wref = []   # List of weakrefs to Graph objects
+        self.graphs = []  # list of matplotlib processes
+        self.graph_wref = []  # list of weakrefs to Graph objects
         self.movie_window = None
         self.vulnerable_windows = []
-        self.simulation = {}   # Used by modules on Calculate menu.
-        self.module_state = {} # Used by modules to store their state.
+        self.simulation = {}  # Used by modules on Calculate menu.
+        self.module_state = {}  # Used by modules to store their state.
 
     def run(self, expr=None):
         self.set_colors()
@@ -441,8 +366,7 @@ class GUI(View, Status):
             self.plot_graphs(expr=expr)
 
         gtk.main()
-    
-            
+
     def step(self, action):
         d = {'First': -10000000,
              'Previous': -1,
@@ -452,15 +376,15 @@ class GUI(View, Status):
         self.set_frame(i)
         if self.movie_window is not None:
             self.movie_window.frame_number.value = i
-            
+
     def _do_zoom(self, x):
         """Utility method for zooming"""
         self.scale *= x
         self.draw()
-        
+
     def zoom(self, action):
         """Zoom in/out on keypress or clicking menu item"""
-        x = {'ZoomIn': 1.2, 'ZoomOut':1 /1.2}[action.get_name()]
+        x = {'ZoomIn': 1.2, 'ZoomOut': 1 / 1.2}[action.get_name()]
         self._do_zoom(x)
 
     def scroll_event(self, window, event):
@@ -468,37 +392,38 @@ class GUI(View, Status):
         SHIFT = event.state == gtk.gdk.SHIFT_MASK
         x = 1.0
         if event.direction == gtk.gdk.SCROLL_UP:
-            x = 1.0 + (1-SHIFT)*0.2 + SHIFT*0.01
+            x = 1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01
         elif event.direction == gtk.gdk.SCROLL_DOWN:
-            x = 1.0 / (1.0 + (1-SHIFT)*0.2 + SHIFT*0.01)
+            x = 1.0 / (1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01)
         self._do_zoom(x)
 
     def settings(self, menuitem):
         Settings(self)
-        
+
     def scroll(self, window, event):
-        from copy import copy    
+        from copy import copy
         CTRL = event.state == gtk.gdk.CONTROL_MASK
         SHIFT = event.state == gtk.gdk.SHIFT_MASK
-        dxdydz = {gtk.keysyms.KP_Add: ('zoom', 1.0 + (1-SHIFT)*0.2 + SHIFT*0.01, 0),
-                gtk.keysyms.KP_Subtract: ('zoom', 1 / (1.0 + (1-SHIFT)*0.2 + SHIFT*0.01), 0),
-                gtk.keysyms.Up:    ( 0, +1 - CTRL, +CTRL),
-                gtk.keysyms.Down:  ( 0, -1 + CTRL, -CTRL),
-                gtk.keysyms.Right: (+1,  0, 0),
-                gtk.keysyms.Left:  (-1,  0, 0)}.get(event.keyval, None)
-        try:
-            inch = chr(event.keyval)
-        except:
-            inch = None
-            
+        dxdydz = {
+            gtk.keysyms.KP_Add: ('zoom', 1.0 +
+                                 (1 - SHIFT) * 0.2 + SHIFT * 0.01, 0),
+            gtk.keysyms.KP_Subtract: ('zoom', 1 /
+                                      (1.0 +
+                                       (1 - SHIFT) * 0.2 + SHIFT * 0.01), 0),
+            gtk.keysyms.Up: (0, +1 - CTRL, +CTRL),
+            gtk.keysyms.Down: (0, -1 + CTRL, -CTRL),
+            gtk.keysyms.Right: (+1, 0, 0),
+            gtk.keysyms.Left: (-1, 0, 0)
+        }.get(event.keyval, None)
+
         sel = []
 
-        atom_move = self.ui.get_widget('/MenuBar/ToolsMenu/MoveAtoms'
-                                    ).get_active()
-        atom_rotate = self.ui.get_widget('/MenuBar/ToolsMenu/RotateAtoms'
-                                      ).get_active()
-        atom_orient = self.ui.get_widget('/MenuBar/ToolsMenu/OrientAtoms'
-                                      ).get_active()
+        atom_move = self.ui.get_widget(
+            '/MenuBar/ToolsMenu/MoveAtoms').get_active()
+        atom_rotate = self.ui.get_widget(
+            '/MenuBar/ToolsMenu/RotateAtoms').get_active()
+        atom_orient = self.ui.get_widget(
+            '/MenuBar/ToolsMenu/OrientAtoms').get_active()
         if dxdydz is None:
             return
         dx, dy, dz = dxdydz
@@ -506,63 +431,61 @@ class GUI(View, Status):
             self._do_zoom(dy)
             return
 
-        d = self.scale * 0.1
         tvec = np.array([dx, dy, dz])
 
         dir_vec = np.dot(self.axes, tvec)
         if (atom_move):
             rotmat = self.axes
             s = 0.1
-            if SHIFT: 
+            if SHIFT:
                 s = 0.01
             add = s * dir_vec
             for i in range(len(self.R)):
-                if self.atoms_to_rotate_0[i]: 
+                if self.atoms_to_rotate_0[i]:
                     self.R[i] += add
                     for jx in range(self.images.nimages):
                         self.images.P[jx][i] += add
         elif atom_rotate:
-            from .rot_tools import rotate_about_vec, \
-                                  rotate_vec
+            from .rot_tools import rotate_about_vec, rotate_vec
             sel = self.images.selected
             if sum(sel) == 0:
                 sel = self.atoms_to_rotate_0
             nsel = sum(sel)
             # this is the first one to get instatiated
-            if nsel != 2: 
+            if nsel != 2:
                 self.rot_vec = dir_vec
-                
+
             change = False
             z_axis = np.dot(self.axes, np.array([0, 0, 1]))
-            if self.atoms_to_rotate == None:
-                change = True 
+            if self.atoms_to_rotate is None:
+                change = True
                 self.z_axis_old = z_axis.copy()
                 self.dx_change = [0, 0]
                 self.atoms_to_rotate = self.atoms_to_rotate_0.copy()
                 self.atoms_selected = sel.copy()
                 self.rot_vec = dir_vec
-                    
+
             if nsel != 2 or sum(self.atoms_to_rotate) == 2:
                 self.dx_change = [0, 0]
-                
+
             for i in range(len(sel)):
-                if sel[i] != self.atoms_selected[i]: 
+                if sel[i] != self.atoms_selected[i]:
                     change = True
-            cz = [dx, dy+dz]      
-            
-            if cz[0] or cz[1]: 
+            cz = [dx, dy + dz]
+
+            if cz[0] or cz[1]:
                 change = False
-            if not(cz[0] * (self.dx_change[1])):
-                change = True 
+            if not (cz[0] * (self.dx_change[1])):
+                change = True
             for i in range(2):
                 if cz[i] and self.dx_change[i]:
                     self.rot_vec = self.rot_vec * cz[i] * self.dx_change[i]
                     if cz[1]:
                         change = False
-                
+
             if np.prod(self.z_axis_old != z_axis):
                 change = True
-            self.z_axis_old = z_axis.copy()           
+            self.z_axis_old = z_axis.copy()
             self.dx_change = copy(cz)
             dihedral_rotation = len(self.images.selected_ordered) == 4
 
@@ -572,65 +495,66 @@ class GUI(View, Status):
                 if nsel == 2 and sum(self.atoms_to_rotate) != 2:
                     asel = []
                     for i, j in enumerate(sel):
-                        if j: 
+                        if j:
                             asel.append(i)
                     a1, a2 = asel
 
-                    rvx = self.images.P[self.frame][a1] - \
-                          self.images.P[self.frame][a2]
-                        
-                    rvy = np.cross(rvx,
-                                   np.dot(self.axes,
-                                   np.array([0, 0, 1])))     
+                    rvx = (self.images.P[self.frame][a1] -
+                           self.images.P[self.frame][a2])
+
+                    rvy = np.cross(rvx, np.dot(self.axes, np.array([0, 0, 1])))
                     self.rot_vec = rvx * dx + rvy * (dy + dz)
-                    self.dx_change = [dx, dy+dz]
-                    
-                # dihedral rotation?
+                    self.dx_change = [dx, dy + dz]
+
+                    # dihedral rotation?
                 if dihedral_rotation:
                     sel = self.images.selected_ordered
-                    self.rot_vec = (dx+dy+dz)*(self.R[sel[2]]-self.R[sel[1]])
+                    self.rot_vec = (dx + dy + dz) * (
+                        self.R[sel[2]] - self.R[sel[1]])
 
             rot_cen = np.array([0.0, 0.0, 0.0])
             if dihedral_rotation:
                 sel = self.images.selected_ordered
                 rot_cen = self.R[sel[1]].copy()
-            elif nsel: 
-                for i, b in enumerate( sel):
-                    if b: 
+            elif nsel:
+                for i, b in enumerate(sel):
+                    if b:
                         rot_cen += self.R[i]
-                rot_cen /= float(nsel)     
+                rot_cen /= float(nsel)
 
             degrees = 5 * (1 - SHIFT) + SHIFT
             degrees = abs(sum(dxdydz)) * 3.1415 / 360.0 * degrees
             rotmat = rotate_about_vec(self.rot_vec, degrees)
-            
-            # now rotate the atoms that are to be rotated            
+
+            # now rotate the atoms that are to be rotated
             for i in range(len(self.R)):
-                if self.atoms_to_rotate[i]: 
+                if self.atoms_to_rotate[i]:
                     self.R[i] -= rot_cen
                     for jx in range(self.images.nimages):
                         self.images.P[jx][i] -= rot_cen
-                    
+
                     self.R[i] = rotate_vec(rotmat, self.R[i])
                     for jx in range(self.images.nimages):
-                        self.images.P[jx][i] = rotate_vec(rotmat, self.images.P[jx][i])
-                    
+                        self.images.P[jx][i] = rotate_vec(rotmat,
+                                                          self.images.P[jx][i])
+
                     self.R[i] += rot_cen
                     for jx in range(self.images.nimages):
                         self.images.P[jx][i] += rot_cen
         elif atom_orient:
-            to_vec  = np.array([dx, dy, dz])
+            to_vec = np.array([dx, dy, dz])
 
             from .rot_tools import rotate_vec_into_newvec
             rot_mat = rotate_vec_into_newvec(self.orient_normal, to_vec)
             self.axes = rot_mat
-            
+
             self.set_coordinates()
         else:
-            self.center -= (dx * 0.1 * self.axes[:, 0] -
-                            dy * 0.1 * self.axes[:, 1])
+            self.center -= (
+                dx * 0.1 * self.axes[:, 0] - dy * 0.1 * self.axes[:, 1]
+            )
         self.draw()
-        
+
     def copy_atoms(self, widget):
         "Copies selected atoms to a clipboard."
 
@@ -640,53 +564,55 @@ class GUI(View, Status):
             atoms = self.images.get_atoms(self.frame)
             lena = len(atoms)
             for i in range(len(atoms)):
-                li = lena-1-i
+                li = lena - 1 - i
                 if not self.images.selected[li]:
-                    del(atoms[li])
+                    del (atoms[li])
             for i in atoms:
-                i.position = np.dot(self.axes.T,i.position)       
+                i.position = np.dot(self.axes.T, i.position)
             ref = atoms[0].position
             for i in atoms:
                 if i.position[2] < ref[2]:
                     ref = i.position
             atoms.reference_position = ref
             clip.set_text(pickle.dumps(atoms, 0))
-            
 
     def paste_atoms(self, widget):
-        "Inserts clipboard selection into the current frame using the add_atoms window."
+        """Inserts clipboard selection into the current frame using the
+        add_atoms window."""
         clip = gtk.clipboard_get(gtk.gdk.SELECTION_CLIPBOARD)
         try:
             atoms = pickle.loads(clip.wait_for_text())
-            self.add_atoms(widget, data='Paste', paste=atoms)
-        except:
+        except TypeError:
             pass
-            
-            
-        
+        else:
+            self.add_atoms(widget, data='Paste', paste=atoms)
+
     def add_atoms(self, widget, data=None, paste=None):
-        """
-        Presents a dialogbox to the user, that allows him to add atoms/molecule to the current slab
-        or to paste the clipboard.
+        """Presents a dialogbox to the user, that allows him to add
+        atoms/molecule to the current slab or to paste the clipboard.
         
-        The molecule/atom is rotated using the current rotation of the coordinate system.
+        The molecule/atom is rotated using the current rotation of the
+        coordinate system.
         
-        The molecule/atom can be added at a specified position - if the keyword auto+Z is used,
-        the COM of the selected atoms will be used as COM for the moleculed. The COM is furthermore
+        The molecule/atom can be added at a specified position - if the
+        keyword auto+Z is used, the COM of the selected atoms will be used
+        as COM for the moleculed. The COM is furthermore
         translated Z ang towards the user.
         
-        If no molecules are selected, the COM of all the atoms will be used for the x-y components of the
-        active coordinate system, while the z-direction will be chosen from the nearest atom position 
+        If no molecules are selected, the COM of all the atoms will be used
+        for the x-y components of the active coordinate system, while the
+        z-direction will be chosen from the nearest atom position
         along this direction.
         
-        Note: If this option is used, all frames except the active one are deleted.
+        Note: If this option is used, all frames except the active one are
+        deleted.
         """
-        
+
         if data == 'load':
             chooser = gtk.FileChooserDialog(
-                        _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
-                        (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                         gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+                _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
+                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN,
+                 gtk.RESPONSE_OK))
 
             chooser.set_filename(_("<<filename>>"))
             ok = chooser.run()
@@ -711,7 +637,7 @@ class GUI(View, Status):
                 a = paste.copy()
             else:
                 a = None
-                
+
             if a is None:
                 try:
                     a = ase.Atoms([ase.Atom(molecule)])
@@ -723,28 +649,29 @@ class GUI(View, Status):
                         try:
                             a = ase.io.read(molecule, -1)
                         except:
-                            self.add_entries[1].set_text('?' + molecule) 
+                            self.add_entries[1].set_text('?' + molecule)
                             return ()
 
             directions = np.transpose(self.axes)
-            if a != None:
+            if a is not None:
                 for i in a:
-                    try: 
-                        i.set('tag',int(tag))
+                    try:
+                        i.set('tag', int(tag))
                     except:
-                        self.add_entries[2].set_text('?' + tag) 
+                        self.add_entries[2].set_text('?' + tag)
                         return ()
-                    try: 
+                    try:
                         i.magmom = float(mom)
-                    except: 
-                        self.add_entries[3].set_text('?' + mom) 
+                    except:
+                        self.add_entries[3].set_text('?' + mom)
                         return ()
                 if self.origin_radio.get_active() and paste:
                     a.translate(-paste.reference_position)
                 # apply the current rotation matrix to A
                 for i in a:
-                    i.position = np.dot(self.axes, i.position)       
-                # find the extent of the molecule in the local coordinate system
+                    i.position = np.dot(self.axes, i.position)
+                # find the extent of the molecule in the local coordinate
+                # system
                 if self.centre_radio.get_active():
                     a_cen_pos = np.array([0.0, 0.0, 0.0])
                     m_cen_pos = 0.0
@@ -753,9 +680,9 @@ class GUI(View, Status):
                         a_cen_pos[1] += np.dot(directions[1], i)
                         a_cen_pos[2] += np.dot(directions[2], i)
                         m_cen_pos = max(np.dot(-directions[2], i), m_cen_pos)
-                        
-                    a_cen_pos[0] /= len(a.positions)      
-                    a_cen_pos[1] /= len(a.positions)      
+
+                    a_cen_pos[0] /= len(a.positions)
+                    a_cen_pos[1] /= len(a.positions)
                     a_cen_pos[2] /= len(a.positions)
                     a_cen_pos[2] -= m_cen_pos
                 else:
@@ -767,7 +694,7 @@ class GUI(View, Status):
                     for i in range(len(self.R)):
                         if self.images.selected[i]:
                             cen_pos += self.R[i]
-                    cen_pos /= sum(self.images.selected)   
+                    cen_pos /= sum(self.images.selected)
                 elif len(self.R) > 0:
                     px = 0.0
                     py = 0.0
@@ -777,12 +704,12 @@ class GUI(View, Status):
                         px += np.dot(directions[0], self.R[i])
                         py += np.dot(directions[1], self.R[i])
                         pz = max(np.dot(directions[2], self.R[i]), pz)
-                    px = (px/float(len(self.R)))
-                    py = (py/float(len(self.R)))
-                    cen_pos = directions[0] * px + \
-                              directions[1] * py + \
-                              directions[2] * pz
-                    
+                    px = (px / float(len(self.R)))
+                    py = (py / float(len(self.R)))
+                    cen_pos = (directions[0] * px +
+                               directions[1] * py +
+                               directions[2] * pz)
+
                 if 'auto' in pos:
                     pos = pos.replace('auto', '')
                     import re
@@ -795,24 +722,25 @@ class GUI(View, Status):
                 else:
                     cen_pos = np.array(eval(pos))
                 for i in a:
-                    i.position += cen_pos - a_cen_pos      
+                    i.position += cen_pos - a_cen_pos
 
-              # and them to the molecule
+            # and them to the molecule
                 atoms = self.images.get_atoms(self.frame)
                 atoms = atoms + a
                 self.new_atoms(atoms, init_magmom=True)
 
-              # and finally select the new molecule for easy moving and rotation
+                # and finally select the new molecule for easy moving and
+                # rotation
                 for i in range(len(a)):
                     self.images.selected[len(atoms) - i - 1] = True
 
-                self.draw()    
+                self.draw()
             self.add_entries[0].destroy()
 
         if data == 'Cancel':
             self.add_entries[0].destroy()
-            
-        if data == None or data == 'Paste':
+
+        if data is None or data == 'Paste':
             from ase.gui.widgets import pack
             molecule = ''
             tag = '0'
@@ -823,26 +751,25 @@ class GUI(View, Status):
             self.add_entries.append(window)
             window.set_title(_('Add atoms'))
             if data == 'Paste':
-                molecule = paste.get_chemical_symbols(True)
+                molecule = paste.get_chemical_formula()
                 window.set_title(_('Paste'))
-                
+
             vbox = gtk.VBox(False, 0)
             window.add(vbox)
             vbox.show()
             packed = False
             for i, j in [[_('Insert atom or molecule'), molecule],
-                         [_('Tag'), tag],
-                         [_('Moment'), mom],
-                         [_('Position'), pos]]:
+                         [_('Tag'), tag], [_('Moment'), mom], [_('Position'),
+                                                               pos]]:
 
                 label = gtk.Label(i)
                 if not packed:
                     vbox.pack_start(label, True, True, 0)
-                else: 
+                else:
                     packed = True
-                    vbox.add(label)    
+                    vbox.add(label)
                 label.show()
-  
+
                 entry = gtk.Entry()
                 entry.set_text(j)
                 self.add_entries.append(entry)
@@ -850,14 +777,14 @@ class GUI(View, Status):
                 entry.show()
                 vbox.add(entry)
 
-            pack(vbox,[gtk.Label('atom/molecule reference:')])
+            pack(vbox, [gtk.Label('atom/molecule reference:')])
             self.centre_radio = gtk.RadioButton(None, "centre ")
             self.origin_radio = gtk.RadioButton(self.centre_radio, "origin")
-            pack(vbox,[self.centre_radio, self.origin_radio])
+            pack(vbox, [self.centre_radio, self.origin_radio])
             if data == 'Paste':
                 self.origin_radio.set_active(True)
                 self.add_entries[1].set_sensitive(False)
-            if data == None:
+            if data is None:
                 button = gtk.Button(_('_Load molecule'))
                 button.connect('clicked', self.add_atoms, 'load')
                 button.show()
@@ -871,11 +798,11 @@ class GUI(View, Status):
             button.show()
             vbox.add(button)
             window.show()
-        
+
     def modify_atoms(self, widget, data=None):
-        """
-        Presents a dialog box where the user is able to change the atomic type, the magnetic
-        moment and tags of the selected atoms. An item marked with X will not be changed.
+        """Presents a dialog box where the user is able to change the
+        atomic type, the magnetic moment and tags of the selected atoms.
+        An item marked with X will not be changed.
         """
         if data:
             if data == 'OK':
@@ -884,69 +811,67 @@ class GUI(View, Status):
                 tag = self.add_entries[2].get_text()
                 mom = self.add_entries[3].get_text()
                 a = None
-                if symbol != 'X': 
+                if symbol != 'X':
                     try:
-                        a = ase.Atoms([ase.Atom(symbol)])  
+                        a = ase.Atoms([ase.Atom(symbol)])
                     except:
                         self.add_entries[1].set_text('?' + symbol)
                         return ()
-          
+
                 y = self.images.selected.copy()
-                    # and them to the molecule
+                # and them to the molecule
                 atoms = self.images.get_atoms(self.frame)
                 for i in range(len(atoms)):
-                    if self.images.selected[i]:  
-                        if a: 
+                    if self.images.selected[i]:
+                        if a:
                             atoms[i].symbol = symbol
-                        try: 
-                            if tag != 'X': 
+                        try:
+                            if tag != 'X':
                                 atoms[i].tag = int(tag)
                         except:
                             self.add_entries[2].set_text('?' + tag)
                             return ()
-                        try: 
-                            if mom != 'X': 
+                        try:
+                            if mom != 'X':
                                 atoms[i].magmom = float(mom)
-                        except: 
+                        except:
                             self.add_entries[3].set_text('?' + mom)
                             return ()
                 self.new_atoms(atoms, init_magmom=True)
 
                 # Updates atomic labels
-                cv = self.ui.get_action_groups()[0].\
-                        get_action("NoLabel").get_current_value()
-                self.ui.get_action_groups()[0].\
-                        get_action("NoLabel").set_current_value(0)
-                self.ui.get_action_groups()[0].\
-                        get_action("NoLabel").set_current_value(cv)
+                a = self.ui.get_action_groups()[0].get_action("NoLabel")
+                cv = a.get_current_value()
+                a.set_current_value(0)
+                a.set_current_value(cv)
 
-
-                # and finally select the new molecule for easy moving and rotation
+                # and finally select the new molecule for easy moving
+                # and rotation
                 self.images.selected = y
-                self.draw()    
-          
-            self.add_entries[0].destroy()          
-        if data == None and sum(self.images.selected):
+                self.draw()
+
+            self.add_entries[0].destroy()
+        if data is None and sum(self.images.selected):
             atoms = self.images.get_atoms(self.frame)
             s_tag = ''
-            s_mom = ''  
+            s_mom = ''
             s_symbol = ''
-          # Get the tags, moments and symbols of the selected atomsa  
+            # Get the tags, moments and symbols of the selected atomsa
             for i in range(len(atoms)):
                 if self.images.selected[i]:
-                    if not(s_tag): 
+                    if not (s_tag):
                         s_tag = str(atoms[i].tag)
-                    elif s_tag != str(atoms[i].tag): 
+                    elif s_tag != str(atoms[i].tag):
                         s_tag = 'X'
-                    if not(s_mom): 
+                    if not (s_mom):
                         s_mom = ("%2.2f" % (atoms[i].magmom))
-                    elif s_mom != ("%2.2f" % (atoms[i].magmom)): 
+                    elif s_mom != ("%2.2f" % (atoms[i].magmom)):
                         s_mom = 'X'
-                    if not(s_symbol): 
-                        s_symbol = str(atoms[i].symbol)       
-                    elif s_symbol != str(atoms[i].symbol): 
+                    if not (s_symbol):
+                        s_symbol = str(atoms[i].symbol)
+                    elif s_symbol != str(atoms[i].symbol):
                         s_symbol = 'X'
-  
+
             self.add_entries = []
             window = gtk.Window(gtk.WINDOW_TOPLEVEL)
             self.add_entries.append(window)
@@ -956,15 +881,14 @@ class GUI(View, Status):
             window.add(vbox)
             vbox.show()
             pack = False
-            for i, j in [[_('Atom'), s_symbol],
-                        [_('Tag'), s_tag],
-                        [_('Moment'), s_mom]]:
+            for i, j in [[_('Atom'), s_symbol], [_('Tag'), s_tag],
+                         [_('Moment'), s_mom]]:
                 label = gtk.Label(i)
                 if not pack:
                     vbox.pack_start(label, True, True, 0)
-                else: 
+                else:
                     pack = True
-                    vbox.add(label)    
+                    vbox.add(label)
                 label.show()
 
                 entry = gtk.Entry()
@@ -981,24 +905,24 @@ class GUI(View, Status):
             button.connect('clicked', self.modify_atoms, 'Cancel')
             button.show()
             vbox.add(button)
- 
+
             window.show()
-        
+
     def delete_selected_atoms(self, widget=None, data=None):
         if data == 'OK':
             atoms = self.images.get_atoms(self.frame)
             lena = len(atoms)
             for i in range(len(atoms)):
-                li = lena-1-i
+                li = lena - 1 - i
                 if self.images.selected[li]:
-                    del(atoms[li])
+                    del (atoms[li])
             self.new_atoms(atoms)
-         
-            self.draw()    
-        if data:      
+
+            self.draw()
+        if data:
             self.delete_window.destroy()
-             
-        if not(data) and sum(self.images.selected):
+
+        if not (data) and sum(self.images.selected):
             nselected = sum(self.images.selected)
             self.delete_window = gtk.Window(gtk.WINDOW_TOPLEVEL)
             self.delete_window.set_title(_('Confirmation'))
@@ -1013,13 +937,14 @@ class GUI(View, Status):
             self.button1.show()
 
             self.button2 = gtk.Button(_("Cancel"))
-            self.button2.connect("clicked", self.delete_selected_atoms, "Cancel")
+            self.button2.connect("clicked", self.delete_selected_atoms,
+                                 "Cancel")
             self.box1.pack_start(self.button2, True, True, 0)
             self.button2.show()
 
             self.box1.show()
             self.delete_window.show()
-                
+
     def debug(self, x):
         from ase.gui.debug import Debug
         Debug(self)
@@ -1027,7 +952,7 @@ class GUI(View, Status):
     def execute(self, widget=None):
         from ase.gui.execute import Execute
         Execute(self)
-        
+
     def constraints_window(self, widget=None):
         from ase.gui.constraints import Constraints
         Constraints(self)
@@ -1039,26 +964,26 @@ class GUI(View, Status):
     def select_all(self, widget):
         self.images.selected[:] = True
         self.draw()
-        
+
     def invert_selection(self, widget):
         self.images.selected[:] = ~self.images.selected
         self.draw()
-        
+
     def select_constrained_atoms(self, widget):
         self.images.selected[:] = ~self.images.dynamic
         self.draw()
-        
+
     def select_immobile_atoms(self, widget):
         if self.images.nimages > 1:
             R0 = self.images.P[0]
             for R in self.images.P[1:]:
-                self.images.selected[:] =~ (np.abs(R - R0) > 1.0e-10).any(1)
+                self.images.selected[:] = ~(np.abs(R - R0) > 1.0e-10).any(1)
         self.draw()
 
     def movie(self, widget=None):
         from ase.gui.movie import Movie
         self.movie_window = Movie(self)
-        
+
     def plot_graphs(self, x=None, expr=None):
         from ase.gui.graphs import Graphs
         g = Graphs(self)
@@ -1078,81 +1003,72 @@ class GUI(View, Status):
                 found += 1
         self.graph_wref = new_wref
         return found
-        
+
     def NEB(self, action):
         from ase.gui.neb import NudgedElasticBand
         NudgedElasticBand(self.images)
-        
+
     def bulk_modulus(self, action):
-        from ase.gui.bulk_modulus import BulkModulus
-        BulkModulus(self.images)
-        
-    def open(self, button=None, filenames=None):
-        if filenames == None:
-            chooser = gtk.FileChooserDialog(
-                _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
-                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                 gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-            chooser.set_filename(_("<<filename>>"))
+        process = subprocess.Popen([sys.executable, '-m', 'ase.utils.eos'],
+                                   stdin=subprocess.PIPE)
+        v = np.array([abs(np.linalg.det(A)) for A in self.images.A])
+        e = self.images.E
+        pickle.dump((v, e), process.stdin)
+        process.stdin.close()
+        self.graphs.append(process)
 
-            # Add a file type filter
-            name_to_suffix = {}
-            types = gtk.combo_box_new_text()
-            for name, suffix in [(_('Automatic'), None),
-                                 (_('Dacapo netCDF output file'),'dacapo'),
-                                 (_('Virtual Nano Lab file'),'vnl'),
-                                 (_('ASE pickle trajectory'),'traj'),
-                                 (_('ASE bundle trajectory'),'bundle'),
-                                 (_('GPAW text output'),'gpaw-text'),
-                                 (_('CUBE file'),'cube'),
-                                 (_('XCrySDen Structure File'),'xsf'),
-                                 (_('Dacapo text output'),'dacapo-text'),
-                                 (_('XYZ-file'),'xyz'),
-                                 (_('VASP POSCAR/CONTCAR file'),'vasp'),
-                                 (_('VASP OUTCAR file'),'vasp_out'),
-                                 (_('Protein Data Bank'),'pdb'),
-                                 (_('CIF-file'),'cif'),
-                                 (_('FHI-aims geometry file'),'aims'),
-                                 (_('FHI-aims output file'),'aims_out'),
-                                 (_('TURBOMOLE coord file'),'tmol'),
-                                 (_('exciting input'),'exi'),
-                                 (_('WIEN2k structure file'),'struct'),
-                                 (_('DftbPlus input file'),'dftb'),
-                                 (_('ETSF format'),'etsf.nc'),
-                                 (_('CASTEP geom file'),'cell'),
-                                 (_('CASTEP output file'),'castep'),
-                                 (_('CASTEP trajectory file'),'geom'),
-                                 (_('DFTBPlus GEN format'),'gen')
-                                ]:
-                types.append_text(name)
-                name_to_suffix[name] = suffix
-            types.set_active(0)
-            img_vbox = gtk.VBox()
-            pack(img_vbox, [gtk.Label(_('File type:')), types])
-            img_vbox.show()
-            chooser.set_extra_widget(img_vbox)
+    def open(self, button=None):
+        from ase.io.formats import all_formats, get_ioformat
+        formats = [(_('Automatic'), None)]
 
-            ok = chooser.run() == gtk.RESPONSE_OK
-            if ok:
-                filenames = [chooser.get_filename()]
-                filetype = types.get_active_text()
-            chooser.destroy()
+        def key(item):
+            return item[1][0]
 
-            if not ok:
-                return
+        for format, (description, code) in sorted(all_formats.items(),
+                                                  key=key):
+            io = get_ioformat(format)
+            if io.read and description != '?':
+                formats.append((_(description), format))
 
-        n_current = self.images.nimages
-        self.reset_tools_modes()     
-        self.images.read(filenames, slice(None), name_to_suffix[filetype])
+        chooser = gtk.FileChooserDialog(
+            _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
+            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN,
+             gtk.RESPONSE_OK))
+        chooser.set_filename(_("<<filename>>"))
+
+        # Add a file type filter
+        name_to_format = {}
+        types = gtk.combo_box_new_text()
+        for name, format in formats:
+            types.append_text(name)
+            name_to_format[name] = format
+
+        types.set_active(0)
+        img_vbox = gtk.VBox()
+        pack(img_vbox, [gtk.Label(_('File type:')), types])
+        img_vbox.show()
+        chooser.set_extra_widget(img_vbox)
+
+        ok = chooser.run() == gtk.RESPONSE_OK
+        if ok:
+            filenames = [chooser.get_filename()]
+            filetype = types.get_active_text()
+        chooser.destroy()
+
+        if not ok:
+            return
+
+        self.reset_tools_modes()
+        self.images.read(filenames, slice(None), name_to_format[filetype])
         self.set_colors()
         self.set_coordinates(self.images.nimages - 1, focus=True)
 
-    def import_atoms (self, button=None, filenames=None):
-        if filenames == None:
+    def import_atoms(self, button=None, filenames=None):
+        if filenames is None:
             chooser = gtk.FileChooserDialog(
                 _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
-                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                 gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN,
+                 gtk.RESPONSE_OK))
             ok = chooser.run()
             if ok == gtk.RESPONSE_OK:
                 filenames = [chooser.get_filename()]
@@ -1160,15 +1076,11 @@ class GUI(View, Status):
 
             if not ok:
                 return
-            
-            
+
         self.images.import_atoms(filenames, self.frame)
         self.set_colors()
         self.set_coordinates(self.images.nimages - 1, focus=True)
 
-    def save(self, menuitem):
-        SaveWindow(self)
-        
     def quick_info_window(self, menuitem):
         QuickInfo(self)
 
@@ -1180,7 +1092,7 @@ class GUI(View, Status):
 
     def nanoparticle_window(self, menuitem):
         SetupNanoparticle(self)
-        
+
     def graphene_window(self, menuitem):
         SetupGraphene(self)
 
@@ -1189,24 +1101,24 @@ class GUI(View, Status):
 
     def calculator_window(self, menuitem):
         SetCalculator(self)
-        
+
     def energy_window(self, menuitem):
         EnergyForces(self)
-        
+
     def energy_minimize_window(self, menuitem):
         Minimize(self)
 
     def scaling_window(self, menuitem):
         HomogeneousDeformation(self)
-        
+
     def new_atoms(self, atoms, init_magmom=False):
         "Set a new atoms object."
         self.reset_tools_modes()
-        
+
         rpt = getattr(self.images, 'repeat', None)
         self.images.repeat_images(np.ones(3, int))
         self.images.initialize([atoms], init_magmom=init_magmom)
-        self.frame = 0   # Prevent crashes
+        self.frame = 0  # Prevent crashes
         self.images.repeat_images(rpt)
         self.set_colors()
         self.set_coordinates(frame=0, focus=True)
@@ -1215,12 +1127,12 @@ class GUI(View, Status):
     def prepare_new_atoms(self):
         "Marks that the next call to append_atoms should clear the images."
         self.images.prepare_new_atoms()
-        
+
     def append_atoms(self, atoms):
         "Set a new atoms object."
-        #self.notify_vulnerable()   # Do this manually after last frame.
+        # self.notify_vulnerable()   # Do this manually after last frame.
         frame = self.images.append_atoms(atoms)
-        self.set_coordinates(frame=frame-1, focus=True)
+        self.set_coordinates(frame=frame - 1, focus=True)
 
     def notify_vulnerable(self):
         """Notify windows that would break when new_atoms is called.
@@ -1246,15 +1158,18 @@ class GUI(View, Status):
         self.vulnerable_windows.append(weakref.ref(obj))
 
     def exit(self, button, event=None):
+        for process in self.graphs:
+            process.terminate()
         self.window.destroy()
         gtk.main_quit()
         return True
 
-    def xxx(self, x=None,
+    def xxx(self,
+            x=None,
             message1=_('Not implemented!'),
             message2=_('do you really need it?')):
         oops(message1, message2)
-        
+
     def about(self, action):
         try:
             dialog = gtk.AboutDialog()
@@ -1267,7 +1182,7 @@ class GUI(View, Status):
             dialog.run()
             dialog.destroy()
 
+
 def webpage(widget):
     import webbrowser
     webbrowser.open('https://wiki.fysik.dtu.dk/ase/ase/gui/gui.html')
-

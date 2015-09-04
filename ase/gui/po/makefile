@@ -51,3 +51,6 @@ compile: */LC_MESSAGES/ag.po
 	  echo Checking $$DIR/ag.po ;\
 	  msgfmt -cv --output-file=$$DIR/ag.mo $$DIR/ag.po ;\
 	done
+
+svnrevert:
+	svn revert ag.pot */LC_MESSAGES/ag.po

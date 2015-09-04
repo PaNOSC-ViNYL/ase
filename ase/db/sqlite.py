@@ -19,8 +19,9 @@ import numpy as np
 
 from ase.data import atomic_numbers
 from ase.db.row import AtomsRow
-from ase.db.core import Database, ops, now, lock, parallel, invop
+from ase.db.core import Database, ops, now, lock, invop
 from ase.io.jsonio import encode, decode
+from ase.parallel import parallel_function
 from ase.utils import basestring
 
 if sys.version >= '3':
@@ -518,7 +519,7 @@ class SQLite3Database(Database):
             for values in cur.fetchall():
                 yield self._convert_tuple_to_row(values)
                     
-    @parallel
+    @parallel_function
     @lock
     def count(self, selection=None, **kwargs):
         keys, cmps = self.parse_selection(selection, **kwargs)
@@ -563,7 +564,7 @@ class SQLite3Database(Database):
                 self._write(row, kvp, None)
         return m, n
 
-    @parallel
+    @parallel_function
     @lock
     def delete(self, ids):
         con = self._connect()

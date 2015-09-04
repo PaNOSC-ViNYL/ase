@@ -232,7 +232,7 @@ class MoveDownMutation(ElementMutation):
         indi.info['data']['parents'] = [f.info['confid']]
 
         ltbm, choices = self.get_mutation_index_list_and_choices(f)
-        ## periodic table row, periodic table column
+        # periodic table row, periodic table column
         ptrow, ptcol = get_row_column(f[ltbm[0]].symbol)
 
         popped = []
@@ -241,8 +241,8 @@ class MoveDownMutation(ElementMutation):
             e = choices[j - m]
             row, column = get_row_column(e)
             if row <= ptrow or column != ptcol:
-                #Throw away if above (lower numbered row)
-                #or in a different column in the periodic table
+                # Throw away if above (lower numbered row)
+                # or in a different column in the periodic table
                 popped.append(choices.pop(j - m))
                 m += 1
 
@@ -322,7 +322,7 @@ class MoveUpMutation(ElementMutation):
 
         ltbm, choices = self.get_mutation_index_list_and_choices(f)
 
-        ## periodic table row, periodic table column
+        # periodic table row, periodic table column
         ptrow, ptcol = get_row_column(f[ltbm[0]].symbol)
 
         popped = []
@@ -331,8 +331,8 @@ class MoveUpMutation(ElementMutation):
             e = choices[j - m]
             row, column = get_row_column(e)
             if row >= ptrow or column != ptcol:
-                #Throw away if below (higher numbered row)
-                #or in a different column in the periodic table
+                # Throw away if below (higher numbered row)
+                # or in a different column in the periodic table
                 popped.append(choices.pop(j - m))
                 m += 1
 
@@ -411,7 +411,7 @@ class MoveRightMutation(ElementMutation):
         indi.info['data']['parents'] = [f.info['confid']]
         
         ltbm, choices = self.get_mutation_index_list_and_choices(f)
-        ## periodic table row, periodic table column
+        # periodic table row, periodic table column
         ptrow, ptcol = get_row_column(f[ltbm[0]].symbol)
 
         popped = []
@@ -420,8 +420,8 @@ class MoveRightMutation(ElementMutation):
             e = choices[j - m]
             row, column = get_row_column(e)
             if row != ptrow or column <= ptcol:
-                #Throw away if to the left (a lower numbered column)
-                #or in a different row in the periodic table
+                # Throw away if to the left (a lower numbered column)
+                # or in a different row in the periodic table
                 popped.append(choices.pop(j - m))
                 m += 1
 
@@ -439,7 +439,7 @@ class MoveRightMutation(ElementMutation):
             random.shuffle(popped)
             choices = popped
         else:
-            #Sorting so the element closest to the right is first
+            # Sorting so the element closest to the right is first
             choices.sort(key=lambda x: get_row_column(x)[1])
         new_element = choices[0]
         
@@ -499,7 +499,7 @@ class MoveLeftMutation(ElementMutation):
         indi.info['data']['parents'] = [f.info['confid']]
 
         ltbm, choices = self.get_mutation_index_list_and_choices(f)
-        ## periodic table row, periodic table column
+        # periodic table row, periodic table column
         ptrow, ptcol = get_row_column(f[ltbm[0]].symbol)
 
         popped = []
@@ -508,8 +508,8 @@ class MoveLeftMutation(ElementMutation):
             e = choices[j - m]
             row, column = get_row_column(e)
             if row != ptrow or column >= ptcol:
-                #Throw away if to the right (a higher numbered column)
-                #or in a different row in the periodic table
+                # Throw away if to the right (a higher numbered column)
+                # or in a different row in the periodic table
                 popped.append(choices.pop(j - m))
                 m += 1
 
@@ -527,7 +527,7 @@ class MoveLeftMutation(ElementMutation):
             random.shuffle(popped)
             choices = popped
         else:
-            #Sorting so the element closest to the left is first
+            # Sorting so the element closest to the left is first
             choices.sort(key=lambda x: get_row_column(x)[1], reverse=True)
         new_element = choices[0]
         

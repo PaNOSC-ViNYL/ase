@@ -212,7 +212,7 @@ class Atoms(object):
             if scaled_positions is not None:
                 raise RuntimeError('Both scaled and cartesian positions set!')
         self.new_array('positions', positions, float, (3,))
-        
+
         self.set_constraint(constraint)
         self.set_tags(default(tags, 0))
         self.set_masses(default(masses, None))
@@ -526,7 +526,7 @@ class Atoms(object):
         the masses argument is not given or for those elements of the
         masses list that are None, standard values are set."""
 
-        if masses == 'defaults':
+        if isinstance(masses, str) and masses == 'defaults':
             masses = atomic_masses[self.arrays['numbers']]
         elif isinstance(masses, (list, tuple)):
             newmasses = []
@@ -952,7 +952,7 @@ class Atoms(object):
 
         self.arrays['positions'] += np.array(displacement)
 
-    def center(self, vacuum=None, axis=(0, 1, 2)):
+    def center(self, vacuum=None, axis=(0, 1, 2), about=None):
         """Center atoms in unit cell.
 
         Centers the atoms in the unit cell, so there is the same
@@ -964,6 +964,10 @@ class Atoms(object):
             on each side.
         axis: int or sequence of ints
             Axis or axes to act on.  Default: Act on all axes.
+        about: float or array (default: None)
+            If specified, center the atoms about <about>.
+            I.e., about=(0., 0., 0.) (or just "about=0.", interpreted
+            identically), to center about the origin.
         """
         # Find the orientations of the faces of the unit cell
         c = self.get_cell()
@@ -1003,6 +1007,12 @@ class Atoms(object):
             self._cell[i] *= 1 + longer[i] / nowlen
             translation += shift[i] * c[i] / nowlen
         self.arrays['positions'] += translation
+
+        # Optionally, translate to center about a point in space.
+        if about is not None:
+            for vector in self.cell:
+                self.positions -= vector / 2.0
+            self.positions += about
 
     def get_center_of_mass(self, scaled=False):
         """Get the center of mass.
@@ -1355,7 +1365,7 @@ class Atoms(object):
             D_len = np.array([np.sqrt((D**2).sum())])
         if vector:
             return D[0]
-        
+
         return D_len[0]
 
     def get_distances(self, a, indices, mic=False, vector=False):
@@ -1427,7 +1437,7 @@ class Atoms(object):
         so that the scaled coordinates are between zero and one."""
 
         fractional = np.linalg.solve(self.cell.T, self.positions.T).T
-        
+
         if wrap:
             for i, periodic in enumerate(self.pbc):
                 if periodic:
@@ -1435,18 +1445,18 @@ class Atoms(object):
                     # See the scaled_positions.py test.
                     fractional[:, i] %= 1.0
                     fractional[:, i] %= 1.0
-                    
+
         return fractional
 
     def set_scaled_positions(self, scaled):
         """Set positions relative to unit cell."""
         self.arrays['positions'][:] = np.dot(scaled, self._cell)
-        
+
     def wrap(self, center=(0.5, 0.5, 0.5), pbc=None, eps=1e-7):
         """Wrap positions to unit cell.
-    
+
         Parameters:
-    
+
         center: three float
             The positons in fractional coordinates that the new positions
             will be nearest possible to.
@@ -1457,10 +1467,10 @@ class Atoms(object):
         eps: float
             Small number to prevent slightly negative coordinates from beeing
             wrapped.
-            
+
         See also the :func:`ase.utils.geometry.wrap_positions` function.
         Example:
-    
+
         >>> a = Atoms('H',
         ...           [[-0.1, 1.01, -0.5]],
         ...           cell=[[1, 0, 0], [0, 1, 0], [0, 0, 4]],
@@ -1469,7 +1479,7 @@ class Atoms(object):
         >>> a.positions
         array([[ 0.9 ,  0.01, -0.5 ]])
         """
-        
+
         if pbc is None:
             pbc = self.pbc
         self.positions[:] = wrap_positions(self.positions, self.cell,
@@ -1584,7 +1594,8 @@ class Atoms(object):
         self.extend(edited_atoms)
         self.set_constraint(edited_atoms._get_constraints())
         self.set_cell(edited_atoms.get_cell())
-        self.set_initial_magnetic_moments(edited_atoms.get_magnetic_moments())
+        self.set_initial_magnetic_moments(
+            edited_atoms.get_initial_magnetic_moments())
         self.set_tags(edited_atoms.get_tags())
         return
 

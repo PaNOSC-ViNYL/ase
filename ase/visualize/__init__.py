@@ -1,5 +1,6 @@
 import os
 import tempfile
+import subprocess
 
 from ase.io import write
 import ase.parallel as parallel
@@ -49,13 +50,8 @@ def view(atoms, data=None, viewer='ase-gui', repeat=None, block=False):
     else:
         write(filename, atoms, format=format, data=data)
     if block:
-        os.system('%s %s' % (command, filename))
+        subprocess.call([command, filename])
         os.remove(filename)
     else:
-        if os.name in ['ce', 'nt']:  # Win
-            # XXX: how to make it non-blocking?
-            os.system('%s %s' % (command, filename))
-            os.remove(filename)
-        else:
-            os.system('%s %s & ' % (command, filename))
-            os.system('(sleep 60; rm %s) &' % filename)
+        subprocess.Popen([command, filename])
+        subprocess.Popen(['sleep 60; rm {0}'.format(filename)], shell=True)

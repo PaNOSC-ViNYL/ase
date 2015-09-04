@@ -6,6 +6,7 @@ except ImportError:
     # required due to ase/test/eoswoase.py
     pass
 
+    
 class EquationOfStateSJEOS:
     """Fit equation of state for bulk systems.
 
@@ -29,7 +30,7 @@ class EquationOfStateSJEOS:
 
     """
     def __init__(self, volumes, energies, eos='sjeos'):
-        assert eos == 'sjeos', eos + ' eos not available. Probably scipy missing.'
+        assert eos == 'sjeos', eos + ' not available. Probably scipy missing.'
         self.v = np.array(volumes)
         self.e = np.array(energies)
         self.eos_string = 'sjeos'
@@ -74,8 +75,7 @@ class EquationOfStateSJEOS:
         show the figure and *filename='abc.png'* or
         *filename='abc.eps'* to save the figure to a file."""
 
-        #import matplotlib.pyplot as plt
-        import pylab as plt
+        import matplotlib.pyplot as plt
 
         if self.v0 is None:
             self.fit()

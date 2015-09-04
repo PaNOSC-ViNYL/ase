@@ -205,10 +205,7 @@ class SingleCalculatorNEB(NEB):
     def __init__(self, images, k=0.1, climb=False):
         if isinstance(images, str):
             # this is a filename
-            traj = read(images, '0:')
-            images = []
-            for atoms in traj:
-                images.append(atoms)
+            images = read(images)
 
         NEB.__init__(self, images, k, climb, False)
         self.calculators = [None] * self.nimages
@@ -338,7 +335,7 @@ class SingleCalculatorNEB(NEB):
         return self
 
 
-def fit0(E, F, R):
+def fit0(E, F, R, cell=None, pbc=None):
     """Constructs curve parameters from the NEB images."""
     E = np.array(E) - E[0]
     n = len(E)
@@ -346,20 +343,27 @@ def fit0(E, F, R):
     Sfit = np.empty((n - 1) * 20 + 1)
 
     s = [0]
-    for i in range(n - 1):
-        s.append(s[-1] + sqrt(((R[i + 1] - R[i])**2).sum()))
+    dR = np.zeros_like(R)
+    for i in range(n):
+        if i < n - 1:
+            dR[i] = R[i + 1] - R[i]
+            if cell is not None and pbc is not None:
+                dR[i], _ = find_mic(dR[i], cell, pbc)
+            s.append(s[i] + sqrt((dR[i]**2).sum()))
+        else:
+            dR[i] = R[i] - R[i - 1]
+            if cell is not None and pbc is not None:
+                dR[i], _ = find_mic(dR[i], cell, pbc)
 
     lines = []
     dEds0 = None
     for i in range(n):
+        d = dR[i]
         if i == 0:
-            d = R[1] - R[0]
             ds = 0.5 * s[1]
         elif i == n - 1:
-            d = R[-1] - R[-2]
             ds = 0.5 * (s[-1] - s[-2])
         else:
-            d = R[i + 1] - R[i - 1]
             ds = 0.25 * (s[i + 1] - s[i - 1])
 
         d = d / sqrt((d**2).sum())
@@ -455,7 +459,7 @@ class NEBtools:
         R = images.P[:, :natoms]
         E = images.E
         F = images.F[:, :natoms]
-        s, E, Sfit, Efit, lines = fit0(E, F, R)
+        s, E, Sfit, Efit, lines = fit0(E, F, R, images.A[0], images.pbc)
         return s, E, Sfit, Efit, lines
 
 

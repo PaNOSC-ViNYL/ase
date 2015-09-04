@@ -16,7 +16,7 @@ from ase.lattice.spacegroup.cell import cellpar_to_cell, cell_to_cellpar
 from ase.parallel import paropen
 
 
-def read_reactant_con(fileobj):
+def read_eon(fileobj):
     """Reads an EON reactant.con file.  If *fileobj* is the name of a
     "states" directory created by EON, all the structures will be read."""
     if isinstance(fileobj, str):
@@ -76,7 +76,7 @@ def read_states(states_dir):
     return images
 
 
-def write_reactant_con(fileobj, images):
+def write_eon(fileobj, images):
     """Writes structure to EON reactant.con file
     Multiple snapshots are not allowed."""
     if isinstance(fileobj, str):

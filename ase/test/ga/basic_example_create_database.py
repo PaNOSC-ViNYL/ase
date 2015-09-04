@@ -47,8 +47,7 @@ starting_population = [sg.get_new_candidate() for i in range(population_size)]
 # create the database to store information in
 d = PrepareDB(db_file_name=db_file,
               simulation_cell=slab,
-              stoichiometry=atom_numbers,)
-              # population_size=population_size)
+              stoichiometry=atom_numbers)
 
 for a in starting_population:
     d.add_unrelaxed_candidate(a)

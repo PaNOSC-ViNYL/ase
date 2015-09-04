@@ -1,24 +1,18 @@
-import numpy as np
-
-from ase.atoms import Atoms
 from ase.units import Bohr
 
 
-def read_turbomole(filename='coord'):
+def read_turbomole(f='coord'):
     """Method to read turbomole coord file
     
     coords in bohr, atom types in lowercase, format:
     $coord
-    x y z atomtype 
+    x y z atomtype
     x y z atomtype f
     $end
     Above 'f' means a fixed atom.
     """
     from ase import Atoms, Atom
     from ase.constraints import FixAtoms
-
-    if isinstance(filename, str):
-        f = open(filename)
 
     lines = f.readlines()
     atoms_pos = []
@@ -51,22 +45,14 @@ def read_turbomole(filename='coord'):
             else:
                 myconstraints.append(False)
             
-    if isinstance(filename, str):
-        f.close()
-
     atoms = Atoms(positions = atoms_pos, symbols = atom_symbols, pbc = False)
     c = FixAtoms(mask = myconstraints)
     atoms.set_constraint(c)
-    #print c
-    
-
     return atoms
 
-def read_turbomole_gradient(filename='gradient', index=-1):
+    
+def read_turbomole_gradient(f='gradient', index=-1):
     """ Method to read turbomole gradient file """
-
-    if isinstance(filename, str):
-        f = open(filename)
 
     # read entire file
     lines = [x.strip() for x in f.readlines()]
@@ -83,11 +69,11 @@ def read_turbomole_gradient(filename='gradient', index=-1):
             break
 
     if end <= start:
-        raise RuntimeError('File %s does not contain a valid \'$grad\' section' % (filename))
+        raise RuntimeError('File does not contain a valid \'$grad\' section')
 
     def formatError():
-        raise RuntimeError('Data format in file %s does not correspond to known Turbomole gradient format' % (filename))
-
+        raise RuntimeError('Data format in file does not correspond to known '
+                           'Turbomole gradient format')
 
     # trim lines to $grad
     del lines[:start+1]
@@ -152,10 +138,7 @@ def write_turbomole(filename, atoms):
     import numpy as np
     from ase.constraints import FixAtoms
 
-    if isinstance(filename, str):
-        f = open(filename, 'w')
-    else:  # Assume it's a 'file-like object'
-        f = filename
+    f = filename
 
     coord = atoms.get_positions()
     symbols = atoms.get_chemical_symbols()

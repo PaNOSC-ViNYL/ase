@@ -4,6 +4,7 @@
 import os
 from ase import Atoms
 from ase.ga.atoms_attach import enable_raw_score_methods
+from ase.ga.atoms_attach import enable_parametrization_methods
 import ase.db
 
 
@@ -50,7 +51,7 @@ class DataConnection(object):
         #                      add_additional_information=True)
         a = self.__get_latest_traj_for_confid__(to_get[0])
         a.info['confid'] = to_get[0]
-        if not 'data' in a.info:
+        if 'data' not in a.info:
             a.info['data'] = {}
         return a
 
@@ -88,19 +89,29 @@ class DataConnection(object):
 #             raise ValueError('Wrong stoichiometry')
 #         self.c.write(a, gaid=gaid, queued=1)
 
-    def add_relaxed_step(self, a):
-        """ After a candidate is relaxed it must be marked as such. """
+    def add_relaxed_step(self, a, find_neighbors=None,
+                         perform_parametrization=None):
+        """ After a candidate is relaxed it must be marked
+            as such. As well add the possible neighbor list
+            and parametrization parameters to screen
+            candidates before relaxation (default not in use) """
         # test that raw_score can be extracted
         try:
             a.info['key_value_pairs']['raw_score']
         except KeyError:
             print("raw_score not put in atoms.info['key_value_pairs']")
         gaid = a.info['confid']
-        
+
         if 'generation' not in a.info['key_value_pairs']:
             g = self.get_generation_number()
             a.info['key_value_pairs']['generation'] = g
-            
+
+        if find_neighbors is not None:
+            enable_parametrization_methods(a)
+            a.set_neighbor_list(find_neighbors(a))
+        if perform_parametrization is not None:
+            a.set_parametrization(perform_parametrization(a))
+
         relax_id = self.c.write(a, gaid=gaid, relaxed=1,
                                 key_value_pairs=a.info['key_value_pairs'],
                                 data=a.info['data'])
@@ -118,7 +129,7 @@ class DataConnection(object):
                   'extinct': 0,
                   t: 1,
                   'description': desc}
-        
+
         if 'generation' not in candidate.info['key_value_pairs']:
             kwargs.update({'generation': self.get_generation_number()})
 
@@ -298,7 +309,7 @@ class DataConnection(object):
     def is_duplicate(self, **kwargs):
         """Check if the key-value pair is already present in the database"""
         return len(list(self.c.select(**kwargs))) > 0
-        
+
     def kill_candidate(self, confid):
         """Sets extinct=1 in the key_value_pairs of the candidate
         with gaid=confid. This could be used in the

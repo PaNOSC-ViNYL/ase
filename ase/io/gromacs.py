@@ -10,9 +10,9 @@ def read_gromacs(filename):
     """ From:
     http://manual.gromacs.org/current/online/gro.html
     C format
-    "%5d%5s%5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f" 
+    "%5d%5s%5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f"
     python: starting from 0, including first excluding last
-    0:4 5:10 10:15 15:20 20:28 28:36 36:44 44:52 52:60 60:68 
+    0:4 5:10 10:15 15:20 20:28 28:36 36:44 44:52 52:60 60:68
 
     Import gromacs geometry type files (.gro).
     Reads atom positions,
@@ -97,7 +97,6 @@ def read_gromacs(filename):
             mycell += [[floatvect1[1], floatvect2[0], floatvect0[2]]]
             atoms.set_cell(mycell)
             atoms.set_pbc(True)
-            print("9N")
         except:
             mycell = []
             #gromacs manual (manual.gromacs.org/online/gro.html) says:

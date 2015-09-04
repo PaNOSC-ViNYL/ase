@@ -53,6 +53,14 @@ def check_file(name):
         print(line)
     
         
+grrr = """Please always run this check on Python source-code before committing:
+
+    $ alias check="python -m ase.utils.stylecheck"
+    $ check foo.py bar.py ...
+    
+"""
+
+
 def check_repository(to):
     output = subprocess.check_output('svn merge --dry-run -r BASE:HEAD .',
                                      shell=True)
@@ -105,7 +113,7 @@ def check_repository(to):
             subject.append('PyFlakes warnings: {}'.format(nf))
         txt = '\n'.join(txt)
         if to:
-            mail(to, ' - '.join(subject), txt)
+            mail(to, ' - '.join(subject), grrr + txt)
         else:
             print(txt)
         

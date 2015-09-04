@@ -9,7 +9,7 @@ a2.info['confid'] = 2
 cations = ['Sr', 'Ba', 'Ca', 'Mg']
 anions = ['Cl', 'F', 'Br']
 op = OnePointElementCrossover([cations, anions],
-                            [3, 2], [.25, .5])
+                              [3, 2], [.25, .5])
 
 a3, desc = op.get_new_individual([a1, a2])
 

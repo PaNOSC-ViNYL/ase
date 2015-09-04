@@ -206,6 +206,7 @@ int_keys = [
                   # by npar
     'mdalgo',     # Determines which MD method of Tomas Bucko to use
     'nedos',      # Number of grid points in DOS
+    'turbo',      # Ewald, 0 = Normal, 1 = PME
 ]
 
 bool_keys = [

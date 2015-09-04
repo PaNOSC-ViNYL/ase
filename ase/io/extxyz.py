@@ -33,8 +33,10 @@ REV_PROPERTY_NAME_MAP = dict(zip(PROPERTY_NAME_MAP.values(),
 KEY_QUOTED_VALUE = re.compile(r'([A-Za-z_]+[A-Za-z0-9_]*)' +
                               r'\s*=\s*["\{\}]([^"\{\}]+)["\{\}e+-]\s*')
 KEY_VALUE = re.compile(r'([A-Za-z_]+[A-Za-z0-9_]*)\s*=' +
-                       r'\s*([-0-9A-Za-z_.:\[\]()e+-]+)\s*')
+                       r'\s*([-0-9A-Za-z_.:\[\]()e+-/]+)\s*')
 KEY_RE = re.compile(r'([A-Za-z_]+[A-Za-z0-9_]*)\s*')
+
+UNPROCESSED_KEYS = ['uid']
 
 
 def key_val_str_to_dict(s):
@@ -68,35 +70,36 @@ def key_val_str_to_dict(s):
             # default value is 'T' (True)
             value = 'T'
 
-        # Try to convert to (arrays of) floats, ints
-        try:
-            numvalue = []
-            for x in value.split():
-                if x.find('.') == -1:
-                    numvalue.append(int(float(x)))
+        if key.lower() not in UNPROCESSED_KEYS:
+            # Try to convert to (arrays of) floats, ints
+            try:
+                numvalue = []
+                for x in value.split():
+                    if x.find('.') == -1:
+                        numvalue.append(int(float(x)))
+                    else:
+                        numvalue.append(float(x))
+                if len(numvalue) == 1:
+                    numvalue = numvalue[0]         # Only one number
+                elif len(numvalue) == 9:
+                    # special case: 3x3 matrix, fortran ordering
+                    numvalue = np.array(numvalue).reshape((3, 3), order='F')
                 else:
-                    numvalue.append(float(x))
-            if len(numvalue) == 1:
-                numvalue = numvalue[0]         # Only one number
-            elif len(numvalue) == 9:
-                # special case: 3x3 matrix, fortran ordering
-                numvalue = np.array(numvalue).reshape((3, 3), order='F')
-            else:
-                numvalue = np.array(numvalue)  # vector
-            value = numvalue
-        except ValueError:
-            pass
+                    numvalue = np.array(numvalue)  # vector
+                value = numvalue
+            except (ValueError, OverflowError):
+                pass
 
-        # Parse boolean values: 'T' -> True, 'F' -> False,
-        #                       'T T F' -> [True, True, False]
-        if isinstance(value, str):
-            str_to_bool = {'T': True, 'F': False}
+            # Parse boolean values: 'T' -> True, 'F' -> False,
+            #                       'T T F' -> [True, True, False]
+            if isinstance(value, str):
+                str_to_bool = {'T': True, 'F': False}
 
-            if len(value.split()) > 1:
-                if all([x in str_to_bool.keys() for x in value.split()]):
-                    value = [str_to_bool[x] for x in value.split()]
-            elif value in str_to_bool:
-                value = str_to_bool[value]
+                if len(value.split()) > 1:
+                    if all([x in str_to_bool.keys() for x in value.split()]):
+                        value = [str_to_bool[x] for x in value.split()]
+                elif value in str_to_bool:
+                    value = str_to_bool[value]
 
         d[key] = value
 
@@ -208,7 +211,7 @@ def read_xyz(fileobj, index=-1):
     while fileobj:
         frame_pos = fileobj.tell()
         line = fileobj.readline()
-        if line == '':
+        if line.strip() == '':
             break
         natoms = int(line)
         frames.append((frame_pos, natoms))
@@ -259,7 +262,7 @@ def read_xyz(fileobj, index=-1):
 
         # check for consistency with frame index table
         assert int(fileobj.readline()) == natoms
-        
+
         # comment line
         line = fileobj.readline()
         info = key_val_str_to_dict(line)
@@ -342,12 +345,24 @@ def read_xyz(fileobj, index=-1):
 
         # Load results of previous calculations into SinglePointCalculator
         results = {}
-        for key in atoms.info.keys():
+        for key in list(atoms.info.keys()):
             if key in all_properties:
                 results[key] = atoms.info[key]
-        for key in atoms.arrays.keys():
+                # special case for stress- convert to Voigt 6-element form
+                if key.startswith('stress'):
+                    stress = results[key]
+                    stress = np.array([stress[0, 0],
+                                       stress[1, 1],
+                                       stress[2, 2],
+                                       stress[1, 2],
+                                       stress[0, 2],
+                                       stress[0, 1]])
+                    results[key] = stress
+                del atoms.info[key]
+        for key in list(atoms.arrays.keys()):
             if key in all_properties:
                 results[key] = atoms.arrays[key]
+                del atoms.arrays[key]
         if results != {}:
             calculator = SinglePointCalculator(atoms, **results)
             atoms.set_calculator(calculator)
@@ -396,7 +411,7 @@ def output_column_format(atoms, columns, arrays,
         property_types.append(property_type)
 
         if (len(array.shape) == 1 or
-            (len(array.shape) == 2 and array.shape[1] == 1)):
+                (len(array.shape) == 2 and array.shape[1] == 1)):
             ncol = 1
             dtypes.append((column, dtype))
         else:
@@ -447,62 +462,67 @@ def write_xyz(fileobj, images, columns=None, write_info=True,
         natoms = len(atoms)
 
         if columns is None:
-            frame_columns = None
+            fr_cols = None
         else:
-            frame_columns = columns[:]
-        
-        if frame_columns is None:
-            frame_columns = (['symbols', 'positions'] +
-                             [key for key in atoms.arrays.keys() if
-                              key not in ['symbols', 'positions',
-                                          'species', 'pos']])
+            fr_cols = columns[:]
+
+        if fr_cols is None:
+            fr_cols = (['symbols', 'positions'] +
+                       [key for key in atoms.arrays.keys() if
+                        key not in ['symbols', 'positions',
+                                    'species', 'pos']])
 
         per_frame_results = {}
         per_atom_results = {}
         if write_results:
             calculator = atoms.get_calculator()
             if (calculator is not None and
-                isinstance(calculator, Calculator)):
+                    isinstance(calculator, Calculator)):
                 for key in all_properties:
                     value = calculator.results.get(key, None)
                     if value is None:
                         # skip missing calculator results
                         continue
                     if (isinstance(value, np.ndarray) and
-                        value.shape[0] == len(atoms)):
+                            value.shape[0] == len(atoms)):
                         # per-atom quantities (forces, energies, stresses)
                         per_atom_results[key] = value
                     else:
                         # per-frame quantities (energy, stress)
+                        # special case for stress, which should be converted
+                        # to 3x3 matrices before writing
+                        if key.startswith('stress'):
+                            xx, yy, zz, yz, xz, xy = value
+                            value = np.array([(xx, xy, xz),
+                                              (xy, yy, yz),
+                                              (xz, yz, zz)])
                         per_frame_results[key] = value
 
         # Move symbols and positions to first two properties
-        if 'symbols' in frame_columns:
-            i = frame_columns.index('symbols')
-            frame_columns[0], frame_columns[i] = \
-              frame_columns[i], frame_columns[0]
+        if 'symbols' in fr_cols:
+            i = fr_cols.index('symbols')
+            fr_cols[0], fr_cols[i] = fr_cols[i], fr_cols[0]
 
-        if 'positions' in frame_columns:
-            i = frame_columns.index('positions')
-            frame_columns[1], frame_columns[i] = \
-              frame_columns[i], frame_columns[1]
+        if 'positions' in fr_cols:
+            i = fr_cols.index('positions')
+            fr_cols[1], fr_cols[i] = fr_cols[i], fr_cols[1]
 
         # Check first column "looks like" atomic symbols
-        if frame_columns[0] in atoms.arrays:
-            symbols = atoms.arrays[frame_columns[0]]
+        if fr_cols[0] in atoms.arrays:
+            symbols = atoms.arrays[fr_cols[0]]
         else:
             symbols = atoms.get_chemical_symbols()
         if not isinstance(symbols[0], basestring):
             raise ValueError('First column must be symbols-like')
 
         # Check second column "looks like" atomic positions
-        pos = atoms.arrays[frame_columns[1]]
+        pos = atoms.arrays[fr_cols[1]]
         if pos.shape != (natoms, 3) or pos.dtype.kind != 'f':
             raise ValueError('Second column must be position-like')
 
         # Collect data to be written out
         arrays = {}
-        for column in frame_columns:
+        for column in fr_cols:
             if column in atoms.arrays:
                 arrays[column] = atoms.arrays[column]
             elif column == 'symbols':
@@ -511,18 +531,18 @@ def write_xyz(fileobj, images, columns=None, write_info=True,
                 raise ValueError('Missing array "%s"' % column)
 
         if write_results:
-            frame_columns += per_atom_results.keys()
+            fr_cols += per_atom_results.keys()
             arrays.update(per_atom_results)
 
         comm, ncols, dtype, fmt = output_column_format(atoms,
-                                                       frame_columns,
+                                                       fr_cols,
                                                        arrays,
                                                        write_info,
                                                        per_frame_results)
 
-        # Pack frame_columns into record array
+        # Pack fr_cols into record array
         data = np.zeros(natoms, dtype)
-        for column, ncol in zip(frame_columns, ncols):
+        for column, ncol in zip(fr_cols, ncols):
             value = arrays[column]
             if ncol == 1:
                 data[column] = np.squeeze(value)
@@ -535,3 +555,7 @@ def write_xyz(fileobj, images, columns=None, write_info=True,
         fileobj.write('%s\n' % comm)
         for i in range(natoms):
             fileobj.write(fmt % tuple(data[i]))
+
+
+read_extxyz = read_xyz
+write_extxyz = write_xyz

@@ -97,6 +97,7 @@ def main(build=build):
         print('Locked', file=sys.stderr)
         return
     try:
+        home = os.getcwd()
         open('build-web-page.lock', 'w').close()
             
         parser = optparse.OptionParser(usage='Usage: %prog [-f]',
@@ -109,7 +110,7 @@ def main(build=build):
         changes = svn_update('ase')
         build(opts.force_build or changes)
     finally:
-        os.remove('build-web-page.lock')
+        os.remove(os.path.join(home, 'build-web-page.lock'))
 
         
 if __name__ == '__main__':

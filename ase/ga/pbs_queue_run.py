@@ -33,7 +33,8 @@ class PBSQueueRun(object):
     """
     def __init__(self, data_connection, tmp_folder, job_prefix,
                  n_simul, job_template_generator,
-                 qsub_command='qsub', qstat_command='qstat'):
+                 qsub_command='qsub', qstat_command='qstat',
+                 find_neighbors=None, perform_parametrization=None):
         self.dc = data_connection
         self.job_prefix = job_prefix
         self.n_simul = n_simul
@@ -41,6 +42,8 @@ class PBSQueueRun(object):
         self.qsub_command = qsub_command
         self.qstat_command = qstat_command
         self.tmp_folder = tmp_folder
+        self.find_neighbors = find_neighbors
+        self.perform_parametrization = perform_parametrization
         self.__cleanup__()
 
     def relax(self, a):
@@ -104,6 +107,9 @@ class PBSQueueRun(object):
                         raise IOError(txt)
                     a = a[-1]
                     a.info['confid'] = c
-                    self.dc.add_relaxed_step(a)
-                except IOError as e:
+                    self.dc.add_relaxed_step(
+                        a,
+                        find_neighbors=self.find_neighbors,
+                        perform_parametrization=self.perform_parametrization)
+                except IOError, e:
                     print(e)

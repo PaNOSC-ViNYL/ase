@@ -5,12 +5,9 @@ The functions are called with read write using the format "exi"
 The module depends on lxml  http://lxml.de
 """
 
-from lxml import etree as ET
-
 import numpy as np
 
 from ase.atoms import Atoms
-from ase.parallel import paropen
 from ase.units import Bohr
 
 
@@ -28,7 +25,9 @@ def read_exciting(fileobj, index=-1):
         Not used in this implementation.
     """
     
-    #parse file into element tree
+    from lxml import etree as ET
+
+    # Parse file into element tree
     doc = ET.parse(fileobj)
     root = doc.getroot()
     speciesnodes = root.find('structure').getiterator('species')
@@ -36,7 +35,7 @@ def read_exciting(fileobj, index=-1):
     positions = []
     basevects = []
     atoms = None
-    #collect data from tree
+    # Collect data from tree
     for speciesnode in speciesnodes:
         symbol = speciesnode.get('speciesfile').split('.')[0]
         natoms = speciesnode.getiterator('atom')
@@ -74,24 +73,23 @@ def read_exciting(fileobj, index=-1):
     return atoms
 
 
-def write_exciting(fileobj, images):
+def write_exciting(filename, images):
     """writes exciting input structure in XML
     
     Parameters
     ----------
-    fileobj : File object
-        Filehandle to which data should be written
+    filename : str
+        Name of file to which data should be written.
     images : Atom Object or List of Atoms objects
-        This function will write the first Atoms object to file
+        This function will write the first Atoms object to file.
     
     Returns
     -------
     """
-    if isinstance(fileobj, str):
-        fileobj = paropen(fileobj, 'wb')
+    from lxml import etree as ET
+    fileobj = open(filename, 'wb')
     root = atoms2etree(images)
     fileobj.write(ET.tostring(root, method='xml',
-                              #encoding='UTF-8',
                               pretty_print=True,
                               xml_declaration=True))
 
@@ -113,6 +111,7 @@ def atoms2etree(images):
     if not isinstance(images, (list, tuple)):
         images = [images]
 
+    from lxml import etree as ET
     root = ET.Element('input')
     root.set(
         '{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation',

@@ -185,3 +185,31 @@ many relaxations should be in the queuing system simultaneously. The
 main script now looks the following:
 
 .. literalinclude:: ga_basic_pbs_main.py
+
+Parameterising the GA search for structure screening
+====================================================
+Relaxing every candidate suggested by the GA is very inefficient. Many
+of these structures are poor suggestions and are immediately discarded
+when they are compared to the current population. For this reason it
+can be very effective to screen the candidate before relaxation to have 
+a guess whether the candidate has a chance to enter the population or
+not. If this is not the case they can be rejected without the need for
+a costly DFT calculation. By doing this you could, for example, use a
+more drastic mutation resulting in both potentially very good but also
+very bad candidates without having to waste a lot of CPU power 
+evaluating the poor suggestions.
+
+Parameterising the whole database of structures and relating the
+parameters for the individual structures to their DFT energy is one
+example of how to handle this. As the database of structures grows doing
+the GA search, the fit parameters and the guessed energy becomes more
+refined. As a result, the screening becomes more precise.
+
+Below is a sample script of how this method can be implemented and used.
+The script is a direct extension of the above tutorial. A number of
+predefined parameterising methods are available and its implementation
+is by no means restricted to the use of one of those. In the example a
+linear relationship is expected between every parameter and the DFT 
+energy. The main script for the GA run hence could look like:
+
+.. literalinclude:: ga_basic_parameters.py

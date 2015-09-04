@@ -413,7 +413,6 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
     tree = ET.iterparse(filename)
 
     atoms_init = None
-    images = []
     calculation = []
 
     try:
@@ -465,7 +464,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         if atoms_init is None:
             raise parse_error
         elif not calculation:
-            images.append(atoms_init)
+            yield atoms_init
 
     if calculation:
         if isinstance(index, int):
@@ -498,26 +497,29 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                 'structure/varray[@name="positions"]')):
             scpos[i] = np.array([float(val) for val in vector.text.split()])
 
-        forces = np.zeros((natoms, 3), dtype=float)
-        for i, vector in enumerate(step.find('varray[@name="forces"]')):
-            forces[i] = np.array([float(val) for val in vector.text.split()])
+        forces = None
+        fblocks = step.find('varray[@name="forces"]')
+        if fblocks is not None:
+            forces = np.zeros((natoms, 3), dtype=float)
+            for i, vector in enumerate(fblocks):
+                forces[i] = np.array([float(val) for val in vector.text.split()])
 
-        stress = np.zeros((3, 3), dtype=float)
-        for i, vector in enumerate(step.find('varray[@name="stress"]')):
-            stress[i] = np.array([float(val) for val in vector.text.split()])
-
-        stress *= -0.1 * GPa
-        stress_voigt = stress.reshape(9)[[0, 4, 8, 5, 2, 1]]
+        stress = None
+        sblocks = step.find('varray[@name="stress"]')
+        if sblocks is not None:
+            stress = np.zeros((3, 3), dtype=float)
+            for i, vector in enumerate(sblocks):
+                stress[i] = np.array([float(val) for val in vector.text.split()])
+            stress *= -0.1 * GPa
+            stress = stress.reshape(9)[[0, 4, 8, 5, 2, 1]]
 
         atoms = atoms_init.copy()
         atoms.set_cell(cell)
         atoms.set_scaled_positions(scpos)
         atoms.set_calculator(
             SinglePointCalculator(atoms, energy=energy, forces=forces,
-                        stress=stress_voigt))
-        images.append(atoms)
-
-    return images if len(images) > 1 else images[0]
+                        stress=stress))
+        yield atoms
 
 
 def write_vasp(filename, atoms, label='', direct=False, sort=None,

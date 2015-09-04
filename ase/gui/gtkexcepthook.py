@@ -18,7 +18,7 @@ from __future__ import print_function
 # (The license is still whatever you want.)
 
 import inspect, linecache, pydoc, sys, traceback
-from io import StringIO
+from StringIO import StringIO
 from gettext import gettext as _
 from smtplib import SMTP
 

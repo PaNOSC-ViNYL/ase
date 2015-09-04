@@ -1,4 +1,7 @@
-from ase.all import *
+from ase import Atoms
+from ase.constraints import FixAtoms
+from ase.io import Trajectory
+from ase.optimize import QuasiNewton
 from ase.calculators.morse import MorsePotential
 
 atoms = Atoms('H7',

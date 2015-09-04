@@ -435,6 +435,6 @@ class RandomPopulation(Population):
 
             c1id = c1.info['confid']
             c2id = c2.info['confid']
-            used_before = (tuple(sorted([c1id, c2id])) in self.pairs
-                           and self.exclude_used_pairs)
+            used_before = (tuple(sorted([c1id, c2id])) in self.pairs and
+                           self.exclude_used_pairs)
         return (c1.copy(), c2.copy())

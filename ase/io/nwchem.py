@@ -2,12 +2,11 @@ try:
     from StringIO import StringIO
 except ImportError:
     from io import StringIO
-from ase.io.xyz import read_xyz
+from ase.io import read
 
 
-def read_nwchem(filename):
-    """Method to read geometry from a nwchem output
-    """
+def read_nwchem_output(filename):
+    """Method to read geometry from a nwchem output."""
 
     f = filename
     if isinstance(filename, str):
@@ -27,7 +26,7 @@ def read_nwchem(filename):
                 if symbol.startswith('bq'):
                     xyzstring = xyzstring.replace(symbol, 'X')
                 string += xyzstring
-            atoms = read_xyz(StringIO(string))
+            atoms = read(StringIO(string), format='xyz')
             i += natoms + 4
         else:
             i += 1
@@ -38,7 +37,7 @@ def read_nwchem(filename):
     return atoms
 
 
-def read_nwchem_input(filename):
+def read_nwchem(filename):
     """Method to read geometry from an NWChem input file."""
     f = filename
     if isinstance(filename, str):
@@ -58,7 +57,7 @@ def read_nwchem_input(filename):
     xyz_text += ' geometry\n'
     for line in lines[startline:stopline]:
         xyz_text += line
-    atoms = read_xyz(StringIO(xyz_text))
+    atoms = read(StringIO(xyz_text), format='xyz')
     atoms.set_cell((0., 0., 0.))  # no unit cell defined
 
     if type(filename) == str:

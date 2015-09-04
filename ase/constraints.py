@@ -103,17 +103,18 @@ class FixAtoms(FixConstraint):
             raise ValueError('Use only one of "indices" and "mask".')
 
         if mask is not None:
-            self.index = np.asarray(mask, bool)
+            indices = np.arange(len(mask))[np.asarray(mask, bool)]
         else:
-            # Check for duplicates
+            # Check for duplicates:
             srt = np.sort(indices)
+            assert (srt == indices).all()
             for i in range(len(indices) - 1):
                 if srt[i] == srt[i + 1]:
                     raise ValueError(
                         'FixAtoms: The indices array contained duplicates. '
                         'Perhaps you wanted to specify a mask instead, but '
                         'forgot the mask= keyword.')
-            self.index = np.asarray(indices, int)
+        self.index = np.asarray(indices, int)
 
         if self.index.ndim != 1:
             raise ValueError('Wrong argument to FixAtoms class!')
@@ -126,29 +127,20 @@ class FixAtoms(FixConstraint):
 
     def index_shuffle(self, atoms, ind):
         # See docstring of superclass
-        if self.index.dtype == bool:
-            self.index = self.index[ind]
-        else:
-            index = []
-            for new, old in slice2enlist(ind, len(atoms)):
-                if old in self.index:
-                    index.append(new)
-            if len(index) == 0:
-                raise IndexError('All indices in FixAtoms not part of slice')
-            self.index = np.asarray(index, int)
+        index = []
+        for new, old in slice2enlist(ind, len(atoms)):
+            if old in self.index:
+                index.append(new)
+        if len(index) == 0:
+            raise IndexError('All indices in FixAtoms not part of slice')
+        self.index = np.asarray(index, int)
 
     def __repr__(self):
-        if self.index.dtype == bool:
-            return 'FixAtoms(mask=%s)' % ints2string(self.index.astype(int))
         return 'FixAtoms(indices=%s)' % ints2string(self.index)
 
     def todict(self):
-        dct = {'name': 'FixAtoms'}
-        if self.index.dtype == bool:
-            dct['kwargs'] = {'mask': self.index}
-        else:
-            dct['kwargs'] = {'indices': self.index}
-        return dct
+        return {'name': 'FixAtoms',
+                'kwargs': {'indices': self.index}}
 
     def repeat(self, m, n):
         i0 = 0
@@ -160,36 +152,27 @@ class FixAtoms(FixConstraint):
             for m1 in range(m[1]):
                 for m0 in range(m[0]):
                     i1 = i0 + n
-                    if self.index.dtype == bool:
-                        index_new.extend(self.index)
-                    else:
-                        index_new += [i + natoms for i in self.index]
+                    index_new += [i + natoms for i in self.index]
                     i0 = i1
                     natoms += n
-        if self.index.dtype == bool:
-            self.index = np.asarray(index_new, bool)
-        else:
-            self.index = np.asarray(index_new, int)
+        self.index = np.asarray(index_new, int)
         return self
 
     def delete_atom(self, ind):
         """ Removes atom number ind from the index array, if present.
         Required for removing atoms with existing FixAtoms constraints.
         """
-        if self.index.dtype == bool:
-            self.index = np.delete(self.index, ind)
-        else:
-            if ind in self.index:
-                i = list(self.index).index(ind)
-                self.index = np.delete(self.index, i)
-            for i in range(len(self.index)):
-                if self.index[i] >= ind:
-                    self.index[i] -= 1
+        if ind in self.index:
+            i = list(self.index).index(ind)
+            self.index = np.delete(self.index, i)
+        for i in range(len(self.index)):
+            if self.index[i] >= ind:
+                self.index[i] -= 1
 
 
-def ints2string(x, threshold=10):
+def ints2string(x, threshold=None):
     """Convert ndarray of ints to string."""
-    if len(x) <= threshold:
+    if threshold is None or len(x) <= threshold:
         return str(x.tolist())
     return str(x[:threshold].tolist())[:-1] + ', ...]'
 
@@ -352,7 +335,7 @@ class FixCartesian(FixConstraintSingle):
     'Fix an atom index *a* in the directions of the cartesian coordinates.'
     def __init__(self, a, mask=(1, 1, 1)):
         self.a = a
-        self.mask = -(np.array(mask) - 1)
+        self.mask = ~np.asarray(mask, bool)
 
     def adjust_positions(self, atoms, new):
         step = new[self.a] - atoms.positions[self.a]
@@ -363,9 +346,14 @@ class FixCartesian(FixConstraintSingle):
         forces[self.a] *= self.mask
 
     def __repr__(self):
-        return 'FixCartesian(indice=%s mask=%s)' % (self.a, self.mask)
+        return 'FixCartesian(a={0}, mask={1})'.format(self.a,
+                                                      list(~self.mask))
 
+    def todict(self):
+        return {'name': 'FixCartesian',
+                'kwargs': {'a': self.a, 'mask': ~self.mask}}
 
+        
 class FixScaled(FixConstraintSingle):
     'Fix an atom index *a* in the directions of the unit vectors.'
     def __init__(self, cell, a, mask=(1, 1, 1)):
@@ -908,6 +896,10 @@ class Filter:
         mask : list of bool
            One boolean per atom indicating if the atom should remain
            visible or not.
+
+        If a Trajectory tries to save this object, it will instead
+        save the underlying Atoms object.  To prevent this, delete
+        the atoms_for_saving attribute.
         """
 
         self.atoms = atoms
@@ -926,6 +918,9 @@ class Filter:
         else:
             self.index = np.asarray(indices, int)
             self.n = len(self.index)
+
+        # Present the real atoms object to Trajectory and friends
+        self.atoms_for_saving = self.atoms
 
     def get_cell(self):
         """Returns the computational cell.

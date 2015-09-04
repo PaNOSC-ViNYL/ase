@@ -69,3 +69,11 @@ try:
 except ImportError:
     # ase.utils.sjeos requires only numpy
     EquationOfState = EquationOfStateSJEOS
+    
+    
+if __name__ == '__main__':
+    import pickle
+    import sys
+    v, e = pickle.load(sys.stdin)
+    eos = EquationOfState(v, e)
+    eos.plot()
