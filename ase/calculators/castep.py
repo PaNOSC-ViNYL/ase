@@ -293,36 +293,35 @@ End CASTEP Interface Documentation
         'positions_abs_intermediate',
         'positions_frac',
         'positions_frac_final',
-        'positions_frac_intermediate',
-        ]
+        'positions_frac_intermediate']
 
     atoms_obj_keys = [
-            'dipole',
-            'energy_free',
-            'energy_zero',
-            'fermi',
-            'forces',
-            'nbands',
-            'positions',
-            'stress',
-            ]
+        'dipole',
+        'energy_free',
+        'energy_zero',
+        'fermi',
+        'forces',
+        'nbands',
+        'positions',
+        'stress']
+    
     internal_keys = [
-            '_castep_command',
-            '_check_checkfile',
-            '_copy_pspots',
-            '_link_pspots',
-            '_directory',
-            '_export_settings',
-            '_force_write',
-            '_label',
-            '_prepare_input_only',
-            '_castep_pp_path',
-            '_rename_existing_dir',
-            '_set_atoms',
-            '_track_output',
-            '_try_reuse',
-            '_pedantic']
-
+        '_castep_command',
+        '_check_checkfile',
+        '_copy_pspots',
+        '_link_pspots',
+        '_directory',
+        '_export_settings',
+        '_force_write',
+        '_label',
+        '_prepare_input_only',
+        '_castep_pp_path',
+        '_rename_existing_dir',
+        '_set_atoms',
+        '_track_output',
+        '_try_reuse',
+        '_pedantic']
+    
     def __init__(self, directory='CASTEP', label='castep',
                  castep_command=None, check_castep_version=False,
                  castep_pp_path=None,
@@ -483,8 +482,8 @@ End CASTEP Interface Documentation
                 # prevents reading forces. So, better go for another keyword
                 # to indicate the regular end of a run.
                 # 'Initialization time' seems to do the job.
-                #if 'Writing analysis data to' in line:
-                #if 'Writing model to' in line:
+                # if 'Writing analysis data to' in line:
+                # if 'Writing model to' in line:
                 if 'Initialisation time' in line:
                     end_found = True
                     record_end = castep_file.tell()
@@ -595,7 +594,7 @@ End CASTEP Interface Documentation
                         if 'Total number of ions in cell' in line:
                             n_atoms = int(line.split()[7])
                         if 'Total number of species in cell' in line:
-                            _ = int(line.split()[7])
+                            int(line.split()[7])
                         fields = line.split()
                         if len(fields) == 0:
                             break
@@ -626,18 +625,18 @@ End CASTEP Interface Documentation
                         else:
                             break
                 elif 'k-Points For BZ Sampling' in line:
-                # TODO: generalize for non-Monkhorst Pack case
-                # (i.e. kpoint lists) -
-                # kpoints_offset cannot be read this way and
-                # is hence always set to None
+                    # TODO: generalize for non-Monkhorst Pack case
+                    # (i.e. kpoint lists) -
+                    # kpoints_offset cannot be read this way and
+                    # is hence always set to None
                     while True:
                         line = out.readline()
                         if not line.strip():
                             break
                         if 'MP grid size for SCF calculation' in line:
-                            #kpoints =  ' '.join(line.split()[-3:])
-                            #self.kpoints_mp_grid = kpoints
-                            #self.kpoints_mp_offset = '0. 0. 0.'
+                            # kpoints =  ' '.join(line.split()[-3:])
+                            # self.kpoints_mp_grid = kpoints
+                            # self.kpoints_mp_offset = '0. 0. 0.'
                             # not set here anymore because otherwise
                             # two calculator objects go out of sync
                             # after each calculation triggering unecessary
@@ -731,19 +730,18 @@ End CASTEP Interface Documentation
                         stress.append([float(s) for s in fields[2:5]])
                         line = out.readline()
                         fields = line.split()
-                elif 'BFGS: starting iteration' in line \
-                   or   'BFGS: improving iteration' in line:
+                elif ('BFGS: starting iteration' in line or
+                      'BFGS: improving iteration' in line):
                     if n_cell_const < 6:
                         lattice_real = []
                         lattice_reci = []
                     species = []
                     positions_frac = []
-                    #positions_cart = []
                     forces = []
 
                     # HOTFIX:
                     # Same reason for the stress initialization as before
-                    #stress = []
+                    # stress = []
                     stress = np.zeros([3, 3])
 
                 elif 'BFGS: Final Configuration:' in line:
@@ -754,7 +752,6 @@ End CASTEP Interface Documentation
                 print(line, end=' ')
                 print('|-> line triggered exception: ' + str(exception))
                 raise
-
 
         # get the spins in a separate run over the file as we
         # do not want to break the BFGS-break construct
@@ -808,13 +805,10 @@ End CASTEP Interface Documentation
             # compensate for internal reordering of atoms by CASTEP
             # using the fact that the order is kept within each species
 
-            positions_frac_ase = self.atoms.get_scaled_positions(wrap=False)
             atoms_assigned = [False] * len(self.atoms)
 
-            positions_frac_castep_init = np.array(positions_frac_list[0])
             positions_frac_castep = np.array(positions_frac_list[-1])
 
-            species_castep = list(species)
             forces_castep = np.array(forces)
             hirsh_castep = np.array(hirsh_volrat)
             spins_castep = np.array(spins)
@@ -824,25 +818,25 @@ End CASTEP Interface Documentation
             # castep file corresponding atomic number
             for iase in xrange(n_atoms):
                 for icastep in xrange(n_atoms):
-                    if species[icastep] == self.atoms[iase].symbol \
-                      and not atoms_assigned[icastep]:
-                      positions_frac_atoms[iase] = positions_frac_castep[icastep]
-                      forces_atoms[iase] = np.array(forces_castep[icastep])
-                      if iprint > 1 and calculate_hirshfeld:
+                    if (species[icastep] == self.atoms[iase].symbol and
+                        not atoms_assigned[icastep]):
+                        positions_frac_atoms[iase] = positions_frac_castep[icastep]
+                        forces_atoms[iase] = np.array(forces_castep[icastep])
+                        if iprint > 1 and calculate_hirshfeld:
                             hirsh_atoms[iase] = np.array(hirsh_castep[icastep])
-                      if spin_polarized:
+                        if spin_polarized:
                             # reordering not necessary in case all spins == 0
                             spins_atoms[iase] = np.array(spins_castep[icastep])
-                      atoms_assigned[icastep] = True
-                      break
+                        atoms_assigned[icastep] = True
+                        break
 
             if not all(atoms_assigned):
                 not_assigned = [i for (i, assigned)
                                 in zip(range(len(atoms_assigned)),
                                        atoms_assigned) if not assigned]
                 print('%s atoms not assigned.' % atoms_assigned.count(False))
-                print('DEBUGINFO: The following atoms where not assigned: %s'\
-                      % not_assigned)
+                print('DEBUGINFO: The following atoms where not assigned: %s' %
+                      not_assigned)
             else:
                 self.atoms.set_scaled_positions(positions_frac_atoms)
 
@@ -906,12 +900,13 @@ End CASTEP Interface Documentation
         elif isinstance(castep_castep, file):
             f = castep_castep
         else:
-            raise TypeError('read_castep_castep_symops: castep_castep is' \
-                + 'not  of type file or str!')
+            raise TypeError('read_castep_castep_symops: castep_castep is'
+                            'not  of type file or str!')
 
         if self.param.iprint is None or self.param.iprint < 2:
-            self._interface_warnings.append('Warning: No symmetry' \
-            + 'operations could be read from %s (iprint < 2).' % f.name)
+            self._interface_warnings.append(
+                'Warning: No symmetry'
+                'operations could be read from %s (iprint < 2).' % f.name)
             return
 
         while True:
@@ -938,7 +933,7 @@ End CASTEP Interface Documentation
                     line = f.readline()
                     displacement = [float(d) for d in line.split()[1:4]]
                     symop = {'rotation': rotation,
-                        'displacement': displacement}
+                             'displacement': displacement}
                     self.symmetry_ops = symop
                 self.symmetry = symmetry_operations
                 print('Symmetry operations successfully read from %s' % f.name)
@@ -966,9 +961,9 @@ End CASTEP Interface Documentation
         self._label = label
 
     def set_pspot(self, pspot, elems=None,
-                               notelems=None,
-                               clear=True,
-                               suffix='usp'):
+                  notelems=None,
+                  clear=True,
+                  suffix='usp'):
         """Quickly set all pseudo-potentials: Usually CASTEP psp are named
         like <Elem>_<pspot>.<suffix> so this function function only expects
         the <LibraryName>. It then clears any previous pseudopotential
@@ -1019,25 +1014,25 @@ End CASTEP Interface Documentation
         return self._energy_0K
 
     def get_potential_energy(self, atoms, force_consistent=False):
-        #here for compatability with ase/calculators/general.py
-        #but accessing only _name variables
+        # here for compatability with ase/calculators/general.py
+        # but accessing only _name variables
         """Return the total potential energy."""
         self.update(atoms)
         if force_consistent:
             # Assumption: If no dispersion correction is applied, then the
             # respective value will default to None as initialized.
-            if self._dispcorr_energy_free != None:
+            if self._dispcorr_energy_free is not None:
                 return self._dispcorr_energy_free
             else:
                 return self._energy_free
         else:
             if self._energy_0K is not None:
-                if self._dispcorr_energy_0K != None:
+                if self._dispcorr_energy_0K is not None:
                     return self._dispcorr_energy_0K
                 else:
                     return self._energy_0K
             else:
-                if self._dispcorr_energy_total != None:
+                if self._dispcorr_energy_total is not None:
                     return self._dispcorr_energy_total
                 else:
                     return self._energy_total
@@ -1146,16 +1141,17 @@ End CASTEP Interface Documentation
 
         # if we have new instance of the calculator,
         # move existing results out of the way, first
-        if os.path.isdir(self._directory)\
-            and self._calls == 0 \
-            and self._rename_existing_dir:
+        if (os.path.isdir(self._directory) and
+            self._calls == 0 and
+            self._rename_existing_dir):
             if os.listdir(self._directory) == []:
                 os.rmdir(self._directory)
             else:
                 # rename appending creation date of the directory
                 ctime = time.localtime(os.lstat(self._directory).st_ctime)
-                os.rename(self._directory, '%s.bak-%s'
-                   % (self._directory, time.strftime('%Y%m%d-%H%M%S', ctime)))
+                os.rename(self._directory, '%s.bak-%s' %
+                          (self._directory,
+                           time.strftime('%Y%m%d-%H%M%S', ctime)))
 
         # create work directory
         if not os.path.isdir(self._directory):
@@ -1183,7 +1179,7 @@ End CASTEP Interface Documentation
 
         # write out the input file
         self._write_cell('%s.cell' % self._seed,
-            self.atoms, force_write=force_write)
+                         self.atoms, force_write=force_write)
 
         if self._export_settings:
             interface_options = self._opt
@@ -1278,7 +1274,7 @@ End CASTEP Interface Documentation
             # let's check first if they are close but not identical
             # to one of the switches, that the user accesses directly
             similars = difflib.get_close_matches(attr, self.internal_keys,
-                cutoff=0.9)
+                                                 cutoff=0.9)
             if attr not in self.internal_keys and similars:
                 print('Warning: You probably tried one of: %s' % similars)
                 print('but typed %s' % attr)
@@ -1299,17 +1295,17 @@ End CASTEP Interface Documentation
             else:
                 self.__dict__[attr] = value
             return
-        elif attr  in ['atoms', 'cell', 'param']:
+        elif attr in ['atoms', 'cell', 'param']:
             if value is not None:
                 if attr == 'atoms' and not isinstance(value, ase.atoms.Atoms):
-                    raise TypeError('%s is not an instance of ase.atoms.Atoms.'
-                                     % value)
+                    raise TypeError(
+                        '%s is not an instance of ase.atoms.Atoms.' % value)
                 elif attr == 'cell' and not isinstance(value, CastepCell):
-                    raise TypeError('%s is not an instance of CastepCell.'
-                                     % value)
+                    raise TypeError('%s is not an instance of CastepCell.' %
+                                    value)
                 elif attr == 'param' and not isinstance(value, CastepParam):
-                    raise TypeError('%s is not an instance of CastepParam.'
-                                     % value)
+                    raise TypeError('%s is not an instance of CastepParam.' %
+                                    value)
             # These 3 are accepted right-away, no matter what
             self.__dict__[attr] = value
             return
@@ -1318,7 +1314,7 @@ End CASTEP Interface Documentation
             # rerouted to go there
             self.atoms.__dict__[attr] = value
             return
-        elif attr  in self.atoms_keys:
+        elif attr in self.atoms_keys:
             # CASTEP keywords that should go into the atoms object
             # itself are blocked
             print('Ignoring setings of "%s", since this has to be set\n'
@@ -1326,16 +1322,17 @@ End CASTEP Interface Documentation
             return
 
         attr = attr.lower()
-        if attr not in (self.cell._options.keys()\
-                      + self.param._options.keys()):
+        if attr not in (list(self.cell._options.keys()) +
+                        list(self.param._options.keys())):
             # what is left now should be meant to be a castep keyword
             # so we first check if it defined, and if not offer some error
             # correction
-            similars = difflib.get_close_matches(attr,
+            similars = difflib.get_close_matches(
+                attr,
                 self.cell._options.keys() + self.param._options.keys())
             if similars:
-                raise UserWarning(('Option "%s" not known! You mean "%s"?')
-                    % (attr, similars[0]))
+                raise UserWarning('Option "%s" not known! You mean "%s"?' %
+                                  (attr, similars[0]))
             else:
                 raise UserWarning('Option "%s" is not known!' % attr)
 
@@ -1346,8 +1343,8 @@ End CASTEP Interface Documentation
         elif attr in self.cell._options.keys():
             comp = 'cell'
         else:
-            raise UserWarning('Programming error: could not attach ' \
-            + 'the keyword to an input file')
+            raise UserWarning('Programming error: could not attach '
+                              'the keyword to an input file')
 
         self.__dict__[comp].__setattr__(attr, value)
 
@@ -1356,7 +1353,7 @@ End CASTEP Interface Documentation
         INT_TOKEN = 'ASE_INTERFACE'
         if isinstance(param, CastepParam):
             for key, option in param._options.items():
-                if option.value  is not None:
+                if option.value is not None:
                     self.param.__setattr__(key, option.value)
             return
         elif isinstance(param, str):
@@ -1376,8 +1373,8 @@ End CASTEP Interface Documentation
                         # This block allows to read internal settings from
                         # a *param file
                         iline = line[line.index(INT_TOKEN) + len(INT_TOKEN):]
-                        if iline.split()[0] in self.internal_keys \
-                            and not ignore_internal_keys:
+                        if (iline.split()[0] in self.internal_keys and
+                            not ignore_internal_keys):
                             value = ' '.join(iline.split()[2:])
                             if value in ['True', 'False']:
                                 self._opt[iline.split()[0]] = eval(value)
@@ -1429,8 +1426,8 @@ End CASTEP Interface Documentation
         write_param('%s.param' % seed, self.param, )
 
         stdout, stderr = shell_stdouterr(('%s %s %s' % (self._castep_command,
-                                      seed,
-                                      dryrun_flag)))
+                                                        seed,
+                                                        dryrun_flag)))
 
         if stdout:
             print(stdout)
@@ -1526,13 +1523,13 @@ End CASTEP Interface Documentation
             for (species, pspot) in pspots.items():
                 orig_pspot_file = os.path.join(self._castep_pp_path, pspot)
                 cp_pspot_file = os.path.join(directory, pspot)
-                if os.path.exists(orig_pspot_file)\
-                    and not os.path.exists(cp_pspot_file):
+                if (os.path.exists(orig_pspot_file) and
+                    not os.path.exists(cp_pspot_file)):
                     if self._copy_pspots:
                         shutil.copy(orig_pspot_file, directory)
                     elif self._link_pspots:
                         os.symlink(os.path.join(self._castep_pp_path, pspot),
-                            cp_pspot_file)
+                                   cp_pspot_file)
                     else:
                         if self._pedantic:
                             print('Warning: PP files have neither been linked nor copied')
@@ -1540,6 +1537,7 @@ End CASTEP Interface Documentation
                             print('variable PSPOT_DIR accordingly!')
                         pass
 
+                        
 def get_castep_version(castep_command):
     """This returns the version number as printed in the CASTEP banner.
     """
@@ -1571,11 +1569,11 @@ def get_castep_version(castep_command):
     shutil.rmtree(temp_dir)
     for line in output_txt:
         if 'CASTEP version' in line:
-            return  float(re.findall(r'(?<=CASTEP version )[0-9.]*', line)[0])
+            return float(re.findall(r'(?<=CASTEP version )[0-9.]*', line)[0])
 
 
 def create_castep_keywords(castep_command, filename='castep_keywords.py',
-    force_write=True, path='.', fetch_only=None):
+                           force_write=True, path='.', fetch_only=None):
     """This function allows to fetch all available keywords from stdout
     of an installed castep binary. It furthermore collects the documentation
     to harness the power of (ipython) inspection and type for some basic
@@ -1615,8 +1613,8 @@ def create_castep_keywords(castep_command, filename='castep_keywords.py',
     fh.write('    def __repr__(self):\n')
     fh.write('        expr = \'\'\n')
     fh.write('        if self.value:\n')
-    fh.write('            expr += \'Option: %s(%s, %s):\\n%s\\n\''\
-        + '% (self.keyword, self.type, self.level, self.value)\n')
+    fh.write('            expr += \'Option: %s(%s, %s):\\n%s\\n\''
+             + '% (self.keyword, self.type, self.level, self.value)\n')
     fh.write('        else:\n')
     fh.write('            expr += \'Option: %s[unset]\' % self.keyword\n')
     fh.write('            expr += \'(%s, %s)\' % (self.type, self.level)\n')
@@ -1674,8 +1672,8 @@ def create_castep_keywords(castep_command, filename='castep_keywords.py',
         doc, _ = shell_stdouterr('%s -help %s' % (castep_command, option))
 
         # Stand Back! I know regular expressions (http://xkcd.com/208/) :-)
-        match = re.match(r'(?P<before_type>.*)Type: (?P<type>[^ ]+).*' + \
-                         r'Level: (?P<level>[^ ]+)\n\s*\n' + \
+        match = re.match(r'(?P<before_type>.*)Type: (?P<type>[^ ]+).*' +
+                         r'Level: (?P<level>[^ ]+)\n\s*\n' +
                          r'(?P<doc>.*?)(\n\s*\n|$)', doc, re.DOTALL)
 
         if match is not None:
@@ -1686,17 +1684,12 @@ def create_castep_keywords(castep_command, filename='castep_keywords.py',
             #     with keyword assignment during extraction process from CASTEP
             suffix = None
             if re.findall(r'PARAMETERS keywords:\n\n\s?None found', doc):
-#                print('%s : PARAMETERS keywords: None found' % option)
                 suffix = 'cell'
             if re.findall(r'CELL keywords:\n\n\s?None found', doc):
-#                print('%s : CELL keywords: None found' % option)
                 suffix = 'param'
             if suffix is None:
                 print('%s -> not assigned to either'
                       ' CELL or PARAMETERS keywords' % option)
-#            else:
-#                print(('%s -> assigned input file'
-#                        ' suffix %s') % (option, suffix))
 
             sys.stdout.write('.')
             sys.stdout.flush()
@@ -1704,10 +1697,10 @@ def create_castep_keywords(castep_command, filename='castep_keywords.py',
             code[suffix] += '        opt_obj = Opt()\n'
 
             code[suffix] += ('        opt_obj.keyword = \'%s\'\n'
-                % option.lower())
+                             % option.lower())
             if 'type' in match:
                 code[suffix] += ('        opt_obj.type = \'%s\'\n'
-                    % match['type'])
+                                 % match['type'])
                 if match['type'] not in types:
                     types.append(match['type'])
             else:
@@ -1715,7 +1708,7 @@ def create_castep_keywords(castep_command, filename='castep_keywords.py',
 
             if 'level' in match:
                 code[suffix] += ('        opt_obj.level = \'%s\'\n'
-                    % match['level'])
+                                 % match['level'])
                 if match['level'] not in levels:
                     levels.append(match['level'])
             else:
@@ -1723,21 +1716,21 @@ def create_castep_keywords(castep_command, filename='castep_keywords.py',
 
             if 'doc' in match:
                 code[suffix] += ('        opt_obj.__doc__ = """%s\n"""\n'
-                    % match['doc'])
+                                 % match['doc'])
             else:
                 raise Exception('Found no doc string for %s' % option)
             code[suffix] += ('        opt_obj.value = None\n')
 
             code[suffix] += ('        self._options[\'%s\'] = opt_obj\n\n'
-                % option.lower())
+                             % option.lower())
             code[suffix] += ('        self.__dict__[\'%s\'] = opt_obj\n\n'
-                % option.lower())
+                             % option.lower())
         else:
             sys.stdout.write(doc)
             sys.stdout.flush()
 
             raise Exception('create_castep_keywords: Could not process %s'
-                % option)
+                            % option)
 
     # write classes out
     for suffix in suffixes:
@@ -1782,7 +1775,7 @@ class CastepParam(object):
             similars = difflib.get_close_matches(attr, self._options.keys())
             if similars:
                 raise UserWarning(('Option "%s" not known! You mean "%s"?')
-                    % (attr, similars[0]))
+                                  % (attr, similars[0]))
             else:
                 raise UserWarning('Option "%s" is not known!' % attr)
         attr = attr.lower()
@@ -1847,7 +1840,7 @@ class CastepParam(object):
         # So far there is no block type in .param
         else:
             raise RuntimeError('Caught unhandled option: %s = %s'
-                % (attr, value))
+                               % (attr, value))
 
 
 class CastepCell(object):
@@ -1880,7 +1873,7 @@ class CastepCell(object):
             similars = difflib.get_close_matches(attr, self._options.keys())
             if similars:
                 raise UserWarning(('Option "%s" not known! You mean "%s"?')
-                    % (attr, similars[0]))
+                                  % (attr, similars[0]))
             else:
                 raise UserWarning('Option "%s" is not known!' % attr)
             return
@@ -1911,7 +1904,7 @@ class CastepCell(object):
                     value = value.replace(',', ' ')
                 if isinstance(value, str) and len(value.split()) == 3:
                     try:
-                        _ = [int(x) for x in value.split()]
+                        [int(x) for x in value.split()]
                     except:
                         raise ConversionError('int', attr, value)
                     opt.value = value
@@ -1930,7 +1923,7 @@ class CastepCell(object):
             if attr in ['kpoints_mp_offset', 'kpoint_mp_offset']:
                 if isinstance(value, str) and len(value.split()) == 3:
                     try:
-                        _ = [float(x) for x in value.split()]
+                        [float(x) for x in value.split()]
                     except:
                         raise ConversionError('float', attr, value)
                     opt.value = value
@@ -1942,8 +1935,7 @@ class CastepCell(object):
             self._options[attr].value = value
         elif opt.type == 'Block':
             if attr == 'species_pot':
-                if not isinstance(value, tuple) \
-                    or len(value) != 2:
+                if not isinstance(value, tuple) or len(value) != 2:
                     print('Please specify pseudopotentials in python as')
                     print('a tuple, like:')
                     print('(species, file), e.g. ("O", "path-to/O_OTFG.usp")')
@@ -1953,10 +1945,9 @@ class CastepCell(object):
                         self.__dict__['species_pot'].value = ''
                     self.__dict__['species_pot'].value = \
                         re.sub(r'\n?\s*%s\s+.*' % value[0], '',
-                            self.__dict__['species_pot'].value)
+                               self.__dict__['species_pot'].value)
                     if value[1]:
-                        self.__dict__['species_pot'].value += '\n%s %s' \
-                                                                % value
+                        self.__dict__['species_pot'].value += '\n%s %s' % value
 
                     # now sort lines as to match the CASTEP output
                     pspots = self.__dict__['species_pot'].value.split('\n')
@@ -2037,7 +2028,7 @@ class CastepCell(object):
             self._options[attr].value = value
         else:
             raise RuntimeError('Caught unhandled option: %s = %s'
-                % (attr, value))
+                               % (attr, value))
 
 
 class ConversionError(Exception):
@@ -2056,7 +2047,7 @@ class ConversionError(Exception):
             + 'This means you either tried to set a value of the wrong\n'\
             + 'type or this keyword needs some special care. Please feel\n'\
             + 'to add it to the corresponding __setattr__ method and send\n'\
-            + 'the patch to %s, so we can all benefit.'%(contact_email)
+            + 'the patch to %s, so we can all benefit.' % (contact_email)
 
 
 def get_castep_pp_path(castep_pp_path=''):
@@ -2084,9 +2075,9 @@ def shell_stdouterr(raw_command):
     we are only interested in the stdout and stderr
     """
     stdout, stderr = subprocess.Popen(raw_command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True).communicate()
+                                      stdout=subprocess.PIPE,
+                                      stderr=subprocess.PIPE,
+                                      shell=True).communicate()
     return stdout.strip(), stderr.strip()
 
 
@@ -2143,7 +2134,8 @@ if __name__ == '__main__':
 
     import optparse
     parser = optparse.OptionParser()
-    parser.add_option('-f', '--force-write', dest='force_write',
+    parser.add_option(
+        '-f', '--force-write', dest='force_write',
         help='Force overwriting existing castep_keywords.py', default=False,
         action='store_true')
     (options, args) = parser.parse_args()
@@ -2153,11 +2145,12 @@ if __name__ == '__main__':
     else:
         opt_castep_command = ''
     generated = create_castep_keywords(get_castep_command(opt_castep_command),
-        force_write=options.force_write)
+                                       force_write=options.force_write)
 
     if generated:
         try:
-            exec(compile(open('castep_keywords.py').read(), 'castep_keywords.py', 'exec'))
+            exec(compile(open('castep_keywords.py').read(),
+                         'castep_keywords.py', 'exec'))
         except Exception as e:
             print(e)
             print('Ooops, something went wrong with the CASTEP keywords')

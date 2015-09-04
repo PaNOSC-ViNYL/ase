@@ -21,16 +21,15 @@ from ase.parallel import paropen
 # ase.units in in ase-3.6.0.2515 is based on CODATA1986
 import ase.units
 units_ase = {
-     'hbar': ase.units._hbar * ase.units.J,
-     'Eh': ase.units.Hartree,
-     'kB': ase.units.kB,
-     'a0': ase.units.Bohr,
-     't0': ase.units._hbar * ase.units.J / ase.units.Hartree,
-     'c': ase.units._c,
-     'me': ase.units._me / ase.units._amu,
-     #'mp_over_me' : ase.units._mp / ase.units._me,
-     'Pascal': 1.0 / ase.units.Pascal
-}
+    'hbar': ase.units._hbar * ase.units.J,
+    'Eh': ase.units.Hartree,
+    'kB': ase.units.kB,
+    'a0': ase.units.Bohr,
+    't0': ase.units._hbar * ase.units.J / ase.units.Hartree,
+    'c': ase.units._c,
+    'me': ase.units._me / ase.units._amu,
+    'Pascal': 1.0 / ase.units.Pascal}
+
 # CODATA1986 (included herein for the sake of completeness)
 # taken from
 #    http://physics.nist.gov/cuu/Archive/1986RMP.pdf
@@ -41,23 +40,20 @@ units_CODATA1986 = {
     'a0': 0.529177249,          # A
     'c': 299792458,             # m/s
     'e': 1.60217733E-19,        # C
-    'me': 5.485799110E-4        # u
-    #'mp_over_me':  1836.152701
-}
+    'me': 5.485799110E-4}       # u
+
 # CODATA2002: default in CASTEP 5.01
 # (-> check in more recent CASTEP in case of numerical discrepancies?!)
 # taken from
 #    http://physics.nist.gov/cuu/Document/all_2002.pdf
 units_CODATA2002 = {
-        'hbar': 6.58211915E-16,     # eVs
-        'Eh': 27.2113845,           # eV
-        'kB': 8.617343E-5,          # eV/K
-        'a0': 0.5291772108,         # A
-        'c': 299792458,             # m/s
-        'e': 1.60217653E-19,        # C
-        'me': 5.4857990945E-4       # u
-        #'mp_over_me': = 1836.15267261
-}
+    'hbar': 6.58211915E-16,     # eVs
+    'Eh': 27.2113845,           # eV
+    'kB': 8.617343E-5,          # eV/K
+    'a0': 0.5291772108,         # A
+    'c': 299792458,             # m/s
+    'e': 1.60217653E-19,        # C
+    'me': 5.4857990945E-4}      # u
 
 # (common) derived entries
 for d in (units_CODATA1986, units_CODATA2002):
@@ -66,16 +62,16 @@ for d in (units_CODATA1986, units_CODATA2002):
 
 
 __all__ = [
-        'read_castep',
-        'read_castep_old',
-        'read_castep_cell',
-        'read_castep_geom',
-        'read_md',
-        'read_phonon',
-        'read_param',
-        'read_seed',
-        'write_castep_cell',
-        'write_param']
+    'read_castep',
+    'read_castep_old',
+    'read_castep_cell',
+    'read_castep_geom',
+    'read_md',
+    'read_phonon',
+    'read_param',
+    'read_seed',
+    'write_castep_cell',
+    'write_param']
 
 
 def write_castep_cell(filename, atoms, positions_frac=False, castep_cell=None,
@@ -115,9 +111,9 @@ def write_castep_cell(filename, atoms, positions_frac=False, castep_cell=None,
         keyword = 'POSITIONS_ABS'
         positions = atoms.get_positions()
 
-    if hasattr(atoms, 'calc')\
-        and hasattr(atoms.calc, 'param')\
-        and hasattr(atoms.calc.param, 'task'):
+    if (hasattr(atoms, 'calc') and
+        hasattr(atoms.calc, 'param') and
+        hasattr(atoms.calc.param, 'task')):
         _spin_pol = any([getattr(atoms.calc.param, i).value
                          for i in ['spin_polarized', 'spin_polarised']])
     else:
@@ -128,13 +124,12 @@ def write_castep_cell(filename, atoms, positions_frac=False, castep_cell=None,
                      (x, y[0], y[1], y[2], m)) for (x, y, m)
                      in zip(atoms.get_chemical_symbols(),
                             positions,
-                            atoms.get_initial_magnetic_moments())
-                     ]
+                            atoms.get_initial_magnetic_moments())]
     else:
         pos_block = [('%s %8.6f %8.6f %8.6f' %
-            (x, y[0], y[1], y[2])) for (x, y)
-            in zip(atoms.get_chemical_symbols(),
-            positions)]
+                      (x, y[0], y[1], y[2])) for (x, y)
+                     in zip(atoms.get_chemical_symbols(),
+                            positions)]
 
     fd.write('%%BLOCK %s\n' % keyword)
     for line in pos_block:
@@ -143,19 +138,19 @@ def write_castep_cell(filename, atoms, positions_frac=False, castep_cell=None,
 
     # if atoms, has a CASTEP calculator attached, then only
     # write constraints if really necessary
-    if hasattr(atoms, 'calc')\
-        and hasattr(atoms.calc, 'param')\
-        and hasattr(atoms.calc.param, 'task'):
+    if (hasattr(atoms, 'calc') and
+        hasattr(atoms.calc, 'param') and
+        hasattr(atoms.calc.param, 'task')):
         task = atoms.calc.param.task
         if atoms.calc.param.task.value is None:
             suppress_constraints = True
         elif task.value.lower() not in [
-                            'geometryoptimization',
-                            # well, CASTEP understands US and UK english...
-                            'geometryoptimisation',
-                            'moleculardynamics',
-                            'transitionstatesearch',
-                            'phonon']:
+            'geometryoptimization',
+            # well, CASTEP understands US and UK english...
+            'geometryoptimisation',
+            'moleculardynamics',
+            'transitionstatesearch',
+            'phonon']:
             suppress_constraints = True
         else:
             suppress_constraints = False
@@ -249,7 +244,6 @@ def read_castep_cell(filename, _=None):
     """
 
     from ase.calculators.castep import Castep
-    from ase.calculators.calculator import Calculator
 
     _fallback = False
     try:
@@ -572,57 +566,57 @@ def read_castep_old(filename, _=-1):
     energy_total = None
     energy_0K = None
     for i, line in enumerate(lines):
-       if 'NB est. 0K energy' in line:
-           energy_0K = float(line.split()[6])
-       # support also for dispersion correction
-       elif 'NB dispersion corrected est. 0K energy*' in line:
-           energy_0K = float(line.split()[-2])
-       elif 'Final energy, E' in line:
-           energy_total = float(line.split()[4])
-       elif 'Dispersion corrected final energy' in line:
-           dispcorr_energy_total = float(line.split()[-2])
-           sedc_apply = True
-       elif 'Dispersion corrected final free energy' in line:
-           dispcorr_energy_free = float(line.split()[-2])
-       elif 'dispersion corrected est. 0K energy' in line:
-           dispcorr_energy_0K = float(line.split()[-2])
-       elif 'Unit Cell' in line:
-           cell = [x.split()[0:3] for x in lines[i + 3:i + 6]]
-           cell = np.array([[float(col) for col in row] for row in cell])
-       elif 'Cell Contents' in line:
-           geom_starts = i
-           start_found = False
-           for j, jline in enumerate(lines[geom_starts:]):
-               if jline.find('xxxxx') > 0 and start_found:
-                   geom_stop = j + geom_starts
-                   break
-               if jline.find('xxxx') > 0 and not start_found:
-                   geom_start = j + geom_starts + 4
-                   start_found = True
-           species = [line.split()[1] for line in lines[geom_start:geom_stop]]
-           geom = np.dot(np.array([[float(col) for col in line.split()[3:6]]
-               for line in lines[geom_start:geom_stop]]), cell)
-       elif 'Writing model to' in line:
-           atoms = ase.Atoms(
-               cell=cell,
-               pbc=True,
-               positions=geom,
-               symbols=''.join(species),
-               )
-           # take 0K energy where available, else total energy
-           if energy_0K:
-               energy = energy_0K
-           else:
-               energy = energy_total
-           # generate a minimal single-point calculator
-           sp_calc = SinglePointCalculator(atoms=atoms,
-                                           energy=energy,
-                                           forces=None,
-                                           magmoms=None,
-                                           stress=None,
-                                           )
-           atoms.set_calculator(sp_calc)
-           traj.append(atoms)
+        if 'NB est. 0K energy' in line:
+            energy_0K = float(line.split()[6])
+        # support also for dispersion correction
+        elif 'NB dispersion corrected est. 0K energy*' in line:
+            energy_0K = float(line.split()[-2])
+        elif 'Final energy, E' in line:
+            energy_total = float(line.split()[4])
+        elif 'Dispersion corrected final energy' in line:
+            pass
+            # dispcorr_energy_total = float(line.split()[-2])
+            # sedc_apply = True
+        elif 'Dispersion corrected final free energy' in line:
+            pass  # dispcorr_energy_free = float(line.split()[-2])
+        elif 'dispersion corrected est. 0K energy' in line:
+            pass  # dispcorr_energy_0K = float(line.split()[-2])
+        elif 'Unit Cell' in line:
+            cell = [x.split()[0:3] for x in lines[i + 3:i + 6]]
+            cell = np.array([[float(col) for col in row] for row in cell])
+        elif 'Cell Contents' in line:
+            geom_starts = i
+            start_found = False
+            for j, jline in enumerate(lines[geom_starts:]):
+                if jline.find('xxxxx') > 0 and start_found:
+                    geom_stop = j + geom_starts
+                    break
+                if jline.find('xxxx') > 0 and not start_found:
+                    geom_start = j + geom_starts + 4
+                    start_found = True
+            species = [line.split()[1] for line in lines[geom_start:geom_stop]]
+            geom = np.dot(np.array([[float(col) for col in line.split()[3:6]]
+                                    for line in lines[geom_start:geom_stop]]),
+                          cell)
+        elif 'Writing model to' in line:
+            atoms = ase.Atoms(
+                cell=cell,
+                pbc=True,
+                positions=geom,
+                symbols=''.join(species))
+            # take 0K energy where available, else total energy
+            if energy_0K:
+                energy = energy_0K
+            else:
+                energy = energy_total
+            # generate a minimal single-point calculator
+            sp_calc = SinglePointCalculator(atoms=atoms,
+                                            energy=energy,
+                                            forces=None,
+                                            magmoms=None,
+                                            stress=None)
+            atoms.set_calculator(sp_calc)
+            traj.append(atoms)
 
     return traj
 
@@ -1043,7 +1037,7 @@ def read_seed(seed, new_seed=None, ignore_internal_keys=False):
     cellfile = os.path.join(directory, '%s.cell' % seed)
     castepfile = os.path.join(directory, '%s.castep' % seed)
 
-    atoms = read_cell(cellfile)
+    atoms = read_castep_cell(cellfile)
     atoms.calc._directory = directory
     atoms.calc._rename_existing_dir = False
     atoms.calc._castep_pp_path = directory
