@@ -7,7 +7,7 @@ import ase.units as units
 from ase import Atoms
 from ase.calculators.tip3p import (TIP3P, epsilon0, sigma0, rOH, thetaHOH,
                                    set_tip3p_charges)
-from ase.calculators.qmmm import QMMM1, QMMM2, LJInteractions
+from ase.calculators.qmmm import QMMM, EIQMMM, LJInteractions
 from ase.constraints import FixInternals
 from ase.optimize import BFGS
 
@@ -24,10 +24,10 @@ D = np.linspace(2.5, 3.5, 30)
 i = LJInteractions({('O', 'O'): (epsilon0, sigma0)})
 
 for calc in [TIP3P(),
-             QMMM1([0, 1, 2], TIP3P(), TIP3P(), TIP3P()),
-             QMMM1([0, 1, 2], TIP3P(), TIP3P(), TIP3P(), vacuum=3.0),
-             QMMM2([0, 1, 2], TIP3P(), TIP3P(), i),
-             QMMM2([0, 1, 2], TIP3P(), TIP3P(), i, vacuum=3.0)]:
+             QMMM([0, 1, 2], TIP3P(), TIP3P(), TIP3P()),
+             QMMM([0, 1, 2], TIP3P(), TIP3P(), TIP3P(), vacuum=3.0),
+             EIQMMM([0, 1, 2], TIP3P(), TIP3P(), i),
+             EIQMMM([0, 1, 2], TIP3P(), TIP3P(), i, vacuum=3.0)]:
     dimer = Atoms('H2OH2O',
                   [(r * cos(a), 0, r * sin(a)),
                    (r, 0, 0),

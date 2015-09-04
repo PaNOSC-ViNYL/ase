@@ -4,7 +4,7 @@ from ase.calculators.calculator import Calculator
 from ase.data import atomic_numbers
 
 
-class QMMM1(Calculator):
+class QMMM(Calculator):
     implemented_properties = ['energy', 'forces']
     
     def __init__(self, selection, qmcalc, mmcalc1, mmcalc2, vacuum=None):
@@ -58,17 +58,18 @@ class QMMM1(Calculator):
         self.results['forces'] = forces
 
         
-class QMMM2(Calculator):
+class EIQMMM(Calculator):
     implemented_properties = ['energy', 'forces']
     
-    def __init__(self, selection, qmcalc, mmcalc, interaction, vacuum=None):
+    def __init__(self, selection, qmcalc, mmcalc, interaction,
+                 vacuum=None, embedding=None):
         self.selection = selection
 
         self.qmcalc = qmcalc
         self.mmcalc = mmcalc
         self.interaction = interaction
-        
         self.vacuum = vacuum
+        self.embedding = embedding
         
         self.qmatoms = None
         self.mmatoms = None
@@ -99,8 +100,12 @@ class QMMM2(Calculator):
             
         self.qmatoms.calc = self.qmcalc
         self.mmatoms.calc = self.mmcalc
-        self.pc = self.qmcalc.embed(self.mmatoms.get_initial_charges())
         
+        if self.embedding is None:
+            self.embedding = Embedding()
+            
+        self.embedding.initialize(self.qmatoms, self.mmatoms)
+            
     def calculate(self, atoms, properties, system_changes):
         Calculator.calculate(self, atoms, properties, system_changes)
         
@@ -116,7 +121,7 @@ class QMMM2(Calculator):
         else:
             shift = (0, 0, 0)
             
-        self.pc.set_positions(self.mmatoms.positions + shift)
+        self.embedding.update(shift)
 
         ienergy, iqmforces, immforces = self.interaction.calculate(
             self.qmatoms, self.mmatoms, shift)
@@ -128,7 +133,7 @@ class QMMM2(Calculator):
         qmforces = self.qmatoms.get_forces()
         mmforces = self.mmatoms.get_forces()
         
-        mmforces += self.pc.get_forces(self.qmatoms.calc)
+        mmforces += self.embedding.get_forces()
         
         forces = np.empty((len(atoms), 3))
         forces[self.mask] = qmforces + iqmforces
@@ -137,6 +142,22 @@ class QMMM2(Calculator):
         self.results['energy'] = energy
         self.results['forces'] = forces
 
+        
+class Embedding:
+    qmatoms = None
+    mmatoms = None
+    
+    def initialize(self, qmatoms, mmatoms):
+        self.qmatoms = qmatoms
+        self.mmatoms = mmatoms
+        self.pcpot = qmatoms.calc.embed(mmatoms.get_initial_charges())
+        
+    def update(self, shift):
+        self.pcpot.set_positions(self.mmatoms.positions + shift)
+        
+    def get_forces(self):
+        return self.pcpot.get_forces(self.qmatoms.calc)
+        
         
 class LJInteractions:
     name = 'LJ'
