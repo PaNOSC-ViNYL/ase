@@ -77,6 +77,7 @@ gaussian                           Gaussian based electronic structure code
 :mod:`~ase.calculators.lammps`     Classical molecular dynamics code
 mopac                   ...
 :mod:`~ase.calculators.nwchem`     Gaussian based electronic structure code
+:mod:`~ase.calculators.octopus`    Real-space pseudopotential code
 :mod:`~ase.calculators.siesta`     LCAO pseudopotential code
 :mod:`~ase.calculators.turbomole`  Fast atom orbital code
 :mod:`~ase.calculators.vasp`       Plane-wave PAW code
