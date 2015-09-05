@@ -49,7 +49,7 @@ The calculators can be divided in three groups:
 1) Asap_, GPAW_ and Hotbit_ have their own native ASE interfaces.
 
 2) ABINIT, CP2K, CASTEP, DFTB+, ELK, EXCITING, FHI-aims, FLEUR, GAUSSIAN,
-   Gromacs, Jacapo, LAMMPS, MOPAC, NWChem, SIESTA, TURBOMOLE and VASP,
+   Gromacs, Jacapo, LAMMPS, MOPAC, NWChem, Octopus, SIESTA, TURBOMOLE and VASP,
    have Python wrappers in the ASE package, but the actual
    FORTRAN/C/C++ codes are not part of ASE.
 
