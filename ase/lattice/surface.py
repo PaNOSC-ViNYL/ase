@@ -543,6 +543,7 @@ def mx2(formula='MoS2', kind='2H', a=3.18, thickness=3.19,
     cell = [[a, 0, 0], [-a / 2, a * 3**0.5 / 2, 0], [0, 0, 1]]
     
     atoms = Atoms(formula, cell=cell, scaled_positions=basis, pbc=(1, 1, 0))
+    atoms = atoms.repeat(size)
     atoms.center(vacuum=vacuum, axis=2)
     
     return atoms
