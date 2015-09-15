@@ -26,65 +26,95 @@ def set_tip3p_charges(atoms):
 class TIP3P(Calculator):
     implemented_properties = ['energy', 'forces']
     nolabel = True
-    pcp = None
+    pcpot = None
+    
+    def __init__(self, rc=5.0, width=1.0):
+        self.rc = rc
+        self.width = width
+        Calculator.__init__(self)
     
     def calculate(self, atoms=None,
                   properties=['energy'],
                   system_changes=all_changes):
         Calculator.calculate(self, atoms, properties, system_changes)
         
-        positions = self.atoms.positions
+        R = self.atoms.positions.reshape((-1, 3, 3))
         Z = self.atoms.numbers
-
-        assert not self.atoms.pbc.any()
+        pbc = self.atoms.pbc
+        cell = self.atoms.cell.diagonal()
+        nh2o = len(R)
+        
+        assert (self.atoms.cell == np.diag(cell)).all(), 'not orthorhombic'
+        assert ((cell >= 2 * self.rc) | ~pbc).all(), 'cutoff too small'  # ???
+        if Z[0] == 8:
+            o = 0
+        else:
+            o = 2
+        assert (Z[o::3] == 8).all()
+        assert (Z[(o + 1) % 3::3] == 1).all()
+        assert (Z[(o + 2) % 3::3] == 1).all()
+            
+        charges = np.array([qH, qH, qH])
+        charges[o] *= -2
         
         energy = 0.0
-        forces = np.zeros_like(positions)
-
-        if Z[0] == 8:
-            RO = positions[::3]
-            FO = forces[::3]
-        else:
-            RO = positions[2::3]
-            FO = forces[2::3]
+        forces = np.zeros((3 * nh2o, 3))
         
-        charges = self.atoms.get_initial_charges()
-        
-        for a, R in enumerate(RO):
-            d = RO[a + 1:] - R
-            r2 = (d**2).sum(1)
-            c6 = (sigma0**2 / r2)**3
+        for m in range(nh2o - 1):
+            DOO = R[m + 1:, o] - R[m, o]
+            shift = np.zeros_like(DOO)
+            for i, periodic in enumerate(pbc):
+                if periodic:
+                    L = cell[i]
+                    shift[:, i] = (DOO[:, i] + L / 2) % L - L / 2 - DOO[:, i]
+            DOO += shift
+            d2 = (DOO**2).sum(1)
+            d = d2**0.5
+            x1 = d > self.rc - self.width
+            x2 = d < self.rc
+            x12 = np.logical_and(x1, x2)
+            y = (d[x12] - self.rc + self.width) / self.width
+            t = np.zeros(len(d))  # cutoff function
+            t[x2] = 1.0
+            t[x12] -= y**2 * (3.0 - 2.0 * y)
+            dtdd = np.zeros(len(d))
+            dtdd[x12] -= 6.0 / self.width * y * (1.0 - y)
+            c6 = (sigma0**2 / d2)**3
             c12 = c6**2
-            energy += 4 * epsilon0 * (c12 - c6).sum()
-            f = (24 * epsilon0 * (2 * c12 - c6) / r2)[:, np.newaxis] * d
-            FO[a] -= f.sum(0)
-            FO[a + 1:] += f
+            e = 4 * epsilon0 * (c12 - c6)
+            energy += np.dot(t, e)
+            F = (24 * epsilon0 * (2 * c12 - c6) / d2 * t -
+                 e * dtdd / d)[:, np.newaxis] * DOO
+            forces[m * 3 + o] -= F.sum(0)
+            forces[m * 3 + 3 + o::3] += F
         
-        for a, R in enumerate(positions):
-            b = a // 3 * 3 + 3
-            d = positions[b:] - R
-            r2 = (d**2).sum(1)
-            e = units.Hartree * units.Bohr * charges[a] * charges[b:] / r2**0.5
-            energy += e.sum()
-            f = (e / r2)[:, np.newaxis] * d
-            forces[a] -= f.sum(0)
-            forces[b:] += f
+            for j in range(3):
+                D = R[m + 1:] - R[m, j] + shift[:, np.newaxis]
+                r2 = (D**2).sum(axis=2)
+                r = r2**0.5
+                e = charges[j] * charges / r * units.Hartree * units.Bohr
+                energy += np.dot(t, e).sum()
+                F = (e / r2 * t[:, np.newaxis])[:, :, np.newaxis] * D
+                F[:, o] -= (e.sum(axis=1) * dtdd / d)[:, np.newaxis] * DOO
+                forces[(m + 1) * 3:] += F.reshape((-1, 3))
+                forces[m * 3 + j] -= F.sum(axis=0).sum(axis=0)
             
-        if self.pcp:
-            e, f = self.pcp.calculate(charges, positions)
+        if self.pcpot:
+            e, f = self.pcpot.calculate(np.tile(charges, nh2o),
+                                        self.atoms.positions)
             energy += e
             forces += f
-            
+
         self.results['energy'] = energy
         self.results['forces'] = forces
 
     def embed(self, charges):
-        self.pcp = PointChargePotential(charges)
-        return self.pcp
+        self.pcpot = PointChargePotential(charges)
+        return self.pcpot
         
     def check_state(self, atoms, tol=1e-15):
         system_changes = Calculator.check_state(self, atoms, tol)
-        if self.pcp and self.pcp.positions is not None:
+        if self.pcpot and self.pcpot.positions is not None:
             system_changes.append('positions')
         return system_changes
         

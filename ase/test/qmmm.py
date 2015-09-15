@@ -27,6 +27,7 @@ for calc in [TIP3P(),
              QMMM([0, 1, 2], TIP3P(), TIP3P(), TIP3P()),
              QMMM([0, 1, 2], TIP3P(), TIP3P(), TIP3P(), vacuum=3.0),
              EIQMMM([0, 1, 2], TIP3P(), TIP3P(), i),
+             EIQMMM([3, 4, 5], TIP3P(), TIP3P(), i, vacuum=3.0),
              EIQMMM([0, 1, 2], TIP3P(), TIP3P(), i, vacuum=3.0)]:
     dimer = Atoms('H2OH2O',
                   [(r * cos(a), 0, r * sin(a)),
@@ -44,6 +45,7 @@ for calc in [TIP3P(),
         dimer.positions[3:, 0] += d - dimer.positions[5, 0]
         E.append(dimer.get_potential_energy())
         F.append(dimer.get_forces())
+
     F = np.array(F)
 
     plt.plot(D, E)
