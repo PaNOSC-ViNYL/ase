@@ -264,6 +264,7 @@ bool_keys = [
     'lwannier90',  # Switches on the interface between VASP and WANNIER90
     'lsorbit',    # Enable spin-orbit coupling
     'lsol',       # turn on solvation for Vaspsol
+    'lautoscale', # automatically calculate inverse curvature for VTST LBFGS
 ]
 
 list_keys = [
