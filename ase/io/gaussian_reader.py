@@ -4,14 +4,15 @@ from __future__ import print_function
 
 # This file is taken (almost) verbatim from CMR with D. Landis agreement
 
-FIELD_SEPARATOR="\\"
-PARA_START="\n\n"
-PARA_END="\\\\@"
+FIELD_SEPARATOR = "\\"
+PARA_START = "\n\n"
+PARA_END = "\\\\@"
 
-names = ["", "", "Computer_system", "Type_of_run", "Method", "Basis_set", "Chemical_formula", "Person", "Date", "", "", "", "", "Title", ""] #[Charge,Multi]
-#        0   1            2               3           4            5              6               7        8    9  10  11  12    13     14
-names_compact = ["", "", "Computer_system", "Type_of_run", "Method", "Basis_set", "Chemical_formula", "Person", "Date", "", "", "", "", "Title", ""] #[Charge,Multi]
-#                0   1            2               3           4            5              6               7        8    9  10  11  12    13     14
+names = ['', '', 'Computer_system', 'Type_of_run', 'Method', 'Basis_set',
+         'Chemical_formula', 'Person', 'Date', '', '', '', '', 'Title', '']
+names_compact = ['', '', 'Computer_system', 'Type_of_run', 'Method',
+                 'Basis_set', 'Chemical_formula', 'Person', 'Date', '', '', '',
+                 '', 'Title', '']
 
 charge_multiplicity = 15
 
@@ -38,20 +39,20 @@ class GaussianReader:
 
         return data
 
-
     def __init__(self, filename):
         """filename is optional; if not set, use parse to set the content"""
         if isinstance(filename, str):
             fileobj = open(filename, 'r')
         elif isinstance(filename, file):
             fileobj = filename
-            fileobj.seek(0) # Re-wind fileobj
+            fileobj.seek(0)  # Re-wind fileobj
         else:
-            raise RuntimeError('filename needs to be either a str or file obj.')
+            err = 'filename needs to be either a str or file obj.'
+            raise RuntimeError(err)
 
         content = fileobj.read()
 
-        #handles the case that users used windows after the calculation:
+# handles the case that users used windows after the calculation:
         content = content.replace("\r\n", "\n")
 
         self.parse(content)
@@ -62,7 +63,7 @@ class GaussianReader:
         temp_items = content.split(PARA_START)
         seq_count = 0
         for i in temp_items:
-            i=i.replace("\n ", "")
+            i = i.replace("\n ", "")
             if i.endswith(PARA_END):
                 i = i.replace(PARA_END, "")
                 i = i.split(FIELD_SEPARATOR)
@@ -70,36 +71,36 @@ class GaussianReader:
                 new_dict = {}
                 self.data.append(new_dict)
 
-                new_dict["Sequence number"] = seq_count
+                new_dict['Sequence number'] = seq_count
                 seq_count += 1
                 for pos in range(len(names)):
-                    if names[pos]!="":
+                    if names[pos] != "":
                         new_dict[names[pos]] = self.auto_type(i[pos])
 
                 chm = i[charge_multiplicity].split(",")
-                new_dict["Charge"]       = int(chm[0])
+                new_dict["Charge"] = int(chm[0])
                 new_dict["Multiplicity"] = int(chm[1])
 
-                #Read atoms
+# Read atoms
                 atoms = []
                 positions = []
-                position = charge_multiplicity+1
-                while position<len(i) and i[position]!="":
+                position = charge_multiplicity + 1
+                while position < len(i) and i[position] != "":
                     s = i[position].split(",")
                     atoms.append(atomic_numbers[s[0]])
                     positions.append([float(s[1]), float(s[2]), float(s[3])])
                     position = position + 1
 
-                new_dict["Atomic_numbers"]=atoms
-                new_dict["Positions"]=positions
-                #Read more variables
-                position +=1
-                while position<len(i) and i[position]!="":
-                    s = i[position].split("=")
-                    if len(s)==2:
-                        new_dict[s[0]]=self.auto_type(s[1])
+                new_dict["Atomic_numbers"] = atoms
+                new_dict["Positions"] = positions
+# Read more variables
+                position += 1
+                while position < len(i) and i[position] != "":
+                    s = i[position].split('=')
+                    if len(s) == 2:
+                        new_dict[s[0]] = self.auto_type(s[1])
                     else:
-                        print("Warning: unexpected input ",s)
+                        print("Warning: unexpected input ", s)
                     position = position + 1
 
     def __iter__(self):

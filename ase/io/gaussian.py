@@ -66,14 +66,16 @@ def read_gaussian_out(filename, index=-1, quantity='atoms'):
             energy = value
 
     try:
-# Re-read in the log file
         if isinstance(filename, str):
             fileobj = open(filename, 'r')
         elif isinstance(filename, file):
             fileobj = filename
-            fileobj.seek(0) # Re-wind the file in case it was previously read.
+
+# Re-wind the file in case it was previously read.
+            fileobj.seek(0)
         else:
-            raise RuntimeError('filename needs to be either a str or file obj.')
+            err = 'filename needs to be either a str or file obj.'
+            raise RuntimeError(err)
 
         lines = fileobj.readlines()
         iforces = list()
