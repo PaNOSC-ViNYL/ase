@@ -41,14 +41,20 @@ class GaussianReader:
 
     def __init__(self, filename):
         """filename is optional; if not set, use parse to set the content"""
-        if not filename is None:
-            fin = file(filename)
-            content = fin.read()
-            fin.close()
-            #handles the case that users used windows after the calculation:
-            content = content.replace("\r\n", "\n")
+        if isinstance(filename, str):
+            fileobj = open(filename, 'r')
+        elif isinstance(filename, file):
+            fileobj = filename
+            fileobj.seek(0) # Re-wind fileobj
+        else:
+            raise RuntimeError('filename needs to be either a str or file obj.')
 
-            self.parse(content)
+        content = fileobj.read()
+
+        #handles the case that users used windows after the calculation:
+        content = content.replace("\r\n", "\n")
+
+        self.parse(content)
 
     def parse(self, content):
         from ase.data import atomic_numbers

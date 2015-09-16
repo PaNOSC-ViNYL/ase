@@ -274,13 +274,18 @@ class Gaussian(FileIOCalculator):
     def read_results(self):
         """Reads the output file using GaussianReader"""
         from ase.io.gaussian import read_gaussian_out
+
         filename = self.label + '.log'
 
-        self.results['energy'] = read_gaussian_out(filename, quantity='energy')
-        self.results['forces'] = read_gaussian_out(filename, quantity='forces')
-        self.results['dipole'] = read_gaussian_out(filename, quantity='dipole')
-        self.results['magmom'] = read_gaussian_out(filename,
-                                                   quantity='multiplicity') - 1
+        quantities = ['energy', 'forces', 'dipole']
+        with open(filename, 'r') as fileobj:
+            for quant in quantities:
+                self.results[quant] = read_gaussian_out(fileobj,
+                                                        quantity=quant)
+
+            self.results['magmom'] = read_gaussian_out(fileobj,
+                                                       quantity='multiplicity')
+            self.results['magmom'] -= 1
 
     def clean(self):
         """Cleans up from a previous run"""
