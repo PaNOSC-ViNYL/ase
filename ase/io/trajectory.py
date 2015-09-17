@@ -251,10 +251,11 @@ class TrajectoryReader:
         if b.get_tag() != 'ASE-Trajectory':
             raise IOError('This is not a trajectory file!')
 
-        self.pbc = b.pbc
-        self.numbers = b.numbers
-        self.masses = b.get('masses')
-        self.constraints = b.get('constraints', '[]')
+        if len(b) > 0:
+            self.pbc = b.pbc
+            self.numbers = b.numbers
+            self.masses = b.get('masses')
+            self.constraints = b.get('constraints', '[]')
 
     def close(self):
         """Close the trajectory file."""
