@@ -11,7 +11,6 @@ from os.path import join
 
 import os
 import sys
-
 import shutil
 
 long_description = """\
