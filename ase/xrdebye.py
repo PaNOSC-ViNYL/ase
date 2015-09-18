@@ -99,4 +99,3 @@ class XrDebye:
         if self.warn:
             print('<xrdebye::get_atomic> Element', symbol, 'not available')
         return 0
-        
