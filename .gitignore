@@ -1,2 +1,14 @@
 *.pyc
-/build
+build/
+*.png
+*.gif
+*.pov
+*.ini
+*.traj
+*.pdf
+*.csv
+*.txt
+*.xyz
+*.db
+*.pckl
+!/doc/static/*.png

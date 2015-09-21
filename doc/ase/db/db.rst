@@ -67,11 +67,11 @@ manipulating key-value pairs.  Try::
     
 Example: Show all rows of SQLite database abc.db:
     
-.. literalinclude:: ase-db.out
+.. literalinclude:: ase-db.txt
     
 Show all details for a single row:
     
-.. literalinclude:: ase-db-long.out
+.. literalinclude:: ase-db-long.txt
 
 .. seealso::
     
