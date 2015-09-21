@@ -21,7 +21,7 @@ s3 = surface(Pt3Rh, (2, 1, 1), 9)
 s3.center(vacuum=10, axis=2)
 
 Pt3Rh.set_chemical_symbols('PtRhPt2')
-s4 = surface(Pt3Rh , (2, 1, 1), 9)
+s4 = surface(Pt3Rh, (2, 1, 1), 9)
 s4.center(vacuum=10, axis=2)
 
 from ase.io import write
@@ -39,3 +39,6 @@ for i in range(2):
     error = os.system('pdflatex -interaction=nonstopmode general_surface ' +
                       '> /dev/null')
     assert error == 0, 'pdflatex failed'
+    os.remove('general_surface.aux')
+    os.remove('general_surface.log')
+    

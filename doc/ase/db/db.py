@@ -1,4 +1,4 @@
-# creates: ase-db.out, ase-db-long.out
+# creates: ase-db.txt, ase-db-long.txt
 import ase.db
 c = ase.db.connect('abc.db', append=False)
 
@@ -23,12 +23,12 @@ h.get_potential_energy()
 c.write(h)
 
 import subprocess
-with open('ase-db.out', 'w') as fd:
-    fd.write('$ ase-db abc.out\n')
+with open('ase-db.txt', 'w') as fd:
+    fd.write('$ ase-db abc.db\n')
     output = subprocess.check_output(['ase-db', 'abc.db'])
     fd.write(output)
-with open('ase-db-long.out', 'w') as fd:
-    fd.write('$ ase-db abc.out relaxed=1 -l\n')
+with open('ase-db-long.txt', 'w') as fd:
+    fd.write('$ ase-db abc.db relaxed=1 -l\n')
     output = subprocess.check_output(['ase-db', 'abc.db', 'relaxed=1', '-l'])
     fd.write(output)
 
