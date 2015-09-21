@@ -4,14 +4,15 @@
 # Please see the accompanying LICENSE file for further information.
 
 from __future__ import print_function
+import os
+import re
+import shutil
+import sys
 from distutils.core import setup, Command
 from distutils.command.build_py import build_py as _build_py
 from glob import glob
 from os.path import join
 
-import os
-import sys
-import shutil
 
 long_description = """\
 ASE is a python package providing an open source Atomic Simulation
@@ -23,8 +24,8 @@ if sys.version_info < (2, 6, 0, 'final', 0):
 
 packages = []
 for dirname, dirnames, filenames in os.walk('ase'):
-        if '__init__.py' in filenames:
-            packages.append(dirname.replace('/', '.'))
+    if '__init__.py' in filenames:
+        packages.append(dirname.replace('/', '.'))
 
 package_dir = {'ase': 'ase'}
 
@@ -101,22 +102,14 @@ class build_py(_build_py):
         return _build_py.get_outputs(self, *args, **kwargs) + self.mofiles
 
 # Get the current version number:
-exec(compile(open('ase/svnversion_io.py').read(), 'ase/svnversion_io.py',
-             'exec'))  # write ase/svnversion.py and get svnversion
-exec(compile(open('ase/version.py').read(), 'ase/version.py',
-             'exec'))  # get version_base
-if svnversion and os.name not in ['ce', 'nt']:
-    # MSI accepts only version X.X.X
-    version = version_base + '.' + svnversion
-else:
-    version = version_base
-
+with open('ase/__init__.py') as fd:
+    version = re.search("__version__ = '(.*)'", fd.read()).group(1)
+    
 name = 'python-ase'
 
 # PyPI:
 if 0:
     # python(3) setup.py sdist upload
-    version = '3.9.0'
     name = 'ase'
     
 scripts = ['tools/ase-gui', 'tools/ase-db', 'tools/ase-info',
