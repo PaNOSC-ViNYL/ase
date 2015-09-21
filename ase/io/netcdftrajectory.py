@@ -26,7 +26,6 @@ import os
 import numpy as np
 
 import ase
-import ase.version
 
 from ase.data import atomic_masses
 from ase.lattice.spacegroup.cell import cellpar_to_cell, cell_to_cellpar
@@ -376,7 +375,7 @@ class NetCDFTrajectory:
         if not hasattr(self.nc, 'program'):
             self.nc.program = 'ASE'
         if not hasattr(self.nc, 'programVersion'):
-            self.nc.programVersion = ase.version.version
+            self.nc.programVersion = ase.__version__
 
         if self._frame_dim not in self.nc.dimensions:
             self.nc.createDimension(self._frame_dim, None)
