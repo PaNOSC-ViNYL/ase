@@ -6,7 +6,7 @@ Discussion of ASE development takes place on the :ref:`ase-developer
 <mailing_lists>` mailing list and on the #ase IRC channel on freenode.
 
 We welcome new developers who would like to help work on improving
-ASE.  If you would like to contribute, your should first tell us what
+ASE.  If you would like to contribute, you should first tell us what
 you want to work on.  Use the mailing list for that.
 
 
@@ -24,8 +24,8 @@ Making small changes
 Say you want to fix a typo somewhere.  Here are the steps to do that:
     
 * register as a user on https://gitlab.com
-* fork the https://gitlab.com/ase/ase project so that you get your own
-  repository to play with
+* go to https://gitlab.com/ase/ase and fork the project so that you
+  get your own GitLab repository to play with
 * click "Files" and find the file you want to change
 * click "Edit" and fix the typo
 * click "Merge Requests" and add your change from the master branch
@@ -47,7 +47,7 @@ computer.  Here are the initial steps:
     
       $ git clone git@gitlab.com:you/ase.git
 
-  where ``you`` it your GitLab user name
+  where ``you`` is your GitLab user name
 
 It's a good idea to make a branch for your work::
     
@@ -66,16 +66,18 @@ Edit, test, stage and commit your changes::
     $ git status
     $ git commit -m "Fixed bug ..."
 
-Push your changes to your repository and create a Merge Request.
+Push your changes to your repository and create a Merge Request on GitLab.
 
-If you want to start working on something new, you should switch to you
+If you want to start working on something new, you should switch to your
 master branch, pull from the official repository and branch again::
     
     $ git checkout master
     $ git remote add official git@gitlab.com:ase/ase.git  # do this once only
     $ git pull official master
     $ git checkout -b newstuff
-    
+
+You can use ``git remote -v`` to see which repositories you have
+registered locally.
     
 Code review
 ===========
