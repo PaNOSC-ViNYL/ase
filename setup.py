@@ -119,17 +119,6 @@ if 'sdist' in sys.argv or os.name in ['ce', 'nt']:
     for s in scripts[:]:
         scripts.append(s + '.bat')
 
-# data_files needs (directory, files-in-this-directory) tuples
-data_files = []
-for dirname, dirnames, filenames in os.walk('doc'):
-    if '.svn' not in dirname:  # skip .svn dirs
-        fileslist = []
-        for filename in filenames:
-            fullname = os.path.join(dirname, filename)
-            if '.svn' not in fullname:
-                fileslist.append(fullname)
-        data_files.append(('share/python-ase/' + dirname, fileslist))
-
 setup(name=name,
       version=version,
       description='Atomic Simulation Environment',
@@ -142,7 +131,6 @@ setup(name=name,
       package_dir=package_dir,
       package_data=package_data,
       scripts=scripts,
-      data_files=data_files,
       long_description=long_description,
       cmdclass={'build_py': build_py,
                 'test': test},
