@@ -63,14 +63,3 @@ If you find ASE useful in your research please cite:
 BibTex (:svn:`doc/ASE.bib`):
 
 .. literalinclude:: ASE.bib
-
-
-Download
-========
-
-Trying to checkout the code via SVN resulted::
-
- [~]$ svn checkout "https://svn.fysik.dtu.dk/projects/ase/trunk"
- svn: Unrecognized URL scheme 'https://svn.fysik.dtu.dk/projects/ase/trunk'
-
-This error is diplayed in case the library 'libsvn_ra_dav' is missing on your system. The library is used by SVN, but is not installed by default.
