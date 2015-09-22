@@ -1,6 +1,4 @@
-==========
-Python ASE
-==========
+ASE
+===
 
 Webpage: http://wiki.fysik.dtu.dk/ase
-
