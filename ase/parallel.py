@@ -81,7 +81,7 @@ class MPI4PY:
 
 
 # Check for special MPI-enabled Python interpreters:
-if '_gpaw' in sys.modules:
+if '_gpaw' in sys.builtin_module_names:
     # http://wiki.fysik.dtu.dk/gpaw
     from gpaw.mpi import world
 elif 'asapparallel3' in sys.modules:
