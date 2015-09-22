@@ -7,6 +7,14 @@ import subprocess
 import sys
 
 
+def git_pull(name='ase'):
+    os.chdir(name)
+    output = subprocess.check_output('git pull', shell=True)
+    os.chdir('..')
+    lastline = output.splitlines()[-1]
+    return not lastline.startswith('Already up-to-date')
+
+        
 def svn_update(name='ase'):
     os.chdir(name)
     output = subprocess.check_output('svn update', shell=True)
@@ -25,7 +33,10 @@ def build(force_build, name='ase', env=''):
 
     # Clean up:
     shutil.rmtree('doc')
-    subprocess.check_call('svn update', shell=True)
+    if name == 'ase':
+        subprocess.check_call('git checkout .', shell=True)
+    else:
+        subprocess.check_call('svn update', shell=True)
 
     # Create development snapshot tar-file and install:
     try:
@@ -107,7 +118,7 @@ def main(build=build):
                           'there are changes to the docs or code.')
         opts, args = parser.parse_args()
         assert len(args) == 0
-        changes = svn_update('ase')
+        changes = git_pull('ase')
         build(opts.force_build or changes)
     finally:
         os.remove(os.path.join(home, 'build-web-page.lock'))
