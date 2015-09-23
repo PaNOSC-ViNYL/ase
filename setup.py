@@ -50,7 +50,7 @@ class test(Command):
     def run(self):
         self.run_command('build')
         buildcmd = self.get_finalized_command('build')
-        sys.path.insert(0, buildcmd.build_lib)
+        sys.path.insert(0, os.getcwd())
 
         if self.calculators is not None:
             calculators = self.calculators.split(',')
@@ -60,18 +60,10 @@ class test(Command):
             calculators = []
         from ase.test import test as _test
         testdir = '%s/testase-tempfiles' % buildcmd.build_base
-        origcwd = os.getcwd()
-        if os.path.isdir(testdir):
-            shutil.rmtree(testdir)  # clean before running tests!
-        os.mkdir(testdir)
-        os.chdir(testdir)
-        try:
-            results = _test(2, calculators, display=False)
-            if results.failures or results.errors:
-                print('Test suite failed', file=sys.stderr)
-                raise SystemExit(len(results.failures) + len(results.errors))
-        finally:
-            os.chdir(origcwd)
+        results = _test(2, calculators, display=False, testdir=testdir)
+        if results.failures or results.errors:
+            print('Test suite failed', file=sys.stderr)
+            raise SystemExit(len(results.failures) + len(results.errors))
 
 
 class build_py(_build_py):

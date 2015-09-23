@@ -1,14 +1,17 @@
+from __future__ import print_function
 import os
-import sys
 import platform
-import unittest
+import sys
+import shutil
 import subprocess
+import tempfile
+import unittest
 from glob import glob
 
 import numpy as np
 
-from ase.parallel import paropen
 from ase.calculators.calculator import names as calc_names, get_calculator
+from ase.parallel import paropen
 
 
 class NotAvailable(Exception):
@@ -77,28 +80,18 @@ class ScriptTestCase(unittest.TestCase):
 
 
 def test(verbosity=1, calculators=[],
-         dir=None, display=True, stream=sys.stdout):
+         testdir=None, display=True, stream=sys.stdout):
     test_calculator_names.extend(calculators)
     disable_calculators([name for name in calc_names
                          if name not in calculators])
     ts = unittest.TestSuite()
-    if dir is None:
-        # ase/test (__path__[0])
-        testdir = __path__[0]
-    else:
-        if os.path.isdir(dir):
-            # absolute path
-            testdir = dir
-        else:
-            # relative to ase/test (__path__[0])
-            testdir = os.path.join(__path__[0], dir)
-    files = glob(testdir + '/*')
+    files = glob(__path__[0] + '/*')
     sdirtests = []  # tests from subdirectories: only one level assumed
     tests = []
     for f in files:
         if os.path.isdir(f):
             # add test subdirectories (like calculators)
-            sdirtests.extend(glob(os.path.join(testdir, f) + '/*.py'))
+            sdirtests.extend(glob(f + '/*.py'))
         else:
             # add py files in testdir
             if f.endswith('.py'):
@@ -115,23 +108,39 @@ def test(verbosity=1, calculators=[],
         if test.endswith('COCu111.py'):
             lasttest = test
             continue
-        ts.addTest(ScriptTestCase(filename=test, display=display))
+        ts.addTest(ScriptTestCase(filename=os.path.abspath(test),
+                                  display=display))
     if lasttest:
-        ts.addTest(ScriptTestCase(filename=lasttest, display=display))
+        ts.addTest(ScriptTestCase(filename=os.path.abspath(lasttest),
+                                  display=display))
 
     operating_system = platform.system() + ' ' + platform.machine()
     operating_system += ' ' + ' '.join(platform.dist())
     python = platform.python_version() + ' ' + platform.python_compiler()
     python += ' ' + ' '.join(platform.architecture())
     print('python %s on %s' % (python, operating_system))
-
+    print('numpy-' + np.__version__)
+    
     from ase.utils import devnull
     sys.stdout = devnull
 
     ttr = unittest.TextTestRunner(verbosity=verbosity, stream=stream)
-    results = ttr.run(ts)
 
-    sys.stdout = sys.__stdout__
+    origcwd = os.getcwd()
+    
+    if testdir is None:
+        testdir = tempfile.mkdtemp(prefix='ase-test-')
+    else:
+        if os.path.isdir(testdir):
+            shutil.rmtree(testdir)  # clean before running tests!
+        os.mkdir(testdir)
+    os.chdir(testdir)
+    print('running in', testdir, file=sys.__stdout__)
+    try:
+        results = ttr.run(ts)
+    finally:
+        os.chdir(origcwd)
+        sys.stdout = sys.__stdout__
 
     return results
 
