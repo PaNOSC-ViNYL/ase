@@ -96,7 +96,6 @@ def build(force_build, name='ase', env=''):
         pass
     shutil.rmtree('lib')
     shutil.rmtree('bin')
-    shutil.rmtree('share')
 
 
 def main(build=build):
