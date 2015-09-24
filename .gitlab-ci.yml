@@ -1,7 +1,0 @@
-before_script:
-  - git status -v
-  - git branch -vv
-
-run1a:
-  script:
-    - ls -ltra
