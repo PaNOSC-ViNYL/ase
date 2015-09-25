@@ -70,6 +70,23 @@ class DevNull:
 devnull = DevNull()
 
 
+def convert_string_to_fd(name, world=None):
+    """Create a file-descriptor for text output.
+    
+    Will open a file for writing with given name.  Use None for no output and
+    '-' for sys.stdout.
+    """
+    if world is None:
+        from ase.parallel import world
+    if name is None or world.rank != 0:
+        return devnull
+    if name == '-':
+        return sys.stdout
+    if isinstance(name, str):
+        return open(name, 'w')
+    return name  # we assume name is already a file-descriptor
+
+    
 # Only Windows has O_BINARY:
 CEW_FLAGS = os.O_CREAT | os.O_EXCL | os.O_WRONLY | getattr(os, 'O_BINARY', 0)
 

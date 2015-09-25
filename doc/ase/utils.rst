@@ -8,6 +8,7 @@ Utillity functions and classes
 .. autofunction:: ase.utils.gcd
 .. autoclass:: ase.utils.timing.Timer
 .. autoclass:: ase.utils.timing.timer
+.. autofunction:: ase.utils.convert_string_to_fd
 
 .. index:: Bulk modulus
 
