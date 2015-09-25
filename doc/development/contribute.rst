@@ -66,7 +66,11 @@ Edit, test, stage and commit your changes::
     $ git status
     $ git commit -m "Fixed bug ..."
 
-Push your changes to your repository and create a Merge Request on GitLab.
+Push your changes to your repository::
+
+    $ git push --set-upstream origin myfix
+
+and create a *Merge Request* on GitLab.
 
 If you want to start working on something new, you should switch to your
 master branch, pull from the official repository and branch again::
