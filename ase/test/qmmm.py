@@ -7,7 +7,7 @@ import ase.units as units
 from ase import Atoms
 from ase.calculators.tip3p import (TIP3P, epsilon0, sigma0, rOH, thetaHOH,
                                    set_tip3p_charges)
-from ase.calculators.qmmm import QMMM, EIQMMM, LJInteractions
+from ase.calculators.qmmm import SimpleQMMM, EIQMMM, LJInteractions
 from ase.constraints import FixInternals
 from ase.optimize import BFGS
 
@@ -24,8 +24,8 @@ D = np.linspace(2.5, 3.5, 30)
 i = LJInteractions({('O', 'O'): (epsilon0, sigma0)})
 
 for calc in [TIP3P(),
-             QMMM([0, 1, 2], TIP3P(), TIP3P(), TIP3P()),
-             QMMM([0, 1, 2], TIP3P(), TIP3P(), TIP3P(), vacuum=3.0),
+             SimpleQMMM([0, 1, 2], TIP3P(), TIP3P(), TIP3P()),
+             SimpleQMMM([0, 1, 2], TIP3P(), TIP3P(), TIP3P(), vacuum=3.0),
              EIQMMM([0, 1, 2], TIP3P(), TIP3P(), i),
              EIQMMM([3, 4, 5], TIP3P(), TIP3P(), i, vacuum=3.0),
              EIQMMM([0, 1, 2], TIP3P(), TIP3P(), i, vacuum=3.0)]:

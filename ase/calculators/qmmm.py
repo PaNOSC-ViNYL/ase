@@ -1,13 +1,39 @@
+from __future__ import print_function
 import numpy as np
 
 from ase.calculators.calculator import Calculator
 from ase.data import atomic_numbers
+from ase.utils import convert_string_to_fd
 
 
-class QMMM(Calculator):
+class SimpleQMMM(Calculator):
+    """Simple QMMM calculator."""
     implemented_properties = ['energy', 'forces']
     
     def __init__(self, selection, qmcalc, mmcalc1, mmcalc2, vacuum=None):
+        """SimpleQMMM object.
+
+        The energy is calculated as::
+            
+                    _          _          _
+            E = E  (R  ) - E  (R  ) + E  (R   )
+                 QM  QM     MM  QM     MM  all
+                 
+        parameters:
+            
+        selection: list of int, slice object or list of bool
+            Selection out of all the atoms that belong to the QM part.
+        qmcalc: Calculator object
+            QM-calculator.
+        mmcalc1: Calculator object
+            MM-calculator used for QM region.
+        mmcalc2: Calculator object
+            MM-calculator used for everything.
+        vacuum: float or None
+            Amount of vacuum to add around QM atoms.  Use None if QM
+            calculator doesn't need a box.
+            
+        """
         self.selection = selection
         self.qmcalc = qmcalc
         self.mmcalc1 = mmcalc1
@@ -59,10 +85,40 @@ class QMMM(Calculator):
 
         
 class EIQMMM(Calculator):
+    """Explicit interaction QMMM calculator."""
     implemented_properties = ['energy', 'forces']
     
     def __init__(self, selection, qmcalc, mmcalc, interaction,
-                 vacuum=None, embedding=None):
+                 vacuum=None, embedding=None, output=None):
+        """EIQMMM object.
+
+        The energy is calculated as::
+            
+                    _          _         _    _
+            E = E  (R  ) + E  (R  ) + E (R  , R  )
+                 QM  QM     MM  MM     I  QM   MM
+                 
+        parameters:
+            
+        selection: list of int, slice object or list of bool
+            Selection out of all the atoms that belong to the QM part.
+        qmcalc: Calculator object
+            QM-calculator.
+        mmcalc: Calculator object
+            MM-calculator.
+        interaction: Interaction object
+            Interaction between QM and MM regions.
+        vacuum: float or None
+            Amount of vacuum to add around QM atoms.  Use None if QM
+            calculator doesn't need a box.
+        embedding: Embedding object or None
+            Specialized embedding object.  Use None in order to use the
+            default one.
+        output: None, '-', str or file-descriptor.
+            File for logging information - default is no logging (None).
+            
+        """
+        
         self.selection = selection
 
         self.qmcalc = qmcalc
@@ -74,11 +130,13 @@ class EIQMMM(Calculator):
         self.qmatoms = None
         self.mmatoms = None
         self.mask = None
-        self.center = None
+        self.center = None  # center of QM atoms in QM-box
         
         self.name = '{0}+{1}+{2}'.format(qmcalc.name,
                                          interaction.name,
                                          mmcalc.name)
+        
+        self.output = convert_string_to_fd(output)
         
         Calculator.__init__(self)
         
@@ -86,8 +144,8 @@ class EIQMMM(Calculator):
         self.mask = np.zeros(len(atoms), bool)
         self.mask[self.selection] = True
         
-        constraints = atoms.constraints  # avoid slicing of constraints
-        atoms.constraints = []
+        constraints = atoms.constraints
+        atoms.constraints = []  # avoid slicing of constraints
         self.qmatoms = atoms[self.mask]
         self.mmatoms = atoms[~self.mask]
         atoms.constraints = constraints
@@ -97,6 +155,8 @@ class EIQMMM(Calculator):
         if self.vacuum:
             self.qmatoms.center(vacuum=self.vacuum)
             self.center = self.qmatoms.positions.mean(axis=0)
+            print('Size of QM-cell after centering:',
+                  self.qmatoms.cell.diagonal(), file=self.output)
             
         self.qmatoms.calc = self.qmcalc
         self.mmatoms.calc = self.mmcalc
@@ -126,9 +186,12 @@ class EIQMMM(Calculator):
         ienergy, iqmforces, immforces = self.interaction.calculate(
             self.qmatoms, self.mmatoms, shift)
         
-        energy = (ienergy +
-                  self.qmatoms.get_potential_energy() +
-                  self.mmatoms.get_potential_energy())
+        qmenergy = self.qmatoms.get_potential_energy()
+        mmenergy = self.mmatoms.get_potential_energy()
+        energy = ienergy + qmenergy + mmenergy
+        
+        print('Energies: {0:12.3f} {1:+12.3f} {2:+12.3f} = {3:12.3f}'
+              .format(ienergy, qmenergy, mmenergy, energy), file=self.output)
         
         qmforces = self.qmatoms.get_forces()
         mmforces = self.mmatoms.get_forces()
@@ -143,6 +206,15 @@ class EIQMMM(Calculator):
         self.results['forces'] = forces
 
         
+def wrap(D, cell, pbc):
+    """Wrap distances to nearest neighbor (minimum image convention)."""
+    for i, periodic in enumerate(pbc):
+        if periodic:
+            d = D[:, i]
+            L = cell[i]
+            d[:] = (d + L / 2) % L - L / 2  # modify D inplace
+    
+    
 class Embedding:
     qmatoms = None
     mmatoms = None
@@ -153,7 +225,12 @@ class Embedding:
         self.pcpot = qmatoms.calc.embed(mmatoms.get_initial_charges())
         
     def update(self, shift):
-        self.pcpot.set_positions(self.mmatoms.positions + shift)
+        # Wrap point-charge positions to the MM-cell closest to the
+        # center of the the QM box:
+        qmcenter = self.qmatoms.cell.diagonal() / 2
+        distances = self.mmatoms.positions + shift - qmcenter
+        wrap(distances, self.mmatoms.cell.diagonal(), self.mmatoms.pbc)
+        self.pcpot.set_positions(distances + qmcenter)
         
     def get_forces(self):
         return self.pcpot.get_forces(self.qmatoms.calc)
@@ -181,12 +258,13 @@ class LJInteractions:
                     continue
                 epsilon, sigma = self.parameters[(Z1, Z2)]
                 mask = (mmatoms.numbers == Z2)
-                d = mmatoms.positions[mask] + shift - R1
-                r2 = (d**2).sum(1)
-                s6 = (sigma**2 / r2)**3
-                s12 = s6**2
-                energy += 4 * epsilon * (s12 - s6).sum()
-                f = 24 * epsilon * ((2 * s12 - s6) / r2)[:, np.newaxis] * d
+                D = mmatoms.positions[mask] + shift - R1
+                wrap(D, mmatoms.cell, mmatoms.pbc)
+                d2 = (D**2).sum(1)
+                c6 = (sigma**2 / d2)**3
+                c12 = c6**2
+                energy += 4 * epsilon * (c12 - c6).sum()
+                f = 24 * epsilon * ((2 * c12 - c6) / d2)[:, np.newaxis] * D
                 F1 -= f.sum(0)
                 mmforces[mask] += f
         return energy, qmforces, mmforces
