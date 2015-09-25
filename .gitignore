@@ -1,5 +1,7 @@
 *.pyc
 build/
+/dist
+MANIFEST
 
 # If you build the documentation in the source tree, you will create a
 # lot of files that we don't want to see with "git status":
