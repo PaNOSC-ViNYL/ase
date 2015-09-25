@@ -9,7 +9,7 @@ import sys
 
 def git_pull(name='ase'):
     os.chdir(name)
-    output = subprocess.check_output('git pull 2&> /dev/null', shell=True)
+    output = subprocess.check_output('git pull &2> /dev/null', shell=True)
     os.chdir('..')
     lastline = output.splitlines()[-1]
     return not lastline.startswith('Already up-to-date')
