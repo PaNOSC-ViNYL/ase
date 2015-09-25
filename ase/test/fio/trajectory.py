@@ -57,7 +57,8 @@ os.remove(fname)
 
 t = Trajectory('empty.traj', 'w')
 t.close()
-assert os.path.getsize('empty.traj') == 0
+t = Trajectory('empty.traj', 'r')
+assert len(t) == 0
 
 t = Trajectory('fake.traj', 'w')
 t.write(Atoms('H'), energy=-42.0, forces=[[1, 2, 3]])

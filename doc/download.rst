@@ -77,7 +77,7 @@ Installation on OS X
 ====================
 
 For installation with http://brew.sh please follow
-instructions at `Homebrew
+instructions at the `Homebrew ASE installation page
 <https://wiki.fysik.dtu.dk/gpaw/install/MacOSX/homebrew.html>`_.
 
 After performing the installation do not forget to :ref:`running_tests`!

@@ -44,21 +44,21 @@ class NEB:
         if parallel:
             assert world.size == 1 or world.size % (self.nimages - 2) == 0
 
-    def interpolate(self, method='linear'):
-        interpolate(self.images)
+    def interpolate(self, method='linear', mic=False):
+        interpolate(self.images, mic)
 
         if method == 'idpp':
-            self.idpp_interpolate(traj=None, log=None)
+            self.idpp_interpolate(traj=None, log=None, mic=mic)
 
     def idpp_interpolate(self, traj='idpp.traj', log='idpp.log', fmax=0.1,
-                         optimizer=BFGS):
-        d1 = self.images[0].get_all_distances()
-        d2 = self.images[-1].get_all_distances()
+                         optimizer=BFGS, mic=False):
+        d1 = self.images[0].get_all_distances(mic=mic)
+        d2 = self.images[-1].get_all_distances(mic=mic)
         d = (d2 - d1) / (self.nimages - 1)
         old = []
         for i, image in enumerate(self.images):
             old.append(image.calc)
-            image.calc = IDPP(d1 + i * d)
+            image.calc = IDPP(d1 + i * d, mic=mic)
         opt = BFGS(self, trajectory=traj, logfile=log)
         opt.run(fmax=0.1)
         for image, calc in zip(self.images, old):
@@ -183,16 +183,28 @@ class IDPP(Calculator):
 
     implemented_properties = ['energy', 'forces']
 
-    def __init__(self, target):
+    def __init__(self, target, mic):
         Calculator.__init__(self)
         self.target = target
+        self.mic = mic
 
     def calculate(self, atoms, properties, system_changes):
         Calculator.calculate(self, atoms, properties, system_changes)
 
-        P = atoms.positions
-        D = np.array([P - p for p in P])  # all distance vectors
-        d = (D**2).sum(2)**0.5
+        P = atoms.get_positions()
+        d = []
+        D = []
+        for p in P:
+            Di = P - p
+            if self.mic:
+                Di, di = find_mic(Di, atoms.get_cell(), atoms.get_pbc())
+            else:
+                di = np.sqrt((Di**2).sum(1))
+            d.append(di)
+            D.append(Di)
+        d = np.array(d)
+        D = np.array(D)
+
         dd = d - self.target
         d.ravel()[::len(d) + 1] = 1  # avoid dividing by zero
         d4 = d**4
@@ -463,12 +475,15 @@ class NEBtools:
         return s, E, Sfit, Efit, lines
 
 
-def interpolate(images):
+def interpolate(images, mic=False):
     """Given a list of images, linearly interpolate the positions of the
     interior images."""
     pos1 = images[0].get_positions()
     pos2 = images[-1].get_positions()
-    d = (pos2 - pos1) / (len(images) - 1.0)
+    d = pos2 - pos1
+    if mic:
+        d = find_mic(d, images[0].get_cell(), images[0].pbc)[0]
+    d /= (len(images) - 1.0)
     for i in range(1, len(images) - 1):
         images[i].set_positions(pos1 + i * d)
         # Parallel NEB with Jacapo needs this:

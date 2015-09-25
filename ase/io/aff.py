@@ -265,8 +265,12 @@ class Writer:
     def close(self):
         n = int('_little_endian' in self.data)
         if len(self.data) > n:
-            # There is more than the "_little_endian" key:
+            # There is more than the "_little_endian" key.
+            # Write that stuff before closing:
             self.sync()
+        else:
+            # Make sure header has been written (empty aff-file):
+            self._write_header()
         self.fd.close()
         
     def __len__(self):
@@ -324,7 +328,10 @@ class Reader:
         if data is None:
             (self._tag, self._version, self._nitems, self._pos0,
              self._offsets) = read_header(fd)
-            data = self._read_data(index)
+            if self._nitems > 0:
+                data = self._read_data(index)
+            else:
+                data = {}
             self._little_endian = data.pop('_little_endian', True)
         else:
             self._little_endian = little_endian

@@ -4,6 +4,7 @@
 """Atomic Simulation Environment."""
 
 __all__ = ['Atoms', 'Atom']
+__version__ = '3.10.0'
 
 from ase.atom import Atom
 from ase.atoms import Atoms

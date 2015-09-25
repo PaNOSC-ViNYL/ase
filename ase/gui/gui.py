@@ -53,7 +53,7 @@ from ase.gui.minimize import Minimize
 from ase.gui.scaling import HomogeneousDeformation
 from ase.gui.quickinfo import QuickInfo
 from ase.gui.save import save_dialog
-from ase.version import version
+from ase import __version__
 
 ui_info = """\
 <ui>
@@ -1173,7 +1173,7 @@ class GUI(View, Status):
     def about(self, action):
         try:
             dialog = gtk.AboutDialog()
-            dialog.set_version(version)
+            dialog.set_version(__version__)
             dialog.set_website(
                 'https://wiki.fysik.dtu.dk/ase/ase/gui/gui.html')
         except AttributeError:

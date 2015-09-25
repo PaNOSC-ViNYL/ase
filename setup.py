@@ -4,15 +4,15 @@
 # Please see the accompanying LICENSE file for further information.
 
 from __future__ import print_function
+import os
+import re
+import shutil
+import sys
 from distutils.core import setup, Command
 from distutils.command.build_py import build_py as _build_py
 from glob import glob
 from os.path import join
 
-import os
-import sys
-
-import shutil
 
 long_description = """\
 ASE is a python package providing an open source Atomic Simulation
@@ -24,8 +24,8 @@ if sys.version_info < (2, 6, 0, 'final', 0):
 
 packages = []
 for dirname, dirnames, filenames in os.walk('ase'):
-        if '__init__.py' in filenames:
-            packages.append(dirname.replace('/', '.'))
+    if '__init__.py' in filenames:
+        packages.append(dirname.replace('/', '.'))
 
 package_dir = {'ase': 'ase'}
 
@@ -50,7 +50,7 @@ class test(Command):
     def run(self):
         self.run_command('build')
         buildcmd = self.get_finalized_command('build')
-        sys.path.insert(0, buildcmd.build_lib)
+        sys.path.insert(0, os.getcwd())
 
         if self.calculators is not None:
             calculators = self.calculators.split(',')
@@ -60,18 +60,10 @@ class test(Command):
             calculators = []
         from ase.test import test as _test
         testdir = '%s/testase-tempfiles' % buildcmd.build_base
-        origcwd = os.getcwd()
-        if os.path.isdir(testdir):
-            shutil.rmtree(testdir)  # clean before running tests!
-        os.mkdir(testdir)
-        os.chdir(testdir)
-        try:
-            results = _test(2, calculators, display=False)
-            if results.failures or results.errors:
-                print('Test suite failed', file=sys.stderr)
-                raise SystemExit(len(results.failures) + len(results.errors))
-        finally:
-            os.chdir(origcwd)
+        results = _test(2, calculators, display=False, testdir=testdir)
+        if results.failures or results.errors:
+            print('Test suite failed', file=sys.stderr)
+            raise SystemExit(len(results.failures) + len(results.errors))
 
 
 class build_py(_build_py):
@@ -102,22 +94,14 @@ class build_py(_build_py):
         return _build_py.get_outputs(self, *args, **kwargs) + self.mofiles
 
 # Get the current version number:
-exec(compile(open('ase/svnversion_io.py').read(), 'ase/svnversion_io.py',
-             'exec'))  # write ase/svnversion.py and get svnversion
-exec(compile(open('ase/version.py').read(), 'ase/version.py',
-             'exec'))  # get version_base
-if svnversion and os.name not in ['ce', 'nt']:
-    # MSI accepts only version X.X.X
-    version = version_base + '.' + svnversion
-else:
-    version = version_base
-
+with open('ase/__init__.py') as fd:
+    version = re.search("__version__ = '(.*)'", fd.read()).group(1)
+    
 name = 'python-ase'
 
 # PyPI:
 if 0:
     # python(3) setup.py sdist upload
-    version = '3.9.0'
     name = 'ase'
     
 scripts = ['tools/ase-gui', 'tools/ase-db', 'tools/ase-info',
@@ -126,17 +110,6 @@ scripts = ['tools/ase-gui', 'tools/ase-db', 'tools/ase-info',
 if 'sdist' in sys.argv or os.name in ['ce', 'nt']:
     for s in scripts[:]:
         scripts.append(s + '.bat')
-
-# data_files needs (directory, files-in-this-directory) tuples
-data_files = []
-for dirname, dirnames, filenames in os.walk('doc'):
-    if '.svn' not in dirname:  # skip .svn dirs
-        fileslist = []
-        for filename in filenames:
-            fullname = os.path.join(dirname, filename)
-            if '.svn' not in fullname:
-                fileslist.append(fullname)
-        data_files.append(('share/python-ase/' + dirname, fileslist))
 
 setup(name=name,
       version=version,
@@ -150,7 +123,6 @@ setup(name=name,
       package_dir=package_dir,
       package_data=package_data,
       scripts=scripts,
-      data_files=data_files,
       long_description=long_description,
       cmdclass={'build_py': build_py,
                 'test': test},

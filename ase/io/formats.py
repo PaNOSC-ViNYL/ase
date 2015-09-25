@@ -63,7 +63,7 @@ all_formats = {
     'exciting': ('exciting input', '1S'),
     'extxyz': ('Extended XYZ file', '+F'),
     'findsym': ('FINDSYM-format', '+F'),
-    'gaussian': ('Gaussian com (input) file', '1F'),
+    'gaussian': ('Gaussian com (input) file', '1S'),
     'gaussian-out': ('Gaussian output file', '1F'),
     'gen': ('DFTBPlus GEN format', '1F'),
     'gpaw-out': ('GPAW text output', '+S'),
