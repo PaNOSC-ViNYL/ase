@@ -6,10 +6,10 @@
 from __future__ import print_function
 import os
 import re
-import shutil
 import sys
 from distutils.core import setup, Command
 from distutils.command.build_py import build_py as _build_py
+from distutils.command.sdist import sdist as _sdist
 from glob import glob
 from os.path import join
 
@@ -22,6 +22,20 @@ Environment in the Python language."""
 if sys.version_info < (2, 6, 0, 'final', 0):
     raise SystemExit('Python 2.6 or later is required!')
 
+    
+class sdist(_sdist):
+    """Fix distutils.
+    
+    Distutils insists that the should be a README or README.txt,
+    but GitLab.com needs README.rst in order to parse it as reStructureText."""
+    
+    def warn(self, msg):
+        if msg.startswith('standard file not found: should have one of'):
+            self.filelist.append('README.rst')
+        else:
+            _sdist.warn(self, msg)
+            
+    
 packages = []
 for dirname, dirnames, filenames in os.walk('ase'):
     if '__init__.py' in filenames:
@@ -125,7 +139,8 @@ setup(name=name,
       scripts=scripts,
       long_description=long_description,
       cmdclass={'build_py': build_py,
-                'test': test},
+                'test': test,
+                'sdist': sdist},
       classifiers=[
           'Development Status :: 6 - Mature',
           'License :: OSI Approved :: '
