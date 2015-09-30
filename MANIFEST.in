@@ -1,5 +1,5 @@
 include MANIFEST.in
-include COPYING* LICENSE README.txt
+include COPYING* LICENSE README.rst requirements.txt
 include ase/lattice/spacegroup/spacegroup.dat
 include ase/gui/po/ag.pot
 include ase/gui/po/makefile
