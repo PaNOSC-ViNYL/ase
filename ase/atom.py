@@ -61,7 +61,7 @@ class Atom(object):
     """Class for representing a single atom.
 
     Parameters:
-    
+
     symbol: str or int
         Can be a chemical symbol (str) or an atomic number (int).
     position: sequence of 3 floats
@@ -102,7 +102,7 @@ class Atom(object):
                 magmom = np.array(magmom, float)
             d['magmom'] = magmom
             d['charge'] = charge
-            
+
         self.index = index
         self.atoms = atoms
 
@@ -126,7 +126,7 @@ class Atom(object):
             self.data[name] = self.get_raw(name)
         self.index = None
         self.atoms = None
-        
+
     def get_raw(self, name):
         """Get name attribute, return None if not explicitely set."""
         if name == 'symbol':
@@ -134,7 +134,7 @@ class Atom(object):
 
         if self.atoms is None:
             return self.data[name]
-        
+
         plural = names[name][0]
         if plural in self.atoms.arrays:
             return self.atoms.arrays[plural][self.index]
