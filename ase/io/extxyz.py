@@ -349,7 +349,7 @@ def read_xyz(fileobj, index=-1):
             if key in all_properties:
                 results[key] = atoms.info[key]
                 # special case for stress- convert to Voigt 6-element form
-                if key.startswith('stress'):
+                if key.startswith('stress') and results[key].shape == (3,3):
                     stress = results[key]
                     stress = np.array([stress[0, 0],
                                        stress[1, 1],
