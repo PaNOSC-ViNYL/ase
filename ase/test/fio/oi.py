@@ -95,6 +95,6 @@ for format in all_formats:
                 aa += read(fname2, ':')
                 for a in iread(fname2, format=format):
                     aa.append(a)
-                assert len(aa) == 6
+                assert len(aa) == 6, aa
                 for a in aa:
                     check(a, format)
