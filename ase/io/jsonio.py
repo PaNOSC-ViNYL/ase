@@ -49,10 +49,11 @@ def numpyfy(obj):
         try:
             a = np.array(obj)
         except ValueError:
-            obj = [numpyfy(value) for value in obj]
+            pass
         else:
             if a.dtype in [bool, int, float]:
-                obj = a
+                return a
+        obj = [numpyfy(value) for value in obj]
     return obj
 
 
