@@ -99,7 +99,9 @@ class Runner:
             help='Constrain atoms with tags T1, T2, ...')
         add('-s', '--maximum-stress', type=float,
             help='Relax unit-cell and internal coordinates.')
-        add('-E', '--equation-of-state', help='Equation of state ...')
+        add('-E', '--equation-of-state',
+            help='Use "-E 5,2.0" for 5 lattice constants ranging from '
+            '-2.0% to +2.0%.')
         add('--eos-type', default='sjeos', help='Selects the type of eos.')
         add('-i', '--interactive-python-session', action='store_true')
         add('-c', '--collection')
@@ -270,8 +272,11 @@ class Runner:
         opts = self.opts
         
         traj = Trajectory(self.get_filename(name, 'traj'), 'w', atoms)
-        eps = 0.01
-        strains = np.linspace(1 - eps, 1 + eps, 5)
+        
+        N, eps = opts.equation_of_state.split(',')
+        N = int(N)
+        eps = float(eps) / 100
+        strains = np.linspace(1 - eps, 1 + eps, N)
         v1 = atoms.get_volume()
         volumes = strains**3 * v1
         energies = []
