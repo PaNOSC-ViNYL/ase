@@ -102,5 +102,5 @@ Adding a new file-format to ASE
 ===============================
 
 Try to model the read/write functions after the *xyz* format as implemented
-in :svn:`ase/io/xyz.py` and also read, understand and update
-:svn:`ase/io/formats.py`.
+in :git:`ase/io/xyz.py` and also read, understand and update
+:git:`ase/io/formats.py`.

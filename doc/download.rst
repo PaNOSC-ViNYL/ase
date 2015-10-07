@@ -200,14 +200,14 @@ Installation process
 After the :ref:`download` of ASE source create the link
 to the requested version, e.g.:
 
-- if retrieved from ``svn``::
+- if retrieved from SVN::
 
-   $ cd $HOME
+   $ cd ~
    $ ln -s ase-3.9.1 ase
     
 - if retrieved as tar-file::
 
-   $ cd $HOME
+   $ cd ~
    $ tar -xf python-ase-3.9.1.4567.tar.gz
    $ ln -s python-ase-3.9.1.4567 ase
 
@@ -388,7 +388,7 @@ Latest development release
 
 The latest revision can be obtained like this::
 
-  $ svn checkout https://svn.fysik.dtu.dk/projects/ase/trunk ase
+  $ git clone https://gitlab.com/ase/ase.git
 
 or from the daily snapshot: `<snapshot.tar.gz>`_.
 
@@ -412,7 +412,7 @@ directory (preferably using bash)::
 
 .. note::
 
-   The last test :trac:`ase/test/COCu111.py` requires closing
+   The last test :git:`ase/test/COCu111.py` requires closing
    the graphics windows to terminate the whole test-suite.
 
 .. note::
