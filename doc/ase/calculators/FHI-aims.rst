@@ -109,6 +109,6 @@ Example
 
 Here is an example of how to obtain the geometry of a water molecule,
 assuming ``ASE_AIMS_COMMAND`` and ``AIMS_SPECIES_DIR`` are set:
-:svn:`ase/test/aims/H2O_aims.py`.
+:git:`ase/test/aims/H2O_aims.py`.
 
 .. literalinclude:: ../../../ase/test/aims/H2O_aims.py

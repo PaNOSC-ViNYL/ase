@@ -60,6 +60,6 @@ If you find ASE useful in your research please cite:
 
    __ http://dx.doi.org/10.1109/5992.998641
 
-BibTex (:svn:`doc/ASE.bib`):
+BibTex (:git:`doc/ASE.bib`):
 
 .. literalinclude:: ASE.bib

@@ -8,19 +8,21 @@ Release notes
 Development version in trunk
 ============================
 
-:trac:`trunk <>`.
+:git:`master <>`.
 
 * New iterator function :func:`ase.io.iread` for iteratively reading Atoms
   objects from a file.
 
 * Two new decorators :func:`~ase.parallel.parallel_function` and
   :func:`~ase.parallel.parallel_generator` added.
-  
+
+* Source code moved to GitLab.
+
           
 Version 3.9.1
 =============
 
-21 July 2015: :trac:`tags/3.9.1 <../tags/3.9.1>`.
+21 July 2015: :git:`3.9.1 <../3.9.1>`.
 
 * Added function for finding maximally-reduced Niggli unit cell:
   :func:`ase.utils.geometry.niggli_reduce`.
@@ -31,7 +33,7 @@ Version 3.9.1
 Version 3.9.0
 =============
 
-28 May 2015: :trac:`tags/3.9.0 <../tags/3.9.0>`.
+28 May 2015: :git:`3.9.0 <../3.9.0>`.
 
 * Genetic algorithm implemented; :mod:`ase.ga`. This can be used
   for the optimization of: atomic cluster structure, materials
@@ -80,7 +82,7 @@ Version 3.9.0
 Version 3.8.0
 =============
 
-22 October 2013: :trac:`tags/3.8.0 <../tags/3.8.0>`.
+22 October 2013: :git:`3.8.0 <../3.8.0>`.
 
 * ASE's :mod:`gui <gui>` renamed from ``ag`` to ``ase-gui``.
 * New :ref:`STM <stm>` module.
@@ -95,7 +97,7 @@ Version 3.8.0
 Version 3.7.0
 =============
 
-13 May 2013: :trac:`tags/3.7.0 <../tags/3.7.0>`.
+13 May 2013: :git:`3.7.0 <../3.7.0>`.
 
 * ASE's GUI can now be configured to be more friendly to visually
   impaired users: :ref:`high contrast`.
@@ -124,7 +126,7 @@ Version 3.7.0
 Version 3.6.0
 =============
 
-24 Feb 2012: :trac:`tags/3.6.0 <../tags/3.6.0>`.
+24 Feb 2012: :git:`3.6.0 <../3.6.0>`.
 
 * ASE GUI translations added, available: da_DK, en_GB, es_ES.
 
@@ -158,7 +160,7 @@ Version 3.6.0
 Version 3.5.1
 =============
 
-24 May 2011: :trac:`tags/3.5.1 <../tags/3.5.1>`.
+24 May 2011: :git:`3.5.1 <../3.5.1>`.
 
 * Problem with parallel vibration calculations fixed:
   `Ticket #80 <https://trac.fysik.dtu.dk/projects/ase/ticket/80>`_.
@@ -167,7 +169,7 @@ Version 3.5.1
 Version 3.5.0
 =============
 
-13 April 2011: :trac:`tags/3.5.0 <../tags/3.5.0>`.
+13 April 2011: :git:`3.5.0 <../3.5.0>`.
 
 * Improved EMT potential:  uses a
   :class:`~ase.calculators.neighborlist.NeighborList` object and is
@@ -209,4 +211,4 @@ Version 3.5.0
 Version 3.4.1
 =============
 
-11 August 2010: :trac:`tags/3.4.1 <../tags/3.4.1>`.
+11 August 2010: :git:`3.4.1 <../3.4.1>`.
