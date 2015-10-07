@@ -520,7 +520,6 @@ class SQLite3Database(Database):
                 yield self._convert_tuple_to_row(values)
                     
     @parallel_function
-    @lock
     def count(self, selection=None, **kwargs):
         keys, cmps = self.parse_selection(selection, **kwargs)
         sql, args = self.create_select_statement(keys, cmps, what='COUNT(*)')
