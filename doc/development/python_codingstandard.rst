@@ -153,7 +153,7 @@ Using pylint to check your code
 ===============================
 
 A pylintrc trying to follow ASE :ref:`python_codingstandard` can be found here:
-:svn:`doc/development/pylintrc`
+:git:`doc/development/pylintrc`
 
 
 .. _epydoc:

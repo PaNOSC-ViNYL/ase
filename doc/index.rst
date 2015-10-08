@@ -127,6 +127,8 @@ Alphabetical list of all modules:
 News
 ====
 
+* The source code is now on https://gitlab.com/ase/ase (18 September 2015).
+
 * :ref:`ASE version 3.9.1 <releasenotes>` released (21 Juli 2015).
 
 * :ref:`ASE version 3.9.0 <releasenotes>` released (28 May 2015).

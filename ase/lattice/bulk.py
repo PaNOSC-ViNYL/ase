@@ -22,7 +22,7 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None, u=None,
     c: float
         Lattice constant.
     covera: float
-        c/a raitio used for hcp.  Default is ideal ratio: sqrt(8/3).
+        c/a ratio used for hcp.  Default is ideal ratio: sqrt(8/3).
     u: float
         Internal coordinate for Wurtzite structure.
     orthorhombic: bool

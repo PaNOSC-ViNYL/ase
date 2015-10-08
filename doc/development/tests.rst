@@ -8,7 +8,7 @@ All additions and modifications to ASE should be tested.
 
 .. index:: testase
 
-Test scripts should be put in the :trac:`ase/test` directory.  
+Test scripts should be put in the :git:`ase/test` directory.  
 Run all tests with::
 
   python -c "from ase.test import test; test(2)"
@@ -17,7 +17,7 @@ It is using the function:
 
 .. function:: test.test(verbosity=1, dir=None)
     
-    Runs the test scripts in :trac:`ase/test`.
+    Runs the test scripts in :git:`ase/test`.
 
 
 .. important::
@@ -31,7 +31,7 @@ How to fail successfully
 ========================
 
 The test suite provided by :func:`test.test` automatically runs all test
-scripts in the :trac:`ase/test` directory and summarizes the results.
+scripts in the :git:`ase/test` directory and summarizes the results.
 
 .. note::
 
