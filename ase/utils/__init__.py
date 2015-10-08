@@ -1,3 +1,4 @@
+import errno
 import os
 import sys
 import time
@@ -88,8 +89,11 @@ def opencew(filename, world=None):
     if world.rank == 0:
         try:
             fd = os.open(filename, CEW_FLAGS)
-        except OSError:
-            ok = 0
+        except OSError as ex:
+            if ex.errno == errno.EEXIST:
+                ok = 0
+            else:
+                raise
         else:
             ok = 1
             fd = os.fdopen(fd, 'wb')
