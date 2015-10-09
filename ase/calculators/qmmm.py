@@ -240,7 +240,7 @@ class Embedding:
         wrap(distances, self.mmatoms.cell.diagonal(), self.mmatoms.pbc)
         self.pcpot.set_positions(distances + qmcenter)
         
-    def calculate_mm_forces(self):
+    def get_mm_forces(self):
         """Calculate the forces on the MM-atoms from the QM-part."""
         return self.pcpot.get_forces(self.qmatoms.calc)
         

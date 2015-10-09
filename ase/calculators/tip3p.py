@@ -115,7 +115,7 @@ class TIP3P(Calculator):
         
     def check_state(self, atoms, tol=1e-15):
         system_changes = Calculator.check_state(self, atoms, tol)
-        if self.pcpot and self.pcpot.positions is not None:
+        if self.pcpot and self.pcpot.mmpositions is not None:
             system_changes.append('positions')
         return system_changes
         
