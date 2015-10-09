@@ -36,7 +36,7 @@ Here, you need to specify the interaction::
                         MMCalculator(...),
                         interaction=lj)
 
-For Lennard-Jones type of interactions you can use::
+For Lennard-Jones type of interactions you can use:
     
 .. autoclass:: LJInteractions
 
