@@ -216,13 +216,16 @@ def wrap(D, cell, pbc):
     
     
 class Embedding:
-    qmatoms = None
-    mmatoms = None
+    def __init__(self, **parameters):
+        self.qmatoms = None
+        self.mmatoms = None
+        self.parameters = parameters
     
     def initialize(self, qmatoms, mmatoms):
         self.qmatoms = qmatoms
         self.mmatoms = mmatoms
-        self.pcpot = qmatoms.calc.embed(mmatoms.get_initial_charges())
+        self.pcpot = qmatoms.calc.embed(mmatoms.get_initial_charges(),
+                                        **self.parameters)
         
     def update(self, shift):
         # Wrap point-charge positions to the MM-cell closest to the
