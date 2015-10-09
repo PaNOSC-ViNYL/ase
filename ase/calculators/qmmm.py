@@ -249,6 +249,17 @@ class LJInteractions:
     name = 'LJ'
     
     def __init__(self, parameters):
+        """Lennard-Jones type explicit interaction.
+        
+        parameters: dict
+            Mapping from pair of atoms to tuple containing epsilon and sigma
+            for that pair.
+            
+        Example::
+            
+            lj = LJInteractions({('O', 'O'): (eps, sigma)})
+            
+        """
         self.parameters = {}
         for (symbol1, symbol2), (epsilon, sigma) in parameters.items():
             Z1 = atomic_numbers[symbol1]
