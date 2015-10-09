@@ -48,7 +48,7 @@ Proceed with buildbot configuration:
 
     buildbot create-master --relocatable python-ase
 
-* reconfigure the master with :svn:`doc/development/master.cfg`::
+* reconfigure the master with :git:`doc/development/master.cfg`::
 
     cp master.cfg python-ase
     buildbot checkconfig python-ase/master.cfg
@@ -281,7 +281,7 @@ Configuration
 After having installed the buildbot create a name which will identify
 your ``buildslave``.
 Obtain the first part of the name for your ``buildslave`` by
-running :svn:`doc/development/master.cfg`::
+running :git:`doc/development/master.cfg`::
 
   python master.cfg
 

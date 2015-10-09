@@ -13,14 +13,14 @@ Requirements
 Optional:
 
 * SciPy_ (library for scientific computing)
-* PyGTK_ and Matplotlib_ (for ``ase-gui``)
+* For ``ase-gui``: PyGTK_ (GTK+ for Python) and Matplotlib_ (2D Plotting)
 
 
 Installation
 ------------
 
-Add ``/path/to/ase`` to your $PYTHONPATH environment variable and add
-``/path/to/ase/tools`` to $PATH.
+Add ``~/ase`` to your $PYTHONPATH environment variable and add
+``~/ase/tools`` to $PATH (assuming ``~/ase`` is where your ASE folder is).
     
     
 Testing
@@ -28,7 +28,7 @@ Testing
 
 Please run the tests::
     
-    $ cd /path/to/ase
+    $ cd ~/ase
     $ python setup.py test  # takes 1 min.
 
 and send us the output if there are failing tests.

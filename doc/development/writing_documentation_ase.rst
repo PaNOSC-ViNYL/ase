@@ -5,7 +5,7 @@ Writing documentation
 =====================
 
 We use the Sphinx_ tool to generate the documentation.  The documentation is
-stored in SVN as text files in the :trac:`doc` directory using the
+stored on GitLab as text files in the :git:`doc` directory using the
 reStructuredText_ markup language.
 
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html
@@ -67,18 +67,16 @@ This might take a long time the first time you do it.
    corresponding ASE version by setting the environment variables
    :envvar:`$PYTHONPATH` and :envvar:`$PATH`.
 
-Make your changes to the ``.rst`` files, run
+Create a branch for your work, make your changes to the ``.rst`` files, run
 :command:`make` again, check the results and if things
-look ok, commit::
+look ok, create a *merge request*::
 
-  $ emacs index.rst
-  $ make
-  $ firefox build/html/index.html
-  $ svn ci -m "..." index.rst
-
-To build a pdf-file, you do this::
-
-  $ make latex
+    $ git checkout -b fixdoc
+    $ idle index.rst
+    $ make
+    $ firefox build/html/index.html
+    $ git commit -am "..."
+    $ git push -u origin fixdoc
 
 
 Extensions to Sphinx
@@ -92,17 +90,11 @@ We have a couple of extensions to Sphinx:
 
    Use ``:mol:`CH_3OH``` to get :mol:`CH_3OH`.
 
-**:svn:**
+**:git:**
 
-   A role for creating a link to a file in SVN.  If you write
-   ``:svn:`ase/atoms.py```, you
-   will get: :svn:`ase/atoms.py`.
-
-**:trac:**
-
-   A role for creating a link to a file in Trac.  If you write
-   ``:trac:`ase/atoms.py```, you
-   will get: :trac:`ase/atoms.py`.
+   A role for creating a link to a file on GitLab.  If you write
+   ``:git:`ase/atoms.py```, you
+   will get: :git:`ase/atoms.py`.
 
 **:epydoc:**
 
@@ -139,7 +131,7 @@ Running Python code to create figures
 =====================================
 
 If you want to include a picture in your page, *you should not* check
-in the png-file to our SVN repositoy!  Instead, you should check in
+in the png-file to our Git repositoy!  Instead, you should check in
 the Python script you used to generate the picture (you can also
 generate csv-files or pdf-files like this).  The first line of the
 script should look like this::
@@ -149,10 +141,10 @@ script should look like this::
 Sphinx will run the script and generate the files that you can
 then use in your rst-file.  Examples:
 
-* :ref:`eos`.  Source: :trac:`doc/tutorials/eos/eos.py`,
-  :trac:`doc/tutorials/eos/eos.rst`
-* :ref:`lattice_constant`.  Source: :trac:`doc/tutorials/lattice_constant.py`,
-  :trac:`doc/tutorials/lattice_constant.rst`
+* :ref:`eos`.  Source: :git:`doc/tutorials/eos/eos.py`,
+  :git:`doc/tutorials/eos/eos.rst`
+* :ref:`lattice_constant`.  Source: :git:`doc/tutorials/lattice_constant.py`,
+  :git:`doc/tutorials/lattice_constant.rst`
 
 
 reStructedText in emacs

@@ -77,4 +77,4 @@ Example 1
 =========
 
 Here is an example of how to calculate the total energy for bulk Silicon
-:svn:`ase/test/abinit/abinit_Si.py`.
+:git:`ase/test/abinit/abinit_Si.py`.

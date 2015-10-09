@@ -197,5 +197,5 @@ Implementation
 Testing
 =======
 
-An interface must pass the tests located under :svn:`ase/test/calculator/`.
+An interface must pass the tests located under :git:`ase/test/calculator/`.
 

@@ -357,7 +357,7 @@ class FixCartesian(FixConstraintSingle):
 class FixScaled(FixConstraintSingle):
     'Fix an atom index *a* in the directions of the unit vectors.'
     def __init__(self, cell, a, mask=(1, 1, 1)):
-        self.cell = cell
+        self.cell = np.asarray(cell)
         self.a = a
         self.mask = np.array(mask)
 

@@ -54,10 +54,10 @@ Example1: Single-point energy
 =============================
 
 Here is an example of how to calculate the total energy of H2
-:svn:`ase/test/turbomole/turbomole_H2.py`.
+:git:`ase/test/turbomole/turbomole_H2.py`.
 
 Example2: NEB 
 =============
 
 Here is an example of how to calculate a proton transfer barrier in H3O2-:
-:svn:`ase/test/turbomole/turbomole_h3o2m.py`.
+:git:`ase/test/turbomole/turbomole_h3o2m.py`.

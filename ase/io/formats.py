@@ -157,7 +157,7 @@ def initialize(format):
     write = getattr(module, 'write_' + _format, None)
 
     if read and not inspect.isgeneratorfunction(read):
-        read = functools.partial(wrap_old_read_function, read)
+        read = functools.partial(wrap_read_function, read)
     if not read and not write:
         raise ValueError('File format not recognized: ' + format)
     code = all_formats[format][1]
@@ -172,8 +172,8 @@ def get_ioformat(format):
     return ioformats[format]
     
 
-def wrap_old_read_function(read, filename, index=None, **kwargs):
-    """Convert old read-functions to generators."""
+def wrap_read_function(read, filename, index=None, **kwargs):
+    """Convert read-function to generator."""
     if index is None:
         yield read(filename, **kwargs)
     else:
@@ -300,7 +300,16 @@ def iread(filename, index=None, format=None, **kwargs):
 
             
 @parallel_generator
-def _iread(filename, index, format, **kwargs):
+def _iread(filename, index, format, full_output=False, **kwargs):
+    compression = None
+    if isinstance(filename, str):
+        if filename.endswith('.gz'):
+            compression = 'gz'
+            filename = filename[:-3]
+        elif filename.endswith('.bz2'):
+            compression = 'bz2'
+            filename = filename[:-4]
+            
     if format is None:
         format = filetype(filename)
 
@@ -319,7 +328,14 @@ def _iread(filename, index, format, **kwargs):
     must_close_fd = False
     if isinstance(filename, str):
         if io.acceptsfd:
-            fd = open(filename)
+            if compression == 'gz':
+                import gzip
+                fd = gzip.open(filename + '.gz')
+            elif compression == 'bz2':
+                import bz2
+                fd = bz2.BZ2File(filename + '.bz2')
+            else:
+                fd = open(filename)
             must_close_fd = True
         else:
             fd = filename
@@ -329,8 +345,13 @@ def _iread(filename, index, format, **kwargs):
         
     # Make sure fd is closed in case loop doesn't finish:
     try:
-        for atoms in io.read(fd, *args, **kwargs):
-            yield atoms
+        for dct in io.read(fd, *args, **kwargs):
+            if not isinstance(dct, dict):
+                dct = {'atoms': dct}
+            if full_output:
+                yield dct
+            else:
+                yield dct['atoms']
     finally:
         if must_close_fd:
             fd.close()

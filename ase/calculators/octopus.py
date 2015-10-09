@@ -16,7 +16,7 @@ from ase.calculators.calculator import FileIOCalculator
 from ase.data import atomic_numbers
 from ase.io import read
 from ase.io.xsf import read_xsf
-from ase.units import Bohr, Angstrom
+from ase.units import Bohr, Angstrom, Hartree
 
 # Representation of parameters from highest to lowest level of abstraction:
 #
@@ -998,7 +998,7 @@ class Octopus(FileIOCalculator):
             self.results['dipole'] = dipole
 
         forces_atoms = read_xsf(self._getpath('static/forces.xsf'))
-        F_av = forces_atoms.get_forces()
+        F_av = forces_atoms.get_forces() / Hartree
         self.results['forces'] = F_av
 
     def write_input(self, atoms, properties=None, system_changes=None):
