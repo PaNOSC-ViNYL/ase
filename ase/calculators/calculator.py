@@ -34,7 +34,8 @@ special = {'cp2k': 'CP2K',
            'lammpslib': 'LAMMPSlib',
            'lj': 'LennardJones',
            'morse': 'MorsePotential',
-           'nwchem': 'NWChem'}
+           'nwchem': 'NWChem',
+           'tip3p': 'TIP3P'}
 
 
 def get_calculator(name):
