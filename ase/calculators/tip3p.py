@@ -109,6 +109,7 @@ class TIP3P(Calculator):
         self.results['forces'] = forces
 
     def embed(self, charges):
+        """Embed atoms in point-charges."""
         self.pcpot = PointChargePotential(charges)
         return self.pcpot
         
@@ -120,27 +121,32 @@ class TIP3P(Calculator):
         
         
 class PointChargePotential:
-    def __init__(self, charges):
-        self.charges = charges
-        self.positions = None
+    def __init__(self, mmcharges):
+        """Point-charge potential for TIP3P.
+        
+        Only used for testing QMMM.
+        """
+        self.mmcharges = mmcharges
+        self.mmpositions = None
+        self.mmforces = None
+        
+    def set_positions(self, mmpositions):
+        self.mmpositions = mmpositions
     
-    def set_positions(self, positions):
-        self.positions = positions
-    
-    def calculate(self, charges, positions):
+    def calculate(self, qmcharges, qmpositions):
         energy = 0.0
-        self.forces = np.zeros_like(self.positions)
-        forces = np.zeros_like(positions)
-        for C, R, F in zip(self.charges, self.positions, self.forces):
-            d = positions - R
+        self.mmforces = np.zeros_like(self.mmpositions)
+        qmforces = np.zeros_like(qmpositions)
+        for C, R, F in zip(self.mmcharges, self.mmpositions, self.mmforces):
+            d = qmpositions - R
             r2 = (d**2).sum(1)
-            e = units.Hartree * units.Bohr * C * r2**-0.5 * charges
+            e = units.Hartree * units.Bohr * C * r2**-0.5 * qmcharges
             energy += e.sum()
             f = (e / r2)[:, np.newaxis] * d
-            forces += f
+            qmforces += f
             F -= f.sum(0)
-        self.positions = None
-        return energy, forces
+        self.mmpositions = None
+        return energy, qmforces
     
     def get_forces(self, calc):
-        return self.forces
+        return self.mmforces

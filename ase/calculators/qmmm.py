@@ -196,7 +196,7 @@ class EIQMMM(Calculator):
         qmforces = self.qmatoms.get_forces()
         mmforces = self.mmatoms.get_forces()
         
-        mmforces += self.embedding.get_forces()
+        mmforces += self.embedding.get_mm_forces()
         
         forces = np.empty((len(atoms), 3))
         forces[self.mask] = qmforces + iqmforces
@@ -217,17 +217,22 @@ def wrap(D, cell, pbc):
     
 class Embedding:
     def __init__(self, **parameters):
+        """Point-charge embedding.
+        
+        """
         self.qmatoms = None
         self.mmatoms = None
         self.parameters = parameters
     
     def initialize(self, qmatoms, mmatoms):
+        """Hook up embedding object to QM and MM atomsd objects."""
         self.qmatoms = qmatoms
         self.mmatoms = mmatoms
         self.pcpot = qmatoms.calc.embed(mmatoms.get_initial_charges(),
                                         **self.parameters)
         
     def update(self, shift):
+        """Update point-charge positions."""
         # Wrap point-charge positions to the MM-cell closest to the
         # center of the the QM box:
         qmcenter = self.qmatoms.cell.diagonal() / 2
@@ -235,7 +240,8 @@ class Embedding:
         wrap(distances, self.mmatoms.cell.diagonal(), self.mmatoms.pbc)
         self.pcpot.set_positions(distances + qmcenter)
         
-    def get_forces(self):
+    def calculate_mm_forces(self):
+        """Calculate the forces on the MM-atoms from the QM-part."""
         return self.pcpot.get_forces(self.qmatoms.calc)
         
         
