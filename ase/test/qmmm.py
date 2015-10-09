@@ -48,7 +48,7 @@ for calc in [TIP3P(),
 
     F = np.array(F)
 
-    plt.plot(D, E)
+    # plt.plot(D, E)
     
     F1 = np.polyval(np.polyder(np.polyfit(D, E, 7)), D)
     F2 = F[:, :3, 0].sum(1)
@@ -71,7 +71,10 @@ for calc in [TIP3P(),
                    (np.dot(v1, v1) * np.dot(v2, v2))**0.5) / np.pi * 180
     fmt = '{0:>20}: {1:.3f} {2:.3f} {3:.3f} {4:.1f}'
     print(fmt.format(calc.name, -min(E), -e0, d0, a0))
+    assert abs(e0 + eexp) < 0.002
+    assert abs(d0 - dexp) < 0.006
+    assert abs(a0 - aexp) < 2
     
 print(fmt.format('reference', 9.999, eexp, dexp, aexp))
     
-plt.show()
+# plt.show()
