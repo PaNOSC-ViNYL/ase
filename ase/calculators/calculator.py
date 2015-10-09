@@ -22,7 +22,7 @@ all_changes = ['positions', 'numbers', 'cell', 'pbc',
 names = ['abinit', 'aims', 'asap', 'castep', 'cp2k', 'dftb', 'eam', 'elk',
          'emt', 'exciting', 'fleur', 'gaussian', 'gpaw', 'gromacs', 'hotbit',
          'jacapo', 'lammps', 'lammpslib', 'lj', 'mopac', 'morse',
-         'nwchem', 'octopus', 'siesta', 'turbomole', 'vasp']
+         'nwchem', 'octopus', 'siesta', 'tip3p', 'turbomole', 'vasp']
 
 
 special = {'cp2k': 'CP2K',
@@ -34,7 +34,8 @@ special = {'cp2k': 'CP2K',
            'lammpslib': 'LAMMPSlib',
            'lj': 'LennardJones',
            'morse': 'MorsePotential',
-           'nwchem': 'NWChem'}
+           'nwchem': 'NWChem',
+           'tip3p': 'TIP3P'}
 
 
 def get_calculator(name):
