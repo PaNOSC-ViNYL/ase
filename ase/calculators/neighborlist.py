@@ -59,6 +59,11 @@ class NeighborList:
         self.positions = atoms.get_positions()
         self.pbc = atoms.get_pbc()
         self.cell = atoms.get_cell()
+
+        if len(self.cutoffs) != len(atoms):
+            raise ValueError('Wrong number of cutoff radii: {0} != {1}'
+                             .format(len(self.cutoffs), len(atoms)))
+        
         if len(self.cutoffs) > 0:
             rcmax = self.cutoffs.max()
         else:
