@@ -45,7 +45,7 @@ class TIP3P(Calculator):
         nh2o = len(R)
         
         assert (self.atoms.cell == np.diag(cell)).all(), 'not orthorhombic'
-        assert ((cell >= 2 * self.rc) | ~pbc).all(), 'cutoff too small'  # ???
+        assert ((cell >= 2 * self.rc) | ~pbc).all(), 'cutoff too large'  # ???
         if Z[0] == 8:
             o = 0
         else:

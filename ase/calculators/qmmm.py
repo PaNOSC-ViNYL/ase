@@ -279,7 +279,7 @@ class LJInteractions:
                 epsilon, sigma = self.parameters[(Z1, Z2)]
                 mask = (mmatoms.numbers == Z2)
                 D = mmatoms.positions[mask] + shift - R1
-                wrap(D, mmatoms.cell, mmatoms.pbc)
+                wrap(D, mmatoms.cell.diagonal(), mmatoms.pbc)
                 d2 = (D**2).sum(1)
                 c6 = (sigma**2 / d2)**3
                 c12 = c6**2
