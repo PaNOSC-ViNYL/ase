@@ -95,7 +95,9 @@ class TIP3P(Calculator):
                 e = charges[j] * charges / r * units.Hartree * units.Bohr
                 energy += np.dot(t, e).sum()
                 F = (e / r2 * t[:, np.newaxis])[:, :, np.newaxis] * D
-                F[:, o] -= (e.sum(axis=1) * dtdd / d)[:, np.newaxis] * DOO
+                FOO = -(e.sum(1) * dtdd / d)[:, np.newaxis] * DOO
+                forces[(m + 1) * 3 + o::3] += FOO
+                forces[m * 3 + o] -= FOO.sum(0)
                 forces[(m + 1) * 3:] += F.reshape((-1, 3))
                 forces[m * 3 + j] -= F.sum(axis=0).sum(axis=0)
             
