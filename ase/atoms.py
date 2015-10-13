@@ -499,9 +499,10 @@ class Atoms(object):
         else:
             return np.zeros(len(self), int)
 
-    def set_momenta(self, momenta):
+    def set_momenta(self, momenta, apply_constraint=True):
         """Set momenta."""
-        if len(self.constraints) > 0 and momenta is not None:
+        if (apply_constraint and len(self.constraints) > 0 and
+            momenta is not None):
             momenta = np.array(momenta)  # modify a copy
             for constraint in self.constraints:
                 if hasattr(constraint, 'adjust_momenta'):
