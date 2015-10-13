@@ -137,7 +137,8 @@ extension2format = {
     'log': 'gaussian-out',
     'nw': 'nwchem',
     'out': 'espresso-out',
-    'shelx': 'res'}
+    'shelx': 'res',
+    'in': 'aims'}
 
 
 def initialize(format):
