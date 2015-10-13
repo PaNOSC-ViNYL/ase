@@ -26,7 +26,7 @@ class MolecularDynamics(Dynamics):
 
     def run(self, steps=50):
         """Integrate equation of motion."""
-        f = self.atoms.get_forces()
+        f = self.atoms.get_forces(apply_constraint=False)
 
         if not self.atoms.has('momenta'):
             self.atoms.set_momenta(np.zeros_like(f))

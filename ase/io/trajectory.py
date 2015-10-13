@@ -208,7 +208,8 @@ class TrajectoryWriter:
                 pbc=self.pbc.tolist(),
                 numbers=self.numbers)
         if atoms.constraints:
-            b.write(constraints=encode(atoms.constraints))
+            if all(hasattr(c, 'todict') for c in atoms.constraints):
+                b.write(constraints=encode(atoms.constraints))
         if atoms.has('masses'):
             b.write(masses=atoms.get_masses())
 
