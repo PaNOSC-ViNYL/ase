@@ -103,7 +103,7 @@ Alphabetical list of all modules:
    :target: ase/calculators/lammps.html
    :align: middle
 .. |nwchem| image:: static/nwchem.png
-   :target: http://www.nwchem-sw.org
+   :target: ase/calculators/nwchem.html
    :align: middle
 .. |octopus| image:: static/octopus.png
    :target: ase/calculators/octopus.html
