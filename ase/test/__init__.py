@@ -153,7 +153,7 @@ def disable_calculators(names):
         pass
         
     for name in names:
-        if name in ['emt', 'lj', 'eam', 'morse']:
+        if name in ['emt', 'lj', 'eam', 'morse', 'tip3p']:
             continue
         try:
             cls = get_calculator(name)
