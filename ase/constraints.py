@@ -833,9 +833,6 @@ class Hookean(FixConstraint):
             else:
                 forces[self.index] += direction * magnitude
 
-    def adjust_momenta(self, positions, momenta):
-        pass
-
     def adjust_potential_energy(self, atoms, energy):
         """Returns the difference to the potential energy due to an active
         constraint. (That is, the quantity returned is to be added to the
