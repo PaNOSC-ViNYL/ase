@@ -1,0 +1,7 @@
+master:
+  script:
+    - apt-get update -qy
+    - apt-get install -y python-numpy
+    - python setup.py test
+  only:
+    - master
