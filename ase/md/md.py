@@ -38,4 +38,3 @@ class MolecularDynamics(Dynamics):
 
     def get_time(self):
         return self.nsteps * self.dt
-    
