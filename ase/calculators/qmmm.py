@@ -165,7 +165,8 @@ class EIQMMM(Calculator):
             self.embedding = Embedding()
             
         self.embedding.initialize(self.qmatoms, self.mmatoms)
-            
+        print('Embedding:', self.embedding, file=self.output)
+                        
     def calculate(self, atoms, properties, system_changes):
         Calculator.calculate(self, atoms, properties, system_changes)
         
@@ -216,14 +217,16 @@ def wrap(D, cell, pbc):
     
     
 class Embedding:
-    def __init__(self, **parameters):
-        """Point-charge embedding.
-        
-        """
+    def __init__(self, molecule_size=3, **parameters):
+        """Point-charge embedding."""
         self.qmatoms = None
         self.mmatoms = None
+        self.molecule_size = molecule_size
         self.parameters = parameters
     
+    def __repr__(self):
+        return 'Embedding(molecule_size={0})'.format(self.molecule_size)
+        
     def initialize(self, qmatoms, mmatoms):
         """Hook up embedding object to QM and MM atomsd objects."""
         self.qmatoms = qmatoms
@@ -234,11 +237,19 @@ class Embedding:
     def update(self, shift):
         """Update point-charge positions."""
         # Wrap point-charge positions to the MM-cell closest to the
-        # center of the the QM box:
+        # center of the the QM box, but avoid ripping molecules apart:
         qmcenter = self.qmatoms.cell.diagonal() / 2
-        distances = self.mmatoms.positions + shift - qmcenter
+        n = self.molecule_size
+        positions = self.mmatoms.positions.reshape((-1, n, 3)) + shift
+        
+        # Distances from the center of the QM box to the first atom of
+        # each molecule:
+        distances = positions[:, 0] - qmcenter
+        
         wrap(distances, self.mmatoms.cell.diagonal(), self.mmatoms.pbc)
-        self.pcpot.set_positions(distances + qmcenter)
+        offsets = distances - positions[:, 0]
+        positions += offsets[:, np.newaxis] + qmcenter
+        self.pcpot.set_positions(positions.reshape((-1, 3)))
         
     def get_mm_forces(self):
         """Calculate the forces on the MM-atoms from the QM-part."""
