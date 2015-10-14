@@ -16,7 +16,7 @@ Setup
 You first need to install a working copy of NWChem for ASE to call;
 follow the instructions on the `NWChem website <http://www.nwchem-sw.org>`_.
 
-The default command that ASE wil use to start NWChem is
+The default command that ASE will use to start NWChem is
 ``nwchem PREFIX.nw > PREFIX.out``. You can change this command by setting the 
 environment variable :envvar:`ASE_NWCHEM_COMMAND`. (For example, add a line
 to your ``.bashrc`` with ``export ASE_NWCHEM_COMMAND="my new command"``.)
