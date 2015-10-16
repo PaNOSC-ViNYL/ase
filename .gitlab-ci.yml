@@ -1,5 +1,7 @@
 master:
   script:
     - apt-get update -qy
-    - apt-get install -y python-numpy
-    - python setup.py test
+    - apt-get install -qy python-numpy
+    - pwd
+    - echo $HOME
+    - PATH=$PATH:tools python setup.py test
