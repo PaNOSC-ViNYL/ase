@@ -14,6 +14,9 @@ class VelocityVerlet(MolecularDynamics):
         p += 0.5 * self.dt * f
         masses = self.atoms.get_masses()[:, np.newaxis]
         r = self.atoms.get_positions()
+        
+        # if we have constraints then this will do the first part of the
+        # RATTLE algorithm:
         self.atoms.set_positions(r + self.dt * p / masses)
         if self.atoms.constraints:
             p = (self.atoms.get_positions() - r) * masses / self.dt
@@ -24,7 +27,9 @@ class VelocityVerlet(MolecularDynamics):
         # migrate along with the atoms.
         self.atoms.set_momenta(p, apply_constraint=False)
         
-        f = self.atoms.get_forces(apply_constraint=False)
+        f = self.atoms.get_forces(md=True)
+        
+        # Second part of RATTLE will be done here:
         self.atoms.set_momenta(self.atoms.get_momenta() + 0.5 * self.dt * f)
         return f
         
