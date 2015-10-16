@@ -36,6 +36,7 @@ In general:
 * Make a new branch for whatever you are doing, and when you are done, push
   it to your own official repos and from there make a merge request from that
   branch to official master.
+* Do *not* ever merge the main master branch into yours.
 
 This way Master (official and local) is kept clean and synchronized.
 
@@ -87,66 +88,77 @@ changes :ref:`see below section<making-small-changes>`) and on a branch
 on your local clone of official repos.
 Prefered way using command line on local machine is:
 
-* Fetch information about heads and references from "upsteam" and store it in
-  local git used in later merges and checkouts::
-      
-      $ git fetch upstream
-      
-* Jump into local master branch and make sure that it's same as "upstream"
-  master branch::
-      
-      $git checkout master
-      $git reset --hard upstream/master
-      
-  If this is first time there would be no need for hard reset, unless some time
-  has passed since the cloning. Still better safe than sorry.
+1) First step is to clean up master (since you should not work in master
+   it's ok).
 
-* checkout a (new) local branch with a relevant name. I use the commit to
-  enhance the file contribute.rst as an example::
+  * Fetch information about heads and references from "upsteam" and store it in
+    local git used in later merges and checkouts::
+        
+        $ git fetch upstream
+        
+  * Jump into local master branch and make sure that it's same as "upstream"
+    master branch::
+        
+        $git checkout master
+        $git reset --hard upstream/master
+        
+    If this is first time there would be no need for hard reset, unless some time
+    has passed since the cloning. Still better safe than sorry.
+
+2) Next you can do changes and additions.
+
+  * checkout a (new) local branch with a relevant name. I use the commit to
+    enhance the file contribute.rst as an example::
+        
+        $ git checkout -b add-contribute-rst
+
+  * edit/add the file(s)
+
+  * Stage the files to be committed using ``git add``::
       
-      $ git checkout -b add-contribute-rst
+        $ git add contribute.rst
 
-* edit/add the file(s)
+  * Check your status::
+      
+        $ git status
 
-* Stage the files to be committed using ``git add``::
+  * Commit the staged changes and add commit message::
+      
+        $ git commit -m "ENH: Add developer workflow guidlines"
+        
+    Read the :ref:`commit message
+    section<writing-the-commit-message>` guidlines for commit message
+
+  * Push commits to your GitLab repository::
+      
+        $ git push --set-upstream origin add-contribute-rst
+
+  * Go to gitlab.com/your-user-name/ase <http://gitlab.com/your-user-name/ase>
+    and click on '## branches' button (where ## is the number of branches on your
+    repo)
+
+  * Find the branch 'add-contributing-rst' and click '+ Merge Request'
+
+  * Provide informative title and more verbose description in the
+    body of the Merge Request form
+
+  * Click the green 'Submit new merge request' button
+
+  * Wait for feedback from the developer community and address concerns as
+    needed by adding more commits to the 'add-contribute-rst' branch on your
+    personal repository and then pushing to your gitlab repository.
     
-      $ git add contribute.rst
+  * Once the developer community is satisfied with your merge request,
+    anyone with push access to gitlab.com/ase/ase <http://gitlab.com/ase/ase>
+    can merge your merge request and it will now be part of the master branch
 
-* Check your status::
+  * If this commit was for a single file, say, then go ahead and remove the
+    branch locally and on origin. But wait until the merge-request is approved::
     
-      $ git status
+      git branch -D add-contribute-rst
+      git branch -D origin/add-contribute-rst
 
-* Commit the staged changes and add commit message::
-    
-      $ git commit -m "ENH: Add developer workflow guidlines"
-      
-  Read the :ref:`commit message
-  section<writing-the-commit-message>` guidlines for commit message
 
-* Push commits to your GitLab repository::
-    
-      $ git push --set-upstream origin add-contribute-rst
-
-* Go to gitlab.com/your-user-name/ase <http://gitlab.com/your-user-name/ase>
-  and click on '## branches' button (where ## is the number of branches on your
-  repo)
-
-* Find the branch 'add-contributing-rst' and click '+ Merge Request'
-
-* Provide informative title and more verbose description in the
-  body of the Merge Request form
-
-* Click the green 'Submit new merge request' button
-
-* Wait for feedback from the developer community and address concerns as
-  needed by adding more commits to the 'add-contribute-rst' branch on your
-  personal repository and then pushing to your gitlab repository.
-  
-* Once the developer community is satisfied with your merge request,
-  anyone with push access to gitlab.com/ase/ase <http://gitlab.com/ase/ase>
-  can merge your merge request and it will now be part of the master branch
-
-  
 .. _making-small-changes:
 
 Making small changes
@@ -162,35 +174,6 @@ can come in handy. Here are the steps to do that there:
     
 At this point someone will take a look at your change and merge it to the
 official repository if the change looks good.
-
-
-Divergence between ``upstream master`` and your feature branch
---------------------------------------------------------------
-
-Do *not* ever merge the main branch into yours. If GitHub indicates that the
-branch of your Pull Request can no longer be merged automatically, rebase
-onto master::
-
-    $ git checkout master
-    $ git pull upstream master
-    $ git checkout add-contribute-rst
-    $ git rebase master
-
-If any conflicts occur, fix the according files and continue::
-
-    $ git add conflict-file1 conflict-file2
-    $ git rebase --continue
-
-However, you should only rebase your own branches and must generally not
-rebase any branch which you collaborate on with someone else.
-
-Finally, you must push your rebased branch::
-
-    $ git push --force origin transform-speedups
-
-(If you are curious, here's a further discussion on the
-`dangers of rebasing <http://tinyurl.com/lll385>`__.
-Also see this `LWN article <http://tinyurl.com/nqcbkj>`__.)
 
 
 .. _writing-the-commit-message:
@@ -227,7 +210,7 @@ Standard acronyms to start the commit message with are:
 :REV: revert an earlier commit
 :STY: style fix (whitespace, PEP8)
 :TST: addition or modification of tests
-:REL: related to releasing numpy
+:REL: related to releasing ase
 
 
 Code review
