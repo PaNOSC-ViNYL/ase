@@ -4,4 +4,5 @@ master:
     - apt-get install -qy python-numpy
     - pwd
     - echo $HOME
-    - PATH=$PATH:/builds/ase/ase/tools python setup.py test
+    - echo $PYTHONPATH
+    - PATH=$PATH:/builds/ase/ase/tools PYTHONPATH=$PYTHONPATH:/builds/ase/ase python setup.py test
