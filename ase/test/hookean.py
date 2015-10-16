@@ -1,3 +1,10 @@
+"""
+Test of Hookean constraint.
+
+Checks for activity in keeping a bond, preventing vaporization, and
+that energy is conserved in NVE dynamics.
+"""
+
 import numpy as np
 from ase import Atoms, Atom
 from ase.lattice.surface import fcc110
