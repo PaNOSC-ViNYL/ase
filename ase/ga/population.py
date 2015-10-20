@@ -438,3 +438,303 @@ class RandomPopulation(Population):
             used_before = (tuple(sorted([c1id, c2id])) in self.pairs and
                            self.exclude_used_pairs)
         return (c1.copy(), c2.copy())
+
+
+class FitnessSharingPopulation(Population):
+    """ Fitness sharing population that penalizes structures if they are
+    too similar. This is determined by a distance measure
+
+    Parameters:
+
+    comp_key: string
+        Key where the distance measure can be found in the
+        atoms.info['key_value_pairs'] dictionary.
+
+    threshold: float or int
+        Value above which no penalization of the fitness takes place
+
+    alpha_sh: float or int
+        Determines the shape of the sharing function.
+        Default is 1, which gives a linear sharing function.
+    
+    """
+    def __init__(self,  data_connection, population_size,
+                 comp_key, threshold, alpha_sh=1.,
+                 comparator=None, logfile=None, use_extinct=False):
+        Population.__init__(self, data_connection, population_size,
+                            comparator, logfile, use_extinct)
+        self.comp_key = comp_key
+        self.dt = threshold  # dissimilarity threshold
+        self.alpha_sh = alpha_sh
+        self.fit_scaling = 1.
+        
+        self.sh_cache = dict()
+        
+    def __get_fitness__(self, candidates):
+        """Input should be sorted according to raw_score."""
+        max_s = candidates[0].get_raw_score()
+        min_s = candidates[-1].get_raw_score()
+        T = min_s - max_s
+
+        shared_fit = []
+        for c in candidates:
+            sc = c.get_raw_score()
+            obj_fit = 0.5 * (1. - tanh(2. * (sc - max_s) / T - 1.))
+            m = 1.
+            ck = c.info['key_value_pairs'][self.comp_key]
+            for other in candidates:
+                if other != c:
+                    name = set(sorted([c.info['confid'],
+                                       other.info['confid']]))
+                    if name not in self.sh_cache:
+                        ok = other['key_value_pairs'][self.comp_key]
+                        d = abs(ck - ok)
+                        if d < self.dt:
+                            v = 1 - (d / self.dt)**self.alpha_sh
+                            self.sh_cache[name] = v
+                        else:
+                            self.sh_cache[name] = 0
+                    m += self.sh_cache[name]
+                        
+            shf = (obj_fit ** self.fit_scaling) / m
+            shared_fit.append(shf)
+        return shared_fit
+
+    def update(self):
+        """ The update method in Population will add to the end of
+        the population, that can't be used here since the shared fitness
+        will change for all candidates when new are added, therefore
+        just recalc the population every time. """
+
+        self.pop = []
+        self.__initialize_pop__()
+
+        self._write_log()
+
+    def __initialize_pop__(self):
+        # Get all relaxed candidates from the database
+        ue = self.use_extinct
+        all_cand = self.dc.get_all_relaxed_candidates(use_extinct=ue)
+        all_cand.sort(key=lambda x: x.get_raw_score(), reverse=True)
+
+        if len(all_cand) > 0:        
+            shared_fit = self.__get_fitness__(all_cand)
+            all_sorted = zip(*sorted(zip(shared_fit, all_cand),
+                                 reverse=True))[1]
+
+            # Fill up the population with the self.pop_size most stable
+            # unique candidates.
+            i = 0
+            while i < len(all_sorted) and len(self.pop) < self.pop_size:
+                c = all_cand[i]
+                i += 1
+                eq = False
+                for a in self.pop:
+                    if self.comparator.looks_like(a, c):
+                        eq = True
+                        break
+                if not eq:
+                    self.pop.append(c)
+
+            for a in self.pop:
+                a.info['looks_like'] = count_looks_like(a, all_cand,
+                                                        self.comparator)
+        self.all_cand = all_cand
+            
+    def get_two_candidates(self):
+        """ Returns two candidates for pairing employing the
+            fitness criteria from
+            L.B. Vilhelmsen et al., JACS, 2012, 134 (30), pp 12807-12816
+            and the roulete wheel selection scheme described in
+            R.L. Johnston Dalton Transactions,
+            Vol. 22, No. 22. (2003), pp. 4193-4207
+        """
+
+        if len(self.pop) < 2:
+            self.update()
+
+        if len(self.pop) < 2:
+            return None
+
+        fit = self.__get_fitness__(self.pop)
+        fmax = max(fit)
+        c1 = self.pop[0]
+        c2 = self.pop[0]
+        used_before = False
+        while c1.info['confid'] == c2.info['confid'] and not used_before:
+            nnf = True
+            while nnf:
+                t = randrange(0, len(self.pop), 1)
+                if fit[t] > random() * fmax:
+                    c1 = self.pop[t]
+                    nnf = False
+            nnf = True
+            while nnf:
+                t = randrange(0, len(self.pop), 1)
+                if fit[t] > random() * fmax:
+                    c2 = self.pop[t]
+                    nnf = False
+
+            c1id = c1.info['confid']
+            c2id = c2.info['confid']
+            used_before = sorted([c1id, c2id]) in self.pairs
+        return (c1.copy(), c2.copy())
+
+        
+class RankFitnessPopulation(Population):
+    """ Ranks the fitness relative to set variable to flatten the surface
+        in a certian direction such that mating across variable is equally
+        likely irrespective of raw_score. """
+    def __init__(self, data_connection, population_size,comparator=None,
+                 logfile=None, use_extinct=False, exp_function=True):
+        Population.__init__(self, data_connection, population_size,
+                            comparator, logfile, use_extinct)
+    
+    def __get_fitness__(self, candidates):
+        expf = self.exp_function
+        # Probably need to cut down number of arrays.
+        ordered = []
+        rec_nic = []
+        rank_fit = []
+        ff = []
+        fitf = []
+
+        # Set the initial order of the candidates, will need to
+        # be returned in this order at the end of ranking.
+        order = 1
+        for uoc in candidates:
+            ordered.append([order,uoc])
+            order += 1
+        
+
+        # Niche and rank candidates.
+        for o, c in ordered:
+            if o not in rec_nic:
+                ntr = []
+                ce1 = c.get_chemical_formula(mode='hill')
+                rec_nic.append(o)
+                ntr.append([o,c])
+                for oother, cother in ordered:
+                    if oother not in rec_nic:
+                        ce2 = cother.get_chemical_formula(mode='hill')
+                        if ce1 == ce2:
+                            rec_nic.append(oother)
+                            ntr.append([oother,cother])
+                ntr.sort(key=lambda x: x[1].get_raw_score(), reverse=True)
+                start_rank = -1
+                cor = 0
+                for on,cn in ntr:
+                    rank = start_rank - cor
+                    rank_fit.append([on,cn,rank])
+                    cor += 1
+        rank_fit.sort(key=itemgetter(0),reverse=False)
+        for rfo,rfc,rfr in rank_fit:
+            ff.append(rfr)
+        if expf == False:
+# If using obj_rank probability, must have non-zero T val.
+# pop_size must be greater than number of permutations.
+            rmax = max(ff)
+            rmin = min(ff)
+            T = rmin - rmax
+            for nea in ff:
+                obj_rank = 0.5 * (1. - tanh(2. * ((nea) - rmax) / T - 1.))
+                fitf.append(obj_rank)
+        else:
+            for nea in ff:
+                exp_rank = 0.5 ** (-nea - 1)
+                fitf.append(exp_rank)
+        return fitf
+    
+    def update(self):
+        """ The update method in Population will add to the end of
+        the population, that can't be used here since the shared fitness
+        will change for all candidates when new are added, therefore
+        just recalc the population every time. """
+
+        self.pop = []
+        self.__initialize_pop__()
+
+# PCJE Look at...
+        self._write_log()
+
+    def __initialize_pop__(self):
+        # Get all relaxed candidates from the database
+        ue = self.use_extinct
+        all_cand = self.dc.get_all_relaxed_candidates(use_extinct=ue)
+        all_cand.sort(key=lambda x: x.get_raw_score(), reverse=True)
+
+        if len(all_cand) > 0:        
+            fitf = self.__get_fitness__(all_cand)
+            all_sorted = zip(fitf, all_cand)
+            all_sorted.sort(key=itemgetter(0),reverse=True)
+            sort_cand = []
+            for t1,t2 in all_sorted:
+                sort_cand.append(t2)
+            all_sorted = sort_cand
+
+            # Fill up the population with the self.pop_size most stable
+            # unique candidates.
+            i = 0
+            while i < len(all_sorted) and len(self.pop) < self.pop_size:
+                c = all_sorted[i]
+                c_chem = c.get_chemical_formula(mode='hill')
+                i += 1
+                eq = False
+                for a in self.pop:
+                    a_chem = a.get_chemical_formula(mode='hill')
+                    # Only run comparitor is composition of candidates is 
+                    # the same to speed up.
+                    if a_chem == c_chem:
+                        if self.comparator.looks_like(a, c):
+                            eq = True
+                            break
+                if not eq:
+                    self.pop.append(c)
+        self.all_cand = all_cand
+            
+    def get_two_candidates(self):
+        """ Returns two candidates for pairing employing the
+            fitness criteria from
+            L.B. Vilhelmsen et al., JACS, 2012, 134 (30), pp 12807-12816
+            and the roulete wheel selection scheme described in
+            R.L. Johnston Dalton Transactions,
+            Vol. 22, No. 22. (2003), pp. 4193-4207
+        """
+        
+        if len(self.pop) < 2:
+            self.update()
+
+        if len(self.pop) < 2:
+            return None
+
+        fit = self.__get_fitness__(self.pop)
+        fmax = max(fit)
+        fmin = min(fit)
+        c1 = self.pop[0]
+        c2 = self.pop[0]
+        used_before = False
+        while c1.info['confid'] == c2.info['confid'] and not used_before:
+            nnf = True
+            while nnf:
+# PCJE Look at...
+#               len(self.pop)-1 used. Should not be!!
+                t = randrange(0, len(self.pop)-1, 1)
+                if fit[t] > random() * fmax:
+                    c1 = self.pop[t]
+                    nnf = False
+            nnf = True
+            while nnf:
+# PCJE Look at...
+#               len(self.pop)-1 used. Should not be!!
+                t = randrange(0, len(self.pop)-1, 1)
+                if fit[t] > random() * fmax:
+                    c2 = self.pop[t]
+                    nnf = False
+
+            c1id = c1.info['confid']
+            c2id = c2.info['confid']
+# PCJE Look at...
+#            used_before = sorted([c1id, c2id]) in self.pairs
+        return (c1.copy(), c2.copy())
+
+        
