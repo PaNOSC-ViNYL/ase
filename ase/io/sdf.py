@@ -1,5 +1,7 @@
-from math import pi, cos, sin, sqrt, acos
+"""Reads chemical data in SDF format (wraps the molfile format).
 
+See https://en.wikipedia.org/wiki/Chemical_table_file#SDF
+"""
 from ase.atoms import Atoms
 from ase.parallel import paropen
 
