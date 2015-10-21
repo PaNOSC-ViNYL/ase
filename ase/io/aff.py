@@ -466,9 +466,12 @@ class NDArrayReader:
         return a
 
         
-def print_aff_info(filename, verbose=False, *args):
+def print_aff_info(filename, index=None, verbose=False):
     b = affopen(filename, 'r')
-    indices = [int(args.pop())] if args else range(len(b))
+    if index is None:
+        indices = range(len(b))
+    else:
+        indices = [index]
     print('{0}  (tag: "{1}", {2})'.format(filename, b.get_tag(),
                                           plural(len(b), 'item')))
     for i in indices:
@@ -485,11 +488,15 @@ def main():
     add('-v', '--verbose', action='store_true')
     opts, args = parser.parse_args()
 
-    if not args:
-        parser.error('No aff-file given')
+    if len(args) not in [1, 2]:
+        parser.error('Wrong number of arguments')
 
     filename = args.pop(0)
-    print_aff_info(filename, verbose=opts.verbose, *args)
+    if args:
+        index = int(args[0])
+    else:
+        index = None
+    print_aff_info(filename, index, verbose=opts.verbose)
 
     
 if __name__ == '__main__':

@@ -112,7 +112,7 @@ class Graphs(gtk.Window):
 
 def make_plot(data, i, expr, type):
     import matplotlib.pyplot as plt
-    x = 2.5
+    x = 4
     plt.figure(figsize=(x * 2.5**0.5, x))
     m = len(data)
 

@@ -18,7 +18,8 @@ numerically.  A typical molecular dynamics simulation will use the
 :class:`ase.md.verlet.VelocityVerlet` object, giving it the atoms and a time
 step, and then you perform dynamics by calling its :meth:`run` method::
 
-  dyn = VelocityVerlet(atoms, 5.0 * units.fs)
+  dyn = VelocityVerlet(atoms, dt=5.0 * units.fs,
+                       trajectory='md.traj', logfile='md.log')
   dyn.run(1000)  # take 1000 steps
 
 A number of different algorithms can be used to perform molecular
@@ -49,12 +50,15 @@ File output
 The time evolution of the system can be saved in a trajectory file,
 by creating a trajectory object, and attaching it to the dynamics
 object.  This is documented in the module :mod:`ase.io.trajectory`.
+You can attach the trajectory explicitly to the dynamics object, and
+you may want to use the optional ``interval`` argument, so every
+time step is not written to the file.
 
-Unlike the geometry optimization classes, the molecular dynamics
-classes do not support giving a trajectory file name in the
-constructor.  Instead the trajectory must be attached explicitly to
-the dynamics, and it is *strongly recommended* to use the optional
-``interval`` argument, so every time step is not written to the file.
+Alternatively, you can just use the ``trajectory`` keyword when
+instantiating the dynamics object as in the example above. In this
+case, a ``loginterval`` keyword may also be supplied to specify the
+frequency of writing to the trajectory. The loginterval keyword will
+apply to both the trajectory and the logfile.
 
 
 Logging

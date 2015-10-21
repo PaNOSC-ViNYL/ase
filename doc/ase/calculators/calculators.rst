@@ -190,13 +190,8 @@ the :meth:`set` method:
    siesta
    turbomole
    vasp
+   qmmm
    ase_qmmm_manyqm
-
-
-QMMM
-====
-
-For QMMM caculations, see :mod:`ase.calculators.ase_qmmm_manyqm`.
 
 
 Calculator interface

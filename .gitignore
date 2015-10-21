@@ -13,6 +13,7 @@ MANIFEST
 *.pdf
 *.csv
 *.txt
+*.log
 *.xyz
 *.db
 *.pckl

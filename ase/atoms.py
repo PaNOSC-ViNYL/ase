@@ -499,9 +499,10 @@ class Atoms(object):
         else:
             return np.zeros(len(self), int)
 
-    def set_momenta(self, momenta):
+    def set_momenta(self, momenta, apply_constraint=True):
         """Set momenta."""
-        if len(self.constraints) > 0 and momenta is not None:
+        if (apply_constraint and len(self.constraints) > 0 and
+            momenta is not None):
             momenta = np.array(momenta)  # modify a copy
             for constraint in self.constraints:
                 if hasattr(constraint, 'adjust_momenta'):
@@ -639,10 +640,9 @@ class Atoms(object):
         else:
             energy = self._calc.get_potential_energy(self)
         if apply_constraint:
-            constraints = [c for c in self.constraints
-                           if hasattr(c, 'adjust_potential_energy')]
-            for constraint in constraints:
-                energy += constraint.adjust_potential_energy(self, energy)
+            for constraint in self.constraints:
+                if hasattr(constraint, 'adjust_potential_energy'):
+                    energy += constraint.adjust_potential_energy(self)
         return energy
 
     def get_potential_energies(self):
@@ -676,19 +676,27 @@ class Atoms(object):
         """Get the total energy - potential plus kinetic energy."""
         return self.get_potential_energy() + self.get_kinetic_energy()
 
-    def get_forces(self, apply_constraint=True):
+    def get_forces(self, apply_constraint=True, md=False):
         """Calculate atomic forces.
 
         Ask the attached calculator to calculate the forces and apply
         constraints.  Use *apply_constraint=False* to get the raw
-        forces."""
+        forces.
+        
+        For molecular dynamics (md=True) we don't apply the constraint
+        to the forces but to the momenta."""
 
         if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
         forces = self._calc.get_forces(self)
+        
         if apply_constraint:
+            # We need a special md flag here because for MD we want
+            # to skip real constraints but include special "constraints"
+            # Like Hookean.
             for constraint in self.constraints:
-                constraint.adjust_forces(self, forces)
+                if not md or hasattr(constraint, 'adjust_potential_energy'):
+                    constraint.adjust_forces(self, forces)
         return forces
 
     def get_stress(self, voigt=True):

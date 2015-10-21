@@ -1,5 +1,8 @@
-ASE - a Python library for working with atoms
-=============================================
+Atomic Simulation Environment
+=============================
+
+ASE is a set of tools and Python modules for setting up, manipulating,
+running, visualizing and analyzing atomistic simulations.
 
 Webpage: http://wiki.fysik.dtu.dk/ase
 
@@ -29,7 +32,7 @@ Testing
 Please run the tests::
     
     $ cd ~/ase
-    $ python setup.py test  # takes 1 min.
+    $ python3 setup.py test  # takes 1 min.
 
 and send us the output if there are failing tests.
 
