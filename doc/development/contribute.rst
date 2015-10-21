@@ -25,7 +25,7 @@ The workflow described here have two elements to them:
 
 1. The guidelines of project git-branches as a whole.
 2. The workflow of the individual developer, i.e. the standard operating
-   procedure when cloning, pullin, pushing etc.
+   procedure when cloning, pulling, pushing etc.
 
 Only the latter will covered at the moment. When the developer team agree
 on the former it will be added here too. One comment though:
