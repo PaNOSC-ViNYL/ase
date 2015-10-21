@@ -61,12 +61,11 @@ def read_jsv(fileobj):
         elif tag == 'atoms':
             symbols = []
             basis = np.zeros((natom, 3), dtype=float)
-            shell_numbers = -np.ones((natom, ), dtype=int) # float?
+            shell_numbers = -np.ones((natom, ), dtype=int)  # float?
             for i in range(natom):
                 tokens = f.readline().strip().split()
                 labels.append(tokens[0])
                 symbols.append(ase.data.chemical_symbols[int(tokens[1])])
-                #symbols.append(re.match(r'[A-Z][a-z]*', tokens[0]).group())
                 basis[i] = [float(x) for x in tokens[2:5]]
                 if len(tokens) > 5:
                     shell_numbers[i] = float(tokens[5])  # float?
@@ -82,21 +81,21 @@ def read_jsv(fileobj):
             origin = NotImplemented
         else:
             raise ValueError('Unknown tag: "%s"' % tag)
-    
+
     if headline == 'asymmetric_unit_cell':
-        atoms = crystal(symbols=symbols, 
-                        basis=basis, 
-                        spacegroup=spacegroup, 
+        atoms = crystal(symbols=symbols,
+                        basis=basis,
+                        spacegroup=spacegroup,
                         cellpar=cellpar,
                         )
     elif headline == 'full_unit_cell':
-        atoms = ase.Atoms(symbols=symbols, 
+        atoms = ase.Atoms(symbols=symbols,
                           scaled_positions=basis,
                           cell=cellpar_to_cell(cellpar),
                           )
         atoms.info['spacegroup'] = Spacegroup(spacegroup)
     elif headline == 'cartesian_cell':
-        atoms = ase.Atoms(symbols=symbols, 
+        atoms = ase.Atoms(symbols=symbols,
                           positions=basis,
                           cell=cellpar_to_cell(cellpar),
                           )
@@ -117,9 +116,8 @@ def read_jsv(fileobj):
 
     if isinstance(fileobj, str):
         f.close()
-    
-    return atoms
 
+    return atoms
 
 
 def write_jsv(fileobj, atoms):
@@ -132,7 +130,7 @@ def write_jsv(fileobj, atoms):
         f = open(fileobj, 'w')
     else:
         f = fileobj
-    
+
     f.write('asymmetric_unit_cell\n')
 
     f.write('[cell]')
@@ -149,7 +147,7 @@ def write_jsv(fileobj, atoms):
         f.write('[space_group]  %d %d\n' % (sg.no, sg.setting))
     else:
         f.write('[space_group]  1  1\n')
-    
+
     f.write('[title] %s\n' % atoms.info.get('title', 'untitled'))
 
     f.write('\n')
@@ -157,13 +155,13 @@ def write_jsv(fileobj, atoms):
     if 'labels' in atoms.info:
         labels = atoms.info['labels']
     else:
-        labels = ['%s%d' % (s, i+1) for i, s in 
+        labels = ['%s%d' % (s, i+1) for i, s in
                   enumerate(atoms.get_chemical_symbols())]
     numbers = atoms.get_atomic_numbers()
     scaled = atoms.get_scaled_positions()
     for l, n, p in zip(labels, numbers, scaled):
         f.write('%-4s  %2d  %9.6f  %9.6f  %9.6f\n' % (l, n, p[0], p[1], p[2]))
-        
+
     f.write('Label  AtomicNumber  x y z (repeat natom times)\n')
 
     f.write('\n')
