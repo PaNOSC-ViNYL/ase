@@ -194,12 +194,12 @@ class ResonantRaman(Vibrations):
                                        2. / sigma**2)).sum()
         return [energies, prefactor * spectrum]
 
-    def write_spectra(self, omega, gamma,
-                      out='resonant-raman-spectra.dat',
-                      start=200, end=4000,
-                      npts=None, width=10,
-                      type='Gaussian', method='standard',
-                      direction='central'):
+    def write_spectrum(self, omega, gamma,
+                       out='resonant-raman-spectra.dat',
+                       start=200, end=4000,
+                       npts=None, width=10,
+                       type='Gaussian', method='standard',
+                       direction='central'):
         """Write out spectrum to file.
 
         First column is the wavenumber in cm^-1, the second column the
@@ -217,7 +217,7 @@ class ResonantRaman(Vibrations):
         outdata.T[0] = energies
         outdata.T[1] = spectrum
         fd = open(out, 'w')
-        fd.write('# Resonat Raman spectrum\n')
+        fd.write('# Resonant Raman spectrum\n')
         fd.write('# omega={0:g} eV, gamma={1:g} eV\n'.format(omega, gamma))
         fd.write('# %s folded, width=%g cm^-1\n' % (type.title(), width))
         fd.write('# [cm^-1]  [a.u.]\n')
