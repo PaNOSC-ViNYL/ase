@@ -45,7 +45,8 @@ class ResonantRaman(Vibrations):
                  nfree=2,
                  directions=None,
                  exkwargs={},      # kwargs to be passed to Excitations
-                 txt='-'):
+                 txt='-',
+                 verbose=False):
         assert(nfree == 2)
         Vibrations.__init__(self, atoms, indices, gsname, delta, nfree)
         self.name = gsname + '-d%.3f' % delta
@@ -63,6 +64,13 @@ class ResonantRaman(Vibrations):
 
         self.timer = Timer()
         self.txt = get_txt(txt, rank)
+
+        self.verbose = verbose
+
+    def log(self, message, pre='# ', end='\n'):
+        if self.verbose:
+            self.txt.write(pre + message + end)
+            self.txt.flush()
 
     def calculate(self, filename, fd):
         """Call ground and excited state calculation"""
@@ -89,6 +97,7 @@ class ResonantRaman(Vibrations):
                 def outer(ex):
                     me = ex.get_dipole_me(form=form)
                     return np.outer(me, me.conj())
+                self.log('reading ' + exname)
                 ex_p = self.exobj(exname, **self.exkwargs)
                 if len(ex_p) != n:
                     raise RuntimeError(
@@ -101,6 +110,7 @@ class ResonantRaman(Vibrations):
                 return m_ccp
 
             self.timer.start('reading excitations')
+            self.log('reading ' + self.exname + '.eq.excitations')
             ex_p = self.exobj(self.exname + '.eq.excitations',
                               **self.exkwargs)
             n = len(ex_p)
