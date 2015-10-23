@@ -119,7 +119,7 @@ Prefered way using command line on local machine is:
         $ git checkout -b add-contribute-rst
         
   * If you already have this branch since before then you can reset it both
-    locally and in your GitLab account (if it's still there) from 
+    locally and in your GitLab account (if it's still there) from
     upstream/master just like your own local master::
         
         $ git reset --hard upstream/master
@@ -157,9 +157,9 @@ Prefered way using command line on local machine is:
 
   * Click the green 'Submit new merge request' button
 
-  * For last minutes corrections that you would like to include in the 
+  * For last minutes corrections that you would like to include in the
     merge request too, see :ref:`the correction
-    section<Last-minute-corrections>` 
+    section<Last-minute-corrections>`
 
   * Wait for feedback from the developer community and address concerns as
     needed by adding more commits to the 'add-contribute-rst' branch on your
@@ -183,20 +183,18 @@ Adding corrections to be included in a merge request
 
 If at this point you would like to make last minute corrections to your
 commit (it has happened many times so don't feel too bad) then instead of
-closing your own merge request and resubmit a new one you can simply 
+closing your own merge request and resubmit a new one you can simply
 go into your branch, the one that you requested to merge the first time,
 and make the changes, either directly in GitLab, see the
 :ref:`small changes section<making-small-changes>`, or locally *before the
 merge request has been accepted!*
 
 Since it's the branch that is merged (not just your commit) any changes you
-do to that branch will be included should the merge request be accepted.
-Using the '--amend' keyword will add these changes to the last commit (which
-we assume here was on contribute.rst)::
+do to that branch will be included should the merge request be accepted::
     
     $ vi contribute.rst
     $ git add contribute.rst
-    $ git commit --amend --no-edit
+    $ git commit
     $ git push -u origin add-contribute-rst
     
 
