@@ -15,13 +15,8 @@ from ase.lattice.spacegroup import Spacegroup, crystal
 from ase.lattice.spacegroup.cell import cellpar_to_cell, cell_to_cellpar
 
 
-def read_jsv(fileobj):
+def read_jsv(f):
     """Reads a JSV file."""
-    if isinstance(fileobj, str):
-        f = open(fileobj)
-    else:
-        f = fileobj
-
     natom = nbond = npoly = 0
     symbols = []
     labels = []
@@ -114,22 +109,14 @@ def read_jsv(fileobj):
     if shell_numbers is not None:
         atoms.info['shell_numbers'] = shell_numbers
 
-    if isinstance(fileobj, str):
-        f.close()
-
     return atoms
 
 
-def write_jsv(fileobj, atoms):
+def write_jsv(f, atoms):
     """Writes JSV file."""
     if not isinstance(atoms, ase.Atoms):
         raise TypeError(
             'Only single Atoms objects can be written to JSV files.')
-
-    if isinstance(fileobj, str):
-        f = open(fileobj, 'w')
-    else:
-        f = fileobj
 
     f.write('asymmetric_unit_cell\n')
 
@@ -171,6 +158,3 @@ def write_jsv(fileobj, atoms):
     f.write('[poly]\n')
 
     f.write('\n')
-
-    if isinstance(fileobj, str):
-        f.close()
