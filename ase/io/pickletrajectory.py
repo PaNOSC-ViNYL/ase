@@ -306,7 +306,7 @@ class PickleTrajectory:
             magmoms = d.get('magmoms')
             try:
                 constraints = [c.copy() for c in self.constraints]
-            except AttributeError:
+            except:
                 constraints = []
                 warnings.warn('Constraints did not unpickle correctly.')
             atoms = Atoms(positions=d['positions'],
