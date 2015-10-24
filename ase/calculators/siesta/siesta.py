@@ -426,7 +426,7 @@ class SiestaXX:
         self.siesta_run = True
         if exitcode != 0:
             raise RuntimeError(('Siesta exited with exit code: %d.  ' +
-                                'Check %s.txt for more information.') %
+                                'Check %s.out for more information.') %
                                (exitcode, self.label))
 
         self.dipole = self.read_dipole()
@@ -906,7 +906,7 @@ class XC(LockedParameters):
 class Specie(LockedParameters):
     def __init__(self,
                  symbol,
-                 basis_set=DZP(),
+                 basis_set=DZP,
                  pseudopotential=None,
                  tag=None,
                  ghost=False,
@@ -933,12 +933,13 @@ class Siesta(FileIOCalculator):
 
     default_parameters = LockedParameters(
                  mesh_cutoff=(200, 'Ry'),
+                 energy_shift=(100, 'meV'),
                  kpts=(1,1,1),
                  label='siesta',
                  atoms=None,
                  xc='LDA.PZ',
                  species=tuple(),
-                 basis_set=DZP(),
+                 basis_set=DZP,
                  spin=UNPOLARIZED,
                  solution_method=Diag(),
                  pseudo_qualifier=None,
@@ -955,8 +956,16 @@ class Siesta(FileIOCalculator):
         parameters['xc'] = XC(functional=functional, authors=authors)
         parameters.update(kwargs)
 
+        siesta = os.environ.get('SIESTA')
+        label = parameters['label']
+        if parameters['n_nodes']>1:
+            command = 'mpirun -np %d %s < ./%s.fdf > ./%s.out'%(n_nodes, siesta, label, label)
+        else:
+            command = '%s < ./%s.fdf > ./%s.out'%(siesta, label, label)
+
         FileIOCalculator.__init__(
                 self,
+                command=command,
                 **parameters
                 )
 
@@ -999,39 +1008,10 @@ class Siesta(FileIOCalculator):
         all_species = default_species + non_default_species
         return all_species, species_numbers
 
-    def calculate(self,
-                  atoms=None,
-                  properties=['energy'],
-                  system_changes=all_changes,
-                  ):
-        self.write_input(
-                atoms=atoms,
-                properties=properties,
-                system_changes=system_changes,
-                )
-
-        siesta = os.environ.get('SIESTA')
-        if siesta is None:
-            raise OSError("The path to siesta was not found in the $SIESTA environment variable")
-
-        label = self.label
-        if self['n_nodes']>1:
-            cmd = 'mpirun -np %d %s < ./%s.fdf > ./%s.out'%(n_nodes, siesta, label, label)
-        else:
-            cmd = '%s < ./%s.fdf > ./%s.out'%(siesta, label, label)
-
-        cmd = """exitcode = os.system('%s')"""%cmd
-        exec(cmd)
-        exitcode = locals()['exitcode']
-        self.siesta_run = True
-        if exitcode != 0:
-            raise RuntimeError(('Siesta exited with exit code: %d.  ' +
-                                'Check %s.txt for more information.') %
-                               (exitcode, self.label))
-
-        self.read_output()
-        self.read_forces_stress()
-        self.results['energy']
+    def calculate(self, atoms=None, properties=['energy'],
+                  system_changes=all_changes):
+        FileIOCalculator.calculate(self, atoms=atoms, properties=properties,
+                  system_changes=system_changes)
 
     def write_input(self, atoms, properties=None, system_changes=None):
         FileIOCalculator.write_input(
@@ -1040,10 +1020,18 @@ class Siesta(FileIOCalculator):
                 properties=properties,
                 system_changes=system_changes,
                 )
+        if system_changes is None:
+            return
         filename = self.label + '.fdf'
         fdf_dict = {}
 
+        restart_fdf = ''
+        if tuple(system_changes) == ('positions',):
+            restart_fdf = 'DM.UseSaveDM  T\n'
+
         with open(filename, 'w') as f:
+            f.write(restart_fdf)
+            f.write(format_fdf('SystemName', self.label))
             f.write(format_fdf('SystemName', self.label))
             f.write(format_fdf('SystemLabel', self.label))
             self['solution_method'].write_fdf(f)
@@ -1056,6 +1044,12 @@ class Siesta(FileIOCalculator):
         "Write STRUCT.fdf file"
         xyz=atoms.get_positions()
         species, species_numbers = self.species(atoms)
+        basis_sizes = []
+        for specie, number in zip(species, species_numbers):
+            if specie['basis_set']['size'] != self['basis_set']['size']:
+                basis_sizes.append((number, specie['basis_set']['size']))
+        if len(basis_sizes) > 0:
+            f.write(format_fdf('PAO.BasisSizes', basis_sizes))
         mask = np.zeros(len(atoms), bool)
         spec = np.zeros(0, bool)
 
@@ -1118,9 +1112,10 @@ class Siesta(FileIOCalculator):
         f.write('\n')
 
     def __write_basis(self, f, atoms,):
+        f.write(format_fdf('PAO.BasisSize', self['basis_set']['size']))
+        f.write(format_fdf('PAO_EnergyShift', self['energy_shift']))
+
         species, species_numbers = self.species(atoms)
-        f.write('PAO.BasisSize       %s\n'%self['basis_set']['functions'])
-        f.write('PAO.EnergyShift     %s meV\n'%self['basis_set']['energy_shift'])
         f.write(format_fdf('MeshCutoff', self['mesh_cutoff']))
         self['spin'].write_fdf(f)
         self['xc'].write_fdf(f)
@@ -1153,14 +1148,20 @@ class Siesta(FileIOCalculator):
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
 
             name = os.path.basename(pseudopotential)
+            name = name.split('.')
+            name.insert(-1, str(species_number))
+            if specie['ghost']:
+                name.insert(-1, 'ghost')
+                atomic_number= -atomic_number
+            name = '.'.join(name)
+
             if join(os.getcwd(), name) != pseudopotential:
                 if islink(name) or isfile(name):
                     os.remove(name)
                 os.symlink(pseudopotential, name)
 
-            if specie['ghost']:
-                atomic_number= -atomic_number
-                label += '_ghost'
+            label = '.'.join(np.array(name.split('.'))[:-1])
+
             f.write('%d %d %s\n'%(species_number, atomic_number, label))
         f.write('%endblock ChemicalSpeciesLabel\n')
         f.write('\n')
@@ -1171,9 +1172,15 @@ class Siesta(FileIOCalculator):
         else:
             return self['pseudo_qualifier']
 
-    def read_output(self):
+    def read_results(self):
+        self.read_energy()
+        self.read_forces_stress()
+
+    def read_energy(self):
         """Read results from SIESTA's text-output file."""
-        text = open(self.label + '.out', 'r').read().lower()
+        with open(self.label + '.out', 'r') as f:
+            text = f.read().lower()
+
         assert 'error' not in text
         lines = iter(text.split('\n'))
 
@@ -1182,7 +1189,6 @@ class Siesta(FileIOCalculator):
             if line.startswith('initmesh: mesh ='):
                 self.results['n_grid_point'] = [int(word) for word in line.split()[3:8:2]]
                 break
-
 
         for line in lines:
             if line.startswith('siesta: etot    ='):
@@ -1335,10 +1341,25 @@ def get_bf_centers(symbols, positions, basis):
 
 def format_fdf(key, value):
     key = format_key(key)
+
+    block = False
+    if isinstance(value, list):
+        block = True
+    value = format_value(value)
+
+    if block:
+        return '%' + key + '\n' + value + '\n' + '%endblock ' + key + '\n'
+    else:
+        return '%s  %s\n'%(key, value)
+
+def format_value(value):
     if isinstance(value, tuple):
         value = '%s %s'%value
+    if isinstance(value, list):
+        sub_values = map(format_value, value)
+        value = '\n'.join(sub_values)
 
-    return '%s  %s\n'%(key, value)
+    return value
 
 def format_key(key):
     return key.replace('_', '.')

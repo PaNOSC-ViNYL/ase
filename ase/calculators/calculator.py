@@ -106,11 +106,11 @@ def kpts2mp(atoms, kpts, even=False):
 
 class Parameters(dict):
     """Dictionary for parameters.
-    
+
     Special feature: If param is a Parameters instance, then param.xc
     is a shorthand for param['xc'].
     """
-    
+
     def __getattr__(self, key):
         if key not in self:
             return dict.__getattribute__(self, key)
@@ -131,11 +131,24 @@ class Parameters(dict):
         keys = sorted(self.keys())
         return 'dict(' + ',\n     '.join(
             '%s=%r' % (key, self[key]) for key in keys) + ')\n'
-    
+
     def write(self, filename):
         file = open(filename, 'w')
         file.write(self.tostring())
         file.close()
+
+class LockedParameters(dict):
+    """ This parameter class only allows the use of parameters it
+        was initialized with."""
+
+    def __init__(self, **kwargs):
+        self.__keys = kwargs.keys()
+        dict.__init__(self, **kwargs)
+
+    def __setitem__(self, key, value):
+        if key not in self.__keys:
+            raise KeyError("'%s' cannot be set, only allowed keys are %s"%(key, self.__keys))
+        dict.__setitem__(self, key, value)
 
 
 class Calculator:
@@ -187,13 +200,13 @@ class Calculator:
                     self.reset()
                 else:
                     raise
-        
+
         self.label = None
         self.directory = None
         self.prefix = None
 
         self.set_label(label)
-        
+
         if self.parameters is None:
             # Use default parameters if they were not read from file:
             self.parameters = self.get_default_parameters()
@@ -207,7 +220,7 @@ class Calculator:
                     raise RuntimeError('Atoms not compatible with file')
                 atoms.positions = self.atoms.positions
                 atoms.cell = self.atoms.cell
-                
+
         self.set(**kwargs)
 
         if not hasattr(self, 'name'):
@@ -284,7 +297,7 @@ class Calculator:
 
     def set(self, **kwargs):
         """Set parameters like set(key1=value1, key2=value2, ...).
-        
+
         A dictionary containing the parameters that have been changed
         is returned.
 
@@ -409,7 +422,7 @@ class Calculator:
             if name not in self.results:
                 return True
         return False
-        
+
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=all_changes):
         """Do the calculation.
@@ -505,7 +518,7 @@ class FileIOCalculator(Calculator):
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label=None, atoms=None, command=None, **kwargs):
         """File-IO calculator.
-        
+
         command: str
             Command used to start calculation.
         """
@@ -534,7 +547,7 @@ class FileIOCalculator(Calculator):
             errorcode = subprocess.call(command, shell=True)
         finally:
             os.chdir(olddir)
-        
+
         if errorcode:
             raise RuntimeError('%s returned an error: %d' %
                                (self.name, errorcode))

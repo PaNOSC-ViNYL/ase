@@ -3,26 +3,14 @@ from ase.units import eV
 from ase.calculators.calculator import LockedParameters
 
 class BasisSet(LockedParameters):
-    def __init__(self, functions='DZP', split_norm=0.5, energy_shift=0.150):
+    def __init__(self, size):
         LockedParameters.__init__(
                 self,
-                functions=functions,
-                split_norm=split_norm,
-                energy_shift=energy_shift,
+                size=size,
                 )
 
-class DZP(BasisSet):
-    def __init__(self, **kwargs):
-        BasisSet.__init__(self, functions='DZP', **kwargs)
+DZP = BasisSet(size='DZP')
+DZ = BasisSet(size='DZ')
+SZ = BasisSet(size='SZ')
+SZP = BasisSet(size='SZP')
 
-class DZ(BasisSet):
-    def __init__(self, **kwargs):
-        BasisSet.__init__(self, functions='DZ', **kwargs)
-
-class SZ(BasisSet):
-    def __init__(self, **kwargs):
-        BasisSet.__init__(self, functions='SZ', **kwargs)
-
-class SZP(BasisSet):
-    def __init__(self, **kwargs):
-        BasisSet.__init__(self, functions='SZP', **kwargs)
