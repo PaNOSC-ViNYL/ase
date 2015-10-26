@@ -114,10 +114,6 @@ def read_jsv(f):
 
 def write_jsv(f, atoms):
     """Writes JSV file."""
-    if not isinstance(atoms, ase.Atoms):
-        raise TypeError(
-            'Only single Atoms objects can be written to JSV files.')
-
     f.write('asymmetric_unit_cell\n')
 
     f.write('[cell]')
@@ -142,7 +138,7 @@ def write_jsv(f, atoms):
     if 'labels' in atoms.info:
         labels = atoms.info['labels']
     else:
-        labels = ['%s%d' % (s, i+1) for i, s in
+        labels = ['%s%d' % (s, i + 1) for i, s in
                   enumerate(atoms.get_chemical_symbols())]
     numbers = atoms.get_atomic_numbers()
     scaled = atoms.get_scaled_positions()
