@@ -184,10 +184,7 @@ def get_nndist(atoms, distance_matrix):
     rmax = 10.  # No bonds longer than 10 angstrom expected
     nbins = 200
     rdf, dists = get_rdf(atoms, rmax, nbins, distance_matrix)
-    i = 0
-    while np.gradient(rdf)[i] >= 0:
-        i += 1
-    return dists[i]
+    return dists[np.argmax(rdf)]
 
 
 def get_nnmat(atoms):
