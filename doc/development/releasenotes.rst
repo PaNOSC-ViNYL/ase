@@ -28,6 +28,8 @@ Development version in trunk
 * ASE's GUI no longer needs a special GTK-backend for matplotlib to work.
   This will make installation of ASE much simpler.
 
+* We can now :func:`~ase.io.read` and :func:`~ase.io.write` JSV files.
+
 
 Version 3.9.1
 =============
