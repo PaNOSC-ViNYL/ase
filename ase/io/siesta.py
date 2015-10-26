@@ -19,18 +19,18 @@ def read_rho(fname):
     # (according to manual)
 
     fh = FortranFile(fname)
-    
+
     # Read (but ignore) unit cell vectors
     x = fh.readReals('d')
     if len(x) != 3 * 3:
         raise IOError('Failed to read cell vectors')
-        
+
     # Read number of grid points and spin components
     x = fh.readInts()
     if len(x) != 4:
         raise IOError('Failed to read grid size')
     gpts = x  # number of 'X', 'Y', 'Z', 'spin' gridpoints
-    
+
     rho = zeros(gpts)
     for ispin in range(gpts[3]):
         for n3 in range(gpts[2]):
@@ -40,7 +40,7 @@ def read_rho(fname):
                     raise IOError('Failed to read RHO[:,%i,%i,%i]' %
                                   (n2, n3, ispin))
                 rho[:, n2, n3, ispin] = x
-    
+
     fh.close()
     return rho
 
@@ -63,7 +63,7 @@ def _is_block(val):
        isinstance(val[0], list):
         return True
     return False
-    
+
 def _get_stripped_lines(fd):
     # Remove comments, leading blanks, and empty lines
     return [_f for _f in [L.split('#')[0].strip() for L in fd] if _f]
@@ -80,7 +80,7 @@ def _read_fdf_lines(file, inodes=[]):
     inodes = inodes + [inode]
 
     lbz = _labelize
-    
+
     lines = []
     for L in _get_stripped_lines(file):
         w0 = lbz(L.split(None, 1)[0])
@@ -143,7 +143,7 @@ def _read_fdf(fname, inodes=[]):
                     if lbz(w[0]) == '%endblock' and lbz(w[1]) == label:
                         break
                     content.append(w)
-                        
+
                 if not label in fdf:
                     # Only first appearance of label is to be used
                     fdf[label] = content
@@ -165,10 +165,10 @@ def read_fdf(fname):
 
     The data is returned as a dictionary
     ( label:value ).
-    
+
     All labels are converted to lower case characters and
     are stripped of any '-', '_', or '.'.
-    
+
     Ordinary values are stored as a list of strings (splitted on WS),
     and block values are stored as list of lists of strings
     (splitted per line, and on WS).
@@ -179,7 +179,7 @@ def read_fdf(fname):
     "understand" the data or the concept of units etc.
     Values are never parsed in any way, just stored as
     split strings.
-    
+
     The implementation tries to comply with the fdf-format
     specification as presented in the siesta 2.0.2 manual.
 
@@ -237,8 +237,8 @@ def read_struct_out(fname):
 
     if len(atoms) != natoms:
         raise IOError('Badly structured input file')
-    
+
     atoms.set_cell(cell, scale_atoms=True)
 
     return atoms
-    
+
