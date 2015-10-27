@@ -187,7 +187,6 @@ class Calculator:
             attached.  When restarting, atoms will get its positions and
             unit-cell updated from file.
         """
-
         self.atoms = None  # copy of atoms object from last calculation
         self.results = {}  # calculated properties (energy, forces, ...)
         self.parameters = None  # calculational parameters
@@ -393,7 +392,6 @@ class Calculator:
             system_changes = self.check_state(atoms)
             if system_changes:
                 self.reset()
-
         if name not in self.results:
             if not allow_calculation:
                 return None
