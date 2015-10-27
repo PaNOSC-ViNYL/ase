@@ -431,7 +431,6 @@ class Siesta(FileIOCalculator):
                 properties=properties,
                 system_changes=system_changes,
                 )
-        # Early exist.
         if system_changes is None and properties is None:
             return
 
@@ -439,16 +438,17 @@ class Siesta(FileIOCalculator):
         fdf_dict = {}
 
         # On any changes, remove all analysis files.
-        if len(system_changes) > 0:
+        if not system_changes is None:
             self.removeAnalysis()
 
         # Start writing the file.
         with open(filename, 'w') as f:
             # Use the saved density matrix if only 'cell' and 'positions'
             # haved changes.
-            if not 'numbers' in system_changes and \
-                not 'initial_magmoms' in system_changes and \
-                not 'initial_charges' in system_changes \
+            if system_changes is None or \
+                (not 'numbers' in system_changes and \
+                 not 'initial_magmoms' in system_changes and \
+                 not 'initial_charges' in system_changes) \
                 :
                 restart_fdf = 'DM.UseSaveDM  T\n'
                 f.write(restart_fdf)
