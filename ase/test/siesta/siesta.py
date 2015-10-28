@@ -17,7 +17,7 @@ try:
 except KeyError:
     pass
 
-os.environ['SIESTA_PP_PATH'] = os.path.abspath(join(os.path.dirname(__file__), 'TestFiles'))
+os.environ['SIESTA_PP_PATH'] = os.path.abspath(join(os.path.dirname('__file__'), 'TestFiles'))
 h = Atoms('H', [(0.0, 0.0, 0.0)])
 co2 = Atoms('CO2', [(0.0, 0.0, 0.0), (-1.178, 0.0, 0.0), (1.178, 0.0, 0.0)])
 ch4 = Atoms('CH4', np.array([
