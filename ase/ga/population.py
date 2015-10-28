@@ -458,7 +458,7 @@ class FitnessSharingPopulation(Population):
         Default is 1, which gives a linear sharing function.
     
     """
-    def __init__(self,  data_connection, population_size,
+    def __init__(self, data_connection, population_size,
                  comp_key, threshold, alpha_sh=1.,
                  comparator=None, logfile=None, use_extinct=False):
         Population.__init__(self, data_connection, population_size,
@@ -517,10 +517,10 @@ class FitnessSharingPopulation(Population):
         all_cand = self.dc.get_all_relaxed_candidates(use_extinct=ue)
         all_cand.sort(key=lambda x: x.get_raw_score(), reverse=True)
 
-        if len(all_cand) > 0:        
+        if len(all_cand) > 0:
             shared_fit = self.__get_fitness__(all_cand)
             all_sorted = zip(*sorted(zip(shared_fit, all_cand),
-                                 reverse=True))[1]
+                                     reverse=True))[1]
 
             # Fill up the population with the self.pop_size most stable
             # unique candidates.
@@ -580,81 +580,95 @@ class FitnessSharingPopulation(Population):
             used_before = sorted([c1id, c2id]) in self.pairs
         return (c1.copy(), c2.copy())
 
-        
+
 class RankFitnessPopulation(Population):
     """ Ranks the fitness relative to set variable to flatten the surface
-        in a certian direction such that mating across variable is equally
-        likely irrespective of raw_score. """
-    def __init__(self, data_connection, population_size,comparator=None,
-                 logfile=None, use_extinct=False, exp_function=True):
+        in a certain direction such that mating across variable is equally
+        likely irrespective of raw_score.
+    
+        Parameters:
+
+        variable_function: function
+            A function that takes as input an Atoms object and returns
+            the variable that differentiates the ranks.
+    
+        exp_function: boolean
+            If True use an exponential function for ranking the fitness.
+            If False use the same as in Population. Default True.
+
+    """
+    def __init__(self, data_connection, population_size, variable_function,
+                 comparator=None, logfile=None, use_extinct=False,
+                 exp_function=True):
         Population.__init__(self, data_connection, population_size,
                             comparator, logfile, use_extinct)
+        self.exp_function = exp_function
+        self.vf = variable_function
+        # The current fitness is set at each update of the population
+        self.current_fitness = None
     
     def __get_fitness__(self, candidates):
         expf = self.exp_function
-        # Probably need to cut down number of arrays.
-        ordered = []
-        rec_nic = []
-        rank_fit = []
-        ff = []
-        fitf = []
 
         # Set the initial order of the candidates, will need to
         # be returned in this order at the end of ranking.
-        order = 1
-        for uoc in candidates:
-            ordered.append([order,uoc])
-            order += 1
-        
+        ordered = zip(range(len(candidates)), candidates)
 
         # Niche and rank candidates.
+        rec_nic = []
+        rank_fit = []
         for o, c in ordered:
             if o not in rec_nic:
                 ntr = []
-                ce1 = c.get_chemical_formula(mode='hill')
+                ce1 = self.vf(c)
                 rec_nic.append(o)
-                ntr.append([o,c])
+                ntr.append([o, c])
                 for oother, cother in ordered:
                     if oother not in rec_nic:
-                        ce2 = cother.get_chemical_formula(mode='hill')
+                        ce2 = self.vf(cother)
                         if ce1 == ce2:
+                            # put the now processed in oother
+                            # in rec_nic as well
                             rec_nic.append(oother)
-                            ntr.append([oother,cother])
+                            ntr.append([oother, cother])
+                # Each niche is sorted according to raw_score and
+                # assigned a fitness according to the ranking of
+                # the candidates
                 ntr.sort(key=lambda x: x[1].get_raw_score(), reverse=True)
                 start_rank = -1
                 cor = 0
-                for on,cn in ntr:
+                for on, cn in ntr:
                     rank = start_rank - cor
-                    rank_fit.append([on,cn,rank])
+                    rank_fit.append([on, cn, rank])
                     cor += 1
-        rank_fit.sort(key=itemgetter(0),reverse=False)
-        for rfo,rfc,rfr in rank_fit:
-            ff.append(rfr)
-        if expf == False:
-# If using obj_rank probability, must have non-zero T val.
-# pop_size must be greater than number of permutations.
+        # The original order is reformed
+        rank_fit.sort(key=itemgetter(0), reverse=False)
+        ff = np.array(zip(*rank_fit)[2])
+        if not expf:
             rmax = max(ff)
             rmin = min(ff)
             T = rmin - rmax
-            for nea in ff:
-                obj_rank = 0.5 * (1. - tanh(2. * ((nea) - rmax) / T - 1.))
-                fitf.append(obj_rank)
+            # If using obj_rank probability, must have non-zero T val.
+            # pop_size must be greater than number of permutations.
+            # We test for this here
+            msg = "Equal fitness for best and worst candidate in the "
+            msg += "population! Fitness scaling is impossible! "
+            msg += "Try with a larger population."
+            assert T != 0., msg
+            return 0.5 * (1. - np.tanh(2. * (ff - rmax) / T - 1.))
         else:
-            for nea in ff:
-                exp_rank = 0.5 ** (-nea - 1)
-                fitf.append(exp_rank)
-        return fitf
+            return 0.5 ** (-ff - 1)
     
     def update(self):
         """ The update method in Population will add to the end of
-        the population, that can't be used here since the shared fitness
-        will change for all candidates when new are added, therefore
-        just recalc the population every time. """
+        the population, that can't be used here since the fitness
+        will potentially change for all candidates when new are added,
+        therefore just recalc the population every time. """
 
         self.pop = []
         self.__initialize_pop__()
+        self.current_fitness = self.__get_fitness__(self.pop)
 
-# PCJE Look at...
         self._write_log()
 
     def __initialize_pop__(self):
@@ -663,12 +677,12 @@ class RankFitnessPopulation(Population):
         all_cand = self.dc.get_all_relaxed_candidates(use_extinct=ue)
         all_cand.sort(key=lambda x: x.get_raw_score(), reverse=True)
 
-        if len(all_cand) > 0:        
+        if len(all_cand) > 0:
             fitf = self.__get_fitness__(all_cand)
             all_sorted = zip(fitf, all_cand)
-            all_sorted.sort(key=itemgetter(0),reverse=True)
+            all_sorted.sort(key=itemgetter(0), reverse=True)
             sort_cand = []
-            for t1,t2 in all_sorted:
+            for _, t2 in all_sorted:
                 sort_cand.append(t2)
             all_sorted = sort_cand
 
@@ -677,14 +691,16 @@ class RankFitnessPopulation(Population):
             i = 0
             while i < len(all_sorted) and len(self.pop) < self.pop_size:
                 c = all_sorted[i]
-                c_chem = c.get_chemical_formula(mode='hill')
+                c_vf = self.vf(c)
                 i += 1
                 eq = False
                 for a in self.pop:
-                    a_chem = a.get_chemical_formula(mode='hill')
-                    # Only run comparitor is composition of candidates is 
-                    # the same to speed up.
-                    if a_chem == c_chem:
+                    a_vf = self.vf(a)
+                    # Only run comparator if the variable_function (self.vf)
+                    # returns the same. If it returns something different the
+                    # candidates are inherently different.
+                    # This is done to speed up.
+                    if a_vf == c_vf:
                         if self.comparator.looks_like(a, c):
                             eq = True
                             break
@@ -694,9 +710,7 @@ class RankFitnessPopulation(Population):
             
     def get_two_candidates(self):
         """ Returns two candidates for pairing employing the
-            fitness criteria from
-            L.B. Vilhelmsen et al., JACS, 2012, 134 (30), pp 12807-12816
-            and the roulete wheel selection scheme described in
+            roulete wheel selection scheme described in
             R.L. Johnston Dalton Transactions,
             Vol. 22, No. 22. (2003), pp. 4193-4207
         """
@@ -707,34 +721,23 @@ class RankFitnessPopulation(Population):
         if len(self.pop) < 2:
             return None
 
-        fit = self.__get_fitness__(self.pop)
+        # Use saved fitness
+        fit = self.current_fitness
         fmax = max(fit)
-        fmin = min(fit)
         c1 = self.pop[0]
         c2 = self.pop[0]
-        used_before = False
-        while c1.info['confid'] == c2.info['confid'] and not used_before:
+        while c1.info['confid'] == c2.info['confid']:
             nnf = True
             while nnf:
-# PCJE Look at...
-#               len(self.pop)-1 used. Should not be!!
-                t = randrange(0, len(self.pop)-1, 1)
+                t = randrange(0, len(self.pop), 1)
                 if fit[t] > random() * fmax:
                     c1 = self.pop[t]
                     nnf = False
             nnf = True
             while nnf:
-# PCJE Look at...
-#               len(self.pop)-1 used. Should not be!!
-                t = randrange(0, len(self.pop)-1, 1)
+                t = randrange(0, len(self.pop), 1)
                 if fit[t] > random() * fmax:
                     c2 = self.pop[t]
                     nnf = False
 
-            c1id = c1.info['confid']
-            c2id = c2.info['confid']
-# PCJE Look at...
-#            used_before = sorted([c1id, c2id]) in self.pairs
         return (c1.copy(), c2.copy())
-
-        
