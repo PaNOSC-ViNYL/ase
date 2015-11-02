@@ -1,1 +1,1 @@
-from siesta import Siesta
+from ase.calculators.siesta.siesta import Siesta

@@ -4,129 +4,163 @@ from __future__ import print_function
 http://www.uam.es/departamentos/ciencias/fismateriac/siesta
 """
 import os
-import shutil
-import sys
 from ase.atoms import Atoms
 import gzip
-from os.path import join, isfile, islink, getmtime
-from cmath import exp
-import array
+from os.path import join, isfile, islink
 import string
 import numpy as np
 from collections import OrderedDict
 
-from ase.data import chemical_symbols, atomic_numbers
-from ase.units import Rydberg, fs, Bohr
-from ase.io.siesta import read_rho, read_fdf, read_struct_out
-from ase.io.cube import read_cube_data
-from ase.calculators.calculator import FileIOCalculator, all_changes, ReadError
+from ase.units import Ry, eV
+from ase.data import atomic_numbers
+from ase.io.siesta import read_rho
+from ase.calculators.calculator import FileIOCalculator, ReadError
 from ase.calculators.calculator import LockedParameters
 
+meV = 0.001 * eV
 ALLOWED_BASIS_NAMES = ['SZ', 'SZP', 'DZ', 'DZP']
 ALLOWED_SPINS = ['UNPOLARIZED', 'COLLINEAR', 'FULL']
 ALLOWED_AUTHORS = {
-                'LDA': ['PZ', 'CA', 'PW92'],
-                'GGA': ['PW91', 'PBE', 'revPBE', 'RPBE',
-                        'WC', 'AM05', 'PBEsol', 'PBEJsJrLO',
-                        'PBEGcGxLO', 'PBEGcGxHEG', 'BLYP',
-                        ],
-                'VDW': ['DRSLL', 'LMKLL', 'KBM', 'C09', 'BH', 'VV'],
-                }
+    'LDA': ['PZ', 'CA', 'PW92'],
+    'GGA': ['PW91', 'PBE', 'revPBE', 'RPBE',
+            'WC', 'AM05', 'PBEsol', 'PBEJsJrLO',
+            'PBEGcGxLO', 'PBEGcGxHEG', 'BLYP',
+            ],
+    'VDW': ['DRSLL', 'LMKLL', 'KBM', 'C09', 'BH', 'VV'],
+}
 
 Bohr2Ang = 0.529177
-def handleAtomicNumbers(atomic_numbers):
-    atomic_numbers = np.array(atomic_numbers)
-    take = np.array(atomic_numbers) > 0
-    atomic_numbers[take] = atomic_numbers[take]%200
 
-    return atomic_numbers
-
-def ReadXVFile(filename,InUnits='Bohr',OutUnits='Ang',ReadVelocity=False):
+def read_xv_file(filename, read_velocity=False):
     "Returns tuple (vectors,speciesnumber,atomnumber,xyz,[v,]) from an XV-file"
-    if (InUnits=='Bohr') and (OutUnits=='Ang'): convFactor = Bohr2Ang
-    elif (InUnits=='Ang') and (OutUnits=='Bohr'): convFactor = Ang2Bohr
-    elif (((InUnits=='Ang') and (OutUnits=='Ang')) \
-       or ((InUnits=='Bohr') and (OutUnits=='Bohr'))): convFactor = 1
-    else:pass
+    factor = Bohr2Ang
     try:
-        file = open(filename,'r')
+        file = open(filename, 'r')
     except:
-        file = gzip.open(filename+'.gz','r')
+        file = gzip.open(filename + '.gz', 'r')
 
     # Read cell vectors (lines 1-3)
     vectors = []
     for i in range(3):
         data = string.split(file.readline())
-        vectors.append([string.atof(data[j])*convFactor for j in range(3)])
+        vectors.append([string.atof(data[j]) * factor for j in range(3)])
+
     # Read number of atoms (line 4)
-    numberOfAtoms = string.atoi(string.split(file.readline())[0])
+    string.atoi(string.split(file.readline())[0])
+
     # Read remaining lines
     speciesnumber, atomnumber, xyz, V = [], [], [], []
     for line in file.readlines():
-        if len(line)>5: # Ignore blank lines
+        if len(line) > 5:  # Ignore blank lines
             data = string.split(line)
             speciesnumber.append(string.atoi(data[0]))
             atomnumber.append(string.atoi(data[1]))
-            xyz.append([string.atof(data[2+j])*convFactor for j in range(3)])
-            V.append([string.atof(data[5+j])*convFactor for j in range(3)])
+            xyz.append([string.atof(data[2 + j]) * factor for j in range(3)])
+            V.append([string.atof(data[5 + j]) * factor for j in range(3)])
     file.close()
-    if ReadVelocity:
-        return vectors,speciesnumber,atomnumber,xyz, V
-    else:
-        return vectors,speciesnumber,atomnumber,xyz
 
-def convertXVtoASE(filename):
-    result=ReadXVFile(filename=filename,InUnits='Bohr',OutUnits='Ang',ReadVelocity=False)
-    unit_cell=np.array(result[0])
+    if read_velocity:
+        return vectors, speciesnumber, atomnumber, xyz, V
+    else:
+        return vectors, speciesnumber, atomnumber, xyz
+
+
+def xv_to_atoms(filename):
+    result = read_xv_file(filename=filename, read_velocity=False)
+    unit_cell = np.array(result[0])
     numbers = np.array(result[2])
-    numbers = handleAtomicNumbers(numbers)
-    positions=np.array(result[3])
+    positions = np.array(result[3])
     atoms = Atoms(numbers=numbers, positions=positions, cell=unit_cell)
 
     return atoms
 
-class WithUnit:
-    """ Abstract class to represent quantities with units."""
-    # This is the units allowed by this type of quantity.
-    allowed = tuple()
+class Shell(LockedParameters):
+    def __init__(
+            self,
+            n=None,
+            l=0,
+            nzeta=2,
+            nzetapol=None,
+            split_norm=None,
+            soft_confinement='Sankey',
+            soft_confinement_prefactor=0.0,
+            soft_confinement_inner_radius=0.0,
+            rcs=5.0,
+            scale_factors=1.0,
+            ):
+        kwargs = locals()
+        kwargs.pop('self')
+        LockedParameters.__init__(self, **kwargs)
+        self.check_values()
 
-    def __init__(self, value, unit):
-        """
-        Set the value and unit of this quantity.
-        """
-        self.__value = value
-        self.setUnit(unit)
-
-    def setUnit(self, unit):
-        if not unit in self.allowed:
-            raise Exception("Received unit '%s', but only %s are allowed."%(unit, self.allowed) )
-        self.__unit = unit
+    def check_values(self):
+        assert self['soft_confinement'] in ['Sankey', 'Junquera']
 
     def script(self):
-        """
-        Write the fdf script for this quantity.
-        """
-        return '%s %s'%(self.__value, self.__unit)
+        script = ''
+        if not self['n'] is None:
+            script += 'n=%d ' % self['n']
+        script = '%d %d ' % (self['l'], self['nzeta'])
 
-# All types of quantities with units in Siesta, with all allowed input units.
-class Mass(WithUnit): allowed = ['Kg', 'g', 'amu']
-class Length(WithUnit): allowed = ['m', 'cm', 'nm', 'Ang', 'Bohr']
-class Time(WithUnit): allowed=['s', 'fs', 'ps', 'ns', 'mins', 'hours', 'days']
-class Force(WithUnit): allowed=['N', 'eV/Ang', 'Ry/Bohr']
-class Charge(WithUnit): allowed = ['C', 'e']
-class Dipole(WithUnit): allowed = ['C*m', 'D', 'debye', 'e*Bohr', 'e*Ang']
-class InertialMoment(WithUnit): allowed=['Kg*m**2', 'Ry*fs**2']
-class EField(WithUnit): allowed=['V/m', 'V/nm', 'V/Ang', 'V/Bohr', 'Ry/Bohr/e', 'Har/Bohr/e']
-class Angle(WithUnit): allowed=['deg', 'rad']
-class Energy(WithUnit):
-    allowed=['J', 'erg', 'eV', 'meV', 'Ry', 'mRy',
-             'Hartree', 'mHartree', 'K', 'Kcal/mol', 'KJ/mol',
-             'Hz', 'THz', 'cm-1', 'cm**-1', 'cm^-1', 'Bohr']
+        if not self['split_norm'] is None:
+            script += 'S %.2f ' % self['split_norm']
+        if not self['nzetapol'] is None:
+            script += 'P %d ' % self['nzetapol']
 
-class Pressure(WithUnit):
-    allowed=['Pa', 'MPa', 'GPa', 'atm', 'bar', 'Kbar', 'Mbar', 'Ry/Bohr**3', 'eV/Ang**3']
-class Torque(WithUnit): allowed=['eV/deg', 'eV/rad', 'Ry/deg', 'Ry/rad', 'meV/deg',
-                                 'meV/rad', 'mRy/deg', 'mRy/rad']
+        if self['soft_confinement'] == 'Sankey':
+            pass
+        elif self['soft_confinement'] == 'Junquera':
+            script += 'E '
+
+        if not self['soft_confinement_prefactor'] is None:
+            script += '%.2f ' % self['soft_confinement_prefactor']
+
+        if not self['soft_confinement_inner_radius'] is None:
+            radius = self['soft_confinement_inner_radius']
+            script += '%.2f ' % radius
+
+        script += '\n'
+        rcs = self['rcs']
+        if isinstance(rcs, (float, int)):
+            rcs = [rcs]*self['nzeta']
+        assert len(rcs) == self['nzeta']
+        script += ' '.join(['%.2f' % rc for rc in rcs])
+        script += '\n'
+
+        sfs = self['scale_factors']
+        if isinstance(sfs, (float, int)):
+            sfs = [sfs]*self['nzeta']
+        assert len(sfs) == self['nzeta']
+        script += ' '.join(['%.2f' % sf for sf in sfs])
+
+        return script
+
+class BasisSet(LockedParameters):
+    def __init__(
+            self,
+            basis_type=None,
+            ionic_charge=None,
+            shells=tuple()):
+        kwargs = locals()
+        kwargs.pop('self')
+        LockedParameters.__init__(self, **kwargs)
+
+    def script(self, label):
+        script = label + ' '
+        script += "%d " % len(self['shells'])
+        if not self['basis_type'] is None:
+            script += '%s ' % self['basis_type']
+        if not self['ionic_charge'] is None:
+            script += '%.2f ' % self['ionic_charge']
+        script += '\n'
+        shell_scripts = []
+        for shell in self['shells']:
+            shell_scripts.append(shell.script())
+
+        script += '\n'.join(shell_scripts)
+
+        return script
+
 
 
 class SiestaParameters(LockedParameters):
@@ -137,6 +171,7 @@ class SiestaParameters(LockedParameters):
         for key, value in self.iteritems():
             key = self.prefix() + '.' + key
             f.write(format_fdf(key, value))
+
 
 class SolutionMethod(SiestaParameters):
     """
@@ -156,6 +191,7 @@ class SolutionMethod(SiestaParameters):
         f.write(format_fdf('SolutionMethod', self.identifier()))
         SiestaParameters.write_fdf(self, f)
 
+
 class Diag(SolutionMethod):
     """
     Parameters related to the diagonalization solution method.
@@ -166,18 +202,19 @@ class Diag(SolutionMethod):
     def identifier(self):
         return 'diagon'
 
-    def __init__(self,
-        DivideAndConquer=False,
-        AllInOne=False,
-        NoExpert=False,
-        PreRotate=False,
-        Use2D=False,
-        Memory=1.0,
-        ParallelOverK=False,
-        ):
+    def __init__(
+            self,
+            DivideAndConquer=False,
+            AllInOne=False,
+            NoExpert=False,
+            PreRotate=False,
+            Use2D=False,
+            Memory=1.0,
+            ParallelOverK=False, ):
         kwargs = locals()
         kwargs.pop('self')
         SolutionMethod.__init__(self, **kwargs)
+
 
 class OrderN(SolutionMethod):
     """
@@ -189,32 +226,34 @@ class OrderN(SolutionMethod):
     def identifier(self):
         return 'ON'
 
-    def __init__(self,
-        functional='Kim',
-        MaxNumIter=1000,
-        etol=1e-8,
-        eta=Energy(0.0, 'eV'),
-        eta_alpha=Energy(0.0, 'eV'),
-        eta_beta=Energy(0.0, 'eV'),
-        RcLWF=Energy(9.5, 'Bohr'),
-        ChemicalPotential=False,
-        ChemicalPotentialUse=False,
-        ChemicalPotentialRc=Energy(9.5, 'Bohr'),
-        ChemicalPotentialTemperature=Energy(0.05,'Ry'),
-        ChemicalPotentialOrder=100,
-        LowerMemory=False,
-        UseSaveLWF=False,
-        OccupationFunction='FD',
-        OccupationMPOrder=1,
-        ):
+    def __init__(
+            self,
+            functional='Kim',
+            MaxNumIter=1000,
+            etol=1e-8,
+            eta='0.0 eV',
+            eta_alpha='0.0 eV',
+            eta_beta='0.0 eV',
+            RcLWF='9.5 Bohr',
+            ChemicalPotential=False,
+            ChemicalPotentialUse=False,
+            ChemicalPotentialRc='9.5 Bohr',
+            ChemicalPotentialTemperature='0.05 Ry',
+            ChemicalPotentialOrder=100,
+            LowerMemory=False,
+            UseSaveLWF=False,
+            OccupationFunction='FD',
+            OccupationMPOrder=1, ):
+
         kwargs = locals()
         kwargs.pop('self')
         SolutionMethod.__init__(self, **kwargs)
 
+
 class Specie(LockedParameters):
     """
     Parameters for specifying the behaviour for a single species in the
-    calculation. If the tag argument is set to and integer then atoms with
+    calculation. If the tag argument is set to an integer then atoms with
     the specified element and tag will be a seperate species.
 
     Pseudopotential and basis set can be specified. Additionally the species
@@ -232,6 +271,7 @@ class Specie(LockedParameters):
         kwargs.pop('self')
         LockedParameters.__init__(self, **kwargs)
 
+
 class Siesta(FileIOCalculator):
     """
     Calculator interface to the SIESTA code.
@@ -244,28 +284,28 @@ class Siesta(FileIOCalculator):
         'eigenvalues',
         'density',
         'fermi_energy',
-        ])
+    ])
 
     # Dictionary of valid input vaiables.
     # Any additional variables will be written directly as to fdf-files.
     # Replace '.' with '_' in arguments.
     default_parameters = LockedParameters(
-                 label='siesta',
-                 mesh_cutoff=Energy(200, 'Ry'),
-                 energy_shift=Energy(100, 'meV'),
-                 kpts=(1,1,1),
-                 atoms=None,
-                 xc='LDA.PZ',
-                 species=tuple(),
-                 basis_set='DZP',
-                 spin='COLLINEAR',
-                 solution_method=Diag(),
-                 pseudo_qualifier=None,
-                 pseudo_path=None,
-                 n_nodes=1,
-                 restart=None,
-                 ignore_bad_restart_file=False,
-                 )
+        label='siesta',
+        mesh_cutoff=200 * Ry,
+        energy_shift=100 * meV,
+        kpts=(1, 1, 1),
+        atoms=None,
+        xc='LDA',
+        species=tuple(),
+        basis_set='DZP',
+        spin='COLLINEAR',
+        solution_method=Diag(),
+        pseudo_qualifier=None,
+        pseudo_path=None,
+        n_nodes=1,
+        restart=None,
+        ignore_bad_restart_file=False,
+    )
 
     def __init__(self, **kwargs):
         """
@@ -317,19 +357,24 @@ class Siesta(FileIOCalculator):
         siesta = os.environ.get('SIESTA')
         label = parameters['label']
         self.label = label
-        if parameters['n_nodes']>1:
-            command = 'mpirun -np %d %s < ./%s.fdf > ./%s.out'%(n_nodes, siesta, label, label)
+        n_nodes = parameters['n_nodes']
+        if n_nodes > 1:
+            command = 'mpirun -np %d %s < ./%s.fdf > ./%s.out'
+            command = command % (n_nodes, siesta, label, label)
         else:
-            command = '%s < ./%s.fdf > ./%s.out'%(siesta, label, label)
+            command = '%s < ./%s.fdf > ./%s.out' % (siesta, label, label)
 
         # Call the base class.
         FileIOCalculator.__init__(
-                self,
-                command=command,
-                **parameters
-                )
+            self,
+            command=command,
+            **parameters
+        )
 
     def __getitem__(self, key):
+        """ Convenience method to retrieve a parameter as
+            calculator[key] rather than calculator.parameters[key]
+        """
         return self.parameters[key]
 
     def species(self, atoms):
@@ -337,7 +382,7 @@ class Siesta(FileIOCalculator):
         Find all relevant species depending on the atoms object and
         species input.
 
-        Parameters ::
+        Parameters :
             - atoms : An Atoms object.
         """
         # For each element use default specie from the species input, or set
@@ -345,15 +390,15 @@ class Siesta(FileIOCalculator):
         symbols = np.array(atoms.get_chemical_symbols())
         tags = atoms.get_tags()
         species = list(self['species'])
-        default_species = [specie for specie in species if specie['tag'] is None]
-        default_symbols = [specie['symbol'] for specie in default_species]
+        default_species = [s for s in species if s['tag'] is None]
+        default_symbols = [s['symbol'] for s in default_species]
         for symbol in symbols:
             if not symbol in default_symbols:
                 specie = Specie(
-                        symbol=symbol,
-                        basis_set=self['basis_set'],
-                        tag=None,
-                        )
+                    symbol=symbol,
+                    basis_set=self['basis_set'],
+                    tag=None,
+                )
                 default_species.append(specie)
                 default_symbols.append(symbol)
         assert len(default_species) == len(np.unique(symbols))
@@ -362,15 +407,15 @@ class Siesta(FileIOCalculator):
         species_numbers = np.zeros(len(atoms), int)
         i = 1
         for specie in default_species:
-            mask = symbols==specie['symbol']
+            mask = symbols == specie['symbol']
             species_numbers[mask] = i
             i += 1
 
         # Set up the non-default species.
-        non_default_species = [specie for specie in species if not specie['tag'] is None]
+        non_default_species = [s for s in species if not s['tag'] is None]
         for specie in non_default_species:
-            mask1 = tags==specie['tag']
-            mask2 = symbols==specie['symbol']
+            mask1 = (tags == specie['tag'])
+            mask2 = (symbols == specie['symbol'])
             mask = np.logical_and(mask1, mask2)
             if sum(mask) > 0:
                 species_numbers[mask] = i
@@ -383,40 +428,45 @@ class Siesta(FileIOCalculator):
         """
         Set all parameters.
         """
+        # Check energy inputs.
+        for arg in ['mesh_cutoff', 'energy_shift']:
+            value = kwargs.get(arg)
+            if not (isinstance(value, (float, int)) and value > 0):
+                mess = "'%s' must be a positive number(in eV), \
+                    got '%s'" % (arg, value)
+                raise ValueError(mess)
+
         # Check the basis set input.
         basis_set = kwargs.get('basis_set')
-        if not basis_set is None and (not basis_set in ALLOWED_BASIS_NAMES):
-            raise Exception("Basis must be either %s, got %s"%(ALLOWED_BASIS_NAMES, basis_set) )
+        allowed = ALLOWED_BASIS_NAMES
+        if not (isinstance(basis_set, BasisSet) or basis_set in allowed):
+            mess = "Basis must be either %s, got %s" % (allowed, basis_set)
+            raise Exception(mess)
 
         # Check the spin input.
         spin = kwargs.get('spin')
         if not spin is None and (not spin in ALLOWED_SPINS):
-            raise Exception("Spin must be %s, got %s"%(ALLOWED_SPINS, spin) )
+            raise Exception("Spin must be %s, got %s" % (ALLOWED_SPINS, spin))
 
         # Check the functional input.
         xc = kwargs.get('xc')
-        if not xc is None:
-            split = xc.split('.')
-            if len(split) == 2:
-                functional, authors = split
-            elif len(split) == 1:
-                functional = split[0]
-                authors = ALLOWED_AUTHORS[functional]
-            else:
-                raise Exception("The xc argument must be of the format 'functional.authors', got %s"%xc)
 
-            if not functional in ALLOWED_AUTHORS.keys():
-                raise Exception("Functional must be %s, got %s"%(ALLOWED_AUTHORS, functional) )
-            if not authors is None:
-                if not authors in ALLOWED_AUTHORS[functional]:
-                    raise Exception("Functional authors must be %s, got %s"%(ALLOWED_AUTHORS[functional], authors) )
+        if xc in ALLOWED_AUTHORS.keys():
+            functional = xc
+            authors = ALLOWED_AUTHORS[xc][0]
+        else:
+            found = False
+            for key, value in ALLOWED_AUTHORS.iteritems():
+                if xc in value:
+                    found = True
+                    functional = key
+                    authors = xc
+                    break
 
-        # Check that quantities with units have the correct units.
-        d_parameters = self.get_default_parameters()
-        for key, value in d_parameters.iteritems():
-            if isinstance(value, WithUnit) and not isinstance(kwargs[key], WithUnit):
-                new_value, unit = kwargs[key]
-                kwargs[key] = value.__class__(value=new_value, unit=unit)
+            if not found:
+                raise ValueError("Unrecognized 'xc' keyword: '%s'" % xc)
+        kwargs['xc'] = (functional, authors)
+
 
         FileIOCalculator.set(self, **kwargs)
 
@@ -426,32 +476,29 @@ class Siesta(FileIOCalculator):
         """
         # Call base calculator.
         FileIOCalculator.write_input(
-                self,
-                atoms=atoms,
-                properties=properties,
-                system_changes=system_changes,
-                )
+            self,
+            atoms=atoms,
+            properties=properties,
+            system_changes=system_changes,
+        )
         if system_changes is None and properties is None:
             return
 
         filename = self.label + '.fdf'
-        fdf_dict = {}
 
         # On any changes, remove all analysis files.
         if not system_changes is None:
-            self.removeAnalysis()
+            self.remove_analysis()
 
         # Start writing the file.
         with open(filename, 'w') as f:
             # Use the saved density matrix if only 'cell' and 'positions'
             # haved changes.
             if system_changes is None or \
-                (not 'numbers' in system_changes and \
-                 not 'initial_magmoms' in system_changes and \
-                 not 'initial_charges' in system_changes) \
-                :
-                restart_fdf = 'DM.UseSaveDM  T\n'
-                f.write(restart_fdf)
+                (not 'numbers' in system_changes and
+                 not 'initial_magmoms' in system_changes and
+                 not 'initial_charges' in system_changes):
+                f.write(format_fdf('DM.UseSaveDM', True))
 
             # Save density.
             if 'density' in properties:
@@ -465,18 +512,18 @@ class Siesta(FileIOCalculator):
             self['solution_method'].write_fdf(f)
 
             # Write the rest.
-            self.__write_species(f, atoms)
-            self.__write_kpts(f)
-            self.__write_structure(f, atoms)
-            self.__write_fdf_arguments(f)
+            self._write_species(f, atoms)
+            self._write_kpts(f)
+            self._write_structure(f, atoms)
+            self._write_fdf_arguments(f)
 
     def read(self, restart):
         if not os.path.exists(restart):
-            raise ReadError("The restart file '%s' does not exist"%restart)
-        self.atoms = convertXVtoASE(restart)
+            raise ReadError("The restart file '%s' does not exist" % restart)
+        self.atoms = xv_to_atoms(restart)
         self.read_results()
 
-    def __write_fdf_arguments(self, f):
+    def _write_fdf_arguments(self, f):
         """
         Write all arguments not given as default directly as fdf-format.
         """
@@ -485,13 +532,13 @@ class Siesta(FileIOCalculator):
             if not key in d_parameters.keys():
                 f.write(format_fdf(key, value))
 
-    def removeAnalysis(self):
+    def remove_analysis(self):
         """ Remove all analysis files"""
         filename = self.label + '.RHO'
         if os.path.exists(filename):
             os.remove(filename)
 
-    def __write_structure(self, f, atoms):
+    def _write_structure(self, f, atoms):
         """
         Translate the Atoms object to fdf-format.
 
@@ -499,31 +546,19 @@ class Siesta(FileIOCalculator):
             - f:     An open file object.
             - atoms: An atoms object.
         """
-        species, species_numbers = self.species(atoms)
-        basis_sizes = []
-        for specie, number in zip(species, species_numbers):
-            if specie['basis_set'] != self['basis_set']:
-                basis_sizes.append((number, specie['basis_set']))
-        if len(basis_sizes) > 0:
-            f.write(format_fdf('PAO.BasisSizes', basis_sizes))
-
-        mask = np.zeros(len(atoms), bool)
-        spec = np.zeros(0, bool)
         unit_cell = atoms.get_cell()
-
-        xyz=atoms.get_positions()
+        xyz = atoms.get_positions()
         f.write('\n')
         f.write(format_fdf('NumberOfAtoms', len(xyz)))
-        f.write(format_fdf('NumberOfSpecies', len(species)))
-        f.write(format_fdf('LatticeConstant', (1.0, 'Ang')))
+        f.write(format_fdf('LatticeConstant', '1.0 Ang'))
         f.write('%block LatticeVectors\n')
         for i in range(3):
             for j in range(3):
-                f.write(string.rjust('%.15f'%unit_cell[i,j],16)+ ' ')
+                f.write(string.rjust('%.15f' % unit_cell[i, j], 16) + ' ')
             f.write('\n')
         f.write('%endblock LatticeVectors\n')
 
-        self.__write_atomic_coordinates(f, atoms)
+        self._write_atomic_coordinates(f, atoms)
 
         # Write magnetic moments.
         magmoms = atoms.get_initial_magnetic_moments()
@@ -533,7 +568,7 @@ class Siesta(FileIOCalculator):
                 f.write('%d %.14f\n' % (n + 1, M))
         f.write('%endblock DM.InitSpin\n')
 
-    def __write_atomic_coordinates(self, f, atoms):
+    def _write_atomic_coordinates(self, f, atoms):
         """
         Write atomic coordinates.
 
@@ -546,19 +581,19 @@ class Siesta(FileIOCalculator):
         f.write('%block AtomicCoordinatesAndAtomicSpecies\n')
         for atom, number in zip(atoms, species_numbers):
             xyz = atom.position
-            line=string.rjust('%.9f'%xyz[0],16)+' '
-            line+=string.rjust('%.9f'%xyz[1],16)+' '
-            line+=string.rjust('%.9f'%xyz[2],16)+' '
-            line+=str(number)+'\n'
+            line = string.rjust('%.9f' % xyz[0], 16) + ' '
+            line += string.rjust('%.9f' % xyz[1], 16) + ' '
+            line += string.rjust('%.9f' % xyz[2], 16) + ' '
+            line += str(number) + '\n'
             f.write(line)
         f.write('%endblock AtomicCoordinatesAndAtomicSpecies\n')
 
         origin = tuple(-atoms.get_celldisp().flatten())
         f.write('%block AtomicCoordinatesOrigin\n')
-        f.write('%.4f  %.4f  %.4f\n'%origin)
+        f.write('%.4f  %.4f  %.4f\n' % origin)
         f.write('%endblock AtomicCoordinatesOrigin\n')
 
-    def __write_kpts(self, f):
+    def _write_kpts(self, f):
         """
         Write kpts.
 
@@ -571,25 +606,26 @@ class Siesta(FileIOCalculator):
         f.write('%block kgrid_Monkhorst_Pack\n')
 
         for i in range(3):
-            s=''
-            if i<len(kpts):
-                number=kpts[i]
-                displace=0.0
+            s = ''
+            if i < len(kpts):
+                number = kpts[i]
+                displace = 0.0
             else:
-                number=1
-                displace=0
+                number = 1
+                displace = 0
             for j in range(3):
-                if j==i:
-                    write_this=number
+                if j == i:
+                    write_this = number
                 else:
-                    write_this=0
-                s+='%d  '%write_this
-            s+='%1.1f\n'%displace
+                    write_this = 0
+                s += '%d  ' % write_this
+            s += '%1.1f\n' % displace
             f.write(s)
         f.write('%endblock kgrid_Monkhorst_Pack\n')
         f.write('\n')
 
-    def __write_species(self, f, atoms):
+
+    def _write_species(self, f, atoms):
         """
         Write input related the different species.
 
@@ -597,11 +633,12 @@ class Siesta(FileIOCalculator):
             - f:     An open file object.
             - atoms: An atoms object.
         """
-        f.write(format_fdf('PAO.BasisSize', self['basis_set']))
-        f.write(format_fdf('PAO_EnergyShift', self['energy_shift']))
+        energy_shift = '%.4f eV' % self['energy_shift']
+        f.write(format_fdf('PAO_EnergyShift', energy_shift))
+        mesh_cutoff = '%.4f eV' % self['mesh_cutoff']
+        f.write(format_fdf('MeshCutoff', mesh_cutoff))
 
         species, species_numbers = self.species(atoms)
-        f.write(format_fdf('MeshCutoff', self['mesh_cutoff']))
         if self['spin'] == 'UNPOLARIZED':
             f.write(format_fdf('SpinPolarized', False))
         elif self['spin'] == 'COLLINEAR':
@@ -610,12 +647,7 @@ class Siesta(FileIOCalculator):
             f.write(format_fdf('SpinPolarized', True))
             f.write(format_fdf('NonCollinearSpin', True))
 
-        split = self['xc'].split('.')
-        if len(split) == 2:
-            functional, authors = split
-        else:
-            functional = split[0]
-            authors = None
+        functional, authors = self.parameters['xc']
         f.write(format_fdf('XC_functional', functional))
         if not authors is None:
             f.write(format_fdf('XC_authors', authors))
@@ -625,9 +657,15 @@ class Siesta(FileIOCalculator):
         elif 'SIESTA_PP_PATH' in os.environ:
             pseudo_path = os.environ['SIESTA_PP_PATH']
         else:
-            raise Exception("Please set the environment variable 'SIESTA_PP_PATH'")
+            mess = "Please set the environment variable 'SIESTA_PP_PATH'"
+            raise Exception(mess)
 
-        f.write('%block ChemicalSpeciesLabel\n')
+        f.write(format_fdf('NumberOfSpecies', len(species)))
+
+        labels = []
+        pao_basis = []
+        chemical_labels = []
+        basis_sizes = []
         for species_number, specie in enumerate(species):
             species_number += 1
             symbol = specie['symbol']
@@ -645,14 +683,15 @@ class Siesta(FileIOCalculator):
                 pseudopotential = join(pseudo_path, pseudopotential)
 
             if not os.path.exists(pseudopotential):
-                raise RuntimeError('No pseudopotential for %s!' % symbol)
+                mess = "Pseudopotential '%s' not found" % pseudopotential
+                raise RuntimeError(mess)
 
             name = os.path.basename(pseudopotential)
             name = name.split('.')
             name.insert(-1, str(species_number))
             if specie['ghost']:
                 name.insert(-1, 'ghost')
-                atomic_number= -atomic_number
+                atomic_number = -atomic_number
             name = '.'.join(name)
 
             if join(os.getcwd(), name) != pseudopotential:
@@ -661,10 +700,14 @@ class Siesta(FileIOCalculator):
                 os.symlink(pseudopotential, name)
 
             label = '.'.join(np.array(name.split('.'))[:-1])
-
-            f.write('%d %d %s\n'%(species_number, atomic_number, label))
-        f.write('%endblock ChemicalSpeciesLabel\n')
-        f.write('\n')
+            chemical_labels.append('%d %d %s' % (species_number, atomic_number, label))
+            if isinstance(specie['basis_set'], BasisSet):
+                pao_basis.append(specie['basis_set'].script(label))
+            else:
+                basis_sizes.append((label, specie['basis_set']))
+        f.write((format_fdf('ChemicalSpecieslabel', chemical_labels)))
+        f.write((format_fdf('PAO.Basis', pao_basis)))
+        f.write((format_fdf('PAO.BasisSizes', basis_sizes)))
 
     def pseudo_qualifier(self):
         """
@@ -674,7 +717,7 @@ class Siesta(FileIOCalculator):
         is set to None then the qualifier is set to functional name.
         """
         if self['pseudo_qualifier'] is None:
-            return self['xc'].split('.')[0].lower()
+            return self['xc'][0].lower()
         else:
             return self['pseudo_qualifier']
 
@@ -709,7 +752,8 @@ class Siesta(FileIOCalculator):
         # Get the number of grid points used:
         for line in lines:
             if line.startswith('initmesh: mesh ='):
-                self.results['n_grid_point'] = [int(word) for word in line.split()[3:8:2]]
+                n_points = [int(word) for word in line.split()[3:8:2]]
+                self.results['n_grid_point'] = n_points
                 break
 
         for line in lines:
@@ -731,18 +775,19 @@ class Siesta(FileIOCalculator):
         stress_lines = lines[1:4]
         stress = np.empty((3, 3))
         for i in range(3):
-            line = [s for s in stress_lines[i].strip().split(' ') if len(s)>0]
+            line = stress_lines[i].strip().split(' ')
+            line = [s for s in line if len(s) > 0]
             stress[i] = map(float, line)
 
         self.results['stress'] = np.array(
-                [stress[0, 0], stress[1, 1], stress[2, 2],
-                 stress[1, 2], stress[0, 2], stress[0, 1]])
+            [stress[0, 0], stress[1, 1], stress[2, 2],
+             stress[1, 2], stress[0, 2], stress[0, 1]])
 
         start = 5
-        self.results['forces'] = np.zeros((len(lines)-start, 3), float)
+        self.results['forces'] = np.zeros((len(lines) - start, 3), float)
         for i in range(start, len(lines)):
-            line = [s for s in lines[i].strip().split(' ') if len(s)>0]
-            self.results['forces'][i-start] = map(float, line[2:5])
+            line = [s for s in lines[i].strip().split(' ') if len(s) > 0]
+            self.results['forces'][i - start] = map(float, line[2:5])
 
     def read_eigenvalues(self):
         """
@@ -762,7 +807,7 @@ class Siesta(FileIOCalculator):
             self.weights[i] = float(l[4])
 
         # Read eigenvalues and fermi-level
-        with open(self.label+'.EIG', 'r') as f:
+        with open(self.label + '.EIG', 'r') as f:
             text = f.read()
         lines = text.split('\n')
         e_fermi = float(lines[0].split()[0])
@@ -792,14 +837,15 @@ class Siesta(FileIOCalculator):
         """
         Read dipole moment.
         """
-        dipolemoment = np.zeros([1, 3])
+        dipole = np.zeros([1, 3])
         with open(self.label + '.out', 'r') as f:
             for line in f:
                 if line.rfind('Electric dipole (Debye)') > -1:
-                    dipolemoment = np.array([float(f) for f in line.split()[5:8]])
+                    dipole = np.array([float(f) for f in line.split()[5:8]])
 
         # debye to e*Ang
-        self.results['dipole'] = dipolemoment * 0.2081943482534
+        self.results['dipole'] = dipole * 0.2081943482534
+
 
 def format_fdf(key, value):
     """
@@ -809,17 +855,17 @@ def format_fdf(key, value):
         - key   : The fdf-key
         - value : The fdf value.
     """
+    if isinstance(value, (list, tuple)) and len(value) == 0:
+        return ''
+
     key = format_key(key)
+    new_value = format_value(value)
 
-    block = False
-    if isinstance(value, list):
-        block = True
-    value = format_value(value)
-
-    if block:
-        return '%' + key + '\n' + value + '\n' + '%endblock ' + key + '\n'
+    if isinstance(value, (list, tuple)):
+        return '%block ' + key + '\n' + new_value + '\n' + '%endblock ' + key + '\n'
     else:
-        return '%s  %s\n'%(key, value)
+        return '%s  %s\n' % (key, new_value)
+
 
 def format_value(value):
     """
@@ -828,10 +874,9 @@ def format_value(value):
     Parameters:
         - value : The value to format.
     """
-    if isinstance(value, WithUnit):
-        value = value.script()
-    elif isinstance(value, tuple):
-        value = '%s %s'%value
+    if isinstance(value, tuple):
+        sub_values = map(format_value, value)
+        value = '\t'.join(sub_values)
     elif isinstance(value, list):
         sub_values = map(format_value, value)
         value = '\n'.join(sub_values)
@@ -839,6 +884,7 @@ def format_value(value):
         value = str(value)
 
     return value
+
 
 def format_key(key):
     """ Fix the fdf-key replacing '_' with '.' """
