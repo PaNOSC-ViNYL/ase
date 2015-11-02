@@ -172,7 +172,7 @@ elements to other elements nearby in the periodic table::
                             MoveLeftMutation([metals]),
                             MoveRightMutation([metals]),
                             OnePointElementCrossover([metals])])
-  mut_selector = MutationSelector(*oclist)
+  operation_selector = OperationSelector(*oclist)
 
 These operators takes advantage of the fact that chemically like elements
 (close in the periodic table) exhibit similar properties and the substitution
