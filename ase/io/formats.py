@@ -128,6 +128,7 @@ format2modulename = {
     'vtu': 'vtkxml'}
 
 extension2format = {
+    'ascii': 'v-sim',
     'cell': 'castep-cell',
     'com': 'gaussian',
     'con': 'eon',

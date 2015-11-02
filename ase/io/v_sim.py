@@ -1,11 +1,12 @@
 """
-This module contains functionality for reading an ASE
-Atoms object in V_Sim ascii format.
+This module contains functionality for reading and writing an ASE
+Atoms object in V_Sim 3.5+ ascii format.
 
 """
 
 import os
-
+import numpy as np
+        
 def read_v_sim(filename='demo.ascii'):
     """Import V_Sim input file.
 
@@ -85,3 +86,46 @@ def read_v_sim(filename='demo.ascii'):
     atoms.set_chemical_symbols(symbols)
 
     return atoms
+
+def write_v_sim(filename, atoms):
+    """Write V_Sim input file.
+
+    Writes the atom positions and unit cell.
+    """
+    from ase.lattice.spacegroup.cell import cellpar_to_cell, cell_to_cellpar
+    
+    if isinstance(filename, str):
+        f = open(filename)
+    else: # Assume it's a file-like object
+        f = filename
+
+    # Convert the lattice vectors to triangular matrix by converting
+    #   to and from a set of lengths and angles
+    cell = cellpar_to_cell(cell_to_cellpar(atoms.cell))
+    dxx = cell[0,0]
+    dyx, dyy = cell[1,0:2]
+    dzx, dzy, dzz = cell[2,0:3]
+        
+    f.write('===== v_sim input file created using the'
+            ' Atomic Simulation Environment (ASE) ====\n')
+    f.write('{0} {1} {2}\n'.format(dxx, dyx, dyy))
+    f.write('{0} {1} {2}\n'.format(dzx, dzy, dzz))
+
+    # Use v_sim 3.5 keywords to indicate scaled positions, etc.
+    f.write('#keyword: reduced\n')
+    f.write('#keyword: angstroem\n')
+    if np.alltrue(atoms.pbc):
+        f.write('#keyword: periodic\n')
+    elif not np.any(atoms.pbc):
+        f.write('#keyword: freeBC\n')
+    elif np.array_equiv(atoms.pbc, [True, False, True]):
+        f.write('#keyword: surface\n')
+    else:
+        raise Exception('Only supported boundary conditions are full PBC,'
+        ' no periodic boundary, and surface which is free in y direction'
+        ' (i.e. Atoms.pbc = [True, False, True]).')
+
+    # Add atoms (scaled positions)
+    for position, symbol in zip (atoms.get_scaled_positions(), atoms.get_chemical_symbols()):
+        f.write('{0} {1} {2} {3}\n'.format(position[0], position[1], position[2], symbol))
+    
