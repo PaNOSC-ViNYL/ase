@@ -3,7 +3,7 @@
 import numpy as np
 
 from ase.lattice.spacegroup import crystal
-from ase.utils.geometry import get_layers, cut, stack
+from ase.utils.geometry import get_layers, cut, stack, wrap_positions
 from ase.atoms import Atoms
 
 np.set_printoptions(suppress=True)
@@ -99,20 +99,7 @@ si111 = cut(si, a=(3, -3, 0), b=(3, 3, -6), nlayers=5)
 #                    [ 35.3825    ,   5.45333333,  -16.31333333]])
 #
 
-# Test the wrap function.
-scaled_positions = np.array([ [ 2.0, 3.2, 4.3], ])
-cell = np.array( [[5.43,  5.43,  0.0],
-                  [5.43, -5.43,  0.0],
-                  [0.00,  0.00, 40.0],
-                  ])
-atoms = Atoms(scaled_positions=scaled_positions,
-              symbols=['Si'],
-              cell=cell,
-              pbc=[True, True, False])
-atoms.wrap()
-correct_pos = np.array([0.0, 0.2, 4.3])
-assert np.allclose(correct_pos, atoms.get_scaled_positions(wrap=False))
-
+# Test the wrap_positions function.
 positions = np.array([
      [ 4.0725, -4.0725, -1.3575],
      [ 1.3575, -1.3575, -1.3575],
@@ -127,14 +114,8 @@ cell = np.array( [[5.43,  5.43,  0.0],
                   [5.43, -5.43,  0.0],
                   [0.00,  0.00, 40.0],
                   ])
-atoms = Atoms(positions=positions,
-              symbols=['Si']*8,
-              cell=cell,
-              pbc=[True, True, False],
-              )
-atoms.translate(np.array([6.1, -0.1, 10.1]))
-result_atoms = atoms.copy()
-result_atoms.wrap()
+positions += np.array([6.1, -0.1, 10.1])
+result_positions = wrap_positions(positions=positions, cell=cell)
 correct_pos = np.array([
     [  4.7425,   1.2575,   8.7425],
     [  7.4575,  -1.4575,   8.7425],
@@ -145,11 +126,9 @@ correct_pos = np.array([
     [  2.0275,  -1.4575,   8.7425],
     [  0.67  ,  -0.1   ,  10.1   ],
     ])
-assert np.allclose(correct_pos, result_atoms.get_positions())
+assert np.allclose(correct_pos, result_positions)
 
-result_atoms = atoms.copy()
-result_atoms.wrap(pbc=[False, True, False])
-
+positions = wrap_positions(positions, cell, pbc=[False, True, False])
 correct_pos = np.array([
     [  4.7425,    1.2575,   8.7425],
     [  7.4575,   -1.4575,   8.7425],
@@ -160,4 +139,16 @@ correct_pos = np.array([
     [  7.4575,    3.9725,   8.7425],
     [  6.1   ,    5.33  ,  10.1   ],
     ])
-assert np.allclose(correct_pos, result_atoms.get_positions())
+assert np.allclose(correct_pos, positions)
+
+# Test center away from values 0, 0.5
+result_positions = wrap_positions(positions, cell, pbc=[True, True, False], center=0.2)
+correct_pos = [[  4.7425 ,  1.2575 ,  8.7425],
+               [  2.0275 ,  3.9725 ,  8.7425],
+               [  3.385  ,  2.615  , 10.1   ],
+               [ -0.6875 ,  1.2575 ,  8.7425],
+               [  6.1    , -0.1    , 10.1   ],
+               [  3.385  , -2.815  , 10.1   ],
+               [  2.0275 , -1.4575 ,  8.7425],
+               [  0.67   , -0.1    , 10.1   ]]
+assert np.allclose(correct_pos, result_positions)
