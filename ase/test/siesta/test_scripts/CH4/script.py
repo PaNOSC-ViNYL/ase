@@ -1,20 +1,25 @@
+import os
 from ase.units import Ry
+from ase.io import read
 from ase.calculators.siesta.parameters import Specie, PAOBasisBlock
 from ase.calculators.siesta.siesta import Siesta
 from ase.optimize import QuasiNewton
 from ase import Atoms
 import numpy as np
 
-bud = Atoms('CH4', np.array([
-    [0.000000, 0.000000, 0.100000],
-    [0.682793, 0.682793, 0.682793],
-    [-0.682793, -0.682793, 0.68279],
-    [-0.682793, 0.682793, -0.682793],
-    [0.682793, -0.682793, -0.682793]]),
-    cell=[10, 10, 10],
-)
-# Uncomment to use the last image of the relaxation trajectory.
-#bud = read('bud.traj')
+traj = 'bud.traj'
+
+try:
+    bud = read(traj)
+except:
+    bud = Atoms('CH4', np.array([
+        [0.000000, 0.000000, 0.100000],
+        [0.682793, 0.682793, 0.682793],
+        [-0.682793, -0.682793, 0.68279],
+        [-0.682793, 0.682793, -0.682793],
+        [0.682793, -0.682793, -0.682793]]),
+        cell=[10, 10, 10],
+    )
 
 c_basis = """2 nodes 1.00
 0 1 S 0.20 P 1 0.20 6.00
@@ -31,13 +36,17 @@ calc = Siesta(
     xc='LYP',
     mesh_cutoff=300 * Ry,
     species=[specie],
+    restart='ch4.XV',
+    ignore_bad_restart_file=True,
     DM_Tolerance=1e-5,
     DM_MixingWeight=0.15,
     DM_NumberPulay=3,
+    MaxSCFIterations=200,
     ElectronicTemperature=(300, 'K'),
+    SaveElectrostaticPotential=True,
 )
 
 bud.set_calculator(calc)
-dyn = QuasiNewton(bud, trajectory='bud.traj')
+dyn = QuasiNewton(bud, trajectory=traj)
 dyn.run(fmax=0.02)
 e = bud.get_potential_energy()

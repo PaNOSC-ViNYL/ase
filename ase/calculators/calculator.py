@@ -137,6 +137,7 @@ class Parameters(dict):
         file.write(self.tostring())
         file.close()
 
+
 class LockedParameters(dict):
     """ This parameter class only allows the use of parameters it
         was initialized with."""
@@ -147,7 +148,9 @@ class LockedParameters(dict):
 
     def __setitem__(self, key, value):
         if key not in self.__keys:
-            raise KeyError("'%s' cannot be set, only allowed keys are %s"%(key, self.__keys))
+            t = (key, self.__keys)
+            mess = "'%s' cannot be set, only allowed keys are %s" % t
+            raise KeyError(mess)
         dict.__setitem__(self, key, value)
 
 

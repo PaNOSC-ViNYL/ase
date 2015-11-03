@@ -13,8 +13,8 @@ from ase.units import Ry, eV
 from ase.data import atomic_numbers
 from ase.io.siesta import read_rho, xv_to_atoms
 from ase.calculators.calculator import FileIOCalculator, ReadError
-from ase.calculators.calculator import LockedParameters
-from ase.calculators.siesta.parameters import Diag, PAOBasisBlock, Specie
+from ase.calculators.calculator import LockedParameters, all_changes
+from ase.calculators.siesta.parameters import PAOBasisBlock, Specie
 from ase.calculators.siesta.parameters import format_fdf
 
 meV = 0.001 * eV
@@ -27,6 +27,7 @@ class BaseSiesta(FileIOCalculator):
     allowed_basis_names = ['SZ', 'SZP', 'DZ', 'DZP']
     allowed_spins = ['UNPOLARIZED', 'COLLINEAR', 'FULL']
     allowed_xc = {}
+    allowed_fdf_keywords = {}
 
     implemented_properties = tuple([
         'energy',
@@ -51,7 +52,6 @@ class BaseSiesta(FileIOCalculator):
         species=tuple(),
         basis_set='DZP',
         spin='COLLINEAR',
-        solution_method=Diag(),
         pseudo_qualifier=None,
         pseudo_path=None,
         n_nodes=1,
@@ -83,8 +83,6 @@ class BaseSiesta(FileIOCalculator):
                             type of functions basis set.
             -spin         : "UNPOLARIZED"|"COLLINEAR"|"FULL". The level of spin
                             description to be used.
-            -solution_method : Diag object| OrderN object. This is the
-                            internal method used by the siesta calculator.
             -pseudo_path  : None|path. This path is where
                             pseudopotentials are taken from.
                             If None is given, then then the path given
@@ -226,7 +224,34 @@ class BaseSiesta(FileIOCalculator):
                 raise ValueError("Unrecognized 'xc' keyword: '%s'" % xc)
         kwargs['xc'] = (functional, authors)
 
+        # Leftover keywords must be in the allowed list.
+        fdf_keywords = set(kwargs.keys()) - set(self.default_parameters.keys())
+        not_in_list = fdf_keywords - set(self.allowed_fdf_keywords)
+        if len(not_in_list) > 0:
+            mess = 'Siesta caluculator does not accept the arguments: %s.' \
+                % not_in_list
+            raise KeyError(mess)
+
         FileIOCalculator.set(self, **kwargs)
+
+    def calculate(self, atoms=None, properties=['energy'],
+                  system_changes=all_changes):
+        try:
+            FileIOCalculator.calculate(
+                self,
+                atoms=atoms,
+                properties=properties,
+                system_changes=system_changes,
+            )
+        except RuntimeError, e:
+            with open(self.label + '.out', 'r') as f:
+                lines = f.readlines()
+            debug_lines = 10
+            print('####### %d last lines of the Siesta output' % debug_lines)
+            for line in lines[-20:]:
+                print(line.strip())
+            print('####### end of siesta output')
+            raise e
 
     def write_input(self, atoms, properties=None, system_changes=None):
         """
@@ -266,8 +291,8 @@ class BaseSiesta(FileIOCalculator):
             f.write(format_fdf('SystemName', self.label))
             f.write(format_fdf('SystemLabel', self.label))
 
-            # Write solution method and all parameters.
-            self['solution_method'].write_fdf(f)
+            # Force siesta to return error on no convergence.
+            f.write(format_fdf('SCFMustConverge', True))
 
             # Write the rest.
             self._write_species(f, atoms)

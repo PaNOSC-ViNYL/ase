@@ -58,93 +58,6 @@ class Specie(LockedParameters):
         LockedParameters.__init__(self, **kwargs)
 
 
-class SiestaParameters(LockedParameters):
-    """
-    Parameter class which can write out its own fdf-script.
-    """
-    def write_fdf(self, f):
-        for key, value in self.iteritems():
-            key = self.prefix() + '.' + key
-            f.write(format_fdf(key, value))
-
-
-class SolutionMethod(SiestaParameters):
-    """
-    Collection of parameters related to a specific solution method.
-    """
-    def identitier(self):
-        """
-        The string which begins all fdf-keywords in the group.
-        """
-        raise NotImplementedError
-
-    def write_fdf(self, f):
-        """
-        Write the SolutionMethod keyword to the fdf-script as well as all
-        parameters in this group.
-        """
-        f.write(format_fdf('SolutionMethod', self.identifier()))
-        SiestaParameters.write_fdf(self, f)
-
-
-class Diag(SolutionMethod):
-    """
-    Parameters related to the diagonalization solution method.
-    """
-    def prefix(self):
-        return 'Diag'
-
-    def identifier(self):
-        return 'diagon'
-
-    def __init__(
-            self,
-            DivideAndConquer=False,
-            AllInOne=False,
-            NoExpert=False,
-            PreRotate=False,
-            Use2D=False,
-            Memory=1.0,
-            ParallelOverK=False, ):
-        kwargs = locals()
-        kwargs.pop('self')
-        SolutionMethod.__init__(self, **kwargs)
-
-
-class OrderN(SolutionMethod):
-    """
-    Parameters related to the OrderN solution method.
-    """
-    def prefix(self):
-        return 'ON'
-
-    def identifier(self):
-        return 'ON'
-
-    def __init__(
-            self,
-            functional='Kim',
-            MaxNumIter=1000,
-            etol=1e-8,
-            eta='0.0 eV',
-            eta_alpha='0.0 eV',
-            eta_beta='0.0 eV',
-            RcLWF='9.5 Bohr',
-            ChemicalPotential=False,
-            ChemicalPotentialUse=False,
-            ChemicalPotentialRc='9.5 Bohr',
-            ChemicalPotentialTemperature='0.05 Ry',
-            ChemicalPotentialOrder=100,
-            LowerMemory=False,
-            UseSaveLWF=False,
-            OccupationFunction='FD',
-            OccupationMPOrder=1, ):
-
-        kwargs = locals()
-        kwargs.pop('self')
-        SolutionMethod.__init__(self, **kwargs)
-
-
 def format_fdf(key, value):
     """
     Write an fdf key-word value pair.
@@ -189,5 +102,10 @@ def format_value(value):
 
 
 def format_key(key):
-    """ Fix the fdf-key replacing '_' with '.' """
-    return key.replace('_', '.')
+    """ Fix the fdf-key replacing '_' with '.' and '__' with '_' """
+    key = key.replace('__', '#')
+    key = key.replace('_', '.')
+    key = key.replace('#', '_')
+
+    return key
+
