@@ -16,7 +16,7 @@ try:
     from lxml import etree
 except ImportError:
     etree = 0
-    
+
 a = 5.0
 d = 1.9
 c = a / 2
@@ -51,16 +51,16 @@ def check(a, format):
         assert a.get_potential_energy() == atoms.get_potential_energy()
         assert (a.get_stress() == atoms.get_stress()).all()
         assert abs(a.get_forces() - atoms.get_forces()).max() < 1e-12
-    
+
 for format in all_formats:
-    if format in ['abinit', 'castep-cell', 'dftb', 'eon', 'gaussian']:
+    if format in ['abinit', 'castep-cell', 'dftb', 'eon', 'gaussian', 'etsf']:
         # Someone should do something ...
         continue
-        
+
     if format in ['postgresql', 'trj', 'vti', 'vtu']:
         # Let's not worry about these.
         continue
-    
+
     if sys.version_info[0] == 3 and format in ['bundletrajectory', 'cif']:
         continue
 
@@ -69,7 +69,7 @@ for format in all_formats:
 
     if not etree and format == 'exciting':
         continue
-        
+
     io = get_ioformat(format)
     print('{0:20}{1}{2}{3}{4}'.format(format,
                                       ' R'[bool(io.read)],
@@ -86,7 +86,7 @@ for format in all_formats:
         if io.read:
             for a in [read(fname1, format=format), read(fname1)]:
                 check(a, format)
-            
+
             if not io.single:
                 if format in ['json', 'db']:
                     aa = read(fname2 + '@id=1') + read(fname2 + '@id=2')
