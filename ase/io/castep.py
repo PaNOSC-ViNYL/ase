@@ -10,7 +10,7 @@ import re
 import numpy as np
 
 import ase
-from ase.constraints import FixAtoms, FixCartesian
+from ase.constraints import FixAtoms, FixCartesian, FixedLine
 from ase.parallel import paropen
 
 # independent unit management included here:
@@ -63,7 +63,7 @@ for d in (units_CODATA1986, units_CODATA2002):
 
 __all__ = [
     'read_castep',
-    'read_castep_old',
+    'read_castep_new',
     'read_castep_cell',
     'read_castep_geom',
     'read_md',
@@ -164,9 +164,10 @@ def write_castep_cell(filename, atoms, positions_frac=False, castep_cell=None,
         for constr in constraints:
             if not isinstance(constr, FixAtoms)\
                 and not isinstance(constr, FixCartesian)\
+                and not isinstance(constr, FixedLine)\
                 and not suppress_constraints:
                 print('Warning: you have constraints in your atoms, that are')
-                print('         not supported by CASTEP')
+                print('         not supported by the CASTEP ase interface')
                 break
             if isinstance(constr, FixAtoms):
                 # sorry, for this complicated block
@@ -209,6 +210,31 @@ def write_castep_cell(filename, atoms, positions_frac=False, castep_cell=None,
                 if fix_cart[2]:
                     count += 1
                     fd.write('%6d %3s %3d   0 0 1 \n' % (count, symbol, nis))
+            elif isinstance(constr, FixedLine):
+                n = constr.a
+                symbol = atoms.get_chemical_symbols()[n]
+                nis = atoms.calc._get_number_in_species(n)
+                direction = constr.dir
+                # print(direction)
+                ((i1,v1),(i2,v2)) = sorted(enumerate(direction),
+                                           key = lambda x:abs(x[1]),
+                                           reverse = True)[:2]
+                # print(sorted(enumerate(direction), key = lambda x:x[1])[:2])
+                # print(sorted(enumerate(direction), key = lambda x:x[1]))
+
+                # print(v1)
+                # print(v2)
+                n1 = np.array([v2,v1,0])
+                n1 = n1 / np.linalg.norm(n1)
+
+                n2 = np.cross(direction,n1)
+                count += 1
+                fd.write('%6d %3s %3d   %f %f %f \n' % (count, symbol, nis,
+                                                        n1[0], n1[1], n1[2]))
+
+                count += 1
+                fd.write('%6d %3s %3d   %f %f %f \n' % (count, symbol, nis,
+                                                        n2[0], n2[1], n2[2]))
         fd.write('%ENDBLOCK IONIC_CONSTRAINTS \n')
 
     if castep_cell is None:
@@ -231,7 +257,7 @@ def write_castep_cell(filename, atoms, positions_frac=False, castep_cell=None,
     return True
 
 
-def read_castep_cell(filename, _=None):
+def read_castep_cell(filename, index=None):
     """Read a .cell file and return an atoms object.
     Any value found that does not fit the atoms API
     will be stored in the atoms.calc attribute.
@@ -475,23 +501,30 @@ def read_castep_cell(filename, _=None):
         elif len(value) == 1:
             # catch cases in which constraints are given in a single line in
             # the cell file
-            if np.count_nonzero(value[0]) == 3:
-                fixed_atoms.append(absolute_nr)
-            elif np.count_nonzero(value[0]) == 2:
-                # in this case we need a FixedLine instance
-                # it is initialized with the atom's index
-                constraint = ase.constraints.FixedLine(a=absolute_nr,
-                    direction=[not v for v in value[0]])
-                constraints.append(constraint)
-            else:
-                constraint = ase.constraints.FixedPlane(a=absolute_nr,
-                    direction=np.array(value[0], dtype=np.float32))
-                constraints.append(constraint)
+            # if np.count_nonzero(value[0]) == 3:
+            #     fixed_atoms.append(absolute_nr)
+            # elif np.count_nonzero(value[0]) == 2:
+            #     # in this case we need a FixedLine instance
+            #     # it is initialized with the atom's index
+            #     constraint = ase.constraints.FixedLine(a=absolute_nr,
+            #         direction=[not v for v in value[0]])
+            #     constraints.append(constraint)
+            # else:
+
+            # I do not think you can have a fixed position of a fixed
+            # line with only one constraint -- JML
+            constraint = ase.constraints.FixedPlane(a=absolute_nr,
+                direction=np.array(value[0], dtype=np.float32))
+            constraints.append(constraint)
         else:
             print('Error: Found %s statements attached to atoms %s'
                   % (len(value), absolute_nr))
-    constraints.append(ase.constraints.FixAtoms(fixed_atoms))
-    atoms.set_constraint(constraints)
+    # we need to sort the fixed atoms list in order not to raise an assertion
+    # error in FixAtoms
+    if fixed_atoms:
+        constraints.append(ase.constraints.FixAtoms(indices=sorted(fixed_atoms)))
+    if constraints:
+        atoms.set_constraint(constraints)
 
     if not _fallback:
         # needs to go here again to have the constraints in
@@ -500,12 +533,13 @@ def read_castep_cell(filename, _=None):
         atoms.calc.push_oldstate()
     return atoms
 
-def read_castep(filename, _ = None):
+def read_castep_new(filename, index = None):
     """
-    This routine replaces the former read_castep() routine. Basically it does
-    the same job, but it uses the read() functionality from the Castep
-    calculator class. This allows a much more complete parsing and we do not
-    have to take care of syncing the respective routine with each other.
+    This routine is supposed to replace the former read_castep() routine at
+    some point. Basically it does the same job, but it uses the read()
+    functionality from the Castep calculator class. This allows a much more
+    complete parsing and we do not have to take care of syncing the respective
+    routine with each other.
 
     Note: This routine returns a single atoms_object only, whereas the former
     routine, in principle, returned a list of atoms objects. Yet, if you want
@@ -543,8 +577,9 @@ def read_castep(filename, _ = None):
 # the ase.calculators.castep.Castep.read()
 # in the future!
 # --> has been done (see above)
+# but not failsave yet!
 
-def read_castep_old(filename, _=-1):
+def read_castep(filename, index=None):
     """Reads a .castep file and returns an atoms  object.
     The calculator information will be stored in the calc attribute.
     If more than one SCF step is found, a list of all steps
@@ -617,9 +652,10 @@ def read_castep_old(filename, _=-1):
                                             stress=None)
             atoms.set_calculator(sp_calc)
             traj.append(atoms)
-
-    return traj
-
+    if index is None:
+        return traj
+    else:
+        return traj[index]
 
 def read_param(filename, calc=None):
     """Reads a param file. If an Castep object is passed as the
@@ -693,7 +729,7 @@ def write_param(filename, param, check_checkfile=False,
     out.close()
 
 
-def read_castep_geom(filename, _=-1, units=units_CODATA2002):
+def read_castep_geom(filename, index=None, units=units_CODATA2002):
     """Reads a .geom file produced by the CASTEP GeometryOptimization task and
     returns an atoms  object.
     The information about total free energy and forces of each atom for every
@@ -709,15 +745,18 @@ def read_castep_geom(filename, _=-1, units=units_CODATA2002):
     from ase.calculators.singlepoint import SinglePointCalculator
 
     # extended support for compressed formats
-    fname = filename.lower()
-    if fname.endswith('.gz'):
-        import gzip
-        fileobj = gzip.open(filename)
-    elif fname.endswith('.bz2'):
-        import bz2
-        fileobj = bz2.BZ2File(filename)
+    if isinstance(filename, str):
+        fname = filename.lower()
+        if fname.endswith('.gz'):
+            import gzip
+            fileobj = gzip.open(filename)
+        elif fname.endswith('.bz2'):
+            import bz2
+            fileobj = bz2.BZ2File(filename)
+        else:
+            fileobj = open(filename)
     else:
-        fileobj = open(filename)
+        fileobj = filename
     txt = fileobj.readlines()
     fileobj.close()
 
@@ -754,7 +793,10 @@ def read_castep_geom(filename, _=-1, units=units_CODATA2002):
                 None, image))
             traj.append(image)
 
-    return traj
+    if index is None:
+        return traj
+    else:
+        return traj[index]
 
 
 def read_md(filename, _=-1, return_scalars=False, units=units_CODATA2002):
@@ -1036,6 +1078,7 @@ def read_seed(seed, new_seed=None, ignore_internal_keys=False):
     paramfile = os.path.join(directory, '%s.param' % seed)
     cellfile = os.path.join(directory, '%s.cell' % seed)
     castepfile = os.path.join(directory, '%s.castep' % seed)
+    checkfile = os.path.join(directory, '%s.check' % seed)
 
     atoms = read_castep_cell(cellfile)
     atoms.calc._directory = directory
@@ -1054,6 +1097,10 @@ def read_seed(seed, new_seed=None, ignore_internal_keys=False):
         # BUGFIX: I do not see a reason to do that!
         atoms.calc.read(castepfile)
         #atoms.calc._set_atoms = False
+
+        # if here is a check file, we also want to re-use this information
+        if os.path.isfile(checkfile):
+            atoms.calc._check_file = os.path.basename(checkfile)
 
         # sync the top-level object with the
         # one attached to the calculator
