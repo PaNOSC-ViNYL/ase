@@ -236,6 +236,10 @@ class BaseSiesta(FileIOCalculator):
 
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=all_changes):
+        """
+        Capture the RuntimeError from FileIOCalculator.calculate
+        and add a little debug information from the Siesta output.
+        """
         try:
             FileIOCalculator.calculate(
                 self,
