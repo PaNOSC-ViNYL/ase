@@ -11,6 +11,8 @@ description of the Extended XYZ file format.
 Contributed by James Kermode <james.kermode@gmail.com>
 """
 
+from __future__ import print_function
+
 import re
 import numpy as np
 
@@ -205,7 +207,16 @@ def read_xyz(fileobj, index=-1):
     if not isinstance(index, int) and not isinstance(index, slice):
         raise TypeError('Index argument is neither slice nor integer!')
 
-    # scan through entire file to find where the frames start
+    # If possible, build a partial index up to the last frame required
+    last_frame = None
+    if isinstance(index, int) and index >= 0:
+        last_frame = index
+    elif isinstance(index, slice):
+        if index.stop >= 0:
+            last_frame = index.stop
+    #print('read_xyz: index={0}, last_frame={1}'.format(index, last_frame))
+
+    # scan through file to find where the frames start
     fileobj.seek(0)
     frames = []
     while fileobj:
@@ -215,11 +226,13 @@ def read_xyz(fileobj, index=-1):
             break
         natoms = int(line)
         frames.append((frame_pos, natoms))
+        if last_frame is not None and len(frames) > last_frame:
+            break
         comment = fileobj.readline()
         for i in range(natoms):
             fileobj.readline()
 
-    rvrs = False
+    #print('read_xyz: frames={0}'.format(frames))
 
     if isinstance(index, int):
         if index < 0:
@@ -227,7 +240,6 @@ def read_xyz(fileobj, index=-1):
             trbl = range(tmpsnp, tmpsnp + 1, 1)
         else:
             trbl = range(index, index + 1, 1)
-        rtnndx = -1
     elif isinstance(index, slice):
         start = index.start
         stop = index.stop
@@ -247,14 +259,8 @@ def read_xyz(fileobj, index=-1):
             stop = len(frames) + stop
 
         trbl = range(start, stop, step)
-
         if step < 0:
-            rvrs = True
             trbl.reverse()
-
-        rtnndx = slice(len(trbl))
-
-    images = []
 
     for index in trbl:
         frame_pos, natoms = frames[index]
@@ -367,16 +373,11 @@ def read_xyz(fileobj, index=-1):
             calculator = SinglePointCalculator(atoms, **results)
             atoms.set_calculator(calculator)
 
-        images.append(atoms)
-
-    if rvrs:
-        images.reverse()
-
-    return images[rtnndx]
+        yield atoms
 
 
 def output_column_format(atoms, columns, arrays,
-                         write_info=True, results=None):
+                         write_info=True, results=None, comment=''):
     """
     Helper function to build extended XYZ comment line
     """
@@ -427,7 +428,7 @@ def output_column_format(atoms, columns, arrays,
                               property_types,
                               [str(nc) for nc in property_ncols])])
 
-    comment = lattice_str + ' Properties=' + props_str
+    comment = lattice_str + ' Properties=' + props_str + comment
     info = {}
     if write_info:
         info.update(atoms.info)
@@ -442,7 +443,7 @@ def output_column_format(atoms, columns, arrays,
     return comment, property_ncols, dtype, fmt
 
 
-def write_xyz(fileobj, images, columns=None, write_info=True,
+def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
               write_results=True, append=False):
     """
     Write output in extended XYZ format
@@ -538,7 +539,8 @@ def write_xyz(fileobj, images, columns=None, write_info=True,
                                                        fr_cols,
                                                        arrays,
                                                        write_info,
-                                                       per_frame_results)
+                                                       per_frame_results,
+                                                       comment)
 
         # Pack fr_cols into record array
         data = np.zeros(natoms, dtype)
@@ -557,5 +559,6 @@ def write_xyz(fileobj, images, columns=None, write_info=True,
             fileobj.write(fmt % tuple(data[i]))
 
 
+# create aliases for read/write functions
 read_extxyz = read_xyz
 write_extxyz = write_xyz

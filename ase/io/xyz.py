@@ -31,3 +31,10 @@ def write_xyz(fileobj, images, comment=''):
         fileobj.write('%d\n%s\n' % (natoms, comment))
         for s, (x, y, z) in zip(symbols, atoms.positions):
             fileobj.write('%-2s %22.15f %22.15f %22.15f\n' % (s, x, y, z))
+
+
+# write_xyz() function above is for reference only.
+# We use the implementation from extxyz module, which is backwards
+# compatible with standard XYZ format
+from ase.io.extxyz import write_extxyz
+write_xyz = write_extxyz

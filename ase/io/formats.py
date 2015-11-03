@@ -172,7 +172,7 @@ def get_ioformat(format):
     """Initialize and return IOFormat tuple."""
     initialize(format)
     return ioformats[format]
-    
+
 
 def wrap_read_function(read, filename, index=None, **kwargs):
     """Convert read-function to generator."""
@@ -181,8 +181,8 @@ def wrap_read_function(read, filename, index=None, **kwargs):
     else:
         for atoms in read(filename, index, **kwargs):
             yield atoms
-        
-        
+
+
 @parallel_function
 def write(filename, images, format=None, **kwargs):
     """Write Atoms object(s) to file.
@@ -208,23 +208,23 @@ def write(filename, images, format=None, **kwargs):
     else:
         fd = filename
         filename = None
-        
+
     format = format or 'json'  # default is json
 
     io = get_ioformat(format)
 
     if isinstance(images, Atoms):
         images = [images]
-        
+
     if io.single:
         if len(images) > 1:
             raise ValueError('{0}-format can only store 1 Atoms object.'
                              .format(format))
         images = images[0]
-        
+
     if io.write is None:
         raise ValueError("Can't write to {0}-format".format(format))
-        
+
     # Special case for json-format:
     if format == 'json' and len(images) > 1:
         if filename is not None:
@@ -232,7 +232,7 @@ def write(filename, images, format=None, **kwargs):
             return
         raise ValueError("Can't write more than one image to file-descriptor"
                          'using json-format.')
-        
+
     if io.acceptsfd:
         open_new = (fd is None)
         if open_new:
@@ -245,8 +245,8 @@ def write(filename, images, format=None, **kwargs):
             raise ValueError("Can't write {0}-format to file-descriptor"
                              .format(format))
         io.write(filename, images, **kwargs)
-    
-    
+
+
 def read(filename, index=None, format=None, **kwargs):
     """Read Atoms object(s) from file.
 
@@ -254,7 +254,7 @@ def read(filename, index=None, format=None, **kwargs):
         Name of the file to read from or a file descriptor.
     index: int, slice or str
         The last configuration will be returned by default.  Examples:
-            
+
             * ``index=0``: first configuration
             * ``index=-2``: second to last
             * ``index=':'`` or ``index=slice(None)``: all
@@ -264,7 +264,7 @@ def read(filename, index=None, format=None, **kwargs):
     format: str
         Used to specify the file-format.  If not given, the
         file-format will be guessed by the *filetype* function.
-        
+
     Many formats allow on open file-like object to be passed instead
     of ``filename``. In this case the format cannot be auto-decected,
     so the ``format`` argument should be explicitly given."""
@@ -277,30 +277,41 @@ def read(filename, index=None, format=None, **kwargs):
     if isinstance(index, (slice, str)):
         return list(_iread(filename, index, format, **kwargs))
     else:
-        return next(_iread(filename, slice(index, None), format, **kwargs))
-    
-        
+        # index is an integer, referring to a single frame.
+        # choose slice stop and step to return exactly one frame
+        # (necessary for IO readers that are more efficient if they
+        #  know how many frames they need to read from start of file
+        #  e.g. read_extxyz)
+        if index >= 0:
+            stop = index + 1
+            step = +1
+        else:
+            stop = -2
+            step = -1
+        return next(_iread(filename, slice(index, stop, step), format, **kwargs))
+
+
 def iread(filename, index=None, format=None, **kwargs):
     """Iterator for reading Atoms objects from file.
-    
+
     Works as the `read` function, but yields one Atoms object at a time
     instead of all at once."""
-    
+
     if isinstance(index, str):
         index = string2index(index)
-        
+
     filename, index = parse_filename(filename, index)
-    
+
     if index is None or index == ':':
         index = slice(None, None, None)
-        
+
     if not isinstance(index, (slice, str)):
         index = slice(index, (index + 1) or None)
-        
+
     for atoms in _iread(filename, index, format, **kwargs):
         yield atoms
 
-            
+
 @parallel_generator
 def _iread(filename, index, format, full_output=False, **kwargs):
     compression = None
@@ -311,22 +322,22 @@ def _iread(filename, index, format, full_output=False, **kwargs):
         elif filename.endswith('.bz2'):
             compression = 'bz2'
             filename = filename[:-4]
-            
+
     if format is None:
         format = filetype(filename)
 
     io = get_ioformat(format)
-    
+
     if not io.read:
         raise ValueError("Can't read from {0}-format".format(format))
-        
+
     if io.single:
         start = index.start
         assert start is None or start == 0 or start == -1
         args = ()
     else:
         args = (index,)
-    
+
     must_close_fd = False
     if isinstance(filename, str):
         if io.acceptsfd:
@@ -344,7 +355,7 @@ def _iread(filename, index, format, full_output=False, **kwargs):
     else:
         assert io.acceptsfd
         fd = filename
-        
+
     # Make sure fd is closed in case loop doesn't finish:
     try:
         for dct in io.read(fd, *args, **kwargs):
@@ -357,8 +368,8 @@ def _iread(filename, index, format, full_output=False, **kwargs):
     finally:
         if must_close_fd:
             fd.close()
-    
-    
+
+
 def parse_filename(filename, index=None):
     if not isinstance(filename, str) or '@' not in filename:
         return filename, index
@@ -391,17 +402,17 @@ def string2index(string):
 
 def filetype(filename, read=True):
     """Try to guess the type of the file.
-    
+
     First, special signatures in the filename will be checked for.  If that
     does not identify the file type, then the first 2000 bytes of the file
     will be read and analysed.  Turn off this second part by using
     read=False.
-    
+
     Can be used from the command-line also::
-        
+
         $ python -m ase.io.formats filename ...
     """
-    
+
     if isinstance(filename, str):
         if os.path.isdir(filename):
             if os.path.basename(os.path.normpath(filename)) == 'states':
@@ -410,9 +421,9 @@ def filetype(filename, read=True):
 
         if filename.startswith('pg://'):
             return 'postgresql'
-        
+
         basename = os.path.basename(filename)
-        
+
         if basename == 'inp':
             return 'octopus'
 
@@ -437,23 +448,23 @@ def filetype(filename, read=True):
             return 'cmdft'
         if basename == 'atoms.dat':
             return 'iwm'
-            
+
         if not read:
             return extension2format.get(ext, ext)
-    
+
         fd = open(filename, 'rb')
     else:
         ext = None
         fd = filename
         if fd is sys.stdin:
             return 'json'
-            
+
     data = fd.read(2000)
     if fd is not filename:
         fd.close()
     else:
         fd.seek(0)
-        
+
     if len(data) == 0:
         raise IOError('Empty file: ' + filename)
 
@@ -483,8 +494,8 @@ def filetype(filename, read=True):
             return format
 
     return extension2format.get(ext, ext)
-        
-    
+
+
 if __name__ == '__main__':
     import optparse
     parser = optparse.OptionParser(
@@ -502,6 +513,6 @@ if __name__ == '__main__':
         else:
             format = '?'
             description = ''
-            
+
         print('{0:{1}}{2} ({3})'.format(filename + ':', n,
                                         description, format))
