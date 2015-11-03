@@ -5,14 +5,9 @@ import numpy as np
 
 from ase.units import Ry
 from ase.calculators.siesta.siesta import Siesta
-from ase.calculators.siesta.siesta import Specie, BasisSet, Shell
+from ase.calculators.siesta.parameters import Specie, PAOBasisBlock
 from ase.calculators.calculator import FileIOCalculator
 from ase import Atoms
-
-try:
-    del os.environ['SIESTA']
-except KeyError:
-    pass
 
 test_path = 'tmp_siesta'
 if not os.path.exists(test_path):
@@ -41,7 +36,7 @@ ch4 = Atoms('CH4', np.array([
 dirt_cheap_siesta = Siesta(
     label='test_label',
     xc='LDA',
-    mesh_cutoff=70*Ry,
+    mesh_cutoff=70 * Ry,
     basis_set='SZ',
     DM_Tolerance=1e-3,
 )
@@ -71,44 +66,26 @@ siesta = Siesta(species=[Specie(symbol='H', tag=1)])
 species, numbers = siesta.species(atoms)
 assert all(numbers == np.array([1, 2, 2, 3, 2]))
 
-# Test complex basis set.
-shell1 = Shell(
-        l=0,
-        nzeta=1,
-        split_norm=0.2,
-        nzetapol=1,
-        soft_confinement='Sankey',
-        soft_confinement_prefactor=0.2,
-        soft_confinement_inner_radius=6.0,
-        scale_factors=[0.99],
-        )
-shell2 = Shell(
-        l=1,
-        nzeta=3,
-        split_norm=0.2,
-        nzetapol=1,
-        soft_confinement='Junquera',
-        soft_confinement_prefactor=0.2,
-        soft_confinement_inner_radius=6.0,
-        scale_factors=[1.0, 0.95, 0.99],
-        )
-basis_set=BasisSet(
-    shells=[shell1, shell2],
-    basis_type='split',
-    ionic_charge=1.0,
-    )
 
+c_basis = """2 nodes 1.00
+0 1 S 0.20 P 1 0.20 6.00
+5.00
+1.00
+1 2 S 0.20 P 1 E 0.20 6.00
+6.00 5.00
+1.00 0.95"""
+basis_set = PAOBasisBlock(c_basis)
 specie = Specie(symbol='C', basis_set=basis_set)
+
 siesta = Siesta(
     label='test_label',
     xc='LDA',
-    mesh_cutoff=70*Ry,
+    mesh_cutoff=70 * Ry,
     species=[specie],
     DM_Tolerance=1e-3,
 )
 atoms.set_calculator(siesta)
 siesta.write_input(atoms, properties=['energy'])
-
 
 atoms = h.copy()
 atoms.set_calculator(dirt_cheap_siesta)
