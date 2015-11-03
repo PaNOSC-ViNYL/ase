@@ -4,65 +4,20 @@ from __future__ import print_function
 http://www.uam.es/departamentos/ciencias/fismateriac/siesta
 """
 import os
-from ase.atoms import Atoms
-import gzip
 from os.path import join, isfile, islink
 import string
 import numpy as np
 from collections import OrderedDict
 
-from ase.units import Ry, eV, Bohr
+from ase.units import Ry, eV
 from ase.data import atomic_numbers
-from ase.io.siesta import read_rho
+from ase.io.siesta import read_rho, xv_to_atoms
 from ase.calculators.calculator import FileIOCalculator, ReadError
 from ase.calculators.calculator import LockedParameters
 from ase.calculators.siesta.parameters import Diag, PAOBasisBlock, Specie
 from ase.calculators.siesta.parameters import format_fdf
 
 meV = 0.001 * eV
-
-
-def read_xv_file(filename, read_velocity=False):
-    "Returns tuple (vectors,speciesnumber,atomnumber,xyz,[v,]) from an XV-file"
-    try:
-        file = open(filename, 'r')
-    except:
-        file = gzip.open(filename + '.gz', 'r')
-
-    # Read cell vectors (lines 1-3)
-    vectors = []
-    for i in range(3):
-        data = string.split(file.readline())
-        vectors.append([string.atof(data[j]) * Bohr for j in range(3)])
-
-    # Read number of atoms (line 4)
-    string.atoi(string.split(file.readline())[0])
-
-    # Read remaining lines
-    speciesnumber, atomnumber, xyz, V = [], [], [], []
-    for line in file.readlines():
-        if len(line) > 5:  # Ignore blank lines
-            data = string.split(line)
-            speciesnumber.append(string.atoi(data[0]))
-            atomnumber.append(string.atoi(data[1]))
-            xyz.append([string.atof(data[2 + j]) * Bohr for j in range(3)])
-            V.append([string.atof(data[5 + j]) * Bohr for j in range(3)])
-    file.close()
-
-    if read_velocity:
-        return vectors, speciesnumber, atomnumber, xyz, V
-    else:
-        return vectors, speciesnumber, atomnumber, xyz
-
-
-def xv_to_atoms(filename):
-    result = read_xv_file(filename=filename, read_velocity=False)
-    unit_cell = np.array(result[0])
-    numbers = np.array(result[2])
-    positions = np.array(result[3])
-    atoms = Atoms(numbers=numbers, positions=positions, cell=unit_cell)
-
-    return atoms
 
 
 class BaseSiesta(FileIOCalculator):
