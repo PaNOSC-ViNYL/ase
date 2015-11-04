@@ -461,14 +461,15 @@ class FitnessSharingPopulation(Population):
     def __init__(self, data_connection, population_size,
                  comp_key, threshold, alpha_sh=1.,
                  comparator=None, logfile=None, use_extinct=False):
-        Population.__init__(self, data_connection, population_size,
-                            comparator, logfile, use_extinct)
         self.comp_key = comp_key
         self.dt = threshold  # dissimilarity threshold
         self.alpha_sh = alpha_sh
         self.fit_scaling = 1.
         
         self.sh_cache = dict()
+        
+        Population.__init__(self, data_connection, population_size,
+                            comparator, logfile, use_extinct)
         
     def __get_fitness__(self, candidates):
         """Input should be sorted according to raw_score."""
@@ -595,17 +596,23 @@ class RankFitnessPopulation(Population):
         exp_function: boolean
             If True use an exponential function for ranking the fitness.
             If False use the same as in Population. Default True.
+    
+        exp_prefactor: float
+            The prefactor used in the exponential fitness scaling function.
+            Default 0.5
 
     """
     def __init__(self, data_connection, population_size, variable_function,
                  comparator=None, logfile=None, use_extinct=False,
-                 exp_function=True):
-        Population.__init__(self, data_connection, population_size,
-                            comparator, logfile, use_extinct)
+                 exp_function=True, exp_prefactor=0.5):
         self.exp_function = exp_function
+        self.exp_prefactor = exp_prefactor
         self.vf = variable_function
         # The current fitness is set at each update of the population
         self.current_fitness = None
+        
+        Population.__init__(self, data_connection, population_size,
+                            comparator, logfile, use_extinct)
     
     def __get_fitness__(self, candidates):
         expf = self.exp_function
@@ -657,7 +664,7 @@ class RankFitnessPopulation(Population):
             assert T != 0., msg
             return 0.5 * (1. - np.tanh(2. * (ff - rmax) / T - 1.))
         else:
-            return 0.5 ** (-ff - 1)
+            return self.exp_prefactor ** (-ff - 1)
     
     def update(self):
         """ The update method in Population will add to the end of
