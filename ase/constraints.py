@@ -238,6 +238,7 @@ class FixBondLength(FixConstraint):
         self.indices = newa
 
     def get_constraint_force(self):
+        """Return the (scalar) force required to maintain the constraint"""
         return self.constraint_force
 
     def __repr__(self):
