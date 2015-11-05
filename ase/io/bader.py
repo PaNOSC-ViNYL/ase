@@ -2,10 +2,12 @@ from __future__ import print_function
 import numpy as np
 from ase.units import Bohr
 
-def attach_charges(atoms, fileobj='ACF.dat', displacement=1e-4):
+def attach_charges(atoms, fileobj='ACF.dat', displacement=1e-4, total_electrons=False,
+                   bader_units='Bohr'):
     """Attach the charges from the fileobj to the Atoms."""
     if isinstance(fileobj, str):
         fileobj = open(fileobj)
+    assert bader_units in ['Bohr', 'Angstrom']
 
     sep = '---------------'
     i = 0 # Counter for the lines
@@ -39,9 +41,15 @@ def attach_charges(atoms, fileobj='ACF.dat', displacement=1e-4):
                                   'Check that Bader program version >= 0.25')
                 
             atom = atoms[int(words[0]) - 1]
-            atom.charge = atom.number - float(words[j])
+            if total_electrons:
+                atom.charge = atom.number - float(words[j])
+            else:
+                atom.charge = float(words[j])
             if displacement is not None: # check if the atom positions match
-                xyz = np.array([float(w) for w in words[1:4]]) * Bohr
+                if bader_units == 'Bohr':
+                    xyz = np.array([float(w) for w in words[1:4]]) * Bohr
+                elif bader_units == 'Angstrom':
+                    xyz = np.array([float(w) for w in words[1:4]])
                 assert np.linalg.norm(atom.position - xyz) < displacement
         i += 1
 
