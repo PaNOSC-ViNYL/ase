@@ -432,13 +432,16 @@ class BundleTrajectory:
                               "Cowardly refusing to remove it.")
             ase.parallel.barrier()  # all must have time to see it exists
             if self.is_empty_bundle(self.filename):
+                ase.parallel.barrier()
                 self.log('Deleting old "%s" as it is empty' % (self.filename,))
                 self.delete_bundle(self.filename)
             elif not backup:
+                ase.parallel.barrier()
                 self.log('Deleting old "%s" as backup is turned off.' %
                          (self.filename,))
                 self.delete_bundle(self.filename)
             else:
+                ase.parallel.barrier()
                 # Make a backup file
                 bakname = self.filename + '.bak'
                 if os.path.exists(bakname):
@@ -448,6 +451,7 @@ class BundleTrajectory:
                 self.log('Renaming "%s" to "%s"' % (self.filename, bakname))
                 self._rename_bundle(self.filename, bakname)
         # Ready to create a new bundle.
+        ase.parallel.barrier()
         self.log('Creating new "%s"' % (self.filename,))
         self._make_bundledir(self.filename)
         self.state = 'prewrite'
@@ -566,6 +570,7 @@ class BundleTrajectory:
         """Check if a filename is an empty bundle.  Assumes that it is a bundle."""
         f = open(os.path.join(filename, "frames"))
         nframes = int(f.read())
+        f.close()
         ase.parallel.barrier()  # File may be removed by the master immediately after this.
         return nframes == 0
 
