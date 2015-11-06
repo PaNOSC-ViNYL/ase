@@ -750,7 +750,7 @@ class RankFitnessPopulation(Population):
         return (c1.copy(), c2.copy())
 
 
-class MultiVarPopulation(Population):
+class MultiVarPopulation(RankFitnessPopulation):
     """ Allows for assignment of fitness based on a set of two variables
         such that fitness is ranked according to a Pareto-front of
         non-dominated candidates.
@@ -788,22 +788,21 @@ class MultiVarPopulation(Population):
 
     """
 
-    def __init__(self, data_connection, population_size, variable_function,
-                 comparator=None, logfile=None, use_extinct=False,
-                 rank_data1=False, rank_data2=False, exp_function=True,
-                 exp_prefactor=0.5):
+    def __init__(self, data_connection, population_size,
+                 variable_function=None, comparator=None, logfile=None,
+                 use_extinct=False, rank_data1=False, rank_data2=False,
+                 exp_function=True, exp_prefactor=0.5):
         self.rank_data1 = rank_data1
         self.rank_data2 = rank_data2
-        self.exp_function = exp_function
-        self.exp_prefactor = exp_prefactor
-        # Only expect variable_function if ranking used.
-        if rank_data1 or rank_data2:
-            self.vf = variable_function
         # The current fitness is set at each update of the population
         self.current_fitness = None
 
-        Population.__init__(self, data_connection, population_size,
-                            comparator, logfile, use_extinct)
+        RankFitnessPopulation.__init__(self, data_connection, population_size,
+                                       variable_function, comparator, logfile,
+                                       use_extinct, exp_function,
+                                       exp_prefactor)
+        if rank_data1 or rank_data2:
+            self.vf = variable_function
 
     def __get_fitness__(self, candidates):
         rd1 = self.rank_data1
@@ -960,18 +959,6 @@ class MultiVarPopulation(Population):
         else:
             return self.exp_prefactor ** (-rfro - 1)
 
-    def update(self):
-        """ The update method in Population will add to the end of
-        the population, that can't be used here since the fitness
-        will potentially change for all candidates when new are added,
-        therefore just recalc the population every time. """
-
-        self.pop = []
-        self.__initialize_pop__()
-        self.current_fitness = self.__get_fitness__(self.pop)
-
-        self._write_log()
-
     def __initialize_pop__(self):
         # Get all relaxed candidates from the database
         ue = self.use_extinct
@@ -994,12 +981,12 @@ class MultiVarPopulation(Population):
             i = 0
             while i < len(all_sorted) and len(self.pop) < self.pop_size:
                 c = all_sorted[i]
+                # variable_function defined for ranked candidates.
                 if rd1 or rd2:
                     c_vf = self.vf(c)
                 i += 1
                 eq = False
                 for a in self.pop:
-                    # variable_function defined for ranked candidates.
                     if rd1 or rd2:
                         a_vf = self.vf(a)
                         # Only run comparator if the variable_function
@@ -1018,36 +1005,3 @@ class MultiVarPopulation(Population):
                     self.pop.append(c)
         self.all_cand = all_cand
 
-    def get_two_candidates(self):
-        """ Returns two candidates for pairing employing the
-            roulete wheel selection scheme described in
-            R.L. Johnston Dalton Transactions,
-            Vol. 22, No. 22. (2003), pp. 4193-4207
-        """
-
-        if len(self.pop) < 2:
-            self.update()
-
-        if len(self.pop) < 2:
-            return None
-
-        # Use saved fitness
-        fit = self.current_fitness
-        fmax = max(fit)
-        c1 = self.pop[0]
-        c2 = self.pop[0]
-        while c1.info['confid'] == c2.info['confid']:
-            nnf = True
-            while nnf:
-                t = randrange(0, len(self.pop), 1)
-                if fit[t] > random() * fmax:
-                    c1 = self.pop[t]
-                    nnf = False
-            nnf = True
-            while nnf:
-                t = randrange(0, len(self.pop), 1)
-                if fit[t] > random() * fmax:
-                    c2 = self.pop[t]
-                    nnf = False
-
-        return (c1.copy(), c2.copy())
