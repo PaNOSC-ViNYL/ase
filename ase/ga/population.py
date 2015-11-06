@@ -1004,4 +1004,3 @@ class MultiVarPopulation(RankFitnessPopulation):
                 if not eq:
                     self.pop.append(c)
         self.all_cand = all_cand
-
