@@ -61,7 +61,11 @@ for format in all_formats:
     if format in ['abinit', 'castep-cell', 'dftb', 'eon', 'gaussian']:
         # Someone should do something ...
         continue
-        
+
+    if format in ['v-sim']:
+        # Standalone test used as not compatible with 1D periodicity
+        continue
+    
     if format in ['postgresql', 'trj', 'vti', 'vtu']:
         # Let's not worry about these.
         continue
