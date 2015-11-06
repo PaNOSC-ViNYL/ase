@@ -393,12 +393,13 @@ class BundleTrajectory:
         elif self.subtype == 'split':
             if self.datatypes[name] == 'once':
                 d, issplit = self.backend.read_split(f0, name)
+                atom_id, dummy = self.backend.read_split(f0, 'ID')
             else:
                 d, issplit = self.backend.read_split(f, name)
             if issplit:
                 assert atom_id is not None
                 assert len(d) == len(atom_id)
-                d = d[atom_id]
+                d[atom_id] = np.array(d)
         return d
 
     def __len__(self):
