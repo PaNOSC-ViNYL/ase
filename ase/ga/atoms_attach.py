@@ -10,6 +10,14 @@ def get_raw_score(self):
     return self.info['key_value_pairs']['raw_score']
 
 
+def get_raw_score_1(self):
+    return self.info['key_value_pairs']['raw_score_1']
+
+
+def get_raw_score_2(self):
+    return self.info['key_value_pairs']['raw_score_2']
+
+
 def set_raw_score(self, score):
     self.info['key_value_pairs']['raw_score'] = score
 
@@ -19,6 +27,8 @@ def enable_raw_score_methods(a):
         a.info['key_value_pairs'] = {}
     a.set_raw_score = types.MethodType(set_raw_score, a)
     a.get_raw_score = types.MethodType(get_raw_score, a)
+    a.get_raw_score_1 = types.MethodType(get_raw_score_1, a)
+    a.get_raw_score_2 = types.MethodType(get_raw_score_2, a)
 
 
 def get_neighbor_list(self):
