@@ -40,8 +40,25 @@ In general:
 
 This way Master (official and local) is kept clean and synchronized.
 
-You can learn the git basics in several places, e.g.
-http://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository
+You can learn the git basics in several places:
+    
+* `Git Reference <http://gitref.org>`__
+* `Pro Git <https://git-scm.com/book/en/v2>`__
+* `Introduction to Git with Scott Chacon of GitHub
+  <https://www.youtube.com/watch?v=ZDR433b0HJY>`__
+* `Tech Talk: Linus Torvalds on git
+  <https://www.youtube.com/watch?v=4XpnKHJAok8>`__
+
+
+Aliases
+-------
+
+These aliases are quite common::
+    
+    $ git config --global alias.st status
+    $ git config --global alias.ci commit
+    $ git config --global alias.co checkout
+    $ git config --global alias.lol "log --pretty=oneline --abbrev-commit --graph --decorate"
 
 
 The first steps as a developer
