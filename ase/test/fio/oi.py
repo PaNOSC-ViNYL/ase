@@ -17,6 +17,11 @@ try:
 except ImportError:
     etree = 0
     
+try:
+    import Scientific
+except ImportError:
+    Scientific = 0
+    
 a = 5.0
 d = 1.9
 c = a / 2
@@ -56,7 +61,11 @@ for format in all_formats:
     if format in ['abinit', 'castep-cell', 'dftb', 'eon', 'gaussian']:
         # Someone should do something ...
         continue
-        
+
+    if format in ['v-sim']:
+        # Standalone test used as not compatible with 1D periodicity
+        continue
+    
     if format in ['postgresql', 'trj', 'vti', 'vtu']:
         # Let's not worry about these.
         continue
@@ -68,6 +77,9 @@ for format in all_formats:
         continue
 
     if not etree and format == 'exciting':
+        continue
+
+    if not Scientific and format == 'etsf':
         continue
         
     io = get_ioformat(format)
