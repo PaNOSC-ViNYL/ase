@@ -1,4 +1,5 @@
 from ase.io.eps import EPS
+import numpy as np
 
 
 class PNG(EPS):
@@ -34,8 +35,11 @@ class PNG(EPS):
                                self.filename, 72)
             else:
                 x = renderer._renderer.buffer_rgba()
-                _png.write_png(renderer._renderer.buffer_rgba(),
-                               renderer.width, renderer.height,
+                # print len(x), len(x) * .25, np.array(x)
+                # print self.w, self.h, int(self.w) * int(self.h)
+                y = np.reshape(x, (int(self.h), int(self.w), 4))
+                _png.write_png(y, #renderer._renderer.buffer_rgba(),
+                               # renderer.width, renderer.height,
                                self.filename, 72)
 
                 
