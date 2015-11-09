@@ -282,16 +282,7 @@ class SQLite3Database(Database):
                 number_key_values.append([key, float(value), id])
             else:
                 assert isinstance(value, basestring)
-                try:
-                    int(value)
-                except ValueError:
-                    text_key_values.append([key, value, id])
-                else:
-                    raise IOError('The value ' + value + ' is input as ' +
-                                  'a string but can be interpreted as an ' +
-                                  'integer. Please convert to integer using ' +
-                                  'int(value) before writing to the ' +
-                                  'database OR change to a different string.')
+                text_key_values.append([key, value, id])
  
         cur.executemany('INSERT INTO text_key_values VALUES (?, ?, ?)',
                         text_key_values)
