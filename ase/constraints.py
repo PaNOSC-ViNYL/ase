@@ -954,11 +954,11 @@ class Filter:
         'Return the momenta of the visible atoms.'
         return self.atoms.get_momenta()[self.index]
 
-    def set_momenta(self, momenta):
+    def set_momenta(self, momenta, **kwargs):
         'Set the momenta of the visible atoms.'
         mom = self.atoms.get_momenta()
         mom[self.index] = momenta
-        self.atoms.set_momenta(mom)
+        self.atoms.set_momenta(mom, **kwargs)
 
     def get_atomic_numbers(self):
         'Return the atomic numbers of the visible atoms.'
@@ -992,12 +992,12 @@ class Filter:
     def get_masses(self):
         return self.atoms.get_masses()[self.index]
 
-    def get_potential_energy(self):
+    def get_potential_energy(self, **kwargs):
         """Calculate potential energy.
 
         Returns the potential energy of the full system.
         """
-        return self.atoms.get_potential_energy()
+        return self.atoms.get_potential_energy(**kwargs)
 
     def get_chemical_symbols(self):
         return self.atoms.get_chemical_symbols()
