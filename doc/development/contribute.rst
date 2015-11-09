@@ -25,22 +25,23 @@ The workflow described here have two elements to them:
 
 1. The guidelines of project git-branches as a whole.
 2. The workflow of the individual developer, i.e. the standard operating
-   procedure when cloning, pullin, pushing etc.
+   procedure when cloning, pulling, pushing etc.
 
 Only the latter will covered at the moment. When the developer team agree
 on the former it will be added here too. One comment though:
 
 In general:
     
-* never work in master branch locally or on GitLab.
-* Make a new branch for whatever you are doing, and when you are done, push
-  it to your own official repos and from there make a merge request from that
-  branch to official master.
+* Never work in master branch locally or on GitLab.
+* Make a new branch for whatever you are doing.  When you are done, push
+  it to your own repository and make a merge request from that branch in your
+  repository to official master.
 * Do *not* ever merge the main master branch into yours.
 
-This way Master (official and local) is kept clean and synchronized.
+The above policy ensures that the master branch means the same thing in all 
+repositories (official and forks).
 
-You can learn the git basics in several places:
+You can learn the basics of git in several places:
     
 * `Git Reference <http://gitref.org>`__
 * `Pro Git <https://git-scm.com/book/en/v2>`__
@@ -64,59 +65,77 @@ These aliases are quite common::
 The first steps as a developer
 ------------------------------
 
-* register as a user on https://gitlab.com
+* Register as a user on https://gitlab.com
 * Find and/or change your user-name in your account setting. You will need it.
-* follow directions on https://gitlab.com/help/ssh/README for how to generate
+  
+  1. Go to gitlab.com/profile
+  2. Click 'Account' on the left
+  3. Change your user name to be whatever you want it to be
+  
+* Follow directions on https://gitlab.com/help/ssh/README for how to generate
   and add your own public ssh-key
-* go to https://gitlab.com/ase/ase and fork the project via the blue 'fork'
-  button so that you get your own GitLab repository to play with.
+* Go to https://gitlab.com/ase/ase and fork the project.  The 'fork' button is 
+  to the right of the button with the star and to the left of the 'SSH' button.  
+  Forking the project give you your own personal copy of the project.
 
 You will now have a fork situated at https://gitlab.com/your-user-name/ase
 
 * From here on:
     
-  - ``upstream`` refers to git@gitlab.com:ase/ase and refers to present official site of ase project.
-  - ``origin`` refers to git@gitlab.com:your-user-name/ase
+  - ``upstream`` refers to git@gitlab.com:ase/ase and refers to the official 
+    repository  of the ase project.
+  - ``origin`` refers to your copy of the ase project located at
+    git@gitlab.com:your-user-name/ase or https://gitlab.com/your-user-name/ase
   
-  So ``upstream/master``, for example, refers to master branch (i.e. trunk or
-  developement branch) of official ase project.
+  For example, ``upstream/master`` refers to the master (i.e., trunk or 
+  development) branch of the official ase project.
 
-* clone the repos from ``origin`` to your local machine::
-    
+* Clone your fork to ``origin`` to your local machine::
+      
       $ git clone git@gitlab.com:your-user-name/ase.git
       $ cd ase
       
 * Add and track ``upstream`` in your local git (done only once for each local
-  git repos)::
+  git repository)::
 
       $ git remote add upstream git@gitlab.com:ase/ase
       
-  You can always check the list of branches of remote repositories that you
-  follow in your local git repository::
+  You can always check the list of remote repositories that you can obtain 
+  code from::
       
       $ git remote -v
-
+  
+  And you can check all available branches from the remotes that you are 
+  tracking::
+  
+      $ git branch -a
 
 Making changes
 --------------
 
 Changes and/or additions can be made both directly in GitLab for small
 changes (see the :ref:`small changes section<making-small-changes>`) and on a
-branch on your local clone of official repos.
-Prefered way using command line on local machine is:
+local branch in your fork.  The prefered way using command line on a local 
+machine is:
 
-1) First step is to clean up master (since you should not work in master
-   it's ok).
+1) Ensure that your master branch is in sync with upstream master (since you
+   should not work in master it's ok).
 
   * Fetch information about heads and references from "upsteam" and store it in
     local git used in later merges and checkouts::
         
         $ git fetch upstream
         
-  * Jump into local master branch and make sure that it's same as "upstream"
-    master branch::
+  * Switch to the local branch called 'master' that is (ideally) identical to 
+    the upstream master branch ::
         
         $ git checkout master
+        $ git merge upstream/master --ff-only
+    
+    If the previous command fails, then it is safe to simply reset your master 
+    branch to the upstream master branch with the ``--hard`` flag.  Use this
+    flag sparingly, as it is very powerful.
+    
         $ git reset --hard upstream/master
         
     If this is first time there would be no need for hard reset, unless some time
@@ -125,7 +144,11 @@ Prefered way using command line on local machine is:
   * It's a good idea to keep also your own origin/master identical to
     upstream/master::
         
-        $ git push origin
+        $ git push origin master
+    
+    If this command fails, then you can try again with the ``--force`` flag.
+    Same as the ``reset --hard`` git command, ``git push --force`` is powerful
+    and should be used sparingly.
         
 
 2) Next you can do changes and additions.
@@ -135,14 +158,16 @@ Prefered way using command line on local machine is:
         
         $ git checkout -b add-contribute-rst
         
-  * If you already have this branch since before then you can reset it both
-    locally and in your GitLab account (if it's still there) from
-    upstream/master just like your own local master::
+  * If you already have this branch from some previous work, but want to do 
+    new work with the same branch name then you should start by resettting it 
+    to current upstream/master both locally and in your GitLab account::
         
         $ git reset --hard upstream/master
         $ git push origin add-contribute-rst
         
-  * edit/add the file(s)
+  * Make your changes. During this stage, you should keep in mind the rule 
+    "Commit early and often." The next three bulleted points should be done 
+    many times during code editing.  Each commit should be one "unit" of work.
 
   * Stage the files to be committed using ``git add``::
         
@@ -152,12 +177,32 @@ Prefered way using command line on local machine is:
         
         $ git status
         
-  * Commit the staged changes and add commit message::
+  * Commit the staged changes and add commit message.  If you can summarize 
+    your changes succinctly, then you can use the command-line syntax::
         
-        $ git commit -m "ENH: Add developer workflow guidlines"
+        $ git commit -m "ENH: Add developer workflow guidelines"
+    
+    But if your changes require explanation via prose, then perhaps you should
+    just execute ::
+      
+        $ git commit
+    
+    And a text editor will appear.  Please observe the following guidelines
+    for writing your commit message. (stolen from `here <http://chris.beams.io/posts/git-commit/>`_)
+    
+    - The seven rules of a great git commit message
+    
+      1. Separate subject from body with a blank line
+      2. Limit the subject line to 50 characters
+      3. Capitalize the subject line
+      4. Do not end the subject line with a period
+      5. Use the imperative mood in the subject line
+      6. Wrap the body at 72 characters
+      7. Use the body to explain what and why vs. how
         
     Read the :ref:`commit message
-    section<writing-the-commit-message>` guidlines for commit message
+    section<writing-the-commit-message>` guidelines for commit messages for 
+    some additional ase-specific information.
 
   * Push commits to your GitLab repository::
         
@@ -186,11 +231,16 @@ Prefered way using command line on local machine is:
     anyone with push access to gitlab.com/ase/ase <http://gitlab.com/ase/ase>
     can merge your merge request and it will now be part of the master branch
 
-  * If this commit was for a single file, say, then go ahead and remove the
-    branch locally and on origin. But wait until the merge-request is approved::
-        
+  * After the merge-request is approved, delete the branch locally::
+
         $ git branch -D add-contribute-rst
-        $ git branch -D origin add-contribute-rst
+    
+    and on gitlab::
+    
+        $ git push origin :add-contribute-rst
+        (output)
+        To git@gitlab.com:your-user-name/add-contribute-rst
+        - [deleted]         add-contribute-rst
         
 
 .. _Last-minute-corrections:
@@ -275,7 +325,7 @@ Code review
 ===========
 
 Before you start working on a Merge Request, *please* read our
-:ref:`python_codingstandard`.
+:ref:`python_codingstandard`. Please also install a linter!
 
 Hopefully someone will look at your changes and give you some
 feedback.  Maybe everything is fine and things can be merged to the official
@@ -289,5 +339,6 @@ repository right away, but there could also be some more work to do like:
 * add some documentation
 
 This code review loop is not something we have invented to prevent you from
-contributing - it should be viewed as an opportunity for you to learn how to
-write code that fits into the ASE codebase.
+contributing.  Such code review is practiced by virtually all software projects
+that involve more than one person.  Code review should be viewed as an 
+opportunity for you to learn how to write code that fits into the ASE codebase.
