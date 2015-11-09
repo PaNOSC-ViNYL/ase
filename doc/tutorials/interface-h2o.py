@@ -1,9 +1,6 @@
-import os
-from sys import argv
+# creates: WL.png, Ni111slab2x2.png, WL_rot_c.png, WL_rot_a.png, WL_wrap.png, interface-h2o-wrap.png
 import numpy as np
 from ase.io import read, write
-from ase.visualize import view
-from ase.constraints import FixAtoms
 from ase.lattice.surface import fcc111
 
 #Use ase.io.read to load atoms object

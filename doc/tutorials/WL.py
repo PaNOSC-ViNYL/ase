@@ -1,3 +1,4 @@
+# creates: WL.traj
 import numpy as np
 from ase import Atoms
 p = np.array([[  0.27802511,  -0.07732213,  13.46649107],
