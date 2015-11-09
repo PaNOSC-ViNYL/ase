@@ -70,7 +70,7 @@ for format in all_formats:
         # Let's not worry about these.
         continue
     
-    if sys.version_info[0] == 3 and format in ['bundletrajectory', 'cif']:
+    if sys.version_info[0] == 3 and format in ['cif']:
         continue
 
     if not matplotlib and format in ['eps', 'png']:

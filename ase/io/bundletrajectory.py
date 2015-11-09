@@ -537,14 +537,14 @@ class BundleTrajectory:
         metadata['version'] = self.version
         metadata['subtype'] = self.subtype
         metadata['backend'] = self.backend_name
-        f = paropen(os.path.join(self.filename, "metadata"), "w")
+        f = paropen(os.path.join(self.filename, "metadata"), "wb")
         pickle.dump(metadata, f, -1)
         f.close()
 
     def _read_metadata(self):
         """Read the metadata."""
         assert self.state == 'read'
-        f = open(os.path.join(self.filename, 'metadata'))
+        f = open(os.path.join(self.filename, 'metadata'), 'rb')
         metadata = pickle.load(f)
         f.close()
         return metadata
@@ -557,7 +557,7 @@ class BundleTrajectory:
         metaname = os.path.join(filename, 'metadata')
         if not os.path.isfile(metaname):
             return False
-        f = open(metaname)
+        f = open(metaname, 'rb')
         mdata = pickle.load(f)
         f.close()
         try:
@@ -568,7 +568,7 @@ class BundleTrajectory:
     @staticmethod
     def is_empty_bundle(filename):
         """Check if a filename is an empty bundle.  Assumes that it is a bundle."""
-        f = open(os.path.join(filename, "frames"))
+        f = open(os.path.join(filename, "frames"), 'rb')
         nframes = int(f.read())
         f.close()
         ase.parallel.barrier()  # File may be removed by the master immediately after this.
@@ -683,7 +683,7 @@ class PickleBundleBackend:
     def write_small(self, framedir, smalldata):
         "Write small data to be written jointly."
         if self.writesmall:
-            f = open(os.path.join(framedir, "smalldata.pickle"), "w")
+            f = open(os.path.join(framedir, "smalldata.pickle"), "wb")
             pickle.dump(smalldata, f, -1)
             f.close()
 
@@ -691,7 +691,7 @@ class PickleBundleBackend:
         "Write data to separate file."
         if self.writelarge:
             fn = os.path.join(framedir, name + '.pickle')
-            f = open(fn, "w")
+            f = open(fn, "wb")
             try:
                 info = (data.shape, str(data.dtype))
             except AttributeError:
@@ -702,7 +702,7 @@ class PickleBundleBackend:
 
     def read_small(self, framedir):
         "Read small data."
-        f = open(os.path.join(framedir, "smalldata.pickle"))
+        f = open(os.path.join(framedir, "smalldata.pickle"), 'rb')
         data = pickle.load(f)
         f.close()
         return data
@@ -710,7 +710,7 @@ class PickleBundleBackend:
     def read(self, framedir, name):
         "Read data from separate file."
         fn = os.path.join(framedir, name + '.pickle')
-        f = open(fn)
+        f = open(fn, 'rb')
         pickle.load(f)  # Discarded.
         data = pickle.load(f)
         f.close()
@@ -720,14 +720,14 @@ class PickleBundleBackend:
         "Read information about file contents without reading the data."
         fn = os.path.join(framedir, name + '.pickle')
         if split is None or os.path.exists(fn):
-            f = open(fn)
+            f = open(fn, 'rb')
             info = pickle.load(f)
             f.close()
             return info
         else:
             for i in range(split):
                 fn = os.path.join(framedir, name + '_' + str(i) + '.pickle')
-                f = open(fn)
+                f = open(fn, 'rb')
                 info = pickle.load(f)
                 f.close()
                 if i == 0:
@@ -756,7 +756,7 @@ class PickleBundleBackend:
         for i in range(self.nfrag):
             suf = "_%d" % (i,)
             fn = os.path.join(framedir, name + suf + '.pickle')
-            f = open(fn)
+            f = open(fn, 'rb')
             pickle.load(f)  # Discarding the shape.
             data.append(pickle.load(f))
             f.close()
@@ -850,14 +850,14 @@ def print_bundletrajectory_info(filename):
         print(filename, 'is an empty BundleTrajectory.')
         return
     # Read the metadata
-    f = open(os.path.join(filename, 'metadata'))
+    f = open(os.path.join(filename, 'metadata'), 'rb')
     metadata = pickle.load(f)
     f.close()
     print("Metadata information of BundleTrajectory '%s':" % (filename,))
     for k, v in metadata.items():
         if k != 'datatypes':
             print("  %s: %s" % (k, v))
-    f = open(os.path.join(filename, 'frames'))
+    f = open(os.path.join(filename, 'frames'), 'rb')
     nframes = int(f.read())
     print("Number of frames: %i" % (nframes,))
     print("Data types:")
