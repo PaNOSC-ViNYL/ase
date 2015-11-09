@@ -140,7 +140,8 @@ extension2format = {
     'nw': 'nwchem',
     'out': 'espresso-out',
     'shelx': 'res',
-    'in': 'aims'}
+    'in': 'aims',
+    'poscar': 'vasp'}
 
 
 def initialize(format):
