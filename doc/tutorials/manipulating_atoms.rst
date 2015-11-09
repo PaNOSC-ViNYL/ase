@@ -2,8 +2,6 @@
 
 Manipulating atoms
 ------------------
-**XXX rewrite this:  use fcc111() function and do some relaxation ...**
-
 We will set up a one layer slab of Ni atoms with one Ag adatom.
 
 Define the slab atoms:
@@ -110,3 +108,84 @@ The structure now looks like this:
 
 .. image:: a3.png
    :scale: 35
+
+-----
+Interface building
+-----
+
+Now try something else. We will make an interface with nickel(111) and water.
+First we need a layer of water. One layer of water is constructed in this script :download:`WL.py`,
+and saved in the file 'WL.traj'. Now run the WL.py and then import the atoms object from the traj file using read.
+
+>>>from ase.io import read
+>>>W = read('WL.traj')
+
+Lets take a look at the structure using view.
+
+.. image:: WL.png
+         :scale: 35
+
+and let's look at the unit cell.
+
+>>>cellW = W.get_cell()
+>>>print cellW
+array([[  8.490373   0.         0.      ]
+       [  0.         4.901919   0.      ]
+       [  0.         0.        26.93236 ]])
+
+We will need at Ni(111) slab which matches the water as closely as possible. 
+A 2x4 orthogonal fcc111 supercell should be good enough.
+
+>>>from ase.lattice.surface import fcc111
+>>>slab = fcc111('Ni', size = [2,4,3], a = 3.55, orthogonal=True)
+>>>cells = slab.get_cell()
+
+.. image:: Ni111slab2x2.png
+         :scale: 35
+
+>>>print cells
+array([[ 5.02045815  0.          0.        ]
+       [ 0.          8.69568859  0.        ]
+       [ 0.          0.          6.14878037]]
+
+Looking at the two unit cells, we can see that they match with around 2 percent difference,
+if we rotate one of the cells 90 degrees in the plane. Lets rotate the cell
+
+>>>W.set_cell([[cellW[1,1],0,0],[0,cellW[0,0],0],cellW[2]], scale_atoms=False)
+
+.. image:: WL_rot_c.png
+            :scale: 35
+
+Let's also rotate the molecules:
+
+>>>W.rotate('z', np.pi / 2.0, center=(0,0,0))
+
+.. image:: WL_rot_a.png
+         :scale: 35
+
+Now we can wrap the atoms into the cell
+
+>>>W.wrap()
+
+.. image:: WL_wrap.png
+         :scale: 35
+
+The wrap() function only works if periodic boundary conditions are enabled.
+We have a 2 percent lattice mismatch between Ni111 and the water, 
+so we scale the water in the plane to match the cell of the slab:
+
+>>>cell1 = np.array([cells[0],cells[1],cellW[2]])
+>>>W.set_cell(cell1, scale_atoms=True)
+>>>p = slab.get_positions()
+>>>W.center(vacuum=p[:,2].max() + 1.5, axis=2)
+
+Finally we use extend to copy the water onto the slab:
+
+>>>interface = slab.copy()
+>>>interface.extend(W)
+>>>interface.center(vacuum=6, axis=2)
+
+.. image:: interface-h2o-wrap.png
+         :scale: 35
+
+The positions of the water in the slab unitcell will be the same as they had in their own unit cell.
