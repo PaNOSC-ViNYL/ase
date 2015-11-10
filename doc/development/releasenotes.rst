@@ -13,12 +13,24 @@ Development version in trunk
 * New iterator function :func:`ase.io.iread` for iteratively reading Atoms
   objects from a file.
 
+* The :func:`ase.io.read` function and command-line tools can now read ``.gz``
+  and ``.bz2`` compressed files.
+
 * Two new decorators :func:`~ase.parallel.parallel_function` and
   :func:`~ase.parallel.parallel_generator` added.
 
-* Source code moved to GitLab.
+* Source code moved to https://gitlab.com/ase/ase.
 
-          
+* QMMM, TIP3P ...
+
+* Velocity Verlet will now work correctly with constraints.
+
+* ASE's GUI no longer needs a special GTK-backend for matplotlib to work.
+  This will make installation of ASE much simpler.
+
+* We can now :func:`~ase.io.read` and :func:`~ase.io.write` JSV files.
+
+
 Version 3.9.1
 =============
 

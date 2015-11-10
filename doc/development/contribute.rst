@@ -83,9 +83,9 @@ You will now have a fork situated at https://gitlab.com/your-user-name/ase
 Making changes
 --------------
 
-Changes and/or additions can be made both directly in GitLab (for small
-changes :ref:`see below section<making-small-changes>`) and on a branch
-on your local clone of official repos.
+Changes and/or additions can be made both directly in GitLab for small
+changes (see the :ref:`small changes section<making-small-changes>`) and on a
+branch on your local clone of official repos.
 Prefered way using command line on local machine is:
 
 1) First step is to clean up master (since you should not work in master
@@ -99,11 +99,17 @@ Prefered way using command line on local machine is:
   * Jump into local master branch and make sure that it's same as "upstream"
     master branch::
         
-        $git checkout master
-        $git reset --hard upstream/master
+        $ git checkout master
+        $ git reset --hard upstream/master
         
     If this is first time there would be no need for hard reset, unless some time
     has passed since the cloning. Still better safe than sorry.
+
+  * It's a good idea to keep also your own origin/master identical to
+    upstream/master::
+        
+        $ git push origin
+        
 
 2) Next you can do changes and additions.
 
@@ -111,28 +117,35 @@ Prefered way using command line on local machine is:
     enhance the file contribute.rst as an example::
         
         $ git checkout -b add-contribute-rst
-
+        
+  * If you already have this branch since before then you can reset it both
+    locally and in your GitLab account (if it's still there) from
+    upstream/master just like your own local master::
+        
+        $ git reset --hard upstream/master
+        $ git push origin add-contribute-rst
+        
   * edit/add the file(s)
 
   * Stage the files to be committed using ``git add``::
-      
+        
         $ git add contribute.rst
 
   * Check your status::
-      
+        
         $ git status
-
+        
   * Commit the staged changes and add commit message::
-      
+        
         $ git commit -m "ENH: Add developer workflow guidlines"
         
     Read the :ref:`commit message
     section<writing-the-commit-message>` guidlines for commit message
 
   * Push commits to your GitLab repository::
-      
+        
         $ git push --set-upstream origin add-contribute-rst
-
+        
   * Go to gitlab.com/your-user-name/ase <http://gitlab.com/your-user-name/ase>
     and click on '## branches' button (where ## is the number of branches on your
     repo)
@@ -144,6 +157,10 @@ Prefered way using command line on local machine is:
 
   * Click the green 'Submit new merge request' button
 
+  * For last minutes corrections that you would like to include in the
+    merge request too, see :ref:`the correction
+    section<Last-minute-corrections>`
+
   * Wait for feedback from the developer community and address concerns as
     needed by adding more commits to the 'add-contribute-rst' branch on your
     personal repository and then pushing to your gitlab repository.
@@ -154,10 +171,32 @@ Prefered way using command line on local machine is:
 
   * If this commit was for a single file, say, then go ahead and remove the
     branch locally and on origin. But wait until the merge-request is approved::
-    
-      git branch -D add-contribute-rst
-      git branch -D origin/add-contribute-rst
+        
+        $ git branch -D add-contribute-rst
+        $ git branch -D origin add-contribute-rst
+        
 
+.. _Last-minute-corrections:
+
+Adding corrections to be included in a merge request
+----------------------------------------------------
+
+If at this point you would like to make last minute corrections to your
+commit (it has happened many times so don't feel too bad) then instead of
+closing your own merge request and resubmit a new one you can simply
+go into your branch, the one that you requested to merge the first time,
+and make the changes, either directly in GitLab, see the
+:ref:`small changes section<making-small-changes>`, or locally *before the
+merge request has been accepted!*
+
+Since it's the branch that is merged (not just your commit) any changes you
+do to that branch will be included should the merge request be accepted::
+    
+    $ vi contribute.rst
+    $ git add contribute.rst
+    $ git commit
+    $ git push -u origin add-contribute-rst
+    
 
 .. _making-small-changes:
 
@@ -171,6 +210,8 @@ can come in handy. Here are the steps to do that there:
 * click "Files" and find the file you want to change
 * click "Edit" and fix the typo
 * click "Merge Requests" and add your change from the master branch
+* Unless you actually want to cancel a merge request *Do NOT* click
+  any buttons that reads 'Close'!
     
 At this point someone will take a look at your change and merge it to the
 official repository if the change looks good.

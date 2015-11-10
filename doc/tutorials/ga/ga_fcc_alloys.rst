@@ -105,6 +105,10 @@ by just providing the ``atoms_string``.
 Run the algorithm
 =================
 
+The following script runs the algorithm, also find it here:
+:download:`ga_fcc_alloys_main.py`. *Note* that the `relaxation script`_ is
+imported from an external file :download:`ga_fcc_alloys_relax.py`.
+
 .. literalinclude:: ga_fcc_alloys_main.py
                                         
 In this script we run a generational GA as opposed to the pool GA outlined in
@@ -125,7 +129,7 @@ command line (in another shell instance if the GA is still running)::
 
 *Note:* When reading the database using ase-db, it might be necessary to
 increase the number of shown entries, e.g. ``ase-db fcc-alloys.db --limit
-N``, where ``N`` is the number of entries to show (as default the first 500
+N``, where ``N`` is the number of entries to show (as default only the first 20
 entries are shown, ``--limit 0`` will show all. For further info use ``ase-db
 –help``, or consult the :ref:`ase-db` manual).
 
@@ -172,7 +176,7 @@ elements to other elements nearby in the periodic table::
                             MoveLeftMutation([metals]),
                             MoveRightMutation([metals]),
                             OnePointElementCrossover([metals])])
-  mut_selector = MutationSelector(*oclist)
+  operation_selector = OperationSelector(*oclist)
 
 These operators takes advantage of the fact that chemically like elements
 (close in the periodic table) exhibit similar properties and the substitution

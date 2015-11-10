@@ -25,7 +25,7 @@ def get_txt(txt, rank):
         return devnull
 
 
-def paropen(name, mode='r'):
+def paropen(name, mode='r', buffering=-1):
     """MPI-safe version of open function.
 
     In read mode, the file is opened on all nodes.  In write and
@@ -34,7 +34,7 @@ def paropen(name, mode='r'):
     """
     if rank > 0 and mode[0] != 'r':
         name = '/dev/null'
-    return open(name, mode)
+    return open(name, mode, buffering)
 
 
 def parprint(*args, **kwargs):
