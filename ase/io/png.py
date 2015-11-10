@@ -34,14 +34,11 @@ class PNG(EPS):
                                self.filename, 72)
             else:
                 x = renderer.buffer_rgba()
-                _png.write_png(x, self.w, self.h, self.filename, 72)
-                # try:
-                #     buf = np.reshape(x, (int(self.h), int(self.w), 4))
-                # except ValueError:
-                #     buf = x
-                # try:
-                #     _png.write_png(buf, self.filename, 72)
-                # except IndexError:
+                try:
+                    _png.write_png(x, self.w, self.h, self.filename, 72)
+                except TypeError:
+                    buf = np.reshape(x, (int(self.h), int(self.w), 4))
+                    _png.write_png(buf, self.filename, 72)
 
                 
 def write_png(filename, atoms, **parameters):
