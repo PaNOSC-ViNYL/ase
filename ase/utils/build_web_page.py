@@ -9,8 +9,10 @@ import sys
 
 def git_pull(name='ase'):
     os.chdir(name)
-    output = subprocess.check_output('git pull 2>> pull.err', shell=True)
-    os.chdir('..')
+    try:
+        output = subprocess.check_output('git pull 2>> pull.err', shell=True)
+    finally:
+        os.chdir('..')
     lastline = output.splitlines()[-1]
     return not lastline.startswith('Already up-to-date')
 
