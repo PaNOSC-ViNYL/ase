@@ -6,4 +6,4 @@ master:
     - echo $HOME
     - echo $PWD
     - echo $PYTHONPATH
-    - PATH=$PATH:$PWD/tools PYTHONPATH=$PYTHONPATH:/builds/ase/ase python setup.py test
+    - PATH=$PATH:$PWD/tools PYTHONPATH=$PYTHONPATH:$PWD python setup.py test
