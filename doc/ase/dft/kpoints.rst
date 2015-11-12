@@ -40,7 +40,7 @@ array([[-0.375,  0.   ,  0.   ],
 .. [MonkhorstPack]
     Hendrik J. Monkhorst and James D. Pack:
     *Special points for Brillouin-zone integrations*,
-    Phys. Rev. B 13, 5188–5192 (1976) 
+    Phys. Rev. B 13, 5188–5192 (1976)
 
 
 Chadi-Cohen
@@ -81,60 +81,35 @@ Special points in the Brillouin zone
 You can find the special points in the Brillouin zone:
 
 >>> from ase.lattice import bulk
->>> from ase.dft.kpoints import ibz_points, get_bandpath
+>>> from ase.dft.kpoints import get_special_points, get_bandpath
 >>> si = bulk('Si', 'diamond', a=5.459)
->>> points = ibz_points['fcc']
+>>> points = get_special_points('fcc')
 >>> G = points['Gamma']
 >>> X = points['X']
 >>> W = points['W']
 >>> K = points['K']
 >>> L = points['L']
->>> kpts, x, X = get_bandpath([W, L, G, X, W, K], si.cell)
->>> print len(kpts), len(x), len(X)
-50 50 6
+>>> L
+[0.5, 0.5, 0.5]
+>>> kpts, x, X = get_bandpath([W, L, G, X, W, K], si.cell, 100)
+>>> print(kpts.shape, len(x), len(X))
+(100, 3) 100 6
 
+.. autofunction:: get_special_points
 .. autofunction:: get_bandpath
 
-Special points in the Brillouin zone: calculation along a high symmetry bandpath
-------------------------------------
 
-Example: Bandstructure calculation along high symmetry bandpath (https://en.wikipedia.org/wiki/Brillouin_zone); 
-         New: monoclinic structure added to the existing list
+High symmetry paths
+-------------------
 
->>>from ase import Atoms
->>>from ase.dft.kpoints import *
->>>from ase.io import read
->>>from ase.lattice.spacegroup.cell import *
->>>
->>>''''
->>>The following is a possible way to calculate band structure along high symmetry path in the Brillouin zone.
->>>The path for all seven crystal structures was taken >>>from: https://en.wikipedia.org/wiki/Brillouin_zone
->>>'''
->>>
->>># Restart from ground state and fix potential (ofc, one may just do a ground state calculation here instead restarting):
->>>calc = GPAW('NiP_gs.gpw',
->>>            nbands=16,
->>>            fixdensity=True,
->>>            symmetry='off',
->>>            convergence={'bands': nbands})
->>>
->>>atoms = read('NiP_gs.gpw')
->>>
->>>lattice = 'monoclinic'
->>>cell = atoms.get_cell()
->>>npoints = 500
->>>
->>># To obtain high symm points for the monoclinic structure, one MUST provide the cell informaton
->>>points = get_ibz_points(lattice, cell)
->>># Returnes an array of strings; the path in the Brillouin zone
->>>b_path = high_symm_path[lattice]
->>># Converts a string array to an array of points
->>>path = [points[x] for x in b_path]
->>>#kpts: a list of kpoints along the path to be used in a calculation
->>># x: list of x-coordinates (used for ploting the band structure), X: list of x-coordinates of special points (high symm)
->>>kpts, x, X = get_bandpath(path, cell, npoints = npoints)
->>>
->>>calc.set(kpts=kpts)
->>>calc.get_potential_energy()
->>>e_kn = np.array([calc.get_eigenvalues(k) for k in range(len(kpts))])
+The ``high_symm_path`` dictionary contains suggestions for high symmetry
+paths in the BZ.
 
+>>> from ase.dft.kpoints import high_symm_path
+>>> path = high_symm_path['bcc']
+>>> path
+['Gamma', 'H', 'N', 'Gamma', 'P', 'H', 'P', 'N']
+>>> points = get_special_points(lattice, cell)
+>>> kpts = [points[x] for x in path]
+>>> kpts
+[[0, 0, 0], [0.5, -0.5, 0.5], [0, 0, 0.5], [0, 0, 0], [0.25, 0.25, 0.25], [0.5, -0.5, 0.5], [0.25, 0.25, 0.25], [0, 0, 0.5]]

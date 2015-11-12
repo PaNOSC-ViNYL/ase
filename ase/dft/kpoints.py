@@ -1,11 +1,10 @@
 from __future__ import division
 import warnings
+from math import sin, cos
 
 import numpy as np
 
 from ase.lattice.spacegroup.cell import cell_to_cellpar
-from math import sin, cos, pi, sqrt
-
 
 
 def monkhorst_pack(size):
@@ -80,7 +79,7 @@ def get_bandpath(points, cell, npoints=50):
         List of special IBZ point pairs, e.g. ``points =
         [W, L, Gamma, X, W, K]``.  These should be given in
         scaled coordinates.
-    cell: 3x3 
+    cell: 3x3
         Unit cell of the atoms.
     npoints: int
         Length of the output kpts list.
@@ -113,104 +112,104 @@ def get_bandpath(points, cell, npoints=50):
 # (In units of the reciprocal basis vectors)
 # See http://en.wikipedia.org/wiki/Brillouin_zone
 
-# The previous ase.dft module that used to return ibz_points is now a get_ibz_points function that takes as an input type of the lattice and a cell (3x3 matrix) ---- the old ibz_points dictonary is still available in the old format (does not exist for monoclinic structure)
+ibz_points = {'cubic': {'Gamma': [0, 0, 0],
+                        'X': [0, 0 / 2, 1 / 2],
+                        'R': [1 / 2, 1 / 2, 1 / 2],
+                        'M': [0 / 2, 1 / 2, 1 / 2]},
+              'fcc': {'Gamma': [0, 0, 0],
+                      'X': [1 / 2, 0, 1 / 2],
+                      'W': [1 / 2, 1 / 4, 3 / 4],
+                      'K': [3 / 8, 3 / 8, 3 / 4],
+                      'U': [5 / 8, 1 / 4, 5 / 8],
+                      'L': [1 / 2, 1 / 2, 1 / 2]},
+              'bcc': {'Gamma': [0, 0, 0],
+                      'H': [1 / 2, -1 / 2, 1 / 2],
+                      'N': [0, 0, 1 / 2],
+                      'P': [1 / 4, 1 / 4, 1 / 4]},
+              'hexagonal': {'Gamma': [0, 0, 0],
+                            'M': [0, 1 / 2, 0],
+                            'K': [-1 / 3, 1 / 3, 0],
+                            'A': [0, 0, 1 / 2],
+                            'L': [0, 1 / 2, 1 / 2],
+                            'H': [-1 / 3, 1 / 3, 1 / 2]},
+              'tetragonal': {'Gamma': [0, 0, 0],
+                             'X': [1 / 2, 0, 0],
+                             'M': [1 / 2, 1 / 2, 0],
+                             'Z': [0, 0, 1 / 2],
+                             'R': [1 / 2, 0, 1 / 2],
+                             'A': [1 / 2, 1 / 2, 1 / 2]},
+              'orthorhombic': {'Gamma': [0, 0, 0],
+                               'R': [1 / 2, 1 / 2, 1 / 2],
+                               'S': [1 / 2, 1 / 2, 0],
+                               'T': [0, 1 / 2, 1 / 2],
+                               'U': [1 / 2, 0, 1 / 2],
+                               'X': [1 / 2, 0, 0],
+                               'Y': [0, 1 / 2, 0],
+                               'Z': [0, 0, 1 / 2]}}
 
 
-def get_ibz_points(lattice, cell=None):
+def get_special_points(lattice, cell=None):
+    """Return dict of special points.
+    
+    Parameters:
 
-    """ lattice: one of the following: cubic, fcc, bcc, orthorhombic, 
-
-
+    lattice: str
+        One of the following: cubic, fcc, bcc, orthorhombic, tetragonal,
+        hexagonal or monoclinic.
+    cell: 3x3 ndarray
+        Unit cell - only used for the monoclinic case.
     """
     lattice = lattice.lower()
     if lattice == 'monoclinic':
-	cellpar = cell_to_cellpar(cell=cell)
-	c = np.amax(cellpar[0:3])
-	c_ind = np.argmax(cellpar[0:3])
-	ab = []
-	for i in range(3):
-	    if i!= c_ind:
-		ab.append(cellpar[i])
-	
+        cellpar = cell_to_cellpar(cell=cell)
+        c = np.amax(cellpar[0:3])
+        c_ind = np.argmax(cellpar[0:3])
+        ab = []
+        for i in range(3):
+            if i != c_ind:
+                ab.append(cellpar[i])
+        
         for i in cellpar[3:6]:
             if i < 90.0:
                 alpha = i
-        ni = float(1-float(ab[1]*cos(alpha))/float(c))/float(2*(sin(alpha)**2))
-        vi = 0.5 - ni*c*cos(alpha)/ab[1]
+        ni = (1 - ab[1] * cos(alpha) / c) / (2 * sin(alpha)**2)
+        vi = 0.5 - ni * c * cos(alpha) / ab[1]
 
-        return  {'Gamma': [0,     0,     0    ],
-                     'A':     [1 / 2., 1 / 2.,  0 ],
-                     'C':     [0,      1 / 2., 1 / 2.],
-                     'D':     [1 / 2., 0, 1 / 2.],
-                    'D1':     [1 / 2., 0, -1 / 2. ],
-                     'E':     [1 / 2., 1 / 2.,  1 / 2.],
-                     'H':     [0,    ni,   1 - vi],
-                    'H1':     [0,  1 - ni,  vi ],
-                    'H2':     [0,   ni,   -vi ],
-                     'M':     [1 / 2.,  ni,  1 - vi],
-                    'M1':     [1 / 2.,  1 - ni,  vi],
-                    'M2':     [1 / 2.,  ni,  -vi ],
-                     'X':     [0,   1 /2.,  0 ],
-                     'Y':     [0,   0,   1 / 2.],
-                    'Y1':     [0,   0,   - 1 / 2.],
-                     'Z':     [1 / 2.,   0,   0]}
-
-
+        return {'Gamma': [0, 0, 0],
+                'A': [1 / 2, 1 / 2, 0],
+                'C': [0, 1 / 2, 1 / 2],
+                'D': [1 / 2, 0, 1 / 2],
+                'D1': [1 / 2, 0, -1 / 2],
+                'E': [1 / 2, 1 / 2, 1 / 2],
+                'H': [0, ni, 1 - vi],
+                'H1': [0, 1 - ni, vi],
+                'H2': [0, ni, -vi],
+                'M': [1 / 2, ni, 1 - vi],
+                'M1': [1 / 2, 1 - ni, vi],
+                'M2': [1 / 2, ni, -vi],
+                'X': [0, 1 / 2, 0],
+                'Y': [0, 0, 1 / 2],
+                'Y1': [0, 0, -1 / 2],
+                'Z': [1 / 2, 0, 0]}
     else:
-	return ibz_points[lattice]
+        return ibz_points[lattice]
 
-				
-
-ibz_points = {'cubic': {'Gamma': [0,     0,     0    ],
-			'X':     [0,     0 / 2, 1 / 2],
-			'R':     [1 / 2, 1 / 2, 1 / 2],
-			'M':     [0 / 2, 1 / 2, 1 / 2]},
-
-	      'fcc':   {'Gamma': [0,     0,     0    ],
-			'X':     [1 / 2, 0,     1 / 2],
-			'W':     [1 / 2, 1 / 4, 3 / 4],
-			'K':     [3 / 8, 3 / 8, 3 / 4],
-			'U':     [5 / 8, 1 / 4, 5 / 8],
-			'L':     [1 / 2, 1 / 2, 1 / 2]},
-
-	      'bcc':   {'Gamma': [0,      0,     0    ],
-			'H':     [1 / 2, -1 / 2, 1 / 2],
-			'N':     [0,      0,     1 / 2],
-			'P':     [1 / 4,  1 / 4, 1 / 4]},
-	      'hexagonal':
-		       {'Gamma': [0,      0,       0   ],
-			'M':     [0,      1 / 2,   0   ],
-			'K':     [-1 / 3, 1 / 3,   0   ],
-			'A':     [0,      0,     1 / 2 ],
-			'L':     [0,     1 / 2,  1 / 2 ],
-			'H':     [-1 / 3, 1 / 3, 1 / 2 ]},
-	      'tetragonal':
-		       {'Gamma': [0,      0,       0   ],
-			'X':     [1 / 2,  0,       0   ],
-			'M':     [1 / 2,  1 / 2,   0   ],
-			'Z':     [0,      0,     1 / 2 ],
-			'R':     [1 / 2,  0,     1 / 2 ],
-			'A':     [1 / 2,  1 / 2, 1 / 2 ]},
-	      'orthorhombic':
-		       {'Gamma': [0,      0,       0   ],
-			'R':     [1 / 2,  1 / 2, 1 / 2 ],
-			'S':     [1 / 2,  1 / 2,   0   ],
-			'T':     [0,      1 / 2, 1 / 2 ],
-			'U':     [1 / 2,  0,     1 / 2 ],
-			'X':     [1 / 2,  0,       0   ],
-			'Y':     [0,      1 / 2,   0   ],
-			'Z':     [0,      0,     1 / 2 ]}
-              }
-
-high_symm_path = {'cubic':['Gamma', 'X', 'M', 'Gamma', 'R', 'X', 'M', 'R'],
-	            'fcc':['Gamma', 'X', 'W', 'K', 'Gamma', 'L', 'U', 'W', 'L', 'K', 'U', 'X'],
-	            'bcc':['Gamma', 'H', 'N', 'Gamma', 'P', 'H', 'P', 'N'],
-	     'tetragonal':['Gamma', 'X', 'M', 'Gamma', 'Z', 'R', 'A', 'Z', 'X', 'R', 'M', 'A'],
-	   'orthorhombic':['Gamma', 'X', 'S', 'Y', 'Gamma', 'Z', 'U', 'R', 'T', 'Z', 'T', 'U', 'X', 'S', 'R'],
-	      'hexagonal':['Gamma', 'M', 'K', 'Gamma', 'A', 'L', 'H', 'A', 'L', 'M', 'K', 'H'],
-	      'triclinic':['X', 'Gamma', 'Y', 'L', 'Gamma', 'Z', 'N', 'Gamma', 'M', 'R', 'Gamma'],
-	     'monoclinic':['Gamma', 'Y', 'H', 'C', 'E', 'M1', 'A', 'X', 'H1', 'M', 'D', 'Z', 'Y', 'D']}
-
+                                
+high_symm_path = {
+    'cubic': ['Gamma', 'X', 'M', 'Gamma', 'R', 'X', 'M', 'R'],
+    'fcc': ['Gamma', 'X', 'W', 'K', 'Gamma', 'L', 'U', 'W', 'L',
+            'K', 'U', 'X'],
+    'bcc': ['Gamma', 'H', 'N', 'Gamma', 'P', 'H', 'P', 'N'],
+    'tetragonal': ['Gamma', 'X', 'M', 'Gamma', 'Z', 'R', 'A',
+                   'Z', 'X', 'R', 'M', 'A'],
+    'orthorhombic': ['Gamma', 'X', 'S', 'Y', 'Gamma', 'Z', 'U',
+                     'R', 'T', 'Z', 'T', 'U', 'X', 'S', 'R'],
+    'hexagonal': ['Gamma', 'M', 'K', 'Gamma', 'A', 'L', 'H', 'A',
+                  'L', 'M', 'K', 'H'],
+    'triclinic': ['X', 'Gamma', 'Y', 'L', 'Gamma', 'Z', 'N', 'Gamma',
+                  'M', 'R', 'Gamma'],
+    'monoclinic': ['Gamma', 'Y', 'H', 'C', 'E', 'M1', 'A', 'X', 'H1',
+                   'M', 'D', 'Z', 'Y', 'D']}
 
 # ChadiCohen k point grids. The k point grids are given in units of the
 # reciprocal unit cell. The variables are named after the following
