@@ -30,6 +30,8 @@ Development version in trunk
 
 * We can now :func:`~ase.io.read` and :func:`~ase.io.write` JSV files.
 
+* New :func:`ase.dft.kpoints.get_special_points` function.
+
 
 Version 3.9.1
 =============
