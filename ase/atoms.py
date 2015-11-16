@@ -1607,6 +1607,34 @@ class Atoms(object):
         self.set_tags(edited_atoms.get_tags())
         return
 
+    def get_duplicate_atoms(self, cutoff=0.1, delete=False):
+        """Get list of duplicate atoms and delete them if requested.
+
+        Identify all atoms which lie within the cutoff radius of each other.
+        Delete one set of them if remove == True.
+        """
+        from scipy.spatial.distance import pdist
+        dists = pdist(self.get_positions())
+        dup = np.nonzero(dists < cutoff)
+        rem = np.array(_row_col_from_pdist(self.get_number_of_atoms(), dup[0]))
+        if delete:
+            del self[rem[:,0]]
+        else:
+            return rem
+
+
+def _row_col_from_pdist(dim, i):
+    """Calculate the i,j index in the square matrix for an index in a
+    condensed (triangular) matrix.
+    """
+    i = np.array(i)
+    b = 1 - 2 * dim
+    x = (np.floor((-b - np.sqrt(b**2 - 8*i))/2)).astype(int)
+    y = (i + x*(b + x + 2)/2 + 1).astype(int)
+    if i.shape:
+        return zip(x, y)
+    else:
+        return (x, y)
 
 def string2symbols(s):
     """Convert string to list of chemical symbols."""
