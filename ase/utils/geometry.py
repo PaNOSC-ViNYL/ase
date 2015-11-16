@@ -45,7 +45,7 @@ def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
         pbc = (pbc,) * 3
 
     if not hasattr(center, '__len__'):
-        center = (center, ) * 3
+        center = (center,) * 3
 
     shift = np.asarray(center) - 0.5 - eps
 
