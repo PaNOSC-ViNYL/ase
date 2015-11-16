@@ -428,7 +428,9 @@ def output_column_format(atoms, columns, arrays,
                               property_types,
                               [str(nc) for nc in property_ncols])])
 
-    comment = lattice_str + ' Properties=' + props_str + comment
+    comment_str = lattice_str + ' Properties=' + props_str
+    if comment != '':
+        comment_str = comment_str + ' ' + comment
     info = {}
     if write_info:
         info.update(atoms.info)
@@ -440,7 +442,7 @@ def output_column_format(atoms, columns, arrays,
     dtype = np.dtype(dtypes)
     fmt = ''.join(formats) + '\n'
 
-    return comment, property_ncols, dtype, fmt
+    return comment_str, property_ncols, dtype, fmt
 
 
 def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
