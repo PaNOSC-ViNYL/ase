@@ -159,15 +159,24 @@ def parallel_generator(generator):
                 yield result
             return
         if world.rank == 0:
-            for result in generator(*args, **kwargs):
-                result = broadcast(result)
-                yield result
-            broadcast(None)
+            try:
+                for result in generator(*args, **kwargs):
+                    ex, result = broadcast((None, result))
+                    yield result
+            except Exception as ex:
+                pass
+            broadcast((ex, None))
+            if ex is not None:
+                raise ex
         else:
-            result = broadcast(None)
+            ex, result = broadcast((None, None))
+            if ex is not None:
+                raise ex
             while result is not None:
                 yield result
-                result = broadcast(None)
+                ex, result = broadcast((None, None))
+                if ex is not None:
+                    raise ex
     return new_generator
 
 
