@@ -123,7 +123,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
 
 #    fd = open(filename, 'w')
     fd.write('#######################################################\n')
-    fd.write('#CASTEP cell file: %s\n' % filename)
+    fd.write('#CASTEP cell file: %s\n' % fd.name)
     fd.write('#Created using the Atomic Simulation Environment (ASE)#\n')
     fd.write('#######################################################\n\n')
     fd.write('%BLOCK LATTICE_CART\n')
