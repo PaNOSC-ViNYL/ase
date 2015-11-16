@@ -13,9 +13,9 @@ except ImportError:
     matplotlib = 0
 
 try:
-    from lxml import etree
+    import Scientific
 except ImportError:
-    etree = 0
+    Scientific = 0
 
 a = 5.0
 d = 1.9
@@ -57,17 +57,25 @@ for format in all_formats:
         # Someone should do something ...
         continue
 
+
+    if format in ['v-sim']:
+        # Standalone test used as not compatible with 1D periodicity
+        continue
+
     if format in ['postgresql', 'trj', 'vti', 'vtu']:
         # Let's not worry about these.
         continue
 
-    if sys.version_info[0] == 3 and format in ['bundletrajectory', 'cif']:
+    if sys.version_info[0] == 3 and format in ['cif']:
         continue
 
     if not matplotlib and format in ['eps', 'png']:
         continue
 
     if not etree and format == 'exciting':
+        continue
+
+    if not Scientific and format == 'etsf':
         continue
 
     io = get_ioformat(format)

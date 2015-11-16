@@ -54,3 +54,6 @@ for name in ['y2.json', 'y2.db']:
 
     with must_raise(ValueError):
         c.write(ch4, foo=['bar', 2])
+        
+    with must_raise(ValueError):
+        c.write(Atoms(), pi='3.14')

@@ -43,9 +43,11 @@ all_formats = {
     'aims': ('FHI-aims geometry file', '1S'),
     'aims-output': ('FHI-aims output', '1S'),
     'bundletrajectory': ('ASE bundle trajectory', '1S'),
-    'castep': ('CASTEP output file', '1F'),
-    'castep-cell': ('CASTEP geom file', '1S'),
-    'castep-geom': ('CASTEP trajectory file', '1F'),
+    'castep-castep': ('CASTEP output file', '+F'),
+    'castep-cell': ('CASTEP geom file', '1F'),
+    'castep-geom': ('CASTEP trajectory file', '+F'),
+    'castep-md': ('CASTEP molecular dynamics file', '+F'),
+    'castep-phonon': ('CASTEP phonon file', '1F'),
     'cfg': ('AtomEye configuration', '1F'),
     'cif': ('CIF-file', '+F'),
     'cmdft': ('CMDFT-file', '1F'),
@@ -106,8 +108,11 @@ all_formats = {
 # Special cases:
 format2modulename = {
     'aims-output': 'aims',
+    'castep-castep': 'castep',
     'castep-cell': 'castep',
     'castep-geom': 'castep',
+    'castep-md': 'castep',
+    'castep-phonon': 'castep',
     'dacapo-text': 'dacapo',
     'espresso-in': 'espresso',
     'espresso-out': 'espresso',
@@ -128,6 +133,8 @@ format2modulename = {
     'vtu': 'vtkxml'}
 
 extension2format = {
+    'ascii': 'v-sim',
+    'castep' : 'castep-castep',
     'cell': 'castep-cell',
     'com': 'gaussian',
     'con': 'eon',
@@ -136,10 +143,13 @@ extension2format = {
     'geom': 'castep-geom',
     'gro': 'gromacs',
     'log': 'gaussian-out',
+    'md': 'castep-md',
     'nw': 'nwchem',
     'out': 'espresso-out',
     'shelx': 'res',
-    'in': 'aims'}
+    'in': 'aims',
+    'poscar': 'vasp',
+    'phonon' : 'castep-phonon'}
 
 
 def initialize(format):
@@ -289,7 +299,6 @@ def read(filename, index=None, format=None, **kwargs):
             stop = -2
             step = -1
         return next(_iread(filename, slice(index, stop, step), format, **kwargs))
-
 
 def iread(filename, index=None, format=None, **kwargs):
     """Iterator for reading Atoms objects from file.
