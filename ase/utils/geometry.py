@@ -11,7 +11,7 @@ import numpy as np
 def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
                    eps=1e-7):
     """Wrap positions to unit cell.
-    
+
     Returns positions changed by a multiple of the unit cell vectors to
     fit inside the space spanned by these vectors.  See also the
     :meth:`ase.atoms.Atoms.wrap` method.
@@ -31,7 +31,7 @@ def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
     eps: float
         Small number to prevent slightly negative coordinates from beeing
         wrapped.
-        
+
     Example:
 
     >>> from ase.utils.geometry import wrap_positions
@@ -40,22 +40,29 @@ def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
     ...                pbc=[1, 1, 0])
     array([[ 0.9 ,  0.01, -0.5 ]])
     """
-    
+
     if not hasattr(pbc, '__len__'):
         pbc = (pbc,) * 3
 
-    shift = np.asarray(center) - 0.5 + eps * np.asarray(pbc, dtype=bool)
+    if not hasattr(center, '__len__'):
+        center = (center,) * 3
+
+    shift = np.asarray(center) - 0.5 - eps
+
+    # Don't change coordinates when pbc is False
+    shift[np.logical_not(pbc)] = 0.0
+
     fractional = np.linalg.solve(np.asarray(cell).T,
-                                 np.asarray(positions).T).T + shift
+                                 np.asarray(positions).T).T - shift
 
     for i, periodic in enumerate(pbc):
         if periodic:
             fractional[:, i] %= 1.0
-            fractional[:, i] -= shift[i]
-    
+            fractional[:, i] += shift[i]
+
     return np.dot(fractional, cell)
 
-    
+
 def get_layers(atoms, miller, tolerance=0.001):
     """Returns two arrays describing which layer each atom belongs
     to and the distance between the layers and origo.
@@ -442,7 +449,7 @@ def sort(atoms, tags=None):
     None, it will be used instead. A stable sorting algorithm is used.
 
     Example:
-        
+
     >>> import ase
     >>> from ase.lattice.spacegroup import crystal
     >>>
