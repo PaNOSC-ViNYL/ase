@@ -62,23 +62,51 @@ for d in (units_CODATA1986, units_CODATA2002):
 
 
 __all__ = [
+    # routines for the generic io function
     'read_castep',
+    'read_castep_castep',
     'read_castep_new',
+    'read_cell',
     'read_castep_cell',
+    'read_geom',
     'read_castep_geom',
+    # additional reads that still need to be wrapped
     'read_md',
     'read_phonon',
     'read_param',
     'read_seed',
+    # write that is already wrapped
     'write_castep_cell',
+    # param write -- in principle only necessary in junction with the calculator
     'write_param']
 
 
-def write_castep_cell(filename, atoms, positions_frac=False, castep_cell=None,
+def write_cell(filename, atoms, positions_frac=False, castep_cell=None,
                       force_write=False):
-    """This CASTEP export function write minimal information to
+    """
+    Wrapper function for the more generic write() functionality.
+
+    Note that this is function is intended to maintain backwards-compatibility
+    only.
+    """
+    from ase.io import write
+
+    write(filename, atoms, positions_frac=positions_frac,
+                castep_cell=None, force_write=force_write)
+
+
+def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
+                      force_write=False):
+    """
+    This CASTEP export function write minimal information to
     a .cell file. If the atoms object is a trajectory, it will
     take the last image.
+
+    Note that function has been altered in order to require a filedescriptor
+    rather than a filename. This allows to use the more generic write()
+    function from formats.py
+
+    Note that the "force_write" keywords has no effect currently.
     """
     if atoms is None:
         print('Atoms object not initialized')
@@ -87,12 +115,13 @@ def write_castep_cell(filename, atoms, positions_frac=False, castep_cell=None,
         if len(atoms) > 1:
             atoms = atoms[-1]
 
-    if os.path.isfile(filename) and not force_write:
-        print('ase.io.castep.write_param: Set optional argument')
-        print('force_write=True to overwrite %s.' % filename)
-        return False
+# deprecated; should be handled on the more generic write() level
+#    if os.path.isfile(filename) and not force_write:
+#        print('ase.io.castep.write_param: Set optional argument')
+#        print('force_write=True to overwrite %s.' % filename)
+#        return False
 
-    fd = open(filename, 'w')
+#    fd = open(filename, 'w')
     fd.write('#######################################################\n')
     fd.write('#CASTEP cell file: %s\n' % filename)
     fd.write('#Created using the Atomic Simulation Environment (ASE)#\n')
@@ -241,7 +270,7 @@ def write_castep_cell(filename, atoms, positions_frac=False, castep_cell=None,
         if hasattr(atoms, 'calc') and hasattr(atoms.calc, 'cell'):
             castep_cell = atoms.calc.cell
         else:
-            fd.close()
+#            fd.close()
             return True
 
     for option in castep_cell._options.values():
@@ -253,11 +282,22 @@ def write_castep_cell(filename, atoms, positions_frac=False, castep_cell=None,
             else:
                 fd.write('%s : %s\n' % (option.keyword.upper(), option.value))
 
-    fd.close()
+#    fd.close()
     return True
 
 
-def read_castep_cell(filename, index=None):
+def read_cell(filename, index=None):
+    """
+    Wrapper function for the more generic read() functionality.
+
+    Note that this is function is intended to maintain backwards-compatibility
+    only.
+    """
+    from ase.io import read
+    return read(filename, index=index, format='castep-cell')
+
+
+def read_castep_cell(fd, index=None):
     """Read a .cell file and return an atoms object.
     Any value found that does not fit the atoms API
     will be stored in the atoms.calc attribute.
@@ -287,9 +327,8 @@ def read_castep_cell(filename, index=None):
         calc = None
         _fallback = True
 
-    fileobj = open(filename)
-    lines = fileobj.readlines()
-    fileobj.close()
+    # fd will be closed by embracing read() routine
+    lines = fd.readlines()
 
     def get_tokens(lines, l):
         """Tokenizes one line of a *cell file."""
@@ -317,6 +356,7 @@ def read_castep_cell(filename, index=None):
                 tokens = line[:icomment].split()
                 return tokens, l + 1
         tokens = ''
+
     # This print statement is definitely not necessary
     #    print("read_cell: Warning - get_tokens has not found any more tokens")
         return tokens, l
@@ -533,53 +573,26 @@ def read_castep_cell(filename, index=None):
         atoms.calc.push_oldstate()
     return atoms
 
-def read_castep_new(filename, index = None):
-    """
-    This routine is supposed to replace the former read_castep() routine at
-    some point. Basically it does the same job, but it uses the read()
-    functionality from the Castep calculator class. This allows a much more
-    complete parsing and we do not have to take care of syncing the respective
-    routine with each other.
-
-    Note: This routine returns a single atoms_object only, whereas the former
-    routine, in principle, returned a list of atoms objects. Yet, if you want
-    to parse an MD run, use the novel function `read_md()`
-
-    There is no use of the "index" argument as of now, it is just inserted for
-    convenience to comply with the generic "read()" in ase.io
-
-    Please note that this routine will return an atom ordering as found
-    within the castep file. This means that the species will be ordered by
-    ascending atomic numbers. The atoms witin a species are ordered as given
-    in the original cell file.
-    """
-    from ase.calculators.castep import Castep
-
-    calc = Castep()
-    calc.read(castep_file=filename)
-
-    # now we trick the calculator instance such that we can savely extract
-    # energies and forces from this atom. Basically what we do is to trick the
-    # internal routine calculation_required() to always return False such that
-    # we do not need to re-run a CASTEP calculation.
-    #
-    # Probably we can solve this with a flag to the read() routine at some
-    # point, but for the moment I do not want to change too much in there.
-    calc._old_atoms = calc.atoms
-    calc._old_param = calc.param
-    calc._old_cell = calc.cell
-
-    return calc.atoms
-
 
 # this actually does not belong here
 # think how one could join this with
 # the ase.calculators.castep.Castep.read()
 # in the future!
-# --> has been done (see above)
+# --> has been done (see read_castep_new())
 # but not failsave yet!
 
 def read_castep(filename, index=None):
+    """
+    Wrapper function for the more generic read() functionality.
+
+    Note that this is function is intended to maintain backwards-compatibility
+    only.
+    """
+    from ase.io import read
+    return read(filename, index=index, format='castep-castep')
+
+
+def read_castep_castep(fd, index=None):
     """Reads a .castep file and returns an atoms  object.
     The calculator information will be stored in the calc attribute.
     If more than one SCF step is found, a list of all steps
@@ -594,9 +607,8 @@ def read_castep(filename, index=None):
     """
     from ase.calculators.singlepoint import SinglePointCalculator
 
-    fileobj = open(filename)
-    lines = fileobj.readlines()
-    fileobj.close()
+    lines = fd.readlines()
+
     traj = []
     energy_total = None
     energy_0K = None
@@ -657,79 +669,19 @@ def read_castep(filename, index=None):
     else:
         return traj[index]
 
-def read_param(filename, calc=None):
-    """Reads a param file. If an Castep object is passed as the
-    second argument, the parameter setings are merged into
-    the existing object and returned. Otherwise a new Castep()
-    calculator instance gets created and returned.
 
-    Parameters:
-        filename: the .param file. Only opens reading
-        calc: [Optional] calculator object to hang parameters onto
+def read_geom(filename, index=':', units=units_CODATA2002):
     """
-    if calc is None:
-        from ase.calculators.castep import Castep
-        calc = Castep(check_castep_version=False)
-    calc.merge_param(filename)
-    return calc
+    Wrapper function for the more generic read() functionality.
 
-
-def write_param(filename, param, check_checkfile=False,
-                                 force_write=False,
-                                 interface_options=None):
-    """Writes a CastepParam object to a CASTEP .param file
-
-    Parameters:
-        filename: the location of the file to write to. If it
-        exists it will be overwritten without warning. If it
-        doesn't it will be created.
-        param: a CastepParam instance
-        check_checkfile : if set to True, write_param will
-        only write continuation or reuse statement
-        if a restart file exists in the same directory
+    Note that this is function is intended to maintain backwards-compatibility
+    only. Keyword arguments will be passed to read_castep_geom().
     """
-    if os.path.isfile(filename) and not force_write:
-        print('ase.io.castep.write_param: Set optional argument')
-        print('force_write=True to overwrite %s.' % filename)
-        return False
-
-    out = paropen(filename, 'w')
-    out.write('#######################################################\n')
-    out.write('#CASTEP param file: %s\n' % filename)
-    out.write('#Created using the Atomic Simulation Environment (ASE)#\n')
-    if interface_options is not None:
-        out.write('# Internal settings of the calculator\n')
-        out.write('# This can be switched off by settings\n')
-        out.write('# calc._export_settings = False\n')
-        out.write('# If stated, this will be automatically processed\n')
-        out.write('# by ase.io.castep.read_seed()\n')
-        for option, value in sorted(interface_options.items()):
-            out.write('# ASE_INTERFACE %s : %s\n' % (option, value))
-    out.write('#######################################################\n\n')
-    for keyword, opt in sorted(param._options.items()):
-        if opt.type == 'Defined':
-            if opt.value is not None:
-                out.write('%s\n' % (option))
-        elif opt.value is not None:
-            if keyword in ['continuation', 'reuse'] and check_checkfile:
-                if opt.value == 'default':
-                    if not os.path.exists('%s.%s'\
-                        % (os.path.splitext(filename)[0], 'check')):
-                        continue
-                elif not (os.path.exists(opt.value)
-                          # CASTEP also understands relative path names, hence
-                          # also check relative to the param file directory
-                          or os.path.exists(os.path.join(
-                                                os.path.dirname(filename),
-                                                opt.value))
-                          ):
-                    continue
-            out.write('%s : %s\n'
-                % (keyword, opt.value))
-    out.close()
+    from ase.io import read
+    return read(filename, index=index, format='castep-geom', units=units)
 
 
-def read_castep_geom(filename, index=None, units=units_CODATA2002):
+def read_castep_geom(fd, index=None, units=units_CODATA2002):
     """Reads a .geom file produced by the CASTEP GeometryOptimization task and
     returns an atoms  object.
     The information about total free energy and forces of each atom for every
@@ -741,24 +693,15 @@ def read_castep_geom(filename, index=None, units=units_CODATA2002):
     Note that the index argument has no effect as of now.
 
     Contribution by Wei-Bing Zhang. Thanks!
+
+    Routine now accepts a filedescriptor in order to out-source the *.gz and
+    *.bz2 handling to formats.py. Note that there is a fallback routine
+    read_geom() that behaves like previous versions did.
     """
     from ase.calculators.singlepoint import SinglePointCalculator
 
-    # extended support for compressed formats
-    if isinstance(filename, str):
-        fname = filename.lower()
-        if fname.endswith('.gz'):
-            import gzip
-            fileobj = gzip.open(filename)
-        elif fname.endswith('.bz2'):
-            import bz2
-            fileobj = bz2.BZ2File(filename)
-        else:
-            fileobj = open(filename)
-    else:
-        fileobj = filename
-    txt = fileobj.readlines()
-    fileobj.close()
+    # fd is closed by embracing read() routine
+    txt = fd.readlines()
 
     traj = []
 
@@ -799,7 +742,154 @@ def read_castep_geom(filename, index=None, units=units_CODATA2002):
         return traj[index]
 
 
-def read_md(filename, _=-1, return_scalars=False, units=units_CODATA2002):
+def read_phonon(filename, index=None, read_vib_data=False,
+                gamma_only=True, frequency_factor=None,
+                units=units_CODATA2002):
+    """
+    Wrapper function for the more generic read() functionality.
+
+    Note that this is function is intended to maintain backwards-compatibility
+    only. For documentation see read_castep_phonon().
+    """
+    from ase.io import read
+
+    if read_vib_data:
+        full_output = True
+    else:
+        full_output = False
+
+    return read(filename, index=index, format='castep-phonon',
+                    full_output=full_output, read_vib_data=read_vib_data,
+                    gamma_only=gamma_only, frequency_factor=frequency_factor,
+                    units=units)
+
+
+def read_castep_phonon(fd, index=None, read_vib_data=False,
+                gamma_only=True, frequency_factor=None,
+                units=units_CODATA2002):
+    """
+    Reads a .phonon file written by a CASTEP Phonon task and returns an atoms
+    object, as well as the calculated vibrational data if requested.
+
+    Note that the index argument has no effect as of now."""
+
+    # fd is closed by embracing read() routine
+    lines = fd.readlines()
+
+    atoms = None
+    cell = []
+    N = Nb = Nq = 0
+    scaled_positions = []
+    symbols = []
+    masses = []
+
+    # header
+    l = 0
+    while l < len(lines):
+
+        line = lines[l]
+
+        if 'Number of ions' in line:
+            N = int(line.split()[3])
+        elif 'Number of branches' in line:
+            Nb = int(line.split()[3])
+        elif 'Number of wavevectors'in line:
+            Nq = int(line.split()[3])
+        elif 'Unit cell vectors (A)' in line:
+            for ll in range(3):
+                l += 1
+                fields = lines[l].split()
+                cell.append([float(x) for x in fields[0:3]])
+        elif 'Fractional Co-ordinates' in line:
+            for ll in range(N):
+                l += 1
+                fields = lines[l].split()
+                scaled_positions.append([float(x) for x in fields[1:4]])
+                symbols.append(fields[4])
+                masses.append(float(fields[5]))
+        elif 'END header' in line:
+            l += 1
+            atoms = ase.Atoms(symbols=symbols,
+                              scaled_positions=scaled_positions,
+                              cell=cell)
+            break
+
+        l += 1
+
+    # Eigenmodes and -vectors
+    if frequency_factor is None:
+        Kayser_to_eV = 1E2 * 2 * np.pi * units['hbar'] * units['c']
+    # N.B. "fixed default" unit for frequencies in .phonon files is "cm-1"
+    # (i.e. the latter is unaffected by the internal unit conversion system of
+    # CASTEP!) set conversion factor to convert therefrom to eV by default for
+    # now
+    frequency_factor = Kayser_to_eV
+    qpoints = []
+    weights = []
+    frequencies = []
+    displacements = []
+    for nq in range(Nq):
+        fields = lines[l].split()
+        qpoints.append([float(x) for x in fields[2:5]])
+        weights.append(float(fields[5]))
+    freqs = []
+    for ll in range(Nb):
+        l += 1
+        fields = lines[l].split()
+        freqs.append(frequency_factor * float(fields[1]))
+    frequencies.append(np.array(freqs))
+
+    # skip the two Phonon Eigenvectors header lines
+    l += 2
+
+    # generate a list of displacements with a structure that is identical to
+    # what is stored internally in the Vibrations class (see in
+    # ase.vibrations.Vibrations.modes):
+    #      np.array(displacements).shape == (Nb,3*N)
+
+    disps = []
+    for ll in range(Nb):
+        disp_coords = []
+        for lll in range(N):
+            l += 1
+            fields = lines[l].split()
+            disp_x = float(fields[2]) + float(fields[3]) * 1.0j
+            disp_y = float(fields[4]) + float(fields[5]) * 1.0j
+            disp_z = float(fields[6]) + float(fields[7]) * 1.0j
+            disp_coords.extend([disp_x, disp_y, disp_z])
+        disps.append(np.array(disp_coords))
+    displacements.append(np.array(disps))
+
+    if read_vib_data:
+        if gamma_only:
+            vibdata = [frequencies[0], displacements[0]]
+        else:
+            vibdata = [qpoints, weights, frequencies, displacements]
+        return vibdata, atoms
+    else:
+        return atoms
+
+
+
+def read_md(filename, index=None, return_scalars=False, units=units_CODATA2002):
+    """
+    Wrapper function for the more generic read() functionality.
+
+    Note that this function is intended to maintain backwards-compatibility
+    only. For documentation see read_castep_md()
+    """
+    if return_scalars:
+        full_output = True
+    else:
+        full_output = False
+
+    return read(filename, index=index, format='castep-md',
+                    full_output=full_output, return_scalars=return_scalars,
+                    units=units)
+
+
+
+def read_castep_md(fd, index=None, return_scalars=False, units=units_CODATA2002):
     """Reads a .md file written by a CASTEP MolecularDynamics task
     and returns the trajectory stored therein as a list of atoms object.
 
@@ -820,17 +910,8 @@ def read_md(filename, _=-1, return_scalars=False, units=units_CODATA2002):
                'F': units['Eh'] / units['a0']
                }
 
-    fname = filename.lower()
-    if fname.endswith('.gz'):
-        import gzip
-        f = gzip.open(filename)
-    elif fname.endswith('.bz2'):
-        import bz2
-        f = bz2.BZ2File(filename)
-    else:
-        f = open(filename)
-    lines = f.readlines()
-    f.close()
+    # fd is closed by embracing read() routine
+    lines = fd.readlines()
 
     l = 0
     while 'END header' not in lines[l]:
@@ -937,6 +1018,11 @@ def read_md(filename, _=-1, return_scalars=False, units=units_CODATA2002):
             forces.append([factors['F'] * Fi for Fi in F])
             continue
 
+    if index is None:
+        pass
+    else:
+        traj = traj[index]
+
     if return_scalars:
         data = [times, energies, temperatures, pressures]
         return data, traj
@@ -944,119 +1030,129 @@ def read_md(filename, _=-1, return_scalars=False, units=units_CODATA2002):
         return traj
 
 
-def read_phonon(filename, _=-1, read_vib_data=False,
-                gamma_only=True, frequency_factor=None,
-                units=units_CODATA2002):
+
+#
+# not yet failsafe new read_castep routine
+#
+
+def read_castep_new(filename, index = None):
     """
-    Reads a .phonon file written by a CASTEP Phonon task and returns an atoms
-    object, as well as the calculated vibrational data if requested.
+    This routine is supposed to replace the former read_castep() routine at
+    some point. Basically it does the same job, but it uses the read()
+    functionality from the Castep calculator class. This allows a much more
+    complete parsing and we do not have to take care of syncing the respective
+    routine with each other.
 
-    Note that the index argument has no effect as of now."""
+    Note: This routine returns a single atoms_object only, whereas the former
+    routine, in principle, returned a list of atoms objects. Yet, if you want
+    to parse an MD run, use the novel function `read_md()`
 
-    fname = filename.lower()
-    if fname.endswith('.gz'):
-        import gzip
-        f = gzip.open(filename)
-    elif fname.endswith('.bz2'):
-        import bz2
-        f = bz2.BZ2File(filename)
-    else:
-        f = open(filename)
-    lines = f.readlines()
-    f.close()
+    There is no use of the "index" argument as of now, it is just inserted for
+    convenience to comply with the generic "read()" in ase.io
 
-    atoms = None
-    cell = []
-    N = Nb = Nq = 0
-    scaled_positions = []
-    symbols = []
-    masses = []
+    Please note that this routine will return an atom ordering as found
+    within the castep file. This means that the species will be ordered by
+    ascending atomic numbers. The atoms witin a species are ordered as given
+    in the original cell file.
+    """
+    from ase.calculators.castep import Castep
 
-    # header
-    l = 0
-    while l < len(lines):
+    calc = Castep()
+    calc.read(castep_file=filename)
 
-        line = lines[l]
+    # now we trick the calculator instance such that we can savely extract
+    # energies and forces from this atom. Basically what we do is to trick the
+    # internal routine calculation_required() to always return False such that
+    # we do not need to re-run a CASTEP calculation.
+    #
+    # Probably we can solve this with a flag to the read() routine at some
+    # point, but for the moment I do not want to change too much in there.
+    calc._old_atoms = calc.atoms
+    calc._old_param = calc.param
+    calc._old_cell = calc.cell
 
-        if 'Number of ions' in line:
-            N = int(line.split()[3])
-        elif 'Number of branches' in line:
-            Nb = int(line.split()[3])
-        elif 'Number of wavevectors'in line:
-            Nq = int(line.split()[3])
-        elif 'Unit cell vectors (A)' in line:
-            for ll in range(3):
-                l += 1
-                fields = lines[l].split()
-                cell.append([float(x) for x in fields[0:3]])
-        elif 'Fractional Co-ordinates' in line:
-            for ll in range(N):
-                l += 1
-                fields = lines[l].split()
-                scaled_positions.append([float(x) for x in fields[1:4]])
-                symbols.append(fields[4])
-                masses.append(float(fields[5]))
-        elif 'END header' in line:
-            l += 1
-            atoms = ase.Atoms(symbols=symbols,
-                              scaled_positions=scaled_positions,
-                              cell=cell)
-            break
+    return calc.atoms
 
-        l += 1
 
-    # Eigenmodes and -vectors
-    if frequency_factor is None:
-        Kayser_to_eV = 1E2 * 2 * np.pi * units['hbar'] * units['c']
-    # N.B. "fixed default" unit for frequencies in .phonon files is "cm-1"
-    # (i.e. the latter is unaffected by the internal unit conversion system of
-    # CASTEP!) set conversion factor to convert therefrom to eV by default for
-    # now
-    frequency_factor = Kayser_to_eV
-    qpoints = []
-    weights = []
-    frequencies = []
-    displacements = []
-    for nq in range(Nq):
-        fields = lines[l].split()
-        qpoints.append([float(x) for x in fields[2:5]])
-        weights.append(float(fields[5]))
-    freqs = []
-    for ll in range(Nb):
-        l += 1
-        fields = lines[l].split()
-        freqs.append(frequency_factor * float(fields[1]))
-    frequencies.append(np.array(freqs))
 
-    # skip the two Phonon Eigenvectors header lines
-    l += 2
+# #
+# Routines that only the calculator requires
+# #
 
-    # generate a list of displacements with a structure that is identical to
-    # what is stored internally in the Vibrations class (see in
-    # ase.vibrations.Vibrations.modes):
-    #      np.array(displacements).shape == (Nb,3*N)
+def read_param(filename, calc=None):
+    """Reads a param file. If an Castep object is passed as the
+    second argument, the parameter setings are merged into
+    the existing object and returned. Otherwise a new Castep()
+    calculator instance gets created and returned.
 
-    disps = []
-    for ll in range(Nb):
-        disp_coords = []
-        for lll in range(N):
-            l += 1
-            fields = lines[l].split()
-            disp_x = float(fields[2]) + float(fields[3]) * 1.0j
-            disp_y = float(fields[4]) + float(fields[5]) * 1.0j
-            disp_z = float(fields[6]) + float(fields[7]) * 1.0j
-            disp_coords.extend([disp_x, disp_y, disp_z])
-        disps.append(np.array(disp_coords))
-    displacements.append(np.array(disps))
+    Parameters:
+        filename: the .param file. Only opens reading
+        calc: [Optional] calculator object to hang parameters onto
+    """
+    if calc is None:
+        from ase.calculators.castep import Castep
+        calc = Castep(check_castep_version=False)
+    calc.merge_param(filename)
+    return calc
 
-    if read_vib_data:
-        if gamma_only:
-            vibdata = [frequencies[0], displacements[0]]
-        else:
-            vibdata = [qpoints, weights, frequencies, displacements]
-        return vibdata, atoms
-    else:
-        return atoms
+
+def write_param(filename, param, check_checkfile=False,
+                                 force_write=False,
+                                 interface_options=None):
+    """Writes a CastepParam object to a CASTEP .param file
+
+    Parameters:
+        filename: the location of the file to write to. If it
+        exists it will be overwritten without warning. If it
+        doesn't it will be created.
+        param: a CastepParam instance
+        check_checkfile : if set to True, write_param will
+        only write continuation or reuse statement
+        if a restart file exists in the same directory
+    """
+    if os.path.isfile(filename) and not force_write:
+        print('ase.io.castep.write_param: Set optional argument')
+        print('force_write=True to overwrite %s.' % filename)
+        return False
+
+    out = paropen(filename, 'w')
+    out.write('#######################################################\n')
+    out.write('#CASTEP param file: %s\n' % filename)
+    out.write('#Created using the Atomic Simulation Environment (ASE)#\n')
+    if interface_options is not None:
+        out.write('# Internal settings of the calculator\n')
+        out.write('# This can be switched off by settings\n')
+        out.write('# calc._export_settings = False\n')
+        out.write('# If stated, this will be automatically processed\n')
+        out.write('# by ase.io.castep.read_seed()\n')
+        for option, value in sorted(interface_options.items()):
+            out.write('# ASE_INTERFACE %s : %s\n' % (option, value))
+    out.write('#######################################################\n\n')
+    for keyword, opt in sorted(param._options.items()):
+        if opt.type == 'Defined':
+            if opt.value is not None:
+                out.write('%s\n' % (option))
+        elif opt.value is not None:
+            if keyword in ['continuation', 'reuse'] and check_checkfile:
+                if opt.value == 'default':
+                    if not os.path.exists('%s.%s'\
+                        % (os.path.splitext(filename)[0], 'check')):
+                        continue
+                elif not (os.path.exists(opt.value)
+                          # CASTEP also understands relative path names, hence
+                          # also check relative to the param file directory
+                          or os.path.exists(os.path.join(
+                                                os.path.dirname(filename),
+                                                opt.value))
+                          ):
+                    continue
+            out.write('%s : %s\n'
+                % (keyword, opt.value))
+    out.close()
+
+
+
+
 
 
 def read_seed(seed, new_seed=None, ignore_internal_keys=False):
@@ -1080,7 +1176,7 @@ def read_seed(seed, new_seed=None, ignore_internal_keys=False):
     castepfile = os.path.join(directory, '%s.castep' % seed)
     checkfile = os.path.join(directory, '%s.check' % seed)
 
-    atoms = read_castep_cell(cellfile)
+    atoms = read_cell(cellfile)
     atoms.calc._directory = directory
     atoms.calc._rename_existing_dir = False
     atoms.calc._castep_pp_path = directory
