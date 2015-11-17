@@ -23,9 +23,9 @@ dirt_cheap_siesta = Siesta(
     spin='COLLINEAR',
     xc='PBE',
     pseudo_qualifier='gga',
-    fdf_arguments={'DM_Tolerance': 1e-4},
     species=[
         Specie(symbol='H', tag=2, basis_set='DZP', ghost=True)],
+    DM_Tolerance=1e-4,
 )
 h.set_calculator(dirt_cheap_siesta)
 dyn = QuasiNewton(h, trajectory='h.traj')
