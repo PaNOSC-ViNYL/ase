@@ -1617,8 +1617,9 @@ class Atoms(object):
         dists = pdist(self.get_positions())
         dup = np.nonzero(dists < cutoff)
         rem = np.array(_row_col_from_pdist(self.get_number_of_atoms(), dup[0]))
-        if delete:
+        if delete and len(rem) > 0:
             del self[rem[:,0]]
+            return rem
         else:
             return rem
 
