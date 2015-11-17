@@ -134,6 +134,8 @@ common to all the atoms or defined for the collection of atoms:
     -
   * - :meth:`~Atoms.get_volume`
     -
+  * - :meth:`~Atoms.get_duplicate_atoms`
+    -
 
 
 Unit cell and boundary conditions
