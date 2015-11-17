@@ -1,13 +1,13 @@
 """Simple shallow test of the CASTEP interface"""
 
+from ase.test.castep import installed
+
+assert installed()
+
 import os
 import shutil
 import tempfile
 import traceback
-
-from ase.test.castep import installed
-
-assert installed()
 
 # check if we can import everything
 ase_castep_dir = "ase"
@@ -18,14 +18,14 @@ try:
     CastepParam = castep_calc.CastepParam
     create_castep_keywords = castep_calc.create_castep_keywords
 
-except Exception as e:
+except StandardError as e:
     traceback.print_exc()
     print(e)
     assert False, 'Castep calculator module could not be loaded'
 
 try:
     __import__(ase_castep_dir + ".io.castep")
-except Exception as e:
+except StandardError as e:
     assert False, 'Castep io module could not be loaded'
 
 
@@ -36,7 +36,7 @@ from ase.calculators.castep import Castep
 
 try:
     c = Castep(directory=tmp_dir, label='test_label')
-except Exception as e:
+except StandardError as e:
     traceback.print_exc()
     print(e)
     assert False, 'Could not instantiate castep calculator'
@@ -44,7 +44,7 @@ except Exception as e:
 
 try:
     c.xc_functional = 'PBE'
-except Exception as e:
+except StandardError as e:
     traceback.print_exc()
     print(e)
     assert False, 'Setting xc_functional  failed'
@@ -58,7 +58,7 @@ print('normal behavior and can be safely ignored')
 
 try:
     lattice.set_calculator(c)
-except Exception as e:
+except StandardError as e:
     traceback.print_exc()
     print(e)
     assert False, 'Setting the calculator %s failed' % c
@@ -70,7 +70,7 @@ try:
         castep_command=os.environ['CASTEP_COMMAND'],
         path=tmp_dir,
         fetch_only=20)
-except Exception as e:
+except StandardError as e:
     traceback.print_exc()
     print(e)
     assert  False, "Cannot create castep_keywords, this usually means a  bug"\
@@ -86,7 +86,7 @@ param.write('CUT_OFF_ENERGY : 450.\n')
 param.close()
 try:
     c.merge_param(param_fn)
-except Exception as e:
+except StandardError as e:
     traceback.print_exc()
     print(e)
     assert False,"Error in merge_param_filename, go figure"
