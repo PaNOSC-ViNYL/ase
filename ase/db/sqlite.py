@@ -370,8 +370,9 @@ class SQLite3Database(Database):
         if self.version < 5:
             pass  # should be ok for reading by convert.py script
         if self.version < 6:
-            magmom = float(deblob(values[23], shape=()))
-            values = values[:23] + (magmom,) + values[24:]
+            if values[23] is not None:
+                magmom = float(deblob(values[23], shape=()))
+                values = values[:23] + (magmom,) + values[24:]
         return values
         
     def create_select_statement(self, keys, cmps,
