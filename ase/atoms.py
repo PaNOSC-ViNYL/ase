@@ -1611,7 +1611,7 @@ class Atoms(object):
         """Get list of duplicate atoms and delete them if requested.
 
         Identify all atoms which lie within the cutoff radius of each other.
-        Delete one set of them if remove == True.
+        Delete one set of them if delete == True.
         """
         from scipy.spatial.distance import pdist
         dists = pdist(self.get_positions())
