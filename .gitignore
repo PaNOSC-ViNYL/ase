@@ -18,6 +18,9 @@ MANIFEST
 *.db
 *.pckl
 
+#editor backup files
+*.py~
+
 # These are OK (images for the supported calculators):
 !/doc/static/*.png
 
