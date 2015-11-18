@@ -45,6 +45,7 @@ class ResonantRaman(Vibrations):
                  nfree=2,
                  directions=None,
                  exkwargs={},      # kwargs to be passed to Excitations
+                 exext='.ex.gz',    # extension for Excitation names
                  txt='-',
                  verbose=False):
         assert(nfree == 2)
@@ -53,6 +54,7 @@ class ResonantRaman(Vibrations):
         if exname is None:
             exname = gsname
         self.exname = exname + '-d%.3f' % delta
+        self.exext = exext
 
         if directions is None:
             self.directions = np.array([0, 1, 2])
@@ -83,7 +85,7 @@ class ResonantRaman(Vibrations):
         self.timer.start('Excitations')
         basename, _ = os.path.splitext(filename)
         excitations = self.exobj(self.atoms.get_calculator())
-        excitations.write(basename + '.excitations')
+        excitations.write(basename + self.exext)
         self.timer.stop('Excitations')
 
     def get_intensity_tensor(self, omega, gamma=0.1):
@@ -110,8 +112,9 @@ class ResonantRaman(Vibrations):
                 return m_ccp
 
             self.timer.start('reading excitations')
-            self.log('reading ' + self.exname + '.eq.excitations')
-            ex_p = self.exobj(self.exname + '.eq.excitations',
+            print('reading ' + self.exname + '.eq' + self.exext)
+            self.log('reading ' + self.exname + '.eq' + self.exext)
+            ex_p = self.exobj(self.exname + '.eq' + self.exext,
                               **self.exkwargs)
             n = len(ex_p)
             self.ex0 = np.array([ex.energy * eu for ex in ex_p])
@@ -121,9 +124,9 @@ class ResonantRaman(Vibrations):
                 for i in 'xyz':
                     name = '%s.%d%s' % (self.exname, a, i)
                     self.exminus.append(get_me_tensor(
-                        name + '-.excitations', n))
+                        name + '-' + self.exext, n))
                     self.explus.append(get_me_tensor(
-                        name + '+.excitations', n))
+                        name + '+' + self.exext, n))
             self.timer.stop('reading excitations')
 
         self.timer.start('amplitudes')
