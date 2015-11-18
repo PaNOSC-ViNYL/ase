@@ -485,10 +485,10 @@ class FitnessSharingPopulation(Population):
             ck = c.info['key_value_pairs'][self.comp_key]
             for other in candidates:
                 if other != c:
-                    name = set(sorted([c.info['confid'],
-                                       other.info['confid']]))
+                    name = tuple(sorted([c.info['confid'],
+                                         other.info['confid']]))
                     if name not in self.sh_cache:
-                        ok = other['key_value_pairs'][self.comp_key]
+                        ok = other.info['key_value_pairs'][self.comp_key]
                         d = abs(ck - ok)
                         if d < self.dt:
                             v = 1 - (d / self.dt)**self.alpha_sh
@@ -561,8 +561,7 @@ class FitnessSharingPopulation(Population):
         fmax = max(fit)
         c1 = self.pop[0]
         c2 = self.pop[0]
-        used_before = False
-        while c1.info['confid'] == c2.info['confid'] and not used_before:
+        while c1.info['confid'] == c2.info['confid']:
             nnf = True
             while nnf:
                 t = randrange(0, len(self.pop), 1)
@@ -576,9 +575,6 @@ class FitnessSharingPopulation(Population):
                     c2 = self.pop[t]
                     nnf = False
 
-            c1id = c1.info['confid']
-            c2id = c2.info['confid']
-            used_before = sorted([c1id, c2id]) in self.pairs
         return (c1.copy(), c2.copy())
 
 
