@@ -112,7 +112,6 @@ class ResonantRaman(Vibrations):
                 return m_ccp
 
             self.timer.start('reading excitations')
-            print('reading ' + self.exname + '.eq' + self.exext)
             self.log('reading ' + self.exname + '.eq' + self.exext)
             ex_p = self.exobj(self.exname + '.eq' + self.exext,
                               **self.exkwargs)
