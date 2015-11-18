@@ -94,7 +94,7 @@ All options can be accessed via ``calc.param.<TAB>`` or ``calc.cell.<TAB>``
 and documentation is printed with ``calc.param.<keyword> ?`` or
 ``calc.cell.<keyword> ?``. All options can also be set directly
 using ``calc.keyword = ...`` or ``calc.KEYWORD = ...`` or even
-``calc.KeYwOrD`` or directly as named arguments in the call to the constructor
+``ialc.KeYwOrD`` or directly as named arguments in the call to the constructor
 (*e.g.* ``Castep(task='GeometryOptimization')``).
 
 All options that go into the ``.param`` file are held in an ``CastepParam``
@@ -332,8 +332,8 @@ End CASTEP Interface Documentation
         # initialize the ase.calculators.general calculator
         Calculator.__init__(self)
 
-        from ase.io.castep import write_castep_cell
-        self._write_cell = write_castep_cell
+        from ase.io.castep import write_cell
+        self._write_cell = write_cell
 
         castep_keywords = import_castep_keywords()
         self.param = CastepParam()
@@ -1450,7 +1450,9 @@ End CASTEP Interface Documentation
         seed = 'dryrun'
 
         cell_written = self._write_cell('%s.cell' % seed, self.atoms)
-        if not cell_written:
+        # This part needs to be modified now that we rely on the new formats.py
+        # interface
+        if not os.path.isfile('%s.cell'%seed):
             print('%s.cell not written - aborting dryrun' % seed)
             return
         write_param('%s.param' % seed, self.param, )
