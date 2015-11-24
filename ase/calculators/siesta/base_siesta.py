@@ -28,6 +28,7 @@ class BaseSiesta(FileIOCalculator):
     allowed_spins = ['UNPOLARIZED', 'COLLINEAR', 'FULL']
     allowed_xc = {}
     allowed_fdf_keywords = {}
+    unit_fdf_keywords = {}
 
     implemented_properties = tuple([
         'energy',
@@ -57,6 +58,7 @@ class BaseSiesta(FileIOCalculator):
         n_nodes=1,
         restart=None,
         ignore_bad_restart_file=False,
+        siesta_cmd = None
     )
 
     def __init__(self, **kwargs):
@@ -110,7 +112,13 @@ class BaseSiesta(FileIOCalculator):
         parameters.update(kwargs)
 
         # Setup the siesta command based on number of nodes.
-        siesta = os.environ.get('SIESTA')
+        if parameters['siesta_cmd'] is None:
+          siesta = os.environ.get('SIESTA')
+          if siesta is None:
+            raise ValueError('SIESTA not in the environement, use siesta_cmd')
+        else:
+          siesta = parameters['siesta_cmd']
+
         label = parameters['label']
         self.label = label
         n_nodes = parameters['n_nodes']
@@ -240,6 +248,7 @@ class BaseSiesta(FileIOCalculator):
         Capture the RuntimeError from FileIOCalculator.calculate
         and add a little debug information from the Siesta output.
         """
+        
         try:
             FileIOCalculator.calculate(
                 self,
@@ -247,15 +256,19 @@ class BaseSiesta(FileIOCalculator):
                 properties=properties,
                 system_changes=system_changes,
             )
+#Here a test to check if the potential are in the right place!!!
         except RuntimeError, e:
-            with open(self.label + '.out', 'r') as f:
-                lines = f.readlines()
-            debug_lines = 10
-            print('####### %d last lines of the Siesta output' % debug_lines)
-            for line in lines[-20:]:
-                print(line.strip())
-            print('####### end of siesta output')
-            raise e
+            try:
+                with open(self.label + '.out', 'r') as f:
+                    lines = f.readlines()
+                debug_lines = 10
+                print('####### %d last lines of the Siesta output' % debug_lines)
+                for line in lines[-20:]:
+                    print(line.strip())
+                print('####### end of siesta output')
+                raise e
+            except:
+                raise e
 
     def write_input(self, atoms, properties=None, system_changes=None):
         """
@@ -317,7 +330,10 @@ class BaseSiesta(FileIOCalculator):
         d_parameters = self.get_default_parameters()
         for key, value in self.parameters.iteritems():
             if not key in d_parameters.keys():
-                f.write(format_fdf(key, value))
+                if not key in self.unit_fdf_keywords.keys(): 
+                    f.write(format_fdf(key, value))
+                else:
+                    f.write(format_fdf(key, '%.8f ' % value + self.unit_fdf_keywords[key]))
 
     def remove_analysis(self):
         """ Remove all analysis files"""
@@ -354,6 +370,7 @@ class BaseSiesta(FileIOCalculator):
             if M != 0:
                 f.write('%d %.14f\n' % (n + 1, M))
         f.write('%endblock DM.InitSpin\n')
+        f.write('\n')
 
     def _write_atomic_coordinates(self, f, atoms):
         """
@@ -364,6 +381,7 @@ class BaseSiesta(FileIOCalculator):
             - atoms: An atoms object.
         """
         species, species_numbers = self.species(atoms)
+        f.write('\n')
         f.write('AtomicCoordinatesFormat  Ang\n')
         f.write('%block AtomicCoordinatesAndAtomicSpecies\n')
         for atom, number in zip(atoms, species_numbers):
@@ -379,6 +397,7 @@ class BaseSiesta(FileIOCalculator):
         f.write('%block AtomicCoordinatesOrigin\n')
         f.write('%.4f  %.4f  %.4f\n' % origin)
         f.write('%endblock AtomicCoordinatesOrigin\n')
+        f.write('\n')
 
     def _write_kpts(self, f):
         """
@@ -420,6 +439,7 @@ class BaseSiesta(FileIOCalculator):
             - atoms: An atoms object.
         """
         energy_shift = '%.4f eV' % self['energy_shift']
+        f.write('\n')
         f.write(format_fdf('PAO_EnergyShift', energy_shift))
         mesh_cutoff = '%.4f eV' % self['mesh_cutoff']
         f.write(format_fdf('MeshCutoff', mesh_cutoff))
@@ -457,8 +477,12 @@ class BaseSiesta(FileIOCalculator):
             atomic_number = atomic_numbers[symbol]
 
             if specie['pseudopotential'] is None:
-                label = '.'.join([symbol, self.pseudo_qualifier()])
-                pseudopotential = label + '.psf'
+                if self.pseudo_qualifier() == '':
+                    label = symbol
+                    pseudopotential = label + '.psf'
+                else:
+                    label = '.'.join([symbol, self.pseudo_qualifier()])
+                    pseudopotential = label + '.psf'
             else:
                 pseudopotential = specie['pseudopotential']
                 label = os.path.basename(pseudopotential)
@@ -494,6 +518,7 @@ class BaseSiesta(FileIOCalculator):
         f.write((format_fdf('ChemicalSpecieslabel', chemical_labels)))
         f.write((format_fdf('PAO.Basis', pao_basis)))
         f.write((format_fdf('PAO.BasisSizes', basis_sizes)))
+        f.write('\n')
 
     def pseudo_qualifier(self):
         """
