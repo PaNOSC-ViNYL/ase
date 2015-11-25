@@ -76,7 +76,7 @@ def main():
     from ase.io import read
     parser = optparse.OptionParser(usage='python -m ase.io.eos [options] '
                                    'filename, ...',
-                                   help='Calculate equation of state.')
+                                   description='Calculate equation of state.')
     parser.add_option('-p', '--plot', action='store_true')
     opts, args = parser.parse_args()
     if not opts.plot:
