@@ -35,19 +35,20 @@ your structure by dumping directly to a graphics file; you can use the
 
 
 .. module:: ase.visualize.mlab
-
-Mayavi
-------
+.. _iso surface:
+    
+Plotting iso-surfaces with Mayavi
+---------------------------------
 
 The :func:`ase.visualize.mlab.plot` function can be used from the
 command-line::
     
-    python -m ase.visualize.mlab abc.cube
+    $ python -m ase.visualize.mlab abc.cube
     
 to plot data from a cube-file or alternatively a wave function or an electron
 density from a calculator restart file::
     
-    python -m ase.visualize.mlab -C gpaw abc.gpw
+    $ python -m ase.visualize.mlab -C gpaw abc.gpw
 
 Options:
     

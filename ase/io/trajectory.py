@@ -345,7 +345,7 @@ def convert(name):
     
 def main():
     import optparse
-    parser = optparse.OptionParser(usage='python -m ase.io.pickletrajectory '
+    parser = optparse.OptionParser(usage='python -m ase.io.trajectory '
                                    'a1.traj [a2.traj ...]',
                                    description='Convert old trajectory '
                                    'file(s) to new format. '
