@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
 
+from ase.units import kJ
 from ase.utils.sjeos import EquationOfStateSJEOS
 
 try:
@@ -75,7 +75,8 @@ def main():
     import optparse
     from ase.io import read
     parser = optparse.OptionParser(usage='python -m ase.io.eos [options] '
-                                   'filename, ...')
+                                   'filename, ...',
+                                   help='Calculate equation of state.')
     parser.add_option('-p', '--plot', action='store_true')
     opts, args = parser.parse_args()
     if not opts.plot:
@@ -83,23 +84,31 @@ def main():
               'points     volume    energy  bulk modulus')
         print('#                         '
               '          [Ang^3]      [eV]         [GPa]')
-    for t in args:
-        if t == '-':
+    for name in args:
+        if name == '-':
             # Special case - used by ase-gui:
             import pickle
             import sys
             v, e = pickle.load(sys.stdin)
         else:
-            images = read(t, index=':')
+            if '@' in name:
+                index = None
+            else:
+                index = ':'
+            images = read(name, index=index)
             v = [atoms.get_volume() for atoms in images]
             e = [atoms.get_potential_energy() for atoms in images]
         eos = EquationOfState(v, e)
         if opts.plot:
             eos.plot()
         else:
-            v0, e0, B = eos.fit()
-            print('{0:30}{1:2} {2:10.3f}{3:10.3f}{4:14.3f}'
-                  .format(t, len(v), (v0*4)**0.33333, e0, B))
+            try:
+                v0, e0, B = eos.fit()
+            except ValueError as ex:
+                print('{0:30}{1:2}    {2}'.format(name, len(v), ex.message))
+            else:
+                print('{0:30}{1:2} {2:10.3f}{3:10.3f}{4:14.3f}'
+                      .format(name, len(v), v0, e0, B / kJ * 1.0e24))
             
             
 if __name__ == '__main__':
