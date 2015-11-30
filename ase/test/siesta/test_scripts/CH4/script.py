@@ -1,5 +1,5 @@
 import os
-from ase.units import Ry
+from ase.units import Ry, eV
 from ase.io import read
 from ase.calculators.siesta.parameters import Specie, PAOBasisBlock
 from ase.calculators.siesta.siesta import Siesta
@@ -38,13 +38,17 @@ calc = Siesta(
     species=[specie],
     restart='ch4.XV',
     ignore_bad_restart_file=True,
-    DM_Tolerance=1e-5,
-    DM_MixingWeight=0.15,
-    DM_NumberPulay=3,
-    MaxSCFIterations=200,
-    ElectronicTemperature=(300, 'K'),
-    SaveElectrostaticPotential=True,
+    siesta_command='siesta'
 )
+
+calc.set_optionnal_arguments(
+  {'DM.Tolerance': 1E-5,
+   'DM.MixingWeight': 0.15,
+   'DM_NumberPulay': 3,
+   'MaxSCFIterations': 200,
+  'ElectronicTemperature': 0.02585*eV, #300 K
+   'SaveElectrostaticPotential': True
+    })
 
 bud.set_calculator(calc)
 dyn = QuasiNewton(bud, trajectory=traj)

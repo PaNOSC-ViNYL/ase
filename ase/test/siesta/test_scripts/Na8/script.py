@@ -16,17 +16,21 @@ dirt_cheap_siesta = Siesta(
     pseudo_path = './',
     pseudo_qualifier = '',
     energy_shift = (10*10**-3) * eV,
-    MD_TypeOfRun = 'CG',
-    MD_NumCGsteps = 0,
-    MD_MaxForceTol = 0.02  * eV/Ang,
-    COOP_Write = True,
-    WriteDenchar = True,
-    PAO_BasisType = 'split',
-    DM_Tolerance = 1e-4,
-    DM_MixingWeight = 0.01,
-    MaxSCFIterations = 400,
-    DM_NumberPulay = 4,
+    command=None
 )
+
+dirt_cheap_siesta.set_optionnal_arguments(
+  {'MD.TypeOfRun': 'CG',
+   'MD.NumCGsteps': 0,
+   'MD.MaxForceTol': 0.02  * eV/Ang,
+   'COOP.Write': True,
+   'WriteDenchar': True,
+   'PAO.BasisType': 'split',
+   'DM.Tolerance': 1e-4,
+   'DM.MixingWeight': 0.01,
+   'MaxSCFIterations': 400,
+   'DM.NumberPulay': 4})
+
 Na8.set_calculator(dirt_cheap_siesta)
 dyn = QuasiNewton(Na8, trajectory='Na8.traj')
 dyn.run(fmax=0.02)

@@ -58,7 +58,7 @@ class BaseSiesta(FileIOCalculator):
         n_nodes=1,
         restart=None,
         ignore_bad_restart_file=False,
-        siesta_cmd = None
+        siesta_command = None
     )
 
     def __init__(self, **kwargs):
@@ -112,12 +112,12 @@ class BaseSiesta(FileIOCalculator):
         parameters.update(kwargs)
 
         # Setup the siesta command based on number of nodes.
-        if parameters['siesta_cmd'] is None:
+        if parameters['siesta_command'] is None:
           siesta = os.environ.get('SIESTA')
           if siesta is None:
-            raise ValueError('SIESTA not in the environement, use siesta_cmd')
+            raise ValueError('SIESTA not in the environement, set the right command')
         else:
-          siesta = parameters['siesta_cmd']
+          siesta = parameters['siesta_command']
 
         label = parameters['label']
         self.label = label
@@ -242,6 +242,13 @@ class BaseSiesta(FileIOCalculator):
 
         FileIOCalculator.set(self, **kwargs)
 
+    def set_optionnal_arguments(self, args):
+        d_parameters = self.get_default_parameters()
+        for key, value in args.items():
+            if not key in d_parameters.keys():
+              self.parameters[key] = value
+    
+
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=all_changes):
         """
@@ -353,24 +360,30 @@ class BaseSiesta(FileIOCalculator):
         xyz = atoms.get_positions()
         f.write('\n')
         f.write(format_fdf('NumberOfAtoms', len(xyz)))
-        f.write(format_fdf('LatticeConstant', '1.0 Ang'))
-        f.write('%block LatticeVectors\n')
-        for i in range(3):
-            for j in range(3):
-                f.write(string.rjust('%.15f' % unit_cell[i, j], 16) + ' ')
+        default_unit_cell = np.eye(3, dtype=float)
+        if np.any(unit_cell != default_unit_cell):
+            f.write(format_fdf('LatticeConstant', '1.0 Ang'))
+            f.write('%block LatticeVectors\n')
+            for i in range(3):
+                for j in range(3):
+                    f.write(string.rjust('    %.15f' % unit_cell[i, j], 16) + ' ')
+                f.write('\n')
+            f.write('%endblock LatticeVectors\n')
             f.write('\n')
-        f.write('%endblock LatticeVectors\n')
 
         self._write_atomic_coordinates(f, atoms)
 
         # Write magnetic moments.
         magmoms = atoms.get_initial_magnetic_moments()
-        f.write('%block DM.InitSpin\n')
-        for n, M in enumerate(magmoms):
-            if M != 0:
-                f.write('%d %.14f\n' % (n + 1, M))
-        f.write('%endblock DM.InitSpin\n')
-        f.write('\n')
+        magmoms_null = np.zeros(magmoms.shape, dtype = float)
+
+        if np.any(magmoms != magmoms_null):
+            f.write('%block DM.InitSpin\n')
+            for n, M in enumerate(magmoms):
+                if M != 0:
+                    f.write('    %d %.14f\n' % (n + 1, M))
+            f.write('%endblock DM.InitSpin\n')
+            f.write('\n')
 
     def _write_atomic_coordinates(self, f, atoms):
         """
@@ -386,16 +399,17 @@ class BaseSiesta(FileIOCalculator):
         f.write('%block AtomicCoordinatesAndAtomicSpecies\n')
         for atom, number in zip(atoms, species_numbers):
             xyz = atom.position
-            line = string.rjust('%.9f' % xyz[0], 16) + ' '
-            line += string.rjust('%.9f' % xyz[1], 16) + ' '
-            line += string.rjust('%.9f' % xyz[2], 16) + ' '
+            line = string.rjust('    %.9f' % xyz[0], 16) + ' '
+            line += string.rjust('    %.9f' % xyz[1], 16) + ' '
+            line += string.rjust('    %.9f' % xyz[2], 16) + ' '
             line += str(number) + '\n'
             f.write(line)
         f.write('%endblock AtomicCoordinatesAndAtomicSpecies\n')
+        f.write('\n')
 
         origin = tuple(-atoms.get_celldisp().flatten())
         f.write('%block AtomicCoordinatesOrigin\n')
-        f.write('%.4f  %.4f  %.4f\n' % origin)
+        f.write('     %.4f  %.4f  %.4f\n' % origin)
         f.write('%endblock AtomicCoordinatesOrigin\n')
         f.write('\n')
 
@@ -424,7 +438,7 @@ class BaseSiesta(FileIOCalculator):
                     write_this = number
                 else:
                     write_this = 0
-                s += '%d  ' % write_this
+                s += '     %d  ' % write_this
             s += '%1.1f\n' % displace
             f.write(s)
         f.write('%endblock kgrid_Monkhorst_Pack\n')
@@ -454,9 +468,11 @@ class BaseSiesta(FileIOCalculator):
             f.write(format_fdf('NonCollinearSpin', True))
 
         functional, authors = self.parameters['xc']
+        f.write('\n')
         f.write(format_fdf('XC_functional', functional))
         if not authors is None:
             f.write(format_fdf('XC_authors', authors))
+        f.write('\n')
 
         if not self['pseudo_path'] is None:
             pseudo_path = self['pseudo_path']
@@ -509,13 +525,14 @@ class BaseSiesta(FileIOCalculator):
                 os.symlink(pseudopotential, name)
 
             label = '.'.join(np.array(name.split('.'))[:-1])
-            string = '%d %d %s' % (species_number, atomic_number, label)
+            string = '    %d %d %s' % (species_number, atomic_number, label)
             chemical_labels.append(string)
             if isinstance(specie['basis_set'], PAOBasisBlock):
                 pao_basis.append(specie['basis_set'].script(label))
             else:
                 basis_sizes.append((label, specie['basis_set']))
         f.write((format_fdf('ChemicalSpecieslabel', chemical_labels)))
+        f.write('\n')
         f.write((format_fdf('PAO.Basis', pao_basis)))
         f.write((format_fdf('PAO.BasisSizes', basis_sizes)))
         f.write('\n')
