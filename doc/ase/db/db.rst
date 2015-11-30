@@ -448,7 +448,7 @@ into the PostgreSQL database like this::
     
 Now you can start the Flask_\ -app ``ase.db.app``.  You can use Flask's own
 web-server or use any WSGI_ compatible server.  We will use
-Twisted in the example below. Set the $ASE_DB_APP_CONFIG environment variable
+Twisted_ in the example below. Set the $ASE_DB_APP_CONFIG environment variable
 to point to a configuration file containing two lines similar to these::
     
     ASE_DB_NAME = 'pg://ase:password@localhost:5432'
