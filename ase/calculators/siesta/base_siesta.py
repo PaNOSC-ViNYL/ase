@@ -7,18 +7,39 @@ import os
 from os.path import join, isfile, islink
 import string
 import numpy as np
-from collections import OrderedDict
 
 from ase.units import Ry, eV
 from ase.data import atomic_numbers
-from ase.io.siesta import read_rho, xv_to_atoms
+from ase.calculators.siesta.io import read_rho, xv_to_atoms
 from ase.calculators.calculator import FileIOCalculator, ReadError
-from ase.calculators.calculator import LockedParameters, all_changes
+from ase.calculators.calculator import Parameters, all_changes
 from ase.calculators.siesta.parameters import PAOBasisBlock, Specie
 from ase.calculators.siesta.parameters import format_fdf
 
 meV = 0.001 * eV
 
+class SiestaParameters(Parameters):
+    def __init__(
+            self,
+            label='siesta',
+            mesh_cutoff=200 * Ry,
+            energy_shift=100 * meV,
+            kpts=(1, 1, 1),
+            atoms=None,
+            xc='LDA',
+            species=tuple(),
+            basis_set='DZP',
+            spin='COLLINEAR',
+            pseudo_qualifier=None,
+            pseudo_path=None,
+            n_nodes=1,
+            restart=None,
+            ignore_bad_restart_file=False,
+            siesta_executable=None,
+            fdf_arguments=None):
+        kwargs = locals()
+        kwargs.pop('self')
+        Parameters.__init__(self, **kwargs)
 
 class BaseSiesta(FileIOCalculator):
     """
@@ -41,25 +62,7 @@ class BaseSiesta(FileIOCalculator):
     ])
 
     # Dictionary of valid input vaiables.
-    # Any additional variables will be written directly as to fdf-files.
-    # Replace '.' with '_' in arguments.
-    default_parameters = LockedParameters(
-        label='siesta',
-        mesh_cutoff=200 * Ry,
-        energy_shift=100 * meV,
-        kpts=(1, 1, 1),
-        atoms=None,
-        xc='LDA',
-        species=tuple(),
-        basis_set='DZP',
-        spin='COLLINEAR',
-        pseudo_qualifier=None,
-        pseudo_path=None,
-        n_nodes=1,
-        restart=None,
-        ignore_bad_restart_file=False,
-        siesta_command = None
-    )
+    default_parameters = SiestaParameters()
 
     def __init__(self, **kwargs):
         """
@@ -101,30 +104,42 @@ class BaseSiesta(FileIOCalculator):
                             Ignore broken or missing restart file.
                             By default, it is an error if the restart
                             file is missing or broken.
-
-            Any additional keyword parameters will be directly formatted as
-            parameters in the fdf script. Argument names will be written
-            replacing '_' with '.'.For values, python lists will be written
-            as fdf blocks with each element on a seperate line, while tuples
-            will write each element in a single line.
+            -siesta_executable : path to the siesta executable, if None the
+                            environment variable 'SIESTA' will be used.
+            -fdf_arguments: Explicitly given fdf arguments. Dictonary using
+                            Siesta keywords as given in the manual. List values
+                            are written as fdf blocks with each element on a seperate
+                            line, while tuples will write each element in a single line.
+                            ASE units are assumed in the input.
         """
-        parameters = self.get_default_parameters()
-        parameters.update(kwargs)
+        # Put in the default arguments.
+        parameters = self.default_parameters.__class__(**kwargs)
+
+        # Early error checking for the fdf_arguments.
+        fdf_arguments = parameters['fdf_arguments']
+        if not fdf_arguments is None:
+            if not isinstance(fdf_arguments, dict):
+                raise TypeError("fdf_arguments must be a dictionary.")
+            if not set(fdf_arguments.keys()).issubset(self.allowed_fdf_keywords):
+                offending_keys = set(fdf_arguments.keys()).difference(self.allowed_fdf_keywords)
+                raise ValueError("The 'fdf_arguments' dictionary argument does not allow " +\
+                                 "the keywords: %s"%str(offending_keys))
 
         # Setup the siesta command based on number of nodes.
-        if parameters['siesta_command'] is None:
+        if parameters['siesta_executable'] is None:
           siesta = os.environ.get('SIESTA')
           if siesta is None:
-            raise ValueError('SIESTA not in the environement, set the right command')
+            raise ValueError("Either define the 'SIESTA' environment variable give the 'command' keyword on initialization.")
         else:
-          siesta = parameters['siesta_command']
+          siesta = parameters['siesta_executable']
 
         label = parameters['label']
         self.label = label
         n_nodes = parameters['n_nodes']
+
         if n_nodes > 1:
             command = 'mpirun -np %d %s < ./%s.fdf > ./%s.out'
-            command = command % (n_nodes, siesta, label, label)
+            command = parallel_command % (n_nodes, siesta, label, label)
         else:
             command = '%s < ./%s.fdf > ./%s.out' % (siesta, label, label)
 
@@ -154,7 +169,7 @@ class BaseSiesta(FileIOCalculator):
         symbols = np.array(atoms.get_chemical_symbols())
         tags = atoms.get_tags()
         species = list(self['species'])
-        default_species = [s for s in species if s['tag'] is None]
+        default_species = [s for s in species if (s['tag'] is None) and s['symbol'] in symbols]
         default_symbols = [s['symbol'] for s in default_species]
         for symbol in symbols:
             if not symbol in default_symbols:
@@ -232,22 +247,7 @@ class BaseSiesta(FileIOCalculator):
                 raise ValueError("Unrecognized 'xc' keyword: '%s'" % xc)
         kwargs['xc'] = (functional, authors)
 
-        # Leftover keywords must be in the allowed list.
-        fdf_keywords = set(kwargs.keys()) - set(self.default_parameters.keys())
-        not_in_list = fdf_keywords - set(self.allowed_fdf_keywords)
-        if len(not_in_list) > 0:
-            mess = 'Siesta caluculator does not accept the arguments: %s.' \
-                % not_in_list
-            raise KeyError(mess)
-
         FileIOCalculator.set(self, **kwargs)
-
-    def set_optionnal_arguments(self, args):
-        d_parameters = self.get_default_parameters()
-        for key, value in args.items():
-            if not key in d_parameters.keys():
-              self.parameters[key] = value
-    
 
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=all_changes):
@@ -255,7 +255,7 @@ class BaseSiesta(FileIOCalculator):
         Capture the RuntimeError from FileIOCalculator.calculate
         and add a little debug information from the Siesta output.
         """
-        
+
         try:
             FileIOCalculator.calculate(
                 self,
@@ -299,6 +299,9 @@ class BaseSiesta(FileIOCalculator):
 
         # Start writing the file.
         with open(filename, 'w') as f:
+            # First write explicitly given options to allow the user to overwrite anything.
+            self._write_fdf_arguments(f)
+
             # Use the saved density matrix if only 'cell' and 'positions'
             # haved changes.
             if system_changes is None or \
@@ -322,7 +325,6 @@ class BaseSiesta(FileIOCalculator):
             self._write_species(f, atoms)
             self._write_kpts(f)
             self._write_structure(f, atoms)
-            self._write_fdf_arguments(f)
 
     def read(self, restart):
         if not os.path.exists(restart):
@@ -332,15 +334,16 @@ class BaseSiesta(FileIOCalculator):
 
     def _write_fdf_arguments(self, f):
         """
-        Write all arguments not given as default directly as fdf-format.
+        Write directly given fdf-arguments.
         """
-        d_parameters = self.get_default_parameters()
-        for key, value in self.parameters.iteritems():
-            if not key in d_parameters.keys():
-                if not key in self.unit_fdf_keywords.keys(): 
-                    f.write(format_fdf(key, value))
-                else:
-                    f.write(format_fdf(key, '%.8f ' % value + self.unit_fdf_keywords[key]))
+        fdf_arguments = self.parameters['fdf_arguments']
+        for key, value in fdf_arguments.iteritems():
+            if key in self.unit_fdf_keywords.keys():
+                f.write(format_fdf(key, '%.8f ' % value + self.unit_fdf_keywords[key]))
+            elif key in self.allowed_fdf_keywords:
+                f.write(format_fdf(key, value))
+            else:
+                raise ValueError("%s not in allowed keywords."%key)
 
     def remove_analysis(self):
         """ Remove all analysis files"""
@@ -646,7 +649,7 @@ class BaseSiesta(FileIOCalculator):
         lines = lines[2:-1]
         lines_per_kpt = (self.n_bands * n_spin_bands / 10 +
                          int((self.n_bands * n_spin_bands) % 10 != 0))
-        eig = OrderedDict()
+        eig = dict()
         for i in range(len(self.weights)):
             tmp = lines[i * lines_per_kpt:(i + 1) * lines_per_kpt]
             v = [float(v) for v in tmp[0].split()[1:]]

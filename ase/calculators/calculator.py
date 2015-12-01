@@ -138,22 +138,6 @@ class Parameters(dict):
         file.close()
 
 
-class LockedParameters(dict):
-    """ This parameter class only allows the use of parameters it
-        was initialized with."""
-
-    def __init__(self, **kwargs):
-        self.__keys = kwargs.keys()
-        dict.__init__(self, **kwargs)
-
-    def __setitem__(self, key, value):
-        if key not in self.__keys:
-            t = (key, self.__keys)
-            mess = "'%s' cannot be set, only allowed keys are %s" % t
-            raise KeyError(mess)
-        dict.__setitem__(self, key, value)
-
-
 class Calculator:
     """Base-class for all ASE calculators.
 

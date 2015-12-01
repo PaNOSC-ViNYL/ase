@@ -38,17 +38,16 @@ calc = Siesta(
     species=[specie],
     restart='ch4.XV',
     ignore_bad_restart_file=True,
-    siesta_command='siesta'
+    siesta_executable='siesta',
+    fdf_arguments={'DM.Tolerance': 1E-5,
+                   'DM.MixingWeight': 0.15,
+                   'DM.NumberPulay': 3,
+                   'MaxSCFIterations': 200,
+                   'ElectronicTemperature': 0.02585*eV, #300 K
+                   'SaveElectrostaticPotential': True
+                  },
 )
 
-calc.set_optionnal_arguments(
-  {'DM.Tolerance': 1E-5,
-   'DM.MixingWeight': 0.15,
-   'DM_NumberPulay': 3,
-   'MaxSCFIterations': 200,
-  'ElectronicTemperature': 0.02585*eV, #300 K
-   'SaveElectrostaticPotential': True
-    })
 
 bud.set_calculator(calc)
 dyn = QuasiNewton(bud, trajectory=traj)

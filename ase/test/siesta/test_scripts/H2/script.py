@@ -17,7 +17,7 @@ h = Atoms(
 h.set_tags([1, 2, 3])
 h.set_initial_magnetic_moments([0, 0, 0])
 
-dirt_cheap_siesta = Siesta(
+siesta = Siesta(
     mesh_cutoff=200 * Ry,
     basis_set='SZ',
     spin='COLLINEAR',
@@ -25,12 +25,9 @@ dirt_cheap_siesta = Siesta(
     pseudo_qualifier='gga',
     species=[
         Specie(symbol='H', tag=2, basis_set='DZP', ghost=True)],
-    siesta_command = None
+    fdf_arguments={'DM.Tolerance': 1e-3},
 )
 
-dirt_cheap_siesta.set_optionnal_arguments(
-  {'DM.Tolerance': 1e-4})
-
-h.set_calculator(dirt_cheap_siesta)
+h.set_calculator(siesta)
 dyn = QuasiNewton(h, trajectory='h.traj')
 dyn.run(fmax=0.02)

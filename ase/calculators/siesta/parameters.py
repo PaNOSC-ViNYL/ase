@@ -1,7 +1,7 @@
-from ase.calculators.calculator import LockedParameters
+from ase.calculators.calculator import Parameters
 
 
-class PAOBasisBlock(LockedParameters):
+class PAOBasisBlock(Parameters):
     """
     Representing a block in PAO.Basis for one species.
     """
@@ -24,7 +24,7 @@ class PAOBasisBlock(LockedParameters):
                      See siesta manual for details.
         """
         assert isinstance(block, str)
-        LockedParameters.__init__(self, block=block)
+        Parameters.__init__(self, block=block)
 
     def script(self, label):
         """
@@ -36,7 +36,7 @@ class PAOBasisBlock(LockedParameters):
         return label + ' ' + self['block']
 
 
-class Specie(LockedParameters):
+class Specie(Parameters):
     """
     Parameters for specifying the behaviour for a single species in the
     calculation. If the tag argument is set to an integer then atoms with
@@ -55,7 +55,7 @@ class Specie(LockedParameters):
                  ):
         kwargs = locals()
         kwargs.pop('self')
-        LockedParameters.__init__(self, **kwargs)
+        Parameters.__init__(self, **kwargs)
 
 
 def format_fdf(key, value):

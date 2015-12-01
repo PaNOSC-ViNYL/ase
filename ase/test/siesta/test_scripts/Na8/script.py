@@ -1,3 +1,4 @@
+import os
 from ase.units import Ry, eV, Ang
 
 from ase.calculators.siesta import Siesta
@@ -10,27 +11,22 @@ import sys
 Na8 = read('Na8.xyz')
 Na8.set_cell([20.0, 20.0, 20.0])
 
-dirt_cheap_siesta = Siesta(
+siesta = Siesta(
     mesh_cutoff=150 * Ry,
     basis_set='DZP',
-    pseudo_path = './',
+    pseudo_path=os.getcwd(),
     pseudo_qualifier = '',
-    energy_shift = (10*10**-3) * eV,
-    command=None
+    energy_shift=(10*10**-3) * eV,
+    fdf_arguments={
+                   'SCFMustConverge':False,
+                   'COOP.Write': True,
+                   'WriteDenchar': True,
+                   'PAO.BasisType': 'split',
+                   'DM.Tolerance': 1e-4,
+                   'DM.MixingWeight': 0.01,
+                   'MaxSCFIterations': 3,
+                   'DM.NumberPulay': 4}
 )
 
-dirt_cheap_siesta.set_optionnal_arguments(
-  {'MD.TypeOfRun': 'CG',
-   'MD.NumCGsteps': 0,
-   'MD.MaxForceTol': 0.02  * eV/Ang,
-   'COOP.Write': True,
-   'WriteDenchar': True,
-   'PAO.BasisType': 'split',
-   'DM.Tolerance': 1e-4,
-   'DM.MixingWeight': 0.01,
-   'MaxSCFIterations': 400,
-   'DM.NumberPulay': 4})
-
-Na8.set_calculator(dirt_cheap_siesta)
-dyn = QuasiNewton(Na8, trajectory='Na8.traj')
-dyn.run(fmax=0.02)
+Na8.set_calculator(siesta)
+Na8.get_potential_energy()
