@@ -435,7 +435,7 @@ command as the ``postgres`` user::
     $ python -m ase.db.postgresql password
     
 This will initialize some tables, create an ``ase`` user and set a password
-(see :git:`ase/ase/db/postgresq.py` for details).  You should now be able to
+(see :git:`ase/db/postgresql.py` for details).  You should now be able to
 query the database using an address like
 ``pg://user:password@host:port``::
  
