@@ -10,7 +10,7 @@ def get_raw_score(self):
     m = "atoms.get_raw_score() is deprecated and will be removed soon, "
     m += "use atoms.info['key_value_pairs']['raw_score'] instead."
     message = (m)
-    warnings.warn(message, PendingDeprecationWarning)
+    warnings.warn(message, FutureWarning)
     return self.info['key_value_pairs']['raw_score']
 
 
@@ -18,7 +18,7 @@ def set_raw_score(self, score):
     m = "atoms.set_raw_score() is deprecated and will be removed soon, "
     m += "use atoms.info['key_value_pairs']['raw_score'] instead."
     message = (m)
-    warnings.warn(message, PendingDeprecationWarning)
+    warnings.warn(message, FutureWarning)
     self.info['key_value_pairs']['raw_score'] = score
 
 
@@ -27,7 +27,7 @@ def enable_raw_score_methods(a):
     m += "use atoms.info['key_value_pairs']['raw_score'] to set "
     m += "and get the raw_score instead."
     message = (m)
-    warnings.warn(message, PendingDeprecationWarning)
+    warnings.warn(message, FutureWarning)
     if 'key_value_pairs' not in a.info:
         a.info['key_value_pairs'] = {}
     a.set_raw_score = types.MethodType(set_raw_score, a)
