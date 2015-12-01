@@ -40,13 +40,11 @@ assert hard_E_comp.looks_like(a1, a2)
 soft_E_comp = EnergyComparator(dE=.01)
 assert not soft_E_comp.looks_like(a1, a2)
 
-from ase.ga.atoms_attach import enable_raw_score_methods
+from ase.ga import set_raw_score
 from ase.ga.standard_comparators import RawScoreComparator
 
-enable_raw_score_methods(a1)
-a1.set_raw_score(.1)
-enable_raw_score_methods(a2)
-a2.set_raw_score(.27)
+set_raw_score(a1, .1)
+set_raw_score(a2, .27)
 
 rs_comp = RawScoreComparator(0.15)
 assert not rs_comp.looks_like(a1, a2)

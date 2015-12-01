@@ -3,7 +3,7 @@
 """
 import os
 from ase import Atoms
-from ase.ga.atoms_attach import enable_raw_score_methods
+from ase.ga import get_raw_score
 from ase.ga.atoms_attach import enable_parametrization_methods
 import ase.db
 
@@ -231,7 +231,6 @@ class DataConnection(object):
             t.info['relax_id'] = v.id
             trajs.append(t)
             self.already_returned.add(v.gaid)
-        # trajs.sort(key=lambda x: x.get_raw_score(), reverse=True)
         return trajs
 
     def get_all_relaxed_candidates_after_generation(self, gen):
@@ -247,7 +246,8 @@ class DataConnection(object):
             t.info['confid'] = v.gaid
             t.info['relax_id'] = v.id
             trajs.append(t)
-        trajs.sort(key=lambda x: x.get_raw_score(), reverse=True)
+        trajs.sort(key=lambda x: get_raw_score(x),
+                   reverse=True)
         return trajs
 
     def get_all_candidates_in_queue(self):
@@ -294,7 +294,6 @@ class DataConnection(object):
     def get_atoms(self, id, add_info=True):
         """Return the atoms object with the specified id"""
         a = self.c.get_atoms(id, add_additional_information=add_info)
-        enable_raw_score_methods(a)
         return a
 
     def get_param(self, parameter):
