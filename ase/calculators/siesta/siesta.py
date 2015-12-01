@@ -47,8 +47,8 @@ class Siesta3_2(BaseSiesta):
         'MD.LengthTimeStep': 's',
         'MD.InitialTemperature': 'eV',
         'MD.TargetTemperature': 'eV',
-        'MD.NoseMass': 'Kg*m**2',               #Not in ASE unit
-        'MD.ParrinelloRahmanMass': 'Kg*m**2',   #Not in ASE unit
+        'MD.NoseMass': 'Kg*m**2',               # Not in ASE unit
+        'MD.ParrinelloRahmanMass': 'Kg*m**2',   # Not in ASE unit
         'MD.TauRelax': 's',
         'MD.BulkModulus': 'eV/Ang**3',
         'MD.FCDispl': 'Ang'
@@ -348,8 +348,8 @@ class SiestaTrunk462(BaseSiesta):
         'MD.LengthTimeStep': 's',
         'MD.InitialTemperature': 'eV',
         'MD.TargetTemperature': 'eV',
-        'MD.NoseMass': 'Kg*m**2',               #Not in ASE unit
-        'MD.ParrinelloRahmanMass': 'Kg*m**2',   #Not in ASE unit
+        'MD.NoseMass': 'Kg*m**2',               # Not in ASE unit
+        'MD.ParrinelloRahmanMass': 'Kg*m**2',   # Not in ASE unit
         'MD.TauRelax': 's',
         'MD.BulkModulus': 'eV/Ang**3',
         'MD.FCDispl': 'Ang'

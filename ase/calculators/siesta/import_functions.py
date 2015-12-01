@@ -1,3 +1,11 @@
+import os
+import numpy as np
+import string
+
+from ase.units import Bohr
+from ase.io.fortranfile import FortranFile
+
+
 def xv_to_atoms(filename):
     """Create atoms object from xv file.
 
@@ -6,7 +14,8 @@ def xv_to_atoms(filename):
 
     return : An Atoms object
     """
-    if not path.exists(filename):
+    from ase.atoms import Atoms
+    if not os.path.exists(filename):
         filename += '.gz'
 
     with open(filename, 'r') as f:
@@ -63,7 +72,7 @@ def read_rho(fname):
         raise IOError('Failed to read grid size')
     gpts = x  # number of 'X', 'Y', 'Z', 'spin' gridpoints
 
-    rho = zeros(gpts)
+    rho = np.zeros(gpts)
     for ispin in range(gpts[3]):
         for n3 in range(gpts[2]):
             for n2 in range(gpts[1]):
@@ -75,6 +84,3 @@ def read_rho(fname):
 
     fh.close()
     return rho
-
-
-

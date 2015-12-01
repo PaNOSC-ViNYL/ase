@@ -1,4 +1,3 @@
-import os
 from ase.units import Ry, eV
 from ase.io import read
 from ase.calculators.siesta.parameters import Specie, PAOBasisBlock
@@ -43,9 +42,9 @@ calc = Siesta(
                    'DM.MixingWeight': 0.15,
                    'DM.NumberPulay': 3,
                    'MaxSCFIterations': 200,
-                   'ElectronicTemperature': 0.02585*eV, #300 K
+                   'ElectronicTemperature': 0.02585 * eV,  # 300 K
                    'SaveElectrostaticPotential': True
-                  },
+                   },
 )
 
 

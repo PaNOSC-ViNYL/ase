@@ -69,10 +69,10 @@ c_basis = """2 nodes 1.00
 basis_set = PAOBasisBlock(c_basis)
 specie = Specie(symbol='C', basis_set=basis_set)
 
-# Test that the optional arguments come first.
+# Test that the fdf_arguments come first.
 siesta = Siesta(
     label='test_label',
-    fdf_arguments ={'DM.Tolerance':1e-3},
+    fdf_arguments={'DM.Tolerance': 1e-3},
 )
 atoms.set_calculator(siesta)
 siesta.write_input(atoms, properties=['energy'])
@@ -85,10 +85,10 @@ assert 'DM.Tolerance  0.001\n' == lines[0]
 
 siesta = Siesta(
     label='test_label',
-    fdf_arguments ={
+    fdf_arguments={
         'DM.Tolerance': 1e-3,
         'ON.eta': 5 * Ry,
-        },
+    },
 )
 atoms.set_calculator(siesta)
 siesta.write_input(atoms, properties=['energy'])
@@ -99,7 +99,7 @@ siesta.write_input(atoms, properties=['energy'])
 with open('test_label.fdf', 'r') as f:
     lines = f.readlines()
 assert 'DM.Tolerance  0.001\n' in lines
-assert 'ON.eta  68.02848914 eV\n' in lines
+assert 'ON.eta  68.02848914 \teV\n' in lines
 
 # Remove the test directory.
 os.chdir('../..')

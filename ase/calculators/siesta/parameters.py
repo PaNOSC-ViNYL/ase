@@ -108,4 +108,3 @@ def format_key(key):
     key = key.replace('#', '_')
 
     return key
-
