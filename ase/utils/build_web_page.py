@@ -10,7 +10,10 @@ import sys
 def git_pull(name='ase'):
     os.chdir(name)
     try:
-        output = subprocess.check_output('git pull 2>> pull.err', shell=True)
+        output = subprocess.check_output(
+            'GIT_HTTP_LOW_SPEED_LIMIT=1000 '
+            'GIT_HTTP_LOW_SPEED_TIME=20 '  # make sure we get a timeout
+            'git pull 2>> pull.err', shell=True)
     finally:
         os.chdir('..')
     lastline = output.splitlines()[-1]
