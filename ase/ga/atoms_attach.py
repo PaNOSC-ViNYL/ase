@@ -61,6 +61,12 @@ def set_parametrization(self, parametrization):
 
 
 def enable_parametrization_methods(a):
+    m = "enable_parametrization_methods is deprecated and will "
+    m += "be removed soon, use "
+    m += "atoms.info['key_value_pairs']['parametrization'] to set "
+    m += "and get the parametrization parameters instead."
+    message = (m)
+    warnings.warn(message, FutureWarning)
     if 'data' not in a.info:
         a.info['data'] = {}
     a.set_neighbor_list = types.MethodType(set_neighbor_list, a)
