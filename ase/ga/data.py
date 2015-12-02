@@ -3,8 +3,8 @@
 """
 import os
 from ase import Atoms
-from ase.ga import get_raw_score
-from ase.ga.atoms_attach import enable_parametrization_methods
+from ase.ga import get_raw_score, set_neighbor_list
+from ase.ga import set_parametrization, get_parametrization
 import ase.db
 
 
@@ -107,10 +107,9 @@ class DataConnection(object):
             a.info['key_value_pairs']['generation'] = g
 
         if find_neighbors is not None:
-            enable_parametrization_methods(a)
-            a.set_neighbor_list(find_neighbors(a))
+            set_neighbor_list(a, find_neighbors(a))
         if perform_parametrization is not None:
-            a.set_parametrization(perform_parametrization(a))
+            set_parametrization(a, perform_parametrization(a))
 
         relax_id = self.c.write(a, gaid=gaid, relaxed=1,
                                 key_value_pairs=a.info['key_value_pairs'],
