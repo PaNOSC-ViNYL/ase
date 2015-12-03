@@ -596,7 +596,11 @@ def deblob(buf, dtype=float, shape=None):
     if len(buf) == 0:
         array = np.zeros(0, dtype)
     else:
-        array = np.frombuffer(buf, dtype)
+        if len(buf) % 2 == 1:
+            # old psycopg2:
+            array = np.fromstring(str(buf)[1:].decode('hex'), dtype)
+        else:
+            array = np.frombuffer(buf, dtype)
     if shape is not None:
         array.shape = shape
     return array
