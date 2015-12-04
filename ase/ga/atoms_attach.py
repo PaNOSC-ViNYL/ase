@@ -6,35 +6,48 @@ parametrization of the structure.
 import types
 import warnings
 
+m = "enable_raw_score_methods, atoms.get_raw_score and atoms.set_raw_score "
+m += "methods are deprecated and will be removed soon.\n"
+m += "Use instead:\n"
+m += "atoms.info['key_value_pairs']['raw_score'] directly to set and get\n"
+m += "OR:\n"
+m += "from ase.ga import get_raw_score, set_raw_score\n"
+m += "set_raw_score(atoms, raw_score)  # to set and \n"
+m += "get_raw_score(atoms)  # to get."
+raw_score_message = (m)
+
 def get_raw_score(self):
-    m = "atoms.get_raw_score() is deprecated and will be removed soon, "
-    m += "use atoms.info['key_value_pairs']['raw_score'] instead."
-    message = (m)
-    warnings.warn(message, FutureWarning)
+    warnings.warn(raw_score_message, FutureWarning)
     return self.info['key_value_pairs']['raw_score']
 
 
 def set_raw_score(self, score):
-    m = "atoms.set_raw_score() is deprecated and will be removed soon, "
-    m += "use atoms.info['key_value_pairs']['raw_score'] instead."
-    message = (m)
-    warnings.warn(message, FutureWarning)
+    warnings.warn(raw_score_message, FutureWarning)
     self.info['key_value_pairs']['raw_score'] = score
 
 
 def enable_raw_score_methods(a):
-    m = "enable_raw_score_methods is deprecated and will be removed soon, "
-    m += "use atoms.info['key_value_pairs']['raw_score'] to set "
-    m += "and get the raw_score instead."
-    message = (m)
-    warnings.warn(message, FutureWarning)
+    warnings.warn(raw_score_message, FutureWarning)
     if 'key_value_pairs' not in a.info:
         a.info['key_value_pairs'] = {}
     a.set_raw_score = types.MethodType(set_raw_score, a)
     a.get_raw_score = types.MethodType(get_raw_score, a)
 
 
+m = "enable_parametrization_methods, atoms.get_ and atoms.set_neighbor_list and "
+m += "atoms.get_ and atoms.set_parametrization are deprecated and will "
+m += "be removed soon, use instead:\n"
+m += "atoms.info['data']['parametrization'] and "
+m += "atoms.info['data']['neighborlist'] to set and get directly\n"
+m += "OR:\n"
+m += "from ase.ga import set_parametrization, set_neighbor_list\n"
+m += "from ase.ga import get_parametrization, get_neighbor_list\n"
+m += "set_parametrization(atoms, parametrization)  # to set\n"
+m += "get_parametrization(atoms)  # to get"
+message = (m)
+    
 def get_neighbor_list(self):
+    warnings.warn(message, FutureWarning)
     keys = self.info.keys()
     data = self.info['data'].keys()
     if 'data' in keys and 'neighborlist' in data:
@@ -44,10 +57,12 @@ def get_neighbor_list(self):
 
 
 def set_neighbor_list(self, neighbor_list):
+    warnings.warn(message, FutureWarning)
     self.info['data']['neighborlist'] = neighbor_list
 
 
 def get_parametrization(self):
+    warnings.warn(message, FutureWarning)
     keys = self.info.keys()
     data = self.info['data'].keys()
     if 'data' in keys and 'parametrization' in data:
@@ -57,15 +72,11 @@ def get_parametrization(self):
 
 
 def set_parametrization(self, parametrization):
+    warnings.warn(message, FutureWarning)
     self.info['data']['parametrization'] = parametrization
 
 
 def enable_parametrization_methods(a):
-    m = "enable_parametrization_methods is deprecated and will "
-    m += "be removed soon, use "
-    m += "atoms.info['key_value_pairs']['parametrization'] to set "
-    m += "and get the parametrization parameters instead."
-    message = (m)
     warnings.warn(message, FutureWarning)
     if 'data' not in a.info:
         a.info['data'] = {}
