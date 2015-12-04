@@ -848,6 +848,38 @@ def niggli_reduce(atoms):
     atoms.set_cell(G.get_new_cell())
     atoms.set_scaled_positions(scpos)
 
+
+def get_duplicate_atoms(atoms, cutoff=0.1, delete=False):
+    """Get list of duplicate atoms and delete them if requested.
+
+    Identify all atoms which lie within the cutoff radius of each other.
+    Delete one set of them if delete == True.
+    """
+    from scipy.spatial.distance import pdist
+    dists = pdist(atoms.get_positions())
+    dup = np.nonzero(dists < cutoff)
+    rem = np.array(_row_col_from_pdist(atoms.get_number_of_atoms(), dup[0]))
+    if delete:
+        if rem.size != 0:
+            del atoms[rem[:, 0]]
+    else:
+        return rem
+
+
+def _row_col_from_pdist(dim, i):
+    """Calculate the i,j index in the square matrix for an index in a
+    condensed (triangular) matrix.
+    """
+    i = np.array(i)
+    b = 1 - 2 * dim
+    x = (np.floor((-b - np.sqrt(b**2 - 8*i))/2)).astype(int)
+    y = (i + x*(b + x + 2)/2 + 1).astype(int)
+    if i.shape:
+        return zip(x, y)
+    else:
+        return (x, y)
+
+
 # Self test
 if __name__ == '__main__':
     import doctest
